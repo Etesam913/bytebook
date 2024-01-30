@@ -1,0 +1,33 @@
+name: 💄 Linting
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+  push:
+    branches: [master]
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  biome:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔀 Checking out Repo
+        uses: actions/checkout@v4
+
+      - name: ⬇️ Installing Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: 📦 Installing Dependencies
+        run: |
+          cd frontend
+          npm i -g pnpm
+          pnpm install
+
+      - name: ⌛️ Running Biome
+        run: |
+          cd frontend/
+          pnpm run fmt
