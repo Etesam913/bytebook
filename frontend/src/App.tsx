@@ -1,10 +1,8 @@
-import { useState } from 'react';
-import logo from './assets/images/logo-universal.png';
-import './App.css';
-import { Greet } from '../wailsjs/go/main/App';
+import "./App.css";
+// import { Greet } from "../wailsjs/go/main/App";
 
 function App() {
-  return <div id="App"></div>;
+	return <div id="App">testing</div>;
 }
 
 export default App;
