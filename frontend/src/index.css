@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+h1{
+  @apply text-3xl leading-[3.25rem];
+}
+
+h2{
+  @apply text-2xl;
+}
+
+h3{
+  @apply text-xl;
+}
+
+ul {@apply list-disc}
+li{
+  @apply list-item;
+}
+

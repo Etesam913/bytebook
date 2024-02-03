@@ -10,6 +10,14 @@
 		"fmt": "pnpm dlx @biomejs/biome check --apply ./src"
 	},
 	"dependencies": {
+		"@lexical/code": "^0.13.1",
+		"@lexical/link": "^0.13.1",
+		"@lexical/list": "^0.13.1",
+		"@lexical/markdown": "^0.13.1",
+		"@lexical/react": "^0.13.1",
+		"@lexical/rich-text": "^0.13.1",
+		"@lexical/utils": "^0.13.1",
+		"lexical": "^0.13.1",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0"
 	},
