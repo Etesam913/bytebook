@@ -7,7 +7,7 @@
 		"dev": "vite",
 		"build": "tsc && vite build",
 		"preview": "vite preview",
-		"fmt": "pnpm dlx @biomejs/biome check --apply ./src"
+		"fmt": "biome check --apply ./src"
 	},
 	"dependencies": {
 		"@lexical/code": "^0.13.1",
