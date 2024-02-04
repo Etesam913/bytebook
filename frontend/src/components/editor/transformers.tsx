@@ -5,7 +5,6 @@ import {
 	BOLD_UNDERSCORE,
 	CODE,
 	ElementTransformer,
-	HEADING,
 	INLINE_CODE,
 	ITALIC_STAR,
 	ITALIC_UNDERSCORE,

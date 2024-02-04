@@ -14,35 +14,10 @@ h3{
   @apply text-xl;
 }
 
-.PlaygroundEditorTheme__ol1 {
-  padding: 0;
-  margin: 0;
-  list-style-position: inside;
-}
-.PlaygroundEditorTheme__ol2 {
-  padding: 0;
-  margin: 0;
-  list-style-type: upper-alpha;
-  list-style-position: inside;
-}
-.PlaygroundEditorTheme__ol3 {
-  padding: 0;
-  margin: 0;
-  list-style-type: lower-alpha;
-  list-style-position: inside;
-}
-.PlaygroundEditorTheme__ol4 {
-  padding: 0;
-  margin: 0;
-  list-style-type: upper-roman;
-  list-style-position: inside;
-}
-.PlaygroundEditorTheme__ol5 {
-  padding: 0;
-  margin: 0;
-  list-style-type: lower-roman;
-  list-style-position: inside;
-}
+/** 
+ * Lexical Editor Styles (Tailwind does not wok too well with it)
+ */
+
 .root-ol{
   padding: 0;
   margin: 0;
@@ -69,11 +44,12 @@ h3{
   margin: 0 32px;
 }
 
-.PlaygroundEditorTheme__nestedListItem {
+.nested-li{
   list-style-type: none;
 }
-.PlaygroundEditorTheme__nestedListItem:before,
-.PlaygroundEditorTheme__nestedListItem:after {
+
+.nested:before,
+.nested:after {
   display: none;
 }
 

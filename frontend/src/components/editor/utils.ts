@@ -1,4 +1,8 @@
-import { $createHeadingNode, HeadingNode } from "@lexical/rich-text";
+import {
+	INSERT_ORDERED_LIST_COMMAND,
+	INSERT_UNORDERED_LIST_COMMAND,
+} from "@lexical/list";
+import { $createHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
 import {
 	$createParagraphNode,
@@ -17,8 +21,9 @@ export function changeSelectedBlocksType(
 ) {
 	editor.update(() => {
 		const selection = $getSelection();
-
 		if ($isRangeSelection(selection)) {
+			const nodes = selection.getNodes();
+
 			switch (newBlockType) {
 				case "paragraph":
 					$setBlocksType(selection, () => $createParagraphNode());
@@ -31,6 +36,12 @@ export function changeSelectedBlocksType(
 					break;
 				case "h3":
 					$setBlocksType(selection, () => $createHeadingNode("h3"));
+					break;
+				case "ol":
+					editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+					break;
+				case "ul":
+					editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
 					break;
 			}
 		}
