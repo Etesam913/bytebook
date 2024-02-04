@@ -5,11 +5,16 @@ import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import {
 	$getSelection,
 	$isRangeSelection,
+	FORMAT_TEXT_COMMAND,
 	SELECTION_CHANGE_COMMAND,
 } from "lexical";
 import { type Dispatch, type SetStateAction, useEffect } from "react";
 import { EditorBlockTypes } from "../../types";
 import { changeSelectedBlocksType } from "./utils";
+import TextBold from "../../icons/text-bold";
+import TextItalic from "../../icons/text-italic";
+import TextUnderline from "../../icons/text-underline";
+import TextStrikethrough from "../../icons/text-strikethrough";
 
 const LOW_PRIORITY = 1;
 
@@ -45,7 +50,6 @@ export function Toolbar({
 			else if ($isListNode(element)) {
 				const parentList = $getNearestNodeOfType(anchorNode, ListNode);
 				const type = parentList ? parentList.getTag() : element.getTag();
-				console.log(type);
 				setCurrentBlockType(type);
 			}
 			// Consists of blocks like paragraph, quote, code, etc.
@@ -58,11 +62,6 @@ export function Toolbar({
 
 	useEffect(() => {
 		return mergeRegister(
-			// editor.registerUpdateListener(({ editorState }) => {
-			//   editorState.read(() => {
-			//     updateToolbar();
-			//   });
-			// }),
 			editor.registerCommand(
 				SELECTION_CHANGE_COMMAND,
 				(_payload, newEditor) => {
@@ -75,8 +74,7 @@ export function Toolbar({
 	}, [editor]);
 
 	return (
-		<nav className="flex flex-col justify-center">
-			Toolbar
+		<nav className="flex gap-3 p-2">
 			<select
 				onChange={(e) => changeSelectedBlocksType(editor, e.target.value)}
 				value={currentBlockType}
@@ -89,6 +87,35 @@ export function Toolbar({
 				<option value="ul">ul</option>
 				<option value="ol">ol</option>
 			</select>
+			<button
+				onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold")}
+				type="button"
+			>
+				<TextBold />
+			</button>
+
+			<button
+				type="button"
+				onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic")}
+			>
+				<TextItalic />
+			</button>
+
+			<button
+				type="button"
+				onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline")}
+			>
+				<TextUnderline />
+			</button>
+
+			<button
+				type="button"
+				onClick={() =>
+					editor.dispatchCommand(FORMAT_TEXT_COMMAND, "strikethrough")
+				}
+			>
+				<TextStrikethrough />
+			</button>
 		</nav>
 	);
 }

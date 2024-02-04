@@ -15,7 +15,7 @@ h3{
 }
 
 /** 
- * Lexical Editor Styles (Tailwind does not wok too well with it)
+ * Lexical Editor Styles (Tailwind does not wok too well with)
  */
 
 .root-ol{
@@ -53,3 +53,15 @@ h3{
   display: none;
 }
 
+.text-italic{
+  font-style: italic;
+}
+.text-bold{
+  font-weight: bold;
+}
+.text-underline{
+  text-decoration: underline;
+}
+.text-strikethrough{
+  text-decoration: line-through;
+}

@@ -22,8 +22,6 @@ export function changeSelectedBlocksType(
 	editor.update(() => {
 		const selection = $getSelection();
 		if ($isRangeSelection(selection)) {
-			const nodes = selection.getNodes();
-
 			switch (newBlockType) {
 				case "paragraph":
 					$setBlocksType(selection, () => $createParagraphNode());

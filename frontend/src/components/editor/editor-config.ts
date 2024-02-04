@@ -22,6 +22,12 @@ export const theme: EditorThemeClasses = {
 			listitem: "nested-li",
 		},
 	},
+	text: {
+		bold: "text-bold",
+		italic: "text-italic",
+		underline: "text-underline",
+		strikethrough: "text-strikethrough",
+	}
 };
 
 export const editorConfig: InitialConfigType = {
