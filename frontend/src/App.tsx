@@ -5,7 +5,6 @@ function App() {
 	return (
 		<div id="App" className="bg-blue-200">
 			<NotesEditor />
-			<div className="line-through">test</div>
 		</div>
 	);
 }

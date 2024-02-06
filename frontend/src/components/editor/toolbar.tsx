@@ -15,6 +15,9 @@ import TextBold from "../../icons/text-bold";
 import TextItalic from "../../icons/text-italic";
 import TextUnderline from "../../icons/text-underline";
 import TextStrikethrough from "../../icons/text-strikethrough";
+import { $convertToMarkdownString } from "@lexical/markdown";
+import { CUSTOM_TRANSFORMERS } from "./transformers";
+import { StoreMarkdown } from "../../../wailsjs/go/main/App";
 
 const LOW_PRIORITY = 1;
 
@@ -115,6 +118,19 @@ export function Toolbar({
 				}
 			>
 				<TextStrikethrough />
+			</button>
+
+			<button
+				onClick={() =>
+					editor.update(() => {
+						const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS);
+						StoreMarkdown(markdown);
+					})
+				}
+				type="button"
+				className="ml-auto"
+			>
+				download
 			</button>
 		</nav>
 	);
