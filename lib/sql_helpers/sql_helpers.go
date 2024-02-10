@@ -3,23 +3,33 @@ package sql_helpers
 import (
 	"database/sql"
 	"log"
+	"os"
+	"path/filepath"
+	"runtime"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const ProjectName = "Bytebook"
+const DbName = "bytebook.db"
+
 func InitializeDb() *sql.DB {
-	db, err := sql.Open("sqlite3", "./bytebook.db")
+	defaultDbPath, err := getDefaultDbPath()
+	if err != nil {
+		log.Fatalf("Could not get the default db path")
+	}
+	db, err := sql.Open("sqlite3", defaultDbPath)
+
 	if err != nil {
 		log.Fatalf("Error creating database %v", err)
 	}
-	CreateFoldersTable(db)
-	CreateNotesTable(db)
+	createFoldersTable(db)
+	createNotesTable(db)
 
-	// defer db.Close()
 	return db
 }
 
-func CreateFoldersTable(db *sql.DB) {
+func createFoldersTable(db *sql.DB) {
 	sqlStmt := `
 	CREATE TABLE IF NOT EXISTS folders (
 		folder_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,7 +44,34 @@ func CreateFoldersTable(db *sql.DB) {
 	}
 }
 
-func CreateNotesTable(db *sql.DB) {
+func getDefaultDbPath() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "Could not get user's home directory", err
+	}
+
+	// Customize the folder and database name as needed
+	var dbPath string
+	switch os := runtime.GOOS; os {
+	case "windows":
+		dbPath = filepath.Join(homeDir, "AppData", "Local", ProjectName, DbName)
+	case "darwin":
+		dbPath = filepath.Join(homeDir, "Library", "Application Support", ProjectName, DbName)
+	case "linux":
+		dbPath = filepath.Join(homeDir, ".local", "share", ProjectName, DbName)
+	default:
+		// Fallback for other OS or as a default (can also decide to return an error instead)
+		dbPath = filepath.Join(homeDir, ProjectName, DbName)
+	}
+	// Ensure the directory exists
+	if err := os.MkdirAll(filepath.Dir(dbPath), os.ModePerm); err != nil {
+		return "Could not create the dbPath directory", err
+	}
+
+	return dbPath, nil
+}
+
+func createNotesTable(db *sql.DB) {
 	sql_stmt := `
 	CREATE TABLE IF NOT EXISTS notes (
 		note_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,5 +99,4 @@ func CreateNotesTable(db *sql.DB) {
 	if err != nil {
 		log.Fatalf("Error creating trigger: %v", err)
 	}
-
 }
