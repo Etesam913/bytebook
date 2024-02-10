@@ -1,29 +1,66 @@
 package sql_helpers
 
 import (
-	"context"
-	"fmt"
-	"os"
+	"database/sql"
+	"log"
 
-	"github.com/jackc/pgx/v4"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-func TableExists(conn *pgx.Conn, tableName string) bool {
-	var exists bool
-	err := conn.QueryRow(context.Background(), "SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = $1)", tableName).Scan(&exists)
+func InitializeDb() {
+	db, err := sql.Open("sqlite3", "./bytebook.db")
 	if err != nil {
-			fmt.Fprintf(os.Stderr, "Error checking if table exists: %v\n", err)
-			return false
+		log.Fatalf("Error creating database %v", err)
 	}
-	return exists
+	CreateFoldersTable(db)
+	CreateNotesTable(db)
+
+	defer db.Close()
+
 }
 
-func CreateFoldersTable(conn *pgx.Conn){
-	conn.Exec(context.Background(), 
-	"CREATE TABLE folders(folder_id SERIAL PRIMARY KEY, folder_name VARCHAR(48) NOT NULL, created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(), updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW())")
+func CreateFoldersTable(db *sql.DB) {
+	sqlStmt := `
+	CREATE TABLE IF NOT EXISTS folders (
+		folder_id INTEGER PRIMARY KEY AUTOINCREMENT,
+		folder_name TEXT NOT NULL,
+		created_at TEXT DEFAULT (datetime('now')),
+		updated_at TEXT DEFAULT (datetime('now'))
+	);	
+	`
+	_, err := db.Exec(sqlStmt)
+	if err != nil {
+		log.Fatalf("Error creating folder table: %v", err)
+	}
 }
 
-func CreateNotesTable(conn *pgx.Conn){
-	conn.Exec(context.Background(), 
-	"CREATE TABLE notes(note_id UUID PRIMARY KEY, folder_id INTEGER REFERENCES folders(folder_id) on DELETE CASCADE, note_content TEXT NOT NULL, created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(), updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW())")
+func CreateNotesTable(db *sql.DB) {
+	sql_stmt := `
+	CREATE TABLE IF NOT EXISTS notes (
+		note_id TEXT PRIMARY KEY,
+		folder_id INTEGER,
+		note_content TEXT NOT NULL,
+		created_at TEXT DEFAULT (datetime('now')),
+		updated_at TEXT DEFAULT (datetime('now')),
+		FOREIGN KEY (folder_id) REFERENCES folders(folder_id) ON DELETE CASCADE
+	);
+	`
+
+	_, err := db.Exec(sql_stmt)
+	if err != nil {
+		log.Fatalf("Error creating notes table: %v", err)
+	}
+
+	// Create trigger for cascading delete.
+	_, err = db.Exec(`
+		CREATE TRIGGER IF NOT EXISTS fk_notes_folder_id
+		BEFORE DELETE ON folders
+		FOR EACH ROW BEGIN
+			DELETE FROM notes WHERE folder_id = OLD.folder_id;
+		END;
+	`)
+	if err != nil {
+		log.Fatalf("Error creating trigger: %v", err)
+	}
+
 }
