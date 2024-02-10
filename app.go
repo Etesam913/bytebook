@@ -2,15 +2,17 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 
-	"github.com/etesam913/bytebook/sql_helpers"
+	"github.com/etesam913/bytebook/lib/sql_helpers"
 )
 
 // App struct
 type App struct {
 	ctx context.Context
+	db  *sql.DB
 }
 
 // NewApp creates a new App application struct
@@ -22,7 +24,11 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-	sql_helpers.InitializeDb()
+	a.db = sql_helpers.InitializeDb()
+}
+
+func (a *App) shutdown(ctx context.Context) {
+	a.db.Close()
 }
 
 func (a *App) StoreMarkdown(markdown string) {

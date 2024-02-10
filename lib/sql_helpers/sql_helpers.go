@@ -7,7 +7,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func InitializeDb() {
+func InitializeDb() *sql.DB {
 	db, err := sql.Open("sqlite3", "./bytebook.db")
 	if err != nil {
 		log.Fatalf("Error creating database %v", err)
@@ -15,8 +15,8 @@ func InitializeDb() {
 	CreateFoldersTable(db)
 	CreateNotesTable(db)
 
-	defer db.Close()
-
+	// defer db.Close()
+	return db
 }
 
 func CreateFoldersTable(db *sql.DB) {
@@ -37,7 +37,7 @@ func CreateFoldersTable(db *sql.DB) {
 func CreateNotesTable(db *sql.DB) {
 	sql_stmt := `
 	CREATE TABLE IF NOT EXISTS notes (
-		note_id TEXT PRIMARY KEY,
+		note_id INTEGER PRIMARY KEY AUTOINCREMENT,
 		folder_id INTEGER,
 		note_content TEXT NOT NULL,
 		created_at TEXT DEFAULT (datetime('now')),
