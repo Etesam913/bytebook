@@ -4,8 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
+	"path/filepath"
 
+	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/etesam913/bytebook/lib/sql_helpers"
 )
 
@@ -24,7 +27,12 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-	a.db = sql_helpers.InitializeDb()
+	project_path, err := project_helpers.GetProjectPath()
+	if err != nil {
+		log.Fatalf("Error getting project path: %v", err)
+	}
+
+	a.db = sql_helpers.InitializeDb(filepath.Join(project_path, sql_helpers.DbName))
 }
 
 func (a *App) shutdown(ctx context.Context) {

@@ -6,11 +6,11 @@ import (
 )
 
 func TestIntializeDb(t *testing.T) {
-	db := InitializeDb()
+	db := InitializeDb("./bytebook-test.db")
 
 	defer db.Close()
 
-	defer os.Remove("./bytebook.db")
+	defer os.Remove("./bytebook-test.db")
 
 	// Test if the folders table exists and can be queried.
 	if _, err := db.Query("SELECT 1 FROM folders LIMIT 1"); err != nil {
