@@ -17,18 +17,20 @@ import TextUnderline from "../../icons/text-underline";
 import TextStrikethrough from "../../icons/text-strikethrough";
 import { $convertToMarkdownString } from "@lexical/markdown";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
-import { StoreMarkdown } from "../../../wailsjs/go/main/App";
+import { StoreMarkdown, WriteNote } from "../../../wailsjs/go/main/App";
 
 const LOW_PRIORITY = 1;
 
 interface ToolbarProps {
 	currentBlockType: EditorBlockTypes;
 	setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>;
+	noteTitle: string;
 }
 
 export function Toolbar({
 	currentBlockType,
 	setCurrentBlockType,
+	noteTitle,
 }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
 
@@ -121,6 +123,19 @@ export function Toolbar({
 			</button>
 
 			<button
+				type="button"
+				className="ml-auto"
+				onClick={() => {
+					editor.update(() => {
+						const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS);
+						WriteNote(noteTitle, markdown);
+					});
+				}}
+			>
+				save
+			</button>
+
+			<button
 				onClick={() =>
 					editor.update(() => {
 						const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS);
@@ -128,7 +143,6 @@ export function Toolbar({
 					})
 				}
 				type="button"
-				className="ml-auto"
 			>
 				download
 			</button>

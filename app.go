@@ -32,6 +32,11 @@ func (a *App) startup(ctx context.Context) {
 		log.Fatalf("Error getting project path: %v", err)
 	}
 
+	notesPath := filepath.Join(project_path, "notes")
+	if err := os.MkdirAll(notesPath, os.ModePerm); err != nil {
+		log.Fatalf("Failed to create notes directory: %v", err)
+	}
+
 	a.db = sql_helpers.InitializeDb(filepath.Join(project_path, sql_helpers.DbName))
 }
 
@@ -48,4 +53,20 @@ func (a *App) StoreMarkdown(markdown string) {
 		fmt.Printf("Error writing to %s: %v", testFilename, err)
 		return
 	}
+}
+
+func (a *App) WriteNote(noteTitle string, markdown string) bool {
+	project_path, err := project_helpers.GetProjectPath()
+	if err != nil {
+		log.Fatalf("Error getting project path: %v", err)
+	}
+	noteFilePath := filepath.Join(project_path, "notes", fmt.Sprintf("%s.md", noteTitle))
+
+	err = os.WriteFile(noteFilePath, []byte(markdown), 0644)
+
+	if err != nil {
+		fmt.Printf("Error writing to %s: %v", noteFilePath, err)
+		return false
+	}
+	return true
 }

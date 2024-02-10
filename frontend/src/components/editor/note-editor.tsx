@@ -14,10 +14,13 @@ import { CUSTOM_TRANSFORMERS } from "./transformers";
 
 export function NotesEditor() {
 	const [currentBlockType, setCurrentBlockType] = useState<EditorBlockTypes>();
+	const [noteTitle, setNoteTitle] = useState("");
 
 	return (
 		<LexicalComposer initialConfig={editorConfig}>
+			<input value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)} />
 			<Toolbar
+				noteTitle={noteTitle}
 				currentBlockType={currentBlockType}
 				setCurrentBlockType={setCurrentBlockType}
 			/>

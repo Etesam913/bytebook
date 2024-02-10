@@ -5,3 +5,7 @@
 export function StoreMarkdown(arg1) {
   return window['go']['main']['App']['StoreMarkdown'](arg1);
 }
+
+export function WriteNote(arg1, arg2) {
+  return window['go']['main']['App']['WriteNote'](arg1, arg2);
+}
