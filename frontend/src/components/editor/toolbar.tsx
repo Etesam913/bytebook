@@ -8,16 +8,18 @@ import {
 	FORMAT_TEXT_COMMAND,
 	SELECTION_CHANGE_COMMAND,
 } from "lexical";
-import { type Dispatch, type SetStateAction, useEffect } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { EditorBlockTypes } from "../../types";
 import { changeSelectedBlocksType } from "./utils";
-import TextBold from "../../icons/text-bold";
-import TextItalic from "../../icons/text-italic";
-import TextUnderline from "../../icons/text-underline";
-import TextStrikethrough from "../../icons/text-strikethrough";
+import { TextBold } from "../../icons/text-bold";
+import { TextItalic } from "../../icons/text-italic";
+import { TextUnderline } from "../../icons/text-underline";
+import { TextStrikethrough } from "../../icons/text-strikethrough";
+import { FloppyDisk } from "../../icons/floppy-disk";
 import { $convertToMarkdownString } from "@lexical/markdown";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
-import { StoreMarkdown, WriteNote } from "../../../wailsjs/go/main/App";
+import { WriteNote } from "../../../wailsjs/go/main/App";
+import { CodePullRequest } from "../../icons/code-pull-request";
 
 const LOW_PRIORITY = 1;
 
@@ -33,7 +35,7 @@ export function Toolbar({
 	noteTitle,
 }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
-
+	const [isCommitModalOpen, setIsCommitModalOpen] = useState(false);
 	function updateToolbar() {
 		const selection = $getSelection();
 		if ($isRangeSelection(selection)) {
@@ -125,6 +127,13 @@ export function Toolbar({
 			<button
 				type="button"
 				className="ml-auto"
+				onClick={() => setIsCommitModalOpen(true)}
+			>
+				<CodePullRequest />
+			</button>
+
+			<button
+				type="button"
 				onClick={() => {
 					editor.update(() => {
 						const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS);
@@ -132,20 +141,25 @@ export function Toolbar({
 					});
 				}}
 			>
-				save
+				<FloppyDisk />
 			</button>
 
-			<button
-				onClick={() =>
-					editor.update(() => {
-						const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS);
-						StoreMarkdown(markdown);
-					})
-				}
-				type="button"
+			<dialog
+				open={isCommitModalOpen}
+				onClose={() => setIsCommitModalOpen(false)}
 			>
-				download
-			</button>
+				<form method="dialog" className="flex flex-col gap-2 p-2 shadow-lg">
+					<label htmlFor="remote-url">remote url</label>
+					<input id="remote-url" className="p-1 bg-slate-100" />
+					<button
+						className=" bg-slate-500  text-white"
+						type="submit"
+						onClick={() => setIsCommitModalOpen(false)}
+					>
+						close
+					</button>
+				</form>
+			</dialog>
 		</nav>
 	);
 }

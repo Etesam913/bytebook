@@ -1,9 +1,9 @@
-export function TextStrikethrough({
+export function FloppyDisk({
 	width = "1.25rem",
 	height = "1.25rem",
 	fill = "currentColor",
 	secondaryfill = "currentColor",
-	title = "text-strikethrough",
+	title = "floppy-disk",
 }: {
 	width?: string;
 	height?: string;
@@ -21,30 +21,26 @@ export function TextStrikethrough({
 			<title>{title}</title>
 			<g fill={secondaryfill} stroke={secondaryfill}>
 				<path
-					d="M13,11.336c.091,.274,.145,.579,.153,.919,.051,2.076-1.817,3.495-4.074,3.495-2.157,0-3.655-.839-4.234-2.736"
+					d="M10.75,2.25v3c0,.552-.448,1-1,1h-3.5c-.552,0-1-.448-1-1V2.25"
 					fill="none"
-					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1.5"
 				/>
 				<path
-					d="M12.774,4.626c-.819-1.937-2.456-2.376-3.695-2.376-1.152,0-4.174,.612-3.894,3.515,.196,2.037,2.117,2.796,3.794,3.095,.221,.039,.454,.085,.694,.139"
+					d="M5.25,15.75v-5c0-.552,.448-1,1-1h5.5c.552,0,1,.448,1,1v5"
+					fill="none"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					strokeWidth="1.5"
+				/>
+				<path
+					d="M13.59,15.75H4.41c-1.193,0-2.16-.967-2.16-2.16V4.41c0-1.193,.967-2.16,2.16-2.16h7.426c.265,0,.52,.105,.707,.293l2.914,2.914c.188,.188,.293,.442,.293,.707v7.426c0,1.193-.967,2.16-2.16,2.16Z"
 					fill="none"
 					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1.5"
-				/>
-				<line
-					fill="none"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					strokeWidth="1.5"
-					x1="2"
-					x2="16"
-					y1="9"
-					y2="9"
 				/>
 			</g>
 		</svg>

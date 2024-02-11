@@ -43,5 +43,3 @@ export function TextUnderline({
 		</svg>
 	);
 }
-
-export default TextUnderline;

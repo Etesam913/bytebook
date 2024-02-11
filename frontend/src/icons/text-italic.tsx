@@ -1,4 +1,4 @@
-function TextItalic({
+export function TextItalic({
 	width = "1.25rem",
 	height = "1.25rem",
 	fill = "currentColor",
@@ -44,5 +44,3 @@ function TextItalic({
 		</svg>
 	);
 }
-
-export default TextItalic;

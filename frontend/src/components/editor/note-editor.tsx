@@ -18,7 +18,13 @@ export function NotesEditor() {
 
 	return (
 		<LexicalComposer initialConfig={editorConfig}>
-			<input value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)} />
+			<label htmlFor="note-title">Note Title</label>
+			<input
+				className="block"
+				id="note-title"
+				value={noteTitle}
+				onChange={(e) => setNoteTitle(e.target.value)}
+			/>
 			<Toolbar
 				noteTitle={noteTitle}
 				currentBlockType={currentBlockType}

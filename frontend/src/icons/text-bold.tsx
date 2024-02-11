@@ -47,5 +47,3 @@ export function TextBold({
 		</svg>
 	);
 }
-
-export default TextBold;

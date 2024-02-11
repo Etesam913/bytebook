@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/etesam913/bytebook/lib/git_helpers"
 	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/etesam913/bytebook/lib/sql_helpers"
 )
@@ -38,21 +39,13 @@ func (a *App) startup(ctx context.Context) {
 	}
 
 	a.db = sql_helpers.InitializeDb(filepath.Join(project_path, sql_helpers.DbName))
+
+	git_helpers.InitalizeGitRepo()
+	git_helpers.SetRepoOrigin("https://github.com/Etesam913/bytebook-test.git")
 }
 
 func (a *App) shutdown(ctx context.Context) {
 	a.db.Close()
-}
-
-func (a *App) StoreMarkdown(markdown string) {
-	fmt.Println(markdown)
-	testFilename := "test_markdown.md"
-
-	err := os.WriteFile(testFilename, []byte(markdown), 0644)
-	if err != nil {
-		fmt.Printf("Error writing to %s: %v", testFilename, err)
-		return
-	}
 }
 
 func (a *App) WriteNote(noteTitle string, markdown string) bool {

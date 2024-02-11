@@ -1,9 +1,9 @@
-export function TextStrikethrough({
+export function CodePullRequest({
 	width = "1.25rem",
 	height = "1.25rem",
 	fill = "currentColor",
 	secondaryfill = "currentColor",
-	title = "text-strikethrough",
+	title = "code-merge",
 }: {
 	width?: string;
 	height?: string;
@@ -21,30 +21,52 @@ export function TextStrikethrough({
 			<title>{title}</title>
 			<g fill={secondaryfill} stroke={secondaryfill}>
 				<path
-					d="M13,11.336c.091,.274,.145,.579,.153,.919,.051,2.076-1.817,3.495-4.074,3.495-2.157,0-3.655-.839-4.234-2.736"
+					d="M14.25,12.25V5.75c0-1.105-.895-2-2-2h-3.5"
 					fill="none"
-					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1.5"
 				/>
 				<path
-					d="M12.774,4.626c-.819-1.937-2.456-2.376-3.695-2.376-1.152,0-4.174,.612-3.894,3.515,.196,2.037,2.117,2.796,3.794,3.095,.221,.039,.454,.085,.694,.139"
+					d="M3.75,5.75v6.5c0,1.105,.895,2,2,2h3.5"
 					fill="none"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					strokeWidth="1.5"
+				/>
+				<polyline
+					fill="none"
+					points="11 6 8.75 3.75 11 1.5"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					strokeWidth="1.5"
+				/>
+				<polyline
+					fill="none"
+					points="7 12 9.25 14.25 7 16.5"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					strokeWidth="1.5"
+				/>
+				<circle
+					cx="14.25"
+					cy="14.25"
+					fill="none"
+					r="2"
 					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1.5"
 				/>
-				<line
+				<circle
+					cx="3.75"
+					cy="3.75"
 					fill="none"
+					r="2"
+					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1.5"
-					x1="2"
-					x2="16"
-					y1="9"
-					y2="9"
 				/>
 			</g>
 		</svg>
