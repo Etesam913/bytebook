@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 *{
-  @apply transition-colors duration-300 dark:[color-scheme:dark];
+  @apply transition-colors duration-300 dark:[color-scheme:dark] text-[0.95rem];
  
 }
 
