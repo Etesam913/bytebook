@@ -55,3 +55,17 @@ func GetFolders(projectPath string) (folders []string, err error) {
 
 	return folders, nil
 }
+
+type AddFolderRequest struct {
+	Success bool
+	Message string
+}
+
+func AddFolder(projectPath string, folderName string) AddFolderRequest {
+	notesPath := filepath.Join(projectPath, "notes", folderName)
+	// Ensure the directory exists
+	if err := os.MkdirAll(notesPath, os.ModePerm); err != nil {
+		return AddFolderRequest{Success: false, Message: err.Error()}
+	}
+	return AddFolderRequest{Success: true, Message: ""}
+}

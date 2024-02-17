@@ -1,3 +1,4 @@
+import { Dialog } from "./components/dialog";
 import { Sidebar } from "./components/sidebar";
 import { Titlebar } from "./components/titlebar";
 

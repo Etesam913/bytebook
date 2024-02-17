@@ -63,6 +63,5 @@ func (a *App) GetFolderNames() []string {
 	if err != nil {
 		log.Fatalf("Error getting folder names: %v", err)
 	}
-	fmt.Printf("Ok getting folder names: %v", folderNames)
 	return folderNames
 }
