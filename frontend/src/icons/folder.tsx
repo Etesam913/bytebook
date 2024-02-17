@@ -4,17 +4,19 @@ export function Folder({
 	fill = "currentColor",
 	secondaryfill = "currentColor",
 	title = "folder",
+	className,
 }: {
 	width?: string;
 	height?: string;
 	fill?: string;
 	secondaryfill?: string;
 	title?: string;
+	className?: string;
 }) {
 	return (
 		<svg
-			height={height}
-			width={width}
+			className={className}
+			style={{ width, height }}
 			viewBox="0 0 18 18"
 			xmlns="http://www.w3.org/2000/svg"
 		>

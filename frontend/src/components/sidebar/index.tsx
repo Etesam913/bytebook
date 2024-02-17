@@ -1,4 +1,4 @@
-import { motion, useSpring } from "framer-motion";
+import { AnimatePresence, motion, useSpring } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { GetFolderNames } from "../../../wailsjs/go/main/App";
 import { Folder } from "../../icons/folder";
@@ -6,8 +6,8 @@ import { FolderPlus } from "../../icons/folder-plus";
 import { cn } from "../../utils/tailwind";
 import { MotionButton } from "../button";
 import { Spacer } from "./spacer";
-import { Dialog } from "../dialog";
 import { getDefaultButtonVariants } from "../../variants";
+import { SidebarDialog } from "./sidebar-dialog";
 
 export function Sidebar() {
 	const [folders, setFolders] = useState<string[] | null>([]);
@@ -23,42 +23,31 @@ export function Sidebar() {
 	useEffect(() => {
 		GetFolderNames()
 			.then((folders) => setFolders(folders))
-			.catch((err) => setFolders(null));
+			.catch(() => setFolders(null));
 	}, []);
 
 	const folderElements = folders?.map((folderName) => {
 		return (
-			<li className="flex gap-2 items-center pl-3">
-				<Folder /> <p>{folderName}</p>
+			<li key={folderName} className="flex gap-2 items-center pl-3 pb-2">
+				<Folder className="min-w-[1.25rem]" />{" "}
+				<p className="whitespace-nowrap text-ellipsis overflow-hidden">
+					{folderName}
+				</p>
 			</li>
 		);
 	});
 
 	return (
 		<>
-			<Dialog
-				title="Create Folder"
-				isOpen={isFolderDialogOpen}
-				setIsOpen={setIsFolderDialogOpen}
-			>
-				<div className="flex flex-col">
-					<label className="pb-2 cursor-pointer" htmlFor="folder-name">
-						Folder Name
-					</label>
-					<input
-						placeholder="My To Do's"
-						className="py-1 px-2 rounded-sm border-[1px] border-zinc-300 dark:border-zinc-700 focus:outline-none focus:border-zinc-500 dark:focus:border-zinc-500 transition-colors w-full"
-						id="folder-name"
-						type="text"
+			<AnimatePresence>
+				{isFolderDialogOpen && (
+					<SidebarDialog
+						isFolderDialogOpen={isFolderDialogOpen}
+						setIsFolderDialogOpen={setIsFolderDialogOpen}
 					/>
-					<MotionButton
-						{...getDefaultButtonVariants()}
-						className="w-[calc(100%-1rem)] mt-4 mx-auto text-center flex items-center gap-2 justify-center flex-wrap"
-					>
-						Add Folder <FolderPlus />
-					</MotionButton>
-				</div>
-			</Dialog>
+				)}
+			</AnimatePresence>
+
 			<motion.aside
 				style={{ width: sidebarWidth }}
 				className={cn("text-md h-screen flex flex-col gap-2")}

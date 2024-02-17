@@ -65,3 +65,9 @@ func (a *App) GetFolderNames() []string {
 	}
 	return folderNames
 }
+
+func (a *App) AddFolderUsingName(folderName string) project_helpers.AddFolderRequest {
+	addFolderReq := project_helpers.AddFolder(a.projectPath, folderName)
+
+	return addFolderReq
+}

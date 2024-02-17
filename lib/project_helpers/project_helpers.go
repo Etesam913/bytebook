@@ -1,6 +1,7 @@
 package project_helpers
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -62,9 +63,19 @@ type AddFolderRequest struct {
 }
 
 func AddFolder(projectPath string, folderName string) AddFolderRequest {
-	notesPath := filepath.Join(projectPath, "notes", folderName)
+	pathToFolder := filepath.Join(projectPath, "notes", folderName)
+
+	fmt.Println(pathToFolder)
+
+	info, err := os.Stat(pathToFolder)
+	if err == nil {
+		if info.IsDir() {
+			return AddFolderRequest{Success: false, Message: fmt.Sprintf("Folder name, \"%s\", already exists, please choose a different name", folderName)}
+		}
+	}
+
 	// Ensure the directory exists
-	if err := os.MkdirAll(notesPath, os.ModePerm); err != nil {
+	if err := os.MkdirAll(pathToFolder, os.ModePerm); err != nil {
 		return AddFolderRequest{Success: false, Message: err.Error()}
 	}
 	return AddFolderRequest{Success: true, Message: ""}

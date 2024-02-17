@@ -12,7 +12,7 @@ export function Spacer({
 
 	const throttledMotionValueSet = useCallback(
 		throttle((e: MouseEvent) => {
-			sidebarWidth.set(Math.min(Math.max(140, e.clientX), 225));
+			sidebarWidth.set(Math.min(Math.max(140, e.clientX), 325));
 		}, 100),
 		[],
 	);
