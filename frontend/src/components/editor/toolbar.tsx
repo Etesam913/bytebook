@@ -1,4 +1,5 @@
 import { $isListNode, ListNode } from "@lexical/list";
+import { $convertToMarkdownString } from "@lexical/markdown";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
@@ -9,17 +10,16 @@ import {
 	SELECTION_CHANGE_COMMAND,
 } from "lexical";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
-import { EditorBlockTypes } from "../../types";
-import { changeSelectedBlocksType } from "./utils";
-import { TextBold } from "../../icons/text-bold";
-import { TextItalic } from "../../icons/text-italic";
-import { TextUnderline } from "../../icons/text-underline";
-import { TextStrikethrough } from "../../icons/text-strikethrough";
-import { FloppyDisk } from "../../icons/floppy-disk";
-import { $convertToMarkdownString } from "@lexical/markdown";
-import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { WriteNote } from "../../../wailsjs/go/main/App";
 import { CodePullRequest } from "../../icons/code-pull-request";
+import { FloppyDisk } from "../../icons/floppy-disk";
+import { TextBold } from "../../icons/text-bold";
+import { TextItalic } from "../../icons/text-italic";
+import { TextStrikethrough } from "../../icons/text-strikethrough";
+import { TextUnderline } from "../../icons/text-underline";
+import { EditorBlockTypes } from "../../types";
+import { CUSTOM_TRANSFORMERS } from "./transformers";
+import { changeSelectedBlocksType } from "./utils";
 
 const LOW_PRIORITY = 1;
 

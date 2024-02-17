@@ -33,3 +33,25 @@ func GetProjectPath() (string, error) {
 	}
 	return projectPath, nil
 }
+
+func GetFolders(projectPath string) (folders []string, err error) {
+	notesPath := filepath.Join(projectPath, "notes")
+	// Ensure the directory exists
+	if err := os.MkdirAll(notesPath, os.ModePerm); err != nil {
+		return nil, err
+	}
+
+	// Get the folders present in the notes directory
+	files, err := os.ReadDir(notesPath)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			folders = append(folders, file.Name())
+		}
+	}
+
+	return folders, nil
+}

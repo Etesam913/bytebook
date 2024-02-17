@@ -1,8 +1,5 @@
-import { NotesEditor } from "./components/editor";
 import { Sidebar } from "./components/sidebar";
 import { Titlebar } from "./components/titlebar";
-import { Switch, Route, Link } from "wouter";
-import { motion } from "framer-motion";
 
 function App() {
 	return (

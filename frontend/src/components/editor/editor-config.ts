@@ -27,7 +27,7 @@ export const theme: EditorThemeClasses = {
 		italic: "text-italic",
 		underline: "text-underline",
 		strikethrough: "text-strikethrough",
-	}
+	},
 };
 
 export const editorConfig: InitialConfigType = {

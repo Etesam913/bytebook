@@ -1,6 +1,6 @@
 import { type MotionValue } from "framer-motion";
-import { dragSpacer, throttle } from "../../utils/draggable";
 import { useCallback, useState } from "react";
+import { dragSpacer, throttle } from "../../utils/draggable";
 import { cn } from "../../utils/tailwind";
 
 export function Spacer({
