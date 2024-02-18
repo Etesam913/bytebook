@@ -8,8 +8,9 @@ import { MotionButton } from "../button";
 import { Spacer } from "./spacer";
 import { getDefaultButtonVariants } from "../../variants";
 import { SidebarDialog } from "./sidebar-dialog";
+import { Link } from "wouter";
 
-export function Sidebar() {
+export function FolderSidebar() {
 	const [folders, setFolders] = useState<string[] | null>([]);
 
 	const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
@@ -28,11 +29,16 @@ export function Sidebar() {
 
 	const folderElements = folders?.map((folderName) => {
 		return (
-			<li key={folderName} className="flex gap-2 items-center pl-3 pb-2">
-				<Folder className="min-w-[1.25rem]" />{" "}
-				<p className="whitespace-nowrap text-ellipsis overflow-hidden">
-					{folderName}
-				</p>
+			<li key={folderName}>
+				<Link
+					className="flex gap-2 items-center pl-3 pb-2"
+					to={`/${folderName}`}
+				>
+					<Folder className="min-w-[1.25rem]" />{" "}
+					<p className="whitespace-nowrap text-ellipsis overflow-hidden">
+						{folderName}
+					</p>
+				</Link>
 			</li>
 		);
 	});
@@ -76,7 +82,7 @@ export function Sidebar() {
 					</section>
 				</div>
 			</motion.aside>
-			<Spacer sidebarWidth={sidebarWidth} />
+			<Spacer minClientX={140} maxClientX={325} sidebarWidth={sidebarWidth} />
 		</>
 	);
 }

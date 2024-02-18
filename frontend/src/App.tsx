@@ -1,6 +1,6 @@
-import { Dialog } from "./components/dialog";
-import { Sidebar } from "./components/sidebar";
-import { Titlebar } from "./components/titlebar";
+import { FolderSidebar } from "./components/folder-sidebar";
+import { NotesSidebar } from "./routes/notes-sidebar";
+import { Route } from "wouter";
 
 function App() {
 	return (
@@ -8,11 +8,14 @@ function App() {
 			id="App"
 			className="min-h-screen font-display bg-white dark:bg-zinc-800  text-zinc-950 dark:text-zinc-100 flex"
 		>
-			<Sidebar />
+			<FolderSidebar />
 
-			<div className="flex-1">
+			<Route path="/:folder" component={NotesSidebar} />
+
+			{/* <div className="flex-1">
 				<Titlebar />
-			</div>
+			</div> */}
+
 			{/* <Switch>
 				<Route path="/test" component={Test} />
 			</Switch> */}
