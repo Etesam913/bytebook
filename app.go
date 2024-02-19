@@ -86,3 +86,12 @@ func (a *App) GetNoteTitles(folderName string) []string {
 	}
 	return noteTitles
 }
+
+func (a *App) GetNoteMarkdown(folderName string, noteTitle string) string {
+	noteMarkdown, err := project_helpers.GetNoteMarkdown(a.projectPath, folderName, noteTitle)
+
+	if err != nil {
+		log.Fatalf("Error getting note markdown: %v", err)
+	}
+	return noteMarkdown
+}

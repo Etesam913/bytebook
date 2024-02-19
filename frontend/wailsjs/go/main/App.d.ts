@@ -8,6 +8,8 @@ export function AddNoteToFolder(arg1:string,arg2:string):Promise<project_helpers
 
 export function GetFolderNames():Promise<Array<string>>;
 
+export function GetNoteMarkdown(arg1:string,arg2:string):Promise<string>;
+
 export function GetNoteTitles(arg1:string):Promise<Array<string>>;
 
 export function WriteNote(arg1:string,arg2:string):Promise<boolean>;

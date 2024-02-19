@@ -9,7 +9,7 @@ import { Compose } from "../../icons/compose";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { GetNoteTitles } from "../../../wailsjs/go/main/App";
 import { Note } from "../../icons/page";
-import { Link } from "wouter";
+import { Link, useRoute } from "wouter";
 
 export function NotesSidebar({
 	params,
@@ -22,7 +22,9 @@ export function NotesSidebar({
 }) {
 	const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
 	const [notes, setNotes] = useState<string[] | null>([]);
+	const [, noteParam] = useRoute("/:note");
 	const { folder } = params;
+	const note = noteParam?.note;
 
 	useEffect(() => {
 		GetNoteTitles(folder)
@@ -36,7 +38,10 @@ export function NotesSidebar({
 		<li key={noteName}>
 			<Link
 				replace
-				className="flex gap-2 items-center pl-3 pb-2"
+				className={cn(
+					"flex gap-2 items-center pl-3 py-[0.45rem] mb-[0.15rem] rounded-md",
+					noteName === note && "bg-zinc-100 dark:bg-zinc-700",
+				)}
 				to={`/${noteName}`}
 			>
 				<Note className="min-w-[1.25rem]" />{" "}

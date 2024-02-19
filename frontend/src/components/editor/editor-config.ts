@@ -33,6 +33,7 @@ export const theme: EditorThemeClasses = {
 export const editorConfig: InitialConfigType = {
 	namespace: "note-editor",
 	theme: theme,
+	editable: false,
 	onError,
 	nodes: [
 		HeadingNode,

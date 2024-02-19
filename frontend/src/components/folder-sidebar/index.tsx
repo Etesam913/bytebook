@@ -9,11 +9,12 @@ import { Spacer } from "./spacer";
 import { getDefaultButtonVariants } from "../../variants";
 import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Link, useRoute } from "wouter";
-import { useAtom } from "jotai";
-import { folderSidebarWidthAtom } from "../../atoms";
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
-	const [_, params] = useRoute("/:folder");
+	const [, folderParam] = useRoute("/:folder");
+	const [, folderAndNoteParam] = useRoute("/:folder/:note");
+
+	const folder = folderParam?.folder ?? folderAndNoteParam?.folder;
 
 	const [folders, setFolders] = useState<string[] | null>([]);
 	const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
@@ -30,7 +31,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 				replace
 				className={cn(
 					"flex gap-2 items-center pl-3 py-[0.45rem] mb-[0.15rem] rounded-md",
-					folderName === params?.folder && "bg-zinc-100 dark:bg-zinc-700",
+					folderName === folder && "bg-zinc-100 dark:bg-zinc-700",
 				)}
 				to={`/${folderName}`}
 			>

@@ -1,5 +1,8 @@
 import { $isListNode, ListNode } from "@lexical/list";
-import { $convertToMarkdownString } from "@lexical/markdown";
+import {
+	$convertFromMarkdownString,
+	$convertToMarkdownString,
+} from "@lexical/markdown";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
@@ -10,7 +13,6 @@ import {
 	SELECTION_CHANGE_COMMAND,
 } from "lexical";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
-import { WriteNote } from "../../../wailsjs/go/main/App";
 import { CodePullRequest } from "../../icons/code-pull-request";
 import { FloppyDisk } from "../../icons/floppy-disk";
 import { TextBold } from "../../icons/text-bold";
@@ -20,20 +22,26 @@ import { TextUnderline } from "../../icons/text-underline";
 import { EditorBlockTypes } from "../../types";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { changeSelectedBlocksType } from "./utils";
+import { GetNoteMarkdown } from "../../../wailsjs/go/main/App";
 
 const LOW_PRIORITY = 1;
 
 interface ToolbarProps {
+	folder: string;
+	note: string;
 	currentBlockType: EditorBlockTypes;
 	setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>;
 }
 
 export function Toolbar({
+	folder,
+	note,
 	currentBlockType,
 	setCurrentBlockType,
 }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
 	const [isCommitModalOpen, setIsCommitModalOpen] = useState(false);
+
 	function updateToolbar() {
 		const selection = $getSelection();
 		if ($isRangeSelection(selection)) {
@@ -64,6 +72,16 @@ export function Toolbar({
 			}
 		}
 	}
+
+	// Fetch note content locally
+	useEffect(() => {
+		GetNoteMarkdown(folder, note).then((markdown) => {
+			editor.setEditable(true);
+			editor.update(() => {
+				$convertFromMarkdownString(markdown, CUSTOM_TRANSFORMERS);
+			});
+		});
+	}, [folder, note, editor]);
 
 	useEffect(() => {
 		return mergeRegister(

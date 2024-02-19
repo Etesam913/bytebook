@@ -16,14 +16,21 @@ function App() {
 			<FolderSidebar width={folderSidebarWidth} />
 
 			<Route path="/:folder" nest>
-				{(params) => (
+				{(folderParams) => (
 					<>
 						<NotesSidebar
-							params={params}
+							params={folderParams}
 							width={notesSidebarWidth}
 							leftWidth={folderSidebarWidth}
 						/>
-						<Route path="/:note">{(params) => <NotesEditor />}</Route>
+						<Route path="/:note">
+							{(noteParams) => (
+								<NotesEditor
+									folderParams={folderParams}
+									noteParams={noteParams}
+								/>
+							)}
+						</Route>
 					</>
 				)}
 			</Route>

@@ -14,6 +14,10 @@ export function GetFolderNames() {
   return window['go']['main']['App']['GetFolderNames']();
 }
 
+export function GetNoteMarkdown(arg1, arg2) {
+  return window['go']['main']['App']['GetNoteMarkdown'](arg1, arg2);
+}
+
 export function GetNoteTitles(arg1) {
   return window['go']['main']['App']['GetNoteTitles'](arg1);
 }

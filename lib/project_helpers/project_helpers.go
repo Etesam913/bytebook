@@ -138,3 +138,13 @@ func GetNotesFromFolder(projectPath string, folderName string) (notes []string, 
 
 	return notes, nil
 }
+
+func GetNoteMarkdown(projectPath string, folderName string, noteTitle string) (string, error) {
+	noteFilePath := filepath.Join(projectPath, "notes", folderName, noteTitle, fmt.Sprintf("%s.md", noteTitle))
+
+	noteContent, err := os.ReadFile(noteFilePath)
+	if err != nil {
+		return "", err
+	}
+	return string(noteContent), nil
+}
