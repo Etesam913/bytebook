@@ -1,46 +1,36 @@
-import { useSpring } from "framer-motion";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { NotesSidebar } from "./routes/notes-sidebar";
 import { Route } from "wouter";
+import { NotesEditor } from "./components/editor";
+import { useMotionValue } from "framer-motion";
 
 function App() {
-	const folderSidebarWidth = useSpring(160, {
-		damping: 15,
-		stiffness: 100,
-		mass: 1,
-	});
-
-	const notesSidebarWidth = useSpring(160, {
-		damping: 15,
-		stiffness: 100,
-		mass: 1,
-	});
+	const folderSidebarWidth = useMotionValue(180);
+	const notesSidebarWidth = useMotionValue(180);
 
 	return (
 		<main
 			id="App"
 			className="min-h-screen font-display bg-white dark:bg-zinc-800  text-zinc-950 dark:text-zinc-100 flex"
 		>
-			<FolderSidebar folderSidebarWidth={folderSidebarWidth} />
+			<FolderSidebar width={folderSidebarWidth} />
 
-			<Route path="/:folder">
+			<Route path="/:folder" nest>
 				{(params) => (
-					<NotesSidebar
-						params={params}
-						folderSidebarWidth={folderSidebarWidth}
-						width={notesSidebarWidth}
-					/>
+					<>
+						<NotesSidebar
+							params={params}
+							width={notesSidebarWidth}
+							leftWidth={folderSidebarWidth}
+						/>
+						<Route path="/:note">{(params) => <NotesEditor />}</Route>
+					</>
 				)}
 			</Route>
 
 			{/* <div className="flex-1">
 				<Titlebar />
 			</div> */}
-
-			{/* <Switch>
-				<Route path="/test" component={Test} />
-			</Switch> */}
-			{/* <NotesEditor /> */}
 		</main>
 	);
 }

@@ -11,11 +11,11 @@ export function dragSpacer(
 	function cleanUpDocumentEvents() {
 		document.removeEventListener("mousemove", mouseMove);
 		document.removeEventListener("mouseup", cleanUpDocumentEvents);
-		document.removeEventListener("selectstart", (e) => e.preventDefault());
+		// document.removeEventListener("selectstart", (e) => e.preventDefault());
 		document.body.style.cursor = "auto";
 		onDragEndCallback();
 	}
-	document.addEventListener("selectstart", (e) => e.preventDefault());
+	// document.addEventListener("selectstart", (e) => e.preventDefault());
 	document.addEventListener("mousemove", mouseMove);
 	document.addEventListener("mouseup", cleanUpDocumentEvents);
 	document.body.style.cursor = "ew-resize";

@@ -1,4 +1,4 @@
-import { type MotionValue, AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, MotionValue, motion } from "framer-motion";
 import { type CSSProperties, useState, useEffect } from "react";
 import { cn } from "../../utils/tailwind";
 import { MotionButton } from "../../components/button";
@@ -9,15 +9,16 @@ import { Compose } from "../../icons/compose";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { GetNoteTitles } from "../../../wailsjs/go/main/App";
 import { Note } from "../../icons/page";
+import { Link } from "wouter";
 
 export function NotesSidebar({
 	params,
 	width,
-	folderSidebarWidth,
+	leftWidth,
 }: {
 	params: { folder: string };
 	width: MotionValue<number>;
-	folderSidebarWidth: MotionValue<number>;
+	leftWidth: MotionValue<number>;
 }) {
 	const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
 	const [notes, setNotes] = useState<string[] | null>([]);
@@ -31,12 +32,18 @@ export function NotesSidebar({
 			.catch(() => setNotes([]));
 	}, [folder]);
 
-	const noteElements = notes?.map((noteName) => (
-		<li key={noteName} className="flex gap-2 items-center pl-3 pb-2">
-			<Note className="min-w-[1.25rem]" />{" "}
-			<p className="whitespace-nowrap text-ellipsis overflow-hidden">
-				{noteName}.md
-			</p>
+	const noteElements = notes?.map((noteName, i) => (
+		<li key={noteName}>
+			<Link
+				replace
+				className="flex gap-2 items-center pl-3 pb-2"
+				to={`/${noteName}`}
+			>
+				<Note className="min-w-[1.25rem]" />{" "}
+				<p className="whitespace-nowrap text-ellipsis overflow-hidden">
+					{noteName}.md
+				</p>
+			</Link>
 		</li>
 	));
 
@@ -85,7 +92,7 @@ export function NotesSidebar({
 					</section>
 				</div>
 			</motion.aside>
-			<Spacer sidebarWidth={width} leftWidth={folderSidebarWidth} />
+			<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
 		</>
 	);
 }

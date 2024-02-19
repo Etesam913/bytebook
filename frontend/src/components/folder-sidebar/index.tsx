@@ -1,4 +1,4 @@
-import { AnimatePresence, MotionValue, motion, useSpring } from "framer-motion";
+import { AnimatePresence, MotionValue, motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { GetFolderNames } from "../../../wailsjs/go/main/App";
 import { Folder } from "../../icons/folder";
@@ -8,13 +8,14 @@ import { MotionButton } from "../button";
 import { Spacer } from "./spacer";
 import { getDefaultButtonVariants } from "../../variants";
 import { FolderSidebarDialog } from "./sidebar-dialog";
-import { Link } from "wouter";
+import { Link, useRoute } from "wouter";
+import { useAtom } from "jotai";
+import { folderSidebarWidthAtom } from "../../atoms";
 
-export function FolderSidebar({
-	folderSidebarWidth,
-}: { folderSidebarWidth: MotionValue<number> }) {
+export function FolderSidebar({ width }: { width: MotionValue<number> }) {
+	const [_, params] = useRoute("/:folder");
+
 	const [folders, setFolders] = useState<string[] | null>([]);
-
 	const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
 
 	useEffect(() => {
@@ -25,7 +26,14 @@ export function FolderSidebar({
 
 	const folderElements = folders?.map((folderName) => (
 		<li key={folderName}>
-			<Link className="flex gap-2 items-center pl-3 pb-2" to={`/${folderName}`}>
+			<Link
+				replace
+				className={cn(
+					"flex gap-2 items-center pl-3 py-[0.45rem] mb-[0.15rem] rounded-md",
+					folderName === params?.folder && "bg-zinc-100 dark:bg-zinc-700",
+				)}
+				to={`/${folderName}`}
+			>
 				<Folder className="min-w-[1.25rem]" />{" "}
 				<p className="whitespace-nowrap text-ellipsis overflow-hidden">
 					{folderName}
@@ -46,7 +54,7 @@ export function FolderSidebar({
 			</AnimatePresence>
 
 			<motion.aside
-				style={{ width: folderSidebarWidth }}
+				style={{ width }}
 				className={cn("text-md h-screen flex flex-col gap-2")}
 			>
 				<div
@@ -73,7 +81,7 @@ export function FolderSidebar({
 					</section>
 				</div>
 			</motion.aside>
-			<Spacer sidebarWidth={folderSidebarWidth} />
+			<Spacer width={width} />
 		</>
 	);
 }

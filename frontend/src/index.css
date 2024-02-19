@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 *{
-  @apply transition-colors duration-300 dark:[color-scheme:dark] text-[0.95rem];
- 
+  @apply transition-colors duration-300 dark:[color-scheme:dark];
 }
+
 
 h1{
   @apply text-3xl leading-[3.25rem];
@@ -70,3 +70,23 @@ h3{
 .text-strikethrough{
   text-decoration: line-through;
 }
+
+
+.editor-scroller {
+  min-height: 150px;
+  border: 0;
+  display: flex;
+  position: relative;
+  outline: 0;
+  z-index: 0;
+  overflow: auto;
+  resize: vertical;
+}
+
+.editor {
+  flex: auto;
+  position: relative;
+  resize: vertical;
+  z-index: -1;
+}
+

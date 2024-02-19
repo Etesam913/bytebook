@@ -26,13 +26,11 @@ const LOW_PRIORITY = 1;
 interface ToolbarProps {
 	currentBlockType: EditorBlockTypes;
 	setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>;
-	noteTitle: string;
 }
 
 export function Toolbar({
 	currentBlockType,
 	setCurrentBlockType,
-	noteTitle,
 }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
 	const [isCommitModalOpen, setIsCommitModalOpen] = useState(false);
@@ -137,7 +135,7 @@ export function Toolbar({
 				onClick={() => {
 					editor.update(() => {
 						const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS);
-						WriteNote(noteTitle, markdown);
+						// WriteNote(noteTitle, markdown);
 					});
 				}}
 			>

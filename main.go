@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 
+	"github.com/leaanthony/u"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
@@ -11,6 +12,12 @@ import (
 
 //go:embed all:frontend/dist
 var assets embed.FS
+
+type Preferences struct {
+	TabFocusesLinks        u.Bool
+	TextInteractionEnabled u.Bool
+	FullscreenEnabled      u.Bool
+}
 
 func main() {
 	// Create an instance of the app structure
@@ -32,6 +39,11 @@ func main() {
 		},
 		Mac: &mac.Options{
 			TitleBar: mac.TitleBarHiddenInset(),
+			// Preferences: &mac.Preferences{
+			// 	// TabFocusesLinks: mac.Enabled,
+			// 	// TextInteractionEnabled: mac.Enabled,
+			// 	FullscreenEnabled: mac.Enabled,
+			// },
 		},
 	})
 

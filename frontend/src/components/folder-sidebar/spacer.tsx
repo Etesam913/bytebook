@@ -1,42 +1,54 @@
 import { type MotionValue } from "framer-motion";
-import { useCallback, useState } from "react";
-import { dragSpacer, throttle } from "../../utils/draggable";
+import { type Dispatch, type SetStateAction, useState } from "react";
+import { dragSpacer } from "../../utils/draggable";
 import { cn } from "../../utils/tailwind";
 
 export function Spacer({
-	sidebarWidth,
+	width,
 	leftWidth,
+	spacerConstant = 8,
 }: {
-	sidebarWidth: MotionValue<number>;
+	width: MotionValue<number>;
 	leftWidth?: MotionValue<number>;
+	spacerConstant?: number;
 }) {
 	const [isDragged, setIsDragged] = useState(false);
 
-	const throttledMotionValueSet = useCallback(
-		throttle((e: MouseEvent) => {
-			console.log(
-				e.clientX - (leftWidth ? leftWidth.get() : 0),
-				Math.min(
-					Math.max(170, e.clientX - (leftWidth ? leftWidth.get() : 0)),
-					325,
-				),
-			);
-			sidebarWidth.set(
-				Math.min(
-					Math.max(170, e.clientX - (leftWidth ? leftWidth.get() : 0)),
-					325,
-				),
-			);
-		}, 100),
-		[],
-	);
+	// const throttledMotionValueSet = useCallback(
+	// 	throttle((e: MouseEvent) => {
+	// 		console.log(
+	// 			e.clientX - (leftWidth ? leftWidth.get() : 0),
+	// 			Math.min(
+	// 				Math.max(170, e.clientX - (leftWidth ? leftWidth.get() : 0)),
+	// 				325,
+	// 			),
+	// 		);
+	// 		sidebarWidth.set(
+	// 			Math.min(
+	// 				Math.max(170, e.clientX - (leftWidth ? leftWidth.get() : 0)),
+	// 				325,
+	// 			),
+	// 		);
+	// 	}, 100),
+	// 	[],
+	// );
 
 	return (
 		<div
 			onMouseDown={() => {
 				setIsDragged(true);
 				dragSpacer(
-					(e) => throttledMotionValueSet(e),
+					(e) =>
+						width.set(
+							Math.min(
+								Math.max(
+									170,
+									e.clientX -
+										(leftWidth ? leftWidth.get() + spacerConstant : 0),
+								),
+								325,
+							),
+						),
 					() => {
 						setIsDragged(false);
 					},
