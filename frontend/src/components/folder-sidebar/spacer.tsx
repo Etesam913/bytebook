@@ -5,18 +5,30 @@ import { cn } from "../../utils/tailwind";
 
 export function Spacer({
 	sidebarWidth,
-	leftWidth = 0,
+	leftWidth,
 }: {
 	sidebarWidth: MotionValue<number>;
-	leftWidth?: number;
+	leftWidth?: MotionValue<number>;
 }) {
 	const [isDragged, setIsDragged] = useState(false);
 
 	const throttledMotionValueSet = useCallback(
 		throttle((e: MouseEvent) => {
-			sidebarWidth.set(Math.min(Math.max(170, e.clientX - leftWidth), 325));
+			console.log(
+				e.clientX - (leftWidth ? leftWidth.get() : 0),
+				Math.min(
+					Math.max(170, e.clientX - (leftWidth ? leftWidth.get() : 0)),
+					325,
+				),
+			);
+			sidebarWidth.set(
+				Math.min(
+					Math.max(170, e.clientX - (leftWidth ? leftWidth.get() : 0)),
+					325,
+				),
+			);
 		}, 100),
-		[leftWidth],
+		[],
 	);
 
 	return (

@@ -28,7 +28,7 @@ function App() {
 					<NotesSidebar
 						params={params}
 						folderSidebarWidth={folderSidebarWidth}
-						notesSidebarWidth={notesSidebarWidth}
+						width={notesSidebarWidth}
 					/>
 				)}
 			</Route>

@@ -1,9 +1,4 @@
-import {
-	type MotionValue,
-	useMotionValueEvent,
-	AnimatePresence,
-	motion,
-} from "framer-motion";
+import { type MotionValue, AnimatePresence, motion } from "framer-motion";
 import { type CSSProperties, useState, useEffect } from "react";
 import { cn } from "../../utils/tailwind";
 import { MotionButton } from "../../components/button";
@@ -17,14 +12,13 @@ import { Note } from "../../icons/page";
 
 export function NotesSidebar({
 	params,
-	notesSidebarWidth,
+	width,
 	folderSidebarWidth,
 }: {
 	params: { folder: string };
-	notesSidebarWidth: MotionValue<number>;
+	width: MotionValue<number>;
 	folderSidebarWidth: MotionValue<number>;
 }) {
-	const [leftWidth, setLeftWidth] = useState(160);
 	const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
 	const [notes, setNotes] = useState<string[] | null>([]);
 	const { folder } = params;
@@ -36,10 +30,6 @@ export function NotesSidebar({
 			})
 			.catch(() => setNotes([]));
 	}, [folder]);
-
-	useMotionValueEvent(folderSidebarWidth, "change", (latest) =>
-		setLeftWidth(latest),
-	);
 
 	const noteElements = notes?.map((noteName) => (
 		<li key={noteName} className="flex gap-2 items-center pl-3 pb-2">
@@ -62,7 +52,7 @@ export function NotesSidebar({
 				)}
 			</AnimatePresence>
 			<motion.aside
-				style={{ width: notesSidebarWidth }}
+				style={{ width }}
 				className={cn("text-md h-screen flex flex-col gap-2")}
 			>
 				<div
@@ -95,7 +85,7 @@ export function NotesSidebar({
 					</section>
 				</div>
 			</motion.aside>
-			<Spacer sidebarWidth={notesSidebarWidth} leftWidth={leftWidth} />
+			<Spacer sidebarWidth={width} leftWidth={folderSidebarWidth} />
 		</>
 	);
 }

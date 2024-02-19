@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { FolderPlus } from "../../icons/folder-plus";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../button";
