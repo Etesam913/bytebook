@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 const ProjectName = "Bytebook"
@@ -35,6 +36,7 @@ func GetProjectPath() (string, error) {
 	return projectPath, nil
 }
 
+// TODO: Make this run concurrently
 func GetFolders(projectPath string) (folders []string, err error) {
 	notesPath := filepath.Join(projectPath, "notes")
 	// Ensure the directory exists
@@ -57,12 +59,12 @@ func GetFolders(projectPath string) (folders []string, err error) {
 	return folders, nil
 }
 
-type AddFolderRequest struct {
+type FileReturnStruct struct {
 	Success bool
 	Message string
 }
 
-func AddFolder(projectPath string, folderName string) AddFolderRequest {
+func AddFolder(projectPath string, folderName string) FileReturnStruct {
 	pathToFolder := filepath.Join(projectPath, "notes", folderName)
 
 	fmt.Println(pathToFolder)
@@ -70,13 +72,69 @@ func AddFolder(projectPath string, folderName string) AddFolderRequest {
 	info, err := os.Stat(pathToFolder)
 	if err == nil {
 		if info.IsDir() {
-			return AddFolderRequest{Success: false, Message: fmt.Sprintf("Folder name, \"%s\", already exists, please choose a different name", folderName)}
+			return FileReturnStruct{Success: false, Message: fmt.Sprintf("Folder name, \"%s\", already exists, please choose a different name", folderName)}
 		}
 	}
 
 	// Ensure the directory exists
 	if err := os.MkdirAll(pathToFolder, os.ModePerm); err != nil {
-		return AddFolderRequest{Success: false, Message: err.Error()}
+		return FileReturnStruct{Success: false, Message: err.Error()}
 	}
-	return AddFolderRequest{Success: true, Message: ""}
+	return FileReturnStruct{Success: true, Message: ""}
+}
+
+func AddNoteToFolder(projectPath string, folderName string, noteTitle string) FileReturnStruct {
+	noteFolderPath := filepath.Join(projectPath, "notes", folderName)
+	/*
+		A new folder should be created for the noteTitle
+		This is where the markdown, images, and other files will be stored for the note
+	*/
+	req := AddFolder(projectPath, filepath.Join(folderName, noteTitle))
+	if !req.Success {
+		// If the folder already exists, return the a more readable message
+		if strings.Contains(req.Message, "already exists") {
+			return FileReturnStruct{Success: false, Message: fmt.Sprintf("Note, \"%s\", already exists, please choose a different name", noteTitle)}
+		}
+		return req
+	}
+	noteFilePath := filepath.Join(noteFolderPath, noteTitle, fmt.Sprintf("%s.md", noteTitle))
+
+	// Create an empty markdown file at the location
+	err := os.WriteFile(noteFilePath, []byte("Test"), 0644)
+
+	if err != nil {
+		fmt.Printf("Error writing to %s: %v", noteFolderPath, err)
+		return FileReturnStruct{Success: false, Message: err.Error()}
+	}
+	return FileReturnStruct{Success: true, Message: ""}
+}
+
+// TODO: Make this run concurrently
+func GetNotesFromFolder(projectPath string, folderName string) (notes []string, err error) {
+	folderPath := filepath.Join(projectPath, "notes", folderName)
+	// Ensure the directory exists
+	if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	// Get the folders present in the notes directory
+	files, err := os.ReadDir(folderPath)
+	if err != nil {
+		return nil, err
+	}
+	for _, file := range files {
+		// Go through the folders and check if they have a markdown file
+		if file.IsDir() {
+			// Check if the markdown file exists for the folder
+			noteFilePath := filepath.Join(folderPath, file.Name(), fmt.Sprintf("%s.md", file.Name()))
+			_, err := os.Stat(noteFilePath)
+			if err != nil {
+				continue
+			}
+			notes = append(notes, file.Name())
+		}
+	}
+
+	return notes, nil
 }

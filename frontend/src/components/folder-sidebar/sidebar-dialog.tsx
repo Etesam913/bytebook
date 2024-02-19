@@ -2,29 +2,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { FolderPlus } from "../../icons/folder-plus";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../button";
-import { Dialog } from "../dialog";
+import { Dialog, ErrorText } from "../dialog";
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { AddFolderUsingName } from "../../../wailsjs/go/main/App";
 
-function ErrorText({ errorText }: { errorText: string }) {
-	return (
-		<AnimatePresence>
-			{errorText.length > 0 && (
-				<motion.p
-					initial={{ height: 0, opacity: 0 }}
-					animate={{ height: "auto", opacity: 1 }}
-					exit={{ height: 0, opacity: 0 }}
-					transition={{ type: "spring" }}
-					className="text-red-500 text-[0.85rem] text-left"
-				>
-					{errorText}
-				</motion.p>
-			)}
-		</AnimatePresence>
-	);
-}
-
-export function SidebarDialog({
+export function FolderSidebarDialog({
 	isFolderDialogOpen,
 	setIsFolderDialogOpen,
 }: {
@@ -51,7 +33,6 @@ export function SidebarDialog({
 					setErrorText("");
 					AddFolderUsingName(folderName)
 						.then((v) => {
-							console.log(v);
 							if (v.Success) {
 								setIsFolderDialogOpen(false);
 								setErrorText("");

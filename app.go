@@ -66,8 +66,23 @@ func (a *App) GetFolderNames() []string {
 	return folderNames
 }
 
-func (a *App) AddFolderUsingName(folderName string) project_helpers.AddFolderRequest {
+func (a *App) AddFolderUsingName(folderName string) project_helpers.FileReturnStruct {
 	addFolderReq := project_helpers.AddFolder(a.projectPath, folderName)
 
 	return addFolderReq
+}
+
+func (a *App) AddNoteToFolder(folderName string, noteTitle string) project_helpers.FileReturnStruct {
+	addNoteReq := project_helpers.AddNoteToFolder(a.projectPath, folderName, noteTitle)
+
+	return addNoteReq
+}
+
+func (a *App) GetNoteTitles(folderName string) []string {
+	noteTitles, err := project_helpers.GetNotesFromFolder(a.projectPath, folderName)
+
+	if err != nil {
+		log.Fatalf("Error getting note titles: %v", err)
+	}
+	return noteTitles
 }

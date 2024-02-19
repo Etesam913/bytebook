@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
 	type Dispatch,
 	type ReactNode,
@@ -9,6 +9,25 @@ import {
 import { XMark } from "../../icons/circle-xmark";
 import { useTrapFocus } from "./hooks";
 import { getDefaultButtonVariants } from "../../variants";
+
+export function ErrorText({ errorText }: { errorText: string }) {
+	return (
+		<AnimatePresence>
+			{errorText.length > 0 && (
+				<motion.p
+					initial={{ height: 0, opacity: 0 }}
+					animate={{ height: "auto", opacity: 1 }}
+					exit={{ height: 0, opacity: 0 }}
+					transition={{ type: "spring" }}
+					className="text-red-500 text-[0.85rem] text-left"
+				>
+					{errorText}
+				</motion.p>
+			)}
+		</AnimatePresence>
+	);
+}
+
 export function Dialog({
 	title,
 	isOpen,

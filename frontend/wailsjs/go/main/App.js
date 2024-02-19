@@ -6,8 +6,16 @@ export function AddFolderUsingName(arg1) {
   return window['go']['main']['App']['AddFolderUsingName'](arg1);
 }
 
+export function AddNoteToFolder(arg1, arg2) {
+  return window['go']['main']['App']['AddNoteToFolder'](arg1, arg2);
+}
+
 export function GetFolderNames() {
   return window['go']['main']['App']['GetFolderNames']();
+}
+
+export function GetNoteTitles(arg1) {
+  return window['go']['main']['App']['GetNoteTitles'](arg1);
 }
 
 export function WriteNote(arg1, arg2) {
