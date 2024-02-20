@@ -1,9 +1,9 @@
+import { type Dispatch, type SetStateAction, useState } from "react";
+import { AddFolderUsingName } from "../../../wailsjs/go/main/App";
 import { FolderPlus } from "../../icons/folder-plus";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../button";
 import { Dialog, ErrorText } from "../dialog";
-import { useState, type Dispatch, type SetStateAction } from "react";
-import { AddFolderUsingName } from "../../../wailsjs/go/main/App";
 
 export function FolderSidebarDialog({
 	isFolderDialogOpen,

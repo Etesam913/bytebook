@@ -1,8 +1,8 @@
-import { FolderSidebar } from "./components/folder-sidebar";
-import { NotesSidebar } from "./routes/notes-sidebar";
+import { useMotionValue } from "framer-motion";
 import { Route } from "wouter";
 import { NotesEditor } from "./components/editor";
-import { useMotionValue } from "framer-motion";
+import { FolderSidebar } from "./components/folder-sidebar";
+import { NotesSidebar } from "./routes/notes-sidebar";
 
 function App() {
 	const folderSidebarWidth = useMotionValue(180);

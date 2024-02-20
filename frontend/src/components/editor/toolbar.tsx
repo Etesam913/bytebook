@@ -13,6 +13,7 @@ import {
 	SELECTION_CHANGE_COMMAND,
 } from "lexical";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import { GetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { CodePullRequest } from "../../icons/code-pull-request";
 import { FloppyDisk } from "../../icons/floppy-disk";
 import { TextBold } from "../../icons/text-bold";
@@ -22,7 +23,6 @@ import { TextUnderline } from "../../icons/text-underline";
 import { EditorBlockTypes } from "../../types";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { changeSelectedBlocksType } from "./utils";
-import { GetNoteMarkdown } from "../../../wailsjs/go/main/App";
 
 const LOW_PRIORITY = 1;
 

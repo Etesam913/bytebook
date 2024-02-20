@@ -1,5 +1,5 @@
 import { type MotionValue } from "framer-motion";
-import { type Dispatch, type SetStateAction, useState } from "react";
+import { useState } from "react";
 import { dragSpacer } from "../../utils/draggable";
 import { cn } from "../../utils/tailwind";
 

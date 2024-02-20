@@ -51,16 +51,19 @@ export function throttle<T extends (...args: any[]) => any>(
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: any is fine for debounce function
-export function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
-  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+export function debounce<T extends (...args: any[]) => any>(
+	func: T,
+	wait: number,
+): (...args: Parameters<T>) => void {
+	let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  return (...args: Parameters<T>) => {
-    if (timeoutId !== null) {
-      clearTimeout(timeoutId);
-    }
+	return (...args: Parameters<T>) => {
+		if (timeoutId !== null) {
+			clearTimeout(timeoutId);
+		}
 
-    timeoutId = setTimeout(() => {
-      func(...args);
-    }, wait);
-  };
+		timeoutId = setTimeout(() => {
+			func(...args);
+		}, wait);
+	};
 }

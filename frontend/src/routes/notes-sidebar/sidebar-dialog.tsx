@@ -1,9 +1,9 @@
 import { Dispatch, SetStateAction, useState } from "react";
-import { Dialog, ErrorText } from "../../components/dialog";
-import { getDefaultButtonVariants } from "../../variants";
-import { MotionButton } from "../../components/button";
-import { Compose } from "../../icons/compose";
 import { AddNoteToFolder } from "../../../wailsjs/go/main/App";
+import { MotionButton } from "../../components/button";
+import { Dialog, ErrorText } from "../../components/dialog";
+import { Compose } from "../../icons/compose";
+import { getDefaultButtonVariants } from "../../variants";
 
 export function NotesSidebarDialog({
 	isNoteDialogOpen,

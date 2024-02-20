@@ -1,16 +1,16 @@
 import { AnimatePresence, MotionValue, motion } from "framer-motion";
-import { type CSSProperties, useState, useEffect } from "react";
-import { cn } from "../../utils/tailwind";
-import { MotionButton } from "../../components/button";
-import { getDefaultButtonVariants } from "../../variants";
-import { Folder } from "../../icons/folder";
-import { NotesSidebarDialog } from "./sidebar-dialog";
-import { Compose } from "../../icons/compose";
-import { Spacer } from "../../components/folder-sidebar/spacer";
-import { GetNoteTitles } from "../../../wailsjs/go/main/App";
-import { Note } from "../../icons/page";
+import { type CSSProperties, useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
+import { GetNoteTitles } from "../../../wailsjs/go/main/App";
+import { MotionButton } from "../../components/button";
+import { Spacer } from "../../components/folder-sidebar/spacer";
+import { Compose } from "../../icons/compose";
+import { Folder } from "../../icons/folder";
+import { Note } from "../../icons/page";
 import { Trash } from "../../icons/trash";
+import { cn } from "../../utils/tailwind";
+import { getDefaultButtonVariants } from "../../variants";
+import { NotesSidebarDialog } from "./sidebar-dialog";
 
 export function NotesSidebar({
 	params,
@@ -37,20 +37,28 @@ export function NotesSidebar({
 
 	const noteElements = notes?.map((noteName, i) => (
 		<li key={noteName}>
-			<Link
-				replace
-				className={cn(
-					"flex gap-2 items-center px-3 py-[0.45rem] mb-[0.15rem] rounded-md",
-					noteName === note && "bg-zinc-100 dark:bg-zinc-700",
-				)}
-				to={`/${noteName}`}
-			>
-				<Note className="min-w-[1.25rem]" />{" "}
-				<p className="whitespace-nowrap text-ellipsis overflow-hidden">
-					{noteName}
-				</p>
-			</Link>
-			{/* <Trash /> */}
+			<div className="flex items-center gap-2">
+				<Link
+					replace
+					className={cn(
+						"flex flex-1 gap-2 items-center px-3 py-[0.45rem] mb-[0.15rem] rounded-md overflow-auto",
+						noteName === note && "bg-zinc-100 dark:bg-zinc-700",
+					)}
+					to={`/${noteName}`}
+				>
+					<Note className="min-w-[1.25rem]" />{" "}
+					<p className="whitespace-nowrap text-ellipsis overflow-hidden">
+						{noteName}
+					</p>
+				</Link>
+				<motion.button
+					{...getDefaultButtonVariants(1.15, 0.95, 1.15)}
+					type="button"
+					className="min-w-[20px] p-1 rounded-[0.3rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700"
+				>
+					<Trash />
+				</motion.button>
+			</div>
 		</li>
 	));
 

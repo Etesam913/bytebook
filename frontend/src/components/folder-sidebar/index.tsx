@@ -1,14 +1,14 @@
 import { AnimatePresence, MotionValue, motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
+import { Link, useRoute } from "wouter";
 import { GetFolderNames } from "../../../wailsjs/go/main/App";
 import { Folder } from "../../icons/folder";
 import { FolderPlus } from "../../icons/folder-plus";
 import { cn } from "../../utils/tailwind";
-import { MotionButton } from "../button";
-import { Spacer } from "./spacer";
 import { getDefaultButtonVariants } from "../../variants";
+import { MotionButton } from "../button";
 import { FolderSidebarDialog } from "./sidebar-dialog";
-import { Link, useRoute } from "wouter";
+import { Spacer } from "./spacer";
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, folderParam] = useRoute("/:folder");

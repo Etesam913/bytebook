@@ -1,14 +1,14 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
 	type Dispatch,
+	type FormEvent,
 	type ReactNode,
 	type SetStateAction,
 	useRef,
-	type FormEvent,
 } from "react";
 import { XMark } from "../../icons/circle-xmark";
-import { useTrapFocus } from "./hooks";
 import { getDefaultButtonVariants } from "../../variants";
+import { useTrapFocus } from "./hooks";
 
 export function ErrorText({ errorText }: { errorText: string }) {
 	return (

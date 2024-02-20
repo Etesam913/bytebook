@@ -1,31 +1,29 @@
+import { $convertToMarkdownString } from "@lexical/markdown";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
+import { EditorRefPlugin } from "@lexical/react/LexicalEditorRefPlugin";
 import LexicalErrorBoundary from "@lexical/react/LexicalErrorBoundary";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
+import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
-import { EditorRefPlugin } from "@lexical/react/LexicalEditorRefPlugin";
-import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
+import { type EditorState, type LexicalEditor } from "lexical";
 import { useRef, useState } from "react";
+import { SetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { EditorBlockTypes } from "../../types";
+import { debounce } from "../../utils/draggable";
 import { editorConfig } from "./editor-config";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
-import { type EditorState, type LexicalEditor } from "lexical";
-import { debounce } from "../../utils/draggable";
-import { SetNoteMarkdown } from "../../../wailsjs/go/main/App";
-import { $convertToMarkdownString } from "@lexical/markdown";
 
 const debouncedHandleChange = debounce(handleChange, 500);
 
 function handleChange(
 	folder: string,
 	note: string,
-	editorState: EditorState,
 	editor: LexicalEditor,
-	tags: Set<string>,
 ) {
 	editor.update(() => {
 		const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS);
@@ -63,6 +61,7 @@ export function NotesEditor({
 				<div
 					className=" bg-zinc-200 dark:bg-zinc-700 p-2 h-[calc(100vh-38px)] overflow-auto"
 					onClick={() => editorRef.current?.focus()}
+					onKeyDown={() => {}}
 				>
 					<RichTextPlugin
 						placeholder={null}
@@ -70,8 +69,8 @@ export function NotesEditor({
 						ErrorBoundary={LexicalErrorBoundary}
 					/>
 					<OnChangePlugin
-						onChange={(editorState, editor, tags) =>
-							debouncedHandleChange(folder, note, editorState, editor, tags)
+						onChange={(_,editor) =>
+							debouncedHandleChange(folder, note, editor)
 						}
 					/>
 					<ListPlugin />
