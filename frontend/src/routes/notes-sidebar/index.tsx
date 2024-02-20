@@ -10,6 +10,7 @@ import { Spacer } from "../../components/folder-sidebar/spacer";
 import { GetNoteTitles } from "../../../wailsjs/go/main/App";
 import { Note } from "../../icons/page";
 import { Link, useRoute } from "wouter";
+import { Trash } from "../../icons/trash";
 
 export function NotesSidebar({
 	params,
@@ -39,16 +40,17 @@ export function NotesSidebar({
 			<Link
 				replace
 				className={cn(
-					"flex gap-2 items-center pl-3 py-[0.45rem] mb-[0.15rem] rounded-md",
+					"flex gap-2 items-center px-3 py-[0.45rem] mb-[0.15rem] rounded-md",
 					noteName === note && "bg-zinc-100 dark:bg-zinc-700",
 				)}
 				to={`/${noteName}`}
 			>
 				<Note className="min-w-[1.25rem]" />{" "}
 				<p className="whitespace-nowrap text-ellipsis overflow-hidden">
-					{noteName}.md
+					{noteName}
 				</p>
 			</Link>
+			{/* <Trash /> */}
 		</li>
 	));
 

@@ -95,3 +95,9 @@ func (a *App) GetNoteMarkdown(folderName string, noteTitle string) string {
 	}
 	return noteMarkdown
 }
+
+func (a *App) SetNoteMarkdown(folderName string, noteTitle string, markdown string) error {
+	setNoteReq := project_helpers.SetNoteMarkdown(a.projectPath, folderName, noteTitle, markdown)
+
+	return setNoteReq
+}

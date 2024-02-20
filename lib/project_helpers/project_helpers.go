@@ -148,3 +148,14 @@ func GetNoteMarkdown(projectPath string, folderName string, noteTitle string) (s
 	}
 	return string(noteContent), nil
 }
+
+func SetNoteMarkdown(projectPath string, folderName string, noteTitle string, markdown string) error {
+	noteFilePath := filepath.Join(projectPath, "notes", folderName, noteTitle, fmt.Sprintf("%s.md", noteTitle))
+
+	err := os.WriteFile(noteFilePath, []byte(markdown), 0644)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}

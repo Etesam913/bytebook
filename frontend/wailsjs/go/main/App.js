@@ -22,6 +22,10 @@ export function GetNoteTitles(arg1) {
   return window['go']['main']['App']['GetNoteTitles'](arg1);
 }
 
+export function SetNoteMarkdown(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SetNoteMarkdown'](arg1, arg2, arg3);
+}
+
 export function WriteNote(arg1, arg2) {
   return window['go']['main']['App']['WriteNote'](arg1, arg2);
 }
