@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction, useState } from "react";
+import { navigate } from "wouter/use-browser-location";
 import { AddNoteToFolder } from "../../../wailsjs/go/main/App";
 import { MotionButton } from "../../components/button";
 import { Dialog, ErrorText } from "../../components/dialog";
@@ -9,10 +10,12 @@ export function NotesSidebarDialog({
 	isNoteDialogOpen,
 	setIsNoteDialogOpen,
 	folderName,
+	setNotes,
 }: {
 	isNoteDialogOpen: boolean;
 	setIsNoteDialogOpen: Dispatch<SetStateAction<boolean>>;
 	folderName: string;
+	setNotes: Dispatch<SetStateAction<string[] | null>>;
 }) {
 	const [errorText, setErrorText] = useState("");
 
@@ -37,6 +40,13 @@ export function NotesSidebarDialog({
 							if (v.Success) {
 								setIsNoteDialogOpen(false);
 								setErrorText("");
+								navigate(`/${folderName}`);
+								setNotes((prev) => {
+									if (prev === null) {
+										return [noteName as string];
+									}
+									return [...prev, noteName as string];
+								});
 							} else {
 								setErrorText(v.Message);
 							}

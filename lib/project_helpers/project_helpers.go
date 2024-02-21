@@ -100,7 +100,7 @@ func AddNoteToFolder(projectPath string, folderName string, noteTitle string) Fi
 	noteFilePath := filepath.Join(noteFolderPath, noteTitle, fmt.Sprintf("%s.md", noteTitle))
 
 	// Create an empty markdown file at the location
-	err := os.WriteFile(noteFilePath, []byte("Test"), 0644)
+	err := os.WriteFile(noteFilePath, []byte(""), 0644)
 
 	if err != nil {
 		fmt.Printf("Error writing to %s: %v", noteFolderPath, err)
@@ -154,6 +154,15 @@ func SetNoteMarkdown(projectPath string, folderName string, noteTitle string, ma
 
 	err := os.WriteFile(noteFilePath, []byte(markdown), 0644)
 
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteNoteFolder(projectPath string, folderName string) error {
+	folderPath := filepath.Join(projectPath, "notes", folderName)
+	err := os.RemoveAll(folderPath)
 	if err != nil {
 		return err
 	}

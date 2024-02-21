@@ -1,7 +1,7 @@
 import { AnimatePresence, MotionValue, motion } from "framer-motion";
 import { type CSSProperties, useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
-import { GetNoteTitles } from "../../../wailsjs/go/main/App";
+import { DeleteNote, GetNoteTitles } from "../../../wailsjs/go/main/App";
 import { MotionButton } from "../../components/button";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Compose } from "../../icons/compose";
@@ -35,7 +35,7 @@ export function NotesSidebar({
 			.catch(() => setNotes([]));
 	}, [folder]);
 
-	const noteElements = notes?.map((noteName, i) => (
+	const noteElements = notes?.map((noteName) => (
 		<li key={noteName}>
 			<div className="flex items-center gap-2">
 				<Link
@@ -52,6 +52,11 @@ export function NotesSidebar({
 					</p>
 				</Link>
 				<motion.button
+					onClick={() =>
+						DeleteNote(`${folder}/${noteName}`).then(() => {
+							setNotes((prev) => prev?.filter((v) => v !== noteName) ?? null);
+						})
+					}
 					{...getDefaultButtonVariants(1.15, 0.95, 1.15)}
 					type="button"
 					className="min-w-[20px] p-1 rounded-[0.3rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700"
@@ -70,6 +75,7 @@ export function NotesSidebar({
 						isNoteDialogOpen={isNoteDialogOpen}
 						setIsNoteDialogOpen={setIsNoteDialogOpen}
 						folderName={folder}
+						setNotes={setNotes}
 					/>
 				)}
 			</AnimatePresence>

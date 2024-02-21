@@ -10,6 +10,10 @@ export function AddNoteToFolder(arg1, arg2) {
   return window['go']['main']['App']['AddNoteToFolder'](arg1, arg2);
 }
 
+export function DeleteNote(arg1) {
+  return window['go']['main']['App']['DeleteNote'](arg1);
+}
+
 export function GetFolderNames() {
   return window['go']['main']['App']['GetFolderNames']();
 }

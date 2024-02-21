@@ -9,7 +9,7 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
-import { type EditorState, type LexicalEditor } from "lexical";
+import { type LexicalEditor } from "lexical";
 import { useRef, useState } from "react";
 import { SetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { EditorBlockTypes } from "../../types";
@@ -20,11 +20,7 @@ import { CUSTOM_TRANSFORMERS } from "./transformers";
 
 const debouncedHandleChange = debounce(handleChange, 500);
 
-function handleChange(
-	folder: string,
-	note: string,
-	editor: LexicalEditor,
-) {
+function handleChange(folder: string, note: string, editor: LexicalEditor) {
 	editor.update(() => {
 		const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS);
 		SetNoteMarkdown(folder, note, markdown);
@@ -69,7 +65,7 @@ export function NotesEditor({
 						ErrorBoundary={LexicalErrorBoundary}
 					/>
 					<OnChangePlugin
-						onChange={(_,editor) =>
+						onChange={(_, editor) =>
 							debouncedHandleChange(folder, note, editor)
 						}
 					/>
