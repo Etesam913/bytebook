@@ -1,9 +1,11 @@
 import { AnimatePresence, MotionValue, motion } from "framer-motion";
 import { CSSProperties, useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
-import { GetFolderNames } from "../../../wailsjs/go/main/App";
+import { navigate } from "wouter/use-browser-location";
+import { DeleteFolder, GetFolderNames } from "../../../wailsjs/go/main/App";
 import { Folder } from "../../icons/folder";
 import { FolderPlus } from "../../icons/folder-plus";
+import { Trash } from "../../icons/trash";
 import { cn } from "../../utils/tailwind";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../button";
@@ -11,10 +13,9 @@ import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
-	const [, folderParam] = useRoute("/:folder");
-	const [, folderAndNoteParam] = useRoute("/:folder/:note");
-	console.log(folderParam, folderAndNoteParam);
-	const folder = folderParam?.folder ?? folderAndNoteParam?.folder;
+	const [, params] = useRoute("/:folder/:note?");
+
+	const folder = params?.folder;
 
 	const [folders, setFolders] = useState<string[] | null>([]);
 	const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
@@ -27,18 +28,34 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 
 	const folderElements = folders?.map((folderName) => (
 		<li key={folderName}>
-			<Link
-				className={cn(
-					"flex gap-2 items-center pl-3 py-[0.45rem] mb-[0.15rem] rounded-md",
-					folderName === folder && "bg-zinc-100 dark:bg-zinc-700",
-				)}
-				to={`/${encodeURI(folderName)}`}
-			>
-				<Folder className="min-w-[1.25rem]" />{" "}
-				<p className="whitespace-nowrap text-ellipsis overflow-hidden">
-					{folderName}
-				</p>
-			</Link>
+			<div className="flex items-center gap-2">
+				<Link
+					className={cn(
+						"flex flex-1 gap-2 items-center px-3 py-[0.45rem] mb-[0.15rem] rounded-md overflow-auto",
+						folderName === folder && "bg-zinc-100 dark:bg-zinc-700",
+					)}
+					to={`/${encodeURI(folderName)}`}
+				>
+					<Folder className="min-w-[1.25rem]" />{" "}
+					<p className="whitespace-nowrap text-ellipsis overflow-hidden">
+						{folderName}
+					</p>
+				</Link>
+				<motion.button
+					onClick={() =>
+						DeleteFolder(`${folderName}`).then(() => {
+							const newFolders = folders.filter((v) => v !== folderName);
+							navigate(folders.length > 1 ? `/${newFolders[0]}` : "/");
+							setFolders(newFolders);
+						})
+					}
+					{...getDefaultButtonVariants(1.15, 0.95, 1.15)}
+					type="button"
+					className="min-w-[20px] p-1 rounded-[0.3rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700"
+				>
+					<Trash />
+				</motion.button>
+			</div>
 		</li>
 	));
 
@@ -49,6 +66,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					<FolderSidebarDialog
 						isFolderDialogOpen={isFolderDialogOpen}
 						setIsFolderDialogOpen={setIsFolderDialogOpen}
+						setFolders={setFolders}
 					/>
 				)}
 			</AnimatePresence>

@@ -1,7 +1,7 @@
 import { AnimatePresence, MotionValue, motion } from "framer-motion";
 import { type CSSProperties, useEffect, useState } from "react";
 import { Link } from "wouter";
-import { DeleteNote, GetNoteTitles } from "../../../wailsjs/go/main/App";
+import { DeleteFolder, GetNoteTitles } from "../../../wailsjs/go/main/App";
 import { MotionButton } from "../../components/button";
 import { NotesEditor } from "../../components/editor";
 import { Spacer } from "../../components/folder-sidebar/spacer";
@@ -52,7 +52,7 @@ export function NotesSidebar({
 				</Link>
 				<motion.button
 					onClick={() =>
-						DeleteNote(`${folder}/${noteName}`).then(() => {
+						DeleteFolder(`${folder}/${noteName}`).then(() => {
 							setNotes((prev) => prev?.filter((v) => v !== noteName) ?? null);
 						})
 					}

@@ -6,7 +6,7 @@ export function AddFolderUsingName(arg1:string):Promise<project_helpers.FileRetu
 
 export function AddNoteToFolder(arg1:string,arg2:string):Promise<project_helpers.FileReturnStruct>;
 
-export function DeleteNote(arg1:string):Promise<void>;
+export function DeleteFolder(arg1:string):Promise<void>;
 
 export function GetFolderNames():Promise<Array<string>>;
 

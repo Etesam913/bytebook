@@ -1,4 +1,5 @@
 import { type Dispatch, type SetStateAction, useState } from "react";
+import { navigate } from "wouter/use-browser-location";
 import { AddFolderUsingName } from "../../../wailsjs/go/main/App";
 import { FolderPlus } from "../../icons/folder-plus";
 import { getDefaultButtonVariants } from "../../variants";
@@ -8,9 +9,11 @@ import { Dialog, ErrorText } from "../dialog";
 export function FolderSidebarDialog({
 	isFolderDialogOpen,
 	setIsFolderDialogOpen,
+	setFolders,
 }: {
 	isFolderDialogOpen: boolean;
 	setIsFolderDialogOpen: Dispatch<SetStateAction<boolean>>;
+	setFolders: Dispatch<SetStateAction<string[] | null>>;
 }) {
 	const [errorText, setErrorText] = useState("");
 
@@ -18,9 +21,9 @@ export function FolderSidebarDialog({
 		<Dialog
 			handleSubmit={(e) => {
 				const formData = new FormData(e.target as HTMLFormElement);
-				let folderName = formData.get("folder-name");
-				if (typeof folderName === "string") {
-					folderName = folderName.trim();
+				const folderNameValue = formData.get("folder-name");
+				if (folderNameValue && typeof folderNameValue === "string") {
+					const folderName = folderNameValue.trim() as string;
 					if (folderName.includes("/")) {
 						setErrorText("Folder name cannot contain '/'");
 						return;
@@ -30,11 +33,17 @@ export function FolderSidebarDialog({
 						return;
 					}
 					setErrorText("");
+
+					console.log(folderName);
 					AddFolderUsingName(folderName)
 						.then((v) => {
 							if (v.Success) {
 								setIsFolderDialogOpen(false);
 								setErrorText("");
+								setFolders((prev) =>
+									prev ? [...prev, folderName] : [folderName],
+								);
+								navigate(`/${folderName}`);
 							} else {
 								setErrorText(v.Message);
 							}

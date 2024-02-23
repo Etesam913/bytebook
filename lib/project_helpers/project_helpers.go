@@ -67,7 +67,7 @@ type FileReturnStruct struct {
 func AddFolder(projectPath string, folderName string) FileReturnStruct {
 	pathToFolder := filepath.Join(projectPath, "notes", folderName)
 
-	fmt.Println(pathToFolder)
+	fmt.Println(projectPath, pathToFolder)
 
 	info, err := os.Stat(pathToFolder)
 	if err == nil {
@@ -160,7 +160,7 @@ func SetNoteMarkdown(projectPath string, folderName string, noteTitle string, ma
 	return nil
 }
 
-func DeleteNoteFolder(projectPath string, folderName string) error {
+func DeleteFolder(projectPath string, folderName string) error {
 	folderPath := filepath.Join(projectPath, "notes", folderName)
 	err := os.RemoveAll(folderPath)
 	if err != nil {

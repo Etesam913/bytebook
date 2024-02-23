@@ -102,8 +102,8 @@ func (a *App) SetNoteMarkdown(folderName string, noteTitle string, markdown stri
 	return setNoteReq
 }
 
-func (a *App) DeleteNote(folderName string) error {
-	deleteFolderReq := project_helpers.DeleteNoteFolder(a.projectPath, folderName)
+func (a *App) DeleteFolder(folderName string) error {
+	deleteFolderReq := project_helpers.DeleteFolder(a.projectPath, folderName)
 
 	return deleteFolderReq
 }
