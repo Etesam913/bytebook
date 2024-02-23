@@ -9,6 +9,9 @@ import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import {
 	$getSelection,
 	$isRangeSelection,
+	CAN_REDO_COMMAND,
+	CAN_UNDO_COMMAND,
+	CLEAR_HISTORY_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	SELECTION_CHANGE_COMMAND,
 } from "lexical";
@@ -77,6 +80,9 @@ export function Toolbar({
 	useEffect(() => {
 		GetNoteMarkdown(folder, note).then((markdown) => {
 			editor.setEditable(true);
+			// You don't want a different note to access the same history when you switch notes
+			editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
+
 			editor.update(() => {
 				$convertFromMarkdownString(markdown, CUSTOM_TRANSFORMERS);
 			});
