@@ -1,6 +1,5 @@
 import { useMotionValue } from "framer-motion";
 import { Route } from "wouter";
-import { NotesEditor } from "./components/editor";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { NotesSidebar } from "./routes/notes-sidebar";
 
@@ -14,30 +13,15 @@ function App() {
 			className="min-h-screen font-display bg-white dark:bg-zinc-800  text-zinc-950 dark:text-zinc-100 flex"
 		>
 			<FolderSidebar width={folderSidebarWidth} />
-
-			<Route path="/:folder" nest>
+			<Route path="/:folder/:note?">
 				{(folderParams) => (
-					<>
-						<NotesSidebar
-							params={folderParams}
-							width={notesSidebarWidth}
-							leftWidth={folderSidebarWidth}
-						/>
-						<Route path="/:note">
-							{(noteParams) => (
-								<NotesEditor
-									folderParams={folderParams}
-									noteParams={noteParams}
-								/>
-							)}
-						</Route>
-					</>
+					<NotesSidebar
+						params={folderParams}
+						width={notesSidebarWidth}
+						leftWidth={folderSidebarWidth}
+					/>
 				)}
 			</Route>
-
-			{/* <div className="flex-1">
-				<Titlebar />
-			</div> */}
 		</main>
 	);
 }

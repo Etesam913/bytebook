@@ -28,19 +28,10 @@ function handleChange(folder: string, note: string, editor: LexicalEditor) {
 }
 
 export function NotesEditor({
-	folderParams,
-	noteParams,
-}: {
-	folderParams: {
-		folder: string;
-	};
-	noteParams: {
-		note: string;
-	};
-}) {
+	params,
+}: { params: { folder: string; note: string } }) {
 	const [currentBlockType, setCurrentBlockType] = useState<EditorBlockTypes>();
-	const { folder } = folderParams;
-	const { note } = noteParams;
+	const { folder, note } = params;
 
 	const editorRef = useRef<LexicalEditor | null | undefined>(null);
 

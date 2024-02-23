@@ -13,7 +13,7 @@ import { Spacer } from "./spacer";
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, folderParam] = useRoute("/:folder");
 	const [, folderAndNoteParam] = useRoute("/:folder/:note");
-
+	console.log(folderParam, folderAndNoteParam);
 	const folder = folderParam?.folder ?? folderAndNoteParam?.folder;
 
 	const [folders, setFolders] = useState<string[] | null>([]);
@@ -28,12 +28,11 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const folderElements = folders?.map((folderName) => (
 		<li key={folderName}>
 			<Link
-				replace
 				className={cn(
 					"flex gap-2 items-center pl-3 py-[0.45rem] mb-[0.15rem] rounded-md",
 					folderName === folder && "bg-zinc-100 dark:bg-zinc-700",
 				)}
-				to={`/${folderName}`}
+				to={`/${encodeURI(folderName)}`}
 			>
 				<Folder className="min-w-[1.25rem]" />{" "}
 				<p className="whitespace-nowrap text-ellipsis overflow-hidden">

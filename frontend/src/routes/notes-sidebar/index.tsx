@@ -1,8 +1,9 @@
 import { AnimatePresence, MotionValue, motion } from "framer-motion";
 import { type CSSProperties, useEffect, useState } from "react";
-import { Link, useRoute } from "wouter";
+import { Link } from "wouter";
 import { DeleteNote, GetNoteTitles } from "../../../wailsjs/go/main/App";
 import { MotionButton } from "../../components/button";
+import { NotesEditor } from "../../components/editor";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
@@ -17,15 +18,14 @@ export function NotesSidebar({
 	width,
 	leftWidth,
 }: {
-	params: { folder: string };
+	params: { folder: string; note?: string };
 	width: MotionValue<number>;
 	leftWidth: MotionValue<number>;
 }) {
 	const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
 	const [notes, setNotes] = useState<string[] | null>([]);
-	const [, noteParam] = useRoute("/:note");
-	const { folder } = params;
-	const note = noteParam?.note;
+
+	const { folder, note } = params;
 
 	useEffect(() => {
 		GetNoteTitles(folder)
@@ -39,12 +39,11 @@ export function NotesSidebar({
 		<li key={noteName}>
 			<div className="flex items-center gap-2">
 				<Link
-					replace
 					className={cn(
 						"flex flex-1 gap-2 items-center px-3 py-[0.45rem] mb-[0.15rem] rounded-md overflow-auto",
 						noteName === note && "bg-zinc-100 dark:bg-zinc-700",
 					)}
-					to={`/${noteName}`}
+					to={`/${encodeURI(folder)}/${encodeURI(noteName)}`}
 				>
 					<Note className="min-w-[1.25rem]" />{" "}
 					<p className="whitespace-nowrap text-ellipsis overflow-hidden">
@@ -114,6 +113,8 @@ export function NotesSidebar({
 				</div>
 			</motion.aside>
 			<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
+
+			{note && <NotesEditor params={{ folder, note }} />}
 		</>
 	);
 }
