@@ -23,9 +23,10 @@ export function NotesSidebarDialog({
 		<Dialog
 			handleSubmit={(e) => {
 				const formData = new FormData(e.target as HTMLFormElement);
-				let noteName = formData.get("note-name");
-				if (typeof noteName === "string") {
-					noteName = noteName.trim();
+				const noteNameForm = formData.get("note-name");
+				if (noteNameForm && typeof noteNameForm === "string") {
+					const noteName = noteNameForm.trim() satisfies string;
+
 					if (noteName.includes("/")) {
 						setErrorText("Note name cannot contain '/'");
 						return;
@@ -34,19 +35,16 @@ export function NotesSidebarDialog({
 						setErrorText("Note name cannot be empty");
 						return;
 					}
-					setErrorText("");
+
 					AddNoteToFolder(folderName, noteName)
 						.then((v) => {
 							if (v.Success) {
 								setIsNoteDialogOpen(false);
 								setErrorText("");
-								navigate(`/${folderName}`);
-								setNotes((prev) => {
-									if (prev === null) {
-										return [noteName as string];
-									}
-									return [...prev, noteName as string];
-								});
+								navigate(`/${folderName}/${noteName}`);
+								setNotes((prev) =>
+									!prev ? [noteName as string] : [...prev, noteName as string],
+								);
 							} else {
 								setErrorText(v.Message);
 							}

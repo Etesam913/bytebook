@@ -23,7 +23,7 @@ export function FolderSidebarDialog({
 				const formData = new FormData(e.target as HTMLFormElement);
 				const folderNameValue = formData.get("folder-name");
 				if (folderNameValue && typeof folderNameValue === "string") {
-					const folderName = folderNameValue.trim() as string;
+					const folderName = folderNameValue.trim() satisfies string;
 					if (folderName.includes("/")) {
 						setErrorText("Folder name cannot contain '/'");
 						return;

@@ -1,6 +1,7 @@
 import { AnimatePresence, MotionValue, motion } from "framer-motion";
 import { type CSSProperties, useEffect, useState } from "react";
 import { Link } from "wouter";
+import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder, GetNoteTitles } from "../../../wailsjs/go/main/App";
 import { MotionButton } from "../../components/button";
 import { NotesEditor } from "../../components/editor";
@@ -31,6 +32,7 @@ export function NotesSidebar({
 		GetNoteTitles(folder)
 			.then((v) => {
 				setNotes(v);
+				navigate(`/${folder}${v.at(0) ? `/${v.at(0)}` : ""}`);
 			})
 			.catch(() => setNotes([]));
 	}, [folder]);
