@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { ButtonHTMLAttributes, ForwardedRef, forwardRef } from "react";
-import { cn } from "../../utils/tailwind";
+import { cn } from "../../utils/string-formatting";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {}
 

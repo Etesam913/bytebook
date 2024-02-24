@@ -2,6 +2,7 @@ import { type Dispatch, type SetStateAction, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { AddFolderUsingName } from "../../../wailsjs/go/main/App";
 import { FolderPlus } from "../../icons/folder-plus";
+import { fileNameRegex } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../button";
 import { Dialog, ErrorText } from "../dialog";
@@ -24,17 +25,13 @@ export function FolderSidebarDialog({
 				const folderNameValue = formData.get("folder-name");
 				if (folderNameValue && typeof folderNameValue === "string") {
 					const folderName = folderNameValue.trim() satisfies string;
-					if (folderName.includes("/")) {
-						setErrorText("Folder name cannot contain '/'");
+					if (!fileNameRegex.test(folderName)) {
+						setErrorText(
+							"Invalid folder name. Folder names can only contain letters, numbers, spaces, hyphens, and underscores.",
+						);
 						return;
 					}
-					if (folderName === "") {
-						setErrorText("Folder name cannot be empty");
-						return;
-					}
-					setErrorText("");
 
-					console.log(folderName);
 					AddFolderUsingName(folderName)
 						.then((v) => {
 							if (v.Success) {

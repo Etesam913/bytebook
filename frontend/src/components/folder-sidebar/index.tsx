@@ -6,7 +6,7 @@ import { DeleteFolder, GetFolderNames } from "../../../wailsjs/go/main/App";
 import { Folder } from "../../icons/folder";
 import { FolderPlus } from "../../icons/folder-plus";
 import { Trash } from "../../icons/trash";
-import { cn } from "../../utils/tailwind";
+import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../button";
 import { FolderSidebarDialog } from "./sidebar-dialog";
@@ -93,7 +93,9 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					<section className="flex-1 overflow-y-auto flex flex-col gap-2">
 						<p>Your Folders</p>
 						<ul className="overflow-y-auto">
-							{folderElements ?? (
+							{folderElements && folderElements.length > 0 ? (
+								folderElements
+							) : (
 								<li className="text-center text-zinc-500 dark:text-zinc-300  text-xs">
 									Create a folder with the "Create Folder" button above
 								</li>

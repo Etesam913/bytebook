@@ -1,7 +1,7 @@
 import { type MotionValue } from "framer-motion";
 import { useState } from "react";
 import { dragSpacer } from "../../utils/draggable";
-import { cn } from "../../utils/tailwind";
+import { cn } from "../../utils/string-formatting";
 
 export function Spacer({
 	width,

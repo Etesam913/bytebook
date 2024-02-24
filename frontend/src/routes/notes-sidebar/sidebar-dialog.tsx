@@ -4,6 +4,7 @@ import { AddNoteToFolder } from "../../../wailsjs/go/main/App";
 import { MotionButton } from "../../components/button";
 import { Dialog, ErrorText } from "../../components/dialog";
 import { Compose } from "../../icons/compose";
+import { fileNameRegex } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 
 export function NotesSidebarDialog({
@@ -26,13 +27,10 @@ export function NotesSidebarDialog({
 				const noteNameForm = formData.get("note-name");
 				if (noteNameForm && typeof noteNameForm === "string") {
 					const noteName = noteNameForm.trim() satisfies string;
-
-					if (noteName.includes("/")) {
-						setErrorText("Note name cannot contain '/'");
-						return;
-					}
-					if (noteName === "") {
-						setErrorText("Note name cannot be empty");
+					if (!fileNameRegex.test(noteName)) {
+						setErrorText(
+							"Invalid note name. Note names can only contain letters, numbers, spaces, hyphens, and underscores.",
+						);
 						return;
 					}
 

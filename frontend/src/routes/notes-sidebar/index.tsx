@@ -10,7 +10,7 @@ import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
 import { Note } from "../../icons/page";
 import { Trash } from "../../icons/trash";
-import { cn } from "../../utils/tailwind";
+import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { NotesSidebarDialog } from "./sidebar-dialog";
 
