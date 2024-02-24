@@ -39,7 +39,7 @@ export function NotesSidebar({
 
 	const noteElements = notes?.map((noteName) => (
 		<li key={noteName}>
-			<div className="flex items-center gap-2">
+			<div className="flex items-center gap-2 overflow-hidden pr-1">
 				<Link
 					className={cn(
 						"flex flex-1 gap-2 items-center px-3 py-[0.45rem] mb-[0.15rem] rounded-md overflow-auto",

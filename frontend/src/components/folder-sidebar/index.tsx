@@ -28,10 +28,10 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 
 	const folderElements = folders?.map((folderName) => (
 		<li key={folderName}>
-			<div className="flex items-center gap-2">
+			<div className="flex items-center gap-2 overflow-hidden pr-1">
 				<Link
 					className={cn(
-						"flex flex-1 gap-2 items-center px-3 py-[0.45rem] mb-[0.15rem] rounded-md overflow-auto",
+						"flex flex-1 gap-2 items-center px-3 py-[0.45rem] rounded-md overflow-x-hidden",
 						folderName === folder && "bg-zinc-100 dark:bg-zinc-700",
 					)}
 					to={`/${encodeURI(folderName)}`}
@@ -49,9 +49,9 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 							setFolders(newFolders);
 						})
 					}
-					{...getDefaultButtonVariants(1.15, 0.95, 1.15)}
+					{...getDefaultButtonVariants(1.1, 0.95, 1.1)}
 					type="button"
-					className="min-w-[20px] p-1 rounded-[0.3rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700"
+					className="min-w-[28px] p-1 rounded-[0.3rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700"
 				>
 					<Trash />
 				</motion.button>

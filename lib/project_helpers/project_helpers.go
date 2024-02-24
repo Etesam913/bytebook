@@ -113,7 +113,7 @@ func AddNoteToFolder(projectPath string, folderName string, noteTitle string) Fi
 func GetNotesFromFolder(projectPath string, folderName string) (notes []string, err error) {
 	folderPath := filepath.Join(projectPath, "notes", folderName)
 	// Ensure the directory exists
-	if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
+	if _, err := os.Stat(folderPath); err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
