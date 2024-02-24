@@ -9,8 +9,6 @@ import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import {
 	$getSelection,
 	$isRangeSelection,
-	CAN_REDO_COMMAND,
-	CAN_UNDO_COMMAND,
 	CLEAR_HISTORY_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	SELECTION_CHANGE_COMMAND,

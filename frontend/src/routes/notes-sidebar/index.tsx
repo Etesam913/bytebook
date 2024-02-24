@@ -1,5 +1,5 @@
 import { AnimatePresence, MotionValue, motion } from "framer-motion";
-import { type CSSProperties, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder, GetNoteTitles } from "../../../wailsjs/go/main/App";
@@ -82,13 +82,13 @@ export function NotesSidebar({
 			</AnimatePresence>
 			<motion.aside
 				style={{ width }}
-				className={cn("text-md h-screen flex flex-col gap-2")}
+				className="pt-5 text-md h-screen flex flex-col gap-2 overflow-y-auto"
 			>
-				<div
+				{/* <div
 					className="h-3 cursor-grab active:cursor-grabbing"
 					style={{ "--wails-draggable": "drag" } as CSSProperties}
-				/>
-				<div className="px-[10px] flex flex-col gap-4">
+				/> */}
+				<div className="px-[10px] flex flex-col gap-4 h-full overflow-y-auto">
 					<section className="flex gap-3">
 						<Folder className="min-w-[1.25rem]" />{" "}
 						<p className="whitespace-nowrap text-ellipsis overflow-hidden">
@@ -102,10 +102,12 @@ export function NotesSidebar({
 					>
 						Create Note <Compose />
 					</MotionButton>
-					<section className="flex flex-col gap-3">
+					<section className="flex flex-col flex-1 gap-3 overflow-y-auto">
 						<p>Your Notes</p>
-						<ul>
-							{noteElements ?? (
+						<ul className="overflow-y-auto">
+							{noteElements && noteElements.length > 0 ? (
+								noteElements
+							) : (
 								<li className="text-center text-zinc-500 dark:text-zinc-300  text-xs">
 									Create a note with the "Create Note" button above
 								</li>

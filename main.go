@@ -38,7 +38,7 @@ func main() {
 			app,
 		},
 		Mac: &mac.Options{
-			TitleBar: mac.TitleBarHiddenInset(),
+			// TitleBar: mac.TitleBarHiddenInset(),
 			// Preferences: &mac.Preferences{
 			// 	// TabFocusesLinks: mac.Enabled,
 			// 	// TextInteractionEnabled: mac.Enabled,

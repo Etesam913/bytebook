@@ -1,5 +1,5 @@
 import { AnimatePresence, MotionValue, motion } from "framer-motion";
-import { CSSProperties, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder, GetFolderNames } from "../../../wailsjs/go/main/App";
@@ -73,13 +73,13 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 
 			<motion.aside
 				style={{ width }}
-				className={cn("text-md h-screen flex flex-col gap-2")}
+				className="pt-3 text-md h-screen flex flex-col gap-2 overflow-y-auto"
 			>
-				<div
+				{/* <div
 					className="h-9 cursor-grab active:cursor-grabbing"
 					style={{ "--wails-draggable": "drag" } as CSSProperties}
-				/>
-				<div className="px-[10px] flex flex-col gap-4">
+				/> */}
+				<div className="px-[10px] flex flex-col gap-4 h-full">
 					<MotionButton
 						{...getDefaultButtonVariants()}
 						className="w-full bg-transparent flex justify-between align-center"
@@ -87,9 +87,9 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					>
 						Create Folder <FolderPlus />
 					</MotionButton>
-					<section className="flex flex-col gap-3">
+					<section className="flex-1 overflow-y-auto flex flex-col gap-2">
 						<p>Your Folders</p>
-						<ul>
+						<ul className="overflow-y-auto">
 							{folderElements ?? (
 								<li className="text-center text-zinc-500 dark:text-zinc-300  text-xs">
 									Create a folder with the "Create Folder" button above
