@@ -1,8 +1,5 @@
 import { $isListNode, ListNode } from "@lexical/list";
-import {
-	$convertFromMarkdownString,
-	$convertToMarkdownString,
-} from "@lexical/markdown";
+import { $convertFromMarkdownString } from "@lexical/markdown";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
@@ -17,7 +14,6 @@ import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { GetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { CodePullRequest } from "../../icons/code-pull-request";
-import { FloppyDisk } from "../../icons/floppy-disk";
 import { TextBold } from "../../icons/text-bold";
 import { TextItalic } from "../../icons/text-italic";
 import { TextStrikethrough } from "../../icons/text-strikethrough";
@@ -82,7 +78,7 @@ export function Toolbar({
 				editor.setEditable(true);
 				// You don't want a different note to access the same history when you switch notes
 				editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
-
+				console.log(markdown);
 				editor.update(() => {
 					$convertFromMarkdownString(markdown, CUSTOM_TRANSFORMERS);
 				});

@@ -22,7 +22,11 @@ const debouncedHandleChange = debounce(handleChange, 500);
 
 function handleChange(folder: string, note: string, editor: LexicalEditor) {
 	editor.update(() => {
-		const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS);
+		const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS).replaceAll(
+			/\n{2}/gm,
+			"\n",
+		);
+		console.log(markdown);
 		SetNoteMarkdown(folder, note, markdown);
 	});
 }
@@ -52,7 +56,7 @@ export function NotesEditor({
 				>
 					<RichTextPlugin
 						placeholder={null}
-						contentEditable={<ContentEditable />}
+						contentEditable={<ContentEditable className=" whitespace-pre" />}
 						ErrorBoundary={LexicalErrorBoundary}
 					/>
 					<OnChangePlugin

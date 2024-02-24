@@ -20,7 +20,7 @@ import {
 	HeadingNode,
 	HeadingTagType,
 } from "@lexical/rich-text";
-import { ElementNode } from "lexical";
+import { $createParagraphNode, ElementNode, ParagraphNode } from "lexical";
 
 const createBlockNode = (
 	createNode: (match: Array<string>) => ElementNode,
@@ -50,6 +50,20 @@ const CUSTOM_HEADING_TRANSFORMER: ElementTransformer = {
 	type: "element",
 };
 
+const LINE_BREAK_FIX: ElementTransformer = {
+	dependencies: [ParagraphNode],
+	export: () => {
+		return null;
+	},
+	regExp: /^$/,
+	replace: (_textNode, nodes, _, isImport) => {
+		if (isImport && nodes.length === 1) {
+			nodes[0].replace($createParagraphNode());
+		}
+	},
+	type: "element",
+};
+
 export const CUSTOM_TRANSFORMERS = [
 	CUSTOM_HEADING_TRANSFORMER,
 	UNORDERED_LIST,
@@ -65,6 +79,5 @@ export const CUSTOM_TRANSFORMERS = [
 	ITALIC_UNDERSCORE,
 	STRIKETHROUGH,
 	LINK,
+	LINE_BREAK_FIX,
 ];
-
-// const CUSTOM_HEADING_TRANSFORMER =
