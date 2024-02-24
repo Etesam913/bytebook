@@ -158,18 +158,6 @@ export function Toolbar({
 				<CodePullRequest />
 			</button>
 
-			<button
-				type="button"
-				onClick={() => {
-					editor.update(() => {
-						const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS);
-						// WriteNote(noteTitle, markdown);
-					});
-				}}
-			>
-				<FloppyDisk />
-			</button>
-
 			<dialog
 				open={isCommitModalOpen}
 				onClose={() => setIsCommitModalOpen(false)}

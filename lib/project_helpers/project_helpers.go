@@ -6,6 +6,9 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
+
+	"github.com/etesam913/bytebook/lib/io_helpers"
 )
 
 const ProjectName = "Bytebook"
@@ -105,6 +108,12 @@ func AddNoteToFolder(projectPath string, folderName string, noteTitle string) Fi
 
 	if err != nil {
 		fmt.Printf("Error writing to %s: %v", noteFolderPath, err)
+		return FileReturnStruct{Success: false, Message: err.Error()}
+	}
+
+	createdDate := time.Now().UTC().Format("2006-01-02 15:04")
+	err = io_helpers.WriteJsonToPath(filepath.Join(noteFolderPath, noteTitle, "metadata.json"), map[string]string{"title": noteTitle, "created": createdDate, "updated": createdDate})
+	if err != nil {
 		return FileReturnStruct{Success: false, Message: err.Error()}
 	}
 	return FileReturnStruct{Success: true, Message: ""}

@@ -6,8 +6,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/etesam913/bytebook/lib/git_helpers"
+	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/project_helpers"
 )
 
@@ -45,18 +47,6 @@ func (a *App) startup(ctx context.Context) {
 func (a *App) shutdown(ctx context.Context) {
 }
 
-func (a *App) WriteNote(noteTitle string, markdown string) bool {
-	noteFilePath := filepath.Join(a.projectPath, "notes", fmt.Sprintf("%s.md", noteTitle))
-
-	err := os.WriteFile(noteFilePath, []byte(markdown), 0644)
-
-	if err != nil {
-		fmt.Printf("Error writing to %s: %v", noteFilePath, err)
-		return false
-	}
-	return true
-}
-
 func (a *App) GetFolderNames() ([]string, error) {
 	folderNames, err := project_helpers.GetFolders(a.projectPath)
 
@@ -68,8 +58,19 @@ func (a *App) GetFolderNames() ([]string, error) {
 
 func (a *App) AddFolderUsingName(folderName string) project_helpers.FileReturnStruct {
 	addFolderReq := project_helpers.AddFolder(a.projectPath, folderName)
+	if !addFolderReq.Success {
+		return addFolderReq
+	}
 
-	return addFolderReq
+	// Create the metadata json file for the folder
+	metadataPath := filepath.Join(a.projectPath, "notes", folderName, "metadata.json")
+	createdDate := time.Now().UTC().Format("2006-01-02 15:04")
+	err := io_helpers.WriteJsonToPath(metadataPath, map[string]string{"title": folderName, "created": createdDate, "updated": createdDate})
+	if err != nil {
+		return project_helpers.FileReturnStruct{Success: false, Message: err.Error()}
+	}
+
+	return project_helpers.FileReturnStruct{Success: true, Message: ""}
 }
 
 func (a *App) AddNoteToFolder(folderName string, noteTitle string) project_helpers.FileReturnStruct {
