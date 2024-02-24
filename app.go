@@ -57,13 +57,13 @@ func (a *App) WriteNote(noteTitle string, markdown string) bool {
 	return true
 }
 
-func (a *App) GetFolderNames() []string {
+func (a *App) GetFolderNames() ([]string, error) {
 	folderNames, err := project_helpers.GetFolders(a.projectPath)
 
 	if err != nil {
-		log.Fatalf("Error getting folder names: %v", err)
+		return nil, err
 	}
-	return folderNames
+	return folderNames, nil
 }
 
 func (a *App) AddFolderUsingName(folderName string) project_helpers.FileReturnStruct {
@@ -78,22 +78,22 @@ func (a *App) AddNoteToFolder(folderName string, noteTitle string) project_helpe
 	return addNoteReq
 }
 
-func (a *App) GetNoteTitles(folderName string) []string {
+func (a *App) GetNoteTitles(folderName string) ([]string, error) {
 	noteTitles, err := project_helpers.GetNotesFromFolder(a.projectPath, folderName)
-
+	fmt.Println(noteTitles, err)
 	if err != nil {
-		log.Fatalf("Error getting note titles: %v", err)
+		return nil, err
 	}
-	return noteTitles
+	return noteTitles, nil
 }
 
-func (a *App) GetNoteMarkdown(folderName string, noteTitle string) string {
+func (a *App) GetNoteMarkdown(folderName string, noteTitle string) (string, error) {
 	noteMarkdown, err := project_helpers.GetNoteMarkdown(a.projectPath, folderName, noteTitle)
 
 	if err != nil {
-		log.Fatalf("Error getting note markdown: %v", err)
+		return "", err
 	}
-	return noteMarkdown
+	return noteMarkdown, nil
 }
 
 func (a *App) SetNoteMarkdown(folderName string, noteTitle string, markdown string) error {

@@ -14,6 +14,7 @@ import {
 	SELECTION_CHANGE_COMMAND,
 } from "lexical";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import { navigate } from "wouter/use-browser-location";
 import { GetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { CodePullRequest } from "../../icons/code-pull-request";
 import { FloppyDisk } from "../../icons/floppy-disk";
@@ -76,15 +77,20 @@ export function Toolbar({
 
 	// Fetch note content locally
 	useEffect(() => {
-		GetNoteMarkdown(folder, note).then((markdown) => {
-			editor.setEditable(true);
-			// You don't want a different note to access the same history when you switch notes
-			editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
+		GetNoteMarkdown(folder, note)
+			.then((markdown) => {
+				editor.setEditable(true);
+				// You don't want a different note to access the same history when you switch notes
+				editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
 
-			editor.update(() => {
-				$convertFromMarkdownString(markdown, CUSTOM_TRANSFORMERS);
+				editor.update(() => {
+					$convertFromMarkdownString(markdown, CUSTOM_TRANSFORMERS);
+				});
+			})
+			.catch((e) => {
+				console.error(e);
+				navigate("/");
 			});
-		});
 	}, [folder, note, editor]);
 
 	useEffect(() => {

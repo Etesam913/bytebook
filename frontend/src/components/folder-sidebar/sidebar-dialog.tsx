@@ -49,6 +49,7 @@ export function FolderSidebarDialog({
 							}
 						})
 						.catch((e) => {
+							console.error(e);
 							setErrorText(e.message);
 						});
 				}

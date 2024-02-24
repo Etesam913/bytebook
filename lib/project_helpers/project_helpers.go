@@ -46,6 +46,7 @@ func GetFolders(projectPath string) (folders []string, err error) {
 
 	// Get the folders present in the notes directory
 	files, err := os.ReadDir(notesPath)
+	fmt.Println(files, err)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +115,7 @@ func GetNotesFromFolder(projectPath string, folderName string) (notes []string, 
 	folderPath := filepath.Join(projectPath, "notes", folderName)
 	// Ensure the directory exists
 	if _, err := os.Stat(folderPath); err != nil {
-		fmt.Println(err)
+		fmt.Println(err, fmt.Sprintf(": Cannot get notes from this %s because it does not exist", folderName))
 		return nil, err
 	}
 
@@ -135,7 +136,6 @@ func GetNotesFromFolder(projectPath string, folderName string) (notes []string, 
 			notes = append(notes, file.Name())
 		}
 	}
-
 	return notes, nil
 }
 
@@ -167,4 +167,9 @@ func DeleteFolder(projectPath string, folderName string) error {
 		return err
 	}
 	return nil
+}
+
+func DoesFolderExist(projectPath string, folderName string) bool {
+	_, err := os.Stat(filepath.Join(projectPath, folderName))
+	return err == nil
 }

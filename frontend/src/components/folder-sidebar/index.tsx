@@ -23,7 +23,10 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	useEffect(() => {
 		GetFolderNames()
 			.then((folders) => setFolders(folders))
-			.catch(() => setFolders(null));
+			.catch((e) => {
+				console.error(e);
+				setFolders(null);
+			});
 	}, []);
 
 	const folderElements = folders?.map((folderName) => (

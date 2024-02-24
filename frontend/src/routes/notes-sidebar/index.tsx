@@ -32,9 +32,12 @@ export function NotesSidebar({
 		GetNoteTitles(folder)
 			.then((v) => {
 				setNotes(v);
-				navigate(`/${folder}${v.at(0) ? `/${v.at(0)}` : ""}`);
+				navigate(`/${folder}${v?.at(0) ? `/${v?.at(0)}` : ""}`);
 			})
-			.catch(() => setNotes([]));
+			.catch((e) => {
+				navigate("/");
+				setNotes([]);
+			});
 	}, [folder]);
 
 	const noteElements = notes?.map((noteName) => (

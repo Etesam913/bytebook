@@ -49,7 +49,10 @@ export function NotesSidebarDialog({
 								setErrorText(v.Message);
 							}
 						})
-						.catch((e) => setErrorText(e.message));
+						.catch((e) => {
+							console.error(e);
+							setErrorText(e.message);
+						});
 				}
 			}}
 			title="Create Note"
