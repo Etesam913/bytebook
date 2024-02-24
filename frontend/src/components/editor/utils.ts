@@ -2,15 +2,24 @@ import {
 	INSERT_ORDERED_LIST_COMMAND,
 	INSERT_UNORDERED_LIST_COMMAND,
 } from "@lexical/list";
+import {
+	type ElementTransformer,
+	TRANSFORMERS,
+	type TextFormatTransformer,
+	type TextMatchTransformer,
+} from "@lexical/markdown";
 import { $createHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
 import {
 	$createParagraphNode,
 	$getSelection,
 	$isRangeSelection,
+	ElementNode,
 	LexicalEditor,
 } from "lexical";
 import { EditorBlockTypes } from "../../types";
+import { createMarkdownExport } from "./MarkdownExport";
+import { createMarkdownImport } from "./MarkdownImport";
 
 /**
  * Gets a selection and formats the blocks to `newBlockType`
@@ -44,4 +53,26 @@ export function changeSelectedBlocksType(
 			}
 		}
 	});
+}
+
+export type Transformer =
+	| ElementTransformer
+	| TextFormatTransformer
+	| TextMatchTransformer;
+
+export function $convertToMarkdownStringCorrect(
+	transformers: Array<Transformer> = TRANSFORMERS,
+	node?: ElementNode,
+): string {
+	const exportMarkdown = createMarkdownExport(transformers);
+	return exportMarkdown(node);
+}
+
+export function $convertFromMarkdownStringCorrect(
+	markdown: string,
+	transformers: Array<Transformer> = TRANSFORMERS,
+	node?: ElementNode,
+): void {
+	const importMarkdown = createMarkdownImport(transformers);
+	importMarkdown(markdown, node);
 }

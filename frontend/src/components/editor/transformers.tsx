@@ -12,6 +12,8 @@ import {
 	ORDERED_LIST,
 	QUOTE,
 	STRIKETHROUGH,
+	TextFormatTransformer,
+	TextMatchTransformer,
 	UNORDERED_LIST,
 } from "@lexical/markdown";
 import {
@@ -20,7 +22,8 @@ import {
 	HeadingNode,
 	HeadingTagType,
 } from "@lexical/rich-text";
-import { $createParagraphNode, ElementNode, ParagraphNode } from "lexical";
+import { ElementNode } from "lexical";
+import { type Transformer } from "./utils";
 
 const createBlockNode = (
 	createNode: (match: Array<string>) => ElementNode,
@@ -43,6 +46,7 @@ const CUSTOM_HEADING_TRANSFORMER: ElementTransformer = {
 		return `${"#".repeat(level)} ${exportChildren(node)}`;
 	},
 	regExp: /^(#{1,3})\s/,
+
 	replace: createBlockNode((match) => {
 		const tag = `h${match[1].length}` as HeadingTagType;
 		return $createHeadingNode(tag);
@@ -50,19 +54,38 @@ const CUSTOM_HEADING_TRANSFORMER: ElementTransformer = {
 	type: "element",
 };
 
-const LINE_BREAK_FIX: ElementTransformer = {
-	dependencies: [ParagraphNode],
-	export: () => {
-		return null;
-	},
-	regExp: /^$/,
-	replace: (_textNode, nodes, _, isImport) => {
-		if (isImport && nodes.length === 1) {
-			nodes[0].replace($createParagraphNode());
+function indexBy<T>(
+	list: Array<T>,
+	callback: (arg0: T) => string,
+): Readonly<Record<string, Array<T>>> {
+	const index: Record<string, Array<T>> = {};
+
+	for (const item of list) {
+		const key = callback(item);
+
+		if (index[key]) {
+			index[key].push(item);
+		} else {
+			index[key] = [item];
 		}
-	},
-	type: "element",
-};
+	}
+
+	return index;
+}
+
+export function transformersByType(transformers: Array<Transformer>): Readonly<{
+	element: Array<ElementTransformer>;
+	textFormat: Array<TextFormatTransformer>;
+	textMatch: Array<TextMatchTransformer>;
+}> {
+	const byType = indexBy(transformers, (t) => t.type);
+
+	return {
+		element: (byType.element || []) as Array<ElementTransformer>,
+		textFormat: (byType["text-format"] || []) as Array<TextFormatTransformer>,
+		textMatch: (byType["text-match"] || []) as Array<TextMatchTransformer>,
+	};
+}
 
 export const CUSTOM_TRANSFORMERS = [
 	CUSTOM_HEADING_TRANSFORMER,
@@ -79,5 +102,4 @@ export const CUSTOM_TRANSFORMERS = [
 	ITALIC_UNDERSCORE,
 	STRIKETHROUGH,
 	LINK,
-	LINE_BREAK_FIX,
 ];

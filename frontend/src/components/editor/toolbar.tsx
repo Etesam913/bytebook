@@ -1,5 +1,4 @@
 import { $isListNode, ListNode } from "@lexical/list";
-import { $convertFromMarkdownString } from "@lexical/markdown";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
@@ -20,7 +19,10 @@ import { TextStrikethrough } from "../../icons/text-strikethrough";
 import { TextUnderline } from "../../icons/text-underline";
 import { EditorBlockTypes } from "../../types";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
-import { changeSelectedBlocksType } from "./utils";
+import {
+	$convertFromMarkdownStringCorrect,
+	changeSelectedBlocksType,
+} from "./utils";
 
 const LOW_PRIORITY = 1;
 
@@ -80,7 +82,7 @@ export function Toolbar({
 				editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
 				console.log(markdown);
 				editor.update(() => {
-					$convertFromMarkdownString(markdown, CUSTOM_TRANSFORMERS);
+					$convertFromMarkdownStringCorrect(markdown, CUSTOM_TRANSFORMERS);
 				});
 			})
 			.catch((e) => {

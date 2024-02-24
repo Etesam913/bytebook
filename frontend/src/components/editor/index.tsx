@@ -1,4 +1,3 @@
-import { $convertToMarkdownString } from "@lexical/markdown";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { EditorRefPlugin } from "@lexical/react/LexicalEditorRefPlugin";
@@ -17,15 +16,13 @@ import { debounce } from "../../utils/draggable";
 import { editorConfig } from "./editor-config";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
+import { $convertToMarkdownStringCorrect } from "./utils";
 
 const debouncedHandleChange = debounce(handleChange, 500);
 
 function handleChange(folder: string, note: string, editor: LexicalEditor) {
 	editor.update(() => {
-		const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS).replaceAll(
-			/\n{2}/gm,
-			"\n",
-		);
+		const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
 		console.log(markdown);
 		SetNoteMarkdown(folder, note, markdown);
 	});
