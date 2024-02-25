@@ -21,6 +21,7 @@
 		"framer-motion": "^11.0.3",
 		"jotai": "^2.6.4",
 		"lexical": "^0.13.1",
+		"re-resizable": "^6.9.11",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"wouter": "^3.0.0"

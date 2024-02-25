@@ -1,14 +1,15 @@
 package project_helpers
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	wails_runtime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 const ProjectName = "Bytebook"
@@ -21,16 +22,23 @@ func GetProjectPath() (string, error) {
 
 	// Customize the folder and database name as needed
 	var projectPath string
-	switch os := runtime.GOOS; os {
-	case "windows":
-		projectPath = filepath.Join(homeDir, "AppData", "Local", ProjectName)
-	case "darwin":
-		projectPath = filepath.Join(homeDir, "Library", "Application Support", ProjectName)
-	case "linux":
-		projectPath = filepath.Join(homeDir, ".local", "share", ProjectName)
-	default:
-		// Fallback for other OS or as a default (can also decide to return an error instead)
-		projectPath = filepath.Join(homeDir, ProjectName)
+
+	err = io_helpers.CompleteCustomActionForOS(
+		io_helpers.ActionStruct{
+			WindowsAction: func() {
+				projectPath = filepath.Join(homeDir, "AppData", "Local", ProjectName)
+			},
+			MacAction: func() {
+				projectPath = filepath.Join(homeDir, "Library", "Application Support", ProjectName)
+			},
+			LinuxAction: func() {
+				projectPath = filepath.Join(homeDir, ".local", "share", ProjectName)
+			},
+		},
+	)
+
+	if err != nil {
+		return "Could not get the project path", err
 	}
 	// Ensure the directory exists
 	if err := os.MkdirAll(filepath.Dir(projectPath), os.ModePerm); err != nil {
@@ -181,4 +189,60 @@ func DeleteFolder(projectPath string, folderName string) error {
 func DoesFolderExist(projectPath string, folderName string) bool {
 	_, err := os.Stat(filepath.Join(projectPath, folderName))
 	return err == nil
+}
+
+func UploadImage(ctx context.Context, projectPath string, folderPath string, notePath string) ([]string, error) {
+	defaultDirectory := ""
+	err := io_helpers.CompleteCustomActionForOS(io_helpers.ActionStruct{
+		WindowsAction: func() {
+			defaultDirectory = "C:\\"
+		},
+		MacAction: func() {
+			defaultDirectory = "/Users"
+		},
+		LinuxAction: func() {
+			defaultDirectory = "/home/"
+		}})
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("👺 default dir: ", defaultDirectory)
+
+	filePaths, err := wails_runtime.OpenMultipleFilesDialog(
+		ctx,
+		wails_runtime.OpenDialogOptions{
+			DefaultDirectory: defaultDirectory,
+			Filters: []wails_runtime.FileFilter{
+				{
+					DisplayName: "Image Files",
+					Pattern:     "*.png;*.jpg;*.jpeg",
+				},
+			},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	newFilePaths := make([]string, 0)
+	// Process the selected file
+	if len(filePaths) > 0 {
+		// runtime.LogInfo(ctx, "Selected file: "+filename)
+		for _, file := range filePaths {
+			wails_runtime.LogInfo(ctx, "Selected file: "+file)
+			cleanedFileName := io_helpers.CleanFileName(filepath.Base(file))
+			newFilePath := filepath.Join(projectPath, "notes", folderPath, notePath, cleanedFileName)
+			if err != nil {
+				return nil, err
+			}
+
+			fileServerPath := filepath.Join("notes", folderPath, notePath, cleanedFileName)
+
+			newFilePaths = append(newFilePaths, fileServerPath)
+			io_helpers.CopyFile(file, newFilePath)
+		}
+	} else {
+		wails_runtime.LogInfo(ctx, "No file was selected.")
+	}
+
+	return newFilePaths, nil
 }

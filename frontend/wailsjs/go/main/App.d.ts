@@ -15,3 +15,5 @@ export function GetNoteMarkdown(arg1:string,arg2:string):Promise<string>;
 export function GetNoteTitles(arg1:string):Promise<Array<string>>;
 
 export function SetNoteMarkdown(arg1:string,arg2:string,arg3:string):Promise<void>;
+
+export function UploadImagesToFolder(arg1:string,arg2:string):Promise<Array<string>>;

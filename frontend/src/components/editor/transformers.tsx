@@ -42,7 +42,6 @@ const IMAGE_TRANSFORMER: TextMatchTransformer = {
 		if (!$isImageNode(node)) {
 			return null;
 		}
-
 		return `![${node.getAltText()}](${node.getSrc()})`;
 	},
 	importRegExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))/,
@@ -53,7 +52,6 @@ const IMAGE_TRANSFORMER: TextMatchTransformer = {
 			alt,
 			src,
 		});
-		console.log(imageNode);
 		textNode.replace(imageNode);
 	},
 	trigger: ")",

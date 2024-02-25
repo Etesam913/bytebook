@@ -24,7 +24,6 @@ const debouncedHandleChange = debounce(handleChange, 500);
 function handleChange(folder: string, note: string, editor: LexicalEditor) {
 	editor.update(() => {
 		const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
-		console.log(markdown);
 		SetNoteMarkdown(folder, note, markdown);
 	});
 }

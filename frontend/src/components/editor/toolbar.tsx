@@ -9,7 +9,7 @@ import {
 	FORMAT_TEXT_COMMAND,
 	SELECTION_CHANGE_COMMAND,
 } from "lexical";
-import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import { type Dispatch, type SetStateAction, useEffect } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { GetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { TextBold } from "../../icons/text-bold";
@@ -17,7 +17,6 @@ import { TextItalic } from "../../icons/text-italic";
 import { TextStrikethrough } from "../../icons/text-strikethrough";
 import { TextUnderline } from "../../icons/text-underline";
 import { EditorBlockTypes } from "../../types";
-import { INSERT_IMAGE_COMMAND } from "./plugins/images";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import {
 	$convertFromMarkdownStringCorrect,
@@ -40,7 +39,6 @@ export function Toolbar({
 	setCurrentBlockType,
 }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
-	const [isCommitModalOpen, setIsCommitModalOpen] = useState(false);
 
 	function updateToolbar() {
 		const selection = $getSelection();
@@ -80,7 +78,6 @@ export function Toolbar({
 				editor.setEditable(true);
 				// You don't want a different note to access the same history when you switch notes
 				editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
-				console.log(markdown);
 				editor.update(() => {
 					$convertFromMarkdownStringCorrect(markdown, CUSTOM_TRANSFORMERS);
 				});
@@ -107,7 +104,9 @@ export function Toolbar({
 	return (
 		<nav className="flex gap-3 p-2">
 			<select
-				onChange={(e) => changeSelectedBlocksType(editor, e.target.value)}
+				onChange={(e) =>
+					changeSelectedBlocksType(editor, e.target.value, folder, note)
+				}
 				value={currentBlockType}
 				className="w-16"
 			>
@@ -117,6 +116,7 @@ export function Toolbar({
 				<option value="paragraph">paragraph</option>
 				<option value="ul">ul</option>
 				<option value="ol">ol</option>
+				<option value="img">Image</option>
 			</select>
 			<button
 				onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold")}
@@ -146,20 +146,6 @@ export function Toolbar({
 				}
 			>
 				<TextStrikethrough />
-			</button>
-
-			<button
-				type="button"
-				className="ml-auto"
-				onClick={() => {
-					console.log("bob");
-					editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
-						src: "https://png.pngtree.com/thumb_back/fh260/background/20210727/pngtree-cute-watercolor-fruit-mobile-wallpaper-image_752110.jpg",
-						alt: "blueberry",
-					});
-				}}
-			>
-				insert image
 			</button>
 		</nav>
 	);

@@ -15,10 +15,10 @@ import { Image } from "../../image";
 
 export interface ImagePayload {
 	alt: string;
+	width?: number;
 	height?: number;
 	key?: NodeKey;
 	src: string;
-	width?: number;
 }
 
 function convertImageElement(domNode: Node): null | DOMConversionOutput {
@@ -27,16 +27,16 @@ function convertImageElement(domNode: Node): null | DOMConversionOutput {
 		return null;
 	}
 	const { alt, src, width, height } = img;
-	const node = $createImageNode({ alt, height, src, width });
+	const node = $createImageNode({ alt, src, width, height });
 	return { node };
 }
 
 export type SerializedImageNode = Spread<
 	{
 		alt: string;
+		width?: number;
 		height?: number;
 		src: string;
-		width?: number;
 	},
 	SerializedLexicalNode
 >;
@@ -62,12 +62,12 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static importJSON(serializedNode: SerializedImageNode): ImageNode {
-		const { alt, height, width, src } = serializedNode;
+		const { alt, width, height, src } = serializedNode;
 		const node = $createImageNode({
 			alt,
+			width,
 			height,
 			src,
-			width,
 		});
 		return node;
 	}
@@ -107,21 +107,12 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 	exportJSON(): SerializedImageNode {
 		return {
 			alt: this.getAltText(),
+			width: this.__width === "inherit" ? 0 : this.__width,
 			height: this.__height === "inherit" ? 0 : this.__height,
 			src: this.getSrc(),
 			type: "image",
 			version: 1,
-			width: this.__width === "inherit" ? 0 : this.__width,
 		};
-	}
-
-	setWidthAndHeight(
-		width: "inherit" | number,
-		height: "inherit" | number,
-	): void {
-		const writable = this.getWritable();
-		writable.__width = width;
-		writable.__height = height;
 	}
 
 	// View
@@ -158,9 +149,9 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 
 export function $createImageNode({
 	alt,
-	height,
 	src,
 	width,
+	height,
 	key,
 }: ImagePayload): ImageNode {
 	return $applyNodeReplacement(new ImageNode(src, alt, width, height, key));

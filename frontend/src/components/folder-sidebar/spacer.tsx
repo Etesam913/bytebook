@@ -14,25 +14,6 @@ export function Spacer({
 }) {
 	const [isDragged, setIsDragged] = useState(false);
 
-	// const throttledMotionValueSet = useCallback(
-	// 	throttle((e: MouseEvent) => {
-	// 		console.log(
-	// 			e.clientX - (leftWidth ? leftWidth.get() : 0),
-	// 			Math.min(
-	// 				Math.max(170, e.clientX - (leftWidth ? leftWidth.get() : 0)),
-	// 				325,
-	// 			),
-	// 		);
-	// 		sidebarWidth.set(
-	// 			Math.min(
-	// 				Math.max(170, e.clientX - (leftWidth ? leftWidth.get() : 0)),
-	// 				325,
-	// 			),
-	// 		);
-	// 	}, 100),
-	// 	[],
-	// );
-
 	return (
 		<div
 			onMouseDown={() => {

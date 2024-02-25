@@ -17,9 +17,11 @@ import {
 	ElementNode,
 	LexicalEditor,
 } from "lexical";
+import { UploadImagesToFolder } from "../../../wailsjs/go/main/App";
 import { EditorBlockTypes } from "../../types";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
+import { INSERT_IMAGE_COMMAND } from "./plugins/images";
 
 /**
  * Gets a selection and formats the blocks to `newBlockType`
@@ -27,8 +29,10 @@ import { createMarkdownImport } from "./MarkdownImport";
 export function changeSelectedBlocksType(
 	editor: LexicalEditor,
 	newBlockType: EditorBlockTypes,
+	folder: string,
+	note: string,
 ) {
-	editor.update(() => {
+	editor.update(async () => {
 		const selection = $getSelection();
 		if ($isRangeSelection(selection)) {
 			switch (newBlockType) {
@@ -50,6 +54,18 @@ export function changeSelectedBlocksType(
 				case "ul":
 					editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
 					break;
+				case "img": {
+					const filePaths = await UploadImagesToFolder(folder, note);
+					editor.update(() => {
+						for (const filePath of filePaths) {
+							editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
+								src: `http://localhost:5890/${filePath}`,
+								alt: "",
+							});
+						}
+					});
+					break;
+				}
 			}
 		}
 	});

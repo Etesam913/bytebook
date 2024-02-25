@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/project_helpers"
@@ -42,6 +43,8 @@ func (a *App) startup(ctx context.Context) {
 
 	git_helpers.InitalizeGitRepo()
 	git_helpers.SetRepoOrigin("https://github.com/Etesam913/bytebook-test.git")
+
+	file_server.LaunchFileServer(project_path)
 }
 
 func (a *App) shutdown(ctx context.Context) {
@@ -53,6 +56,7 @@ func (a *App) GetFolderNames() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return folderNames, nil
 }
 
@@ -107,4 +111,13 @@ func (a *App) DeleteFolder(folderName string) error {
 	deleteFolderReq := project_helpers.DeleteFolder(a.projectPath, folderName)
 
 	return deleteFolderReq
+}
+
+func (a *App) UploadImagesToFolder(folderName string, noteTitle string) ([]string, error) {
+	filePaths, err := project_helpers.UploadImage(a.ctx, a.projectPath, folderName, noteTitle)
+	if err != nil {
+		return nil, err
+	}
+	return filePaths, err
+
 }

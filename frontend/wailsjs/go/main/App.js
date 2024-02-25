@@ -29,3 +29,7 @@ export function GetNoteTitles(arg1) {
 export function SetNoteMarkdown(arg1, arg2, arg3) {
   return window['go']['main']['App']['SetNoteMarkdown'](arg1, arg2, arg3);
 }
+
+export function UploadImagesToFolder(arg1, arg2) {
+  return window['go']['main']['App']['UploadImagesToFolder'](arg1, arg2);
+}
