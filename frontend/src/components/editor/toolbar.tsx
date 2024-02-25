@@ -12,12 +12,12 @@ import {
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { GetNoteMarkdown } from "../../../wailsjs/go/main/App";
-import { CodePullRequest } from "../../icons/code-pull-request";
 import { TextBold } from "../../icons/text-bold";
 import { TextItalic } from "../../icons/text-italic";
 import { TextStrikethrough } from "../../icons/text-strikethrough";
 import { TextUnderline } from "../../icons/text-underline";
 import { EditorBlockTypes } from "../../types";
+import { INSERT_IMAGE_COMMAND } from "./plugins/images";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import {
 	$convertFromMarkdownStringCorrect,
@@ -151,27 +151,16 @@ export function Toolbar({
 			<button
 				type="button"
 				className="ml-auto"
-				onClick={() => setIsCommitModalOpen(true)}
+				onClick={() => {
+					console.log("bob");
+					editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
+						src: "https://png.pngtree.com/thumb_back/fh260/background/20210727/pngtree-cute-watercolor-fruit-mobile-wallpaper-image_752110.jpg",
+						alt: "blueberry",
+					});
+				}}
 			>
-				<CodePullRequest />
+				insert image
 			</button>
-
-			<dialog
-				open={isCommitModalOpen}
-				onClose={() => setIsCommitModalOpen(false)}
-			>
-				<form method="dialog" className="flex flex-col gap-2 p-2 shadow-lg">
-					<label htmlFor="remote-url">remote url</label>
-					<input id="remote-url" className="p-1 bg-slate-100" />
-					<button
-						className=" bg-slate-500  text-white"
-						type="submit"
-						onClick={() => setIsCommitModalOpen(false)}
-					>
-						close
-					</button>
-				</form>
-			</dialog>
 		</nav>
 	);
 }

@@ -8,7 +8,6 @@ import {
 	INLINE_CODE,
 	ITALIC_STAR,
 	ITALIC_UNDERSCORE,
-	LINK,
 	ORDERED_LIST,
 	QUOTE,
 	STRIKETHROUGH,
@@ -23,6 +22,7 @@ import {
 	HeadingTagType,
 } from "@lexical/rich-text";
 import { ElementNode } from "lexical";
+import { $createImageNode, $isImageNode, ImageNode } from "./nodes/images";
 import { type Transformer } from "./utils";
 
 const createBlockNode = (
@@ -34,6 +34,30 @@ const createBlockNode = (
 		parentNode.replace(node);
 		node.select(0, 0);
 	};
+};
+
+const IMAGE_TRANSFORMER: TextMatchTransformer = {
+	dependencies: [ImageNode],
+	export: (node) => {
+		if (!$isImageNode(node)) {
+			return null;
+		}
+
+		return `![${node.getAltText()}](${node.getSrc()})`;
+	},
+	importRegExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))/,
+	regExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))$/,
+	replace: (textNode, match) => {
+		const [, alt, src] = match;
+		const imageNode = $createImageNode({
+			alt,
+			src,
+		});
+		console.log(imageNode);
+		textNode.replace(imageNode);
+	},
+	trigger: ")",
+	type: "text-match",
 };
 
 const CUSTOM_HEADING_TRANSFORMER: ElementTransformer = {
@@ -101,5 +125,6 @@ export const CUSTOM_TRANSFORMERS = [
 	ITALIC_STAR,
 	ITALIC_UNDERSCORE,
 	STRIKETHROUGH,
-	LINK,
+	// LINK,
+	IMAGE_TRANSFORMER,
 ];

@@ -14,6 +14,7 @@ import { SetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { EditorBlockTypes } from "../../types";
 import { debounce } from "../../utils/draggable";
 import { editorConfig } from "./editor-config";
+import { ImagesPlugin } from "./plugins/images";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { $convertToMarkdownStringCorrect } from "./utils";
@@ -66,6 +67,7 @@ export function NotesEditor({
 					<HistoryPlugin />
 					<EditorRefPlugin editorRef={editorRef} />
 					<MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
+					<ImagesPlugin />
 				</div>
 			</LexicalComposer>
 		</div>
