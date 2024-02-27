@@ -58,7 +58,13 @@ export function NotesSidebar({
 				<motion.button
 					onClick={() =>
 						DeleteFolder(`${folder}/${noteName}`).then(() => {
-							setNotes((prev) => prev?.filter((v) => v !== noteName) ?? null);
+							const remainingNotes = notes?.filter((v) => v !== noteName);
+							navigate(
+								`/${folder}${
+									remainingNotes.length > 0 ? `/${remainingNotes[0]}` : ""
+								}`,
+							);
+							setNotes(remainingNotes);
 						})
 					}
 					{...getDefaultButtonVariants(1.15, 0.95, 1.15)}
