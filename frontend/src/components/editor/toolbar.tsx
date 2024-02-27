@@ -5,23 +5,17 @@ import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import {
 	$getSelection,
 	$isRangeSelection,
-	CLEAR_HISTORY_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	SELECTION_CHANGE_COMMAND,
 } from "lexical";
 import { type Dispatch, type SetStateAction, useEffect } from "react";
-import { navigate } from "wouter/use-browser-location";
-import { GetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { TextBold } from "../../icons/text-bold";
 import { TextItalic } from "../../icons/text-italic";
 import { TextStrikethrough } from "../../icons/text-strikethrough";
 import { TextUnderline } from "../../icons/text-underline";
 import { EditorBlockTypes } from "../../types";
-import { CUSTOM_TRANSFORMERS } from "./transformers";
-import {
-	$convertFromMarkdownStringCorrect,
-	changeSelectedBlocksType,
-} from "./utils";
+import { useImageListener, useNoteMarkdown } from "./hooks";
+import { changeSelectedBlocksType } from "./utils";
 
 const LOW_PRIORITY = 1;
 
@@ -71,22 +65,8 @@ export function Toolbar({
 		}
 	}
 
-	// Fetch note content locally
-	useEffect(() => {
-		GetNoteMarkdown(folder, note)
-			.then((markdown) => {
-				editor.setEditable(true);
-				// You don't want a different note to access the same history when you switch notes
-				editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
-				editor.update(() => {
-					$convertFromMarkdownStringCorrect(markdown, CUSTOM_TRANSFORMERS);
-				});
-			})
-			.catch((e) => {
-				console.error(e);
-				navigate("/");
-			});
-	}, [folder, note, editor]);
+	useNoteMarkdown(editor, folder, note);
+	useImageListener(editor);
 
 	useEffect(() => {
 		return mergeRegister(

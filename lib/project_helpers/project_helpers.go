@@ -215,7 +215,7 @@ func UploadImage(ctx context.Context, projectPath string, folderPath string, not
 			Filters: []wails_runtime.FileFilter{
 				{
 					DisplayName: "Image Files",
-					Pattern:     "*.png;*.jpg;*.jpeg",
+					Pattern:     "*.png;*.jpg;*.jpeg;*.webp",
 				},
 			},
 		},

@@ -56,14 +56,15 @@ export function changeSelectedBlocksType(
 					break;
 				case "img": {
 					const filePaths = await UploadImagesToFolder(folder, note);
-					editor.update(() => {
-						for (const filePath of filePaths) {
+					for (const filePath of filePaths) {
+						editor.update(() => {
 							editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
 								src: `http://localhost:5890/${filePath}`,
 								alt: "",
 							});
-						}
-					});
+						});
+					}
+
 					break;
 				}
 			}

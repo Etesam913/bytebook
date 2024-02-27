@@ -51,6 +51,7 @@ const IMAGE_TRANSFORMER: TextMatchTransformer = {
 		const imageNode = $createImageNode({
 			alt,
 			src,
+			key: crypto.randomUUID(),
 		});
 		textNode.replace(imageNode);
 	},
