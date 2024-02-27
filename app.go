@@ -30,21 +30,21 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
-	project_path, err := project_helpers.GetProjectPath()
+	projectPath, err := project_helpers.GetProjectPath()
 	if err != nil {
 		log.Fatalf("Error getting project path: %v", err)
 	}
-	a.projectPath = project_path
+	a.projectPath = projectPath
 
-	notesPath := filepath.Join(project_path, "notes")
+	notesPath := filepath.Join(projectPath, "notes")
 	if err := os.MkdirAll(notesPath, os.ModePerm); err != nil {
 		log.Fatalf("Failed to create notes directory: %v", err)
 	}
 
-	git_helpers.InitalizeGitRepo()
+	git_helpers.InitalizeGitRepo(projectPath)
 	git_helpers.SetRepoOrigin("https://github.com/Etesam913/bytebook-test.git")
 
-	file_server.LaunchFileServer(project_path)
+	file_server.LaunchFileServer(projectPath)
 }
 
 func (a *App) shutdown(ctx context.Context) {
@@ -119,5 +119,8 @@ func (a *App) UploadImagesToFolder(folderName string, noteTitle string) ([]strin
 		return nil, err
 	}
 	return filePaths, err
+}
 
+func (a *App) SyncChangesWithRepo() {
+	git_helpers.CommitChanges(a.projectPath)
 }

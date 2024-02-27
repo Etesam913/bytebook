@@ -2,7 +2,12 @@ import { AnimatePresence, MotionValue, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
-import { DeleteFolder, GetFolderNames } from "../../../wailsjs/go/main/App";
+import {
+	DeleteFolder,
+	GetFolderNames,
+	SyncChangesWithRepo,
+} from "../../../wailsjs/go/main/App";
+import { FileRefresh } from "../../icons/file-refresh";
 import { Folder } from "../../icons/folder";
 import { FolderPlus } from "../../icons/folder-plus";
 import { Trash } from "../../icons/trash";
@@ -78,10 +83,6 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 				style={{ width }}
 				className="pt-3 text-md h-screen flex flex-col gap-2 overflow-y-auto"
 			>
-				{/* <div
-					className="h-9 cursor-grab active:cursor-grabbing"
-					style={{ "--wails-draggable": "drag" } as CSSProperties}
-				/> */}
 				<div className="px-[10px] flex flex-col gap-4 h-full">
 					<MotionButton
 						{...getDefaultButtonVariants()}
@@ -101,6 +102,15 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 								</li>
 							)}
 						</ul>
+					</section>
+					<section className="mt-auto pb-3">
+						<MotionButton
+							{...getDefaultButtonVariants()}
+							onClick={() => SyncChangesWithRepo()}
+							className="w-full bg-transparent flex justify-between align-center"
+						>
+							Sync Changes <FileRefresh />
+						</MotionButton>
 					</section>
 				</div>
 			</motion.aside>
