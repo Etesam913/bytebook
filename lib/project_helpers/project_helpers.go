@@ -144,6 +144,7 @@ func GetNotesFromFolder(projectPath string, folderName string) (notes []string, 
 	for _, file := range files {
 		// Go through the folders and check if they have a markdown file
 		if file.IsDir() {
+			fmt.Println("yo mama", file, file.IsDir())
 			// Check if the markdown file exists for the folder
 			noteFilePath := filepath.Join(folderPath, file.Name(), fmt.Sprintf("%s.md", file.Name()))
 			_, err := os.Stat(noteFilePath)

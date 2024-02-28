@@ -1,8 +1,8 @@
 import { useMotionValue } from "framer-motion";
+import { Toaster } from "sonner";
 import { Route } from "wouter";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { NotesSidebar } from "./routes/notes-sidebar";
-import { Toaster } from "sonner";
 
 function App() {
 	const folderSidebarWidth = useMotionValue(180);

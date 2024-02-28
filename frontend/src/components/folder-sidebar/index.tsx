@@ -1,5 +1,6 @@
-import { AnimatePresence, MotionValue, delay, motion } from "framer-motion";
+import { AnimatePresence, MotionValue, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Link, useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import {
@@ -10,14 +11,13 @@ import {
 import { FileRefresh } from "../../icons/file-refresh";
 import { Folder } from "../../icons/folder";
 import { FolderPlus } from "../../icons/folder-plus";
+import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../button";
 import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
-import { toast } from "sonner";
-import { Loader } from "../../icons/loader";
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");

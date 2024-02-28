@@ -23,8 +23,8 @@ import {
 } from "@lexical/rich-text";
 import { ElementNode } from "lexical";
 import { $createImageNode, $isImageNode, ImageNode } from "./nodes/image";
-import { type Transformer } from "./utils";
 import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
+import { type Transformer } from "./utils";
 
 const createBlockNode = (
 	createNode: (match: Array<string>) => ElementNode,

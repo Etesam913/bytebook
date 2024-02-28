@@ -47,6 +47,6 @@ export const editorConfig: InitialConfigType = {
 		ListItemNode,
 		ParagraphNode,
 		ImageNode,
-		VideoNode
+		VideoNode,
 	],
 };

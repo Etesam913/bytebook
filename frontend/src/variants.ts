@@ -4,8 +4,8 @@ export function getDefaultButtonVariants(
 	whileTap = 0.965,
 	whileFocus = 1.025,
 ) {
-	if (disabled){
-		return {}
+	if (disabled) {
+		return {};
 	}
 	return {
 		whileHover: {

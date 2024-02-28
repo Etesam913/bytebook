@@ -79,24 +79,29 @@ func CommitChanges(projectPath string) GitReponse {
 	})
 
 	// Checking if the error that we get is fine
-	_, errorIsAllowed := allowedErrors[err]
-	for _, allowedError := range stringAllowedErrors {
-		if err.Error() == allowedError {
-			errorIsAllowed = true
+	hasAllowedErrorOrNoError := true
+	if err != nil {
+		_, hasAllowedErrorOrNoError = allowedErrors[err]
+		for _, allowedError := range stringAllowedErrors {
+			if err.Error() == allowedError {
+				hasAllowedErrorOrNoError = true
+			}
 		}
 	}
 
 	// Handling the error
-	if err != nil && !errorIsAllowed {
+	if err != nil && !hasAllowedErrorOrNoError {
 		return GitReponse{Success: false, Message: "Error when pulling from your repo", Error: err}
 	} else if err == git.NoErrAlreadyUpToDate {
 		fmt.Println("Already up-to-date.")
 	} else {
+		fmt.Println(err)
 		fmt.Println("Pulled latest changes from origin.")
 	}
 
 	status, err := worktree.Status()
 	if err != nil {
+		fmt.Println(err)
 		return GitReponse{Success: false, Message: "Error when getting git status", Error: err}
 	}
 
@@ -108,12 +113,14 @@ func CommitChanges(projectPath string) GitReponse {
 	// Staging the changes
 	err = worktree.AddWithOptions(&git.AddOptions{All: true})
 	if err != nil {
+		fmt.Println(err)
 		return GitReponse{Success: false, Message: "Error when staging changes", Error: err}
 	}
 
 	// Committing the changes
 	_, err = worktree.Commit("test-commit", &git.CommitOptions{})
 	if err != nil {
+		fmt.Println(err)
 		return GitReponse{Success: false, Message: "Error when commiting changes", Error: err}
 	}
 
@@ -125,6 +132,7 @@ func CommitChanges(projectPath string) GitReponse {
 
 	// Checking if the error that we get is fine
 	if err != nil {
+		fmt.Println(err)
 		return GitReponse{Success: false, Message: "Error when pushing changes", Error: err}
 	}
 	fmt.Println("Pushed changes to origin")
