@@ -22,8 +22,9 @@ import {
 	HeadingTagType,
 } from "@lexical/rich-text";
 import { ElementNode } from "lexical";
-import { $createImageNode, $isImageNode, ImageNode } from "./nodes/images";
+import { $createImageNode, $isImageNode, ImageNode } from "./nodes/image";
 import { type Transformer } from "./utils";
+import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
 
 const createBlockNode = (
 	createNode: (match: Array<string>) => ElementNode,
@@ -36,6 +37,28 @@ const createBlockNode = (
 	};
 };
 
+const VIDEO_TRANSFORMER: TextMatchTransformer = {
+	dependencies: [VideoNode],
+	export: (node) => {
+		if (!$isVideoNode(node)) {
+			return null;
+		}
+		return `![${node.getTitleText()}](${node.getSrc()})`;
+	},
+	importRegExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:mp4|mov))\))$/,
+	regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:mp4|mov))\))$/,
+	replace: (textNode, match) => {
+		const [, title, src] = match;
+		const videoNode = $createVideoNode({
+			title,
+			src,
+		});
+		textNode.replace(videoNode);
+	},
+	trigger: ")",
+	type: "text-match",
+};
+
 const IMAGE_TRANSFORMER: TextMatchTransformer = {
 	dependencies: [ImageNode],
 	export: (node) => {
@@ -44,14 +67,13 @@ const IMAGE_TRANSFORMER: TextMatchTransformer = {
 		}
 		return `![${node.getAltText()}](${node.getSrc()})`;
 	},
-	importRegExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))/,
-	regExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))$/,
+	importRegExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:png|jpg|webp))\))$/,
+	regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:png|jpg|webp))\))$/,
 	replace: (textNode, match) => {
 		const [, alt, src] = match;
 		const imageNode = $createImageNode({
 			alt,
 			src,
-			key: crypto.randomUUID(),
 		});
 		textNode.replace(imageNode);
 	},
@@ -126,4 +148,5 @@ export const CUSTOM_TRANSFORMERS = [
 	STRIKETHROUGH,
 	// LINK,
 	IMAGE_TRANSFORMER,
+	VIDEO_TRANSFORMER,
 ];

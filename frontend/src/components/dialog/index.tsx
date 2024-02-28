@@ -91,7 +91,7 @@ export function Dialog({
 						</form>
 						<motion.button
 							onClick={() => setIsOpen(false)}
-							{...getDefaultButtonVariants(1.075, 0.95, 1.075)}
+							{...getDefaultButtonVariants(false, 1.075, 0.95, 1.075)}
 							className="absolute top-2 right-2"
 							type="button"
 						>

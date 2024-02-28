@@ -5,7 +5,8 @@ import { InitialConfigType } from "@lexical/react/LexicalComposer";
 import { HorizontalRuleNode } from "@lexical/react/LexicalHorizontalRuleNode";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { EditorThemeClasses, ParagraphNode } from "lexical";
-import { ImageNode } from "./nodes/images";
+import { ImageNode } from "./nodes/image";
+import { VideoNode } from "./nodes/video";
 
 // Catch any errors that occur during Lexical updates and log them
 // or throw them as needed. If you don't throw them, Lexical will
@@ -46,5 +47,6 @@ export const editorConfig: InitialConfigType = {
 		ListItemNode,
 		ParagraphNode,
 		ImageNode,
+		VideoNode
 	],
 };

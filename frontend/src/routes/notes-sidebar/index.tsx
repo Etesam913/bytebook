@@ -67,7 +67,7 @@ export function NotesSidebar({
 							setNotes(remainingNotes);
 						})
 					}
-					{...getDefaultButtonVariants(1.15, 0.95, 1.15)}
+					{...getDefaultButtonVariants(false, 1.15, 0.95, 1.15)}
 					type="button"
 					className="min-w-[20px] p-1 rounded-[0.3rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700"
 				>

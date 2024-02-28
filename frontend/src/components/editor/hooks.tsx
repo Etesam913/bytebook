@@ -2,7 +2,7 @@ import { $getNodeByKey, CLEAR_HISTORY_COMMAND, LexicalEditor } from "lexical";
 import { useEffect } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder, GetNoteMarkdown } from "../../../wailsjs/go/main/App";
-import { ImageNode } from "./nodes/images";
+import { ImageNode } from "./nodes/image";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { $convertFromMarkdownStringCorrect } from "./utils";
 

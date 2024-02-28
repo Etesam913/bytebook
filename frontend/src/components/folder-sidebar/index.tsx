@@ -1,4 +1,4 @@
-import { AnimatePresence, MotionValue, motion } from "framer-motion";
+import { AnimatePresence, MotionValue, delay, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
@@ -16,6 +16,8 @@ import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../button";
 import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
+import { toast } from "sonner";
+import { Loader } from "../../icons/loader";
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
@@ -24,6 +26,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 
 	const [folders, setFolders] = useState<string[] | null>([]);
 	const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
+	const [isSyncing, setIsSyncing] = useState(false);
 
 	useEffect(() => {
 		GetFolderNames()
@@ -57,7 +60,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 							setFolders(newFolders);
 						})
 					}
-					{...getDefaultButtonVariants(1.1, 0.95, 1.1)}
+					{...getDefaultButtonVariants(false, 1.1, 0.9, 1.1)}
 					type="button"
 					className="min-w-[28px] p-1 rounded-[0.3rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700"
 				>
@@ -105,11 +108,31 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					</section>
 					<section className="mt-auto pb-3">
 						<MotionButton
-							{...getDefaultButtonVariants()}
-							onClick={() => SyncChangesWithRepo()}
-							className="w-full bg-transparent flex justify-between align-center"
+							{...getDefaultButtonVariants(isSyncing)}
+							onClick={() => {
+								setIsSyncing(true);
+								SyncChangesWithRepo().then(() => {
+									setTimeout(() => {
+										setIsSyncing(false);
+										toast.success("Successfully Synced Changes.", {
+											position: "bottom-right",
+										});
+									}, 1000);
+								});
+							}}
+							disabled={isSyncing}
+							className={cn(
+								"w-full bg-transparent flex justify-between align-center",
+								isSyncing && "justify-center",
+							)}
 						>
-							Sync Changes <FileRefresh />
+							{isSyncing ? (
+								<Loader />
+							) : (
+								<>
+									Sync Changes <FileRefresh />
+								</>
+							)}
 						</MotionButton>
 					</section>
 				</div>
