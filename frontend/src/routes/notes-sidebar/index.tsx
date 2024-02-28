@@ -1,15 +1,18 @@
 import { AnimatePresence, MotionValue, motion } from "framer-motion";
+import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { navigate } from "wouter/use-browser-location";
-import { DeleteFolder, GetNoteTitles } from "../../../wailsjs/go/main/App";
-import { MotionButton } from "../../components/button";
+import { DeleteFolder } from "../../../wailsjs/go/main/App";
+import { notesAtom } from "../../atoms";
+import { MotionButton } from "../../components/buttons";
 import { NotesEditor } from "../../components/editor";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
 import { Note } from "../../icons/page";
 import { Trash } from "../../icons/trash";
+import { updateNotes } from "../../utils/fetch-functions";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { NotesSidebarDialog } from "./sidebar-dialog";
@@ -24,21 +27,13 @@ export function NotesSidebar({
 	leftWidth: MotionValue<number>;
 }) {
 	const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
-	const [notes, setNotes] = useState<string[] | null>([]);
+	const [notes, setNotes] = useAtom(notesAtom);
 
 	const { folder, note } = params;
 
 	useEffect(() => {
-		GetNoteTitles(folder)
-			.then((v) => {
-				setNotes(v);
-				navigate(`/${folder}${v?.at(0) ? `/${v?.at(0)}` : ""}`);
-			})
-			.catch((e) => {
-				navigate("/");
-				setNotes([]);
-			});
-	}, [folder]);
+		updateNotes(folder, setNotes);
+	}, [folder, setNotes]);
 
 	const noteElements = notes?.map((noteName) => (
 		<li key={noteName}>

@@ -1,21 +1,18 @@
 import { AnimatePresence, MotionValue, motion } from "framer-motion";
+import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { Link, useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
-import {
-	DeleteFolder,
-	GetFolderNames,
-	SyncChangesWithRepo,
-} from "../../../wailsjs/go/main/App";
-import { FileRefresh } from "../../icons/file-refresh";
+import { DeleteFolder } from "../../../wailsjs/go/main/App";
+import { foldersAtom } from "../../atoms";
 import { Folder } from "../../icons/folder";
 import { FolderPlus } from "../../icons/folder-plus";
-import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
+import { updateFolders } from "../../utils/fetch-functions";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
-import { MotionButton } from "../button";
+import { MotionButton } from "../buttons";
+import { SyncChangesButton } from "../buttons/sync-changes";
 import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
 
@@ -24,18 +21,13 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 
 	const folder = params?.folder;
 
-	const [folders, setFolders] = useState<string[] | null>([]);
+	const [folders, setFolders] = useAtom(foldersAtom);
 	const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
 	const [isSyncing, setIsSyncing] = useState(false);
 
 	useEffect(() => {
-		GetFolderNames()
-			.then((folders) => setFolders(folders))
-			.catch((e) => {
-				console.error(e);
-				setFolders(null);
-			});
-	}, []);
+		updateFolders(setFolders);
+	}, [setFolders]);
 
 	const folderElements = folders?.map((folderName) => (
 		<li key={folderName}>
@@ -107,33 +99,10 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 						</ul>
 					</section>
 					<section className="mt-auto pb-3">
-						<MotionButton
-							{...getDefaultButtonVariants(isSyncing)}
-							onClick={() => {
-								setIsSyncing(true);
-								SyncChangesWithRepo().then(() => {
-									setTimeout(() => {
-										setIsSyncing(false);
-										toast.success("Successfully Synced Changes.", {
-											position: "bottom-right",
-										});
-									}, 1000);
-								});
-							}}
-							disabled={isSyncing}
-							className={cn(
-								"w-full bg-transparent flex justify-between align-center",
-								isSyncing && "justify-center",
-							)}
-						>
-							{isSyncing ? (
-								<Loader />
-							) : (
-								<>
-									Sync Changes <FileRefresh />
-								</>
-							)}
-						</MotionButton>
+						<SyncChangesButton
+							isSyncing={isSyncing}
+							setIsSyncing={setIsSyncing}
+						/>
 					</section>
 				</div>
 			</motion.aside>

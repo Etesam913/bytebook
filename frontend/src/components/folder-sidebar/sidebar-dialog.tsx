@@ -4,7 +4,7 @@ import { AddFolderUsingName } from "../../../wailsjs/go/main/App";
 import { FolderPlus } from "../../icons/folder-plus";
 import { fileNameRegex } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
-import { MotionButton } from "../button";
+import { MotionButton } from "../buttons";
 import { Dialog, ErrorText } from "../dialog";
 
 export function FolderSidebarDialog({

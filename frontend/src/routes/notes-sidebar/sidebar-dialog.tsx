@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { AddNoteToFolder } from "../../../wailsjs/go/main/App";
-import { MotionButton } from "../../components/button";
+import { MotionButton } from "../../components/buttons";
 import { Dialog, ErrorText } from "../../components/dialog";
 import { Compose } from "../../icons/compose";
 import { fileNameRegex } from "../../utils/string-formatting";
