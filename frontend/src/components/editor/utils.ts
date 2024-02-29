@@ -17,11 +17,19 @@ import {
 	ElementNode,
 	LexicalEditor,
 } from "lexical";
+import { Dispatch, SetStateAction } from "react";
 import { UploadImagesToFolder } from "../../../wailsjs/go/main/App";
 import { EditorBlockTypes } from "../../types";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
 import { INSERT_IMAGE_COMMAND } from "./plugins/images";
+
+export type TextFormats =
+	| null
+	| "bold"
+	| "italic"
+	| "underline"
+	| "strikethrough";
 
 /**
  * Gets a selection and formats the blocks to `newBlockType`
@@ -70,6 +78,20 @@ export function changeSelectedBlocksType(
 			}
 		}
 	});
+}
+
+export function handleToolbarTextFormattingClick(
+	currentSelectionFormat: TextFormats[],
+	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormats[]>>,
+	textFormat: TextFormats,
+) {
+	if (currentSelectionFormat.includes(textFormat)) {
+		setCurrentSelectionFormat(
+			currentSelectionFormat.filter((format) => format !== textFormat),
+		);
+	} else {
+		setCurrentSelectionFormat([...currentSelectionFormat, textFormat]);
+	}
 }
 
 export type Transformer =

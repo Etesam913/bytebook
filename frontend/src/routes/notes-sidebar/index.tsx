@@ -88,12 +88,8 @@ export function NotesSidebar({
 				style={{ width }}
 				className="pt-5 text-md h-screen flex flex-col gap-2 overflow-y-auto"
 			>
-				{/* <div
-					className="h-3 cursor-grab active:cursor-grabbing"
-					style={{ "--wails-draggable": "drag" } as CSSProperties}
-				/> */}
 				<div className="px-[10px] flex flex-col gap-4 h-full overflow-y-auto">
-					<section className="flex gap-3">
+					<section className="flex gap-3 items-center">
 						<Folder className="min-w-[1.25rem]" />{" "}
 						<p className="whitespace-nowrap text-ellipsis overflow-hidden">
 							{folder}

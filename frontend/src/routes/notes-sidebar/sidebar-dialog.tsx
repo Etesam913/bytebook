@@ -67,6 +67,7 @@ export function NotesSidebarDialog({
 					className="py-1 px-2 rounded-sm border-[1px] border-zinc-300 dark:border-zinc-700 focus:outline-none focus:border-zinc-500 dark:focus:border-zinc-500 transition-colors w-full"
 					id="note-name"
 					type="text"
+					maxLength={50}
 				/>
 				<section className="w-full px-[0.5rem] mt-4 flex flex-col gap-1 ">
 					<ErrorText errorText={errorText} />

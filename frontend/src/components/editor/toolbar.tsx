@@ -2,6 +2,7 @@ import { $isListNode, ListNode } from "@lexical/list";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
+import { motion } from "framer-motion";
 import {
 	$getSelection,
 	$isRangeSelection,
@@ -15,18 +16,23 @@ import { TextStrikethrough } from "../../icons/text-strikethrough";
 import { TextUnderline } from "../../icons/text-underline";
 import { EditorBlockTypes } from "../../types";
 import { cn } from "../../utils/string-formatting";
+import { getDefaultButtonVariants } from "../../variants";
 import { useImageListener, useNoteMarkdown } from "./hooks";
-import { changeSelectedBlocksType } from "./utils";
+import {
+	TextFormats,
+	changeSelectedBlocksType,
+	handleToolbarTextFormattingClick,
+} from "./utils";
 
 const LOW_PRIORITY = 1;
 
 interface ToolbarProps {
 	folder: string;
 	note: string;
+	disabled: boolean;
 }
-type TextFormats = null | "bold" | "italic" | "underline" | "strikethrough";
 
-export function Toolbar({ folder, note }: ToolbarProps) {
+export function Toolbar({ folder, note, disabled }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
 	const [currentBlockType, setCurrentBlockType] = useState<EditorBlockTypes>();
 	const [currentSelectionFormat, setCurrentSelectionFormat] = useState<
@@ -96,8 +102,14 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 	}, [editor]);
 
 	return (
-		<nav className="flex flex-wrap gap-3 py-2 ml-[-4px] pl-1 border-b-[1px] border-b-zinc-200 dark:border-b-zinc-700">
+		<nav
+			className={cn(
+				"flex flex-wrap gap-3 py-2 ml-[-4px] pl-1 border-b-[1px] border-b-zinc-200 dark:border-b-zinc-700",
+				disabled && "pointer-events-none",
+			)}
+		>
 			<select
+				disabled={disabled}
 				onChange={(e) =>
 					changeSelectedBlocksType(editor, e.target.value, folder, note)
 				}
@@ -112,51 +124,93 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 				<option value="ol">ol</option>
 				<option value="img">Image</option>
 			</select>
-			<button
+			<motion.button
+				{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
+				disabled={disabled}
 				className={cn(
-					"p-1 rounded-md transition-colors duration-300",
-					currentSelectionFormat.includes("bold") && "button-invert",
+					"p-1 rounded-md transition-colors duration-300 disabled:opacity-30",
+					currentSelectionFormat.includes("bold") &&
+						!disabled &&
+						"button-invert",
 				)}
-				onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold")}
+				onClick={() => {
+					editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
+					handleToolbarTextFormattingClick(
+						currentSelectionFormat,
+						setCurrentSelectionFormat,
+						"bold",
+					);
+				}}
 				type="button"
 			>
 				<TextBold />
-			</button>
+			</motion.button>
 
-			<button
+			<motion.button
+				{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
+				disabled={disabled}
 				className={cn(
-					"p-1 rounded-md transition-colors duration-300",
-					currentSelectionFormat.includes("italic") && "button-invert",
+					"p-1 rounded-md transition-colors duration-300 disabled:opacity-30",
+					currentSelectionFormat.includes("italic") &&
+						!disabled &&
+						"button-invert",
 				)}
 				type="button"
-				onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic")}
+				onClick={() => {
+					editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
+					handleToolbarTextFormattingClick(
+						currentSelectionFormat,
+						setCurrentSelectionFormat,
+						"italic",
+					);
+				}}
 			>
 				<TextItalic />
-			</button>
+			</motion.button>
 
-			<button
+			<motion.button
+				{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
+				disabled={disabled}
 				className={cn(
-					"p-1 rounded-md transition-colors duration-300",
-					currentSelectionFormat.includes("underline") && "button-invert",
+					"p-1 rounded-md transition-colors duration-300 disabled:opacity-30",
+					currentSelectionFormat.includes("underline") &&
+						!disabled &&
+						"button-invert",
 				)}
 				type="button"
-				onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline")}
+				onClick={() => {
+					editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline");
+					handleToolbarTextFormattingClick(
+						currentSelectionFormat,
+						setCurrentSelectionFormat,
+						"underline",
+					);
+				}}
 			>
 				<TextUnderline />
-			</button>
+			</motion.button>
 
-			<button
+			<motion.button
+				{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
 				className={cn(
-					"p-1 rounded-md transition-colors duration-300",
-					currentSelectionFormat.includes("strikethrough") && "button-invert",
+					"p-1 rounded-md transition-colors duration-300 disabled:opacity-30",
+					currentSelectionFormat.includes("strikethrough") &&
+						!disabled &&
+						"button-invert",
 				)}
+				disabled={disabled}
 				type="button"
-				onClick={() =>
-					editor.dispatchCommand(FORMAT_TEXT_COMMAND, "strikethrough")
-				}
+				onClick={() => {
+					editor.dispatchCommand(FORMAT_TEXT_COMMAND, "strikethrough");
+					handleToolbarTextFormattingClick(
+						currentSelectionFormat,
+						setCurrentSelectionFormat,
+						"strikethrough",
+					);
+				}}
 			>
 				<TextStrikethrough />
-			</button>
+			</motion.button>
 		</nav>
 	);
 }
