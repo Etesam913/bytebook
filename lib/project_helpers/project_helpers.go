@@ -189,6 +189,46 @@ func GetNotesFromFolder(projectPath string, folderName string) (notes []string, 
 	return notes, nil
 }
 
+func RenameNote(projectPath string, folderName string, oldNoteTitle string, newNoteTitle string) error {
+	noteBase := filepath.Join(projectPath, "notes", folderName)
+	oldNotePath := filepath.Join(noteBase, oldNoteTitle)
+	newNotePath := filepath.Join(noteBase, newNoteTitle)
+
+	err := os.Rename(oldNotePath, newNotePath)
+	if err != nil {
+		return err
+	}
+
+	// Rename the markdown file to match the new note title
+	err = os.Rename(
+		filepath.Join(noteBase, newNoteTitle, fmt.Sprintf("%s.md", oldNoteTitle)),
+		filepath.Join(noteBase, newNoteTitle, fmt.Sprintf("%s.md", newNoteTitle)),
+	)
+	if err != nil {
+		return err
+	}
+
+	// Update the metadata.json file
+	noteMetadata := project_types.NoteMetadata{}
+	err = io_helpers.ReadJsonFromPath(
+		filepath.Join(noteBase, newNoteTitle, "metadata.json"),
+		&noteMetadata,
+	)
+	if err != nil {
+		return err
+	}
+	noteMetadata.Title = newNoteTitle
+	noteMetadata.Updated = UpdateTime()
+	err = io_helpers.WriteJsonToPath(
+		filepath.Join(noteBase, newNoteTitle, "metadata.json"),
+		noteMetadata,
+	)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func GetNoteMarkdown(projectPath string, folderName string, noteTitle string) (string, error) {
 	noteFilePath := filepath.Join(projectPath, "notes", folderName, noteTitle, fmt.Sprintf("%s.md", noteTitle))
 

@@ -47,6 +47,7 @@ export function NotesEditor({
 					onKeyDown={() => {}}
 				>
 					<NoteTitle
+						folder={folder}
 						editorRef={editorRef}
 						note={note}
 						setIsToolbarDisabled={setIsToolbarDisabled}

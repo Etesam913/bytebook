@@ -50,11 +50,7 @@ func (a *App) shutdown(ctx context.Context) {
 }
 
 func (a *App) GetFolderNames() ([]string, error) {
-	folderNames, err := project_helpers.GetFolders(a.projectPath)
-	if err != nil {
-		return nil, err
-	}
-	return folderNames, nil
+	return project_helpers.GetFolders(a.projectPath)
 }
 
 func (a *App) AddFolderUsingName(folderName string) project_helpers.FileReturnStruct {
@@ -74,34 +70,23 @@ func (a *App) AddFolderUsingName(folderName string) project_helpers.FileReturnSt
 	return project_helpers.FileReturnStruct{Success: true, Message: ""}
 }
 func (a *App) RenameFolder(oldFolderName string, newFolderName string) error {
-	err := project_helpers.RenameFolder(a.projectPath, oldFolderName, newFolderName)
-	if err != nil {
-		return err
-	}
-	return nil
+	return project_helpers.RenameFolder(a.projectPath, oldFolderName, newFolderName)
+}
+
+func (a *App) DeleteFolder(folderName string) error {
+	return project_helpers.DeleteFolder(a.projectPath, folderName)
 }
 
 func (a *App) AddNoteToFolder(folderName string, noteTitle string) project_helpers.FileReturnStruct {
-	addNoteReq := project_helpers.AddNoteToFolder(a.projectPath, folderName, noteTitle)
-
-	return addNoteReq
+	return project_helpers.AddNoteToFolder(a.projectPath, folderName, noteTitle)
 }
 
 func (a *App) GetNoteTitles(folderName string) ([]string, error) {
-	noteTitles, err := project_helpers.GetNotesFromFolder(a.projectPath, folderName)
-	if err != nil {
-		return nil, err
-	}
-	return noteTitles, nil
+	return project_helpers.GetNotesFromFolder(a.projectPath, folderName)
 }
 
 func (a *App) GetNoteMarkdown(folderName string, noteTitle string) (string, error) {
-	noteMarkdown, err := project_helpers.GetNoteMarkdown(a.projectPath, folderName, noteTitle)
-
-	if err != nil {
-		return "", err
-	}
-	return noteMarkdown, nil
+	return project_helpers.GetNoteMarkdown(a.projectPath, folderName, noteTitle)
 }
 
 func (a *App) SetNoteMarkdown(folderName string, noteTitle string, markdown string) error {
@@ -110,29 +95,14 @@ func (a *App) SetNoteMarkdown(folderName string, noteTitle string, markdown stri
 	return setNoteReq
 }
 
-func (a *App) DeleteFolder(folderName string) error {
-	deleteFolderReq := project_helpers.DeleteFolder(a.projectPath, folderName)
-
-	return deleteFolderReq
-}
-
 func (a *App) UploadImagesToFolder(folderName string, noteTitle string) ([]string, error) {
-	filePaths, err := project_helpers.UploadImage(a.ctx, a.projectPath, folderName, noteTitle)
-	if err != nil {
-		return nil, err
-	}
-	return filePaths, err
+	return project_helpers.UploadImage(a.ctx, a.projectPath, folderName, noteTitle)
 }
 
 func (a *App) SyncChangesWithRepo() git_helpers.GitReponse {
-	res := git_helpers.CommitAndPushChanges(a.projectPath)
-	return res
+	return git_helpers.CommitAndPushChanges(a.projectPath)
 }
 
 func (a *App) RenameNoteTitle(folderName string, oldNoteTitle string, newNoteTitle string) error {
-	oldNotePath := filepath.Join(a.projectPath, "notes", folderName, oldNoteTitle)
-	newNotePath := filepath.Join(a.projectPath, "notes", folderName, newNoteTitle)
-
-	err := os.Rename(oldNotePath, newNotePath)
-	return err
+	return project_helpers.RenameNote(a.projectPath, folderName, oldNoteTitle, newNoteTitle)
 }
