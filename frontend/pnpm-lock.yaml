@@ -26,6 +26,9 @@ dependencies:
   '@lexical/selection':
     specifier: ^0.13.1
     version: 0.13.1(lexical@0.13.1)
+  '@lexical/table':
+    specifier: ^0.13.1
+    version: 0.13.1(lexical@0.13.1)
   '@lexical/utils':
     specifier: ^0.13.1
     version: 0.13.1(lexical@0.13.1)

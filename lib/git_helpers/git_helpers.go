@@ -52,24 +52,24 @@ func SetRepoOrigin(originUrl string) {
 }
 
 type GitReponse struct {
-	Success bool
-	Message string
-	Error   error
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	Error   error  `json:"error"`
 }
 
-func CommitChanges(projectPath string) GitReponse {
+func CommitAndPushChanges(projectPath string) GitReponse {
 	allowedErrors[git.NoErrAlreadyUpToDate] = struct{}{}
 
 	// Open the repository
 	repo, err := git.PlainOpen(projectPath)
 	if err != nil {
-		return GitReponse{Success: false, Message: "Error in entering your repo", Error: err}
+		return GitReponse{Status: "error", Message: "Error in entering your repo", Error: err}
 	}
 
 	// Entering into the worktree
 	worktree, err := repo.Worktree()
 	if err != nil {
-		return GitReponse{Success: false, Message: "Error in entering in your repo's worktree", Error: err}
+		return GitReponse{Status: "error", Message: "Error in entering in your repo's worktree", Error: err}
 	}
 
 	// Make pull request to get the latest changes
@@ -91,7 +91,7 @@ func CommitChanges(projectPath string) GitReponse {
 
 	// Handling the error
 	if err != nil && !hasAllowedErrorOrNoError {
-		return GitReponse{Success: false, Message: "Error when pulling from your repo", Error: err}
+		return GitReponse{Status: "error", Message: "Error when pulling from your repo", Error: err}
 	} else if err == git.NoErrAlreadyUpToDate {
 		fmt.Println("Already up-to-date.")
 	} else {
@@ -102,26 +102,26 @@ func CommitChanges(projectPath string) GitReponse {
 	status, err := worktree.Status()
 	if err != nil {
 		fmt.Println(err)
-		return GitReponse{Success: false, Message: "Error when getting git status", Error: err}
+		return GitReponse{Status: "error", Message: "Error when getting git status", Error: err}
 	}
 
 	if status.IsClean() {
 		fmt.Println("No changes to sync")
-		return GitReponse{Success: true, Message: "No changes to sync", Error: nil}
+		return GitReponse{Status: "info", Message: "No changes to sync", Error: nil}
 	}
 
 	// Staging the changes
 	err = worktree.AddWithOptions(&git.AddOptions{All: true})
 	if err != nil {
 		fmt.Println(err)
-		return GitReponse{Success: false, Message: "Error when staging changes", Error: err}
+		return GitReponse{Status: "error", Message: "Error when staging changes", Error: err}
 	}
 
 	// Committing the changes
 	_, err = worktree.Commit("test-commit", &git.CommitOptions{})
 	if err != nil {
 		fmt.Println(err)
-		return GitReponse{Success: false, Message: "Error when commiting changes", Error: err}
+		return GitReponse{Status: "error", Message: "Error when commiting changes", Error: err}
 	}
 
 	// Pushing the changes
@@ -133,9 +133,9 @@ func CommitChanges(projectPath string) GitReponse {
 	// Checking if the error that we get is fine
 	if err != nil {
 		fmt.Println(err)
-		return GitReponse{Success: false, Message: "Error when pushing changes", Error: err}
+		return GitReponse{Status: "error", Message: "Error when pushing changes", Error: err}
 	}
 	fmt.Println("Pushed changes to origin")
-	return GitReponse{Success: true, Message: "Successfully synced with repo", Error: nil}
+	return GitReponse{Status: "success", Message: "Successfully synced changes", Error: nil}
 
 }

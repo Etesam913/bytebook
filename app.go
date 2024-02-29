@@ -121,6 +121,7 @@ func (a *App) UploadImagesToFolder(folderName string, noteTitle string) ([]strin
 	return filePaths, err
 }
 
-func (a *App) SyncChangesWithRepo() {
-	git_helpers.CommitChanges(a.projectPath)
+func (a *App) SyncChangesWithRepo() git_helpers.GitReponse {
+	res := git_helpers.CommitAndPushChanges(a.projectPath)
+	return res
 }

@@ -8,10 +8,10 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
+import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { type LexicalEditor } from "lexical";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { SetNoteMarkdown } from "../../../wailsjs/go/main/App";
-import { EditorBlockTypes } from "../../types";
 import { debounce } from "../../utils/draggable";
 import { editorConfig } from "./editor-config";
 import { ImagesPlugin } from "./plugins/images";
@@ -31,7 +31,6 @@ function handleChange(folder: string, note: string, editor: LexicalEditor) {
 export function NotesEditor({
 	params,
 }: { params: { folder: string; note: string } }) {
-	const [currentBlockType, setCurrentBlockType] = useState<EditorBlockTypes>();
 	const { folder, note } = params;
 
 	const editorRef = useRef<LexicalEditor | null | undefined>(null);
@@ -39,15 +38,10 @@ export function NotesEditor({
 	return (
 		<div className="flex-1 min-w-0 flex flex-col">
 			<LexicalComposer initialConfig={editorConfig}>
-				<Toolbar
-					folder={folder}
-					note={note}
-					currentBlockType={currentBlockType}
-					setCurrentBlockType={setCurrentBlockType}
-				/>
+				<Toolbar folder={folder} note={note} />
 
 				<div
-					className=" bg-zinc-200 dark:bg-zinc-700 p-2 h-[calc(100vh-38px)] overflow-auto"
+					className="p-2 h-[calc(100vh-38px)] overflow-auto"
 					onClick={() => editorRef.current?.focus()}
 					onKeyDown={() => {}}
 				>
@@ -64,6 +58,7 @@ export function NotesEditor({
 					<ListPlugin />
 					<TabIndentationPlugin />
 					<HistoryPlugin />
+					<TablePlugin />
 					<EditorRefPlugin editorRef={editorRef} />
 					<MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
 					<ImagesPlugin />

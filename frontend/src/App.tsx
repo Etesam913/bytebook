@@ -13,7 +13,7 @@ function App() {
 			id="App"
 			className="max-h-screen font-display bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 flex"
 		>
-			<Toaster richColors />
+			<Toaster richColors theme="system" />
 			<FolderSidebar width={folderSidebarWidth} />
 			<Route path="/:folder/:note?">
 				{(folderParams) => (

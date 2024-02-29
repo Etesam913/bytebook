@@ -28,17 +28,35 @@ export function SyncChangesButton(props: SyncButtonProps) {
 			{...getDefaultButtonVariants(isSyncing)}
 			onClick={() => {
 				setIsSyncing(true);
-				SyncChangesWithRepo().then(() => {
-					setTimeout(() => {
-						setIsSyncing(false);
-						toast.success("Successfully Synced Changes.", {
+				SyncChangesWithRepo()
+					.then((r) => {
+						setTimeout(() => {
+							if (r.status === "success") {
+								toast.success(r.message, {
+									position: "bottom-right",
+									duration: 3250,
+								});
+								// Need to re-fetch all the folder names and the note names for the current folder
+								updateFolders(setFolders);
+								if (folder) updateNotes(folder, setNotes);
+							} else if (r.status === "info") {
+								toast.info(r.message, {
+									position: "bottom-right",
+								});
+							} else {
+								toast.error(r.message, {
+									position: "bottom-right",
+								});
+							}
+							setIsSyncing(false);
+						}, 1000);
+					})
+					.catch((err) => {
+						toast.error(err.message, {
 							position: "bottom-right",
 						});
-						// Need to re-fetch all the folder names and the note names for the current folder
-						updateFolders(setFolders);
-						if (folder) updateNotes(folder, setNotes);
-					}, 1000);
-				});
+						setIsSyncing(false);
+					});
 			}}
 			disabled={isSyncing}
 			className={cn(
@@ -47,7 +65,7 @@ export function SyncChangesButton(props: SyncButtonProps) {
 			)}
 		>
 			{isSyncing ? (
-				<Loader />
+				<Loader className="h-[20px] w-[20px]" />
 			) : (
 				<>
 					Sync Changes <FileRefresh />

@@ -4,6 +4,7 @@ import { ListItemNode, ListNode } from "@lexical/list";
 import { InitialConfigType } from "@lexical/react/LexicalComposer";
 import { HorizontalRuleNode } from "@lexical/react/LexicalHorizontalRuleNode";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
+import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
 import { EditorThemeClasses, ParagraphNode } from "lexical";
 import { ImageNode } from "./nodes/image";
 import { VideoNode } from "./nodes/video";
@@ -48,5 +49,8 @@ export const editorConfig: InitialConfigType = {
 		ParagraphNode,
 		ImageNode,
 		VideoNode,
+		TableNode,
+		TableCellNode,
+		TableRowNode,
 	],
 };
