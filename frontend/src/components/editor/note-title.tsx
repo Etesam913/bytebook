@@ -1,13 +1,22 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { LexicalEditor } from "lexical";
+import {
+	Dispatch,
+	MutableRefObject,
+	SetStateAction,
+	useEffect,
+	useState,
+} from "react";
 import { fileNameRegex } from "../../utils/string-formatting";
 
 export function NoteTitle({
 	note,
 	setIsToolbarDisabled,
+	editorRef,
 }: {
 	note: string;
 	setIsToolbarDisabled: Dispatch<SetStateAction<boolean>>;
+	editorRef: MutableRefObject<LexicalEditor | null | undefined>;
 }) {
 	const [noteTitle, setNoteTitle] = useState(note);
 
@@ -29,7 +38,16 @@ export function NoteTitle({
 				onChange={(e) => setNoteTitle(e.target.value)}
 				placeholder="Untitled Note"
 				onFocus={() => setIsToolbarDisabled(true)}
-				onBlur={() => setIsToolbarDisabled(false)}
+				onBlur={() => {
+					setIsToolbarDisabled(false);
+				}}
+				onKeyDown={(e) => {
+					if (e.key === "Enter") {
+						setTimeout(() => {
+							editorRef?.current?.focus();
+						}, 10);
+					}
+				}}
 				pattern={fileNameRegex.source}
 				maxLength={50}
 				required

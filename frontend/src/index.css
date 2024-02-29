@@ -6,7 +6,6 @@
   @apply transition-colors duration-300 dark:[color-scheme:dark];
 }
 
-
 h1{
   @apply text-3xl leading-[3.25rem];
 }

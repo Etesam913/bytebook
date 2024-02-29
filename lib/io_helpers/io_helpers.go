@@ -3,7 +3,6 @@ package io_helpers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"runtime"
@@ -21,6 +20,23 @@ func WriteJsonToPath(pathname string, data interface{}) error {
 	}
 	defer file.Close()
 	_, err = file.Write(jsonData)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ReadJsonFromPath(pathname string, data interface{}) error {
+	file, err := os.Open(pathname)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	byteValue, err := io.ReadAll(file)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(byteValue, data)
 	if err != nil {
 		return err
 	}
@@ -100,7 +116,6 @@ func CleanFileName(filename string) string {
 	cleaned = strings.ReplaceAll(cleaned, ")", "_")
 	cleaned = strings.ReplaceAll(cleaned, "_", "")
 
-	fmt.Println(cleaned)
 	// Further modifications could include truncating the filename if it's too long,
 	// ensuring it does not start with a dot if hidden files are a concern, etc.
 	return cleaned

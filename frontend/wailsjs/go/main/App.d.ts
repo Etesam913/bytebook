@@ -15,6 +15,10 @@ export function GetNoteMarkdown(arg1:string,arg2:string):Promise<string>;
 
 export function GetNoteTitles(arg1:string):Promise<Array<string>>;
 
+export function RenameFolder(arg1:string,arg2:string):Promise<void>;
+
+export function RenameNoteTitle(arg1:string,arg2:string,arg3:string):Promise<void>;
+
 export function SetNoteMarkdown(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function SyncChangesWithRepo():Promise<git_helpers.GitReponse>;

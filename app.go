@@ -2,16 +2,15 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/project_helpers"
+	"github.com/etesam913/bytebook/lib/project_types"
 )
 
 // App struct
@@ -52,11 +51,9 @@ func (a *App) shutdown(ctx context.Context) {
 
 func (a *App) GetFolderNames() ([]string, error) {
 	folderNames, err := project_helpers.GetFolders(a.projectPath)
-
 	if err != nil {
 		return nil, err
 	}
-
 	return folderNames, nil
 }
 
@@ -68,13 +65,20 @@ func (a *App) AddFolderUsingName(folderName string) project_helpers.FileReturnSt
 
 	// Create the metadata json file for the folder
 	metadataPath := filepath.Join(a.projectPath, "notes", folderName, "metadata.json")
-	createdDate := time.Now().UTC().Format("2006-01-02 15:04")
-	err := io_helpers.WriteJsonToPath(metadataPath, map[string]string{"title": folderName, "created": createdDate, "updated": createdDate})
+	createdDate := project_helpers.UpdateTime()
+	err := io_helpers.WriteJsonToPath(metadataPath, project_types.FolderMetadata{Title: folderName, Created: createdDate, Updated: createdDate})
 	if err != nil {
 		return project_helpers.FileReturnStruct{Success: false, Message: err.Error()}
 	}
 
 	return project_helpers.FileReturnStruct{Success: true, Message: ""}
+}
+func (a *App) RenameFolder(oldFolderName string, newFolderName string) error {
+	err := project_helpers.RenameFolder(a.projectPath, oldFolderName, newFolderName)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (a *App) AddNoteToFolder(folderName string, noteTitle string) project_helpers.FileReturnStruct {
@@ -85,7 +89,6 @@ func (a *App) AddNoteToFolder(folderName string, noteTitle string) project_helpe
 
 func (a *App) GetNoteTitles(folderName string) ([]string, error) {
 	noteTitles, err := project_helpers.GetNotesFromFolder(a.projectPath, folderName)
-	fmt.Println(noteTitles, err)
 	if err != nil {
 		return nil, err
 	}
@@ -124,4 +127,12 @@ func (a *App) UploadImagesToFolder(folderName string, noteTitle string) ([]strin
 func (a *App) SyncChangesWithRepo() git_helpers.GitReponse {
 	res := git_helpers.CommitAndPushChanges(a.projectPath)
 	return res
+}
+
+func (a *App) RenameNoteTitle(folderName string, oldNoteTitle string, newNoteTitle string) error {
+	oldNotePath := filepath.Join(a.projectPath, "notes", folderName, oldNoteTitle)
+	newNotePath := filepath.Join(a.projectPath, "notes", folderName, newNoteTitle)
+
+	err := os.Rename(oldNotePath, newNotePath)
+	return err
 }

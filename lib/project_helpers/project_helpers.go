@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/lib/project_types"
 	wails_runtime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -57,7 +58,6 @@ func GetFolders(projectPath string) (folders []string, err error) {
 
 	// Get the folders present in the notes directory
 	files, err := os.ReadDir(notesPath)
-	fmt.Println(files, err)
 	if err != nil {
 		return nil, err
 	}
@@ -79,8 +79,6 @@ type FileReturnStruct struct {
 func AddFolder(projectPath string, folderName string) FileReturnStruct {
 	pathToFolder := filepath.Join(projectPath, "notes", folderName)
 
-	fmt.Println(projectPath, pathToFolder)
-
 	info, err := os.Stat(pathToFolder)
 	if err == nil {
 		if info.IsDir() {
@@ -93,6 +91,41 @@ func AddFolder(projectPath string, folderName string) FileReturnStruct {
 		return FileReturnStruct{Success: false, Message: err.Error()}
 	}
 	return FileReturnStruct{Success: true, Message: ""}
+}
+
+func DeleteFolder(projectPath string, folderName string) error {
+	folderPath := filepath.Join(projectPath, "notes", folderName)
+	err := os.RemoveAll(folderPath)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Updates the folder name and the metadata.json file if it exists
+func RenameFolder(projectPath string, oldFolderName string, newFolderName string) error {
+	folderBase := filepath.Join(projectPath, "notes")
+	err := os.Rename(filepath.Join(folderBase, oldFolderName), filepath.Join(folderBase, newFolderName))
+	if err != nil {
+		return err
+	}
+	_, err = os.Stat(filepath.Join(folderBase, newFolderName, "metadata.json"))
+	// if metadata.json exists we should update the title property
+	if err == nil {
+		var folderMetadata project_types.FolderMetadata
+		err := io_helpers.ReadJsonFromPath(filepath.Join(folderBase, newFolderName, "metadata.json"), &folderMetadata)
+		if err != nil {
+			return err
+		}
+		folderMetadata.Title = newFolderName
+		folderMetadata.Updated = UpdateTime()
+		err = io_helpers.WriteJsonToPath(filepath.Join(folderBase, newFolderName, "metadata.json"), folderMetadata)
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
 }
 
 func AddNoteToFolder(projectPath string, folderName string, noteTitle string) FileReturnStruct {
@@ -177,15 +210,6 @@ func SetNoteMarkdown(projectPath string, folderName string, noteTitle string, ma
 	return nil
 }
 
-func DeleteFolder(projectPath string, folderName string) error {
-	folderPath := filepath.Join(projectPath, "notes", folderName)
-	err := os.RemoveAll(folderPath)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func DoesFolderExist(projectPath string, folderName string) bool {
 	_, err := os.Stat(filepath.Join(projectPath, folderName))
 	return err == nil
@@ -230,10 +254,6 @@ func UploadImage(ctx context.Context, projectPath string, folderPath string, not
 			wails_runtime.LogInfo(ctx, "Selected file: "+file)
 			cleanedFileName := io_helpers.CleanFileName(filepath.Base(file))
 			newFilePath := filepath.Join(projectPath, "notes", folderPath, notePath, cleanedFileName)
-			if err != nil {
-				return nil, err
-			}
-
 			fileServerPath := filepath.Join("notes", folderPath, notePath, cleanedFileName)
 
 			newFilePaths = append(newFilePaths, fileServerPath)
@@ -244,4 +264,8 @@ func UploadImage(ctx context.Context, projectPath string, folderPath string, not
 	}
 
 	return newFilePaths, nil
+}
+
+func UpdateTime() string {
+	return time.Now().UTC().Format("2006-01-02 15:04")
 }

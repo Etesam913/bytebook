@@ -67,6 +67,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 			<AnimatePresence>
 				{isFolderDialogOpen && (
 					<FolderSidebarDialog
+						action="add"
 						isFolderDialogOpen={isFolderDialogOpen}
 						setIsFolderDialogOpen={setIsFolderDialogOpen}
 						setFolders={setFolders}

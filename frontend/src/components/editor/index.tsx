@@ -46,7 +46,11 @@ export function NotesEditor({
 					onClick={() => editorRef.current?.focus()}
 					onKeyDown={() => {}}
 				>
-					<NoteTitle note={note} setIsToolbarDisabled={setIsToolbarDisabled} />
+					<NoteTitle
+						editorRef={editorRef}
+						note={note}
+						setIsToolbarDisabled={setIsToolbarDisabled}
+					/>
 					<RichTextPlugin
 						placeholder={null}
 						contentEditable={<ContentEditable className=" whitespace-pre" />}

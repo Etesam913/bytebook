@@ -1,6 +1,6 @@
 import { type Dispatch, type SetStateAction, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
-import { AddFolderUsingName } from "../../../wailsjs/go/main/App";
+import { AddFolderUsingName, RenameFolder } from "../../../wailsjs/go/main/App";
 import { FolderPlus } from "../../icons/folder-plus";
 import { fileNameRegex } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
@@ -10,11 +10,15 @@ import { Dialog, ErrorText } from "../dialog";
 export function FolderSidebarDialog({
 	isFolderDialogOpen,
 	setIsFolderDialogOpen,
+	oldFolderName,
 	setFolders,
+	action,
 }: {
 	isFolderDialogOpen: boolean;
 	setIsFolderDialogOpen: Dispatch<SetStateAction<boolean>>;
+	oldFolderName?: string;
 	setFolders: Dispatch<SetStateAction<string[] | null>>;
+	action: "add" | "rename";
 }) {
 	const [errorText, setErrorText] = useState("");
 
@@ -31,33 +35,52 @@ export function FolderSidebarDialog({
 						);
 						return;
 					}
-
-					AddFolderUsingName(folderName)
-						.then((v) => {
-							if (v.Success) {
+					if (action === "add") {
+						AddFolderUsingName(folderName)
+							.then((v) => {
+								if (v.Success) {
+									setIsFolderDialogOpen(false);
+									setErrorText("");
+									setFolders((prev) =>
+										prev ? [...prev, folderName] : [folderName],
+									);
+									navigate(`/${folderName}`);
+								} else {
+									setErrorText(v.Message);
+								}
+							})
+							.catch((e) => {
+								console.error(e);
+								setErrorText(e.message);
+							});
+					} else if (action === "rename" && oldFolderName) {
+						RenameFolder(oldFolderName, folderName)
+							.then(() => {
 								setIsFolderDialogOpen(false);
 								setErrorText("");
 								setFolders((prev) =>
-									prev ? [...prev, folderName] : [folderName],
+									prev
+										? prev.map((v) => (v === oldFolderName ? folderName : v))
+										: [folderName],
 								);
 								navigate(`/${folderName}`);
-							} else {
-								setErrorText(v.Message);
-							}
-						})
-						.catch((e) => {
-							console.error(e);
-							setErrorText(e.message);
-						});
+							})
+							.catch((e) => {
+								console.error(e);
+								if (e.message) {
+									setErrorText(e.message);
+								}
+							});
+					}
 				}
 			}}
-			title="Create Folder"
+			title={action === "add" ? "Create Folder" : "Rename Folder"}
 			isOpen={isFolderDialogOpen}
 			setIsOpen={setIsFolderDialogOpen}
 		>
 			<div className="flex flex-col">
 				<label className="pb-2 cursor-pointer" htmlFor="folder-name">
-					Folder Name
+					New Folder Name
 				</label>
 				<input
 					name="folder-name"
@@ -73,7 +96,7 @@ export function FolderSidebarDialog({
 						{...getDefaultButtonVariants()}
 						className="w-full text-center flex items-center gap-2 justify-center flex-wrap "
 					>
-						Add Folder <FolderPlus />
+						{action === "add" ? "Add Folder" : "Rename Folder"} <FolderPlus />
 					</MotionButton>
 				</section>
 			</div>

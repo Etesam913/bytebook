@@ -1,16 +1,18 @@
 import { AnimatePresence, MotionValue, motion } from "framer-motion";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder } from "../../../wailsjs/go/main/App";
-import { notesAtom } from "../../atoms";
+import { foldersAtom, notesAtom } from "../../atoms";
 import { MotionButton } from "../../components/buttons";
 import { NotesEditor } from "../../components/editor";
+import { FolderSidebarDialog } from "../../components/folder-sidebar/sidebar-dialog";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
 import { Note } from "../../icons/page";
+import { Pen } from "../../icons/pen";
 import { Trash } from "../../icons/trash";
 import { updateNotes } from "../../utils/fetch-functions";
 import { cn } from "../../utils/string-formatting";
@@ -27,7 +29,9 @@ export function NotesSidebar({
 	leftWidth: MotionValue<number>;
 }) {
 	const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
+	const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
 	const [notes, setNotes] = useAtom(notesAtom);
+	const setFolders = useSetAtom(foldersAtom);
 
 	const { folder, note } = params;
 
@@ -64,7 +68,7 @@ export function NotesSidebar({
 					}
 					{...getDefaultButtonVariants(false, 1.15, 0.95, 1.15)}
 					type="button"
-					className="min-w-[20px] p-1 rounded-[0.3rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700"
+					className="min-w-[20px] p-1 rounded-[0.3rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-300"
 				>
 					<Trash />
 				</motion.button>
@@ -84,16 +88,37 @@ export function NotesSidebar({
 					/>
 				)}
 			</AnimatePresence>
+
+			<AnimatePresence>
+				{isFolderDialogOpen && (
+					<FolderSidebarDialog
+						action="rename"
+						isFolderDialogOpen={isFolderDialogOpen}
+						setIsFolderDialogOpen={setIsFolderDialogOpen}
+						setFolders={setFolders}
+						oldFolderName={folder}
+					/>
+				)}
+			</AnimatePresence>
+
 			<motion.aside
 				style={{ width }}
-				className="pt-5 text-md h-screen flex flex-col gap-2 overflow-y-auto"
+				className="pt-[14px] text-md h-screen flex flex-col gap-2 overflow-y-auto"
 			>
-				<div className="px-[10px] flex flex-col gap-4 h-full overflow-y-auto">
-					<section className="flex gap-3 items-center">
+				<div className="px-[10px] pt-[3px] flex flex-col gap-4 h-full overflow-y-auto">
+					<section className="flex gap-2 items-center">
 						<Folder className="min-w-[1.25rem]" />{" "}
 						<p className="whitespace-nowrap text-ellipsis overflow-hidden">
 							{folder}
 						</p>
+						<motion.button
+							type="button"
+							{...getDefaultButtonVariants(false, 1.15, 0.95, 1.15)}
+							className="min-w-[1.5rem] p-[2.5px] rounded-[0.5rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-300"
+							onClick={() => setIsFolderDialogOpen(true)}
+						>
+							<Pen className="w-full" />
+						</motion.button>
 					</section>
 					<MotionButton
 						{...getDefaultButtonVariants()}
