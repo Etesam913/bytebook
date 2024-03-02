@@ -15,10 +15,11 @@ import { SetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { debounce } from "../../utils/draggable";
 import { editorConfig } from "./editor-config";
 import { NoteTitle } from "./note-title";
-import { ImagesPlugin } from "./plugins/images";
+import { ImagesPlugin } from "./plugins/image";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { $convertToMarkdownStringCorrect } from "./utils";
+import { VideosPlugin } from "./plugins/video";
 
 const debouncedHandleChange = debounce(handleChange, 500);
 
@@ -52,6 +53,7 @@ export function NotesEditor({
 						note={note}
 						setIsToolbarDisabled={setIsToolbarDisabled}
 					/>
+
 					<RichTextPlugin
 						placeholder={null}
 						contentEditable={<ContentEditable className=" whitespace-pre" />}
@@ -69,6 +71,7 @@ export function NotesEditor({
 					<EditorRefPlugin editorRef={editorRef} />
 					<MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
 					<ImagesPlugin />
+					<VideosPlugin />
 				</div>
 			</LexicalComposer>
 		</div>
