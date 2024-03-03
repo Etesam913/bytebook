@@ -1,4 +1,4 @@
-import type { CodeNode } from "@lexical/code";
+
 import type {
 	ElementTransformer,
 	TextFormatTransformer,
@@ -6,7 +6,7 @@ import type {
 } from "@lexical/markdown";
 import type { TextNode } from "lexical";
 
-import { $createCodeNode } from "@lexical/code";
+
 import { $isListItemNode, $isListNode, ListItemNode } from "@lexical/list";
 import { $isQuoteNode } from "@lexical/rich-text";
 import { $findMatchingParent } from "@lexical/utils";
@@ -21,8 +21,10 @@ import {
 } from "lexical";
 import { transformersByType } from "./transformers";
 import { type Transformer } from "./utils";
+import { $createCodeNode, CodeNode } from "./nodes/code";
+import { Language } from "@codemirror/language";
 
-const CODE_BLOCK_REG_EXP = /^```(\w{1,10})?\s?$/;
+
 const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
 const CAN_USE_DOM: boolean =
 	typeof window !== "undefined" &&
@@ -63,9 +65,10 @@ export function createMarkdownImport(
 			// is ignored for further processing
 			// TODO:
 			// Abstract it to be dynamic as other transformers (add multiline match option)
+
 			const [codeBlockNode, shiftedIndex] = importCodeBlock(lines, i, root);
 
-			if (codeBlockNode != null) {
+			if (codeBlockNode !== null) {
 				i = shiftedIndex;
 				continue;
 			}
@@ -153,6 +156,7 @@ function importBlocks(
 		}
 	}
 }
+const CODE_BLOCK_REG_EXP = /^```(\w{1,10})?\s?$/;
 
 function importCodeBlock(
 	lines: Array<string>,
@@ -160,7 +164,6 @@ function importCodeBlock(
 	rootNode: ElementNode,
 ): [CodeNode | null, number] {
 	const openMatch = lines[startLineIndex].match(CODE_BLOCK_REG_EXP);
-
 	if (openMatch) {
 		let endLineIndex = startLineIndex;
 		const linesLength = lines.length;
@@ -169,17 +172,14 @@ function importCodeBlock(
 			const closeMatch = lines[endLineIndex].match(CODE_BLOCK_REG_EXP);
 
 			if (closeMatch) {
-				const codeBlockNode = $createCodeNode(openMatch[1]);
-				const textNode = $createTextNode(
-					lines.slice(startLineIndex + 1, endLineIndex).join("\n"),
-				);
-				codeBlockNode.append(textNode);
+				const code = lines.slice(startLineIndex + 1, endLineIndex).join("\n")
+				const language = openMatch[1] ?? ""
+				const codeBlockNode = $createCodeNode({code, language});
 				rootNode.append(codeBlockNode);
 				return [codeBlockNode, endLineIndex];
 			}
 		}
 	}
-
 	return [null, startLineIndex];
 }
 

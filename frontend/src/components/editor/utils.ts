@@ -22,7 +22,7 @@ import { UploadImagesToFolder } from "../../../wailsjs/go/main/App";
 import { EditorBlockTypes } from "../../types";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
-import { INSERT_IMAGE_COMMAND } from "./plugins/images";
+import { INSERT_IMAGE_COMMAND } from "./plugins/image";
 
 export type TextFormats =
 	| null

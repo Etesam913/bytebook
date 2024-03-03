@@ -1,4 +1,3 @@
-import { CodeNode } from "@lexical/code";
 import { LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { InitialConfigType } from "@lexical/react/LexicalComposer";
@@ -8,6 +7,7 @@ import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
 import { EditorThemeClasses, ParagraphNode } from "lexical";
 import { ImageNode } from "./nodes/image";
 import { VideoNode } from "./nodes/video";
+import { CodeNode } from "./nodes/code";
 
 // Catch any errors that occur during Lexical updates and log them
 // or throw them as needed. If you don't throw them, Lexical will
@@ -52,5 +52,6 @@ export const editorConfig: InitialConfigType = {
 		TableNode,
 		TableCellNode,
 		TableRowNode,
+		CodeNode
 	],
 };

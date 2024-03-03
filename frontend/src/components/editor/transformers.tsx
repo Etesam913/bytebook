@@ -3,9 +3,7 @@ import {
 	BOLD_ITALIC_UNDERSCORE,
 	BOLD_STAR,
 	BOLD_UNDERSCORE,
-	CODE,
 	ElementTransformer,
-	INLINE_CODE,
 	ITALIC_STAR,
 	ITALIC_UNDERSCORE,
 	ORDERED_LIST,
@@ -21,16 +19,24 @@ import {
 	HeadingNode,
 	HeadingTagType,
 } from "@lexical/rich-text";
-import { ElementNode } from "lexical";
+import {
+	$createNodeSelection,
+	$setSelection,
+	ElementNode,
+	LexicalNode,
+} from "lexical";
 import { $createImageNode, $isImageNode, ImageNode } from "./nodes/image";
 import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
 import { type Transformer } from "./utils";
+import { $createCodeNode, $isCodeNode, CodeNode } from "./nodes/code";
+import { type LanguageName } from "@uiw/codemirror-extensions-langs";
 
 const createBlockNode = (
 	createNode: (match: Array<string>) => ElementNode,
 ): ElementTransformer["replace"] => {
 	return (parentNode, children, match) => {
 		const node = createNode(match);
+		console.log(node);
 		node.append(...children);
 		parentNode.replace(node);
 		node.select(0, 0);
@@ -59,6 +65,31 @@ const VIDEO_TRANSFORMER: TextMatchTransformer = {
 	type: "text-match",
 };
 
+export const CODE_TRANSFORMER: ElementTransformer = {
+	dependencies: [CodeNode],
+	export: (node: LexicalNode) => {
+		if (!$isCodeNode(node)) {
+			return null;
+		}
+		const textContent = node.getCode();
+		return `\`\`\`${node.getLanguage() || ""}${
+			textContent ? `\n${textContent}` : ""
+		}\n\`\`\``;
+	},
+	regExp: /^```(\w{1,10})?\s/,
+	replace: (textNode, _1, match, isImport) => {
+		const [_2, language] = match;
+		const codeNode = $createCodeNode({
+			code: "",
+			language: language as LanguageName,
+			focus: !isImport,
+		});
+
+		textNode.replace(codeNode);
+	},
+	type: "element",
+};
+
 const IMAGE_TRANSFORMER: TextMatchTransformer = {
 	dependencies: [ImageNode],
 	export: (node) => {
@@ -67,8 +98,8 @@ const IMAGE_TRANSFORMER: TextMatchTransformer = {
 		}
 		return `![${node.getAltText()}](${node.getSrc()})`;
 	},
-	importRegExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:png|jpg|webp))\))$/,
-	regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:png|jpg|webp))\))$/,
+	importRegExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:png|jpg|webp|jpeg))\))$/,
+	regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:png|jpg|webp|jpeg))\))$/,
 	replace: (textNode, match) => {
 		const [, alt, src] = match;
 		const imageNode = $createImageNode({
@@ -135,18 +166,19 @@ export function transformersByType(transformers: Array<Transformer>): Readonly<{
 export const CUSTOM_TRANSFORMERS = [
 	CUSTOM_HEADING_TRANSFORMER,
 	UNORDERED_LIST,
-	CODE,
+	// CODE,
 	ORDERED_LIST,
 	QUOTE,
 	BOLD_ITALIC_STAR,
 	BOLD_ITALIC_UNDERSCORE,
 	BOLD_STAR,
 	BOLD_UNDERSCORE,
-	INLINE_CODE,
+	// INLINE_CODE,
 	ITALIC_STAR,
 	ITALIC_UNDERSCORE,
 	STRIKETHROUGH,
 	// LINK,
 	IMAGE_TRANSFORMER,
 	VIDEO_TRANSFORMER,
+	CODE_TRANSFORMER,
 ];

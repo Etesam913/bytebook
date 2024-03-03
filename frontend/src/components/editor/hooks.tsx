@@ -34,15 +34,12 @@ export function useImageListener(editor: LexicalEditor) {
 		const imageNodes = new Map<string, ImageNode>();
 		return editor.registerMutationListener(ImageNode, (nodeMutations) => {
 			for (const [nodeKey, mutation] of nodeMutations) {
-				console.log(nodeKey, mutation);
 				if (mutation === "created") {
 					editor.update(() => {
 						const imageNode = $getNodeByKey<ImageNode>(nodeKey);
 						if (imageNode) {
 							imageNodes.set(nodeKey, imageNode);
-							console.log("updated map", imageNodes);
 						}
-						console.log(imageNode, mutation);
 					});
 				} else if (mutation === "destroyed") {
 					const imageNode = imageNodes.get(nodeKey);

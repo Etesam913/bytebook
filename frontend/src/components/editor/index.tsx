@@ -20,6 +20,7 @@ import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { $convertToMarkdownStringCorrect } from "./utils";
 import { VideosPlugin } from "./plugins/video";
+import { CodePlugin } from "./plugins/code";
 
 const debouncedHandleChange = debounce(handleChange, 500);
 
@@ -72,6 +73,7 @@ export function NotesEditor({
 					<MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
 					<ImagesPlugin />
 					<VideosPlugin />
+					<CodePlugin />
 				</div>
 			</LexicalComposer>
 		</div>
