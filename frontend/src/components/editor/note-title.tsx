@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
+import { useSetAtom } from "jotai";
 import { LexicalEditor } from "lexical";
 import {
 	Dispatch,
@@ -7,11 +8,10 @@ import {
 	useEffect,
 	useState,
 } from "react";
-import { cn, fileNameRegex } from "../../utils/string-formatting";
-import { RenameNoteTitle } from "../../../wailsjs/go/main/App";
 import { navigate } from "wouter/use-browser-location";
-import { useSetAtom } from "jotai";
+import { RenameNoteTitle } from "../../../wailsjs/go/main/App";
 import { notesAtom } from "../../atoms";
+import { cn, fileNameRegex } from "../../utils/string-formatting";
 
 export function NoteTitle({
 	note,

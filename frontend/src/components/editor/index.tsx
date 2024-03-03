@@ -15,12 +15,12 @@ import { SetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { debounce } from "../../utils/draggable";
 import { editorConfig } from "./editor-config";
 import { NoteTitle } from "./note-title";
+import { CodePlugin } from "./plugins/code";
 import { ImagesPlugin } from "./plugins/image";
+import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { $convertToMarkdownStringCorrect } from "./utils";
-import { VideosPlugin } from "./plugins/video";
-import { CodePlugin } from "./plugins/code";
 
 const debouncedHandleChange = debounce(handleChange, 500);
 

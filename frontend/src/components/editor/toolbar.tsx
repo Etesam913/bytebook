@@ -8,6 +8,7 @@ import {
 	$isRangeSelection,
 	FORMAT_TEXT_COMMAND,
 	SELECTION_CHANGE_COMMAND,
+	TextFormatType,
 } from "lexical";
 import { useEffect, useState } from "react";
 import { TextBold } from "../../icons/text-bold";
@@ -36,7 +37,7 @@ export function Toolbar({ folder, note, disabled }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
 	const [currentBlockType, setCurrentBlockType] = useState<EditorBlockTypes>();
 	const [currentSelectionFormat, setCurrentSelectionFormat] = useState<
-		TextFormats[]
+		TextFormatType[]
 	>([]);
 
 	function updateToolbar() {
@@ -63,7 +64,7 @@ export function Toolbar({ folder, note, disabled }: ToolbarProps) {
 				selectionTextFormats.push("strikethrough");
 			}
 
-			setCurrentSelectionFormat(selectionTextFormats);
+			setCurrentSelectionFormat(selectionTextFormats as TextFormatType[]);
 
 			if (!elementDOM) return;
 
@@ -85,7 +86,7 @@ export function Toolbar({ folder, note, disabled }: ToolbarProps) {
 		}
 	}
 
-	useNoteMarkdown(editor, folder, note);
+	useNoteMarkdown(editor, folder, note, setCurrentSelectionFormat);
 	useImageListener(editor);
 
 	useEffect(() => {

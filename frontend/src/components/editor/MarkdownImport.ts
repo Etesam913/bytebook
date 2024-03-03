@@ -1,11 +1,9 @@
-
 import type {
 	ElementTransformer,
 	TextFormatTransformer,
 	TextMatchTransformer,
 } from "@lexical/markdown";
 import type { TextNode } from "lexical";
-
 
 import { $isListItemNode, $isListNode, ListItemNode } from "@lexical/list";
 import { $isQuoteNode } from "@lexical/rich-text";
@@ -19,11 +17,9 @@ import {
 	$isParagraphNode,
 	ElementNode,
 } from "lexical";
+import { $createCodeNode, CodeNode } from "./nodes/code";
 import { transformersByType } from "./transformers";
 import { type Transformer } from "./utils";
-import { $createCodeNode, CodeNode } from "./nodes/code";
-import { Language } from "@codemirror/language";
-
 
 const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
 const CAN_USE_DOM: boolean =
@@ -172,9 +168,9 @@ function importCodeBlock(
 			const closeMatch = lines[endLineIndex].match(CODE_BLOCK_REG_EXP);
 
 			if (closeMatch) {
-				const code = lines.slice(startLineIndex + 1, endLineIndex).join("\n")
-				const language = openMatch[1] ?? ""
-				const codeBlockNode = $createCodeNode({code, language});
+				const code = lines.slice(startLineIndex + 1, endLineIndex).join("\n");
+				const language = openMatch[1] ?? "";
+				const codeBlockNode = $createCodeNode({ code, language });
 				rootNode.append(codeBlockNode);
 				return [codeBlockNode, endLineIndex];
 			}

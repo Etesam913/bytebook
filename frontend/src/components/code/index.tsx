@@ -1,17 +1,13 @@
-import CodeMirror, {
-	Extension,
-	ReactCodeMirrorRef,
-	ViewUpdate,
-} from "@uiw/react-codemirror";
-import { githubDark } from "@uiw/codemirror-themes-all";
-import {
-	loadLanguage,
-	langNames,
-	LanguageName,
-} from "@uiw/codemirror-extensions-langs";
-import { useMemo, useRef, useState } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import {
+	LanguageName,
+	langNames,
+	loadLanguage,
+} from "@uiw/codemirror-extensions-langs";
+import { githubDark } from "@uiw/codemirror-themes-all";
+import CodeMirror, { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { UNDO_COMMAND } from "lexical";
+import { useMemo, useRef, useState } from "react";
 
 export function Code({
 	code,

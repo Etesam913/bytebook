@@ -16,6 +16,7 @@ import {
 	$isRangeSelection,
 	ElementNode,
 	LexicalEditor,
+	TextFormatType,
 } from "lexical";
 import { Dispatch, SetStateAction } from "react";
 import { UploadImagesToFolder } from "../../../wailsjs/go/main/App";
@@ -81,9 +82,9 @@ export function changeSelectedBlocksType(
 }
 
 export function handleToolbarTextFormattingClick(
-	currentSelectionFormat: TextFormats[],
-	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormats[]>>,
-	textFormat: TextFormats,
+	currentSelectionFormat: TextFormatType[],
+	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
+	textFormat: TextFormatType,
 ) {
 	if (currentSelectionFormat.includes(textFormat)) {
 		setCurrentSelectionFormat(

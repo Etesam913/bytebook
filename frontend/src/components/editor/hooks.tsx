@@ -1,5 +1,11 @@
-import { $getNodeByKey, CLEAR_HISTORY_COMMAND, LexicalEditor } from "lexical";
-import { useEffect } from "react";
+import {
+	$getNodeByKey,
+	CLEAR_HISTORY_COMMAND,
+	FORMAT_TEXT_COMMAND,
+	LexicalEditor,
+	TextFormatType,
+} from "lexical";
+import { Dispatch, useEffect } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder, GetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { ImageNode } from "./nodes/image";
@@ -11,6 +17,7 @@ export function useNoteMarkdown(
 	editor: LexicalEditor,
 	folder: string,
 	note: string,
+	setCurrentSelectionFormat: Dispatch<React.SetStateAction<TextFormatType[]>>,
 ) {
 	useEffect(() => {
 		GetNoteMarkdown(folder, note)
@@ -18,7 +25,15 @@ export function useNoteMarkdown(
 				editor.setEditable(true);
 				// You don't want a different note to access the same history when you switch notes
 				editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
+
 				editor.update(() => {
+					// Clear formatting
+					setCurrentSelectionFormat((prev) => {
+						for (const format of prev)
+							editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+
+						return [];
+					});
 					$convertFromMarkdownStringCorrect(markdown, CUSTOM_TRANSFORMERS);
 				});
 			})
@@ -26,7 +41,7 @@ export function useNoteMarkdown(
 				console.error(e);
 				navigate("/");
 			});
-	}, [folder, note, editor]);
+	}, [folder, note, editor, setCurrentSelectionFormat]);
 }
 
 export function useImageListener(editor: LexicalEditor) {

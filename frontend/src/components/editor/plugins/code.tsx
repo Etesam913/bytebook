@@ -9,7 +9,7 @@ import {
 	createCommand,
 } from "lexical";
 import { useEffect } from "react";
-import { CodePayload, CodeNode, $createCodeNode } from "../nodes/code";
+import { $createCodeNode, CodeNode, CodePayload } from "../nodes/code";
 
 export const INSERT_CODE_COMMAND: LexicalCommand<CodePayload> = createCommand(
 	"INSERT_CODE_COMMAND",

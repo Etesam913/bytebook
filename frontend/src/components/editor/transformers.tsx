@@ -19,17 +19,12 @@ import {
 	HeadingNode,
 	HeadingTagType,
 } from "@lexical/rich-text";
-import {
-	$createNodeSelection,
-	$setSelection,
-	ElementNode,
-	LexicalNode,
-} from "lexical";
+import { type LanguageName } from "@uiw/codemirror-extensions-langs";
+import { ElementNode, LexicalNode } from "lexical";
+import { $createCodeNode, $isCodeNode, CodeNode } from "./nodes/code";
 import { $createImageNode, $isImageNode, ImageNode } from "./nodes/image";
 import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
 import { type Transformer } from "./utils";
-import { $createCodeNode, $isCodeNode, CodeNode } from "./nodes/code";
-import { type LanguageName } from "@uiw/codemirror-extensions-langs";
 
 const createBlockNode = (
 	createNode: (match: Array<string>) => ElementNode,
