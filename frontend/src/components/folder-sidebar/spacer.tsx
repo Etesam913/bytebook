@@ -1,6 +1,6 @@
 import { type MotionValue } from "framer-motion";
 import { useState } from "react";
-import { dragSpacer } from "../../utils/draggable";
+import { dragItem } from "../../utils/draggable";
 import { cn } from "../../utils/string-formatting";
 
 export function Spacer({
@@ -18,8 +18,8 @@ export function Spacer({
 		<div
 			onMouseDown={() => {
 				setIsDragged(true);
-				dragSpacer(
-					(e) =>
+				dragItem(
+					(e) => {
 						width.set(
 							Math.min(
 								Math.max(
@@ -29,7 +29,8 @@ export function Spacer({
 								),
 								325,
 							),
-						),
+						);
+					},
 					() => {
 						setIsDragged(false);
 					},

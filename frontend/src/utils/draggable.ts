@@ -1,6 +1,6 @@
-export function dragSpacer(
+export function dragItem(
 	onDragCallback: (e: MouseEvent) => void,
-	onDragEndCallback: () => void,
+	onDragEndCallback: (e: MouseEvent) => void,
 ) {
 	function mouseMove(e: MouseEvent) {
 		if (e.target) {
@@ -8,17 +8,16 @@ export function dragSpacer(
 		}
 	}
 
-	function cleanUpDocumentEvents() {
+	function cleanUpDocumentEvents(e: MouseEvent) {
 		document.removeEventListener("mousemove", mouseMove);
 		document.removeEventListener("mouseup", cleanUpDocumentEvents);
 		// document.removeEventListener("selectstart", (e) => e.preventDefault());
 		document.body.style.cursor = "auto";
-		onDragEndCallback();
+		onDragEndCallback(e);
 	}
 	// document.addEventListener("selectstart", (e) => e.preventDefault());
 	document.addEventListener("mousemove", mouseMove);
 	document.addEventListener("mouseup", cleanUpDocumentEvents);
-	document.body.style.cursor = "ew-resize";
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: any is fine for throttle function

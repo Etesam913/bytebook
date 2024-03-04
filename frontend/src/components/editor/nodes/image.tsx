@@ -141,7 +141,12 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 	decorate(): JSX.Element {
 		return (
 			<Suspense fallback={null}>
-				<Image src={this.__src} width={this.__width} height={this.__height} />
+				<Image
+					src={this.__src}
+					width={this.__width}
+					height={this.__height}
+					nodeKey={this.__key}
+				/>
 			</Suspense>
 		);
 	}

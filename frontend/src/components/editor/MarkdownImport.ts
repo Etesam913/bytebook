@@ -170,7 +170,7 @@ function importCodeBlock(
 			if (closeMatch) {
 				const code = lines.slice(startLineIndex + 1, endLineIndex).join("\n");
 				const language = openMatch[1] ?? "";
-				const codeBlockNode = $createCodeNode({ code, language });
+				const codeBlockNode = $createCodeNode({ code, language, focus: false });
 				rootNode.append(codeBlockNode);
 				return [codeBlockNode, endLineIndex];
 			}
