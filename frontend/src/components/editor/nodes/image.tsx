@@ -3,13 +3,14 @@ import type {
 	DOMConversionOutput,
 	DOMExportOutput,
 	EditorConfig,
+	LexicalEditor,
 	LexicalNode,
 	NodeKey,
 	SerializedLexicalNode,
 	Spread,
 } from "lexical";
 
-import { $applyNodeReplacement, DecoratorNode } from "lexical";
+import { $applyNodeReplacement, $getNodeByKey, DecoratorNode } from "lexical";
 import { Suspense } from "react";
 import { Image } from "../../image";
 
@@ -138,7 +139,19 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 		return this.__alt;
 	}
 
-	decorate(): JSX.Element {
+	goToNextElement(_editor: LexicalEditor): void {
+		_editor.update(() => {
+			const node = $getNodeByKey(this.getKey());
+			if (node && $isImageNode(node)) {
+				const nextNode = node.getNextSibling();
+				if (nextNode) {
+					nextNode.selectEnd();
+				}
+			}
+		});
+	}
+
+	decorate(_editor: LexicalEditor): JSX.Element {
 		return (
 			<Suspense fallback={null}>
 				<Image
@@ -146,6 +159,7 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 					width={this.__width}
 					height={this.__height}
 					nodeKey={this.__key}
+					goToNextElement={() => this.goToNextElement(_editor)}
 				/>
 			</Suspense>
 		);

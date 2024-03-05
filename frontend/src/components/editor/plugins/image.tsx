@@ -1,9 +1,7 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { $wrapNodeInElement, mergeRegister } from "@lexical/utils";
+import { mergeRegister } from "@lexical/utils";
 import {
-	$createParagraphNode,
-	$insertNodes,
-	$isRootOrShadowRoot,
+	$getSelection,
 	COMMAND_PRIORITY_EDITOR,
 	LexicalCommand,
 	createCommand,
@@ -28,11 +26,11 @@ export function ImagesPlugin() {
 				INSERT_IMAGE_COMMAND,
 				(payload) => {
 					const imageNode = $createImageNode(payload);
-					$insertNodes([imageNode]);
-					if ($isRootOrShadowRoot(imageNode.getParentOrThrow())) {
-						$wrapNodeInElement(imageNode, $createParagraphNode).selectEnd();
+					const selectionNode = $getSelection()?.getNodes().at(0);
+					// Replaces the p node with an image node
+					if (selectionNode) {
+						selectionNode.replace(imageNode);
 					}
-
 					return true;
 				},
 				COMMAND_PRIORITY_EDITOR,

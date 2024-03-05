@@ -1,6 +1,6 @@
 export function dragItem(
 	onDragCallback: (e: MouseEvent) => void,
-	onDragEndCallback: (e: MouseEvent) => void,
+	onDragEndCallback?: (e: MouseEvent) => void,
 ) {
 	function mouseMove(e: MouseEvent) {
 		if (e.target) {
@@ -13,7 +13,9 @@ export function dragItem(
 		document.removeEventListener("mouseup", cleanUpDocumentEvents);
 		// document.removeEventListener("selectstart", (e) => e.preventDefault());
 		document.body.style.cursor = "auto";
-		onDragEndCallback(e);
+		if (onDragEndCallback) {
+			onDragEndCallback(e);
+		}
 	}
 	// document.addEventListener("selectstart", (e) => e.preventDefault());
 	document.addEventListener("mousemove", mouseMove);

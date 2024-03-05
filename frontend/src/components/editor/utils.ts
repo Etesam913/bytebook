@@ -11,12 +11,18 @@ import {
 import { $createHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
 import {
+	$createNodeSelection,
 	$createParagraphNode,
+	$getNearestNodeFromDOMNode,
 	$getSelection,
+	$isDecoratorNode,
+	$isNodeSelection,
 	$isRangeSelection,
+	$setSelection,
 	ElementNode,
 	LexicalEditor,
 	TextFormatType,
+	TextNode,
 } from "lexical";
 import { Dispatch, SetStateAction } from "react";
 import { UploadImagesToFolder } from "../../../wailsjs/go/main/App";
@@ -69,7 +75,7 @@ export function changeSelectedBlocksType(
 						editor.update(() => {
 							editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
 								src: `http://localhost:5890/${filePath}`,
-								alt: "",
+								alt: "test",
 							});
 						});
 					}
@@ -93,6 +99,68 @@ export function handleToolbarTextFormattingClick(
 	} else {
 		setCurrentSelectionFormat([...currentSelectionFormat, textFormat]);
 	}
+}
+
+function $isTargetWithinDecorator(target: HTMLElement): boolean {
+	const node = $getNearestNodeFromDOMNode(target);
+	return $isDecoratorNode(node);
+}
+
+export function overrideUpDownKeyCommand(
+	event: KeyboardEvent,
+	command: "up" | "down",
+) {
+	const selection = $getSelection();
+
+	if (
+		$isNodeSelection(selection) &&
+		!$isTargetWithinDecorator(event.target as HTMLElement)
+	) {
+		const nodes = selection.getNodes();
+		if (nodes.length > 0) {
+			if (command === "down") {
+				nodes[0].selectNext();
+			} else {
+				nodes[0].selectPrevious();
+			}
+
+			event.preventDefault();
+
+			return true;
+		}
+	} else if ($isRangeSelection(selection)) {
+		if (selection.focus.type === "text") {
+			const parent = (selection.focus.getNode() as TextNode).getParent();
+			if (parent) {
+				const siblingNode =
+					command === "up"
+						? parent.getPreviousSibling()
+						: parent.getNextSibling();
+				if ($isDecoratorNode(siblingNode)) {
+					const nodeSelection = $createNodeSelection();
+					nodeSelection.add(siblingNode.getKey());
+					$setSelection(nodeSelection);
+					event.preventDefault();
+
+					return true;
+				}
+			}
+		}
+		// Probably don't need below
+		// else {
+		// 	const possibleNode = $getAdjacentNode(selection.focus, true);
+		// 	if ($isDecoratorNode(possibleNode)) {
+		// 		const nodeSelection = $createNodeSelection();
+		// 		nodeSelection.add(possibleNode.getKey());
+		// 		$setSelection(nodeSelection);
+		// 		event.preventDefault();
+
+		// 		return true;
+		// 	}
+		// }
+	}
+
+	return false;
 }
 
 export type Transformer =

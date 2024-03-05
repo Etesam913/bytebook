@@ -85,26 +85,27 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 	type: "element",
 };
 
-const IMAGE_TRANSFORMER: TextMatchTransformer = {
+const IMAGE_TRANSFORMER: ElementTransformer = {
 	dependencies: [ImageNode],
 	export: (node) => {
 		if (!$isImageNode(node)) {
 			return null;
 		}
-		return `![${node.getAltText()}](${node.getSrc()})`;
+		return `![${node.getAltText()}](${node.getSrc()}) `;
 	},
-	importRegExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:png|jpg|webp|jpeg))\))$/,
-	regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:png|jpg|webp|jpeg))\))$/,
-	replace: (textNode, match) => {
-		const [, alt, src] = match;
+	// importRegExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:png|jpg|webp|jpeg))\))/,
+	// regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:png|jpg|webp|jpeg))\))$/,
+	regExp: /^!\[([^\]]+)\]\(([^)]+)\)\s/,
+	replace: (textNode, _1, match) => {
+		const [_2, alt, src] = match;
 		const imageNode = $createImageNode({
 			alt,
 			src,
 		});
 		textNode.replace(imageNode);
 	},
-	trigger: ")",
-	type: "text-match",
+	// trigger: ")",
+	type: "element",
 };
 
 const CUSTOM_HEADING_TRANSFORMER: ElementTransformer = {

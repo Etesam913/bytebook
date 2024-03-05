@@ -17,6 +17,7 @@ import { editorConfig } from "./editor-config";
 import { NoteTitle } from "./note-title";
 import { CodePlugin } from "./plugins/code";
 import { ImagesPlugin } from "./plugins/image";
+import TreeViewPlugin from "./plugins/tree-view";
 import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
@@ -57,7 +58,7 @@ export function NotesEditor({
 
 					<RichTextPlugin
 						placeholder={null}
-						contentEditable={<ContentEditable className=" whitespace-pre" />}
+						contentEditable={<ContentEditable />}
 						ErrorBoundary={LexicalErrorBoundary}
 					/>
 					<OnChangePlugin
@@ -74,6 +75,7 @@ export function NotesEditor({
 					<ImagesPlugin />
 					<VideosPlugin />
 					<CodePlugin />
+					<TreeViewPlugin />
 				</div>
 			</LexicalComposer>
 		</div>

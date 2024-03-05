@@ -6,7 +6,10 @@ import { motion } from "framer-motion";
 import {
 	$getSelection,
 	$isRangeSelection,
+	COMMAND_PRIORITY_EDITOR,
 	FORMAT_TEXT_COMMAND,
+	KEY_ARROW_DOWN_COMMAND,
+	KEY_ARROW_UP_COMMAND,
 	SELECTION_CHANGE_COMMAND,
 	TextFormatType,
 } from "lexical";
@@ -18,11 +21,12 @@ import { TextUnderline } from "../../icons/text-underline";
 import { EditorBlockTypes } from "../../types";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
-import { useImageListener, useNoteMarkdown } from "./hooks";
+import { useNoteMarkdown } from "./hooks";
 import {
 	TextFormats,
 	changeSelectedBlocksType,
 	handleToolbarTextFormattingClick,
+	overrideUpDownKeyCommand,
 } from "./utils";
 
 const LOW_PRIORITY = 1;
@@ -87,7 +91,7 @@ export function Toolbar({ folder, note, disabled }: ToolbarProps) {
 	}
 
 	useNoteMarkdown(editor, folder, note, setCurrentSelectionFormat);
-	useImageListener(editor);
+	// useImageListener(editor);
 
 	useEffect(() => {
 		return mergeRegister(
@@ -98,6 +102,20 @@ export function Toolbar({ folder, note, disabled }: ToolbarProps) {
 					return false;
 				},
 				LOW_PRIORITY,
+			),
+			editor.registerCommand(
+				KEY_ARROW_UP_COMMAND,
+				(event) => {
+					return overrideUpDownKeyCommand(event, "up");
+				},
+				COMMAND_PRIORITY_EDITOR,
+			),
+			editor.registerCommand(
+				KEY_ARROW_DOWN_COMMAND,
+				(event) => {
+					return overrideUpDownKeyCommand(event, "down");
+				},
+				COMMAND_PRIORITY_EDITOR,
 			),
 		);
 	}, [editor]);
