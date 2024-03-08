@@ -46,7 +46,13 @@ export function NotesEditor({
 
 				<div
 					className="py-2 pl-2 pr-[10px] h-[calc(100vh-38px)] overflow-auto"
-					onClick={() => editorRef.current?.focus()}
+					onClick={(e) => {
+						console.log(e);
+						const target = e.target as HTMLElement;
+						if (target.dataset.lexicalDecorator !== "true") {
+							editorRef.current?.focus();
+						}
+					}}
 					onKeyDown={() => {}}
 				>
 					<NoteTitle

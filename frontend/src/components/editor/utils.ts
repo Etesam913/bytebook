@@ -13,16 +13,15 @@ import { $setBlocksType } from "@lexical/selection";
 import {
 	$createNodeSelection,
 	$createParagraphNode,
-	$getNearestNodeFromDOMNode,
 	$getSelection,
 	$isDecoratorNode,
-	$isNodeSelection,
 	$isRangeSelection,
+	$isRootNode,
 	$setSelection,
 	ElementNode,
 	LexicalEditor,
+	LexicalNode,
 	TextFormatType,
-	TextNode,
 } from "lexical";
 import { Dispatch, SetStateAction } from "react";
 import { UploadImagesToFolder } from "../../../wailsjs/go/main/App";
@@ -101,9 +100,25 @@ export function handleToolbarTextFormattingClick(
 	}
 }
 
-function $isTargetWithinDecorator(target: HTMLElement): boolean {
-	const node = $getNearestNodeFromDOMNode(target);
-	return $isDecoratorNode(node);
+/** Goes in direction up the tree until it finds a valid sibling */
+function getFirstSiblingNode(
+	node: LexicalNode | undefined,
+	direction: "up" | "down",
+) {
+	if (!node) return null;
+	let siblingNode =
+		direction === "up" ? node.getPreviousSibling() : node.getNextSibling();
+	let currentNode = node;
+	while (!siblingNode) {
+		const parent = currentNode.getParent();
+		if (!parent) return null;
+		currentNode = parent;
+		siblingNode =
+			direction === "up"
+				? currentNode.getPreviousSibling()
+				: currentNode.getNextSibling();
+	}
+	return siblingNode;
 }
 
 export function overrideUpDownKeyCommand(
@@ -111,56 +126,25 @@ export function overrideUpDownKeyCommand(
 	command: "up" | "down",
 ) {
 	const selection = $getSelection();
-
-	if (
-		$isNodeSelection(selection) &&
-		!$isTargetWithinDecorator(event.target as HTMLElement)
-	) {
-		const nodes = selection.getNodes();
-		if (nodes.length > 0) {
-			if (command === "down") {
-				nodes[0].selectNext();
-			} else {
-				nodes[0].selectPrevious();
-			}
-
-			event.preventDefault();
-
-			return true;
-		}
-	} else if ($isRangeSelection(selection)) {
-		if (selection.focus.type === "text") {
-			const parent = (selection.focus.getNode() as TextNode).getParent();
-			if (parent) {
-				const siblingNode =
-					command === "up"
-						? parent.getPreviousSibling()
-						: parent.getNextSibling();
-				if ($isDecoratorNode(siblingNode)) {
-					const nodeSelection = $createNodeSelection();
-					nodeSelection.add(siblingNode.getKey());
-					$setSelection(nodeSelection);
-					event.preventDefault();
-
-					return true;
-				}
-			}
-		}
-		// Probably don't need below
-		// else {
-		// 	const possibleNode = $getAdjacentNode(selection.focus, true);
-		// 	if ($isDecoratorNode(possibleNode)) {
-		// 		const nodeSelection = $createNodeSelection();
-		// 		nodeSelection.add(possibleNode.getKey());
-		// 		$setSelection(nodeSelection);
-		// 		event.preventDefault();
-
-		// 		return true;
-		// 	}
-		// }
+	const node = selection?.getNodes().at(0);
+	console.log("👺 node: ", node);
+	if (!node) return true;
+	if ($isRootNode(node)) {
+		const firstChild = node.getFirstChild();
+		if (!firstChild) return true;
+		console.log("👧 first child:", firstChild);
+		return true;
 	}
-
-	return false;
+	const nextNode = getFirstSiblingNode(node, command);
+	if ($isDecoratorNode(nextNode)) {
+		const newNodeSelection = $createNodeSelection();
+		newNodeSelection.add(nextNode.getKey());
+		$setSelection(newNodeSelection);
+		event.preventDefault();
+		return true;
+	}
+	// console.log("⏭️ next node", nextNode)
+	return true;
 }
 
 export type Transformer =

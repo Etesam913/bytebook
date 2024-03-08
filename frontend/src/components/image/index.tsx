@@ -2,8 +2,22 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
 import { motion, useMotionValue } from "framer-motion";
-import { CLICK_COMMAND, COMMAND_PRIORITY_LOW } from "lexical";
+import {
+	CLICK_COMMAND,
+	COMMAND_PRIORITY_LOW,
+	KEY_ARROW_DOWN_COMMAND,
+	KEY_ARROW_UP_COMMAND,
+	KEY_BACKSPACE_COMMAND,
+	KEY_ENTER_COMMAND,
+	KEY_ESCAPE_COMMAND,
+} from "lexical";
 import { useEffect, useRef, useState } from "react";
+import {
+	arrowKeyDecoratorNodeCommand,
+	backspaceKeyDecoratorNodeCommand,
+	enterKeyDecoratorNodeCommand,
+	escapeKeyDecoratorNodeCommand,
+} from "../../utils/commands";
 import { dragItem } from "../../utils/draggable";
 import { cn } from "../../utils/string-formatting";
 
@@ -28,65 +42,57 @@ export function Image({
 		useLexicalNodeSelection(nodeKey);
 
 	function onClick(e: MouseEvent) {
-		if (isResizing) return true;
+		if (isResizing) {
+			return true;
+		}
+
 		if (e.target === imgRef.current) {
-			if (isSelected) {
-				setSelected(false);
-				console.log("not selected");
-			} else {
-				console.log("is selected");
-				clearSelection();
-				setSelected(true);
-			}
+			clearSelection();
+			setSelected(true);
 			return true;
 		}
 
 		return false;
 	}
 
-	function onDelete() {}
-
-	function onEscape(e: KeyboardEvent) {
-		console.log("escaped");
-		clearSelection();
-		// selectNextElement(editor, nodeKey);
-		// goToNextElement();
-		return true;
-	}
-
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		const unregister = mergeRegister(
-			editor.registerUpdateListener(() => {
-				// if (isMounted) {
-				// 	setSelection(editorState.read(() => $getSelection()));
-				// }
-			}),
+			editor.registerCommand<MouseEvent>(
+				KEY_ARROW_UP_COMMAND,
+				(e) => arrowKeyDecoratorNodeCommand(e, nodeKey, true),
+				COMMAND_PRIORITY_LOW,
+			),
+			editor.registerCommand<MouseEvent>(
+				KEY_ARROW_DOWN_COMMAND,
+				(e) => arrowKeyDecoratorNodeCommand(e, nodeKey, false),
+				COMMAND_PRIORITY_LOW,
+			),
 			editor.registerCommand<MouseEvent>(
 				CLICK_COMMAND,
 				onClick,
 				COMMAND_PRIORITY_LOW,
 			),
-			// editor.registerCommand(
-			//   KEY_DELETE_COMMAND,
-			//   onDelete,
-			//   COMMAND_PRIORITY_LOW,
-			// ),
-			// editor.registerCommand(
-			//   KEY_BACKSPACE_COMMAND,
-			//   onDelete,
-			//   COMMAND_PRIORITY_LOW,
-			// ),
-			// editor.registerCommand(
-			// 	KEY_ESCAPE_COMMAND,
-			// 	onEscape,
-			// 	COMMAND_PRIORITY_LOW,
-			// ),
+			editor.registerCommand<KeyboardEvent>(
+				KEY_ESCAPE_COMMAND,
+				(e) => escapeKeyDecoratorNodeCommand(nodeKey),
+				COMMAND_PRIORITY_LOW,
+			),
+			editor.registerCommand<KeyboardEvent>(
+				KEY_ENTER_COMMAND,
+				(e) => enterKeyDecoratorNodeCommand(e, nodeKey),
+				COMMAND_PRIORITY_LOW,
+			),
+			editor.registerCommand<KeyboardEvent>(
+				KEY_BACKSPACE_COMMAND,
+				(e) => backspaceKeyDecoratorNodeCommand(e, nodeKey),
+				COMMAND_PRIORITY_LOW,
+			),
 		);
-
 		return () => {
 			unregister();
 		};
-	}, [editor]);
+	}, [editor, nodeKey, isResizing]);
 
 	return (
 		<div className="w-full">
@@ -135,7 +141,9 @@ export function Image({
 									widthMotionValue.set(newWidth);
 								},
 								(e) => {
-									setTimeout(() => setIsResizing(false), 200);
+									e.stopPropagation();
+									e.preventDefault();
+									setTimeout(() => setIsResizing(false), 600);
 								},
 							);
 						}}
@@ -148,7 +156,7 @@ export function Image({
 					alt="bob"
 					draggable={false}
 					className="w-full h-auto"
-					// onClick={(e) => e.stopPropagation()}
+					data-lexical-decorator="true"
 				/>
 			</motion.div>
 		</div>
