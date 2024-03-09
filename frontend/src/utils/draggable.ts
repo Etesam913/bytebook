@@ -1,3 +1,7 @@
+function stopSelect(e: Event) {
+	e.preventDefault();
+}
+
 export function dragItem(
 	onDragCallback: (e: MouseEvent) => void,
 	onDragEndCallback?: (e: MouseEvent) => void,
@@ -11,13 +15,15 @@ export function dragItem(
 	function cleanUpDocumentEvents(e: MouseEvent) {
 		document.removeEventListener("mousemove", mouseMove);
 		document.removeEventListener("mouseup", cleanUpDocumentEvents);
-		// document.removeEventListener("selectstart", (e) => e.preventDefault());
-		document.body.style.cursor = "auto";
+
+		document.removeEventListener("selectstart", stopSelect);
+
 		if (onDragEndCallback) {
 			onDragEndCallback(e);
 		}
 	}
-	// document.addEventListener("selectstart", (e) => e.preventDefault());
+	document.addEventListener("selectstart", stopSelect);
+	document.body.style.userSelect = "none";
 	document.addEventListener("mousemove", mouseMove);
 	document.addEventListener("mouseup", cleanUpDocumentEvents);
 }

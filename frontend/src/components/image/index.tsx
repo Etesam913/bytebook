@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
-import { motion, useMotionValue } from "framer-motion";
+import { AnimatePresence, motion, useMotionValue } from "framer-motion";
 import {
 	CLICK_COMMAND,
 	COMMAND_PRIORITY_LOW,
@@ -98,17 +98,21 @@ export function Image({
 		<div className="w-full">
 			<motion.div
 				className={cn(
-					"relative max-w-full min-w-40 cursor-auto outline-4 outline outline-transparent transition-[outline-color] duration-200",
-					isSelected && "outline-blue-400",
+					"relative max-w-full min-w-40 cursor-auto border-4 border-transparent rounded-sm",
+					isSelected && "border-blue-400",
+					isResizing && "opacity-50",
 				)}
-				style={{ width: widthMotionValue }}
+				style={{
+					width: widthMotionValue,
+					transition: "border-color 0.2s ease-in-out, opacity 0.2s ease-in-out",
+				}}
 			>
 				{isSelected && (
 					<motion.div
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						className={
-							"w-4 h-4 bg-blue-400 bottom-[-10px] right-[-9px] absolute cursor-nwse-resize"
+							"w-4 h-4 bg-blue-400 bottom-[-10px] right-[-9px] absolute cursor-nwse-resize rounded-sm"
 						}
 						onMouseDown={(mouseDownEvent) => {
 							setIsResizing(true);
@@ -142,7 +146,8 @@ export function Image({
 									}
 									widthMotionValue.set(newWidth);
 								},
-								() => setTimeout(() => setIsResizing(false), 600),
+
+								() => setTimeout(() => setIsResizing(false), 100),
 							);
 						}}
 					/>
