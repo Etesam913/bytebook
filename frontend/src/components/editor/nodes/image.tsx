@@ -10,8 +10,12 @@ import type {
 	Spread,
 } from "lexical";
 
-import { $applyNodeReplacement, $getNodeByKey, DecoratorNode } from "lexical";
-import { Suspense } from "react";
+import {
+	$applyNodeReplacement,
+	$getEditor,
+	$getNodeByKey,
+	DecoratorNode,
+} from "lexical";
 import { Image } from "../../image";
 
 export interface ImagePayload {
@@ -53,6 +57,7 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static clone(node: ImageNode): ImageNode {
+		console.log("clone image node");
 		return new ImageNode(
 			node.__src,
 			node.__alt,
@@ -74,6 +79,7 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 	}
 
 	exportDOM(): DOMExportOutput {
+		console.log("export image");
 		const element = document.createElement("img");
 		element.setAttribute("src", this.__src);
 		element.setAttribute("alt", this.__alt);
@@ -83,6 +89,7 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static importDOM(): DOMConversionMap | null {
+		console.log("import image");
 		return {
 			img: (node: Node) => ({
 				conversion: convertImageElement,
@@ -104,6 +111,9 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 		this.__width = width || "inherit";
 		this.__height = height || "inherit";
 	}
+	isInline(): false {
+		return false;
+	}
 
 	exportJSON(): SerializedImageNode {
 		return {
@@ -118,12 +128,13 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 
 	// View
 	createDOM(config: EditorConfig): HTMLElement {
+		console.log("created");
 		const span = document.createElement("span");
-		const theme = config.theme;
-		const className = theme.image;
-		if (className !== undefined) {
-			span.className = className;
-		}
+		// const theme = config.theme;
+		// const className = theme.image;
+		// if (className !== undefined) {
+		// 	span.className = className;
+		// }
 		return span;
 	}
 
@@ -151,17 +162,20 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 		});
 	}
 
+	// replace<N extends LexicalNode>(replaceWith: N, includeChildren?: boolean): N {
+	// 	console.log("replace image node", replaceWith);
+	// 	return super.replace(replaceWith, includeChildren);
+	// }
+
 	decorate(_editor: LexicalEditor): JSX.Element {
 		return (
-			<Suspense fallback={null}>
-				<Image
-					src={this.__src}
-					width={this.__width}
-					height={this.__height}
-					nodeKey={this.__key}
-					goToNextElement={() => this.goToNextElement(_editor)}
-				/>
-			</Suspense>
+			<Image
+				src={this.__src}
+				width={this.__width}
+				height={this.__height}
+				nodeKey={this.__key}
+				goToNextElement={() => this.goToNextElement(_editor)}
+			/>
 		);
 	}
 }
@@ -173,6 +187,7 @@ export function $createImageNode({
 	height,
 	key,
 }: ImagePayload): ImageNode {
+	console.log("create image node");
 	return $applyNodeReplacement(new ImageNode(src, alt, width, height, key));
 }
 
@@ -180,4 +195,33 @@ export function $isImageNode(
 	node: LexicalNode | null | undefined,
 ): node is ImageNode {
 	return node instanceof ImageNode;
+}
+
+function $testNodeReplacement<N extends LexicalNode>(node: LexicalNode): N {
+	const editor = $getEditor();
+	const nodeType = node.constructor.getType();
+	const registeredNode = editor._nodes.get(nodeType);
+	if (registeredNode === undefined) {
+		// invariant(
+		//   false,
+		//   '$initializeNode failed. Ensure node has been registered to the editor. You can do this by passing the node class via the "nodes" array in the editor config.',
+		// );
+		console.log("bad");
+		return;
+	}
+
+	const replaceFunc = registeredNode.replace;
+	console.log(registeredNode);
+
+	if (replaceFunc !== null) {
+		const replacementNode = replaceFunc(node) as N;
+		if (!(replacementNode instanceof node.constructor)) {
+			// invariant(
+			//   false,
+			//   '$initializeNode failed. Ensure replacement node is a subclass of the original node.',
+			// );
+		}
+		return replacementNode;
+	}
+	return node as N;
 }

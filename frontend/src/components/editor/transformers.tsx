@@ -79,7 +79,6 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 			language: language as LanguageName,
 			focus: !isImport,
 		});
-
 		textNode.replace(codeNode);
 	},
 	type: "element",
@@ -91,6 +90,7 @@ const IMAGE_TRANSFORMER: ElementTransformer = {
 		if (!$isImageNode(node)) {
 			return null;
 		}
+		// TODO: need to do sanitizing on the alt text
 		return `![${node.getAltText()}](${node.getSrc()}) `;
 	},
 	// importRegExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:png|jpg|webp|jpeg))\))/,
@@ -102,6 +102,7 @@ const IMAGE_TRANSFORMER: ElementTransformer = {
 			alt,
 			src,
 		});
+		console.log("replace transformer");
 		textNode.replace(imageNode);
 	},
 	// trigger: ")",

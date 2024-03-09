@@ -5,8 +5,30 @@ import {
 	$getSelection,
 	$isDecoratorNode,
 	$isNodeSelection,
+	$isRangeSelection,
 	$setSelection,
+	LexicalNode,
 } from "lexical";
+
+function getFirstSiblingNode(
+	node: LexicalNode | undefined,
+	direction: "up" | "down",
+) {
+	if (!node) return null;
+	let siblingNode =
+		direction === "up" ? node.getPreviousSibling() : node.getNextSibling();
+	let currentNode = node;
+	while (!siblingNode) {
+		const parent = currentNode.getParent();
+		if (!parent) return null;
+		currentNode = parent;
+		siblingNode =
+			direction === "up"
+				? currentNode.getPreviousSibling()
+				: currentNode.getNextSibling();
+	}
+	return siblingNode;
+}
 
 export function isDecoratorNodeSelected(nodeKey: string) {
 	const selection = $getSelection();
@@ -26,6 +48,9 @@ export function arrowKeyDecoratorNodeCommand(
 	up: boolean,
 ): boolean {
 	const selection = $getSelection();
+	if (!selection) return false;
+	console.log(selection);
+	// Happens when going from decorator node to p tag
 	if ($isNodeSelection(selection)) {
 		// If the current node is selected
 		if (selection.has(nodeKey)) {
@@ -43,10 +68,30 @@ export function arrowKeyDecoratorNodeCommand(
 				// true is returned to override any other events
 				return true;
 			}
+
 			// Otherwise we can let the browser handle the action
 			return false;
 		}
 	}
+	// Happens when going from p tag to decorator node
+	if ($isRangeSelection(selection)) {
+		// If the current node is selected
+		const node = selection.getNodes().at(0);
+		if (!node) return false;
+		const elementToSelect = getFirstSiblingNode(node, up ? "up" : "down");
+
+		if ($isDecoratorNode(elementToSelect)) {
+			const newNodeSelection = $createNodeSelection();
+			newNodeSelection.add(elementToSelect.getKey());
+			$setSelection(newNodeSelection);
+			e.preventDefault();
+			// true is returned to override any other events
+			return true;
+		}
+		// Otherwise we can let the browser handle the action
+		return false;
+	}
+
 	return false;
 }
 
