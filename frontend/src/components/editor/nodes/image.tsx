@@ -9,13 +9,7 @@ import type {
 	SerializedLexicalNode,
 	Spread,
 } from "lexical";
-
-import {
-	$applyNodeReplacement,
-	$getEditor,
-	$getNodeByKey,
-	DecoratorNode,
-} from "lexical";
+import { $applyNodeReplacement, $getNodeByKey, DecoratorNode } from "lexical";
 import { Image } from "../../image";
 
 export interface ImagePayload {
@@ -130,11 +124,6 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 	createDOM(config: EditorConfig): HTMLElement {
 		console.log("created");
 		const span = document.createElement("span");
-		// const theme = config.theme;
-		// const className = theme.image;
-		// if (className !== undefined) {
-		// 	span.className = className;
-		// }
 		return span;
 	}
 
@@ -161,11 +150,6 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 			}
 		});
 	}
-
-	// replace<N extends LexicalNode>(replaceWith: N, includeChildren?: boolean): N {
-	// 	console.log("replace image node", replaceWith);
-	// 	return super.replace(replaceWith, includeChildren);
-	// }
 
 	decorate(_editor: LexicalEditor): JSX.Element {
 		return (
@@ -195,33 +179,4 @@ export function $isImageNode(
 	node: LexicalNode | null | undefined,
 ): node is ImageNode {
 	return node instanceof ImageNode;
-}
-
-function $testNodeReplacement<N extends LexicalNode>(node: LexicalNode): N {
-	const editor = $getEditor();
-	const nodeType = node.constructor.getType();
-	const registeredNode = editor._nodes.get(nodeType);
-	if (registeredNode === undefined) {
-		// invariant(
-		//   false,
-		//   '$initializeNode failed. Ensure node has been registered to the editor. You can do this by passing the node class via the "nodes" array in the editor config.',
-		// );
-		console.log("bad");
-		return;
-	}
-
-	const replaceFunc = registeredNode.replace;
-	console.log(registeredNode);
-
-	if (replaceFunc !== null) {
-		const replacementNode = replaceFunc(node) as N;
-		if (!(replacementNode instanceof node.constructor)) {
-			// invariant(
-			//   false,
-			//   '$initializeNode failed. Ensure replacement node is a subclass of the original node.',
-			// );
-		}
-		return replacementNode;
-	}
-	return node as N;
 }

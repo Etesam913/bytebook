@@ -110,6 +110,7 @@ export function enterKeyDecoratorNodeCommand(
 			e.preventDefault();
 			node.insertAfter($createParagraphNode());
 			node.selectNext();
+			return true;
 		}
 	}
 	return false;

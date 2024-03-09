@@ -98,13 +98,15 @@ export function Image({
 		<div className="w-full">
 			<motion.div
 				className={cn(
-					"relative max-w-full min-w-40 cursor-auto",
-					isSelected && "outline-blue-400 outline-4 outline",
+					"relative max-w-full min-w-40 cursor-auto outline-4 outline outline-transparent transition-[outline-color] duration-200",
+					isSelected && "outline-blue-400",
 				)}
 				style={{ width: widthMotionValue }}
 			>
 				{isSelected && (
-					<div
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
 						className={
 							"w-4 h-4 bg-blue-400 bottom-[-10px] right-[-9px] absolute cursor-nwse-resize"
 						}
@@ -140,11 +142,7 @@ export function Image({
 									}
 									widthMotionValue.set(newWidth);
 								},
-								(e) => {
-									e.stopPropagation();
-									e.preventDefault();
-									setTimeout(() => setIsResizing(false), 600);
-								},
+								() => setTimeout(() => setIsResizing(false), 600),
 							);
 						}}
 					/>
@@ -153,7 +151,7 @@ export function Image({
 				<img
 					src={src}
 					ref={imgRef}
-					alt="bob"
+					alt={"bob"}
 					draggable={false}
 					className="w-full h-auto"
 					data-lexical-decorator="true"
