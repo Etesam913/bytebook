@@ -9,7 +9,7 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
-import { type LexicalEditor } from "lexical";
+import type { LexicalEditor } from "lexical";
 import { useRef, useState } from "react";
 import { SetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { debounce } from "../../utils/draggable";
@@ -45,7 +45,8 @@ export function NotesEditor({
 				<Toolbar disabled={isToolbarDisabled} folder={folder} note={note} />
 
 				<div
-					className="py-2 pl-2 pr-[10px] h-[calc(100vh-38px)] overflow-auto"
+					style={{ scrollbarGutter: "stable" }}
+					className="py-2 pl-2 pr-[10px] h-[calc(100vh-38px)] overflow-y-auto"
 					onClick={(e) => {
 						console.log(e);
 						const target = e.target as HTMLElement;

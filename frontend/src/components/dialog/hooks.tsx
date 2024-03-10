@@ -1,27 +1,26 @@
-import { type RefObject, useEffect } from "react";
+import { useEffect } from "react";
 
 export const useTrapFocus = (
-	ref: RefObject<HTMLElement>,
+	element: HTMLElement | null,
 	isActive: boolean,
 ): void => {
 	useEffect(() => {
-		if (!isActive || !ref.current) {
+		if (!isActive || !element) {
 			return;
 		}
-
-		const element = ref.current;
 
 		const focusableSelectors =
 			'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 		const focusableElements = Array.from(
 			element.querySelectorAll(focusableSelectors),
 		);
-		const firstFocusableElement = focusableElements[0] as
+		const firstFocusableElement = focusableElements.at(0) as
 			| HTMLElement
 			| undefined;
-		const lastFocusableElement = focusableElements[
-			focusableElements.length - 1
-		] as HTMLElement | undefined;
+
+		const lastFocusableElement = focusableElements.at(
+			focusableElements.length - 1,
+		) as HTMLElement | undefined;
 
 		const handleKeyDown = (e: KeyboardEvent) => {
 			const isTabPressed = e.key === "Tab" || e.keyCode === 9;
@@ -39,6 +38,7 @@ export const useTrapFocus = (
 			} else {
 				/* tab */
 				if (document.activeElement === lastFocusableElement) {
+					console.log("prevented");
 					firstFocusableElement?.focus();
 					e.preventDefault();
 				}
@@ -51,5 +51,5 @@ export const useTrapFocus = (
 		return () => {
 			document.removeEventListener("keydown", handleKeyDown);
 		};
-	}, [ref, isActive]);
+	}, [element, isActive]);
 };

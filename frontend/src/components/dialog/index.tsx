@@ -42,7 +42,7 @@ export function Dialog({
 	handleSubmit?: (e: FormEvent<HTMLFormElement>) => void;
 }) {
 	const modalRef = useRef<HTMLDivElement>(null);
-	useTrapFocus(modalRef, isOpen);
+	useTrapFocus(modalRef.current, isOpen);
 
 	return (
 		<>

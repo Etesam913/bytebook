@@ -137,6 +137,7 @@ export function enterKeyDecoratorNodeCommand(
 }
 
 export function escapeKeyDecoratorNodeCommand(nodeKey: string) {
+	console.log("escapeKeyDecoratorNodeCommand");
 	if (isDecoratorNodeSelected(nodeKey)) {
 		const nodeElem = $getNodeByKey(nodeKey);
 		if (nodeElem) {
@@ -152,16 +153,17 @@ export function backspaceKeyDecoratorNodeCommand(
 ) {
 	if (isDecoratorNodeSelected(nodeKey)) {
 		e.preventDefault();
-		return removeDecoratorNode(nodeKey)
+		return removeDecoratorNode(nodeKey);
 	}
 	return false;
 }
 
-export function removeDecoratorNode(nodeKey:string){
+export function removeDecoratorNode(nodeKey: string) {
+	console.log("removeDecoratorNode");
 	const node = $getNodeByKey(nodeKey);
 	if (node) {
 		node.remove();
-		return true
+		return true;
 	}
-	return false
+	return false;
 }

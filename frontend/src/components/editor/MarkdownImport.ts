@@ -15,8 +15,7 @@ import {
 	$getRoot,
 	$getSelection,
 	$isParagraphNode,
-	type 
-	ElementNode,
+	type ElementNode,
 } from "lexical";
 import { $createCodeNode, type CodeNode } from "./nodes/code";
 import { transformersByType } from "./transformers";

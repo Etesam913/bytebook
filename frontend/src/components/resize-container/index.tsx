@@ -1,28 +1,36 @@
-import { type MotionValue, motion, AnimatePresence } from "framer-motion";
+import { motion, useMotionValue } from "framer-motion";
 import {
-	useEffect,
+	$createNodeSelection,
+	$getNodeByKey,
+	$setSelection,
+	type LexicalEditor,
+} from "lexical";
+import {
 	type Dispatch,
 	type ReactNode,
 	type SetStateAction,
+	useEffect,
+	useRef,
 	useState,
 } from "react";
+import { XResize } from "../../icons/arrows-expand-x";
+import { XMark } from "../../icons/circle-xmark";
+import { Fullscreen } from "../../icons/fullscreen";
+import { Trash } from "../../icons/trash";
+import { removeDecoratorNode } from "../../utils/commands";
 import { dragItem } from "../../utils/draggable";
 import { cn } from "../../utils/string-formatting";
-import { Trash } from "../../icons/trash";
 import { getDefaultButtonVariants } from "../../variants";
-import {
-	backspaceKeyDecoratorNodeCommand,
-	removeDecoratorNode,
-} from "../../utils/commands";
-import type { LexicalEditor } from "lexical";
-import { Fullscreen } from "../../icons/fullscreen";
-import { XResize } from "../../icons/arrows-expand-x";
+import { useTrapFocus } from "../dialog/hooks";
+import { EXPAND_CONTENT_COMMAND } from "../editor/plugins/image";
+import { getNearestSiblingNode } from "./utils";
 
 export function ResizeContainer({
 	isSelected,
 	isResizing,
+	isExpanded,
+	setIsExpanded,
 	setIsResizing,
-	widthMotionValue,
 	element,
 	children,
 	nodeKey,
@@ -30,47 +38,91 @@ export function ResizeContainer({
 }: {
 	isSelected: boolean;
 	isResizing: boolean;
+	isExpanded: boolean;
+	setIsExpanded: Dispatch<SetStateAction<boolean>>;
 	setIsResizing: Dispatch<SetStateAction<boolean>>;
-	widthMotionValue: MotionValue<number>;
 	element: HTMLElement | null;
 	children: ReactNode;
 	nodeKey: string;
 	editor: LexicalEditor;
 }) {
-	const [isFullWidth, setIsFullWidth] = useState(false);
-	const [isExpanded, setIsExpanded] = useState();
+	const widthMotionValue = useMotionValue<number>(500);
+
+	const [isFullWidth, setIsFullWidth] = useState(true);
+	const resizeContainerRef = useRef<HTMLDivElement>(null);
+
+	const imageDimensions = useRef({ height: 0, width: 0 });
 
 	useEffect(() => {
-		console.log(isFullWidth);
-		if (isFullWidth && element) {
-			widthMotionValue.set(element.clientWidth);
+		if (isExpanded) {
+			resizeContainerRef.current?.focus();
 		}
-	}, [isFullWidth, element, widthMotionValue]);
+	}, [isExpanded]);
 
+	useTrapFocus(resizeContainerRef.current, isExpanded);
 	return (
-		<motion.div
-			className={cn(
-				"relative max-w-full min-w-40 cursor-auto border-4 border-transparent rounded-sm flex justify-center",
-				isSelected && "border-blue-400",
-				isResizing && "opacity-50",
-			)}
-			style={{
-				width: isFullWidth ? "100%" : widthMotionValue,
-				transition: "border-color 0.2s ease-in-out, opacity 0.2s ease-in-out",
-			}}
-		>
-			<AnimatePresence>
-				{isSelected && (
+		<div ref={resizeContainerRef}>
+			<motion.div
+				onKeyDown={(e) => {
+					if (e.key === "Escape" && isExpanded) {
+						setIsExpanded(false);
+						e.stopPropagation();
+					}
+					if ((e.key === "ArrowRight" || e.key === "ArrowLeft") && isExpanded) {
+						editor.update(() => {
+							e.preventDefault();
+							e.stopPropagation();
+							const node = $getNodeByKey(nodeKey);
+							if (node) {
+								const nextNode = getNearestSiblingNode(
+									node,
+									e.key === "ArrowRight",
+								);
+								const nodeSelection = $createNodeSelection();
+								if (!nextNode) return;
+								nodeSelection.add(nextNode.getKey());
+								$setSelection(nodeSelection);
+								setIsExpanded(false);
+								editor.dispatchCommand(
+									EXPAND_CONTENT_COMMAND,
+									nextNode.getKey(),
+								);
+							}
+						});
+					}
+				}}
+				tabIndex={isExpanded ? 0 : -1}
+				onClick={(e) => {
+					// We don't need clicks to go to the editor when in fullscreen mode
+					if (isExpanded) e.stopPropagation();
+				}}
+				transition={{
+					type: "spring",
+					stiffness: 200,
+					damping: 25,
+				}}
+				className={cn(
+					"bg-black relative max-w-full min-w-40 cursor-auto outline-4 outline-transparent outline rounded-sm flex justify-center",
+					isSelected && !isExpanded && "outline-blue-400",
+					isResizing && "opacity-50",
+					isExpanded &&
+						"max-h-[95vw] fixed top-0 left-0 right-0 bottom-0 z-50 m-auto justify-start overflow-auto",
+				)}
+				style={{
+					width: !isExpanded
+						? isFullWidth
+							? "100%"
+							: widthMotionValue
+						: "100%",
+					transition: "border-color 0.2s ease-in-out, opacity 0.2s ease-in-out",
+				}}
+			>
+				{isSelected && !isExpanded && (
 					<>
 						<motion.div
 							className="absolute bg-zinc-50 dark:bg-zinc-700 p-2 rounded-md shadow-lg border-[1px] border-zinc-300 dark:border-zinc-600 flex items-center justify-center gap-3"
 							initial={{ opacity: 0, y: -20 }}
 							animate={{ opacity: 1, y: -30 }}
-							exit={{
-								opacity: 0,
-								y: -20,
-								transition: { opacity: { duration: 0.3 } },
-							}}
 						>
 							<motion.button
 								{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
@@ -95,6 +147,14 @@ export function ResizeContainer({
 							<motion.button
 								{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
 								type="button"
+								onClick={() => {
+									setIsExpanded(true);
+									resizeContainerRef.current?.focus();
+									imageDimensions.current = {
+										height: element?.clientHeight ?? 0,
+										width: element?.clientWidth ?? 0,
+									};
+								}}
 							>
 								<Fullscreen />
 							</motion.button>
@@ -150,8 +210,33 @@ export function ResizeContainer({
 						/>
 					</>
 				)}
-			</AnimatePresence>
-			{children}
-		</motion.div>
+				{children}
+			</motion.div>
+			{isExpanded && (
+				<>
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						onClick={() => setIsExpanded(false)}
+						className="fixed z-10 w-screen h-screen bg-[rgba(0,0,0,0.6)] left-0 top-0"
+					/>
+					<motion.button
+						{...getDefaultButtonVariants()}
+						onClick={() => setIsExpanded(false)}
+						className="fixed z-50 right-3 top-4"
+						type="submit"
+					>
+						<XMark width="1.5rem" height="1.5rem" />
+					</motion.button>
+					<div
+						style={{
+							width: imageDimensions.current.width,
+							height: imageDimensions.current.height,
+						}}
+					/>
+				</>
+			)}
+		</div>
 	);
 }

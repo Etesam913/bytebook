@@ -70,10 +70,9 @@ export function changeSelectedBlocksType(
 					break;
 				case "img": {
 					const filePaths = await UploadImagesToFolder(folder, note);
-					console.log(filePaths)
+					console.log(filePaths);
 					editor.update(() => {
-					for (const filePath of filePaths) {
-
+						for (const filePath of filePaths) {
 							editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
 								src: `http://localhost:5890/${filePath}`,
 								alt: "test",
