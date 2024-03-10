@@ -1,4 +1,12 @@
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
+import { useMotionValue } from "framer-motion";
+import {
+	type Dispatch,
+	type SetStateAction,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 
 export const useDelayedLoader = (
 	value = false,
@@ -31,3 +39,20 @@ export const useDelayedLoader = (
 
 	return [delayedLoading, setLoading];
 };
+
+export function useResizeState(nodeKey: string) {
+	const widthMotionValue = useMotionValue(-1);
+
+	const [isResizing, setIsResizing] = useState(false);
+	const [isSelected, setSelected, clearSelection] =
+		useLexicalNodeSelection(nodeKey);
+
+	return {
+		widthMotionValue,
+		isResizing,
+		setIsResizing,
+		isSelected,
+		setSelected,
+		clearSelection,
+	};
+}

@@ -48,7 +48,7 @@ export class VideoNode extends DecoratorNode<JSX.Element> {
 	__height: "inherit" | number;
 
 	static getType(): string {
-		return "Video";
+		return "video";
 	}
 
 	static clone(node: VideoNode): VideoNode {
@@ -110,7 +110,7 @@ export class VideoNode extends DecoratorNode<JSX.Element> {
 			width: this.__width === "inherit" ? 0 : this.__width,
 			height: this.__height === "inherit" ? 0 : this.__height,
 			src: this.getSrc(),
-			type: "Video",
+			type: "video",
 			version: 1,
 		};
 	}
@@ -146,9 +146,14 @@ export class VideoNode extends DecoratorNode<JSX.Element> {
 					width={this.__width}
 					height={this.__height}
 					title={this.__title}
+					nodeKey={this.__key}
 				/>
 			</Suspense>
 		);
+	}
+
+	isInline(): false {
+		return false;
 	}
 }
 

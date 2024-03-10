@@ -18,14 +18,14 @@ import {
 	$isRangeSelection,
 	$isRootNode,
 	$setSelection,
-	ElementNode,
-	LexicalEditor,
-	LexicalNode,
-	TextFormatType,
+	type ElementNode,
+	type LexicalEditor,
+	type LexicalNode,
+	type TextFormatType,
 } from "lexical";
-import { Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { UploadImagesToFolder } from "../../../wailsjs/go/main/App";
-import { EditorBlockTypes } from "../../types";
+import type { EditorBlockTypes } from "../../types";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
 import { INSERT_IMAGE_COMMAND } from "./plugins/image";
@@ -70,14 +70,16 @@ export function changeSelectedBlocksType(
 					break;
 				case "img": {
 					const filePaths = await UploadImagesToFolder(folder, note);
+					console.log(filePaths)
+					editor.update(() => {
 					for (const filePath of filePaths) {
-						editor.update(() => {
+
 							editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
 								src: `http://localhost:5890/${filePath}`,
 								alt: "test",
 							});
-						});
-					}
+						}
+					});
 
 					break;
 				}

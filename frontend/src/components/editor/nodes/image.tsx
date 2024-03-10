@@ -9,7 +9,7 @@ import type {
 	SerializedLexicalNode,
 	Spread,
 } from "lexical";
-import { $applyNodeReplacement, $getNodeByKey, DecoratorNode } from "lexical";
+import { $applyNodeReplacement, DecoratorNode } from "lexical";
 import { Image } from "../../image";
 
 export interface ImagePayload {
@@ -51,7 +51,6 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static clone(node: ImageNode): ImageNode {
-		console.log("clone image node");
 		return new ImageNode(
 			node.__src,
 			node.__alt,
@@ -73,7 +72,6 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 	}
 
 	exportDOM(): DOMExportOutput {
-		console.log("export image");
 		const element = document.createElement("img");
 		element.setAttribute("src", this.__src);
 		element.setAttribute("alt", this.__alt);
@@ -83,7 +81,6 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static importDOM(): DOMConversionMap | null {
-		console.log("import image");
 		return {
 			img: (node: Node) => ({
 				conversion: convertImageElement,
@@ -115,7 +112,7 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 			width: this.__width === "inherit" ? 0 : this.__width,
 			height: this.__height === "inherit" ? 0 : this.__height,
 			src: this.getSrc(),
-			type: "image",
+			type: this.getType(),
 			version: 1,
 		};
 	}
@@ -139,18 +136,6 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 		return this.__alt;
 	}
 
-	goToNextElement(_editor: LexicalEditor): void {
-		_editor.update(() => {
-			const node = $getNodeByKey(this.getKey());
-			if (node && $isImageNode(node)) {
-				const nextNode = node.getNextSibling();
-				if (nextNode) {
-					nextNode.selectEnd();
-				}
-			}
-		});
-	}
-
 	decorate(_editor: LexicalEditor): JSX.Element {
 		return (
 			<Image
@@ -158,7 +143,6 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 				width={this.__width}
 				height={this.__height}
 				nodeKey={this.__key}
-				goToNextElement={() => this.goToNextElement(_editor)}
 			/>
 		);
 	}

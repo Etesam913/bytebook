@@ -1,13 +1,17 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { mergeRegister } from "@lexical/utils";
+import { $wrapNodeInElement, mergeRegister } from "@lexical/utils";
 import {
 	$getSelection,
 	COMMAND_PRIORITY_EDITOR,
-	LexicalCommand,
+	type LexicalCommand,
 	createCommand,
+	$insertNodes,
+	$isRootOrShadowRoot,
+	$createParagraphNode,
 } from "lexical";
 import { useEffect } from "react";
-import { $createImageNode, ImageNode, ImagePayload } from "../nodes/image";
+import { $createImageNode, ImageNode, type ImagePayload } from "../nodes/image";
+import { insertRangeAfter } from "lexical/LexicalNode";
 
 export const INSERT_IMAGE_COMMAND: LexicalCommand<ImagePayload> = createCommand(
 	"INSERT_IMAGE_COMMAND",
@@ -26,11 +30,8 @@ export function ImagesPlugin() {
 				INSERT_IMAGE_COMMAND,
 				(payload) => {
 					const imageNode = $createImageNode(payload);
-					const selectionNode = $getSelection()?.getNodes().at(0);
-					// Replaces the p node with an image node
-					if (selectionNode) {
-						selectionNode.replace(imageNode);
-					}
+					const selection = $getSelection();
+					selection?.insertNodes([imageNode]);
 					return true;
 				},
 				COMMAND_PRIORITY_EDITOR,

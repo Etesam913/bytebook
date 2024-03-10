@@ -7,7 +7,7 @@ import {
 	$isNodeSelection,
 	$isRangeSelection,
 	$setSelection,
-	LexicalNode,
+	type LexicalNode,
 } from "lexical";
 
 function getFirstSiblingNode(
@@ -37,6 +37,26 @@ export function isDecoratorNodeSelected(nodeKey: string) {
 	console.log(selection);
 
 	return selection.has(nodeKey);
+}
+
+export function onClickDecoratorNodeCommand(
+	e: MouseEvent,
+	node: HTMLElement | null,
+	isResizing: boolean,
+	setSelected: (arg0: boolean) => void,
+	clearSelection: () => void,
+): boolean {
+	if (isResizing) {
+		return true;
+	}
+
+	if (e.target === node) {
+		clearSelection();
+		setSelected(true);
+		return true;
+	}
+
+	return false;
 }
 
 /**
@@ -132,11 +152,16 @@ export function backspaceKeyDecoratorNodeCommand(
 ) {
 	if (isDecoratorNodeSelected(nodeKey)) {
 		e.preventDefault();
-		const node = $getNodeByKey(nodeKey);
-		if (node) {
-			node.remove();
-			return true;
-		}
+		return removeDecoratorNode(nodeKey)
 	}
 	return false;
+}
+
+export function removeDecoratorNode(nodeKey:string){
+	const node = $getNodeByKey(nodeKey);
+	if (node) {
+		node.remove();
+		return true
+	}
+	return false
 }

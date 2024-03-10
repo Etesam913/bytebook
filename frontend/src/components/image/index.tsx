@@ -1,7 +1,5 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
-import { AnimatePresence, motion, useMotionValue } from "framer-motion";
 import {
 	CLICK_COMMAND,
 	COMMAND_PRIORITY_LOW,
@@ -11,53 +9,43 @@ import {
 	KEY_ENTER_COMMAND,
 	KEY_ESCAPE_COMMAND,
 } from "lexical";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
 	arrowKeyDecoratorNodeCommand,
 	backspaceKeyDecoratorNodeCommand,
 	enterKeyDecoratorNodeCommand,
 	escapeKeyDecoratorNodeCommand,
+	onClickDecoratorNodeCommand,
 } from "../../utils/commands";
-import { dragItem } from "../../utils/draggable";
-import { cn } from "../../utils/string-formatting";
+import { useResizeState } from "../../utils/hooks";
+import { ResizeContainer } from "../resize-container";
 
 export function Image({
 	src,
 	width,
 	height,
 	nodeKey,
-	goToNextElement,
 }: {
 	src: string;
 	width: number | "inherit";
 	height: number | "inherit";
 	nodeKey: string;
-	goToNextElement: () => void;
 }) {
 	const imgRef = useRef<HTMLImageElement>(null);
-	const widthMotionValue = useMotionValue(300);
 	const [editor] = useLexicalComposerContext();
-	const [isResizing, setIsResizing] = useState(false);
-	const [isSelected, setSelected, clearSelection] =
-		useLexicalNodeSelection(nodeKey);
 
-	function onClick(e: MouseEvent) {
-		if (isResizing) {
-			return true;
-		}
-
-		if (e.target === imgRef.current) {
-			clearSelection();
-			setSelected(true);
-			return true;
-		}
-
-		return false;
-	}
+	const {
+		widthMotionValue,
+		isResizing,
+		setIsResizing,
+		isSelected,
+		setSelected,
+		clearSelection,
+	} = useResizeState(nodeKey);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
-		const unregister = mergeRegister(
+		return mergeRegister(
 			editor.registerCommand<MouseEvent>(
 				KEY_ARROW_UP_COMMAND,
 				(e) => arrowKeyDecoratorNodeCommand(e, nodeKey, true),
@@ -70,7 +58,14 @@ export function Image({
 			),
 			editor.registerCommand<MouseEvent>(
 				CLICK_COMMAND,
-				onClick,
+				(e) =>
+					onClickDecoratorNodeCommand(
+						e,
+						imgRef.current,
+						isResizing,
+						setSelected,
+						clearSelection,
+					),
 				COMMAND_PRIORITY_LOW,
 			),
 			editor.registerCommand<KeyboardEvent>(
@@ -89,70 +84,19 @@ export function Image({
 				COMMAND_PRIORITY_LOW,
 			),
 		);
-		return () => {
-			unregister();
-		};
 	}, [editor, nodeKey, isResizing]);
 
 	return (
 		<div className="w-full">
-			<motion.div
-				className={cn(
-					"relative max-w-full min-w-40 cursor-auto border-4 border-transparent rounded-sm",
-					isSelected && "border-blue-400",
-					isResizing && "opacity-50",
-				)}
-				style={{
-					width: widthMotionValue,
-					transition: "border-color 0.2s ease-in-out, opacity 0.2s ease-in-out",
-				}}
+			<ResizeContainer
+				isSelected={isSelected}
+				isResizing={isResizing}
+				setIsResizing={setIsResizing}
+				widthMotionValue={widthMotionValue}
+				element={imgRef.current}
+				nodeKey={nodeKey}
+				editor={editor}
 			>
-				{isSelected && (
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						className={
-							"w-4 h-4 bg-blue-400 bottom-[-10px] right-[-9px] absolute cursor-nwse-resize rounded-sm"
-						}
-						onMouseDown={(mouseDownEvent) => {
-							setIsResizing(true);
-							dragItem(
-								(dragEvent) => {
-									const mouseDownBox = mouseDownEvent.target as HTMLDivElement;
-									const mouseDownBoxRect = mouseDownBox.getBoundingClientRect();
-									document.body.style.cursor = "nwse-resize";
-									const widthDiff = mouseDownBoxRect.right - dragEvent.clientX;
-									const heightDiff =
-										mouseDownBoxRect.bottom - dragEvent.clientY;
-
-									let isWidthSmaller = true;
-									if (heightDiff < widthDiff) {
-										isWidthSmaller = false;
-									}
-									let newWidth = 0;
-
-									if (!imgRef.current) {
-										return;
-									}
-
-									if (isWidthSmaller) {
-										newWidth = imgRef.current.clientWidth - widthDiff;
-									} else {
-										const newHeight = imgRef.current.clientHeight - heightDiff;
-										newWidth =
-											newHeight *
-											(imgRef.current.clientWidth /
-												imgRef.current.clientHeight);
-									}
-									widthMotionValue.set(newWidth);
-								},
-
-								() => setTimeout(() => setIsResizing(false), 100),
-							);
-						}}
-					/>
-				)}
-
 				<img
 					src={src}
 					ref={imgRef}
@@ -161,7 +105,7 @@ export function Image({
 					className="w-full h-auto"
 					data-lexical-decorator="true"
 				/>
-			</motion.div>
+			</ResizeContainer>
 		</div>
 	);
 }

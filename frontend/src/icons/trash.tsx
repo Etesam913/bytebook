@@ -3,7 +3,7 @@ export function Trash({
 	height = "1.25rem",
 	fill = "currentColor",
 	secondaryfill = "currentColor",
-	title = "trash",
+	title = "Trash",
 	className,
 }: {
 	width?: string;

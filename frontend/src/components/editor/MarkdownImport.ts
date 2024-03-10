@@ -5,7 +5,7 @@ import type {
 } from "@lexical/markdown";
 import type { TextNode } from "lexical";
 
-import { $isListItemNode, $isListNode, ListItemNode } from "@lexical/list";
+import { $isListItemNode, $isListNode, type ListItemNode } from "@lexical/list";
 import { $isQuoteNode } from "@lexical/rich-text";
 import { $findMatchingParent } from "@lexical/utils";
 import {
@@ -15,11 +15,12 @@ import {
 	$getRoot,
 	$getSelection,
 	$isParagraphNode,
+	type 
 	ElementNode,
 } from "lexical";
-import { $createCodeNode, CodeNode } from "./nodes/code";
+import { $createCodeNode, type CodeNode } from "./nodes/code";
 import { transformersByType } from "./transformers";
-import { type Transformer } from "./utils";
+import type { Transformer } from "./utils";
 
 const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
 const CAN_USE_DOM: boolean =

@@ -3,61 +3,38 @@ import {
 	BOLD_ITALIC_UNDERSCORE,
 	BOLD_STAR,
 	BOLD_UNDERSCORE,
-	ElementTransformer,
+	type ElementTransformer,
 	ITALIC_STAR,
 	ITALIC_UNDERSCORE,
 	ORDERED_LIST,
 	QUOTE,
 	STRIKETHROUGH,
-	TextFormatTransformer,
-	TextMatchTransformer,
+	type TextFormatTransformer,
+	type TextMatchTransformer,
 	UNORDERED_LIST,
 } from "@lexical/markdown";
 import {
 	$createHeadingNode,
 	$isHeadingNode,
 	HeadingNode,
-	HeadingTagType,
+	type HeadingTagType,
 } from "@lexical/rich-text";
-import { type LanguageName } from "@uiw/codemirror-extensions-langs";
-import { ElementNode, LexicalNode } from "lexical";
+import type { LanguageName } from "@uiw/codemirror-extensions-langs";
+import type { ElementNode, LexicalNode } from "lexical";
 import { $createCodeNode, $isCodeNode, CodeNode } from "./nodes/code";
 import { $createImageNode, $isImageNode, ImageNode } from "./nodes/image";
 import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
-import { type Transformer } from "./utils";
+import type { Transformer } from "./utils";
 
 const createBlockNode = (
 	createNode: (match: Array<string>) => ElementNode,
 ): ElementTransformer["replace"] => {
 	return (parentNode, children, match) => {
 		const node = createNode(match);
-		console.log(node);
 		node.append(...children);
 		parentNode.replace(node);
 		node.select(0, 0);
 	};
-};
-
-const VIDEO_TRANSFORMER: TextMatchTransformer = {
-	dependencies: [VideoNode],
-	export: (node) => {
-		if (!$isVideoNode(node)) {
-			return null;
-		}
-		return `![${node.getTitleText()}](${node.getSrc()})`;
-	},
-	importRegExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:mp4|mov))\))$/,
-	regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:mp4|mov))\))$/,
-	replace: (textNode, match) => {
-		const [, title, src] = match;
-		const videoNode = $createVideoNode({
-			title,
-			src,
-		});
-		textNode.replace(videoNode);
-	},
-	trigger: ")",
-	type: "text-match",
 };
 
 export const CODE_TRANSFORMER: ElementTransformer = {
@@ -84,6 +61,26 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 	type: "element",
 };
 
+const VIDEO_TRANSFORMER: ElementTransformer = {
+	dependencies: [VideoNode],
+	export: (node) => {
+		if (!$isVideoNode(node)) {
+			return null;
+		}
+		return `![${node.getTitleText()}](${node.getSrc()}) `;
+	},
+	regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:mp4|mov))\))\s/,
+	replace: (textNode, _, match) => {
+		const [, title, src] = match;
+		const videoNode = $createVideoNode({
+			title,
+			src,
+		});
+		textNode.replace(videoNode);
+	},
+	type: "element",
+};
+
 const IMAGE_TRANSFORMER: ElementTransformer = {
 	dependencies: [ImageNode],
 	export: (node) => {
@@ -93,16 +90,15 @@ const IMAGE_TRANSFORMER: ElementTransformer = {
 		// TODO: need to do sanitizing on the alt text
 		return `![${node.getAltText()}](${node.getSrc()}) `;
 	},
-	// importRegExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:png|jpg|webp|jpeg))\))/,
-	// regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:png|jpg|webp|jpeg))\))$/,
-	regExp: /^!\[([^\]]+)\]\(([^)]+)\)\s/,
+	// regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?!(mp4|mov)$).+))\)\s/,
+	regExp: /!\[(?<alt>[^\]]*)\]\((?<filename>.*?)(?<!\.mp4|.mov)(?=\"|\))\)\s/,
 	replace: (textNode, _1, match) => {
 		const [_2, alt, src] = match;
+		console.log(match);
 		const imageNode = $createImageNode({
 			alt,
 			src,
 		});
-		console.log("replace transformer");
 		textNode.replace(imageNode);
 	},
 	// trigger: ")",

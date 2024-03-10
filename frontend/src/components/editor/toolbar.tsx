@@ -11,19 +11,19 @@ import {
 	KEY_ARROW_DOWN_COMMAND,
 	KEY_ARROW_UP_COMMAND,
 	SELECTION_CHANGE_COMMAND,
-	TextFormatType,
+	type TextFormatType,
 } from "lexical";
 import { useEffect, useState } from "react";
 import { TextBold } from "../../icons/text-bold";
 import { TextItalic } from "../../icons/text-italic";
 import { TextStrikethrough } from "../../icons/text-strikethrough";
 import { TextUnderline } from "../../icons/text-underline";
-import { EditorBlockTypes } from "../../types";
+import type { EditorBlockTypes } from "../../types";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { useNoteMarkdown } from "./hooks";
 import {
-	TextFormats,
+	type TextFormats,
 	changeSelectedBlocksType,
 	handleToolbarTextFormattingClick,
 	overrideUpDownKeyCommand,
