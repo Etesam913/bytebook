@@ -133,11 +133,9 @@ export function Video({
 				EXPAND_CONTENT_COMMAND,
 				(keyToExpand) => {
 					if (keyToExpand === nodeKey) {
+						console.log("shouled expand", nodeKey);
 						setIsExpanded(true);
-						videoRef.current?.scrollIntoView({
-							behavior: "instant",
-							block: "center",
-						});
+						videoRef.current?.scrollIntoView({ block: "center" });
 						return true;
 					}
 

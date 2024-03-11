@@ -1,9 +1,9 @@
-export function Trash({
+export function CircleArrowRight({
 	width = "1.25rem",
 	height = "1.25rem",
 	fill = "currentColor",
 	secondaryfill = "currentColor",
-	title = "Trash",
+	title = "Next",
 	className,
 }: {
 	width?: string;
@@ -21,47 +21,31 @@ export function Trash({
 			xmlns="http://www.w3.org/2000/svg"
 		>
 			<title>{title}</title>
-			<g fill={secondaryfill} stroke={secondaryfill}>
-				<line
+			<g fill={fill}>
+				<polyline
 					fill="none"
+					points="9.75 6.5 12.25 9 9.75 11.5"
+					stroke={secondaryfill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1.5"
-					x1="2.75"
-					x2="15.25"
-					y1="4.25"
-					y2="4.25"
-				/>
-				<line
-					fill="none"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					strokeWidth="1.5"
-					x1="7.25"
-					x2="7.25"
-					y1="8.75"
-					y2="13.25"
 				/>
 				<line
 					fill="none"
+					stroke={secondaryfill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1.5"
-					x1="10.75"
-					x2="10.75"
-					y1="8.75"
-					y2="13.25"
+					x1="12.25"
+					x2="5.75"
+					y1="9"
+					y2="9"
 				/>
-				<path
-					d="M6.75,4.25v-1.5c0-.552,.448-1,1-1h2.5c.552,0,1,.448,1,1v1.5"
+				<circle
+					cx="9"
+					cy="9"
 					fill="none"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					strokeWidth="1.5"
-				/>
-				<path
-					d="M13.75,6.75v7.5c0,1.105-.895,2-2,2H6.25c-1.105,0-2-.895-2-2V6.75"
-					fill="none"
+					r="7.25"
 					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"

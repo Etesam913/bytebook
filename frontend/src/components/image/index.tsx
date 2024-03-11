@@ -46,6 +46,12 @@ export function Image({
 		setIsExpanded,
 	} = useResizeState(nodeKey);
 
+	useEffect(() => {
+		if (isSelected) {
+			imgRef.current?.scrollIntoView({ block: "start" });
+		}
+	}, [isSelected, nodeKey, imgRef]);
+
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		return mergeRegister(
@@ -106,7 +112,6 @@ export function Image({
 			editor.registerCommand<KeyboardEvent>(
 				KEY_ENTER_COMMAND,
 				(e) => {
-					console.log("ran", nodeKey);
 					if (!isExpanded) {
 						return enterKeyDecoratorNodeCommand(e, nodeKey);
 					}
@@ -134,8 +139,7 @@ export function Image({
 					if (keyToExpand === nodeKey) {
 						setIsExpanded(true);
 						imgRef.current?.scrollIntoView({
-							behavior: "instant",
-							block: "center",
+							block: "start",
 						});
 						return true;
 					}
@@ -164,7 +168,7 @@ export function Image({
 					ref={imgRef}
 					alt={"bob"}
 					draggable={false}
-					className="w-full h-auto my-auto"
+					className="w-full h-auto my-auto scroll-m-10"
 					data-lexical-decorator="true"
 				/>
 			</ResizeContainer>

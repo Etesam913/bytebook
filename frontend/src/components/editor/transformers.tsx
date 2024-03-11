@@ -61,13 +61,29 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 	type: "element",
 };
 
+const srcRegex = /\/notes\/([^\/]+)\/([^\/]+)\//;
+
+function updateSrc(nodeSrc: string) {
+	// If it is coming from file-server update url if the folder name or note title changes
+	if (nodeSrc.includes("localhost")) {
+		const [_, currentFolder, currentNoteTitle] = location.pathname.split("/");
+
+		return nodeSrc.replace(
+			srcRegex,
+			`/notes/${currentFolder}/${currentNoteTitle}/`,
+		);
+	}
+	return nodeSrc;
+}
+
 const VIDEO_TRANSFORMER: ElementTransformer = {
 	dependencies: [VideoNode],
 	export: (node) => {
 		if (!$isVideoNode(node)) {
 			return null;
 		}
-		return `![${node.getTitleText()}](${node.getSrc()}) `;
+		const videoSrc = updateSrc(node.getSrc());
+		return `![${node.getTitleText()}](${videoSrc}) `;
 	},
 	regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:mp4|mov))\))\s/,
 	replace: (textNode, _, match) => {
@@ -87,14 +103,15 @@ const IMAGE_TRANSFORMER: ElementTransformer = {
 		if (!$isImageNode(node)) {
 			return null;
 		}
+		const imageSrc = updateSrc(node.getSrc());
+
 		// TODO: need to do sanitizing on the alt text
-		return `![${node.getAltText()}](${node.getSrc()}) `;
+		return `![${node.getAltText()}](${imageSrc}) `;
 	},
 	// regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?!(mp4|mov)$).+))\)\s/,
 	regExp: /!\[(?<alt>[^\]]*)\]\((?<filename>.*?)(?<!\.mp4|.mov)(?=\"|\))\)\s/,
 	replace: (textNode, _1, match) => {
 		const [_2, alt, src] = match;
-		console.log(match);
 		const imageNode = $createImageNode({
 			alt,
 			src,

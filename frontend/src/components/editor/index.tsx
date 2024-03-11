@@ -48,7 +48,6 @@ export function NotesEditor({
 					style={{ scrollbarGutter: "stable" }}
 					className="py-2 pl-2 pr-[10px] h-[calc(100vh-38px)] overflow-y-auto"
 					onClick={(e) => {
-						console.log(e);
 						const target = e.target as HTMLElement;
 						if (target.dataset.lexicalDecorator !== "true") {
 							editorRef.current?.focus();
@@ -82,7 +81,7 @@ export function NotesEditor({
 					<ImagesPlugin />
 					<VideosPlugin />
 					<CodePlugin />
-					<TreeViewPlugin />
+					{/* <TreeViewPlugin /> */}
 				</div>
 			</LexicalComposer>
 		</div>
