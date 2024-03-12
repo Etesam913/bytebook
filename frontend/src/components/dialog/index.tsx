@@ -42,10 +42,11 @@ export function Dialog({
 	handleSubmit?: (e: FormEvent<HTMLFormElement>) => void;
 }) {
 	const modalRef = useRef<HTMLDivElement>(null);
-	useTrapFocus(modalRef.current, isOpen);
+
+	useTrapFocus(modalRef, isOpen);
 
 	return (
-		<>
+		<div ref={modalRef}>
 			{isOpen && (
 				<>
 					<motion.div
@@ -73,7 +74,6 @@ export function Dialog({
 							scale: 0.5,
 							transition: { opacity: { duration: 0.225 } },
 						}}
-						ref={modalRef}
 						className="absolute flex flex-col gap-3 bg-zinc-100 dark:bg-zinc-800 backdrop:bg-blue-500 z-20 top-2/4  py-3 px-4 max-w-[80vw] w-80 rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4"
 					>
 						<h2>{title}</h2>
@@ -100,6 +100,6 @@ export function Dialog({
 					</motion.div>
 				</>
 			)}
-		</>
+		</div>
 	);
 }

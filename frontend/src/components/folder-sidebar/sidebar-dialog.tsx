@@ -83,6 +83,7 @@ export function FolderSidebarDialog({
 					New Folder Name
 				</label>
 				<input
+					data-testid="folder-name"
 					name="folder-name"
 					placeholder="My To Do's"
 					className="py-1 px-2 rounded-sm border-[1px] border-zinc-300 dark:border-zinc-700 focus:outline-none focus:border-zinc-500 dark:focus:border-zinc-500 transition-colors w-full"
@@ -93,6 +94,7 @@ export function FolderSidebarDialog({
 					<ErrorText errorText={errorText} />
 					<MotionButton
 						type="submit"
+						data-testid="create-folder-dialog-button"
 						{...getDefaultButtonVariants()}
 						className="w-full text-center flex items-center gap-2 justify-center flex-wrap "
 					>

@@ -55,7 +55,8 @@ export function ResizeContainer({
 		}
 	}, [isExpanded]);
 
-	useTrapFocus(resizeContainerRef.current, isExpanded);
+	useTrapFocus(resizeContainerRef, isExpanded);
+
 	return (
 		<div ref={resizeContainerRef}>
 			<motion.div

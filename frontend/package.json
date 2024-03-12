@@ -7,7 +7,9 @@
 		"dev": "vite",
 		"build": "tsc && vite build",
 		"preview": "vite preview",
-		"fmt": "biome check --apply ./src"
+		"fmt": "biome check --apply ./src",
+		"test": "cypress run",
+		"test:open": "cypress open"
 	},
 	"dependencies": {
 		"@codemirror/language": "^6.10.1",
@@ -38,6 +40,7 @@
 		"@vitejs/plugin-react": "^2.0.1",
 		"autoprefixer": "^10.4.17",
 		"clsx": "^2.1.0",
+		"cypress": "^13.6.6",
 		"postcss": "^8.4.33",
 		"tailwind-merge": "^2.2.1",
 		"tailwindcss": "^3.4.1",

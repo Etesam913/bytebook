@@ -24,8 +24,8 @@ export function Loader({
 		>
 			<title>{title}</title>
 			<g
-				stroke-width="200"
-				stroke-linecap="round"
+				strokeWidth="200"
+				strokeLinecap="round"
 				stroke="currentColor"
 				fill="none"
 				id="spinner"
