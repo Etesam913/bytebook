@@ -1,4 +1,5 @@
 import { AnimatePresence, motion, useMotionValue } from "framer-motion";
+import type { LexicalEditor } from "lexical";
 import {
 	type Dispatch,
 	type ReactNode,
@@ -19,7 +20,6 @@ import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { useTrapFocus } from "../dialog/hooks";
 import { expandNearestSiblingNode } from "./utils";
-import type { LexicalEditor } from "lexical";
 
 export function ResizeContainer({
 	isSelected,

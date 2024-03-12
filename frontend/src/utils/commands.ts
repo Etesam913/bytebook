@@ -53,9 +53,9 @@ export function onClickDecoratorNodeCommand(
 	if (e.target === node) {
 		clearSelection();
 		setSelected(true);
+		e.preventDefault();
 		return true;
 	}
-
 	return false;
 }
 
@@ -68,14 +68,14 @@ export function arrowKeyDecoratorNodeCommand(
 	up: boolean,
 ): boolean {
 	const selection = $getSelection();
+	console.log("selection, ", selection);
 	if (!selection) return false;
-	console.log(selection);
 	// Happens when going from decorator node to p tag
 	if ($isNodeSelection(selection)) {
 		// If the current node is selected
 		if (selection.has(nodeKey)) {
 			// Do e.preventDefault() so that the arrow key is not applied twice
-			e.preventDefault();
+
 			const elementToSelect = up
 				? $getNodeByKey(nodeKey)?.getPreviousSibling()
 				: $getNodeByKey(nodeKey)?.getNextSibling();
@@ -88,7 +88,9 @@ export function arrowKeyDecoratorNodeCommand(
 				// true is returned to override any other events
 				return true;
 			}
-
+			console.log(elementToSelect);
+			e.preventDefault();
+			elementToSelect?.selectEnd();
 			// Otherwise we can let the browser handle the action
 			return false;
 		}

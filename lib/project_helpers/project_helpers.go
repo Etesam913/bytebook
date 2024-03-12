@@ -13,7 +13,7 @@ import (
 	wails_runtime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const ProjectName = "Bytebook"
+const ProjectName = "Bytebook-Dev"
 
 func GetProjectPath() (string, error) {
 	homeDir, err := os.UserHomeDir()

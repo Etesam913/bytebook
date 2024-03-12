@@ -5,14 +5,14 @@ import {
 	type LexicalEditor,
 	type LexicalNode,
 } from "lexical";
-import { EXPAND_CONTENT_COMMAND } from "../editor/plugins/image";
 import type { Dispatch, SetStateAction } from "react";
+import { EXPAND_CONTENT_COMMAND } from "../editor/plugins/image";
 
 function getNearestSiblingNode(node: LexicalNode, isRight: boolean) {
 	let siblingNode: LexicalNode | null = isRight
 		? node.getNextSibling()
 		: node.getPreviousSibling();
-	
+
 	if (!siblingNode) {
 		return null;
 	}
@@ -23,7 +23,7 @@ function getNearestSiblingNode(node: LexicalNode, isRight: boolean) {
 		siblingNode = isRight
 			? siblingNode?.getNextSibling()
 			: siblingNode?.getPreviousSibling() ?? null;
-		
+
 		if (!siblingNode) {
 			return null;
 		}
