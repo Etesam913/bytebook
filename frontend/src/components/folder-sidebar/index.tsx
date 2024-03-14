@@ -33,7 +33,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 		<li key={folderName}>
 			<div className="flex items-center gap-2 overflow-hidden pr-1">
 				<Link
-					data-testid={`folder-link=${folderName}`}
+					data-testid={`folder_link-${folderName}`}
 					className={cn(
 						"flex flex-1 gap-2 items-center px-3 py-[0.45rem] rounded-md overflow-x-hidden",
 						folderName === folder && "bg-zinc-100 dark:bg-zinc-700",
@@ -46,7 +46,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					</p>
 				</Link>
 				<motion.button
-					data-testid={`delete-folder-button=${folderName}`}
+					data-testid={`delete_folder_button-${folderName}`}
 					onClick={() =>
 						DeleteFolder(`${folderName}`).then(() => {
 							const newFolders = folders.filter((v) => v !== folderName);
@@ -84,7 +84,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 				<div className="px-[10px] flex flex-col gap-4 h-full">
 					<MotionButton
 						{...getDefaultButtonVariants()}
-						data-testid="create-folder-button"
+						data-testid="create_folder_button"
 						className="w-full bg-transparent flex justify-between align-center"
 						onClick={() => setIsFolderDialogOpen(true)}
 					>

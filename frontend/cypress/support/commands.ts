@@ -47,15 +47,12 @@ Cypress.Commands.add("getByTestId", (testId, options) => {
 });
 
 Cypress.Commands.add("deleteFolder", (folderName) => {
+	cy.wait(1000);
 	cy.get("body").then(($body) => {
-		console.log("in body", $body);
 		// Check if the element exists in the body
-		if (
-			$body.find(`[data-testid="folder-link=valid-folder-name"]`).length > 0
-		) {
-			console.log("delete");
-			// If the element exists, click the delete button
-			cy.get(`[data-testid="delete-folder-button=${folderName}"]`).click();
+		if ($body.find(`[data-testid=delete_folder_button-${folderName}]`).length) {
+			// If the element exists, then find the button and click it
+			cy.getByTestId(`delete_folder_button-${folderName}`).click();
 		}
 	});
 });
