@@ -2,6 +2,6 @@
 
 cd ../
 wails dev &
-sleep 5
+sleep 10
 cd frontend
 pnpm run test

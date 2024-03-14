@@ -17,3 +17,5 @@ describe("📝 note actions", () => {
 		// cy.getByTestId("note-link=valid-note-title").should("exist");
 	});
 });
+
+export type {};

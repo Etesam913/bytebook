@@ -50,7 +50,9 @@ Cypress.Commands.add("deleteFolder", (folderName) => {
 	cy.get("body").then(($body) => {
 		console.log("in body", $body);
 		// Check if the element exists in the body
-		if ($body.find(`[data-testid="folder-link=${folderName}"]`).length > 0) {
+		if (
+			$body.find(`[data-testid="folder-link=valid-folder-name"]`).length > 0
+		) {
 			console.log("delete");
 			// If the element exists, click the delete button
 			cy.get(`[data-testid="delete-folder-button=${folderName}"]`).click();

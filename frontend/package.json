@@ -8,7 +8,7 @@
 		"build": "tsc && vite build",
 		"preview": "vite preview",
 		"fmt": "biome check --apply ./src",
-		"test": "cypress run",
+		"test": "bash test_script.sh",
 		"test:open": "cypress open"
 	},
 	"dependencies": {
