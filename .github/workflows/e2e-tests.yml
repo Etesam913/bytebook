@@ -56,8 +56,8 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
-          start: wails dev
+          start: pnpm run start
           browser: chrome
           wait-on: 'http://localhost:34115'
           wait-on-timeout: 360
-        
+          working-directory: frontend
