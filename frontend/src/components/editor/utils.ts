@@ -70,7 +70,6 @@ export function changeSelectedBlocksType(
 					break;
 				case "img": {
 					const filePaths = await UploadImagesToFolder(folder, note);
-					console.log(filePaths);
 					editor.update(() => {
 						for (const filePath of filePaths) {
 							editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
@@ -128,12 +127,10 @@ export function overrideUpDownKeyCommand(
 ) {
 	const selection = $getSelection();
 	const node = selection?.getNodes().at(0);
-	console.log("👺 node: ", node);
 	if (!node) return true;
 	if ($isRootNode(node)) {
 		const firstChild = node.getFirstChild();
 		if (!firstChild) return true;
-		console.log("👧 first child:", firstChild);
 		return true;
 	}
 	const nextNode = getFirstSiblingNode(node, command);
@@ -144,7 +141,6 @@ export function overrideUpDownKeyCommand(
 		event.preventDefault();
 		return true;
 	}
-	// console.log("⏭️ next node", nextNode)
 	return true;
 }
 

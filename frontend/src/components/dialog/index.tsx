@@ -46,7 +46,12 @@ export function Dialog({
 	useTrapFocus(modalRef, isOpen);
 
 	return (
-		<div ref={modalRef}>
+		<div
+			ref={modalRef}
+			onKeyDown={(e) => e.key === "Escape" && setIsOpen(false)}
+			// biome-ignore lint/a11y/noNoninteractiveTabindex: we want trapped focus for dialogs
+			tabIndex={0}
+		>
 			{isOpen && (
 				<>
 					<motion.div

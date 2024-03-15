@@ -36,10 +36,14 @@ trap cleanup EXIT
 # Wait for the desired output
 while true; do
   if grep -q "To develop in the browser and call your bound Go methods from Javascript, navigate to" /tmp/pnpm_output.txt; then
+    sleep 2
+    curl http://localhost:34115 -I
     echo "Desired text found, running the next command..."
     pnpm cypress run
     break
   fi
+  curl http://localhost:34115 -I
+  
   sleep 1 # Check every second
 done
 

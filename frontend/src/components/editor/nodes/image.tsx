@@ -119,7 +119,6 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 
 	// View
 	createDOM(config: EditorConfig): HTMLElement {
-		console.log("created");
 		const span = document.createElement("span");
 		return span;
 	}
@@ -155,7 +154,6 @@ export function $createImageNode({
 	height,
 	key,
 }: ImagePayload): ImageNode {
-	console.log("create image node");
 	return $applyNodeReplacement(new ImageNode(src, alt, width, height, key));
 }
 

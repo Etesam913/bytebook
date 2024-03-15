@@ -34,7 +34,6 @@ export function isDecoratorNodeSelected(nodeKey: string) {
 	const selection = $getSelection();
 
 	if (!$isNodeSelection(selection)) return false;
-	console.log(selection);
 
 	return selection.has(nodeKey);
 }
@@ -68,7 +67,6 @@ export function arrowKeyDecoratorNodeCommand(
 	up: boolean,
 ): boolean {
 	const selection = $getSelection();
-	console.log("selection, ", selection);
 	if (!selection) return false;
 	// Happens when going from decorator node to p tag
 	if ($isNodeSelection(selection)) {
@@ -88,7 +86,6 @@ export function arrowKeyDecoratorNodeCommand(
 				// true is returned to override any other events
 				return true;
 			}
-			console.log(elementToSelect);
 			e.preventDefault();
 			elementToSelect?.selectEnd();
 			// Otherwise we can let the browser handle the action
@@ -139,7 +136,6 @@ export function enterKeyDecoratorNodeCommand(
 }
 
 export function escapeKeyDecoratorNodeCommand(nodeKey: string) {
-	console.log("escapeKeyDecoratorNodeCommand");
 	if (isDecoratorNodeSelected(nodeKey)) {
 		const nodeElem = $getNodeByKey(nodeKey);
 		if (nodeElem) {
@@ -161,7 +157,6 @@ export function backspaceKeyDecoratorNodeCommand(
 }
 
 export function removeDecoratorNode(nodeKey: string) {
-	console.log("removeDecoratorNode");
 	const node = $getNodeByKey(nodeKey);
 	if (node) {
 		node.remove();

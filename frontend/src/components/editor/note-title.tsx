@@ -1,10 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useSetAtom } from "jotai";
-import { LexicalEditor } from "lexical";
+import { $getRoot, type LexicalEditor } from "lexical";
 import {
-	Dispatch,
-	MutableRefObject,
-	SetStateAction,
+	type Dispatch,
+	type MutableRefObject,
+	type SetStateAction,
 	useEffect,
 	useState,
 } from "react";
@@ -12,18 +12,19 @@ import { navigate } from "wouter/use-browser-location";
 import { RenameNoteTitle } from "../../../wailsjs/go/main/App";
 import { notesAtom } from "../../atoms";
 import { cn, fileNameRegex } from "../../utils/string-formatting";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { first } from "cypress/types/lodash";
 
 export function NoteTitle({
 	note,
 	setIsToolbarDisabled,
-	editorRef,
 	folder,
 }: {
 	note: string;
 	setIsToolbarDisabled: Dispatch<SetStateAction<boolean>>;
-	editorRef: MutableRefObject<LexicalEditor | null | undefined>;
 	folder: string;
 }) {
+	const [editor] = useLexicalComposerContext();
 	const [noteTitle, setNoteTitle] = useState(note);
 	const setNotes = useSetAtom(notesAtom);
 	const [errorText, setErrorText] = useState("");
@@ -41,7 +42,6 @@ export function NoteTitle({
 				)}
 				onClick={(e) => e.stopPropagation()}
 				value={noteTitle}
-				onError={() => console.log("yo mama")}
 				title={errorText}
 				onChange={(e) => {
 					const name = e.target.value.trim();
@@ -78,9 +78,14 @@ export function NoteTitle({
 				}}
 				onKeyDown={(e) => {
 					if (e.key === "Enter") {
-						setTimeout(() => {
-							editorRef?.current?.focus();
-						}, 10);
+						// Selects first child of the editor
+						editor.update(() => {
+							const firstChild = $getRoot().getFirstChild();
+							if (firstChild) {
+								e.preventDefault();
+								firstChild.selectEnd();
+							}
+						});
 					}
 				}}
 				pattern={fileNameRegex.source}

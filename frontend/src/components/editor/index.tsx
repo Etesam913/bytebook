@@ -57,7 +57,6 @@ export function NotesEditor({
 				>
 					<NoteTitle
 						folder={folder}
-						editorRef={editorRef}
 						note={note}
 						setIsToolbarDisabled={setIsToolbarDisabled}
 					/>
