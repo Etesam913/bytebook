@@ -7,13 +7,27 @@ set -e
 # Consider using `unbuffer` or `stdbuf` to avoid output buffering issues
 cd .. && unbuffer wails dev 2>&1 | tee /tmp/pnpm_output.txt &
 
-# PID of the last background process (the server in this case)
-PID=$!
+PORT=5173
+
+kill_process_by_port() {
+    # Find PID using port number
+    PID=$(lsof -t -i:$PORT)
+    
+    # Check if PID was found
+    if [ ! -z "$PID" ]; then
+        echo "Killing process on port $PORT with PID $PID"
+        kill $PID || echo "Failed to kill process $PID"
+    else
+        echo "No process found running on port $PORT"
+    fi
+}
+
 
 # Function to clean up before exit
 cleanup() {
   rm -f /tmp/pnpm_output.txt
   # Other cleanup commands can go here
+  kill_process_by_port
 }
 
 # Trap EXIT signal to ensure cleanup runs even if the script exits unexpectedly

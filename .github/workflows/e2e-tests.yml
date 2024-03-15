@@ -1,0 +1,56 @@
+name: 🧪 Frontend e2e Tests
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+  push:
+    branches: [master]
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔀 Checking out Repo
+        uses: actions/checkout@v4
+
+      - name: 📦 Setting up go
+        uses: actions/setup-go@v5
+        with: 
+          go-version: '1.21.6'
+      
+      - name: ⬇️ Install dependencies
+        run: go mod tidy
+
+      - name: ⬇️ Installing Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: latest
+          platform: x64
+
+      - name: 📦 Installing Dependencies
+        run: |
+          cd frontend
+          npm i -g pnpm
+          pnpm install
+          yum install expect -y
+      
+      - name: 🎻 Installing Wails
+        run: |
+          go install github.com/wailsapp/wails/v2/cmd/wails@latest
+          wails doctor
+
+      - name: 🧪 Run tests
+        run: |
+          ls
+          
+
+          make e2e-tests
+        

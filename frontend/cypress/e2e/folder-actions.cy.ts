@@ -4,7 +4,7 @@ describe("📁 folder actions", () => {
 	it("creating a folder", () => {
 		cy.visit("/");
 		// Give wails time to load stuff in
-
+		cy.wait(300);
 		cy.deleteFolder("validfolder");
 
 		// Opens the create folder dialog
@@ -21,6 +21,28 @@ describe("📁 folder actions", () => {
 		cy.getByTestId("create_folder_dialog_button").click();
 		cy.getByTestId("create_folder_dialog_button").should("not.exist");
 		cy.getByTestId("folder_link-validfolder").should("exist");
+	});
+
+	it("renaming a folder", () => {
+		cy.visit("/");
+		cy.wait(300);
+		cy.deleteFolder("newname");
+		cy.deleteFolder("foldertoupdate");
+		cy.addFolder("foldertoupdate");
+		cy.getByTestId("folder_link-foldertoupdate").should("exist");
+		cy.getByTestId("rename_folder_button").click();
+		cy.getByTestId("folder_name").type("**/asdf");
+		cy.getByTestId("rename_folder_dialog_button").click();
+		cy.contains(
+			"Invalid folder name. Folder names can only contain letters, numbers, spaces, hyphens, and underscores.",
+		).should("exist");
+		cy.getByTestId("folder_name").clear();
+		cy.getByTestId("folder_name").type("newname");
+		cy.getByTestId("rename_folder_dialog_button").click();
+		cy.getByTestId("rename_folder_dialog_button").should("not.exist");
+		cy.getByTestId("folder_link-foldertoupdate").should("not.exist");
+		cy.getByTestId("folder_link-newname").should("exist");
+		cy.deleteFolder("newname");
 	});
 
 	it("deleting a folder", () => {

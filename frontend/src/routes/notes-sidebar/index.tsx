@@ -1,4 +1,4 @@
-import { AnimatePresence, MotionValue, motion } from "framer-motion";
+import { AnimatePresence, type MotionValue, motion } from "framer-motion";
 import { useAtom, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
@@ -113,6 +113,7 @@ export function NotesSidebar({
 						</p>
 						<motion.button
 							type="button"
+							data-testid="rename_folder_button"
 							{...getDefaultButtonVariants(false, 1.15, 0.95, 1.15)}
 							className="min-w-[1.5rem] p-[2.5px] rounded-[0.5rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-300"
 							onClick={() => setIsFolderDialogOpen(true)}

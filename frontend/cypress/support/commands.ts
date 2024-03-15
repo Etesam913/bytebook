@@ -38,6 +38,7 @@ declare global {
 				>,
 			): Chainable<JQuery<HTMLElement>>;
 			deleteFolder(folderName: string): void;
+			addFolder(folderName: string): void;
 		}
 	}
 }
@@ -47,7 +48,6 @@ Cypress.Commands.add("getByTestId", (testId, options) => {
 });
 
 Cypress.Commands.add("deleteFolder", (folderName) => {
-	cy.wait(1000);
 	cy.get("body").then(($body) => {
 		// Check if the element exists in the body
 		if ($body.find(`[data-testid=delete_folder_button-${folderName}]`).length) {
@@ -55,6 +55,12 @@ Cypress.Commands.add("deleteFolder", (folderName) => {
 			cy.getByTestId(`delete_folder_button-${folderName}`).click();
 		}
 	});
+});
+
+Cypress.Commands.add("addFolder", (folderName) => {
+	cy.getByTestId("create_folder_button").click();
+	cy.getByTestId("folder_name").type(folderName);
+	cy.getByTestId("create_folder_dialog_button").click();
 });
 
 export type {};

@@ -94,7 +94,11 @@ export function FolderSidebarDialog({
 					<ErrorText errorText={errorText} />
 					<MotionButton
 						type="submit"
-						data-testid="create_folder_dialog_button"
+						data-testid={
+							action === "add"
+								? "create_folder_dialog_button"
+								: "rename_folder_dialog_button"
+						}
 						{...getDefaultButtonVariants()}
 						className="w-full text-center flex items-center gap-2 justify-center flex-wrap "
 					>
