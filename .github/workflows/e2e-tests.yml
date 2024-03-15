@@ -40,7 +40,7 @@ jobs:
           cd frontend
           npm i -g pnpm
           pnpm install
-          yum install expect -y
+          sudo apt-get install -y expect
       
       - name: 🎻 Installing Wails
         run: |
