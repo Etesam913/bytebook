@@ -20,7 +20,12 @@ import {
 	type HeadingTagType,
 } from "@lexical/rich-text";
 import type { LanguageName } from "@uiw/codemirror-extensions-langs";
-import type { ElementNode, LexicalNode } from "lexical";
+import {
+	$createNodeSelection,
+	$setSelection,
+	type ElementNode,
+	type LexicalNode,
+} from "lexical";
 import { $createCodeNode, $isCodeNode, CodeNode } from "./nodes/code";
 import { $createImageNode, $isImageNode, ImageNode } from "./nodes/image";
 import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
@@ -92,7 +97,10 @@ const VIDEO_TRANSFORMER: ElementTransformer = {
 			title,
 			src,
 		});
+		const nodeSelection = $createNodeSelection();
 		textNode.replace(videoNode);
+		nodeSelection.add(textNode.getKey());
+		$setSelection(nodeSelection);
 	},
 	type: "element",
 };

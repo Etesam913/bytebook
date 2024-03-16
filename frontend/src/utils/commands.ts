@@ -62,22 +62,22 @@ export function onClickDecoratorNodeCommand(
  * Handles the up/down arrow key commands for decorator nodes
  */
 export function arrowKeyDecoratorNodeCommand(
-	e: MouseEvent,
+	e: KeyboardEvent,
 	nodeKey: string,
 	up: boolean,
 ): boolean {
 	const selection = $getSelection();
+	console.log("👺", selection);
 	if (!selection) return false;
 	// Happens when going from decorator node to p tag
 	if ($isNodeSelection(selection)) {
 		// If the current node is selected
 		if (selection.has(nodeKey)) {
 			// Do e.preventDefault() so that the arrow key is not applied twice
-
 			const elementToSelect = up
 				? $getNodeByKey(nodeKey)?.getPreviousSibling()
 				: $getNodeByKey(nodeKey)?.getNextSibling();
-
+			console.log(elementToSelect);
 			// If the previous/next sibling is a decorator node, we need custom behavior
 			if ($isDecoratorNode(elementToSelect)) {
 				const newNodeSelection = $createNodeSelection();

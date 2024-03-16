@@ -5,11 +5,11 @@ import {
 	$insertNodes,
 	$isRootOrShadowRoot,
 	COMMAND_PRIORITY_EDITOR,
-	LexicalCommand,
+	type LexicalCommand,
 	createCommand,
 } from "lexical";
 import { useEffect } from "react";
-import { $createCodeNode, CodeNode, CodePayload } from "../nodes/code";
+import { $createCodeNode, CodeNode, type CodePayload } from "../nodes/code";
 
 export const INSERT_CODE_COMMAND: LexicalCommand<CodePayload> = createCommand(
 	"INSERT_CODE_COMMAND",

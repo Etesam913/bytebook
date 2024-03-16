@@ -127,6 +127,7 @@ export function overrideUpDownKeyCommand(
 ) {
 	const selection = $getSelection();
 	const node = selection?.getNodes().at(0);
+	console.log("nice");
 	if (!node) return true;
 	if ($isRootNode(node)) {
 		const firstChild = node.getFirstChild();

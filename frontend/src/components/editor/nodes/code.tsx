@@ -142,20 +142,13 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 
 	decorate(_editor: LexicalEditor): JSX.Element {
 		return (
-			<Suspense fallback={null}>
-				<Code
-					code={this.getCode()}
-					language={this.getLanguage()}
-					goToPreviousElement={(foundPrevNodeCallback: () => void) =>
-						this.goToPreviousElement(_editor, foundPrevNodeCallback)
-					}
-					goToNextElement={(foundNextNodeCallback: () => void) =>
-						this.goToNextElement(_editor, foundNextNodeCallback)
-					}
-					onCodeChange={(code: string) => this.onCodeChange(code, _editor)}
-					focus={this.__focus}
-				/>
-			</Suspense>
+			<Code
+				nodeKey={this.getKey()}
+				code={this.getCode()}
+				language={this.getLanguage()}
+				onCodeChange={(code: string) => this.onCodeChange(code, _editor)}
+				focus={this.__focus}
+			/>
 		);
 	}
 }

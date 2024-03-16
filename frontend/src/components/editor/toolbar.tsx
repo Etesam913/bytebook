@@ -111,9 +111,7 @@ export function Toolbar({ folder, note, disabled }: ToolbarProps) {
 			// editor.registerCommand(KEY_ARROW_RIGHT_COMMAND, event);
 			editor.registerCommand(
 				KEY_ARROW_DOWN_COMMAND,
-				(event) => {
-					return overrideUpDownKeyCommand(event, "down");
-				},
+				(event) => overrideUpDownKeyCommand(event, "down"),
 				COMMAND_PRIORITY_EDITOR,
 			),
 		);

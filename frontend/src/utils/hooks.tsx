@@ -89,7 +89,7 @@ export function useResizeCommands(
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		return mergeRegister(
-			editor.registerCommand<MouseEvent>(
+			editor.registerCommand<KeyboardEvent>(
 				KEY_ARROW_UP_COMMAND,
 				(e) => {
 					if (!isExpanded) {
@@ -101,7 +101,7 @@ export function useResizeCommands(
 				},
 				isExpanded ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
 			),
-			editor.registerCommand<MouseEvent>(
+			editor.registerCommand<KeyboardEvent>(
 				KEY_ARROW_DOWN_COMMAND,
 				(e) => {
 					if (!isExpanded) {
