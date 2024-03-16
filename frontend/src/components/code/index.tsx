@@ -5,7 +5,7 @@ import {
 	langNames,
 	loadLanguage,
 } from "@uiw/codemirror-extensions-langs";
-import { githubDark } from "@uiw/codemirror-themes-all";
+import { githubDark, githubLight } from "@uiw/codemirror-themes-all";
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import {
 	CLICK_COMMAND,
@@ -17,30 +17,56 @@ import {
 	UNDO_COMMAND,
 } from "lexical";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { arrowKeyDecoratorNodeCommand } from "../../utils/commands";
+import {
+	arrowKeyDecoratorNodeCommand,
+	removeDecoratorNode,
+} from "../../utils/commands";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
+import { Dropdown } from "../dropdown";
+import { MotionButton } from "../buttons";
+import { Trash } from "../../icons/trash";
+import { getDefaultButtonVariants } from "../../variants";
+import { useAtomValue } from "jotai";
+import { darkModeAtom } from "../../atoms";
+import { motion } from "framer-motion";
+
+const codeDropdownItems = [
+	{ label: "Javascript", value: "javascript" },
+	{ label: "Python", value: "python" },
+	{ label: "Java", value: "java" },
+	{ label: "C#", value: "c#" },
+	{ label: "C++", value: "c++" },
+	{ label: "C", value: "c" },
+	{ label: "SQL", value: "sql" },
+	{ label: "Go", value: "go" },
+];
 
 export function Code({
 	code,
 	nodeKey,
-	language,
+	defaultLanguage,
 	onCodeChange,
 	focus,
+	setDefaultLanguage,
 }: {
 	code: string;
 	nodeKey: string;
-	language: string;
+	defaultLanguage: string;
 	onCodeChange: (code: string) => void;
 	focus: boolean;
+	setDefaultLanguage: (language: string) => void;
 }) {
 	const [editor] = useLexicalComposerContext();
 	const codeMirrorRef = useRef<ReactCodeMirrorRef>(null);
 	const [prevLine, setPrevLine] = useState(1);
 	const [currentLine, setCurrentLine] = useState(1);
 	const [lineCount, setLineCount] = useState(1);
-	const [isSelected, setSelected, clearSelection] =
-		useLexicalNodeSelection(nodeKey);
+	const [isSelected, setSelected] = useLexicalNodeSelection(nodeKey);
 	const codeMirrorContainerRef = useRef<HTMLDivElement>(null);
+
+	const [language, setLanguage] = useState(defaultLanguage);
+
+	const isDarkModeOn = useAtomValue(darkModeAtom);
 
 	const chosenLanguage = useMemo(
 		() =>
@@ -132,7 +158,34 @@ export function Code({
 
 	return (
 		<div ref={codeMirrorContainerRef}>
-			{language}
+			{isSelected && (
+				<div className="flex justify-between items-center mb-1">
+					<Dropdown
+						buttonClassName="w-[7rem]"
+						controlledValueIndex={codeDropdownItems.findIndex(
+							({ value }) => value === language,
+						)}
+						variant="sm"
+						items={codeDropdownItems}
+						onChange={({ value }) => {
+							setLanguage(value);
+							setDefaultLanguage(value);
+						}}
+					/>
+
+					<MotionButton
+						onClick={() => {
+							editor.update(() => {
+								removeDecoratorNode(nodeKey);
+							});
+						}}
+						{...getDefaultButtonVariants()}
+					>
+						<Trash />
+					</MotionButton>
+				</div>
+			)}
+
 			<CodeMirror
 				ref={codeMirrorRef}
 				value={code}
@@ -155,7 +208,7 @@ export function Code({
 					onCodeChange(text);
 				}}
 				extensions={[chosenLanguage]}
-				theme={githubDark}
+				theme={isDarkModeOn ? githubDark : githubLight}
 			/>
 		</div>
 	);

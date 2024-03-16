@@ -7,7 +7,6 @@ import type {
 	Spread,
 } from "lexical";
 import { $applyNodeReplacement, $getNodeByKey, DecoratorNode } from "lexical";
-import { Suspense } from "react";
 import { Code } from "../../code";
 
 export interface CodePayload {
@@ -94,40 +93,10 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		writable.__code = code;
 	}
 
-	setLanguage(language: string): void {
-		const writable = this.getWritable();
-		writable.__language = language;
-	}
-
-	goToPreviousElement(
-		_editor: LexicalEditor,
-		foundPrevNodeCallback: () => void,
-	): void {
-		_editor.update(() => {
-			const node = $getNodeByKey(this.getKey());
-			if (node && $isCodeNode(node)) {
-				const prevNode = node.getPreviousSibling();
-				if (prevNode) {
-					prevNode.selectStart();
-					foundPrevNodeCallback();
-				}
-			}
-		});
-	}
-
-	goToNextElement(
-		_editor: LexicalEditor,
-		foundNextNodeCallback: () => void,
-	): void {
-		_editor.update(() => {
-			const node = $getNodeByKey(this.getKey());
-			if (node && $isCodeNode(node)) {
-				const nextNode = node.getNextSibling();
-				if (nextNode) {
-					nextNode.selectStart();
-					foundNextNodeCallback();
-				}
-			}
+	setLanguage(language: string, editor: LexicalEditor): void {
+		editor.update(() => {
+			const writable = this.getWritable();
+			writable.__language = language;
 		});
 	}
 
@@ -145,9 +114,12 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 			<Code
 				nodeKey={this.getKey()}
 				code={this.getCode()}
-				language={this.getLanguage()}
+				defaultLanguage={this.getLanguage()}
 				onCodeChange={(code: string) => this.onCodeChange(code, _editor)}
 				focus={this.__focus}
+				setDefaultLanguage={(language: string) =>
+					this.setLanguage(language, _editor)
+				}
 			/>
 		);
 	}

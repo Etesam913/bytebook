@@ -7,6 +7,11 @@ export default {
 				display: ["Bricolage Grotesque"],
 				code: ["Jetbrains Mono"],
 			},
+			colors: {
+				zinc: {
+					150: "rgb(236 236 236)",
+				},
+			},
 		},
 	},
 	plugins: [],

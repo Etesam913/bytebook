@@ -61,7 +61,10 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 			language: language as LanguageName,
 			focus: !isImport,
 		});
+		const nodeSelection = $createNodeSelection();
 		textNode.replace(codeNode);
+		nodeSelection.add(codeNode.getKey());
+		$setSelection(nodeSelection);
 	},
 	type: "element",
 };
@@ -98,8 +101,8 @@ const VIDEO_TRANSFORMER: ElementTransformer = {
 			src,
 		});
 		const nodeSelection = $createNodeSelection();
-		textNode.replace(videoNode);
 		nodeSelection.add(textNode.getKey());
+		textNode.replace(videoNode);
 		$setSelection(nodeSelection);
 	},
 	type: "element",

@@ -3,15 +3,34 @@ import { Toaster } from "sonner";
 import { Route } from "wouter";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { NotesSidebar } from "./routes/notes-sidebar";
+import { useEffect } from "react";
+import { useSetAtom } from "jotai";
+import { darkModeAtom } from "./atoms";
 
 function App() {
 	const folderSidebarWidth = useMotionValue(180);
 	const notesSidebarWidth = useMotionValue(180);
+	const setDarkMode = useSetAtom(darkModeAtom);
+
+	useEffect(() => {
+		window
+			.matchMedia("(prefers-color-scheme: dark)")
+			.addEventListener("change", (event) =>
+				event.matches ? setDarkMode(true) : setDarkMode(false),
+			);
+		return () => {
+			window
+				.matchMedia("(prefers-color-scheme: dark)")
+				.removeEventListener("change", (event) =>
+					event.matches ? setDarkMode(true) : setDarkMode(false),
+				);
+		};
+	}, [setDarkMode]);
 
 	return (
 		<main
 			id="App"
-			className="max-h-screen font-display bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 flex"
+			className="max-h-screen font-display text-zinc-950 dark:text-zinc-100 flex"
 		>
 			<Toaster richColors theme="system" />
 			<FolderSidebar width={folderSidebarWidth} />

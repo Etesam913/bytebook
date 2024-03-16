@@ -28,6 +28,7 @@ import {
 	handleToolbarTextFormattingClick,
 	overrideUpDownKeyCommand,
 } from "./utils";
+import { Dropdown } from "../dropdown";
 
 const LOW_PRIORITY = 1;
 
@@ -37,9 +38,21 @@ interface ToolbarProps {
 	disabled: boolean;
 }
 
+const blockTypesDropdownItems = [
+	{ label: "Header 1", value: "h1" },
+	{ label: "Header 2", value: "h2" },
+	{ label: "Header 3", value: "h3" },
+	{ label: "Paragraph", value: "paragraph" },
+	{ label: "Unordered List", value: "ul" },
+	{ label: "Ordered List", value: "ol" },
+	{ label: "Image", value: "img" },
+];
+
 export function Toolbar({ folder, note, disabled }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
-	const [currentBlockType, setCurrentBlockType] = useState<EditorBlockTypes>();
+
+	const [currentBlockType, setCurrentBlockType] =
+		useState<EditorBlockTypes>("paragraph");
 	const [currentSelectionFormat, setCurrentSelectionFormat] = useState<
 		TextFormatType[]
 	>([]);
@@ -124,22 +137,18 @@ export function Toolbar({ folder, note, disabled }: ToolbarProps) {
 				disabled && "pointer-events-none",
 			)}
 		>
-			<select
-				disabled={disabled}
-				onChange={(e) =>
-					changeSelectedBlocksType(editor, e.target.value, folder, note)
+			<Dropdown
+				controlledValueIndex={blockTypesDropdownItems.findIndex(
+					(v) => v.value === currentBlockType,
+				)}
+				onChange={({ value }) =>
+					changeSelectedBlocksType(editor, value, folder, note)
 				}
-				value={currentBlockType}
-				className="w-16"
-			>
-				<option value="h1">h1</option>
-				<option value="h2">h2</option>
-				<option value="h3">h3</option>
-				<option value="paragraph">paragraph</option>
-				<option value="ul">ul</option>
-				<option value="ol">ol</option>
-				<option value="img">Image</option>
-			</select>
+				items={blockTypesDropdownItems}
+				buttonClassName="w-[10rem]"
+				disabled={disabled}
+			/>
+
 			<motion.button
 				{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
 				disabled={disabled}

@@ -17,6 +17,7 @@ import {
 	useEffect,
 	useRef,
 	useState,
+	type RefObject,
 } from "react";
 import { EXPAND_CONTENT_COMMAND } from "../components/editor/plugins/image";
 import {
@@ -184,4 +185,34 @@ export function useResizeCommands(
 			),
 		);
 	}, [editor, nodeKey, isResizing, isExpanded]);
+}
+
+export function useOnClickOutside<T extends HTMLElement>(
+	ref: RefObject<T>,
+	handler: (event: MouseEvent | TouchEvent) => void,
+): void {
+	useEffect(
+		() => {
+			const listener = (event: MouseEvent | TouchEvent): void => {
+				// Do nothing if clicking ref's element or descendent elements
+				if (!ref.current || ref.current.contains(event.target as Node)) {
+					return;
+				}
+
+				handler(event);
+			};
+
+			// Add event listeners
+			document.addEventListener("mousedown", listener);
+			document.addEventListener("touchstart", listener);
+
+			// Remove event listeners on cleanup
+			return () => {
+				document.removeEventListener("mousedown", listener);
+				document.removeEventListener("touchstart", listener);
+			};
+		},
+		// Re-run if ref or handler changes
+		[ref, handler],
+	);
 }
