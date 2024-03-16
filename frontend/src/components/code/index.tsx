@@ -11,6 +11,8 @@ import {
 	CLICK_COMMAND,
 	COMMAND_PRIORITY_LOW,
 	KEY_ARROW_DOWN_COMMAND,
+	KEY_ARROW_LEFT_COMMAND,
+	KEY_ARROW_RIGHT_COMMAND,
 	KEY_ARROW_UP_COMMAND,
 	UNDO_COMMAND,
 } from "lexical";
@@ -62,7 +64,6 @@ export function Code({
 					console.log(prevLine, currentLine);
 					if (prevLine === 1 && currentLine === 1) {
 						codeMirrorRef.current?.view?.contentDOM.blur();
-						console.log("go up");
 						return arrowKeyDecoratorNodeCommand(e, nodeKey, true);
 					}
 					if (isSelected) return true;
@@ -74,7 +75,6 @@ export function Code({
 				KEY_ARROW_DOWN_COMMAND,
 				(e) => {
 					if (currentLine === lineCount && prevLine === lineCount) {
-						console.log("go down");
 						codeMirrorRef.current?.view?.contentDOM.blur();
 						return arrowKeyDecoratorNodeCommand(e, nodeKey, false);
 					}
@@ -101,8 +101,30 @@ export function Code({
 				},
 				COMMAND_PRIORITY_LOW,
 			),
+			editor.registerCommand<KeyboardEvent>(
+				KEY_ARROW_RIGHT_COMMAND,
+				() => {
+					return isSelected;
+				},
+				COMMAND_PRIORITY_LOW,
+			),
+			editor.registerCommand<KeyboardEvent>(
+				KEY_ARROW_LEFT_COMMAND,
+				() => {
+					return isSelected;
+				},
+				COMMAND_PRIORITY_LOW,
+			),
 		);
-	}, [editor, nodeKey, prevLine, currentLine, lineCount, isSelected]);
+	}, [
+		editor,
+		nodeKey,
+		prevLine,
+		currentLine,
+		lineCount,
+		isSelected,
+		setSelected,
+	]);
 
 	if (chosenLanguage === null) {
 		return <></>;

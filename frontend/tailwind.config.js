@@ -5,6 +5,7 @@ export default {
 		extend: {
 			fontFamily: {
 				display: ["Bricolage Grotesque"],
+				code: ["Jetbrains Mono"],
 			},
 		},
 	},

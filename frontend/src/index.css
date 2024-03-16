@@ -2,6 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url('./assets/fonts/BricolageGrotesque_24pt-Regular.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url('./assets/fonts/BricolageGrotesque_24pt-SemiBold.ttf');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Jetbrains Mono";
+  src: url('./assets/fonts/JetBrainsMono-Regular.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Jetbrains Mono";
+  src: url('./assets/fonts/JetBrainsMono-Bold.ttf');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Jetbrains Mono";
+  src: url('./assets/fonts/JetBrainsMono-Italic.ttf');
+  font-style: italic;
+}
+
+
 :root{
   @apply transition-colors duration-300 dark:[color-scheme:dark];
 }
@@ -22,8 +57,17 @@ h3{
   @apply bg-zinc-800 text-zinc-200 dark:text-zinc-900 dark:bg-zinc-200;
 }
 
+
 /** 
- * Lexical Editor Styles (Tailwind does not wok too well with)
+ * Code mirror styles
+ */
+ .cm-content {
+  font-family: 'Jetbrains Mono', monospace;
+  font-size: 14px;
+}
+
+/** 
+ * Lexical Editor Styles (Tailwind does not work too well with)
  */
 
 .root-ol{
