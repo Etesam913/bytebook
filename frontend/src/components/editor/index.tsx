@@ -37,12 +37,11 @@ export function NotesEditor({
 }: { params: { folder: string; note: string } }) {
 	const { folder, note } = params;
 	const editorRef = useRef<LexicalEditor | null | undefined>(null);
-	const [isToolbarDisabled, setIsToolbarDisabled] = useState(false);
 
 	return (
 		<div className="flex-1 min-w-0 flex flex-col">
 			<LexicalComposer initialConfig={editorConfig}>
-				<Toolbar disabled={isToolbarDisabled} folder={folder} note={note} />
+				<Toolbar folder={folder} note={note} />
 
 				<div
 					style={{ scrollbarGutter: "stable" }}
@@ -55,15 +54,11 @@ export function NotesEditor({
 					}}
 					onKeyDown={() => {}}
 				>
-					<NoteTitle
-						folder={folder}
-						note={note}
-						setIsToolbarDisabled={setIsToolbarDisabled}
-					/>
+					<NoteTitle folder={folder} note={note} />
 
 					<RichTextPlugin
 						placeholder={null}
-						contentEditable={<ContentEditable />}
+						contentEditable={<ContentEditable id="content-editable-editor" />}
 						ErrorBoundary={LexicalErrorBoundary}
 					/>
 					<OnChangePlugin

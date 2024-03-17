@@ -8,7 +8,7 @@ import {
 } from "@uiw/codemirror-extensions-langs";
 import { githubDark, githubLight } from "@uiw/codemirror-themes-all";
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
 	CLICK_COMMAND,
 	COMMAND_PRIORITY_LOW,
@@ -67,9 +67,7 @@ export function Code({
 	const [lineCount, setLineCount] = useState(1);
 	const [isSelected, setSelected] = useLexicalNodeSelection(nodeKey);
 	const codeMirrorContainerRef = useRef<HTMLDivElement>(null);
-
 	const [language, setLanguage] = useState(defaultLanguage);
-
 	const isDarkModeOn = useAtomValue(darkModeAtom);
 
 	const chosenLanguage = useMemo(
@@ -82,6 +80,9 @@ export function Code({
 
 	useEffect(() => {
 		if (isSelected) {
+			codeMirrorRef.current?.state?.update({
+				selection: { anchor: 0, head: 0 },
+			});
 			codeMirrorRef.current?.view?.contentDOM.focus();
 		}
 	}, [isSelected]);
@@ -91,7 +92,7 @@ export function Code({
 			editor.registerCommand<KeyboardEvent>(
 				KEY_ARROW_UP_COMMAND,
 				(e) => {
-					console.log(prevLine, currentLine);
+					console.log("ran");
 					if (prevLine === 1 && currentLine === 1) {
 						codeMirrorRef.current?.view?.contentDOM.blur();
 						return arrowKeyDecoratorNodeCommand(e, nodeKey, true);
@@ -106,10 +107,11 @@ export function Code({
 				(e) => {
 					if (currentLine === lineCount && prevLine === lineCount) {
 						codeMirrorRef.current?.view?.contentDOM.blur();
+						// Below fixes weird bug where going from code editor to image/video gave the <body> focus
+						document.getElementById("content-editable-editor")?.focus();
 						return arrowKeyDecoratorNodeCommand(e, nodeKey, false);
 					}
 					if (isSelected) return true;
-
 					return false;
 				},
 				COMMAND_PRIORITY_LOW,
@@ -161,7 +163,7 @@ export function Code({
 	}
 
 	return (
-		<div ref={codeMirrorContainerRef}>
+		<div ref={codeMirrorContainerRef} className=" bg-zinc-100 p-2 rounded-md">
 			{isSelected && (
 				<div className="flex justify-between items-center mb-1">
 					<Dropdown
@@ -176,54 +178,64 @@ export function Code({
 							setDefaultLanguage(value);
 						}}
 					/>
-
-					<MotionButton
-						className="px-1.5"
-						onClick={() => {
-							editor.update(() => {
-								removeDecoratorNode(nodeKey);
-							});
-						}}
-						{...getDefaultButtonVariants()}
-					>
-						<Trash />
-					</MotionButton>
 				</div>
 			)}
 
-			<CodeMirror
-				ref={codeMirrorRef}
-				value={code}
-				width="100%"
-				autoFocus={focus}
-				onKeyDown={(e) => {
-					if (e.key === "z" && (e.ctrlKey || e.metaKey)) {
-						editor.dispatchCommand(UNDO_COMMAND, undefined);
-					}
-				}}
-				onUpdate={(viewUpdate) => {
-					setPrevLine(currentLine);
-					setCurrentLine(
-						viewUpdate.state.doc.lineAt(viewUpdate.state.selection.main.head)
-							.number,
-					);
-					setLineCount(viewUpdate.state.doc.lines);
-				}}
-				onChange={(text) => {
-					onCodeChange(text);
-				}}
-				extensions={[chosenLanguage]}
-				theme={isDarkModeOn ? githubDark : githubLight}
-			/>
-			{isSelected && (
-				<MotionButton
-					onClick={() => RunCode(language, code).then((r) => console.log(r))}
-					className="mt-2 px-1.5"
-					{...getDefaultButtonVariants()}
-				>
-					<Play />
-				</MotionButton>
-			)}
+			<div className="flex gap-1 justify-between">
+				{isSelected && (
+					<div className="flex flex-col justify-between pt-1 pr-0.5">
+						<MotionButton
+							className="p-0 bg-transparent border-0"
+							onClick={() => {
+								editor.update(() => {
+									removeDecoratorNode(nodeKey);
+								});
+							}}
+							{...getDefaultButtonVariants()}
+						>
+							<Trash />
+						</MotionButton>
+
+						<MotionButton
+							onClick={() =>
+								RunCode(language, code).then((r) => console.log(r))
+							}
+							className="p-0 bg-transparent border-0"
+							{...getDefaultButtonVariants()}
+						>
+							<Play />
+						</MotionButton>
+					</div>
+				)}
+				<CodeMirror
+					ref={codeMirrorRef}
+					value={code}
+					style={{ flex: 1 }}
+					autoFocus={focus}
+					onKeyDown={(e) => {
+						if (e.key === "z" && (e.ctrlKey || e.metaKey)) {
+							editor.dispatchCommand(UNDO_COMMAND, undefined);
+						}
+					}}
+					basicSetup={{
+						lineNumbers: false,
+						foldGutter: false,
+					}}
+					onUpdate={(viewUpdate) => {
+						setPrevLine(currentLine);
+						setCurrentLine(
+							viewUpdate.state.doc.lineAt(viewUpdate.state.selection.main.head)
+								.number,
+						);
+						setLineCount(viewUpdate.state.doc.lines);
+					}}
+					onChange={(text) => {
+						onCodeChange(text);
+					}}
+					extensions={[chosenLanguage]}
+					theme={isDarkModeOn ? githubDark : githubLight}
+				/>
+			</div>
 		</div>
 	);
 }

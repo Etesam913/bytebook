@@ -5,11 +5,11 @@ import {
 	$insertNodes,
 	$isRootOrShadowRoot,
 	COMMAND_PRIORITY_EDITOR,
-	LexicalCommand,
+	type LexicalCommand,
 	createCommand,
 } from "lexical";
 import { useEffect } from "react";
-import { $createVideoNode, VideoNode, VideoPayload } from "../nodes/video";
+import { $createVideoNode, VideoNode, type VideoPayload } from "../nodes/video";
 
 export const INSERT_VIDEO_COMMAND: LexicalCommand<VideoPayload> = createCommand(
 	"INSERT_VIDEO_COMMAND",

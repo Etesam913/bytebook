@@ -5,6 +5,7 @@ import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import { motion } from "framer-motion";
 import {
 	$getSelection,
+	$isNodeSelection,
 	$isRangeSelection,
 	COMMAND_PRIORITY_EDITOR,
 	FORMAT_TEXT_COMMAND,
@@ -29,13 +30,14 @@ import {
 	handleToolbarTextFormattingClick,
 	overrideUpDownKeyCommand,
 } from "./utils";
+import { useAtom, useAtomValue } from "jotai";
+import { isToolbarDisabled } from "../../atoms";
 
 const LOW_PRIORITY = 1;
 
 interface ToolbarProps {
 	folder: string;
 	note: string;
-	disabled: boolean;
 }
 
 const blockTypesDropdownItems = [
@@ -48,9 +50,9 @@ const blockTypesDropdownItems = [
 	{ label: "Image", value: "img" },
 ];
 
-export function Toolbar({ folder, note, disabled }: ToolbarProps) {
+export function Toolbar({ folder, note }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
-
+	const [disabled, setDisabled] = useAtom(isToolbarDisabled);
 	const [currentBlockType, setCurrentBlockType] =
 		useState<EditorBlockTypes>("paragraph");
 	const [currentSelectionFormat, setCurrentSelectionFormat] = useState<
@@ -60,6 +62,7 @@ export function Toolbar({ folder, note, disabled }: ToolbarProps) {
 	function updateToolbar() {
 		const selection = $getSelection();
 		if ($isRangeSelection(selection)) {
+			setDisabled(false);
 			const anchorNode = selection.anchor.getNode();
 			const element =
 				anchorNode.getKey() === "root"
@@ -100,6 +103,8 @@ export function Toolbar({ folder, note, disabled }: ToolbarProps) {
 			else {
 				setCurrentBlockType(element.getType());
 			}
+		} else if ($isNodeSelection(selection)) {
+			setDisabled(true);
 		}
 	}
 

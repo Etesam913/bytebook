@@ -47,7 +47,9 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		});
 		return node;
 	}
-
+	isInline(): false {
+		return false;
+	}
 	constructor(code: string, language: string, focus: boolean, key?: NodeKey) {
 		super(key);
 		this.__code = code;

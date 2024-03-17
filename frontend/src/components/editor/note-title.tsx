@@ -12,22 +12,22 @@ import {
 } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { RenameNoteTitle } from "../../../wailsjs/go/main/App";
-import { notesAtom } from "../../atoms";
+import { isToolbarDisabled, notesAtom } from "../../atoms";
 import { cn, fileNameRegex } from "../../utils/string-formatting";
 
 export function NoteTitle({
 	note,
-	setIsToolbarDisabled,
 	folder,
 }: {
 	note: string;
-	setIsToolbarDisabled: Dispatch<SetStateAction<boolean>>;
 	folder: string;
 }) {
 	const [editor] = useLexicalComposerContext();
 	const [noteTitle, setNoteTitle] = useState(note);
 	const setNotes = useSetAtom(notesAtom);
 	const [errorText, setErrorText] = useState("");
+	const setIsToolbarDisabled = useSetAtom(isToolbarDisabled);
+
 	useEffect(() => {
 		setNoteTitle(note);
 		setErrorText("");

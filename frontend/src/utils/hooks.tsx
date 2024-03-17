@@ -2,6 +2,7 @@ import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection"
 import { mergeRegister } from "@lexical/utils";
 import { useSetAtom } from "jotai";
 import {
+	$getNodeByKey,
 	CLICK_COMMAND,
 	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
@@ -21,8 +22,8 @@ import {
 	useState,
 } from "react";
 import { darkModeAtom } from "../atoms";
-import { EXPAND_CONTENT_COMMAND } from "../components/editor/plugins/image";
 import {
+	EXPAND_CONTENT_COMMAND,
 	arrowKeyDecoratorNodeCommand,
 	backspaceKeyDecoratorNodeCommand,
 	enterKeyDecoratorNodeCommand,

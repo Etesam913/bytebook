@@ -7,8 +7,14 @@ import {
 	$isNodeSelection,
 	$isRangeSelection,
 	$setSelection,
+	createCommand,
+	type LexicalCommand,
 	type LexicalNode,
 } from "lexical";
+
+export const EXPAND_CONTENT_COMMAND: LexicalCommand<string> = createCommand(
+	"EXPAND_CONTENT_COMMAND",
+);
 
 function getFirstSiblingNode(
 	node: LexicalNode | undefined,
@@ -73,20 +79,20 @@ export function arrowKeyDecoratorNodeCommand(
 	if ($isNodeSelection(selection)) {
 		// If the current node is selected
 		if (selection.has(nodeKey)) {
+			e.preventDefault();
 			// Do e.preventDefault() so that the arrow key is not applied twice
 			const elementToSelect = up
 				? $getNodeByKey(nodeKey)?.getPreviousSibling()
 				: $getNodeByKey(nodeKey)?.getNextSibling();
-			console.log(elementToSelect);
+			console.log("element to select", elementToSelect);
 			// If the previous/next sibling is a decorator node, we need custom behavior
 			if ($isDecoratorNode(elementToSelect)) {
 				const newNodeSelection = $createNodeSelection();
 				newNodeSelection.add(elementToSelect.getKey());
 				$setSelection(newNodeSelection);
-				// true is returned to override any other events
 				return true;
 			}
-			e.preventDefault();
+
 			elementToSelect?.selectEnd();
 			// Otherwise we can let the browser handle the action
 			return false;

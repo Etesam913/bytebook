@@ -6,7 +6,7 @@ import {
 	type LexicalNode,
 } from "lexical";
 import type { Dispatch, SetStateAction } from "react";
-import { EXPAND_CONTENT_COMMAND } from "../editor/plugins/image";
+import { EXPAND_CONTENT_COMMAND } from "../../utils/commands";
 
 function getNearestSiblingNode(node: LexicalNode, isRight: boolean) {
 	let siblingNode: LexicalNode | null = isRight
