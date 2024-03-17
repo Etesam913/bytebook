@@ -1,3 +1,5 @@
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { first } from "cypress/types/lodash";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSetAtom } from "jotai";
 import { $getRoot, type LexicalEditor } from "lexical";
@@ -12,8 +14,6 @@ import { navigate } from "wouter/use-browser-location";
 import { RenameNoteTitle } from "../../../wailsjs/go/main/App";
 import { notesAtom } from "../../atoms";
 import { cn, fileNameRegex } from "../../utils/string-formatting";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { first } from "cypress/types/lodash";
 
 export function NoteTitle({
 	note,

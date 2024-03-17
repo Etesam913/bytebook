@@ -34,6 +34,10 @@ export function RenameNoteTitle(arg1, arg2, arg3) {
   return window['go']['main']['App']['RenameNoteTitle'](arg1, arg2, arg3);
 }
 
+export function RunCode(arg1, arg2) {
+  return window['go']['main']['App']['RunCode'](arg1, arg2);
+}
+
 export function SetNoteMarkdown(arg1, arg2, arg3) {
   return window['go']['main']['App']['SetNoteMarkdown'](arg1, arg2, arg3);
 }

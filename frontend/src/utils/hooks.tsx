@@ -1,5 +1,6 @@
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
+import { useSetAtom } from "jotai";
 import {
 	CLICK_COMMAND,
 	COMMAND_PRIORITY_HIGH,
@@ -13,12 +14,13 @@ import {
 } from "lexical";
 import {
 	type Dispatch,
+	type RefObject,
 	type SetStateAction,
 	useEffect,
 	useRef,
 	useState,
-	type RefObject,
 } from "react";
+import { darkModeAtom } from "../atoms";
 import { EXPAND_CONTENT_COMMAND } from "../components/editor/plugins/image";
 import {
 	arrowKeyDecoratorNodeCommand,
@@ -215,4 +217,25 @@ export function useOnClickOutside<T extends HTMLElement>(
 		// Re-run if ref or handler changes
 		[ref, handler],
 	);
+}
+
+export function useDarkModeSetting() {
+	const setDarkMode = useSetAtom(darkModeAtom);
+	useEffect(() => {
+		const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)");
+		setDarkMode(isDarkMode.matches);
+
+		window
+			.matchMedia("(prefers-color-scheme: dark)")
+			.addEventListener("change", (event) =>
+				event.matches ? setDarkMode(true) : setDarkMode(false),
+			);
+		return () => {
+			window
+				.matchMedia("(prefers-color-scheme: dark)")
+				.removeEventListener("change", (event) =>
+					event.matches ? setDarkMode(true) : setDarkMode(false),
+				);
+		};
+	}, [setDarkMode]);
 }

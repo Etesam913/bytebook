@@ -1,4 +1,5 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
 import {
 	type LanguageName,
@@ -7,6 +8,7 @@ import {
 } from "@uiw/codemirror-extensions-langs";
 import { githubDark, githubLight } from "@uiw/codemirror-themes-all";
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror";
+import { useAtomValue } from "jotai";
 import {
 	CLICK_COMMAND,
 	COMMAND_PRIORITY_LOW,
@@ -17,21 +19,23 @@ import {
 	UNDO_COMMAND,
 } from "lexical";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { darkModeAtom } from "../../atoms";
+import { Play } from "../../icons/circle-play";
+import { Trash } from "../../icons/trash";
 import {
 	arrowKeyDecoratorNodeCommand,
 	removeDecoratorNode,
 } from "../../utils/commands";
-import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
-import { Dropdown } from "../dropdown";
-import { MotionButton } from "../buttons";
-import { Trash } from "../../icons/trash";
 import { getDefaultButtonVariants } from "../../variants";
-import { useAtomValue } from "jotai";
-import { darkModeAtom } from "../../atoms";
-import { motion } from "framer-motion";
+import { MotionButton } from "../buttons";
+import { Dropdown } from "../dropdown";
+import { RunCode } from "../../../wailsjs/go/main/App";
 
 const codeDropdownItems = [
-	{ label: "Javascript", value: "javascript" },
+	{
+		label: "Javascript",
+		value: "javascript",
+	},
 	{ label: "Python", value: "python" },
 	{ label: "Java", value: "java" },
 	{ label: "C#", value: "c#" },
@@ -174,6 +178,7 @@ export function Code({
 					/>
 
 					<MotionButton
+						className="px-1.5"
 						onClick={() => {
 							editor.update(() => {
 								removeDecoratorNode(nodeKey);
@@ -210,6 +215,15 @@ export function Code({
 				extensions={[chosenLanguage]}
 				theme={isDarkModeOn ? githubDark : githubLight}
 			/>
+			{isSelected && (
+				<MotionButton
+					onClick={() => RunCode(language, code).then((r) => console.log(r))}
+					className="mt-2 px-1.5"
+					{...getDefaultButtonVariants()}
+				>
+					<Play />
+				</MotionButton>
+			)}
 		</div>
 	);
 }

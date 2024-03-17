@@ -11,3 +11,9 @@ type NoteMetadata struct {
 	Created string `json:"created"`
 	Updated string `json:"updated"`
 }
+
+type SuccessHandler struct {
+	Success         bool   `json:"success"`
+	Message         string `json:"message"`
+	InternalMessage string `json:"internalMessage"`
+}

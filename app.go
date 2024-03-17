@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/etesam913/bytebook/lib/code_snippet"
 	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
 	"github.com/etesam913/bytebook/lib/io_helpers"
@@ -105,4 +106,8 @@ func (a *App) SyncChangesWithRepo() git_helpers.GitReponse {
 
 func (a *App) RenameNoteTitle(folderName string, oldNoteTitle string, newNoteTitle string) error {
 	return project_helpers.RenameNote(a.projectPath, folderName, oldNoteTitle, newNoteTitle)
+}
+
+func (a *App) RunCode(language string, code string) project_types.SuccessHandler {
+	return code_snippet.RunCode(language, code, a.projectPath)
 }

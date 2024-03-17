@@ -1,8 +1,8 @@
-import { type ReactNode, useRef, useState, useEffect } from "react";
-import { ChevronDown } from "../../icons/chevron-down";
-import { cn } from "../../utils/string-formatting";
 import { AnimatePresence, motion } from "framer-motion";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import { ChevronDown } from "../../icons/chevron-down";
 import { useOnClickOutside } from "../../utils/hooks";
+import { cn } from "../../utils/string-formatting";
 
 type DropdownItem = {
 	value: string;

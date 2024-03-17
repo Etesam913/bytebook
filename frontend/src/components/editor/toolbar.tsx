@@ -21,6 +21,7 @@ import { TextUnderline } from "../../icons/text-underline";
 import type { EditorBlockTypes } from "../../types";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
+import { Dropdown } from "../dropdown";
 import { useNoteMarkdown } from "./hooks";
 import {
 	type TextFormats,
@@ -28,7 +29,6 @@ import {
 	handleToolbarTextFormattingClick,
 	overrideUpDownKeyCommand,
 } from "./utils";
-import { Dropdown } from "../dropdown";
 
 const LOW_PRIORITY = 1;
 
