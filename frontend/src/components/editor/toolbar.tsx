@@ -3,6 +3,7 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import { motion } from "framer-motion";
+import { useAtom, useAtomValue } from "jotai";
 import {
 	$getSelection,
 	$isNodeSelection,
@@ -15,6 +16,7 @@ import {
 	type TextFormatType,
 } from "lexical";
 import { useEffect, useState } from "react";
+import { isToolbarDisabled } from "../../atoms";
 import { TextBold } from "../../icons/text-bold";
 import { TextItalic } from "../../icons/text-italic";
 import { TextStrikethrough } from "../../icons/text-strikethrough";
@@ -30,8 +32,6 @@ import {
 	handleToolbarTextFormattingClick,
 	overrideUpDownKeyCommand,
 } from "./utils";
-import { useAtom, useAtomValue } from "jotai";
-import { isToolbarDisabled } from "../../atoms";
 
 const LOW_PRIORITY = 1;
 

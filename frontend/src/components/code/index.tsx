@@ -7,11 +7,16 @@ import {
 	loadLanguage,
 } from "@uiw/codemirror-extensions-langs";
 import { githubDark, githubLight } from "@uiw/codemirror-themes-all";
-import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror";
-import { useAtomValue, useSetAtom } from "jotai";
+import CodeMirror, {
+	type ViewUpdate,
+	type ReactCodeMirrorRef,
+} from "@uiw/react-codemirror";
+import { useAtomValue } from "jotai";
 import {
 	CLICK_COMMAND,
 	COMMAND_PRIORITY_LOW,
+	COPY_COMMAND,
+	CUT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
 	KEY_ARROW_LEFT_COMMAND,
 	KEY_ARROW_RIGHT_COMMAND,
@@ -19,6 +24,7 @@ import {
 	UNDO_COMMAND,
 } from "lexical";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { RunCode } from "../../../wailsjs/go/main/App";
 import { darkModeAtom } from "../../atoms";
 import { Play } from "../../icons/circle-play";
 import { Trash } from "../../icons/trash";
@@ -29,7 +35,6 @@ import {
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../buttons";
 import { Dropdown } from "../dropdown";
-import { RunCode } from "../../../wailsjs/go/main/App";
 
 const codeDropdownItems = [
 	{
@@ -61,12 +66,15 @@ export function Code({
 	setDefaultLanguage: (language: string) => void;
 }) {
 	const [editor] = useLexicalComposerContext();
-	const codeMirrorRef = useRef<ReactCodeMirrorRef>(null);
+
+	const codeMirrorContainerRef = useRef<HTMLDivElement>(null);
+	const codeMirrorRef = useRef<ReactCodeMirrorRef>();
+
 	const [prevLine, setPrevLine] = useState(1);
 	const [currentLine, setCurrentLine] = useState(1);
 	const [lineCount, setLineCount] = useState(1);
+
 	const [isSelected, setSelected] = useLexicalNodeSelection(nodeKey);
-	const codeMirrorContainerRef = useRef<HTMLDivElement>(null);
 	const [language, setLanguage] = useState(defaultLanguage);
 	const isDarkModeOn = useAtomValue(darkModeAtom);
 
@@ -78,11 +86,19 @@ export function Code({
 		[language],
 	);
 
+	function editorRefCallback(editor: ReactCodeMirrorRef) {
+		if (
+			!codeMirrorRef.current &&
+			editor?.editor &&
+			editor?.state &&
+			editor?.view
+		) {
+			codeMirrorRef.current = editor;
+		}
+	}
+
 	useEffect(() => {
 		if (isSelected) {
-			codeMirrorRef.current?.state?.update({
-				selection: { anchor: 0, head: 0 },
-			});
 			codeMirrorRef.current?.view?.contentDOM.focus();
 		}
 	}, [isSelected]);
@@ -147,6 +163,13 @@ export function Code({
 				},
 				COMMAND_PRIORITY_LOW,
 			),
+			editor.registerCommand<KeyboardEvent>(
+				CUT_COMMAND,
+				(e) => {
+					return isSelected;
+				},
+				COMMAND_PRIORITY_LOW,
+			),
 		);
 	}, [
 		editor,
@@ -163,7 +186,10 @@ export function Code({
 	}
 
 	return (
-		<div ref={codeMirrorContainerRef} className=" bg-zinc-100 p-2 rounded-md">
+		<div
+			ref={codeMirrorContainerRef}
+			className=" bg-zinc-100 dark:bg-zinc-900 p-2 rounded-md"
+		>
 			{isSelected && (
 				<div className="flex justify-between items-center mb-1">
 					<Dropdown
@@ -185,7 +211,7 @@ export function Code({
 				{isSelected && (
 					<div className="flex flex-col justify-between pt-1 pr-0.5">
 						<MotionButton
-							className="p-0 bg-transparent border-0"
+							className="p-0 !bg-transparent border-0"
 							onClick={() => {
 								editor.update(() => {
 									removeDecoratorNode(nodeKey);
@@ -200,7 +226,7 @@ export function Code({
 							onClick={() =>
 								RunCode(language, code).then((r) => console.log(r))
 							}
-							className="p-0 bg-transparent border-0"
+							className="p-0 !bg-transparent border-0"
 							{...getDefaultButtonVariants()}
 						>
 							<Play />
@@ -208,20 +234,16 @@ export function Code({
 					</div>
 				)}
 				<CodeMirror
-					ref={codeMirrorRef}
+					ref={editorRefCallback}
 					value={code}
 					style={{ flex: 1 }}
 					autoFocus={focus}
-					onKeyDown={(e) => {
-						if (e.key === "z" && (e.ctrlKey || e.metaKey)) {
-							editor.dispatchCommand(UNDO_COMMAND, undefined);
-						}
-					}}
+					onKeyDown={(e) => e.stopPropagation()}
 					basicSetup={{
 						lineNumbers: false,
 						foldGutter: false,
 					}}
-					onUpdate={(viewUpdate) => {
+					onUpdate={(viewUpdate: ViewUpdate) => {
 						setPrevLine(currentLine);
 						setCurrentLine(
 							viewUpdate.state.doc.lineAt(viewUpdate.state.selection.main.head)

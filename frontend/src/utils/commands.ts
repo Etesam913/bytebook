@@ -7,9 +7,9 @@ import {
 	$isNodeSelection,
 	$isRangeSelection,
 	$setSelection,
-	createCommand,
 	type LexicalCommand,
 	type LexicalNode,
+	createCommand,
 } from "lexical";
 
 export const EXPAND_CONTENT_COMMAND: LexicalCommand<string> = createCommand(
