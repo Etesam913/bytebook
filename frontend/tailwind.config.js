@@ -10,6 +10,7 @@ export default {
 			colors: {
 				zinc: {
 					150: "rgb(236 236 236)",
+					750: "rgb(53,53,59)",
 				},
 			},
 		},

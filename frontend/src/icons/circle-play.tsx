@@ -20,8 +20,8 @@
 // export default CirclePlay;
 
 export function Play({
-	width = "1.4rem",
-	height = "1.4rem",
+	width = "1.25rem",
+	height = "1.25rem",
 	fill = "currentColor",
 	secondaryfill = "currentColor",
 	title = "Play",

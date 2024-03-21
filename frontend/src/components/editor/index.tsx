@@ -10,7 +10,7 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import type { LexicalEditor } from "lexical";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { SetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { debounce } from "../../utils/draggable";
 import { editorConfig } from "./editor-config";
@@ -45,7 +45,7 @@ export function NotesEditor({
 
 				<div
 					style={{ scrollbarGutter: "stable" }}
-					className="py-2 pl-2 pr-[10px] h-[calc(100vh-38px)] overflow-y-auto"
+					className="p-2 h-[calc(100vh-38px)] overflow-y-auto"
 					onClick={(e) => {
 						const target = e.target as HTMLElement;
 						if (target.dataset.lexicalDecorator !== "true") {

@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { AddNoteToFolder } from "../../../wailsjs/go/main/App";
 import { MotionButton } from "../../components/buttons";

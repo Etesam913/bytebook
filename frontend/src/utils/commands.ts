@@ -145,7 +145,15 @@ export function escapeKeyDecoratorNodeCommand(nodeKey: string) {
 	if (isDecoratorNodeSelected(nodeKey)) {
 		const nodeElem = $getNodeByKey(nodeKey);
 		if (nodeElem) {
-			nodeElem.selectNext(0, 0);
+			const nextElem = nodeElem.getNextSibling();
+			console.log(nextElem);
+			if ($isDecoratorNode(nextElem)) {
+				const nodeSelection = $createNodeSelection();
+				nodeSelection.add(nextElem.getKey());
+				$setSelection(nodeSelection);
+			} else {
+				nodeElem.selectNext(0, 0);
+			}
 		}
 	}
 	return false;

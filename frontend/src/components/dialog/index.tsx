@@ -49,6 +49,7 @@ export function Dialog({
 		<div
 			ref={modalRef}
 			onKeyDown={(e) => e.key === "Escape" && setIsOpen(false)}
+			onClick={(e) => e.stopPropagation()}
 			// biome-ignore lint/a11y/noNoninteractiveTabindex: we want trapped focus for dialogs
 			tabIndex={0}
 		>
@@ -58,7 +59,7 @@ export function Dialog({
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
-						className="fixed z-10 w-screen h-screen bg-[rgba(0,0,0,0.5)]"
+						className="fixed z-10 left-0 top-0 w-screen h-screen bg-[rgba(0,0,0,0.5)]"
 					/>
 					<motion.div
 						initial={{ opacity: 0, scale: 0.5, x: "-50%", y: "-50%" }}

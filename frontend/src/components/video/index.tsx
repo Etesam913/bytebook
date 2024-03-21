@@ -34,6 +34,7 @@ export function Video({
 		isExpanded,
 		setIsExpanded,
 		isResizing,
+		isSelected,
 		nodeKey,
 		setSelected,
 		clearSelection,

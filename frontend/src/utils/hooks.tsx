@@ -84,6 +84,7 @@ export function useResizeCommands(
 	editor: LexicalEditor,
 	isExpanded: boolean,
 	setIsExpanded: Dispatch<SetStateAction<boolean>>,
+	isSelected: boolean,
 	isResizing: boolean,
 	nodeKey: string,
 	setSelected: (arg0: boolean) => void,
@@ -103,7 +104,7 @@ export function useResizeCommands(
 					e.stopPropagation();
 					return true;
 				},
-				isExpanded ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
+				isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
 			),
 			editor.registerCommand<KeyboardEvent>(
 				KEY_ARROW_DOWN_COMMAND,
@@ -115,7 +116,7 @@ export function useResizeCommands(
 					e.stopPropagation();
 					return true;
 				},
-				isExpanded ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
+				isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
 			),
 			editor.registerCommand<MouseEvent>(
 				CLICK_COMMAND,
@@ -133,19 +134,19 @@ export function useResizeCommands(
 					e.stopPropagation();
 					return true;
 				},
-				isExpanded ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
+				isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
 			),
 			editor.registerCommand<KeyboardEvent>(
 				KEY_ESCAPE_COMMAND,
 				(e) => {
+					e.preventDefault();
+					e.stopPropagation();
 					if (!isExpanded) {
 						return escapeKeyDecoratorNodeCommand(nodeKey);
 					}
-					e.preventDefault();
-					e.stopPropagation();
 					return true;
 				},
-				isExpanded ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
+				isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
 			),
 			editor.registerCommand<KeyboardEvent>(
 				KEY_ENTER_COMMAND,
@@ -157,7 +158,7 @@ export function useResizeCommands(
 					e.stopPropagation();
 					return true;
 				},
-				isExpanded ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
+				isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
 			),
 			editor.registerCommand<KeyboardEvent>(
 				KEY_BACKSPACE_COMMAND,
@@ -169,7 +170,7 @@ export function useResizeCommands(
 					e.stopPropagation();
 					return true;
 				},
-				isExpanded ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
+				isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
 			),
 			editor.registerCommand<string>(
 				EXPAND_CONTENT_COMMAND,

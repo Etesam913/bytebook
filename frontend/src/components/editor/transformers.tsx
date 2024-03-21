@@ -57,7 +57,7 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 	replace: (textNode, _1, match, isImport) => {
 		const [_2, language] = match;
 		const codeNode = $createCodeNode({
-			code: "",
+			code: "\n\n",
 			language: language as LanguageName,
 			focus: !isImport,
 		});

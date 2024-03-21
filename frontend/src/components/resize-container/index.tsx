@@ -82,8 +82,8 @@ export function ResizeContainer({
 					if (isExpanded) e.stopPropagation();
 				}}
 				className={cn(
-					"bg-black relative max-w-full min-w-40 cursor-auto outline-4 outline-transparent outline rounded-sm flex justify-center",
-					isSelected && !isExpanded && "outline-blue-400",
+					"relative max-w-full min-w-40 cursor-auto border-4 border-transparent border-solid  rounded-sm flex justify-center",
+					isSelected && !isExpanded && "border-blue-400",
 					isResizing && "opacity-50",
 					isExpanded &&
 						"max-h-screen fixed top-0 left-0 right-0 bottom-0 z-50 m-auto justify-start overflow-auto",
@@ -94,7 +94,7 @@ export function ResizeContainer({
 							? "100%"
 							: widthMotionValue
 						: "100%",
-					transition: "border-color 0.2s ease-in-out, opacity 0.2s ease-in-out",
+					transition: "outline 0.2s ease-in-out, opacity 0.2s ease-in-out",
 				}}
 			>
 				<AnimatePresence>
@@ -145,6 +145,7 @@ export function ResizeContainer({
 							<motion.div
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
+								exit={{ opacity: 0, transition: { duration: 0.25 } }}
 								className={
 									"w-4 h-4 bg-blue-400 bottom-[-10px] right-[-9px] absolute cursor-nwse-resize rounded-sm"
 								}

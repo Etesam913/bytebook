@@ -32,17 +32,18 @@ export function Image({
 		isExpanded,
 		setIsExpanded,
 		isResizing,
+		isSelected,
 		nodeKey,
 		setSelected,
 		clearSelection,
 		imgRef,
 	);
 
-	useEffect(() => {
-		if (isSelected) {
-			imgRef.current?.scrollIntoView({ block: "start" });
-		}
-	}, [isSelected]);
+	// useEffect(() => {
+	// 	if (isSelected) {
+	// 		imgRef.current?.scrollIntoView({ block: "start" });
+	// 	}
+	// }, [isSelected]);
 
 	return (
 		<div className="w-full">

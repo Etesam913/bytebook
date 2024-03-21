@@ -6,22 +6,16 @@ import {
 	langNames,
 	loadLanguage,
 } from "@uiw/codemirror-extensions-langs";
-import { githubDark, githubLight } from "@uiw/codemirror-themes-all";
-import CodeMirror, {
-	type ViewUpdate,
-	type ReactCodeMirrorRef,
-} from "@uiw/react-codemirror";
+import { basicDark, githubLight } from "@uiw/codemirror-themes-all";
+import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { useAtomValue } from "jotai";
 import {
 	CLICK_COMMAND,
 	COMMAND_PRIORITY_LOW,
-	COPY_COMMAND,
 	CUT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
-	KEY_ARROW_LEFT_COMMAND,
-	KEY_ARROW_RIGHT_COMMAND,
 	KEY_ARROW_UP_COMMAND,
-	UNDO_COMMAND,
+	KEY_ESCAPE_COMMAND,
 } from "lexical";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { RunCode } from "../../../wailsjs/go/main/App";
@@ -30,25 +24,16 @@ import { Play } from "../../icons/circle-play";
 import { Trash } from "../../icons/trash";
 import {
 	arrowKeyDecoratorNodeCommand,
+	escapeKeyDecoratorNodeCommand,
 	removeDecoratorNode,
 } from "../../utils/commands";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../buttons";
 import { Dropdown } from "../dropdown";
-
-const codeDropdownItems = [
-	{
-		label: "Javascript",
-		value: "javascript",
-	},
-	{ label: "Python", value: "python" },
-	{ label: "Java", value: "java" },
-	{ label: "C#", value: "c#" },
-	{ label: "C++", value: "c++" },
-	{ label: "C", value: "c" },
-	{ label: "SQL", value: "sql" },
-	{ label: "Go", value: "go" },
-];
+import { codeDropdownItems } from "../../utils/code";
+import { BracketsSquareDots } from "../../icons/brackets-square-dots";
+import { CodeDialog } from "./code-dialog";
+import { AnimatePresence } from "framer-motion";
 
 export function Code({
 	code,
@@ -69,20 +54,18 @@ export function Code({
 
 	const codeMirrorContainerRef = useRef<HTMLDivElement>(null);
 	const codeMirrorRef = useRef<ReactCodeMirrorRef>();
-
-	const [prevLine, setPrevLine] = useState(1);
-	const [currentLine, setCurrentLine] = useState(1);
-	const [lineCount, setLineCount] = useState(1);
-
-	const [isSelected, setSelected] = useLexicalNodeSelection(nodeKey);
+	const [runCommand, setRunCommand] = useState("node");
+	const [isSelected, setSelected, clearSelection] =
+		useLexicalNodeSelection(nodeKey);
 	const [language, setLanguage] = useState(defaultLanguage);
 	const isDarkModeOn = useAtomValue(darkModeAtom);
+	const [isCodeSettingsOpen, setIsCodeSettingsOpen] = useState(false);
 
 	const chosenLanguage = useMemo(
 		() =>
 			langNames.includes(language as LanguageName)
 				? loadLanguage(language as LanguageName)
-				: loadLanguage("python"),
+				: null,
 		[language],
 	);
 
@@ -108,27 +91,14 @@ export function Code({
 			editor.registerCommand<KeyboardEvent>(
 				KEY_ARROW_UP_COMMAND,
 				(e) => {
-					console.log("ran");
-					if (prevLine === 1 && currentLine === 1) {
-						codeMirrorRef.current?.view?.contentDOM.blur();
-						return arrowKeyDecoratorNodeCommand(e, nodeKey, true);
-					}
-					if (isSelected) return true;
-					return false;
+					return arrowKeyDecoratorNodeCommand(e, nodeKey, true);
 				},
 				COMMAND_PRIORITY_LOW,
 			),
 			editor.registerCommand<KeyboardEvent>(
 				KEY_ARROW_DOWN_COMMAND,
 				(e) => {
-					if (currentLine === lineCount && prevLine === lineCount) {
-						codeMirrorRef.current?.view?.contentDOM.blur();
-						// Below fixes weird bug where going from code editor to image/video gave the <body> focus
-						document.getElementById("content-editable-editor")?.focus();
-						return arrowKeyDecoratorNodeCommand(e, nodeKey, false);
-					}
-					if (isSelected) return true;
-					return false;
+					return arrowKeyDecoratorNodeCommand(e, nodeKey, false);
 				},
 				COMMAND_PRIORITY_LOW,
 			),
@@ -142,24 +112,11 @@ export function Code({
 						codeMirrorContainer &&
 						codeMirrorContainer.contains(clickedElem)
 					) {
+						clearSelection();
 						setSelected(true);
 						return true;
 					}
 					return false;
-				},
-				COMMAND_PRIORITY_LOW,
-			),
-			editor.registerCommand<KeyboardEvent>(
-				KEY_ARROW_RIGHT_COMMAND,
-				() => {
-					return isSelected;
-				},
-				COMMAND_PRIORITY_LOW,
-			),
-			editor.registerCommand<KeyboardEvent>(
-				KEY_ARROW_LEFT_COMMAND,
-				() => {
-					return isSelected;
 				},
 				COMMAND_PRIORITY_LOW,
 			),
@@ -170,94 +127,104 @@ export function Code({
 				},
 				COMMAND_PRIORITY_LOW,
 			),
+			editor.registerCommand<KeyboardEvent>(
+				KEY_ESCAPE_COMMAND,
+				(e) => {
+					codeMirrorRef.current?.view?.contentDOM.blur();
+					return escapeKeyDecoratorNodeCommand(nodeKey);
+				},
+				COMMAND_PRIORITY_LOW,
+			),
 		);
-	}, [
-		editor,
-		nodeKey,
-		prevLine,
-		currentLine,
-		lineCount,
-		isSelected,
-		setSelected,
-	]);
+	}, [editor, nodeKey, isSelected, setSelected, clearSelection]);
 
 	if (chosenLanguage === null) {
 		return <></>;
 	}
 
 	return (
-		<div
-			ref={codeMirrorContainerRef}
-			className=" bg-zinc-100 dark:bg-zinc-900 p-2 rounded-md"
-		>
-			{isSelected && (
-				<div className="flex justify-between items-center mb-1">
-					<Dropdown
-						buttonClassName="w-[7rem]"
-						controlledValueIndex={codeDropdownItems.findIndex(
-							({ value }) => value === language,
-						)}
-						variant="sm"
-						items={codeDropdownItems}
-						onChange={({ value }) => {
-							setLanguage(value);
-							setDefaultLanguage(value);
-						}}
+		<>
+			<AnimatePresence>
+				{isCodeSettingsOpen && (
+					<CodeDialog
+						isCodeSettingsOpen={isCodeSettingsOpen}
+						setIsCodeSettingsOpen={setIsCodeSettingsOpen}
 					/>
-				</div>
-			)}
-
-			<div className="flex gap-1 justify-between">
+				)}
+			</AnimatePresence>
+			<div
+				ref={codeMirrorContainerRef}
+				className=" bg-zinc-50 dark:bg-zinc-750 border-[1.25px] border-zinc-300 dark:border-zinc-600 p-2 rounded-md flex flex-col gap-2 my-2"
+			>
 				{isSelected && (
-					<div className="flex flex-col justify-between pt-1 pr-0.5">
-						<MotionButton
-							className="p-0 !bg-transparent border-0"
-							onClick={() => {
-								editor.update(() => {
-									removeDecoratorNode(nodeKey);
-								});
-							}}
-							{...getDefaultButtonVariants()}
-						>
-							<Trash />
-						</MotionButton>
-
-						<MotionButton
-							onClick={() =>
-								RunCode(language, code).then((r) => console.log(r))
-							}
-							className="p-0 !bg-transparent border-0"
-							{...getDefaultButtonVariants()}
-						>
-							<Play />
-						</MotionButton>
+					<div className="flex justify-between items-center flex-wrap-reverse gap-2">
+						<span className="flex gap-2">
+							<MotionButton
+								{...getDefaultButtonVariants()}
+								onClick={() =>
+									RunCode(language, code).then((r) => console.log(r))
+								}
+							>
+								<Play />
+							</MotionButton>
+							<Dropdown
+								className="w-36"
+								buttonClassName="w-full"
+								controlledValueIndex={codeDropdownItems.findIndex(
+									({ value }) => value === language,
+								)}
+								variant="sm"
+								items={codeDropdownItems}
+								onChange={({ value }) => {
+									setLanguage(value);
+									setDefaultLanguage(value);
+								}}
+							/>
+						</span>
+						<span className="flex gap-2">
+							<MotionButton
+								{...getDefaultButtonVariants()}
+								onClick={() => setIsCodeSettingsOpen(true)}
+							>
+								<BracketsSquareDots />
+							</MotionButton>
+							<MotionButton
+								{...getDefaultButtonVariants()}
+								onClick={() => {
+									editor.update(() => {
+										removeDecoratorNode(nodeKey);
+									});
+								}}
+							>
+								<Trash />
+							</MotionButton>
+						</span>
 					</div>
 				)}
+
 				<CodeMirror
 					ref={editorRefCallback}
 					value={code}
-					style={{ flex: 1 }}
+					style={{ flex: 1, borderRadius: "0.5rem", overflow: "hidden" }}
 					autoFocus={focus}
-					onKeyDown={(e) => e.stopPropagation()}
+					onKeyDown={(e) => {
+						if (e.key !== "Escape") {
+							e.stopPropagation();
+						} else {
+							e.preventDefault();
+						}
+					}}
 					basicSetup={{
 						lineNumbers: false,
 						foldGutter: false,
-					}}
-					onUpdate={(viewUpdate: ViewUpdate) => {
-						setPrevLine(currentLine);
-						setCurrentLine(
-							viewUpdate.state.doc.lineAt(viewUpdate.state.selection.main.head)
-								.number,
-						);
-						setLineCount(viewUpdate.state.doc.lines);
 					}}
 					onChange={(text) => {
 						onCodeChange(text);
 					}}
 					extensions={[chosenLanguage]}
-					theme={isDarkModeOn ? githubDark : githubLight}
+					theme={isDarkModeOn ? basicDark : githubLight}
 				/>
 			</div>
-		</div>
+		</>
 	);
 }
