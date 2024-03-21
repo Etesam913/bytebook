@@ -7,25 +7,34 @@ import { FloppyDisk } from "../../icons/floppy-disk";
 export function CodeDialog({
 	isCodeSettingsOpen,
 	setIsCodeSettingsOpen,
+	command,
+	setCommand,
+	writeCommandToNode,
 }: {
 	isCodeSettingsOpen: boolean;
 	setIsCodeSettingsOpen: Dispatch<SetStateAction<boolean>>;
+	command: string;
+	setCommand: Dispatch<SetStateAction<string>>;
+	writeCommandToNode: (command: string) => void;
 }) {
 	const [errorText, setErrorText] = useState("");
+	const [curCommand, setCurCommand] = useState(command);
 
 	return (
 		<Dialog
 			handleSubmit={(e) => {
 				const formData = new FormData(e.target as HTMLFormElement);
 				const runCommand = formData.get("run-command");
-				console.log(runCommand);
+
 				if (runCommand && typeof runCommand === "string") {
 					if (runCommand.trim().length === 0) {
-						console.log("deez");
 						setErrorText("Run command cannot be empty");
 						return;
 					}
 					setErrorText("");
+					setIsCodeSettingsOpen(false);
+					setCommand(runCommand);
+					writeCommandToNode(runCommand);
 				}
 			}}
 			title="Code Block Settings"
@@ -38,14 +47,20 @@ export function CodeDialog({
 				</label>
 				<input
 					name="run-command"
-					defaultValue="node"
 					placeholder="node"
 					maxLength={200}
 					className="py-1 px-2 rounded-sm border-[1px] border-zinc-300 dark:border-zinc-700 focus:outline-none focus:border-zinc-500 dark:focus:border-zinc-500 transition-colors w-full font-code"
 					id="run-command"
 					type="text"
+					value={curCommand}
+					onKeyDown={(e) => e.stopPropagation()}
+					onChange={(e) => {
+						setCurCommand(e.target.value);
+					}}
 				/>
-
+				<p className=" text-sm text-zinc-400">
+					{curCommand} &#123;fileName&#125;
+				</p>
 				<section className="w-full px-[0.5rem] mt-4 flex flex-col gap-1 ">
 					<ErrorText errorText={errorText} />
 					<MotionButton

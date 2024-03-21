@@ -8,11 +8,13 @@ import type {
 } from "lexical";
 import { $applyNodeReplacement, $getNodeByKey, DecoratorNode } from "lexical";
 import { Code } from "../../code";
+import { languageToCommandMap } from "../../../utils/code";
 
 export interface CodePayload {
 	key?: NodeKey;
 	language: string;
 	code: string;
+	command?: string;
 	focus: boolean;
 }
 
@@ -21,6 +23,7 @@ export type SerializedCodeNode = Spread<
 		code: string;
 		language: string;
 		focus: boolean;
+		command: string;
 	},
 	SerializedLexicalNode
 >;
@@ -29,7 +32,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	__code: string;
 	__language: string;
 	__focus = false;
-
+	__command = "";
 	static getType(): string {
 		return "code-block";
 	}
@@ -39,11 +42,12 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static importJSON(serializedNode: SerializedCodeNode): CodeNode {
-		const { code, language, focus } = serializedNode;
+		const { code, language, focus, command } = serializedNode;
 		const node = $createCodeNode({
 			code,
 			language,
 			focus,
+			command,
 		});
 		return node;
 	}
@@ -54,15 +58,26 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 
 	constructor(code: string, language: string, focus: boolean, key?: NodeKey) {
 		super(key);
+		// The actual code to run
 		this.__code = code;
+
+		// The language of the code
 		this.__language = language;
+
+		// Used to focus the code block when it is created using markdown
 		this.__focus = focus;
+
+		this.__command =
+			language in languageToCommandMap
+				? languageToCommandMap[language]
+				: "node";
 	}
 
 	exportJSON(): SerializedCodeNode {
 		return {
 			code: this.getCode(),
 			language: this.getLanguage(),
+			command: this.getCommand(),
 			focus: false,
 			type: "code-block",
 			version: 1,
@@ -92,6 +107,10 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		return this.__language;
 	}
 
+	getCommand(): string {
+		return this.__command;
+	}
+
 	setCode(code: string): void {
 		const writable = this.getWritable();
 		writable.__code = code;
@@ -101,6 +120,13 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		editor.update(() => {
 			const writable = this.getWritable();
 			writable.__language = language;
+		});
+	}
+
+	setCommand(command: string, editor: LexicalEditor): void {
+		editor.update(() => {
+			const writable = this.getWritable();
+			writable.__command = command;
 		});
 	}
 
@@ -118,11 +144,15 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 			<Code
 				nodeKey={this.getKey()}
 				code={this.getCode()}
-				defaultLanguage={this.getLanguage()}
+				languageWrittenToNode={this.getLanguage()}
+				commandWrittenToNode={this.getCommand()}
 				onCodeChange={(code: string) => this.onCodeChange(code, _editor)}
 				focus={this.__focus}
-				setDefaultLanguage={(language: string) =>
+				writeLanguageToNode={(language: string) =>
 					this.setLanguage(language, _editor)
+				}
+				writeCommandToNode={(command: string) =>
+					this.setCommand(command, _editor)
 				}
 			/>
 		);

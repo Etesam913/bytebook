@@ -30,43 +30,54 @@ import {
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../buttons";
 import { Dropdown } from "../dropdown";
-import { codeDropdownItems } from "../../utils/code";
+import { codeDropdownItems, languageToCommandMap } from "../../utils/code";
 import { BracketsSquareDots } from "../../icons/brackets-square-dots";
 import { CodeDialog } from "./code-dialog";
 import { AnimatePresence } from "framer-motion";
+import { Loader } from "../../icons/loader";
 
 export function Code({
 	code,
 	nodeKey,
-	defaultLanguage,
+	languageWrittenToNode,
+	writeLanguageToNode,
+	commandWrittenToNode,
+	writeCommandToNode,
 	onCodeChange,
 	focus,
-	setDefaultLanguage,
 }: {
 	code: string;
 	nodeKey: string;
-	defaultLanguage: string;
-	onCodeChange: (code: string) => void;
+	languageWrittenToNode: string;
+	commandWrittenToNode: string;
 	focus: boolean;
-	setDefaultLanguage: (language: string) => void;
+	onCodeChange: (code: string) => void;
+	writeCommandToNode: (language: string) => void;
+	writeLanguageToNode: (language: string) => void;
 }) {
 	const [editor] = useLexicalComposerContext();
 
 	const codeMirrorContainerRef = useRef<HTMLDivElement>(null);
 	const codeMirrorRef = useRef<ReactCodeMirrorRef>();
-	const [runCommand, setRunCommand] = useState("node");
 	const [isSelected, setSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
-	const [language, setLanguage] = useState(defaultLanguage);
+	const [language, setLanguage] = useState(languageWrittenToNode);
+	const [command, setCommand] = useState(commandWrittenToNode);
 	const isDarkModeOn = useAtomValue(darkModeAtom);
 	const [isCodeSettingsOpen, setIsCodeSettingsOpen] = useState(false);
 
+	const [isCodeRunning, setIsCodeRunning] = useState(false);
+	const [codeResult, setCodeResult] = useState<{
+		message: string;
+		success: boolean;
+	}>();
+
 	const chosenLanguage = useMemo(
 		() =>
-			langNames.includes(language as LanguageName)
-				? loadLanguage(language as LanguageName)
+			langNames.includes(languageWrittenToNode as LanguageName)
+				? loadLanguage(languageWrittenToNode as LanguageName)
 				: null,
-		[language],
+		[languageWrittenToNode],
 	);
 
 	function editorRefCallback(editor: ReactCodeMirrorRef) {
@@ -149,23 +160,32 @@ export function Code({
 					<CodeDialog
 						isCodeSettingsOpen={isCodeSettingsOpen}
 						setIsCodeSettingsOpen={setIsCodeSettingsOpen}
+						command={command}
+						setCommand={setCommand}
+						writeCommandToNode={writeCommandToNode}
 					/>
 				)}
 			</AnimatePresence>
 			<div
 				ref={codeMirrorContainerRef}
-				className=" bg-zinc-50 dark:bg-zinc-750 border-[1.25px] border-zinc-300 dark:border-zinc-600 p-2 rounded-md flex flex-col gap-2 my-2"
+				className="bg-zinc-50 dark:bg-zinc-750 border-[1.25px] border-zinc-300 dark:border-zinc-600 p-2 rounded-md flex flex-col gap-2 my-2"
 			>
 				{isSelected && (
 					<div className="flex justify-between items-center flex-wrap-reverse gap-2">
 						<span className="flex gap-2">
 							<MotionButton
 								{...getDefaultButtonVariants()}
-								onClick={() =>
-									RunCode(language, code).then((r) => console.log(r))
-								}
+								disabled={isCodeRunning}
+								onClick={(e) => {
+									e.stopPropagation();
+									setIsCodeRunning(true);
+									RunCode(languageWrittenToNode, code).then((r) => {
+										setCodeResult(r);
+										setIsCodeRunning(false);
+									});
+								}}
 							>
-								<Play />
+								{isCodeRunning ? <Loader /> : <Play />}
 							</MotionButton>
 							<Dropdown
 								className="w-36"
@@ -176,8 +196,14 @@ export function Code({
 								variant="sm"
 								items={codeDropdownItems}
 								onChange={({ value }) => {
+									writeLanguageToNode(value);
 									setLanguage(value);
-									setDefaultLanguage(value);
+									const newCommand =
+										value in languageToCommandMap
+											? languageToCommandMap[value]
+											: "node";
+									setCommand(newCommand);
+									writeCommandToNode(newCommand);
 								}}
 							/>
 						</span>
@@ -224,6 +250,12 @@ export function Code({
 					extensions={[chosenLanguage]}
 					theme={isDarkModeOn ? basicDark : githubLight}
 				/>
+
+				{codeResult && (
+					<div className="w-full bg-zinc-900 px-3 py-2 rounded-md font-code text-sm">
+						{codeResult.message}
+					</div>
+				)}
 			</div>
 		</>
 	);

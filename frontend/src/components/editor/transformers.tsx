@@ -22,6 +22,7 @@ import {
 import type { LanguageName } from "@uiw/codemirror-extensions-langs";
 import {
 	$createNodeSelection,
+	$createTextNode,
 	$setSelection,
 	type ElementNode,
 	type LexicalNode,
@@ -30,6 +31,7 @@ import { $createCodeNode, $isCodeNode, CodeNode } from "./nodes/code";
 import { $createImageNode, $isImageNode, ImageNode } from "./nodes/image";
 import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
 import type { Transformer } from "./utils";
+import { codeLanguages } from "../../utils/code";
 
 const createBlockNode = (
 	createNode: (match: Array<string>) => ElementNode,
@@ -56,6 +58,10 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 	regExp: /^```(\w{1,10})?\s/,
 	replace: (textNode, _1, match, isImport) => {
 		const [_2, language] = match;
+		if (!language || !codeLanguages.has(language)) {
+			return;
+		}
+
 		const codeNode = $createCodeNode({
 			code: "\n\n",
 			language: language as LanguageName,
