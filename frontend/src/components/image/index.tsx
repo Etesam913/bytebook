@@ -1,17 +1,20 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
+import { ResizeWidth } from "../editor/nodes/image";
 import { ResizeContainer } from "../resize-container";
 
 export function Image({
 	src,
-	width,
-	height,
+	alt,
+	widthWrittenToNode,
+	writeWidthToNode,
 	nodeKey,
 }: {
 	src: string;
-	width: number | "inherit";
-	height: number | "inherit";
+	alt: string;
+	widthWrittenToNode: ResizeWidth;
+	writeWidthToNode: (width: ResizeWidth) => void;
 	nodeKey: string;
 }) {
 	const imgRef = useRef<HTMLImageElement>(null);
@@ -39,6 +42,9 @@ export function Image({
 		imgRef,
 	);
 
+	console.log(widthWrittenToNode);
+
+	// TODO: Add scroll into view only when expanded
 	// useEffect(() => {
 	// 	if (isSelected) {
 	// 		imgRef.current?.scrollIntoView({ block: "start" });
@@ -56,6 +62,8 @@ export function Image({
 				editor={editor}
 				isExpanded={isExpanded}
 				setIsExpanded={setIsExpanded}
+				defaultWidth={widthWrittenToNode}
+				writeWidthToNode={writeWidthToNode}
 			>
 				<img
 					onClick={() => {
@@ -64,7 +72,7 @@ export function Image({
 					}}
 					src={src}
 					ref={imgRef}
-					alt={"bob"}
+					alt={alt}
 					draggable={false}
 					className="w-full h-auto my-auto scroll-m-10"
 					data-lexical-decorator="true"

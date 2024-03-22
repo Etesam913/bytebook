@@ -56,13 +56,12 @@ export function onClickDecoratorNodeCommand(
 	}
 
 	if (e.target === node) {
-		console.log(node, " clicked");
 		clearSelection();
 		setSelected(true);
 		e.preventDefault();
 		return true;
 	}
-	setSelected(false);
+	// setSelected(false);
 	return false;
 }
 

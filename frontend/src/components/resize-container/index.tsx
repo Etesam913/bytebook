@@ -19,6 +19,7 @@ import { dragItem } from "../../utils/draggable";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { useTrapFocus } from "../dialog/hooks";
+import { ResizeWidth } from "../editor/nodes/image";
 import { expandNearestSiblingNode } from "./utils";
 
 export function ResizeContainer({
@@ -31,6 +32,8 @@ export function ResizeContainer({
 	children,
 	nodeKey,
 	editor,
+	defaultWidth,
+	writeWidthToNode,
 }: {
 	isSelected: boolean;
 	isResizing: boolean;
@@ -41,10 +44,11 @@ export function ResizeContainer({
 	children: ReactNode;
 	nodeKey: string;
 	editor: LexicalEditor;
+	defaultWidth: ResizeWidth;
+	writeWidthToNode: (width: ResizeWidth) => void;
 }) {
-	const widthMotionValue = useMotionValue<number>(500);
+	const widthMotionValue = useMotionValue<number | "100%">(defaultWidth);
 
-	const [isFullWidth, setIsFullWidth] = useState(false);
 	const resizeContainerRef = useRef<HTMLDivElement>(null);
 
 	const imageDimensions = useRef({ height: 0, width: 0 });
@@ -89,11 +93,7 @@ export function ResizeContainer({
 						"max-h-screen fixed top-0 left-0 right-0 bottom-0 z-50 m-auto justify-start overflow-auto",
 				)}
 				style={{
-					width: !isExpanded
-						? isFullWidth
-							? "100%"
-							: widthMotionValue
-						: "100%",
+					width: !isExpanded ? widthMotionValue : "100%",
 					transition: "outline 0.2s ease-in-out, opacity 0.2s ease-in-out",
 				}}
 			>
@@ -121,7 +121,8 @@ export function ResizeContainer({
 									{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
 									type="button"
 									onClick={() => {
-										setIsFullWidth(true);
+										widthMotionValue.set("100%");
+										writeWidthToNode("100%");
 									}}
 								>
 									<XResize />
@@ -151,7 +152,6 @@ export function ResizeContainer({
 								}
 								onMouseDown={(mouseDownEvent) => {
 									setIsResizing(true);
-									setIsFullWidth(false);
 									dragItem(
 										(dragEvent) => {
 											const mouseDownBox =
@@ -174,19 +174,24 @@ export function ResizeContainer({
 											}
 
 											if (isWidthSmaller) {
-												newWidth = element.clientWidth - widthDiff;
+												newWidth = Math.round(element.clientWidth - widthDiff);
 											} else {
 												const newHeight = element.clientHeight - heightDiff;
-												newWidth =
+												newWidth = Math.round(
 													newHeight *
-													(element.clientWidth / element.clientHeight);
+														(element.clientWidth / element.clientHeight),
+												);
 											}
 											widthMotionValue.set(newWidth);
 										},
 
 										() => {
 											document.body.style.cursor = "";
-											setTimeout(() => setIsResizing(false), 100);
+											setTimeout(() => {
+												console.log(widthMotionValue.get());
+												writeWidthToNode(widthMotionValue.get());
+											}, 100);
+											setIsResizing(false);
 										},
 									);
 								}}

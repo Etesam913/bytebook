@@ -130,9 +130,9 @@ export function useResizeCommands(
 							clearSelection,
 						);
 					}
-					console.log("prevented");
+
 					e.preventDefault();
-					// e.stopPropagation();
+					e.stopPropagation();
 					return true;
 				},
 				isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,

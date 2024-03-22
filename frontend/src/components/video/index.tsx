@@ -1,18 +1,19 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useRef } from "react";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
+import { ResizeWidth } from "../editor/nodes/image";
 import { ResizeContainer } from "../resize-container";
 
 export function Video({
 	src,
-	width,
-	height,
+	widthWrittenToNode,
+	writeWidthToNode,
 	title,
 	nodeKey,
 }: {
 	src: string;
-	width: number | "inherit";
-	height: number | "inherit";
+	widthWrittenToNode: ResizeWidth;
+	writeWidthToNode: (width: ResizeWidth) => void;
 	title: string;
 	nodeKey: string;
 }) {
@@ -52,15 +53,16 @@ export function Video({
 				editor={editor}
 				isExpanded={isExpanded}
 				setIsExpanded={setIsExpanded}
+				defaultWidth={widthWrittenToNode}
+				writeWidthToNode={writeWidthToNode}
 			>
 				{/* biome-ignore lint/a11y/useMediaCaption: <explanation> */}
 				<video
 					ref={videoRef}
 					className="w-full h-auto bg-black"
 					title={title}
-					src={`${src}#t=0.1`}
+					src={src}
 					controls
-					preload="metadata"
 					onClick={() => {
 						clearSelection();
 						setSelected(true);

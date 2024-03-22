@@ -3,6 +3,7 @@ import type {
 	DOMConversionOutput,
 	DOMExportOutput,
 	EditorConfig,
+	LexicalEditor,
 	LexicalNode,
 	NodeKey,
 	SerializedLexicalNode,
@@ -12,11 +13,11 @@ import type {
 import { $applyNodeReplacement, DecoratorNode } from "lexical";
 import { Suspense } from "react";
 import { Video } from "../../video";
+import { ResizeWidth } from "./image";
 
 export interface VideoPayload {
 	title: string;
-	width?: number;
-	height?: number;
+	width?: ResizeWidth;
 	key?: NodeKey;
 	src: string;
 }
@@ -26,16 +27,15 @@ function convertVideoElement(domNode: Node): null | DOMConversionOutput {
 	if (video.src.startsWith("file:///")) {
 		return null;
 	}
-	const { title, src, width, height } = video;
-	const node = $createVideoNode({ title, src, width, height });
+	const { title, src, width } = video;
+	const node = $createVideoNode({ title, src, width });
 	return { node };
 }
 
 export type SerializedVideoNode = Spread<
 	{
 		title: string;
-		width?: number;
-		height?: number;
+		width?: ResizeWidth;
 		src: string;
 	},
 	SerializedLexicalNode
@@ -44,29 +44,21 @@ export type SerializedVideoNode = Spread<
 export class VideoNode extends DecoratorNode<JSX.Element> {
 	__src: string;
 	__title: string;
-	__width: "inherit" | number;
-	__height: "inherit" | number;
+	__width: ResizeWidth;
 
 	static getType(): string {
 		return "video";
 	}
 
 	static clone(node: VideoNode): VideoNode {
-		return new VideoNode(
-			node.__src,
-			node.__title,
-			node.__width,
-			node.__height,
-			node.__key,
-		);
+		return new VideoNode(node.__src, node.__title, node.__width, node.__key);
 	}
 
 	static importJSON(serializedNode: SerializedVideoNode): VideoNode {
-		const { title, width, height, src } = serializedNode;
+		const { title, width, src } = serializedNode;
 		const node = $createVideoNode({
 			title,
 			width,
-			height,
 			src,
 		});
 		return node;
@@ -77,7 +69,6 @@ export class VideoNode extends DecoratorNode<JSX.Element> {
 		element.setAttribute("src", this.__src);
 		element.setAttribute("title", this.__title);
 		element.setAttribute("width", this.__width.toString());
-		element.setAttribute("height", this.__height.toString());
 		return { element };
 	}
 
@@ -90,25 +81,17 @@ export class VideoNode extends DecoratorNode<JSX.Element> {
 		};
 	}
 
-	constructor(
-		src: string,
-		title: string,
-		width?: "inherit" | number,
-		height?: "inherit" | number,
-		key?: NodeKey,
-	) {
+	constructor(src: string, title: string, width?: ResizeWidth, key?: NodeKey) {
 		super(key);
 		this.__src = src;
 		this.__title = title;
-		this.__width = width || "inherit";
-		this.__height = height || "inherit";
+		this.__width = width ?? 500;
 	}
 
 	exportJSON(): SerializedVideoNode {
 		return {
 			title: this.getTitleText(),
-			width: this.__width === "inherit" ? 0 : this.__width,
-			height: this.__height === "inherit" ? 0 : this.__height,
+			width: this.getWidth(),
 			src: this.getSrc(),
 			type: "video",
 			version: 1,
@@ -138,15 +121,26 @@ export class VideoNode extends DecoratorNode<JSX.Element> {
 		return this.__title;
 	}
 
-	decorate(): JSX.Element {
+	getWidth(): ResizeWidth {
+		return this.__width;
+	}
+
+	setWidth(width: ResizeWidth, editor: LexicalEditor): void {
+		editor.update(() => {
+			const writable = this.getWritable();
+			writable.__width = width;
+		});
+	}
+
+	decorate(_editor: LexicalEditor): JSX.Element {
 		return (
 			<Suspense fallback={null}>
 				<Video
 					src={this.__src}
-					width={this.__width}
-					height={this.__height}
+					widthWrittenToNode={this.getWidth()}
+					writeWidthToNode={(width) => this.setWidth(width, _editor)}
 					title={this.__title}
-					nodeKey={this.__key}
+					nodeKey={this.getKey()}
 				/>
 			</Suspense>
 		);
@@ -161,10 +155,9 @@ export function $createVideoNode({
 	title,
 	src,
 	width,
-	height,
 	key,
 }: VideoPayload): VideoNode {
-	return $applyNodeReplacement(new VideoNode(src, title, width, height, key));
+	return $applyNodeReplacement(new VideoNode(src, title, width, key));
 }
 
 export function $isVideoNode(

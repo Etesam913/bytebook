@@ -22,14 +22,23 @@ import {
 import type { LanguageName } from "@uiw/codemirror-extensions-langs";
 import {
 	$createNodeSelection,
-	$createTextNode,
 	$setSelection,
 	type ElementNode,
 	type LexicalNode,
 } from "lexical";
 import { codeLanguages } from "../../utils/code";
+import {
+	addQueryParam,
+	getQueryParamValue,
+	removeQueryParam,
+} from "../../utils/string-formatting";
 import { $createCodeNode, $isCodeNode, CodeNode } from "./nodes/code";
-import { $createImageNode, $isImageNode, ImageNode } from "./nodes/image";
+import {
+	$createImageNode,
+	$isImageNode,
+	ImageNode,
+	ResizeWidth,
+} from "./nodes/image";
 import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
 import type { Transformer } from "./utils";
 
@@ -77,6 +86,7 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 
 const srcRegex = /\/notes\/([^\/]+)\/([^\/]+)\//;
 
+/** Updates image src when location pathname changes, should revisit this */
 function updateSrc(nodeSrc: string) {
 	// If it is coming from file-server update url if the folder name or note title changes
 	if (nodeSrc.includes("localhost")) {
@@ -96,16 +106,31 @@ const VIDEO_TRANSFORMER: ElementTransformer = {
 		if (!$isVideoNode(node)) {
 			return null;
 		}
+
+		const videoTitleText = addQueryParam(
+			node.getTitleText(),
+			"videoWidth",
+			String(node.getWidth()),
+		);
+
 		const videoSrc = updateSrc(node.getSrc());
-		return `![${node.getTitleText()}](${videoSrc}) `;
+		return `![${videoTitleText}](${videoSrc}) `;
 	},
 	regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:mp4|mov))\))\s/,
 	replace: (textNode, _, match) => {
 		const [, title, src] = match;
+		const videoWidthQueryValue = getQueryParamValue(title, "videoWidth");
+		const videoWidth: ResizeWidth = videoWidthQueryValue
+			? videoWidthQueryValue.charAt(-1) === "%"
+				? "100%"
+				: parseInt(videoWidthQueryValue)
+			: 500;
 		const videoNode = $createVideoNode({
 			title,
 			src,
+			width: videoWidth,
 		});
+
 		const nodeSelection = $createNodeSelection();
 		nodeSelection.add(textNode.getKey());
 		textNode.replace(videoNode);
@@ -121,21 +146,31 @@ const IMAGE_TRANSFORMER: ElementTransformer = {
 			return null;
 		}
 		const imageSrc = updateSrc(node.getSrc());
-
+		const imageAltText = addQueryParam(
+			node.getAltText(),
+			"imageWidth",
+			String(node.getWidth()),
+		);
 		// TODO: need to do sanitizing on the alt text
-		return `![${node.getAltText()}](${imageSrc}) `;
+		return `![${imageAltText}](${imageSrc}) `;
 	},
-	// regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?!(mp4|mov)$).+))\)\s/,
 	regExp: /!\[(?<alt>[^\]]*)\]\((?<filename>.*?)(?<!\.mp4|.mov)(?=\"|\))\)\s/,
 	replace: (textNode, _1, match) => {
 		const [_2, alt, src] = match;
+		const imageWidthQueryValue = getQueryParamValue(alt, "imageWidth");
+		const imageWidth: ResizeWidth = imageWidthQueryValue
+			? imageWidthQueryValue.charAt(-1) === "%"
+				? "100%"
+				: parseInt(imageWidthQueryValue)
+			: 500;
+
 		const imageNode = $createImageNode({
-			alt,
+			alt: removeQueryParam(alt, "imageWidth"),
 			src,
+			width: imageWidth,
 		});
 		textNode.replace(imageNode);
 	},
-	// trigger: ")",
 	type: "element",
 };
 
