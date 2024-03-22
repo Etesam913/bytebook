@@ -44,7 +44,7 @@ export function ResizeContainer({
 }) {
 	const widthMotionValue = useMotionValue<number>(500);
 
-	const [isFullWidth, setIsFullWidth] = useState(true);
+	const [isFullWidth, setIsFullWidth] = useState(false);
 	const resizeContainerRef = useRef<HTMLDivElement>(null);
 
 	const imageDimensions = useRef({ height: 0, width: 0 });
@@ -82,8 +82,8 @@ export function ResizeContainer({
 					if (isExpanded) e.stopPropagation();
 				}}
 				className={cn(
-					"relative max-w-full min-w-40 cursor-auto border-4 border-transparent border-solid  rounded-sm flex justify-center",
-					isSelected && !isExpanded && "border-blue-400",
+					"relative max-w-full min-w-40 cursor-auto outline outline-transparent rounded-sm flex justify-center",
+					isSelected && !isExpanded && "outline-blue-400",
 					isResizing && "opacity-50",
 					isExpanded &&
 						"max-h-screen fixed top-0 left-0 right-0 bottom-0 z-50 m-auto justify-start overflow-auto",

@@ -12,6 +12,7 @@ func GetExtensionFromLanguage(language string) (bool, string) {
 	languageToExtension := map[string]string{
 		"python":     ".py",
 		"javascript": ".js",
+		"java":       ".java",
 		"typescript": ".ts",
 		"go":         ".go",
 		"c":          ".c",

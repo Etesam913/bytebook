@@ -61,6 +61,10 @@ export function Video({
 					src={`${src}#t=0.1`}
 					controls
 					preload="metadata"
+					onClick={() => {
+						clearSelection();
+						setSelected(true);
+					}}
 				/>
 			</ResizeContainer>
 		</div>

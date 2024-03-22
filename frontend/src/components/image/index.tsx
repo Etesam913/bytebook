@@ -58,6 +58,10 @@ export function Image({
 				setIsExpanded={setIsExpanded}
 			>
 				<img
+					onClick={() => {
+						clearSelection();
+						setSelected(true);
+					}}
 					src={src}
 					ref={imgRef}
 					alt={"bob"}
