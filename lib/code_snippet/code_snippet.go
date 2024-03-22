@@ -28,13 +28,15 @@ func GetExtensionFromLanguage(language string) (bool, string) {
 func RunFile(path string, command string) (string, error) {
 	cmd := exec.Command(command, path)
 	out, err := cmd.CombinedOutput()
+
 	if err != nil {
-		return "", err
+		return err.Error() + "\n" + string(out), err
 	}
+
 	return string(out), nil
 }
 
-func RunCode(language string, code string, projectPath string) project_types.SuccessHandler {
+func RunCode(language string, code string, command string, projectPath string) project_types.SuccessHandler {
 	extensionExists, extension := GetExtensionFromLanguage(language)
 	if !extensionExists {
 		return project_types.SuccessHandler{
@@ -66,13 +68,13 @@ func RunCode(language string, code string, projectPath string) project_types.Suc
 		}
 	}
 
-	res, err := RunFile(filePath, "node")
+	res, err := RunFile(filePath, command)
 
 	if err != nil {
 		return project_types.SuccessHandler{
 			Success:         false,
-			Message:         "Something went wrong when running your code. Please try again later",
-			InternalMessage: err.Error(),
+			Message:         res,
+			InternalMessage: res,
 		}
 	}
 

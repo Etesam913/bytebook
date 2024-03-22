@@ -7,8 +7,8 @@ import type {
 	Spread,
 } from "lexical";
 import { $applyNodeReplacement, $getNodeByKey, DecoratorNode } from "lexical";
-import { Code } from "../../code";
 import { languageToCommandMap } from "../../../utils/code";
+import { Code } from "../../code";
 
 export interface CodePayload {
 	key?: NodeKey;

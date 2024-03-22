@@ -1,8 +1,8 @@
-import { useState, type Dispatch, type SetStateAction } from "react";
-import { Dialog, ErrorText } from "../dialog";
+import { type Dispatch, type SetStateAction, useState } from "react";
+import { FloppyDisk } from "../../icons/floppy-disk";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../buttons";
-import { FloppyDisk } from "../../icons/floppy-disk";
+import { Dialog, ErrorText } from "../dialog";
 
 export function CodeDialog({
 	isCodeSettingsOpen,
@@ -53,7 +53,13 @@ export function CodeDialog({
 					id="run-command"
 					type="text"
 					value={curCommand}
-					onKeyDown={(e) => e.stopPropagation()}
+					onKeyDown={(e) => {
+						if (e.key === "Escape") {
+							e.preventDefault();
+							setIsCodeSettingsOpen(false);
+						}
+						e.stopPropagation();
+					}}
 					onChange={(e) => {
 						setCurCommand(e.target.value);
 					}}

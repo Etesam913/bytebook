@@ -27,11 +27,11 @@ import {
 	type ElementNode,
 	type LexicalNode,
 } from "lexical";
+import { codeLanguages } from "../../utils/code";
 import { $createCodeNode, $isCodeNode, CodeNode } from "./nodes/code";
 import { $createImageNode, $isImageNode, ImageNode } from "./nodes/image";
 import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
 import type { Transformer } from "./utils";
-import { codeLanguages } from "../../utils/code";
 
 const createBlockNode = (
 	createNode: (match: Array<string>) => ElementNode,

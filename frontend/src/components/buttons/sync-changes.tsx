@@ -1,5 +1,5 @@
 import { useSetAtom } from "jotai";
-import { Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
 import { useRoute } from "wouter";
 import { MotionButton } from ".";

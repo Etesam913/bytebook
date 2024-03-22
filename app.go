@@ -108,6 +108,6 @@ func (a *App) RenameNoteTitle(folderName string, oldNoteTitle string, newNoteTit
 	return project_helpers.RenameNote(a.projectPath, folderName, oldNoteTitle, newNoteTitle)
 }
 
-func (a *App) RunCode(language string, code string) project_types.SuccessHandler {
-	return code_snippet.RunCode(language, code, a.projectPath)
+func (a *App) RunCode(language string, code string, command string) project_types.SuccessHandler {
+	return code_snippet.RunCode(language, code, command, a.projectPath)
 }

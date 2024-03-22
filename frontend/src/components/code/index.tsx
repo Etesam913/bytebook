@@ -8,6 +8,7 @@ import {
 } from "@uiw/codemirror-extensions-langs";
 import { basicDark, githubLight } from "@uiw/codemirror-themes-all";
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAtomValue } from "jotai";
 import {
 	CLICK_COMMAND,
@@ -17,24 +18,31 @@ import {
 	KEY_ARROW_UP_COMMAND,
 	KEY_ESCAPE_COMMAND,
 } from "lexical";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+	MouseEventHandler,
+	SyntheticEvent,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { RunCode } from "../../../wailsjs/go/main/App";
 import { darkModeAtom } from "../../atoms";
+import { BracketsSquareDots } from "../../icons/brackets-square-dots";
 import { Play } from "../../icons/circle-play";
+import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
+import { codeDropdownItems, languageToCommandMap } from "../../utils/code";
 import {
 	arrowKeyDecoratorNodeCommand,
 	escapeKeyDecoratorNodeCommand,
 	removeDecoratorNode,
 } from "../../utils/commands";
+import { fullConfig } from "../../utils/tailwind-theme";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../buttons";
 import { Dropdown } from "../dropdown";
-import { codeDropdownItems, languageToCommandMap } from "../../utils/code";
-import { BracketsSquareDots } from "../../icons/brackets-square-dots";
 import { CodeDialog } from "./code-dialog";
-import { AnimatePresence } from "framer-motion";
-import { Loader } from "../../icons/loader";
 
 export function Code({
 	code,
@@ -153,6 +161,18 @@ export function Code({
 		return <></>;
 	}
 
+	function handleRunCode(e?: SyntheticEvent) {
+		if (e) {
+			e.stopPropagation();
+		}
+
+		setIsCodeRunning(true);
+		RunCode(language, code, command).then((res) => {
+			setCodeResult(res);
+			setIsCodeRunning(false);
+		});
+	}
+
 	return (
 		<>
 			<AnimatePresence>
@@ -168,7 +188,7 @@ export function Code({
 			</AnimatePresence>
 			<div
 				ref={codeMirrorContainerRef}
-				className="bg-zinc-50 dark:bg-zinc-750 border-[1.25px] border-zinc-300 dark:border-zinc-600 p-2 rounded-md flex flex-col gap-2 my-2"
+				className="bg-zinc-50 dark:bg-zinc-750 border-[1.25px] border-zinc-300 dark:border-zinc-600 p-2 rounded-md flex flex-col gap-2 "
 			>
 				{isSelected && (
 					<div className="flex justify-between items-center flex-wrap-reverse gap-2">
@@ -176,14 +196,7 @@ export function Code({
 							<MotionButton
 								{...getDefaultButtonVariants()}
 								disabled={isCodeRunning}
-								onClick={(e) => {
-									e.stopPropagation();
-									setIsCodeRunning(true);
-									RunCode(languageWrittenToNode, code).then((r) => {
-										setCodeResult(r);
-										setIsCodeRunning(false);
-									});
-								}}
+								onClick={handleRunCode}
 							>
 								{isCodeRunning ? <Loader /> : <Play />}
 							</MotionButton>
@@ -231,13 +244,16 @@ export function Code({
 				<CodeMirror
 					ref={editorRefCallback}
 					value={code}
-					style={{ flex: 1, borderRadius: "0.5rem", overflow: "hidden" }}
+					style={{ flex: 1, borderRadius: "0.5rem" }}
 					autoFocus={focus}
 					onKeyDown={(e) => {
-						if (e.key !== "Escape") {
-							e.stopPropagation();
-						} else {
+						if (e.key === "Escape") {
 							e.preventDefault();
+						} else if (e.shiftKey && e.key === "Enter") {
+							handleRunCode();
+							e.preventDefault();
+						} else {
+							e.stopPropagation();
 						}
 					}}
 					basicSetup={{
@@ -252,9 +268,17 @@ export function Code({
 				/>
 
 				{codeResult && (
-					<div className="w-full bg-zinc-900 px-3 py-2 rounded-md font-code text-sm">
-						{codeResult.message}
-					</div>
+					<motion.div
+						initial={{ color: fullConfig.theme.colors.zinc[200] }}
+						animate={{
+							color: codeResult.success
+								? fullConfig.theme.colors.zinc[200]
+								: fullConfig.theme.colors.red[500],
+						}}
+						className="w-full overflow-hidden bg-zinc-900 px-3 py-2 rounded-md font-code text-sm"
+					>
+						<div>{codeResult.message}</div>
+					</motion.div>
 				)}
 			</div>
 		</>

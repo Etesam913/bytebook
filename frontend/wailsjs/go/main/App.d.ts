@@ -20,7 +20,7 @@ export function RenameFolder(arg1:string,arg2:string):Promise<void>;
 
 export function RenameNoteTitle(arg1:string,arg2:string,arg3:string):Promise<void>;
 
-export function RunCode(arg1:string,arg2:string):Promise<project_types.SuccessHandler>;
+export function RunCode(arg1:string,arg2:string,arg3:string):Promise<project_types.SuccessHandler>;
 
 export function SetNoteMarkdown(arg1:string,arg2:string,arg3:string):Promise<void>;
 

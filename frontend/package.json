@@ -24,7 +24,7 @@
 		"@uiw/codemirror-extensions-langs": "^4.21.24",
 		"@uiw/codemirror-themes-all": "^4.21.24",
 		"@uiw/react-codemirror": "^4.21.24",
-		"framer-motion": "^11.0.3",
+		"framer-motion": "^11.0.20",
 		"jotai": "^2.6.4",
 		"lexical": "^0.13.1",
 		"re-resizable": "^6.9.11",
