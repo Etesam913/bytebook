@@ -59,16 +59,16 @@ func main() {
 
 	// Create a goroutine that emits an event containing the current time every second.
 	// The frontend can listen to this event and update the UI accordingly.
-	go func() {
-		for {
-			now := time.Now().Format(time.RFC1123)
-			app.Events.Emit(&application.WailsEvent{
-				Name: "time",
-				Data: now,
-			})
-			time.Sleep(time.Second)
-		}
-	}()
+	// go func() {
+	// 	for {
+	// 		now := time.Now().Format(time.RFC1123)
+	// 		app.Events.Emit(&application.WailsEvent{
+	// 			Name: "time",
+	// 			Data: now,
+	// 		})
+	// 		time.Sleep(time.Second)
+	// 	}
+	// }()
 
 	// Run the application. This blocks until the application has been exited.
 	err := app.Run()

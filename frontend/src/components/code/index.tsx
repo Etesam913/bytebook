@@ -18,7 +18,13 @@ import {
 	KEY_ARROW_UP_COMMAND,
 	KEY_ESCAPE_COMMAND,
 } from "lexical";
-import { SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+	type SyntheticEvent,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { RunCode } from "../../../wailsjs/go/main/App";
 import { darkModeAtom } from "../../atoms";
 import { BracketsSquareDots } from "../../icons/brackets-square-dots";

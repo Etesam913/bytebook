@@ -387,7 +387,7 @@ tasks:
     generates:
       - "frontend/bindings/**/*"
     cmds:
-      - wails3 generate bindings -silent
+      - wails3 generate bindings -silent -ts
       # - wails3 generate bindings -silent
 
   go:mod:tidy:
