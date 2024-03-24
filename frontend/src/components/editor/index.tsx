@@ -10,7 +10,7 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import type { LexicalEditor } from "lexical";
-import { useRef } from "react";
+import { EffectCallback, useEffect, useRef } from "react";
 import { debounce } from "../../utils/draggable";
 import { editorConfig } from "./editor-config";
 import { NoteTitle } from "./note-title";
@@ -22,6 +22,7 @@ import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { $convertToMarkdownStringCorrect } from "./utils";
 import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
+import * as wails from "@wailsio/runtime";
 
 const debouncedHandleChange = debounce(handleChange, 500);
 
@@ -38,6 +39,24 @@ export function NotesEditor({
 	const { folder, note } = params;
 	const editorRef = useRef<LexicalEditor | null | undefined>(null);
 
+	useEffect(
+		// @ts-ignore
+		() => {
+			return wails.Events.On(
+				"files",
+				(event: {
+					name: string;
+					data: string[];
+					sender: string;
+					Cancelled: boolean;
+				}) => {
+					console.log(event);
+				},
+			);
+		},
+		[],
+	);
+
 	return (
 		<div className="flex-1 min-w-0 flex flex-col">
 			<LexicalComposer initialConfig={editorConfig}>
@@ -49,7 +68,9 @@ export function NotesEditor({
 					onClick={(e) => {
 						const target = e.target as HTMLElement;
 						if (target.dataset.lexicalDecorator !== "true") {
-							editorRef.current?.focus();
+							editorRef.current?.focus(undefined, {
+								defaultSelection: "rootStart",
+							});
 						}
 					}}
 					onKeyDown={() => {}}

@@ -13,3 +13,7 @@ export async function SyncChangesWithRepo() : Promise<GitReponse> {
 	return Call.ByName("main.NodeService.SyncChangesWithRepo");
 }
 
+export async function UploadImage(folderPath: string, notePath: string) : Promise<string[]> {
+	return Call.ByName("main.NodeService.UploadImage", folderPath, notePath);
+}
+

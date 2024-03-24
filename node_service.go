@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
+	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 type NodeService struct {
@@ -16,6 +19,12 @@ type NodeService struct {
 type NodeResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
+}
+
+type ImageResponse struct {
+	Success bool     `json:"success"`
+	Message string   `json:"message"`
+	Data    []string `json:"message"`
 }
 
 func GetExtensionFromLanguage(language string) (bool, string) {
@@ -189,53 +198,21 @@ func (n *NodeService) SyncChangesWithRepo() GitReponse {
 
 }
 
-// func UploadImage(ctx context.Context, projectPath string, folderPath string, notePath string) ([]string, error) {
-// 	defaultDirectory := ""
-// 	err := io_helpers.CompleteCustomActionForOS(io_helpers.ActionStruct{
-// 		WindowsAction: func() {
-// 			defaultDirectory = "C:\\"
-// 		},
-// 		MacAction: func() {
-// 			defaultDirectory = "/Users"
-// 		},
-// 		LinuxAction: func() {
-// 			defaultDirectory = "/home/"
-// 		}})
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func (n *NodeService) UploadImage(folderPath string, notePath string) []string {
+	filePaths, _ := application.OpenFileDialog().CanChooseFiles(true).PromptForMultipleSelection()
 
-// 	filePaths, err := wails_runtime.OpenMultipleFilesDialog(
-// 		ctx,
-// 		wails_runtime.OpenDialogOptions{
-// 			DefaultDirectory: defaultDirectory,
-// 			Filters: []wails_runtime.FileFilter{
-// 				{
-// 					DisplayName: "Image Files",
-// 					Pattern:     "*.png;*.jpg;*.jpeg;*.webp",
-// 				},
-// 			},
-// 		},
-// 	)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	newFilePaths := make([]string, 0)
-// 	// Process the selected file
-// 	if len(filePaths) > 0 {
-// 		// runtime.LogInfo(ctx, "Selected file: "+filename)
-// 		for _, file := range filePaths {
-// 			wails_runtime.LogInfo(ctx, "Selected file: "+file)
-// 			cleanedFileName := io_helpers.CleanFileName(filepath.Base(file))
-// 			newFilePath := filepath.Join(projectPath, "notes", folderPath, notePath, cleanedFileName)
-// 			fileServerPath := filepath.Join("notes", folderPath, notePath, cleanedFileName)
+	newFilePaths := make([]string, 0)
+	// Process the selected file
+	if len(filePaths) > 0 {
+		// runtime.LogInfo(ctx, "Selected file: "+filename)
+		for _, file := range filePaths {
+			cleanedFileName := io_helpers.CleanFileName(filepath.Base(file))
+			newFilePath := filepath.Join(n.ProjectPath, "notes", folderPath, notePath, cleanedFileName)
+			fileServerPath := filepath.Join("notes", folderPath, notePath, cleanedFileName)
 
-// 			newFilePaths = append(newFilePaths, fileServerPath)
-// 			io_helpers.CopyFile(file, newFilePath)
-// 		}
-// 	} else {
-// 		wails_runtime.LogInfo(ctx, "No file was selected.")
-// 	}
-
-// 	return newFilePaths, nil
-// }
+			newFilePaths = append(newFilePaths, fileServerPath)
+			io_helpers.CopyFile(file, newFilePath)
+		}
+	}
+	return newFilePaths
+}

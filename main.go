@@ -6,12 +6,12 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
 	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
 // Wails uses Go's `embed` package to embed the frontend files into the binary.
@@ -72,7 +72,7 @@ func main() {
 	// 'Mac' options tailor the window when running on macOS.
 	// 'BackgroundColour' is the background colour of the window.
 	// 'URL' is the URL that will be loaded into the webview.
-	app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
+	window := app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
 		Title:     "Bytebook",
 		MinWidth:  800,
 		MinHeight: 600,
@@ -81,22 +81,32 @@ func main() {
 			Backdrop:                application.MacBackdropTranslucent,
 			TitleBar:                application.MacTitleBarHiddenInset,
 		},
-		BackgroundColour: application.NewRGB(27, 38, 54),
-		URL:              "/",
+		EnableDragAndDrop: true,
+		BackgroundColour:  application.NewRGB(27, 38, 54),
+		URL:               "/",
 	})
 
 	// Create a goroutine that emits an event containing the current time every second.
 	// The frontend can listen to this event and update the UI accordingly.
-	go func() {
-		for {
-			now := time.Now().Format(time.RFC1123)
-			app.Events.Emit(&application.WailsEvent{
-				Name: "time",
-				Data: now,
-			})
-			time.Sleep(time.Second)
-		}
-	}()
+	// go func() {
+	// 	for {
+	// 		now := time.Now().Format(time.RFC1123)
+	// 		app.Events.Emit(&application.WailsEvent{
+	// 			Name: "time",
+	// 			Data: now,
+	// 		})
+	// 		time.Sleep(time.Second)
+	// 	}
+	// }()
+
+	window.On(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
+		files := event.Context().DroppedFiles()
+		app.Events.Emit(&application.WailsEvent{
+			Name: "files",
+			Data: files,
+		})
+		app.Logger.Info("Files Dropped!", "files", files)
+	})
 
 	// Run the application. This blocks until the application has been exited.
 	err = app.Run()

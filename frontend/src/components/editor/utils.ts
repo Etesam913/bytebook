@@ -29,6 +29,7 @@ import type { EditorBlockTypes } from "../../types";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
 import { INSERT_IMAGE_COMMAND } from "./plugins/image";
+import { UploadImage } from "../../../bindings/main/NodeService";
 
 export type TextFormats =
 	| null
@@ -69,15 +70,16 @@ export function changeSelectedBlocksType(
 					editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
 					break;
 				case "img": {
-					// const filePaths = await UploadImagesToFolder(folder, note);
-					// editor.update(() => {
-					// 	for (const filePath of filePaths) {
-					// 		editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
-					// 			src: `http://localhost:5890/${filePath}`,
-					// 			alt: "test",
-					// 		});
-					// 	}
-					// });
+					const filePaths = await UploadImage(folder, note);
+					console.log("response", filePaths);
+					editor.update(() => {
+						for (const filePath of filePaths) {
+							editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
+								src: `http://localhost:5890/${filePath}`,
+								alt: "test",
+							});
+						}
+					});
 
 					break;
 				}
