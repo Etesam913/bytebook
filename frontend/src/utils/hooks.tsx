@@ -2,7 +2,6 @@ import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection"
 import { mergeRegister } from "@lexical/utils";
 import { useSetAtom } from "jotai";
 import {
-	$getNodeByKey,
 	CLICK_COMMAND,
 	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
@@ -241,4 +240,24 @@ export function useDarkModeSetting() {
 				);
 		};
 	}, [setDarkMode]);
+}
+
+const dropImage = (e: DragEvent) => {
+	// @ts-ignore
+	const currentFiles = input.files;
+	console.log("main");
+	// @ts-ignore
+	// chrome.webview.postMessageWithAdditionalObjects("FilesDropped", currentFiles);
+	e.preventDefault();
+	e.stopPropagation();
+	return false;
+};
+
+export function useImageDrop() {
+	useEffect(() => {
+		document.body.addEventListener("drop", dropImage);
+		return () => {
+			document.body.removeEventListener("drop", dropImage);
+		};
+	}, []);
 }

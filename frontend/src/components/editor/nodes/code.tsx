@@ -9,6 +9,7 @@ import type {
 import { $applyNodeReplacement, $getNodeByKey, DecoratorNode } from "lexical";
 import { languageToCommandMap } from "../../../utils/code";
 import { Code } from "../../code";
+import { debounce } from "../../../utils/draggable";
 
 export interface CodePayload {
 	key?: NodeKey;
@@ -36,6 +37,23 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	static getType(): string {
 		return "code-block";
 	}
+
+	static debouncedUpdate = debounce(
+		(
+			editor: LexicalEditor,
+			key: string,
+			code: string,
+			setCode: (code: string) => void,
+		) => {
+			editor.update(() => {
+				const node = $getNodeByKey(key);
+				if (node && $isCodeNode(node)) {
+					setCode(code);
+				}
+			});
+		},
+		500,
+	);
 
 	static clone(node: CodeNode): CodeNode {
 		return new CodeNode(node.__code, node.__language, false);
@@ -131,12 +149,9 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	}
 
 	onCodeChange(code: string, editor: LexicalEditor): void {
-		editor.update(() => {
-			const node = $getNodeByKey(this.getKey());
-			if (node && $isCodeNode(node)) {
-				this.setCode(code);
-			}
-		});
+		CodeNode.debouncedUpdate(editor, this.getKey(), code, (code: string) =>
+			this.setCode(code),
+		);
 	}
 
 	decorate(_editor: LexicalEditor): JSX.Element {

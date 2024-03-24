@@ -3,14 +3,14 @@ import { Toaster } from "sonner";
 import { Route } from "wouter";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { NotesSidebar } from "./routes/notes-sidebar";
-import { useDarkModeSetting } from "./utils/hooks";
+import { useDarkModeSetting, useImageDrop } from "./utils/hooks";
 
 function App() {
 	const folderSidebarWidth = useMotionValue(180);
 	const notesSidebarWidth = useMotionValue(180);
 
 	useDarkModeSetting();
-
+	useImageDrop();
 	return (
 		<main
 			id="App"

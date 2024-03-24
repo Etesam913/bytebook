@@ -10,19 +10,20 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import type { LexicalEditor } from "lexical";
-import { EffectCallback, useEffect, useRef } from "react";
+import { useRef } from "react";
 import { debounce } from "../../utils/draggable";
 import { editorConfig } from "./editor-config";
 import { NoteTitle } from "./note-title";
 import { CodePlugin } from "./plugins/code";
 import { ImagesPlugin } from "./plugins/image";
-import TreeViewPlugin from "./plugins/tree-view";
 import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { $convertToMarkdownStringCorrect } from "./utils";
 import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
-import * as wails from "@wailsio/runtime";
+import { useAtom } from "jotai";
+import { isDraggingOnEditorAtom } from "../../atoms";
+import { useImageDrop } from "../../utils/hooks";
 
 const debouncedHandleChange = debounce(handleChange, 500);
 
@@ -39,29 +40,14 @@ export function NotesEditor({
 	const { folder, note } = params;
 	const editorRef = useRef<LexicalEditor | null | undefined>(null);
 
-	useEffect(
-		// @ts-ignore
-		() => {
-			return wails.Events.On(
-				"files",
-				(event: {
-					name: string;
-					data: string[];
-					sender: string;
-					Cancelled: boolean;
-				}) => {
-					console.log(event);
-				},
-			);
-		},
-		[],
+	const [isDraggingOnEditor, setIsDraggingOnEditor] = useAtom(
+		isDraggingOnEditorAtom,
 	);
 
 	return (
 		<div className="flex-1 min-w-0 flex flex-col">
 			<LexicalComposer initialConfig={editorConfig}>
 				<Toolbar folder={folder} note={note} />
-
 				<div
 					style={{ scrollbarGutter: "stable" }}
 					className="p-2 h-[calc(100vh-38px)] overflow-y-auto"
@@ -96,7 +82,7 @@ export function NotesEditor({
 					<ImagesPlugin />
 					<VideosPlugin />
 					<CodePlugin />
-					<TreeViewPlugin />
+					{/* <TreeViewPlugin /> */}
 				</div>
 			</LexicalComposer>
 		</div>

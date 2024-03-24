@@ -14,7 +14,7 @@ export class AddFolderResponse {
     }
 
     static createFrom(source: string | object = {}): AddFolderResponse {
-        let parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
+        const parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
         return new AddFolderResponse(parsedSource as Partial<AddFolderResponse>);
     }
 }
@@ -32,7 +32,7 @@ export class FolderResponse {
     }
 
     static createFrom(source: string | object = {}): FolderResponse {
-        let parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
+        const parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
         return new FolderResponse(parsedSource as Partial<FolderResponse>);
     }
 }
@@ -50,7 +50,7 @@ export class GitReponse {
     }
 
     static createFrom(source: string | object = {}): GitReponse {
-        let parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
+        const parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
         return new GitReponse(parsedSource as Partial<GitReponse>);
     }
 }
@@ -66,7 +66,7 @@ export class NodeResponse {
     }
 
     static createFrom(source: string | object = {}): NodeResponse {
-        let parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
+        const parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
         return new NodeResponse(parsedSource as Partial<NodeResponse>);
     }
 }
@@ -84,7 +84,7 @@ export class NoteMarkdownResponse {
     }
 
     static createFrom(source: string | object = {}): NoteMarkdownResponse {
-        let parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
+        const parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
         return new NoteMarkdownResponse(parsedSource as Partial<NoteMarkdownResponse>);
     }
 }
@@ -102,7 +102,7 @@ export class NoteResponse {
     }
 
     static createFrom(source: string | object = {}): NoteResponse {
-        let parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
+        const parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
         return new NoteResponse(parsedSource as Partial<NoteResponse>);
     }
 }

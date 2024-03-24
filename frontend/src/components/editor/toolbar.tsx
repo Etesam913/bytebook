@@ -3,7 +3,7 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import { motion } from "framer-motion";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import {
 	$getSelection,
 	$isNodeSelection,
@@ -25,7 +25,7 @@ import type { EditorBlockTypes } from "../../types";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { Dropdown } from "../dropdown";
-import { useNoteMarkdown } from "./hooks";
+import { useFileDropEvent, useNoteMarkdown } from "./hooks";
 import {
 	type TextFormats,
 	changeSelectedBlocksType,
@@ -109,13 +109,12 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 	}
 
 	useNoteMarkdown(editor, folder, note, setCurrentSelectionFormat);
-	// useImageListener(editor);
 
 	useEffect(() => {
 		return mergeRegister(
 			editor.registerCommand(
 				SELECTION_CHANGE_COMMAND,
-				(_payload, newEditor) => {
+				(_payload) => {
 					updateToolbar();
 					return false;
 				},
@@ -134,6 +133,8 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 			),
 		);
 	}, [editor]);
+
+	useFileDropEvent(editor, folder, note);
 
 	return (
 		<nav

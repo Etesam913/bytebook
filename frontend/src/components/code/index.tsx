@@ -30,7 +30,7 @@ import { darkModeAtom } from "../../atoms";
 import { BracketsSquareDots } from "../../icons/brackets-square-dots";
 import { Play } from "../../icons/circle-play";
 import { Loader } from "../../icons/loader";
-import { SquareCode } from "../../icons/square-code";
+
 import { Trash } from "../../icons/trash";
 import { codeDropdownItems, languageToCommandMap } from "../../utils/code";
 import {
@@ -38,12 +38,12 @@ import {
 	escapeKeyDecoratorNodeCommand,
 	removeDecoratorNode,
 } from "../../utils/commands";
-import { cn } from "../../utils/string-formatting";
-import { fullConfig } from "../../utils/tailwind-theme";
+
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../buttons";
 import { Dropdown } from "../dropdown";
 import { CodeDialog } from "./code-dialog";
+import { CodeResult } from "./code-result";
 
 export function Code({
 	code,
@@ -169,10 +169,8 @@ export function Code({
 
 		setIsCodeRunning(true);
 		RunCode(language, code, command).then((res) => {
-			if (res.success) {
-				setCodeResult(res);
-				setIsCodeRunning(false);
-			}
+			setCodeResult(res);
+			setIsCodeRunning(false);
 		});
 	}
 
@@ -266,30 +264,14 @@ export function Code({
 						lineNumbers: false,
 						foldGutter: false,
 					}}
-					onChange={(text) => {
-						onCodeChange(text);
-					}}
+					// onChange={(text) => {
+					// 	onCodeChange(text);
+					// }}
 					extensions={[chosenLanguage]}
 					theme={isDarkModeOn ? basicDark : githubLight}
 				/>
 
-				{codeResult && (
-					<div
-						className={cn(
-							"w-full overflow-hidden dark:bg-zinc-900 bg-zinc-150 px-3 py-2 rounded-md font-code text-sm",
-							!codeResult.success && "text-red-500",
-						)}
-					>
-						{codeResult.message.length > 0 ? (
-							<div>{codeResult.message}</div>
-						) : (
-							<div className="flex flex-col items-center gap-3 font-display text-md text-balance text-center">
-								<SquareCode width="2rem" height="2rem" />
-								<p>There's nothing printed from your code</p>
-							</div>
-						)}
-					</div>
-				)}
+				<CodeResult codeResult={codeResult} />
 			</div>
 		</>
 	);

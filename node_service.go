@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/go-git/go-git/v5"
@@ -47,6 +48,7 @@ func GetExtensionFromLanguage(language string) (bool, string) {
 
 func RunFile(path string, command string) (string, error) {
 	cmd := exec.Command(command, path)
+	fmt.Println("Running command: ", command, path)
 	out, err := cmd.CombinedOutput()
 
 	if err != nil {
@@ -198,14 +200,13 @@ func (n *NodeService) SyncChangesWithRepo() GitReponse {
 
 }
 
-func (n *NodeService) UploadImage(folderPath string, notePath string) []string {
-	filePaths, _ := application.OpenFileDialog().CanChooseFiles(true).PromptForMultipleSelection()
-
+func (n *NodeService) CleanImagePaths(filePaths string, folderPath string, notePath string) []string {
+	filePathsAsArray := strings.Split(filePaths, ",")
 	newFilePaths := make([]string, 0)
 	// Process the selected file
 	if len(filePaths) > 0 {
 		// runtime.LogInfo(ctx, "Selected file: "+filename)
-		for _, file := range filePaths {
+		for _, file := range filePathsAsArray {
 			cleanedFileName := io_helpers.CleanFileName(filepath.Base(file))
 			newFilePath := filepath.Join(n.ProjectPath, "notes", folderPath, notePath, cleanedFileName)
 			fileServerPath := filepath.Join("notes", folderPath, notePath, cleanedFileName)
@@ -215,4 +216,19 @@ func (n *NodeService) UploadImage(folderPath string, notePath string) []string {
 		}
 	}
 	return newFilePaths
+}
+
+func (n *NodeService) UploadImage(folderPath string, notePath string) []string {
+	filePaths, _ := application.OpenFileDialog().AddFilter("Image Files", "*.jpg;*.png;*.webp;*.jpeg").CanChooseFiles(true).PromptForMultipleSelection()
+	return n.CleanImagePaths(strings.Join(filePaths, ","), folderPath, notePath)
+}
+
+func (n *NodeService) RemoveImage(src string) bool {
+	if strings.HasPrefix(src, "http://localhost:5890") {
+		src = strings.Replace(src, "http://localhost:5890/", "", 1)
+		err := os.Remove(filepath.Join(n.ProjectPath, src))
+		return err == nil
+	}
+	return false
+
 }

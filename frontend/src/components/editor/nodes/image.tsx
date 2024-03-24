@@ -11,6 +11,7 @@ import type {
 } from "lexical";
 import { $applyNodeReplacement, DecoratorNode } from "lexical";
 import { Image } from "../../image";
+import { RemoveImage } from "../../../../bindings/main/NodeService";
 
 export type ResizeWidth = number | "100%";
 
@@ -99,6 +100,12 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 			type: this.getType(),
 			version: 1,
 		};
+	}
+
+	remove(preserveEmptyParent?: boolean): void {
+		super.remove(preserveEmptyParent);
+		// TODO: Need to add images back in command + z
+		// RemoveImage(this.getSrc());
 	}
 
 	// View
