@@ -11,7 +11,6 @@ import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import type { LexicalEditor } from "lexical";
 import { useRef } from "react";
-import { SetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { debounce } from "../../utils/draggable";
 import { editorConfig } from "./editor-config";
 import { NoteTitle } from "./note-title";
@@ -22,6 +21,7 @@ import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { $convertToMarkdownStringCorrect } from "./utils";
+import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
 
 const debouncedHandleChange = debounce(handleChange, 500);
 

@@ -8,7 +8,7 @@ import {
 } from "@uiw/codemirror-extensions-langs";
 import { basicDark, githubLight } from "@uiw/codemirror-themes-all";
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useAtomValue } from "jotai";
 import {
 	CLICK_COMMAND,
@@ -25,7 +25,7 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { RunCode } from "../../../wailsjs/go/main/App";
+import { RunCode } from "../../../bindings/main/NodeService";
 import { darkModeAtom } from "../../atoms";
 import { BracketsSquareDots } from "../../icons/brackets-square-dots";
 import { Play } from "../../icons/circle-play";
@@ -169,8 +169,10 @@ export function Code({
 
 		setIsCodeRunning(true);
 		RunCode(language, code, command).then((res) => {
-			setCodeResult(res);
-			setIsCodeRunning(false);
+			if (res.success) {
+				setCodeResult(res);
+				setIsCodeRunning(false);
+			}
 		});
 	}
 

@@ -1,22 +1,22 @@
-// import { useMotionValue } from "framer-motion";
-// import { Toaster } from "sonner";
-// import { Route } from "wouter";
-// import { FolderSidebar } from "./components/folder-sidebar";
-// import { NotesSidebar } from "./routes/notes-sidebar";
-// import { useDarkModeSetting } from "./utils/hooks";
+import { useMotionValue } from "framer-motion";
+import { Toaster } from "sonner";
+import { Route } from "wouter";
+import { FolderSidebar } from "./components/folder-sidebar";
+import { NotesSidebar } from "./routes/notes-sidebar";
+import { useDarkModeSetting } from "./utils/hooks";
 
 function App() {
-	// const folderSidebarWidth = useMotionValue(180);
-	// const notesSidebarWidth = useMotionValue(180);
+	const folderSidebarWidth = useMotionValue(180);
+	const notesSidebarWidth = useMotionValue(180);
 
-	// useDarkModeSetting();
+	useDarkModeSetting();
 
 	return (
 		<main
 			id="App"
 			className="max-h-screen font-display text-zinc-950 dark:text-zinc-100 flex"
 		>
-			{/* <Toaster richColors theme="system" />
+			<Toaster richColors theme="system" />
 			<FolderSidebar width={folderSidebarWidth} />
 			<Route path="/:folder/:note?">
 				{(folderParams) => (
@@ -26,8 +26,7 @@ function App() {
 						leftWidth={folderSidebarWidth}
 					/>
 				)}
-			</Route> */}
-			hello
+			</Route>
 		</main>
 	);
 }

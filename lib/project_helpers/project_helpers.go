@@ -1,7 +1,6 @@
 package project_helpers
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
-	wails_runtime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 const ProjectName = "Bytebook"
@@ -253,57 +251,6 @@ func SetNoteMarkdown(projectPath string, folderName string, noteTitle string, ma
 func DoesFolderExist(projectPath string, folderName string) bool {
 	_, err := os.Stat(filepath.Join(projectPath, folderName))
 	return err == nil
-}
-
-func UploadImage(ctx context.Context, projectPath string, folderPath string, notePath string) ([]string, error) {
-	defaultDirectory := ""
-	err := io_helpers.CompleteCustomActionForOS(io_helpers.ActionStruct{
-		WindowsAction: func() {
-			defaultDirectory = "C:\\"
-		},
-		MacAction: func() {
-			defaultDirectory = "/Users"
-		},
-		LinuxAction: func() {
-			defaultDirectory = "/home/"
-		}})
-	if err != nil {
-		return nil, err
-	}
-
-	filePaths, err := wails_runtime.OpenMultipleFilesDialog(
-		ctx,
-		wails_runtime.OpenDialogOptions{
-			DefaultDirectory: defaultDirectory,
-			Filters: []wails_runtime.FileFilter{
-				{
-					DisplayName: "Image Files",
-					Pattern:     "*.png;*.jpg;*.jpeg;*.webp",
-				},
-			},
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-	newFilePaths := make([]string, 0)
-	// Process the selected file
-	if len(filePaths) > 0 {
-		// runtime.LogInfo(ctx, "Selected file: "+filename)
-		for _, file := range filePaths {
-			wails_runtime.LogInfo(ctx, "Selected file: "+file)
-			cleanedFileName := io_helpers.CleanFileName(filepath.Base(file))
-			newFilePath := filepath.Join(projectPath, "notes", folderPath, notePath, cleanedFileName)
-			fileServerPath := filepath.Join("notes", folderPath, notePath, cleanedFileName)
-
-			newFilePaths = append(newFilePaths, fileServerPath)
-			io_helpers.CopyFile(file, newFilePath)
-		}
-	} else {
-		wails_runtime.LogInfo(ctx, "No file was selected.")
-	}
-
-	return newFilePaths, nil
 }
 
 func UpdateTime() string {

@@ -3,7 +3,6 @@ import { useAtom, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { navigate } from "wouter/use-browser-location";
-import { DeleteFolder } from "../../../wailsjs/go/main/App";
 import { foldersAtom, notesAtom } from "../../atoms";
 import { MotionButton } from "../../components/buttons";
 import { NotesEditor } from "../../components/editor";
@@ -18,6 +17,7 @@ import { updateNotes } from "../../utils/fetch-functions";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { NotesSidebarDialog } from "./sidebar-dialog";
+import { DeleteFolder } from "../../../bindings/main/FolderService";
 
 export function NotesSidebar({
 	params,
@@ -56,14 +56,16 @@ export function NotesSidebar({
 				</Link>
 				<motion.button
 					onClick={() =>
-						DeleteFolder(`${folder}/${noteName}`).then(() => {
-							const remainingNotes = notes?.filter((v) => v !== noteName);
-							navigate(
-								`/${folder}${
-									remainingNotes.length > 0 ? `/${remainingNotes[0]}` : ""
-								}`,
-							);
-							setNotes(remainingNotes);
+						DeleteFolder(`${folder}/${noteName}`).then((res) => {
+							if (res.success) {
+								const remainingNotes = notes?.filter((v) => v !== noteName);
+								navigate(
+									`/${folder}${
+										remainingNotes.length > 0 ? `/${remainingNotes[0]}` : ""
+									}`,
+								);
+								setNotes(remainingNotes);
+							}
 						})
 					}
 					{...getDefaultButtonVariants(false, 1.15, 0.95, 1.15)}
@@ -103,7 +105,7 @@ export function NotesSidebar({
 
 			<motion.aside
 				style={{ width }}
-				className="pt-[14px] text-md h-screen flex flex-col gap-2 overflow-y-auto"
+				className="pt-[0.75rem] text-md h-screen flex flex-col gap-2 overflow-y-auto"
 			>
 				<div className="px-[10px] pt-[3px] flex flex-col gap-4 h-full overflow-y-auto">
 					<section className="flex gap-2 items-center">
