@@ -14,7 +14,6 @@ export const CodeResult = memo(function CodeResult({
 				!codeResult.success && "text-red-500",
 			)}
 		>
-			<div>rerendered {Math.random()}</div>
 			{codeResult.message.length > 0 ? (
 				<div>{codeResult.message}</div>
 			) : (

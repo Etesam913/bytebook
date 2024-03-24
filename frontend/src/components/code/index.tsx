@@ -44,6 +44,7 @@ import { MotionButton } from "../buttons";
 import { Dropdown } from "../dropdown";
 import { CodeDialog } from "./code-dialog";
 import { CodeResult } from "./code-result";
+import { debounce } from "../../utils/draggable";
 
 export function Code({
 	code,
@@ -99,6 +100,12 @@ export function Code({
 			codeMirrorRef.current = editor;
 		}
 	}
+
+	const debouncedCodeChange = useMemo(() => {
+		return debounce((code: string) => {
+			onCodeChange(code);
+		}, 500);
+	}, [onCodeChange]);
 
 	useEffect(() => {
 		if (isSelected) {
@@ -264,9 +271,9 @@ export function Code({
 						lineNumbers: false,
 						foldGutter: false,
 					}}
-					// onChange={(text) => {
-					// 	onCodeChange(text);
-					// }}
+					onChange={(text) => {
+						debouncedCodeChange(text);
+					}}
 					extensions={[chosenLanguage]}
 					theme={isDarkModeOn ? basicDark : githubLight}
 				/>
