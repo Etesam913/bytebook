@@ -1,19 +1,13 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { first } from "cypress/types/lodash";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSetAtom } from "jotai";
-import { $getRoot, type LexicalEditor } from "lexical";
-import {
-	type Dispatch,
-	type MutableRefObject,
-	type SetStateAction,
-	useEffect,
-	useState,
-} from "react";
+import { $getRoot } from "lexical";
+import { useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
-import { RenameNoteTitle } from "../../../wailsjs/go/main/App";
+
 import { isToolbarDisabled, notesAtom } from "../../atoms";
 import { cn, fileNameRegex } from "../../utils/string-formatting";
+import { RenameNote } from "../../../bindings/main/NoteService";
 
 export function NoteTitle({
 	note,
@@ -59,13 +53,17 @@ export function NoteTitle({
 				onBlur={() => {
 					setIsToolbarDisabled(false);
 					if (noteTitle === note || errorText.length > 0) return;
-					RenameNoteTitle(folder, note, noteTitle)
-						.then(() => {
-							setNotes(
-								(prev) =>
-									prev?.map((v) => (v === note ? noteTitle : v)) ?? [noteTitle],
-							);
-							navigate(`/${folder}/${noteTitle}`);
+					RenameNote(folder, note, noteTitle)
+						.then((res) => {
+							if (res.success) {
+								setNotes(
+									(prev) =>
+										prev?.map((v) => (v === note ? noteTitle : v)) ?? [
+											noteTitle,
+										],
+								);
+								navigate(`/${folder}/${noteTitle}`);
+							}
 						})
 						.catch((e) => {
 							console.error(e);

@@ -6,9 +6,9 @@ import {
 } from "lexical";
 import { type Dispatch, useEffect } from "react";
 import { navigate } from "wouter/use-browser-location";
-import { GetNoteMarkdown } from "../../../wailsjs/go/main/App";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { $convertFromMarkdownStringCorrect } from "./utils";
+import { GetNoteMarkdown } from "../../../bindings/main/NoteService";
 
 /** Gets note markdown from local system */
 export function useNoteMarkdown(
@@ -19,21 +19,21 @@ export function useNoteMarkdown(
 ) {
 	useEffect(() => {
 		GetNoteMarkdown(folder, note)
-			.then((markdown) => {
-				editor.setEditable(true);
-				// You don't want a different note to access the same history when you switch notes
-				editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
-
-				editor.update(() => {
-					// Clear formatting
-					setCurrentSelectionFormat((prev) => {
-						for (const format of prev)
-							editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
-
-						return [];
+			.then((res) => {
+				if (res.success) {
+					editor.setEditable(true);
+					// You don't want a different note to access the same history when you switch notes
+					editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
+					editor.update(() => {
+						// Clear formatting
+						setCurrentSelectionFormat((prev) => {
+							for (const format of prev)
+								editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+							return [];
+						});
+						$convertFromMarkdownStringCorrect(res.data, CUSTOM_TRANSFORMERS);
 					});
-					$convertFromMarkdownStringCorrect(markdown, CUSTOM_TRANSFORMERS);
-				});
+				}
 			})
 			.catch((e) => {
 				console.error(e);

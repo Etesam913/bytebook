@@ -9,16 +9,7 @@ import (
 	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
-	"github.com/go-git/go-git/v5/plumbing/transport/http"
 )
-
-var auth = &http.BasicAuth{
-	Username: "etesam913",
-	Password: "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",
-}
-
-var allowedErrors = make(map[error]struct{})
-var stringAllowedErrors = [5]string{"remote repository is empty"}
 
 func InitalizeGitRepo(projectPath string) {
 	// Creates the git repository
@@ -55,87 +46,4 @@ type GitReponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
 	Error   error  `json:"error"`
-}
-
-func CommitAndPushChanges(projectPath string) GitReponse {
-	allowedErrors[git.NoErrAlreadyUpToDate] = struct{}{}
-
-	// Open the repository
-	repo, err := git.PlainOpen(projectPath)
-	if err != nil {
-		return GitReponse{Status: "error", Message: "Error in entering your repo", Error: err}
-	}
-
-	// Entering into the worktree
-	worktree, err := repo.Worktree()
-	if err != nil {
-		return GitReponse{Status: "error", Message: "Error in entering in your repo's worktree", Error: err}
-	}
-
-	// Make pull request to get the latest changes
-	err = worktree.Pull(&git.PullOptions{
-		RemoteName: "origin",
-		Auth:       auth,
-	})
-
-	// Checking if the error that we get is fine
-	hasAllowedErrorOrNoError := true
-	if err != nil {
-		_, hasAllowedErrorOrNoError = allowedErrors[err]
-		for _, allowedError := range stringAllowedErrors {
-			if err.Error() == allowedError {
-				hasAllowedErrorOrNoError = true
-			}
-		}
-	}
-
-	// Handling the error
-	if err != nil && !hasAllowedErrorOrNoError {
-		return GitReponse{Status: "error", Message: "Error when pulling from your repo", Error: err}
-	} else if err == git.NoErrAlreadyUpToDate {
-		fmt.Println("Already up-to-date.")
-	} else {
-		fmt.Println(err)
-		fmt.Println("Pulled latest changes from origin.")
-	}
-
-	status, err := worktree.Status()
-	if err != nil {
-		fmt.Println(err)
-		return GitReponse{Status: "error", Message: "Error when getting git status", Error: err}
-	}
-
-	if status.IsClean() {
-		fmt.Println("No changes to sync")
-		return GitReponse{Status: "info", Message: "No changes to sync", Error: nil}
-	}
-
-	// Staging the changes
-	err = worktree.AddWithOptions(&git.AddOptions{All: true})
-	if err != nil {
-		fmt.Println(err)
-		return GitReponse{Status: "error", Message: "Error when staging changes", Error: err}
-	}
-
-	// Committing the changes
-	_, err = worktree.Commit("test-commit", &git.CommitOptions{})
-	if err != nil {
-		fmt.Println(err)
-		return GitReponse{Status: "error", Message: "Error when commiting changes", Error: err}
-	}
-
-	// Pushing the changes
-	err = repo.Push(&git.PushOptions{
-		RemoteName: "origin",
-		Auth:       auth,
-	})
-
-	// Checking if the error that we get is fine
-	if err != nil {
-		fmt.Println(err)
-		return GitReponse{Status: "error", Message: "Error when pushing changes", Error: err}
-	}
-	fmt.Println("Pushed changes to origin")
-	return GitReponse{Status: "success", Message: "Successfully synced changes", Error: nil}
-
 }

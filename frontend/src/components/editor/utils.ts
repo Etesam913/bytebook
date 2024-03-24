@@ -24,7 +24,7 @@ import {
 	type TextFormatType,
 } from "lexical";
 import type { Dispatch, SetStateAction } from "react";
-import { UploadImagesToFolder } from "../../../wailsjs/go/main/App";
+// import { UploadImagesToFolder } from "../../../wailsjs/go/main/App";
 import type { EditorBlockTypes } from "../../types";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
@@ -69,15 +69,15 @@ export function changeSelectedBlocksType(
 					editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
 					break;
 				case "img": {
-					const filePaths = await UploadImagesToFolder(folder, note);
-					editor.update(() => {
-						for (const filePath of filePaths) {
-							editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
-								src: `http://localhost:5890/${filePath}`,
-								alt: "test",
-							});
-						}
-					});
+					// const filePaths = await UploadImagesToFolder(folder, note);
+					// editor.update(() => {
+					// 	for (const filePath of filePaths) {
+					// 		editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
+					// 			src: `http://localhost:5890/${filePath}`,
+					// 			alt: "test",
+					// 		});
+					// 	}
+					// });
 
 					break;
 				}

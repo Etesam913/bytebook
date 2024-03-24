@@ -1,11 +1,11 @@
 import { type Dispatch, type SetStateAction, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
-import { AddNoteToFolder } from "../../../wailsjs/go/main/App";
 import { MotionButton } from "../../components/buttons";
 import { Dialog, ErrorText } from "../../components/dialog";
 import { Compose } from "../../icons/compose";
 import { fileNameRegex } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
+import { AddNoteToFolder } from "../../../bindings/main/NoteService";
 
 export function NotesSidebarDialog({
 	isNoteDialogOpen,
@@ -35,8 +35,8 @@ export function NotesSidebarDialog({
 					}
 
 					AddNoteToFolder(folderName, noteName)
-						.then((v) => {
-							if (v.Success) {
+						.then((res) => {
+							if (res.success) {
 								setIsNoteDialogOpen(false);
 								setErrorText("");
 								navigate(`/${folderName}/${noteName}`);
@@ -44,7 +44,7 @@ export function NotesSidebarDialog({
 									!prev ? [noteName as string] : [...prev, noteName as string],
 								);
 							} else {
-								setErrorText(v.Message);
+								setErrorText(res.message);
 							}
 						})
 						.catch((e) => {

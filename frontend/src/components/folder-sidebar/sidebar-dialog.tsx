@@ -1,11 +1,11 @@
 import { type Dispatch, type SetStateAction, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
-import { AddFolderUsingName, RenameFolder } from "../../../wailsjs/go/main/App";
 import { FolderPlus } from "../../icons/folder-plus";
 import { fileNameRegex } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../buttons";
 import { Dialog, ErrorText } from "../dialog";
+import { AddFolder, RenameFolder } from "../../../bindings/main/FolderService";
 
 export function FolderSidebarDialog({
 	isFolderDialogOpen,
@@ -36,9 +36,9 @@ export function FolderSidebarDialog({
 						return;
 					}
 					if (action === "add") {
-						AddFolderUsingName(folderName)
-							.then((v) => {
-								if (v.Success) {
+						AddFolder(folderName)
+							.then((res) => {
+								if (res.success) {
 									setIsFolderDialogOpen(false);
 									setErrorText("");
 									setFolders((prev) =>
@@ -46,7 +46,7 @@ export function FolderSidebarDialog({
 									);
 									navigate(`/${folderName}`);
 								} else {
-									setErrorText(v.Message);
+									setErrorText(res.message);
 								}
 							})
 							.catch((e) => {
@@ -55,15 +55,17 @@ export function FolderSidebarDialog({
 							});
 					} else if (action === "rename" && oldFolderName) {
 						RenameFolder(oldFolderName, folderName)
-							.then(() => {
-								setIsFolderDialogOpen(false);
-								setErrorText("");
-								setFolders((prev) =>
-									prev
-										? prev.map((v) => (v === oldFolderName ? folderName : v))
-										: [folderName],
-								);
-								navigate(`/${folderName}`);
+							.then((res) => {
+								if (res.success) {
+									setIsFolderDialogOpen(false);
+									setErrorText("");
+									setFolders((prev) =>
+										prev
+											? prev.map((v) => (v === oldFolderName ? folderName : v))
+											: [folderName],
+									);
+									navigate(`/${folderName}`);
+								}
 							})
 							.catch((e) => {
 								console.error(e);

@@ -3,7 +3,7 @@ import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
-import { DeleteFolder } from "../../../wailsjs/go/main/App";
+import { DeleteFolder } from "../../../bindings/main/FolderService";
 import { foldersAtom } from "../../atoms";
 import { Folder } from "../../icons/folder";
 import { FolderPlus } from "../../icons/folder-plus";
@@ -48,10 +48,12 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 				<motion.button
 					data-testid={`delete_folder_button-${folderName}`}
 					onClick={() =>
-						DeleteFolder(`${folderName}`).then(() => {
-							const newFolders = folders.filter((v) => v !== folderName);
-							navigate(folders.length > 1 ? `/${newFolders[0]}` : "/");
-							setFolders(newFolders);
+						DeleteFolder(`${folderName}`).then((res) => {
+							if (res.success) {
+								const newFolders = folders.filter((v) => v !== folderName);
+								navigate(folders.length > 1 ? `/${newFolders[0]}` : "/");
+								setFolders(newFolders);
+							}
 						})
 					}
 					{...getDefaultButtonVariants(false, 1.1, 0.9, 1.1)}
@@ -79,7 +81,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 
 			<motion.aside
 				style={{ width }}
-				className="pt-3 text-md h-screen flex flex-col gap-2 overflow-y-auto"
+				className="pt-[3.5rem] text-md h-screen flex flex-col gap-2 overflow-y-auto"
 			>
 				<div className="px-[10px] flex flex-col gap-4 h-full">
 					<MotionButton
