@@ -52,7 +52,7 @@ export function useFileDropEvent(
 	note: string,
 ) {
 	useEffect(
-		// @ts-ignore
+		// @ts-expect-error It is not type of EffectCallback, which is okay in this case
 		() => {
 			return wails.Events.On(
 				"files",

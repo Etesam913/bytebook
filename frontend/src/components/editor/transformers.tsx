@@ -37,7 +37,7 @@ import {
 	$createImageNode,
 	$isImageNode,
 	ImageNode,
-	ResizeWidth,
+	type ResizeWidth,
 } from "./nodes/image";
 import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
 import type { Transformer } from "./utils";

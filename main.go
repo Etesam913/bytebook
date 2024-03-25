@@ -78,7 +78,7 @@ func main() {
 		MinHeight: 600,
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 35,
-			Backdrop:                application.MacBackdropTranslucent,
+			Backdrop:                application.MacBackdropNormal,
 			TitleBar:                application.MacTitleBarHiddenInset,
 		},
 		EnableDragAndDrop: true,

@@ -2,7 +2,6 @@ import type {
 	DOMConversionMap,
 	DOMConversionOutput,
 	DOMExportOutput,
-	EditorConfig,
 	LexicalEditor,
 	LexicalNode,
 	NodeKey,
@@ -11,7 +10,6 @@ import type {
 } from "lexical";
 import { $applyNodeReplacement, DecoratorNode } from "lexical";
 import { Image } from "../../image";
-import { RemoveImage } from "../../../../bindings/main/NodeService";
 
 export type ResizeWidth = number | "100%";
 
@@ -109,7 +107,7 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 	}
 
 	// View
-	createDOM(config: EditorConfig): HTMLElement {
+	createDOM(): HTMLElement {
 		const span = document.createElement("span");
 		return span;
 	}

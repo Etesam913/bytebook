@@ -16,7 +16,7 @@ import {
 	type TextFormatType,
 } from "lexical";
 import { useEffect, useState } from "react";
-import { isToolbarDisabled } from "../../atoms";
+import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
 import { TextBold } from "../../icons/text-bold";
 import { TextItalic } from "../../icons/text-italic";
 import { TextStrikethrough } from "../../icons/text-strikethrough";
@@ -32,6 +32,7 @@ import {
 	handleToolbarTextFormattingClick,
 	overrideUpDownKeyCommand,
 } from "./utils";
+import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
 
 const LOW_PRIORITY = 1;
 
@@ -58,6 +59,7 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 	const [currentSelectionFormat, setCurrentSelectionFormat] = useState<
 		TextFormatType[]
 	>([]);
+	const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
 
 	function updateToolbar() {
 		const selection = $getSelection();
@@ -114,7 +116,7 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 		return mergeRegister(
 			editor.registerCommand(
 				SELECTION_CHANGE_COMMAND,
-				(_payload) => {
+				() => {
 					updateToolbar();
 					return false;
 				},
@@ -141,19 +143,32 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 			className={cn(
 				"flex flex-wrap gap-3 py-2 ml-[-4px] pl-1 border-b-[1px] border-b-zinc-200 dark:border-b-zinc-700",
 				disabled && "pointer-events-none",
+				isNoteMaximized && "!pl-3",
 			)}
 		>
-			<Dropdown
-				controlledValueIndex={blockTypesDropdownItems.findIndex(
-					(v) => v.value === currentBlockType,
-				)}
-				onChange={({ value }) =>
-					changeSelectedBlocksType(editor, value, folder, note)
-				}
-				items={blockTypesDropdownItems}
-				buttonClassName="w-[10rem]"
-				disabled={disabled}
-			/>
+			<span className="gap-1.5 flex items-center">
+				<motion.button
+					onClick={() => setIsNoteMaximized((prev) => !prev)}
+					{...getDefaultButtonVariants(disabled, 1.1, 0.95, 1.1)}
+					className="pl-[.1rem] pr-0.5"
+					type="button"
+					animate={{ rotate: isNoteMaximized ? 180 : 0 }}
+				>
+					<SidebarRightCollapse height="1.4rem" width="1.4rem" />
+				</motion.button>
+
+				<Dropdown
+					controlledValueIndex={blockTypesDropdownItems.findIndex(
+						(v) => v.value === currentBlockType,
+					)}
+					onChange={({ value }) =>
+						changeSelectedBlocksType(editor, value, folder, note)
+					}
+					items={blockTypesDropdownItems}
+					buttonClassName="w-[10rem]"
+					disabled={disabled}
+				/>
+			</span>
 
 			<motion.button
 				{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}

@@ -13,10 +13,12 @@ import { useAtomValue } from "jotai";
 import {
 	CLICK_COMMAND,
 	COMMAND_PRIORITY_LOW,
+	COPY_COMMAND,
 	CUT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
 	KEY_ARROW_UP_COMMAND,
 	KEY_ESCAPE_COMMAND,
+	PASTE_COMMAND,
 } from "lexical";
 import {
 	type SyntheticEvent,
@@ -30,7 +32,6 @@ import { darkModeAtom } from "../../atoms";
 import { BracketsSquareDots } from "../../icons/brackets-square-dots";
 import { Play } from "../../icons/circle-play";
 import { Loader } from "../../icons/loader";
-
 import { Trash } from "../../icons/trash";
 import { codeDropdownItems, languageToCommandMap } from "../../utils/code";
 import {
@@ -104,7 +105,7 @@ export function Code({
 	const debouncedCodeChange = useMemo(() => {
 		return debounce((code: string) => {
 			onCodeChange(code);
-		}, 500);
+		}, 250);
 	}, [onCodeChange]);
 
 	useEffect(() => {
@@ -149,14 +150,28 @@ export function Code({
 			),
 			editor.registerCommand<KeyboardEvent>(
 				CUT_COMMAND,
-				(e) => {
+				() => {
+					return isSelected;
+				},
+				COMMAND_PRIORITY_LOW,
+			),
+			editor.registerCommand<KeyboardEvent>(
+				COPY_COMMAND,
+				() => {
+					return isSelected;
+				},
+				COMMAND_PRIORITY_LOW,
+			),
+			editor.registerCommand<KeyboardEvent>(
+				PASTE_COMMAND,
+				() => {
 					return isSelected;
 				},
 				COMMAND_PRIORITY_LOW,
 			),
 			editor.registerCommand<KeyboardEvent>(
 				KEY_ESCAPE_COMMAND,
-				(e) => {
+				() => {
 					codeMirrorRef.current?.view?.contentDOM.blur();
 					return escapeKeyDecoratorNodeCommand(nodeKey);
 				},

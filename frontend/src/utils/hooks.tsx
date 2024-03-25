@@ -243,11 +243,10 @@ export function useDarkModeSetting() {
 }
 
 const dropImage = (e: DragEvent) => {
-	// @ts-ignore
+	// @ts-expect-error this comes from wails, no types
 	const currentFiles = input.files;
-	console.log("main");
-	// @ts-ignore
-	// chrome.webview.postMessageWithAdditionalObjects("FilesDropped", currentFiles);
+	// @ts-expect-error this comes from wails, no types
+	chrome.webview.postMessageWithAdditionalObjects("FilesDropped", currentFiles);
 	e.preventDefault();
 	e.stopPropagation();
 	return false;

@@ -1,8 +1,6 @@
 export function Loader({
 	width = "1.15rem",
 	height = "1.15rem",
-	fill = "currentColor",
-	secondaryfill = "currentColor",
 	title = "Loading",
 	className,
 }: {

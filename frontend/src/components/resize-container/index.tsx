@@ -6,7 +6,6 @@ import {
 	type SetStateAction,
 	useEffect,
 	useRef,
-	useState,
 } from "react";
 import { XResize } from "../../icons/arrows-expand-x";
 import { CircleArrowLeft } from "../../icons/circle-arrow-left";
@@ -19,7 +18,7 @@ import { dragItem } from "../../utils/draggable";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { useTrapFocus } from "../dialog/hooks";
-import { ResizeWidth } from "../editor/nodes/image";
+import type { ResizeWidth } from "../editor/nodes/image";
 import { expandNearestSiblingNode } from "./utils";
 
 export function ResizeContainer({

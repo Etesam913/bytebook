@@ -13,7 +13,7 @@ import type {
 import { $applyNodeReplacement, DecoratorNode } from "lexical";
 import { Suspense } from "react";
 import { Video } from "../../video";
-import { ResizeWidth } from "./image";
+import type { ResizeWidth } from "./image";
 
 export interface VideoPayload {
 	title: string;
@@ -74,7 +74,7 @@ export class VideoNode extends DecoratorNode<JSX.Element> {
 
 	static importDOM(): DOMConversionMap | null {
 		return {
-			img: (node: Node) => ({
+			img: () => ({
 				conversion: convertVideoElement,
 				priority: 0,
 			}),

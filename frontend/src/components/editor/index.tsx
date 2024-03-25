@@ -21,9 +21,10 @@ import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { $convertToMarkdownStringCorrect } from "./utils";
 import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
-import { useAtom } from "jotai";
-import { isDraggingOnEditorAtom } from "../../atoms";
-import { useImageDrop } from "../../utils/hooks";
+import { useAtomValue } from "jotai";
+import { isNoteMaximizedAtom } from "../../atoms";
+import TreeViewPlugin from "./plugins/tree-view";
+import { cn } from "../../utils/string-formatting";
 
 const debouncedHandleChange = debounce(handleChange, 500);
 
@@ -39,18 +40,20 @@ export function NotesEditor({
 }: { params: { folder: string; note: string } }) {
 	const { folder, note } = params;
 	const editorRef = useRef<LexicalEditor | null | undefined>(null);
-
-	const [isDraggingOnEditor, setIsDraggingOnEditor] = useAtom(
-		isDraggingOnEditorAtom,
-	);
+	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 
 	return (
-		<div className="flex-1 min-w-0 flex flex-col">
+		<div
+			className={cn("flex-1 min-w-0 flex flex-col", isNoteMaximized && "mt-8")}
+		>
 			<LexicalComposer initialConfig={editorConfig}>
 				<Toolbar folder={folder} note={note} />
 				<div
 					style={{ scrollbarGutter: "stable" }}
-					className="p-2 h-[calc(100vh-38px)] overflow-y-auto"
+					className={cn(
+						"p-2 h-[calc(100vh-38px)] overflow-y-auto",
+						isNoteMaximized && "px-3",
+					)}
 					onClick={(e) => {
 						const target = e.target as HTMLElement;
 						if (target.dataset.lexicalDecorator !== "true") {
@@ -82,7 +85,7 @@ export function NotesEditor({
 					<ImagesPlugin />
 					<VideosPlugin />
 					<CodePlugin />
-					{/* <TreeViewPlugin /> */}
+					<TreeViewPlugin />
 				</div>
 			</LexicalComposer>
 		</div>

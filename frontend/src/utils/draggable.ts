@@ -29,7 +29,7 @@ export function dragItem(
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: any is fine for throttle function
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: unknown[]) => unknown>(
 	func: T,
 	limit: number,
 ): (...funcArgs: Parameters<T>) => void {
@@ -57,8 +57,7 @@ export function throttle<T extends (...args: any[]) => any>(
 	};
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: any is fine for debounce function
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
 	func: T,
 	wait: number,
 ): (...args: Parameters<T>) => void {

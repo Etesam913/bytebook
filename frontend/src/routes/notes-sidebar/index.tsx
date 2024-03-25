@@ -1,9 +1,9 @@
 import { AnimatePresence, type MotionValue, motion } from "framer-motion";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { navigate } from "wouter/use-browser-location";
-import { foldersAtom, notesAtom } from "../../atoms";
+import { foldersAtom, isNoteMaximizedAtom, notesAtom } from "../../atoms";
 import { MotionButton } from "../../components/buttons";
 import { NotesEditor } from "../../components/editor";
 import { FolderSidebarDialog } from "../../components/folder-sidebar/sidebar-dialog";
@@ -32,7 +32,7 @@ export function NotesSidebar({
 	const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
 	const [notes, setNotes] = useAtom(notesAtom);
 	const setFolders = useSetAtom(foldersAtom);
-
+	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const { folder, note } = params;
 
 	useEffect(() => {
@@ -102,49 +102,52 @@ export function NotesSidebar({
 					/>
 				)}
 			</AnimatePresence>
-
-			<motion.aside
-				style={{ width }}
-				className="pt-[0.75rem] text-md h-screen flex flex-col gap-2 overflow-y-auto"
-			>
-				<div className="px-[10px] pt-[3px] flex flex-col gap-4 h-full overflow-y-auto">
-					<section className="flex gap-2 items-center">
-						<Folder className="min-w-[1.25rem]" />{" "}
-						<p className="whitespace-nowrap text-ellipsis overflow-hidden">
-							{folder}
-						</p>
-						<motion.button
-							type="button"
-							data-testid="rename_folder_button"
-							{...getDefaultButtonVariants(false, 1.15, 0.95, 1.15)}
-							className="min-w-[1.5rem] p-[2.5px] rounded-[0.5rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-300"
-							onClick={() => setIsFolderDialogOpen(true)}
-						>
-							<Pen className="w-full" />
-						</motion.button>
-					</section>
-					<MotionButton
-						{...getDefaultButtonVariants()}
-						onClick={() => setIsNoteDialogOpen(true)}
-						className="w-full bg-transparent flex justify-between align-center"
+			{!isNoteMaximized && (
+				<>
+					<motion.aside
+						style={{ width }}
+						className="pt-[0.75rem] text-md h-screen flex flex-col gap-2 overflow-y-auto"
 					>
-						Create Note <Compose />
-					</MotionButton>
-					<section className="flex flex-col flex-1 gap-3 overflow-y-auto">
-						<p>Your Notes</p>
-						<ul className="overflow-y-auto">
-							{noteElements && noteElements.length > 0 ? (
-								noteElements
-							) : (
-								<li className="text-center text-zinc-500 dark:text-zinc-300  text-xs">
-									Create a note with the "Create Note" button above
-								</li>
-							)}
-						</ul>
-					</section>
-				</div>
-			</motion.aside>
-			<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
+						<div className="px-[10px] pt-[3px] flex flex-col gap-4 h-full overflow-y-auto">
+							<section className="flex gap-2 items-center">
+								<Folder className="min-w-[1.25rem]" />{" "}
+								<p className="whitespace-nowrap text-ellipsis overflow-hidden">
+									{folder}
+								</p>
+								<motion.button
+									type="button"
+									data-testid="rename_folder_button"
+									{...getDefaultButtonVariants(false, 1.15, 0.95, 1.15)}
+									className="min-w-[1.5rem] p-[2.5px] rounded-[0.5rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-300"
+									onClick={() => setIsFolderDialogOpen(true)}
+								>
+									<Pen className="w-full" />
+								</motion.button>
+							</section>
+							<MotionButton
+								{...getDefaultButtonVariants()}
+								onClick={() => setIsNoteDialogOpen(true)}
+								className="w-full bg-transparent flex justify-between align-center"
+							>
+								Create Note <Compose />
+							</MotionButton>
+							<section className="flex flex-col flex-1 gap-3 overflow-y-auto">
+								<p>Your Notes</p>
+								<ul className="overflow-y-auto">
+									{noteElements && noteElements.length > 0 ? (
+										noteElements
+									) : (
+										<li className="text-center text-zinc-500 dark:text-zinc-300  text-xs">
+											Create a note with the "Create Note" button above
+										</li>
+									)}
+								</ul>
+							</section>
+						</div>
+					</motion.aside>
+					<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
+				</>
+			)}
 
 			{note && <NotesEditor params={{ folder, note }} />}
 		</>

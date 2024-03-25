@@ -9,7 +9,6 @@ import type {
 import { $applyNodeReplacement, $getNodeByKey, DecoratorNode } from "lexical";
 import { languageToCommandMap } from "../../../utils/code";
 import { Code } from "../../code";
-import { debounce } from "../../../utils/draggable";
 
 export interface CodePayload {
 	key?: NodeKey;
