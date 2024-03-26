@@ -3,150 +3,216 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: "Bricolage Grotesque";
-  src: url('./assets/fonts/BricolageGrotesque_24pt-Regular.ttf');
-  font-weight: normal;
-  font-style: normal;
+    font-family: "Bricolage Grotesque";
+    src: url("./assets/fonts/BricolageGrotesque_24pt-Regular.ttf");
+    font-weight: normal;
+    font-style: normal;
 }
 
 @font-face {
-  font-family: "Bricolage Grotesque";
-  src: url('./assets/fonts/BricolageGrotesque_24pt-SemiBold.ttf');
-  font-weight: 600;
-  font-style: normal;
+    font-family: "Bricolage Grotesque";
+    src: url("./assets/fonts/BricolageGrotesque_24pt-SemiBold.ttf");
+    font-weight: 600;
+    font-style: normal;
 }
 
 @font-face {
-  font-family: "Jetbrains Mono";
-  src: url('./assets/fonts/JetBrainsMono-Regular.ttf');
-  font-weight: normal;
-  font-style: normal;
+    font-family: "Jetbrains Mono";
+    src: url("./assets/fonts/JetBrainsMono-Regular.ttf");
+    font-weight: normal;
+    font-style: normal;
 }
 
 @font-face {
-  font-family: "Jetbrains Mono";
-  src: url('./assets/fonts/JetBrainsMono-Bold.ttf');
-  font-weight: 700;
-  font-style: normal;
+    font-family: "Jetbrains Mono";
+    src: url("./assets/fonts/JetBrainsMono-Bold.ttf");
+    font-weight: 700;
+    font-style: normal;
 }
 
 @font-face {
-  font-family: "Jetbrains Mono";
-  src: url('./assets/fonts/JetBrainsMono-Italic.ttf');
-  font-style: italic;
+    font-family: "Jetbrains Mono";
+    src: url("./assets/fonts/JetBrainsMono-Italic.ttf");
+    font-style: italic;
 }
 
-
-:root{
-  @apply transition-colors duration-300 dark:[color-scheme:dark];
+:root {
+    @apply transition-colors duration-300 dark:[color-scheme:dark];
 }
 
-h1{
-  @apply text-3xl leading-[3.25rem];
+h1 {
+    @apply text-3xl leading-[3.25rem];
 }
 
-h2{
-  @apply text-2xl leading-[2.25rem];
+h2 {
+    @apply text-2xl leading-[2.25rem];
 }
 
-h3{
-  @apply text-xl;
+h3 {
+    @apply text-xl;
 }
 
-.button-invert{
-  @apply bg-zinc-800 text-zinc-200 dark:text-zinc-900 dark:bg-zinc-200;
+.button-invert {
+    @apply bg-zinc-800 text-zinc-200 dark:bg-zinc-200 dark:text-zinc-900;
 }
-
 
 /**
  * Code mirror styles
  */
- .cm-content {
-  font-family: 'Jetbrains Mono', monospace;
-  font-size: 14px;
+.cm-content {
+    font-family: "Jetbrains Mono", monospace;
+    font-size: 14px;
 }
 
-.cm-tooltip.cm-tooltip-autocomplete ul{
-  font-family: 'Jetbrains Mono', monospace;
-  font-size: 12px;
+.cm-tooltip.cm-tooltip-autocomplete ul {
+    font-family: "Jetbrains Mono", monospace;
+    font-size: 12px;
 }
 
-.cm-tooltip.cm-tooltip-autocomplete & > ul & > li, & > completion-section{
-  padding: 0.15rem;
+.cm-tooltip.cm-tooltip-autocomplete & > ul & > li,
+& > completion-section {
+    padding: 0.15rem;
 }
 
 /**
  * Lexical Editor Styles (Tailwind does not work too well with)
  */
 
-.root-ol{
-  padding: 0;
-  margin: 0;
-  list-style-position: inside;
-  list-style:decimal;
+.root-ol {
+    padding: 0;
+    margin: 0;
+    list-style-position: inside;
+    list-style: decimal;
 }
 
-.ol-1{
-  list-style-type: lower-alpha;
+.ol-1 {
+    list-style-type: lower-alpha;
+}
+
+.check-list {
+    list-style-type: none;
 }
 
 .root-ul {
-  padding: 0;
-  margin: 0;
-  list-style-position: inside;
-  list-style: disc;
+    padding: 0;
+    margin: 0;
+    list-style-position: inside;
+    list-style: disc;
 }
 
 .ul-1 {
-  list-style:circle;
+    list-style: circle;
 }
 
 .root-li {
-  margin: 0 32px;
+    margin: 0 32px;
 }
 
-.nested-li{
-  list-style-type: none;
+.nested-li {
+    list-style-type: none;
+}
+.nested-li:before,
+.nested-li:after {
+    display: none !important;
 }
 
 .nested:before,
 .nested:after {
-  display: none;
+    display: none;
 }
 
-.text-italic{
-  font-style: italic;
+.text-italic {
+    font-style: italic;
 }
-.text-bold{
-  font-weight: bold;
+.text-bold {
+    font-weight: bold;
 }
-.text-underline{
-  text-decoration: underline;
+.text-underline {
+    text-decoration: underline;
 }
-.text-strikethrough{
-  text-decoration: line-through;
+.text-strikethrough {
+    text-decoration: line-through;
 }
-
 
 .editor-scroller {
-  min-height: 150px;
-  border: 0;
-  display: flex;
-  position: relative;
-  outline: 0;
-  z-index: 0;
-  overflow: auto;
-  resize: vertical;
+    min-height: 150px;
+    border: 0;
+    display: flex;
+    position: relative;
+    outline: 0;
+    z-index: 0;
+    overflow: auto;
+    resize: vertical;
 }
 
 .editor {
-  flex: auto;
-  position: relative;
-  resize: vertical;
-  z-index: -1;
+    flex: auto;
+    position: relative;
+    resize: vertical;
+    z-index: -1;
 }
 
-
-[contenteditable="true"]:focus{
+[contenteditable="true"]:focus {
     outline: 0;
+}
+
+.PlaygroundEditorTheme__listItemChecked,
+.PlaygroundEditorTheme__listItemUnchecked {
+    position: relative;
+    margin-left: 8px;
+    margin-right: 8px;
+    padding-left: 24px;
+    padding-right: 24px;
+    list-style-type: none;
+    outline: none;
+}
+.PlaygroundEditorTheme__listItemChecked {
+    text-decoration: line-through;
+}
+.PlaygroundEditorTheme__listItemUnchecked:before,
+.PlaygroundEditorTheme__listItemChecked:before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    top: 2px;
+    left: 0;
+    cursor: pointer;
+    display: block;
+    background-size: cover;
+    position: absolute;
+}
+.PlaygroundEditorTheme__listItemUnchecked[dir="rtl"]:before,
+.PlaygroundEditorTheme__listItemChecked[dir="rtl"]:before {
+    left: auto;
+    right: 0;
+}
+.PlaygroundEditorTheme__listItemUnchecked:focus:before,
+.PlaygroundEditorTheme__listItemChecked:focus:before {
+    box-shadow: 0 0 0 2px #a6cdfe;
+    border-radius: 2px;
+}
+.PlaygroundEditorTheme__listItemUnchecked:before {
+    border: 1px solid #999;
+    border-radius: 2px;
+}
+.PlaygroundEditorTheme__listItemChecked:before {
+    border: 1px solid rgb(61, 135, 245);
+    border-radius: 2px;
+    background-color: #3d87f5;
+    background-repeat: no-repeat;
+}
+.PlaygroundEditorTheme__listItemChecked:after {
+    content: "";
+    cursor: pointer;
+    border-color: #fff;
+    border-style: solid;
+    position: absolute;
+    display: block;
+    top: 6px;
+    width: 3px;
+    left: 7px;
+    right: 7px;
+    height: 6px;
+    transform: rotate(45deg);
+    border-width: 0 2px 2px 0;
 }

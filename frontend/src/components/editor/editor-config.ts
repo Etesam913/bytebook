@@ -13,45 +13,48 @@ import { VideoNode } from "./nodes/video";
 // or throw them as needed. If you don't throw them, Lexical will
 // try to recover gracefully without losing user data.
 function onError(error: Error) {
-	console.error(error);
+  console.error(error);
 }
 
 export const theme: EditorThemeClasses = {
-	list: {
-		ulDepth: ["root-ul", "ul-1"],
-		olDepth: ["root-ol", "ol-1"],
-		listitem: "root-li",
-		nested: {
-			listitem: "nested-li",
-		},
-	},
-	text: {
-		bold: "text-bold",
-		italic: "text-italic",
-		underline: "text-underline",
-		strikethrough: "text-strikethrough",
-	},
+  list: {
+    ulDepth: ["root-ul", "ul-1"],
+    olDepth: ["root-ol", "ol-1"],
+    listitem: "root-li",
+    nested: {
+      listitem: "nested-li",
+    },
+    checklist: "check-list",
+    listitemChecked: "PlaygroundEditorTheme__listItemChecked",
+    listitemUnchecked: "PlaygroundEditorTheme__listItemUnchecked",
+  },
+  text: {
+    bold: "text-bold",
+    italic: "text-italic",
+    underline: "text-underline",
+    strikethrough: "text-strikethrough",
+  },
 };
 
 export const editorConfig: InitialConfigType = {
-	namespace: "note-editor",
-	theme: theme,
-	editable: false,
-	onError,
-	nodes: [
-		HeadingNode,
-		QuoteNode,
-		HorizontalRuleNode,
-		CodeNode,
-		LinkNode,
-		ListNode,
-		ListItemNode,
-		ParagraphNode,
-		ImageNode,
-		VideoNode,
-		TableNode,
-		TableCellNode,
-		TableRowNode,
-		CodeNode,
-	],
+  namespace: "note-editor",
+  theme: theme,
+  // editable: false,
+  onError,
+  nodes: [
+    HeadingNode,
+    QuoteNode,
+    HorizontalRuleNode,
+    CodeNode,
+    LinkNode,
+    ListNode,
+    ListItemNode,
+    ParagraphNode,
+    ImageNode,
+    VideoNode,
+    TableNode,
+    TableCellNode,
+    TableRowNode,
+    CodeNode,
+  ],
 };
