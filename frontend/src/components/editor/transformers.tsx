@@ -67,7 +67,7 @@ export const CODE_TRANSFORMER: ElementTransformer = {
   },
   regExp: /^```(\w{1,10})?\s/,
   replace: (textNode, _1, match, isImport) => {
-    const [_2, language] = match;
+    const language = match.at(1)
     if (!language || !codeLanguages.has(language)) {
       return;
     }
@@ -85,20 +85,23 @@ export const CODE_TRANSFORMER: ElementTransformer = {
   type: "element",
 };
 
-const srcRegex = /\/notes\/([^\/]+)\/([^\/]+)\//;
+const srcRegex = /\/notes\/([^/]+)\/([^/]+)\//;
 
 /** Updates image src when location pathname changes, should revisit this */
 function updateSrc(nodeSrc: string) {
   // If it is coming from file-server update url if the folder name or note title changes
-  if (nodeSrc.includes("localhost")) {
-    const [_, currentFolder, currentNoteTitle] = location.pathname.split("/");
+  if (!nodeSrc.includes("localhost")) {
+    return nodeSrc;
+  } else {
+    const urlSplit = location.pathname.split("/");
+    const currentFolder = urlSplit.at(1);
+    const currentNoteTitle = urlSplit.at(2);
 
     return nodeSrc.replace(
-      srcRegex,
-      `/notes/${currentFolder}/${currentNoteTitle}/`,
+        srcRegex,
+        `/notes/${currentFolder}/${currentNoteTitle}/`,
     );
   }
-  return nodeSrc;
 }
 
 const VIDEO_TRANSFORMER: ElementTransformer = {
@@ -117,7 +120,7 @@ const VIDEO_TRANSFORMER: ElementTransformer = {
     const videoSrc = updateSrc(node.getSrc());
     return `![${videoTitleText}](${videoSrc}) `;
   },
-  regExp: /!(?:\[([^[]*)\])(?:\(([^)]+\.(?:mp4|mov))\))\s/,
+  regExp: /!\[([^[]*)]\(([^)]+\.(?:mp4|mov))\)\s/,
   replace: (textNode, _, match) => {
     const [, title, src] = match;
     const videoWidthQueryValue = getQueryParamValue(title, "videoWidth");
@@ -155,9 +158,14 @@ const IMAGE_TRANSFORMER: ElementTransformer = {
     // TODO: need to do sanitizing on the alt text
     return `![${imageAltText}](${imageSrc}) `;
   },
-  regExp: /!\[(?<alt>[^\]]*)\]\((?<filename>.*?)(?<!\.mp4|.mov)(?=\"|\))\)\s/,
+  regExp: /!\[(?<alt>[^\]]*)]\((?<filename>.*?)(?<!\.mp4|.mov)(?=[")])\)\s/,
   replace: (textNode, _1, match) => {
-    const [_2, alt, src] = match;
+    const alt = match.at(1)
+    const src = match.at(2)
+    if(!alt || !src) {
+      textNode.replace(textNode)
+      return;
+    }
     const imageWidthQueryValue = getQueryParamValue(alt, "imageWidth");
     const imageWidth: ResizeWidth = imageWidthQueryValue
       ? imageWidthQueryValue.charAt(-1) === "%"

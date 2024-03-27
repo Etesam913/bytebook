@@ -20,6 +20,7 @@ export const theme: EditorThemeClasses = {
   list: {
     ulDepth: ["root-ul", "ul-1"],
     olDepth: ["root-ol", "ol-1"],
+
     listitem: "root-li",
     nested: {
       listitem: "nested-li",

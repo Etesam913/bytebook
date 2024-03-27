@@ -3,7 +3,11 @@ import { Toaster } from "sonner";
 import { Route } from "wouter";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { NotesSidebar } from "./routes/notes-sidebar";
-import { useDarkModeSetting, useImageDrop } from "./utils/hooks";
+import {
+	useDarkModeSetting,
+	useDeleteEvent,
+	useImageDrop,
+} from "./utils/hooks";
 import { useAtomValue } from "jotai";
 import { isNoteMaximizedAtom } from "./atoms";
 
@@ -13,6 +17,7 @@ function App() {
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	useDarkModeSetting();
 	useImageDrop();
+
 	return (
 		<main
 			id="App"

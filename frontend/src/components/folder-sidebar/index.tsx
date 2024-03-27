@@ -1,13 +1,10 @@
 import { AnimatePresence, type MotionValue, motion } from "framer-motion";
 import { useAtom } from "jotai";
-import { useEffect, useState } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
-import { navigate } from "wouter/use-browser-location";
-import { DeleteFolder } from "../../../bindings/main/FolderService";
-import { foldersAtom } from "../../atoms";
+import { foldersAtom, isFolderDialogOpenAtom } from "../../atoms";
 import { Folder } from "../../icons/folder";
 import { FolderPlus } from "../../icons/folder-plus";
-import { Trash } from "../../icons/trash";
 import { updateFolders } from "../../utils/fetch-functions";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
@@ -15,15 +12,35 @@ import { MotionButton } from "../buttons";
 import { SyncChangesButton } from "../buttons/sync-changes";
 import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
+import { useWailsEvent } from "../../utils/hooks.tsx";
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
 
 	const folder = params?.folder;
-
+	const [isFolderDialogOpen, setIsFolderDialogOpen] = useAtom(
+		isFolderDialogOpenAtom,
+	);
 	const [folders, setFolders] = useAtom(foldersAtom);
-	const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
 	const [isSyncing, setIsSyncing] = useState(false);
+
+	useWailsEvent("delete-folder", (event) => {
+		setIsFolderDialogOpen({
+			isOpen: true,
+			action: "delete",
+			folderName: event.data,
+		});
+	});
+	useWailsEvent("rename-folder", (event) => {
+		setIsFolderDialogOpen({
+			isOpen: true,
+			action: "rename",
+			folderName: event.data,
+		});
+	});
+	useWailsEvent("create-note", () => {
+		// setIsFolderDialogOpen({ isOpen: true, action: "create" });
+	});
 
 	useEffect(() => {
 		updateFolders(setFolders);
@@ -31,7 +48,16 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 
 	const folderElements = folders?.map((folderName) => (
 		<li key={folderName}>
-			<div className="flex items-center gap-2 overflow-hidden pr-1">
+			<div
+				id="folder"
+				className="flex items-center gap-2 overflow-hidden pr-1 select-none"
+				style={
+					{
+						"--custom-contextmenu": "folder-context-menu",
+						"--custom-contextmenu-data": folderName,
+					} as CSSProperties
+				}
+			>
 				<Link
 					data-testid={`folder_link-${folderName}`}
 					className={cn(
@@ -45,23 +71,6 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 						{folderName}
 					</p>
 				</Link>
-				<motion.button
-					data-testid={`delete_folder_button-${folderName}`}
-					onClick={() =>
-						DeleteFolder(`${folderName}`).then((res) => {
-							if (res.success) {
-								const newFolders = folders.filter((v) => v !== folderName);
-								navigate(folders.length > 1 ? `/${newFolders[0]}` : "/");
-								setFolders(newFolders);
-							}
-						})
-					}
-					{...getDefaultButtonVariants(false, 1.1, 0.9, 1.1)}
-					type="button"
-					className="min-w-[28px] p-1 rounded-[0.3rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700"
-				>
-					<Trash />
-				</motion.button>
 			</div>
 		</li>
 	));
@@ -69,12 +78,12 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	return (
 		<>
 			<AnimatePresence>
-				{isFolderDialogOpen && (
+				{isFolderDialogOpen.isOpen && (
 					<FolderSidebarDialog
-						action="add"
 						isFolderDialogOpen={isFolderDialogOpen}
 						setIsFolderDialogOpen={setIsFolderDialogOpen}
 						setFolders={setFolders}
+						folders={folders ?? []}
 					/>
 				)}
 			</AnimatePresence>
@@ -88,12 +97,21 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 						{...getDefaultButtonVariants()}
 						data-testid="create_folder_button"
 						className="w-full bg-transparent flex justify-between align-center"
-						onClick={() => setIsFolderDialogOpen(true)}
+						onClick={() =>
+							setIsFolderDialogOpen({ isOpen: true, action: "create" })
+						}
 					>
 						Create Folder <FolderPlus />
 					</MotionButton>
 					<section className="flex-1 overflow-y-auto flex flex-col gap-2">
-						<p>Your Folders</p>
+						<p>
+							Your Folders{" "}
+							{folderElements && folderElements.length > 0 && (
+								<span className="tracking-wider">
+									({folderElements.length})
+								</span>
+							)}
+						</p>
 						<ul className="overflow-y-auto">
 							{folderElements && folderElements.length > 0 ? (
 								folderElements

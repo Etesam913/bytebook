@@ -3,7 +3,13 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { navigate } from "wouter/use-browser-location";
-import { foldersAtom, isNoteMaximizedAtom, notesAtom } from "../../atoms";
+import { DeleteFolder } from "../../../bindings/main/FolderService";
+import {
+	foldersAtom,
+	isFolderDialogOpenAtom,
+	isNoteMaximizedAtom,
+	notesAtom,
+} from "../../atoms";
 import { MotionButton } from "../../components/buttons";
 import { NotesEditor } from "../../components/editor";
 import { FolderSidebarDialog } from "../../components/folder-sidebar/sidebar-dialog";
@@ -12,12 +18,10 @@ import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
 import { Note } from "../../icons/page";
 import { Pen } from "../../icons/pen";
-import { Trash } from "../../icons/trash";
 import { updateNotes } from "../../utils/fetch-functions";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { NotesSidebarDialog } from "./sidebar-dialog";
-import { DeleteFolder } from "../../../bindings/main/FolderService";
 
 export function NotesSidebar({
 	params,
@@ -29,19 +33,17 @@ export function NotesSidebar({
 	leftWidth: MotionValue<number>;
 }) {
 	const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
-	const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
 	const [notes, setNotes] = useAtom(notesAtom);
-	const setFolders = useSetAtom(foldersAtom);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const { folder, note } = params;
-
+	const setIsFolderDialogOpen = useSetAtom(isFolderDialogOpenAtom);
 	useEffect(() => {
 		updateNotes(folder, setNotes);
 	}, [folder, setNotes]);
 
 	const noteElements = notes?.map((noteName) => (
 		<li key={noteName}>
-			<div className="flex items-center gap-2 overflow-hidden pr-1">
+			<div className="flex items-center gap-2 overflow-hidden pr-1 select-none">
 				<Link
 					className={cn(
 						"flex flex-1 gap-2 items-center px-3 py-[0.45rem] mb-[0.15rem] rounded-md overflow-auto",
@@ -54,26 +56,26 @@ export function NotesSidebar({
 						{noteName}
 					</p>
 				</Link>
-				<motion.button
-					onClick={() =>
-						DeleteFolder(`${folder}/${noteName}`).then((res) => {
-							if (res.success) {
-								const remainingNotes = notes?.filter((v) => v !== noteName);
-								navigate(
-									`/${folder}${
-										remainingNotes.length > 0 ? `/${remainingNotes[0]}` : ""
-									}`,
-								);
-								setNotes(remainingNotes);
-							}
-						})
-					}
-					{...getDefaultButtonVariants(false, 1.15, 0.95, 1.15)}
-					type="button"
-					className="min-w-[20px] p-1 rounded-[0.3rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-300"
-				>
-					<Trash />
-				</motion.button>
+				{/*<motion.button*/}
+				{/*	onClick={() =>*/}
+				{/*		DeleteFolder(`${folder}/${noteName}`).then((res) => {*/}
+				{/*			if (res.success) {*/}
+				{/*				const remainingNotes = notes?.filter((v) => v !== noteName);*/}
+				{/*				navigate(*/}
+				{/*					`/${folder}${*/}
+				{/*						remainingNotes.length > 0 ? `/${remainingNotes[0]}` : ""*/}
+				{/*					}`,*/}
+				{/*				);*/}
+				{/*				setNotes(remainingNotes);*/}
+				{/*			}*/}
+				{/*		})*/}
+				{/*	}*/}
+				{/*	{...getDefaultButtonVariants(false, 1.15, 0.95, 1.15)}*/}
+				{/*	type="button"*/}
+				{/*	className="min-w-[20px] p-1 rounded-[0.3rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-300"*/}
+				{/*>*/}
+				{/*	<Trash />*/}
+				{/*</motion.button>*/}
 			</div>
 		</li>
 	));
@@ -91,17 +93,6 @@ export function NotesSidebar({
 				)}
 			</AnimatePresence>
 
-			<AnimatePresence>
-				{isFolderDialogOpen && (
-					<FolderSidebarDialog
-						action="rename"
-						isFolderDialogOpen={isFolderDialogOpen}
-						setIsFolderDialogOpen={setIsFolderDialogOpen}
-						setFolders={setFolders}
-						oldFolderName={folder}
-					/>
-				)}
-			</AnimatePresence>
 			{!isNoteMaximized && (
 				<>
 					<motion.aside
@@ -119,7 +110,9 @@ export function NotesSidebar({
 									data-testid="rename_folder_button"
 									{...getDefaultButtonVariants(false, 1.15, 0.95, 1.15)}
 									className="min-w-[1.5rem] p-[2.5px] rounded-[0.5rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-300"
-									onClick={() => setIsFolderDialogOpen(true)}
+									onClick={() =>
+										setIsFolderDialogOpen({ isOpen: true, action: "rename" })
+									}
 								>
 									<Pen className="w-full" />
 								</motion.button>
@@ -132,7 +125,14 @@ export function NotesSidebar({
 								Create Note <Compose />
 							</MotionButton>
 							<section className="flex flex-col flex-1 gap-3 overflow-y-auto">
-								<p>Your Notes</p>
+								<p>
+									Your Notes{" "}
+									{noteElements && noteElements.length > 0 && (
+										<span className="tracking-wider">
+											({noteElements.length})
+										</span>
+									)}
+								</p>
 								<ul className="overflow-y-auto">
 									{noteElements && noteElements.length > 0 ? (
 										noteElements

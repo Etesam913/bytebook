@@ -33,14 +33,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Creaing notes dir
+	// Creating notes dir
 	notesPath := filepath.Join(projectPath, "notes")
 	if err := os.MkdirAll(notesPath, os.ModePerm); err != nil {
 		log.Fatalf("Failed to create notes directory: %v", err)
 	}
 
 	// Creating git repo if not already exists
-	git_helpers.InitalizeGitRepo(projectPath)
+	git_helpers.InitializeGitRepo(projectPath)
 	git_helpers.SetRepoOrigin("https://github.com/Etesam913/bytebook-test.git")
 
 	// Launching file server for images/videos
@@ -86,18 +86,34 @@ func main() {
 		URL:               "/",
 	})
 
-	// Create a goroutine that emits an event containing the current time every second.
-	// The frontend can listen to this event and update the UI accordingly.
-	// go func() {
-	// 	for {
-	// 		now := time.Now().Format(time.RFC1123)
-	// 		app.Events.Emit(&application.WailsEvent{
-	// 			Name: "time",
-	// 			Data: now,
-	// 		})
-	// 		time.Sleep(time.Second)
-	// 	}
-	// }()
+	folderContextMenu := app.NewMenu()
+
+	folderContextMenu.Add("✏️ Rename Folder").OnClick(func(data *application.Context) {
+		folderToRename, isString := data.ContextMenuData().(string)
+		if isString {
+			app.Events.Emit(&application.WailsEvent{
+				Name: "rename-folder",
+				Data: folderToRename,
+			})
+		}
+	})
+
+	folderContextMenu.Add("🗒️ Add Note").OnClick(func(data *application.Context) {
+		app.Events.Emit(&application.WailsEvent{
+			Name: "add-folder",
+			Data: nil,
+		})
+	})
+
+	folderContextMenu.Add("🗑️ Delete Folder").OnClick(func(data *application.Context) {
+		folderToDelete, isString := data.ContextMenuData().(string)
+		if isString {
+			app.Events.Emit(&application.WailsEvent{
+				Name: "delete-folder",
+				Data: folderToDelete,
+			})
+		}
+	})
 
 	window.On(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
 		files := event.Context().DroppedFiles()
@@ -107,6 +123,8 @@ func main() {
 		})
 		app.Logger.Info("Files Dropped!", "files", files)
 	})
+
+	app.RegisterContextMenu("folder-context-menu", folderContextMenu)
 
 	// Run the application. This blocks until the application has been exited.
 	err = app.Run()

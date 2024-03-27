@@ -11,7 +11,7 @@ import (
 	"github.com/go-git/go-git/v5/config"
 )
 
-func InitalizeGitRepo(projectPath string) {
+func InitializeGitRepo(projectPath string) {
 	// Creates the git repository
 	_, err := git.PlainInit(projectPath, false)
 	if err != nil && err != git.ErrRepositoryAlreadyExists {

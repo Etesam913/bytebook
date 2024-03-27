@@ -1,5 +1,6 @@
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
+import { Events as WailsEvents } from "@wailsio/runtime";
 import { useSetAtom } from "jotai";
 import {
 	CLICK_COMMAND,
@@ -46,7 +47,7 @@ export const useDelayedLoader = (
 	};
 	useEffect(() => {
 		clearLoadTimeout();
-		if (loading === false) setDelayedLoading(false);
+		if (!loading) setDelayedLoading(false);
 		else {
 			loadTimeoutId.current = window.setTimeout(
 				() => setDelayedLoading(true),
@@ -259,4 +260,20 @@ export function useImageDrop() {
 			document.body.removeEventListener("drop", dropImage);
 		};
 	}, []);
+}
+
+type WailsEvent = {
+	name: string;
+	sender: string;
+	data: unknown;
+};
+
+export function useWailsEvent(
+	eventName: string,
+	callback: (res: WailsEvent) => void,
+) {
+	// @ts-expect-error the events function can be returned
+	useEffect(() => {
+		return WailsEvents.On(eventName, callback);
+	}, [eventName, callback]);
 }

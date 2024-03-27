@@ -1,27 +1,41 @@
-import { type Dispatch, type SetStateAction, useState } from "react";
+import { type Dispatch, ReactNode, type SetStateAction, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
+import {
+	AddFolder,
+	DeleteFolder,
+	RenameFolder,
+} from "../../../bindings/main/FolderService";
+import { FolderPen } from "../../icons/folder-pen.tsx";
 import { FolderPlus } from "../../icons/folder-plus";
+import { FolderXMark } from "../../icons/folder-xmark.tsx";
+import { FolderDialogAction, FolderDialogState } from "../../types.ts";
 import { fileNameRegex } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../buttons";
 import { Dialog, ErrorText } from "../dialog";
-import { AddFolder, RenameFolder } from "../../../bindings/main/FolderService";
+
+const actionNameMap: Record<
+	FolderDialogAction,
+	{ title: string; icon: ReactNode }
+> = {
+	create: { title: "Create Folder", icon: <FolderPlus /> },
+	rename: { title: "Rename Folder", icon: <FolderPen /> },
+	delete: { title: "Delete Folder", icon: <FolderXMark /> },
+};
 
 export function FolderSidebarDialog({
 	isFolderDialogOpen,
 	setIsFolderDialogOpen,
-	oldFolderName,
 	setFolders,
-	action,
+	folders,
 }: {
-	isFolderDialogOpen: boolean;
-	setIsFolderDialogOpen: Dispatch<SetStateAction<boolean>>;
-	oldFolderName?: string;
+	isFolderDialogOpen: FolderDialogState;
+	setIsFolderDialogOpen: Dispatch<SetStateAction<FolderDialogState>>;
 	setFolders: Dispatch<SetStateAction<string[] | null>>;
-	action: "add" | "rename";
+	folders: string[];
 }) {
 	const [errorText, setErrorText] = useState("");
-
+	const { action, isOpen } = isFolderDialogOpen;
 	return (
 		<Dialog
 			handleSubmit={(e) => {
@@ -35,11 +49,12 @@ export function FolderSidebarDialog({
 						);
 						return;
 					}
-					if (action === "add") {
+
+					if (action === "create") {
 						AddFolder(folderName)
 							.then((res) => {
 								if (res.success) {
-									setIsFolderDialogOpen(false);
+									setIsFolderDialogOpen({ isOpen: false, folderName });
 									setErrorText("");
 									setFolders((prev) =>
 										prev ? [...prev, folderName] : [folderName],
@@ -53,17 +68,19 @@ export function FolderSidebarDialog({
 								console.error(e);
 								setErrorText(e.message);
 							});
-					} else if (action === "rename" && oldFolderName) {
-						RenameFolder(oldFolderName, folderName)
+					} else if (action === "rename") {
+						RenameFolder(isFolderDialogOpen.folderName, folderName)
 							.then((res) => {
 								if (res.success) {
-									setIsFolderDialogOpen(false);
+									setIsFolderDialogOpen({ isOpen: false, folderName: "" });
 									setErrorText("");
-									setFolders((prev) =>
-										prev
-											? prev.map((v) => (v === oldFolderName ? folderName : v))
-											: [folderName],
-									);
+									setFolders((prev) => {
+										return prev
+											? prev.map((v: string) =>
+													v === isFolderDialogOpen.folderName ? folderName : v,
+											  )
+											: [folderName];
+									});
 									navigate(`/${folderName}`);
 								}
 							})
@@ -74,37 +91,58 @@ export function FolderSidebarDialog({
 								}
 							});
 					}
+				} else if (action === "delete") {
+					DeleteFolder(`${isFolderDialogOpen.folderName}`).then((res) => {
+						if (res.success) {
+							const newFolders = folders.filter(
+								(v) => v !== isFolderDialogOpen.folderName,
+							);
+							navigate(folders.length > 1 ? `/${newFolders[0]}` : "/");
+							setFolders(newFolders);
+							setIsFolderDialogOpen({ isOpen: false, folderName: "" });
+						}
+					});
 				}
 			}}
-			title={action === "add" ? "Create Folder" : "Rename Folder"}
-			isOpen={isFolderDialogOpen}
-			setIsOpen={setIsFolderDialogOpen}
+			title={actionNameMap[action ?? "create"].title}
+			isOpen={isOpen}
+			setIsOpen={(isOpen) => {
+				setIsFolderDialogOpen({ isOpen: isOpen, folderName: "" });
+			}}
 		>
 			<div className="flex flex-col">
-				<label className="pb-2 cursor-pointer" htmlFor="folder-name">
-					New Folder Name
-				</label>
-				<input
-					data-testid="folder_name"
-					name="folder-name"
-					placeholder="My To Do's"
-					className="py-1 px-2 rounded-sm border-[1px] border-zinc-300 dark:border-zinc-700 focus:outline-none focus:border-zinc-500 dark:focus:border-zinc-500 transition-colors w-full"
-					id="folder-name"
-					type="text"
-				/>
+				{action !== "delete" ? (
+					<>
+						<label className="pb-2 cursor-pointer" htmlFor="folder-name">
+							New Folder Name
+						</label>
+						<input
+							data-testid="folder_name"
+							name="folder-name"
+							placeholder="My To Do's"
+							className="py-1 px-2 rounded-sm border-[1px] border-zinc-300 dark:border-zinc-700 focus:outline-none focus:border-zinc-500 dark:focus:border-zinc-500 transition-colors w-full"
+							id="folder-name"
+							type="text"
+						/>
+					</>
+				) : (
+					<p className="text-zinc-500 dark:text-zinc-400 text-sm">
+						Are you sure you want to{" "}
+						<span className="text-red-500">delete</span> "
+						{isFolderDialogOpen.folderName}" and sent its notes to the trash
+						bin?
+					</p>
+				)}
+
 				<section className="w-full px-[0.5rem] mt-4 flex flex-col gap-1 ">
 					<ErrorText errorText={errorText} />
 					<MotionButton
 						type="submit"
-						data-testid={
-							action === "add"
-								? "create_folder_dialog_button"
-								: "rename_folder_dialog_button"
-						}
 						{...getDefaultButtonVariants()}
 						className="w-full text-center flex items-center gap-2 justify-center flex-wrap "
 					>
-						{action === "add" ? "Add Folder" : "Rename Folder"} <FolderPlus />
+						{actionNameMap[action ?? "create"].title}{" "}
+						{actionNameMap[action ?? "create"].icon}
 					</MotionButton>
 				</section>
 			</div>

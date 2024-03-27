@@ -1,14 +1,15 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"github.com/go-git/go-git/v5"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
-	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -20,12 +21,6 @@ type NodeService struct {
 type NodeResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
-}
-
-type ImageResponse struct {
-	Success bool     `json:"success"`
-	Message string   `json:"message"`
-	Data    []string `json:"message"`
 }
 
 func GetExtensionFromLanguage(language string) (bool, string) {
@@ -66,6 +61,7 @@ func (n *NodeService) RunCode(language string, code string, command string) Node
 			Message: "Your programming language is invalid",
 		}
 	}
+
 	// Creates a temp file for the code
 	filePath := fmt.Sprintf("%s/tmp%s", n.ProjectPath, extension)
 	file, err := os.Create(filePath)
@@ -96,7 +92,10 @@ func (n *NodeService) RunCode(language string, code string, command string) Node
 		}
 	}
 
-	os.Remove(filePath)
+	err = os.Remove(filePath)
+	if err != nil {
+		return NodeResponse{}
+	}
 
 	return NodeResponse{
 		Success: true,
@@ -104,7 +103,7 @@ func (n *NodeService) RunCode(language string, code string, command string) Node
 	}
 }
 
-type GitReponse struct {
+type GitResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
 	Error   error  `json:"error"`
@@ -117,19 +116,19 @@ var auth = &http.BasicAuth{
 	Password: "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",
 }
 
-func (n *NodeService) SyncChangesWithRepo() GitReponse {
+func (n *NodeService) SyncChangesWithRepo() GitResponse {
 	allowedErrors[git.NoErrAlreadyUpToDate] = struct{}{}
 
 	// Open the repository
 	repo, err := git.PlainOpen(n.ProjectPath)
 	if err != nil {
-		return GitReponse{Status: "error", Message: "Error in entering your repo", Error: err}
+		return GitResponse{Status: "error", Message: "Error in entering your repo", Error: err}
 	}
 
 	// Entering into the worktree
 	worktree, err := repo.Worktree()
 	if err != nil {
-		return GitReponse{Status: "error", Message: "Error in entering in your repo's worktree", Error: err}
+		return GitResponse{Status: "error", Message: "Error in entering in your repo's worktree", Error: err}
 	}
 
 	// Make pull request to get the latest changes
@@ -151,37 +150,37 @@ func (n *NodeService) SyncChangesWithRepo() GitReponse {
 
 	// Handling the error
 	if err != nil && !hasAllowedErrorOrNoError {
-		return GitReponse{Status: "error", Message: "Error when pulling from your repo", Error: err}
-	} else if err == git.NoErrAlreadyUpToDate {
-		fmt.Println("Already up-to-date.")
-	} else {
+		return GitResponse{Status: "error", Message: "Error when pulling from your repo", Error: err}
+	} else if !errors.Is(err, git.NoErrAlreadyUpToDate) {
 		fmt.Println(err)
 		fmt.Println("Pulled latest changes from origin.")
+	} else {
+		fmt.Println("Already up-to-date.")
 	}
 
 	status, err := worktree.Status()
 	if err != nil {
 		fmt.Println(err)
-		return GitReponse{Status: "error", Message: "Error when getting git status", Error: err}
+		return GitResponse{Status: "error", Message: "Error when getting git status", Error: err}
 	}
 
 	if status.IsClean() {
 		fmt.Println("No changes to sync")
-		return GitReponse{Status: "info", Message: "No changes to sync", Error: nil}
+		return GitResponse{Status: "info", Message: "No changes to sync", Error: nil}
 	}
 
 	// Staging the changes
 	err = worktree.AddWithOptions(&git.AddOptions{All: true})
 	if err != nil {
 		fmt.Println(err)
-		return GitReponse{Status: "error", Message: "Error when staging changes", Error: err}
+		return GitResponse{Status: "error", Message: "Error when staging changes", Error: err}
 	}
 
 	// Committing the changes
 	_, err = worktree.Commit("test-commit", &git.CommitOptions{})
 	if err != nil {
 		fmt.Println(err)
-		return GitReponse{Status: "error", Message: "Error when commiting changes", Error: err}
+		return GitResponse{Status: "error", Message: "Error when commiting changes", Error: err}
 	}
 
 	// Pushing the changes
@@ -193,10 +192,10 @@ func (n *NodeService) SyncChangesWithRepo() GitReponse {
 	// Checking if the error that we get is fine
 	if err != nil {
 		fmt.Println(err)
-		return GitReponse{Status: "error", Message: "Error when pushing changes", Error: err}
+		return GitResponse{Status: "error", Message: "Error when pushing changes", Error: err}
 	}
 	fmt.Println("Pushed changes to origin")
-	return GitReponse{Status: "success", Message: "Successfully synced changes", Error: nil}
+	return GitResponse{Status: "success", Message: "Successfully synced changes", Error: nil}
 
 }
 
@@ -212,7 +211,10 @@ func (n *NodeService) CleanImagePaths(filePaths string, folderPath string, noteP
 			fileServerPath := filepath.Join("notes", folderPath, notePath, cleanedFileName)
 
 			newFilePaths = append(newFilePaths, fileServerPath)
-			io_helpers.CopyFile(file, newFilePath)
+			err := io_helpers.CopyFile(file, newFilePath)
+			if err != nil {
+				return []string{}
+			}
 		}
 	}
 	return newFilePaths

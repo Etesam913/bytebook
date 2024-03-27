@@ -6,3 +6,11 @@ export type EditorBlockTypes =
 	| ListNodeTagType
 	| undefined
 	| string;
+
+export type FolderDialogState = {
+	isOpen: boolean;
+	folderName: string;
+	action?: FolderDialogAction;
+};
+
+export type FolderDialogAction = "create" | "rename" | "delete";

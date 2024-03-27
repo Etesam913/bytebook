@@ -1,11 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import {
-	type Dispatch,
-	type FormEvent,
-	type ReactNode,
-	type SetStateAction,
-	useRef,
-} from "react";
+import { type FormEvent, type ReactNode, useRef } from "react";
 import { XMark } from "../../icons/circle-xmark";
 import { getDefaultButtonVariants } from "../../variants";
 import { useTrapFocus } from "./hooks";
@@ -37,7 +31,7 @@ export function Dialog({
 }: {
 	title: string;
 	isOpen: boolean;
-	setIsOpen: Dispatch<SetStateAction<boolean>>;
+	setIsOpen: (r: boolean) => void;
 	children: ReactNode;
 	handleSubmit?: (e: FormEvent<HTMLFormElement>) => void;
 }) {

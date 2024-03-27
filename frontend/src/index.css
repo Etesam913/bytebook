@@ -70,7 +70,7 @@ h3 {
 }
 
 .cm-tooltip.cm-tooltip-autocomplete & > ul & > li,
-& > completion-section {
+& > .completion-section {
     padding: 0.15rem;
 }
 
@@ -81,8 +81,7 @@ h3 {
 .root-ol {
     padding: 0;
     margin: 0;
-    list-style-position: inside;
-    list-style: decimal;
+    list-style: decimal inside;
 }
 
 .ol-1 {
@@ -96,8 +95,7 @@ h3 {
 .root-ul {
     padding: 0;
     margin: 0;
-    list-style-position: inside;
-    list-style: disc;
+    list-style: disc inside;
 }
 
 .ul-1 {
@@ -111,6 +109,7 @@ h3 {
 .nested-li {
     list-style-type: none;
 }
+
 .nested-li:before,
 .nested-li:after {
     display: none !important;
@@ -124,12 +123,15 @@ h3 {
 .text-italic {
     font-style: italic;
 }
+
 .text-bold {
     font-weight: bold;
 }
+
 .text-underline {
     text-decoration: underline;
 }
+
 .text-strikethrough {
     text-decoration: line-through;
 }
@@ -165,54 +167,67 @@ h3 {
     padding-right: 24px;
     list-style-type: none;
     outline: none;
+    cursor: pointer;
+    margin-block: 0.315rem;
 }
+
+.PlaygroundEditorTheme__listItemChecked > span,
+.PlaygroundEditorTheme__listItemUnchecked > span {
+    cursor: text;
+    text-decoration-thickness: 0.13rem;
+}
+
 .PlaygroundEditorTheme__listItemChecked {
-    text-decoration: line-through;
+    text-decoration-line: line-through;
 }
+
+.PlaygroundEditorTheme__listItemUnchecked:before,
+.PlaygroundEditorTheme__listItemChecked:before,
+.PlaygroundEditorTheme__listItemUnchecked:after,
+.PlaygroundEditorTheme__listItemChecked:after {
+    border-radius: 5px;
+}
+
 .PlaygroundEditorTheme__listItemUnchecked:before,
 .PlaygroundEditorTheme__listItemChecked:before {
     content: "";
-    width: 16px;
-    height: 16px;
+    width: 19px;
+    height: 19px;
     top: 2px;
     left: 0;
-    cursor: pointer;
     display: block;
     background-size: cover;
     position: absolute;
 }
+
 .PlaygroundEditorTheme__listItemUnchecked[dir="rtl"]:before,
 .PlaygroundEditorTheme__listItemChecked[dir="rtl"]:before {
     left: auto;
     right: 0;
 }
-.PlaygroundEditorTheme__listItemUnchecked:focus:before,
-.PlaygroundEditorTheme__listItemChecked:focus:before {
-    box-shadow: 0 0 0 2px #a6cdfe;
-    border-radius: 2px;
-}
+
 .PlaygroundEditorTheme__listItemUnchecked:before {
     border: 1px solid #999;
-    border-radius: 2px;
 }
+
 .PlaygroundEditorTheme__listItemChecked:before {
-    border: 1px solid rgb(61, 135, 245);
-    border-radius: 2px;
-    background-color: #3d87f5;
+    border: 1px solid #2ba43c;
+    background-color: #2ba43c;
     background-repeat: no-repeat;
 }
+
 .PlaygroundEditorTheme__listItemChecked:after {
     content: "";
-    cursor: pointer;
     border-color: #fff;
     border-style: solid;
     position: absolute;
     display: block;
-    top: 6px;
-    width: 3px;
-    left: 7px;
+    top: 6.5px;
+    width: 5.25px;
+    left: 7.25px;
     right: 7px;
-    height: 6px;
+    height: 9.5px;
     transform: rotate(45deg);
-    border-width: 0 2px 2px 0;
+    border-width: 0 2.3px 2.3px 0;
+    cursor: pointer;
 }
