@@ -61,7 +61,10 @@ export function ResizeContainer({
 	useTrapFocus(resizeContainerRef, isExpanded);
 
 	return (
-		<div ref={resizeContainerRef}>
+		<div
+			ref={resizeContainerRef}
+			className={cn(isSelected && "pr-4", "transition-[padding-right]")}
+		>
 			<motion.div
 				onKeyDown={(e) => {
 					if (e.key === "Escape" && isExpanded) {
