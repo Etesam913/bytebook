@@ -25,17 +25,19 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [isSyncing, setIsSyncing] = useState(false);
 
 	useWailsEvent("delete-folder", (event) => {
+		const folderName = event.data as string;
 		setIsFolderDialogOpen({
 			isOpen: true,
 			action: "delete",
-			folderName: event.data,
+			folderName
 		});
 	});
 	useWailsEvent("rename-folder", (event) => {
+		const folderName = event.data as string;
 		setIsFolderDialogOpen({
 			isOpen: true,
 			action: "rename",
-			folderName: event.data,
+			folderName
 		});
 	});
 	useWailsEvent("create-note", () => {
@@ -98,7 +100,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 						data-testid="create_folder_button"
 						className="w-full bg-transparent flex justify-between align-center"
 						onClick={() =>
-							setIsFolderDialogOpen({ isOpen: true, action: "create" })
+							setIsFolderDialogOpen({ isOpen: true, action: "create", folderName: ""})
 						}
 					>
 						Create Folder <FolderPlus />

@@ -13,6 +13,7 @@ import {
   ORDERED_LIST,
   UNORDERED_LIST,
   CHECK_LIST,
+  LINK
 } from "@lexical/markdown";
 import {
   $createHeadingNode,
@@ -92,7 +93,7 @@ function updateSrc(nodeSrc: string) {
   // If it is coming from file-server update url if the folder name or note title changes
   if (!nodeSrc.includes("localhost")) {
     return nodeSrc;
-  } else {
+  }
     const urlSplit = location.pathname.split("/");
     const currentFolder = urlSplit.at(1);
     const currentNoteTitle = urlSplit.at(2);
@@ -101,7 +102,6 @@ function updateSrc(nodeSrc: string) {
         srcRegex,
         `/notes/${currentFolder}/${currentNoteTitle}/`,
     );
-  }
 }
 
 const VIDEO_TRANSFORMER: ElementTransformer = {
@@ -234,6 +234,9 @@ export function transformersByType(transformers: Array<Transformer>): Readonly<{
   };
 }
 
+
+
+
 export const CUSTOM_TRANSFORMERS = [
   CUSTOM_HEADING_TRANSFORMER,
   CHECK_LIST,
@@ -248,8 +251,8 @@ export const CUSTOM_TRANSFORMERS = [
   ITALIC_STAR,
   ITALIC_UNDERSCORE,
   STRIKETHROUGH,
-  // LINK,
   IMAGE_TRANSFORMER,
   VIDEO_TRANSFORMER,
   CODE_TRANSFORMER,
+  LINK
 ];

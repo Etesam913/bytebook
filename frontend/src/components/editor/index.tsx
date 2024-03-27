@@ -11,7 +11,7 @@ import {RichTextPlugin} from "@lexical/react/LexicalRichTextPlugin";
 import {TabIndentationPlugin} from "@lexical/react/LexicalTabIndentationPlugin";
 import {TablePlugin} from "@lexical/react/LexicalTablePlugin";
 import type {LexicalEditor} from "lexical";
-import {useRef} from "react";
+import  {useRef} from "react";
 import {debounce} from "../../utils/draggable";
 import {editorConfig} from "./editor-config";
 import {NoteTitle} from "./note-title";
@@ -26,6 +26,9 @@ import {useAtomValue} from "jotai";
 import {isNoteMaximizedAtom} from "../../atoms";
 import TreeViewPlugin from "./plugins/tree-view";
 import {cn} from "../../utils/string-formatting";
+import {LinkPlugin} from "@lexical/react/LexicalLinkPlugin";
+import {Browser} from "@wailsio/runtime"
+import {toast} from "sonner";
 
 const debouncedHandleChange = debounce(handleChange, 500);
 
@@ -60,11 +63,20 @@ export function NotesEditor({
           )}
           onClick={(e) => {
             const target = e.target as HTMLElement & { ariaChecked?: string };
-            if (target.dataset.lexicalDecorator !== "true" || target.ariaChecked !== null) {
+            // Handling A tags
+            if(target.parentElement?.tagName === 'A') {
+              const parentElement = target.parentElement as HTMLLinkElement
+              Browser.OpenURL(parentElement.href).catch(()=> {
+                toast.error("Failed to open link")
+              })
+            }
+            else if (target.dataset.lexicalDecorator !== "true" || target.ariaChecked !== null) {
               editorRef.current?.focus(undefined, {
                 defaultSelection: "rootStart",
               });
             }
+
+
           }}
           onKeyDown={() => {
           }}
@@ -83,6 +95,7 @@ export function NotesEditor({
           />
           <MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS}/>
           <ListPlugin/>
+          <LinkPlugin />
           <CheckListPlugin/>
           <TabIndentationPlugin/>
           <HistoryPlugin/>

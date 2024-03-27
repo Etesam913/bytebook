@@ -2,17 +2,13 @@ import { AnimatePresence, type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { navigate } from "wouter/use-browser-location";
-import { DeleteFolder } from "../../../bindings/main/FolderService";
 import {
-	foldersAtom,
 	isFolderDialogOpenAtom,
 	isNoteMaximizedAtom,
 	notesAtom,
 } from "../../atoms";
 import { MotionButton } from "../../components/buttons";
 import { NotesEditor } from "../../components/editor";
-import { FolderSidebarDialog } from "../../components/folder-sidebar/sidebar-dialog";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
@@ -111,7 +107,7 @@ export function NotesSidebar({
 									{...getDefaultButtonVariants(false, 1.15, 0.95, 1.15)}
 									className="min-w-[1.5rem] p-[2.5px] rounded-[0.5rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-300"
 									onClick={() =>
-										setIsFolderDialogOpen({ isOpen: true, action: "rename" })
+										setIsFolderDialogOpen({ isOpen: true, action: "rename", folderName: folder })
 									}
 								>
 									<Pen className="w-full" />

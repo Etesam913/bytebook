@@ -78,6 +78,7 @@ export function FolderSidebarDialog({
 										return prev
 											? prev.map((v: string) =>
 													v === isFolderDialogOpen.folderName ? folderName : v,
+												// eslint-disable-next-line no-mixed-spaces-and-tabs
 											  )
 											: [folderName];
 									});

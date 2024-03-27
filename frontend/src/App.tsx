@@ -5,7 +5,6 @@ import { FolderSidebar } from "./components/folder-sidebar";
 import { NotesSidebar } from "./routes/notes-sidebar";
 import {
 	useDarkModeSetting,
-	useDeleteEvent,
 	useImageDrop,
 } from "./utils/hooks";
 import { useAtomValue } from "jotai";

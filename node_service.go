@@ -232,5 +232,4 @@ func (n *NodeService) RemoveImage(src string) bool {
 		return err == nil
 	}
 	return false
-
 }

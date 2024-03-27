@@ -9,4 +9,5 @@ export const isToolbarDisabled = atom<boolean>(false);
 export const isNoteMaximizedAtom = atom<boolean>(false);
 export const isFolderDialogOpenAtom = atom<FolderDialogState>({
 	isOpen: false,
+	folderName: "",
 });

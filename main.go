@@ -88,7 +88,7 @@ func main() {
 
 	folderContextMenu := app.NewMenu()
 
-	folderContextMenu.Add("✏️ Rename Folder").OnClick(func(data *application.Context) {
+	folderContextMenu.Add("Rename Folder").OnClick(func(data *application.Context) {
 		folderToRename, isString := data.ContextMenuData().(string)
 		if isString {
 			app.Events.Emit(&application.WailsEvent{
@@ -98,14 +98,14 @@ func main() {
 		}
 	})
 
-	folderContextMenu.Add("🗒️ Add Note").OnClick(func(data *application.Context) {
+	folderContextMenu.Add("Add Note").OnClick(func(data *application.Context) {
 		app.Events.Emit(&application.WailsEvent{
 			Name: "add-folder",
 			Data: nil,
 		})
 	})
 
-	folderContextMenu.Add("🗑️ Delete Folder").OnClick(func(data *application.Context) {
+	folderContextMenu.Add("Delete Folder").OnClick(func(data *application.Context) {
 		folderToDelete, isString := data.ContextMenuData().(string)
 		if isString {
 			app.Events.Emit(&application.WailsEvent{
