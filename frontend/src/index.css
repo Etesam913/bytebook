@@ -78,9 +78,9 @@ h3 {
  * Lexical Editor Styles (Tailwind does not work too well with)
  */
 
-/*.link{*/
-/*    @apply text-blue-500 dark:text-blue-400 cursor-pointer decoration-2 underline-offset-2 underline;*/
-/*}*/
+.link{
+    @apply text-blue-500 dark:text-blue-400 cursor-pointer decoration-2 underline-offset-2 underline;
+}
 
 .root-ol {
     padding: 0;
@@ -173,12 +173,14 @@ h3 {
     outline: none;
     cursor: pointer;
     margin-block: 0.315rem;
+    width: fit-content;
 }
 
 .PlaygroundEditorTheme__listItemChecked > span,
 .PlaygroundEditorTheme__listItemUnchecked > span {
     cursor: text;
     text-decoration-thickness: 0.13rem;
+    padding-left: 0.2rem;
 }
 
 .PlaygroundEditorTheme__listItemChecked {

@@ -4,13 +4,14 @@ export function ChevronDown({
 	fill = "currentColor",
 	title = "Down",
 	className,
+	strokeWidth = "1.5",
 }: {
 	width?: string;
 	height?: string;
 	fill?: string;
-	secondaryfill?: string;
 	title?: string;
 	className?: string;
+	strokeWidth?: string;
 }) {
 	return (
 		<svg
@@ -27,7 +28,7 @@ export function ChevronDown({
 					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					strokeWidth="1.5"
+					strokeWidth={strokeWidth}
 				/>
 				//{" "}
 			</g>

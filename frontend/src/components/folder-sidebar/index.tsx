@@ -1,8 +1,13 @@
 import { AnimatePresence, type MotionValue, motion } from "framer-motion";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { CSSProperties, useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
-import { foldersAtom, isFolderDialogOpenAtom } from "../../atoms";
+import {
+	alphabetizedFoldersAtom,
+	foldersAtom,
+	isFolderDialogOpenAtom,
+	isFoldersCollapsedAtom,
+} from "../../atoms";
 import { Folder } from "../../icons/folder";
 import { FolderPlus } from "../../icons/folder-plus";
 import { updateFolders } from "../../utils/fetch-functions";
@@ -13,15 +18,19 @@ import { SyncChangesButton } from "../buttons/sync-changes";
 import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
 import { useWailsEvent } from "../../utils/hooks.tsx";
+import { ChevronDown } from "../../icons/chevron-down.tsx";
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
-
 	const folder = params?.folder;
+	const [isFoldersCollapsed, setIsFoldersCollapsed] = useAtom(
+		isFoldersCollapsedAtom,
+	);
 	const [isFolderDialogOpen, setIsFolderDialogOpen] = useAtom(
 		isFolderDialogOpenAtom,
 	);
 	const [folders, setFolders] = useAtom(foldersAtom);
+	const alphabetizedFolders = useAtomValue(alphabetizedFoldersAtom);
 	const [isSyncing, setIsSyncing] = useState(false);
 
 	useWailsEvent("delete-folder", (event) => {
@@ -29,7 +38,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 		setIsFolderDialogOpen({
 			isOpen: true,
 			action: "delete",
-			folderName
+			folderName,
 		});
 	});
 	useWailsEvent("rename-folder", (event) => {
@@ -37,7 +46,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 		setIsFolderDialogOpen({
 			isOpen: true,
 			action: "rename",
-			folderName
+			folderName,
 		});
 	});
 	useWailsEvent("create-note", () => {
@@ -48,7 +57,9 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 		updateFolders(setFolders);
 	}, [setFolders]);
 
-	const folderElements = folders?.map((folderName) => (
+	const hasFolders = folders && folders.length > 0;
+
+	const folderElements = alphabetizedFolders?.map((folderName) => (
 		<li key={folderName}>
 			<div
 				id="folder"
@@ -100,29 +111,67 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 						data-testid="create_folder_button"
 						className="w-full bg-transparent flex justify-between align-center"
 						onClick={() =>
-							setIsFolderDialogOpen({ isOpen: true, action: "create", folderName: ""})
+							setIsFolderDialogOpen({
+								isOpen: true,
+								action: "create",
+								folderName: "",
+							})
 						}
 					>
 						Create Folder <FolderPlus />
 					</MotionButton>
-					<section className="flex-1 overflow-y-auto flex flex-col gap-2">
-						<p>
-							Your Folders{" "}
-							{folderElements && folderElements.length > 0 && (
-								<span className="tracking-wider">
-									({folderElements.length})
-								</span>
+					<section className="flex-1 overflow-y-auto flex flex-col gap-1.5">
+						{hasFolders && (
+							<button
+								onClick={() => setIsFoldersCollapsed((prev) => !prev)}
+								type="button"
+								className="flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 p-1 rounded-md transition-colors"
+							>
+								<motion.span
+									initial={{ rotateZ: isFoldersCollapsed ? 270 : 0 }}
+									animate={{ rotateZ: isFoldersCollapsed ? 270 : 0 }}
+								>
+									<ChevronDown
+										strokeWidth="2.5px"
+										height="0.8rem"
+										width="0.8rem"
+									/>
+								</motion.span>
+
+								<p>
+									My Folders{" "}
+									{hasFolders && (
+										<span className="tracking-wider">
+											({folderElements?.length})
+										</span>
+									)}
+								</p>
+							</button>
+						)}
+
+						<AnimatePresence>
+							{!isFoldersCollapsed && (
+								<motion.ul
+									initial={{ height: 0 }}
+									animate={{
+										height: "auto",
+										transition: { type: "spring", damping: 16 },
+									}}
+									exit={{ height: 0 }}
+									className="overflow-y-auto"
+								>
+									<div>
+										{folderElements}
+									</div>
+								</motion.ul>
 							)}
-						</p>
-						<ul className="overflow-y-auto">
-							{folderElements && folderElements.length > 0 ? (
-								folderElements
-							) : (
-								<li className="text-center text-zinc-500 dark:text-zinc-300  text-xs">
-									Create a folder with the "Create Folder" button above
-								</li>
-							)}
-						</ul>
+						</AnimatePresence>
+						{!hasFolders && (
+
+						<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
+							Create a folder with the "Create Folder" button above
+						</li>
+						)}
 					</section>
 					<section className="mt-auto pb-3">
 						<SyncChangesButton
