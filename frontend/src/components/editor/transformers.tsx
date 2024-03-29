@@ -1,19 +1,19 @@
+import {$createLinkNode, $isLinkNode, LinkNode} from "@lexical/link";
 import {
   BOLD_ITALIC_STAR,
   BOLD_ITALIC_UNDERSCORE,
   BOLD_STAR,
   BOLD_UNDERSCORE,
+  CHECK_LIST,
   type ElementTransformer,
   ITALIC_STAR,
   ITALIC_UNDERSCORE,
+  ORDERED_LIST,
   QUOTE,
   STRIKETHROUGH,
   type TextFormatTransformer,
   type TextMatchTransformer,
-  ORDERED_LIST,
-  UNORDERED_LIST,
-  CHECK_LIST,
-  LINK
+  UNORDERED_LIST
 } from "@lexical/markdown";
 import {
   $createHeadingNode,
@@ -23,7 +23,7 @@ import {
 } from "@lexical/rich-text";
 import type { LanguageName } from "@uiw/codemirror-extensions-langs";
 import {
-  $createNodeSelection,
+  $createNodeSelection, $createTextNode, $isTextNode,
   $setSelection,
   type ElementNode,
   type LexicalNode,
@@ -233,11 +233,47 @@ export function transformersByType(transformers: Array<Transformer>): Readonly<{
     textMatch: (byType["text-match"] || []) as Array<TextMatchTransformer>,
   };
 }
+export const LINK: TextMatchTransformer = {
+  dependencies: [LinkNode],
+  export: (node, _, exportFormat) => {
+    if (!$isLinkNode(node)) {
+      return null;
+    }
+    const title = node.getTitle();
+    const linkContent = title
+      ? `[${node.getTextContent()}](${node.getURL()} "${title}")`
+      : `[${node.getTextContent()}](${node.getURL()})`;
+    const firstChild = node.getFirstChild();
+    // Add text styles only if link has single text node inside. If it's more
+    // than one we ignore it as markdown does not support nested styles for links
+    if (node.getChildrenSize() === 1) {
+      if ($isTextNode(firstChild)) {
+        return exportFormat(firstChild, linkContent);
+      }
+    }
+    return linkContent;
+  },
+  importRegExp:
+    /^(?!\\!)\[([^[]+)]\(([^()\s]+)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?\)$/,
+  regExp:
+    /^(?!\\!)\[([^[]+)]\(([^()\s]+)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?\)$/,
+  replace: (textNode, match) => {
+    const [, linkText, linkUrl, linkTitle] = match;
+    const linkNode = $createLinkNode(linkUrl, {title: linkTitle});
+    const linkTextNode = $createTextNode(linkText);
+    linkTextNode.setFormat(textNode.getFormat());
+    linkNode.append(linkTextNode);
+    textNode.replace(linkNode);
+  },
+  trigger: ')',
+  type: 'text-match',
+};
 
 
 
 
 export const CUSTOM_TRANSFORMERS = [
+  LINK,
   CUSTOM_HEADING_TRANSFORMER,
   CHECK_LIST,
   UNORDERED_LIST,
@@ -247,12 +283,10 @@ export const CUSTOM_TRANSFORMERS = [
   BOLD_ITALIC_UNDERSCORE,
   BOLD_STAR,
   BOLD_UNDERSCORE,
-  // INLINE_CODE,
   ITALIC_STAR,
   ITALIC_UNDERSCORE,
   STRIKETHROUGH,
   IMAGE_TRANSFORMER,
   VIDEO_TRANSFORMER,
   CODE_TRANSFORMER,
-  LINK
 ];
