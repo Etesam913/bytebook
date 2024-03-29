@@ -78,14 +78,14 @@ h3 {
  * Lexical Editor Styles (Tailwind does not work too well with)
  */
 
-.link{
-    @apply text-blue-500 dark:text-blue-400 cursor-pointer decoration-2 underline-offset-2 underline;
-}
+/*.link{*/
+/*    @apply text-blue-500 dark:text-blue-400 cursor-pointer decoration-2 underline-offset-2 underline;*/
+/*}*/
 
 .root-ol {
     padding: 0;
     margin: 0;
-    list-style: decimal inside;
+    list-style: decimal;
 }
 
 .ol-1 {
@@ -99,7 +99,7 @@ h3 {
 .root-ul {
     padding: 0;
     margin: 0;
-    list-style: disc inside;
+    list-style: disc;
 }
 
 .ul-1 {
