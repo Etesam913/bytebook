@@ -87,33 +87,20 @@ func main() {
 	})
 
 	folderContextMenu := app.NewMenu()
+	noteContextMenu := app.NewMenu()
 
-	folderContextMenu.Add("Rename Folder").OnClick(func(data *application.Context) {
-		folderToRename, isString := data.ContextMenuData().(string)
-		if isString {
-			app.Events.Emit(&application.WailsEvent{
-				Name: "rename-folder",
-				Data: folderToRename,
-			})
-		}
+	project_helpers.SetupFolderContextMenu(app, folderContextMenu, []project_helpers.MenuItem{
+		{Label: "Rename Folder", EventName: "rename-folder"},
+		{Label: "Add Note", EventName: "add-note"},
+		{Label: "Delete Folder", EventName: "delete-folder"},
 	})
 
-	folderContextMenu.Add("Add Note").OnClick(func(data *application.Context) {
-		app.Events.Emit(&application.WailsEvent{
-			Name: "add-folder",
-			Data: nil,
-		})
+	project_helpers.SetupFolderContextMenu(app, noteContextMenu, []project_helpers.MenuItem{
+		{Label: "Delete Note", EventName: "delete-note"},
 	})
 
-	folderContextMenu.Add("Delete Folder").OnClick(func(data *application.Context) {
-		folderToDelete, isString := data.ContextMenuData().(string)
-		if isString {
-			app.Events.Emit(&application.WailsEvent{
-				Name: "delete-folder",
-				Data: folderToDelete,
-			})
-		}
-	})
+	app.RegisterContextMenu("folder-context-menu", folderContextMenu)
+	app.RegisterContextMenu("note-context-menu", noteContextMenu)
 
 	window.On(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
 		files := event.Context().DroppedFiles()
@@ -123,8 +110,6 @@ func main() {
 		})
 		app.Logger.Info("Files Dropped!", "files", files)
 	})
-
-	app.RegisterContextMenu("folder-context-menu", folderContextMenu)
 
 	// Run the application. This blocks until the application has been exited.
 	err = app.Run()

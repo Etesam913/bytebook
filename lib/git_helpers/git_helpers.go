@@ -1,6 +1,7 @@
 package git_helpers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -14,11 +15,14 @@ import (
 func InitializeGitRepo(projectPath string) {
 	// Creates the git repository
 	_, err := git.PlainInit(projectPath, false)
-	if err != nil && err != git.ErrRepositoryAlreadyExists {
+	if err != nil && !errors.Is(git.ErrRepositoryAlreadyExists, err) {
 		log.Fatalf("Could not initialize git repo, %v", err)
-	} else if err != git.ErrRepositoryAlreadyExists {
+	} else if !errors.Is(git.ErrRepositoryAlreadyExists, err) {
 		// The git repo is being created
-		os.WriteFile(filepath.Join(projectPath, ".gitignore"), []byte("bytebook.db"), 0644)
+		err := os.WriteFile(filepath.Join(projectPath, ".gitignore"), []byte("bytebook.db"), 0644)
+		if err != nil {
+			return
+		}
 	}
 }
 
@@ -32,7 +36,7 @@ func SetRepoOrigin(originUrl string) {
 		log.Fatalf("Could not open repo: %v", err)
 	}
 
-	repo.CreateRemote(&config.RemoteConfig{
+	_, err = repo.CreateRemote(&config.RemoteConfig{
 		Name: "origin",
 		URLs: []string{originUrl},
 	})
@@ -42,7 +46,7 @@ func SetRepoOrigin(originUrl string) {
 	}
 }
 
-type GitReponse struct {
+type GitResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
 	Error   error  `json:"error"`

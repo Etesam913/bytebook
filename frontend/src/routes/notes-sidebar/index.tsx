@@ -1,6 +1,6 @@
 import { AnimatePresence, type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import { Link } from "wouter";
 import {
 	isFolderDialogOpenAtom,
@@ -18,6 +18,9 @@ import { updateNotes } from "../../utils/fetch-functions";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { NotesSidebarDialog } from "./sidebar-dialog";
+import { useWailsEvent } from "../../utils/hooks.tsx";
+import { DeleteFolder } from "../../../bindings/main/FolderService.ts";
+import { navigate } from "wouter/use-browser-location";
 
 export function NotesSidebar({
 	params,
@@ -37,9 +40,32 @@ export function NotesSidebar({
 		updateNotes(folder, setNotes);
 	}, [folder, setNotes]);
 
+	useWailsEvent("delete-note", (event) => {
+		const noteName = event.data as string;
+		DeleteFolder(`${folder}/${noteName}`).then((res) => {
+			if (res.success) {
+				const remainingNotes = notes?.filter((v) => v !== noteName);
+				if (remainingNotes) {
+					navigate(
+						`/${folder}/${remainingNotes.length <= 0 ? "" : remainingNotes[0]}`,
+					);
+					setNotes(remainingNotes);
+				}
+			}
+		});
+	});
+
 	const noteElements = notes?.map((noteName) => (
 		<li key={noteName}>
-			<div className="flex items-center gap-2 overflow-hidden pr-1 select-none">
+			<div
+				className="flex items-center gap-2 overflow-hidden pr-1 select-none"
+				style={
+					{
+						"--custom-contextmenu": "note-context-menu",
+						"--custom-contextmenu-data": noteName,
+					} as CSSProperties
+				}
+			>
 				<Link
 					className={cn(
 						"flex flex-1 gap-2 items-center px-3 py-[0.45rem] mb-[0.15rem] rounded-md overflow-auto",
@@ -52,26 +78,6 @@ export function NotesSidebar({
 						{noteName}
 					</p>
 				</Link>
-				{/*<motion.button*/}
-				{/*	onClick={() =>*/}
-				{/*		DeleteFolder(`${folder}/${noteName}`).then((res) => {*/}
-				{/*			if (res.success) {*/}
-				{/*				const remainingNotes = notes?.filter((v) => v !== noteName);*/}
-				{/*				navigate(*/}
-				{/*					`/${folder}${*/}
-				{/*						remainingNotes.length > 0 ? `/${remainingNotes[0]}` : ""*/}
-				{/*					}`,*/}
-				{/*				);*/}
-				{/*				setNotes(remainingNotes);*/}
-				{/*			}*/}
-				{/*		})*/}
-				{/*	}*/}
-				{/*	{...getDefaultButtonVariants(false, 1.15, 0.95, 1.15)}*/}
-				{/*	type="button"*/}
-				{/*	className="min-w-[20px] p-1 rounded-[0.3rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-300"*/}
-				{/*>*/}
-				{/*	<Trash />*/}
-				{/*</motion.button>*/}
 			</div>
 		</li>
 	));
@@ -95,7 +101,7 @@ export function NotesSidebar({
 						style={{ width }}
 						className="pt-[0.75rem] text-md h-screen flex flex-col gap-2 overflow-y-auto"
 					>
-						<div className="px-[10px] pt-[3px] flex flex-col gap-4 h-full overflow-y-auto">
+						<div className="pl-1 pr-2.5 pt-[1px] flex flex-col gap-4 h-full overflow-y-auto">
 							<section className="flex gap-2 items-center">
 								<Folder className="min-w-[1.25rem]" />{" "}
 								<p className="whitespace-nowrap text-ellipsis overflow-hidden">
@@ -107,7 +113,11 @@ export function NotesSidebar({
 									{...getDefaultButtonVariants(false, 1.15, 0.95, 1.15)}
 									className="min-w-[1.5rem] p-[2.5px] rounded-[0.5rem] flex item-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-300"
 									onClick={() =>
-										setIsFolderDialogOpen({ isOpen: true, action: "rename", folderName: folder })
+										setIsFolderDialogOpen({
+											isOpen: true,
+											action: "rename",
+											folderName: folder,
+										})
 									}
 								>
 									<Pen className="w-full" />
@@ -120,9 +130,9 @@ export function NotesSidebar({
 							>
 								Create Note <Compose />
 							</MotionButton>
-							<section className="flex flex-col flex-1 gap-3 overflow-y-auto">
-								<p>
-									Your Notes{" "}
+							<section className="flex flex-col flex-1 gap-2 overflow-y-auto">
+								<p className="py-1 px-1.5">
+									My Notes{" "}
 									{noteElements && noteElements.length > 0 && (
 										<span className="tracking-wider">
 											({noteElements.length})

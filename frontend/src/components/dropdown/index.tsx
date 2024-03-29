@@ -57,7 +57,7 @@ export function Dropdown({
 					className="ml-auto"
 					animate={{ rotateZ: isOpen ? 180 : 0 }}
 				>
-					<ChevronDown width="0.85rem" height="0.85rem" />
+					<ChevronDown width="0.85rem" height="0.85rem" strokeWidth="2.8px" />
 				</motion.span>
 			</button>
 
