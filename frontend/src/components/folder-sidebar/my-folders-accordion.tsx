@@ -1,11 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useAtom, useAtomValue } from "jotai/index";
-import { type CSSProperties } from "react";
+import { useAtomValue } from "jotai/index";
+import { type CSSProperties, useState } from "react";
 import { Link } from "wouter";
-import {
-	alphabetizedFoldersAtom,
-	isFoldersCollapsedAtom,
-} from "../../atoms.ts";
+import { alphabetizedFoldersAtom } from "../../atoms.ts";
 import { ChevronDown } from "../../icons/chevron-down.tsx";
 import { Folder } from "../../icons/folder.tsx";
 import { cn } from "../../utils/string-formatting.ts";
@@ -15,9 +12,7 @@ export function MyFoldersAccordion({
 }: {
 	folder: string | undefined;
 }) {
-	const [isFoldersCollapsed, setIsFoldersCollapsed] = useAtom(
-		isFoldersCollapsedAtom,
-	);
+	const [isFoldersCollapsed, setIsFoldersCollapsed] = useState(false);
 	const alphabetizedFolders = useAtomValue(alphabetizedFoldersAtom);
 	const hasFolders = alphabetizedFolders && alphabetizedFolders.length > 0;
 	const folderElements = alphabetizedFolders?.map((folderName) => (
@@ -81,8 +76,8 @@ export function MyFoldersAccordion({
 							height: "auto",
 							transition: { type: "spring", damping: 16 },
 						}}
-						exit={{ height: 0 }}
-						className="overflow-y-auto"
+						exit={{ height: 0, opacity: 0 }}
+						className="overflow-hidden hover:overflow-auto"
 					>
 						<div>{folderElements}</div>
 					</motion.ul>

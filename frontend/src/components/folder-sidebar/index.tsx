@@ -12,6 +12,7 @@ import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
 import { useWailsEvent } from "../../utils/hooks.tsx";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
+import {RecentNotesAccordion} from "./recent-notes-accordion.tsx";
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
@@ -64,11 +65,11 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 				style={{ width }}
 				className="pt-[3.5rem] text-md h-screen flex flex-col gap-2 overflow-y-auto"
 			>
-				<div className="px-[10px] flex flex-col gap-4 h-full">
+				<div className="px-[10px] flex flex-col gap-2 h-full">
 					<MotionButton
-						{...getDefaultButtonVariants()}
+						{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
 						data-testid="create_folder_button"
-						className="w-full bg-transparent flex justify-between align-center"
+						className="w-full bg-transparent flex justify-between align-center mb-2"
 						onClick={() =>
 							setIsFolderDialogOpen({
 								isOpen: true,
@@ -79,6 +80,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					>
 						Create Folder <FolderPlus />
 					</MotionButton>
+					<RecentNotesAccordion />
 					<MyFoldersAccordion folder={folder} />
 					<section className="mt-auto pb-3">
 						<SyncChangesButton

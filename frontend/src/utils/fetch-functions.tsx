@@ -29,9 +29,9 @@ export function updateNotes(
 	GetNotes(folder)
 		.then((res) => {
 			if (res.success) {
-				const notes = res.data as unknown as string[];
+				const notes = res.data as unknown as string[] | null;
 				setNotes(notes);
-				navigate(`/${folder}${notes.at(0) ? `/${notes.at(0)}` : ""}`);
+				navigate(`/${folder}${notes?.at(0) ? `/${notes.at(0)}` : "/"}`);
 			}
 		})
 		.catch(() => {

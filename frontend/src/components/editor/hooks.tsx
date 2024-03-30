@@ -5,7 +5,7 @@ import {
   type LexicalEditor,
   type TextFormatType,
 } from "lexical";
-import { type Dispatch, useEffect } from "react";
+import { type Dispatch, type SetStateAction, useEffect } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { $convertFromMarkdownStringCorrect } from "./utils";
@@ -13,13 +13,15 @@ import { GetNoteMarkdown } from "../../../bindings/main/NoteService";
 import * as wails from "@wailsio/runtime";
 import { CleanImagePaths } from "../../../bindings/main/NodeService";
 import { INSERT_IMAGE_COMMAND } from "./plugins/image";
+import { useAtom } from "jotai";
+import { mostRecentNotesAtom } from "../../atoms.ts";
 
 /** Gets note markdown from local system */
 export function useNoteMarkdown(
   editor: LexicalEditor,
   folder: string,
   note: string,
-  setCurrentSelectionFormat: Dispatch<React.SetStateAction<TextFormatType[]>>,
+  setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
 ) {
   useEffect(() => {
     GetNoteMarkdown(folder, note)
@@ -89,4 +91,24 @@ export function useFileDropEvent(
     },
     [folder, note, editor],
   );
+}
+
+/** Updates the most recent notes queue */
+export function useMostRecentNotes(folder: string, note: string) {
+  const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(() => {
+    const currentPath = `${folder}/${note}`;
+    const tempMostRecentNotes = [...mostRecentNotes];
+    const isCurrentNoteInMostRecent = mostRecentNotes.findIndex(
+      (path) => path === currentPath,
+    );
+    if (isCurrentNoteInMostRecent !== -1) {
+      tempMostRecentNotes.splice(isCurrentNoteInMostRecent, 1);
+    }
+    tempMostRecentNotes.unshift(currentPath);
+    if (tempMostRecentNotes.length > 5) tempMostRecentNotes.pop();
+    setMostRecentNotes(tempMostRecentNotes);
+  }, [folder, note, setMostRecentNotes]);
 }

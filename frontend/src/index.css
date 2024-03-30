@@ -78,8 +78,8 @@ h3 {
  * Lexical Editor Styles (Tailwind does not work too well with)
  */
 
-.link{
-    @apply text-blue-500 dark:text-blue-400 cursor-pointer decoration-2 underline-offset-2 underline;
+.link {
+    @apply cursor-pointer text-blue-500 underline decoration-2 underline-offset-2 dark:text-blue-400;
 }
 
 .root-ol {

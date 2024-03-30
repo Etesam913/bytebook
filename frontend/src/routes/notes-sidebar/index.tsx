@@ -36,6 +36,7 @@ export function NotesSidebar({
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const { folder, note } = params;
 	const setIsFolderDialogOpen = useSetAtom(isFolderDialogOpenAtom);
+
 	useEffect(() => {
 		updateNotes(folder, setNotes);
 	}, [folder, setNotes]);
@@ -124,7 +125,7 @@ export function NotesSidebar({
 								</motion.button>
 							</section>
 							<MotionButton
-								{...getDefaultButtonVariants()}
+								{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
 								onClick={() => setIsNoteDialogOpen(true)}
 								className="w-full bg-transparent flex justify-between align-center"
 							>

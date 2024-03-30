@@ -33,16 +33,16 @@ func (n *NoteService) GetNotes(folderName string) NoteResponse {
 	// Ensure the directory exists
 	if _, err := os.Stat(folderPath); err != nil {
 		fmt.Println(err, fmt.Sprintf(": Cannot get notes from this %s because it does not exist", folderName))
-		return NoteResponse{Success: false, Message: err.Error()}
+		return NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
 	}
 
 	// Get the folders present in the notes directory
 	files, err := os.ReadDir(folderPath)
 	if err != nil {
-		return NoteResponse{Success: false, Message: err.Error()}
+		return NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
 	}
 
-	notes := []string{}
+	var notes []string
 	for _, file := range files {
 		// Go through the folders and check if they have a markdown file
 		if file.IsDir() {
@@ -126,7 +126,6 @@ func (n *NoteService) AddNoteToFolder(folderName string, noteTitle string) AddFo
 	*/
 	req := AddFolder(filepath.Join(folderName, noteTitle), n.ProjectPath)
 	if !req.Success {
-		// If the folder already exists, return the a more readable message
 		if strings.Contains(req.Message, "already exists") {
 			return AddFolderResponse{Success: false, Message: fmt.Sprintf("Note, \"%s\", already exists, please choose a different name", noteTitle)}
 		}
@@ -143,4 +142,9 @@ func (n *NoteService) AddNoteToFolder(folderName string, noteTitle string) AddFo
 	}
 
 	return AddFolderResponse{Success: true, Message: ""}
+}
+
+type MostRecentNoteResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }

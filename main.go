@@ -28,7 +28,7 @@ var assets embed.FS
 func main() {
 	projectPath, err := project_helpers.GetProjectPath()
 
-	// TODO: Provide prompt for user to set a diretory
+	// TODO: Provide prompt for user to set a directory
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,7 +39,7 @@ func main() {
 		log.Fatalf("Failed to create notes directory: %v", err)
 	}
 
-	// Creating git repo if not already exists
+	// Creating git repo if it does not already exist
 	git_helpers.InitializeGitRepo(projectPath)
 	git_helpers.SetRepoOrigin("https://github.com/Etesam913/bytebook-test.git")
 
