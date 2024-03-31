@@ -12,13 +12,7 @@ export function RecentNotesAccordion() {
   const mostRecentNotes = useAtomValue(mostRecentNotesAtom);
 
   const mostRecentElements = mostRecentNotes.map((path) => (
-    <motion.li
-      layout
-      transition={{ type: "spring", damping: 15 }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      key={path}
-    >
+    <motion.li layout transition={{ type: "spring", damping: 15 }} key={path}>
       <div
         id="folder"
         className="flex select-none items-center gap-2 overflow-hidden pr-1 text-zinc-600 dark:text-zinc-300"
@@ -37,6 +31,10 @@ export function RecentNotesAccordion() {
       </div>
     </motion.li>
   ));
+
+  if (mostRecentNotes.length === 0) {
+    return <></>;
+  }
 
   return (
     <section className="flex flex-col overflow-y-auto">
