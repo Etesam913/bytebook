@@ -28,7 +28,6 @@ export function dragItem(
 	document.addEventListener("mouseup", cleanUpDocumentEvents);
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: any is fine for throttle function
 export function throttle<T extends (...args: unknown[]) => unknown>(
 	func: T,
 	limit: number,

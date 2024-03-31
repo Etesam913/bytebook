@@ -5,14 +5,14 @@ import { useRoute } from "wouter";
 import { foldersAtom, isFolderDialogOpenAtom } from "../../atoms";
 import { FolderPlus } from "../../icons/folder-plus";
 import { updateFolders } from "../../utils/fetch-functions";
+import { useWailsEvent } from "../../utils/hooks.tsx";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../buttons";
 import { SyncChangesButton } from "../buttons/sync-changes";
+import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
+import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
-import { useWailsEvent } from "../../utils/hooks.tsx";
-import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
-import {RecentNotesAccordion} from "./recent-notes-accordion.tsx";
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
@@ -60,16 +60,16 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					/>
 				)}
 			</AnimatePresence>
-
 			<motion.aside
 				style={{ width }}
-				className="pt-[3.5rem] text-md h-screen flex flex-col gap-2 overflow-y-auto"
+				className="text-md flex h-screen flex-col gap-2 overflow-y-auto"
 			>
-				<div className="px-[10px] flex flex-col gap-2 h-full">
+				test
+				<div className="flex h-full flex-col gap-2 px-[10px] pt-[3.5rem]">
 					<MotionButton
 						{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
 						data-testid="create_folder_button"
-						className="w-full bg-transparent flex justify-between align-center mb-2"
+						className="align-center mb-2 flex w-full justify-between bg-transparent"
 						onClick={() =>
 							setIsFolderDialogOpen({
 								isOpen: true,

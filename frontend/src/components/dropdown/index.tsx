@@ -13,6 +13,7 @@ export function Dropdown({
 	items,
 	className,
 	buttonClassName,
+	dropdownItemsClassName,
 	variant = "md",
 	controlledValueIndex,
 	onChange,
@@ -21,6 +22,7 @@ export function Dropdown({
 	items: DropdownItem[];
 	className?: string;
 	buttonClassName?: string;
+	dropdownItemsClassName?: string;
 	variant?: string;
 	controlledValueIndex?: number;
 	onChange?: (v: DropdownItem) => void;
@@ -46,10 +48,10 @@ export function Dropdown({
 				aria-haspopup="true"
 				aria-expanded={isOpen}
 				className={cn(
-					"bg-zinc-50 dark:bg-zinc-700 rounded-md text-left py-[6px] px-2 border-[1.25px] border-zinc-300 dark:border-zinc-600 flex items-center",
-					variant === "sm" && "py-1 px-1.5",
+					"flex items-center rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 px-2 py-[6px] text-left dark:border-zinc-600 dark:bg-zinc-700",
+					variant === "sm" && "px-1.5 py-1",
 					buttonClassName,
-					disabled && "opacity-50 pointer-events-none",
+					disabled && "pointer-events-none opacity-50",
 				)}
 			>
 				{items[valueIndex].label}
@@ -66,7 +68,7 @@ export function Dropdown({
 					<motion.div
 						role="menu"
 						className={cn(
-							"absolute z-30 shadow-xl bg-zinc-50 dark:bg-zinc-700 overflow-hidden translate-y-1 w-full rounded-md border-zinc-300 dark:border-zinc-600 border-[1.25px]",
+							"absolute z-30 w-full translate-y-1 overflow-hidden rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700",
 							variant === "sm" && "translate-y-[3px]",
 						)}
 						exit={{
@@ -84,7 +86,12 @@ export function Dropdown({
 							}}
 							exit={{ height: 0 }}
 						>
-							<div className="flex flex-col py-[6px] px-[4.5px] max-h-[165px] overflow-y-auto">
+							<div
+								className={cn(
+									"flex max-h-[165px] flex-col overflow-y-auto px-[4.5px] py-[6px]",
+									dropdownItemsClassName,
+								)}
+							>
 								{items.map(({ value, label }, i) => (
 									<button
 										key={value}
@@ -95,7 +102,7 @@ export function Dropdown({
 											setValueIndex(i);
 											onChange?.(items[i]);
 										}}
-										className="text-left py-[3px] px-[7px] hover:bg-zinc-150 dark:hover:bg-zinc-600 focus-visible:bg-zinc-150 dark:focus-visible:bg-zinc-600 rounded-md transition-colors outline-none"
+										className="rounded-md px-[7px] py-[3px] text-left outline-none transition-colors hover:bg-zinc-150 focus-visible:bg-zinc-150 dark:hover:bg-zinc-600 dark:focus-visible:bg-zinc-600"
 									>
 										{label}
 									</button>

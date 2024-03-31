@@ -5,9 +5,9 @@ import { $getRoot } from "lexical";
 import { useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 
+import { RenameNote } from "../../../bindings/main/NoteService";
 import { isToolbarDisabled, notesAtom } from "../../atoms";
 import { cn, fileNameRegex } from "../../utils/string-formatting";
-import { RenameNote } from "../../../bindings/main/NoteService";
 
 export function NoteTitle({
 	note,

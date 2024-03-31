@@ -17,6 +17,7 @@ import {
 } from "lexical";
 import { useEffect, useState } from "react";
 import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
+import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
 import { TextBold } from "../../icons/text-bold";
 import { TextItalic } from "../../icons/text-italic";
 import { TextStrikethrough } from "../../icons/text-strikethrough";
@@ -32,7 +33,6 @@ import {
 	handleToolbarTextFormattingClick,
 	overrideUpDownKeyCommand,
 } from "./utils";
-import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
 
 const LOW_PRIORITY = 1;
 
@@ -160,6 +160,7 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 					controlledValueIndex={blockTypesDropdownItems.findIndex(
 						(v) => v.value === currentBlockType,
 					)}
+					dropdownItemsClassName="max-h-[calc(100vh-10rem)]"
 					onChange={({ value }) =>
 						changeSelectedBlocksType(editor, value, folder, note)
 					}

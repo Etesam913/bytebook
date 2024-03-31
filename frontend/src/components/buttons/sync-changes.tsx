@@ -3,13 +3,13 @@ import type { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
 import { useRoute } from "wouter";
 import { MotionButton } from ".";
+import { SyncChangesWithRepo } from "../../../bindings/main/NodeService";
 import { foldersAtom, notesAtom } from "../../atoms";
 import { FileRefresh } from "../../icons/file-refresh";
 import { Loader } from "../../icons/loader";
 import { updateFolders, updateNotes } from "../../utils/fetch-functions";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
-import { SyncChangesWithRepo } from "../../../bindings/main/NodeService";
 
 interface SyncButtonProps {
 	isSyncing: boolean;
