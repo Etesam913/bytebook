@@ -1,4 +1,10 @@
-import { $isListNode, ListNode } from "@lexical/list";
+import {
+	$isListNode,
+	INSERT_CHECK_LIST_COMMAND,
+	INSERT_ORDERED_LIST_COMMAND,
+	INSERT_UNORDERED_LIST_COMMAND,
+	ListNode,
+} from "@lexical/list";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
@@ -17,11 +23,14 @@ import {
 } from "lexical";
 import { ReactNode, useEffect, useState } from "react";
 import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
+import { ListCheckbox } from "../../icons/list-checkbox";
+import { OrderedList } from "../../icons/ordered-list";
 import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
 import { TextBold } from "../../icons/text-bold";
 import { TextItalic } from "../../icons/text-italic";
 import { TextStrikethrough } from "../../icons/text-strikethrough";
 import { TextUnderline } from "../../icons/text-underline";
+import { UnorderedList } from "../../icons/unordered-list";
 import type { EditorBlockTypes } from "../../types";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
@@ -48,6 +57,7 @@ const blockTypesDropdownItems = [
 	{ label: "Paragraph", value: "paragraph" },
 	{ label: "Unordered List", value: "ul" },
 	{ label: "Ordered List", value: "ol" },
+	{ label: "Checkbox List", value: "check" },
 	{ label: "Image", value: "img" },
 ];
 
@@ -99,7 +109,11 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 			else if ($isListNode(element)) {
 				const parentList = $getNearestNodeOfType(anchorNode, ListNode);
 				const type = parentList ? parentList.getTag() : element.getTag();
-				setCurrentBlockType(type);
+				if (element.getListType() === "check") {
+					setCurrentBlockType("check");
+				} else {
+					setCurrentBlockType(type);
+				}
 			}
 			// Consists of blocks like paragraph, quote, code, etc.
 			else {
@@ -156,11 +170,11 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 			format: "strikethrough",
 		},
 	];
-	const textFormattingOptions = textFormats.map(({ icon, format }) => (
+	const textFormattingButtons = textFormats.map(({ icon, format }) => (
 		<motion.button
 			{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
 			className={cn(
-				"rounded-md p-1 transition-colors duration-300 disabled:opacity-30",
+				"rounded-md py-1 px-2 transition-colors duration-300 disabled:opacity-30",
 				currentSelectionFormat.includes(format) && !disabled && "button-invert",
 			)}
 			disabled={disabled}
@@ -178,10 +192,46 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 		</motion.button>
 	));
 
+	const blocks = [
+		{
+			block: "ul",
+			icon: <UnorderedList />,
+			command: INSERT_UNORDERED_LIST_COMMAND,
+		},
+		{
+			block: "ol",
+			icon: <OrderedList />,
+			command: INSERT_ORDERED_LIST_COMMAND,
+		},
+		{
+			block: "check",
+			icon: <ListCheckbox />,
+			command: INSERT_CHECK_LIST_COMMAND,
+		},
+	];
+
+	const blockButtons = blocks.map(({ block, icon, command }) => (
+		<motion.button
+			{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
+			className={cn(
+				"rounded-md py-1 px-2 transition-colors duration-300 disabled:opacity-30",
+				currentBlockType === block && !disabled && "button-invert",
+			)}
+			disabled={disabled}
+			type="button"
+			onClick={() => {
+				editor.dispatchCommand(command, undefined);
+				setCurrentBlockType(block);
+			}}
+		>
+			{icon}
+		</motion.button>
+	));
+
 	return (
 		<nav
 			className={cn(
-				"ml-[-4px] flex flex-wrap gap-3 border-b-[1px] border-b-zinc-200 py-2 pl-1 dark:border-b-zinc-700",
+				"ml-[-4px] flex flex-wrap gap-1.5 border-b-[1px] border-b-zinc-200 py-2 pl-1 dark:border-b-zinc-700",
 				isNoteMaximized && "!pl-3",
 			)}
 		>
@@ -209,7 +259,8 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 					disabled={disabled}
 				/>
 			</span>
-			{textFormattingOptions}
+			{textFormattingButtons}
+			{blockButtons}
 		</nav>
 	);
 }

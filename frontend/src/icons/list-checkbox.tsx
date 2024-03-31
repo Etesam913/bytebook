@@ -37,7 +37,7 @@ export function ListCheckbox({
 					strokeWidth="1.5"
 				/>
 				<line
-					fill="none"
+					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1.5"
@@ -47,7 +47,7 @@ export function ListCheckbox({
 					y2="5.25"
 				/>
 				<line
-					fill="none"
+					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1.5"

@@ -1,16 +1,20 @@
-import React from "react";
-
-function UnorderedList(props) {
-	const fill = props.fill || "currentColor";
-	const secondaryfill = props.secondaryfill || fill;
-	const width = props.width || "100%";
-	const height = props.height || "100%";
-	const title = props.title || "unordered list";
-
+export function UnorderedList({
+	width = "1.25rem",
+	height = "1.25rem",
+	fill = "currentColor",
+	title = "unordered-list",
+	className,
+}: {
+	width?: string;
+	height?: string;
+	fill?: string;
+	title?: string;
+	className?: string;
+}) {
 	return (
 		<svg
-			height={height}
-			width={width}
+			className={className}
+			style={{ width, height }}
 			viewBox="0 0 18 18"
 			xmlns="http://www.w3.org/2000/svg"
 		>
@@ -21,7 +25,7 @@ function UnorderedList(props) {
 					cy="5.25"
 					fill="none"
 					r="2"
-					stroke={secondaryfill}
+					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1.5"
@@ -31,7 +35,7 @@ function UnorderedList(props) {
 					cy="12.75"
 					fill="none"
 					r="2"
-					stroke={secondaryfill}
+					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1.5"
@@ -62,5 +66,3 @@ function UnorderedList(props) {
 		</svg>
 	);
 }
-
-export default UnorderedList;
