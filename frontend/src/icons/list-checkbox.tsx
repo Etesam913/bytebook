@@ -1,16 +1,20 @@
-import React from "react";
-
-function ListCheckbox2(props) {
-	const fill = props.fill || "currentColor";
-	const secondaryfill = props.secondaryfill || fill;
-	const width = props.width || "100%";
-	const height = props.height || "100%";
-	const title = props.title || "list checkbox 2";
-
+export function ListCheckbox({
+	width = "1.25rem",
+	height = "1.25rem",
+	fill = "currentColor",
+	title = "list-checkbox",
+	className,
+}: {
+	width?: string;
+	height?: string;
+	fill?: string;
+	title?: string;
+	className?: string;
+}) {
 	return (
 		<svg
-			height={height}
-			width={width}
+			className={className}
+			style={{ width, height }}
 			viewBox="0 0 18 18"
 			xmlns="http://www.w3.org/2000/svg"
 		>
@@ -34,7 +38,6 @@ function ListCheckbox2(props) {
 				/>
 				<line
 					fill="none"
-					stroke={secondaryfill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1.5"
@@ -45,7 +48,6 @@ function ListCheckbox2(props) {
 				/>
 				<line
 					fill="none"
-					stroke={secondaryfill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1.5"
@@ -58,5 +60,3 @@ function ListCheckbox2(props) {
 		</svg>
 	);
 }
-
-export default ListCheckbox2;

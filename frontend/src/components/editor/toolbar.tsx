@@ -15,7 +15,7 @@ import {
 	SELECTION_CHANGE_COMMAND,
 	type TextFormatType,
 } from "lexical";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
 import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
 import { TextBold } from "../../icons/text-bold";
@@ -138,6 +138,46 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 
 	useFileDropEvent(editor, folder, note);
 
+	const textFormats: { icon: ReactNode; format: TextFormatType }[] = [
+		{
+			icon: <TextBold />,
+			format: "bold",
+		},
+		{
+			icon: <TextItalic />,
+			format: "italic",
+		},
+		{
+			icon: <TextUnderline />,
+			format: "underline",
+		},
+		{
+			icon: <TextStrikethrough />,
+			format: "strikethrough",
+		},
+	];
+	const textFormattingOptions = textFormats.map(({ icon, format }) => (
+		<motion.button
+			{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
+			className={cn(
+				"rounded-md p-1 transition-colors duration-300 disabled:opacity-30",
+				currentSelectionFormat.includes(format) && !disabled && "button-invert",
+			)}
+			disabled={disabled}
+			type="button"
+			onClick={() => {
+				editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+				handleToolbarTextFormattingClick(
+					currentSelectionFormat,
+					setCurrentSelectionFormat,
+					format,
+				);
+			}}
+		>
+			{icon}
+		</motion.button>
+	));
+
 	return (
 		<nav
 			className={cn(
@@ -169,94 +209,7 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 					disabled={disabled}
 				/>
 			</span>
-
-			<motion.button
-				{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
-				disabled={disabled}
-				className={cn(
-					"rounded-md p-1 transition-colors duration-300 disabled:opacity-30",
-					currentSelectionFormat.includes("bold") &&
-						!disabled &&
-						"button-invert",
-				)}
-				onClick={() => {
-					editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
-					handleToolbarTextFormattingClick(
-						currentSelectionFormat,
-						setCurrentSelectionFormat,
-						"bold",
-					);
-				}}
-				type="button"
-			>
-				<TextBold />
-			</motion.button>
-
-			<motion.button
-				{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
-				disabled={disabled}
-				className={cn(
-					"rounded-md p-1 transition-colors duration-300 disabled:opacity-30",
-					currentSelectionFormat.includes("italic") &&
-						!disabled &&
-						"button-invert",
-				)}
-				type="button"
-				onClick={() => {
-					editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
-					handleToolbarTextFormattingClick(
-						currentSelectionFormat,
-						setCurrentSelectionFormat,
-						"italic",
-					);
-				}}
-			>
-				<TextItalic />
-			</motion.button>
-
-			<motion.button
-				{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
-				disabled={disabled}
-				className={cn(
-					"rounded-md p-1 transition-colors duration-300 disabled:opacity-30",
-					currentSelectionFormat.includes("underline") &&
-						!disabled &&
-						"button-invert",
-				)}
-				type="button"
-				onClick={() => {
-					editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline");
-					handleToolbarTextFormattingClick(
-						currentSelectionFormat,
-						setCurrentSelectionFormat,
-						"underline",
-					);
-				}}
-			>
-				<TextUnderline />
-			</motion.button>
-
-			<motion.button
-				{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
-				className={cn(
-					"rounded-md p-1 transition-colors duration-300 disabled:opacity-30",
-					currentSelectionFormat.includes("strikethrough") &&
-						!disabled &&
-						"button-invert",
-				)}
-				disabled={disabled}
-				type="button"
-				onClick={() => {
-					editor.dispatchCommand(FORMAT_TEXT_COMMAND, "strikethrough");
-					handleToolbarTextFormattingClick(
-						currentSelectionFormat,
-						setCurrentSelectionFormat,
-						"strikethrough",
-					);
-				}}
-			>
-				<TextStrikethrough />
-			</motion.button>
+			{textFormattingOptions}
 		</nav>
 	);
 }

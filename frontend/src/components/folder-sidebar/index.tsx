@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRoute } from "wouter";
 import { foldersAtom, isFolderDialogOpenAtom } from "../../atoms";
 import { FolderPlus } from "../../icons/folder-plus";
+import { Gear } from "../../icons/gear.tsx";
 import { updateFolders } from "../../utils/fetch-functions";
 import { useWailsEvent } from "../../utils/hooks.tsx";
 import { getDefaultButtonVariants } from "../../variants";
@@ -62,10 +63,17 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 			</AnimatePresence>
 			<motion.aside
 				style={{ width }}
-				className="text-md flex h-screen flex-col gap-2 overflow-y-auto"
+				className="text-md flex h-screen flex-col px-[10px]"
 			>
-				test
-				<div className="flex h-full flex-col gap-2 px-[10px] pt-[3.5rem]">
+				<div className="pt-2">
+					<MotionButton
+						{...getDefaultButtonVariants()}
+						className="w-fit ml-auto"
+					>
+						<Gear />
+					</MotionButton>
+				</div>
+				<div className="flex h-full flex-col gap-2 pt-[0.8rem]">
 					<MotionButton
 						{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
 						data-testid="create_folder_button"
