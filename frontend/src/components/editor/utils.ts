@@ -30,6 +30,7 @@ import type { EditorBlockTypes } from "../../types";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
 import { INSERT_IMAGE_COMMAND } from "./plugins/image";
+import { INSERT_TABLE_COMMAND } from "@lexical/table";
 
 export type TextFormats =
 	| null
@@ -68,6 +69,13 @@ export function changeSelectedBlocksType(
 					break;
 				case "ul":
 					editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+					break;
+				case "table":
+					editor.dispatchCommand(INSERT_TABLE_COMMAND, {
+						columns: "2",
+						rows: "2",
+						includeHeaders: true,
+					});
 					break;
 				case "img": {
 					const filePaths = await UploadImage(folder, note);

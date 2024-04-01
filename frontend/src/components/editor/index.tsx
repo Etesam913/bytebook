@@ -105,6 +105,7 @@ export function NotesEditor({
 					<ImagesPlugin />
 					<VideosPlugin />
 					<CodePlugin />
+					<TablePlugin />
 					<TreeViewPlugin />
 				</div>
 			</LexicalComposer>

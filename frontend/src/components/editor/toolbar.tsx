@@ -59,6 +59,7 @@ const blockTypesDropdownItems = [
 	{ label: "Ordered List", value: "ol" },
 	{ label: "Checkbox List", value: "check" },
 	{ label: "Image", value: "img" },
+	{ label: "Table", value: "table" },
 ];
 
 export function Toolbar({ folder, note }: ToolbarProps) {
