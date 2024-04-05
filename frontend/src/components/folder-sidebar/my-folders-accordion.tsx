@@ -4,6 +4,7 @@ import { type CSSProperties, useState } from "react";
 import { Link } from "wouter";
 import { alphabetizedFoldersAtom } from "../../atoms.ts";
 import { ChevronDown } from "../../icons/chevron-down.tsx";
+import { FolderOpen } from "../../icons/folder-open.tsx";
 import { Folder } from "../../icons/folder.tsx";
 import { cn } from "../../utils/string-formatting.ts";
 
@@ -35,7 +36,11 @@ export function MyFoldersAccordion({
 					)}
 					to={`/${encodeURI(folderName)}`}
 				>
-					<Folder className="min-w-[1.25rem]" />{" "}
+					{folderName === folder ? (
+						<FolderOpen className="min-w-[1.25rem]" />
+					) : (
+						<Folder className="min-w-[1.25rem]" />
+					)}{" "}
 					<p className="whitespace-nowrap text-ellipsis overflow-hidden">
 						{folderName}
 					</p>

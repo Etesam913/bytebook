@@ -14,6 +14,7 @@ import { MotionButton } from "../../components/buttons";
 import { NotesEditor } from "../../components/editor";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Compose } from "../../icons/compose";
+import { FilePen } from "../../icons/file-pen.tsx";
 import { Folder } from "../../icons/folder";
 import { Note } from "../../icons/page";
 import { Pen } from "../../icons/pen";
@@ -83,7 +84,11 @@ export function NotesSidebar({
 					)}
 					to={`/${encodeURI(folder)}/${encodeURI(noteName)}`}
 				>
-					<Note className="min-w-[1.25rem]" />{" "}
+					{noteName === note ? (
+						<FilePen className="min-w-[1.25rem]" />
+					) : (
+						<Note className="min-w-[1.25rem]" />
+					)}{" "}
 					<p className="overflow-hidden text-ellipsis whitespace-nowrap">
 						{noteName}
 					</p>
