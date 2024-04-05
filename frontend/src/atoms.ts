@@ -8,6 +8,7 @@ export const mostRecentNotesAtom = atom(
 	(get) => get(privateMostRecentNotesAtom),
 	(_, set, payload: string[]) => {
 		localStorage.setItem("mostRecentNotes", JSON.stringify(payload));
+		console.log(payload);
 		set(privateMostRecentNotesAtom, payload);
 	},
 );

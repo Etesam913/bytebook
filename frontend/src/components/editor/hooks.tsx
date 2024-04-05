@@ -1,5 +1,5 @@
 import * as wails from "@wailsio/runtime";
-import { useAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import {
 	$getSelection,
 	CLEAR_HISTORY_COMMAND,
@@ -95,13 +95,16 @@ export function useFileDropEvent(
 
 /** Updates the most recent notes queue */
 export function useMostRecentNotes(folder: string, note: string) {
-	const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);
+	const setMostRecentNotes = useSetAtom(mostRecentNotesAtom);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		const currentPath = `${folder}/${note}`;
-		const tempMostRecentNotes = [...mostRecentNotes];
-		const isCurrentNoteInMostRecent = mostRecentNotes.findIndex(
+
+		// I have to read from localStorage because the mostRecentNotes atom is out of date for some reason
+		const tempMostRecentNotes = JSON.parse(
+			localStorage.getItem("mostRecentNotes") ?? "[]",
+		) as string[];
+		const isCurrentNoteInMostRecent = tempMostRecentNotes.findIndex(
 			(path) => path === currentPath,
 		);
 		if (isCurrentNoteInMostRecent !== -1) {
@@ -109,6 +112,7 @@ export function useMostRecentNotes(folder: string, note: string) {
 		}
 		tempMostRecentNotes.unshift(currentPath);
 		if (tempMostRecentNotes.length > 5) tempMostRecentNotes.pop();
+
 		setMostRecentNotes(tempMostRecentNotes);
 	}, [folder, note, setMostRecentNotes]);
 }

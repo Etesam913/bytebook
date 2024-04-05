@@ -50,15 +50,15 @@ export function NotesSidebar({
 			if (res.success) {
 				const remainingNotes = notes?.filter((v) => v !== noteName);
 				if (remainingNotes) {
-					navigate(
-						`/${folder}/${remainingNotes.length <= 0 ? "" : remainingNotes[0]}`,
-					);
 					setNotes(remainingNotes);
 					updateMostRecentNotesOnNoteDelete(
 						folder,
 						noteName,
 						mostRecentNotes,
 						setMostRecentNotes,
+					);
+					navigate(
+						`/${folder}/${remainingNotes.length <= 0 ? "" : remainingNotes[0]}`,
 					);
 				}
 			}
