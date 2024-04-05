@@ -1,5 +1,7 @@
 import { $createLinkNode, $isLinkNode, LinkNode } from "@lexical/link";
 import {
+	$convertFromMarkdownString,
+	$convertToMarkdownString,
 	BOLD_ITALIC_STAR,
 	BOLD_ITALIC_UNDERSCORE,
 	BOLD_STAR,
@@ -14,8 +16,6 @@ import {
 	type TextFormatTransformer,
 	type TextMatchTransformer,
 	UNORDERED_LIST,
-	$convertFromMarkdownString,
-	$convertToMarkdownString,
 } from "@lexical/markdown";
 import {
 	$createHeadingNode,
@@ -23,6 +23,18 @@ import {
 	HeadingNode,
 	type HeadingTagType,
 } from "@lexical/rich-text";
+import {
+	$createTableCellNode,
+	$createTableNode,
+	$createTableRowNode,
+	$isTableCellNode,
+	$isTableNode,
+	$isTableRowNode,
+	TableCellHeaderStates,
+	TableCellNode,
+	TableNode,
+	TableRowNode,
+} from "@lexical/table";
 import type { LanguageName } from "@uiw/codemirror-extensions-langs";
 import {
 	$createNodeSelection,
@@ -48,18 +60,6 @@ import {
 } from "./nodes/image";
 import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
 import type { Transformer } from "./utils";
-import {
-	$createTableCellNode,
-	$createTableNode,
-	$createTableRowNode,
-	$isTableCellNode,
-	$isTableNode,
-	$isTableRowNode,
-	TableCellHeaderStates,
-	TableCellNode,
-	TableNode,
-	TableRowNode,
-} from "@lexical/table";
 
 const createBlockNode = (
 	createNode: (match: Array<string>) => ElementNode,
@@ -427,9 +427,9 @@ function getTableColumnsSize(table: TableNode) {
 }
 
 const createTableCell = (textContent: string): TableCellNode => {
-	textContent = textContent.replace(/\\n/g, "\n");
+	const cleanedTextContent = textContent.replace(/\\n/g, "\n");
 	const cell = $createTableCellNode(TableCellHeaderStates.NO_STATUS);
-	$convertFromMarkdownString(textContent, CUSTOM_TRANSFORMERS, cell);
+	$convertFromMarkdownString(cleanedTextContent, CUSTOM_TRANSFORMERS, cell);
 	return cell;
 };
 

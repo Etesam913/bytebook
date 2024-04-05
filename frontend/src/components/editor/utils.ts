@@ -10,6 +10,7 @@ import {
 } from "@lexical/markdown";
 import { $createHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
+import { INSERT_TABLE_COMMAND } from "@lexical/table";
 import {
 	$createNodeSelection,
 	$createParagraphNode,
@@ -30,7 +31,6 @@ import type { EditorBlockTypes } from "../../types";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
 import { INSERT_IMAGE_COMMAND } from "./plugins/image";
-import { INSERT_TABLE_COMMAND } from "@lexical/table";
 
 export type TextFormats =
 	| null

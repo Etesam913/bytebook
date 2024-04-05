@@ -41,8 +41,8 @@ export function NotesSidebar({
 	const setIsFolderDialogOpen = useSetAtom(isFolderDialogOpenAtom);
 
 	useEffect(() => {
-		updateNotes(folder, setNotes);
-	}, [folder, setNotes]);
+		updateNotes(folder, note, setNotes);
+	}, [folder, setNotes, note]);
 
 	useWailsEvent("delete-note", (event) => {
 		const noteName = event.data as string;
