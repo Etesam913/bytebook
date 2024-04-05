@@ -7,10 +7,12 @@ import {
 } from "@lexical/list";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $isHeadingNode } from "@lexical/rich-text";
+import { $setBlocksType } from "@lexical/selection";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import { motion } from "framer-motion";
 import { useAtom } from "jotai";
 import {
+	$createParagraphNode,
 	$getSelection,
 	$isNodeSelection,
 	$isRangeSelection,
@@ -38,6 +40,7 @@ import { Dropdown } from "../dropdown";
 import { useFileDropEvent, useNoteMarkdown } from "./hooks";
 import {
 	type TextFormats,
+	blockTypesDropdownItems,
 	changeSelectedBlocksType,
 	handleToolbarTextFormattingClick,
 	overrideUpDownKeyCommand,
@@ -49,18 +52,6 @@ interface ToolbarProps {
 	folder: string;
 	note: string;
 }
-
-const blockTypesDropdownItems = [
-	{ label: "Header 1", value: "h1" },
-	{ label: "Header 2", value: "h2" },
-	{ label: "Header 3", value: "h3" },
-	{ label: "Paragraph", value: "paragraph" },
-	{ label: "Unordered List", value: "ul" },
-	{ label: "Ordered List", value: "ol" },
-	{ label: "Checkbox List", value: "check" },
-	{ label: "Image", value: "img" },
-	{ label: "Table", value: "table" },
-];
 
 export function Toolbar({ folder, note }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
@@ -221,8 +212,18 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 			disabled={disabled}
 			type="button"
 			onClick={() => {
-				editor.dispatchCommand(command, undefined);
-				setCurrentBlockType(block);
+				// toggling the block off switches it to a paragraph
+				if (block === currentBlockType) {
+					editor.update(() => {
+						const selection = $getSelection();
+						if ($isRangeSelection(selection)) {
+							$setBlocksType(selection, () => $createParagraphNode());
+						}
+					});
+				} else {
+					editor.dispatchCommand(command, undefined);
+					setCurrentBlockType(block);
+				}
 			}}
 		>
 			{icon}

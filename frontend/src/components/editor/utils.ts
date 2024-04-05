@@ -39,6 +39,18 @@ export type TextFormats =
 	| "underline"
 	| "strikethrough";
 
+export const blockTypesDropdownItems = [
+	{ label: "Header 1", value: "h1" },
+	{ label: "Header 2", value: "h2" },
+	{ label: "Header 3", value: "h3" },
+	{ label: "Paragraph", value: "paragraph" },
+	{ label: "Unordered List", value: "ul" },
+	{ label: "Ordered List", value: "ol" },
+	{ label: "Checkbox List", value: "check" },
+	{ label: "Image", value: "img" },
+	{ label: "Table", value: "table" },
+];
+
 /**
  * Gets a selection and formats the blocks to `newBlockType`
  */
