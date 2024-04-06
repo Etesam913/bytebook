@@ -4,6 +4,7 @@ import { Events as WailsEvents } from "@wailsio/runtime";
 import { useSetAtom } from "jotai";
 import {
 	CLICK_COMMAND,
+	COMMAND_PRIORITY_EDITOR,
 	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
 	KEY_ARROW_DOWN_COMMAND,
@@ -97,26 +98,31 @@ export function useResizeCommands(
 			// editor.registerCommand<KeyboardEvent>(
 			// 	KEY_ARROW_UP_COMMAND,
 			// 	(e) => {
-			// 		if (!isExpanded) {
-			// 			return arrowKeyDecoratorNodeCommand(e, nodeKey, true);
-			// 		}
+			// 		// if (!isExpanded) {
+			// 		// 	return arrowKeyDecoratorNodeCommand(e, nodeKey, true);
+			// 		// }
 			// 		e.preventDefault();
 			// 		e.stopPropagation();
 			// 		return true;
 			// 	},
-			// 	isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
+			// 	isExpanded || isSelected
+			// 		? COMMAND_PRIORITY_HIGH
+			// 		: COMMAND_PRIORITY_EDITOR,
 			// ),
 			// editor.registerCommand<KeyboardEvent>(
 			// 	KEY_ARROW_DOWN_COMMAND,
 			// 	(e) => {
-			// 		if (!isExpanded) {
-			// 			return arrowKeyDecoratorNodeCommand(e, nodeKey, false);
-			// 		}
+			// 		// if (!isExpanded) {
+			// 		// 	return arrowKeyDecoratorNodeCommand(e, nodeKey, false);
+			// 		// }
+			// 		console.log("ran");
 			// 		e.preventDefault();
 			// 		e.stopPropagation();
 			// 		return true;
 			// 	},
-			// 	isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
+			// 	isExpanded || isSelected
+			// 		? COMMAND_PRIORITY_HIGH
+			// 		: COMMAND_PRIORITY_EDITOR,
 			// ),
 			editor.registerCommand<MouseEvent>(
 				CLICK_COMMAND,

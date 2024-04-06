@@ -34,7 +34,8 @@ function convertImageElement(domNode: Node): null | DOMConversionOutput {
 	const node = $createImageNode({ alt, src, width });
 	const parentNode = $createParagraphNode();
 	parentNode.append(node);
-	return { node: parentNode };
+	console.log(parentNode);
+	return { node: node };
 }
 
 export type SerializedImageNode = Spread<
@@ -56,6 +57,7 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static clone(node: ImageNode): ImageNode {
+		console.log("clone");
 		return new ImageNode(node.__src, node.__alt, node.__width, node.__key);
 	}
 
@@ -92,9 +94,6 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 		this.__src = src;
 		this.__alt = alt;
 		this.__width = width ?? 500;
-	}
-	isInline(): false {
-		return false;
 	}
 
 	exportJSON(): SerializedImageNode {

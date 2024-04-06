@@ -1,4 +1,3 @@
-import { TOGGLE_LINK_COMMAND } from "@lexical/link";
 import {
 	$isListNode,
 	INSERT_CHECK_LIST_COMMAND,
@@ -18,7 +17,7 @@ import {
 	$getSelection,
 	$isNodeSelection,
 	$isRangeSelection,
-	COMMAND_PRIORITY_EDITOR,
+	COMMAND_PRIORITY_LOW,
 	FORMAT_TEXT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
 	KEY_ARROW_UP_COMMAND,
@@ -135,13 +134,13 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 			editor.registerCommand(
 				KEY_ARROW_UP_COMMAND,
 				(event) => overrideUpDownKeyCommand(event, "up"),
-				COMMAND_PRIORITY_EDITOR,
+				COMMAND_PRIORITY_LOW,
 			),
-			// editor.registerCommand(KEY_ARROW_RIGHT_COMMAND, event);
+
 			editor.registerCommand(
 				KEY_ARROW_DOWN_COMMAND,
 				(event) => overrideUpDownKeyCommand(event, "down"),
-				COMMAND_PRIORITY_EDITOR,
+				COMMAND_PRIORITY_LOW,
 			),
 		);
 	}, [editor]);

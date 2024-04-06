@@ -145,10 +145,6 @@ export class VideoNode extends DecoratorNode<JSX.Element> {
 			</Suspense>
 		);
 	}
-
-	isInline(): false {
-		return false;
-	}
 }
 
 export function $createVideoNode({

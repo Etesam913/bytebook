@@ -160,7 +160,7 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 			filePathOrSrc.endsWith(extension),
 		);
 		let nodeToCreate: ImageNode | VideoNode | null = null;
-		console.log(filePathOrSrc);
+
 		if (shouldCreateImageNode || shouldCreateVideoNode) {
 			const widthQueryValue = getQueryParamValue(alt, "width");
 			const width: ResizeWidth = widthQueryValue
@@ -184,7 +184,6 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 		}
 
 		if (nodeToCreate) {
-			console.log(nodeToCreate);
 			textNode.replace(nodeToCreate);
 		}
 	},

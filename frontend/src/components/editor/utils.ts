@@ -17,6 +17,7 @@ import {
 	$createTextNode,
 	$getSelection,
 	$isDecoratorNode,
+	$isElementNode,
 	$isRangeSelection,
 	$isRootNode,
 	$setSelection,
@@ -149,6 +150,7 @@ export function overrideUpDownKeyCommand(
 ) {
 	const selection = $getSelection();
 	const node = selection?.getNodes().at(0);
+
 	if (!node) return true;
 	if ($isRootNode(node)) {
 		const firstChild = node.getFirstChild();
@@ -156,14 +158,25 @@ export function overrideUpDownKeyCommand(
 		return true;
 	}
 	const nextNode = getFirstSiblingNode(node, command);
-	console.log(nextNode, $isDecoratorNode(nextNode));
-	if ($isDecoratorNode(nextNode)) {
+	let nextNodeChild: LexicalNode | null = null;
+	if (nextNode && $isElementNode(nextNode)) {
+		nextNodeChild = nextNode.getChildren().at(0) ?? null;
+	}
+	const nodeToSelect = nextNodeChild ?? nextNode;
+
+	// going from <p> -> <img>
+	if ($isDecoratorNode(nodeToSelect)) {
 		const newNodeSelection = $createNodeSelection();
-		newNodeSelection.add(nextNode.getKey());
+		newNodeSelection.add(nodeToSelect.getKey());
 		$setSelection(newNodeSelection);
 		event.preventDefault();
-		return true;
 	}
+	// going from <img> -> <p>
+	else if ($isDecoratorNode(node)) {
+		event.preventDefault();
+		nodeToSelect?.selectEnd();
+	}
+
 	return true;
 }
 

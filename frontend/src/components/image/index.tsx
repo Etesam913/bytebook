@@ -1,5 +1,5 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
 import type { ResizeWidth } from "../editor/nodes/image";
 import { ResizeContainer } from "../resize-container";
@@ -42,14 +42,11 @@ export function Image({
 		imgRef,
 	);
 
-	console.log(widthWrittenToNode);
-
-	// TODO: Add scroll into view only when expanded
-	// useEffect(() => {
-	// 	if (isSelected) {
-	// 		imgRef.current?.scrollIntoView({ block: "start" });
-	// 	}
-	// }, [isSelected]);
+	useEffect(() => {
+		if (isSelected) {
+			imgRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+		}
+	}, [isSelected]);
 
 	return (
 		<div className="w-full">
