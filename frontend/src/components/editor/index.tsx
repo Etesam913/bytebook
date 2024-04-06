@@ -14,16 +14,18 @@ import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { Browser } from "@wailsio/runtime";
 import { useAtomValue } from "jotai";
 import type { LexicalEditor } from "lexical";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { isNoteMaximizedAtom } from "../../atoms";
+import { FloatingLinkData } from "../../types.ts";
 import { debounce } from "../../utils/draggable";
 import { cn } from "../../utils/string-formatting";
 import { editorConfig } from "./editor-config";
 import { useMostRecentNotes } from "./hooks.tsx";
 import { NoteTitle } from "./note-title";
 import { CodePlugin } from "./plugins/code";
+import { FloatingLinkPlugin } from "./plugins/floating-link";
 import { ImagesPlugin } from "./plugins/image";
 import TreeViewPlugin from "./plugins/tree-view";
 import { VideosPlugin } from "./plugins/video";
@@ -48,7 +50,11 @@ export function NotesEditor({
 	const { folder, note } = params;
 	const editorRef = useRef<LexicalEditor | null | undefined>(null);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-
+	const [floatingLinkData, setFloatingLinkData] = useState<FloatingLinkData>({
+		isOpen: false,
+		left: 0,
+		top: 0,
+	});
 	useMostRecentNotes(folder, note);
 
 	return (
@@ -56,7 +62,11 @@ export function NotesEditor({
 			className={cn("flex min-w-0 flex-1 flex-col", isNoteMaximized && "mt-8")}
 		>
 			<LexicalComposer initialConfig={editorConfig}>
-				<Toolbar folder={folder} note={note} />
+				<Toolbar
+					folder={folder}
+					note={note}
+					setFloatingLinkData={setFloatingLinkData}
+				/>
 				<div
 					style={{ scrollbarGutter: "stable" }}
 					className={cn(
@@ -93,6 +103,10 @@ export function NotesEditor({
 						onChange={(_, editor) =>
 							debouncedHandleChange(folder, note, editor)
 						}
+					/>
+					<FloatingLinkPlugin
+						floatingLinkData={floatingLinkData}
+						setFloatingLinkData={setFloatingLinkData}
 					/>
 					<MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
 					<ListPlugin />

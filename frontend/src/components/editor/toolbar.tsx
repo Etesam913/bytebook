@@ -11,6 +11,7 @@ import { $setBlocksType } from "@lexical/selection";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import { motion } from "framer-motion";
 import { useAtom } from "jotai";
+import { SetStateAction } from "jotai/ts3.8/esm/vanilla";
 import {
 	$createParagraphNode,
 	$getSelection,
@@ -23,8 +24,9 @@ import {
 	SELECTION_CHANGE_COMMAND,
 	type TextFormatType,
 } from "lexical";
-import { ReactNode, useEffect, useState } from "react";
+import { Dispatch, ReactNode, useEffect, useState } from "react";
 import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
+import { Link } from "../../icons/link";
 import { ListCheckbox } from "../../icons/list-checkbox";
 import { OrderedList } from "../../icons/ordered-list";
 import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
@@ -33,7 +35,7 @@ import { TextItalic } from "../../icons/text-italic";
 import { TextStrikethrough } from "../../icons/text-strikethrough";
 import { TextUnderline } from "../../icons/text-underline";
 import { UnorderedList } from "../../icons/unordered-list";
-import type { EditorBlockTypes } from "../../types";
+import type { EditorBlockTypes, FloatingLinkData } from "../../types";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { Dropdown } from "../dropdown";
@@ -45,15 +47,17 @@ import {
 	handleToolbarTextFormattingClick,
 	overrideUpDownKeyCommand,
 } from "./utils";
+import { TOGGLE_LINK_COMMAND } from "@lexical/link";
 
 const LOW_PRIORITY = 1;
 
 interface ToolbarProps {
 	folder: string;
 	note: string;
+	setFloatingLinkData: Dispatch<SetStateAction<FloatingLinkData>>;
 }
 
-export function Toolbar({ folder, note }: ToolbarProps) {
+export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
 	const [disabled, setDisabled] = useAtom(isToolbarDisabled);
 	const [currentBlockType, setCurrentBlockType] =
@@ -262,6 +266,29 @@ export function Toolbar({ folder, note }: ToolbarProps) {
 				/>
 			</span>
 			{textFormattingButtons}
+			<motion.button
+				{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
+				className={cn(
+					"rounded-md py-1 px-2 transition-colors duration-300 disabled:opacity-30",
+				)}
+				disabled={disabled}
+				type="button"
+				onClick={() => {
+					editor.update(() => {
+						const selection = $getSelection();
+						if ($isRangeSelection(selection)) {
+							const nativeSelection = window.getSelection()?.getRangeAt(0);
+							const domRect = nativeSelection?.getBoundingClientRect();
+							if (domRect) {
+								const { top, left } = domRect;
+								setFloatingLinkData({ isOpen: true, top, left });
+							}
+						}
+					});
+				}}
+			>
+				<Link />
+			</motion.button>
 			{blockButtons}
 		</nav>
 	);

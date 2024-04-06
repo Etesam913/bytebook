@@ -19,3 +19,9 @@ export type MostRecentNoteType = {
 	name: string;
 	path: string;
 };
+
+export type FloatingLinkData = {
+	isOpen: boolean;
+	top: number;
+	left: number;
+};
