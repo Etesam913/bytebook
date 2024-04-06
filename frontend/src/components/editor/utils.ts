@@ -207,11 +207,11 @@ export function handleTextMatchTransformerReplace(
 	const startIndex = match.index || 0;
 	const endIndex = startIndex + match[0].length;
 	let replaceNode: TextNode | null = null;
+	const textToLeft = textContent.slice(0, startIndex);
+	const middleText = match[0];
+	const textToRight = textContent.slice(endIndex);
 
 	if (transformer.dependencies.includes(ImageNode)) {
-		const textToLeft = textContent.slice(0, startIndex);
-		const middleText = match[0];
-		const textToRight = textContent.slice(endIndex);
 		const parent = anchorNode.getParent();
 		replaceNode = $createTextNode(middleText);
 		if (parent) {
@@ -238,5 +238,16 @@ export function handleTextMatchTransformerReplace(
 			}
 			return replaceNode;
 		}
+	} else {
+		// Handle other text match transformers here
+		if (startIndex === 0) {
+			[replaceNode] = anchorNode.splitText(endIndex);
+		} else {
+			[, replaceNode] = anchorNode.splitText(startIndex, endIndex);
+		}
+
+		replaceNode.selectNext(0, 0);
+
+		return replaceNode;
 	}
 }

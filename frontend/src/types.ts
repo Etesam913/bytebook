@@ -1,6 +1,10 @@
 import type { ListNodeTagType } from "@lexical/list/LexicalListNode";
 import type { HeadingTagType } from "@lexical/rich-text";
 
+export const IMAGE_FILE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
+
+export const VIDEO_FILE_EXTENSIONS = [".mov", ".mp4"];
+
 export type EditorBlockTypes =
 	| HeadingTagType
 	| ListNodeTagType

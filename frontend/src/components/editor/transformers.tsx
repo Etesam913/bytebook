@@ -45,6 +45,7 @@ import {
 	type ElementNode,
 	type LexicalNode,
 } from "lexical";
+import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from "../../types";
 import { codeLanguages } from "../../utils/code";
 import {
 	addQueryParam,
@@ -58,7 +59,7 @@ import {
 	ImageNode,
 	type ResizeWidth,
 } from "./nodes/image";
-import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
+import { $createVideoNode, $isVideoNode, type VideoNode } from "./nodes/video";
 import type { Transformer } from "./utils";
 
 export const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
@@ -123,83 +124,69 @@ function updateSrc(nodeSrc: string) {
 	);
 }
 
-const VIDEO_TRANSFORMER: ElementTransformer = {
-	dependencies: [VideoNode],
-	export: (node) => {
-		if (!$isVideoNode(node)) {
-			return null;
-		}
-
-		const videoTitleText = addQueryParam(
-			node.getTitleText(),
-			"videoWidth",
-			String(node.getWidth()),
-		);
-
-		const videoSrc = updateSrc(node.getSrc());
-		return `![${videoTitleText}](${videoSrc}) `;
-	},
-	regExp: /!\[([^[]*)]\(([^)]+\.(?:mp4|mov))\)\s/,
-	replace: (textNode, _, match) => {
-		const [, title, src] = match;
-		const videoWidthQueryValue = getQueryParamValue(title, "videoWidth");
-		const videoWidth: ResizeWidth = videoWidthQueryValue
-			? videoWidthQueryValue.charAt(-1) === "%"
-				? "100%"
-				: Number.parseInt(videoWidthQueryValue)
-			: 500;
-		const videoNode = $createVideoNode({
-			title,
-			src,
-			width: videoWidth,
-		});
-
-		const nodeSelection = $createNodeSelection();
-		nodeSelection.add(textNode.getKey());
-		textNode.replace(videoNode);
-		$setSelection(nodeSelection);
-	},
-	type: "element",
-};
-
-const IMAGE_TRANSFORMER: TextMatchTransformer = {
+const FILE_TRANSFORMER: TextMatchTransformer = {
 	dependencies: [ImageNode],
 	export: (node) => {
-		if (!$isImageNode(node)) {
-			return null;
-		}
-		const imageSrc = updateSrc(node.getSrc());
-		const imageAltText = addQueryParam(
-			node.getAltText(),
-			"imageWidth",
-			String(node.getWidth()),
-		);
+		let filePathOrSrc = "";
+		let altText = "";
+		const isImage = $isImageNode(node);
+		const isVideo = $isVideoNode(node);
+		if (isImage || isVideo) {
+			filePathOrSrc = updateSrc(node.getSrc());
+
+			altText = addQueryParam(
+				isImage ? node.getAltText() : node.getTitleText(),
+				"width",
+				String(node.getWidth()),
+			);
+		} else return null;
+
 		// TODO: need to do sanitizing on the alt text
-		return `![${imageAltText}](${imageSrc}) `;
+		return `![${altText}](${filePathOrSrc}) `;
 	},
 	importRegExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))/,
 	regExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))$/,
 	replace: (textNode, match) => {
-		console.log(textNode, "from transformer");
 		const alt = match.at(1);
-		const src = match.at(2);
-		if (!alt || !src) {
+		const filePathOrSrc = match.at(2);
+		if (!alt || !filePathOrSrc) {
 			textNode.replace(textNode);
 			return;
 		}
-		const imageWidthQueryValue = getQueryParamValue(alt, "imageWidth");
-		const imageWidth: ResizeWidth = imageWidthQueryValue
-			? imageWidthQueryValue.charAt(-1) === "%"
-				? "100%"
-				: Number.parseInt(imageWidthQueryValue)
-			: 500;
+		const shouldCreateImageNode = IMAGE_FILE_EXTENSIONS.some((extension) =>
+			filePathOrSrc.endsWith(extension),
+		);
+		const shouldCreateVideoNode = VIDEO_FILE_EXTENSIONS.some((extension) =>
+			filePathOrSrc.endsWith(extension),
+		);
+		let nodeToCreate: ImageNode | VideoNode | null = null;
+		console.log(filePathOrSrc);
+		if (shouldCreateImageNode || shouldCreateVideoNode) {
+			const widthQueryValue = getQueryParamValue(alt, "width");
+			const width: ResizeWidth = widthQueryValue
+				? widthQueryValue.charAt(-1) === "%"
+					? "100%"
+					: Number.parseInt(widthQueryValue)
+				: 500;
+			if (shouldCreateImageNode) {
+				nodeToCreate = $createImageNode({
+					alt: removeQueryParam(alt, "width"),
+					src: filePathOrSrc,
+					width,
+				});
+			} else if (shouldCreateVideoNode) {
+				nodeToCreate = $createVideoNode({
+					title: removeQueryParam(alt, "width"),
+					src: filePathOrSrc,
+					width,
+				});
+			}
+		}
 
-		const imageNode = $createImageNode({
-			alt: removeQueryParam(alt, "imageWidth"),
-			src,
-			width: imageWidth,
-		});
-		textNode.replace(imageNode);
+		if (nodeToCreate) {
+			console.log(nodeToCreate);
+			textNode.replace(nodeToCreate);
+		}
 	},
 	type: "text-match",
 	trigger: ")",
@@ -276,8 +263,9 @@ export const LINK: TextMatchTransformer = {
 		return linkContent;
 	},
 	importRegExp:
-		/^(?!\\!)\[([^[]+)]\(([^()\s]+)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?\)$/,
-	regExp: /^(?!\\!)\[([^[]+)]\(([^()\s]+)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?\)$/,
+		/(?:\[([^[]+)\])(?:\((?:([^()\s]+)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))/,
+	regExp:
+		/(?:\[([^[]+)\])(?:\((?:([^()\s]+)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))$/,
 	replace: (textNode, match) => {
 		const [, linkText, linkUrl, linkTitle] = match;
 		const linkNode = $createLinkNode(linkUrl, { title: linkTitle });
@@ -447,7 +435,6 @@ const mapToTableCells = (textContent: string): Array<TableCellNode> | null => {
 };
 
 export const CUSTOM_TRANSFORMERS = [
-	LINK,
 	CUSTOM_HEADING_TRANSFORMER,
 	CHECK_LIST,
 	UNORDERED_LIST,
@@ -460,8 +447,8 @@ export const CUSTOM_TRANSFORMERS = [
 	ITALIC_STAR,
 	ITALIC_UNDERSCORE,
 	STRIKETHROUGH,
-	IMAGE_TRANSFORMER,
-	VIDEO_TRANSFORMER,
+	FILE_TRANSFORMER,
+	LINK,
 	CODE_TRANSFORMER,
 	TABLE,
 ];

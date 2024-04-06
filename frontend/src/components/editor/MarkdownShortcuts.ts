@@ -15,10 +15,7 @@ import type {
 import type { ElementNode, LexicalEditor, TextNode } from "lexical";
 
 import {
-	$createParagraphNode,
 	$createRangeSelection,
-	$createTextNode,
-	$getRoot,
 	$getSelection,
 	$isLineBreakNode,
 	$isRangeSelection,
@@ -101,6 +98,7 @@ function runTextMatchTransformers(
 
 	for (const transformer of transformers) {
 		const match = textContent.match(transformer.regExp);
+		console.log(transformer, match);
 		const replaceNode = handleTextMatchTransformerReplace(
 			transformer,
 			anchorNode,
