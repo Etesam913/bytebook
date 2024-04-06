@@ -61,6 +61,8 @@ import {
 import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
 import type { Transformer } from "./utils";
 
+export const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
+
 const createBlockNode = (
 	createNode: (match: Array<string>) => ElementNode,
 ): ElementTransformer["replace"] => {
@@ -144,7 +146,7 @@ const VIDEO_TRANSFORMER: ElementTransformer = {
 		const videoWidth: ResizeWidth = videoWidthQueryValue
 			? videoWidthQueryValue.charAt(-1) === "%"
 				? "100%"
-				: parseInt(videoWidthQueryValue)
+				: Number.parseInt(videoWidthQueryValue)
 			: 500;
 		const videoNode = $createVideoNode({
 			title,
@@ -160,7 +162,7 @@ const VIDEO_TRANSFORMER: ElementTransformer = {
 	type: "element",
 };
 
-const IMAGE_TRANSFORMER: ElementTransformer = {
+const IMAGE_TRANSFORMER: TextMatchTransformer = {
 	dependencies: [ImageNode],
 	export: (node) => {
 		if (!$isImageNode(node)) {
@@ -175,8 +177,10 @@ const IMAGE_TRANSFORMER: ElementTransformer = {
 		// TODO: need to do sanitizing on the alt text
 		return `![${imageAltText}](${imageSrc}) `;
 	},
-	regExp: /!\[(?<alt>[^\]]*)]\((?<filename>.*?)(?<!\.mp4|.mov)(?=[")])\)\s/,
-	replace: (textNode, _1, match) => {
+	importRegExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))/,
+	regExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))$/,
+	replace: (textNode, match) => {
+		console.log(textNode, "from transformer");
 		const alt = match.at(1);
 		const src = match.at(2);
 		if (!alt || !src) {
@@ -187,7 +191,7 @@ const IMAGE_TRANSFORMER: ElementTransformer = {
 		const imageWidth: ResizeWidth = imageWidthQueryValue
 			? imageWidthQueryValue.charAt(-1) === "%"
 				? "100%"
-				: parseInt(imageWidthQueryValue)
+				: Number.parseInt(imageWidthQueryValue)
 			: 500;
 
 		const imageNode = $createImageNode({
@@ -197,7 +201,8 @@ const IMAGE_TRANSFORMER: ElementTransformer = {
 		});
 		textNode.replace(imageNode);
 	},
-	type: "element",
+	type: "text-match",
+	trigger: ")",
 };
 
 const CUSTOM_HEADING_TRANSFORMER: ElementTransformer = {
@@ -218,7 +223,7 @@ const CUSTOM_HEADING_TRANSFORMER: ElementTransformer = {
 	type: "element",
 };
 
-function indexBy<T>(
+export function indexBy<T>(
 	list: Array<T>,
 	callback: (arg0: T) => string,
 ): Readonly<Record<string, Array<T>>> {

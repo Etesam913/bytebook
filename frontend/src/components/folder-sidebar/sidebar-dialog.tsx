@@ -1,5 +1,10 @@
 import { useAtom } from "jotai";
-import { type Dispatch, ReactNode, type SetStateAction, useState } from "react";
+import {
+	type Dispatch,
+	type ReactNode,
+	type SetStateAction,
+	useState,
+} from "react";
 import { navigate } from "wouter/use-browser-location";
 import {
 	AddFolder,
@@ -10,7 +15,7 @@ import { mostRecentNotesAtom } from "../../atoms.ts";
 import { FolderPen } from "../../icons/folder-pen.tsx";
 import { FolderPlus } from "../../icons/folder-plus";
 import { FolderXMark } from "../../icons/folder-xmark.tsx";
-import { FolderDialogAction, FolderDialogState } from "../../types.ts";
+import type { FolderDialogAction, FolderDialogState } from "../../types.ts";
 import { updateMostRecentNotesOnFolderDelete } from "../../utils/misc.ts";
 import { fileNameRegex } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
@@ -86,7 +91,7 @@ export function FolderSidebarDialog({
 															? folderName
 															: v,
 													// eslint-disable-next-line no-mixed-spaces-and-tabs
-											  )
+												)
 											: [folderName];
 									});
 									navigate(`/${folderName}`);

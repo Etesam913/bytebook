@@ -1,10 +1,10 @@
 import { LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";
-import { InitialConfigType } from "@lexical/react/LexicalComposer";
+import type { InitialConfigType } from "@lexical/react/LexicalComposer";
 import { HorizontalRuleNode } from "@lexical/react/LexicalHorizontalRuleNode";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
-import { EditorThemeClasses, ParagraphNode } from "lexical";
+import { type EditorThemeClasses, ParagraphNode } from "lexical";
 import { CodeNode } from "./nodes/code";
 import { ImageNode } from "./nodes/image";
 import { VideoNode } from "./nodes/video";

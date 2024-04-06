@@ -1,5 +1,5 @@
-import { ListNodeTagType } from "@lexical/list/LexicalListNode";
-import { HeadingTagType } from "@lexical/rich-text";
+import type { ListNodeTagType } from "@lexical/list/LexicalListNode";
+import type { HeadingTagType } from "@lexical/rich-text";
 
 export type EditorBlockTypes =
 	| HeadingTagType

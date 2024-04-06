@@ -6,6 +6,7 @@ import type {
 import type { TextNode } from "lexical";
 
 import { $isListItemNode, $isListNode, type ListItemNode } from "@lexical/list";
+import { useBasicTypeaheadTriggerMatch } from "@lexical/react/LexicalTypeaheadMenuPlugin";
 import { $isQuoteNode } from "@lexical/rich-text";
 import { $findMatchingParent } from "@lexical/utils";
 import {
@@ -16,12 +17,12 @@ import {
 	$getSelection,
 	$isParagraphNode,
 	type ElementNode,
+	ParagraphNode,
 } from "lexical";
 import { $createCodeNode, type CodeNode } from "./nodes/code";
-import { transformersByType } from "./transformers";
-import type { Transformer } from "./utils";
+import { PUNCTUATION_OR_SPACE, transformersByType } from "./transformers";
+import { type Transformer, handleTextMatchTransformerReplace } from "./utils";
 
-const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
 const CAN_USE_DOM: boolean =
 	typeof window !== "undefined" &&
 	typeof window.document !== "undefined" &&
@@ -120,37 +121,6 @@ function importBlocks(
 		textFormatTransformersIndex,
 		textMatchTransformers,
 	);
-
-	// If no transformer found and we left with original paragraph node
-	// can check if its content can be appended to the previous node
-	// if it's a paragraph, quote or list
-	if (elementNode.isAttached() && lineTextTrimmed.length > 0) {
-		const previousNode = elementNode.getPreviousSibling();
-		if (
-			$isParagraphNode(previousNode) ||
-			$isQuoteNode(previousNode) ||
-			$isListNode(previousNode)
-		) {
-			let targetNode: typeof previousNode | ListItemNode | null = previousNode;
-
-			if ($isListNode(previousNode)) {
-				const lastDescendant = previousNode.getLastDescendant();
-				if (lastDescendant == null) {
-					targetNode = null;
-				} else {
-					targetNode = $findMatchingParent(lastDescendant, $isListItemNode);
-				}
-			}
-
-			if (targetNode != null && targetNode.getTextContentSize() > 0) {
-				targetNode.splice(targetNode.getChildrenSize(), 0, [
-					$createLineBreakNode(),
-					...elementNode.getChildren(),
-				]);
-				elementNode.remove();
-			}
-		}
-	}
 }
 const CODE_BLOCK_REG_EXP = /^```(\w{1,10})?\s?$/;
 
@@ -269,37 +239,21 @@ function importTextMatchTransformers(
 	textNode_: TextNode,
 	textMatchTransformers: Array<TextMatchTransformer>,
 ) {
-	let textNode = textNode_;
+	const textNode = textNode_;
 
-	mainLoop: while (textNode) {
-		for (const transformer of textMatchTransformers) {
-			const match = textNode.getTextContent().match(transformer.importRegExp);
+	for (const transformer of textMatchTransformers) {
+		const match = textNode.getTextContent().match(transformer.importRegExp);
 
-			if (!match) {
-				continue;
-			}
+		const replaceNode = handleTextMatchTransformerReplace(
+			transformer,
+			textNode_,
+			match,
+		);
 
-			const startIndex = match.index || 0;
-			const endIndex = startIndex + match[0].length;
-			// biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-			let replaceNode;
-			// biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-			let newTextNode;
-
-			if (startIndex === 0) {
-				[replaceNode, textNode] = textNode.splitText(endIndex);
-			} else {
-				[, replaceNode, newTextNode] = textNode.splitText(startIndex, endIndex);
-			}
-
-			if (newTextNode) {
-				importTextMatchTransformers(newTextNode, textMatchTransformers);
-			}
+		if (replaceNode && match) {
 			transformer.replace(replaceNode, match);
-			continue mainLoop;
+			break;
 		}
-
-		break;
 	}
 }
 

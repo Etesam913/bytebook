@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useRef } from "react";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
-import { ResizeWidth } from "../editor/nodes/image";
+import type { ResizeWidth } from "../editor/nodes/image";
 import { ResizeContainer } from "../resize-container";
 
 export function Image({

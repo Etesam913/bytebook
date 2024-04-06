@@ -1,3 +1,4 @@
+import { TOGGLE_LINK_COMMAND } from "@lexical/link";
 import {
 	$isListNode,
 	INSERT_CHECK_LIST_COMMAND,
@@ -11,7 +12,7 @@ import { $setBlocksType } from "@lexical/selection";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import { motion } from "framer-motion";
 import { useAtom } from "jotai";
-import { SetStateAction } from "jotai/ts3.8/esm/vanilla";
+import type { SetStateAction } from "jotai/ts3.8/esm/vanilla";
 import {
 	$createParagraphNode,
 	$getSelection,
@@ -24,7 +25,7 @@ import {
 	SELECTION_CHANGE_COMMAND,
 	type TextFormatType,
 } from "lexical";
-import { Dispatch, ReactNode, useEffect, useState } from "react";
+import { type Dispatch, type ReactNode, useEffect, useState } from "react";
 import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
 import { Link } from "../../icons/link";
 import { ListCheckbox } from "../../icons/list-checkbox";
@@ -47,7 +48,6 @@ import {
 	handleToolbarTextFormattingClick,
 	overrideUpDownKeyCommand,
 } from "./utils";
-import { TOGGLE_LINK_COMMAND } from "@lexical/link";
 
 const LOW_PRIORITY = 1;
 

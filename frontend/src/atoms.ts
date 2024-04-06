@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { FolderDialogState } from "./types.ts";
+import type { FolderDialogState } from "./types.ts";
 
 const privateMostRecentNotesAtom = atom<string[]>(
 	JSON.parse(localStorage.getItem("mostRecentNotes") ?? "[]") as string[],

@@ -14,6 +14,7 @@ import { INSERT_TABLE_COMMAND } from "@lexical/table";
 import {
 	$createNodeSelection,
 	$createParagraphNode,
+	$createTextNode,
 	$getSelection,
 	$isDecoratorNode,
 	$isRangeSelection,
@@ -23,6 +24,7 @@ import {
 	type LexicalEditor,
 	type LexicalNode,
 	type TextFormatType,
+	type TextNode,
 } from "lexical";
 import type { Dispatch, SetStateAction } from "react";
 import { UploadImage } from "../../../bindings/main/NodeService";
@@ -30,7 +32,8 @@ import { UploadImage } from "../../../bindings/main/NodeService";
 import type { EditorBlockTypes } from "../../types";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
-import { INSERT_IMAGE_COMMAND } from "./plugins/image";
+import { ImageNode } from "./nodes/image";
+import { INSERT_IMAGES_COMMAND, INSERT_IMAGE_COMMAND } from "./plugins/image";
 
 export type TextFormats =
 	| null
@@ -92,12 +95,11 @@ export function changeSelectedBlocksType(
 				case "img": {
 					const filePaths = await UploadImage(folder, note);
 					editor.update(() => {
-						for (const filePath of filePaths) {
-							editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
-								src: `http://localhost:5890/${filePath}`,
-								alt: "test",
-							});
-						}
+						const payloads = filePaths.map((filePath) => ({
+							src: `http://localhost:5890/${filePath}`,
+							alt: "test",
+						}));
+						editor.dispatchCommand(INSERT_IMAGES_COMMAND, payloads);
 					});
 					break;
 				}
@@ -147,7 +149,6 @@ export function overrideUpDownKeyCommand(
 ) {
 	const selection = $getSelection();
 	const node = selection?.getNodes().at(0);
-	console.log("nice");
 	if (!node) return true;
 	if ($isRootNode(node)) {
 		const firstChild = node.getFirstChild();
@@ -155,6 +156,7 @@ export function overrideUpDownKeyCommand(
 		return true;
 	}
 	const nextNode = getFirstSiblingNode(node, command);
+	console.log(nextNode, $isDecoratorNode(nextNode));
 	if ($isDecoratorNode(nextNode)) {
 		const newNodeSelection = $createNodeSelection();
 		newNodeSelection.add(nextNode.getKey());
@@ -185,4 +187,56 @@ export function $convertFromMarkdownStringCorrect(
 ): void {
 	const importMarkdown = createMarkdownImport(transformers);
 	importMarkdown(markdown, node);
+}
+
+/**
+    Text match transformers (Image, Video, etc...)
+    should have text to the left and right be paragraphs
+    instead of text nodes. This allows for easier editing.
+
+    Returns `undefined` if there is no match, otherwise returns the `replaceNode`
+*/
+export function handleTextMatchTransformerReplace(
+	transformer: TextMatchTransformer,
+	anchorNode: TextNode,
+	match: RegExpMatchArray | null,
+) {
+	const textContent = anchorNode.getTextContent();
+
+	if (!match) return;
+	const startIndex = match.index || 0;
+	const endIndex = startIndex + match[0].length;
+	let replaceNode: TextNode | null = null;
+
+	if (transformer.dependencies.includes(ImageNode)) {
+		const textToLeft = textContent.slice(0, startIndex);
+		const middleText = match[0];
+		const textToRight = textContent.slice(endIndex);
+		const parent = anchorNode.getParent();
+		replaceNode = $createTextNode(middleText);
+		if (parent) {
+			// Remove old children and replace with just the image
+			for (const child of parent.getChildren()) {
+				child.remove();
+			}
+
+			const newParent = $createParagraphNode();
+
+			parent.replace(newParent);
+			newParent.select(0, 0);
+
+			newParent.append(replaceNode);
+			if (textToLeft.length > 0) {
+				newParent.insertBefore(
+					$createParagraphNode().append($createTextNode(textToLeft)),
+				);
+			}
+			if (textToRight.length > 0) {
+				newParent.insertAfter(
+					$createParagraphNode().append($createTextNode(textToRight)),
+				);
+			}
+			return replaceNode;
+		}
+	}
 }

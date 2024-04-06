@@ -2,7 +2,7 @@ import { TOGGLE_LINK_COMMAND } from "@lexical/link";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { type Dispatch, type SetStateAction, useRef } from "react";
-import { FloatingLinkData } from "../../../types";
+import type { FloatingLinkData } from "../../../types";
 
 export function FloatingLinkPlugin({
 	floatingLinkData,

@@ -18,13 +18,14 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { isNoteMaximizedAtom } from "../../atoms";
-import { FloatingLinkData } from "../../types.ts";
+import type { FloatingLinkData } from "../../types.ts";
 import { debounce } from "../../utils/draggable";
 import { cn } from "../../utils/string-formatting";
 import { editorConfig } from "./editor-config";
 import { useMostRecentNotes } from "./hooks.tsx";
 import { NoteTitle } from "./note-title";
 import { CodePlugin } from "./plugins/code";
+import { CustomMarkdownShortcutPlugin } from "./plugins/custom-markdown-shortcut.tsx";
 import { FloatingLinkPlugin } from "./plugins/floating-link";
 import { ImagesPlugin } from "./plugins/image";
 import TreeViewPlugin from "./plugins/tree-view";
@@ -108,7 +109,8 @@ export function NotesEditor({
 						floatingLinkData={floatingLinkData}
 						setFloatingLinkData={setFloatingLinkData}
 					/>
-					<MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
+					<CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
+					{/* <MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} /> */}
 					<ListPlugin />
 					<LinkPlugin />
 					<CheckListPlugin />

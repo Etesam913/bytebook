@@ -94,30 +94,30 @@ export function useResizeCommands(
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		return mergeRegister(
-			editor.registerCommand<KeyboardEvent>(
-				KEY_ARROW_UP_COMMAND,
-				(e) => {
-					if (!isExpanded) {
-						return arrowKeyDecoratorNodeCommand(e, nodeKey, true);
-					}
-					e.preventDefault();
-					e.stopPropagation();
-					return true;
-				},
-				isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
-			),
-			editor.registerCommand<KeyboardEvent>(
-				KEY_ARROW_DOWN_COMMAND,
-				(e) => {
-					if (!isExpanded) {
-						return arrowKeyDecoratorNodeCommand(e, nodeKey, false);
-					}
-					e.preventDefault();
-					e.stopPropagation();
-					return true;
-				},
-				isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
-			),
+			// editor.registerCommand<KeyboardEvent>(
+			// 	KEY_ARROW_UP_COMMAND,
+			// 	(e) => {
+			// 		if (!isExpanded) {
+			// 			return arrowKeyDecoratorNodeCommand(e, nodeKey, true);
+			// 		}
+			// 		e.preventDefault();
+			// 		e.stopPropagation();
+			// 		return true;
+			// 	},
+			// 	isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
+			// ),
+			// editor.registerCommand<KeyboardEvent>(
+			// 	KEY_ARROW_DOWN_COMMAND,
+			// 	(e) => {
+			// 		if (!isExpanded) {
+			// 			return arrowKeyDecoratorNodeCommand(e, nodeKey, false);
+			// 		}
+			// 		e.preventDefault();
+			// 		e.stopPropagation();
+			// 		return true;
+			// 	},
+			// 	isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
+			// ),
 			editor.registerCommand<MouseEvent>(
 				CLICK_COMMAND,
 				(e) => {

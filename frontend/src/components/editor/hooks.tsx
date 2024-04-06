@@ -1,7 +1,6 @@
 import * as wails from "@wailsio/runtime";
 import { useSetAtom } from "jotai";
 import {
-	$getSelection,
 	CLEAR_HISTORY_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	type LexicalEditor,
@@ -12,7 +11,7 @@ import { navigate } from "wouter/use-browser-location";
 import { CleanImagePaths } from "../../../bindings/main/NodeService";
 import { GetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { mostRecentNotesAtom } from "../../atoms.ts";
-import { INSERT_IMAGE_COMMAND } from "./plugins/image";
+import { INSERT_IMAGES_COMMAND } from "./plugins/image.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { $convertFromMarkdownStringCorrect } from "./utils";
 
@@ -73,13 +72,11 @@ export function useFileDropEvent(
 							);
 
 							editor.update(() => {
-								console.log($getSelection());
-								for (const filePath of cleanedFilePaths) {
-									editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
-										src: `http://localhost:5890/${filePath}`,
-										alt: "test",
-									});
-								}
+								const payloads = cleanedFilePaths.map((filePath) => ({
+									src: `http://localhost:5890/${filePath}`,
+									alt: "test",
+								}));
+								editor.dispatchCommand(INSERT_IMAGES_COMMAND, payloads);
 							});
 						} catch (e) {
 							console.log(e);

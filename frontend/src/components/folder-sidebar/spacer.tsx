@@ -1,4 +1,4 @@
-import { type MotionValue } from "framer-motion";
+import type { MotionValue } from "framer-motion";
 import { useState } from "react";
 import { dragItem } from "../../utils/draggable";
 import { cn } from "../../utils/string-formatting";
