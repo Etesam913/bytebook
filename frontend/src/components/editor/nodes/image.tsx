@@ -8,7 +8,11 @@ import type {
 	SerializedLexicalNode,
 	Spread,
 } from "lexical";
-import { $applyNodeReplacement, DecoratorNode } from "lexical";
+import {
+	$applyNodeReplacement,
+	$createParagraphNode,
+	DecoratorNode,
+} from "lexical";
 import { Image } from "../../image";
 
 export type ResizeWidth = number | "100%";
@@ -22,12 +26,15 @@ export interface ImagePayload {
 
 function convertImageElement(domNode: Node): null | DOMConversionOutput {
 	const img = domNode as HTMLImageElement;
+
 	if (img.src.startsWith("file:///")) {
 		return null;
 	}
 	const { alt, src, width } = img;
 	const node = $createImageNode({ alt, src, width });
-	return { node };
+	const parentNode = $createParagraphNode();
+	parentNode.append(node);
+	return { node: parentNode };
 }
 
 export type SerializedImageNode = Spread<
