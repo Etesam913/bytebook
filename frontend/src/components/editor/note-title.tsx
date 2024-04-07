@@ -1,12 +1,12 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { AnimatePresence, motion } from "framer-motion";
-import { useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { $getRoot } from "lexical";
 import { useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 
 import { RenameNote } from "../../../bindings/main/NoteService";
-import { isToolbarDisabled, notesAtom } from "../../atoms";
+import { isToolbarDisabled, mostRecentNotesAtom, notesAtom } from "../../atoms";
 import { cn, fileNameRegex } from "../../utils/string-formatting";
 
 export function NoteTitle({
@@ -21,7 +21,7 @@ export function NoteTitle({
 	const setNotes = useSetAtom(notesAtom);
 	const [errorText, setErrorText] = useState("");
 	const setIsToolbarDisabled = useSetAtom(isToolbarDisabled);
-
+	const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);
 	useEffect(() => {
 		setNoteTitle(note);
 		setErrorText("");
@@ -62,6 +62,15 @@ export function NoteTitle({
 											noteTitle,
 										],
 								);
+								const indexOfOldNoteTitle = mostRecentNotes.findIndex((path) =>
+									path.endsWith(note),
+								);
+								if (indexOfOldNoteTitle !== -1) {
+									setMostRecentNotes(
+										mostRecentNotes.filter((_, i) => i !== indexOfOldNoteTitle),
+									);
+								}
+
 								navigate(`/${folder}/${noteTitle}`);
 							}
 						})
