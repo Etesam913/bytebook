@@ -164,10 +164,11 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 		if (shouldCreateImageNode || shouldCreateVideoNode) {
 			const widthQueryValue = getQueryParamValue(alt, "width");
 			const width: ResizeWidth = widthQueryValue
-				? widthQueryValue.charAt(-1) === "%"
+				? widthQueryValue.charAt(widthQueryValue.length - 1) === "%"
 					? "100%"
 					: Number.parseInt(widthQueryValue)
 				: 500;
+
 			if (shouldCreateImageNode) {
 				nodeToCreate = $createImageNode({
 					alt: removeQueryParam(alt, "width"),
