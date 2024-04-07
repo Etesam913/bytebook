@@ -11,6 +11,11 @@ export type EditorBlockTypes =
 	| undefined
 	| string;
 
+export type DropdownItem = {
+	value: string;
+	label: ReactNode;
+};
+
 export type FolderDialogState = {
 	isOpen: boolean;
 	folderName: string;

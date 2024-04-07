@@ -1,13 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "../../icons/chevron-down";
+import type { DropdownItem } from "../../types";
 import { useOnClickOutside } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
-
-type DropdownItem = {
-	value: string;
-	label: ReactNode;
-};
+import { DropdownItems } from "./dropdown-items";
 
 export function Dropdown({
 	items,
@@ -86,28 +83,13 @@ export function Dropdown({
 							}}
 							exit={{ height: 0 }}
 						>
-							<div
-								className={cn(
-									"flex max-h-[165px] flex-col overflow-y-auto px-[4.5px] py-[6px]",
-									dropdownItemsClassName,
-								)}
-							>
-								{items.map(({ value, label }, i) => (
-									<button
-										key={value}
-										type="button"
-										role="menuitem"
-										onClick={() => {
-											setIsOpen(false);
-											setValueIndex(i);
-											onChange?.(items[i]);
-										}}
-										className="rounded-md px-[7px] py-[3px] text-left outline-none transition-colors hover:bg-zinc-150 focus-visible:bg-zinc-150 dark:hover:bg-zinc-600 dark:focus-visible:bg-zinc-600"
-									>
-										{label}
-									</button>
-								))}
-							</div>
+							<DropdownItems
+								dropdownItemsClassName={dropdownItemsClassName}
+								items={items}
+								setIsOpen={setIsOpen}
+								setValueIndex={setValueIndex}
+								onChange={onChange}
+							/>
 						</motion.div>
 					</motion.div>
 				)}
