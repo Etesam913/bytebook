@@ -190,7 +190,6 @@ export function ResizeContainer({
 										() => {
 											document.body.style.cursor = "";
 											setTimeout(() => {
-												console.log(widthMotionValue.get());
 												writeWidthToNode(widthMotionValue.get());
 											}, 100);
 											setIsResizing(false);
