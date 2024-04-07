@@ -1,5 +1,6 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useEffect, useRef } from "react";
+import { useRoute } from "wouter";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
 import type { ResizeWidth } from "../editor/nodes/image";
 import { ResizeContainer } from "../resize-container";
@@ -19,6 +20,7 @@ export function Image({
 }) {
 	const imgRef = useRef<HTMLImageElement>(null);
 	const [editor] = useLexicalComposerContext();
+	const [, params] = useRoute("/:folder/:note?");
 
 	const {
 		isResizing,

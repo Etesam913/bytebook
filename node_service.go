@@ -3,11 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/go-git/go-git/v5"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/go-git/go-git/v5"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
@@ -199,12 +200,11 @@ func (n *NodeService) SyncChangesWithRepo() GitResponse {
 
 }
 
-func (n *NodeService) CleanImagePaths(filePaths string, folderPath string, notePath string) []string {
+func (n *NodeService) CleanAndCopyFiles(filePaths string, folderPath string, notePath string) []string {
 	filePathsAsArray := strings.Split(filePaths, ",")
 	newFilePaths := make([]string, 0)
 	// Process the selected file
 	if len(filePaths) > 0 {
-		// runtime.LogInfo(ctx, "Selected file: "+filename)
 		for _, file := range filePathsAsArray {
 			cleanedFileName := io_helpers.CleanFileName(filepath.Base(file))
 			newFilePath := filepath.Join(n.ProjectPath, "notes", folderPath, notePath, cleanedFileName)
@@ -222,7 +222,7 @@ func (n *NodeService) CleanImagePaths(filePaths string, folderPath string, noteP
 
 func (n *NodeService) UploadImage(folderPath string, notePath string) []string {
 	filePaths, _ := application.OpenFileDialog().AddFilter("Image Files", "*.jpg;*.png;*.webp;*.jpeg").CanChooseFiles(true).PromptForMultipleSelection()
-	return n.CleanImagePaths(strings.Join(filePaths, ","), folderPath, notePath)
+	return n.CleanAndCopyFiles(strings.Join(filePaths, ","), folderPath, notePath)
 }
 
 func (n *NodeService) RemoveImage(src string) bool {

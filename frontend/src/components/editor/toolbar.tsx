@@ -17,23 +17,29 @@ import {
 	$getSelection,
 	$isNodeSelection,
 	$isRangeSelection,
+	CAN_REDO_COMMAND,
+	CAN_UNDO_COMMAND,
 	COMMAND_PRIORITY_LOW,
 	FORMAT_TEXT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
 	KEY_ARROW_UP_COMMAND,
+	REDO_COMMAND,
 	SELECTION_CHANGE_COMMAND,
 	type TextFormatType,
+	UNDO_COMMAND,
 } from "lexical";
 import { type Dispatch, type ReactNode, useEffect, useState } from "react";
 import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
 import { Link } from "../../icons/link";
 import { ListCheckbox } from "../../icons/list-checkbox";
 import { OrderedList } from "../../icons/ordered-list";
+import { Redo } from "../../icons/redo";
 import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
 import { TextBold } from "../../icons/text-bold";
 import { TextItalic } from "../../icons/text-italic";
 import { TextStrikethrough } from "../../icons/text-strikethrough";
 import { TextUnderline } from "../../icons/text-underline";
+import { Undo } from "../../icons/undo";
 import { UnorderedList } from "../../icons/unordered-list";
 import type { EditorBlockTypes, FloatingLinkData } from "../../types";
 import { cn } from "../../utils/string-formatting";
@@ -65,6 +71,8 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 		TextFormatType[]
 	>([]);
 	const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
+	const [canRedo, setCanRedo] = useState(false);
+	const [canUndo, setCanUndo] = useState(false);
 
 	function updateToolbar() {
 		const selection = $getSelection();
@@ -136,10 +144,25 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 				(event) => overrideUpDownKeyCommand(event, "up"),
 				COMMAND_PRIORITY_LOW,
 			),
-
 			editor.registerCommand(
 				KEY_ARROW_DOWN_COMMAND,
 				(event) => overrideUpDownKeyCommand(event, "down"),
+				COMMAND_PRIORITY_LOW,
+			),
+			editor.registerCommand(
+				CAN_UNDO_COMMAND,
+				(canUndo) => {
+					setCanUndo(canUndo);
+					return true;
+				},
+				COMMAND_PRIORITY_LOW,
+			),
+			editor.registerCommand(
+				CAN_REDO_COMMAND,
+				(canRedo) => {
+					setCanRedo(canRedo);
+					return true;
+				},
 				COMMAND_PRIORITY_LOW,
 			),
 		);
@@ -187,7 +210,19 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 		</motion.button>
 	));
 
-	const blocks = [
+	const commandButtonData = [
+		{
+			block: null,
+			icon: <Undo />,
+			command: UNDO_COMMAND,
+			customDisabled: !canUndo,
+		},
+		{
+			block: null,
+			icon: <Redo />,
+			command: REDO_COMMAND,
+			customDisabled: !canRedo,
+		},
 		{
 			block: "ul",
 			icon: <UnorderedList />,
@@ -205,33 +240,40 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 		},
 	];
 
-	const blockButtons = blocks.map(({ block, icon, command }) => (
-		<motion.button
-			{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
-			className={cn(
-				"rounded-md py-1 px-2 transition-colors duration-300 disabled:opacity-30",
-				currentBlockType === block && !disabled && "button-invert",
-			)}
-			disabled={disabled}
-			type="button"
-			onClick={() => {
-				// toggling the block off switches it to a paragraph
-				if (block === currentBlockType) {
-					editor.update(() => {
-						const selection = $getSelection();
-						if ($isRangeSelection(selection)) {
-							$setBlocksType(selection, () => $createParagraphNode());
-						}
-					});
-				} else {
-					editor.dispatchCommand(command, undefined);
-					setCurrentBlockType(block);
-				}
-			}}
-		>
-			{icon}
-		</motion.button>
-	));
+	const commandButtons = commandButtonData.map(
+		({ block, icon, command, customDisabled }) => (
+			<motion.button
+				{...getDefaultButtonVariants(
+					customDisabled ?? disabled,
+					1.15,
+					0.95,
+					1.15,
+				)}
+				className={cn(
+					"rounded-md py-1 px-2 transition-colors duration-300 disabled:opacity-30",
+					currentBlockType === block && !disabled && "button-invert",
+				)}
+				disabled={customDisabled ?? disabled}
+				type="button"
+				onClick={() => {
+					// toggling the block off switches it to a paragraph
+					if (block === currentBlockType) {
+						editor.update(() => {
+							const selection = $getSelection();
+							if ($isRangeSelection(selection)) {
+								$setBlocksType(selection, () => $createParagraphNode());
+							}
+						});
+					} else {
+						editor.dispatchCommand(command, undefined);
+						if (block) setCurrentBlockType(block);
+					}
+				}}
+			>
+				{icon}
+			</motion.button>
+		),
+	);
 
 	return (
 		<nav
@@ -264,6 +306,7 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 					disabled={disabled}
 				/>
 			</span>
+			{commandButtons.slice(0, 2)}
 			{textFormattingButtons}
 			<motion.button
 				{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
@@ -288,7 +331,7 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 			>
 				<Link />
 			</motion.button>
-			{blockButtons}
+			{commandButtons.slice(2)}
 		</nav>
 	);
 }

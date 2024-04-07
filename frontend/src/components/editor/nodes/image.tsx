@@ -13,6 +13,7 @@ import {
 	$createParagraphNode,
 	DecoratorNode,
 } from "lexical";
+import { RemoveImage } from "../../../../bindings/main/NodeService";
 import { Image } from "../../image";
 
 export type ResizeWidth = number | "100%";
@@ -57,7 +58,6 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static clone(node: ImageNode): ImageNode {
-		console.log("clone");
 		return new ImageNode(node.__src, node.__alt, node.__width, node.__key);
 	}
 
@@ -104,12 +104,6 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 			type: this.getType(),
 			version: 1,
 		};
-	}
-
-	remove(preserveEmptyParent?: boolean): void {
-		super.remove(preserveEmptyParent);
-		// TODO: Need to add images back in command + z
-		// RemoveImage(this.getSrc());
 	}
 
 	// View

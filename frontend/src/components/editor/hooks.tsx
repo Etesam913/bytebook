@@ -8,7 +8,7 @@ import {
 } from "lexical";
 import { type Dispatch, type SetStateAction, useEffect } from "react";
 import { navigate } from "wouter/use-browser-location";
-import { CleanImagePaths } from "../../../bindings/main/NodeService";
+import { CleanAndCopyFiles } from "../../../bindings/main/NodeService";
 import { GetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { mostRecentNotesAtom } from "../../atoms.ts";
 import { INSERT_IMAGES_COMMAND } from "./plugins/image.tsx";
@@ -65,7 +65,7 @@ export function useFileDropEvent(
 				}) => {
 					if (!event.Cancelled) {
 						try {
-							const cleanedFilePaths = await CleanImagePaths(
+							const cleanedFilePaths = await CleanAndCopyFiles(
 								event.data.join(","),
 								folder,
 								note,

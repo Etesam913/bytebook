@@ -5,8 +5,8 @@ import {Call} from '@wailsio/runtime';
 import {GitResponse} from './models';
 import {NodeResponse} from './models';
 
-export async function CleanImagePaths(filePaths: string, folderPath: string, notePath: string) : Promise<string[]> {
-	return Call.ByName("main.NodeService.CleanImagePaths", filePaths, folderPath, notePath);
+export async function CleanAndCopyFiles(filePaths: string, folderPath: string, notePath: string) : Promise<string[]> {
+	return Call.ByName("main.NodeService.CleanAndCopyFiles", filePaths, folderPath, notePath);
 }
 
 export async function RemoveImage(src: string) : Promise<boolean> {
