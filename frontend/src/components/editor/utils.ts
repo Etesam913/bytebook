@@ -11,6 +11,7 @@ import {
 import { $createHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
 import { INSERT_TABLE_COMMAND } from "@lexical/table";
+import { Browser } from "@wailsio/runtime";
 import {
 	$createNodeSelection,
 	$createParagraphNode,
@@ -28,6 +29,7 @@ import {
 	type TextNode,
 } from "lexical";
 import type { Dispatch, SetStateAction } from "react";
+import { toast } from "sonner";
 import { UploadImage } from "../../../bindings/main/NodeService";
 // import { UploadImagesToFolder } from "../../../wailsjs/go/main/App";
 import type { EditorBlockTypes } from "../../types";
@@ -262,5 +264,19 @@ export function handleTextMatchTransformerReplace(
 		replaceNode.selectNext(0, 0);
 
 		return replaceNode;
+	}
+}
+
+export function handleATag(target: HTMLElement) {
+	const parentElement = target.parentElement as HTMLLinkElement;
+	console.log(parentElement.href);
+	if (parentElement.href.startsWith("wails://")) {
+		const url = new URL(parentElement.href);
+		const segments = url.pathname.split("/");
+		console.log(segments);
+	} else {
+		Browser.OpenURL(parentElement.href).catch(() => {
+			toast.error("Failed to open link");
+		});
 	}
 }

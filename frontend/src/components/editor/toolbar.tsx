@@ -1,3 +1,4 @@
+import { $createLinkNode } from "@lexical/link";
 import {
 	$isListNode,
 	INSERT_CHECK_LIST_COMMAND,
@@ -20,6 +21,8 @@ import {
 	CAN_REDO_COMMAND,
 	CAN_UNDO_COMMAND,
 	COMMAND_PRIORITY_LOW,
+	CONTROLLED_TEXT_INSERTION_COMMAND,
+	DROP_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
 	KEY_ARROW_UP_COMMAND,
@@ -149,6 +152,15 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 				(event) => overrideUpDownKeyCommand(event, "down"),
 				COMMAND_PRIORITY_LOW,
 			),
+			editor.registerCommand(
+				DROP_COMMAND,
+				(e) => {
+					console.log(e);
+					return true;
+				},
+				COMMAND_PRIORITY_LOW,
+			),
+
 			editor.registerCommand(
 				CAN_UNDO_COMMAND,
 				(canUndo) => {

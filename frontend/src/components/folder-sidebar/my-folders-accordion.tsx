@@ -37,9 +37,9 @@ export function MyFoldersAccordion({
 					to={`/${encodeURI(folderName)}`}
 				>
 					{folderName === folder ? (
-						<FolderOpen className="min-w-[1.25rem]" />
+						<FolderOpen title="" className="min-w-[1.25rem]" />
 					) : (
-						<Folder className="min-w-[1.25rem]" />
+						<Folder title="" className="min-w-[1.25rem]" />
 					)}{" "}
 					<p className="whitespace-nowrap text-ellipsis overflow-hidden">
 						{folderName}

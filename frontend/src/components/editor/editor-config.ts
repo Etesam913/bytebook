@@ -1,4 +1,3 @@
-import { LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";
 import type { InitialConfigType } from "@lexical/react/LexicalComposer";
 import { HorizontalRuleNode } from "@lexical/react/LexicalHorizontalRuleNode";
@@ -7,6 +6,7 @@ import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
 import { type EditorThemeClasses, ParagraphNode } from "lexical";
 import { CodeNode } from "./nodes/code";
 import { ImageNode } from "./nodes/image";
+import { LinkNode } from "./nodes/link";
 import { VideoNode } from "./nodes/video";
 
 // Catch any errors that occur during Lexical updates and log them
@@ -17,6 +17,7 @@ function onError(error: Error) {
 }
 
 export const theme: EditorThemeClasses = {
+	internalLink: "link-internal",
 	link: "link",
 	table: "PlaygroundEditorTheme__table",
 	tableAddColumns: "PlaygroundEditorTheme__tableAddColumns",

@@ -13,7 +13,6 @@ import {
 	$createParagraphNode,
 	DecoratorNode,
 } from "lexical";
-import { RemoveImage } from "../../../../bindings/main/NodeService";
 import { Image } from "../../image";
 
 export type ResizeWidth = number | "100%";

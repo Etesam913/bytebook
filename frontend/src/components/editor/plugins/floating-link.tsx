@@ -1,4 +1,3 @@
-import { TOGGLE_LINK_COMMAND } from "@lexical/link";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { type Dispatch, type SetStateAction, useEffect, useRef } from "react";
@@ -6,6 +5,7 @@ import { SubmitLink } from "../../../icons/submit-link";
 import type { FloatingLinkData } from "../../../types";
 import { getDefaultButtonVariants } from "../../../variants";
 import { MotionButton } from "../../buttons";
+import { TOGGLE_LINK_COMMAND } from "../nodes/link";
 
 export function FloatingLinkPlugin({
 	floatingLinkData,
@@ -55,7 +55,7 @@ export function FloatingLinkPlugin({
 					<MotionButton
 						type="submit"
 						{...getDefaultButtonVariants()}
-						className="!bg-zinc-750"
+						className="!dark:bg-zinc-750"
 					>
 						<SubmitLink />
 					</MotionButton>

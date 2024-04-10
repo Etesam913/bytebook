@@ -4,17 +4,14 @@ import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { EditorRefPlugin } from "@lexical/react/LexicalEditorRefPlugin";
 import LexicalErrorBoundary from "@lexical/react/LexicalErrorBoundary";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
-import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
-import { Browser } from "@wailsio/runtime";
 import { useAtomValue } from "jotai";
 import type { LexicalEditor } from "lexical";
 import { useRef, useState } from "react";
-import { toast } from "sonner";
 import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { isNoteMaximizedAtom } from "../../atoms";
 import type { FloatingLinkData } from "../../types.ts";
@@ -27,11 +24,12 @@ import { CodePlugin } from "./plugins/code";
 import { CustomMarkdownShortcutPlugin } from "./plugins/custom-markdown-shortcut.tsx";
 import { FloatingLinkPlugin } from "./plugins/floating-link";
 import { ImagesPlugin } from "./plugins/image";
+import { LinkPlugin } from "./plugins/link.tsx";
 import TreeViewPlugin from "./plugins/tree-view";
 import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
-import { $convertToMarkdownStringCorrect } from "./utils";
+import { $convertToMarkdownStringCorrect, handleATag } from "./utils";
 
 const debouncedHandleChange = debounce(handleChange, 500);
 
@@ -77,10 +75,7 @@ export function NotesEditor({
 						const target = e.target as HTMLElement & { ariaChecked?: string };
 						// Handling A tags
 						if (target.parentElement?.tagName === "A") {
-							const parentElement = target.parentElement as HTMLLinkElement;
-							Browser.OpenURL(parentElement.href).catch(() => {
-								toast.error("Failed to open link");
-							});
+							handleATag(target);
 						} else if (
 							target.dataset.lexicalDecorator !== "true" ||
 							target.ariaChecked !== null

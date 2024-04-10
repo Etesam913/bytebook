@@ -30,7 +30,7 @@ export function DropdownItems({
 		<div
 			ref={dropdownItemsRef}
 			className={cn(
-				"flex max-h-[165px] flex-col overflow-y-auto px-[4.5px] py-[6px]",
+				"flex max-h-[165px] flex-col overflow-y-auto px-[4.5px] py-[6px] gap-0.5",
 				dropdownItemsClassName,
 			)}
 		>

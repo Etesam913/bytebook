@@ -78,6 +78,7 @@ export function NotesSidebar({
 				}
 			>
 				<Link
+					title={noteName}
 					className={cn(
 						"mb-[0.15rem] flex flex-1 items-center gap-2 overflow-auto rounded-md px-3 py-[0.45rem]",
 						noteName === note && "bg-zinc-100 dark:bg-zinc-700",
@@ -85,9 +86,9 @@ export function NotesSidebar({
 					to={`/${encodeURI(folder)}/${encodeURI(noteName)}`}
 				>
 					{noteName === note ? (
-						<FilePen className="min-w-[1.25rem]" />
+						<FilePen title="" className="min-w-[1.25rem]" />
 					) : (
-						<Note className="min-w-[1.25rem]" />
+						<Note title="" className="min-w-[1.25rem]" />
 					)}{" "}
 					<p className="overflow-hidden text-ellipsis whitespace-nowrap">
 						{noteName}

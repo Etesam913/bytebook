@@ -1,4 +1,3 @@
-import { $createLinkNode, $isLinkNode, LinkNode } from "@lexical/link";
 import {
 	$convertFromMarkdownString,
 	$convertToMarkdownString,
@@ -59,6 +58,7 @@ import {
 	ImageNode,
 	type ResizeWidth,
 } from "./nodes/image";
+import { $createLinkNode, $isLinkNode, LinkNode } from "./nodes/link";
 import { $createVideoNode, $isVideoNode, type VideoNode } from "./nodes/video";
 import type { Transformer } from "./utils";
 
@@ -249,6 +249,7 @@ export const LINK: TextMatchTransformer = {
 			return null;
 		}
 		const title = node.getTitle();
+
 		const linkContent = title
 			? `[${node.getTextContent()}](${node.getURL()} "${title}")`
 			: `[${node.getTextContent()}](${node.getURL()})`;
