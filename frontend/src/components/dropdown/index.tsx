@@ -45,7 +45,7 @@ export function Dropdown({
 				aria-haspopup="true"
 				aria-expanded={isOpen}
 				className={cn(
-					"flex items-center rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 px-2 py-[6px] text-left dark:border-zinc-600 dark:bg-zinc-700",
+					"flex items-center rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 px-2 py-1 text-left dark:border-zinc-600 dark:bg-zinc-700",
 					variant === "sm" && "px-1.5 py-1",
 					buttonClassName,
 					disabled && "pointer-events-none opacity-50",

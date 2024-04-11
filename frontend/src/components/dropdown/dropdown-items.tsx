@@ -63,7 +63,7 @@ export function DropdownItems({
 						setValueIndex(i);
 						onChange?.(items[i]);
 					}}
-					className="rounded-md px-[7px] py-[3px] text-left outline-none transition-colors hover:bg-zinc-150 focus:bg-zinc-150 dark:hover:bg-zinc-600 dark:focus:bg-zinc-600"
+					className="rounded-md px-[7px] py-[2px] text-left outline-none transition-colors hover:bg-zinc-150 focus:bg-zinc-150 dark:hover:bg-zinc-600 dark:focus:bg-zinc-600"
 				>
 					{label}
 				</button>

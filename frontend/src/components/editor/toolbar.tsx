@@ -62,6 +62,26 @@ interface ToolbarProps {
 	note: string;
 	setFloatingLinkData: Dispatch<SetStateAction<FloatingLinkData>>;
 }
+export const listCommandData = [
+	{
+		block: "ul",
+		icon: <UnorderedList />,
+		command: INSERT_UNORDERED_LIST_COMMAND,
+		title: "Unordered List",
+	},
+	{
+		block: "ol",
+		icon: <OrderedList />,
+		command: INSERT_ORDERED_LIST_COMMAND,
+		title: "Ordered List",
+	},
+	{
+		block: "check",
+		icon: <ListCheckbox />,
+		command: INSERT_CHECK_LIST_COMMAND,
+		title: "Check List",
+	},
+];
 
 export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
@@ -233,21 +253,7 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 			command: REDO_COMMAND,
 			customDisabled: !canRedo,
 		},
-		{
-			block: "ul",
-			icon: <UnorderedList />,
-			command: INSERT_UNORDERED_LIST_COMMAND,
-		},
-		{
-			block: "ol",
-			icon: <OrderedList />,
-			command: INSERT_ORDERED_LIST_COMMAND,
-		},
-		{
-			block: "check",
-			icon: <ListCheckbox />,
-			command: INSERT_CHECK_LIST_COMMAND,
-		},
+		...listCommandData,
 	];
 
 	const commandButtons = commandButtonData.map(

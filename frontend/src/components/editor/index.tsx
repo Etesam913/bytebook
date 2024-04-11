@@ -9,6 +9,7 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
+import { useBasicTypeaheadTriggerMatch } from "@lexical/react/LexicalTypeaheadMenuPlugin";
 import { useAtomValue } from "jotai";
 import type { LexicalEditor } from "lexical";
 import { useRef, useState } from "react";
@@ -21,6 +22,7 @@ import { editorConfig } from "./editor-config";
 import { useMostRecentNotes } from "./hooks.tsx";
 import { NoteTitle } from "./note-title";
 import { CodePlugin } from "./plugins/code";
+import { ComponentPickerMenuPlugin } from "./plugins/component-picker";
 import { CustomMarkdownShortcutPlugin } from "./plugins/custom-markdown-shortcut.tsx";
 import { FloatingLinkPlugin } from "./plugins/floating-link";
 import { ImagesPlugin } from "./plugins/image";
@@ -88,7 +90,7 @@ export function NotesEditor({
 					onKeyDown={() => {}}
 				>
 					<NoteTitle folder={folder} note={note} />
-
+					<ComponentPickerMenuPlugin />
 					<RichTextPlugin
 						placeholder={null}
 						contentEditable={<ContentEditable id="content-editable-editor" />}
@@ -104,7 +106,6 @@ export function NotesEditor({
 						setFloatingLinkData={setFloatingLinkData}
 					/>
 					<CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
-					{/* <MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} /> */}
 					<ListPlugin />
 					<LinkPlugin />
 					<CheckListPlugin />
@@ -115,6 +116,7 @@ export function NotesEditor({
 					<ImagesPlugin />
 					<VideosPlugin />
 					<CodePlugin />
+
 					<TablePlugin />
 					<TreeViewPlugin />
 				</div>

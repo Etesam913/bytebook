@@ -269,11 +269,7 @@ export function handleTextMatchTransformerReplace(
 
 export function handleATag(target: HTMLElement) {
 	const parentElement = target.parentElement as HTMLLinkElement;
-	console.log(parentElement.href);
 	if (parentElement.href.startsWith("wails://")) {
-		const url = new URL(parentElement.href);
-		const segments = url.pathname.split("/");
-		console.log(segments);
 	} else {
 		Browser.OpenURL(parentElement.href).catch(() => {
 			toast.error("Failed to open link");
