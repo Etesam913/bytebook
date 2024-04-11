@@ -4,11 +4,8 @@ import { Events as WailsEvents } from "@wailsio/runtime";
 import { useSetAtom } from "jotai";
 import {
 	CLICK_COMMAND,
-	COMMAND_PRIORITY_EDITOR,
 	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
-	KEY_ARROW_DOWN_COMMAND,
-	KEY_ARROW_UP_COMMAND,
 	KEY_BACKSPACE_COMMAND,
 	KEY_ENTER_COMMAND,
 	KEY_ESCAPE_COMMAND,
@@ -25,7 +22,6 @@ import {
 import { darkModeAtom } from "../atoms";
 import {
 	EXPAND_CONTENT_COMMAND,
-	arrowKeyDecoratorNodeCommand,
 	backspaceKeyDecoratorNodeCommand,
 	enterKeyDecoratorNodeCommand,
 	escapeKeyDecoratorNodeCommand,

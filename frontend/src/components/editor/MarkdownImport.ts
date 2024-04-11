@@ -5,19 +5,12 @@ import type {
 } from "@lexical/markdown";
 import type { TextNode } from "lexical";
 
-import { $isListItemNode, $isListNode, type ListItemNode } from "@lexical/list";
-import { useBasicTypeaheadTriggerMatch } from "@lexical/react/LexicalTypeaheadMenuPlugin";
-import { $isQuoteNode } from "@lexical/rich-text";
-import { $findMatchingParent } from "@lexical/utils";
 import {
-	$createLineBreakNode,
 	$createParagraphNode,
 	$createTextNode,
 	$getRoot,
 	$getSelection,
-	$isParagraphNode,
 	type ElementNode,
-	ParagraphNode,
 } from "lexical";
 import { $createCodeNode, type CodeNode } from "./nodes/code";
 import { PUNCTUATION_OR_SPACE, transformersByType } from "./transformers";

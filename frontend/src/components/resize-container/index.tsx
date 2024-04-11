@@ -63,7 +63,10 @@ export function ResizeContainer({
 	return (
 		<div
 			ref={resizeContainerRef}
-			className={cn(isSelected && "pr-4", "transition-[padding-right]")}
+			className={cn(
+				isSelected && "pr-4 scroll-pt-28",
+				"transition-[padding-right]",
+			)}
 		>
 			<motion.div
 				onKeyDown={(e) => {
@@ -103,7 +106,7 @@ export function ResizeContainer({
 					{isSelected && !isExpanded && (
 						<>
 							<motion.div
-								className="absolute bg-zinc-50 dark:bg-zinc-700 p-2 rounded-md shadow-lg border-[1px] border-zinc-300 dark:border-zinc-600 flex items-center justify-center gap-3"
+								className="absolute  bg-zinc-50 dark:bg-zinc-700 p-2 rounded-md shadow-lg border-[1px] border-zinc-300 dark:border-zinc-600 flex items-center justify-center gap-3"
 								initial={{ opacity: 0, y: -20 }}
 								animate={{ opacity: 1, y: -30 }}
 								exit={{ opacity: 0, y: -20 }}

@@ -36,7 +36,7 @@ import type { EditorBlockTypes } from "../../types";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
 import { ImageNode } from "./nodes/image";
-import { INSERT_IMAGES_COMMAND, INSERT_IMAGE_COMMAND } from "./plugins/image";
+import { INSERT_IMAGES_COMMAND } from "./plugins/image";
 
 export type TextFormats =
 	| null

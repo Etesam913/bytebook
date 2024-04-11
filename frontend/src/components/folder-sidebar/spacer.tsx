@@ -23,7 +23,7 @@ export function Spacer({
 						width.set(
 							Math.min(
 								Math.max(
-									170,
+									190,
 									e.clientX -
 										(leftWidth ? leftWidth.get() + spacerConstant : 0),
 								),

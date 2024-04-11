@@ -65,15 +65,16 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 				style={{ width }}
 				className="text-md flex h-screen flex-col px-[10px]"
 			>
-				<div className="pt-2">
+				<div className="h-[3.625rem] flex flex-col justify-center">
 					<MotionButton
 						{...getDefaultButtonVariants()}
-						className="w-fit ml-auto"
+						title="Settings"
+						className="transition-colors ml-auto !bg-transparent border-0 p-1.5 hover:!bg-zinc-100 dark:hover:!bg-zinc-700 rounded-md"
 					>
-						<Gear />
+						<Gear title="Settings" />
 					</MotionButton>
 				</div>
-				<div className="flex h-full flex-col gap-2 pt-[0.8rem]">
+				<div className="flex h-full flex-col gap-2">
 					<MotionButton
 						{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
 						data-testid="create_folder_button"

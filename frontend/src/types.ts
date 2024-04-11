@@ -1,15 +1,11 @@
-import type { ListNodeTagType } from "@lexical/list/LexicalListNode";
 import type { HeadingTagType } from "@lexical/rich-text";
+import type { ReactNode } from "react";
 
 export const IMAGE_FILE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
 
 export const VIDEO_FILE_EXTENSIONS = [".mov", ".mp4"];
 
-export type EditorBlockTypes =
-	| HeadingTagType
-	| ListNodeTagType
-	| undefined
-	| string;
+export type EditorBlockTypes = HeadingTagType | undefined | string;
 
 export type DropdownItem = {
 	value: string;

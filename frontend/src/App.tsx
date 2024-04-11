@@ -8,8 +8,8 @@ import { NotesSidebar } from "./routes/notes-sidebar";
 import { useDarkModeSetting, useImageDrop } from "./utils/hooks";
 
 function App() {
-	const folderSidebarWidth = useMotionValue(180);
-	const notesSidebarWidth = useMotionValue(180);
+	const folderSidebarWidth = useMotionValue(190);
+	const notesSidebarWidth = useMotionValue(190);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 
 	useDarkModeSetting();

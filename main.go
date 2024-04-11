@@ -79,7 +79,7 @@ func main() {
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 35,
 			Backdrop:                application.MacBackdropNormal,
-			TitleBar:                application.MacTitleBarHiddenInset,
+			TitleBar:                application.MacTitleBarHiddenInsetUnified,
 		},
 		EnableDragAndDrop: true,
 		BackgroundColour:  application.NewRGB(27, 38, 54),

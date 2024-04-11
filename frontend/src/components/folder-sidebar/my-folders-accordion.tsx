@@ -31,7 +31,7 @@ export function MyFoldersAccordion({
 				<Link
 					data-testid={`folder_link-${folderName}`}
 					className={cn(
-						"flex flex-1 gap-2 items-center px-3 py-[0.45rem] rounded-md overflow-x-hidden",
+						"flex flex-1 gap-2 items-center px-2.5 py-[0.35rem] rounded-md overflow-x-hidden",
 						folderName === folder && "bg-zinc-100 dark:bg-zinc-700",
 					)}
 					to={`/${encodeURI(folderName)}`}

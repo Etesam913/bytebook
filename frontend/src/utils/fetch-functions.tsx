@@ -33,8 +33,10 @@ export function updateNotes(
 				const notes = res.data as unknown as string[] | null;
 				setNotes(notes);
 				if (note) {
+					console.log("navigate to note");
 					navigate(`/${folder}/${note}`);
 				} else {
+					console.log("navigate to first note");
 					navigate(`/${folder}${notes?.at(0) ? `/${notes.at(0)}` : "/"}`);
 				}
 			}

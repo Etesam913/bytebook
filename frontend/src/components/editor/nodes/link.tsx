@@ -182,7 +182,7 @@ export class LinkNode extends ElementNode {
 
 	static importDOM(): DOMConversionMap | null {
 		return {
-			a: (node: Node) => ({
+			a: () => ({
 				conversion: convertAnchorElement,
 				priority: 1,
 			}),
@@ -293,11 +293,7 @@ export class LinkNode extends ElementNode {
 		return true;
 	}
 
-	extractWithChild(
-		child: LexicalNode,
-		selection: BaseSelection,
-		destination: "clone" | "html",
-	): boolean {
+	extractWithChild(child: LexicalNode, selection: BaseSelection): boolean {
 		if (!$isRangeSelection(selection)) {
 			return false;
 		}

@@ -80,7 +80,7 @@ export function NotesSidebar({
 				<Link
 					title={noteName}
 					className={cn(
-						"mb-[0.15rem] flex flex-1 items-center gap-2 overflow-auto rounded-md px-3 py-[0.45rem]",
+						"mb-[0.15rem] flex flex-1 items-center gap-2 overflow-auto rounded-md px-2.5 py-[0.35rem]",
 						noteName === note && "bg-zinc-100 dark:bg-zinc-700",
 					)}
 					to={`/${encodeURI(folder)}/${encodeURI(noteName)}`}

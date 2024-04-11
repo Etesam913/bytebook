@@ -22,6 +22,7 @@ export function SyncChangesButton(props: SyncButtonProps) {
 	const [, params] = useRoute("/:folder/:note?");
 	const setFolders = useSetAtom(foldersAtom);
 	const folder = params?.folder;
+	const note = params?.note;
 
 	return (
 		<MotionButton
@@ -38,7 +39,7 @@ export function SyncChangesButton(props: SyncButtonProps) {
 								});
 								// Need to re-fetch all the folder names and the note names for the current folder
 								updateFolders(setFolders);
-								if (folder) updateNotes(folder, setNotes);
+								if (folder) updateNotes(folder, note, setNotes);
 							} else if (r.status === "info") {
 								toast.info(r.message, {
 									position: "bottom-right",
