@@ -43,8 +43,8 @@ func GetExtensionFromLanguage(language string) (bool, string) {
 }
 
 func RunFile(path string, command string) (string, error) {
-	cmd := exec.Command(command, path)
-	fmt.Println("Running command: ", command, path)
+	commandSplit := strings.Split(command, " ")
+	cmd := exec.Command(commandSplit[0], append(commandSplit[1:], path)...)
 	out, err := cmd.CombinedOutput()
 
 	if err != nil {

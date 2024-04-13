@@ -87,13 +87,13 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 
 	const commandButtonData = [
 		{
-			block: null,
+			block: "undo",
 			icon: <Undo />,
 			command: UNDO_COMMAND,
 			customDisabled: !canUndo,
 		},
 		{
-			block: null,
+			block: "redo",
 			icon: <Redo />,
 			command: REDO_COMMAND,
 			customDisabled: !canRedo,
@@ -110,6 +110,7 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 					0.95,
 					1.15,
 				)}
+				key={`command-${block}`}
 				className={cn(
 					"rounded-md py-1 px-2 transition-colors duration-300 disabled:opacity-30",
 					currentBlockType === block && !disabled && "button-invert",
