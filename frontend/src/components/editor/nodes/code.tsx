@@ -38,7 +38,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static clone(node: CodeNode): CodeNode {
-		return new CodeNode(node.__code, node.__language, false);
+		return new CodeNode(node.__code, node.__language, false, node.__command);
 	}
 
 	static importJSON(serializedNode: SerializedCodeNode): CodeNode {
@@ -56,7 +56,13 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		return false;
 	}
 
-	constructor(code: string, language: string, focus: boolean, key?: NodeKey) {
+	constructor(
+		code: string,
+		language: string,
+		focus: boolean,
+		command: undefined | string,
+		key?: NodeKey,
+	) {
 		super(key);
 		// The actual code to run
 		this.__code = code;
@@ -67,8 +73,9 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		// Used to focus the code block when it is created using markdown
 		this.__focus = focus;
 
-		this.__command =
-			language in languageToCommandMap
+		this.__command = command
+			? command
+			: language in languageToCommandMap
 				? languageToCommandMap[language]
 				: "node";
 	}
@@ -163,8 +170,9 @@ export function $createCodeNode({
 	code,
 	language,
 	focus,
+	command,
 }: CodePayload): CodeNode {
-	return $applyNodeReplacement(new CodeNode(code, language, focus));
+	return $applyNodeReplacement(new CodeNode(code, language, focus, command));
 }
 
 export function $isCodeNode(

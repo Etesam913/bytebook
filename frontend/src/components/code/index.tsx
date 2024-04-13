@@ -15,8 +15,6 @@ import {
 	COMMAND_PRIORITY_LOW,
 	COPY_COMMAND,
 	CUT_COMMAND,
-	KEY_ARROW_DOWN_COMMAND,
-	KEY_ARROW_UP_COMMAND,
 	KEY_ESCAPE_COMMAND,
 	PASTE_COMMAND,
 } from "lexical";
@@ -35,7 +33,6 @@ import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
 import { codeDropdownItems, languageToCommandMap } from "../../utils/code";
 import {
-	arrowKeyDecoratorNodeCommand,
 	escapeKeyDecoratorNodeCommand,
 	removeDecoratorNode,
 } from "../../utils/commands";
@@ -76,7 +73,6 @@ export function Code({
 	const [command, setCommand] = useState(commandWrittenToNode);
 	const isDarkModeOn = useAtomValue(darkModeAtom);
 	const [isCodeSettingsOpen, setIsCodeSettingsOpen] = useState(false);
-
 	const [isCodeRunning, setIsCodeRunning] = useState(false);
 	const [codeResult, setCodeResult] = useState<{
 		message: string;
@@ -116,20 +112,6 @@ export function Code({
 
 	useEffect(() => {
 		return mergeRegister(
-			editor.registerCommand<KeyboardEvent>(
-				KEY_ARROW_UP_COMMAND,
-				(e) => {
-					return arrowKeyDecoratorNodeCommand(e, nodeKey, true);
-				},
-				COMMAND_PRIORITY_LOW,
-			),
-			editor.registerCommand<KeyboardEvent>(
-				KEY_ARROW_DOWN_COMMAND,
-				(e) => {
-					return arrowKeyDecoratorNodeCommand(e, nodeKey, false);
-				},
-				COMMAND_PRIORITY_LOW,
-			),
 			editor.registerCommand<MouseEvent>(
 				CLICK_COMMAND,
 				(e) => {

@@ -55,6 +55,7 @@ func RunFile(path string, command string) (string, error) {
 }
 
 func (n *NodeService) RunCode(language string, code string, command string) NodeResponse {
+
 	extensionExists, extension := GetExtensionFromLanguage(language)
 	if !extensionExists {
 		return NodeResponse{

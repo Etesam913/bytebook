@@ -115,7 +115,7 @@ function importBlocks(
 		textMatchTransformers,
 	);
 }
-const CODE_BLOCK_REG_EXP = /^```(\w{1,10})?\s?$/;
+const CODE_BLOCK_REG_EXP = /^```(\w{1,10})?\s*({[^}]*})?\s*$/;
 
 function importCodeBlock(
 	lines: Array<string>,
@@ -129,11 +129,26 @@ function importCodeBlock(
 
 		while (++endLineIndex < linesLength) {
 			const closeMatch = lines[endLineIndex].match(CODE_BLOCK_REG_EXP);
-
 			if (closeMatch) {
 				const code = lines.slice(startLineIndex + 1, endLineIndex).join("\n");
+
 				const language = openMatch[1] ?? "";
-				const codeBlockNode = $createCodeNode({ code, language, focus: false });
+				const otherMatches = openMatch.slice(2);
+				let command = undefined;
+				for (const match of otherMatches) {
+					// These are in the form of {key=value}
+					const [key, value] = match.slice(1, -1).split("=");
+					if (key === "command") {
+						command = value;
+					}
+				}
+
+				const codeBlockNode = $createCodeNode({
+					code,
+					language,
+					focus: false,
+					command,
+				});
 				rootNode.append(codeBlockNode);
 				return [codeBlockNode, endLineIndex];
 			}

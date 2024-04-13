@@ -82,12 +82,14 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 			return null;
 		}
 		const textContent = node.getCode();
-		return `\`\`\`${node.getLanguage() || ""}${
+		return `\`\`\`${node.getLanguage() || ""} {command=${node.getCommand()}} ${
 			textContent ? `\n${textContent}` : ""
 		}\n\`\`\``;
 	},
 	regExp: /^```(\w{1,10})?\s/,
 	replace: (textNode, _1, match, isImport) => {
+		if (isImport) {
+		}
 		const language = match.at(1);
 		if (!language || !codeLanguages.has(language)) {
 			return;
