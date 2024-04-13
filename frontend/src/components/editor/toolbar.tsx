@@ -14,9 +14,12 @@ import { useAtom } from "jotai";
 import type { SetStateAction } from "jotai/ts3.8/esm/vanilla";
 import {
 	$createParagraphNode,
+	$createRangeSelection,
+	$getRoot,
 	$getSelection,
 	$isNodeSelection,
 	$isRangeSelection,
+	$setSelection,
 	CAN_REDO_COMMAND,
 	CAN_UNDO_COMMAND,
 	COMMAND_PRIORITY_LOW,
@@ -68,18 +71,21 @@ export const listCommandData = [
 		icon: <UnorderedList />,
 		command: INSERT_UNORDERED_LIST_COMMAND,
 		title: "Unordered List",
+		customDisabled: undefined,
 	},
 	{
 		block: "ol",
 		icon: <OrderedList />,
 		command: INSERT_ORDERED_LIST_COMMAND,
 		title: "Ordered List",
+		customDisabled: undefined,
 	},
 	{
 		block: "check",
 		icon: <ListCheckbox />,
 		command: INSERT_CHECK_LIST_COMMAND,
 		title: "Check List",
+		customDisabled: undefined,
 	},
 ];
 
@@ -227,6 +233,7 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 			)}
 			disabled={disabled}
 			type="button"
+			key={`text-format-${format}`}
 			onClick={() => {
 				editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
 				handleToolbarTextFormattingClick(

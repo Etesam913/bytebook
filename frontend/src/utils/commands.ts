@@ -74,7 +74,7 @@ export function arrowKeyDecoratorNodeCommand(
 	up: boolean,
 ): boolean {
 	const selection = $getSelection();
-	console.log("👺", selection);
+
 	if (!selection) return false;
 	// Happens when going from decorator node to p tag
 	if ($isNodeSelection(selection)) {
@@ -85,7 +85,6 @@ export function arrowKeyDecoratorNodeCommand(
 			const elementToSelect = up
 				? $getNodeByKey(nodeKey)?.getPreviousSibling()
 				: $getNodeByKey(nodeKey)?.getNextSibling();
-			console.log("element to select", elementToSelect);
 			// If the previous/next sibling is a decorator node, we need custom behavior
 			if ($isDecoratorNode(elementToSelect)) {
 				const newNodeSelection = $createNodeSelection();
@@ -147,7 +146,6 @@ export function escapeKeyDecoratorNodeCommand(nodeKey: string) {
 		const nodeElem = $getNodeByKey(nodeKey);
 		if (nodeElem) {
 			const nextElem = nodeElem.getNextSibling();
-			console.log(nextElem);
 			if ($isDecoratorNode(nextElem)) {
 				const nodeSelection = $createNodeSelection();
 				nodeSelection.add(nextElem.getKey());

@@ -23,7 +23,7 @@ export function RecentNotesAccordion() {
 					)}
 					to={`/${encodeURI(path)}`}
 				>
-					<Note width="1rem" height="1rem" />
+					<Note title="" width="1rem" height="1rem" />
 					<p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm">
 						{path.slice(path.lastIndexOf("/") + 1)}
 					</p>

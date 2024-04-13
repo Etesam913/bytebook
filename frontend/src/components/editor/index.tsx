@@ -9,10 +9,9 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
-import { useBasicTypeaheadTriggerMatch } from "@lexical/react/LexicalTypeaheadMenuPlugin";
 import { useAtomValue } from "jotai";
-import type { LexicalEditor } from "lexical";
-import { useRef, useState } from "react";
+import { $setSelection, type LexicalEditor } from "lexical";
+import { useEffect, useRef, useState } from "react";
 import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { isNoteMaximizedAtom } from "../../atoms";
 import type { FloatingLinkData } from "../../types.ts";
@@ -87,7 +86,6 @@ export function NotesEditor({
 							});
 						}
 					}}
-					onKeyDown={() => {}}
 				>
 					<NoteTitle folder={folder} note={note} />
 					<ComponentPickerMenuPlugin />

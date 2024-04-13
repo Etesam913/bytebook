@@ -34,7 +34,6 @@ function convertImageElement(domNode: Node): null | DOMConversionOutput {
 	const node = $createImageNode({ alt, src, width });
 	const parentNode = $createParagraphNode();
 	parentNode.append(node);
-	console.log(parentNode);
 	return { node: node };
 }
 

@@ -1,4 +1,3 @@
-import { INSERT_ORDERED_LIST_COMMAND } from "@lexical/list";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
 	LexicalTypeaheadMenuPlugin,
@@ -7,7 +6,6 @@ import {
 } from "@lexical/react/LexicalTypeaheadMenuPlugin";
 import { $createHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
-import { motion } from "framer-motion";
 import {
 	$createParagraphNode,
 	$getSelection,
@@ -74,9 +72,8 @@ function ComponentPickerMenuItem({
 				isSelected && "bg-zinc-150 dark:bg-zinc-600",
 			)}
 			ref={option.setRefElement}
-			role="option"
 			aria-selected={isSelected}
-			id={"typeahead-item-" + index}
+			id={`typeahead-item-${index}`}
 			onMouseEnter={onMouseEnter}
 			onClick={onClick}
 		>

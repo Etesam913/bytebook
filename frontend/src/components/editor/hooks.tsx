@@ -79,7 +79,7 @@ export function useFileDropEvent(
 								editor.dispatchCommand(INSERT_IMAGES_COMMAND, payloads);
 							});
 						} catch (e) {
-							console.log(e);
+							console.error(e);
 							// error checking here
 						}
 					}
