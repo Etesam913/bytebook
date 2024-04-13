@@ -16,8 +16,10 @@ import {
 } from "lexical";
 import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { UploadImage } from "../../../../bindings/main/NodeService";
 import { cn } from "../../../utils/string-formatting";
-import { listCommandData } from "../utils";
+import { imageCommandData, listCommandData } from "../utils";
+import { INSERT_IMAGES_COMMAND } from "./image";
 
 class ComponentPickerOption extends MenuOption {
 	// What shows up in the editor
@@ -67,7 +69,7 @@ function ComponentPickerMenuItem({
 			key={option.key}
 			tabIndex={-1}
 			className={cn(
-				"flex items-center gap-2 text-left cursor-pointer rounded-md px-[7px] py-[2px] transition-colors hover:bg-zinc-150 focus:bg-zinc-150 dark:hover:bg-zinc-600 dark:focus:bg-zinc-600",
+				"flex items-center gap-2 text-left cursor-pointer rounded-md px-[7px] py-[2px] hover:bg-zinc-150 focus:bg-zinc-150 dark:hover:bg-zinc-600 dark:focus:bg-zinc-600",
 				isSelected && "bg-zinc-150 dark:bg-zinc-600",
 			)}
 			ref={option.setRefElement}
@@ -82,7 +84,7 @@ function ComponentPickerMenuItem({
 	);
 }
 
-function getBaseOptions(editor: LexicalEditor) {
+function getBaseOptions(editor: LexicalEditor, folder: string, note: string) {
 	return [
 		new ComponentPickerOption("Paragraph", {
 			keywords: ["normal", "paragraph", "p", "text"],
@@ -118,10 +120,27 @@ function getBaseOptions(editor: LexicalEditor) {
 				},
 			});
 		}),
+		new ComponentPickerOption("Image", {
+			icon: imageCommandData.icon,
+			keywords: ["image", imageCommandData.block, "picture"],
+			onSelect: async () => {
+				const filePaths = await UploadImage(folder, note);
+				editor.update(() => {
+					const payloads = filePaths.map((filePath) => ({
+						src: `http://localhost:5890/${filePath}`,
+						alt: "test",
+					}));
+					editor.dispatchCommand(INSERT_IMAGES_COMMAND, payloads);
+				});
+			},
+		}),
 	];
 }
 
-export function ComponentPickerMenuPlugin(): JSX.Element {
+export function ComponentPickerMenuPlugin({
+	folder,
+	note,
+}: { folder: string; note: string }): JSX.Element {
 	const [editor] = useLexicalComposerContext();
 
 	const [queryString, setQueryString] = useState<string | null>(null);
@@ -131,7 +150,7 @@ export function ComponentPickerMenuPlugin(): JSX.Element {
 	});
 
 	const options = useMemo(() => {
-		const baseOptions = getBaseOptions(editor);
+		const baseOptions = getBaseOptions(editor, folder, note);
 
 		if (!queryString) {
 			return baseOptions;
@@ -146,7 +165,7 @@ export function ComponentPickerMenuPlugin(): JSX.Element {
 					option.keywords.some((keyword) => regex.test(keyword)),
 			),
 		];
-	}, [editor, queryString]);
+	}, [editor, queryString, folder, note]);
 
 	const onSelectOption = useCallback(
 		(

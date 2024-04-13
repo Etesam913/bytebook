@@ -32,18 +32,19 @@ import {
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { toast } from "sonner";
 import { UploadImage } from "../../../bindings/main/NodeService";
+import { ImageIcon } from "../../icons/image";
 import { ListCheckbox } from "../../icons/list-checkbox";
 import { OrderedList } from "../../icons/ordered-list";
+import { TextBold } from "../../icons/text-bold";
+import { TextItalic } from "../../icons/text-italic";
+import { TextStrikethrough } from "../../icons/text-strikethrough";
+import { TextUnderline } from "../../icons/text-underline";
 import { UnorderedList } from "../../icons/unordered-list";
 import type { EditorBlockTypes } from "../../types";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
 import { ImageNode } from "./nodes/image";
 import { INSERT_IMAGES_COMMAND } from "./plugins/image";
-import { TextBold } from "../../icons/text-bold";
-import { TextItalic } from "../../icons/text-italic";
-import { TextUnderline } from "../../icons/text-underline";
-import { TextStrikethrough } from "../../icons/text-strikethrough";
 
 export type TextFormats =
 	| null
@@ -106,6 +107,12 @@ export const listCommandData = [
 		customDisabled: undefined,
 	},
 ];
+
+export const imageCommandData = {
+	block: "img",
+	icon: <ImageIcon />,
+	command: INSERT_IMAGES_COMMAND,
+};
 
 /**
  * Gets a selection and formats the blocks to `newBlockType`

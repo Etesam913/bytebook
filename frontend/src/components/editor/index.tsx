@@ -88,7 +88,7 @@ export function NotesEditor({
 					}}
 				>
 					<NoteTitle folder={folder} note={note} />
-					<ComponentPickerMenuPlugin />
+					<ComponentPickerMenuPlugin folder={folder} note={note} />
 					<RichTextPlugin
 						placeholder={null}
 						contentEditable={<ContentEditable id="content-editable-editor" />}
@@ -114,7 +114,6 @@ export function NotesEditor({
 					<ImagesPlugin />
 					<VideosPlugin />
 					<CodePlugin />
-
 					<TablePlugin />
 					<TreeViewPlugin />
 				</div>
