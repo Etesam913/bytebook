@@ -1,93 +1,41 @@
-import {
-	$isListNode,
-	INSERT_CHECK_LIST_COMMAND,
-	INSERT_ORDERED_LIST_COMMAND,
-	INSERT_UNORDERED_LIST_COMMAND,
-	ListNode,
-} from "@lexical/list";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { $isHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
-import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import { motion } from "framer-motion";
 import { useAtom } from "jotai";
 import type { SetStateAction } from "jotai/ts3.8/esm/vanilla";
 import {
 	$createParagraphNode,
-	$createRangeSelection,
-	$getRoot,
 	$getSelection,
-	$isNodeSelection,
 	$isRangeSelection,
-	$setSelection,
-	CAN_REDO_COMMAND,
-	CAN_UNDO_COMMAND,
-	COMMAND_PRIORITY_LOW,
-	DROP_COMMAND,
 	FORMAT_TEXT_COMMAND,
-	KEY_ARROW_DOWN_COMMAND,
-	KEY_ARROW_UP_COMMAND,
 	REDO_COMMAND,
-	SELECTION_CHANGE_COMMAND,
 	type TextFormatType,
 	UNDO_COMMAND,
 } from "lexical";
-import { type Dispatch, type ReactNode, useEffect, useState } from "react";
+import { type Dispatch, useState } from "react";
 import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
 import { Link } from "../../icons/link";
-import { ListCheckbox } from "../../icons/list-checkbox";
-import { OrderedList } from "../../icons/ordered-list";
 import { Redo } from "../../icons/redo";
 import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
-import { TextBold } from "../../icons/text-bold";
-import { TextItalic } from "../../icons/text-italic";
-import { TextStrikethrough } from "../../icons/text-strikethrough";
-import { TextUnderline } from "../../icons/text-underline";
 import { Undo } from "../../icons/undo";
-import { UnorderedList } from "../../icons/unordered-list";
 import type { EditorBlockTypes, FloatingLinkData } from "../../types";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { Dropdown } from "../dropdown";
-import { useFileDropEvent, useNoteMarkdown } from "./hooks";
+import { useFileDropEvent, useNoteMarkdown, useToolbarEvents } from "./hooks";
 import {
-	type TextFormats,
 	blockTypesDropdownItems,
 	changeSelectedBlocksType,
 	handleToolbarTextFormattingClick,
-	overrideUpDownKeyCommand,
+	listCommandData,
+	textFormats,
 } from "./utils";
-
-const LOW_PRIORITY = 1;
 
 interface ToolbarProps {
 	folder: string;
 	note: string;
 	setFloatingLinkData: Dispatch<SetStateAction<FloatingLinkData>>;
 }
-export const listCommandData = [
-	{
-		block: "ul",
-		icon: <UnorderedList />,
-		command: INSERT_UNORDERED_LIST_COMMAND,
-		title: "Unordered List",
-		customDisabled: undefined,
-	},
-	{
-		block: "ol",
-		icon: <OrderedList />,
-		command: INSERT_ORDERED_LIST_COMMAND,
-		title: "Ordered List",
-		customDisabled: undefined,
-	},
-	{
-		block: "check",
-		icon: <ListCheckbox />,
-		command: INSERT_CHECK_LIST_COMMAND,
-		title: "Check List",
-		customDisabled: undefined,
-	},
-];
 
 export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
@@ -101,129 +49,19 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 	const [canRedo, setCanRedo] = useState(false);
 	const [canUndo, setCanUndo] = useState(false);
 
-	function updateToolbar() {
-		const selection = $getSelection();
-		if ($isRangeSelection(selection)) {
-			setDisabled(false);
-			const anchorNode = selection.anchor.getNode();
-			const element =
-				anchorNode.getKey() === "root"
-					? anchorNode
-					: anchorNode.getTopLevelElementOrThrow();
-			const elementKey = element.getKey();
-			const elementDOM = editor.getElementByKey(elementKey);
-			const selectionTextFormats: TextFormats[] = [];
-			if (selection.hasFormat("bold")) {
-				selectionTextFormats.push("bold");
-			}
-			if (selection.hasFormat("italic")) {
-				selectionTextFormats.push("italic");
-			}
-			if (selection.hasFormat("underline")) {
-				selectionTextFormats.push("underline");
-			}
-			if (selection.hasFormat("strikethrough")) {
-				selectionTextFormats.push("strikethrough");
-			}
-
-			setCurrentSelectionFormat(selectionTextFormats as TextFormatType[]);
-
-			if (!elementDOM) return;
-
-			// Consists of headings like h1, h2, h3, etc.
-			if ($isHeadingNode(element)) {
-				const headingTag = element.getTag();
-				setCurrentBlockType(headingTag);
-			}
-			// Consists of lists, like ol and ul
-			else if ($isListNode(element)) {
-				const parentList = $getNearestNodeOfType(anchorNode, ListNode);
-				const type = parentList ? parentList.getTag() : element.getTag();
-				if (element.getListType() === "check") {
-					setCurrentBlockType("check");
-				} else {
-					setCurrentBlockType(type);
-				}
-			}
-			// Consists of blocks like paragraph, quote, code, etc.
-			else {
-				setCurrentBlockType(element.getType());
-			}
-		} else if ($isNodeSelection(selection)) {
-			setDisabled(true);
-		}
-	}
-
 	useNoteMarkdown(editor, folder, note, setCurrentSelectionFormat);
 
-	useEffect(() => {
-		return mergeRegister(
-			editor.registerCommand(
-				SELECTION_CHANGE_COMMAND,
-				() => {
-					updateToolbar();
-					return false;
-				},
-				LOW_PRIORITY,
-			),
-			editor.registerCommand(
-				KEY_ARROW_UP_COMMAND,
-				(event) => overrideUpDownKeyCommand(event, "up"),
-				COMMAND_PRIORITY_LOW,
-			),
-			editor.registerCommand(
-				KEY_ARROW_DOWN_COMMAND,
-				(event) => overrideUpDownKeyCommand(event, "down"),
-				COMMAND_PRIORITY_LOW,
-			),
-			editor.registerCommand(
-				DROP_COMMAND,
-				(e) => {
-					console.log(e);
-					return true;
-				},
-				COMMAND_PRIORITY_LOW,
-			),
-
-			editor.registerCommand(
-				CAN_UNDO_COMMAND,
-				(canUndo) => {
-					setCanUndo(canUndo);
-					return true;
-				},
-				COMMAND_PRIORITY_LOW,
-			),
-			editor.registerCommand(
-				CAN_REDO_COMMAND,
-				(canRedo) => {
-					setCanRedo(canRedo);
-					return true;
-				},
-				COMMAND_PRIORITY_LOW,
-			),
-		);
-	}, [editor]);
+	useToolbarEvents(
+		editor,
+		setDisabled,
+		setCurrentSelectionFormat,
+		setCurrentBlockType,
+		setCanUndo,
+		setCanRedo,
+	);
 
 	useFileDropEvent(editor, folder, note);
 
-	const textFormats: { icon: ReactNode; format: TextFormatType }[] = [
-		{
-			icon: <TextBold />,
-			format: "bold",
-		},
-		{
-			icon: <TextItalic />,
-			format: "italic",
-		},
-		{
-			icon: <TextUnderline />,
-			format: "underline",
-		},
-		{
-			icon: <TextStrikethrough />,
-			format: "strikethrough",
-		},
-	];
 	const textFormattingButtons = textFormats.map(({ icon, format }) => (
 		<motion.button
 			{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}

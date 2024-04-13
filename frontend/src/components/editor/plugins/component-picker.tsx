@@ -16,9 +16,8 @@ import {
 } from "lexical";
 import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { OrderedList } from "../../../icons/ordered-list";
 import { cn } from "../../../utils/string-formatting";
-import { listCommandData } from "../toolbar";
+import { listCommandData } from "../utils";
 
 class ComponentPickerOption extends MenuOption {
 	// What shows up in the editor

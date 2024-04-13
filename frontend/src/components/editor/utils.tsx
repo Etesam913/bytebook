@@ -1,4 +1,5 @@
 import {
+	INSERT_CHECK_LIST_COMMAND,
 	INSERT_ORDERED_LIST_COMMAND,
 	INSERT_UNORDERED_LIST_COMMAND,
 } from "@lexical/list";
@@ -28,15 +29,21 @@ import {
 	type TextFormatType,
 	type TextNode,
 } from "lexical";
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { toast } from "sonner";
 import { UploadImage } from "../../../bindings/main/NodeService";
-// import { UploadImagesToFolder } from "../../../wailsjs/go/main/App";
+import { ListCheckbox } from "../../icons/list-checkbox";
+import { OrderedList } from "../../icons/ordered-list";
+import { UnorderedList } from "../../icons/unordered-list";
 import type { EditorBlockTypes } from "../../types";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
 import { ImageNode } from "./nodes/image";
 import { INSERT_IMAGES_COMMAND } from "./plugins/image";
+import { TextBold } from "../../icons/text-bold";
+import { TextItalic } from "../../icons/text-italic";
+import { TextUnderline } from "../../icons/text-underline";
+import { TextStrikethrough } from "../../icons/text-strikethrough";
 
 export type TextFormats =
 	| null
@@ -44,6 +51,25 @@ export type TextFormats =
 	| "italic"
 	| "underline"
 	| "strikethrough";
+
+export const textFormats: { icon: ReactNode; format: TextFormatType }[] = [
+	{
+		icon: <TextBold />,
+		format: "bold",
+	},
+	{
+		icon: <TextItalic />,
+		format: "italic",
+	},
+	{
+		icon: <TextUnderline />,
+		format: "underline",
+	},
+	{
+		icon: <TextStrikethrough />,
+		format: "strikethrough",
+	},
+];
 
 export const blockTypesDropdownItems = [
 	{ label: "Header 1", value: "h1" },
@@ -55,6 +81,30 @@ export const blockTypesDropdownItems = [
 	{ label: "Checkbox List", value: "check" },
 	{ label: "Image", value: "img" },
 	{ label: "Table", value: "table" },
+];
+
+export const listCommandData = [
+	{
+		block: "ul",
+		icon: <UnorderedList />,
+		command: INSERT_UNORDERED_LIST_COMMAND,
+		title: "Unordered List",
+		customDisabled: undefined,
+	},
+	{
+		block: "ol",
+		icon: <OrderedList />,
+		command: INSERT_ORDERED_LIST_COMMAND,
+		title: "Ordered List",
+		customDisabled: undefined,
+	},
+	{
+		block: "check",
+		icon: <ListCheckbox />,
+		command: INSERT_CHECK_LIST_COMMAND,
+		title: "Check List",
+		customDisabled: undefined,
+	},
 ];
 
 /**
