@@ -9,6 +9,7 @@ import type {
 import { $applyNodeReplacement, $getNodeByKey, DecoratorNode } from "lexical";
 import { languageToCommandMap } from "../../../utils/code";
 import { Code } from "../../code";
+import { SandpackEditor } from "../../code/sandpack-editor";
 
 export interface CodePayload {
 	key?: NodeKey;
@@ -147,6 +148,9 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	}
 
 	decorate(_editor: LexicalEditor): JSX.Element {
+		if (this.getLanguage() === "react") {
+			return <SandpackEditor />;
+		}
 		return (
 			<Code
 				nodeKey={this.getKey()}

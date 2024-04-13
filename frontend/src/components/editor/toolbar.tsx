@@ -141,7 +141,7 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 		<nav
 			className={cn(
 				"ml-[-4px] flex flex-wrap gap-1.5 border-b-[1px] border-b-zinc-200 py-2 pl-1 dark:border-b-zinc-700",
-				isNoteMaximized && "!pl-3",
+				isNoteMaximized && "!pl-[5.75rem]",
 			)}
 		>
 			<span className="flex items-center gap-1.5">

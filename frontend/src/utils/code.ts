@@ -17,6 +17,7 @@ export const codeLanguages = new Set([
 	"c",
 	"sql",
 	"go",
+	"react",
 ]);
 
 export const languageToCommandMap: Record<string, string> = {

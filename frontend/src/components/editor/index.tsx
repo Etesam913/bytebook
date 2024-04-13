@@ -58,7 +58,10 @@ export function NotesEditor({
 
 	return (
 		<div
-			className={cn("flex min-w-0 flex-1 flex-col", isNoteMaximized && "mt-8")}
+			className={cn(
+				"flex min-w-0 flex-1 flex-col",
+				isNoteMaximized && "mt-[1px]",
+			)}
 		>
 			<LexicalComposer initialConfig={editorConfig}>
 				<Toolbar
