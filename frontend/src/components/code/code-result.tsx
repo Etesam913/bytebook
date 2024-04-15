@@ -13,8 +13,8 @@ export const CodeResult = memo(function CodeResult({
 		<div
 			onClick={(e) => e.stopPropagation()}
 			className={cn(
-				"bg-zinc-150 font-code max-h-72 w-full overflow-auto rounded-md px-3 py-2 text-sm dark:bg-zinc-900",
-				!codeResult.success && "text-red-500",
+				"bg-white border-[1px] my-1 border-[rgb(229,231,235)] dark:border-none font-code max-h-72 w-full overflow-auto p-3 text-zinc-100 text-sm dark:bg-[rgb(21,21,21)]",
+				!codeResult.success && "!text-red-500",
 			)}
 		>
 			{codeResult.message.length > 0 ? (

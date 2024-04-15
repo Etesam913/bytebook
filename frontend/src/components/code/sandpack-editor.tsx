@@ -15,6 +15,7 @@ import { CodeDialog } from "./code-dialog";
 import { useCodeEditorCommands } from "./hooks";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { CodeResult } from "./code-result";
 
 type templates = "vanilla" | "angular" | "react" | "vue" | "svelte";
 
@@ -27,7 +28,7 @@ export const languageToTemplate: Record<string, templates> = {
 };
 
 export const nonTemplateLanguageToExtension: Record<string, string> = {
-	python: "js",
+	python: "py",
 	go: "go",
 	java: "java",
 };
@@ -55,20 +56,21 @@ export const nonTemplateLanguageDefaultFiles: Record<string, SandpackFiles> = {
 export function SandpackEditor({
 	languageWrittenToNode,
 	nodeKey,
-	writeLanguageToNode,
+	files,
 	commandWrittenToNode,
 	writeCommandToNode,
-	onCodeChange,
+	writeFilesToNode,
 	focus,
 }: {
 	code: string;
+	files: SandpackFiles;
 	languageWrittenToNode: string;
 	nodeKey: string;
 	commandWrittenToNode: string;
 	focus: boolean;
 	onCodeChange: (code: string) => void;
 	writeCommandToNode: (language: string) => void;
-	writeLanguageToNode: (language: string) => void;
+	writeFilesToNode: (files: SandpackFiles) => void;
 }) {
 	const isDarkModeOn = useAtomValue(darkModeAtom);
 	const [language, setLanguage] = useState(languageWrittenToNode);
@@ -77,6 +79,12 @@ export function SandpackEditor({
 	const [isSelected, setIsSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
 	const [editor] = useLexicalComposerContext();
+
+	const defaultFiles = useRef(files);
+	const [codeResult, setCodeResult] = useState<{
+		message: string;
+		success: boolean;
+	}>();
 
 	const codeMirrorContainerRef = useRef<HTMLDivElement>(null);
 
@@ -88,6 +96,16 @@ export function SandpackEditor({
 		clearSelection,
 		codeMirrorContainerRef,
 	);
+
+	function getOptions() {
+		if (language in nonTemplateLanguageDefaultFiles) {
+			return {
+				visibleFiles: [`/main.${nonTemplateLanguageToExtension[language]}`],
+				activeFile: `/main.${nonTemplateLanguageToExtension[language]}`,
+			};
+		}
+		return undefined;
+	}
 
 	return (
 		<>
@@ -107,12 +125,10 @@ export function SandpackEditor({
 				className="text-zinc-700 dark:text-zinc-200"
 			>
 				<SandpackProvider
+					onKeyDown={() => console.log("deez")}
 					theme={isDarkModeOn ? "dark" : "light"}
-					files={
-						language in nonTemplateLanguageDefaultFiles
-							? nonTemplateLanguageDefaultFiles[language]
-							: {}
-					}
+					files={defaultFiles.current}
+					options={getOptions()}
 					template={
 						language in languageToTemplate
 							? languageToTemplate[language]
@@ -126,13 +142,17 @@ export function SandpackEditor({
 							nodeKey={nodeKey}
 							language={language}
 							setIsCodeSettingsOpen={setIsCodeSettingsOpen}
+							setCodeResult={setCodeResult}
+							writeFilesToNode={writeFilesToNode}
 						/>
 					</SandpackLayout>
 
-					{language in languageToTemplate && (
+					{language in languageToTemplate ? (
 						<SandpackLayout>
 							<SandpackPreview showNavigator showOpenInCodeSandbox={true} />
 						</SandpackLayout>
+					) : (
+						<CodeResult codeResult={codeResult} />
 					)}
 				</SandpackProvider>
 			</div>

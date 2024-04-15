@@ -1,3 +1,4 @@
+import { SandpackFiles } from "@codesandbox/sandpack-react";
 import type {
 	ElementTransformer,
 	TextFormatTransformer,
@@ -130,7 +131,9 @@ function importCodeBlock(
 		while (++endLineIndex < linesLength) {
 			const closeMatch = lines[endLineIndex].match(CODE_BLOCK_REG_EXP);
 			if (closeMatch) {
-				const code = lines.slice(startLineIndex + 1, endLineIndex).join("\n");
+				const filesString = lines
+					.slice(startLineIndex + 1, endLineIndex)
+					.join("\n");
 
 				const language = openMatch[1] ?? "";
 				const otherMatches = openMatch.slice(2);
@@ -142,9 +145,9 @@ function importCodeBlock(
 						command = value;
 					}
 				}
-
+				const files: SandpackFiles = JSON.parse(filesString);
 				const codeBlockNode = $createCodeNode({
-					code,
+					files,
 					language,
 					focus: false,
 					command,

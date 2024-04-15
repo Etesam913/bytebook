@@ -24,11 +24,7 @@ export function useCodeEditorCommands(
 				(e) => {
 					const clickedElem = e.target as HTMLElement;
 					const codeMirrorContainer = codeMirrorContainerRef.current;
-					console.log(
-						clickedElem,
-						codeMirrorContainer,
-						codeMirrorContainer?.contains(clickedElem),
-					);
+
 					if (
 						clickedElem &&
 						codeMirrorContainer &&

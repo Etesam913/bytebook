@@ -73,6 +73,9 @@ h3 {
 & > .completion-section {
     padding: 0.15rem;
 }
+.sp-tabs{
+    margin-right: 36px;
+}
 
 /**
  * Lexical Editor Styles (Tailwind does not work too well with)

@@ -1,3 +1,4 @@
+import { SandpackFiles } from "@codesandbox/sandpack-react";
 import { python } from "@codemirror/lang-python";
 import { go } from "@codemirror/lang-go";
 import { java } from "@codemirror/lang-java";
@@ -13,6 +14,7 @@ import {
 	Dispatch,
 	SetStateAction,
 	SyntheticEvent,
+	useEffect,
 	useMemo,
 	useState,
 } from "react";
@@ -27,11 +29,17 @@ export function CodeViewer({
 	nodeKey,
 	setIsCodeSettingsOpen,
 	command,
+	setCodeResult,
+	writeFilesToNode,
 }: {
 	language: string;
 	nodeKey: string;
 	setIsCodeSettingsOpen: Dispatch<SetStateAction<boolean>>;
 	command: string;
+	setCodeResult: Dispatch<
+		SetStateAction<{ message: string; success: string } | undefined>
+	>;
+	writeFilesToNode: (files: SandpackFiles) => void;
 }) {
 	const [editor] = useLexicalComposerContext();
 	const { sandpack } = useSandpack();
@@ -42,12 +50,14 @@ export function CodeViewer({
 	 Sandpack can handle running template languages by itself.
 	*/
 	const [isCodeRunning, setIsCodeRunning] = useState(false);
-	const [codeResult, setCodeResult] = useState<{
-		message: string;
-		success: boolean;
-	}>();
 
 	const code = useMemo(() => files[activeFile].code, [sandpack.files]);
+
+	useEffect(() => {
+		editor.update(() => {
+			writeFilesToNode(files);
+		});
+	}, [sandpack.files]);
 
 	function handleRunCode(e?: SyntheticEvent) {
 		if (e) {
@@ -111,7 +121,7 @@ export function CodeViewer({
 			</motion.button>
 			{language in nonTemplateLanguageToExtension && (
 				<motion.button
-					className="absolute bottom-2 right-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 p-1.5 rounded-md"
+					className="absolute bottom-2 right-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 p-1.5 rounded-md"
 					{...getDefaultButtonVariants()}
 					onClick={handleRunCode}
 				>

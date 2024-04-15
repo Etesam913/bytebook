@@ -81,7 +81,7 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 		if (!$isCodeNode(node)) {
 			return null;
 		}
-		const textContent = node.getCode();
+		const textContent = JSON.stringify(node.getFiles());
 		return `\`\`\`${node.getLanguage() || ""} {command=${node.getCommand()}} ${
 			textContent ? `\n${textContent}` : ""
 		}\n\`\`\``;
@@ -96,10 +96,10 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 		}
 
 		const codeNode = $createCodeNode({
-			code: "\n\n",
 			language: language as LanguageName,
 			focus: !isImport,
 		});
+
 		const nodeSelection = $createNodeSelection();
 		textNode.replace(codeNode);
 		nodeSelection.add(codeNode.getKey());

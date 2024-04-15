@@ -1,3 +1,4 @@
+import { SandpackFiles } from "@codesandbox/sandpack-react";
 import type {
 	EditorConfig,
 	LexicalEditor,
@@ -8,19 +9,22 @@ import type {
 } from "lexical";
 import { $applyNodeReplacement, $getNodeByKey, DecoratorNode } from "lexical";
 import { languageToCommandMap } from "../../../utils/code";
-import { SandpackEditor } from "../../code/sandpack-editor";
+import {
+	SandpackEditor,
+	nonTemplateLanguageDefaultFiles,
+} from "../../code/sandpack-editor";
 
 export interface CodePayload {
 	key?: NodeKey;
 	language: string;
-	code: string;
+	files?: SandpackFiles;
 	command?: string;
 	focus: boolean;
 }
 
 export type SerializedCodeNode = Spread<
 	{
-		code: string;
+		files?: Record<string, string>;
 		language: string;
 		focus: boolean;
 		command: string;
@@ -29,7 +33,7 @@ export type SerializedCodeNode = Spread<
 >;
 
 export class CodeNode extends DecoratorNode<JSX.Element> {
-	__code: string;
+	__files: SandpackFiles = {};
 	__language: string;
 	__focus = false;
 	__command = "";
@@ -38,13 +42,13 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static clone(node: CodeNode): CodeNode {
-		return new CodeNode(node.__code, node.__language, false, node.__command);
+		return new CodeNode(node.__files, node.__language, false, node.__command);
 	}
 
 	static importJSON(serializedNode: SerializedCodeNode): CodeNode {
-		const { code, language, focus, command } = serializedNode;
+		const { files, language, focus, command } = serializedNode;
 		const node = $createCodeNode({
-			code,
+			files,
 			language,
 			focus,
 			command,
@@ -57,7 +61,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	}
 
 	constructor(
-		code: string,
+		files: SandpackFiles,
 		language: string,
 		focus: boolean,
 		command: undefined | string,
@@ -65,7 +69,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	) {
 		super(key);
 		// The actual code to run
-		this.__code = code;
+		this.__files = files;
 
 		// The language of the code
 		this.__language = language;
@@ -82,7 +86,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 
 	exportJSON(): SerializedCodeNode {
 		return {
-			code: this.getCode(),
+			files: this.getFiles(),
 			language: this.getLanguage(),
 			command: this.getCommand(),
 			focus: false,
@@ -106,8 +110,8 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		return false;
 	}
 
-	getCode(): string {
-		return this.__code;
+	getFiles(): SandpackFiles {
+		return this.__files;
 	}
 
 	getLanguage(): string {
@@ -118,9 +122,9 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		return this.__command;
 	}
 
-	setCode(code: string): void {
+	setFiles(files: SandpackFiles): void {
 		const writable = this.getWritable();
-		writable.__code = code;
+		writable.__files = files;
 	}
 
 	setLanguage(language: string, editor: LexicalEditor): void {
@@ -136,62 +140,37 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 			writable.__command = command;
 		});
 	}
-
-	onCodeChange(code: string, editor: LexicalEditor): void {
-		editor.update(() => {
-			const node = $getNodeByKey(this.getKey());
-			if (node && $isCodeNode(node)) {
-				this.setCode(code);
-			}
-		});
-	}
-
 	decorate(_editor: LexicalEditor): JSX.Element {
 		return (
 			<SandpackEditor
 				nodeKey={this.getKey()}
-				code={this.getCode()}
+				files={this.getFiles()}
 				languageWrittenToNode={this.getLanguage()}
 				commandWrittenToNode={this.getCommand()}
-				onCodeChange={(code: string) => this.onCodeChange(code, _editor)}
 				focus={this.__focus}
-				writeLanguageToNode={(language: string) =>
-					this.setLanguage(language, _editor)
-				}
+				writeFilesToNode={(files: SandpackFiles) => this.setFiles(files)}
 				writeCommandToNode={(command: string) =>
 					this.setCommand(command, _editor)
 				}
 			/>
 		);
-		// if (this.getLanguage() === "react") {
-		// 	return <SandpackEditor />;
-		// }
-		// return (
-		// 	<Code
-		// 		nodeKey={this.getKey()}
-		// 		code={this.getCode()}
-		// 		languageWrittenToNode={this.getLanguage()}
-		// 		commandWrittenToNode={this.getCommand()}
-		// 		onCodeChange={(code: string) => this.onCodeChange(code, _editor)}
-		// 		focus={this.__focus}
-		// 		writeLanguageToNode={(language: string) =>
-		// 			this.setLanguage(language, _editor)
-		// 		}
-		// 		writeCommandToNode={(command: string) =>
-		// 			this.setCommand(command, _editor)
-		// 		}
-		// 	/>
-		// );
 	}
 }
 
 export function $createCodeNode({
-	code,
+	files,
 	language,
 	focus,
 	command,
 }: CodePayload): CodeNode {
-	return $applyNodeReplacement(new CodeNode(code, language, focus, command));
+	const defaultFiles: SandpackFiles =
+		language in nonTemplateLanguageDefaultFiles
+			? nonTemplateLanguageDefaultFiles[language]
+			: {};
+
+	return $applyNodeReplacement(
+		new CodeNode(files ?? defaultFiles, language, focus, command),
+	);
 }
 
 export function $isCodeNode(
