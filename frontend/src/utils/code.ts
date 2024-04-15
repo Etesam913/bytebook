@@ -14,17 +14,15 @@ export const codeLanguages = new Set([
 	"javascript",
 	"python",
 	"java",
-	"c",
-	"sql",
 	"go",
 	"react",
+	"vue",
+	"svelte",
+	"angular",
 ]);
 
 export const languageToCommandMap: Record<string, string> = {
-	javascript: "node",
 	python: "python",
 	java: "java",
-	c: "gcc",
-	sql: "sql",
 	go: "go run",
 };

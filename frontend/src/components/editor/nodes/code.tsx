@@ -8,7 +8,6 @@ import type {
 } from "lexical";
 import { $applyNodeReplacement, $getNodeByKey, DecoratorNode } from "lexical";
 import { languageToCommandMap } from "../../../utils/code";
-import { Code } from "../../code";
 import { SandpackEditor } from "../../code/sandpack-editor";
 
 export interface CodePayload {
@@ -148,11 +147,8 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	}
 
 	decorate(_editor: LexicalEditor): JSX.Element {
-		if (this.getLanguage() === "react") {
-			return <SandpackEditor />;
-		}
 		return (
-			<Code
+			<SandpackEditor
 				nodeKey={this.getKey()}
 				code={this.getCode()}
 				languageWrittenToNode={this.getLanguage()}
@@ -167,6 +163,25 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 				}
 			/>
 		);
+		// if (this.getLanguage() === "react") {
+		// 	return <SandpackEditor />;
+		// }
+		// return (
+		// 	<Code
+		// 		nodeKey={this.getKey()}
+		// 		code={this.getCode()}
+		// 		languageWrittenToNode={this.getLanguage()}
+		// 		commandWrittenToNode={this.getCommand()}
+		// 		onCodeChange={(code: string) => this.onCodeChange(code, _editor)}
+		// 		focus={this.__focus}
+		// 		writeLanguageToNode={(language: string) =>
+		// 			this.setLanguage(language, _editor)
+		// 		}
+		// 		writeCommandToNode={(command: string) =>
+		// 			this.setCommand(command, _editor)
+		// 		}
+		// 	/>
+		// );
 	}
 }
 
