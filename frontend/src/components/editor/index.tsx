@@ -10,8 +10,8 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { useAtomValue } from "jotai";
-import { $setSelection, type LexicalEditor } from "lexical";
-import { useEffect, useRef, useState } from "react";
+import { type LexicalEditor } from "lexical";
+import { useRef, useState } from "react";
 import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { isNoteMaximizedAtom } from "../../atoms";
 import type { FloatingLinkData } from "../../types.ts";
@@ -118,7 +118,7 @@ export function NotesEditor({
 					<VideosPlugin />
 					<CodePlugin />
 					<TablePlugin />
-					<TreeViewPlugin />
+					{/* <TreeViewPlugin /> */}
 				</div>
 			</LexicalComposer>
 		</div>

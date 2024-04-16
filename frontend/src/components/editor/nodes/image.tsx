@@ -91,7 +91,7 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 		super(key);
 		this.__src = src;
 		this.__alt = alt;
-		this.__width = width ?? 500;
+		this.__width = width ?? "100%";
 	}
 
 	exportJSON(): SerializedImageNode {

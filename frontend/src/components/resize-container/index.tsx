@@ -19,37 +19,47 @@ import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { useTrapFocus } from "../dialog/hooks";
 import type { ResizeWidth } from "../editor/nodes/image";
-import { expandNearestSiblingNode } from "./utils";
+import { expandNearestSiblingNode, useMouseActivity } from "./utils";
+import { Subtitles } from "../../icons/subtitles";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+
+type ResizeState = {
+	isResizing: boolean;
+	setIsResizing: Dispatch<SetStateAction<boolean>>;
+	isSelected: boolean;
+	isExpanded: boolean;
+	setIsExpanded: Dispatch<SetStateAction<boolean>>;
+	setIsSubtitlesDialogOpen?: Dispatch<SetStateAction<boolean>>;
+};
 
 export function ResizeContainer({
-	isSelected,
-	isResizing,
-	isExpanded,
-	setIsExpanded,
-	setIsResizing,
+	resizeState,
 	element,
 	children,
 	nodeKey,
-	editor,
 	defaultWidth,
 	writeWidthToNode,
+	elementType,
 }: {
-	isSelected: boolean;
-	isResizing: boolean;
-	isExpanded: boolean;
-	setIsExpanded: Dispatch<SetStateAction<boolean>>;
-	setIsResizing: Dispatch<SetStateAction<boolean>>;
+	resizeState: ResizeState;
 	element: HTMLElement | null;
 	children: ReactNode;
 	nodeKey: string;
-	editor: LexicalEditor;
 	defaultWidth: ResizeWidth;
 	writeWidthToNode: (width: ResizeWidth) => void;
+	elementType: "image" | "video";
 }) {
 	const widthMotionValue = useMotionValue<number | "100%">(defaultWidth);
-
+	const {
+		isSelected,
+		isResizing,
+		isExpanded,
+		setIsExpanded,
+		setIsResizing,
+		setIsSubtitlesDialogOpen,
+	} = resizeState;
 	const resizeContainerRef = useRef<HTMLDivElement>(null);
-
+	const [editor] = useLexicalComposerContext();
 	const imageDimensions = useRef({ height: 0, width: 0 });
 
 	useEffect(() => {
@@ -59,6 +69,8 @@ export function ResizeContainer({
 	}, [isExpanded]);
 
 	useTrapFocus(resizeContainerRef, isExpanded);
+
+	const isLeftAndRightArrowKeysShowing = useMouseActivity(1500, isExpanded);
 
 	return (
 		<div
@@ -111,6 +123,17 @@ export function ResizeContainer({
 								animate={{ opacity: 1, y: -30 }}
 								exit={{ opacity: 0, y: -20 }}
 							>
+								{elementType === "video" && (
+									<motion.button
+										{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
+										type="button"
+										onClick={() =>
+											setIsSubtitlesDialogOpen && setIsSubtitlesDialogOpen(true)
+										}
+									>
+										<Subtitles />
+									</motion.button>
+								)}
 								<motion.button
 									{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
 									type="button"
@@ -223,27 +246,49 @@ export function ResizeContainer({
 						<XMark width="1.5rem" height="1.5rem" />
 					</motion.button>
 
-					<motion.button
-						{...getDefaultButtonVariants()}
-						onClick={() =>
-							expandNearestSiblingNode(editor, nodeKey, setIsExpanded, false)
-						}
-						className="fixed z-50 bottom-11 left-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
-						type="submit"
-					>
-						<CircleArrowLeft width="1.75rem" height="1.75rem" />
-					</motion.button>
+					<AnimatePresence>
+						{isLeftAndRightArrowKeysShowing && (
+							<>
+								<motion.button
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									exit={{ opacity: 0 }}
+									{...getDefaultButtonVariants()}
+									onClick={() =>
+										expandNearestSiblingNode(
+											editor,
+											nodeKey,
+											setIsExpanded,
+											false,
+										)
+									}
+									className="fixed z-50 bottom-11 left-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
+									type="submit"
+								>
+									<CircleArrowLeft width="1.75rem" height="1.75rem" />
+								</motion.button>
 
-					<motion.button
-						{...getDefaultButtonVariants()}
-						onClick={() =>
-							expandNearestSiblingNode(editor, nodeKey, setIsExpanded, true)
-						}
-						className="fixed z-50 bottom-11 right-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
-						type="submit"
-					>
-						<CircleArrowRight width="1.75rem" height="1.75rem" />
-					</motion.button>
+								<motion.button
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									exit={{ opacity: 0 }}
+									{...getDefaultButtonVariants()}
+									onClick={() =>
+										expandNearestSiblingNode(
+											editor,
+											nodeKey,
+											setIsExpanded,
+											true,
+										)
+									}
+									className="fixed z-50 bottom-11 right-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
+									type="submit"
+								>
+									<CircleArrowRight width="1.75rem" height="1.75rem" />
+								</motion.button>
+							</>
+						)}
+					</AnimatePresence>
 
 					<div
 						style={{

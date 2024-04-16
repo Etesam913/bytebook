@@ -51,16 +51,18 @@ export function Image({
 	return (
 		<div className="w-full">
 			<ResizeContainer
-				isSelected={isSelected}
-				isResizing={isResizing}
-				setIsResizing={setIsResizing}
+				resizeState={{
+					isResizing,
+					setIsResizing,
+					isSelected,
+					isExpanded,
+					setIsExpanded,
+				}}
 				element={imgRef.current}
 				nodeKey={nodeKey}
-				editor={editor}
-				isExpanded={isExpanded}
-				setIsExpanded={setIsExpanded}
 				defaultWidth={widthWrittenToNode}
 				writeWidthToNode={writeWidthToNode}
+				elementType="image"
 			>
 				<img
 					onClick={() => {

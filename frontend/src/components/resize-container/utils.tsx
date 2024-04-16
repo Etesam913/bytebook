@@ -6,7 +6,7 @@ import {
 	type LexicalEditor,
 	type LexicalNode,
 } from "lexical";
-import type { Dispatch, SetStateAction } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { EXPAND_CONTENT_COMMAND } from "../../utils/commands";
 
 /** Finds the next image/video tag for a given node */
@@ -61,4 +61,47 @@ export function expandNearestSiblingNode(
 			editor.dispatchCommand(EXPAND_CONTENT_COMMAND, nextNode.getKey());
 		}
 	});
+}
+
+/**
+ * useMouseActivity: A custom React hook that manages the visibility of elements based on mouse activity.
+ * @param {number} timeout - The duration in milliseconds after which the elements should hide when the mouse is inactive.
+ * @returns {boolean} isVisible - A boolean that indicates whether the elements should be visible.
+ */
+export function useMouseActivity(
+	timeout: number = 1500,
+	isActive = false,
+): boolean {
+	const [isVisible, setIsVisible] = useState<boolean>(true);
+	let timer: ReturnType<typeof setTimeout>;
+
+	useEffect(() => {
+		if (!isActive) {
+			return;
+		}
+		// Function to set visibility to true and reset the timer
+		const handleMouseMovement = () => {
+			if (!isVisible) setIsVisible(true);
+			clearTimeout(timer);
+			timer = setTimeout(() => {
+				setIsVisible(false);
+			}, timeout);
+		};
+
+		// Add event listener for mouse movement
+		document.addEventListener("mousemove", handleMouseMovement);
+
+		// Set the initial timer
+		timer = setTimeout(() => {
+			setIsVisible(false);
+		}, timeout);
+
+		// Clean up function
+		return () => {
+			clearTimeout(timer);
+			document.removeEventListener("mousemove", handleMouseMovement);
+		};
+	}, [isVisible, timeout, isActive]);
+
+	return isVisible;
 }

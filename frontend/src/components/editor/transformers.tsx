@@ -141,6 +141,13 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 				"width",
 				String(node.getWidth()),
 			);
+
+			if (isVideo) {
+				const subtitleUrl = node.getSubtitleUrl();
+				if (subtitleUrl) {
+					altText = addQueryParam(altText, "subtitleUrl", subtitleUrl);
+				}
+			}
 		} else return null;
 
 		// TODO: need to do sanitizing on the alt text
@@ -169,7 +176,7 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 				? widthQueryValue.charAt(widthQueryValue.length - 1) === "%"
 					? "100%"
 					: Number.parseInt(widthQueryValue)
-				: 500;
+				: "100%";
 
 			if (shouldCreateImageNode) {
 				nodeToCreate = $createImageNode({
@@ -178,10 +185,12 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 					width,
 				});
 			} else if (shouldCreateVideoNode) {
+				const subtitleUrl = getQueryParamValue(alt, "subtitleUrl");
 				nodeToCreate = $createVideoNode({
 					title: removeQueryParam(alt, "width"),
 					src: filePathOrSrc,
 					width,
+					subtitleUrl: subtitleUrl ?? undefined,
 				});
 			}
 		}

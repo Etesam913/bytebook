@@ -20,6 +20,7 @@ export interface VideoPayload {
 	width?: ResizeWidth;
 	key?: NodeKey;
 	src: string;
+	subtitleUrl?: string;
 }
 
 function convertVideoElement(domNode: Node): null | DOMConversionOutput {
@@ -36,6 +37,7 @@ export type SerializedVideoNode = Spread<
 	{
 		title: string;
 		width?: ResizeWidth;
+		subtitleUrl?: string;
 		src: string;
 	},
 	SerializedLexicalNode
@@ -45,6 +47,7 @@ export class VideoNode extends DecoratorNode<JSX.Element> {
 	__src: string;
 	__title: string;
 	__width: ResizeWidth;
+	__subtitleUrl?: string;
 
 	static getType(): string {
 		return "video";
@@ -55,17 +58,18 @@ export class VideoNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static importJSON(serializedNode: SerializedVideoNode): VideoNode {
-		const { title, width, src } = serializedNode;
+		const { title, width, src, subtitleUrl } = serializedNode;
 		const node = $createVideoNode({
 			title,
 			width,
 			src,
+			subtitleUrl,
 		});
 		return node;
 	}
 
 	exportDOM(): DOMExportOutput {
-		const element = document.createElement("img");
+		const element = document.createElement("video");
 		element.setAttribute("src", this.__src);
 		element.setAttribute("title", this.__title);
 		element.setAttribute("width", this.__width.toString());
@@ -81,11 +85,18 @@ export class VideoNode extends DecoratorNode<JSX.Element> {
 		};
 	}
 
-	constructor(src: string, title: string, width?: ResizeWidth, key?: NodeKey) {
+	constructor(
+		src: string,
+		title: string,
+		width?: ResizeWidth,
+		key?: NodeKey,
+		subtitleUrl?: string,
+	) {
 		super(key);
 		this.__src = src;
 		this.__title = title;
-		this.__width = width ?? 500;
+		this.__width = width ?? "100%";
+		this.__subtitleUrl = subtitleUrl;
 	}
 
 	exportJSON(): SerializedVideoNode {
@@ -125,6 +136,17 @@ export class VideoNode extends DecoratorNode<JSX.Element> {
 		return this.__width;
 	}
 
+	getSubtitleUrl(): string | undefined {
+		return this.__subtitleUrl;
+	}
+
+	setSubtitleUrl(subtitleUrl: string, editor: LexicalEditor): void {
+		editor.update(() => {
+			const writable = this.getWritable();
+			writable.__subtitleUrl = subtitleUrl;
+		});
+	}
+
 	setWidth(width: ResizeWidth, editor: LexicalEditor): void {
 		editor.update(() => {
 			const writable = this.getWritable();
@@ -141,6 +163,10 @@ export class VideoNode extends DecoratorNode<JSX.Element> {
 					writeWidthToNode={(width) => this.setWidth(width, _editor)}
 					title={this.__title}
 					nodeKey={this.getKey()}
+					subtitleUrlWrittenToNode={this.getSubtitleUrl()}
+					writeSubtitleUrlToNode={(subtitleUrl) =>
+						this.setSubtitleUrl(subtitleUrl, _editor)
+					}
 				/>
 			</Suspense>
 		);
@@ -152,8 +178,11 @@ export function $createVideoNode({
 	src,
 	width,
 	key,
+	subtitleUrl,
 }: VideoPayload): VideoNode {
-	return $applyNodeReplacement(new VideoNode(src, title, width, key));
+	return $applyNodeReplacement(
+		new VideoNode(src, title, width, key, subtitleUrl),
+	);
 }
 
 export function $isVideoNode(
