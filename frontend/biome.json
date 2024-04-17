@@ -10,6 +10,9 @@
 			"complexity": {
 				"noForEach": "off"
 			},
+			"correctness": {
+				"useExhaustiveDependencies": "off"
+			},
 			"a11y": {
 				"useKeyWithClickEvents": "off"
 			}

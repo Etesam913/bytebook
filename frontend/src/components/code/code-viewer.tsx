@@ -1,28 +1,28 @@
-import {
-	SandpackFileExplorer,
-	SandpackFiles,
-	SandpackLayout,
-} from "@codesandbox/sandpack-react";
-import { python } from "@codemirror/lang-python";
 import { go } from "@codemirror/lang-go";
 import { java } from "@codemirror/lang-java";
-import { SandpackCodeEditor, useSandpack } from "@codesandbox/sandpack-react";
-import { languageToTemplate, nonTemplateLanguageToExtension } from ".";
-import { getDefaultButtonVariants } from "../../variants";
-import { Trash } from "../../icons/trash";
-import { motion } from "framer-motion";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { removeDecoratorNode } from "../../utils/commands";
-import { Play } from "../../icons/circle-play";
+import { python } from "@codemirror/lang-python";
 import {
-	Dispatch,
-	SetStateAction,
-	SyntheticEvent,
+	SandpackFileExplorer,
+	type SandpackFiles,
+	SandpackLayout,
+} from "@codesandbox/sandpack-react";
+import { SandpackCodeEditor, useSandpack } from "@codesandbox/sandpack-react";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { motion } from "framer-motion";
+import {
+	type Dispatch,
+	type SetStateAction,
+	type SyntheticEvent,
 	useEffect,
 	useMemo,
 	useState,
 } from "react";
+import { languageToTemplate, nonTemplateLanguageToExtension } from ".";
 import { RunCode } from "../../../bindings/main/NodeService";
+import { Play } from "../../icons/circle-play";
+import { Trash } from "../../icons/trash";
+import { removeDecoratorNode } from "../../utils/commands";
+import { getDefaultButtonVariants } from "../../variants";
 
 import { Loader } from "../../icons/loader";
 
@@ -90,17 +90,17 @@ export function CodeViewer({
 				additionalLanguages={[
 					{
 						name: "python",
-						extensions: [nonTemplateLanguageToExtension["python"]],
+						extensions: [nonTemplateLanguageToExtension.python],
 						language: python(),
 					},
 					{
 						name: "java",
-						extensions: [nonTemplateLanguageToExtension["java"]],
+						extensions: [nonTemplateLanguageToExtension.java],
 						language: java(),
 					},
 					{
 						name: "go",
-						extensions: [nonTemplateLanguageToExtension["go"]],
+						extensions: [nonTemplateLanguageToExtension.go],
 						language: go(),
 					},
 				]}

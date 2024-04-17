@@ -65,10 +65,6 @@ export function Image({
 				elementType="image"
 			>
 				<img
-					// onClick={() => {
-					// 	clearSelection();
-					// 	setSelected(true);
-					// }}
 					src={src}
 					ref={imgRef}
 					alt={alt}

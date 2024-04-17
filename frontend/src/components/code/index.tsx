@@ -1,20 +1,20 @@
 import {
-	SandpackProvider,
-	SandpackFiles,
+	type SandpackFiles,
 	SandpackLayout,
 	SandpackPreview,
+	SandpackProvider,
 } from "@codesandbox/sandpack-react";
 
-import { useAtomValue } from "jotai";
-import { darkModeAtom } from "../../atoms";
-import { CodeViewer } from "./code-viewer";
-import { useRef, useState } from "react";
-import { AnimatePresence } from "framer-motion";
-import { CodeDialog } from "./code-dialog";
-import { useCodeEditorCommands } from "./hooks";
-import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
+import { AnimatePresence } from "framer-motion";
+import { useAtomValue } from "jotai";
+import { useRef, useState } from "react";
+import { darkModeAtom } from "../../atoms";
+import { CodeDialog } from "./code-dialog";
 import { CodeResult } from "./code-result";
+import { CodeViewer } from "./code-viewer";
+import { useCodeEditorCommands } from "./hooks";
 
 type templates = "vanilla" | "angular" | "react" | "vue" | "svelte";
 

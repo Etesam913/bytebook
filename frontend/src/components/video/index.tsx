@@ -1,11 +1,11 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useEffect, useRef, useState } from "react";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
+import { getDefaultButtonVariants } from "../../variants";
+import { MotionButton } from "../buttons";
+import { Dialog } from "../dialog";
 import type { ResizeWidth } from "../editor/nodes/image";
 import { ResizeContainer } from "../resize-container";
-import { Dialog } from "../dialog";
-import { MotionButton } from "../buttons";
-import { getDefaultButtonVariants } from "../../variants";
 
 export function Video({
 	src,

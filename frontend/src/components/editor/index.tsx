@@ -10,7 +10,7 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { useAtomValue } from "jotai";
-import { type LexicalEditor } from "lexical";
+import type { LexicalEditor } from "lexical";
 import { useRef, useState } from "react";
 import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { isNoteMaximizedAtom } from "../../atoms";

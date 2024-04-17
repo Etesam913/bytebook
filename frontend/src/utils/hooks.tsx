@@ -90,9 +90,7 @@ export function useResizeCommands(
 	clearSelection: () => void,
 	elementRef: React.RefObject<HTMLElement>,
 ) {
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
-		console.log(isResizing);
 		return mergeRegister(
 			editor.registerCommand<MouseEvent>(
 				CLICK_COMMAND,
@@ -102,7 +100,6 @@ export function useResizeCommands(
 							e,
 							elementRef.current,
 							isResizing,
-							isSelected,
 							setSelected,
 							clearSelection,
 						);
@@ -166,7 +163,16 @@ export function useResizeCommands(
 				COMMAND_PRIORITY_LOW,
 			),
 		);
-	}, [editor, nodeKey, isResizing, isExpanded]);
+	}, [
+		editor,
+		nodeKey,
+		isResizing,
+		isExpanded,
+		setIsExpanded,
+		isSelected,
+		elementRef.current,
+		clearSelection,
+	]);
 }
 
 export function useOnClickOutside<T extends HTMLElement>(

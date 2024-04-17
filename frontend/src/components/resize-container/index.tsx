@@ -1,3 +1,4 @@
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { AnimatePresence, motion, useMotionValue } from "framer-motion";
 import type { LexicalEditor } from "lexical";
 import {
@@ -12,6 +13,7 @@ import { CircleArrowLeft } from "../../icons/circle-arrow-left";
 import { CircleArrowRight } from "../../icons/circle-arrow-right";
 import { XMark } from "../../icons/circle-xmark";
 import { Fullscreen } from "../../icons/fullscreen";
+import { Subtitles } from "../../icons/subtitles";
 import { Trash } from "../../icons/trash";
 import { removeDecoratorNode } from "../../utils/commands";
 import { dragItem } from "../../utils/draggable";
@@ -20,8 +22,6 @@ import { getDefaultButtonVariants } from "../../variants";
 import { useTrapFocus } from "../dialog/hooks";
 import type { ResizeWidth } from "../editor/nodes/image";
 import { expandNearestSiblingNode, useMouseActivity } from "./utils";
-import { Subtitles } from "../../icons/subtitles";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 
 type ResizeState = {
 	isResizing: boolean;
@@ -127,9 +127,7 @@ export function ResizeContainer({
 									<motion.button
 										{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
 										type="button"
-										onClick={() =>
-											setIsSubtitlesDialogOpen && setIsSubtitlesDialogOpen(true)
-										}
+										onClick={() => setIsSubtitlesDialogOpen?.(true)}
 									>
 										<Subtitles />
 									</motion.button>

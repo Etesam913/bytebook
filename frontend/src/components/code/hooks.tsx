@@ -1,12 +1,12 @@
+import { mergeRegister } from "@lexical/utils";
 import {
 	CLICK_COMMAND,
 	COMMAND_PRIORITY_LOW,
 	COPY_COMMAND,
 	CUT_COMMAND,
-	LexicalEditor,
+	type LexicalEditor,
 	PASTE_COMMAND,
 } from "lexical";
-import { mergeRegister } from "@lexical/utils";
 import { useEffect } from "react";
 
 export function useCodeEditorCommands(

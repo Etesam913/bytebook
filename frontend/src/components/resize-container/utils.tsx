@@ -6,7 +6,7 @@ import {
 	type LexicalEditor,
 	type LexicalNode,
 } from "lexical";
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { EXPAND_CONTENT_COMMAND } from "../../utils/commands";
 
 /** Finds the next image/video tag for a given node */
@@ -68,10 +68,7 @@ export function expandNearestSiblingNode(
  * @param {number} timeout - The duration in milliseconds after which the elements should hide when the mouse is inactive.
  * @returns {boolean} isVisible - A boolean that indicates whether the elements should be visible.
  */
-export function useMouseActivity(
-	timeout: number = 1500,
-	isActive = false,
-): boolean {
+export function useMouseActivity(timeout = 1500, isActive = false): boolean {
 	const [isVisible, setIsVisible] = useState<boolean>(true);
 	let timer: ReturnType<typeof setTimeout>;
 
