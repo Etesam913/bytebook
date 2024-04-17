@@ -34,19 +34,19 @@ export function Image({
 		editor,
 		isExpanded,
 		setIsExpanded,
-		isResizing,
 		isSelected,
+		isResizing,
 		nodeKey,
 		setSelected,
 		clearSelection,
 		imgRef,
 	);
 
-	useEffect(() => {
-		if (isSelected) {
-			imgRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
-		}
-	}, [isSelected]);
+	// useEffect(() => {
+	// 	if (isSelected) {
+	// 		imgRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+	// 	}
+	// }, [isSelected]);
 
 	return (
 		<div className="w-full">
@@ -65,10 +65,10 @@ export function Image({
 				elementType="image"
 			>
 				<img
-					onClick={() => {
-						clearSelection();
-						setSelected(true);
-					}}
+					// onClick={() => {
+					// 	clearSelection();
+					// 	setSelected(true);
+					// }}
 					src={src}
 					ref={imgRef}
 					alt={alt}

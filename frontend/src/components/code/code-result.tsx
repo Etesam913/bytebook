@@ -8,17 +8,16 @@ export const CodeResult = memo(function CodeResult({
 	codeResult: { message: string; success: boolean } | undefined;
 }) {
 	if (!codeResult) return <></>;
-
 	return (
 		<div
 			onClick={(e) => e.stopPropagation()}
 			className={cn(
-				"bg-white border-[1px] my-1 border-[rgb(229,231,235)] dark:border-none font-code max-h-72 w-full overflow-auto p-3 text-zinc-100 text-sm dark:bg-[rgb(21,21,21)]",
+				"bg-white border-[1px] my-1 border-[rgb(229,231,235)] dark:border-none font-code max-h-72 w-full overflow-auto p-3 dark:text-zinc-100 text-sm dark:bg-[rgb(21,21,21)]",
 				!codeResult.success && "!text-red-500",
 			)}
 		>
 			{codeResult.message.length > 0 ? (
-				<div>
+				<div className="whitespace-pre-wrap">
 					{codeResult.message.slice(0, 3000)}
 					{codeResult.message.length > 3000 && (
 						<div className="text-red-500">

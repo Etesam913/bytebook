@@ -1,9 +1,13 @@
-import { SandpackFiles } from "@codesandbox/sandpack-react";
+import {
+	SandpackFileExplorer,
+	SandpackFiles,
+	SandpackLayout,
+} from "@codesandbox/sandpack-react";
 import { python } from "@codemirror/lang-python";
 import { go } from "@codemirror/lang-go";
 import { java } from "@codemirror/lang-java";
 import { SandpackCodeEditor, useSandpack } from "@codesandbox/sandpack-react";
-import { nonTemplateLanguageToExtension } from "./sandpack-editor";
+import { languageToTemplate, nonTemplateLanguageToExtension } from ".";
 import { getDefaultButtonVariants } from "../../variants";
 import { Trash } from "../../icons/trash";
 import { motion } from "framer-motion";
@@ -63,7 +67,7 @@ export function CodeViewer({
 		if (e) {
 			e.stopPropagation();
 		}
-
+		if (isCodeRunning) return;
 		setIsCodeRunning(true);
 		RunCode(language, code, command).then((res) => {
 			setCodeResult(res);
@@ -72,12 +76,16 @@ export function CodeViewer({
 	}
 
 	return (
-		<>
+		<SandpackLayout
+			onKeyDown={(e) => {
+				if (e.key === "Enter" && e.shiftKey) handleRunCode();
+			}}
+		>
+			{language in languageToTemplate && <SandpackFileExplorer />}
 			<SandpackCodeEditor
 				showTabs
 				showLineNumbers={false}
 				showInlineErrors
-				wrapContent
 				closableTabs
 				additionalLanguages={[
 					{
@@ -121,13 +129,15 @@ export function CodeViewer({
 			</motion.button>
 			{language in nonTemplateLanguageToExtension && (
 				<motion.button
-					className="absolute bottom-2 right-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 p-1.5 rounded-md"
+					className="absolute bottom-2 right-2 bg-opacity-85 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 p-1.5 rounded-md"
 					{...getDefaultButtonVariants()}
 					onClick={handleRunCode}
+					disabled={isCodeRunning}
+					title="Run Code"
 				>
-					{isCodeRunning ? <Loader /> : <Play />}
+					{isCodeRunning ? <Loader /> : <Play title="Run Code" />}
 				</motion.button>
 			)}
-		</>
+		</SandpackLayout>
 	);
 }

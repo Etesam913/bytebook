@@ -7,12 +7,12 @@ import type {
 	SerializedLexicalNode,
 	Spread,
 } from "lexical";
-import { $applyNodeReplacement, $getNodeByKey, DecoratorNode } from "lexical";
+import { $applyNodeReplacement, DecoratorNode } from "lexical";
 import { languageToCommandMap } from "../../../utils/code";
 import {
 	SandpackEditor,
 	nonTemplateLanguageDefaultFiles,
-} from "../../code/sandpack-editor";
+} from "../../code/index";
 
 export interface CodePayload {
 	key?: NodeKey;

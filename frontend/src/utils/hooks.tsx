@@ -4,8 +4,10 @@ import { Events as WailsEvents } from "@wailsio/runtime";
 import { useSetAtom } from "jotai";
 import {
 	CLICK_COMMAND,
+	COMMAND_PRIORITY_EDITOR,
 	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
+	COMMAND_PRIORITY_NORMAL,
 	KEY_BACKSPACE_COMMAND,
 	KEY_ENTER_COMMAND,
 	KEY_ESCAPE_COMMAND,
@@ -90,6 +92,7 @@ export function useResizeCommands(
 ) {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
+		console.log(isResizing);
 		return mergeRegister(
 			editor.registerCommand<MouseEvent>(
 				CLICK_COMMAND,
@@ -99,6 +102,7 @@ export function useResizeCommands(
 							e,
 							elementRef.current,
 							isResizing,
+							isSelected,
 							setSelected,
 							clearSelection,
 						);
@@ -108,7 +112,7 @@ export function useResizeCommands(
 					e.stopPropagation();
 					return true;
 				},
-				isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
+				COMMAND_PRIORITY_NORMAL,
 			),
 			editor.registerCommand<KeyboardEvent>(
 				KEY_ESCAPE_COMMAND,

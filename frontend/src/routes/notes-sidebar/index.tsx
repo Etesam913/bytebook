@@ -155,11 +155,11 @@ export function NotesSidebar({
 										</span>
 									)}
 								</p>
-								<ul className="overflow-y-auto">
+								<ul className="overflow-y-auto pb-2">
 									{noteElements && noteElements.length > 0 ? (
 										noteElements
 									) : (
-										<li className="text-center text-xs text-zinc-500  dark:text-zinc-300">
+										<li className="text-center text-xs text-zinc-500 w-full dark:text-zinc-300">
 											Create a note with the "Create Note" button above
 										</li>
 									)}

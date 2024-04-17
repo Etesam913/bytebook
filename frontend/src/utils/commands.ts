@@ -48,6 +48,7 @@ export function onClickDecoratorNodeCommand(
 	e: MouseEvent,
 	node: HTMLElement | null,
 	isResizing: boolean,
+	isSelected: boolean,
 	setSelected: (arg0: boolean) => void,
 	clearSelection: () => void,
 ): boolean {
@@ -56,12 +57,18 @@ export function onClickDecoratorNodeCommand(
 	}
 
 	if (e.target === node) {
-		clearSelection();
-		setSelected(true);
-		e.preventDefault();
+		if (!e.shiftKey) {
+			console.log("clear selection");
+			clearSelection();
+			setSelected(true);
+		} else {
+			console.log("selected: true");
+			setSelected(true);
+		}
 		return true;
 	}
 	// setSelected(false);
+	e.preventDefault();
 	return false;
 }
 
