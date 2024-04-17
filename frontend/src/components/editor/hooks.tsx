@@ -14,6 +14,7 @@ import {
 	FORMAT_TEXT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
 	KEY_ARROW_UP_COMMAND,
+	KEY_BACKSPACE_COMMAND,
 	type LexicalEditor,
 	SELECTION_CHANGE_COMMAND,
 	type TextFormatType,
@@ -236,6 +237,24 @@ export function useToolbarEvents(
 				(canUndo) => {
 					setCanUndo(canUndo);
 					return true;
+				},
+				COMMAND_PRIORITY_LOW,
+			),
+			editor.registerCommand(
+				KEY_BACKSPACE_COMMAND,
+				(e) => {
+					const selection = $getSelection();
+					if ($isNodeSelection(selection)) {
+						e.preventDefault();
+						const nodes = selection.getNodes();
+						nodes.forEach((node) => {
+							// Backspace in code block could mean you are deleting code instead of the whole block.
+							if (node.getType() === "code-block") return;
+							node.remove();
+						});
+						return true;
+					}
+					return false;
 				},
 				COMMAND_PRIORITY_LOW,
 			),

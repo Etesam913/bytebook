@@ -42,11 +42,11 @@ export function Image({
 		imgRef,
 	);
 
-	// useEffect(() => {
-	// 	if (isSelected) {
-	// 		imgRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
-	// 	}
-	// }, [isSelected]);
+	useEffect(() => {
+		if (isSelected) {
+			imgRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+		}
+	}, [isSelected]);
 
 	return (
 		<div className="w-full">

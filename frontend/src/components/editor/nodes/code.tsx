@@ -24,7 +24,7 @@ export interface CodePayload {
 
 export type SerializedCodeNode = Spread<
 	{
-		files?: Record<string, string>;
+		files?: SandpackFiles;
 		language: string;
 		focus: boolean;
 		command: string;

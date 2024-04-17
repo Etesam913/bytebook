@@ -135,18 +135,6 @@ export function useResizeCommands(
 				},
 				isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
 			),
-			editor.registerCommand<KeyboardEvent>(
-				KEY_BACKSPACE_COMMAND,
-				(e) => {
-					if (!isExpanded) {
-						return backspaceKeyDecoratorNodeCommand(e, nodeKey);
-					}
-					e.preventDefault();
-					e.stopPropagation();
-					return true;
-				},
-				isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
-			),
 			editor.registerCommand<string>(
 				EXPAND_CONTENT_COMMAND,
 				(keyToExpand) => {

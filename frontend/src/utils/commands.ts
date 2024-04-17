@@ -157,17 +157,6 @@ export function escapeKeyDecoratorNodeCommand(nodeKey: string) {
 	return false;
 }
 
-export function backspaceKeyDecoratorNodeCommand(
-	e: KeyboardEvent,
-	nodeKey: string,
-) {
-	if (isDecoratorNodeSelected(nodeKey)) {
-		e.preventDefault();
-		return removeDecoratorNode(nodeKey);
-	}
-	return false;
-}
-
 export function removeDecoratorNode(nodeKey: string) {
 	const node = $getNodeByKey(nodeKey);
 	if (node) {
