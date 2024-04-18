@@ -1,19 +1,6 @@
 package project_types
 
-type FolderMetadata struct {
-	Title   string `json:"title"`
-	Created string `json:"created"`
-	Updated string `json:"updated"`
-}
-
-type NoteMetadata struct {
-	Title   string `json:"title"`
-	Created string `json:"created"`
-	Updated string `json:"updated"`
-}
-
-type SuccessHandler struct {
-	Success         bool   `json:"success"`
-	Message         string `json:"message"`
-	InternalMessage string `json:"internalMessage"`
+type OpenNoteEventData struct {
+	folder string
+	note   string
 }

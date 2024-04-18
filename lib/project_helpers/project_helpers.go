@@ -1,10 +1,11 @@
 package project_helpers
 
 import (
-	"github.com/etesam913/bytebook/lib/io_helpers"
-	"github.com/wailsapp/wails/v3/pkg/application"
 	"os"
 	"path/filepath"
+
+	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 const ProjectName = "Bytebook"
@@ -54,10 +55,14 @@ func SetupFolderContextMenu(app *application.App, folderContextMenu *application
 		folderContextMenu.Add(item.Label).OnClick(func(data *application.Context) {
 			contextData, isString := data.ContextMenuData().(string)
 			if isString {
+				// if item.EventName == "open-note-in-new-window" {
+
+				// } else {
 				app.Events.Emit(&application.WailsEvent{
 					Name: item.EventName,
 					Data: contextData,
 				})
+				// }
 			}
 		})
 	}

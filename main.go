@@ -3,7 +3,9 @@ package main
 import (
 	"embed"
 	_ "embed"
+	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
 
@@ -27,7 +29,6 @@ var assets embed.FS
 // logs any error that might occur.
 func main() {
 	projectPath, err := project_helpers.GetProjectPath()
-
 	// TODO: Provide prompt for user to set a directory
 	if err != nil {
 		log.Fatal(err)
@@ -97,10 +98,37 @@ func main() {
 
 	project_helpers.SetupFolderContextMenu(app, noteContextMenu, []project_helpers.MenuItem{
 		{Label: "Delete Note", EventName: "delete-note"},
+		{Label: "Open In New Window", EventName: "open-note-in-new-window-frontend"},
 	})
 
 	app.RegisterContextMenu("folder-context-menu", folderContextMenu)
 	app.RegisterContextMenu("note-context-menu", noteContextMenu)
+
+	app.Events.On("open-note-in-new-window-backend", func(e *application.WailsEvent) {
+		switch data := e.Data.(type) {
+		case map[string]interface{}:
+			note := data["note"].(string)
+			folder := data["folder"].(string)
+			fmt.Println(folder, note)
+			app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
+				Title:     "Note",
+				MinWidth:  800,
+				MinHeight: 600,
+				X:         rand.Intn(1000),
+				Y:         rand.Intn(800),
+				URL:       fmt.Sprintf("/%s/%s", folder, note),
+				Mac: application.MacWindow{
+					InvisibleTitleBarHeight: 35,
+					Backdrop:                application.MacBackdropNormal,
+					TitleBar:                application.MacTitleBarHiddenInsetUnified,
+				},
+				EnableDragAndDrop: true,
+				BackgroundColour:  application.NewRGB(27, 38, 54),
+			}).Show()
+
+		}
+		log.Printf("[Go] WailsEvent received: %+v\n", e)
+	})
 
 	window.On(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
 		files := event.Context().DroppedFiles()

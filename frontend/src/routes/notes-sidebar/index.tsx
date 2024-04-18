@@ -1,3 +1,4 @@
+import { Events } from "@wailsio/runtime";
 import { AnimatePresence, type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { type CSSProperties, useEffect, useState } from "react";
@@ -41,6 +42,8 @@ export function NotesSidebar({
 	const { folder, note } = params;
 	const setIsFolderDialogOpen = useSetAtom(isFolderDialogOpenAtom);
 
+	const [rightClickedNote, setRightClickedNote] = useState<string | null>(null);
+
 	useEffect(() => {
 		updateNotes(folder, note, setNotes);
 	}, [folder, setNotes, note]);
@@ -66,6 +69,15 @@ export function NotesSidebar({
 		});
 	});
 
+	useWailsEvent("open-note-in-new-window-frontend", () => {
+		if (rightClickedNote) {
+			Events.Emit({
+				name: "open-note-in-new-window-backend",
+				data: { folder, note: rightClickedNote },
+			});
+		}
+	});
+
 	const noteElements = notes?.map((noteName) => (
 		<li key={noteName}>
 			<div
@@ -78,6 +90,7 @@ export function NotesSidebar({
 				}
 			>
 				<Link
+					onContextMenu={() => setRightClickedNote(noteName)}
 					title={noteName}
 					className={cn(
 						"mb-[0.15rem] flex flex-1 items-center gap-2 overflow-auto rounded-md px-2.5 py-[0.35rem]",
