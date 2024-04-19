@@ -32,9 +32,7 @@ export function updateNotes(
 			if (res.success) {
 				const notes = res.data as unknown as string[] | null;
 				setNotes(notes);
-				if (note) {
-					navigate(`/${folder}/${note}`);
-				} else {
+				if (!note) {
 					navigate(`/${folder}${notes?.at(0) ? `/${notes.at(0)}` : "/"}`);
 				}
 			}

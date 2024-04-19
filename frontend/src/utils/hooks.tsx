@@ -4,11 +4,9 @@ import { Events as WailsEvents } from "@wailsio/runtime";
 import { useSetAtom } from "jotai";
 import {
 	CLICK_COMMAND,
-	COMMAND_PRIORITY_EDITOR,
 	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
 	COMMAND_PRIORITY_NORMAL,
-	KEY_BACKSPACE_COMMAND,
 	KEY_ENTER_COMMAND,
 	KEY_ESCAPE_COMMAND,
 	type LexicalEditor,
@@ -20,15 +18,16 @@ import {
 	useEffect,
 	useRef,
 	useState,
+	useMemo,
 } from "react";
 import { darkModeAtom } from "../atoms";
 import {
 	EXPAND_CONTENT_COMMAND,
-	backspaceKeyDecoratorNodeCommand,
 	enterKeyDecoratorNodeCommand,
 	escapeKeyDecoratorNodeCommand,
 	onClickDecoratorNodeCommand,
 } from "./commands";
+import { useSearch } from "wouter";
 
 export const useDelayedLoader = (
 	value = false,
@@ -193,6 +192,7 @@ export function useOnClickOutside<T extends HTMLElement>(
 	);
 }
 
+/** Sets dark mode based off of window prefers-color-scheme */
 export function useDarkModeSetting() {
 	const setDarkMode = useSetAtom(darkModeAtom);
 	useEffect(() => {
@@ -239,12 +239,29 @@ type WailsEvent = {
 	data: unknown;
 };
 
+/** Helper to do something when a wails event is emitted from the backend */
 export function useWailsEvent(
 	eventName: string,
 	callback: (res: WailsEvent) => void,
+	dependencies: unknown[] = [],
 ) {
 	// @ts-expect-error the events function can be returned
 	useEffect(() => {
 		return WailsEvents.On(eventName, callback);
-	}, [eventName, callback]);
+	}, [eventName, callback, ...dependencies]);
+}
+
+/**
+Can be used to tell if a note is in standalone mode by looking at the ?standalone query value
+Standalone mode is when a note is opened in a new window
+*/
+export function useIsStandalone() {
+	const searchString = useSearch();
+	const searchParamsObject = useMemo(() => {
+		const searchParams = new URLSearchParams(searchString);
+		return Object.fromEntries(searchParams.entries());
+	}, [searchString]);
+
+	const isStandalone = searchParamsObject?.standalone === "true";
+	return isStandalone;
 }

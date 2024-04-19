@@ -3,12 +3,11 @@ package main
 import (
 	"embed"
 	_ "embed"
-	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"path/filepath"
 
+	"github.com/etesam913/bytebook/lib/custom_events"
 	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
 	"github.com/etesam913/bytebook/lib/project_helpers"
@@ -68,11 +67,6 @@ func main() {
 		},
 	})
 
-	// Create a new window with the necessary options.
-	// 'Title' is the title of the window.
-	// 'Mac' options tailor the window when running on macOS.
-	// 'BackgroundColour' is the background colour of the window.
-	// 'URL' is the URL that will be loaded into the webview.
 	window := app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
 		Title:     "Bytebook",
 		MinWidth:  800,
@@ -104,31 +98,7 @@ func main() {
 	app.RegisterContextMenu("folder-context-menu", folderContextMenu)
 	app.RegisterContextMenu("note-context-menu", noteContextMenu)
 
-	app.Events.On("open-note-in-new-window-backend", func(e *application.WailsEvent) {
-		switch data := e.Data.(type) {
-		case map[string]interface{}:
-			note := data["note"].(string)
-			folder := data["folder"].(string)
-			fmt.Println(folder, note)
-			app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
-				Title:     "Note",
-				MinWidth:  800,
-				MinHeight: 600,
-				X:         rand.Intn(1000),
-				Y:         rand.Intn(800),
-				URL:       fmt.Sprintf("/%s/%s", folder, note),
-				Mac: application.MacWindow{
-					InvisibleTitleBarHeight: 35,
-					Backdrop:                application.MacBackdropNormal,
-					TitleBar:                application.MacTitleBarHiddenInsetUnified,
-				},
-				EnableDragAndDrop: true,
-				BackgroundColour:  application.NewRGB(27, 38, 54),
-			}).Show()
-
-		}
-		log.Printf("[Go] WailsEvent received: %+v\n", e)
-	})
+	custom_events.OpenNoteInNewWindowEvent(app)
 
 	window.On(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
 		files := event.Context().DroppedFiles()

@@ -19,7 +19,7 @@ import {
 	SELECTION_CHANGE_COMMAND,
 	type TextFormatType,
 } from "lexical";
-import { type Dispatch, type SetStateAction, useEffect } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { CleanAndCopyFiles } from "../../../bindings/main/NodeService";
 import { GetNoteMarkdown } from "../../../bindings/main/NoteService";
@@ -54,6 +54,7 @@ export function useNoteMarkdown(
 								editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
 							return [];
 						});
+
 						$convertFromMarkdownStringCorrect(res.data, CUSTOM_TRANSFORMERS);
 					});
 				}

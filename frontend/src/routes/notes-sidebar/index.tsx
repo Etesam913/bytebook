@@ -1,8 +1,8 @@
 import { Events } from "@wailsio/runtime";
 import { AnimatePresence, type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { type CSSProperties, useEffect, useState } from "react";
-import { Link } from "wouter";
+import { type CSSProperties, useEffect, useState, useMemo } from "react";
+import { Link, useSearch } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder } from "../../../bindings/main/FolderService.ts";
 import {
@@ -20,7 +20,7 @@ import { Folder } from "../../icons/folder";
 import { Note } from "../../icons/page";
 import { Pen } from "../../icons/pen";
 import { updateNotes } from "../../utils/fetch-functions";
-import { useWailsEvent } from "../../utils/hooks.tsx";
+import { useIsStandalone, useWailsEvent } from "../../utils/hooks.tsx";
 import { updateMostRecentNotesOnNoteDelete } from "../../utils/misc.ts";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
@@ -41,7 +41,7 @@ export function NotesSidebar({
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const { folder, note } = params;
 	const setIsFolderDialogOpen = useSetAtom(isFolderDialogOpenAtom);
-
+	const isStandalone = useIsStandalone();
 	const [rightClickedNote, setRightClickedNote] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -124,7 +124,7 @@ export function NotesSidebar({
 				)}
 			</AnimatePresence>
 
-			{!isNoteMaximized && (
+			{!isNoteMaximized && !isStandalone && (
 				<>
 					<motion.aside
 						style={{ width }}

@@ -31,14 +31,30 @@ import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { $convertToMarkdownStringCorrect, handleATag } from "./utils";
+import { useIsStandalone } from "../../utils/hooks.tsx";
+import { Events } from "@wailsio/runtime";
+import { AppId } from "../../App.tsx";
 
-const debouncedHandleChange = debounce(handleChange, 500);
+const debouncedHandleChange = debounce(handleChange, 275);
 
-function handleChange(folder: string, note: string, editor: LexicalEditor) {
-	editor.update(() => {
-		const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
-		SetNoteMarkdown(folder, note, markdown);
-	});
+function handleChange(
+	folder: string,
+	note: string,
+	editor: LexicalEditor,
+	tags: Set<string>,
+) {
+	if (tags.has("note:changed-from-other-window")) return;
+	editor.update(
+		() => {
+			const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
+			Events.Emit({
+				name: "note:changed",
+				data: { folder, note, markdown, appId: AppId },
+			});
+			SetNoteMarkdown(folder, note, markdown);
+		},
+		{ tag: "note:changed-from-other-window" },
+	);
 }
 
 export function NotesEditor({
@@ -54,13 +70,14 @@ export function NotesEditor({
 		left: 0,
 		top: 0,
 	});
-	useMostRecentNotes(folder, note);
 
+	useMostRecentNotes(folder, note);
+	const isStandalone = useIsStandalone();
 	return (
 		<div
 			className={cn(
 				"flex min-w-0 flex-1 flex-col",
-				isNoteMaximized && "mt-[1px]",
+				(isNoteMaximized || isStandalone) && "mt-[1px]",
 			)}
 		>
 			<LexicalComposer initialConfig={editorConfig}>
@@ -72,8 +89,8 @@ export function NotesEditor({
 				<div
 					style={{ scrollbarGutter: "stable" }}
 					className={cn(
-						"h-[calc(100vh-38px)] overflow-y-auto p-2",
-						isNoteMaximized && "px-3",
+						"h-[calc(100vh-38px)] overflow-y-auto py-2 px-3",
+						(isNoteMaximized || isStandalone) && "px-5",
 					)}
 					onClick={(e) => {
 						const target = e.target as HTMLElement & { ariaChecked?: string };
@@ -98,8 +115,9 @@ export function NotesEditor({
 						ErrorBoundary={LexicalErrorBoundary}
 					/>
 					<OnChangePlugin
-						onChange={(_, editor) =>
-							debouncedHandleChange(folder, note, editor)
+						ignoreSelectionChange
+						onChange={(_, editor, tag) =>
+							debouncedHandleChange(folder, note, editor, tag)
 						}
 					/>
 					<FloatingLinkPlugin

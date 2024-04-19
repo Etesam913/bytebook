@@ -24,12 +24,16 @@ import { getDefaultButtonVariants } from "../../variants";
 import { Dropdown } from "../dropdown";
 import { useFileDropEvent, useNoteMarkdown, useToolbarEvents } from "./hooks";
 import {
+	$convertFromMarkdownStringCorrect,
 	blockTypesDropdownItems,
 	changeSelectedBlocksType,
 	handleToolbarTextFormattingClick,
 	listCommandData,
 	textFormats,
 } from "./utils";
+import { useIsStandalone, useWailsEvent } from "../../utils/hooks";
+import { CUSTOM_TRANSFORMERS } from "./transformers";
+import { AppId } from "../../App";
 
 interface ToolbarProps {
 	folder: string;
@@ -51,6 +55,37 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 
 	useNoteMarkdown(editor, folder, note, setCurrentSelectionFormat);
 
+	const [noteMarkdownFromFile, setNoteMarkdownFromFile] = useState("");
+
+	useWailsEvent(
+		"note:changed",
+		(e) => {
+			const data = e.data as {
+				folder: string;
+				note: string;
+				markdown: string;
+				appId: string;
+			};
+			const { folder: folderName, note: noteName, markdown, appId } = data;
+			setNoteMarkdownFromFile(markdown);
+			if (folderName === folder && noteName === note && appId !== AppId) {
+				console.log("old markdown: ", noteMarkdownFromFile);
+				console.log("new markdown: ", markdown);
+
+				console.log("app id from event: ", appId);
+				console.log("app id from window: ", AppId);
+
+				editor.update(
+					() => {
+						$convertFromMarkdownStringCorrect(markdown, CUSTOM_TRANSFORMERS);
+					},
+					{ tag: "note:changed-from-other-window" },
+				);
+			}
+		},
+		[noteMarkdownFromFile],
+	);
+
 	useToolbarEvents(
 		editor,
 		setDisabled,
@@ -61,7 +96,7 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 	);
 
 	useFileDropEvent(editor, folder, note);
-
+	const isStandalone = useIsStandalone();
 	const textFormattingButtons = textFormats.map(({ icon, format }) => (
 		<motion.button
 			{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
@@ -141,19 +176,21 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 		<nav
 			className={cn(
 				"ml-[-4px] flex flex-wrap gap-1.5 border-b-[1px] border-b-zinc-200 py-2 pl-1 dark:border-b-zinc-700",
-				isNoteMaximized && "!pl-[5.75rem]",
+				(isNoteMaximized || isStandalone) && "!pl-[5.75rem]",
 			)}
 		>
 			<span className="flex items-center gap-1.5">
-				<motion.button
-					onClick={() => setIsNoteMaximized((prev) => !prev)}
-					{...getDefaultButtonVariants(disabled, 1.1, 0.95, 1.1)}
-					className="pl-[.1rem] pr-0.5"
-					type="button"
-					animate={{ rotate: isNoteMaximized ? 180 : 0 }}
-				>
-					<SidebarRightCollapse height="1.4rem" width="1.4rem" />
-				</motion.button>
+				{!isStandalone && (
+					<motion.button
+						onClick={() => setIsNoteMaximized((prev) => !prev)}
+						{...getDefaultButtonVariants(disabled, 1.1, 0.95, 1.1)}
+						className="pl-[.1rem] pr-0.5"
+						type="button"
+						animate={{ rotate: isNoteMaximized ? 180 : 0 }}
+					>
+						<SidebarRightCollapse height="1.4rem" width="1.4rem" />
+					</motion.button>
+				)}
 
 				<Dropdown
 					controlledValueIndex={blockTypesDropdownItems.findIndex(
