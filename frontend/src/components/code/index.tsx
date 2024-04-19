@@ -61,13 +61,11 @@ export function SandpackEditor({
 	writeFilesToNode,
 	focus,
 }: {
-	code: string;
 	files: SandpackFiles;
 	languageWrittenToNode: string;
 	nodeKey: string;
 	commandWrittenToNode: string;
 	focus: boolean;
-	onCodeChange: (code: string) => void;
 	writeCommandToNode: (language: string) => void;
 	writeFilesToNode: (files: SandpackFiles) => void;
 }) {

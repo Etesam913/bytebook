@@ -57,12 +57,6 @@ export function CodeViewer({
 
 	const code = useMemo(() => files[activeFile].code, [sandpack.files]);
 
-	useEffect(() => {
-		editor.update(() => {
-			writeFilesToNode(files);
-		});
-	}, [sandpack.files]);
-
 	function handleRunCode(e?: SyntheticEvent) {
 		if (e) {
 			e.stopPropagation();
@@ -79,6 +73,11 @@ export function CodeViewer({
 		<SandpackLayout
 			onKeyDown={(e) => {
 				if (e.key === "Enter" && e.shiftKey) handleRunCode();
+			}}
+			onKeyUp={() => {
+				editor.update(() => {
+					writeFilesToNode(files);
+				});
 			}}
 		>
 			{language in languageToTemplate && <SandpackFileExplorer />}

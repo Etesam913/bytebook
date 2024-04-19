@@ -43,6 +43,7 @@ function handleChange(
 	editor: LexicalEditor,
 	tags: Set<string>,
 ) {
+	// If the note was changed from another window, don't update it again
 	if (tags.has("note:changed-from-other-window")) return;
 	editor.update(
 		() => {

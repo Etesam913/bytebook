@@ -52,39 +52,26 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 	const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
 	const [canRedo, setCanRedo] = useState(false);
 	const [canUndo, setCanUndo] = useState(false);
-
 	useNoteMarkdown(editor, folder, note, setCurrentSelectionFormat);
 
-	const [noteMarkdownFromFile, setNoteMarkdownFromFile] = useState("");
+	useWailsEvent("note:changed", (e) => {
+		const data = e.data as {
+			folder: string;
+			note: string;
+			markdown: string;
+			appId: string;
+		};
+		const { folder: folderName, note: noteName, markdown, appId } = data;
 
-	useWailsEvent(
-		"note:changed",
-		(e) => {
-			const data = e.data as {
-				folder: string;
-				note: string;
-				markdown: string;
-				appId: string;
-			};
-			const { folder: folderName, note: noteName, markdown, appId } = data;
-			setNoteMarkdownFromFile(markdown);
-			if (folderName === folder && noteName === note && appId !== AppId) {
-				console.log("old markdown: ", noteMarkdownFromFile);
-				console.log("new markdown: ", markdown);
-
-				console.log("app id from event: ", appId);
-				console.log("app id from window: ", AppId);
-
-				editor.update(
-					() => {
-						$convertFromMarkdownStringCorrect(markdown, CUSTOM_TRANSFORMERS);
-					},
-					{ tag: "note:changed-from-other-window" },
-				);
-			}
-		},
-		[noteMarkdownFromFile],
-	);
+		if (folderName === folder && noteName === note && appId !== AppId) {
+			editor.update(
+				() => {
+					$convertFromMarkdownStringCorrect(markdown, CUSTOM_TRANSFORMERS);
+				},
+				{ tag: "note:changed-from-other-window" },
+			);
+		}
+	});
 
 	useToolbarEvents(
 		editor,

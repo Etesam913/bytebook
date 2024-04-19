@@ -243,12 +243,11 @@ type WailsEvent = {
 export function useWailsEvent(
 	eventName: string,
 	callback: (res: WailsEvent) => void,
-	dependencies: unknown[] = [],
 ) {
 	// @ts-expect-error the events function can be returned
 	useEffect(() => {
 		return WailsEvents.On(eventName, callback);
-	}, [eventName, callback, ...dependencies]);
+	}, [eventName, callback]);
 }
 
 /**
