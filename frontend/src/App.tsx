@@ -11,7 +11,7 @@ import {
 	useIsStandalone,
 } from "./utils/hooks";
 
-export const AppId = "id" + Math.random().toString(16).slice(2);
+export const APP_ID = `id-${Math.random().toString(16).slice(2)}`;
 
 function App() {
 	const folderSidebarWidth = useMotionValue(190);

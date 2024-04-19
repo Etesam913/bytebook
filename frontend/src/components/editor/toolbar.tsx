@@ -13,16 +13,19 @@ import {
 	UNDO_COMMAND,
 } from "lexical";
 import { type Dispatch, useState } from "react";
+import { APP_ID } from "../../App";
 import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
 import { Link } from "../../icons/link";
 import { Redo } from "../../icons/redo";
 import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
 import { Undo } from "../../icons/undo";
 import type { EditorBlockTypes, FloatingLinkData } from "../../types";
+import { useIsStandalone, useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { Dropdown } from "../dropdown";
 import { useFileDropEvent, useNoteMarkdown, useToolbarEvents } from "./hooks";
+import { CUSTOM_TRANSFORMERS } from "./transformers";
 import {
 	$convertFromMarkdownStringCorrect,
 	blockTypesDropdownItems,
@@ -31,9 +34,6 @@ import {
 	listCommandData,
 	textFormats,
 } from "./utils";
-import { useIsStandalone, useWailsEvent } from "../../utils/hooks";
-import { CUSTOM_TRANSFORMERS } from "./transformers";
-import { AppId } from "../../App";
 
 interface ToolbarProps {
 	folder: string;
@@ -59,11 +59,20 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 			folder: string;
 			note: string;
 			markdown: string;
-			appId: string;
+			oldWindowAppId: string;
 		};
-		const { folder: folderName, note: noteName, markdown, appId } = data;
+		const {
+			folder: folderName,
+			note: noteName,
+			markdown,
+			oldWindowAppId,
+		} = data;
 
-		if (folderName === folder && noteName === note && appId !== AppId) {
+		if (
+			folderName === folder &&
+			noteName === note &&
+			oldWindowAppId !== APP_ID
+		) {
 			editor.update(
 				() => {
 					$convertFromMarkdownStringCorrect(markdown, CUSTOM_TRANSFORMERS);

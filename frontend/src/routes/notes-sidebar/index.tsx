@@ -1,7 +1,7 @@
 import { Events } from "@wailsio/runtime";
 import { AnimatePresence, type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { type CSSProperties, useEffect, useState, useMemo } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { Link, useSearch } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder } from "../../../bindings/main/FolderService.ts";

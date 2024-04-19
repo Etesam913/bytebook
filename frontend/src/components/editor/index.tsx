@@ -9,13 +9,16 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
+import { Events } from "@wailsio/runtime";
 import { useAtomValue } from "jotai";
 import type { LexicalEditor } from "lexical";
 import { useRef, useState } from "react";
 import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
+import { APP_ID } from "../../App.tsx";
 import { isNoteMaximizedAtom } from "../../atoms";
 import type { FloatingLinkData } from "../../types.ts";
 import { debounce } from "../../utils/draggable";
+import { useIsStandalone } from "../../utils/hooks.tsx";
 import { cn } from "../../utils/string-formatting";
 import { editorConfig } from "./editor-config";
 import { useMostRecentNotes } from "./hooks.tsx";
@@ -31,9 +34,6 @@ import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { $convertToMarkdownStringCorrect, handleATag } from "./utils";
-import { useIsStandalone } from "../../utils/hooks.tsx";
-import { Events } from "@wailsio/runtime";
-import { AppId } from "../../App.tsx";
 
 const debouncedHandleChange = debounce(handleChange, 275);
 
@@ -50,7 +50,7 @@ function handleChange(
 			const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
 			Events.Emit({
 				name: "note:changed",
-				data: { folder, note, markdown, appId: AppId },
+				data: { folder, note, markdown, oldWindowAppId: APP_ID },
 			});
 			SetNoteMarkdown(folder, note, markdown);
 		},

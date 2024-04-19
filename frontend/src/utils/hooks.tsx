@@ -16,10 +16,11 @@ import {
 	type RefObject,
 	type SetStateAction,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
-	useMemo,
 } from "react";
+import { useSearch } from "wouter";
 import { darkModeAtom } from "../atoms";
 import {
 	EXPAND_CONTENT_COMMAND,
@@ -27,7 +28,6 @@ import {
 	escapeKeyDecoratorNodeCommand,
 	onClickDecoratorNodeCommand,
 } from "./commands";
-import { useSearch } from "wouter";
 
 export const useDelayedLoader = (
 	value = false,
