@@ -27,7 +27,6 @@ export function CodePlugin() {
 			editor.registerCommand<CodePayload>(
 				INSERT_CODE_COMMAND,
 				(payload) => {
-					console.log("inserted");
 					const codeNode = $createCodeNode(payload);
 					$insertNodes([codeNode]);
 					if ($isRootOrShadowRoot(codeNode.getParentOrThrow())) {

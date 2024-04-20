@@ -1,8 +1,7 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $setBlocksType } from "@lexical/selection";
 import { motion } from "framer-motion";
-import { useAtom } from "jotai";
-import type { SetStateAction } from "jotai/ts3.8/esm/vanilla";
+import { useAtom, SetStateAction } from "jotai";
 import {
 	$createParagraphNode,
 	$getSelection,

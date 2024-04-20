@@ -131,7 +131,7 @@ export function SandpackEditor({
 						writeDataToNode={writeDataToNode}
 						focus={focus}
 					/>
-					<motion.div layout>
+					<motion.div layout className="my-1">
 						{language in languageToTemplate ? (
 							<SandpackLayout>
 								<SandpackPreview showNavigator showOpenInCodeSandbox={false} />

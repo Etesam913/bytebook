@@ -45,6 +45,9 @@ import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
 import { ImageNode } from "./nodes/image";
 import { INSERT_IMAGES_COMMAND } from "./plugins/image";
+import { SvelteLogo } from "../../icons/svelte-logo";
+import { VueLogo } from "../../icons/vue-logo";
+import { AngularLogo } from "../../icons/angular-logo";
 
 export type TextFormats =
 	| null
@@ -105,6 +108,41 @@ export const listCommandData = [
 		command: INSERT_CHECK_LIST_COMMAND,
 		title: "Check List",
 		customDisabled: undefined,
+	},
+];
+
+export const languageCommandData: {
+	name:
+		| "go"
+		| "java"
+		| "python"
+		| "javascript"
+		| "react"
+		| "angular"
+		| "vue"
+		| "svelte";
+	keywords: string[];
+	icon?: JSX.Element;
+}[] = [
+	{ name: "go", keywords: ["go", "google"] },
+	{ name: "java", keywords: ["java", "coffee"] },
+	{ name: "python", keywords: ["python"] },
+	{ name: "javascript", keywords: ["javascript"] },
+	{ name: "react", keywords: ["javascript", "react"] },
+	{
+		name: "angular",
+		keywords: ["javascript", "angular"],
+		icon: <AngularLogo height="1.1rem" width="1.1rem" />,
+	},
+	{
+		name: "vue",
+		keywords: ["javascript", "vue"],
+		icon: <VueLogo height="1.1rem" width="1.1rem" />,
+	},
+	{
+		name: "svelte",
+		keywords: ["javascript", "svelte"],
+		icon: <SvelteLogo height="1.1rem" width="1.1rem" />,
 	},
 ];
 

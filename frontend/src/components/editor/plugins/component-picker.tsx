@@ -18,8 +18,13 @@ import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { UploadImage } from "../../../../bindings/main/NodeService";
 import { cn } from "../../../utils/string-formatting";
-import { imageCommandData, listCommandData } from "../utils";
+import {
+	imageCommandData,
+	languageCommandData,
+	listCommandData,
+} from "../utils";
 import { INSERT_IMAGES_COMMAND } from "./image";
+import { INSERT_CODE_COMMAND } from "./code";
 
 class ComponentPickerOption extends MenuOption {
 	// What shows up in the editor
@@ -134,6 +139,21 @@ function getBaseOptions(editor: LexicalEditor, folder: string, note: string) {
 				});
 			},
 		}),
+		...languageCommandData.map(
+			({ name, keywords, icon }) =>
+				new ComponentPickerOption(name, {
+					icon,
+					keywords: [...keywords, "code", "syntax", "programming", "language"],
+					onSelect: async () => {
+						editor.update(() => {
+							editor.dispatchCommand(INSERT_CODE_COMMAND, {
+								language: name,
+								focus: true,
+							});
+						});
+					},
+				}),
+		),
 	];
 }
 
@@ -197,7 +217,7 @@ export function ComponentPickerMenuPlugin({
 				) =>
 					anchorElementRef.current && options.length
 						? createPortal(
-								<ul className="fixed flex flex-col gap-0.5 w-48 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700">
+								<ul className="fixed flex overflow-auto flex-col max-h-56 gap-0.5 w-48 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700">
 									{options.map((option, i: number) => (
 										<ComponentPickerMenuItem
 											index={i}
