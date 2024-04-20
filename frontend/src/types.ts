@@ -1,3 +1,4 @@
+import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import type { HeadingTagType } from "@lexical/rich-text";
 import type { ReactNode } from "react";
 
@@ -29,4 +30,11 @@ export type FloatingLinkData = {
 	isOpen: boolean;
 	top: number;
 	left: number;
+};
+
+export type CodeBlockData = { files: SandpackFiles; result: CodeResultType };
+
+export type CodeResultType = {
+	message: string;
+	success: boolean;
 };

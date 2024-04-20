@@ -80,15 +80,14 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 		if (!$isCodeNode(node)) {
 			return null;
 		}
-		const textContent = JSON.stringify(node.getFiles());
+		const textContent = JSON.stringify(node.getData());
 		return `\`\`\`${node.getLanguage() || ""} {command=${node.getCommand()}} ${
 			textContent ? `\n${textContent}` : ""
 		}\n\`\`\``;
 	},
 	regExp: /^```(\w{1,10})?\s/,
 	replace: (textNode, _1, match, isImport) => {
-		if (isImport) {
-		}
+		// MarkdownImport.ts handles the import of code blocks
 		const language = match.at(1);
 		if (!language || !codeLanguages.has(language)) {
 			return;

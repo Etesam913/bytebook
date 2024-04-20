@@ -8,6 +8,7 @@ import type {
 	Spread,
 } from "lexical";
 import { $applyNodeReplacement, DecoratorNode } from "lexical";
+import type { CodeBlockData, CodeResultType } from "../../../types";
 import { languageToCommandMap } from "../../../utils/code";
 import {
 	SandpackEditor,
@@ -17,14 +18,14 @@ import {
 export interface CodePayload {
 	key?: NodeKey;
 	language: string;
-	files?: SandpackFiles;
+	data?: CodeBlockData;
 	command?: string;
 	focus: boolean;
 }
 
 export type SerializedCodeNode = Spread<
 	{
-		files?: SandpackFiles;
+		data?: CodeBlockData;
 		language: string;
 		focus: boolean;
 		command: string;
@@ -33,7 +34,7 @@ export type SerializedCodeNode = Spread<
 >;
 
 export class CodeNode extends DecoratorNode<JSX.Element> {
-	__files: SandpackFiles = {};
+	__data: CodeBlockData = { files: {}, result: { message: "", success: true } };
 	__language: string;
 	__focus = false;
 	__command = "";
@@ -42,13 +43,13 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static clone(node: CodeNode): CodeNode {
-		return new CodeNode(node.__files, node.__language, false, node.__command);
+		return new CodeNode(node.__data, node.__language, false, node.__command);
 	}
 
 	static importJSON(serializedNode: SerializedCodeNode): CodeNode {
-		const { files, language, focus, command } = serializedNode;
+		const { data, language, focus, command } = serializedNode;
 		const node = $createCodeNode({
-			files,
+			data,
 			language,
 			focus,
 			command,
@@ -61,7 +62,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	}
 
 	constructor(
-		files: SandpackFiles,
+		data: CodeBlockData,
 		language: string,
 		focus: boolean,
 		command: undefined | string,
@@ -69,7 +70,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	) {
 		super(key);
 		// The actual code to run
-		this.__files = files;
+		this.__data = data;
 
 		// The language of the code
 		this.__language = language;
@@ -86,7 +87,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 
 	exportJSON(): SerializedCodeNode {
 		return {
-			files: this.getFiles(),
+			data: this.getData(),
 			language: this.getLanguage(),
 			command: this.getCommand(),
 			focus: false,
@@ -110,8 +111,8 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		return false;
 	}
 
-	getFiles(): SandpackFiles {
-		return this.__files;
+	getData(): CodeBlockData {
+		return this.__data;
 	}
 
 	getLanguage(): string {
@@ -122,9 +123,9 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		return this.__command;
 	}
 
-	setFiles(files: SandpackFiles): void {
+	setData(files: SandpackFiles, result: CodeResultType): void {
 		const writable = this.getWritable();
-		writable.__files = files;
+		writable.__data = { files, result };
 	}
 
 	setLanguage(language: string, editor: LexicalEditor): void {
@@ -152,11 +153,13 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		return (
 			<SandpackEditor
 				nodeKey={this.getKey()}
-				files={this.getFiles()}
-				languageWrittenToNode={this.getLanguage()}
+				data={this.getData()}
+				language={this.getLanguage()}
 				commandWrittenToNode={this.getCommand()}
 				focus={this.__focus}
-				writeFilesToNode={(files: SandpackFiles) => this.setFiles(files)}
+				writeDataToNode={(files: SandpackFiles, result: CodeResultType) =>
+					this.setData(files, result)
+				}
 				writeCommandToNode={(command: string) =>
 					this.setCommand(command, _editor)
 				}
@@ -166,7 +169,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 }
 
 export function $createCodeNode({
-	files,
+	data,
 	language,
 	focus,
 	command,
@@ -175,9 +178,13 @@ export function $createCodeNode({
 		language in nonTemplateLanguageDefaultFiles
 			? nonTemplateLanguageDefaultFiles[language]
 			: {};
-
 	return $applyNodeReplacement(
-		new CodeNode(files ?? defaultFiles, language, focus, command),
+		new CodeNode(
+			data ?? { files: defaultFiles, result: { message: "", success: true } },
+			language,
+			focus,
+			command,
+		),
 	);
 }
 

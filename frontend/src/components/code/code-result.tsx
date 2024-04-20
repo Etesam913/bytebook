@@ -1,14 +1,14 @@
 import { motion } from "framer-motion";
 import { memo } from "react";
 import { SquareCode } from "../../icons/square-code";
+import type { CodeResultType } from "../../types";
 import { cn } from "../../utils/string-formatting";
 
 export const CodeResult = memo(function CodeResult({
 	codeResult,
 }: {
-	codeResult: { message: string; success: boolean } | undefined;
+	codeResult: CodeResultType;
 }) {
-	if (!codeResult) return <></>;
 	return (
 		<div
 			onClick={(e) => e.stopPropagation()}
@@ -27,10 +27,13 @@ export const CodeResult = memo(function CodeResult({
 					)}
 				</motion.div>
 			) : (
-				<div className="font-display text-md flex flex-col items-center gap-3 text-balance text-center">
+				<motion.div
+					layout="position"
+					className="font-display text-md flex flex-col items-center gap-3 text-balance text-center"
+				>
 					<SquareCode width="2rem" height="2rem" />
-					<motion.p layout>There's nothing printed from your code</motion.p>
-				</div>
+					<p>There's nothing printed from your code</p>
+				</motion.div>
 			)}
 		</div>
 	);

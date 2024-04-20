@@ -1,4 +1,4 @@
-import { CodeEditorRef } from "@codesandbox/sandpack-react";
+import type { CodeEditorRef } from "@codesandbox/sandpack-react";
 import { mergeRegister } from "@lexical/utils";
 import {
 	COMMAND_PRIORITY_LOW,

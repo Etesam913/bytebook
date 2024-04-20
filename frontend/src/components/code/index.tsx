@@ -1,9 +1,9 @@
 import {
 	type SandpackFiles,
+	type SandpackInternalOptions,
 	SandpackLayout,
 	SandpackPreview,
 	SandpackProvider,
-	SandpackInternalOptions,
 } from "@codesandbox/sandpack-react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { useRef, useState } from "react";
 import { darkModeAtom } from "../../atoms";
+import type { CodeBlockData, CodeResultType } from "../../types";
 import { CodeDialog } from "./code-dialog";
 import { CodeResult } from "./code-result";
 import { CodeViewer } from "./code-viewer";
@@ -53,35 +54,31 @@ export const nonTemplateLanguageDefaultFiles: Record<string, SandpackFiles> = {
 };
 
 export function SandpackEditor({
-	languageWrittenToNode,
+	language,
 	nodeKey,
-	files,
+	data,
 	commandWrittenToNode,
 	writeCommandToNode,
-	writeFilesToNode,
+	writeDataToNode,
 	focus,
 }: {
-	files: SandpackFiles;
-	languageWrittenToNode: string;
+	data: CodeBlockData;
+	language: string;
 	nodeKey: string;
 	commandWrittenToNode: string;
 	focus: boolean;
 	writeCommandToNode: (language: string) => void;
-	writeFilesToNode: (files: SandpackFiles) => void;
+	writeDataToNode: (files: SandpackFiles, result: CodeResultType) => void;
 }) {
 	const isDarkModeOn = useAtomValue(darkModeAtom);
-	const [language, setLanguage] = useState(languageWrittenToNode);
 	const [isCodeSettingsOpen, setIsCodeSettingsOpen] = useState(false);
 	const [command, setCommand] = useState(commandWrittenToNode);
-	const [isSelected, setIsSelected, clearSelection] =
-		useLexicalNodeSelection(nodeKey);
+	const [isSelected, _] = useLexicalNodeSelection(nodeKey);
 	const [editor] = useLexicalComposerContext();
 
-	const defaultFiles = useRef(files);
-	const [codeResult, setCodeResult] = useState<{
-		message: string;
-		success: boolean;
-	}>();
+	const defaultFiles = useRef(data.files);
+
+	const [codeResult, setCodeResult] = useState<CodeResultType>(data.result);
 
 	const codeMirrorContainerRef = useRef<HTMLDivElement>(null);
 
@@ -129,8 +126,9 @@ export function SandpackEditor({
 						nodeKey={nodeKey}
 						language={language}
 						setIsCodeSettingsOpen={setIsCodeSettingsOpen}
+						codeResult={codeResult}
 						setCodeResult={setCodeResult}
-						writeFilesToNode={writeFilesToNode}
+						writeDataToNode={writeDataToNode}
 						focus={focus}
 					/>
 					<motion.div layout>

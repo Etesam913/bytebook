@@ -1,4 +1,3 @@
-import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import type {
 	ElementTransformer,
 	TextFormatTransformer,
@@ -13,6 +12,7 @@ import {
 	$getSelection,
 	type ElementNode,
 } from "lexical";
+import type { CodeBlockData } from "../../types";
 import { $createCodeNode, type CodeNode } from "./nodes/code";
 import { PUNCTUATION_OR_SPACE, transformersByType } from "./transformers";
 import { type Transformer, handleTextMatchTransformerReplace } from "./utils";
@@ -145,9 +145,9 @@ function importCodeBlock(
 						command = value;
 					}
 				}
-				const files: SandpackFiles = JSON.parse(filesString);
+				const data: CodeBlockData = JSON.parse(filesString);
 				const codeBlockNode = $createCodeNode({
-					files,
+					data,
 					language,
 					focus: false,
 					command,

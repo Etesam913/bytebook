@@ -4,10 +4,10 @@ import { python } from "@codemirror/lang-python";
 
 import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 import {
+	type CodeEditorRef,
 	SandpackFileExplorer,
 	type SandpackFiles,
 	SandpackLayout,
-	CodeEditorRef,
 } from "@codesandbox/sandpack-react";
 import { SandpackCodeEditor, useSandpack } from "@codesandbox/sandpack-react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
@@ -17,8 +17,8 @@ import {
 	type SetStateAction,
 	type SyntheticEvent,
 	useMemo,
-	useState,
 	useRef,
+	useState,
 } from "react";
 import { languageToTemplate, nonTemplateLanguageToExtension } from ".";
 import { RunCode } from "../../../bindings/main/NodeService";
@@ -26,6 +26,7 @@ import { BracketsSquareDots } from "../../icons/brackets-square-dots";
 import { Play } from "../../icons/circle-play";
 import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
+import type { CodeResultType } from "../../types";
 import { removeDecoratorNode } from "../../utils/commands";
 import { getDefaultButtonVariants } from "../../variants";
 import { useCodeEditorFocus } from "./hooks";
@@ -35,18 +36,18 @@ export function CodeViewer({
 	nodeKey,
 	setIsCodeSettingsOpen,
 	command,
+	codeResult,
 	setCodeResult,
-	writeFilesToNode,
+	writeDataToNode,
 	focus,
 }: {
 	language: string;
 	nodeKey: string;
 	setIsCodeSettingsOpen: Dispatch<SetStateAction<boolean>>;
 	command: string;
-	setCodeResult: Dispatch<
-		SetStateAction<{ message: string; success: string } | undefined>
-	>;
-	writeFilesToNode: (files: SandpackFiles) => void;
+	codeResult: CodeResultType;
+	setCodeResult: Dispatch<SetStateAction<CodeResultType>>;
+	writeDataToNode: (files: SandpackFiles, result: CodeResultType) => void;
 	focus: boolean;
 }) {
 	const [editor] = useLexicalComposerContext();
@@ -60,8 +61,6 @@ export function CodeViewer({
 	const [isCodeRunning, setIsCodeRunning] = useState(false);
 
 	const code = useMemo(() => files[activeFile].code, [sandpack.files]);
-	// const [codeMirrorInstance, setCodeMirrorInstance] =
-	// 	useState<CodeEditorRef | null>(null);
 
 	const codeMirrorRef = useRef<CodeEditorRef | null>(null);
 
@@ -86,7 +85,7 @@ export function CodeViewer({
 			}}
 			onKeyUp={() => {
 				editor.update(() => {
-					writeFilesToNode(files);
+					writeDataToNode(files, codeResult);
 				});
 			}}
 		>
