@@ -7,6 +7,7 @@ import {
 	SandpackFileExplorer,
 	type SandpackFiles,
 	SandpackLayout,
+	CodeEditorRef,
 } from "@codesandbox/sandpack-react";
 import { SandpackCodeEditor, useSandpack } from "@codesandbox/sandpack-react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
@@ -17,6 +18,7 @@ import {
 	type SyntheticEvent,
 	useMemo,
 	useState,
+	useRef,
 } from "react";
 import { languageToTemplate, nonTemplateLanguageToExtension } from ".";
 import { RunCode } from "../../../bindings/main/NodeService";
@@ -26,6 +28,7 @@ import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
 import { removeDecoratorNode } from "../../utils/commands";
 import { getDefaultButtonVariants } from "../../variants";
+import { useCodeEditorFocus } from "./hooks";
 
 export function CodeViewer({
 	language,
@@ -34,6 +37,7 @@ export function CodeViewer({
 	command,
 	setCodeResult,
 	writeFilesToNode,
+	focus,
 }: {
 	language: string;
 	nodeKey: string;
@@ -43,6 +47,7 @@ export function CodeViewer({
 		SetStateAction<{ message: string; success: string } | undefined>
 	>;
 	writeFilesToNode: (files: SandpackFiles) => void;
+	focus: boolean;
 }) {
 	const [editor] = useLexicalComposerContext();
 	const { sandpack } = useSandpack();
@@ -55,6 +60,10 @@ export function CodeViewer({
 	const [isCodeRunning, setIsCodeRunning] = useState(false);
 
 	const code = useMemo(() => files[activeFile].code, [sandpack.files]);
+	// const [codeMirrorInstance, setCodeMirrorInstance] =
+	// 	useState<CodeEditorRef | null>(null);
+
+	const codeMirrorRef = useRef<CodeEditorRef | null>(null);
 
 	function handleRunCode(e?: SyntheticEvent) {
 		if (e) {
@@ -67,6 +76,9 @@ export function CodeViewer({
 			setIsCodeRunning(false);
 		});
 	}
+
+	useCodeEditorFocus(codeMirrorRef, focus);
+
 	return (
 		<SandpackLayout
 			onKeyDown={(e) => {
@@ -82,6 +94,7 @@ export function CodeViewer({
 				<SandpackFileExplorer style={{ height: "auto" }} />
 			)}
 			<SandpackCodeEditor
+				ref={codeMirrorRef}
 				style={{ height: "auto" }}
 				showTabs
 				showLineNumbers={false}

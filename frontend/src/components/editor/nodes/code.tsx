@@ -140,6 +140,14 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 			writable.__command = command;
 		});
 	}
+
+	setFocus(focus: boolean, editor: LexicalEditor): void {
+		editor.update(() => {
+			const writable = this.getWritable();
+			writable.__focus = focus;
+		});
+	}
+
 	decorate(_editor: LexicalEditor): JSX.Element {
 		return (
 			<SandpackEditor

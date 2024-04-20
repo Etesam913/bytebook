@@ -1,9 +1,9 @@
 import {
 	type SandpackFiles,
-	type SandpackInternalOptions,
 	SandpackLayout,
 	SandpackPreview,
 	SandpackProvider,
+	SandpackInternalOptions,
 } from "@codesandbox/sandpack-react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
@@ -14,6 +14,7 @@ import { darkModeAtom } from "../../atoms";
 import { CodeDialog } from "./code-dialog";
 import { CodeResult } from "./code-result";
 import { CodeViewer } from "./code-viewer";
+import { useCodeEditorCommands } from "./hooks";
 
 type templates = "vanilla" | "angular" | "react" | "vue" | "svelte";
 
@@ -84,6 +85,8 @@ export function SandpackEditor({
 
 	const codeMirrorContainerRef = useRef<HTMLDivElement>(null);
 
+	useCodeEditorCommands(editor, isSelected);
+
 	function getOptions(): SandpackInternalOptions {
 		if (language in nonTemplateLanguageDefaultFiles) {
 			return {
@@ -128,6 +131,7 @@ export function SandpackEditor({
 						setIsCodeSettingsOpen={setIsCodeSettingsOpen}
 						setCodeResult={setCodeResult}
 						writeFilesToNode={writeFilesToNode}
+						focus={focus}
 					/>
 					<motion.div layout>
 						{language in languageToTemplate ? (

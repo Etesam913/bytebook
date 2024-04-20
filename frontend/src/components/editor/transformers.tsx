@@ -34,7 +34,6 @@ import {
 	TableNode,
 	TableRowNode,
 } from "@lexical/table";
-import type { LanguageName } from "@uiw/codemirror-extensions-langs";
 import {
 	$createNodeSelection,
 	$createTextNode,
@@ -96,14 +95,15 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 		}
 
 		const codeNode = $createCodeNode({
-			language: language as LanguageName,
+			language: language,
 			focus: !isImport,
 		});
 
 		const nodeSelection = $createNodeSelection();
-		textNode.replace(codeNode);
 		nodeSelection.add(codeNode.getKey());
 		$setSelection(nodeSelection);
+
+		textNode.replace(codeNode);
 	},
 	type: "element",
 };
