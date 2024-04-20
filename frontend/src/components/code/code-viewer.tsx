@@ -78,8 +78,11 @@ export function CodeViewer({
 				});
 			}}
 		>
-			{language in languageToTemplate && <SandpackFileExplorer />}
+			{language in languageToTemplate && (
+				<SandpackFileExplorer style={{ height: "auto" }} />
+			)}
 			<SandpackCodeEditor
+				style={{ height: "auto" }}
 				showTabs
 				showLineNumbers={false}
 				showInlineErrors

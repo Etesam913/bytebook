@@ -3,6 +3,7 @@ import {
 	SandpackLayout,
 	SandpackPreview,
 	SandpackProvider,
+	SandpackInternalOptions,
 } from "@codesandbox/sandpack-react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
@@ -93,14 +94,14 @@ export function SandpackEditor({
 		codeMirrorContainerRef,
 	);
 
-	function getOptions() {
+	function getOptions(): SandpackInternalOptions {
 		if (language in nonTemplateLanguageDefaultFiles) {
 			return {
 				visibleFiles: [`/main.${nonTemplateLanguageToExtension[language]}`],
 				activeFile: `/main.${nonTemplateLanguageToExtension[language]}`,
 			};
 		}
-		return undefined;
+		return {};
 	}
 
 	return (
@@ -121,7 +122,6 @@ export function SandpackEditor({
 				className="text-zinc-700 dark:text-zinc-200"
 			>
 				<SandpackProvider
-					onKeyDown={() => console.log("deez")}
 					theme={isDarkModeOn ? "dark" : "light"}
 					files={defaultFiles.current}
 					options={getOptions()}
