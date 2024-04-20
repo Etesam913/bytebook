@@ -1,7 +1,7 @@
+import { motion } from "framer-motion";
 import { memo } from "react";
 import { SquareCode } from "../../icons/square-code";
 import { cn } from "../../utils/string-formatting";
-import { motion } from "framer-motion";
 
 export const CodeResult = memo(function CodeResult({
 	codeResult,

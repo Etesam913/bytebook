@@ -2,6 +2,7 @@ import { go } from "@codemirror/lang-go";
 import { java } from "@codemirror/lang-java";
 import { python } from "@codemirror/lang-python";
 
+import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 import {
 	SandpackFileExplorer,
 	type SandpackFiles,
@@ -19,13 +20,12 @@ import {
 } from "react";
 import { languageToTemplate, nonTemplateLanguageToExtension } from ".";
 import { RunCode } from "../../../bindings/main/NodeService";
+import { BracketsSquareDots } from "../../icons/brackets-square-dots";
 import { Play } from "../../icons/circle-play";
+import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
 import { removeDecoratorNode } from "../../utils/commands";
 import { getDefaultButtonVariants } from "../../variants";
-import { Loader } from "../../icons/loader";
-import { BracketsSquareDots } from "../../icons/brackets-square-dots";
-import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 
 export function CodeViewer({
 	language,
