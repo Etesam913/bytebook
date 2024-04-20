@@ -67,6 +67,11 @@ func main() {
 		},
 	})
 
+	backgroundColor := application.NewRGB(27, 38, 54)
+	if app.IsDarkMode() {
+		backgroundColor = application.NewRGB(0, 0, 0)
+	}
+
 	window := app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
 		Title:     "Bytebook",
 		MinWidth:  800,
@@ -77,7 +82,7 @@ func main() {
 			TitleBar:                application.MacTitleBarHiddenInsetUnified,
 		},
 		EnableDragAndDrop: true,
-		BackgroundColour:  application.NewRGB(27, 38, 54),
+		BackgroundColour:  backgroundColor,
 		URL:               "/",
 	})
 
@@ -91,14 +96,14 @@ func main() {
 	})
 
 	project_helpers.SetupFolderContextMenu(app, noteContextMenu, []project_helpers.MenuItem{
-		{Label: "Delete Note", EventName: "delete-note"},
 		{Label: "Open In New Window", EventName: "open-note-in-new-window-frontend"},
+		{Label: "Delete Note", EventName: "delete-note"},
 	})
 
 	app.RegisterContextMenu("folder-context-menu", folderContextMenu)
 	app.RegisterContextMenu("note-context-menu", noteContextMenu)
 
-	custom_events.OpenNoteInNewWindowEvent(app)
+	custom_events.OpenNoteInNewWindowEvent(app, backgroundColor)
 
 	window.On(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
 		files := event.Context().DroppedFiles()

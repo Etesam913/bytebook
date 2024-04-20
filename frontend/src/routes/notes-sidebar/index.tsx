@@ -90,6 +90,12 @@ export function NotesSidebar({
 				}
 			>
 				<Link
+					onDoubleClick={() => {
+						Events.Emit({
+							name: "open-note-in-new-window-backend",
+							data: { folder, note: noteName },
+						});
+					}}
 					onContextMenu={() => setRightClickedNote(noteName)}
 					title={noteName}
 					className={cn(

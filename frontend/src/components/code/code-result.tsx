@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { SquareCode } from "../../icons/square-code";
 import { cn } from "../../utils/string-formatting";
+import { motion } from "framer-motion";
 
 export const CodeResult = memo(function CodeResult({
 	codeResult,
@@ -17,18 +18,18 @@ export const CodeResult = memo(function CodeResult({
 			)}
 		>
 			{codeResult.message.length > 0 ? (
-				<div className="whitespace-pre-wrap">
+				<motion.div layout="position" className="whitespace-pre-wrap">
 					{codeResult.message.slice(0, 3000)}
 					{codeResult.message.length > 3000 && (
 						<div className="text-red-500">
 							Output truncated to 3000 characters
 						</div>
 					)}
-				</div>
+				</motion.div>
 			) : (
 				<div className="font-display text-md flex flex-col items-center gap-3 text-balance text-center">
 					<SquareCode width="2rem" height="2rem" />
-					<p>There's nothing printed from your code</p>
+					<motion.p layout>There's nothing printed from your code</motion.p>
 				</div>
 			)}
 		</div>

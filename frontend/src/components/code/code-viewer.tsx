@@ -1,6 +1,7 @@
 import { go } from "@codemirror/lang-go";
 import { java } from "@codemirror/lang-java";
 import { python } from "@codemirror/lang-python";
+
 import {
 	SandpackFileExplorer,
 	type SandpackFiles,
@@ -13,7 +14,6 @@ import {
 	type Dispatch,
 	type SetStateAction,
 	type SyntheticEvent,
-	useEffect,
 	useMemo,
 	useState,
 } from "react";
@@ -23,10 +23,9 @@ import { Play } from "../../icons/circle-play";
 import { Trash } from "../../icons/trash";
 import { removeDecoratorNode } from "../../utils/commands";
 import { getDefaultButtonVariants } from "../../variants";
-
 import { Loader } from "../../icons/loader";
-
 import { BracketsSquareDots } from "../../icons/brackets-square-dots";
+import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 
 export function CodeViewer({
 	language,
@@ -68,7 +67,6 @@ export function CodeViewer({
 			setIsCodeRunning(false);
 		});
 	}
-
 	return (
 		<SandpackLayout
 			onKeyDown={(e) => {
@@ -86,6 +84,10 @@ export function CodeViewer({
 				showLineNumbers={false}
 				showInlineErrors
 				closableTabs
+				extensions={[autocompletion()]}
+				key={activeFile}
+				//@ts-expect-error there is a readonly error, but that is not important
+				extensionsKeymap={completionKeymap}
 				additionalLanguages={[
 					{
 						name: "python",

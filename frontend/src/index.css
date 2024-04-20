@@ -64,15 +64,26 @@ h3 {
     font-size: 14px;
 }
 
-.cm-tooltip.cm-tooltip-autocomplete ul {
-    font-family: "Jetbrains Mono", monospace;
-    font-size: 12px;
+.cm-tooltip{
+    @apply !bg-white dark:!bg-zinc-800 text-zinc-900 dark:text-zinc-200 !border-zinc-200 dark:!border-zinc-600 rounded-md overflow-hidden !p-1 ;
 }
 
-.cm-tooltip.cm-tooltip-autocomplete & > ul & > li,
-& > .completion-section {
-    padding: 0.15rem;
+.cm-tooltip > ul{
+    @apply bg-white dark:bg-zinc-800 !max-h-48;
 }
+.cm-completionIcon{
+    @apply !hidden;
+}
+
+.cm-tooltip > ul >li{
+    @apply hover:bg-zinc-150 dark:hover:bg-zinc-700 !p-1.5 rounded-md overflow-hidden mb-1.5 last:mb-0;
+}
+
+.cm-completionLabel{
+    font-family: "Jetbrains Mono", monospace;
+    font-size: 13px;
+}
+
 .sp-tabs{
     margin-right: 36px;
 }

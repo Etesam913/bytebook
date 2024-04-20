@@ -7,7 +7,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-func OpenNoteInNewWindowEvent(app *application.App) {
+func OpenNoteInNewWindowEvent(app *application.App, backgroundColor application.RGBA) {
 	app.Events.On("open-note-in-new-window-backend", func(e *application.WailsEvent) {
 		switch data := e.Data.(type) {
 		case map[string]interface{}:
@@ -27,7 +27,7 @@ func OpenNoteInNewWindowEvent(app *application.App) {
 					TitleBar:                application.MacTitleBarHiddenInsetUnified,
 				},
 				EnableDragAndDrop: true,
-				BackgroundColour:  application.NewRGB(27, 38, 54),
+				BackgroundColour:  backgroundColor,
 			}).Show()
 		}
 	})

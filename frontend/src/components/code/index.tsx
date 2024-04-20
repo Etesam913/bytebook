@@ -4,10 +4,9 @@ import {
 	SandpackPreview,
 	SandpackProvider,
 } from "@codesandbox/sandpack-react";
-
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { useRef, useState } from "react";
 import { darkModeAtom } from "../../atoms";
@@ -36,7 +35,7 @@ export const nonTemplateLanguageDefaultFiles: Record<string, SandpackFiles> = {
 	python: { "main.py": { code: "print('hello world')\n\n\n", active: true } },
 	go: {
 		"main.go": {
-			code: `package main\n\nimport "fmt"\n\nfunc main(){\n\tfmt.Println("nice")\n}`,
+			code: `package main\n\nimport "fmt"\n\nfunc main(){\n  fmt.Println("nice")\n}`,
 			active: true,
 		},
 	},
@@ -140,14 +139,15 @@ export function SandpackEditor({
 						setCodeResult={setCodeResult}
 						writeFilesToNode={writeFilesToNode}
 					/>
-
-					{language in languageToTemplate ? (
-						<SandpackLayout>
-							<SandpackPreview showNavigator showOpenInCodeSandbox={false} />
-						</SandpackLayout>
-					) : (
-						<CodeResult codeResult={codeResult} />
-					)}
+					<motion.div layout>
+						{language in languageToTemplate ? (
+							<SandpackLayout>
+								<SandpackPreview showNavigator showOpenInCodeSandbox={false} />
+							</SandpackLayout>
+						) : (
+							<CodeResult codeResult={codeResult} />
+						)}
+					</motion.div>
 				</SandpackProvider>
 			</div>
 		</>
