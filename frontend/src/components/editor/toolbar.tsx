@@ -178,7 +178,7 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 	return (
 		<nav
 			className={cn(
-				"ml-[-4px] flex flex-wrap gap-1.5 border-b-[1px] border-b-zinc-200 py-2 pl-1 dark:border-b-zinc-700",
+				"ml-[-4px] flex gap-1.5 border-b-[1px] border-b-zinc-200 p-2 dark:border-b-zinc-700",
 				isNoteMaximized && "!pl-[5.75rem]",
 			)}
 		>
@@ -206,32 +206,35 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 					disabled={disabled}
 				/>
 			</span>
-			{commandButtons.slice(0, 2)}
-			{textFormattingButtons}
-			<motion.button
-				{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
-				className={cn(
-					"rounded-md py-1 px-2 transition-colors duration-300 disabled:opacity-30",
-				)}
-				disabled={disabled}
-				type="button"
-				onClick={() => {
-					editor.update(() => {
-						const selection = $getSelection();
-						if ($isRangeSelection(selection)) {
-							const nativeSelection = window.getSelection()?.getRangeAt(0);
-							const domRect = nativeSelection?.getBoundingClientRect();
-							if (domRect) {
-								const { top, left } = domRect;
-								setFloatingLinkData({ isOpen: true, top, left });
+
+			<span className="flex overflow-x-auto gap-1.5">
+				{commandButtons.slice(0, 2)}
+				{textFormattingButtons}
+				<motion.button
+					{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
+					className={cn(
+						"rounded-md py-1 px-2 transition-colors duration-300 disabled:opacity-30",
+					)}
+					disabled={disabled}
+					type="button"
+					onClick={() => {
+						editor.update(() => {
+							const selection = $getSelection();
+							if ($isRangeSelection(selection)) {
+								const nativeSelection = window.getSelection()?.getRangeAt(0);
+								const domRect = nativeSelection?.getBoundingClientRect();
+								if (domRect) {
+									const { top, left } = domRect;
+									setFloatingLinkData({ isOpen: true, top, left });
+								}
 							}
-						}
-					});
-				}}
-			>
-				<Link />
-			</motion.button>
-			{commandButtons.slice(2)}
+						});
+					}}
+				>
+					<Link />
+				</motion.button>
+				{commandButtons.slice(2)}
+			</span>
 		</nav>
 	);
 }

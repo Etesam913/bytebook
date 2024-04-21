@@ -10,12 +10,14 @@ import { Gear } from "../../icons/gear.tsx";
 import { updateFolders } from "../../utils/fetch-functions";
 import { useWailsEvent } from "../../utils/hooks.tsx";
 import { getDefaultButtonVariants } from "../../variants";
-import { MotionButton } from "../buttons";
+import { IconButton, MotionButton, MotionIconButton } from "../buttons";
 import { SyncChangesButton } from "../buttons/sync-changes";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
+import { CircleArrowLeft } from "../../icons/circle-arrow-left.tsx";
+import { CircleArrowRight } from "../../icons/circle-arrow-right.tsx";
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
@@ -86,14 +88,26 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 				style={{ width }}
 				className="text-md flex h-screen flex-col px-[10px]"
 			>
-				<div className="h-[3.625rem] flex flex-col justify-center">
-					<MotionButton
+				<div className="h-[3.625rem] flex gap-0.5 justify-end items-center">
+					<MotionIconButton
 						{...getDefaultButtonVariants()}
-						title="Settings"
-						className="transition-colors ml-auto !bg-transparent border-0 p-1.5 hover:!bg-zinc-100 dark:hover:!bg-zinc-700 rounded-md"
+						title="Go Back"
+						onClick={() => window.history.back()}
 					>
+						<CircleArrowLeft title="Go Back" />
+					</MotionIconButton>
+
+					<MotionIconButton
+						onClick={() => window.history.forward()}
+						{...getDefaultButtonVariants()}
+						title="Go Right"
+					>
+						<CircleArrowRight title="Go Right" />
+					</MotionIconButton>
+
+					<MotionIconButton {...getDefaultButtonVariants()} title="Settings">
 						<Gear title="Settings" />
-					</MotionButton>
+					</MotionIconButton>
 				</div>
 				<div className="flex h-full flex-col gap-2">
 					<MotionButton
