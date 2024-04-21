@@ -1,8 +1,7 @@
-import { Events } from "@wailsio/runtime";
 import { AnimatePresence, type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { type CSSProperties, useEffect, useMemo, useState } from "react";
-import { Link, useSearch } from "wouter";
+import { type CSSProperties, useEffect, useState } from "react";
+import { Link } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder } from "../../../bindings/main/FolderService.ts";
 import {
@@ -25,6 +24,8 @@ import { updateMostRecentNotesOnNoteDelete } from "../../utils/misc.ts";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { NotesSidebarDialog } from "./sidebar-dialog";
+import { Events } from "@wailsio/runtime";
+import { WINDOW_ID } from "../../App.tsx";
 
 export function NotesSidebar({
 	params,
@@ -44,9 +45,23 @@ export function NotesSidebar({
 	const isStandalone = useIsStandalone();
 	const [rightClickedNote, setRightClickedNote] = useState<string | null>(null);
 
+	// Initially fetches notes for a folder using the filesystem
 	useEffect(() => {
 		updateNotes(folder, note, setNotes);
-	}, [folder, setNotes, note]);
+	}, [folder, setNotes]);
+
+	// Updates notes state when notes are changed
+	useWailsEvent("notes:changed", (body) => {
+		const data = body.data as { windowId: string; notes: string[] | null };
+		if (note && data.notes) {
+			if (!data.notes.includes(note)) {
+				const firstNote = data.notes.at(0);
+				const newUrl = firstNote ? `/${folder}/${firstNote}` : `/${folder}`;
+				navigate(newUrl);
+			}
+		}
+		setNotes(data.notes);
+	});
 
 	useWailsEvent("delete-note", (event) => {
 		const noteName = event.data as string;
@@ -54,7 +69,10 @@ export function NotesSidebar({
 			if (res.success) {
 				const remainingNotes = notes?.filter((v) => v !== noteName);
 				if (remainingNotes) {
-					setNotes(remainingNotes);
+					Events.Emit({
+						name: "notes:changed",
+						data: { windowId: WINDOW_ID, notes: remainingNotes },
+					});
 					updateMostRecentNotesOnNoteDelete(
 						folder,
 						noteName,
@@ -125,7 +143,7 @@ export function NotesSidebar({
 						isNoteDialogOpen={isNoteDialogOpen}
 						setIsNoteDialogOpen={setIsNoteDialogOpen}
 						folderName={folder}
-						setNotes={setNotes}
+						notes={notes}
 					/>
 				)}
 			</AnimatePresence>

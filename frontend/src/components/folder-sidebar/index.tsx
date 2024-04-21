@@ -14,6 +14,8 @@ import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
+import { navigate } from "wouter/use-browser-location";
+import { WINDOW_ID } from "../../App.tsx";
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
@@ -26,28 +28,48 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [isSyncing, setIsSyncing] = useState(false);
 
 	useWailsEvent("delete-folder", (event) => {
-		const folderName = event.data as string;
-		setIsFolderDialogOpen({
-			isOpen: true,
-			action: "delete",
-			folderName,
-		});
-	});
-	useWailsEvent("rename-folder", (event) => {
-		const folderName = event.data as string;
-		setIsFolderDialogOpen({
-			isOpen: true,
-			action: "rename",
-			folderName,
-		});
-	});
-	useWailsEvent("create-note", () => {
-		// setIsFolderDialogOpen({ isOpen: true, action: "create" });
+		const [folderName, windowId] = (event.data as string).split(",");
+		if (windowId === WINDOW_ID) {
+			setIsFolderDialogOpen({
+				isOpen: true,
+				action: "delete",
+				folderName,
+			});
+		}
 	});
 
+	useWailsEvent("rename-folder", (event) => {
+		const [folderName, windowId] = (event.data as string).split(",");
+		if (windowId === WINDOW_ID) {
+			setIsFolderDialogOpen({
+				isOpen: true,
+				action: "rename",
+				folderName,
+			});
+		}
+	});
+
+	// useWailsEvent("create-note", () => {
+	// 	// setIsFolderDialogOpen({ isOpen: true, action: "create" });
+	// });
+
+	// Initially fetches folders from filesystem
 	useEffect(() => {
 		updateFolders(setFolders);
 	}, [setFolders]);
+
+	// Updates the folders state when folders is changed
+	useWailsEvent("folders:changed", (body) => {
+		const data = body.data as { windowId: string; folders: string[] | null };
+		if (folder && data.folders) {
+			if (!data.folders.includes(folder)) {
+				const firstFolder = data.folders.at(0);
+				const newUrl = firstFolder ? `/${firstFolder}` : "/";
+				navigate(newUrl);
+			}
+		}
+		setFolders(data.folders);
+	});
 
 	return (
 		<>
@@ -56,7 +78,6 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					<FolderSidebarDialog
 						isFolderDialogOpen={isFolderDialogOpen}
 						setIsFolderDialogOpen={setIsFolderDialogOpen}
-						setFolders={setFolders}
 						folders={folders ?? []}
 					/>
 				)}

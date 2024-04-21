@@ -23,8 +23,8 @@ import {
 	languageCommandData,
 	listCommandData,
 } from "../utils";
-import { INSERT_IMAGES_COMMAND } from "./image";
 import { INSERT_CODE_COMMAND } from "./code";
+import { INSERT_IMAGES_COMMAND } from "./image";
 
 class ComponentPickerOption extends MenuOption {
 	// What shows up in the editor

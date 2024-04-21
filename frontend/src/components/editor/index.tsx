@@ -14,7 +14,7 @@ import { useAtomValue } from "jotai";
 import type { LexicalEditor } from "lexical";
 import { useRef, useState } from "react";
 import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
-import { APP_ID } from "../../App.tsx";
+import { WINDOW_ID } from "../../App.tsx";
 import { isNoteMaximizedAtom } from "../../atoms";
 import type { FloatingLinkData } from "../../types.ts";
 import { debounce } from "../../utils/draggable";
@@ -50,7 +50,7 @@ function handleChange(
 			const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
 			Events.Emit({
 				name: "note:changed",
-				data: { folder, note, markdown, oldWindowAppId: APP_ID },
+				data: { folder, note, markdown, oldWindowAppId: WINDOW_ID },
 			});
 			SetNoteMarkdown(folder, note, markdown);
 		},
@@ -77,7 +77,7 @@ export function NotesEditor({
 	return (
 		<div
 			className={cn(
-				"flex min-w-0 flex-1 flex-col",
+				"flex min-w-0 flex-1 flex-col leading-7",
 				(isNoteMaximized || isStandalone) && "mt-[1px]",
 			)}
 		>

@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $setBlocksType } from "@lexical/selection";
 import { motion } from "framer-motion";
-import { useAtom, SetStateAction } from "jotai";
+import { type SetStateAction, useAtom } from "jotai";
 import {
 	$createParagraphNode,
 	$getSelection,
@@ -12,7 +12,7 @@ import {
 	UNDO_COMMAND,
 } from "lexical";
 import { type Dispatch, useState } from "react";
-import { APP_ID } from "../../App";
+import { WINDOW_ID } from "../../App";
 import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
 import { Link } from "../../icons/link";
 import { Redo } from "../../icons/redo";
@@ -70,7 +70,7 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 		if (
 			folderName === folder &&
 			noteName === note &&
-			oldWindowAppId !== APP_ID
+			oldWindowAppId !== WINDOW_ID
 		) {
 			editor.update(
 				() => {

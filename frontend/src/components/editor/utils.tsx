@@ -32,22 +32,22 @@ import {
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { toast } from "sonner";
 import { UploadImage } from "../../../bindings/main/NodeService";
+import { AngularLogo } from "../../icons/angular-logo";
 import { ImageIcon } from "../../icons/image";
 import { ListCheckbox } from "../../icons/list-checkbox";
 import { OrderedList } from "../../icons/ordered-list";
+import { SvelteLogo } from "../../icons/svelte-logo";
 import { TextBold } from "../../icons/text-bold";
 import { TextItalic } from "../../icons/text-italic";
 import { TextStrikethrough } from "../../icons/text-strikethrough";
 import { TextUnderline } from "../../icons/text-underline";
 import { UnorderedList } from "../../icons/unordered-list";
+import { VueLogo } from "../../icons/vue-logo";
 import type { EditorBlockTypes } from "../../types";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
 import { ImageNode } from "./nodes/image";
 import { INSERT_IMAGES_COMMAND } from "./plugins/image";
-import { SvelteLogo } from "../../icons/svelte-logo";
-import { VueLogo } from "../../icons/vue-logo";
-import { AngularLogo } from "../../icons/angular-logo";
 
 export type TextFormats =
 	| null

@@ -21,6 +21,8 @@ import { fileNameRegex } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../buttons";
 import { Dialog, ErrorText } from "../dialog";
+import { Events } from "@wailsio/runtime";
+import { WINDOW_ID } from "../../App.tsx";
 
 const actionNameMap: Record<
 	FolderDialogAction,
@@ -34,12 +36,10 @@ const actionNameMap: Record<
 export function FolderSidebarDialog({
 	isFolderDialogOpen,
 	setIsFolderDialogOpen,
-	setFolders,
 	folders,
 }: {
 	isFolderDialogOpen: FolderDialogState;
 	setIsFolderDialogOpen: Dispatch<SetStateAction<FolderDialogState>>;
-	setFolders: Dispatch<SetStateAction<string[] | null>>;
 	folders: string[];
 }) {
 	const [errorText, setErrorText] = useState("");
@@ -65,9 +65,17 @@ export function FolderSidebarDialog({
 								if (res.success) {
 									setIsFolderDialogOpen({ isOpen: false, folderName });
 									setErrorText("");
-									setFolders((prev) =>
-										prev ? [...prev, folderName] : [folderName],
-									);
+
+									Events.Emit({
+										name: "folders:changed",
+										data: {
+											folders: folders
+												? [...folders, folderName]
+												: [folderName],
+											windowId: WINDOW_ID,
+										},
+									});
+
 									navigate(`/${folderName}`);
 								} else {
 									setErrorText(res.message);
@@ -83,17 +91,21 @@ export function FolderSidebarDialog({
 								if (res.success) {
 									setIsFolderDialogOpen({ isOpen: false, folderName: "" });
 									setErrorText("");
-									setFolders((prev) => {
-										return prev
-											? prev.map(
-													(v: string) =>
+
+									Events.Emit({
+										name: "folders:changed",
+										data: {
+											folders: folders
+												? folders.map((v: string) =>
 														v === isFolderDialogOpen.folderName
 															? folderName
 															: v,
-													// eslint-disable-next-line no-mixed-spaces-and-tabs
-												)
-											: [folderName];
+													)
+												: [folderName],
+											windowId: WINDOW_ID,
+										},
 									});
+
 									navigate(`/${folderName}`);
 								}
 							})
@@ -111,7 +123,13 @@ export function FolderSidebarDialog({
 								(v) => v !== isFolderDialogOpen.folderName,
 							);
 							navigate(folders.length > 1 ? `/${newFolders[0]}` : "/");
-							setFolders(newFolders);
+							Events.Emit({
+								name: "folders:changed",
+								data: {
+									folders: newFolders,
+									windowId: WINDOW_ID,
+								},
+							});
 							setIsFolderDialogOpen({ isOpen: false, folderName: "" });
 							updateMostRecentNotesOnFolderDelete(
 								isFolderDialogOpen.folderName,

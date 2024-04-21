@@ -7,6 +7,7 @@ import { ChevronDown } from "../../icons/chevron-down.tsx";
 import { FolderOpen } from "../../icons/folder-open.tsx";
 import { Folder } from "../../icons/folder.tsx";
 import { cn } from "../../utils/string-formatting.ts";
+import { WINDOW_ID } from "../../App.tsx";
 
 export function MyFoldersAccordion({
 	folder,
@@ -24,7 +25,7 @@ export function MyFoldersAccordion({
 				style={
 					{
 						"--custom-contextmenu": "folder-context-menu",
-						"--custom-contextmenu-data": folderName,
+						"--custom-contextmenu-data": [folderName, WINDOW_ID],
 					} as CSSProperties
 				}
 			>

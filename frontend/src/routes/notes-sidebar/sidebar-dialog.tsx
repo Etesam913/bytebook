@@ -6,17 +6,19 @@ import { Dialog, ErrorText } from "../../components/dialog";
 import { Compose } from "../../icons/compose";
 import { fileNameRegex } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
+import { Events } from "@wailsio/runtime";
+import { WINDOW_ID } from "../../App";
 
 export function NotesSidebarDialog({
 	isNoteDialogOpen,
 	setIsNoteDialogOpen,
 	folderName,
-	setNotes,
+	notes,
 }: {
 	isNoteDialogOpen: boolean;
 	setIsNoteDialogOpen: Dispatch<SetStateAction<boolean>>;
 	folderName: string;
-	setNotes: Dispatch<SetStateAction<string[] | null>>;
+	notes: string[] | null;
 }) {
 	const [errorText, setErrorText] = useState("");
 
@@ -40,9 +42,13 @@ export function NotesSidebarDialog({
 								setIsNoteDialogOpen(false);
 								setErrorText("");
 								navigate(`/${folderName}/${noteName}`);
-								setNotes((prev) =>
-									!prev ? [noteName as string] : [...prev, noteName as string],
-								);
+								Events.Emit({
+									name: "notes:changed",
+									data: {
+										windowId: WINDOW_ID,
+										notes: !notes ? [noteName] : [...notes, noteName],
+									},
+								});
 							} else {
 								setErrorText(res.message);
 							}

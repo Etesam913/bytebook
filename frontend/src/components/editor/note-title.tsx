@@ -8,6 +8,8 @@ import { navigate } from "wouter/use-browser-location";
 import { RenameNote } from "../../../bindings/main/NoteService";
 import { isToolbarDisabled, mostRecentNotesAtom, notesAtom } from "../../atoms";
 import { cn, fileNameRegex } from "../../utils/string-formatting";
+import { Events } from "@wailsio/runtime";
+import { WINDOW_ID } from "../../App";
 
 export function NoteTitle({
 	note,
@@ -18,7 +20,7 @@ export function NoteTitle({
 }) {
 	const [editor] = useLexicalComposerContext();
 	const [noteTitle, setNoteTitle] = useState(note);
-	const setNotes = useSetAtom(notesAtom);
+	const [notes, setNotes] = useAtom(notesAtom);
 	const [errorText, setErrorText] = useState("");
 	const setIsToolbarDisabled = useSetAtom(isToolbarDisabled);
 	const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);
@@ -56,12 +58,15 @@ export function NoteTitle({
 					RenameNote(folder, note, noteTitle)
 						.then((res) => {
 							if (res.success) {
-								setNotes(
-									(prev) =>
-										prev?.map((v) => (v === note ? noteTitle : v)) ?? [
+								Events.Emit({
+									name: "notes:changed",
+									data: {
+										windowId: WINDOW_ID,
+										notes: notes?.map((v) => (v === note ? noteTitle : v)) ?? [
 											noteTitle,
 										],
-								);
+									},
+								});
 								const indexOfOldNoteTitle = mostRecentNotes.findIndex((path) =>
 									path.endsWith(note),
 								);
