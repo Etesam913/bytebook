@@ -1,3 +1,4 @@
+import { Events } from "@wailsio/runtime";
 import { useAtom } from "jotai";
 import {
 	type Dispatch,
@@ -11,6 +12,7 @@ import {
 	DeleteFolder,
 	RenameFolder,
 } from "../../../bindings/main/FolderService";
+import { WINDOW_ID } from "../../App.tsx";
 import { mostRecentNotesAtom } from "../../atoms.ts";
 import { FolderPen } from "../../icons/folder-pen.tsx";
 import { FolderPlus } from "../../icons/folder-plus";
@@ -21,8 +23,6 @@ import { fileNameRegex } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../buttons";
 import { Dialog, ErrorText } from "../dialog";
-import { Events } from "@wailsio/runtime";
-import { WINDOW_ID } from "../../App.tsx";
 
 const actionNameMap: Record<
 	FolderDialogAction,

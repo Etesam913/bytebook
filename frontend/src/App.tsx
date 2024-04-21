@@ -5,11 +5,7 @@ import { Route } from "wouter";
 import { isNoteMaximizedAtom } from "./atoms";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { NotesSidebar } from "./routes/notes-sidebar";
-import {
-	useDarkModeSetting,
-	useImageDrop,
-	useIsStandalone,
-} from "./utils/hooks";
+import { useDarkModeSetting, useImageDrop } from "./utils/hooks";
 
 export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
 
@@ -20,7 +16,6 @@ function App() {
 
 	useDarkModeSetting();
 	useImageDrop();
-	const isStandalone = useIsStandalone();
 
 	return (
 		<main
@@ -28,9 +23,7 @@ function App() {
 			className="flex max-h-screen font-display text-zinc-950 dark:text-zinc-100"
 		>
 			<Toaster richColors theme="system" />
-			{!isNoteMaximized && !isStandalone && (
-				<FolderSidebar width={folderSidebarWidth} />
-			)}
+			{!isNoteMaximized && <FolderSidebar width={folderSidebarWidth} />}
 			<Route path="/:folder/:note?">
 				{(folderParams) => (
 					<NotesSidebar

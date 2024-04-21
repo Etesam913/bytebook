@@ -18,7 +18,6 @@ import { WINDOW_ID } from "../../App.tsx";
 import { isNoteMaximizedAtom } from "../../atoms";
 import type { FloatingLinkData } from "../../types.ts";
 import { debounce } from "../../utils/draggable";
-import { useIsStandalone } from "../../utils/hooks.tsx";
 import { cn } from "../../utils/string-formatting";
 import { editorConfig } from "./editor-config";
 import { useMostRecentNotes } from "./hooks.tsx";
@@ -73,12 +72,11 @@ export function NotesEditor({
 	});
 
 	useMostRecentNotes(folder, note);
-	const isStandalone = useIsStandalone();
 	return (
 		<div
 			className={cn(
 				"flex min-w-0 flex-1 flex-col leading-7",
-				(isNoteMaximized || isStandalone) && "mt-[1px]",
+				isNoteMaximized && "mt-[1px]",
 			)}
 		>
 			<LexicalComposer initialConfig={editorConfig}>
@@ -91,7 +89,7 @@ export function NotesEditor({
 					style={{ scrollbarGutter: "stable" }}
 					className={cn(
 						"h-[calc(100vh-38px)] overflow-y-auto py-2 px-3",
-						(isNoteMaximized || isStandalone) && "px-5",
+						isNoteMaximized && "px-5",
 					)}
 					onClick={(e) => {
 						const target = e.target as HTMLElement & { ariaChecked?: string };

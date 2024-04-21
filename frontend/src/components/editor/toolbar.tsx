@@ -11,7 +11,7 @@ import {
 	type TextFormatType,
 	UNDO_COMMAND,
 } from "lexical";
-import { type Dispatch, useState } from "react";
+import { type Dispatch, useEffect, useState } from "react";
 import { WINDOW_ID } from "../../App";
 import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
 import { Link } from "../../icons/link";
@@ -91,7 +91,15 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 	);
 
 	useFileDropEvent(editor, folder, note);
+
 	const isStandalone = useIsStandalone();
+
+	useEffect(() => {
+		if (isStandalone) {
+			setIsNoteMaximized(true);
+		}
+	}, [isStandalone]);
+
 	const textFormattingButtons = textFormats.map(({ icon, format }) => (
 		<motion.button
 			{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
@@ -171,21 +179,19 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 		<nav
 			className={cn(
 				"ml-[-4px] flex flex-wrap gap-1.5 border-b-[1px] border-b-zinc-200 py-2 pl-1 dark:border-b-zinc-700",
-				(isNoteMaximized || isStandalone) && "!pl-[5.75rem]",
+				isNoteMaximized && "!pl-[5.75rem]",
 			)}
 		>
 			<span className="flex items-center gap-1.5">
-				{!isStandalone && (
-					<motion.button
-						onClick={() => setIsNoteMaximized((prev) => !prev)}
-						{...getDefaultButtonVariants(disabled, 1.1, 0.95, 1.1)}
-						className="pl-[.1rem] pr-0.5"
-						type="button"
-						animate={{ rotate: isNoteMaximized ? 180 : 0 }}
-					>
-						<SidebarRightCollapse height="1.4rem" width="1.4rem" />
-					</motion.button>
-				)}
+				<motion.button
+					onClick={() => setIsNoteMaximized((prev) => !prev)}
+					{...getDefaultButtonVariants(disabled, 1.1, 0.95, 1.1)}
+					className="pl-[.1rem] pr-0.5"
+					type="button"
+					animate={{ rotate: isNoteMaximized ? 180 : 0 }}
+				>
+					<SidebarRightCollapse height="1.4rem" width="1.4rem" />
+				</motion.button>
 
 				<Dropdown
 					controlledValueIndex={blockTypesDropdownItems.findIndex(

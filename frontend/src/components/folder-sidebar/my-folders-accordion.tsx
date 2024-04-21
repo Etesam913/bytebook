@@ -2,12 +2,12 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAtomValue } from "jotai/index";
 import { type CSSProperties, useState } from "react";
 import { Link } from "wouter";
+import { WINDOW_ID } from "../../App.tsx";
 import { alphabetizedFoldersAtom } from "../../atoms.ts";
 import { ChevronDown } from "../../icons/chevron-down.tsx";
 import { FolderOpen } from "../../icons/folder-open.tsx";
 import { Folder } from "../../icons/folder.tsx";
 import { cn } from "../../utils/string-formatting.ts";
-import { WINDOW_ID } from "../../App.tsx";
 
 export function MyFoldersAccordion({
 	folder,

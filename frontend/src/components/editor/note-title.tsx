@@ -5,11 +5,11 @@ import { $getRoot } from "lexical";
 import { useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 
+import { Events } from "@wailsio/runtime";
 import { RenameNote } from "../../../bindings/main/NoteService";
+import { WINDOW_ID } from "../../App";
 import { isToolbarDisabled, mostRecentNotesAtom, notesAtom } from "../../atoms";
 import { cn, fileNameRegex } from "../../utils/string-formatting";
-import { Events } from "@wailsio/runtime";
-import { WINDOW_ID } from "../../App";
 
 export function NoteTitle({
 	note,

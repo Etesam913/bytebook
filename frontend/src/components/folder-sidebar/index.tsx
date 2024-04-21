@@ -2,6 +2,8 @@ import { AnimatePresence, type MotionValue, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { useRoute } from "wouter";
+import { navigate } from "wouter/use-browser-location";
+import { WINDOW_ID } from "../../App.tsx";
 import { foldersAtom, isFolderDialogOpenAtom } from "../../atoms";
 import { FolderPlus } from "../../icons/folder-plus";
 import { Gear } from "../../icons/gear.tsx";
@@ -14,8 +16,6 @@ import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
-import { navigate } from "wouter/use-browser-location";
-import { WINDOW_ID } from "../../App.tsx";
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
