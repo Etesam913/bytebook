@@ -1,10 +1,9 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { AnimatePresence, motion } from "framer-motion";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { $getRoot } from "lexical";
 import { useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
-
 import { Events } from "@wailsio/runtime";
 import { RenameNote } from "../../../bindings/main/NoteService";
 import { WINDOW_ID } from "../../App";
@@ -20,10 +19,11 @@ export function NoteTitle({
 }) {
 	const [editor] = useLexicalComposerContext();
 	const [noteTitle, setNoteTitle] = useState(note);
-	const [notes, setNotes] = useAtom(notesAtom);
+	const notes = useAtomValue(notesAtom);
 	const [errorText, setErrorText] = useState("");
 	const setIsToolbarDisabled = useSetAtom(isToolbarDisabled);
 	const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);
+
 	useEffect(() => {
 		setNoteTitle(note);
 		setErrorText("");
@@ -57,6 +57,7 @@ export function NoteTitle({
 					if (noteTitle === note || errorText.length > 0) return;
 					RenameNote(folder, note, noteTitle)
 						.then((res) => {
+							console.log(res);
 							if (res.success) {
 								Events.Emit({
 									name: "notes:changed",
@@ -77,6 +78,8 @@ export function NoteTitle({
 								}
 
 								navigate(`/${folder}/${noteTitle}`);
+							} else {
+								setErrorText(res.message);
 							}
 						})
 						.catch((e) => {

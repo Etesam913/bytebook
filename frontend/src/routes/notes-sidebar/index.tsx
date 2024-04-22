@@ -51,6 +51,7 @@ export function NotesSidebar({
 	useWailsEvent("notes:changed", (body) => {
 		const data = body.data as { windowId: string; notes: string[] | null };
 		if (note && data.notes) {
+			console.log(data.notes, note);
 			if (!data.notes.includes(note)) {
 				const firstNote = data.notes.at(0);
 				const newUrl = firstNote ? `/${folder}/${firstNote}` : `/${folder}`;

@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/etesam913/bytebook/lib/io_helpers"
 )
 
 type NoteService struct {
@@ -36,7 +38,7 @@ func (n *NoteService) GetNotes(folderName string) NoteResponse {
 		return NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
 	}
 
-	// Get the folders present in the notes directory
+	// Get the md files and attachments present in the notes directory
 	files, err := os.ReadDir(folderPath)
 	if err != nil {
 		return NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
@@ -44,15 +46,12 @@ func (n *NoteService) GetNotes(folderName string) NoteResponse {
 
 	var notes []string
 	for _, file := range files {
-		// Go through the folders and check if they have a markdown file
-		if file.IsDir() {
-			// Check if the markdown file exists for the folder
-			noteFilePath := filepath.Join(folderPath, file.Name(), fmt.Sprintf("%s.md", file.Name()))
-			_, err := os.Stat(noteFilePath)
-			if err != nil {
-				continue
-			}
-			notes = append(notes, file.Name())
+		// If it is a directory that means it is the attachments folder
+		if file.IsDir() && file.Name() == "attachments" {
+
+		} else if strings.HasSuffix(file.Name(), "md") {
+			withoutExtension := strings.TrimSuffix(file.Name(), ".md")
+			notes = append(notes, withoutExtension)
 		}
 	}
 	return NoteResponse{Success: true, Message: "", Data: notes}
@@ -60,18 +59,22 @@ func (n *NoteService) GetNotes(folderName string) NoteResponse {
 
 func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNoteTitle string) NoteResponse {
 	noteBase := filepath.Join(n.ProjectPath, "notes", folderName)
-	oldNotePath := filepath.Join(noteBase, oldNoteTitle)
-	newNotePath := filepath.Join(noteBase, newNoteTitle)
+	fmt.Println(noteBase)
+	doesExist, _ := io_helpers.FileExists(
+		filepath.Join(noteBase, newNoteTitle+".md"),
+	)
 
-	err := os.Rename(oldNotePath, newNotePath)
-	if err != nil {
-		return NoteResponse{Success: false, Message: err.Error()}
+	if doesExist {
+		return NoteResponse{
+			Success: false,
+			Message: fmt.Sprintf("%s already exists in /%s", newNoteTitle, folderName),
+		}
 	}
 
 	// Rename the markdown file to match the new note title
-	err = os.Rename(
-		filepath.Join(noteBase, newNoteTitle, fmt.Sprintf("%s.md", oldNoteTitle)),
-		filepath.Join(noteBase, newNoteTitle, fmt.Sprintf("%s.md", newNoteTitle)),
+	err := os.Rename(
+		filepath.Join(noteBase, fmt.Sprintf("%s.md", oldNoteTitle)),
+		filepath.Join(noteBase, fmt.Sprintf("%s.md", newNoteTitle)),
 	)
 	if err != nil {
 		return NoteResponse{Success: false, Message: err.Error()}
@@ -81,7 +84,7 @@ func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNote
 }
 
 func (n *NoteService) GetNoteMarkdown(folderName string, noteTitle string) NoteMarkdownResponse {
-	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, noteTitle, fmt.Sprintf("%s.md", noteTitle))
+	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, fmt.Sprintf("%s.md", noteTitle))
 
 	noteContent, err := os.ReadFile(noteFilePath)
 	if err != nil {
@@ -91,7 +94,7 @@ func (n *NoteService) GetNoteMarkdown(folderName string, noteTitle string) NoteM
 }
 
 func (n *NoteService) SetNoteMarkdown(folderName string, noteTitle string, markdown string) NoteMarkdownResponse {
-	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, noteTitle, fmt.Sprintf("%s.md", noteTitle))
+	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, fmt.Sprintf("%s.md", noteTitle))
 
 	err := os.WriteFile(noteFilePath, []byte(markdown), 0644)
 
@@ -107,7 +110,10 @@ func AddFolder(folderName string, projectPath string) AddFolderResponse {
 	info, err := os.Stat(pathToFolder)
 	if err == nil {
 		if info.IsDir() {
-			return AddFolderResponse{Success: false, Message: fmt.Sprintf("Folder name, \"%s\", already exists, please choose a different name", folderName)}
+			return AddFolderResponse{
+				Success: false,
+				Message: fmt.Sprintf("Folder name, \"%s\", already exists, please choose a different name", folderName),
+			}
 		}
 	}
 
@@ -120,18 +126,7 @@ func AddFolder(folderName string, projectPath string) AddFolderResponse {
 
 func (n *NoteService) AddNoteToFolder(folderName string, noteTitle string) AddFolderResponse {
 	noteFolderPath := filepath.Join(n.ProjectPath, "notes", folderName)
-	/*
-		A new folder should be created for the noteTitle
-		This is where the markdown, images, and other files will be stored for the note
-	*/
-	req := AddFolder(filepath.Join(folderName, noteTitle), n.ProjectPath)
-	if !req.Success {
-		if strings.Contains(req.Message, "already exists") {
-			return AddFolderResponse{Success: false, Message: fmt.Sprintf("Note, \"%s\", already exists, please choose a different name", noteTitle)}
-		}
-		return req
-	}
-	noteFilePath := filepath.Join(noteFolderPath, noteTitle, fmt.Sprintf("%s.md", noteTitle))
+	noteFilePath := filepath.Join(noteFolderPath, fmt.Sprintf("%s.md", noteTitle))
 
 	// Create an empty markdown file at the location
 	err := os.WriteFile(noteFilePath, []byte(""), 0644)

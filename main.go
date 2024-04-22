@@ -89,13 +89,13 @@ func main() {
 	folderContextMenu := app.NewMenu()
 	noteContextMenu := app.NewMenu()
 
-	project_helpers.SetupContextMenu(app, folderContextMenu, []project_helpers.MenuItem{
+	project_helpers.CreateFolderContextMenu(app, folderContextMenu, []project_helpers.MenuItem{
 		{Label: "Rename Folder", EventName: "rename-folder"},
 		{Label: "Add Note", EventName: "add-note"},
 		{Label: "Delete Folder", EventName: "delete-folder"},
 	})
 
-	project_helpers.SetupContextMenu(app, noteContextMenu, []project_helpers.MenuItem{
+	project_helpers.CreateFolderContextMenu(app, noteContextMenu, []project_helpers.MenuItem{
 		{Label: "Open In New Window", EventName: "open-note-in-new-window-frontend"},
 		{Label: "Delete Note", EventName: "delete-note"},
 	})

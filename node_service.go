@@ -222,7 +222,10 @@ func (n *NodeService) CleanAndCopyFiles(filePaths string, folderPath string, not
 }
 
 func (n *NodeService) UploadImage(folderPath string, notePath string) []string {
-	filePaths, _ := application.OpenFileDialog().AddFilter("Image Files", "*.jpg;*.png;*.webp;*.jpeg").CanChooseFiles(true).PromptForMultipleSelection()
+	filePaths, _ := application.OpenFileDialog().
+		AddFilter("Image Files", "*.jpg;*.png;*.webp;*.jpeg").
+		CanChooseFiles(true).
+		PromptForMultipleSelection()
 	return n.CleanAndCopyFiles(strings.Join(filePaths, ","), folderPath, notePath)
 }
 

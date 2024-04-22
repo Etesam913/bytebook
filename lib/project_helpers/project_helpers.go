@@ -43,18 +43,13 @@ func GetProjectPath() (string, error) {
 	return projectPath, nil
 }
 
-// MenuItem represents an item in the context menu
-type MenuItem struct {
-	Label     string
-	EventName string
-}
-
-// SetupContextMenu dynamically sets up the folder context menu
-func SetupContextMenu(app *application.App, folderContextMenu *application.Menu, menuItems []MenuItem) {
+// SetupFolderContextMenu dynamically sets up the folder context menu
+func CreateFolderContextMenu(app *application.App, folderContextMenu *application.Menu, menuItems []MenuItem) {
 	for _, item := range menuItems {
 		folderContextMenu.Add(item.Label).OnClick(func(data *application.Context) {
 			contextData, isString := data.ContextMenuData().(string)
 			if isString {
+
 				app.Events.Emit(&application.WailsEvent{
 					Name: item.EventName,
 					Data: contextData,
@@ -62,4 +57,10 @@ func SetupContextMenu(app *application.App, folderContextMenu *application.Menu,
 			}
 		})
 	}
+}
+
+// MenuItem represents an item in the context menu
+type MenuItem struct {
+	Label     string
+	EventName string
 }

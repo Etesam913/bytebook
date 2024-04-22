@@ -120,3 +120,14 @@ func CleanFileName(filename string) string {
 	// ensuring it does not start with a dot if hidden files are a concern, etc.
 	return cleaned
 }
+
+func FileExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
