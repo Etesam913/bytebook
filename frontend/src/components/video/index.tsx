@@ -104,17 +104,13 @@ export function Video({
 					writeWidthToNode={writeWidthToNode}
 					elementType="video"
 				>
-					{/* biome-ignore lint/a11y/useMediaCaption: <explanation> */}
+					{/* biome-ignore lint/a11y/useMediaCaption: bruh */}
 					<video
 						ref={videoRef}
 						className="w-full h-auto bg-black"
 						title={title}
 						src={src}
 						controls
-						onClick={() => {
-							clearSelection();
-							setSelected(true);
-						}}
 					>
 						{subtitleUrl.length > 0 && (
 							<track

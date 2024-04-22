@@ -11,6 +11,8 @@ export const mostRecentNotesAtom = atom(
 		set(privateMostRecentNotesAtom, payload);
 	},
 );
+
+export const attachmentsAtom = atom<string[] | null>([]);
 export const notesAtom = atom<string[] | null>([]);
 export const foldersAtom = atom<string[] | null>([]);
 export const alphabetizedFoldersAtom = atom((get) => {

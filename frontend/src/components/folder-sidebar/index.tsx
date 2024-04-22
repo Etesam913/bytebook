@@ -5,6 +5,8 @@ import { useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import { WINDOW_ID } from "../../App.tsx";
 import { foldersAtom, isFolderDialogOpenAtom } from "../../atoms";
+import { CircleArrowLeft } from "../../icons/circle-arrow-left.tsx";
+import { CircleArrowRight } from "../../icons/circle-arrow-right.tsx";
 import { FolderPlus } from "../../icons/folder-plus";
 import { Gear } from "../../icons/gear.tsx";
 import { updateFolders } from "../../utils/fetch-functions";
@@ -16,8 +18,6 @@ import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
-import { CircleArrowLeft } from "../../icons/circle-arrow-left.tsx";
-import { CircleArrowRight } from "../../icons/circle-arrow-right.tsx";
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");

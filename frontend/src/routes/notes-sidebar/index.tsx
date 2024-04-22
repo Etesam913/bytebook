@@ -1,8 +1,7 @@
 import { Events } from "@wailsio/runtime";
 import { AnimatePresence, type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { type CSSProperties, useEffect, useState } from "react";
-import { Link } from "wouter";
+import { useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder } from "../../../bindings/main/FolderService.ts";
 import { WINDOW_ID } from "../../App.tsx";
@@ -16,15 +15,14 @@ import { MotionButton } from "../../components/buttons";
 import { NotesEditor } from "../../components/editor";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Compose } from "../../icons/compose";
-import { FilePen } from "../../icons/file-pen.tsx";
 import { Folder } from "../../icons/folder";
-import { Note } from "../../icons/page";
 import { Pen } from "../../icons/pen";
 import { updateNotes } from "../../utils/fetch-functions";
 import { useWailsEvent } from "../../utils/hooks.tsx";
 import { updateMostRecentNotesOnNoteDelete } from "../../utils/misc.ts";
-import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
+import { AttachmentsAccordion } from "./attachments-accordion.tsx";
+import { MyNotesAccordion } from "./my-notes-accordion.tsx";
 import { NotesSidebarDialog } from "./sidebar-dialog";
 
 export function NotesSidebar({
@@ -95,45 +93,6 @@ export function NotesSidebar({
 		}
 	});
 
-	const noteElements = notes?.map((noteName) => (
-		<li key={noteName}>
-			<div
-				className="flex select-none items-center gap-2 overflow-hidden pr-1"
-				style={
-					{
-						"--custom-contextmenu": "note-context-menu",
-						"--custom-contextmenu-data": noteName,
-					} as CSSProperties
-				}
-			>
-				<Link
-					onDoubleClick={() => {
-						Events.Emit({
-							name: "open-note-in-new-window-backend",
-							data: { folder, note: noteName },
-						});
-					}}
-					onContextMenu={() => setRightClickedNote(noteName)}
-					title={noteName}
-					className={cn(
-						"mb-[0.15rem] flex flex-1 items-center gap-2 overflow-auto rounded-md px-2.5 py-[0.35rem]",
-						noteName === note && "bg-zinc-100 dark:bg-zinc-700",
-					)}
-					to={`/${encodeURI(folder)}/${encodeURI(noteName)}`}
-				>
-					{noteName === note ? (
-						<FilePen title="" className="min-w-[1.25rem]" />
-					) : (
-						<Note title="" className="min-w-[1.25rem]" />
-					)}{" "}
-					<p className="overflow-hidden text-ellipsis whitespace-nowrap">
-						{noteName}
-					</p>
-				</Link>
-			</div>
-		</li>
-	));
-
 	return (
 		<>
 			<AnimatePresence>
@@ -182,25 +141,13 @@ export function NotesSidebar({
 							>
 								Create Note <Compose />
 							</MotionButton>
-							<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
-								<p className="px-1.5 py-1">
-									My Notes{" "}
-									{noteElements && noteElements.length > 0 && (
-										<span className="tracking-wider">
-											({noteElements.length})
-										</span>
-									)}
-								</p>
-								<ul className="overflow-y-auto pb-2">
-									{noteElements && noteElements.length > 0 ? (
-										noteElements
-									) : (
-										<li className="text-center text-xs text-zinc-500 w-full dark:text-zinc-300">
-											Create a note with the "Create Note" button above
-										</li>
-									)}
-								</ul>
-							</section>
+							<MyNotesAccordion
+								folder={folder}
+								note={note}
+								notes={notes}
+								setRightClickedNote={setRightClickedNote}
+							/>
+							<AttachmentsAccordion />
 						</div>
 					</motion.aside>
 					<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
