@@ -64,6 +64,13 @@ func (f *FolderService) AddFolder(folderName string) FolderResponse {
 	if err := os.MkdirAll(pathToFolder, os.ModePerm); err != nil {
 		return FolderResponse{Success: false, Message: err.Error()}
 	}
+
+	// Create an attachments folder inside the folder
+	attachmentsPath := filepath.Join(pathToFolder, "attachments")
+	if err := os.MkdirAll(attachmentsPath, os.ModePerm); err != nil {
+		return FolderResponse{Success: false, Message: err.Error()}
+	}
+
 	return FolderResponse{Success: true, Message: ""}
 }
 

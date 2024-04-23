@@ -21,7 +21,7 @@ export async function SyncChangesWithRepo() : Promise<GitResponse> {
 	return Call.ByName("main.NodeService.SyncChangesWithRepo");
 }
 
-export async function UploadImage(folderPath: string, notePath: string) : Promise<string[]> {
-	return Call.ByName("main.NodeService.UploadImage", folderPath, notePath);
+export async function UploadImage(folder: string, note: string) : Promise<string[]> {
+	return Call.ByName("main.NodeService.UploadImage", folder, note);
 }
 

@@ -4,8 +4,10 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder } from "../../../bindings/main/FolderService.ts";
+import { GetAttachments } from "../../../bindings/main/NoteService.ts";
 import { WINDOW_ID } from "../../App.tsx";
 import {
+	attachmentsAtom,
 	isFolderDialogOpenAtom,
 	isNoteMaximizedAtom,
 	mostRecentNotesAtom,
@@ -37,21 +39,32 @@ export function NotesSidebar({
 	const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
 	const [notes, setNotes] = useAtom(notesAtom);
 	const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);
+	const setAttachments = useSetAtom(attachmentsAtom);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const { folder, note } = params;
 	const setIsFolderDialogOpen = useSetAtom(isFolderDialogOpenAtom);
 	const [rightClickedNote, setRightClickedNote] = useState<string | null>(null);
 
-	// Initially fetches notes for a folder using the filesystem
 	useEffect(() => {
+		// Initially fetches notes for a folder using the filesystem
 		updateNotes(folder, note, setNotes);
-	}, [folder, setNotes]);
+		if (note) {
+			GetAttachments(folder)
+				.then((res) => {
+					if (res.success) {
+						setAttachments(res.data as unknown as string[]);
+					}
+				})
+				.catch((err) => {
+					console.error(err);
+				});
+		}
+	}, [folder, setNotes, setAttachments]);
 
 	// Updates notes state when notes are changed
 	useWailsEvent("notes:changed", (body) => {
 		const data = body.data as { windowId: string; notes: string[] | null };
 		if (note && data.notes) {
-			console.log(data.notes, note);
 			if (!data.notes.includes(note)) {
 				const firstNote = data.notes.at(0);
 				const newUrl = firstNote ? `/${folder}/${firstNote}` : `/${folder}`;
@@ -111,9 +124,9 @@ export function NotesSidebar({
 				<>
 					<motion.aside
 						style={{ width }}
-						className="text-md flex h-screen flex-col gap-2 overflow-y-auto pt-[0.75rem]"
+						className="text-md flex h-screen flex-col gap-2 pl-1 pr-2.5  overflow-y-auto pt-[0.75rem] pb-3.5"
 					>
-						<div className="flex h-full flex-col gap-4 overflow-y-auto pl-1 pr-2.5 pt-[1px]">
+						<div className="flex h-full flex-col gap-4 overflow-y-auto pt-[1px] relative">
 							<section className="flex items-center gap-2">
 								<Folder className="min-w-[1.25rem]" />{" "}
 								<p className="overflow-hidden text-ellipsis whitespace-nowrap">
@@ -148,7 +161,7 @@ export function NotesSidebar({
 								notes={notes}
 								setRightClickedNote={setRightClickedNote}
 							/>
-							<AttachmentsAccordion />
+							<AttachmentsAccordion folder={folder} note={note} />
 						</div>
 					</motion.aside>
 					<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />

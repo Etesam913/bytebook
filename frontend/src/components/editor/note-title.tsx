@@ -1,10 +1,10 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { Events } from "@wailsio/runtime";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { $getRoot } from "lexical";
 import { useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
-import { Events } from "@wailsio/runtime";
 import { RenameNote } from "../../../bindings/main/NoteService";
 import { WINDOW_ID } from "../../App";
 import { isToolbarDisabled, mostRecentNotesAtom, notesAtom } from "../../atoms";

@@ -132,17 +132,17 @@ export const languageCommandData: {
 	{
 		name: "angular",
 		keywords: ["javascript", "angular"],
-		icon: <AngularLogo height="1.1rem" width="1.1rem" />,
+		icon: <AngularLogo height="17" width="17" />,
 	},
 	{
 		name: "vue",
 		keywords: ["javascript", "vue"],
-		icon: <VueLogo height="1.1rem" width="1.1rem" />,
+		icon: <VueLogo height="17" width="17" />,
 	},
 	{
 		name: "svelte",
 		keywords: ["javascript", "svelte"],
-		icon: <SvelteLogo height="1.1rem" width="1.1rem" />,
+		icon: <SvelteLogo height="17" width="17" />,
 	},
 ];
 

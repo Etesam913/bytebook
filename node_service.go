@@ -202,14 +202,15 @@ func (n *NodeService) SyncChangesWithRepo() GitResponse {
 }
 
 func (n *NodeService) CleanAndCopyFiles(filePaths string, folderPath string, notePath string) []string {
+	// We have to use a string for filePaths instead of an array because of a binding problem, might get fixed later on
 	filePathsAsArray := strings.Split(filePaths, ",")
 	newFilePaths := make([]string, 0)
 	// Process the selected file
 	if len(filePaths) > 0 {
 		for _, file := range filePathsAsArray {
 			cleanedFileName := io_helpers.CleanFileName(filepath.Base(file))
-			newFilePath := filepath.Join(n.ProjectPath, "notes", folderPath, notePath, cleanedFileName)
-			fileServerPath := filepath.Join("notes", folderPath, notePath, cleanedFileName)
+			newFilePath := filepath.Join(n.ProjectPath, "notes", folderPath, "attachments", cleanedFileName)
+			fileServerPath := filepath.Join("notes", folderPath, "attachments", cleanedFileName)
 
 			newFilePaths = append(newFilePaths, fileServerPath)
 			err := io_helpers.CopyFile(file, newFilePath)
@@ -221,12 +222,12 @@ func (n *NodeService) CleanAndCopyFiles(filePaths string, folderPath string, not
 	return newFilePaths
 }
 
-func (n *NodeService) UploadImage(folderPath string, notePath string) []string {
+func (n *NodeService) UploadImage(folder string, note string) []string {
 	filePaths, _ := application.OpenFileDialog().
 		AddFilter("Image Files", "*.jpg;*.png;*.webp;*.jpeg").
 		CanChooseFiles(true).
 		PromptForMultipleSelection()
-	return n.CleanAndCopyFiles(strings.Join(filePaths, ","), folderPath, notePath)
+	return n.CleanAndCopyFiles(strings.Join(filePaths, ","), folder, note)
 }
 
 func (n *NodeService) RemoveImage(src string) bool {

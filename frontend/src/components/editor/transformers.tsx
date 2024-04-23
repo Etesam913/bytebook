@@ -117,12 +117,8 @@ function updateSrc(nodeSrc: string) {
 	}
 	const urlSplit = location.pathname.split("/");
 	const currentFolder = urlSplit.at(1);
-	const currentNoteTitle = urlSplit.at(2);
 
-	return nodeSrc.replace(
-		srcRegex,
-		`/notes/${currentFolder}/${currentNoteTitle}/`,
-	);
+	return nodeSrc.replace(srcRegex, `/notes/${currentFolder}/attachments/`);
 }
 
 const FILE_TRANSFORMER: TextMatchTransformer = {

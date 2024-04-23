@@ -139,6 +139,32 @@ func (n *NoteService) AddNoteToFolder(folderName string, noteTitle string) AddFo
 	return AddFolderResponse{Success: true, Message: ""}
 }
 
+func (n *NoteService) GetAttachments(folderName string) NoteResponse {
+	// Get the attachments folder
+	attachmentsFolder := filepath.Join(n.ProjectPath, "notes", folderName, "attachments")
+	// Ensure the directory exists
+	if _, err := os.Stat(attachmentsFolder); err != nil {
+		return NoteResponse{Success: false, Message: err.Error()}
+	}
+	// Get the md files and attachments present in the notes directory
+	files, err := os.ReadDir(attachmentsFolder)
+	if err != nil {
+		return NoteResponse{Success: false, Message: err.Error()}
+	}
+
+	var attachments []string
+	for _, file := range files {
+		// We should not have any directories in the attachments folder
+		if file.IsDir() {
+			continue
+		} else {
+			attachments = append(attachments, file.Name())
+		}
+	}
+
+	return NoteResponse{Success: true, Message: "", Data: attachments}
+}
+
 type MostRecentNoteResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`

@@ -10,6 +10,10 @@ export async function AddNoteToFolder(folderName: string, noteTitle: string) : P
 	return Call.ByName("main.NoteService.AddNoteToFolder", folderName, noteTitle);
 }
 
+export async function GetAttachments(folderName: string) : Promise<NoteResponse> {
+	return Call.ByName("main.NoteService.GetAttachments", folderName);
+}
+
 export async function GetNoteMarkdown(folderName: string, noteTitle: string) : Promise<NoteMarkdownResponse> {
 	return Call.ByName("main.NoteService.GetNoteMarkdown", folderName, noteTitle);
 }
