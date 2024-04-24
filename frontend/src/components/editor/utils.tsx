@@ -12,7 +12,7 @@ import {
 import { $createHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
 import { INSERT_TABLE_COMMAND } from "@lexical/table";
-import { Browser } from "@wailsio/runtime";
+import { Browser, Events } from "@wailsio/runtime";
 import {
 	$createNodeSelection,
 	$createParagraphNode,
@@ -49,6 +49,7 @@ import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
 import { ImageNode } from "./nodes/image";
 import { INSERT_IMAGES_COMMAND } from "./plugins/image";
+import { WINDOW_ID } from "../../App";
 
 export type TextFormats =
 	| null
@@ -161,6 +162,7 @@ export function changeSelectedBlocksType(
 	newBlockType: EditorBlockTypes,
 	folder: string,
 	note: string,
+	attachments: string[],
 ) {
 	editor.update(async () => {
 		const selection = $getSelection();
@@ -192,7 +194,7 @@ export function changeSelectedBlocksType(
 					});
 					break;
 				case "img": {
-					insertImageFromFile(folder, note, editor);
+					insertImageFromFile(folder, note, editor, attachments);
 					break;
 				}
 			}
@@ -372,6 +374,7 @@ export async function insertImageFromFile(
 	folder: string,
 	note: string,
 	editor: LexicalEditor,
+	attachments: string[],
 ) {
 	try {
 		const { success, message, paths } = await UploadImage(folder, note);
@@ -384,6 +387,16 @@ export async function insertImageFromFile(
 			}));
 			editor.dispatchCommand(INSERT_IMAGES_COMMAND, payloads);
 			if (!success) toast.error(message);
+			Events.Emit({
+				name: "attachments:changed",
+				data: {
+					windowId: WINDOW_ID,
+					attachments: [
+						...attachments,
+						...filePaths.map((filePath) => filePath.split("/").pop()),
+					],
+				},
+			});
 		});
 	} catch (e: unknown) {
 		if (e instanceof Error) {

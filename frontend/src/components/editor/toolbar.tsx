@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $setBlocksType } from "@lexical/selection";
 import { motion } from "framer-motion";
-import { type SetStateAction, useAtom } from "jotai";
+import { type SetStateAction, useAtom, useAtomValue } from "jotai";
 import {
 	$createParagraphNode,
 	$getSelection,
@@ -13,7 +13,11 @@ import {
 } from "lexical";
 import { type Dispatch, useEffect, useState } from "react";
 import { WINDOW_ID } from "../../App";
-import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
+import {
+	attachmentsAtom,
+	isNoteMaximizedAtom,
+	isToolbarDisabled,
+} from "../../atoms";
 import { Link } from "../../icons/link";
 import { Redo } from "../../icons/redo";
 import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
@@ -51,6 +55,8 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 	const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
 	const [canRedo, setCanRedo] = useState(false);
 	const [canUndo, setCanUndo] = useState(false);
+	const attachments = useAtomValue(attachmentsAtom);
+
 	useNoteMarkdown(editor, folder, note, setCurrentSelectionFormat);
 
 	useWailsEvent("note:changed", (e) => {
@@ -200,7 +206,7 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 					)}
 					dropdownItemsClassName="max-h-[calc(100vh-10rem)]"
 					onChange={({ value }) =>
-						changeSelectedBlocksType(editor, value, folder, note)
+						changeSelectedBlocksType(editor, value, folder, note, attachments)
 					}
 					items={blockTypesDropdownItems}
 					buttonClassName="w-[10rem]"

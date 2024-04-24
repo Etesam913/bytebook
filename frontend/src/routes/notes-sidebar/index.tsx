@@ -61,7 +61,7 @@ export function NotesSidebar({
 		GetAttachments(folder)
 			.then((res) => {
 				if (res.success) {
-					setAttachments(res.data as unknown as string[]);
+					setAttachments((res.data ?? []) as unknown as string[]);
 				}
 			})
 			.catch((err) => {
@@ -80,6 +80,15 @@ export function NotesSidebar({
 			}
 		}
 		setNotes(data.notes);
+	});
+
+	useWailsEvent("attachments:changed", (body) => {
+		console.log(body);
+		const data = body.data as {
+			windowId: string;
+			attachments: string[];
+		};
+		setAttachments(data.attachments);
 	});
 
 	useWailsEvent("delete-note", (event) => {

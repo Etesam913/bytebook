@@ -27,7 +27,8 @@ import {
 	listCommandData,
 } from "../utils";
 import { INSERT_CODE_COMMAND } from "./code";
-import { INSERT_IMAGES_COMMAND } from "./image";
+import { useAtomValue } from "jotai";
+import { attachmentsAtom } from "../../../atoms";
 
 class ComponentPickerOption extends MenuOption {
 	// What shows up in the editor
@@ -92,7 +93,12 @@ function ComponentPickerMenuItem({
 	);
 }
 
-function getBaseOptions(editor: LexicalEditor, folder: string, note: string) {
+function getBaseOptions(
+	editor: LexicalEditor,
+	folder: string,
+	note: string,
+	attachments: string[],
+) {
 	return [
 		new ComponentPickerOption("Paragraph", {
 			keywords: ["normal", "paragraph", "p", "text"],
@@ -132,7 +138,7 @@ function getBaseOptions(editor: LexicalEditor, folder: string, note: string) {
 			icon: imageCommandData.icon,
 			keywords: ["image", imageCommandData.block, "picture"],
 			onSelect: async () => {
-				insertImageFromFile(folder, note, editor);
+				insertImageFromFile(folder, note, editor, attachments);
 			},
 		}),
 		...languageCommandData.map(
@@ -158,6 +164,7 @@ export function ComponentPickerMenuPlugin({
 	note,
 }: { folder: string; note: string }): JSX.Element {
 	const [editor] = useLexicalComposerContext();
+	const attachments = useAtomValue(attachmentsAtom);
 
 	const [queryString, setQueryString] = useState<string | null>(null);
 
@@ -166,7 +173,7 @@ export function ComponentPickerMenuPlugin({
 	});
 
 	const options = useMemo(() => {
-		const baseOptions = getBaseOptions(editor, folder, note);
+		const baseOptions = getBaseOptions(editor, folder, note, attachments);
 
 		if (!queryString) {
 			return baseOptions;
