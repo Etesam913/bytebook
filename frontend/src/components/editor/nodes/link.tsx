@@ -13,6 +13,7 @@ import type {
 	DOMConversionOutput,
 	EditorConfig,
 	LexicalCommand,
+	LexicalEditor,
 	LexicalNode,
 	NodeKey,
 	RangeSelection,

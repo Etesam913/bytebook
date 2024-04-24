@@ -219,6 +219,7 @@ const dropImage = (e: DragEvent) => {
 	const currentFiles = input.files;
 	// @ts-expect-error this comes from wails, no types
 	chrome.webview.postMessageWithAdditionalObjects("FilesDropped", currentFiles);
+	console.log(currentFiles);
 	e.preventDefault();
 	e.stopPropagation();
 	return false;
@@ -250,16 +251,21 @@ export function useWailsEvent(
 	}, [eventName, callback]);
 }
 
-/**
-Can be used to tell if a note is in standalone mode by looking at the ?standalone query value
-Standalone mode is when a note is opened in a new window
-*/
-export function useIsStandalone() {
+export function useSearchParamsEntries() {
 	const searchString = useSearch();
 	const searchParamsObject = useMemo(() => {
 		const searchParams = new URLSearchParams(searchString);
 		return Object.fromEntries(searchParams.entries());
 	}, [searchString]);
+	return searchParamsObject;
+}
+
+/**
+Can be used to tell if a note is in standalone mode by looking at the ?standalone query value
+Standalone mode is when a note is opened in a new window
+*/
+export function useIsStandalone() {
+	const searchParamsObject = useSearchParamsEntries();
 
 	const isStandalone = searchParamsObject?.standalone === "true";
 	return isStandalone;

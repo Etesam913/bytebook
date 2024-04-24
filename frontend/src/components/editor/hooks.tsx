@@ -1,7 +1,6 @@
 import { $isListNode, ListNode } from "@lexical/list";
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
-import * as wails from "@wailsio/runtime";
 import { useSetAtom } from "jotai";
 import {
 	$getSelection,
@@ -10,7 +9,9 @@ import {
 	CAN_REDO_COMMAND,
 	CAN_UNDO_COMMAND,
 	CLEAR_HISTORY_COMMAND,
+	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
+	CONTROLLED_TEXT_INSERTION_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
 	KEY_ARROW_UP_COMMAND,
@@ -21,10 +22,10 @@ import {
 } from "lexical";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
-import { CleanAndCopyFiles } from "../../../bindings/main/NodeService";
 import { GetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { mostRecentNotesAtom } from "../../atoms.ts";
-import type { EditorBlockTypes } from "../../types.ts";
+import { type EditorBlockTypes, IMAGE_FILE_EXTENSIONS } from "../../types.ts";
+import { FILE_SERVER_URL } from "../../utils/misc.ts";
 import { INSERT_IMAGES_COMMAND } from "./plugins/image.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import {
@@ -66,48 +67,48 @@ export function useNoteMarkdown(
 	}, [folder, note, editor, setCurrentSelectionFormat]);
 }
 
-export function useFileDropEvent(
-	editor: LexicalEditor,
-	folder: string,
-	note: string,
-) {
-	useEffect(
-		// @ts-expect-error It is not type of EffectCallback, which is okay in this case
-		() => {
-			return wails.Events.On(
-				"files",
-				async (event: {
-					name: string;
-					data: string[];
-					sender: string;
-					Cancelled: boolean;
-				}) => {
-					if (!event.Cancelled) {
-						try {
-							const cleanedFilePaths = await CleanAndCopyFiles(
-								event.data.join(","),
-								folder,
-								note,
-							);
+// export function useFileDropEvent(
+// 	editor: LexicalEditor,
+// 	folder: string,
+// 	note: string,
+// ) {
+// 	useEffect(
+// 		// @ts-expect-error It is not type of EffectCallback, which is okay in this case
+// 		() => {
+// 			return wails.Events.On(
+// 				"files",
+// 				async (event: {
+// 					name: string;
+// 					data: string[];
+// 					sender: string;
+// 					Cancelled: boolean;
+// 				}) => {
+// 					if (!event.Cancelled) {
+// 						try {
+// 							const cleanedFilePaths = await CleanAndCopyFiles(
+// 								event.data.join(","),
+// 								folder,
+// 								note,
+// 							);
 
-							editor.update(() => {
-								const payloads = cleanedFilePaths.map((filePath) => ({
-									src: `http://localhost:5890/${filePath}`,
-									alt: "test",
-								}));
-								editor.dispatchCommand(INSERT_IMAGES_COMMAND, payloads);
-							});
-						} catch (e) {
-							console.error(e);
-							// error checking here
-						}
-					}
-				},
-			);
-		},
-		[folder, note, editor],
-	);
-}
+// 							editor.update(() => {
+// 								const payloads = cleanedFilePaths.map((filePath) => ({
+// 									src: `${FILE_SERVER_URL}/${filePath}`,
+// 									alt: "test",
+// 								}));
+// 								editor.dispatchCommand(INSERT_IMAGES_COMMAND, payloads);
+// 							});
+// 						} catch (e) {
+// 							console.error(e);
+// 							// error checking here
+// 						}
+// 					}
+// 				},
+// 			);
+// 		},
+// 		[folder, note, editor],
+// 	);
+// }
 
 /** Updates the most recent notes queue */
 export function useMostRecentNotes(folder: string, note: string) {
@@ -207,6 +208,7 @@ export function useToolbarEvents(
 	setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>,
 	setCanUndo: Dispatch<SetStateAction<boolean>>,
 	setCanRedo: Dispatch<SetStateAction<boolean>>,
+	folder: string,
 ) {
 	useEffect(() => {
 		return mergeRegister(
@@ -222,6 +224,30 @@ export function useToolbarEvents(
 					return false;
 				},
 				COMMAND_PRIORITY_LOW,
+			),
+			editor.registerCommand(
+				CONTROLLED_TEXT_INSERTION_COMMAND,
+				(e) => {
+					// @ts-ignore Data Transfer does exist when dragging a link
+					if (!e.dataTransfer) return false;
+
+					// @ts-ignore Data Transfer does exist when dragging a link
+					const fileText: string = e.dataTransfer.getData("text/plain");
+					const extension = `.${fileText.split(".").pop()}`;
+
+					// Handling dragging of image attachment link
+					if (extension && IMAGE_FILE_EXTENSIONS.includes(extension)) {
+						editor.dispatchCommand(INSERT_IMAGES_COMMAND, [
+							{
+								src: `${FILE_SERVER_URL}/notes/${folder}/attachments/${fileText}`,
+								alt: "test",
+							},
+						]);
+						return true;
+					}
+					return false;
+				},
+				COMMAND_PRIORITY_HIGH,
 			),
 			editor.registerCommand(
 				KEY_ARROW_UP_COMMAND,

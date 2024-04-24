@@ -23,7 +23,7 @@ import { useIsStandalone, useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { Dropdown } from "../dropdown";
-import { useFileDropEvent, useNoteMarkdown, useToolbarEvents } from "./hooks";
+import { useNoteMarkdown, useToolbarEvents } from "./hooks";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import {
 	$convertFromMarkdownStringCorrect,
@@ -88,9 +88,10 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 		setCurrentBlockType,
 		setCanUndo,
 		setCanRedo,
+		folder,
 	);
 
-	useFileDropEvent(editor, folder, note);
+	// useFileDropEvent(editor, folder, note);
 
 	const isStandalone = useIsStandalone();
 

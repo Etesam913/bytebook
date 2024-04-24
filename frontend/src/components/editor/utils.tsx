@@ -44,6 +44,7 @@ import { TextUnderline } from "../../icons/text-underline";
 import { UnorderedList } from "../../icons/unordered-list";
 import { VueLogo } from "../../icons/vue-logo";
 import type { EditorBlockTypes } from "../../types";
+import { FILE_SERVER_URL } from "../../utils/misc";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
 import { ImageNode } from "./nodes/image";
@@ -191,14 +192,7 @@ export function changeSelectedBlocksType(
 					});
 					break;
 				case "img": {
-					const filePaths = await UploadImage(folder, note);
-					editor.update(() => {
-						const payloads = filePaths.map((filePath) => ({
-							src: `http://localhost:5890/${filePath}`,
-							alt: "test",
-						}));
-						editor.dispatchCommand(INSERT_IMAGES_COMMAND, payloads);
-					});
+					insertImageFromFile(folder, note, editor);
 					break;
 				}
 			}
@@ -370,5 +364,30 @@ export function handleATag(target: HTMLElement) {
 		Browser.OpenURL(parentElement.href).catch(() => {
 			toast.error("Failed to open link");
 		});
+	}
+}
+
+/** Used to add images from filesystem into attachments folder & editor */
+export async function insertImageFromFile(
+	folder: string,
+	note: string,
+	editor: LexicalEditor,
+) {
+	try {
+		const { success, message, paths } = await UploadImage(folder, note);
+
+		const filePaths = paths as unknown as string[];
+		editor.update(() => {
+			const payloads = filePaths.map((filePath) => ({
+				src: `${FILE_SERVER_URL}/${filePath}`,
+				alt: "test",
+			}));
+			editor.dispatchCommand(INSERT_IMAGES_COMMAND, payloads);
+			if (!success) toast.error(message);
+		});
+	} catch (e: unknown) {
+		if (e instanceof Error) {
+			toast.error(e.message);
+		}
 	}
 }

@@ -72,6 +72,7 @@ export function NotesEditor({
 	});
 
 	useMostRecentNotes(folder, note);
+
 	return (
 		<div
 			className={cn(
@@ -135,7 +136,7 @@ export function NotesEditor({
 					<VideosPlugin />
 					<CodePlugin />
 					<TablePlugin />
-					{/* <TreeViewPlugin /> */}
+					<TreeViewPlugin />
 				</div>
 			</LexicalComposer>
 		</div>

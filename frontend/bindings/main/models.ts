@@ -106,3 +106,21 @@ export class NoteResponse {
         return new NoteResponse(parsedSource as Partial<NoteResponse>);
     }
 }
+
+export class UploadImageResponse {
+    success: boolean;
+    message: string;
+    paths: string;
+
+    constructor(source: Partial<UploadImageResponse> = {}) {
+        const {success = false, message = "", paths = ""} = source;
+        this.success = success;
+        this.message = message;
+        this.paths = paths;
+    }
+
+    static createFrom(source: string | object = {}): UploadImageResponse {
+        let parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
+        return new UploadImageResponse(parsedSource as Partial<UploadImageResponse>);
+    }
+}

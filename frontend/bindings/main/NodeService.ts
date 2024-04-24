@@ -4,8 +4,9 @@
 import {Call} from '@wailsio/runtime';
 import {GitResponse} from './models';
 import {NodeResponse} from './models';
+import {UploadImageResponse} from './models';
 
-export async function CleanAndCopyFiles(filePaths: string, folderPath: string, notePath: string) : Promise<string[]> {
+export async function CleanAndCopyFiles(filePaths: string, folderPath: string, notePath: string) : Promise<string[], void> {
 	return Call.ByName("main.NodeService.CleanAndCopyFiles", filePaths, folderPath, notePath);
 }
 
@@ -21,7 +22,7 @@ export async function SyncChangesWithRepo() : Promise<GitResponse> {
 	return Call.ByName("main.NodeService.SyncChangesWithRepo");
 }
 
-export async function UploadImage(folder: string, note: string) : Promise<string[]> {
+export async function UploadImage(folder: string, note: string) : Promise<UploadImageResponse> {
 	return Call.ByName("main.NodeService.UploadImage", folder, note);
 }
 

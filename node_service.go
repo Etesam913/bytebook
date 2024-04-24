@@ -55,7 +55,6 @@ func RunFile(path string, command string) (string, error) {
 }
 
 func (n *NodeService) RunCode(language string, code string, command string) NodeResponse {
-
 	extensionExists, extension := GetExtensionFromLanguage(language)
 	if !extensionExists {
 		return NodeResponse{
@@ -201,10 +200,11 @@ func (n *NodeService) SyncChangesWithRepo() GitResponse {
 
 }
 
-func (n *NodeService) CleanAndCopyFiles(filePaths string, folderPath string, notePath string) []string {
+func (n *NodeService) CleanAndCopyFiles(filePaths string, folderPath string, notePath string) ([]string, error) {
 	// We have to use a string for filePaths instead of an array because of a binding problem, might get fixed later on
 	filePathsAsArray := strings.Split(filePaths, ",")
 	newFilePaths := make([]string, 0)
+	destinationFileErrors := make([]string, 0)
 	// Process the selected file
 	if len(filePaths) > 0 {
 		for _, file := range filePathsAsArray {
@@ -212,22 +212,65 @@ func (n *NodeService) CleanAndCopyFiles(filePaths string, folderPath string, not
 			newFilePath := filepath.Join(n.ProjectPath, "notes", folderPath, "attachments", cleanedFileName)
 			fileServerPath := filepath.Join("notes", folderPath, "attachments", cleanedFileName)
 
-			newFilePaths = append(newFilePaths, fileServerPath)
-			err := io_helpers.CopyFile(file, newFilePath)
-			if err != nil {
-				return []string{}
+			errObj := io_helpers.CopyFile(file, newFilePath, false)
+			if errObj.Err != nil {
+				// If it is a destination exists error, we want to congeal the errors into one large error
+				if errObj.IsDstExists {
+					wordsInError := strings.Split(errObj.Err.Error(), " ")
+					destinationFileErrors = append(destinationFileErrors, wordsInError[0])
+					continue
+				} else {
+					return []string{}, errObj.Err
+				}
+
 			}
+			newFilePaths = append(newFilePaths, fileServerPath)
 		}
 	}
-	return newFilePaths
+
+	// Create a mega error for all the failed images
+	if len(destinationFileErrors) > 0 {
+		exist := ""
+		if len(destinationFileErrors) > 1 {
+			exist = "exist"
+		} else {
+			exist = "exists"
+		}
+
+		fileNamesWithCommas := strings.Join(destinationFileErrors[:len(destinationFileErrors)-1], ", ")
+		if len(destinationFileErrors) > 1 {
+			fileNamesWithCommas += " and "
+		}
+		fileNamesWithCommas += destinationFileErrors[len(destinationFileErrors)-1]
+
+		return newFilePaths, errors.New(
+			fmt.Sprintf(
+				"%s already %s in your attachments",
+				fileNamesWithCommas,
+				exist,
+			),
+		)
+
+	}
+	return newFilePaths, nil
 }
 
-func (n *NodeService) UploadImage(folder string, note string) []string {
+type UploadImageResponse struct {
+	Success bool     `json:"success"`
+	Message string   `json:"message"`
+	Paths   []string `json:"paths"`
+}
+
+func (n *NodeService) UploadImage(folder string, note string) UploadImageResponse {
 	filePaths, _ := application.OpenFileDialog().
 		AddFilter("Image Files", "*.jpg;*.png;*.webp;*.jpeg").
 		CanChooseFiles(true).
 		PromptForMultipleSelection()
-	return n.CleanAndCopyFiles(strings.Join(filePaths, ","), folder, note)
+	cleanedPaths, err := n.CleanAndCopyFiles(strings.Join(filePaths, ","), folder, note)
+	if err != nil {
+		return UploadImageResponse{Success: false, Message: err.Error(), Paths: cleanedPaths}
+	}
+	return UploadImageResponse{Success: true, Message: "", Paths: cleanedPaths}
 }
 
 func (n *NodeService) RemoveImage(src string) bool {

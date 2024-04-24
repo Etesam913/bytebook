@@ -1,9 +1,12 @@
 import { Events } from "@wailsio/runtime";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtomValue } from "jotai";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "wouter";
 import { attachmentsAtom } from "../../atoms";
 import { ChevronDown } from "../../icons/chevron-down";
+import { ImageIcon } from "../../icons/image";
+import { IMAGE_FILE_EXTENSIONS } from "../../types";
 import { cn } from "../../utils/string-formatting";
 
 export function AttachmentsAccordion({
@@ -12,6 +15,11 @@ export function AttachmentsAccordion({
 }: { folder: string; note: string | undefined }) {
 	const [isAttachmentsCollapsed, setIsAttachmentsCollapsed] = useState(true);
 	const attachments = useAtomValue(attachmentsAtom);
+
+	// Close attachments accordion when folder changes
+	useEffect(() => {
+		setIsAttachmentsCollapsed(true);
+	}, [folder]);
 
 	const attachmentElements = attachments?.map((attachmentPath) => (
 		<li key={attachmentPath}>
@@ -24,7 +32,18 @@ export function AttachmentsAccordion({
 				// 	} as CSSProperties
 				// }
 			>
-				<button
+				<Link
+					onClick={(e) => {
+						console.log(e.shiftKey);
+						if (e.shiftKey) {
+							console.log("deez");
+							e.preventDefault();
+							e.stopPropagation();
+						}
+					}}
+					to={`/${folder}/${attachmentPath}?ext=.${attachmentPath
+						.split(".")
+						.pop()}`}
 					onDoubleClick={() => {
 						Events.Emit({
 							name: "open-note-in-new-window-backend",
@@ -35,9 +54,12 @@ export function AttachmentsAccordion({
 					type="button"
 					className={cn(
 						"mb-[0.15rem] flex flex-1 items-center gap-2 overflow-auto rounded-md px-2.5 py-[0.35rem]",
-						// noteName === note && "bg-zinc-100 dark:bg-zinc-700",
+						attachmentPath === note && "bg-zinc-100 dark:bg-zinc-700",
 					)}
 				>
+					{IMAGE_FILE_EXTENSIONS.some((ext) =>
+						attachmentPath.endsWith(ext),
+					) && <ImageIcon title="" />}
 					{/* {noteName === note ? (
 						<FilePen title="" className="min-w-[1.25rem]" />
 					) : (
@@ -46,7 +68,7 @@ export function AttachmentsAccordion({
 					<p className="overflow-hidden text-ellipsis whitespace-nowrap">
 						{attachmentPath}
 					</p>
-				</button>
+				</Link>
 			</div>
 		</li>
 	));

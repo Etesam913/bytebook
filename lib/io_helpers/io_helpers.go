@@ -3,6 +3,7 @@ package io_helpers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"runtime"
@@ -65,32 +66,50 @@ func CompleteCustomActionForOS(action ActionStruct) error {
 	return err
 }
 
+type CopyFileErr struct {
+	Err         error
+	IsDstExists bool
+}
+
 // CopyFile copies a file from src to dst. If dst does not exist, it will be created.
 // If dst exists, it will be overwritten.
-func CopyFile(src, dst string) error {
+func CopyFile(src, dst string, shouldOverride bool) CopyFileErr {
 	// Open the source file for reading.
 	sourceFile, err := os.Open(src)
 	if err != nil {
-		return err
+		return CopyFileErr{Err: err, IsDstExists: false}
 	}
 	defer sourceFile.Close()
+
+	doesDstExist, err := FileExists(dst)
+	if err != nil {
+		return CopyFileErr{Err: err, IsDstExists: false}
+	}
+	if doesDstExist && !shouldOverride {
+		pathSegments := strings.Split(dst, "/")
+		return CopyFileErr{
+			Err: fmt.Errorf(
+				fmt.Sprintf("%s already exists", pathSegments[len(pathSegments)-1])),
+			IsDstExists: true,
+		}
+	}
 
 	// Create the destination file for writing. Use os.Create to create or truncate it before writing.
 	destinationFile, err := os.Create(dst)
 	if err != nil {
-		return err
+		return CopyFileErr{Err: err, IsDstExists: false}
 	}
 	defer destinationFile.Close()
 
 	// Copy the contents of the source file to the destination file.
 	_, err = io.Copy(destinationFile, sourceFile)
 	if err != nil {
-		return err
+		return CopyFileErr{Err: err, IsDstExists: false}
 	}
 
 	// Ensure that any writes to the destination file are committed to stable storage.
 	err = destinationFile.Sync()
-	return err
+	return CopyFileErr{Err: err, IsDstExists: false}
 }
 
 // cleanFileName removes unsafe characters and trims spaces from a filename.

@@ -19,9 +19,13 @@ import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
 import { Pen } from "../../icons/pen";
+import { IMAGE_FILE_EXTENSIONS } from "../../types.ts";
 import { updateNotes } from "../../utils/fetch-functions";
-import { useWailsEvent } from "../../utils/hooks.tsx";
-import { updateMostRecentNotesOnNoteDelete } from "../../utils/misc.ts";
+import { useSearchParamsEntries, useWailsEvent } from "../../utils/hooks.tsx";
+import {
+	FILE_SERVER_URL,
+	updateMostRecentNotesOnNoteDelete,
+} from "../../utils/misc.ts";
 import { getDefaultButtonVariants } from "../../variants";
 import { AttachmentsAccordion } from "./attachments-accordion.tsx";
 import { MyNotesAccordion } from "./my-notes-accordion.tsx";
@@ -42,23 +46,27 @@ export function NotesSidebar({
 	const setAttachments = useSetAtom(attachmentsAtom);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const { folder, note } = params;
+	const searchParams: { ext?: string } = useSearchParamsEntries();
+
+	// If the fileExtension is undefined, then it is a markdown file
+	const fileExtension = searchParams?.ext;
+
 	const setIsFolderDialogOpen = useSetAtom(isFolderDialogOpenAtom);
 	const [rightClickedNote, setRightClickedNote] = useState<string | null>(null);
 
 	useEffect(() => {
 		// Initially fetches notes for a folder using the filesystem
 		updateNotes(folder, note, setNotes);
-		if (note) {
-			GetAttachments(folder)
-				.then((res) => {
-					if (res.success) {
-						setAttachments(res.data as unknown as string[]);
-					}
-				})
-				.catch((err) => {
-					console.error(err);
-				});
-		}
+
+		GetAttachments(folder)
+			.then((res) => {
+				if (res.success) {
+					setAttachments(res.data as unknown as string[]);
+				}
+			})
+			.catch((err) => {
+				console.error(err);
+			});
 	}, [folder, setNotes, setAttachments]);
 
 	// Updates notes state when notes are changed
@@ -168,7 +176,16 @@ export function NotesSidebar({
 				</>
 			)}
 
-			{note && <NotesEditor params={{ folder, note }} />}
+			{note && !fileExtension && <NotesEditor params={{ folder, note }} />}
+			{note && IMAGE_FILE_EXTENSIONS.includes(fileExtension ?? "") && (
+				<div className="flex-1 overflow-auto ">
+					<img
+						alt={note}
+						className="w-full h-auto"
+						src={`${FILE_SERVER_URL}/notes/${folder}/attachments/${note}`}
+					/>
+				</div>
+			)}
 		</>
 	);
 }

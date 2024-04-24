@@ -16,10 +16,13 @@ import {
 } from "lexical";
 import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { toast } from "sonner";
 import { UploadImage } from "../../../../bindings/main/NodeService";
+import { FILE_SERVER_URL } from "../../../utils/misc";
 import { cn } from "../../../utils/string-formatting";
 import {
 	imageCommandData,
+	insertImageFromFile,
 	languageCommandData,
 	listCommandData,
 } from "../utils";
@@ -129,14 +132,7 @@ function getBaseOptions(editor: LexicalEditor, folder: string, note: string) {
 			icon: imageCommandData.icon,
 			keywords: ["image", imageCommandData.block, "picture"],
 			onSelect: async () => {
-				const filePaths = await UploadImage(folder, note);
-				editor.update(() => {
-					const payloads = filePaths.map((filePath) => ({
-						src: `http://localhost:5890/${filePath}`,
-						alt: "test",
-					}));
-					editor.dispatchCommand(INSERT_IMAGES_COMMAND, payloads);
-				});
+				insertImageFromFile(folder, note, editor);
 			},
 		}),
 		...languageCommandData.map(
