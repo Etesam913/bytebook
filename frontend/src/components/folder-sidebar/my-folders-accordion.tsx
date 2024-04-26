@@ -30,6 +30,7 @@ export function MyFoldersAccordion({
 				}
 			>
 				<Link
+					target="_blank"
 					data-testid={`folder_link-${folderName}`}
 					className={cn(
 						"flex flex-1 gap-2 items-center px-2.5 py-[0.35rem] rounded-md overflow-x-hidden",

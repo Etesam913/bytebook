@@ -32,6 +32,7 @@ import {
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { toast } from "sonner";
 import { UploadImage } from "../../../bindings/main/NodeService";
+import { WINDOW_ID } from "../../App";
 import { AngularLogo } from "../../icons/angular-logo";
 import { ImageIcon } from "../../icons/image";
 import { ListCheckbox } from "../../icons/list-checkbox";
@@ -49,7 +50,6 @@ import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
 import { ImageNode } from "./nodes/image";
 import { INSERT_IMAGES_COMMAND } from "./plugins/image";
-import { WINDOW_ID } from "../../App";
 
 export type TextFormats =
 	| null

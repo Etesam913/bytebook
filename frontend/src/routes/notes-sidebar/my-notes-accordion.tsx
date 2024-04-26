@@ -26,41 +26,41 @@ export function MyNotesAccordion({
 	const [isNotesCollapsed, setIsNotesCollapsed] = useState(false);
 
 	const noteElements = notes?.map((noteName) => (
-		<li key={noteName}>
-			<div
-				className="flex select-none items-center gap-2 overflow-hidden pr-1"
-				style={
-					{
-						"--custom-contextmenu": "note-context-menu",
-						"--custom-contextmenu-data": noteName,
-					} as CSSProperties
-				}
+		<li
+			key={noteName}
+			className="flex select-none items-center gap-2 overflow-hidden pr-1"
+			style={
+				{
+					"--custom-contextmenu": "note-context-menu",
+					"--custom-contextmenu-data": noteName,
+				} as CSSProperties
+			}
+		>
+			<Link
+				target="_blank"
+				onDoubleClick={() => {
+					Events.Emit({
+						name: "open-note-in-new-window-backend",
+						data: { folder, note: noteName },
+					});
+				}}
+				onContextMenu={() => setRightClickedNote(noteName)}
+				title={noteName}
+				className={cn(
+					"mb-[0.15rem] flex flex-1 items-center gap-2 overflow-auto rounded-md px-2.5 py-[0.35rem]",
+					noteName === note && "bg-zinc-100 dark:bg-zinc-700",
+				)}
+				to={`/${encodeURI(folder)}/${encodeURI(noteName)}`}
 			>
-				<Link
-					onDoubleClick={() => {
-						Events.Emit({
-							name: "open-note-in-new-window-backend",
-							data: { folder, note: noteName },
-						});
-					}}
-					onContextMenu={() => setRightClickedNote(noteName)}
-					title={noteName}
-					className={cn(
-						"mb-[0.15rem] flex flex-1 items-center gap-2 overflow-auto rounded-md px-2.5 py-[0.35rem]",
-						noteName === note && "bg-zinc-100 dark:bg-zinc-700",
-					)}
-					to={`/${encodeURI(folder)}/${encodeURI(noteName)}`}
-				>
-					{noteName === note ? (
-						<FilePen title="" className="min-w-[1.25rem]" />
-					) : (
-						<Note title="" className="min-w-[1.25rem]" />
-					)}{" "}
-					<p className="overflow-hidden text-ellipsis whitespace-nowrap">
-						{noteName}
-					</p>
-				</Link>
-			</div>
+				{noteName === note ? (
+					<FilePen title="" className="min-w-[1.25rem]" />
+				) : (
+					<Note title="" className="min-w-[1.25rem]" />
+				)}{" "}
+				<p className="overflow-hidden text-ellipsis whitespace-nowrap">
+					{noteName}
+				</p>
+			</Link>
 		</li>
 	));
 

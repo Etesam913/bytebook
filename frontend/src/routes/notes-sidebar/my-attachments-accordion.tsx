@@ -1,7 +1,7 @@
 import { Events } from "@wailsio/runtime";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtomValue } from "jotai";
-import { useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import { Link } from "wouter";
 import { attachmentsAtom } from "../../atoms";
 import { ChevronDown } from "../../icons/chevron-down";
@@ -21,55 +21,43 @@ export function AttachmentsAccordion({
 		setIsAttachmentsCollapsed(true);
 	}, [folder]);
 
-	const attachmentElements = attachments?.map((attachmentPath) => (
-		<li key={attachmentPath}>
-			<div
-				className="flex select-none items-center gap-2 overflow-hidden pr-1"
-				// style={
-				// 	{
-				// 		"--custom-contextmenu": "note-context-menu",
-				// 		"--custom-contextmenu-data": noteName,
-				// 	} as CSSProperties
-				// }
+	const attachmentElements = attachments?.map((attachmentFile) => (
+		<li
+			key={attachmentFile}
+			style={
+				{
+					"--custom-contextmenu": "attachment-context-menu",
+					"--custom-contextmenu-data": JSON.stringify({ file: attachmentFile }),
+				} as CSSProperties
+			}
+			className="flex select-none items-center gap-2 overflow-hidden pr-1"
+		>
+			<Link
+				target="_blank"
+				to={`/${folder}/${attachmentFile}?ext=.${attachmentFile
+					.split(".")
+					.pop()}`}
+				onDoubleClick={() => {
+					Events.Emit({
+						name: "open-note-in-new-window-backend",
+						data: { folder, note },
+					});
+				}}
+				title={attachmentFile}
+				type="button"
+				className={cn(
+					"mb-[0.15rem] flex flex-1 items-center gap-2 overflow-auto rounded-md px-2.5 py-[0.35rem]",
+					attachmentFile === note && "bg-zinc-100 dark:bg-zinc-700",
+				)}
 			>
-				<Link
-					onClick={(e) => {
-						console.log(e.shiftKey);
-						if (e.shiftKey) {
-							console.log("deez");
-							e.preventDefault();
-							e.stopPropagation();
-						}
-					}}
-					to={`/${folder}/${attachmentPath}?ext=.${attachmentPath
-						.split(".")
-						.pop()}`}
-					onDoubleClick={() => {
-						Events.Emit({
-							name: "open-note-in-new-window-backend",
-							data: { folder, note },
-						});
-					}}
-					title={attachmentPath}
-					type="button"
-					className={cn(
-						"mb-[0.15rem] flex flex-1 items-center gap-2 overflow-auto rounded-md px-2.5 py-[0.35rem]",
-						attachmentPath === note && "bg-zinc-100 dark:bg-zinc-700",
-					)}
-				>
-					{IMAGE_FILE_EXTENSIONS.some((ext) =>
-						attachmentPath.endsWith(ext),
-					) && <ImageIcon title="" />}
-					{/* {noteName === note ? (
-						<FilePen title="" className="min-w-[1.25rem]" />
-					) : (
-						<Note title="" className="min-w-[1.25rem]" />
-					)}{" "} */}
-					<p className="overflow-hidden text-ellipsis whitespace-nowrap">
-						{attachmentPath}
-					</p>
-				</Link>
-			</div>
+				{IMAGE_FILE_EXTENSIONS.some((ext) => attachmentFile.endsWith(ext)) && (
+					<ImageIcon className="min-w-[1.25rem]" title="" />
+				)}
+
+				<p className="overflow-hidden text-ellipsis whitespace-nowrap">
+					{attachmentFile}
+				</p>
+			</Link>
 		</li>
 	));
 

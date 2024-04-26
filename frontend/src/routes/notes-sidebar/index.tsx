@@ -2,6 +2,7 @@ import { Events } from "@wailsio/runtime";
 import { AnimatePresence, type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder } from "../../../bindings/main/FolderService.ts";
 import { GetAttachments } from "../../../bindings/main/NoteService.ts";
@@ -27,7 +28,7 @@ import {
 	updateMostRecentNotesOnNoteDelete,
 } from "../../utils/misc.ts";
 import { getDefaultButtonVariants } from "../../variants";
-import { AttachmentsAccordion } from "./attachments-accordion.tsx";
+import { AttachmentsAccordion } from "./my-attachments-accordion.tsx";
 import { MyNotesAccordion } from "./my-notes-accordion.tsx";
 import { NotesSidebarDialog } from "./sidebar-dialog";
 
@@ -83,7 +84,6 @@ export function NotesSidebar({
 	});
 
 	useWailsEvent("attachments:changed", (body) => {
-		console.log(body);
 		const data = body.data as {
 			windowId: string;
 			attachments: string[];
@@ -91,9 +91,32 @@ export function NotesSidebar({
 		setAttachments(data.attachments);
 	});
 
+	useWailsEvent("attachments:context-menu:delete-attachment", async (body) => {
+		const bodyData = JSON.parse(body.data as string) as { file: string };
+		const { file: fileToDelete } = bodyData;
+
+		try {
+			const hasDeletedAttachment = await DeleteFolder(
+				`${folder}/attachments/${fileToDelete}`,
+			);
+			console.log(
+				fileToDelete,
+				hasDeletedAttachment,
+				`${folder}/attachments/${fileToDelete}`,
+			);
+			if (hasDeletedAttachment.success) {
+				setAttachments((prev) => prev.filter((v) => v !== fileToDelete));
+			} else {
+				throw new Error();
+			}
+		} catch {
+			toast.error("Failed to delete attachment");
+		}
+	});
+
 	useWailsEvent("delete-note", (event) => {
 		const noteName = event.data as string;
-		DeleteFolder(`${folder}/${noteName}`).then((res) => {
+		DeleteFolder(`${folder}/${noteName}.md`).then((res) => {
 			if (res.success) {
 				const remainingNotes = notes?.filter((v) => v !== noteName);
 				if (remainingNotes) {

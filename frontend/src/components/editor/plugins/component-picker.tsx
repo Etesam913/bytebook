@@ -6,6 +6,7 @@ import {
 } from "@lexical/react/LexicalTypeaheadMenuPlugin";
 import { $createHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
+import { useAtomValue } from "jotai";
 import {
 	$createParagraphNode,
 	$getSelection,
@@ -18,6 +19,7 @@ import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { UploadImage } from "../../../../bindings/main/NodeService";
+import { attachmentsAtom } from "../../../atoms";
 import { FILE_SERVER_URL } from "../../../utils/misc";
 import { cn } from "../../../utils/string-formatting";
 import {
@@ -27,8 +29,6 @@ import {
 	listCommandData,
 } from "../utils";
 import { INSERT_CODE_COMMAND } from "./code";
-import { useAtomValue } from "jotai";
-import { attachmentsAtom } from "../../../atoms";
 
 class ComponentPickerOption extends MenuOption {
 	// What shows up in the editor
