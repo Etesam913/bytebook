@@ -1,7 +1,7 @@
 import { Events } from "@wailsio/runtime";
 import { AnimatePresence, type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder } from "../../../bindings/main/FolderService.ts";
@@ -22,7 +22,11 @@ import { Folder } from "../../icons/folder";
 import { Pen } from "../../icons/pen";
 import { IMAGE_FILE_EXTENSIONS } from "../../types.ts";
 import { updateNotes } from "../../utils/fetch-functions";
-import { useSearchParamsEntries, useWailsEvent } from "../../utils/hooks.tsx";
+import {
+	useOnClickOutside,
+	useSearchParamsEntries,
+	useWailsEvent,
+} from "../../utils/hooks.tsx";
 import {
 	FILE_SERVER_URL,
 	updateMostRecentNotesOnNoteDelete,
@@ -48,12 +52,18 @@ export function NotesSidebar({
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const { folder, note } = params;
 	const searchParams: { ext?: string } = useSearchParamsEntries();
+	const [attachmentsSelectionRange, setAttachmentsSelectionRange] = useState<
+		Set<number>
+	>(new Set());
+	const sidebarRef = useRef<HTMLElement>(null);
 
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
 
 	const setIsFolderDialogOpen = useSetAtom(isFolderDialogOpenAtom);
 	const [rightClickedNote, setRightClickedNote] = useState<string | null>(null);
+
+	useOnClickOutside(sidebarRef, () => setAttachmentsSelectionRange(new Set()));
 
 	useEffect(() => {
 		// Initially fetches notes for a folder using the filesystem
@@ -163,6 +173,8 @@ export function NotesSidebar({
 			{!isNoteMaximized && (
 				<>
 					<motion.aside
+						ref={sidebarRef}
+						onClick={() => setAttachmentsSelectionRange(new Set())}
 						style={{ width }}
 						className="text-md flex h-screen flex-col gap-2 pl-1 pr-2.5  overflow-y-auto pt-[0.75rem] pb-3.5"
 					>
@@ -201,7 +213,12 @@ export function NotesSidebar({
 								notes={notes}
 								setRightClickedNote={setRightClickedNote}
 							/>
-							<AttachmentsAccordion folder={folder} note={note} />
+							<AttachmentsAccordion
+								folder={folder}
+								note={note}
+								attachmentsSelectionRange={attachmentsSelectionRange}
+								setAttachmentsSelectionRange={setAttachmentsSelectionRange}
+							/>
 						</div>
 					</motion.aside>
 					<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />

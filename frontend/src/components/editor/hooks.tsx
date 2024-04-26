@@ -233,19 +233,23 @@ export function useToolbarEvents(
 
 					// @ts-ignore Data Transfer does exist when dragging a link
 					const fileText: string = e.dataTransfer.getData("text/plain");
-					const extension = `.${fileText.split(".").pop()}`;
+					const files = fileText.split(",");
+					const imagePayloads = [];
+					for (const fileText of files) {
+						const extension = `.${fileText.split(".").pop()}`;
 
-					// Handling dragging of image attachment link
-					if (extension && IMAGE_FILE_EXTENSIONS.includes(extension)) {
-						editor.dispatchCommand(INSERT_IMAGES_COMMAND, [
-							{
+						// Handling dragging of image attachment link
+						if (extension && IMAGE_FILE_EXTENSIONS.includes(extension)) {
+							imagePayloads.push({
 								src: `${FILE_SERVER_URL}/notes/${folder}/attachments/${fileText}`,
 								alt: "test",
-							},
-						]);
+							});
+						}
+					}
+					if (imagePayloads.length > 0) {
+						editor.dispatchCommand(INSERT_IMAGES_COMMAND, imagePayloads);
 						return true;
 					}
-					return false;
 				},
 				COMMAND_PRIORITY_HIGH,
 			),

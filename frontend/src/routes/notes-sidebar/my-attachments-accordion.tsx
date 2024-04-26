@@ -1,7 +1,14 @@
 import { Events } from "@wailsio/runtime";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtomValue } from "jotai";
-import { type CSSProperties, useEffect, useState } from "react";
+import {
+	type CSSProperties,
+	type Dispatch,
+	type SetStateAction,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import { Link } from "wouter";
 import { attachmentsAtom } from "../../atoms";
 import { ChevronDown } from "../../icons/chevron-down";
@@ -12,42 +19,97 @@ import { cn } from "../../utils/string-formatting";
 export function AttachmentsAccordion({
 	folder,
 	note,
-}: { folder: string; note: string | undefined }) {
+	attachmentsSelectionRange,
+	setAttachmentsSelectionRange,
+}: {
+	folder: string;
+	note: string | undefined;
+	attachmentsSelectionRange: Set<number>;
+	setAttachmentsSelectionRange: Dispatch<SetStateAction<Set<number>>>;
+}) {
 	const [isAttachmentsCollapsed, setIsAttachmentsCollapsed] = useState(true);
 	const attachments = useAtomValue(attachmentsAtom);
+	const anchorSelectionIndex = useRef<number | null>(null);
 
 	// Close attachments accordion when folder changes
 	useEffect(() => {
 		setIsAttachmentsCollapsed(true);
 	}, [folder]);
 
-	const attachmentElements = attachments?.map((attachmentFile) => (
+	const attachmentElements = attachments?.map((attachmentFile, i) => (
 		<li
 			key={attachmentFile}
+			onClick={(e) => {
+				e.stopPropagation();
+				console.log("stopped propagation");
+			}}
 			style={
 				{
 					"--custom-contextmenu": "attachment-context-menu",
 					"--custom-contextmenu-data": JSON.stringify({ file: attachmentFile }),
 				} as CSSProperties
 			}
-			className="flex select-none items-center gap-2 overflow-hidden pr-1"
+			className="flex select-none items-center gap-2 overflow-hidden px-1"
 		>
 			<Link
+				draggable
+				onDragStart={(e) => {
+					const selectedFiles = Array.from(attachmentsSelectionRange).map(
+						(index) => attachments[index],
+					);
+					if (selectedFiles.length === 0) selectedFiles.push(attachmentFile);
+
+					e.dataTransfer.setData("text/plain", selectedFiles.join(","));
+				}}
+				onMouseUp={(e) => {
+					// shift + click
+					if (e.shiftKey) {
+						if (anchorSelectionIndex.current !== null) {
+							const start = Math.min(anchorSelectionIndex.current, i);
+							const end = Math.max(anchorSelectionIndex.current, i);
+							setAttachmentsSelectionRange(
+								new Set(
+									Array.from({ length: end - start + 1 }, (_, i) => start + i),
+								),
+							);
+						}
+					} else {
+						anchorSelectionIndex.current = i;
+						// cmd + click
+						if (e.metaKey) {
+							e.stopPropagation();
+							setAttachmentsSelectionRange((prev) => {
+								const newSelection = new Set(prev);
+								if (newSelection.has(i)) {
+									newSelection.delete(i);
+								} else {
+									newSelection.add(i);
+								}
+								return newSelection;
+							});
+						} else {
+							setAttachmentsSelectionRange(new Set([i]));
+						}
+					}
+				}}
 				target="_blank"
 				to={`/${folder}/${attachmentFile}?ext=.${attachmentFile
 					.split(".")
 					.pop()}`}
-				onDoubleClick={() => {
-					Events.Emit({
-						name: "open-note-in-new-window-backend",
-						data: { folder, note },
-					});
+				onDoubleClick={(e) => {
+					if (!e.metaKey) {
+						Events.Emit({
+							name: "open-note-in-new-window-backend",
+							data: { folder, note },
+						});
+					}
 				}}
 				title={attachmentFile}
 				type="button"
 				className={cn(
-					"mb-[0.15rem] flex flex-1 items-center gap-2 overflow-auto rounded-md px-2.5 py-[0.35rem]",
+					"my-[0.1rem] flex flex-1 items-center gap-2 overflow-x-auto rounded-md px-2.5 py-[0.35rem]",
 					attachmentFile === note && "bg-zinc-100 dark:bg-zinc-700",
+					attachmentsSelectionRange.has(i) && "bg-zinc-100 dark:bg-zinc-700",
 				)}
 			>
 				{IMAGE_FILE_EXTENSIONS.some((ext) => attachmentFile.endsWith(ext)) && (
