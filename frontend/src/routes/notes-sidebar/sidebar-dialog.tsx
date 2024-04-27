@@ -41,14 +41,6 @@ export function NotesSidebarDialog({
 							if (res.success) {
 								setIsNoteDialogOpen(false);
 								setErrorText("");
-								navigate(`/${folderName}/${noteName}`);
-								Events.Emit({
-									name: "notes:changed",
-									data: {
-										windowId: WINDOW_ID,
-										notes: !notes ? [noteName] : [...notes, noteName],
-									},
-								});
 							} else {
 								setErrorText(res.message);
 							}

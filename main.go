@@ -10,6 +10,7 @@ import (
 	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
 	"github.com/etesam913/bytebook/lib/project_helpers"
+	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 )
@@ -97,7 +98,7 @@ func main() {
 
 	project_helpers.CreateFolderContextMenu(app, noteContextMenu, []project_helpers.MenuItem{
 		{Label: "Open In New Window", EventName: "open-note-in-new-window-frontend"},
-		{Label: "Delete Note", EventName: "delete-note"},
+		{Label: "Delete Note", EventName: "note:context-menu:delete-note"},
 	})
 
 	project_helpers.CreateFolderContextMenu(app, attachmentContextMenu, []project_helpers.MenuItem{
@@ -118,6 +119,15 @@ func main() {
 		})
 		app.Logger.Info("Files Dropped!", "files", files)
 	})
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal("Failed to setup file watcher " + err.Error())
+	}
+
+	defer watcher.Close()
+	go file_server.LaunchFileWatcher(app, watcher)
+	file_server.ListenToFolders(projectPath, watcher)
 
 	// Run the application. This blocks until the application has been exited.
 	err = app.Run()

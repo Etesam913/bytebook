@@ -6,12 +6,10 @@ import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder } from "../../../bindings/main/FolderService.ts";
 import { GetAttachments } from "../../../bindings/main/NoteService.ts";
-import { WINDOW_ID } from "../../App.tsx";
 import {
 	attachmentsAtom,
 	isFolderDialogOpenAtom,
 	isNoteMaximizedAtom,
-	mostRecentNotesAtom,
 	notesAtom,
 } from "../../atoms";
 import { MotionButton } from "../../components/buttons";
@@ -27,10 +25,7 @@ import {
 	useSearchParamsEntries,
 	useWailsEvent,
 } from "../../utils/hooks.tsx";
-import {
-	FILE_SERVER_URL,
-	updateMostRecentNotesOnNoteDelete,
-} from "../../utils/misc.ts";
+import { FILE_SERVER_URL } from "../../utils/misc.ts";
 import { getDefaultButtonVariants } from "../../variants";
 import { AttachmentsAccordion } from "./my-attachments-accordion.tsx";
 import { MyNotesAccordion } from "./my-notes-accordion.tsx";
@@ -47,7 +42,6 @@ export function NotesSidebar({
 }) {
 	const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
 	const [notes, setNotes] = useAtom(notesAtom);
-	const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);
 	const setAttachments = useSetAtom(attachmentsAtom);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const { folder, note } = params;
@@ -80,17 +74,28 @@ export function NotesSidebar({
 			});
 	}, [folder, setNotes, setAttachments]);
 
-	// Updates notes state when notes are changed
-	useWailsEvent("notes:changed", (body) => {
-		const data = body.data as { windowId: string; notes: string[] | null };
-		if (note && data.notes) {
-			if (!data.notes.includes(note)) {
-				const firstNote = data.notes.at(0);
-				const newUrl = firstNote ? `/${folder}/${firstNote}` : `/${folder}`;
-				navigate(newUrl);
+	useWailsEvent("note:create", (body) => {
+		const data = body.data as { folder: string; note: string };
+		if (data.folder !== folder) return;
+		setNotes((prev) => [...prev, data.note]);
+		navigate(`/${folder}/${data.note}`);
+	});
+
+	useWailsEvent("note:delete", (body) => {
+		const data = body.data as { folder: string; note: string };
+		if (data.folder !== folder) return;
+		setNotes((prev) => {
+			const newNotes = prev.filter((v) => v !== data.note);
+			// The note that you are on is deleted
+			if (note === data.note) {
+				if (notes.length > 0) {
+					navigate(`/${folder}/${newNotes[0]}`);
+				} else {
+					navigate(`/${folder}`);
+				}
 			}
-		}
-		setNotes(data.notes);
+			return newNotes;
+		});
 	});
 
 	useWailsEvent("attachments:changed", (body) => {
@@ -109,11 +114,6 @@ export function NotesSidebar({
 			const hasDeletedAttachment = await DeleteFolder(
 				`${folder}/attachments/${fileToDelete}`,
 			);
-			console.log(
-				fileToDelete,
-				hasDeletedAttachment,
-				`${folder}/attachments/${fileToDelete}`,
-			);
 			if (hasDeletedAttachment.success) {
 				setAttachments((prev) => prev.filter((v) => v !== fileToDelete));
 			} else {
@@ -124,28 +124,17 @@ export function NotesSidebar({
 		}
 	});
 
-	useWailsEvent("delete-note", (event) => {
+	useWailsEvent("note:context-menu:delete-note", (event) => {
 		const noteName = event.data as string;
-		DeleteFolder(`${folder}/${noteName}.md`).then((res) => {
-			if (res.success) {
-				const remainingNotes = notes?.filter((v) => v !== noteName);
-				if (remainingNotes) {
-					Events.Emit({
-						name: "notes:changed",
-						data: { windowId: WINDOW_ID, notes: remainingNotes },
-					});
-					updateMostRecentNotesOnNoteDelete(
-						folder,
-						noteName,
-						mostRecentNotes,
-						setMostRecentNotes,
-					);
-					navigate(
-						`/${folder}/${remainingNotes.length <= 0 ? "" : remainingNotes[0]}`,
-					);
+		DeleteFolder(`${folder}/${noteName}.md`)
+			.then((res) => {
+				if (!res.success) {
+					throw new Error();
 				}
-			}
-		});
+			})
+			.catch(() => {
+				toast.error("Failed to delete note");
+			});
 	});
 
 	useWailsEvent("open-note-in-new-window-frontend", () => {
@@ -231,6 +220,15 @@ export function NotesSidebar({
 					<img
 						alt={note}
 						className="w-full h-auto"
+						src={`${FILE_SERVER_URL}/notes/${folder}/attachments/${note}`}
+					/>
+				</div>
+			)}
+			{note?.endsWith(".pdf") && (
+				<div className="flex-1 overflow-auto">
+					<iframe
+						title={note}
+						className="w-full h-full"
 						src={`${FILE_SERVER_URL}/notes/${folder}/attachments/${note}`}
 					/>
 				</div>

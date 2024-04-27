@@ -3,6 +3,7 @@ module github.com/etesam913/bytebook
 go 1.22.2
 
 require (
+	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/wailsapp/wails/v3 v3.0.0-alpha.4
 )

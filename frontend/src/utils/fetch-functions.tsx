@@ -25,12 +25,12 @@ export function updateFolders(
 export function updateNotes(
 	folder: string,
 	note: string | undefined,
-	setNotes: Dispatch<SetStateAction<string[] | null>>,
+	setNotes: Dispatch<SetStateAction<string[]>>,
 ) {
 	GetNotes(folder)
 		.then((res) => {
 			if (res.success) {
-				const notes = res.data as unknown as string[] | null;
+				const notes = res.data as unknown as string[];
 				setNotes(notes);
 				if (!note) {
 					navigate(`/${folder}${notes?.at(0) ? `/${notes.at(0)}` : "/"}`);

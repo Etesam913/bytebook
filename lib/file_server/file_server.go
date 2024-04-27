@@ -3,6 +3,12 @@ package file_server
 import (
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // corsMiddleware wraps an http.Handler and sets CORS headers
@@ -39,5 +45,60 @@ func LaunchFileServer(projectPath string) {
 	err := http.ListenAndServe(port, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
+	}
+}
+
+func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
+	for {
+		select {
+		case event, ok := <-watcher.Events:
+			// Closed
+			if !ok {
+				return
+			}
+
+			// Listen for changes only to markdown files. We can ignore chmod events
+			if event.Has(fsnotify.Chmod) || filepath.Ext(event.Name) != ".md" {
+				continue
+			}
+			segments := strings.Split(event.Name, "/")
+			noteName := strings.Replace(segments[len(segments)-1], ".md", "", 1)
+			folderName := segments[len(segments)-2]
+			log.Println("event:", event, noteName, folderName)
+			// This works for MACOS need to test on other platforms
+			if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
+				app.Events.Emit(&application.WailsEvent{
+					Name: "note:delete",
+					Data: map[string]string{"note": noteName, "folder": folderName},
+				})
+			}
+
+			if event.Has(fsnotify.Create) {
+				app.Events.Emit(&application.WailsEvent{
+					Name: "note:create",
+					Data: map[string]string{"note": noteName, "folder": folderName},
+				})
+			}
+		case err, ok := <-watcher.Errors:
+			if !ok {
+				return
+			}
+			log.Println("error:", err)
+		}
+	}
+}
+
+/** Watches each folder in the notes directory */
+func ListenToFolders(projectPath string, watcher *fsnotify.Watcher) {
+	notesFolderPath := filepath.Join(projectPath, "notes")
+	entries, err := os.ReadDir(notesFolderPath)
+	if err != nil {
+		log.Fatalf("Failed to read notes directory: %v", err)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			folderPath := filepath.Join(notesFolderPath, entry.Name())
+			watcher.Add(folderPath)
+		}
 	}
 }
