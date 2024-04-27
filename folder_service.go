@@ -65,6 +65,9 @@ func (f *FolderService) AddFolder(folderName string) FolderResponse {
 		return FolderResponse{Success: false, Message: err.Error()}
 	}
 
+	// Add the folder to watcher
+	// f.Watcher.Add(pathToFolder)
+
 	// Create an attachments folder inside the folder
 	attachmentsPath := filepath.Join(pathToFolder, "attachments")
 	if err := os.MkdirAll(attachmentsPath, os.ModePerm); err != nil {

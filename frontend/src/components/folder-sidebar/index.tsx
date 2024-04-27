@@ -12,7 +12,7 @@ import { Gear } from "../../icons/gear.tsx";
 import { updateFolders } from "../../utils/fetch-functions";
 import { useWailsEvent } from "../../utils/hooks.tsx";
 import { getDefaultButtonVariants } from "../../variants";
-import { IconButton, MotionButton, MotionIconButton } from "../buttons";
+import { MotionButton, MotionIconButton } from "../buttons";
 import { SyncChangesButton } from "../buttons/sync-changes";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
@@ -29,7 +29,31 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [folders, setFolders] = useAtom(foldersAtom);
 	const [isSyncing, setIsSyncing] = useState(false);
 
-	useWailsEvent("delete-folder", (event) => {
+	useWailsEvent("folder:create", (body) => {
+		const data = body.data as { folder: string };
+		navigate(`/${data.folder}`);
+		setFolders((prev) => prev ? [...prev, data.folder] : [data.folder]);
+	});
+
+	useWailsEvent("folder:delete", (body) => {
+		const data = body.data as { folder: string };
+		setFolders((prev) => {
+			if (prev) {
+				const newFolders = prev.filter((folder) => folder !== data.folder)
+				if(newFolders.length > 0){
+					navigate(`/${newFolders[0]}`)
+				}
+				else{
+					navigate("/")
+				}
+				return newFolders;
+			}
+			navigate("/")
+			return [];
+		});
+	});
+
+	useWailsEvent("folder:context-menu:delete", (event) => {
 		const [folderName, windowId] = (event.data as string).split(",");
 		if (windowId === WINDOW_ID) {
 			setIsFolderDialogOpen({
@@ -40,7 +64,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 		}
 	});
 
-	useWailsEvent("rename-folder", (event) => {
+	useWailsEvent("folder:context-menu:rename", (event) => {
 		const [folderName, windowId] = (event.data as string).split(",");
 		if (windowId === WINDOW_ID) {
 			setIsFolderDialogOpen({
@@ -51,27 +75,11 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 		}
 	});
 
-	// useWailsEvent("create-note", () => {
-	// 	// setIsFolderDialogOpen({ isOpen: true, action: "create" });
-	// });
-
 	// Initially fetches folders from filesystem
 	useEffect(() => {
 		updateFolders(setFolders);
 	}, [setFolders]);
 
-	// Updates the folders state when folders is changed
-	useWailsEvent("folders:changed", (body) => {
-		const data = body.data as { windowId: string; folders: string[] | null };
-		if (folder && data.folders) {
-			if (!data.folders.includes(folder)) {
-				const firstFolder = data.folders.at(0);
-				const newUrl = firstFolder ? `/${firstFolder}` : "/";
-				navigate(newUrl);
-			}
-		}
-		setFolders(data.folders);
-	});
 
 	return (
 		<>

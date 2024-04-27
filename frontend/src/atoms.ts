@@ -13,7 +13,7 @@ export const mostRecentNotesAtom = atom(
 );
 
 export const attachmentsAtom = atom<string[]>([]);
-export const notesAtom = atom<string[]>([]);
+export const notesAtom = atom<string[] | null>([]);
 export const foldersAtom = atom<string[] | null>([]);
 export const alphabetizedFoldersAtom = atom((get) => {
 	const folders = get(foldersAtom);

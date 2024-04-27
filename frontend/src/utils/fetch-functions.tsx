@@ -25,7 +25,7 @@ export function updateFolders(
 export function updateNotes(
 	folder: string,
 	note: string | undefined,
-	setNotes: Dispatch<SetStateAction<string[]>>,
+	setNotes: Dispatch<SetStateAction<string[] | null>>,
 ) {
 	GetNotes(folder)
 		.then((res) => {
@@ -39,6 +39,6 @@ export function updateNotes(
 		})
 		.catch(() => {
 			navigate("/");
-			setNotes([]);
+			setNotes(null);
 		});
 }

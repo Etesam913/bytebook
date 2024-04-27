@@ -77,7 +77,7 @@ export function NotesSidebar({
 	useWailsEvent("note:create", (body) => {
 		const data = body.data as { folder: string; note: string };
 		if (data.folder !== folder) return;
-		setNotes((prev) => [...prev, data.note]);
+		setNotes((prev) => (prev ? [...prev, data.note] : [data.note]));
 		navigate(`/${folder}/${data.note}`);
 	});
 
@@ -85,10 +85,10 @@ export function NotesSidebar({
 		const data = body.data as { folder: string; note: string };
 		if (data.folder !== folder) return;
 		setNotes((prev) => {
-			const newNotes = prev.filter((v) => v !== data.note);
+			const newNotes = prev ? prev.filter((v) => v !== data.note) : [data.note];
 			// The note that you are on is deleted
 			if (note === data.note) {
-				if (notes.length > 0) {
+				if (newNotes.length > 0) {
 					navigate(`/${folder}/${newNotes[0]}`);
 				} else {
 					navigate(`/${folder}`);
@@ -96,6 +96,19 @@ export function NotesSidebar({
 			}
 			return newNotes;
 		});
+	});
+
+	useWailsEvent("note:context-menu:delete-note", (event) => {
+		const noteName = event.data as string;
+		DeleteFolder(`${folder}/${noteName}.md`)
+			.then((res) => {
+				if (!res.success) {
+					throw new Error();
+				}
+			})
+			.catch(() => {
+				toast.error("Failed to delete note");
+			});
 	});
 
 	useWailsEvent("attachments:changed", (body) => {
@@ -122,19 +135,6 @@ export function NotesSidebar({
 		} catch {
 			toast.error("Failed to delete attachment");
 		}
-	});
-
-	useWailsEvent("note:context-menu:delete-note", (event) => {
-		const noteName = event.data as string;
-		DeleteFolder(`${folder}/${noteName}.md`)
-			.then((res) => {
-				if (!res.success) {
-					throw new Error();
-				}
-			})
-			.catch(() => {
-				toast.error("Failed to delete note");
-			});
 	});
 
 	useWailsEvent("open-note-in-new-window-frontend", () => {

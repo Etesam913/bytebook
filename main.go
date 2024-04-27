@@ -91,9 +91,9 @@ func main() {
 	attachmentContextMenu := app.NewMenu()
 
 	project_helpers.CreateFolderContextMenu(app, folderContextMenu, []project_helpers.MenuItem{
-		{Label: "Rename Folder", EventName: "rename-folder"},
+		{Label: "Rename Folder", EventName: "folder:context-menu:rename"},
 		{Label: "Add Note", EventName: "add-note"},
-		{Label: "Delete Folder", EventName: "delete-folder"},
+		{Label: "Delete Folder", EventName: "folder:context-menu:delete"},
 	})
 
 	project_helpers.CreateFolderContextMenu(app, noteContextMenu, []project_helpers.MenuItem{
@@ -124,7 +124,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to setup file watcher " + err.Error())
 	}
-
 	defer watcher.Close()
 	go file_server.LaunchFileWatcher(app, watcher)
 	file_server.ListenToFolders(projectPath, watcher)

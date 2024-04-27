@@ -57,14 +57,43 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 				return
 			}
 
-			// Listen for changes only to markdown files. We can ignore chmod events
-			if event.Has(fsnotify.Chmod) || filepath.Ext(event.Name) != ".md" {
+			log.Println("event:", event, filepath.Ext(event.Name))
+
+			isDir := filepath.Ext(event.Name) == ""
+
+			// We can ignore chmod events
+			if event.Has(fsnotify.Chmod) {
+				continue
+			}
+
+			// If is a directory
+			if isDir {
+				watcher.Add(event.Name)
+				folderName := filepath.Base(event.Name)
+				if event.Has(fsnotify.Create) {
+					app.Events.Emit(&application.WailsEvent{
+						Name: "folder:create",
+						Data: map[string]string{"folder": folderName},
+					})
+				}
+				if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
+					watcher.Remove(event.Name)
+					app.Events.Emit(&application.WailsEvent{
+						Name: "folder:delete",
+						Data: map[string]string{"folder": folderName},
+					})
+				}
+				continue
+			}
+
+			// Listen for changes only to markdown files.
+			if filepath.Ext(event.Name) != ".md" {
 				continue
 			}
 			segments := strings.Split(event.Name, "/")
 			noteName := strings.Replace(segments[len(segments)-1], ".md", "", 1)
 			folderName := segments[len(segments)-2]
-			log.Println("event:", event, noteName, folderName)
+
 			// This works for MACOS need to test on other platforms
 			if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
 				app.Events.Emit(&application.WailsEvent{
@@ -91,6 +120,7 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 /** Watches each folder in the notes directory */
 func ListenToFolders(projectPath string, watcher *fsnotify.Watcher) {
 	notesFolderPath := filepath.Join(projectPath, "notes")
+	watcher.Add(notesFolderPath)
 	entries, err := os.ReadDir(notesFolderPath)
 	if err != nil {
 		log.Fatalf("Failed to read notes directory: %v", err)

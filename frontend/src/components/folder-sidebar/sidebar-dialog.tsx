@@ -65,18 +65,6 @@ export function FolderSidebarDialog({
 								if (res.success) {
 									setIsFolderDialogOpen({ isOpen: false, folderName });
 									setErrorText("");
-
-									Events.Emit({
-										name: "folders:changed",
-										data: {
-											folders: folders
-												? [...folders, folderName]
-												: [folderName],
-											windowId: WINDOW_ID,
-										},
-									});
-
-									navigate(`/${folderName}`);
 								} else {
 									setErrorText(res.message);
 								}
@@ -91,22 +79,6 @@ export function FolderSidebarDialog({
 								if (res.success) {
 									setIsFolderDialogOpen({ isOpen: false, folderName: "" });
 									setErrorText("");
-
-									Events.Emit({
-										name: "folders:changed",
-										data: {
-											folders: folders
-												? folders.map((v: string) =>
-														v === isFolderDialogOpen.folderName
-															? folderName
-															: v,
-													)
-												: [folderName],
-											windowId: WINDOW_ID,
-										},
-									});
-
-									navigate(`/${folderName}`);
 								}
 							})
 							.catch((e) => {
@@ -119,23 +91,7 @@ export function FolderSidebarDialog({
 				} else if (action === "delete") {
 					DeleteFolder(`${isFolderDialogOpen.folderName}`).then((res) => {
 						if (res.success) {
-							const newFolders = folders.filter(
-								(v) => v !== isFolderDialogOpen.folderName,
-							);
-							navigate(folders.length > 1 ? `/${newFolders[0]}` : "/");
-							Events.Emit({
-								name: "folders:changed",
-								data: {
-									folders: newFolders,
-									windowId: WINDOW_ID,
-								},
-							});
 							setIsFolderDialogOpen({ isOpen: false, folderName: "" });
-							updateMostRecentNotesOnFolderDelete(
-								isFolderDialogOpen.folderName,
-								mostRecentNotes,
-								setMostRecentNotes,
-							);
 						}
 					});
 				}
