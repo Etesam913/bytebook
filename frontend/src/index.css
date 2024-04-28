@@ -88,6 +88,17 @@ h3 {
     margin-right: 36px;
 }
 
+.dragging{
+  @apply bg-zinc-50 dark:bg-zinc-700 border-zinc-200 dark:border-zinc-600 border-2 absolute top-0 left-[-9999px] p-2 rounded-lg font-display;
+}
+
+.drag-grid{
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  row-gap: 0.5rem;
+}
+
+
 /**
  * Lexical Editor Styles (Tailwind does not work too well with)
  */

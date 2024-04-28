@@ -20,7 +20,7 @@ import {
 	SELECTION_CHANGE_COMMAND,
 	type TextFormatType,
 } from "lexical";
-import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import { type Dispatch, type SetStateAction, useEffect } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { GetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { mostRecentNotesAtom } from "../../atoms.ts";
