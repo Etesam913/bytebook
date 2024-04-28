@@ -318,45 +318,56 @@ export function handleTextMatchTransformerReplace(
 	const middleText = match[0];
 	const textToRight = textContent.slice(endIndex);
 
-	if (transformer.dependencies.includes(ImageNode)) {
-		const parent = anchorNode.getParent();
-		replaceNode = $createTextNode(middleText);
-		if (parent) {
-			// Remove old children and replace with just the image
-			for (const child of parent.getChildren()) {
-				child.remove();
-			}
+	// if (transformer.dependencies.includes(ImageNode)) {
+	// 	const parent = anchorNode.getParent();
+	// 	replaceNode = $createTextNode(middleText);
+	// 	if (parent) {
+	// 		// Remove old children and replace with just the image
+	// 		for (const child of parent.getChildren()) {
+	// 			child.remove();
+	// 		}
 
-			const newParent = $createParagraphNode();
+	// 		const newParent = $createParagraphNode();
 
-			parent.replace(newParent);
-			newParent.select(0, 0);
+	// 		parent.replace(newParent);
+	// 		newParent.select(0, 0);
 
-			newParent.append(replaceNode);
-			if (textToLeft.length > 0) {
-				newParent.insertBefore(
-					$createParagraphNode().append($createTextNode(textToLeft)),
-				);
-			}
-			if (textToRight.length > 0) {
-				newParent.insertAfter(
-					$createParagraphNode().append($createTextNode(textToRight)),
-				);
-			}
-			return replaceNode;
-		}
+	// 		newParent.append(replaceNode);
+	// 		if (textToLeft.length > 0) {
+	// 			newParent.insertBefore(
+	// 				$createParagraphNode().append($createTextNode(textToLeft)),
+	// 			);
+	// 		}
+	// 		if (textToRight.length > 0) {
+	// 			newParent.insertAfter(
+	// 				$createParagraphNode().append($createTextNode(textToRight)),
+	// 			);
+	// 		}
+	// 		return replaceNode;
+	// 	}
+	// } else {
+	// 	// Handle other text match transformers here
+	// 	if (startIndex === 0) {
+	// 		[replaceNode] = anchorNode.splitText(endIndex);
+	// 	} else {
+	// 		[, replaceNode] = anchorNode.splitText(startIndex, endIndex);
+	// 	}
+
+	// 	replaceNode.selectNext(0, 0);
+
+	// 	return replaceNode;
+	// }
+
+	// Handle other text match transformers here
+	if (startIndex === 0) {
+		[replaceNode] = anchorNode.splitText(endIndex);
 	} else {
-		// Handle other text match transformers here
-		if (startIndex === 0) {
-			[replaceNode] = anchorNode.splitText(endIndex);
-		} else {
-			[, replaceNode] = anchorNode.splitText(startIndex, endIndex);
-		}
-
-		replaceNode.selectNext(0, 0);
-
-		return replaceNode;
+		[, replaceNode] = anchorNode.splitText(startIndex, endIndex);
 	}
+
+	replaceNode.selectNext(0, 0);
+
+	return replaceNode;
 }
 
 export function handleATag(target: HTMLElement) {

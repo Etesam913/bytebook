@@ -58,7 +58,12 @@ import {
 	type ResizeWidth,
 } from "./nodes/image";
 import { $createLinkNode, $isLinkNode, LinkNode } from "./nodes/link";
-import { $createVideoNode, $isVideoNode, type VideoNode } from "./nodes/video";
+import {
+	$createUnknownAttachmentNode,
+	$isUnknownAttachmentNode,
+	UnknownAttachmentNode,
+} from "./nodes/unknown-attachment";
+import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
 import type { Transformer } from "./utils";
 
 export const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
@@ -122,12 +127,15 @@ function updateSrc(nodeSrc: string) {
 }
 
 const FILE_TRANSFORMER: TextMatchTransformer = {
-	dependencies: [ImageNode],
+	dependencies: [ImageNode, VideoNode, UnknownAttachmentNode],
 	export: (node) => {
 		let filePathOrSrc = "";
 		let altText = "";
 		const isImage = $isImageNode(node);
 		const isVideo = $isVideoNode(node);
+		const isUnknownAttachment = $isUnknownAttachmentNode(node);
+		console.log(isImage, isVideo, isUnknownAttachment);
+		// These nodes are resizable
 		if (isImage || isVideo) {
 			filePathOrSrc = updateSrc(node.getSrc());
 
@@ -143,6 +151,9 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 					altText = addQueryParam(altText, "subtitleUrl", subtitleUrl);
 				}
 			}
+		} else if (isUnknownAttachment) {
+			altText = "test";
+			filePathOrSrc = updateSrc(node.getSrc());
 		} else return null;
 
 		// TODO: need to do sanitizing on the alt text
@@ -163,7 +174,8 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 		const shouldCreateVideoNode = VIDEO_FILE_EXTENSIONS.some((extension) =>
 			filePathOrSrc.endsWith(extension),
 		);
-		let nodeToCreate: ImageNode | VideoNode | null = null;
+		let nodeToCreate: ImageNode | VideoNode | UnknownAttachmentNode | null =
+			null;
 
 		if (shouldCreateImageNode || shouldCreateVideoNode) {
 			const widthQueryValue = getQueryParamValue(alt, "width");
@@ -188,6 +200,8 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 					subtitleUrl: subtitleUrl ?? undefined,
 				});
 			}
+		} else {
+			nodeToCreate = $createUnknownAttachmentNode({ src: filePathOrSrc });
 		}
 
 		if (nodeToCreate) {

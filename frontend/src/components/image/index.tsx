@@ -49,7 +49,7 @@ export function Image({
 	}, [isSelected]);
 
 	return (
-		<div className="w-full">
+		<div className="w-fit inline-block mx-2">
 			<ResizeContainer
 				resizeState={{
 					isResizing,

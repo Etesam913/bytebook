@@ -7,6 +7,7 @@ import { $getRoot, type EditorThemeClasses, ParagraphNode } from "lexical";
 import { CodeNode } from "./nodes/code";
 import { ImageNode } from "./nodes/image";
 import { LinkNode } from "./nodes/link";
+import { UnknownAttachmentNode } from "./nodes/unknown-attachment";
 import { VideoNode } from "./nodes/video";
 
 // Catch any errors that occur during Lexical updates and log them
@@ -78,5 +79,6 @@ export const editorConfig: InitialConfigType = {
 		TableCellNode,
 		TableRowNode,
 		CodeNode,
+		UnknownAttachmentNode,
 	],
 };

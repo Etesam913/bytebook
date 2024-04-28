@@ -104,6 +104,10 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 		};
 	}
 
+	isInline() {
+		return true;
+	}
+
 	// View
 	createDOM(): HTMLElement {
 		const span = document.createElement("span");

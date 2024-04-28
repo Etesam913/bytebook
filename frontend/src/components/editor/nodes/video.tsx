@@ -120,6 +120,10 @@ export class VideoNode extends DecoratorNode<JSX.Element> {
 		return span;
 	}
 
+	isInline(): boolean {
+		return true;
+	}
+
 	updateDOM(): false {
 		return false;
 	}

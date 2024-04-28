@@ -54,7 +54,7 @@ export function onClickDecoratorNodeCommand(
 	if (isResizing) {
 		return true;
 	}
-
+	console.log(e.target, node);
 	if (e.target === node) {
 		if (!e.shiftKey) clearSelection();
 		setSelected(true);
