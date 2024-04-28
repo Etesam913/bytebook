@@ -41,7 +41,6 @@ export function AttachmentsAccordion({
 			key={attachmentFile}
 			onClick={(e) => {
 				e.stopPropagation();
-				console.log("stopped propagation");
 			}}
 			style={
 				{
@@ -124,7 +123,7 @@ export function AttachmentsAccordion({
 	));
 
 	return (
-		<section className="shadow-2xl border-[1px] border-zinc-200 dark:border-zinc-600 flex flex-col absolute bottom-0 w-full max-h-[calc(100vh-14rem)] bg-zinc-50 dark:bg-zinc-800 rounded-md">
+		<section className="shadow-2xl border-[1px] w-[calc(100%-0.8rem)] border-zinc-200 dark:border-zinc-600 flex flex-col absolute bottom-0 max-h-[calc(100vh-14rem)] bg-zinc-50 dark:bg-zinc-800 rounded-md">
 			<button
 				className="flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 py-1 px-1.5 rounded-md transition-colors"
 				onClick={() => setIsAttachmentsCollapsed((prev) => !prev)}

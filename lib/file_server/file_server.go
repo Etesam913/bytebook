@@ -59,6 +59,7 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 
 			log.Println("event:", event, filepath.Ext(event.Name))
 
+			// Might need a better way of determining if something is a folder in the future
 			isDir := filepath.Ext(event.Name) == ""
 
 			// We can ignore chmod events
@@ -68,9 +69,21 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 
 			// If is a directory
 			if isDir {
-				watcher.Add(event.Name)
 				folderName := filepath.Base(event.Name)
 				if event.Has(fsnotify.Create) {
+
+					watcher.Add(event.Name)
+					// This is to prevent an infinite loop as creating a folder also creates an attachments folder
+					if folderName == "attachments" {
+						continue
+					}
+					// Add an attachments folder as well
+					attachmentsPath := filepath.Join(event.Name, "attachments")
+					if err := os.MkdirAll(attachmentsPath, os.ModePerm); err != nil {
+						log.Fatalf("Failed to create attachments folder: %v", err)
+					}
+					watcher.Add(attachmentsPath)
+
 					app.Events.Emit(&application.WailsEvent{
 						Name: "folder:create",
 						Data: map[string]string{"folder": folderName},
@@ -86,28 +99,49 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 				continue
 			}
 
-			// Listen for changes only to markdown files.
-			if filepath.Ext(event.Name) != ".md" {
-				continue
-			}
+			// Only dealing with files at this point
 			segments := strings.Split(event.Name, "/")
-			noteName := strings.Replace(segments[len(segments)-1], ".md", "", 1)
-			folderName := segments[len(segments)-2]
+			oneFolderBack := segments[len(segments)-2]
+			twoFoldersBack := segments[len(segments)-3]
 
-			// This works for MACOS need to test on other platforms
-			if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
-				app.Events.Emit(&application.WailsEvent{
-					Name: "note:delete",
-					Data: map[string]string{"note": noteName, "folder": folderName},
-				})
+			// If it is not a note
+			if oneFolderBack == "attachments" {
+				log.Println(("attachment folder"))
+				if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
+					app.Events.Emit(&application.WailsEvent{
+						Name: "attachment:delete",
+						Data: map[string]string{"name": filepath.Base(event.Name), "folder": twoFoldersBack},
+					})
+				}
+
+				if event.Has(fsnotify.Create) {
+					app.Events.Emit(&application.WailsEvent{
+						Name: "attachment:create",
+						Data: map[string]string{"name": filepath.Base(event.Name), "folder": twoFoldersBack},
+					})
+				}
+			} else {
+				// Listen for changes only to markdown files when in note folder
+				if filepath.Ext(event.Name) != ".md" {
+					continue
+				}
+				noteName := strings.Replace(segments[len(segments)-1], ".md", "", 1)
+				// This works for MACOS need to test on other platforms
+				if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
+					app.Events.Emit(&application.WailsEvent{
+						Name: "note:delete",
+						Data: map[string]string{"note": noteName, "folder": oneFolderBack},
+					})
+				}
+
+				if event.Has(fsnotify.Create) {
+					app.Events.Emit(&application.WailsEvent{
+						Name: "note:create",
+						Data: map[string]string{"note": noteName, "folder": oneFolderBack},
+					})
+				}
 			}
 
-			if event.Has(fsnotify.Create) {
-				app.Events.Emit(&application.WailsEvent{
-					Name: "note:create",
-					Data: map[string]string{"note": noteName, "folder": folderName},
-				})
-			}
 		case err, ok := <-watcher.Errors:
 			if !ok {
 				return
@@ -129,6 +163,8 @@ func ListenToFolders(projectPath string, watcher *fsnotify.Watcher) {
 		if entry.IsDir() {
 			folderPath := filepath.Join(notesFolderPath, entry.Name())
 			watcher.Add(folderPath)
+			attachmentsPath := filepath.Join(folderPath, "attachments")
+			watcher.Add(attachmentsPath)
 		}
 	}
 }

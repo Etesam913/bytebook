@@ -1,24 +1,18 @@
-import { Events } from "@wailsio/runtime";
-import { useAtom } from "jotai";
 import {
 	type Dispatch,
 	type ReactNode,
 	type SetStateAction,
 	useState,
 } from "react";
-import { navigate } from "wouter/use-browser-location";
 import {
 	AddFolder,
 	DeleteFolder,
 	RenameFolder,
 } from "../../../bindings/main/FolderService";
-import { WINDOW_ID } from "../../App.tsx";
-import { mostRecentNotesAtom } from "../../atoms.ts";
 import { FolderPen } from "../../icons/folder-pen.tsx";
 import { FolderPlus } from "../../icons/folder-plus";
 import { FolderXMark } from "../../icons/folder-xmark.tsx";
 import type { FolderDialogAction, FolderDialogState } from "../../types.ts";
-import { updateMostRecentNotesOnFolderDelete } from "../../utils/misc.ts";
 import { fileNameRegex } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../buttons";
@@ -36,14 +30,12 @@ const actionNameMap: Record<
 export function FolderSidebarDialog({
 	isFolderDialogOpen,
 	setIsFolderDialogOpen,
-	folders,
 }: {
 	isFolderDialogOpen: FolderDialogState;
 	setIsFolderDialogOpen: Dispatch<SetStateAction<FolderDialogState>>;
 	folders: string[];
 }) {
 	const [errorText, setErrorText] = useState("");
-	const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);
 	const { action, isOpen } = isFolderDialogOpen;
 	return (
 		<Dialog

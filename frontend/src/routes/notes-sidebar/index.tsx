@@ -12,7 +12,7 @@ import {
 	isNoteMaximizedAtom,
 	notesAtom,
 } from "../../atoms";
-import { MotionButton } from "../../components/buttons";
+import { MotionButton, MotionIconButton } from "../../components/buttons";
 import { NotesEditor } from "../../components/editor";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Compose } from "../../icons/compose";
@@ -111,12 +111,19 @@ export function NotesSidebar({
 			});
 	});
 
-	useWailsEvent("attachments:changed", (body) => {
-		const data = body.data as {
-			windowId: string;
-			attachments: string[];
-		};
-		setAttachments(data.attachments);
+	useWailsEvent("attachment:create", (body) => {
+		const data = body.data as { folder: string; name: string };
+		if (data.folder !== folder) return;
+		setAttachments((prev) => (prev ? [...prev, data.name] : [data.name]));
+	});
+
+	useWailsEvent("attachment:delete", (body) => {
+		const data = body.data as { folder: string; name: string };
+		if (data.folder !== folder) return;
+		if (note === data.name) {
+			navigate(`/${folder}`);
+		}
+		setAttachments((prev) => prev.filter((v) => v !== data.name));
 	});
 
 	useWailsEvent("attachments:context-menu:delete-attachment", async (body) => {
@@ -127,9 +134,7 @@ export function NotesSidebar({
 			const hasDeletedAttachment = await DeleteFolder(
 				`${folder}/attachments/${fileToDelete}`,
 			);
-			if (hasDeletedAttachment.success) {
-				setAttachments((prev) => prev.filter((v) => v !== fileToDelete));
-			} else {
+			if (!hasDeletedAttachment.success) {
 				throw new Error();
 			}
 		} catch {
@@ -165,19 +170,16 @@ export function NotesSidebar({
 						ref={sidebarRef}
 						onClick={() => setAttachmentsSelectionRange(new Set())}
 						style={{ width }}
-						className="text-md flex h-screen flex-col gap-2 pl-1 pr-2.5  overflow-y-auto pt-[0.75rem] pb-3.5"
+						className="text-md flex h-screen flex-col gap-2 overflow-y-auto pt-[0.75rem] pb-3.5"
 					>
-						<div className="flex h-full flex-col gap-4 overflow-y-auto pt-[1px] relative">
+						<div className="flex h-full flex-col gap-4 overflow-y-auto pl-1 pr-2.5 pt-[1px] relative">
 							<section className="flex items-center gap-2">
 								<Folder className="min-w-[1.25rem]" />{" "}
 								<p className="overflow-hidden text-ellipsis whitespace-nowrap">
 									{folder}
 								</p>
-								<motion.button
-									type="button"
-									data-testid="rename_folder_button"
-									{...getDefaultButtonVariants(false, 1.15, 0.95, 1.15)}
-									className="item-center flex min-w-[1.5rem] justify-center rounded-[0.5rem] p-[2.5px] transition-colors duration-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+								<MotionIconButton
+									{...getDefaultButtonVariants()}
 									onClick={() =>
 										setIsFolderDialogOpen({
 											isOpen: true,
@@ -187,7 +189,7 @@ export function NotesSidebar({
 									}
 								>
 									<Pen className="w-full" />
-								</motion.button>
+								</MotionIconButton>
 							</section>
 							<MotionButton
 								{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}

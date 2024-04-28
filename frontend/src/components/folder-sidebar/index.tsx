@@ -32,23 +32,22 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	useWailsEvent("folder:create", (body) => {
 		const data = body.data as { folder: string };
 		navigate(`/${data.folder}`);
-		setFolders((prev) => prev ? [...prev, data.folder] : [data.folder]);
+		setFolders((prev) => (prev ? [...prev, data.folder] : [data.folder]));
 	});
 
 	useWailsEvent("folder:delete", (body) => {
 		const data = body.data as { folder: string };
 		setFolders((prev) => {
 			if (prev) {
-				const newFolders = prev.filter((folder) => folder !== data.folder)
-				if(newFolders.length > 0){
-					navigate(`/${newFolders[0]}`)
-				}
-				else{
-					navigate("/")
+				const newFolders = prev.filter((folder) => folder !== data.folder);
+				if (newFolders.length > 0) {
+					navigate(`/${newFolders[0]}`);
+				} else {
+					navigate("/");
 				}
 				return newFolders;
 			}
-			navigate("/")
+			navigate("/");
 			return [];
 		});
 	});
@@ -79,7 +78,6 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	useEffect(() => {
 		updateFolders(setFolders);
 	}, [setFolders]);
-
 
 	return (
 		<>
