@@ -5,6 +5,7 @@ import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
 import { $getRoot, type EditorThemeClasses, ParagraphNode } from "lexical";
 import { CodeNode } from "./nodes/code";
+import { ExcalidrawNode } from "./nodes/excalidraw";
 import { ImageNode } from "./nodes/image";
 import { LinkNode } from "./nodes/link";
 import { UnknownAttachmentNode } from "./nodes/unknown-attachment";
@@ -80,5 +81,6 @@ export const editorConfig: InitialConfigType = {
 		TableRowNode,
 		CodeNode,
 		UnknownAttachmentNode,
+		ExcalidrawNode,
 	],
 };

@@ -80,6 +80,7 @@ export function NotesEditor({
 				isNoteMaximized && "mt-[1px]",
 			)}
 		>
+			{/* <ExcalidrawComponent /> */}
 			<LexicalComposer initialConfig={editorConfig}>
 				<Toolbar
 					folder={folder}

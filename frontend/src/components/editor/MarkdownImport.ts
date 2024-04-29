@@ -14,6 +14,7 @@ import {
 } from "lexical";
 import type { CodeBlockData } from "../../types";
 import { $createCodeNode, type CodeNode } from "./nodes/code";
+import { $createExcalidrawNode, type ExcalidrawNode } from "./nodes/excalidraw";
 import { PUNCTUATION_OR_SPACE, transformersByType } from "./transformers";
 import { type Transformer, handleTextMatchTransformerReplace } from "./utils";
 
@@ -122,7 +123,7 @@ function importCodeBlock(
 	lines: Array<string>,
 	startLineIndex: number,
 	rootNode: ElementNode,
-): [CodeNode | null, number] {
+): [CodeNode | ExcalidrawNode | null, number] {
 	const openMatch = lines[startLineIndex].match(CODE_BLOCK_REG_EXP);
 	if (openMatch) {
 		let endLineIndex = startLineIndex;
@@ -136,7 +137,8 @@ function importCodeBlock(
 					.join("\n");
 
 				const language = openMatch[1] ?? "";
-				const otherMatches = openMatch.slice(2);
+				const otherMatches = openMatch.slice(2).filter((v) => v !== undefined);
+
 				let command = undefined;
 				for (const match of otherMatches) {
 					// These are in the form of {key=value}
@@ -145,15 +147,21 @@ function importCodeBlock(
 						command = value;
 					}
 				}
-				const data: CodeBlockData = JSON.parse(filesString);
-				const codeBlockNode = $createCodeNode({
-					data,
-					language,
-					focus: false,
-					command,
-				});
-				rootNode.append(codeBlockNode);
-				return [codeBlockNode, endLineIndex];
+				if (language === "excalidraw") {
+					const excalidrawNode = $createExcalidrawNode({ elements: [] });
+					rootNode.append(excalidrawNode);
+					return [excalidrawNode, endLineIndex];
+				} else {
+					const data: CodeBlockData = JSON.parse(filesString);
+					const codeBlockNode = $createCodeNode({
+						data,
+						language,
+						focus: false,
+						command,
+					});
+					rootNode.append(codeBlockNode);
+					return [codeBlockNode, endLineIndex];
+				}
 			}
 		}
 	}

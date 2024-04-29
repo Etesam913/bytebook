@@ -52,6 +52,11 @@ import {
 } from "../../utils/string-formatting";
 import { $createCodeNode, $isCodeNode, CodeNode } from "./nodes/code";
 import {
+	$createExcalidrawNode,
+	$isExcalidrawNode,
+	ExcalidrawNode,
+} from "./nodes/excalidraw";
+import {
 	$createImageNode,
 	$isImageNode,
 	ImageNode,
@@ -80,34 +85,46 @@ const createBlockNode = (
 };
 
 export const CODE_TRANSFORMER: ElementTransformer = {
-	dependencies: [CodeNode],
+	dependencies: [CodeNode, ExcalidrawNode],
 	export: (node: LexicalNode) => {
-		if (!$isCodeNode(node)) {
+		if (!$isCodeNode(node) && !$isExcalidrawNode(node)) {
 			return null;
 		}
-		const textContent = JSON.stringify(node.getData());
-		return `\`\`\`${node.getLanguage() || ""} {command=${node.getCommand()}} ${
-			textContent ? `\n${textContent}` : ""
-		}\n\`\`\``;
+		if ($isCodeNode(node)) {
+			const textContent = JSON.stringify(node.getData());
+			return `\`\`\`${node.getLanguage()} {command=${node.getCommand()}} ${
+				textContent ? `\n${textContent}` : ""
+			}\n\`\`\``;
+		} else {
+			return `\`\`\`excalidraw \n\`\`\``;
+		}
 	},
 	regExp: /^```(\w{1,10})?\s/,
 	replace: (textNode, _1, match, isImport) => {
 		// MarkdownImport.ts handles the import of code blocks
+		console.log(match);
 		const language = match.at(1);
-		if (!language || !codeLanguages.has(language)) {
+		if (
+			!language ||
+			(!codeLanguages.has(language) && language !== "excalidraw")
+		) {
 			return;
 		}
-
-		const codeNode = $createCodeNode({
-			language: language,
-			focus: !isImport,
-		});
+		let newNode = null;
+		if (language === "excalidraw") {
+			newNode = $createExcalidrawNode({ elements: [] });
+		} else {
+			newNode = $createCodeNode({
+				language: language,
+				focus: !isImport,
+			});
+		}
 
 		const nodeSelection = $createNodeSelection();
-		nodeSelection.add(codeNode.getKey());
+		nodeSelection.add(newNode.getKey());
 		$setSelection(nodeSelection);
 
-		textNode.replace(codeNode);
+		textNode.replace(newNode);
 	},
 	type: "element",
 };
