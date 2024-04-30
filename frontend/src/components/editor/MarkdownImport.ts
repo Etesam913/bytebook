@@ -151,17 +151,16 @@ function importCodeBlock(
 					const excalidrawNode = $createExcalidrawNode({ elements: [] });
 					rootNode.append(excalidrawNode);
 					return [excalidrawNode, endLineIndex];
-				} else {
-					const data: CodeBlockData = JSON.parse(filesString);
-					const codeBlockNode = $createCodeNode({
-						data,
-						language,
-						focus: false,
-						command,
-					});
-					rootNode.append(codeBlockNode);
-					return [codeBlockNode, endLineIndex];
 				}
+				const data: CodeBlockData = JSON.parse(filesString);
+				const codeBlockNode = $createCodeNode({
+					data,
+					language,
+					focus: false,
+					command,
+				});
+				rootNode.append(codeBlockNode);
+				return [codeBlockNode, endLineIndex];
 			}
 		}
 	}

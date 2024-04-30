@@ -54,13 +54,14 @@ export function onClickDecoratorNodeCommand(
 	if (isResizing) {
 		return true;
 	}
-	console.log(e.target, node);
-	if (e.target === node) {
+
+	if (e.target === node || node?.contains(e.target as Node)) {
 		if (!e.shiftKey) clearSelection();
 		setSelected(true);
 		return true;
 	}
 	e.preventDefault();
+	e.stopPropagation();
 	return false;
 }
 

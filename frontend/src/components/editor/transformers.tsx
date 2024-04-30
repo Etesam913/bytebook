@@ -43,7 +43,11 @@ import {
 	type ElementNode,
 	type LexicalNode,
 } from "lexical";
-import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from "../../types";
+import {
+	IMAGE_FILE_EXTENSIONS,
+	type ResizeWidth,
+	VIDEO_FILE_EXTENSIONS,
+} from "../../types";
 import { codeLanguages } from "../../utils/code";
 import {
 	addQueryParam,
@@ -56,12 +60,7 @@ import {
 	$isExcalidrawNode,
 	ExcalidrawNode,
 } from "./nodes/excalidraw";
-import {
-	$createImageNode,
-	$isImageNode,
-	ImageNode,
-	type ResizeWidth,
-} from "./nodes/image";
+import { $createImageNode, $isImageNode, ImageNode } from "./nodes/image";
 import { $createLinkNode, $isLinkNode, LinkNode } from "./nodes/link";
 import {
 	$createUnknownAttachmentNode,
@@ -95,9 +94,8 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 			return `\`\`\`${node.getLanguage()} {command=${node.getCommand()}} ${
 				textContent ? `\n${textContent}` : ""
 			}\n\`\`\``;
-		} else {
-			return `\`\`\`excalidraw \n\`\`\``;
 		}
+		return "```excalidraw \n```";
 	},
 	regExp: /^```(\w{1,10})?\s/,
 	replace: (textNode, _1, match, isImport) => {
@@ -151,7 +149,7 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 		const isImage = $isImageNode(node);
 		const isVideo = $isVideoNode(node);
 		const isUnknownAttachment = $isUnknownAttachmentNode(node);
-		console.log(isImage, isVideo, isUnknownAttachment);
+
 		// These nodes are resizable
 		if (isImage || isVideo) {
 			filePathOrSrc = updateSrc(node.getSrc());
@@ -171,7 +169,9 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 		} else if (isUnknownAttachment) {
 			altText = "test";
 			filePathOrSrc = updateSrc(node.getSrc());
-		} else return null;
+		} else {
+			return null;
+		}
 
 		// TODO: need to do sanitizing on the alt text
 		return `![${altText}](${filePathOrSrc}) `;

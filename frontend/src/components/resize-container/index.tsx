@@ -15,12 +15,12 @@ import { XMark } from "../../icons/circle-xmark";
 import { Fullscreen } from "../../icons/fullscreen";
 import { Subtitles } from "../../icons/subtitles";
 import { Trash } from "../../icons/trash";
+import type { ResizeWidth } from "../../types";
 import { removeDecoratorNode } from "../../utils/commands";
 import { dragItem } from "../../utils/draggable";
 import { cn } from "../../utils/string-formatting";
 import { getDefaultButtonVariants } from "../../variants";
 import { useTrapFocus } from "../dialog/hooks";
-import type { ResizeWidth } from "../editor/nodes/image";
 import { expandNearestSiblingNode, useMouseActivity } from "./utils";
 
 type ResizeState = {
@@ -40,6 +40,7 @@ export function ResizeContainer({
 	defaultWidth,
 	writeWidthToNode,
 	elementType,
+	shouldHeightMatchWidth,
 }: {
 	resizeState: ResizeState;
 	element: HTMLElement | null;
@@ -47,7 +48,8 @@ export function ResizeContainer({
 	nodeKey: string;
 	defaultWidth: ResizeWidth;
 	writeWidthToNode: (width: ResizeWidth) => void;
-	elementType: "image" | "video";
+	elementType: "image" | "video" | "excalidraw";
+	shouldHeightMatchWidth?: boolean;
 }) {
 	const widthMotionValue = useMotionValue<number | "100%">(defaultWidth);
 	const {
@@ -70,7 +72,8 @@ export function ResizeContainer({
 
 	useTrapFocus(resizeContainerRef, isExpanded);
 
-	const isLeftAndRightArrowKeysShowing = useMouseActivity(1500, isExpanded);
+	const isLeftAndRightArrowKeysShowing =
+		elementType !== "excalidraw" && useMouseActivity(1500, isExpanded);
 
 	return (
 		<div
@@ -108,9 +111,11 @@ export function ResizeContainer({
 					isResizing && "opacity-50",
 					isExpanded &&
 						"max-h-screen fixed top-0 left-0 right-0 bottom-0 z-50 m-auto justify-start overflow-auto",
+					isExpanded && elementType === "excalidraw" && "!h-screen",
 				)}
 				style={{
 					width: !isExpanded ? widthMotionValue : "100%",
+					height: shouldHeightMatchWidth ? widthMotionValue : "auto",
 					transition: "outline 0.2s ease-in-out, opacity 0.2s ease-in-out",
 				}}
 			>
@@ -118,7 +123,7 @@ export function ResizeContainer({
 					{isSelected && !isExpanded && (
 						<>
 							<motion.div
-								className="absolute  bg-zinc-50 dark:bg-zinc-700 p-2 rounded-md shadow-lg border-[1px] border-zinc-300 dark:border-zinc-600 flex items-center justify-center gap-3"
+								className="absolute bg-zinc-50 dark:bg-zinc-700 p-2 rounded-md shadow-lg border-[1px] border-zinc-300 dark:border-zinc-600 flex items-center justify-center gap-3 z-10"
 								initial={{ opacity: 0, y: -20 }}
 								animate={{ opacity: 1, y: -30 }}
 								exit={{ opacity: 0, y: -20 }}

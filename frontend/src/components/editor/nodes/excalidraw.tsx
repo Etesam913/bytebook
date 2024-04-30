@@ -8,22 +8,26 @@ import type {
 	Spread,
 } from "lexical";
 import { $applyNodeReplacement, DecoratorNode } from "lexical";
+import type { ResizeWidth } from "../../../types";
 import { ExcalidrawComponent } from "../../excalidraw";
 
 export interface ExcalidrawPayload {
 	key?: NodeKey;
 	elements: ExcalidrawElement[];
+	width?: ResizeWidth;
 }
 
 export type SerializedExcalidrawNode = Spread<
 	{
 		elements: ExcalidrawElement[];
+		width?: ResizeWidth;
 	},
 	SerializedLexicalNode
 >;
 
 export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
 	__elements: ExcalidrawElement[] = [];
+	__width: ResizeWidth;
 	static getType(): string {
 		return "excalidraw";
 	}
@@ -33,9 +37,10 @@ export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static importJSON(serializedNode: SerializedExcalidrawNode): ExcalidrawNode {
-		const { elements } = serializedNode;
+		const { elements, width } = serializedNode;
 		const node = $createExcalidrawNode({
 			elements,
+			width,
 		});
 		return node;
 	}
@@ -44,9 +49,13 @@ export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
 		return false;
 	}
 
-	constructor(elements: ExcalidrawElement[], key?: NodeKey) {
+	constructor(
+		elements: ExcalidrawElement[],
+		width?: ResizeWidth,
+		key?: NodeKey,
+	) {
 		super(key);
-
+		this.__width = width ?? "100%";
 		// The elements to populate the excalidraw instance with
 		this.__elements = elements;
 	}
@@ -54,6 +63,7 @@ export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
 	exportJSON(): SerializedExcalidrawNode {
 		return {
 			elements: this.getElements(),
+			width: this.getWidth(),
 			type: "excalidraw",
 			version: 1,
 		};
@@ -78,8 +88,25 @@ export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
 		return this.__elements;
 	}
 
+	getWidth(): ResizeWidth {
+		return this.__width;
+	}
+
+	setWidth(width: ResizeWidth, editor: LexicalEditor): void {
+		editor.update(() => {
+			const writable = this.getWritable();
+			writable.__width = width;
+		});
+	}
+
 	decorate(_editor: LexicalEditor): JSX.Element {
-		return <ExcalidrawComponent />;
+		return (
+			<ExcalidrawComponent
+				nodeKey={this.getKey()}
+				widthWrittenToNode={this.getWidth()}
+				writeWidthToNode={(width) => this.setWidth(width, _editor)}
+			/>
+		);
 	}
 }
 

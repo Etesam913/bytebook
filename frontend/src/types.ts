@@ -38,3 +38,5 @@ export type CodeResultType = {
 	message: string;
 	success: boolean;
 };
+
+export type ResizeWidth = number | "100%";

@@ -13,9 +13,8 @@ import {
 	$createParagraphNode,
 	DecoratorNode,
 } from "lexical";
+import type { ResizeWidth } from "../../../types";
 import { Image } from "../../image";
-
-export type ResizeWidth = number | "100%";
 
 export interface ImagePayload {
 	alt: string;
