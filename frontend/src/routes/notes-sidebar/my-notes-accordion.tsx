@@ -7,6 +7,7 @@ import {
 	useState,
 } from "react";
 import { Link } from "wouter";
+import { SidebarHighlight } from "../../components/sidebar-highlight";
 import { ChevronDown } from "../../icons/chevron-down";
 import { FilePen } from "../../icons/file-pen";
 import { Note } from "../../icons/page";
@@ -24,11 +25,14 @@ export function MyNotesAccordion({
 	setRightClickedNote: Dispatch<SetStateAction<string | null>>;
 }) {
 	const [isNotesCollapsed, setIsNotesCollapsed] = useState(false);
+	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-	const noteElements = notes?.map((noteName) => (
+	const noteElements = notes?.map((noteName, i) => (
 		<li
 			key={noteName}
-			className="flex select-none items-center gap-2 overflow-hidden pr-1"
+			className="py-[.1rem]"
+			onMouseEnter={() => setHoveredIndex(i)}
+			onMouseLeave={() => setHoveredIndex(null)}
 			style={
 				{
 					"--custom-contextmenu": "note-context-menu",
@@ -36,31 +40,38 @@ export function MyNotesAccordion({
 				} as CSSProperties
 			}
 		>
-			<Link
-				target="_blank"
-				onDoubleClick={() => {
-					Events.Emit({
-						name: "open-note-in-new-window-backend",
-						data: { folder, note: noteName },
-					});
-				}}
-				onContextMenu={() => setRightClickedNote(noteName)}
-				title={noteName}
-				className={cn(
-					"mb-[0.15rem] flex flex-1 items-center gap-2 overflow-auto rounded-md px-2.5 py-[0.35rem]",
-					noteName === note && "bg-zinc-100 dark:bg-zinc-700",
-				)}
-				to={`/${encodeURI(folder)}/${encodeURI(noteName)}`}
-			>
-				{noteName === note ? (
-					<FilePen title="" className="min-w-[1.25rem]" />
-				) : (
-					<Note title="" className="min-w-[1.25rem]" />
-				)}{" "}
-				<p className="overflow-hidden text-ellipsis whitespace-nowrap">
-					{noteName}
-				</p>
-			</Link>
+			<div className="flex items-center relative select-none rounded-md">
+				<AnimatePresence>
+					{hoveredIndex === i && noteName !== note && (
+						<SidebarHighlight layoutId="note-highlight" />
+					)}
+				</AnimatePresence>
+				<Link
+					target="_blank"
+					onDoubleClick={() => {
+						Events.Emit({
+							name: "open-note-in-new-window-backend",
+							data: { folder, note: noteName },
+						});
+					}}
+					onContextMenu={() => setRightClickedNote(noteName)}
+					title={noteName}
+					className={cn(
+						"flex flex-1 gap-2 items-center px-2 py-1 rounded-md  overflow-x-hidden relative z-10",
+						noteName === note && "bg-zinc-100 dark:bg-zinc-700",
+					)}
+					to={`/${encodeURI(folder)}/${encodeURI(noteName)}`}
+				>
+					{noteName === note ? (
+						<FilePen title="" className="min-w-[1.25rem]" />
+					) : (
+						<Note title="" className="min-w-[1.25rem]" />
+					)}{" "}
+					<p className="overflow-hidden text-ellipsis whitespace-nowrap">
+						{noteName}
+					</p>
+				</Link>
+			</div>
 		</li>
 	));
 

@@ -22,13 +22,13 @@ import {
 } from "react";
 import { languageToTemplate, nonTemplateLanguageToExtension } from ".";
 import { RunCode } from "../../../bindings/main/NodeService";
+import { getDefaultButtonVariants } from "../../animations";
 import { BracketsSquareDots } from "../../icons/brackets-square-dots";
 import { Play } from "../../icons/circle-play";
 import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
 import type { CodeResultType } from "../../types";
 import { removeDecoratorNode } from "../../utils/commands";
-import { getDefaultButtonVariants } from "../../variants";
 import { useCodeEditorFocus } from "./hooks";
 
 export function CodeViewer({

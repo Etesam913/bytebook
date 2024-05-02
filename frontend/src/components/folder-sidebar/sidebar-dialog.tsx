@@ -9,12 +9,12 @@ import {
 	DeleteFolder,
 	RenameFolder,
 } from "../../../bindings/main/FolderService";
+import { getDefaultButtonVariants } from "../../animations.ts";
 import { FolderPen } from "../../icons/folder-pen.tsx";
 import { FolderPlus } from "../../icons/folder-plus";
 import { FolderXMark } from "../../icons/folder-xmark.tsx";
 import type { FolderDialogAction, FolderDialogState } from "../../types.ts";
 import { fileNameRegex } from "../../utils/string-formatting";
-import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../buttons";
 import { Dialog, ErrorText } from "../dialog";
 

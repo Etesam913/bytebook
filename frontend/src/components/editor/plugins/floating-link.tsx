@@ -1,9 +1,9 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { type Dispatch, type SetStateAction, useEffect, useRef } from "react";
+import { getDefaultButtonVariants } from "../../../animations";
 import { SubmitLink } from "../../../icons/submit-link";
 import type { FloatingLinkData } from "../../../types";
-import { getDefaultButtonVariants } from "../../../variants";
 import { MotionButton } from "../../buttons";
 import { TOGGLE_LINK_COMMAND } from "../nodes/link";
 

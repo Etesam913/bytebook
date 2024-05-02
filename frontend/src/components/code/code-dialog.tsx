@@ -1,6 +1,6 @@
 import { type Dispatch, type SetStateAction, useState } from "react";
+import { getDefaultButtonVariants } from "../../animations";
 import { FloppyDisk } from "../../icons/floppy-disk";
-import { getDefaultButtonVariants } from "../../variants";
 import { MotionButton } from "../buttons";
 import { Dialog, ErrorText } from "../dialog";
 

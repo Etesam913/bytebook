@@ -8,6 +8,7 @@ import {
 	useEffect,
 	useRef,
 } from "react";
+import { getDefaultButtonVariants } from "../../animations";
 import { XResize } from "../../icons/arrows-expand-x";
 import { CircleArrowLeft } from "../../icons/circle-arrow-left";
 import { CircleArrowRight } from "../../icons/circle-arrow-right";
@@ -19,7 +20,6 @@ import type { ResizeWidth } from "../../types";
 import { removeDecoratorNode } from "../../utils/commands";
 import { dragItem } from "../../utils/draggable";
 import { cn } from "../../utils/string-formatting";
-import { getDefaultButtonVariants } from "../../variants";
 import { useTrapFocus } from "../dialog/hooks";
 import { expandNearestSiblingNode, useMouseActivity } from "./utils";
 
@@ -249,7 +249,7 @@ export function ResizeContainer({
 						<XMark width="1.5rem" height="1.5rem" />
 					</motion.button>
 
-					<AnimatePresence>
+					<AnimatePresence initial={false}>
 						{isLeftAndRightArrowKeysShowing && (
 							<>
 								<motion.button

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
 import { DeleteFolder } from "../../../bindings/main/FolderService.ts";
 import { GetAttachments } from "../../../bindings/main/NoteService.ts";
+import { getDefaultButtonVariants } from "../../animations.ts";
 import {
 	attachmentsAtom,
 	isFolderDialogOpenAtom,
@@ -26,7 +27,6 @@ import {
 	useWailsEvent,
 } from "../../utils/hooks.tsx";
 import { FILE_SERVER_URL } from "../../utils/misc.ts";
-import { getDefaultButtonVariants } from "../../variants";
 import { AttachmentsAccordion } from "./my-attachments-accordion.tsx";
 import { MyNotesAccordion } from "./my-notes-accordion.tsx";
 import { NotesSidebarDialog } from "./sidebar-dialog";

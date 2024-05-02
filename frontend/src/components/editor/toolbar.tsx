@@ -13,6 +13,7 @@ import {
 } from "lexical";
 import { type Dispatch, useEffect, useState } from "react";
 import { WINDOW_ID } from "../../App";
+import { getDefaultButtonVariants } from "../../animations";
 import {
 	attachmentsAtom,
 	isNoteMaximizedAtom,
@@ -25,7 +26,6 @@ import { Undo } from "../../icons/undo";
 import type { EditorBlockTypes, FloatingLinkData } from "../../types";
 import { useIsStandalone, useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
-import { getDefaultButtonVariants } from "../../variants";
 import { Dropdown } from "../dropdown";
 import { useNoteMarkdown, useToolbarEvents } from "./hooks";
 import { CUSTOM_TRANSFORMERS } from "./transformers";

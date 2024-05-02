@@ -8,6 +8,7 @@ import { ChevronDown } from "../../icons/chevron-down.tsx";
 import { FolderOpen } from "../../icons/folder-open.tsx";
 import { Folder } from "../../icons/folder.tsx";
 import { cn } from "../../utils/string-formatting.ts";
+import { SidebarHighlight } from "../sidebar-highlight/index.tsx";
 
 export function MyFoldersAccordion({
 	folder,
@@ -17,24 +18,33 @@ export function MyFoldersAccordion({
 	const [isFoldersCollapsed, setIsFoldersCollapsed] = useState(false);
 	const alphabetizedFolders = useAtomValue(alphabetizedFoldersAtom);
 	const hasFolders = alphabetizedFolders && alphabetizedFolders.length > 0;
-	const folderElements = alphabetizedFolders?.map((folderName) => (
-		<li key={folderName}>
-			<div
-				id="folder"
-				className="flex items-center gap-2 overflow-hidden pr-1 select-none"
-				style={
-					{
-						"--custom-contextmenu": "folder-context-menu",
-						"--custom-contextmenu-data": [folderName, WINDOW_ID],
-					} as CSSProperties
-				}
-			>
+	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+	const folderElements = alphabetizedFolders?.map((folderName, i) => (
+		<li
+			onMouseEnter={() => setHoveredIndex(i)}
+			onMouseLeave={() => setHoveredIndex(null)}
+			key={folderName}
+			className="py-[.1rem]"
+			style={
+				{
+					"--custom-contextmenu": "folder-context-menu",
+					"--custom-contextmenu-data": [folderName, WINDOW_ID],
+				} as CSSProperties
+			}
+		>
+			<div className="flex items-center relative select-none rounded-md">
+				<AnimatePresence>
+					{hoveredIndex === i && folderName !== folder && (
+						<SidebarHighlight layoutId="folder-highlight" />
+					)}
+				</AnimatePresence>
 				<Link
 					target="_blank"
 					data-testid={`folder_link-${folderName}`}
 					className={cn(
-						"flex flex-1 gap-2 items-center px-2.5 py-[0.35rem] rounded-md overflow-x-hidden",
-						folderName === folder && "bg-zinc-100 dark:bg-zinc-700",
+						"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden",
+						folderName === folder && "bg-zinc-150 dark:bg-zinc-700",
 					)}
 					to={`/${encodeURI(folderName)}`}
 				>
@@ -57,7 +67,7 @@ export function MyFoldersAccordion({
 				<button
 					onClick={() => setIsFoldersCollapsed((prev) => !prev)}
 					type="button"
-					className="flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 py-1 px-1.5 rounded-md transition-colors"
+					className="flex relative items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 py-1 px-1.5 rounded-md transition-colors"
 				>
 					<motion.span
 						initial={{ rotateZ: isFoldersCollapsed ? 270 : 0 }}
@@ -86,7 +96,7 @@ export function MyFoldersAccordion({
 						exit={{ height: 0, opacity: 0 }}
 						className="overflow-hidden hover:overflow-auto"
 					>
-						<div>{folderElements}</div>
+						{folderElements}
 					</motion.ul>
 				)}
 			</AnimatePresence>
