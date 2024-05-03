@@ -4,6 +4,7 @@ import { useRef } from "react";
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
 import { ResizeContainer } from "../resize-container";
+import { useFocusOnSelect } from "./hooks";
 
 export function ExcalidrawComponent({
 	nodeKey,
@@ -40,8 +41,14 @@ export function ExcalidrawComponent({
 		{ enter: true },
 	);
 
+	useFocusOnSelect(isSelected, excalidrawRef.current);
+
 	return (
-		<div className="w-full" ref={excalidrawRef}>
+		<div
+			className="w-full"
+			ref={excalidrawRef}
+			onKeyDown={(e) => e.stopPropagation()}
+		>
 			<ResizeContainer
 				resizeState={{
 					isResizing,

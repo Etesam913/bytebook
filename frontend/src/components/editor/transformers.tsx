@@ -122,9 +122,8 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 
 		const nodeSelection = $createNodeSelection();
 		nodeSelection.add(newNode.getKey());
-		$setSelection(nodeSelection);
-
 		textNode.replace(newNode);
+		$setSelection(nodeSelection);
 	},
 	type: "element",
 };

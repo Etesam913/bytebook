@@ -112,7 +112,7 @@ export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
 
 export function $createExcalidrawNode({
 	elements,
-	width
+	width,
 }: ExcalidrawPayload): ExcalidrawNode {
 	return $applyNodeReplacement(new ExcalidrawNode(elements, width));
 }

@@ -140,7 +140,7 @@ function importCodeBlock(
 				const otherMatches = openMatch.slice(2).filter((v) => v !== undefined);
 
 				let command = undefined;
-				let width:number|"100%" = "100%"
+				let width: number | "100%" = "100%";
 				for (const match of otherMatches) {
 					// These are in the form of {key=value}
 					const [key, value] = match.slice(1, -1).split("=");
@@ -148,7 +148,7 @@ function importCodeBlock(
 						command = value;
 					}
 					if (key === "width") {
-						width = parseInt(value)
+						width = Number.parseInt(value);
 					}
 				}
 				if (language === "excalidraw") {

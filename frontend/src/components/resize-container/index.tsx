@@ -1,6 +1,5 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { AnimatePresence, motion, useMotionValue } from "framer-motion";
-import type { LexicalEditor } from "lexical";
 import {
 	type Dispatch,
 	type ReactNode,
@@ -79,7 +78,7 @@ export function ResizeContainer({
 		<div
 			ref={resizeContainerRef}
 			className={cn(
-				isSelected && "pr-4 scroll-pt-28",
+				isSelected && "pr-4 scroll-pt-8",
 				"transition-[padding-right]",
 			)}
 		>
