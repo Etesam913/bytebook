@@ -86,21 +86,23 @@ const createBlockNode = (
 export const CODE_TRANSFORMER: ElementTransformer = {
 	dependencies: [CodeNode, ExcalidrawNode],
 	export: (node: LexicalNode) => {
-		if (!$isCodeNode(node) && !$isExcalidrawNode(node)) {
-			return null;
-		}
 		if ($isCodeNode(node)) {
 			const textContent = JSON.stringify(node.getData());
 			return `\`\`\`${node.getLanguage()} {command=${node.getCommand()}} ${
 				textContent ? `\n${textContent}` : ""
 			}\n\`\`\``;
 		}
-		return "```excalidraw \n```";
+		if ($isExcalidrawNode(node)) {
+			const textContent = "";
+			return `\`\`\`excalidraw {width=${node.getWidth()}} ${
+				textContent ? `\n${textContent}` : ""
+			}\n\`\`\``;
+		}
+		return null;
 	},
 	regExp: /^```(\w{1,10})?\s/,
 	replace: (textNode, _1, match, isImport) => {
 		// MarkdownImport.ts handles the import of code blocks
-		console.log(match);
 		const language = match.at(1);
 		if (
 			!language ||

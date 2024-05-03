@@ -88,12 +88,14 @@ export function useResizeCommands(
 	setSelected: (arg0: boolean) => void,
 	clearSelection: () => void,
 	elementRef: React.RefObject<HTMLElement>,
+	disabledEvents?: Record<string, boolean>,
 ) {
 	useEffect(() => {
 		return mergeRegister(
 			editor.registerCommand<MouseEvent>(
 				CLICK_COMMAND,
 				(e) => {
+					if (disabledEvents?.click) return false;
 					if (!isExpanded) {
 						return onClickDecoratorNodeCommand(
 							e,
@@ -115,6 +117,7 @@ export function useResizeCommands(
 				(e) => {
 					e.preventDefault();
 					e.stopPropagation();
+					if (disabledEvents?.escape) return false;
 					if (!isExpanded) {
 						return escapeKeyDecoratorNodeCommand(nodeKey);
 					}
@@ -125,6 +128,7 @@ export function useResizeCommands(
 			editor.registerCommand<KeyboardEvent>(
 				KEY_ENTER_COMMAND,
 				(e) => {
+					if (disabledEvents?.enter) return false;
 					if (!isExpanded) {
 						return enterKeyDecoratorNodeCommand(e, nodeKey);
 					}

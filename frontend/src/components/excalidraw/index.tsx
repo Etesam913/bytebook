@@ -37,6 +37,7 @@ export function ExcalidrawComponent({
 		setSelected,
 		clearSelection,
 		excalidrawRef,
+		{ enter: true },
 	);
 
 	return (

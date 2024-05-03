@@ -248,8 +248,8 @@ export function useToolbarEvents(
 					}
 					if (imagePayloads.length > 0) {
 						editor.dispatchCommand(INSERT_IMAGES_COMMAND, imagePayloads);
-						return true;
 					}
+					return true;
 				},
 				COMMAND_PRIORITY_HIGH,
 			),
@@ -276,14 +276,23 @@ export function useToolbarEvents(
 				(e) => {
 					const selection = $getSelection();
 					if ($isNodeSelection(selection)) {
-						e.preventDefault();
 						const nodes = selection.getNodes();
+						let isInProhibitedNode = false;
 						nodes.forEach((node) => {
 							// Backspace in code block could mean you are deleting code instead of the whole block.
-							if (node.getType() === "code-block") return;
+							if (
+								node.getType() === "code-block" ||
+								node.getType() === "excalidraw"
+							) {
+								isInProhibitedNode = true;
+								return;
+							}
 							node.remove();
 						});
-						return true;
+						if (!isInProhibitedNode) {
+							e.preventDefault();
+							return true;
+						}
 					}
 					return false;
 				},

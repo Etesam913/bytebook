@@ -1,4 +1,5 @@
 import { Events } from "@wailsio/runtime";
+import { AnimatePresence } from "framer-motion";
 import type {
 	CSSProperties,
 	Dispatch,
@@ -8,6 +9,7 @@ import type {
 } from "react";
 import ReactDOM from "react-dom";
 import { Link } from "wouter";
+import { SidebarHighlight } from "../../components/sidebar-highlight";
 import { ImageIcon } from "../../icons/image";
 import { IMAGE_FILE_EXTENSIONS } from "../../types";
 import { cn } from "../../utils/string-formatting";
@@ -66,6 +68,8 @@ export function AttachmentItem({
 	folder,
 	note,
 	i,
+	hoveredIndex,
+	setHoveredIndex,
 }: {
 	attachmentFile: string;
 	attachments: string[];
@@ -75,9 +79,13 @@ export function AttachmentItem({
 	folder: string;
 	note: string | undefined;
 	i: number;
+	hoveredIndex: number | null;
+	setHoveredIndex: Dispatch<SetStateAction<number | null>>;
 }) {
 	return (
 		<li
+			onMouseEnter={() => setHoveredIndex(i)}
+			onMouseLeave={() => setHoveredIndex(null)}
 			key={attachmentFile}
 			onClick={(e) => {
 				e.stopPropagation();
@@ -88,77 +96,87 @@ export function AttachmentItem({
 					"--custom-contextmenu-data": JSON.stringify({ file: attachmentFile }),
 				} as CSSProperties
 			}
-			className="flex select-none items-center gap-2 overflow-hidden px-1"
+			className="py-[.1rem]"
 		>
-			<Link
-				draggable
-				onDragStart={(e) => {
-					handleDragStart(
-						e,
-						attachmentsSelectionRange,
-						attachments,
-						attachmentFile,
-					);
-				}}
-				onMouseUp={(e) => {
-					// shift + click
-					if (e.shiftKey) {
-						if (anchorSelectionIndex.current !== null) {
-							const start = Math.min(anchorSelectionIndex.current, i);
-							const end = Math.max(anchorSelectionIndex.current, i);
-							setAttachmentsSelectionRange(
-								new Set(
-									Array.from({ length: end - start + 1 }, (_, i) => start + i),
-								),
-							);
-						}
-					} else {
-						// anchorSelectionIndex.current = i;
-						// cmd + click
-						if (e.metaKey) {
-							e.stopPropagation();
-							setAttachmentsSelectionRange((prev) => {
-								const newSelection = new Set(prev);
-								if (newSelection.has(i)) {
-									newSelection.delete(i);
-								} else {
-									newSelection.add(i);
-								}
-								return newSelection;
-							});
+			<div className="flex items-center relative select-none rounded-md mx-1.5">
+				<AnimatePresence>
+					{hoveredIndex === i && attachmentFile !== note && (
+						<SidebarHighlight layoutId="folder-highlight" />
+					)}
+				</AnimatePresence>
+				<Link
+					draggable
+					onDragStart={(e) => {
+						handleDragStart(
+							e,
+							attachmentsSelectionRange,
+							attachments,
+							attachmentFile,
+						);
+					}}
+					onMouseUp={(e) => {
+						// shift + click
+						if (e.shiftKey) {
+							if (anchorSelectionIndex.current !== null) {
+								const start = Math.min(anchorSelectionIndex.current, i);
+								const end = Math.max(anchorSelectionIndex.current, i);
+								setAttachmentsSelectionRange(
+									new Set(
+										Array.from(
+											{ length: end - start + 1 },
+											(_, i) => start + i,
+										),
+									),
+								);
+							}
 						} else {
-							setAttachmentsSelectionRange(new Set([i]));
+							// anchorSelectionIndex.current = i;
+							// cmd + click
+							if (e.metaKey) {
+								e.stopPropagation();
+								setAttachmentsSelectionRange((prev) => {
+									const newSelection = new Set(prev);
+									if (newSelection.has(i)) {
+										newSelection.delete(i);
+									} else {
+										newSelection.add(i);
+									}
+									return newSelection;
+								});
+							} else {
+								setAttachmentsSelectionRange(new Set([i]));
+							}
 						}
-					}
-				}}
-				target="_blank"
-				to={`/${folder}/${attachmentFile}?ext=.${attachmentFile
-					.split(".")
-					.pop()}`}
-				onDoubleClick={(e) => {
-					if (!e.metaKey) {
-						Events.Emit({
-							name: "open-note-in-new-window-backend",
-							data: { folder, note },
-						});
-					}
-				}}
-				title={attachmentFile}
-				type="button"
-				className={cn(
-					"my-[0.1rem] flex flex-1 items-center gap-2 overflow-x-auto rounded-md px-2.5 py-[0.35rem]",
-					attachmentFile === note && "bg-zinc-100 dark:bg-zinc-700",
-					attachmentsSelectionRange.has(i) && "bg-zinc-100 dark:bg-zinc-700",
-				)}
-			>
-				{IMAGE_FILE_EXTENSIONS.some((ext) => attachmentFile.endsWith(ext)) && (
-					<ImageIcon className="min-w-[1.25rem]" title="" />
-				)}
+					}}
+					target="_blank"
+					to={`/${folder}/${attachmentFile}?ext=.${attachmentFile
+						.split(".")
+						.pop()}`}
+					// onDoubleClick={(e) => {
+					// 	if (!e.metaKey) {
+					// 		Events.Emit({
+					// 			name: "open-note-in-new-window-backend",
+					// 			data: { folder, note },
+					// 		});
+					// 	}
+					// }}
+					title={attachmentFile}
+					type="button"
+					className={cn(
+						"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden",
+						attachmentFile === note && "bg-zinc-100 dark:bg-zinc-700",
+						attachmentsSelectionRange.has(i) && "bg-zinc-100 dark:bg-zinc-700",
+					)}
+				>
+					{IMAGE_FILE_EXTENSIONS.some((ext) =>
+						attachmentFile.endsWith(ext),
+					) && <ImageIcon className="min-w-[1.25rem]" title="" />}
 
-				<p className="overflow-hidden text-ellipsis whitespace-nowrap">
-					{attachmentFile}
-				</p>
-			</Link>
+					<p className="overflow-hidden text-ellipsis whitespace-nowrap">
+						{attachmentFile}
+					</p>
+				</Link>
+			</div>
 		</li>
 	);
 }

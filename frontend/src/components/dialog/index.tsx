@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { type FormEvent, type ReactNode, useRef } from "react";
-import { getDefaultButtonVariants } from "../../animations";
+import { easingFunctions, getDefaultButtonVariants } from "../../animations";
 import { XMark } from "../../icons/circle-xmark";
 import { useTrapFocus } from "./hooks";
 
@@ -59,30 +59,23 @@ export function Dialog({
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
-						className="fixed z-10 left-0 top-0 w-screen h-screen bg-[rgba(0,0,0,0.5)]"
+						className="fixed z-30 left-0 top-0 w-screen h-screen bg-[rgba(0,0,0,0.5)]"
 					/>
 					<motion.div
 						initial={{ opacity: 0, scale: 0.5, x: "-50%", y: "-50%" }}
 						animate={{
 							opacity: 1,
 							scale: 1,
-							transition: {
-								scale: {
-									type: "spring",
-									damping: 15,
-									stiffness: 190,
-									mass: 0.7,
-								},
-							},
+							transition: { ease: easingFunctions["ease-out-circ"] },
 						}}
 						exit={{
 							opacity: 0,
 							scale: 0.5,
-							transition: { opacity: { duration: 0.225 } },
+							transition: { ease: easingFunctions["ease-out-quint"] },
 						}}
-						className="absolute flex flex-col gap-3 bg-zinc-100 dark:bg-zinc-800 backdrop:bg-blue-500 z-20 top-2/4  py-3 px-4 max-w-[80vw] w-80 rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4"
+						className="absolute flex flex-col gap-3 bg-zinc-50 dark:bg-zinc-800 backdrop:bg-blue-500 z-40 top-2/4  py-3 px-4 max-w-[80vw] w-80 rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4"
 					>
-						<h2>{title}</h2>
+						<motion.h2>{title}</motion.h2>
 
 						<form
 							onSubmit={(e) => {

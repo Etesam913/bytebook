@@ -118,7 +118,6 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 				<div className="flex h-full flex-col gap-2">
 					<MotionButton
 						{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
-						data-testid="create_folder_button"
 						className="align-center mb-2 flex w-full justify-between bg-transparent"
 						onClick={() =>
 							setIsFolderDialogOpen({
