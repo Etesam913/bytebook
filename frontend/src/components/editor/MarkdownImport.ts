@@ -140,15 +140,19 @@ function importCodeBlock(
 				const otherMatches = openMatch.slice(2).filter((v) => v !== undefined);
 
 				let command = undefined;
+				let width:number|"100%" = "100%"
 				for (const match of otherMatches) {
 					// These are in the form of {key=value}
 					const [key, value] = match.slice(1, -1).split("=");
 					if (key === "command") {
 						command = value;
 					}
+					if (key === "width") {
+						width = parseInt(value)
+					}
 				}
 				if (language === "excalidraw") {
-					const excalidrawNode = $createExcalidrawNode({ elements: [] });
+					const excalidrawNode = $createExcalidrawNode({ elements: [], width });
 					rootNode.append(excalidrawNode);
 					return [excalidrawNode, endLineIndex];
 				}
