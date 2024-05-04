@@ -25,7 +25,7 @@ export function MyNotesAccordion({
 	setRightClickedNote: Dispatch<SetStateAction<string | null>>;
 }) {
 	const [isNotesCollapsed, setIsNotesCollapsed] = useState(false);
-	
+
 	return (
 		<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
 			<button
@@ -47,7 +47,7 @@ export function MyNotesAccordion({
 			<Sidebar
 				isCollapsed={isNotesCollapsed}
 				data={notes}
-				renderLink={(noteName) => (
+				renderLink={(noteName, isSelected) => (
 					<Link
 						onContextMenu={() => setRightClickedNote(noteName)}
 						onDoubleClick={() => {
@@ -59,7 +59,8 @@ export function MyNotesAccordion({
 						target="_blank"
 						className={cn(
 							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden",
-							noteName === note && "bg-zinc-150 dark:bg-zinc-700",
+							(noteName === note || isSelected) &&
+								"bg-zinc-150 dark:bg-zinc-700",
 						)}
 						to={`/${folder}/${noteName}`}
 					>
@@ -79,7 +80,6 @@ export function MyNotesAccordion({
 						"--custom-contextmenu-data": noteName,
 					}) as CSSProperties
 				}
-				comparisonValue={note}
 			/>
 		</section>
 	);

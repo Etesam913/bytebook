@@ -46,12 +46,13 @@ export function MyFoldersAccordion({
 			)}
 
 			<Sidebar
-				renderLink={(folderName) => (
+				renderLink={(folderName, isSelected) => (
 					<Link
 						target="_blank"
 						className={cn(
 							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden",
-							folderName === folder && "bg-zinc-150 dark:bg-zinc-700",
+							(isSelected || folderName === folder) &&
+								"bg-zinc-150 dark:bg-zinc-700",
 						)}
 						to={`/${folderName}`}
 					>
@@ -74,7 +75,6 @@ export function MyFoldersAccordion({
 						"--custom-contextmenu-data": [folderName, WINDOW_ID],
 					}) as CSSProperties
 				}
-				comparisonValue={folder}
 			/>
 			{!hasFolders && (
 				<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">

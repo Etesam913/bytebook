@@ -1,4 +1,3 @@
-import { Events } from "@wailsio/runtime";
 import { AnimatePresence } from "framer-motion";
 import type {
 	CSSProperties,

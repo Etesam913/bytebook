@@ -7,15 +7,19 @@ export function SidebarItems({
 	getContextMenuStyle,
 	hoveredIndex,
 	setHoveredIndex,
-	comparisonValue,
 	renderLink,
+	selectionRange,
+	setSelectionRange,
+	anchorSelectionIndex,
 }: {
 	data: string[] | null;
 	getContextMenuStyle: (dataItem: string) => CSSProperties;
 	hoveredIndex: number | null;
 	setHoveredIndex: Dispatch<SetStateAction<number | null>>;
-	comparisonValue: string | undefined;
-	renderLink: (dataItem: string) => ReactNode;
+	renderLink: (dataItem: string, isSelected: boolean) => ReactNode;
+	selectionRange: Set<number>;
+	setSelectionRange: Dispatch<SetStateAction<Set<number>>>;
+	anchorSelectionIndex: React.MutableRefObject<number>;
 }) {
 	const dataElements = data?.map((dataItem, i) => (
 		<li
@@ -25,30 +29,45 @@ export function SidebarItems({
 			className="py-[.1rem]"
 			style={getContextMenuStyle(dataItem)}
 		>
-			<div className="flex items-center relative select-none rounded-md">
+			<div
+				className="flex items-center relative select-none rounded-md"
+				onClick={(e) => {
+					// Shift click
+					if (e.shiftKey) {
+						const start = Math.min(anchorSelectionIndex.current, i);
+						const end = Math.max(anchorSelectionIndex.current, i);
+						setSelectionRange(
+							new Set(
+								Array.from({ length: end - start + 1 }, (_, i) => start + i),
+							),
+						);
+					}
+					// Command click
+					else if (e.metaKey) {
+						anchorSelectionIndex.current = i;
+						setSelectionRange((prev) => {
+							const newSelection = new Set(prev);
+							if (newSelection.has(i)) {
+								newSelection.delete(i);
+							} else {
+								newSelection.add(i);
+							}
+							return newSelection;
+						});
+					}
+					// Regular click
+					else {
+						anchorSelectionIndex.current = i;
+						setSelectionRange(new Set([i]));
+					}
+				}}
+			>
 				<AnimatePresence>
-					{hoveredIndex === i && dataItem !== comparisonValue && (
+					{hoveredIndex === i && (
 						<SidebarHighlight layoutId="folder-highlight" />
 					)}
 				</AnimatePresence>
-				{/* <Link
-					target="_blank"
-					className={cn(
-						"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden",
-						dataItem === comparisonValue && "bg-zinc-150 dark:bg-zinc-700",
-					)}
-					to={`/${encodeURI(getUrl(dataItem))}`}
-				>
-					{dataItem === comparisonValue ? (
-						<>{activeIcon} </>
-					) : (
-						<>{defaultIcon} </>
-					)}{" "}
-					<p className="whitespace-nowrap text-ellipsis overflow-hidden">
-						{dataItem}
-					</p>
-				</Link> */}
-				{renderLink(dataItem)}
+				{renderLink(dataItem, selectionRange.has(i))}
 			</div>
 		</li>
 	));
