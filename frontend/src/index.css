@@ -45,11 +45,11 @@ h1 {
 }
 
 h2 {
-    @apply text-2xl leading-[2.25rem];
+    @apply text-2xl leading-[2.8rem];
 }
 
 h3 {
-    @apply text-xl;
+    @apply text-xl leading-[2.5rem];
 }
 
 .button-invert {

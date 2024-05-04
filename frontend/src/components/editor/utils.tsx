@@ -16,7 +16,6 @@ import { Browser, Events } from "@wailsio/runtime";
 import {
 	$createNodeSelection,
 	$createParagraphNode,
-	$createTextNode,
 	$getSelection,
 	$isDecoratorNode,
 	$isElementNode,
@@ -48,7 +47,6 @@ import type { EditorBlockTypes } from "../../types";
 import { FILE_SERVER_URL } from "../../utils/misc";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
-import { ImageNode } from "./nodes/image";
 import { INSERT_IMAGES_COMMAND } from "./plugins/image";
 
 export type TextFormats =
@@ -304,19 +302,13 @@ export function $convertFromMarkdownStringCorrect(
     Returns `undefined` if there is no match, otherwise returns the `replaceNode`
 */
 export function handleTextMatchTransformerReplace(
-	transformer: TextMatchTransformer,
 	anchorNode: TextNode,
 	match: RegExpMatchArray | null,
 ) {
-	const textContent = anchorNode.getTextContent();
-
 	if (!match) return;
 	const startIndex = match.index || 0;
 	const endIndex = startIndex + match[0].length;
 	let replaceNode: TextNode | null = null;
-	const textToLeft = textContent.slice(0, startIndex);
-	const middleText = match[0];
-	const textToRight = textContent.slice(endIndex);
 
 	// if (transformer.dependencies.includes(ImageNode)) {
 	// 	const parent = anchorNode.getParent();

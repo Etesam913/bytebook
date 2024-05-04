@@ -11,7 +11,6 @@ export function Dropdown({
 	className,
 	buttonClassName,
 	dropdownItemsClassName,
-	variant = "md",
 	controlledValueIndex,
 	onChange,
 	disabled,
@@ -20,7 +19,6 @@ export function Dropdown({
 	className?: string;
 	buttonClassName?: string;
 	dropdownItemsClassName?: string;
-	variant?: string;
 	controlledValueIndex?: number;
 	onChange?: (v: DropdownItem) => void;
 	disabled?: boolean;
@@ -28,10 +26,15 @@ export function Dropdown({
 	const dropdownContainerRef = useRef<HTMLDivElement>(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const [valueIndex, setValueIndex] = useState(0);
+	const [focusIndex, setFocusIndex] = useState(0);
+
 	useOnClickOutside(dropdownContainerRef, () => setIsOpen(false));
 
 	useEffect(() => {
-		if (controlledValueIndex && controlledValueIndex !== valueIndex)
+		if (
+			controlledValueIndex !== undefined &&
+			controlledValueIndex !== valueIndex
+		)
 			setValueIndex(controlledValueIndex > -1 ? controlledValueIndex : 0);
 	}, [controlledValueIndex, valueIndex]);
 
@@ -45,8 +48,7 @@ export function Dropdown({
 				aria-haspopup="true"
 				aria-expanded={isOpen}
 				className={cn(
-					"flex items-center rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 px-2 py-1 text-left dark:border-zinc-600 dark:bg-zinc-700",
-					variant === "sm" && "px-1.5 py-1",
+					"flex items-center rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 px-2 py-0.5 text-left dark:border-zinc-600 dark:bg-zinc-700",
 					buttonClassName,
 					disabled && "pointer-events-none opacity-50",
 				)}
@@ -66,7 +68,6 @@ export function Dropdown({
 						role="menu"
 						className={cn(
 							"absolute z-30 w-full translate-y-1 overflow-hidden rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700",
-							variant === "sm" && "translate-y-[3px]",
 						)}
 						exit={{
 							borderColor: "transparent",
@@ -79,7 +80,7 @@ export function Dropdown({
 							initial={{ height: 0 }}
 							animate={{
 								height: "auto",
-								transition: { type: "spring", damping: 16, stiffness: 220 },
+								transition: { type: "spring", damping: 18, stiffness: 120 },
 							}}
 							exit={{ height: 0 }}
 						>
@@ -88,6 +89,8 @@ export function Dropdown({
 								items={items}
 								setIsOpen={setIsOpen}
 								setValueIndex={setValueIndex}
+								setFocusIndex={setFocusIndex}
+								focusIndex={focusIndex}
 								onChange={onChange}
 							/>
 						</motion.div>

@@ -98,11 +98,7 @@ function runTextMatchTransformers(
 
 	for (const transformer of transformers) {
 		const match = textContent.match(transformer.regExp);
-		const replaceNode = handleTextMatchTransformerReplace(
-			transformer,
-			anchorNode,
-			match,
-		);
+		const replaceNode = handleTextMatchTransformerReplace(anchorNode, match);
 		if (replaceNode && match) {
 			transformer.replace(replaceNode, match);
 			return true;

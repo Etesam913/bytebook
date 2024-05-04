@@ -266,11 +266,7 @@ function importTextMatchTransformers(
 	for (const transformer of textMatchTransformers) {
 		const match = textNode.getTextContent().match(transformer.importRegExp);
 
-		const replaceNode = handleTextMatchTransformerReplace(
-			transformer,
-			textNode_,
-			match,
-		);
+		const replaceNode = handleTextMatchTransformerReplace(textNode_, match);
 
 		if (replaceNode && match) {
 			transformer.replace(replaceNode, match);
