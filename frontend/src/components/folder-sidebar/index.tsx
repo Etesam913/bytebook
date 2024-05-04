@@ -52,8 +52,9 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 		});
 	});
 
-	useWailsEvent("folder:context-menu:delete", (event) => {
-		const [folderName, windowId] = (event.data as string).split(",");
+	useWailsEvent("folder:context-menu:delete", (body) => {
+		console.log("folder:delete", body);
+		const [folderName, windowId] = (body.data as string).split(",");
 		if (windowId === WINDOW_ID) {
 			setIsFolderDialogOpen({
 				isOpen: true,

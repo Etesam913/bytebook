@@ -17,7 +17,8 @@ export const notesAtom = atom<string[] | null>([]);
 export const foldersAtom = atom<string[] | null>([]);
 export const alphabetizedFoldersAtom = atom((get) => {
 	const folders = get(foldersAtom);
-	return folders?.sort((a, b) => a.localeCompare(b));
+	if (!folders) return folders;
+	return folders.sort((a, b) => a.localeCompare(b));
 });
 
 export const darkModeAtom = atom<boolean>(false);

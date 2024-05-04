@@ -1,5 +1,5 @@
 import { Events } from "@wailsio/runtime";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
 	type CSSProperties,
 	type Dispatch,
@@ -7,7 +7,7 @@ import {
 	useState,
 } from "react";
 import { Link } from "wouter";
-import { SidebarHighlight } from "../../components/sidebar-highlight";
+import { Sidebar } from "../../components/sidebar";
 import { ChevronDown } from "../../icons/chevron-down";
 import { FilePen } from "../../icons/file-pen";
 import { Note } from "../../icons/page";
@@ -25,56 +25,7 @@ export function MyNotesAccordion({
 	setRightClickedNote: Dispatch<SetStateAction<string | null>>;
 }) {
 	const [isNotesCollapsed, setIsNotesCollapsed] = useState(false);
-	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
-	const noteElements = notes?.map((noteName, i) => (
-		<li
-			key={noteName}
-			className="py-[.1rem]"
-			onMouseEnter={() => setHoveredIndex(i)}
-			onMouseLeave={() => setHoveredIndex(null)}
-			style={
-				{
-					"--custom-contextmenu": "note-context-menu",
-					"--custom-contextmenu-data": noteName,
-				} as CSSProperties
-			}
-		>
-			<div className="flex items-center relative select-none rounded-md">
-				<AnimatePresence>
-					{hoveredIndex === i && noteName !== note && (
-						<SidebarHighlight layoutId="note-highlight" />
-					)}
-				</AnimatePresence>
-				<Link
-					target="_blank"
-					onDoubleClick={() => {
-						Events.Emit({
-							name: "open-note-in-new-window-backend",
-							data: { folder, note: noteName },
-						});
-					}}
-					onContextMenu={() => setRightClickedNote(noteName)}
-					title={noteName}
-					className={cn(
-						"flex flex-1 gap-2 items-center px-2 py-1 rounded-md  overflow-x-hidden relative z-10",
-						noteName === note && "bg-zinc-100 dark:bg-zinc-700",
-					)}
-					to={`/${encodeURI(folder)}/${encodeURI(noteName)}`}
-				>
-					{noteName === note ? (
-						<FilePen title="" className="min-w-[1.25rem]" />
-					) : (
-						<Note title="" className="min-w-[1.25rem]" />
-					)}{" "}
-					<p className="overflow-hidden text-ellipsis whitespace-nowrap">
-						{noteName}
-					</p>
-				</Link>
-			</div>
-		</li>
-	));
-
+	
 	return (
 		<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
 			<button
@@ -89,31 +40,47 @@ export function MyNotesAccordion({
 					<ChevronDown strokeWidth="2.5px" height="0.8rem" width="0.8rem" />
 				</motion.span>{" "}
 				My Notes{" "}
-				{noteElements && noteElements.length > 0 && (
-					<span className="tracking-wider">({noteElements.length})</span>
+				{notes && notes.length > 0 && (
+					<span className="tracking-wider">({notes.length})</span>
 				)}
 			</button>
-			<AnimatePresence>
-				{!isNotesCollapsed && (
-					<motion.ul
-						initial={{ height: 0 }}
-						animate={{
-							height: "auto",
-							transition: { type: "spring", damping: 16 },
+			<Sidebar
+				isCollapsed={isNotesCollapsed}
+				data={notes}
+				renderLink={(noteName) => (
+					<Link
+						onContextMenu={() => setRightClickedNote(noteName)}
+						onDoubleClick={() => {
+							Events.Emit({
+								name: "open-note-in-new-window-backend",
+								data: { folder, note: noteName },
+							});
 						}}
-						exit={{ height: 0, opacity: 0 }}
-						className="overflow-y-auto pb-2"
-					>
-						{noteElements && noteElements.length > 0 ? (
-							noteElements
-						) : (
-							<li className="text-center text-xs text-zinc-500 w-full dark:text-zinc-300">
-								Create a note with the "Create Note" button above
-							</li>
+						target="_blank"
+						className={cn(
+							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden",
+							noteName === note && "bg-zinc-150 dark:bg-zinc-700",
 						)}
-					</motion.ul>
+						to={`/${folder}/${noteName}`}
+					>
+						{note === noteName ? (
+							<FilePen title="" className="min-w-[1.25rem]" />
+						) : (
+							<Note title="" className="min-w-[1.25rem]" />
+						)}{" "}
+						<p className="whitespace-nowrap text-ellipsis overflow-hidden">
+							{noteName}
+						</p>
+					</Link>
 				)}
-			</AnimatePresence>
+				getContextMenuStyle={(noteName) =>
+					({
+						"--custom-contextmenu": "note-context-menu",
+						"--custom-contextmenu-data": noteName,
+					}) as CSSProperties
+				}
+				comparisonValue={note}
+			/>
 		</section>
 	);
 }

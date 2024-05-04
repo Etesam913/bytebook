@@ -48,7 +48,7 @@ export function UnknownAttachment({
 			<div className="flex items-center gap-1.5 pointer-events-none">
 				<Paperclip /> Unknown Attachment
 			</div>
-			<div className="text-xs mt-1 text-zinc-300 pointer-events-none">
+			<div className="text-xs mt-1 text-zinc-500 dark:text-zinc-300 pointer-events-none">
 				{urlToShow}
 			</div>
 		</button>

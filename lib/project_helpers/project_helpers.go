@@ -49,9 +49,8 @@ func CreateFolderContextMenu(app *application.App, folderContextMenu *applicatio
 	for _, item := range menuItems {
 		folderContextMenu.Add(item.Label).OnClick(func(data *application.Context) {
 			contextData, isString := data.ContextMenuData().(string)
-			fmt.Println(contextData)
 			if isString {
-
+				fmt.Println("contextData: ", contextData)
 				app.Events.Emit(&application.WailsEvent{
 					Name: item.EventName,
 					Data: contextData,

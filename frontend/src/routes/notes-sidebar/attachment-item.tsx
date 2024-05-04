@@ -9,7 +9,7 @@ import type {
 } from "react";
 import ReactDOM from "react-dom";
 import { Link } from "wouter";
-import { SidebarHighlight } from "../../components/sidebar-highlight";
+import { SidebarHighlight } from "../../components/sidebar/highlight";
 import { ImageIcon } from "../../icons/image";
 import { IMAGE_FILE_EXTENSIONS } from "../../types";
 import { cn } from "../../utils/string-formatting";
