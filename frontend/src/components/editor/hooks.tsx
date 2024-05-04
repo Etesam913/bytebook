@@ -1,8 +1,12 @@
+import { LinkNode } from "@lexical/link";
 import { $isListNode, ListNode } from "@lexical/list";
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import { useSetAtom } from "jotai";
 import {
+	$createLineBreakNode,
+	$createParagraphNode,
+	$createTextNode,
 	$getSelection,
 	$isNodeSelection,
 	$isRangeSelection,
@@ -26,6 +30,8 @@ import { GetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { mostRecentNotesAtom } from "../../atoms.ts";
 import { type EditorBlockTypes, IMAGE_FILE_EXTENSIONS } from "../../types.ts";
 import { FILE_SERVER_URL } from "../../utils/misc.ts";
+import type { ImagePayload } from "./nodes/image.tsx";
+import { $createLinkNode, TOGGLE_LINK_COMMAND } from "./nodes/link.tsx";
 import { INSERT_IMAGES_COMMAND } from "./plugins/image.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import {
@@ -234,7 +240,8 @@ export function useToolbarEvents(
 					// @ts-ignore Data Transfer does exist when dragging a link
 					const fileText: string = e.dataTransfer.getData("text/plain");
 					const files = fileText.split(",");
-					const imagePayloads = [];
+					const imagePayloads: ImagePayload[] = [];
+					const linkPayloads = [];
 					for (const fileText of files) {
 						const extension = `.${fileText.split(".").pop()}`;
 
@@ -244,10 +251,28 @@ export function useToolbarEvents(
 								src: `${FILE_SERVER_URL}/notes/${folder}/attachments/${fileText}`,
 								alt: "test",
 							});
+						} else if (fileText.startsWith("wails:")) {
+							linkPayloads.push({
+								url: fileText,
+								title: fileText.split("/").pop() ?? "",
+							});
 						}
 					}
+
 					if (imagePayloads.length > 0) {
 						editor.dispatchCommand(INSERT_IMAGES_COMMAND, imagePayloads);
+					}
+					// Creating links
+					for (const linkPayload of linkPayloads) {
+						const linkNode = $createLinkNode(linkPayload.url, {
+							title: linkPayload.title,
+						});
+						const linkTextNode = $createTextNode(linkPayload.title);
+						linkNode.append(linkTextNode);
+						const selection = $getSelection();
+						if ($isRangeSelection(selection)) {
+							selection.insertNodes([linkNode]);
+						}
 					}
 					return true;
 				},

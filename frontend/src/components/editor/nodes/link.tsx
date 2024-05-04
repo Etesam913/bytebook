@@ -91,6 +91,7 @@ export class LinkNode extends ElementNode {
 	createDOM(config: EditorConfig): HTMLAnchorElement {
 		const element = document.createElement("a");
 		element.href = this.sanitizeUrl(this.__url);
+
 		if (this.__target !== null) {
 			element.target = this.__target;
 		}
@@ -102,7 +103,6 @@ export class LinkNode extends ElementNode {
 		}
 
 		const classNames = [config.theme.link];
-
 		// This is an internal link so we want it to look different
 		if (element.href.startsWith("wails:")) {
 			classNames.pop();
@@ -110,6 +110,7 @@ export class LinkNode extends ElementNode {
 			const decodedUrl = decodeURIComponent(element.href);
 			const url = new URL(decodedUrl);
 			const segments = url.pathname.split("/");
+			console.log(segments);
 			// The frist segment is always empty
 			segments.shift();
 
@@ -117,8 +118,8 @@ export class LinkNode extends ElementNode {
 			const isFolderLink = segments.length === 1;
 			const tempContainer = document.createElement("div");
 
-			const folderSvg = <Folder className="  translate-y-1" />;
-			const noteSvg = <Note className="  translate-y-1" />;
+			const folderSvg = <Folder className="translate-y-1" />;
+			const noteSvg = <Note className="translate-y-1" />;
 
 			ReactDOM.render(isFolderLink ? folderSvg : noteSvg, tempContainer, () => {
 				while (tempContainer.firstChild) {

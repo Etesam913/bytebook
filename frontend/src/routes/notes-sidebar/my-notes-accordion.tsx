@@ -8,6 +8,7 @@ import {
 } from "react";
 import { Link } from "wouter";
 import { Sidebar } from "../../components/sidebar";
+import { handleDragStart } from "../../components/sidebar/utils";
 import { ChevronDown } from "../../icons/chevron-down";
 import { FilePen } from "../../icons/file-pen";
 import { Note } from "../../icons/page";
@@ -47,8 +48,19 @@ export function MyNotesAccordion({
 			<Sidebar
 				isCollapsed={isNotesCollapsed}
 				data={notes}
-				renderLink={(noteName, isSelected) => (
+				renderLink={(noteName, isSelected, selectionRange) => (
 					<Link
+						draggable
+						onDragStart={(e) =>
+							handleDragStart(
+								e,
+								selectionRange,
+								notes ?? [],
+								noteName,
+								"note",
+								folder,
+							)
+						}
 						onContextMenu={() => setRightClickedNote(noteName)}
 						onDoubleClick={() => {
 							Events.Emit({

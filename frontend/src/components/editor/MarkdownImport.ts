@@ -5,18 +5,23 @@ import type {
 } from "@lexical/markdown";
 import type { TextNode } from "lexical";
 
+import { $isListItemNode, $isListNode, type ListItemNode } from "@lexical/list";
+import { $isQuoteNode } from "@lexical/rich-text";
+import { $findMatchingParent } from "@lexical/utils";
 import {
+	$createLineBreakNode,
 	$createParagraphNode,
 	$createTextNode,
 	$getRoot,
 	$getSelection,
+	$isParagraphNode,
 	type ElementNode,
 } from "lexical";
 import type { CodeBlockData } from "../../types";
 import { $createCodeNode, type CodeNode } from "./nodes/code";
 import { $createExcalidrawNode, type ExcalidrawNode } from "./nodes/excalidraw";
 import { PUNCTUATION_OR_SPACE, transformersByType } from "./transformers";
-import { type Transformer, handleTextMatchTransformerReplace } from "./utils";
+import type { Transformer } from "./utils";
 
 const CAN_USE_DOM: boolean =
 	typeof window !== "undefined" &&
@@ -116,6 +121,37 @@ function importBlocks(
 		textFormatTransformersIndex,
 		textMatchTransformers,
 	);
+
+	// If no transformer found and we left with original paragraph node
+	// can check if its content can be appended to the previous node
+	// if it's a paragraph, quote or list
+	if (elementNode.isAttached() && lineTextTrimmed.length > 0) {
+		const previousNode = elementNode.getPreviousSibling();
+		if (
+			$isParagraphNode(previousNode) ||
+			$isQuoteNode(previousNode) ||
+			$isListNode(previousNode)
+		) {
+			let targetNode: typeof previousNode | ListItemNode | null = previousNode;
+
+			if ($isListNode(previousNode)) {
+				const lastDescendant = previousNode.getLastDescendant();
+				if (lastDescendant == null) {
+					targetNode = null;
+				} else {
+					targetNode = $findMatchingParent(lastDescendant, $isListItemNode);
+				}
+			}
+
+			if (targetNode != null && targetNode.getTextContentSize() > 0) {
+				targetNode.splice(targetNode.getChildrenSize(), 0, [
+					$createLineBreakNode(),
+					...elementNode.getChildren(),
+				]);
+				elementNode.remove();
+			}
+		}
+	}
 }
 const CODE_BLOCK_REG_EXP = /^```(\w{1,10})?\s*({[^}]*})?\s*$/;
 
@@ -261,17 +297,35 @@ function importTextMatchTransformers(
 	textNode_: TextNode,
 	textMatchTransformers: Array<TextMatchTransformer>,
 ) {
-	const textNode = textNode_;
+	let textNode = textNode_;
 
-	for (const transformer of textMatchTransformers) {
-		const match = textNode.getTextContent().match(transformer.importRegExp);
+	mainLoop: while (textNode) {
+		for (const transformer of textMatchTransformers) {
+			const match = textNode.getTextContent().match(transformer.importRegExp);
 
-		const replaceNode = handleTextMatchTransformerReplace(textNode_, match);
+			if (!match) {
+				continue;
+			}
 
-		if (replaceNode && match) {
+			const startIndex = match.index || 0;
+			const endIndex = startIndex + match[0].length;
+			let replaceNode = null;
+			let newTextNode = null;
+
+			if (startIndex === 0) {
+				[replaceNode, textNode] = textNode.splitText(endIndex);
+			} else {
+				[, replaceNode, newTextNode] = textNode.splitText(startIndex, endIndex);
+			}
+
+			if (newTextNode) {
+				importTextMatchTransformers(newTextNode, textMatchTransformers);
+			}
 			transformer.replace(replaceNode, match);
-			break;
+			continue mainLoop;
 		}
+
+		break;
 	}
 }
 

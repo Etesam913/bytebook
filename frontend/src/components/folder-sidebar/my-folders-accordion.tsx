@@ -9,6 +9,7 @@ import { FolderOpen } from "../../icons/folder-open.tsx";
 import { Folder } from "../../icons/folder.tsx";
 import { cn } from "../../utils/string-formatting.ts";
 import { Sidebar } from "../sidebar/index.tsx";
+import { handleDragStart } from "../sidebar/utils.tsx";
 
 export function MyFoldersAccordion({
 	folder,
@@ -46,8 +47,18 @@ export function MyFoldersAccordion({
 			)}
 
 			<Sidebar
-				renderLink={(folderName, isSelected) => (
+				renderLink={(folderName, isSelected, selectionRange) => (
 					<Link
+						draggable
+						onDragStart={(e) =>
+							handleDragStart(
+								e,
+								selectionRange,
+								alphabetizedFolders ?? [],
+								folderName,
+								"folder",
+							)
+						}
 						target="_blank"
 						className={cn(
 							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden",

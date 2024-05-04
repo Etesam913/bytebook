@@ -98,11 +98,24 @@ function runTextMatchTransformers(
 
 	for (const transformer of transformers) {
 		const match = textContent.match(transformer.regExp);
-		const replaceNode = handleTextMatchTransformerReplace(anchorNode, match);
-		if (replaceNode && match) {
-			transformer.replace(replaceNode, match);
-			return true;
+
+		if (match === null) {
+			continue;
 		}
+
+		const startIndex = match.index || 0;
+		const endIndex = startIndex + match[0].length;
+		let replaceNode = null;
+
+		if (startIndex === 0) {
+			[replaceNode] = anchorNode.splitText(endIndex);
+		} else {
+			[, replaceNode] = anchorNode.splitText(startIndex, endIndex);
+		}
+
+		replaceNode.selectNext(0, 0);
+		transformer.replace(replaceNode, match);
+		return true;
 	}
 
 	return false;

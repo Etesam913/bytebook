@@ -12,7 +12,11 @@ export function Sidebar({
 	isCollapsed: boolean;
 	data: string[] | null;
 	getContextMenuStyle: (dataItem: string) => CSSProperties;
-	renderLink: (dataItem: string, isSelected: boolean) => ReactNode;
+	renderLink: (
+		dataItem: string,
+		isSelected: boolean,
+		selectionRange: Set<number>,
+	) => ReactNode;
 }) {
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 	const [selectionRange, setSelectionRange] = useState<Set<number>>(new Set());
