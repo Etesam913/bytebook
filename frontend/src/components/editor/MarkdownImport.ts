@@ -148,7 +148,7 @@ function importCodeBlock(
 						command = value;
 					}
 					if (key === "width") {
-						width = Number.parseInt(value);
+						width = value === "100%" ? "100%" : Number.parseInt(value);
 					}
 				}
 				if (language === "excalidraw") {
