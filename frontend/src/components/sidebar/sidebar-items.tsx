@@ -16,11 +16,12 @@ export function SidebarItems({
 	getContextMenuStyle: (dataItem: string) => CSSProperties;
 	hoveredIndex: number | null;
 	setHoveredIndex: Dispatch<SetStateAction<number | null>>;
-	renderLink: (
-		dataItem: string,
-		isSelected: boolean,
-		selectionRange: Set<number>,
-	) => ReactNode;
+	renderLink: (data: {
+		dataItem: string;
+		i: number;
+		selectionRange: Set<number>;
+		setSelectionRange: Dispatch<SetStateAction<Set<number>>>;
+	}) => ReactNode;
 	selectionRange: Set<number>;
 	setSelectionRange: Dispatch<SetStateAction<Set<number>>>;
 	anchorSelectionIndex: React.MutableRefObject<number>;
@@ -62,16 +63,16 @@ export function SidebarItems({
 					// Regular click
 					else {
 						anchorSelectionIndex.current = i;
-						setSelectionRange(new Set([i]));
+						setSelectionRange(new Set());
 					}
 				}}
 			>
 				<AnimatePresence>
-					{hoveredIndex === i && (
+					{hoveredIndex === i && !selectionRange.has(i) && (
 						<SidebarHighlight layoutId="folder-highlight" />
 					)}
 				</AnimatePresence>
-				{renderLink(dataItem, selectionRange.has(i), selectionRange)}
+				{renderLink({ dataItem, i, selectionRange, setSelectionRange })}
 			</div>
 		</li>
 	));

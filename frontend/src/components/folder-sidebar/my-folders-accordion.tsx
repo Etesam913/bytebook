@@ -47,23 +47,30 @@ export function MyFoldersAccordion({
 			)}
 
 			<Sidebar
-				renderLink={(folderName, isSelected, selectionRange) => (
+				renderLink={({
+					dataItem: folderName,
+					i,
+					selectionRange,
+					setSelectionRange,
+				}) => (
 					<Link
 						draggable
 						onDragStart={(e) =>
 							handleDragStart(
 								e,
 								selectionRange,
+								setSelectionRange,
 								alphabetizedFolders ?? [],
-								folderName,
 								"folder",
+								i,
 							)
 						}
 						target="_blank"
 						className={cn(
-							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden",
-							(isSelected || folderName === folder) &&
-								"bg-zinc-150 dark:bg-zinc-700",
+							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors",
+							folderName === folder && "bg-zinc-150 dark:bg-zinc-700",
+							selectionRange.has(i) &&
+								"!bg-blue-400 dark:!bg-blue-600 text-white",
 						)}
 						to={`/${folderName}`}
 					>

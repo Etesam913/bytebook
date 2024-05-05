@@ -1,5 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { type CSSProperties, type ReactNode, useRef, useState } from "react";
+import {
+	type CSSProperties,
+	type Dispatch,
+	type ReactNode,
+	type SetStateAction,
+	useRef,
+	useState,
+} from "react";
 import { useOnClickOutside } from "../../utils/hooks";
 import { SidebarItems } from "./sidebar-items";
 
@@ -12,11 +19,12 @@ export function Sidebar({
 	isCollapsed: boolean;
 	data: string[] | null;
 	getContextMenuStyle: (dataItem: string) => CSSProperties;
-	renderLink: (
-		dataItem: string,
-		isSelected: boolean,
-		selectionRange: Set<number>,
-	) => ReactNode;
+	renderLink: (data: {
+		dataItem: string;
+		i: number;
+		selectionRange: Set<number>;
+		setSelectionRange: Dispatch<SetStateAction<Set<number>>>;
+	}) => ReactNode;
 }) {
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 	const [selectionRange, setSelectionRange] = useState<Set<number>>(new Set());

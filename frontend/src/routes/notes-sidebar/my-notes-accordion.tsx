@@ -48,16 +48,22 @@ export function MyNotesAccordion({
 			<Sidebar
 				isCollapsed={isNotesCollapsed}
 				data={notes}
-				renderLink={(noteName, isSelected, selectionRange) => (
+				renderLink={({
+					dataItem: noteName,
+					i,
+					selectionRange,
+					setSelectionRange,
+				}) => (
 					<Link
 						draggable
 						onDragStart={(e) =>
 							handleDragStart(
 								e,
 								selectionRange,
+								setSelectionRange,
 								notes ?? [],
-								noteName,
 								"note",
+								i,
 								folder,
 							)
 						}
@@ -70,9 +76,10 @@ export function MyNotesAccordion({
 						}}
 						target="_blank"
 						className={cn(
-							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden",
-							(noteName === note || isSelected) &&
-								"bg-zinc-150 dark:bg-zinc-700",
+							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors",
+							noteName === note && "bg-zinc-150 dark:bg-zinc-700",
+							selectionRange.has(i) &&
+								"!bg-blue-400 dark:!bg-blue-600 text-white",
 						)}
 						to={`/${folder}/${noteName}`}
 					>
