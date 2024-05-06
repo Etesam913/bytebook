@@ -242,9 +242,9 @@ export function useToolbarEvents(
 					const files = fileText.split(",");
 					const imagePayloads: ImagePayload[] = [];
 					const linkPayloads = [];
+					console.log(files);
 					for (const fileText of files) {
 						const extension = `.${fileText.split(".").pop()}`;
-
 						// Handling dragging of image attachment link
 						if (extension && IMAGE_FILE_EXTENSIONS.includes(extension)) {
 							imagePayloads.push({

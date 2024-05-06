@@ -83,7 +83,7 @@ export function CodeViewer({
 	useEffect(() => {
 		if (!isCodeSettingsOpen) {
 			const codeMirrorInstance =
-			// @ts-expect-error For some reason sandpack does not export the EditorView type
+				// @ts-expect-error For some reason sandpack does not export the EditorView type
 				codeMirrorRef.current?.getCodemirror() as EditorView;
 			if (codeMirrorInstance) {
 				codeMirrorInstance.focus();

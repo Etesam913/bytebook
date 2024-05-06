@@ -33,7 +33,9 @@ export function updateNotes(
 				const notes = res.data as unknown as string[];
 				setNotes(notes);
 				if (!note) {
-					navigate(`/${folder}${notes?.at(0) ? `/${notes.at(0)}` : "/"}`);
+					navigate(`/${folder}${notes?.at(0) ? `/${notes.at(0)}` : "/"}`, {
+						replace: true,
+					});
 				}
 			}
 		})
