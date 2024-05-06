@@ -16,6 +16,7 @@ import {
 	type Dispatch,
 	type SetStateAction,
 	type SyntheticEvent,
+	useEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -34,6 +35,7 @@ import { useCodeEditorFocus } from "./hooks";
 export function CodeViewer({
 	language,
 	nodeKey,
+	isCodeSettingsOpen,
 	setIsCodeSettingsOpen,
 	command,
 	codeResult,
@@ -43,6 +45,7 @@ export function CodeViewer({
 }: {
 	language: string;
 	nodeKey: string;
+	isCodeSettingsOpen: boolean;
 	setIsCodeSettingsOpen: Dispatch<SetStateAction<boolean>>;
 	command: string;
 	codeResult: CodeResultType;
@@ -75,6 +78,18 @@ export function CodeViewer({
 			setIsCodeRunning(false);
 		});
 	}
+
+	// If the code settings closes, then refocus onto the editor
+	useEffect(() => {
+		if (!isCodeSettingsOpen) {
+			const codeMirrorInstance =
+			// @ts-expect-error For some reason sandpack does not export the EditorView type
+				codeMirrorRef.current?.getCodemirror() as EditorView;
+			if (codeMirrorInstance) {
+				codeMirrorInstance.focus();
+			}
+		}
+	}, [isCodeSettingsOpen]);
 
 	useCodeEditorFocus(codeMirrorRef, focus);
 

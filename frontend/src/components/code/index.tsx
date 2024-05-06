@@ -125,6 +125,7 @@ export function SandpackEditor({
 						command={command}
 						nodeKey={nodeKey}
 						language={language}
+						isCodeSettingsOpen={isCodeSettingsOpen}
 						setIsCodeSettingsOpen={setIsCodeSettingsOpen}
 						codeResult={codeResult}
 						setCodeResult={setCodeResult}
