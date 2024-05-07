@@ -1,6 +1,5 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $setBlocksType } from "@lexical/selection";
-import { motion } from "framer-motion";
 import { type SetStateAction, useAtom, useAtomValue } from "jotai";
 import {
 	$createParagraphNode,
@@ -26,6 +25,7 @@ import { Undo } from "../../icons/undo";
 import type { EditorBlockTypes, FloatingLinkData } from "../../types";
 import { useIsStandalone, useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
+import { MotionIconButton } from "../buttons";
 import { Dropdown } from "../dropdown";
 import { useNoteMarkdown, useToolbarEvents } from "./hooks";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
@@ -108,10 +108,9 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 	}, [isStandalone]);
 
 	const textFormattingButtons = textFormats.map(({ icon, format }) => (
-		<motion.button
-			{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
+		<MotionIconButton
+			{...getDefaultButtonVariants(disabled)}
 			className={cn(
-				"rounded-md py-1 px-2 transition-colors duration-300 disabled:opacity-30",
 				currentSelectionFormat.includes(format) && !disabled && "button-invert",
 			)}
 			disabled={disabled}
@@ -127,7 +126,7 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 			}}
 		>
 			{icon}
-		</motion.button>
+		</MotionIconButton>
 	));
 
 	const commandButtonData = [
@@ -148,16 +147,11 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 
 	const commandButtons = commandButtonData.map(
 		({ block, icon, command, customDisabled }) => (
-			<motion.button
-				{...getDefaultButtonVariants(
-					customDisabled ?? disabled,
-					1.15,
-					0.95,
-					1.15,
-				)}
+			<MotionIconButton
+				{...getDefaultButtonVariants(customDisabled ?? disabled)}
 				key={`command-${block}`}
 				className={cn(
-					"rounded-md py-1 px-2 transition-colors duration-300 disabled:opacity-30",
+					"bg-inherit",
 					currentBlockType === block && !disabled && "button-invert",
 				)}
 				disabled={customDisabled ?? disabled}
@@ -178,27 +172,30 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 				}}
 			>
 				{icon}
-			</motion.button>
+			</MotionIconButton>
 		),
 	);
 
 	return (
 		<nav
 			className={cn(
-				"ml-[-4px] flex gap-1.5 border-b-[1px] border-b-zinc-200 p-2 dark:border-b-zinc-700",
+				"ml-[-4px] flex gap-1.5 border-b-[1px] border-b-zinc-200 p-2 dark:border-b-zinc-700 flex-wrap",
 				isNoteMaximized && "!pl-[5.75rem]",
 			)}
 		>
 			<span className="flex items-center gap-1.5">
-				<motion.button
+				<MotionIconButton
 					onClick={() => setIsNoteMaximized((prev) => !prev)}
-					{...getDefaultButtonVariants(disabled, 1.1, 0.95, 1.1)}
-					className="pl-[.1rem] pr-0.5"
+					{...getDefaultButtonVariants(disabled)}
 					type="button"
 					animate={{ rotate: isNoteMaximized ? 180 : 0 }}
 				>
-					<SidebarRightCollapse height="1.4rem" width="1.4rem" />
-				</motion.button>
+					<SidebarRightCollapse
+						title={isNoteMaximized ? "Minimize" : "Maximize"}
+						height="1.4rem"
+						width="1.4rem"
+					/>
+				</MotionIconButton>
 
 				<Dropdown
 					controlledValueIndex={blockTypesDropdownItems.findIndex(
@@ -214,14 +211,11 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 				/>
 			</span>
 
-			<span className="flex overflow-x-auto gap-1.5">
+			<span className="flex gap-1.5 flex-wrap">
 				{commandButtons.slice(0, 2)}
 				{textFormattingButtons}
-				<motion.button
-					{...getDefaultButtonVariants(disabled, 1.15, 0.95, 1.15)}
-					className={cn(
-						"rounded-md py-1 px-2 transition-colors duration-300 disabled:opacity-30",
-					)}
+				<MotionIconButton
+					{...getDefaultButtonVariants(disabled)}
 					disabled={disabled}
 					type="button"
 					onClick={() => {
@@ -239,7 +233,7 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 					}}
 				>
 					<Link />
-				</motion.button>
+				</MotionIconButton>
 				{commandButtons.slice(2)}
 			</span>
 		</nav>

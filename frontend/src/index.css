@@ -53,7 +53,7 @@ h3 {
 }
 
 .button-invert {
-    @apply bg-zinc-800 text-zinc-200 dark:bg-zinc-200 dark:text-zinc-900;
+    @apply !bg-zinc-800 !text-zinc-200 dark:!bg-zinc-200 dark:!text-zinc-900;
 }
 
 /**
