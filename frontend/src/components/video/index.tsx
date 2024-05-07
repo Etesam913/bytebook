@@ -1,10 +1,10 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useEffect, useRef, useState } from "react";
 import { getDefaultButtonVariants } from "../../animations";
+import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
 import { MotionButton } from "../buttons";
 import { Dialog } from "../dialog";
-import type { ResizeWidth } from "../editor/nodes/image";
 import { ResizeContainer } from "../resize-container";
 
 export function Video({
@@ -88,7 +88,7 @@ export function Video({
 					</MotionButton>
 				</div>
 			</Dialog>
-			<div className="w-full">
+			<div className="w-fit inline-block">
 				<ResizeContainer
 					resizeState={{
 						isResizing,

@@ -76,6 +76,9 @@ export function CodeViewer({
 		RunCode(language, code, command).then((res) => {
 			setCodeResult(res);
 			setIsCodeRunning(false);
+			editor.update(() => {
+				writeDataToNode(files, res);
+			});
 		});
 	}
 
