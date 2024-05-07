@@ -170,46 +170,50 @@ export function NotesSidebar({
 						ref={sidebarRef}
 						onClick={() => setAttachmentsSelectionRange(new Set())}
 						style={{ width }}
-						className="text-md flex h-screen flex-col gap-2 overflow-y-auto pt-[0.75rem] pb-3.5"
+						className="text-md flex h-screen flex-col overflow-y-auto pb-3.5"
 					>
-						<div className="flex h-full flex-col gap-4 overflow-y-auto pl-1 pr-2.5 pt-[1px] relative">
-							<section className="flex items-center gap-2">
-								<Folder className="min-w-[1.25rem]" />{" "}
-								<p className="overflow-hidden text-ellipsis whitespace-nowrap">
-									{folder}
-								</p>
-								<MotionIconButton
-									{...getDefaultButtonVariants()}
-									onClick={() =>
-										setIsFolderDialogOpen({
-											isOpen: true,
-											action: "rename",
-											folderName: folder,
-										})
-									}
-								>
-									<Pen className="w-full" />
-								</MotionIconButton>
+						<div className="flex h-full flex-col overflow-y-auto  pl-1.5 pr-2.5 relative">
+							<section className="flex items-center h-[3.625rem]">
+								<span className="flex items-center justify-end gap-2">
+									<Folder className="min-w-[1.25rem]" />{" "}
+									<p className="overflow-hidden text-ellipsis whitespace-nowrap">
+										{folder}
+									</p>
+									<MotionIconButton
+										{...getDefaultButtonVariants()}
+										onClick={() =>
+											setIsFolderDialogOpen({
+												isOpen: true,
+												action: "rename",
+												folderName: folder,
+											})
+										}
+									>
+										<Pen className="w-full" />
+									</MotionIconButton>
+								</span>
 							</section>
-							<MotionButton
-								{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
-								onClick={() => setIsNoteDialogOpen(true)}
-								className="align-center flex w-full justify-between bg-transparent"
-							>
-								Create Note <Compose />
-							</MotionButton>
-							<MyNotesAccordion
-								folder={folder}
-								note={note}
-								notes={notes}
-								setRightClickedNote={setRightClickedNote}
-							/>
-							<AttachmentsAccordion
-								folder={folder}
-								note={note}
-								attachmentsSelectionRange={attachmentsSelectionRange}
-								setAttachmentsSelectionRange={setAttachmentsSelectionRange}
-							/>
+							<div className="flex h-full flex-col gap-2">
+								<MotionButton
+									{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
+									onClick={() => setIsNoteDialogOpen(true)}
+									className="align-center flex w-full justify-between bg-transparent"
+								>
+									Create Note <Compose />
+								</MotionButton>
+								<MyNotesAccordion
+									folder={folder}
+									note={note}
+									notes={notes}
+									setRightClickedNote={setRightClickedNote}
+								/>
+								<AttachmentsAccordion
+									folder={folder}
+									note={note}
+									attachmentsSelectionRange={attachmentsSelectionRange}
+									setAttachmentsSelectionRange={setAttachmentsSelectionRange}
+								/>
+							</div>
 						</div>
 					</motion.aside>
 					<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
