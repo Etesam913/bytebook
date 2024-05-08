@@ -1,11 +1,8 @@
-import { LinkNode } from "@lexical/link";
 import { $isListNode, ListNode } from "@lexical/list";
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import { useSetAtom } from "jotai";
 import {
-	$createLineBreakNode,
-	$createParagraphNode,
 	$createTextNode,
 	$getSelection,
 	$isNodeSelection,
@@ -21,8 +18,10 @@ import {
 	KEY_ARROW_UP_COMMAND,
 	KEY_BACKSPACE_COMMAND,
 	type LexicalEditor,
+	REDO_COMMAND,
 	SELECTION_CHANGE_COMMAND,
 	type TextFormatType,
+	UNDO_COMMAND,
 } from "lexical";
 import { type Dispatch, type SetStateAction, useEffect } from "react";
 import { navigate } from "wouter/use-browser-location";
@@ -31,12 +30,13 @@ import { mostRecentNotesAtom } from "../../atoms.ts";
 import { type EditorBlockTypes, IMAGE_FILE_EXTENSIONS } from "../../types.ts";
 import { FILE_SERVER_URL } from "../../utils/misc.ts";
 import type { ImagePayload } from "./nodes/image.tsx";
-import { $createLinkNode, TOGGLE_LINK_COMMAND } from "./nodes/link.tsx";
+import { $createLinkNode } from "./nodes/link.tsx";
 import { INSERT_IMAGES_COMMAND } from "./plugins/image.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import {
 	$convertFromMarkdownStringCorrect,
 	type TextFormats,
+	overrideUndoRedoCommand,
 	overrideUpDownKeyCommand,
 } from "./utils";
 
@@ -149,8 +149,11 @@ function updateToolbar(
 	setDisabled: Dispatch<SetStateAction<boolean>>,
 	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
 	setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>,
+	setIsNodeSelection: Dispatch<SetStateAction<boolean>>,
 ) {
 	const selection = $getSelection();
+	setIsNodeSelection($isNodeSelection(selection));
+
 	if ($isRangeSelection(selection)) {
 		setDisabled(false);
 		const anchorNode = selection.anchor.getNode();
@@ -214,6 +217,7 @@ export function useToolbarEvents(
 	setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>,
 	setCanUndo: Dispatch<SetStateAction<boolean>>,
 	setCanRedo: Dispatch<SetStateAction<boolean>>,
+	setIsNodeSelection: Dispatch<SetStateAction<boolean>>,
 	folder: string,
 ) {
 	useEffect(() => {
@@ -226,6 +230,7 @@ export function useToolbarEvents(
 						setDisabled,
 						setCurrentSelectionFormat,
 						setCurrentBlockType,
+						setIsNodeSelection,
 					);
 					return false;
 				},
@@ -242,7 +247,7 @@ export function useToolbarEvents(
 					const files = fileText.split(",");
 					const imagePayloads: ImagePayload[] = [];
 					const linkPayloads = [];
-					console.log(files);
+
 					for (const fileText of files) {
 						const extension = `.${fileText.split(".").pop()}`;
 						// Handling dragging of image attachment link
@@ -329,6 +334,16 @@ export function useToolbarEvents(
 					setCanRedo(canRedo);
 					return true;
 				},
+				COMMAND_PRIORITY_LOW,
+			),
+			editor.registerCommand(
+				UNDO_COMMAND,
+				overrideUndoRedoCommand,
+				COMMAND_PRIORITY_LOW,
+			),
+			editor.registerCommand(
+				REDO_COMMAND,
+				overrideUndoRedoCommand,
 				COMMAND_PRIORITY_LOW,
 			),
 		);

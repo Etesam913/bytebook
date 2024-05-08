@@ -19,6 +19,7 @@ import {
 	$getSelection,
 	$isDecoratorNode,
 	$isElementNode,
+	$isNodeSelection,
 	$isRangeSelection,
 	$isRootNode,
 	$setSelection,
@@ -266,7 +267,9 @@ export function overrideUpDownKeyCommand(
 	// going from <img> -> <p>
 	else if ($isDecoratorNode(node)) {
 		event.preventDefault();
-		nodeToSelect?.selectEnd();
+		if (node.getType() !== "code-block") {
+			nodeToSelect?.selectEnd();
+		}
 	}
 
 	return true;
@@ -294,6 +297,18 @@ export function $convertFromMarkdownStringCorrect(
 	importMarkdown(markdown, node);
 }
 
+export function overrideUndoRedoCommand() {
+	const selection = $getSelection();
+	if ($isNodeSelection(selection)) {
+		const element = selection.getNodes().at(0);
+		// The code-block has its own undo stack, no need to use lexical's undo stack for this
+		if (element?.getType() === "code-block") {
+			return true;
+		}
+	}
+	return false;
+}
+
 /**
     Text match transformers (Image, Video, etc...)
     should have text to the left and right be paragraphs
@@ -309,46 +324,6 @@ export function handleTextMatchTransformerReplace(
 	const startIndex = match.index || 0;
 	const endIndex = startIndex + match[0].length;
 	let replaceNode: TextNode | null = null;
-
-	// if (transformer.dependencies.includes(ImageNode)) {
-	// 	const parent = anchorNode.getParent();
-	// 	replaceNode = $createTextNode(middleText);
-	// 	if (parent) {
-	// 		// Remove old children and replace with just the image
-	// 		for (const child of parent.getChildren()) {
-	// 			child.remove();
-	// 		}
-
-	// 		const newParent = $createParagraphNode();
-
-	// 		parent.replace(newParent);
-	// 		newParent.select(0, 0);
-
-	// 		newParent.append(replaceNode);
-	// 		if (textToLeft.length > 0) {
-	// 			newParent.insertBefore(
-	// 				$createParagraphNode().append($createTextNode(textToLeft)),
-	// 			);
-	// 		}
-	// 		if (textToRight.length > 0) {
-	// 			newParent.insertAfter(
-	// 				$createParagraphNode().append($createTextNode(textToRight)),
-	// 			);
-	// 		}
-	// 		return replaceNode;
-	// 	}
-	// } else {
-	// 	// Handle other text match transformers here
-	// 	if (startIndex === 0) {
-	// 		[replaceNode] = anchorNode.splitText(endIndex);
-	// 	} else {
-	// 		[, replaceNode] = anchorNode.splitText(startIndex, endIndex);
-	// 	}
-
-	// 	replaceNode.selectNext(0, 0);
-
-	// 	return replaceNode;
-	// }
 
 	// Handle other text match transformers here
 	if (startIndex === 0) {

@@ -42,6 +42,7 @@ export function CodeViewer({
 	setCodeResult,
 	writeDataToNode,
 	focus,
+	isSelected,
 }: {
 	language: string;
 	nodeKey: string;
@@ -52,6 +53,7 @@ export function CodeViewer({
 	setCodeResult: Dispatch<SetStateAction<CodeResultType>>;
 	writeDataToNode: (files: SandpackFiles, result: CodeResultType) => void;
 	focus: boolean;
+	isSelected: boolean;
 }) {
 	const [editor] = useLexicalComposerContext();
 	const { sandpack } = useSandpack();
@@ -94,12 +96,16 @@ export function CodeViewer({
 		}
 	}, [isCodeSettingsOpen]);
 
-	useCodeEditorFocus(codeMirrorRef, focus);
+	useCodeEditorFocus(codeMirrorRef, focus || isSelected);
 
 	return (
 		<SandpackLayout
 			onKeyDown={(e) => {
 				if (e.key === "Enter" && e.shiftKey) handleRunCode();
+				if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+					e.preventDefault();
+					e.stopPropagation();
+				}
 			}}
 			onKeyUp={() => {
 				editor.update(() => {

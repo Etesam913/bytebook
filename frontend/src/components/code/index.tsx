@@ -73,7 +73,8 @@ export function SandpackEditor({
 	const isDarkModeOn = useAtomValue(darkModeAtom);
 	const [isCodeSettingsOpen, setIsCodeSettingsOpen] = useState(false);
 	const [command, setCommand] = useState(commandWrittenToNode);
-	const [isSelected, _] = useLexicalNodeSelection(nodeKey);
+	const [isSelected, setSelected, clearSelection] =
+		useLexicalNodeSelection(nodeKey);
 	const [editor] = useLexicalComposerContext();
 
 	const defaultFiles = useRef(data.files);
@@ -82,7 +83,13 @@ export function SandpackEditor({
 
 	const codeMirrorContainerRef = useRef<HTMLDivElement>(null);
 
-	useCodeEditorCommands(editor, isSelected);
+	useCodeEditorCommands(
+		editor,
+		isSelected,
+		codeMirrorContainerRef,
+		setSelected,
+		clearSelection,
+	);
 
 	function getOptions(): SandpackInternalOptions {
 		if (language in nonTemplateLanguageDefaultFiles) {
@@ -131,6 +138,7 @@ export function SandpackEditor({
 						setCodeResult={setCodeResult}
 						writeDataToNode={writeDataToNode}
 						focus={focus}
+						isSelected={isSelected}
 					/>
 					<motion.div layout className="my-1">
 						{language in languageToTemplate ? (

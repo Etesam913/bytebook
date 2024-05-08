@@ -53,6 +53,7 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 		TextFormatType[]
 	>([]);
 	const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
+	const [isNodeSelection, setIsNodeSelection] = useState(false);
 	const [canRedo, setCanRedo] = useState(false);
 	const [canUndo, setCanUndo] = useState(false);
 	const attachments = useAtomValue(attachmentsAtom);
@@ -94,6 +95,7 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 		setCurrentBlockType,
 		setCanUndo,
 		setCanRedo,
+		setIsNodeSelection,
 		folder,
 	);
 
@@ -134,13 +136,13 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 			block: "undo",
 			icon: <Undo />,
 			command: UNDO_COMMAND,
-			customDisabled: !canUndo,
+			customDisabled: !canUndo || isNodeSelection,
 		},
 		{
 			block: "redo",
 			icon: <Redo />,
 			command: REDO_COMMAND,
-			customDisabled: !canRedo,
+			customDisabled: !canRedo || isNodeSelection,
 		},
 		...listCommandData,
 	];
