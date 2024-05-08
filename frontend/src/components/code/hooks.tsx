@@ -39,20 +39,14 @@ export function useCodeEditorCommands(
 				},
 				COMMAND_PRIORITY_LOW,
 			),
-			editor.registerCommand<KeyboardEvent>(
-				COPY_COMMAND,
-				() => {
-					return isSelected;
-				},
-				COMMAND_PRIORITY_LOW,
-			),
-			editor.registerCommand<KeyboardEvent>(
-				PASTE_COMMAND,
-				() => {
-					return isSelected;
-				},
-				COMMAND_PRIORITY_LOW,
-			),
+
+			// editor.registerCommand<KeyboardEvent>(
+			// 	PASTE_COMMAND,
+			// 	() => {
+			// 		return isSelected;
+			// 	},
+			// 	COMMAND_PRIORITY_LOW,
+			// ),
 		);
 	}, [editor, isSelected, nodeRef]);
 }

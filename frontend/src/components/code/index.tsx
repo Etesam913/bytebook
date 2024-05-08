@@ -12,6 +12,7 @@ import { useAtomValue } from "jotai";
 import { useRef, useState } from "react";
 import { darkModeAtom } from "../../atoms";
 import type { CodeBlockData, CodeResultType } from "../../types";
+import { cn } from "../../utils/string-formatting";
 import { CodeDialog } from "./code-dialog";
 import { CodeResult } from "./code-result";
 import { CodeViewer } from "./code-viewer";
@@ -114,9 +115,13 @@ export function SandpackEditor({
 					/>
 				)}
 			</AnimatePresence>
-			<div
+			<motion.div
+				layout
 				ref={codeMirrorContainerRef}
-				className="text-zinc-700 dark:text-zinc-200"
+				className={cn(
+					"border-transparent transition-colors text-zinc-700 dark:text-zinc-200 border-2",
+					isSelected && "border-blue-400 dark:border-blue-500",
+				)}
 			>
 				<SandpackProvider
 					theme={isDarkModeOn ? "dark" : "light"}
@@ -128,19 +133,21 @@ export function SandpackEditor({
 							: "vanilla"
 					}
 				>
-					<CodeViewer
-						command={command}
-						nodeKey={nodeKey}
-						language={language}
-						isCodeSettingsOpen={isCodeSettingsOpen}
-						setIsCodeSettingsOpen={setIsCodeSettingsOpen}
-						codeResult={codeResult}
-						setCodeResult={setCodeResult}
-						writeDataToNode={writeDataToNode}
-						focus={focus}
-						isSelected={isSelected}
-					/>
-					<motion.div layout className="my-1">
+					<motion.div layout="position">
+						<CodeViewer
+							command={command}
+							nodeKey={nodeKey}
+							language={language}
+							isCodeSettingsOpen={isCodeSettingsOpen}
+							setIsCodeSettingsOpen={setIsCodeSettingsOpen}
+							codeResult={codeResult}
+							setCodeResult={setCodeResult}
+							writeDataToNode={writeDataToNode}
+							focus={focus}
+							isSelected={isSelected}
+						/>
+					</motion.div>
+					<motion.div layout className="mt-1">
 						{language in languageToTemplate ? (
 							<SandpackLayout>
 								<SandpackPreview showNavigator showOpenInCodeSandbox={false} />
@@ -150,7 +157,7 @@ export function SandpackEditor({
 						)}
 					</motion.div>
 				</SandpackProvider>
-			</div>
+			</motion.div>
 		</>
 	);
 }

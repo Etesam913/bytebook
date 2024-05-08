@@ -102,8 +102,12 @@ export function CodeViewer({
 		<SandpackLayout
 			onKeyDown={(e) => {
 				if (e.key === "Enter" && e.shiftKey) handleRunCode();
-				if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-					e.preventDefault();
+				else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+					e.stopPropagation();
+				} else if (
+					e.metaKey &&
+					(e.key === "c" || e.key === "x" || e.key === "a")
+				) {
 					e.stopPropagation();
 				}
 			}}
