@@ -17,6 +17,7 @@ import {
 	KEY_ARROW_DOWN_COMMAND,
 	KEY_ARROW_UP_COMMAND,
 	KEY_BACKSPACE_COMMAND,
+	KEY_ESCAPE_COMMAND,
 	type LexicalEditor,
 	REDO_COMMAND,
 	SELECTION_CHANGE_COMMAND,
@@ -36,6 +37,7 @@ import { CUSTOM_TRANSFORMERS } from "./transformers";
 import {
 	$convertFromMarkdownStringCorrect,
 	type TextFormats,
+	escapeKeyDecoratorNodeCommand,
 	overrideUndoRedoCommand,
 	overrideUpDownKeyCommand,
 } from "./utils";
@@ -344,6 +346,21 @@ export function useToolbarEvents(
 			editor.registerCommand(
 				REDO_COMMAND,
 				overrideUndoRedoCommand,
+				COMMAND_PRIORITY_LOW,
+			),
+			editor.registerCommand(
+				KEY_ESCAPE_COMMAND,
+				() => {
+					const selection = $getSelection();
+					if ($isNodeSelection(selection)) {
+						const node = selection.getNodes().at(0);
+						if (node) {
+							escapeKeyDecoratorNodeCommand(node.getKey());
+							return true;
+						}
+					}
+					return true;
+				},
 				COMMAND_PRIORITY_LOW,
 			),
 		);

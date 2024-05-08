@@ -58,6 +58,7 @@ The `setInterval` had to be used because I couldn't find an easy way for
 export function useCodeEditorFocus(
 	codeMirrorRef: React.RefObject<CodeEditorRef>,
 	focus: boolean,
+	setIsSelected: (arg0: boolean) => void,
 ) {
 	useEffect(() => {
 		if (!focus) return;
@@ -72,6 +73,7 @@ export function useCodeEditorFocus(
 				clearInterval(intervalId);
 				if (focus) {
 					cmInstance.focus();
+					setIsSelected(true);
 				}
 				// cmInstance is defined, you can use it here
 			}

@@ -43,6 +43,7 @@ export function CodeViewer({
 	writeDataToNode,
 	focus,
 	isSelected,
+	setIsSelected,
 }: {
 	language: string;
 	nodeKey: string;
@@ -54,6 +55,7 @@ export function CodeViewer({
 	writeDataToNode: (files: SandpackFiles, result: CodeResultType) => void;
 	focus: boolean;
 	isSelected: boolean;
+	setIsSelected: (arg0: boolean) => void;
 }) {
 	const [editor] = useLexicalComposerContext();
 	const { sandpack } = useSandpack();
@@ -96,7 +98,7 @@ export function CodeViewer({
 		}
 	}, [isCodeSettingsOpen]);
 
-	useCodeEditorFocus(codeMirrorRef, focus || isSelected);
+	useCodeEditorFocus(codeMirrorRef, focus || isSelected, setIsSelected);
 
 	return (
 		<SandpackLayout
@@ -173,7 +175,7 @@ export function CodeViewer({
 			</motion.button>
 			{language in nonTemplateLanguageToExtension && (
 				<motion.button
-					className="absolute bottom-2 right-2 bg-opacity-85 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 p-1.5 rounded-md"
+					className="absolute bottom-2 right-2 bg-opacity-85 border border-zinc-200 dark:border-zinc-750 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 p-1.5 rounded-md"
 					{...getDefaultButtonVariants()}
 					onClick={handleRunCode}
 					disabled={isCodeRunning}

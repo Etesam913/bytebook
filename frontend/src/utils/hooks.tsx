@@ -8,7 +8,6 @@ import {
 	COMMAND_PRIORITY_LOW,
 	COMMAND_PRIORITY_NORMAL,
 	KEY_ENTER_COMMAND,
-	KEY_ESCAPE_COMMAND,
 	type LexicalEditor,
 } from "lexical";
 import {
@@ -25,7 +24,6 @@ import { darkModeAtom } from "../atoms";
 import {
 	EXPAND_CONTENT_COMMAND,
 	enterKeyDecoratorNodeCommand,
-	escapeKeyDecoratorNodeCommand,
 	onClickDecoratorNodeCommand,
 } from "./commands";
 
@@ -111,19 +109,6 @@ export function useResizeCommands(
 					return true;
 				},
 				COMMAND_PRIORITY_NORMAL,
-			),
-			editor.registerCommand<KeyboardEvent>(
-				KEY_ESCAPE_COMMAND,
-				(e) => {
-					e.preventDefault();
-					e.stopPropagation();
-					if (disabledEvents?.escape) return false;
-					if (!isExpanded) {
-						return escapeKeyDecoratorNodeCommand(nodeKey);
-					}
-					return true;
-				},
-				isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
 			),
 			editor.registerCommand<KeyboardEvent>(
 				KEY_ENTER_COMMAND,

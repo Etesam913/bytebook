@@ -1,9 +1,7 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { $wrapNodeInElement, mergeRegister } from "@lexical/utils";
+import { mergeRegister } from "@lexical/utils";
 import {
-	$createParagraphNode,
 	$insertNodes,
-	$isRootOrShadowRoot,
 	COMMAND_PRIORITY_EDITOR,
 	type LexicalCommand,
 	createCommand,
@@ -29,10 +27,6 @@ export function CodePlugin() {
 				(payload) => {
 					const codeNode = $createCodeNode(payload);
 					$insertNodes([codeNode]);
-					if ($isRootOrShadowRoot(codeNode.getParentOrThrow())) {
-						$wrapNodeInElement(codeNode, $createParagraphNode).selectEnd();
-					}
-
 					return true;
 				},
 				COMMAND_PRIORITY_EDITOR,

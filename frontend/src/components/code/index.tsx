@@ -145,6 +145,7 @@ export function SandpackEditor({
 							writeDataToNode={writeDataToNode}
 							focus={focus}
 							isSelected={isSelected}
+							setIsSelected={setSelected}
 						/>
 					</motion.div>
 					<motion.div layout className="mt-1">

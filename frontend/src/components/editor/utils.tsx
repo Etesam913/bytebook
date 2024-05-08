@@ -16,6 +16,7 @@ import { Browser, Events } from "@wailsio/runtime";
 import {
 	$createNodeSelection,
 	$createParagraphNode,
+	$getNodeByKey,
 	$getSelection,
 	$isDecoratorNode,
 	$isElementNode,
@@ -45,6 +46,7 @@ import { TextUnderline } from "../../icons/text-underline";
 import { UnorderedList } from "../../icons/unordered-list";
 import { VueLogo } from "../../icons/vue-logo";
 import type { EditorBlockTypes } from "../../types";
+import { isDecoratorNodeSelected } from "../../utils/commands";
 import { FILE_SERVER_URL } from "../../utils/misc";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
@@ -297,6 +299,9 @@ export function $convertFromMarkdownStringCorrect(
 	importMarkdown(markdown, node);
 }
 
+/**
+ * Makes it so that the code-block undo/redo stack is not affected by the undo/redo stack of the editor
+ */
 export function overrideUndoRedoCommand() {
 	const selection = $getSelection();
 	if ($isNodeSelection(selection)) {
@@ -304,6 +309,23 @@ export function overrideUndoRedoCommand() {
 		// The code-block has its own undo stack, no need to use lexical's undo stack for this
 		if (element?.getType() === "code-block") {
 			return true;
+		}
+	}
+	return false;
+}
+
+export function escapeKeyDecoratorNodeCommand(nodeKey: string) {
+	if (isDecoratorNodeSelected(nodeKey)) {
+		const nodeElem = $getNodeByKey(nodeKey);
+		if (nodeElem) {
+			const nextElem = nodeElem.getNextSibling();
+			if ($isDecoratorNode(nextElem)) {
+				const nodeSelection = $createNodeSelection();
+				nodeSelection.add(nextElem.getKey());
+				$setSelection(nodeSelection);
+			} else {
+				nodeElem.selectNext(0, 0);
+			}
 		}
 	}
 	return false;

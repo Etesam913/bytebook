@@ -17,10 +17,7 @@ import {
 } from "lexical";
 import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { toast } from "sonner";
-import { UploadImage } from "../../../../bindings/main/NodeService";
 import { attachmentsAtom } from "../../../atoms";
-import { FILE_SERVER_URL } from "../../../utils/misc";
 import { cn } from "../../../utils/string-formatting";
 import {
 	imageCommandData,
