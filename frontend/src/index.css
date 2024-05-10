@@ -257,7 +257,7 @@ h3 {
     content: "";
     width: 19px;
     height: 19px;
-    top: 2px;
+    top: 4px;
     left: 0;
     display: block;
     background-size: cover;
@@ -286,7 +286,7 @@ h3 {
     border-style: solid;
     position: absolute;
     display: block;
-    top: 6.5px;
+    top: 8.5px;
     width: 5.25px;
     left: 7.25px;
     right: 7px;

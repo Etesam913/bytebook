@@ -39,14 +39,14 @@ export function useCodeEditorCommands(
 				},
 				COMMAND_PRIORITY_LOW,
 			),
-
-			// editor.registerCommand<KeyboardEvent>(
-			// 	PASTE_COMMAND,
-			// 	() => {
-			// 		return isSelected;
-			// 	},
-			// 	COMMAND_PRIORITY_LOW,
-			// ),
+			// Prevents pasting on an empty line from removing the component
+			editor.registerCommand<KeyboardEvent>(
+				PASTE_COMMAND,
+				() => {
+					return isSelected;
+				},
+				COMMAND_PRIORITY_LOW,
+			),
 		);
 	}, [editor, isSelected, nodeRef]);
 }
