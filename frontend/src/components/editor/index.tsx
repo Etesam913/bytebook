@@ -10,11 +10,13 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { Events } from "@wailsio/runtime";
+import { motion } from "framer-motion";
 import { useAtomValue } from "jotai";
 import type { LexicalEditor } from "lexical";
 import { useRef, useState } from "react";
 import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { WINDOW_ID } from "../../App.tsx";
+import { easingFunctions } from "../../animations.ts";
 import { isNoteMaximizedAtom } from "../../atoms";
 import type { FloatingLinkData } from "../../types.ts";
 import { debounce } from "../../utils/draggable";
@@ -74,11 +76,15 @@ export function NotesEditor({
 	useMostRecentNotes(folder, note);
 
 	return (
-		<div
+		<motion.div
 			className={cn(
 				"flex min-w-0 flex-1 flex-col leading-7",
 				isNoteMaximized && "mt-[1px]",
 			)}
+			animate={{
+				x: isNoteMaximized ? [80, 0] : [-60, 0],
+				transition: { ease: easingFunctions["ease-out-quint"] },
+			}}
 		>
 			{/* <ExcalidrawComponent /> */}
 			<LexicalComposer initialConfig={editorConfig}>
@@ -95,12 +101,10 @@ export function NotesEditor({
 					)}
 					onClick={(e) => {
 						const target = e.target as HTMLElement & { ariaChecked?: string };
-						// Handling A tags
-						if (target.parentElement?.tagName === "A") {
-							handleATag(target);
-						} else if (
-							target.dataset.lexicalDecorator !== "true" ||
-							target.ariaChecked !== null
+
+						if (
+							target.dataset.lexicalDecorator !== "true" &&
+							target.ariaChecked === null
 						) {
 							editorRef.current?.focus(undefined, {
 								defaultSelection: "rootStart",
@@ -140,6 +144,6 @@ export function NotesEditor({
 					<TreeViewPlugin />
 				</div>
 			</LexicalComposer>
-		</div>
+		</motion.div>
 	);
 }

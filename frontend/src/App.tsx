@@ -23,7 +23,9 @@ function App() {
 			className="flex max-h-screen font-display text-zinc-950 dark:text-zinc-100"
 		>
 			<Toaster richColors theme="system" />
+
 			{!isNoteMaximized && <FolderSidebar width={folderSidebarWidth} />}
+
 			<Route path="/:folder/:note?">
 				{(folderParams) => (
 					<NotesSidebar

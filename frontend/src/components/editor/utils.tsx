@@ -359,16 +359,6 @@ export function handleTextMatchTransformerReplace(
 	return replaceNode;
 }
 
-export function handleATag(target: HTMLElement) {
-	const parentElement = target.parentElement as HTMLLinkElement;
-	if (parentElement.href.startsWith("wails://")) {
-	} else {
-		Browser.OpenURL(parentElement.href).catch(() => {
-			toast.error("Failed to open link");
-		});
-	}
-}
-
 /** Used to add images from filesystem into attachments folder & editor */
 export async function insertImageFromFile(
 	folder: string,
