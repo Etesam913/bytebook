@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/go-git/go-git/v5"
 
@@ -44,8 +46,16 @@ func GetExtensionFromLanguage(language string) (bool, string) {
 
 func RunFile(path string, command string) (string, error) {
 	commandSplit := strings.Split(command, " ")
-	cmd := exec.Command(commandSplit[0], append(commandSplit[1:], path)...)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, commandSplit[0], append(commandSplit[1:], path)...)
 	out, err := cmd.CombinedOutput()
+
+	if ctx.Err() == context.DeadlineExceeded {
+		return "Your code took too long to run. Please try again later.", fmt.Errorf("command timed out")
+	}
 
 	if err != nil {
 		return err.Error() + "\n" + string(out), err
