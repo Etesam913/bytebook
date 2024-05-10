@@ -18,7 +18,7 @@ import {
 	isNoteMaximizedAtom,
 	isToolbarDisabled,
 } from "../../atoms";
-import { Link } from "../../icons/link";
+
 import { Redo } from "../../icons/redo";
 import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
 import { Undo } from "../../icons/undo";
@@ -26,6 +26,7 @@ import type { EditorBlockTypes, FloatingLinkData } from "../../types";
 import { useIsStandalone, useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { MotionIconButton } from "../buttons";
+import { ToggleLinkButton } from "../buttons/toggle-link";
 import { Dropdown } from "../dropdown";
 import { useNoteMarkdown, useToolbarEvents } from "./hooks";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
@@ -216,26 +217,10 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 			<span className="flex gap-1.5 flex-wrap">
 				{commandButtons.slice(0, 2)}
 				{textFormattingButtons}
-				<MotionIconButton
-					{...getDefaultButtonVariants(disabled)}
+				<ToggleLinkButton
 					disabled={disabled}
-					type="button"
-					onClick={() => {
-						editor.update(() => {
-							const selection = $getSelection();
-							if ($isRangeSelection(selection)) {
-								const nativeSelection = window.getSelection()?.getRangeAt(0);
-								const domRect = nativeSelection?.getBoundingClientRect();
-								if (domRect) {
-									const { top, left } = domRect;
-									setFloatingLinkData({ isOpen: true, top, left });
-								}
-							}
-						});
-					}}
-				>
-					<Link />
-				</MotionIconButton>
+					setFloatingLinkData={setFloatingLinkData}
+				/>
 				{commandButtons.slice(2)}
 			</span>
 		</nav>
