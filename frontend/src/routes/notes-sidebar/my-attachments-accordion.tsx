@@ -72,9 +72,17 @@ export function AttachmentsAccordion({
 						}}
 						exit={{ height: 0, opacity: 0 }}
 						transition={{ type: "spring", damping: 22, stiffness: 130 }}
-						className="overflow-y-auto"
+						className="overflow-y-auto px-1.5"
 					>
-						{attachmentElements}
+						{attachmentElements.length > 0 ? (
+							<>{attachmentElements}</>
+						) : (
+							<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs py-1.5">
+								{" "}
+								Attachments appear here automatically when you add an attachment
+								in a note.
+							</li>
+						)}
 					</motion.ul>
 				)}
 			</AnimatePresence>

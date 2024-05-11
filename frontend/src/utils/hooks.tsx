@@ -208,7 +208,6 @@ const dropImage = (e: DragEvent) => {
 	const currentFiles = input.files;
 	// @ts-expect-error this comes from wails, no types
 	chrome.webview.postMessageWithAdditionalObjects("FilesDropped", currentFiles);
-	console.log(currentFiles);
 	e.preventDefault();
 	e.stopPropagation();
 	return false;

@@ -95,9 +95,9 @@ export function AttachmentItem({
 					"--custom-contextmenu-data": JSON.stringify({ file: attachmentFile }),
 				} as CSSProperties
 			}
-			className="py-[.1rem]"
+			className="py-[.1rem] last:mb-1"
 		>
-			<div className="flex items-center relative select-none rounded-md mx-1.5">
+			<div className="flex items-center relative select-none rounded-md">
 				<AnimatePresence>
 					{hoveredIndex === i && attachmentFile !== note && (
 						<SidebarHighlight layoutId="folder-highlight" />

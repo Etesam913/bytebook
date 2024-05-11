@@ -53,7 +53,6 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	});
 
 	useWailsEvent("folder:context-menu:delete", (body) => {
-		console.log("folder:delete", body);
 		const [folderName, windowId] = (body.data as string).split(",");
 		if (windowId === WINDOW_ID) {
 			setIsFolderDialogOpen({
@@ -107,9 +106,9 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					<MotionIconButton
 						onClick={() => window.history.forward()}
 						{...getDefaultButtonVariants()}
-						title="Go Right"
+						title="Go Forward"
 					>
-						<CircleArrowRight title="Go Right" />
+						<CircleArrowRight title="Go Forward" />
 					</MotionIconButton>
 
 					<MotionIconButton {...getDefaultButtonVariants()} title="Settings">

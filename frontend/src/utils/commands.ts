@@ -141,23 +141,6 @@ export function enterKeyDecoratorNodeCommand(
 	return false;
 }
 
-export function escapeKeyDecoratorNodeCommand(nodeKey: string) {
-	if (isDecoratorNodeSelected(nodeKey)) {
-		const nodeElem = $getNodeByKey(nodeKey);
-		if (nodeElem) {
-			const nextElem = nodeElem.getNextSibling();
-			if ($isDecoratorNode(nextElem)) {
-				const nodeSelection = $createNodeSelection();
-				nodeSelection.add(nextElem.getKey());
-				$setSelection(nodeSelection);
-			} else {
-				nodeElem.selectNext(0, 0);
-			}
-		}
-	}
-	return false;
-}
-
 export function removeDecoratorNode(nodeKey: string) {
 	const node = $getNodeByKey(nodeKey);
 	if (node) {

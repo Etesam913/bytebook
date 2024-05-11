@@ -57,7 +57,6 @@ export function NoteTitle({
 					if (noteTitle === note || errorText.length > 0) return;
 					RenameNote(folder, note, noteTitle)
 						.then((res) => {
-							console.log(res);
 							if (res.success) {
 								Events.Emit({
 									name: "notes:changed",

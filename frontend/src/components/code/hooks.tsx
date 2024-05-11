@@ -3,7 +3,6 @@ import { mergeRegister } from "@lexical/utils";
 import {
 	CLICK_COMMAND,
 	COMMAND_PRIORITY_LOW,
-	COPY_COMMAND,
 	CUT_COMMAND,
 	type LexicalEditor,
 	PASTE_COMMAND,

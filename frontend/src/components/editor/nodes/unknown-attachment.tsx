@@ -24,8 +24,6 @@ function convertUnknownAttachmentElement(
 ): null | DOMConversionOutput {
 	const elem = domNode as HTMLImageElement;
 
-	console.log("deez");
-
 	const { src } = elem;
 	const node = $createUnknownAttachmentNode({ src });
 	const parentNode = $createParagraphNode();

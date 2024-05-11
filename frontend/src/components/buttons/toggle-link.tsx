@@ -29,6 +29,7 @@ export function ToggleLinkButton({
 						if (selectionText.length === 0) {
 							toast.error("You must select some text to create a link.", {
 								position: "top-right",
+								duration: 3000,
 							});
 							return;
 						}

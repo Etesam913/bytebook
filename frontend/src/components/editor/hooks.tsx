@@ -350,7 +350,7 @@ export function useToolbarEvents(
 			),
 			editor.registerCommand(
 				KEY_ESCAPE_COMMAND,
-				() => {
+				(e) => {
 					const selection = $getSelection();
 					if ($isNodeSelection(selection)) {
 						const node = selection.getNodes().at(0);

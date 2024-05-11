@@ -1,8 +1,8 @@
+import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 import { go } from "@codemirror/lang-go";
 import { java } from "@codemirror/lang-java";
 import { python } from "@codemirror/lang-python";
-
-import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
+import { keymap } from "@codemirror/view";
 import {
 	type CodeEditorRef,
 	SandpackFileExplorer,
@@ -21,6 +21,7 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { toast } from "sonner";
 import { languageToTemplate, nonTemplateLanguageToExtension } from ".";
 import { RunCode } from "../../../bindings/main/NodeService";
 import { getDefaultButtonVariants } from "../../animations";
@@ -31,7 +32,19 @@ import { Trash } from "../../icons/trash";
 import type { CodeResultType } from "../../types";
 import { removeDecoratorNode } from "../../utils/commands";
 import { useCodeEditorFocus } from "./hooks";
-import { toast } from "sonner";
+
+const customEscapeCommand = () => {
+	// Custom action when Escape is pressed
+	console.log("Custom Escape behavior in autocompletion");
+	return true; // Signal that the key event was handled
+};
+
+// Create a custom keymap that includes your new bindings and extends the existing ones
+const customCompletionKeymap = [
+	{ key: "Escape", run: customEscapeCommand }, // This could override the default if placed before the spread of completionKeymap
+	// Include the default completion keymaps
+	// You can also add additional keybindings here
+];
 
 export function CodeViewer({
 	language,
@@ -61,7 +74,7 @@ export function CodeViewer({
 	const [editor] = useLexicalComposerContext();
 	const { sandpack } = useSandpack();
 	const { files, activeFile } = sandpack;
-
+	const [isCompletionOpen, setIsCompletionOpen] = useState([false, 0]);
 	/*
 	 Code only has to be run locally if it's a non-template language.
 	 Sandpack can handle running template languages by itself.
@@ -77,9 +90,12 @@ export function CodeViewer({
 			e.stopPropagation();
 		}
 		if (isCodeRunning) {
-			toast.info("The code is already running...", {duration: 3000, closeButton: true});
-			return
-		};
+			toast.info("The code is already running...", {
+				duration: 3000,
+				closeButton: true,
+			});
+			return;
+		}
 		setIsCodeRunning(true);
 		RunCode(language, code, command).then((res) => {
 			setCodeResult(res);
@@ -107,9 +123,11 @@ export function CodeViewer({
 	return (
 		<SandpackLayout
 			onKeyDown={(e) => {
+				setIsSelected(true);
 				if (e.key === "Enter" && e.shiftKey) handleRunCode();
 				else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
 					e.stopPropagation();
+				} else if (e.key === "Escape") {
 				} else if (
 					e.metaKey &&
 					(e.key === "c" || e.key === "x" || e.key === "a")
@@ -133,10 +151,9 @@ export function CodeViewer({
 				showLineNumbers={false}
 				showInlineErrors
 				closableTabs
-				extensions={[autocompletion()]}
+				extensions={[keymap.of(customCompletionKeymap), autocompletion()]}
 				key={activeFile}
-				//@ts-expect-error there is a readonly error, but that is not important
-				extensionsKeymap={completionKeymap}
+				extensionsKeymap={customCompletionKeymap}
 				additionalLanguages={[
 					{
 						name: "python",
