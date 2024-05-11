@@ -31,6 +31,7 @@ import { Trash } from "../../icons/trash";
 import type { CodeResultType } from "../../types";
 import { removeDecoratorNode } from "../../utils/commands";
 import { useCodeEditorFocus } from "./hooks";
+import { toast } from "sonner";
 
 export function CodeViewer({
 	language,
@@ -75,7 +76,10 @@ export function CodeViewer({
 		if (e) {
 			e.stopPropagation();
 		}
-		if (isCodeRunning) return;
+		if (isCodeRunning) {
+			toast.info("The code is already running...", {duration: 3000, closeButton: true});
+			return
+		};
 		setIsCodeRunning(true);
 		RunCode(language, code, command).then((res) => {
 			setCodeResult(res);
