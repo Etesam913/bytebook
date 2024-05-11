@@ -1,15 +1,6 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { $setBlocksType } from "@lexical/selection";
 import { type SetStateAction, useAtom, useAtomValue } from "jotai";
-import {
-	$createParagraphNode,
-	$getSelection,
-	$isRangeSelection,
-	FORMAT_TEXT_COMMAND,
-	REDO_COMMAND,
-	type TextFormatType,
-	UNDO_COMMAND,
-} from "lexical";
+import type { TextFormatType } from "lexical";
 import { type Dispatch, useEffect, useState } from "react";
 import { WINDOW_ID } from "../../App";
 import { easingFunctions, getDefaultButtonVariants } from "../../animations";
@@ -20,14 +11,14 @@ import {
 } from "../../atoms";
 
 import type { AnimationControls } from "framer-motion";
-import { Redo } from "../../icons/redo";
 import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
-import { Undo } from "../../icons/undo";
 import type { EditorBlockTypes, FloatingLinkData } from "../../types";
 import { useIsStandalone, useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { MotionIconButton } from "../buttons";
-import { ToggleLinkButton } from "../buttons/toggle-link";
+import { CommandButtons } from "../buttons/toolbar/command-buttons";
+import { TextFormattingButtons } from "../buttons/toolbar/text-formatting-buttons";
+import { ToggleLinkButton } from "../buttons/toolbar/toggle-link";
 import { Dropdown } from "../dropdown";
 import { useNoteMarkdown, useToolbarEvents } from "./hooks";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
@@ -35,9 +26,6 @@ import {
 	$convertFromMarkdownStringCorrect,
 	blockTypesDropdownItems,
 	changeSelectedBlocksType,
-	handleToolbarTextFormattingClick,
-	listCommandData,
-	textFormats,
 } from "./utils";
 
 interface ToolbarProps {
@@ -117,75 +105,6 @@ export function Toolbar({
 		}
 	}, [isStandalone]);
 
-	const textFormattingButtons = textFormats.map(({ icon, format }) => (
-		<MotionIconButton
-			{...getDefaultButtonVariants(disabled)}
-			className={cn(
-				currentSelectionFormat.includes(format) && !disabled && "button-invert",
-			)}
-			disabled={disabled}
-			type="button"
-			key={`text-format-${format}`}
-			onClick={() => {
-				editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
-				handleToolbarTextFormattingClick(
-					currentSelectionFormat,
-					setCurrentSelectionFormat,
-					format,
-				);
-			}}
-		>
-			{icon}
-		</MotionIconButton>
-	));
-
-	const commandButtonData = [
-		{
-			block: "undo",
-			icon: <Undo />,
-			command: UNDO_COMMAND,
-			customDisabled: !canUndo || isNodeSelection,
-		},
-		{
-			block: "redo",
-			icon: <Redo />,
-			command: REDO_COMMAND,
-			customDisabled: !canRedo || isNodeSelection,
-		},
-		...listCommandData,
-	];
-
-	const commandButtons = commandButtonData.map(
-		({ block, icon, command, customDisabled }) => (
-			<MotionIconButton
-				{...getDefaultButtonVariants(customDisabled ?? disabled)}
-				key={`command-${block}`}
-				className={cn(
-					"bg-inherit",
-					currentBlockType === block && !disabled && "button-invert",
-				)}
-				disabled={customDisabled ?? disabled}
-				type="button"
-				onClick={() => {
-					// toggling the block off switches it to a paragraph
-					if (block === currentBlockType) {
-						editor.update(() => {
-							const selection = $getSelection();
-							if ($isRangeSelection(selection)) {
-								$setBlocksType(selection, () => $createParagraphNode());
-							}
-						});
-					} else {
-						editor.dispatchCommand(command, undefined);
-						if (block) setCurrentBlockType(block);
-					}
-				}}
-			>
-				{icon}
-			</MotionIconButton>
-		),
-	);
-
 	return (
 		<nav
 			className={cn(
@@ -228,13 +147,35 @@ export function Toolbar({
 			</span>
 
 			<span className="flex gap-1.5 flex-wrap">
-				{commandButtons.slice(0, 2)}
-				{textFormattingButtons}
+				{
+					CommandButtons({
+						canUndo,
+						canRedo,
+						isNodeSelection,
+						isToolbarDisabled: disabled,
+						currentBlockType,
+						setCurrentBlockType,
+					})["undo-redo-commands"]
+				}
+				<TextFormattingButtons
+					currentSelectionFormat={currentSelectionFormat}
+					setCurrentSelectionFormat={setCurrentSelectionFormat}
+					isToolbarDisabled={disabled}
+				/>
 				<ToggleLinkButton
 					disabled={disabled}
 					setFloatingLinkData={setFloatingLinkData}
 				/>
-				{commandButtons.slice(2)}
+				{
+					CommandButtons({
+						canUndo,
+						canRedo,
+						isNodeSelection,
+						isToolbarDisabled: disabled,
+						currentBlockType,
+						setCurrentBlockType,
+					})["list-commands"]
+				}
 			</span>
 		</nav>
 	);

@@ -1,8 +1,0 @@
-{
-	"formatter": {
-		"external": {
-			"command": "frontend/node_modules/.bin/biome",
-			"arguments": ["format", "--write", "--stdin-file-path={buffer_path}"]
-		}
-	}
-}

@@ -33,7 +33,7 @@ import TreeViewPlugin from "./plugins/tree-view";
 import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
-import { $convertToMarkdownStringCorrect } from "./utils";
+import { $convertToMarkdownStringCorrect, handleATag } from "./utils";
 
 const debouncedHandleChange = debounce(handleChange, 275);
 
@@ -99,8 +99,9 @@ export function NotesEditor({
 					)}
 					onClick={(e) => {
 						const target = e.target as HTMLElement & { ariaChecked?: string };
-
-						if (
+						if (target.parentElement?.tagName === "A") {
+							handleATag(target);
+						} else if (
 							target.dataset.lexicalDecorator !== "true" &&
 							target.ariaChecked === null
 						) {

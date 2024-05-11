@@ -203,6 +203,17 @@ export function changeSelectedBlocksType(
 	});
 }
 
+/** Opens the link in the browser when clicked */
+export function handleATag(target: HTMLElement) {
+	const parentElement = target.parentElement as HTMLLinkElement;
+	if (parentElement.href.startsWith("wails://")) {
+	} else {
+		Browser.OpenURL(parentElement.href).catch(() => {
+			toast.error("Failed to open link");
+		});
+	}
+}
+
 export function handleToolbarTextFormattingClick(
 	currentSelectionFormat: TextFormatType[],
 	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,

@@ -110,7 +110,6 @@ export class LinkNode extends ElementNode {
 			const decodedUrl = decodeURIComponent(element.href);
 			const url = new URL(decodedUrl);
 			const segments = url.pathname.split("/");
-			console.log(segments);
 			// The frist segment is always empty
 			segments.shift();
 
