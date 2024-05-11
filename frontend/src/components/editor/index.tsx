@@ -10,13 +10,12 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { Events } from "@wailsio/runtime";
-import { motion } from "framer-motion";
+import { motion, useAnimationControls } from "framer-motion";
 import { useAtomValue } from "jotai";
 import type { LexicalEditor } from "lexical";
 import { useRef, useState } from "react";
 import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { WINDOW_ID } from "../../App.tsx";
-import { easingFunctions } from "../../animations.ts";
 import { isNoteMaximizedAtom } from "../../atoms";
 import type { FloatingLinkData } from "../../types.ts";
 import { debounce } from "../../utils/draggable";
@@ -34,7 +33,7 @@ import TreeViewPlugin from "./plugins/tree-view";
 import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
-import { $convertToMarkdownStringCorrect, handleATag } from "./utils";
+import { $convertToMarkdownStringCorrect } from "./utils";
 
 const debouncedHandleChange = debounce(handleChange, 275);
 
@@ -65,6 +64,7 @@ export function NotesEditor({
 	params: { folder: string; note: string };
 }) {
 	const { folder, note } = params;
+	const editorAnimationControls = useAnimationControls();
 	const editorRef = useRef<LexicalEditor | null | undefined>(null);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const [floatingLinkData, setFloatingLinkData] = useState<FloatingLinkData>({
@@ -81,14 +81,12 @@ export function NotesEditor({
 				"flex min-w-0 flex-1 flex-col leading-7",
 				isNoteMaximized && "mt-[1px]",
 			)}
-			animate={{
-				x: isNoteMaximized ? [80, 0] : [-60, 0],
-				transition: { ease: easingFunctions["ease-out-quint"] },
-			}}
+			animate={editorAnimationControls}
 		>
 			{/* <ExcalidrawComponent /> */}
 			<LexicalComposer initialConfig={editorConfig}>
 				<Toolbar
+					editorAnimationControls={editorAnimationControls}
 					folder={folder}
 					note={note}
 					setFloatingLinkData={setFloatingLinkData}

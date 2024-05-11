@@ -12,13 +12,14 @@ import {
 } from "lexical";
 import { type Dispatch, useEffect, useState } from "react";
 import { WINDOW_ID } from "../../App";
-import { getDefaultButtonVariants } from "../../animations";
+import { easingFunctions, getDefaultButtonVariants } from "../../animations";
 import {
 	attachmentsAtom,
 	isNoteMaximizedAtom,
 	isToolbarDisabled,
 } from "../../atoms";
 
+import type { AnimationControls } from "framer-motion";
 import { Redo } from "../../icons/redo";
 import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
 import { Undo } from "../../icons/undo";
@@ -43,9 +44,15 @@ interface ToolbarProps {
 	folder: string;
 	note: string;
 	setFloatingLinkData: Dispatch<SetStateAction<FloatingLinkData>>;
+	editorAnimationControls: AnimationControls;
 }
 
-export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
+export function Toolbar({
+	folder,
+	note,
+	setFloatingLinkData,
+	editorAnimationControls,
+}: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
 	const [disabled, setDisabled] = useAtom(isToolbarDisabled);
 	const [currentBlockType, setCurrentBlockType] =
@@ -188,7 +195,13 @@ export function Toolbar({ folder, note, setFloatingLinkData }: ToolbarProps) {
 		>
 			<span className="flex items-center gap-1.5">
 				<MotionIconButton
-					onClick={() => setIsNoteMaximized((prev) => !prev)}
+					onClick={() => {
+						setIsNoteMaximized((prev) => !prev);
+						editorAnimationControls.start({
+							x: isNoteMaximized ? [-20, 0] : [20, 0],
+							transition: { ease: easingFunctions["ease-out-quint"] },
+						});
+					}}
 					{...getDefaultButtonVariants(disabled)}
 					type="button"
 					animate={{ rotate: isNoteMaximized ? 180 : 0 }}
