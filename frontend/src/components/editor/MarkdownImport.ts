@@ -105,7 +105,6 @@ function importBlocks(
 	const elementNode = $createParagraphNode();
 	elementNode.append(textNode);
 	rootNode.append(elementNode);
-
 	for (const { regExp, replace } of elementTransformers) {
 		const match = lineText.match(regExp);
 

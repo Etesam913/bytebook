@@ -33,19 +33,6 @@ import type { CodeResultType } from "../../types";
 import { removeDecoratorNode } from "../../utils/commands";
 import { useCodeEditorFocus } from "./hooks";
 
-const customEscapeCommand = () => {
-	// Custom action when Escape is pressed
-	console.log("Custom Escape behavior in autocompletion");
-	return true; // Signal that the key event was handled
-};
-
-// Create a custom keymap that includes your new bindings and extends the existing ones
-const customCompletionKeymap = [
-	{ key: "Escape", run: customEscapeCommand }, // This could override the default if placed before the spread of completionKeymap
-	// Include the default completion keymaps
-	// You can also add additional keybindings here
-];
-
 export function CodeViewer({
 	language,
 	nodeKey,
@@ -74,7 +61,6 @@ export function CodeViewer({
 	const [editor] = useLexicalComposerContext();
 	const { sandpack } = useSandpack();
 	const { files, activeFile } = sandpack;
-	const [isCompletionOpen, setIsCompletionOpen] = useState([false, 0]);
 	/*
 	 Code only has to be run locally if it's a non-template language.
 	 Sandpack can handle running template languages by itself.
@@ -127,7 +113,6 @@ export function CodeViewer({
 				if (e.key === "Enter" && e.shiftKey) handleRunCode();
 				else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
 					e.stopPropagation();
-				} else if (e.key === "Escape") {
 				} else if (
 					e.metaKey &&
 					(e.key === "c" || e.key === "x" || e.key === "a")
@@ -151,9 +136,9 @@ export function CodeViewer({
 				showLineNumbers={false}
 				showInlineErrors
 				closableTabs
-				extensions={[keymap.of(customCompletionKeymap), autocompletion()]}
+				extensions={[autocompletion()]}
 				key={activeFile}
-				extensionsKeymap={customCompletionKeymap}
+				extensionsKeymap={completionKeymap}
 				additionalLanguages={[
 					{
 						name: "python",

@@ -83,51 +83,6 @@ const createBlockNode = (
 	};
 };
 
-export const CODE_TRANSFORMER: ElementTransformer = {
-	dependencies: [CodeNode, ExcalidrawNode],
-	export: (node: LexicalNode) => {
-		if ($isCodeNode(node)) {
-			const textContent = JSON.stringify(node.getData());
-			return `\`\`\`${node.getLanguage()} {command=${node.getCommand()}} ${
-				textContent ? `\n${textContent}` : ""
-			}\n\`\`\``;
-		}
-		if ($isExcalidrawNode(node)) {
-			const textContent = "";
-			return `\`\`\`excalidraw {width=${node.getWidth()}} ${
-				textContent ? `\n${textContent}` : ""
-			}\n\`\`\``;
-		}
-		return null;
-	},
-	regExp: /^```(\w{1,10})?\s/,
-	replace: (textNode, _1, match, isImport) => {
-		// MarkdownImport.ts handles the import of code blocks
-		const language = match.at(1);
-		if (
-			!language ||
-			(!codeLanguages.has(language) && language !== "excalidraw")
-		) {
-			return;
-		}
-		let newNode = null;
-		if (language === "excalidraw") {
-			newNode = $createExcalidrawNode({ elements: [] });
-		} else {
-			newNode = $createCodeNode({
-				language: language,
-				focus: !isImport,
-			});
-		}
-
-		const nodeSelection = $createNodeSelection();
-		nodeSelection.add(newNode.getKey());
-		textNode.replace(newNode);
-		$setSelection(nodeSelection);
-	},
-	type: "element",
-};
-
 const srcRegex = /\/notes\/([^/]+)\/([^/]+)\//;
 
 /** Updates image src when location pathname changes, should revisit this */
@@ -280,6 +235,52 @@ export function transformersByType(transformers: Array<Transformer>): Readonly<{
 		textMatch: (byType["text-match"] || []) as Array<TextMatchTransformer>,
 	};
 }
+
+export const CODE_TRANSFORMER: ElementTransformer = {
+	dependencies: [ExcalidrawNode, CodeNode],
+	export: (node: LexicalNode) => {
+		if ($isCodeNode(node)) {
+			const textContent = JSON.stringify(node.getData());
+			return `\`\`\`${node.getLanguage()} {command=${node.getCommand()}} ${
+				textContent ? `\n${textContent}` : ""
+			}\n\`\`\``;
+		}
+		if ($isExcalidrawNode(node)) {
+			const textContent = "";
+			return `\`\`\`excalidraw {width=${node.getWidth()}} ${
+				textContent ? `\n${textContent}` : ""
+			}\n\`\`\``;
+		}
+		return null;
+	},
+	regExp: /^```(\w{1,10})?\s/,
+	replace: (textNode, _1, match, isImport) => {
+		// MarkdownImport.ts handles the import of code blocks
+		const language = match.at(1);
+		if (
+			!language ||
+			(!codeLanguages.has(language) && language !== "excalidraw")
+		) {
+			return;
+		}
+		let newNode = null;
+		if (language === "excalidraw") {
+			newNode = $createExcalidrawNode({ elements: [] });
+		} else {
+			newNode = $createCodeNode({
+				language: language,
+				focus: !isImport,
+			});
+		}
+
+		const nodeSelection = $createNodeSelection();
+		nodeSelection.add(newNode.getKey());
+		textNode.replace(newNode);
+		$setSelection(nodeSelection);
+	},
+	type: "element",
+};
+
 export const LINK: TextMatchTransformer = {
 	dependencies: [LinkNode],
 	export: (node, _, exportFormat) => {

@@ -3,29 +3,31 @@ import { AnimatePresence, motion } from "framer-motion";
 import { type Dispatch, type SetStateAction, useEffect, useRef } from "react";
 import { getDefaultButtonVariants } from "../../../animations";
 import { SubmitLink } from "../../../icons/submit-link";
-import type { FloatingLinkData } from "../../../types";
+import type { FloatingDataType } from "../../../types";
 import { MotionButton } from "../../buttons";
 import { TOGGLE_LINK_COMMAND } from "../nodes/link";
 
 export function FloatingLinkPlugin({
-	floatingLinkData,
-	setFloatingLinkData,
+	floatingData,
+	setFloatingData,
 }: {
-	floatingLinkData: FloatingLinkData;
-	setFloatingLinkData: Dispatch<SetStateAction<FloatingLinkData>>;
+	floatingData: FloatingDataType;
+	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
 }) {
 	const [editor] = useLexicalComposerContext();
 	const inputRef = useRef<HTMLInputElement>(null);
 
+	const isOpen = floatingData.isOpen && floatingData.type === "link";
+
 	useEffect(() => {
-		if (inputRef.current && floatingLinkData.isOpen) {
+		if (inputRef.current && isOpen) {
 			inputRef.current.focus();
 		}
-	}, [floatingLinkData.isOpen]);
+	}, [isOpen]);
 
 	return (
 		<AnimatePresence>
-			{floatingLinkData.isOpen && (
+			{isOpen && (
 				<motion.form
 					initial={{ opacity: 0 }}
 					animate={{
@@ -33,18 +35,20 @@ export function FloatingLinkPlugin({
 					}}
 					exit={{ opacity: 0 }}
 					style={{
-						top: floatingLinkData.top + 25,
-						left: floatingLinkData.left,
+						top: floatingData.top + 25,
+						left: floatingData.left,
 					}}
-					className="absolute bg-zinc-100 dark:bg-zinc-750 p-2 rounded-md bg-opacity-95 shadow-lg flex items-center gap-2 z-50"
+					className="fixed bg-zinc-100 dark:bg-zinc-750 p-2 rounded-md bg-opacity-95 shadow-lg flex items-center gap-2 z-50"
 					onSubmit={(e) => {
 						e.preventDefault();
 						editor.dispatchCommand(TOGGLE_LINK_COMMAND, {
 							url: inputRef.current?.value ?? "",
 						});
-						setFloatingLinkData({ isOpen: false, left: 0, top: 0 });
+						setFloatingData((prev) => ({ ...prev, isOpen: false, type: null }));
 					}}
-					onBlur={() => setFloatingLinkData({ isOpen: false, left: 0, top: 0 })}
+					onBlur={() =>
+						setFloatingData((prev) => ({ ...prev, isOpen: false, type: null }))
+					}
 				>
 					<input
 						ref={inputRef}

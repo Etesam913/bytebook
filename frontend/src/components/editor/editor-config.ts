@@ -69,7 +69,6 @@ export const editorConfig: InitialConfigType = {
 		HeadingNode,
 		QuoteNode,
 		HorizontalRuleNode,
-		CodeNode,
 		LinkNode,
 		ListNode,
 		ListItemNode,
@@ -79,8 +78,8 @@ export const editorConfig: InitialConfigType = {
 		TableNode,
 		TableCellNode,
 		TableRowNode,
-		CodeNode,
 		UnknownAttachmentNode,
+		CodeNode,
 		ExcalidrawNode,
 	],
 };

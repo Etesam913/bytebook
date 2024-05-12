@@ -11,16 +11,16 @@ import {
 } from "../../atoms";
 
 import type { AnimationControls } from "framer-motion";
+import { createPortal } from "react-dom";
 import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
-import type { EditorBlockTypes, FloatingLinkData } from "../../types";
+import type { EditorBlockTypes, FloatingDataType } from "../../types";
 import { useIsStandalone, useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { MotionIconButton } from "../buttons";
-import { CommandButtons } from "../buttons/toolbar/command-buttons";
-import { TextFormattingButtons } from "../buttons/toolbar/text-formatting-buttons";
-import { ToggleLinkButton } from "../buttons/toolbar/toggle-link";
+import { ToolbarButtons } from "../buttons/toolbar";
 import { Dropdown } from "../dropdown";
 import { useNoteMarkdown, useToolbarEvents } from "./hooks";
+import { FloatingTextFormatPlugin } from "./plugins/floating-text-format";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import {
 	$convertFromMarkdownStringCorrect,
@@ -31,14 +31,18 @@ import {
 interface ToolbarProps {
 	folder: string;
 	note: string;
-	setFloatingLinkData: Dispatch<SetStateAction<FloatingLinkData>>;
+	floatingData: FloatingDataType;
+	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
 	editorAnimationControls: AnimationControls;
+	noteContainerRef: React.RefObject<HTMLDivElement>;
 }
 
 export function Toolbar({
 	folder,
 	note,
-	setFloatingLinkData,
+	floatingData,
+	setFloatingData,
+	noteContainerRef,
 	editorAnimationControls,
 }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
@@ -92,6 +96,8 @@ export function Toolbar({
 		setCanUndo,
 		setCanRedo,
 		setIsNodeSelection,
+		setFloatingData,
+		noteContainerRef,
 		folder,
 	);
 
@@ -105,78 +111,82 @@ export function Toolbar({
 		}
 	}, [isStandalone]);
 
-	return (
-		<nav
-			className={cn(
-				"ml-[-4px] flex gap-1.5 border-b-[1px] border-b-zinc-200 p-2 dark:border-b-zinc-700 flex-wrap",
-				isNoteMaximized && "!pl-[5.75rem]",
-			)}
-		>
-			<span className="flex items-center gap-1.5">
-				<MotionIconButton
-					onClick={() => {
-						setIsNoteMaximized((prev) => !prev);
-						editorAnimationControls.start({
-							x: isNoteMaximized ? [-20, 0] : [20, 0],
-							transition: { ease: easingFunctions["ease-out-quint"] },
-						});
-					}}
-					{...getDefaultButtonVariants(disabled)}
-					type="button"
-					animate={{ rotate: isNoteMaximized ? 180 : 0 }}
-				>
-					<SidebarRightCollapse
-						title={isNoteMaximized ? "Minimize" : "Maximize"}
-						height="1.4rem"
-						width="1.4rem"
-					/>
-				</MotionIconButton>
-
-				<Dropdown
-					controlledValueIndex={blockTypesDropdownItems.findIndex(
-						(v) => v.value === currentBlockType,
-					)}
-					dropdownItemsClassName="max-h-[calc(100vh-10rem)]"
-					onChange={({ value }) =>
-						changeSelectedBlocksType(editor, value, folder, note, attachments)
-					}
-					items={blockTypesDropdownItems}
-					buttonClassName="w-[10rem]"
+	const FloatingPlugin = noteContainerRef.current ? (
+		createPortal(
+			<FloatingTextFormatPlugin floatingData={floatingData}>
+				<ToolbarButtons
+					canUndo={canUndo}
+					canRedo={canRedo}
 					disabled={disabled}
-				/>
-			</span>
-
-			<span className="flex gap-1.5 flex-wrap">
-				{
-					CommandButtons({
-						canUndo,
-						canRedo,
-						isNodeSelection,
-						isToolbarDisabled: disabled,
-						currentBlockType,
-						setCurrentBlockType,
-					})["undo-redo-commands"]
-				}
-				<TextFormattingButtons
+					isNodeSelection={isNodeSelection}
+					currentBlockType={currentBlockType}
+					setCurrentBlockType={setCurrentBlockType}
 					currentSelectionFormat={currentSelectionFormat}
 					setCurrentSelectionFormat={setCurrentSelectionFormat}
-					isToolbarDisabled={disabled}
+					setFloatingData={setFloatingData}
 				/>
-				<ToggleLinkButton
+			</FloatingTextFormatPlugin>,
+			noteContainerRef.current,
+		)
+	) : (
+		<></>
+	);
+
+	return (
+		<>
+			{FloatingPlugin}
+			<nav
+				className={cn(
+					"ml-[-4px] flex gap-1.5 border-b-[1px] border-b-zinc-200 p-2 dark:border-b-zinc-700 flex-wrap",
+					isNoteMaximized && "!pl-[5.75rem]",
+				)}
+			>
+				<span className="flex items-center gap-1.5">
+					<MotionIconButton
+						onClick={() => {
+							setIsNoteMaximized((prev) => !prev);
+							editorAnimationControls.start({
+								x: isNoteMaximized ? [-20, 0] : [20, 0],
+								transition: { ease: easingFunctions["ease-out-quint"] },
+							});
+						}}
+						{...getDefaultButtonVariants(disabled)}
+						type="button"
+						animate={{ rotate: isNoteMaximized ? 180 : 0 }}
+					>
+						<SidebarRightCollapse
+							title={isNoteMaximized ? "Minimize" : "Maximize"}
+							height="1.4rem"
+							width="1.4rem"
+						/>
+					</MotionIconButton>
+
+					<Dropdown
+						controlledValueIndex={blockTypesDropdownItems.findIndex(
+							(v) => v.value === currentBlockType,
+						)}
+						dropdownItemsClassName="max-h-[calc(100vh-10rem)]"
+						onChange={({ value }) =>
+							changeSelectedBlocksType(editor, value, folder, note, attachments)
+						}
+						items={blockTypesDropdownItems}
+						buttonClassName="w-[10rem]"
+						disabled={disabled}
+					/>
+				</span>
+				<ToolbarButtons
+					canUndo={canUndo}
+					canRedo={canRedo}
 					disabled={disabled}
-					setFloatingLinkData={setFloatingLinkData}
+					isNodeSelection={isNodeSelection}
+					currentBlockType={currentBlockType}
+					setCurrentBlockType={setCurrentBlockType}
+					currentSelectionFormat={currentSelectionFormat}
+					setCurrentSelectionFormat={setCurrentSelectionFormat}
+					setFloatingData={setFloatingData}
+					shouldShowUndoRedo
 				/>
-				{
-					CommandButtons({
-						canUndo,
-						canRedo,
-						isNodeSelection,
-						isToolbarDisabled: disabled,
-						currentBlockType,
-						setCurrentBlockType,
-					})["list-commands"]
-				}
-			</span>
-		</nav>
+			</nav>
+		</>
 	);
 }

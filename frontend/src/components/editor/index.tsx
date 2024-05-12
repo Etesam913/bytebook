@@ -17,7 +17,7 @@ import { useRef, useState } from "react";
 import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { WINDOW_ID } from "../../App.tsx";
 import { isNoteMaximizedAtom } from "../../atoms";
-import type { FloatingLinkData } from "../../types.ts";
+import type { FloatingDataType } from "../../types.ts";
 import { debounce } from "../../utils/draggable";
 import { cn } from "../../utils/string-formatting";
 import { editorConfig } from "./editor-config";
@@ -67,12 +67,14 @@ export function NotesEditor({
 	const editorAnimationControls = useAnimationControls();
 	const editorRef = useRef<LexicalEditor | null | undefined>(null);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-	const [floatingLinkData, setFloatingLinkData] = useState<FloatingLinkData>({
+
+	const [floatingData, setFloatingData] = useState<FloatingDataType>({
 		isOpen: false,
 		left: 0,
 		top: 0,
+		type: null,
 	});
-
+	const noteContainerRef = useRef<HTMLDivElement | null>(null);
 	useMostRecentNotes(folder, note);
 
 	return (
@@ -83,18 +85,20 @@ export function NotesEditor({
 			)}
 			animate={editorAnimationControls}
 		>
-			{/* <ExcalidrawComponent /> */}
 			<LexicalComposer initialConfig={editorConfig}>
 				<Toolbar
+					noteContainerRef={noteContainerRef}
 					editorAnimationControls={editorAnimationControls}
 					folder={folder}
 					note={note}
-					setFloatingLinkData={setFloatingLinkData}
+					floatingData={floatingData}
+					setFloatingData={setFloatingData}
 				/>
 				<div
+					ref={noteContainerRef}
 					style={{ scrollbarGutter: "stable" }}
 					className={cn(
-						"h-[calc(100vh-38px)] overflow-y-auto py-2 px-3",
+						"h-[calc(100vh-38px)] overflow-y-auto py-2 px-3 relative",
 						isNoteMaximized && "px-5",
 					)}
 					onClick={(e) => {
@@ -125,8 +129,8 @@ export function NotesEditor({
 						}
 					/>
 					<FloatingLinkPlugin
-						floatingLinkData={floatingLinkData}
-						setFloatingLinkData={setFloatingLinkData}
+						floatingData={floatingData}
+						setFloatingData={setFloatingData}
 					/>
 					<CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
 					<ListPlugin />

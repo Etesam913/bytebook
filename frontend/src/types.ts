@@ -26,10 +26,11 @@ export type MostRecentNoteType = {
 	path: string;
 };
 
-export type FloatingLinkData = {
+export type FloatingDataType = {
 	isOpen: boolean;
 	top: number;
 	left: number;
+	type: null | "link" | "text-format";
 };
 
 export type CodeBlockData = { files: SandpackFiles; result: CodeResultType };

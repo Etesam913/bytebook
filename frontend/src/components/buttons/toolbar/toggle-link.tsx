@@ -5,13 +5,13 @@ import { toast } from "sonner";
 import { MotionIconButton } from "..";
 import { getDefaultButtonVariants } from "../../../animations";
 import { Link } from "../../../icons/link";
-import type { FloatingLinkData } from "../../../types";
+import type { FloatingDataType } from "../../../types";
 export function ToggleLinkButton({
 	disabled,
-	setFloatingLinkData,
+	setFloatingData,
 }: {
 	disabled: boolean;
-	setFloatingLinkData: Dispatch<SetStateAction<FloatingLinkData>>;
+	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
 }) {
 	const [editor] = useLexicalComposerContext();
 
@@ -36,7 +36,7 @@ export function ToggleLinkButton({
 						const domRect = nativeSelection?.getBoundingClientRect();
 						if (domRect) {
 							const { top, left } = domRect;
-							setFloatingLinkData({ isOpen: true, top, left });
+							setFloatingData({ isOpen: true, top, left, type: "link" });
 						}
 					}
 				});

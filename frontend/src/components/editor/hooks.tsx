@@ -24,11 +24,20 @@ import {
 	type TextFormatType,
 	UNDO_COMMAND,
 } from "lexical";
-import { type Dispatch, type SetStateAction, useEffect } from "react";
+import {
+	type Dispatch,
+	type MutableRefObject,
+	type SetStateAction,
+	useEffect,
+} from "react";
 import { navigate } from "wouter/use-browser-location";
 import { GetNoteMarkdown } from "../../../bindings/main/NoteService";
 import { mostRecentNotesAtom } from "../../atoms.ts";
-import { type EditorBlockTypes, IMAGE_FILE_EXTENSIONS } from "../../types.ts";
+import {
+	type EditorBlockTypes,
+	type FloatingDataType,
+	IMAGE_FILE_EXTENSIONS,
+} from "../../types.ts";
 import { FILE_SERVER_URL } from "../../utils/misc.ts";
 import type { ImagePayload } from "./nodes/image.tsx";
 import { $createLinkNode } from "./nodes/link.tsx";
@@ -152,12 +161,34 @@ function updateToolbar(
 	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
 	setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>,
 	setIsNodeSelection: Dispatch<SetStateAction<boolean>>,
+	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>,
+	noteContainerRef: MutableRefObject<HTMLDivElement | null>,
 ) {
 	const selection = $getSelection();
 	setIsNodeSelection($isNodeSelection(selection));
 
 	if ($isRangeSelection(selection)) {
 		setDisabled(false);
+		// Shows the text-format hover container
+		const selectionText = selection.getTextContent().trim();
+		if (selectionText.length > 0) {
+			const nativeSelection = window.getSelection()?.getRangeAt(0);
+			const domRect = nativeSelection?.getBoundingClientRect();
+			if (domRect) {
+				const { top, left } = domRect;
+				const noteContainerBounds =
+					noteContainerRef.current?.getBoundingClientRect();
+
+				setFloatingData({
+					isOpen: true,
+					top: top - (noteContainerBounds ? noteContainerBounds.top : 0) - 80,
+					left: left - (noteContainerBounds ? noteContainerBounds.left : 0),
+					type: "text-format",
+				});
+			}
+		} else {
+			setFloatingData((prev) => ({ ...prev, isOpen: false, type: null }));
+		}
 		const anchorNode = selection.anchor.getNode();
 		const element =
 			anchorNode.getKey() === "root"
@@ -203,6 +234,7 @@ function updateToolbar(
 			setCurrentBlockType(element.getType());
 		}
 	} else if ($isNodeSelection(selection)) {
+		setFloatingData((prev) => ({ ...prev, isOpen: false, type: null }));
 		setDisabled(true);
 	}
 }
@@ -220,6 +252,8 @@ export function useToolbarEvents(
 	setCanUndo: Dispatch<SetStateAction<boolean>>,
 	setCanRedo: Dispatch<SetStateAction<boolean>>,
 	setIsNodeSelection: Dispatch<SetStateAction<boolean>>,
+	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>,
+	noteContainerRef: MutableRefObject<HTMLDivElement | null>,
 	folder: string,
 ) {
 	useEffect(() => {
@@ -233,6 +267,8 @@ export function useToolbarEvents(
 						setCurrentSelectionFormat,
 						setCurrentBlockType,
 						setIsNodeSelection,
+						setFloatingData,
+						noteContainerRef,
 					);
 					return false;
 				},
@@ -350,7 +386,7 @@ export function useToolbarEvents(
 			),
 			editor.registerCommand(
 				KEY_ESCAPE_COMMAND,
-				(e) => {
+				() => {
 					const selection = $getSelection();
 					if ($isNodeSelection(selection)) {
 						const node = selection.getNodes().at(0);
@@ -371,5 +407,6 @@ export function useToolbarEvents(
 		setDisabled,
 		setCanRedo,
 		setCanUndo,
+		noteContainerRef,
 	]);
 }
