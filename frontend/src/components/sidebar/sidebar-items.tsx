@@ -11,6 +11,7 @@ export function SidebarItems({
 	selectionRange,
 	setSelectionRange,
 	anchorSelectionIndex,
+	emptyElement,
 }: {
 	data: string[] | null;
 	getContextMenuStyle: (dataItem: string) => CSSProperties;
@@ -25,6 +26,7 @@ export function SidebarItems({
 	selectionRange: Set<number>;
 	setSelectionRange: Dispatch<SetStateAction<Set<number>>>;
 	anchorSelectionIndex: React.MutableRefObject<number>;
+	emptyElement?: ReactNode;
 }) {
 	const dataElements = data?.map((dataItem, i) => (
 		<li
@@ -76,5 +78,7 @@ export function SidebarItems({
 			</div>
 		</li>
 	));
-	return <>{dataElements}</>;
+	return (
+		<>{dataElements && dataElements.length > 0 ? dataElements : emptyElement}</>
+	);
 }

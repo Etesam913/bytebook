@@ -15,6 +15,7 @@ export function Sidebar({
 	data,
 	getContextMenuStyle,
 	renderLink,
+	emptyElement,
 }: {
 	isCollapsed: boolean;
 	data: string[] | null;
@@ -25,6 +26,7 @@ export function Sidebar({
 		selectionRange: Set<number>;
 		setSelectionRange: Dispatch<SetStateAction<Set<number>>>;
 	}) => ReactNode;
+	emptyElement?: ReactNode;
 }) {
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 	const [selectionRange, setSelectionRange] = useState<Set<number>>(new Set());
@@ -55,6 +57,7 @@ export function Sidebar({
 						setSelectionRange={setSelectionRange}
 						selectionRange={selectionRange}
 						anchorSelectionIndex={anchorSelectionIndex}
+						emptyElement={emptyElement}
 					/>
 				</motion.ul>
 			)}

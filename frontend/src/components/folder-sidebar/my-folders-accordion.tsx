@@ -22,31 +22,34 @@ export function MyFoldersAccordion({
 
 	return (
 		<section className="flex-1 overflow-y-auto flex flex-col gap-1.5">
-			{hasFolders && (
-				<button
-					onClick={() => setIsFoldersCollapsed((prev) => !prev)}
-					type="button"
-					className="flex relative items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 py-1 px-1.5 rounded-md transition-colors"
+			<button
+				onClick={() => setIsFoldersCollapsed((prev) => !prev)}
+				type="button"
+				className="flex relative items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 py-1 px-1.5 rounded-md transition-colors"
+			>
+				<motion.span
+					initial={{ rotateZ: isFoldersCollapsed ? 270 : 0 }}
+					animate={{ rotateZ: isFoldersCollapsed ? 270 : 0 }}
 				>
-					<motion.span
-						initial={{ rotateZ: isFoldersCollapsed ? 270 : 0 }}
-						animate={{ rotateZ: isFoldersCollapsed ? 270 : 0 }}
-					>
-						<ChevronDown strokeWidth="2.5px" height="0.8rem" width="0.8rem" />
-					</motion.span>
+					<ChevronDown strokeWidth="2.5px" height="0.8rem" width="0.8rem" />
+				</motion.span>
 
-					<p>
-						My Folders{" "}
-						{hasFolders && (
-							<span className="tracking-wider">
-								({alphabetizedFolders.length})
-							</span>
-						)}
-					</p>
-				</button>
-			)}
+				<p>
+					My Folders{" "}
+					{hasFolders && (
+						<span className="tracking-wider">
+							({alphabetizedFolders.length})
+						</span>
+					)}
+				</p>
+			</button>
 
 			<Sidebar
+				emptyElement={
+					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
+						Create a folder with the "Create Folder" button above
+					</li>
+				}
 				renderLink={({
 					dataItem: folderName,
 					i,
@@ -94,11 +97,6 @@ export function MyFoldersAccordion({
 					}) as CSSProperties
 				}
 			/>
-			{!hasFolders && (
-				<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
-					Create a folder with the "Create Folder" button above
-				</li>
-			)}
 		</section>
 	);
 }

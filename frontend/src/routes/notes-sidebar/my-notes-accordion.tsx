@@ -46,6 +46,11 @@ export function MyNotesAccordion({
 				)}
 			</button>
 			<Sidebar
+				emptyElement={
+					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
+						Create a note with the "Create Note" button above
+					</li>
+				}
 				isCollapsed={isNotesCollapsed}
 				data={notes}
 				renderLink={({
