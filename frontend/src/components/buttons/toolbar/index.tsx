@@ -16,6 +16,7 @@ interface ToolbarButtonsProps {
 	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>;
 	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
 	shouldShowUndoRedo?: boolean;
+	noteContainerRef: React.RefObject<HTMLDivElement>;
 }
 
 export function ToolbarButtons({
@@ -29,6 +30,7 @@ export function ToolbarButtons({
 	setCurrentSelectionFormat,
 	setFloatingData,
 	shouldShowUndoRedo,
+	noteContainerRef,
 }: ToolbarButtonsProps) {
 	return (
 		<span className="flex gap-1.5 flex-wrap">
@@ -52,7 +54,11 @@ export function ToolbarButtons({
 				setCurrentSelectionFormat={setCurrentSelectionFormat}
 				isToolbarDisabled={disabled}
 			/>
-			<ToggleLinkButton disabled={disabled} setFloatingData={setFloatingData} />
+			<ToggleLinkButton
+				disabled={disabled}
+				setFloatingData={setFloatingData}
+				noteContainerRef={noteContainerRef}
+			/>
 			{
 				CommandButtons({
 					canUndo,

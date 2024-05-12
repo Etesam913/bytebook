@@ -26,7 +26,6 @@ import { NoteTitle } from "./note-title";
 import { CodePlugin } from "./plugins/code";
 import { ComponentPickerMenuPlugin } from "./plugins/component-picker";
 import { CustomMarkdownShortcutPlugin } from "./plugins/custom-markdown-shortcut.tsx";
-import { FloatingLinkPlugin } from "./plugins/floating-link";
 import { ImagesPlugin } from "./plugins/image";
 import { LinkPlugin } from "./plugins/link.tsx";
 import TreeViewPlugin from "./plugins/tree-view";
@@ -127,10 +126,6 @@ export function NotesEditor({
 						onChange={(_, editor, tag) =>
 							debouncedHandleChange(folder, note, editor, tag)
 						}
-					/>
-					<FloatingLinkPlugin
-						floatingData={floatingData}
-						setFloatingData={setFloatingData}
 					/>
 					<CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
 					<ListPlugin />

@@ -6,12 +6,15 @@ import { MotionIconButton } from "..";
 import { getDefaultButtonVariants } from "../../../animations";
 import { Link } from "../../../icons/link";
 import type { FloatingDataType } from "../../../types";
+
 export function ToggleLinkButton({
 	disabled,
 	setFloatingData,
+	noteContainerRef,
 }: {
 	disabled: boolean;
 	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
+	noteContainerRef: React.RefObject<HTMLDivElement>;
 }) {
 	const [editor] = useLexicalComposerContext();
 
@@ -36,7 +39,18 @@ export function ToggleLinkButton({
 						const domRect = nativeSelection?.getBoundingClientRect();
 						if (domRect) {
 							const { top, left } = domRect;
-							setFloatingData({ isOpen: true, top, left, type: "link" });
+							const noteContainerBounds =
+								noteContainerRef.current?.getBoundingClientRect();
+							setFloatingData({
+								isOpen: true,
+								top:
+									top -
+									(noteContainerBounds ? noteContainerBounds.top : 0) -
+									80,
+								left:
+									left - (noteContainerBounds ? noteContainerBounds.left : 0),
+								type: "link",
+							});
 						}
 					}
 				});

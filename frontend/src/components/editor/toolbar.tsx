@@ -20,7 +20,7 @@ import { MotionIconButton } from "../buttons";
 import { ToolbarButtons } from "../buttons/toolbar";
 import { Dropdown } from "../dropdown";
 import { useNoteMarkdown, useToolbarEvents } from "./hooks";
-import { FloatingTextFormatPlugin } from "./plugins/floating-text-format";
+import { FloatingMenuPlugin } from "./plugins/floating-menu";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import {
 	$convertFromMarkdownStringCorrect,
@@ -113,7 +113,10 @@ export function Toolbar({
 
 	const FloatingPlugin = noteContainerRef.current ? (
 		createPortal(
-			<FloatingTextFormatPlugin floatingData={floatingData}>
+			<FloatingMenuPlugin
+				floatingData={floatingData}
+				setFloatingData={setFloatingData}
+			>
 				<ToolbarButtons
 					canUndo={canUndo}
 					canRedo={canRedo}
@@ -124,8 +127,9 @@ export function Toolbar({
 					currentSelectionFormat={currentSelectionFormat}
 					setCurrentSelectionFormat={setCurrentSelectionFormat}
 					setFloatingData={setFloatingData}
+					noteContainerRef={noteContainerRef}
 				/>
-			</FloatingTextFormatPlugin>,
+			</FloatingMenuPlugin>,
 			noteContainerRef.current,
 		)
 	) : (
@@ -184,6 +188,7 @@ export function Toolbar({
 					currentSelectionFormat={currentSelectionFormat}
 					setCurrentSelectionFormat={setCurrentSelectionFormat}
 					setFloatingData={setFloatingData}
+					noteContainerRef={noteContainerRef}
 					shouldShowUndoRedo
 				/>
 			</nav>
