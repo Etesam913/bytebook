@@ -32,10 +32,7 @@ export function MyNotesAccordion({
 		<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
 			<button
 				className="flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 py-1 px-1.5 rounded-md transition-colors"
-				onClick={() => {
-					setIsNotesCollapsed((prev) => !prev);
-					navigate("/yolo/deez");
-				}}
+				onClick={() => setIsNotesCollapsed((prev) => !prev)}
 				type="button"
 			>
 				<motion.span

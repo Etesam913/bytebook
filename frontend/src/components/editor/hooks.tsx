@@ -84,7 +84,7 @@ export function useNoteMarkdown(
 			})
 			.catch((e) => {
 				console.error(e);
-				navigate("/not-found", {replace: true});
+				navigate("/not-found", { replace: true });
 			});
 	}, [folder, note, editor, setCurrentSelectionFormat]);
 }
