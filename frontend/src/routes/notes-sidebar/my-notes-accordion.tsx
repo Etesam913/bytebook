@@ -7,6 +7,7 @@ import {
 	useState,
 } from "react";
 import { Link } from "wouter";
+import { navigate } from "wouter/use-browser-location";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
 import { ChevronDown } from "../../icons/chevron-down";
@@ -31,7 +32,10 @@ export function MyNotesAccordion({
 		<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
 			<button
 				className="flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 py-1 px-1.5 rounded-md transition-colors"
-				onClick={() => setIsNotesCollapsed((prev) => !prev)}
+				onClick={() => {
+					setIsNotesCollapsed((prev) => !prev);
+					navigate("/yolo/deez");
+				}}
 				type="button"
 			>
 				<motion.span

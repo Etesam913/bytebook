@@ -27,80 +27,70 @@ export function FloatingMenuPlugin({
 	const isLinkMenuOpen = floatingData.isOpen && floatingData.type === "link";
 	const inputRef = useRef<HTMLInputElement>(null);
 
-	if (isTextFormatMenuOpen) {
-		return (
-			<AnimatePresence>
-				{isTextFormatMenuOpen && (
-					<motion.form
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						style={{
-							top: floatingData.top + 25,
-							left: floatingData.left,
-						}}
-						transition={{ ease: easingFunctions["ease-out-circ"] }}
-						className="absolute bg-white bg-opacity-[98] dark:bg-zinc-750 p-1 rounded-md shadow-lg flex items-center gap-2 z-50 border-[1px] border-zinc-300 dark:border-zinc-600"
-					>
-						{children}
-					</motion.form>
-				)}
-			</AnimatePresence>
-		);
-	}
+	return (
+		<AnimatePresence>
+			{isTextFormatMenuOpen && (
+				<motion.form
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					exit={{ opacity: 0 }}
+					style={{
+						top: floatingData.top + 25,
+						left: floatingData.left,
+					}}
+					transition={{ ease: easingFunctions["ease-out-circ"] }}
+					className="absolute bg-white bg-opacity-[98] dark:bg-zinc-750 p-1 rounded-md shadow-lg flex items-center gap-2 z-50 border-[1px] border-zinc-300 dark:border-zinc-600"
+				>
+					{children}
+				</motion.form>
+			)}
 
-	if (isLinkMenuOpen) {
-		return (
-			<AnimatePresence>
-				{isLinkMenuOpen && (
-					<motion.form
-						initial={{ opacity: 0 }}
-						animate={{
-							opacity: 1,
-						}}
-						exit={{ opacity: 0 }}
-						style={{
-							top: floatingData.top + 12,
-							left: floatingData.left,
-						}}
-						className="absolute bg-zinc-100 dark:bg-zinc-750 p-2 rounded-md bg-opacity-95 shadow-lg flex items-center gap-2 z-50"
-						onSubmit={(e) => {
-							e.preventDefault();
-							editor.dispatchCommand(TOGGLE_LINK_COMMAND, {
-								url: inputRef.current?.value ?? "",
-							});
-							setFloatingData((prev) => ({
-								...prev,
-								isOpen: false,
-								type: null,
-							}));
-						}}
-						onBlur={() =>
-							setFloatingData((prev) => ({
-								...prev,
-								isOpen: false,
-								type: null,
-							}))
-						}
+			{isLinkMenuOpen && (
+				<motion.form
+					initial={{ opacity: 0 }}
+					animate={{
+						opacity: 1,
+					}}
+					exit={{ opacity: 0 }}
+					style={{
+						top: floatingData.top + 12,
+						left: floatingData.left,
+					}}
+					className="absolute bg-zinc-100 dark:bg-zinc-750 p-2 rounded-md bg-opacity-95 shadow-lg flex items-center gap-2 z-50"
+					onSubmit={(e) => {
+						e.preventDefault();
+						editor.dispatchCommand(TOGGLE_LINK_COMMAND, {
+							url: inputRef.current?.value ?? "",
+						});
+						setFloatingData((prev) => ({
+							...prev,
+							isOpen: false,
+							type: null,
+						}));
+					}}
+					onBlur={() =>
+						setFloatingData((prev) => ({
+							...prev,
+							isOpen: false,
+							type: null,
+						}))
+					}
+				>
+					<input
+						ref={inputRef}
+						defaultValue={"https://"}
+						onClick={(e) => e.stopPropagation()}
+						className="py-1 px-2 rounded-md dark:bg-zinc-750 w-96"
+					/>
+					<MotionButton
+						type="submit"
+						{...getDefaultButtonVariants()}
+						className="!dark:bg-zinc-750"
 					>
-						<input
-							ref={inputRef}
-							defaultValue={"https://"}
-							onClick={(e) => e.stopPropagation()}
-							className="py-1 px-2 rounded-md dark:bg-zinc-750 w-96"
-						/>
-						<MotionButton
-							type="submit"
-							{...getDefaultButtonVariants()}
-							className="!dark:bg-zinc-750"
-						>
-							<SubmitLink />
-						</MotionButton>
-					</motion.form>
-				)}
-			</AnimatePresence>
-		);
-	}
-
-	return <></>;
+						<SubmitLink />
+					</MotionButton>
+				</motion.form>
+			)}
+		</AnimatePresence>
+	);
 }

@@ -150,7 +150,7 @@ export function Toolbar({
 						onClick={() => {
 							setIsNoteMaximized((prev) => !prev);
 							editorAnimationControls.start({
-								x: isNoteMaximized ? [-20, 0] : [20, 0],
+								x: isNoteMaximized ? [-40, 0] : [50, 0],
 								transition: { ease: easingFunctions["ease-out-quint"] },
 							});
 						}}

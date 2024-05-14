@@ -1,9 +1,10 @@
 import { useMotionValue } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { Toaster } from "sonner";
-import { Route } from "wouter";
+import { Route, Switch } from "wouter";
 import { isNoteMaximizedAtom } from "./atoms";
 import { FolderSidebar } from "./components/folder-sidebar";
+import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
 import { useDarkModeSetting, useImageDrop } from "./utils/hooks";
 
@@ -25,16 +26,20 @@ function App() {
 			<Toaster richColors theme="system" />
 
 			{!isNoteMaximized && <FolderSidebar width={folderSidebarWidth} />}
-
-			<Route path="/:folder/:note?">
-				{(folderParams) => (
-					<NotesSidebar
-						params={folderParams}
-						width={notesSidebarWidth}
-						leftWidth={folderSidebarWidth}
-					/>
-				)}
-			</Route>
+			<Switch>
+				<Route path="/not-found">
+					<NotFound />
+				</Route>
+				<Route path="/:folder/:note?">
+					{(folderParams) => (
+						<NotesSidebar
+							params={folderParams}
+							width={notesSidebarWidth}
+							leftWidth={folderSidebarWidth}
+						/>
+					)}
+				</Route>
+			</Switch>
 		</main>
 	);
 }

@@ -4,6 +4,7 @@ import { navigate } from "wouter/use-browser-location";
 import { GetFolders } from "../../bindings/main/FolderService";
 import { GetNotes } from "../../bindings/main/NoteService";
 
+/** Initially fetches folders from filesystem */
 export function updateFolders(
 	setFolders: Dispatch<SetStateAction<string[] | null>>,
 ) {
@@ -22,6 +23,7 @@ export function updateFolders(
 		});
 }
 
+/** Initially fetches notes for a folder using the filesystem */
 export function updateNotes(
 	folder: string,
 	note: string | undefined,
@@ -32,15 +34,18 @@ export function updateNotes(
 			if (res.success) {
 				const notes = res.data as unknown as string[];
 				setNotes(notes);
+				// If the current is not defined, then navigate to the first note so that you are never at an undefined note
 				if (!note) {
 					navigate(`/${folder}${notes?.at(0) ? `/${notes.at(0)}` : "/"}`, {
 						replace: true,
 					});
 				}
+			} else {
+				throw new Error("Failed in retrieving notes");
 			}
 		})
 		.catch(() => {
-			navigate("/");
+			navigate("/not-found");
 			setNotes(null);
 		});
 }

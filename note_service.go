@@ -165,6 +165,32 @@ func (n *NoteService) GetAttachments(folderName string) NoteResponse {
 	return NoteResponse{Success: true, Message: "", Data: attachments}
 }
 
+func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
+	var validPaths []string
+
+	for _, path := range paths {
+		pathParts := strings.Split(path, "/")
+		if len(pathParts) != 2 {
+			// Invalid path format
+			continue
+		}
+
+		folderName := pathParts[0]
+		noteTitle := pathParts[1]
+
+		folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
+		noteFilePath := filepath.Join(folderPath, fmt.Sprintf("%s.md", noteTitle))
+
+		// Check if the note file exists
+		_, err := os.Stat(noteFilePath)
+		if err == nil {
+			validPaths = append(validPaths, path)
+		}
+	}
+
+	return validPaths
+}
+
 type MostRecentNoteResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`

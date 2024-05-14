@@ -30,3 +30,7 @@ export async function SetNoteMarkdown(folderName: string, noteTitle: string, mar
 	return Call.ByName("main.NoteService.SetNoteMarkdown", folderName, noteTitle, markdown);
 }
 
+export async function ValidateMostRecentNotes(paths: string[]) : Promise<string[]> {
+	return Call.ByName("main.NoteService.ValidateMostRecentNotes", paths);
+}
+

@@ -12,7 +12,11 @@ export function RecentNotesAccordion() {
 	const mostRecentNotes = useAtomValue(mostRecentNotesAtom);
 
 	const mostRecentElements = mostRecentNotes.map((path) => (
-		<motion.li layout transition={{ type: "spring", damping: 15 }} key={path}>
+		<motion.li
+			layout="position"
+			transition={{ type: "spring", damping: 15 }}
+			key={path}
+		>
 			<div
 				id="folder"
 				className="flex select-none items-center gap-2 overflow-hidden pr-1 text-zinc-600 dark:text-zinc-300"

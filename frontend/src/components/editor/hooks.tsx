@@ -1,7 +1,7 @@
 import { $isListNode, ListNode } from "@lexical/list";
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
-import { useSetAtom } from "jotai";
+import { useAtom } from "jotai";
 import {
 	$createTextNode,
 	$getSelection,
@@ -31,7 +31,10 @@ import {
 	useEffect,
 } from "react";
 import { navigate } from "wouter/use-browser-location";
-import { GetNoteMarkdown } from "../../../bindings/main/NoteService";
+import {
+	GetNoteMarkdown,
+	ValidateMostRecentNotes,
+} from "../../../bindings/main/NoteService";
 import { mostRecentNotesAtom } from "../../atoms.ts";
 import {
 	type EditorBlockTypes,
@@ -75,11 +78,13 @@ export function useNoteMarkdown(
 
 						$convertFromMarkdownStringCorrect(res.data, CUSTOM_TRANSFORMERS);
 					});
+				} else {
+					throw new Error("Failed in retrieving note markdown");
 				}
 			})
 			.catch((e) => {
 				console.error(e);
-				navigate("/");
+				navigate("/not-found");
 			});
 	}, [folder, note, editor, setCurrentSelectionFormat]);
 }
@@ -129,25 +134,20 @@ export function useNoteMarkdown(
 
 /** Updates the most recent notes queue */
 export function useMostRecentNotes(folder: string, note: string) {
-	const setMostRecentNotes = useSetAtom(mostRecentNotesAtom);
+	const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);
 
 	useEffect(() => {
 		const currentPath = `${folder}/${note}`;
-
-		// I have to read from localStorage because the mostRecentNotes atom is out of date for some reason
-		const tempMostRecentNotes = JSON.parse(
-			localStorage.getItem("mostRecentNotes") ?? "[]",
-		) as string[];
-		const isCurrentNoteInMostRecent = tempMostRecentNotes.findIndex(
-			(path) => path === currentPath,
+		const tempMostRecentNotes = mostRecentNotes.filter(
+			(path) => path !== currentPath,
 		);
-		if (isCurrentNoteInMostRecent !== -1) {
-			tempMostRecentNotes.splice(isCurrentNoteInMostRecent, 1);
+		if (tempMostRecentNotes.length > 5) {
+			tempMostRecentNotes.unshift();
 		}
-		tempMostRecentNotes.unshift(currentPath);
-		if (tempMostRecentNotes.length > 5) tempMostRecentNotes.pop();
-
-		setMostRecentNotes(tempMostRecentNotes);
+		tempMostRecentNotes.push(currentPath);
+		ValidateMostRecentNotes(tempMostRecentNotes).then((res) => {
+			setMostRecentNotes(res);
+		});
 	}, [folder, note, setMostRecentNotes]);
 }
 

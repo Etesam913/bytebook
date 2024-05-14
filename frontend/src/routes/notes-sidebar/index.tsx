@@ -60,7 +60,6 @@ export function NotesSidebar({
 	useOnClickOutside(sidebarRef, () => setAttachmentsSelectionRange(new Set()));
 
 	useEffect(() => {
-		// Initially fetches notes for a folder using the filesystem
 		updateNotes(folder, note, setNotes);
 
 		GetAttachments(folder)

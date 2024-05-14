@@ -1,13 +1,13 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { Events } from "@wailsio/runtime";
 import { AnimatePresence, motion } from "framer-motion";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { $getRoot } from "lexical";
 import { useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { RenameNote } from "../../../bindings/main/NoteService";
 import { WINDOW_ID } from "../../App";
-import { isToolbarDisabled, mostRecentNotesAtom, notesAtom } from "../../atoms";
+import { isToolbarDisabled, notesAtom } from "../../atoms";
 import { cn, fileNameRegex } from "../../utils/string-formatting";
 
 export function NoteTitle({
@@ -22,7 +22,6 @@ export function NoteTitle({
 	const notes = useAtomValue(notesAtom);
 	const [errorText, setErrorText] = useState("");
 	const setIsToolbarDisabled = useSetAtom(isToolbarDisabled);
-	const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);
 
 	useEffect(() => {
 		setNoteTitle(note);
@@ -67,14 +66,6 @@ export function NoteTitle({
 										],
 									},
 								});
-								const indexOfOldNoteTitle = mostRecentNotes.findIndex((path) =>
-									path.endsWith(note),
-								);
-								if (indexOfOldNoteTitle !== -1) {
-									setMostRecentNotes(
-										mostRecentNotes.filter((_, i) => i !== indexOfOldNoteTitle),
-									);
-								}
 
 								navigate(`/${folder}/${noteTitle}`);
 							} else {
