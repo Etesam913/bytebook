@@ -79,13 +79,30 @@ h3 {
     @apply hover:bg-zinc-150 dark:hover:bg-zinc-700 !p-1.5 rounded-md overflow-hidden mb-1.5 last:mb-0;
 }
 
+/* Making the tabs not overlap in fullscreen mode */
+div[data-non-template-is-fullscreen=true] > div > div > div > .sp-tabs{
+  padding-left: 72px;
+  --sp-layout-headerHeight: 52px;
+}
+
+div[data-template-is-fullscreen=true] > div > div > div > .sp-tabs{
+  --sp-layout-headerHeight: 52px;
+}
+
+
+div[data-template-is-fullscreen=true] >div >div > div > .sp-file-explorer-list{
+  padding-top: 3.25rem;
+}
+
+
 .cm-completionLabel{
     font-family: "Jetbrains Mono", monospace;
     font-size: 13px;
 }
 
 .sp-tabs{
-    margin-right: 36px;
+    padding-right: 64px;
+    /* padding-left: 64px; */
 }
 
 .dragging{

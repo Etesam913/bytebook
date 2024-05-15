@@ -77,7 +77,7 @@ export function SandpackEditor({
 	const [isSelected, setSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
 	const [editor] = useLexicalComposerContext();
-
+	const [isFullscreen, setIsFullscreen] = useState(false);
 	const defaultFiles = useRef(data.files);
 
 	const [codeResult, setCodeResult] = useState<CodeResultType>(data.result);
@@ -102,6 +102,11 @@ export function SandpackEditor({
 		return {};
 	}
 
+	const isNonTemplateLanguageFullscreen =
+		isFullscreen && language in nonTemplateLanguageToExtension;
+	const isTemplateLanguageFullscreen =
+		isFullscreen && language in languageToTemplate;
+
 	return (
 		<>
 			<AnimatePresence>
@@ -116,39 +121,45 @@ export function SandpackEditor({
 				)}
 			</AnimatePresence>
 			<motion.div
-				layout
 				ref={codeMirrorContainerRef}
+				data-is-fullscreen={isFullscreen}
+				data-non-template-is-fullscreen={isNonTemplateLanguageFullscreen}
+				data-template-is-fullscreen={isTemplateLanguageFullscreen}
 				className={cn(
-					"border-transparent transition-colors text-zinc-700 dark:text-zinc-200 border-2",
+					"border-transparent transition-colors text-zinc-700 dark:text-zinc-200 border-2 bg-zinc-50 dark:bg-zinc-750 rounded-md",
 					isSelected && "border-blue-400 dark:border-blue-500",
+					isFullscreen &&
+						"fixed top-0 left-0 right-0 bottom-0 z-50 h-screen border-0",
 				)}
 			>
 				<SandpackProvider
 					theme={isDarkModeOn ? "dark" : "light"}
 					files={defaultFiles.current}
 					options={getOptions()}
+					className="flex flex-col h-full"
 					template={
 						language in languageToTemplate
 							? languageToTemplate[language]
 							: "vanilla"
 					}
 				>
-					<motion.div layout="position">
-						<CodeViewer
-							command={command}
-							nodeKey={nodeKey}
-							language={language}
-							isCodeSettingsOpen={isCodeSettingsOpen}
-							setIsCodeSettingsOpen={setIsCodeSettingsOpen}
-							codeResult={codeResult}
-							setCodeResult={setCodeResult}
-							writeDataToNode={writeDataToNode}
-							focus={focus}
-							isSelected={isSelected}
-							setIsSelected={setSelected}
-						/>
-					</motion.div>
-					<motion.div layout className="mt-1">
+					<CodeViewer
+						command={command}
+						nodeKey={nodeKey}
+						language={language}
+						isCodeSettingsOpen={isCodeSettingsOpen}
+						setIsCodeSettingsOpen={setIsCodeSettingsOpen}
+						codeResult={codeResult}
+						setCodeResult={setCodeResult}
+						writeDataToNode={writeDataToNode}
+						focus={focus}
+						isSelected={isSelected}
+						setIsSelected={setSelected}
+						isFullscreen={isFullscreen}
+						setIsFullscreen={setIsFullscreen}
+					/>
+
+					<motion.div className="mt-1">
 						{language in languageToTemplate ? (
 							<SandpackLayout>
 								<SandpackPreview showNavigator showOpenInCodeSandbox={false} />

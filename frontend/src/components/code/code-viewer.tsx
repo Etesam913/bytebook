@@ -2,7 +2,6 @@ import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 import { go } from "@codemirror/lang-go";
 import { java } from "@codemirror/lang-java";
 import { python } from "@codemirror/lang-python";
-import { keymap } from "@codemirror/view";
 import {
 	type CodeEditorRef,
 	SandpackFileExplorer,
@@ -27,10 +26,12 @@ import { RunCode } from "../../../bindings/main/NodeService";
 import { getDefaultButtonVariants } from "../../animations";
 import { BracketsSquareDots } from "../../icons/brackets-square-dots";
 import { Play } from "../../icons/circle-play";
+import { Fullscreen } from "../../icons/fullscreen";
 import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
 import type { CodeResultType } from "../../types";
 import { removeDecoratorNode } from "../../utils/commands";
+import { cn } from "../../utils/string-formatting";
 import { useCodeEditorFocus } from "./hooks";
 
 export function CodeViewer({
@@ -45,6 +46,8 @@ export function CodeViewer({
 	focus,
 	isSelected,
 	setIsSelected,
+	isFullscreen,
+	setIsFullscreen,
 }: {
 	language: string;
 	nodeKey: string;
@@ -57,6 +60,8 @@ export function CodeViewer({
 	focus: boolean;
 	isSelected: boolean;
 	setIsSelected: (arg0: boolean) => void;
+	isFullscreen: boolean;
+	setIsFullscreen: Dispatch<SetStateAction<boolean>>;
 }) {
 	const [editor] = useLexicalComposerContext();
 	const { sandpack } = useSandpack();
@@ -108,6 +113,7 @@ export function CodeViewer({
 
 	return (
 		<SandpackLayout
+			className="flex-1"
 			onKeyDown={(e) => {
 				setIsSelected(true);
 				if (e.key === "Enter" && e.shiftKey) handleRunCode();
@@ -158,18 +164,11 @@ export function CodeViewer({
 				]}
 			/>
 
-			{language in nonTemplateLanguageToExtension && (
-				<motion.button
-					className="absolute top-0 right-10 h-10 text-zinc-700 dark:text-zinc-200"
-					{...getDefaultButtonVariants()}
-					onClick={() => setIsCodeSettingsOpen(true)}
-				>
-					<BracketsSquareDots />
-				</motion.button>
-			)}
-
 			<motion.button
-				className="absolute top-0 right-2 h-10 text-zinc-700 dark:text-zinc-200"
+				className={cn(
+					"absolute top-0 right-10 h-10 text-zinc-700 dark:text-zinc-200",
+					isFullscreen && "top-1.5",
+				)}
 				{...getDefaultButtonVariants()}
 				onClick={() => {
 					editor.update(() => {
@@ -179,6 +178,32 @@ export function CodeViewer({
 			>
 				<Trash />
 			</motion.button>
+
+			<motion.button
+				className={cn(
+					"absolute top-0 right-2 h-10 text-zinc-700 dark:text-zinc-200",
+					isFullscreen && "top-1.5",
+				)}
+				title="Fullscreen"
+				{...getDefaultButtonVariants()}
+				onClick={() => setIsFullscreen((prev) => !prev)}
+			>
+				<Fullscreen />
+			</motion.button>
+
+			{language in nonTemplateLanguageToExtension && (
+				<motion.button
+					className={cn(
+						"absolute top-0 right-[4.5rem] h-10 text-zinc-700 dark:text-zinc-200",
+						isFullscreen && "top-1.5",
+					)}
+					{...getDefaultButtonVariants()}
+					onClick={() => setIsCodeSettingsOpen(true)}
+				>
+					<BracketsSquareDots />
+				</motion.button>
+			)}
+
 			{language in nonTemplateLanguageToExtension && (
 				<motion.button
 					className="absolute bottom-2 right-2 bg-opacity-85 border border-zinc-200 dark:border-zinc-750 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 p-1.5 rounded-md"
