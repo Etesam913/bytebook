@@ -49,7 +49,7 @@ export function AttachmentsAccordion({
 	));
 
 	return (
-		<section className="border-[1px] w-[calc(100%-0.8rem)] border-zinc-200 dark:border-zinc-600 flex flex-col absolute z-20 bottom-0 max-h-[calc(100vh-14rem)] bg-[white] dark:bg-zinc-800 rounded-md">
+		<section className="border-[1px] w-[calc(100%-0.8rem)] border-zinc-200 dark:border-zinc-600 flex flex-col absolute z-10 bottom-0 max-h-[calc(100vh-14rem)] bg-[white] dark:bg-zinc-800 rounded-md">
 			<button
 				className="flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 py-1 px-1.5 rounded-md transition-colors"
 				onClick={() => setIsAttachmentsCollapsed((prev) => !prev)}

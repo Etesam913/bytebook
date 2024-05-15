@@ -129,7 +129,7 @@ export function SandpackEditor({
 					"border-transparent transition-colors text-zinc-700 dark:text-zinc-200 border-2 bg-zinc-50 dark:bg-zinc-750 rounded-md",
 					isSelected && "border-blue-400 dark:border-blue-500",
 					isFullscreen &&
-						"fixed top-0 left-0 right-0 bottom-0 z-50 h-screen border-0",
+						"fixed top-0 left-0 right-0 bottom-0 z-20 h-screen border-0",
 				)}
 			>
 				<SandpackProvider
