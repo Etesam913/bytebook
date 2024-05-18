@@ -109,7 +109,7 @@ export function ResizeContainer({
 					isSelected && !isExpanded && "outline-blue-400",
 					isResizing && "opacity-50",
 					isExpanded &&
-						"max-h-screen fixed top-0 left-0 right-0 bottom-0 z-10 m-auto justify-start overflow-auto",
+						"max-h-screen fixed top-0 left-0 right-0 bottom-0 z-20 m-auto justify-start overflow-auto",
 					isExpanded && elementType === "excalidraw" && "!h-screen",
 				)}
 				style={{

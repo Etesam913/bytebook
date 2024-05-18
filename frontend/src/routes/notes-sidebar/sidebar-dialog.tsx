@@ -42,7 +42,7 @@ export function NotesSidebarDialog({
 								setIsNoteDialogOpen(false);
 								setErrorText("");
 							} else {
-								setErrorText(res.message);
+								throw new Error(res.message);
 							}
 						})
 						.catch((e) => {

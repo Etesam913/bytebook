@@ -3,6 +3,7 @@ import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
+import { AddNoteToFolder } from "../../../bindings/main/NoteService.ts";
 import { WINDOW_ID } from "../../App.tsx";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import { foldersAtom, isFolderDialogOpenAtom } from "../../atoms";
@@ -31,7 +32,14 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 
 	useWailsEvent("folder:create", (body) => {
 		const data = body.data as { folder: string };
-		navigate(`/${data.folder}`);
+
+		AddNoteToFolder(data.folder, "Untitled")
+			.then((res) => {
+				if (res.success) navigate(`/${data.folder}/Untitled`);
+				else throw new Error(res.message);
+			})
+			.catch((e) => console.error(e));
+
 		setFolders((prev) => (prev ? [...prev, data.folder] : [data.folder]));
 	});
 

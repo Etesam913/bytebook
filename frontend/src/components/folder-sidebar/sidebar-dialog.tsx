@@ -57,9 +57,7 @@ export function FolderSidebarDialog({
 								if (res.success) {
 									setIsFolderDialogOpen({ isOpen: false, folderName });
 									setErrorText("");
-								} else {
-									setErrorText(res.message);
-								}
+								} else throw new Error(res.message);
 							})
 							.catch((e) => {
 								console.error(e);

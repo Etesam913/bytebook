@@ -52,6 +52,7 @@ export function onClickDecoratorNodeCommand(
 	clearSelection: () => void,
 ): boolean {
 	if (isResizing) {
+		e.stopPropagation();
 		return true;
 	}
 

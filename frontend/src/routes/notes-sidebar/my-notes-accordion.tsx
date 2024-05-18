@@ -7,7 +7,6 @@ import {
 	useState,
 } from "react";
 import { Link } from "wouter";
-import { navigate } from "wouter/use-browser-location";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
 import { ChevronDown } from "../../icons/chevron-down";
@@ -48,7 +47,7 @@ export function MyNotesAccordion({
 			</button>
 			<Sidebar
 				emptyElement={
-					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
+					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-sm">
 						Create a note with the "Create Note" button above
 					</li>
 				}

@@ -146,7 +146,7 @@ export function useMostRecentNotes(folder: string, note: string) {
 		}
 		tempMostRecentNotes.push(currentPath);
 		ValidateMostRecentNotes(tempMostRecentNotes).then((res) => {
-			setMostRecentNotes(res);
+			setMostRecentNotes(res ?? []);
 		});
 	}, [folder, note, setMostRecentNotes]);
 }
