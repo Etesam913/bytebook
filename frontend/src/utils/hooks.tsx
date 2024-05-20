@@ -14,6 +14,7 @@ import {
 	type Dispatch,
 	type RefObject,
 	type SetStateAction,
+	useCallback,
 	useEffect,
 	useMemo,
 	useRef,
@@ -258,3 +259,32 @@ export function useIsStandalone() {
 	const isStandalone = searchParamsObject?.standalone === "true";
 	return isStandalone;
 }
+
+type KeyMap = {
+	[keyCombination: string]: (event: KeyboardEvent) => void;
+};
+
+const useHotkeys = (keyMap: KeyMap): void => {
+	const handleKeyDown = useCallback(
+		(event: KeyboardEvent) => {
+			const { key, ctrlKey, shiftKey, altKey, metaKey } = event;
+			const keyCombination = `${ctrlKey ? "Ctrl+" : ""}${
+				shiftKey ? "Shift+" : ""
+			}${altKey ? "Alt+" : ""}${metaKey ? "Meta+" : ""}${key}`;
+
+			if (keyMap[keyCombination]) {
+				keyMap[keyCombination](event);
+			}
+		},
+		[keyMap],
+	);
+
+	useEffect(() => {
+		window.addEventListener("keydown", handleKeyDown);
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [handleKeyDown]);
+};
+
+export default useHotkeys;

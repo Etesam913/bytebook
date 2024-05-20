@@ -19,6 +19,7 @@ import { WINDOW_ID } from "../../App.tsx";
 import { isNoteMaximizedAtom } from "../../atoms";
 import type { FloatingDataType } from "../../types.ts";
 import { debounce } from "../../utils/draggable";
+import useHotkeys from "../../utils/hooks.tsx";
 import { cn } from "../../utils/string-formatting";
 import { editorConfig } from "./editor-config";
 import { useMostRecentNotes } from "./hooks.tsx";
@@ -28,6 +29,7 @@ import { ComponentPickerMenuPlugin } from "./plugins/component-picker";
 import { CustomMarkdownShortcutPlugin } from "./plugins/custom-markdown-shortcut.tsx";
 import { ImagesPlugin } from "./plugins/image";
 import { LinkPlugin } from "./plugins/link.tsx";
+import { NoteFindPlugin } from "./plugins/note-find.tsx";
 import TreeViewPlugin from "./plugins/tree-view";
 import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
@@ -73,8 +75,17 @@ export function NotesEditor({
 		top: 0,
 		type: null,
 	});
+	const [isFindOpen, setIsFindOpen] = useState(false);
+
 	const noteContainerRef = useRef<HTMLDivElement | null>(null);
 	useMostRecentNotes(folder, note);
+
+	useHotkeys({
+		"Meta+f": () => {
+			// const isFound = window.find("Etesam")
+			setIsFindOpen((prev) => !prev);
+		},
+	});
 
 	return (
 		<motion.div
@@ -130,6 +141,7 @@ export function NotesEditor({
 					<CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
 					<ListPlugin />
 					<LinkPlugin />
+					<NoteFindPlugin isOpen={isFindOpen} setIsOpen={setIsFindOpen} />
 					<CheckListPlugin />
 					<TabIndentationPlugin />
 					<HistoryPlugin />

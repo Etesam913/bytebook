@@ -6,7 +6,7 @@ import { isNoteMaximizedAtom } from "./atoms";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
-import { useDarkModeSetting, useImageDrop } from "./utils/hooks";
+import useHotkeys, { useDarkModeSetting, useImageDrop } from "./utils/hooks";
 
 export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
 
