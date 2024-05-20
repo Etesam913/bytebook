@@ -9,10 +9,10 @@ import (
 	"github.com/etesam913/bytebook/lib/custom_events"
 	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
+	"github.com/etesam913/bytebook/lib/menus"
 	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
-	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
 // Wails uses Go's `embed` package to embed the frontend files into the binary.
@@ -72,19 +72,9 @@ func main() {
 		backgroundColor = application.NewRGB(0, 0, 0)
 	}
 
-	window := app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
-		Title:     "Bytebook",
-		MinWidth:  800,
-		MinHeight: 600,
-		Mac: application.MacWindow{
-			InvisibleTitleBarHeight: 35,
-			Backdrop:                application.MacBackdropNormal,
-			TitleBar:                application.MacTitleBarHiddenInsetUnified,
-		},
-		EnableDragAndDrop: true,
-		BackgroundColour:  backgroundColor,
-		URL:               "/",
-	})
+	custom_events.CreateWindow(app, "/", backgroundColor)
+
+	menus.InitializeApplicationMenu(app)
 
 	folderContextMenu := app.NewMenu()
 	noteContextMenu := app.NewMenu()
@@ -111,14 +101,14 @@ func main() {
 
 	custom_events.OpenNoteInNewWindowEvent(app, backgroundColor)
 
-	window.On(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
-		files := event.Context().DroppedFiles()
-		app.Events.Emit(&application.WailsEvent{
-			Name: "files",
-			Data: files,
-		})
-		app.Logger.Info("Files Dropped!", "files", files)
-	})
+	// window.On(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
+	// 	files := event.Context().DroppedFiles()
+	// 	app.Events.Emit(&application.WailsEvent{
+	// 		Name: "files",
+	// 		Data: files,
+	// 	})
+	// 	app.Logger.Info("Files Dropped!", "files", files)
+	// })
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -135,4 +125,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 }

@@ -1,7 +1,6 @@
 package project_helpers
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -50,7 +49,6 @@ func CreateFolderContextMenu(app *application.App, folderContextMenu *applicatio
 		folderContextMenu.Add(item.Label).OnClick(func(data *application.Context) {
 			contextData, isString := data.ContextMenuData().(string)
 			if isString {
-				fmt.Println("contextData: ", contextData)
 				app.Events.Emit(&application.WailsEvent{
 					Name: item.EventName,
 					Data: contextData,
