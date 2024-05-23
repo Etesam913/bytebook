@@ -135,11 +135,13 @@ export function CodeViewer({
 			}}
 		>
 			{language in languageToTemplate && (
-				<SandpackFileExplorer style={{ height: "auto" }} />
+				<SandpackFileExplorer
+					style={{ height: isFullscreen ? "100%" : "auto" }}
+				/>
 			)}
 			<SandpackCodeEditor
 				ref={codeMirrorRef}
-				style={{ height: "auto" }}
+				style={{ height: isFullscreen ? "100%" : "auto" }}
 				showTabs
 				showLineNumbers={false}
 				showInlineErrors

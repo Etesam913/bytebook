@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { memo } from "react";
 import { SquareCode } from "../../icons/square-code";
 import type { CodeResultType } from "../../types";
@@ -18,22 +17,19 @@ export const CodeResult = memo(function CodeResult({
 			)}
 		>
 			{codeResult.message.length > 0 ? (
-				<motion.div layout="position" className="whitespace-pre-wrap">
+				<div className="whitespace-pre-wrap">
 					{codeResult.message.slice(0, 3000)}
 					{codeResult.message.length > 3000 && (
 						<div className="text-red-500">
 							Output truncated to 3000 characters
 						</div>
 					)}
-				</motion.div>
+				</div>
 			) : (
-				<motion.div
-					layout="position"
-					className="font-display text-md flex flex-col items-center gap-3 text-balance text-center"
-				>
+				<div className="font-display text-md flex flex-col items-center gap-3 text-balance text-center">
 					<SquareCode width="2rem" height="2rem" />
 					<p>There's nothing printed from your code</p>
-				</motion.div>
+				</div>
 			)}
 		</div>
 	);

@@ -120,7 +120,7 @@ export function SandpackEditor({
 					/>
 				)}
 			</AnimatePresence>
-			<motion.div
+			<div
 				ref={codeMirrorContainerRef}
 				data-is-fullscreen={isFullscreen}
 				data-non-template-is-fullscreen={isNonTemplateLanguageFullscreen}
@@ -159,7 +159,7 @@ export function SandpackEditor({
 						setIsFullscreen={setIsFullscreen}
 					/>
 
-					<motion.div className="mt-1">
+					<div className="mt-1">
 						{language in languageToTemplate ? (
 							<SandpackLayout>
 								<SandpackPreview showNavigator showOpenInCodeSandbox={false} />
@@ -167,9 +167,9 @@ export function SandpackEditor({
 						) : (
 							<CodeResult codeResult={codeResult} />
 						)}
-					</motion.div>
+					</div>
 				</SandpackProvider>
-			</motion.div>
+			</div>
 		</>
 	);
 }
