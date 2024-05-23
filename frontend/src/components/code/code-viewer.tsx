@@ -121,9 +121,11 @@ export function CodeViewer({
 					e.stopPropagation();
 				} else if (
 					e.metaKey &&
-					(e.key === "c" || e.key === "x" || e.key === "a")
+					(e.key === "c" || e.key === "x" || e.key === "a" || e.key === "f")
 				) {
 					e.stopPropagation();
+				} else if (e.key === "Escape" && isFullscreen) {
+					e.preventDefault();
 				}
 			}}
 			onKeyUp={() => {
@@ -186,7 +188,13 @@ export function CodeViewer({
 				)}
 				title="Fullscreen"
 				{...getDefaultButtonVariants()}
-				onClick={() => setIsFullscreen((prev) => !prev)}
+				onClick={() => {
+					setIsFullscreen((prev) => !prev);
+					const codeMirrorInstance = codeMirrorRef.current?.getCodemirror();
+					if (codeMirrorInstance) {
+						codeMirrorInstance.focus();
+					}
+				}}
 			>
 				<Fullscreen />
 			</motion.button>

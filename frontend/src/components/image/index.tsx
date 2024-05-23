@@ -2,6 +2,7 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { useEffect, useRef } from "react";
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
+import { cn } from "../../utils/string-formatting";
 import { ResizeContainer } from "../resize-container";
 
 export function Image({
@@ -49,7 +50,7 @@ export function Image({
 	}, [isSelected]);
 
 	return (
-		<div className="w-fit inline-block mx-2">
+		<div className="mx-2 inline-block">
 			<ResizeContainer
 				resizeState={{
 					isResizing,
@@ -69,7 +70,10 @@ export function Image({
 					ref={imgRef}
 					alt={alt}
 					draggable={false}
-					className="w-full h-auto my-auto scroll-m-10"
+					className={cn(
+						"w-full h-auto my-auto scroll-m-10",
+						isResizing && "opacity-50",
+					)}
 					data-lexical-decorator="true"
 				/>
 			</ResizeContainer>

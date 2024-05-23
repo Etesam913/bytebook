@@ -30,7 +30,6 @@ import {
 	indexBy,
 	transformersByType,
 } from "./transformers";
-import { handleTextMatchTransformerReplace } from "./utils";
 
 function runElementTransformers(
 	parentNode: ElementNode,

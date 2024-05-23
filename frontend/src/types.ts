@@ -1,6 +1,6 @@
 import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import type { HeadingTagType } from "@lexical/rich-text";
-import type { ReactNode } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 
 export const IMAGE_FILE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
 
@@ -41,3 +41,12 @@ export type CodeResultType = {
 };
 
 export type ResizeWidth = number | "100%";
+
+export type ResizeState = {
+	isResizing: boolean;
+	setIsResizing: Dispatch<SetStateAction<boolean>>;
+	isSelected: boolean;
+	isExpanded: boolean;
+	setIsExpanded: Dispatch<SetStateAction<boolean>>;
+	setIsSubtitlesDialogOpen?: Dispatch<SetStateAction<boolean>>;
+};
