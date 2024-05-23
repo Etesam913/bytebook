@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { languageToTemplate, nonTemplateLanguageToExtension } from ".";
 import { RunCode } from "../../../bindings/main/NodeService";
 import { getDefaultButtonVariants } from "../../animations";
+import { ExitFullscreen } from "../../icons/arrows-reduce-diagonal";
 import { BracketsSquareDots } from "../../icons/brackets-square-dots";
 import { Play } from "../../icons/circle-play";
 import { Fullscreen } from "../../icons/fullscreen";
@@ -188,7 +189,7 @@ export function CodeViewer({
 					"absolute top-0 right-2 h-10 text-zinc-700 dark:text-zinc-200",
 					isFullscreen && "top-1.5",
 				)}
-				title="Fullscreen"
+				title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
 				{...getDefaultButtonVariants()}
 				onClick={() => {
 					setIsFullscreen((prev) => !prev);
@@ -198,7 +199,7 @@ export function CodeViewer({
 					}
 				}}
 			>
-				<Fullscreen />
+				{isFullscreen ? <ExitFullscreen /> : <Fullscreen />}
 			</motion.button>
 
 			{language in nonTemplateLanguageToExtension && (
