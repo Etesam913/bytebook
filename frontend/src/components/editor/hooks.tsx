@@ -175,14 +175,21 @@ function updateToolbar(
 			const nativeSelection = window.getSelection()?.getRangeAt(0);
 			const domRect = nativeSelection?.getBoundingClientRect();
 			if (domRect) {
-				const { top, left } = domRect;
+				const { top: topOfSelectionToWindow, left } = domRect;
 				const noteContainerBounds =
 					noteContainerRef.current?.getBoundingClientRect();
+				const topOfScrollContainerToWindow = noteContainerBounds?.top ?? 0;
+				const scrollYOfScrollContainer =
+					noteContainerRef.current?.scrollTop ?? 0;
 
 				setFloatingData({
 					isOpen: true,
-					top: top - (noteContainerBounds ? noteContainerBounds.top : 0) - 80,
-					left: left - (noteContainerBounds ? noteContainerBounds.left : 0),
+					top:
+						topOfSelectionToWindow -
+						topOfScrollContainerToWindow +
+						scrollYOfScrollContainer -
+						80,
+					left: left - (noteContainerBounds?.left ?? 0),
 					type: "text-format",
 				});
 			}
