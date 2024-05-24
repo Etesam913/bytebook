@@ -1,6 +1,7 @@
 import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import type { HeadingTagType } from "@lexical/rich-text";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type { CodeResponse } from "../bindings/main/models";
 
 export const IMAGE_FILE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
 
@@ -33,12 +34,7 @@ export type FloatingDataType = {
 	type: null | "link" | "text-format";
 };
 
-export type CodeBlockData = { files: SandpackFiles; result: CodeResultType };
-
-export type CodeResultType = {
-	message: string;
-	success: boolean;
-};
+export type CodeBlockData = { files: SandpackFiles; result: CodeResponse };
 
 export type ResizeWidth = number | "100%";
 

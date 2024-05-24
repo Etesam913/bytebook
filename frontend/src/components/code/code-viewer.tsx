@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { languageToTemplate, nonTemplateLanguageToExtension } from ".";
 import { RunCode } from "../../../bindings/main/NodeService";
+import type { CodeResponse } from "../../../bindings/main/models";
 import { getDefaultButtonVariants } from "../../animations";
 import { ExitFullscreen } from "../../icons/arrows-reduce-diagonal";
 import { BracketsSquareDots } from "../../icons/brackets-square-dots";
@@ -30,7 +31,6 @@ import { Play } from "../../icons/circle-play";
 import { Fullscreen } from "../../icons/fullscreen";
 import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
-import type { CodeResultType } from "../../types";
 import { removeDecoratorNode } from "../../utils/commands";
 import { cn } from "../../utils/string-formatting";
 import { useCodeEditorFocus } from "./hooks";
@@ -55,9 +55,9 @@ export function CodeViewer({
 	isCodeSettingsOpen: boolean;
 	setIsCodeSettingsOpen: Dispatch<SetStateAction<boolean>>;
 	command: string;
-	codeResult: CodeResultType;
-	setCodeResult: Dispatch<SetStateAction<CodeResultType>>;
-	writeDataToNode: (files: SandpackFiles, result: CodeResultType) => void;
+	codeResult: CodeResponse;
+	setCodeResult: Dispatch<SetStateAction<CodeResponse>>;
+	writeDataToNode: (files: SandpackFiles, result: CodeResponse) => void;
 	focus: boolean;
 	isSelected: boolean;
 	setIsSelected: (arg0: boolean) => void;

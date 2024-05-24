@@ -19,6 +19,24 @@ export class AddFolderResponse {
     }
 }
 
+export class CodeResponse {
+    success: boolean;
+    message: string;
+    id: string;
+
+    constructor(source: Partial<CodeResponse> = {}) {
+        const {success = false, message = "", id = ""} = source;
+        this.success = success;
+        this.message = message;
+        this.id = id;
+    }
+
+    static createFrom(source: string | object = {}): CodeResponse {
+        let parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
+        return new CodeResponse(parsedSource as Partial<CodeResponse>);
+    }
+}
+
 export class FolderResponse {
     success: boolean;
     message: string;
@@ -52,22 +70,6 @@ export class GitResponse {
     static createFrom(source: string | object = {}): GitResponse {
         let parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
         return new GitResponse(parsedSource as Partial<GitResponse>);
-    }
-}
-
-export class NodeResponse {
-    success: boolean;
-    message: string;
-
-    constructor(source: Partial<NodeResponse> = {}) {
-        const {success = false, message = ""} = source;
-        this.success = success;
-        this.message = message;
-    }
-
-    static createFrom(source: string | object = {}): NodeResponse {
-        let parsedSource = typeof source === 'string' ? JSON.parse(source) : source;
-        return new NodeResponse(parsedSource as Partial<NodeResponse>);
     }
 }
 

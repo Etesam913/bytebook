@@ -13,6 +13,7 @@ import (
 	"github.com/go-git/go-git/v5"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -24,6 +25,12 @@ type NodeService struct {
 type NodeResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
+}
+
+type CodeResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Id      string `json:"id"`
 }
 
 func GetExtensionFromLanguage(language string) (bool, string) {
@@ -64,12 +71,16 @@ func RunFile(path string, command string) (string, error) {
 	return string(out), nil
 }
 
-func (n *NodeService) RunCode(language string, code string, command string) NodeResponse {
+func (n *NodeService) RunCode(language string, code string, command string) CodeResponse {
 	extensionExists, extension := GetExtensionFromLanguage(language)
+
+	uniqueId, _ := project_helpers.GenerateRandomID()
+
 	if !extensionExists {
-		return NodeResponse{
+		return CodeResponse{
 			Success: false,
 			Message: "Your programming language is invalid",
+			Id:      uniqueId,
 		}
 	}
 
@@ -77,9 +88,10 @@ func (n *NodeService) RunCode(language string, code string, command string) Node
 	filePath := fmt.Sprintf("%s/tmp%s", n.ProjectPath, extension)
 	file, err := os.Create(filePath)
 	if err != nil {
-		return NodeResponse{
+		return CodeResponse{
 			Success: false,
 			Message: "Something went wrong when running your code. Please try again later",
+			Id:      uniqueId,
 		}
 	}
 
@@ -88,29 +100,36 @@ func (n *NodeService) RunCode(language string, code string, command string) Node
 	_, err = file.WriteString(code)
 
 	if err != nil {
-		return NodeResponse{
+		return CodeResponse{
 			Success: false,
 			Message: "Something went wrong when running your code. Please try again later",
+			Id:      uniqueId,
 		}
 	}
 
 	res, err := RunFile(filePath, command)
 
 	if err != nil {
-		return NodeResponse{
+		return CodeResponse{
 			Success: false,
 			Message: res,
+			Id:      uniqueId,
 		}
 	}
 
 	err = os.Remove(filePath)
 	if err != nil {
-		return NodeResponse{}
+		return CodeResponse{
+			Success: false,
+			Message: "Something went wrong when running your code. Please try again later",
+			Id:      uniqueId,
+		}
 	}
 
-	return NodeResponse{
+	return CodeResponse{
 		Success: true,
 		Message: res,
+		Id:      uniqueId,
 	}
 }
 

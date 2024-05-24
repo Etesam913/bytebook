@@ -1,6 +1,8 @@
 package project_helpers
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"os"
 	"path/filepath"
 
@@ -56,6 +58,14 @@ func CreateFolderContextMenu(app *application.App, folderContextMenu *applicatio
 			}
 		})
 	}
+}
+
+func GenerateRandomID() (string, error) {
+	bytes := make([]byte, 8) // Adjust the size as needed
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
 }
 
 // MenuItem represents an item in the context menu
