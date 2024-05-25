@@ -1,7 +1,7 @@
 import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import type { HeadingTagType } from "@lexical/rich-text";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
-import type { CodeResponse } from "../bindings/main/models";
+import type { CodeResponse } from "../bindings/github.com/etesam913/bytebook/index";
 
 export const IMAGE_FILE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
 

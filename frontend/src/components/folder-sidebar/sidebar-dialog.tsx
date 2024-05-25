@@ -8,7 +8,7 @@ import {
 	AddFolder,
 	DeleteFolder,
 	RenameFolder,
-} from "../../../bindings/main/FolderService";
+} from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import { FolderPen } from "../../icons/folder-pen.tsx";
 import { FolderPlus } from "../../icons/folder-plus";

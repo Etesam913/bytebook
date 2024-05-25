@@ -5,7 +5,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { $getRoot } from "lexical";
 import { useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
-import { RenameNote } from "../../../bindings/main/NoteService";
+import { RenameNote } from "../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { WINDOW_ID } from "../../App";
 import { isToolbarDisabled, notesAtom } from "../../atoms";
 import { cn, fileNameRegex } from "../../utils/string-formatting";

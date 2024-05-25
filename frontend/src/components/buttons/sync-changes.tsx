@@ -2,7 +2,7 @@ import { useSetAtom } from "jotai";
 import type { ButtonHTMLAttributes, Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
 import { useRoute } from "wouter";
-import { SyncChangesWithRepo } from "../../../bindings/main/NodeService";
+import { SyncChangesWithRepo } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
 import { foldersAtom, notesAtom } from "../../atoms";
 import { FileRefresh } from "../../icons/file-refresh";
 import { Loader } from "../../icons/loader";
@@ -24,6 +24,7 @@ export function SyncChangesButton(props: SyncButtonProps) {
 
 	return (
 		<button
+			type="button"
 			onClick={() => {
 				setIsSyncing(true);
 				SyncChangesWithRepo()

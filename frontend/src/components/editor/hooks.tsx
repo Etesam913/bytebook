@@ -34,7 +34,7 @@ import { navigate } from "wouter/use-browser-location";
 import {
 	GetNoteMarkdown,
 	ValidateMostRecentNotes,
-} from "../../../bindings/main/NoteService";
+} from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
 import { mostRecentNotesAtom } from "../../atoms.ts";
 import {
 	type EditorBlockTypes,

@@ -2,8 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { memo } from "react";
 import { SquareCode } from "../../icons/square-code";
 
-import type { CodeResponse } from "../../../bindings/main/models";
-import { easingFunctions } from "../../animations";
+import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook/index";
 import { cn } from "../../utils/string-formatting";
 
 export const CodeResult = memo(function CodeResult({

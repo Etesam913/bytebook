@@ -22,8 +22,8 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { languageToTemplate, nonTemplateLanguageToExtension } from ".";
-import { RunCode } from "../../../bindings/main/NodeService";
-import type { CodeResponse } from "../../../bindings/main/models";
+import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook/index";
+import { RunCode } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
 import { getDefaultButtonVariants } from "../../animations";
 import { ExitFullscreen } from "../../icons/arrows-reduce-diagonal";
 import { BracketsSquareDots } from "../../icons/brackets-square-dots";

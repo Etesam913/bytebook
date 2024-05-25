@@ -41,7 +41,7 @@
 		"@types/react": "^18.2.79",
 		"@types/react-dom": "^18.2.25",
 		"@vitejs/plugin-react-swc": "^3.6.0",
-		"@wailsio/runtime": "3.0.0-alpha.20",
+		"@wailsio/runtime": "3.0.0-alpha.24",
 		"autoprefixer": "^10.4.19",
 		"clsx": "^2.1.0",
 		"postcss": "^8.4.38",

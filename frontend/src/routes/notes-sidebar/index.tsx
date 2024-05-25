@@ -4,8 +4,8 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
-import { DeleteFolder } from "../../../bindings/main/FolderService.ts";
-import { GetAttachments } from "../../../bindings/main/NoteService.ts";
+import { GetAttachments } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
+import { DeleteFolder } from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import {
 	attachmentsAtom,

@@ -1,8 +1,5 @@
-import { Events } from "@wailsio/runtime";
 import { type Dispatch, type SetStateAction, useState } from "react";
-import { navigate } from "wouter/use-browser-location";
-import { AddNoteToFolder } from "../../../bindings/main/NoteService";
-import { WINDOW_ID } from "../../App";
+import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { getDefaultButtonVariants } from "../../animations";
 import { MotionButton } from "../../components/buttons";
 import { Dialog, ErrorText } from "../../components/dialog";

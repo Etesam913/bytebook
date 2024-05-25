@@ -35,7 +35,7 @@ import {
 } from "lexical";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { toast } from "sonner";
-import { UploadImage } from "../../../bindings/main/NodeService";
+import { UploadImage } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
 import { WINDOW_ID } from "../../App";
 import { AngularLogo } from "../../icons/angular-logo";
 import { ImageIcon } from "../../icons/image";

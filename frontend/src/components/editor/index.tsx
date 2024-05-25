@@ -14,7 +14,7 @@ import { motion, useAnimationControls } from "framer-motion";
 import { useAtomValue } from "jotai";
 import type { LexicalEditor } from "lexical";
 import { useRef, useState } from "react";
-import { SetNoteMarkdown } from "../../../bindings/main/NoteService";
+import { SetNoteMarkdown } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
 import { WINDOW_ID } from "../../App.tsx";
 import { isNoteMaximizedAtom } from "../../atoms";
 import type { FloatingDataType } from "../../types.ts";

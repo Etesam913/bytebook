@@ -19,7 +19,7 @@ export function Sidebar({
 }: {
 	isCollapsed: boolean;
 	data: string[] | null;
-	getContextMenuStyle: (dataItem: string) => CSSProperties;
+	getContextMenuStyle?: (dataItem: string) => CSSProperties;
 	renderLink: (data: {
 		dataItem: string;
 		i: number;

@@ -14,7 +14,7 @@ export function SidebarItems({
 	emptyElement,
 }: {
 	data: string[] | null;
-	getContextMenuStyle: (dataItem: string) => CSSProperties;
+	getContextMenuStyle?: (dataItem: string) => CSSProperties;
 	hoveredIndex: number | null;
 	setHoveredIndex: Dispatch<SetStateAction<number | null>>;
 	renderLink: (data: {
@@ -34,7 +34,7 @@ export function SidebarItems({
 			onMouseLeave={() => setHoveredIndex(null)}
 			key={dataItem}
 			className="py-[.1rem]"
-			style={getContextMenuStyle(dataItem)}
+			style={getContextMenuStyle?.(dataItem)}
 		>
 			<div
 				className="flex items-center relative select-none rounded-md"

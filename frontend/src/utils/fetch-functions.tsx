@@ -1,8 +1,8 @@
 import type { SetStateAction } from "jotai";
 import type { Dispatch } from "react";
 import { navigate } from "wouter/use-browser-location";
-import { GetFolders } from "../../bindings/main/FolderService";
-import { GetNotes } from "../../bindings/main/NoteService";
+import { GetFolders } from "../../bindings/github.com/etesam913/bytebook/folderservice";
+import { GetNotes } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 
 /** Initially fetches folders from filesystem */
 export function updateFolders(

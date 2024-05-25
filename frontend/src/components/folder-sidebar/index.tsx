@@ -3,7 +3,7 @@ import { useAtom } from "jotai";
 import { useEffect } from "react";
 import { Link, useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
-import { AddNoteToFolder } from "../../../bindings/main/NoteService.ts";
+import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
 import { WINDOW_ID } from "../../App.tsx";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import { foldersAtom, isFolderDialogOpenAtom } from "../../atoms";

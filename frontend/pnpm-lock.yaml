@@ -94,8 +94,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0(vite@5.2.10)
       '@wailsio/runtime':
-        specifier: 3.0.0-alpha.20
-        version: 3.0.0-alpha.20
+        specifier: 3.0.0-alpha.24
+        version: 3.0.0-alpha.24
       autoprefixer:
         specifier: ^10.4.19
         version: 10.4.19(postcss@8.4.38)
@@ -702,8 +702,8 @@ packages:
     peerDependencies:
       vite: ^4 || ^5
 
-  '@wailsio/runtime@3.0.0-alpha.20':
-    resolution: {integrity: sha512-LLfpln+0q7GV1O7KUUEVJqOTcloEfoo17K4c+INtOHlnLHNTnJ7wAU+YbxTyGT116Pg+VP044IvOGdVYqkOUYw==}
+  '@wailsio/runtime@3.0.0-alpha.24':
+    resolution: {integrity: sha512-bd36Qj6CfIMPeUd+fhLpcb9O/XEUEOgLzelkHw45lk0OWHMRlTV5QYdAT3cBncvztH7xYijoN5v2+O3U/Jwreg==}
 
   anser@2.1.1:
     resolution: {integrity: sha512-nqLm4HxOTpeLOxcmB3QWmV5TcDFhW9y/fyQ+hivtDFcK4OQ+pQ5fzPnXHM1Mfcm0VkLtvVi1TCPr++Qy0Q/3EQ==}
@@ -1048,6 +1048,11 @@ packages:
   nanoid@3.3.7:
     resolution: {integrity: sha512-eSRppjcPIatRIMC1U6UngP8XFcz8MQWGQdt1MTBQ7NaAmvXDfvNxbvWV3x2y6CdEUciCSsDHDQZbhYaB8QEo2g==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
+    hasBin: true
+
+  nanoid@5.0.7:
+    resolution: {integrity: sha512-oLxFY2gd2IqnjcYyOXD8XGCftpGtZP2AbHbOkthDkvRywH5ayNtPVy9YlOPcHckXzbLTCHpkb7FB+yuxKV13pQ==}
+    engines: {node: ^18 || >=20}
     hasBin: true
 
   next-tick@1.1.0:
@@ -1980,7 +1985,9 @@ snapshots:
     transitivePeerDependencies:
       - '@swc/helpers'
 
-  '@wailsio/runtime@3.0.0-alpha.20': {}
+  '@wailsio/runtime@3.0.0-alpha.24':
+    dependencies:
+      nanoid: 5.0.7
 
   anser@2.1.1: {}
 
@@ -2304,6 +2311,8 @@ snapshots:
       thenify-all: 1.6.0
 
   nanoid@3.3.7: {}
+
+  nanoid@5.0.7: {}
 
   next-tick@1.1.0: {}
 

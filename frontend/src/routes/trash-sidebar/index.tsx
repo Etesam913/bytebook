@@ -3,6 +3,7 @@ import { getDefaultButtonVariants } from "../../animations";
 import { MotionButton } from "../../components/buttons";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Trash } from "../../icons/trash";
+import { MyTrashAccordion } from "./my-trash-accordion";
 
 export function TrashSidebar({
 	width,
@@ -26,6 +27,7 @@ export function TrashSidebar({
 							Empty Trash
 							<Trash />
 						</MotionButton>
+						<MyTrashAccordion />
 					</div>
 				</div>
 			</motion.aside>

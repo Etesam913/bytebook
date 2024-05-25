@@ -54,10 +54,16 @@ func main() {
 	app := application.New(application.Options{
 		Name:        "bytebook",
 		Description: "A simple note taking app.",
-		Bind: []any{
-			&FolderService{ProjectPath: projectPath},
-			&NoteService{ProjectPath: projectPath},
-			&NodeService{ProjectPath: projectPath},
+		Services: []application.Service{
+			application.NewService(
+				&FolderService{ProjectPath: projectPath},
+			),
+			application.NewService(
+				&NoteService{ProjectPath: projectPath},
+			),
+			application.NewService(
+				&NodeService{ProjectPath: projectPath},
+			),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
