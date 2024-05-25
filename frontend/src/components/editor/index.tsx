@@ -151,7 +151,7 @@ export function NotesEditor({
 					<VideosPlugin />
 					<CodePlugin />
 					<TablePlugin />
-					<TreeViewPlugin />
+					{/* <TreeViewPlugin /> */}
 				</div>
 			</LexicalComposer>
 		</motion.div>

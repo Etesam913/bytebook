@@ -51,10 +51,16 @@ func GetExtensionFromLanguage(language string) (bool, string) {
 	return false, ""
 }
 
+type CodeContextStore = map[string]context.CancelFunc
+
+var contextStore = CodeContextStore{}
+
 func RunFile(path string, command string) (string, error) {
 	commandSplit := strings.Split(command, " ")
+	contextId, _ := project_helpers.GenerateRandomID()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	contextStore[contextId] = cancel
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, commandSplit[0], append(commandSplit[1:], path)...)
@@ -67,7 +73,7 @@ func RunFile(path string, command string) (string, error) {
 	if err != nil {
 		return err.Error() + "\n" + string(out), err
 	}
-
+	delete(contextStore, contextId)
 	return string(out), nil
 }
 

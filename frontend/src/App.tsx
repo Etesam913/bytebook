@@ -1,12 +1,16 @@
 import { useMotionValue } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { Toaster } from "sonner";
-import { Route, Switch } from "wouter";
+import { Link, Route, Switch } from "wouter";
+import { getDefaultButtonVariants } from "./animations";
 import { isNoteMaximizedAtom } from "./atoms";
+import { MotionIconButton } from "./components/buttons";
 import { FolderSidebar } from "./components/folder-sidebar";
+import { CircleArrowLeft } from "./icons/circle-arrow-left";
 import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
-import useHotkeys, { useDarkModeSetting, useImageDrop } from "./utils/hooks";
+import { TrashSidebar } from "./routes/trash-sidebar";
+import { useDarkModeSetting, useImageDrop } from "./utils/hooks";
 
 export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
 
@@ -27,6 +31,28 @@ function App() {
 
 			{!isNoteMaximized && <FolderSidebar width={folderSidebarWidth} />}
 			<Switch>
+				<Route path="/trash">
+					<TrashSidebar
+						width={notesSidebarWidth}
+						leftWidth={folderSidebarWidth}
+					/>
+				</Route>
+				<Route path="/settings">
+					<div className="px-2 pt-12 pb-2">
+						<header className="flex gap-1 items-center">
+							<Link to="/">
+								<MotionIconButton
+									{...getDefaultButtonVariants()}
+									title="Go Back"
+									onClick={() => window.history.back()}
+								>
+									<CircleArrowLeft title="Go Back" />
+								</MotionIconButton>
+							</Link>
+							settings
+						</header>
+					</div>
+				</Route>
 				<Route path="/not-found">
 					<NotFound />
 				</Route>

@@ -1,17 +1,15 @@
 import { useSetAtom } from "jotai";
-import type { Dispatch, SetStateAction } from "react";
+import type { ButtonHTMLAttributes, Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
 import { useRoute } from "wouter";
-import { MotionButton } from ".";
 import { SyncChangesWithRepo } from "../../../bindings/main/NodeService";
-import { getDefaultButtonVariants } from "../../animations";
 import { foldersAtom, notesAtom } from "../../atoms";
 import { FileRefresh } from "../../icons/file-refresh";
 import { Loader } from "../../icons/loader";
 import { updateFolders, updateNotes } from "../../utils/fetch-functions";
 import { cn } from "../../utils/string-formatting";
 
-interface SyncButtonProps {
+interface SyncButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 	isSyncing: boolean;
 	setIsSyncing: Dispatch<SetStateAction<boolean>>;
 }
@@ -25,8 +23,7 @@ export function SyncChangesButton(props: SyncButtonProps) {
 	const note = params?.note;
 
 	return (
-		<MotionButton
-			{...getDefaultButtonVariants(isSyncing)}
+		<button
 			onClick={() => {
 				setIsSyncing(true);
 				SyncChangesWithRepo()
@@ -61,7 +58,7 @@ export function SyncChangesButton(props: SyncButtonProps) {
 			}}
 			disabled={isSyncing}
 			className={cn(
-				"w-full bg-transparent flex justify-between align-center",
+				"w-full bg-transparent flex gap-1.5 align-center hover:bg-zinc-100 hover:dark:bg-zinc-650 p-1 transition-colors",
 				isSyncing && "justify-center",
 			)}
 		>
@@ -69,9 +66,9 @@ export function SyncChangesButton(props: SyncButtonProps) {
 				<Loader className="h-[20px] w-[20px]" />
 			) : (
 				<>
-					Sync Changes <FileRefresh />
+					<FileRefresh /> Sync Changes
 				</>
 			)}
-		</MotionButton>
+		</button>
 	);
 }

@@ -171,26 +171,24 @@ export function NotesSidebar({
 						style={{ width }}
 						className="text-md flex h-screen flex-col overflow-y-auto pb-3.5"
 					>
-						<div className="flex h-full flex-col overflow-y-auto  pl-1.5 pr-2.5 relative">
-							<section className="flex items-center h-[3.625rem]">
-								<span className="flex items-center justify-end gap-2">
-									<Folder className="min-w-[1.25rem]" />{" "}
-									<p className="overflow-hidden text-ellipsis whitespace-nowrap">
-										{folder}
-									</p>
-									<MotionIconButton
-										{...getDefaultButtonVariants()}
-										onClick={() =>
-											setIsFolderDialogOpen({
-												isOpen: true,
-												action: "rename",
-												folderName: folder,
-											})
-										}
-									>
-										<Pen className="w-full" />
-									</MotionIconButton>
-								</span>
+						<div className="flex h-full flex-col overflow-y-auto pl-1.5 pr-2.5 relative">
+							<section className="flex items-center h-[3.625rem] gap-2">
+								<Folder className="min-w-[1.25rem]" />{" "}
+								<p className="overflow-hidden text-ellipsis whitespace-nowrap">
+									{folder}
+								</p>
+								<MotionIconButton
+									{...getDefaultButtonVariants()}
+									onClick={() =>
+										setIsFolderDialogOpen({
+											isOpen: true,
+											action: "rename",
+											folderName: folder,
+										})
+									}
+								>
+									<Pen className="w-full" />
+								</MotionIconButton>
 							</section>
 							<div className="flex h-full flex-col gap-2">
 								<MotionButton

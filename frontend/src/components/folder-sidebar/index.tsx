@@ -1,7 +1,7 @@
 import { AnimatePresence, type MotionValue, motion } from "framer-motion";
 import { useAtom } from "jotai";
-import { useEffect, useState } from "react";
-import { useRoute } from "wouter";
+import { useEffect } from "react";
+import { Link, useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import { AddNoteToFolder } from "../../../bindings/main/NoteService.ts";
 import { WINDOW_ID } from "../../App.tsx";
@@ -14,7 +14,7 @@ import { Gear } from "../../icons/gear.tsx";
 import { updateFolders } from "../../utils/fetch-functions";
 import { useWailsEvent } from "../../utils/hooks.tsx";
 import { MotionButton, MotionIconButton } from "../buttons";
-import { SyncChangesButton } from "../buttons/sync-changes";
+import { BottomItems } from "./bottom-items.tsx";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { FolderSidebarDialog } from "./sidebar-dialog";
@@ -23,12 +23,11 @@ import { Spacer } from "./spacer";
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
 	const folder = params?.folder;
-
+	console.log(folder);
 	const [isFolderDialogOpen, setIsFolderDialogOpen] = useAtom(
 		isFolderDialogOpenAtom,
 	);
 	const [folders, setFolders] = useAtom(foldersAtom);
-	const [isSyncing, setIsSyncing] = useState(false);
 
 	useWailsEvent("folder:create", (body) => {
 		const data = body.data as { folder: string };
@@ -87,6 +86,8 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 		updateFolders(setFolders);
 	}, [setFolders]);
 
+	if (folder === "settings") return null;
+
 	return (
 		<>
 			<AnimatePresence>
@@ -118,10 +119,11 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					>
 						<CircleArrowRight title="Go Forward" />
 					</MotionIconButton>
-
-					<MotionIconButton {...getDefaultButtonVariants()} title="Settings">
-						<Gear title="Settings" />
-					</MotionIconButton>
+					<Link to="/settings">
+						<MotionIconButton {...getDefaultButtonVariants()} title="Settings">
+							<Gear title="Settings" />
+						</MotionIconButton>
+					</Link>
 				</div>
 				<div className="flex h-full flex-col gap-2">
 					<MotionButton
@@ -139,12 +141,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					</MotionButton>
 					<RecentNotesAccordion />
 					<MyFoldersAccordion folder={folder} />
-					<section className="mt-auto pb-3">
-						<SyncChangesButton
-							isSyncing={isSyncing}
-							setIsSyncing={setIsSyncing}
-						/>
-					</section>
+					<BottomItems />
 				</div>
 			</motion.aside>
 			<Spacer width={width} />
