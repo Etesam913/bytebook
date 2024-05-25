@@ -3,6 +3,7 @@ package project_helpers
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -46,9 +47,9 @@ func GetProjectPath() (string, error) {
 }
 
 // SetupFolderContextMenu dynamically sets up the folder context menu
-func CreateFolderContextMenu(app *application.App, folderContextMenu *application.Menu, menuItems []MenuItem) {
+func CreateContextMenu(app *application.App, contextMenu *application.Menu, menuItems []MenuItem) {
 	for _, item := range menuItems {
-		folderContextMenu.Add(item.Label).OnClick(func(data *application.Context) {
+		contextMenu.Add(item.Label).OnClick(func(data *application.Context) {
 			contextData, isString := data.ContextMenuData().(string)
 			if isString {
 				app.Events.Emit(&application.WailsEvent{
@@ -72,4 +73,16 @@ func GenerateRandomID() (string, error) {
 type MenuItem struct {
 	Label     string
 	EventName string
+}
+
+// Pop removes and returns the last element of the slice.
+func Pop[T any](slice []T) ([]T, T, error) {
+	if len(slice) == 0 {
+		var zeroValue T
+		return nil, zeroValue, fmt.Errorf("cannot pop from an empty slice")
+	}
+	lastIndex := len(slice) - 1
+	element := slice[lastIndex]
+	slice = slice[:lastIndex]
+	return slice, element, nil
 }

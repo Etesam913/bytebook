@@ -11,7 +11,7 @@ export function updateFolders(
 	GetFolders()
 		.then((res) => {
 			if (res.success) {
-				const folders = res.data as unknown as string[];
+				const folders = res.data;
 				setFolders(folders);
 			} else {
 				setFolders(null);
@@ -32,7 +32,7 @@ export function updateNotes(
 	GetNotes(folder)
 		.then((res) => {
 			if (res.success) {
-				const notes = res.data as unknown as string[];
+				const notes = res.data;
 				setNotes(notes);
 				// If the current is not defined, then navigate to the first note so that you are never at an undefined note
 				if (!note) {

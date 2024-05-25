@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/lib/project_helpers"
 )
 
 type NoteService struct {
@@ -189,6 +190,52 @@ func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 	}
 
 	return validPaths
+}
+
+// MoveToTrash moves the specified folders and notes to the trash directory.
+// Parameters:
+//
+//	folderAndNotes: A slice of strings representing the paths of the folders and notes to be moved.
+//
+// Returns:
+//
+//	A MostRecentNoteResponse indicating the success or failure of the operation.
+func (n *NoteService) MoveToTrash(folderAndNotes []string) MostRecentNoteResponse {
+	errors := []string{} // Slice to store any errors encountered during the process.
+
+	// Iterate over each path in the provided folderAndNotes slice.
+	for _, path := range folderAndNotes {
+		// Split the path into parts using "/" as the delimiter.
+		pathParts := strings.Split(path, "/")
+
+		// Extract the filename from the path using a helper function.
+		_, fileName, _ := project_helpers.Pop(pathParts)
+
+		// Construct the full path of the file to be moved.
+		fullPath := filepath.Join(n.ProjectPath, "notes", path)
+
+		fmt.Println(fileName, fullPath)
+		// Attempt to move the file to the trash directory.
+		err := io_helpers.MoveFile(fullPath, filepath.Join(n.ProjectPath, "trash", fileName))
+		if err != nil {
+			// If an error occurs, add the filename to the errors slice.
+			errors = append(errors, fileName)
+		}
+	}
+
+	// If any errors were encountered, return a failure response with the list of errors.
+	if len(errors) > 0 {
+		return MostRecentNoteResponse{
+			Success: false,
+			Message: fmt.Sprintf("Could not move %s to trash", strings.Join(errors, ", ")),
+		}
+	}
+
+	// If no errors were encountered, return a success response.
+	return MostRecentNoteResponse{
+		Success: true,
+		Message: "Successfully moved to trash",
+	}
 }
 
 type MostRecentNoteResponse struct {

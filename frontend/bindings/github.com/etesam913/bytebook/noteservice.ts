@@ -45,6 +45,25 @@ export function GetNotes(folderName: string): Promise<$models.NoteResponse> & { 
     return $typingPromise;
 }
 
+/**
+ * MoveToTrash moves the specified folders and notes to the trash directory.
+ * Parameters:
+ * 
+ * 	folderAndNotes: A slice of strings representing the paths of the folders and notes to be moved.
+ * 
+ * Returns:
+ * 
+ * 	A MostRecentNoteResponse indicating the success or failure of the operation.
+ */
+export function MoveToTrash(folderAndNotes: string[]): Promise<$models.MostRecentNoteResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(891730313, folderAndNotes) as any;
+    let $typingPromise = $resultPromise.then(($result) => {
+        return $$createType3($result);
+    }) as any;
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
 export function RenameNote(folderName: string, oldNoteTitle: string, newNoteTitle: string): Promise<$models.NoteResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(2999546831, folderName, oldNoteTitle, newNoteTitle) as any;
     let $typingPromise = $resultPromise.then(($result) => {
@@ -66,7 +85,7 @@ export function SetNoteMarkdown(folderName: string, noteTitle: string, markdown:
 export function ValidateMostRecentNotes(paths: string[]): Promise<string[]> & { cancel(): void } {
     let $resultPromise = $Call.ByID(2675478292, paths) as any;
     let $typingPromise = $resultPromise.then(($result) => {
-        return $$createType3($result);
+        return $$createType4($result);
     }) as any;
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -76,4 +95,5 @@ export function ValidateMostRecentNotes(paths: string[]): Promise<string[]> & { 
 const $$createType0 = $models.AddFolderResponse.createFrom;
 const $$createType1 = $models.NoteResponse.createFrom;
 const $$createType2 = $models.NoteMarkdownResponse.createFrom;
-const $$createType3 = $Create.Array($Create.Any);
+const $$createType3 = $models.MostRecentNoteResponse.createFrom;
+const $$createType4 = $Create.Array($Create.Any);

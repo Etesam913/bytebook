@@ -59,7 +59,7 @@ export function SyncChangesButton(props: SyncButtonProps) {
 			}}
 			disabled={isSyncing}
 			className={cn(
-				"w-full bg-transparent flex gap-1.5 align-center hover:bg-zinc-100 hover:dark:bg-zinc-650 p-1 transition-colors",
+				"w-full bg-transparent rounded-md flex gap-1.5 align-center hover:bg-zinc-100 hover:dark:bg-zinc-650 p-1 transition-colors",
 				isSyncing && "justify-center",
 			)}
 		>

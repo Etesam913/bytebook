@@ -383,7 +383,7 @@ export async function insertImageFromFile(
 	try {
 		const { success, message, paths } = await UploadImage(folder, note);
 
-		const filePaths = paths as unknown as string[];
+		const filePaths = paths;
 		editor.update(() => {
 			const payloads = filePaths.map((filePath) => ({
 				src: `${FILE_SERVER_URL}/${filePath}`,

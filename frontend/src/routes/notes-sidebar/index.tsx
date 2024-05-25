@@ -4,7 +4,10 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
-import { GetAttachments } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
+import {
+	GetAttachments,
+	MoveToTrash,
+} from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
 import { DeleteFolder } from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import {
@@ -65,7 +68,7 @@ export function NotesSidebar({
 		GetAttachments(folder)
 			.then((res) => {
 				if (res.success) {
-					setAttachments((res.data ?? []) as unknown as string[]);
+					setAttachments(res.data ?? []);
 				}
 			})
 			.catch((err) => {
@@ -97,17 +100,32 @@ export function NotesSidebar({
 		});
 	});
 
-	useWailsEvent("note:context-menu:delete-note", (event) => {
+	useWailsEvent("note:context-menu:delete-note", async (event) => {
 		const noteName = event.data as string;
-		DeleteFolder(`${folder}/${noteName}.md`)
-			.then((res) => {
-				if (!res.success) {
-					throw new Error();
-				}
-			})
-			.catch(() => {
-				toast.error("Failed to delete note");
-			});
+		const path = `${folder}/${noteName}`;
+		try {
+			const res = await MoveToTrash([`${path}.md`]);
+			if (res.success) {
+				toast.success(res.message);
+			} else {
+				throw new Error(res.message);
+			}
+		} catch (err: unknown) {
+			if (err instanceof Error) {
+				toast.error(err.message);
+			} else {
+				toast.error("An Unknown Error Occurred");
+			}
+		}
+		// DeleteFolder(`${folder}/${noteName}.md`)
+		// 	.then((res) => {
+		// 		if (!res.success) {
+		// 			throw new Error();
+		// 		}
+		// 	})
+		// 	.catch(() => {
+		// 		toast.error("Failed to delete note");
+		// 	});
 	});
 
 	useWailsEvent("attachment:create", (body) => {

@@ -9,6 +9,7 @@ import (
 	"github.com/etesam913/bytebook/lib/custom_events"
 	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
+	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/menus"
 	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/fsnotify/fsnotify"
@@ -42,6 +43,8 @@ func main() {
 	// Creating git repo if it does not already exist
 	git_helpers.InitializeGitRepo(projectPath)
 	git_helpers.SetRepoOrigin("https://github.com/Etesam913/bytebook-test.git")
+
+	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "trash"))
 
 	// Launching file server for images/videos
 	go file_server.LaunchFileServer(projectPath)
@@ -86,18 +89,18 @@ func main() {
 	noteContextMenu := app.NewMenu()
 	attachmentContextMenu := app.NewMenu()
 
-	project_helpers.CreateFolderContextMenu(app, folderContextMenu, []project_helpers.MenuItem{
+	project_helpers.CreateContextMenu(app, folderContextMenu, []project_helpers.MenuItem{
 		{Label: "Rename Folder", EventName: "folder:context-menu:rename"},
 		{Label: "Add Note", EventName: "add-note"},
 		{Label: "Delete Folder", EventName: "folder:context-menu:delete"},
 	})
 
-	project_helpers.CreateFolderContextMenu(app, noteContextMenu, []project_helpers.MenuItem{
+	project_helpers.CreateContextMenu(app, noteContextMenu, []project_helpers.MenuItem{
 		{Label: "Open In New Window", EventName: "open-note-in-new-window-frontend"},
 		{Label: "Delete Note", EventName: "note:context-menu:delete-note"},
 	})
 
-	project_helpers.CreateFolderContextMenu(app, attachmentContextMenu, []project_helpers.MenuItem{
+	project_helpers.CreateContextMenu(app, attachmentContextMenu, []project_helpers.MenuItem{
 		{Label: "Delete Attachment", EventName: "attachments:context-menu:delete-attachment"},
 	})
 
