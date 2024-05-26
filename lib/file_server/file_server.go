@@ -1,6 +1,7 @@
 package file_server
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -103,7 +104,7 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 			segments := strings.Split(event.Name, "/")
 			oneFolderBack := segments[len(segments)-2]
 			twoFoldersBack := segments[len(segments)-3]
-
+			fmt.Println(oneFolderBack, twoFoldersBack)
 			// If it is not a note
 			if oneFolderBack == "attachments" {
 				log.Println(("attachment folder"))
@@ -112,12 +113,22 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 						Name: "attachment:delete",
 						Data: map[string]string{"name": filepath.Base(event.Name), "folder": twoFoldersBack},
 					})
-				}
-
-				if event.Has(fsnotify.Create) {
+				} else if event.Has(fsnotify.Create) {
 					app.Events.Emit(&application.WailsEvent{
 						Name: "attachment:create",
 						Data: map[string]string{"name": filepath.Base(event.Name), "folder": twoFoldersBack},
+					})
+				}
+			} else if oneFolderBack == "trash" {
+				if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
+					app.Events.Emit(&application.WailsEvent{
+						Name: "trash:delete",
+						Data: map[string]string{"name": filepath.Base(event.Name)},
+					})
+				} else if event.Has(fsnotify.Create) {
+					app.Events.Emit(&application.WailsEvent{
+						Name: "trash:create",
+						Data: map[string]string{"name": filepath.Base(event.Name)},
 					})
 				}
 			} else {
@@ -132,9 +143,7 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 						Name: "note:delete",
 						Data: map[string]string{"note": noteName, "folder": oneFolderBack},
 					})
-				}
-
-				if event.Has(fsnotify.Create) {
+				} else if event.Has(fsnotify.Create) {
 					app.Events.Emit(&application.WailsEvent{
 						Name: "note:create",
 						Data: map[string]string{"note": noteName, "folder": oneFolderBack},
