@@ -12,8 +12,8 @@ import { MotionButton } from "../../components/buttons";
 import { TrashEditor } from "../../components/editor/trash-editor";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Trash } from "../../icons/trash";
-import { MyTrashAccordion } from "./my-trash-accordion";
 import { useWailsEvent } from "../../utils/hooks";
+import { MyTrashAccordion } from "./my-trash-accordion";
 
 export function TrashSidebar({
 	width,
@@ -46,16 +46,15 @@ export function TrashSidebar({
 		getFilesInTrash();
 	}, []);
 
-
 	useWailsEvent("trash:create", (body) => {
-		const data = body.data as {name:string}
-		setFiles((prev) => [...prev, data.name])
-	})
+		const data = body.data as { name: string };
+		setFiles((prev) => [...prev, data.name]);
+	});
 
 	useWailsEvent("trash:delete", (body) => {
-		const data = body.data as {name:string}
-		setFiles((prev) => prev.filter((file) => file!== data.name))
-	})
+		const data = body.data as { name: string };
+		setFiles((prev) => prev.filter((file) => file !== data.name));
+	});
 
 	return (
 		<>
@@ -75,7 +74,7 @@ export function TrashSidebar({
 								onClick={() => {
 									ClearTrash()
 										.then((res) => {
-											if (res.success) toast.success("Trash emptied")
+											if (res.success) toast.success("Trash emptied");
 											else throw new Error(res.message);
 										})
 										.catch((err) => toast.error(err.message));

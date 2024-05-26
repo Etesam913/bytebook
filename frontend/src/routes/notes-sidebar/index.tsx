@@ -103,6 +103,7 @@ export function NotesSidebar({
 	useWailsEvent("note:context-menu:delete-note", async (event) => {
 		const noteName = event.data as string;
 		const path = `${folder}/${noteName}`;
+		console.log(path);
 		try {
 			const res = await MoveToTrash([`${path}.md`]);
 			if (res.success) {

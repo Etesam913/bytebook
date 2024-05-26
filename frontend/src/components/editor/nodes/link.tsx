@@ -33,6 +33,10 @@ import ReactDOM from "react-dom";
 import { navigate } from "wouter/use-browser-location";
 import { Folder } from "../../../icons/folder";
 import { Note } from "../../../icons/page";
+import {
+	getInternalLinkType,
+	isInternalLink,
+} from "../../../utils/string-formatting";
 
 export type LinkAttributes = {
 	rel?: null | string;
@@ -104,17 +108,16 @@ export class LinkNode extends ElementNode {
 
 		const classNames = [config.theme.link];
 		// This is an internal link so we want it to look different
-		if (element.href.startsWith("wails:")) {
+		if (isInternalLink(element.href)) {
 			classNames.pop();
 			classNames.push(config.theme.internalLink);
+
 			const decodedUrl = decodeURIComponent(element.href);
 			const url = new URL(decodedUrl);
 			const segments = url.pathname.split("/");
-			// The frist segment is always empty
 			segments.shift();
 
-			const isNoteLink = segments.length === 2;
-			const isFolderLink = segments.length === 1;
+			const { isNoteLink, isFolderLink } = getInternalLinkType(element.href);
 			const tempContainer = document.createElement("div");
 
 			const folderSvg = <Folder className="translate-y-1" />;
