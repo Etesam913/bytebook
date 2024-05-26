@@ -27,8 +27,8 @@ export function GetAttachments(folderName: string): Promise<$models.NoteResponse
     return $typingPromise;
 }
 
-export function GetNoteMarkdown(folderName: string, noteTitle: string): Promise<$models.NoteMarkdownResponse> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(2442281646, folderName, noteTitle) as any;
+export function GetNoteMarkdown(path: string): Promise<$models.NoteMarkdownResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(2442281646, path) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType2($result);
     }) as any;

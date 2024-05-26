@@ -84,8 +84,8 @@ func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNote
 	return NoteResponse{Success: true, Message: "Note renamed successfully"}
 }
 
-func (n *NoteService) GetNoteMarkdown(folderName string, noteTitle string) NoteMarkdownResponse {
-	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, fmt.Sprintf("%s.md", noteTitle))
+func (n *NoteService) GetNoteMarkdown(path string) NoteMarkdownResponse {
+	noteFilePath := filepath.Join(n.ProjectPath, path)
 
 	noteContent, err := os.ReadFile(noteFilePath)
 	if err != nil {

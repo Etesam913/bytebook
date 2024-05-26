@@ -83,3 +83,32 @@ export const editorConfig: InitialConfigType = {
 		ExcalidrawNode,
 	],
 };
+
+export const trashEditorConfig: InitialConfigType = {
+	namespace: "trash-note-editor",
+	theme: theme,
+	// editorState: () => {
+	// 	// This is a good place to set the initial state of the editor.
+	// 	$getRoot().selectStart();
+	// },
+	// editable: false,
+	onError,
+	editable: false,
+	nodes: [
+		HeadingNode,
+		QuoteNode,
+		HorizontalRuleNode,
+		LinkNode,
+		ListNode,
+		ListItemNode,
+		ParagraphNode,
+		ImageNode,
+		VideoNode,
+		TableNode,
+		TableCellNode,
+		TableRowNode,
+		UnknownAttachmentNode,
+		CodeNode,
+		ExcalidrawNode,
+	],
+};

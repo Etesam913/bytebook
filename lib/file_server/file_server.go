@@ -153,6 +153,7 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 
 /** Watches each folder in the notes directory */
 func ListenToFolders(projectPath string, watcher *fsnotify.Watcher) {
+	watcher.Add(filepath.Join(projectPath, "trash"))
 	notesFolderPath := filepath.Join(projectPath, "notes")
 	watcher.Add(notesFolderPath)
 	entries, err := os.ReadDir(notesFolderPath)

@@ -18,8 +18,36 @@ export function AddFolder(folderName: string): Promise<$models.FolderResponse> &
     return $typingPromise;
 }
 
+/**
+ * ClearTrash deletes all files in the trash directory of the project.
+ * It constructs the path to the trash directory, reads the contents, and attempts to delete each file.
+ * It returns a response indicating success or failure, including details of any files that could not be deleted.
+ */
+export function ClearTrash(): Promise<$models.FolderResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(960303200) as any;
+    let $typingPromise = $resultPromise.then(($result) => {
+        return $$createType0($result);
+    }) as any;
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
 export function DeleteFolder(folderName: string): Promise<$models.FolderResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(562179514, folderName) as any;
+    let $typingPromise = $resultPromise.then(($result) => {
+        return $$createType0($result);
+    }) as any;
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
+ * GetFilesInTrash retrieves the names of all files in the trash directory of the project.
+ * It ensures that the trash directory exists and returns a response indicating success or failure.
+ * If successful, the response includes the list of file names found in the trash directory.
+ */
+export function GetFilesInTrash(): Promise<$models.FolderResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(1406513737) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType0($result);
     }) as any;

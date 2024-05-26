@@ -46,7 +46,7 @@ export function MyFoldersAccordion({
 
 			<Sidebar
 				emptyElement={
-					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-sm">
+					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
 						Create a folder with the "Create Folder" button above
 					</li>
 				}

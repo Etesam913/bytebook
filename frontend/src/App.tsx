@@ -31,7 +31,7 @@ function App() {
 
 			{!isNoteMaximized && <FolderSidebar width={folderSidebarWidth} />}
 			<Switch>
-				<Route path="/trash">
+				<Route path="/trash/:item?">
 					<TrashSidebar
 						width={notesSidebarWidth}
 						leftWidth={folderSidebarWidth}

@@ -47,7 +47,7 @@ export function MyNotesAccordion({
 			</button>
 			<Sidebar
 				emptyElement={
-					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-sm">
+					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
 						Create a note with the "Create Note" button above
 					</li>
 				}
@@ -81,7 +81,7 @@ export function MyNotesAccordion({
 						}}
 						target="_blank"
 						className={cn(
-							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors",
+							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform",
 							noteName === note && "bg-zinc-150 dark:bg-zinc-700",
 							selectionRange.has(i) &&
 								"!bg-blue-400 dark:!bg-blue-600 text-white",

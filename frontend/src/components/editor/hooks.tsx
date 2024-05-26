@@ -62,7 +62,7 @@ export function useNoteMarkdown(
 	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
 ) {
 	useEffect(() => {
-		GetNoteMarkdown(folder, note)
+		GetNoteMarkdown(`notes/${folder}/${note}.md`)
 			.then((res) => {
 				if (res.success) {
 					editor.setEditable(true);
