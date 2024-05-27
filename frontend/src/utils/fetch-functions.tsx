@@ -45,7 +45,6 @@ export function updateNotes(
 			}
 		})
 		.catch(() => {
-			console.log(location.pathname);
 			navigate("/not-found", { replace: true });
 			setNotes(null);
 		});

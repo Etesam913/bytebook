@@ -34,7 +34,11 @@ import TreeViewPlugin from "./plugins/tree-view";
 import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
-import { $convertToMarkdownStringCorrect, handleATag } from "./utils";
+import {
+	$convertToMarkdownStringCorrect,
+	handleATag,
+	replaceFrontMatter,
+} from "./utils";
 
 const debouncedHandleChange = debounce(handleChange, 275);
 
@@ -43,17 +47,31 @@ function handleChange(
 	note: string,
 	editor: LexicalEditor,
 	tags: Set<string>,
+	frontmatter: Record<string, string>,
 ) {
-	// If the note was changed from another window, don't update it again
-	if (tags.has("note:changed-from-other-window")) return;
+	/* 
+		If the note was changed from another window, don't update it again 
+		If a new note is loaded for the first time, we don't need this func to run
+	*/
+	if (
+		tags.has("note:changed-from-other-window") ||
+		tags.has("note:initial-load")
+	)
+		return;
 	editor.update(
 		() => {
 			const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
+			const markdownWithFrontmatter = replaceFrontMatter(markdown, frontmatter);
 			Events.Emit({
 				name: "note:changed",
-				data: { folder, note, markdown, oldWindowAppId: WINDOW_ID },
+				data: {
+					folder,
+					note,
+					markdownWithFrontmatter,
+					oldWindowAppId: WINDOW_ID,
+				},
 			});
-			SetNoteMarkdown(folder, note, markdown);
+			SetNoteMarkdown(folder, note, markdownWithFrontmatter);
 		},
 		{ tag: "note:changed-from-other-window" },
 	);
@@ -68,7 +86,7 @@ export function NotesEditor({
 	const editorAnimationControls = useAnimationControls();
 	const editorRef = useRef<LexicalEditor | null | undefined>(null);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-
+	const [frontmatter, setFrontmatter] = useState<Record<string, string>>({});
 	const [floatingData, setFloatingData] = useState<FloatingDataType>({
 		isOpen: false,
 		left: 0,
@@ -103,6 +121,7 @@ export function NotesEditor({
 					note={note}
 					floatingData={floatingData}
 					setFloatingData={setFloatingData}
+					setFrontmatter={setFrontmatter}
 				/>
 				<div
 					ref={noteContainerRef}
@@ -135,7 +154,7 @@ export function NotesEditor({
 					<OnChangePlugin
 						ignoreSelectionChange
 						onChange={(_, editor, tag) =>
-							debouncedHandleChange(folder, note, editor, tag)
+							debouncedHandleChange(folder, note, editor, tag, frontmatter)
 						}
 					/>
 					<CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />

@@ -60,6 +60,7 @@ export function useNoteMarkdown(
 	folder: string,
 	note: string,
 	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
+	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>,
 ) {
 	useEffect(() => {
 		GetNoteMarkdown(`notes/${folder}/${note}.md`)
@@ -68,16 +69,23 @@ export function useNoteMarkdown(
 					editor.setEditable(true);
 					// You don't want a different note to access the same history when you switch notes
 					editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
-					editor.update(() => {
-						// Clear formatting
-						setCurrentSelectionFormat((prev) => {
-							for (const format of prev)
-								editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
-							return [];
-						});
+					editor.update(
+						() => {
+							// Clear formatting
+							setCurrentSelectionFormat((prev) => {
+								for (const format of prev)
+									editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+								return [];
+							});
 
-						$convertFromMarkdownStringCorrect(res.data, CUSTOM_TRANSFORMERS);
-					});
+							$convertFromMarkdownStringCorrect(
+								res.data,
+								CUSTOM_TRANSFORMERS,
+								setFrontmatter,
+							);
+						},
+						{ tag: "note:initial-load" },
+					);
 				} else {
 					throw new Error("Failed in retrieving note markdown");
 				}
@@ -146,7 +154,6 @@ export function useMostRecentNotes(folder: string, note: string) {
 		}
 		tempMostRecentNotes.push(currentPath);
 		ValidateMostRecentNotes(tempMostRecentNotes).then((res) => {
-			res.reverse();
 			setMostRecentNotes(res ?? []);
 		});
 	}, [folder, note, setMostRecentNotes]);

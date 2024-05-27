@@ -19,10 +19,7 @@ export function TrashNoteTitle({ curFile }: { curFile: string }) {
 					throw new Error("Failed in retrieving note markdown");
 				}
 			})
-			.catch(() => {
-				console.log(location.pathname);
-				navigate("/not-found", { replace: true });
-			});
+			.catch(() => navigate("/not-found", { replace: true }));
 	}, [curFile]);
 
 	return (

@@ -49,7 +49,6 @@ export function createMarkdownExport(
 				output.push(result);
 			}
 		}
-
 		return output.join("\n");
 	};
 }

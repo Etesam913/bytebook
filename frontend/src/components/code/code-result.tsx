@@ -10,7 +10,6 @@ export const CodeResult = memo(function CodeResult({
 }: {
 	codeResult: CodeResponse;
 }) {
-	console.log(codeResult.id);
 	return (
 		<div
 			onClick={(e) => e.stopPropagation()}

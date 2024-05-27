@@ -35,6 +35,7 @@ interface ToolbarProps {
 	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
 	editorAnimationControls: AnimationControls;
 	noteContainerRef: React.RefObject<HTMLDivElement>;
+	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
 }
 
 export function Toolbar({
@@ -44,6 +45,7 @@ export function Toolbar({
 	setFloatingData,
 	noteContainerRef,
 	editorAnimationControls,
+	setFrontmatter,
 }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
 	const [disabled, setDisabled] = useAtom(isToolbarDisabled);
@@ -56,9 +58,16 @@ export function Toolbar({
 	const [isNodeSelection, setIsNodeSelection] = useState(false);
 	const [canRedo, setCanRedo] = useState(false);
 	const [canUndo, setCanUndo] = useState(false);
+
 	const attachments = useAtomValue(attachmentsAtom);
 
-	useNoteMarkdown(editor, folder, note, setCurrentSelectionFormat);
+	useNoteMarkdown(
+		editor,
+		folder,
+		note,
+		setCurrentSelectionFormat,
+		setFrontmatter,
+	);
 
 	useWailsEvent("note:changed", (e) => {
 		const data = e.data as {
@@ -81,7 +90,11 @@ export function Toolbar({
 		) {
 			editor.update(
 				() => {
-					$convertFromMarkdownStringCorrect(markdown, CUSTOM_TRANSFORMERS);
+					$convertFromMarkdownStringCorrect(
+						markdown,
+						CUSTOM_TRANSFORMERS,
+						setFrontmatter,
+					);
 				},
 				{ tag: "note:changed-from-other-window" },
 			);
