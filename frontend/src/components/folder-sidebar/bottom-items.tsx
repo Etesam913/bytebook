@@ -11,34 +11,6 @@ import {
 } from "../../utils/string-formatting";
 import { SyncChangesButton } from "../buttons/sync-changes";
 
-function handleTrashButtonDrop(e: DragEvent<HTMLAnchorElement>) {
-	e.preventDefault();
-	const urls: string = e.dataTransfer.getData("text/plain");
-	const urlArray = urls.split(",");
-	const paths: string[] = [];
-	urlArray.forEach((url) => {
-		if (isInternalLink(url)) {
-			const { isNoteLink } = getInternalLinkType(url);
-			if (isNoteLink) {
-				const [folder, note] = url.split("/").slice(-2);
-				const fullPath = `${folder}/${note}.md`;
-				paths.push(fullPath);
-			}
-		}
-	});
-	if (paths.length > 0) {
-		MoveToTrash(paths)
-			.then((res) => {
-				if (res.success)
-					toast.success(
-						`Successfully moved note${paths.length > 1 ? "s" : ""} to trash`,
-					);
-				else throw new Error(res.message);
-			})
-			.catch((err) => toast.error(err.message));
-	}
-}
-
 const MotionLink = motion(Link);
 
 export function BottomItems() {
@@ -49,12 +21,37 @@ export function BottomItems() {
 
 	const isTrashOpen = base === "trash";
 
+	function handleTrashButtonDrop(e: DragEvent<HTMLAnchorElement>) {
+		e.preventDefault();
+		const urls: string = e.dataTransfer.getData("text/plain");
+		const urlArray = urls.split(",");
+		const paths: string[] = [];
+		setIsNoteOver(false);
+		urlArray.forEach((url) => {
+			if (isInternalLink(url)) {
+				const { isNoteLink } = getInternalLinkType(url);
+				if (isNoteLink) {
+					const [folder, note] = url.split("/").slice(-2);
+					const fullPath = `${folder}/${note}.md`;
+					paths.push(fullPath);
+				}
+			}
+		});
+		if (paths.length > 0) {
+			MoveToTrash(paths)
+				.then((res) => {
+					if (res.success)
+						toast.success(
+							`Successfully moved note${paths.length > 1 ? "s" : ""} to trash`,
+						);
+					else throw new Error(res.message);
+				})
+				.catch((err) => toast.error(err.message));
+		}
+	}
+
 	function onDragEnter(e: DragEvent<HTMLAnchorElement>) {
 		e.preventDefault();
-		// All urls must be valid internal links that represent notes
-		const dragElement = document.getElementById("dragged-element");
-		if(!dragElement) return;
-		
 		setIsNoteOver(true);
 	}
 
@@ -66,11 +63,12 @@ export function BottomItems() {
 	return (
 		<section className="mt-auto pb-3 flex flex-col gap-1">
 			<MotionLink
+				onDragOver={(e) => e.preventDefault()}
 				onDragEnter={onDragEnter}
 				onDragLeave={onDragLeave}
 				onDrop={handleTrashButtonDrop}
 				to="/trash"
-				transition={{ repeat: isNoteOver ? Infinity : 1 }}
+				transition={{ repeat: isNoteOver ? Number.POSITIVE_INFINITY : 1 }}
 				className={cn(
 					"flex gap-1 items-center hover:bg-zinc-100 hover:dark:bg-zinc-650 p-1 rounded-md transition-colors ",
 					isTrashOpen && "!bg-zinc-150 dark:!bg-zinc-700",
