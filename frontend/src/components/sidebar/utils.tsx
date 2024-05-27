@@ -16,64 +16,79 @@ function getFileIcon(fileType: "folder" | "note" | "image") {
 	}
 }
 
+/**
+ * Handles the drag start event for dragging files of various types.
+ *
+ * @param e - The drag event triggered by the user.
+ * @param setSelectionRange - Function to update the selected range.
+ * @param files - Array of file paths.
+ * @param fileType - Type of the files being dragged ("folder", "note", or "image").
+ * @param draggedIndex - Index of the file being dragged.
+ * @param folder - Optional folder path for notes.
+ */
 export function handleDragStart(
 	e: DragEvent<HTMLAnchorElement>,
-	selectionRange: Set<number>,
 	setSelectionRange: Dispatch<SetStateAction<Set<number>>>,
 	files: string[],
 	fileType: "folder" | "note" | "image",
 	draggedIndex: number,
 	folder?: string,
 ) {
-	const tempSelectionRange = new Set(selectionRange);
-	tempSelectionRange.add(draggedIndex);
-	setSelectionRange(tempSelectionRange);
+	setSelectionRange((tempSet) => {
+		const tempSelectionRange = new Set(tempSet);
+		tempSelectionRange.add(draggedIndex);
 
-	// These are internal links
-	const selectedFiles = Array.from(tempSelectionRange).map((index) => {
-		if (fileType === "folder") {
-			return `wails://localhost:5173/${files[index]}`;
+		// Map selected file indices to their internal URLs
+		const selectedFiles = Array.from(tempSelectionRange).map((index) => {
+			if (fileType === "folder") {
+				return `wails://localhost:5173/${files[index]}`;
+			}
+			// A note link should have a folder associated with it
+			if (!folder) {
+				return "";
+			}
+			return `wails://localhost:5173/${folder}/${files[index]}`;
+		});
+
+		// Setting the data for the CONTROLLED_TEXT_INSERTION_COMMAND
+		e.dataTransfer.setData("text/plain", selectedFiles.join(","));
+
+		// Adding the children to the drag element in the case where multiple attachments are selected
+		const dragElement = e.target as HTMLElement;
+
+		const ghostElement = dragElement.cloneNode(true) as HTMLElement;
+		ghostElement.id = "dragged-element";
+		ghostElement.classList.add("dragging", "drag-grid");
+		// Remove the selected classes
+		ghostElement.classList.remove("!bg-blue-400", "dark:!bg-blue-600");
+
+		// Create child elements for the drag preview
+		const children = selectedFiles.map((file) => {
+			return (
+				<>
+					{getFileIcon(fileType)}
+					<p className="overflow-hidden text-ellipsis whitespace-nowrap">
+						{file.split("/").at(-1)}
+					</p>
+				</>
+			);
+		});
+
+		// Append and render the ghost element
+		document.body.appendChild(ghostElement);
+		ReactDOM.render(children, ghostElement);
+		e.dataTransfer.setDragImage(ghostElement, -25, -25);
+
+		// Clean up the ghost element after the drag ends
+		function handleDragEnd() {
+			// Update the selected range so that only 1 item is highlighted
+			setSelectionRange(new Set());
+			ghostElement.remove();
+			dragElement.removeEventListener("dragEnd", handleDragEnd);
 		}
-		// A note link should have a folder associated with it
-		if (!folder) {
-			return "";
-		}
-		return `wails://localhost:5173/${folder}/${files[index]}`;
+
+		dragElement.addEventListener("dragend", handleDragEnd);
+
+		return tempSelectionRange;
 	});
-
-	// Setting the data for the CONTROLLED_TEXT_INSERTION_COMMAND
-	e.dataTransfer.setData("text/plain", selectedFiles.join(","));
-
-	// Adding the children to the drag element in the case where there are multiple attachments selected
-	const dragElement = e.target as HTMLElement;
-
-	const ghostElement = dragElement.cloneNode(true) as HTMLElement;
-	ghostElement.classList.add("dragging", "drag-grid");
-	// Remove the selected classes
-	ghostElement.classList.remove("!bg-blue-400", "dark:!bg-blue-600");
-
-	const children = selectedFiles.map((file) => {
-		return (
-			<>
-				{getFileIcon(fileType)}
-				<p className="overflow-hidden text-ellipsis whitespace-nowrap">
-					{file.split("/").at(-1)}
-				</p>
-			</>
-		);
-	});
-
-	document.body.appendChild(ghostElement);
-	ReactDOM.render(children, ghostElement);
-	e.dataTransfer.setDragImage(ghostElement, -25, -25);
-
-	// Cleaning up the ghost element after the drag ends
-	function handleDragEnd() {
-		// Update the selected range so that only 1 item is highlighted
-		setSelectionRange(new Set());
-		ghostElement.remove();
-		dragElement.removeEventListener("dragEnd", handleDragEnd);
-	}
-
-	dragElement.addEventListener("dragend", handleDragEnd);
 }

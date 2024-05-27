@@ -61,7 +61,6 @@ export function MyFoldersAccordion({
 						onDragStart={(e) =>
 							handleDragStart(
 								e,
-								selectionRange,
 								setSelectionRange,
 								alphabetizedFolders ?? [],
 								"folder",

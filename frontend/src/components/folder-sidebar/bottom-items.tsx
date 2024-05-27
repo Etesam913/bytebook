@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { type DragEvent, useState } from "react";
 import { toast } from "sonner";
 import { Link, useRoute } from "wouter";
@@ -38,28 +39,48 @@ function handleTrashButtonDrop(e: DragEvent<HTMLAnchorElement>) {
 	}
 }
 
+const MotionLink = motion(Link);
+
 export function BottomItems() {
 	const [isSyncing, setIsSyncing] = useState(false);
 	const [, params] = useRoute("/:folder/:note?");
 	const base = params?.folder;
+	const [isNoteOver, setIsNoteOver] = useState(false);
 
 	const isTrashOpen = base === "trash";
 
+	function onDragEnter(e: DragEvent<HTMLAnchorElement>) {
+		e.preventDefault();
+		// All urls must be valid internal links that represent notes
+		const dragElement = document.getElementById("dragged-element");
+		if(!dragElement) return;
+		
+		setIsNoteOver(true);
+	}
+
+	function onDragLeave(e: DragEvent<HTMLAnchorElement>) {
+		e.preventDefault();
+		setIsNoteOver(false);
+	}
+
 	return (
 		<section className="mt-auto pb-3 flex flex-col gap-1">
-			<Link
-				onDragOver={(e) => e.preventDefault()}
+			<MotionLink
+				onDragEnter={onDragEnter}
+				onDragLeave={onDragLeave}
 				onDrop={handleTrashButtonDrop}
 				to="/trash"
+				transition={{ repeat: isNoteOver ? Infinity : 1 }}
 				className={cn(
 					"flex gap-1 items-center hover:bg-zinc-100 hover:dark:bg-zinc-650 p-1 rounded-md transition-colors ",
-					isTrashOpen && "bg-zinc-150 dark:bg-zinc-700",
+					isTrashOpen && "!bg-zinc-150 dark:!bg-zinc-700",
+					isNoteOver && "bg-blue-400 dark:bg-blue-600 text-white",
 				)}
 			>
 				<>
 					<Trash /> Trash
 				</>
-			</Link>
+			</MotionLink>
 			<SyncChangesButton isSyncing={isSyncing} setIsSyncing={setIsSyncing} />
 		</section>
 	);

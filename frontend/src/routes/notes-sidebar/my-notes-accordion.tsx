@@ -64,7 +64,6 @@ export function MyNotesAccordion({
 						onDragStart={(e) =>
 							handleDragStart(
 								e,
-								selectionRange,
 								setSelectionRange,
 								notes ?? [],
 								"note",
