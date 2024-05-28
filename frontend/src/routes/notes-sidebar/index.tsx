@@ -190,7 +190,7 @@ export function NotesSidebar({
 						className="text-md flex h-screen flex-col overflow-y-auto pb-3.5"
 					>
 						<div className="flex h-full flex-col overflow-y-auto pl-1.5 pr-2.5 relative">
-							<section className="flex items-center h-[3.625rem] gap-2">
+							<section className="flex items-center min-h-[3.625rem] gap-2">
 								<Folder className="min-w-[1.25rem]" />{" "}
 								<p className="overflow-hidden text-ellipsis whitespace-nowrap">
 									{folder}
@@ -208,7 +208,7 @@ export function NotesSidebar({
 									<Pen className="w-full" />
 								</MotionIconButton>
 							</section>
-							<div className="flex h-full flex-col gap-2">
+							<section className="flex flex-col gap-2 overflow-y-auto">
 								<MotionButton
 									{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
 									onClick={() => setIsNoteDialogOpen(true)}
@@ -216,19 +216,21 @@ export function NotesSidebar({
 								>
 									Create Note <Compose />
 								</MotionButton>
-								<MyNotesAccordion
-									folder={folder}
-									note={note}
-									notes={notes}
-									setRightClickedNote={setRightClickedNote}
-								/>
-								<AttachmentsAccordion
-									folder={folder}
-									note={note}
-									attachmentsSelectionRange={attachmentsSelectionRange}
-									setAttachmentsSelectionRange={setAttachmentsSelectionRange}
-								/>
-							</div>
+								<div className="flex h-full pb-10 flex-col overflow-y-auto z-20">
+									<MyNotesAccordion
+										folder={folder}
+										note={note}
+										notes={notes}
+										setRightClickedNote={setRightClickedNote}
+									/>
+									<AttachmentsAccordion
+										folder={folder}
+										note={note}
+										attachmentsSelectionRange={attachmentsSelectionRange}
+										setAttachmentsSelectionRange={setAttachmentsSelectionRange}
+									/>
+								</div>
+							</section>
 						</div>
 					</motion.aside>
 					<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />

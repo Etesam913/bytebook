@@ -149,10 +149,10 @@ export function useMostRecentNotes(folder: string, note: string) {
 		const tempMostRecentNotes = mostRecentNotes.filter(
 			(path) => path !== currentPath,
 		);
-		if (tempMostRecentNotes.length > 5) {
-			tempMostRecentNotes.unshift();
+		if (tempMostRecentNotes.length > 4) {
+			tempMostRecentNotes.pop();
 		}
-		tempMostRecentNotes.push(currentPath);
+		tempMostRecentNotes.unshift(currentPath);
 		ValidateMostRecentNotes(tempMostRecentNotes).then((res) => {
 			setMostRecentNotes(res ?? []);
 		});

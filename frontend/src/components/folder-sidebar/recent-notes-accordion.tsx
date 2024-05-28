@@ -42,10 +42,10 @@ export function RecentNotesAccordion() {
 	}
 
 	return (
-		<section className="flex flex-col overflow-y-auto">
+		<section className="flex flex-col overflow-y-auto max-h-[35vh]">
 			<button
 				type="button"
-				className="flex items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-700"
+				className="flex items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-700 "
 				onClick={() => setIsRecentNotesCollapsed((prev) => !prev)}
 			>
 				<motion.span

@@ -33,6 +33,7 @@ import { NoteFindPlugin } from "./plugins/note-find.tsx";
 import TreeViewPlugin from "./plugins/tree-view";
 import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
+
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import {
 	$convertToMarkdownStringCorrect,
@@ -61,7 +62,12 @@ function handleChange(
 	editor.update(
 		() => {
 			const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
-			const markdownWithFrontmatter = replaceFrontMatter(markdown, frontmatter);
+			const frontmatterCopy = { ...frontmatter };
+			frontmatterCopy["lastUpdated"] = new Date().toISOString();
+			const markdownWithFrontmatter = replaceFrontMatter(
+				markdown,
+				frontmatterCopy,
+			);
 			Events.Emit({
 				name: "note:changed",
 				data: {

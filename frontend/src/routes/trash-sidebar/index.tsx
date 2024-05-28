@@ -59,14 +59,14 @@ export function TrashSidebar({
 	return (
 		<>
 			<motion.aside
-				className="text-md flex h-screen flex-col overflow-y-auto pb-3.5"
+				className="text-md flex h-screen flex-col"
 				style={{ width }}
 			>
-				<div className="flex h-full flex-col overflow-y-auto pl-1.5 pr-2.5 relative">
-					<section className="flex items-center h-[3.625rem] gap-2">
+				<div className="flex h-full flex-col pl-1.5 pr-2.5 relative">
+					<section className="flex items-center min-h-[3.625rem] gap-2">
 						<Trash /> <p>Trash</p>
 					</section>
-					<div className="flex h-full flex-col gap-2">
+					<section className="flex flex-col gap-2 overflow-y-auto">
 						{files.length > 0 && (
 							<MotionButton
 								{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
@@ -84,12 +84,14 @@ export function TrashSidebar({
 								<Trash />
 							</MotionButton>
 						)}
-						<MyTrashAccordion files={files} curFile={item} />
-					</div>
+						<div className="flex h-full pb-2 flex-col gap-2 overflow-y-auto">
+							<MyTrashAccordion files={files} curFile={item} />
+						</div>
+					</section>
 				</div>
 			</motion.aside>
 			<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
-			{item && item.endsWith(".md") && <TrashEditor curFile={item} />}
+			{/* {item && item.endsWith(".md") && <TrashEditor curFile={item} />} */}
 		</>
 	);
 }
