@@ -126,28 +126,30 @@ export const languageCommandData: {
 		| "react"
 		| "angular"
 		| "vue"
-		| "svelte";
+		| "svelte"
+		| "rust";
 	keywords: string[];
 	icon?: JSX.Element;
 }[] = [
 	{ name: "go", keywords: ["go", "google"] },
 	{ name: "java", keywords: ["java", "coffee"] },
-	{ name: "python", keywords: ["python"] },
-	{ name: "javascript", keywords: ["javascript"] },
-	{ name: "react", keywords: ["javascript", "react"] },
+	{ name: "python", keywords: ["python", "py"] },
+	{ name: "javascript", keywords: ["javascript", "js"] },
+	{ name: "react", keywords: ["javascript", "react", "jsx"] },
+	{ name: "rust", keywords: ["rust", "rs"] },
 	{
 		name: "angular",
-		keywords: ["javascript", "angular"],
+		keywords: ["javascript", "angular", 'js'],
 		icon: <AngularLogo height="17" width="17" />,
 	},
 	{
 		name: "vue",
-		keywords: ["javascript", "vue"],
+		keywords: ["javascript", "vue", 'js'],
 		icon: <VueLogo height="17" width="17" />,
 	},
 	{
 		name: "svelte",
-		keywords: ["javascript", "svelte"],
+		keywords: ["javascript", "svelte", 'js'],
 		icon: <SvelteLogo height="17" width="17" />,
 	},
 ];

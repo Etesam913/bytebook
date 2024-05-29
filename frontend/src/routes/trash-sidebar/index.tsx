@@ -91,7 +91,7 @@ export function TrashSidebar({
 				</div>
 			</motion.aside>
 			<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
-			{/* {item && item.endsWith(".md") && <TrashEditor curFile={item} />} */}
+			{item && item.endsWith(".md") && <TrashEditor curFile={item} />}
 		</>
 	);
 }

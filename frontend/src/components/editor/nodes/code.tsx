@@ -8,12 +8,13 @@ import type {
 	Spread,
 } from "lexical";
 import { $applyNodeReplacement, DecoratorNode } from "lexical";
-import type { CodeBlockData, CodeResultType } from "../../../types";
+import type { CodeBlockData } from "../../../types";
 import { languageToCommandMap } from "../../../utils/code";
 import {
 	SandpackEditor,
 	nonTemplateLanguageDefaultFiles,
 } from "../../code/index";
+import { CodeResponse } from "../../../../bindings/github.com/etesam913/bytebook";
 
 export interface CodePayload {
 	key?: NodeKey;
@@ -123,7 +124,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		return this.__command;
 	}
 
-	setData(files: SandpackFiles, result: CodeResultType): void {
+	setData(files: SandpackFiles, result: CodeResponse): void {
 		const writable = this.getWritable();
 		writable.__data = { files, result };
 	}
@@ -157,7 +158,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 				language={this.getLanguage()}
 				commandWrittenToNode={this.getCommand()}
 				focus={this.__focus}
-				writeDataToNode={(files: SandpackFiles, result: CodeResultType) =>
+				writeDataToNode={(files: SandpackFiles, result: CodeResponse) =>
 					this.setData(files, result)
 				}
 				writeCommandToNode={(command: string) =>

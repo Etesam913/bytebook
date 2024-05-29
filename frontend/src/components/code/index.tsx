@@ -7,16 +7,17 @@ import {
 } from "@codesandbox/sandpack-react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { useRef, useState } from "react";
 import { darkModeAtom } from "../../atoms";
-import type { CodeBlockData, CodeResultType } from "../../types";
+import type { CodeBlockData } from "../../types";
 import { cn } from "../../utils/string-formatting";
 import { CodeDialog } from "./code-dialog";
 import { CodeResult } from "./code-result";
 import { CodeViewer } from "./code-viewer";
 import { useCodeEditorCommands } from "./hooks";
+import { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook";
 
 type templates = "vanilla" | "angular" | "react" | "vue" | "svelte";
 
@@ -32,6 +33,7 @@ export const nonTemplateLanguageToExtension: Record<string, string> = {
 	python: "py",
 	go: "go",
 	java: "java",
+	rust: "rs",
 };
 
 export const nonTemplateLanguageDefaultFiles: Record<string, SandpackFiles> = {
@@ -52,6 +54,14 @@ export const nonTemplateLanguageDefaultFiles: Record<string, SandpackFiles> = {
 			active: true,
 		},
 	},
+	rust: {
+		"main.rs": {
+			code: `fn main() {
+    println!("Hello, world!");
+}`,
+			active: true,
+		},
+	}
 };
 
 export function SandpackEditor({
@@ -69,7 +79,7 @@ export function SandpackEditor({
 	commandWrittenToNode: string;
 	focus: boolean;
 	writeCommandToNode: (language: string) => void;
-	writeDataToNode: (files: SandpackFiles, result: CodeResultType) => void;
+	writeDataToNode: (files: SandpackFiles, result: CodeResponse) => void;
 }) {
 	const isDarkModeOn = useAtomValue(darkModeAtom);
 	const [isCodeSettingsOpen, setIsCodeSettingsOpen] = useState(false);
@@ -80,7 +90,7 @@ export function SandpackEditor({
 	const [isFullscreen, setIsFullscreen] = useState(false);
 	const defaultFiles = useRef(data.files);
 
-	const [codeResult, setCodeResult] = useState<CodeResultType>(data.result);
+	const [codeResult, setCodeResult] = useState<CodeResponse>(data.result);
 
 	const codeMirrorContainerRef = useRef<HTMLDivElement>(null);
 

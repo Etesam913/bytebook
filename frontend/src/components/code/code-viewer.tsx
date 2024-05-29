@@ -2,6 +2,8 @@ import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 import { go } from "@codemirror/lang-go";
 import { java } from "@codemirror/lang-java";
 import { python } from "@codemirror/lang-python";
+import {rust} from '@codemirror/lang-rust'
+
 import {
 	type CodeEditorRef,
 	SandpackFileExplorer,
@@ -165,6 +167,11 @@ export function CodeViewer({
 						name: "go",
 						extensions: [nonTemplateLanguageToExtension.go],
 						language: go(),
+					},
+					{
+						name: "rust",
+						extensions: [nonTemplateLanguageToExtension.go],
+						language: rust(),
 					},
 				]}
 			/>

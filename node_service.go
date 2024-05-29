@@ -42,6 +42,7 @@ func GetExtensionFromLanguage(language string) (bool, string) {
 		"go":         ".go",
 		"c":          ".c",
 		"c++":        ".cpp",
+		"rust":       ".rs",
 	}
 
 	value, exists := languageToExtension[language]
@@ -55,15 +56,54 @@ type CodeContextStore = map[string]context.CancelFunc
 
 var contextStore = CodeContextStore{}
 
-func RunFile(path string, command string) (string, error) {
+// writeCargoToml creates a standard Cargo.toml file in the specified directory.
+func writeCargoToml(dir string) error {
+	// Define the content of the Cargo.toml file
+	cargoTomlContent := `[package]
+name = "temp_project"
+version = "0.1.0"
+authors = ["Your Name <your.email@example.com>"]
+edition = "2021"
+
+[dependencies]
+`
+
+	// Ensure the directory exists
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	// Define the file path
+	filePath := filepath.Join(dir, "Cargo.toml")
+
+	// Create and open the file
+	file, err := os.Create(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to create file: %w", err)
+	}
+	defer file.Close()
+
+	// Write the content to the file
+	_, err = file.WriteString(cargoTomlContent)
+	if err != nil {
+		return fmt.Errorf("failed to write to file: %w", err)
+	}
+
+	fmt.Println("Cargo.toml file created successfully!")
+	return nil
+}
+
+func RunFile(projectPath string, filePath string, command string) (string, error) {
 	commandSplit := strings.Split(command, " ")
 	contextId, _ := project_helpers.GenerateRandomID()
-
+	fmt.Println("yo mama", projectPath, filePath, command)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	contextStore[contextId] = cancel
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, commandSplit[0], append(commandSplit[1:], path)...)
+	cmd := exec.CommandContext(ctx, commandSplit[0], append(commandSplit[1:], filePath)...)
+	cmd.Dir = projectPath
 	out, err := cmd.CombinedOutput()
 
 	if ctx.Err() == context.DeadlineExceeded {
@@ -91,21 +131,34 @@ func (n *NodeService) RunCode(language string, code string, command string) Code
 	}
 
 	// Creates a temp file for the code
-	filePath := fmt.Sprintf("%s/tmp%s", n.ProjectPath, extension)
-	file, err := os.Create(filePath)
+	dirPath := filepath.Join(n.ProjectPath, language, "src")
+	err := os.MkdirAll(dirPath, 0755)
 	if err != nil {
+		fmt.Println("Error creating directory:", dirPath)
 		return CodeResponse{
 			Success: false,
-			Message: "Something went wrong when running your code. Please try again later",
+			Message: "Failed to create directory. Please try again later.",
 			Id:      uniqueId,
 		}
 	}
 
+	// Construct the file path
+	filePath := filepath.Join(dirPath, "main"+extension)
+	file, err := os.Create(filePath)
+	if err != nil {
+		fmt.Println("Error creating file:", filePath)
+		return CodeResponse{
+			Success: false,
+			Message: "Something went wrong when creating the file. Please try again later.",
+			Id:      uniqueId,
+		}
+	}
 	defer file.Close()
 
 	_, err = file.WriteString(code)
 
 	if err != nil {
+		fmt.Println("nuts")
 		return CodeResponse{
 			Success: false,
 			Message: "Something went wrong when running your code. Please try again later",
@@ -113,7 +166,19 @@ func (n *NodeService) RunCode(language string, code string, command string) Code
 		}
 	}
 
-	res, err := RunFile(filePath, command)
+	if language == "rust" {
+		fmt.Println("is rust")
+		err = writeCargoToml(filepath.Join(n.ProjectPath, language))
+		if err != nil {
+			return CodeResponse{
+				Success: false,
+				Message: "Something went wrong when running your code. Please try again later",
+				Id:      uniqueId,
+			}
+		}
+	}
+
+	res, err := RunFile(filepath.Join(n.ProjectPath, language), filePath, command)
 
 	if err != nil {
 		return CodeResponse{
@@ -123,14 +188,14 @@ func (n *NodeService) RunCode(language string, code string, command string) Code
 		}
 	}
 
-	err = os.Remove(filePath)
-	if err != nil {
-		return CodeResponse{
-			Success: false,
-			Message: "Something went wrong when running your code. Please try again later",
-			Id:      uniqueId,
-		}
-	}
+	// err = os.Remove(filePath)
+	// if err != nil {
+	// 	return CodeResponse{
+	// 		Success: false,
+	// 		Message: "Something went wrong when running your code. Please try again later",
+	// 		Id:      uniqueId,
+	// 	}
+	// }
 
 	return CodeResponse{
 		Success: true,

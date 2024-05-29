@@ -14,7 +14,7 @@ export const CodeResult = memo(function CodeResult({
 		<div
 			onClick={(e) => e.stopPropagation()}
 			className={cn(
-				"bg-white border-[1px] border-[rgb(229,231,235)] dark:border-none font-code max-h-72 w-full p-3 dark:text-zinc-100 text-sm dark:bg-[rgb(21,21,21)] overflow-hidden relative",
+				"bg-white border-[1px] border-[rgb(229,231,235)] dark:border-none font-code max-h-72 w-full p-3 dark:text-zinc-100 text-sm dark:bg-[rgb(21,21,21)] overflow-auto relative",
 				!codeResult.success && "!text-red-500",
 			)}
 		>
