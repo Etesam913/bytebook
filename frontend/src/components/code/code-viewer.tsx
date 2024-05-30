@@ -1,8 +1,9 @@
 import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
+import { cpp } from "@codemirror/lang-cpp";
 import { go } from "@codemirror/lang-go";
 import { java } from "@codemirror/lang-java";
 import { python } from "@codemirror/lang-python";
-import {rust} from '@codemirror/lang-rust'
+import { rust } from "@codemirror/lang-rust";
 
 import {
 	type CodeEditorRef,
@@ -172,6 +173,11 @@ export function CodeViewer({
 						name: "rust",
 						extensions: [nonTemplateLanguageToExtension.go],
 						language: rust(),
+					},
+					{
+						name: "c++",
+						extensions: [nonTemplateLanguageToExtension.cpp],
+						language: cpp(),
 					},
 				]}
 			/>

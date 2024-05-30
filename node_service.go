@@ -41,7 +41,7 @@ func GetExtensionFromLanguage(language string) (bool, string) {
 		"typescript": ".ts",
 		"go":         ".go",
 		"c":          ".c",
-		"c++":        ".cpp",
+		"cpp":        ".cpp",
 		"rust":       ".rs",
 	}
 
@@ -55,6 +55,23 @@ func GetExtensionFromLanguage(language string) (bool, string) {
 type CodeContextStore = map[string]context.CancelFunc
 
 var contextStore = CodeContextStore{}
+
+func handleCppCompilation(pathToCppFile string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "g++", "-o", "main", pathToCppFile)
+	languageFolderPath := filepath.Dir(filepath.Dir(pathToCppFile))
+	cmd.Dir = languageFolderPath
+	out, err := cmd.CombinedOutput()
+	if ctx.Err() != nil {
+		return ctx.Err().Error(), ctx.Err()
+	}
+	if err != nil {
+		return err.Error() + "\n" + string(out), err
+	}
+	return filepath.Join(filepath.Dir(pathToCppFile), "main"), nil
+}
 
 // writeCargoToml creates a standard Cargo.toml file in the specified directory.
 func writeCargoToml(dir string) error {
@@ -97,7 +114,6 @@ edition = "2021"
 func RunFile(projectPath string, filePath string, command string) (string, error) {
 	commandSplit := strings.Split(command, " ")
 	contextId, _ := project_helpers.GenerateRandomID()
-	fmt.Println("yo mama", projectPath, filePath, command)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	contextStore[contextId] = cancel
 	defer cancel()
@@ -106,8 +122,8 @@ func RunFile(projectPath string, filePath string, command string) (string, error
 	cmd.Dir = projectPath
 	out, err := cmd.CombinedOutput()
 
-	if ctx.Err() == context.DeadlineExceeded {
-		return "Your code took too long to run. Please try again later.", fmt.Errorf("command timed out")
+	if ctx.Err() != nil {
+		return ctx.Err().Error(), ctx.Err()
 	}
 
 	if err != nil {
@@ -134,7 +150,6 @@ func (n *NodeService) RunCode(language string, code string, command string) Code
 	dirPath := filepath.Join(n.ProjectPath, language, "src")
 	err := os.MkdirAll(dirPath, 0755)
 	if err != nil {
-		fmt.Println("Error creating directory:", dirPath)
 		return CodeResponse{
 			Success: false,
 			Message: "Failed to create directory. Please try again later.",
@@ -158,7 +173,6 @@ func (n *NodeService) RunCode(language string, code string, command string) Code
 	_, err = file.WriteString(code)
 
 	if err != nil {
-		fmt.Println("nuts")
 		return CodeResponse{
 			Success: false,
 			Message: "Something went wrong when running your code. Please try again later",
@@ -167,7 +181,6 @@ func (n *NodeService) RunCode(language string, code string, command string) Code
 	}
 
 	if language == "rust" {
-		fmt.Println("is rust")
 		err = writeCargoToml(filepath.Join(n.ProjectPath, language))
 		if err != nil {
 			return CodeResponse{
@@ -178,6 +191,17 @@ func (n *NodeService) RunCode(language string, code string, command string) Code
 		}
 	}
 
+	if language == "cpp" {
+		cppExecutablePath, err := handleCppCompilation(filePath)
+		if err != nil {
+			return CodeResponse{
+				Success: false,
+				Message: "Something went wrong when running your code. Please try again later",
+				Id:      uniqueId,
+			}
+		}
+		filePath = cppExecutablePath
+	}
 	res, err := RunFile(filepath.Join(n.ProjectPath, language), filePath, command)
 
 	if err != nil {

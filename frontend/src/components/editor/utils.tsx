@@ -127,7 +127,8 @@ export const languageCommandData: {
 		| "angular"
 		| "vue"
 		| "svelte"
-		| "rust";
+		| "rust"
+		| "cpp";
 	keywords: string[];
 	icon?: JSX.Element;
 }[] = [
@@ -137,19 +138,20 @@ export const languageCommandData: {
 	{ name: "javascript", keywords: ["javascript", "js"] },
 	{ name: "react", keywords: ["javascript", "react", "jsx"] },
 	{ name: "rust", keywords: ["rust", "rs"] },
+	{ name: "cpp", keywords: ["c++", "cpp"] },
 	{
 		name: "angular",
-		keywords: ["javascript", "angular", 'js'],
+		keywords: ["javascript", "angular", "js"],
 		icon: <AngularLogo height="17" width="17" />,
 	},
 	{
 		name: "vue",
-		keywords: ["javascript", "vue", 'js'],
+		keywords: ["javascript", "vue", "js"],
 		icon: <VueLogo height="17" width="17" />,
 	},
 	{
 		name: "svelte",
-		keywords: ["javascript", "svelte", 'js'],
+		keywords: ["javascript", "svelte", "js"],
 		icon: <SvelteLogo height="17" width="17" />,
 	},
 ];

@@ -8,13 +8,13 @@ import type {
 	Spread,
 } from "lexical";
 import { $applyNodeReplacement, DecoratorNode } from "lexical";
+import type { CodeResponse } from "../../../../bindings/github.com/etesam913/bytebook";
 import type { CodeBlockData } from "../../../types";
 import { languageToCommandMap } from "../../../utils/code";
 import {
 	SandpackEditor,
 	nonTemplateLanguageDefaultFiles,
 } from "../../code/index";
-import { CodeResponse } from "../../../../bindings/github.com/etesam913/bytebook";
 
 export interface CodePayload {
 	key?: NodeKey;

@@ -63,7 +63,7 @@ function handleChange(
 		() => {
 			const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
 			const frontmatterCopy = { ...frontmatter };
-			frontmatterCopy["lastUpdated"] = new Date().toISOString();
+			frontmatterCopy.lastUpdated = new Date().toISOString();
 			const markdownWithFrontmatter = replaceFrontMatter(
 				markdown,
 				frontmatterCopy,

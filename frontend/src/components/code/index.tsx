@@ -10,6 +10,7 @@ import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection"
 import { AnimatePresence } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { useRef, useState } from "react";
+import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook";
 import { darkModeAtom } from "../../atoms";
 import type { CodeBlockData } from "../../types";
 import { cn } from "../../utils/string-formatting";
@@ -17,7 +18,6 @@ import { CodeDialog } from "./code-dialog";
 import { CodeResult } from "./code-result";
 import { CodeViewer } from "./code-viewer";
 import { useCodeEditorCommands } from "./hooks";
-import { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook";
 
 type templates = "vanilla" | "angular" | "react" | "vue" | "svelte";
 
@@ -34,6 +34,7 @@ export const nonTemplateLanguageToExtension: Record<string, string> = {
 	go: "go",
 	java: "java",
 	rust: "rs",
+	cpp: "cpp",
 };
 
 export const nonTemplateLanguageDefaultFiles: Record<string, SandpackFiles> = {
@@ -61,7 +62,13 @@ export const nonTemplateLanguageDefaultFiles: Record<string, SandpackFiles> = {
 }`,
 			active: true,
 		},
-	}
+	},
+	cpp: {
+		"main.cpp": {
+			code: `#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}`,
+			active: true,
+		},
+	},
 };
 
 export function SandpackEditor({
