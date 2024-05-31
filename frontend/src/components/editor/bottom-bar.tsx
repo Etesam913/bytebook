@@ -8,7 +8,7 @@ function BreadcrumbItem({ children, to }: { children: ReactNode; to: string }) {
 	return (
 		<Link
 			to={to}
-			className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-300 hover:text-[currentColor]"
+			className="flex items-center gap-1 text-zinc-500 dark:text-zinc-300 hover:text-[currentColor] whitespace-nowrap text-ellipsis overflow-hidden"
 		>
 			{children}
 		</Link>
@@ -39,7 +39,7 @@ export function BottomBar({
 	}, [frontmatter]);
 
 	return (
-		<footer className="text-xs ml-[-4.5px] border-t border-gray-200 dark:border-gray-600 py-1.5 px-3 flex items-center gap-1 justify-between">
+		<footer className="text-xs ml-[-4.5px] border-t border-gray-200 dark:border-gray-600 py-1.5 px-3 flex items-center gap-5 justify-between">
 			<span className="flex items-center gap-1">
 				<BreadcrumbItem to={`/${folder}`}>
 					<Folder width="0.9rem" /> {folder}
@@ -50,7 +50,7 @@ export function BottomBar({
 				</BreadcrumbItem>
 			</span>
 			{lastUpdatedText.length > 0 && (
-				<p className="text-zinc-500 dark:text-zinc-300">
+				<p className="text-zinc-500 dark:text-zinc-300 whitespace-nowrap text-ellipsis overflow-hidden">
 					Last Updated: {lastUpdatedText} ago
 				</p>
 			)}
