@@ -13,7 +13,13 @@ import { Events } from "@wailsio/runtime";
 import { motion, useAnimationControls } from "framer-motion";
 import { useAtomValue, useSetAtom } from "jotai";
 import type { LexicalEditor } from "lexical";
-import { useEffect, useRef, useState } from "react";
+import {
+	type Dispatch,
+	type SetStateAction,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import { SetNoteMarkdown } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
 import { WINDOW_ID } from "../../App.tsx";
 import { isNoteMaximizedAtom, noteContainerRefAtom } from "../../atoms";
@@ -34,6 +40,7 @@ import TreeViewPlugin from "./plugins/tree-view";
 import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 
+import { BottomBar } from "./bottom-bar.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import {
 	$convertToMarkdownStringCorrect,
@@ -49,6 +56,7 @@ function handleChange(
 	editor: LexicalEditor,
 	tags: Set<string>,
 	frontmatter: Record<string, string>,
+	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>,
 ) {
 	/* 
 		If the note was changed from another window, don't update it again 
@@ -77,6 +85,7 @@ function handleChange(
 					oldWindowAppId: WINDOW_ID,
 				},
 			});
+			setFrontmatter(frontmatterCopy);
 			SetNoteMarkdown(folder, note, markdownWithFrontmatter);
 		},
 		{ tag: "note:changed-from-other-window" },
@@ -100,8 +109,8 @@ export function NotesEditor({
 		type: null,
 	});
 	const [isFindOpen, setIsFindOpen] = useState(false);
-
 	const noteContainerRef = useRef<HTMLDivElement | null>(null);
+
 	const setNoteContainerRef = useSetAtom(noteContainerRefAtom);
 	useMostRecentNotes(folder, note);
 
@@ -115,6 +124,10 @@ export function NotesEditor({
 	useEffect(() => {
 		setNoteContainerRef(noteContainerRef);
 	}, [noteContainerRef]);
+
+	useEffect(() => {
+		setFrontmatter({});
+	}, [note]);
 
 	return (
 		<motion.div
@@ -159,13 +172,28 @@ export function NotesEditor({
 					<ComponentPickerMenuPlugin folder={folder} note={note} />
 					<RichTextPlugin
 						placeholder={null}
-						contentEditable={<ContentEditable id="content-editable-editor" />}
+						contentEditable={
+							<ContentEditable
+								id="content-editable-editor"
+								autoComplete="off"
+								autoCorrect="off"
+								autoCapitalize="off"
+								spellcheck="false"
+							/>
+						}
 						ErrorBoundary={LexicalErrorBoundary}
 					/>
 					<OnChangePlugin
 						ignoreSelectionChange
 						onChange={(_, editor, tag) =>
-							debouncedHandleChange(folder, note, editor, tag, frontmatter)
+							debouncedHandleChange(
+								folder,
+								note,
+								editor,
+								tag,
+								frontmatter,
+								setFrontmatter,
+							)
 						}
 					/>
 					<CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
@@ -183,6 +211,7 @@ export function NotesEditor({
 					<TablePlugin />
 					{/* <TreeViewPlugin /> */}
 				</div>
+				<BottomBar frontmatter={frontmatter} folder={folder} note={note} />
 			</LexicalComposer>
 		</motion.div>
 	);
