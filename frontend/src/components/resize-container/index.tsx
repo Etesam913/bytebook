@@ -1,22 +1,15 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import {
-	AnimatePresence,
-	motion,
-	useMotionValue,
-	useSpring,
-} from "framer-motion";
+import { AnimatePresence, motion, useMotionValue } from "framer-motion";
 import { type ReactNode, useEffect, useRef } from "react";
 import { getDefaultButtonVariants } from "../../animations";
-
 import { CircleArrowLeft } from "../../icons/circle-arrow-left";
 import { CircleArrowRight } from "../../icons/circle-arrow-right";
 import { XMark } from "../../icons/circle-xmark";
 import type { ResizeState, ResizeWidth } from "../../types";
-
-import { dragItem } from "../../utils/draggable";
 import { cn } from "../../utils/string-formatting";
 import { useTrapFocus } from "../dialog/hooks";
 import { ResizeControls } from "./resize-controls";
+import { ResizeHandle } from "./resize-handle";
 import { expandNearestSiblingNode, useMouseActivity } from "./utils";
 
 export function ResizeContainer({
@@ -39,7 +32,6 @@ export function ResizeContainer({
 	shouldHeightMatchWidth?: boolean;
 }) {
 	const widthMotionValue = useMotionValue<number | "100%">(defaultWidth);
-	const s = useSpring(widthMotionValue, { damping: 18, stiffness: 105 });
 	const resizeWidthMotionValue = useMotionValue<number | "100%">(
 		widthMotionValue.get(),
 	);
@@ -94,8 +86,8 @@ export function ResizeContainer({
 					isExpanded && elementType === "excalidraw" && "!h-screen",
 				)}
 				style={{
-					width: !isExpanded ? s : "100%",
-					height: shouldHeightMatchWidth ? s : "auto",
+					width: !isExpanded ? widthMotionValue : "100%",
+					height: shouldHeightMatchWidth ? widthMotionValue : "auto",
 					transition: "outline 0.2s ease-in-out, opacity 0.2s ease-in-out",
 				}}
 			>
@@ -111,7 +103,16 @@ export function ResizeContainer({
 									width: resizeWidthMotionValue,
 									height: resizeHeightMotionValue,
 								}}
-							/>
+							>
+								<motion.div
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									exit={{ opacity: 0, transition: { duration: 0.25 } }}
+									className={
+										"w-4 h-4 bg-blue-400 bottom-[-10px] right-[-9px] absolute cursor-nwse-resize rounded-sm pointer-events-none"
+									}
+								/>
+							</motion.div>
 							<ResizeControls
 								elementType={elementType}
 								nodeKey={nodeKey}
@@ -126,78 +127,13 @@ export function ResizeContainer({
 								resizeDimensionsRef={resizeDimensions}
 								element={element}
 							/>
-							<motion.div
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0, transition: { duration: 0.25 } }}
-								className={
-									"w-4 h-4 bg-blue-400 bottom-[-10px] right-[-9px] absolute cursor-nwse-resize rounded-sm"
-								}
-								onMouseDown={(mouseDownEvent) => {
-									setIsResizing(true);
-									dragItem(
-										(dragEvent) => {
-											const mouseDownBox =
-												mouseDownEvent.target as HTMLDivElement;
-											const mouseDownBoxRect =
-												mouseDownBox.getBoundingClientRect();
-											const widthDiff =
-												mouseDownBoxRect.right - dragEvent.clientX;
-											const heightDiff =
-												mouseDownBoxRect.bottom - dragEvent.clientY;
-
-											// Early exit if element is not defined
-											if (!element) {
-												return;
-											}
-
-											document.body.style.cursor = "nwse-resize";
-
-											const isWidthSmaller = widthDiff < heightDiff;
-											let newWidth = 0;
-											let newHeight = 0;
-											if (isWidthSmaller) {
-												// Calculate new width based on width difference
-												newWidth = Math.max(
-													160,
-													Math.round(element.clientWidth - widthDiff),
-												);
-												newHeight = Math.round(
-													newWidth *
-														(element.clientHeight / element.clientWidth),
-												);
-											} else {
-												// Calculate new height and adjust width to maintain aspect ratio
-												newHeight = element.clientHeight - heightDiff;
-												newWidth = Math.max(
-													160,
-													Math.round(
-														newHeight *
-															(element.clientWidth / element.clientHeight),
-													),
-												);
-												// Recalculate newHeight as the width could have changed to 160
-												newHeight = Math.round(
-													newWidth *
-														(element.clientHeight / element.clientWidth),
-												);
-											}
-
-											// Update the width through the motion value
-											resizeWidthMotionValue.set(newWidth);
-											resizeHeightMotionValue.set(newHeight);
-										},
-
-										() => {
-											document.body.style.cursor = "";
-											widthMotionValue.set(resizeWidthMotionValue.get());
-											setTimeout(() => {
-												writeWidthToNode(widthMotionValue.get());
-											}, 100);
-											setIsResizing(false);
-										},
-									);
-								}}
+							<ResizeHandle
+								element={element}
+								resizeWidthMotionValue={resizeWidthMotionValue}
+								resizeHeightMotionValue={resizeHeightMotionValue}
+								widthMotionValue={widthMotionValue}
+								writeWidthToNode={writeWidthToNode}
+								setIsResizing={setIsResizing}
 							/>
 						</>
 					)}

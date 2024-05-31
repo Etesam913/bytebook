@@ -493,9 +493,11 @@ export function searchWithinNote(
 
 			const text = node.getTextContent();
 			const indexes = [];
-			let result;
-
-			while ((result = regex.exec(text))) indexes.push(result.index);
+			let result = regex.exec(text);
+			while (result) {
+				indexes.push(result.index);
+				result = regex.exec(text);
+			}
 
 			if (!indexes.length) return;
 
@@ -622,8 +624,7 @@ export function replaceFrontMatter(
 	if (frontMatterRegex.test(markdown)) {
 		// If existing front matter is found, replace it with the new front matter
 		return markdown.replace(frontMatterRegex, newFrontMatter);
-	} else {
-		// If no front matter is found, prepend the new front matter to the markdown content
-		return newFrontMatter + markdown;
 	}
+	// If no front matter is found, prepend the new front matter to the markdown content
+	return newFrontMatter + markdown;
 }
