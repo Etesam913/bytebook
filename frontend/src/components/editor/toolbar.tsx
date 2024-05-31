@@ -82,7 +82,6 @@ export function Toolbar({
 			markdown,
 			oldWindowAppId,
 		} = data;
-
 		if (
 			folderName === folder &&
 			noteName === note &&

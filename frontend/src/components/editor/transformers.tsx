@@ -157,7 +157,6 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 					? "100%"
 					: Number.parseInt(widthQueryValue)
 				: "100%";
-			console.log(width);
 			if (shouldCreateImageNode) {
 				nodeToCreate = $createImageNode({
 					alt: removeQueryParam(alt, "width"),

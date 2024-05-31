@@ -35,6 +35,7 @@ export function AttachmentsAccordion({
 
 	const attachmentElements = attachments?.map((attachmentFile, i) => (
 		<AttachmentItem
+			key={attachmentFile}
 			attachmentFile={attachmentFile}
 			attachments={attachments}
 			attachmentsSelectionRange={attachmentsSelectionRange}

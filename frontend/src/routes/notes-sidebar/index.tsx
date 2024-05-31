@@ -223,12 +223,12 @@ export function NotesSidebar({
 										notes={notes}
 										setRightClickedNote={setRightClickedNote}
 									/>
-									<AttachmentsAccordion
+									{/* <AttachmentsAccordion
 										folder={folder}
 										note={note}
 										attachmentsSelectionRange={attachmentsSelectionRange}
 										setAttachmentsSelectionRange={setAttachmentsSelectionRange}
-									/>
+									/> */}
 								</div>
 							</section>
 						</div>

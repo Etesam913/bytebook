@@ -1,7 +1,11 @@
 import { type MotionValue, motion } from "framer-motion";
+import { useAtomValue } from "jotai";
 import type { Dispatch, SetStateAction } from "react";
+import { noteContainerRefAtom } from "../../atoms";
 import type { ResizeWidth } from "../../types";
 import { dragItem } from "../../utils/draggable";
+
+const RIGHT_BOUNDARY = 45;
 
 interface ResizeHandleProps {
 	element: HTMLElement | null;
@@ -20,8 +24,9 @@ export function ResizeHandle({
 	writeWidthToNode,
 	setIsResizing,
 }: ResizeHandleProps) {
+	const noteContainerRef = useAtomValue(noteContainerRefAtom);
 
-  // The component has no background-color as there is a copy of this in the parent component that follows the resize outline
+	// The component has no background-color as there is a copy of this in the parent component that follows the resize outline
 	return (
 		<motion.div
 			initial={{ opacity: 0 }}
@@ -47,13 +52,17 @@ export function ResizeHandle({
 						document.body.style.cursor = "nwse-resize";
 
 						const isWidthSmaller = widthDiff < heightDiff;
+
 						let newWidth = 0;
 						let newHeight = 0;
+						const noteContainerWidth =
+							(noteContainerRef?.current?.clientWidth ?? 0) - RIGHT_BOUNDARY;
+
 						if (isWidthSmaller) {
 							// Calculate new width based on width difference
-							newWidth = Math.max(
-								160,
-								Math.round(element.clientWidth - widthDiff),
+							newWidth = Math.min(
+								Math.max(160, Math.round(element.clientWidth - widthDiff)),
+								noteContainerWidth,
 							);
 							newHeight = Math.round(
 								newWidth * (element.clientHeight / element.clientWidth),
@@ -61,11 +70,14 @@ export function ResizeHandle({
 						} else {
 							// Calculate new height and adjust width to maintain aspect ratio
 							newHeight = element.clientHeight - heightDiff;
-							newWidth = Math.max(
-								160,
-								Math.round(
-									newHeight * (element.clientWidth / element.clientHeight),
+							newWidth = Math.min(
+								Math.max(
+									160,
+									Math.round(
+										newHeight * (element.clientWidth / element.clientHeight),
+									),
 								),
+								noteContainerWidth,
 							);
 							// Recalculate newHeight as the width could have changed to 160
 							newHeight = Math.round(

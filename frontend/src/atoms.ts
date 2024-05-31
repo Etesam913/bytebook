@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import type { MutableRefObject } from "react";
 import type { FolderDialogState } from "./types.ts";
 
 const privateMostRecentNotesAtom = atom<string[]>(
@@ -29,3 +30,6 @@ export const isFolderDialogOpenAtom = atom<FolderDialogState>({
 	isOpen: false,
 	folderName: "",
 });
+
+export const noteContainerRefAtom =
+	atom<MutableRefObject<HTMLElement | null> | null>(null);

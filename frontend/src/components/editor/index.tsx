@@ -11,12 +11,12 @@ import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { Events } from "@wailsio/runtime";
 import { motion, useAnimationControls } from "framer-motion";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import type { LexicalEditor } from "lexical";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SetNoteMarkdown } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
 import { WINDOW_ID } from "../../App.tsx";
-import { isNoteMaximizedAtom } from "../../atoms";
+import { isNoteMaximizedAtom, noteContainerRefAtom } from "../../atoms";
 import type { FloatingDataType } from "../../types.ts";
 import { debounce } from "../../utils/draggable";
 import useHotkeys from "../../utils/hooks.tsx";
@@ -73,7 +73,7 @@ function handleChange(
 				data: {
 					folder,
 					note,
-					markdownWithFrontmatter,
+					markdown: markdownWithFrontmatter,
 					oldWindowAppId: WINDOW_ID,
 				},
 			});
@@ -102,6 +102,7 @@ export function NotesEditor({
 	const [isFindOpen, setIsFindOpen] = useState(false);
 
 	const noteContainerRef = useRef<HTMLDivElement | null>(null);
+	const setNoteContainerRef = useSetAtom(noteContainerRefAtom);
 	useMostRecentNotes(folder, note);
 
 	useHotkeys({
@@ -110,6 +111,10 @@ export function NotesEditor({
 			setIsFindOpen((prev) => !prev);
 		},
 	});
+
+	useEffect(() => {
+		setNoteContainerRef(noteContainerRef);
+	}, [noteContainerRef]);
 
 	return (
 		<motion.div
