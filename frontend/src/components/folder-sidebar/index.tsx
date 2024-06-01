@@ -4,7 +4,10 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import { Link, useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
-import { AddFolder } from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
+import {
+	AddFolder,
+	DeleteFolder,
+} from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
 import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
 import { WINDOW_ID } from "../../App.tsx";
 import { getDefaultButtonVariants } from "../../animations.ts";
@@ -27,6 +30,7 @@ import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
+import { FolderXMark } from "../../icons/folder-xmark.tsx";
 
 const FOLDER_NAME_REGEX = /^[^<>:"/\\|?*\s]+(\s[^<>:"/\\|?*\s]+)*$/;
 
@@ -72,11 +76,40 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 
 	useWailsEvent("folder:context-menu:delete", (body) => {
 		const [folderName, windowId] = (body.data as string).split(",");
-		if (windowId === WINDOW_ID) {
-			setIsFolderDialogOpen({
+		// There's a weird bug with apostrophe that required this replaceAll
+		const cleanedWindowId = windowId.trim().replaceAll('"', "");
+		if (cleanedWindowId === WINDOW_ID) {
+			setDialogData({
 				isOpen: true,
-				action: "delete",
-				folderName,
+				title: "Delete Folder",
+				children: (errorText) => (
+					<>
+						<fieldset>
+							<p className="text-sm text-zinc-500 dark:text-zinc-400">
+								Are you sure you want to{" "}
+								<span className="text-red-500">delete "{folderName}"</span> and
+								sent its notes to the trash bin?
+							</p>
+							<DialogErrorText errorText={errorText} />
+						</fieldset>
+						<MotionButton
+							type="submit"
+							{...getDefaultButtonVariants()}
+							className="w-[calc(100%-1.5rem)] mx-auto justify-center"
+						>
+							<FolderXMark /> <span>Delete Folder</span>
+						</MotionButton>
+					</>
+				),
+				onSubmit: async (_, setErrorText) => {
+					try {
+						const res = await DeleteFolder(folderName);
+						if (!res.success) throw new Error(res.message);
+						resetDialogState(setErrorText, setDialogData);
+					} catch (e) {
+						if (e instanceof Error) setErrorText(e.message);
+					}
+				},
 			});
 		}
 	});

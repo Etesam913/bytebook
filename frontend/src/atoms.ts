@@ -1,6 +1,5 @@
 import { atom } from "jotai";
-import { SetStateAction } from "jotai/ts3.8/esm/vanilla";
-import type { Dispatch, FormEvent, MutableRefObject } from "react";
+import type { MutableRefObject } from "react";
 import type { DialogDataType, FolderDialogState } from "./types.ts";
 
 const privateMostRecentNotesAtom = atom<string[]>(
