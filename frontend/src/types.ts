@@ -46,3 +46,9 @@ export type ResizeState = {
 	setIsExpanded: Dispatch<SetStateAction<boolean>>;
 	setIsSubtitlesDialogOpen?: Dispatch<SetStateAction<boolean>>;
 };
+
+export type DialogDataType = {
+	isOpen: boolean;
+	title: string;
+	children: ReactNode;
+};

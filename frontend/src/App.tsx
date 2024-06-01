@@ -5,6 +5,7 @@ import { Link, Route, Switch } from "wouter";
 import { getDefaultButtonVariants } from "./animations";
 import { isNoteMaximizedAtom } from "./atoms";
 import { MotionIconButton } from "./components/buttons";
+import { NewDialog } from "./components/dialog/new-dialog";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { CircleArrowLeft } from "./icons/circle-arrow-left";
 import { NotFound } from "./routes/not-found";
@@ -27,6 +28,7 @@ function App() {
 			id="App"
 			className="flex max-h-screen font-display text-zinc-950 dark:text-zinc-100"
 		>
+			<NewDialog />
 			<Toaster richColors theme="system" />
 
 			{!isNoteMaximized && <FolderSidebar width={folderSidebarWidth} />}

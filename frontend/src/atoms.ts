@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import type { MutableRefObject } from "react";
-import type { FolderDialogState } from "./types.ts";
+import type { DialogDataType, FolderDialogState } from "./types.ts";
 
 const privateMostRecentNotesAtom = atom<string[]>(
 	JSON.parse(localStorage.getItem("mostRecentNotes") ?? "[]") as string[],
@@ -33,3 +33,9 @@ export const isFolderDialogOpenAtom = atom<FolderDialogState>({
 
 export const noteContainerRefAtom =
 	atom<MutableRefObject<HTMLElement | null> | null>(null);
+
+export const dialogDataAtom = atom<DialogDataType>({
+	isOpen: false,
+	title: "",
+	children: null,
+});

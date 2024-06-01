@@ -16,7 +16,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 			<button
 				ref={ref}
 				className={cn(
-					"bg-zinc-50 dark:bg-zinc-700 rounded-md text-left p-[6px] border-[1.25px] border-zinc-300 dark:border-zinc-600 flex items-center disabled:bg-opacity-75 select-none will-change-transfor",
+					"bg-zinc-50 dark:bg-zinc-700 rounded-md text-left p-[6px] border-[1.25px] border-zinc-300 dark:border-zinc-600 flex gap-x-1.5 items-center disabled:bg-opacity-75 select-none will-change-transform",
 					className,
 				)}
 				type="button"
