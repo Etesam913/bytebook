@@ -86,7 +86,11 @@ function handleChange(
 				},
 			});
 			setFrontmatter(frontmatterCopy);
-			SetNoteMarkdown(folder, note, markdownWithFrontmatter);
+			SetNoteMarkdown(
+				decodeURIComponent(folder),
+				decodeURIComponent(note),
+				markdownWithFrontmatter,
+			);
 		},
 		{ tag: "note:changed-from-other-window" },
 	);

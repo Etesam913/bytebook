@@ -31,7 +31,9 @@ export function TrashSidebar({
 				const res = await GetFilesInTrash();
 				if (res.success) {
 					if (res.data.length > 0) {
-						navigate(`/trash/${res.data[0]}`, { replace: true });
+						navigate(`/trash/${encodeURIComponent(res.data[0])}`, {
+							replace: true,
+						});
 					}
 					setFiles(res.data);
 					return;

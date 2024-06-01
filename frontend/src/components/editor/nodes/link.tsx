@@ -112,8 +112,7 @@ export class LinkNode extends ElementNode {
 			classNames.pop();
 			classNames.push(config.theme.internalLink);
 
-			const decodedUrl = decodeURIComponent(element.href);
-			const url = new URL(decodedUrl);
+			const url = new URL(element.href);
 			const segments = url.pathname.split("/");
 			segments.shift();
 
@@ -130,6 +129,7 @@ export class LinkNode extends ElementNode {
 			});
 
 			element.onclick = (e) => {
+				// The segments are encoded by default
 				if (isNoteLink) {
 					const note = segments[segments.length - 1];
 					const folder = segments[segments.length - 2];

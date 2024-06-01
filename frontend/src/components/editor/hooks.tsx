@@ -63,7 +63,7 @@ export function useNoteMarkdown(
 	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>,
 ) {
 	useEffect(() => {
-		GetNoteMarkdown(`notes/${folder}/${note}.md`)
+		GetNoteMarkdown(`notes/${decodeURIComponent(folder)}/${note}.md`)
 			.then((res) => {
 				if (res.success) {
 					editor.setEditable(true);

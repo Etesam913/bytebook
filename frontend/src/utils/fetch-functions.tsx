@@ -29,16 +29,21 @@ export function updateNotes(
 	note: string | undefined,
 	setNotes: Dispatch<SetStateAction<string[] | null>>,
 ) {
-	GetNotes(folder)
+	GetNotes(decodeURIComponent(folder))
 		.then((res) => {
 			if (res.success) {
 				const notes = res.data;
 				setNotes(notes);
 				// If the current is not defined, then navigate to the first note so that you are never at an undefined note
 				if (!note) {
-					navigate(`/${folder}${notes?.at(0) ? `/${notes.at(0)}` : "/"}`, {
-						replace: true,
-					});
+					navigate(
+						`/${folder}${
+							notes?.at(0) ? `/${encodeURIComponent(notes[0])}` : "/"
+						}`,
+						{
+							replace: true,
+						},
+					);
 				}
 			} else {
 				throw new Error("Failed in retrieving notes");

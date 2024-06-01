@@ -61,7 +61,6 @@ export function NotesSidebar({
 	const [rightClickedNote, setRightClickedNote] = useState<string | null>(null);
 
 	useOnClickOutside(sidebarRef, () => setAttachmentsSelectionRange(new Set()));
-
 	useEffect(() => {
 		updateNotes(folder, note, setNotes);
 
@@ -78,20 +77,21 @@ export function NotesSidebar({
 
 	useWailsEvent("note:create", (body) => {
 		const data = body.data as { folder: string; note: string };
-		if (data.folder !== folder) return;
+		// Windows that are on a different folder should not navigate to this new url
+		if (data.folder !== decodeURIComponent(folder)) return;
 		setNotes((prev) => (prev ? [...prev, data.note] : [data.note]));
-		navigate(`/${folder}/${data.note}`);
+		navigate(`/${folder}/${encodeURIComponent(data.note)}`);
 	});
 
 	useWailsEvent("note:delete", (body) => {
 		const data = body.data as { folder: string; note: string };
-		if (data.folder !== folder) return;
+		if (data.folder !== decodeURIComponent(folder)) return;
 		setNotes((prev) => {
 			const newNotes = prev ? prev.filter((v) => v !== data.note) : [data.note];
 			// The note that you are on is deleted
-			if (note === data.note) {
+			if (note && decodeURIComponent(note) === data.note) {
 				if (newNotes.length > 0) {
-					navigate(`/${folder}/${newNotes[0]}`);
+					navigate(`/${folder}/${encodeURIComponent(newNotes[0])}`);
 				} else {
 					navigate(`/${folder}`);
 				}
@@ -193,7 +193,7 @@ export function NotesSidebar({
 							<section className="flex items-center min-h-[3.625rem] gap-2">
 								<Folder className="min-w-[1.25rem]" />{" "}
 								<p className="overflow-hidden text-ellipsis whitespace-nowrap">
-									{folder}
+									{decodeURIComponent(folder)}
 								</p>
 								<MotionIconButton
 									{...getDefaultButtonVariants()}

@@ -19,6 +19,7 @@ import {
 import { CircleArrowLeft } from "../../icons/circle-arrow-left.tsx";
 import { CircleArrowRight } from "../../icons/circle-arrow-right.tsx";
 import { FolderPlus } from "../../icons/folder-plus";
+import { FolderXMark } from "../../icons/folder-xmark.tsx";
 import { Gear } from "../../icons/gear.tsx";
 import { updateFolders } from "../../utils/fetch-functions";
 import { useWailsEvent } from "../../utils/hooks.tsx";
@@ -30,7 +31,6 @@ import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
-import { FolderXMark } from "../../icons/folder-xmark.tsx";
 
 const FOLDER_NAME_REGEX = /^[^<>:"/\\|?*\s]+(\s[^<>:"/\\|?*\s]+)*$/;
 
@@ -49,7 +49,8 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 
 		AddNoteToFolder(data.folder, "Untitled")
 			.then((res) => {
-				if (res.success) navigate(`/${data.folder}/Untitled`);
+				if (res.success)
+					navigate(`/${encodeURIComponent(data.folder)}/Untitled`);
 				else throw new Error(res.message);
 			})
 			.catch((e) => console.error(e));
@@ -63,7 +64,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 			if (prev) {
 				const newFolders = prev.filter((folder) => folder !== data.folder);
 				if (newFolders.length > 0) {
-					navigate(`/${newFolders[0]}`);
+					navigate(`/${encodeURIComponent(newFolders[0])}`);
 				} else {
 					navigate("/");
 				}

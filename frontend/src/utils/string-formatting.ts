@@ -102,15 +102,10 @@ export function isInternalLink(url: string) {
  *          isFolderLink - true if the URL points to a folder, determined by having 1 segment in the pathname.
  */
 export function getInternalLinkType(url: string) {
-	// Decode the URL to handle any encoded characters.
-	const decodedUrl = decodeURIComponent(url);
-
-	// Parse the decoded URL.
-	const urlObj = new URL(decodedUrl);
+	const urlObj = new URL(url);
 
 	// Split the pathname into segments.
 	const segments = urlObj.pathname.split("/");
-
 	// Remove the first segment as it's always empty (due to leading slash).
 	segments.shift();
 

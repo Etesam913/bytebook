@@ -54,7 +54,11 @@ export function NoteTitle({
 				onBlur={() => {
 					setIsToolbarDisabled(false);
 					if (noteTitle === note || errorText.length > 0) return;
-					RenameNote(folder, note, noteTitle)
+					RenameNote(
+						decodeURIComponent(folder),
+						decodeURIComponent(note),
+						noteTitle,
+					)
 						.then((res) => {
 							if (res.success) {
 								Events.Emit({
@@ -66,8 +70,7 @@ export function NoteTitle({
 										],
 									},
 								});
-
-								navigate(`/${folder}/${noteTitle}`);
+								navigate(`/${folder}/${encodeURIComponent(noteTitle)}`);
 							} else {
 								setErrorText(res.message);
 							}

@@ -42,7 +42,7 @@ export function BottomBar({
 		<footer className="text-xs ml-[-4.5px] border-t border-gray-200 dark:border-gray-600 py-1.5 px-3 flex items-center gap-5 justify-between">
 			<span className="flex items-center gap-1">
 				<BreadcrumbItem to={`/${folder}`}>
-					<Folder width="0.9rem" /> {folder}
+					<Folder width="0.9rem" /> {decodeURIComponent(folder)}
 				</BreadcrumbItem>{" "}
 				/{" "}
 				<BreadcrumbItem to={`/${folder}/${note}`}>

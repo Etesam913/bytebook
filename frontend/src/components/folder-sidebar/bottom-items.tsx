@@ -22,11 +22,11 @@ export function BottomItems() {
 	const isTrashOpen = base === "trash";
 
 	function handleTrashButtonDrop(e: DragEvent<HTMLAnchorElement>) {
-		e.preventDefault();
 		const urls: string = e.dataTransfer.getData("text/plain");
 		const urlArray = urls.split(",");
 		const paths: string[] = [];
 		setIsNoteOver(false);
+
 		urlArray.forEach((url) => {
 			if (isInternalLink(url)) {
 				const { isNoteLink } = getInternalLinkType(url);
