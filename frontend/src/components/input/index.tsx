@@ -17,7 +17,7 @@ export function Input({
 			{label && (
 				<label
 					className={cn(
-						"text-sm cursor-pointer text-zinc-500 dark:text-zinc-300",
+						"text-sm cursor-pointer pb-2 text-zinc-500 dark:text-zinc-300",
 						labelClassName,
 					)}
 					{...restLabelProps}
@@ -26,8 +26,9 @@ export function Input({
 				</label>
 			)}
 			<input
+				maxLength={75}
 				className={cn(
-					"bg-zinc-150 dark:bg-zinc-700 py-1 px-2 rounded-md outline outline-offset-0 outline-2 focus-visible:outline-blue-500 outline-zinc-300 dark:outline-zinc-600",
+					"bg-zinc-150 dark:bg-zinc-700 py-1 px-2 rounded-md outline outline-offset-0 outline-2 focus-visible:outline-blue-400 dark:focus-visible:outline-blue-500 outline-zinc-300 dark:outline-zinc-600",
 					inputClassName,
 				)}
 				{...restInputProps}

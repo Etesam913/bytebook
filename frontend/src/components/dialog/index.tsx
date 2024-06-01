@@ -73,7 +73,7 @@ export function Dialog({
 							scale: 0.5,
 							transition: { ease: easingFunctions["ease-out-quint"] },
 						}}
-						className="absolute flex flex-col gap-3 bg-zinc-50 dark:bg-zinc-800 backdrop:bg-blue-500 z-40 top-2/4  py-3 px-4 max-w-[80vw] w-80 rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4"
+						className="absolute flex flex-col gap-3 bg-zinc-50 dark:bg-zinc-800 focus-within:bg-blue-300 dark:focus-within:bg-blue-500 z-40 top-2/4  py-3 px-4 max-w-[80vw] w-80 rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4"
 					>
 						<motion.h2>{title}</motion.h2>
 

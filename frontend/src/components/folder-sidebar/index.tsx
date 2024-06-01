@@ -1,8 +1,10 @@
-import { AnimatePresence, type MotionValue, motion } from "framer-motion";
+import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useSetAtom } from "jotai";
 import { useEffect } from "react";
+import { toast } from "sonner";
 import { Link, useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
+import { AddFolder } from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
 import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
 import { WINDOW_ID } from "../../App.tsx";
 import { getDefaultButtonVariants } from "../../animations.ts";
@@ -18,12 +20,15 @@ import { Gear } from "../../icons/gear.tsx";
 import { updateFolders } from "../../utils/fetch-functions";
 import { useWailsEvent } from "../../utils/hooks.tsx";
 import { MotionButton, MotionIconButton } from "../buttons";
+import { DialogErrorText, resetDialogState } from "../dialog/new-dialog.tsx";
 import { Input } from "../input/index.tsx";
 import { BottomItems } from "./bottom-items.tsx";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
+
+const FOLDER_NAME_REGEX = /^[^<>:"/\\|?*\s]+(\s[^<>:"/\\|?*\s]+)*$/;
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
@@ -138,9 +143,9 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 						setDialogData({
 							isOpen: true,
 							title: "Create Folder",
-							children: (
+							children: (errorText) => (
 								<>
-									<fieldset className="flex flex-col gap-2">
+									<fieldset className="flex flex-col">
 										<Input
 											label="New Folder Name"
 											labelProps={{ htmlFor: "folder-title" }}
@@ -148,8 +153,10 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 												id: "folder-title",
 												name: "folder-title",
 												placeholder: "My Todos",
+												autoFocus: true,
 											}}
 										/>
+										<DialogErrorText errorText={errorText} />
 									</fieldset>
 									<MotionButton
 										{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
@@ -160,6 +167,33 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 									</MotionButton>
 								</>
 							),
+							onSubmit: async (e, setErrorText) => {
+								const formData = new FormData(e.target as HTMLFormElement);
+								try {
+									const folderTitle = formData.get("folder-title");
+									if (!folderTitle)
+										throw new Error("You cannot have an empty folder title");
+									if (folderTitle) {
+										const folderTitleString = folderTitle.toString().trim();
+										if (folderTitleString.length === 0)
+											throw new Error("You cannot have an empty folder title");
+										if (!FOLDER_NAME_REGEX.test(folderTitleString)) {
+											throw new Error(
+												'Invalid folder name. Avoid special characters: <>:"/\\|?* and leading/trailing spaces.',
+											);
+										}
+										const res = await AddFolder(folderTitleString);
+										if (!res.success) throw new Error(res.message);
+										resetDialogState(setErrorText, setDialogData);
+										toast.success(
+											`Folder, "${folderTitleString}", successfully created.`,
+											{ dismissible: true, duration: 2500 },
+										);
+									}
+								} catch (e) {
+									if (e instanceof Error) setErrorText(e.message);
+								}
+							},
 						})
 					}
 				>

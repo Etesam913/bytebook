@@ -178,7 +178,7 @@ export function NotesEditor({
 								autoComplete="off"
 								autoCorrect="off"
 								autoCapitalize="off"
-								spellcheck="false"
+								spellCheck="false"
 							/>
 						}
 						ErrorBoundary={LexicalErrorBoundary}

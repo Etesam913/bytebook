@@ -1,6 +1,6 @@
 import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import type { HeadingTagType } from "@lexical/rich-text";
-import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type { Dispatch, FormEvent, ReactNode, SetStateAction } from "react";
 import type { CodeResponse } from "../bindings/github.com/etesam913/bytebook/index";
 
 export const IMAGE_FILE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
@@ -50,5 +50,11 @@ export type ResizeState = {
 export type DialogDataType = {
 	isOpen: boolean;
 	title: string;
-	children: ReactNode;
+	children: ((errorText: string) => ReactNode) | null;
+	onSubmit:
+		| ((
+				e: FormEvent<HTMLFormElement>,
+				setErrorText: Dispatch<SetStateAction<string>>,
+		  ) => void)
+		| null;
 };
