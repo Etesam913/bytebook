@@ -9,8 +9,8 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 // @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
-export function AddNoteToFolder(folderName: string, noteTitle: string): Promise<$models.AddFolderResponse> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(257262677, folderName, noteTitle) as any;
+export function AddNoteToFolder(folderName: string, noteName: string): Promise<$models.AddFolderResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(257262677, folderName, noteName) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType0($result);
     }) as any;

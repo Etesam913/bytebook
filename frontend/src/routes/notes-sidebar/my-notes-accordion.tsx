@@ -100,7 +100,7 @@ export function MyNotesAccordion({
 						</p>
 					</Link>
 				)}
-				getContextMenuStyle={(noteName) =>
+				getContextMenuStyle={() =>
 					({
 						"--custom-contextmenu": "note-context-menu",
 						"--custom-contextmenu-data": [...selectionRange],

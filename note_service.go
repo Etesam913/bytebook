@@ -125,12 +125,21 @@ func AddFolder(folderName string, projectPath string) AddFolderResponse {
 	return AddFolderResponse{Success: true, Message: ""}
 }
 
-func (n *NoteService) AddNoteToFolder(folderName string, noteTitle string) AddFolderResponse {
+func (n *NoteService) AddNoteToFolder(folderName string, noteName string) AddFolderResponse {
 	noteFolderPath := filepath.Join(n.ProjectPath, "notes", folderName)
-	noteFilePath := filepath.Join(noteFolderPath, fmt.Sprintf("%s.md", noteTitle))
+	pathToNote := filepath.Join(noteFolderPath, fmt.Sprintf("%s.md", noteName))
+
+	info, err := os.Stat(pathToNote)
+
+	if err == nil && info.Mode().IsRegular() {
+		return AddFolderResponse{
+			Success: false,
+			Message: fmt.Sprintf("Note name, \"%s\", already exists, please choose a different name", noteName),
+		}
+	}
 
 	// Create an empty markdown file at the location
-	err := os.WriteFile(noteFilePath, []byte(""), 0644)
+	err = os.WriteFile(pathToNote, []byte(""), 0644)
 
 	if err != nil {
 		fmt.Printf("Error writing to %s: %v", noteFolderPath, err)
