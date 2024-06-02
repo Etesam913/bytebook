@@ -22,8 +22,12 @@ import { MotionButton, MotionIconButton } from "../../components/buttons";
 import {
 	DialogErrorText,
 	resetDialogState,
-} from "../../components/dialog/new-dialog.tsx";
+} from "../../components/dialog/index.tsx";
 import { NotesEditor } from "../../components/editor";
+import {
+	FolderDialogChildren,
+	onFolderDialogSubmit,
+} from "../../components/folder-sidebar/index.tsx";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Input } from "../../components/input/index.tsx";
 import { Compose } from "../../icons/compose";
@@ -124,15 +128,6 @@ export function NotesSidebar({
 				toast.error("An Unknown Error Occurred");
 			}
 		}
-		// DeleteFolder(`${folder}/${noteName}.md`)
-		// 	.then((res) => {
-		// 		if (!res.success) {
-		// 			throw new Error();
-		// 		}
-		// 	})
-		// 	.catch(() => {
-		// 		toast.error("Failed to delete note");
-		// 	});
 	});
 
 	useWailsEvent("attachment:create", (body) => {
@@ -194,10 +189,25 @@ export function NotesSidebar({
 								<MotionIconButton
 									{...getDefaultButtonVariants()}
 									onClick={() =>
-										setIsFolderDialogOpen({
+										setDialogData({
 											isOpen: true,
-											action: "rename",
-											folderName: folder,
+											title: "Rename Folder",
+											children: (errorText) => (
+												<FolderDialogChildren
+													errorText={errorText}
+													action="rename"
+													folderToBeRenamed={decodeURIComponent(folder)}
+												/>
+											),
+											onSubmit: (e, setErrorText) => {
+												onFolderDialogSubmit(
+													e,
+													setErrorText,
+													setDialogData,
+													"rename",
+													decodeURIComponent(folder),
+												);
+											},
 										})
 									}
 								>

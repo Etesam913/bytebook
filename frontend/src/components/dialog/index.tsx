@@ -1,67 +1,81 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { type FormEvent, type ReactNode, useRef } from "react";
+import { useAtom } from "jotai";
+import { type Dispatch, type SetStateAction, useRef, useState } from "react";
+import useMeasure from "react-use-measure";
 import { easingFunctions, getDefaultButtonVariants } from "../../animations";
+import { dialogDataAtom } from "../../atoms";
 import { XMark } from "../../icons/circle-xmark";
+import type { DialogDataType } from "../../types";
+import { MotionIconButton } from "../buttons";
 import { useTrapFocus } from "./hooks";
 
-export function ErrorText({ errorText }: { errorText: string }) {
+export function DialogErrorText({ errorText }: { errorText: string }) {
+	const [elementRef, bounds] = useMeasure();
 	return (
 		<AnimatePresence>
 			{errorText.length > 0 && (
-				<motion.p
+				<motion.div
 					initial={{ height: 0, opacity: 0 }}
-					animate={{ height: "auto", opacity: 1 }}
-					exit={{ height: 0, opacity: 0 }}
-					transition={{ type: "spring" }}
+					animate={{
+						height: bounds.height,
+						opacity: 1,
+						transition: { type: "spring" },
+					}}
+					exit={{
+						height: 0,
+						opacity: 0,
+						transition: {
+							ease: easingFunctions["ease-out-cubic"],
+						},
+					}}
 					className="text-red-500 text-[0.85rem] text-left"
 				>
-					{errorText}
-				</motion.p>
+					<p ref={elementRef} className="pt-2">
+						{errorText}
+					</p>
+				</motion.div>
 			)}
 		</AnimatePresence>
 	);
 }
 
-export function Dialog({
-	title,
-	isOpen,
-	setIsOpen,
-	children,
-	handleSubmit,
-}: {
-	title: string;
-	isOpen: boolean;
-	setIsOpen: (r: boolean) => void;
-	children: ReactNode;
-	handleSubmit?: (e: FormEvent<HTMLFormElement>) => void;
-}) {
-	const modalRef = useRef<HTMLDivElement>(null);
+export function resetDialogState(
+	setErrorText: Dispatch<SetStateAction<string>>,
+	setDialogData: Dispatch<SetStateAction<DialogDataType>>,
+) {
+	setDialogData({
+		isOpen: false,
+		onSubmit: null,
+		title: "",
+		children: null,
+	});
+	setErrorText("");
+}
 
-	useTrapFocus(modalRef, isOpen);
+export function Dialog() {
+	const [dialogData, setDialogData] = useAtom(dialogDataAtom);
+	const [errorText, setErrorText] = useState("");
+	const modalRef = useRef<HTMLFormElement>(null);
+	useTrapFocus(modalRef, dialogData.isOpen);
 
 	return (
-		<div
-			ref={modalRef}
-			onKeyDown={(e) => {
-				if (e.key === "Escape") {
-					setIsOpen(false);
-					e.preventDefault();
-					e.stopPropagation();
-				}
-			}}
-			onClick={(e) => e.stopPropagation()}
-			// biome-ignore lint/a11y/noNoninteractiveTabindex: we want trapped focus for dialogs
-			tabIndex={0}
-		>
-			{isOpen && (
+		<AnimatePresence>
+			{dialogData.isOpen && (
 				<>
 					<motion.div
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
+						exit={{
+							opacity: 0,
+						}}
 						className="fixed z-30 left-0 top-0 w-screen h-screen bg-[rgba(0,0,0,0.5)]"
 					/>
-					<motion.div
+					<motion.form
+						ref={modalRef}
+						onSubmit={(e) => {
+							e.preventDefault();
+							if (dialogData.onSubmit) dialogData.onSubmit(e, setErrorText);
+						}}
 						initial={{ opacity: 0, scale: 0.5, x: "-50%", y: "-50%" }}
 						animate={{
 							opacity: 1,
@@ -73,32 +87,21 @@ export function Dialog({
 							scale: 0.5,
 							transition: { ease: easingFunctions["ease-out-quint"] },
 						}}
-						className="absolute flex flex-col gap-3 bg-zinc-50 dark:bg-zinc-800 focus-within:bg-blue-300 dark:focus-within:bg-blue-500 z-40 top-2/4  py-3 px-4 max-w-[80vw] w-80 rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4"
+						className="absolute flex flex-col gap-3 bg-zinc-50 dark:bg-zinc-800 z-40 top-2/4 py-3 px-4 max-w-[80vw] w-80 rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4"
 					>
-						<motion.h2>{title}</motion.h2>
-
-						<form
-							onSubmit={(e) => {
-								e.preventDefault();
-								if (handleSubmit) {
-									handleSubmit(e);
-								}
-							}}
-							className="overflow-auto max-h-[60vh] px-1 pb-1"
-						>
-							{children}
-						</form>
-						<motion.button
-							onClick={() => setIsOpen(false)}
-							{...getDefaultButtonVariants(false, 1.075, 0.95, 1.075)}
+						<h2 className=" text-xl">{dialogData.title}</h2>
+						{dialogData.children?.(errorText)}
+						<MotionIconButton
+							{...getDefaultButtonVariants()}
+							onClick={() => resetDialogState(setErrorText, setDialogData)}
 							className="absolute top-2 right-2"
 							type="button"
 						>
 							<XMark />
-						</motion.button>
-					</motion.div>
+						</MotionIconButton>
+					</motion.form>
 				</>
 			)}
-		</div>
+		</AnimatePresence>
 	);
 }

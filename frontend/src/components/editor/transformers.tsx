@@ -115,13 +115,6 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 				"width",
 				String(node.getWidth()),
 			);
-
-			if (isVideo) {
-				const subtitleUrl = node.getSubtitleUrl();
-				if (subtitleUrl) {
-					altText = addQueryParam(altText, "subtitleUrl", subtitleUrl);
-				}
-			}
 		} else if (isUnknownAttachment) {
 			altText = "test";
 			filePathOrSrc = updateSrc(node.getSrc());
@@ -164,12 +157,10 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 					width,
 				});
 			} else if (shouldCreateVideoNode) {
-				const subtitleUrl = getQueryParamValue(alt, "subtitleUrl");
 				nodeToCreate = $createVideoNode({
 					title: removeQueryParam(alt, "width"),
 					src: filePathOrSrc,
 					width,
-					subtitleUrl: subtitleUrl ?? undefined,
 				});
 			}
 		} else {

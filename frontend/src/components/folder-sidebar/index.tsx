@@ -23,19 +23,20 @@ import { CircleArrowRight } from "../../icons/circle-arrow-right.tsx";
 import { FolderPlus } from "../../icons/folder-plus";
 import { FolderXMark } from "../../icons/folder-xmark.tsx";
 import { Gear } from "../../icons/gear.tsx";
+import { Pen } from "../../icons/pen.tsx";
 import type { DialogDataType } from "../../types.ts";
 import { updateFolders } from "../../utils/fetch-functions";
 import { useWailsEvent } from "../../utils/hooks.tsx";
 import { validateName } from "../../utils/string-formatting.ts";
 import { MotionButton, MotionIconButton } from "../buttons";
-import { DialogErrorText, resetDialogState } from "../dialog/new-dialog.tsx";
+import { DialogErrorText, resetDialogState } from "../dialog/index.tsx";
 import { Input } from "../input/index.tsx";
 import { BottomItems } from "./bottom-items.tsx";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { Spacer } from "./spacer";
 
-function FolderDialogChildren({
+export function FolderDialogChildren({
 	errorText,
 	action,
 	folderToBeRenamed,
@@ -65,13 +66,14 @@ function FolderDialogChildren({
 				className="w-[calc(100%-1.5rem)] mx-auto justify-center"
 				type="submit"
 			>
-				<span>Create Folder</span> <FolderPlus />
+				<span>{action === "create" ? "Create" : "Rename"} Folder</span>{" "}
+				{action === "create" ? <FolderPlus /> : <Pen />}
 			</MotionButton>
 		</>
 	);
 }
 
-async function onFolderDialogSubmit(
+export async function onFolderDialogSubmit(
 	e: FormEvent<HTMLFormElement>,
 	setErrorText: Dispatch<SetStateAction<string>>,
 	setDialogData: Dispatch<SetStateAction<DialogDataType>>,

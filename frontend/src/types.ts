@@ -44,7 +44,6 @@ export type ResizeState = {
 	isSelected: boolean;
 	isExpanded: boolean;
 	setIsExpanded: Dispatch<SetStateAction<boolean>>;
-	setIsSubtitlesDialogOpen?: Dispatch<SetStateAction<boolean>>;
 };
 
 export type DialogDataType = {

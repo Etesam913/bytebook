@@ -7,14 +7,12 @@ import {
 } from "@codesandbox/sandpack-react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
-import { AnimatePresence } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { useRef, useState } from "react";
 import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook";
 import { darkModeAtom } from "../../atoms";
 import type { CodeBlockData } from "../../types";
 import { cn } from "../../utils/string-formatting";
-import { CodeDialog } from "./code-dialog";
 import { CodeResult } from "./code-result";
 import { CodeViewer } from "./code-viewer";
 import { useCodeEditorCommands } from "./hooks";
@@ -89,8 +87,6 @@ export function SandpackEditor({
 	writeDataToNode: (files: SandpackFiles, result: CodeResponse) => void;
 }) {
 	const isDarkModeOn = useAtomValue(darkModeAtom);
-	const [isCodeSettingsOpen, setIsCodeSettingsOpen] = useState(false);
-	const [command, setCommand] = useState(commandWrittenToNode);
 	const [isSelected, setSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
 	const [editor] = useLexicalComposerContext();
@@ -125,68 +121,54 @@ export function SandpackEditor({
 		isFullscreen && language in languageToTemplate;
 
 	return (
-		<>
-			<AnimatePresence>
-				{isCodeSettingsOpen && (
-					<CodeDialog
-						isCodeSettingsOpen={isCodeSettingsOpen}
-						setIsCodeSettingsOpen={setIsCodeSettingsOpen}
-						command={command}
-						setCommand={setCommand}
-						writeCommandToNode={writeCommandToNode}
-					/>
-				)}
-			</AnimatePresence>
-			<div
-				ref={codeMirrorContainerRef}
-				data-is-fullscreen={isFullscreen}
-				data-non-template-is-fullscreen={isNonTemplateLanguageFullscreen}
-				data-template-is-fullscreen={isTemplateLanguageFullscreen}
-				className={cn(
-					"border-transparent transition-colors text-zinc-700 dark:text-zinc-200 border-2 bg-zinc-50 dark:bg-zinc-750 rounded-md",
-					isSelected && "border-blue-400 dark:border-blue-500",
-					isFullscreen &&
-						"fixed top-0 left-0 right-0 bottom-0 z-20 h-screen border-0",
-				)}
+		<div
+			ref={codeMirrorContainerRef}
+			data-is-fullscreen={isFullscreen}
+			data-non-template-is-fullscreen={isNonTemplateLanguageFullscreen}
+			data-template-is-fullscreen={isTemplateLanguageFullscreen}
+			className={cn(
+				"border-transparent transition-colors text-zinc-700 dark:text-zinc-200 border-2 bg-zinc-50 dark:bg-zinc-750 rounded-md",
+				isSelected && "border-blue-400 dark:border-blue-500",
+				isFullscreen &&
+					"fixed top-0 left-0 right-0 bottom-0 z-20 h-screen border-0",
+			)}
+		>
+			<SandpackProvider
+				theme={isDarkModeOn ? "dark" : "light"}
+				files={defaultFiles.current}
+				options={getOptions()}
+				className="flex flex-col h-full"
+				template={
+					language in languageToTemplate
+						? languageToTemplate[language]
+						: "vanilla"
+				}
 			>
-				<SandpackProvider
-					theme={isDarkModeOn ? "dark" : "light"}
-					files={defaultFiles.current}
-					options={getOptions()}
-					className="flex flex-col h-full"
-					template={
-						language in languageToTemplate
-							? languageToTemplate[language]
-							: "vanilla"
-					}
-				>
-					<CodeViewer
-						command={command}
-						nodeKey={nodeKey}
-						language={language}
-						isCodeSettingsOpen={isCodeSettingsOpen}
-						setIsCodeSettingsOpen={setIsCodeSettingsOpen}
-						codeResult={codeResult}
-						setCodeResult={setCodeResult}
-						writeDataToNode={writeDataToNode}
-						focus={focus}
-						isSelected={isSelected}
-						setIsSelected={setSelected}
-						isFullscreen={isFullscreen}
-						setIsFullscreen={setIsFullscreen}
-					/>
+				<CodeViewer
+					nodeKey={nodeKey}
+					language={language}
+					codeResult={codeResult}
+					setCodeResult={setCodeResult}
+					commandWrittenToNode={commandWrittenToNode}
+					writeCommandToNode={writeCommandToNode}
+					writeDataToNode={writeDataToNode}
+					focus={focus}
+					isSelected={isSelected}
+					setIsSelected={setSelected}
+					isFullscreen={isFullscreen}
+					setIsFullscreen={setIsFullscreen}
+				/>
 
-					<div className="mt-1">
-						{language in languageToTemplate ? (
-							<SandpackLayout>
-								<SandpackPreview showNavigator showOpenInCodeSandbox={false} />
-							</SandpackLayout>
-						) : (
-							<CodeResult codeResult={codeResult} />
-						)}
-					</div>
-				</SandpackProvider>
-			</div>
-		</>
+				<div className="mt-1">
+					{language in languageToTemplate ? (
+						<SandpackLayout>
+							<SandpackPreview showNavigator showOpenInCodeSandbox={false} />
+						</SandpackLayout>
+					) : (
+						<CodeResult codeResult={codeResult} />
+					)}
+				</div>
+			</SandpackProvider>
+		</div>
 	);
 }

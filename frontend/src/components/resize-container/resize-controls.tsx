@@ -4,13 +4,11 @@ import type { MutableRefObject, RefObject } from "react";
 import { getDefaultButtonVariants } from "../../animations";
 import { XResize } from "../../icons/arrows-expand-x";
 import { Fullscreen } from "../../icons/fullscreen";
-import { Subtitles } from "../../icons/subtitles";
 import { Trash } from "../../icons/trash";
 import type { ResizeState, ResizeWidth } from "../../types";
 import { removeDecoratorNode } from "../../utils/commands";
 
 export function ResizeControls({
-	elementType,
 	nodeKey,
 	motionValues,
 	writeWidthToNode,
@@ -37,7 +35,7 @@ export function ResizeControls({
 	const { widthMotionValue, resizeWidthMotionValue, resizeHeightMotionValue } =
 		motionValues;
 
-	const { setIsSubtitlesDialogOpen, setIsExpanded } = resizeState;
+	const { setIsExpanded } = resizeState;
 
 	return (
 		<motion.div
@@ -46,15 +44,6 @@ export function ResizeControls({
 			animate={{ opacity: 1, y: -30 }}
 			exit={{ opacity: 0, y: -20 }}
 		>
-			{elementType === "video" && (
-				<motion.button
-					{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
-					type="button"
-					onClick={() => setIsSubtitlesDialogOpen?.(true)}
-				>
-					<Subtitles />
-				</motion.button>
-			)}
 			<motion.button
 				{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
 				type="button"

@@ -14,6 +14,7 @@ import {
 import { SandpackCodeEditor, useSandpack } from "@codesandbox/sandpack-react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { motion } from "framer-motion";
+import { useAtom } from "jotai";
 import {
 	type Dispatch,
 	type SetStateAction,
@@ -28,22 +29,26 @@ import { languageToTemplate, nonTemplateLanguageToExtension } from ".";
 import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook/index";
 import { RunCode } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
 import { getDefaultButtonVariants } from "../../animations";
+import { dialogDataAtom } from "../../atoms";
 import { ExitFullscreen } from "../../icons/arrows-reduce-diagonal";
 import { BracketsSquareDots } from "../../icons/brackets-square-dots";
 import { Play } from "../../icons/circle-play";
+import { FloppyDisk } from "../../icons/floppy-disk";
 import { Fullscreen } from "../../icons/fullscreen";
 import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
 import { removeDecoratorNode } from "../../utils/commands";
 import { cn } from "../../utils/string-formatting";
+import { MotionButton } from "../buttons";
+import { DialogErrorText, resetDialogState } from "../dialog";
+import { Input } from "../input";
 import { useCodeEditorFocus } from "./hooks";
 
 export function CodeViewer({
 	language,
 	nodeKey,
-	isCodeSettingsOpen,
-	setIsCodeSettingsOpen,
-	command,
+	commandWrittenToNode,
+	writeCommandToNode,
 	codeResult,
 	setCodeResult,
 	writeDataToNode,
@@ -55,9 +60,8 @@ export function CodeViewer({
 }: {
 	language: string;
 	nodeKey: string;
-	isCodeSettingsOpen: boolean;
-	setIsCodeSettingsOpen: Dispatch<SetStateAction<boolean>>;
-	command: string;
+	commandWrittenToNode: string;
+	writeCommandToNode: (arg0: string) => void;
 	codeResult: CodeResponse;
 	setCodeResult: Dispatch<SetStateAction<CodeResponse>>;
 	writeDataToNode: (files: SandpackFiles, result: CodeResponse) => void;
@@ -80,6 +84,8 @@ export function CodeViewer({
 
 	const codeMirrorRef = useRef<CodeEditorRef | null>(null);
 
+	const [dialogData, setDialogData] = useAtom(dialogDataAtom);
+
 	function handleRunCode(e?: SyntheticEvent) {
 		if (e) {
 			e.stopPropagation();
@@ -92,7 +98,7 @@ export function CodeViewer({
 			return;
 		}
 		setIsCodeRunning(true);
-		RunCode(language, code, command).then((res) => {
+		RunCode(language, code, commandWrittenToNode).then((res) => {
 			setCodeResult(res);
 			setIsCodeRunning(false);
 			editor.update(() => {
@@ -103,7 +109,7 @@ export function CodeViewer({
 
 	// If the code settings closes, then refocus onto the editor
 	useEffect(() => {
-		if (!isCodeSettingsOpen) {
+		if (!dialogData.isOpen) {
 			const codeMirrorInstance =
 				// @ts-expect-error For some reason sandpack does not export the EditorView type
 				codeMirrorRef.current?.getCodemirror() as EditorView;
@@ -111,7 +117,7 @@ export function CodeViewer({
 				codeMirrorInstance.focus();
 			}
 		}
-	}, [isCodeSettingsOpen]);
+	}, [dialogData.isOpen]);
 
 	useCodeEditorFocus(codeMirrorRef, focus || isSelected, setIsSelected);
 
@@ -222,7 +228,50 @@ export function CodeViewer({
 						isFullscreen && "top-1.5",
 					)}
 					{...getDefaultButtonVariants()}
-					onClick={() => setIsCodeSettingsOpen(true)}
+					onClick={() =>
+						setDialogData({
+							isOpen: true,
+							title: `${language} Settings`,
+							children: (errorText) => (
+								<>
+									<fieldset className="flex flex-col">
+										<Input
+											label="Run Command"
+											labelProps={{ htmlFor: "run-command" }}
+											inputProps={{
+												type: "text",
+												id: "run-command",
+												name: "run-command",
+												defaultValue: commandWrittenToNode,
+												className: "font-code text-sm",
+											}}
+										/>
+										<DialogErrorText errorText={errorText} />
+									</fieldset>
+									<MotionButton
+										type="submit"
+										{...getDefaultButtonVariants()}
+										className="w-[calc(100%-1.5rem)] mx-auto justify-center"
+									>
+										<span>Save Code Settings</span> <FloppyDisk />
+									</MotionButton>
+								</>
+							),
+							onSubmit: (e, setErrorText) => {
+								const formData = new FormData(e.target as HTMLFormElement);
+								const runCommand = formData.get("run-command");
+
+								if (runCommand && typeof runCommand === "string") {
+									if (runCommand.trim().length === 0) {
+										setErrorText("Run command cannot be empty");
+										return;
+									}
+									resetDialogState(setErrorText, setDialogData);
+									writeCommandToNode(runCommand);
+								}
+							},
+						})
+					}
 				>
 					<BracketsSquareDots />
 				</motion.button>
