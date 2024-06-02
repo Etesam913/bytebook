@@ -8,7 +8,7 @@ import { navigate } from "wouter/use-browser-location";
 import { RenameNote } from "../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { WINDOW_ID } from "../../App";
 import { isToolbarDisabled, notesAtom } from "../../atoms";
-import { cn, fileNameRegex } from "../../utils/string-formatting";
+import { NAME_CHARS, cn, fileNameRegex } from "../../utils/string-formatting";
 
 export function NoteTitle({
 	note,
@@ -41,7 +41,7 @@ export function NoteTitle({
 				onChange={(e) => {
 					const name = e.target.value.trim();
 					setNoteTitle(e.target.value);
-					if (!fileNameRegex.test(name)) {
+					if (!NAME_CHARS.test(name)) {
 						setErrorText(
 							"Note titles can only contain letters, numbers, spaces, hyphens, and underscores.",
 						);
@@ -96,7 +96,7 @@ export function NoteTitle({
 						});
 					}
 				}}
-				pattern={fileNameRegex.source}
+				pattern={NAME_CHARS.source}
 				maxLength={50}
 				required
 			/>

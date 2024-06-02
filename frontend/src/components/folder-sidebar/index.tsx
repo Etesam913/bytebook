@@ -1,61 +1,146 @@
 import { type MotionValue, motion } from "framer-motion";
-import { useAtom, useSetAtom } from "jotai";
-import { useEffect } from "react";
+import { useSetAtom } from "jotai";
+import {
+	type Dispatch,
+	type FormEvent,
+	type SetStateAction,
+	useEffect,
+} from "react";
 import { toast } from "sonner";
 import { Link, useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import {
 	AddFolder,
 	DeleteFolder,
+	RenameFolder,
 } from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
 import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
 import { WINDOW_ID } from "../../App.tsx";
 import { getDefaultButtonVariants } from "../../animations.ts";
-import {
-	dialogDataAtom,
-	foldersAtom,
-	isFolderDialogOpenAtom,
-} from "../../atoms";
+import { dialogDataAtom, foldersAtom } from "../../atoms";
 import { CircleArrowLeft } from "../../icons/circle-arrow-left.tsx";
 import { CircleArrowRight } from "../../icons/circle-arrow-right.tsx";
 import { FolderPlus } from "../../icons/folder-plus";
 import { FolderXMark } from "../../icons/folder-xmark.tsx";
 import { Gear } from "../../icons/gear.tsx";
+import type { DialogDataType } from "../../types.ts";
 import { updateFolders } from "../../utils/fetch-functions";
 import { useWailsEvent } from "../../utils/hooks.tsx";
+import { validateName } from "../../utils/string-formatting.ts";
 import { MotionButton, MotionIconButton } from "../buttons";
 import { DialogErrorText, resetDialogState } from "../dialog/new-dialog.tsx";
 import { Input } from "../input/index.tsx";
 import { BottomItems } from "./bottom-items.tsx";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
-import { FolderSidebarDialog } from "./sidebar-dialog";
 import { Spacer } from "./spacer";
 
-const FOLDER_NAME_REGEX = /^[^<>:"/\\|?*\s]+(\s[^<>:"/\\|?*\s]+)*$/;
+function FolderDialogChildren({
+	errorText,
+	action,
+	folderToBeRenamed,
+}: {
+	errorText: string;
+	action: "create" | "rename";
+	folderToBeRenamed?: string;
+}) {
+	return (
+		<>
+			<fieldset className="flex flex-col">
+				<Input
+					label="New Folder Name"
+					labelProps={{ htmlFor: "folder-name" }}
+					inputProps={{
+						id: "folder-name",
+						name: "folder-name",
+						placeholder: "My Todos",
+						autoFocus: true,
+						defaultValue: action === "rename" ? folderToBeRenamed : "",
+					}}
+				/>
+				<DialogErrorText errorText={errorText} />
+			</fieldset>
+			<MotionButton
+				{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
+				className="w-[calc(100%-1.5rem)] mx-auto justify-center"
+				type="submit"
+			>
+				<span>Create Folder</span> <FolderPlus />
+			</MotionButton>
+		</>
+	);
+}
+
+async function onFolderDialogSubmit(
+	e: FormEvent<HTMLFormElement>,
+	setErrorText: Dispatch<SetStateAction<string>>,
+	setDialogData: Dispatch<SetStateAction<DialogDataType>>,
+	action: "create" | "rename",
+	folderToBeRenamed?: string,
+) {
+	const formData = new FormData(e.target as HTMLFormElement);
+	try {
+		const newFolderName = formData.get("folder-name");
+		const { isValid, errorMessage } = validateName(newFolderName, "folder");
+		if (!isValid) throw new Error(errorMessage);
+		if (newFolderName) {
+			const newFolderNameString = newFolderName.toString().trim();
+			if (action === "create") {
+				const res = await AddFolder(newFolderNameString);
+				if (!res.success) throw new Error(res.message);
+
+				// Add an untitled note
+				const addNoteRes = await AddNoteToFolder(
+					newFolderNameString,
+					"Untitled",
+				);
+				if (addNoteRes.success)
+					navigate(`/${encodeURIComponent(newFolderNameString)}/Untitled`);
+				else throw new Error(addNoteRes.message);
+
+				toast.success(
+					`Folder, "${newFolderNameString}", successfully created.`,
+					{
+						dismissible: true,
+						duration: 2000,
+						closeButton: true,
+					},
+				);
+			} else if (action === "rename") {
+				if (!folderToBeRenamed) throw new Error("Something went wrong");
+				const res = await RenameFolder(folderToBeRenamed, newFolderNameString);
+				if (!res.success) throw new Error(res.message);
+				navigate(`/${encodeURIComponent(newFolderNameString)}`);
+			}
+			resetDialogState(setErrorText, setDialogData);
+		}
+	} catch (e) {
+		if (e instanceof Error) setErrorText(e.message);
+		else setErrorText("An unknown error occurred. Please try again later.");
+	}
+}
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
 	const folder = params?.folder;
-	const [isFolderDialogOpen, setIsFolderDialogOpen] = useAtom(
-		isFolderDialogOpenAtom,
-	);
 
 	const setDialogData = useSetAtom(dialogDataAtom);
-	const [folders, setFolders] = useAtom(foldersAtom);
+	const setFolders = useSetAtom(foldersAtom);
 
 	useWailsEvent("folder:create", (body) => {
 		const data = body.data as { folder: string };
-
-		AddNoteToFolder(data.folder, "Untitled")
-			.then((res) => {
-				if (res.success)
-					navigate(`/${encodeURIComponent(data.folder)}/Untitled`);
-				else throw new Error(res.message);
-			})
-			.catch((e) => console.error(e));
-
 		setFolders((prev) => (prev ? [...prev, data.folder] : [data.folder]));
+	});
+
+	useWailsEvent("folder:rename", (body) => {
+		const data = body.data as { folder: string };
+		setFolders((prev) => {
+			if (prev) {
+				const newFolders = prev.filter((folder) => folder !== data.folder);
+				return newFolders;
+			}
+			return [];
+		});
 	});
 
 	useWailsEvent("folder:delete", (body) => {
@@ -77,9 +162,8 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 
 	useWailsEvent("folder:context-menu:delete", (body) => {
 		const [folderName, windowId] = (body.data as string).split(",");
-		// There's a weird bug with apostrophe that required this replaceAll
-		const cleanedWindowId = windowId.trim().replaceAll('"', "");
-		if (cleanedWindowId === WINDOW_ID) {
+
+		if (windowId === WINDOW_ID) {
 			setDialogData({
 				isOpen: true,
 				title: "Delete Folder",
@@ -116,12 +200,27 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	});
 
 	useWailsEvent("folder:context-menu:rename", (event) => {
-		const [folderName, windowId] = (event.data as string).split(",");
+		const [folderToBeRenamed, windowId] = (event.data as string).split(",");
 		if (windowId === WINDOW_ID) {
-			setIsFolderDialogOpen({
+			setDialogData({
 				isOpen: true,
-				action: "rename",
-				folderName,
+				title: "Rename Folder",
+				children: (errorText) => (
+					<FolderDialogChildren
+						errorText={errorText}
+						action="rename"
+						folderToBeRenamed={folderToBeRenamed}
+					/>
+				),
+				onSubmit: (e, setErrorText) => {
+					onFolderDialogSubmit(
+						e,
+						setErrorText,
+						setDialogData,
+						"rename",
+						folderToBeRenamed,
+					);
+				},
 			});
 		}
 	});
@@ -135,15 +234,6 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 
 	return (
 		<>
-			{/* <AnimatePresence>
-				{isFolderDialogOpen.isOpen && (
-					<FolderSidebarDialog
-						isFolderDialogOpen={isFolderDialogOpen}
-						setIsFolderDialogOpen={setIsFolderDialogOpen}
-						folders={folders ?? []}
-					/>
-				)}
-			</AnimatePresence> */}
 			<motion.aside
 				style={{ width }}
 				className="text-md flex h-screen flex-col px-[10px]"
@@ -178,56 +268,10 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 							isOpen: true,
 							title: "Create Folder",
 							children: (errorText) => (
-								<>
-									<fieldset className="flex flex-col">
-										<Input
-											label="New Folder Name"
-											labelProps={{ htmlFor: "folder-title" }}
-											inputProps={{
-												id: "folder-title",
-												name: "folder-title",
-												placeholder: "My Todos",
-												autoFocus: true,
-											}}
-										/>
-										<DialogErrorText errorText={errorText} />
-									</fieldset>
-									<MotionButton
-										{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
-										className="w-[calc(100%-1.5rem)] mx-auto justify-center"
-										type="submit"
-									>
-										<FolderPlus /> <span>Create Folder</span>
-									</MotionButton>
-								</>
+								<FolderDialogChildren errorText={errorText} action="create" />
 							),
-							onSubmit: async (e, setErrorText) => {
-								const formData = new FormData(e.target as HTMLFormElement);
-								try {
-									const folderTitle = formData.get("folder-title");
-									if (!folderTitle)
-										throw new Error("You cannot have an empty folder title");
-									if (folderTitle) {
-										const folderTitleString = folderTitle.toString().trim();
-										if (folderTitleString.length === 0)
-											throw new Error("You cannot have an empty folder title");
-										if (!FOLDER_NAME_REGEX.test(folderTitleString)) {
-											throw new Error(
-												'Invalid folder name. Avoid special characters: <>:"/\\|?* and leading/trailing spaces.',
-											);
-										}
-										const res = await AddFolder(folderTitleString);
-										if (!res.success) throw new Error(res.message);
-										resetDialogState(setErrorText, setDialogData);
-										toast.success(
-											`Folder, "${folderTitleString}", successfully created.`,
-											{ dismissible: true, duration: 2500 },
-										);
-									}
-								} catch (e) {
-									if (e instanceof Error) setErrorText(e.message);
-								}
-							},
+							onSubmit: async (e, setErrorText) =>
+								onFolderDialogSubmit(e, setErrorText, setDialogData, "create"),
 						})
 					}
 				>

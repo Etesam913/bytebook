@@ -115,3 +115,48 @@ export function getInternalLinkType(url: string) {
 		isFolderLink: segments.length === 1,
 	};
 }
+
+interface ValidationResult {
+	isValid: boolean;
+	errorMessage?: string;
+}
+
+export const NAME_CHARS = /^[^<>:"/\\|?*]+$/;
+
+/**
+ * Validates name for create folder/note dialogs
+ * @param name
+ * @param nameType
+ * @returns
+ */
+export function validateName(
+	name: FormDataEntryValue | null,
+	nameType: "folder" | "note",
+): ValidationResult {
+	if (!name) {
+		return {
+			isValid: false,
+			errorMessage: `You cannot have an empty ${nameType} name`,
+		};
+	}
+
+	const nameString = name.toString().trim();
+
+	if (nameString.length === 0) {
+		return {
+			isValid: false,
+			errorMessage: `You cannot have an empty ${nameType} name`,
+		};
+	}
+
+	if (!NAME_CHARS.test(nameString)) {
+		return {
+			isValid: false,
+			errorMessage: `Invalid ${nameType} name. Avoid special characters: <>:"/\\|?* and leading/trailing spaces.`,
+		};
+	}
+
+	return {
+		isValid: true,
+	};
+}

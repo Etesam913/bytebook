@@ -90,10 +90,17 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 						Data: map[string]string{"folder": folderName},
 					})
 				}
-				if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
+				if event.Has(fsnotify.Remove) {
 					watcher.Remove(event.Name)
 					app.Events.Emit(&application.WailsEvent{
 						Name: "folder:delete",
+						Data: map[string]string{"folder": folderName},
+					})
+				}
+				if event.Has(fsnotify.Rename) {
+					watcher.Remove(event.Name)
+					app.Events.Emit(&application.WailsEvent{
+						Name: "folder:rename",
 						Data: map[string]string{"folder": folderName},
 					})
 				}

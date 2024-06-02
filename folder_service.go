@@ -185,7 +185,13 @@ func (f *FolderService) DeleteFolder(folderName string) FolderResponse {
 // Updates the folder name
 func (f *FolderService) RenameFolder(oldFolderName string, newFolderName string) FolderResponse {
 	folderBase := filepath.Join(f.ProjectPath, "notes")
-	err := os.Rename(filepath.Join(folderBase, oldFolderName), filepath.Join(folderBase, newFolderName))
+	info, err := os.Stat(filepath.Join(folderBase, newFolderName))
+
+	if err == nil && info.IsDir() {
+		return FolderResponse{Success: false, Message: fmt.Sprintf("Folder name, \"%s\", already exists, please choose a different name", newFolderName)}
+	}
+
+	err = os.Rename(filepath.Join(folderBase, oldFolderName), filepath.Join(folderBase, newFolderName))
 	if err != nil {
 		return FolderResponse{Success: false, Message: err.Error()}
 	}

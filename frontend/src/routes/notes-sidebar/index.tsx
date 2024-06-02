@@ -1,10 +1,11 @@
 import { Events } from "@wailsio/runtime";
-import { AnimatePresence, type MotionValue, motion } from "framer-motion";
+import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
 import {
+	AddNoteToFolder,
 	GetAttachments,
 	MoveToTrash,
 } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
@@ -12,13 +13,19 @@ import { DeleteFolder } from "../../../bindings/github.com/etesam913/bytebook/fo
 import { getDefaultButtonVariants } from "../../animations.ts";
 import {
 	attachmentsAtom,
+	dialogDataAtom,
 	isFolderDialogOpenAtom,
 	isNoteMaximizedAtom,
 	notesAtom,
 } from "../../atoms";
 import { MotionButton, MotionIconButton } from "../../components/buttons";
+import {
+	DialogErrorText,
+	resetDialogState,
+} from "../../components/dialog/new-dialog.tsx";
 import { NotesEditor } from "../../components/editor";
 import { Spacer } from "../../components/folder-sidebar/spacer";
+import { Input } from "../../components/input/index.tsx";
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
 import { Pen } from "../../icons/pen";
@@ -30,9 +37,9 @@ import {
 	useWailsEvent,
 } from "../../utils/hooks.tsx";
 import { FILE_SERVER_URL } from "../../utils/misc.ts";
+import { validateName } from "../../utils/string-formatting.ts";
 import { AttachmentsAccordion } from "./my-attachments-accordion.tsx";
 import { MyNotesAccordion } from "./my-notes-accordion.tsx";
-import { NotesSidebarDialog } from "./sidebar-dialog";
 
 export function NotesSidebar({
 	params,
@@ -43,7 +50,7 @@ export function NotesSidebar({
 	width: MotionValue<number>;
 	leftWidth: MotionValue<number>;
 }) {
-	const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
+	const setDialogData = useSetAtom(dialogDataAtom);
 	const [notes, setNotes] = useAtom(notesAtom);
 	const setAttachments = useSetAtom(attachmentsAtom);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
@@ -170,17 +177,6 @@ export function NotesSidebar({
 
 	return (
 		<>
-			<AnimatePresence>
-				{isNoteDialogOpen && (
-					<NotesSidebarDialog
-						isNoteDialogOpen={isNoteDialogOpen}
-						setIsNoteDialogOpen={setIsNoteDialogOpen}
-						folderName={folder}
-						notes={notes}
-					/>
-				)}
-			</AnimatePresence>
-
 			{!isNoteMaximized && (
 				<>
 					<motion.aside
@@ -210,7 +206,74 @@ export function NotesSidebar({
 							</section>
 							<MotionButton
 								{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
-								onClick={() => setIsNoteDialogOpen(true)}
+								onClick={() =>
+									setDialogData({
+										isOpen: true,
+										title: "Create Note",
+										children: (errorText) => (
+											<>
+												<fieldset className="flex flex-col">
+													<Input
+														label="New Note Name"
+														labelProps={{ htmlFor: "note-name" }}
+														inputProps={{
+															id: "note-name",
+															name: "note-name",
+															placeholder: "Today's Tasks",
+															autoFocus: true,
+														}}
+													/>
+													<DialogErrorText errorText={errorText} />
+												</fieldset>
+												<MotionButton
+													{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
+													className="w-[calc(100%-1.5rem)] mx-auto justify-center"
+													type="submit"
+												>
+													<span>Create Note</span> <Compose />
+												</MotionButton>
+											</>
+										),
+										onSubmit: async (e, setErrorText) => {
+											const formData = new FormData(
+												e.target as HTMLFormElement,
+											);
+											try {
+												const newNoteName = formData.get("note-name");
+												const { isValid, errorMessage } = validateName(
+													newNoteName,
+													"note",
+												);
+												if (!isValid) throw new Error(errorMessage);
+												if (newNoteName) {
+													const newNoteNameString = newNoteName
+														.toString()
+														.trim();
+													const res = await AddNoteToFolder(
+														decodeURIComponent(folder),
+														newNoteNameString,
+													);
+													if (!res.success) throw new Error(res.message);
+													resetDialogState(setErrorText, setDialogData);
+													toast.success(
+														`Note, "${newNoteNameString}", successfully created.`,
+														{
+															dismissible: true,
+															duration: 2000,
+															closeButton: true,
+														},
+													);
+												}
+											} catch (e) {
+												if (e instanceof Error) {
+													setErrorText(e.message);
+												} else {
+													setErrorText("An unknown error occurred");
+												}
+											}
+										},
+									})
+								}
 								className="align-center flex w-full justify-between bg-transparent mb-2"
 							>
 								Create Note <Compose />
