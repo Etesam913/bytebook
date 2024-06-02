@@ -97,7 +97,7 @@ func main() {
 
 	project_helpers.CreateContextMenu(app, noteContextMenu, []project_helpers.MenuItem{
 		{Label: "Open In New Window", EventName: "open-note-in-new-window-frontend"},
-		{Label: "Send To Trash", EventName: "note:context-menu:delete-note"},
+		{Label: "Send To Trash", EventName: "note:context-menu:delete"},
 	})
 
 	project_helpers.CreateContextMenu(app, attachmentContextMenu, []project_helpers.MenuItem{

@@ -14,12 +14,6 @@ export type DropdownItem = {
 	label: ReactNode;
 };
 
-export type FolderDialogState = {
-	isOpen: boolean;
-	folderName: string;
-	action?: FolderDialogAction;
-};
-
 export type FolderDialogAction = "create" | "rename" | "delete";
 
 export type MostRecentNoteType = {

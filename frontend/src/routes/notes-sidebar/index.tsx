@@ -14,9 +14,9 @@ import { getDefaultButtonVariants } from "../../animations.ts";
 import {
 	attachmentsAtom,
 	dialogDataAtom,
-	isFolderDialogOpenAtom,
 	isNoteMaximizedAtom,
 	notesAtom,
+	selectionRangeAtom,
 } from "../../atoms";
 import { MotionButton, MotionIconButton } from "../../components/buttons";
 import {
@@ -67,14 +67,13 @@ export function NotesSidebar({
 
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
-
-	const setIsFolderDialogOpen = useSetAtom(isFolderDialogOpenAtom);
+	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const [rightClickedNote, setRightClickedNote] = useState<string | null>(null);
 
 	useOnClickOutside(sidebarRef, () => setAttachmentsSelectionRange(new Set()));
 	useEffect(() => {
 		updateNotes(folder, note, setNotes);
-
+		console.log("ran");
 		GetAttachments(folder)
 			.then((res) => {
 				if (res.success) {
@@ -111,11 +110,16 @@ export function NotesSidebar({
 		});
 	});
 
-	useWailsEvent("note:context-menu:delete-note", async (event) => {
-		const noteName = event.data as string;
-		const path = `${folder}/${noteName}`;
+	useWailsEvent("note:context-menu:delete", async (event) => {
+		const noteNamesAsString = event.data as string;
+		// TODO: This has to be done in a better way because a note name can have a comma in it
+		const noteNamesAsArray = noteNamesAsString.split(",");
+		const paths = noteNamesAsArray.map(
+			(noteName) => `${folder}/${noteName}.md`,
+		);
+
 		try {
-			const res = await MoveToTrash([`${path}.md`]);
+			const res = await MoveToTrash(paths);
 			if (res.success) {
 				toast.success(res.message);
 			} else {

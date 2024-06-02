@@ -1,5 +1,6 @@
 import { Events } from "@wailsio/runtime";
 import { motion } from "framer-motion";
+import { useAtomValue } from "jotai";
 import {
 	type CSSProperties,
 	type Dispatch,
@@ -7,6 +8,7 @@ import {
 	useState,
 } from "react";
 import { Link } from "wouter";
+import { selectionRangeAtom } from "../../atoms";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
 import { ChevronDown } from "../../icons/chevron-down";
@@ -26,6 +28,7 @@ export function MyNotesAccordion({
 	setRightClickedNote: Dispatch<SetStateAction<string | null>>;
 }) {
 	const [isNotesCollapsed, setIsNotesCollapsed] = useState(false);
+	const selectionRange = useAtomValue(selectionRangeAtom);
 
 	return (
 		<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
@@ -65,9 +68,8 @@ export function MyNotesAccordion({
 							handleDragStart(
 								e,
 								setSelectionRange,
-								notes ?? [],
 								"note",
-								i,
+								notes?.at(i) ?? "",
 								folder,
 							)
 						}
@@ -82,7 +84,8 @@ export function MyNotesAccordion({
 						className={cn(
 							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform",
 							noteName === note && "bg-zinc-150 dark:bg-zinc-700",
-							selectionRange.has(i) &&
+							notes?.at(i) &&
+								selectionRange.has(notes[i]) &&
 								"!bg-blue-400 dark:!bg-blue-600 text-white",
 						)}
 						to={`/${folder}/${noteName}`}
@@ -100,7 +103,7 @@ export function MyNotesAccordion({
 				getContextMenuStyle={(noteName) =>
 					({
 						"--custom-contextmenu": "note-context-menu",
-						"--custom-contextmenu-data": noteName,
+						"--custom-contextmenu-data": [...selectionRange],
 					}) as CSSProperties
 				}
 			/>

@@ -62,9 +62,8 @@ export function MyFoldersAccordion({
 							handleDragStart(
 								e,
 								setSelectionRange,
-								alphabetizedFolders ?? [],
 								"folder",
-								i,
+								alphabetizedFolders?.at(i) ?? "",
 							)
 						}
 						target="_blank"
@@ -73,7 +72,8 @@ export function MyFoldersAccordion({
 							folder &&
 								decodeURIComponent(folder) === folderName &&
 								"bg-zinc-150 dark:bg-zinc-700",
-							selectionRange.has(i) &&
+							alphabetizedFolders?.at(i) &&
+								selectionRange.has(alphabetizedFolders[i]) &&
 								"!bg-blue-400 dark:!bg-blue-600 text-white",
 						)}
 						to={`/${encodeURIComponent(folderName)}`}

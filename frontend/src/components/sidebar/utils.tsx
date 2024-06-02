@@ -28,26 +28,25 @@ function getFileIcon(fileType: "folder" | "note" | "image") {
  */
 export function handleDragStart(
 	e: DragEvent<HTMLAnchorElement>,
-	setSelectionRange: Dispatch<SetStateAction<Set<number>>>,
-	files: string[],
+	setSelectionRange: Dispatch<SetStateAction<Set<string>>>,
 	fileType: "folder" | "note" | "image",
-	draggedIndex: number,
+	draggedItem: string,
 	folder?: string,
 ) {
 	setSelectionRange((tempSet) => {
 		const tempSelectionRange = new Set(tempSet);
-		tempSelectionRange.add(draggedIndex);
+		tempSelectionRange.add(draggedItem);
 
 		// Map selected file indices to their internal URLs
-		const selectedFiles = Array.from(tempSelectionRange).map((index) => {
+		const selectedFiles = Array.from(tempSelectionRange).map((name) => {
 			if (fileType === "folder") {
-				return `wails://localhost:5173/${files[index]}`;
+				return `wails://localhost:5173/${name}`;
 			}
 			// A note link should have a folder associated with it
 			if (!folder) {
 				return "";
 			}
-			return `wails://localhost:5173/${folder}/${files[index]}`;
+			return `wails://localhost:5173/${folder}/${name}`;
 		});
 
 		// Setting the data for the CONTROLLED_TEXT_INSERTION_COMMAND

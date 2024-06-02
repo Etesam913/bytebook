@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
+import { useSetAtom } from "jotai";
 import {
 	type CSSProperties,
 	type Dispatch,
@@ -7,6 +8,7 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { selectionRangeAtom } from "../../atoms";
 import { useOnClickOutside } from "../../utils/hooks";
 import { SidebarItems } from "./sidebar-items";
 
@@ -23,17 +25,17 @@ export function Sidebar({
 	renderLink: (data: {
 		dataItem: string;
 		i: number;
-		selectionRange: Set<number>;
-		setSelectionRange: Dispatch<SetStateAction<Set<number>>>;
+		selectionRange: Set<string>;
+		setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
 	}) => ReactNode;
 	emptyElement?: ReactNode;
 }) {
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-	const [selectionRange, setSelectionRange] = useState<Set<number>>(new Set());
+	const setSelectionRange = useSetAtom(selectionRangeAtom);
 	const anchorSelectionIndex = useRef<number>(0);
 	const listRef = useRef<HTMLUListElement>(null);
 
-	useOnClickOutside(listRef, () => setSelectionRange(new Set()));
+	// useOnClickOutside(listRef, () => setSelectionRange(new Set()));
 
 	return (
 		<AnimatePresence>
@@ -54,8 +56,6 @@ export function Sidebar({
 						getContextMenuStyle={getContextMenuStyle}
 						hoveredIndex={hoveredIndex}
 						setHoveredIndex={setHoveredIndex}
-						setSelectionRange={setSelectionRange}
-						selectionRange={selectionRange}
 						anchorSelectionIndex={anchorSelectionIndex}
 						emptyElement={emptyElement}
 					/>

@@ -1,5 +1,7 @@
 import { AnimatePresence } from "framer-motion";
+import { useAtom } from "jotai";
 import type { CSSProperties, Dispatch, ReactNode, SetStateAction } from "react";
+import { selectionRangeAtom } from "../../atoms";
 import { SidebarHighlight } from "./highlight";
 
 export function SidebarItems({
@@ -8,8 +10,6 @@ export function SidebarItems({
 	hoveredIndex,
 	setHoveredIndex,
 	renderLink,
-	selectionRange,
-	setSelectionRange,
 	anchorSelectionIndex,
 	emptyElement,
 }: {
@@ -20,14 +20,14 @@ export function SidebarItems({
 	renderLink: (data: {
 		dataItem: string;
 		i: number;
-		selectionRange: Set<number>;
-		setSelectionRange: Dispatch<SetStateAction<Set<number>>>;
+		selectionRange: Set<string>;
+		setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
 	}) => ReactNode;
-	selectionRange: Set<number>;
-	setSelectionRange: Dispatch<SetStateAction<Set<number>>>;
 	anchorSelectionIndex: React.MutableRefObject<number>;
 	emptyElement?: ReactNode;
 }) {
+	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
+
 	const dataElements = data?.map((dataItem, i) => (
 		<li
 			onMouseEnter={() => setHoveredIndex(i)}
@@ -43,21 +43,19 @@ export function SidebarItems({
 					if (e.shiftKey) {
 						const start = Math.min(anchorSelectionIndex.current, i);
 						const end = Math.max(anchorSelectionIndex.current, i);
-						setSelectionRange(
-							new Set(
-								Array.from({ length: end - start + 1 }, (_, i) => start + i),
-							),
-						);
+						const selectedElements: Set<string> = new Set();
+						for (let j = start; j <= end; j++) selectedElements.add(data[j]);
+						setSelectionRange(selectedElements);
 					}
 					// Command click
 					else if (e.metaKey) {
 						anchorSelectionIndex.current = i;
 						setSelectionRange((prev) => {
 							const newSelection = new Set(prev);
-							if (newSelection.has(i)) {
-								newSelection.delete(i);
+							if (newSelection.has(data[i])) {
+								newSelection.delete(data[i]);
 							} else {
-								newSelection.add(i);
+								newSelection.add(data[i]);
 							}
 							return newSelection;
 						});
@@ -70,7 +68,7 @@ export function SidebarItems({
 				}}
 			>
 				<AnimatePresence>
-					{hoveredIndex === i && !selectionRange.has(i) && (
+					{hoveredIndex === i && !selectionRange.has(data[i]) && (
 						<SidebarHighlight layoutId="folder-highlight" />
 					)}
 				</AnimatePresence>

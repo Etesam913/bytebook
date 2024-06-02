@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import type { MutableRefObject } from "react";
-import type { DialogDataType, FolderDialogState } from "./types.ts";
+import type { DialogDataType } from "./types.ts";
 
 const privateMostRecentNotesAtom = atom<string[]>(
 	JSON.parse(localStorage.getItem("mostRecentNotes") ?? "[]") as string[],
@@ -22,14 +22,12 @@ export const alphabetizedFoldersAtom = atom((get) => {
 	return folders.sort((a, b) => a.localeCompare(b));
 });
 
+export const selectionRangeAtom = atom<Set<string>>(new Set([]));
+
 export const darkModeAtom = atom<boolean>(false);
 
 export const isToolbarDisabled = atom<boolean>(false);
 export const isNoteMaximizedAtom = atom<boolean>(false);
-export const isFolderDialogOpenAtom = atom<FolderDialogState>({
-	isOpen: false,
-	folderName: "",
-});
 
 export const noteContainerRefAtom =
 	atom<MutableRefObject<HTMLElement | null> | null>(null);

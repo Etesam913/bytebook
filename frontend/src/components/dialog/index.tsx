@@ -1,6 +1,13 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
-import { type Dispatch, type SetStateAction, useRef, useState } from "react";
+import {
+	type Dispatch,
+	type KeyboardEvent,
+	type SetStateAction,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import useMeasure from "react-use-measure";
 import { easingFunctions, getDefaultButtonVariants } from "../../animations";
 import { dialogDataAtom } from "../../atoms";
@@ -52,11 +59,34 @@ export function resetDialogState(
 	setErrorText("");
 }
 
+function handleDialogKeyDown(
+	e: globalThis.KeyboardEvent,
+	setErrorText: Dispatch<SetStateAction<string>>,
+	setDialogData: Dispatch<SetStateAction<DialogDataType>>,
+) {
+	if (e.key === "Escape") {
+		resetDialogState(setErrorText, setDialogData);
+	}
+}
+
 export function Dialog() {
 	const [dialogData, setDialogData] = useAtom(dialogDataAtom);
 	const [errorText, setErrorText] = useState("");
 	const modalRef = useRef<HTMLFormElement>(null);
 	useTrapFocus(modalRef, dialogData.isOpen);
+
+	// Handles escape key when dialog is open
+	useEffect(() => {
+		const keyDownHandler = (e: globalThis.KeyboardEvent) =>
+			handleDialogKeyDown(e, setErrorText, setDialogData);
+
+		if (dialogData.isOpen) {
+			document.addEventListener("keydown", keyDownHandler);
+		}
+		return () => {
+			document.removeEventListener("keydown", keyDownHandler);
+		};
+	}, [dialogData.isOpen]);
 
 	return (
 		<AnimatePresence>
