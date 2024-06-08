@@ -1,6 +1,11 @@
 import { $isListNode, ListNode } from "@lexical/list";
-import { $isHeadingNode } from "@lexical/rich-text";
-import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
+import { $isHeadingNode, eventFiles } from "@lexical/rich-text";
+import {
+	$getNearestNodeOfType,
+	calculateZoomLevel,
+	mergeRegister,
+} from "@lexical/utils";
+import type { MotionValue } from "framer-motion";
 import { useAtom, useSetAtom } from "jotai";
 import {
 	$createTextNode,
@@ -13,6 +18,7 @@ import {
 	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
 	CONTROLLED_TEXT_INSERTION_COMMAND,
+	DRAGOVER_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
 	KEY_ARROW_UP_COMMAND,
@@ -23,6 +29,7 @@ import {
 	SELECTION_CHANGE_COMMAND,
 	type TextFormatType,
 	UNDO_COMMAND,
+	isHTMLElement,
 } from "lexical";
 import {
 	type Dispatch,
@@ -56,7 +63,7 @@ import {
 	overrideUndoRedoCommand,
 	overrideUpDownKeyCommand,
 } from "./utils";
-import { getBlockElement } from "./utils/draggable-block.ts";
+import { getBlockElement, setTargetLine } from "./utils/draggable-block.ts";
 
 /** Gets note markdown from local system */
 export function useNoteMarkdown(
@@ -431,10 +438,14 @@ export function useToolbarEvents(
 }
 const DRAGGABLE_BLOCK_MENU_CLASSNAME = "draggable-block-menu";
 
-function isOnMenu(element: HTMLElement): boolean {
+function isOnHandle(element: HTMLElement): boolean {
 	return !!element.closest(`.${DRAGGABLE_BLOCK_MENU_CLASSNAME}`);
 }
 
+/**
+ * Gets the hovered element and stores it in a state
+ * Does some checks to make sure that it is valid for dragging
+ */
 export function useDraggableBlock(
 	noteContainerRef: RefObject<HTMLElement | null> | null,
 	editor: LexicalEditor,
@@ -451,14 +462,17 @@ export function useDraggableBlock(
 			}
 			const target = e.target;
 
-			// Handling some basic edge cases
+			// The hovered element is not a HTMLElement
 			if (!(target instanceof HTMLElement)) {
 				return;
 			}
 
-			if (isOnMenu(target)) {
+			// If the hovered element is the handle itself, then there is nothing to do
+			if (isOnHandle(target)) {
 				return;
 			}
+
+			// Stores the block element that is being hovered in state
 			const _draggableBlockElem = getBlockElement(
 				e,
 				editor,
@@ -490,4 +504,63 @@ export function useDraggableBlock(
 	}, [noteContainerRef]);
 
 	return { draggableBlockElement, setDraggableBlockElement };
+}
+
+/**
+ * Updates the state of the target line based on the current mouse position when dragging
+ */
+export function useNodeDragEvents(
+	editor: LexicalEditor,
+	isDragging: boolean,
+	noteContainer: HTMLElement | null,
+	targetLineYMotionValue: MotionValue<number>,
+) {
+	useEffect(() => {
+		const throttledHandleDragOver = throttle((event: DragEvent) => {
+			if (!isDragging) {
+				return false;
+			}
+			const [isFileTransfer] = eventFiles(event);
+			if (isFileTransfer) {
+				return false;
+			}
+			const { pageY, target } = event;
+			if (!target || !isHTMLElement(target) || !noteContainer) {
+				return false;
+			}
+			const targetBlockElem = getBlockElement(
+				event,
+				editor,
+				noteContainer,
+				true,
+			);
+
+			if (targetBlockElem === null) return false;
+			setTargetLine(
+				targetBlockElem,
+				pageY / calculateZoomLevel(target),
+				noteContainer,
+				targetLineYMotionValue,
+			);
+			// Prevent default event to be able to trigger onDrop events
+			event.preventDefault();
+			return true;
+		}, 100);
+		// function onDragover(event: DragEvent): boolean {}
+
+		return mergeRegister(
+			editor.registerCommand(
+				DRAGOVER_COMMAND,
+				(event) => throttledHandleDragOver(event),
+				COMMAND_PRIORITY_LOW,
+			),
+			// editor.registerCommand(
+			// 	DROP_COMMAND,
+			// 	(event) => {
+			// 		return $onDrop(event);
+			// 	},
+			// 	COMMAND_PRIORITY_HIGH,
+			// ),
+		);
+	}, [editor, noteContainer, isDragging]);
 }

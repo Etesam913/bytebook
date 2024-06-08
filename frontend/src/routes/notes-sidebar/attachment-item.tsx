@@ -6,7 +6,7 @@ import type {
 	RefObject,
 	SetStateAction,
 } from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { Link } from "wouter";
 import { SidebarHighlight } from "../../components/sidebar/highlight";
 import { ImageIcon } from "../../icons/image";
@@ -46,7 +46,8 @@ function handleDragStart(
 	});
 
 	document.body.appendChild(ghostElement);
-	ReactDOM.render(children, ghostElement);
+	const ghostRoot = createRoot(ghostElement);
+	ghostRoot.render(children);
 	e.dataTransfer.setDragImage(ghostElement, -25, -25);
 
 	// Cleaning up the ghost element after the drag ends

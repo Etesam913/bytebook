@@ -162,7 +162,7 @@ export function NotesEditor({
 					style={{ scrollbarGutter: "stable" }}
 					className={cn(
 						"h-[calc(100vh-38px)] overflow-y-auto py-2 px-4 relative",
-						isNoteMaximized && "px-5",
+						isNoteMaximized && "px-6",
 					)}
 					onClick={(e) => {
 						const target = e.target as HTMLElement & { ariaChecked?: string };

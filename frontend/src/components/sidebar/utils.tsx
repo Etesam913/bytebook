@@ -1,5 +1,6 @@
 import type { Dispatch, DragEvent, SetStateAction } from "react";
 import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { Folder } from "../../icons/folder";
 import { ImageIcon } from "../../icons/image";
 import { Note } from "../../icons/page";
@@ -75,7 +76,8 @@ export function handleDragStart(
 
 		// Append and render the ghost element
 		document.body.appendChild(ghostElement);
-		ReactDOM.render(children, ghostElement);
+		const ghostRoot = createRoot(ghostElement);
+		ghostRoot.render(children);
 		e.dataTransfer.setDragImage(ghostElement, -25, -25);
 
 		// Clean up the ghost element after the drag ends

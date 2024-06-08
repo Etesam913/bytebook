@@ -1,7 +1,11 @@
 import { calculateZoomLevel } from "@lexical/utils";
 import type { MotionValue } from "framer-motion";
-import { $getRoot, type LexicalEditor } from "lexical";
-import type { Dispatch, SetStateAction } from "react";
+import {
+	$getNearestNodeFromDOMNode,
+	$getRoot,
+	type LexicalEditor,
+} from "lexical";
+import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 
 export class Point {
 	private readonly _x: number;
@@ -209,6 +213,12 @@ const Downward = 1;
 const Upward = -1;
 const Indeterminate = 0;
 
+/**
+ * Returns the index of the current key in the list of keys.
+ * If the previous index is not valid, it returns the middle index.
+ * @param {number} keysLength - The length of the list of keys.
+ * @returns {number} The index of the current key.
+ */
 function getCurrentIndex(keysLength: number): number {
 	if (keysLength === 0) {
 		return Number.POSITIVE_INFINITY;
@@ -285,9 +295,11 @@ export function getBlockElement(
 	noteContainer: HTMLElement,
 	useEdgeAsDefault = false,
 ) {
+	// The children of the root
 	const rootKeys = editor
 		.getEditorState()
 		.read(() => $getRoot().getChildrenKeys());
+
 	let blockElem: HTMLElement | null = null;
 	const noteContainerRect = noteContainer.getBoundingClientRect();
 
@@ -342,12 +354,14 @@ export function getBlockElement(
 				reason: { isOnTopSide, isOnBottomSide },
 			} = rect.contains(point);
 
+			// If point is inside the block element, then you found the block element
 			if (result) {
 				blockElem = elem;
 				prevIndex = index;
 				break;
 			}
 
+			// Find which direction to go based off of the point
 			if (direction === Indeterminate) {
 				if (isOnTopSide) {
 					direction = Upward;
@@ -365,6 +379,28 @@ export function getBlockElement(
 	return blockElem;
 }
 
+export function setTargetLine(
+	targetBlockElem: HTMLElement,
+	mouseY: number,
+	anchorElem: HTMLElement,
+	yMotionValue: MotionValue<number>,
+) {
+	const { top: targetBlockElemTop, height: targetBlockElemHeight } =
+		targetBlockElem.getBoundingClientRect();
+	const { top: anchorTop } = anchorElem.getBoundingClientRect();
+	const { marginTop, marginBottom } = getCollapsedMargins(targetBlockElem);
+	let lineTop = targetBlockElemTop;
+	if (mouseY >= targetBlockElemTop) {
+		lineTop += targetBlockElemHeight + marginBottom / 2;
+	} else {
+		lineTop -= marginTop / 2;
+	}
+	const top = lineTop - anchorTop - 4;
+
+	yMotionValue.set(top);
+}
+
+/** Updates position and opacity values for handle based on `targetElem` */
 export function setHandlePosition(
 	targetElem: HTMLElement | null,
 	floatingElem: HTMLElement,
@@ -373,9 +409,7 @@ export function setHandlePosition(
 	yMotionValue: MotionValue<number>,
 ) {
 	if (!targetElem) {
-		// floatingElem.style.opacity = "0";
 		setIsHandleShowing(false);
-		// floatingElem.style.transform = "translate(-10000px, -10000px)";
 		return;
 	}
 
@@ -393,4 +427,36 @@ export function setHandlePosition(
 	yMotionValue.set(top);
 
 	setIsHandleShowing(true);
+}
+
+/**
+ * Creates the ghost element of the block being dragged and sets the data transfer properties
+ */
+export function handleDragStart(
+	e: MouseEvent | PointerEvent | TouchEvent,
+	editor: LexicalEditor,
+	setIsDragging: Dispatch<SetStateAction<boolean>>,
+	draggableBlockElement: HTMLElement | null,
+	ghostElementRef: MutableRefObject<HTMLElement | null>,
+) {
+	if (!e.dataTransfer || !draggableBlockElement) {
+		return;
+	}
+
+	let nodeKey = "";
+	const ghostElement = draggableBlockElement.cloneNode(true) as HTMLElement;
+	ghostElement.classList.add("dragging");
+	ghostElementRef.current = ghostElement;
+	e.dataTransfer.setDragImage(ghostElement, 0, 0);
+	document.body.appendChild(ghostElement);
+	editor.update(() => {
+		const node = $getNearestNodeFromDOMNode(draggableBlockElement);
+		if (node) {
+			nodeKey = node.getKey();
+		}
+	});
+
+	setIsDragging(true);
+	const dragDataFormat = "application/x-lexical-drag-block";
+	e.dataTransfer.setData(dragDataFormat, nodeKey);
 }
