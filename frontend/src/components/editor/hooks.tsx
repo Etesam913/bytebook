@@ -1,7 +1,7 @@
 import { $isListNode, ListNode } from "@lexical/list";
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import {
 	$createTextNode,
 	$getSelection,
@@ -27,20 +27,23 @@ import {
 import {
 	type Dispatch,
 	type MutableRefObject,
+	type RefObject,
 	type SetStateAction,
 	useEffect,
+	useState,
 } from "react";
 import { navigate } from "wouter/use-browser-location";
 import {
 	GetNoteMarkdown,
 	ValidateMostRecentNotes,
 } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
-import { mostRecentNotesAtom } from "../../atoms.ts";
+import { draggableBlockElementAtom, mostRecentNotesAtom } from "../../atoms.ts";
 import {
 	type EditorBlockTypes,
 	type FloatingDataType,
 	IMAGE_FILE_EXTENSIONS,
 } from "../../types.ts";
+import { throttle } from "../../utils/draggable.ts";
 import { FILE_SERVER_URL } from "../../utils/misc.ts";
 import type { ImagePayload } from "./nodes/image.tsx";
 import { $createLinkNode } from "./nodes/link.tsx";
@@ -53,6 +56,7 @@ import {
 	overrideUndoRedoCommand,
 	overrideUpDownKeyCommand,
 } from "./utils";
+import { getBlockElement } from "./utils/draggable-block.ts";
 
 /** Gets note markdown from local system */
 export function useNoteMarkdown(
@@ -424,4 +428,66 @@ export function useToolbarEvents(
 		setCanUndo,
 		noteContainerRef,
 	]);
+}
+const DRAGGABLE_BLOCK_MENU_CLASSNAME = "draggable-block-menu";
+
+function isOnMenu(element: HTMLElement): boolean {
+	return !!element.closest(`.${DRAGGABLE_BLOCK_MENU_CLASSNAME}`);
+}
+
+export function useDraggableBlock(
+	noteContainerRef: RefObject<HTMLElement | null> | null,
+	editor: LexicalEditor,
+) {
+	const [draggableBlockElement, setDraggableBlockElement] = useAtom(
+		draggableBlockElementAtom,
+	);
+
+	useEffect(() => {
+		const noteContainerValue = noteContainerRef?.current;
+		const throttledHandleMouseMove = throttle((e: MouseEvent) => {
+			if (!noteContainerValue) {
+				return;
+			}
+			const target = e.target;
+
+			// Handling some basic edge cases
+			if (!(target instanceof HTMLElement)) {
+				return;
+			}
+
+			if (isOnMenu(target)) {
+				return;
+			}
+			const _draggableBlockElem = getBlockElement(
+				e,
+				editor,
+				noteContainerValue,
+			);
+			setDraggableBlockElement(_draggableBlockElem);
+		}, 100);
+
+		function handleMouseLeave() {
+			setDraggableBlockElement(null);
+		}
+
+		noteContainerRef?.current?.addEventListener(
+			"mousemove",
+			throttledHandleMouseMove,
+		);
+		noteContainerRef?.current?.addEventListener("mouseleave", handleMouseLeave);
+
+		return () => {
+			noteContainerRef?.current?.removeEventListener(
+				"mousemove",
+				throttledHandleMouseMove,
+			);
+			noteContainerRef?.current?.removeEventListener(
+				"mouseleave",
+				handleMouseLeave,
+			);
+		};
+	}, [noteContainerRef]);
+
+	return { draggableBlockElement, setDraggableBlockElement };
 }

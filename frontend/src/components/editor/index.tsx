@@ -22,7 +22,11 @@ import {
 } from "react";
 import { SetNoteMarkdown } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
 import { WINDOW_ID } from "../../App.tsx";
-import { isNoteMaximizedAtom, noteContainerRefAtom } from "../../atoms";
+import {
+	draggableBlockElementAtom,
+	isNoteMaximizedAtom,
+	noteContainerRefAtom,
+} from "../../atoms";
 import type { FloatingDataType } from "../../types.ts";
 import { debounce } from "../../utils/draggable";
 import useHotkeys from "../../utils/hooks.tsx";
@@ -60,9 +64,9 @@ function handleChange(
 	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>,
 ) {
 	/*
-		If the note was changed from another window, don't update it again
-		If a new note is loaded for the first time, we don't need this func to run
-	*/
+    If the note was changed from another window, don't update it again
+    If a new note is loaded for the first time, we don't need this func to run
+  */
 	if (
 		tags.has("note:changed-from-other-window") ||
 		tags.has("note:initial-load")
@@ -115,8 +119,9 @@ export function NotesEditor({
 	});
 	const [isFindOpen, setIsFindOpen] = useState(false);
 	const noteContainerRef = useRef<HTMLDivElement | null>(null);
-
 	const setNoteContainerRef = useSetAtom(noteContainerRefAtom);
+	const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
+
 	useMostRecentNotes(folder, note);
 
 	useHotkeys({
@@ -179,6 +184,7 @@ export function NotesEditor({
 						placeholder={null}
 						contentEditable={
 							<ContentEditable
+								onKeyDown={() => setDraggableBlockElement(null)}
 								id="content-editable-editor"
 								autoComplete="off"
 								autoCorrect="off"
