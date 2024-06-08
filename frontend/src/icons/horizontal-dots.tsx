@@ -1,4 +1,4 @@
-export function Dots({
+export function HorizontalDots({
 	width = "1.25rem",
 	height = "1.25rem",
 	fill = "currentColor",

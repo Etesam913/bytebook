@@ -41,6 +41,7 @@ import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 
 import { BottomBar } from "./bottom-bar.tsx";
+import { DraggableBlockPlugin } from "./plugins/draggable-block.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import {
 	$convertToMarkdownStringCorrect,
@@ -58,8 +59,8 @@ function handleChange(
 	frontmatter: Record<string, string>,
 	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>,
 ) {
-	/* 
-		If the note was changed from another window, don't update it again 
+	/*
+		If the note was changed from another window, don't update it again
 		If a new note is loaded for the first time, we don't need this func to run
 	*/
 	if (
@@ -155,7 +156,7 @@ export function NotesEditor({
 					ref={noteContainerRef}
 					style={{ scrollbarGutter: "stable" }}
 					className={cn(
-						"h-[calc(100vh-38px)] overflow-y-auto py-2 px-3 relative",
+						"h-[calc(100vh-38px)] overflow-y-auto py-2 px-4 relative",
 						isNoteMaximized && "px-5",
 					)}
 					onClick={(e) => {
@@ -213,6 +214,7 @@ export function NotesEditor({
 					<VideosPlugin />
 					<CodePlugin />
 					<TablePlugin />
+					<DraggableBlockPlugin />
 					{/* <TreeViewPlugin /> */}
 				</div>
 				<BottomBar frontmatter={frontmatter} folder={folder} note={note} />

@@ -126,6 +126,7 @@ export function SandpackEditor({
 			data-is-fullscreen={isFullscreen}
 			data-non-template-is-fullscreen={isNonTemplateLanguageFullscreen}
 			data-template-is-fullscreen={isTemplateLanguageFullscreen}
+			onClick={(e) => e.stopPropagation()}
 			className={cn(
 				"border-transparent transition-colors text-zinc-700 dark:text-zinc-200 border-2 bg-zinc-50 dark:bg-zinc-750 rounded-md",
 				isSelected && "border-blue-400 dark:border-blue-500",

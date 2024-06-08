@@ -36,6 +36,17 @@
     font-style: italic;
 }
 
+.draggable-block-menu {
+    border-radius: 4px;
+    padding: 2px 1px;
+    cursor: grab;
+    opacity: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    will-change: transform;
+}
+
 :root {
     @apply transition-colors duration-300 dark:[color-scheme:dark];
 }
@@ -64,81 +75,81 @@ h3 {
     font-size: 14px;
 }
 
-.cm-tooltip{
-    @apply !bg-white dark:!bg-zinc-800 text-zinc-900 dark:text-zinc-200 !border-zinc-200 dark:!border-zinc-600 rounded-md overflow-hidden !p-1 ;
+.cm-tooltip {
+    @apply !bg-white dark:!bg-zinc-800 text-zinc-900 dark:text-zinc-200 !border-zinc-200 dark:!border-zinc-600 rounded-md overflow-hidden !p-1;
 }
 
-.cm-tooltip > ul{
+.cm-tooltip > ul {
     @apply bg-white dark:bg-zinc-800 !max-h-48;
 }
-.cm-completionIcon{
+.cm-completionIcon {
     @apply !hidden;
 }
 
-.cm-tooltip > ul >li{
+.cm-tooltip > ul > li {
     @apply hover:bg-zinc-150 dark:hover:bg-zinc-700 !p-1.5 rounded-md overflow-hidden mb-1.5 last:mb-0;
 }
 
 /* Making the tabs not overlap in fullscreen mode */
-div[data-non-template-is-fullscreen=true] > div > div > div > .sp-tabs{
-  padding-left: 72px;
-  --sp-layout-headerHeight: 52px;
+div[data-non-template-is-fullscreen="true"] > div > div > div > .sp-tabs {
+    padding-left: 72px;
+    --sp-layout-headerHeight: 52px;
 }
 
-div[data-template-is-fullscreen=true] > div > div > div > .sp-tabs{
-  --sp-layout-headerHeight: 52px;
+div[data-template-is-fullscreen="true"] > div > div > div > .sp-tabs {
+    --sp-layout-headerHeight: 52px;
 }
 
-
-div[data-template-is-fullscreen=true] >div >div > div > .sp-file-explorer-list{
-  padding-top: 3.25rem;
+div[data-template-is-fullscreen="true"]
+    > div
+    > div
+    > div
+    > .sp-file-explorer-list {
+    padding-top: 3.25rem;
 }
 
-
-.cm-completionLabel{
+.cm-completionLabel {
     font-family: "Jetbrains Mono", monospace;
     font-size: 13px;
 }
 
-.sp-tabs{
+.sp-tabs {
     padding-right: 64px;
     /* padding-left: 64px; */
 }
 
-.dragging{
-  @apply bg-zinc-50 dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-zinc-200 dark:border-zinc-600 border-2 absolute top-0 left-[-9999px] p-2 rounded-lg font-display;
+.dragging {
+    @apply bg-zinc-50 dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-zinc-200 dark:border-zinc-600 border-2 absolute top-0 left-[-9999px] p-2 rounded-lg font-display;
 }
 
-.drag-grid{
-  display: grid;
-  grid-template-columns: 1.5rem 1fr;
-  row-gap: 0.5rem;
+.drag-grid {
+    display: grid;
+    grid-template-columns: 1.5rem 1fr;
+    row-gap: 0.5rem;
 }
-
 
 /**
- * Excalidraw styles 
+ * Excalidraw styles
 */
 
 /* The export options do not work with wails out of the box, so I am hiding this button */
-.App-menu_top__left, .main-menu-trigger{
-  display: none !important;
+.App-menu_top__left,
+.main-menu-trigger {
+    display: none !important;
 }
 
-.excalidraw .App-menu_top{
-  grid-template-columns: 1fr !important;
+.excalidraw .App-menu_top {
+    grid-template-columns: 1fr !important;
 }
 
 /* The library button is useless as well */
-.layer-ui__wrapper__top-right{
-  display: none !important;
+.layer-ui__wrapper__top-right {
+    display: none !important;
 }
-
 
 /**
  * Lexical Editor Styles (Tailwind does not work too well with)
  */
-
 
 .link {
     @apply cursor-pointer text-blue-500 underline decoration-2 underline-offset-2 dark:text-blue-400 transition-colors w-fit;
@@ -148,7 +159,7 @@ div[data-template-is-fullscreen=true] >div >div > div > .sp-file-explorer-list{
     @apply text-blue-600 dark:text-blue-300;
 }
 
-.link-internal{
+.link-internal {
     @apply text-green-500 underline decoration-2 underline-offset-2 dark:text-green-500 transition-colors inline-flex items-baseline gap-0.5 w-fit cursor-pointer;
 }
 
@@ -315,161 +326,161 @@ div[data-template-is-fullscreen=true] >div >div > div > .sp-file-explorer-list{
 
 /* Table Styles */
 .PlaygroundEditorTheme__table {
-  border-collapse: collapse;
-  border-spacing: 0;
-  overflow-y: scroll;
-  overflow-x: scroll;
-  table-layout: fixed;
-  width: max-content;
-  margin: 30px 0;
+    border-collapse: collapse;
+    border-spacing: 0;
+    overflow-y: scroll;
+    overflow-x: scroll;
+    table-layout: fixed;
+    width: max-content;
+    margin: 30px 0;
 }
 .PlaygroundEditorTheme__tableSelection *::selection {
-  background-color: transparent;
+    background-color: transparent;
 }
 .PlaygroundEditorTheme__tableSelected {
-  outline: 2px solid rgb(60, 132, 244);
+    outline: 2px solid rgb(60, 132, 244);
 }
 .PlaygroundEditorTheme__tableCell {
-  border: 1px solid #bbb;
-  width: 75px;
-  min-width: 75px;
-  vertical-align: top;
-  text-align: start;
-  padding: 6px 8px;
-  position: relative;
-  outline: none;
+    border: 1px solid #bbb;
+    width: 75px;
+    min-width: 75px;
+    vertical-align: top;
+    text-align: start;
+    padding: 6px 8px;
+    position: relative;
+    outline: none;
 }
 .PlaygroundEditorTheme__tableCellSortedIndicator {
-  display: block;
-  opacity: 0.5;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background-color: #999;
+    display: block;
+    opacity: 0.5;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background-color: #999;
 }
 .PlaygroundEditorTheme__tableCellResizer {
-  position: absolute;
-  right: -4px;
-  height: 100%;
-  width: 8px;
-  cursor: ew-resize;
-  z-index: 10;
-  top: 0;
+    position: absolute;
+    right: -4px;
+    height: 100%;
+    width: 8px;
+    cursor: ew-resize;
+    z-index: 10;
+    top: 0;
 }
 .PlaygroundEditorTheme__tableCellHeader {
-  background-color: #f2f3f5;
-  text-align: start;
+    background-color: #f2f3f5;
+    text-align: start;
 }
 .PlaygroundEditorTheme__tableCellSelected {
-  background-color: #c9dbf0;
+    background-color: #c9dbf0;
 }
 .PlaygroundEditorTheme__tableCellPrimarySelected {
-  border: 2px solid rgb(60, 132, 244);
-  display: block;
-  height: calc(100% - 2px);
-  position: absolute;
-  width: calc(100% - 2px);
-  left: -1px;
-  top: -1px;
-  z-index: 2;
+    border: 2px solid rgb(60, 132, 244);
+    display: block;
+    height: calc(100% - 2px);
+    position: absolute;
+    width: calc(100% - 2px);
+    left: -1px;
+    top: -1px;
+    z-index: 2;
 }
 .PlaygroundEditorTheme__tableCellEditing {
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
-  border-radius: 3px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
+    border-radius: 3px;
 }
 .PlaygroundEditorTheme__tableAddColumns {
-  position: absolute;
-  top: 0;
-  width: 20px;
-  background-color: #eee;
-  height: 100%;
-  right: -25px;
-  animation: table-controls 0.2s ease;
-  border: 0;
-  cursor: pointer;
+    position: absolute;
+    top: 0;
+    width: 20px;
+    background-color: #eee;
+    height: 100%;
+    right: -25px;
+    animation: table-controls 0.2s ease;
+    border: 0;
+    cursor: pointer;
 }
 .PlaygroundEditorTheme__tableAddColumns:after {
-  background-image: url(../images/icons/plus.svg);
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  display: block;
-  content: ' ';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.4;
+    background-image: url(../images/icons/plus.svg);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: block;
+    content: " ";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.4;
 }
 .PlaygroundEditorTheme__tableAddColumns:hover {
-  background-color: #c9dbf0;
+    background-color: #c9dbf0;
 }
 .PlaygroundEditorTheme__tableAddRows {
-  position: absolute;
-  bottom: -25px;
-  width: calc(100% - 25px);
-  background-color: #eee;
-  height: 20px;
-  left: 0;
-  animation: table-controls 0.2s ease;
-  border: 0;
-  cursor: pointer;
+    position: absolute;
+    bottom: -25px;
+    width: calc(100% - 25px);
+    background-color: #eee;
+    height: 20px;
+    left: 0;
+    animation: table-controls 0.2s ease;
+    border: 0;
+    cursor: pointer;
 }
 .PlaygroundEditorTheme__tableAddRows:after {
-  background-image: url(../images/icons/plus.svg);
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  display: block;
-  content: ' ';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.4;
+    background-image: url(../images/icons/plus.svg);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: block;
+    content: " ";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.4;
 }
 .PlaygroundEditorTheme__tableAddRows:hover {
-  background-color: #c9dbf0;
+    background-color: #c9dbf0;
 }
 @keyframes table-controls {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 .PlaygroundEditorTheme__tableCellResizeRuler {
-  display: block;
-  position: absolute;
-  width: 1px;
-  background-color: rgb(60, 132, 244);
-  height: 100%;
-  top: 0;
+    display: block;
+    position: absolute;
+    width: 1px;
+    background-color: rgb(60, 132, 244);
+    height: 100%;
+    top: 0;
 }
 .PlaygroundEditorTheme__tableCellActionButtonContainer {
-  display: block;
-  right: 5px;
-  top: 6px;
-  position: absolute;
-  z-index: 4;
-  width: 20px;
-  height: 20px;
+    display: block;
+    right: 5px;
+    top: 6px;
+    position: absolute;
+    z-index: 4;
+    width: 20px;
+    height: 20px;
 }
 .PlaygroundEditorTheme__tableCellActionButton {
-  background-color: #eee;
-  display: block;
-  border: 0;
-  border-radius: 20px;
-  width: 20px;
-  height: 20px;
-  color: #222;
-  cursor: pointer;
+    background-color: #eee;
+    display: block;
+    border: 0;
+    border-radius: 20px;
+    width: 20px;
+    height: 20px;
+    color: #222;
+    cursor: pointer;
 }
 .PlaygroundEditorTheme__tableCellActionButton:hover {
-  background-color: #ddd;
+    background-color: #ddd;
 }
