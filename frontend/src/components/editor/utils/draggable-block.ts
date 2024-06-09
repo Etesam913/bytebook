@@ -230,6 +230,8 @@ function getCurrentIndex(keysLength: number): number {
 	return Math.floor(keysLength / 2);
 }
 
+export const DRAG_DATA_FORMAT = "application/x-lexical-drag-block";
+
 /**
  * Calculates the collapsed top and bottom margins for a given HTML element.
  *
@@ -289,6 +291,10 @@ export function getCollapsedMargins(elem: HTMLElement): {
 	return { marginBottom: collapsedBottomMargin, marginTop: collapsedTopMargin };
 }
 
+/**
+ * Gets the element that is the closest to the given coordinates.
+ * Used in node dragging
+ */
 export function getBlockElement(
 	event: MouseEvent,
 	editor: LexicalEditor,
@@ -379,6 +385,9 @@ export function getBlockElement(
 	return blockElem;
 }
 
+/**
+ * Sets the motion value for the target line based on the target block element and the mouse position.
+ */
 export function setTargetLine(
 	targetBlockElem: HTMLElement,
 	mouseY: number,
@@ -434,7 +443,7 @@ export function setHandlePosition(
  * Creates the ghost element of the block being dragged and sets the data transfer properties
  */
 export function handleDragStart(
-	e: MouseEvent | PointerEvent | TouchEvent,
+	e: DragEvent,
 	editor: LexicalEditor,
 	setIsDragging: Dispatch<SetStateAction<boolean>>,
 	draggableBlockElement: HTMLElement | null,
@@ -458,6 +467,5 @@ export function handleDragStart(
 	});
 
 	setIsDragging(true);
-	const dragDataFormat = "application/x-lexical-drag-block";
-	e.dataTransfer.setData(dragDataFormat, nodeKey);
+	e.dataTransfer.setData(DRAG_DATA_FORMAT, nodeKey);
 }

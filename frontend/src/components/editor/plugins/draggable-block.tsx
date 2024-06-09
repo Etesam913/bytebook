@@ -22,7 +22,7 @@ export function DraggableBlockPlugin() {
 	const dragHandleYMotionValue = useMotionValue(0);
 	const dragHandleYSpringMotionValue = useSpring(dragHandleYMotionValue, {
 		damping: 12,
-		stiffness: 120,
+		stiffness: 170,
 		mass: 0.05,
 		restDelta: 0.5,
 		restSpeed: 0.5,
@@ -30,9 +30,9 @@ export function DraggableBlockPlugin() {
 
 	const targetLineYMotionValue = useMotionValue(0);
 	const targetLineYSpringMotionValue = useSpring(targetLineYMotionValue, {
-		damping: 12,
-		stiffness: 120,
-		mass: 0.05,
+		damping: 16,
+		stiffness: 200,
+		mass: 0.03,
 		restDelta: 0.5,
 		restSpeed: 0.5,
 	});
@@ -64,7 +64,7 @@ export function DraggableBlockPlugin() {
 				draggable
 				onDragStart={(e) =>
 					handleDragStart(
-						e,
+						e as DragEvent,
 						editor,
 						setIsDragging,
 						draggableBlockElement,

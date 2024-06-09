@@ -27,48 +27,42 @@ export function dragItem(
 	document.addEventListener("mousemove", mouseMove);
 	document.addEventListener("mouseup", cleanUpDocumentEvents);
 }
-
-export function throttle<T extends (...args: unknown[]) => unknown>(
-	func: T,
-	limit: number,
-): (...funcArgs: Parameters<T>) => void {
+// biome-ignore lint/complexity/noBannedTypes: General types are suitable for a throttle function
+export const throttle = (fn: Function, wait = 300) => {
 	let inThrottle: boolean;
-	let lastFunc: ReturnType<typeof setTimeout>;
-	let lastRan: number;
+	let lastFn: ReturnType<typeof setTimeout>;
+	let lastTime: number;
 
-	return (...args: Parameters<T>) => {
+	// biome-ignore lint/suspicious/noExplicitAny: `any` is ok here because we don't know the type of `this`
+	return function (this: any) {
+		// biome-ignore lint/style/noArguments: `arguments` is ok here as this function won't be modified for the future
+		const args = arguments;
 		if (!inThrottle) {
-			func(...args);
-			lastRan = Date.now();
+			fn.apply(this, args);
+			lastTime = Date.now();
 			inThrottle = true;
 		} else {
-			clearTimeout(lastFunc);
-			lastFunc = setTimeout(
+			clearTimeout(lastFn);
+			lastFn = setTimeout(
 				() => {
-					if (Date.now() - lastRan >= limit) {
-						func(...args);
-						lastRan = Date.now();
+					if (Date.now() - lastTime >= wait) {
+						fn.apply(this, args);
+						lastTime = Date.now();
 					}
 				},
-				limit - (Date.now() - lastRan),
+				Math.max(wait - (Date.now() - lastTime), 0),
 			);
 		}
 	};
-}
+};
 
-export function debounce<T extends (...args: unknown[]) => unknown>(
-	func: T,
-	wait: number,
-): (...args: Parameters<T>) => void {
-	let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-	return (...args: Parameters<T>) => {
-		if (timeoutId !== null) {
-			clearTimeout(timeoutId);
-		}
-
-		timeoutId = setTimeout(() => {
-			func(...args);
-		}, wait);
+// biome-ignore lint/complexity/noBannedTypes: General types are suitable for a debounce function
+export const debounce = (fn: Function, ms = 300) => {
+	// @ts-ignore
+	let timeoutId: ReturnType<typeof setTimeout>;
+	// biome-ignore lint/suspicious/noExplicitAny: `any` is ok here because we don't know the type of `this`
+	return function (this: any, ...args: any[]) {
+		clearTimeout(timeoutId);
+		timeoutId = setTimeout(() => fn.apply(this, args), ms);
 	};
-}
+};

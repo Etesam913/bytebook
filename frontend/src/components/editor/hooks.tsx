@@ -9,6 +9,8 @@ import type { MotionValue } from "framer-motion";
 import { useAtom, useSetAtom } from "jotai";
 import {
 	$createTextNode,
+	$getNearestNodeFromDOMNode,
+	$getNodeByKey,
 	$getSelection,
 	$isNodeSelection,
 	$isRangeSelection,
@@ -19,6 +21,7 @@ import {
 	COMMAND_PRIORITY_LOW,
 	CONTROLLED_TEXT_INSERTION_COMMAND,
 	DRAGOVER_COMMAND,
+	DROP_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
 	KEY_ARROW_UP_COMMAND,
@@ -37,7 +40,6 @@ import {
 	type RefObject,
 	type SetStateAction,
 	useEffect,
-	useState,
 } from "react";
 import { navigate } from "wouter/use-browser-location";
 import {
@@ -63,7 +65,11 @@ import {
 	overrideUndoRedoCommand,
 	overrideUpDownKeyCommand,
 } from "./utils";
-import { getBlockElement, setTargetLine } from "./utils/draggable-block.ts";
+import {
+	DRAG_DATA_FORMAT,
+	getBlockElement,
+	setTargetLine,
+} from "./utils/draggable-block.ts";
 
 /** Gets note markdown from local system */
 export function useNoteMarkdown(
@@ -510,8 +516,11 @@ export function useNodeDragEvents(
 	noteContainer: HTMLElement | null,
 	targetLineYMotionValue: MotionValue<number>,
 ) {
+	const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
+
 	useEffect(() => {
 		const throttledHandleDragOver = throttle((event: DragEvent) => {
+			event.preventDefault();
 			if (!isDragging) {
 				return false;
 			}
@@ -538,24 +547,62 @@ export function useNodeDragEvents(
 				targetLineYMotionValue,
 			);
 			// Prevent default event to be able to trigger onDrop events
-			event.preventDefault();
+
 			return true;
 		}, 100);
-		// function onDragover(event: DragEvent): boolean {}
+
+		function handleOnDrop(event: DragEvent): boolean {
+			if (!isDragging) {
+				return false;
+			}
+			const [isFileTransfer] = eventFiles(event);
+			if (isFileTransfer) {
+				return false;
+			}
+			const { target, dataTransfer, pageY } = event;
+			const dragData = dataTransfer?.getData(DRAG_DATA_FORMAT) || "";
+			const draggedNode = $getNodeByKey(dragData);
+			if (!draggedNode) {
+				return false;
+			}
+			if (!target || !isHTMLElement(target) || !noteContainer) {
+				return false;
+			}
+			const targetBlockElem = getBlockElement(
+				event,
+				editor,
+				noteContainer,
+				true,
+			);
+			if (!targetBlockElem) {
+				return false;
+			}
+			const targetNode = $getNearestNodeFromDOMNode(targetBlockElem);
+			if (!targetNode) {
+				return false;
+			}
+			if (targetNode === draggedNode) {
+				return true;
+			}
+			const targetBlockElemTop = targetBlockElem.getBoundingClientRect().top;
+			if (pageY / calculateZoomLevel(target) >= targetBlockElemTop) {
+				targetNode.insertAfter(draggedNode);
+			} else {
+				targetNode.insertBefore(draggedNode);
+			}
+			setDraggableBlockElement(null);
+
+			return true;
+		}
 
 		return mergeRegister(
 			editor.registerCommand(
 				DRAGOVER_COMMAND,
-				(event) => throttledHandleDragOver(event),
+				// @ts-ignore
+				throttledHandleDragOver,
 				COMMAND_PRIORITY_LOW,
 			),
-			// editor.registerCommand(
-			// 	DROP_COMMAND,
-			// 	(event) => {
-			// 		return $onDrop(event);
-			// 	},
-			// 	COMMAND_PRIORITY_HIGH,
-			// ),
+			editor.registerCommand(DROP_COMMAND, handleOnDrop, COMMAND_PRIORITY_HIGH),
 		);
 	}, [editor, noteContainer, isDragging]);
 }
