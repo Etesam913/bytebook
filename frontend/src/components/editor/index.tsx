@@ -164,7 +164,6 @@ export function NotesEditor({
 						"h-[calc(100vh-38px)] overflow-y-auto py-2 px-4 relative",
 						isNoteMaximized && "px-6",
 					)}
-					onDragOver={(e) => e.preventDefault()}
 					onClick={(e) => {
 						const target = e.target as HTMLElement & { ariaChecked?: string };
 						if (target.parentElement?.tagName === "A") {

@@ -73,7 +73,6 @@ export function NotesSidebar({
 	useOnClickOutside(sidebarRef, () => setAttachmentsSelectionRange(new Set()));
 	useEffect(() => {
 		updateNotes(folder, note, setNotes);
-		console.log("ran");
 		GetAttachments(folder)
 			.then((res) => {
 				if (res.success) {

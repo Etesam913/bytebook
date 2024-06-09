@@ -32,6 +32,7 @@ export function handleDragStart(
 	setSelectionRange: Dispatch<SetStateAction<Set<string>>>,
 	fileType: "folder" | "note" | "image",
 	draggedItem: string,
+	setDraggedElement: Dispatch<SetStateAction<HTMLElement | null>>,
 	folder?: string,
 ) {
 	setSelectionRange((tempSet) => {
@@ -57,10 +58,12 @@ export function handleDragStart(
 		const dragElement = e.target as HTMLElement;
 
 		const ghostElement = dragElement.cloneNode(true) as HTMLElement;
-		ghostElement.id = "dragged-element";
+
+		ghostElement.id = "sidebar-element";
 		ghostElement.classList.add("dragging", "drag-grid");
 		// Remove the selected classes
 		ghostElement.classList.remove("!bg-blue-400", "dark:!bg-blue-600");
+		setDraggedElement(ghostElement);
 
 		// Create child elements for the drag preview
 		const children = selectedFiles.map((file) => {
@@ -85,6 +88,7 @@ export function handleDragStart(
 			// Update the selected range so that only 1 item is highlighted
 			setSelectionRange(new Set());
 			ghostElement.remove();
+			setDraggedElement(null);
 			dragElement.removeEventListener("dragEnd", handleDragEnd);
 		}
 

@@ -1,9 +1,13 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { motion, useMotionValue, useSpring } from "framer-motion";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { isNoteMaximizedAtom, noteContainerRefAtom } from "../../../atoms";
+import {
+	draggedElementAtom,
+	isNoteMaximizedAtom,
+	noteContainerRefAtom,
+} from "../../../atoms";
 import { VerticalDots } from "../../../icons/vertical-dots";
 
 import { useDraggableBlock, useNodeDragEvents } from "../hooks";
@@ -12,12 +16,12 @@ import { handleDragStart, setHandlePosition } from "../utils/draggable-block";
 export function DraggableBlockPlugin() {
 	const noteContainerRef = useAtomValue(noteContainerRefAtom);
 	const [editor] = useLexicalComposerContext();
-	const { draggableBlockElement } = useDraggableBlock(noteContainerRef, editor);
+	const { draggableBlockElement } = useDraggableBlock(noteContainerRef);
 	const [isDragHandleShowing, setIsDragHandleShowing] = useState(false);
 	const [isDragging, setIsDragging] = useState(false);
 	const handleRef = useRef<HTMLDivElement>(null);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-	const ghostElementRef = useRef<HTMLDivElement>(null);
+	const [draggedElement, setDraggedElenent] = useAtom(draggedElementAtom);
 
 	const dragHandleYMotionValue = useMotionValue(0);
 	const dragHandleYSpringMotionValue = useSpring(dragHandleYMotionValue, {
@@ -40,7 +44,7 @@ export function DraggableBlockPlugin() {
 	useNodeDragEvents(
 		editor,
 		isDragging,
-		noteContainerRef?.current ?? null,
+		noteContainerRef,
 		targetLineYMotionValue,
 	);
 
@@ -68,14 +72,14 @@ export function DraggableBlockPlugin() {
 						editor,
 						setIsDragging,
 						draggableBlockElement,
-						ghostElementRef,
+						setDraggedElenent,
 					)
 				}
 				onDragEnd={() => {
 					setIsDragging(false);
 					// Remove the ghost drag element. It is not needed anymore.
-					if (ghostElementRef.current) {
-						ghostElementRef.current.remove();
+					if (draggedElement) {
+						draggedElement.remove();
 					}
 				}}
 				animate={{

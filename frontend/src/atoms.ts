@@ -39,4 +39,6 @@ export const dialogDataAtom = atom<DialogDataType>({
 	onSubmit: null,
 });
 
+export const draggedElementAtom = atom<HTMLElement | null>(null);
+
 export const draggableBlockElementAtom = atom<HTMLElement | null>(null);

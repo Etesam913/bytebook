@@ -1,6 +1,6 @@
 import { Events } from "@wailsio/runtime";
 import { motion } from "framer-motion";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
 	type CSSProperties,
 	type Dispatch,
@@ -8,7 +8,7 @@ import {
 	useState,
 } from "react";
 import { Link } from "wouter";
-import { selectionRangeAtom } from "../../atoms";
+import { draggedElementAtom, selectionRangeAtom } from "../../atoms";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
 import { ChevronDown } from "../../icons/chevron-down";
@@ -29,6 +29,7 @@ export function MyNotesAccordion({
 }) {
 	const [isNotesCollapsed, setIsNotesCollapsed] = useState(false);
 	const selectionRange = useAtomValue(selectionRangeAtom);
+	const setDraggedElement = useSetAtom(draggedElementAtom);
 
 	return (
 		<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
@@ -70,6 +71,7 @@ export function MyNotesAccordion({
 								setSelectionRange,
 								"note",
 								notes?.at(i) ?? "",
+								setDraggedElement,
 								folder,
 							)
 						}

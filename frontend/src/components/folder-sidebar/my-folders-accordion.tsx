@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { useAtomValue } from "jotai/index";
+import { useAtomValue, useSetAtom } from "jotai";
 import { type CSSProperties, useState } from "react";
 import { Link } from "wouter";
 import { WINDOW_ID } from "../../App.tsx";
-import { alphabetizedFoldersAtom } from "../../atoms.ts";
+import { alphabetizedFoldersAtom, draggedElementAtom } from "../../atoms.ts";
 import { ChevronDown } from "../../icons/chevron-down.tsx";
 import { FolderOpen } from "../../icons/folder-open.tsx";
 import { Folder } from "../../icons/folder.tsx";
@@ -19,6 +19,7 @@ export function MyFoldersAccordion({
 	const [isFoldersCollapsed, setIsFoldersCollapsed] = useState(false);
 	const alphabetizedFolders = useAtomValue(alphabetizedFoldersAtom);
 	const hasFolders = alphabetizedFolders && alphabetizedFolders.length > 0;
+	const setDraggedElement = useSetAtom(draggedElementAtom);
 
 	return (
 		<section className="flex-1 overflow-y-auto flex flex-col gap-1.5">
@@ -64,6 +65,7 @@ export function MyFoldersAccordion({
 								setSelectionRange,
 								"folder",
 								alphabetizedFolders?.at(i) ?? "",
+								setDraggedElement,
 							)
 						}
 						target="_blank"

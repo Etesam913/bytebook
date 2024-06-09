@@ -48,7 +48,8 @@
 }
 
 :root {
-    @apply transition-colors duration-300 dark:[color-scheme:dark];
+    @apply transition-colors duration-300 dark:[color-scheme:dark] overscroll-none;
+
 }
 
 h1 {

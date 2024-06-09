@@ -11,7 +11,7 @@ import { CircleArrowLeft } from "./icons/circle-arrow-left";
 import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
 import { TrashSidebar } from "./routes/trash-sidebar";
-import { useDarkModeSetting, useImageDrop } from "./utils/hooks";
+import { useDarkModeSetting } from "./utils/hooks";
 
 export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
 
@@ -21,7 +21,6 @@ function App() {
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 
 	useDarkModeSetting();
-	useImageDrop();
 
 	return (
 		<main

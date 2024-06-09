@@ -6,7 +6,7 @@ import {
 	mergeRegister,
 } from "@lexical/utils";
 import type { MotionValue } from "framer-motion";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
 	$createTextNode,
 	$getNearestNodeFromDOMNode,
@@ -20,8 +20,6 @@ import {
 	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
 	CONTROLLED_TEXT_INSERTION_COMMAND,
-	DRAGOVER_COMMAND,
-	DROP_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
 	KEY_ARROW_UP_COMMAND,
@@ -33,6 +31,9 @@ import {
 	type TextFormatType,
 	UNDO_COMMAND,
 	isHTMLElement,
+	COMMAND_PRIORITY_NORMAL,
+	DRAGOVER_COMMAND,
+	DROP_COMMAND,
 } from "lexical";
 import {
 	type Dispatch,
@@ -46,7 +47,11 @@ import {
 	GetNoteMarkdown,
 	ValidateMostRecentNotes,
 } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
-import { draggableBlockElementAtom, mostRecentNotesAtom } from "../../atoms.ts";
+import {
+	draggableBlockElementAtom,
+	draggedElementAtom,
+	mostRecentNotesAtom,
+} from "../../atoms.ts";
 import {
 	type EditorBlockTypes,
 	type FloatingDataType,
@@ -70,6 +75,7 @@ import {
 	getBlockElement,
 	setTargetLine,
 } from "./utils/draggable-block.ts";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 
 /** Gets note markdown from local system */
 export function useNoteMarkdown(
@@ -288,6 +294,8 @@ export function useToolbarEvents(
 	noteContainerRef: MutableRefObject<HTMLDivElement | null>,
 	folder: string,
 ) {
+	const draggedElement = useAtomValue(draggedElementAtom);
+
 	useEffect(() => {
 		return mergeRegister(
 			editor.registerCommand(
@@ -310,7 +318,7 @@ export function useToolbarEvents(
 				CONTROLLED_TEXT_INSERTION_COMMAND,
 				(e) => {
 					// @ts-ignore Data Transfer does exist when dragging a link
-					if (!e.dataTransfer) return false;
+					if (!e.dataTransfer || !draggedElement) return false;
 
 					// @ts-ignore Data Transfer does exist when dragging a link
 					const fileText: string = e.dataTransfer.getData("text/plain");
@@ -440,6 +448,7 @@ export function useToolbarEvents(
 		setCanRedo,
 		setCanUndo,
 		noteContainerRef,
+		draggedElement,
 	]);
 }
 const DRAGGABLE_BLOCK_MENU_CLASSNAME = "draggable-block-menu";
@@ -454,11 +463,11 @@ function isOnHandle(element: HTMLElement): boolean {
  */
 export function useDraggableBlock(
 	noteContainerRef: RefObject<HTMLElement | null> | null,
-	editor: LexicalEditor,
 ) {
 	const [draggableBlockElement, setDraggableBlockElement] = useAtom(
 		draggableBlockElementAtom,
 	);
+	const [editor] = useLexicalComposerContext();
 
 	useEffect(() => {
 		const noteContainerValue = noteContainerRef?.current;
@@ -513,14 +522,15 @@ export function useDraggableBlock(
 export function useNodeDragEvents(
 	editor: LexicalEditor,
 	isDragging: boolean,
-	noteContainer: HTMLElement | null,
+	noteContainerRef: RefObject<HTMLElement | null> | null,
 	targetLineYMotionValue: MotionValue<number>,
 ) {
 	const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
+	const noteContainer = noteContainerRef?.current;
+	const draggedElement = useAtomValue(draggedElementAtom);
 
 	useEffect(() => {
-		const throttledHandleDragOver = throttle((event: DragEvent) => {
-			event.preventDefault();
+		function handleDragOver(event: DragEvent) {
 			if (!isDragging) {
 				return false;
 			}
@@ -528,6 +538,7 @@ export function useNodeDragEvents(
 			if (isFileTransfer) {
 				return false;
 			}
+
 			const { pageY, target } = event;
 			if (!target || !isHTMLElement(target) || !noteContainer) {
 				return false;
@@ -549,7 +560,7 @@ export function useNodeDragEvents(
 			// Prevent default event to be able to trigger onDrop events
 
 			return true;
-		}, 100);
+		}
 
 		function handleOnDrop(event: DragEvent): boolean {
 			if (!isDragging) {
@@ -574,6 +585,7 @@ export function useNodeDragEvents(
 				noteContainer,
 				true,
 			);
+
 			if (!targetBlockElem) {
 				return false;
 			}
@@ -590,6 +602,7 @@ export function useNodeDragEvents(
 			} else {
 				targetNode.insertBefore(draggedNode);
 			}
+			draggedNode.selectStart();
 			setDraggableBlockElement(null);
 
 			return true;
@@ -598,11 +611,27 @@ export function useNodeDragEvents(
 		return mergeRegister(
 			editor.registerCommand(
 				DRAGOVER_COMMAND,
-				// @ts-ignore
-				throttledHandleDragOver,
+				(e) => {
+					/*
+					 If an element out of the app is being dragged in, then let CONTROLLED_TEXT_INSERTION_COMMAND handle it
+					 If it is in the app, but not a block element, then let CONTROLLED_TEXT_INSERTION_COMMAND handle it
+					*/
+					if (
+						!draggedElement ||
+						(draggedElement && draggedElement.id !== "block-element")
+					) {
+						return false;
+					}
+					e.preventDefault();
+					return handleDragOver(e);
+				},
 				COMMAND_PRIORITY_LOW,
 			),
-			editor.registerCommand(DROP_COMMAND, handleOnDrop, COMMAND_PRIORITY_HIGH),
+			editor.registerCommand(
+				DROP_COMMAND,
+				handleOnDrop,
+				COMMAND_PRIORITY_NORMAL,
+			),
 		);
-	}, [editor, noteContainer, isDragging]);
+	}, [editor, noteContainerRef, isDragging, draggedElement]);
 }

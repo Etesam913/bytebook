@@ -5,7 +5,7 @@ import {
 	$getRoot,
 	type LexicalEditor,
 } from "lexical";
-import type { Dispatch, MutableRefObject, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 export class Point {
 	private readonly _x: number;
@@ -438,13 +438,6 @@ export function setHandlePosition(
 		(cleanedElementLineHeight - handleRect.height) / 2 -
 		noteContainerRect.top +
 		noteContainer.scrollTop;
-	console.log(
-		top,
-		draggableBlockStyle.lineHeight,
-		draggableBlockRect.top,
-		noteContainerRect.top,
-		noteContainer.scrollTop,
-	);
 	yMotionValue.set(top);
 
 	setIsHandleShowing(true);
@@ -458,7 +451,7 @@ export function handleDragStart(
 	editor: LexicalEditor,
 	setIsDragging: Dispatch<SetStateAction<boolean>>,
 	draggableBlockElement: HTMLElement | null,
-	ghostElementRef: MutableRefObject<HTMLElement | null>,
+	setDraggedElement: Dispatch<SetStateAction<HTMLElement | null>>,
 ) {
 	if (!e.dataTransfer || !draggableBlockElement) {
 		return;
@@ -466,8 +459,10 @@ export function handleDragStart(
 
 	let nodeKey = "";
 	const ghostElement = draggableBlockElement.cloneNode(true) as HTMLElement;
+	ghostElement.id = "block-element";
 	ghostElement.classList.add("dragging");
-	ghostElementRef.current = ghostElement;
+	setDraggedElement(ghostElement);
+
 	e.dataTransfer.setDragImage(ghostElement, 0, 0);
 	document.body.appendChild(ghostElement);
 	editor.update(() => {
