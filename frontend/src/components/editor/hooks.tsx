@@ -1,4 +1,5 @@
 import { $isListNode, ListNode } from "@lexical/list";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $isHeadingNode, eventFiles } from "@lexical/rich-text";
 import {
 	$getNearestNodeOfType,
@@ -19,7 +20,10 @@ import {
 	CLEAR_HISTORY_COMMAND,
 	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
+	COMMAND_PRIORITY_NORMAL,
 	CONTROLLED_TEXT_INSERTION_COMMAND,
+	DRAGOVER_COMMAND,
+	DROP_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
 	KEY_ARROW_UP_COMMAND,
@@ -31,9 +35,6 @@ import {
 	type TextFormatType,
 	UNDO_COMMAND,
 	isHTMLElement,
-	COMMAND_PRIORITY_NORMAL,
-	DRAGOVER_COMMAND,
-	DROP_COMMAND,
 } from "lexical";
 import {
 	type Dispatch,
@@ -75,7 +76,6 @@ import {
 	getBlockElement,
 	setTargetLine,
 } from "./utils/draggable-block.ts";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 
 /** Gets note markdown from local system */
 export function useNoteMarkdown(

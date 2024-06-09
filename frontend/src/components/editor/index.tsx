@@ -221,7 +221,7 @@ export function NotesEditor({
 					<CodePlugin />
 					<TablePlugin />
 					<DraggableBlockPlugin />
-					{/* <TreeViewPlugin /> */}
+					<TreeViewPlugin />
 				</div>
 				<BottomBar frontmatter={frontmatter} folder={folder} note={note} />
 			</LexicalComposer>

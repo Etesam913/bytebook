@@ -75,7 +75,8 @@ export function DraggableBlockPlugin() {
 						setDraggedElenent,
 					)
 				}
-				onDragEnd={() => {
+				onDragEnd={(e) => {
+					console.log(e);
 					setIsDragging(false);
 					// Remove the ghost drag element. It is not needed anymore.
 					if (draggedElement) {
