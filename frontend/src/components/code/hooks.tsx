@@ -22,7 +22,12 @@ export function useCodeEditorCommands(
 				CLICK_COMMAND,
 				(e) => {
 					const node = nodeRef.current;
-					if (node?.contains(e.target as HTMLElement)) {
+					const clickedElem = e.target as HTMLElement;
+					// For some reason, the tabs do not return true for `node?.contains(clickedElem)`. It's a weird edge case
+					if (
+						clickedElem.getAttribute("role") === "tab" ||
+						node?.contains(clickedElem)
+					) {
 						if (!e.shiftKey) clearSelection();
 						setSelected(true);
 						return true;
