@@ -382,12 +382,12 @@ export function getBlockElement(
 export function setTargetLine(
 	targetBlockElem: HTMLElement,
 	mouseY: number,
-	anchorElem: HTMLElement,
+	noteContainer: HTMLElement,
 	yMotionValue: MotionValue<number>,
 ) {
 	const { top: targetBlockElemTop, height: targetBlockElemHeight } =
 		targetBlockElem.getBoundingClientRect();
-	const { top: anchorTop } = anchorElem.getBoundingClientRect();
+	const { top: noteContainerTop } = noteContainer.getBoundingClientRect();
 	const { marginTop, marginBottom } = getCollapsedMargins(targetBlockElem);
 	let lineTop = targetBlockElemTop;
 	if (mouseY >= targetBlockElemTop) {
@@ -395,34 +395,35 @@ export function setTargetLine(
 	} else {
 		lineTop -= marginTop / 2;
 	}
-	const top = lineTop - anchorTop - 4;
+	const top = lineTop - noteContainerTop - 4 + noteContainer.scrollTop;
 
 	yMotionValue.set(top);
 }
 
 /** Updates position and opacity values for handle based on `targetElem` */
 export function setHandlePosition(
-	targetElem: HTMLElement | null,
-	floatingElem: HTMLElement,
-	anchorElem: HTMLElement,
+	draggableBlockElement: HTMLElement | null,
+	handle: HTMLElement,
+	noteContainer: HTMLElement,
 	setIsHandleShowing: Dispatch<SetStateAction<boolean>>,
 	yMotionValue: MotionValue<number>,
 ) {
-	if (!targetElem) {
+	if (!draggableBlockElement) {
 		setIsHandleShowing(false);
 		return;
 	}
 
-	const targetRect = targetElem.getBoundingClientRect();
-	const targetStyle = window.getComputedStyle(targetElem);
-	const floatingElemRect = floatingElem.getBoundingClientRect();
-	const anchorElementRect = anchorElem.getBoundingClientRect();
+	const draggableBlockRect = draggableBlockElement.getBoundingClientRect();
+	const draggableBlockStyle = window.getComputedStyle(draggableBlockElement);
+	const handleRect = handle.getBoundingClientRect();
+	const noteContainerRect = noteContainer.getBoundingClientRect();
 
 	const top =
-		targetRect.top +
-		(Number.parseInt(targetStyle.lineHeight, 10) - floatingElemRect.height) /
+		draggableBlockRect.top +
+		(Number.parseInt(draggableBlockStyle.lineHeight, 10) - handleRect.height) /
 			2 -
-		anchorElementRect.top;
+		noteContainerRect.top +
+		noteContainer.scrollTop;
 
 	yMotionValue.set(top);
 

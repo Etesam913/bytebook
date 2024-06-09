@@ -6,7 +6,6 @@ import { createPortal } from "react-dom";
 import { isNoteMaximizedAtom, noteContainerRefAtom } from "../../../atoms";
 import { VerticalDots } from "../../../icons/vertical-dots";
 
-import { cn } from "../../../utils/string-formatting";
 import { useDraggableBlock, useNodeDragEvents } from "../hooks";
 import { handleDragStart, setHandlePosition } from "../utils/draggable-block";
 
@@ -91,7 +90,8 @@ export function DraggableBlockPlugin() {
 			<motion.div
 				style={{ y: targetLineYSpringMotionValue }}
 				animate={{ opacity: isDragging ? 1 : 0 }}
-				className="absolute bg-blue-400 dark:bg-blue-500 ml-4 w-[calc(100%-2.25rem)] h-[3px] rounded-full left-0 top-0 will-change-transform"
+				id="target-line"
+				className="absolute pointer-events-none bg-blue-400 dark:bg-blue-500 ml-4 w-[calc(100%-2.25rem)] h-[3px] rounded-full left-0 top-0 will-change-transform"
 			/>
 		</>,
 		noteContainerRef.current,
