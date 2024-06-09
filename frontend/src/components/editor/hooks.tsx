@@ -471,7 +471,7 @@ export function useDraggableBlock(
 			// The hovered element is not a HTMLElement
 			if (!(target instanceof HTMLElement)) return;
 			// If the hovered element is the handle itself, then there is nothing to do
-			if (isOnHandle(target)) return;
+			if (isOnHandle(target) || target.id === "target-line") return;
 
 			// Stores the block element that is being hovered in state
 			const _draggableBlockElem = getBlockElement(

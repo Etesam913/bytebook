@@ -88,6 +88,7 @@ export function DraggableBlockPlugin() {
 				<VerticalDots height="15px" width="15px" />
 			</motion.div>
 			<motion.div
+				initial={{ opacity: 0 }}
 				style={{ y: targetLineYSpringMotionValue }}
 				animate={{ opacity: isDragging ? 1 : 0 }}
 				id="target-line"

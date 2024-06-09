@@ -427,13 +427,24 @@ export function setHandlePosition(
 	const handleRect = handle.getBoundingClientRect();
 	const noteContainerRect = noteContainer.getBoundingClientRect();
 
+	const elementLineHeight = Number.parseInt(draggableBlockStyle.lineHeight, 10);
+
+	const cleanedElementLineHeight = Number.isNaN(elementLineHeight)
+		? 0
+		: elementLineHeight;
+
 	const top =
 		draggableBlockRect.top +
-		(Number.parseInt(draggableBlockStyle.lineHeight, 10) - handleRect.height) /
-			2 -
+		(cleanedElementLineHeight - handleRect.height) / 2 -
 		noteContainerRect.top +
 		noteContainer.scrollTop;
-
+	console.log(
+		top,
+		draggableBlockStyle.lineHeight,
+		draggableBlockRect.top,
+		noteContainerRect.top,
+		noteContainer.scrollTop,
+	);
 	yMotionValue.set(top);
 
 	setIsHandleShowing(true);

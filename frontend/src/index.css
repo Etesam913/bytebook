@@ -67,6 +67,10 @@ h3 {
     @apply !bg-zinc-800 !text-zinc-200 dark:!bg-zinc-200 dark:!text-zinc-900;
 }
 
+code{
+    @apply bg-zinc-100 dark:bg-zinc-750 py-0.5 px-1 rounded-md border border-zinc-200 dark:border-zinc-600 font-code;
+}
+
 /**
  * Code mirror styles
  */
