@@ -13,6 +13,7 @@ import { TrashEditor } from "../../components/editor/trash-editor";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Trash } from "../../icons/trash";
 import { useWailsEvent } from "../../utils/hooks";
+import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import { MyTrashAccordion } from "./my-trash-accordion";
 
 export function TrashSidebar({
@@ -76,10 +77,13 @@ export function TrashSidebar({
 								onClick={() => {
 									ClearTrash()
 										.then((res) => {
-											if (res.success) toast.success("Trash emptied");
+											if (res.success)
+												toast.success("Trash emptied", DEFAULT_SONNER_OPTIONS);
 											else throw new Error(res.message);
 										})
-										.catch((err) => toast.error(err.message));
+										.catch((err) =>
+											toast.error(err.message, DEFAULT_SONNER_OPTIONS),
+										);
 								}}
 							>
 								Empty Trash

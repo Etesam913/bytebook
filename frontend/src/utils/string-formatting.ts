@@ -160,3 +160,32 @@ export function validateName(
 		isValid: true,
 	};
 }
+
+/**
+ * Extracts the base name and query parameters from a given note name string.
+ *
+ * @param noteName - The input string containing the note name and query parameters.
+ * @returns An object with the base name and query parameters.
+ */
+export function extractInfoFromNoteName(noteName: string) {
+	// Create a URL object to parse the noteName string.
+	// The base URL ("http://example.com") is used to properly parse relative URLs.
+	const url = new URL(noteName, "http://example.com");
+
+	// Extract the pathname and remove the leading "/" to get the base name.
+	const base = url.pathname.substring(1);
+
+	// Initialize an empty object to store the query parameters.
+	const queryParams: { [key: string]: string } = {};
+
+	// Iterate over each search parameter and add it to the queryParams object.
+	url.searchParams.forEach((value, key) => {
+		queryParams[key] = value;
+	});
+
+	// Return an object containing the decoded base name and query parameters.
+	return {
+		noteNameWithoutExtension: decodeURIComponent(base),
+		queryParams: queryParams,
+	};
+}

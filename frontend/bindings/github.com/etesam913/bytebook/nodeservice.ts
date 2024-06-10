@@ -9,6 +9,9 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 // @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
+/**
+ * TODO: refactor this to migrate away from attachments
+ */
 export function CleanAndCopyFiles(filePaths: string, folderPath: string, notePath: string): Promise<string[]> & { cancel(): void } {
     let $resultPromise = $Call.ByID(3734486965, filePaths, folderPath, notePath) as any;
     let $typingPromise = $resultPromise.then(($result) => {

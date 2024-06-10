@@ -50,7 +50,7 @@ import { UnorderedList } from "../../icons/unordered-list";
 import { VueLogo } from "../../icons/vue-logo";
 import type { EditorBlockTypes } from "../../types";
 import { isDecoratorNodeSelected } from "../../utils/commands";
-import { FILE_SERVER_URL } from "../../utils/misc";
+import { DEFAULT_SONNER_OPTIONS, FILE_SERVER_URL } from "../../utils/misc";
 import { createMarkdownExport } from "./MarkdownExport";
 import { createMarkdownImport } from "./MarkdownImport";
 import { INSERT_IMAGES_COMMAND } from "./plugins/image";
@@ -216,7 +216,7 @@ export function handleATag(target: HTMLElement) {
 	if (parentElement.href.startsWith("wails://")) {
 	} else {
 		Browser.OpenURL(parentElement.href).catch(() => {
-			toast.error("Failed to open link");
+			toast.error("Failed to open link", DEFAULT_SONNER_OPTIONS);
 		});
 	}
 }

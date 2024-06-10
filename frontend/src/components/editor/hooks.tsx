@@ -120,49 +120,6 @@ export function useNoteMarkdown(
 	}, [folder, note, editor, setCurrentSelectionFormat]);
 }
 
-// export function useFileDropEvent(
-// 	editor: LexicalEditor,
-// 	folder: string,
-// 	note: string,
-// ) {
-// 	useEffect(
-// 		// @ts-expect-error It is not type of EffectCallback, which is okay in this case
-// 		() => {
-// 			return wails.Events.On(
-// 				"files",
-// 				async (event: {
-// 					name: string;
-// 					data: string[];
-// 					sender: string;
-// 					Cancelled: boolean;
-// 				}) => {
-// 					if (!event.Cancelled) {
-// 						try {
-// 							const cleanedFilePaths = await CleanAndCopyFiles(
-// 								event.data.join(","),
-// 								folder,
-// 								note,
-// 							);
-
-// 							editor.update(() => {
-// 								const payloads = cleanedFilePaths.map((filePath) => ({
-// 									src: `${FILE_SERVER_URL}/${filePath}`,
-// 									alt: "test",
-// 								}));
-// 								editor.dispatchCommand(INSERT_IMAGES_COMMAND, payloads);
-// 							});
-// 						} catch (e) {
-// 							console.error(e);
-// 							// error checking here
-// 						}
-// 					}
-// 				},
-// 			);
-// 		},
-// 		[folder, note, editor],
-// 	);
-// }
-
 /** Updates the most recent notes queue */
 export function useMostRecentNotes(folder: string, note: string) {
 	const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);

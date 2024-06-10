@@ -27,6 +27,7 @@ import { Pen } from "../../icons/pen.tsx";
 import type { DialogDataType } from "../../types.ts";
 import { updateFolders } from "../../utils/fetch-functions";
 import { useWailsEvent } from "../../utils/hooks.tsx";
+import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
 import { validateName } from "../../utils/string-formatting.ts";
 import { MotionButton, MotionIconButton } from "../buttons";
 import { DialogErrorText, resetDialogState } from "../dialog/index.tsx";
@@ -102,11 +103,7 @@ export async function onFolderDialogSubmit(
 
 				toast.success(
 					`Folder, "${newFolderNameString}", successfully created.`,
-					{
-						dismissible: true,
-						duration: 2000,
-						closeButton: true,
-					},
+					DEFAULT_SONNER_OPTIONS,
 				);
 			} else if (action === "rename") {
 				if (!folderToBeRenamed) throw new Error("Something went wrong");

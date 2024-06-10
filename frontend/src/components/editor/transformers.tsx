@@ -278,7 +278,6 @@ export const LINK: TextMatchTransformer = {
 		if (!$isLinkNode(node)) {
 			return null;
 		}
-		const title = node.getTitle();
 
 		const linkContent = `[${encodeURIComponent(
 			node.getTextContent(),

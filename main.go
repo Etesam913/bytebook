@@ -87,7 +87,6 @@ func main() {
 
 	folderContextMenu := app.NewMenu()
 	noteContextMenu := app.NewMenu()
-	attachmentContextMenu := app.NewMenu()
 
 	project_helpers.CreateContextMenu(app, folderContextMenu, []project_helpers.MenuItem{
 		{Label: "Rename Folder", EventName: "folder:context-menu:rename"},
@@ -100,13 +99,8 @@ func main() {
 		{Label: "Send To Trash", EventName: "note:context-menu:delete"},
 	})
 
-	project_helpers.CreateContextMenu(app, attachmentContextMenu, []project_helpers.MenuItem{
-		{Label: "Delete Attachment", EventName: "attachments:context-menu:delete-attachment"},
-	})
-
 	app.RegisterContextMenu("folder-context-menu", folderContextMenu)
 	app.RegisterContextMenu("note-context-menu", noteContextMenu)
-	app.RegisterContextMenu("attachment-context-menu", attachmentContextMenu)
 
 	custom_events.OpenNoteInNewWindowEvent(app, backgroundColor)
 

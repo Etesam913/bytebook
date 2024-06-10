@@ -39,7 +39,6 @@ func (n *NoteService) GetNotes(folderName string) NoteResponse {
 		return NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
 	}
 
-	// Get the md files and attachments present in the notes directory
 	files, err := os.ReadDir(folderPath)
 	if err != nil {
 		return NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
@@ -47,12 +46,14 @@ func (n *NoteService) GetNotes(folderName string) NoteResponse {
 
 	var notes []string
 	for _, file := range files {
-		// If it is a directory that means it is the attachments folder
-		if file.IsDir() && file.Name() == "attachments" {
-
-		} else if strings.HasSuffix(file.Name(), "md") {
-			withoutExtension := strings.TrimSuffix(file.Name(), ".md")
-			notes = append(notes, withoutExtension)
+		// Ignore any folders inside a note folder
+		if file.IsDir() {
+			continue
+		} else {
+			indexOfDot := strings.LastIndex(file.Name(), ".")
+			name := file.Name()[:indexOfDot]
+			extension := file.Name()[indexOfDot+1:]
+			notes = append(notes, fmt.Sprintf("%s?ext=%s", name, extension))
 		}
 	}
 	return NoteResponse{Success: true, Message: "", Data: notes}
@@ -147,32 +148,6 @@ func (n *NoteService) AddNoteToFolder(folderName string, noteName string) AddFol
 	}
 
 	return AddFolderResponse{Success: true, Message: ""}
-}
-
-func (n *NoteService) GetAttachments(folderName string) NoteResponse {
-	// Get the attachments folder
-	attachmentsFolder := filepath.Join(n.ProjectPath, "notes", folderName, "attachments")
-	// Ensure the directory exists
-	if _, err := os.Stat(attachmentsFolder); err != nil {
-		return NoteResponse{Success: false, Message: err.Error()}
-	}
-	// Get the md files and attachments present in the notes directory
-	files, err := os.ReadDir(attachmentsFolder)
-	if err != nil {
-		return NoteResponse{Success: false, Message: err.Error()}
-	}
-
-	var attachments []string
-	for _, file := range files {
-		// We should not have any directories in the attachments folder
-		if file.IsDir() {
-			continue
-		} else {
-			attachments = append(attachments, file.Name())
-		}
-	}
-
-	return NoteResponse{Success: true, Message: "", Data: attachments}
 }
 
 func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {

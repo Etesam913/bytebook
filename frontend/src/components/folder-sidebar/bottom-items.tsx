@@ -4,8 +4,10 @@ import { toast } from "sonner";
 import { Link, useRoute } from "wouter";
 import { MoveToTrash } from "../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { Trash } from "../../icons/trash";
+import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import {
 	cn,
+	extractInfoFromNoteName,
 	getInternalLinkType,
 	isInternalLink,
 } from "../../utils/string-formatting";
@@ -32,7 +34,9 @@ export function BottomItems() {
 				const { isNoteLink } = getInternalLinkType(url);
 				if (isNoteLink) {
 					const [folder, note] = url.split("/").slice(-2);
-					const fullPath = `${folder}/${note}.md`;
+					const { noteNameWithoutExtension: noteName, queryParams } =
+						extractInfoFromNoteName(note);
+					const fullPath = `${folder}/${noteName}.${queryParams.ext}`;
 					paths.push(fullPath);
 				}
 			}
@@ -43,6 +47,7 @@ export function BottomItems() {
 					if (res.success)
 						toast.success(
 							`Successfully moved note${paths.length > 1 ? "s" : ""} to trash`,
+							DEFAULT_SONNER_OPTIONS,
 						);
 					else throw new Error(res.message);
 				})

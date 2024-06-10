@@ -6,17 +6,14 @@ import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
 import {
 	AddNoteToFolder,
-	GetAttachments,
 	MoveToTrash,
 } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
-import { DeleteFolder } from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import {
 	attachmentsAtom,
 	dialogDataAtom,
 	isNoteMaximizedAtom,
 	notesAtom,
-	selectionRangeAtom,
 } from "../../atoms";
 import { MotionButton, MotionIconButton } from "../../components/buttons";
 import {
@@ -35,14 +32,12 @@ import { Folder } from "../../icons/folder";
 import { Pen } from "../../icons/pen";
 import { IMAGE_FILE_EXTENSIONS } from "../../types.ts";
 import { updateNotes } from "../../utils/fetch-functions";
+import { useSearchParamsEntries, useWailsEvent } from "../../utils/hooks.tsx";
+import { DEFAULT_SONNER_OPTIONS, FILE_SERVER_URL } from "../../utils/misc.ts";
 import {
-	useOnClickOutside,
-	useSearchParamsEntries,
-	useWailsEvent,
-} from "../../utils/hooks.tsx";
-import { FILE_SERVER_URL } from "../../utils/misc.ts";
-import { validateName } from "../../utils/string-formatting.ts";
-import { AttachmentsAccordion } from "./my-attachments-accordion.tsx";
+	extractInfoFromNoteName,
+	validateName,
+} from "../../utils/string-formatting.ts";
 import { MyNotesAccordion } from "./my-notes-accordion.tsx";
 
 export function NotesSidebar({
@@ -60,36 +55,40 @@ export function NotesSidebar({
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const { folder, note } = params;
 	const searchParams: { ext?: string } = useSearchParamsEntries();
-	const [attachmentsSelectionRange, setAttachmentsSelectionRange] = useState<
-		Set<number>
-	>(new Set());
-	const sidebarRef = useRef<HTMLElement>(null);
 
+	const sidebarRef = useRef<HTMLElement>(null);
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
-	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
+	// const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const [rightClickedNote, setRightClickedNote] = useState<string | null>(null);
 
-	useOnClickOutside(sidebarRef, () => setAttachmentsSelectionRange(new Set()));
 	useEffect(() => {
 		updateNotes(folder, note, setNotes);
-		GetAttachments(folder)
-			.then((res) => {
-				if (res.success) {
-					setAttachments(res.data ?? []);
-				}
-			})
-			.catch((err) => {
-				console.error(err);
-			});
+		// GetAttachments(folder)
+		// 	.then((res) => {
+		// 		if (res.success) {
+		// 			setAttachments(res.data ?? []);
+		// 		}
+		// 	})
+		// 	.catch((err) => {
+		// 		console.error(err);
+		// 	});
 	}, [folder, setNotes, setAttachments]);
 
 	useWailsEvent("note:create", (body) => {
 		const data = body.data as { folder: string; note: string };
 		// Windows that are on a different folder should not navigate to this new url
 		if (data.folder !== decodeURIComponent(folder)) return;
+		const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
+			data.note,
+		);
+
 		setNotes((prev) => (prev ? [...prev, data.note] : [data.note]));
-		navigate(`/${folder}/${encodeURIComponent(data.note)}`);
+		navigate(
+			`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
+				queryParams.ext
+			}`,
+		);
 	});
 
 	useWailsEvent("note:delete", (body) => {
@@ -98,7 +97,11 @@ export function NotesSidebar({
 		setNotes((prev) => {
 			const newNotes = prev ? prev.filter((v) => v !== data.note) : [data.note];
 			// The note that you are on is deleted
-			if (note && decodeURIComponent(note) === data.note) {
+
+			if (
+				note &&
+				`${decodeURIComponent(note)}?ext=${fileExtension}` === data.note
+			) {
 				if (newNotes.length > 0) {
 					navigate(`/${folder}/${encodeURIComponent(newNotes[0])}`);
 				} else {
@@ -120,7 +123,7 @@ export function NotesSidebar({
 		try {
 			const res = await MoveToTrash(paths);
 			if (res.success) {
-				toast.success(res.message);
+				toast.success(res.message, DEFAULT_SONNER_OPTIONS);
 			} else {
 				throw new Error(res.message);
 			}
@@ -130,37 +133,6 @@ export function NotesSidebar({
 			} else {
 				toast.error("An Unknown Error Occurred");
 			}
-		}
-	});
-
-	useWailsEvent("attachment:create", (body) => {
-		const data = body.data as { folder: string; name: string };
-		if (data.folder !== folder) return;
-		setAttachments((prev) => (prev ? [...prev, data.name] : [data.name]));
-	});
-
-	useWailsEvent("attachment:delete", (body) => {
-		const data = body.data as { folder: string; name: string };
-		if (data.folder !== folder) return;
-		if (note === data.name) {
-			navigate(`/${folder}`);
-		}
-		setAttachments((prev) => prev.filter((v) => v !== data.name));
-	});
-
-	useWailsEvent("attachments:context-menu:delete-attachment", async (body) => {
-		const bodyData = JSON.parse(body.data as string) as { file: string };
-		const { file: fileToDelete } = bodyData;
-
-		try {
-			const hasDeletedAttachment = await DeleteFolder(
-				`${folder}/attachments/${fileToDelete}`,
-			);
-			if (!hasDeletedAttachment.success) {
-				throw new Error();
-			}
-		} catch {
-			toast.error("Failed to delete attachment");
 		}
 	});
 
@@ -179,7 +151,6 @@ export function NotesSidebar({
 				<>
 					<motion.aside
 						ref={sidebarRef}
-						onClick={() => setAttachmentsSelectionRange(new Set())}
 						style={{ width }}
 						className="text-md flex h-screen flex-col  pb-3.5"
 					>
@@ -292,19 +263,11 @@ export function NotesSidebar({
 								Create Note <Compose />
 							</MotionButton>
 							<section className="flex flex-col gap-2 overflow-y-auto">
-								<div className="flex h-full pb-10 flex-col overflow-y-auto z-20">
+								<div className="flex h-full flex-col overflow-y-auto z-20">
 									<MyNotesAccordion
-										folder={folder}
-										note={note}
 										notes={notes}
 										setRightClickedNote={setRightClickedNote}
 									/>
-									{/* <AttachmentsAccordion
-										folder={folder}
-										note={note}
-										attachmentsSelectionRange={attachmentsSelectionRange}
-										setAttachmentsSelectionRange={setAttachmentsSelectionRange}
-									/> */}
 								</div>
 							</section>
 						</div>
@@ -313,7 +276,9 @@ export function NotesSidebar({
 				</>
 			)}
 
-			{note && !fileExtension && <NotesEditor params={{ folder, note }} />}
+			{note && fileExtension === "md" && (
+				<NotesEditor params={{ folder, note }} />
+			)}
 			{note && IMAGE_FILE_EXTENSIONS.includes(fileExtension ?? "") && (
 				<div className="flex-1 overflow-auto ">
 					<img

@@ -324,6 +324,13 @@ func (n *NodeService) SyncChangesWithRepo() GitResponse {
 
 }
 
+type UploadImageResponse struct {
+	Success bool     `json:"success"`
+	Message string   `json:"message"`
+	Paths   []string `json:"paths"`
+}
+
+// TODO: refactor this to migrate away from attachments
 func (n *NodeService) CleanAndCopyFiles(filePaths string, folderPath string, notePath string) ([]string, error) {
 	// We have to use a string for filePaths instead of an array because of a binding problem, might get fixed later on
 	filePathsAsArray := strings.Split(filePaths, ",")
@@ -377,12 +384,6 @@ func (n *NodeService) CleanAndCopyFiles(filePaths string, folderPath string, not
 
 	}
 	return newFilePaths, nil
-}
-
-type UploadImageResponse struct {
-	Success bool     `json:"success"`
-	Message string   `json:"message"`
-	Paths   []string `json:"paths"`
 }
 
 func (n *NodeService) UploadImage(folder string, note string) UploadImageResponse {

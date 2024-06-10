@@ -1,5 +1,4 @@
 import type { Dispatch, DragEvent, SetStateAction } from "react";
-import ReactDOM from "react-dom";
 import { createRoot } from "react-dom/client";
 import { Folder } from "../../icons/folder";
 import { ImageIcon } from "../../icons/image";
@@ -50,7 +49,7 @@ export function handleDragStart(
 			}
 			return `wails://localhost:5173/${folder}/${name}`;
 		});
-
+		console.log(selectedFiles);
 		// Setting the data for the CONTROLLED_TEXT_INSERTION_COMMAND
 		e.dataTransfer.setData("text/plain", selectedFiles.join(","));
 

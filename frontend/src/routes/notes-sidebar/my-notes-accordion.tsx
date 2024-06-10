@@ -7,26 +7,26 @@ import {
 	type SetStateAction,
 	useState,
 } from "react";
-import { Link } from "wouter";
+import { Link, useParams } from "wouter";
 import { draggedElementAtom, selectionRangeAtom } from "../../atoms";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
 import { ChevronDown } from "../../icons/chevron-down";
 import { FilePen } from "../../icons/file-pen";
 import { Note } from "../../icons/page";
-import { cn } from "../../utils/string-formatting";
+import { useSearchParamsEntries } from "../../utils/hooks";
+import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
 
 export function MyNotesAccordion({
-	folder,
-	note,
 	notes,
 	setRightClickedNote,
 }: {
-	folder: string;
-	note: string | undefined;
 	notes: string[] | null;
 	setRightClickedNote: Dispatch<SetStateAction<string | null>>;
 }) {
+	const { folder: curFolder, note: curNote } = useParams();
+	const searchParams: { ext?: string } = useSearchParamsEntries();
+	const noteNameWithExtension = `${curNote}?ext=${searchParams.ext}`;
 	const [isNotesCollapsed, setIsNotesCollapsed] = useState(false);
 	const selectionRange = useAtomValue(selectionRangeAtom);
 	const setDraggedElement = useSetAtom(draggedElementAtom);
@@ -58,50 +58,56 @@ export function MyNotesAccordion({
 				isCollapsed={isNotesCollapsed}
 				data={notes}
 				renderLink={({
-					dataItem: noteName,
+					dataItem: sidebarNoteName,
 					i,
 					selectionRange,
 					setSelectionRange,
-				}) => (
-					<Link
-						draggable
-						onDragStart={(e) =>
-							handleDragStart(
-								e,
-								setSelectionRange,
-								"note",
-								notes?.at(i) ?? "",
-								setDraggedElement,
-								folder,
-							)
-						}
-						onContextMenu={() => setRightClickedNote(noteName)}
-						onDoubleClick={() => {
-							Events.Emit({
-								name: "open-note-in-new-window-backend",
-								data: { folder, note: noteName },
-							});
-						}}
-						target="_blank"
-						className={cn(
-							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform",
-							noteName === note && "bg-zinc-150 dark:bg-zinc-700",
-							notes?.at(i) &&
-								selectionRange.has(notes[i]) &&
-								"!bg-blue-400 dark:!bg-blue-600 text-white",
-						)}
-						to={`/${folder}/${noteName}`}
-					>
-						{note === noteName ? (
-							<FilePen title="" className="min-w-[1.25rem]" />
-						) : (
-							<Note title="" className="min-w-[1.25rem]" />
-						)}{" "}
-						<p className="whitespace-nowrap text-ellipsis overflow-hidden">
-							{noteName}
-						</p>
-					</Link>
-				)}
+				}) => {
+					const { noteNameWithoutExtension: noteName, queryParams } =
+						extractInfoFromNoteName(sidebarNoteName);
+
+					return (
+						<Link
+							draggable
+							onDragStart={(e) =>
+								handleDragStart(
+									e,
+									setSelectionRange,
+									"note",
+									notes?.at(i) ?? "",
+									setDraggedElement,
+									curFolder,
+								)
+							}
+							onContextMenu={() => setRightClickedNote(sidebarNoteName)}
+							onDoubleClick={() => {
+								Events.Emit({
+									name: "open-note-in-new-window-backend",
+									data: { folder: curFolder, note: sidebarNoteName },
+								});
+							}}
+							target="_blank"
+							className={cn(
+								"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform",
+								noteNameWithExtension === sidebarNoteName &&
+									"bg-zinc-150 dark:bg-zinc-700",
+								notes?.at(i) &&
+									selectionRange.has(notes[i]) &&
+									"!bg-blue-400 dark:!bg-blue-600 text-white",
+							)}
+							to={`/${curFolder}/${sidebarNoteName}`}
+						>
+							{noteNameWithExtension === sidebarNoteName ? (
+								<FilePen title="" className="min-w-[1.25rem]" />
+							) : (
+								<Note title="" className="min-w-[1.25rem]" />
+							)}{" "}
+							<p className="whitespace-nowrap text-ellipsis overflow-hidden">
+								{noteName}.{queryParams.ext}
+							</p>
+						</Link>
+					);
+				}}
 				getContextMenuStyle={() =>
 					({
 						"--custom-contextmenu": "note-context-menu",
