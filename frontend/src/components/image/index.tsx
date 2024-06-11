@@ -1,5 +1,5 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
@@ -42,12 +42,6 @@ export function Image({
 		clearSelection,
 		imgRef,
 	);
-
-	useEffect(() => {
-		if (isSelected) {
-			imgRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
-		}
-	}, [isSelected]);
 
 	return (
 		<div className="mx-2 inline-block">

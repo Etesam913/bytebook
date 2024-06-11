@@ -1,5 +1,5 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
@@ -43,12 +43,6 @@ export function Video({
 		clearSelection,
 		videoRef,
 	);
-
-	useEffect(() => {
-		if (isSelected) {
-			videoRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
-		}
-	}, [isSelected]);
 
 	return (
 		<>
