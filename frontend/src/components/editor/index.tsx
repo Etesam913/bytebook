@@ -1,3 +1,4 @@
+import { AutoLinkPlugin } from "@lexical/react/LexicalAutoLinkPlugin";
 import { CheckListPlugin } from "@lexical/react/LexicalCheckListPlugin";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
@@ -52,6 +53,7 @@ import {
 	handleATag,
 	replaceFrontMatter,
 } from "./utils";
+import { MATCHERS } from "./utils/auto-link.ts";
 
 const debouncedHandleChange = debounce(handleChange, 275);
 
@@ -221,6 +223,7 @@ export function NotesEditor({
 					<CodePlugin />
 					<TablePlugin />
 					<DraggableBlockPlugin />
+					<AutoLinkPlugin matchers={MATCHERS} />
 					<TreeViewPlugin />
 				</div>
 				<BottomBar frontmatter={frontmatter} folder={folder} note={note} />
