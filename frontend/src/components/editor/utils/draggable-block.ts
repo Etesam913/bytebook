@@ -461,6 +461,10 @@ export function handleDragStart(
 	const ghostElement = draggableBlockElement.cloneNode(true) as HTMLElement;
 	ghostElement.id = "block-element";
 	ghostElement.classList.add("dragging");
+	const textContent = ghostElement.textContent;
+	if (textContent && textContent.length > 50) {
+		ghostElement.textContent = textContent.substring(0, 40) + "...";
+	}
 	setDraggedElement(ghostElement);
 
 	e.dataTransfer.setDragImage(ghostElement, 0, 0);
