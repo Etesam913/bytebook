@@ -2,6 +2,8 @@ import type { MotionValue } from "framer-motion";
 import { useState } from "react";
 import { dragItem } from "../../utils/draggable";
 import { cn } from "../../utils/string-formatting";
+import { useSetAtom } from "jotai";
+import { draggedElementAtom } from "../../atoms";
 
 export function Spacer({
 	width,
@@ -12,12 +14,14 @@ export function Spacer({
 	leftWidth?: MotionValue<number>;
 	spacerConstant?: number;
 }) {
+	const setDraggedElement = useSetAtom(draggedElementAtom);
 	const [isDragged, setIsDragged] = useState(false);
 
 	return (
 		<div
-			onMouseDown={() => {
+			onMouseDown={(e) => {
 				setIsDragged(true);
+				setDraggedElement(e.target as HTMLElement);
 				dragItem(
 					(e) => {
 						width.set(
@@ -33,6 +37,7 @@ export function Spacer({
 					},
 					() => {
 						setIsDragged(false);
+						setDraggedElement(null);
 					},
 				);
 			}}

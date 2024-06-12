@@ -16,6 +16,7 @@ import { FilePen } from "../../icons/file-pen";
 import { Note } from "../../icons/page";
 import { useSearchParamsEntries } from "../../utils/hooks";
 import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
+import { RenderNoteIcon } from "./render-note-icon";
 
 export function MyNotesAccordion({
 	notes,
@@ -97,11 +98,11 @@ export function MyNotesAccordion({
 							)}
 							to={`/${curFolder}/${sidebarNoteName}`}
 						>
-							{noteNameWithExtension === sidebarNoteName ? (
-								<FilePen title="" className="min-w-[1.25rem]" />
-							) : (
-								<Note title="" className="min-w-[1.25rem]" />
-							)}{" "}
+							<RenderNoteIcon
+								sidebarNoteName={sidebarNoteName}
+								fileExtension={queryParams.ext}
+								noteNameWithExtension={noteNameWithExtension}
+							/>
 							<p className="whitespace-nowrap text-ellipsis overflow-hidden">
 								{noteName}.{queryParams.ext}
 							</p>

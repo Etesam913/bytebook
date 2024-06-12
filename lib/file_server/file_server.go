@@ -116,10 +116,6 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 					})
 				}
 			} else {
-				// Listen for changes only to markdown files when in note folder
-				if filepath.Ext(event.Name) != ".md" {
-					continue
-				}
 				note := segments[len(segments)-1]
 				lastIndexOfDot := strings.LastIndex(note, ".")
 				noteName := note[:lastIndexOfDot]

@@ -20,7 +20,6 @@ import {
 	DialogErrorText,
 	resetDialogState,
 } from "../../components/dialog/index.tsx";
-import { NotesEditor } from "../../components/editor";
 import {
 	FolderDialogChildren,
 	onFolderDialogSubmit,
@@ -30,7 +29,6 @@ import { Input } from "../../components/input/index.tsx";
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
 import { Pen } from "../../icons/pen";
-import { IMAGE_FILE_EXTENSIONS } from "../../types.ts";
 import { updateNotes } from "../../utils/fetch-functions";
 import { useSearchParamsEntries, useWailsEvent } from "../../utils/hooks.tsx";
 import { DEFAULT_SONNER_OPTIONS, FILE_SERVER_URL } from "../../utils/misc.ts";
@@ -39,6 +37,7 @@ import {
 	validateName,
 } from "../../utils/string-formatting.ts";
 import { MyNotesAccordion } from "./my-notes-accordion.tsx";
+import { RenderNote } from "./render-note.tsx";
 
 export function NotesSidebar({
 	params,
@@ -64,15 +63,6 @@ export function NotesSidebar({
 
 	useEffect(() => {
 		updateNotes(folder, note, setNotes);
-		// GetAttachments(folder)
-		// 	.then((res) => {
-		// 		if (res.success) {
-		// 			setAttachments(res.data ?? []);
-		// 		}
-		// 	})
-		// 	.catch((err) => {
-		// 		console.error(err);
-		// 	});
 	}, [folder, setNotes, setAttachments]);
 
 	useWailsEvent("note:create", (body) => {
@@ -276,27 +266,7 @@ export function NotesSidebar({
 				</>
 			)}
 
-			{note && fileExtension === "md" && (
-				<NotesEditor params={{ folder, note }} />
-			)}
-			{note && IMAGE_FILE_EXTENSIONS.includes(fileExtension ?? "") && (
-				<div className="flex-1 overflow-auto ">
-					<img
-						alt={note}
-						className="w-full h-auto"
-						src={`${FILE_SERVER_URL}/notes/${folder}/attachments/${note}`}
-					/>
-				</div>
-			)}
-			{note?.endsWith(".pdf") && (
-				<div className="flex-1 overflow-auto">
-					<iframe
-						title={note}
-						className="w-full h-full"
-						src={`${FILE_SERVER_URL}/notes/${folder}/attachments/${note}`}
-					/>
-				</div>
-			)}
+			<RenderNote folder={folder} note={note} fileExtension={fileExtension} />
 		</>
 	);
 }
