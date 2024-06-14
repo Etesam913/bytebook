@@ -3,6 +3,7 @@ import type { Dispatch } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { GetFolders } from "../../bindings/github.com/etesam913/bytebook/folderservice";
 import { GetNotes } from "../../bindings/github.com/etesam913/bytebook/noteservice";
+import { extractInfoFromNoteName } from "./string-formatting";
 
 /** Initially fetches folders from filesystem */
 export function updateFolders(
@@ -42,21 +43,17 @@ export function updateNotes(
 						return;
 					}
 
-					let lastDotIndex = -1;
-					for (let i = notes[0].length - 1; i > -1; i--) {
-						if (notes[0][i] === ".") {
-							lastDotIndex = i;
-							break;
-						}
-					}
-
-					const [name, extension] = [
-						notes[0].slice(0, lastDotIndex),
-						notes[0].slice(lastDotIndex + 1),
-					];
-					navigate(`/${folder}/${encodeURIComponent(name)}?ext=${extension}`, {
-						replace: true,
-					});
+					// We have to extract the note name from the first note so that we can encode it to then navigate to it
+					const { noteNameWithoutExtension, queryParams } =
+						extractInfoFromNoteName(notes[0]);
+					navigate(
+						`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
+							queryParams.ext
+						}`,
+						{
+							replace: true,
+						},
+					);
 				}
 			} else {
 				throw new Error("Failed in retrieving notes");
