@@ -7,7 +7,7 @@ import { cn } from "../../../utils/string-formatting";
 import {
 	handleToolbarTextFormattingClick,
 	textFormats,
-} from "../../editor/utils";
+} from "../../editor/utils/toolbar";
 
 export function TextFormattingButtons({
 	currentSelectionFormat,

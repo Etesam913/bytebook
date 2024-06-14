@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { Link } from "wouter";
 import { Folder } from "../../icons/folder";
 import { Note } from "../../icons/page";
-import { timeSince } from "./utils";
+import { timeSince } from "./utils/bottom-bar";
 
 function BreadcrumbItem({ children, to }: { children: ReactNode; to: string }) {
 	return (

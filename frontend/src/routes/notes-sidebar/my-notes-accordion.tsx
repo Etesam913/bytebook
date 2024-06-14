@@ -12,8 +12,6 @@ import { draggedElementAtom, selectionRangeAtom } from "../../atoms";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
 import { ChevronDown } from "../../icons/chevron-down";
-import { FilePen } from "../../icons/file-pen";
-import { Note } from "../../icons/page";
 import { useSearchParamsEntries } from "../../utils/hooks";
 import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
 import { RenderNoteIcon } from "./render-note-icon";

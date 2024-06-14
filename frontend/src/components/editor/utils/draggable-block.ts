@@ -463,7 +463,7 @@ export function handleDragStart(
 	ghostElement.classList.add("dragging");
 	const textContent = ghostElement.textContent;
 	if (textContent && textContent.length > 50) {
-		ghostElement.textContent = textContent.substring(0, 40) + "...";
+		ghostElement.textContent = `${textContent.substring(0, 40)}...`;
 	}
 	setDraggedElement(ghostElement);
 

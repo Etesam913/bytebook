@@ -31,7 +31,7 @@ import { Folder } from "../../icons/folder";
 import { Pen } from "../../icons/pen";
 import { updateNotes } from "../../utils/fetch-functions";
 import { useSearchParamsEntries, useWailsEvent } from "../../utils/hooks.tsx";
-import { DEFAULT_SONNER_OPTIONS, FILE_SERVER_URL } from "../../utils/misc.ts";
+import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
 import {
 	extractInfoFromNoteName,
 	validateName,

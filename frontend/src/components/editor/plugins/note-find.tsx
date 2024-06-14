@@ -9,7 +9,7 @@ import {
 } from "react";
 import { XMark } from "../../../icons/circle-xmark";
 import { debounce } from "../../../utils/draggable";
-import { clearHighlights, searchWithinNote } from "../utils";
+import { clearHighlights, searchWithinNote } from "../utils/note-search";
 
 const debouncedSearch = debounce(
 	//@ts-ignore - A weird debounce error, I need to redo this function types

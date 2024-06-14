@@ -19,13 +19,55 @@ import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { attachmentsAtom } from "../../../atoms";
 import { cn } from "../../../utils/string-formatting";
+
+import { AngularLogo } from "../../../icons/angular-logo";
+import { SvelteLogo } from "../../../icons/svelte-logo";
+import { VueLogo } from "../../../icons/vue-logo";
 import {
 	imageCommandData,
 	insertImageFromFile,
-	languageCommandData,
 	listCommandData,
-} from "../utils";
+} from "../utils/toolbar";
 import { INSERT_CODE_COMMAND } from "./code";
+
+const languageCommandData: {
+	name:
+		| "go"
+		| "java"
+		| "python"
+		| "javascript"
+		| "react"
+		| "angular"
+		| "vue"
+		| "svelte"
+		| "rust"
+		| "cpp";
+	keywords: string[];
+	icon?: JSX.Element;
+}[] = [
+	{ name: "go", keywords: ["go", "google"] },
+	{ name: "java", keywords: ["java", "coffee"] },
+	{ name: "python", keywords: ["python", "py"] },
+	{ name: "javascript", keywords: ["javascript", "js"] },
+	{ name: "react", keywords: ["javascript", "react", "jsx"] },
+	{ name: "rust", keywords: ["rust", "rs"] },
+	{ name: "cpp", keywords: ["c++", "cpp"] },
+	{
+		name: "angular",
+		keywords: ["javascript", "angular", "js"],
+		icon: <AngularLogo height="17" width="17" />,
+	},
+	{
+		name: "vue",
+		keywords: ["javascript", "vue", "js"],
+		icon: <VueLogo height="17" width="17" />,
+	},
+	{
+		name: "svelte",
+		keywords: ["javascript", "svelte", "js"],
+		icon: <SvelteLogo height="17" width="17" />,
+	},
+];
 
 class ComponentPickerOption extends MenuOption {
 	// What shows up in the editor

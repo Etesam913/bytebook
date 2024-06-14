@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { CUSTOM_TRANSFORMERS } from "../transformers";
-import { $convertFromMarkdownStringCorrect } from "../utils";
+import { $convertFromMarkdownStringCorrect } from "../utils/note-metadata";
 
 export function TrashNoteTitle({ curFile }: { curFile: string }) {
 	const [editor] = useLexicalComposerContext();

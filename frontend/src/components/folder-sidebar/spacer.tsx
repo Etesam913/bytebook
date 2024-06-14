@@ -1,9 +1,9 @@
 import type { MotionValue } from "framer-motion";
+import { useSetAtom } from "jotai";
 import { useState } from "react";
+import { draggedElementAtom } from "../../atoms";
 import { dragItem } from "../../utils/draggable";
 import { cn } from "../../utils/string-formatting";
-import { useSetAtom } from "jotai";
-import { draggedElementAtom } from "../../atoms";
 
 export function Spacer({
 	width,

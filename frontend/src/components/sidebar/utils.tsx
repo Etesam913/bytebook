@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Folder } from "../../icons/folder";
 import { ImageIcon } from "../../icons/image";
 import { Note } from "../../icons/page";
+import { extractInfoFromNoteName } from "../../utils/string-formatting";
 
 /** Gets the file icon for the dragged item */
 function getFileIcon(fileType: "folder" | "note" | "image") {
@@ -38,18 +39,23 @@ export function handleDragStart(
 		const tempSelectionRange = new Set(tempSet);
 		tempSelectionRange.add(draggedItem);
 
-		// Map selected file indices to their internal URLs
-		const selectedFiles = Array.from(tempSelectionRange).map((name) => {
-			if (fileType === "folder") {
-				return `wails://localhost:5173/${name}`;
-			}
-			// A note link should have a folder associated with it
-			if (!folder) {
-				return "";
-			}
-			return `wails://localhost:5173/${folder}/${name}`;
-		});
-		console.log(selectedFiles);
+		// Map selected files to their internal URLs
+		const selectedFiles = Array.from(tempSelectionRange).map(
+			(noteNameWithExtensionParam) => {
+				const { noteNameWithoutExtension, queryParams } =
+					extractInfoFromNoteName(noteNameWithExtensionParam);
+
+				if (fileType === "folder") {
+					return `wails://localhost:5173/${noteNameWithoutExtension}.${queryParams.ext}`;
+				}
+				// A note link should have a folder associated with it
+				if (!folder) {
+					return "";
+				}
+				return `wails://localhost:5173/${folder}/${noteNameWithoutExtension}.${queryParams.ext}`;
+			},
+		);
+
 		// Setting the data for the CONTROLLED_TEXT_INSERTION_COMMAND
 		e.dataTransfer.setData("text/plain", selectedFiles.join(","));
 
@@ -57,7 +63,11 @@ export function handleDragStart(
 		const dragElement = e.target as HTMLElement;
 
 		const ghostElement = dragElement.cloneNode(true) as HTMLElement;
+		// const textContent = selectedFiles
+		// 	.map((file) => file.slice(0, file.lastIndexOf("?ext=")))
+		// 	.join(", ");
 
+		// ghostElement.textContent = textContent;
 		ghostElement.id = "sidebar-element";
 		ghostElement.classList.add("dragging", "drag-grid");
 		// Remove the selected classes

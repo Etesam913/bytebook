@@ -14,7 +14,7 @@ import { Redo } from "../../../icons/redo";
 import { Undo } from "../../../icons/undo";
 import type { EditorBlockTypes } from "../../../types";
 import { cn } from "../../../utils/string-formatting";
-import { listCommandData } from "../../editor/utils";
+import { listCommandData } from "../../editor/utils/toolbar";
 
 export function CommandButtons({
 	canUndo,

@@ -22,11 +22,11 @@ import { Dropdown } from "../dropdown";
 import { useNoteMarkdown, useToolbarEvents } from "./hooks";
 import { FloatingMenuPlugin } from "./plugins/floating-menu";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
+import { $convertFromMarkdownStringCorrect } from "./utils/note-metadata";
 import {
-	$convertFromMarkdownStringCorrect,
 	blockTypesDropdownItems,
 	changeSelectedBlocksType,
-} from "./utils";
+} from "./utils/toolbar";
 
 interface ToolbarProps {
 	folder: string;
@@ -110,7 +110,6 @@ export function Toolbar({
 		setIsNodeSelection,
 		setFloatingData,
 		noteContainerRef,
-		folder,
 	);
 
 	// useFileDropEvent(editor, folder, note);

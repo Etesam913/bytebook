@@ -118,7 +118,6 @@ export class LinkNode extends ElementNode {
 
 			const { isNoteLink, isFolderLink } = getInternalLinkType(element.href);
 			const tempContainer = document.createElement("div");
-
 			const folderSvg = <Folder className="translate-y-1" />;
 			const noteSvg = <Note className="translate-y-1" />;
 
@@ -133,7 +132,9 @@ export class LinkNode extends ElementNode {
 				if (isNoteLink) {
 					const note = segments[segments.length - 1];
 					const folder = segments[segments.length - 2];
-					navigate(`/${folder}/${note}`);
+					const fileExtension = url.searchParams.get("ext");
+					navigate(`/${folder}/${note}?ext=${fileExtension}`);
+					e.preventDefault();
 				} else if (isFolderLink) {
 					const folder = segments[segments.length - 1];
 					navigate(`/${folder}`);

@@ -48,12 +48,11 @@ import { Toolbar } from "./toolbar";
 import { BottomBar } from "./bottom-bar.tsx";
 import { DraggableBlockPlugin } from "./plugins/draggable-block.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
+import { MATCHERS, handleATagClick } from "./utils/link.ts";
 import {
 	$convertToMarkdownStringCorrect,
-	handleATag,
 	replaceFrontMatter,
-} from "./utils";
-import { MATCHERS } from "./utils/auto-link.ts";
+} from "./utils/note-metadata.ts";
 
 const debouncedHandleChange = debounce(handleChange, 275);
 
@@ -169,7 +168,7 @@ export function NotesEditor({
 					onClick={(e) => {
 						const target = e.target as HTMLElement & { ariaChecked?: string };
 						if (target.parentElement?.tagName === "A") {
-							handleATag(target);
+							handleATagClick(target);
 						} else if (
 							target.dataset.lexicalDecorator !== "true" &&
 							target.ariaChecked === null

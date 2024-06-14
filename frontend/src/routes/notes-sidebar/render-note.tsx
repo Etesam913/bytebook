@@ -1,10 +1,10 @@
 import { useAtomValue } from "jotai";
-import { NotesEditor } from "../../components/editor";
-import { FILE_SERVER_URL } from "../../utils/misc";
 import { draggedElementAtom } from "../../atoms";
-import { cn } from "../../utils/string-formatting";
+import { NotesEditor } from "../../components/editor";
 import { FileBan } from "../../icons/file-ban";
 import { IMAGE_FILE_EXTENSIONS } from "../../types";
+import { FILE_SERVER_URL } from "../../utils/misc";
+import { cn } from "../../utils/string-formatting";
 
 export function RenderNote({
 	folder,

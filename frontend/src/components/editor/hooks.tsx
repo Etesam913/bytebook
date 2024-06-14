@@ -53,29 +53,26 @@ import {
 	draggedElementAtom,
 	mostRecentNotesAtom,
 } from "../../atoms.ts";
-import {
-	type EditorBlockTypes,
-	type FloatingDataType,
-	IMAGE_FILE_EXTENSIONS,
-} from "../../types.ts";
+import type { EditorBlockTypes, FloatingDataType } from "../../types.ts";
 import { throttle } from "../../utils/draggable.ts";
-import { FILE_SERVER_URL } from "../../utils/misc.ts";
-import type { ImagePayload } from "./nodes/image.tsx";
+
 import { $createLinkNode } from "./nodes/link.tsx";
-import { INSERT_IMAGES_COMMAND } from "./plugins/image.tsx";
+
 import { CUSTOM_TRANSFORMERS } from "./transformers";
-import {
-	$convertFromMarkdownStringCorrect,
-	type TextFormats,
-	escapeKeyDecoratorNodeCommand,
-	overrideUndoRedoCommand,
-	overrideUpDownKeyCommand,
-} from "./utils";
+
 import {
 	DRAG_DATA_FORMAT,
 	getBlockElement,
 	setTargetLine,
 } from "./utils/draggable-block.ts";
+import {
+	overrideEscapeKeyCommand,
+	overrideUndoRedoCommand,
+	overrideUpDownKeyCommand,
+} from "./utils/note-commands.ts";
+import { $convertFromMarkdownStringCorrect } from "./utils/note-metadata.ts";
+
+type TextFormats = null | "bold" | "italic" | "underline" | "strikethrough";
 
 /** Gets note markdown from local system */
 export function useNoteMarkdown(
@@ -249,7 +246,6 @@ export function useToolbarEvents(
 	setIsNodeSelection: Dispatch<SetStateAction<boolean>>,
 	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>,
 	noteContainerRef: MutableRefObject<HTMLDivElement | null>,
-	folder: string,
 ) {
 	const draggedElement = useAtomValue(draggedElementAtom);
 
@@ -280,18 +276,13 @@ export function useToolbarEvents(
 					// @ts-ignore Data Transfer does exist when dragging a link
 					const fileText: string = e.dataTransfer.getData("text/plain");
 					const files = fileText.split(",");
-					const imagePayloads: ImagePayload[] = [];
+
 					const linkPayloads = [];
 
 					for (const fileText of files) {
-						const extension = `.${fileText.split(".").pop()}`;
+						// const extension = `.${fileText.split(".").pop()}`;
 						// Handling dragging of image attachment link
-						if (extension && IMAGE_FILE_EXTENSIONS.includes(extension)) {
-							imagePayloads.push({
-								src: `${FILE_SERVER_URL}/notes/${folder}/attachments/${fileText}`,
-								alt: "test",
-							});
-						} else if (fileText.startsWith("wails:")) {
+						if (fileText.startsWith("wails:")) {
 							linkPayloads.push({
 								url: fileText,
 								title: fileText.split("/").pop() ?? "",
@@ -299,9 +290,9 @@ export function useToolbarEvents(
 						}
 					}
 
-					if (imagePayloads.length > 0) {
-						editor.dispatchCommand(INSERT_IMAGES_COMMAND, imagePayloads);
-					}
+					// if (imagePayloads.length > 0) {
+					// 	editor.dispatchCommand(INSERT_IMAGES_COMMAND, imagePayloads);
+					// }
 					// Creating links
 					for (const linkPayload of linkPayloads) {
 						const linkNode = $createLinkNode(linkPayload.url, {
@@ -388,7 +379,7 @@ export function useToolbarEvents(
 					if ($isNodeSelection(selection)) {
 						const node = selection.getNodes().at(0);
 						if (node) {
-							escapeKeyDecoratorNodeCommand(node.getKey());
+							overrideEscapeKeyCommand(node.getKey());
 							return true;
 						}
 					}
