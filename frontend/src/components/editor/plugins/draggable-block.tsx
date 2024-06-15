@@ -10,7 +10,7 @@ import {
 } from "../../../atoms";
 import { VerticalDots } from "../../../icons/vertical-dots";
 
-import { useDraggableBlock, useNodeDragEvents } from "../hooks";
+import { useDraggableBlock, useNodeDragEvents } from "../hooks/draggable-block";
 import { handleDragStart, setHandlePosition } from "../utils/draggable-block";
 
 export function DraggableBlockPlugin() {

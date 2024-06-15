@@ -479,3 +479,9 @@ export function handleDragStart(
 	setIsDragging(true);
 	e.dataTransfer.setData(DRAG_DATA_FORMAT, nodeKey);
 }
+
+const DRAGGABLE_BLOCK_MENU_CLASSNAME = "draggable-block-menu";
+
+export function isOnHandle(element: HTMLElement): boolean {
+	return !!element.closest(`.${DRAGGABLE_BLOCK_MENU_CLASSNAME}`);
+}

@@ -33,7 +33,7 @@ import { debounce } from "../../utils/draggable";
 import useHotkeys from "../../utils/hooks.tsx";
 import { cn } from "../../utils/string-formatting";
 import { editorConfig } from "./editor-config";
-import { useMostRecentNotes } from "./hooks.tsx";
+
 import { NoteTitle } from "./note-title";
 import { CodePlugin } from "./plugins/code";
 import { ComponentPickerMenuPlugin } from "./plugins/component-picker";
@@ -46,6 +46,7 @@ import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 
 import { BottomBar } from "./bottom-bar.tsx";
+import { useMostRecentNotes } from "./hooks/note-metadata.ts";
 import { DraggableBlockPlugin } from "./plugins/draggable-block.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { MATCHERS, handleATagClick } from "./utils/link.ts";

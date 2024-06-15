@@ -1,20 +1,29 @@
 import {
+	$isListNode,
 	INSERT_CHECK_LIST_COMMAND,
 	INSERT_ORDERED_LIST_COMMAND,
 	INSERT_UNORDERED_LIST_COMMAND,
+	ListNode,
 } from "@lexical/list";
-import { $createHeadingNode } from "@lexical/rich-text";
+import { $createHeadingNode, $isHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
 import { INSERT_TABLE_COMMAND } from "@lexical/table";
+import { $getNearestNodeOfType } from "@lexical/utils";
 import { Events } from "@wailsio/runtime";
 import {
 	$createParagraphNode,
 	$getSelection,
+	$isNodeSelection,
 	$isRangeSelection,
 	type LexicalEditor,
 	type TextFormatType,
 } from "lexical";
-import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type {
+	Dispatch,
+	MutableRefObject,
+	ReactNode,
+	SetStateAction,
+} from "react";
 import { toast } from "sonner";
 import { UploadImage } from "../../../../bindings/github.com/etesam913/bytebook/nodeservice";
 import { WINDOW_ID } from "../../../App";
@@ -26,7 +35,7 @@ import { TextItalic } from "../../../icons/text-italic";
 import { TextStrikethrough } from "../../../icons/text-strikethrough";
 import { TextUnderline } from "../../../icons/text-underline";
 import { UnorderedList } from "../../../icons/unordered-list";
-import type { EditorBlockTypes } from "../../../types";
+import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { FILE_SERVER_URL } from "../../../utils/misc";
 import { INSERT_IMAGES_COMMAND } from "../plugins/image";
 
@@ -90,6 +99,103 @@ export function changeSelectedBlocksType(
 			}
 		}
 	});
+}
+
+type TextFormats = null | "bold" | "italic" | "underline" | "strikethrough";
+
+/**
+ * Looks at the currently selected text and retrieves its block type and text format info.
+ * It uses this information and sets some states
+ */
+export function updateToolbar(
+	editor: LexicalEditor,
+	setDisabled: Dispatch<SetStateAction<boolean>>,
+	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
+	setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>,
+	setIsNodeSelection: Dispatch<SetStateAction<boolean>>,
+	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>,
+	noteContainerRef: MutableRefObject<HTMLDivElement | null>,
+) {
+	const selection = $getSelection();
+	setIsNodeSelection($isNodeSelection(selection));
+
+	if ($isRangeSelection(selection)) {
+		setDisabled(false);
+		// Shows the text-format hover container
+		const selectionText = selection.getTextContent().trim();
+		if (selectionText.length > 0) {
+			const nativeSelection = window.getSelection()?.getRangeAt(0);
+			const domRect = nativeSelection?.getBoundingClientRect();
+			if (domRect) {
+				const { top: topOfSelectionToWindow, left } = domRect;
+				const noteContainerBounds =
+					noteContainerRef.current?.getBoundingClientRect();
+				const topOfScrollContainerToWindow = noteContainerBounds?.top ?? 0;
+				const scrollYOfScrollContainer =
+					noteContainerRef.current?.scrollTop ?? 0;
+
+				setFloatingData({
+					isOpen: true,
+					top:
+						topOfSelectionToWindow -
+						topOfScrollContainerToWindow +
+						scrollYOfScrollContainer -
+						80,
+					left: left - (noteContainerBounds?.left ?? 0),
+					type: "text-format",
+				});
+			}
+		} else {
+			setFloatingData((prev) => ({ ...prev, isOpen: false, type: null }));
+		}
+		const anchorNode = selection.anchor.getNode();
+		const element =
+			anchorNode.getKey() === "root"
+				? anchorNode
+				: anchorNode.getTopLevelElementOrThrow();
+		const elementKey = element.getKey();
+		const elementDOM = editor.getElementByKey(elementKey);
+		const selectionTextFormats: TextFormats[] = [];
+		if (selection.hasFormat("bold")) {
+			selectionTextFormats.push("bold");
+		}
+		if (selection.hasFormat("italic")) {
+			selectionTextFormats.push("italic");
+		}
+		if (selection.hasFormat("underline")) {
+			selectionTextFormats.push("underline");
+		}
+		if (selection.hasFormat("strikethrough")) {
+			selectionTextFormats.push("strikethrough");
+		}
+
+		setCurrentSelectionFormat(selectionTextFormats as TextFormatType[]);
+
+		if (!elementDOM) return;
+
+		// Consists of headings like h1, h2, h3, etc.
+		if ($isHeadingNode(element)) {
+			const headingTag = element.getTag();
+			setCurrentBlockType(headingTag);
+		}
+		// Consists of lists, like ol and ul
+		else if ($isListNode(element)) {
+			const parentList = $getNearestNodeOfType(anchorNode, ListNode);
+			const type = parentList ? parentList.getTag() : element.getTag();
+			if (element.getListType() === "check") {
+				setCurrentBlockType("check");
+			} else {
+				setCurrentBlockType(type);
+			}
+		}
+		// Consists of blocks like paragraph, quote, code, etc.
+		else {
+			setCurrentBlockType(element.getType());
+		}
+	} else if ($isNodeSelection(selection)) {
+		setFloatingData((prev) => ({ ...prev, isOpen: false, type: null }));
+		setDisabled(true);
+	}
 }
 
 /** Used to add images from filesystem into attachments folder & editor */
