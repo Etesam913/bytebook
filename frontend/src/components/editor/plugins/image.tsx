@@ -11,27 +11,27 @@ import {
 	createCommand,
 } from "lexical";
 import { useEffect } from "react";
-import { $createImageNode, ImageNode, type ImagePayload } from "../nodes/image";
+import { $createFileNode, FileNode, type FilePayload } from "../nodes/file";
 
-export const INSERT_IMAGES_COMMAND: LexicalCommand<ImagePayload[]> =
+export const INSERT_IMAGES_COMMAND: LexicalCommand<FilePayload[]> =
 	createCommand("INSERT_IMAGES_COMMAND");
 
 export function ImagesPlugin() {
 	const [editor] = useLexicalComposerContext();
 
 	useEffect(() => {
-		if (!editor.hasNodes([ImageNode])) {
+		if (!editor.hasNodes([FileNode])) {
 			throw new Error("ImagesPlugin: ImageNode not registered on editor");
 		}
 
 		return mergeRegister(
-			editor.registerCommand<ImagePayload[]>(
+			editor.registerCommand<FilePayload[]>(
 				INSERT_IMAGES_COMMAND,
 				(payload) => {
 					const nodes: ParagraphNode[] = [];
 					for (const imageDataPayload of payload) {
 						const imageParent = $createParagraphNode();
-						const imageNode = $createImageNode(imageDataPayload);
+						const imageNode = $createFileNode(imageDataPayload);
 						imageParent.append(imageNode);
 						nodes.push(imageParent);
 					}

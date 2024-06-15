@@ -9,7 +9,7 @@ import {
 	createCommand,
 } from "lexical";
 import { useEffect } from "react";
-import { $createVideoNode, VideoNode, type VideoPayload } from "../nodes/video";
+import { $createFileNode, FileNode, type FilePayload } from "../nodes/file";
 
 export const INSERT_VIDEO_COMMAND: LexicalCommand<VideoPayload> = createCommand(
 	"INSERT_VIDEO_COMMAND",
@@ -19,15 +19,15 @@ export function VideosPlugin() {
 	const [editor] = useLexicalComposerContext();
 
 	useEffect(() => {
-		if (!editor.hasNodes([VideoNode])) {
+		if (!editor.hasNodes([FileNode])) {
 			throw new Error("VideoPlugin: VideoNode not registered on editor");
 		}
 
 		return mergeRegister(
-			editor.registerCommand<VideoPayload>(
+			editor.registerCommand<FilePayload>(
 				INSERT_VIDEO_COMMAND,
 				(payload) => {
-					const videoNode = $createVideoNode(payload);
+					const videoNode = $createFileNode(payload);
 					$insertNodes([videoNode]);
 					if ($isRootOrShadowRoot(videoNode.getParentOrThrow())) {
 						$wrapNodeInElement(videoNode, $createParagraphNode).selectEnd();

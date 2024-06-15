@@ -61,14 +61,13 @@ import {
 	$isExcalidrawNode,
 	ExcalidrawNode,
 } from "./nodes/excalidraw";
-import { $createImageNode, $isImageNode, ImageNode } from "./nodes/image";
+import { $createFileNode, $isFileNode, FileNode } from "./nodes/file";
 import { $createLinkNode, $isLinkNode, LinkNode } from "./nodes/link";
 import {
 	$createUnknownAttachmentNode,
 	$isUnknownAttachmentNode,
 	UnknownAttachmentNode,
 } from "./nodes/unknown-attachment";
-import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
 import type { Transformer } from "./utils/note-metadata";
 
 export const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
@@ -99,12 +98,15 @@ function updateSrc(nodeSrc: string) {
 }
 
 const FILE_TRANSFORMER: TextMatchTransformer = {
-	dependencies: [ImageNode, VideoNode, UnknownAttachmentNode],
+	dependencies: [FileNode, UnknownAttachmentNode],
 	export: (node) => {
 		let filePathOrSrc = "";
 		let altText = "";
-		const isImage = $isImageNode(node);
-		const isVideo = $isVideoNode(node);
+		if (!$isFileNode(node)) {
+			return null;
+		}
+		const isImage = node.getElementType() === "image";
+		const isVideo = node.getElementType() === "video";
 		const isUnknownAttachment = $isUnknownAttachmentNode(node);
 
 		// These nodes are resizable
@@ -112,7 +114,7 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 			filePathOrSrc = updateSrc(node.getSrc());
 
 			altText = addQueryParam(
-				isImage ? node.getAltText() : node.getTitleText(),
+				node.getAltText(),
 				"width",
 				String(node.getWidth()),
 			);
@@ -141,8 +143,7 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 		const shouldCreateVideoNode = VIDEO_FILE_EXTENSIONS.some((extension) =>
 			filePathOrSrc.endsWith(extension),
 		);
-		let nodeToCreate: ImageNode | VideoNode | UnknownAttachmentNode | null =
-			null;
+		let nodeToCreate: FileNode | UnknownAttachmentNode | null = null;
 
 		if (shouldCreateImageNode || shouldCreateVideoNode) {
 			const widthQueryValue = getQueryParamValue(alt, "width");
@@ -151,19 +152,13 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 					? "100%"
 					: Number.parseInt(widthQueryValue)
 				: "100%";
-			if (shouldCreateImageNode) {
-				nodeToCreate = $createImageNode({
-					alt: removeQueryParam(alt, "width"),
-					src: filePathOrSrc,
-					width,
-				});
-			} else if (shouldCreateVideoNode) {
-				nodeToCreate = $createVideoNode({
-					title: removeQueryParam(alt, "width"),
-					src: filePathOrSrc,
-					width,
-				});
-			}
+
+			nodeToCreate = $createFileNode({
+				alt: removeQueryParam(alt, "width"),
+				src: filePathOrSrc,
+				width,
+				elementType: shouldCreateImageNode ? "image" : "video",
+			});
 		} else {
 			nodeToCreate = $createUnknownAttachmentNode({ src: filePathOrSrc });
 		}

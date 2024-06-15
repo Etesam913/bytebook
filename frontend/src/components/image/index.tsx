@@ -44,7 +44,7 @@ export function Image({
 	);
 
 	return (
-		<div className="mx-2 inline-block">
+		<div className="mr-2 inline-block">
 			<ResizeContainer
 				resizeState={{
 					isResizing,
