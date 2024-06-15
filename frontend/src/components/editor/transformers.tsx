@@ -69,7 +69,7 @@ import {
 	UnknownAttachmentNode,
 } from "./nodes/unknown-attachment";
 import { $createVideoNode, $isVideoNode, VideoNode } from "./nodes/video";
-import type { Transformer } from "./utils";
+import type { Transformer } from "./utils/note-metadata";
 
 export const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
 

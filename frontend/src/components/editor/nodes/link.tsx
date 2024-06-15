@@ -37,6 +37,7 @@ import {
 	getInternalLinkType,
 	isInternalLink,
 } from "../../../utils/string-formatting";
+import { handleATagClick } from "../utils/link";
 
 export type LinkAttributes = {
 	rel?: null | string;
@@ -107,6 +108,7 @@ export class LinkNode extends ElementNode {
 		}
 
 		const classNames = [config.theme.link];
+
 		// This is an internal link so we want it to look different
 		if (isInternalLink(element.href)) {
 			classNames.pop();
@@ -142,6 +144,12 @@ export class LinkNode extends ElementNode {
 				} else {
 					element.href = "about:blank";
 				}
+			};
+		}
+		// The browser should handle a regular link
+		else {
+			element.onclick = (e) => {
+				handleATagClick(e.target as HTMLElement);
 			};
 		}
 

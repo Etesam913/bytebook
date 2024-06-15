@@ -107,7 +107,7 @@ export function replaceFrontMatter(
 	return newFrontMatter + markdown;
 }
 
-type Transformer =
+export type Transformer =
 	| ElementTransformer
 	| TextFormatTransformer
 	| TextMatchTransformer;

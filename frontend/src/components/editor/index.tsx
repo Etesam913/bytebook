@@ -1,4 +1,3 @@
-import { AutoLinkPlugin } from "@lexical/react/LexicalAutoLinkPlugin";
 import { CheckListPlugin } from "@lexical/react/LexicalCheckListPlugin";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
@@ -49,7 +48,7 @@ import { BottomBar } from "./bottom-bar.tsx";
 import { useMostRecentNotes } from "./hooks/note-metadata.ts";
 import { DraggableBlockPlugin } from "./plugins/draggable-block.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
-import { MATCHERS, handleATagClick } from "./utils/link.ts";
+import { handleATagClick } from "./utils/link.ts";
 import {
 	$convertToMarkdownStringCorrect,
 	replaceFrontMatter,
@@ -169,8 +168,10 @@ export function NotesEditor({
 					onClick={(e) => {
 						const target = e.target as HTMLElement & { ariaChecked?: string };
 						if (target.parentElement?.tagName === "A") {
-							handleATagClick(target);
-						} else if (
+							return;
+						}
+
+						if (
 							target.dataset.lexicalDecorator !== "true" &&
 							target.ariaChecked === null
 						) {
@@ -223,7 +224,7 @@ export function NotesEditor({
 					<CodePlugin />
 					<TablePlugin />
 					<DraggableBlockPlugin />
-					<AutoLinkPlugin matchers={MATCHERS} />
+					{/* <AutoLinkPlugin matchers={MATCHERS} /> */}
 					<TreeViewPlugin />
 				</div>
 				<BottomBar frontmatter={frontmatter} folder={folder} note={note} />
