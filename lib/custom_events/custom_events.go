@@ -1,7 +1,6 @@
 package custom_events
 
 import (
-	"fmt"
 	"math/rand"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -30,13 +29,7 @@ func OpenNoteInNewWindowEvent(app *application.App, backgroundColor application.
 	app.Events.On("open-note-in-new-window-backend", func(e *application.WailsEvent) {
 		switch data := e.Data.(type) {
 		case map[string]interface{}:
-			note := data["note"].(string)
-			folder := data["folder"].(string)
-			url := "/"
-			if len(note) > 0 && len(folder) > 0 {
-				url = fmt.Sprintf("/%s/%s?standalone=true", folder, note)
-			}
-			CreateWindow(app, url, backgroundColor)
+			CreateWindow(app, data["url"].(string), backgroundColor)
 		}
 	})
 }

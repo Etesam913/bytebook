@@ -4,20 +4,21 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
+// InitializeApplicationMenu initializes the application menu with hotkeys
 func InitializeApplicationMenu(app *application.App) {
 	menu := application.DefaultApplicationMenu()
 	fileMenuItem := menu.ItemAt(1)
 
 	if fileMenuItem.IsSubmenu() {
 		fileMenu := fileMenuItem.GetSubmenu()
+		// Configure shift+cmd+n to open a new window
 		newWindowMenuItem := fileMenu.Add("New Window")
 		newWindowMenuItem.SetAccelerator("shift+cmdorctrl+n")
 		newWindowMenuItem.OnClick(func(data *application.Context) {
 			app.Events.Emit(&application.WailsEvent{
 				Name: "open-note-in-new-window-backend",
 				Data: map[string]interface{}{
-					"note":   "",
-					"folder": "",
+					"url": "/",
 				},
 			})
 		})

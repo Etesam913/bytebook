@@ -130,7 +130,7 @@ export function NotesSidebar({
 		if (rightClickedNote) {
 			Events.Emit({
 				name: "open-note-in-new-window-backend",
-				data: { folder, note: rightClickedNote },
+				data: { url: `/${folder}/${rightClickedNote}` },
 			});
 		}
 	});
