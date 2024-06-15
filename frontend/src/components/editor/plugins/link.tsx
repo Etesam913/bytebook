@@ -1,4 +1,3 @@
-import { LinkNode } from "@lexical/link";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { mergeRegister, objectKlassEquals } from "@lexical/utils";
 import {
@@ -9,7 +8,7 @@ import {
 	PASTE_COMMAND,
 } from "lexical";
 import { useEffect } from "react";
-import { TOGGLE_LINK_COMMAND, toggleLink } from "../nodes/link";
+import { LinkNode, TOGGLE_LINK_COMMAND, toggleLink } from "../nodes/link";
 
 type Props = {
 	validateUrl?: (url: string) => boolean;

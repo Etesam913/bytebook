@@ -1,4 +1,3 @@
-import { $createLinkNode } from "@lexical/link";
 import { mergeRegister } from "@lexical/utils";
 import { useAtomValue } from "jotai";
 import {
@@ -33,6 +32,7 @@ import { navigate } from "wouter/use-browser-location";
 import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { draggedElementAtom } from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
+import { $createLinkNode } from "../nodes/link";
 import { CUSTOM_TRANSFORMERS } from "../transformers";
 import {
 	overrideEscapeKeyCommand,
@@ -134,12 +134,13 @@ export function useToolbarEvents(
 					const linkPayloads = [];
 
 					for (const fileText of files) {
-						// const extension = `.${fileText.split(".").pop()}`;
-						// Handling dragging of image attachment link
+						const lastDotIndex = fileText.lastIndexOf(".");
+						const extension = fileText.substring(lastDotIndex + 1);
+						const urlWithoutExtension = fileText.substring(0, lastDotIndex);
 						if (fileText.startsWith("wails:")) {
 							linkPayloads.push({
-								url: fileText,
-								title: fileText.split("/").pop() ?? "",
+								url: `${urlWithoutExtension}?ext=${extension}`,
+								title: urlWithoutExtension.split("/").pop() ?? "",
 							});
 						}
 					}
