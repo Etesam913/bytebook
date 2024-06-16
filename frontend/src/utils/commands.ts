@@ -28,10 +28,10 @@ export function onClickDecoratorNodeCommand(
 		e.stopPropagation();
 		return true;
 	}
+
 	if (e.target === node || node?.contains(e.target as Node)) {
 		if (!e.shiftKey) clearSelection();
 		setSelected(true);
-
 		return true;
 	}
 	e.stopPropagation();

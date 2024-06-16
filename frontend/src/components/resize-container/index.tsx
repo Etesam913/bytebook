@@ -95,7 +95,7 @@ export function ResizeContainer({
 					{isSelected && !isExpanded && (
 						<>
 							<motion.div
-								className="absolute z-10 h-full w-full border-[4px] border-blue-400 rounded-sm"
+								className="absolute z-10 h-full w-full border-[4px] border-blue-400 rounded-sm pointer-events-none"
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0 }}

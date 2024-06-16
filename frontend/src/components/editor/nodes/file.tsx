@@ -195,7 +195,7 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 				/>
 			);
 		}
-
+		// Replace with unknown attachment
 		return <div>This element is not supported</div>;
 	}
 }
