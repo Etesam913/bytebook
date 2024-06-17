@@ -15,9 +15,10 @@ import {
 } from "lexical";
 import type { ResizeWidth } from "../../../types";
 import { Image } from "../../image";
+import { UnknownAttachment } from "../../unknown-attachment";
 import { Video } from "../../video";
 
-type FileType = "image" | "video";
+export type FileType = "image" | "video" | "unknown";
 
 export interface FilePayload {
 	alt: string;
@@ -196,7 +197,7 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 			);
 		}
 		// Replace with unknown attachment
-		return <div>This element is not supported</div>;
+		return <UnknownAttachment nodeKey={this.getKey()} src={this.getSrc()} />;
 	}
 }
 

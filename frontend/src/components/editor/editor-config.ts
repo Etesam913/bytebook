@@ -8,7 +8,6 @@ import { CodeNode } from "./nodes/code";
 import { ExcalidrawNode } from "./nodes/excalidraw";
 import { FileNode } from "./nodes/file";
 import { AutoLinkNode, LinkNode } from "./nodes/link";
-import { UnknownAttachmentNode } from "./nodes/unknown-attachment";
 
 // Catch any errors that occur during Lexical updates and log them
 // or throw them as needed. If you don't throw them, Lexical will
@@ -76,7 +75,6 @@ export const editorConfig: InitialConfigType = {
 		TableNode,
 		TableCellNode,
 		TableRowNode,
-		UnknownAttachmentNode,
 		CodeNode,
 		ExcalidrawNode,
 		AutoLinkNode,
@@ -105,7 +103,6 @@ export const trashEditorConfig: InitialConfigType = {
 		TableNode,
 		TableCellNode,
 		TableRowNode,
-		UnknownAttachmentNode,
 		CodeNode,
 		ExcalidrawNode,
 	],

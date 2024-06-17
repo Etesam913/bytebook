@@ -61,13 +61,13 @@ import {
 	$isExcalidrawNode,
 	ExcalidrawNode,
 } from "./nodes/excalidraw";
-import { $createFileNode, $isFileNode, FileNode } from "./nodes/file";
-import { $createLinkNode, $isLinkNode, LinkNode } from "./nodes/link";
 import {
-	$createUnknownAttachmentNode,
-	$isUnknownAttachmentNode,
-	UnknownAttachmentNode,
-} from "./nodes/unknown-attachment";
+	$createFileNode,
+	$isFileNode,
+	FileNode,
+	type FileType,
+} from "./nodes/file";
+import { $createLinkNode, $isLinkNode, LinkNode } from "./nodes/link";
 import type { Transformer } from "./utils/note-metadata";
 
 export const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
@@ -98,32 +98,21 @@ function updateSrc(nodeSrc: string) {
 }
 
 const FILE_TRANSFORMER: TextMatchTransformer = {
-	dependencies: [FileNode, UnknownAttachmentNode],
+	dependencies: [FileNode],
 	export: (node) => {
 		let filePathOrSrc = "";
 		let altText = "";
 		if (!$isFileNode(node)) {
 			return null;
 		}
-		const isImage = node.getElementType() === "image";
-		const isVideo = node.getElementType() === "video";
-		const isUnknownAttachment = $isUnknownAttachmentNode(node);
 
-		// These nodes are resizable
-		if (isImage || isVideo) {
-			filePathOrSrc = updateSrc(node.getSrc());
+		filePathOrSrc = updateSrc(node.getSrc());
 
-			altText = addQueryParam(
-				node.getAltText(),
-				"width",
-				String(node.getWidth()),
-			);
-		} else if (isUnknownAttachment) {
-			altText = "test";
-			filePathOrSrc = updateSrc(node.getSrc());
-		} else {
-			return null;
-		}
+		altText = addQueryParam(
+			node.getAltText(),
+			"width",
+			String(node.getWidth()),
+		);
 
 		// TODO: need to do sanitizing on the alt text
 		return `![${altText}](${filePathOrSrc}) `;
@@ -143,29 +132,25 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 		const shouldCreateVideoNode = VIDEO_FILE_EXTENSIONS.some((extension) =>
 			filePathOrSrc.endsWith(extension),
 		);
-		let nodeToCreate: FileNode | UnknownAttachmentNode | null = null;
 
-		if (shouldCreateImageNode || shouldCreateVideoNode) {
-			const widthQueryValue = getQueryParamValue(alt, "width");
-			const width: ResizeWidth = widthQueryValue
-				? widthQueryValue.charAt(widthQueryValue.length - 1) === "%"
-					? "100%"
-					: Number.parseInt(widthQueryValue)
-				: "100%";
+		const widthQueryValue = getQueryParamValue(alt, "width");
+		const width: ResizeWidth = widthQueryValue
+			? widthQueryValue.charAt(widthQueryValue.length - 1) === "%"
+				? "100%"
+				: Number.parseInt(widthQueryValue)
+			: "100%";
+		let elementType: FileType = "unknown";
+		if (shouldCreateImageNode) elementType = "image";
+		else if (shouldCreateVideoNode) elementType = "video";
 
-			nodeToCreate = $createFileNode({
-				alt: removeQueryParam(alt, "width"),
-				src: filePathOrSrc,
-				width,
-				elementType: shouldCreateImageNode ? "image" : "video",
-			});
-		} else {
-			nodeToCreate = $createUnknownAttachmentNode({ src: filePathOrSrc });
-		}
+		const nodeToCreate = $createFileNode({
+			alt: removeQueryParam(alt, "width"),
+			src: filePathOrSrc,
+			width,
+			elementType,
+		});
 
-		if (nodeToCreate) {
-			textNode.replace(nodeToCreate);
-		}
+		textNode.replace(nodeToCreate);
 	},
 	type: "text-match",
 	trigger: ")",
