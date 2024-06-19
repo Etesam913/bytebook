@@ -1,10 +1,8 @@
 import { mergeRegister } from "@lexical/utils";
 import { useAtomValue } from "jotai";
 import {
-	$createTextNode,
 	$getSelection,
 	$isNodeSelection,
-	$isRangeSelection,
 	CAN_REDO_COMMAND,
 	CAN_UNDO_COMMAND,
 	CLEAR_HISTORY_COMMAND,
@@ -32,9 +30,9 @@ import { navigate } from "wouter/use-browser-location";
 import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { draggedElementAtom } from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
-import { $createLinkNode } from "../nodes/link";
 import { CUSTOM_TRANSFORMERS } from "../transformers";
 import {
+	overrideControlledTextInsertion,
 	overrideEscapeKeyCommand,
 	overrideUndoRedoCommand,
 	overrideUpDownKeyCommand,
@@ -92,6 +90,7 @@ export function useNoteMarkdown(
  */
 export function useToolbarEvents(
 	editor: LexicalEditor,
+	folder: string,
 	setDisabled: Dispatch<SetStateAction<boolean>>,
 	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
 	setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>,
@@ -123,45 +122,8 @@ export function useToolbarEvents(
 			),
 			editor.registerCommand(
 				CONTROLLED_TEXT_INSERTION_COMMAND,
-				(e) => {
-					// @ts-ignore Data Transfer does exist when dragging a link
-					if (!e.dataTransfer || !draggedElement) return false;
-
-					// @ts-ignore Data Transfer does exist when dragging a link
-					const fileText: string = e.dataTransfer.getData("text/plain");
-					const files = fileText.split(",");
-
-					const linkPayloads = [];
-
-					for (const fileText of files) {
-						const lastDotIndex = fileText.lastIndexOf(".");
-						const extension = fileText.substring(lastDotIndex + 1);
-						const urlWithoutExtension = fileText.substring(0, lastDotIndex);
-						if (fileText.startsWith("wails:")) {
-							linkPayloads.push({
-								url: `${urlWithoutExtension}?ext=${extension}`,
-								title: urlWithoutExtension.split("/").pop() ?? "",
-							});
-						}
-					}
-
-					// if (imagePayloads.length > 0) {
-					// 	editor.dispatchCommand(INSERT_IMAGES_COMMAND, imagePayloads);
-					// }
-					// Creating links
-					for (const linkPayload of linkPayloads) {
-						const linkNode = $createLinkNode(linkPayload.url, {
-							title: linkPayload.title,
-						});
-						const linkTextNode = $createTextNode(linkPayload.title);
-						linkNode.append(linkTextNode);
-						const selection = $getSelection();
-						if ($isRangeSelection(selection)) {
-							selection.insertNodes([linkNode]);
-						}
-					}
-					return true;
-				},
+				(e) =>
+					overrideControlledTextInsertion(e, editor, draggedElement, folder),
 				COMMAND_PRIORITY_HIGH,
 			),
 			editor.registerCommand(
@@ -252,5 +214,6 @@ export function useToolbarEvents(
 		setCanUndo,
 		noteContainerRef,
 		draggedElement,
+		folder,
 	]);
 }

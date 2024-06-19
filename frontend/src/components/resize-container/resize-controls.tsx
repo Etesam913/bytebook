@@ -39,7 +39,7 @@ export function ResizeControls({
 
 	return (
 		<motion.div
-			className="absolute left-[50%] bg-zinc-50 dark:bg-zinc-700 p-2 rounded-md shadow-lg border-[1px] border-zinc-300 dark:border-zinc-600 flex items-center justify-center gap-3 z-10"
+			className="absolute left-[50%] bg-zinc-50 dark:bg-zinc-700 p-2 rounded-md shadow-lg border-[1px] border-zinc-300 dark:border-zinc-600 flex items-center justify-center gap-3 z-20"
 			initial={{ opacity: 0, y: -20, x: "-50%" }}
 			animate={{ opacity: 1, y: -30 }}
 			exit={{ opacity: 0, y: -20 }}

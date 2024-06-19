@@ -189,3 +189,34 @@ export function extractInfoFromNoteName(noteName: string) {
 		queryParams: queryParams,
 	};
 }
+
+/**
+ * Gets the file extension of a URL if it points to a file like a pdf
+ * It deals with query parameters as well. This is for the CONTROLLED_TEXT_INSERTION event
+ */
+export function getFileExtension(url: string) {
+	// Extract the part before the query parameters
+	const baseUrl = url.split("?")[0];
+
+	// Find the last period in the baseUrl
+	const lastDotIndex = baseUrl.lastIndexOf(".");
+	const lastSlashIndex = baseUrl.lastIndexOf("/");
+	// If no period is found, return null
+	if (lastDotIndex === -1 || lastSlashIndex > lastDotIndex) {
+		return { urlWithoutExtension: null, extension: null, fileName: null };
+	}
+
+	const urlWithoutExtension = baseUrl.substring(0, lastDotIndex);
+
+	const fileName = baseUrl.substring(lastSlashIndex + 1, lastDotIndex);
+
+	// Extract the extension
+	const extension = baseUrl.substring(lastDotIndex + 1);
+
+	// Return the extension if it's valid (length > 0)
+	return {
+		urlWithoutExtension,
+		extension: extension.length > 0 ? extension : null,
+		fileName,
+	};
+}

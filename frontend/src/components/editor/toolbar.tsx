@@ -102,6 +102,7 @@ export function Toolbar({
 
 	useToolbarEvents(
 		editor,
+		folder,
 		setDisabled,
 		setCurrentSelectionFormat,
 		setCurrentBlockType,

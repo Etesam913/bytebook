@@ -1,6 +1,6 @@
 module github.com/etesam913/bytebook
 
-go 1.22.2
+go 1.22.4
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0

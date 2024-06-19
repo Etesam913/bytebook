@@ -203,8 +203,6 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 				<Pdf
 					src={this.getSrc()}
 					alt={this.getAltText()}
-					widthWrittenToNode={this.getWidth()}
-					writeWidthToNode={(width) => this.setWidth(width, _editor)}
 					nodeKey={this.getKey()}
 				/>
 			);

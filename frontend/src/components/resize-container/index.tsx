@@ -56,7 +56,7 @@ export function ResizeContainer({
 		elementType !== "excalidraw" && useMouseActivity(1500, isExpanded);
 
 	return (
-		<div ref={resizeContainerRef} className="w-full">
+		<div ref={resizeContainerRef}>
 			<motion.div
 				onKeyDown={(e) => {
 					if (e.key === "Escape" && isExpanded) {
@@ -87,11 +87,7 @@ export function ResizeContainer({
 				)}
 				style={{
 					width: !isExpanded ? widthMotionValue : "100%",
-					height: shouldHeightMatchWidth
-						? widthMotionValue.get() === "100%"
-							? resizeWidthMotionValue
-							: widthMotionValue
-						: "auto",
+					height: shouldHeightMatchWidth ? widthMotionValue : "auto",
 					transition: "outline 0.2s ease-in-out, opacity 0.2s ease-in-out",
 				}}
 			>

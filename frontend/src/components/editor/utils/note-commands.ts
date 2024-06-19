@@ -1,15 +1,27 @@
 import {
 	$createNodeSelection,
+	$createTextNode,
 	$getNodeByKey,
 	$getSelection,
 	$isDecoratorNode,
 	$isElementNode,
 	$isNodeSelection,
+	$isRangeSelection,
 	$isRootNode,
 	$setSelection,
+	type LexicalEditor,
 	type LexicalNode,
 } from "lexical";
+import { IMAGE_FILE_EXTENSIONS } from "../../../types";
 import { isDecoratorNodeSelected } from "../../../utils/commands";
+import { FILE_SERVER_URL } from "../../../utils/misc";
+import {
+	extractInfoFromNoteName,
+	getFileExtension,
+} from "../../../utils/string-formatting";
+import type { FilePayload, FileType } from "../nodes/file";
+import { $createLinkNode } from "../nodes/link";
+import { INSERT_FILES_COMMAND } from "../plugins/file";
 
 /**
  * Makes it so that the code-block undo/redo stack is not affected by the undo/redo stack of the editor
@@ -102,4 +114,69 @@ export function overrideEscapeKeyCommand(nodeKey: string) {
 		}
 	}
 	return false;
+}
+
+export function overrideControlledTextInsertion(
+	e: string | InputEvent,
+	editor: LexicalEditor,
+	draggedElement: HTMLElement | null,
+	folder: string,
+) {
+	// @ts-ignore Data Transfer does exist when dragging a link
+	if (!e.dataTransfer || !draggedElement) return false;
+
+	// @ts-ignore Data Transfer does exist when dragging a link
+	const fileText: string = e.dataTransfer.getData("text/plain");
+
+	const files = fileText.split(",");
+
+	const linkPayloads = [];
+	const filePayloads: FilePayload[] = [];
+
+	for (const fileText of files) {
+		if (fileText.startsWith("wails:")) {
+			const { urlWithoutExtension, extension, fileName } =
+				getFileExtension(fileText);
+			// Create a link to the markdown note
+			if (!urlWithoutExtension || !extension || !fileName) return true;
+			if (extension === "md") {
+				linkPayloads.push({
+					url: `${urlWithoutExtension}?ext=${extension}`,
+					title: urlWithoutExtension.split("/").pop() ?? "",
+				});
+			} else {
+				let elementType = extension;
+				if (IMAGE_FILE_EXTENSIONS.includes(extension)) {
+					elementType = "image";
+				}
+				filePayloads.push({
+					elementType: elementType as FileType,
+					alt: urlWithoutExtension.split("/").pop() ?? "",
+					src: `${FILE_SERVER_URL}/notes/${folder}/${fileName}.${extension}`,
+				});
+			}
+		}
+	}
+
+	console.log(filePayloads);
+
+	// if (imagePayloads.length > 0) {
+	// 	editor.dispatchCommand(INSERT_IMAGES_COMMAND, imagePayloads);
+	// }
+	// Creating links
+	for (const linkPayload of linkPayloads) {
+		const linkNode = $createLinkNode(linkPayload.url, {
+			title: linkPayload.title,
+		});
+		const linkTextNode = $createTextNode(linkPayload.title);
+		linkNode.append(linkTextNode);
+		const selection = $getSelection();
+		if ($isRangeSelection(selection)) {
+			selection.insertNodes([linkNode]);
+		}
+	}
+
+	editor.dispatchCommand(INSERT_FILES_COMMAND, filePayloads);
+
+	return true;
 }

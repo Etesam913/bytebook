@@ -37,7 +37,7 @@ import { NoteTitle } from "./note-title";
 import { CodePlugin } from "./plugins/code";
 import { ComponentPickerMenuPlugin } from "./plugins/component-picker";
 import { CustomMarkdownShortcutPlugin } from "./plugins/custom-markdown-shortcut.tsx";
-import { ImagesPlugin } from "./plugins/image";
+import { FilesPlugin } from "./plugins/file";
 import { LinkPlugin } from "./plugins/link.tsx";
 import { NoteFindPlugin } from "./plugins/note-find.tsx";
 import TreeViewPlugin from "./plugins/tree-view";
@@ -219,7 +219,7 @@ export function NotesEditor({
 					<HistoryPlugin />
 					<TablePlugin />
 					<EditorRefPlugin editorRef={editorRef} />
-					<ImagesPlugin />
+					<FilesPlugin />
 					<VideosPlugin />
 					<CodePlugin />
 					<TablePlugin />

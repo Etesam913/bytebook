@@ -37,7 +37,7 @@ import { TextUnderline } from "../../../icons/text-underline";
 import { UnorderedList } from "../../../icons/unordered-list";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { FILE_SERVER_URL } from "../../../utils/misc";
-import { INSERT_IMAGES_COMMAND } from "../plugins/image";
+import { INSERT_FILES_COMMAND } from "../plugins/file";
 
 export function handleToolbarTextFormattingClick(
 	currentSelectionFormat: TextFormatType[],
@@ -214,7 +214,7 @@ export async function insertImageFromFile(
 				src: `${FILE_SERVER_URL}/${filePath}`,
 				alt: "test",
 			}));
-			editor.dispatchCommand(INSERT_IMAGES_COMMAND, payloads);
+			editor.dispatchCommand(INSERT_FILES_COMMAND, payloads);
 			if (!success) toast.error(message);
 			Events.Emit({
 				name: "attachments:changed",
@@ -293,5 +293,5 @@ export const textFormats: { icon: ReactNode; format: TextFormatType }[] = [
 export const imageCommandData = {
 	block: "img",
 	icon: <ImageIcon />,
-	command: INSERT_IMAGES_COMMAND,
+	command: INSERT_FILES_COMMAND,
 };
