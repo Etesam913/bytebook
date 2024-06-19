@@ -253,7 +253,7 @@ export function NotesSidebar({
 								Create Note <Compose />
 							</MotionButton>
 							<section className="flex flex-col gap-2 overflow-y-auto">
-								<div className="flex h-full flex-col overflow-y-auto z-20">
+								<div className="flex h-full flex-col overflow-y-auto">
 									<MyNotesAccordion
 										notes={notes}
 										setRightClickedNote={setRightClickedNote}

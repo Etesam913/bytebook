@@ -57,7 +57,7 @@ export function Image({
 				nodeKey={nodeKey}
 				defaultWidth={widthWrittenToNode}
 				writeWidthToNode={writeWidthToNode}
-				elementType="image"
+				elementType="default"
 			>
 				<img
 					src={src}

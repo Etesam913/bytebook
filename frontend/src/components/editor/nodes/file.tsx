@@ -15,10 +15,11 @@ import {
 } from "lexical";
 import type { ResizeWidth } from "../../../types";
 import { Image } from "../../image";
+import Pdf from "../../pdf";
 import { UnknownAttachment } from "../../unknown-attachment";
 import { Video } from "../../video";
 
-export type FileType = "image" | "video" | "unknown";
+export type FileType = "image" | "video" | "pdf" | "unknown";
 
 export interface FilePayload {
 	alt: string;
@@ -174,7 +175,7 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 	}
 
 	decorate(_editor: LexicalEditor): JSX.Element {
-		if (this.__elementType === "video") {
+		if (this.getElementType() === "video") {
 			return (
 				<Video
 					src={this.__src}
@@ -185,7 +186,7 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 				/>
 			);
 		}
-		if (this.__elementType === "image") {
+		if (this.getElementType() === "image") {
 			return (
 				<Image
 					src={this.getSrc()}
@@ -196,6 +197,19 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 				/>
 			);
 		}
+
+		if (this.getElementType() === "pdf") {
+			return (
+				<Pdf
+					src={this.getSrc()}
+					alt={this.getAltText()}
+					widthWrittenToNode={this.getWidth()}
+					writeWidthToNode={(width) => this.setWidth(width, _editor)}
+					nodeKey={this.getKey()}
+				/>
+			);
+		}
+
 		// Replace with unknown attachment
 		return <UnknownAttachment nodeKey={this.getKey()} src={this.getSrc()} />;
 	}

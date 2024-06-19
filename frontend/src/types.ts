@@ -3,7 +3,7 @@ import type { HeadingTagType } from "@lexical/rich-text";
 import type { Dispatch, FormEvent, ReactNode, SetStateAction } from "react";
 import type { CodeResponse } from "../bindings/github.com/etesam913/bytebook/index";
 
-export const IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp"];
+export const IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "gif"];
 
 export const VIDEO_FILE_EXTENSIONS = [".mov", ".mp4"];
 

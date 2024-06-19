@@ -59,7 +59,7 @@ export function Video({
 					nodeKey={nodeKey}
 					defaultWidth={widthWrittenToNode}
 					writeWidthToNode={writeWidthToNode}
-					elementType="video"
+					elementType="default"
 				>
 					{/* biome-ignore lint/a11y/useMediaCaption: bruh */}
 					<video

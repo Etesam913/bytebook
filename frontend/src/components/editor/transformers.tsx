@@ -126,12 +126,13 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 			textNode.replace(textNode);
 			return;
 		}
-		const shouldCreateImageNode = IMAGE_FILE_EXTENSIONS.some((extension) =>
-			filePathOrSrc.endsWith(extension),
+		const shouldCreateImage = IMAGE_FILE_EXTENSIONS.some((extension) =>
+			filePathOrSrc.endsWith(`.${extension}`),
 		);
-		const shouldCreateVideoNode = VIDEO_FILE_EXTENSIONS.some((extension) =>
-			filePathOrSrc.endsWith(extension),
+		const shouldCreateVideo = VIDEO_FILE_EXTENSIONS.some((extension) =>
+			filePathOrSrc.endsWith(`.${extension}`),
 		);
+		const shouldCreatePdf = filePathOrSrc.endsWith(".pdf");
 
 		const widthQueryValue = getQueryParamValue(alt, "width");
 		const width: ResizeWidth = widthQueryValue
@@ -140,8 +141,9 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 				: Number.parseInt(widthQueryValue)
 			: "100%";
 		let elementType: FileType = "unknown";
-		if (shouldCreateImageNode) elementType = "image";
-		else if (shouldCreateVideoNode) elementType = "video";
+		if (shouldCreateImage) elementType = "image";
+		else if (shouldCreateVideo) elementType = "video";
+		else if (shouldCreatePdf) elementType = "pdf";
 
 		const nodeToCreate = $createFileNode({
 			alt: removeQueryParam(alt, "width"),

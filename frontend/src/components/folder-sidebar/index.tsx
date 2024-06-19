@@ -277,7 +277,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					Create Folder <FolderPlus />
 				</MotionButton>
 				<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
-					<div className="flex h-full flex-col overflow-y-auto z-20 gap-1.5">
+					<div className="flex h-full flex-col overflow-y-auto gap-1.5">
 						<RecentNotesAccordion />
 						<MyFoldersAccordion folder={folder} />
 						<BottomItems />

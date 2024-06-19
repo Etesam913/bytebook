@@ -28,7 +28,7 @@ export function ResizeContainer({
 	nodeKey: string;
 	defaultWidth: ResizeWidth;
 	writeWidthToNode: (width: ResizeWidth) => void;
-	elementType: "image" | "video" | "excalidraw";
+	elementType: "default" | "excalidraw";
 	shouldHeightMatchWidth?: boolean;
 }) {
 	const widthMotionValue = useMotionValue<number | "100%">(defaultWidth);
@@ -56,7 +56,7 @@ export function ResizeContainer({
 		elementType !== "excalidraw" && useMouseActivity(1500, isExpanded);
 
 	return (
-		<div ref={resizeContainerRef}>
+		<div ref={resizeContainerRef} className="w-full">
 			<motion.div
 				onKeyDown={(e) => {
 					if (e.key === "Escape" && isExpanded) {
@@ -82,12 +82,16 @@ export function ResizeContainer({
 				className={cn(
 					"relative max-w-full cursor-auto rounded-sm flex outline-none",
 					isExpanded &&
-						"max-h-screen fixed top-0 left-0 right-0 bottom-0 z-20 m-auto justify-start overflow-auto",
+						"max-h-screen fixed top-0 left-0 right-0 bottom-0 z-30 m-auto justify-start overflow-auto",
 					isExpanded && elementType === "excalidraw" && "!h-screen",
 				)}
 				style={{
 					width: !isExpanded ? widthMotionValue : "100%",
-					height: shouldHeightMatchWidth ? widthMotionValue : "auto",
+					height: shouldHeightMatchWidth
+						? widthMotionValue.get() === "100%"
+							? resizeWidthMotionValue
+							: widthMotionValue
+						: "auto",
 					transition: "outline 0.2s ease-in-out, opacity 0.2s ease-in-out",
 				}}
 			>
@@ -95,7 +99,7 @@ export function ResizeContainer({
 					{isSelected && !isExpanded && (
 						<>
 							<motion.div
-								className="absolute z-10 h-full w-full border-[4px] border-blue-400 rounded-sm pointer-events-none"
+								className="absolute z-20 h-full w-full border-[4px] border-blue-400 rounded-sm pointer-events-none"
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0 }}
