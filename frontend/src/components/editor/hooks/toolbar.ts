@@ -90,7 +90,6 @@ export function useNoteMarkdown(
  */
 export function useToolbarEvents(
 	editor: LexicalEditor,
-	folder: string,
 	setDisabled: Dispatch<SetStateAction<boolean>>,
 	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
 	setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>,
@@ -122,8 +121,7 @@ export function useToolbarEvents(
 			),
 			editor.registerCommand(
 				CONTROLLED_TEXT_INSERTION_COMMAND,
-				(e) =>
-					overrideControlledTextInsertion(e, editor, draggedElement, folder),
+				(e) => overrideControlledTextInsertion(e, editor, draggedElement),
 				COMMAND_PRIORITY_HIGH,
 			),
 			editor.registerCommand(
@@ -214,6 +212,5 @@ export function useToolbarEvents(
 		setCanUndo,
 		noteContainerRef,
 		draggedElement,
-		folder,
 	]);
 }

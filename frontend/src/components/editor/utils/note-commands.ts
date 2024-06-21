@@ -120,10 +120,9 @@ export function overrideControlledTextInsertion(
 	e: string | InputEvent,
 	editor: LexicalEditor,
 	draggedElement: HTMLElement | null,
-	folder: string,
 ) {
 	// @ts-ignore Data Transfer does exist when dragging a link
-	if (!e.dataTransfer || !draggedElement) return false;
+	if (!e.dataTransfer && !draggedElement) return false;
 
 	// @ts-ignore Data Transfer does exist when dragging a link
 	const fileText: string = e.dataTransfer.getData("text/plain");
@@ -139,30 +138,31 @@ export function overrideControlledTextInsertion(
 				getFileExtension(fileText);
 			// Create a link to the markdown note
 			if (!urlWithoutExtension || !extension || !fileName) return true;
+			const segments = urlWithoutExtension.split("/");
+
+			const title = segments.pop() ?? "";
+			const folder = segments.pop() ?? "";
+
 			if (extension === "md") {
 				linkPayloads.push({
 					url: `${urlWithoutExtension}?ext=${extension}`,
-					title: urlWithoutExtension.split("/").pop() ?? "",
+					title: title,
 				});
 			} else {
 				let elementType = extension;
 				if (IMAGE_FILE_EXTENSIONS.includes(extension)) {
 					elementType = "image";
 				}
+
 				filePayloads.push({
 					elementType: elementType as FileType,
-					alt: urlWithoutExtension.split("/").pop() ?? "",
+					alt: title,
 					src: `${FILE_SERVER_URL}/notes/${folder}/${fileName}.${extension}`,
 				});
 			}
 		}
 	}
 
-	console.log(filePayloads);
-
-	// if (imagePayloads.length > 0) {
-	// 	editor.dispatchCommand(INSERT_IMAGES_COMMAND, imagePayloads);
-	// }
 	// Creating links
 	for (const linkPayload of linkPayloads) {
 		const linkNode = $createLinkNode(linkPayload.url, {
@@ -175,8 +175,9 @@ export function overrideControlledTextInsertion(
 			selection.insertNodes([linkNode]);
 		}
 	}
-
-	editor.dispatchCommand(INSERT_FILES_COMMAND, filePayloads);
+	if (filePayloads.length > 0) {
+		editor.dispatchCommand(INSERT_FILES_COMMAND, filePayloads);
+	}
 
 	return true;
 }

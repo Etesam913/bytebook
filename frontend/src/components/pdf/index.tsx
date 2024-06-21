@@ -22,7 +22,7 @@ export default function Pdf({
 		<div className="mr-2 inline-block relative pt-[100%] h-0 w-full">
 			<div
 				className={cn(
-					"px-1 w-full h-full absolute top-0 left-0 bg-zinc-150 dark:bg-zinc-700 rounded-md py-1 border-[3px] border-zinc-200 dark:border-zinc-600 text-xs text-zinc-500 dark:text-zinc-300 transition-colors",
+					"px-1 w-full h-full absolute top-0 left-0 bg-zinc-100 dark:bg-zinc-700 rounded-md py-1 border-[3px] border-zinc-200 dark:border-zinc-600 text-xs text-zinc-500 dark:text-zinc-300 transition-colors",
 					isSelected && "!border-blue-400",
 				)}
 				onClick={(e) => {
@@ -34,9 +34,8 @@ export default function Pdf({
 				}}
 			>
 				<div className="px-1 pb-1">{alt}</div>
-				<embed
+				<iframe
 					title={alt}
-					draggable={false}
 					className={cn(
 						"w-full h-[calc(100%-1.4rem)] rounded-md dark:invert",
 						draggedElement && "pointer-events-none",
