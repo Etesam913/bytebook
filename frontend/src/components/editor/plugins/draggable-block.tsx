@@ -73,6 +73,7 @@ export function DraggableBlockPlugin() {
 						setIsDragging,
 						draggableBlockElement,
 						setDraggedElenent,
+						noteContainerRef.current,
 					)
 				}
 				onDragEnd={() => {

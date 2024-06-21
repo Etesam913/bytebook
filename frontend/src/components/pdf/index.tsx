@@ -19,7 +19,10 @@ export default function Pdf({
 		useLexicalNodeSelection(nodeKey);
 
 	return (
-		<div className="mr-2 inline-block relative pt-[100%] h-0 w-full">
+		<div
+			className="mr-2 inline-block relative pt-[100%] h-0 w-full"
+			data-component="pdf"
+		>
 			<div
 				className={cn(
 					"px-1 w-full h-full absolute top-0 left-0 bg-zinc-100 dark:bg-zinc-700 rounded-md py-1 border-[3px] border-zinc-200 dark:border-zinc-600 text-xs text-zinc-500 dark:text-zinc-300 transition-colors",

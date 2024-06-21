@@ -3,9 +3,11 @@ import type { MotionValue } from "framer-motion";
 import {
 	$getNearestNodeFromDOMNode,
 	$getRoot,
+	type ElementNode,
 	type LexicalEditor,
 } from "lexical";
 import type { Dispatch, SetStateAction } from "react";
+import type { FileNode } from "../nodes/file";
 
 export class Point {
 	private readonly _x: number;
@@ -452,6 +454,7 @@ export function handleDragStart(
 	setIsDragging: Dispatch<SetStateAction<boolean>>,
 	draggableBlockElement: HTMLElement | null,
 	setDraggedElement: Dispatch<SetStateAction<HTMLElement | null>>,
+	noteContainer: HTMLElement | null,
 ) {
 	if (!e.dataTransfer || !draggableBlockElement) {
 		return;
@@ -471,7 +474,19 @@ export function handleDragStart(
 	document.body.appendChild(ghostElement);
 	editor.update(() => {
 		const node = $getNearestNodeFromDOMNode(draggableBlockElement);
+
 		if (node) {
+			const elementNode = node as ElementNode;
+			elementNode.getChildren().forEach((child) => {
+				if (child.getType() === "file") {
+					// Provides a width and height for the iframe pdf preview
+					if ((child as FileNode).getElementType() === "pdf" && noteContainer) {
+						ghostElement.style.width = `${noteContainer.clientWidth}px`;
+						ghostElement.style.height = "10rem";
+						ghostElement.style.overflow = "hidden";
+					}
+				}
+			});
 			nodeKey = node.getKey();
 		}
 	});
