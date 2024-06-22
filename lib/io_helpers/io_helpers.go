@@ -244,8 +244,8 @@ func MoveFile(srcPath, dstPath string) error {
 	return nil
 }
 
-// RenameFileIfExists renames the file until a unique name is found
-func RenameFileIfExists(filePath string) (string, error) {
+// CreateUniqueNameForFileIfExists Updates the name of the file until a unique name is found
+func CreateUniqueNameForFileIfExists(filePath string) (string, error) {
 	doesFileExist, err := FileExists(filePath)
 	if err != nil {
 		return "", err
@@ -272,11 +272,6 @@ func RenameFileIfExists(filePath string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-	}
-
-	err = os.Rename(filePath, newFilePath)
-	if err != nil {
-		return "", err
 	}
 
 	return newFilePath, nil

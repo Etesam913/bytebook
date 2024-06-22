@@ -1,6 +1,6 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import type { AnimationControls } from "framer-motion";
-import { type SetStateAction, useAtom, useAtomValue } from "jotai";
+import { type SetStateAction, useAtom } from "jotai";
 import type { TextFormatType } from "lexical";
 import { type Dispatch, useEffect, useState } from "react";
 import { createPortal } from "react-dom";

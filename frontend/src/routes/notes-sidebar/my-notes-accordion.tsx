@@ -67,6 +67,7 @@ export function MyNotesAccordion({
 
 					return (
 						<Link
+							title={sidebarNoteName}
 							draggable
 							onDragStart={(e) =>
 								handleDragStart(

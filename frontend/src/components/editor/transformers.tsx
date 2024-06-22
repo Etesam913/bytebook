@@ -44,11 +44,7 @@ import {
 	type ElementNode,
 	type LexicalNode,
 } from "lexical";
-import {
-	IMAGE_FILE_EXTENSIONS,
-	type ResizeWidth,
-	VIDEO_FILE_EXTENSIONS,
-} from "../../types";
+import type { ResizeWidth } from "../../types";
 import { codeLanguages } from "../../utils/code";
 import {
 	addQueryParam,
@@ -61,13 +57,9 @@ import {
 	$isExcalidrawNode,
 	ExcalidrawNode,
 } from "./nodes/excalidraw";
-import {
-	$createFileNode,
-	$isFileNode,
-	FileNode,
-	type FileType,
-} from "./nodes/file";
+import { $createFileNode, $isFileNode, FileNode } from "./nodes/file";
 import { $createLinkNode, $isLinkNode, LinkNode } from "./nodes/link";
+import { getFileElementTypeFromExtension } from "./utils/file-node.ts";
 import type { Transformer } from "./utils/note-metadata";
 
 export const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
@@ -126,13 +118,6 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 			textNode.replace(textNode);
 			return;
 		}
-		const shouldCreateImage = IMAGE_FILE_EXTENSIONS.some((extension) =>
-			filePathOrSrc.endsWith(`.${extension}`),
-		);
-		const shouldCreateVideo = VIDEO_FILE_EXTENSIONS.some((extension) =>
-			filePathOrSrc.endsWith(`.${extension}`),
-		);
-		const shouldCreatePdf = filePathOrSrc.endsWith(".pdf");
 
 		const widthQueryValue = getQueryParamValue(alt, "width");
 		const width: ResizeWidth = widthQueryValue
@@ -140,16 +125,12 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 				? "100%"
 				: Number.parseInt(widthQueryValue)
 			: "100%";
-		let elementType: FileType = "unknown";
-		if (shouldCreateImage) elementType = "image";
-		else if (shouldCreateVideo) elementType = "video";
-		else if (shouldCreatePdf) elementType = "pdf";
 
 		const nodeToCreate = $createFileNode({
 			alt: removeQueryParam(alt, "width"),
 			src: filePathOrSrc,
 			width,
-			elementType,
+			elementType: getFileElementTypeFromExtension(filePathOrSrc),
 		});
 
 		textNode.replace(nodeToCreate);

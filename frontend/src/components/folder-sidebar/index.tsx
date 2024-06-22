@@ -18,8 +18,6 @@ import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook
 import { WINDOW_ID } from "../../App.tsx";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import { dialogDataAtom, foldersAtom } from "../../atoms";
-import { CircleArrowLeft } from "../../icons/circle-arrow-left.tsx";
-import { CircleArrowRight } from "../../icons/circle-arrow-right.tsx";
 import { FolderPlus } from "../../icons/folder-plus";
 import { FolderXMark } from "../../icons/folder-xmark.tsx";
 import { Gear } from "../../icons/gear.tsx";

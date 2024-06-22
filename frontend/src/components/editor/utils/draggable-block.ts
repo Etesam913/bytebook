@@ -7,7 +7,6 @@ import {
 	type LexicalEditor,
 } from "lexical";
 import type { Dispatch, SetStateAction } from "react";
-import { CodeNode } from "../nodes/code";
 import type { FileNode } from "../nodes/file";
 
 export class Point {

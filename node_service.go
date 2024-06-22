@@ -340,7 +340,7 @@ func (n *NodeService) AddFilePathsToProject(filePaths []string, folderPath strin
 		for _, file := range filePaths {
 			cleanedFileName := io_helpers.CleanFileName(filepath.Base(file))
 			fileInProjectPath := filepath.Join(n.ProjectPath, "notes", folderPath, cleanedFileName)
-			fileInProjectPath, err := io_helpers.RenameFileIfExists(fileInProjectPath)
+			fileInProjectPath, err := io_helpers.CreateUniqueNameForFileIfExists(fileInProjectPath)
 			if err != nil {
 				return []string{}, err
 			}

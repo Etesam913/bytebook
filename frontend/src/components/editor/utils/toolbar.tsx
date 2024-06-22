@@ -9,7 +9,6 @@ import { $createHeadingNode, $isHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
 import { INSERT_TABLE_COMMAND } from "@lexical/table";
 import { $getNearestNodeOfType } from "@lexical/utils";
-import { Events } from "@wailsio/runtime";
 import {
 	$createParagraphNode,
 	$getSelection,
@@ -25,11 +24,8 @@ import type {
 	SetStateAction,
 } from "react";
 import { toast } from "sonner";
-import {
-	AddAttachments,
-	UploadImage,
-} from "../../../../bindings/github.com/etesam913/bytebook/nodeservice";
-import { WINDOW_ID } from "../../../App";
+import { AddAttachments } from "../../../../bindings/github.com/etesam913/bytebook/nodeservice";
+
 import { ImageIcon } from "../../../icons/image";
 import { ListCheckbox } from "../../../icons/list-checkbox";
 import { OrderedList } from "../../../icons/ordered-list";
@@ -40,7 +36,9 @@ import { TextUnderline } from "../../../icons/text-underline";
 import { UnorderedList } from "../../../icons/unordered-list";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { FILE_SERVER_URL } from "../../../utils/misc";
+import type { FilePayload } from "../nodes/file";
 import { INSERT_FILES_COMMAND } from "../plugins/file";
+import { getFileElementTypeFromExtension } from "./file-node.ts";
 
 export function handleToolbarTextFormattingClick(
 	currentSelectionFormat: TextFormatType[],
@@ -200,7 +198,7 @@ export function updateToolbar(
 	}
 }
 
-/** Used to add images from filesystem into attachments folder & editor */
+/** Used to add images from filesystem editor */
 export async function insertAttachmentFromFile(
 	folder: string,
 	note: string,
@@ -208,16 +206,16 @@ export async function insertAttachmentFromFile(
 ) {
 	try {
 		const { success, message, paths } = await AddAttachments(folder, note);
-		console.log(success, message, paths);
-		// const filePaths = paths;
-		// editor.update(() => {
-		// 	const payloads = filePaths.map((filePath) => ({
-		// 		src: `${FILE_SERVER_URL}/${filePath}`,
-		// 		alt: "test",
-		// 	}));
-		// 	editor.dispatchCommand(INSERT_FILES_COMMAND, payloads);
-		// 	if (!success) toast.error(message);
-		// });
+		// Goes through all the files and add them to the editor
+		editor.update(() => {
+			const payloads: FilePayload[] = paths.map((filePath) => ({
+				src: `${FILE_SERVER_URL}/${filePath}`,
+				alt: "test",
+				elementType: getFileElementTypeFromExtension(filePath),
+			}));
+			editor.dispatchCommand(INSERT_FILES_COMMAND, payloads);
+			if (!success) toast.error(message);
+		});
 	} catch (e: unknown) {
 		if (e instanceof Error) {
 			toast.error(e.message);

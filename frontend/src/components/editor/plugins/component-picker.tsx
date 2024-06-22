@@ -166,9 +166,17 @@ function getBaseOptions(editor: LexicalEditor, folder: string, note: string) {
 				},
 			});
 		}),
-		new ComponentPickerOption("Image", {
+		new ComponentPickerOption("Attachments", {
 			icon: imageCommandData.icon,
-			keywords: ["image", imageCommandData.block, "picture"],
+			keywords: [
+				"image",
+				"picture",
+				"video",
+				"file",
+				"clip",
+				imageCommandData.block,
+				"picture",
+			],
 			onSelect: async () => {
 				insertAttachmentFromFile(folder, note, editor);
 			},
