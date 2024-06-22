@@ -61,7 +61,6 @@ export function Video({
 					writeWidthToNode={writeWidthToNode}
 					elementType="default"
 				>
-					{/* biome-ignore lint/a11y/useMediaCaption: bruh */}
 					<video
 						ref={videoRef}
 						className="w-full h-auto bg-black"
