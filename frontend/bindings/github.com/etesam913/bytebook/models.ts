@@ -30,6 +30,39 @@ export class AddFolderResponse {
     }
 }
 
+export class AttachmentResponse {
+    "success": boolean;
+    "message": string;
+    "paths": string[];
+
+    /** Creates a new AttachmentResponse instance. */
+    constructor($$source: Partial<AttachmentResponse> = {}) {
+        if (!("success" in $$source)) {
+            this["success"] = false;
+        }
+        if (!("message" in $$source)) {
+            this["message"] = "";
+        }
+        if (!("paths" in $$source)) {
+            this["paths"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AttachmentResponse instance from a string or object.
+     */
+    static createFrom($$source: any = {}): AttachmentResponse {
+        const $$createField2_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("paths" in $$parsedSource) {
+            $$parsedSource["paths"] = $$createField2_0($$parsedSource["paths"]);
+        }
+        return new AttachmentResponse($$parsedSource as Partial<AttachmentResponse>);
+    }
+}
+
 export class CodeResponse {
     "success": boolean;
     "message": string;
@@ -205,39 +238,6 @@ export class NoteResponse {
             $$parsedSource["data"] = $$createField2_0($$parsedSource["data"]);
         }
         return new NoteResponse($$parsedSource as Partial<NoteResponse>);
-    }
-}
-
-export class UploadImageResponse {
-    "success": boolean;
-    "message": string;
-    "paths": string[];
-
-    /** Creates a new UploadImageResponse instance. */
-    constructor($$source: Partial<UploadImageResponse> = {}) {
-        if (!("success" in $$source)) {
-            this["success"] = false;
-        }
-        if (!("message" in $$source)) {
-            this["message"] = "";
-        }
-        if (!("paths" in $$source)) {
-            this["paths"] = [];
-        }
-
-        Object.assign(this, $$source);
-    }
-
-    /**
-     * Creates a new UploadImageResponse instance from a string or object.
-     */
-    static createFrom($$source: any = {}): UploadImageResponse {
-        const $$createField2_0 = $$createType0;
-        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("paths" in $$parsedSource) {
-            $$parsedSource["paths"] = $$createField2_0($$parsedSource["paths"]);
-        }
-        return new UploadImageResponse($$parsedSource as Partial<UploadImageResponse>);
     }
 }
 

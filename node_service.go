@@ -324,85 +324,49 @@ func (n *NodeService) SyncChangesWithRepo() GitResponse {
 
 }
 
-type UploadImageResponse struct {
+type AttachmentResponse struct {
 	Success bool     `json:"success"`
 	Message string   `json:"message"`
 	Paths   []string `json:"paths"`
 }
 
-// TODO: refactor this to migrate away from attachments
-func (n *NodeService) CleanAndCopyFiles(filePaths string, folderPath string, notePath string) ([]string, error) {
+// Copies the files from the selected folder to the project folder and returns the file paths
+func (n *NodeService) AddFilePathsToProject(filePaths []string, folderPath string, notePath string) ([]string, error) {
 	// We have to use a string for filePaths instead of an array because of a binding problem, might get fixed later on
-	filePathsAsArray := strings.Split(filePaths, ",")
 	newFilePaths := make([]string, 0)
-	destinationFileErrors := make([]string, 0)
+
 	// Process the selected file
 	if len(filePaths) > 0 {
-		for _, file := range filePathsAsArray {
+		for _, file := range filePaths {
 			cleanedFileName := io_helpers.CleanFileName(filepath.Base(file))
-			newFilePath := filepath.Join(n.ProjectPath, "notes", folderPath, "attachments", cleanedFileName)
-			fileServerPath := filepath.Join("notes", folderPath, "attachments", cleanedFileName)
+			fileInProjectPath := filepath.Join(n.ProjectPath, "notes", folderPath, cleanedFileName)
+			fileInProjectPath, err := io_helpers.RenameFileIfExists(fileInProjectPath)
+			if err != nil {
+				return []string{}, err
+			}
+			_, newFileName := filepath.Split(fileInProjectPath)
 
-			errObj := io_helpers.CopyFile(file, newFilePath, false)
+			// This is the path url that the frontend will access
+			fileServerPath := filepath.Join("notes", folderPath, newFileName)
+
+			errObj := io_helpers.CopyFile(file, fileInProjectPath, false)
 			if errObj.Err != nil {
-				// If it is a destination exists error, we want to congeal the errors into one large error
-				if errObj.IsDstExists {
-					wordsInError := strings.Split(errObj.Err.Error(), " ")
-					destinationFileErrors = append(destinationFileErrors, wordsInError[0])
-					continue
-				} else {
-					return []string{}, errObj.Err
-				}
-
+				return []string{}, errObj.Err
 			}
 			newFilePaths = append(newFilePaths, fileServerPath)
 		}
 	}
 
-	// Create a mega error for all the failed images
-	if len(destinationFileErrors) > 0 {
-		exist := ""
-		if len(destinationFileErrors) > 1 {
-			exist = "exist"
-		} else {
-			exist = "exists"
-		}
-
-		fileNamesWithCommas := strings.Join(destinationFileErrors[:len(destinationFileErrors)-1], ", ")
-		if len(destinationFileErrors) > 1 {
-			fileNamesWithCommas += " and "
-		}
-		fileNamesWithCommas += destinationFileErrors[len(destinationFileErrors)-1]
-
-		return newFilePaths, errors.New(
-			fmt.Sprintf(
-				"%s already %s in your attachments",
-				fileNamesWithCommas,
-				exist,
-			),
-		)
-
-	}
 	return newFilePaths, nil
 }
 
-func (n *NodeService) UploadImage(folder string, note string) UploadImageResponse {
-	filePaths, _ := application.OpenFileDialog().
-		AddFilter("Image Files", "*.jpg;*.png;*.webp;*.jpeg").
+func (n *NodeService) AddAttachments(folder string, note string) AttachmentResponse {
+	localFilePaths, _ := application.OpenFileDialog().
 		CanChooseFiles(true).
 		PromptForMultipleSelection()
-	cleanedPaths, err := n.CleanAndCopyFiles(strings.Join(filePaths, ","), folder, note)
+	fileServerPaths, err := n.AddFilePathsToProject(localFilePaths, folder, note)
 	if err != nil {
-		return UploadImageResponse{Success: false, Message: err.Error(), Paths: cleanedPaths}
+		return AttachmentResponse{Success: false, Message: err.Error(), Paths: fileServerPaths}
 	}
-	return UploadImageResponse{Success: true, Message: "", Paths: cleanedPaths}
-}
-
-func (n *NodeService) RemoveImage(src string) bool {
-	if strings.HasPrefix(src, "http://localhost:5890") {
-		src = strings.Replace(src, "http://localhost:5890/", "", 1)
-		err := os.Remove(filepath.Join(n.ProjectPath, src))
-		return err == nil
-	}
-	return false
+	return AttachmentResponse{Success: true, Message: "", Paths: fileServerPaths}
 }

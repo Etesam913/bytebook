@@ -25,7 +25,10 @@ import type {
 	SetStateAction,
 } from "react";
 import { toast } from "sonner";
-import { UploadImage } from "../../../../bindings/github.com/etesam913/bytebook/nodeservice";
+import {
+	AddAttachments,
+	UploadImage,
+} from "../../../../bindings/github.com/etesam913/bytebook/nodeservice";
 import { WINDOW_ID } from "../../../App";
 import { ImageIcon } from "../../../icons/image";
 import { ListCheckbox } from "../../../icons/list-checkbox";
@@ -204,27 +207,17 @@ export async function insertAttachmentFromFile(
 	editor: LexicalEditor,
 ) {
 	try {
-		const { success, message, paths } = await UploadImage(folder, note);
-
-		const filePaths = paths;
-		editor.update(() => {
-			const payloads = filePaths.map((filePath) => ({
-				src: `${FILE_SERVER_URL}/${filePath}`,
-				alt: "test",
-			}));
-			editor.dispatchCommand(INSERT_FILES_COMMAND, payloads);
-			if (!success) toast.error(message);
-			Events.Emit({
-				name: "attachments:changed",
-				data: {
-					windowId: WINDOW_ID,
-					attachments: [
-						...attachments,
-						...filePaths.map((filePath) => filePath.split("/").pop()),
-					],
-				},
-			});
-		});
+		const { success, message, paths } = await AddAttachments(folder, note);
+		console.log(success, message, paths);
+		// const filePaths = paths;
+		// editor.update(() => {
+		// 	const payloads = filePaths.map((filePath) => ({
+		// 		src: `${FILE_SERVER_URL}/${filePath}`,
+		// 		alt: "test",
+		// 	}));
+		// 	editor.dispatchCommand(INSERT_FILES_COMMAND, payloads);
+		// 	if (!success) toast.error(message);
+		// });
 	} catch (e: unknown) {
 		if (e instanceof Error) {
 			toast.error(e.message);

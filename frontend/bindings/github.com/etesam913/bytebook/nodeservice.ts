@@ -9,11 +9,8 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 // @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
-/**
- * TODO: refactor this to migrate away from attachments
- */
-export function CleanAndCopyFiles(filePaths: string, folderPath: string, notePath: string): Promise<string[]> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(3734486965, filePaths, folderPath, notePath) as any;
+export function AddAttachments(folder: string, note: string): Promise<$models.AttachmentResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(1582761106, folder, note) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType0($result);
     }) as any;
@@ -21,15 +18,22 @@ export function CleanAndCopyFiles(filePaths: string, folderPath: string, notePat
     return $typingPromise;
 }
 
-export function RemoveImage(src: string): Promise<boolean> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(3384988374, src) as any;
-    return $resultPromise;
+/**
+ * Copies the files from the selected folder to the project folder and returns the file paths
+ */
+export function AddFilePathsToProject(filePaths: string[], folderPath: string, notePath: string): Promise<string[]> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(1805610708, filePaths, folderPath, notePath) as any;
+    let $typingPromise = $resultPromise.then(($result) => {
+        return $$createType1($result);
+    }) as any;
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 export function RunCode(language: string, code: string, command: string): Promise<$models.CodeResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(1444881027, language, code, command) as any;
     let $typingPromise = $resultPromise.then(($result) => {
-        return $$createType1($result);
+        return $$createType2($result);
     }) as any;
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -38,15 +42,6 @@ export function RunCode(language: string, code: string, command: string): Promis
 export function SyncChangesWithRepo(): Promise<$models.GitResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(1837210235) as any;
     let $typingPromise = $resultPromise.then(($result) => {
-        return $$createType2($result);
-    }) as any;
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
-}
-
-export function UploadImage(folder: string, note: string): Promise<$models.UploadImageResponse> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(31173221, folder, note) as any;
-    let $typingPromise = $resultPromise.then(($result) => {
         return $$createType3($result);
     }) as any;
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
@@ -54,7 +49,7 @@ export function UploadImage(folder: string, note: string): Promise<$models.Uploa
 }
 
 // Private type creation functions
-const $$createType0 = $Create.Array($Create.Any);
-const $$createType1 = $models.CodeResponse.createFrom;
-const $$createType2 = $models.GitResponse.createFrom;
-const $$createType3 = $models.UploadImageResponse.createFrom;
+const $$createType0 = $models.AttachmentResponse.createFrom;
+const $$createType1 = $Create.Array($Create.Any);
+const $$createType2 = $models.CodeResponse.createFrom;
+const $$createType3 = $models.GitResponse.createFrom;

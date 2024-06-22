@@ -104,15 +104,6 @@ func main() {
 
 	custom_events.OpenNoteInNewWindowEvent(app, backgroundColor)
 
-	// window.On(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
-	// 	files := event.Context().DroppedFiles()
-	// 	app.Events.Emit(&application.WailsEvent{
-	// 		Name: "files",
-	// 		Data: files,
-	// 	})
-	// 	app.Logger.Info("Files Dropped!", "files", files)
-	// })
-
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal("Failed to setup file watcher " + err.Error())

@@ -243,3 +243,41 @@ func MoveFile(srcPath, dstPath string) error {
 
 	return nil
 }
+
+// RenameFileIfExists renames the file until a unique name is found
+func RenameFileIfExists(filePath string) (string, error) {
+	doesFileExist, err := FileExists(filePath)
+	if err != nil {
+		return "", err
+	}
+	if !doesFileExist {
+		return filePath, nil
+	}
+
+	dir, file := filepath.Split(filePath)
+	ext := filepath.Ext(file)
+	base := strings.TrimSuffix(file, ext)
+
+	i := 1
+
+	newFilePath := filepath.Join(dir, fmt.Sprintf("%s %d%s", base, i, ext))
+	doesFileExist, err = FileExists(newFilePath)
+	if err != nil {
+		return "", err
+	}
+	for doesFileExist {
+		i++
+		newFilePath = filepath.Join(dir, fmt.Sprintf("%s %d%s", base, i, ext))
+		doesFileExist, err = FileExists(newFilePath)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	err = os.Rename(filePath, newFilePath)
+	if err != nil {
+		return "", err
+	}
+
+	return newFilePath, nil
+}

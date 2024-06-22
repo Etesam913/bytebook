@@ -68,11 +68,11 @@ export function NotesSidebar({
 		);
 
 		setNotes((prev) => (prev ? [...prev, data.note] : [data.note]));
-		navigate(
-			`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
-				queryParams.ext
-			}`,
-		);
+		// navigate(
+		// 	`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
+		// 		queryParams.ext
+		// 	}`,
+		// );
 	});
 
 	useWailsEvent("note:delete", (body) => {
