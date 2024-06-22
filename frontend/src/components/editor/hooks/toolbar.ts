@@ -49,8 +49,12 @@ export function useNoteMarkdown(
 	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>,
 ) {
 	useEffect(() => {
-		GetNoteMarkdown(`notes/${decodeURIComponent(folder)}/${note}.md`)
-			.then((res) => {
+		async function fetchNoteMarkdown() {
+			try {
+				const res = await GetNoteMarkdown(
+					`notes/${decodeURIComponent(folder)}/${note}.md`,
+				);
+
 				if (res.success) {
 					editor.setEditable(true);
 					// You don't want a different note to access the same history when you switch notes
@@ -75,11 +79,12 @@ export function useNoteMarkdown(
 				} else {
 					throw new Error("Failed in retrieving note markdown");
 				}
-			})
-			.catch((e) => {
+			} catch (e) {
 				console.error(e);
-				navigate("/not-found", { replace: true });
-			});
+				// navigate("/not-found", { replace: true });
+			}
+		}
+		fetchNoteMarkdown();
 	}, [folder, note, editor, setCurrentSelectionFormat]);
 }
 

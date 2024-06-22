@@ -238,7 +238,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 				className="text-md flex h-screen flex-col px-[10px]"
 			>
 				<div className="min-h-[3.625rem] flex gap-0.5 justify-end items-center">
-					<MotionIconButton
+					{/* <MotionIconButton
 						{...getDefaultButtonVariants()}
 						title="Go Back"
 						onClick={() => window.history.back()}
@@ -252,7 +252,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 						title="Go Forward"
 					>
 						<CircleArrowRight title="Go Forward" />
-					</MotionIconButton>
+					</MotionIconButton> */}
 					<Link to="/settings">
 						<MotionIconButton {...getDefaultButtonVariants()} title="Settings">
 							<Gear title="Settings" />

@@ -16,7 +16,7 @@ export function RenderNote({
 	fileExtension: string | undefined;
 }) {
 	const draggedElement = useAtomValue(draggedElementAtom);
-
+	console.log("RenderNote", folder, note, fileExtension);
 	if (!note) return <></>;
 	if (fileExtension === "md") {
 		return <NotesEditor params={{ folder, note }} />;
