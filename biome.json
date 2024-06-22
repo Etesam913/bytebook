@@ -19,7 +19,8 @@
       },
       "a11y": {
         "useKeyWithClickEvents": "off",
-        "noAutofocus": "off"
+        "noAutofocus": "off",
+        "useMediaCaption": "off"
       }
     }
   }

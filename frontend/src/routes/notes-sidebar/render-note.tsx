@@ -8,7 +8,7 @@ import { draggedElementAtom, isNoteMaximizedAtom } from "../../atoms";
 import { MaximizeNoteButton } from "../../components/buttons/maximize-note";
 import { NotesEditor } from "../../components/editor";
 import { FileBan } from "../../icons/file-ban";
-import { IMAGE_FILE_EXTENSIONS } from "../../types";
+import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from "../../types";
 import { FILE_SERVER_URL } from "../../utils/misc";
 import { cn } from "../../utils/string-formatting";
 
@@ -57,6 +57,21 @@ function FileComponent({
 				)}
 				alt={note}
 				title={note}
+				src={`${FILE_SERVER_URL}/notes/${folder}/${note}.${fileExtension}`}
+			/>
+		);
+	}
+
+	if (fileExtension && VIDEO_FILE_EXTENSIONS.includes(fileExtension)) {
+		return (
+			<video
+				controls
+				title={note}
+				className={cn(
+					"h-full mr-1 bg-black",
+					isNoteMaximized && "w-full mr-0",
+					draggedElement !== null && "pointer-events-none",
+				)}
 				src={`${FILE_SERVER_URL}/notes/${folder}/${note}.${fileExtension}`}
 			/>
 		);
