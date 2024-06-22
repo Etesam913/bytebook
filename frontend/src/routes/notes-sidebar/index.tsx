@@ -9,12 +9,7 @@ import {
 	MoveToTrash,
 } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
-import {
-	attachmentsAtom,
-	dialogDataAtom,
-	isNoteMaximizedAtom,
-	notesAtom,
-} from "../../atoms";
+import { dialogDataAtom, isNoteMaximizedAtom, notesAtom } from "../../atoms";
 import { MotionButton, MotionIconButton } from "../../components/buttons";
 import {
 	DialogErrorText,
@@ -50,7 +45,6 @@ export function NotesSidebar({
 }) {
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const [notes, setNotes] = useAtom(notesAtom);
-	const setAttachments = useSetAtom(attachmentsAtom);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const { folder, note } = params;
 	const searchParams: { ext?: string } = useSearchParamsEntries();
@@ -63,7 +57,7 @@ export function NotesSidebar({
 
 	useEffect(() => {
 		updateNotes(folder, note, setNotes);
-	}, [folder, setNotes, setAttachments]);
+	}, [folder, setNotes]);
 
 	useWailsEvent("note:create", (body) => {
 		const data = body.data as { folder: string; note: string };

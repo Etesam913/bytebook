@@ -61,7 +61,6 @@ export function changeSelectedBlocksType(
 	newBlockType: EditorBlockTypes,
 	folder: string,
 	note: string,
-	attachments: string[],
 ) {
 	editor.update(async () => {
 		const selection = $getSelection();
@@ -92,8 +91,8 @@ export function changeSelectedBlocksType(
 						includeHeaders: true,
 					});
 					break;
-				case "img": {
-					insertImageFromFile(folder, note, editor, attachments);
+				case "attachment": {
+					insertAttachmentFromFile(folder, note, editor);
 					break;
 				}
 			}
@@ -199,11 +198,10 @@ export function updateToolbar(
 }
 
 /** Used to add images from filesystem into attachments folder & editor */
-export async function insertImageFromFile(
+export async function insertAttachmentFromFile(
 	folder: string,
 	note: string,
 	editor: LexicalEditor,
-	attachments: string[],
 ) {
 	try {
 		const { success, message, paths } = await UploadImage(folder, note);
@@ -243,7 +241,7 @@ export const blockTypesDropdownItems = [
 	{ label: "Unordered List", value: "ul" },
 	{ label: "Ordered List", value: "ol" },
 	{ label: "Checkbox List", value: "check" },
-	{ label: "Image", value: "img" },
+	{ label: "Attachment", value: "attachment" },
 	{ label: "Table", value: "table" },
 ];
 

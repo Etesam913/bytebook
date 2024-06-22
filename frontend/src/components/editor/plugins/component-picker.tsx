@@ -6,7 +6,6 @@ import {
 } from "@lexical/react/LexicalTypeaheadMenuPlugin";
 import { $createHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
-import { useAtomValue } from "jotai";
 import {
 	$createParagraphNode,
 	$getSelection,
@@ -17,7 +16,6 @@ import {
 } from "lexical";
 import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { attachmentsAtom } from "../../../atoms";
 import { cn } from "../../../utils/string-formatting";
 
 import { AngularLogo } from "../../../icons/angular-logo";
@@ -25,7 +23,7 @@ import { SvelteLogo } from "../../../icons/svelte-logo";
 import { VueLogo } from "../../../icons/vue-logo";
 import {
 	imageCommandData,
-	insertImageFromFile,
+	insertAttachmentFromFile,
 	listCommandData,
 } from "../utils/toolbar";
 import { INSERT_CODE_COMMAND } from "./code";
@@ -132,12 +130,7 @@ function ComponentPickerMenuItem({
 	);
 }
 
-function getBaseOptions(
-	editor: LexicalEditor,
-	folder: string,
-	note: string,
-	attachments: string[],
-) {
+function getBaseOptions(editor: LexicalEditor, folder: string, note: string) {
 	return [
 		new ComponentPickerOption("Paragraph", {
 			keywords: ["normal", "paragraph", "p", "text"],
@@ -177,7 +170,7 @@ function getBaseOptions(
 			icon: imageCommandData.icon,
 			keywords: ["image", imageCommandData.block, "picture"],
 			onSelect: async () => {
-				insertImageFromFile(folder, note, editor, attachments);
+				insertAttachmentFromFile(folder, note, editor);
 			},
 		}),
 		...languageCommandData.map(
@@ -203,7 +196,6 @@ export function ComponentPickerMenuPlugin({
 	note,
 }: { folder: string; note: string }): JSX.Element {
 	const [editor] = useLexicalComposerContext();
-	const attachments = useAtomValue(attachmentsAtom);
 
 	const [queryString, setQueryString] = useState<string | null>(null);
 
@@ -212,7 +204,7 @@ export function ComponentPickerMenuPlugin({
 	});
 
 	const options = useMemo(() => {
-		const baseOptions = getBaseOptions(editor, folder, note, attachments);
+		const baseOptions = getBaseOptions(editor, folder, note);
 
 		if (!queryString) {
 			return baseOptions;

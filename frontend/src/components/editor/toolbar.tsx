@@ -1,22 +1,14 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import type { AnimationControls } from "framer-motion";
 import { type SetStateAction, useAtom, useAtomValue } from "jotai";
 import type { TextFormatType } from "lexical";
 import { type Dispatch, useEffect, useState } from "react";
-import { WINDOW_ID } from "../../App";
-import { easingFunctions, getDefaultButtonVariants } from "../../animations";
-import {
-	attachmentsAtom,
-	isNoteMaximizedAtom,
-	isToolbarDisabled,
-} from "../../atoms";
-
-import type { AnimationControls } from "framer-motion";
 import { createPortal } from "react-dom";
-import { SidebarRightCollapse } from "../../icons/sidebar-right-collapse";
+import { WINDOW_ID } from "../../App";
+import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../types";
 import { useIsStandalone, useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
-import { MotionIconButton } from "../buttons";
 import { MaximizeNoteButton } from "../buttons/maximize-note";
 import { ToolbarButtons } from "../buttons/toolbar";
 import { Dropdown } from "../dropdown";
@@ -59,8 +51,6 @@ export function Toolbar({
 	const [isNodeSelection, setIsNodeSelection] = useState(false);
 	const [canRedo, setCanRedo] = useState(false);
 	const [canUndo, setCanUndo] = useState(false);
-
-	const attachments = useAtomValue(attachmentsAtom);
 
 	useNoteMarkdown(
 		editor,
@@ -168,7 +158,7 @@ export function Toolbar({
 						)}
 						dropdownItemsClassName="max-h-[calc(100vh-10rem)]"
 						onChange={({ value }) =>
-							changeSelectedBlocksType(editor, value, folder, note, attachments)
+							changeSelectedBlocksType(editor, value, folder, note)
 						}
 						items={blockTypesDropdownItems}
 						buttonClassName="w-[10rem]"
