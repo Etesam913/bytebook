@@ -17,6 +17,7 @@ import type { EditorBlockTypes, FloatingDataType } from "../../types";
 import { useIsStandalone, useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { MotionIconButton } from "../buttons";
+import { MaximizeNoteButton } from "../buttons/maximize-note";
 import { ToolbarButtons } from "../buttons/toolbar";
 import { Dropdown } from "../dropdown";
 import { useNoteMarkdown, useToolbarEvents } from "./hooks/toolbar";
@@ -33,7 +34,7 @@ interface ToolbarProps {
 	note: string;
 	floatingData: FloatingDataType;
 	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
-	editorAnimationControls: AnimationControls;
+	animationControls: AnimationControls;
 	noteContainerRef: React.RefObject<HTMLDivElement>;
 	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
 }
@@ -44,7 +45,7 @@ export function Toolbar({
 	floatingData,
 	setFloatingData,
 	noteContainerRef,
-	editorAnimationControls,
+	animationControls,
 	setFrontmatter,
 }: ToolbarProps) {
 	const [editor] = useLexicalComposerContext();
@@ -152,30 +153,15 @@ export function Toolbar({
 			{FloatingPlugin}
 			<nav
 				className={cn(
-					"ml-[-4px] flex gap-1.5 border-b-[1px] border-b-zinc-200 p-2 dark:border-b-zinc-700 flex-wrap",
+					"ml-[-4px] flex gap-1.5 border-b-[1px] border-b-zinc-200 px-2 pb-2 pt-2.5 dark:border-b-zinc-700 flex-wrap",
 					isNoteMaximized && "!pl-[5.75rem]",
 				)}
 			>
 				<span className="flex items-center gap-1.5">
-					<MotionIconButton
-						onClick={() => {
-							setIsNoteMaximized((prev) => !prev);
-							editorAnimationControls.start({
-								x: isNoteMaximized ? [-40, 0] : [50, 0],
-								transition: { ease: easingFunctions["ease-out-quint"] },
-							});
-						}}
-						{...getDefaultButtonVariants(disabled)}
-						type="button"
-						animate={{ rotate: isNoteMaximized ? 180 : 0 }}
-					>
-						<SidebarRightCollapse
-							title={isNoteMaximized ? "Minimize" : "Maximize"}
-							height="1.4rem"
-							width="1.4rem"
-						/>
-					</MotionIconButton>
-
+					<MaximizeNoteButton
+						animationControls={animationControls}
+						disabled={disabled}
+					/>
 					<Dropdown
 						controlledValueIndex={blockTypesDropdownItems.findIndex(
 							(v) => v.value === currentBlockType,

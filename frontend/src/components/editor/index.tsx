@@ -10,7 +10,11 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { Events } from "@wailsio/runtime";
-import { motion, useAnimationControls } from "framer-motion";
+import {
+	type AnimationControls,
+	motion,
+	useAnimationControls,
+} from "framer-motion";
 import { useAtomValue, useSetAtom } from "jotai";
 import type { LexicalEditor } from "lexical";
 import {
@@ -48,7 +52,7 @@ import { BottomBar } from "./bottom-bar.tsx";
 import { useMostRecentNotes } from "./hooks/note-metadata.ts";
 import { DraggableBlockPlugin } from "./plugins/draggable-block.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
-import { handleATagClick } from "./utils/link.ts";
+
 import {
 	$convertToMarkdownStringCorrect,
 	replaceFrontMatter,
@@ -104,11 +108,12 @@ function handleChange(
 
 export function NotesEditor({
 	params,
+	animationControls,
 }: {
 	params: { folder: string; note: string };
+	animationControls: AnimationControls;
 }) {
 	const { folder, note } = params;
-	const editorAnimationControls = useAnimationControls();
 	const editorRef = useRef<LexicalEditor | null | undefined>(null);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const [frontmatter, setFrontmatter] = useState<Record<string, string>>({});
@@ -141,94 +146,86 @@ export function NotesEditor({
 	}, [note]);
 
 	return (
-		<motion.div
-			className={cn(
-				"flex min-w-0 flex-1 flex-col leading-7",
-				isNoteMaximized && "mt-[1px]",
-			)}
-			animate={editorAnimationControls}
-		>
-			<LexicalComposer initialConfig={editorConfig}>
-				<Toolbar
-					noteContainerRef={noteContainerRef}
-					editorAnimationControls={editorAnimationControls}
-					folder={folder}
-					note={note}
-					floatingData={floatingData}
-					setFloatingData={setFloatingData}
-					setFrontmatter={setFrontmatter}
-				/>
-				<div
-					ref={noteContainerRef}
-					style={{ scrollbarGutter: "stable" }}
-					className={cn(
-						"h-[calc(100vh-38px)] overflow-y-auto py-2 px-4 relative",
-						isNoteMaximized && "px-6",
-					)}
-					onClick={(e) => {
-						const target = e.target as HTMLElement & { ariaChecked?: string };
-						if (target.parentElement?.tagName === "A") {
-							return;
-						}
+		<LexicalComposer initialConfig={editorConfig}>
+			<Toolbar
+				noteContainerRef={noteContainerRef}
+				animationControls={animationControls}
+				folder={folder}
+				note={note}
+				floatingData={floatingData}
+				setFloatingData={setFloatingData}
+				setFrontmatter={setFrontmatter}
+			/>
+			<div
+				ref={noteContainerRef}
+				style={{ scrollbarGutter: "stable" }}
+				className={cn(
+					"h-[calc(100vh-38px)] overflow-y-auto py-2 px-4 relative",
+					isNoteMaximized && "px-6",
+				)}
+				onClick={(e) => {
+					const target = e.target as HTMLElement & { ariaChecked?: string };
+					if (target.parentElement?.tagName === "A") {
+						return;
+					}
 
-						if (
-							target.dataset.lexicalDecorator !== "true" &&
-							target.ariaChecked === null
-						) {
-							editorRef.current?.focus(undefined, {
-								defaultSelection: "rootStart",
-							});
-						}
-					}}
-				>
-					<NoteTitle folder={folder} note={note} />
-					<ComponentPickerMenuPlugin folder={folder} note={note} />
-					<RichTextPlugin
-						placeholder={null}
-						contentEditable={
-							<ContentEditable
-								onKeyDown={() => setDraggableBlockElement(null)}
-								id="content-editable-editor"
-								autoComplete="off"
-								autoCorrect="off"
-								autoCapitalize="off"
-								// spellCheck="false"
-							/>
-						}
-						ErrorBoundary={LexicalErrorBoundary}
-					/>
-					<OnChangePlugin
-						ignoreSelectionChange
-						onChange={(_, editor, tag) =>
-							debouncedHandleChange(
-								folder,
-								note,
-								editor,
-								tag,
-								frontmatter,
-								setFrontmatter,
-							)
-						}
-					/>
-					<CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
-					<ListPlugin />
-					<LinkPlugin />
-					<NoteFindPlugin isOpen={isFindOpen} setIsOpen={setIsFindOpen} />
-					<CheckListPlugin />
-					<TabIndentationPlugin />
-					<HistoryPlugin />
-					<TablePlugin />
-					<EditorRefPlugin editorRef={editorRef} />
-					<FilesPlugin />
-					<VideosPlugin />
-					<CodePlugin />
-					<TablePlugin />
-					<DraggableBlockPlugin />
-					{/* <AutoLinkPlugin matchers={MATCHERS} /> */}
-					<TreeViewPlugin />
-				</div>
-				<BottomBar frontmatter={frontmatter} folder={folder} note={note} />
-			</LexicalComposer>
-		</motion.div>
+					if (
+						target.dataset.lexicalDecorator !== "true" &&
+						target.ariaChecked === null
+					) {
+						editorRef.current?.focus(undefined, {
+							defaultSelection: "rootStart",
+						});
+					}
+				}}
+			>
+				<NoteTitle folder={folder} note={note} />
+				<ComponentPickerMenuPlugin folder={folder} note={note} />
+				<RichTextPlugin
+					placeholder={null}
+					contentEditable={
+						<ContentEditable
+							onKeyDown={() => setDraggableBlockElement(null)}
+							id="content-editable-editor"
+							autoComplete="off"
+							autoCorrect="off"
+							autoCapitalize="off"
+							// spellCheck="false"
+						/>
+					}
+					ErrorBoundary={LexicalErrorBoundary}
+				/>
+				<OnChangePlugin
+					ignoreSelectionChange
+					onChange={(_, editor, tag) =>
+						debouncedHandleChange(
+							folder,
+							note,
+							editor,
+							tag,
+							frontmatter,
+							setFrontmatter,
+						)
+					}
+				/>
+				<CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
+				<ListPlugin />
+				<LinkPlugin />
+				<NoteFindPlugin isOpen={isFindOpen} setIsOpen={setIsFindOpen} />
+				<CheckListPlugin />
+				<TabIndentationPlugin />
+				<HistoryPlugin />
+				<TablePlugin />
+				<EditorRefPlugin editorRef={editorRef} />
+				<FilesPlugin />
+				<VideosPlugin />
+				<CodePlugin />
+				<TablePlugin />
+				<DraggableBlockPlugin />
+				{/* <AutoLinkPlugin matchers={MATCHERS} /> */}
+				<TreeViewPlugin />
+			</div>
+			<BottomBar frontmatter={frontmatter} folder={folder} note={note} />
+		</LexicalComposer>
 	);
 }
