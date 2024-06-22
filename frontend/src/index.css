@@ -49,7 +49,6 @@
 
 :root {
     @apply transition-colors duration-300 dark:[color-scheme:dark] overscroll-none;
-
 }
 
 h1 {
@@ -68,7 +67,7 @@ h3 {
     @apply !bg-zinc-800 !text-zinc-200 dark:!bg-zinc-200 dark:!text-zinc-900;
 }
 
-code{
+code {
     @apply bg-zinc-100 dark:bg-zinc-750 py-0.5 px-1 rounded-md border border-zinc-200 dark:border-zinc-600 font-code;
 }
 
@@ -124,7 +123,7 @@ div[data-template-is-fullscreen="true"]
 }
 
 .dragging {
-    @apply bg-zinc-50 dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-zinc-200 dark:border-zinc-600 border-2 absolute top-0 left-[-9999px] p-2 rounded-lg font-display;
+    @apply bg-zinc-50 dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-zinc-200 dark:border-zinc-600 border-2 absolute top-0 left-[-9999px] p-2 rounded-lg font-display text-nowrap whitespace-nowrap overflow-hidden text-ellipsis max-h-[50vh];
 }
 
 .drag-grid {

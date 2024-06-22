@@ -7,6 +7,7 @@ import {
 	type LexicalEditor,
 } from "lexical";
 import type { Dispatch, SetStateAction } from "react";
+import { CodeNode } from "../nodes/code";
 import type { FileNode } from "../nodes/file";
 
 export class Point {
@@ -464,10 +465,10 @@ export function handleDragStart(
 	const ghostElement = draggableBlockElement.cloneNode(true) as HTMLElement;
 	ghostElement.id = "block-element";
 	ghostElement.classList.add("dragging");
-	const textContent = ghostElement.textContent;
-	if (textContent && textContent.length > 50) {
-		ghostElement.textContent = `${textContent.substring(0, 40)}...`;
+	if (noteContainer) {
+		ghostElement.style.maxWidth = `${noteContainer.clientWidth}px`;
 	}
+
 	setDraggedElement(ghostElement);
 
 	e.dataTransfer.setDragImage(ghostElement, 0, 0);
@@ -476,17 +477,23 @@ export function handleDragStart(
 		const node = $getNearestNodeFromDOMNode(draggableBlockElement);
 
 		if (node) {
-			const elementNode = node as ElementNode;
-			elementNode.getChildren().forEach((child) => {
-				if (child.getType() === "file") {
-					// Provides a width and height for the iframe pdf preview
-					if ((child as FileNode).getElementType() === "pdf" && noteContainer) {
-						ghostElement.style.width = `${noteContainer.clientWidth}px`;
-						ghostElement.style.height = "10rem";
-						ghostElement.style.overflow = "hidden";
+			// @ts-expect-error -- It is of ElementNode type, code-blocks do not have children for example, so we don't want to run getChildren
+			if (node.getChildren) {
+				const elementNode = node as ElementNode;
+				elementNode.getChildren().forEach((child) => {
+					if (child.getType() === "file") {
+						// Provides a width and height for the iframe pdf preview
+						if (
+							(child as FileNode).getElementType() === "pdf" &&
+							noteContainer
+						) {
+							ghostElement.style.width = `${noteContainer.clientWidth}px`;
+							ghostElement.style.height = "15rem";
+							ghostElement.style.overflow = "hidden";
+						}
 					}
-				}
-			});
+				});
+			}
 			nodeKey = node.getKey();
 		}
 	});

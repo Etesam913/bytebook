@@ -26,7 +26,7 @@ export default function Pdf({
 			<div
 				className={cn(
 					"px-1 w-full h-full absolute top-0 left-0 bg-zinc-100 dark:bg-zinc-700 rounded-md py-1 border-[3px] border-zinc-200 dark:border-zinc-600 text-xs text-zinc-500 dark:text-zinc-300 transition-colors",
-					isSelected && "!border-blue-400",
+					isSelected && "border-blue-400 dark:border-blue-500",
 				)}
 				onClick={(e) => {
 					e.stopPropagation();
