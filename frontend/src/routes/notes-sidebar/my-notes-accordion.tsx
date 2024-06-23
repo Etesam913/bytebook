@@ -1,12 +1,10 @@
 import { Events } from "@wailsio/runtime";
-import { motion } from "framer-motion";
 import { useAtomValue, useSetAtom } from "jotai";
-import { type CSSProperties, useState } from "react";
+import type { CSSProperties } from "react";
 import { Link, useParams } from "wouter";
 import { draggedElementAtom, selectionRangeAtom } from "../../atoms";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
-import { ChevronDown } from "../../icons/chevron-down";
 import { useSearchParamsEntries } from "../../utils/hooks";
 import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
 import { RenderNoteIcon } from "./render-note-icon";
@@ -19,7 +17,6 @@ export function MyNotesAccordion({
 	const { folder: curFolder, note: curNote } = useParams();
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const noteNameWithExtension = `${curNote}?ext=${searchParams.ext}`;
-	const [isNotesCollapsed, setIsNotesCollapsed] = useState(false);
 	const selectionRange = useAtomValue(selectionRangeAtom);
 	const setDraggedElement = useSetAtom(draggedElementAtom);
 
@@ -37,7 +34,7 @@ export function MyNotesAccordion({
 						Create a note with the "Create Note" button above
 					</li>
 				}
-				isCollapsed={isNotesCollapsed}
+				isCollapsed={false}
 				data={notes}
 				renderLink={({
 					dataItem: sidebarNoteName,

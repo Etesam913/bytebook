@@ -1,11 +1,18 @@
-import { Link } from "wouter";
+import { Link, useParams } from "wouter";
 import { Sidebar } from "../../components/sidebar";
-import { cn } from "../../utils/string-formatting";
+import { useSearchParamsEntries } from "../../utils/hooks";
+import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
+import { RenderNoteIcon } from "../notes-sidebar/render-note-icon";
 
 export function MyTrashAccordion({
 	files,
 	curFile,
 }: { files: string[]; curFile: string | undefined }) {
+	const { item: curNote } = useParams();
+	const searchParams: { ext?: string } = useSearchParamsEntries();
+
+	const noteNameWithExtension = `${curNote}?ext=${searchParams.ext}`;
+
 	return (
 		<section className={cn("flex flex-1 flex-col gap-2 overflow-y-auto")}>
 			<Sidebar
@@ -22,20 +29,31 @@ export function MyTrashAccordion({
 						</li>
 					</>
 				}
-				renderLink={({ dataItem: fileName }) => (
-					<Link
-						target="_blank"
-						className={cn(
-							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors",
-							fileName === curFile && "bg-zinc-150 dark:bg-zinc-700",
-						)}
-						to={`/trash/${fileName}`}
-					>
-						<p className="whitespace-nowrap text-ellipsis overflow-hidden">
-							{fileName}
-						</p>
-					</Link>
-				)}
+				renderLink={({ dataItem: sidebarTrashedNoteNameWithExtension }) => {
+					const { noteNameWithoutExtension: trashedNoteName, queryParams } =
+						extractInfoFromNoteName(sidebarTrashedNoteNameWithExtension);
+					return (
+						<Link
+							draggable={false}
+							target="_blank"
+							className={cn(
+								"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors",
+								sidebarTrashedNoteNameWithExtension === noteNameWithExtension &&
+									"bg-zinc-150 dark:bg-zinc-700",
+							)}
+							to={`/trash/${sidebarTrashedNoteNameWithExtension}`}
+						>
+							<RenderNoteIcon
+								sidebarNoteName={sidebarTrashedNoteNameWithExtension}
+								fileExtension={queryParams.ext}
+								noteNameWithExtension={noteNameWithExtension}
+							/>
+							<p className="whitespace-nowrap text-ellipsis overflow-hidden">
+								{trashedNoteName}.{queryParams.ext}
+							</p>
+						</Link>
+					);
+				}}
 			/>
 		</section>
 	);

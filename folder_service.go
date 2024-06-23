@@ -48,8 +48,13 @@ func (f *FolderService) GetFilesInTrash() FolderResponse {
 	// Initialize a slice to hold the names of the files in the trash directory
 	files := []string{}
 	for _, file := range filesEntries {
-		// Append each file name to the slice
-		files = append(files, file.Name())
+
+		indexOfDot := strings.LastIndex(file.Name(), ".")
+		name := file.Name()[:indexOfDot]
+		extension := file.Name()[indexOfDot+1:]
+
+		// Use a query parameter for the extension so the frontend can use it
+		files = append(files, fmt.Sprintf("%s?ext=%s", name, extension))
 	}
 
 	// Return a success response with the list of file names

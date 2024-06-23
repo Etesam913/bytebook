@@ -1,7 +1,7 @@
 import { type MotionValue, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useRoute } from "wouter";
+import { useParams, useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import {
 	ClearTrash,
@@ -9,11 +9,12 @@ import {
 } from "../../../bindings/github.com/etesam913/bytebook/folderservice";
 import { getDefaultButtonVariants } from "../../animations";
 import { MotionButton } from "../../components/buttons";
-import { TrashEditor } from "../../components/editor/trash-editor";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Trash } from "../../icons/trash";
-import { useWailsEvent } from "../../utils/hooks";
+import { useSearchParamsEntries, useWailsEvent } from "../../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
+import { extractInfoFromNoteName } from "../../utils/string-formatting";
+import { RenderNote } from "../notes-sidebar/render-note";
 import { MyTrashAccordion } from "./my-trash-accordion";
 
 export function TrashSidebar({
@@ -24,6 +25,9 @@ export function TrashSidebar({
 	const [files, setFiles] = useState<string[]>([]);
 
 	const item = params?.item;
+	const searchParams: { ext?: string } = useSearchParamsEntries();
+	const fileExtension = searchParams?.ext;
+	const { item: curNote } = useParams();
 
 	useEffect(() => {
 		/** Fetch files in trash when trash route is loaded for the first time*/
@@ -32,10 +36,18 @@ export function TrashSidebar({
 				const res = await GetFilesInTrash();
 				if (res.success) {
 					if (res.data.length > 0) {
-						navigate(`/trash/${encodeURIComponent(res.data[0])}`, {
-							replace: true,
-						});
+						const { noteNameWithoutExtension, queryParams } =
+							extractInfoFromNoteName(res.data[0]);
+						navigate(
+							`/trash/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
+								queryParams.ext
+							}`,
+							{
+								replace: true,
+							},
+						);
 					}
+
 					setFiles(res.data);
 					return;
 				}
@@ -97,7 +109,8 @@ export function TrashSidebar({
 				</div>
 			</motion.aside>
 			<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
-			{item?.endsWith(".md") && <TrashEditor curFile={item} />}
+
+			<RenderNote folder="trash" note={curNote} fileExtension={fileExtension} />
 		</>
 	);
 }

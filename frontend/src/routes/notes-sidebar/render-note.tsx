@@ -3,6 +3,7 @@ import { useAtomValue } from "jotai";
 import { draggedElementAtom, isNoteMaximizedAtom } from "../../atoms";
 import { MaximizeNoteButton } from "../../components/buttons/maximize-note";
 import { NotesEditor } from "../../components/editor";
+import { TrashEditor } from "../../components/editor/trash-editor";
 import { FileBan } from "../../icons/file-ban";
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from "../../types";
 import { FILE_SERVER_URL } from "../../utils/misc";
@@ -22,6 +23,8 @@ export function RenderNote({
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const hasCustomToolbar = fileExtension === "md";
 
+	const isInTrash = folder === "trash";
+
 	const isPdf = fileExtension === "pdf";
 	const isMarkdown = fileExtension === "md";
 	const isImage =
@@ -33,28 +36,33 @@ export function RenderNote({
 
 	return (
 		<motion.div
-			className="flex min-w-0 flex-1 flex-col leading-7 h-screen overflow-auto"
+			className="flex min-w-0 flex-1 flex-col leading-7 h-screen "
 			animate={animationControls}
 		>
 			{!hasCustomToolbar && (
 				<header
 					className={cn(
-						"flex items-center gap-1.5 border-b px-2 pb-2 pt-2.5 border-zinc-200 dark:border-b-zinc-700 ml-[-4px]",
+						"flex  items-center gap-1.5 border-b px-2 pb-1 pt-2.5 h-12 border-zinc-200 dark:border-b-zinc-700 whitespace-nowrap ml-[-4.5px]",
 						isNoteMaximized && "!pl-[5.75rem]",
 					)}
 				>
-					<MaximizeNoteButton animationControls={animationControls} />
+					{!isInTrash && (
+						<MaximizeNoteButton animationControls={animationControls} />
+					)}
 					<h1 className="text-base overflow-ellipsis overflow-hidden ">
 						{folder}/{note}.{fileExtension}
 					</h1>
 				</header>
 			)}
-			{isMarkdown && (
-				<NotesEditor
-					params={{ folder, note }}
-					animationControls={animationControls}
-				/>
-			)}
+			{isMarkdown &&
+				(isInTrash ? (
+					<TrashEditor curFile={`${note}.${fileExtension}`} />
+				) : (
+					<NotesEditor
+						params={{ folder, note }}
+						animationControls={animationControls}
+					/>
+				))}
 
 			{isPdf && (
 				<iframe
@@ -64,7 +72,7 @@ export function RenderNote({
 						isNoteMaximized && "w-full mr-0",
 						draggedElement !== null && "pointer-events-none",
 					)}
-					src={`${FILE_SERVER_URL}/notes/${folder}/${note}.${fileExtension}`}
+					src={`${FILE_SERVER_URL}/${folder}/${note}.${fileExtension}`}
 				/>
 			)}
 
@@ -76,7 +84,7 @@ export function RenderNote({
 					)}
 					alt={note}
 					title={note}
-					src={`${FILE_SERVER_URL}/notes/${folder}/${note}.${fileExtension}`}
+					src={`${FILE_SERVER_URL}/${folder}/${note}.${fileExtension}`}
 				/>
 			)}
 
@@ -89,7 +97,7 @@ export function RenderNote({
 						isNoteMaximized && "w-full mr-0",
 						draggedElement !== null && "pointer-events-none",
 					)}
-					src={`${FILE_SERVER_URL}/notes/${folder}/${note}.${fileExtension}`}
+					src={`${FILE_SERVER_URL}/${folder}/${note}.${fileExtension}`}
 				/>
 			)}
 

@@ -26,7 +26,6 @@ import {
 	type SetStateAction,
 	useEffect,
 } from "react";
-import { navigate } from "wouter/use-browser-location";
 import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { draggedElementAtom } from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";

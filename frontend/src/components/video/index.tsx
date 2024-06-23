@@ -65,8 +65,9 @@ export function Video({
 						ref={videoRef}
 						className="w-full h-auto bg-black"
 						title={title}
-						src={src}
+						src={`${src}#t=0.001`}
 						controls
+						preload="metadata"
 					/>
 				</ResizeContainer>
 			</div>
