@@ -70,7 +70,7 @@ export function NoteTitle({
 										],
 									},
 								});
-								navigate(`/${folder}/${encodeURIComponent(noteTitle)}`);
+								navigate(`/${folder}/${encodeURIComponent(noteTitle)}?ext=md`);
 							} else {
 								setErrorText(res.message);
 							}

@@ -34,6 +34,10 @@ export function RenderNote({
 	const isUnknownFile = !isPdf && !isMarkdown && !isImage && !isVideo;
 	const draggedElement = useAtomValue(draggedElementAtom);
 
+	const fileUrl = `${FILE_SERVER_URL}/${
+		isInTrash ? "" : "notes"
+	}/${folder}/${note}.${fileExtension}`;
+
 	return (
 		<motion.div
 			className="flex min-w-0 flex-1 flex-col leading-7 h-screen "
@@ -72,7 +76,7 @@ export function RenderNote({
 						isNoteMaximized && "w-full mr-0",
 						draggedElement !== null && "pointer-events-none",
 					)}
-					src={`${FILE_SERVER_URL}/${folder}/${note}.${fileExtension}`}
+					src={fileUrl}
 				/>
 			)}
 
@@ -84,7 +88,7 @@ export function RenderNote({
 					)}
 					alt={note}
 					title={note}
-					src={`${FILE_SERVER_URL}/${folder}/${note}.${fileExtension}`}
+					src={fileUrl}
 				/>
 			)}
 
@@ -97,7 +101,7 @@ export function RenderNote({
 						isNoteMaximized && "w-full mr-0",
 						draggedElement !== null && "pointer-events-none",
 					)}
-					src={`${FILE_SERVER_URL}/${folder}/${note}.${fileExtension}`}
+					src={fileUrl}
 				/>
 			)}
 

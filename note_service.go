@@ -61,10 +61,14 @@ func (n *NoteService) GetNotes(folderName string) NoteResponse {
 
 func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNoteTitle string) NoteResponse {
 	noteBase := filepath.Join(n.ProjectPath, "notes", folderName)
-	fmt.Println(noteBase)
-	doesExist, _ := io_helpers.FileExists(
+
+	doesExist, err := io_helpers.FileExists(
 		filepath.Join(noteBase, newNoteTitle+".md"),
 	)
+
+	if err != nil {
+		return NoteResponse{Success: false, Message: err.Error()}
+	}
 
 	if doesExist {
 		return NoteResponse{
@@ -73,8 +77,10 @@ func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNote
 		}
 	}
 
+	fmt.Println("😂", filepath.Join(noteBase, fmt.Sprintf("%s.md", oldNoteTitle)), filepath.Join(noteBase, fmt.Sprintf("%s.md", newNoteTitle)))
+
 	// Rename the markdown file to match the new note title
-	err := os.Rename(
+	err = os.Rename(
 		filepath.Join(noteBase, fmt.Sprintf("%s.md", oldNoteTitle)),
 		filepath.Join(noteBase, fmt.Sprintf("%s.md", newNoteTitle)),
 	)
