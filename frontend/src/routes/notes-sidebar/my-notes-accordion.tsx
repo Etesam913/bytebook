@@ -25,22 +25,12 @@ export function MyNotesAccordion({
 
 	return (
 		<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
-			<button
-				className="flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 py-1 px-1.5 rounded-md transition-colors"
-				onClick={() => setIsNotesCollapsed((prev) => !prev)}
-				type="button"
-			>
-				<motion.span
-					initial={{ rotateZ: isNotesCollapsed ? 270 : 0 }}
-					animate={{ rotateZ: isNotesCollapsed ? 270 : 0 }}
-				>
-					<ChevronDown strokeWidth="2.5px" height="0.8rem" width="0.8rem" />
-				</motion.span>{" "}
+			<div className="flex items-center gap-1.5 py-1 rounded-md px-0.5 transition-colors">
 				My Notes{" "}
 				{notes && notes.length > 0 && (
 					<span className="tracking-wider">({notes.length})</span>
 				)}
-			</button>
+			</div>
 			<Sidebar
 				emptyElement={
 					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">

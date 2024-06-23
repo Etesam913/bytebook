@@ -32,7 +32,7 @@ export function Sidebar({
 	const listRef = useRef<HTMLUListElement>(null);
 
 	return (
-		<AnimatePresence>
+		<AnimatePresence initial={false}>
 			{!isCollapsed && (
 				<motion.ul
 					ref={listRef}

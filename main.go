@@ -90,12 +90,12 @@ func main() {
 
 	project_helpers.CreateContextMenu(app, folderContextMenu, []project_helpers.MenuItem{
 		{Label: "Rename Folder", EventName: "folder:context-menu:rename"},
-		{Label: "Add Note", EventName: "add-note"},
 		{Label: "Delete Folder", EventName: "folder:context-menu:delete"},
+		{Label: "Open Folder In New Window", EventName: "folder:open-in-new-window"},
 	})
 
 	project_helpers.CreateContextMenu(app, noteContextMenu, []project_helpers.MenuItem{
-		{Label: "Open In New Window", EventName: "open-note-in-new-window-frontend"},
+		{Label: "Open Note In New Window", EventName: "note:open-in-new-window"},
 		{Label: "Send To Trash", EventName: "note:context-menu:delete"},
 	})
 

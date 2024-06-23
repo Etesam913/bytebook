@@ -130,7 +130,7 @@ export function NotesSidebar({
 		setSelectionRange(new Set());
 	});
 
-	useWailsEvent("open-note-in-new-window-frontend", () => {
+	useWailsEvent("note:open-in-new-window", () => {
 		for (const noteNameWithQueryParam of selectionRange) {
 			Events.Emit({
 				name: "open-note-in-new-window-backend",

@@ -1,5 +1,6 @@
+import { Events } from "@wailsio/runtime";
 import { type MotionValue, motion } from "framer-motion";
-import { useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import {
 	type Dispatch,
 	type FormEvent,
@@ -17,7 +18,7 @@ import {
 import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
 import { WINDOW_ID } from "../../App.tsx";
 import { getDefaultButtonVariants } from "../../animations.ts";
-import { dialogDataAtom, foldersAtom } from "../../atoms";
+import { dialogDataAtom, foldersAtom, selectionRangeAtom } from "../../atoms";
 import { FolderPlus } from "../../icons/folder-plus";
 import { FolderXMark } from "../../icons/folder-xmark.tsx";
 import { Gear } from "../../icons/gear.tsx";
@@ -120,7 +121,7 @@ export async function onFolderDialogSubmit(
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
 	const folder = params?.folder;
-
+	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const setFolders = useSetAtom(foldersAtom);
 
@@ -155,6 +156,16 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 			navigate("/");
 			return [];
 		});
+	});
+
+	useWailsEvent("folder:open-in-new-window", () => {
+		for (const selectedFolder of selectionRange) {
+			Events.Emit({
+				name: "open-note-in-new-window-backend",
+				data: { url: `/${selectedFolder}` },
+			});
+		}
+		setSelectionRange(new Set());
 	});
 
 	useWailsEvent("folder:context-menu:delete", (body) => {
