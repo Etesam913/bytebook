@@ -12,13 +12,13 @@ import {
 	type LexicalEditor,
 	type LexicalNode,
 } from "lexical";
-import { IMAGE_FILE_EXTENSIONS } from "../../../types";
 import { isDecoratorNodeSelected } from "../../../utils/commands";
 import { FILE_SERVER_URL } from "../../../utils/misc";
 import { getFileExtension } from "../../../utils/string-formatting";
-import type { FilePayload, FileType } from "../nodes/file";
+import type { FilePayload } from "../nodes/file";
 import { $createLinkNode } from "../nodes/link";
 import { INSERT_FILES_COMMAND } from "../plugins/file";
+import { getFileElementTypeFromExtension } from "./file-node.ts";
 
 /**
  * Makes it so that the code-block undo/redo stack is not affected by the undo/redo stack of the editor
@@ -146,13 +146,8 @@ export function overrideControlledTextInsertion(
 					title: title,
 				});
 			} else {
-				let elementType = extension;
-				if (IMAGE_FILE_EXTENSIONS.includes(extension)) {
-					elementType = "image";
-				}
-
 				filePayloads.push({
-					elementType: elementType as FileType,
+					elementType: getFileElementTypeFromExtension(fileText),
 					alt: title,
 					src: `${FILE_SERVER_URL}/notes/${folder}/${fileName}.${extension}`,
 				});
