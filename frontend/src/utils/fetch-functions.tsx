@@ -39,7 +39,7 @@ export function updateNotes(
 				if (!note) {
 					const hasANote = notes.length > 0;
 					if (!hasANote) {
-						navigate("/", { replace: true });
+						navigate(`/${folder}`, { replace: true });
 						return;
 					}
 
