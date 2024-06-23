@@ -5,7 +5,7 @@ import type { CodeResponse } from "../bindings/github.com/etesam913/bytebook/ind
 
 export const IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "gif"];
 
-export const VIDEO_FILE_EXTENSIONS = ["mov", "mp4"];
+export const VIDEO_FILE_EXTENSIONS = ["mov", "mp4", "m4v"];
 
 export type EditorBlockTypes = HeadingTagType | undefined | string;
 

@@ -33,7 +33,7 @@ export function RenderNote({
 
 	return (
 		<motion.div
-			className="flex min-w-0 flex-1 flex-col leading-7 h-screen"
+			className="flex min-w-0 flex-1 flex-col leading-7 h-screen overflow-auto"
 			animate={animationControls}
 		>
 			{!hasCustomToolbar && (
@@ -60,7 +60,7 @@ export function RenderNote({
 				<iframe
 					title={note}
 					className={cn(
-						"h-full mr-1 dark:invert",
+						"flex-1 overflow-auto mr-1 dark:invert",
 						isNoteMaximized && "w-full mr-0",
 						draggedElement !== null && "pointer-events-none",
 					)}
@@ -71,7 +71,7 @@ export function RenderNote({
 			{isImage && (
 				<img
 					className={cn(
-						"flex-1 h-full object-contain my-auto mr-1",
+						"flex-1 overflow-auto object-contain my-auto mr-1",
 						isNoteMaximized && "w-full",
 					)}
 					alt={note}
@@ -85,7 +85,7 @@ export function RenderNote({
 					controls
 					title={note}
 					className={cn(
-						"h-full mr-1 bg-black",
+						"flex-1 overflow-auto mr-1 bg-black",
 						isNoteMaximized && "w-full mr-0",
 						draggedElement !== null && "pointer-events-none",
 					)}

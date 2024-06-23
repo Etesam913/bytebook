@@ -1,7 +1,7 @@
 import { Events } from "@wailsio/runtime";
 import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
 import {
@@ -9,7 +9,12 @@ import {
 	MoveToTrash,
 } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
-import { dialogDataAtom, isNoteMaximizedAtom, notesAtom } from "../../atoms";
+import {
+	dialogDataAtom,
+	isNoteMaximizedAtom,
+	notesAtom,
+	selectionRangeAtom,
+} from "../../atoms";
 import { MotionButton, MotionIconButton } from "../../components/buttons";
 import {
 	DialogErrorText,
@@ -48,12 +53,11 @@ export function NotesSidebar({
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const { folder, note } = params;
 	const searchParams: { ext?: string } = useSearchParamsEntries();
+	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 
 	const sidebarRef = useRef<HTMLElement>(null);
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
-	// const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
-	const [rightClickedNote, setRightClickedNote] = useState<string | null>(null);
 
 	useEffect(() => {
 		updateNotes(folder, note, setNotes);
@@ -63,11 +67,12 @@ export function NotesSidebar({
 		const data = body.data as { folder: string; note: string };
 		// Windows that are on a different folder should not navigate to this new url
 		if (data.folder !== decodeURIComponent(folder)) return;
-		const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-			data.note,
-		);
+		// const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
+		// 	data.note,
+		// );
 
 		setNotes((prev) => (prev ? [...prev, data.note] : [data.note]));
+		// Need to only do this when a note is created with the ui
 		// navigate(
 		// 	`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
 		// 		queryParams.ext
@@ -87,7 +92,7 @@ export function NotesSidebar({
 				`${decodeURIComponent(note)}?ext=${fileExtension}` === data.note
 			) {
 				if (newNotes.length > 0) {
-					navigate(`/${folder}/${encodeURIComponent(newNotes[0])}`);
+					navigate(`/${folder}/${newNotes[0]}`);
 				} else {
 					navigate(`/${folder}`);
 				}
@@ -100,9 +105,13 @@ export function NotesSidebar({
 		const noteNamesAsString = event.data as string;
 		// TODO: This has to be done in a better way because a note name can have a comma in it
 		const noteNamesAsArray = noteNamesAsString.split(",");
-		const paths = noteNamesAsArray.map(
-			(noteName) => `${folder}/${noteName}.md`,
-		);
+
+		const paths = noteNamesAsArray.map((noteName) => {
+			const { noteNameWithoutExtension, queryParams } =
+				extractInfoFromNoteName(noteName);
+
+			return `/${folder}/${noteNameWithoutExtension}.${queryParams.ext}`;
+		});
 
 		try {
 			const res = await MoveToTrash(paths);
@@ -118,15 +127,17 @@ export function NotesSidebar({
 				toast.error("An Unknown Error Occurred");
 			}
 		}
+		setSelectionRange(new Set());
 	});
 
 	useWailsEvent("open-note-in-new-window-frontend", () => {
-		if (rightClickedNote) {
+		for (const noteNameWithQueryParam of selectionRange) {
 			Events.Emit({
 				name: "open-note-in-new-window-backend",
-				data: { url: `/${folder}/${rightClickedNote}` },
+				data: { url: `/${folder}/${noteNameWithQueryParam}` },
 			});
 		}
+		setSelectionRange(new Set());
 	});
 
 	return (
@@ -248,10 +259,7 @@ export function NotesSidebar({
 							</MotionButton>
 							<section className="flex flex-col gap-2 overflow-y-auto">
 								<div className="flex h-full flex-col overflow-y-auto">
-									<MyNotesAccordion
-										notes={notes}
-										setRightClickedNote={setRightClickedNote}
-									/>
+									<MyNotesAccordion notes={notes} />
 								</div>
 							</section>
 						</div>

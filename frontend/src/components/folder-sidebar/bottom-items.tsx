@@ -8,6 +8,7 @@ import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import {
 	cn,
 	extractInfoFromNoteName,
+	getFileExtension,
 	getInternalLinkType,
 	isInternalLink,
 } from "../../utils/string-formatting";
@@ -25,6 +26,7 @@ export function BottomItems() {
 
 	function handleTrashButtonDrop(e: DragEvent<HTMLAnchorElement>) {
 		const urls: string = e.dataTransfer.getData("text/plain");
+
 		const urlArray = urls.split(",");
 		const paths: string[] = [];
 		setIsNoteOver(false);
@@ -33,10 +35,9 @@ export function BottomItems() {
 			if (isInternalLink(url)) {
 				const { isNoteLink } = getInternalLinkType(url);
 				if (isNoteLink) {
-					const [folder, note] = url.split("/").slice(-2);
-					const { noteNameWithoutExtension: noteName, queryParams } =
-						extractInfoFromNoteName(note);
-					const fullPath = `${folder}/${noteName}.${queryParams.ext}`;
+					const [folder] = url.split("/").slice(-2);
+					const { extension, fileName } = getFileExtension(url);
+					const fullPath = `${folder}/${fileName}.${extension}`;
 					paths.push(fullPath);
 				}
 			}

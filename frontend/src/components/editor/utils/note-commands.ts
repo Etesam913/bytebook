@@ -15,10 +15,7 @@ import {
 import { IMAGE_FILE_EXTENSIONS } from "../../../types";
 import { isDecoratorNodeSelected } from "../../../utils/commands";
 import { FILE_SERVER_URL } from "../../../utils/misc";
-import {
-	extractInfoFromNoteName,
-	getFileExtension,
-} from "../../../utils/string-formatting";
+import { getFileExtension } from "../../../utils/string-formatting";
 import type { FilePayload, FileType } from "../nodes/file";
 import { $createLinkNode } from "../nodes/link";
 import { INSERT_FILES_COMMAND } from "../plugins/file";

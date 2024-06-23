@@ -1,12 +1,7 @@
 import { Events } from "@wailsio/runtime";
 import { motion } from "framer-motion";
 import { useAtomValue, useSetAtom } from "jotai";
-import {
-	type CSSProperties,
-	type Dispatch,
-	type SetStateAction,
-	useState,
-} from "react";
+import { type CSSProperties, useState } from "react";
 import { Link, useParams } from "wouter";
 import { draggedElementAtom, selectionRangeAtom } from "../../atoms";
 import { Sidebar } from "../../components/sidebar";
@@ -18,10 +13,8 @@ import { RenderNoteIcon } from "./render-note-icon";
 
 export function MyNotesAccordion({
 	notes,
-	setRightClickedNote,
 }: {
 	notes: string[] | null;
-	setRightClickedNote: Dispatch<SetStateAction<string | null>>;
 }) {
 	const { folder: curFolder, note: curNote } = useParams();
 	const searchParams: { ext?: string } = useSearchParamsEntries();
@@ -79,7 +72,17 @@ export function MyNotesAccordion({
 									curFolder,
 								)
 							}
-							onContextMenu={() => setRightClickedNote(sidebarNoteName)}
+							onContextMenu={() => {
+								if (selectionRange.size === 0) {
+									setSelectionRange(new Set([sidebarNoteName]));
+								} else {
+									setSelectionRange((prev) => {
+										const tempSet = new Set(prev);
+										tempSet.add(sidebarNoteName);
+										return tempSet;
+									});
+								}
+							}}
 							onDoubleClick={() => {
 								Events.Emit({
 									name: "open-note-in-new-window-backend",
@@ -88,7 +91,7 @@ export function MyNotesAccordion({
 							}}
 							target="_blank"
 							className={cn(
-								"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform",
+								"flex flex-1 gap-2 items-center px-2 py-1 z-10 rounded-md relative overflow-x-hidden transition-colors will-change-transform",
 								noteNameWithExtension === sidebarNoteName &&
 									"bg-zinc-150 dark:bg-zinc-700",
 								notes?.at(i) &&
