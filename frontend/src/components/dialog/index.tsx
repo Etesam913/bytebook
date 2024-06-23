@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import {
 	type Dispatch,
 	type KeyboardEvent,
@@ -10,7 +10,7 @@ import {
 } from "react";
 import useMeasure from "react-use-measure";
 import { easingFunctions, getDefaultButtonVariants } from "../../animations";
-import { dialogDataAtom } from "../../atoms";
+import { backendQueryAtom, dialogDataAtom } from "../../atoms";
 import { XMark } from "../../icons/circle-xmark";
 import type { DialogDataType } from "../../types";
 import { MotionIconButton } from "../buttons";
@@ -71,6 +71,7 @@ function handleDialogKeyDown(
 
 export function Dialog() {
 	const [dialogData, setDialogData] = useAtom(dialogDataAtom);
+	const backendQuery = useAtomValue(backendQueryAtom);
 	const [errorText, setErrorText] = useState("");
 	const modalRef = useRef<HTMLFormElement>(null);
 	useTrapFocus(modalRef, dialogData.isOpen);
@@ -90,7 +91,7 @@ export function Dialog() {
 
 	return (
 		<AnimatePresence>
-			{dialogData.isOpen && (
+			{dialogData.isOpen && !backendQuery.isLoading && (
 				<>
 					<motion.div
 						initial={{ opacity: 0 }}

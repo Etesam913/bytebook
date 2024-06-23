@@ -6,6 +6,7 @@ import { type Dispatch, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { WINDOW_ID } from "../../App";
 import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
+import { useBackendFunction } from "../../hooks/query";
 import type { EditorBlockTypes, FloatingDataType } from "../../types";
 import { useIsStandalone, useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
@@ -19,6 +20,7 @@ import { $convertFromMarkdownStringCorrect } from "./utils/note-metadata";
 import {
 	blockTypesDropdownItems,
 	changeSelectedBlocksType,
+	insertAttachmentFromFile,
 } from "./utils/toolbar";
 
 interface ToolbarProps {
@@ -51,6 +53,11 @@ export function Toolbar({
 	const [isNodeSelection, setIsNodeSelection] = useState(false);
 	const [canRedo, setCanRedo] = useState(false);
 	const [canUndo, setCanUndo] = useState(false);
+
+	const insertAttachments = useBackendFunction(
+		insertAttachmentFromFile,
+		"Inserting Attachments...",
+	);
 
 	useNoteMarkdown(
 		editor,
@@ -158,7 +165,13 @@ export function Toolbar({
 						)}
 						dropdownItemsClassName="max-h-[calc(100vh-10rem)]"
 						onChange={({ value }) =>
-							changeSelectedBlocksType(editor, value, folder, note)
+							changeSelectedBlocksType(
+								editor,
+								value,
+								folder,
+								note,
+								insertAttachments,
+							)
 						}
 						items={blockTypesDropdownItems}
 						buttonClassName="w-[10rem]"

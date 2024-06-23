@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import type { MutableRefObject } from "react";
-import type { DialogDataType } from "./types.ts";
+import type { BackendQueryDataType, DialogDataType } from "./types.ts";
 
 const privateMostRecentNotesAtom = atom<string[]>(
 	JSON.parse(localStorage.getItem("mostRecentNotes") ?? "[]") as string[],
@@ -36,6 +36,11 @@ export const dialogDataAtom = atom<DialogDataType>({
 	title: "",
 	children: null,
 	onSubmit: null,
+});
+
+export const backendQueryAtom = atom<BackendQueryDataType>({
+	isLoading: false,
+	message: "",
 });
 
 export const draggedElementAtom = atom<HTMLElement | null>(null);

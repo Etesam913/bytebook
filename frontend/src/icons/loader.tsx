@@ -1,11 +1,11 @@
 export function Loader({
-	width = "1.15rem",
-	height = "1.15rem",
+	width = 20,
+	height = 20,
 	title = "Loading",
 	className,
 }: {
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	fill?: string;
 	secondaryfill?: string;
 	title?: string;

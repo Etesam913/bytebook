@@ -51,38 +51,37 @@ export function NoteTitle({
 				}}
 				placeholder="Untitled Note"
 				onFocus={() => setIsToolbarDisabled(true)}
-				onBlur={() => {
+				onBlur={async () => {
 					setIsToolbarDisabled(false);
 					if (noteTitle === note || errorText.length > 0) return;
-					RenameNote(
-						decodeURIComponent(folder),
-						decodeURIComponent(note),
-						noteTitle,
-					)
-						.then((res) => {
-							if (res.success) {
-								Events.Emit({
-									name: "notes:changed",
-									data: {
-										windowId: WINDOW_ID,
-										notes: notes?.map((v) => (v === note ? noteTitle : v)) ?? [
-											noteTitle,
-										],
-									},
-								});
-								navigate(`/${folder}/${encodeURIComponent(noteTitle)}?ext=md`);
-							} else {
-								setErrorText(res.message);
-							}
-						})
-						.catch((e) => {
-							console.error(e);
-							if (e?.includes("file exists")) {
-								setErrorText(
-									`A note with the name "${noteTitle}" already exists.`,
-								);
-							}
-						});
+
+					try {
+						const res = await RenameNote(
+							decodeURIComponent(folder),
+							decodeURIComponent(note),
+							noteTitle,
+						);
+
+						if (res.success) {
+							Events.Emit({
+								name: "notes:changed",
+								data: {
+									windowId: WINDOW_ID,
+									notes: notes?.map((v) => (v === note ? noteTitle : v)) ?? [
+										noteTitle,
+									],
+								},
+							});
+							navigate(`/${folder}/${encodeURIComponent(noteTitle)}?ext=md`);
+						} else throw new Error(res.message);
+					} catch (e) {
+						console.error(e);
+						if (e instanceof Error && e.message.includes("already exists")) {
+							setErrorText(
+								`A note with the name "${noteTitle}" already exists.`,
+							);
+						}
+					}
 				}}
 				onKeyDown={(e) => {
 					if (e.key === "Enter") {

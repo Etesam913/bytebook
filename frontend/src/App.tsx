@@ -7,6 +7,7 @@ import { isNoteMaximizedAtom } from "./atoms";
 import { MotionIconButton } from "./components/buttons";
 import { Dialog } from "./components/dialog";
 import { FolderSidebar } from "./components/folder-sidebar";
+import { LoadingModal } from "./components/loading-modal";
 import { CircleArrowLeft } from "./icons/circle-arrow-left";
 import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
@@ -28,6 +29,7 @@ function App() {
 			className="flex max-h-screen font-display text-zinc-950 dark:text-zinc-100"
 		>
 			<Dialog />
+			<LoadingModal />
 			<Toaster richColors theme="system" />
 
 			{!isNoteMaximized && <FolderSidebar width={folderSidebarWidth} />}

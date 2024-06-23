@@ -51,3 +51,8 @@ export type DialogDataType = {
 		  ) => void)
 		| null;
 };
+
+export type BackendQueryDataType = {
+	isLoading: boolean;
+	message: string;
+};

@@ -18,6 +18,7 @@ import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "../../../utils/string-formatting";
 
+import { useBackendFunction } from "../../../hooks/query";
 import { AngularLogo } from "../../../icons/angular-logo";
 import { SvelteLogo } from "../../../icons/svelte-logo";
 import { VueLogo } from "../../../icons/vue-logo";
@@ -130,7 +131,16 @@ function ComponentPickerMenuItem({
 	);
 }
 
-function getBaseOptions(editor: LexicalEditor, folder: string, note: string) {
+function getBaseOptions(
+	editor: LexicalEditor,
+	folder: string,
+	note: string,
+	insertAttachments: (
+		folder: string,
+		note: string,
+		editor: LexicalEditor,
+	) => Promise<void>,
+) {
 	return [
 		new ComponentPickerOption("Paragraph", {
 			keywords: ["normal", "paragraph", "p", "text"],
@@ -178,7 +188,7 @@ function getBaseOptions(editor: LexicalEditor, folder: string, note: string) {
 				"picture",
 			],
 			onSelect: async () => {
-				insertAttachmentFromFile(folder, note, editor);
+				insertAttachments(folder, note, editor);
 			},
 		}),
 		...languageCommandData.map(
@@ -211,8 +221,13 @@ export function ComponentPickerMenuPlugin({
 		minLength: 0,
 	});
 
+	const insertAttachments = useBackendFunction(
+		insertAttachmentFromFile,
+		"Inserting Attachments...",
+	);
+
 	const options = useMemo(() => {
-		const baseOptions = getBaseOptions(editor, folder, note);
+		const baseOptions = getBaseOptions(editor, folder, note, insertAttachments);
 
 		if (!queryString) {
 			return baseOptions;

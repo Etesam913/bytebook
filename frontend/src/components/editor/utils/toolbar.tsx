@@ -62,6 +62,11 @@ export function changeSelectedBlocksType(
 	newBlockType: EditorBlockTypes,
 	folder: string,
 	note: string,
+	insertAttachments: (
+		folder: string,
+		note: string,
+		editor: LexicalEditor,
+	) => void,
 ) {
 	editor.update(async () => {
 		const selection = $getSelection();
@@ -93,7 +98,8 @@ export function changeSelectedBlocksType(
 					});
 					break;
 				case "attachment": {
-					insertAttachmentFromFile(folder, note, editor);
+					insertAttachments(folder, note, editor);
+					// insertAttachmentFromFile(folder, note, editor);
 					break;
 				}
 			}
