@@ -113,7 +113,7 @@ export function overrideEscapeKeyCommand(nodeKey: string) {
 	return false;
 }
 
-export function overrideControlledTextInsertion(
+export async function overrideControlledTextInsertion(
 	e: string | InputEvent,
 	editor: LexicalEditor,
 	draggedElement: HTMLElement | null,
@@ -146,8 +146,9 @@ export function overrideControlledTextInsertion(
 					title: title,
 				});
 			} else {
+				const elementType = await getFileElementTypeFromExtension(fileText);
 				filePayloads.push({
-					elementType: getFileElementTypeFromExtension(fileText),
+					elementType,
 					alt: title,
 					src: `${FILE_SERVER_URL}/notes/${folder}/${fileName}.${extension}`,
 				});

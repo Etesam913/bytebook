@@ -242,6 +242,7 @@ export function NotesSidebar({
 															closeButton: true,
 														},
 													);
+													navigate(`/${folder}/${newNoteNameString}?ext=md`);
 												}
 											} catch (e) {
 												if (e instanceof Error) {

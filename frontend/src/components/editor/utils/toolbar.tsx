@@ -204,7 +204,7 @@ export function updateToolbar(
 	}
 }
 
-/** Used to add images from filesystem editor */
+/** Used to add files from local filesystem */
 export async function insertAttachmentFromFile(
 	folder: string,
 	note: string,
@@ -213,12 +213,14 @@ export async function insertAttachmentFromFile(
 	try {
 		const { success, message, paths } = await AddAttachments(folder, note);
 		// Goes through all the files and add them to the editor
-		editor.update(() => {
-			const payloads: FilePayload[] = paths.map((filePath) => ({
-				src: `${FILE_SERVER_URL}/${filePath}`,
-				alt: "test",
-				elementType: getFileElementTypeFromExtension(filePath),
-			}));
+		editor.update(async () => {
+			const payloads: FilePayload[] = await Promise.all(
+				paths.map(async (filePath) => ({
+					src: `${FILE_SERVER_URL}/${filePath}`,
+					alt: "test",
+					elementType: await getFileElementTypeFromExtension(filePath),
+				})),
+			);
 			editor.dispatchCommand(INSERT_FILES_COMMAND, payloads);
 			if (!success) toast.error(message);
 		});

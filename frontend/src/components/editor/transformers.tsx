@@ -38,6 +38,7 @@ import {
 import {
 	$createNodeSelection,
 	$createTextNode,
+	$getEditor,
 	$isParagraphNode,
 	$isTextNode,
 	$setSelection,
@@ -86,7 +87,7 @@ function updateSrc(nodeSrc: string) {
 	const urlSplit = location.pathname.split("/");
 	const currentFolder = urlSplit.at(1);
 
-	return nodeSrc.replace(srcRegex, `/notes/${currentFolder}/attachments/`);
+	return nodeSrc.replace(srcRegex, `/notes/${currentFolder}/`);
 }
 
 const FILE_TRANSFORMER: TextMatchTransformer = {
@@ -111,7 +112,7 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 	},
 	importRegExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))/,
 	regExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))$/,
-	replace: (textNode, match) => {
+	replace: async (textNode, match) => {
 		const alt = match.at(1);
 		const filePathOrSrc = match.at(2);
 		if (!alt || !filePathOrSrc) {
@@ -126,14 +127,27 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 				: Number.parseInt(widthQueryValue)
 			: "100%";
 
-		const nodeToCreate = $createFileNode({
-			alt: removeQueryParam(alt, "width"),
-			src: filePathOrSrc,
-			width,
-			elementType: getFileElementTypeFromExtension(filePathOrSrc),
+		const editor = $getEditor();
+
+		const elementType = await getFileElementTypeFromExtension(filePathOrSrc);
+
+		editor.update(() => {
+			console.log("bob");
+			const nodeToCreate = $createFileNode({
+				alt: removeQueryParam(alt, "width"),
+				src: filePathOrSrc,
+				width,
+				elementType,
+			});
+			textNode.replace(nodeToCreate);
 		});
 
-		textNode.replace(nodeToCreate);
+		// const nodeToCreate = $createFileNode({
+		// 	alt: removeQueryParam(alt, "width"),
+		// 	src: filePathOrSrc,
+		// 	width,
+		// 	elementType: await getFileElementTypeFromExtension(filePathOrSrc),
+		// });
 	},
 	type: "text-match",
 	trigger: ")",
