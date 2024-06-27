@@ -67,17 +67,7 @@ export function NotesSidebar({
 		const data = body.data as { folder: string; note: string };
 		// Windows that are on a different folder should not navigate to this new url
 		if (data.folder !== decodeURIComponent(folder)) return;
-		// const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-		// 	data.note,
-		// );
-
 		setNotes((prev) => (prev ? [...prev, data.note] : [data.note]));
-		// Need to only do this when a note is created with the ui
-		// navigate(
-		// 	`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
-		// 		queryParams.ext
-		// 	}`,
-		// );
 	});
 
 	useWailsEvent("note:delete", (body) => {

@@ -60,7 +60,7 @@ import {
 } from "./nodes/excalidraw";
 import { $createFileNode, $isFileNode, FileNode } from "./nodes/file";
 import { $createLinkNode, $isLinkNode, LinkNode } from "./nodes/link";
-import { getFileElementTypeFromExtension } from "./utils/file-node.ts";
+import { getFileElementTypeFromExtensionAndHead } from "./utils/file-node.ts";
 import type { Transformer } from "./utils/note-metadata";
 
 export const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
@@ -129,7 +129,8 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 
 		const editor = $getEditor();
 
-		const elementType = await getFileElementTypeFromExtension(filePathOrSrc);
+		const elementType =
+			await getFileElementTypeFromExtensionAndHead(filePathOrSrc);
 
 		editor.update(() => {
 			console.log("bob");
@@ -141,13 +142,6 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 			});
 			textNode.replace(nodeToCreate);
 		});
-
-		// const nodeToCreate = $createFileNode({
-		// 	alt: removeQueryParam(alt, "width"),
-		// 	src: filePathOrSrc,
-		// 	width,
-		// 	elementType: await getFileElementTypeFromExtension(filePathOrSrc),
-		// });
 	},
 	type: "text-match",
 	trigger: ")",

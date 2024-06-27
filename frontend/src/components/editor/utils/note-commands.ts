@@ -113,7 +113,11 @@ export function overrideEscapeKeyCommand(nodeKey: string) {
 	return false;
 }
 
-export async function overrideControlledTextInsertion(
+/**
+ *
+ * This function occurs when you drag text or a link from one note to another
+ */
+export function overrideControlledTextInsertion(
 	e: string | InputEvent,
 	editor: LexicalEditor,
 	draggedElement: HTMLElement | null,
@@ -146,7 +150,7 @@ export async function overrideControlledTextInsertion(
 					title: title,
 				});
 			} else {
-				const elementType = await getFileElementTypeFromExtension(fileText);
+				const elementType = getFileElementTypeFromExtension(fileText);
 				filePayloads.push({
 					elementType,
 					alt: title,

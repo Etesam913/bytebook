@@ -107,7 +107,29 @@ export function changeSelectedBlocksType(
 	});
 }
 
-type TextFormats = null | "bold" | "italic" | "underline" | "strikethrough";
+export function updateToolbarOnSelectionChange(
+	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
+) {
+	const selection = $getSelection();
+	if (!selection) return;
+	if ($isRangeSelection(selection)) {
+		const selectionTextFormats: TextFormatType[] = [];
+		if (selection.hasFormat("bold")) {
+			selectionTextFormats.push("bold");
+		}
+		if (selection.hasFormat("italic")) {
+			selectionTextFormats.push("italic");
+		}
+		if (selection.hasFormat("underline")) {
+			selectionTextFormats.push("underline");
+		}
+		if (selection.hasFormat("strikethrough")) {
+			selectionTextFormats.push("strikethrough");
+		}
+
+		setCurrentSelectionFormat(selectionTextFormats as TextFormatType[]);
+	}
+}
 
 /**
  * Looks at the currently selected text and retrieves its block type and text format info.
@@ -161,22 +183,7 @@ export function updateToolbar(
 				: anchorNode.getTopLevelElementOrThrow();
 		const elementKey = element.getKey();
 		const elementDOM = editor.getElementByKey(elementKey);
-		const selectionTextFormats: TextFormats[] = [];
-		if (selection.hasFormat("bold")) {
-			selectionTextFormats.push("bold");
-		}
-		if (selection.hasFormat("italic")) {
-			selectionTextFormats.push("italic");
-		}
-		if (selection.hasFormat("underline")) {
-			selectionTextFormats.push("underline");
-		}
-		if (selection.hasFormat("strikethrough")) {
-			selectionTextFormats.push("strikethrough");
-		}
-
-		setCurrentSelectionFormat(selectionTextFormats as TextFormatType[]);
-
+		updateToolbarOnSelectionChange(setCurrentSelectionFormat);
 		if (!elementDOM) return;
 
 		// Consists of headings like h1, h2, h3, etc.
@@ -214,13 +221,11 @@ export async function insertAttachmentFromFile(
 		const { success, message, paths } = await AddAttachments(folder, note);
 		// Goes through all the files and add them to the editor
 		editor.update(async () => {
-			const payloads: FilePayload[] = await Promise.all(
-				paths.map(async (filePath) => ({
-					src: `${FILE_SERVER_URL}/${filePath}`,
-					alt: "test",
-					elementType: await getFileElementTypeFromExtension(filePath),
-				})),
-			);
+			const payloads: FilePayload[] = paths.map((filePath) => ({
+				src: `${FILE_SERVER_URL}/${filePath}`,
+				alt: "test",
+				elementType: getFileElementTypeFromExtension(filePath),
+			}));
 			editor.dispatchCommand(INSERT_FILES_COMMAND, payloads);
 			if (!success) toast.error(message);
 		});

@@ -17,28 +17,38 @@ async function checkURLType(url: string) {
 		const contentType = response.headers.get("Content-Type");
 		if (contentType) {
 			if (contentType.startsWith("image/")) {
-				return "Image";
+				return "image";
 			}
 			if (contentType.startsWith("video/")) {
-				return "Video";
+				return "video";
 			}
-			return "Other";
+			return "unknown";
 		}
-		return "Unknown";
+		return "unknown";
 	} catch (error) {
-		return `Error: ${error}`;
+		return "unknown";
 	}
 }
 
+/** This function checks if the file type is unknown, and if so, it makes a HEAD request to the file to determine the type.
+ * This is done because the file type is not always determined by the extension alone.
+ * This does make it async though
+ */
+export async function getFileElementTypeFromExtensionAndHead(fileName: string) {
+	let fileType = getFileElementTypeFromExtension(fileName);
+	if (fileType === "unknown") {
+		fileType = await checkURLType(fileName);
+	}
+	return fileType;
+}
+
 /**
- * Determines the type of file based on its extension.
+ * Determines the type of file based on its extension. This function does not make a HEAD request to the file.
  *
  * @param {string} fileName - The name of the file whose type is to be determined.
  * @returns {FileType} - The type of the file, which can be 'image', 'video', 'pdf', or 'unknown'.
  */
-export async function getFileElementTypeFromExtension(
-	fileName: string,
-): Promise<FileType> {
+export function getFileElementTypeFromExtension(fileName: string): FileType {
 	// Check if the file extension matches any of the image file extensions
 	const shouldCreateImage = IMAGE_FILE_EXTENSIONS.some((extension) =>
 		fileName.endsWith(`.${extension}`),
@@ -62,14 +72,6 @@ export async function getFileElementTypeFromExtension(
 	// Return 'pdf' if the file is a PDF document
 	if (shouldCreatePdf) {
 		return "pdf";
-	}
-
-	const type = await checkURLType(fileName);
-	if (type === "Image") {
-		return "image";
-	}
-	if (type === "Video") {
-		return "video";
 	}
 
 	return "unknown";
