@@ -135,27 +135,39 @@ export function overrideControlledTextInsertion(
 
 	for (const fileText of files) {
 		if (fileText.startsWith("wails:")) {
-			const { urlWithoutExtension, extension, fileName } =
-				getFileExtension(fileText);
-			// Create a link to the markdown note
-			if (!urlWithoutExtension || !extension || !fileName) return true;
-			const segments = urlWithoutExtension.split("/");
-
-			const title = segments.pop() ?? "";
-			const folder = segments.pop() ?? "";
-
-			if (extension === "md") {
+			const segments = fileText.split("/");
+			// You are dealing with a folder link
+			if (fileText.indexOf(".") === -1) {
 				linkPayloads.push({
-					url: `${urlWithoutExtension}?ext=${extension}`,
-					title: title,
+					url: fileText,
+					title: segments.pop() ?? "",
 				});
-			} else {
-				const elementType = getFileElementTypeFromExtension(fileText);
-				filePayloads.push({
-					elementType,
-					alt: title,
-					src: `${FILE_SERVER_URL}/notes/${folder}/${fileName}.${extension}`,
-				});
+			}
+			// You are dealing with a note link or a file link
+			else {
+				const { urlWithoutExtension, extension, fileName } =
+					getFileExtension(fileText);
+
+				// Create a link to the markdown note
+				if (!urlWithoutExtension || !extension || !fileName) return true;
+				const segments = urlWithoutExtension.split("/");
+
+				const title = segments.pop() ?? "";
+				const folder = segments.pop() ?? "";
+
+				if (extension === "md") {
+					linkPayloads.push({
+						url: `${urlWithoutExtension}?ext=${extension}`,
+						title: title,
+					});
+				} else {
+					const elementType = getFileElementTypeFromExtension(fileText);
+					filePayloads.push({
+						elementType,
+						alt: title,
+						src: `${FILE_SERVER_URL}/notes/${folder}/${fileName}.${extension}`,
+					});
+				}
 			}
 		}
 	}

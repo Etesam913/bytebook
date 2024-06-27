@@ -46,7 +46,7 @@ export function handleDragStart(
 					extractInfoFromNoteName(noteNameWithExtensionParam);
 
 				if (fileType === "folder") {
-					return `wails://localhost:5173/${noteNameWithoutExtension}.${queryParams.ext}`;
+					return `wails://localhost:5173/${noteNameWithoutExtension}`;
 				}
 				// A note link should have a folder associated with it
 				if (!folder) {
