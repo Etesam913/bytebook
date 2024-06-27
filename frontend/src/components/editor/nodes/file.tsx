@@ -29,19 +29,45 @@ export interface FilePayload {
 	src: string;
 }
 
-function convertFileElement(domNode: Node): null | DOMConversionOutput {
-	const img = domNode as HTMLImageElement & {
-		elementType: FileType;
-	};
-
-	if (img.src.startsWith("file:///")) {
-		return null;
-	}
-	const { alt, src, width, elementType } = img;
-	const node = $createFileNode({ alt, src, width, elementType });
+function convertFileElement(domNode: HTMLElement): null | DOMConversionOutput {
 	const parentNode = $createParagraphNode();
-	parentNode.append(node);
-	return { node: node };
+	if (domNode.tagName === "IMG") {
+		const image = domNode as HTMLImageElement;
+		if (image.src.startsWith("file:///")) {
+			return null;
+		}
+		const { alt, src } = image;
+		const node = $createFileNode({
+			alt,
+			src,
+			width: "100%",
+			elementType: "image",
+		});
+		parentNode.append(node);
+		return { node: node };
+	}
+	if (domNode.tagName === "VIDEO") {
+		const video = domNode as HTMLVideoElement;
+		const { src, title } = video;
+		const node = $createFileNode({
+			alt: title,
+			src,
+			width: "100%",
+			elementType: "video",
+		});
+		parentNode.append(node);
+		return { node: node };
+	}
+
+	const unknown = $createFileNode({
+		alt: "Unknown",
+		src: "",
+		width: "100%",
+		elementType: "unknown",
+	});
+	parentNode.append(unknown);
+
+	return { node: unknown };
 }
 
 export type SerializedFileNode = Spread<
