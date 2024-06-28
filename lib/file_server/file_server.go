@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -49,7 +50,98 @@ func LaunchFileServer(projectPath string) {
 	}
 }
 
+/*
+Handles folder:create, folder:delete, and folder:rename events
+*/
+func handleFolderEvents(app *application.App, event fsnotify.Event, watcher *fsnotify.Watcher) {
+	folderName := filepath.Base(event.Name)
+	if event.Has(fsnotify.Create) {
+
+		watcher.Add(event.Name)
+
+		app.Events.Emit(&application.WailsEvent{
+			Name: "folder:create",
+			Data: map[string]string{"folder": folderName},
+		})
+	}
+	if event.Has(fsnotify.Remove) {
+		watcher.Remove(event.Name)
+		app.Events.Emit(&application.WailsEvent{
+			Name: "folder:delete",
+			Data: map[string]string{"folder": folderName},
+		})
+	}
+	if event.Has(fsnotify.Rename) {
+		watcher.Remove(event.Name)
+		app.Events.Emit(&application.WailsEvent{
+			Name: "folder:rename",
+			Data: map[string]string{"folder": folderName},
+		})
+	}
+}
+
+/*
+Handles trash:create and trash:delete events
+*/
+func handleTrashEvents(app *application.App, event fsnotify.Event) {
+	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
+		app.Events.Emit(&application.WailsEvent{
+			Name: "trash:delete",
+			Data: map[string]string{"name": filepath.Base(event.Name)},
+		})
+	} else if event.Has(fsnotify.Create) {
+		app.Events.Emit(&application.WailsEvent{
+			Name: "trash:create",
+			Data: map[string]string{"name": filepath.Base(event.Name)},
+		})
+	}
+}
+
+/*
+Handles note:create and note:delete events
+There is a debounce timer to prevent multiple events from being emitted
+*/
+func handleNoteEvents(
+	app *application.App,
+	segments []string,
+	event fsnotify.Event,
+	oneFolderBack string,
+	debounceTimer *time.Timer,
+	debounceEvents map[string][]string) {
+
+	note := segments[len(segments)-1]
+	lastIndexOfDot := strings.LastIndex(note, ".")
+	noteName := note[:lastIndexOfDot]
+	extension := note[lastIndexOfDot+1:]
+	// This works for MACOS need to test on other platforms
+	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
+		eventKey := fmt.Sprintf("note:delete:%s", oneFolderBack)
+		debounceEvents[eventKey] = append(debounceEvents[eventKey], fmt.Sprintf("%s?ext=%s", noteName, extension))
+
+		// If false, then the timer is expired
+		if !debounceTimer.Stop() {
+			// Drain the channel to prevent if from being read later
+			<-debounceTimer.C
+		}
+		// reset at 200ms
+		debounceTimer.Reset(200 * time.Millisecond)
+
+		app.Events.Emit(&application.WailsEvent{
+			Name: "note:delete",
+			Data: map[string]string{"note": fmt.Sprintf("%s?ext=%s", noteName, extension), "folder": oneFolderBack},
+		})
+	} else if event.Has(fsnotify.Create) {
+		app.Events.Emit(&application.WailsEvent{
+			Name: "note:create",
+			Data: map[string]string{"note": fmt.Sprintf("%s?ext=%s", noteName, extension), "folder": oneFolderBack},
+		})
+	}
+}
+
 func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
+	debounceTimer := time.NewTimer(0)
+	debounceEvents := make(map[string][]string)
+
 	for {
 		select {
 		case event, ok := <-watcher.Events:
@@ -70,68 +162,18 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 
 			// If is a directory
 			if isDir {
-				folderName := filepath.Base(event.Name)
-				if event.Has(fsnotify.Create) {
-
-					watcher.Add(event.Name)
-
-					app.Events.Emit(&application.WailsEvent{
-						Name: "folder:create",
-						Data: map[string]string{"folder": folderName},
-					})
-				}
-				if event.Has(fsnotify.Remove) {
-					watcher.Remove(event.Name)
-					app.Events.Emit(&application.WailsEvent{
-						Name: "folder:delete",
-						Data: map[string]string{"folder": folderName},
-					})
-				}
-				if event.Has(fsnotify.Rename) {
-					watcher.Remove(event.Name)
-					app.Events.Emit(&application.WailsEvent{
-						Name: "folder:rename",
-						Data: map[string]string{"folder": folderName},
-					})
-				}
+				handleFolderEvents(app, event, watcher)
 				continue
 			}
 
 			// Only dealing with files at this point
+
 			segments := strings.Split(event.Name, "/")
 			oneFolderBack := segments[len(segments)-2]
-			twoFoldersBack := segments[len(segments)-3]
-			fmt.Println(oneFolderBack, twoFoldersBack)
-
 			if oneFolderBack == "trash" {
-				if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
-					app.Events.Emit(&application.WailsEvent{
-						Name: "trash:delete",
-						Data: map[string]string{"name": filepath.Base(event.Name)},
-					})
-				} else if event.Has(fsnotify.Create) {
-					app.Events.Emit(&application.WailsEvent{
-						Name: "trash:create",
-						Data: map[string]string{"name": filepath.Base(event.Name)},
-					})
-				}
+				handleTrashEvents(app, event)
 			} else {
-				note := segments[len(segments)-1]
-				lastIndexOfDot := strings.LastIndex(note, ".")
-				noteName := note[:lastIndexOfDot]
-				extension := note[lastIndexOfDot+1:]
-				// This works for MACOS need to test on other platforms
-				if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
-					app.Events.Emit(&application.WailsEvent{
-						Name: "note:delete",
-						Data: map[string]string{"note": fmt.Sprintf("%s?ext=%s", noteName, extension), "folder": oneFolderBack},
-					})
-				} else if event.Has(fsnotify.Create) {
-					app.Events.Emit(&application.WailsEvent{
-						Name: "note:create",
-						Data: map[string]string{"note": fmt.Sprintf("%s?ext=%s", noteName, extension), "folder": oneFolderBack},
-					})
-				}
+				handleNoteEvents(app, segments, event, oneFolderBack, debounceTimer, debounceEvents)
 			}
 
 		case err, ok := <-watcher.Errors:

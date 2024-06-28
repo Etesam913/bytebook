@@ -97,7 +97,9 @@ export async function onFolderDialogSubmit(
 					"Untitled",
 				);
 				if (addNoteRes.success)
-					navigate(`/${encodeURIComponent(newFolderNameString)}/Untitled`);
+					navigate(
+						`/${encodeURIComponent(newFolderNameString)}/Untitled?ext=md`,
+					);
 				else throw new Error(addNoteRes.message);
 
 				toast.success(

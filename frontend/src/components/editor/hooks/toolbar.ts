@@ -26,6 +26,7 @@ import {
 	type SetStateAction,
 	useEffect,
 } from "react";
+import { navigate } from "wouter/use-browser-location";
 import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { draggedElementAtom } from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
@@ -79,8 +80,9 @@ export function useNoteMarkdown(
 					throw new Error("Failed in retrieving note markdown");
 				}
 			} catch (e) {
+				console.log(folder, note);
 				console.error(e);
-				// navigate("/not-found", { replace: true });
+				navigate("/not-found", { replace: true });
 			}
 		}
 		fetchNoteMarkdown();

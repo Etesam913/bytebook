@@ -52,7 +52,7 @@ export function MyFoldersAccordion({
 					</li>
 				}
 				renderLink={({
-					dataItem: folderName,
+					dataItem: sidebarFolderName,
 					i,
 					selectionRange,
 					setSelectionRange,
@@ -72,21 +72,32 @@ export function MyFoldersAccordion({
 						className={cn(
 							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform",
 							folder &&
-								decodeURIComponent(folder) === folderName &&
+								decodeURIComponent(folder) === sidebarFolderName &&
 								"bg-zinc-150 dark:bg-zinc-700",
 							alphabetizedFolders?.at(i) &&
 								selectionRange.has(alphabetizedFolders[i]) &&
 								"!bg-blue-400 dark:!bg-blue-600 text-white",
 						)}
-						to={`/${encodeURIComponent(folderName)}`}
+						to={`/${encodeURIComponent(sidebarFolderName)}`}
+						onContextMenu={() => {
+							if (selectionRange.size === 0) {
+								setSelectionRange(new Set([sidebarFolderName]));
+							} else {
+								setSelectionRange((prev) => {
+									const tempSet = new Set(prev);
+									tempSet.add(sidebarFolderName);
+									return tempSet;
+								});
+							}
+						}}
 					>
-						{folder && decodeURIComponent(folder) === folderName ? (
+						{folder && decodeURIComponent(folder) === sidebarFolderName ? (
 							<FolderOpen title="" className="min-w-[1.25rem]" />
 						) : (
 							<Folder title="" className="min-w-[1.25rem]" />
 						)}{" "}
 						<p className="whitespace-nowrap text-ellipsis overflow-hidden">
-							{folderName}
+							{sidebarFolderName}
 						</p>
 					</Link>
 				)}

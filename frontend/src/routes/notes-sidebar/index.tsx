@@ -226,11 +226,7 @@ export function NotesSidebar({
 													resetDialogState(setErrorText, setDialogData);
 													toast.success(
 														`Note, "${newNoteNameString}", successfully created.`,
-														{
-															dismissible: true,
-															duration: 2000,
-															closeButton: true,
-														},
+														DEFAULT_SONNER_OPTIONS,
 													);
 													navigate(`/${folder}/${newNoteNameString}?ext=md`);
 												}
