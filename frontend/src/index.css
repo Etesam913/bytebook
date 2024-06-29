@@ -47,6 +47,11 @@
     will-change: transform;
 }
 
+.sidebar-item{
+    @apply flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform;
+}
+
+
 :root {
     @apply transition-colors duration-300 dark:[color-scheme:dark] overscroll-none;
 }

@@ -1,8 +1,12 @@
 import type { SetStateAction } from "jotai";
 import type { Dispatch } from "react";
+import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
 import { GetFolders } from "../../bindings/github.com/etesam913/bytebook/folderservice";
-import { GetNotes } from "../../bindings/github.com/etesam913/bytebook/noteservice";
+import {
+	GetNoteCount,
+	GetNotes,
+} from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { extractInfoFromNoteName } from "./string-formatting";
 
 /** Initially fetches folders from filesystem */
@@ -64,5 +68,22 @@ export async function updateNotes(
 		console.error("Error updating notes:", error);
 		navigate("/not-found", { replace: true });
 		setNotes(null);
+	}
+}
+
+export async function getNoteCount(
+	folder: string,
+	setNoteCount: Dispatch<SetStateAction<number>>,
+) {
+	try {
+		const res = await GetNoteCount(decodeURIComponent(folder));
+		if (!res.success) {
+			throw new Error("Failed to get note count");
+		}
+		setNoteCount(res.data);
+	} catch (e) {
+		if (e instanceof Error) {
+			toast.error(e.message);
+		}
 	}
 }

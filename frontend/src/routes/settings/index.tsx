@@ -1,23 +1,12 @@
-import { Link } from "wouter";
-import { getDefaultButtonVariants } from "../../animations";
-import { MotionIconButton } from "../../components/buttons";
-import { CircleArrowLeft } from "../../icons/circle-arrow-left";
+import { SettingsSidebar } from "./settings-sidebar";
 
-export function SettingsPage() {
+export function SettingsWindow() {
 	return (
-		<div className="px-2 pb-2">
-			<header className="flex gap-1 items-center">
-				<Link to="/">
-					<MotionIconButton
-						{...getDefaultButtonVariants()}
-						title="Go Back"
-						onClick={() => window.history.back()}
-					>
-						<CircleArrowLeft title="Go Back" />
-					</MotionIconButton>
-				</Link>
-				Settings
-			</header>
+		<div className="flex gap-5">
+			<SettingsSidebar currentOption="appearance" />
+			<div>
+				👺 henlo my name is etesam ansari 😁. I am a developer and a designer.
+			</div>
 		</div>
 	);
 }

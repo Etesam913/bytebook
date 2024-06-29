@@ -11,8 +11,10 @@ import { RenderNoteIcon } from "./render-note-icon";
 
 export function MyNotesAccordion({
 	notes,
+	noteCount,
 }: {
 	notes: string[] | null;
+	noteCount: number;
 }) {
 	const { folder: curFolder, note: curNote } = useParams();
 	const searchParams: { ext?: string } = useSearchParamsEntries();
@@ -24,11 +26,10 @@ export function MyNotesAccordion({
 		<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
 			<div className="flex items-center gap-1.5 py-1 rounded-md px-0.5 transition-colors">
 				My Notes{" "}
-				{notes && notes.length > 0 && (
-					<span className="tracking-wider">({notes.length})</span>
-				)}
+				{noteCount > 0 && <span className="tracking-wider">({noteCount})</span>}
 			</div>
 			<Sidebar
+				layoutId="recent-notes-accordion"
 				emptyElement={
 					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
 						Create a note with the "Create Note" button above
@@ -78,7 +79,7 @@ export function MyNotesAccordion({
 							}}
 							target="_blank"
 							className={cn(
-								"flex flex-1 gap-2 items-center px-2 py-1 z-10 rounded-md relative overflow-x-hidden transition-colors will-change-transform",
+								"sidebar-item",
 								noteNameWithExtension === sidebarNoteName &&
 									"bg-zinc-150 dark:bg-zinc-700",
 								notes?.at(i) &&

@@ -4,10 +4,7 @@ import { useSearchParamsEntries } from "../../utils/hooks";
 import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
 import { RenderNoteIcon } from "../notes-sidebar/render-note-icon";
 
-export function MyTrashAccordion({
-	files,
-	curFile,
-}: { files: string[]; curFile: string | undefined }) {
+export function MyTrashAccordion({ files }: { files: string[] }) {
 	const { item: curNote } = useParams();
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 
@@ -16,6 +13,7 @@ export function MyTrashAccordion({
 	return (
 		<section className={cn("flex flex-1 flex-col gap-2 overflow-y-auto")}>
 			<Sidebar
+				layoutId="my-trash-accordion"
 				isCollapsed={false}
 				data={files}
 				emptyElement={
@@ -37,7 +35,7 @@ export function MyTrashAccordion({
 							draggable={false}
 							target="_blank"
 							className={cn(
-								"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors",
+								"sidebar-item",
 								sidebarTrashedNoteNameWithExtension === noteNameWithExtension &&
 									"bg-zinc-150 dark:bg-zinc-700",
 							)}

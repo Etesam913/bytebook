@@ -80,7 +80,6 @@ export function useNoteMarkdown(
 					throw new Error("Failed in retrieving note markdown");
 				}
 			} catch (e) {
-				console.log(folder, note);
 				console.error(e);
 				navigate("/not-found", { replace: true });
 			}

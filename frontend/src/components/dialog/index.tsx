@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAtom, useAtomValue } from "jotai";
 import {
 	type Dispatch,
-	type KeyboardEvent,
 	type SetStateAction,
 	useEffect,
 	useRef,
@@ -13,6 +12,7 @@ import { easingFunctions, getDefaultButtonVariants } from "../../animations";
 import { backendQueryAtom, dialogDataAtom } from "../../atoms";
 import { XMark } from "../../icons/circle-xmark";
 import type { DialogDataType } from "../../types";
+import { cn } from "../../utils/string-formatting";
 import { MotionIconButton } from "../buttons";
 import { useTrapFocus } from "./hooks";
 
@@ -118,7 +118,10 @@ export function Dialog() {
 							scale: 0.5,
 							transition: { ease: easingFunctions["ease-out-quint"] },
 						}}
-						className="absolute flex flex-col gap-3 bg-zinc-50 dark:bg-zinc-800 z-40 top-2/4 py-3 px-4 max-w-[80vw] w-80 rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4"
+						className={cn(
+							"absolute flex flex-col gap-5 bg-zinc-50 dark:bg-zinc-800 z-40 top-2/4 py-3 px-4 w-[min(23rem,90vw)]  rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4",
+							dialogData.dialogClassName,
+						)}
 					>
 						<h2 className=" text-xl">{dialogData.title}</h2>
 						{dialogData.children?.(errorText)}

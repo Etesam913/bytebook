@@ -7,7 +7,7 @@ import {
 	useEffect,
 } from "react";
 import { toast } from "sonner";
-import { Link, useRoute } from "wouter";
+import { useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import {
 	AddFolder,
@@ -28,6 +28,7 @@ import {
 } from "../../hooks/folder-events.tsx";
 import { Gear } from "../../icons/gear.tsx";
 import { Pen } from "../../icons/pen.tsx";
+import { SettingsWindow } from "../../routes/settings/index.tsx";
 import type { DialogDataType } from "../../types.ts";
 import { updateFolders } from "../../utils/fetch-functions";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
@@ -167,11 +168,23 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					>
 						<CircleArrowRight title="Go Forward" />
 					</MotionIconButton> */}
-					<Link to="/settings">
-						<MotionIconButton {...getDefaultButtonVariants()} title="Settings">
-							<Gear title="Settings" />
-						</MotionIconButton>
-					</Link>
+					{/* <Link to="/settings"> */}
+					<MotionIconButton
+						{...getDefaultButtonVariants()}
+						title="Settings"
+						onClick={() => {
+							setDialogData({
+								isOpen: true,
+								title: "Settings",
+								dialogClassName: "w-[min(55rem,90vw)]",
+								children: (errorText) => <SettingsWindow />,
+								onSubmit: null,
+							});
+						}}
+					>
+						<Gear title="Settings" />
+					</MotionIconButton>
+					{/* </Link> */}
 				</div>
 				<MotionButton
 					{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}

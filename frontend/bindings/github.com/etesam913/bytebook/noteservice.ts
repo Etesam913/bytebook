@@ -18,10 +18,19 @@ export function AddNoteToFolder(folderName: string, noteName: string): Promise<$
     return $typingPromise;
 }
 
+export function GetNoteCount(folderName: string): Promise<$models.NoteCountResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(3919477362, folderName) as any;
+    let $typingPromise = $resultPromise.then(($result) => {
+        return $$createType1($result);
+    }) as any;
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
 export function GetNoteMarkdown(path: string): Promise<$models.NoteMarkdownResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(2442281646, path) as any;
     let $typingPromise = $resultPromise.then(($result) => {
-        return $$createType1($result);
+        return $$createType2($result);
     }) as any;
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -30,7 +39,7 @@ export function GetNoteMarkdown(path: string): Promise<$models.NoteMarkdownRespo
 export function GetNotes(folderName: string): Promise<$models.NoteResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(4001444448, folderName) as any;
     let $typingPromise = $resultPromise.then(($result) => {
-        return $$createType2($result);
+        return $$createType3($result);
     }) as any;
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -49,7 +58,7 @@ export function GetNotes(folderName: string): Promise<$models.NoteResponse> & { 
 export function MoveToTrash(folderAndNotes: string[]): Promise<$models.MostRecentNoteResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(891730313, folderAndNotes) as any;
     let $typingPromise = $resultPromise.then(($result) => {
-        return $$createType3($result);
+        return $$createType4($result);
     }) as any;
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -58,7 +67,7 @@ export function MoveToTrash(folderAndNotes: string[]): Promise<$models.MostRecen
 export function RenameNote(folderName: string, oldNoteTitle: string, newNoteTitle: string): Promise<$models.NoteResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(2999546831, folderName, oldNoteTitle, newNoteTitle) as any;
     let $typingPromise = $resultPromise.then(($result) => {
-        return $$createType2($result);
+        return $$createType3($result);
     }) as any;
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -67,7 +76,7 @@ export function RenameNote(folderName: string, oldNoteTitle: string, newNoteTitl
 export function SetNoteMarkdown(folderName: string, noteTitle: string, markdown: string): Promise<$models.NoteMarkdownResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(2956762362, folderName, noteTitle, markdown) as any;
     let $typingPromise = $resultPromise.then(($result) => {
-        return $$createType1($result);
+        return $$createType2($result);
     }) as any;
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -76,7 +85,7 @@ export function SetNoteMarkdown(folderName: string, noteTitle: string, markdown:
 export function ValidateMostRecentNotes(paths: string[]): Promise<string[]> & { cancel(): void } {
     let $resultPromise = $Call.ByID(2675478292, paths) as any;
     let $typingPromise = $resultPromise.then(($result) => {
-        return $$createType4($result);
+        return $$createType5($result);
     }) as any;
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -84,7 +93,8 @@ export function ValidateMostRecentNotes(paths: string[]): Promise<string[]> & { 
 
 // Private type creation functions
 const $$createType0 = $models.AddFolderResponse.createFrom;
-const $$createType1 = $models.NoteMarkdownResponse.createFrom;
-const $$createType2 = $models.NoteResponse.createFrom;
-const $$createType3 = $models.MostRecentNoteResponse.createFrom;
-const $$createType4 = $Create.Array($Create.Any);
+const $$createType1 = $models.NoteCountResponse.createFrom;
+const $$createType2 = $models.NoteMarkdownResponse.createFrom;
+const $$createType3 = $models.NoteResponse.createFrom;
+const $$createType4 = $models.MostRecentNoteResponse.createFrom;
+const $$createType5 = $Create.Array($Create.Any);

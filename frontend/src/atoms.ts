@@ -36,6 +36,7 @@ export const dialogDataAtom = atom<DialogDataType>({
 	title: "",
 	children: null,
 	onSubmit: null,
+	dialogClassName: "",
 });
 
 export const backendQueryAtom = atom<BackendQueryDataType>({

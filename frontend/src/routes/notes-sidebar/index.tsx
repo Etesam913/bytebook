@@ -1,6 +1,6 @@
 import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
 import { AddNoteToFolder } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
@@ -31,7 +31,7 @@ import {
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
 import { Pen } from "../../icons/pen";
-import { updateNotes } from "../../utils/fetch-functions";
+import { getNoteCount, updateNotes } from "../../utils/fetch-functions";
 import { useSearchParamsEntries } from "../../utils/hooks.tsx";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
 import { validateName } from "../../utils/string-formatting.ts";
@@ -48,6 +48,7 @@ export function NotesSidebar({
 	leftWidth: MotionValue<number>;
 }) {
 	const setDialogData = useSetAtom(dialogDataAtom);
+	const [noteCount, setNoteCount] = useState(0);
 	const [notes, setNotes] = useAtom(notesAtom);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const { folder, note } = params;
@@ -60,6 +61,7 @@ export function NotesSidebar({
 
 	useEffect(() => {
 		updateNotes(folder, note, setNotes);
+		getNoteCount(folder, setNoteCount);
 	}, [folder, setNotes]);
 
 	useNoteCreate(folder, setNotes);
@@ -183,7 +185,7 @@ export function NotesSidebar({
 							</MotionButton>
 							<section className="flex flex-col gap-2 overflow-y-auto">
 								<div className="flex h-full flex-col overflow-y-auto">
-									<MyNotesAccordion notes={notes} />
+									<MyNotesAccordion notes={notes} noteCount={noteCount} />
 								</div>
 							</section>
 						</div>

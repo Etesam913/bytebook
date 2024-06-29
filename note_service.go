@@ -182,6 +182,11 @@ func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 	return validPaths
 }
 
+type MostRecentNoteResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
+
 // MoveToTrash moves the specified folders and notes to the trash directory.
 // Parameters:
 //
@@ -228,7 +233,24 @@ func (n *NoteService) MoveToTrash(folderAndNotes []string) MostRecentNoteRespons
 	}
 }
 
-type MostRecentNoteResponse struct {
+type NoteCountResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
+	Data    int    `json:"data"`
+}
+
+func (n *NoteService) GetNoteCount(folderName string) NoteCountResponse {
+	count, err := io_helpers.CountFilesInDirectory(filepath.Join(n.ProjectPath, "notes", folderName))
+	if err != nil {
+		return NoteCountResponse{
+			Success: false,
+			Message: err.Error(),
+			Data:    0,
+		}
+	}
+	return NoteCountResponse{
+		Success: true,
+		Message: "",
+		Data:    count,
+	}
 }

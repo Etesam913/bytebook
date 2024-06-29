@@ -179,6 +179,35 @@ export class MostRecentNoteResponse {
     }
 }
 
+export class NoteCountResponse {
+    "success": boolean;
+    "message": string;
+    "data": number;
+
+    /** Creates a new NoteCountResponse instance. */
+    constructor($$source: Partial<NoteCountResponse> = {}) {
+        if (!("success" in $$source)) {
+            this["success"] = false;
+        }
+        if (!("message" in $$source)) {
+            this["message"] = "";
+        }
+        if (!("data" in $$source)) {
+            this["data"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new NoteCountResponse instance from a string or object.
+     */
+    static createFrom($$source: any = {}): NoteCountResponse {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new NoteCountResponse($$parsedSource as Partial<NoteCountResponse>);
+    }
+}
+
 export class NoteMarkdownResponse {
     "success": boolean;
     "message": string;

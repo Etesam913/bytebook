@@ -44,6 +44,7 @@ export type DialogDataType = {
 	isOpen: boolean;
 	title: string;
 	children: ((errorText: string) => ReactNode) | null;
+	dialogClassName?: string;
 	onSubmit:
 		| ((
 				e: FormEvent<HTMLFormElement>,

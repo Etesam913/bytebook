@@ -46,6 +46,7 @@ export function MyFoldersAccordion({
 			</button>
 
 			<Sidebar
+				layoutId="my-folders-accordion"
 				emptyElement={
 					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
 						Create a folder with the "Create Folder" button above
@@ -70,7 +71,7 @@ export function MyFoldersAccordion({
 						}
 						target="_blank"
 						className={cn(
-							"flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform",
+							"sidebar-item",
 							folder &&
 								decodeURIComponent(folder) === sidebarFolderName &&
 								"bg-zinc-150 dark:bg-zinc-700",

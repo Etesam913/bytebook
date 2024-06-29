@@ -133,7 +133,6 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 			await getFileElementTypeFromExtensionAndHead(filePathOrSrc);
 
 		editor.update(() => {
-			console.log("bob");
 			const nodeToCreate = $createFileNode({
 				alt: removeQueryParam(alt, "width"),
 				src: filePathOrSrc,

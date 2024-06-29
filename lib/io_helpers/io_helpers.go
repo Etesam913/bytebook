@@ -276,3 +276,18 @@ func CreateUniqueNameForFileIfExists(filePath string) (string, error) {
 
 	return newFilePath, nil
 }
+
+func CountFilesInDirectory(folderPath string) (int, error) {
+	dir, err := os.Open(folderPath)
+	if err != nil {
+		return 0, err
+	}
+	defer dir.Close()
+
+	fileNames, err := dir.Readdirnames(-1)
+	if err != nil {
+		return 0, err
+	}
+
+	return len(fileNames), nil
+}

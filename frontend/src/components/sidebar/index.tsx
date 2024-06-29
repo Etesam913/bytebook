@@ -15,6 +15,7 @@ export function Sidebar({
 	getContextMenuStyle,
 	renderLink,
 	emptyElement,
+	layoutId,
 }: {
 	isCollapsed: boolean;
 	data: string[] | null;
@@ -26,6 +27,7 @@ export function Sidebar({
 		setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
 	}) => ReactNode;
 	emptyElement?: ReactNode;
+	layoutId: string;
 }) {
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 	const anchorSelectionIndex = useRef<number>(0);
@@ -45,6 +47,7 @@ export function Sidebar({
 					className="overflow-y-auto"
 				>
 					<SidebarItems
+						layoutId={layoutId}
 						data={data}
 						renderLink={renderLink}
 						getContextMenuStyle={getContextMenuStyle}

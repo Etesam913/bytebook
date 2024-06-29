@@ -1,17 +1,13 @@
 import { useMotionValue } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { Toaster } from "sonner";
-import { Link, Route, Switch } from "wouter";
-import { getDefaultButtonVariants } from "./animations";
+import { Route, Switch } from "wouter";
 import { isNoteMaximizedAtom } from "./atoms";
-import { MotionIconButton } from "./components/buttons";
 import { Dialog } from "./components/dialog";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { LoadingModal } from "./components/loading-modal";
-import { CircleArrowLeft } from "./icons/circle-arrow-left";
 import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
-import { SettingsPage } from "./routes/settings";
 import { TrashSidebar } from "./routes/trash-sidebar";
 import { useDarkModeSetting } from "./utils/hooks";
 
@@ -41,9 +37,9 @@ function App() {
 						leftWidth={folderSidebarWidth}
 					/>
 				</Route>
-				<Route path="/settings">
-					<SettingsPage />
-				</Route>
+				{/* <Route path="/settings/:option?">
+					{(settingsParams) => <SettingsPage params={settingsParams} />}
+				</Route> */}
 				<Route path="/not-found">
 					<NotFound />
 				</Route>

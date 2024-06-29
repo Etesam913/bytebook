@@ -1,7 +1,7 @@
 import { type MotionValue, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useParams, useRoute } from "wouter";
+import { useParams } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import {
 	ClearTrash,
@@ -21,10 +21,8 @@ export function TrashSidebar({
 	width,
 	leftWidth,
 }: { width: MotionValue<number>; leftWidth: MotionValue<number> }) {
-	const [, params] = useRoute("/trash/:item?");
 	const [files, setFiles] = useState<string[]>([]);
 
-	const item = params?.item;
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const fileExtension = searchParams?.ext;
 	const { item: curNote } = useParams();
@@ -103,7 +101,7 @@ export function TrashSidebar({
 							</MotionButton>
 						)}
 						<div className="flex h-full pb-2 flex-col gap-2 overflow-y-auto">
-							<MyTrashAccordion files={files} curFile={item} />
+							<MyTrashAccordion files={files} />
 						</div>
 					</section>
 				</div>
