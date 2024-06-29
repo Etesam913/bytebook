@@ -64,7 +64,7 @@ export function NotesSidebar({
 		getNoteCount(folder, setNoteCount);
 	}, [folder, setNotes]);
 
-	useNoteCreate(folder, setNotes, setNoteCount);
+	useNoteCreate(folder, notes ?? [], setNotes, setNoteCount);
 	useNoteDelete(folder, note, setNotes, setNoteCount, fileExtension);
 	useNoteContextMenuDelete(folder, setSelectionRange);
 	useNoteOpenInNewWindow(folder, selectionRange, setSelectionRange);

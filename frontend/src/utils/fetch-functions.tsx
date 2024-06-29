@@ -42,6 +42,7 @@ export async function updateNotes(
 		}
 
 		const notes = res.data;
+		console.log("notes", notes);
 		setNotes(notes);
 
 		// If the current is not defined, then navigate to the first note so that you are never at an undefined note

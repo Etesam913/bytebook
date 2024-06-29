@@ -58,7 +58,7 @@ func LaunchFileServer(projectPath string) {
 // Behavior:
 // - Stops the timer to prevent it from firing.
 // - If the timer had already fired, it drains the timer's channel to consume the expired event.
-// - Resets the timer to start counting down from 200 milliseconds.
+// - Resets the timer to start counting down from 75 milliseconds.
 func handleDebounceReset(debounceTimer *time.Timer) {
 	// Stop the timer, but don't drain the channel if it's already empty.
 	if !debounceTimer.Stop() {
@@ -70,9 +70,9 @@ func handleDebounceReset(debounceTimer *time.Timer) {
 		}
 	}
 
-	// Reset the timer to 200 milliseconds.
-	// This means the timer will start counting down from 200ms again.
-	debounceTimer.Reset(200 * time.Millisecond)
+	// Reset the timer 75 milliseconds.
+	// This means the timer will start counting down from 75s again.
+	debounceTimer.Reset(75 * time.Millisecond)
 }
 
 /*
@@ -196,7 +196,9 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 
 			// If is a directory
 			if isDir {
+
 				// We do not care about folders inside of folders
+				// TODO: A user could create a folder called notes inside of notes and this would be problematic
 				if oneFolderBack == "notes" {
 					handleFolderEvents(event, watcher, debounceTimer, debounceEvents)
 				}

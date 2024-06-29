@@ -36,7 +36,7 @@ export function useFolderCreate(
 ) {
 	useWailsEvent("folder:create", (body) => {
 		const data = body.data as { folder: string }[];
-		console.log("folder:create", data);
+
 		setFolders((prev) => {
 			if (!prev) return data.map(({ folder }) => folder);
 			return [...prev, ...data.map(({ folder }) => folder)];

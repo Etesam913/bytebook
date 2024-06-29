@@ -11,6 +11,7 @@ import { extractInfoFromNoteName } from "../utils/string-formatting";
 /** This function is used to handle note:create events */
 export function useNoteCreate(
 	folder: string,
+	notes: string[],
 	setNotes: Dispatch<SetStateAction<string[] | null>>,
 	setNoteCount: Dispatch<SetStateAction<number>>,
 ) {
@@ -22,18 +23,21 @@ export function useNoteCreate(
 		/*
      If none of the added notes are in the current folder, then don't update the notes
      This can be triggered when there are multple windows open 
+
+		 There is notes.includes to deal with the Untitled Note race condition
     */
-		const filteredNotes = data.filter(
-			(item) => item.folder === decodeURIComponent(folder),
-		);
+		const filteredNotes = data
+			.filter(
+				(item) =>
+					item.folder === decodeURIComponent(folder) &&
+					!notes.includes(item.note),
+			)
+			.map((item) => item.note);
 
 		if (filteredNotes.length === 0) return;
 
-		// Extract the notes
-		const notes = filteredNotes.map((item) => item.note);
-
 		// Update the notes state
-		setNotes((prev) => (prev ? [...prev, ...notes] : notes));
+		setNotes((prev) => (prev ? [...prev, ...filteredNotes] : filteredNotes));
 	});
 }
 /** This function is used to handle note:delete events */
