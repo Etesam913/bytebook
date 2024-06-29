@@ -11,6 +11,7 @@ import { LoadingModal } from "./components/loading-modal";
 import { CircleArrowLeft } from "./icons/circle-arrow-left";
 import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
+import { SettingsPage } from "./routes/settings";
 import { TrashSidebar } from "./routes/trash-sidebar";
 import { useDarkModeSetting } from "./utils/hooks";
 
@@ -41,20 +42,7 @@ function App() {
 					/>
 				</Route>
 				<Route path="/settings">
-					<div className="px-2 pt-12 pb-2">
-						<header className="flex gap-1 items-center">
-							<Link to="/">
-								<MotionIconButton
-									{...getDefaultButtonVariants()}
-									title="Go Back"
-									onClick={() => window.history.back()}
-								>
-									<CircleArrowLeft title="Go Back" />
-								</MotionIconButton>
-							</Link>
-							settings
-						</header>
-					</div>
+					<SettingsPage />
 				</Route>
 				<Route path="/not-found">
 					<NotFound />

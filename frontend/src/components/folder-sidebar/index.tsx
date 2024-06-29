@@ -1,4 +1,3 @@
-import { Events } from "@wailsio/runtime";
 import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useSetAtom } from "jotai";
 import {
@@ -12,20 +11,25 @@ import { Link, useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import {
 	AddFolder,
-	DeleteFolder,
 	RenameFolder,
 } from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
 import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
-import { WINDOW_ID } from "../../App.tsx";
+
 import { getDefaultButtonVariants } from "../../animations.ts";
 import { dialogDataAtom, foldersAtom, selectionRangeAtom } from "../../atoms";
 import { FolderPlus } from "../../icons/folder-plus";
-import { FolderXMark } from "../../icons/folder-xmark.tsx";
+
+import {
+	useFolderContextMenuDelete,
+	useFolderCreate,
+	useFolderDelete,
+	useFolderOpenInNewWindow,
+	useFolderRename,
+} from "../../hooks/folder-events.tsx";
 import { Gear } from "../../icons/gear.tsx";
 import { Pen } from "../../icons/pen.tsx";
 import type { DialogDataType } from "../../types.ts";
 import { updateFolders } from "../../utils/fetch-functions";
-import { useWailsEvent } from "../../utils/hooks.tsx";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
 import { validateName } from "../../utils/string-formatting.ts";
 import { MotionButton, MotionIconButton } from "../buttons";
@@ -127,113 +131,12 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const setFolders = useSetAtom(foldersAtom);
 
-	useWailsEvent("folder:create", (body) => {
-		const data = body.data as { folder: string };
-		setFolders((prev) => (prev ? [...prev, data.folder] : [data.folder]));
-	});
-
-	useWailsEvent("folder:rename", (body) => {
-		const data = body.data as { folder: string };
-		setFolders((prev) => {
-			if (prev) {
-				const newFolders = prev.filter((folder) => folder !== data.folder);
-				return newFolders;
-			}
-			return [];
-		});
-	});
-
-	useWailsEvent("folder:delete", (body) => {
-		const data = body.data as { folder: string };
-		setFolders((prev) => {
-			if (prev) {
-				const newFolders = prev.filter((folder) => folder !== data.folder);
-				if (newFolders.length > 0) {
-					navigate(`/${encodeURIComponent(newFolders[0])}`);
-				} else {
-					navigate("/");
-				}
-				return newFolders;
-			}
-			navigate("/");
-			return [];
-		});
-	});
-
-	useWailsEvent("folder:open-in-new-window", () => {
-		for (const selectedFolder of selectionRange) {
-			Events.Emit({
-				name: "open-note-in-new-window-backend",
-				data: { url: `/${selectedFolder}` },
-			});
-		}
-		setSelectionRange(new Set());
-	});
-
-	useWailsEvent("folder:context-menu:delete", (body) => {
-		const [folderName, windowId] = (body.data as string).split(",");
-
-		if (windowId === WINDOW_ID) {
-			setDialogData({
-				isOpen: true,
-				title: "Delete Folder",
-				children: (errorText) => (
-					<>
-						<fieldset>
-							<p className="text-sm text-zinc-500 dark:text-zinc-400">
-								Are you sure you want to{" "}
-								<span className="text-red-500">delete "{folderName}"</span> and
-								sent its notes to the trash bin?
-							</p>
-							<DialogErrorText errorText={errorText} />
-						</fieldset>
-						<MotionButton
-							type="submit"
-							{...getDefaultButtonVariants()}
-							className="w-[calc(100%-1.5rem)] mx-auto justify-center"
-						>
-							<FolderXMark /> <span>Delete Folder</span>
-						</MotionButton>
-					</>
-				),
-				onSubmit: async (_, setErrorText) => {
-					try {
-						const res = await DeleteFolder(folderName);
-						if (!res.success) throw new Error(res.message);
-						resetDialogState(setErrorText, setDialogData);
-					} catch (e) {
-						if (e instanceof Error) setErrorText(e.message);
-					}
-				},
-			});
-		}
-	});
-
-	useWailsEvent("folder:context-menu:rename", (event) => {
-		const [folderToBeRenamed, windowId] = (event.data as string).split(",");
-		if (windowId === WINDOW_ID) {
-			setDialogData({
-				isOpen: true,
-				title: "Rename Folder",
-				children: (errorText) => (
-					<FolderDialogChildren
-						errorText={errorText}
-						action="rename"
-						folderToBeRenamed={folderToBeRenamed}
-					/>
-				),
-				onSubmit: (e, setErrorText) => {
-					onFolderDialogSubmit(
-						e,
-						setErrorText,
-						setDialogData,
-						"rename",
-						folderToBeRenamed,
-					);
-				},
-			});
-		}
-	});
+	useFolderCreate(setFolders);
+	useFolderRename(setFolders);
+	useFolderDelete(setFolders);
+	useFolderOpenInNewWindow(selectionRange, setSelectionRange);
+	useFolderContextMenuDelete(setDialogData);
+	useFolderContextMenuDelete(setDialogData);
 
 	// Initially fetches folders from filesystem
 	useEffect(() => {

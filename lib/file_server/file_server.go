@@ -195,7 +195,6 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 		case <-debounceTimer.C:
 			// Timer expired, emit debounced events
 			for eventKey, data := range debounceEvents {
-				fmt.Println(eventKey)
 				if eventKey == "note:delete" {
 					app.Events.Emit(&application.WailsEvent{
 						Name: "note:delete",
