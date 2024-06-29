@@ -133,7 +133,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const setFolders = useSetAtom(foldersAtom);
 
 	useFolderCreate(setFolders);
-	useFolderRename(setFolders);
+	useFolderRename(folder, setFolders);
 	useFolderDelete(setFolders);
 	useFolderOpenInNewWindow(selectionRange, setSelectionRange);
 	useFolderContextMenuDelete(setDialogData);
@@ -177,7 +177,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 								isOpen: true,
 								title: "Settings",
 								dialogClassName: "w-[min(55rem,90vw)]",
-								children: (errorText) => <SettingsWindow />,
+								children: () => <SettingsWindow />,
 								onSubmit: null,
 							});
 						}}

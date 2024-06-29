@@ -30,46 +30,63 @@ export function useFolderOpenInNewWindow(
 	});
 }
 
+/** This function is used to handle `folder:create` events */
 export function useFolderCreate(
 	setFolders: Dispatch<SetStateAction<string[] | null>>,
 ) {
 	useWailsEvent("folder:create", (body) => {
-		const data = body.data as { folder: string };
-		setFolders((prev) => (prev ? [...prev, data.folder] : [data.folder]));
+		const data = body.data as { folder: string }[];
+		console.log("folder:create", data);
+		setFolders((prev) => {
+			if (!prev) return data.map(({ folder }) => folder);
+			return [...prev, ...data.map(({ folder }) => folder)];
+		});
 	});
 }
 
-/** This function is used to handle folder:delete events */
+/** This function is used to handle `folder:delete` events. The rename event seems to be triggered on delete though, so not sure how useful this is! */
 export function useFolderDelete(
 	setFolders: Dispatch<SetStateAction<string[] | null>>,
 ) {
 	useWailsEvent("folder:delete", (body) => {
-		const data = body.data as { folder: string };
+		const data = body.data as { folder: string }[];
+		console.log("bob");
+		const deletedFolders = new Set(data.map(({ folder }) => folder));
+
 		setFolders((prev) => {
-			if (prev) {
-				const newFolders = prev.filter((folder) => folder !== data.folder);
-				if (newFolders.length > 0) {
-					navigate(`/${encodeURIComponent(newFolders[0])}`);
-				} else {
-					navigate("/");
-				}
-				return newFolders;
+			if (!prev) return prev;
+			const remainingFolders = prev.filter(
+				(folder) => !deletedFolders.has(folder),
+			);
+			if (remainingFolders.length > 0) {
+				navigate(`/${encodeURIComponent(remainingFolders[0])}`);
+			} else {
+				navigate("/");
 			}
-			navigate("/");
-			return [];
+			return remainingFolders;
 		});
 	});
 }
 
 /** This function is used to handle folder:rename events */
 export function useFolderRename(
+	folder: string | undefined,
 	setFolders: Dispatch<SetStateAction<string[] | null>>,
 ) {
 	useWailsEvent("folder:rename", (body) => {
-		const data = body.data as { folder: string };
+		const data = body.data as { folder: string }[];
+		const renamedFolders = new Set(data.map(({ folder }) => folder));
 		setFolders((prev) => {
 			if (prev) {
-				const newFolders = prev.filter((folder) => folder !== data.folder);
+				// Gets all the folders that were not renamed. The create event will handle the new names
+				const newFolders = prev.filter((folder) => !renamedFolders.has(folder));
+				// the current folder was renamed
+				if (folder && renamedFolders.has(folder) && newFolders.length > 0) {
+					navigate(`/${encodeURIComponent(newFolders[0])}`);
+				} else {
+					navigate("/");
+				}
+
 				return newFolders;
 			}
 			return [];

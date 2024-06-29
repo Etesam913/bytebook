@@ -50,53 +50,6 @@ func LaunchFileServer(projectPath string) {
 	}
 }
 
-/*
-Handles folder:create, folder:delete, and folder:rename events
-*/
-func handleFolderEvents(app *application.App, event fsnotify.Event, watcher *fsnotify.Watcher) {
-	folderName := filepath.Base(event.Name)
-	if event.Has(fsnotify.Create) {
-
-		watcher.Add(event.Name)
-
-		app.Events.Emit(&application.WailsEvent{
-			Name: "folder:create",
-			Data: map[string]string{"folder": folderName},
-		})
-	}
-	if event.Has(fsnotify.Remove) {
-		watcher.Remove(event.Name)
-		app.Events.Emit(&application.WailsEvent{
-			Name: "folder:delete",
-			Data: map[string]string{"folder": folderName},
-		})
-	}
-	if event.Has(fsnotify.Rename) {
-		watcher.Remove(event.Name)
-		app.Events.Emit(&application.WailsEvent{
-			Name: "folder:rename",
-			Data: map[string]string{"folder": folderName},
-		})
-	}
-}
-
-/*
-Handles trash:create and trash:delete events
-*/
-func handleTrashEvents(app *application.App, event fsnotify.Event) {
-	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
-		app.Events.Emit(&application.WailsEvent{
-			Name: "trash:delete",
-			Data: map[string]string{"name": filepath.Base(event.Name)},
-		})
-	} else if event.Has(fsnotify.Create) {
-		app.Events.Emit(&application.WailsEvent{
-			Name: "trash:create",
-			Data: map[string]string{"name": filepath.Base(event.Name)},
-		})
-	}
-}
-
 // handleDebounceReset stops the given debounce timer, drains its channel if necessary, and resets it to 200 milliseconds.
 //
 // This function is useful for implementing debouncing logic, where you want to reset a timer each time an event occurs,
@@ -123,6 +76,60 @@ func handleDebounceReset(debounceTimer *time.Timer) {
 }
 
 /*
+Handles folder:create, folder:delete, and folder:rename events
+*/
+func handleFolderEvents(
+	event fsnotify.Event,
+	watcher *fsnotify.Watcher,
+	debounceTimer *time.Timer,
+	debounceEvents map[string][]map[string]string,
+) {
+
+	folderName := filepath.Base(event.Name)
+	eventKey := ""
+	if event.Has(fsnotify.Create) {
+		eventKey = "folder:create"
+		watcher.Add(event.Name)
+	}
+	if event.Has(fsnotify.Remove) {
+		eventKey = "folder:delete"
+		watcher.Remove(event.Name)
+
+	}
+	if event.Has(fsnotify.Rename) {
+		eventKey = "folder:rename"
+		watcher.Remove(event.Name)
+	}
+
+	if eventKey != "" {
+		debounceEvents[eventKey] = append(
+			debounceEvents[eventKey],
+			map[string]string{
+				"folder": folderName,
+			},
+		)
+	}
+	handleDebounceReset(debounceTimer)
+}
+
+/*
+Handles trash:create and trash:delete events
+*/
+func handleTrashEvents(app *application.App, event fsnotify.Event) {
+	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
+		app.Events.Emit(&application.WailsEvent{
+			Name: "trash:delete",
+			Data: map[string]string{"name": filepath.Base(event.Name)},
+		})
+	} else if event.Has(fsnotify.Create) {
+		app.Events.Emit(&application.WailsEvent{
+			Name: "trash:create",
+			Data: map[string]string{"name": filepath.Base(event.Name)},
+		})
+	}
+}
+
+/*
 Handles note:create and note:delete events
 There is a debounce timer to prevent multiple events from being emitted
 */
@@ -131,7 +138,8 @@ func handleNoteEvents(
 	event fsnotify.Event,
 	oneFolderBack string,
 	debounceTimer *time.Timer,
-	debounceEvents map[string][]map[string]string) {
+	debounceEvents map[string][]map[string]string,
+) {
 
 	note := segments[len(segments)-1]
 	lastIndexOfDot := strings.LastIndex(note, ".")
@@ -148,7 +156,6 @@ func handleNoteEvents(
 	}
 
 	if eventKey != "" {
-
 		debounceEvents[eventKey] = append(
 			debounceEvents[eventKey],
 			map[string]string{
@@ -185,7 +192,7 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 
 			// If is a directory
 			if isDir {
-				handleFolderEvents(app, event, watcher)
+				handleFolderEvents(event, watcher, debounceTimer, debounceEvents)
 				continue
 			}
 
