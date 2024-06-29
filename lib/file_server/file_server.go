@@ -97,12 +97,36 @@ func handleTrashEvents(app *application.App, event fsnotify.Event) {
 	}
 }
 
+// handleDebounceReset stops the given debounce timer, drains its channel if necessary, and resets it to 200 milliseconds.
+//
+// This function is useful for implementing debouncing logic, where you want to reset a timer each time an event occurs,
+// so that the event handler is only triggered after a specified period of inactivity.
+//
+// Behavior:
+// - Stops the timer to prevent it from firing.
+// - If the timer had already fired, it drains the timer's channel to consume the expired event.
+// - Resets the timer to start counting down from 200 milliseconds.
+func handleDebounceReset(debounceTimer *time.Timer) {
+	// Stop the timer, but don't drain the channel if it's already empty.
+	if !debounceTimer.Stop() {
+		// Try to drain the channel. This ensures that any pending trigger is consumed.
+		// If the channel is already empty, the default case ensures we don't block.
+		select {
+		case <-debounceTimer.C:
+		default:
+		}
+	}
+
+	// Reset the timer to 200 milliseconds.
+	// This means the timer will start counting down from 200ms again.
+	debounceTimer.Reset(200 * time.Millisecond)
+}
+
 /*
 Handles note:create and note:delete events
 There is a debounce timer to prevent multiple events from being emitted
 */
 func handleNoteEvents(
-	app *application.App,
 	segments []string,
 	event fsnotify.Event,
 	oneFolderBack string,
@@ -113,9 +137,18 @@ func handleNoteEvents(
 	lastIndexOfDot := strings.LastIndex(note, ".")
 	noteName := note[:lastIndexOfDot]
 	extension := note[lastIndexOfDot+1:]
+
+	eventKey := ""
+
 	// This works for MACOS need to test on other platforms
 	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
-		eventKey := "note:delete"
+		eventKey = "note:delete"
+	} else if event.Has(fsnotify.Create) {
+		eventKey = "note:create"
+	}
+
+	if eventKey != "" {
+
 		debounceEvents[eventKey] = append(
 			debounceEvents[eventKey],
 			map[string]string{
@@ -123,28 +156,8 @@ func handleNoteEvents(
 				"note":   fmt.Sprintf("%s?ext=%s", noteName, extension),
 			},
 		)
-		// fmt.Sprintf("%s?ext=%s", noteName, extension)
-
-		// Stop the timer, but don't drain the channel
-		if !debounceTimer.Stop() {
-			// Try to drain the channel, but don't block if it's already empty
-			select {
-			case <-debounceTimer.C:
-			default:
-			}
-		}
-
-		// reset at 200ms
-		debounceTimer.Reset(200 * time.Millisecond)
-		fmt.Println("debounce", debounceEvents)
-
-	} else if event.Has(fsnotify.Create) {
-		app.Events.Emit(&application.WailsEvent{
-			Name: "note:create",
-			Data: map[string]string{"note": fmt.Sprintf("%s?ext=%s", noteName, extension), "folder": oneFolderBack},
-		})
 	}
-
+	handleDebounceReset(debounceTimer)
 }
 
 func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
@@ -182,7 +195,7 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 			if oneFolderBack == "trash" {
 				handleTrashEvents(app, event)
 			} else {
-				handleNoteEvents(app, segments, event, oneFolderBack, debounceTimer, debounceEvents)
+				handleNoteEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents)
 			}
 		// Whenever the file watcher gives an error
 		case err, ok := <-watcher.Errors:
@@ -193,14 +206,13 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 
 		// Whenever the debounce timer expires
 		case <-debounceTimer.C:
+			fmt.Println("debounce", debounceEvents)
 			// Timer expired, emit debounced events
 			for eventKey, data := range debounceEvents {
-				if eventKey == "note:delete" {
-					app.Events.Emit(&application.WailsEvent{
-						Name: "note:delete",
-						Data: data,
-					})
-				}
+				app.Events.Emit(&application.WailsEvent{
+					Name: eventKey,
+					Data: data,
+				})
 			}
 			// Clear the debounced events
 			debounceEvents = make(map[string][]map[string]string)

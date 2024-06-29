@@ -1,6 +1,6 @@
 import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
 import { AddNoteToFolder } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
@@ -64,8 +64,8 @@ export function NotesSidebar({
 		getNoteCount(folder, setNoteCount);
 	}, [folder, setNotes]);
 
-	useNoteCreate(folder, setNotes);
-	useNoteDelete(folder, note, setNotes, fileExtension);
+	useNoteCreate(folder, setNotes, setNoteCount);
+	useNoteDelete(folder, note, setNotes, setNoteCount, fileExtension);
 	useNoteContextMenuDelete(folder, setSelectionRange);
 	useNoteOpenInNewWindow(folder, selectionRange, setSelectionRange);
 

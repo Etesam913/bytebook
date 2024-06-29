@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
 import { MoveToTrash } from "../../bindings/github.com/etesam913/bytebook/noteservice";
+import { getNoteCount } from "../utils/fetch-functions";
 import { useWailsEvent } from "../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
 import { extractInfoFromNoteName } from "../utils/string-formatting";
@@ -11,12 +12,28 @@ import { extractInfoFromNoteName } from "../utils/string-formatting";
 export function useNoteCreate(
 	folder: string,
 	setNotes: Dispatch<SetStateAction<string[] | null>>,
+	setNoteCount: Dispatch<SetStateAction<number>>,
 ) {
 	useWailsEvent("note:create", (body) => {
-		const data = body.data as { folder: string; note: string };
-		// Windows that are on a different folder should not navigate to this new url
-		if (data.folder !== decodeURIComponent(folder)) return;
-		setNotes((prev) => (prev ? [...prev, data.note] : [data.note]));
+		const data = body.data as { folder: string; note: string }[];
+
+		getNoteCount(folder, setNoteCount);
+
+		/*
+     If none of the added notes are in the current folder, then don't update the notes
+     This can be triggered when there are multple windows open 
+    */
+		const filteredNotes = data.filter(
+			(item) => item.folder === decodeURIComponent(folder),
+		);
+
+		if (filteredNotes.length === 0) return;
+
+		// Extract the notes
+		const notes = filteredNotes.map((item) => item.note);
+
+		// Update the notes state
+		setNotes((prev) => (prev ? [...prev, ...notes] : notes));
 	});
 }
 /** This function is used to handle note:delete events */
@@ -24,6 +41,7 @@ export function useNoteDelete(
 	folder: string,
 	note: string | undefined,
 	setNotes: Dispatch<SetStateAction<string[] | null>>,
+	setNoteCount: Dispatch<SetStateAction<number>>,
 	fileExtension: string | undefined,
 ) {
 	useWailsEvent("note:delete", (body) => {
@@ -40,6 +58,8 @@ export function useNoteDelete(
 			).length === 0
 		)
 			return;
+
+		getNoteCount(folder, setNoteCount);
 
 		setNotes((prev) => {
 			if (!prev) return prev;
