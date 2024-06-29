@@ -190,15 +190,19 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 				continue
 			}
 
-			// If is a directory
-			if isDir {
-				handleFolderEvents(event, watcher, debounceTimer, debounceEvents)
-				continue
-			}
-
 			// Only dealing with files at this point
 			segments := strings.Split(event.Name, "/")
 			oneFolderBack := segments[len(segments)-2]
+
+			// If is a directory
+			if isDir {
+				// We do not care about folders inside of folders
+				if oneFolderBack == "notes" {
+					handleFolderEvents(event, watcher, debounceTimer, debounceEvents)
+				}
+				continue
+			}
+
 			if oneFolderBack == "trash" {
 				handleTrashEvents(app, event)
 			} else {
