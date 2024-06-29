@@ -107,7 +107,7 @@ func handleNoteEvents(
 	event fsnotify.Event,
 	oneFolderBack string,
 	debounceTimer *time.Timer,
-	debounceEvents map[string][]string) {
+	debounceEvents map[string][]map[string]string) {
 
 	note := segments[len(segments)-1]
 	lastIndexOfDot := strings.LastIndex(note, ".")
@@ -115,35 +115,45 @@ func handleNoteEvents(
 	extension := note[lastIndexOfDot+1:]
 	// This works for MACOS need to test on other platforms
 	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
-		eventKey := fmt.Sprintf("note:delete:%s", oneFolderBack)
-		debounceEvents[eventKey] = append(debounceEvents[eventKey], fmt.Sprintf("%s?ext=%s", noteName, extension))
+		eventKey := "note:delete"
+		debounceEvents[eventKey] = append(
+			debounceEvents[eventKey],
+			map[string]string{
+				"folder": oneFolderBack,
+				"note":   fmt.Sprintf("%s?ext=%s", noteName, extension),
+			},
+		)
+		// fmt.Sprintf("%s?ext=%s", noteName, extension)
 
-		// If false, then the timer is expired
+		// Stop the timer, but don't drain the channel
 		if !debounceTimer.Stop() {
-			// Drain the channel to prevent if from being read later
-			<-debounceTimer.C
+			// Try to drain the channel, but don't block if it's already empty
+			select {
+			case <-debounceTimer.C:
+			default:
+			}
 		}
+
 		// reset at 200ms
 		debounceTimer.Reset(200 * time.Millisecond)
+		fmt.Println("debounce", debounceEvents)
 
-		app.Events.Emit(&application.WailsEvent{
-			Name: "note:delete",
-			Data: map[string]string{"note": fmt.Sprintf("%s?ext=%s", noteName, extension), "folder": oneFolderBack},
-		})
 	} else if event.Has(fsnotify.Create) {
 		app.Events.Emit(&application.WailsEvent{
 			Name: "note:create",
 			Data: map[string]string{"note": fmt.Sprintf("%s?ext=%s", noteName, extension), "folder": oneFolderBack},
 		})
 	}
+
 }
 
 func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 	debounceTimer := time.NewTimer(0)
-	debounceEvents := make(map[string][]string)
+	debounceEvents := make(map[string][]map[string]string)
 
 	for {
 		select {
+		// Whenever a watcher events occurs
 		case event, ok := <-watcher.Events:
 			// Closed
 			if !ok {
@@ -167,7 +177,6 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 			}
 
 			// Only dealing with files at this point
-
 			segments := strings.Split(event.Name, "/")
 			oneFolderBack := segments[len(segments)-2]
 			if oneFolderBack == "trash" {
@@ -175,12 +184,27 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 			} else {
 				handleNoteEvents(app, segments, event, oneFolderBack, debounceTimer, debounceEvents)
 			}
-
+		// Whenever the file watcher gives an error
 		case err, ok := <-watcher.Errors:
 			if !ok {
 				return
 			}
 			log.Println("error:", err)
+
+		// Whenever the debounce timer expires
+		case <-debounceTimer.C:
+			// Timer expired, emit debounced events
+			for eventKey, data := range debounceEvents {
+				fmt.Println(eventKey)
+				if eventKey == "note:delete" {
+					app.Events.Emit(&application.WailsEvent{
+						Name: "note:delete",
+						Data: data,
+					})
+				}
+			}
+			// Clear the debounced events
+			debounceEvents = make(map[string][]map[string]string)
 		}
 	}
 }

@@ -1,13 +1,9 @@
-import { Events } from "@wailsio/runtime";
 import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
-import {
-	AddNoteToFolder,
-	MoveToTrash,
-} from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
+import { AddNoteToFolder } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import {
 	dialogDataAtom,
@@ -26,16 +22,19 @@ import {
 } from "../../components/folder-sidebar/index.tsx";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Input } from "../../components/input/index.tsx";
+import {
+	useNoteContextMenuDelete,
+	useNoteCreate,
+	useNoteDelete,
+	useNoteOpenInNewWindow,
+} from "../../hooks/note-events.tsx";
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
 import { Pen } from "../../icons/pen";
 import { updateNotes } from "../../utils/fetch-functions";
-import { useSearchParamsEntries, useWailsEvent } from "../../utils/hooks.tsx";
+import { useSearchParamsEntries } from "../../utils/hooks.tsx";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
-import {
-	extractInfoFromNoteName,
-	validateName,
-} from "../../utils/string-formatting.ts";
+import { validateName } from "../../utils/string-formatting.ts";
 import { MyNotesAccordion } from "./my-notes-accordion.tsx";
 import { RenderNote } from "./render-note.tsx";
 
@@ -63,72 +62,10 @@ export function NotesSidebar({
 		updateNotes(folder, note, setNotes);
 	}, [folder, setNotes]);
 
-	useWailsEvent("note:create", (body) => {
-		const data = body.data as { folder: string; note: string };
-		// Windows that are on a different folder should not navigate to this new url
-		if (data.folder !== decodeURIComponent(folder)) return;
-		setNotes((prev) => (prev ? [...prev, data.note] : [data.note]));
-	});
-
-	useWailsEvent("note:delete", (body) => {
-		const data = body.data as { folder: string; note: string };
-		if (data.folder !== decodeURIComponent(folder)) return;
-		setNotes((prev) => {
-			const newNotes = prev ? prev.filter((v) => v !== data.note) : [data.note];
-			// The note that you are on is deleted
-
-			if (
-				note &&
-				`${decodeURIComponent(note)}?ext=${fileExtension}` === data.note
-			) {
-				if (newNotes.length > 0) {
-					navigate(`/${folder}/${newNotes[0]}`);
-				} else {
-					navigate(`/${folder}`);
-				}
-			}
-			return newNotes;
-		});
-	});
-
-	useWailsEvent("note:context-menu:delete", async (event) => {
-		const noteNamesAsString = event.data as string;
-		// TODO: This has to be done in a better way because a note name can have a comma in it
-		const noteNamesAsArray = noteNamesAsString.split(",");
-
-		const paths = noteNamesAsArray.map((noteName) => {
-			const { noteNameWithoutExtension, queryParams } =
-				extractInfoFromNoteName(noteName);
-
-			return `/${folder}/${noteNameWithoutExtension}.${queryParams.ext}`;
-		});
-
-		try {
-			const res = await MoveToTrash(paths);
-			if (res.success) {
-				toast.success(res.message, DEFAULT_SONNER_OPTIONS);
-			} else {
-				throw new Error(res.message);
-			}
-		} catch (err: unknown) {
-			if (err instanceof Error) {
-				toast.error(err.message);
-			} else {
-				toast.error("An Unknown Error Occurred");
-			}
-		}
-		setSelectionRange(new Set());
-	});
-
-	useWailsEvent("note:open-in-new-window", () => {
-		for (const noteNameWithQueryParam of selectionRange) {
-			Events.Emit({
-				name: "open-note-in-new-window-backend",
-				data: { url: `/${folder}/${noteNameWithQueryParam}` },
-			});
-		}
-		setSelectionRange(new Set());
-	});
+	useNoteCreate(folder, setNotes);
+	useNoteDelete(folder, note, setNotes, fileExtension);
+	useNoteContextMenuDelete(folder, setSelectionRange);
+	useNoteOpenInNewWindow(folder, selectionRange, setSelectionRange);
 
 	return (
 		<>
