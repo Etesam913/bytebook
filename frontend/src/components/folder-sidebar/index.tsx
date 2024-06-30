@@ -120,7 +120,6 @@ export async function onFolderDialogSubmit(
 				if (!folderToBeRenamed) throw new Error("Something went wrong");
 				const res = await RenameFolder(folderToBeRenamed, newFolderNameString);
 				if (!res.success) throw new Error(res.message);
-				// navigate(`/${encodeURIComponent(newFolderNameString)}`);
 			}
 			resetDialogState(setErrorText, setDialogData);
 		}

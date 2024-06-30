@@ -82,7 +82,6 @@ export function useNoteMarkdown(
 				}
 			} catch (e) {
 				if (e instanceof Error) toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-				// navigate("/not-found", { replace: true });
 			}
 		}
 
