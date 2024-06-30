@@ -76,5 +76,14 @@ export function RenameFolder(oldFolderName: string, newFolderName: string): Prom
     return $typingPromise;
 }
 
+export function RevealFolderInFinder(folderName: string): Promise<$models.FolderResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(3291172199, folderName) as any;
+    let $typingPromise = $resultPromise.then(($result) => {
+        return $$createType0($result);
+    }) as any;
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
 // Private type creation functions
 const $$createType0 = $models.FolderResponse.createFrom;

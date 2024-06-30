@@ -1,7 +1,11 @@
 import { Events } from "@wailsio/runtime";
 import type { Dispatch, SetStateAction } from "react";
+import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
-import { DeleteFolder } from "../../bindings/github.com/etesam913/bytebook/folderservice";
+import {
+	DeleteFolder,
+	RevealFolderInFinder,
+} from "../../bindings/github.com/etesam913/bytebook/folderservice";
 import { WINDOW_ID } from "../App";
 import { getDefaultButtonVariants } from "../animations";
 import { MotionButton } from "../components/buttons";
@@ -13,6 +17,7 @@ import {
 import { FolderXMark } from "../icons/folder-xmark";
 import type { DialogDataType } from "../types";
 import { useWailsEvent } from "../utils/hooks";
+import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
 
 /** This function is used to handle folder:context-menu:delete events */
 export function useFolderOpenInNewWindow(
@@ -165,6 +170,35 @@ export function useFolderContextMenuRename(
 					);
 				},
 			});
+		}
+	});
+}
+
+/**
+ * This function is used to handle folder:reveal-in-finder events
+ * It opens the selected folders (only the first 5) in finder
+ */
+export async function useFolderContextMenuFindInFinder(
+	selectionRange: Set<string>,
+	setSelectionRange: Dispatch<SetStateAction<Set<string>>>,
+) {
+	useWailsEvent("folder:reveal-in-finder", async () => {
+		const selectedFolders = [...selectionRange].slice(0, 5);
+		try {
+			const res = await Promise.all(
+				selectedFolders.map(async (folder) => {
+					return await RevealFolderInFinder(folder);
+				}),
+			);
+			if (res.some((r) => !r.success)) {
+				throw new Error("Failed to reveal folder in finder");
+			}
+		} catch (e) {
+			if (e instanceof Error) {
+				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+			}
+		} finally {
+			setSelectionRange(new Set([]));
 		}
 	});
 }

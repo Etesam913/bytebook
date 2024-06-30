@@ -92,7 +92,14 @@ func main() {
 		{Label: "Rename Folder", EventName: "folder:context-menu:rename"},
 		{Label: "Delete Folder", EventName: "folder:context-menu:delete"},
 		{Label: "Open Folder In New Window", EventName: "folder:open-in-new-window"},
+		{Label: "Reveal In Finder", EventName: "folder:reveal-in-finder"},
 	})
+	// folderContextMenu.Add("Reveal In Finder").OnClick(func(data *application.Context) {
+	// 	contextData := data.ContextMenuData().(string)
+	// 	folderName := strings.Split(contextData, ",")[0]
+	// 	io_helpers.RevealInFinder(filepath.Join(notesPath, folderName))
+
+	// })
 
 	project_helpers.CreateContextMenu(app, noteContextMenu, []project_helpers.MenuItem{
 		{Label: "Open Note In New Window", EventName: "note:open-in-new-window"},

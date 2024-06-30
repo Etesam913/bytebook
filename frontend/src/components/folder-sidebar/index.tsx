@@ -21,6 +21,8 @@ import { FolderPlus } from "../../icons/folder-plus";
 
 import {
 	useFolderContextMenuDelete,
+	useFolderContextMenuFindInFinder,
+	useFolderContextMenuRename,
 	useFolderCreate,
 	useFolderDelete,
 	useFolderOpenInNewWindow,
@@ -136,8 +138,9 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	useFolderRename(folder, setFolders);
 	useFolderDelete(setFolders);
 	useFolderOpenInNewWindow(selectionRange, setSelectionRange);
+	useFolderContextMenuRename(setDialogData);
 	useFolderContextMenuDelete(setDialogData);
-	useFolderContextMenuDelete(setDialogData);
+	useFolderContextMenuFindInFinder(selectionRange, setSelectionRange);
 
 	// Initially fetches folders from filesystem
 	useEffect(() => {

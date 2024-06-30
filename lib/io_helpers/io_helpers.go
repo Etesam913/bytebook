@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -290,4 +291,19 @@ func CountFilesInDirectory(folderPath string) (int, error) {
 	}
 
 	return len(fileNames), nil
+}
+
+// Powers the reveal in finder option in the context menu
+func RevealInFinder(dir string) error {
+	// Check if the directory exists
+	if _, err := exec.LookPath("open"); err != nil {
+		return fmt.Errorf("failed to open directory: %v", dir)
+	}
+
+	// Run the open command
+	cmd := exec.Command("open", dir)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to open directory: %v", dir)
+	}
+	return nil
 }
