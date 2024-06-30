@@ -41,6 +41,15 @@ export function DeleteFolder(folderName: string): Promise<$models.FolderResponse
     return $typingPromise;
 }
 
+export function DoesFolderExist(folderName: string): Promise<$models.FolderResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(2843423543, folderName) as any;
+    let $typingPromise = $resultPromise.then(($result) => {
+        return $$createType0($result);
+    }) as any;
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
 /**
  * GetFilesInTrash retrieves the names of all files in the trash directory of the project.
  * It ensures that the trash directory exists and returns a response indicating success or failure.

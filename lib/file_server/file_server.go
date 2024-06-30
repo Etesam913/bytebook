@@ -91,15 +91,15 @@ func handleFolderEvents(
 		eventKey = "folder:create"
 		watcher.Add(event.Name)
 	}
-	if event.Has(fsnotify.Remove) {
+	if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
 		eventKey = "folder:delete"
 		watcher.Remove(event.Name)
 
 	}
-	if event.Has(fsnotify.Rename) {
-		eventKey = "folder:rename"
-		watcher.Remove(event.Name)
-	}
+	// if event.Has(fsnotify.Rename) {
+	// 	eventKey = "folder:rename"
+	// 	watcher.Remove(event.Name)
+	// }
 
 	if eventKey != "" {
 		debounceEvents[eventKey] = append(

@@ -2,30 +2,61 @@ import type { SetStateAction } from "jotai";
 import type { Dispatch } from "react";
 import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
-import { GetFolders } from "../../bindings/github.com/etesam913/bytebook/folderservice";
+import {
+	DoesFolderExist,
+	GetFolders,
+} from "../../bindings/github.com/etesam913/bytebook/folderservice";
 import {
 	GetNoteCount,
 	GetNotes,
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { extractInfoFromNoteName } from "./string-formatting";
 
+export async function checkIfFolderExists(folder: string | undefined) {
+	if (!folder) return;
+	try {
+		const res = await DoesFolderExist(folder);
+		if (!res.success) {
+			throw new Error();
+		}
+	} catch (e) {
+		navigate("/not-found?type=folder", { replace: true });
+	}
+}
+
 /** Initially fetches folders from filesystem */
-export function updateFolders(
+export async function updateFolders(
 	setFolders: Dispatch<SetStateAction<string[] | null>>,
 ) {
-	GetFolders()
-		.then((res) => {
-			if (res.success) {
-				const folders = res.data;
-				setFolders(folders);
-			} else {
-				setFolders(null);
-			}
-		})
-		.catch((e) => {
-			console.error(e);
-			setFolders(null);
-		});
+	try {
+		const res = await GetFolders();
+		if (res.success) {
+			const folders = res.data;
+			setFolders(folders);
+		} else {
+			throw new Error("Failed in retrieving folders");
+		}
+	} catch (e) {
+		if (e instanceof Error) {
+			toast.error(e.message);
+		}
+	}
+}
+
+export async function checkIfNoteExists(
+	folder: string,
+	note: string | undefined,
+	fileExtension: string | undefined,
+) {
+	if (!note || !fileExtension) return;
+	try {
+		const res = await DoesFolderExist(`/${folder}/${note}.${fileExtension}`);
+		if (!res.success) {
+			throw new Error();
+		}
+	} catch (e) {
+		navigate("/not-found?type=note", { replace: true });
+	}
 }
 
 /** Initially fetches notes for a folder using the filesystem */
@@ -66,7 +97,7 @@ export async function updateNotes(
 		}
 	} catch (error) {
 		console.error("Error updating notes:", error);
-		navigate("/not-found", { replace: true });
+		// navigate("/not-found", { replace: true });
 		setNotes(null);
 	}
 }

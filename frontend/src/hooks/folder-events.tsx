@@ -44,12 +44,18 @@ export function useFolderCreate(
 
 		setFolders((prev) => {
 			if (!prev) return data.map(({ folder }) => folder);
-			return [...prev, ...data.map(({ folder }) => folder)];
+			const allFolders = [...prev, ...data.map(({ folder }) => folder)];
+			// navigate to the last added folder
+
+			// TODO: Get first note and navigate to it
+			navigate(`/${encodeURIComponent(allFolders[allFolders.length - 1])}`);
+
+			return allFolders;
 		});
 	});
 }
 
-/** This function is used to handle `folder:delete` events. The rename event seems to be triggered on delete though, so not sure how useful this is! */
+/** This function is used to handle `folder:delete` events. This gets triggered when renaming a folder using the */
 export function useFolderDelete(
 	setFolders: Dispatch<SetStateAction<string[] | null>>,
 ) {
@@ -62,17 +68,12 @@ export function useFolderDelete(
 			const remainingFolders = prev.filter(
 				(folder) => !deletedFolders.has(folder),
 			);
-			if (remainingFolders.length > 0) {
-				navigate(`/${encodeURIComponent(remainingFolders[0])}`);
-			} else {
-				navigate("/");
-			}
 			return remainingFolders;
 		});
 	});
 }
 
-/** This function is used to handle folder:rename events */
+/** This function is used to handle folder:rename events.  This gets triggered when deleting a folder in finder */
 export function useFolderRename(
 	folder: string | undefined,
 	setFolders: Dispatch<SetStateAction<string[] | null>>,
@@ -86,6 +87,7 @@ export function useFolderRename(
 				// Gets all the folders that were not renamed. The create event will handle the new names
 				const newFolders = prev.filter((folder) => !renamedFolders.has(folder));
 				// the current folder was renamed
+
 				if (folder && renamedFolders.has(folder) && newFolders.length > 0) {
 					navigate(`/${encodeURIComponent(newFolders[0])}`);
 				} else {
@@ -101,11 +103,13 @@ export function useFolderRename(
 
 /** This function is used to handle folder:context-menu:delete events. It opens a dialog to confirm the deletion of a folder */
 export function useFolderContextMenuDelete(
+	folder: string | undefined,
+	folders: string[] | null,
 	setDialogData: Dispatch<SetStateAction<DialogDataType>>,
 	setSelectionRange: Dispatch<SetStateAction<Set<string>>>,
 ) {
 	useWailsEvent("folder:context-menu:delete", (body) => {
-		const [folderName, windowId] = (body.data as string).split(",");
+		const [deletedFolderName, windowId] = (body.data as string).split(",");
 		setSelectionRange(new Set());
 		if (windowId === WINDOW_ID) {
 			setDialogData({
@@ -116,8 +120,10 @@ export function useFolderContextMenuDelete(
 						<fieldset>
 							<p className="text-sm text-zinc-500 dark:text-zinc-400">
 								Are you sure you want to{" "}
-								<span className="text-red-500">delete "{folderName}"</span> and
-								sent its notes to the trash bin?
+								<span className="text-red-500">
+									delete "{deletedFolderName}"
+								</span>{" "}
+								and sent its notes to the trash bin?
 							</p>
 							<DialogErrorText errorText={errorText} />
 						</fieldset>
@@ -132,9 +138,17 @@ export function useFolderContextMenuDelete(
 				),
 				onSubmit: async (_, setErrorText) => {
 					try {
-						const res = await DeleteFolder(folderName);
+						const res = await DeleteFolder(deletedFolderName);
 						if (!res.success) throw new Error(res.message);
 						resetDialogState(setErrorText, setDialogData);
+						// Navigate to the first folder that was not deleted
+						if (folder && folder === deletedFolderName) {
+							const firstFolderNotDeleted = folders?.find(
+								(name) => name !== deletedFolderName,
+							);
+							if (firstFolderNotDeleted) navigate(`/${firstFolderNotDeleted}`);
+							else navigate("/");
+						}
 					} catch (e) {
 						if (e instanceof Error) setErrorText(e.message);
 					}

@@ -1,5 +1,5 @@
 import { type MotionValue, motion } from "framer-motion";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
 	type Dispatch,
 	type FormEvent,
@@ -32,7 +32,10 @@ import { Gear } from "../../icons/gear.tsx";
 import { Pen } from "../../icons/pen.tsx";
 import { SettingsWindow } from "../../routes/settings/index.tsx";
 import type { DialogDataType } from "../../types.ts";
-import { updateFolders } from "../../utils/fetch-functions";
+import {
+	checkIfFolderExists,
+	updateFolders,
+} from "../../utils/fetch-functions";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
 import { validateName } from "../../utils/string-formatting.ts";
 import { MotionButton, MotionIconButton } from "../buttons";
@@ -117,7 +120,7 @@ export async function onFolderDialogSubmit(
 				if (!folderToBeRenamed) throw new Error("Something went wrong");
 				const res = await RenameFolder(folderToBeRenamed, newFolderNameString);
 				if (!res.success) throw new Error(res.message);
-				navigate(`/${encodeURIComponent(newFolderNameString)}`);
+				// navigate(`/${encodeURIComponent(newFolderNameString)}`);
 			}
 			resetDialogState(setErrorText, setDialogData);
 		}
@@ -130,6 +133,7 @@ export async function onFolderDialogSubmit(
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
 	const folder = params?.folder;
+	const folders = useAtomValue(foldersAtom);
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const setFolders = useSetAtom(foldersAtom);
@@ -139,13 +143,18 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	useFolderDelete(setFolders);
 	useFolderOpenInNewWindow(selectionRange, setSelectionRange);
 	useFolderContextMenuRename(setDialogData);
-	useFolderContextMenuDelete(setDialogData, setSelectionRange);
+	useFolderContextMenuDelete(folder, folders, setDialogData, setSelectionRange);
 	useFolderContextMenuFindInFinder(selectionRange, setSelectionRange);
 
 	// Initially fetches folders from filesystem
 	useEffect(() => {
 		updateFolders(setFolders);
 	}, [setFolders]);
+
+	// Navigates to not-found page if folder does not exist
+	useEffect(() => {
+		checkIfFolderExists(folder);
+	}, [folders, folder]);
 
 	if (folder === "settings") return null;
 

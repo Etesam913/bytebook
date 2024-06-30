@@ -37,7 +37,18 @@ export function useNoteCreate(
 		if (filteredNotes.length === 0) return;
 
 		// Update the notes state
-		setNotes((prev) => (prev ? [...prev, ...filteredNotes] : filteredNotes));
+		setNotes((prev) => {
+			const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
+				filteredNotes[filteredNotes.length - 1],
+			);
+			navigate(
+				`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
+					queryParams.ext
+				}`,
+			);
+			if (!prev) return filteredNotes;
+			return [...prev, ...filteredNotes];
+		});
 	});
 }
 /** This function is used to handle note:delete events */
@@ -46,7 +57,6 @@ export function useNoteDelete(
 	note: string | undefined,
 	setNotes: Dispatch<SetStateAction<string[] | null>>,
 	setNoteCount: Dispatch<SetStateAction<number>>,
-	fileExtension: string | undefined,
 ) {
 	useWailsEvent("note:delete", (body) => {
 		const data = body.data as { folder: string; note: string }[];
@@ -77,24 +87,6 @@ export function useNoteDelete(
 			);
 			if (!note) return newNotes;
 
-			// The note name is encoded for the url so we have to decode it when comparing to file names
-			const comparisonNoteName = `${decodeURIComponent(
-				note,
-			)}?ext=${fileExtension}`;
-
-			// You are on a note that was deleted
-			if (
-				data.filter(
-					({ note: deletedNote }) => deletedNote === comparisonNoteName,
-				).length > 0
-			) {
-				if (newNotes.length > 0) {
-					navigate(`/${folder}/${newNotes[0]}`);
-				} else {
-					navigate(`/${folder}`);
-				}
-			}
-
 			return newNotes;
 		});
 	});
@@ -103,14 +95,17 @@ export function useNoteDelete(
 /** This function is used to handle note:context-menu:delete events */
 export function useNoteContextMenuDelete(
 	folder: string,
+	note: string | undefined,
+	fileExtension: string | undefined,
+	notes: string[] | null,
 	setSelectionRange: Dispatch<SetStateAction<Set<string>>>,
 ) {
 	useWailsEvent("note:context-menu:delete", async (event) => {
-		const noteNamesAsString = event.data as string;
+		const deletedNoteNamesAsString = event.data as string;
 		// TODO: This has to be done in a better way because a note name can have a comma in it
-		const noteNamesAsArray = noteNamesAsString.split(",");
+		const deletedNoteNamesAsArray = deletedNoteNamesAsString.split(",");
 
-		const paths = noteNamesAsArray.map((noteName) => {
+		const paths = deletedNoteNamesAsArray.map((noteName) => {
 			const { noteNameWithoutExtension, queryParams } =
 				extractInfoFromNoteName(noteName);
 
@@ -121,6 +116,25 @@ export function useNoteContextMenuDelete(
 			const res = await MoveToTrash(paths);
 			if (res.success) {
 				toast.success(res.message, DEFAULT_SONNER_OPTIONS);
+				// If the current note was deleted, navigate to the first note that was not deleted
+
+				if (
+					notes &&
+					note &&
+					fileExtension &&
+					deletedNoteNamesAsArray.includes(`${note}?ext=${fileExtension}`)
+				) {
+					const firstNoteNotDeleted = notes?.find(
+						(name) => !deletedNoteNamesAsArray.includes(name),
+					);
+					// Go the first note that was not deleted
+					if (firstNoteNotDeleted)
+						navigate(`/${folder}/${firstNoteNotDeleted}`);
+					// Every note was deleted, so go to the folder instead
+					else {
+						navigate(`/${folder}`);
+					}
+				}
 			} else {
 				throw new Error(res.message);
 			}
@@ -131,6 +145,7 @@ export function useNoteContextMenuDelete(
 				toast.error("An Unknown Error Occurred");
 			}
 		}
+
 		setSelectionRange(new Set());
 	});
 }

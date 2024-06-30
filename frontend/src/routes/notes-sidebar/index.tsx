@@ -2,7 +2,6 @@ import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { navigate } from "wouter/use-browser-location";
 import { AddNoteToFolder } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import {
@@ -31,7 +30,11 @@ import {
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
 import { Pen } from "../../icons/pen";
-import { getNoteCount, updateNotes } from "../../utils/fetch-functions";
+import {
+	checkIfNoteExists,
+	getNoteCount,
+	updateNotes,
+} from "../../utils/fetch-functions";
 import { useSearchParamsEntries } from "../../utils/hooks.tsx";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
 import { validateName } from "../../utils/string-formatting.ts";
@@ -64,9 +67,20 @@ export function NotesSidebar({
 		getNoteCount(folder, setNoteCount);
 	}, [folder, setNotes]);
 
+	// Navigates to not-found page if note does not exist
+	useEffect(() => {
+		checkIfNoteExists(folder, note, searchParams?.ext);
+	}, [notes, note]);
+
 	useNoteCreate(folder, notes ?? [], setNotes, setNoteCount);
-	useNoteDelete(folder, note, setNotes, setNoteCount, fileExtension);
-	useNoteContextMenuDelete(folder, setSelectionRange);
+	useNoteDelete(folder, note, setNotes, setNoteCount);
+	useNoteContextMenuDelete(
+		folder,
+		note,
+		fileExtension,
+		notes,
+		setSelectionRange,
+	);
 	useNoteOpenInNewWindow(folder, selectionRange, setSelectionRange);
 
 	return (
@@ -167,7 +181,6 @@ export function NotesSidebar({
 														`Note, "${newNoteNameString}", successfully created.`,
 														DEFAULT_SONNER_OPTIONS,
 													);
-													navigate(`/${folder}/${newNoteNameString}?ext=md`);
 												}
 											} catch (e) {
 												if (e instanceof Error) {

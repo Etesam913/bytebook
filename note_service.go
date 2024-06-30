@@ -62,7 +62,7 @@ func (n *NoteService) GetNotes(folderName string) NoteResponse {
 func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNoteTitle string) NoteResponse {
 	noteBase := filepath.Join(n.ProjectPath, "notes", folderName)
 
-	doesExist, err := io_helpers.FileExists(
+	doesExist, err := io_helpers.FileOrFolderExists(
 		filepath.Join(noteBase, newNoteTitle+".md"),
 	)
 

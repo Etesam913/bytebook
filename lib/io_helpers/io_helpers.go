@@ -115,7 +115,7 @@ func CopyFile(src, dst string, shouldOverride bool) CopyFileErr {
 	}
 	defer sourceFile.Close()
 
-	doesDstExist, err := FileExists(dst)
+	doesDstExist, err := FileOrFolderExists(dst)
 	if err != nil {
 		return CopyFileErr{Err: err, IsDstExists: false}
 	}
@@ -174,7 +174,7 @@ func CleanFileName(filename string) string {
 	return cleaned
 }
 
-func FileExists(path string) (bool, error) {
+func FileOrFolderExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
 		return true, nil
@@ -247,7 +247,7 @@ func MoveFile(srcPath, dstPath string) error {
 
 // CreateUniqueNameForFileIfExists Updates the name of the file until a unique name is found
 func CreateUniqueNameForFileIfExists(filePath string) (string, error) {
-	doesFileExist, err := FileExists(filePath)
+	doesFileExist, err := FileOrFolderExists(filePath)
 	if err != nil {
 		return "", err
 	}
@@ -262,14 +262,14 @@ func CreateUniqueNameForFileIfExists(filePath string) (string, error) {
 	i := 1
 
 	newFilePath := filepath.Join(dir, fmt.Sprintf("%s %d%s", base, i, ext))
-	doesFileExist, err = FileExists(newFilePath)
+	doesFileExist, err = FileOrFolderExists(newFilePath)
 	if err != nil {
 		return "", err
 	}
 	for doesFileExist {
 		i++
 		newFilePath = filepath.Join(dir, fmt.Sprintf("%s %d%s", base, i, ext))
-		doesFileExist, err = FileExists(newFilePath)
+		doesFileExist, err = FileOrFolderExists(newFilePath)
 		if err != nil {
 			return "", err
 		}

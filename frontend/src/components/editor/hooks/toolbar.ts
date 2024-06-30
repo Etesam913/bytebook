@@ -26,10 +26,11 @@ import {
 	type SetStateAction,
 	useEffect,
 } from "react";
-import { navigate } from "wouter/use-browser-location";
+import { toast } from "sonner";
 import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { draggedElementAtom } from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
+import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
 import { CUSTOM_TRANSFORMERS } from "../transformers";
 import {
 	overrideControlledTextInsertion,
@@ -80,10 +81,11 @@ export function useNoteMarkdown(
 					throw new Error("Failed in retrieving note markdown");
 				}
 			} catch (e) {
-				console.error(e);
-				navigate("/not-found", { replace: true });
+				if (e instanceof Error) toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+				// navigate("/not-found", { replace: true });
 			}
 		}
+
 		fetchNoteMarkdown();
 	}, [folder, note, editor, setCurrentSelectionFormat]);
 }

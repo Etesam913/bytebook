@@ -49,6 +49,7 @@ export function Toolbar({
 	const [currentSelectionFormat, setCurrentSelectionFormat] = useState<
 		TextFormatType[]
 	>([]);
+
 	const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
 	const [isNodeSelection, setIsNodeSelection] = useState(false);
 	const [canRedo, setCanRedo] = useState(false);

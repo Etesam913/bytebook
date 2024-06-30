@@ -150,6 +150,18 @@ func (f *FolderService) GetFolders() FolderResponse {
 	}
 }
 
+func (f *FolderService) DoesFolderExist(folderName string) FolderResponse {
+	folderPath := filepath.Join(f.ProjectPath, "notes", folderName)
+	exists, err := io_helpers.FileOrFolderExists(folderPath)
+	if err != nil {
+		return FolderResponse{Success: false, Message: err.Error()}
+	}
+	if !exists {
+		return FolderResponse{Success: false, Message: "Folder does not exist"}
+	}
+	return FolderResponse{Success: true, Message: ""}
+}
+
 func (f *FolderService) AddFolder(folderName string) FolderResponse {
 	pathToFolder := filepath.Join(f.ProjectPath, "notes", folderName)
 
