@@ -139,7 +139,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	useFolderDelete(setFolders);
 	useFolderOpenInNewWindow(selectionRange, setSelectionRange);
 	useFolderContextMenuRename(setDialogData);
-	useFolderContextMenuDelete(setDialogData);
+	useFolderContextMenuDelete(setDialogData, setSelectionRange);
 	useFolderContextMenuFindInFinder(selectionRange, setSelectionRange);
 
 	// Initially fetches folders from filesystem

@@ -6,6 +6,7 @@ import { draggedElementAtom, selectionRangeAtom } from "../../atoms";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
 import { useSearchParamsEntries } from "../../utils/hooks";
+import { removeFoldersFromSelection } from "../../utils/selection";
 import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
 import { RenderNoteIcon } from "./render-note-icon";
 
@@ -65,9 +66,9 @@ export function MyNotesAccordion({
 									setSelectionRange(new Set([sidebarNoteName]));
 								} else {
 									setSelectionRange((prev) => {
-										const tempSet = new Set(prev);
-										tempSet.add(sidebarNoteName);
-										return tempSet;
+										const setWithoutNotes = removeFoldersFromSelection(prev);
+										setWithoutNotes.add(sidebarNoteName);
+										return setWithoutNotes;
 									});
 								}
 							}}

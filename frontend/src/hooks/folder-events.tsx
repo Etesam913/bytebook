@@ -55,7 +55,6 @@ export function useFolderDelete(
 ) {
 	useWailsEvent("folder:delete", (body) => {
 		const data = body.data as { folder: string }[];
-		console.log("bob");
 		const deletedFolders = new Set(data.map(({ folder }) => folder));
 
 		setFolders((prev) => {
@@ -81,6 +80,7 @@ export function useFolderRename(
 	useWailsEvent("folder:rename", (body) => {
 		const data = body.data as { folder: string }[];
 		const renamedFolders = new Set(data.map(({ folder }) => folder));
+
 		setFolders((prev) => {
 			if (prev) {
 				// Gets all the folders that were not renamed. The create event will handle the new names
@@ -102,10 +102,11 @@ export function useFolderRename(
 /** This function is used to handle folder:context-menu:delete events. It opens a dialog to confirm the deletion of a folder */
 export function useFolderContextMenuDelete(
 	setDialogData: Dispatch<SetStateAction<DialogDataType>>,
+	setSelectionRange: Dispatch<SetStateAction<Set<string>>>,
 ) {
 	useWailsEvent("folder:context-menu:delete", (body) => {
 		const [folderName, windowId] = (body.data as string).split(",");
-
+		setSelectionRange(new Set());
 		if (windowId === WINDOW_ID) {
 			setDialogData({
 				isOpen: true,

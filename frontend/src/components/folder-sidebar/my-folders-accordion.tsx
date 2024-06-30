@@ -7,6 +7,7 @@ import { alphabetizedFoldersAtom, draggedElementAtom } from "../../atoms.ts";
 import { ChevronDown } from "../../icons/chevron-down.tsx";
 import { FolderOpen } from "../../icons/folder-open.tsx";
 import { Folder } from "../../icons/folder.tsx";
+import { removeNotesFromSelection } from "../../utils/selection.ts";
 import { cn } from "../../utils/string-formatting.ts";
 import { Sidebar } from "../sidebar/index.tsx";
 import { handleDragStart } from "../sidebar/utils.tsx";
@@ -85,9 +86,9 @@ export function MyFoldersAccordion({
 								setSelectionRange(new Set([sidebarFolderName]));
 							} else {
 								setSelectionRange((prev) => {
-									const tempSet = new Set(prev);
-									tempSet.add(sidebarFolderName);
-									return tempSet;
+									const setWithoutNotes = removeNotesFromSelection(prev);
+									setWithoutNotes.add(sidebarFolderName);
+									return setWithoutNotes;
 								});
 							}
 						}}
