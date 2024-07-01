@@ -37,7 +37,8 @@ export function useDraggableBlock(
 
 	useEffect(() => {
 		const noteContainerValue = noteContainerRef?.current;
-		const throttledHandleMouseMove = throttle((e: MouseEvent) => {
+		function handleMouseMove(e: MouseEvent) {
+			console.log("mouse move");
 			if (!noteContainerValue) {
 				return;
 			}
@@ -55,22 +56,19 @@ export function useDraggableBlock(
 				noteContainerValue,
 			);
 			setDraggableBlockElement(_draggableBlockElem);
-		}, 100);
+		}
 
 		function handleMouseLeave() {
 			setDraggableBlockElement(null);
 		}
 
-		noteContainerRef?.current?.addEventListener(
-			"mousemove",
-			throttledHandleMouseMove,
-		);
+		noteContainerRef?.current?.addEventListener("mousemove", handleMouseMove);
 		noteContainerRef?.current?.addEventListener("mouseleave", handleMouseLeave);
 
 		return () => {
 			noteContainerRef?.current?.removeEventListener(
 				"mousemove",
-				throttledHandleMouseMove,
+				handleMouseMove,
 			);
 			noteContainerRef?.current?.removeEventListener(
 				"mouseleave",
@@ -96,7 +94,7 @@ export function useNodeDragEvents(
 	const draggedElement = useAtomValue(draggedElementAtom);
 
 	useEffect(() => {
-		function handleDragOver(event: DragEvent) {
+		const handleDragOver = throttle((event: DragEvent) => {
 			if (!isDragging) {
 				return false;
 			}
@@ -123,10 +121,9 @@ export function useNodeDragEvents(
 				noteContainer,
 				targetLineYMotionValue,
 			);
-			// Prevent default event to be able to trigger onDrop events
 
 			return true;
-		}
+		}, 100);
 
 		function handleOnDrop(event: DragEvent): boolean {
 			if (!isDragging) {

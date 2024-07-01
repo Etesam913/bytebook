@@ -17,6 +17,7 @@ export function SidebarItems({
 	anchorSelectionIndex,
 	emptyElement,
 	layoutId,
+	startIndex,
 }: {
 	data: string[] | null;
 	getContextMenuStyle?: (dataItem: string) => CSSProperties;
@@ -31,6 +32,7 @@ export function SidebarItems({
 	anchorSelectionIndex: React.MutableRefObject<number>;
 	emptyElement?: ReactNode;
 	layoutId: string;
+	startIndex: number;
 }) {
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 
@@ -91,7 +93,12 @@ export function SidebarItems({
 							<SidebarHighlight layoutId={layoutId} />
 						)}
 					</AnimatePresence>
-					{renderLink({ dataItem, i, selectionRange, setSelectionRange })}
+					{renderLink({
+						dataItem,
+						i: startIndex + i,
+						selectionRange,
+						setSelectionRange,
+					})}
 				</div>
 			</li>
 		);

@@ -64,14 +64,14 @@ export function Sidebar({
 		};
 	}, [listRef]);
 
-	console.log({ startIndex, endIndex, containerHeight });
-
 	return (
 		<AnimatePresence initial={false}>
 			<div
 				className="overflow-y-auto"
 				ref={listRef}
-				onScroll={(e) => setScrollTop(Math.max(0, e.target.scrollTop))}
+				onScroll={(e) =>
+					setScrollTop(Math.max(0, (e.target as HTMLElement).scrollTop))
+				}
 			>
 				<div
 					style={{
@@ -95,6 +95,7 @@ export function Sidebar({
 							setHoveredIndex={setHoveredIndex}
 							anchorSelectionIndex={anchorSelectionIndex}
 							emptyElement={emptyElement}
+							startIndex={startIndex}
 						/>
 					</ul>
 				</div>

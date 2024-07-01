@@ -27,33 +27,38 @@ export function dragItem(
 	document.addEventListener("mousemove", mouseMove);
 	document.addEventListener("mouseup", cleanUpDocumentEvents);
 }
-// biome-ignore lint/complexity/noBannedTypes: General types are suitable for a throttle function
-export const throttle = (fn: Function, wait = 300) => {
+// biome-ignore lint/suspicious/noExplicitAny: General types are suitable for a throttle function
+export const throttle = <T extends (...args: any[]) => any>(
+	fn: T,
+	wait = 300,
+): ((...args: Parameters<T>) => ReturnType<T>) => {
 	let inThrottle: boolean;
 	let lastFn: ReturnType<typeof setTimeout>;
 	let lastTime: number;
 
-	// biome-ignore lint/suspicious/noExplicitAny: `any` is ok here because we don't know the type of `this`
-	return function (this: any) {
-		// biome-ignore lint/style/noArguments: `arguments` is ok here as this function won't be modified for the future
-		const args = arguments;
+	return function (
+		// biome-ignore lint/suspicious/noExplicitAny: General types are suitable for a throttle function
+		this: any,
+		...args: Parameters<T>
+	): ReturnType<T> | undefined {
 		if (!inThrottle) {
-			fn.apply(this, args);
+			const result = fn.apply(this, args);
 			lastTime = Date.now();
 			inThrottle = true;
-		} else {
-			clearTimeout(lastFn);
-			lastFn = setTimeout(
-				() => {
-					if (Date.now() - lastTime >= wait) {
-						fn.apply(this, args);
-						lastTime = Date.now();
-					}
-				},
-				Math.max(wait - (Date.now() - lastTime), 0),
-			);
+			return result;
 		}
-	};
+		clearTimeout(lastFn);
+		lastFn = setTimeout(
+			() => {
+				if (Date.now() - lastTime >= wait) {
+					const result = fn.apply(this, args);
+					lastTime = Date.now();
+					return result;
+				}
+			},
+			Math.max(wait - (Date.now() - lastTime), 0),
+		);
+	} as (...args: Parameters<T>) => ReturnType<T>;
 };
 
 // biome-ignore lint/complexity/noBannedTypes: General types are suitable for a debounce function
