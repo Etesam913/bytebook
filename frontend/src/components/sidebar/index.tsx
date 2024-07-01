@@ -1,13 +1,17 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import {
 	type CSSProperties,
 	type Dispatch,
 	type ReactNode,
 	type SetStateAction,
+	useLayoutEffect,
 	useRef,
 	useState,
 } from "react";
 import { SidebarItems } from "./sidebar-items";
+
+const SIDEBAR_ITEM_HEIGHT = 36;
+const VIRUTALIZATION_HEIGHT = 8;
 
 export function Sidebar({
 	isCollapsed,
@@ -31,33 +35,70 @@ export function Sidebar({
 }) {
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 	const anchorSelectionIndex = useRef<number>(0);
-	const listRef = useRef<HTMLUListElement>(null);
+
+	const listRef = useRef<HTMLDivElement>(null);
+	const [scrollTop, setScrollTop] = useState(0);
+	const items = data ?? [];
+	const numberOfItems = items.length;
+	const [containerHeight, setContainerHeight] = useState(0);
+	const startIndex = Math.floor(scrollTop / SIDEBAR_ITEM_HEIGHT);
+	const endIndex = Math.min(
+		startIndex +
+			Math.ceil(
+				containerHeight / (SIDEBAR_ITEM_HEIGHT - VIRUTALIZATION_HEIGHT),
+			),
+		numberOfItems,
+	);
+	const visibleItems = items.slice(startIndex, endIndex);
+
+	useLayoutEffect(() => {
+		const resizeObserver = new ResizeObserver((entries) => {
+			const container = entries[0].target;
+			setContainerHeight(container.clientHeight);
+		});
+		if (listRef.current) {
+			resizeObserver.observe(listRef.current);
+		}
+		return () => {
+			resizeObserver.disconnect();
+		};
+	}, [listRef]);
+
+	console.log({ startIndex, endIndex, containerHeight });
 
 	return (
 		<AnimatePresence initial={false}>
-			{!isCollapsed && (
-				<motion.ul
-					ref={listRef}
-					initial={{ height: 0 }}
-					animate={{
-						height: "auto",
+			<div
+				className="overflow-y-auto"
+				ref={listRef}
+				onScroll={(e) => setScrollTop(Math.max(0, e.target.scrollTop))}
+			>
+				<div
+					style={{
+						height: `${items.length * SIDEBAR_ITEM_HEIGHT}px`,
 					}}
-					exit={{ height: 0, opacity: 0 }}
-					transition={{ type: "spring", damping: 22, stiffness: 130 }}
-					className="overflow-y-auto"
 				>
-					<SidebarItems
-						layoutId={layoutId}
-						data={data}
-						renderLink={renderLink}
-						getContextMenuStyle={getContextMenuStyle}
-						hoveredIndex={hoveredIndex}
-						setHoveredIndex={setHoveredIndex}
-						anchorSelectionIndex={anchorSelectionIndex}
-						emptyElement={emptyElement}
-					/>
-				</motion.ul>
-			)}
+					<ul
+						id="test"
+						style={{
+							position: "relative",
+							height: `${visibleItems.length * SIDEBAR_ITEM_HEIGHT}px`,
+							top: `${startIndex * SIDEBAR_ITEM_HEIGHT}px`,
+						}}
+					>
+						<SidebarItems
+							layoutId={layoutId}
+							data={visibleItems}
+							renderLink={renderLink}
+							getContextMenuStyle={getContextMenuStyle}
+							hoveredIndex={hoveredIndex}
+							setHoveredIndex={setHoveredIndex}
+							anchorSelectionIndex={anchorSelectionIndex}
+							emptyElement={emptyElement}
+						/>
+					</ul>
+				</div>
+			</div>
 		</AnimatePresence>
 	);
 }

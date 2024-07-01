@@ -25,10 +25,10 @@ export function MyNotesAccordion({
 
 	return (
 		<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
-			<div className="flex items-center gap-1.5 py-1 rounded-md px-0.5 transition-colors">
+			<p className="flex items-center gap-1.5 py-1 rounded-md px-0.5 transition-colors">
 				My Notes{" "}
 				{noteCount > 0 && <span className="tracking-wider">({noteCount})</span>}
-			</div>
+			</p>
 			<Sidebar
 				layoutId="recent-notes-accordion"
 				emptyElement={

@@ -1,13 +1,13 @@
 export function Folder({
-	width = "1.25rem",
-	height = "1.25rem",
+	width = 16,
+	height = 16,
 	fill = "currentColor",
 	secondaryfill = "currentColor",
 	title = "folder",
 	className,
 }: {
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	fill?: string;
 	secondaryfill?: string;
 	title?: string;

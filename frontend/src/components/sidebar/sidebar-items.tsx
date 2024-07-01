@@ -41,8 +41,12 @@ export function SidebarItems({
 	const dataElements = data?.map((dataItem, i) => {
 		return (
 			<li
-				onMouseEnter={() => setHoveredIndex(i)}
-				onMouseLeave={() => setHoveredIndex(null)}
+				onMouseEnter={() => {
+					setHoveredIndex(i);
+				}}
+				onMouseLeave={() => {
+					setHoveredIndex(null);
+				}}
 				key={dataItem}
 				className="py-[.1rem]"
 				style={getContextMenuStyle?.(dataItem)}
