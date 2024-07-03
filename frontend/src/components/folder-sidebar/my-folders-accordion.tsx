@@ -22,7 +22,7 @@ export function MyFoldersAccordion({
 
 	return (
 		<section className="flex-1 overflow-y-auto flex flex-col gap-1.5">
-			<p className="flex items-center gap-1.5 py-1 rounded-md px-0.5 transition-colors">
+			<p className="flex items-center gap-1.5 py-1 px-2 rounded-md transition-colors">
 				My Folders{" "}
 				{hasFolders && (
 					<span className="tracking-wider">({alphabetizedFolders.length})</span>

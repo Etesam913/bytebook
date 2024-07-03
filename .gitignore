@@ -1,3 +1,4 @@
 bin/
 .zed
 rust-contents
+backend/backend-env/
