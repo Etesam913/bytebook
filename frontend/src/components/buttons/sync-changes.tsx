@@ -25,37 +25,39 @@ export function SyncChangesButton(props: SyncButtonProps) {
 	return (
 		<button
 			type="button"
-			onClick={() => {
-				setIsSyncing(true);
-				SyncChangesWithRepo()
-					.then((r) => {
-						setTimeout(() => {
-							if (r.status === "success") {
-								toast.success(r.message, {
-									position: "bottom-right",
-									duration: 3250,
-								});
-								// Need to re-fetch all the folder names and the note names for the current folder
-								updateFolders(setFolders);
-								if (folder) updateNotes(folder, note, setNotes);
-							} else if (r.status === "info") {
-								toast.info(r.message, {
-									position: "bottom-right",
-								});
-							} else {
-								toast.error(r.message, {
-									position: "bottom-right",
-								});
-							}
-							setIsSyncing(false);
-						}, 1000);
-					})
-					.catch((err) => {
-						toast.error(err.message, {
-							position: "bottom-right",
-						});
-						setIsSyncing(false);
-					});
+			onClick={async () => {
+				window.location.href = "http://localhost:8000/auth/github";
+
+				// setIsSyncing(true);
+				// SyncChangesWithRepo()
+				// 	.then((r) => {
+				// 		setTimeout(() => {
+				// 			if (r.status === "success") {
+				// 				toast.success(r.message, {
+				// 					position: "bottom-right",
+				// 					duration: 3250,
+				// 				});
+				// 				// Need to re-fetch all the folder names and the note names for the current folder
+				// 				updateFolders(setFolders);
+				// 				if (folder) updateNotes(folder, note, setNotes);
+				// 			} else if (r.status === "info") {
+				// 				toast.info(r.message, {
+				// 					position: "bottom-right",
+				// 				});
+				// 			} else {
+				// 				toast.error(r.message, {
+				// 					position: "bottom-right",
+				// 				});
+				// 			}
+				// 			setIsSyncing(false);
+				// 		}, 1000);
+				// 	})
+				// 	.catch((err) => {
+				// 		toast.error(err.message, {
+				// 			position: "bottom-right",
+				// 		});
+				// 		setIsSyncing(false);
+				// 	});
 			}}
 			disabled={isSyncing}
 			className={cn(

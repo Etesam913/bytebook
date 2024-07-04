@@ -1,9 +1,19 @@
+import os
 from fastapi import FastAPI
-from api.endpoints.github_oauth import github_router
+from fastapi.middleware.cors import CORSMiddleware
+from api.endpoints.auth import auth_router
+from starlette.middleware.sessions import SessionMiddleware
 
 app = FastAPI()
-
-app.include_router(github_router)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins="*",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY'))
+app.include_router(auth_router)
 
 @app.get("/")
 def read_root():

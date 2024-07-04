@@ -38,7 +38,6 @@ export function useDraggableBlock(
 	useEffect(() => {
 		const noteContainerValue = noteContainerRef?.current;
 		function handleMouseMove(e: MouseEvent) {
-			console.log("mouse move");
 			if (!noteContainerValue) {
 				return;
 			}
