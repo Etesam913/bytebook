@@ -4,14 +4,14 @@ import { Toaster } from "sonner";
 import { Route, Switch, useRoute } from "wouter";
 import { isNoteMaximizedAtom } from "./atoms";
 import { Dialog } from "./components/dialog";
+import { NO_FOLDER_PAGES } from "./components/editor/utils/link";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { LoadingModal } from "./components/loading-modal";
+import { useLoggedInEvent, useUserData } from "./hooks/auth";
 import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
 import { TrashSidebar } from "./routes/trash-sidebar";
 import { useDarkModeSetting } from "./utils/hooks";
-import { NO_FOLDER_PAGES } from "./components/editor/utils/link";
-import { useIsLoggedIn } from "./hooks/auth";
 
 export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
 
@@ -33,8 +33,9 @@ function ShowFolderSidebar({
 function App() {
 	const folderSidebarWidth = useMotionValue(190);
 	const notesSidebarWidth = useMotionValue(190);
+	useUserData();
 
-	useIsLoggedIn();
+	useLoggedInEvent();
 	useDarkModeSetting();
 
 	return (

@@ -7,17 +7,15 @@ import { Trash } from "../../icons/trash";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import {
 	cn,
-	extractInfoFromNoteName,
 	getFileExtension,
 	getInternalLinkType,
 	isInternalLink,
 } from "../../utils/string-formatting";
-import { SyncChangesButton } from "../buttons/sync-changes";
+import { LoginButton } from "../buttons/login";
 
 const MotionLink = motion(Link);
 
 export function BottomItems() {
-	const [isSyncing, setIsSyncing] = useState(false);
 	const [, params] = useRoute("/:folder/:note?");
 	const base = params?.folder;
 	const [isNoteOver, setIsNoteOver] = useState(false);
@@ -85,7 +83,7 @@ export function BottomItems() {
 					<Trash /> Trash
 				</>
 			</MotionLink>
-			<SyncChangesButton isSyncing={isSyncing} setIsSyncing={setIsSyncing} />
+			<LoginButton />
 		</section>
 	);
 }

@@ -15,7 +15,9 @@ export type DropdownItem = {
 };
 
 export type UserData = {
-	name: string;
+	login: string;
+	accessToken: string;
+	avatarUrl: string;
 	email: string;
 };
 

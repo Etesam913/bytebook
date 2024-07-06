@@ -164,7 +164,6 @@ export function Toolbar({
 						controlledValueIndex={blockTypesDropdownItems.findIndex(
 							(v) => v.value === currentBlockType,
 						)}
-						dropdownItemsClassName="max-h-[calc(100vh-10rem)]"
 						onChange={({ value }) =>
 							changeSelectedBlocksType(
 								editor,

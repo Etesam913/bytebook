@@ -98,13 +98,12 @@ func githubAuthCallback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No access token", http.StatusInternalServerError)
 	}
 
-	http.Redirect(w, r, "http://localhost:3000", http.StatusSeeOther)
+	http.Redirect(w, r, "https://google.com", http.StatusSeeOther)
 	app := application.Get()
 	app.Events.Emit(&application.WailsEvent{
 		Name: "auth:access-token",
 		Data: accessToken,
 	})
-
 }
 
 func LaunchAuthServer() {

@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "../../icons/chevron-down";
 import type { DropdownItem } from "../../types";
@@ -10,7 +10,6 @@ export function Dropdown({
 	items,
 	className,
 	buttonClassName,
-	dropdownItemsClassName,
 	controlledValueIndex,
 	onChange,
 	disabled,
@@ -18,7 +17,7 @@ export function Dropdown({
 	items: DropdownItem[];
 	className?: string;
 	buttonClassName?: string;
-	dropdownItemsClassName?: string;
+
 	controlledValueIndex?: number;
 	onChange?: (v: DropdownItem) => void;
 	disabled?: boolean;
@@ -62,41 +61,15 @@ export function Dropdown({
 				</motion.span>
 			</button>
 
-			<AnimatePresence>
-				{isOpen && (
-					<motion.div
-						role="menu"
-						className={cn(
-							"absolute z-30 w-full translate-y-1 overflow-hidden rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700",
-						)}
-						exit={{
-							borderColor: "transparent",
-							transition: {
-								borderColor: { delay: 0.25 },
-							},
-						}}
-					>
-						<motion.div
-							initial={{ height: 0 }}
-							animate={{
-								height: "auto",
-								transition: { type: "spring", damping: 18, stiffness: 120 },
-							}}
-							exit={{ height: 0 }}
-						>
-							<DropdownItems
-								dropdownItemsClassName={dropdownItemsClassName}
-								items={items}
-								setIsOpen={setIsOpen}
-								setValueIndex={setValueIndex}
-								setFocusIndex={setFocusIndex}
-								focusIndex={focusIndex}
-								onChange={onChange}
-							/>
-						</motion.div>
-					</motion.div>
-				)}
-			</AnimatePresence>
+			<DropdownItems
+				items={items}
+				isOpen={isOpen}
+				setIsOpen={setIsOpen}
+				setValueIndex={setValueIndex}
+				setFocusIndex={setFocusIndex}
+				focusIndex={focusIndex}
+				onChange={onChange}
+			/>
 		</div>
 	);
 }

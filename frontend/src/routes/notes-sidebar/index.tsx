@@ -94,7 +94,7 @@ export function NotesSidebar({
 					>
 						<div className="flex h-full flex-col overflow-y-auto pl-1.5 pr-2.5 relative">
 							<section className="flex items-center min-h-[3.625rem] gap-2">
-								<Folder className="min-w-[1.25rem]" />{" "}
+								<Folder className="min-w-[1.25rem]" width={20} height={20} />{" "}
 								<p className="overflow-hidden text-ellipsis whitespace-nowrap">
 									{decodeURIComponent(folder)}
 								</p>

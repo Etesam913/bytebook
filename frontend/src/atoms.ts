@@ -17,7 +17,16 @@ export const mostRecentNotesAtom = atom(
 	},
 );
 
-export const userDataAtom = atom<UserData | null>(null);
+const userDataAtom = atom<UserData | null>(null);
+export const userDataAtomWithLocalStorage = atom(
+	(get) => get(userDataAtom),
+	(_, set, newUserData: UserData) => {
+		const accessToken = newUserData?.accessToken;
+
+		localStorage.setItem("accessToken", accessToken ?? "null");
+		set(userDataAtom, newUserData);
+	},
+);
 
 export const notesAtom = atom<string[] | null>([]);
 export const foldersAtom = atom<string[] | null>([]);

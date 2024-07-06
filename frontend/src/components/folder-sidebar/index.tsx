@@ -40,12 +40,12 @@ import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
 import { validateName } from "../../utils/string-formatting.ts";
 import { MotionButton, MotionIconButton } from "../buttons";
 import { DialogErrorText, resetDialogState } from "../dialog/index.tsx";
+import { NO_FOLDER_PAGES } from "../editor/utils/link.ts";
 import { Input } from "../input/index.tsx";
 import { BottomItems } from "./bottom-items.tsx";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { Spacer } from "./spacer";
-import { NO_FOLDER_PAGES } from "../editor/utils/link.ts";
 
 export function FolderDialogChildren({
 	errorText,
