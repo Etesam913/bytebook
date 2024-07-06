@@ -10,11 +10,7 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { Events } from "@wailsio/runtime";
-import {
-	type AnimationControls,
-	motion,
-	useAnimationControls,
-} from "framer-motion";
+import type { AnimationControls } from "framer-motion";
 import { useAtomValue, useSetAtom } from "jotai";
 import type { LexicalEditor } from "lexical";
 import {
@@ -81,7 +77,11 @@ function handleChange(
 		() => {
 			const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
 			const frontmatterCopy = { ...frontmatter };
-			frontmatterCopy.lastUpdated = new Date().toISOString();
+			const timeOfChange = new Date().toISOString();
+			frontmatterCopy.lastUpdated = timeOfChange;
+			if (frontmatterCopy.createdDate === undefined) {
+				frontmatterCopy.createdDate = timeOfChange;
+			}
 			const markdownWithFrontmatter = replaceFrontMatter(
 				markdown,
 				frontmatterCopy,

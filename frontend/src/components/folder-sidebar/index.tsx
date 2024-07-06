@@ -28,9 +28,9 @@ import {
 	useFolderOpenInNewWindow,
 	useFolderRename,
 } from "../../hooks/folder-events.tsx";
-import { Gear } from "../../icons/gear.tsx";
+
 import { Pen } from "../../icons/pen.tsx";
-import { SettingsWindow } from "../../routes/settings/index.tsx";
+
 import type { DialogDataType } from "../../types.ts";
 import {
 	checkIfFolderExists,
@@ -38,9 +38,8 @@ import {
 } from "../../utils/fetch-functions";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
 import { validateName } from "../../utils/string-formatting.ts";
-import { MotionButton, MotionIconButton } from "../buttons";
+import { MotionButton } from "../buttons";
 import { DialogErrorText, resetDialogState } from "../dialog/index.tsx";
-import { NO_FOLDER_PAGES } from "../editor/utils/link.ts";
 import { Input } from "../input/index.tsx";
 import { BottomItems } from "./bottom-items.tsx";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
@@ -164,7 +163,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 				style={{ width }}
 				className="text-md flex h-screen flex-col px-[10px]"
 			>
-				<div className="min-h-[3.625rem] flex gap-0.5 justify-end items-center">
+				<div className="min-h-[3.25rem] flex gap-0.5 justify-end items-center">
 					{/* <MotionIconButton
 						{...getDefaultButtonVariants()}
 						title="Go Back"
@@ -180,22 +179,6 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					>
 						<CircleArrowRight title="Go Forward" />
 					</MotionIconButton> */}
-					{/* <Link to="/settings"> */}
-					<MotionIconButton
-						{...getDefaultButtonVariants()}
-						title="Settings"
-						onClick={() => {
-							setDialogData({
-								isOpen: true,
-								title: "Settings",
-								dialogClassName: "w-[min(55rem,90vw)]",
-								children: () => <SettingsWindow />,
-								onSubmit: null,
-							});
-						}}
-					>
-						<Gear title="Settings" />
-					</MotionIconButton>
 				</div>
 				<MotionButton
 					{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
