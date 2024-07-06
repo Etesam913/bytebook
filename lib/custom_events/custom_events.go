@@ -7,7 +7,7 @@ import (
 )
 
 /* Creates a new webview window. Used in the file menu */
-func CreateWindow(app *application.App, url string, backgroundColor application.RGBA) application.Window {
+func CreateWindow(app *application.App, url string) application.Window {
 	return app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
 		Title:     "Note",
 		MinWidth:  800,
@@ -17,11 +17,9 @@ func CreateWindow(app *application.App, url string, backgroundColor application.
 		URL:       url,
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 35,
-
-			TitleBar: application.MacTitleBarHiddenInsetUnified,
+			TitleBar:                application.MacTitleBarHiddenInsetUnified,
 		},
 		EnableDragAndDrop: true,
-		BackgroundColour:  backgroundColor,
 	}).Show()
 }
 
@@ -29,7 +27,7 @@ func OpenNoteInNewWindowEvent(app *application.App, backgroundColor application.
 	app.Events.On("open-note-in-new-window-backend", func(e *application.WailsEvent) {
 		switch data := e.Data.(type) {
 		case map[string]interface{}:
-			CreateWindow(app, data["url"].(string), backgroundColor)
+			CreateWindow(app, data["url"].(string))
 		}
 	})
 }

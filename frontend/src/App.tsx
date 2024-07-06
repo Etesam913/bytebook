@@ -1,7 +1,7 @@
-import { useMotionValue } from "framer-motion";
+import { type MotionValue, useMotionValue } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { Toaster } from "sonner";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useRoute } from "wouter";
 import { isNoteMaximizedAtom } from "./atoms";
 import { Dialog } from "./components/dialog";
 import { FolderSidebar } from "./components/folder-sidebar";
@@ -10,14 +10,31 @@ import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
 import { TrashSidebar } from "./routes/trash-sidebar";
 import { useDarkModeSetting } from "./utils/hooks";
+import { NO_FOLDER_PAGES } from "./components/editor/utils/link";
+import { useIsLoggedIn } from "./hooks/auth";
 
 export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
+
+function ShowFolderSidebar({
+	folderSidebarWidth,
+}: { folderSidebarWidth: MotionValue<number> }) {
+	const [, params] = useRoute("/:folder");
+	const currentFolder = params?.folder;
+	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+	if (
+		!isNoteMaximized &&
+		(!currentFolder || (currentFolder && !NO_FOLDER_PAGES.has(currentFolder)))
+	) {
+		return <FolderSidebar width={folderSidebarWidth} />;
+	}
+	return null;
+}
 
 function App() {
 	const folderSidebarWidth = useMotionValue(190);
 	const notesSidebarWidth = useMotionValue(190);
-	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 
+	useIsLoggedIn();
 	useDarkModeSetting();
 
 	return (
@@ -28,8 +45,7 @@ function App() {
 			<Dialog />
 			<LoadingModal />
 			<Toaster richColors theme="system" />
-
-			{!isNoteMaximized && <FolderSidebar width={folderSidebarWidth} />}
+			<ShowFolderSidebar folderSidebarWidth={folderSidebarWidth} />
 			<Switch>
 				<Route path="/trash/:item?">
 					<TrashSidebar
@@ -37,9 +53,6 @@ function App() {
 						leftWidth={folderSidebarWidth}
 					/>
 				</Route>
-				{/* <Route path="/settings/:option?">
-					{(settingsParams) => <SettingsPage params={settingsParams} />}
-				</Route> */}
 				<Route path="/not-found">
 					<NotFound />
 				</Route>

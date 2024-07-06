@@ -1,6 +1,10 @@
 import { atom } from "jotai";
 import type { MutableRefObject } from "react";
-import type { BackendQueryDataType, DialogDataType } from "./types.ts";
+import type {
+	BackendQueryDataType,
+	DialogDataType,
+	UserData,
+} from "./types.ts";
 
 const privateMostRecentNotesAtom = atom<string[]>(
 	JSON.parse(localStorage.getItem("mostRecentNotes") ?? "[]") as string[],
@@ -12,6 +16,8 @@ export const mostRecentNotesAtom = atom(
 		set(privateMostRecentNotesAtom, payload);
 	},
 );
+
+export const userDataAtom = atom<UserData | null>(null);
 
 export const notesAtom = atom<string[] | null>([]);
 export const foldersAtom = atom<string[] | null>([]);

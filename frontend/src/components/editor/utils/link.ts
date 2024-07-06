@@ -16,6 +16,8 @@ export function handleATagClick(target: HTMLElement) {
 	});
 }
 
+export const NO_FOLDER_PAGES = new Set(["login-success"]);
+
 export const MATCHERS = [
 	(text: string) => {
 		const match = URL_MATCHER.exec(text);

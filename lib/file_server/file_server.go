@@ -33,18 +33,19 @@ func corsMiddleware(handler http.Handler) http.Handler {
 }
 
 func LaunchFileServer(projectPath string) {
+	mux := http.NewServeMux()
 	// Create a file server handler
 	fileServer := http.FileServer(http.Dir(projectPath))
 	wrappedFileServer := corsMiddleware(fileServer)
 	// Serve files from the root URL
-	http.Handle("/", wrappedFileServer)
+	mux.Handle("/", wrappedFileServer)
 
 	// Specify the port to listen on
 	port := ":5890"
 	log.Printf("Serving files on http://localhost%s/", port)
 
 	// Start the HTTP server
-	err := http.ListenAndServe(port, nil)
+	err := http.ListenAndServe(port, mux)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

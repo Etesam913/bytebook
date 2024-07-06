@@ -20,7 +20,7 @@ export function NotFound() {
 				>
 					here
 				</Link>{" "}
-				to go back to the homepage
+				to go back to your notes.
 			</p>
 		</section>
 	);

@@ -45,6 +45,7 @@ import { BottomItems } from "./bottom-items.tsx";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { Spacer } from "./spacer";
+import { NO_FOLDER_PAGES } from "../editor/utils/link.ts";
 
 export function FolderDialogChildren({
 	errorText,
@@ -195,7 +196,6 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					>
 						<Gear title="Settings" />
 					</MotionIconButton>
-					{/* </Link> */}
 				</div>
 				<MotionButton
 					{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}

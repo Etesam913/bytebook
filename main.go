@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/etesam913/bytebook/lib/auth_server"
 	"github.com/etesam913/bytebook/lib/custom_events"
 	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
@@ -49,11 +50,6 @@ func main() {
 	// Launching file server for images/videos
 	go file_server.LaunchFileServer(projectPath)
 
-	// Create a new Wails application by providing the necessary options.
-	// Variables 'Name' and 'Description' are for application metadata.
-	// 'Assets' configures the asset server with the 'FS' variable pointing to the frontend files.
-	// 'Bind' is a list of Go struct instances. The frontend has access to the methods of these instances.
-	// 'Mac' options tailor the application when running an macOS.
 	app := application.New(application.Options{
 		Name:        "bytebook",
 		Description: "A simple note taking app.",
@@ -81,7 +77,7 @@ func main() {
 		backgroundColor = application.NewRGB(0, 0, 0)
 	}
 
-	custom_events.CreateWindow(app, "/", backgroundColor)
+	custom_events.CreateWindow(app, "/")
 
 	menus.InitializeApplicationMenu(app)
 
@@ -94,12 +90,6 @@ func main() {
 		{Label: "Open Folder In New Window", EventName: "folder:open-in-new-window"},
 		{Label: "Reveal In Finder", EventName: "folder:reveal-in-finder"},
 	})
-	// folderContextMenu.Add("Reveal In Finder").OnClick(func(data *application.Context) {
-	// 	contextData := data.ContextMenuData().(string)
-	// 	folderName := strings.Split(contextData, ",")[0]
-	// 	io_helpers.RevealInFinder(filepath.Join(notesPath, folderName))
-
-	// })
 
 	project_helpers.CreateContextMenu(app, noteContextMenu, []project_helpers.MenuItem{
 		{Label: "Open Note In New Window", EventName: "note:open-in-new-window"},
@@ -117,6 +107,7 @@ func main() {
 	}
 	defer watcher.Close()
 	go file_server.LaunchFileWatcher(app, watcher)
+	go auth_server.LaunchAuthServer()
 	file_server.ListenToFolders(projectPath, watcher)
 
 	// Run the application. This blocks until the application has been exited.

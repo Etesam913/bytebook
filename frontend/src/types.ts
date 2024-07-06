@@ -14,6 +14,11 @@ export type DropdownItem = {
 	label: ReactNode;
 };
 
+export type UserData = {
+	name: string;
+	email: string;
+};
+
 export type FolderDialogAction = "create" | "rename" | "delete";
 
 export type MostRecentNoteType = {
