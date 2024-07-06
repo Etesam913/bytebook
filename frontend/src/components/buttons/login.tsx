@@ -1,14 +1,18 @@
 import { Browser } from "@wailsio/runtime";
 import { motion } from "framer-motion";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useRef, useState } from "react";
-import { userDataAtomWithLocalStorage } from "../../atoms";
+import { dialogDataAtom, userDataAtomWithLocalStorage } from "../../atoms";
 import { ChevronDown } from "../../icons/chevron-down";
 import { FileRefresh } from "../../icons/file-refresh";
 import { Gear } from "../../icons/gear";
 import OpenRectArrowIn from "../../icons/open-rect-arrow-in";
 import { useOnClickOutside } from "../../utils/hooks";
 import { DropdownItems } from "../dropdown/dropdown-items";
+import { SettingsWindow } from "../../routes/settings";
+import { SyncChangesWithRepo } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
+import { toast } from "sonner";
+import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 
 export function LoginButton() {
 	const userData = useAtomValue(userDataAtomWithLocalStorage);
@@ -16,6 +20,7 @@ export function LoginButton() {
 	const [isUserOptionsOpen, setIsUserOptionsOpen] = useState(false);
 	const [valueIndex, setValueIndex] = useState(0);
 	const [focusIndex, setFocusIndex] = useState(0);
+	const setDialogData = useSetAtom(dialogDataAtom);
 
 	const dropdownContainerRef = useRef<HTMLDivElement>(null);
 	useOnClickOutside(dropdownContainerRef, () => setIsUserOptionsOpen(false));
@@ -32,6 +37,30 @@ export function LoginButton() {
 					setIsOpen={setIsUserOptionsOpen}
 					setValueIndex={setValueIndex}
 					setFocusIndex={setFocusIndex}
+					onChange={async ({ value }) => {
+						if (value === "settings") {
+							setDialogData({
+								isOpen: true,
+								title: "Settings",
+								dialogClassName: "w-[min(55rem,90vw)]",
+								children: () => <SettingsWindow />,
+								onSubmit: null,
+							});
+						} else if (value === "sync-changes") {
+							try {
+								const res = await SyncChangesWithRepo(
+									userData.login,
+									userData.accessToken,
+								);
+								if (!res.success) throw new Error(res.message);
+
+								toast.success(res.message, DEFAULT_SONNER_OPTIONS);
+							} catch (e) {
+								if (e instanceof Error)
+									toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+							}
+						}
+					}}
 					focusIndex={focusIndex}
 					items={[
 						{

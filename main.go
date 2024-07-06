@@ -77,7 +77,7 @@ func main() {
 		backgroundColor = application.NewRGB(0, 0, 0)
 	}
 
-	custom_events.CreateWindow(app, "/")
+	custom_events.CreateWindow(app, "/", backgroundColor)
 
 	menus.InitializeApplicationMenu(app)
 

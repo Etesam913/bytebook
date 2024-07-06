@@ -38,6 +38,7 @@ func loginToGithub(w http.ResponseWriter, r *http.Request) {
 	baseURL := "https://github.com/login/oauth/authorize"
 	params := url.Values{}
 	params.Add("client_id", GithubClientId)
+	params.Add("scope", "repo")
 	fullURL := fmt.Sprintf("%s?%s", baseURL, params.Encode())
 	fmt.Println(fullURL)
 	http.Redirect(w, r, fullURL, http.StatusSeeOther)

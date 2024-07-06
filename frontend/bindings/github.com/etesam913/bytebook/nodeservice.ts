@@ -39,8 +39,8 @@ export function RunCode(language: string, code: string, command: string): Promis
     return $typingPromise;
 }
 
-export function SyncChangesWithRepo(): Promise<$models.GitResponse> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(1837210235) as any;
+export function SyncChangesWithRepo(username: string, accessToken: string): Promise<$models.GitResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(1837210235, username, accessToken) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType3($result);
     }) as any;

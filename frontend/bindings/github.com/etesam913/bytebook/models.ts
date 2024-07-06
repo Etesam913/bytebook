@@ -126,14 +126,14 @@ export class FolderResponse {
 }
 
 export class GitResponse {
-    "status": string;
+    "success": boolean;
     "message": string;
     "error": any;
 
     /** Creates a new GitResponse instance. */
     constructor($$source: Partial<GitResponse> = {}) {
-        if (!("status" in $$source)) {
-            this["status"] = "";
+        if (!("success" in $$source)) {
+            this["success"] = false;
         }
         if (!("message" in $$source)) {
             this["message"] = "";

@@ -212,15 +212,6 @@ func (n *NodeService) RunCode(language string, code string, command string) Code
 		}
 	}
 
-	// err = os.Remove(filePath)
-	// if err != nil {
-	// 	return CodeResponse{
-	// 		Success: false,
-	// 		Message: "Something went wrong when running your code. Please try again later",
-	// 		Id:      uniqueId,
-	// 	}
-	// }
-
 	return CodeResponse{
 		Success: true,
 		Message: res,
@@ -229,37 +220,39 @@ func (n *NodeService) RunCode(language string, code string, command string) Code
 }
 
 type GitResponse struct {
-	Status  string `json:"status"`
+	Success bool   `json:"success"`
 	Message string `json:"message"`
 	Error   error  `json:"error"`
 }
 
 var allowedErrors = make(map[error]struct{})
 var stringAllowedErrors = [5]string{"remote repository is empty"}
-var auth = &http.BasicAuth{
-	Username: "etesam913",
-	Password: "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",
-}
 
-func (n *NodeService) SyncChangesWithRepo() GitResponse {
+func (n *NodeService) SyncChangesWithRepo(username string, accessToken string) GitResponse {
 	allowedErrors[git.NoErrAlreadyUpToDate] = struct{}{}
+	fmt.Println(username, accessToken)
+	var auth = &http.BasicAuth{
+		Username: username,
+		Password: accessToken,
+	}
 
 	// Open the repository
 	repo, err := git.PlainOpen(n.ProjectPath)
 	if err != nil {
-		return GitResponse{Status: "error", Message: "Error in entering your repo", Error: err}
+		return GitResponse{Success: false, Message: "Error in entering your repo", Error: err}
 	}
 
 	// Entering into the worktree
 	worktree, err := repo.Worktree()
 	if err != nil {
-		return GitResponse{Status: "error", Message: "Error in entering in your repo's worktree", Error: err}
+		return GitResponse{Success: false, Message: "Error in entering in your repo's worktree", Error: err}
 	}
 
 	// Make pull request to get the latest changes
 	err = worktree.Pull(&git.PullOptions{
 		RemoteName: "origin",
 		Auth:       auth,
+		RemoteURL:  "https://github.com/Etesam913/bytebook-test.git",
 	})
 
 	// Checking if the error that we get is fine
@@ -275,7 +268,8 @@ func (n *NodeService) SyncChangesWithRepo() GitResponse {
 
 	// Handling the error
 	if err != nil && !hasAllowedErrorOrNoError {
-		return GitResponse{Status: "error", Message: "Error when pulling from your repo", Error: err}
+		fmt.Println(err)
+		return GitResponse{Success: false, Message: "Error when pulling from your repo", Error: err}
 	} else if !errors.Is(err, git.NoErrAlreadyUpToDate) {
 		fmt.Println(err)
 		fmt.Println("Pulled latest changes from origin.")
@@ -286,26 +280,26 @@ func (n *NodeService) SyncChangesWithRepo() GitResponse {
 	status, err := worktree.Status()
 	if err != nil {
 		fmt.Println(err)
-		return GitResponse{Status: "error", Message: "Error when getting git status", Error: err}
+		return GitResponse{Success: false, Message: "Error when getting git status", Error: err}
 	}
 
 	if status.IsClean() {
 		fmt.Println("No changes to sync")
-		return GitResponse{Status: "info", Message: "No changes to sync", Error: nil}
+		return GitResponse{Success: true, Message: "No changes to sync", Error: nil}
 	}
 
 	// Staging the changes
 	err = worktree.AddWithOptions(&git.AddOptions{All: true})
 	if err != nil {
 		fmt.Println(err)
-		return GitResponse{Status: "error", Message: "Error when staging changes", Error: err}
+		return GitResponse{Success: false, Message: "Error when staging changes", Error: err}
 	}
 
 	// Committing the changes
 	_, err = worktree.Commit("test-commit", &git.CommitOptions{})
 	if err != nil {
 		fmt.Println(err)
-		return GitResponse{Status: "error", Message: "Error when commiting changes", Error: err}
+		return GitResponse{Success: false, Message: "Error when commiting changes", Error: err}
 	}
 
 	// Pushing the changes
@@ -317,10 +311,10 @@ func (n *NodeService) SyncChangesWithRepo() GitResponse {
 	// Checking if the error that we get is fine
 	if err != nil {
 		fmt.Println(err)
-		return GitResponse{Status: "error", Message: "Error when pushing changes", Error: err}
+		return GitResponse{Success: false, Message: "Error when pushing changes", Error: err}
 	}
 	fmt.Println("Pushed changes to origin")
-	return GitResponse{Status: "success", Message: "Successfully synced changes", Error: nil}
+	return GitResponse{Success: true, Message: "Successfully synced changes", Error: nil}
 
 }
 

@@ -1,5 +1,5 @@
 export function Note({
-	width = "1.25rem",
+	width = "1.25re",
 	height = "1.25rem",
 	fill = "currentColor",
 	secondaryfill = "currentColor",

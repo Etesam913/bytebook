@@ -28,13 +28,13 @@ export function DropdownItems({
 
 	useEffect(() => {
 		setFocusIndex(0);
-		if (dropdownItemsRef.current) {
+		if (dropdownItemsRef.current && isOpen) {
 			const children = Array.from(dropdownItemsRef.current.children);
 			const firstChild = children.at(0) as HTMLElement;
 			const firstButton = firstChild.lastChild as HTMLElement;
 			firstButton.focus();
 		}
-	}, []);
+	}, [dropdownItemsRef, isOpen]);
 
 	return (
 		<AnimatePresence>
@@ -42,7 +42,7 @@ export function DropdownItems({
 				<motion.div
 					role="menu"
 					className={cn(
-						"absolute z-30 w-full translate-y-1 overflow-hidden rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700",
+						"absolute z-20 w-full translate-y-1 overflow-hidden rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700",
 						className,
 					)}
 					exit={{
