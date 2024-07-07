@@ -5,3 +5,5 @@ export const DEFAULT_SONNER_OPTIONS = {
 	duration: 2000,
 	closeButton: true,
 };
+
+export const MAX_SIDEBAR_WIDTH = 230;

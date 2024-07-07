@@ -2,23 +2,22 @@ import { Browser } from "@wailsio/runtime";
 import { motion } from "framer-motion";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
+import { SyncChangesWithRepo } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
 import { dialogDataAtom, userDataAtomWithLocalStorage } from "../../atoms";
 import { ChevronDown } from "../../icons/chevron-down";
 import { FileRefresh } from "../../icons/file-refresh";
 import { Gear } from "../../icons/gear";
 import OpenRectArrowIn from "../../icons/open-rect-arrow-in";
-import { useOnClickOutside } from "../../utils/hooks";
-import { DropdownItems } from "../dropdown/dropdown-items";
 import { SettingsWindow } from "../../routes/settings";
-import { SyncChangesWithRepo } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
-import { toast } from "sonner";
+import { useOnClickOutside } from "../../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
+import { DropdownItems } from "../dropdown/dropdown-items";
 
 export function LoginButton() {
 	const userData = useAtomValue(userDataAtomWithLocalStorage);
 
 	const [isUserOptionsOpen, setIsUserOptionsOpen] = useState(false);
-	const [valueIndex, setValueIndex] = useState(0);
 	const [focusIndex, setFocusIndex] = useState(0);
 	const setDialogData = useSetAtom(dialogDataAtom);
 
@@ -35,7 +34,6 @@ export function LoginButton() {
 					className="translate-y-[-3.25rem]"
 					isOpen={isUserOptionsOpen}
 					setIsOpen={setIsUserOptionsOpen}
-					setValueIndex={setValueIndex}
 					setFocusIndex={setFocusIndex}
 					onChange={async ({ value }) => {
 						if (value === "settings") {

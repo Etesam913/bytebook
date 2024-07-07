@@ -17,7 +17,6 @@ export function Dropdown({
 	items: DropdownItem[];
 	className?: string;
 	buttonClassName?: string;
-
 	controlledValueIndex?: number;
 	onChange?: (v: DropdownItem) => void;
 	disabled?: boolean;

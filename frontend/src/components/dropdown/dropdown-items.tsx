@@ -18,7 +18,7 @@ export function DropdownItems({
 	items: DropdownItem[];
 	isOpen: boolean;
 	setIsOpen: Dispatch<SetStateAction<boolean>>;
-	setValueIndex: Dispatch<SetStateAction<number>>;
+	setValueIndex?: Dispatch<SetStateAction<number>>;
 	onChange?: (item: DropdownItem) => void;
 	setFocusIndex: Dispatch<SetStateAction<number>>;
 	focusIndex: number | null;
@@ -57,13 +57,13 @@ export function DropdownItems({
 						initial={{ height: 0 }}
 						animate={{
 							height: "auto",
-							transition: { type: "spring", damping: 18, stiffness: 120 },
+							transition: { type: "spring", damping: 20, stiffness: 130 },
 						}}
 						exit={{ height: 0, opacity: 0 }}
 					>
 						<div
 							ref={dropdownItemsRef}
-							className="flex flex-col  overflow-y-auto px-[4.5px] py-[6px] gap-0.5"
+							className="flex flex-col overflow-y-auto px-[4.5px] py-[6px] gap-0.5"
 						>
 							{items.map(({ value, label }, i) => (
 								<div className="w-full inline relative" key={value}>
@@ -75,7 +75,7 @@ export function DropdownItems({
 										/>
 									)}
 									<button
-										className="relative z-40 outline-none rounded-md w-full px-1.5 py-0.5 text-left"
+										className="relative z-40 outline-none rounded-md w-full px-1.5 py-0.5 text-left flex "
 										type="button"
 										role="menuitem"
 										onKeyDown={(e) => {
@@ -106,7 +106,7 @@ export function DropdownItems({
 										}}
 										onClick={() => {
 											setIsOpen(false);
-											setValueIndex(i);
+											setValueIndex?.(i);
 											onChange?.(items[i]);
 										}}
 									>

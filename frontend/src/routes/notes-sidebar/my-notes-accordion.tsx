@@ -1,8 +1,13 @@
 import { Events } from "@wailsio/runtime";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import type { CSSProperties } from "react";
 import { Link, useParams } from "wouter";
-import { draggedElementAtom, selectionRangeAtom } from "../../atoms";
+import {
+	draggedElementAtom,
+	noteSortDataAtom,
+	selectionRangeAtom,
+} from "../../atoms";
+import { SortButton } from "../../components/buttons/sort";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
 import { useSearchParamsEntries } from "../../utils/hooks";
@@ -23,12 +28,23 @@ export function MyNotesAccordion({
 	const selectionRange = useAtomValue(selectionRangeAtom);
 	const setDraggedElement = useSetAtom(draggedElementAtom);
 
+	const [noteSortData, setNoteSortData] = useAtom(noteSortDataAtom);
+
 	return (
 		<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
-			<p className="flex items-center gap-1.5 py-1 rounded-md px-0.5 transition-colors">
-				My Notes{" "}
-				{noteCount > 0 && <span className="tracking-wider">({noteCount})</span>}
-			</p>
+			<div className="flex items-center justify-between gap-2 pr-1">
+				<p className="flex items-center gap-1.5 py-1 rounded-md px-0.5 transition-colors">
+					My Notes{" "}
+					{noteCount > 0 && (
+						<span className="tracking-wider">({noteCount})</span>
+					)}
+				</p>
+
+				<SortButton
+					sortDirection={noteSortData}
+					setSortDirection={setNoteSortData}
+				/>
+			</div>
 			<Sidebar
 				layoutId="recent-notes-accordion"
 				emptyElement={

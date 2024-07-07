@@ -163,7 +163,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 				style={{ width }}
 				className="text-md flex h-screen flex-col px-[10px]"
 			>
-				<div className="min-h-[3.25rem] flex gap-0.5 justify-end items-center">
+				<div className="min-h-[3.65rem] flex gap-0.5 justify-end items-center">
 					{/* <MotionIconButton
 						{...getDefaultButtonVariants()}
 						title="Go Back"

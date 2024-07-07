@@ -12,6 +12,7 @@ import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
 import { TrashSidebar } from "./routes/trash-sidebar";
 import { useDarkModeSetting } from "./utils/hooks";
+import { MAX_SIDEBAR_WIDTH } from "./utils/misc";
 
 export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
 
@@ -31,8 +32,8 @@ function ShowFolderSidebar({
 }
 
 function App() {
-	const folderSidebarWidth = useMotionValue(190);
-	const notesSidebarWidth = useMotionValue(190);
+	const folderSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
+	const notesSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
 	useUserData();
 
 	useLoggedInEvent();
