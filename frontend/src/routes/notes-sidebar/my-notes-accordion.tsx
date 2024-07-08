@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import { Link, useParams } from "wouter";
 import {
 	draggedElementAtom,
-	noteSortDataAtom,
+	noteSortAtom,
 	selectionRangeAtom,
 } from "../../atoms";
 import { SortButton } from "../../components/buttons/sort";
@@ -28,10 +28,10 @@ export function MyNotesAccordion({
 	const selectionRange = useAtomValue(selectionRangeAtom);
 	const setDraggedElement = useSetAtom(draggedElementAtom);
 
-	const [noteSortData, setNoteSortData] = useAtom(noteSortDataAtom);
+	const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);
 
 	return (
-		<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
+		<div className="flex flex-1 flex-col gap-2 overflow-y-auto">
 			<div className="flex items-center justify-between gap-2 pr-1">
 				<p className="flex items-center gap-1.5 py-1 rounded-md px-0.5 transition-colors">
 					My Notes{" "}
@@ -123,6 +123,6 @@ export function MyNotesAccordion({
 					}) as CSSProperties
 				}
 			/>
-		</section>
+		</div>
 	);
 }

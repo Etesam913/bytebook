@@ -8,6 +8,7 @@ import {
 	dialogDataAtom,
 	isNoteMaximizedAtom,
 	notesAtom,
+	noteSortAtom,
 	selectionRangeAtom,
 } from "../../atoms";
 import { MotionButton, MotionIconButton } from "../../components/buttons";
@@ -57,15 +58,15 @@ export function NotesSidebar({
 	const { folder, note } = params;
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
-
+	const noteSort = useAtomValue(noteSortAtom);
 	const sidebarRef = useRef<HTMLElement>(null);
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
 
 	useEffect(() => {
-		updateNotes(folder, note, setNotes);
+		updateNotes(folder, note, setNotes, noteSort);
 		getNoteCount(folder, setNoteCount);
-	}, [folder, setNotes]);
+	}, [folder, setNotes, noteSort]);
 
 	// Navigates to not-found page if note does not exist
 	useEffect(() => {
@@ -196,7 +197,7 @@ export function NotesSidebar({
 							>
 								Create Note <Compose />
 							</MotionButton>
-							<section className="flex flex-col gap-2 overflow-y-auto">
+							<section className="flex flex-col gap-2 overflow-y-auto flex-1">
 								<div className="flex h-full flex-col overflow-y-auto">
 									<MyNotesAccordion notes={notes} noteCount={noteCount} />
 								</div>

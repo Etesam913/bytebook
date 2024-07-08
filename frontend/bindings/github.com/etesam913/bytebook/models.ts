@@ -270,5 +270,27 @@ export class NoteResponse {
     }
 }
 
+/**
+ * SortStrings represents the possible sort options as a custom type.
+ */
+export enum SortStrings {
+    /**
+     * The Go zero value for the underlying type of the enum.
+     */
+    $zero = "",
+
+    /**
+     * Constants representing each possible sort option.
+     */
+    DateUpdatedDesc = "date-updated-desc",
+    DateUpdatedAsc = "date-updated-asc",
+    DateCreatedDesc = "date-created-desc",
+    DateCreatedAsc = "date-created-asc",
+    FileNameAZ = "file-name-a-z",
+    FileNameZA = "file-name-z-a",
+    SizeDesc = "size-desc",
+    SizeAsc = "size-asc",
+};
+
 // Private type creation functions
 const $$createType0 = $Create.Array($Create.Any);

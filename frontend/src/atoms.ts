@@ -32,8 +32,8 @@ export const userDataAtomWithLocalStorage = atom(
 export const notesAtom = atom<string[] | null>([]);
 export const foldersAtom = atom<string[] | null>([]);
 
-export const folderSortDataAtom = atom<SortStrings>("date-updated-desc");
-export const noteSortDataAtom = atom<SortStrings>("date-updated-desc");
+export const folderSortAtom = atom<SortStrings>("date-updated-desc");
+export const noteSortAtom = atom<SortStrings>("date-updated-desc");
 
 export const alphabetizedFoldersAtom = atom((get) => {
 	const folders = get(foldersAtom);

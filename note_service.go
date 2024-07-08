@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
@@ -31,7 +32,22 @@ type AddFolderResponse struct {
 	Message string `json:"message"`
 }
 
-func (n *NoteService) GetNotes(folderName string) NoteResponse {
+// SortStrings represents the possible sort options as a custom type.
+type SortStrings string
+
+// Constants representing each possible sort option.
+const (
+	DateUpdatedDesc SortStrings = "date-updated-desc"
+	DateUpdatedAsc  SortStrings = "date-updated-asc"
+	DateCreatedDesc SortStrings = "date-created-desc"
+	DateCreatedAsc  SortStrings = "date-created-asc"
+	FileNameAZ      SortStrings = "file-name-a-z"
+	FileNameZA      SortStrings = "file-name-z-a"
+	SizeDesc        SortStrings = "size-desc"
+	SizeAsc         SortStrings = "size-asc"
+)
+
+func (n *NoteService) GetNotes(folderName string, sortOption SortStrings) NoteResponse {
 	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	// Ensure the directory exists
 	if _, err := os.Stat(folderPath); err != nil {
@@ -44,19 +60,62 @@ func (n *NoteService) GetNotes(folderName string) NoteResponse {
 		return NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
 	}
 
-	var notes []string
+	var notes []os.DirEntry
 	for _, file := range files {
 		// Ignore any folders inside a note folder
 		if file.IsDir() {
 			continue
 		} else {
-			indexOfDot := strings.LastIndex(file.Name(), ".")
-			name := file.Name()[:indexOfDot]
-			extension := file.Name()[indexOfDot+1:]
-			notes = append(notes, fmt.Sprintf("%s?ext=%s", name, extension))
+			notes = append(notes, file)
 		}
 	}
-	return NoteResponse{Success: true, Message: "", Data: notes}
+
+	// Sort notes based on the sort option
+	sort.Slice(notes, func(i, j int) bool {
+		switch sortOption {
+		case DateUpdatedDesc:
+			infoI, _ := notes[i].Info()
+			infoJ, _ := notes[j].Info()
+			return infoI.ModTime().After(infoJ.ModTime())
+		case DateUpdatedAsc:
+			infoI, _ := notes[i].Info()
+			infoJ, _ := notes[j].Info()
+			return infoI.ModTime().Before(infoJ.ModTime())
+		// TODO: CreatedDate is not correct as the file info does not have this information. Will need to do some frontmatter parsing
+		case DateCreatedDesc:
+			infoI, _ := notes[i].Info()
+			infoJ, _ := notes[j].Info()
+			return infoI.ModTime().After(infoJ.ModTime()) // Note: Creation time might not be available, use ModTime as fallback
+		case DateCreatedAsc:
+			infoI, _ := notes[i].Info()
+			infoJ, _ := notes[j].Info()
+			return infoI.ModTime().Before(infoJ.ModTime()) // Note: Creation time might not be available, use ModTime as fallback
+		case FileNameAZ:
+			return strings.ToLower(notes[i].Name()) < strings.ToLower(notes[j].Name())
+		case FileNameZA:
+			return strings.ToLower(notes[i].Name()) > strings.ToLower(notes[j].Name())
+		case SizeDesc:
+			infoI, _ := notes[i].Info()
+			infoJ, _ := notes[j].Info()
+			return infoI.Size() > infoJ.Size()
+		case SizeAsc:
+			infoI, _ := notes[i].Info()
+			infoJ, _ := notes[j].Info()
+			return infoI.Size() < infoJ.Size()
+		default:
+			return false
+		}
+	})
+
+	var sortedNotes []string
+	for _, file := range notes {
+		indexOfDot := strings.LastIndex(file.Name(), ".")
+		name := file.Name()[:indexOfDot]
+		extension := file.Name()[indexOfDot+1:]
+		sortedNotes = append(sortedNotes, fmt.Sprintf("%s?ext=%s", name, extension))
+	}
+
+	return NoteResponse{Success: true, Message: "", Data: sortedNotes}
 }
 
 func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNoteTitle string) NoteResponse {

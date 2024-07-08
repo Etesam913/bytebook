@@ -1,4 +1,3 @@
-import { AnimatePresence } from "framer-motion";
 import {
 	type CSSProperties,
 	type Dispatch,
@@ -65,41 +64,38 @@ export function Sidebar({
 	}, [listRef]);
 
 	return (
-		<AnimatePresence initial={false}>
+		<div
+			className="overflow-y-auto"
+			ref={listRef}
+			onScroll={(e) =>
+				setScrollTop(Math.max(0, (e.target as HTMLElement).scrollTop))
+			}
+		>
 			<div
-				className="overflow-y-auto"
-				ref={listRef}
-				onScroll={(e) =>
-					setScrollTop(Math.max(0, (e.target as HTMLElement).scrollTop))
-				}
+				style={{
+					height: `${items.length * SIDEBAR_ITEM_HEIGHT}px`,
+				}}
 			>
-				<div
+				<ul
 					style={{
-						height: `${items.length * SIDEBAR_ITEM_HEIGHT}px`,
+						position: "relative",
+						height: `${visibleItems.length * SIDEBAR_ITEM_HEIGHT}px`,
+						top: `${startIndex * SIDEBAR_ITEM_HEIGHT}px`,
 					}}
 				>
-					<ul
-						id="test"
-						style={{
-							position: "relative",
-							height: `${visibleItems.length * SIDEBAR_ITEM_HEIGHT}px`,
-							top: `${startIndex * SIDEBAR_ITEM_HEIGHT}px`,
-						}}
-					>
-						<SidebarItems
-							layoutId={layoutId}
-							data={visibleItems}
-							renderLink={renderLink}
-							getContextMenuStyle={getContextMenuStyle}
-							hoveredIndex={hoveredIndex}
-							setHoveredIndex={setHoveredIndex}
-							anchorSelectionIndex={anchorSelectionIndex}
-							emptyElement={emptyElement}
-							startIndex={startIndex}
-						/>
-					</ul>
-				</div>
+					<SidebarItems
+						layoutId={layoutId}
+						data={visibleItems}
+						renderLink={renderLink}
+						getContextMenuStyle={getContextMenuStyle}
+						hoveredIndex={hoveredIndex}
+						setHoveredIndex={setHoveredIndex}
+						anchorSelectionIndex={anchorSelectionIndex}
+						emptyElement={emptyElement}
+						startIndex={startIndex}
+					/>
+				</ul>
 			</div>
-		</AnimatePresence>
+		</div>
 	);
 }

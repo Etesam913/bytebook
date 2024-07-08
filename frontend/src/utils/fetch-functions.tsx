@@ -11,6 +11,7 @@ import {
 	GetNotes,
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { extractInfoFromNoteName } from "./string-formatting";
+import type { SortStrings } from "../types";
 
 export async function checkIfFolderExists(folder: string | undefined) {
 	if (!folder) return;
@@ -64,9 +65,11 @@ export async function updateNotes(
 	folder: string,
 	note: string | undefined,
 	setNotes: Dispatch<SetStateAction<string[] | null>>,
+	noteSort: SortStrings,
 ) {
 	try {
-		const res = await GetNotes(decodeURIComponent(folder));
+		// @ts-expect-error -- The sort option is a custom type
+		const res = await GetNotes(decodeURIComponent(folder), noteSort);
 
 		if (!res.success) {
 			throw new Error("Failed in retrieving notes");
