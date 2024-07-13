@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useWailsEvent } from "../utils/hooks";
 import { navigate } from "wouter/use-browser-location";
+import { useWailsEvent } from "../utils/hooks";
 
 export function useTrashDelete(setFiles: Dispatch<SetStateAction<string[]>>) {
 	useWailsEvent("trash:delete", (body) => {

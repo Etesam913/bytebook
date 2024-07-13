@@ -10,13 +10,13 @@ import {
 import { getDefaultButtonVariants } from "../../animations";
 import { MotionButton } from "../../components/buttons";
 import { Spacer } from "../../components/folder-sidebar/spacer";
+import { useTrashDelete } from "../../hooks/trash-events";
 import { Trash } from "../../icons/trash";
-import { useSearchParamsEntries, useWailsEvent } from "../../utils/hooks";
+import { useSearchParamsEntries } from "../../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import { extractInfoFromNoteName } from "../../utils/string-formatting";
 import { RenderNote } from "../notes-sidebar/render-note";
 import { MyTrashAccordion } from "./my-trash-accordion";
-import { useTrashDelete } from "../../hooks/trash-events";
 
 export function TrashSidebar({
 	width,
@@ -101,8 +101,8 @@ export function TrashSidebar({
 					</section>
 				</div>
 			</motion.aside>
-			<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
 
+			<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
 			<RenderNote folder="trash" note={curNote} fileExtension={fileExtension} />
 		</>
 	);

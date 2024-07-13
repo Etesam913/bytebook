@@ -73,13 +73,19 @@ export function Sidebar({
 		>
 			<div
 				style={{
-					height: `${items.length * SIDEBAR_ITEM_HEIGHT}px`,
+					height:
+						items.length > 0
+							? `${items.length * SIDEBAR_ITEM_HEIGHT}px`
+							: "auto",
 				}}
 			>
 				<ul
 					style={{
 						position: "relative",
-						height: `${visibleItems.length * SIDEBAR_ITEM_HEIGHT}px`,
+						height:
+							visibleItems.length > 0
+								? `${visibleItems.length * SIDEBAR_ITEM_HEIGHT}px`
+								: "auto",
 						top: `${startIndex * SIDEBAR_ITEM_HEIGHT}px`,
 					}}
 				>
