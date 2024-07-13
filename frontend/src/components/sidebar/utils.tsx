@@ -9,11 +9,11 @@ import { extractInfoFromNoteName } from "../../utils/string-formatting";
 function getFileIcon(fileType: "folder" | "note" | "image") {
 	switch (fileType) {
 		case "folder":
-			return <Folder className="min-w-[1.25rem]" title="" />;
+			return <Folder className="min-w-5" height={20} width={20} title="" />;
 		case "note":
-			return <Note className="min-w-[1.25rem]" title="" />;
+			return <Note className="min-w-5 w-5" title="" />;
 		case "image":
-			return <ImageIcon className="min-w-[1.25rem]" title="" />;
+			return <ImageIcon className="min-w-5 w-5" title="" />;
 	}
 }
 
@@ -23,29 +23,31 @@ function getFileIcon(fileType: "folder" | "note" | "image") {
  * @param e - The drag event triggered by the user.
  * @param setSelectionRange - Function to update the selected range.
  * @param files - Array of file paths.
- * @param fileType - Type of the files being dragged ("folder", "note", or "image").
+ * @param contentType - Type of the files being dragged ("folder", "note", or "image").
  * @param draggedIndex - Index of the file being dragged.
  * @param folder - Optional folder path for notes.
  */
 export function handleDragStart(
 	e: DragEvent<HTMLAnchorElement>,
 	setSelectionRange: Dispatch<SetStateAction<Set<string>>>,
-	fileType: "folder" | "note" | "image",
+	contentType: "folder" | "note",
 	draggedItem: string,
 	setDraggedElement: Dispatch<SetStateAction<HTMLElement | null>>,
 	folder?: string,
 ) {
 	setSelectionRange((tempSet) => {
 		const tempSelectionRange = new Set(tempSet);
-		tempSelectionRange.add(draggedItem);
+		tempSelectionRange.add(`${contentType}:${draggedItem}`);
 
 		// Map selected files to their internal URLs
 		const selectedFiles = Array.from(tempSelectionRange).map(
 			(noteNameWithExtensionParam) => {
+				const noteNameWithoutPrefixWithExtension =
+					noteNameWithExtensionParam.split(":")[1];
 				const { noteNameWithoutExtension, queryParams } =
-					extractInfoFromNoteName(noteNameWithExtensionParam);
+					extractInfoFromNoteName(noteNameWithoutPrefixWithExtension);
 
-				if (fileType === "folder") {
+				if (contentType === "folder") {
 					return `wails://localhost:5173/${noteNameWithoutExtension}`;
 				}
 				// A note link should have a folder associated with it
@@ -74,7 +76,7 @@ export function handleDragStart(
 		const children = selectedFiles.map((file) => {
 			return (
 				<>
-					{getFileIcon(fileType)}
+					{getFileIcon(contentType)}
 					<p className="overflow-hidden text-ellipsis whitespace-nowrap">
 						{file.split("/").at(-1)}
 					</p>

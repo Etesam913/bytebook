@@ -2,7 +2,7 @@ export function removeNotesFromSelection(selection: Set<string>) {
 	const setWithoutNotes: Set<string> = new Set();
 	// Remove any folder selections when selecting a note
 	for (const item of selection) {
-		if (!item.endsWith("?ext=md")) {
+		if (item.startsWith("folder:")) {
 			setWithoutNotes.add(item);
 		}
 	}
@@ -14,7 +14,7 @@ export function removeFoldersFromSelection(selection: Set<string>) {
 	const setWithoutFolders: Set<string> = new Set();
 	// Remove any folder selections when selecting a note
 	for (const item of selection) {
-		if (item.endsWith("?ext=md")) {
+		if (item.startsWith("note:")) {
 			setWithoutFolders.add(item);
 		}
 	}

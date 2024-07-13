@@ -1,6 +1,12 @@
 import { AnimatePresence } from "framer-motion";
 import { useAtom } from "jotai";
-import type { CSSProperties, Dispatch, ReactNode, SetStateAction } from "react";
+import {
+	type CSSProperties,
+	type Dispatch,
+	type ReactNode,
+	type SetStateAction,
+	useMemo,
+} from "react";
 import { selectionRangeAtom } from "../../atoms";
 import {
 	removeFoldersFromSelection,
@@ -18,6 +24,7 @@ export function SidebarItems({
 	emptyElement,
 	layoutId,
 	startIndex,
+	contentType,
 }: {
 	data: string[] | null;
 	getContextMenuStyle?: (dataItem: string) => CSSProperties;
@@ -33,14 +40,22 @@ export function SidebarItems({
 	emptyElement?: ReactNode;
 	layoutId: string;
 	startIndex: number;
+	contentType?: "note" | "folder";
 }) {
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 
-	const doesSidebarContainNotes = data?.some((item) =>
-		item.endsWith("?ext=md"),
-	);
+	const contentTypePrefix = useMemo(() => {
+		if (contentType === "note") {
+			return "note:";
+		}
+		if (contentType === "folder") {
+			return "folder:";
+		}
+		return "";
+	}, [contentType]);
 
 	const dataElements = data?.map((dataItem, i) => {
+		const prefixedDataItem = `${contentTypePrefix}${dataItem}`;
 		return (
 			<li
 				onMouseEnter={() => {
@@ -61,7 +76,8 @@ export function SidebarItems({
 							const start = Math.min(anchorSelectionIndex.current, i);
 							const end = Math.max(anchorSelectionIndex.current, i);
 							const selectedElements: Set<string> = new Set();
-							for (let j = start; j <= end; j++) selectedElements.add(data[j]);
+							for (let j = start; j <= end; j++)
+								selectedElements.add(`${contentType}:${data[j]}`);
 							setSelectionRange(selectedElements);
 						}
 						// Command click
@@ -69,14 +85,15 @@ export function SidebarItems({
 							anchorSelectionIndex.current = i;
 							setSelectionRange((prev) => {
 								// Making sure to clean the selection
-								const newSelection = doesSidebarContainNotes
-									? removeFoldersFromSelection(prev)
-									: removeNotesFromSelection(prev);
+								const newSelection =
+									contentType === "note"
+										? removeFoldersFromSelection(prev)
+										: removeNotesFromSelection(prev);
 
-								if (newSelection.has(data[i])) {
-									newSelection.delete(data[i]);
+								if (newSelection.has(prefixedDataItem)) {
+									newSelection.delete(prefixedDataItem);
 								} else {
-									newSelection.add(data[i]);
+									newSelection.add(prefixedDataItem);
 								}
 								return newSelection;
 							});
@@ -89,7 +106,7 @@ export function SidebarItems({
 					}}
 				>
 					<AnimatePresence>
-						{hoveredIndex === i && !selectionRange.has(data[i]) && (
+						{hoveredIndex === i && !selectionRange.has(prefixedDataItem) && (
 							<SidebarHighlight layoutId={layoutId} />
 						)}
 					</AnimatePresence>

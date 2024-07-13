@@ -30,6 +30,7 @@ export function MyFoldersAccordion({
 			</p>
 
 			<Sidebar
+				contentType="folder"
 				layoutId="my-folders-accordion"
 				emptyElement={
 					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
@@ -41,51 +42,53 @@ export function MyFoldersAccordion({
 					i,
 					selectionRange,
 					setSelectionRange,
-				}) => (
-					<Link
-						draggable
-						onDragStart={(e) =>
-							handleDragStart(
-								e,
-								setSelectionRange,
-								"folder",
-								alphabetizedFolders?.at(i) ?? "",
-								setDraggedElement,
-							)
-						}
-						target="_blank"
-						className={cn(
-							"sidebar-item",
-							folder &&
-								decodeURIComponent(folder) === sidebarFolderName &&
-								"bg-zinc-150 dark:bg-zinc-700",
-							alphabetizedFolders?.at(i) &&
-								selectionRange.has(alphabetizedFolders[i]) &&
-								"!bg-blue-400 dark:!bg-blue-600 text-white",
-						)}
-						to={`/${encodeURIComponent(sidebarFolderName)}`}
-						onContextMenu={() => {
-							if (selectionRange.size === 0) {
-								setSelectionRange(new Set([sidebarFolderName]));
-							} else {
-								setSelectionRange((prev) => {
-									const setWithoutNotes = removeNotesFromSelection(prev);
-									setWithoutNotes.add(sidebarFolderName);
-									return setWithoutNotes;
-								});
+				}) => {
+					return (
+						<Link
+							draggable
+							onDragStart={(e) =>
+								handleDragStart(
+									e,
+									setSelectionRange,
+									"folder",
+									alphabetizedFolders?.at(i) ?? "",
+									setDraggedElement,
+								)
 							}
-						}}
-					>
-						{folder && decodeURIComponent(folder) === sidebarFolderName ? (
-							<FolderOpen title="" width={20} height={20} />
-						) : (
-							<Folder title="" width={20} height={20} />
-						)}{" "}
-						<p className="whitespace-nowrap text-ellipsis overflow-hidden">
-							{sidebarFolderName}
-						</p>
-					</Link>
-				)}
+							target="_blank"
+							className={cn(
+								"sidebar-item",
+								folder &&
+									decodeURIComponent(folder) === sidebarFolderName &&
+									"bg-zinc-150 dark:bg-zinc-700",
+								alphabetizedFolders?.at(i) &&
+									selectionRange.has(`folder:${alphabetizedFolders[i]}`) &&
+									"!bg-blue-400 dark:!bg-blue-600 text-white",
+							)}
+							to={`/${encodeURIComponent(sidebarFolderName)}`}
+							onContextMenu={() => {
+								if (selectionRange.size === 0) {
+									setSelectionRange(new Set([`folder:${sidebarFolderName}`]));
+								} else {
+									setSelectionRange((prev) => {
+										const setWithoutNotes = removeNotesFromSelection(prev);
+										setWithoutNotes.add(`folder:${sidebarFolderName}`);
+										return setWithoutNotes;
+									});
+								}
+							}}
+						>
+							{folder && decodeURIComponent(folder) === sidebarFolderName ? (
+								<FolderOpen title="" width={20} height={20} />
+							) : (
+								<Folder title="" width={20} height={20} />
+							)}{" "}
+							<p className="whitespace-nowrap text-ellipsis overflow-hidden">
+								{sidebarFolderName}
+							</p>
+						</Link>
+					);
+				}}
 				isCollapsed={false}
 				data={alphabetizedFolders}
 				getContextMenuStyle={(folderName) =>

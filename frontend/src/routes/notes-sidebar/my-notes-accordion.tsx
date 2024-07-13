@@ -46,6 +46,7 @@ export function MyNotesAccordion({
 				/>
 			</div>
 			<Sidebar
+				contentType="note"
 				layoutId="recent-notes-accordion"
 				emptyElement={
 					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
@@ -79,11 +80,11 @@ export function MyNotesAccordion({
 							}
 							onContextMenu={() => {
 								if (selectionRange.size === 0) {
-									setSelectionRange(new Set([sidebarNoteName]));
+									setSelectionRange(new Set([`note:${sidebarNoteName}`]));
 								} else {
 									setSelectionRange((prev) => {
 										const setWithoutNotes = removeFoldersFromSelection(prev);
-										setWithoutNotes.add(sidebarNoteName);
+										setWithoutNotes.add(`note:${sidebarNoteName}`);
 										return setWithoutNotes;
 									});
 								}
@@ -100,7 +101,7 @@ export function MyNotesAccordion({
 								noteNameWithExtension === sidebarNoteName &&
 									"bg-zinc-150 dark:bg-zinc-700",
 								notes?.at(i) &&
-									selectionRange.has(notes[i]) &&
+									selectionRange.has(`note:${notes[i]}`) &&
 									"!bg-blue-400 dark:!bg-blue-600 text-white",
 							)}
 							to={`/${curFolder}/${sidebarNoteName}`}

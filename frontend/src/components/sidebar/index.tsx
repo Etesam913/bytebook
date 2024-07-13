@@ -19,6 +19,7 @@ export function Sidebar({
 	renderLink,
 	emptyElement,
 	layoutId,
+	contentType,
 }: {
 	isCollapsed: boolean;
 	data: string[] | null;
@@ -31,6 +32,7 @@ export function Sidebar({
 	}) => ReactNode;
 	emptyElement?: ReactNode;
 	layoutId: string;
+	contentType?: "note" | "folder";
 }) {
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 	const anchorSelectionIndex = useRef<number>(0);
@@ -99,6 +101,7 @@ export function Sidebar({
 						anchorSelectionIndex={anchorSelectionIndex}
 						emptyElement={emptyElement}
 						startIndex={startIndex}
+						contentType={contentType}
 					/>
 				</ul>
 			</div>
