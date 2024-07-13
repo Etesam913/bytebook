@@ -1,6 +1,8 @@
 import { useMotionValue } from "framer-motion";
+import { useAtomValue } from "jotai";
 import { Toaster } from "sonner";
 import { Route, Switch } from "wouter";
+import { isNoteMaximizedAtom } from "./atoms";
 import { Dialog } from "./components/dialog";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { LoadingModal } from "./components/loading-modal";
@@ -16,6 +18,7 @@ export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
 function App() {
 	const folderSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
 	const notesSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
+	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	useUserData();
 	useLoggedInEvent();
 	useDarkModeSetting();
@@ -28,7 +31,7 @@ function App() {
 			<Dialog />
 			<LoadingModal />
 			<Toaster richColors theme="system" />
-			<FolderSidebar width={folderSidebarWidth} />
+			{!isNoteMaximized && <FolderSidebar width={folderSidebarWidth} />}
 			<Switch>
 				<Route path="/trash/:item?">
 					<TrashSidebar

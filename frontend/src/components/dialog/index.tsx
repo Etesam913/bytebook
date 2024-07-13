@@ -126,6 +126,7 @@ export function Dialog() {
 						<h2 className=" text-xl">{dialogData.title}</h2>
 						{dialogData.children?.(errorText)}
 						<MotionIconButton
+							autoFocus
 							{...getDefaultButtonVariants()}
 							onClick={() => resetDialogState(setErrorText, setDialogData)}
 							className="absolute top-2 right-2"

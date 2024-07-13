@@ -461,7 +461,6 @@ export function handleDragStart(
 	}
 
 	let nodeKey = "";
-	console.log(draggableBlockElement);
 	const ghostElement = draggableBlockElement.cloneNode(true) as HTMLElement;
 	ghostElement.id = "block-element";
 	ghostElement.classList.add("dragging");

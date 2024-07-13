@@ -25,10 +25,9 @@ import type {
 } from "react";
 import { toast } from "sonner";
 import { AddAttachments } from "../../../../bindings/github.com/etesam913/bytebook/nodeservice";
-
-import { ImageIcon } from "../../../icons/image";
 import { ListCheckbox } from "../../../icons/list-checkbox";
 import { OrderedList } from "../../../icons/ordered-list";
+import { Paperclip } from "../../../icons/paperclip-2.tsx";
 import { TextBold } from "../../../icons/text-bold";
 import { TextItalic } from "../../../icons/text-italic";
 import { TextStrikethrough } from "../../../icons/text-strikethrough";
@@ -292,8 +291,8 @@ export const textFormats: { icon: ReactNode; format: TextFormatType }[] = [
 	},
 ];
 
-export const imageCommandData = {
-	block: "img",
-	icon: <ImageIcon />,
+export const attachmentCommandData = {
+	block: "attachment",
+	icon: <Paperclip />,
 	command: INSERT_FILES_COMMAND,
 };

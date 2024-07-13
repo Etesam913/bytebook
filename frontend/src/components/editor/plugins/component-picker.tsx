@@ -10,20 +10,37 @@ import {
 	$createParagraphNode,
 	$getSelection,
 	$isRangeSelection,
+	$setSelection,
+	type BaseSelection,
 	COMMAND_PRIORITY_NORMAL,
 	type LexicalEditor,
 	type TextNode,
 } from "lexical";
-import { useCallback, useMemo, useState } from "react";
+import {
+	type Dispatch,
+	type RefObject,
+	type SetStateAction,
+	useCallback,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { cn } from "../../../utils/string-formatting";
 
+import { useSetAtom } from "jotai";
+import { dialogDataAtom } from "../../../atoms";
 import { useBackendFunction } from "../../../hooks/query";
 import { AngularLogo } from "../../../icons/angular-logo";
 import { SvelteLogo } from "../../../icons/svelte-logo";
 import { VueLogo } from "../../../icons/vue-logo";
+import type { DialogDataType } from "../../../types";
+import { resetDialogState } from "../../dialog";
+import { YouTubeDialogChildren } from "../../youtube/youtube-dialog-children";
+import { $createFileNode } from "../nodes/file";
+import { extractYouTubeVideoID } from "../utils/file-node";
 import {
-	imageCommandData,
+	attachmentCommandData,
 	insertAttachmentFromFile,
 	listCommandData,
 } from "../utils/toolbar";
@@ -139,8 +156,14 @@ function getBaseOptions(
 		folder: string,
 		note: string,
 		editor: LexicalEditor,
-	) => Promise<void>,
+	) => Promise<unknown>,
+	dialogProps: {
+		setDialogData: Dispatch<SetStateAction<DialogDataType>>;
+		editorSelection: RefObject<BaseSelection | null>;
+	},
 ) {
+	const { setDialogData, editorSelection } = dialogProps;
+
 	return [
 		new ComponentPickerOption("Paragraph", {
 			keywords: ["normal", "paragraph", "p", "text"],
@@ -177,18 +200,73 @@ function getBaseOptions(
 			});
 		}),
 		new ComponentPickerOption("Attachments", {
-			icon: imageCommandData.icon,
+			icon: attachmentCommandData.icon,
 			keywords: [
 				"image",
 				"picture",
 				"video",
 				"file",
 				"clip",
-				imageCommandData.block,
+				attachmentCommandData.block,
 				"picture",
 			],
 			onSelect: async () => {
 				insertAttachments(folder, note, editor);
+			},
+		}),
+		new ComponentPickerOption("YouTube", {
+			keywords: ["youtube", "video", "embed"],
+			onSelect: async () => {
+				setDialogData({
+					isOpen: true,
+					dialogClassName: "w-[min(30rem,90vw)]",
+					title: "YouTube Embed",
+					children: (dialogErrorText) => (
+						<YouTubeDialogChildren
+							editor={editor}
+							errorText={dialogErrorText}
+							editorSelection={editorSelection}
+						/>
+					),
+					onSubmit: (e, setDialogErrorText) => {
+						try {
+							if (
+								!editorSelection.current ||
+								!$isRangeSelection(editorSelection.current)
+							)
+								throw new Error("Something went wrong! Please try again.");
+
+							const formData = new FormData(e.target as HTMLFormElement);
+							const videoUrl = formData.get("youtube-url");
+							// Doing some error checking
+							if (!videoUrl || typeof videoUrl !== "string")
+								throw new Error("YouTube URL cannot be empty");
+							if (videoUrl.trim().length === 0)
+								throw new Error("YouTube URL cannot be empty");
+							if (extractYouTubeVideoID(videoUrl) === null)
+								throw new Error("Invalid YouTube URL");
+
+							// Got a warning about the old selection being stale, so cloning it fixes it
+							const newSelection = editorSelection.current.clone();
+							// Using the cloned selection and adding the youtube video
+							editor.update(() => {
+								$setSelection(newSelection);
+								const youtubeVideo = $createFileNode({
+									alt: "YouTube Video",
+									src: videoUrl,
+									width: "100%",
+									elementType: "youtube",
+								});
+								const youtubeVideoNode = $createParagraphNode();
+								youtubeVideoNode.append(youtubeVideo);
+								newSelection.insertNodes([youtubeVideoNode]);
+							});
+							resetDialogState(setDialogErrorText, setDialogData);
+						} catch (e) {
+							if (e instanceof Error) setDialogErrorText(e.message);
+						}
+					},
+				});
 			},
 		}),
 		...languageCommandData.map(
@@ -214,7 +292,7 @@ export function ComponentPickerMenuPlugin({
 	note,
 }: { folder: string; note: string }): JSX.Element {
 	const [editor] = useLexicalComposerContext();
-
+	const editorSelection = useRef<BaseSelection | null>(null);
 	const [queryString, setQueryString] = useState<string | null>(null);
 
 	const checkForTriggerMatch = useBasicTypeaheadTriggerMatch("/", {
@@ -226,8 +304,16 @@ export function ComponentPickerMenuPlugin({
 		"Inserting Attachments...",
 	);
 
+	const setDialogData = useSetAtom(dialogDataAtom);
+
 	const options = useMemo(() => {
-		const baseOptions = getBaseOptions(editor, folder, note, insertAttachments);
+		const baseOptions = getBaseOptions(
+			editor,
+			folder,
+			note,
+			insertAttachments,
+			{ setDialogData, editorSelection },
+		);
 
 		if (!queryString) {
 			return baseOptions;
