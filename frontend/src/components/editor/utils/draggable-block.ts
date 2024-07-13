@@ -461,6 +461,7 @@ export function handleDragStart(
 	}
 
 	let nodeKey = "";
+	console.log(draggableBlockElement);
 	const ghostElement = draggableBlockElement.cloneNode(true) as HTMLElement;
 	ghostElement.id = "block-element";
 	ghostElement.classList.add("dragging");
@@ -489,6 +490,12 @@ export function handleDragStart(
 							ghostElement.style.width = `${noteContainer.clientWidth}px`;
 							ghostElement.style.height = "15rem";
 							ghostElement.style.overflow = "hidden";
+						}
+						// Cloning a youtube iframe for the ghost element does not work nicely so we are just replacing with text
+						else if ((child as FileNode).getElementType() === "youtube") {
+							const youtubeText = document.createElement("div");
+							youtubeText.innerText = "YouTube Video";
+							ghostElement.replaceChildren(youtubeText);
 						}
 					}
 				});

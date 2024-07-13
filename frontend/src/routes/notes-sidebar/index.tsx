@@ -7,8 +7,8 @@ import { getDefaultButtonVariants } from "../../animations.ts";
 import {
 	dialogDataAtom,
 	isNoteMaximizedAtom,
-	notesAtom,
 	noteSortAtom,
+	notesAtom,
 	selectionRangeAtom,
 } from "../../atoms";
 import { MotionButton, MotionIconButton } from "../../components/buttons";

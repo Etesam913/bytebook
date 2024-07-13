@@ -152,6 +152,8 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 
 	// Navigates to not-found page if folder does not exist
 	useEffect(() => {
+		// trash folder is reserved for the trash notes, it is not a real folder
+		if (folder === "trash") return;
 		checkIfFolderExists(folder);
 	}, [folders, folder]);
 

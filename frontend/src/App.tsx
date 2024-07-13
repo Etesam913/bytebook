@@ -1,10 +1,7 @@
-import { type MotionValue, useMotionValue } from "framer-motion";
-import { useAtomValue } from "jotai";
+import { useMotionValue } from "framer-motion";
 import { Toaster } from "sonner";
-import { Route, Switch, useRoute } from "wouter";
-import { isNoteMaximizedAtom } from "./atoms";
+import { Route, Switch } from "wouter";
 import { Dialog } from "./components/dialog";
-import { NO_FOLDER_PAGES } from "./components/editor/utils/link";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { LoadingModal } from "./components/loading-modal";
 import { useLoggedInEvent, useUserData } from "./hooks/auth";
@@ -16,26 +13,10 @@ import { MAX_SIDEBAR_WIDTH } from "./utils/misc";
 
 export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
 
-function ShowFolderSidebar({
-	folderSidebarWidth,
-}: { folderSidebarWidth: MotionValue<number> }) {
-	const [, params] = useRoute("/:folder");
-	const currentFolder = params?.folder;
-	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-	if (
-		!isNoteMaximized &&
-		(!currentFolder || (currentFolder && !NO_FOLDER_PAGES.has(currentFolder)))
-	) {
-		return <FolderSidebar width={folderSidebarWidth} />;
-	}
-	return null;
-}
-
 function App() {
 	const folderSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
 	const notesSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
 	useUserData();
-
 	useLoggedInEvent();
 	useDarkModeSetting();
 
@@ -47,7 +28,7 @@ function App() {
 			<Dialog />
 			<LoadingModal />
 			<Toaster richColors theme="system" />
-			<ShowFolderSidebar folderSidebarWidth={folderSidebarWidth} />
+			<FolderSidebar width={folderSidebarWidth} />
 			<Switch>
 				<Route path="/trash/:item?">
 					<TrashSidebar

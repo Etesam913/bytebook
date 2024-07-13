@@ -40,9 +40,7 @@ export function TrashSidebar({
 							`/trash/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
 								queryParams.ext
 							}`,
-							{
-								replace: true,
-							},
+							{ replace: true },
 						);
 					}
 
@@ -56,6 +54,7 @@ export function TrashSidebar({
 				}
 			}
 		}
+
 		getFilesInTrash();
 	}, []);
 

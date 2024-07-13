@@ -9,8 +9,9 @@ export function TrashNoteTitle({ curFile }: { curFile: string }) {
 	const [editor] = useLexicalComposerContext();
 
 	useEffect(() => {
-		GetNoteMarkdown(`trash/${curFile}`)
-			.then((res) => {
+		const fetchData = async () => {
+			try {
+				const res = await GetNoteMarkdown(`trash/${curFile}`);
 				if (res.success) {
 					editor.update(() => {
 						$convertFromMarkdownStringCorrect(res.data, CUSTOM_TRANSFORMERS);
@@ -18,8 +19,12 @@ export function TrashNoteTitle({ curFile }: { curFile: string }) {
 				} else {
 					throw new Error("Failed in retrieving note markdown");
 				}
-			})
-			.catch(() => navigate("/not-found", { replace: true }));
+			} catch (error) {
+				navigate("/not-found", { replace: true });
+			}
+		};
+
+		fetchData();
 	}, [curFile]);
 
 	return (

@@ -18,8 +18,9 @@ import { Image } from "../../image";
 import Pdf from "../../pdf";
 import { UnknownAttachment } from "../../unknown-attachment";
 import { Video } from "../../video";
+import { YouTube } from "../../youtube";
 
-export type FileType = "image" | "video" | "pdf" | "unknown";
+export type FileType = "image" | "video" | "pdf" | "youtube" | "unknown";
 
 export interface FilePayload {
 	alt: string;
@@ -220,6 +221,17 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 					widthWrittenToNode={this.getWidth()}
 					writeWidthToNode={(width) => this.setWidth(width, _editor)}
 					nodeKey={this.getKey()}
+				/>
+			);
+		}
+		if (this.getElementType() === "youtube") {
+			return (
+				<YouTube
+					src={this.getSrc()}
+					alt={this.getAltText()}
+					nodeKey={this.getKey()}
+					widthWrittenToNode={this.getWidth()}
+					writeWidthToNode={(width) => this.setWidth(width, _editor)}
 				/>
 			);
 		}

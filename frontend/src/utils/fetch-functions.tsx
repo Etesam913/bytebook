@@ -10,8 +10,8 @@ import {
 	GetNoteCount,
 	GetNotes,
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
-import { extractInfoFromNoteName } from "./string-formatting";
 import type { SortStrings } from "../types";
+import { extractInfoFromNoteName } from "./string-formatting";
 
 export async function checkIfFolderExists(folder: string | undefined) {
 	if (!folder) return;
