@@ -46,6 +46,7 @@ export async function updateFolders(
 
 export async function checkIfNoteExists(
 	folder: string,
+	notes: string[] | null,
 	note: string | undefined,
 	fileExtension: string | undefined,
 ) {
@@ -56,7 +57,21 @@ export async function checkIfNoteExists(
 			throw new Error();
 		}
 	} catch (e) {
-		navigate("/not-found?type=note", { replace: true });
+		if (notes && notes.length > 0) {
+			const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
+				notes[0],
+			);
+			navigate(
+				`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
+					queryParams.ext
+				}`,
+				{
+					replace: true,
+				},
+			);
+		} else {
+			navigate("/not-found?type=note", { replace: true });
+		}
 	}
 }
 

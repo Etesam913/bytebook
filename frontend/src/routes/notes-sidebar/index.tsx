@@ -70,7 +70,7 @@ export function NotesSidebar({
 
 	// Navigates to not-found page if note does not exist
 	useEffect(() => {
-		checkIfNoteExists(folder, note, searchParams?.ext);
+		checkIfNoteExists(folder, notes, note, searchParams?.ext);
 	}, [notes, note]);
 
 	useNoteCreate(folder, notes ?? [], setNotes, setNoteCount);
