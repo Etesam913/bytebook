@@ -95,7 +95,6 @@ func handleFolderEvents(
 	if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
 		eventKey = "folder:delete"
 		watcher.Remove(event.Name)
-
 	}
 
 	if eventKey != "" {
@@ -112,30 +111,18 @@ func handleFolderEvents(
 /*
 Handles trash:create and trash:delete events
 */
-func handleTrashEvents(app *application.App, event fsnotify.Event) {
-	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
-		app.Events.Emit(&application.WailsEvent{
-			Name: "trash:delete",
-			Data: map[string]string{"name": filepath.Base(event.Name)},
-		})
-	} else if event.Has(fsnotify.Create) {
-		app.Events.Emit(&application.WailsEvent{
-			Name: "trash:create",
-			Data: map[string]string{"name": filepath.Base(event.Name)},
-		})
-	}
-}
 
 /*
-Handles note:create and note:delete events
+Handles note:create, note:delete, trash:create, and trash:delete events
 There is a debounce timer to prevent multiple events from being emitted
 */
-func handleNoteEvents(
+func handleFileEvents(
 	segments []string,
 	event fsnotify.Event,
 	oneFolderBack string,
 	debounceTimer *time.Timer,
 	debounceEvents map[string][]map[string]string,
+	eventKeyPrefix string,
 ) {
 
 	note := segments[len(segments)-1]
@@ -147,9 +134,9 @@ func handleNoteEvents(
 
 	// This works for MACOS need to test on other platforms
 	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
-		eventKey = "note:delete"
+		eventKey = eventKeyPrefix + ":delete"
 	} else if event.Has(fsnotify.Create) {
-		eventKey = "note:create"
+		eventKey = eventKeyPrefix + ":create"
 	}
 
 	if eventKey != "" {
@@ -203,9 +190,9 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 			}
 
 			if oneFolderBack == "trash" {
-				handleTrashEvents(app, event)
+				handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents, "trash")
 			} else {
-				handleNoteEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents)
+				handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents, "note")
 			}
 		// Whenever the file watcher gives an error
 		case err, ok := <-watcher.Errors:

@@ -16,6 +16,7 @@ import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import { extractInfoFromNoteName } from "../../utils/string-formatting";
 import { RenderNote } from "../notes-sidebar/render-note";
 import { MyTrashAccordion } from "./my-trash-accordion";
+import { useTrashDelete } from "../../hooks/trash-events";
 
 export function TrashSidebar({
 	width,
@@ -58,15 +59,7 @@ export function TrashSidebar({
 		getFilesInTrash();
 	}, []);
 
-	useWailsEvent("trash:create", (body) => {
-		const data = body.data as { name: string };
-		setFiles((prev) => [...prev, data.name]);
-	});
-
-	useWailsEvent("trash:delete", (body) => {
-		const data = body.data as { name: string };
-		setFiles((prev) => prev.filter((file) => file !== data.name));
-	});
+	useTrashDelete(setFiles);
 
 	return (
 		<>
@@ -83,16 +76,19 @@ export function TrashSidebar({
 							<MotionButton
 								{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
 								className="align-center flex w-full justify-between bg-transparent"
-								onClick={() => {
-									ClearTrash()
-										.then((res) => {
-											if (res.success)
-												toast.success("Trash emptied", DEFAULT_SONNER_OPTIONS);
-											else throw new Error(res.message);
-										})
-										.catch((err) =>
-											toast.error(err.message, DEFAULT_SONNER_OPTIONS),
-										);
+								onClick={async () => {
+									try {
+										const res = await ClearTrash();
+										if (res.success) {
+											toast.success("Trash emptied", DEFAULT_SONNER_OPTIONS);
+										} else {
+											throw new Error(res.message);
+										}
+									} catch (err) {
+										if (err instanceof Error) {
+											toast.error(err.message, DEFAULT_SONNER_OPTIONS);
+										}
+									}
 								}}
 							>
 								Empty Trash
