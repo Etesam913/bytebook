@@ -2,6 +2,7 @@ import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { navigate } from "wouter/use-browser-location";
 import { AddNoteToFolder } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import {
@@ -182,6 +183,7 @@ export function NotesSidebar({
 														`Note, "${newNoteNameString}", successfully created.`,
 														DEFAULT_SONNER_OPTIONS,
 													);
+													navigate(`/${folder}/${newNoteNameString}?ext=md`);
 												}
 											} catch (e) {
 												if (e instanceof Error) {

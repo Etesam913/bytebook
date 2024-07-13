@@ -202,7 +202,8 @@ export async function useFolderContextMenuFindInFinder(
 		try {
 			const res = await Promise.all(
 				selectedFolders.map(async (folder) => {
-					return await RevealFolderInFinder(folder);
+					const folderWithoutPrefix = folder.split(":")[1];
+					return await RevealFolderInFinder(folderWithoutPrefix);
 				}),
 			);
 			if (res.some((r) => !r.success)) {

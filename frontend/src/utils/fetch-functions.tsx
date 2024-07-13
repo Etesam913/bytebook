@@ -11,6 +11,7 @@ import {
 	GetNotes,
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import type { SortStrings } from "../types";
+import { DEFAULT_SONNER_OPTIONS } from "./misc";
 import { extractInfoFromNoteName } from "./string-formatting";
 
 export async function checkIfFolderExists(folder: string | undefined) {
@@ -70,7 +71,7 @@ export async function checkIfNoteExists(
 				},
 			);
 		} else {
-			navigate("/not-found?type=note", { replace: true });
+			// navigate("/not-found?type=note", { replace: true });
 		}
 	}
 }
@@ -114,8 +115,7 @@ export async function updateNotes(
 			);
 		}
 	} catch (error) {
-		console.error("Error updating notes:", error);
-		// navigate("/not-found", { replace: true });
+		toast.error("Error in retrieving notes", DEFAULT_SONNER_OPTIONS);
 		setNotes(null);
 	}
 }

@@ -38,14 +38,14 @@ export function useNoteCreate(
 
 		// Update the notes state
 		setNotes((prev) => {
-			const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-				filteredNotes[filteredNotes.length - 1],
-			);
-			navigate(
-				`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
-					queryParams.ext
-				}`,
-			);
+			// const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
+			// 	filteredNotes[filteredNotes.length - 1],
+			// );
+			// navigate(
+			// 	`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
+			// 		queryParams.ext
+			// 	}`,
+			// );
 			if (!prev) return filteredNotes;
 			return [...prev, ...filteredNotes];
 		});
@@ -106,8 +106,10 @@ export function useNoteContextMenuDelete(
 		const deletedNoteNamesAsArray = deletedNoteNamesAsString.split(",");
 
 		const paths = deletedNoteNamesAsArray.map((noteName) => {
-			const { noteNameWithoutExtension, queryParams } =
-				extractInfoFromNoteName(noteName);
+			const noteNameWithoutPrefixWithExtension = noteName.split(":")[1];
+			const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
+				noteNameWithoutPrefixWithExtension,
+			);
 
 			return `/${folder}/${noteNameWithoutExtension}.${queryParams.ext}`;
 		});

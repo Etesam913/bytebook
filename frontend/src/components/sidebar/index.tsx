@@ -69,9 +69,11 @@ export function Sidebar({
 		<div
 			className="overflow-y-auto"
 			ref={listRef}
-			onScroll={(e) =>
-				setScrollTop(Math.max(0, (e.target as HTMLElement).scrollTop))
-			}
+			onScroll={(e) => {
+				if (visibleItems.length > 0) {
+					setScrollTop(Math.max(0, (e.target as HTMLElement).scrollTop));
+				}
+			}}
 		>
 			<div
 				style={{
@@ -93,7 +95,8 @@ export function Sidebar({
 				>
 					<SidebarItems
 						layoutId={layoutId}
-						data={visibleItems}
+						allData={data}
+						visibleData={visibleItems}
 						renderLink={renderLink}
 						getContextMenuStyle={getContextMenuStyle}
 						hoveredIndex={hoveredIndex}
