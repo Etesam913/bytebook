@@ -3,10 +3,12 @@ import {
 	type Dispatch,
 	type ReactNode,
 	type SetStateAction,
+	useEffect,
 	useLayoutEffect,
 	useRef,
 	useState,
 } from "react";
+import { useParams } from "wouter";
 import { SidebarItems } from "./sidebar-items";
 
 const SIDEBAR_ITEM_HEIGHT = 36;
@@ -36,6 +38,7 @@ export function Sidebar({
 }) {
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 	const anchorSelectionIndex = useRef<number>(0);
+	const { folder } = useParams();
 
 	const listRef = useRef<HTMLDivElement>(null);
 	const [scrollTop, setScrollTop] = useState(0);
@@ -64,6 +67,11 @@ export function Sidebar({
 			resizeObserver.disconnect();
 		};
 	}, [listRef]);
+
+	// Reset scroll position when folder changes so that the sidebar is scrolled to the top
+	useEffect(() => {
+		setScrollTop(0);
+	}, [folder]);
 
 	return (
 		<div

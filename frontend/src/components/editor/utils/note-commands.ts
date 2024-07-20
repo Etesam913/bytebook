@@ -123,8 +123,7 @@ export function overrideControlledTextInsertion(
 	draggedElement: HTMLElement | null,
 ) {
 	// @ts-ignore Data Transfer does exist when dragging a link
-	if (!e.dataTransfer && !draggedElement) return false;
-
+	if (!e.dataTransfer || !draggedElement) return false;
 	// @ts-ignore Data Transfer does exist when dragging a link
 	const fileText: string = e.dataTransfer.getData("text/plain");
 

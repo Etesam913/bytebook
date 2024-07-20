@@ -30,7 +30,7 @@
 		"@lexical/selection": "^0.16.0",
 		"@lexical/table": "^0.16.0",
 		"@lexical/utils": "^0.16.0",
-		"framer-motion": "^11.3.2",
+		"framer-motion": "11.2.10",
 		"jotai": "^2.8.3",
 		"lexical": "^0.16.0",
 		"react": "^18.3.1",
