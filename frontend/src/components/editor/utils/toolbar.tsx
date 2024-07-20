@@ -218,6 +218,7 @@ export async function insertAttachmentFromFile(
 ) {
 	try {
 		const { success, message, paths } = await AddAttachments(folder, note);
+		if (paths.length === 0) return;
 		// Goes through all the files and add them to the editor
 		editor.update(async () => {
 			const payloads: FilePayload[] = paths.map((filePath) => ({
