@@ -128,8 +128,7 @@ export function useToolbarEvents(
 			editor.registerCommand(
 				CONTROLLED_TEXT_INSERTION_COMMAND,
 				(e) => {
-					return false;
-					// return overrideControlledTextInsertion(e, editor, draggedElement);
+					return overrideControlledTextInsertion(e, editor, draggedElement);
 				},
 				COMMAND_PRIORITY_HIGH,
 			),
