@@ -9,19 +9,11 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
-import { Events } from "@wailsio/runtime";
+
 import type { AnimationControls } from "framer-motion";
 import { useAtomValue, useSetAtom } from "jotai";
 import type { LexicalEditor } from "lexical";
-import {
-	type Dispatch,
-	type SetStateAction,
-	useEffect,
-	useRef,
-	useState,
-} from "react";
-import { SetNoteMarkdown } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
-import { WINDOW_ID } from "../../App.tsx";
+import { useEffect, useRef, useState } from "react";
 import {
 	draggableBlockElementAtom,
 	isNoteMaximizedAtom,
@@ -48,22 +40,11 @@ import { BottomBar } from "./bottom-bar.tsx";
 import { useMostRecentNotes } from "./hooks/note-metadata.ts";
 import { DraggableBlockPlugin } from "./plugins/draggable-block.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
-
-import {
-	$convertToMarkdownStringCorrect,
-	replaceFrontMatter,
-} from "./utils/note-metadata.ts";
+import { SAVE_MARKDOWN_CONTENT, SavePlugin } from "./plugins/save.tsx";
 
 const debouncedHandleChange = debounce(handleChange, 275);
 
-function handleChange(
-	folder: string,
-	note: string,
-	editor: LexicalEditor,
-	tags: Set<string>,
-	frontmatter: Record<string, string>,
-	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>,
-) {
+function handleChange(editor: LexicalEditor, tags: Set<string>) {
 	/*
     If the note was changed from another window, don't update it again
     If a new note is loaded for the first time, we don't need this func to run
@@ -75,32 +56,7 @@ function handleChange(
 		return;
 	editor.update(
 		() => {
-			const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
-			const frontmatterCopy = { ...frontmatter };
-			const timeOfChange = new Date().toISOString();
-			frontmatterCopy.lastUpdated = timeOfChange;
-			if (frontmatterCopy.createdDate === undefined) {
-				frontmatterCopy.createdDate = timeOfChange;
-			}
-			const markdownWithFrontmatter = replaceFrontMatter(
-				markdown,
-				frontmatterCopy,
-			);
-			Events.Emit({
-				name: "note:changed",
-				data: {
-					folder,
-					note,
-					markdown: markdownWithFrontmatter,
-					oldWindowAppId: WINDOW_ID,
-				},
-			});
-			setFrontmatter(frontmatterCopy);
-			SetNoteMarkdown(
-				decodeURIComponent(folder),
-				decodeURIComponent(note),
-				markdownWithFrontmatter,
-			);
+			editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, undefined);
 		},
 		{ tag: "note:changed-from-other-window" },
 	);
@@ -197,16 +153,7 @@ export function NotesEditor({
 				/>
 				<OnChangePlugin
 					ignoreSelectionChange
-					onChange={(_, editor, tag) =>
-						debouncedHandleChange(
-							folder,
-							note,
-							editor,
-							tag,
-							frontmatter,
-							setFrontmatter,
-						)
-					}
+					onChange={(_, editor, tag) => debouncedHandleChange(editor, tag)}
 				/>
 				<CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
 				<ListPlugin />
@@ -216,6 +163,12 @@ export function NotesEditor({
 				<TabIndentationPlugin />
 				<HistoryPlugin />
 				<TablePlugin />
+				<SavePlugin
+					folder={folder}
+					note={note}
+					frontmatter={frontmatter}
+					setFrontmatter={setFrontmatter}
+				/>
 				<EditorRefPlugin editorRef={editorRef} />
 				<FilesPlugin />
 				<VideosPlugin />

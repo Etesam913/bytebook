@@ -45,6 +45,7 @@ import {
 	listCommandData,
 } from "../utils/toolbar";
 import { INSERT_CODE_COMMAND } from "./code";
+import { SAVE_MARKDOWN_CONTENT } from "./save";
 
 const languageCommandData: {
 	name:
@@ -260,6 +261,7 @@ function getBaseOptions(
 								const youtubeVideoNode = $createParagraphNode();
 								youtubeVideoNode.append(youtubeVideo);
 								newSelection.insertNodes([youtubeVideoNode]);
+								editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, undefined);
 							});
 							resetDialogState(setDialogErrorText, setDialogData);
 						} catch (e) {
