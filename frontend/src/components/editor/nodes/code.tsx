@@ -35,7 +35,10 @@ export type SerializedCodeNode = Spread<
 >;
 
 export class CodeNode extends DecoratorNode<JSX.Element> {
-	__data: CodeBlockData = { files: {}, result: { message: "", success: true } };
+	__data: CodeBlockData = {
+		files: {},
+		result: { id: "0", message: "", success: true },
+	};
 	__language: string;
 	__focus = false;
 	__command = "";
@@ -44,7 +47,13 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static clone(node: CodeNode): CodeNode {
-		return new CodeNode(node.__data, node.__language, false, node.__command);
+		return new CodeNode(
+			node.__data,
+			node.__language,
+			false,
+			node.__command,
+			node.__key,
+		);
 	}
 
 	static importJSON(serializedNode: SerializedCodeNode): CodeNode {
