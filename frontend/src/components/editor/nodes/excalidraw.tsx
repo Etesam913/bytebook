@@ -27,20 +27,19 @@ export type SerializedExcalidrawNode = Spread<
 
 export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
 	__elements: ExcalidrawElement[] = [];
-	__width: ResizeWidth;
+
 	static getType(): string {
 		return "excalidraw";
 	}
 
 	static clone(node: ExcalidrawNode): ExcalidrawNode {
-		return new ExcalidrawNode(node.__elements);
+		return new ExcalidrawNode(node.__elements, node.getKey());
 	}
 
 	static importJSON(serializedNode: SerializedExcalidrawNode): ExcalidrawNode {
-		const { elements, width } = serializedNode;
+		const { elements } = serializedNode;
 		const node = $createExcalidrawNode({
 			elements,
-			width,
 		});
 		return node;
 	}
@@ -49,13 +48,9 @@ export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
 		return false;
 	}
 
-	constructor(
-		elements: ExcalidrawElement[],
-		width?: ResizeWidth,
-		key?: NodeKey,
-	) {
+	constructor(elements: ExcalidrawElement[], key?: NodeKey) {
 		super(key);
-		this.__width = width ?? "100%";
+
 		// The elements to populate the excalidraw instance with
 		this.__elements = elements;
 	}
@@ -63,7 +58,6 @@ export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
 	exportJSON(): SerializedExcalidrawNode {
 		return {
 			elements: this.getElements(),
-			width: this.getWidth(),
 			type: "excalidraw",
 			version: 1,
 		};
@@ -88,33 +82,15 @@ export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
 		return this.__elements;
 	}
 
-	getWidth(): ResizeWidth {
-		return this.__width;
-	}
-
-	setWidth(width: ResizeWidth, editor: LexicalEditor): void {
-		editor.update(() => {
-			const writable = this.getWritable();
-			writable.__width = width;
-		});
-	}
-
 	decorate(_editor: LexicalEditor): JSX.Element {
-		return (
-			<ExcalidrawComponent
-				nodeKey={this.getKey()}
-				widthWrittenToNode={this.getWidth()}
-				writeWidthToNode={(width) => this.setWidth(width, _editor)}
-			/>
-		);
+		return <ExcalidrawComponent nodeKey={this.getKey()} />;
 	}
 }
 
 export function $createExcalidrawNode({
 	elements,
-	width,
 }: ExcalidrawPayload): ExcalidrawNode {
-	return $applyNodeReplacement(new ExcalidrawNode(elements, width));
+	return $applyNodeReplacement(new ExcalidrawNode(elements));
 }
 
 export function $isExcalidrawNode(

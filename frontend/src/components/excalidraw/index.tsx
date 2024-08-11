@@ -1,71 +1,64 @@
-import { Excalidraw } from "@excalidraw/excalidraw";
+import { Excalidraw, MainMenu, THEME } from "@excalidraw/excalidraw";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useRef } from "react";
-import type { ResizeWidth } from "../../types";
-import { useResizeCommands, useResizeState } from "../../utils/hooks";
-import { ResizeContainer } from "../resize-container";
+import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
+import { mergeRegister } from "@lexical/utils";
+import { useAtomValue } from "jotai";
+import { CLICK_COMMAND, COMMAND_PRIORITY_NORMAL } from "lexical";
+import { useEffect, useRef } from "react";
+import { darkModeAtom } from "../../atoms";
+import { onClickDecoratorNodeCommand } from "../../utils/commands";
+import { cn } from "../../utils/string-formatting";
 import { useFocusOnSelect } from "./hooks";
-
 export function ExcalidrawComponent({
 	nodeKey,
-	widthWrittenToNode,
-	writeWidthToNode,
 }: {
 	nodeKey: string;
-	widthWrittenToNode: ResizeWidth;
-	writeWidthToNode: (width: ResizeWidth) => void;
 }) {
 	const [editor] = useLexicalComposerContext();
 	const excalidrawRef = useRef<HTMLDivElement>(null);
-
-	const {
-		isResizing,
-		setIsResizing,
-		isSelected,
-		setSelected,
-		clearSelection,
-		isExpanded,
-		setIsExpanded,
-	} = useResizeState(nodeKey);
-
-	useResizeCommands(
-		editor,
-		isExpanded,
-		setIsExpanded,
-		isSelected,
-		isResizing,
-		nodeKey,
-		setSelected,
-		clearSelection,
-		excalidrawRef,
-		{ enter: true },
-	);
-
+	const [isSelected, setSelected, clearSelection] =
+		useLexicalNodeSelection(nodeKey);
+	const isDarkModeOn = useAtomValue(darkModeAtom);
 	useFocusOnSelect(isSelected, excalidrawRef.current);
+
+	useEffect(() => {
+		return mergeRegister(
+			editor.registerCommand<MouseEvent>(
+				CLICK_COMMAND,
+				(e) => {
+					// if (!isExpanded) {
+					e.stopPropagation();
+					return onClickDecoratorNodeCommand(
+						e,
+						excalidrawRef.current,
+						setSelected,
+						clearSelection,
+					);
+					// }
+
+					// e.preventDefault();
+					// return true;
+				},
+				COMMAND_PRIORITY_NORMAL,
+			),
+		);
+	}, []);
 
 	return (
 		<div
-			className="w-full"
+			className={cn(
+				"w-full border-[4px] border-transparent transition-colors",
+				isSelected && "border-blue-400 dark:border-blue-500",
+			)}
 			ref={excalidrawRef}
+			onMouseDown={(e) => {
+				e.stopPropagation();
+			}}
 			onKeyDown={(e) => e.stopPropagation()}
 		>
-			<ResizeContainer
-				resizeState={{
-					isResizing,
-					setIsResizing,
-					isSelected,
-					isExpanded,
-					setIsExpanded,
-				}}
-				shouldHeightMatchWidth
-				element={excalidrawRef.current}
-				defaultWidth={widthWrittenToNode}
-				writeWidthToNode={writeWidthToNode}
-				nodeKey={nodeKey}
-				elementType="excalidraw"
-			>
-				<Excalidraw />
-			</ResizeContainer>
+			<Excalidraw theme={isDarkModeOn ? THEME.DARK : THEME.LIGHT}>
+				<MainMenu />
+			</Excalidraw>
 		</div>
 	);
 }

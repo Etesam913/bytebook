@@ -3,17 +3,17 @@ import { mergeRegister } from "@lexical/utils";
 import { Events } from "@wailsio/runtime";
 import {
 	COMMAND_PRIORITY_EDITOR,
+	type LexicalCommand,
 	createCommand,
-	LexicalCommand,
 } from "lexical";
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { type Dispatch, type SetStateAction, useEffect } from "react";
+import { SetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
+import { WINDOW_ID } from "../../../App";
+import { CUSTOM_TRANSFORMERS } from "../transformers";
 import {
 	$convertToMarkdownStringCorrect,
 	replaceFrontMatter,
 } from "../utils/note-metadata";
-import { CUSTOM_TRANSFORMERS } from "../transformers";
-import { WINDOW_ID } from "../../../App";
-import { SetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
 
 export const SAVE_MARKDOWN_CONTENT: LexicalCommand<undefined> = createCommand(
 	"SAVE_MARKDOWN_CONTENT",

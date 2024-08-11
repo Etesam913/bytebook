@@ -99,9 +99,9 @@ export function useResizeCommands(
 						return onClickDecoratorNodeCommand(
 							e,
 							elementRef.current,
-							isResizing,
 							setSelected,
 							clearSelection,
+							isResizing,
 						);
 					}
 

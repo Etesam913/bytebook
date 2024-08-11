@@ -11,13 +11,7 @@ export function useFocusOnSelect(
 		if (isSelected && excalidrawContainer) {
 			const firstChild = excalidrawContainer.firstChild as HTMLElement;
 			if (!firstChild) return;
-			const grandchild = firstChild.firstChild as HTMLElement;
-			if (!grandchild) return;
-			const excalidrawParent = grandchild.lastChild as HTMLDivElement;
-
-			if (excalidrawParent) {
-				excalidrawParent.focus();
-			}
+			firstChild.focus();
 		}
 	}, [isSelected]);
 }

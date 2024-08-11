@@ -141,15 +141,23 @@ div[data-template-is-fullscreen="true"]
  * Excalidraw styles
 */
 
-/* The export options do not work with wails out of the box, so I am hiding this button */
-.App-menu_top__left,
-.main-menu-trigger {
+.main-menu-trigger{
     display: none !important;
 }
 
-.excalidraw .App-menu_top {
+/* The export options do not work with wails out of the box, so I am hiding this button */
+
+
+/* .App-menu_top__left,
+.main-menu-trigger {
+    display: none !important;
+} */
+
+
+
+/* .excalidraw .App-menu_top {
     grid-template-columns: 1fr !important;
-}
+} */
 
 /* The library button is useless as well */
 .layer-ui__wrapper__top-right {

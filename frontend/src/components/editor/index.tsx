@@ -39,8 +39,8 @@ import { Toolbar } from "./toolbar";
 import { BottomBar } from "./bottom-bar.tsx";
 import { useMostRecentNotes } from "./hooks/note-metadata.ts";
 import { DraggableBlockPlugin } from "./plugins/draggable-block.tsx";
-import { CUSTOM_TRANSFORMERS } from "./transformers";
 import { SAVE_MARKDOWN_CONTENT, SavePlugin } from "./plugins/save.tsx";
+import { CUSTOM_TRANSFORMERS } from "./transformers";
 
 const debouncedHandleChange = debounce(handleChange, 275);
 

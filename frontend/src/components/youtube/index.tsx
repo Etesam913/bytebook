@@ -25,7 +25,7 @@ export function YouTube({
 			id="youtube-container"
 			className={cn(
 				"w-full h-full border-[4px] border-transparent transition-colors",
-				isSelected && " border-blue-400 dark:border-blue-500",
+				isSelected && "border-blue-400 dark:border-blue-500",
 			)}
 		>
 			{youtubeId ? (

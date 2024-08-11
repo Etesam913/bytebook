@@ -20,9 +20,9 @@ export function isDecoratorNodeSelected(nodeKey: string) {
 export function onClickDecoratorNodeCommand(
 	e: MouseEvent,
 	node: HTMLElement | null,
-	isResizing: boolean,
 	setSelected: (arg0: boolean) => void,
 	clearSelection: () => void,
+	isResizing?: boolean,
 ): boolean {
 	if (isResizing) {
 		e.stopPropagation();
