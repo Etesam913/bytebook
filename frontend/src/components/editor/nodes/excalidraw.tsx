@@ -1,4 +1,7 @@
-import type { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
+import type {
+	ExcalidrawElement,
+	NonDeletedExcalidrawElement,
+} from "@excalidraw/excalidraw/types/element/types";
 import type {
 	EditorConfig,
 	LexicalEditor,
@@ -81,9 +84,26 @@ export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
 	getElements(): ExcalidrawElement[] {
 		return this.__elements;
 	}
+	setElements(
+		elements: NonDeletedExcalidrawElement[],
+		editor: LexicalEditor,
+	): void {
+		editor.update(() => {
+			const writable = this.getWritable();
+			writable.__elements = elements;
+		});
+	}
 
 	decorate(_editor: LexicalEditor): JSX.Element {
-		return <ExcalidrawComponent nodeKey={this.getKey()} />;
+		return (
+			<ExcalidrawComponent
+				nodeKey={this.getKey()}
+				defaultElements={this.getElements()}
+				writeElementsToNode={(elements: NonDeletedExcalidrawElement[]) => {
+					this.setElements(elements, _editor);
+				}}
+			/>
+		);
 	}
 }
 

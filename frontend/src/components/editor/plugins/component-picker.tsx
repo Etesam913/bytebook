@@ -9,6 +9,7 @@ import { $setBlocksType } from "@lexical/selection";
 import {
 	$createParagraphNode,
 	$getSelection,
+	$insertNodes,
 	$isRangeSelection,
 	$setSelection,
 	type BaseSelection,
@@ -32,11 +33,14 @@ import { useSetAtom } from "jotai";
 import { dialogDataAtom } from "../../../atoms";
 import { useBackendFunction } from "../../../hooks/query";
 import { AngularLogo } from "../../../icons/angular-logo";
+import { Paintbrush } from "../../../icons/paintbrush";
 import { SvelteLogo } from "../../../icons/svelte-logo";
+import { VideoIcon } from "../../../icons/video";
 import { VueLogo } from "../../../icons/vue-logo";
 import type { DialogDataType } from "../../../types";
 import { resetDialogState } from "../../dialog";
 import { YouTubeDialogChildren } from "../../youtube/youtube-dialog-children";
+import { $createExcalidrawNode } from "../nodes/excalidraw";
 import { $createFileNode } from "../nodes/file";
 import { extractYouTubeVideoID } from "../utils/file-node";
 import {
@@ -216,6 +220,7 @@ function getBaseOptions(
 			},
 		}),
 		new ComponentPickerOption("YouTube", {
+			icon: <VideoIcon />,
 			keywords: ["youtube", "video", "embed"],
 			onSelect: async () => {
 				setDialogData({
@@ -271,12 +276,29 @@ function getBaseOptions(
 				});
 			},
 		}),
+		new ComponentPickerOption("Drawing", {
+			icon: <Paintbrush />,
+			keywords: [
+				"drawing",
+				"sketch",
+				"doodle",
+				"draw",
+				"excalidraw",
+				"painting",
+			],
+			onSelect: () => {
+				editor.update(() => {
+					const excalidrawNode = $createExcalidrawNode({ elements: [] });
+					$insertNodes([excalidrawNode]);
+				});
+			},
+		}),
 		...languageCommandData.map(
 			({ name, keywords, icon }) =>
 				new ComponentPickerOption(name, {
 					icon,
 					keywords: [...keywords, "code", "syntax", "programming", "language"],
-					onSelect: async () => {
+					onSelect: () => {
 						editor.update(() => {
 							editor.dispatchCommand(INSERT_CODE_COMMAND, {
 								language: name,
@@ -362,7 +384,7 @@ export function ComponentPickerMenuPlugin({
 				) =>
 					anchorElementRef.current && options.length
 						? createPortal(
-								<ul className="fixed flex overflow-auto flex-col max-h-56 gap-0.5 w-48 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700">
+								<ul className="fixed z-10 flex overflow-auto flex-col max-h-56 gap-0.5 w-48 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700">
 									{options.map((option, i: number) => (
 										<ComponentPickerMenuItem
 											index={i}

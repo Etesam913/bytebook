@@ -167,13 +167,9 @@ function importCodeBlock(
 		while (++endLineIndex < linesLength) {
 			const closeMatch = lines[endLineIndex].match(CODE_BLOCK_REG_EXP);
 			if (closeMatch) {
-				const filesString = lines
-					.slice(startLineIndex + 1, endLineIndex)
-					.join("\n");
-
 				const language = openMatch[1] ?? "";
 				const otherMatches = openMatch.slice(2).filter((v) => v !== undefined);
-
+				console.log(language);
 				let command = undefined;
 
 				for (const match of otherMatches) {
@@ -183,11 +179,19 @@ function importCodeBlock(
 						command = value;
 					}
 				}
-				if (language === "excalidraw") {
-					const excalidrawNode = $createExcalidrawNode({ elements: [] });
+				if (language === "drawing") {
+					const elementsString = lines
+						.slice(startLineIndex + 1, endLineIndex)
+						.join("\n");
+					const elements = JSON.parse(elementsString);
+					const excalidrawNode = $createExcalidrawNode({ elements });
 					rootNode.append(excalidrawNode);
 					return [excalidrawNode, endLineIndex];
 				}
+				// If not drawing then it is a code block
+				const filesString = lines
+					.slice(startLineIndex + 1, endLineIndex)
+					.join("\n");
 				const data: CodeBlockData = JSON.parse(filesString);
 				const codeBlockNode = $createCodeNode({
 					data,

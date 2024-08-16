@@ -207,27 +207,25 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 			}\n\`\`\``;
 		}
 		if ($isExcalidrawNode(node)) {
-			const textContent = "";
-			return `\`\`\`excalidraw {width=${node.getWidth()}} ${
-				textContent ? `\n${textContent}` : ""
-			}\n\`\`\``;
+			const textContent = JSON.stringify(node.getElements());
+			return `\`\`\`drawing ${textContent ? `\n${textContent}` : ""}\n\`\`\``;
 		}
 		return null;
 	},
 	regExp: /^```(\w{1,10})?\s/,
 	replace: (textNode, _1, match, isImport) => {
 		// MarkdownImport.ts handles the import of code blocks
+		// This code handles creation for the first time
 		const language = match.at(1);
-		if (
-			!language ||
-			(!codeLanguages.has(language) && language !== "excalidraw")
-		) {
+
+		if (!language || (!codeLanguages.has(language) && language !== "drawing")) {
 			return;
 		}
 		let newNode = null;
-		if (language === "excalidraw") {
+		if (language === "drawing") {
 			newNode = $createExcalidrawNode({ elements: [] });
 		} else {
+			// Code block data is empty by default
 			newNode = $createCodeNode({
 				language: language,
 				focus: !isImport,

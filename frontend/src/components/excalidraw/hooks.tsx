@@ -9,9 +9,10 @@ export function useFocusOnSelect(
 ) {
 	useEffect(() => {
 		if (isSelected && excalidrawContainer) {
-			const firstChild = excalidrawContainer.firstChild as HTMLElement;
-			if (!firstChild) return;
-			firstChild.focus();
+			const excalidrawElement = excalidrawContainer.lastChild
+				?.lastChild as HTMLElement;
+			if (!excalidrawElement) return;
+			excalidrawElement.focus();
 		}
 	}, [isSelected]);
 }

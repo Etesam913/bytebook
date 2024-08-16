@@ -114,7 +114,6 @@ export function ResizeContainer({
 								/>
 							</motion.div>
 							<ResizeControls
-								elementType={elementType}
 								nodeKey={nodeKey}
 								motionValues={{
 									widthMotionValue,

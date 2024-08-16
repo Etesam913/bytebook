@@ -17,7 +17,6 @@ export function ResizeControls({
 	resizeDimensionsRef,
 	element,
 }: {
-	elementType: string;
 	nodeKey: string;
 	motionValues: {
 		widthMotionValue: MotionValue<number | "100%">;

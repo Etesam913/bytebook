@@ -474,7 +474,7 @@ export function handleDragStart(
 	document.body.appendChild(ghostElement);
 	editor.update(() => {
 		const node = $getNearestNodeFromDOMNode(draggableBlockElement);
-
+		console.log(node);
 		if (node) {
 			// @ts-expect-error -- It is of ElementNode type, code-blocks do not have children for example, so we don't want to run getChildren
 			if (node.getChildren) {
@@ -499,6 +499,12 @@ export function handleDragStart(
 					}
 				});
 			}
+			if (node.getType() === "excalidraw") {
+				const excalidrawText = document.createElement("div");
+				excalidrawText.innerText = "Drawing";
+				ghostElement.replaceChildren(excalidrawText);
+			}
+
 			nodeKey = node.getKey();
 		}
 	});
