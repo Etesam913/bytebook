@@ -9,7 +9,11 @@ import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection"
 import { mergeRegister } from "@lexical/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtomValue } from "jotai";
-import { CLICK_COMMAND, COMMAND_PRIORITY_NORMAL } from "lexical";
+import {
+	CLICK_COMMAND,
+	COMMAND_PRIORITY_NORMAL,
+	KEY_ESCAPE_COMMAND,
+} from "lexical";
 import { type MutableRefObject, useEffect, useRef, useState } from "react";
 import { getDefaultButtonVariants } from "../../animations";
 import { darkModeAtom } from "../../atoms";
@@ -74,13 +78,19 @@ export function ExcalidrawComponent({
 				"relative w-full border-[4px] border-zinc-100 dark:border-zinc-900 transition-colors",
 				isSelected && !isExpanded && "border-blue-400 dark:border-blue-500",
 				isExpanded &&
-					"max-h-screen fixed top-0 left-0 right-0 bottom-0 z-30 m-auto justify-start overflow-auto",
+					"h-screen fixed top-0 left-0 right-0 bottom-0 z-30 m-auto justify-start overflow-auto",
 			)}
 			ref={excalidrawRef}
-			onMouseDown={(e) => {
-				e.stopPropagation();
-			}}
-			onKeyDown={(e) => e.stopPropagation()}
+			// onMouseDown={(e) => {
+			// 	e.stopPropagation();
+			// }}
+			// onKeyDown={(e) => e.stopPropagation()}
+			// onKeyDown={(e) => {
+			// 	console.log(e.key);
+			// 	if (e.key === "Escape") {
+			// 		console.log("Escape key pressed");
+			// 	}
+			// }}
 		>
 			{isExpanded && (
 				<motion.button
@@ -115,9 +125,21 @@ export function ExcalidrawComponent({
 				onMouseUp={() =>
 					writeElementsToNodeWrapper(excalidrawAPIRef, writeElementsToNode)()
 				}
-				onKeyUp={() =>
-					writeElementsToNodeWrapper(excalidrawAPIRef, writeElementsToNode)()
-				}
+				onKeyUp={(e) => {
+					// Fixes bug where escape key doesn't work in excalidraw editor even though it is a decorator node
+					if (
+						e.key === "Escape" &&
+						document.activeElement?.classList.contains("excalidraw-container")
+					) {
+						editor.dispatchCommand(
+							KEY_ESCAPE_COMMAND,
+							undefined as unknown as KeyboardEvent,
+						);
+					} else {
+						writeElementsToNodeWrapper(excalidrawAPIRef, writeElementsToNode)();
+					}
+				}}
+				className="w-full h-full"
 			>
 				<Excalidraw
 					initialData={{ elements: defaultElements }}
