@@ -56,26 +56,29 @@ export function useCodeEditorCommands(
 }
 
 /**
-The `setInterval` had to be used because I couldn't find an easy way for
-`cmInstance` to not be undefined
+  Focuses the inside code editor input when the lexical component is selected.
+  There are some tricky edge cases with this one.
 */
 export function useCodeEditorFocus(
 	codeMirrorRef: React.RefObject<CodeEditorRef>,
-	focus: boolean,
+	isSelected: boolean,
 	setIsSelected: (arg0: boolean) => void,
 ) {
 	useEffect(() => {
-		if (!focus) return;
+		if (!isSelected) return;
 		let intervalId: number | undefined = undefined;
 		// @ts-expect-error For some reason sandpack does not export the EditorView type
 		let cmInstance: EditorView | null = null;
-
+		/*
+		  The `setInterval` had to be used because I couldn't find an easy way for
+			`cmInstance` to not be undefined
+		*/
 		intervalId = setInterval(() => {
 			cmInstance = codeMirrorRef.current?.getCodemirror();
 
 			if (cmInstance) {
 				clearInterval(intervalId);
-				if (focus) {
+				if (isSelected) {
 					cmInstance.focus();
 					setIsSelected(true);
 				}
@@ -87,5 +90,5 @@ export function useCodeEditorFocus(
 				clearInterval(intervalId);
 			}
 		};
-	}, [focus]);
+	}, [isSelected]);
 }

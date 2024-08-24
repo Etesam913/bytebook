@@ -31,7 +31,6 @@ import {
 
 import { Pen } from "../../icons/pen.tsx";
 
-import type { DialogDataType } from "../../types.ts";
 import {
 	checkIfFolderExists,
 	updateFolders,
@@ -39,7 +38,7 @@ import {
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
 import { validateName } from "../../utils/string-formatting.ts";
 import { MotionButton } from "../buttons";
-import { DialogErrorText, resetDialogState } from "../dialog/index.tsx";
+import { DialogErrorText } from "../dialog/index.tsx";
 import { Input } from "../input/index.tsx";
 import { BottomItems } from "./bottom-items.tsx";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
@@ -86,7 +85,6 @@ export function FolderDialogChildren({
 export async function onFolderDialogSubmit(
 	e: FormEvent<HTMLFormElement>,
 	setErrorText: Dispatch<SetStateAction<string>>,
-	setDialogData: Dispatch<SetStateAction<DialogDataType>>,
 	action: "create" | "rename",
 	folderToBeRenamed?: string,
 ) {
@@ -121,11 +119,14 @@ export async function onFolderDialogSubmit(
 				const res = await RenameFolder(folderToBeRenamed, newFolderNameString);
 				if (!res.success) throw new Error(res.message);
 			}
-			resetDialogState(setErrorText, setDialogData);
+			// resetDialogState(setErrorText, setDialogData);
+			return true;
 		}
+		return false;
 	} catch (e) {
 		if (e instanceof Error) setErrorText(e.message);
 		else setErrorText("An unknown error occurred. Please try again later.");
+		return false;
 	}
 }
 
@@ -193,7 +194,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 								<FolderDialogChildren errorText={errorText} action="create" />
 							),
 							onSubmit: async (e, setErrorText) =>
-								onFolderDialogSubmit(e, setErrorText, setDialogData, "create"),
+								onFolderDialogSubmit(e, setErrorText, "create"),
 						})
 					}
 				>

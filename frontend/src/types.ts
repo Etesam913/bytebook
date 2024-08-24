@@ -56,8 +56,9 @@ export type DialogDataType = {
 		| ((
 				e: FormEvent<HTMLFormElement>,
 				setErrorText: Dispatch<SetStateAction<string>>,
-		  ) => void)
+		  ) => Promise<boolean>)
 		| null;
+	onClose?: () => void;
 };
 
 export type BackendQueryDataType = {

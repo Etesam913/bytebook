@@ -1,17 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtom, useAtomValue } from "jotai";
-import {
-	type Dispatch,
-	type SetStateAction,
-	useEffect,
-	useRef,
-	useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 import useMeasure from "react-use-measure";
 import { easingFunctions, getDefaultButtonVariants } from "../../animations";
 import { backendQueryAtom, dialogDataAtom } from "../../atoms";
 import { XMark } from "../../icons/circle-xmark";
-import type { DialogDataType } from "../../types";
 import { cn } from "../../utils/string-formatting";
 import { MotionIconButton } from "../buttons";
 import { useTrapFocus } from "./hooks";
@@ -46,29 +39,6 @@ export function DialogErrorText({ errorText }: { errorText: string }) {
 	);
 }
 
-export function resetDialogState(
-	setErrorText: Dispatch<SetStateAction<string>>,
-	setDialogData: Dispatch<SetStateAction<DialogDataType>>,
-) {
-	setDialogData({
-		isOpen: false,
-		onSubmit: null,
-		title: "",
-		children: null,
-	});
-	setErrorText("");
-}
-
-function handleDialogKeyDown(
-	e: globalThis.KeyboardEvent,
-	setErrorText: Dispatch<SetStateAction<string>>,
-	setDialogData: Dispatch<SetStateAction<DialogDataType>>,
-) {
-	if (e.key === "Escape") {
-		resetDialogState(setErrorText, setDialogData);
-	}
-}
-
 export function Dialog() {
 	const [dialogData, setDialogData] = useAtom(dialogDataAtom);
 	const backendQuery = useAtomValue(backendQueryAtom);
@@ -76,10 +46,28 @@ export function Dialog() {
 	const modalRef = useRef<HTMLFormElement>(null);
 	useTrapFocus(modalRef, dialogData.isOpen);
 
+	function resetDialogState() {
+		dialogData.onClose?.();
+		setDialogData({
+			isOpen: false,
+			onSubmit: null,
+			title: "",
+			children: null,
+			onClose: undefined,
+		});
+		setErrorText("");
+	}
+
+	function handleDialogKeyDown(e: globalThis.KeyboardEvent) {
+		if (e.key === "Escape") {
+			resetDialogState();
+		}
+	}
+
 	// Handles escape key when dialog is open
 	useEffect(() => {
 		const keyDownHandler = (e: globalThis.KeyboardEvent) =>
-			handleDialogKeyDown(e, setErrorText, setDialogData);
+			handleDialogKeyDown(e);
 
 		if (dialogData.isOpen) {
 			document.addEventListener("keydown", keyDownHandler);
@@ -103,9 +91,12 @@ export function Dialog() {
 					/>
 					<motion.form
 						ref={modalRef}
-						onSubmit={(e) => {
+						onSubmit={async (e) => {
 							e.preventDefault();
-							if (dialogData.onSubmit) dialogData.onSubmit(e, setErrorText);
+							if (dialogData.onSubmit) {
+								const result = await dialogData.onSubmit(e, setErrorText);
+								if (result) resetDialogState();
+							}
 						}}
 						initial={{ opacity: 0, scale: 0.5, x: "-50%", y: "-50%" }}
 						animate={{
@@ -128,7 +119,7 @@ export function Dialog() {
 						<MotionIconButton
 							autoFocus
 							{...getDefaultButtonVariants()}
-							onClick={() => resetDialogState(setErrorText, setDialogData)}
+							onClick={resetDialogState}
 							className="absolute top-2 right-2"
 							type="button"
 						>

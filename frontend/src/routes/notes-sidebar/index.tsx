@@ -13,10 +13,7 @@ import {
 	selectionRangeAtom,
 } from "../../atoms";
 import { MotionButton, MotionIconButton } from "../../components/buttons";
-import {
-	DialogErrorText,
-	resetDialogState,
-} from "../../components/dialog/index.tsx";
+import { DialogErrorText } from "../../components/dialog/index.tsx";
 import {
 	FolderDialogChildren,
 	onFolderDialogSubmit,
@@ -113,15 +110,13 @@ export function NotesSidebar({
 													folderToBeRenamed={decodeURIComponent(folder)}
 												/>
 											),
-											onSubmit: (e, setErrorText) => {
+											onSubmit: (e, setErrorText) =>
 												onFolderDialogSubmit(
 													e,
 													setErrorText,
-													setDialogData,
 													"rename",
 													decodeURIComponent(folder),
-												);
-											},
+												),
 										})
 									}
 								>
@@ -178,19 +173,22 @@ export function NotesSidebar({
 														newNoteNameString,
 													);
 													if (!res.success) throw new Error(res.message);
-													resetDialogState(setErrorText, setDialogData);
+													// resetDialogState(setErrorText, setDialogData);
 													toast.success(
 														`Note, "${newNoteNameString}", successfully created.`,
 														DEFAULT_SONNER_OPTIONS,
 													);
 													navigate(`/${folder}/${newNoteNameString}?ext=md`);
+													return true;
 												}
+												return false;
 											} catch (e) {
 												if (e instanceof Error) {
 													setErrorText(e.message);
 												} else {
 													setErrorText("An unknown error occurred");
 												}
+												return false;
 											}
 										},
 									})

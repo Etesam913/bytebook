@@ -40,7 +40,7 @@ import { Trash } from "../../icons/trash";
 import { removeDecoratorNode } from "../../utils/commands";
 import { cn } from "../../utils/string-formatting";
 import { MotionButton } from "../buttons";
-import { DialogErrorText, resetDialogState } from "../dialog";
+import { DialogErrorText } from "../dialog";
 import { Input } from "../input";
 import { useCodeEditorFocus } from "./hooks";
 
@@ -104,18 +104,6 @@ export function CodeViewer({
 			});
 		});
 	}
-
-	// If the code settings closes, then refocus onto the editor
-	useEffect(() => {
-		if (!dialogData.isOpen) {
-			const codeMirrorInstance =
-				// @ts-expect-error For some reason sandpack does not export the EditorView type
-				codeMirrorRef.current?.getCodemirror() as EditorView;
-			if (codeMirrorInstance) {
-				codeMirrorInstance.focus();
-			}
-		}
-	}, [dialogData.isOpen]);
 
 	useCodeEditorFocus(codeMirrorRef, isSelected, setIsSelected);
 
@@ -231,6 +219,14 @@ export function CodeViewer({
 						setDialogData({
 							isOpen: true,
 							title: `${language} Settings`,
+							onClose: () => {
+								const codeMirrorInstance =
+									// @ts-ignore - EditorView is not exposed in the codemirror types for some reason
+									codeMirrorRef.current?.getCodemirror() as EditorView;
+								if (codeMirrorInstance) {
+									codeMirrorInstance.focus();
+								}
+							},
 							children: (errorText) => (
 								<>
 									<fieldset className="flex flex-col">
@@ -256,18 +252,20 @@ export function CodeViewer({
 									</MotionButton>
 								</>
 							),
-							onSubmit: (e, setErrorText) => {
+							onSubmit: async (e, setErrorText) => {
 								const formData = new FormData(e.target as HTMLFormElement);
 								const runCommand = formData.get("run-command");
 
 								if (runCommand && typeof runCommand === "string") {
 									if (runCommand.trim().length === 0) {
 										setErrorText("Run command cannot be empty");
-										return;
+										return false;
 									}
-									resetDialogState(setErrorText, setDialogData);
+									// resetDialogState(setErrorText, setDialogData);
 									writeCommandToNode(runCommand);
+									return true;
 								}
+								return false;
 							},
 						})
 					}

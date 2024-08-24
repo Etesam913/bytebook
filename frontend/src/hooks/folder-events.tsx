@@ -9,7 +9,7 @@ import {
 import { WINDOW_ID } from "../App";
 import { getDefaultButtonVariants } from "../animations";
 import { MotionButton } from "../components/buttons";
-import { DialogErrorText, resetDialogState } from "../components/dialog";
+import { DialogErrorText } from "../components/dialog";
 import {
 	FolderDialogChildren,
 	onFolderDialogSubmit,
@@ -140,7 +140,6 @@ export function useFolderContextMenuDelete(
 					try {
 						const res = await DeleteFolder(deletedFolderName);
 						if (!res.success) throw new Error(res.message);
-						resetDialogState(setErrorText, setDialogData);
 						// Navigate to the first folder that was not deleted
 						if (folder && folder === deletedFolderName) {
 							const firstFolderNotDeleted = folders?.find(
@@ -148,9 +147,12 @@ export function useFolderContextMenuDelete(
 							);
 							if (firstFolderNotDeleted) navigate(`/${firstFolderNotDeleted}`);
 							else navigate("/");
+							// resetDialogState(setErrorText, setDialogData);
 						}
+						return true;
 					} catch (e) {
 						if (e instanceof Error) setErrorText(e.message);
+						return false;
 					}
 				},
 			});
@@ -175,15 +177,8 @@ export function useFolderContextMenuRename(
 						folderToBeRenamed={folderToBeRenamed}
 					/>
 				),
-				onSubmit: (e, setErrorText) => {
-					onFolderDialogSubmit(
-						e,
-						setErrorText,
-						setDialogData,
-						"rename",
-						folderToBeRenamed,
-					);
-				},
+				onSubmit: async (e, setErrorText) =>
+					onFolderDialogSubmit(e, setErrorText, "rename", folderToBeRenamed),
 			});
 		}
 	});

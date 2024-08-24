@@ -38,7 +38,6 @@ import { SvelteLogo } from "../../../icons/svelte-logo";
 import { VideoIcon } from "../../../icons/video";
 import { VueLogo } from "../../../icons/vue-logo";
 import type { DialogDataType } from "../../../types";
-import { resetDialogState } from "../../dialog";
 import { YouTubeDialogChildren } from "../../youtube/youtube-dialog-children";
 import { $createExcalidrawNode } from "../nodes/excalidraw";
 import { $createFileNode } from "../nodes/file";
@@ -235,7 +234,7 @@ function getBaseOptions(
 							editorSelection={editorSelection}
 						/>
 					),
-					onSubmit: (e, setDialogErrorText) => {
+					onSubmit: async (e, setDialogErrorText) => {
 						try {
 							if (
 								!editorSelection.current ||
@@ -246,9 +245,11 @@ function getBaseOptions(
 							const formData = new FormData(e.target as HTMLFormElement);
 							const videoUrl = formData.get("youtube-url");
 							// Doing some error checking
-							if (!videoUrl || typeof videoUrl !== "string")
-								throw new Error("YouTube URL cannot be empty");
-							if (videoUrl.trim().length === 0)
+							if (
+								!videoUrl ||
+								typeof videoUrl !== "string" ||
+								videoUrl.trim().length === 0
+							)
 								throw new Error("YouTube URL cannot be empty");
 							if (extractYouTubeVideoID(videoUrl) === null)
 								throw new Error("Invalid YouTube URL");
@@ -269,9 +270,11 @@ function getBaseOptions(
 								newSelection.insertNodes([youtubeVideoNode]);
 								editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, undefined);
 							});
-							resetDialogState(setDialogErrorText, setDialogData);
+							// resetDialogState(setDialogErrorText, setDialogData);
+							return true;
 						} catch (e) {
 							if (e instanceof Error) setDialogErrorText(e.message);
+							return false;
 						}
 					},
 				});

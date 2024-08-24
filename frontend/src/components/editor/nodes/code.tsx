@@ -32,6 +32,17 @@ export type SerializedCodeNode = Spread<
 	SerializedLexicalNode
 >;
 
+/**
+    * A node that represents a code block
+
+    `files`: The files that are present in the code block
+
+    `result`: The result from running the code block
+
+        `id`: The id of the result. A new id is generated on the backend whenever a result is outputted. It is used in the animation of the code block result.
+
+        `success`: Whether the code block ran successfully or not. It is used to make the text color default or red.
+*/
 export class CodeNode extends DecoratorNode<JSX.Element> {
 	__data: CodeBlockData = {
 		files: {},
@@ -170,7 +181,10 @@ export function $createCodeNode({
 			: {};
 	return $applyNodeReplacement(
 		new CodeNode(
-			data ?? { files: defaultFiles, result: { message: "", success: true } },
+			data ?? {
+				files: defaultFiles,
+				result: { id: "0", message: "", success: true },
+			},
 			language,
 			command,
 		),
