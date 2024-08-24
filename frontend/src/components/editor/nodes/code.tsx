@@ -21,14 +21,12 @@ export interface CodePayload {
 	language: string;
 	data?: CodeBlockData;
 	command?: string;
-	focus: boolean;
 }
 
 export type SerializedCodeNode = Spread<
 	{
 		data?: CodeBlockData;
 		language: string;
-		focus: boolean;
 		command: string;
 	},
 	SerializedLexicalNode
@@ -40,7 +38,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		result: { id: "0", message: "", success: true },
 	};
 	__language: string;
-	__focus = false;
 	__command = "";
 	static getType(): string {
 		return "code-block";
@@ -50,18 +47,16 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		return new CodeNode(
 			node.__data,
 			node.__language,
-			false,
 			node.__command,
 			node.__key,
 		);
 	}
 
 	static importJSON(serializedNode: SerializedCodeNode): CodeNode {
-		const { data, language, focus, command } = serializedNode;
+		const { data, language, command } = serializedNode;
 		const node = $createCodeNode({
 			data,
 			language,
-			focus,
 			command,
 		});
 		return node;
@@ -74,7 +69,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	constructor(
 		data: CodeBlockData,
 		language: string,
-		focus: boolean,
 		command: undefined | string,
 		key?: NodeKey,
 	) {
@@ -84,9 +78,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 
 		// The language of the code
 		this.__language = language;
-
-		// Used to focus the code block when it is created using markdown
-		this.__focus = focus;
 
 		this.__command = command
 			? command
@@ -100,7 +91,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 			data: this.getData(),
 			language: this.getLanguage(),
 			command: this.getCommand(),
-			focus: false,
 			type: "code-block",
 			version: 1,
 		};
@@ -151,14 +141,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 			writable.__command = command;
 		});
 	}
-
-	setFocus(focus: boolean, editor: LexicalEditor): void {
-		editor.update(() => {
-			const writable = this.getWritable();
-			writable.__focus = focus;
-		});
-	}
-
 	decorate(_editor: LexicalEditor): JSX.Element {
 		return (
 			<SandpackEditor
@@ -166,7 +148,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 				data={this.getData()}
 				language={this.getLanguage()}
 				commandWrittenToNode={this.getCommand()}
-				focus={this.__focus}
 				writeDataToNode={(files: SandpackFiles, result: CodeResponse) =>
 					this.setData(files, result)
 				}
@@ -181,7 +162,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 export function $createCodeNode({
 	data,
 	language,
-	focus,
 	command,
 }: CodePayload): CodeNode {
 	const defaultFiles: SandpackFiles =
@@ -192,7 +172,6 @@ export function $createCodeNode({
 		new CodeNode(
 			data ?? { files: defaultFiles, result: { message: "", success: true } },
 			language,
-			focus,
 			command,
 		),
 	);

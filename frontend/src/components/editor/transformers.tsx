@@ -228,7 +228,6 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 			// Code block data is empty by default
 			newNode = $createCodeNode({
 				language: language,
-				focus: !isImport,
 			});
 		}
 

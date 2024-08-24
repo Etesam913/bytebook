@@ -52,7 +52,6 @@ export function CodeViewer({
 	codeResult,
 	setCodeResult,
 	writeDataToNode,
-	focus,
 	isSelected,
 	setIsSelected,
 	isFullscreen,
@@ -65,7 +64,6 @@ export function CodeViewer({
 	codeResult: CodeResponse;
 	setCodeResult: Dispatch<SetStateAction<CodeResponse>>;
 	writeDataToNode: (files: SandpackFiles, result: CodeResponse) => void;
-	focus: boolean;
 	isSelected: boolean;
 	setIsSelected: (arg0: boolean) => void;
 	isFullscreen: boolean;
@@ -119,7 +117,7 @@ export function CodeViewer({
 		}
 	}, [dialogData.isOpen]);
 
-	useCodeEditorFocus(codeMirrorRef, focus || isSelected, setIsSelected);
+	useCodeEditorFocus(codeMirrorRef, isSelected, setIsSelected);
 
 	return (
 		<SandpackLayout
@@ -127,6 +125,7 @@ export function CodeViewer({
 			onKeyDown={(e) => {
 				setIsSelected(true);
 				if (e.key === "Enter" && e.shiftKey) handleRunCode();
+				// Prevent the default behavior of the key if it's a special key
 				else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
 					e.stopPropagation();
 				} else if (

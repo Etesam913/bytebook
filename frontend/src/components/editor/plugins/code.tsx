@@ -8,6 +8,7 @@ import {
 } from "lexical";
 import { useEffect } from "react";
 import { $createCodeNode, CodeNode, type CodePayload } from "../nodes/code";
+import { FOCUS_NODE_COMMAND } from "./focus";
 
 export const INSERT_CODE_COMMAND: LexicalCommand<CodePayload> = createCommand(
 	"INSERT_CODE_COMMAND",
@@ -27,6 +28,7 @@ export function CodePlugin() {
 				(payload) => {
 					const codeNode = $createCodeNode(payload);
 					$insertNodes([codeNode]);
+					editor.dispatchCommand(FOCUS_NODE_COMMAND, codeNode);
 					return true;
 				},
 				COMMAND_PRIORITY_EDITOR,

@@ -79,9 +79,8 @@ export function useCodeEditorFocus(
 					cmInstance.focus();
 					setIsSelected(true);
 				}
-				// cmInstance is defined, you can use it here
 			}
-		}, 100); // run every 100ms
+		}, 100);
 
 		return () => {
 			if (intervalId) {

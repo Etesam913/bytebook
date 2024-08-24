@@ -76,13 +76,11 @@ export function SandpackEditor({
 	commandWrittenToNode,
 	writeCommandToNode,
 	writeDataToNode,
-	focus,
 }: {
 	data: CodeBlockData;
 	language: string;
 	nodeKey: string;
 	commandWrittenToNode: string;
-	focus: boolean;
 	writeCommandToNode: (language: string) => void;
 	writeDataToNode: (files: SandpackFiles, result: CodeResponse) => void;
 }) {
@@ -152,7 +150,6 @@ export function SandpackEditor({
 					commandWrittenToNode={commandWrittenToNode}
 					writeCommandToNode={writeCommandToNode}
 					writeDataToNode={writeDataToNode}
-					focus={focus}
 					isSelected={isSelected}
 					setIsSelected={setSelected}
 					isFullscreen={isFullscreen}

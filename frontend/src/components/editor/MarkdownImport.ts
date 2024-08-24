@@ -196,7 +196,6 @@ function importCodeBlock(
 				const codeBlockNode = $createCodeNode({
 					data,
 					language,
-					focus: false,
 					command,
 				});
 				rootNode.append(codeBlockNode);
