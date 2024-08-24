@@ -17,9 +17,19 @@ func InitializeGitRepo(projectPath string) {
 	_, err := git.PlainInit(projectPath, false)
 	if err != nil && !errors.Is(git.ErrRepositoryAlreadyExists, err) {
 		log.Fatalf("Could not initialize git repo, %v", err)
-	} else if !errors.Is(git.ErrRepositoryAlreadyExists, err) {
-		// The git repo is being created
-		err := os.WriteFile(filepath.Join(projectPath, ".gitignore"), []byte("bytebook.db"), 0644)
+	} else{
+		// Adds the .gitignore file
+		gitignoreContent := `c++/
+trash/
+cpp/
+c++/
+java/
+javascript/
+python/
+rust/
+go/
+`
+		err := os.WriteFile(filepath.Join(projectPath, ".gitignore"), []byte(gitignoreContent), 0644)
 		if err != nil {
 			return
 		}

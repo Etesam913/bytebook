@@ -255,29 +255,22 @@ func (n *NodeService) SyncChangesWithRepo(username string, accessToken string) G
 		RemoteURL:  "https://github.com/Etesam913/bytebook-test.git",
 	})
 
-	// Checking if the error that we get is fine
-	hasAllowedErrorOrNoError := true
+	// Handling the error
 	if err != nil {
-		_, hasAllowedErrorOrNoError = allowedErrors[err]
-		for _, allowedError := range stringAllowedErrors {
-			if err.Error() == allowedError {
-				hasAllowedErrorOrNoError = true
-			}
+		fmt.Println(err)
+		if !errors.Is(err, git.NoErrAlreadyUpToDate){
+			return GitResponse{Success: false, Message: "Error when pulling from your repo", Error: err}
 		}
 	}
-
-	// Handling the error
-	if err != nil && !hasAllowedErrorOrNoError {
-		fmt.Println(err)
-		return GitResponse{Success: false, Message: "Error when pulling from your repo", Error: err}
-	} else if !errors.Is(err, git.NoErrAlreadyUpToDate) {
-		fmt.Println(err)
-		fmt.Println("Pulled latest changes from origin.")
-	} else {
-		fmt.Println("Already up-to-date.")
-	}
+	// } else if !errors.Is(err, git.NoErrAlreadyUpToDate) {
+	// 	fmt.Println(err)
+	// 	fmt.Println("Pulled latest changes from origin.")
+	// } else {
+	// 	fmt.Println("Already up-to-date.")
+	// }
 
 	status, err := worktree.Status()
+	fmt.Println(status)
 	if err != nil {
 		fmt.Println(err)
 		return GitResponse{Success: false, Message: "Error when getting git status", Error: err}
@@ -288,6 +281,7 @@ func (n *NodeService) SyncChangesWithRepo(username string, accessToken string) G
 		return GitResponse{Success: true, Message: "No changes to sync", Error: nil}
 	}
 
+	fmt.Println("Staging changes")
 	// Staging the changes
 	err = worktree.AddWithOptions(&git.AddOptions{All: true})
 	if err != nil {
@@ -295,13 +289,13 @@ func (n *NodeService) SyncChangesWithRepo(username string, accessToken string) G
 		return GitResponse{Success: false, Message: "Error when staging changes", Error: err}
 	}
 
+	fmt.Println("Comitting changes")
 	// Committing the changes
 	_, err = worktree.Commit("test-commit", &git.CommitOptions{})
 	if err != nil {
 		fmt.Println(err)
 		return GitResponse{Success: false, Message: "Error when commiting changes", Error: err}
 	}
-
 	// Pushing the changes
 	err = repo.Push(&git.PushOptions{
 		RemoteName: "origin",
@@ -310,7 +304,6 @@ func (n *NodeService) SyncChangesWithRepo(username string, accessToken string) G
 
 	// Checking if the error that we get is fine
 	if err != nil {
-		fmt.Println(err)
 		return GitResponse{Success: false, Message: "Error when pushing changes", Error: err}
 	}
 	fmt.Println("Pushed changes to origin")

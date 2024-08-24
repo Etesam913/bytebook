@@ -50,6 +50,7 @@ export function LoginButton() {
 									userData.login,
 									userData.accessToken,
 								);
+								console.log(res);
 								if (!res.success) throw new Error(res.message);
 
 								toast.success(res.message, DEFAULT_SONNER_OPTIONS);
