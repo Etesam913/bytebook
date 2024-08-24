@@ -49,8 +49,9 @@ export function ExcalidrawComponent({
 	const excalidrawRef = useRef<HTMLDivElement>(null);
 	const [isSelected, setSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
+
 	const isDarkModeOn = useAtomValue(darkModeAtom);
-	useFocusOnSelect(isSelected, excalidrawRef.current);
+	useFocusOnSelect(isSelected, excalidrawRef);
 	const [isExpanded, setIsExpanded] = useState(false);
 	const excalidrawAPIRef = useRef<ExcalidrawImperativeAPI | null>(null);
 

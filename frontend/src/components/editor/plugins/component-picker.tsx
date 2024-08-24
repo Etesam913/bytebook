@@ -49,6 +49,7 @@ import {
 	listCommandData,
 } from "../utils/toolbar";
 import { INSERT_CODE_COMMAND } from "./code";
+import { FOCUS_NODE_COMMAND } from "./focus";
 import { SAVE_MARKDOWN_CONTENT } from "./save";
 
 const languageCommandData: {
@@ -290,6 +291,7 @@ function getBaseOptions(
 				editor.update(() => {
 					const excalidrawNode = $createExcalidrawNode({ elements: [] });
 					$insertNodes([excalidrawNode]);
+					editor.dispatchCommand(FOCUS_NODE_COMMAND, excalidrawNode);
 				});
 			},
 		}),

@@ -1,18 +1,19 @@
-import { useEffect } from "react";
+import { type RefObject, useEffect } from "react";
 
 /**
  * When the excalidraw node is selected it should be focused on so that you can use hotkeys
  */
 export function useFocusOnSelect(
 	isSelected: boolean,
-	excalidrawContainer: HTMLDivElement | null,
+	excalidrawRef: RefObject<HTMLDivElement | null>,
 ) {
 	useEffect(() => {
-		if (isSelected && excalidrawContainer) {
-			const excalidrawElement = excalidrawContainer.lastChild
+		if (isSelected && excalidrawRef.current) {
+			const excalidrawElement = excalidrawRef.current.lastChild
 				?.lastChild as HTMLElement;
 			if (!excalidrawElement) return;
+
 			excalidrawElement.focus();
 		}
-	}, [isSelected]);
+	}, [isSelected, excalidrawRef]);
 }

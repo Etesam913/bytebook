@@ -39,6 +39,7 @@ import { Toolbar } from "./toolbar";
 import { BottomBar } from "./bottom-bar.tsx";
 import { useMostRecentNotes } from "./hooks/note-metadata.ts";
 import { DraggableBlockPlugin } from "./plugins/draggable-block.tsx";
+import { FocusPlugin } from "./plugins/focus.tsx";
 import { SAVE_MARKDOWN_CONTENT, SavePlugin } from "./plugins/save.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 
@@ -174,6 +175,7 @@ export function NotesEditor({
 				<VideosPlugin />
 				<CodePlugin />
 				<DraggableBlockPlugin />
+				<FocusPlugin />
 				{/* <AutoLinkPlugin matchers={MATCHERS} /> */}
 				<TreeViewPlugin />
 			</div>
