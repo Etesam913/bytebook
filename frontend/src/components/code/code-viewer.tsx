@@ -14,12 +14,11 @@ import {
 import { SandpackCodeEditor, useSandpack } from "@codesandbox/sandpack-react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { motion } from "framer-motion";
-import { useAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import {
 	type Dispatch,
 	type SetStateAction,
 	type SyntheticEvent,
-	useEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -82,7 +81,7 @@ export function CodeViewer({
 
 	const codeMirrorRef = useRef<CodeEditorRef | null>(null);
 
-	const [dialogData, setDialogData] = useAtom(dialogDataAtom);
+	const setDialogData = useSetAtom(dialogDataAtom);
 
 	function handleRunCode(e?: SyntheticEvent) {
 		if (e) {
@@ -195,12 +194,17 @@ export function CodeViewer({
 					"absolute top-0 right-2 h-10 text-zinc-700 dark:text-zinc-200",
 					isFullscreen && "top-1.5",
 				)}
+				id="fullscreen-button"
 				title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
 				{...getDefaultButtonVariants()}
 				onClick={() => {
 					setIsFullscreen((prev) => !prev);
 					const codeMirrorInstance = codeMirrorRef.current?.getCodemirror();
 					if (codeMirrorInstance) {
+						// For some reason this timeout is needed for the isSelected to not be overriden
+						setTimeout(() => {
+							setIsSelected(true);
+						}, 50);
 						codeMirrorInstance.focus();
 					}
 				}}

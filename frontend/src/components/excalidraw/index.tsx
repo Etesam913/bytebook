@@ -82,21 +82,17 @@ export function ExcalidrawComponent({
 					"h-screen fixed top-0 left-0 right-0 bottom-0 z-30 m-auto justify-start overflow-auto",
 			)}
 			ref={excalidrawRef}
-			// onMouseDown={(e) => {
-			// 	e.stopPropagation();
-			// }}
-			// onKeyDown={(e) => e.stopPropagation()}
-			// onKeyDown={(e) => {
-			// 	console.log(e.key);
-			// 	if (e.key === "Escape") {
-			// 		console.log("Escape key pressed");
-			// 	}
-			// }}
 		>
 			{isExpanded && (
 				<motion.button
 					{...getDefaultButtonVariants()}
-					onClick={() => setIsExpanded(false)}
+					onClick={() => {
+						setIsExpanded(false);
+						// A delay is needed for the setSelected to actually work for some reason
+						setTimeout(() => {
+							setSelected(true);
+						}, 50);
+					}}
 					className="absolute z-50 right-5 top-4 bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
 					type="submit"
 				>
@@ -110,7 +106,6 @@ export function ExcalidrawComponent({
 						buttonOptions={{
 							trash: {
 								enabled: true,
-								nodeKey,
 							},
 							fullscreen: {
 								enabled: true,

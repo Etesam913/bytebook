@@ -9,11 +9,11 @@ import { removeDecoratorNode } from "../../utils/commands";
 export function NoteComponentControls({
 	buttonOptions,
 	editor,
+	nodeKey,
 }: {
 	buttonOptions: {
 		trash?: {
 			enabled: boolean;
-			nodeKey: string;
 		};
 		fullscreen?: {
 			enabled: boolean;
@@ -36,7 +36,6 @@ export function NoteComponentControls({
 					type="button"
 					className=""
 					onClick={() => {
-						const nodeKey = buttonOptions.trash?.nodeKey;
 						if (!nodeKey) {
 							throw new Error("Node key is not provided for the trash button");
 						}

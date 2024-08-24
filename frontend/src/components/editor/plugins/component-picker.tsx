@@ -294,7 +294,9 @@ function getBaseOptions(
 				editor.update(() => {
 					const excalidrawNode = $createExcalidrawNode({ elements: [] });
 					$insertNodes([excalidrawNode]);
-					editor.dispatchCommand(FOCUS_NODE_COMMAND, excalidrawNode);
+					setTimeout(() => {
+						editor.dispatchCommand(FOCUS_NODE_COMMAND, excalidrawNode);
+					}, 200);
 				});
 			},
 		}),
