@@ -6,7 +6,9 @@ import { isNoteMaximizedAtom } from "./atoms";
 import { Dialog } from "./components/dialog";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { LoadingModal } from "./components/loading-modal";
+import { SearchPanel } from "./components/search-panel";
 import { useLoggedInEvent, useUserData } from "./hooks/auth";
+import { useSearchPanel } from "./hooks/search";
 import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
 import { TrashSidebar } from "./routes/trash-sidebar";
@@ -19,9 +21,11 @@ function App() {
 	const folderSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
 	const notesSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+
 	useUserData();
 	useLoggedInEvent();
 	useDarkModeSetting();
+	useSearchPanel();
 
 	return (
 		<main
@@ -29,6 +33,7 @@ function App() {
 			className="flex max-h-screen font-display text-zinc-950 dark:text-zinc-100"
 		>
 			<Dialog />
+			<SearchPanel />
 			<LoadingModal />
 			<Toaster richColors theme="system" />
 			{!isNoteMaximized && <FolderSidebar width={folderSidebarWidth} />}

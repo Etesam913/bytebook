@@ -204,25 +204,6 @@ export function useDarkModeSetting() {
 	}, [setDarkMode]);
 }
 
-// const dropImage = (e: DragEvent) => {
-// 	// @ts-expect-error this comes from wails, no types
-// 	const currentFiles = input.files;
-// 	// @ts-expect-error this comes from wails, no types
-// 	chrome.webview.postMessageWithAdditionalObjects("FilesDropped", currentFiles);
-// 	e.preventDefault();
-// 	e.stopPropagation();
-// 	return false;
-// };
-
-// export function useImageDrop() {
-// 	useEffect(() => {
-// 		document.body.addEventListener("drop", dropImage);
-// 		return () => {
-// 			document.body.removeEventListener("drop", dropImage);
-// 		};
-// 	}, []);
-// }
-
 type WailsEvent = {
 	name: string;
 	sender: string;

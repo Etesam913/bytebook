@@ -8,6 +8,7 @@ import { XMark } from "../../icons/circle-xmark";
 import { cn } from "../../utils/string-formatting";
 import { MotionIconButton } from "../buttons";
 import { useTrapFocus } from "./hooks";
+import { Shade } from "./shade";
 
 export function DialogErrorText({ errorText }: { errorText: string }) {
 	const [elementRef, bounds] = useMeasure();
@@ -81,14 +82,7 @@ export function Dialog() {
 		<AnimatePresence>
 			{dialogData.isOpen && !backendQuery.isLoading && (
 				<>
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{
-							opacity: 0,
-						}}
-						className="fixed z-30 left-0 top-0 w-screen h-screen bg-[rgba(0,0,0,0.5)]"
-					/>
+					<Shade />
 					<motion.form
 						ref={modalRef}
 						onSubmit={async (e) => {
@@ -110,7 +104,7 @@ export function Dialog() {
 							transition: { ease: easingFunctions["ease-out-quint"] },
 						}}
 						className={cn(
-							"absolute flex flex-col gap-5 bg-zinc-50 dark:bg-zinc-800 z-40 top-2/4 py-3 px-4 w-[min(23rem,90vw)]  rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4",
+							"absolute flex flex-col gap-5 bg-zinc-50 dark:bg-zinc-800 z-40 top-2/4 py-3 px-4 w-[min(23rem,90vw)] rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4",
 							dialogData.dialogClassName,
 						)}
 					>

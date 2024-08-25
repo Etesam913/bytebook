@@ -67,3 +67,5 @@ export const backendQueryAtom = atom<BackendQueryDataType>({
 export const draggedElementAtom = atom<HTMLElement | null>(null);
 
 export const draggableBlockElementAtom = atom<HTMLElement | null>(null);
+
+export const isSearchPanelOpenAtom = atom(false);

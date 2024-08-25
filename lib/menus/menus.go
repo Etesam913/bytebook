@@ -24,13 +24,27 @@ func InitializeApplicationMenu(app *application.App) {
 		})
 	}
 
+
+
 	// Change the hotkey for the toggle fullscreen menu option
 	menuItem := menu.FindByLabel("Toggle Full Screen")
 	menuItem.RemoveAccelerator()
 	menuItem.SetAccelerator("shift+cmd+f")
 
+	viewMenuItem := menu.ItemAt(3)
+	if viewMenuItem.IsSubmenu(){
+		viewSubmenu := viewMenuItem.GetSubmenu()
+		viewSubmenuItem:= viewSubmenu.Add("Search")
+		viewSubmenuItem.SetAccelerator("cmdorctrl+p")
+		viewSubmenuItem.OnClick(func(data *application.Context){
+			app.Events.Emit(&application.WailsEvent{
+				Name: "search:open-panel",
+				Data: map[string]interface{}{},
+			})
+		})
+	}
+
 	// Add new window option
-	menu.ItemAt(1)
 	app.SetMenu(menu)
 	menu.Update()
 }
