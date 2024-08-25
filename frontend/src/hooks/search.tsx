@@ -7,6 +7,6 @@ export function useSearchPanel() {
 
 	useWailsEvent("search:open-panel", () => {
 		console.log("search:open-panel");
-		setIsSearchPanelOpen(true);
+		setIsSearchPanelOpen((prev) => !prev);
 	});
 }

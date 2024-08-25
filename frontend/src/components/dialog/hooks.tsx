@@ -11,10 +11,11 @@ export const useTrapFocus = (
 		}
 
 		const focusableSelectors =
-			'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+			'button:not([tabindex="-1"]), [href]:not([tabindex="-1"]), input:not([tabindex="-1"]), select:not([tabindex="-1"]), textarea:not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])';
 		const focusableElements = Array.from(
 			element.querySelectorAll(focusableSelectors),
 		);
+		console.log(focusableElements);
 		const firstFocusableElement = focusableElements.at(0) as
 			| HTMLElement
 			| undefined;
@@ -28,7 +29,6 @@ export const useTrapFocus = (
 			if (!isTabPressed) {
 				return;
 			}
-
 			if (e.shiftKey) {
 				/* shift + tab */
 				if (document.activeElement === firstFocusableElement) {
