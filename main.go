@@ -13,6 +13,7 @@ import (
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/menus"
 	"github.com/etesam913/bytebook/lib/project_helpers"
+	"github.com/etesam913/bytebook/lib/search_helpers"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -34,7 +35,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	inverseSearchMap := search_helpers.ConstructInverseMap(projectPath)
 	// Creating notes dir
 	notesPath := filepath.Join(projectPath, "notes")
 	if err := os.MkdirAll(notesPath, os.ModePerm); err != nil {
@@ -62,6 +63,9 @@ func main() {
 			),
 			application.NewService(
 				&NodeService{ProjectPath: projectPath},
+			),
+			application.NewService(
+				&SearchService{ProjectPath: projectPath, InverseSearchMap:inverseSearchMap},
 			),
 		},
 		Assets: application.AssetOptions{

@@ -3,6 +3,7 @@ import type { MutableRefObject } from "react";
 import type {
 	BackendQueryDataType,
 	DialogDataType,
+	SearchPanelDataType,
 	SortStrings,
 	UserData,
 } from "./types.ts";
@@ -68,4 +69,7 @@ export const draggedElementAtom = atom<HTMLElement | null>(null);
 
 export const draggableBlockElementAtom = atom<HTMLElement | null>(null);
 
-export const isSearchPanelOpenAtom = atom(false);
+export const searchPanelDataAtom = atom<SearchPanelDataType>({
+	isOpen: false,
+	query: "",
+});

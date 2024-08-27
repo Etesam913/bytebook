@@ -61,6 +61,11 @@ export type DialogDataType = {
 	onClose?: () => void;
 };
 
+export type SearchPanelDataType = {
+	isOpen: boolean;
+	query: string;
+};
+
 export type BackendQueryDataType = {
 	isLoading: boolean;
 	message: string;

@@ -4,10 +4,12 @@
 import * as FolderService from "./folderservice.js";
 import * as NodeService from "./nodeservice.js";
 import * as NoteService from "./noteservice.js";
+import * as SearchService from "./searchservice.js";
 export {
     FolderService,
     NodeService,
-    NoteService
+    NoteService,
+    SearchService
 };
 
 export * from "./models.js";

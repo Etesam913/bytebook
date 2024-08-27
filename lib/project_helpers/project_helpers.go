@@ -14,6 +14,7 @@ import (
 const ProjectName = "Bytebook"
 
 func GetProjectPath() (string, error) {
+
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "Could not get user's home directory", err

@@ -1,12 +1,12 @@
 import { useSetAtom } from "jotai";
-import { isSearchPanelOpenAtom } from "../atoms";
+
+import { searchPanelDataAtom } from "../atoms";
 import { useWailsEvent } from "../utils/hooks";
 
 export function useSearchPanel() {
-	const setIsSearchPanelOpen = useSetAtom(isSearchPanelOpenAtom);
+	const setSearchPanelData = useSetAtom(searchPanelDataAtom);
 
 	useWailsEvent("search:open-panel", () => {
-		console.log("search:open-panel");
-		setIsSearchPanelOpen((prev) => !prev);
+		setSearchPanelData((prev) => ({ ...prev, isOpen: !prev.isOpen }));
 	});
 }

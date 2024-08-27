@@ -183,6 +183,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 						<CircleArrowRight title="Go Forward" />
 					</MotionIconButton> */}
 				</div>
+
 				<MotionButton
 					{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
 					className="align-center mb-2 flex w-full justify-between bg-transparent"

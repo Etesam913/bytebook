@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import type { Dispatch, SetStateAction } from "react";
 import { easingFunctions } from "../../animations";
+import type { SearchPanelDataType } from "../../types";
 
 const searchResultsData = [
 	"file1.md",
@@ -13,13 +14,15 @@ const searchResultsData = [
 export function SearchItems({
 	focusedIndex,
 	setFocusedIndex,
-	setIsSearchPanelOpen,
+	setSearchPanelData,
+	searchResults,
 }: {
 	focusedIndex: number;
 	setFocusedIndex: Dispatch<SetStateAction<number>>;
-	setIsSearchPanelOpen: Dispatch<SetStateAction<boolean>>;
+	setSearchPanelData: Dispatch<SetStateAction<SearchPanelDataType>>;
+	searchResults: string[];
 }) {
-	const searchResults = searchResultsData.map((fileName, i) => {
+	const searchResultsElements = searchResults.map((fileName, i) => {
 		return (
 			<li
 				className="relative"
@@ -37,7 +40,9 @@ export function SearchItems({
 				<button
 					tabIndex={-1}
 					type="button"
-					onClick={() => setIsSearchPanelOpen(false)}
+					onClick={() =>
+						setSearchPanelData((prev) => ({ ...prev, isOpen: false }))
+					}
 					className="relative will-change-transform z-40 w-full text-left px-1.5 py-[0.225rem]"
 				>
 					{fileName}
@@ -45,5 +50,9 @@ export function SearchItems({
 			</li>
 		);
 	});
-	return <menu className="py-2 px-2 flex flex-col gap-1">{searchResults}</menu>;
+	return (
+		<menu className="py-2 px-2 flex flex-col gap-1">
+			{searchResultsElements}
+		</menu>
+	);
 }
