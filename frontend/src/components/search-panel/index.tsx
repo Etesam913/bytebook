@@ -45,20 +45,18 @@ export function SearchPanel() {
 							},
 						}}
 						ref={searchPanelRef}
-						className="absolute bg-zinc-50 dark:bg-zinc-800 translate-x-[-50%] translate-y-[-50%] z-40 top-[35%] w-[min(29rem,90vw)] overflow-hidden rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4"
+						className="absolute translate-x-[-50%] translate-y-[-50%] z-40 top-[35%] w-[min(29rem,90vw)] left-2/4"
 						onSubmit={(e) => {
 							e.preventDefault();
-							// const formData = new FormData(e.target as HTMLFormElement);
-							// const searchQuery = formData.get("search-query") as string;
-							// console.log(searchQuery);
 						}}
 					>
 						<input
+							spellCheck="false"
 							type="text"
 							autoFocus
 							name="search-query"
 							placeholder="Search Files"
-							className="py-3 px-4 outline-none will-change-transform bg-transparent w-full border-b border-zinc-300 dark:border-zinc-700 "
+							className="py-3 px-4 bg-zinc-50 dark:bg-zinc-800 outline-none will-change-transform bg-transparent w-full border-zinc-300 rounded-bl-none rounded-br-none border-b-0 dark:border-zinc-700 rounded-lg shadow-2xl border-[1.25px] "
 							value={searchPanelData.query}
 							onFocus={(e) => {
 								e.target.select();
@@ -68,11 +66,11 @@ export function SearchPanel() {
 									...prev,
 									query: e.target.value,
 								}));
+								setFocusedIndex(0);
 								try {
 									const newSearchResults = await SearchFileNamesFromQuery(
 										e.target.value,
 									);
-									console.log(newSearchResults);
 									setSearchResults(newSearchResults);
 								} catch (err) {
 									console.error(err);

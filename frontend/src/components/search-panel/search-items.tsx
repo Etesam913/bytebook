@@ -24,16 +24,18 @@ export function SearchItems({
 }) {
 	const searchResultsElements = searchResults.map((fileName, i) => {
 		return (
-			<li
+			<motion.li
 				className="relative"
 				key={fileName}
+				transition={{ type: "spring", damping: 18, stiffness: 115 }}
 				onMouseEnter={() => setFocusedIndex(i)}
+				layout="position"
 			>
 				{focusedIndex === i && (
 					<motion.div
 						transition={{ ease: easingFunctions["ease-out-expo"] }}
 						layoutId="menu-highlight-test"
-						className="absolute inset-0 z-[-5] rounded-md w-full bg-zinc-150 dark:bg-zinc-750"
+						className="absolute inset-0 rounded-md w-full bg-zinc-150 dark:bg-zinc-750 z-30"
 					/>
 				)}
 
@@ -47,12 +49,16 @@ export function SearchItems({
 				>
 					{fileName}
 				</button>
-			</li>
+			</motion.li>
 		);
 	});
 	return (
-		<menu className="py-2 px-2 flex flex-col gap-1">
-			{searchResultsElements}
+		<menu className="py-2 px-2 bg-zinc-50 overflow-hidden dark:bg-zinc-800 flex flex-col gap-1 absolute w-full border rounded-md rounded-tl-none rounded-tr-none border-zinc-300 dark:border-zinc-700 shadow-2xl">
+			{searchResultsElements.length > 0 ? (
+				searchResultsElements
+			) : (
+				<p className="text-xs text-zinc-500 dark:text-zinc-400">Recent Notes</p>
+			)}
 		</menu>
 	);
 }

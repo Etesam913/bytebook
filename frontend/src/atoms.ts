@@ -19,6 +19,16 @@ export const mostRecentNotesAtom = atom(
 	},
 );
 
+export const mostRecentNotesWithoutQueryParamsAtom = atom((get) => {
+	const mostRecentNotes = get(mostRecentNotesAtom);
+	return mostRecentNotes.map((path) => {
+		const lastIndex = path.lastIndexOf("?ext=");
+		const folderAndNote = path.substring(0, lastIndex);
+		const ext = path.substring(lastIndex + 5);
+		return `${folderAndNote}.${ext}`;
+	});
+});
+
 const userDataAtom = atom<UserData | null>(null);
 export const userDataAtomWithLocalStorage = atom(
 	(get) => get(userDataAtom),

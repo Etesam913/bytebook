@@ -2,6 +2,7 @@ package main
 
 import (
 	"sort"
+	"strings"
 
 	"github.com/etesam913/bytebook/lib/search_helpers"
 )
@@ -12,7 +13,8 @@ type SearchService struct {
 }
 
 func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []string{
-	queryTrigrams := search_helpers.GenerateTrigrams([]rune(searchQuery))
+
+	queryTrigrams := search_helpers.GenerateTrigrams([]rune(strings.ToLower(searchQuery)))
 	searchResults := map[string]int{}
 
 	// Populating the searchResults map by aggregating the frequencies from each matching trigram

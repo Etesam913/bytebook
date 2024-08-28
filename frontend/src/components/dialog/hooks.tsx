@@ -15,7 +15,6 @@ export const useTrapFocus = (
 		const focusableElements = Array.from(
 			element.querySelectorAll(focusableSelectors),
 		);
-		console.log(focusableElements);
 		const firstFocusableElement = focusableElements.at(0) as
 			| HTMLElement
 			| undefined;

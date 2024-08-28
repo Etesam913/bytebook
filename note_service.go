@@ -225,19 +225,34 @@ func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 			continue
 		}
 
-		folderName := pathParts[0]
-		noteTitle := pathParts[1]
+		folder := pathParts[0]
+		note := pathParts[1]
 
-		folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
-		noteFilePath := filepath.Join(folderPath, fmt.Sprintf("%s.md", noteTitle))
+		notePath := filepath.Join(n.ProjectPath, "notes", folder, note)
 
-		// Check if the note file exists
-		_, err := os.Stat(noteFilePath)
-		if err == nil {
-			validPaths = append(validPaths, path)
+		exists, err := io_helpers.FileOrFolderExists(notePath)
+		if exists && err == nil{
+			lastIndexOfDot := -1
+			pathAsRunes := []rune(path)
+			for i:=len(pathAsRunes)-1; i > -1; i--{
+				if pathAsRunes[i] == '.'{
+					lastIndexOfDot = i
+					break
+				}
+			}
+			if lastIndexOfDot == -1{
+				continue
+			}
+			folderAndNote:=pathAsRunes[0:lastIndexOfDot]
+			extension := pathAsRunes[lastIndexOfDot+1:]
+			fmt.Println(string(pathAsRunes), string(extension))
+
+			fullPath := string(folderAndNote) + "?ext=" + string(extension)
+			validPaths = append(validPaths, fullPath)
 		}
-	}
 
+	}
+	fmt.Println(validPaths)
 	return validPaths
 }
 

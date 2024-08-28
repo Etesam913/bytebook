@@ -37,7 +37,6 @@ import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 
 import { BottomBar } from "./bottom-bar.tsx";
-import { useMostRecentNotes } from "./hooks/note-metadata.ts";
 import { DraggableBlockPlugin } from "./plugins/draggable-block.tsx";
 import { FocusPlugin } from "./plugins/focus.tsx";
 import { SAVE_MARKDOWN_CONTENT, SavePlugin } from "./plugins/save.tsx";
@@ -84,8 +83,6 @@ export function NotesEditor({
 	const noteContainerRef = useRef<HTMLDivElement | null>(null);
 	const setNoteContainerRef = useSetAtom(noteContainerRefAtom);
 	const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
-
-	useMostRecentNotes(folder, note);
 
 	useHotkeys({
 		"Meta+f": () => {

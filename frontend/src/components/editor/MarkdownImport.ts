@@ -169,7 +169,6 @@ function importCodeBlock(
 			if (closeMatch) {
 				const language = openMatch[1] ?? "";
 				const otherMatches = openMatch.slice(2).filter((v) => v !== undefined);
-				console.log(language);
 				let command = undefined;
 
 				for (const match of otherMatches) {

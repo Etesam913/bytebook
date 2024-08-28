@@ -2,7 +2,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { useState } from "react";
 import { Link } from "wouter";
-import { mostRecentNotesAtom } from "../../atoms.ts";
+import {
+	mostRecentNotesAtom,
+	mostRecentNotesWithoutQueryParamsAtom,
+} from "../../atoms.ts";
 import { ChevronDown } from "../../icons/chevron-down.tsx";
 import { Note } from "../../icons/page.tsx";
 import { cn } from "../../utils/string-formatting.ts";
@@ -10,32 +13,43 @@ import { cn } from "../../utils/string-formatting.ts";
 export function RecentNotesAccordion() {
 	const [isRecentNotesCollapsed, setIsRecentNotesCollapsed] = useState(false);
 	const mostRecentNotes = useAtomValue(mostRecentNotesAtom);
-
-	const mostRecentElements = mostRecentNotes.map((path) => (
-		<motion.li
-			layout="position"
-			transition={{ type: "spring", damping: 15 }}
-			key={path}
-		>
-			<div
-				id="folder"
-				className="flex select-none items-center gap-2 overflow-hidden pr-1 text-zinc-600 dark:text-zinc-300"
+	const mostRecentNotesWithoutQueryParams = useAtomValue(
+		mostRecentNotesWithoutQueryParamsAtom,
+	);
+	const mostRecentElements = mostRecentNotes.map((pathWithQueryParam, i) => {
+		return (
+			<motion.li
+				layout
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				key={pathWithQueryParam}
+				transition={{
+					type: "spring",
+					damping: 18,
+					stiffness: 110,
+				}}
 			>
-				<Link
-					target="_blank"
-					className={cn(
-						"flex flex-1 items-center gap-2 overflow-x-hidden rounded-md px-3 py-1",
-					)}
-					to={`/${encodeURI(path)}`}
+				<div
+					id="folder"
+					className="flex select-none items-center gap-2 overflow-hidden pr-1 text-zinc-600 dark:text-zinc-300"
 				>
-					<Note className="min-w-4" title="" width="1rem" height="1rem" />
-					<p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm">
-						{path.slice(path.lastIndexOf("/") + 1)}
-					</p>
-				</Link>
-			</div>
-		</motion.li>
-	));
+					<Link
+						title={mostRecentNotesWithoutQueryParams.at(i)}
+						target="_blank"
+						className={cn(
+							"flex flex-1 items-center gap-2 overflow-x-hidden rounded-md px-3 py-1",
+						)}
+						to={`/${encodeURI(pathWithQueryParam)}`}
+					>
+						<Note className="min-w-4" title="" width="1rem" height="1rem" />
+						<p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm">
+							{mostRecentNotesWithoutQueryParams.at(i)?.split("/").pop()}
+						</p>
+					</Link>
+				</div>
+			</motion.li>
+		);
+	});
 
 	if (mostRecentNotes.length === 0) {
 		return <></>;
@@ -59,7 +73,6 @@ export function RecentNotesAccordion() {
 			<AnimatePresence>
 				{!isRecentNotesCollapsed && (
 					<motion.ul
-						layout
 						initial={{ height: 0 }}
 						animate={{
 							height: "auto",

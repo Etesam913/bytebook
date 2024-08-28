@@ -28,7 +28,6 @@ export function useCodeEditorCommands(
 						clickedElem.getAttribute("role") === "tab" ||
 						node?.contains(clickedElem)
 					) {
-						// console.log("deez");
 						if (!e.shiftKey) clearSelection();
 						setSelected(true);
 						return true;

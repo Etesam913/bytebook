@@ -3,6 +3,7 @@ import { useAtomValue } from "jotai";
 import { draggedElementAtom, isNoteMaximizedAtom } from "../../atoms";
 import { MaximizeNoteButton } from "../../components/buttons/maximize-note";
 import { NotesEditor } from "../../components/editor";
+import { useMostRecentNotes } from "../../components/editor/hooks/note-metadata";
 import { TrashEditor } from "../../components/editor/trash-editor";
 import { FileBan } from "../../icons/file-ban";
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from "../../types";
@@ -37,6 +38,8 @@ export function RenderNote({
 	const fileUrl = `${FILE_SERVER_URL}/${
 		isInTrash ? "" : "notes"
 	}/${folder}/${note}.${fileExtension}`;
+
+	useMostRecentNotes(folder, note, fileExtension);
 
 	return (
 		<motion.div
