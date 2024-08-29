@@ -12,8 +12,10 @@ export function SearchPanel() {
 	const [searchPanelData, setSearchPanelData] = useAtom(searchPanelDataAtom);
 	const [searchResults, setSearchResults] = useState<string[]>([]);
 	const searchPanelRef = useRef<HTMLFormElement>(null);
-	const [focusedIndex, setFocusedIndex] = useState(0);
 	useTrapFocus(searchPanelRef, searchPanelData.isOpen);
+
+	const isShowingMostRecentNotes =
+		searchResults.length === 0 && searchPanelData.query.trim().length === 0;
 
 	return (
 		<AnimatePresence>
@@ -65,8 +67,9 @@ export function SearchPanel() {
 								setSearchPanelData((prev) => ({
 									...prev,
 									query: e.target.value,
+									focusedIndex: 0,
 								}));
-								setFocusedIndex(0);
+
 								try {
 									const newSearchResults = await SearchFileNamesFromQuery(
 										e.target.value,
@@ -78,23 +81,32 @@ export function SearchPanel() {
 							}}
 							onKeyDown={(e) => {
 								if (e.key === "Escape") {
-									setSearchPanelData((prev) => ({ ...prev, isOpen: false }));
+									setSearchPanelData((prev) => ({
+										...prev,
+										isOpen: false,
+										focusedIndex: 0,
+									}));
 								} else if (e.key === "ArrowDown") {
 									e.preventDefault();
-									setFocusedIndex((prev) =>
-										Math.min(prev + 1, searchResults.length - 1),
-									);
+									setSearchPanelData((prev) => ({
+										...prev,
+										focusedIndex: Math.min(
+											searchPanelData.focusedIndex + 1,
+											isShowingMostRecentNotes ? 4 : searchResults.length - 1,
+										),
+									}));
 								} else if (e.key === "ArrowUp") {
 									e.preventDefault();
-									setFocusedIndex((prev) => Math.max(prev - 1, 0));
+									setSearchPanelData((prev) => ({
+										...prev,
+										focusedIndex: Math.max(searchPanelData.focusedIndex - 1, 0),
+									}));
 								}
 							}}
 						/>
 						<SearchItems
-							setSearchPanelData={setSearchPanelData}
-							focusedIndex={focusedIndex}
 							searchResults={searchResults}
-							setFocusedIndex={setFocusedIndex}
+							isShowingMostRecentNotes={isShowingMostRecentNotes}
 						/>
 					</motion.form>
 				</>

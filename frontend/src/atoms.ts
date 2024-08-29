@@ -82,4 +82,5 @@ export const draggableBlockElementAtom = atom<HTMLElement | null>(null);
 export const searchPanelDataAtom = atom<SearchPanelDataType>({
 	isOpen: false,
 	query: "",
+	focusedIndex: 0,
 });

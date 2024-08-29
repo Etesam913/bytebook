@@ -64,6 +64,7 @@ export type DialogDataType = {
 export type SearchPanelDataType = {
 	isOpen: boolean;
 	query: string;
+	focusedIndex: number;
 };
 
 export type BackendQueryDataType = {

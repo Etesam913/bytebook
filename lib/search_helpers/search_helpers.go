@@ -72,8 +72,8 @@ func ConstructInverseMap(projectPath string) map[string]map[string]int {
 
 	for i := 0; i < len(filePaths); i++ {
 		filePathWithoutExtension := strings.Split(filePaths[i], ".")[0]
-		filePathWithoutExtension = strings.ToLower(filePathWithoutExtension)
-		fileNameRunes := []rune(filePathWithoutExtension)
+		filePathWithoutExtensionLowercase := strings.ToLower(filePathWithoutExtension)
+		fileNameRunes := []rune(filePathWithoutExtensionLowercase)
 		trigrams := GenerateTrigrams(fileNameRunes)
 		for j := 0; j < len(trigrams); j++{
 			addTrigramToInverseMap(trigrams[j], filePathWithoutExtension, &inverseMap)
