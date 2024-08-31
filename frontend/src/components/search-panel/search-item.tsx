@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { easingFunctions } from "../../animations";
 import { useAtom } from "jotai";
+import { easingFunctions } from "../../animations";
 import { searchPanelDataAtom } from "../../atoms";
+import { Folder } from "../../icons/folder";
 import { Note } from "../../icons/page";
 
 export function SearchItem({
@@ -13,14 +14,14 @@ export function SearchItem({
 }) {
 	const [searchPanelData, setSearchPanelData] = useAtom(searchPanelDataAtom);
 
+	const [folder, note] = filePath.split("/");
+
 	return (
-		<motion.li
+		<li
 			className="relative"
-			transition={{ type: "spring", damping: 18, stiffness: 115 }}
 			onMouseEnter={() =>
 				setSearchPanelData((prev) => ({ ...prev, focusedIndex: i }))
 			}
-			layout="position"
 		>
 			{searchPanelData.focusedIndex === i && (
 				<motion.div
@@ -36,11 +37,12 @@ export function SearchItem({
 				onClick={() =>
 					setSearchPanelData((prev) => ({ ...prev, isOpen: false }))
 				}
-				className="relative flex items-center gap-1.5 will-change-transform z-40 w-full text-left px-1.5 py-[0.225rem]"
+				className="relative flex items-center will-change-transform z-40 w-full text-left px-1.5 py-[0.225rem]"
 			>
-				<Note width="1rem" height="1rem" />
-				{filePath}
+				<Folder width={16} height={16} className="mr-1.5" /> {folder} /
+				<Note width="1rem" height="1rem" className="mx-1" />
+				{note}
 			</button>
-		</motion.li>
+		</li>
 	);
 }

@@ -33,7 +33,7 @@ func addTrigramToInverseMap(trigram string, fileName string, inverseMap *map[str
 	(*inverseMap)[trigram][fileName]++
 }
 
-func getNoteNames(notesPath string) []string{
+func GetNoteNames(notesPath string) []string{
 	folders, err := os.ReadDir(notesPath)
 
 	if err != nil{
@@ -66,7 +66,7 @@ func getNoteNames(notesPath string) []string{
 func ConstructInverseMap(projectPath string) map[string]map[string]int {
 	notesPath := filepath.Join(projectPath, "notes")
 
-	filePaths := getNoteNames(notesPath)
+	filePaths := GetNoteNames(notesPath)
 
 	inverseMap := map[string]map[string]int{}
 
@@ -81,4 +81,107 @@ func ConstructInverseMap(projectPath string) map[string]map[string]int {
 	}
 
 	return inverseMap
+}
+
+func jaroDistance(s1 string, s2 string) float64{
+	s1Len := len(s1)
+	s2Len := len(s2)
+
+	// If both strings are empty, return 1.0 (identical)
+	if s1Len == 0 && s2Len == 0 {
+		return 1.0
+	}
+
+	// If only one string is empty, return 0.0 (completely different)
+	if s1Len == 0 || s2Len == 0 {
+		return 0.0
+	}
+
+	/*
+		Maximum distance up to which matching is allowed
+		There is a window because transpositions are allowed
+	*/
+	matchDistance := max(s1Len, s2Len)/2 - 1
+	s1Matches := make([]bool, s1Len)
+	s2Matches := make([]bool, s2Len)
+	matches := 0
+	transpositions := 0
+
+	/*
+		Goes through each char in s1 if the char has a match for its window
+		then store hte match.
+	*/
+	for i := 0; i < s1Len; i++ {
+		start := max(0, i-matchDistance)
+		end := min(i+matchDistance+1, s2Len)
+
+		for j := start; j < end; j++ {
+			// You can't rematch something that is already matched'
+			if s2Matches[j] {
+				continue
+			}
+			// This value of j is not the match, try the others in the window
+			if s1[i] != s2[j] {
+				continue
+			}
+
+			// Match found
+			s1Matches[i] = true
+			s2Matches[j] = true
+			matches++
+			break
+		}
+	}
+
+	// If no matches found, return 0.0
+	if matches == 0 {
+		return 0.0
+	}
+
+	// Count transpositions
+	k := 0
+	for i := 0; i < s1Len; i++ {
+		if !s1Matches[i] {
+			continue
+		}
+		for !s2Matches[k] {
+			k++
+		}
+		if s1[i] != s2[k] {
+			transpositions++
+		}
+		k++
+	}
+
+	// Compute Jaro distance
+	transpositions /= 2
+	jaroDistance := (float64(matches)/float64(s1Len) +
+		float64(matches)/float64(s2Len) +
+		float64(matches-(transpositions))/float64(matches)) / 3.0
+
+	return jaroDistance
+}
+
+
+// JaroWinklerSimilarity calculates the Jaro-Winkler similarity between two strings.
+func JaroWinklerSimilarity(s1, s2 string) float64 {
+	jaroDist := jaroDistance(s1, s2)
+
+	// Find the common prefix length (up to a maximum of 4)
+	prefixLength := 0
+	for i := 0; i < min(min(len(s1), len(s2)), 4); i++ {
+		if s1[i] == s2[i] {
+			prefixLength++
+		} else {
+			break
+		}
+	}
+
+	// Scaling factor for how much the score is adjusted upwards for having common prefixes
+	scalingFactor := 0.15
+
+	// Calculate the Jaro-Winkler similarity
+	jaroWinklerSimilarity := jaroDist + float64(prefixLength)*scalingFactor*(1.0-jaroDist)
+
+	return jaroWinklerSimilarity
 }

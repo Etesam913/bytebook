@@ -1,9 +1,9 @@
 import { useAtomValue } from "jotai";
-import { SearchItem } from "./search-item";
 import {
 	mostRecentNotesWithoutQueryParamsAtom,
 	searchPanelDataAtom,
 } from "../../atoms";
+import { SearchItem } from "./search-item";
 
 export function SearchItems({
 	searchResults,

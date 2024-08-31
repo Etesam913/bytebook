@@ -72,7 +72,7 @@ export function SearchPanel() {
 
 								try {
 									const newSearchResults = await SearchFileNamesFromQuery(
-										e.target.value,
+										e.target.value.trim(),
 									);
 									setSearchResults(newSearchResults);
 								} catch (err) {
