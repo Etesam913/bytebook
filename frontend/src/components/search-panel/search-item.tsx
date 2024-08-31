@@ -1,33 +1,28 @@
 import { motion } from "framer-motion";
-import { useAtom } from "jotai";
+import { useAtomValue } from "jotai";
+import { forwardRef } from "react";
 import { easingFunctions } from "../../animations";
 import { searchPanelDataAtom } from "../../atoms";
 import { Folder } from "../../icons/folder";
 import { Note } from "../../icons/page";
 
-export function SearchItem({
-	i,
-	filePath,
-}: {
-	i: number;
-	filePath: string;
-}) {
-	const [searchPanelData, setSearchPanelData] = useAtom(searchPanelDataAtom);
-
+export const SearchItem = forwardRef<
+	HTMLLIElement,
+	{ i: number; filePath: string }
+>(({ i, filePath }, ref) => {
+	const searchPanelData = useAtomValue(searchPanelDataAtom);
 	const [folder, note] = filePath.split("/");
 
 	return (
 		<li
-			className="relative"
-			onMouseEnter={() =>
-				setSearchPanelData((prev) => ({ ...prev, focusedIndex: i }))
-			}
+			ref={ref}
+			className="relative hover:bg-zinc-100 hover:dark:bg-zinc-750 rounded-md"
 		>
 			{searchPanelData.focusedIndex === i && (
 				<motion.div
 					transition={{ ease: easingFunctions["ease-out-quint"] }}
 					layoutId="menu-highlight-test"
-					className="absolute inset-0 rounded-md w-full bg-zinc-150 dark:bg-zinc-750 z-30"
+					className="absolute inset-0 w-full bg-zinc-200 dark:bg-zinc-700 z-30 rounded-md"
 				/>
 			)}
 
@@ -36,10 +31,14 @@ export function SearchItem({
 				type="submit"
 				className="relative flex items-center will-change-transform z-40 w-full text-left px-1.5 py-[0.225rem]"
 			>
-				<Folder width={16} height={16} className="mr-1.5" /> {folder} /
-				<Note width="1rem" height="1rem" className="mx-1" />
-				{note}
+				<Folder width={16} height={16} className="mr-1.5 min-w-4 min-h-4" />{" "}
+				<p className="whitespace-nowrap">{folder}</p>
+				/
+				<Note width="1rem" height="1rem" className="mx-1 min-w-4 min-h-4" />
+				<p className="overflow-hidden whitespace-nowrap text-ellipsis">
+					{note}
+				</p>
 			</button>
 		</li>
 	);
-}
+});

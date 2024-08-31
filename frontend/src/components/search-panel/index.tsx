@@ -53,7 +53,7 @@ export function SearchPanel() {
 							},
 						}}
 						ref={searchPanelRef}
-						className="absolute translate-x-[-50%] translate-y-[-50%] z-40 top-[35%] w-[min(29rem,90vw)] left-2/4"
+						className="absolute translate-x-[-50%] translate-y-[-50%] z-40 top-[25%] w-[min(29rem,90vw)] left-2/4"
 						onSubmit={(e) => {
 							e.preventDefault();
 
@@ -105,6 +105,7 @@ export function SearchPanel() {
 									}));
 								} else if (e.key === "ArrowDown") {
 									e.preventDefault();
+
 									setSearchPanelData((prev) => ({
 										...prev,
 										focusedIndex: Math.min(
