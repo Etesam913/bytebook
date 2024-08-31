@@ -33,45 +33,49 @@ func addTrigramToInverseMap(trigram string, fileName string, inverseMap *map[str
 	(*inverseMap)[trigram][fileName]++
 }
 
-func GetNoteNames(notesPath string) []string{
+func GetNoteNamesStream(notesPath string)  <-chan string{
+	noteChannel := make(chan string)
 	folders, err := os.ReadDir(notesPath)
 
 	if err != nil{
 		log.Fatalf("Failed to read notes directory: %v", err)
 	}
 
-	filePaths := []string{}
-	for _, folderName := range folders {
-		// We only want to look at folders
-		if folderName.IsDir(){
-			// We want to look at notes
-			pathToUserFiles := filepath.Join(notesPath, folderName.Name())
-			markdownFiles, err := os.ReadDir(pathToUserFiles)
-			if err != nil{
-				log.Fatalf("Failed to read %v directory: %v", pathToUserFiles, err)
-			}
-			for _, userFile := range markdownFiles{
-				if !userFile.IsDir(){
-					pathToFile := filepath.Join(pathToUserFiles, userFile.Name())
-					pathSegments := strings.Split(pathToFile, "/")
-					trimmedPathToFile := strings.Join([]string{pathSegments[len(pathSegments)-2], pathSegments[len(pathSegments)-1]}, "/")
-					filePaths = append(filePaths, trimmedPathToFile)
+	go func(){
+		for _,folderName := range folders {
+			if folderName.IsDir() {
+				// We want to look at notes
+				pathToUserFiles := filepath.Join(notesPath, folderName.Name())
+				markdownFiles, err := os.ReadDir(pathToUserFiles)
+				if err != nil {
+					continue
+				}
+				for _, userFile := range markdownFiles{
+					if !userFile.IsDir(){
+						pathToFile := filepath.Join(pathToUserFiles, userFile.Name())
+						pathSegments := strings.Split(pathToFile, "/")
+						trimmedPathToFile := strings.Join([]string{pathSegments[len(pathSegments)-2], pathSegments[len(pathSegments)-1]}, "/")
+						noteChannel <- trimmedPathToFile
+					}
 				}
 			}
 		}
-	}
-	return filePaths
+		close(noteChannel)
+	}()
+
+	return noteChannel
 }
 
 func ConstructInverseMap(projectPath string) map[string]map[string]int {
 	notesPath := filepath.Join(projectPath, "notes")
 
-	filePaths := GetNoteNames(notesPath)
+	filePathsChannel := GetNoteNamesStream(notesPath)
 
 	inverseMap := map[string]map[string]int{}
 
-	for i := 0; i < len(filePaths); i++ {
-		filePathWithoutExtension := strings.Split(filePaths[i], ".")[0]
+
+	for filePath := range filePathsChannel {
+		filePathWithoutExtension := strings.Split(filePath, ".")[0]
 		filePathWithoutExtensionLowercase := strings.ToLower(filePathWithoutExtension)
 		fileNameRunes := []rune(filePathWithoutExtensionLowercase)
 		trigrams := GenerateTrigrams(fileNameRunes)

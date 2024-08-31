@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -57,7 +56,8 @@ metic.
 func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []string{
 	notesPath := filepath.Join(s.ProjectPath, "notes")
 	lowerSearchQuery := strings.ToLower(searchQuery)
-	filePaths := search_helpers.GetNoteNames(notesPath)
+
+	filePathsChannel := search_helpers.GetNoteNamesStream(notesPath)
 
 	// Ignore results less than similarity threshold
 	similarityThreshold := 0.7
@@ -66,17 +66,14 @@ func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []string{
 		shortenedNotePath string
 		similarity float64
 	}
-
+	// TODO: Convert this to a heap of max size 7 to limit excess space
 	searchResults := []searchResult{}
 
 	// Collecting all the search results
-	for _, filePath := range filePaths {
+	for filePath := range filePathsChannel {
 		segments := strings.Split(filePath, "/")
-		// folderName := strings.ToLower(segments[len(segments)-2])
-		// noteName:= strings.ToLower(segments[len(segments)-1])
 		folder := segments[len(segments)-2]
 		note := segments[len(segments)-1]
-
 		noteSimilarity := search_helpers.JaroWinklerSimilarity(lowerSearchQuery, strings.ToLower(note))
 		folderSimilarity := search_helpers.JaroWinklerSimilarity(lowerSearchQuery, strings.ToLower(folder))
 
@@ -93,7 +90,6 @@ func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []string{
 		}
 
 	}
-	fmt.Println(searchResults)
 
 	// Sort the results descending via similarity so that most relevant results show first
 	sort.Slice(searchResults, func(i, j int) bool{

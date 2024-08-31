@@ -22,7 +22,7 @@ export function useNoteCreate(
 
 		/*
      If none of the added notes are in the current folder, then don't update the notes
-     This can be triggered when there are multple windows open 
+     This can be triggered when there are multple windows open
 
 		 There is notes.includes to deal with the Untitled Note race condition
     */
@@ -40,11 +40,7 @@ export function useNoteCreate(
 		setNotes((prev) => {
 			// const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
 			// 	filteredNotes[filteredNotes.length - 1],
-			// );
-			// navigate(
-			// 	`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
-			// 		queryParams.ext
-			// 	}`,
+
 			// );
 			if (!prev) return filteredNotes;
 			return [...prev, ...filteredNotes];
@@ -63,7 +59,7 @@ export function useNoteDelete(
 
 		/*
      If none of the deleted notes are in the current folder, then don't update the notes
-     This can be triggered when there are multple windows open 
+     This can be triggered when there are multple windows open
     */
 		if (
 			data.filter(

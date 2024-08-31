@@ -1,9 +1,14 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useRef, useState } from "react";
+import { navigate } from "wouter/use-browser-location";
 import { SearchFileNamesFromQuery } from "../../../bindings/github.com/etesam913/bytebook/searchservice";
 import { easingFunctions } from "../../animations";
-import { searchPanelDataAtom } from "../../atoms";
+import {
+	mostRecentNotesWithoutQueryParamsAtom,
+	searchPanelDataAtom,
+} from "../../atoms";
+import { getFileExtension } from "../../utils/string-formatting";
 import { useTrapFocus } from "../dialog/hooks";
 import { Shade } from "../dialog/shade";
 import { SearchItems } from "./search-items";
@@ -16,6 +21,7 @@ export function SearchPanel() {
 
 	const isShowingMostRecentNotes =
 		searchResults.length === 0 && searchPanelData.query.trim().length === 0;
+	const mostRecentNotes = useAtomValue(mostRecentNotesWithoutQueryParamsAtom);
 
 	return (
 		<AnimatePresence>
@@ -50,6 +56,17 @@ export function SearchPanel() {
 						className="absolute translate-x-[-50%] translate-y-[-50%] z-40 top-[35%] w-[min(29rem,90vw)] left-2/4"
 						onSubmit={(e) => {
 							e.preventDefault();
+
+							if (!isShowingMostRecentNotes && searchResults.length === 0)
+								return;
+
+							const selectedResult = !isShowingMostRecentNotes
+								? searchResults[searchPanelData.focusedIndex]
+								: mostRecentNotes[searchPanelData.focusedIndex];
+							const [folder, note] = selectedResult.split("/");
+							const { extension, fileName } = getFileExtension(note);
+							setSearchPanelData((prev) => ({ ...prev, isOpen: false }));
+							navigate(`/${folder}/${fileName}?ext=${extension}`);
 						}}
 					>
 						<input
@@ -92,7 +109,9 @@ export function SearchPanel() {
 										...prev,
 										focusedIndex: Math.min(
 											searchPanelData.focusedIndex + 1,
-											isShowingMostRecentNotes ? 4 : searchResults.length - 1,
+											isShowingMostRecentNotes
+												? mostRecentNotes.length - 1
+												: searchResults.length - 1,
 										),
 									}));
 								} else if (e.key === "ArrowUp") {

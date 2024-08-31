@@ -174,7 +174,7 @@ export function NotesEditor({
 				<DraggableBlockPlugin />
 				<FocusPlugin />
 				{/* <AutoLinkPlugin matchers={MATCHERS} /> */}
-				<TreeViewPlugin />
+				{/*<TreeViewPlugin />*/}
 			</div>
 			<BottomBar frontmatter={frontmatter} folder={folder} note={note} />
 		</LexicalComposer>
