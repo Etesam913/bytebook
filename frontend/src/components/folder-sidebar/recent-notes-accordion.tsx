@@ -1,14 +1,11 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { useState } from "react";
-import { Link } from "wouter";
 import {
 	mostRecentNotesAtom,
 	mostRecentNotesWithoutQueryParamsAtom,
 } from "../../atoms.ts";
-import { ChevronDown } from "../../icons/chevron-down.tsx";
-import { Note } from "../../icons/page.tsx";
-import { cn } from "../../utils/string-formatting.ts";
+import { AccordionItem } from "../sidebar/accordion-item.tsx";
+import { SidebarAccordion } from "../sidebar/accordion.tsx";
 
 export function RecentNotesAccordion() {
 	const [isRecentNotesCollapsed, setIsRecentNotesCollapsed] = useState(false);
@@ -17,37 +14,14 @@ export function RecentNotesAccordion() {
 		mostRecentNotesWithoutQueryParamsAtom,
 	);
 	const mostRecentElements = mostRecentNotes.map((pathWithQueryParam, i) => {
+		const itemName = mostRecentNotesWithoutQueryParams.at(i)?.split("/").pop();
+		if (!itemName) return null;
 		return (
-			<motion.li
-				layout
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
+			<AccordionItem
 				key={pathWithQueryParam}
-				transition={{
-					type: "spring",
-					damping: 18,
-					stiffness: 110,
-				}}
-			>
-				<div
-					id="folder"
-					className="flex select-none items-center gap-2 overflow-hidden pr-1 text-zinc-600 dark:text-zinc-300"
-				>
-					<Link
-						title={mostRecentNotesWithoutQueryParams.at(i)}
-						target="_blank"
-						className={cn(
-							"flex flex-1 items-center gap-2 overflow-x-hidden rounded-md px-3 py-1",
-						)}
-						to={`/${encodeURI(pathWithQueryParam)}`}
-					>
-						<Note className="min-w-4" title="" width="1rem" height="1rem" />
-						<p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm">
-							{mostRecentNotesWithoutQueryParams.at(i)?.split("/").pop()}
-						</p>
-					</Link>
-				</div>
-			</motion.li>
+				to={pathWithQueryParam}
+				itemName={itemName}
+			/>
 		);
 	});
 
@@ -56,35 +30,12 @@ export function RecentNotesAccordion() {
 	}
 
 	return (
-		<section className="flex flex-col overflow-y-auto max-h-[35vh]">
-			<button
-				type="button"
-				className="flex items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-700 "
-				onClick={() => setIsRecentNotesCollapsed((prev) => !prev)}
-			>
-				<motion.span
-					initial={{ rotateZ: isRecentNotesCollapsed ? 270 : 0 }}
-					animate={{ rotateZ: isRecentNotesCollapsed ? 270 : 0 }}
-				>
-					<ChevronDown strokeWidth="2.5px" height="0.8rem" width="0.8rem" />
-				</motion.span>
-				<p>Recent Notes</p>
-			</button>
-			<AnimatePresence>
-				{!isRecentNotesCollapsed && (
-					<motion.ul
-						initial={{ height: 0 }}
-						animate={{
-							height: "auto",
-							transition: { type: "spring", damping: 16 },
-						}}
-						exit={{ height: 0, opacity: 0 }}
-						className="overflow-hidden hover:overflow-auto"
-					>
-						{mostRecentElements}
-					</motion.ul>
-				)}
-			</AnimatePresence>
-		</section>
+		<SidebarAccordion
+			onClick={() => setIsRecentNotesCollapsed((prev) => !prev)}
+			title="Recent Notes"
+			isOpen={!isRecentNotesCollapsed}
+		>
+			{mostRecentElements}
+		</SidebarAccordion>
 	);
 }
