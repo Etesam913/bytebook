@@ -23,12 +23,3 @@ func CreateWindow(app *application.App, url string, backgroundColor application.
 		BackgroundColour:  backgroundColor,
 	}).Show()
 }
-
-func OpenNoteInNewWindowEvent(app *application.App, backgroundColor application.RGBA) {
-	app.Events.On("open-note-in-new-window-backend", func(e *application.WailsEvent) {
-		switch data := e.Data.(type) {
-		case map[string]interface{}:
-			CreateWindow(app, data["url"].(string), backgroundColor)
-		}
-	})
-}

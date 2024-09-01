@@ -120,7 +120,18 @@ export function MyNotesAccordion({
 				getContextMenuStyle={() =>
 					({
 						"--custom-contextmenu": "note-context-menu",
-						"--custom-contextmenu-data": [...selectionRange],
+						"--custom-contextmenu-data": [...selectionRange].map(
+							(selectionRangeItem) => {
+								const indexOfColon = selectionRangeItem.indexOf(":");
+								const noteNameWithExtension = selectionRangeItem.substring(
+									indexOfColon + 1,
+								);
+								const noteNameWithoutExtension =
+									noteNameWithExtension.split("?ext=")[0];
+								const extension = noteNameWithExtension.split("?ext=")[1];
+								return `${curFolder}/${noteNameWithoutExtension}.${extension}`;
+							},
+						),
 					}) as CSSProperties
 				}
 			/>

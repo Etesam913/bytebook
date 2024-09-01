@@ -7,6 +7,10 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as io_helpers$0 from "./lib/io_helpers/models.js";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
 export function AddNoteToFolder(folderName: string, noteName: string): Promise<$models.AddFolderResponse> & { cancel(): void } {
@@ -55,7 +59,7 @@ export function GetNotes(folderName: string, sortOption: $models.SortStrings): P
  * 
  * 	A MostRecentNoteResponse indicating the success or failure of the operation.
  */
-export function MoveToTrash(folderAndNotes: string[]): Promise<$models.MostRecentNoteResponse> & { cancel(): void } {
+export function MoveToTrash(folderAndNotes: string[]): Promise<io_helpers$0.MostRecentNoteResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(891730313, folderAndNotes) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType4($result);
@@ -96,5 +100,5 @@ const $$createType0 = $models.AddFolderResponse.createFrom;
 const $$createType1 = $models.NoteCountResponse.createFrom;
 const $$createType2 = $models.NoteMarkdownResponse.createFrom;
 const $$createType3 = $models.NoteResponse.createFrom;
-const $$createType4 = $models.MostRecentNoteResponse.createFrom;
+const $$createType4 = io_helpers$0.MostRecentNoteResponse.createFrom;
 const $$createType5 = $Create.Array($Create.Any);

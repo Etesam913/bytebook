@@ -42,9 +42,9 @@ import { DialogErrorText } from "../dialog/index.tsx";
 import { Input } from "../input/index.tsx";
 import { BottomItems } from "./bottom-items.tsx";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
+import { PinnedNotesAccordion } from "./pinned-notes-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { Spacer } from "./spacer";
-import { PinnedNotesAccordion } from "./pinned-notes-accordion.tsx";
 
 export function FolderDialogChildren({
 	errorText,

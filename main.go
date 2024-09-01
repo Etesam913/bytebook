@@ -78,8 +78,6 @@ func main() {
 		},
 	})
 
-	// project_helpers.InitializeProjectSettings(app, projectPath)
-
 	backgroundColor := application.NewRGB(27, 38, 54)
 	if app.IsDarkMode() {
 		backgroundColor = application.NewRGB(0, 0, 0)
@@ -99,15 +97,10 @@ func main() {
 		{Label: "Reveal In Finder", EventName: "folder:reveal-in-finder"},
 	})
 
-	project_helpers.CreateContextMenu(app, noteContextMenu, []project_helpers.MenuItem{
-		{Label: "Open Note In New Window", EventName: "note:open-in-new-window"},
-		{Label: "Send To Trash", EventName: "note:context-menu:delete"},
-	})
+    project_helpers.CreateNoteContextMenu(app, projectPath, noteContextMenu, backgroundColor)
 
 	app.RegisterContextMenu("folder-context-menu", folderContextMenu)
 	app.RegisterContextMenu("note-context-menu", noteContextMenu)
-
-	custom_events.OpenNoteInNewWindowEvent(app, backgroundColor)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {

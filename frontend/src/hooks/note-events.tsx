@@ -88,66 +88,6 @@ export function useNoteDelete(
 	});
 }
 
-/** This function is used to handle note:context-menu:delete events */
-export function useNoteContextMenuDelete(
-	folder: string,
-	note: string | undefined,
-	fileExtension: string | undefined,
-	notes: string[] | null,
-	setSelectionRange: Dispatch<SetStateAction<Set<string>>>,
-) {
-	useWailsEvent("note:context-menu:delete", async (event) => {
-		const deletedNoteNamesAsString = event.data as string;
-		// TODO: This has to be done in a better way because a note name can have a comma in it
-		const deletedNoteNamesAsArray = deletedNoteNamesAsString.split(",");
-
-		const paths = deletedNoteNamesAsArray.map((noteName) => {
-			const noteNameWithoutPrefixWithExtension = noteName.split(":")[1];
-			const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-				noteNameWithoutPrefixWithExtension,
-			);
-
-			return `/${folder}/${noteNameWithoutExtension}.${queryParams.ext}`;
-		});
-
-		try {
-			const res = await MoveToTrash(paths);
-			if (res.success) {
-				toast.success(res.message, DEFAULT_SONNER_OPTIONS);
-				// If the current note was deleted, navigate to the first note that was not deleted
-
-				if (
-					notes &&
-					note &&
-					fileExtension &&
-					deletedNoteNamesAsArray.includes(`${note}?ext=${fileExtension}`)
-				) {
-					const firstNoteNotDeleted = notes?.find(
-						(name) => !deletedNoteNamesAsArray.includes(name),
-					);
-					// Go the first note that was not deleted
-					if (firstNoteNotDeleted)
-						navigate(`/${folder}/${firstNoteNotDeleted}`);
-					// Every note was deleted, so go to the folder instead
-					else {
-						navigate(`/${folder}`);
-					}
-				}
-			} else {
-				throw new Error(res.message);
-			}
-		} catch (err: unknown) {
-			if (err instanceof Error) {
-				toast.error(err.message);
-			} else {
-				toast.error("An Unknown Error Occurred");
-			}
-		}
-
-		setSelectionRange(new Set());
-	});
-}
-
 /** This function is used to handle note:open-in-new-window events */
 export function useNoteOpenInNewWindow(
 	folder: string,

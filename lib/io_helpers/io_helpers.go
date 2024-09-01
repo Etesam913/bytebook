@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/etesam913/bytebook/lib/list_helpers"
 )
 
 // WriteJsonToPath writes the provided data as a JSON file at the specified pathname.
@@ -183,6 +185,50 @@ func FileOrFolderExists(path string) (bool, error) {
 		return false, nil
 	}
 	return false, err
+}
+
+
+type MostRecentNoteResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
+
+func MoveNotesToTrash(projectPath string,folderAndNotes []string) MostRecentNoteResponse {
+	errors := []string{} // Slice to store any errors encountered during the process.
+
+	// Iterate over each path in the provided folderAndNotes slice.
+	for _, path := range folderAndNotes {
+		// Split the path into parts using "/" as the delimiter.
+		pathParts := strings.Split(path, "/")
+
+		// Extract the filename from the path using a helper function.
+		_, fileName, _ := list_helpers.Pop(pathParts)
+
+		// Construct the full path of the file to be moved.
+		fullPath := filepath.Join(projectPath, "notes", path)
+		fullNewPath := filepath.Join(projectPath, "trash", fileName)
+
+		// Attempt to move the file to the trash directory.
+		err := MoveFile(fullPath, fullNewPath)
+		if err != nil {
+			// If an error occurs, add the filename to the errors slice.
+			errors = append(errors, fileName)
+		}
+	}
+
+	// If any errors were encountered, return a failure response with the list of errors.
+	if len(errors) > 0 {
+		return MostRecentNoteResponse{
+			Success: false,
+			Message: fmt.Sprintf("Could not move %s to trash", strings.Join(errors, ", ")),
+		}
+	}
+
+	// If no errors were encountered, return a success response.
+	return MostRecentNoteResponse{
+		Success: true,
+		Message: "Successfully moved to trash",
+	}
 }
 
 // CreateFolderIfNotExist creates a folder at the specified pathname if it does not already exist.

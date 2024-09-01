@@ -158,31 +158,6 @@ export class GitResponse {
     }
 }
 
-export class MostRecentNoteResponse {
-    "success": boolean;
-    "message": string;
-
-    /** Creates a new MostRecentNoteResponse instance. */
-    constructor($$source: Partial<MostRecentNoteResponse> = {}) {
-        if (!("success" in $$source)) {
-            this["success"] = false;
-        }
-        if (!("message" in $$source)) {
-            this["message"] = "";
-        }
-
-        Object.assign(this, $$source);
-    }
-
-    /**
-     * Creates a new MostRecentNoteResponse instance from a string or object.
-     */
-    static createFrom($$source: any = {}): MostRecentNoteResponse {
-        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        return new MostRecentNoteResponse($$parsedSource as Partial<MostRecentNoteResponse>);
-    }
-}
-
 export class NoteCountResponse {
     "success": boolean;
     "message": string;

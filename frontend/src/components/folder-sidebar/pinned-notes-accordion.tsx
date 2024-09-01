@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { PinTack2 } from "../../icons/pin-tack-2";
 import { SidebarAccordion } from "../sidebar/accordion";
 import { AccordionItem } from "../sidebar/accordion-item";
-import { PinTack2 } from "../../icons/pin-tack-2";
 
 export function PinnedNotesAccordion() {
 	const [isPinnedNotesOpen, setIsPinnedNotesOpen] = useState(true);

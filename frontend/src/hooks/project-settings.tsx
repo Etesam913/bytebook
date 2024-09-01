@@ -1,9 +1,9 @@
-import { useEffect } from "react";
-import { GetProjectSettings } from "../../bindings/github.com/etesam913/bytebook/settingsservice";
-import { toast } from "sonner";
-import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
 import { useSetAtom } from "jotai";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import { GetProjectSettings } from "../../bindings/github.com/etesam913/bytebook/settingsservice";
 import { projectSettingsAtom } from "../atoms";
+import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
 
 export function useProjectSettings() {
 	const setProjectSettings = useSetAtom(projectSettingsAtom);

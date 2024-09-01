@@ -58,6 +58,7 @@ export async function checkIfNoteExists(
 			throw new Error();
 		}
 	} catch (e) {
+		// Navigate to the first note if the note does not exist
 		if (notes && notes.length > 0) {
 			const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
 				notes[0],
@@ -70,8 +71,10 @@ export async function checkIfNoteExists(
 					replace: true,
 				},
 			);
-		} else {
-			// navigate("/not-found?type=note", { replace: true });
+		}
+		// Navigate to the folder if the note does not exist
+		else {
+			navigate(`/${folder}`, { replace: true });
 		}
 	}
 }

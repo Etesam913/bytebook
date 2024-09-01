@@ -3,9 +3,12 @@ package project_helpers
 import (
 	"crypto/rand"
 	"encoding/hex"
+
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/etesam913/bytebook/lib/custom_events"
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -65,6 +68,39 @@ func CreateContextMenu(app *application.App, contextMenu *application.Menu, menu
 			}
 		})
 	}
+}
+
+
+
+func CreateNoteContextMenu(app *application.App, projectPath string, contextMenu *application.Menu, backgroundColor application.RGBA) {
+	contextMenu.Add("Send To Trash").OnClick(func(data *application.Context) {
+		contextData, isString := data.ContextMenuData().(string)
+		if !isString {
+			return
+		}
+		notePaths := strings.Split(contextData, ",")
+		io_helpers.MoveNotesToTrash(projectPath, notePaths)
+	})
+
+	contextMenu.Add("Open Note In New Window").OnClick(func(data *application.Context) {
+		contextData, isString := data.ContextMenuData().(string)
+		if !isString {
+			return
+		}
+		notePaths := strings.Split(contextData, ",")
+		// Creates a new window for each note that is selected on the frontend
+		for _, notePath := range notePaths {
+			folderAndNote := strings.Split(notePath, "/")
+			folder := folderAndNote[len(folderAndNote)-2]
+			note := folderAndNote[len(folderAndNote)-1]
+			dotIndex := strings.LastIndex(note, ".")
+			noteNameWithoutExtension := note[:dotIndex]
+			noteExtension := note[dotIndex+1:]
+			// Constructs the URL for the note based on the folder and note name using the query param that the frontend can understand
+			url := "/" + folder + "/" + noteNameWithoutExtension + "?ext=" + noteExtension
+			custom_events.CreateWindow(app, url, backgroundColor)
+		}
+	})
 }
 
 func GenerateRandomID() (string, error) {

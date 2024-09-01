@@ -21,7 +21,6 @@ import {
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Input } from "../../components/input/index.tsx";
 import {
-	useNoteContextMenuDelete,
 	useNoteCreate,
 	useNoteDelete,
 	useNoteOpenInNewWindow,
@@ -73,13 +72,6 @@ export function NotesSidebar({
 
 	useNoteCreate(folder, notes ?? [], setNotes, setNoteCount);
 	useNoteDelete(folder, note, setNotes, setNoteCount);
-	useNoteContextMenuDelete(
-		folder,
-		note,
-		fileExtension,
-		notes,
-		setSelectionRange,
-	);
 	useNoteOpenInNewWindow(folder, selectionRange, setSelectionRange);
 
 	return (

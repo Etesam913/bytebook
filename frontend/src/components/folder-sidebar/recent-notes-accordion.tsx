@@ -4,9 +4,9 @@ import {
 	mostRecentNotesAtom,
 	mostRecentNotesWithoutQueryParamsAtom,
 } from "../../atoms.ts";
+import HourglassStart from "../../icons/hourglass-start.tsx";
 import { AccordionItem } from "../sidebar/accordion-item.tsx";
 import { SidebarAccordion } from "../sidebar/accordion.tsx";
-import HourglassStart from "../../icons/hourglass-start.tsx";
 
 export function RecentNotesAccordion() {
 	const [isRecentNotesOpen, setIsRecentNotesOpen] = useState(true);
