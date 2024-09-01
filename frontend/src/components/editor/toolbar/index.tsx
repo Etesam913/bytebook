@@ -4,24 +4,28 @@ import { type SetStateAction, useAtom } from "jotai";
 import type { TextFormatType } from "lexical";
 import { type Dispatch, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { WINDOW_ID } from "../../App";
-import { isNoteMaximizedAtom, isToolbarDisabled } from "../../atoms";
-import { useBackendFunction } from "../../hooks/query";
-import type { EditorBlockTypes, FloatingDataType } from "../../types";
-import { useIsStandalone, useWailsEvent } from "../../utils/hooks";
-import { cn } from "../../utils/string-formatting";
-import { MaximizeNoteButton } from "../buttons/maximize-note";
-import { ToolbarButtons } from "../buttons/toolbar";
-import { Dropdown } from "../dropdown";
-import { useNoteMarkdown, useToolbarEvents } from "./hooks/toolbar";
-import { FloatingMenuPlugin } from "./plugins/floating-menu";
-import { CUSTOM_TRANSFORMERS } from "./transformers";
-import { $convertFromMarkdownStringCorrect } from "./utils/note-metadata";
+import { WINDOW_ID } from "../../../App";
+import { getDefaultButtonVariants } from "../../../animations";
+import { isNoteMaximizedAtom, isToolbarDisabled } from "../../../atoms";
+import { useBackendFunction } from "../../../hooks/query";
+import { HorizontalDots } from "../../../icons/horizontal-dots";
+import type { EditorBlockTypes, FloatingDataType } from "../../../types";
+import { useIsStandalone, useWailsEvent } from "../../../utils/hooks";
+import { cn } from "../../../utils/string-formatting";
+import { MotionIconButton } from "../../buttons";
+import { MaximizeNoteButton } from "../../buttons/maximize-note";
+import { ToolbarButtons } from "../../buttons/toolbar";
+import { Dropdown } from "../../dropdown";
+import { useNoteMarkdown, useToolbarEvents } from "../hooks/toolbar";
+import { FloatingMenuPlugin } from "../plugins/floating-menu";
+import { CUSTOM_TRANSFORMERS } from "../transformers";
+import { $convertFromMarkdownStringCorrect } from "../utils/note-metadata";
 import {
 	blockTypesDropdownItems,
 	changeSelectedBlocksType,
 	insertAttachmentFromFile,
-} from "./utils/toolbar";
+} from "../utils/toolbar";
+import { SettingsDropdown } from "./settings-dropdown";
 
 interface ToolbarProps {
 	folder: string;
@@ -191,6 +195,7 @@ export function Toolbar({
 					noteContainerRef={noteContainerRef}
 					shouldShowUndoRedo
 				/>
+				<SettingsDropdown isToolbarDisabled={disabled} />
 			</nav>
 		</>
 	);

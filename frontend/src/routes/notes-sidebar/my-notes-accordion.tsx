@@ -1,4 +1,3 @@
-import { Events } from "@wailsio/runtime";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import type { CSSProperties } from "react";
 import { Link, useParams } from "wouter";
@@ -89,12 +88,12 @@ export function MyNotesAccordion({
 									});
 								}
 							}}
-							onDoubleClick={() => {
-								Events.Emit({
-									name: "open-note-in-new-window-backend",
-									data: { url: `/${curFolder}/${sidebarNoteName}` },
-								});
-							}}
+							// onDoubleClick={() => {
+							// 	Events.Emit({
+							// 		name: "open-note-in-new-window-backend",
+							// 		data: { url: `/${curFolder}/${sidebarNoteName}` },
+							// 	});
+							// }}
 							target="_blank"
 							className={cn(
 								"sidebar-item",

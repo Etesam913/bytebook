@@ -46,6 +46,7 @@ func main() {
 	git_helpers.SetRepoOrigin("https://github.com/Etesam913/bytebook-test.git")
 
 	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "trash"))
+	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "settings"))
 
 	// Launching file server for images/videos
 	go file_server.LaunchFileServer(projectPath)
@@ -107,7 +108,7 @@ func main() {
 		log.Fatal("Failed to setup file watcher " + err.Error())
 	}
 	defer watcher.Close()
-	go file_server.LaunchFileWatcher(app, watcher)
+	go file_server.LaunchFileWatcher(app, projectPath, watcher)
 	go auth_server.LaunchAuthServer()
 	file_server.ListenToFolders(projectPath, watcher)
 

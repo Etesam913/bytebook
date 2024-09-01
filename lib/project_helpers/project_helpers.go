@@ -110,3 +110,7 @@ func GenerateRandomID() (string, error) {
 	}
 	return hex.EncodeToString(bytes), nil
 }
+
+type ProjectSettingsJson struct {
+	PinnedNotes []string `json:"pinned_notes"`
+}

@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -151,7 +153,7 @@ func handleFileEvents(
 	handleDebounceReset(debounceTimer)
 }
 
-func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
+func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnotify.Watcher) {
 	debounceTimer := time.NewTimer(0)
 	debounceEvents := make(map[string][]map[string]string)
 
@@ -191,6 +193,20 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 
 			if oneFolderBack == "trash" {
 				handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents, "trash")
+			} else if(oneFolderBack == "settings") {
+				// The settings got updated
+				if event.Has(fsnotify.Write) {
+					var projectSettings project_helpers.ProjectSettingsJson
+					err := io_helpers.ReadJsonFromPath(filepath.Join(projectPath, "settings", "settings.json"), &projectSettings)
+
+					if err == nil {
+						fmt.Println(projectSettings)
+						app.Events.Emit(&application.WailsEvent{
+							Name: "settings:update",
+							Data: projectSettings,
+						})
+					}
+				}
 			} else {
 				handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents, "note")
 			}
@@ -203,7 +219,6 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 
 		// Whenever the debounce timer expires
 		case <-debounceTimer.C:
-			fmt.Println("debounce", debounceEvents)
 			// Timer expired, emit debounced events
 			for eventKey, data := range debounceEvents {
 				app.Events.Emit(&application.WailsEvent{
@@ -220,6 +235,7 @@ func LaunchFileWatcher(app *application.App, watcher *fsnotify.Watcher) {
 /** Watches each folder in the notes directory */
 func ListenToFolders(projectPath string, watcher *fsnotify.Watcher) {
 	watcher.Add(filepath.Join(projectPath, "trash"))
+	watcher.Add(filepath.Join(projectPath, "settings"))
 	notesFolderPath := filepath.Join(projectPath, "notes")
 	watcher.Add(notesFolderPath)
 	entries, err := os.ReadDir(notesFolderPath)
