@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
-	"github.com/etesam913/bytebook/lib/project_helpers"
+	"github.com/etesam913/bytebook/lib/list_helpers"
 )
 
 type NoteService struct {
@@ -278,7 +278,7 @@ func (n *NoteService) MoveToTrash(folderAndNotes []string) MostRecentNoteRespons
 		pathParts := strings.Split(path, "/")
 
 		// Extract the filename from the path using a helper function.
-		_, fileName, _ := project_helpers.Pop(pathParts)
+		_, fileName, _ := list_helpers.Pop(pathParts)
 
 		// Construct the full path of the file to be moved.
 		fullPath := filepath.Join(n.ProjectPath, "notes", path)

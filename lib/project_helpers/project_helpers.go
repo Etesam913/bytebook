@@ -3,7 +3,6 @@ package project_helpers
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -14,7 +13,6 @@ import (
 const ProjectName = "Bytebook"
 
 func GetProjectPath() (string, error) {
-
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "Could not get user's home directory", err
@@ -47,6 +45,13 @@ func GetProjectPath() (string, error) {
 	return projectPath, nil
 }
 
+// MenuItem represents an item in the context menu
+type MenuItem struct {
+	Label     string
+	EventName string
+}
+
+
 // SetupFolderContextMenu dynamically sets up the folder context menu
 func CreateContextMenu(app *application.App, contextMenu *application.Menu, menuItems []MenuItem) {
 	for _, item := range menuItems {
@@ -68,22 +73,4 @@ func GenerateRandomID() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
-}
-
-// MenuItem represents an item in the context menu
-type MenuItem struct {
-	Label     string
-	EventName string
-}
-
-// Pop removes and returns the last element of the slice.
-func Pop[T any](slice []T) ([]T, T, error) {
-	if len(slice) == 0 {
-		var zeroValue T
-		return nil, zeroValue, fmt.Errorf("cannot pop from an empty slice")
-	}
-	lastIndex := len(slice) - 1
-	element := slice[lastIndex]
-	slice = slice[:lastIndex]
-	return slice, element, nil
 }

@@ -81,3 +81,7 @@ export type SortStrings =
 	| "file-name-z-a"
 	| "size-desc"
 	| "size-asc";
+
+export type ProjectSettings = {
+	pinnedNotes: Set<string>;
+};

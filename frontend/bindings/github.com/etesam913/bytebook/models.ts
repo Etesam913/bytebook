@@ -5,6 +5,10 @@
 // @ts-ignore: Unused imports
 import {Create as $Create} from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as $internal from "./internal.js";
+
 export class AddFolderResponse {
     "success": boolean;
     "message": string;
@@ -270,6 +274,39 @@ export class NoteResponse {
     }
 }
 
+export class SettingsResponse {
+    "success": boolean;
+    "message": string;
+    "data": $internal.projectSettingsFrontend;
+
+    /** Creates a new SettingsResponse instance. */
+    constructor($$source: Partial<SettingsResponse> = {}) {
+        if (!("success" in $$source)) {
+            this["success"] = false;
+        }
+        if (!("message" in $$source)) {
+            this["message"] = "";
+        }
+        if (!("data" in $$source)) {
+            this["data"] = (new $internal.projectSettingsFrontend());
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SettingsResponse instance from a string or object.
+     */
+    static createFrom($$source: any = {}): SettingsResponse {
+        const $$createField2_0 = $$createType1;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("data" in $$parsedSource) {
+            $$parsedSource["data"] = $$createField2_0($$parsedSource["data"]);
+        }
+        return new SettingsResponse($$parsedSource as Partial<SettingsResponse>);
+    }
+}
+
 /**
  * SortStrings represents the possible sort options as a custom type.
  */
@@ -294,3 +331,4 @@ export enum SortStrings {
 
 // Private type creation functions
 const $$createType0 = $Create.Array($Create.Any);
+const $$createType1 = $internal.projectSettingsFrontend.createFrom;

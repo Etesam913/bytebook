@@ -14,6 +14,7 @@ import { NotesSidebar } from "./routes/notes-sidebar";
 import { TrashSidebar } from "./routes/trash-sidebar";
 import { useDarkModeSetting } from "./utils/hooks";
 import { MAX_SIDEBAR_WIDTH } from "./utils/misc";
+import { useProjectSettings } from "./hooks/project-settings";
 
 export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
 
@@ -26,6 +27,7 @@ function App() {
 	useLoggedInEvent();
 	useDarkModeSetting();
 	useSearchPanel();
+	useProjectSettings();
 
 	return (
 		<main

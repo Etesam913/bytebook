@@ -66,6 +66,9 @@ func main() {
 			application.NewService(
 				&SearchService{ProjectPath: projectPath},
 			),
+			application.NewService(
+				&SettingsService{ProjectPath: projectPath},
+			),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
@@ -74,6 +77,8 @@ func main() {
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
 	})
+
+	// project_helpers.InitializeProjectSettings(app, projectPath)
 
 	backgroundColor := application.NewRGB(27, 38, 54)
 	if app.IsDarkMode() {

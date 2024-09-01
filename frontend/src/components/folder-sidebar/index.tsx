@@ -44,6 +44,7 @@ import { BottomItems } from "./bottom-items.tsx";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { Spacer } from "./spacer";
+import { PinnedNotesAccordion } from "./pinned-notes-accordion.tsx";
 
 export function FolderDialogChildren({
 	errorText,
@@ -203,6 +204,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 				</MotionButton>
 				<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
 					<div className="flex h-full flex-col overflow-y-auto gap-1.5">
+						<PinnedNotesAccordion />
 						<RecentNotesAccordion />
 						<MyFoldersAccordion folder={folder} />
 						<BottomItems />

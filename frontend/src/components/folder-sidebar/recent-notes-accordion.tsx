@@ -6,9 +6,10 @@ import {
 } from "../../atoms.ts";
 import { AccordionItem } from "../sidebar/accordion-item.tsx";
 import { SidebarAccordion } from "../sidebar/accordion.tsx";
+import HourglassStart from "../../icons/hourglass-start.tsx";
 
 export function RecentNotesAccordion() {
-	const [isRecentNotesCollapsed, setIsRecentNotesCollapsed] = useState(false);
+	const [isRecentNotesOpen, setIsRecentNotesOpen] = useState(true);
 	const mostRecentNotes = useAtomValue(mostRecentNotesAtom);
 	const mostRecentNotesWithoutQueryParams = useAtomValue(
 		mostRecentNotesWithoutQueryParamsAtom,
@@ -31,9 +32,16 @@ export function RecentNotesAccordion() {
 
 	return (
 		<SidebarAccordion
-			onClick={() => setIsRecentNotesCollapsed((prev) => !prev)}
+			onClick={() => setIsRecentNotesOpen((prev) => !prev)}
 			title="Recent Notes"
-			isOpen={!isRecentNotesCollapsed}
+			isOpen={isRecentNotesOpen}
+			icon={
+				<HourglassStart
+					className="will-change-transform"
+					height="1.1rem"
+					width="1.1rem"
+				/>
+			}
 		>
 			{mostRecentElements}
 		</SidebarAccordion>
