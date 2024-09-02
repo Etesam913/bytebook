@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
-	"github.com/etesam913/bytebook/lib/project_helpers"
+	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -194,11 +194,9 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 				handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents, "trash")
 			} else if(oneFolderBack == "settings") {
 				// The settings got updated
-				var projectSettings project_helpers.ProjectSettingsJson
+				var projectSettings project_types.ProjectSettingsJson
 				err := io_helpers.ReadJsonFromPath(filepath.Join(projectPath, "settings", "settings.json"), &projectSettings)
-				fmt.Println("settings:update error", err)
 				if err == nil {
-					fmt.Println(projectSettings)
 					app.Events.Emit(&application.WailsEvent{
 						Name: "settings:update",
 						Data: projectSettings,
@@ -219,6 +217,7 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 		case <-debounceTimer.C:
 			// Timer expired, emit debounced events
 			for eventKey, data := range debounceEvents {
+				fmt.Println(eventKey, data)
 				app.Events.Emit(&application.WailsEvent{
 					Name: eventKey,
 					Data: data,

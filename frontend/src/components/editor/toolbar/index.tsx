@@ -5,14 +5,11 @@ import type { TextFormatType } from "lexical";
 import { type Dispatch, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { WINDOW_ID } from "../../../App";
-import { getDefaultButtonVariants } from "../../../animations";
 import { isNoteMaximizedAtom, isToolbarDisabled } from "../../../atoms";
 import { useBackendFunction } from "../../../hooks/query";
-import { HorizontalDots } from "../../../icons/horizontal-dots";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { useIsStandalone, useWailsEvent } from "../../../utils/hooks";
 import { cn } from "../../../utils/string-formatting";
-import { MotionIconButton } from "../../buttons";
 import { MaximizeNoteButton } from "../../buttons/maximize-note";
 import { ToolbarButtons } from "../../buttons/toolbar";
 import { Dropdown } from "../../dropdown";
@@ -155,7 +152,7 @@ export function Toolbar({
 			{FloatingPlugin}
 			<nav
 				className={cn(
-					"ml-[-4px] flex gap-1.5 border-b-[1px] border-b-zinc-200 px-2 pb-2 pt-2.5 dark:border-b-zinc-700 flex-wrap",
+					"ml-[-4px] flex gap-1.5 border-b-[1px] border-b-zinc-200 px-2 pb-2 pt-2.5 dark:border-b-zinc-700",
 					isNoteMaximized && "!pl-[5.75rem]",
 				)}
 			>

@@ -7,12 +7,16 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import * as project_helpers$0 from "./lib/project_helpers/models.js";
+import * as project_types$0 from "./lib/project_types/models.js";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
+/**
+ * 	GetProjectSettings returns the project settings for the current project.
+ * 	If the settings file does not exist, it will be created and the default settings will be returned.
+ */
 export function GetProjectSettings(): Promise<$models.SettingsResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(635071392) as any;
     let $typingPromise = $resultPromise.then(($result) => {
@@ -22,7 +26,7 @@ export function GetProjectSettings(): Promise<$models.SettingsResponse> & { canc
     return $typingPromise;
 }
 
-export function UpdateProjectSettings(newProjectSettings: project_helpers$0.ProjectSettingsJson): Promise<$models.SettingsResponse> & { cancel(): void } {
+export function UpdateProjectSettings(newProjectSettings: project_types$0.ProjectSettingsJson): Promise<$models.SettingsResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(4092132915, newProjectSettings) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType0($result);

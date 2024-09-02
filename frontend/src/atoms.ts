@@ -33,17 +33,17 @@ export const mostRecentNotesWithoutQueryParamsAtom = atom((get) => {
 export const projectSettingsAtom = atom<ProjectSettings>({
 	pinnedNotes: new Set([]),
 });
-export const projectSettingsWithoutQueryParamsAtom = atom((get) => {
+export const projectSettingsWithQueryParamsAtom = atom((get) => {
 	const projectSettings = get(projectSettingsAtom);
 	const pinnedNotes = projectSettings.pinnedNotes;
 	return {
 		...projectSettings,
 		pinnedNotes: new Set(
 			[...pinnedNotes].map((path) => {
-				const lastIndex = path.lastIndexOf("?ext=");
+				const lastIndex = path.lastIndexOf(".");
 				const folderAndNote = path.substring(0, lastIndex);
-				const ext = path.substring(lastIndex + 5);
-				return `${folderAndNote}.${ext}`;
+				const ext = path.substring(lastIndex + 1);
+				return `${folderAndNote}?ext=${ext}`;
 			}),
 		),
 	};

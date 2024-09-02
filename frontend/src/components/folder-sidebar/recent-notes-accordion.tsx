@@ -43,7 +43,13 @@ export function RecentNotesAccordion() {
 				/>
 			}
 		>
-			{mostRecentElements}
+			{mostRecentElements.length > 0 ? (
+				mostRecentElements
+			) : (
+				<p className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
+					Visit a note to see it here
+				</p>
+			)}
 		</SidebarAccordion>
 	);
 }

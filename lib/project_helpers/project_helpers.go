@@ -70,8 +70,6 @@ func CreateContextMenu(app *application.App, contextMenu *application.Menu, menu
 	}
 }
 
-
-
 func CreateNoteContextMenu(app *application.App, projectPath string, contextMenu *application.Menu, backgroundColor application.RGBA) {
 	contextMenu.Add("Send To Trash").OnClick(func(data *application.Context) {
 		contextData, isString := data.ContextMenuData().(string)
@@ -103,14 +101,11 @@ func CreateNoteContextMenu(app *application.App, projectPath string, contextMenu
 	})
 }
 
+
 func GenerateRandomID() (string, error) {
 	bytes := make([]byte, 8) // Adjust the size as needed
 	if _, err := rand.Read(bytes); err != nil {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
-}
-
-type ProjectSettingsJson struct {
-	PinnedNotes []string `json:"pinnedNotes"`
 }

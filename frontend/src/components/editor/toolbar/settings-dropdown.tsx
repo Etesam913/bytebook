@@ -25,7 +25,7 @@ export function SettingsDropdown({
 	const dropdownContainerRef = useRef<HTMLDivElement>(null);
 	useOnClickOutside(dropdownContainerRef, () => setIsOpen(false));
 	const projectSettings = useAtomValue(projectSettingsAtom);
-	const isPinned = projectSettings.pinnedNotes.has(`${folder}/${note}?ext=md`);
+	const isPinned = projectSettings.pinnedNotes.has(`${folder}/${note}.md`);
 
 	return (
 		<div className="ml-auto flex flex-col" ref={dropdownContainerRef}>
@@ -42,12 +42,10 @@ export function SettingsDropdown({
 						if (item.value === "pin-note" || item.value === "unpin-note") {
 							const copyOfProjectSettings = { ...projectSettings };
 							if (item.value === "pin-note") {
-								copyOfProjectSettings.pinnedNotes.add(
-									`${folder}/${note}?ext=md`,
-								);
+								copyOfProjectSettings.pinnedNotes.add(`${folder}/${note}.md`);
 							} else {
 								copyOfProjectSettings.pinnedNotes.delete(
-									`${folder}/${note}?ext=md`,
+									`${folder}/${note}.md`,
 								);
 							}
 

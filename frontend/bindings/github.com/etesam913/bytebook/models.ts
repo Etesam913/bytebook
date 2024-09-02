@@ -7,7 +7,7 @@ import {Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import * as project_helpers$0 from "./lib/project_helpers/models.js";
+import * as project_types$0 from "./lib/project_types/models.js";
 
 export class AddFolderResponse {
     "success": boolean;
@@ -252,7 +252,7 @@ export class NoteResponse {
 export class SettingsResponse {
     "success": boolean;
     "message": string;
-    "data": project_helpers$0.ProjectSettingsJson;
+    "data": project_types$0.ProjectSettingsJson;
 
     /** Creates a new SettingsResponse instance. */
     constructor($$source: Partial<SettingsResponse> = {}) {
@@ -263,7 +263,7 @@ export class SettingsResponse {
             this["message"] = "";
         }
         if (!("data" in $$source)) {
-            this["data"] = (new project_helpers$0.ProjectSettingsJson());
+            this["data"] = (new project_types$0.ProjectSettingsJson());
         }
 
         Object.assign(this, $$source);
@@ -306,4 +306,4 @@ export enum SortStrings {
 
 // Private type creation functions
 const $$createType0 = $Create.Array($Create.Any);
-const $$createType1 = project_helpers$0.ProjectSettingsJson.createFrom;
+const $$createType1 = project_types$0.ProjectSettingsJson.createFrom;

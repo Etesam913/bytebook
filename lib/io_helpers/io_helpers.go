@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/etesam913/bytebook/lib/list_helpers"
+	"github.com/etesam913/bytebook/lib/project_types"
 )
 
 // WriteJsonToPath writes the provided data as a JSON file at the specified pathname.
@@ -216,6 +217,16 @@ func MoveNotesToTrash(projectPath string,folderAndNotes []string) MostRecentNote
 		}
 	}
 
+	// Update the project settings to remove the moved notes from the pinned notes list if they are pinned
+	var projectSettings project_types.ProjectSettingsJson
+	projectSettingsPath := filepath.Join(projectPath, "settings", "settings.json")
+	err := ReadJsonFromPath(projectSettingsPath, &projectSettings)
+	if err == nil {
+		validPinnedNotes := GetValidPinnedNotes(projectPath, projectSettings)
+		projectSettings.PinnedNotes = validPinnedNotes
+		WriteJsonToPath(projectSettingsPath, projectSettings)
+	}
+
 	// If any errors were encountered, return a failure response with the list of errors.
 	if len(errors) > 0 {
 		return MostRecentNoteResponse{
@@ -250,6 +261,23 @@ func CreateFolderIfNotExist(pathname string) error {
 	}
 	// If the folder already exists, do nothing.
 	return nil
+}
+
+
+/*
+	GetValidPinnedNotes returns a list of valid pinned notes.
+	It checks if the pinned note exists in the notes folder and returns all of the pinned notes that exist.
+*/
+func GetValidPinnedNotes(projectPath string, projectSettings project_types.ProjectSettingsJson) []string {
+	validPinnedNotes := []string{}
+	for _, pinnedNote := range projectSettings.PinnedNotes {
+		    pathToPinnedNote := filepath.Join(projectPath, "notes", pinnedNote)
+			pathExists, _ := FileOrFolderExists(pathToPinnedNote)
+			if pathExists {
+				validPinnedNotes = append(validPinnedNotes, pinnedNote)
+			}
+	}
+	return validPinnedNotes
 }
 
 // MoveFile moves a file from srcPath to dstPath. If a file with the same name already exists at the destination,
