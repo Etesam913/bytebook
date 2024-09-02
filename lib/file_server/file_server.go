@@ -171,18 +171,17 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 			// Might need a better way of determining if something is a folder in the future
 			isDir := filepath.Ext(event.Name) == ""
 
-			// We can ignore chmod events
-			if event.Has(fsnotify.Chmod) {
-				continue
-			}
 
 			// Only dealing with files at this point
 			segments := strings.Split(event.Name, "/")
 			oneFolderBack := segments[len(segments)-2]
+			// We can ignore chmod events unless it is a settings folder as it can run instead of just a write event
+			if event.Has(fsnotify.Chmod) && oneFolderBack != "settings" {
+				continue
+			}
 
 			// If is a directory
 			if isDir {
-
 				// We do not care about folders inside of folders
 				// TODO: A user could create a folder called notes inside of notes and this would be problematic
 				if oneFolderBack == "notes" {
@@ -195,17 +194,16 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 				handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents, "trash")
 			} else if(oneFolderBack == "settings") {
 				// The settings got updated
-				if event.Has(fsnotify.Write) {
-					var projectSettings project_helpers.ProjectSettingsJson
-					err := io_helpers.ReadJsonFromPath(filepath.Join(projectPath, "settings", "settings.json"), &projectSettings)
+				var projectSettings project_helpers.ProjectSettingsJson
+				err := io_helpers.ReadJsonFromPath(filepath.Join(projectPath, "settings", "settings.json"), &projectSettings)
+				fmt.Println("settings:update error", err)
+				if err == nil {
+					fmt.Println(projectSettings)
+					app.Events.Emit(&application.WailsEvent{
+						Name: "settings:update",
+						Data: projectSettings,
+					})
 
-					if err == nil {
-						fmt.Println(projectSettings)
-						app.Events.Emit(&application.WailsEvent{
-							Name: "settings:update",
-							Data: projectSettings,
-						})
-					}
 				}
 			} else {
 				handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents, "note")

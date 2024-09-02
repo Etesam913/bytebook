@@ -195,7 +195,11 @@ export function Toolbar({
 					noteContainerRef={noteContainerRef}
 					shouldShowUndoRedo
 				/>
-				<SettingsDropdown isToolbarDisabled={disabled} />
+				<SettingsDropdown
+					folder={folder}
+					note={note}
+					isToolbarDisabled={disabled}
+				/>
 			</nav>
 		</>
 	);

@@ -39,7 +39,7 @@ func (s *SettingsService) GetProjectSettings() SettingsResponse{
 
 func (s *SettingsService) UpdateProjectSettings(newProjectSettings project_helpers.ProjectSettingsJson) SettingsResponse {
 	var projectSettings project_helpers.ProjectSettingsJson
-	projectSettingsPath := filepath.Join(s.ProjectPath, "project_settings.json")
+	projectSettingsPath := filepath.Join(s.ProjectPath, "settings", "settings.json")
 	err := io_helpers.ReadJsonFromPath(projectSettingsPath, &projectSettings)
 
 	if err != nil {

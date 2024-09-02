@@ -18,12 +18,9 @@ export function useProjectSettings() {
 			}
 			const projectSettings = projectSettingsResponse.data;
 
-			const { pinned_notes, ...projectSettingsWithoutPinnedNotes } =
-				projectSettings;
-
 			setProjectSettings({
-				...projectSettingsWithoutPinnedNotes,
-				pinnedNotes: new Set(pinned_notes),
+				...projectSettings,
+				pinnedNotes: new Set(projectSettings.pinnedNotes),
 			});
 		} catch (err) {
 			if (err instanceof Error) {
@@ -36,16 +33,10 @@ export function useProjectSettings() {
 	}, []);
 
 	useWailsEvent("settings:update", (newSettings) => {
-		const projectSettings = newSettings.data as ProjectSettings & {
-			pinned_notes: string[];
-		};
-
-		const { pinned_notes, ...projectSettingsWithoutPinnedNotes } =
-			projectSettings;
-
+		const projectSettings = newSettings.data as ProjectSettings;
 		setProjectSettings({
-			...projectSettingsWithoutPinnedNotes,
-			pinnedNotes: new Set(pinned_notes),
+			...projectSettings,
+			pinnedNotes: new Set(projectSettings.pinnedNotes),
 		});
 	});
 }

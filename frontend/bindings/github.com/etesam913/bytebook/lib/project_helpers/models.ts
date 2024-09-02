@@ -6,12 +6,12 @@
 import {Create as $Create} from "@wailsio/runtime";
 
 export class ProjectSettingsJson {
-    "pinned_notes": string[];
+    "pinnedNotes": string[];
 
     /** Creates a new ProjectSettingsJson instance. */
     constructor($$source: Partial<ProjectSettingsJson> = {}) {
-        if (!("pinned_notes" in $$source)) {
-            this["pinned_notes"] = [];
+        if (!("pinnedNotes" in $$source)) {
+            this["pinnedNotes"] = [];
         }
 
         Object.assign(this, $$source);
@@ -23,8 +23,8 @@ export class ProjectSettingsJson {
     static createFrom($$source: any = {}): ProjectSettingsJson {
         const $$createField0_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("pinned_notes" in $$parsedSource) {
-            $$parsedSource["pinned_notes"] = $$createField0_0($$parsedSource["pinned_notes"]);
+        if ("pinnedNotes" in $$parsedSource) {
+            $$parsedSource["pinnedNotes"] = $$createField0_0($$parsedSource["pinnedNotes"]);
         }
         return new ProjectSettingsJson($$parsedSource as Partial<ProjectSettingsJson>);
     }

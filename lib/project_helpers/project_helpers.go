@@ -112,5 +112,5 @@ func GenerateRandomID() (string, error) {
 }
 
 type ProjectSettingsJson struct {
-	PinnedNotes []string `json:"pinned_notes"`
+	PinnedNotes []string `json:"pinnedNotes"`
 }
