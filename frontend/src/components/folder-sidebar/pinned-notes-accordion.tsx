@@ -38,8 +38,11 @@ export function PinnedNotesAccordion() {
 			{pinnedNotesElements.length > 0 ? (
 				pinnedNotesElements
 			) : (
-				<p className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
-					Use the menu in the top right to pin a note.
+				<p
+					style={{ textWrap: "balance" }}
+					className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs"
+				>
+					Use a note's menu to pin it here
 				</p>
 			)}
 		</SidebarAccordion>

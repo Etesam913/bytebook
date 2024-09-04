@@ -108,7 +108,7 @@ export function CodeViewer({
 
 	return (
 		<SandpackLayout
-			className="flex-1"
+			className="flex-1 rounded-bl-none rounded-br-none"
 			onKeyDown={(e) => {
 				setIsSelected(true);
 				if (e.key === "Enter" && e.shiftKey) handleRunCode();
@@ -278,6 +278,8 @@ export function CodeViewer({
 				</motion.button>
 			)}
 
+			{/*
+
 			{language in nonTemplateLanguageToExtension && (
 				<motion.button
 					className="absolute bottom-2 right-2 bg-opacity-85 border border-zinc-200 dark:border-zinc-750 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 p-1.5 rounded-md"
@@ -289,6 +291,7 @@ export function CodeViewer({
 					{isCodeRunning ? <Loader /> : <Play title="Run Code" />}
 				</motion.button>
 			)}
+      */}
 		</SandpackLayout>
 	);
 }
