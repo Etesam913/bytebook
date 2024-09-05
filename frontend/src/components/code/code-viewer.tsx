@@ -28,7 +28,7 @@ import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebo
 import { RunCode } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
 import { getDefaultButtonVariants } from "../../animations";
 import { ExitFullscreen } from "../../icons/arrows-reduce-diagonal";
-import Duplicate2 from "../../icons/duplicate-2";
+import { Duplicate2 } from "../../icons/duplicate-2";
 import { Fullscreen } from "../../icons/fullscreen";
 import { Trash } from "../../icons/trash";
 import { removeDecoratorNode } from "../../utils/commands";

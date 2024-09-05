@@ -44,6 +44,7 @@ import { BottomItems } from "./bottom-items.tsx";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { PinnedNotesAccordion } from "./pinned-notes-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
+import { SearchBar } from "./searchbar.tsx";
 import { Spacer } from "./spacer";
 
 export function FolderDialogChildren({
@@ -165,28 +166,11 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 		<>
 			<motion.aside
 				style={{ width }}
-				className="text-md flex h-screen flex-col px-[10px]"
+				className="text-md flex h-screen flex-col px-[10px] pt-[3.8rem]"
 			>
-				<div className="min-h-[3.65rem] flex gap-0.5 justify-end items-center">
-					{/* <MotionIconButton
-						{...getDefaultButtonVariants()}
-						title="Go Back"
-						onClick={() => window.history.back()}
-					>
-						<CircleArrowLeft title="Go Back" />
-					</MotionIconButton>
-
-					<MotionIconButton
-						onClick={() => window.history.forward()}
-						{...getDefaultButtonVariants()}
-						title="Go Forward"
-					>
-						<CircleArrowRight title="Go Forward" />
-					</MotionIconButton> */}
-				</div>
-
+				<SearchBar />
 				<MotionButton
-					{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
+					{...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
 					className="align-center mb-2 flex w-full justify-between bg-transparent"
 					onClick={() =>
 						setDialogData({
@@ -203,7 +187,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					Create Folder <FolderPlus />
 				</MotionButton>
 				<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
-					<div className="flex h-full flex-col overflow-y-auto gap-1.5">
+					<div className="flex h-full flex-col overflow-y-auto gap-1">
 						<PinnedNotesAccordion />
 						<RecentNotesAccordion />
 						<MyFoldersAccordion folder={folder} />

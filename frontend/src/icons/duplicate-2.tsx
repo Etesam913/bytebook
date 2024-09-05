@@ -1,4 +1,4 @@
-function Duplicate2({
+export function Duplicate2({
 	width = "1.25rem",
 	height = "1.25rem",
 	fill = "currentColor",
@@ -19,6 +19,7 @@ function Duplicate2({
 			width={width}
 			viewBox="0 0 18 18"
 			xmlns="http://www.w3.org/2000/svg"
+			className={className}
 		>
 			<title>{title}</title>
 			<g fill={fill}>
@@ -48,5 +49,3 @@ function Duplicate2({
 		</svg>
 	);
 }
-
-export default Duplicate2;

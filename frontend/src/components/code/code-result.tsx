@@ -3,7 +3,7 @@ import { memo } from "react";
 import { toast } from "sonner";
 import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook/index";
 import { getDefaultButtonVariants } from "../../animations";
-import Duplicate2 from "../../icons/duplicate-2";
+import { Duplicate2 } from "../../icons/duplicate-2";
 import { SquareCode } from "../../icons/square-code";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import { cn } from "../../utils/string-formatting";

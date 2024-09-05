@@ -3,9 +3,11 @@ module github.com/etesam913/bytebook
 go 1.22.4
 
 require (
+	github.com/creack/pty v1.1.23
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/wailsapp/wails/v3 v3.0.0-alpha.4
+	golang.org/x/term v0.20.0
 )
 
 require (
