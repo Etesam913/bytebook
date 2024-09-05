@@ -13,7 +13,7 @@ import {
 } from "@codesandbox/sandpack-react";
 import { SandpackCodeEditor, useSandpack } from "@codesandbox/sandpack-react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
 	type Dispatch,
 	type SetStateAction,
@@ -28,10 +28,11 @@ import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebo
 import { RunCode } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
 import { getDefaultButtonVariants } from "../../animations";
 import { ExitFullscreen } from "../../icons/arrows-reduce-diagonal";
+import Duplicate2 from "../../icons/duplicate-2";
 import { Fullscreen } from "../../icons/fullscreen";
-import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
 import { removeDecoratorNode } from "../../utils/commands";
+import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import { cn } from "../../utils/string-formatting";
 import { CodeResult } from "./code-result";
 import { useCodeEditorFocus } from "./hooks";
@@ -72,7 +73,7 @@ export function CodeViewer({
 	const [codeResult, setCodeResult] = useState<CodeResponse>(defaultResult);
 	const codeMirrorRef = useRef<CodeEditorRef | null>(null);
 
-	function handleRunCode(e?: SyntheticEvent) {
+	async function handleRunCode(e?: SyntheticEvent) {
 		if (e) {
 			e.stopPropagation();
 		}
@@ -84,13 +85,21 @@ export function CodeViewer({
 			return;
 		}
 		setIsCodeRunning(true);
-		RunCode(language, code, commandWrittenToNode).then((res) => {
+		try {
+			const res = await RunCode(nodeKey, language, code, commandWrittenToNode);
 			setCodeResult(res);
 			setIsCodeRunning(false);
 			editor.update(() => {
 				writeDataToNode(files, res);
 			});
-		});
+		} catch {
+			setCodeResult({
+				success: false,
+				message:
+					"Something went wrong when running your code. Please try again later",
+				id: nodeKey,
+			});
+		}
 	}
 
 	useCodeEditorFocus(codeMirrorRef, isSelected, setIsSelected);
@@ -168,7 +177,7 @@ export function CodeViewer({
 
 				<motion.button
 					className={cn(
-						"absolute top-0 right-10 h-10 text-zinc-700 dark:text-zinc-200",
+						"absolute top-0 right-[4.75rem] h-10 text-zinc-700 dark:text-zinc-200",
 						isFullscreen && "top-1.5",
 					)}
 					{...getDefaultButtonVariants()}
@@ -179,6 +188,27 @@ export function CodeViewer({
 					}}
 				>
 					<Trash />
+				</motion.button>
+
+				<motion.button
+					className={cn(
+						"absolute top-0 right-10 h-10 text-zinc-700 dark:text-zinc-200",
+						isFullscreen && "top-1.5",
+					)}
+					{...getDefaultButtonVariants()}
+					onClick={async () => {
+						try {
+							navigator.clipboard.writeText(code);
+							toast.success("Copied code to clipboard", DEFAULT_SONNER_OPTIONS);
+						} catch {
+							toast.error(
+								"Failed to copy code to clipboard",
+								DEFAULT_SONNER_OPTIONS,
+							);
+						}
+					}}
+				>
+					<Duplicate2 />
 				</motion.button>
 
 				<motion.button
@@ -210,25 +240,13 @@ export function CodeViewer({
 				</SandpackLayout>
 			) : (
 				<div className="relative text-zinc-950 dark:text-zinc-100">
-					<AnimatePresence>
-						{isCodeRunning && (
-							<motion.div
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1, transition: { delay: 0.75 } }}
-								exit={{ opacity: 0 }}
-								className="absolute bg-gray-50 bg-opacity-50 dark:bg-gray-900 dark:bg-opacity-60 w-full h-full z-10 flex gap-2 justify-center items-center"
-							>
-								<Loader height="1.15rem" width="1.15rem" />
-								<button type="button">Cancel</button>
-							</motion.div>
-						)}
-					</AnimatePresence>
 					<RunCommand
 						commandWrittenToNode={commandWrittenToNode}
 						writeCommandToNode={writeCommandToNode}
 						nodeKey={nodeKey}
 						handleRunCode={handleRunCode}
 						isCodeRunning={isCodeRunning}
+						setIsCodeRunning={setIsCodeRunning}
 					/>
 					<CodeResult codeResult={codeResult} />
 				</div>

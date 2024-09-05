@@ -33,7 +33,7 @@ export function ToolbarButtons({
 	noteContainerRef,
 }: ToolbarButtonsProps) {
 	return (
-		<span className="flex gap-1.5 overflow-auto">
+		<span className="flex gap-1.5 overflow-hidden">
 			{shouldShowUndoRedo && (
 				<>
 					{

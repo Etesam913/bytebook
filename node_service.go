@@ -111,29 +111,50 @@ edition = "2021"
 	return nil
 }
 
-func RunFile(projectPath string, filePath string, command string) (string, error) {
+func RunFile(projectPath string, nodeKey string, filePath string, command string) (string, error) {
 	commandSplit := strings.Split(command, " ")
-	contextId, _ := project_helpers.GenerateRandomID()
+	// contextId, _ := project_helpers.GenerateRandomID()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	contextStore[contextId] = cancel
+	contextStore[nodeKey] = cancel
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, commandSplit[0], append(commandSplit[1:], filePath)...)
 	cmd.Dir = projectPath
 	out, err := cmd.CombinedOutput()
 
+	if _, exists := contextStore[nodeKey]; exists {
+		delete(contextStore, nodeKey)
+	}
+
 	if ctx.Err() != nil {
-		return ctx.Err().Error(), ctx.Err()
+		if ctx.Err() == context.Canceled {
+			return "Code execution was cancelled", ctx.Err()
+		} else if ctx.Err() == context.DeadlineExceeded {
+			return "Code execution timed out", ctx.Err()
+		} else {
+			return ctx.Err().Error(), ctx.Err()
+		}
 	}
 
 	if err != nil {
 		return err.Error() + "\n" + string(out), err
 	}
-	delete(contextStore, contextId)
+
 	return string(out), nil
 }
 
-func (n *NodeService) RunCode(language string, code string, command string) CodeResponse {
+func (n *NodeService) CancelCode(nodeKey string) bool {
+	if _, exists := contextStore[nodeKey]; exists {
+		// Cancel the context
+		contextStore[nodeKey]()
+		// We can delete the context from the store as it won't be used anymore'
+		delete(contextStore, nodeKey)
+		return true
+	}
+	return false
+}
+
+func (n *NodeService) RunCode(nodeKey string, language string, code string, command string) CodeResponse {
 	extensionExists, extension := GetExtensionFromLanguage(language)
 
 	uniqueId, _ := project_helpers.GenerateRandomID()
@@ -161,7 +182,6 @@ func (n *NodeService) RunCode(language string, code string, command string) Code
 	filePath := filepath.Join(dirPath, "main"+extension)
 	file, err := os.Create(filePath)
 	if err != nil {
-		fmt.Println("Error creating file:", filePath)
 		return CodeResponse{
 			Success: false,
 			Message: "Something went wrong when creating the file. Please try again later.",
@@ -202,7 +222,8 @@ func (n *NodeService) RunCode(language string, code string, command string) Code
 		}
 		filePath = cppExecutablePath
 	}
-	res, err := RunFile(filepath.Join(n.ProjectPath, language), filePath, command)
+	pathToLanguage := filepath.Join(n.ProjectPath, language)
+	res, err := RunFile(pathToLanguage, nodeKey, filePath, command)
 
 	if err != nil {
 		return CodeResponse{

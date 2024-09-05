@@ -114,7 +114,7 @@ export function NotesEditor({
 				ref={noteContainerRef}
 				style={{ scrollbarGutter: "stable" }}
 				className={cn(
-					"h-[calc(100vh-38px)] overflow-y-auto py-2 px-4 relative",
+					"h-[calc(100vh-38px)] overflow-x-hidden overflow-y-auto py-2 px-4 relative",
 					isNoteMaximized && "px-6",
 				)}
 				onClick={(e) => {

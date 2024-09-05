@@ -30,8 +30,13 @@ export function AddFilePathsToProject(filePaths: string[], folderPath: string, n
     return $typingPromise;
 }
 
-export function RunCode(language: string, code: string, command: string): Promise<$models.CodeResponse> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(1444881027, language, code, command) as any;
+export function CancelCode(nodeKey: string): Promise<boolean> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(1362010910, nodeKey) as any;
+    return $resultPromise;
+}
+
+export function RunCode(nodeKey: string, language: string, code: string, command: string): Promise<$models.CodeResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(1444881027, nodeKey, language, code, command) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType2($result);
     }) as any;

@@ -1,7 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { memo } from "react";
+import { toast } from "sonner";
 import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook/index";
+import { getDefaultButtonVariants } from "../../animations";
+import Duplicate2 from "../../icons/duplicate-2";
 import { SquareCode } from "../../icons/square-code";
+import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import { cn } from "../../utils/string-formatting";
 
 export const CodeResult = memo(function CodeResult({
@@ -17,6 +21,28 @@ export const CodeResult = memo(function CodeResult({
 				!codeResult.success && "!text-red-500",
 			)}
 		>
+			<motion.button
+				className="absolute top-2 right-1.5 p-1 rounded-md"
+				{...getDefaultButtonVariants()}
+				onClick={async () => {
+					try {
+						navigator.clipboard.writeText(codeResult.message.slice(0, 3000));
+						toast.success(
+							"Copied code output to clipboard",
+							DEFAULT_SONNER_OPTIONS,
+						);
+					} catch {
+						toast.error(
+							"Failed to copy code output to clipboard",
+							DEFAULT_SONNER_OPTIONS,
+						);
+					}
+				}}
+				type="button"
+			>
+				<Duplicate2 />
+			</motion.button>
+
 			{codeResult.message.length > 0 ? (
 				<AnimatePresence mode="wait" initial={false}>
 					<motion.div
