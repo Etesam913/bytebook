@@ -1,23 +1,3 @@
-// import React from 'react';
-
-//
-// function FolderXmark(props) {
-// 	const fill = props.fill || 'currentColor';
-// 	const secondaryfill = props.secondaryfill || fill;
-// 	const width = props.width || '100%';
-// 	const height = props.height || '100%';
-// 	const title = props.title || "folder xmark";
-//
-// 	return (
-// 		<svg height={height} width={width} viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-// 	<title>{title}</title>
-
-// </svg>
-// 	);
-// };
-//
-// export default FolderXmark;
-
 export function FolderXMark({
 	width = "1.25rem",
 	height = "1.25rem",

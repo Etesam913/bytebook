@@ -1,7 +1,7 @@
-export function AngularLogo({
+export function CppLogo({
 	width = "1.25rem",
 	height = "1.25rem",
-	title = "angular",
+	title = "cpp logo",
 }: {
 	width?: string;
 	height?: string;
@@ -15,15 +15,17 @@ export function AngularLogo({
 			viewBox="0 0 24 24"
 			fill="none"
 			stroke="currentColor"
-			stroke-width="2"
+			strokeWidth="2"
 			strokeLinecap="round"
 			strokeLinejoin="round"
 		>
 			<title>{title}</title>
 			<path stroke="none" d="M0 0h24v24H0z" fill="none" />
-			<path d="M5.428 17.245l6.076 3.471a1 1 0 0 0 .992 0l6.076 -3.471a1 1 0 0 0 .495 -.734l1.323 -9.704a1 1 0 0 0 -.658 -1.078l-7.4 -2.612a1 1 0 0 0 -.665 0l-7.399 2.613a1 1 0 0 0 -.658 1.078l1.323 9.704a1 1 0 0 0 .495 .734z" />
-			<path d="M9 15l3 -8l3 8" />
-			<path d="M10 13h4" />
+			<path d="M18 12h4" />
+			<path d="M20 10v4" />
+			<path d="M11 12h4" />
+			<path d="M13 10v4" />
+			<path d="M9 9a3 3 0 0 0 -3 -3h-.5a3.5 3.5 0 0 0 -3.5 3.5v5a3.5 3.5 0 0 0 3.5 3.5h.5a3 3 0 0 0 3 -3" />
 		</svg>
 	);
 }

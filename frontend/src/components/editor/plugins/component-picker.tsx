@@ -33,7 +33,14 @@ import { useSetAtom } from "jotai";
 import { dialogDataAtom } from "../../../atoms";
 import { useBackendFunction } from "../../../hooks/query";
 import { AngularLogo } from "../../../icons/angular-logo";
+import { CppLogo } from "../../../icons/cpp-logo";
+import { GolangLogo } from "../../../icons/golang-logo";
+import { JavaLogo } from "../../../icons/java-logo";
+import { JavascriptLogo } from "../../../icons/javascript-logo";
 import { Paintbrush } from "../../../icons/paintbrush";
+import { PythonLogo } from "../../../icons/python-logo";
+import { ReactLogo } from "../../../icons/react-logo";
+import { RustLogo } from "../../../icons/rust-logo";
 import { SvelteLogo } from "../../../icons/svelte-logo";
 import { VideoIcon } from "../../../icons/video";
 import { VueLogo } from "../../../icons/vue-logo";
@@ -66,22 +73,30 @@ const languageCommandData: {
 	keywords: string[];
 	icon?: JSX.Element;
 }[] = [
-	{ name: "go", keywords: ["go", "google"] },
-	{ name: "java", keywords: ["java", "coffee"] },
-	{ name: "python", keywords: ["python", "py"] },
-	{ name: "javascript", keywords: ["javascript", "js"] },
-	{ name: "react", keywords: ["javascript", "react", "jsx"] },
-	{ name: "rust", keywords: ["rust", "rs"] },
-	{ name: "cpp", keywords: ["c++", "cpp"] },
+	{ name: "go", keywords: ["go", "google"], icon: <GolangLogo /> },
+	{ name: "java", keywords: ["java", "coffee"], icon: <JavaLogo /> },
+	{ name: "python", keywords: ["python", "py"], icon: <PythonLogo /> },
+	{
+		name: "javascript",
+		keywords: ["javascript", "js"],
+		icon: <JavascriptLogo />,
+	},
+	{
+		name: "react",
+		keywords: ["javascript", "react", "jsx"],
+		icon: <ReactLogo />,
+	},
+	{ name: "rust", keywords: ["rust", "rs"], icon: <RustLogo /> },
+	{ name: "cpp", keywords: ["c++", "cpp"], icon: <CppLogo /> },
 	{
 		name: "angular",
-		keywords: ["javascript", "angular", "js"],
-		icon: <AngularLogo height="17" width="17" />,
+		keywords: ["javascript", "angular", "js", "google"],
+		icon: <AngularLogo />,
 	},
 	{
 		name: "vue",
 		keywords: ["javascript", "vue", "js"],
-		icon: <VueLogo height="17" width="17" />,
+		icon: <VueLogo />,
 	},
 	{
 		name: "svelte",
