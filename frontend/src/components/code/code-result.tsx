@@ -1,8 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { memo } from "react";
-import { SquareCode } from "../../icons/square-code";
-
 import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook/index";
+import { SquareCode } from "../../icons/square-code";
 import { cn } from "../../utils/string-formatting";
 
 export const CodeResult = memo(function CodeResult({
@@ -19,12 +18,12 @@ export const CodeResult = memo(function CodeResult({
 			)}
 		>
 			{codeResult.message.length > 0 ? (
-				<AnimatePresence mode="popLayout" initial={false}>
+				<AnimatePresence mode="wait" initial={false}>
 					<motion.div
 						key={codeResult.id}
 						initial={{ y: -50, opacity: 0 }}
 						animate={{ y: 0, opacity: 1 }}
-						exit={{ y: 50, opacity: 0 }}
+						exit={{ y: 50, opacity: 0, transition: { duration: 0.15 } }}
 						className="whitespace-pre-wrap"
 					>
 						{codeResult.message.slice(0, 3000)}

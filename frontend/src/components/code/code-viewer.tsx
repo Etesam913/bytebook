@@ -13,7 +13,7 @@ import {
 } from "@codesandbox/sandpack-react";
 import { SandpackCodeEditor, useSandpack } from "@codesandbox/sandpack-react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
 	type Dispatch,
 	type SetStateAction,
@@ -29,6 +29,7 @@ import { RunCode } from "../../../bindings/github.com/etesam913/bytebook/nodeser
 import { getDefaultButtonVariants } from "../../animations";
 import { ExitFullscreen } from "../../icons/arrows-reduce-diagonal";
 import { Fullscreen } from "../../icons/fullscreen";
+import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
 import { removeDecoratorNode } from "../../utils/commands";
 import { cn } from "../../utils/string-formatting";
@@ -208,7 +209,20 @@ export function CodeViewer({
 					<SandpackPreview showOpenInCodeSandbox={false} />
 				</SandpackLayout>
 			) : (
-				<div>
+				<div className="relative text-zinc-950 dark:text-zinc-100">
+					<AnimatePresence>
+						{isCodeRunning && (
+							<motion.div
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1, transition: { delay: 0.75 } }}
+								exit={{ opacity: 0 }}
+								className="absolute bg-gray-50 bg-opacity-50 dark:bg-gray-900 dark:bg-opacity-60 w-full h-full z-10 flex gap-2 justify-center items-center"
+							>
+								<Loader height="1.15rem" width="1.15rem" />
+								<button type="button">Cancel</button>
+							</motion.div>
+						)}
+					</AnimatePresence>
 					<RunCommand
 						commandWrittenToNode={commandWrittenToNode}
 						writeCommandToNode={writeCommandToNode}
