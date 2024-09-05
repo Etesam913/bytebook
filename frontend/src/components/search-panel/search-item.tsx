@@ -1,16 +1,18 @@
 import { motion } from "framer-motion";
-import { useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { forwardRef } from "react";
+import { navigate } from "wouter/use-browser-location";
 import { easingFunctions } from "../../animations";
 import { searchPanelDataAtom } from "../../atoms";
 import { Folder } from "../../icons/folder";
 import { Note } from "../../icons/page";
+import { getFileExtension } from "../../utils/string-formatting";
 
 export const SearchItem = forwardRef<
 	HTMLLIElement,
 	{ i: number; filePath: string }
 >(({ i, filePath }, ref) => {
-	const searchPanelData = useAtomValue(searchPanelDataAtom);
+	const [searchPanelData, setSearchPanelData] = useAtom(searchPanelDataAtom);
 	const [folder, note] = filePath.split("/");
 
 	return (
@@ -28,7 +30,13 @@ export const SearchItem = forwardRef<
 
 			<button
 				tabIndex={-1}
-				type="submit"
+				onClick={() => {
+					const [folder, note] = filePath.split("/");
+					const { extension, fileName } = getFileExtension(note);
+					setSearchPanelData((prev) => ({ ...prev, isOpen: false }));
+					navigate(`/${folder}/${fileName}?ext=${extension}`);
+				}}
+				type="button"
 				className="relative flex items-center will-change-transform z-40 w-full text-left px-1.5 py-[0.225rem]"
 			>
 				<Folder width={16} height={16} className="mr-1.5 min-w-4 min-h-4" />{" "}

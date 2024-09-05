@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtom, useAtomValue } from "jotai";
-import { useRef, useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { SearchFileNamesFromQuery } from "../../../bindings/github.com/etesam913/bytebook/searchservice";
 import { easingFunctions } from "../../animations";
@@ -54,7 +54,7 @@ export function SearchPanel() {
 						}}
 						ref={searchPanelRef}
 						className="absolute translate-x-[-50%] translate-y-[-50%] z-40 top-[25%] w-[min(29rem,90vw)] left-2/4"
-						onSubmit={(e) => {
+						onSubmit={(e: FormEvent<HTMLFormElement>) => {
 							e.preventDefault();
 
 							if (!isShowingMostRecentNotes && searchResults.length === 0)
