@@ -4,15 +4,18 @@ export function TextStrikethrough({
 	fill = "currentColor",
 	secondaryfill = "currentColor",
 	title = "text-strikethrough",
+	className,
 }: {
 	width?: string;
 	height?: string;
 	fill?: string;
 	secondaryfill?: string;
 	title?: string;
+	className?: string;
 }) {
 	return (
 		<svg
+			className={className}
 			style={{ width, height }}
 			viewBox="0 0 18 18"
 			xmlns="http://www.w3.org/2000/svg"

@@ -56,7 +56,7 @@ export function ToggleLinkButton({
 				});
 			}}
 		>
-			<Link />
+			<Link className="will-change-transform" />
 		</MotionIconButton>
 	);
 }

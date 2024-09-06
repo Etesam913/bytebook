@@ -252,21 +252,21 @@ export const blockTypesDropdownItems = [
 export const listCommandData = [
 	{
 		block: "ul",
-		icon: <UnorderedList />,
+		icon: <UnorderedList className="will-change-transform" />,
 		command: INSERT_UNORDERED_LIST_COMMAND,
 		title: "Unordered List",
 		customDisabled: undefined,
 	},
 	{
 		block: "ol",
-		icon: <OrderedList />,
+		icon: <OrderedList className="will-change-transform" />,
 		command: INSERT_ORDERED_LIST_COMMAND,
 		title: "Ordered List",
 		customDisabled: undefined,
 	},
 	{
 		block: "check",
-		icon: <ListCheckbox />,
+		icon: <ListCheckbox className="will-change-transform" />,
 		command: INSERT_CHECK_LIST_COMMAND,
 		title: "Check List",
 		customDisabled: undefined,
@@ -275,19 +275,19 @@ export const listCommandData = [
 
 export const textFormats: { icon: ReactNode; format: TextFormatType }[] = [
 	{
-		icon: <TextBold />,
+		icon: <TextBold className="will-change-transform" />,
 		format: "bold",
 	},
 	{
-		icon: <TextItalic />,
+		icon: <TextItalic className="will-change-transform" />,
 		format: "italic",
 	},
 	{
-		icon: <TextUnderline />,
+		icon: <TextUnderline className="will-change-transform" />,
 		format: "underline",
 	},
 	{
-		icon: <TextStrikethrough />,
+		icon: <TextStrikethrough className="will-change-transform" />,
 		format: "strikethrough",
 	},
 ];

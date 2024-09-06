@@ -35,13 +35,13 @@ export function CommandButtons({
 	const commandButtonData = [
 		{
 			block: "undo",
-			icon: <Undo />,
+			icon: <Undo className="will-change-transform" />,
 			command: UNDO_COMMAND,
 			customDisabled: !canUndo || isNodeSelection,
 		},
 		{
 			block: "redo",
-			icon: <Redo />,
+			icon: <Redo className="will-change-transform" />,
 			command: REDO_COMMAND,
 			customDisabled: !canRedo || isNodeSelection,
 		},

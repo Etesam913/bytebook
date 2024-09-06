@@ -1,29 +1,44 @@
-export function TextBold({
-	width = "1.25rem",
+export function RefreshAnticlockwise({
 	height = "1.25rem",
+	width = "1.25rem",
 	fill = "currentColor",
-	secondaryfill = "currentColor",
-	title = "text-bold",
+	title = "Refresh",
 	className,
 }: {
 	width?: string;
 	height?: string;
 	fill?: string;
-	secondaryfill?: string;
 	title?: string;
 	className?: string;
 }) {
 	return (
 		<svg
-			className={className}
-			style={{ width, height }}
-			viewBox="0 0 18 18"
+			height={height}
+			width={width}
+			viewBox="0 0 12 12"
 			xmlns="http://www.w3.org/2000/svg"
+			className={className}
 		>
 			<title>{title}</title>
-			<g fill={secondaryfill} stroke={secondaryfill}>
+			<g fill={fill}>
+				<polyline
+					fill="none"
+					points="7.75 8.25 10.75 8.25 10.75 11.25"
+					stroke={fill}
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					strokeWidth="1.5"
+				/>
+				<polyline
+					fill="none"
+					points="4.25 3.75 1.25 3.75 1.25 .75"
+					stroke={fill}
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					strokeWidth="1.5"
+				/>
 				<path
-					d="M6.25,2.25h3.75c1.795,0,3.25,1.455,3.25,3.25h0c0,1.795-1.455,3.25-3.25,3.25h-3.75"
+					d="m10.718,8.306c-.854,1.743-2.646,2.944-4.718,2.944-2.832,0-5.141-2.243-5.246-5.049"
 					fill="none"
 					stroke={fill}
 					strokeLinecap="round"
@@ -31,16 +46,9 @@ export function TextBold({
 					strokeWidth="1.5"
 				/>
 				<path
-					d="M6.25,8.75h4.5c1.933,0,3.5,1.567,3.5,3.5h0c0,1.933-1.567,3.5-3.5,3.5H6.25"
+					d="m1.282,3.694C2.136,1.951,3.928.75,6,.75c2.832,0,5.141,2.243,5.246,5.049"
 					fill="none"
 					stroke={fill}
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					strokeWidth="1.5"
-				/>
-				<path
-					d="M6.25,15.75h-1.5c-.552,0-1-.448-1-1V3.25c0-.552,.448-1,1-1h1.5V15.75Z"
-					fill="none"
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1.5"

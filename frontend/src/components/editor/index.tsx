@@ -108,11 +108,15 @@ export function NotesEditor({
 				note={note}
 				floatingData={floatingData}
 				setFloatingData={setFloatingData}
+				frontmatter={frontmatter}
 				setFrontmatter={setFrontmatter}
 			/>
 			<div
 				ref={noteContainerRef}
-				style={{ scrollbarGutter: "stable" }}
+				style={{
+					scrollbarGutter: "stable",
+					fontFamily: `"${frontmatter.fontFamily}", "Bricolage Grotesque"`,
+				}}
 				className={cn(
 					"h-[calc(100vh-38px)] overflow-x-hidden overflow-y-auto py-2 px-4 relative",
 					isNoteMaximized && "px-6",

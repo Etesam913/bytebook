@@ -285,7 +285,6 @@ function getBaseOptions(
 								newSelection.insertNodes([youtubeVideoNode]);
 								editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, undefined);
 							});
-							// resetDialogState(setDialogErrorText, setDialogData);
 							return true;
 						} catch (e) {
 							if (e instanceof Error) setDialogErrorText(e.message);

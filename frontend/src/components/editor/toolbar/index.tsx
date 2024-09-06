@@ -1,8 +1,8 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import type { AnimationControls } from "framer-motion";
-import { type SetStateAction, useAtom } from "jotai";
+import { useAtom } from "jotai";
 import type { TextFormatType } from "lexical";
-import { type Dispatch, useEffect, useState } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { WINDOW_ID } from "../../../App";
 import { isNoteMaximizedAtom, isToolbarDisabled } from "../../../atoms";
@@ -22,17 +22,8 @@ import {
 	changeSelectedBlocksType,
 	insertAttachmentFromFile,
 } from "../utils/toolbar";
+import { FontFamilyInput } from "./font-family-input";
 import { SettingsDropdown } from "./settings-dropdown";
-
-interface ToolbarProps {
-	folder: string;
-	note: string;
-	floatingData: FloatingDataType;
-	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
-	animationControls: AnimationControls;
-	noteContainerRef: React.RefObject<HTMLDivElement>;
-	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
-}
 
 export function Toolbar({
 	folder,
@@ -41,8 +32,18 @@ export function Toolbar({
 	setFloatingData,
 	noteContainerRef,
 	animationControls,
+	frontmatter,
 	setFrontmatter,
-}: ToolbarProps) {
+}: {
+	folder: string;
+	note: string;
+	floatingData: FloatingDataType;
+	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
+	animationControls: AnimationControls;
+	noteContainerRef: React.RefObject<HTMLDivElement>;
+	frontmatter: Record<string, string>;
+	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
+}) {
 	const [editor] = useLexicalComposerContext();
 	const [disabled, setDisabled] = useAtom(isToolbarDisabled);
 	const [currentBlockType, setCurrentBlockType] =
@@ -176,6 +177,12 @@ export function Toolbar({
 						}
 						items={blockTypesDropdownItems}
 						buttonClassName="w-[10rem]"
+						disabled={disabled}
+					/>
+					<FontFamilyInput
+						frontmatter={frontmatter}
+						setFrontmatter={setFrontmatter}
+						editor={editor}
 						disabled={disabled}
 					/>
 				</span>
