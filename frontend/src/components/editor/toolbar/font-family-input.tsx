@@ -17,7 +17,7 @@ export function FontFamilyInput({
 	return (
 		<div className="relative">
 			<input
-				className="bg-zinc-150 dark:bg-zinc-700 rounded-md outline outline-offset-0 outline-2 focus-visible:outline-blue-400 dark:focus-visible:outline-blue-500 outline-zinc-300 dark:outline-zinc-600 py-1 px-2 text-xs ml-1 w-48"
+				className="bg-zinc-150 dark:bg-zinc-700 rounded-md outline outline-offset-0 outline-2 focus-visible:outline-blue-400 dark:focus-visible:outline-blue-500 outline-zinc-300 dark:outline-zinc-600 py-1 px-2 text-xs ml-1 w-42 pr-7"
 				spellCheck={false}
 				autoComplete="off"
 				placeholder="Font Family"

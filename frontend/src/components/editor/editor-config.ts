@@ -7,6 +7,7 @@ import { $getRoot, type EditorThemeClasses, ParagraphNode } from "lexical";
 import { CodeNode } from "./nodes/code";
 import { ExcalidrawNode } from "./nodes/excalidraw";
 import { FileNode } from "./nodes/file";
+import { InlineEquationNode } from "./nodes/inline-equation";
 import { AutoLinkNode, LinkNode } from "./nodes/link";
 
 // Catch any errors that occur during Lexical updates and log them
@@ -78,6 +79,7 @@ export const editorConfig: InitialConfigType = {
 		CodeNode,
 		ExcalidrawNode,
 		AutoLinkNode,
+		InlineEquationNode,
 	],
 };
 

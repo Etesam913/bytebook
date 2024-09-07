@@ -59,6 +59,11 @@ import {
 	ExcalidrawNode,
 } from "./nodes/excalidraw";
 import { $createFileNode, $isFileNode, FileNode } from "./nodes/file";
+import {
+	$createInlineEquationNode,
+	$isInlineEquationNode,
+	InlineEquationNode,
+} from "./nodes/inline-equation.tsx";
 import { $createLinkNode, $isLinkNode, LinkNode } from "./nodes/link";
 import { getFileElementTypeFromExtensionAndHead } from "./utils/file-node.ts";
 import type { Transformer } from "./utils/note-metadata";
@@ -237,6 +242,27 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 		$setSelection(nodeSelection);
 	},
 	type: "element",
+};
+
+export const EQUATION: TextMatchTransformer = {
+	dependencies: [InlineEquationNode],
+	export: (node) => {
+		if (!$isInlineEquationNode(node)) {
+			return null;
+		}
+
+		return `$${node.getEquation()}$`;
+	},
+	importRegExp: /\$([^$]+?)\$/,
+	regExp: /\$([^$]+?)\$$/,
+	replace: (textNode, match) => {
+		console.log("equation match", match);
+		const [, equation] = match;
+		const equationNode = $createInlineEquationNode({ equation });
+		textNode.replace(equationNode);
+	},
+	trigger: "$",
+	type: "text-match",
 };
 
 export const LINK: TextMatchTransformer = {
@@ -441,6 +467,7 @@ export const CUSTOM_TRANSFORMERS = [
 	CHECK_LIST,
 	UNORDERED_LIST,
 	ORDERED_LIST,
+	EQUATION,
 	QUOTE,
 	BOLD_ITALIC_STAR,
 	BOLD_ITALIC_UNDERSCORE,
