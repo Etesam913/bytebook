@@ -175,10 +175,10 @@ export function NotesEditor({
 				<FilesPlugin />
 				<VideosPlugin />
 				<CodePlugin />
-				<DraggableBlockPlugin />
+				{/*<DraggableBlockPlugin /> */}
 				<FocusPlugin />
 				{/* <AutoLinkPlugin matchers={MATCHERS} /> */}
-				{/*<TreeViewPlugin />*/}
+				<TreeViewPlugin />
 			</div>
 			<BottomBar frontmatter={frontmatter} folder={folder} note={note} />
 		</LexicalComposer>

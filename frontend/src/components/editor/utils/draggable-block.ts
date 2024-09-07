@@ -303,15 +303,14 @@ export function getBlockElement(
 	noteContainer: HTMLElement,
 	useEdgeAsDefault = false,
 ) {
+	const editorState = editor.getEditorState();
 	// The children of the root
-	const rootKeys = editor
-		.getEditorState()
-		.read(() => $getRoot().getChildrenKeys());
 
 	let blockElem: HTMLElement | null = null;
 	const noteContainerRect = noteContainer.getBoundingClientRect();
 
-	editor.getEditorState().read(() => {
+	editorState.read(() => {
+		const rootKeys = $getRoot().getChildrenKeys();
 		if (useEdgeAsDefault) {
 			const [firstNode, lastNode] = [
 				editor.getElementByKey(rootKeys[0]),

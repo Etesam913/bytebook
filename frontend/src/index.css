@@ -126,9 +126,9 @@ div[data-template-is-fullscreen="true"]
     font-size: 13px;
 }
 
+/* Makes sure that the tabs are not overlapping with the icons in the code block */
 .sp-tabs {
-    padding-right: 64px;
-    /* padding-left: 64px; */
+    padding-right: 106px;
 }
 
 .dragging {

@@ -28,6 +28,7 @@ export function MaximizeNoteButton({
 			animate={{ rotate: isNoteMaximized ? 180 : 0 }}
 		>
 			<SidebarRightCollapse
+				className="will-change-transform"
 				title={isNoteMaximized ? "Minimize" : "Maximize"}
 				height="1.4rem"
 				width="1.4rem"

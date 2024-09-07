@@ -60,6 +60,7 @@ export function useNoteMarkdown(
 					editor.setEditable(true);
 					// You don't want a different note to access the same history when you switch notes
 					editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
+
 					editor.update(
 						() => {
 							// Clear formatting

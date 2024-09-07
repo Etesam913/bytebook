@@ -6,6 +6,7 @@ import type {
 	Spread,
 } from "lexical";
 import { $applyNodeReplacement, DecoratorNode } from "lexical";
+import { InlineEquation } from "../../inline-equation";
 
 export interface InlineEquationPayload {
 	key?: NodeKey;
@@ -81,7 +82,7 @@ export class InlineEquationNode extends DecoratorNode<JSX.Element> {
 	// }
 
 	decorate(_editor: LexicalEditor): JSX.Element {
-		return <span>inline equation</span>;
+		return <InlineEquation equation={this.getEquation()} />;
 	}
 }
 
