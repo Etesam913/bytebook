@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import katex from "katex";
+import { useEffect, useRef } from "react";
 
 export function KatexRenderer({ equation }: { equation: string }) {
 	const katexElementRef = useRef(null);

@@ -71,18 +71,11 @@ export class InlineEquationNode extends DecoratorNode<JSX.Element> {
 	getEquation(): string {
 		return this.__equation;
 	}
-	// setElements(
-	// 	elements: NonDeletedExcalidrawElement[],
-	// 	editor: LexicalEditor,
-	// ): void {
-	// 	editor.update(() => {
-	// 		const writable = this.getWritable();
-	// 		writable.__elements = elements;
-	// 	});
-	// }
 
 	decorate(_editor: LexicalEditor): JSX.Element {
-		return <InlineEquation equation={this.getEquation()} />;
+		return (
+			<InlineEquation nodeKey={this.getKey()} equation={this.getEquation()} />
+		);
 	}
 }
 
