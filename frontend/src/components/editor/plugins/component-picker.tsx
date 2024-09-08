@@ -35,6 +35,9 @@ import { useBackendFunction } from "../../../hooks/query";
 import { AngularLogo } from "../../../icons/angular-logo";
 import { CppLogo } from "../../../icons/cpp-logo";
 import { GolangLogo } from "../../../icons/golang-logo";
+import { Heading1 } from "../../../icons/heading-1";
+import { Heading2 } from "../../../icons/heading-2";
+import { Heading3 } from "../../../icons/heading-3";
 import { JavaLogo } from "../../../icons/java-logo";
 import { JavascriptLogo } from "../../../icons/javascript-logo";
 import { Paintbrush } from "../../../icons/paintbrush";
@@ -42,6 +45,7 @@ import { PythonLogo } from "../../../icons/python-logo";
 import { ReactLogo } from "../../../icons/react-logo";
 import { RustLogo } from "../../../icons/rust-logo";
 import { SvelteLogo } from "../../../icons/svelte-logo";
+import { Text } from "../../../icons/text";
 import { VideoIcon } from "../../../icons/video";
 import { VueLogo } from "../../../icons/vue-logo";
 import type { DialogDataType } from "../../../types";
@@ -59,7 +63,7 @@ import { FOCUS_NODE_COMMAND } from "./focus";
 import { SAVE_MARKDOWN_CONTENT } from "./save";
 
 const languageCommandData: {
-	name:
+	id:
 		| "go"
 		| "java"
 		| "python"
@@ -70,38 +74,59 @@ const languageCommandData: {
 		| "svelte"
 		| "rust"
 		| "cpp";
+	name: string;
 	keywords: string[];
 	icon?: JSX.Element;
 }[] = [
-	{ name: "go", keywords: ["go", "google"], icon: <GolangLogo /> },
-	{ name: "java", keywords: ["java", "coffee"], icon: <JavaLogo /> },
-	{ name: "python", keywords: ["python", "py"], icon: <PythonLogo /> },
 	{
-		name: "javascript",
+		id: "go",
+		keywords: ["go", "google"],
+		icon: <GolangLogo />,
+		name: "Golang",
+	},
+	{
+		id: "java",
+		keywords: ["java", "coffee"],
+		icon: <JavaLogo />,
+		name: "Java",
+	},
+	{
+		id: "python",
+		keywords: ["python", "py"],
+		icon: <PythonLogo />,
+		name: "Python",
+	},
+	{
+		id: "javascript",
 		keywords: ["javascript", "js"],
 		icon: <JavascriptLogo />,
+		name: "Javascript",
 	},
 	{
-		name: "react",
+		id: "react",
 		keywords: ["javascript", "react", "jsx"],
 		icon: <ReactLogo />,
+		name: "React",
 	},
-	{ name: "rust", keywords: ["rust", "rs"], icon: <RustLogo /> },
-	{ name: "cpp", keywords: ["c++", "cpp"], icon: <CppLogo /> },
+	{ id: "rust", keywords: ["rust", "rs"], icon: <RustLogo />, name: "Rust" },
+	{ id: "cpp", keywords: ["c++", "cpp"], icon: <CppLogo />, name: "C++" },
 	{
-		name: "angular",
+		id: "angular",
 		keywords: ["javascript", "angular", "js", "google"],
 		icon: <AngularLogo />,
+		name: "Angular",
 	},
 	{
-		name: "vue",
+		id: "vue",
 		keywords: ["javascript", "vue", "js"],
 		icon: <VueLogo />,
+		name: "Vue",
 	},
 	{
-		name: "svelte",
+		id: "svelte",
 		keywords: ["javascript", "svelte", "js"],
 		icon: <SvelteLogo height="17" width="17" />,
+		name: "Svelte",
 	},
 ];
 
@@ -187,6 +212,7 @@ function getBaseOptions(
 	return [
 		new ComponentPickerOption("Paragraph", {
 			keywords: ["normal", "paragraph", "p", "text"],
+			icon: <Text width="1.25rem" title="Paragraph" />,
 			onSelect: () =>
 				editor.update(() => {
 					const selection = $getSelection();
@@ -195,9 +221,16 @@ function getBaseOptions(
 					}
 				}),
 		}),
-		...([1, 2, 3] as const).map(
-			(n) =>
+		...(
+			[
+				[1, <Heading1 />],
+				[2, <Heading2 />],
+				[3, <Heading3 />],
+			] as const
+		).map(
+			([n, icon]) =>
 				new ComponentPickerOption(`Heading ${n}`, {
+					icon,
 					keywords: ["heading", "header", `h${n}`],
 					onSelect: () =>
 						editor.update(() => {
@@ -315,14 +348,14 @@ function getBaseOptions(
 			},
 		}),
 		...languageCommandData.map(
-			({ name, keywords, icon }) =>
+			({ id, keywords, icon, name }) =>
 				new ComponentPickerOption(name, {
 					icon,
 					keywords: [...keywords, "code", "syntax", "programming", "language"],
 					onSelect: () => {
 						editor.update(() => {
 							editor.dispatchCommand(INSERT_CODE_COMMAND, {
-								language: name,
+								language: id,
 							});
 						});
 					},

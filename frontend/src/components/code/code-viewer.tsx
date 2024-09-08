@@ -187,7 +187,7 @@ export function CodeViewer({
 						});
 					}}
 				>
-					<Trash />
+					<Trash className="will-change-transform" />
 				</motion.button>
 
 				<motion.button
@@ -208,7 +208,7 @@ export function CodeViewer({
 						}
 					}}
 				>
-					<Duplicate2 />
+					<Duplicate2 className="will-change-transform" />
 				</motion.button>
 
 				<motion.button
@@ -231,7 +231,11 @@ export function CodeViewer({
 						}
 					}}
 				>
-					{isFullscreen ? <ExitFullscreen /> : <Fullscreen />}
+					{isFullscreen ? (
+						<ExitFullscreen className="will-change-transform" />
+					) : (
+						<Fullscreen className="will-change-transform" />
+					)}
 				</motion.button>
 			</SandpackLayout>
 			{language in languageToTemplate ? (
