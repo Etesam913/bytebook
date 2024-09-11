@@ -47,7 +47,6 @@ export function DropdownItems({
 					)}
 					exit={{
 						borderColor: "transparent",
-
 						transition: {
 							borderColor: { delay: 0.25 },
 						},
@@ -57,7 +56,7 @@ export function DropdownItems({
 						initial={{ height: 0 }}
 						animate={{
 							height: "auto",
-							transition: { type: "spring", damping: 20, stiffness: 130 },
+							transition: { type: "spring", damping: 22, stiffness: 200 },
 						}}
 						exit={{ height: 0, opacity: 0 }}
 					>

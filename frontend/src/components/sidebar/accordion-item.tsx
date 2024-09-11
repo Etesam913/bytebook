@@ -23,7 +23,7 @@ export function AccordionItem({
 					title={itemName}
 					target="_blank"
 					className={cn(
-						"flex flex-1 items-center gap-2 overflow-x-hidden rounded-md px-3 py-1",
+						"flex flex-1 items-center gap-2 overflow-x-hidden rounded-md px-2 py-1",
 					)}
 					to={`/${encodeURI(to)}`}
 				>

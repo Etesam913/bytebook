@@ -9,7 +9,7 @@ import { AccordionItem } from "../sidebar/accordion-item.tsx";
 import { SidebarAccordion } from "../sidebar/accordion.tsx";
 
 export function RecentNotesAccordion() {
-	const [isRecentNotesOpen, setIsRecentNotesOpen] = useState(true);
+	const [isRecentNotesOpen, setIsRecentNotesOpen] = useState(false);
 	const mostRecentNotes = useAtomValue(mostRecentNotesAtom);
 	const mostRecentNotesWithoutQueryParams = useAtomValue(
 		mostRecentNotesWithoutQueryParamsAtom,

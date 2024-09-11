@@ -30,7 +30,12 @@ export function SidebarAccordion({
 					initial={{ rotateZ: isOpen ? 180 : 0 }}
 					animate={{ rotateZ: isOpen ? 180 : 0 }}
 				>
-					<ChevronDown strokeWidth="2.5px" height="0.8rem" width="0.8rem" />
+					<ChevronDown
+						strokeWidth="2.5px"
+						height="0.8rem"
+						width="0.8rem"
+						className="will-change-transform"
+					/>
 				</motion.span>
 			</button>
 			<AnimatePresence>

@@ -15,9 +15,9 @@ import {
 	replaceFrontMatter,
 } from "../utils/note-metadata";
 
-export const SAVE_MARKDOWN_CONTENT: LexicalCommand<undefined> = createCommand(
-	"SAVE_MARKDOWN_CONTENT",
-);
+export const SAVE_MARKDOWN_CONTENT: LexicalCommand<
+	undefined | Record<string, string>
+> = createCommand("SAVE_MARKDOWN_CONTENT");
 
 export function SavePlugin({
 	folder,
@@ -34,11 +34,11 @@ export function SavePlugin({
 
 	useEffect(() => {
 		return mergeRegister(
-			editor.registerCommand<undefined>(
+			editor.registerCommand<undefined | Record<string, string>>(
 				SAVE_MARKDOWN_CONTENT,
-				() => {
+				(payload) => {
 					const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
-					const frontmatterCopy = { ...frontmatter };
+					const frontmatterCopy = payload ? { ...payload } : { ...frontmatter };
 					const timeOfChange = new Date().toISOString();
 					frontmatterCopy.lastUpdated = timeOfChange;
 					if (frontmatterCopy.createdDate === undefined) {

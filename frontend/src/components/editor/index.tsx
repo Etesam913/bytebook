@@ -7,9 +7,9 @@ import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
-
 import type { AnimationControls } from "framer-motion";
 import { useAtomValue, useSetAtom } from "jotai";
 import type { LexicalEditor } from "lexical";
@@ -40,6 +40,7 @@ import { BottomBar } from "./bottom-bar.tsx";
 import { DraggableBlockPlugin } from "./plugins/draggable-block.tsx";
 import { FocusPlugin } from "./plugins/focus.tsx";
 import { SAVE_MARKDOWN_CONTENT, SavePlugin } from "./plugins/save.tsx";
+import { TableOfContentsPlugin } from "./plugins/table-of-contents.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 
 const debouncedHandleChange = debounce(handleChange, 275);
@@ -139,6 +140,10 @@ export function NotesEditor({
 			>
 				<NoteTitle folder={folder} note={note} />
 				<ComponentPickerMenuPlugin folder={folder} note={note} />
+				{frontmatter.showTableOfContents === "true" && (
+					<TableOfContentsPlugin />
+				)}
+
 				<RichTextPlugin
 					placeholder={null}
 					contentEditable={
@@ -175,10 +180,11 @@ export function NotesEditor({
 				<FilesPlugin />
 				<VideosPlugin />
 				<CodePlugin />
-				{/*<DraggableBlockPlugin /> */}
+				<DraggableBlockPlugin />
 				<FocusPlugin />
+
 				{/* <AutoLinkPlugin matchers={MATCHERS} /> */}
-				<TreeViewPlugin />
+				{/*<TreeViewPlugin /> */}
 			</div>
 			<BottomBar frontmatter={frontmatter} folder={folder} note={note} />
 		</LexicalComposer>
