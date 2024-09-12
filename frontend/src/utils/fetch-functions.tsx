@@ -135,7 +135,7 @@ export async function getNoteCount(
 		setNoteCount(res.data);
 	} catch (e) {
 		if (e instanceof Error) {
-			toast.error(e.message);
+			toast.error(e.message, DEFAULT_SONNER_OPTIONS);
 		}
 	}
 }

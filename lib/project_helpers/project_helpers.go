@@ -54,17 +54,13 @@ type MenuItem struct {
 	EventName string
 }
 
-
 // SetupFolderContextMenu dynamically sets up the folder context menu
 func CreateContextMenu(app *application.App, contextMenu *application.Menu, menuItems []MenuItem) {
 	for _, item := range menuItems {
 		contextMenu.Add(item.Label).OnClick(func(data *application.Context) {
 			contextData, isString := data.ContextMenuData().(string)
 			if isString {
-				app.Events.Emit(&application.WailsEvent{
-					Name: item.EventName,
-					Data: contextData,
-				})
+				app.EmitEvent(item.EventName, contextData)
 			}
 		})
 	}
@@ -100,7 +96,6 @@ func CreateNoteContextMenu(app *application.App, projectPath string, contextMenu
 		}
 	})
 }
-
 
 func GenerateRandomID() (string, error) {
 	bytes := make([]byte, 8) // Adjust the size as needed

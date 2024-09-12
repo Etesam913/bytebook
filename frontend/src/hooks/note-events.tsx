@@ -1,12 +1,7 @@
 import { Events } from "@wailsio/runtime";
 import type { Dispatch, SetStateAction } from "react";
-import { toast } from "sonner";
-import { navigate } from "wouter/use-browser-location";
-import { MoveToTrash } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { getNoteCount } from "../utils/fetch-functions";
 import { useWailsEvent } from "../utils/hooks";
-import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
-import { extractInfoFromNoteName } from "../utils/string-formatting";
 
 /** This function is used to handle note:create events */
 export function useNoteCreate(
@@ -16,15 +11,14 @@ export function useNoteCreate(
 	setNoteCount: Dispatch<SetStateAction<number>>,
 ) {
 	useWailsEvent("note:create", (body) => {
-		const data = body.data as { folder: string; note: string }[];
-
+		const data = (body.data as { folder: string; note: string }[][])[0];
 		getNoteCount(folder, setNoteCount);
 
 		/*
-     If none of the added notes are in the current folder, then don't update the notes
-     This can be triggered when there are multple windows open
-
-		 There is notes.includes to deal with the Untitled Note race condition
+		If none of the added notes are in the current folder, then don't update the notes
+		This can be triggered when there are multple windows open
+		
+		There is notes.includes to deal with the Untitled Note race condition
     */
 		const filteredNotes = data
 			.filter(
@@ -38,10 +32,6 @@ export function useNoteCreate(
 
 		// Update the notes state
 		setNotes((prev) => {
-			// const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-			// 	filteredNotes[filteredNotes.length - 1],
-
-			// );
 			if (!prev) return filteredNotes;
 			return [...prev, ...filteredNotes];
 		});
@@ -55,7 +45,7 @@ export function useNoteDelete(
 	setNoteCount: Dispatch<SetStateAction<number>>,
 ) {
 	useWailsEvent("note:delete", (body) => {
-		const data = body.data as { folder: string; note: string }[];
+		const data = (body.data as { folder: string; note: string }[][])[0];
 
 		/*
      If none of the deleted notes are in the current folder, then don't update the notes

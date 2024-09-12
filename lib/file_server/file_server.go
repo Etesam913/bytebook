@@ -171,7 +171,6 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 			// Might need a better way of determining if something is a folder in the future
 			isDir := filepath.Ext(event.Name) == ""
 
-
 			// Only dealing with files at this point
 			segments := strings.Split(event.Name, "/")
 			oneFolderBack := segments[len(segments)-2]
@@ -192,16 +191,12 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 
 			if oneFolderBack == "trash" {
 				handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents, "trash")
-			} else if(oneFolderBack == "settings") {
+			} else if oneFolderBack == "settings" {
 				// The settings got updated
 				var projectSettings project_types.ProjectSettingsJson
 				err := io_helpers.ReadJsonFromPath(filepath.Join(projectPath, "settings", "settings.json"), &projectSettings)
 				if err == nil {
-					app.Events.Emit(&application.WailsEvent{
-						Name: "settings:update",
-						Data: projectSettings,
-					})
-
+					app.EmitEvent("settings:update", projectSettings)
 				}
 			} else {
 				handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents, "note")
@@ -217,11 +212,7 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 		case <-debounceTimer.C:
 			// Timer expired, emit debounced events
 			for eventKey, data := range debounceEvents {
-				fmt.Println(eventKey, data)
-				app.Events.Emit(&application.WailsEvent{
-					Name: eventKey,
-					Data: data,
-				})
+				app.EmitEvent(eventKey, data)
 			}
 			// Clear the debounced events
 			debounceEvents = make(map[string][]map[string]string)

@@ -40,7 +40,7 @@ export function useFolderCreate(
 	setFolders: Dispatch<SetStateAction<string[] | null>>,
 ) {
 	useWailsEvent("folder:create", (body) => {
-		const data = body.data as { folder: string }[];
+		const data = (body.data as { folder: string }[][])[0];
 
 		setFolders((prev) => {
 			if (!prev) return data.map(({ folder }) => folder);
@@ -60,7 +60,7 @@ export function useFolderDelete(
 	setFolders: Dispatch<SetStateAction<string[] | null>>,
 ) {
 	useWailsEvent("folder:delete", (body) => {
-		const data = body.data as { folder: string }[];
+		const data = (body.data as { folder: string }[][])[0];
 		const deletedFolders = new Set(data.map(({ folder }) => folder));
 
 		setFolders((prev) => {
@@ -79,7 +79,8 @@ export function useFolderRename(
 	setFolders: Dispatch<SetStateAction<string[] | null>>,
 ) {
 	useWailsEvent("folder:rename", (body) => {
-		const data = body.data as { folder: string }[];
+		const data = (body.data as { folder: string }[][])[0];
+		console.log(body, data);
 		const renamedFolders = new Set(data.map(({ folder }) => folder));
 
 		setFolders((prev) => {
@@ -109,7 +110,7 @@ export function useFolderContextMenuDelete(
 	setSelectionRange: Dispatch<SetStateAction<Set<string>>>,
 ) {
 	useWailsEvent("folder:context-menu:delete", (body) => {
-		const [deletedFolderName, windowId] = (body.data as string).split(",");
+		const [deletedFolderName, windowId] = (body.data as string[])[0].split(",");
 		setSelectionRange(new Set());
 		if (windowId === WINDOW_ID) {
 			setDialogData({
@@ -164,8 +165,8 @@ export function useFolderContextMenuDelete(
 export function useFolderContextMenuRename(
 	setDialogData: Dispatch<SetStateAction<DialogDataType>>,
 ) {
-	useWailsEvent("folder:context-menu:rename", (event) => {
-		const [folderToBeRenamed, windowId] = (event.data as string).split(",");
+	useWailsEvent("folder:context-menu:rename", (body) => {
+		const [folderToBeRenamed, windowId] = (body.data as string[])[0].split(",");
 		if (windowId === WINDOW_ID) {
 			setDialogData({
 				isOpen: true,

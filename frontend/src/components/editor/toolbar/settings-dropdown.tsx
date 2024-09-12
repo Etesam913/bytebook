@@ -1,6 +1,6 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useAtomValue } from "jotai";
-import { type Dispatch, type SetStateAction, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { UpdateProjectSettings } from "../../../../bindings/github.com/etesam913/bytebook/settingsservice";
 import { getDefaultButtonVariants } from "../../../animations";
@@ -19,13 +19,11 @@ export function SettingsDropdown({
 	note,
 	isToolbarDisabled,
 	frontmatter,
-	setFrontmatter,
 }: {
 	folder: string;
 	note: string;
 	isToolbarDisabled: boolean;
 	frontmatter: Record<string, string>;
-	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
 }) {
 	const [isOpen, setIsOpen] = useState(false);
 	const [focusIndex, setFocusIndex] = useState(0);

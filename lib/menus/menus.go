@@ -15,16 +15,11 @@ func InitializeApplicationMenu(app *application.App) {
 		newWindowMenuItem := fileMenu.Add("New Window")
 		newWindowMenuItem.SetAccelerator("shift+cmdorctrl+n")
 		newWindowMenuItem.OnClick(func(data *application.Context) {
-			app.Events.Emit(&application.WailsEvent{
-				Name: "open-note-in-new-window-backend",
-				Data: map[string]interface{}{
-					"url": "/",
-				},
+			app.EmitEvent("open-note-in-new-window-backend", map[string]interface{}{
+				"url": "/",
 			})
 		})
 	}
-
-
 
 	// Change the hotkey for the toggle fullscreen menu option
 	menuItem := menu.FindByLabel("Toggle Full Screen")
@@ -32,15 +27,12 @@ func InitializeApplicationMenu(app *application.App) {
 	menuItem.SetAccelerator("shift+cmd+f")
 
 	viewMenuItem := menu.ItemAt(3)
-	if viewMenuItem.IsSubmenu(){
+	if viewMenuItem.IsSubmenu() {
 		viewSubmenu := viewMenuItem.GetSubmenu()
-		viewSubmenuItem:= viewSubmenu.Add("Search")
+		viewSubmenuItem := viewSubmenu.Add("Search")
 		viewSubmenuItem.SetAccelerator("cmdorctrl+p")
-		viewSubmenuItem.OnClick(func(data *application.Context){
-			app.Events.Emit(&application.WailsEvent{
-				Name: "search:open-panel",
-				Data: map[string]interface{}{},
-			})
+		viewSubmenuItem.OnClick(func(data *application.Context) {
+			app.EmitEvent("search:open-panel", map[string]interface{}{})
 		})
 	}
 

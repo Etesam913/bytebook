@@ -44,8 +44,8 @@ export function useUserData() {
 
 export function useLoggedInEvent() {
 	const setUserDataWithLocalStorage = useSetAtom(userDataAtomWithLocalStorage);
-	useWailsEvent("auth:access-token", async (event) => {
-		const accessToken = event.data as string;
+	useWailsEvent("auth:access-token", async (body) => {
+		const accessToken = (body.data as string[])[0];
 
 		try {
 			const res = await getUserData(accessToken);

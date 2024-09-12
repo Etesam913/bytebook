@@ -32,8 +32,8 @@ export function useProjectSettings() {
 		getProjectSettings();
 	}, []);
 
-	useWailsEvent("settings:update", (newSettings) => {
-		const projectSettings = newSettings.data as ProjectSettings;
+	useWailsEvent("settings:update", (body) => {
+		const projectSettings = (body.data as ProjectSettings[])[0];
 		setProjectSettings({
 			...projectSettings,
 			pinnedNotes: new Set(projectSettings.pinnedNotes),

@@ -101,10 +101,7 @@ func githubAuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "https://google.com", http.StatusSeeOther)
 	app := application.Get()
-	app.Events.Emit(&application.WailsEvent{
-		Name: "auth:access-token",
-		Data: accessToken,
-	})
+	app.EmitEvent("auth:access-token", accessToken)
 }
 
 func LaunchAuthServer() {

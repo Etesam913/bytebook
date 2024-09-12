@@ -204,7 +204,6 @@ export function Toolbar({
 					note={note}
 					isToolbarDisabled={disabled}
 					frontmatter={frontmatter}
-					setFrontmatter={setFrontmatter}
 				/>
 			</nav>
 		</>
