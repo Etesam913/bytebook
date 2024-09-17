@@ -1,3 +1,4 @@
+import { AutoLinkPlugin } from "@lexical/react/LexicalAutoLinkPlugin";
 import { CheckListPlugin } from "@lexical/react/LexicalCheckListPlugin";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
@@ -7,7 +8,6 @@ import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import type { AnimationControls } from "framer-motion";
@@ -39,6 +39,7 @@ import { Toolbar } from "./toolbar";
 import { BottomBar } from "./bottom-bar.tsx";
 import { DraggableBlockPlugin } from "./plugins/draggable-block.tsx";
 import { FocusPlugin } from "./plugins/focus.tsx";
+import { LinkMatcherPlugin } from "./plugins/link-matcher.tsx";
 import { SAVE_MARKDOWN_CONTENT, SavePlugin } from "./plugins/save.tsx";
 import { TableOfContentsPlugin } from "./plugins/table-of-contents.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
@@ -183,7 +184,7 @@ export function NotesEditor({
 				<DraggableBlockPlugin />
 				<FocusPlugin />
 
-				{/* <AutoLinkPlugin matchers={MATCHERS} /> */}
+				<LinkMatcherPlugin />
 				{/* <TreeViewPlugin /> */}
 			</div>
 			<BottomBar frontmatter={frontmatter} folder={folder} note={note} />

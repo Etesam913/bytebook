@@ -22,7 +22,6 @@
 		"@codemirror/view": "^6.28.0",
 		"@codesandbox/sandpack-react": "^2.14.2",
 		"@excalidraw/excalidraw": "^0.17.6",
-		"@lexical/link": "^0.17.1",
 		"@lexical/list": "^0.17.1",
 		"@lexical/markdown": "^0.17.1",
 		"@lexical/react": "^0.17.1",
