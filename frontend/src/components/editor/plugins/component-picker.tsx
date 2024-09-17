@@ -6,6 +6,8 @@ import {
 } from "@lexical/react/LexicalTypeaheadMenuPlugin";
 import { $createHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
+import { AnimatePresence } from "framer-motion";
+import { useSetAtom } from "jotai";
 import {
 	$createParagraphNode,
 	$getSelection,
@@ -27,9 +29,6 @@ import {
 	useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { cn } from "../../../utils/string-formatting";
-
-import { useSetAtom } from "jotai";
 import { dialogDataAtom } from "../../../atoms";
 import { useBackendFunction } from "../../../hooks/query";
 import { AngularLogo } from "../../../icons/angular-logo";
@@ -49,6 +48,8 @@ import { Text } from "../../../icons/text";
 import { VideoIcon } from "../../../icons/video";
 import { VueLogo } from "../../../icons/vue-logo";
 import type { DialogDataType } from "../../../types";
+import { cn } from "../../../utils/string-formatting";
+import { SidebarHighlight } from "../../sidebar/highlight";
 import { YouTubeDialogChildren } from "../../youtube/youtube-dialog-children";
 import { $createExcalidrawNode } from "../nodes/excalidraw";
 import { $createFileNode } from "../nodes/file";
@@ -178,8 +179,9 @@ function ComponentPickerMenuItem({
 			key={option.key}
 			tabIndex={-1}
 			className={cn(
-				"flex items-center gap-2 text-left cursor-pointer rounded-md px-[7px] py-[2px] hover:bg-zinc-150 focus:bg-zinc-150 dark:hover:bg-zinc-600 dark:focus:bg-zinc-600",
-				isSelected && "bg-zinc-150 dark:bg-zinc-600",
+				"flex items-center gap-2 text-left cursor-pointer rounded-md px-[7px] py-[2px] hover:bg-zinc-100 dark:hover:bg-zinc-650 ",
+				isSelected &&
+					"bg-zinc-150 dark:bg-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600",
 			)}
 			ref={option.setRefElement}
 			aria-selected={isSelected}
@@ -433,21 +435,18 @@ export function ComponentPickerMenuPlugin({
 				options={options}
 				menuRenderFn={(
 					anchorElementRef,
-					{ selectedIndex, selectOptionAndCleanUp, setHighlightedIndex },
+					{ selectedIndex, selectOptionAndCleanUp },
 				) =>
 					anchorElementRef.current && options.length
 						? createPortal(
-								<ul className="fixed z-10 flex overflow-auto flex-col max-h-56 gap-0.5 w-48 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700">
+								<ul className="fixed z-10 flex overflow-auto flex-col max-h-56 gap-0.5 w-48 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1">
 									{options.map((option, i: number) => (
 										<ComponentPickerMenuItem
 											index={i}
 											isSelected={selectedIndex === i}
+											onMouseEnter={() => {}}
 											onClick={() => {
-												setHighlightedIndex(i);
 												selectOptionAndCleanUp(option);
-											}}
-											onMouseEnter={() => {
-												setHighlightedIndex(i);
 											}}
 											key={option.key}
 											option={option}
