@@ -121,6 +121,12 @@ export function ExcalidrawComponent({
 				onMouseUp={() =>
 					writeElementsToNodeWrapper(excalidrawAPIRef, writeElementsToNode)()
 				}
+				onWheelCapture={(e) => {
+					// Only allows scrolling inside the excalidraw editor when it is selected
+					if (!isSelected) {
+						e.stopPropagation();
+					}
+				}}
 				onKeyUp={(e) => {
 					// Fixes bug where escape key doesn't work in excalidraw editor even though it is a decorator node
 					if (

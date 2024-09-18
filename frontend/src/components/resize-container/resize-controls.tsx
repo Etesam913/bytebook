@@ -52,7 +52,7 @@ export function ResizeControls({
 					})
 				}
 			>
-				<Trash />
+				<Trash className="will-change-transform" />
 			</motion.button>
 			<motion.button
 				{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
@@ -64,7 +64,7 @@ export function ResizeControls({
 					writeWidthToNode("100%");
 				}}
 			>
-				<XResize />
+				<XResize className="will-change-transform" />
 			</motion.button>
 			<motion.button
 				{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
@@ -78,7 +78,7 @@ export function ResizeControls({
 					};
 				}}
 			>
-				<Fullscreen />
+				<Fullscreen className="will-change-transform" />
 			</motion.button>
 		</motion.div>
 	);

@@ -44,7 +44,7 @@ export function NoteComponentControls({
 						});
 					}}
 				>
-					<Trash />
+					<Trash className="will-change-transform" />
 				</motion.button>
 			)}
 
@@ -56,7 +56,7 @@ export function NoteComponentControls({
 						buttonOptions.fullscreen?.setIsExpanded(true);
 					}}
 				>
-					<Fullscreen />
+					<Fullscreen className="will-change-transform" />
 				</motion.button>
 			)}
 		</motion.div>
