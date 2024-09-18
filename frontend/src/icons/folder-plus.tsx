@@ -3,17 +3,20 @@ export function FolderPlus({
 	height = "1.25rem",
 	fill = "currentColor",
 	title = "folder-plus",
+	className = "",
 }: {
 	width?: string;
 	height?: string;
 	fill?: string;
 	title?: string;
+	className?: string;
 }) {
 	return (
 		<svg
 			style={{ width, height }}
 			viewBox="0 0 18 18"
 			xmlns="http://www.w3.org/2000/svg"
+			className={className}
 		>
 			<title>{title}</title>
 			<g fill={fill} stroke={fill}>

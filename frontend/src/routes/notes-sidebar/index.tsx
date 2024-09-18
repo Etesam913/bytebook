@@ -116,7 +116,7 @@ export function NotesSidebar({
 								</MotionIconButton>
 							</section>
 							<MotionButton
-								{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
+								{...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
 								onClick={() =>
 									setDialogData({
 										isOpen: true,
@@ -186,7 +186,7 @@ export function NotesSidebar({
 								}
 								className="align-center flex w-full justify-between bg-transparent mb-2"
 							>
-								Create Note <Compose />
+								Create Note <Compose className="will-change-transform" />
 							</MotionButton>
 							<section className="flex flex-col gap-2 overflow-y-auto flex-1">
 								<div className="flex h-full flex-col overflow-y-auto">
