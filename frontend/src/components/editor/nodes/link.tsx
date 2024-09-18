@@ -7,6 +7,7 @@
  *
  */
 
+import { addClassNamesToElement, isHTMLAnchorElement } from "@lexical/utils";
 import type {
 	BaseSelection,
 	DOMConversionMap,
@@ -18,8 +19,6 @@ import type {
 	RangeSelection,
 	SerializedElementNode,
 } from "lexical";
-
-import { addClassNamesToElement, isHTMLAnchorElement } from "@lexical/utils";
 import {
 	$applyNodeReplacement,
 	$getSelection,
@@ -37,6 +36,7 @@ import {
 	getInternalLinkType,
 	isInternalLink,
 } from "../../../utils/string-formatting";
+import type { AutoLinkAttributes } from "../plugins/link-matcher";
 import { handleATagClick } from "../utils/link";
 
 export type LinkAttributes = {
@@ -305,7 +305,7 @@ export class LinkNode extends ElementNode {
 		return true;
 	}
 
-	extractWithChild(child: LexicalNode, selection: BaseSelection): boolean {
+	extractWithChild(_child: LexicalNode, selection: BaseSelection): boolean {
 		if (!$isRangeSelection(selection)) {
 			return false;
 		}
@@ -317,6 +317,16 @@ export class LinkNode extends ElementNode {
 			this.isParentOf(anchorNode) &&
 			this.isParentOf(focusNode) &&
 			selection.getTextContent().length > 0
+		);
+	}
+
+	isEmailURI(): boolean {
+		return this.__url.startsWith("mailto:");
+	}
+
+	isWebSiteURI(): boolean {
+		return (
+			this.__url.startsWith("https://") || this.__url.startsWith("http://")
 		);
 	}
 }
@@ -365,6 +375,18 @@ export type SerializedAutoLinkNode = SerializedLinkNode;
 // Custom node type to override `canInsertTextAfter` that will
 // allow typing within the link
 export class AutoLinkNode extends LinkNode {
+	/** @internal */
+	/** Indicates whether the autolink was ever unlinked. **/
+	__isUnlinked: boolean;
+
+	constructor(url: string, attributes: AutoLinkAttributes = {}, key?: NodeKey) {
+		super(url, attributes, key);
+		this.__isUnlinked =
+			attributes.isUnlinked !== undefined && attributes.isUnlinked !== null
+				? attributes.isUnlinked
+				: false;
+	}
+
 	static getType(): string {
 		return "autolink";
 	}
@@ -372,7 +394,12 @@ export class AutoLinkNode extends LinkNode {
 	static clone(node: AutoLinkNode): AutoLinkNode {
 		return new AutoLinkNode(
 			node.__url,
-			{ rel: node.__rel, target: node.__target, title: node.__title },
+			{
+				isUnlinked: node.__isUnlinked,
+				rel: node.__rel,
+				target: node.__target,
+				title: node.__title,
+			},
 			node.__key,
 		);
 	}
@@ -387,6 +414,16 @@ export class AutoLinkNode extends LinkNode {
 		node.setIndent(serializedNode.indent);
 		node.setDirection(serializedNode.direction);
 		return node;
+	}
+
+	getIsUnlinked(): boolean {
+		return this.__isUnlinked;
+	}
+
+	setIsUnlinked(value: boolean) {
+		const self = this.getWritable();
+		self.__isUnlinked = value;
+		return self;
 	}
 
 	static importDOM(): null {
