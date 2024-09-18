@@ -1,4 +1,3 @@
-import { AutoLinkPlugin } from "@lexical/react/LexicalAutoLinkPlugin";
 import { CheckListPlugin } from "@lexical/react/LexicalCheckListPlugin";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";

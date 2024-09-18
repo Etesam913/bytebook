@@ -1,3 +1,5 @@
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { mergeRegister } from "@lexical/utils";
 import {
 	$createTextNode,
 	$getSelection,
@@ -6,14 +8,18 @@ import {
 	$isNodeSelection,
 	$isRangeSelection,
 	$isTextNode,
+	COMMAND_PRIORITY_LOW,
 	type ElementNode,
 	type LexicalNode,
-	type TextNode,
+	TextNode,
 } from "lexical";
+import { useEffect } from "react";
 import {
 	$createAutoLinkNode,
 	$isAutoLinkNode,
-	type AutoLinkNode,
+	$isLinkNode,
+	AutoLinkNode,
+	TOGGLE_LINK_COMMAND,
 } from "../nodes/link";
 
 const URL_MATCHER =
@@ -461,6 +467,64 @@ function getTextNodesToMatch(textNode: TextNode): TextNode[] {
 	return textNodesToMatch;
 }
 
-export function LinkMatcherPlugin() {
+export function LinkMatcherPlugin({ onChange }: { onChange?: ChangeHandler }) {
+	const [editor] = useLexicalComposerContext();
+	useEffect(() => {
+		if (!editor.hasNodes([AutoLinkNode])) {
+			throw new Error(
+				"LexicalAutoLinkPlugin: AutoLinkNode not registered on editor",
+			);
+		}
+
+		const onChangeWrapped = (url: string | null, prevUrl: string | null) => {
+			if (onChange) {
+				onChange(url, prevUrl);
+			}
+		};
+
+		return mergeRegister(
+			editor.registerNodeTransform(TextNode, (textNode: TextNode) => {
+				const parent = textNode.getParentOrThrow();
+				const previous = textNode.getPreviousSibling();
+				if ($isAutoLinkNode(parent) && !parent.getIsUnlinked()) {
+					handleLinkEdit(parent, MATCHERS, onChangeWrapped);
+				} else if (!$isLinkNode(parent)) {
+					if (
+						textNode.isSimpleText() &&
+						(startsWithSeparator(textNode.getTextContent()) ||
+							!$isAutoLinkNode(previous))
+					) {
+						const textNodesToMatch = getTextNodesToMatch(textNode);
+						$handleLinkCreation(textNodesToMatch, MATCHERS, onChangeWrapped);
+					}
+
+					handleBadNeighbors(textNode, MATCHERS, onChangeWrapped);
+				}
+			}),
+			editor.registerCommand(
+				TOGGLE_LINK_COMMAND,
+				(payload) => {
+					const selection = $getSelection();
+					if (payload !== null || !$isRangeSelection(selection)) {
+						return false;
+					}
+					const nodes = selection.extract();
+					nodes.forEach((node) => {
+						const parent = node.getParent();
+
+						if ($isAutoLinkNode(parent)) {
+							// invert the value
+							parent.setIsUnlinked(!parent.getIsUnlinked());
+							parent.markDirty();
+							return true;
+						}
+					});
+					return false;
+				},
+				COMMAND_PRIORITY_LOW,
+			),
+		);
+	}, [editor, MATCHERS, onChange]);
+
 	return <></>;
 }
