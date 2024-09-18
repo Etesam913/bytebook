@@ -89,6 +89,9 @@ export function changeSelectedBlocksType(
 				case "ul":
 					editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
 					break;
+				case "check":
+					editor.dispatchCommand(INSERT_CHECK_LIST_COMMAND, undefined);
+					break;
 				case "table":
 					editor.dispatchCommand(INSERT_TABLE_COMMAND, {
 						columns: "2",
