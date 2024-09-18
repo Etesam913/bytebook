@@ -1,4 +1,5 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { AnimatePresence } from "framer-motion";
 import { REDO_COMMAND, type TextFormatType, UNDO_COMMAND } from "lexical";
 import {
 	type Dispatch,
@@ -6,6 +7,8 @@ import {
 	type SetStateAction,
 	useState,
 } from "react";
+import { ListCheckbox } from "../../../icons/list-checkbox";
+import { OrderedList } from "../../../icons/ordered-list";
 import { Redo } from "../../../icons/redo";
 import { TextBold } from "../../../icons/text-bold";
 import { TextItalic } from "../../../icons/text-italic";
@@ -13,15 +16,13 @@ import { TextStrikethrough } from "../../../icons/text-strikethrough";
 import { TextUnderline } from "../../../icons/text-underline";
 import { Undo } from "../../../icons/undo";
 import { UnorderedList } from "../../../icons/unordered-list";
-import type { EditorBlockTypes, FloatingDataType } from "../../../types";
+import type { EditorBlockTypes } from "../../../types";
+import { cn } from "../../../utils/string-formatting";
 import {
 	handleToolbarBlockElementClick,
 	handleToolbarTextFormattingClick,
 } from "../../editor/utils/toolbar";
-
-import { ListCheckbox } from "../../../icons/list-checkbox";
-import { OrderedList } from "../../../icons/ordered-list";
-import { cn } from "../../../utils/string-formatting";
+import { SidebarHighlight } from "../../sidebar/highlight";
 
 type ButtonData = {
 	icon: ReactNode;
@@ -29,20 +30,6 @@ type ButtonData = {
 	key: string;
 	customDisabled?: boolean;
 };
-
-interface ToolbarButtonsProps {
-	canUndo: boolean;
-	canRedo: boolean;
-	isNodeSelection: boolean;
-	disabled: boolean;
-	currentBlockType: EditorBlockTypes;
-	setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>;
-	currentSelectionFormat: TextFormatType[];
-	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>;
-	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
-	shouldShowUndoRedo?: boolean;
-	noteContainerRef: React.RefObject<HTMLDivElement>;
-}
 
 export function ToolbarButtons({
 	canUndo,
@@ -53,11 +40,19 @@ export function ToolbarButtons({
 	setCurrentBlockType,
 	currentSelectionFormat,
 	setCurrentSelectionFormat,
-	setFloatingData,
 	shouldShowUndoRedo,
-	noteContainerRef,
-}: ToolbarButtonsProps) {
-	const [isHighlighted, setIsHighlighted] = useState(false);
+}: {
+	canUndo: boolean;
+	canRedo: boolean;
+	isNodeSelection: boolean;
+	disabled: boolean;
+	currentBlockType: EditorBlockTypes;
+	setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>;
+	currentSelectionFormat: TextFormatType[];
+	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>;
+	shouldShowUndoRedo?: boolean;
+}) {
+	const [highlightedButton, setHighlightedButton] = useState(-1);
 	const [editor] = useLexicalComposerContext();
 
 	const undoRedoData: ButtonData[] = [
@@ -167,31 +162,40 @@ export function ToolbarButtons({
 	}
 
 	const toolbarButtons = getButtonsData().map(
-		({ icon, onClick, key, customDisabled }) => {
+		({ icon, onClick, key, customDisabled }, i) => {
 			return (
-				<button
+				<div
+					className="relative flex items-center justify-center px-[0.075rem] h-fit w-fit"
 					key={key}
-					onClick={onClick}
-					type="button"
-					disabled={disabled || customDisabled}
-					className={cn(
-						"p-1.5 rounded-md transition-colors",
-						(key === currentBlockType ||
-							currentSelectionFormat.includes(key)) &&
-							!disabled &&
-							!customDisabled &&
-							"button-invert",
-					)}
 				>
-					{icon}
-				</button>
+					<button
+						onMouseEnter={() => setHighlightedButton(i)}
+						onMouseLeave={() => setHighlightedButton(-1)}
+						onClick={onClick}
+						type="button"
+						disabled={disabled || customDisabled}
+						className={cn(
+							"p-1.5 rounded-md transition-colors",
+							(key === currentBlockType ||
+								currentSelectionFormat.includes(key as TextFormatType)) &&
+								!disabled &&
+								!customDisabled &&
+								"button-invert",
+						)}
+					>
+						{icon}
+					</button>
+					<AnimatePresence>
+						{highlightedButton === i && (
+							<SidebarHighlight layoutId={"toolbar-highlight"} />
+						)}
+					</AnimatePresence>
+				</div>
 			);
 		},
 	);
 
 	return (
-		<span className="flex gap-1.5 overflow-hidden relative">
-			{toolbarButtons}
-		</span>
+		<span className="flex overflow-hidden items-center">{toolbarButtons}</span>
 	);
 }

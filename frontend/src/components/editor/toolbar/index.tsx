@@ -138,8 +138,6 @@ export function Toolbar({
 					setCurrentBlockType={setCurrentBlockType}
 					currentSelectionFormat={currentSelectionFormat}
 					setCurrentSelectionFormat={setCurrentSelectionFormat}
-					setFloatingData={setFloatingData}
-					noteContainerRef={noteContainerRef}
 				/>
 			</FloatingMenuPlugin>,
 			noteContainerRef.current,
@@ -195,8 +193,6 @@ export function Toolbar({
 					setCurrentBlockType={setCurrentBlockType}
 					currentSelectionFormat={currentSelectionFormat}
 					setCurrentSelectionFormat={setCurrentSelectionFormat}
-					setFloatingData={setFloatingData}
-					noteContainerRef={noteContainerRef}
 					shouldShowUndoRedo
 				/>
 				<SettingsDropdown
