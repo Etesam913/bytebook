@@ -66,9 +66,9 @@ export function DraggableBlockPlugin() {
 		<>
 			<motion.div
 				draggable
-				onDragStart={(e) =>
+				onDragStart={(e: DragEvent) =>
 					handleDragStart(
-						e as DragEvent,
+						e,
 						editor,
 						setIsDragging,
 						draggableBlockElement,

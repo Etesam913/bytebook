@@ -464,6 +464,7 @@ export function handleDragStart(
 	ghostElement.id = "block-element";
 	ghostElement.classList.add("dragging");
 	if (noteContainer) {
+		ghostElement.style.fontFamily = noteContainer.style.fontFamily;
 		ghostElement.style.maxWidth = `${noteContainer.clientWidth}px`;
 	}
 
