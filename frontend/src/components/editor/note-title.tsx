@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { RenameNote } from "../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { WINDOW_ID } from "../../App";
-import { isToolbarDisabled, notesAtom } from "../../atoms";
+import { isToolbarDisabledAtom, notesAtom } from "../../atoms";
 import { NAME_CHARS, cn } from "../../utils/string-formatting";
 
 export function NoteTitle({
@@ -21,7 +21,7 @@ export function NoteTitle({
 	const [noteTitle, setNoteTitle] = useState(note);
 	const notes = useAtomValue(notesAtom);
 	const [errorText, setErrorText] = useState("");
-	const setIsToolbarDisabled = useSetAtom(isToolbarDisabled);
+	const setIsToolbarDisabled = useSetAtom(isToolbarDisabledAtom);
 
 	useEffect(() => {
 		setNoteTitle(note);

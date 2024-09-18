@@ -26,19 +26,33 @@ const sortOptions: { name: string; value: SortStrings }[] = [
 function IconForSortOption({ sortOption }: { sortOption: SortStrings }) {
 	switch (sortOption) {
 		case "date-updated-desc":
-			return <SortDateDescending className="pointer-events-none" />;
+			return (
+				<SortDateDescending className="pointer-events-none will-change-transform" />
+			);
 		case "date-updated-asc":
-			return <SortDateAscending className="pointer-events-none" />;
+			return (
+				<SortDateAscending className="pointer-events-none will-change-transform" />
+			);
 		case "date-created-desc":
-			return <SortDateDescending className="pointer-events-none" />;
+			return (
+				<SortDateDescending className="pointer-events-none will-change-transform" />
+			);
 		case "date-created-asc":
-			return <SortDateAscending className="pointer-events-none" />;
+			return (
+				<SortDateAscending className="pointer-events-none will-change-transform" />
+			);
 		case "file-name-a-z":
-			return <SortAlphaAscending className="pointer-events-none" />;
+			return (
+				<SortAlphaAscending className="pointer-events-none will-change-transform" />
+			);
 		case "file-name-z-a":
-			return <SortAlphaDescending className="pointer-events-none" />;
+			return (
+				<SortAlphaDescending className="pointer-events-none will-change-transform" />
+			);
 		case "size-desc":
-			return <SortNumDescending className="pointer-events-none" />;
+			return (
+				<SortNumDescending className="pointer-events-none will-change-transform" />
+			);
 		case "size-asc":
 			return <SortNumAscending className="pointer-events-none" />;
 	}

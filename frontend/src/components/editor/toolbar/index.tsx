@@ -5,7 +5,7 @@ import type { TextFormatType } from "lexical";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { WINDOW_ID } from "../../../App";
-import { isNoteMaximizedAtom, isToolbarDisabled } from "../../../atoms";
+import { isNoteMaximizedAtom, isToolbarDisabledAtom } from "../../../atoms";
 import { useBackendFunction } from "../../../hooks/query";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { useIsStandalone, useWailsEvent } from "../../../utils/hooks";
@@ -45,7 +45,7 @@ export function Toolbar({
 	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
 }) {
 	const [editor] = useLexicalComposerContext();
-	const [disabled, setDisabled] = useAtom(isToolbarDisabled);
+	const [disabled, setDisabled] = useAtom(isToolbarDisabledAtom);
 	const [currentBlockType, setCurrentBlockType] =
 		useState<EditorBlockTypes>("paragraph");
 	const [currentSelectionFormat, setCurrentSelectionFormat] = useState<

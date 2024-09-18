@@ -19,7 +19,8 @@ export function ToggleLinkButton({
 	const [editor] = useLexicalComposerContext();
 
 	return (
-		<MotionIconButton
+		<button
+			className="p-1.5"
 			{...getDefaultButtonVariants(disabled)}
 			disabled={disabled}
 			type="button"
@@ -57,6 +58,6 @@ export function ToggleLinkButton({
 			}}
 		>
 			<Link className="will-change-transform" />
-		</MotionIconButton>
+		</button>
 	);
 }

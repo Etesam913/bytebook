@@ -76,7 +76,7 @@ export const selectionRangeAtom = atom<Set<string>>(new Set([]));
 
 export const darkModeAtom = atom<boolean>(false);
 
-export const isToolbarDisabled = atom<boolean>(false);
+export const isToolbarDisabledAtom = atom<boolean>(false);
 export const isNoteMaximizedAtom = atom<boolean>(false);
 
 export const noteContainerRefAtom =

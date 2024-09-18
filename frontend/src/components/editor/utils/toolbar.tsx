@@ -14,6 +14,7 @@ import {
 	$getSelection,
 	$isNodeSelection,
 	$isRangeSelection,
+	FORMAT_TEXT_COMMAND,
 	type LexicalEditor,
 	type TextFormatType,
 } from "lexical";
@@ -39,11 +40,60 @@ import type { FilePayload } from "../nodes/file";
 import { INSERT_FILES_COMMAND } from "../plugins/file";
 import { getFileElementTypeFromExtension } from "./file-node.ts";
 
+/**
+ * Handles the click event on toolbar block elements.
+ * If the clicked block type matches the current block type, it converts the block to a paragraph.
+ * Otherwise, it applies the appropriate list command based on the block type.
+ *
+ * @param editor - The LexicalEditor instance
+ * @param block - The block type to be applied ('ul', 'ol', or 'check')
+ * @param currentBlockType - The current block type
+ */
+export function handleToolbarBlockElementClick(
+	editor: LexicalEditor,
+	block: string,
+	currentBlockType: EditorBlockTypes,
+	setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>,
+) {
+	if (currentBlockType === block) {
+		editor.update(() => {
+			const selection = $getSelection();
+			if ($isRangeSelection(selection)) {
+				$setBlocksType(selection, () => $createParagraphNode());
+			}
+		});
+	} else {
+		setCurrentBlockType(block);
+		switch (block) {
+			case "ul":
+				editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+				break;
+			case "ol":
+				editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+				break;
+			case "check":
+				editor.dispatchCommand(INSERT_CHECK_LIST_COMMAND, undefined);
+				break;
+		}
+	}
+}
+
+/**
+ * Handles the click event for text formatting buttons in the toolbar.
+ * This function toggles the given text format in the current selection.
+ * If the format is already applied, it removes it; otherwise, it adds it.
+ *
+ * @param currentSelectionFormat - Array of currently applied text formats
+ * @param setCurrentSelectionFormat - Function to update the current selection format
+ * @param textFormat - The text format to toggle (e.g., 'bold', 'italic', etc.)
+ */
 export function handleToolbarTextFormattingClick(
+	editor: LexicalEditor,
 	currentSelectionFormat: TextFormatType[],
 	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
 	textFormat: TextFormatType,
 ) {
+	editor.dispatchCommand(FORMAT_TEXT_COMMAND, textFormat);
 	if (currentSelectionFormat.includes(textFormat)) {
 		setCurrentSelectionFormat(
 			currentSelectionFormat.filter((format) => format !== textFormat),

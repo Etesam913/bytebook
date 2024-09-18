@@ -49,7 +49,6 @@ import { VideoIcon } from "../../../icons/video";
 import { VueLogo } from "../../../icons/vue-logo";
 import type { DialogDataType } from "../../../types";
 import { cn } from "../../../utils/string-formatting";
-import { SidebarHighlight } from "../../sidebar/highlight";
 import { YouTubeDialogChildren } from "../../youtube/youtube-dialog-children";
 import { $createExcalidrawNode } from "../nodes/excalidraw";
 import { $createFileNode } from "../nodes/file";
