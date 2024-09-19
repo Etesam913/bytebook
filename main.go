@@ -2,13 +2,12 @@ package main
 
 import (
 	"embed"
-	"io"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"os/signal"
 	"path/filepath"
-	"syscall"
+	"runtime"
 
 	"github.com/creack/pty"
 	"github.com/etesam913/bytebook/lib/auth_server"
@@ -20,7 +19,6 @@ import (
 	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
-	"golang.org/x/term"
 )
 
 // Wails uses Go's `embed` package to embed the frontend files into the binary.
@@ -31,47 +29,34 @@ import (
 //go:embed frontend/dist
 var assets embed.FS
 
+func setupTerminal(app *application.App, nodeKey string) error {
+	// Start a new pty session with bash shell
+	cmd := exec.Command("bash")
+	ptmx, err := pty.Start(cmd)
+	if err != nil {
+		return err
+	}
 
-func test() error {
-        // Create arbitrary command.
-        c := exec.Command("bash")
+	app.OnEvent("test", func(e *application.CustomEvent) {
+		ptmx.Write([]byte("ls\n"))
+	})
 
-        // Start the command with a pty.
-        ptmx, err := pty.Start(c)
-        if err != nil {
-                return err
-        }
-        // Make sure to close the pty at the end.
-        defer func() { _ = ptmx.Close() }() // Best effort.
+	// Make sure to close the pty at the end.
+	defer func() { _ = ptmx.Close() }()
 
-        // Handle pty size.
-        ch := make(chan os.Signal, 1)
-        signal.Notify(ch, syscall.SIGWINCH)
-        go func() {
-                for range ch {
-                        if err := pty.InheritSize(os.Stdin, ptmx); err != nil {
-                                log.Printf("error resizing pty: %s", err)
-                        }
-                }
-        }()
-        ch <- syscall.SIGWINCH // Initial resize.
-        defer func() { signal.Stop(ch); close(ch) }() // Cleanup signals when done.
+	buf := make([]byte, 1024)
+	for {
+		n, err := ptmx.Read(buf)
+		if err != nil {
+			log.Println("read error:", err)
+			break
+		}
+		app.EmitEvent("")
+		fmt.Println(string(buf[:n]))
+	}
 
-        // Set stdin in raw mode.
-        oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
-        if err != nil {
-                panic(err)
-        }
-        defer func() { _ = term.Restore(int(os.Stdin.Fd()), oldState) }() // Best effort.
-
-        // Copy stdin to the pty and the pty to stdout.
-        // NOTE: The goroutine will keep reading until the next keystroke before returning.
-        go func() { _, _ = io.Copy(ptmx, os.Stdin) }()
-        _, _ = io.Copy(os.Stdout, ptmx)
-
-        return nil
+	return nil
 }
-
 
 // main function serves as the application's entry point. It initializes the application, creates a window,
 // and starts a goroutine that emits a time-based event every second. It subsequently runs the application and
@@ -128,6 +113,15 @@ func main() {
 		},
 	})
 
+	// Creates a new terminal
+	app.OnEvent("terminal:create", func(e *application.CustomEvent) {
+		nodeKey := e.Data.(string)
+		go setupTerminal(app, nodeKey)
+		fmt.Printf("Number of goroutines: %d\n", runtime.NumGoroutine())
+	})
+
+	// go setupTerminal(app)
+
 	backgroundColor := application.NewRGB(27, 38, 54)
 	if app.IsDarkMode() {
 		backgroundColor = application.NewRGB(0, 0, 0)
@@ -147,7 +141,7 @@ func main() {
 		{Label: "Reveal In Finder", EventName: "folder:reveal-in-finder"},
 	})
 
-    project_helpers.CreateNoteContextMenu(app, projectPath, noteContextMenu, backgroundColor)
+	project_helpers.CreateNoteContextMenu(app, projectPath, noteContextMenu, backgroundColor)
 
 	app.RegisterContextMenu("folder-context-menu", folderContextMenu)
 	app.RegisterContextMenu("note-context-menu", noteContextMenu)

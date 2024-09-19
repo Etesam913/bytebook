@@ -4,11 +4,13 @@ import { draggedElementAtom, isNoteMaximizedAtom } from "../../atoms";
 import { MaximizeNoteButton } from "../../components/buttons/maximize-note";
 import { NotesEditor } from "../../components/editor";
 import { useMostRecentNotes } from "../../components/editor/hooks/note-metadata";
+import { Events } from "@wailsio/runtime";
 import { TrashEditor } from "../../components/editor/trash-editor";
 import { FileBan } from "../../icons/file-ban";
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from "../../types";
 import { FILE_SERVER_URL } from "../../utils/misc";
 import { cn } from "../../utils/string-formatting";
+import { TerminalComponent } from "../../components/terminal";
 
 export function RenderNote({
 	folder,
@@ -61,7 +63,7 @@ export function RenderNote({
 					</h1>
 				</header>
 			)}
-			{isMarkdown &&
+			{/* {isMarkdown &&
 				(isInTrash ? (
 					<TrashEditor curFile={`${note}.${fileExtension}`} />
 				) : (
@@ -69,7 +71,31 @@ export function RenderNote({
 						params={{ folder, note }}
 						animationControls={animationControls}
 					/>
-				))}
+				))} */}
+			<TerminalComponent />
+			<button
+				type="button"
+				onClick={() => {
+					Events.Emit({
+						name: "terminal:create",
+						data: "nodeKeyHere",
+					});
+				}}
+			>
+				create terminal
+			</button>
+
+			<button
+				type="button"
+				onClick={() => {
+					Events.Emit({
+						name: "test",
+						data: [],
+					});
+				}}
+			>
+				event for terminal
+			</button>
 
 			{isPdf && (
 				<iframe
