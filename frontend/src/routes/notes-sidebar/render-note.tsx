@@ -1,16 +1,16 @@
+import { Events } from "@wailsio/runtime";
 import { motion, useAnimationControls } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { draggedElementAtom, isNoteMaximizedAtom } from "../../atoms";
 import { MaximizeNoteButton } from "../../components/buttons/maximize-note";
 import { NotesEditor } from "../../components/editor";
 import { useMostRecentNotes } from "../../components/editor/hooks/note-metadata";
-import { Events } from "@wailsio/runtime";
 import { TrashEditor } from "../../components/editor/trash-editor";
+import { TerminalComponent } from "../../components/terminal";
 import { FileBan } from "../../icons/file-ban";
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from "../../types";
 import { FILE_SERVER_URL } from "../../utils/misc";
 import { cn } from "../../utils/string-formatting";
-import { TerminalComponent } from "../../components/terminal";
 
 export function RenderNote({
 	folder,
@@ -72,13 +72,13 @@ export function RenderNote({
 						animationControls={animationControls}
 					/>
 				))} */}
-			<TerminalComponent />
+			<TerminalComponent nodeKey="10" />
 			<button
 				type="button"
 				onClick={() => {
 					Events.Emit({
 						name: "terminal:create",
-						data: "nodeKeyHere",
+						data: "10",
 					});
 				}}
 			>

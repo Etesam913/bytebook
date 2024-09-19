@@ -29,6 +29,11 @@ import (
 //go:embed frontend/dist
 var assets embed.FS
 
+type TerminalData struct {
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+
 func setupTerminal(app *application.App, nodeKey string) error {
 	// Start a new pty session with bash shell
 	cmd := exec.Command("bash")
@@ -36,9 +41,9 @@ func setupTerminal(app *application.App, nodeKey string) error {
 	if err != nil {
 		return err
 	}
-
-	app.OnEvent("test", func(e *application.CustomEvent) {
-		ptmx.Write([]byte("ls\n"))
+	terminalInputEventName := fmt.Sprintf("terminal:input-%s", nodeKey)
+	app.OnEvent(terminalInputEventName, func(e *application.CustomEvent) {
+		ptmx.Write([]byte(e.Data.(string)))
 	})
 
 	// Make sure to close the pty at the end.
@@ -51,7 +56,11 @@ func setupTerminal(app *application.App, nodeKey string) error {
 			log.Println("read error:", err)
 			break
 		}
-		app.EmitEvent("")
+		terminalOutputEventName := fmt.Sprintf("terminal:output-%s", nodeKey)
+		app.EmitEvent(terminalOutputEventName, TerminalData{
+			Type:  "command",
+			Value: string(buf[:n]),
+		})
 		fmt.Println(string(buf[:n]))
 	}
 

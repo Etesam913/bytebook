@@ -1,11 +1,21 @@
-import { useEffect, useRef } from "react";
-import { Terminal } from "@xterm/xterm";
+import { Events } from "@wailsio/runtime";
 import { FitAddon } from "@xterm/addon-fit";
+import { Terminal } from "@xterm/xterm";
+import { useEffect, useRef } from "react";
+import { useWailsEvent } from "../../utils/hooks";
 
-export function TerminalComponent() {
+export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 	const terminalRef = useRef<HTMLDivElement | null>(null);
 	const term = useRef<Terminal | null>(null);
 	const fitAddon = useRef<FitAddon | null>(null);
+
+	useWailsEvent(`terminal:output-${nodeKey}`, (body) => {
+		const data = body.data as { type: string; value: string }[];
+		if (term.current) {
+			console.log(data);
+			term.current.write(data[0].value);
+		}
+	});
 
 	useEffect(() => {
 		// Initialize the terminal
@@ -36,7 +46,10 @@ export function TerminalComponent() {
 
 		// Handle data from xterm and send it to backend
 		term.current.onData((data) => {
-			console.log(data);
+			Events.Emit({
+				name: `terminal:input-${nodeKey}`,
+				data,
+			});
 		});
 
 		// Handle terminal resize
