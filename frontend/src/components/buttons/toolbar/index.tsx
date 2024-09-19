@@ -10,6 +10,8 @@ import {
 import { ListCheckbox } from "../../../icons/list-checkbox";
 import { OrderedList } from "../../../icons/ordered-list";
 import { Redo } from "../../../icons/redo";
+import Subscript from "../../../icons/subscript";
+import Superscript from "../../../icons/superscript";
 import { TextBold } from "../../../icons/text-bold";
 import { TextItalic } from "../../../icons/text-italic";
 import { TextStrikethrough } from "../../../icons/text-strikethrough";
@@ -118,6 +120,28 @@ export function ToolbarButtons({
 					"strikethrough",
 				),
 			key: "strikethrough",
+		},
+		{
+			icon: <Subscript className="will-change-transform" />,
+			onClick: () =>
+				handleToolbarTextFormattingClick(
+					editor,
+					currentSelectionFormat,
+					setCurrentSelectionFormat,
+					"subscript",
+				),
+			key: "subscript",
+		},
+		{
+			icon: <Superscript className="will-change-transform" />,
+			onClick: () =>
+				handleToolbarTextFormattingClick(
+					editor,
+					currentSelectionFormat,
+					setCurrentSelectionFormat,
+					"superscript",
+				),
+			key: "superscript",
 		},
 		{
 			icon: <UnorderedList className="will-change-transform" />,

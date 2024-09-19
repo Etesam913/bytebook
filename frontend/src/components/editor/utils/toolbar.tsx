@@ -178,6 +178,12 @@ export function updateToolbarOnSelectionChange(
 		if (selection.hasFormat("strikethrough")) {
 			selectionTextFormats.push("strikethrough");
 		}
+		if (selection.hasFormat("subscript")) {
+			selectionTextFormats.push("subscript");
+		}
+		if (selection.hasFormat("superscript")) {
+			selectionTextFormats.push("superscript");
+		}
 
 		setCurrentSelectionFormat(selectionTextFormats as TextFormatType[]);
 	}
