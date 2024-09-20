@@ -4,19 +4,11 @@ import { mergeRegister } from "@lexical/utils";
 import { Events } from "@wailsio/runtime";
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
-import { motion } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { CLICK_COMMAND, COMMAND_PRIORITY_NORMAL } from "lexical";
 import { useEffect, useRef, useState } from "react";
-import { getDefaultButtonVariants } from "../../animations";
 import { darkModeAtom } from "../../atoms";
-import { ExitFullscreen } from "../../icons/arrows-reduce-diagonal";
-import { Fullscreen } from "../../icons/fullscreen";
-import { Trash } from "../../icons/trash";
-import {
-	onClickDecoratorNodeCommand,
-	removeDecoratorNode,
-} from "../../utils/commands";
+import { onClickDecoratorNodeCommand } from "../../utils/commands";
 import { useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { TerminalHeader } from "./header";

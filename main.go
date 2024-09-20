@@ -2,14 +2,10 @@ package main
 
 import (
 	"embed"
-	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
 
-	"github.com/creack/pty"
 	"github.com/etesam913/bytebook/lib/auth_server"
 	"github.com/etesam913/bytebook/lib/custom_events"
 	"github.com/etesam913/bytebook/lib/file_server"
@@ -17,6 +13,7 @@ import (
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/menus"
 	"github.com/etesam913/bytebook/lib/project_helpers"
+	"github.com/etesam913/bytebook/lib/terminal"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -28,44 +25,6 @@ import (
 
 //go:embed frontend/dist
 var assets embed.FS
-
-type TerminalData struct {
-	Type  string `json:"type"`
-	Value string `json:"value"`
-}
-
-func setupTerminal(app *application.App, nodeKey string) error {
-	// Start a new pty session with bash shell
-	cmd := exec.Command("bash")
-	ptmx, err := pty.Start(cmd)
-	if err != nil {
-		return err
-	}
-	terminalInputEventName := fmt.Sprintf("terminal:input-%s", nodeKey)
-	app.OnEvent(terminalInputEventName, func(e *application.CustomEvent) {
-		ptmx.Write([]byte(e.Data.(string)))
-	})
-
-	// Make sure to close the pty at the end.
-	defer func() { _ = ptmx.Close() }()
-
-	buf := make([]byte, 1024)
-	for {
-		n, err := ptmx.Read(buf)
-		if err != nil {
-			log.Println("read error:", err)
-			break
-		}
-		terminalOutputEventName := fmt.Sprintf("terminal:output-%s", nodeKey)
-		app.EmitEvent(terminalOutputEventName, TerminalData{
-			Type:  "command",
-			Value: string(buf[:n]),
-		})
-		fmt.Println(string(buf[:n]))
-	}
-
-	return nil
-}
 
 // main function serves as the application's entry point. It initializes the application, creates a window,
 // and starts a goroutine that emits a time-based event every second. It subsequently runs the application and
@@ -122,14 +81,7 @@ func main() {
 		},
 	})
 
-	// Creates a new terminal
-	app.OnEvent("terminal:create", func(e *application.CustomEvent) {
-		nodeKey := e.Data.(string)
-		go setupTerminal(app, nodeKey)
-		fmt.Printf("Number of goroutines: %d\n", runtime.NumGoroutine())
-	})
-
-	// go setupTerminal(app)
+	terminal.ListenToTerminalCreateEvent(app)
 
 	backgroundColor := application.NewRGB(27, 38, 54)
 	if app.IsDarkMode() {

@@ -27,7 +27,7 @@ export function TerminalHeader({
 		>
 			<span
 				className={cn(
-					"text-blue-500 pointer-events-none",
+					"text-blue-500 dark:text-blue-400 pointer-events-none",
 					isFullscreen && "ml-20",
 				)}
 			>
