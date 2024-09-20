@@ -6,7 +6,6 @@ import {
 } from "@lexical/react/LexicalTypeaheadMenuPlugin";
 import { $createHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
-import { AnimatePresence } from "framer-motion";
 import { useSetAtom } from "jotai";
 import {
 	$createParagraphNode,
@@ -44,6 +43,7 @@ import { PythonLogo } from "../../../icons/python-logo";
 import { ReactLogo } from "../../../icons/react-logo";
 import { RustLogo } from "../../../icons/rust-logo";
 import { SvelteLogo } from "../../../icons/svelte-logo";
+import { TerminalIcon } from "../../../icons/terminal";
 import { Text } from "../../../icons/text";
 import { VideoIcon } from "../../../icons/video";
 import { VueLogo } from "../../../icons/vue-logo";
@@ -73,7 +73,8 @@ const languageCommandData: {
 		| "vue"
 		| "svelte"
 		| "rust"
-		| "cpp";
+		| "cpp"
+		| "terminal";
 	name: string;
 	keywords: string[];
 	icon?: JSX.Element;
@@ -127,6 +128,12 @@ const languageCommandData: {
 		keywords: ["javascript", "svelte", "js"],
 		icon: <SvelteLogo height="17" width="17" />,
 		name: "Svelte",
+	},
+	{
+		id: "terminal",
+		keywords: ["terminal", "command", "prompt", "bash", "zsh", "sh"],
+		icon: <TerminalIcon />,
+		name: "Terminal",
 	},
 ];
 

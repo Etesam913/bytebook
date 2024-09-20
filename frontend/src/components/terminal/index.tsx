@@ -13,6 +13,18 @@ import { useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { useFocusOnSelect } from "./hooks";
 
+const darkTerminalTheme = {
+	background: "rgb(21, 21, 21)",
+	foreground: "#f4f4f5",
+	cursor: "#f4f4f5",
+};
+
+const lightTerminalTheme = {
+	background: "rgb(255,255,255)",
+	foreground: "rgb(21, 21, 21)",
+	cursor: "rgb(21, 21, 21)",
+};
+
 export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 	const terminalRef = useRef<HTMLDivElement | null>(null);
 	const [editor] = useLexicalComposerContext();
@@ -52,16 +64,8 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 	useEffect(() => {
 		if (term.current) {
 			term.current.options.theme = isDarkModeOn
-				? {
-						background: "rgb(21, 21, 21)",
-						foreground: "#f4f4f5",
-						cursor: "#f4f4f5",
-					}
-				: {
-						background: "rgb(255,255,255)",
-						foreground: "rgb(21, 21, 21)",
-						cursor: "rgb(21, 21, 21)",
-					};
+				? darkTerminalTheme
+				: lightTerminalTheme;
 		}
 	}, [isDarkModeOn]);
 
@@ -81,11 +85,7 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 			fontFamily: '"Jetbrains Mono", monospace',
 			fontSize: 13,
 			cursorStyle: "block",
-			theme: {
-				background: "rgb(21, 21, 21)",
-				foreground: "#f4f4f5",
-				cursor: "#f4f4f5",
-			},
+			theme: isDarkModeOn ? darkTerminalTheme : lightTerminalTheme,
 		});
 
 		// Add the fit addon.
@@ -98,6 +98,9 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 		// Open the terminal in the terminalRef div
 		term.current.open(terminalRef.current);
 
+		if (isSelected) {
+			term.current.focus();
+		}
 		// Fit the terminal to the container size
 		fitAddon.current.fit();
 
