@@ -149,7 +149,7 @@ div[data-template-is-fullscreen="true"]
  */
 
 .xterm {
-    @apply p-3 flex-1;
+    @apply p-3 ;
 }
 
 

@@ -6,31 +6,46 @@ import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
 import { useAtomValue } from "jotai";
 import { CLICK_COMMAND, COMMAND_PRIORITY_NORMAL } from "lexical";
-import { useEffect, useRef, useState } from "react";
+import { type RefObject, useEffect, useRef, useState } from "react";
 import { darkModeAtom } from "../../atoms";
 import { onClickDecoratorNodeCommand } from "../../utils/commands";
 import { useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { TerminalHeader } from "./header";
-import { useFocusOnSelect } from "./hooks";
+import {
+	darkTerminalTheme,
+	lightTerminalTheme,
+	useFocusOnSelect,
+	useTerminalCreate,
+	useTerminalTheme,
+} from "./hooks";
 
-const darkTerminalTheme = {
-	background: "rgb(21, 21, 21)",
-	foreground: "#f4f4f5",
-	cursor: "#f4f4f5",
-};
+type NewType = RefObject<Terminal>;
 
-const lightTerminalTheme = {
-	background: "rgb(255,255,255)",
-	foreground: "rgb(21, 21, 21)",
-	cursor: "rgb(21, 21, 21)",
-};
+// Handle terminal resize
+function handleResize(
+	fitAddon: RefObject<FitAddon>,
+	term: NewType,
+	nodeKey: string,
+) {
+	if (!fitAddon.current) return;
+	fitAddon.current.fit();
+	if (term.current) {
+		term.current.focus();
+		const [rows, cols] = [term.current.rows, term.current.cols];
+		Events.Emit({
+			name: `terminal:resize-${nodeKey}`,
+			data: { rows, cols },
+		});
+	}
+}
 
 export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 	const terminalRef = useRef<HTMLDivElement | null>(null);
 	const [editor] = useLexicalComposerContext();
 	const term = useRef<Terminal | null>(null);
 	const fitAddon = useRef<FitAddon | null>(null);
+	const terminalContainerRef = useRef<HTMLDivElement | null>(null);
 	const isDarkModeOn = useAtomValue(darkModeAtom);
 	const [isSelected, setIsSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
@@ -44,6 +59,8 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 		}
 	});
 
+	useTerminalTheme(isDarkModeOn, term);
+
 	useEffect(() => {
 		return mergeRegister(
 			editor.registerCommand<MouseEvent>(
@@ -52,7 +69,7 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 					e.stopPropagation();
 					return onClickDecoratorNodeCommand(
 						e,
-						terminalRef.current,
+						terminalContainerRef.current,
 						setIsSelected,
 						clearSelection,
 					);
@@ -62,20 +79,7 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 		);
 	}, []);
 
-	useEffect(() => {
-		if (term.current) {
-			term.current.options.theme = isDarkModeOn
-				? darkTerminalTheme
-				: lightTerminalTheme;
-		}
-	}, [isDarkModeOn]);
-
-	useEffect(() => {
-		Events.Emit({
-			name: "terminal:create",
-			data: nodeKey,
-		});
-	}, []);
+	useTerminalCreate(nodeKey);
 
 	useEffect(() => {
 		// Initialize the terminal
@@ -115,24 +119,15 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 			});
 		});
 
-		// Handle terminal resize
-		function handleResize() {
-			if (!fitAddon.current) return;
-			fitAddon.current.fit();
-			if (term.current) {
-				const [rows, cols] = [term.current.rows, term.current.cols];
-				Events.Emit({
-					name: `terminal:resize-${nodeKey}`,
-					data: { rows, cols },
-				});
-			}
+		function handleResizeWrapper() {
+			handleResize(fitAddon, term, nodeKey);
 		}
 
-		window.addEventListener("resize", handleResize);
+		window.addEventListener("resize", handleResizeWrapper);
 
 		// Cleanup on component unmount
 		return () => {
-			window.removeEventListener("resize", handleResize);
+			window.removeEventListener("resize", handleResizeWrapper);
 			if (fitAddon.current) fitAddon.current.dispose();
 			if (term.current) term.current.dispose();
 		};
@@ -146,15 +141,22 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 				isFullscreen &&
 					"fixed top-0 left-0 right-0 bottom-0 z-20 h-screen border-0",
 			)}
-			onClick={(e) => e.stopPropagation()}
+			ref={terminalContainerRef}
+			// onClick={(e) => e.stopPropagation()}
 		>
 			<TerminalHeader
 				isFullscreen={isFullscreen}
 				setIsFullscreen={setIsFullscreen}
 				nodeKey={nodeKey}
 				editor={editor}
+				onFullscreenChange={() => {
+					handleResize(fitAddon, term, nodeKey);
+				}}
 			/>
-			<div ref={terminalRef} className="h-[20rem]" />
+			<div
+				ref={terminalRef}
+				className={cn("h-80", isFullscreen && "h-screen")}
+			/>
 		</div>
 	);
 }

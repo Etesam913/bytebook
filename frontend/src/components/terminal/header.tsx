@@ -12,11 +12,13 @@ export function TerminalHeader({
 	setIsFullscreen,
 	nodeKey,
 	editor,
+	onFullscreenChange,
 }: {
 	isFullscreen: boolean;
 	setIsFullscreen: React.Dispatch<React.SetStateAction<boolean>>;
 	nodeKey: string;
 	editor: LexicalEditor;
+	onFullscreenChange: () => void;
 }) {
 	return (
 		<header
@@ -49,6 +51,10 @@ export function TerminalHeader({
 					{...getDefaultButtonVariants()}
 					onClick={() => {
 						setIsFullscreen((prev) => !prev);
+
+						setTimeout(() => {
+							onFullscreenChange();
+						}, 100);
 					}}
 				>
 					{isFullscreen ? (
