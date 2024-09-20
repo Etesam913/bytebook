@@ -119,6 +119,13 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 		function handleResize() {
 			if (!fitAddon.current) return;
 			fitAddon.current.fit();
+			if (term.current) {
+				const [rows, cols] = [term.current.rows, term.current.cols];
+				Events.Emit({
+					name: `terminal:resize-${nodeKey}`,
+					data: { rows, cols },
+				});
+			}
 		}
 
 		window.addEventListener("resize", handleResize);
@@ -134,13 +141,12 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 	return (
 		<div
 			className={cn(
-				"w-full h-72 border-2 border-[rgb(229,231,235)] dark:border-[rgb(37,37,37)] rounded-md overflow-hidden bg-white dark:bg-zinc-900 font-code",
+				"w-full flex flex-col border-2 border-[rgb(229,231,235)] dark:border-[rgb(37,37,37)] rounded-md overflow-hidden bg-white dark:bg-zinc-900 font-code",
 				isSelected && " border-blue-400 dark:border-blue-500",
 				isFullscreen &&
 					"fixed top-0 left-0 right-0 bottom-0 z-20 h-screen border-0",
 			)}
 			onClick={(e) => e.stopPropagation()}
-			ref={terminalRef}
 		>
 			<TerminalHeader
 				isFullscreen={isFullscreen}
@@ -148,6 +154,7 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 				nodeKey={nodeKey}
 				editor={editor}
 			/>
+			<div ref={terminalRef} className="h-[20rem]" />
 		</div>
 	);
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-type TerminalData struct {
+type terminalData struct {
 	Type  string `json:"type"`
 	Value string `json:"value"`
 }
@@ -26,6 +26,26 @@ func SetupTerminal(app *application.App, nodeKey string) error {
 	app.OnEvent(terminalInputEventName, func(e *application.CustomEvent) {
 		ptmx.Write([]byte(e.Data.(string)))
 	})
+	terminalResizeEventName := fmt.Sprintf("terminal:resize-%s", nodeKey)
+	app.OnEvent(terminalResizeEventName, func(e *application.CustomEvent) {
+		data, ok := e.Data.(map[string]interface{})
+		if !ok {
+			log.Println("Invalid data type for resize event")
+			return
+		}
+		cols, colsOk := data["cols"].(float64)
+		rows, rowsOk := data["rows"].(float64)
+		if !colsOk || !rowsOk {
+			log.Println("Invalid cols or rows data")
+			return
+		}
+		pty.Setsize(ptmx, &pty.Winsize{
+			Cols: uint16(cols),
+			Rows: uint16(rows),
+		})
+	})
+
+	// pty.Setsize(ptmx, &pty.Winsize{})
 
 	// Make sure to close the pty at the end.
 	defer func() { _ = ptmx.Close() }()
@@ -38,7 +58,7 @@ func SetupTerminal(app *application.App, nodeKey string) error {
 			break
 		}
 		terminalOutputEventName := fmt.Sprintf("terminal:output-%s", nodeKey)
-		app.EmitEvent(terminalOutputEventName, TerminalData{
+		app.EmitEvent(terminalOutputEventName, terminalData{
 			Type:  "command",
 			Value: string(buf[:n]),
 		})
