@@ -222,7 +222,7 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 		// MarkdownImport.ts handles the import of code blocks
 		// This code handles creation for the first time
 		const language = match.at(1);
-
+		console.log(language, codeLanguages);
 		if (!language || (!codeLanguages.has(language) && language !== "drawing")) {
 			return;
 		}

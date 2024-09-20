@@ -15,6 +15,7 @@ import {
 	SandpackEditor,
 	nonTemplateLanguageDefaultFiles,
 } from "../../code/index";
+import { TerminalComponent } from "../../terminal";
 
 export interface CodePayload {
 	key?: NodeKey;
@@ -153,6 +154,9 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		});
 	}
 	decorate(_editor: LexicalEditor): JSX.Element {
+		if (this.getLanguage() === "terminal") {
+			return <TerminalComponent nodeKey={this.getKey()} />;
+		}
 		return (
 			<SandpackEditor
 				nodeKey={this.getKey()}

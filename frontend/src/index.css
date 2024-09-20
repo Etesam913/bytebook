@@ -142,6 +142,15 @@ div[data-template-is-fullscreen="true"]
 }
 
 /**
+ * Terminal styles
+ */
+
+.xterm {
+    @apply p-3 ;
+}
+
+
+/**
  * Excalidraw styles
 */
 

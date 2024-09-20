@@ -63,7 +63,7 @@ export function RenderNote({
 					</h1>
 				</header>
 			)}
-			{/* {isMarkdown &&
+			{isMarkdown &&
 				(isInTrash ? (
 					<TrashEditor curFile={`${note}.${fileExtension}`} />
 				) : (
@@ -71,8 +71,8 @@ export function RenderNote({
 						params={{ folder, note }}
 						animationControls={animationControls}
 					/>
-				))} */}
-			<TerminalComponent nodeKey="10" />
+				))}
+			{/* <TerminalComponent nodeKey="10" />
 			<button
 				type="button"
 				onClick={() => {
@@ -95,7 +95,7 @@ export function RenderNote({
 				}}
 			>
 				event for terminal
-			</button>
+			</button> */}
 
 			{isPdf && (
 				<iframe

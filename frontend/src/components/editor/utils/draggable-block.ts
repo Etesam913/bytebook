@@ -498,10 +498,18 @@ export function handleDragStart(
 					}
 				});
 			}
+
 			if (node.getType() === "excalidraw") {
 				const excalidrawText = document.createElement("div");
 				excalidrawText.innerText = "Drawing";
 				ghostElement.replaceChildren(excalidrawText);
+			} else if (
+				node.getType() === "code-block" &&
+				node.getLanguage() === "terminal"
+			) {
+				const terminalText = document.createElement("div");
+				terminalText.innerText = "Terminal";
+				ghostElement.replaceChildren(terminalText);
 			}
 
 			nodeKey = node.getKey();
