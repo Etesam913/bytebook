@@ -1,19 +1,15 @@
 import { Events } from "@wailsio/runtime";
-import type { Terminal } from "@xterm/xterm";
-import { type RefObject, useEffect } from "react";
+import { FitAddon } from "@xterm/addon-fit";
+import { Terminal } from "@xterm/xterm";
+import { type MutableRefObject, type RefObject, useEffect } from "react";
+import { useWailsEvent } from "../../utils/hooks";
+import { darkTerminalTheme, handleResize, lightTerminalTheme } from "./utils";
 
-export const darkTerminalTheme = {
-	background: "rgb(21, 21, 21)",
-	foreground: "#f4f4f5",
-	cursor: "#f4f4f5",
-};
-
-export const lightTerminalTheme = {
-	background: "rgb(255,255,255)",
-	foreground: "rgb(21, 21, 21)",
-	cursor: "rgb(21, 21, 21)",
-};
-
+/**
+ * 
+   Whenever the underlying node is selected, it focuses on the terminal textarea.
+	 This improves the UX
+ */
 export function useFocusOnSelect(
 	isSelected: boolean,
 	terminalRef: React.RefObject<HTMLDivElement | null>,
@@ -30,6 +26,11 @@ export function useFocusOnSelect(
 	}, [isSelected, terminalRef]);
 }
 
+/**
+ * Updates the terminal theme based on the dark mode setting.
+ * This hook applies the appropriate theme (dark or light) to the terminal
+ * whenever the dark mode setting changes.
+ */
 export function useTerminalTheme(
 	isDarkModeOn: boolean,
 	term: RefObject<Terminal>,
@@ -47,11 +48,87 @@ export function useTerminalTheme(
  * Emits a terminal:create event to the backend
  * so that it knows to launch a pty
  */
-export function useTerminalCreate(nodeKey: string) {
+export function useTerminalCreateEventForBackend(nodeKey: string) {
 	useEffect(() => {
 		Events.Emit({
 			name: "terminal:create",
 			data: nodeKey,
 		});
 	}, []);
+}
+
+/**
+ * Initializes the xterm.js frontend terminal
+ */
+export function useTerminalCreateFrontend(
+	xtermRef: MutableRefObject<Terminal | null>,
+	xtermFitAddonRef: MutableRefObject<FitAddon | null>,
+	terminalRef: MutableRefObject<HTMLDivElement | null>,
+	setIsSelected: (selected: boolean) => void,
+	isDarkModeOn: boolean,
+	isSelected: boolean,
+	nodeKey: string,
+) {
+	useEffect(() => {
+		xtermRef.current = new Terminal({
+			cursorBlink: true,
+			cols: 80,
+			rows: 24,
+			fontFamily: '"Jetbrains Mono", monospace',
+			fontSize: 13,
+			cursorStyle: "block",
+			theme: isDarkModeOn ? darkTerminalTheme : lightTerminalTheme,
+		});
+
+		// Add the fit addon.
+		xtermFitAddonRef.current = new FitAddon();
+		xtermRef.current.loadAddon(xtermFitAddonRef.current);
+
+		if (!terminalRef.current) {
+			return;
+		}
+		// Open the terminal in the terminalRef div
+		xtermRef.current.open(terminalRef.current);
+
+		// Selects the terminal when it is firstly created using slash command
+		if (isSelected) {
+			xtermRef.current.focus();
+		}
+		// Fit the terminal to the container size
+		xtermFitAddonRef.current.fit();
+
+		// Handle data from xterm and send it to backend
+		xtermRef.current.onData((data) => {
+			setIsSelected(true);
+			Events.Emit({
+				name: `terminal:input-${nodeKey}`,
+				data,
+			});
+		});
+
+		function handleResizeWrapper() {
+			handleResize(xtermFitAddonRef, xtermRef, nodeKey);
+		}
+
+		window.addEventListener("resize", handleResizeWrapper);
+
+		// Cleanup on component unmount
+		return () => {
+			window.removeEventListener("resize", handleResizeWrapper);
+			if (xtermFitAddonRef.current) xtermFitAddonRef.current.dispose();
+			if (xtermRef.current) xtermRef.current.dispose();
+		};
+	}, [terminalRef, setIsSelected, nodeKey]);
+}
+
+/**
+ * Writes whatever is received in the backend pty terminal to the frontend terminal
+ */
+export function useTerminalWrite(nodeKey: string, term: RefObject<Terminal>) {
+	useWailsEvent(`terminal:output-${nodeKey}`, (body) => {
+		const data = body.data as { type: string; value: string }[];
+		if (term.current) {
+			term.current.write(data[0].value);
+		}
+	});
 }

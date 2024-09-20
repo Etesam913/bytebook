@@ -155,7 +155,15 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	}
 	decorate(_editor: LexicalEditor): JSX.Element {
 		if (this.getLanguage() === "terminal") {
-			return <TerminalComponent nodeKey={this.getKey()} />;
+			return (
+				<TerminalComponent
+					nodeKey={this.getKey()}
+					data={this.getData()}
+					writeDataToNode={(files: SandpackFiles, result: CodeResponse) =>
+						this.setData(files, result)
+					}
+				/>
+			);
 		}
 		return (
 			<SandpackEditor

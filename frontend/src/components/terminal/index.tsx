@@ -1,65 +1,49 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
-import { Events } from "@wailsio/runtime";
-import { FitAddon } from "@xterm/addon-fit";
-import { Terminal } from "@xterm/xterm";
+
+import type { FitAddon } from "@xterm/addon-fit";
+import type { Terminal } from "@xterm/xterm";
 import { useAtomValue } from "jotai";
 import { CLICK_COMMAND, COMMAND_PRIORITY_NORMAL } from "lexical";
-import { type RefObject, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { darkModeAtom } from "../../atoms";
 import { onClickDecoratorNodeCommand } from "../../utils/commands";
-import { useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { TerminalHeader } from "./header";
 import {
-	darkTerminalTheme,
-	lightTerminalTheme,
 	useFocusOnSelect,
-	useTerminalCreate,
+	useTerminalCreateEventForBackend,
+	useTerminalCreateFrontend,
 	useTerminalTheme,
+	useTerminalWrite,
 } from "./hooks";
-
-type NewType = RefObject<Terminal>;
-
-// Handle terminal resize
-function handleResize(
-	fitAddon: RefObject<FitAddon>,
-	term: NewType,
-	nodeKey: string,
-) {
-	if (!fitAddon.current) return;
-	fitAddon.current.fit();
-	if (term.current) {
-		term.current.focus();
-		const [rows, cols] = [term.current.rows, term.current.cols];
-		Events.Emit({
-			name: `terminal:resize-${nodeKey}`,
-			data: { rows, cols },
-		});
-	}
-}
+import { handleResize } from "./utils";
 
 export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 	const terminalRef = useRef<HTMLDivElement | null>(null);
 	const [editor] = useLexicalComposerContext();
-	const term = useRef<Terminal | null>(null);
-	const fitAddon = useRef<FitAddon | null>(null);
+	const xtermRef = useRef<Terminal | null>(null);
+	const xtermFitAddonRef = useRef<FitAddon | null>(null);
 	const terminalContainerRef = useRef<HTMLDivElement | null>(null);
 	const isDarkModeOn = useAtomValue(darkModeAtom);
 	const [isSelected, setIsSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
 	const [isFullscreen, setIsFullscreen] = useState(false);
+
 	useFocusOnSelect(isSelected, terminalRef);
-
-	useWailsEvent(`terminal:output-${nodeKey}`, (body) => {
-		const data = body.data as { type: string; value: string }[];
-		if (term.current) {
-			term.current.write(data[0].value);
-		}
-	});
-
-	useTerminalTheme(isDarkModeOn, term);
+	useTerminalCreateFrontend(
+		xtermRef,
+		xtermFitAddonRef,
+		terminalRef,
+		setIsSelected,
+		isDarkModeOn,
+		isSelected,
+		nodeKey,
+	);
+	useTerminalTheme(isDarkModeOn, xtermRef);
+	useTerminalWrite(nodeKey, xtermRef);
+	useTerminalCreateEventForBackend(nodeKey);
 
 	useEffect(() => {
 		return mergeRegister(
@@ -79,60 +63,6 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 		);
 	}, []);
 
-	useTerminalCreate(nodeKey);
-
-	useEffect(() => {
-		// Initialize the terminal
-		term.current = new Terminal({
-			cursorBlink: true,
-			cols: 80,
-			rows: 24,
-			fontFamily: '"Jetbrains Mono", monospace',
-			fontSize: 13,
-			cursorStyle: "block",
-			theme: isDarkModeOn ? darkTerminalTheme : lightTerminalTheme,
-		});
-
-		// Add the fit addon.
-		fitAddon.current = new FitAddon();
-		term.current.loadAddon(fitAddon.current);
-
-		if (!terminalRef.current) {
-			return;
-		}
-		// Open the terminal in the terminalRef div
-		term.current.open(terminalRef.current);
-
-		// Selects the terminal when it is firstly created using slash command
-		if (isSelected) {
-			term.current.focus();
-		}
-		// Fit the terminal to the container size
-		fitAddon.current.fit();
-
-		// Handle data from xterm and send it to backend
-		term.current.onData((data) => {
-			setIsSelected(true);
-			Events.Emit({
-				name: `terminal:input-${nodeKey}`,
-				data,
-			});
-		});
-
-		function handleResizeWrapper() {
-			handleResize(fitAddon, term, nodeKey);
-		}
-
-		window.addEventListener("resize", handleResizeWrapper);
-
-		// Cleanup on component unmount
-		return () => {
-			window.removeEventListener("resize", handleResizeWrapper);
-			if (fitAddon.current) fitAddon.current.dispose();
-			if (term.current) term.current.dispose();
-		};
-	}, [terminalRef, setIsSelected]);
-
 	return (
 		<div
 			className={cn(
@@ -150,7 +80,7 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 				nodeKey={nodeKey}
 				editor={editor}
 				onFullscreenChange={() => {
-					handleResize(fitAddon, term, nodeKey);
+					handleResize(xtermFitAddonRef, xtermRef, nodeKey);
 				}}
 			/>
 			<div
