@@ -4,13 +4,22 @@ import { mergeRegister } from "@lexical/utils";
 import { Events } from "@wailsio/runtime";
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
+import { motion } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { CLICK_COMMAND, COMMAND_PRIORITY_NORMAL } from "lexical";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { getDefaultButtonVariants } from "../../animations";
 import { darkModeAtom } from "../../atoms";
-import { onClickDecoratorNodeCommand } from "../../utils/commands";
+import { ExitFullscreen } from "../../icons/arrows-reduce-diagonal";
+import { Fullscreen } from "../../icons/fullscreen";
+import { Trash } from "../../icons/trash";
+import {
+	onClickDecoratorNodeCommand,
+	removeDecoratorNode,
+} from "../../utils/commands";
 import { useWailsEvent } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
+import { TerminalHeader } from "./header";
 import { useFocusOnSelect } from "./hooks";
 
 const darkTerminalTheme = {
@@ -33,7 +42,7 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 	const isDarkModeOn = useAtomValue(darkModeAtom);
 	const [isSelected, setIsSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
-
+	const [isFullscreen, setIsFullscreen] = useState(false);
 	useFocusOnSelect(isSelected, terminalRef);
 
 	useWailsEvent(`terminal:output-${nodeKey}`, (body) => {
@@ -98,6 +107,7 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 		// Open the terminal in the terminalRef div
 		term.current.open(terminalRef.current);
 
+		// Selects the terminal when it is firstly created using slash command
 		if (isSelected) {
 			term.current.focus();
 		}
@@ -106,6 +116,7 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 
 		// Handle data from xterm and send it to backend
 		term.current.onData((data) => {
+			setIsSelected(true);
 			Events.Emit({
 				name: `terminal:input-${nodeKey}`,
 				data,
@@ -126,15 +137,25 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 			if (fitAddon.current) fitAddon.current.dispose();
 			if (term.current) term.current.dispose();
 		};
-	}, [terminalRef]);
+	}, [terminalRef, setIsSelected]);
 
 	return (
 		<div
 			className={cn(
-				"w-full h-72 border-2 border-[rgb(229,231,235)] dark:border-[rgb(37,37,37)] rounded-md overflow-hidden bg-white dark:bg-zinc-900",
-				isSelected && "border-blue-400 dark:border-blue-500",
+				"w-full h-72 border-2 border-[rgb(229,231,235)] dark:border-[rgb(37,37,37)] rounded-md overflow-hidden bg-white dark:bg-zinc-900 font-code",
+				isSelected && " border-blue-400 dark:border-blue-500",
+				isFullscreen &&
+					"fixed top-0 left-0 right-0 bottom-0 z-20 h-screen border-0",
 			)}
+			onClick={(e) => e.stopPropagation()}
 			ref={terminalRef}
-		/>
+		>
+			<TerminalHeader
+				isFullscreen={isFullscreen}
+				setIsFullscreen={setIsFullscreen}
+				nodeKey={nodeKey}
+				editor={editor}
+			/>
+		</div>
 	);
 }

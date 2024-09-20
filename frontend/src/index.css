@@ -130,6 +130,9 @@ div[data-template-is-fullscreen="true"]
 .sp-tabs {
     padding-right: 106px;
 }
+.sp-tab-button{
+    @apply font-code;
+}
 
 .dragging {
     @apply bg-zinc-50 dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-zinc-200 dark:border-zinc-600 border-2 absolute top-0 left-[-9999px] px-2 py-0.5 rounded-lg font-display text-nowrap whitespace-nowrap overflow-hidden text-ellipsis max-h-[50vh];
