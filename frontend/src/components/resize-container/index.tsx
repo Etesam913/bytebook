@@ -165,14 +165,14 @@ export function ResizeContainer({
 									animate={{ opacity: 1 }}
 									exit={{ opacity: 0 }}
 									{...getDefaultButtonVariants()}
-									onClick={() =>
+									onClick={() => {
 										expandNearestSiblingNode(
 											editor,
 											nodeKey,
 											setIsExpanded,
 											false,
-										)
-									}
+										);
+									}}
 									className="fixed z-50 bottom-11 left-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
 									type="submit"
 								>

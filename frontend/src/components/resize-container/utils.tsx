@@ -8,6 +8,7 @@ import {
 } from "lexical";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { EXPAND_CONTENT_COMMAND } from "../../utils/commands";
+import type { FileNode } from "../editor/nodes/file";
 
 /** Finds the next image/video tag for a given node */
 function getNearestSiblingNode(node: LexicalNode, isRight: boolean) {
@@ -19,15 +20,21 @@ function getNearestSiblingNode(node: LexicalNode, isRight: boolean) {
 		return null;
 	}
 
-	while (
-		siblingNode?.getType() !== "image" &&
-		siblingNode?.getType() !== "video"
-	) {
-		const children = siblingNode.getChildren();
-		const imageOrVideoChild = children.find(
-			(n) => n.getType() === "image" || n.getType() === "video",
-		);
-		if (imageOrVideoChild) return imageOrVideoChild;
+	console.log(siblingNode);
+
+	while (siblingNode?.getType() !== "file") {
+		if (siblingNode.getChildren) {
+			const children = siblingNode.getChildren();
+			const fileChild = children.find((n) => n.getType() === "file");
+
+			// Image and videos are files that can be expanded for an album
+			if (fileChild) {
+				const fileType = (fileChild as FileNode).getElementType();
+				if (fileType === "image" || fileType === "video") {
+					return fileChild;
+				}
+			}
+		}
 
 		siblingNode = isRight
 			? siblingNode?.getNextSibling()
@@ -52,9 +59,20 @@ export function expandNearestSiblingNode(
 		if (node) {
 			const nodeParent = node.getParent();
 			if (!nodeParent) return;
-			const nextNode = getNearestSiblingNode(nodeParent, isRightPressed);
+
+			// First check if there are any siblings to the current node
+			let nextNode = getNearestSiblingNode(node, isRightPressed);
+
+			// Then check for siblings of the parent node if no siblings were found for the current node
+			if (!nextNode) {
+				nextNode = getNearestSiblingNode(nodeParent, isRightPressed);
+			}
+
+			if (!nextNode) {
+				return;
+			}
+
 			const nodeSelection = $createNodeSelection();
-			if (!nextNode) return;
 			nodeSelection.add(nextNode.getKey());
 			$setSelection(nodeSelection);
 			setIsExpanded(false);
