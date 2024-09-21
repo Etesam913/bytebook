@@ -184,7 +184,7 @@ export function NotesEditor({
 				<FocusPlugin />
 
 				<LinkMatcherPlugin />
-				<TreeViewPlugin />
+				{/* <TreeViewPlugin /> */}
 			</div>
 			<BottomBar frontmatter={frontmatter} folder={folder} note={note} />
 		</LexicalComposer>

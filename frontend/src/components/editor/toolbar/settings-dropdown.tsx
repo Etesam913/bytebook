@@ -6,6 +6,7 @@ import { UpdateProjectSettings } from "../../../../bindings/github.com/etesam913
 import { getDefaultButtonVariants } from "../../../animations";
 import { projectSettingsAtom } from "../../../atoms";
 import { HorizontalDots } from "../../../icons/horizontal-dots";
+import { MarkdownIcon } from "../../../icons/markdown";
 import { PinTack2 } from "../../../icons/pin-tack-2";
 import { Table } from "../../../icons/table";
 import { useOnClickOutside } from "../../../utils/hooks";
@@ -45,43 +46,60 @@ export function SettingsDropdown({
 			<div className="relative flex flex-col items-end">
 				<DropdownItems
 					onChange={async (item) => {
-						if (item.value === "pin-note" || item.value === "unpin-note") {
-							const copyOfProjectSettings = { ...projectSettings };
-							if (item.value === "pin-note") {
-								copyOfProjectSettings.pinnedNotes.add(`${folder}/${note}.md`);
-							} else {
-								copyOfProjectSettings.pinnedNotes.delete(
-									`${folder}/${note}.md`,
-								);
-							}
+						switch (item.value) {
+							case "pin-note":
+							case "unpin-note": {
+								const copyOfProjectSettings = { ...projectSettings };
+								if (item.value === "pin-note") {
+									copyOfProjectSettings.pinnedNotes.add(`${folder}/${note}.md`);
+								} else {
+									copyOfProjectSettings.pinnedNotes.delete(
+										`${folder}/${note}.md`,
+									);
+								}
 
-							try {
-								const res = await UpdateProjectSettings({
-									...copyOfProjectSettings,
-									pinnedNotes: [...copyOfProjectSettings.pinnedNotes],
+								try {
+									const res = await UpdateProjectSettings({
+										...copyOfProjectSettings,
+										pinnedNotes: [...copyOfProjectSettings.pinnedNotes],
+									});
+									if (!res.success) {
+										throw new Error(res.message);
+									}
+								} catch (e) {
+									if (e instanceof Error) {
+										toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+									}
+								}
+								break;
+							}
+							case "show-table-of-contents":
+							case "hide-table-of-contents": {
+								const copyOfFrontmatter = { ...frontmatter };
+								copyOfFrontmatter.showTableOfContents =
+									item.value === "show-table-of-contents" ? "true" : "false";
+
+								editor.update(() => {
+									editor.dispatchCommand(
+										SAVE_MARKDOWN_CONTENT,
+										copyOfFrontmatter,
+									);
 								});
-								if (!res.success) {
-									throw new Error(res.message);
-								}
-							} catch (e) {
-								if (e instanceof Error) {
-									toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-								}
+								break;
 							}
-						} else if (
-							item.value === "show-table-of-contents" ||
-							item.value === "hide-table-of-contents"
-						) {
-							const copyOfFrontmatter = { ...frontmatter };
-							copyOfFrontmatter.showTableOfContents =
-								item.value === "show-table-of-contents" ? "true" : "false";
-
-							editor.update(() => {
-								editor.dispatchCommand(
-									SAVE_MARKDOWN_CONTENT,
-									copyOfFrontmatter,
-								);
-							});
+							case "show-markdown":
+							case "hide-markdown": {
+								const copyOfFrontmatter = { ...frontmatter };
+								copyOfFrontmatter.showMarkdown =
+									item.value === "show-markdown" ? "true" : "false";
+								editor.update(() => {
+									editor.dispatchCommand(
+										SAVE_MARKDOWN_CONTENT,
+										copyOfFrontmatter,
+									);
+								});
+								break;
+							}
 						}
 					}}
 					className="w-60"
@@ -106,6 +124,20 @@ export function SettingsDropdown({
 									{frontmatter.showTableOfContents === "true"
 										? "Hide Table of Contents"
 										: "Show Table of Contents"}
+								</span>
+							),
+						},
+						{
+							value:
+								frontmatter.showMarkdown === "true"
+									? "hide-markdown"
+									: "show-markdown",
+							label: (
+								<span className="flex items-center gap-1.5 will-change-transform">
+									<MarkdownIcon className="min-w-5" />{" "}
+									{frontmatter.showMarkdown === "true"
+										? "Hide Markdown"
+										: "Show Markdown"}
 								</span>
 							),
 						},
