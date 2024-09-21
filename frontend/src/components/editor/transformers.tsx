@@ -140,8 +140,8 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 
 		const elementType =
 			await getFileElementTypeFromExtensionAndHead(filePathOrSrc);
-
-		editor.update(() => {
+		// For some reason the editor.update has to be async
+		editor.update(async () => {
 			const nodeToCreate = $createFileNode({
 				alt: removeQueryParam(alt, "width"),
 				src: filePathOrSrc,
