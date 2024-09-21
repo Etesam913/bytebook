@@ -45,26 +45,26 @@ func SetupTerminal(app *application.App, nodeKey string) error {
 		})
 	})
 
-	// pty.Setsize(ptmx, &pty.Winsize{})
-
 	// Make sure to close the pty at the end.
 	defer func() { _ = ptmx.Close() }()
 
 	buf := make([]byte, 1024)
 	for {
 		n, err := ptmx.Read(buf)
+		currentCommand := string(buf[:n])
 		if err != nil {
 			log.Println("read error:", err)
 			break
 		}
+		if currentCommand == "pwd" {
+			fmt.Println("should save next output")
+		}
 		terminalOutputEventName := fmt.Sprintf("terminal:output-%s", nodeKey)
 		app.EmitEvent(terminalOutputEventName, terminalData{
 			Type:  "command",
-			Value: string(buf[:n]),
+			Value: currentCommand,
 		})
-		fmt.Println(string(buf[:n]))
 	}
-
 	return nil
 }
 

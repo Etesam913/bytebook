@@ -3,6 +3,7 @@ import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection"
 import { mergeRegister } from "@lexical/utils";
 
 import type { SandpackFiles } from "@codesandbox/sandpack-react";
+import { Events } from "@wailsio/runtime";
 import type { FitAddon } from "@xterm/addon-fit";
 import type { Terminal } from "@xterm/xterm";
 import { useAtomValue } from "jotai";

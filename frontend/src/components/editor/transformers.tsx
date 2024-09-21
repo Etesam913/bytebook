@@ -118,10 +118,16 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 	importRegExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))/,
 	regExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))$/,
 	replace: async (textNode, match) => {
+		const editor = $getEditor();
+		if (!editor) return;
+		editor.update(() => {});
 		const alt = match.at(1);
 		const filePathOrSrc = match.at(2);
 		if (!alt || !filePathOrSrc) {
+			console.log("deez");
+
 			textNode.replace(textNode);
+
 			return;
 		}
 
@@ -131,8 +137,6 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 				? "100%"
 				: Number.parseInt(widthQueryValue)
 			: "100%";
-
-		const editor = $getEditor();
 
 		const elementType =
 			await getFileElementTypeFromExtensionAndHead(filePathOrSrc);

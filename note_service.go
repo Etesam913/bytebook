@@ -135,8 +135,6 @@ func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNote
 		}
 	}
 
-	fmt.Println("😂", filepath.Join(noteBase, fmt.Sprintf("%s.md", oldNoteTitle)), filepath.Join(noteBase, fmt.Sprintf("%s.md", newNoteTitle)))
-
 	// Rename the markdown file to match the new note title
 	err = os.Rename(
 		filepath.Join(noteBase, fmt.Sprintf("%s.md", oldNoteTitle)),
@@ -230,19 +228,19 @@ func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 		notePath := filepath.Join(n.ProjectPath, "notes", folder, note)
 
 		exists, err := io_helpers.FileOrFolderExists(notePath)
-		if exists && err == nil{
+		if exists && err == nil {
 			lastIndexOfDot := -1
 			pathAsRunes := []rune(path)
-			for i:=len(pathAsRunes)-1; i > -1; i--{
-				if pathAsRunes[i] == '.'{
+			for i := len(pathAsRunes) - 1; i > -1; i-- {
+				if pathAsRunes[i] == '.' {
 					lastIndexOfDot = i
 					break
 				}
 			}
-			if lastIndexOfDot == -1{
+			if lastIndexOfDot == -1 {
 				continue
 			}
-			folderAndNote:=pathAsRunes[0:lastIndexOfDot]
+			folderAndNote := pathAsRunes[0:lastIndexOfDot]
 			extension := pathAsRunes[lastIndexOfDot+1:]
 			fmt.Println(string(pathAsRunes), string(extension))
 
@@ -254,7 +252,6 @@ func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 	fmt.Println(validPaths)
 	return validPaths
 }
-
 
 // MoveToTrash moves the specified folders and notes to the trash directory.
 // Parameters:

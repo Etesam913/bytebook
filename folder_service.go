@@ -181,7 +181,6 @@ func (f *FolderService) AddFolder(folderName string) FolderResponse {
 }
 
 func (f *FolderService) DeleteFolder(folderName string) FolderResponse {
-	fmt.Println("Deleting folder", folderName)
 	folderPath := filepath.Join(f.ProjectPath, "notes", folderName)
 
 	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
