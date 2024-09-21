@@ -49,7 +49,14 @@ function TableOfContentsElement({
 	return (
 		<section className="border border-zinc-200 dark:border-zinc-600 rounded-md px-3 pb-2 pt-1 mb-3">
 			<h3>Table of Contents</h3>
-			<ul className="list-disc list-inside">{contentElements}</ul>
+			{contentElements.length > 0 ? (
+				<ul className="list-disc list-inside">{contentElements}</ul>
+			) : (
+				<p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+					No headings found. Add headings to your document to generate a table
+					of contents.
+				</p>
+			)}
 		</section>
 	);
 }

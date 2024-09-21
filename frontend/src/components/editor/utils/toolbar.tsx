@@ -166,24 +166,19 @@ export function updateToolbarOnSelectionChange(
 	if (!selection) return;
 	if ($isRangeSelection(selection)) {
 		const selectionTextFormats: TextFormatType[] = [];
-		if (selection.hasFormat("bold")) {
-			selectionTextFormats.push("bold");
-		}
-		if (selection.hasFormat("italic")) {
-			selectionTextFormats.push("italic");
-		}
-		if (selection.hasFormat("underline")) {
-			selectionTextFormats.push("underline");
-		}
-		if (selection.hasFormat("strikethrough")) {
-			selectionTextFormats.push("strikethrough");
-		}
-		if (selection.hasFormat("subscript")) {
-			selectionTextFormats.push("subscript");
-		}
-		if (selection.hasFormat("superscript")) {
-			selectionTextFormats.push("superscript");
-		}
+		const formats: TextFormatType[] = [
+			"bold",
+			"italic",
+			"underline",
+			"strikethrough",
+			"subscript",
+			"superscript",
+		];
+		formats.forEach((format) => {
+			if (selection.hasFormat(format)) {
+				selectionTextFormats.push(format);
+			}
+		});
 
 		setCurrentSelectionFormat(selectionTextFormats as TextFormatType[]);
 	}

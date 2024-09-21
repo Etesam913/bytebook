@@ -4,6 +4,7 @@ import type {
 	NonDeletedExcalidrawElement,
 } from "@excalidraw/excalidraw/types/element/types";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+import { isFullScreen } from "@excalidraw/excalidraw/types/utils";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
@@ -141,7 +142,7 @@ export function ExcalidrawComponent({
 						writeElementsToNodeWrapper(excalidrawAPIRef, writeElementsToNode)();
 					}
 				}}
-				className="w-full h-full"
+				className={cn("w-full h-[40rem]", isExpanded && "h-screen")}
 			>
 				<Excalidraw
 					initialData={{ elements: defaultElements }}

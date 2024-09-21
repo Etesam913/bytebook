@@ -1,3 +1,4 @@
+import { Events } from "@wailsio/runtime";
 import { motion, useAnimationControls } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { draggedElementAtom, isNoteMaximizedAtom } from "../../atoms";
@@ -5,6 +6,7 @@ import { MaximizeNoteButton } from "../../components/buttons/maximize-note";
 import { NotesEditor } from "../../components/editor";
 import { useMostRecentNotes } from "../../components/editor/hooks/note-metadata";
 import { TrashEditor } from "../../components/editor/trash-editor";
+import { TerminalComponent } from "../../components/terminal";
 import { FileBan } from "../../icons/file-ban";
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from "../../types";
 import { FILE_SERVER_URL } from "../../utils/misc";
@@ -70,6 +72,30 @@ export function RenderNote({
 						animationControls={animationControls}
 					/>
 				))}
+			{/* <TerminalComponent nodeKey="10" />
+			<button
+				type="button"
+				onClick={() => {
+					Events.Emit({
+						name: "terminal:create",
+						data: "10",
+					});
+				}}
+			>
+				create terminal
+			</button>
+
+			<button
+				type="button"
+				onClick={() => {
+					Events.Emit({
+						name: "test",
+						data: [],
+					});
+				}}
+			>
+				event for terminal
+			</button> */}
 
 			{isPdf && (
 				<iframe

@@ -7,7 +7,6 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/wailsapp/wails/v3 v3.0.0-alpha.6
-	golang.org/x/term v0.20.0
 )
 
 require (

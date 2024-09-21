@@ -9,6 +9,7 @@ export const codeLanguages = new Set([
 	"angular",
 	"rust",
 	"cpp",
+	"terminal",
 ]);
 
 export const languageToCommandMap: Record<string, string> = {

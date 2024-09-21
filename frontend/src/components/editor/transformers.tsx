@@ -118,10 +118,16 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 	importRegExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))/,
 	regExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))$/,
 	replace: async (textNode, match) => {
+		const editor = $getEditor();
+		if (!editor) return;
+		editor.update(() => {});
 		const alt = match.at(1);
 		const filePathOrSrc = match.at(2);
 		if (!alt || !filePathOrSrc) {
+			console.log("deez");
+
 			textNode.replace(textNode);
+
 			return;
 		}
 
@@ -132,12 +138,10 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 				: Number.parseInt(widthQueryValue)
 			: "100%";
 
-		const editor = $getEditor();
-
 		const elementType =
 			await getFileElementTypeFromExtensionAndHead(filePathOrSrc);
-
-		editor.update(() => {
+		// For some reason the editor.update has to be async
+		editor.update(async () => {
 			const nodeToCreate = $createFileNode({
 				alt: removeQueryParam(alt, "width"),
 				src: filePathOrSrc,
@@ -222,7 +226,6 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 		// MarkdownImport.ts handles the import of code blocks
 		// This code handles creation for the first time
 		const language = match.at(1);
-
 		if (!language || (!codeLanguages.has(language) && language !== "drawing")) {
 			return;
 		}
@@ -256,7 +259,6 @@ export const EQUATION: TextMatchTransformer = {
 	importRegExp: /\$([^$]+?)\$/,
 	regExp: /\$([^$]+?)\$$/,
 	replace: (textNode, match) => {
-		console.log("equation match", match);
 		const [, equation] = match;
 		const equationNode = $createInlineEquationNode({ equation });
 		textNode.replace(equationNode);
