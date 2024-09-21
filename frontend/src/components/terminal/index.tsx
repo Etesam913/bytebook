@@ -2,12 +2,15 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
 
+import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import type { FitAddon } from "@xterm/addon-fit";
 import type { Terminal } from "@xterm/xterm";
 import { useAtomValue } from "jotai";
 import { CLICK_COMMAND, COMMAND_PRIORITY_NORMAL } from "lexical";
 import { useEffect, useRef, useState } from "react";
+import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook";
 import { darkModeAtom } from "../../atoms";
+import type { CodeBlockData } from "../../types";
 import { onClickDecoratorNodeCommand } from "../../utils/commands";
 import { cn } from "../../utils/string-formatting";
 import { TerminalHeader } from "./header";
@@ -20,7 +23,15 @@ import {
 } from "./hooks";
 import { handleResize } from "./utils";
 
-export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
+export function TerminalComponent({
+	nodeKey,
+	data,
+	writeDataToNode,
+}: {
+	nodeKey: string;
+	data: CodeBlockData;
+	writeDataToNode: (files: SandpackFiles, result: CodeResponse) => void;
+}) {
 	const terminalRef = useRef<HTMLDivElement | null>(null);
 	const [editor] = useLexicalComposerContext();
 	const xtermRef = useRef<Terminal | null>(null);
@@ -40,9 +51,10 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 		isDarkModeOn,
 		isSelected,
 		nodeKey,
+		data,
 	);
 	useTerminalTheme(isDarkModeOn, xtermRef);
-	useTerminalWrite(nodeKey, xtermRef);
+	useTerminalWrite(nodeKey, xtermRef, data, writeDataToNode);
 	useTerminalCreateEventForBackend(nodeKey);
 
 	useEffect(() => {
@@ -72,7 +84,11 @@ export function TerminalComponent({ nodeKey }: { nodeKey: string }) {
 					"fixed top-0 left-0 right-0 bottom-0 z-20 h-screen border-0",
 			)}
 			ref={terminalContainerRef}
-			// onClick={(e) => e.stopPropagation()}
+			onClick={(e) => {
+				e.stopPropagation();
+
+				setIsSelected(true);
+			}}
 		>
 			<TerminalHeader
 				isFullscreen={isFullscreen}

@@ -1,7 +1,10 @@
+import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import { Events } from "@wailsio/runtime";
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
 import { type MutableRefObject, type RefObject, useEffect } from "react";
+import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook";
+import type { CodeBlockData } from "../../types";
 import { useWailsEvent } from "../../utils/hooks";
 import { darkTerminalTheme, handleResize, lightTerminalTheme } from "./utils";
 
@@ -68,6 +71,7 @@ export function useTerminalCreateFrontend(
 	isDarkModeOn: boolean,
 	isSelected: boolean,
 	nodeKey: string,
+	data: CodeBlockData,
 ) {
 	useEffect(() => {
 		xtermRef.current = new Terminal({
@@ -90,6 +94,7 @@ export function useTerminalCreateFrontend(
 		// Open the terminal in the terminalRef div
 		xtermRef.current.open(terminalRef.current);
 
+		xtermRef.current.write(`${data.result.message}\r\n`);
 		// Selects the terminal when it is firstly created using slash command
 		if (isSelected) {
 			xtermRef.current.focus();
@@ -124,11 +129,26 @@ export function useTerminalCreateFrontend(
 /**
  * Writes whatever is received in the backend pty terminal to the frontend terminal
  */
-export function useTerminalWrite(nodeKey: string, term: RefObject<Terminal>) {
+export function useTerminalWrite(
+	nodeKey: string,
+	term: RefObject<Terminal>,
+	codeBlockData: CodeBlockData,
+	writeCodeBlockDataToNode: (
+		files: SandpackFiles,
+		result: CodeResponse,
+	) => void,
+) {
 	useWailsEvent(`terminal:output-${nodeKey}`, (body) => {
 		const data = body.data as { type: string; value: string }[];
 		if (term.current) {
-			term.current.write(data[0].value);
+			const newValue = data.at(0)?.value;
+			if (!newValue) return;
+			const valueToWrite = codeBlockData.result.message + newValue;
+			writeCodeBlockDataToNode(
+				{ main: valueToWrite },
+				{ success: true, message: valueToWrite, id: nodeKey },
+			);
+			term.current.write(newValue);
 		}
 	});
 }

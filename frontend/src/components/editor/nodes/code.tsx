@@ -95,7 +95,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 			? command
 			: language in languageToCommandMap
 				? languageToCommandMap[language]
-				: "node";
+				: "";
 	}
 
 	exportJSON(): SerializedCodeNode {
@@ -135,9 +135,15 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		return this.__command;
 	}
 
-	setData(files: SandpackFiles, result: CodeResponse): void {
-		const writable = this.getWritable();
-		writable.__data = { files, result };
+	setData(
+		files: SandpackFiles,
+		result: CodeResponse,
+		editor: LexicalEditor,
+	): void {
+		editor.update(() => {
+			const writable = this.getWritable();
+			writable.__data = { files, result };
+		});
 	}
 
 	setLanguage(language: string, editor: LexicalEditor): void {
@@ -160,7 +166,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 					nodeKey={this.getKey()}
 					data={this.getData()}
 					writeDataToNode={(files: SandpackFiles, result: CodeResponse) =>
-						this.setData(files, result)
+						this.setData(files, result, _editor)
 					}
 				/>
 			);
@@ -172,7 +178,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 				language={this.getLanguage()}
 				commandWrittenToNode={this.getCommand()}
 				writeDataToNode={(files: SandpackFiles, result: CodeResponse) =>
-					this.setData(files, result)
+					this.setData(files, result, _editor)
 				}
 				writeCommandToNode={(command: string) =>
 					this.setCommand(command, _editor)
