@@ -1,11 +1,12 @@
 package menus
 
 import (
+	"github.com/etesam913/bytebook/lib/custom_events"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // InitializeApplicationMenu initializes the application menu with hotkeys
-func InitializeApplicationMenu(app *application.App) {
+func InitializeApplicationMenu(app *application.App, backgroundColor application.RGBA) {
 	menu := application.DefaultApplicationMenu()
 	fileMenuItem := menu.ItemAt(1)
 
@@ -15,9 +16,7 @@ func InitializeApplicationMenu(app *application.App) {
 		newWindowMenuItem := fileMenu.Add("New Window")
 		newWindowMenuItem.SetAccelerator("shift+cmdorctrl+n")
 		newWindowMenuItem.OnClick(func(data *application.Context) {
-			app.EmitEvent("open-note-in-new-window-backend", map[string]interface{}{
-				"url": "/",
-			})
+			custom_events.CreateWindow(app, "/", backgroundColor)
 		})
 	}
 

@@ -90,7 +90,7 @@ func main() {
 
 	custom_events.CreateWindow(app, "/", backgroundColor)
 
-	menus.InitializeApplicationMenu(app)
+	menus.InitializeApplicationMenu(app, backgroundColor)
 
 	folderContextMenu := app.NewMenu()
 	noteContextMenu := app.NewMenu()
@@ -98,7 +98,6 @@ func main() {
 	project_helpers.CreateContextMenu(app, folderContextMenu, []project_helpers.MenuItem{
 		{Label: "Rename Folder", EventName: "folder:context-menu:rename"},
 		{Label: "Delete Folder", EventName: "folder:context-menu:delete"},
-		{Label: "Open Folder In New Window", EventName: "folder:open-in-new-window"},
 		{Label: "Reveal In Finder", EventName: "folder:reveal-in-finder"},
 	})
 
