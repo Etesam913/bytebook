@@ -68,6 +68,7 @@ export function Video({
 						src={`${src}#t=0.001`}
 						controls
 						preload="metadata"
+						crossOrigin="anonymous"
 					/>
 				</ResizeContainer>
 			</div>

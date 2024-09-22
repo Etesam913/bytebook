@@ -4,12 +4,12 @@ import {
 	type ReactNode,
 	type SetStateAction,
 	useEffect,
-	useLayoutEffect,
 	useRef,
 	useState,
 } from "react";
 import { useParams } from "wouter";
 import { SidebarItems } from "./sidebar-items";
+import { useListVirtualization } from "../../utils/hooks";
 
 const SIDEBAR_ITEM_HEIGHT = 36;
 const VIRUTALIZATION_HEIGHT = 8;
@@ -41,32 +41,22 @@ export function Sidebar({
 	const { folder } = useParams();
 
 	const listRef = useRef<HTMLDivElement>(null);
-	const [scrollTop, setScrollTop] = useState(0);
 	const items = data ?? [];
-	const numberOfItems = items.length;
-	const [containerHeight, setContainerHeight] = useState(0);
-	const startIndex = Math.floor(scrollTop / SIDEBAR_ITEM_HEIGHT);
-	const endIndex = Math.min(
-		startIndex +
-			Math.ceil(
-				containerHeight / (SIDEBAR_ITEM_HEIGHT - VIRUTALIZATION_HEIGHT),
-			),
-		numberOfItems,
-	);
-	const visibleItems = items.slice(startIndex, endIndex);
 
-	useLayoutEffect(() => {
-		const resizeObserver = new ResizeObserver((entries) => {
-			const container = entries[0].target;
-			setContainerHeight(container.clientHeight);
-		});
-		if (listRef.current) {
-			resizeObserver.observe(listRef.current);
-		}
-		return () => {
-			resizeObserver.disconnect();
-		};
-	}, [listRef]);
+	const {
+		setScrollTop,
+		visibleItems,
+		startIndex,
+		onScroll,
+		listContainerHeight,
+		listHeight,
+		listTop,
+	} = useListVirtualization(
+		items,
+		SIDEBAR_ITEM_HEIGHT,
+		VIRUTALIZATION_HEIGHT,
+		listRef,
+	);
 
 	// Reset scroll position when folder changes so that the sidebar is scrolled to the top
 	useEffect(() => {
@@ -74,31 +64,17 @@ export function Sidebar({
 	}, [folder]);
 
 	return (
-		<div
-			className="overflow-y-auto"
-			ref={listRef}
-			onScroll={(e) => {
-				if (visibleItems.length > 0) {
-					setScrollTop(Math.max(0, (e.target as HTMLElement).scrollTop));
-				}
-			}}
-		>
+		<div className="overflow-y-auto" ref={listRef} onScroll={onScroll}>
 			<div
 				style={{
-					height:
-						items.length > 0
-							? `${items.length * SIDEBAR_ITEM_HEIGHT}px`
-							: "auto",
+					height: items.length > 0 ? listContainerHeight : "auto",
 				}}
 			>
 				<ul
 					style={{
 						position: "relative",
-						height:
-							visibleItems.length > 0
-								? `${visibleItems.length * SIDEBAR_ITEM_HEIGHT}px`
-								: "auto",
-						top: `${startIndex * SIDEBAR_ITEM_HEIGHT}px`,
+						height: visibleItems.length > 0 ? listHeight : "auto",
+						top: listTop,
 					}}
 				>
 					<SidebarItems
