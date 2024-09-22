@@ -245,7 +245,7 @@ export function useListVirtualization(
 	items: string[],
 	SIDEBAR_ITEM_HEIGHT: number,
 	VIRUTALIZATION_HEIGHT: number,
-	listRef: RefObject<HTMLDivElement>,
+	listRef: RefObject<HTMLElement>,
 ) {
 	// State for tracking scroll position and container height
 	const [scrollTop, setScrollTop] = useState(0);
@@ -273,6 +273,7 @@ export function useListVirtualization(
 			items.length,
 		],
 	);
+
 	const visibleItems = useMemo(
 		() => items.slice(startIndex, endIndex),
 		[items, startIndex, endIndex],

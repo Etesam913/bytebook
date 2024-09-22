@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { useEffect, useRef } from "react";
+import type { LegacyRef, MutableRefObject } from "react";
 import {
 	mostRecentNotesWithoutQueryParamsAtom,
 	searchPanelDataAtom,
@@ -9,14 +9,28 @@ import { SearchItem } from "./search-item";
 export function SearchItems({
 	searchResults,
 	isShowingMostRecentNotes,
+	virtualizationState,
+	searchResultsRefs,
+	searchResultsContainerRef,
 }: {
 	searchResults: string[];
 	isShowingMostRecentNotes: boolean;
+	virtualizationState: {
+		onScroll: (e: React.UIEvent<HTMLDivElement>) => void;
+		listContainerHeight: string;
+		listHeight: string;
+		listTop: string;
+		visibleItems: string[];
+	};
+	searchResultsRefs: MutableRefObject<(HTMLLIElement | null)[]>;
+	searchResultsContainerRef: LegacyRef<HTMLMenuElement>;
 }) {
-	const searchResultsRefs = useRef<(HTMLLIElement | null)[]>([]);
-	const searchResultsContainerRef = useRef<HTMLMenuElement | null>(null);
+	const { onScroll, listContainerHeight, listHeight, listTop, visibleItems } =
+		virtualizationState;
 
-	const searchResultsElements = searchResults.map((filePath, i) => (
+	const searchPanelData = useAtomValue(searchPanelDataAtom);
+
+	const searchResultsElements = visibleItems.map((filePath, i) => (
 		<SearchItem
 			key={filePath}
 			ref={(el) => {
@@ -26,60 +40,33 @@ export function SearchItems({
 			filePath={filePath}
 		/>
 	));
-	const searchPanelData = useAtomValue(searchPanelDataAtom);
 
-	useEffect(() => {
-		const focusedIndex = searchPanelData.focusedIndex;
-		if (searchResultsRefs.current[focusedIndex]) {
-			const resultRect =
-				searchResultsRefs.current[focusedIndex]?.getBoundingClientRect();
-			const containerRect =
-				searchResultsContainerRef.current?.getBoundingClientRect();
-			if (containerRect) {
-				const distancetoEndOfContainer =
-					containerRect?.bottom - resultRect.bottom;
-				if (distancetoEndOfContainer < 36) {
-					searchResultsContainerRef.current?.scrollBy(0, 35);
-				}
-				const distanceToTopOfContainer = resultRect.top - containerRect.top;
-				if (distanceToTopOfContainer < 36) {
-					searchResultsContainerRef.current?.scrollBy(0, -35);
-				}
-			}
-		}
-	}, [searchPanelData.focusedIndex]);
 	const mostRecentNotes = useAtomValue(mostRecentNotesWithoutQueryParamsAtom);
 
 	return (
 		<menu
 			ref={searchResultsContainerRef}
-			className="py-2 px-2 bg-zinc-50 overflow-y-auto overflow-x-hidden max-h-[46vh] dark:bg-zinc-800 flex flex-col gap-1 absolute w-full border rounded-md rounded-tl-none rounded-tr-none border-zinc-300 dark:border-zinc-700 shadow-2xl"
+			className="py-2 px-2 bg-zinc-50 max-h-[303px] dark:bg-zinc-800  absolute w-full border rounded-md rounded-tl-none rounded-tr-none border-zinc-300 dark:border-zinc-700 shadow-2xl overflow-y-auto overflow-x-hidden"
+			onScroll={onScroll}
 		>
-			{!isShowingMostRecentNotes ? (
-				searchResultsElements.length === 0 ? (
-					<p className="text-sm text-zinc-650 dark:text-zinc-300 pl-1.5">
-						There are no notes named "{searchPanelData.query}"
-					</p>
-				) : (
-					searchResultsElements
-				)
-			) : (
-				<>
-					<p className="text-xs text-zinc-500 dark:text-zinc-400 pl-1.5">
-						Recent Notes
-					</p>
-					{mostRecentNotes.map((filePath, i) => (
-						<SearchItem
-							filePath={filePath}
-							i={i}
-							key={filePath}
-							ref={(el) => {
-								searchResultsRefs.current[i] = el;
-							}}
-						/>
-					))}
-				</>
-			)}
+			<div>
+				<div
+					style={{
+						height: visibleItems.length > 0 ? listContainerHeight : "auto",
+					}}
+				>
+					<div
+						className="flex flex-col gap-1"
+						style={{
+							position: "relative",
+							top: listTop,
+							height: visibleItems.length > 0 ? listHeight : "auto",
+						}}
+					>
+						{searchResultsElements}
+					</div>
+				</div>
+			</div>
 		</menu>
 	);
 }

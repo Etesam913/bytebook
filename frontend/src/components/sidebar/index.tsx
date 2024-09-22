@@ -8,8 +8,8 @@ import {
 	useState,
 } from "react";
 import { useParams } from "wouter";
-import { SidebarItems } from "./sidebar-items";
 import { useListVirtualization } from "../../utils/hooks";
+import { SidebarItems } from "./sidebar-items";
 
 const SIDEBAR_ITEM_HEIGHT = 36;
 const VIRUTALIZATION_HEIGHT = 8;

@@ -1,12 +1,10 @@
-import { motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { forwardRef } from "react";
 import { navigate } from "wouter/use-browser-location";
-import { easingFunctions } from "../../animations";
 import { searchPanelDataAtom } from "../../atoms";
 import { Folder } from "../../icons/folder";
 import { Note } from "../../icons/page";
-import { getFileExtension } from "../../utils/string-formatting";
+import { cn, getFileExtension } from "../../utils/string-formatting";
 
 export const SearchItem = forwardRef<
 	HTMLLIElement,
@@ -18,16 +16,11 @@ export const SearchItem = forwardRef<
 	return (
 		<li
 			ref={ref}
-			className="relative hover:bg-zinc-100 hover:dark:bg-zinc-750 rounded-md"
-		>
-			{searchPanelData.focusedIndex === i && (
-				<motion.div
-					transition={{ ease: easingFunctions["ease-out-quint"] }}
-					layoutId="menu-highlight-test"
-					className="absolute inset-0 w-full bg-zinc-200 dark:bg-zinc-700 z-30 rounded-md"
-				/>
+			className={cn(
+				"relative hover:bg-zinc-100 hover:dark:bg-zinc-750 rounded-md",
+				searchPanelData.focusedIndex === i && "bg-zinc-200 dark:bg-zinc-700",
 			)}
-
+		>
 			<button
 				tabIndex={-1}
 				onClick={() => {
