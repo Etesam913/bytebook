@@ -18,6 +18,9 @@ func CreateWindow(app *application.App, url string, backgroundColor application.
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 35,
 			TitleBar:                application.MacTitleBarHiddenInsetUnified,
+			WebviewPreferences: application.MacWebviewPreferences{
+				FullscreenEnabled: application.Enabled,
+			},
 		},
 		EnableDragAndDrop: true,
 		BackgroundColour:  backgroundColor,

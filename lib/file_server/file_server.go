@@ -15,22 +15,36 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-// corsMiddleware wraps an http.Handler and sets CORS headers
+// CORSResponseWriter wraps http.ResponseWriter to modify headers after the handler writes them
+type CORSResponseWriter struct {
+	http.ResponseWriter
+}
+
+func (w *CORSResponseWriter) WriteHeader(statusCode int) {
+	// Set CORS headers before writing the status code and headers
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Range, X-Playback-Session-Id")
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Range")
+	w.Header().Set("Accept-Ranges", "bytes") // Ensure Accept-Ranges is set
+	w.ResponseWriter.WriteHeader(statusCode)
+}
+
 func corsMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Set CORS headers
-		w.Header().Set("Access-Control-Allow-Origin", "*") // Adjust this to allow specific domains
-		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-
 		// Handle preflight OPTIONS request
 		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
+			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Range, X-Playback-Session-Id")
+			w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Range")
 			w.WriteHeader(http.StatusOK)
 			return
 		}
 
-		// Serve the next handler
-		handler.ServeHTTP(w, r)
+		// Wrap the ResponseWriter
+		cw := &CORSResponseWriter{ResponseWriter: w}
+		handler.ServeHTTP(cw, r)
 	})
 }
 
