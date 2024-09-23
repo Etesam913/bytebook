@@ -30,7 +30,11 @@ export function SearchItems({
 
 	const searchPanelData = useAtomValue(searchPanelDataAtom);
 
-	const searchResultsElements = visibleItems.map((filePath, i) => (
+	const mostRecentNotes = useAtomValue(mostRecentNotesWithoutQueryParamsAtom);
+
+	const searchResultsElements = (
+		isShowingMostRecentNotes ? mostRecentNotes : visibleItems
+	).map((filePath, i) => (
 		<SearchItem
 			key={filePath}
 			ref={(el) => {
@@ -41,32 +45,43 @@ export function SearchItems({
 		/>
 	));
 
-	const mostRecentNotes = useAtomValue(mostRecentNotesWithoutQueryParamsAtom);
-
 	return (
 		<menu
 			ref={searchResultsContainerRef}
-			className="py-2 px-2 bg-zinc-50 max-h-[303px] dark:bg-zinc-800  absolute w-full border rounded-md rounded-tl-none rounded-tr-none border-zinc-300 dark:border-zinc-700 shadow-2xl overflow-y-auto overflow-x-hidden"
-			onScroll={onScroll}
+			className="py-2 px-2 bg-zinc-50 max-h-[300px] dark:bg-zinc-800  absolute w-full border rounded-md rounded-tl-none rounded-tr-none border-zinc-300 dark:border-zinc-700 shadow-2xl overflow-y-auto overflow-x-hidden scroll-p-2"
+			onScroll={isShowingMostRecentNotes ? undefined : onScroll}
 		>
-			<div>
-				<div
-					style={{
-						height: visibleItems.length > 0 ? listContainerHeight : "auto",
-					}}
-				>
+			{searchResultsElements.length === 0 ? (
+				<p className="text-sm text-zinc-650 dark:text-zinc-300 pl-1.5">
+					There are no notes named "{searchPanelData.query}"
+				</p>
+			) : isShowingMostRecentNotes ? (
+				<div className="flex flex-col gap-1">
+					<p className="text-xs text-zinc-500 dark:text-zinc-400 pl-1.5">
+						Recent Notes
+					</p>
+					{searchResultsElements}
+				</div>
+			) : (
+				<div>
 					<div
-						className="flex flex-col gap-1"
 						style={{
-							position: "relative",
-							top: listTop,
-							height: visibleItems.length > 0 ? listHeight : "auto",
+							height: visibleItems.length > 0 ? listContainerHeight : "auto",
 						}}
 					>
-						{searchResultsElements}
+						<ul
+							className="flex flex-col gap-1"
+							style={{
+								position: "relative",
+								top: listTop,
+								height: visibleItems.length > 0 ? listHeight : "auto",
+							}}
+						>
+							{searchResultsElements}
+						</ul>
 					</div>
 				</div>
-			</div>
+			)}
 		</menu>
 	);
 }

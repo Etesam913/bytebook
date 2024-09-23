@@ -246,6 +246,7 @@ export function useListVirtualization(
 	SIDEBAR_ITEM_HEIGHT: number,
 	VIRUTALIZATION_HEIGHT: number,
 	listRef: RefObject<HTMLElement>,
+	onScrollCallback?: (e: React.UIEvent<HTMLDivElement>) => void,
 ) {
 	// State for tracking scroll position and container height
 	const [scrollTop, setScrollTop] = useState(0);
@@ -297,6 +298,7 @@ export function useListVirtualization(
 	function onScroll(e: React.UIEvent<HTMLDivElement>) {
 		if (visibleItems.length > 0) {
 			setScrollTop(Math.max(0, (e.target as HTMLElement).scrollTop));
+			onScrollCallback?.(e);
 		}
 	}
 

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useAtom, useAtomValue } from "jotai";
-import { type FormEvent, useMemo, useRef, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { SearchFileNamesFromQuery } from "../../../bindings/github.com/etesam913/bytebook/searchservice";
 import { easingFunctions } from "../../animations";
@@ -13,8 +13,9 @@ import { getFileExtension } from "../../utils/string-formatting";
 import { useTrapFocus } from "../dialog/hooks";
 import { SearchItems } from "./search-items";
 
-const SIDEBAR_ITEM_HEIGHT = 34;
+const SIDEBAR_ITEM_HEIGHT = 35;
 const VIRUTALIZATION_HEIGHT = 8;
+const ITEMS_THAT_FIT_ON_SCREEN = 8;
 
 export function SearchPanelForm() {
 	const [searchResults, setSearchResults] = useState<string[]>([]);
@@ -31,13 +32,26 @@ export function SearchPanelForm() {
 	const searchResultsContainerRef = useRef<HTMLMenuElement | null>(null);
 	const searchResultsRefs = useRef<(HTMLLIElement | null)[]>([]);
 
-	const { visibleItems, onScroll, listContainerHeight, listHeight, listTop } =
-		useListVirtualization(
-			searchResults,
-			SIDEBAR_ITEM_HEIGHT,
-			VIRUTALIZATION_HEIGHT,
-			searchResultsContainerRef,
-		);
+	const {
+		visibleItems,
+		onScroll,
+		listContainerHeight,
+		listHeight,
+		listTop,
+		setScrollTop,
+	} = useListVirtualization(
+		searchResults,
+		SIDEBAR_ITEM_HEIGHT,
+		VIRUTALIZATION_HEIGHT,
+		searchResultsContainerRef,
+		(e) => {
+			const element = e.target as HTMLElement;
+			setSearchPanelData((prev) => ({
+				...prev,
+				scrollY: element.scrollTop,
+			}));
+		},
+	);
 
 	async function handleSearch(query: string) {
 		try {
@@ -68,15 +82,25 @@ export function SearchPanelForm() {
 			}
 		}
 
-		setSearchPanelData((prev) => ({
-			...prev,
-			focusedIndex: Math.min(
-				searchPanelData.focusedIndex + 1,
-				isShowingMostRecentNotes
-					? mostRecentNotes.length - 1
-					: visibleItems.length - 5,
-			),
-		}));
+		setSearchPanelData((prev) => {
+			// Check if the next item is out of bounds of the visible items
+			if (searchPanelData.focusedIndex + 1 >= visibleItems.length) return prev;
+			// Determine if the next item is the last item in the search results
+			const isIndexLastItem =
+				visibleItems[searchPanelData.focusedIndex + 1] ===
+				searchResults[searchResults.length - 1];
+			// Update the focused index based on the current state and visibility
+			return {
+				...prev,
+				focusedIndex: Math.min(
+					searchPanelData.focusedIndex + 1, // Attempt to move to the next item
+					// Adjust the maximum index based on the visibility state
+					isShowingMostRecentNotes
+						? mostRecentNotes.length - 1 // If showing most recent notes, use their length
+						: ITEMS_THAT_FIT_ON_SCREEN - (isIndexLastItem ? 0 : 1), // Otherwise, use the screen capacity minus one if not the last item
+				),
+			};
+		});
 	}
 
 	function handleArrowKeyUp(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -98,10 +122,24 @@ export function SearchPanelForm() {
 			}
 		}
 
-		setSearchPanelData((prev) => ({
-			...prev,
-			focusedIndex: Math.max(searchPanelData.focusedIndex - 1, 0),
-		}));
+		setSearchPanelData((prev) => {
+			// We do not want negative indexes
+			if (searchPanelData.focusedIndex - 1 < 0) return prev;
+
+			// Check if the previous item is the first item in the search results
+			const isIndexFirstItem =
+				visibleItems[searchPanelData.focusedIndex - 1] === searchResults[0];
+
+			return {
+				...prev,
+				focusedIndex: Math.max(
+					searchPanelData.focusedIndex - 1,
+					// If it's the first item, we don't want to go below 0
+					// Otherwise, we allow it to go to 1 (second item)
+					isIndexFirstItem ? 0 : 1,
+				),
+			};
+		});
 	}
 
 	return (
@@ -150,13 +188,27 @@ export function SearchPanelForm() {
 				onFocus={async (e) => {
 					e.target.select();
 					await handleSearch(e.target.value);
+					console.log(
+						searchPanelData.scrollY,
+						searchResultsContainerRef.current,
+					);
+
+					setTimeout(() => {
+						searchResultsContainerRef.current?.scrollTo(
+							0,
+							searchPanelData.scrollY,
+						);
+					}, 10);
 				}}
 				onChange={async (e) => {
 					setSearchPanelData((prev) => ({
 						...prev,
+						scrollY: 0,
 						query: e.target.value,
 						focusedIndex: 0,
 					}));
+					setScrollTop(0);
+					searchResultsContainerRef.current?.scrollTo(0, 0);
 					await handleSearch(e.target.value);
 				}}
 				onKeyDown={(e) => {

@@ -103,4 +103,5 @@ export const searchPanelDataAtom = atom<SearchPanelDataType>({
 	isOpen: false,
 	query: "",
 	focusedIndex: 0,
+	scrollY: 0,
 });

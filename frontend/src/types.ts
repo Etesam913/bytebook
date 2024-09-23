@@ -65,6 +65,7 @@ export type SearchPanelDataType = {
 	isOpen: boolean;
 	query: string;
 	focusedIndex: number;
+	scrollY: number;
 };
 
 export type BackendQueryDataType = {
