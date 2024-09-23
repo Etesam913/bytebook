@@ -22,6 +22,7 @@ func SetupTerminal(app *application.App, nodeKey string) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("terminal key: ", nodeKey)
 	terminalInputEventName := fmt.Sprintf("terminal:input-%s", nodeKey)
 	app.OnEvent(terminalInputEventName, func(e *application.CustomEvent) {
 		ptmx.Write([]byte(e.Data.(string)))
@@ -55,9 +56,6 @@ func SetupTerminal(app *application.App, nodeKey string) error {
 		if err != nil {
 			log.Println("read error:", err)
 			break
-		}
-		if currentCommand == "pwd" {
-			fmt.Println("should save next output")
 		}
 		terminalOutputEventName := fmt.Sprintf("terminal:output-%s", nodeKey)
 		app.EmitEvent(terminalOutputEventName, terminalData{

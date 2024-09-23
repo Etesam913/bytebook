@@ -7,6 +7,7 @@ import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebo
 import type { CodeBlockData } from "../../types";
 import { useWailsEvent } from "../../utils/hooks";
 import { darkTerminalTheme, handleResize, lightTerminalTheme } from "./utils";
+import { WINDOW_ID } from "../../App";
 
 /**
  * 
@@ -55,7 +56,7 @@ export function useTerminalCreateEventForBackend(nodeKey: string) {
 	useEffect(() => {
 		Events.Emit({
 			name: "terminal:create",
-			data: nodeKey,
+			data: `${nodeKey}-${WINDOW_ID}`,
 		});
 	}, []);
 }
@@ -106,7 +107,7 @@ export function useTerminalCreateFrontend(
 		xtermRef.current.onData((data) => {
 			setIsSelected(true);
 			Events.Emit({
-				name: `terminal:input-${nodeKey}`,
+				name: `terminal:input-${nodeKey}-${WINDOW_ID}`,
 				data,
 			});
 		});
@@ -138,7 +139,7 @@ export function useTerminalWrite(
 		result: CodeResponse,
 	) => void,
 ) {
-	useWailsEvent(`terminal:output-${nodeKey}`, (body) => {
+	useWailsEvent(`terminal:output-${nodeKey}-${WINDOW_ID}`, (body) => {
 		const data = body.data as { type: string; value: string }[];
 		if (term.current) {
 			const newValue = data.at(0)?.value;

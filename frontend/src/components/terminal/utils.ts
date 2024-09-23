@@ -2,6 +2,7 @@ import { Events } from "@wailsio/runtime";
 import type { FitAddon } from "@xterm/addon-fit";
 import type { Terminal } from "@xterm/xterm";
 import type { RefObject } from "react";
+import { WINDOW_ID } from "../../App";
 
 export const darkTerminalTheme = {
 	background: "rgb(21, 21, 21)",
@@ -27,7 +28,7 @@ export function handleResize(
 		term.current.focus();
 		const [rows, cols] = [term.current.rows, term.current.cols];
 		Events.Emit({
-			name: `terminal:resize-${nodeKey}`,
+			name: `terminal:resize-${nodeKey}-${WINDOW_ID}`,
 			data: { rows, cols },
 		});
 	}
