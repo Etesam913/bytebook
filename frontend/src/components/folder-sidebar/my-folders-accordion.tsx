@@ -79,9 +79,14 @@ export function MyFoldersAccordion({
 							}}
 						>
 							{folder && decodeURIComponent(folder) === sidebarFolderName ? (
-								<FolderOpen title="" width={20} height={20} />
+								<FolderOpen
+									title=""
+									className="min-w-5"
+									width={20}
+									height={20}
+								/>
 							) : (
-								<Folder title="" width={20} height={20} />
+								<Folder title="" className="min-w-5" width={20} height={20} />
 							)}{" "}
 							<p className="whitespace-nowrap text-ellipsis overflow-hidden">
 								{sidebarFolderName}

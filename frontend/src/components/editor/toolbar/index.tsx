@@ -13,7 +13,11 @@ import { cn } from "../../../utils/string-formatting";
 import { MaximizeNoteButton } from "../../buttons/maximize-note";
 import { ToolbarButtons } from "../../buttons/toolbar";
 import { Dropdown } from "../../dropdown";
-import { useNoteMarkdown, useToolbarEvents } from "../hooks/toolbar";
+import {
+	useMutationListener,
+	useNoteMarkdown,
+	useToolbarEvents,
+} from "../hooks/toolbar";
 import { FloatingMenuPlugin } from "../plugins/floating-menu";
 import { CUSTOM_TRANSFORMERS } from "../transformers";
 import { $convertFromMarkdownStringCorrect } from "../utils/note-metadata";
@@ -69,6 +73,8 @@ export function Toolbar({
 		setCurrentSelectionFormat,
 		setFrontmatter,
 	);
+
+	useMutationListener(editor);
 
 	useWailsEvent("note:changed", (e) => {
 		const data = e.data as {

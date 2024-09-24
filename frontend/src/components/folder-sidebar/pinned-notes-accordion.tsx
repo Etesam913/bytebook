@@ -40,7 +40,7 @@ export function PinnedNotesAccordion() {
 			) : (
 				<p
 					style={{ textWrap: "balance" }}
-					className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs"
+					className="list-none pl-2 text-zinc-500 dark:text-zinc-300 text-xs"
 				>
 					Use a note's menu to pin it here
 				</p>

@@ -9,7 +9,6 @@ import {
 	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
 	CONTROLLED_TEXT_INSERTION_COMMAND,
-	DROP_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
 	KEY_ARROW_UP_COMMAND,
@@ -41,6 +40,9 @@ import {
 } from "../utils/note-commands";
 import { $convertFromMarkdownStringCorrect } from "../utils/note-metadata";
 import { updateToolbar } from "../utils/toolbar";
+import { CodeNode } from "../nodes/code";
+import { Events } from "@wailsio/runtime";
+import { WINDOW_ID } from "../../../App";
 
 /** Gets note markdown from local system */
 export function useNoteMarkdown(
@@ -89,6 +91,28 @@ export function useNoteMarkdown(
 
 		fetchNoteMarkdown();
 	}, [folder, note, editor, setCurrentSelectionFormat]);
+}
+
+export function useMutationListener(editor: LexicalEditor) {
+	useEffect(() => {
+		const removeMutationListener = editor.registerMutationListener(
+			CodeNode,
+			(mutatedNodes) => {
+				for (const [nodeKey, mutation] of mutatedNodes) {
+					console.log(nodeKey, mutation);
+					if (mutation === "destroyed") {
+						Events.Emit({
+							name: `terminal:shutoff-${nodeKey}-${WINDOW_ID}`,
+							data: "",
+						});
+					}
+				}
+			},
+		);
+		return () => {
+			removeMutationListener();
+		};
+	}, []);
 }
 
 /**

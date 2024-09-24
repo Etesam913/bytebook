@@ -141,6 +141,7 @@ export function useTerminalWrite(
 ) {
 	useWailsEvent(`terminal:output-${nodeKey}-${WINDOW_ID}`, (body) => {
 		const data = body.data as { type: string; value: string }[];
+		console.log(data);
 		if (term.current) {
 			const newValue = data.at(0)?.value;
 			if (!newValue) return;

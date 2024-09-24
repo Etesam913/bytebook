@@ -140,13 +140,10 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		result: CodeResponse,
 		editor: LexicalEditor,
 	): void {
-		editor.update(
-			() => {
-				const writable = this.getWritable();
-				writable.__data = { files, result };
-			},
-			{ tag: "note:changed-from-other-window" },
-		);
+		editor.update(() => {
+			const writable = this.getWritable();
+			writable.__data = { files, result };
+		});
 	}
 
 	setLanguage(language: string, editor: LexicalEditor): void {

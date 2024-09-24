@@ -1,6 +1,7 @@
 package terminal
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os/exec"
@@ -45,24 +46,35 @@ func SetupTerminal(app *application.App, nodeKey string) error {
 			Rows: uint16(rows),
 		})
 	})
+	_, cancel := context.WithCancel(context.Background())
+	terminalShutoffEventName := fmt.Sprintf("terminal:shutoff-%s", nodeKey)
+	app.OnEvent(terminalShutoffEventName, func(e *application.CustomEvent) {
+		fmt.Println()
+		ptmx.Close()
+		fmt.Println("should exit from terminal")
+		cancel()
+	})
 
 	// Make sure to close the pty at the end.
 	defer func() { _ = ptmx.Close() }()
 
 	buf := make([]byte, 1024)
 	for {
+
+		fmt.Println("reading from terminal")
 		n, err := ptmx.Read(buf)
-		currentCommand := string(buf[:n])
 		if err != nil {
 			log.Println("read error:", err)
 			break
 		}
+		currentCommand := string(buf[:n])
 		terminalOutputEventName := fmt.Sprintf("terminal:output-%s", nodeKey)
 		app.EmitEvent(terminalOutputEventName, terminalData{
 			Type:  "command",
 			Value: currentCommand,
 		})
 	}
+	fmt.Println("did exit")
 	return nil
 }
 
