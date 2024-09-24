@@ -38,6 +38,7 @@ export function Toolbar({
 	animationControls,
 	frontmatter,
 	setFrontmatter,
+	setNoteMarkdownString,
 }: {
 	folder: string;
 	note: string;
@@ -47,6 +48,7 @@ export function Toolbar({
 	noteContainerRef: React.RefObject<HTMLDivElement>;
 	frontmatter: Record<string, string>;
 	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
+	setNoteMarkdownString: Dispatch<SetStateAction<string>>;
 }) {
 	const [editor] = useLexicalComposerContext();
 	const [disabled, setDisabled] = useAtom(isToolbarDisabledAtom);
@@ -72,6 +74,7 @@ export function Toolbar({
 		note,
 		setCurrentSelectionFormat,
 		setFrontmatter,
+		setNoteMarkdownString,
 	);
 
 	useMutationListener(editor);

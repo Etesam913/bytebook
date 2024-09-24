@@ -1,4 +1,5 @@
 import { mergeRegister } from "@lexical/utils";
+import { Events } from "@wailsio/runtime";
 import { useAtomValue } from "jotai";
 import {
 	$getSelection,
@@ -28,9 +29,11 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
+import { WINDOW_ID } from "../../../App";
 import { draggedElementAtom } from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
+import { CodeNode } from "../nodes/code";
 import { CUSTOM_TRANSFORMERS } from "../transformers";
 import {
 	overrideControlledTextInsertion,
@@ -40,9 +43,6 @@ import {
 } from "../utils/note-commands";
 import { $convertFromMarkdownStringCorrect } from "../utils/note-metadata";
 import { updateToolbar } from "../utils/toolbar";
-import { CodeNode } from "../nodes/code";
-import { Events } from "@wailsio/runtime";
-import { WINDOW_ID } from "../../../App";
 
 /** Gets note markdown from local system */
 export function useNoteMarkdown(
@@ -51,6 +51,7 @@ export function useNoteMarkdown(
 	note: string,
 	setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
 	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>,
+	setNoteMarkdownString: Dispatch<SetStateAction<string>>,
 ) {
 	useEffect(() => {
 		async function fetchNoteMarkdown() {
@@ -63,6 +64,7 @@ export function useNoteMarkdown(
 					editor.setEditable(true);
 					// You don't want a different note to access the same history when you switch notes
 					editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
+					setNoteMarkdownString(res.data);
 
 					editor.update(
 						() => {

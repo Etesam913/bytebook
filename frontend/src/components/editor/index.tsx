@@ -84,6 +84,7 @@ export function NotesEditor({
 	const noteContainerRef = useRef<HTMLDivElement | null>(null);
 	const setNoteContainerRef = useSetAtom(noteContainerRefAtom);
 	const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
+	const [noteMarkdownString, setNoteMarkdownString] = useState("");
 
 	useHotkeys({
 		"Meta+f": () => {
@@ -96,10 +97,6 @@ export function NotesEditor({
 		setNoteContainerRef(noteContainerRef);
 	}, [noteContainerRef]);
 
-	useEffect(() => {
-		setFrontmatter({});
-	}, [note]);
-
 	return (
 		<LexicalComposer initialConfig={editorConfig}>
 			<Toolbar
@@ -111,80 +108,90 @@ export function NotesEditor({
 				setFloatingData={setFloatingData}
 				frontmatter={frontmatter}
 				setFrontmatter={setFrontmatter}
+				setNoteMarkdownString={setNoteMarkdownString}
 			/>
-			<div
-				ref={noteContainerRef}
-				style={{
-					scrollbarGutter: "stable",
-					fontFamily: `"${frontmatter.fontFamily}", "Bricolage Grotesque"`,
-				}}
-				className={cn(
-					"h-[calc(100vh-38px)] overflow-x-hidden overflow-y-auto py-2 px-4 relative",
-					isNoteMaximized && "px-6",
+			<div className="flex gap-2 overflow-auto h-[calc(100vh-35px)]">
+				<div
+					ref={noteContainerRef}
+					style={{
+						scrollbarGutter: "stable",
+						fontFamily: `"${frontmatter.fontFamily}", "Bricolage Grotesque"`,
+					}}
+					className={cn(
+						"h-full overflow-x-hidden overflow-y-auto py-2 px-4 relative flex-1",
+						isNoteMaximized && "px-6",
+					)}
+					onClick={(e) => {
+						const target = e.target as HTMLElement & { ariaChecked?: string };
+						if (target.parentElement?.tagName === "A") {
+							return;
+						}
+
+						if (
+							target.dataset.lexicalDecorator !== "true" &&
+							target.ariaChecked === null
+						) {
+							editorRef.current?.focus(undefined, {
+								defaultSelection: "rootStart",
+							});
+						}
+					}}
+				>
+					<NoteTitle folder={folder} note={note} />
+					<ComponentPickerMenuPlugin folder={folder} note={note} />
+					{frontmatter.showTableOfContents === "true" && (
+						<TableOfContentsPlugin />
+					)}
+
+					<RichTextPlugin
+						placeholder={null}
+						contentEditable={
+							<ContentEditable
+								onKeyDown={() => setDraggableBlockElement(null)}
+								id="content-editable-editor"
+								autoComplete="off"
+								autoCorrect="off"
+								autoCapitalize="off"
+								// spellCheck="false"
+							/>
+						}
+						ErrorBoundary={LexicalErrorBoundary}
+					/>
+					<OnChangePlugin
+						ignoreSelectionChange
+						onChange={(_, editor, tag) => debouncedHandleChange(editor, tag)}
+					/>
+					<CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
+					<ListPlugin />
+					<LinkPlugin />
+					<NoteFindPlugin isOpen={isFindOpen} setIsOpen={setIsFindOpen} />
+					<CheckListPlugin />
+					<TabIndentationPlugin />
+					<HistoryPlugin />
+					<TablePlugin />
+					<SavePlugin
+						folder={folder}
+						note={note}
+						frontmatter={frontmatter}
+						setFrontmatter={setFrontmatter}
+						setNoteMarkdownString={setNoteMarkdownString}
+					/>
+					<EditorRefPlugin editorRef={editorRef} />
+					<FilesPlugin />
+					<VideosPlugin />
+					<CodePlugin />
+					<DraggableBlockPlugin />
+					<FocusPlugin />
+
+					<LinkMatcherPlugin />
+					{/* <TreeViewPlugin /> */}
+				</div>
+				{frontmatter.showMarkdown === "true" && (
+					<div className="w-[50%] bg-zinc-50 dark:bg-zinc-850 h-full font-code border-l border-zinc-200 dark:border-zinc-700 px-4 pt-3 pb-2 overflow-auto">
+						<h3 className="text-2xl">Note Markdown</h3>
+						<p className="text-sm whitespace-pre-wrap">{noteMarkdownString}</p>
+					</div>
 				)}
-				onClick={(e) => {
-					const target = e.target as HTMLElement & { ariaChecked?: string };
-					if (target.parentElement?.tagName === "A") {
-						return;
-					}
-
-					if (
-						target.dataset.lexicalDecorator !== "true" &&
-						target.ariaChecked === null
-					) {
-						editorRef.current?.focus(undefined, {
-							defaultSelection: "rootStart",
-						});
-					}
-				}}
-			>
-				<NoteTitle folder={folder} note={note} />
-				<ComponentPickerMenuPlugin folder={folder} note={note} />
-				{frontmatter.showTableOfContents === "true" && (
-					<TableOfContentsPlugin />
-				)}
-
-				<RichTextPlugin
-					placeholder={null}
-					contentEditable={
-						<ContentEditable
-							onKeyDown={() => setDraggableBlockElement(null)}
-							id="content-editable-editor"
-							autoComplete="off"
-							autoCorrect="off"
-							autoCapitalize="off"
-							// spellCheck="false"
-						/>
-					}
-					ErrorBoundary={LexicalErrorBoundary}
-				/>
-				<OnChangePlugin
-					ignoreSelectionChange
-					onChange={(_, editor, tag) => debouncedHandleChange(editor, tag)}
-				/>
-				<CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
-				<ListPlugin />
-				<LinkPlugin />
-				<NoteFindPlugin isOpen={isFindOpen} setIsOpen={setIsFindOpen} />
-				<CheckListPlugin />
-				<TabIndentationPlugin />
-				<HistoryPlugin />
-				<TablePlugin />
-				<SavePlugin
-					folder={folder}
-					note={note}
-					frontmatter={frontmatter}
-					setFrontmatter={setFrontmatter}
-				/>
-				<EditorRefPlugin editorRef={editorRef} />
-				<FilesPlugin />
-				<VideosPlugin />
-				<CodePlugin />
-				<DraggableBlockPlugin />
-				<FocusPlugin />
-
-				<LinkMatcherPlugin />
-				{/* <TreeViewPlugin /> */}
 			</div>
 			<BottomBar frontmatter={frontmatter} folder={folder} note={note} />
 		</LexicalComposer>

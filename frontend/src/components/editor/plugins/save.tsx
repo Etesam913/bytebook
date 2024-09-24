@@ -24,11 +24,13 @@ export function SavePlugin({
 	note,
 	frontmatter,
 	setFrontmatter,
+	setNoteMarkdownString,
 }: {
 	folder: string;
 	note: string;
 	frontmatter: Record<string, string>;
 	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
+	setNoteMarkdownString: Dispatch<SetStateAction<string>>;
 }) {
 	const [editor] = useLexicalComposerContext();
 
@@ -58,6 +60,7 @@ export function SavePlugin({
 						},
 					});
 					setFrontmatter(frontmatterCopy);
+					setNoteMarkdownString(markdownWithFrontmatter);
 					SetNoteMarkdown(
 						decodeURIComponent(folder),
 						decodeURIComponent(note),

@@ -4,10 +4,10 @@ import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
 import { type MutableRefObject, type RefObject, useEffect } from "react";
 import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook";
+import { WINDOW_ID } from "../../App";
 import type { CodeBlockData } from "../../types";
 import { useWailsEvent } from "../../utils/hooks";
 import { darkTerminalTheme, handleResize, lightTerminalTheme } from "./utils";
-import { WINDOW_ID } from "../../App";
 
 /**
  * 
