@@ -1,9 +1,10 @@
 import { mergeRegister } from "@lexical/utils";
-import { Events } from "@wailsio/runtime";
+
 import { useAtomValue } from "jotai";
 import {
 	$getSelection,
 	$isNodeSelection,
+	$nodesOfType,
 	CAN_REDO_COMMAND,
 	CAN_UNDO_COMMAND,
 	CLEAR_HISTORY_COMMAND,
@@ -29,7 +30,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
-import { WINDOW_ID } from "../../../App";
+import { ShutoffTerminals } from "../../../../bindings/github.com/etesam913/bytebook/terminalservice";
 import { draggedElementAtom } from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
@@ -92,6 +93,15 @@ export function useNoteMarkdown(
 		}
 
 		fetchNoteMarkdown();
+
+		// When the editor is unmounted we need to shutoff the terminals
+		return () => {
+			editor.read(() => {
+				const oldCodeNodes = $nodesOfType(CodeNode);
+				const codeKeys = oldCodeNodes.map((node) => node.getKey());
+				ShutoffTerminals(codeKeys);
+			});
+		};
 	}, [folder, note, editor, setCurrentSelectionFormat]);
 }
 
@@ -100,15 +110,13 @@ export function useMutationListener(editor: LexicalEditor) {
 		const removeMutationListener = editor.registerMutationListener(
 			CodeNode,
 			(mutatedNodes) => {
+				const codeKeys: string[] = [];
 				for (const [nodeKey, mutation] of mutatedNodes) {
-					console.log(nodeKey, mutation);
 					if (mutation === "destroyed") {
-						Events.Emit({
-							name: `terminal:shutoff-${nodeKey}-${WINDOW_ID}`,
-							data: "",
-						});
+						codeKeys.push(nodeKey);
 					}
 				}
+				ShutoffTerminals(codeKeys);
 			},
 		);
 		return () => {

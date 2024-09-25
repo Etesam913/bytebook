@@ -6,12 +6,14 @@ import * as NodeService from "./nodeservice.js";
 import * as NoteService from "./noteservice.js";
 import * as SearchService from "./searchservice.js";
 import * as SettingsService from "./settingsservice.js";
+import * as TerminalService from "./terminalservice.js";
 export {
     FolderService,
     NodeService,
     NoteService,
     SearchService,
-    SettingsService
+    SettingsService,
+    TerminalService
 };
 
 export * from "./models.js";

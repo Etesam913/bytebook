@@ -17,8 +17,6 @@ type SettingsResponse struct {
 	Data project_types.ProjectSettingsJson `json:"data"`
 }
 
-
-
 /*
 	GetProjectSettings returns the project settings for the current project.
 	If the settings file does not exist, it will be created and the default settings will be returned.

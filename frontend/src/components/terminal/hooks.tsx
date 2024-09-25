@@ -4,13 +4,12 @@ import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
 import { type MutableRefObject, type RefObject, useEffect } from "react";
 import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook";
-import { WINDOW_ID } from "../../App";
 import type { CodeBlockData } from "../../types";
 import { useWailsEvent } from "../../utils/hooks";
 import { darkTerminalTheme, handleResize, lightTerminalTheme } from "./utils";
 
 /**
- * 
+ *
    Whenever the underlying node is selected, it focuses on the terminal textarea.
 	 This improves the UX
  */
@@ -56,7 +55,7 @@ export function useTerminalCreateEventForBackend(nodeKey: string) {
 	useEffect(() => {
 		Events.Emit({
 			name: "terminal:create",
-			data: `${nodeKey}-${WINDOW_ID}`,
+			data: nodeKey,
 		});
 	}, []);
 }
@@ -107,7 +106,7 @@ export function useTerminalCreateFrontend(
 		xtermRef.current.onData((data) => {
 			setIsSelected(true);
 			Events.Emit({
-				name: `terminal:input-${nodeKey}-${WINDOW_ID}`,
+				name: `terminal:input-${nodeKey}`,
 				data,
 			});
 		});
@@ -139,7 +138,7 @@ export function useTerminalWrite(
 		result: CodeResponse,
 	) => void,
 ) {
-	useWailsEvent(`terminal:output-${nodeKey}-${WINDOW_ID}`, (body) => {
+	useWailsEvent(`terminal:output-${nodeKey}`, (body) => {
 		const data = body.data as { type: string; value: string }[];
 		console.log(data);
 		if (term.current) {

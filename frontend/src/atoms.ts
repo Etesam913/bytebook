@@ -7,6 +7,7 @@ import type {
 	SearchPanelDataType,
 	SortStrings,
 	UserData,
+	WindowSettings,
 } from "./types.ts";
 
 const privateMostRecentNotesAtom = atom<string[]>(
@@ -29,6 +30,8 @@ export const mostRecentNotesWithoutQueryParamsAtom = atom((get) => {
 		return `${folderAndNote}.${ext}`;
 	});
 });
+
+export const windowSettingsAtom = atom<WindowSettings | null>(null);
 
 export const projectSettingsAtom = atom<ProjectSettings>({
 	pinnedNotes: new Set([]),

@@ -72,6 +72,9 @@ func main() {
 			application.NewService(
 				&SettingsService{ProjectPath: projectPath},
 			),
+			application.NewService(
+				&TerminalService{},
+			),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),

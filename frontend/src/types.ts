@@ -83,6 +83,10 @@ export type SortStrings =
 	| "size-desc"
 	| "size-asc";
 
+export type WindowSettings = {
+	windowId: string;
+};
+
 export type ProjectSettings = {
 	pinnedNotes: Set<string>;
 };

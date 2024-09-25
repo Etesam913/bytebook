@@ -4,17 +4,25 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
-	"runtime"
+	"sync"
 
 	"github.com/creack/pty"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
+type TerminalSession struct {
+	Ptmx   *os.File
+	Cancel context.CancelFunc
+}
+
 type terminalData struct {
 	Type  string `json:"type"`
 	Value string `json:"value"`
 }
+
+var Terminals sync.Map
 
 func SetupTerminal(app *application.App, nodeKey string) error {
 	// Start a new pty session with bash shell
@@ -23,7 +31,16 @@ func SetupTerminal(app *application.App, nodeKey string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("terminal key: ", nodeKey)
+	_, cancel := context.WithCancel(context.Background())
+
+	session := &TerminalSession{
+		Ptmx:   ptmx,
+		Cancel: cancel,
+	}
+
+	Terminals.Store(nodeKey, session)
+	ListActiveTerminals()
+
 	terminalInputEventName := fmt.Sprintf("terminal:input-%s", nodeKey)
 	app.OnEvent(terminalInputEventName, func(e *application.CustomEvent) {
 		ptmx.Write([]byte(e.Data.(string)))
@@ -46,22 +63,12 @@ func SetupTerminal(app *application.App, nodeKey string) error {
 			Rows: uint16(rows),
 		})
 	})
-	_, cancel := context.WithCancel(context.Background())
-	terminalShutoffEventName := fmt.Sprintf("terminal:shutoff-%s", nodeKey)
-	app.OnEvent(terminalShutoffEventName, func(e *application.CustomEvent) {
-		fmt.Println()
-		ptmx.Close()
-		fmt.Println("should exit from terminal")
-		cancel()
-	})
 
 	// Make sure to close the pty at the end.
 	defer func() { _ = ptmx.Close() }()
 
 	buf := make([]byte, 1024)
 	for {
-
-		fmt.Println("reading from terminal")
 		n, err := ptmx.Read(buf)
 		if err != nil {
 			log.Println("read error:", err)
@@ -74,8 +81,15 @@ func SetupTerminal(app *application.App, nodeKey string) error {
 			Value: currentCommand,
 		})
 	}
-	fmt.Println("did exit")
 	return nil
+}
+
+func ListActiveTerminals() {
+	log.Println("Active Terminal Sessions:")
+	Terminals.Range(func(key, value interface{}) bool {
+		log.Println(" - Terminal NodeKey:", key)
+		return true
+	})
 }
 
 // Listens for terminal:create events
@@ -83,6 +97,5 @@ func ListenToTerminalCreateEvent(app *application.App) {
 	app.OnEvent("terminal:create", func(e *application.CustomEvent) {
 		nodeKey := e.Data.(string)
 		go SetupTerminal(app, nodeKey)
-		fmt.Printf("Number of goroutines: %d\n", runtime.NumGoroutine())
 	})
 }

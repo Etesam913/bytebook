@@ -3,6 +3,7 @@ export function Command({
 	height = "1.25rem",
 	fill = "currentColor",
 	title = "command",
+	className,
 }: {
 	width?: string;
 	height?: string;
@@ -16,6 +17,7 @@ export function Command({
 			width={width}
 			viewBox="0 0 18 18"
 			xmlns="http://www.w3.org/2000/svg"
+			className={className}
 		>
 			<title>{title}</title>
 			<g fill={fill}>
