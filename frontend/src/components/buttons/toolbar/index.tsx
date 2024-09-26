@@ -205,6 +205,7 @@ export function ToolbarButtons({
 								!disabled &&
 								!customDisabled &&
 								"button-invert",
+							disabled && "opacity-50 cursor-not-allowed",
 						)}
 					>
 						{icon}
