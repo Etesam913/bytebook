@@ -67,14 +67,6 @@ func CreateContextMenu(app *application.App, contextMenu *application.Menu, menu
 }
 
 func CreateNoteContextMenu(app *application.App, projectPath string, contextMenu *application.Menu, backgroundColor application.RGBA) {
-	contextMenu.Add("Send To Trash").OnClick(func(data *application.Context) {
-		contextData, isString := data.ContextMenuData().(string)
-		if !isString {
-			return
-		}
-		notePaths := strings.Split(contextData, ",")
-		io_helpers.MoveNotesToTrash(projectPath, notePaths)
-	})
 
 	contextMenu.Add("Open Note In New Window").OnClick(func(data *application.Context) {
 		contextData, isString := data.ContextMenuData().(string)
@@ -95,6 +87,27 @@ func CreateNoteContextMenu(app *application.App, projectPath string, contextMenu
 			custom_events.CreateWindow(app, url, backgroundColor)
 		}
 	})
+
+	contextMenu.Add("Reveal In Finder").OnClick(func(data *application.Context) {
+		contextData, isString := data.ContextMenuData().(string)
+		if !isString {
+			return
+		}
+		notePaths := strings.Split(contextData, ",")
+		for _, notePath := range notePaths {
+			io_helpers.RevealInFinder(filepath.Join(projectPath, "notes", notePath))
+		}
+	})
+
+	contextMenu.Add("Send To Trash").OnClick(func(data *application.Context) {
+		contextData, isString := data.ContextMenuData().(string)
+		if !isString {
+			return
+		}
+		notePaths := strings.Split(contextData, ",")
+		io_helpers.MoveNotesToTrash(projectPath, notePaths)
+	})
+
 }
 
 func GenerateRandomID() (string, error) {

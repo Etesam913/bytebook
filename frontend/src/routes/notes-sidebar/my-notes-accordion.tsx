@@ -88,12 +88,6 @@ export function MyNotesAccordion({
 									});
 								}
 							}}
-							// onDoubleClick={() => {
-							// 	Events.Emit({
-							// 		name: "open-note-in-new-window-backend",
-							// 		data: { url: `/${curFolder}/${sidebarNoteName}` },
-							// 	});
-							// }}
 							target="_blank"
 							className={cn(
 								"sidebar-item",

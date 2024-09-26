@@ -188,13 +188,12 @@ func FileOrFolderExists(path string) (bool, error) {
 	return false, err
 }
 
-
 type MostRecentNoteResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 }
 
-func MoveNotesToTrash(projectPath string,folderAndNotes []string) MostRecentNoteResponse {
+func MoveNotesToTrash(projectPath string, folderAndNotes []string) MostRecentNoteResponse {
 	errors := []string{} // Slice to store any errors encountered during the process.
 
 	// Iterate over each path in the provided folderAndNotes slice.
@@ -263,19 +262,18 @@ func CreateFolderIfNotExist(pathname string) error {
 	return nil
 }
 
-
 /*
-	GetValidPinnedNotes returns a list of valid pinned notes.
-	It checks if the pinned note exists in the notes folder and returns all of the pinned notes that exist.
+GetValidPinnedNotes returns a list of valid pinned notes.
+It checks if the pinned note exists in the notes folder and returns all of the pinned notes that exist.
 */
 func GetValidPinnedNotes(projectPath string, projectSettings project_types.ProjectSettingsJson) []string {
 	validPinnedNotes := []string{}
 	for _, pinnedNote := range projectSettings.PinnedNotes {
-		    pathToPinnedNote := filepath.Join(projectPath, "notes", pinnedNote)
-			pathExists, _ := FileOrFolderExists(pathToPinnedNote)
-			if pathExists {
-				validPinnedNotes = append(validPinnedNotes, pinnedNote)
-			}
+		pathToPinnedNote := filepath.Join(projectPath, "notes", pinnedNote)
+		pathExists, _ := FileOrFolderExists(pathToPinnedNote)
+		if pathExists {
+			validPinnedNotes = append(validPinnedNotes, pinnedNote)
+		}
 	}
 	return validPinnedNotes
 }
@@ -368,16 +366,29 @@ func CountFilesInDirectory(folderPath string) (int, error) {
 }
 
 // Powers the reveal in finder option in the context menu
-func RevealInFinder(dir string) error {
+func RevealInFinder(fileOrDir string) error {
 	// Check if the directory exists
 	if _, err := exec.LookPath("open"); err != nil {
-		return fmt.Errorf("failed to open directory: %v", dir)
+		return fmt.Errorf("failed to open directory: %v", fileOrDir)
 	}
 
-	// Run the open command
-	cmd := exec.Command("open", dir)
+	// Determine if fileOrDir is a directory
+	info, err := os.Stat(fileOrDir)
+	if err != nil {
+		return fmt.Errorf("failed to stat file or directory: %v", fileOrDir)
+	}
+
+	// Run the open command with or without -R based on if fileOrDir is a directory
+	var args []string
+	if info.IsDir() {
+		args = []string{fileOrDir}
+	} else {
+		args = []string{"-R", fileOrDir}
+	}
+
+	cmd := exec.Command("open", args...)
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to open directory: %v", dir)
+		return fmt.Errorf("failed to open directory: %v", fileOrDir)
 	}
 	return nil
 }
