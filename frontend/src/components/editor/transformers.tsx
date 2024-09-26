@@ -124,8 +124,6 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 		const alt = match.at(1);
 		const filePathOrSrc = match.at(2);
 		if (!alt || !filePathOrSrc) {
-			console.log("deez");
-
 			textNode.replace(textNode);
 
 			return;

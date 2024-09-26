@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useAtom, useAtomValue } from "jotai";
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useMemo, useRef, useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 import { SearchFileNamesFromQuery } from "../../../bindings/github.com/etesam913/bytebook/searchservice";
 import { easingFunctions } from "../../animations";
@@ -195,11 +195,6 @@ export function SearchPanelForm() {
 				onFocus={async (e) => {
 					e.target.select();
 					await handleSearch(e.target.value);
-					console.log(
-						searchPanelData.scrollY,
-						searchResultsContainerRef.current,
-					);
-
 					setTimeout(() => {
 						searchResultsContainerRef.current?.scrollTo(
 							0,

@@ -80,7 +80,6 @@ export function useFolderRename(
 ) {
 	useWailsEvent("folder:rename", (body) => {
 		const data = (body.data as { folder: string }[][])[0];
-		console.log(body, data);
 		const renamedFolders = new Set(data.map(({ folder }) => folder));
 
 		setFolders((prev) => {

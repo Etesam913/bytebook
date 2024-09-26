@@ -17,7 +17,7 @@ import { extractInfoFromNoteName } from "./string-formatting";
 export async function checkIfFolderExists(folder: string | undefined) {
 	if (!folder) return;
 	try {
-		const res = await DoesFolderExist(folder);
+		const res = await DoesFolderExist(decodeURIComponent(folder));
 		if (!res.success) {
 			throw new Error();
 		}
@@ -63,6 +63,7 @@ export async function checkIfNoteExists(
 			const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
 				notes[0],
 			);
+
 			navigate(
 				`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
 					queryParams.ext
@@ -108,10 +109,11 @@ export async function updateNotes(
 			const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
 				notes[0],
 			);
+
 			navigate(
-				`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
-					queryParams.ext
-				}`,
+				`/${decodeURIComponent(folder)}/${encodeURIComponent(
+					noteNameWithoutExtension,
+				)}?ext=${queryParams.ext}`,
 				{
 					replace: true,
 				},
@@ -120,6 +122,7 @@ export async function updateNotes(
 	} catch (error) {
 		toast.error("Error in retrieving notes", DEFAULT_SONNER_OPTIONS);
 		setNotes(null);
+		return null;
 	}
 }
 

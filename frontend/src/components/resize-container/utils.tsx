@@ -20,8 +20,6 @@ function getNearestSiblingNode(node: LexicalNode, isRight: boolean) {
 		return null;
 	}
 
-	console.log(siblingNode);
-
 	while (siblingNode?.getType() !== "file") {
 		if (siblingNode.getChildren) {
 			const children = siblingNode.getChildren();

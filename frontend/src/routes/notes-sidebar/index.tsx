@@ -169,7 +169,11 @@ export function NotesSidebar({
 														`Note, "${newNoteNameString}", successfully created.`,
 														DEFAULT_SONNER_OPTIONS,
 													);
-													navigate(`/${folder}/${newNoteNameString}?ext=md`);
+													navigate(
+														`/${decodeURIComponent(
+															folder,
+														)}/${newNoteNameString}?ext=md`,
+													);
 													return true;
 												}
 												return false;

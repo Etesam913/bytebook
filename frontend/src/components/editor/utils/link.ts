@@ -8,7 +8,6 @@ const URL_MATCHER =
 /** Opens the link in the browser when clicked */
 export function handleATagClick(target: HTMLElement) {
 	const parentElement = target.parentElement as HTMLLinkElement;
-	console.log("Opening link", parentElement.href);
 	if (parentElement.href.startsWith("wails://")) {
 		return;
 	}
