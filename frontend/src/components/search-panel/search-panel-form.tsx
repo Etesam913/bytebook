@@ -70,11 +70,13 @@ export function SearchPanelForm() {
 				searchResultsRefs.current[
 					searchPanelData.focusedIndex
 				]?.getBoundingClientRect();
+
 			if (resultRect) {
 				const containerRect =
 					searchResultsContainerRef.current?.getBoundingClientRect();
 				const distancetoEndOfContainer =
 					containerRect?.bottom - resultRect.bottom;
+
 				// 50 is the magic number, lol. Not a a very good explanation
 				if (distancetoEndOfContainer < 50) {
 					searchResultsContainerRef.current?.scrollBy(0, SIDEBAR_ITEM_HEIGHT);
@@ -84,7 +86,11 @@ export function SearchPanelForm() {
 
 		setSearchPanelData((prev) => {
 			// Check if the next item is out of bounds of the visible items
-			if (searchPanelData.focusedIndex + 1 >= visibleItems.length) return prev;
+			if (
+				!isShowingMostRecentNotes &&
+				searchPanelData.focusedIndex + 1 >= visibleItems.length
+			)
+				return prev;
 			// Determine if the next item is the last item in the search results
 			const isIndexLastItem =
 				visibleItems[searchPanelData.focusedIndex + 1] ===
@@ -124,7 +130,8 @@ export function SearchPanelForm() {
 
 		setSearchPanelData((prev) => {
 			// We do not want negative indexes
-			if (searchPanelData.focusedIndex - 1 < 0) return prev;
+			if (!isShowingMostRecentNotes && searchPanelData.focusedIndex - 1 < 0)
+				return prev;
 
 			// Check if the previous item is the first item in the search results
 			const isIndexFirstItem =
