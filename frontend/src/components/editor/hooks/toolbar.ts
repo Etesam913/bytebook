@@ -31,7 +31,7 @@ import {
 import { toast } from "sonner";
 import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { ShutoffTerminals } from "../../../../bindings/github.com/etesam913/bytebook/terminalservice";
-import { draggedElementAtom } from "../../../atoms";
+import { draggedElementAtom, noteContainerRefAtom } from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
 import { CodeNode } from "../nodes/code";
@@ -54,6 +54,8 @@ export function useNoteMarkdown(
 	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>,
 	setNoteMarkdownString: Dispatch<SetStateAction<string>>,
 ) {
+	const noteContainerRef = useAtomValue(noteContainerRefAtom);
+
 	useEffect(() => {
 		async function fetchNoteMarkdown() {
 			try {
@@ -66,6 +68,13 @@ export function useNoteMarkdown(
 					// You don't want a different note to access the same history when you switch notes
 					editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
 					setNoteMarkdownString(res.data);
+
+					// Scroll to top of the new note. There is a set timeout because there is something that has to load in for the note for its scroll to be accurate
+					setTimeout(() => {
+						if (noteContainerRef?.current) {
+							noteContainerRef.current.scrollTo(0, 0);
+						}
+					}, 20);
 
 					editor.update(
 						() => {
