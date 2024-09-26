@@ -94,8 +94,10 @@ export function useNoteMarkdown(
 
 		fetchNoteMarkdown();
 
-		// When the editor is unmounted we need to shutoff the terminals
 		return () => {
+			// We don't want a stale frontmatter to be used on a new note
+			setFrontmatter({});
+			// When the editor is unmounted we need to shutoff the terminals
 			editor.read(() => {
 				const oldCodeNodes = $nodesOfType(CodeNode);
 				const codeKeys = oldCodeNodes.map((node) => node.getKey());
