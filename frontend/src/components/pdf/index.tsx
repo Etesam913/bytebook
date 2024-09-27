@@ -1,8 +1,11 @@
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { useAtomValue } from "jotai";
 
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { AnimatePresence } from "framer-motion";
 import { draggedElementAtom } from "../../atoms";
 import { cn } from "../../utils/string-formatting";
+import { NoteComponentControls } from "../note-component-container/component-controls";
 
 export default function Pdf({
 	src,
@@ -13,8 +16,8 @@ export default function Pdf({
 	alt: string;
 	nodeKey: string;
 }) {
+	const [editor] = useLexicalComposerContext();
 	const draggedElement = useAtomValue(draggedElementAtom);
-
 	const [isSelected, setSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
 
@@ -36,6 +39,19 @@ export default function Pdf({
 					setSelected(true);
 				}}
 			>
+				<AnimatePresence>
+					{isSelected && (
+						<NoteComponentControls
+							buttonOptions={{
+								trash: {
+									enabled: true,
+								},
+							}}
+							nodeKey={nodeKey}
+							editor={editor}
+						/>
+					)}
+				</AnimatePresence>
 				<div className="px-1 pb-1">{alt}</div>
 				<iframe
 					title={alt}
