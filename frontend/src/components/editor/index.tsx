@@ -179,9 +179,8 @@ export function NotesEditor({
 					<CodePlugin />
 					<DraggableBlockPlugin />
 					<FocusPlugin />
-
 					<LinkMatcherPlugin />
-					{/* <TreeViewPlugin /> */}
+					<TreeViewPlugin />
 				</div>
 				{frontmatter.showMarkdown === "true" && (
 					<div className="w-[50%] bg-zinc-50 dark:bg-zinc-850 h-full font-code border-l border-zinc-200 dark:border-zinc-700 px-4 pt-3 pb-2 overflow-auto">

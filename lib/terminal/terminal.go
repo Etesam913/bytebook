@@ -15,6 +15,7 @@ import (
 type TerminalSession struct {
 	Ptmx   *os.File
 	Cancel context.CancelFunc
+	Cmd    *exec.Cmd
 }
 
 type terminalData struct {
@@ -32,10 +33,11 @@ func SetupTerminal(app *application.App, nodeKey string) error {
 		return err
 	}
 	_, cancel := context.WithCancel(context.Background())
-
+	fmt.Println("PID: ", cmd.Process.Pid)
 	session := &TerminalSession{
 		Ptmx:   ptmx,
 		Cancel: cancel,
+		Cmd:    cmd,
 	}
 
 	Terminals.Store(nodeKey, session)
@@ -65,7 +67,11 @@ func SetupTerminal(app *application.App, nodeKey string) error {
 	})
 
 	// Make sure to close the pty at the end.
-	defer func() { _ = ptmx.Close() }()
+	defer func() {
+		fmt.Println("closed")
+		_ = ptmx.Close()
+
+	}()
 
 	buf := make([]byte, 1024)
 	for {

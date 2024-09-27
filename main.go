@@ -47,6 +47,7 @@ func main() {
 	git_helpers.InitializeGitRepo(projectPath)
 	git_helpers.SetRepoOrigin("https://github.com/Etesam913/bytebook-test.git")
 
+	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "terminal"))
 	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "trash"))
 	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "settings"))
 

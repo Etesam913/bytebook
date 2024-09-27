@@ -1,6 +1,6 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import type { CSSProperties } from "react";
-import { Link, useParams } from "wouter";
+import { useParams } from "wouter";
 import {
 	draggedElementAtom,
 	noteSortAtom,
@@ -10,6 +10,7 @@ import { SortButton } from "../../components/buttons/sort";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
 import { useSearchParamsEntries } from "../../utils/hooks";
+import { useCustomNavigate } from "../../utils/routing";
 import { removeFoldersFromSelection } from "../../utils/selection";
 import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
 import { RenderNoteIcon } from "./render-note-icon";
@@ -26,8 +27,8 @@ export function MyNotesAccordion({
 	const noteNameWithExtension = `${curNote}?ext=${searchParams.ext}`;
 	const selectionRange = useAtomValue(selectionRangeAtom);
 	const setDraggedElement = useSetAtom(draggedElementAtom);
-
 	const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);
+	const { navigate } = useCustomNavigate();
 
 	return (
 		<div className="flex flex-1 flex-col gap-2 overflow-y-auto">
@@ -64,7 +65,8 @@ export function MyNotesAccordion({
 						extractInfoFromNoteName(sidebarNoteName);
 
 					return (
-						<Link
+						<button
+							type="button"
 							title={sidebarNoteName}
 							draggable
 							onDragStart={(e) =>
@@ -88,7 +90,7 @@ export function MyNotesAccordion({
 									});
 								}
 							}}
-							target="_blank"
+							// target="_blank"
 							className={cn(
 								"sidebar-item",
 								noteNameWithExtension === sidebarNoteName &&
@@ -97,7 +99,10 @@ export function MyNotesAccordion({
 									selectionRange.has(`note:${notes[i]}`) &&
 									"!bg-blue-400 dark:!bg-blue-600 text-white",
 							)}
-							to={`/${curFolder}/${sidebarNoteName}`}
+							onClick={() => {
+								navigate(`/${curFolder}/${sidebarNoteName}`);
+							}}
+							// to={`/${curFolder}/${sidebarNoteName}`}
 						>
 							<RenderNoteIcon
 								sidebarNoteName={sidebarNoteName}
@@ -107,7 +112,7 @@ export function MyNotesAccordion({
 							<p className="whitespace-nowrap text-ellipsis overflow-hidden">
 								{noteName}.{queryParams.ext}
 							</p>
-						</Link>
+						</button>
 					);
 				}}
 				getContextMenuStyle={() =>

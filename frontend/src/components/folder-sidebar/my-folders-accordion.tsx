@@ -1,11 +1,11 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import type { CSSProperties } from "react";
-import { Link } from "wouter";
 import { WINDOW_ID } from "../../App.tsx";
 import { alphabetizedFoldersAtom, draggedElementAtom } from "../../atoms.ts";
 
 import { FolderOpen } from "../../icons/folder-open.tsx";
 import { Folder } from "../../icons/folder.tsx";
+import { useCustomNavigate } from "../../utils/routing.ts";
 import { removeNotesFromSelection } from "../../utils/selection.ts";
 import { cn } from "../../utils/string-formatting.ts";
 import { Sidebar } from "../sidebar/index.tsx";
@@ -19,6 +19,7 @@ export function MyFoldersAccordion({
 	const alphabetizedFolders = useAtomValue(alphabetizedFoldersAtom);
 	const hasFolders = alphabetizedFolders && alphabetizedFolders.length > 0;
 	const setDraggedElement = useSetAtom(draggedElementAtom);
+	const { navigate } = useCustomNavigate();
 
 	return (
 		<section className="flex-1 overflow-y-auto flex flex-col gap-1.5">
@@ -44,7 +45,8 @@ export function MyFoldersAccordion({
 					setSelectionRange,
 				}) => {
 					return (
-						<Link
+						<button
+							type="button"
 							draggable
 							onDragStart={(e) =>
 								handleDragStart(
@@ -55,7 +57,6 @@ export function MyFoldersAccordion({
 									setDraggedElement,
 								)
 							}
-							target="_blank"
 							className={cn(
 								"sidebar-item",
 								folder &&
@@ -65,7 +66,9 @@ export function MyFoldersAccordion({
 									selectionRange.has(`folder:${alphabetizedFolders[i]}`) &&
 									"!bg-blue-400 dark:!bg-blue-600 text-white",
 							)}
-							to={`/${encodeURIComponent(sidebarFolderName)}`}
+							onClick={() => {
+								navigate(`/${encodeURIComponent(sidebarFolderName)}`);
+							}}
 							onContextMenu={() => {
 								if (selectionRange.size === 0) {
 									setSelectionRange(new Set([`folder:${sidebarFolderName}`]));
@@ -91,7 +94,7 @@ export function MyFoldersAccordion({
 							<p className="whitespace-nowrap text-ellipsis overflow-hidden">
 								{sidebarFolderName}
 							</p>
-						</Link>
+						</button>
 					);
 				}}
 				isCollapsed={false}

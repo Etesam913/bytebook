@@ -28,7 +28,7 @@ function getFileIcon(fileType: "folder" | "note" | "image") {
  * @param folder - Optional folder path for notes.
  */
 export function handleDragStart(
-	e: DragEvent<HTMLAnchorElement>,
+	e: DragEvent<HTMLAnchorElement> | DragEvent<HTMLButtonElement>,
 	setSelectionRange: Dispatch<SetStateAction<Set<string>>>,
 	contentType: "folder" | "note",
 	draggedItem: string,

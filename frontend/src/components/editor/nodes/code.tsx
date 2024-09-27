@@ -153,6 +153,11 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		});
 	}
 
+	setCommandNoEditorUpdate(command: string): void {
+		const writable = this.getWritable();
+		writable.__command = command;
+	}
+
 	setCommand(command: string, editor: LexicalEditor): void {
 		editor.update(() => {
 			const writable = this.getWritable();

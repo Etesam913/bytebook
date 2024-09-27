@@ -1,10 +1,9 @@
 import { mergeRegister } from "@lexical/utils";
 
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
 	$getSelection,
 	$isNodeSelection,
-	$nodesOfType,
 	CAN_REDO_COMMAND,
 	CAN_UNDO_COMMAND,
 	CLEAR_HISTORY_COMMAND,
@@ -31,7 +30,11 @@ import {
 import { toast } from "sonner";
 import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { ShutoffTerminals } from "../../../../bindings/github.com/etesam913/bytebook/terminalservice";
-import { draggedElementAtom, noteContainerRefAtom } from "../../../atoms";
+import {
+	draggedElementAtom,
+	noteContainerRefAtom,
+	noteEditorAtom,
+} from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
 import { CodeNode } from "../nodes/code";
@@ -55,9 +58,10 @@ export function useNoteMarkdown(
 	setNoteMarkdownString: Dispatch<SetStateAction<string>>,
 ) {
 	const noteContainerRef = useAtomValue(noteContainerRefAtom);
-
+	const setEditor = useSetAtom(noteEditorAtom);
 	useEffect(() => {
 		async function fetchNoteMarkdown() {
+			setEditor(editor);
 			try {
 				const res = await GetNoteMarkdown(
 					`notes/${decodeURIComponent(folder)}/${note}.md`,
@@ -106,12 +110,7 @@ export function useNoteMarkdown(
 		return () => {
 			// We don't want a stale frontmatter to be used on a new note
 			setFrontmatter({});
-			// When the editor is unmounted we need to shutoff the terminals
-			editor.read(() => {
-				const oldCodeNodes = $nodesOfType(CodeNode);
-				const codeKeys = oldCodeNodes.map((node) => node.getKey());
-				ShutoffTerminals(codeKeys);
-			});
+			setEditor(null);
 		};
 	}, [folder, note, editor, setCurrentSelectionFormat]);
 }

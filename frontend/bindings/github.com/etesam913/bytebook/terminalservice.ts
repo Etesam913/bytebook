@@ -5,7 +5,14 @@
 // @ts-ignore: Unused imports
 import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
-export function ShutoffTerminals(nodeKeys: string[]): Promise<void> & { cancel(): void } {
+export function ShutoffTerminals(nodeKeys: string[]): Promise<string[]> & { cancel(): void } {
     let $resultPromise = $Call.ByID(469524853, nodeKeys) as any;
-    return $resultPromise;
+    let $typingPromise = $resultPromise.then(($result) => {
+        return $$createType0($result);
+    }) as any;
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
+
+// Private type creation functions
+const $$createType0 = $Create.Array($Create.Any);

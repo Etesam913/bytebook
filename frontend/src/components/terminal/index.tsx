@@ -85,7 +85,6 @@ export function TerminalComponent({
 			ref={terminalContainerRef}
 			onClick={(e) => {
 				e.stopPropagation();
-
 				setIsSelected(true);
 			}}
 		>

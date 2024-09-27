@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import type { LexicalEditor } from "lexical";
 import type { MutableRefObject } from "react";
 import type {
 	BackendQueryDataType,
@@ -108,3 +109,5 @@ export const searchPanelDataAtom = atom<SearchPanelDataType>({
 	focusedIndex: 0,
 	scrollY: 0,
 });
+
+export const noteEditorAtom = atom<LexicalEditor | null>(null);
