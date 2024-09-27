@@ -14,14 +14,26 @@ import type { SortStrings } from "../types";
 import { DEFAULT_SONNER_OPTIONS } from "./misc";
 import { extractInfoFromNoteName } from "./string-formatting";
 
+/**
+ * Checks if a folder exists by sending a request to the server.
+ * If the folder does not exist, it navigates to a "not-found" page.
+ *
+ * @param folder - The path to the folder to check.
+ */
 export async function checkIfFolderExists(folder: string | undefined) {
+	// If no folder path is provided, exit the function early.
 	if (!folder) return;
 	try {
-		const res = await DoesFolderExist(decodeURIComponent(folder));
+		// Decode the folder path to ensure it's correctly formatted for the request.
+		const decodedFolder = decodeURIComponent(folder);
+		// Send a request to check if the folder exists.
+		const res = await DoesFolderExist(decodedFolder);
+		// If the request indicates the folder does not exist, throw an error.
 		if (!res.success) {
 			throw new Error();
 		}
 	} catch (e) {
+		// If an error occurs, navigate to a "not-found" page with the type set to "folder".
 		navigate("/not-found?type=folder", { replace: true });
 	}
 }
@@ -45,25 +57,40 @@ export async function updateFolders(
 	}
 }
 
+/**
+ * Checks if a specific note exists within a given folder.
+ * If the note does not exist, it navigates to either the first note in the folder or the folder itself.
+ *
+ * @param folder - The path to the folder containing the notes.
+ * @param notes - An array of note names within the folder.
+ * @param note - The name of the note to check for existence.
+ * @param fileExtension - The file extension of the note.
+ */
 export async function checkIfNoteExists(
 	folder: string,
 	notes: string[] | null,
 	note: string | undefined,
 	fileExtension: string | undefined,
 ) {
+	// If no note name or file extension is provided, exit the function early.
 	if (!note || !fileExtension) return;
 	try {
-		const res = await DoesFolderExist(`/${folder}/${note}.${fileExtension}`);
+		// Construct the full path to the note including the folder and file extension.
+		const fullPath = `/${folder}/${note}.${fileExtension}`;
+		// Send a request to check if the folder exists (assuming the note path is a folder).
+		const res = await DoesFolderExist(fullPath);
+		// If the request indicates the folder does not exist, throw an error.
 		if (!res.success) {
 			throw new Error();
 		}
 	} catch (e) {
-		// Navigate to the first note if the note does not exist
+		// If an error occurs, navigate to a suitable location based on the availability of notes.
 		if (notes && notes.length > 0) {
+			// Extract the base name and query parameters from the first note.
 			const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
 				notes[0],
 			);
-
+			// Navigate to the first note with its extension.
 			navigate(
 				`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
 					queryParams.ext
@@ -72,9 +99,8 @@ export async function checkIfNoteExists(
 					replace: true,
 				},
 			);
-		}
-		// Navigate to the folder if the note does not exist
-		else {
+		} else {
+			// If no notes are available, navigate to the folder.
 			navigate(`/${folder}`, { replace: true });
 		}
 	}
@@ -126,18 +152,31 @@ export async function updateNotes(
 	}
 }
 
+/**
+ * Fetches the count of notes in a given folder and updates the state with the count.
+ *
+ * @param folder - The path to the folder for which to fetch the note count.
+ * @param setNoteCount - A function to update the state with the fetched note count.
+ */
 export async function getNoteCount(
 	folder: string,
 	setNoteCount: Dispatch<SetStateAction<number>>,
 ) {
 	try {
-		const res = await GetNoteCount(decodeURIComponent(folder));
+		// Decode the folder path to ensure it's correctly formatted for the request.
+		const decodedFolder = decodeURIComponent(folder);
+		// Send a request to fetch the note count for the decoded folder.
+		const res = await GetNoteCount(decodedFolder);
+		// If the request fails, throw an error.
 		if (!res.success) {
 			throw new Error("Failed to get note count");
 		}
+		// If the request is successful, update the state with the fetched note count.
 		setNoteCount(res.data);
 	} catch (e) {
+		// If an error occurs during the request, handle it.
 		if (e instanceof Error) {
+			// Display an error message to the user.
 			toast.error(e.message, DEFAULT_SONNER_OPTIONS);
 		}
 	}
