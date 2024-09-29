@@ -182,6 +182,7 @@ export function useTerminalWrite(
 		if (term.current) {
 			const newValue = data.at(0)?.value;
 			if (!newValue) return;
+
 			const valueToWrite = codeBlockData.result.message + newValue;
 			writeCodeBlockDataToNode(
 				{ main: valueToWrite },

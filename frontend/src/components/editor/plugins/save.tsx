@@ -15,9 +15,12 @@ import {
 	replaceFrontMatter,
 } from "../utils/note-metadata";
 
-export const SAVE_MARKDOWN_CONTENT: LexicalCommand<
-	undefined | Record<string, string>
-> = createCommand("SAVE_MARKDOWN_CONTENT");
+type SaveMarkdownContentPayload =
+	| undefined
+	| { shouldSkipNoteChangedEmit: boolean };
+
+export const SAVE_MARKDOWN_CONTENT: LexicalCommand<SaveMarkdownContentPayload> =
+	createCommand("SAVE_MARKDOWN_CONTENT");
 
 export function SavePlugin({
 	folder,
@@ -34,13 +37,17 @@ export function SavePlugin({
 }) {
 	const [editor] = useLexicalComposerContext();
 
+	// Register a command to save markdown content
+	// This effect runs once when the component mounts and sets up the command
+	// The command converts the editor content to markdown, updates frontmatter,
+	// emits a 'note:changed' event, updates state, and saves the note to the backend
 	useEffect(() => {
 		return mergeRegister(
-			editor.registerCommand<undefined | Record<string, string>>(
+			editor.registerCommand<SaveMarkdownContentPayload>(
 				SAVE_MARKDOWN_CONTENT,
 				(payload) => {
 					const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
-					const frontmatterCopy = payload ? { ...payload } : { ...frontmatter };
+					const frontmatterCopy = { ...frontmatter };
 					const timeOfChange = new Date().toISOString();
 					frontmatterCopy.lastUpdated = timeOfChange;
 					if (frontmatterCopy.createdDate === undefined) {
@@ -50,15 +57,17 @@ export function SavePlugin({
 						markdown,
 						frontmatterCopy,
 					);
-					Events.Emit({
-						name: "note:changed",
-						data: {
-							folder,
-							note,
-							markdown: markdownWithFrontmatter,
-							oldWindowAppId: WINDOW_ID,
-						},
-					});
+					if (!payload?.shouldSkipNoteChangedEmit) {
+						Events.Emit({
+							name: "note:changed",
+							data: {
+								folder,
+								note,
+								markdown: markdownWithFrontmatter,
+								oldWindowAppId: WINDOW_ID,
+							},
+						});
+					}
 					setFrontmatter(frontmatterCopy);
 					setNoteMarkdownString(markdownWithFrontmatter);
 					SetNoteMarkdown(

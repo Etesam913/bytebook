@@ -55,9 +55,19 @@ function handleChange(editor: LexicalEditor, tags: Set<string>) {
 		tags.has("note:initial-load")
 	)
 		return;
+
+	/* 
+		Saves any changes to the markdown content. We don't want to propagate changes to the other note
+		windows when the change is made to a terminal component as this will lead to an infinite loop
+	*/
 	editor.update(
 		() => {
-			editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, undefined);
+			editor.dispatchCommand(
+				SAVE_MARKDOWN_CONTENT,
+				tags.has("note:terminal-change")
+					? { shouldSkipNoteChangedEmit: true }
+					: undefined,
+			);
 		},
 		{ tag: "note:changed-from-other-window" },
 	);

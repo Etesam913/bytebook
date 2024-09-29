@@ -146,6 +146,21 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		});
 	}
 
+	setTerminalData(
+		files: SandpackFiles,
+		result: CodeResponse,
+		editor: LexicalEditor,
+	): void {
+		editor.update(
+			() => {
+				const writable = this.getWritable();
+				writable.__data = { files, result };
+			},
+			// This tag tells the editor to not propagate the terminal change to other note windows
+			{ tag: "note:terminal-change" },
+		);
+	}
+
 	setLanguage(language: string, editor: LexicalEditor): void {
 		editor.update(() => {
 			const writable = this.getWritable();
@@ -172,7 +187,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 					data={this.getData()}
 					command={this.getCommand()}
 					writeDataToNode={(files: SandpackFiles, result: CodeResponse) =>
-						this.setData(files, result, _editor)
+						this.setTerminalData(files, result, _editor)
 					}
 				/>
 			);

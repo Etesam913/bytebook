@@ -27,6 +27,25 @@ type terminalData struct {
 
 var Terminals sync.Map
 
+// SetupTerminal initializes a new terminal session for a given node key.
+// It sets up a pseudo-terminal (pty) running a bash shell, and configures event listeners
+// for input, resizing, and output.
+//
+// Parameters:
+// - app: The Wails application instance
+// - projectPath: The path to the project directory
+// - nodeKey: A unique identifier for this terminal session
+// - startDirectory: The directory where the terminal should start
+//
+// The function does the following:
+// 1. Checks if the start directory exists
+// 2. Starts a new pty session with a bash shell
+// 3. Stores the terminal session in a global map
+// 4. Sets up event listeners for terminal input and resizing
+// 5. Writes the initial directory change command to the terminal
+// 6. Continuously reads from the pty and emits output events
+//
+// Returns an error if there's any issue setting up the terminal
 func SetupTerminal(app *application.App, projectPath string, nodeKey string, startDirectory string) error {
 	doesStartDirectoryExist, _ := io_helpers.FileOrFolderExists(startDirectory)
 	startCommand := "bash"
