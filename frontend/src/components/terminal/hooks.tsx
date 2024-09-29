@@ -51,11 +51,14 @@ export function useTerminalTheme(
  * Emits a terminal:create event to the backend
  * so that it knows to launch a pty
  */
-export function useTerminalCreateEventForBackend(nodeKey: string) {
+export function useTerminalCreateEventForBackend(
+	nodeKey: string,
+	startDirectory: string,
+) {
 	useEffect(() => {
 		Events.Emit({
 			name: "terminal:create",
-			data: nodeKey,
+			data: { nodeKey, startDirectory },
 		});
 	}, []);
 }
@@ -95,6 +98,7 @@ export function useTerminalCreateFrontend(
 		xtermRef.current.open(terminalRef.current);
 
 		xtermRef.current.write(`${data.result.message}\r\n`);
+
 		// Selects the terminal when it is firstly created using slash command
 		if (isSelected) {
 			xtermRef.current.focus();

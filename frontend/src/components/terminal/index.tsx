@@ -25,10 +25,12 @@ import { handleResize } from "./utils";
 export function TerminalComponent({
 	nodeKey,
 	data,
+	command,
 	writeDataToNode,
 }: {
 	nodeKey: string;
 	data: CodeBlockData;
+	command: string;
 	writeDataToNode: (files: SandpackFiles, result: CodeResponse) => void;
 }) {
 	const terminalRef = useRef<HTMLDivElement | null>(null);
@@ -54,7 +56,7 @@ export function TerminalComponent({
 	);
 	useTerminalTheme(isDarkModeOn, xtermRef);
 	useTerminalWrite(nodeKey, xtermRef, data, writeDataToNode);
-	useTerminalCreateEventForBackend(nodeKey);
+	useTerminalCreateEventForBackend(nodeKey, command);
 
 	useEffect(() => {
 		return mergeRegister(

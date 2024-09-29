@@ -85,7 +85,7 @@ func main() {
 		},
 	})
 
-	terminal.ListenToTerminalCreateEvent(app)
+	terminal.ListenToTerminalCreateEvent(app, projectPath)
 
 	backgroundColor := application.NewRGB(27, 38, 54)
 	if app.IsDarkMode() {

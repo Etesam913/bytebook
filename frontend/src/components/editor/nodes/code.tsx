@@ -81,7 +81,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	constructor(
 		data: CodeBlockData,
 		language: string,
-		command: undefined | string,
+		command: string,
 		key?: NodeKey,
 	) {
 		super(key);
@@ -170,6 +170,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 				<TerminalComponent
 					nodeKey={this.getKey()}
 					data={this.getData()}
+					command={this.getCommand()}
 					writeDataToNode={(files: SandpackFiles, result: CodeResponse) =>
 						this.setData(files, result, _editor)
 					}
@@ -209,7 +210,7 @@ export function $createCodeNode({
 				result: { id: "0", message: "", success: true },
 			},
 			language,
-			command,
+			command ?? "",
 		),
 	);
 }

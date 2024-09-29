@@ -41,7 +41,7 @@ export function useCustomNavigate() {
 
 				// Store the current directory of each code node terminal
 				codeNodes.forEach((node, i) =>
-					node.setCommand(`cd ${currentDirectories[i]}`, editor),
+					node.setCommand(currentDirectories[i], editor),
 				);
 				editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, undefined);
 			}
