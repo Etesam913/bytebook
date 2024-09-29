@@ -18,6 +18,7 @@ import { FolderXMark } from "../icons/folder-xmark";
 import type { DialogDataType } from "../types";
 import { useWailsEvent } from "../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
+import { useCustomNavigate } from "../utils/routing";
 
 /** This function is used to handle folder:context-menu:delete events */
 export function useFolderOpenInNewWindow(
@@ -164,6 +165,8 @@ export function useFolderContextMenuDelete(
 export function useFolderContextMenuRename(
 	setDialogData: Dispatch<SetStateAction<DialogDataType>>,
 ) {
+	const { navigate } = useCustomNavigate();
+
 	useWailsEvent("folder:context-menu:rename", (body) => {
 		const [folderToBeRenamed, windowId] = (body.data as string[])[0].split(",");
 		if (windowId === WINDOW_ID) {
@@ -178,7 +181,13 @@ export function useFolderContextMenuRename(
 					/>
 				),
 				onSubmit: async (e, setErrorText) =>
-					onFolderDialogSubmit(e, setErrorText, "rename", folderToBeRenamed),
+					onFolderDialogSubmit(
+						e,
+						navigate,
+						setErrorText,
+						"rename",
+						folderToBeRenamed,
+					),
 			});
 		}
 	});

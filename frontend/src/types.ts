@@ -90,3 +90,12 @@ export type WindowSettings = {
 export type ProjectSettings = {
 	pinnedNotes: Set<string>;
 };
+
+// biome-ignore lint/suspicious/noExplicitAny: This is fine for the navigation function
+export type NavigateFunction = <S = any>(
+	to: string | URL,
+	options?: {
+		replace?: boolean;
+		state?: S;
+	},
+) => Promise<void>;

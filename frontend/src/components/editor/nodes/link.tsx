@@ -124,27 +124,27 @@ export class LinkNode extends ElementNode {
 			const noteSvg = <Note className="translate-y-1" />;
 
 			ReactDOM.render(isFolderLink ? folderSvg : noteSvg, tempContainer, () => {
+				element.onclick = (e) => {
+					// The segments are encoded by default
+					if (isNoteLink) {
+						const note = segments[segments.length - 1];
+						const folder = segments[segments.length - 2];
+						const fileExtension = url.searchParams.get("ext");
+						navigate(`/${folder}/${note}?ext=${fileExtension}`);
+						e.preventDefault();
+					} else if (isFolderLink) {
+						const folder = segments[segments.length - 1];
+						navigate(`/${folder}`);
+						e.preventDefault();
+					} else {
+						element.href = "about:blank";
+					}
+				};
+
 				while (tempContainer.firstChild) {
 					element.appendChild(tempContainer.firstChild);
 				}
 			});
-
-			element.onclick = (e) => {
-				// The segments are encoded by default
-				if (isNoteLink) {
-					const note = segments[segments.length - 1];
-					const folder = segments[segments.length - 2];
-					const fileExtension = url.searchParams.get("ext");
-					navigate(`/${folder}/${note}?ext=${fileExtension}`);
-					e.preventDefault();
-				} else if (isFolderLink) {
-					const folder = segments[segments.length - 1];
-					navigate(`/${folder}`);
-					e.preventDefault();
-				} else {
-					element.href = "about:blank";
-				}
-			};
 		}
 		// The browser should handle a regular link
 		else {

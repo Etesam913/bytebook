@@ -2,7 +2,6 @@ import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { navigate } from "wouter/use-browser-location";
 import { AddNoteToFolder } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import {
@@ -35,6 +34,7 @@ import {
 } from "../../utils/fetch-functions";
 import { useSearchParamsEntries } from "../../utils/hooks.tsx";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
+import { useCustomNavigate } from "../../utils/routing.ts";
 import { validateName } from "../../utils/string-formatting.ts";
 import { MyNotesAccordion } from "./my-notes-accordion.tsx";
 import { RenderNote } from "./render-note.tsx";
@@ -59,6 +59,7 @@ export function NotesSidebar({
 	const sidebarRef = useRef<HTMLElement>(null);
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
+	const { navigate } = useCustomNavigate();
 
 	useEffect(() => {
 		updateNotes(folder, note, setNotes, noteSort);
@@ -105,6 +106,7 @@ export function NotesSidebar({
 											onSubmit: (e, setErrorText) =>
 												onFolderDialogSubmit(
 													e,
+													navigate,
 													setErrorText,
 													"rename",
 													decodeURIComponent(folder),

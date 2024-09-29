@@ -8,13 +8,11 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useRoute } from "wouter";
-import { navigate } from "wouter/use-browser-location";
 import {
 	AddFolder,
 	RenameFolder,
 } from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
 import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
-
 import { getDefaultButtonVariants } from "../../animations.ts";
 import { dialogDataAtom, foldersAtom, selectionRangeAtom } from "../../atoms";
 import { FolderPlus } from "../../icons/folder-plus";
@@ -31,11 +29,13 @@ import {
 
 import { Pen } from "../../icons/pen.tsx";
 
+import type { NavigateFunction } from "../../types.ts";
 import {
 	checkIfFolderExists,
 	updateFolders,
 } from "../../utils/fetch-functions";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
+import { useCustomNavigate } from "../../utils/routing.ts";
 import { validateName } from "../../utils/string-formatting.ts";
 import { MotionButton } from "../buttons";
 import { DialogErrorText } from "../dialog/index.tsx";
@@ -86,6 +86,7 @@ export function FolderDialogChildren({
 
 export async function onFolderDialogSubmit(
 	e: FormEvent<HTMLFormElement>,
+	navigate: NavigateFunction,
 	setErrorText: Dispatch<SetStateAction<string>>,
 	action: "create" | "rename",
 	folderToBeRenamed?: string,
@@ -121,7 +122,6 @@ export async function onFolderDialogSubmit(
 				const res = await RenameFolder(folderToBeRenamed, newFolderNameString);
 				if (!res.success) throw new Error(res.message);
 			}
-			// resetDialogState(setErrorText, setDialogData);
 			return true;
 		}
 		return false;
@@ -139,6 +139,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const setFolders = useSetAtom(foldersAtom);
+	const { navigate } = useCustomNavigate();
 
 	useFolderCreate(setFolders);
 	useFolderRename(folder, setFolders);
@@ -180,7 +181,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 								<FolderDialogChildren errorText={errorText} action="create" />
 							),
 							onSubmit: async (e, setErrorText) =>
-								onFolderDialogSubmit(e, setErrorText, "create"),
+								onFolderDialogSubmit(e, navigate, setErrorText, "create"),
 						})
 					}
 				>
