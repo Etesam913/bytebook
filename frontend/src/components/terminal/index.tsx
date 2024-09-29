@@ -97,9 +97,10 @@ export function TerminalComponent({
 				setIsFullscreen={setIsFullscreen}
 				nodeKey={nodeKey}
 				editor={editor}
-				// onFullscreenChange={() => {
-				// 	handleResize(xtermFitAddonRef, xtermRef, nodeKey);
-				// }}
+				onFullscreenChange={() => {
+					if (!xtermRef.current || !xtermFitAddonRef.current) return;
+					handleResize(xtermRef.current, xtermFitAddonRef.current, nodeKey);
+				}}
 			/>
 			<div
 				ref={terminalRef}
