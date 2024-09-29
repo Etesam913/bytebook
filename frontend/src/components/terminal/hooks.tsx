@@ -56,11 +56,12 @@ export function useTerminalTheme(
 export function useTerminalCreateEventForBackend(
 	nodeKey: string,
 	startDirectory: string,
+	shell: string,
 ) {
 	useEffect(() => {
 		Events.Emit({
 			name: "terminal:create",
-			data: { nodeKey, startDirectory },
+			data: { nodeKey, startDirectory, shell },
 		});
 	}, []);
 }
@@ -172,10 +173,7 @@ export function useTerminalWrite(
 	nodeKey: string,
 	term: RefObject<Terminal>,
 	codeBlockData: CodeBlockData,
-	writeCodeBlockDataToNode: (
-		files: SandpackFiles,
-		result: CodeResponse,
-	) => void,
+	writeCodeBlockDataToNode: (result: CodeResponse) => void,
 ) {
 	useWailsEvent(`terminal:output-${nodeKey}`, (body) => {
 		const data = body.data as { type: string; value: string }[];
@@ -184,10 +182,11 @@ export function useTerminalWrite(
 			if (!newValue) return;
 
 			const valueToWrite = codeBlockData.result.message + newValue;
-			writeCodeBlockDataToNode(
-				{ main: valueToWrite },
-				{ success: true, message: valueToWrite, id: nodeKey },
-			);
+			writeCodeBlockDataToNode({
+				success: true,
+				message: valueToWrite,
+				id: nodeKey,
+			});
 			term.current.write(newValue);
 		}
 	});

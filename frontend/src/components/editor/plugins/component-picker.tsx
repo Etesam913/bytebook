@@ -364,6 +364,7 @@ function getBaseOptions(
 						editor.update(() => {
 							editor.dispatchCommand(INSERT_CODE_COMMAND, {
 								language: id,
+								shell: "bash",
 							});
 						});
 					},

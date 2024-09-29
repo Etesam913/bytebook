@@ -196,6 +196,7 @@ function importCodeBlock(
 					data,
 					language,
 					command,
+					shell: "bash",
 				});
 				rootNode.append(codeBlockNode);
 				return [codeBlockNode, endLineIndex];

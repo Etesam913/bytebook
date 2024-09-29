@@ -36,6 +36,7 @@ var Terminals sync.Map
 // - projectPath: The path to the project directory
 // - nodeKey: A unique identifier for this terminal session
 // - startDirectory: The directory where the terminal should start
+// - shell: The shell to start the terminal in
 //
 // The function does the following:
 // 1. Checks if the start directory exists
@@ -46,11 +47,10 @@ var Terminals sync.Map
 // 6. Continuously reads from the pty and emits output events
 //
 // Returns an error if there's any issue setting up the terminal
-func SetupTerminal(app *application.App, projectPath string, nodeKey string, startDirectory string) error {
+func SetupTerminal(app *application.App, projectPath string, nodeKey string, startDirectory string, shell string) error {
 	doesStartDirectoryExist, _ := io_helpers.FileOrFolderExists(startDirectory)
-	startCommand := "bash"
 	// Start a new pty session with bash shell
-	cmd := exec.Command(startCommand)
+	cmd := exec.Command(shell)
 	ptmx, err := pty.Start(cmd)
 	if err != nil {
 		return err
@@ -76,25 +76,8 @@ func SetupTerminal(app *application.App, projectPath string, nodeKey string, sta
 	app.OnEvent(terminalInputEventName, func(e *application.CustomEvent) {
 		ptmx.Write([]byte(e.Data.(string)))
 	})
-	terminalResizeEventName := fmt.Sprintf("terminal:resize-%s", nodeKey)
-	app.OnEvent(terminalResizeEventName, func(e *application.CustomEvent) {
-		data, ok := e.Data.(map[string]interface{})
-		if !ok {
-			log.Println("Invalid data type for resize event")
-			return
-		}
-		cols, colsOk := data["cols"].(float64)
-		rows, rowsOk := data["rows"].(float64)
-		if !colsOk || !rowsOk {
-			log.Println("Invalid cols or rows data")
-			return
-		}
-		pty.Setsize(ptmx, &pty.Winsize{
-			Cols: uint16(cols),
-			Rows: uint16(rows),
-		})
-	})
 
+	handleTerminalResize(app, ptmx, nodeKey)
 	// Make sure to close the pty at the end.
 	defer func() {
 		fmt.Println("closed")
@@ -118,6 +101,37 @@ func SetupTerminal(app *application.App, projectPath string, nodeKey string, sta
 		})
 	}
 	return nil
+}
+
+// handleTerminalResize sets up an event listener for terminal resize events
+// and adjusts the terminal size accordingly.
+func handleTerminalResize(app *application.App, ptmx *os.File, nodeKey string) {
+	// Create a unique event name for this terminal's resize events
+	terminalResizeEventName := fmt.Sprintf("terminal:resize-%s", nodeKey)
+
+	// Set up the event listener
+	app.OnEvent(terminalResizeEventName, func(e *application.CustomEvent) {
+		// Try to cast the event data to the expected type
+		data, ok := e.Data.(map[string]interface{})
+		if !ok {
+			log.Println("Invalid data type for resize event")
+			return
+		}
+
+		// Extract and validate the new column and row values
+		cols, colsOk := data["cols"].(float64)
+		rows, rowsOk := data["rows"].(float64)
+		if !colsOk || !rowsOk {
+			log.Println("Invalid cols or rows data")
+			return
+		}
+
+		// Resize the terminal using the pty package
+		pty.Setsize(ptmx, &pty.Winsize{
+			Cols: uint16(cols),
+			Rows: uint16(rows),
+		})
+	})
 }
 
 // writeStartDirectory simulates typing the 'cd' command to change to the specified
@@ -149,11 +163,11 @@ func ListenToTerminalCreateEvent(app *application.App, projectPath string) {
 		data, ok := e.Data.(map[string]interface{})
 		if ok {
 			nodeKey, isNodeKeyOk := data["nodeKey"].(string)
-
 			startDirectory, isStartDirectoryOk := data["startDirectory"].(string)
+			shell, isShellOk := data["shell"].(string)
 
-			if isNodeKeyOk && isStartDirectoryOk {
-				go SetupTerminal(app, projectPath, nodeKey, startDirectory)
+			if isNodeKeyOk && isStartDirectoryOk && isShellOk {
+				go SetupTerminal(app, projectPath, nodeKey, startDirectory, shell)
 			}
 		}
 	})

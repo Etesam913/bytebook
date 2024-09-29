@@ -28,11 +28,13 @@ export function TerminalComponent({
 	data,
 	command,
 	writeDataToNode,
+	shell,
 }: {
 	nodeKey: string;
 	data: CodeBlockData;
 	command: string;
-	writeDataToNode: (files: SandpackFiles, result: CodeResponse) => void;
+	writeDataToNode: (result: CodeResponse) => void;
+	shell: string;
 }) {
 	const terminalRef = useRef<HTMLDivElement | null>(null);
 	const [editor] = useLexicalComposerContext();
@@ -58,7 +60,7 @@ export function TerminalComponent({
 	useTerminalResize(xtermRef, xtermFitAddonRef, nodeKey);
 	useTerminalTheme(isDarkModeOn, xtermRef);
 	useTerminalWrite(nodeKey, xtermRef, data, writeDataToNode);
-	useTerminalCreateEventForBackend(nodeKey, command);
+	useTerminalCreateEventForBackend(nodeKey, command, shell);
 
 	useEffect(() => {
 		return mergeRegister(
