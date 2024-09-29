@@ -99,10 +99,10 @@ export function MyNotesAccordion({
 									selectionRange.has(`note:${notes[i]}`) &&
 									"!bg-blue-400 dark:!bg-blue-600 text-white",
 							)}
-							onClick={() => {
+							onClick={(e) => {
+								if (e.metaKey || e.shiftKey) return;
 								navigate(`/${curFolder}/${sidebarNoteName}`);
 							}}
-							// to={`/${curFolder}/${sidebarNoteName}`}
 						>
 							<RenderNoteIcon
 								sidebarNoteName={sidebarNoteName}

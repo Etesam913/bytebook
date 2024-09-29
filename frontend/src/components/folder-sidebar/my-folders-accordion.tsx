@@ -66,7 +66,8 @@ export function MyFoldersAccordion({
 									selectionRange.has(`folder:${alphabetizedFolders[i]}`) &&
 									"!bg-blue-400 dark:!bg-blue-600 text-white",
 							)}
-							onClick={() => {
+							onClick={(e) => {
+								if (e.metaKey || e.shiftKey) return;
 								navigate(`/${encodeURIComponent(sidebarFolderName)}`);
 							}}
 							onContextMenu={() => {
