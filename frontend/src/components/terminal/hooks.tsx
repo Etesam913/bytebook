@@ -2,8 +2,10 @@ import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import { Events } from "@wailsio/runtime";
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
+import { useAtomValue } from "jotai/react";
 import { type MutableRefObject, type RefObject, useEffect } from "react";
 import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook";
+import { noteContainerRefAtom } from "../../atoms";
 import type { CodeBlockData } from "../../types";
 import { useWailsEvent } from "../../utils/hooks";
 import { darkTerminalTheme, handleResize, lightTerminalTheme } from "./utils";
@@ -64,6 +66,46 @@ export function useTerminalCreateEventForBackend(
 }
 
 /**
+ * Custom hook to handle terminal resizing
+ *
+ * This hook sets up a ResizeObserver to watch for changes in the note container's size.
+ * When a resize occurs, it triggers a resize of the terminal to fit the new dimensions.
+ *
+ * @param xtermRef - Reference to the xterm Terminal instance
+ * @param xtermFitAddonRef - Reference to the FitAddon for xterm
+ * @param nodeKey - Unique identifier for the terminal node
+ */
+export function useTerminalResize(
+	xtermRef: RefObject<Terminal | null>,
+	xtermFitAddonRef: RefObject<FitAddon | null>,
+	nodeKey: string,
+) {
+	// Get the reference to the note container from the global state
+	const noteContainerRef = useAtomValue(noteContainerRefAtom);
+
+	useEffect(() => {
+		// Early return if the note container reference is not available
+		if (!noteContainerRef || !noteContainerRef.current) return;
+
+		// Create a ResizeObserver to watch for size changes
+		const resizeObserver = new ResizeObserver(() => {
+			// Check if both xterm and its fit addon are available
+			if (!xtermRef.current || !xtermFitAddonRef.current) return;
+			// Trigger the resize handler
+			handleResize(xtermRef.current, xtermFitAddonRef.current, nodeKey);
+		});
+
+		// Start observing the note container for size changes
+		resizeObserver.observe(noteContainerRef.current);
+
+		// Cleanup function to disconnect the observer when the component unmounts
+		return () => {
+			resizeObserver.disconnect();
+		};
+	}, [xtermRef, xtermFitAddonRef, nodeKey, noteContainerRef]);
+}
+
+/**
  * Initializes the xterm.js frontend terminal
  */
 export function useTerminalCreateFrontend(
@@ -115,15 +157,8 @@ export function useTerminalCreateFrontend(
 			});
 		});
 
-		function handleResizeWrapper() {
-			handleResize(xtermFitAddonRef, xtermRef, nodeKey);
-		}
-
-		window.addEventListener("resize", handleResizeWrapper);
-
 		// Cleanup on component unmount
 		return () => {
-			window.removeEventListener("resize", handleResizeWrapper);
 			if (xtermFitAddonRef.current) xtermFitAddonRef.current.dispose();
 			if (xtermRef.current) xtermRef.current.dispose();
 		};

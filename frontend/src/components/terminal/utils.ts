@@ -1,7 +1,6 @@
 import { Events } from "@wailsio/runtime";
 import type { FitAddon } from "@xterm/addon-fit";
 import type { Terminal } from "@xterm/xterm";
-import type { RefObject } from "react";
 import { WINDOW_ID } from "../../App";
 
 export const darkTerminalTheme = {
@@ -16,20 +15,16 @@ export const lightTerminalTheme = {
 	cursor: "rgb(21, 21, 21)",
 };
 
-// Handle terminal resize
+// Handle terminal resize by resizing frontend terminal sending an event to resize backend pty
 export function handleResize(
-	fitAddon: RefObject<FitAddon>,
-	term: RefObject<Terminal>,
+	term: Terminal,
+	fitAddon: FitAddon,
 	nodeKey: string,
 ) {
-	if (!fitAddon.current) return;
-	fitAddon.current.fit();
-	if (term.current) {
-		term.current.focus();
-		const [rows, cols] = [term.current.rows, term.current.cols];
-		Events.Emit({
-			name: `terminal:resize-${nodeKey}-${WINDOW_ID}`,
-			data: { rows, cols },
-		});
-	}
+	fitAddon.fit();
+	term.focus();
+	Events.Emit({
+		name: `terminal:resize-${nodeKey}-${WINDOW_ID}`,
+		data: { rows: term.rows, cols: term.cols },
+	});
 }

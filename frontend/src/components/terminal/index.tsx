@@ -17,6 +17,7 @@ import {
 	useFocusOnSelect,
 	useTerminalCreateEventForBackend,
 	useTerminalCreateFrontend,
+	useTerminalResize,
 	useTerminalTheme,
 	useTerminalWrite,
 } from "./hooks";
@@ -54,6 +55,7 @@ export function TerminalComponent({
 		nodeKey,
 		data,
 	);
+	useTerminalResize(xtermRef, xtermFitAddonRef, nodeKey);
 	useTerminalTheme(isDarkModeOn, xtermRef);
 	useTerminalWrite(nodeKey, xtermRef, data, writeDataToNode);
 	useTerminalCreateEventForBackend(nodeKey, command);
@@ -95,9 +97,9 @@ export function TerminalComponent({
 				setIsFullscreen={setIsFullscreen}
 				nodeKey={nodeKey}
 				editor={editor}
-				onFullscreenChange={() => {
-					handleResize(xtermFitAddonRef, xtermRef, nodeKey);
-				}}
+				// onFullscreenChange={() => {
+				// 	handleResize(xtermFitAddonRef, xtermRef, nodeKey);
+				// }}
 			/>
 			<div
 				ref={terminalRef}
