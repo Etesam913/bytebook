@@ -21,6 +21,7 @@ export function useProjectSettings() {
 			setProjectSettings({
 				...projectSettings,
 				pinnedNotes: new Set(projectSettings.pinnedNotes),
+				projectPath: projectSettings.projectPath,
 			});
 		} catch (err) {
 			if (err instanceof Error) {

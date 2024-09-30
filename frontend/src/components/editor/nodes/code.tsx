@@ -22,6 +22,7 @@ export interface CodePayload {
 	language: string;
 	data?: CodeBlockData;
 	command?: string;
+	startDirectory?: string;
 	shell: string;
 }
 
@@ -30,6 +31,7 @@ export type SerializedCodeNode = Spread<
 		data?: CodeBlockData;
 		language: string;
 		command: string;
+		startDirectory: string;
 		shell: string;
 	},
 	SerializedLexicalNode
@@ -53,6 +55,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 	};
 	__language: string;
 	__command = "";
+	__startDirectory = "";
 	__shell = "";
 
 	static getType(): string {
@@ -64,18 +67,20 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 			node.__data,
 			node.__language,
 			node.__command,
+			node.__startDirectory,
 			node.__shell,
 			node.__key,
 		);
 	}
 
 	static importJSON(serializedNode: SerializedCodeNode): CodeNode {
-		const { data, language, command, shell } = serializedNode;
+		const { data, language, command, shell, startDirectory } = serializedNode;
 		const node = $createCodeNode({
 			data,
 			language,
 			command,
 			shell,
+			startDirectory,
 		});
 		return node;
 	}
@@ -88,6 +93,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		data: CodeBlockData,
 		language: string,
 		command: string,
+		startDirectory: string,
 		shell: string,
 		key?: NodeKey,
 	) {
@@ -100,6 +106,9 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 
 		// The shell to run the terminal in
 		this.__shell = shell;
+
+		// The directory to run the code in
+		this.__startDirectory = startDirectory;
 
 		this.__command = command
 			? command
@@ -114,6 +123,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 			language: this.getLanguage(),
 			command: this.getCommand(),
 			shell: this.getShell(),
+			startDirectory: this.getStartDirectory(),
 			type: "code-block",
 			version: 1,
 		};
@@ -150,15 +160,22 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		return this.__shell;
 	}
 
+	getStartDirectory(): string {
+		return this.__startDirectory;
+	}
+
 	setData(
 		files: SandpackFiles,
 		result: CodeResponse,
 		editor: LexicalEditor,
 	): void {
-		editor.update(() => {
-			const writable = this.getWritable();
-			writable.__data = { files, result };
-		});
+		editor.update(
+			() => {
+				const writable = this.getWritable();
+				writable.__data = { files, result };
+			},
+			{ tag: "note:terminal-change" },
+		);
 	}
 
 	setTerminalData(result: CodeResponse, editor: LexicalEditor): void {
@@ -179,17 +196,20 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		});
 	}
 
-	setCommandNoEditorUpdate(command: string): void {
-		const writable = this.getWritable();
-		writable.__command = command;
-	}
-
 	setCommand(command: string, editor: LexicalEditor): void {
 		editor.update(() => {
 			const writable = this.getWritable();
 			writable.__command = command;
 		});
 	}
+
+	setStartDirectory(startDirectory: string, editor: LexicalEditor): void {
+		editor.update(() => {
+			const writable = this.getWritable();
+			writable.__startDirectory = startDirectory;
+		});
+	}
+
 	decorate(_editor: LexicalEditor): JSX.Element {
 		if (this.getLanguage() === "terminal") {
 			return (
@@ -197,7 +217,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 					nodeKey={this.getKey()}
 					data={this.getData()}
 					shell={this.getShell()}
-					command={this.getCommand()}
+					startDirectory={this.getStartDirectory()}
 					writeDataToNode={(result: CodeResponse) =>
 						this.setTerminalData(result, _editor)
 					}
@@ -225,6 +245,7 @@ export function $createCodeNode({
 	data,
 	language,
 	command,
+	startDirectory,
 	shell,
 }: CodePayload): CodeNode {
 	const defaultFiles: SandpackFiles =
@@ -239,6 +260,7 @@ export function $createCodeNode({
 			},
 			language,
 			command ?? "",
+			startDirectory ?? "",
 			shell,
 		),
 	);

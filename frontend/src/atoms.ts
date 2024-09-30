@@ -36,6 +36,7 @@ export const windowSettingsAtom = atom<WindowSettings | null>(null);
 
 export const projectSettingsAtom = atom<ProjectSettings>({
 	pinnedNotes: new Set([]),
+	projectPath: "",
 });
 export const projectSettingsWithQueryParamsAtom = atom((get) => {
 	const projectSettings = get(projectSettingsAtom);

@@ -31,6 +31,7 @@ import { ExitFullscreen } from "../../icons/arrows-reduce-diagonal";
 import { Duplicate2 } from "../../icons/duplicate-2";
 import { Fullscreen } from "../../icons/fullscreen";
 import { Trash } from "../../icons/trash";
+import type { CodeBlockData } from "../../types";
 import { removeDecoratorNode } from "../../utils/commands";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import { cn } from "../../utils/string-formatting";
@@ -40,7 +41,7 @@ import { RunCommand } from "./run-command";
 
 export function CodeViewer({
 	language,
-	defaultResult,
+	data,
 	nodeKey,
 	commandWrittenToNode,
 	writeDataToNode,
@@ -48,7 +49,7 @@ export function CodeViewer({
 	uiState,
 }: {
 	language: string;
-	defaultResult: CodeResponse;
+	data: CodeBlockData;
 	nodeKey: string;
 	commandWrittenToNode: string;
 	writeDataToNode: (files: SandpackFiles, result: CodeResponse) => void;
@@ -70,7 +71,7 @@ export function CodeViewer({
 	 Sandpack can handle running template languages by itself.
 	*/
 	const [isCodeRunning, setIsCodeRunning] = useState(false);
-	const [codeResult, setCodeResult] = useState<CodeResponse>(defaultResult);
+	const [codeResult, setCodeResult] = useState<CodeResponse>(data.result);
 	const codeMirrorRef = useRef<CodeEditorRef | null>(null);
 
 	async function handleRunCode(e?: SyntheticEvent) {
@@ -252,7 +253,12 @@ export function CodeViewer({
 						isCodeRunning={isCodeRunning}
 						setIsCodeRunning={setIsCodeRunning}
 					/>
-					<CodeResult codeResult={codeResult} />
+					<CodeResult
+						nodeKey={nodeKey}
+						data={data}
+						writeDataToNode={writeDataToNode}
+						language={language}
+					/>
 				</div>
 			)}
 		</>

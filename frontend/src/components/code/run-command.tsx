@@ -51,7 +51,7 @@ export function RunCommand({
 				)}
 			</AnimatePresence>
 			<form
-				className="p-2 font-code justify-between border-[1px] border-t-0 border-b-0 border-[rgb(229,231,235)] dark:border-[rgb(37,37,37)] bg-white dark:bg-[rgb(21,21,21)] overflow-auto"
+				className="p-2 font-code justify-between border-[1px] border-t-0  border-[rgb(229,231,235)] dark:border-[rgb(37,37,37)] bg-white dark:bg-[rgb(21,21,21)] overflow-auto"
 				onSubmit={(e) => e.preventDefault()}
 			>
 				<div className="flex gap-2 justify-start items-end">

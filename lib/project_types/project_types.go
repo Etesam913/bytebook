@@ -7,4 +7,5 @@ type OpenNoteEventData struct {
 
 type ProjectSettingsJson struct {
 	PinnedNotes []string `json:"pinnedNotes"`
+	ProjectPath string   `json:"projectPath"`
 }

@@ -169,13 +169,19 @@ function importCodeBlock(
 			if (closeMatch) {
 				const language = openMatch[1] ?? "";
 				const otherMatches = openMatch.slice(2).filter((v) => v !== undefined);
-				let command = undefined;
-
+				let command: string | undefined = undefined;
+				let startDirectory: string | undefined = undefined;
 				for (const match of otherMatches) {
-					// These are in the form of {key=value}
-					const [key, value] = match.slice(1, -1).split("=");
-					if (key === "command") {
-						command = value;
+					// These are in the form of {key=value key2=value2}
+					const keyValuePairs = match.slice(1, -1).split(" ");
+					for (const keyValuePair of keyValuePairs) {
+						const [key, value] = keyValuePair.split("=");
+						if (key === "command") {
+							command = value;
+						}
+						if (key === "startDirectory") {
+							startDirectory = value;
+						}
 					}
 				}
 				if (language === "drawing") {
@@ -196,6 +202,7 @@ function importCodeBlock(
 					data,
 					language,
 					command,
+					startDirectory,
 					shell: "bash",
 				});
 				rootNode.append(codeBlockNode);

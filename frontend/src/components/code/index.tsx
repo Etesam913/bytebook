@@ -141,7 +141,7 @@ export function SandpackEditor({
 					nodeKey={nodeKey}
 					language={language}
 					commandWrittenToNode={commandWrittenToNode}
-					defaultResult={data.result}
+					data={data}
 					uiState={{
 						isFullscreen,
 						setIsFullscreen,

@@ -7,11 +7,15 @@ import {Create as $Create} from "@wailsio/runtime";
 
 export class ProjectSettingsJson {
     "pinnedNotes": string[];
+    "projectPath": string;
 
     /** Creates a new ProjectSettingsJson instance. */
     constructor($$source: Partial<ProjectSettingsJson> = {}) {
         if (!("pinnedNotes" in $$source)) {
             this["pinnedNotes"] = [];
+        }
+        if (!("projectPath" in $$source)) {
+            this["projectPath"] = "";
         }
 
         Object.assign(this, $$source);

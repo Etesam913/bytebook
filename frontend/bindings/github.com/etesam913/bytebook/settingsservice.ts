@@ -14,8 +14,8 @@ import * as project_types$0 from "./lib/project_types/models.js";
 import * as $models from "./models.js";
 
 /**
- * 	GetProjectSettings returns the project settings for the current project.
- * 	If the settings file does not exist, it will be created and the default settings will be returned.
+ * GetProjectSettings returns the project settings for the current project.
+ * If the settings file does not exist, it will be created and the default settings will be returned.
  */
 export function GetProjectSettings(): Promise<$models.SettingsResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(635071392) as any;

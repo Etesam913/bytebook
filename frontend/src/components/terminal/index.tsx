@@ -1,4 +1,3 @@
-import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
@@ -26,15 +25,17 @@ import { handleResize } from "./utils";
 export function TerminalComponent({
 	nodeKey,
 	data,
-	command,
+	startDirectory,
 	writeDataToNode,
 	shell,
+	isHeadless,
 }: {
 	nodeKey: string;
 	data: CodeBlockData;
-	command: string;
+	startDirectory: string;
 	writeDataToNode: (result: CodeResponse) => void;
 	shell: string;
+	isHeadless?: boolean;
 }) {
 	const terminalRef = useRef<HTMLDivElement | null>(null);
 	const [editor] = useLexicalComposerContext();
@@ -60,7 +61,7 @@ export function TerminalComponent({
 	useTerminalResize(xtermRef, xtermFitAddonRef, nodeKey);
 	useTerminalTheme(isDarkModeOn, xtermRef);
 	useTerminalWrite(nodeKey, xtermRef, data, writeDataToNode);
-	useTerminalCreateEventForBackend(nodeKey, command, shell);
+	useTerminalCreateEventForBackend(nodeKey, startDirectory, shell);
 
 	useEffect(() => {
 		return mergeRegister(
@@ -87,6 +88,7 @@ export function TerminalComponent({
 				isSelected && " border-blue-400 dark:border-blue-500",
 				isFullscreen &&
 					"fixed top-0 left-0 right-0 bottom-0 z-20 h-screen border-0",
+				isHeadless && "border-0 rounded-none",
 			)}
 			ref={terminalContainerRef}
 			onClick={(e) => {
@@ -94,19 +96,25 @@ export function TerminalComponent({
 				setIsSelected(true);
 			}}
 		>
-			<TerminalHeader
-				isFullscreen={isFullscreen}
-				setIsFullscreen={setIsFullscreen}
-				nodeKey={nodeKey}
-				editor={editor}
-				onFullscreenChange={() => {
-					if (!xtermRef.current || !xtermFitAddonRef.current) return;
-					handleResize(xtermRef.current, xtermFitAddonRef.current, nodeKey);
-				}}
-			/>
+			{!isHeadless && (
+				<TerminalHeader
+					isFullscreen={isFullscreen}
+					setIsFullscreen={setIsFullscreen}
+					nodeKey={nodeKey}
+					editor={editor}
+					onFullscreenChange={() => {
+						if (!xtermRef.current || !xtermFitAddonRef.current) return;
+						handleResize(xtermRef.current, xtermFitAddonRef.current, nodeKey);
+					}}
+				/>
+			)}
 			<div
 				ref={terminalRef}
-				className={cn("h-80", isFullscreen && "h-screen")}
+				className={cn(
+					"h-80",
+					isFullscreen && "h-screen",
+					isHeadless && "h-[15.5rem]",
+				)}
 			/>
 		</div>
 	);

@@ -209,7 +209,7 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 	export: (node: LexicalNode) => {
 		if ($isCodeNode(node)) {
 			const textContent = JSON.stringify(node.getData());
-			return `\`\`\`${node.getLanguage()} {command=${node.getCommand()}} ${
+			return `\`\`\`${node.getLanguage()} {command=${node.getCommand()} startDirectory=${node.getStartDirectory()}} ${
 				textContent ? `\n${textContent}` : ""
 			}\n\`\`\``;
 		}
@@ -220,7 +220,7 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 		return null;
 	},
 	regExp: /^```(\w{1,10})?\s/,
-	replace: (textNode, _1, match, isImport) => {
+	replace: (textNode, _1, match, _) => {
 		// MarkdownImport.ts handles the import of code blocks
 		// This code handles creation for the first time
 		const language = match.at(1);

@@ -12,16 +12,16 @@ type SettingsService struct {
 }
 
 type SettingsResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Data project_types.ProjectSettingsJson `json:"data"`
+	Success bool                              `json:"success"`
+	Message string                            `json:"message"`
+	Data    project_types.ProjectSettingsJson `json:"data"`
 }
 
 /*
-	GetProjectSettings returns the project settings for the current project.
-	If the settings file does not exist, it will be created and the default settings will be returned.
+GetProjectSettings returns the project settings for the current project.
+If the settings file does not exist, it will be created and the default settings will be returned.
 */
-func (s *SettingsService) GetProjectSettings() SettingsResponse{
+func (s *SettingsService) GetProjectSettings() SettingsResponse {
 	var projectSettings project_types.ProjectSettingsJson
 	projectSettingsPath := filepath.Join(s.ProjectPath, "settings", "settings.json")
 	err := io_helpers.ReadJsonFromPath(projectSettingsPath, &projectSettings)
@@ -29,7 +29,10 @@ func (s *SettingsService) GetProjectSettings() SettingsResponse{
 	// The file does not exist
 	if err != nil {
 		err = io_helpers.WriteJsonToPath(projectSettingsPath,
-			project_types.ProjectSettingsJson{PinnedNotes: []string{}},
+			project_types.ProjectSettingsJson{
+				PinnedNotes: []string{},
+				ProjectPath: s.ProjectPath,
+			},
 		)
 		if err != nil {
 			return SettingsResponse{Success: false, Message: "Failed to write project settings"}
