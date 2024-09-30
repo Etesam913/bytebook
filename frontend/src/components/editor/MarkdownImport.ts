@@ -173,15 +173,12 @@ function importCodeBlock(
 				let startDirectory: string | undefined = undefined;
 				for (const match of otherMatches) {
 					// These are in the form of {key=value key2=value2}
-					const keyValuePairs = match.slice(1, -1).split(" ");
+					const keyValuePairs = match.slice(1, -1).split(", ");
 					for (const keyValuePair of keyValuePairs) {
 						const [key, value] = keyValuePair.split("=");
-						if (key === "command") {
-							command = value;
-						}
-						if (key === "startDirectory") {
-							startDirectory = value;
-						}
+						const valueWithNoQuotes = value.replace(/"/g, "");
+						if (key === "command") command = valueWithNoQuotes;
+						if (key === "startDirectory") startDirectory = valueWithNoQuotes;
 					}
 				}
 				if (language === "drawing") {

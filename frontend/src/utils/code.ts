@@ -13,9 +13,9 @@ export const codeLanguages = new Set([
 ]);
 
 export const languageToCommandMap: Record<string, string> = {
-	python: "python",
-	java: "java",
-	go: "go run",
-	rust: "cargo run",
+	python: "python main.py",
+	java: "java main.java",
+	go: "go run main.go",
+	rust: "cargo run main.rs",
 	cpp: "./main",
 };

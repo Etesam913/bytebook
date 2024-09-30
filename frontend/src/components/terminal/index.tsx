@@ -11,6 +11,7 @@ import { darkModeAtom } from "../../atoms";
 import type { CodeBlockData } from "../../types";
 import { onClickDecoratorNodeCommand } from "../../utils/commands";
 import { cn } from "../../utils/string-formatting";
+import { RunCommand } from "../code/run-command";
 import { TerminalHeader } from "./header";
 import {
 	useFocusOnSelect,
@@ -28,14 +29,20 @@ export function TerminalComponent({
 	startDirectory,
 	writeDataToNode,
 	shell,
-	isHeadless,
+	isInCodeSnippet,
+	commandWrittenToNode,
+	writeCommandToNode,
+	onClick,
 }: {
 	nodeKey: string;
 	data: CodeBlockData;
 	startDirectory: string;
 	writeDataToNode: (result: CodeResponse) => void;
 	shell: string;
-	isHeadless?: boolean;
+	isInCodeSnippet: boolean;
+	commandWrittenToNode?: string;
+	writeCommandToNode?: (language: string) => void;
+	onClick?: () => void;
 }) {
 	const terminalRef = useRef<HTMLDivElement | null>(null);
 	const [editor] = useLexicalComposerContext();
@@ -88,15 +95,16 @@ export function TerminalComponent({
 				isSelected && " border-blue-400 dark:border-blue-500",
 				isFullscreen &&
 					"fixed top-0 left-0 right-0 bottom-0 z-20 h-screen border-0",
-				isHeadless && "border-0 rounded-none",
+				isInCodeSnippet && "border-0 rounded-none",
 			)}
 			ref={terminalContainerRef}
 			onClick={(e) => {
 				e.stopPropagation();
 				setIsSelected(true);
+				onClick?.();
 			}}
 		>
-			{!isHeadless && (
+			{!isInCodeSnippet && (
 				<TerminalHeader
 					isFullscreen={isFullscreen}
 					setIsFullscreen={setIsFullscreen}
@@ -108,12 +116,20 @@ export function TerminalComponent({
 					}}
 				/>
 			)}
+			{isInCodeSnippet && commandWrittenToNode && writeCommandToNode && (
+				<RunCommand
+					commandWrittenToNode={commandWrittenToNode}
+					writeCommandToNode={writeCommandToNode}
+					nodeKey={nodeKey}
+				/>
+			)}
+
 			<div
 				ref={terminalRef}
 				className={cn(
 					"h-80",
 					isFullscreen && "h-screen",
-					isHeadless && "h-[15.5rem]",
+					isInCodeSnippet && "h-[15.5rem]",
 				)}
 			/>
 		</div>

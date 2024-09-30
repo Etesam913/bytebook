@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/go-git/go-git/v5"
@@ -54,8 +53,7 @@ func GetExtensionFromLanguage(language string) (bool, string) {
 
 type CodeContextStore = map[string]context.CancelFunc
 
-var contextStore = CodeContextStore{}
-
+// TODO: This can be removed
 func handleCppCompilation(pathToCppFile string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -111,50 +109,7 @@ edition = "2021"
 	return nil
 }
 
-func RunFile(projectPath string, nodeKey string, filePath string, command string) (string, error) {
-	commandSplit := strings.Split(command, " ")
-	// contextId, _ := project_helpers.GenerateRandomID()
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	contextStore[nodeKey] = cancel
-	defer cancel()
-
-	cmd := exec.CommandContext(ctx, commandSplit[0], append(commandSplit[1:], filePath)...)
-	cmd.Dir = projectPath
-	out, err := cmd.CombinedOutput()
-
-	if _, exists := contextStore[nodeKey]; exists {
-		delete(contextStore, nodeKey)
-	}
-
-	if ctx.Err() != nil {
-		if ctx.Err() == context.Canceled {
-			return "Code execution was cancelled", ctx.Err()
-		} else if ctx.Err() == context.DeadlineExceeded {
-			return "Code execution timed out", ctx.Err()
-		} else {
-			return ctx.Err().Error(), ctx.Err()
-		}
-	}
-
-	if err != nil {
-		return err.Error() + "\n" + string(out), err
-	}
-
-	return string(out), nil
-}
-
-func (n *NodeService) CancelCode(nodeKey string) bool {
-	if _, exists := contextStore[nodeKey]; exists {
-		// Cancel the context
-		contextStore[nodeKey]()
-		// We can delete the context from the store as it won't be used anymore'
-		delete(contextStore, nodeKey)
-		return true
-	}
-	return false
-}
-
-func (n *NodeService) RunCode(nodeKey string, language string, code string, command string) CodeResponse {
+func (n *NodeService) UpdateTempCodeFile(nodeKey string, language string, code string, command string) CodeResponse {
 	extensionExists, extension := GetExtensionFromLanguage(language)
 
 	uniqueId, _ := project_helpers.GenerateRandomID()
@@ -212,7 +167,7 @@ func (n *NodeService) RunCode(nodeKey string, language string, code string, comm
 	}
 
 	if language == "cpp" {
-		cppExecutablePath, err := handleCppCompilation(filePath)
+		handleCppCompilation(filePath)
 		if err != nil {
 			return CodeResponse{
 				Success: false,
@@ -220,22 +175,11 @@ func (n *NodeService) RunCode(nodeKey string, language string, code string, comm
 				Id:      uniqueId,
 			}
 		}
-		filePath = cppExecutablePath
-	}
-	pathToLanguage := filepath.Join(n.ProjectPath, language)
-	res, err := RunFile(pathToLanguage, nodeKey, filePath, command)
-
-	if err != nil {
-		return CodeResponse{
-			Success: false,
-			Message: res,
-			Id:      uniqueId,
-		}
 	}
 
 	return CodeResponse{
 		Success: true,
-		Message: res,
+		Message: "Successfully updated code",
 		Id:      uniqueId,
 	}
 }
@@ -247,7 +191,6 @@ type GitResponse struct {
 }
 
 var allowedErrors = make(map[error]struct{})
-var stringAllowedErrors = [5]string{"remote repository is empty"}
 
 func (n *NodeService) SyncChangesWithRepo(username string, accessToken string) GitResponse {
 	allowedErrors[git.NoErrAlreadyUpToDate] = struct{}{}
@@ -279,7 +222,7 @@ func (n *NodeService) SyncChangesWithRepo(username string, accessToken string) G
 	// Handling the error
 	if err != nil {
 		fmt.Println(err)
-		if !errors.Is(err, git.NoErrAlreadyUpToDate){
+		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
 			return GitResponse{Success: false, Message: "Error when pulling from your repo", Error: err}
 		}
 	}

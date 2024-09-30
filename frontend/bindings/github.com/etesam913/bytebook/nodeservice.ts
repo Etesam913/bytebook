@@ -30,13 +30,8 @@ export function AddFilePathsToProject(filePaths: string[], folderPath: string, n
     return $typingPromise;
 }
 
-export function CancelCode(nodeKey: string): Promise<boolean> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(1362010910, nodeKey) as any;
-    return $resultPromise;
-}
-
-export function RunCode(nodeKey: string, language: string, code: string, command: string): Promise<$models.CodeResponse> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(1444881027, nodeKey, language, code, command) as any;
+export function SyncChangesWithRepo(username: string, accessToken: string): Promise<$models.GitResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(1837210235, username, accessToken) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType2($result);
     }) as any;
@@ -44,8 +39,8 @@ export function RunCode(nodeKey: string, language: string, code: string, command
     return $typingPromise;
 }
 
-export function SyncChangesWithRepo(username: string, accessToken: string): Promise<$models.GitResponse> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(1837210235, username, accessToken) as any;
+export function UpdateTempCodeFile(nodeKey: string, language: string, code: string, command: string): Promise<$models.CodeResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(1754603925, nodeKey, language, code, command) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType3($result);
     }) as any;
@@ -56,5 +51,5 @@ export function SyncChangesWithRepo(username: string, accessToken: string): Prom
 // Private type creation functions
 const $$createType0 = $models.AttachmentResponse.createFrom;
 const $$createType1 = $Create.Array($Create.Any);
-const $$createType2 = $models.CodeResponse.createFrom;
-const $$createType3 = $models.GitResponse.createFrom;
+const $$createType2 = $models.GitResponse.createFrom;
+const $$createType3 = $models.CodeResponse.createFrom;

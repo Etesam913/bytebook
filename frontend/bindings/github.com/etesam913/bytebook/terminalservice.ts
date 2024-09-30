@@ -5,8 +5,12 @@
 // @ts-ignore: Unused imports
 import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
-export function ShutoffTerminals(nodeKeys: string[]): Promise<string[]> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(469524853, nodeKeys) as any;
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as $models from "./models.js";
+
+export function RunCodeInTerminal(nodeKey: string, command: string): Promise<$models.TerminalResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(520201828, nodeKey, command) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType0($result);
     }) as any;
@@ -14,5 +18,15 @@ export function ShutoffTerminals(nodeKeys: string[]): Promise<string[]> & { canc
     return $typingPromise;
 }
 
+export function ShutoffTerminals(nodeKeys: string[]): Promise<string[]> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(469524853, nodeKeys) as any;
+    let $typingPromise = $resultPromise.then(($result) => {
+        return $$createType1($result);
+    }) as any;
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
 // Private type creation functions
-const $$createType0 = $Create.Array($Create.Any);
+const $$createType0 = $models.TerminalResponse.createFrom;
+const $$createType1 = $Create.Array($Create.Any);

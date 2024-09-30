@@ -304,6 +304,31 @@ export enum SortStrings {
     SizeAsc = "size-asc",
 };
 
+export class TerminalResponse {
+    "success": boolean;
+    "message": string;
+
+    /** Creates a new TerminalResponse instance. */
+    constructor($$source: Partial<TerminalResponse> = {}) {
+        if (!("success" in $$source)) {
+            this["success"] = false;
+        }
+        if (!("message" in $$source)) {
+            this["message"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new TerminalResponse instance from a string or object.
+     */
+    static createFrom($$source: any = {}): TerminalResponse {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new TerminalResponse($$parsedSource as Partial<TerminalResponse>);
+    }
+}
+
 // Private type creation functions
 const $$createType0 = $Create.Array($Create.Any);
 const $$createType1 = project_types$0.ProjectSettingsJson.createFrom;

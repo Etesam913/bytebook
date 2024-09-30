@@ -215,6 +215,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 			return (
 				<TerminalComponent
 					nodeKey={this.getKey()}
+					isInCodeSnippet={false}
 					data={this.getData()}
 					shell={this.getShell()}
 					startDirectory={this.getStartDirectory()}

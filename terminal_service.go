@@ -14,6 +14,11 @@ import (
 type TerminalService struct {
 }
 
+type TerminalResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
+
 func getCWDFromPID(pid int) (string, error) {
 	// Execute the `lsof` command to get the current working directory of the process
 	cmd := exec.Command("lsof", "-p", fmt.Sprintf("%d", pid), "-Fn")
@@ -35,28 +40,50 @@ func getCWDFromPID(pid int) (string, error) {
 	return "", fmt.Errorf("failed to find working directory in lsof output")
 }
 
+func getTerminalSession(nodeKey string) (*terminal.TerminalSession, bool) {
+	sessionUntyped, ok := terminal.Terminals.Load(nodeKey)
+	if !ok {
+		return nil, false
+	}
+	session, ok := sessionUntyped.(*terminal.TerminalSession)
+	return session, ok
+}
+
 func (t *TerminalService) ShutoffTerminals(nodeKeys []string) []string {
 	terminalDirectories := []string{}
 
 	for _, nodeKey := range nodeKeys {
-		// if the node key exists in the map and is typed as a TerminalSession
-		if sessionUntyped, ok := terminal.Terminals.Load(nodeKey); ok {
-			if session, ok := sessionUntyped.(*terminal.TerminalSession); ok {
-				pid := session.Cmd.Process.Pid
-				cwd, err := getCWDFromPID(pid)
-				if err != nil {
-					fmt.Printf("Error: %v\n", err)
-					terminalDirectories = append(terminalDirectories, "")
-				} else {
-					fmt.Printf("Current directory of process %d: %s\n", pid, cwd)
-					terminalDirectories = append(terminalDirectories, cwd)
-				}
-				session.Ptmx.Close()
-				session.Cancel()
-				terminal.Terminals.Delete(nodeKey)
+		if session, ok := getTerminalSession(nodeKey); ok {
+			pid := session.Cmd.Process.Pid
+			cwd, err := getCWDFromPID(pid)
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+				terminalDirectories = append(terminalDirectories, "")
+			} else {
+				fmt.Printf("Current directory of process %d: %s\n", pid, cwd)
+				terminalDirectories = append(terminalDirectories, cwd)
 			}
+			session.Ptmx.Close()
+			session.Cancel()
+			terminal.Terminals.Delete(nodeKey)
 		}
 	}
 	terminal.ListActiveTerminals()
 	return terminalDirectories
+}
+
+func (t *TerminalService) RunCodeInTerminal(nodeKey string, command string) TerminalResponse {
+	if session, ok := getTerminalSession(nodeKey); ok {
+		err := terminal.WriteCommand(session.Ptmx, command)
+		if err != nil {
+			return TerminalResponse{
+				Success: false,
+				Message: err.Error(),
+			}
+		}
+	}
+	return TerminalResponse{
+		Success: true,
+		Message: "Successfully executed code",
+	}
 }

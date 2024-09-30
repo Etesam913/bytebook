@@ -209,7 +209,7 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 	export: (node: LexicalNode) => {
 		if ($isCodeNode(node)) {
 			const textContent = JSON.stringify(node.getData());
-			return `\`\`\`${node.getLanguage()} {command=${node.getCommand()} startDirectory=${node.getStartDirectory()}} ${
+			return `\`\`\`${node.getLanguage()} {command="${node.getCommand()}", startDirectory="${node.getStartDirectory()}"} ${
 				textContent ? `\n${textContent}` : ""
 			}\n\`\`\``;
 		}

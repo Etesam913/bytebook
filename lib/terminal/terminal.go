@@ -69,8 +69,9 @@ func SetupTerminal(app *application.App, projectPath string, nodeKey string, sta
 	if !doesStartDirectoryExist {
 		startDirectory = projectPath
 	}
-
-	writeStartDirectory(ptmx, startDirectory)
+	// Add a delay before writing the command to prevent output mangling with the exec.Command(shell)
+	time.Sleep(200 * time.Millisecond)
+	WriteCommand(ptmx, "cd \""+startDirectory+"\"\n")
 
 	terminalInputEventName := fmt.Sprintf("terminal:input-%s", nodeKey)
 	app.OnEvent(terminalInputEventName, func(e *application.CustomEvent) {
@@ -134,19 +135,21 @@ func handleTerminalResize(app *application.App, ptmx *os.File, nodeKey string) {
 	})
 }
 
-// writeStartDirectory simulates typing the 'cd' command to change to the specified
-// start directory in the terminal. It adds a delay before writing and types each
-// character individually to mimic human input.
-func writeStartDirectory(ptmx *os.File, startDirectory string) {
-	// Add a delay so the write happens after the initial bash~ write
-	time.Sleep(200 * time.Millisecond)
-	startDirectoryString := "cd \"" + startDirectory + "\"\n"
-	startDirectoryStringAsBytes := []byte(startDirectoryString)
-	// Write the start directory each character by each character as if I was writing it
-	for i := 0; i < len(startDirectoryStringAsBytes); i++ {
+// WriteCommand simulates typing a command in the terminal. It adds a delay before writing
+// and types each character individually to mimic human input.
+func WriteCommand(ptmx *os.File, command string) error {
+	commandString := command + "\n"
+	commandBytes := []byte(commandString)
+
+	// Write the command character by character as if typing it
+	for _, char := range commandBytes {
 		time.Sleep(2 * time.Millisecond)
-		ptmx.Write([]byte{startDirectoryStringAsBytes[i]})
+		_, err := ptmx.Write([]byte{char})
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func ListActiveTerminals() {
