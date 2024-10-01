@@ -1,4 +1,4 @@
-package terminal
+package terminal_helpers
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -174,4 +175,90 @@ func ListenToTerminalCreateEvent(app *application.App, projectPath string) {
 			}
 		}
 	})
+}
+
+// writeCargoToml creates a standard Cargo.toml file in the specified directory.
+func WriteCargoToml(dir string) error {
+	// Define the content of the Cargo.toml file
+	cargoTomlContent := `[package]
+name = "temp_project"
+version = "0.1.0"
+authors = ["Your Name <your.email@example.com>"]
+edition = "2021"
+
+[dependencies]
+`
+
+	// Ensure the directory exists
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	// Define the file path
+	filePath := filepath.Join(dir, "Cargo.toml")
+
+	// Create and open the file
+	file, err := os.Create(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to create file: %w", err)
+	}
+	defer file.Close()
+
+	// Write the content to the file
+	_, err = file.WriteString(cargoTomlContent)
+	if err != nil {
+		return fmt.Errorf("failed to write to file: %w", err)
+	}
+
+	return nil
+}
+
+func GetExtensionFromLanguage(language string) (bool, string) {
+	languageToExtension := map[string]string{
+		"python":     ".py",
+		"javascript": ".js",
+		"java":       ".java",
+		"typescript": ".ts",
+		"go":         ".go",
+		"c":          ".c",
+		"cpp":        ".cpp",
+		"rust":       ".rs",
+	}
+
+	value, exists := languageToExtension[language]
+	if exists {
+		return true, value
+	}
+	return false, ""
+}
+
+func GenerateFoldersForLanguages(projectPath string) {
+	languages := []string{"python", "javascript", "java", "go", "cpp", "rust"}
+
+	for _, language := range languages {
+		exists, fileExtension := GetExtensionFromLanguage(language)
+		if !exists {
+			continue
+		}
+
+		pathToLanguageFileDirectory := filepath.Join(projectPath, language, "src")
+		err := os.MkdirAll(pathToLanguageFileDirectory, 0755)
+		if err != nil {
+			continue
+		}
+		pathToLanguageFile := filepath.Join(pathToLanguageFileDirectory, "main"+fileExtension)
+		file, err := os.Create(pathToLanguageFile)
+		if err != nil {
+			continue
+		}
+		defer file.Close()
+		if language == "rust" {
+			err = WriteCargoToml(filepath.Join(projectPath, language))
+			if err != nil {
+				continue
+			}
+		}
+
+	}
 }

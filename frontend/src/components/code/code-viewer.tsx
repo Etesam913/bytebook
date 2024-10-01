@@ -21,7 +21,6 @@ import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebo
 
 import { useAtomValue } from "jotai/react";
 import { UpdateTempCodeFile } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
-import { RunCodeInTerminal } from "../../../bindings/github.com/etesam913/bytebook/terminalservice";
 import { getDefaultButtonVariants } from "../../animations";
 import { projectSettingsAtom } from "../../atoms";
 import { ExitFullscreen } from "../../icons/arrows-reduce-diagonal";
@@ -34,6 +33,7 @@ import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import { cn } from "../../utils/string-formatting";
 import { TerminalComponent } from "../terminal";
 import { useCodeEditorFocus } from "./hooks";
+import { RunCodeInTerminal } from "../../../bindings/github.com/etesam913/bytebook/terminalservice";
 
 export function CodeViewer({
 	language,

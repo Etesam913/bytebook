@@ -11,10 +11,7 @@ import { $applyNodeReplacement, DecoratorNode } from "lexical";
 import type { CodeResponse } from "../../../../bindings/github.com/etesam913/bytebook";
 import type { CodeBlockData } from "../../../types";
 import { languageToCommandMap } from "../../../utils/code";
-import {
-	SandpackEditor,
-	nonTemplateLanguageDefaultFiles,
-} from "../../code/index";
+import { CodeBlock, nonTemplateLanguageDefaultFiles } from "../../code/index";
 import { TerminalComponent } from "../../terminal";
 
 export interface CodePayload {
@@ -226,7 +223,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 			);
 		}
 		return (
-			<SandpackEditor
+			<CodeBlock
 				nodeKey={this.getKey()}
 				data={this.getData()}
 				language={this.getLanguage()}

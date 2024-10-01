@@ -17,5 +17,5 @@ export const languageToCommandMap: Record<string, string> = {
 	java: "java main.java",
 	go: "go run main.go",
 	rust: "cargo run main.rs",
-	cpp: "./main",
+	cpp: "g++ -o main main.cpp && ./main",
 };

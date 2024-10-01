@@ -81,8 +81,8 @@ export function expandNearestSiblingNode(
 
 /**
  * useMouseActivity: A custom React hook that manages the visibility of elements based on mouse activity.
- * @param {number} timeout - The duration in milliseconds after which the elements should hide when the mouse is inactive.
- * @returns {boolean} isVisible - A boolean that indicates whether the elements should be visible.
+ * @param timeout - The duration in milliseconds after which the elements should hide when the mouse is inactive.
+ * @returns isVisible - A boolean that indicates whether the elements should be visible.
  */
 export function useMouseActivity(timeout = 1500, isActive = false): boolean {
 	const [isVisible, setIsVisible] = useState<boolean>(true);

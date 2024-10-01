@@ -39,6 +39,10 @@ export function SyncChangesWithRepo(username: string, accessToken: string): Prom
     return $typingPromise;
 }
 
+/**
+ * UpdateTempCodeFile creates a temporary file for the given code and returns a CodeResponse
+ * It handles different programming languages and performs necessary setup
+ */
 export function UpdateTempCodeFile(nodeKey: string, language: string, code: string, command: string): Promise<$models.CodeResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(1754603925, nodeKey, language, code, command) as any;
     let $typingPromise = $resultPromise.then(($result) => {

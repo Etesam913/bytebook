@@ -68,7 +68,7 @@ export const nonTemplateLanguageDefaultFiles: Record<string, SandpackFiles> = {
 	},
 };
 
-export function SandpackEditor({
+export function CodeBlock({
 	language,
 	nodeKey,
 	data,
@@ -99,6 +99,8 @@ export function SandpackEditor({
 		setIsSelected,
 		clearSelection,
 	);
+
+	// TODO: Create folder for the language if it doesn't exist
 
 	function getOptions(): SandpackInternalOptions {
 		if (language in nonTemplateLanguageDefaultFiles) {

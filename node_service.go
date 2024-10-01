@@ -5,14 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"time"
 
 	"github.com/go-git/go-git/v5"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/project_helpers"
+	"github.com/etesam913/bytebook/lib/terminal_helpers"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -32,88 +31,18 @@ type CodeResponse struct {
 	Id      string `json:"id"`
 }
 
-func GetExtensionFromLanguage(language string) (bool, string) {
-	languageToExtension := map[string]string{
-		"python":     ".py",
-		"javascript": ".js",
-		"java":       ".java",
-		"typescript": ".ts",
-		"go":         ".go",
-		"c":          ".c",
-		"cpp":        ".cpp",
-		"rust":       ".rs",
-	}
-
-	value, exists := languageToExtension[language]
-	if exists {
-		return true, value
-	}
-	return false, ""
-}
-
 type CodeContextStore = map[string]context.CancelFunc
 
-// TODO: This can be removed
-func handleCppCompilation(pathToCppFile string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	cmd := exec.CommandContext(ctx, "g++", "-o", "main", pathToCppFile)
-	languageFolderPath := filepath.Dir(filepath.Dir(pathToCppFile))
-	cmd.Dir = languageFolderPath
-	out, err := cmd.CombinedOutput()
-	if ctx.Err() != nil {
-		return ctx.Err().Error(), ctx.Err()
-	}
-	if err != nil {
-		return err.Error() + "\n" + string(out), err
-	}
-	return filepath.Join(filepath.Dir(pathToCppFile), "main"), nil
-}
-
-// writeCargoToml creates a standard Cargo.toml file in the specified directory.
-func writeCargoToml(dir string) error {
-	// Define the content of the Cargo.toml file
-	cargoTomlContent := `[package]
-name = "temp_project"
-version = "0.1.0"
-authors = ["Your Name <your.email@example.com>"]
-edition = "2021"
-
-[dependencies]
-`
-
-	// Ensure the directory exists
-	err := os.MkdirAll(dir, 0755)
-	if err != nil {
-		return fmt.Errorf("failed to create directory: %w", err)
-	}
-
-	// Define the file path
-	filePath := filepath.Join(dir, "Cargo.toml")
-
-	// Create and open the file
-	file, err := os.Create(filePath)
-	if err != nil {
-		return fmt.Errorf("failed to create file: %w", err)
-	}
-	defer file.Close()
-
-	// Write the content to the file
-	_, err = file.WriteString(cargoTomlContent)
-	if err != nil {
-		return fmt.Errorf("failed to write to file: %w", err)
-	}
-
-	fmt.Println("Cargo.toml file created successfully!")
-	return nil
-}
-
+// UpdateTempCodeFile creates a temporary file for the given code and returns a CodeResponse
+// It handles different programming languages and performs necessary setup
 func (n *NodeService) UpdateTempCodeFile(nodeKey string, language string, code string, command string) CodeResponse {
-	extensionExists, extension := GetExtensionFromLanguage(language)
+	// Get the file extension for the given language
+	extensionExists, extension := terminal_helpers.GetExtensionFromLanguage(language)
 
+	// Generate a unique ID for this operation
 	uniqueId, _ := project_helpers.GenerateRandomID()
 
+	// Check if the language is supported
 	if !extensionExists {
 		return CodeResponse{
 			Success: false,
@@ -122,7 +51,7 @@ func (n *NodeService) UpdateTempCodeFile(nodeKey string, language string, code s
 		}
 	}
 
-	// Creates a temp file for the code
+	// Create the directory for the temporary file
 	dirPath := filepath.Join(n.ProjectPath, language, "src")
 	err := os.MkdirAll(dirPath, 0755)
 	if err != nil {
@@ -133,7 +62,7 @@ func (n *NodeService) UpdateTempCodeFile(nodeKey string, language string, code s
 		}
 	}
 
-	// Construct the file path
+	// Create the temporary file
 	filePath := filepath.Join(dirPath, "main"+extension)
 	file, err := os.Create(filePath)
 	if err != nil {
@@ -145,8 +74,8 @@ func (n *NodeService) UpdateTempCodeFile(nodeKey string, language string, code s
 	}
 	defer file.Close()
 
+	// Write the code to the file
 	_, err = file.WriteString(code)
-
 	if err != nil {
 		return CodeResponse{
 			Success: false,
@@ -155,8 +84,9 @@ func (n *NodeService) UpdateTempCodeFile(nodeKey string, language string, code s
 		}
 	}
 
+	// Handle Rust-specific setup
 	if language == "rust" {
-		err = writeCargoToml(filepath.Join(n.ProjectPath, language))
+		err = terminal_helpers.WriteCargoToml(filepath.Join(n.ProjectPath, language))
 		if err != nil {
 			return CodeResponse{
 				Success: false,
@@ -166,17 +96,7 @@ func (n *NodeService) UpdateTempCodeFile(nodeKey string, language string, code s
 		}
 	}
 
-	if language == "cpp" {
-		handleCppCompilation(filePath)
-		if err != nil {
-			return CodeResponse{
-				Success: false,
-				Message: "Something went wrong when running your code. Please try again later",
-				Id:      uniqueId,
-			}
-		}
-	}
-
+	// Return success response
 	return CodeResponse{
 		Success: true,
 		Message: "Successfully updated code",

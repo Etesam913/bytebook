@@ -13,7 +13,7 @@ import (
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/menus"
 	"github.com/etesam913/bytebook/lib/project_helpers"
-	"github.com/etesam913/bytebook/lib/terminal"
+	"github.com/etesam913/bytebook/lib/terminal_helpers"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -47,7 +47,7 @@ func main() {
 	git_helpers.InitializeGitRepo(projectPath)
 	git_helpers.SetRepoOrigin("https://github.com/Etesam913/bytebook-test.git")
 
-	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "terminal"))
+	terminal_helpers.GenerateFoldersForLanguages(projectPath)
 	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "trash"))
 	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "settings"))
 
@@ -85,7 +85,7 @@ func main() {
 		},
 	})
 
-	terminal.ListenToTerminalCreateEvent(app, projectPath)
+	terminal_helpers.ListenToTerminalCreateEvent(app, projectPath)
 
 	backgroundColor := application.NewRGB(27, 38, 54)
 	if app.IsDarkMode() {

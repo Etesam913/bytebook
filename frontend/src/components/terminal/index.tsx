@@ -130,7 +130,7 @@ export function TerminalComponent({
 				className={cn(
 					"h-80",
 					isFullscreen && "h-screen",
-					isInCodeSnippet && "h-[15.5rem]",
+					isInCodeSnippet && "h-[10.5rem]",
 				)}
 			/>
 		</div>

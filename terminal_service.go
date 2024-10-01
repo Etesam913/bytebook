@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/etesam913/bytebook/lib/terminal"
+	"github.com/etesam913/bytebook/lib/terminal_helpers"
 )
 
 type TerminalService struct {
@@ -40,12 +40,12 @@ func getCWDFromPID(pid int) (string, error) {
 	return "", fmt.Errorf("failed to find working directory in lsof output")
 }
 
-func getTerminalSession(nodeKey string) (*terminal.TerminalSession, bool) {
-	sessionUntyped, ok := terminal.Terminals.Load(nodeKey)
+func getTerminalSession(nodeKey string) (*terminal_helpers.TerminalSession, bool) {
+	sessionUntyped, ok := terminal_helpers.Terminals.Load(nodeKey)
 	if !ok {
 		return nil, false
 	}
-	session, ok := sessionUntyped.(*terminal.TerminalSession)
+	session, ok := sessionUntyped.(*terminal_helpers.TerminalSession)
 	return session, ok
 }
 
@@ -65,16 +65,16 @@ func (t *TerminalService) ShutoffTerminals(nodeKeys []string) []string {
 			}
 			session.Ptmx.Close()
 			session.Cancel()
-			terminal.Terminals.Delete(nodeKey)
+			terminal_helpers.Terminals.Delete(nodeKey)
 		}
 	}
-	terminal.ListActiveTerminals()
+	terminal_helpers.ListActiveTerminals()
 	return terminalDirectories
 }
 
 func (t *TerminalService) RunCodeInTerminal(nodeKey string, command string) TerminalResponse {
 	if session, ok := getTerminalSession(nodeKey); ok {
-		err := terminal.WriteCommand(session.Ptmx, command)
+		err := terminal_helpers.WriteCommand(session.Ptmx, command)
 		if err != nil {
 			return TerminalResponse{
 				Success: false,
