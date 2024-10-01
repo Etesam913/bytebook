@@ -93,10 +93,11 @@ export function TerminalComponent({
 		<div
 			className={cn(
 				"w-full flex flex-col border-2 border-[rgb(229,231,235)] dark:border-[rgb(37,37,37)] rounded-md overflow-hidden bg-white dark:bg-zinc-900 font-code",
-				isSelected && " border-blue-400 dark:border-blue-500",
+				isSelected && "border-blue-400 dark:border-blue-500",
 				isFullscreen &&
 					"fixed top-0 left-0 right-0 bottom-0 z-20 h-screen border-0",
-				isInCodeSnippet && "border-0 rounded-none",
+				isInCodeSnippet && "rounded-none border border-t-0",
+				isInCodeSnippet && isSelected && "!border-transparent",
 			)}
 			ref={terminalContainerRef}
 			onClick={(e) => {

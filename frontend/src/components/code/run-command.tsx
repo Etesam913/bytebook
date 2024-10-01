@@ -17,7 +17,7 @@ export function RunCommand({
 }) {
 	return (
 		<form
-			className="p-2 font-code justify-between border-[1px] border-t-0  border-[rgb(229,231,235)] dark:border-[rgb(37,37,37)] bg-white dark:bg-[rgb(21,21,21)] overflow-auto text-zinc-950 dark:text-zinc-100"
+			className="p-2 font-code justify-between border-b border-[rgb(229,231,235)] dark:border-[rgb(37,37,37)] bg-white dark:bg-[rgb(21,21,21)] overflow-auto text-zinc-950 dark:text-zinc-100"
 			onSubmit={(e) => {
 				e.preventDefault();
 				RunCodeInTerminal(nodeKey, commandWrittenToNode);
