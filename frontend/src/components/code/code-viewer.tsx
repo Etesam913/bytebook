@@ -60,16 +60,22 @@ export function CodeViewer({
 	const [editor] = useLexicalComposerContext();
 	const { sandpack } = useSandpack();
 	const { files, activeFile } = sandpack;
-	const { isFullscreen, setIsFullscreen, isSelected, setIsSelected } = uiState;
+	const { isFullscreen, setIsFullscreen, setIsSelected } = uiState;
 	const code = useMemo(() => files[activeFile].code, [sandpack.files]);
 	const codeMirrorRef = useRef<CodeEditorRef | null>(null);
 	const { projectPath } = useAtomValue(projectSettingsAtom);
 
-	useCodeEditorFocus(codeMirrorRef, isSelected, setIsSelected);
+	useCodeEditorFocus(codeMirrorRef, setIsSelected);
 
 	return (
 		<>
 			<SandpackLayout
+				onClick={() => {
+					const cmInstance = codeMirrorRef.current?.getCodemirror();
+					if (cmInstance) {
+						cmInstance.focus();
+					}
+				}}
 				className="flex-1 rounded-bl-none rounded-br-none"
 				onKeyDown={async (e) => {
 					setIsSelected(true);

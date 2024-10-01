@@ -61,11 +61,9 @@ export function useCodeEditorCommands(
 */
 export function useCodeEditorFocus(
 	codeMirrorRef: React.RefObject<CodeEditorRef>,
-	isSelected: boolean,
 	setIsSelected: (arg0: boolean) => void,
 ) {
 	useEffect(() => {
-		if (!isSelected) return;
 		let intervalId: number | undefined = undefined;
 		// @ts-expect-error For some reason sandpack does not export the EditorView type
 		let cmInstance: EditorView | null = null;
@@ -78,10 +76,8 @@ export function useCodeEditorFocus(
 
 			if (cmInstance) {
 				clearInterval(intervalId);
-				if (isSelected) {
-					cmInstance.focus();
-					setIsSelected(true);
-				}
+				cmInstance.focus();
+				setIsSelected(true);
 			}
 		}, 100);
 
@@ -90,5 +86,5 @@ export function useCodeEditorFocus(
 				clearInterval(intervalId);
 			}
 		};
-	}, [isSelected]);
+	}, []);
 }

@@ -33,10 +33,12 @@ export const nonTemplateLanguageToExtension: Record<string, string> = {
 };
 
 export const nonTemplateLanguageDefaultFiles: Record<string, SandpackFiles> = {
-	python: { "main.py": { code: "print('hello world')\n\n\n", active: true } },
+	python: {
+		"main.py": { code: "print('hello from python!')\n\n\n", active: true },
+	},
 	go: {
 		"main.go": {
-			code: `package main\n\nimport "fmt"\n\nfunc main(){\n  fmt.Println("nice")\n}`,
+			code: `package main\n\nimport "fmt"\n\nfunc main(){\n  fmt.Println("hello from go!")\n}`,
 			active: true,
 		},
 	},
@@ -44,7 +46,7 @@ export const nonTemplateLanguageDefaultFiles: Record<string, SandpackFiles> = {
 		"main.java": {
 			code: `public class HelloWorld {
     public static void main(String[] args) {
-        System.out.println("Hello, World!");
+        System.out.println("hello from java!");
     }
 }`,
 			active: true,
@@ -53,14 +55,14 @@ export const nonTemplateLanguageDefaultFiles: Record<string, SandpackFiles> = {
 	rust: {
 		"main.rs": {
 			code: `fn main() {
-    println!("Hello, world!");
+    println!("hello from rust");
 }`,
 			active: true,
 		},
 	},
 	cpp: {
 		"main.cpp": {
-			code: `#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}`,
+			code: `#include <iostream>\n\nint main() {\n    std::cout << "hello from c++" << std::endl;\n    return 0;\n}`,
 			active: true,
 		},
 	},

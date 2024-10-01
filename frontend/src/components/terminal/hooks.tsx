@@ -1,4 +1,3 @@
-import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import { Events } from "@wailsio/runtime";
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
@@ -13,14 +12,16 @@ import { darkTerminalTheme, handleResize, lightTerminalTheme } from "./utils";
 /**
  *
    Whenever the underlying node is selected, it focuses on the terminal textarea.
-	 This improves the UX
+	 This improves the UX. When the node is in a code snippet, it does not focus on the textarea
+	 as we want the code snippet to be selected
  */
 export function useFocusOnSelect(
 	isSelected: boolean,
 	terminalRef: React.RefObject<HTMLDivElement | null>,
+	isInCodeSnippet: boolean,
 ) {
 	useEffect(() => {
-		if (isSelected && terminalRef.current) {
+		if (isSelected && terminalRef.current && !isInCodeSnippet) {
 			const xtermTextareaHelper = terminalRef.current.querySelector(
 				".xterm-helper-textarea",
 			) as HTMLElement;
@@ -28,7 +29,7 @@ export function useFocusOnSelect(
 				xtermTextareaHelper.focus();
 			}
 		}
-	}, [isSelected, terminalRef]);
+	}, [isSelected, terminalRef, isInCodeSnippet]);
 }
 
 /**
@@ -118,6 +119,7 @@ export function useTerminalCreateFrontend(
 	isSelected: boolean,
 	nodeKey: string,
 	data: CodeBlockData,
+	isInCodeSnippet: boolean,
 ) {
 	useEffect(() => {
 		xtermRef.current = new Terminal({
@@ -142,8 +144,8 @@ export function useTerminalCreateFrontend(
 
 		xtermRef.current.write(`${data.result.message}\r\n`);
 
-		// Selects the terminal when it is firstly created using slash command
-		if (isSelected) {
+		// Selects the terminal when it is firstly created using slash command. Also, don't select the terminal when it is in a code snippet as the code snippet will be selected automatically
+		if (isSelected && !isInCodeSnippet) {
 			xtermRef.current.focus();
 		}
 		// Fit the terminal to the container size

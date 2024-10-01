@@ -54,7 +54,7 @@ export function TerminalComponent({
 		useLexicalNodeSelection(nodeKey);
 	const [isFullscreen, setIsFullscreen] = useState(false);
 
-	useFocusOnSelect(isSelected, terminalRef);
+	useFocusOnSelect(isSelected, terminalRef, isInCodeSnippet);
 	useTerminalCreateFrontend(
 		xtermRef,
 		xtermFitAddonRef,
@@ -64,6 +64,7 @@ export function TerminalComponent({
 		isSelected,
 		nodeKey,
 		data,
+		isInCodeSnippet,
 	);
 	useTerminalResize(xtermRef, xtermFitAddonRef, nodeKey);
 	useTerminalTheme(isDarkModeOn, xtermRef);
