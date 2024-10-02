@@ -17,7 +17,10 @@ import {
 
 type SaveMarkdownContentPayload =
 	| undefined
-	| { shouldSkipNoteChangedEmit: boolean };
+	| {
+			shouldSkipNoteChangedEmit: boolean;
+			newFrontmatter: Record<string, string>;
+	  };
 
 export const SAVE_MARKDOWN_CONTENT: LexicalCommand<SaveMarkdownContentPayload> =
 	createCommand("SAVE_MARKDOWN_CONTENT");
@@ -47,7 +50,7 @@ export function SavePlugin({
 				SAVE_MARKDOWN_CONTENT,
 				(payload) => {
 					const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
-					const frontmatterCopy = { ...frontmatter };
+					const frontmatterCopy = payload?.newFrontmatter ?? { ...frontmatter };
 					const timeOfChange = new Date().toISOString();
 					frontmatterCopy.lastUpdated = timeOfChange;
 					if (frontmatterCopy.createdDate === undefined) {

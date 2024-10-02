@@ -1,5 +1,7 @@
 import { Events } from "@wailsio/runtime";
+import { useSetAtom } from "jotai/react";
 import type { Dispatch, SetStateAction } from "react";
+import { selectionRangeAtom } from "../atoms";
 import { getNoteCount } from "../utils/fetch-functions";
 import { useWailsEvent } from "../utils/hooks";
 
@@ -91,6 +93,13 @@ export function useNoteOpenInNewWindow(
 				data: { url: `/${folder}/${noteNameWithQueryParam}` },
 			});
 		}
+		setSelectionRange(new Set());
+	});
+}
+
+export function useNoteSelectionClear() {
+	const setSelectionRange = useSetAtom(selectionRangeAtom);
+	useWailsEvent("note:clear-selection", () => {
 		setSelectionRange(new Set());
 	});
 }

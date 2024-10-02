@@ -45,33 +45,31 @@ export function Video({
 	);
 
 	return (
-		<>
-			<div className="w-fit inline-block">
-				<ResizeContainer
-					resizeState={{
-						isResizing,
-						setIsResizing,
-						isSelected,
-						isExpanded,
-						setIsExpanded,
-					}}
-					element={videoRef.current}
-					nodeKey={nodeKey}
-					defaultWidth={widthWrittenToNode}
-					writeWidthToNode={writeWidthToNode}
-					elementType="default"
-				>
-					<video
-						ref={videoRef}
-						className="w-full h-auto bg-black"
-						title={title}
-						src={`${src}#t=0.001`}
-						controls
-						preload="metadata"
-						crossOrigin="anonymous"
-					/>
-				</ResizeContainer>
-			</div>
-		</>
+		<div className="w-fit inline-block">
+			<ResizeContainer
+				resizeState={{
+					isResizing,
+					setIsResizing,
+					isSelected,
+					isExpanded,
+					setIsExpanded,
+				}}
+				element={videoRef.current}
+				nodeKey={nodeKey}
+				defaultWidth={widthWrittenToNode}
+				writeWidthToNode={writeWidthToNode}
+				elementType="default"
+			>
+				<video
+					ref={videoRef}
+					className="w-full h-auto bg-black"
+					title={title}
+					src={`${src}#t=0.001`}
+					controls
+					preload="metadata"
+					crossOrigin="anonymous"
+				/>
+			</ResizeContainer>
+		</div>
 	);
 }

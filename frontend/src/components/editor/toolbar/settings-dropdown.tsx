@@ -80,10 +80,10 @@ export function SettingsDropdown({
 									item.value === "show-table-of-contents" ? "true" : "false";
 
 								editor.update(() => {
-									editor.dispatchCommand(
-										SAVE_MARKDOWN_CONTENT,
-										copyOfFrontmatter,
-									);
+									editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, {
+										shouldSkipNoteChangedEmit: false,
+										newFrontmatter: copyOfFrontmatter,
+									});
 								});
 								break;
 							}
@@ -93,10 +93,10 @@ export function SettingsDropdown({
 								copyOfFrontmatter.showMarkdown =
 									item.value === "show-markdown" ? "true" : "false";
 								editor.update(() => {
-									editor.dispatchCommand(
-										SAVE_MARKDOWN_CONTENT,
-										copyOfFrontmatter,
-									);
+									editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, {
+										shouldSkipNoteChangedEmit: false,
+										newFrontmatter: copyOfFrontmatter,
+									});
 								});
 								break;
 							}

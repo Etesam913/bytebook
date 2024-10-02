@@ -1,3 +1,4 @@
+import { useAtom } from "jotai/react";
 import {
 	type CSSProperties,
 	type Dispatch,
@@ -8,7 +9,8 @@ import {
 	useState,
 } from "react";
 import { useParams } from "wouter";
-import { useListVirtualization } from "../../utils/hooks";
+import { selectionRangeAtom } from "../../atoms";
+import { useListVirtualization, useOnClickOutside } from "../../utils/hooks";
 import { SidebarItems } from "./sidebar-items";
 
 const SIDEBAR_ITEM_HEIGHT = 36;
@@ -39,8 +41,22 @@ export function Sidebar({
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 	const anchorSelectionIndex = useRef<number>(0);
 	const { folder } = useParams();
+	const listScrollContainerRef = useRef<HTMLDivElement>(null);
+	const listRef = useRef<HTMLUListElement>(null);
+	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 
-	const listRef = useRef<HTMLDivElement>(null);
+	useOnClickOutside(listRef, () => {
+		if (selectionRange.size === 0 || contentType === undefined) return;
+		const selectionSetAsArray = Array.from(selectionRange);
+		/*
+			When a click is detected outside of the sidebar and the selection is of the same
+			type as the contentType, then you can clear the selection. You do not want a 
+			folder side onClickOutside to clear the selection for a note valid click
+		*/
+		if (selectionSetAsArray[0].startsWith(contentType)) {
+			setSelectionRange(new Set());
+		}
+	});
 	const items = data ?? [];
 
 	const {
@@ -55,7 +71,7 @@ export function Sidebar({
 		items,
 		SIDEBAR_ITEM_HEIGHT,
 		VIRUTALIZATION_HEIGHT,
-		listRef,
+		listScrollContainerRef,
 	);
 
 	// Reset scroll position when folder changes so that the sidebar is scrolled to the top
@@ -64,7 +80,11 @@ export function Sidebar({
 	}, [folder]);
 
 	return (
-		<div className="overflow-y-auto" ref={listRef} onScroll={onScroll}>
+		<div
+			className="overflow-y-auto"
+			ref={listScrollContainerRef}
+			onScroll={onScroll}
+		>
 			<div
 				style={{
 					height: items.length > 0 ? listContainerHeight : "auto",
@@ -76,6 +96,7 @@ export function Sidebar({
 						height: visibleItems.length > 0 ? listHeight : "auto",
 						top: listTop,
 					}}
+					ref={listRef}
 				>
 					<SidebarItems
 						layoutId={layoutId}

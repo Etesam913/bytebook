@@ -86,6 +86,7 @@ func CreateNoteContextMenu(app *application.App, projectPath string, contextMenu
 			url := "/" + folder + "/" + noteNameWithoutExtension + "?ext=" + noteExtension
 			custom_events.CreateWindow(app, url, backgroundColor)
 		}
+		app.EmitEvent("note:clear-selection")
 	})
 
 	contextMenu.Add("Reveal In Finder").OnClick(func(data *application.Context) {
@@ -97,6 +98,7 @@ func CreateNoteContextMenu(app *application.App, projectPath string, contextMenu
 		for _, notePath := range notePaths {
 			io_helpers.RevealInFinder(filepath.Join(projectPath, "notes", notePath))
 		}
+		app.EmitEvent("note:clear-selection")
 	})
 
 	contextMenu.Add("Send To Trash").OnClick(func(data *application.Context) {
@@ -106,6 +108,7 @@ func CreateNoteContextMenu(app *application.App, projectPath string, contextMenu
 		}
 		notePaths := strings.Split(contextData, ",")
 		io_helpers.MoveNotesToTrash(projectPath, notePaths)
+		app.EmitEvent("note:clear-selection")
 	})
 
 }
