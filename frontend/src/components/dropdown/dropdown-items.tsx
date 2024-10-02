@@ -14,6 +14,7 @@ export function DropdownItems({
 	setFocusIndex,
 	focusIndex,
 	className,
+	selectedItem,
 }: {
 	items: DropdownItem[];
 	isOpen: boolean;
@@ -23,14 +24,17 @@ export function DropdownItems({
 	setFocusIndex: Dispatch<SetStateAction<number>>;
 	focusIndex: number | null;
 	className?: string;
+	selectedItem?: string;
 }) {
 	const dropdownItemsRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
-		setFocusIndex(0);
+		const indexToFocus = focusIndex ?? 0;
+		setFocusIndex(indexToFocus);
 		if (dropdownItemsRef.current && isOpen) {
 			const children = Array.from(dropdownItemsRef.current.children);
-			const firstChild = children.at(0) as HTMLElement;
+			const firstChild = children.at(indexToFocus);
+			if (!firstChild) return;
 			const firstButton = firstChild.lastChild as HTMLElement;
 			firstButton.focus();
 		}
@@ -73,8 +77,13 @@ export function DropdownItems({
 											className="absolute z-30 inset-0 rounded-md w-full px-1.5 py-0.5 bg-zinc-150 dark:bg-zinc-600"
 										/>
 									)}
+									{selectedItem === value && (
+										<div className="absolute z-20 inset-0 rounded-md w-full px-1.5 py-0.5 bg-zinc-150 dark:bg-zinc-600" />
+									)}
 									<button
-										className="relative z-40 outline-none rounded-md w-full px-1.5 py-0.5 text-left flex "
+										className={cn(
+											"relative z-40 outline-none rounded-md w-full px-1.5 py-0.5 text-left flex",
+										)}
 										type="button"
 										role="menuitem"
 										onKeyDown={(e) => {

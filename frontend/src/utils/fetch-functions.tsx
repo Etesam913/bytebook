@@ -114,7 +114,6 @@ export async function updateNotes(
 	noteSort: SortStrings,
 ) {
 	try {
-		// @ts-expect-error -- The sort option is a custom type
 		const res = await GetNotes(decodeURIComponent(folder), noteSort);
 
 		if (!res.success) {

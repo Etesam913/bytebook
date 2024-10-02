@@ -81,7 +81,8 @@ export type SortStrings =
 	| "file-name-a-z"
 	| "file-name-z-a"
 	| "size-desc"
-	| "size-asc";
+	| "size-asc"
+	| "file-type";
 
 export type WindowSettings = {
 	windowId: string;

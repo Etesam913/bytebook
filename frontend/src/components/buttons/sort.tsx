@@ -1,6 +1,13 @@
-import { type Dispatch, type SetStateAction, useRef, useState } from "react";
+import {
+	type Dispatch,
+	type SetStateAction,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import { MotionIconButton } from ".";
 import { getDefaultButtonVariants } from "../../animations";
+import { Paperclip } from "../../icons/paperclip-2";
 import SortAlphaAscending from "../../icons/sort-alpha-ascending";
 import SortAlphaDescending from "../../icons/sort-alpha-descending";
 import SortDateAscending from "../../icons/sort-date-ascending";
@@ -21,6 +28,7 @@ const sortOptions: { name: string; value: SortStrings }[] = [
 	{ name: "File Name (Z-A)", value: "file-name-z-a" },
 	{ name: "Size (desc)", value: "size-desc" },
 	{ name: "Size (asc)", value: "size-asc" },
+	{ name: "File Type", value: "file-type" },
 ];
 
 function IconForSortOption({ sortOption }: { sortOption: SortStrings }) {
@@ -55,6 +63,10 @@ function IconForSortOption({ sortOption }: { sortOption: SortStrings }) {
 			);
 		case "size-asc":
 			return <SortNumAscending className="pointer-events-none" />;
+		case "file-type":
+			return (
+				<Paperclip className="pointer-events-none will-change-transform" />
+			);
 	}
 }
 
@@ -68,7 +80,9 @@ export function SortButton({
 	const dropdownContainerRef = useRef<HTMLDivElement>(null);
 	const [isSortOptionsOpen, setIsSortOptionsOpen] = useState(false);
 	useOnClickOutside(dropdownContainerRef, () => setIsSortOptionsOpen(false));
-	const [focusIndex, setFocusIndex] = useState(0);
+	const [focusIndex, setFocusIndex] = useState(
+		sortOptions.findIndex(({ value }) => value === sortDirection),
+	);
 
 	const sortOptionComponents = sortOptions.map(({ name, value }) => {
 		return {
@@ -94,6 +108,7 @@ export function SortButton({
 				setFocusIndex={setFocusIndex}
 				focusIndex={focusIndex}
 				items={sortOptionComponents}
+				selectedItem={sortDirection}
 				onChange={({ value }) => setSortDirection(value as SortStrings)}
 			/>
 

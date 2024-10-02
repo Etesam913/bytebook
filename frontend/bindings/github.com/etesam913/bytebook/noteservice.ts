@@ -40,7 +40,7 @@ export function GetNoteMarkdown(path: string): Promise<$models.NoteMarkdownRespo
     return $typingPromise;
 }
 
-export function GetNotes(folderName: string, sortOption: $models.SortStrings): Promise<$models.NoteResponse> & { cancel(): void } {
+export function GetNotes(folderName: string, sortOption: string): Promise<$models.NoteResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(4001444448, folderName, sortOption) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType3($result);

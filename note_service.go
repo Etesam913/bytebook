@@ -31,22 +31,20 @@ type AddFolderResponse struct {
 	Message string `json:"message"`
 }
 
-// SortStrings represents the possible sort options as a custom type.
-type SortStrings string
-
 // Constants representing each possible sort option.
 const (
-	DateUpdatedDesc SortStrings = "date-updated-desc"
-	DateUpdatedAsc  SortStrings = "date-updated-asc"
-	DateCreatedDesc SortStrings = "date-created-desc"
-	DateCreatedAsc  SortStrings = "date-created-asc"
-	FileNameAZ      SortStrings = "file-name-a-z"
-	FileNameZA      SortStrings = "file-name-z-a"
-	SizeDesc        SortStrings = "size-desc"
-	SizeAsc         SortStrings = "size-asc"
+	DateUpdatedDesc string = "date-updated-desc"
+	DateUpdatedAsc  string = "date-updated-asc"
+	DateCreatedDesc string = "date-created-desc"
+	DateCreatedAsc  string = "date-created-asc"
+	FileNameAZ      string = "file-name-a-z"
+	FileNameZA      string = "file-name-z-a"
+	SizeDesc        string = "size-desc"
+	SizeAsc         string = "size-asc"
+	FileType        string = "file-type"
 )
 
-func (n *NoteService) GetNotes(folderName string, sortOption SortStrings) NoteResponse {
+func (n *NoteService) GetNotes(folderName string, sortOption string) NoteResponse {
 	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	// Ensure the directory exists
 	if _, err := os.Stat(folderPath); err != nil {
@@ -101,6 +99,13 @@ func (n *NoteService) GetNotes(folderName string, sortOption SortStrings) NoteRe
 			infoI, _ := notes[i].Info()
 			infoJ, _ := notes[j].Info()
 			return infoI.Size() < infoJ.Size()
+		case FileType:
+			extI := filepath.Ext(notes[i].Name())
+			extJ := filepath.Ext(notes[j].Name())
+			if extI == extJ {
+				return strings.ToLower(notes[i].Name()) < strings.ToLower(notes[j].Name())
+			}
+			return extI < extJ
 		default:
 			return false
 		}
