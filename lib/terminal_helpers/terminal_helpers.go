@@ -234,7 +234,7 @@ func GetExtensionFromLanguage(language string) (bool, string) {
 }
 
 func GenerateFoldersForLanguages(projectPath string) {
-	languages := []string{"python", "javascript", "java", "go", "cpp", "rust"}
+	languages := []string{"python", "javascript", "java", "go", "cpp", "rust", "c"}
 
 	for _, language := range languages {
 		exists, fileExtension := GetExtensionFromLanguage(language)

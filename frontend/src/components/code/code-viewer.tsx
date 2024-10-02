@@ -164,6 +164,11 @@ export function CodeViewer({
 							extensions: [nonTemplateLanguageToExtension.cpp],
 							language: cpp(),
 						},
+						{
+							name: "c",
+							extensions: [nonTemplateLanguageToExtension.c],
+							language: cpp(),
+						},
 					]}
 				/>
 

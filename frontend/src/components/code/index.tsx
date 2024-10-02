@@ -30,6 +30,7 @@ export const nonTemplateLanguageToExtension: Record<string, string> = {
 	java: "java",
 	rust: "rs",
 	cpp: "cpp",
+	c: "c",
 };
 
 export const nonTemplateLanguageDefaultFiles: Record<string, SandpackFiles> = {
@@ -63,6 +64,12 @@ export const nonTemplateLanguageDefaultFiles: Record<string, SandpackFiles> = {
 	cpp: {
 		"main.cpp": {
 			code: `#include <iostream>\n\nint main() {\n    std::cout << "hello from c++" << std::endl;\n    return 0;\n}`,
+			active: true,
+		},
+	},
+	c: {
+		"main.c": {
+			code: `#include <stdio.h>\n\nint main() {\n    printf("hello from c!\\n");\n    return 0;\n}`,
 			active: true,
 		},
 	},

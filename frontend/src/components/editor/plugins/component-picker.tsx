@@ -74,6 +74,7 @@ const languageCommandData: {
 		| "svelte"
 		| "rust"
 		| "cpp"
+		| "c"
 		| "terminal";
 	name: string;
 	keywords: string[];
@@ -111,6 +112,7 @@ const languageCommandData: {
 	},
 	{ id: "rust", keywords: ["rust", "rs"], icon: <RustLogo />, name: "Rust" },
 	{ id: "cpp", keywords: ["c++", "cpp"], icon: <CppLogo />, name: "C++" },
+	{ id: "c", keywords: ["c", "c++", "clang"], icon: <CppLogo />, name: "C" },
 	{
 		id: "angular",
 		keywords: ["javascript", "angular", "js", "google"],
