@@ -58,7 +58,7 @@ export function ResizeContainer({
 	return (
 		<div ref={resizeContainerRef}>
 			<motion.div
-				onKeyDown={(e) => {
+				onKeyDown={(e: KeyboardEvent) => {
 					if (e.key === "Escape" && isExpanded) {
 						setIsExpanded(false);
 						e.stopPropagation();
@@ -66,16 +66,24 @@ export function ResizeContainer({
 					if ((e.key === "ArrowRight" || e.key === "ArrowLeft") && isExpanded) {
 						e.preventDefault();
 						e.stopPropagation();
-						expandNearestSiblingNode(
+						const isExpandableNeighbor = expandNearestSiblingNode(
 							editor,
 							nodeKey,
 							setIsExpanded,
 							e.key === "ArrowRight",
 						);
+
+						if (
+							isExpandableNeighbor &&
+							element &&
+							element.tagName === "VIDEO"
+						) {
+							(element as HTMLVideoElement).pause();
+						}
 					}
 				}}
 				tabIndex={isExpanded ? 0 : -1}
-				onClick={(e) => {
+				onClick={(e: MouseEvent) => {
 					// We don't need clicks to go to the editor when in fullscreen mode
 					if (isExpanded) e.stopPropagation();
 				}}
@@ -166,12 +174,20 @@ export function ResizeContainer({
 									exit={{ opacity: 0 }}
 									{...getDefaultButtonVariants()}
 									onClick={() => {
-										expandNearestSiblingNode(
+										const isExpandableNeighbor = expandNearestSiblingNode(
 											editor,
 											nodeKey,
 											setIsExpanded,
 											false,
 										);
+
+										if (
+											isExpandableNeighbor &&
+											element &&
+											element.tagName === "VIDEO"
+										) {
+											(element as HTMLVideoElement).pause();
+										}
 									}}
 									className="fixed z-50 bottom-11 left-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
 									type="submit"
@@ -184,14 +200,21 @@ export function ResizeContainer({
 									animate={{ opacity: 1 }}
 									exit={{ opacity: 0 }}
 									{...getDefaultButtonVariants()}
-									onClick={() =>
-										expandNearestSiblingNode(
+									onClick={() => {
+										const isExpandableNeighbor = expandNearestSiblingNode(
 											editor,
 											nodeKey,
 											setIsExpanded,
 											true,
-										)
-									}
+										);
+										if (
+											isExpandableNeighbor &&
+											element &&
+											element.tagName === "VIDEO"
+										) {
+											(element as HTMLVideoElement).pause();
+										}
+									}}
 									className="fixed z-50 bottom-11 right-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
 									type="submit"
 								>

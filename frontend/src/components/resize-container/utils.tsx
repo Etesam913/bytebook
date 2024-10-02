@@ -52,6 +52,7 @@ export function expandNearestSiblingNode(
 	setIsExpanded: Dispatch<SetStateAction<boolean>>,
 	isRightPressed: boolean,
 ) {
+	let didExpandToNeighbor = false;
 	editor.update(() => {
 		const node = $getNodeByKey(nodeKey);
 		if (node) {
@@ -75,8 +76,10 @@ export function expandNearestSiblingNode(
 			$setSelection(nodeSelection);
 			setIsExpanded(false);
 			editor.dispatchCommand(EXPAND_CONTENT_COMMAND, nextNode.getKey());
+			didExpandToNeighbor = true;
 		}
 	});
+	return didExpandToNeighbor;
 }
 
 /**
