@@ -503,12 +503,9 @@ export function handleDragStart(
 				const excalidrawText = document.createElement("div");
 				excalidrawText.innerText = "Drawing";
 				ghostElement.replaceChildren(excalidrawText);
-			} else if (
-				node.getType() === "code-block" &&
-				node.getLanguage() === "terminal"
-			) {
+			} else if (node.getType() === "code-block") {
 				const terminalText = document.createElement("div");
-				terminalText.innerText = "Terminal";
+				terminalText.innerText = "Code Block";
 				ghostElement.replaceChildren(terminalText);
 			}
 
