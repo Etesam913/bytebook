@@ -1,6 +1,6 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { AnimatePresence, motion, useMotionValue } from "framer-motion";
-import { type ReactNode, useEffect, useRef } from "react";
+import { type MouseEvent, type ReactNode, useEffect, useRef } from "react";
 import { getDefaultButtonVariants } from "../../animations";
 import { CircleArrowLeft } from "../../icons/circle-arrow-left";
 import { CircleArrowRight } from "../../icons/circle-arrow-right";
@@ -37,7 +37,8 @@ export function ResizeContainer({
 	);
 	const resizeHeightMotionValue = useMotionValue<number | "100%">("100%");
 
-	const { isSelected, isExpanded, setIsExpanded, setIsResizing } = resizeState;
+	const { isSelected, isExpanded, setIsExpanded, setIsResizing, setSelected } =
+		resizeState;
 
 	const resizeDimensions = useRef({ height: 0, width: 0 });
 	const resizeContainerRef = useRef<HTMLDivElement>(null);
@@ -141,6 +142,7 @@ export function ResizeContainer({
 								widthMotionValue={widthMotionValue}
 								writeWidthToNode={writeWidthToNode}
 								setIsResizing={setIsResizing}
+								setSelected={setSelected}
 							/>
 						</>
 					)}
@@ -149,16 +151,12 @@ export function ResizeContainer({
 			</motion.div>
 			{isExpanded && (
 				<>
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						onClick={() => setIsExpanded(false)}
-						className="fixed z-10 w-screen h-screen bg-[rgba(0,0,0,0.6)] left-0 top-0"
-					/>
 					<motion.button
 						{...getDefaultButtonVariants()}
-						onClick={() => setIsExpanded(false)}
+						onClick={(e: MouseEvent<HTMLButtonElement>) => {
+							setIsExpanded(false);
+							e.stopPropagation();
+						}}
 						className="fixed z-50 right-5 top-4 bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
 						type="submit"
 					>
@@ -180,7 +178,6 @@ export function ResizeContainer({
 											setIsExpanded,
 											false,
 										);
-
 										if (
 											isExpandableNeighbor &&
 											element &&
@@ -224,12 +221,12 @@ export function ResizeContainer({
 						)}
 					</AnimatePresence>
 
-					<div
+					{/* <div
 						style={{
 							width: resizeDimensions.current.width,
 							height: resizeDimensions.current.height,
 						}}
-					/>
+					/> */}
 				</>
 			)}
 		</div>

@@ -37,7 +37,6 @@ export function Video({
 		isExpanded,
 		setIsExpanded,
 		isSelected,
-		isResizing,
 		nodeKey,
 		setSelected,
 		clearSelection,
@@ -51,6 +50,7 @@ export function Video({
 					isResizing,
 					setIsResizing,
 					isSelected,
+					setSelected,
 					isExpanded,
 					setIsExpanded,
 				}}

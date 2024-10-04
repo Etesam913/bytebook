@@ -22,13 +22,7 @@ export function onClickDecoratorNodeCommand(
 	node: HTMLElement | null,
 	setSelected: (arg0: boolean) => void,
 	clearSelection: () => void,
-	isResizing?: boolean,
 ): boolean {
-	if (isResizing) {
-		e.stopPropagation();
-		return true;
-	}
-
 	if (e.target === node || node?.contains(e.target as Node)) {
 		if (!e.shiftKey) clearSelection();
 		setSelected(true);

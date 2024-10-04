@@ -15,12 +15,8 @@ export function dragItem(
 	function cleanUpDocumentEvents(e: MouseEvent) {
 		document.removeEventListener("mousemove", mouseMove);
 		document.removeEventListener("mouseup", cleanUpDocumentEvents);
-
 		document.removeEventListener("selectstart", stopSelect);
-
-		if (onDragEndCallback) {
-			onDragEndCallback(e);
-		}
+		onDragEndCallback?.(e);
 	}
 	document.addEventListener("selectstart", stopSelect);
 	document.body.style.userSelect = "none";

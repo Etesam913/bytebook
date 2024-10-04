@@ -36,7 +36,6 @@ export function Image({
 		isExpanded,
 		setIsExpanded,
 		isSelected,
-		isResizing,
 		nodeKey,
 		setSelected,
 		clearSelection,
@@ -50,6 +49,7 @@ export function Image({
 					isResizing,
 					setIsResizing,
 					isSelected,
+					setSelected,
 					isExpanded,
 					setIsExpanded,
 				}}
@@ -64,10 +64,7 @@ export function Image({
 					ref={imgRef}
 					alt={alt}
 					draggable={false}
-					className={cn(
-						"w-full h-auto my-auto scroll-m-10",
-						isResizing && "opacity-50",
-					)}
+					className={cn("w-full h-auto my-auto scroll-m-10")}
 					data-lexical-decorator="true"
 				/>
 			</ResizeContainer>

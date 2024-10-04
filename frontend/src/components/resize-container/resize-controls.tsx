@@ -1,6 +1,6 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { type MotionValue, motion } from "framer-motion";
-import type { MutableRefObject, RefObject } from "react";
+import type { MouseEvent, MutableRefObject, RefObject } from "react";
 import { getDefaultButtonVariants } from "../../animations";
 import { XResize } from "../../icons/arrows-expand-x";
 import { Fullscreen } from "../../icons/fullscreen";
@@ -46,22 +46,24 @@ export function ResizeControls({
 			<motion.button
 				{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
 				type="button"
-				onClick={() =>
+				onClick={(e: MouseEvent<HTMLButtonElement>) => {
 					editor.update(() => {
 						removeDecoratorNode(nodeKey);
-					})
-				}
+					});
+					e.stopPropagation();
+				}}
 			>
 				<Trash className="will-change-transform" />
 			</motion.button>
 			<motion.button
 				{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
 				type="button"
-				onClick={() => {
+				onClick={(e: MouseEvent<HTMLButtonElement>) => {
 					widthMotionValue.set("100%");
 					resizeWidthMotionValue.set("100%");
 					resizeHeightMotionValue.set("100%");
 					writeWidthToNode("100%");
+					e.stopPropagation();
 				}}
 			>
 				<XResize className="will-change-transform" />
@@ -69,13 +71,14 @@ export function ResizeControls({
 			<motion.button
 				{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
 				type="button"
-				onClick={() => {
+				onClick={(e: MouseEvent<HTMLButtonElement>) => {
 					setIsExpanded(true);
 					resizeContainerRef.current?.focus();
 					resizeDimensionsRef.current = {
 						height: element?.clientHeight ?? 0,
 						width: element?.clientWidth ?? 0,
 					};
+					e.stopPropagation();
 				}}
 			>
 				<Fullscreen className="will-change-transform" />

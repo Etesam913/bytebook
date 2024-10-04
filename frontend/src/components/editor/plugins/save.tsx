@@ -19,7 +19,7 @@ type SaveMarkdownContentPayload =
 	| undefined
 	| {
 			shouldSkipNoteChangedEmit: boolean;
-			newFrontmatter: Record<string, string>;
+			newFrontmatter?: Record<string, string>;
 	  };
 
 export const SAVE_MARKDOWN_CONTENT: LexicalCommand<SaveMarkdownContentPayload> =

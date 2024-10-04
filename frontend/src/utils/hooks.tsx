@@ -83,7 +83,6 @@ export function useResizeCommands(
 	isExpanded: boolean,
 	setIsExpanded: Dispatch<SetStateAction<boolean>>,
 	isSelected: boolean,
-	isResizing: boolean,
 	nodeKey: string,
 	setSelected: (arg0: boolean) => void,
 	clearSelection: () => void,
@@ -102,7 +101,6 @@ export function useResizeCommands(
 							elementRef.current,
 							setSelected,
 							clearSelection,
-							isResizing,
 						);
 					}
 
@@ -144,7 +142,6 @@ export function useResizeCommands(
 	}, [
 		editor,
 		nodeKey,
-		isResizing,
 		isExpanded,
 		setIsExpanded,
 		isSelected,

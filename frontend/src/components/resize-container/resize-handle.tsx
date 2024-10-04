@@ -1,6 +1,6 @@
 import { type MotionValue, motion } from "framer-motion";
 import { useAtomValue, useSetAtom } from "jotai";
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, MouseEvent, SetStateAction } from "react";
 import { draggedElementAtom, noteContainerRefAtom } from "../../atoms";
 import type { ResizeWidth } from "../../types";
 import { dragItem } from "../../utils/draggable";
@@ -14,6 +14,7 @@ interface ResizeHandleProps {
 	widthMotionValue: MotionValue<number | "100%">;
 	writeWidthToNode: (width: ResizeWidth) => void;
 	setIsResizing: Dispatch<SetStateAction<boolean>>;
+	setSelected: (arg0: boolean) => void;
 }
 
 export function ResizeHandle({
@@ -35,8 +36,9 @@ export function ResizeHandle({
 			className={
 				"w-7 h-7 bg-blue-transparent bottom-[-7px] right-[-6px] absolute cursor-nwse-resize rounded-sm z-10"
 			}
-			onMouseDown={(mouseDownEvent) => {
+			onMouseDown={(mouseDownEvent: MouseEvent<HTMLDivElement>) => {
 				setIsResizing(true);
+				// mouseDownEvent.stopPropagation();
 				setDraggedElement(mouseDownEvent.target as HTMLElement);
 				dragItem(
 					(dragEvent) => {
@@ -96,7 +98,7 @@ export function ResizeHandle({
 						setTimeout(() => {
 							writeWidthToNode(widthMotionValue.get());
 						}, 100);
-						setIsResizing(false);
+						// setIsResizing(false);
 						setDraggedElement(null);
 					},
 				);
