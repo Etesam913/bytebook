@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { SyncChangesWithRepo } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
 import { dialogDataAtom, userDataAtomWithLocalStorage } from "../../atoms";
+import ArrowDoorOut from "../../icons/arrow-door-out";
 import { ChevronDown } from "../../icons/chevron-down";
 import { FileRefresh } from "../../icons/file-refresh";
 import { Gear } from "../../icons/gear";
@@ -13,7 +14,6 @@ import { SettingsWindow } from "../../routes/settings";
 import { useOnClickOutside } from "../../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import { DropdownItems } from "../dropdown/dropdown-items";
-import ArrowDoorOut from "../../icons/arrow-door-out";
 
 export function LoginButton() {
 	const userData = useAtomValue(userDataAtomWithLocalStorage);

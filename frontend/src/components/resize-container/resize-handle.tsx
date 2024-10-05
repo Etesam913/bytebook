@@ -41,10 +41,11 @@ export function ResizeHandle({
 			// 	e.stopPropagation();
 			// 	setSelected(true);
 			// }}
-			// onClick={(e: MouseEvent<HTMLDivElement>) => {
-			// 	e.stopPropagation();
-			// 	setSelected(true);
-			// }}
+			onClick={(e: MouseEvent<HTMLDivElement>) => {
+				e.preventDefault();
+				e.stopPropagation();
+				setSelected(true);
+			}}
 			onMouseDown={(mouseDownEvent: MouseEvent<HTMLDivElement>) => {
 				setIsResizing(true);
 				mouseDownEvent.stopPropagation();
@@ -107,8 +108,9 @@ export function ResizeHandle({
 						setTimeout(() => {
 							writeWidthToNode(widthMotionValue.get());
 						}, 100);
-						// setIsResizing(false);
-						setDraggedElement(null);
+						setTimeout(() => {
+							setDraggedElement(null);
+						}, 1000);
 					},
 				);
 			}}

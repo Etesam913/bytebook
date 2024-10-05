@@ -1,5 +1,5 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
@@ -45,9 +45,10 @@ export function Image({
 	return (
 		<div
 			className="mr-2 inline-block"
-			onClick={() => {
-				// clearSelection();
-				// setSelected(true);
+			onClick={(e) => {
+				clearSelection();
+				setSelected(true);
+				e.stopPropagation();
 			}}
 		>
 			<ResizeContainer

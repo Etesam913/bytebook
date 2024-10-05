@@ -15,6 +15,7 @@ import type { LexicalEditor } from "lexical";
 import { useEffect, useRef, useState } from "react";
 import {
 	draggableBlockElementAtom,
+	draggedElementAtom,
 	isNoteMaximizedAtom,
 	noteContainerRefAtom,
 } from "../../atoms";
@@ -95,7 +96,7 @@ export function NotesEditor({
 	const setNoteContainerRef = useSetAtom(noteContainerRefAtom);
 	const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
 	const [noteMarkdownString, setNoteMarkdownString] = useState("");
-
+	const draggedElement = useAtomValue(draggedElementAtom);
 	useHotkeys({
 		"Meta+f": () => {
 			// const isFound = window.find("Etesam")
@@ -160,6 +161,12 @@ export function NotesEditor({
 								onKeyDown={() => setDraggableBlockElement(null)}
 								id="content-editable-editor"
 								spellCheck
+								onClick={(e) => {
+									// Clicks should not propagate to the editor when something is being dragged
+									if (draggedElement) {
+										e.stopPropagation();
+									}
+								}}
 							/>
 						}
 						ErrorBoundary={LexicalErrorBoundary}

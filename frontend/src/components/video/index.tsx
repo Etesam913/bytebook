@@ -1,5 +1,5 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
@@ -46,9 +46,10 @@ export function Video({
 	return (
 		<div
 			className="w-fit inline-block"
-			onClick={() => {
+			onClick={(e) => {
 				clearSelection();
 				setSelected(true);
+				e.stopPropagation();
 			}}
 		>
 			<ResizeContainer
