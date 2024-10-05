@@ -1,15 +1,12 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
-import { mergeRegister } from "@lexical/utils";
 import type { FitAddon } from "@xterm/addon-fit";
 import type { Terminal } from "@xterm/xterm";
 import { useAtomValue } from "jotai";
-import { CLICK_COMMAND, COMMAND_PRIORITY_NORMAL } from "lexical";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook";
 import { darkModeAtom } from "../../atoms";
 import type { CodeBlockData } from "../../types";
-import { onClickDecoratorNodeCommand } from "../../utils/commands";
 import { cn } from "../../utils/string-formatting";
 import { RunCommand } from "../code/run-command";
 import { TerminalHeader } from "./header";
@@ -71,24 +68,6 @@ export function TerminalComponent({
 	useTerminalWrite(nodeKey, xtermRef, data, writeDataToNode);
 	useTerminalCreateEventForBackend(nodeKey, startDirectory, shell);
 
-	useEffect(() => {
-		return mergeRegister(
-			editor.registerCommand<MouseEvent>(
-				CLICK_COMMAND,
-				(e) => {
-					e.stopPropagation();
-					return onClickDecoratorNodeCommand(
-						e,
-						terminalContainerRef.current,
-						setIsSelected,
-						clearSelection,
-					);
-				},
-				COMMAND_PRIORITY_NORMAL,
-			),
-		);
-	}, []);
-
 	return (
 		<div
 			className={cn(
@@ -102,6 +81,7 @@ export function TerminalComponent({
 			ref={terminalContainerRef}
 			onClick={(e) => {
 				e.stopPropagation();
+				clearSelection();
 				setIsSelected(true);
 				onClick?.();
 			}}

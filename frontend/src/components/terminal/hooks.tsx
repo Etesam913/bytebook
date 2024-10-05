@@ -121,6 +121,19 @@ export function useTerminalCreateFrontend(
 	data: CodeBlockData,
 	isInCodeSnippet: boolean,
 ) {
+	/*
+		We only want to load the fit addon when the terminal is selected as it causes the terminal to be focused.
+		We don't want the terminal to be focuesd when it is created for the first time 	
+	*/
+	useEffect(() => {
+		if (!xtermRef.current) return;
+		// Add the fit addon, but only add it if it is not already added
+		if (isSelected && !xtermFitAddonRef.current) {
+			xtermFitAddonRef.current = new FitAddon();
+			xtermRef.current.loadAddon(xtermFitAddonRef.current);
+		}
+	}, [isSelected]);
+
 	useEffect(() => {
 		xtermRef.current = new Terminal({
 			cursorBlink: true,
@@ -131,10 +144,6 @@ export function useTerminalCreateFrontend(
 			cursorStyle: "block",
 			theme: isDarkModeOn ? darkTerminalTheme : lightTerminalTheme,
 		});
-
-		// Add the fit addon.
-		xtermFitAddonRef.current = new FitAddon();
-		xtermRef.current.loadAddon(xtermFitAddonRef.current);
 
 		if (!terminalRef.current) {
 			return;
@@ -148,12 +157,11 @@ export function useTerminalCreateFrontend(
 		if (isSelected && !isInCodeSnippet) {
 			xtermRef.current.focus();
 		}
-		// Fit the terminal to the container size
-		xtermFitAddonRef.current.fit();
 
 		// Handle data from xterm and send it to backend
 		xtermRef.current.onData((data) => {
 			setIsSelected(true);
+			// clearSelection()
 			Events.Emit({
 				name: `terminal:input-${nodeKey}`,
 				data,

@@ -44,7 +44,13 @@ export function Video({
 	);
 
 	return (
-		<div className="w-fit inline-block">
+		<div
+			className="w-fit inline-block"
+			onClick={() => {
+				clearSelection();
+				setSelected(true);
+			}}
+		>
 			<ResizeContainer
 				resizeState={{
 					isResizing,

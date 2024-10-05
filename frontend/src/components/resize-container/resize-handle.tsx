@@ -24,6 +24,7 @@ export function ResizeHandle({
 	widthMotionValue,
 	writeWidthToNode,
 	setIsResizing,
+	setSelected,
 }: ResizeHandleProps) {
 	const noteContainerRef = useAtomValue(noteContainerRefAtom);
 	const setDraggedElement = useSetAtom(draggedElementAtom);
@@ -36,9 +37,17 @@ export function ResizeHandle({
 			className={
 				"w-7 h-7 bg-blue-transparent bottom-[-7px] right-[-6px] absolute cursor-nwse-resize rounded-sm z-10"
 			}
+			// onMouseUp={(e: MouseEvent<HTMLDivElement>) => {
+			// 	e.stopPropagation();
+			// 	setSelected(true);
+			// }}
+			// onClick={(e: MouseEvent<HTMLDivElement>) => {
+			// 	e.stopPropagation();
+			// 	setSelected(true);
+			// }}
 			onMouseDown={(mouseDownEvent: MouseEvent<HTMLDivElement>) => {
 				setIsResizing(true);
-				// mouseDownEvent.stopPropagation();
+				mouseDownEvent.stopPropagation();
 				setDraggedElement(mouseDownEvent.target as HTMLElement);
 				dragItem(
 					(dragEvent) => {

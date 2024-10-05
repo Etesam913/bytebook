@@ -220,13 +220,13 @@ export function ResizeContainer({
 							</>
 						)}
 					</AnimatePresence>
-
-					{/* <div
+					{/* Prevents a bug where the resize container size is like 8x8 after leaving fullscreen */}
+					<div
 						style={{
 							width: resizeDimensions.current.width,
 							height: resizeDimensions.current.height,
 						}}
-					/> */}
+					/>
 				</>
 			)}
 		</div>

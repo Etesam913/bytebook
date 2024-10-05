@@ -43,7 +43,13 @@ export function Image({
 	);
 
 	return (
-		<div className="mr-2 inline-block">
+		<div
+			className="mr-2 inline-block"
+			onClick={() => {
+				// clearSelection();
+				// setSelected(true);
+			}}
+		>
 			<ResizeContainer
 				resizeState={{
 					isResizing,
