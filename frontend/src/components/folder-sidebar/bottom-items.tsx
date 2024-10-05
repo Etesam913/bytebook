@@ -67,7 +67,7 @@ export function BottomItems() {
 	return (
 		<section className="mt-auto pb-3 flex flex-col gap-1">
 			<MotionLink
-				onDragOver={(e) => e.preventDefault()}
+				onDragOver={(e: DragEvent) => e.preventDefault()}
 				onDragEnter={onDragEnter}
 				onDragLeave={onDragLeave}
 				onDrop={handleTrashButtonDrop}

@@ -6,7 +6,7 @@ import type { UserData } from "../types";
 import { useWailsEvent } from "../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
 
-export async function getUserData(customAccessToken?: string) {
+async function getUserData(customAccessToken?: string) {
 	const accessToken = customAccessToken ?? localStorage.getItem("accessToken");
 	if (!accessToken || accessToken === "null") return null;
 

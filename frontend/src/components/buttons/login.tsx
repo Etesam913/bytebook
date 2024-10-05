@@ -13,6 +13,7 @@ import { SettingsWindow } from "../../routes/settings";
 import { useOnClickOutside } from "../../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import { DropdownItems } from "../dropdown/dropdown-items";
+import ArrowDoorOut from "../../icons/arrow-door-out";
 
 export function LoginButton() {
 	const userData = useAtomValue(userDataAtomWithLocalStorage);
@@ -36,44 +37,54 @@ export function LoginButton() {
 					setIsOpen={setIsUserOptionsOpen}
 					setFocusIndex={setFocusIndex}
 					onChange={async ({ value }) => {
-						if (value === "settings") {
-							setDialogData({
-								isOpen: true,
-								title: "Settings",
-								dialogClassName: "w-[min(55rem,90vw)]",
-								children: () => <SettingsWindow />,
-								onSubmit: null,
-							});
-						} else if (value === "sync-changes") {
-							try {
-								const res = await SyncChangesWithRepo(
-									userData.login,
-									userData.accessToken,
-								);
-								if (!res.success) throw new Error(res.message);
-
-								toast.success(res.message, DEFAULT_SONNER_OPTIONS);
-							} catch (e) {
-								if (e instanceof Error)
-									toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-							}
+						if (value === "log-out") {
+							Browser.OpenURL("http://localhost:8000/auth/logout");
 						}
+						// if (value === "settings") {
+						// 	setDialogData({
+						// 		isOpen: true,
+						// 		title: "Settings",
+						// 		dialogClassName: "w-[min(55rem,90vw)]",
+						// 		children: () => <SettingsWindow />,
+						// 		onSubmit: null,
+						// 	});
+						// } else if (value === "sync-changes") {
+						// 	try {
+						// 		const res = await SyncChangesWithRepo(
+						// 			userData.login,
+						// 			userData.accessToken,
+						// 		);
+						// 		if (!res.success) throw new Error(res.message);
+						// 		toast.success(res.message, DEFAULT_SONNER_OPTIONS);
+						// 	} catch (e) {
+						// 		if (e instanceof Error)
+						// 			toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+						// 	}
+						// }
 					}}
 					focusIndex={focusIndex}
 					items={[
+						// {
+						// 	value: "sync-changes",
+						// 	label: (
+						// 		<span className="flex items-center gap-1.5 will-change-transform">
+						// 			<FileRefresh /> Sync Changes
+						// 		</span>
+						// 	),
+						// },
+						// {
+						// 	value: "settings",
+						// 	label: (
+						// 		<span className="flex items-center gap-1.5 will-change-transform">
+						// 			<Gear /> Settings
+						// 		</span>
+						// 	),
+						// },
 						{
-							value: "sync-changes",
+							value: "log-out",
 							label: (
 								<span className="flex items-center gap-1.5 will-change-transform">
-									<FileRefresh /> Sync Changes
-								</span>
-							),
-						},
-						{
-							value: "settings",
-							label: (
-								<span className="flex items-center gap-1.5 will-change-transform">
-									<Gear /> Settings
+									<ArrowDoorOut /> Log Out
 								</span>
 							),
 						},

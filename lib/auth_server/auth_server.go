@@ -34,7 +34,68 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, World!")
 }
 
+func readJSONBody[T any](w http.ResponseWriter, r *http.Request) (T, error) {
+	var data T
+
+	// Read the body of the request
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Unable to read request body", http.StatusBadRequest)
+		return data, err
+	}
+	defer r.Body.Close()
+
+	// Unmarshal the JSON data into the generic type T
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return data, err
+	}
+
+	return data, nil
+}
+
+type authTokenBody struct {
+	AuthToken string `json:"auth_token"`
+}
+
+func revokeAuthToken(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	url := fmt.Sprintf("https://api.github.com/applications/%s/grant", GithubClientId)
+
+	bodyData, err := readJSONBody[authTokenBody](w, r)
+	if err != nil {
+		return
+	}
+
+	// Get the access token
+	payload := map[string]string{
+		"client_id":    GithubClientId,
+		"acesss_token": bodyData.AuthToken,
+	}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		fmt.Println("Failed to marshal payload")
+		http.Error(w, "Failed to marshal payload", http.StatusInternalServerError)
+	}
+	req, err := http.NewRequest("DELETE", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Println("Failed to create request")
+		http.Error(w, "Failed to create request", http.StatusInternalServerError)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+}
+
 func loginToGithub(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
 	baseURL := "https://github.com/login/oauth/authorize"
 	params := url.Values{}
 	params.Add("client_id", GithubClientId)
@@ -46,6 +107,8 @@ func loginToGithub(w http.ResponseWriter, r *http.Request) {
 
 func githubAuthCallback(w http.ResponseWriter, r *http.Request) {
 	codeParam := r.URL.Query().Get("code")
+	referer := r.Header.Get("Referer")
+	fmt.Println("referer: ", referer)
 	if codeParam == "" {
 		fmt.Println("No code provided")
 		http.Error(w, "No code provided", http.StatusBadRequest)
