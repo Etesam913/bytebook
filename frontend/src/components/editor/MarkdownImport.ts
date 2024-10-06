@@ -142,13 +142,14 @@ function importBlocks(
 				}
 			}
 
-			if (targetNode != null && targetNode.getTextContentSize() > 0) {
-				targetNode.splice(targetNode.getChildrenSize(), 0, [
-					$createLineBreakNode(),
-					...elementNode.getChildren(),
-				]);
-				elementNode.remove();
-			}
+			// This is an optimization to use the previous node and just add a line break, but doing this breaks certain stuff
+			// if (targetNode != null && targetNode.getTextContentSize() > 0) {
+			// 	targetNode.splice(targetNode.getChildrenSize(), 0, [
+			// 		$createLineBreakNode(),
+			// 		...elementNode.getChildren(),
+			// 	]);
+			// 	elementNode.remove();
+			// }
 		}
 	}
 }
