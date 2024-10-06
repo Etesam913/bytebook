@@ -58,7 +58,7 @@ const userDataAtom = atom<UserData | null>(null);
 export const userDataAtomWithLocalStorage = atom(
 	(get) => get(userDataAtom),
 	(_, set, newUserData: UserData) => {
-		const accessToken = newUserData?.accessToken;
+		const accessToken = newUserData.accessToken;
 
 		localStorage.setItem("accessToken", accessToken ?? "null");
 		set(userDataAtom, newUserData);

@@ -2,6 +2,7 @@ package auth_server
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,12 +14,13 @@ import (
 )
 
 var GithubClientId = os.Getenv("GITHUB_CLIENT_ID")
+var GithubAppSecret = os.Getenv("GITHUB_CLIENT_SECRET")
 
 // CORSHandler is a middleware function that adds CORS headers to the response
 func CORSHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		if r.Method == "OPTIONS" {
@@ -55,8 +57,28 @@ func readJSONBody[T any](w http.ResponseWriter, r *http.Request) (T, error) {
 	return data, nil
 }
 
-type authTokenBody struct {
-	AuthToken string `json:"auth_token"`
+// Helper function for making HTTP requests
+func makeHTTPRequest(method, url string, headers map[string]string, body []byte) (*http.Response, error) {
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	for key, value := range headers {
+		req.Header.Add(key, value)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+
+	return resp, nil
+}
+
+type AccessTokenBody struct {
+	AccessToken string `json:"access_token"`
 }
 
 func revokeAuthToken(w http.ResponseWriter, r *http.Request) {
@@ -66,28 +88,41 @@ func revokeAuthToken(w http.ResponseWriter, r *http.Request) {
 	}
 	url := fmt.Sprintf("https://api.github.com/applications/%s/grant", GithubClientId)
 
-	bodyData, err := readJSONBody[authTokenBody](w, r)
+	bodyData, err := readJSONBody[AccessTokenBody](w, r)
 	if err != nil {
 		return
 	}
 
-	// Get the access token
 	payload := map[string]string{
-		"client_id":    GithubClientId,
-		"acesss_token": bodyData.AuthToken,
+		"access_token": bodyData.AccessToken,
 	}
 
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
-		fmt.Println("Failed to marshal payload")
 		http.Error(w, "Failed to marshal payload", http.StatusInternalServerError)
+		return
 	}
-	req, err := http.NewRequest("DELETE", url, bytes.NewBuffer(jsonData))
+
+	credentials := base64.StdEncoding.EncodeToString([]byte(GithubClientId + ":" + GithubAppSecret))
+	headers := map[string]string{
+		"Authorization": "Basic " + credentials,
+		"Content-Type":  "application/json",
+	}
+
+	resp, err := makeHTTPRequest(http.MethodDelete, url, headers, jsonData)
 	if err != nil {
-		fmt.Println("Failed to create request")
-		http.Error(w, "Failed to create request", http.StatusInternalServerError)
+		http.Error(w, "Failed to send request", http.StatusInternalServerError)
+		return
 	}
-	req.Header.Set("Content-Type", "application/json")
+	defer resp.Body.Close()
+
+	_, err = io.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, "Failed to read response body", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 
 }
 
@@ -101,65 +136,55 @@ func loginToGithub(w http.ResponseWriter, r *http.Request) {
 	params.Add("client_id", GithubClientId)
 	params.Add("scope", "repo")
 	fullURL := fmt.Sprintf("%s?%s", baseURL, params.Encode())
-	fmt.Println(fullURL)
 	http.Redirect(w, r, fullURL, http.StatusSeeOther)
 }
 
 func githubAuthCallback(w http.ResponseWriter, r *http.Request) {
 	codeParam := r.URL.Query().Get("code")
-	referer := r.Header.Get("Referer")
-	fmt.Println("referer: ", referer)
 	if codeParam == "" {
-		fmt.Println("No code provided")
 		http.Error(w, "No code provided", http.StatusBadRequest)
+		return
 	}
 
-	// Get the access token
 	payload := map[string]string{
 		"client_id":     GithubClientId,
-		"client_secret": os.Getenv("GITHUB_CLIENT_SECRET"),
+		"client_secret": GithubAppSecret,
 		"code":          codeParam,
 		"redirect_uri":  os.Getenv("GITHUB_REDIRECT_URI"),
 	}
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
-		fmt.Println("Failed to marshal payload")
 		http.Error(w, "Failed to marshal payload", http.StatusInternalServerError)
+		return
 	}
 
-	req, err := http.NewRequest("POST", "https://github.com/login/oauth/access_token", bytes.NewBuffer(jsonData))
-	if err != nil {
-		fmt.Println("Failed to create request")
-		http.Error(w, "Failed to create request", http.StatusInternalServerError)
+	headers := map[string]string{
+		"Content-Type": "application/json",
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := makeHTTPRequest(http.MethodPost, "https://github.com/login/oauth/access_token", headers, jsonData)
 	if err != nil {
-		fmt.Println("Failed to send request")
 		http.Error(w, "Failed to send request", http.StatusInternalServerError)
+		return
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Failed to read response body")
 		http.Error(w, "Failed to read response body", http.StatusInternalServerError)
+		return
 	}
 
 	values, err := url.ParseQuery(string(body))
 	if err != nil {
-		fmt.Println("Failed to parse response body")
 		http.Error(w, "Failed to parse response body", http.StatusInternalServerError)
+		return
 	}
 
 	accessToken := values.Get("access_token")
-
 	if accessToken == "" {
-		fmt.Println("No access token")
 		http.Error(w, "No access token", http.StatusInternalServerError)
+		return
 	}
 
 	http.Redirect(w, r, "https://google.com", http.StatusSeeOther)
@@ -170,10 +195,10 @@ func githubAuthCallback(w http.ResponseWriter, r *http.Request) {
 func LaunchAuthServer() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", helloHandler)
-	mux.HandleFunc("/auth/github", loginToGithub)
+	mux.HandleFunc("/auth/github/login", loginToGithub)
 	mux.HandleFunc("/auth/github/callback", githubAuthCallback)
+	mux.HandleFunc("/auth/github/logout", revokeAuthToken)
 
-	// Wrap the mux with the CORS middleware
 	corsMux := CORSHandler(mux)
 
 	port := "8000"

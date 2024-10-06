@@ -1,31 +1,25 @@
 import { Browser } from "@wailsio/runtime";
 import { motion } from "framer-motion";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom } from "jotai/react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { SyncChangesWithRepo } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
-import { dialogDataAtom, userDataAtomWithLocalStorage } from "../../atoms";
+import { userDataAtomWithLocalStorage } from "../../atoms";
+import { ArrowDoorIn } from "../../icons/arrow-door-in";
 import ArrowDoorOut from "../../icons/arrow-door-out";
 import { ChevronDown } from "../../icons/chevron-down";
-import { FileRefresh } from "../../icons/file-refresh";
-import { Gear } from "../../icons/gear";
-import OpenRectArrowIn from "../../icons/open-rect-arrow-in";
-import { SettingsWindow } from "../../routes/settings";
 import { useOnClickOutside } from "../../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import { DropdownItems } from "../dropdown/dropdown-items";
 
 export function LoginButton() {
-	const userData = useAtomValue(userDataAtomWithLocalStorage);
+	const [userData, setUserData] = useAtom(userDataAtomWithLocalStorage);
 
 	const [isUserOptionsOpen, setIsUserOptionsOpen] = useState(false);
 	const [focusIndex, setFocusIndex] = useState(0);
-	const setDialogData = useSetAtom(dialogDataAtom);
-
 	const dropdownContainerRef = useRef<HTMLDivElement>(null);
 	useOnClickOutside(dropdownContainerRef, () => setIsUserOptionsOpen(false));
 
-	if (userData) {
+	if (userData?.accessToken) {
 		return (
 			<div
 				className="relative flex flex-col-reverse"
@@ -38,7 +32,25 @@ export function LoginButton() {
 					setFocusIndex={setFocusIndex}
 					onChange={async ({ value }) => {
 						if (value === "log-out") {
-							Browser.OpenURL("http://localhost:8000/auth/logout");
+							try {
+								const res = await fetch(
+									"http://localhost:8000/auth/github/logout",
+									{
+										method: "DELETE",
+										body: JSON.stringify({
+											access_token: localStorage.getItem("accessToken"),
+										}),
+									},
+								);
+								if (res.ok) {
+									setUserData({ ...userData, accessToken: null });
+								} else {
+									throw new Error("Logout Failed");
+								}
+								console.log(res);
+							} catch {
+								toast.error("Logout Failed", DEFAULT_SONNER_OPTIONS);
+							}
 						}
 						// if (value === "settings") {
 						// 	setDialogData({
@@ -84,7 +96,7 @@ export function LoginButton() {
 							value: "log-out",
 							label: (
 								<span className="flex items-center gap-1.5 will-change-transform">
-									<ArrowDoorOut /> Log Out
+									<ArrowDoorOut className="will-change-transform" /> Log Out
 								</span>
 							),
 						},
@@ -130,10 +142,10 @@ export function LoginButton() {
 			type="button"
 			className="w-full bg-transparent rounded-md flex gap-2 items-center hover:bg-zinc-100 hover:dark:bg-zinc-650 py-1 px-1.5 transition-colors"
 			onClick={() => {
-				Browser.OpenURL("http://localhost:8000/auth/github");
+				Browser.OpenURL("http://localhost:8000/auth/github/login");
 			}}
 		>
-			<OpenRectArrowIn className="h-4 w-4" />
+			<ArrowDoorIn width={20} height={20} />
 			<span>Login To GitHub</span>
 		</button>
 	);
