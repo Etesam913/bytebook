@@ -1,13 +1,13 @@
 export function FileRefresh({
-	width = "1.25rem",
-	height = "1.25rem",
+	width = 20,
+	height = 20,
 	fill = "currentColor",
 	secondaryfill = "currentColor",
 	title = "File Refresh",
 	className,
 }: {
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	fill?: string;
 	secondaryfill?: string;
 	title?: string;

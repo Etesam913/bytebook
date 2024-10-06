@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import { Browser } from "@wailsio/runtime";
 import { motion } from "framer-motion";
 import { useAtom } from "jotai/react";
@@ -7,6 +8,7 @@ import { userDataAtomWithLocalStorage } from "../../atoms";
 import { ArrowDoorIn } from "../../icons/arrow-door-in";
 import ArrowDoorOut from "../../icons/arrow-door-out";
 import { ChevronDown } from "../../icons/chevron-down";
+import { Gear } from "../../icons/gear";
 import { useOnClickOutside } from "../../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import { DropdownItems } from "../dropdown/dropdown-items";
@@ -18,6 +20,30 @@ export function LoginButton() {
 	const [focusIndex, setFocusIndex] = useState(0);
 	const dropdownContainerRef = useRef<HTMLDivElement>(null);
 	useOnClickOutside(dropdownContainerRef, () => setIsUserOptionsOpen(false));
+
+	const logoutMutation = useMutation({
+		mutationFn: async () => {
+			const res = await fetch("http://localhost:8000/auth/github/logout", {
+				method: "DELETE",
+				body: JSON.stringify({
+					access_token: localStorage.getItem("accessToken"),
+				}),
+			});
+			if (!res.ok) throw new Error("Logout Failed");
+			return res;
+		},
+		onSuccess: () => {
+			setUserData({
+				accessToken: null,
+				login: "",
+				avatarUrl: "",
+				email: "",
+			});
+		},
+		onError: () => {
+			toast.error("Logout Failed", DEFAULT_SONNER_OPTIONS);
+		},
+	});
 
 	if (userData?.accessToken) {
 		return (
@@ -32,25 +58,7 @@ export function LoginButton() {
 					setFocusIndex={setFocusIndex}
 					onChange={async ({ value }) => {
 						if (value === "log-out") {
-							try {
-								const res = await fetch(
-									"http://localhost:8000/auth/github/logout",
-									{
-										method: "DELETE",
-										body: JSON.stringify({
-											access_token: localStorage.getItem("accessToken"),
-										}),
-									},
-								);
-								if (res.ok) {
-									setUserData({ ...userData, accessToken: null });
-								} else {
-									throw new Error("Logout Failed");
-								}
-								console.log(res);
-							} catch {
-								toast.error("Logout Failed", DEFAULT_SONNER_OPTIONS);
-							}
+							logoutMutation.mutate();
 						}
 						// if (value === "settings") {
 						// 	setDialogData({
@@ -60,43 +68,22 @@ export function LoginButton() {
 						// 		children: () => <SettingsWindow />,
 						// 		onSubmit: null,
 						// 	});
-						// } else if (value === "sync-changes") {
-						// 	try {
-						// 		const res = await SyncChangesWithRepo(
-						// 			userData.login,
-						// 			userData.accessToken,
-						// 		);
-						// 		if (!res.success) throw new Error(res.message);
-						// 		toast.success(res.message, DEFAULT_SONNER_OPTIONS);
-						// 	} catch (e) {
-						// 		if (e instanceof Error)
-						// 			toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-						// 	}
-						// }
 					}}
 					focusIndex={focusIndex}
 					items={[
-						// {
-						// 	value: "sync-changes",
-						// 	label: (
-						// 		<span className="flex items-center gap-1.5 will-change-transform">
-						// 			<FileRefresh /> Sync Changes
-						// 		</span>
-						// 	),
-						// },
-						// {
-						// 	value: "settings",
-						// 	label: (
-						// 		<span className="flex items-center gap-1.5 will-change-transform">
-						// 			<Gear /> Settings
-						// 		</span>
-						// 	),
-						// },
 						{
 							value: "log-out",
 							label: (
 								<span className="flex items-center gap-1.5 will-change-transform">
-									<ArrowDoorOut className="will-change-transform" /> Log Out
+									<ArrowDoorOut /> Log Out
+								</span>
+							),
+						},
+						{
+							value: "settings",
+							label: (
+								<span className="flex items-center gap-1.5 will-change-transform">
+									<Gear /> Settings
 								</span>
 							),
 						},
@@ -126,7 +113,7 @@ export function LoginButton() {
 						animate={{ rotate: isUserOptionsOpen ? 0 : 180 }}
 					>
 						<ChevronDown
-							className="min-w-[0.65rem] min-h-[0.65rem] text-zinc-500 dark:text-zinc-300"
+							className="min-w-[0.65rem] min-h-[0.65rem] text-zinc-500 dark:text-zinc-300 will-change-transform"
 							strokeWidth="3.5px"
 							width="0.65rem"
 							height="0.65rem"

@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { type DragEvent, useState } from "react";
 import { toast } from "sonner";
 import { Link, useRoute } from "wouter";
@@ -12,8 +11,7 @@ import {
 	isInternalLink,
 } from "../../utils/string-formatting";
 import { LoginButton } from "../buttons/login";
-
-const MotionLink = motion(Link);
+import { SyncChangesButton } from "../buttons/sync-changes";
 
 export function BottomItems() {
 	const [, params] = useRoute("/:folder/:note?");
@@ -66,23 +64,21 @@ export function BottomItems() {
 
 	return (
 		<section className="mt-auto pb-3 flex flex-col gap-1">
-			<MotionLink
+			<Link
 				onDragOver={(e: DragEvent) => e.preventDefault()}
 				onDragEnter={onDragEnter}
 				onDragLeave={onDragLeave}
 				onDrop={handleTrashButtonDrop}
 				to="/trash"
-				transition={{ repeat: isNoteOver ? Number.POSITIVE_INFINITY : 1 }}
 				className={cn(
-					"flex gap-1 items-center hover:bg-zinc-100 hover:dark:bg-zinc-650 p-1 rounded-md transition-colors ",
+					"flex gap-1 items-center hover:bg-zinc-100 hover:dark:bg-zinc-650 p-1 rounded-md transition-colors",
 					isTrashOpen && "!bg-zinc-150 dark:!bg-zinc-700",
 					isNoteOver && "bg-blue-400 dark:bg-blue-600 text-white",
 				)}
 			>
-				<>
-					<Trash /> Trash
-				</>
-			</MotionLink>
+				<Trash /> Trash
+			</Link>
+			<SyncChangesButton />
 			<LoginButton />
 		</section>
 	);

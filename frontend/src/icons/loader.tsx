@@ -1,11 +1,11 @@
 export function Loader({
-	width = "1.25rem",
-	height = "1.25rem",
+	width = 20,
+	height = 20,
 	title = "Loading",
 	className,
 }: {
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	fill?: string;
 	secondaryfill?: string;
 	title?: string;
@@ -22,7 +22,7 @@ export function Loader({
 		>
 			<title>{title}</title>
 			<g
-				strokeWidth="200"
+				strokeWidth="240"
 				strokeLinecap="round"
 				stroke="currentColor"
 				fill="none"
@@ -46,7 +46,7 @@ export function Loader({
 					type="rotate"
 					keyTimes="0;0.08333;0.16667;0.25;0.33333;0.41667;0.5;0.58333;0.66667;0.75;0.83333;0.91667"
 					values="0 1199 1199;30 1199 1199;60 1199 1199;90 1199 1199;120 1199 1199;150 1199 1199;180 1199 1199;210 1199 1199;240 1199 1199;270 1199 1199;300 1199 1199;330 1199 1199"
-					dur="1s"
+					dur="0.75s"
 					begin="0s"
 					repeatCount="indefinite"
 					calcMode="discrete"

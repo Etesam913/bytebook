@@ -110,10 +110,10 @@ type GitResponse struct {
 	Error   error  `json:"error"`
 }
 
-var allowedErrors = make(map[error]struct{})
-
 func (n *NodeService) SyncChangesWithRepo(username string, accessToken string) GitResponse {
-	allowedErrors[git.NoErrAlreadyUpToDate] = struct{}{}
+	if len(username) == 0 {
+		return GitResponse{Success: false, Message: "You must first login to be able to sync changes", Error: errors.New("username cannot be empty")}
+	}
 	fmt.Println(username, accessToken)
 	var auth = &http.BasicAuth{
 		Username: username,
