@@ -134,15 +134,8 @@ export function NotesEditor({
 						isNoteMaximized && "px-6",
 					)}
 					onClick={(e) => {
-						const target = e.target as HTMLElement & { ariaChecked?: string };
-						if (target.parentElement?.tagName === "A") {
-							return;
-						}
-
-						if (
-							target.dataset.lexicalDecorator !== "true" &&
-							target.ariaChecked === null
-						) {
+						// When the note container is clicked and not the content, we want to focus the editor
+						if (e.target === noteContainerRef.current) {
 							editorRef.current?.focus(undefined, {
 								defaultSelection: "rootStart",
 							});
@@ -164,6 +157,7 @@ export function NotesEditor({
 								id="content-editable-editor"
 								spellCheck
 								onClick={(e) => {
+									console.log("clicked");
 									// Clicks should not propagate to the editor when something is being dragged
 									if (draggedElement) {
 										e.stopPropagation();
@@ -199,7 +193,7 @@ export function NotesEditor({
 					<DraggableBlockPlugin />
 					<FocusPlugin />
 					<LinkMatcherPlugin />
-					<TreeViewPlugin />
+					{/* <TreeViewPlugin /> */}
 				</div>
 				{frontmatter.showMarkdown === "true" && (
 					<div className="w-[50%] bg-zinc-50 dark:bg-zinc-850 h-full font-code border-l border-zinc-200 dark:border-zinc-700 px-4 pt-3 pb-2 overflow-auto">

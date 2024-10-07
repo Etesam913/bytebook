@@ -1,21 +1,14 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useMutation } from "@tanstack/react-query";
 import type { AnimationControls } from "framer-motion";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom } from "jotai/react";
 import type { TextFormatType } from "lexical";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { toast } from "sonner";
 import { WINDOW_ID } from "../../../App";
-import {
-	backendQueryAtom,
-	isNoteMaximizedAtom,
-	isToolbarDisabledAtom,
-} from "../../../atoms";
+import { isNoteMaximizedAtom, isToolbarDisabledAtom } from "../../../atoms";
 import { useAttachmentsMutation } from "../../../hooks/attachments";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { useIsStandalone, useWailsEvent } from "../../../utils/hooks";
-import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
 import { cn } from "../../../utils/string-formatting";
 import { MaximizeNoteButton } from "../../buttons/maximize-note";
 import { ToolbarButtons } from "../../buttons/toolbar";
@@ -31,7 +24,6 @@ import { $convertFromMarkdownStringCorrect } from "../utils/note-metadata";
 import {
 	blockTypesDropdownItems,
 	changeSelectedBlocksType,
-	insertAttachmentFromFile,
 } from "../utils/toolbar";
 import { FontFamilyInput } from "./font-family-input";
 import { SettingsDropdown } from "./settings-dropdown";
