@@ -1,7 +1,6 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
 	LexicalTypeaheadMenuPlugin,
-	MenuOption,
 	useBasicTypeaheadTriggerMatch,
 } from "@lexical/react/LexicalTypeaheadMenuPlugin";
 import { $createHeadingNode } from "@lexical/rich-text";
@@ -16,7 +15,6 @@ import {
 	$setSelection,
 	type BaseSelection,
 	COMMAND_PRIORITY_NORMAL,
-	FORMAT_TEXT_COMMAND,
 	type LexicalEditor,
 	type TextNode,
 } from "lexical";
@@ -54,7 +52,10 @@ import { Text } from "../../../icons/text";
 import { VideoIcon } from "../../../icons/video";
 import { VueLogo } from "../../../icons/vue-logo";
 import type { DialogDataType } from "../../../types";
-import { cn } from "../../../utils/string-formatting";
+import {
+	DropdownPickerMenuItem,
+	DropdownPickerOption,
+} from "../../dropdown/dropdown-picker";
 import { YouTubeDialogChildren } from "../../youtube/youtube-dialog-children";
 import { $createExcalidrawNode } from "../nodes/excalidraw";
 import { $createFileNode } from "../nodes/file";
@@ -141,70 +142,6 @@ const languageCommandData: {
 	},
 ];
 
-class ComponentPickerOption extends MenuOption {
-	// What shows up in the editor
-	title: string;
-	// Icon for display
-	icon?: JSX.Element;
-	// For extra searching.
-	keywords: Array<string>;
-	// TBD
-	keyboardShortcut?: string;
-	// What happens when you select this option?
-	onSelect: (queryString: string) => void;
-
-	constructor(
-		title: string,
-		options: {
-			icon?: JSX.Element;
-			keywords?: Array<string>;
-			keyboardShortcut?: string;
-			onSelect: (queryString: string) => void;
-		},
-	) {
-		super(title);
-		this.title = title;
-		this.keywords = options.keywords || [];
-		this.icon = options.icon;
-		this.keyboardShortcut = options.keyboardShortcut;
-		this.onSelect = options.onSelect.bind(this);
-	}
-}
-
-function ComponentPickerMenuItem({
-	index,
-	isSelected,
-	onClick,
-	onMouseEnter,
-	option,
-}: {
-	index: number;
-	isSelected: boolean;
-	onClick: () => void;
-	onMouseEnter: () => void;
-	option: ComponentPickerOption;
-}) {
-	return (
-		<li
-			key={option.key}
-			tabIndex={-1}
-			className={cn(
-				"flex items-center gap-2 text-left cursor-pointer rounded-md px-[7px] py-[2px] hover:bg-zinc-100 dark:hover:bg-zinc-650 ",
-				isSelected &&
-					"bg-zinc-150 dark:bg-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600",
-			)}
-			ref={option.setRefElement}
-			aria-selected={isSelected}
-			id={`typeahead-item-${index}`}
-			onMouseEnter={onMouseEnter}
-			onClick={onClick}
-		>
-			{option.icon}
-			<span className="text">{option.title}</span>
-		</li>
-	);
-}
-
 function getBaseOptions(
 	editor: LexicalEditor,
 	insertAttachmentsMutation: UseMutationResult<void, Error, void, unknown>,
@@ -216,7 +153,7 @@ function getBaseOptions(
 	const { setDialogData, editorSelection } = dialogProps;
 
 	return [
-		new ComponentPickerOption("Paragraph", {
+		new DropdownPickerOption("Paragraph", {
 			keywords: ["normal", "paragraph", "p", "text"],
 			icon: <Text width="1.25rem" title="Paragraph" />,
 			onSelect: () =>
@@ -238,7 +175,7 @@ function getBaseOptions(
 			] as const
 		).map(
 			([n, icon]) =>
-				new ComponentPickerOption(`Heading ${n}`, {
+				new DropdownPickerOption(`Heading ${n}`, {
 					icon,
 					keywords: ["heading", "header", `h${n}`],
 					onSelect: () =>
@@ -251,7 +188,7 @@ function getBaseOptions(
 				}),
 		),
 		...listCommandData.map(({ block, icon, command, title }) => {
-			return new ComponentPickerOption(title, {
+			return new DropdownPickerOption(title, {
 				icon,
 				keywords: ["list", block, title],
 				onSelect: () => {
@@ -261,7 +198,7 @@ function getBaseOptions(
 				},
 			});
 		}),
-		new ComponentPickerOption("Attachments", {
+		new DropdownPickerOption("Attachments", {
 			icon: attachmentCommandData.icon,
 			keywords: [
 				"image",
@@ -276,7 +213,7 @@ function getBaseOptions(
 				insertAttachmentsMutation.mutate();
 			},
 		}),
-		new ComponentPickerOption("Add Tag", {
+		new DropdownPickerOption("Add Tag", {
 			icon: <LabelPlus />,
 			keywords: ["tag", "label", "tag-label"],
 			onSelect: () => {
@@ -285,7 +222,7 @@ function getBaseOptions(
 				// });
 			},
 		}),
-		new ComponentPickerOption("YouTube", {
+		new DropdownPickerOption("YouTube", {
 			icon: <VideoIcon />,
 			keywords: ["youtube", "video", "embed"],
 			onSelect: async () => {
@@ -345,7 +282,7 @@ function getBaseOptions(
 				});
 			},
 		}),
-		new ComponentPickerOption("Drawing", {
+		new DropdownPickerOption("Drawing", {
 			icon: <Paintbrush />,
 			keywords: [
 				"drawing",
@@ -367,7 +304,7 @@ function getBaseOptions(
 		}),
 		...languageCommandData.map(
 			({ id, keywords, icon, name }) =>
-				new ComponentPickerOption(name, {
+				new DropdownPickerOption(name, {
 					icon,
 					keywords: [...keywords, "code", "syntax", "programming", "language"],
 					onSelect: () => {
@@ -426,7 +363,7 @@ export function ComponentPickerMenuPlugin({
 
 	const onSelectOption = useCallback(
 		(
-			selectedOption: ComponentPickerOption,
+			selectedOption: DropdownPickerOption,
 			nodeToRemove: TextNode | null,
 			closeMenu: () => void,
 			matchingString: string,
@@ -441,38 +378,34 @@ export function ComponentPickerMenuPlugin({
 	);
 
 	return (
-		<>
-			<LexicalTypeaheadMenuPlugin<ComponentPickerOption>
-				onQueryChange={setQueryString}
-				commandPriority={COMMAND_PRIORITY_NORMAL}
-				onSelectOption={onSelectOption}
-				triggerFn={checkForTriggerMatch}
-				options={options}
-				menuRenderFn={(
-					anchorElementRef,
-					{ selectedIndex, selectOptionAndCleanUp },
-				) =>
-					anchorElementRef.current && options.length
-						? createPortal(
-								<ul className="fixed z-10 flex overflow-auto flex-col max-h-56 gap-0.5 w-48 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1">
-									{options.map((option, i: number) => (
-										<ComponentPickerMenuItem
-											index={i}
-											isSelected={selectedIndex === i}
-											onMouseEnter={() => {}}
-											onClick={() => {
-												selectOptionAndCleanUp(option);
-											}}
-											key={option.key}
-											option={option}
-										/>
-									))}
-								</ul>,
-								anchorElementRef.current,
-							)
-						: null
-				}
-			/>
-		</>
+		<LexicalTypeaheadMenuPlugin<DropdownPickerOption>
+			onQueryChange={setQueryString}
+			commandPriority={COMMAND_PRIORITY_NORMAL}
+			onSelectOption={onSelectOption}
+			triggerFn={checkForTriggerMatch}
+			options={options}
+			menuRenderFn={(
+				anchorElementRef,
+				{ selectedIndex, selectOptionAndCleanUp },
+			) =>
+				anchorElementRef.current && options.length
+					? createPortal(
+							<ul className="fixed z-10 flex overflow-auto flex-col max-h-56 gap-0.5 w-48 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1">
+								{options.map((option, i: number) => (
+									<DropdownPickerMenuItem
+										index={i}
+										isSelected={selectedIndex === i}
+										onMouseEnter={() => {}}
+										onClick={() => selectOptionAndCleanUp(option)}
+										key={option.key}
+										option={option}
+									/>
+								))}
+							</ul>,
+							anchorElementRef.current,
+						)
+					: null
+			}
+		/>
 	);
 }
