@@ -35,7 +35,7 @@ export const SearchItem = forwardRef<
 				<Folder width={16} height={16} className="mr-1.5 min-w-4 min-h-4" />{" "}
 				<p className="whitespace-nowrap">{folder}</p>
 				/
-				<Note width="1rem" height="1rem" className="mx-1 min-w-4 min-h-4" />
+				<Note width={16} height={16} className="mx-1 min-w-4 min-h-4" />
 				<p className="overflow-hidden whitespace-nowrap text-ellipsis">
 					{note}
 				</p>

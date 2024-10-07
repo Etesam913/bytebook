@@ -27,7 +27,7 @@ export function AccordionItem({
 					)}
 					to={`/${encodeURI(to)}`}
 				>
-					<Note className="min-w-4" title="" width="1rem" height="1rem" />
+					<Note className="min-w-4" title="" width={16} height={16} />
 					<p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm">
 						{itemName}
 					</p>

@@ -9,7 +9,6 @@ import { $isListItemNode, $isListNode, type ListItemNode } from "@lexical/list";
 import { $isQuoteNode } from "@lexical/rich-text";
 import { $findMatchingParent } from "@lexical/utils";
 import {
-	$createLineBreakNode,
 	$createParagraphNode,
 	$createTextNode,
 	$getRoot,
