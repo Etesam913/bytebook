@@ -6,6 +6,7 @@ import type {
 	Spread,
 } from "lexical";
 import { $applyNodeReplacement, DecoratorNode } from "lexical";
+import { Tag } from "../../tag";
 
 export interface TagPayload {
 	key?: NodeKey;
@@ -70,10 +71,7 @@ export class TagNode extends DecoratorNode<JSX.Element> {
 	}
 
 	decorate(_editor: LexicalEditor): JSX.Element {
-		return (
-			<div>sample tag</div>
-			// <Tag nodeKey={this.getKey()} tag={this.getTag()} />
-		);
+		return <Tag tag={this.getTag()} nodeKey={this.getKey()} />;
 	}
 }
 

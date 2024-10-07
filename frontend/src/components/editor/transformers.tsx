@@ -79,20 +79,22 @@ function updateSrc(nodeSrc: string) {
 	return nodeSrc.replace(srcRegex, `/notes/${currentFolder}/`);
 }
 
-const TAG_TRANSFORMER: ElementTransformer = {
+const TAG_TRANSFORMER: TextMatchTransformer = {
 	dependencies: [TagNode],
 	export: (node: LexicalNode) => {
 		if (!$isTagNode(node)) {
 			return null;
 		}
-		return `#${node.getTag()}`;
+		return `#${node.getTag()} `;
 	},
-	regExp: /^#([a-zA-Z0-9-_]+)\s/,
-	replace: (textNode, _1, match) => {
+	regExp: /#([a-zA-Z0-9-_]+)/,
+	importRegExp: /#([a-zA-Z0-9-_]+)\s/,
+	replace: (textNode, match) => {
 		const tagNode = $createTagNode({ tag: match[1] });
 		textNode.replace(tagNode);
 	},
-	type: "element",
+	trigger: " ",
+	type: "text-match",
 };
 
 const FILE_TRANSFORMER: TextMatchTransformer = {

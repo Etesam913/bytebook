@@ -41,7 +41,7 @@ import { Heading5 } from "../../../icons/heading-5";
 import { Heading6 } from "../../../icons/heading-6";
 import { JavaLogo } from "../../../icons/java-logo";
 import { JavascriptLogo } from "../../../icons/javascript-logo";
-import LabelPlus from "../../../icons/label-plus";
+
 import { Paintbrush } from "../../../icons/paintbrush";
 import { PythonLogo } from "../../../icons/python-logo";
 import { ReactLogo } from "../../../icons/react-logo";
@@ -211,15 +211,6 @@ function getBaseOptions(
 			],
 			onSelect: async () => {
 				insertAttachmentsMutation.mutate();
-			},
-		}),
-		new DropdownPickerOption("Add Tag", {
-			icon: <LabelPlus />,
-			keywords: ["tag", "label", "tag-label"],
-			onSelect: () => {
-				// editor.update(() => {
-				// 	editor.dispatchCommand(ADD_TAG_COMMAND, undefined);
-				// });
 			},
 		}),
 		new DropdownPickerOption("YouTube", {
