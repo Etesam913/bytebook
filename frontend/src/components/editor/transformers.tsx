@@ -19,12 +19,6 @@ import {
 	UNORDERED_LIST,
 } from "@lexical/markdown";
 import {
-	$createHeadingNode,
-	$isHeadingNode,
-	HeadingNode,
-	type HeadingTagType,
-} from "@lexical/rich-text";
-import {
 	$createTableCellNode,
 	$createTableNode,
 	$createTableRowNode,
@@ -43,7 +37,6 @@ import {
 	$isParagraphNode,
 	$isTextNode,
 	$setSelection,
-	type ElementNode,
 	type LexicalNode,
 } from "lexical";
 import type { ResizeWidth } from "../../types";
@@ -66,22 +59,10 @@ import {
 	InlineEquationNode,
 } from "./nodes/inline-equation.tsx";
 import { $createLinkNode, $isLinkNode, LinkNode } from "./nodes/link";
-import { $createTagNode, $isTagNode, TagNode } from "./nodes/tag.tsx";
 import { getFileElementTypeFromExtensionAndHead } from "./utils/file-node.ts";
 import type { Transformer } from "./utils/note-metadata";
 
 export const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
-
-const createBlockNode = (
-	createNode: (match: Array<string>) => ElementNode,
-): ElementTransformer["replace"] => {
-	return (parentNode, children, match) => {
-		const node = createNode(match);
-		node.append(...children);
-		parentNode.replace(node);
-		node.select(0, 0);
-	};
-};
 
 const srcRegex = /\/notes\/([^/]+)\/([^/]+)\//;
 
@@ -154,24 +135,6 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 	type: "text-match",
 	trigger: ")",
 };
-
-// const CUSTOM_HEADING_TRANSFORMER: ElementTransformer = {
-// 	dependencies: [HeadingNode],
-// 	export: (node, exportChildren) => {
-// 		if (!$isHeadingNode(node)) {
-// 			return null;
-// 		}
-// 		const level = Number(node.getTag().slice(1));
-// 		return `${"#".repeat(level)} ${exportChildren(node)}`;
-// 	},
-// 	regExp: /^(#{1,3})\s/,
-
-// 	replace: createBlockNode((match) => {
-// 		const tag = `h${match[1].length}` as HeadingTagType;
-// 		return $createHeadingNode(tag);
-// 	}),
-// 	type: "element",
-// };
 
 export function indexBy<T>(
 	list: Array<T>,
@@ -246,26 +209,6 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 		$setSelection(nodeSelection);
 	},
 	type: "element",
-};
-
-export const TAG_TRANSFORMER: TextMatchTransformer = {
-	dependencies: [TagNode],
-	export: (node: LexicalNode) => {
-		if (!$isTagNode(node)) {
-			return null;
-		}
-		return `#${node.getTag()}`;
-	},
-	regExp: /^#([a-zA-Z0-9-_]+)/,
-	importRegExp: /^#([a-zA-Z0-9-_]+)\s/,
-
-	replace: (textNode, match) => {
-		console.log(match);
-		const tagNode = $createTagNode({ tag: match[1] });
-		textNode.replace(tagNode);
-	},
-	type: "text-match",
-	trigger: "",
 };
 
 export const EQUATION: TextMatchTransformer = {
@@ -486,9 +429,7 @@ const mapToTableCells = (textContent: string): Array<TableCellNode> | null => {
 };
 
 export const CUSTOM_TRANSFORMERS = [
-	// CUSTOM_HEADING_TRANSFORMER,
 	HEADING,
-	TAG_TRANSFORMER,
 	CHECK_LIST,
 	UNORDERED_LIST,
 	ORDERED_LIST,
