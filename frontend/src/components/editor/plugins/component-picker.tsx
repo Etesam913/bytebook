@@ -16,6 +16,7 @@ import {
 	$setSelection,
 	type BaseSelection,
 	COMMAND_PRIORITY_NORMAL,
+	FORMAT_TEXT_COMMAND,
 	type LexicalEditor,
 	type TextNode,
 } from "lexical";
@@ -37,6 +38,9 @@ import { GolangLogo } from "../../../icons/golang-logo";
 import { Heading1 } from "../../../icons/heading-1";
 import { Heading2 } from "../../../icons/heading-2";
 import { Heading3 } from "../../../icons/heading-3";
+import { Heading4 } from "../../../icons/heading-4";
+import { Heading5 } from "../../../icons/heading-5";
+import { Heading6 } from "../../../icons/heading-6";
 import { JavaLogo } from "../../../icons/java-logo";
 import { JavascriptLogo } from "../../../icons/javascript-logo";
 import LabelPlus from "../../../icons/label-plus";
@@ -228,6 +232,9 @@ function getBaseOptions(
 				[1, <Heading1 />],
 				[2, <Heading2 />],
 				[3, <Heading3 />],
+				[4, <Heading4 />],
+				[5, <Heading5 />],
+				[6, <Heading6 />],
 			] as const
 		).map(
 			([n, icon]) =>

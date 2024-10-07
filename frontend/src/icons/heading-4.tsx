@@ -1,8 +1,8 @@
-export function Heading3({
+export function Heading4({
 	fill = "currentColor",
 	width = 20,
 	height = 20,
-	title = "heading 3",
+	title = "heading 4",
 }: {
 	fill?: string;
 	width?: number;
@@ -51,9 +51,9 @@ export function Heading3({
 					y1="9"
 					y2="9"
 				/>
-				<path
-					d="M10.75,4.75h5.542l-4.005,3.462c1.322-.342,2.672-.141,3.505,.744,1.022,1.086,.868,2.597-.012,3.505s-3.515,1.436-5.029-.727"
+				<polyline
 					fill="none"
+					points="16.691 10.75 10.25 10.75 10.25 10.641 15 4.75 15 13.25"
 					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"

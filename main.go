@@ -36,7 +36,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// inverseSearchMap := search_helpers.ConstructInverseMap(projectPath)
+
 	// Creating notes dir
 	notesPath := filepath.Join(projectPath, "notes")
 	if err := os.MkdirAll(notesPath, os.ModePerm); err != nil {

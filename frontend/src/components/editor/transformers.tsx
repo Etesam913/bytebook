@@ -7,6 +7,7 @@ import {
 	BOLD_UNDERSCORE,
 	CHECK_LIST,
 	type ElementTransformer,
+	HEADING,
 	INLINE_CODE,
 	ITALIC_STAR,
 	ITALIC_UNDERSCORE,
@@ -154,23 +155,23 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 	trigger: ")",
 };
 
-const CUSTOM_HEADING_TRANSFORMER: ElementTransformer = {
-	dependencies: [HeadingNode],
-	export: (node, exportChildren) => {
-		if (!$isHeadingNode(node)) {
-			return null;
-		}
-		const level = Number(node.getTag().slice(1));
-		return `${"#".repeat(level)} ${exportChildren(node)}`;
-	},
-	regExp: /^(#{1,3})\s/,
+// const CUSTOM_HEADING_TRANSFORMER: ElementTransformer = {
+// 	dependencies: [HeadingNode],
+// 	export: (node, exportChildren) => {
+// 		if (!$isHeadingNode(node)) {
+// 			return null;
+// 		}
+// 		const level = Number(node.getTag().slice(1));
+// 		return `${"#".repeat(level)} ${exportChildren(node)}`;
+// 	},
+// 	regExp: /^(#{1,3})\s/,
 
-	replace: createBlockNode((match) => {
-		const tag = `h${match[1].length}` as HeadingTagType;
-		return $createHeadingNode(tag);
-	}),
-	type: "element",
-};
+// 	replace: createBlockNode((match) => {
+// 		const tag = `h${match[1].length}` as HeadingTagType;
+// 		return $createHeadingNode(tag);
+// 	}),
+// 	type: "element",
+// };
 
 export function indexBy<T>(
 	list: Array<T>,
@@ -485,7 +486,8 @@ const mapToTableCells = (textContent: string): Array<TableCellNode> | null => {
 };
 
 export const CUSTOM_TRANSFORMERS = [
-	CUSTOM_HEADING_TRANSFORMER,
+	// CUSTOM_HEADING_TRANSFORMER,
+	HEADING,
 	TAG_TRANSFORMER,
 	CHECK_LIST,
 	UNORDERED_LIST,

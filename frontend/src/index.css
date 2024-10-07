@@ -47,16 +47,15 @@
     will-change: transform;
 }
 
-.sidebar-item{
+.sidebar-item {
     @apply flex flex-1 gap-2 items-center px-2 py-1 rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform;
 }
-
 
 :root {
     @apply transition-colors duration-300 dark:[color-scheme:dark] overscroll-none;
 }
 
-::selection{
+::selection {
     @apply bg-blue-500 bg-opacity-35 dark:bg-blue-400 dark:bg-opacity-55;
 }
 
@@ -70,6 +69,18 @@ h2 {
 
 h3 {
     @apply text-xl leading-[2.5rem];
+}
+
+h4 {
+    @apply text-lg leading-[2.25rem] font-semibold;
+}
+
+h5 {
+    @apply text-base leading-[2rem] font-bold;
+}
+
+h6 {
+    @apply text-sm leading-[1.75rem] font-bold;
 }
 
 .button-invert {
@@ -130,7 +141,7 @@ div[data-template-is-fullscreen="true"]
 .sp-tabs {
     padding-right: 106px;
 }
-.sp-tab-button{
+.sp-tab-button {
     @apply font-code;
 }
 
@@ -149,27 +160,23 @@ div[data-template-is-fullscreen="true"]
  */
 
 .xterm {
-    @apply p-3 ;
+    @apply p-3;
 }
-
 
 /**
  * Excalidraw styles
 */
 
-.main-menu-trigger{
+.main-menu-trigger {
     display: none !important;
 }
 
 /* The export options do not work with wails out of the box, so I am hiding this button */
 
-
 /* .App-menu_top__left,
 .main-menu-trigger {
     display: none !important;
 } */
-
-
 
 /* .excalidraw .App-menu_top {
     grid-template-columns: 1fr !important;

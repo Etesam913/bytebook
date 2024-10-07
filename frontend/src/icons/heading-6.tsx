@@ -1,8 +1,8 @@
-export function Heading3({
+export function Heading6({
 	fill = "currentColor",
 	width = 20,
 	height = 20,
-	title = "heading 3",
+	title = "heading 6",
 }: {
 	fill?: string;
 	width?: number;
@@ -52,8 +52,19 @@ export function Heading3({
 					y2="9"
 				/>
 				<path
-					d="M10.75,4.75h5.542l-4.005,3.462c1.322-.342,2.672-.141,3.505,.744,1.022,1.086,.868,2.597-.012,3.505s-3.515,1.436-5.029-.727"
+					d="M16.101,5.232c-1.44-.828-3.554-.624-4.539,.883-.882,1.35-1.074,3.683-.435,5.32"
 					fill="none"
+					stroke={fill}
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					strokeWidth="1.5"
+				/>
+				<ellipse
+					cx="13.853"
+					cy="10.5"
+					fill="none"
+					rx="2.897"
+					ry="2.75"
 					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
