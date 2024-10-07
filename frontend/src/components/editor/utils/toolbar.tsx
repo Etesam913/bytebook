@@ -9,6 +9,7 @@ import { $createHeadingNode, $isHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
 import { INSERT_TABLE_COMMAND } from "@lexical/table";
 import { $getNearestNodeOfType } from "@lexical/utils";
+import type { UseMutationResult } from "@tanstack/react-query";
 import {
 	$createParagraphNode,
 	$getSelection,
@@ -109,13 +110,7 @@ export function handleToolbarTextFormattingClick(
 export function changeSelectedBlocksType(
 	editor: LexicalEditor,
 	newBlockType: EditorBlockTypes,
-	folder: string,
-	note: string,
-	insertAttachments: (
-		folder: string,
-		note: string,
-		editor: LexicalEditor,
-	) => void,
+	insertAttachmentsMutation: UseMutationResult<void, Error, void, unknown>,
 ) {
 	editor.update(async () => {
 		const selection = $getSelection();
@@ -150,8 +145,7 @@ export function changeSelectedBlocksType(
 					});
 					break;
 				case "attachment": {
-					insertAttachments(folder, note, editor);
-					// insertAttachmentFromFile(folder, note, editor);
+					insertAttachmentsMutation.mutate();
 					break;
 				}
 			}

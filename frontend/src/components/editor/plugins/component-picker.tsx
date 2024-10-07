@@ -6,6 +6,7 @@ import {
 } from "@lexical/react/LexicalTypeaheadMenuPlugin";
 import { $createHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
+import type { UseMutationResult } from "@tanstack/react-query";
 import { useSetAtom } from "jotai";
 import {
 	$createParagraphNode,
@@ -29,7 +30,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { dialogDataAtom } from "../../../atoms";
-import { useBackendFunction } from "../../../hooks/query";
+import { useAttachmentsMutation } from "../../../hooks/attachments";
 import { AngularLogo } from "../../../icons/angular-logo";
 import { CppLogo } from "../../../icons/cpp-logo";
 import { GolangLogo } from "../../../icons/golang-logo";
@@ -54,11 +55,7 @@ import { YouTubeDialogChildren } from "../../youtube/youtube-dialog-children";
 import { $createExcalidrawNode } from "../nodes/excalidraw";
 import { $createFileNode } from "../nodes/file";
 import { extractYouTubeVideoID } from "../utils/file-node";
-import {
-	attachmentCommandData,
-	insertAttachmentFromFile,
-	listCommandData,
-} from "../utils/toolbar";
+import { attachmentCommandData, listCommandData } from "../utils/toolbar";
 import { INSERT_CODE_COMMAND } from "./code";
 import { FOCUS_NODE_COMMAND } from "./focus";
 import { SAVE_MARKDOWN_CONTENT } from "./save";
@@ -206,13 +203,7 @@ function ComponentPickerMenuItem({
 
 function getBaseOptions(
 	editor: LexicalEditor,
-	folder: string,
-	note: string,
-	insertAttachments: (
-		folder: string,
-		note: string,
-		editor: LexicalEditor,
-	) => Promise<unknown>,
+	insertAttachmentsMutation: UseMutationResult<void, Error, void, unknown>,
 	dialogProps: {
 		setDialogData: Dispatch<SetStateAction<DialogDataType>>;
 		editorSelection: RefObject<BaseSelection | null>;
@@ -275,7 +266,7 @@ function getBaseOptions(
 				"picture",
 			],
 			onSelect: async () => {
-				insertAttachments(folder, note, editor);
+				insertAttachmentsMutation.mutate();
 			},
 		}),
 		new ComponentPickerOption("Add Tag", {
@@ -397,21 +388,19 @@ export function ComponentPickerMenuPlugin({
 		minLength: 0,
 	});
 
-	const insertAttachments = useBackendFunction(
-		insertAttachmentFromFile,
-		"Inserting Attachments...",
-	);
+	const { insertAttachmentsMutation } = useAttachmentsMutation({
+		folder,
+		note,
+		editor,
+	});
 
 	const setDialogData = useSetAtom(dialogDataAtom);
 
 	const options = useMemo(() => {
-		const baseOptions = getBaseOptions(
-			editor,
-			folder,
-			note,
-			insertAttachments,
-			{ setDialogData, editorSelection },
-		);
+		const baseOptions = getBaseOptions(editor, insertAttachmentsMutation, {
+			setDialogData,
+			editorSelection,
+		});
 
 		if (!queryString) {
 			return baseOptions;

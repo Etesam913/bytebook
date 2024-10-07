@@ -3,10 +3,8 @@ import { mergeRegister } from "@lexical/utils";
 import { Events as WailsEvents } from "@wailsio/runtime";
 import { useSetAtom } from "jotai";
 import {
-	CLICK_COMMAND,
 	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
-	COMMAND_PRIORITY_NORMAL,
 	KEY_ENTER_COMMAND,
 	type LexicalEditor,
 } from "lexical";
@@ -26,7 +24,6 @@ import { darkModeAtom } from "../atoms";
 import {
 	EXPAND_CONTENT_COMMAND,
 	enterKeyDecoratorNodeCommand,
-	onClickDecoratorNodeCommand,
 } from "./commands";
 
 export const useDelayedLoader = (

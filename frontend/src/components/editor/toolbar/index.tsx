@@ -1,14 +1,21 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { useMutation } from "@tanstack/react-query";
 import type { AnimationControls } from "framer-motion";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import type { TextFormatType } from "lexical";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { toast } from "sonner";
 import { WINDOW_ID } from "../../../App";
-import { isNoteMaximizedAtom, isToolbarDisabledAtom } from "../../../atoms";
-import { useBackendFunction } from "../../../hooks/query";
+import {
+	backendQueryAtom,
+	isNoteMaximizedAtom,
+	isToolbarDisabledAtom,
+} from "../../../atoms";
+import { useAttachmentsMutation } from "../../../hooks/attachments";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { useIsStandalone, useWailsEvent } from "../../../utils/hooks";
+import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
 import { cn } from "../../../utils/string-formatting";
 import { MaximizeNoteButton } from "../../buttons/maximize-note";
 import { ToolbarButtons } from "../../buttons/toolbar";
@@ -63,10 +70,11 @@ export function Toolbar({
 	const [canRedo, setCanRedo] = useState(false);
 	const [canUndo, setCanUndo] = useState(false);
 
-	const insertAttachments = useBackendFunction(
-		insertAttachmentFromFile,
-		"Inserting Attachments...",
-	);
+	const { insertAttachmentsMutation } = useAttachmentsMutation({
+		folder,
+		note,
+		editor,
+	});
 
 	useNoteMarkdown(
 		editor,
@@ -174,13 +182,7 @@ export function Toolbar({
 							(v) => v.value === currentBlockType,
 						)}
 						onChange={({ value }) =>
-							changeSelectedBlocksType(
-								editor,
-								value,
-								folder,
-								note,
-								insertAttachments,
-							)
+							changeSelectedBlocksType(editor, value, insertAttachmentsMutation)
 						}
 						items={blockTypesDropdownItems}
 						buttonClassName="w-[10rem]"
