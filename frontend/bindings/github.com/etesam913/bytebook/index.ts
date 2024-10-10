@@ -6,6 +6,7 @@ import * as NodeService from "./nodeservice.js";
 import * as NoteService from "./noteservice.js";
 import * as SearchService from "./searchservice.js";
 import * as SettingsService from "./settingsservice.js";
+import * as TagsService from "./tagsservice.js";
 import * as TerminalService from "./terminalservice.js";
 export {
     FolderService,
@@ -13,6 +14,7 @@ export {
     NoteService,
     SearchService,
     SettingsService,
+    TagsService,
     TerminalService
 };
 

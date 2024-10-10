@@ -282,6 +282,31 @@ export class SettingsResponse {
     }
 }
 
+export class TagResponse {
+    "success": boolean;
+    "message": string;
+
+    /** Creates a new TagResponse instance. */
+    constructor($$source: Partial<TagResponse> = {}) {
+        if (!("success" in $$source)) {
+            this["success"] = false;
+        }
+        if (!("message" in $$source)) {
+            this["message"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new TagResponse instance from a string or object.
+     */
+    static createFrom($$source: any = {}): TagResponse {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new TagResponse($$parsedSource as Partial<TagResponse>);
+    }
+}
+
 export class TerminalResponse {
     "success": boolean;
     "message": string;
