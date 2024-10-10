@@ -39,7 +39,7 @@ export function DeletePathFromTag(tagName: string, notePath: string): Promise<$m
  * GetTags retrieves a list of all tag names in the project.
  * It scans the "tags" directory within the project path and returns the names of all subdirectories.
  */
-export function GetTags(): Promise<string[]> & { cancel(): void } {
+export function GetTags(): Promise<$models.TagResponseWithData> & { cancel(): void } {
     let $resultPromise = $Call.ByID(4245036661) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType1($result);
@@ -50,4 +50,4 @@ export function GetTags(): Promise<string[]> & { cancel(): void } {
 
 // Private type creation functions
 const $$createType0 = $models.TagResponse.createFrom;
-const $$createType1 = $Create.Array($Create.Any);
+const $$createType1 = $models.TagResponseWithData.createFrom;

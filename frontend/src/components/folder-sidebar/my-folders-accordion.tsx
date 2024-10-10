@@ -25,14 +25,14 @@ export function MyFoldersAccordion({
 	const [isOpen, setIsOpen] = useState(true);
 
 	return (
-		<section className="flex-1 overflow-y-auto flex flex-col gap-1.5">
+		<section className="overflow-y-auto flex flex-col">
 			<AccordionButton
 				isOpen={isOpen}
 				onClick={() => setIsOpen((prev) => !prev)}
 				icon={<Folder width={17.6} height={17.6} strokeWidth={1.75} />}
 				title={
 					<>
-						My Folders{" "}
+						Folders{" "}
 						{hasFolders && (
 							<span className="tracking-wider">
 								({alphabetizedFolders.length})

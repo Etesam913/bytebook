@@ -36,7 +36,6 @@ export const windowSettingsAtom = atom<WindowSettings | null>(null);
 
 export const projectSettingsAtom = atom<ProjectSettings>({
 	pinnedNotes: new Set([]),
-	tags: [],
 	projectPath: "",
 });
 export const projectSettingsWithQueryParamsAtom = atom((get) => {
@@ -68,6 +67,7 @@ export const userDataAtomWithLocalStorage = atom(
 
 export const notesAtom = atom<string[] | null>([]);
 export const foldersAtom = atom<string[] | null>([]);
+export const tagsAtom = atom<string[] | null>([]);
 
 export const folderSortAtom = atom<SortStrings>("date-updated-desc");
 export const noteSortAtom = atom<SortStrings>("date-updated-desc");

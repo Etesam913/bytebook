@@ -92,7 +92,6 @@ export type WindowSettings = {
 export type ProjectSettings = {
 	pinnedNotes: Set<string>;
 	projectPath: string;
-	tags: string[];
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: This is fine for the navigation function

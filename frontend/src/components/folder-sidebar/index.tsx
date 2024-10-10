@@ -14,7 +14,12 @@ import {
 } from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
 import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
-import { dialogDataAtom, foldersAtom, selectionRangeAtom } from "../../atoms";
+import {
+	dialogDataAtom,
+	foldersAtom,
+	selectionRangeAtom,
+	tagsAtom,
+} from "../../atoms";
 import { FolderPlus } from "../../icons/folder-plus";
 
 import {
@@ -33,6 +38,7 @@ import type { NavigateFunction } from "../../types.ts";
 import {
 	checkIfFolderExists,
 	updateFolders,
+	updateTags,
 } from "../../utils/fetch-functions";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
 import { useCustomNavigate } from "../../utils/routing.ts";
@@ -42,6 +48,7 @@ import { DialogErrorText } from "../dialog/index.tsx";
 import { Input } from "../input/index.tsx";
 import { BottomItems } from "./bottom-items.tsx";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
+import { MyTagsAccordion } from "./my-tags-accordion.tsx";
 import { PinnedNotesAccordion } from "./pinned-notes-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { SearchBar } from "./searchbar.tsx";
@@ -139,6 +146,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const setFolders = useSetAtom(foldersAtom);
+	const setTags = useSetAtom(tagsAtom);
 	const { navigate } = useCustomNavigate();
 
 	useFolderCreate(setFolders);
@@ -152,6 +160,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	// Initially fetches folders from filesystem
 	useEffect(() => {
 		updateFolders(setFolders);
+		updateTags(setTags);
 	}, [setFolders]);
 
 	// Navigates to not-found page if folder does not exist
@@ -192,6 +201,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 						<PinnedNotesAccordion />
 						<RecentNotesAccordion />
 						<MyFoldersAccordion folder={folder} />
+						<MyTagsAccordion />
 						<BottomItems />
 					</div>
 				</section>

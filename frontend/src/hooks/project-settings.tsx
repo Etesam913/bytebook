@@ -16,12 +16,11 @@ export function useProjectSettings() {
 			if (!projectSettingsResponse.success) {
 				throw new Error(projectSettingsResponse.message);
 			}
-			const projectSettings = projectSettingsResponse.data;
+			const { projectPath, pinnedNotes } = projectSettingsResponse.data;
 
 			setProjectSettings({
-				...projectSettings,
-				pinnedNotes: new Set(projectSettings.pinnedNotes),
-				projectPath: projectSettings.projectPath,
+				projectPath,
+				pinnedNotes: new Set(pinnedNotes),
 			});
 		} catch (err) {
 			if (err instanceof Error) {
@@ -31,7 +30,7 @@ export function useProjectSettings() {
 	}
 	useEffect(() => {
 		getProjectSettings();
-	}, []);
+	}, [getProjectSettings, setProjectSettings]);
 
 	useWailsEvent("settings:update", (body) => {
 		const projectSettings = (body.data as ProjectSettings[])[0];

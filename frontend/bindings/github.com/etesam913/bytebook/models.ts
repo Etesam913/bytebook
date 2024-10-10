@@ -307,6 +307,39 @@ export class TagResponse {
     }
 }
 
+export class TagResponseWithData {
+    "success": boolean;
+    "message": string;
+    "data": string[];
+
+    /** Creates a new TagResponseWithData instance. */
+    constructor($$source: Partial<TagResponseWithData> = {}) {
+        if (!("success" in $$source)) {
+            this["success"] = false;
+        }
+        if (!("message" in $$source)) {
+            this["message"] = "";
+        }
+        if (!("data" in $$source)) {
+            this["data"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new TagResponseWithData instance from a string or object.
+     */
+    static createFrom($$source: any = {}): TagResponseWithData {
+        const $$createField2_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("data" in $$parsedSource) {
+            $$parsedSource["data"] = $$createField2_0($$parsedSource["data"]);
+        }
+        return new TagResponseWithData($$parsedSource as Partial<TagResponseWithData>);
+    }
+}
+
 export class TerminalResponse {
     "success": boolean;
     "message": string;

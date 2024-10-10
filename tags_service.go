@@ -16,6 +16,12 @@ type TagResponse struct {
 	Message string   `json:"message"`
 }
 
+type TagResponseWithData struct {
+	Success bool     `json:"success"`
+	Message string   `json:"message"`
+	Data []string    `json:"data"`
+}
+
 type tagJson struct{
 	Notes []string `json:"notes"`
 }
@@ -156,11 +162,15 @@ func (t *TagsService) DeletePathFromTag(tagName string, notePath string) TagResp
 GetTags retrieves a list of all tag names in the project.
 It scans the "tags" directory within the project path and returns the names of all subdirectories.
 */
-func (t *TagsService) GetTags() []string {
+func (t *TagsService) GetTags() TagResponseWithData{
 	tagsPath := filepath.Join(t.ProjectPath, "tags")
 	files, err := os.ReadDir(tagsPath)
 	if err != nil {
-		return []string{}
+		return TagResponseWithData{
+			Success: false,
+			Message: "Something went wrong when fetching tags. Please try again later",
+			Data: nil,
+		}
 	}
 
 	var tags []string
@@ -170,5 +180,9 @@ func (t *TagsService) GetTags() []string {
 		}
 	}
 
-	return tags
+	return TagResponseWithData{
+		Success: true,
+		Message: "Successfully retrieved tags.",
+		Data: tags,
+	}
 }

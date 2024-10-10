@@ -4,12 +4,14 @@ export function TagIcon({
 	fill = "currentColor",
 	title = "Tag",
 	className,
+	strokeWidth = 1.5,
 }: {
 	width?: number;
 	height?: number;
 	fill?: string;
 	title?: string;
 	className?: string;
+	strokeWidth?: number;
 }) {
 	return (
 		<svg
@@ -27,7 +29,7 @@ export function TagIcon({
 					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					strokeWidth="1.5"
+					strokeWidth={strokeWidth}
 				/>
 				<circle cx="6.25" cy="6.25" fill={fill} r="1.25" stroke="none" />
 			</g>

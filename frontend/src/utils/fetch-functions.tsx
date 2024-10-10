@@ -10,6 +10,7 @@ import {
 	GetNoteCount,
 	GetNotes,
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
+import { GetTags } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import type { SortStrings } from "../types";
 import { DEFAULT_SONNER_OPTIONS } from "./misc";
 import { extractInfoFromNoteName } from "./string-formatting";
@@ -53,6 +54,27 @@ export async function updateFolders(
 	} catch (e) {
 		if (e instanceof Error) {
 			toast.error(e.message);
+		}
+	}
+}
+
+/** Fetches tags from the file system */
+export async function updateTags(
+	setTags: Dispatch<SetStateAction<string[] | null>>,
+) {
+	try {
+		const res = await GetTags();
+		if (res.success) {
+			const tags = res.data;
+			setTags(tags);
+		} else {
+			throw new Error(res.message);
+		}
+	} catch (e) {
+		if (e instanceof Error) {
+			toast.error(e.message);
+		} else {
+			toast.error("Error in retrieving tags.", DEFAULT_SONNER_OPTIONS);
 		}
 	}
 }
