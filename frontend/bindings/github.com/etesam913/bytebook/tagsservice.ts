@@ -9,8 +9,17 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 // @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
-export function AddTag(tagName: string, notePath: string): Promise<$models.TagResponse> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(495284529, tagName, notePath) as any;
+export function AddPathToTag(tagName: string, notePath: string): Promise<$models.TagResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(4080671835, tagName, notePath) as any;
+    let $typingPromise = $resultPromise.then(($result) => {
+        return $$createType0($result);
+    }) as any;
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+export function DeletePathFromTag(tagName: string, notePath: string): Promise<$models.TagResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(1740782444, tagName, notePath) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType0($result);
     }) as any;

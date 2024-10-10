@@ -12,9 +12,9 @@ if (!rootElem) {
 const queryClient = new QueryClient();
 
 ReactDOM.createRoot(rootElem).render(
-	<StrictMode>
-		<QueryClientProvider client={queryClient}>
-			<App />
-		</QueryClientProvider>
-	</StrictMode>,
+	// <StrictMode>
+	<QueryClientProvider client={queryClient}>
+		<App />
+	</QueryClientProvider>,
+	//	</StrictMode>,
 );

@@ -157,7 +157,6 @@ export function NotesEditor({
 								id="content-editable-editor"
 								spellCheck
 								onClick={(e) => {
-									console.log("clicked");
 									// Clicks should not propagate to the editor when something is being dragged
 									if (draggedElement) {
 										e.stopPropagation();

@@ -85,10 +85,10 @@ const TAG_TRANSFORMER: TextMatchTransformer = {
 		if (!$isTagNode(node)) {
 			return null;
 		}
-		return `#${node.getTag()} `;
+		return `#${node.getTag()}`;
 	},
 	regExp: /#([a-zA-Z0-9-_]+)/,
-	importRegExp: /#([a-zA-Z0-9-_]+)\s/,
+	importRegExp: /#([a-zA-Z0-9-_]+)/,
 	replace: (textNode, match) => {
 		const tagNode = $createTagNode({ tag: match[1] });
 		textNode.replace(tagNode);

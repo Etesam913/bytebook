@@ -1,7 +1,9 @@
 import { mergeRegister } from "@lexical/utils";
 
+import { useMutation } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
+	$getNodeByKey,
 	$getSelection,
 	$isNodeSelection,
 	CAN_REDO_COMMAND,
@@ -26,9 +28,14 @@ import {
 	type MutableRefObject,
 	type SetStateAction,
 	useEffect,
+	useMemo,
 } from "react";
 import { toast } from "sonner";
 import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
+import {
+	AddPathToTag,
+	DeletePathFromTag,
+} from "../../../../bindings/github.com/etesam913/bytebook/tagsservice";
 import { ShutoffTerminals } from "../../../../bindings/github.com/etesam913/bytebook/terminalservice";
 import {
 	draggedElementAtom,
@@ -38,6 +45,7 @@ import {
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
 import { CodeNode } from "../nodes/code";
+import { TagNode } from "../nodes/tag";
 import { CUSTOM_TRANSFORMERS } from "../transformers";
 import {
 	overrideControlledTextInsertion,
@@ -115,9 +123,45 @@ export function useNoteMarkdown(
 	}, [folder, note, editor, setCurrentSelectionFormat]);
 }
 
-export function useMutationListener(editor: LexicalEditor) {
+export function useMutationListener(
+	editor: LexicalEditor,
+	folder: string,
+	note: string,
+) {
+	const { mutate: deleteTag } = useMutation({
+		mutationFn: async ({ tag }: { tag: string }) => {
+			const res = await DeletePathFromTag(tag, `${folder}/${note}.md`);
+			if (!res.success) throw new Error(res.message);
+			console.log(res.message);
+		},
+		onError: (e) => {
+			if (e instanceof Error) {
+				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+			} else {
+				toast.error("Something went wrong!", DEFAULT_SONNER_OPTIONS);
+			}
+		},
+	});
+
+	const { mutate: createTag } = useMutation({
+		mutationFn: async ({ tag }: { tag: string }) => {
+			if (!folder || !note) {
+				throw new Error("Folder or note is missing");
+			}
+			const res = await AddPathToTag(tag, `${folder}/${note}.md`);
+			if (!res.success) throw new Error(res.message);
+		},
+		onError: (e) => {
+			if (e instanceof Error) {
+				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+			} else {
+				toast.error("Something went wrong!", DEFAULT_SONNER_OPTIONS);
+			}
+		},
+	});
+
 	useEffect(() => {
-		const removeMutationListener = editor.registerMutationListener(
+		const codeNodeMutationListener = editor.registerMutationListener(
 			CodeNode,
 			(mutatedNodes) => {
 				const codeKeys: string[] = [];
@@ -129,8 +173,29 @@ export function useMutationListener(editor: LexicalEditor) {
 				ShutoffTerminals(codeKeys);
 			},
 		);
+
+		const tagNodeMutationListener = editor.registerMutationListener(
+			TagNode,
+			(mutatedNodes, { prevEditorState }) => {
+				for (const [nodeKey, mutation] of mutatedNodes) {
+					let tagName = "";
+					(mutation === "created" ? editor : prevEditorState).read(() => {
+						const tagNode = $getNodeByKey(nodeKey);
+						if (!tagNode) return;
+						tagName = (tagNode as TagNode).getTag();
+					});
+					if (mutation === "created") {
+						createTag({ tag: tagName });
+					} else if (mutation === "destroyed") {
+						deleteTag({ tag: tagName });
+					}
+				}
+			},
+		);
+
 		return () => {
-			removeMutationListener();
+			codeNodeMutationListener();
+			tagNodeMutationListener();
 		};
 	}, []);
 }

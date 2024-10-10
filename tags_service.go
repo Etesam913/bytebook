@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
@@ -18,6 +19,7 @@ type TagResponse struct {
 type tagJson struct{
 	Notes []string `json:"notes"`
 }
+
 
 func createTagFiles(projectPath string, tagName string, notePaths []string) error{
 	pathToTag := filepath.Join(projectPath, "tags", tagName)
@@ -37,35 +39,35 @@ func createTagFiles(projectPath string, tagName string, notePaths []string) erro
 
 	return nil
 }
+func (t *TagsService) AddPathToTag(tagName string, notePath string) TagResponse {
+	pathToTagFolder := filepath.Join(t.ProjectPath, "tags", tagName)
+	pathToTagFile := filepath.Join(pathToTagFolder, "notes.json")
 
-func (t *TagsService) AddTag(tagName string, notePath string) TagResponse{
-	// This should be a folder that exists
-	pathToTag := filepath.Join(t.ProjectPath, "tags", tagName, "notes.json")
-
-	doesTagExist, _ := io_helpers.FileOrFolderExists(pathToTag)
-	if !doesTagExist {
-		// If a folder has not been created for this tag, create the folder and initialize notes.json with the notePath
-		err := createTagFiles(t.ProjectPath, tagName, []string{notePath})
-		if err != nil{
+	if exists, _ := io_helpers.FileOrFolderExists(pathToTagFile); !exists {
+		if err := createTagFiles(t.ProjectPath, tagName, []string{notePath}); err != nil {
 			return TagResponse{
 				Success: false,
 				Message: "Something went wrong when adding the tag. Please try again later",
 			}
 		}
 	} else {
-		// If the folder is already created then just add notePatht to the json
 		var tagJson tagJson
-		err := io_helpers.ReadJsonFromPath(pathToTag, &tagJson)
-		if err != nil {
+		if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
 			return TagResponse{
 				Success: false,
 				Message: "Something went wrong when adding the tag. Please try again later",
 			}
 		}
 
+		// Check if notePath already exists in tagJson.Notes
+		for _, existingNotePath := range tagJson.Notes {
+			if existingNotePath == notePath {
+				return TagResponse{Success: true, Message: "Successfully Added Path To Tag"}
+			}
+		}
+
 		tagJson.Notes = append(tagJson.Notes, notePath)
-		err = io_helpers.WriteJsonToPath(pathToTag, tagJson)
-		if err != nil {
+		if err := io_helpers.WriteJsonToPath(pathToTagFile, tagJson); err != nil {
 			return TagResponse{
 				Success: false,
 				Message: "Something went wrong when writing the tag to file. Please try again later",
@@ -73,8 +75,68 @@ func (t *TagsService) AddTag(tagName string, notePath string) TagResponse{
 		}
 	}
 
+	return TagResponse{Success: true, Message: "Successfully Added Path To Tag"}
+}
+
+
+func (t *TagsService) DeletePathFromTag(tagName string, notePath string) TagResponse{
+	pathToTagFolder := filepath.Join(t.ProjectPath, "tags", tagName)
+	pathToTagFile := filepath.Join(pathToTagFolder, "notes.json")
+
+	if doesExist, _ := io_helpers.FileOrFolderExists(pathToTagFile); !doesExist {
+		return TagResponse{
+			Success: true,
+			Message: "Tag is already deleted",
+		}
+	}
+
+	var tagJson tagJson
+	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
+		return TagResponse{
+			Success: false,
+			Message: "Something went wrong when removing the tag. Please try again later",
+		}
+	}
+
+	notesWithoutDeletedPath := []string{}
+	didFindNotePath := false
+
+	// Removes the first occurence of `notePath` from `tagJson.Notes`
+	for _, addedNotePath := range tagJson.Notes {
+		if addedNotePath == notePath && !didFindNotePath {
+			didFindNotePath = true
+			continue
+		}
+		notesWithoutDeletedPath = append(notesWithoutDeletedPath, addedNotePath)
+	}
+
+	// If there are no note paths where this tag is being used, remove the folder for the tag
+	if len(notesWithoutDeletedPath) == 0 {
+		if err := os.RemoveAll(pathToTagFolder); err != nil {
+		   return TagResponse{
+		       Success: false,  // Change this to false to reflect the failure
+		       Message: "Failed to remove tag folder. Please try again later.",
+		   }
+		} else {
+			return TagResponse{
+				Success: true,
+				Message: "Successfully Deleted Path From Tag",
+			}
+		}
+	}
+
+	tagJson.Notes = notesWithoutDeletedPath
+
+	if err := io_helpers.WriteJsonToPath(pathToTagFile, tagJson); err != nil {
+		return TagResponse{
+			Success: false,
+			Message: "Something went wrong when writing the tag to file. Please try again later",
+		}
+	}
+
+
 	return TagResponse{
 		Success: true,
-		Message: "Successfully Added Tag",
+		Message: "Successfully Deleted Path From Tag",
 	}
 }

@@ -177,6 +177,16 @@ func CleanFileName(filename string) string {
 	return cleaned
 }
 
+/*
+FileOrFolderExists checks if a file or folder exists at the specified path.
+Parameters:
+
+	path: The path to the file or folder.
+
+Returns:
+
+	A boolean indicating whether the file or folder exists, and an error if the check fails.
+*/
 func FileOrFolderExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
