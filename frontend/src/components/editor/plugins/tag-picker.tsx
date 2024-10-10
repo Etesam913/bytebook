@@ -4,20 +4,47 @@ import {
 	useBasicTypeaheadTriggerMatch,
 } from "@lexical/react/LexicalTypeaheadMenuPlugin";
 
-import { COMMAND_PRIORITY_NORMAL, type TextNode } from "lexical";
+import {
+	$insertNodes,
+	COMMAND_PRIORITY_NORMAL,
+	type LexicalEditor,
+	type TextNode,
+} from "lexical";
 import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { useAtomValue } from "jotai/react";
+import { tagsAtom } from "../../../atoms";
+import { TagIcon } from "../../../icons/tag";
 import {
 	DropdownPickerMenuItem,
 	DropdownPickerOption,
 } from "../../dropdown/dropdown-picker";
+import { $createTagNode } from "../nodes/tag";
 
-// TODO: Add tags here from state
-function getBaseOptions() {
-	return [
-		new DropdownPickerOption("Test", { onSelect: () => {} }),
-	] as DropdownPickerOption[];
+/**
+ * Generates a list of dropdown options for tag selection.
+ * Each option includes a tag name, an icon, and an onSelect handler
+ * that inserts a tag node into the editor when the option is selected.
+ *
+ * @param  editor - The Lexical editor instance.
+ * @param  tags - An array of tag names to create options for.
+ * @returns A list of dropdown picker options.
+ */
+function getBaseOptions(editor: LexicalEditor, tags: string[]) {
+	return tags
+		.map((tagName) => {
+			return new DropdownPickerOption(tagName, {
+				onSelect: () => {
+					editor.update(() => {
+						const tagNode = $createTagNode({ tag: tagName });
+						$insertNodes([tagNode]);
+					});
+				},
+				icon: <TagIcon />,
+			});
+		})
+		.slice(0, 10);
 }
 
 export function TagPickerPlugin({
@@ -26,13 +53,13 @@ export function TagPickerPlugin({
 }: { folder: string; note: string }): JSX.Element {
 	const [editor] = useLexicalComposerContext();
 	const [queryString, setQueryString] = useState<string | null>(null);
-
+	const tags = useAtomValue(tagsAtom);
 	const checkForTriggerMatch = useBasicTypeaheadTriggerMatch("#", {
 		minLength: 0,
 	});
 
 	const options = useMemo(() => {
-		const baseOptions = getBaseOptions();
+		const baseOptions = getBaseOptions(editor, tags ?? []);
 
 		if (!queryString) {
 			return baseOptions;

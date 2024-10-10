@@ -142,6 +142,16 @@ const languageCommandData: {
 	},
 ];
 
+/**
+ * Generates a list of base options for the dropdown picker menu in the Lexical editor.
+ *
+ * @param  editor - The Lexical editor instance.
+ * @param insertAttachmentsMutation - Mutation hook for inserting attachments.
+ * @param dialogProps - Properties for dialog management.
+ * @param dialogProps.setDialogData - Function to set dialog data.
+ * @param dialogProps.editorSelection - Reference to the current editor selection.
+ * @returns Array of dropdown picker options.
+ */
 function getBaseOptions(
 	editor: LexicalEditor,
 	insertAttachmentsMutation: UseMutationResult<void, Error, void, unknown>,
