@@ -9,6 +9,10 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 // @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
+/**
+ * AddPathToTag adds a specific note path to a given tag.
+ * If the tag does not exist, it creates the tag and associates the note path with it.
+ */
 export function AddPathToTag(tagName: string, notePath: string): Promise<$models.TagResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(4080671835, tagName, notePath) as any;
     let $typingPromise = $resultPromise.then(($result) => {
@@ -18,6 +22,10 @@ export function AddPathToTag(tagName: string, notePath: string): Promise<$models
     return $typingPromise;
 }
 
+/**
+ * DeletePathFromTag removes a specific note path from a given tag.
+ * If the tag no longer has any note paths associated with it, the tag folder is deleted.
+ */
 export function DeletePathFromTag(tagName: string, notePath: string): Promise<$models.TagResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(1740782444, tagName, notePath) as any;
     let $typingPromise = $resultPromise.then(($result) => {
@@ -27,5 +35,19 @@ export function DeletePathFromTag(tagName: string, notePath: string): Promise<$m
     return $typingPromise;
 }
 
+/**
+ * GetTags retrieves a list of all tag names in the project.
+ * It scans the "tags" directory within the project path and returns the names of all subdirectories.
+ */
+export function GetTags(): Promise<string[]> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(4245036661) as any;
+    let $typingPromise = $resultPromise.then(($result) => {
+        return $$createType1($result);
+    }) as any;
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
 // Private type creation functions
 const $$createType0 = $models.TagResponse.createFrom;
+const $$createType1 = $Create.Array($Create.Any);

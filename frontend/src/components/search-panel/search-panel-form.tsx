@@ -227,7 +227,6 @@ export function SearchPanelForm() {
 				}}
 			/>
 			<SearchItems
-				searchResults={searchResults}
 				isShowingMostRecentNotes={isShowingMostRecentNotes}
 				searchResultsContainerRef={searchResultsContainerRef}
 				searchResultsRefs={searchResultsRefs}

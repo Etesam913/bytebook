@@ -7,13 +7,11 @@ import {
 import { SearchItem } from "./search-item";
 
 export function SearchItems({
-	searchResults,
 	isShowingMostRecentNotes,
 	virtualizationState,
 	searchResultsRefs,
 	searchResultsContainerRef,
 }: {
-	searchResults: string[];
 	isShowingMostRecentNotes: boolean;
 	virtualizationState: {
 		onScroll: (e: React.UIEvent<HTMLDivElement>) => void;

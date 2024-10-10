@@ -5,6 +5,7 @@ export function Folder({
 	secondaryfill = "currentColor",
 	title = "folder",
 	className,
+	strokeWidth = 1.5,
 }: {
 	width?: number;
 	height?: number;
@@ -12,6 +13,7 @@ export function Folder({
 	secondaryfill?: string;
 	title?: string;
 	className?: string;
+	strokeWidth?: number;
 }) {
 	return (
 		<svg
@@ -27,7 +29,7 @@ export function Folder({
 					fill="none"
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					strokeWidth="1.5"
+					strokeWidth={strokeWidth}
 				/>
 				<rect
 					height="9.5"
@@ -38,7 +40,7 @@ export function Folder({
 					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					strokeWidth="1.5"
+					strokeWidth={strokeWidth}
 					x="1.75"
 					y="5.75"
 				/>

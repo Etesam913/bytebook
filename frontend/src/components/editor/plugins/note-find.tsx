@@ -49,13 +49,13 @@ export function NoteFindPlugin({
 		<AnimatePresence>
 			{isOpen && (
 				<motion.form
-					onClick={(e) => e.stopPropagation()}
+					onClick={(e: Event) => e.stopPropagation()}
 					className="fixed top-16 right-4 bg-zinc-100 dark:bg-zinc-850 rounded-md text-sm border border-zinc-200 dark:border-zinc-750 shadow:sm dark:shadow-md"
 					initial={{ opacity: 0, y: -20 }}
 					animate={{ opacity: 1, y: 0 }}
 					exit={{ opacity: 0 }}
 					onBlur={() => clearHighlights(editor, () => {})}
-					onSubmit={(e) => {
+					onSubmit={(e: Event) => {
 						e.preventDefault();
 						const formData = new FormData(e.target as HTMLFormElement);
 						const inputValue = formData.get("searchInput");

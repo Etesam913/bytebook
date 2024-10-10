@@ -2,6 +2,7 @@ import type {
 	ElementTransformer,
 	TextFormatTransformer,
 	TextMatchTransformer,
+	Transformer,
 } from "@lexical/markdown";
 import type { TextNode } from "lexical";
 
@@ -20,7 +21,6 @@ import type { CodeBlockData } from "../../types";
 import { $createCodeNode, type CodeNode } from "./nodes/code";
 import { $createExcalidrawNode, type ExcalidrawNode } from "./nodes/excalidraw";
 import { PUNCTUATION_OR_SPACE, transformersByType } from "./transformers";
-import type { Transformer } from "./utils";
 
 const CAN_USE_DOM: boolean =
 	typeof window !== "undefined" &&

@@ -17,7 +17,6 @@ const SIDEBAR_ITEM_HEIGHT = 36;
 const VIRUTALIZATION_HEIGHT = 8;
 
 export function Sidebar({
-	isCollapsed,
 	data,
 	getContextMenuStyle,
 	renderLink,
@@ -25,7 +24,6 @@ export function Sidebar({
 	layoutId,
 	contentType,
 }: {
-	isCollapsed: boolean;
 	data: string[] | null;
 	getContextMenuStyle?: (dataItem: string) => CSSProperties;
 	renderLink: (data: {
@@ -50,7 +48,7 @@ export function Sidebar({
 		const selectionSetAsArray = Array.from(selectionRange);
 		/*
 			When a click is detected outside of the sidebar and the selection is of the same
-			type as the contentType, then you can clear the selection. You do not want a 
+			type as the contentType, then you can clear the selection. You do not want a
 			folder side onClickOutside to clear the selection for a note valid click
 		*/
 		if (selectionSetAsArray[0].startsWith(contentType)) {

@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { ChevronDown } from "../../icons/chevron-down";
+import { AccordionButton } from "./accordion-button";
 
 export function SidebarAccordion({
 	onClick,
@@ -17,27 +18,12 @@ export function SidebarAccordion({
 }) {
 	return (
 		<section className="flex flex-col overflow-y-auto max-h-[35vh]">
-			<button
-				type="button"
-				className="flex items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-700 "
+			<AccordionButton
 				onClick={onClick}
-			>
-				{icon}
-
-				<p>{title}</p>
-				<motion.span
-					className="ml-auto"
-					initial={{ rotateZ: isOpen ? 180 : 0 }}
-					animate={{ rotateZ: isOpen ? 180 : 0 }}
-				>
-					<ChevronDown
-						strokeWidth="2.5px"
-						height="0.8rem"
-						width="0.8rem"
-						className="will-change-transform"
-					/>
-				</motion.span>
-			</button>
+				isOpen={isOpen}
+				title={title}
+				icon={icon}
+			/>
 			<AnimatePresence>
 				{isOpen && (
 					<motion.ul

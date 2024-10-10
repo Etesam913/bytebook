@@ -1,13 +1,13 @@
 export function ChevronDown({
-	width = "1.25rem",
-	height = "1.25rem",
+	width = 12.8,
+	height = 12.8,
 	fill = "currentColor",
 	title = "Down",
 	className,
 	strokeWidth = "1.5",
 }: {
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	fill?: string;
 	title?: string;
 	className?: string;
@@ -16,7 +16,7 @@ export function ChevronDown({
 	return (
 		<svg
 			className={className}
-			style={{ width, height }}
+			style={{ width: `${width}px`, height: `${height}px` }}
 			viewBox="0 0 18 18"
 			xmlns="http://www.w3.org/2000/svg"
 		>
