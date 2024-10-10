@@ -60,14 +60,6 @@ export function LoginButton() {
 						if (value === "log-out") {
 							logoutMutation.mutate();
 						}
-						// if (value === "settings") {
-						// 	setDialogData({
-						// 		isOpen: true,
-						// 		title: "Settings",
-						// 		dialogClassName: "w-[min(55rem,90vw)]",
-						// 		children: () => <SettingsWindow />,
-						// 		onSubmit: null,
-						// 	});
 					}}
 					focusIndex={focusIndex}
 					items={[
@@ -115,8 +107,8 @@ export function LoginButton() {
 						<ChevronDown
 							className="min-w-[0.65rem] min-h-[0.65rem] text-zinc-500 dark:text-zinc-300 will-change-transform"
 							strokeWidth="3.5px"
-							width="0.65rem"
-							height="0.65rem"
+							width={10.4}
+							height={10.4}
 						/>
 					</motion.div>
 				</button>

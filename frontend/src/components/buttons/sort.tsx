@@ -1,10 +1,4 @@
-import {
-	type Dispatch,
-	type SetStateAction,
-	useEffect,
-	useRef,
-	useState,
-} from "react";
+import { type Dispatch, type SetStateAction, useRef, useState } from "react";
 import { MotionIconButton } from ".";
 import { getDefaultButtonVariants } from "../../animations";
 import { Paperclip } from "../../icons/paperclip-2";

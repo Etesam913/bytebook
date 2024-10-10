@@ -28,19 +28,20 @@ import {
 	type MutableRefObject,
 	type SetStateAction,
 	useEffect,
-	useMemo,
 } from "react";
 import { toast } from "sonner";
 import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
 import {
 	AddPathToTag,
 	DeletePathFromTag,
+	GetTags,
 } from "../../../../bindings/github.com/etesam913/bytebook/tagsservice";
 import { ShutoffTerminals } from "../../../../bindings/github.com/etesam913/bytebook/terminalservice";
 import {
 	draggedElementAtom,
 	noteContainerRefAtom,
 	noteEditorAtom,
+	tagsAtom,
 } from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
@@ -128,11 +129,21 @@ export function useMutationListener(
 	folder: string,
 	note: string,
 ) {
+	const setTags = useSetAtom(tagsAtom);
+
 	const { mutate: deleteTag } = useMutation({
 		mutationFn: async ({ tag }: { tag: string }) => {
-			const res = await DeletePathFromTag(tag, `${folder}/${note}.md`);
-			if (!res.success) throw new Error(res.message);
-			console.log(res.message);
+			const deletePathFromTagResponse = await DeletePathFromTag(
+				tag,
+				`${folder}/${note}.md`,
+			);
+			if (!deletePathFromTagResponse.success)
+				throw new Error(deletePathFromTagResponse.message);
+
+			// Update the tags in the ui
+			const newTagsResponse = await GetTags();
+			if (!newTagsResponse.success) throw new Error(newTagsResponse.message);
+			setTags(newTagsResponse.data);
 		},
 		onError: (e) => {
 			if (e instanceof Error) {
@@ -150,6 +161,11 @@ export function useMutationListener(
 			}
 			const res = await AddPathToTag(tag, `${folder}/${note}.md`);
 			if (!res.success) throw new Error(res.message);
+
+			// Update the tags in the ui
+			const newTagsResponse = await GetTags();
+			if (!newTagsResponse.success) throw new Error(newTagsResponse.message);
+			setTags(newTagsResponse.data);
 		},
 		onError: (e) => {
 			if (e instanceof Error) {

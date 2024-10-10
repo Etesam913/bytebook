@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
 import type { ReactNode } from "react";
-import { ChevronDown } from "../../icons/chevron-down";
 import { AccordionButton } from "./accordion-button";
 
 export function SidebarAccordion({

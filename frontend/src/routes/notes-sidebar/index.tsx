@@ -48,11 +48,11 @@ export function NotesSidebar({
 	width: MotionValue<number>;
 	leftWidth: MotionValue<number>;
 }) {
+	const { folder, note } = params;
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const [noteCount, setNoteCount] = useState(0);
 	const [notes, setNotes] = useAtom(notesAtom);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-	const { folder, note } = params;
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const noteSort = useAtomValue(noteSortAtom);
@@ -196,7 +196,12 @@ export function NotesSidebar({
 							</MotionButton>
 							<section className="flex flex-col gap-2 overflow-y-auto flex-1">
 								<div className="flex h-full flex-col overflow-y-auto">
-									<MyNotesAccordion notes={notes} noteCount={noteCount} />
+									<MyNotesAccordion
+										notes={notes}
+										noteCount={noteCount}
+										curFolder={folder}
+										curNote={note}
+									/>
 								</div>
 							</section>
 						</div>

@@ -2,7 +2,6 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { $getSelection, $isRangeSelection } from "lexical";
 import type { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
-import { MotionIconButton } from "..";
 import { getDefaultButtonVariants } from "../../../animations";
 import { Link } from "../../../icons/link";
 import type { FloatingDataType } from "../../../types";

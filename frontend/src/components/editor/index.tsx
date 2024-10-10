@@ -187,7 +187,6 @@ export function NotesEditor({
 					/>
 					<EditorRefPlugin editorRef={editorRef} />
 					<FilesPlugin />
-					<VideosPlugin />
 					<CodePlugin />
 					<DraggableBlockPlugin />
 					<FocusPlugin />

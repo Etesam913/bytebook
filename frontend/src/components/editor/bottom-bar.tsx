@@ -1,7 +1,6 @@
 import { type ReactNode, useEffect, useState } from "react";
 import { Link } from "wouter";
 import { Folder } from "../../icons/folder";
-import LabelPlus from "../../icons/label-plus";
 import { Note } from "../../icons/page";
 import { timeSince } from "./utils/bottom-bar";
 

@@ -1,6 +1,5 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai/react";
 import type { CSSProperties } from "react";
-import { useParams } from "wouter";
 import {
 	draggedElementAtom,
 	noteSortAtom,
@@ -18,11 +17,14 @@ import { RenderNoteIcon } from "./render-note-icon";
 export function MyNotesAccordion({
 	notes,
 	noteCount,
+	curFolder,
+	curNote,
 }: {
 	notes: string[] | null;
 	noteCount: number;
+	curFolder: string;
+	curNote: string | undefined;
 }) {
-	const { folder: curFolder, note: curNote } = useParams();
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const noteNameWithExtension = `${curNote}?ext=${searchParams.ext}`;
 	const selectionRange = useAtomValue(selectionRangeAtom);
@@ -53,7 +55,6 @@ export function MyNotesAccordion({
 						Create a note with the "Create Note" button above
 					</li>
 				}
-				isCollapsed={false}
 				data={notes}
 				renderLink={({
 					dataItem: sidebarNoteName,

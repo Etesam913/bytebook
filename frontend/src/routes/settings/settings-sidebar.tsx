@@ -12,7 +12,6 @@ export function SettingsSidebar({ currentOption }: { currentOption: string }) {
 		<div className="w-fit">
 			<Sidebar
 				layoutId="settings-sidebar"
-				isCollapsed={false}
 				data={settingsOptions.map(({ name }) => name)}
 				renderLink={({ dataItem: setting, i }) => {
 					return (

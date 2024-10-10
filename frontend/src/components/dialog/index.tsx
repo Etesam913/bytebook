@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtom, useAtomValue } from "jotai";
-import { useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import useMeasure from "react-use-measure";
 import { easingFunctions, getDefaultButtonVariants } from "../../animations";
 import { backendQueryAtom, dialogDataAtom } from "../../atoms";
@@ -85,7 +85,7 @@ export function Dialog() {
 					<Shade />
 					<motion.form
 						ref={modalRef}
-						onSubmit={async (e) => {
+						onSubmit={async (e: FormEvent<HTMLFormElement>) => {
 							e.preventDefault();
 							if (dialogData.onSubmit) {
 								const result = await dialogData.onSubmit(e, setErrorText);

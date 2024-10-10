@@ -13,6 +13,7 @@ import { useProjectSettings } from "./hooks/project-settings";
 import { useSearchPanel } from "./hooks/search";
 import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
+import { TagsSidebar } from "./routes/tags-sidebar";
 import { TrashSidebar } from "./routes/trash-sidebar";
 import { useDarkModeSetting } from "./utils/hooks";
 import { MAX_SIDEBAR_WIDTH } from "./utils/misc";
@@ -48,6 +49,17 @@ function App() {
 						leftWidth={folderSidebarWidth}
 					/>
 				</Route>
+
+				<Route path="/tags/:tagName/:folder?/:note?">
+					{(folderParams) => (
+						<TagsSidebar
+							params={folderParams}
+							width={notesSidebarWidth}
+							leftWidth={folderSidebarWidth}
+						/>
+					)}
+				</Route>
+
 				<Route path="/not-found">
 					<NotFound />
 				</Route>

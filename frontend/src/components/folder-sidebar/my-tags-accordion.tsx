@@ -3,13 +3,14 @@ import { useAtomValue } from "jotai/react";
 import { useState } from "react";
 import { tagsAtom } from "../../atoms";
 import { TagIcon } from "../../icons/tag";
+import { useCustomNavigate } from "../../utils/routing";
 import { Sidebar } from "../sidebar";
 import { AccordionButton } from "../sidebar/accordion-button";
 
 export function MyTagsAccordion() {
 	const [isOpen, setIsOpen] = useState(true);
-
 	const tags = useAtomValue(tagsAtom);
+	const { navigate } = useCustomNavigate();
 
 	return (
 		<section className="flex-1 overflow-y-auto flex flex-col">
@@ -69,10 +70,12 @@ export function MyTagsAccordion() {
 										// 		) &&
 										// 		"!bg-blue-400 dark:!bg-blue-600 text-white",
 										// )}
-										// onClick={(e) => {
-										// 	if (e.metaKey || e.shiftKey) return;
-										// 	navigate(`/${encodeURIComponent(sidebarFolderName)}`);
-										// }}
+										onClick={(e) => {
+											if (e.metaKey || e.shiftKey) return;
+											navigate(
+												`/tags/${encodeURIComponent(sidebarTagName)}/abc`,
+											);
+										}}
 										onContextMenu={() => {
 											// if (selectionRange.size === 0) {
 											// 	setSelectionRange(

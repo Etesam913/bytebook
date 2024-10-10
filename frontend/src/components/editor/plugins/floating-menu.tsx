@@ -2,6 +2,7 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { AnimatePresence, motion } from "framer-motion";
 import {
 	type Dispatch,
+	type FormEvent,
 	type ReactNode,
 	type SetStateAction,
 	useRef,
@@ -57,7 +58,7 @@ export function FloatingMenuPlugin({
 						left: floatingData.left,
 					}}
 					className="absolute bg-zinc-100 dark:bg-zinc-750 p-2 rounded-md bg-opacity-95 shadow-lg flex items-center gap-2 z-50"
-					onSubmit={(e) => {
+					onSubmit={(e: FormEvent<HTMLFormElement>) => {
 						e.preventDefault();
 						editor.dispatchCommand(TOGGLE_LINK_COMMAND, {
 							url: inputRef.current?.value ?? "",
