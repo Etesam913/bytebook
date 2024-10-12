@@ -52,6 +52,8 @@ export function SavePlugin({
 					const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
 					const frontmatterCopy = payload?.newFrontmatter ?? { ...frontmatter };
 					const timeOfChange = new Date().toISOString();
+					frontmatterCopy.folder = folder;
+					frontmatterCopy.note = note;
 					frontmatterCopy.lastUpdated = timeOfChange;
 					if (frontmatterCopy.createdDate === undefined) {
 						frontmatterCopy.createdDate = timeOfChange;

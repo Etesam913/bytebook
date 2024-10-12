@@ -6,6 +6,7 @@ import { Spacer } from "../../components/folder-sidebar/spacer";
 import { TagIcon } from "../../icons/tag";
 import { updateTagNotes } from "../../utils/fetch-functions";
 import { MyNotesAccordion } from "../notes-sidebar/my-notes-accordion";
+import { RenderNote } from "../notes-sidebar/render-note";
 
 export function TagsSidebar({
 	params,
@@ -53,6 +54,9 @@ export function TagsSidebar({
 				</div>
 			</motion.aside>
 			<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
+			{folder && note && (
+				<RenderNote folder={folder} note={note} fileExtension="md" />
+			)}
 		</>
 	);
 }

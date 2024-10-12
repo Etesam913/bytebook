@@ -24,7 +24,7 @@ type TagResponseWithData struct {
 	Data []string    `json:"data"`
 }
 
-type tagJson struct{
+type TagJson struct{
 	Notes []string `json:"notes"`
 }
 
@@ -41,7 +41,7 @@ func createTagFiles(projectPath string, tagName string, notePaths []string) erro
 	}
 
 	pathToTagJson := filepath.Join(pathToTag, "notes.json")
-	err = io_helpers.WriteJsonToPath(pathToTagJson, tagJson{
+	err = io_helpers.WriteJsonToPath(pathToTagJson, TagJson{
 		Notes: notePaths,
 	})
 	if err != nil{
@@ -67,7 +67,8 @@ func (t *TagsService) AddPathToTag(tagName string, notePath string) TagResponse 
 			}
 		}
 	} else {
-		var tagJson tagJson
+		var tagJson TagJson
+		fmt.Println(pathToTagFile, notePath, "deez")
 		if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
 			return TagResponse{
 				Success: false,
@@ -109,7 +110,7 @@ func (t *TagsService) DeletePathFromTag(tagName string, notePath string) TagResp
 		}
 	}
 
-	var tagJson tagJson
+	var tagJson TagJson
 	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
 		return TagResponse{
 			Success: false,
@@ -203,7 +204,7 @@ func (t *TagsService) GetNotesFromTag(tagName string) TagResponseWithData {
 		}
 	}
 
-	var tagJson tagJson
+	var tagJson TagJson
 	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
 		return TagResponseWithData{
 			Success: false,

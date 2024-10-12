@@ -33,7 +33,6 @@ import { FilesPlugin } from "./plugins/file";
 import { LinkPlugin } from "./plugins/link.tsx";
 import { NoteFindPlugin } from "./plugins/note-find.tsx";
 import TreeViewPlugin from "./plugins/tree-view";
-import { VideosPlugin } from "./plugins/video";
 import { Toolbar } from "./toolbar";
 
 import { BottomBar } from "./bottom-bar.tsx";

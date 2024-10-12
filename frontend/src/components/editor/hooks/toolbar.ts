@@ -128,6 +128,7 @@ export function useMutationListener(
 	editor: LexicalEditor,
 	folder: string,
 	note: string,
+	frontmatter: Record<string, string>,
 ) {
 	const setTags = useSetAtom(tagsAtom);
 
@@ -197,13 +198,30 @@ export function useMutationListener(
 					let tagName = "";
 					(mutation === "created" ? editor : prevEditorState).read(() => {
 						const tagNode = $getNodeByKey(nodeKey);
+
 						if (!tagNode) return;
 						tagName = (tagNode as TagNode).getTag();
 					});
 					if (mutation === "created") {
 						createTag({ tag: tagName });
 					} else if (mutation === "destroyed") {
-						deleteTag({ tag: tagName });
+						const newNote = note;
+						const newFolder = folder;
+
+						const oldNote = frontmatter.note;
+						const oldFolder = frontmatter.folder;
+
+						/*
+              If the frontmatter of the note is the same as the new note, then we didn't navigate to a new note and the
+              delete happened due to the user deleting the tag with backspace or something like that
+
+              If the frontmatter of the note is different from the new note, then the delete is due to navigating to a new editor.
+              This isn't really a delete for our purposes, so we don't want to do anything
+
+            */
+						if (oldFolder === newFolder && oldNote === newNote) {
+							deleteTag({ tag: tagName });
+						}
 					}
 				}
 			},
@@ -213,7 +231,7 @@ export function useMutationListener(
 			codeNodeMutationListener();
 			tagNodeMutationListener();
 		};
-	}, []);
+	}, [folder, note, frontmatter]);
 }
 
 /**
