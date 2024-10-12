@@ -72,9 +72,7 @@ export function MyTagsAccordion() {
 										// )}
 										onClick={(e) => {
 											if (e.metaKey || e.shiftKey) return;
-											navigate(
-												`/tags/${encodeURIComponent(sidebarTagName)}/abc`,
-											);
+											navigate(`/tags/${encodeURIComponent(sidebarTagName)}`);
 										}}
 										onContextMenu={() => {
 											// if (selectionRange.size === 0) {

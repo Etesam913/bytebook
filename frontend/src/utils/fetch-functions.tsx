@@ -10,7 +10,10 @@ import {
 	GetNoteCount,
 	GetNotes,
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
-import { GetTags } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
+import {
+	GetNotesFromTag,
+	GetTags,
+} from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import type { SortStrings } from "../types";
 import { DEFAULT_SONNER_OPTIONS } from "./misc";
 import { extractInfoFromNoteName } from "./string-formatting";
@@ -36,6 +39,25 @@ export async function checkIfFolderExists(folder: string | undefined) {
 	} catch (e) {
 		// If an error occurs, navigate to a "not-found" page with the type set to "folder".
 		navigate("/not-found?type=folder", { replace: true });
+	}
+}
+
+export async function updateTagNotes(
+	tagName: string,
+	setNotes: Dispatch<SetStateAction<string[] | null>>,
+) {
+	try {
+		const res = await GetNotesFromTag(tagName);
+		if (res.success) {
+			const notes = res.data;
+			setNotes(notes);
+		} else {
+			throw new Error(res.message);
+		}
+	} catch (e) {
+		if (e instanceof Error) {
+			toast.error(e.message);
+		}
 	}
 }
 

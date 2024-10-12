@@ -36,6 +36,19 @@ export function DeletePathFromTag(tagName: string, notePath: string): Promise<$m
 }
 
 /**
+ * GetNotesFromTag retrieves the note paths associated with a given tag name.
+ * It reads the "notes.json" file within the tag's directory and returns the note paths.
+ */
+export function GetNotesFromTag(tagName: string): Promise<$models.TagResponseWithData> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(3414271919, tagName) as any;
+    let $typingPromise = $resultPromise.then(($result) => {
+        return $$createType1($result);
+    }) as any;
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
  * GetTags retrieves a list of all tag names in the project.
  * It scans the "tags" directory within the project path and returns the names of all subdirectories.
  */

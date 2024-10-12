@@ -40,6 +40,9 @@ export function GetNoteMarkdown(path: string): Promise<$models.NoteMarkdownRespo
     return $typingPromise;
 }
 
+/**
+ * GetNotes retrieves notes from a specified folder and sorts them based on the provided sort option. It returns the notes with their extension as a query param
+ */
 export function GetNotes(folderName: string, sortOption: string): Promise<$models.NoteResponse> & { cancel(): void } {
     let $resultPromise = $Call.ByID(4001444448, folderName, sortOption) as any;
     let $typingPromise = $resultPromise.then(($result) => {

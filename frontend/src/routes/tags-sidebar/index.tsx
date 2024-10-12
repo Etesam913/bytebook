@@ -1,7 +1,11 @@
 import { type MotionValue, motion } from "framer-motion";
-import { useRef } from "react";
+import { useAtom } from "jotai/react";
+import { useEffect, useRef } from "react";
+import { notesAtom } from "../../atoms";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { TagIcon } from "../../icons/tag";
+import { updateTagNotes } from "../../utils/fetch-functions";
+import { MyNotesAccordion } from "../notes-sidebar/my-notes-accordion";
 
 export function TagsSidebar({
 	params,
@@ -13,7 +17,13 @@ export function TagsSidebar({
 	leftWidth: MotionValue<number>;
 }) {
 	const sidebarRef = useRef<HTMLElement>(null);
-	const { tagName } = params;
+	const { tagName, note, folder } = params;
+	const [notes, setNotes] = useAtom(notesAtom);
+
+	useEffect(() => {
+		updateTagNotes(tagName, setNotes);
+	}, [tagName]);
+
 	return (
 		<>
 			<motion.aside
@@ -28,7 +38,17 @@ export function TagsSidebar({
 					</section>
 
 					<section className="flex flex-col gap-2 overflow-y-auto flex-1">
-						<div className="flex h-full flex-col overflow-y-auto">hello</div>
+						<div className="flex h-full flex-col overflow-y-auto">
+							<MyNotesAccordion
+								tagState={{
+									tagName,
+								}}
+								notes={notes}
+								noteCount={10}
+								curFolder={folder ?? ""}
+								curNote={note ?? ""}
+							/>
+						</div>
 					</section>
 				</div>
 			</motion.aside>

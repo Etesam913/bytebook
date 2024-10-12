@@ -44,6 +44,7 @@ const (
 	FileType        string = "file-type"
 )
 
+// GetNotes retrieves notes from a specified folder and sorts them based on the provided sort option. It returns the notes with their extension as a query param
 func (n *NoteService) GetNotes(folderName string, sortOption string) NoteResponse {
 	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	// Ensure the directory exists
@@ -112,6 +113,8 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) NoteRespons
 	})
 
 	var sortedNotes []string
+
+	// Using the query param syntax that the app supports
 	for _, file := range notes {
 		indexOfDot := strings.LastIndex(file.Name(), ".")
 		name := file.Name()[:indexOfDot]
@@ -161,6 +164,7 @@ func (n *NoteService) GetNoteMarkdown(path string) NoteMarkdownResponse {
 	}
 	return NoteMarkdownResponse{Success: true, Message: "Successfully Retrieved Note Markdown", Data: string(noteContent)}
 }
+
 
 func (n *NoteService) SetNoteMarkdown(folderName string, noteTitle string, markdown string) NoteMarkdownResponse {
 	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, fmt.Sprintf("%s.md", noteTitle))

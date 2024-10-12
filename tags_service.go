@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 )
@@ -157,7 +159,6 @@ func (t *TagsService) DeletePathFromTag(tagName string, notePath string) TagResp
 		Message: "Successfully Deleted Path From Tag",
 	}
 }
-
 /*
 GetTags retrieves a list of all tag names in the project.
 It scans the "tags" directory within the project path and returns the names of all subdirectories.
@@ -184,5 +185,50 @@ func (t *TagsService) GetTags() TagResponseWithData{
 		Success: true,
 		Message: "Successfully retrieved tags.",
 		Data: tags,
+	}
+}
+
+/*
+GetNotesFromTag retrieves the note paths associated with a given tag name.
+It reads the "notes.json" file within the tag's directory and returns the note paths.
+*/
+func (t *TagsService) GetNotesFromTag(tagName string) TagResponseWithData {
+	pathToTagFile := filepath.Join(t.ProjectPath, "tags", tagName, "notes.json")
+
+	if exists, _ := io_helpers.FileOrFolderExists(pathToTagFile); !exists {
+		return TagResponseWithData{
+			Success: false,
+			Message: "Tag does not exist",
+			Data: nil,
+		}
+	}
+
+	var tagJson tagJson
+	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
+		return TagResponseWithData{
+			Success: false,
+			Message: "Something went wrong when fetching the tag. Please try again later",
+			Data: nil,
+		}
+	}
+
+	notesWithQueryParamExtension := []string{}
+
+	// Using the query param syntax that the app supports
+	for _, file := range tagJson.Notes {
+		indexOfDot := strings.LastIndex(file, ".")
+		name := file[:indexOfDot]
+		extension := file[indexOfDot+1:]
+		notesWithQueryParamExtension = append(
+			notesWithQueryParamExtension,
+			fmt.Sprintf("%s?ext=%s", name, extension),
+		)
+	}
+
+
+	return TagResponseWithData{
+		Success: true,
+		Message: "Successfully retrieved tag.",
+		Data: notesWithQueryParamExtension,
 	}
 }

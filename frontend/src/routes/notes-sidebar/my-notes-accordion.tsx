@@ -19,19 +19,28 @@ export function MyNotesAccordion({
 	noteCount,
 	curFolder,
 	curNote,
+	tagState,
 }: {
 	notes: string[] | null;
 	noteCount: number;
 	curFolder: string;
 	curNote: string | undefined;
+	tagState?: {
+		tagName: string;
+	};
 }) {
 	const searchParams: { ext?: string } = useSearchParamsEntries();
-	const noteNameWithExtension = `${curNote}?ext=${searchParams.ext}`;
+	const isInTagSidebar = tagState?.tagName !== undefined;
+
+	// The sidebar note name includes the folder name if it's in a tag sidebar
+	const sidebarNoteNameWithExtension = `${
+		isInTagSidebar ? `${curFolder}/` : ""
+	}${curNote}?ext=${searchParams.ext}`;
+
 	const selectionRange = useAtomValue(selectionRangeAtom);
 	const setDraggedElement = useSetAtom(draggedElementAtom);
 	const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);
 	const { navigate } = useCustomNavigate();
-
 	return (
 		<div className="flex flex-1 flex-col gap-2 overflow-y-auto">
 			<div className="flex items-center justify-between gap-2 pr-1">
@@ -94,7 +103,7 @@ export function MyNotesAccordion({
 							// target="_blank"
 							className={cn(
 								"sidebar-item",
-								noteNameWithExtension === sidebarNoteName &&
+								sidebarNoteNameWithExtension === sidebarNoteName &&
 									"bg-zinc-150 dark:bg-zinc-700",
 								notes?.at(i) &&
 									selectionRange.has(`note:${notes[i]}`) &&
@@ -102,16 +111,21 @@ export function MyNotesAccordion({
 							)}
 							onClick={(e) => {
 								if (e.metaKey || e.shiftKey) return;
-								navigate(`/${curFolder}/${sidebarNoteName}`);
+								navigate(
+									isInTagSidebar
+										? `/tags/${tagState.tagName}/${sidebarNoteName}`
+										: `/${curFolder}/${sidebarNoteName}`,
+								);
 							}}
 						>
 							<RenderNoteIcon
 								sidebarNoteName={sidebarNoteName}
 								fileExtension={queryParams.ext}
-								noteNameWithExtension={noteNameWithExtension}
+								noteNameWithExtension={sidebarNoteNameWithExtension}
 							/>
 							<p className="whitespace-nowrap text-ellipsis overflow-hidden">
-								{noteName}.{queryParams.ext}
+								{isInTagSidebar ? noteName.split("/")[1] : noteName}.
+								{queryParams.ext}
 							</p>
 						</button>
 					);
