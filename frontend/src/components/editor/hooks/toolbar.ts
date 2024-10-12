@@ -45,6 +45,7 @@ import {
 } from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
+import { useCustomNavigate } from "../../../utils/routing";
 import { CodeNode } from "../nodes/code";
 import { TagNode } from "../nodes/tag";
 import { CUSTOM_TRANSFORMERS } from "../transformers";
@@ -68,6 +69,7 @@ export function useNoteMarkdown(
 ) {
 	const noteContainerRef = useAtomValue(noteContainerRefAtom);
 	const setEditor = useSetAtom(noteEditorAtom);
+	const { navigate } = useCustomNavigate();
 	useEffect(() => {
 		async function fetchNoteMarkdown() {
 			setEditor(editor);
@@ -111,6 +113,7 @@ export function useNoteMarkdown(
 				}
 			} catch (e) {
 				if (e instanceof Error) toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+				navigate("/not-found");
 			}
 		}
 
