@@ -13,7 +13,7 @@ export function MyTagsAccordion() {
 	const { navigate } = useCustomNavigate();
 
 	return (
-		<section className="flex-1 overflow-y-auto flex flex-col">
+		<section>
 			<AccordionButton
 				isOpen={isOpen}
 				onClick={() => setIsOpen((prev) => !prev)}
@@ -30,7 +30,7 @@ export function MyTagsAccordion() {
 							transition: { type: "spring", damping: 16 },
 						}}
 						exit={{ height: 0, opacity: 0 }}
-						className="overflow-hidden hover:overflow-auto"
+						className="overflow-hidden hover:overflow-auto pl-1"
 					>
 						<Sidebar
 							layoutId="my-tags-accordion"
@@ -105,7 +105,7 @@ export function MyTagsAccordion() {
 												height={20}
 											/>
 										)}{" "} */}
-										<TagIcon />
+										<TagIcon height={16} width={16} strokeWidth={1.75} />
 										<p className="whitespace-nowrap text-ellipsis overflow-hidden">
 											{sidebarTagName}
 										</p>

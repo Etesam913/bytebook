@@ -5,6 +5,7 @@ export function FolderOpen({
 	secondaryfill = "currentColor",
 	title = "folder-open",
 	className,
+	strokeWidth = 1.5,
 }: {
 	width?: number;
 	height?: number;
@@ -12,6 +13,7 @@ export function FolderOpen({
 	secondaryfill?: string;
 	title?: string;
 	className?: string;
+	strokeWidth?: number;
 }) {
 	return (
 		<svg
@@ -28,7 +30,7 @@ export function FolderOpen({
 					stroke={secondaryfill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					strokeWidth="1.5"
+					strokeWidth={strokeWidth}
 				/>
 				<path
 					d="M16.148,13.27l.843-3.13c.257-.953-.461-1.89-1.448-1.89H6.15c-.678,0-1.272,.455-1.448,1.11l-.942,3.5c-.257,.953,.461,1.89,1.448,1.89H14.217c.904,0,1.696-.607,1.931-1.48Z"
@@ -36,7 +38,7 @@ export function FolderOpen({
 					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					strokeWidth="1.5"
+					strokeWidth={strokeWidth}
 				/>
 			</g>
 		</svg>

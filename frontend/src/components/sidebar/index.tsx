@@ -13,7 +13,7 @@ import { selectionRangeAtom } from "../../atoms";
 import { useListVirtualization, useOnClickOutside } from "../../utils/hooks";
 import { SidebarItems } from "./sidebar-items";
 
-const SIDEBAR_ITEM_HEIGHT = 36;
+const SIDEBAR_ITEM_HEIGHT = 34;
 const VIRUTALIZATION_HEIGHT = 8;
 
 export function Sidebar({

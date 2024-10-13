@@ -25,11 +25,18 @@ export function MyFoldersAccordion({
 	const [isOpen, setIsOpen] = useState(true);
 
 	return (
-		<section className="overflow-y-auto flex flex-col">
+		<section>
 			<AccordionButton
 				isOpen={isOpen}
 				onClick={() => setIsOpen((prev) => !prev)}
-				icon={<Folder width={17.6} height={17.6} strokeWidth={1.75} />}
+				icon={
+					<Folder
+						width={20}
+						height={20}
+						strokeWidth={1.75}
+						className="will-change-transform"
+					/>
+				}
 				title={
 					<>
 						Folders{" "}
@@ -50,7 +57,7 @@ export function MyFoldersAccordion({
 							transition: { type: "spring", damping: 16 },
 						}}
 						exit={{ height: 0, opacity: 0 }}
-						className="overflow-hidden hover:overflow-auto"
+						className="overflow-hidden hover:overflow-auto pl-1"
 					>
 						<Sidebar
 							contentType="folder"
@@ -113,16 +120,18 @@ export function MyFoldersAccordion({
 										decodeURIComponent(folder) === sidebarFolderName ? (
 											<FolderOpen
 												title=""
-												className="min-w-5"
-												width={20}
-												height={20}
+												className="min-w-[18px]"
+												width={18}
+												height={18}
+												strokeWidth={1.7}
 											/>
 										) : (
 											<Folder
 												title=""
-												className="min-w-5"
-												width={20}
-												height={20}
+												className="min-w-[18px]"
+												width={18}
+												height={18}
+												strokeWidth={1.7}
 											/>
 										)}{" "}
 										<p className="whitespace-nowrap text-ellipsis overflow-hidden">

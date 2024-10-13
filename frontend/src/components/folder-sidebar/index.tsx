@@ -6,7 +6,6 @@ import {
 	type SetStateAction,
 	useEffect,
 } from "react";
-import { toast } from "sonner";
 import { useRoute } from "wouter";
 import {
 	AddFolder,
@@ -40,7 +39,6 @@ import {
 	updateFolders,
 	updateTags,
 } from "../../utils/fetch-functions";
-import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
 import { useCustomNavigate } from "../../utils/routing.ts";
 import { validateName } from "../../utils/string-formatting.ts";
 import { MotionButton } from "../buttons";
@@ -171,35 +169,37 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 		<>
 			<motion.aside
 				style={{ width }}
-				className="text-md flex h-screen flex-col px-[10px] pt-[3.8rem]"
+				className="text-md flex h-screen flex-col pt-[3.8rem]"
 			>
-				<SearchBar />
-				<MotionButton
-					{...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
-					className="align-center mb-2 flex w-full justify-between bg-transparent"
-					onClick={() =>
-						setDialogData({
-							isOpen: true,
-							title: "Create Folder",
-							children: (errorText) => (
-								<FolderDialogChildren errorText={errorText} action="create" />
-							),
-							onSubmit: async (e, setErrorText) =>
-								onFolderDialogSubmit(e, navigate, setErrorText, "create"),
-						})
-					}
-				>
-					Create Folder <FolderPlus className="will-change-transform" />
-				</MotionButton>
-				<section className="flex flex-1 flex-col gap-2 overflow-y-auto">
-					<div className="flex h-full flex-col overflow-y-auto gap-1">
+				<header className="px-[10px]">
+					<SearchBar />
+					<MotionButton
+						{...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
+						className="align-center mb-2 flex w-full justify-between bg-transparent"
+						onClick={() =>
+							setDialogData({
+								isOpen: true,
+								title: "Create Folder",
+								children: (errorText) => (
+									<FolderDialogChildren errorText={errorText} action="create" />
+								),
+								onSubmit: async (e, setErrorText) =>
+									onFolderDialogSubmit(e, navigate, setErrorText, "create"),
+							})
+						}
+					>
+						Create Folder <FolderPlus className="will-change-transform" />
+					</MotionButton>
+				</header>
+				<section className="flex flex-1 flex-col gap-2 overflow-y-scroll ">
+					<div className="flex h-full flex-col overflow-y-scroll gap-1 px-[10px]">
 						<PinnedNotesAccordion />
 						<RecentNotesAccordion />
 						<MyFoldersAccordion folder={folder} />
 						<MyTagsAccordion />
-						<BottomItems />
 					</div>
 				</section>
+				<BottomItems />
 			</motion.aside>
 			<Spacer width={width} />
 		</>

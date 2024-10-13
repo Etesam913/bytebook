@@ -37,9 +37,9 @@ export function RecentNotesAccordion() {
 			isOpen={isRecentNotesOpen}
 			icon={
 				<HourglassStart
+					height={19}
+					width={19}
 					className="will-change-transform"
-					height="1.1rem"
-					width="1.1rem"
 				/>
 			}
 		>

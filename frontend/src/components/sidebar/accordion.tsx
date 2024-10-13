@@ -16,7 +16,7 @@ export function SidebarAccordion({
 	icon?: JSX.Element;
 }) {
 	return (
-		<section className="flex flex-col overflow-y-auto max-h-[35vh]">
+		<section>
 			<AccordionButton
 				onClick={onClick}
 				isOpen={isOpen}
@@ -32,7 +32,7 @@ export function SidebarAccordion({
 							transition: { type: "spring", damping: 16 },
 						}}
 						exit={{ height: 0, opacity: 0 }}
-						className="overflow-hidden hover:overflow-auto"
+						className="overflow-hidden hover:overflow-auto pl-1"
 					>
 						{children}
 					</motion.ul>

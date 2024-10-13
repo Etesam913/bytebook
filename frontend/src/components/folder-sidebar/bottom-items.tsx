@@ -63,7 +63,7 @@ export function BottomItems() {
 	}
 
 	return (
-		<section className="mt-auto pb-3 flex flex-col gap-1">
+		<section className="pb-3 flex flex-col gap-1 px-[10px]">
 			<Link
 				onDragOver={(e: DragEvent) => e.preventDefault()}
 				onDragEnter={onDragEnter}
