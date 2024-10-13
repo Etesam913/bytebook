@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/lib/note_helpers"
 )
 
 type TagsService struct {
@@ -166,7 +167,7 @@ It scans the "tags" directory within the project path and returns the names of a
 */
 func (t *TagsService) GetTags() TagResponseWithData{
 	tagsPath := filepath.Join(t.ProjectPath, "tags")
-	files, err := os.ReadDir(tagsPath)
+	tagFolders, err := os.ReadDir(tagsPath)
 	if err != nil {
 		return TagResponseWithData{
 			Success: false,
@@ -176,10 +177,67 @@ func (t *TagsService) GetTags() TagResponseWithData{
 	}
 
 	var tags []string
-	for _, file := range files {
-		if file.IsDir() {
-			tags = append(tags, file.Name())
+
+	for _, tagFolder := range tagFolders {
+		if !tagFolder.IsDir() {
+			continue
 		}
+
+		pathToTagNotes := filepath.Join(tagsPath, tagFolder.Name(), "notes.json")
+		var tagJson TagJson
+		if err := io_helpers.ReadJsonFromPath(pathToTagNotes, &tagJson); err != nil{
+			continue
+		}
+		validatedFolderAndNotes := []string{}
+
+		/*
+			Goes through each path in a notes.json and checks if the
+			note at the given path exists, and that the given note includes
+			the tag folder in its markdown.
+	 	*/
+		for _, folderAndNoteString := range tagJson.Notes {
+			folderAndNoteArr := strings.Split(folderAndNoteString, "/")
+			folder := folderAndNoteArr[0]
+			note := folderAndNoteArr[1]
+			pathToNote := filepath.Join(t.ProjectPath, "notes", folder, note)
+			markdownContentBytes, err := os.ReadFile(pathToNote)
+
+			// if the note does not exist anymore then we need to skip/remove it
+			if err != nil {
+				continue
+			}
+
+			markdownContentAsString := string(markdownContentBytes)
+			tagsExtractedFromMarkdown := note_helpers.GetTags(
+				note_helpers.ExcludeFrontmatter(
+					note_helpers.ExcludeCodeBlocks(markdownContentAsString),
+				),
+			)
+			isTagFolderNamePresentInMarkdown := false
+			for _, tag := range tagsExtractedFromMarkdown{
+				if tag == "#"+tagFolder.Name() {
+					isTagFolderNamePresentInMarkdown = true
+					break
+				}
+			}
+
+			/*
+				The tag folder that the iteration is currently in is
+				not present in the note. Therefore, the note and folder
+				should be skipped/removed from the tag folder's notes.json file
+		 	*/
+			if !isTagFolderNamePresentInMarkdown{
+				continue
+			}
+
+			validatedFolderAndNotes = append(validatedFolderAndNotes, folderAndNoteString)
+
+			fmt.Println(folderAndNoteString, tagsExtractedFromMarkdown, isTagFolderNamePresentInMarkdown)
+		}
+		tagJson.Notes=validatedFolderAndNotes
+		io_helpers.WriteJsonToPath(pathToTagNotes, tagJson)
+
+		tags = append(tags, tagFolder.Name())
 	}
 
 	return TagResponseWithData{

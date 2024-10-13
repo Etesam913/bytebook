@@ -1,4 +1,4 @@
-import { useAtomValue } from "jotai";
+import { useAtomValue } from "jotai/react";
 import { Link } from "wouter";
 import { foldersAtom } from "../../atoms";
 import { Ufo } from "../../icons/ufo";

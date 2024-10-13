@@ -119,11 +119,6 @@ export async function onFolderDialogSubmit(
 						`/${encodeURIComponent(newFolderNameString)}/Untitled?ext=md`,
 					);
 				else throw new Error(addNoteRes.message);
-
-				toast.success(
-					`Folder, "${newFolderNameString}", successfully created.`,
-					DEFAULT_SONNER_OPTIONS,
-				);
 			} else if (action === "rename") {
 				if (!folderToBeRenamed) throw new Error("Something went wrong");
 				const res = await RenameFolder(folderToBeRenamed, newFolderNameString);

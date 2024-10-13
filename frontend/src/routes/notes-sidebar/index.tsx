@@ -167,10 +167,7 @@ export function NotesSidebar({
 														newNoteNameString,
 													);
 													if (!res.success) throw new Error(res.message);
-													toast.success(
-														`Note, "${newNoteNameString}", successfully created.`,
-														DEFAULT_SONNER_OPTIONS,
-													);
+
 													navigate(
 														`/${decodeURIComponent(
 															folder,
