@@ -171,7 +171,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 				style={{ width }}
 				className="text-md flex h-screen flex-col pt-[3.8rem]"
 			>
-				<header className="px-[10px]">
+				<header className="px-[10px] border-b border-zinc-200 dark:border-zinc-700">
 					<SearchBar />
 					<MotionButton
 						{...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
@@ -191,7 +191,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 						Create Folder <FolderPlus className="will-change-transform" />
 					</MotionButton>
 				</header>
-				<section className="flex flex-1 flex-col gap-2 overflow-y-scroll ">
+				<section className="flex flex-1 flex-col gap-2 overflow-y-scroll py-1.5">
 					<div className="flex h-full flex-col overflow-y-scroll gap-1 px-[10px]">
 						<PinnedNotesAccordion />
 						<RecentNotesAccordion />
