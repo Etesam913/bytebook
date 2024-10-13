@@ -161,6 +161,54 @@ func (t *TagsService) DeletePathFromTag(tagName string, notePath string) TagResp
 		Message: "Successfully Deleted Path From Tag",
 	}
 }
+
+// doesFolderAndNoteContainTagName checks if a given note contains a specific tag name.
+// Parameters:
+//
+//	projectPath: The root path of the project.
+//	folderAndNote: The folder and note path in the format "folder/note".
+//	tagName: The tag name to check for in the note.
+//
+// Returns:
+//
+//	A boolean indicating whether the note contains the specified tag name.
+func doesFolderAndNoteContainTagName(projectPath, folderAndNote, tagName string) bool {
+	folderAndNoteArr := strings.Split(folderAndNote, "/")
+	folder := folderAndNoteArr[0]
+	note := folderAndNoteArr[1]
+
+	pathToNote := filepath.Join(projectPath, "notes", folder, note)
+	markdownContentBytes, err := os.ReadFile(pathToNote)
+
+	// if the note does not exist anymore then we need to skip/remove it
+	if err != nil {
+		return false
+	}
+
+	markdownContentAsString := string(markdownContentBytes)
+	tagsExtractedFromMarkdown := note_helpers.GetTags(
+		note_helpers.ExcludeFrontmatter(
+			note_helpers.ExcludeCodeBlocks(markdownContentAsString),
+		),
+	)
+
+	isTagFolderNamePresentInMarkdown := false
+
+	// Checks if any of the tags present in the note is tagName
+	for _, tag := range tagsExtractedFromMarkdown {
+		if tag == "#"+tagName {
+			isTagFolderNamePresentInMarkdown = true
+			break
+		}
+	}
+
+	if !isTagFolderNamePresentInMarkdown {
+		return false
+	}
+
+	return true
+}
+
 /*
 GetTags retrieves a list of all tag names in the project.
 It scans the "tags" directory within the project path and returns the names of all subdirectories.
@@ -196,43 +244,11 @@ func (t *TagsService) GetTags() TagResponseWithData{
 			the tag folder in its markdown.
 	 	*/
 		for _, folderAndNoteString := range tagJson.Notes {
-			folderAndNoteArr := strings.Split(folderAndNoteString, "/")
-			folder := folderAndNoteArr[0]
-			note := folderAndNoteArr[1]
-			pathToNote := filepath.Join(t.ProjectPath, "notes", folder, note)
-			markdownContentBytes, err := os.ReadFile(pathToNote)
-
-			// if the note does not exist anymore then we need to skip/remove it
-			if err != nil {
-				continue
-			}
-
-			markdownContentAsString := string(markdownContentBytes)
-			tagsExtractedFromMarkdown := note_helpers.GetTags(
-				note_helpers.ExcludeFrontmatter(
-					note_helpers.ExcludeCodeBlocks(markdownContentAsString),
-				),
-			)
-			isTagFolderNamePresentInMarkdown := false
-			for _, tag := range tagsExtractedFromMarkdown{
-				if tag == "#"+tagFolder.Name() {
-					isTagFolderNamePresentInMarkdown = true
-					break
-				}
-			}
-
-			/*
-				The tag folder that the iteration is currently in is
-				not present in the note. Therefore, the note and folder
-				should be skipped/removed from the tag folder's notes.json file
-		 	*/
-			if !isTagFolderNamePresentInMarkdown{
+			if doesContainTag := doesFolderAndNoteContainTagName(t.ProjectPath, folderAndNoteString, tagFolder.Name()); !doesContainTag {
 				continue
 			}
 
 			validatedFolderAndNotes = append(validatedFolderAndNotes, folderAndNoteString)
-
-			fmt.Println(folderAndNoteString, tagsExtractedFromMarkdown, isTagFolderNamePresentInMarkdown)
 		}
 		tagJson.Notes=validatedFolderAndNotes
 		io_helpers.WriteJsonToPath(pathToTagNotes, tagJson)
@@ -274,10 +290,15 @@ func (t *TagsService) GetNotesFromTag(tagName string) TagResponseWithData {
 	notesWithQueryParamExtension := []string{}
 
 	// Using the query param syntax that the app supports
-	for _, file := range tagJson.Notes {
-		indexOfDot := strings.LastIndex(file, ".")
-		name := file[:indexOfDot]
-		extension := file[indexOfDot+1:]
+	for _, folderAndNoteString := range tagJson.Notes {
+
+		if doesContainTag := doesFolderAndNoteContainTagName(t.ProjectPath, folderAndNoteString, tagName); !doesContainTag {
+			continue
+		}
+
+		indexOfDot := strings.LastIndex(folderAndNoteString, ".")
+		name := folderAndNoteString[:indexOfDot]
+		extension := folderAndNoteString[indexOfDot+1:]
 		notesWithQueryParamExtension = append(
 			notesWithQueryParamExtension,
 			fmt.Sprintf("%s?ext=%s", name, extension),

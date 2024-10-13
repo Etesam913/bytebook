@@ -144,10 +144,13 @@ export function useMutationListener(
 			if (!deletePathFromTagResponse.success)
 				throw new Error(deletePathFromTagResponse.message);
 
-			// Update the tags in the ui
-			const newTagsResponse = await GetTags();
-			if (!newTagsResponse.success) throw new Error(newTagsResponse.message);
-			setTags(newTagsResponse.data);
+			// Update the tags in the background after 2 seconds, so that there is enough time for the new markdown to be saved before being read
+			setTimeout(async () => {
+				// Update the tags in the ui
+				const newTagsResponse = await GetTags();
+				if (!newTagsResponse.success) throw new Error(newTagsResponse.message);
+				setTags(newTagsResponse.data);
+			}, 2000);
 		},
 		onError: (e) => {
 			if (e instanceof Error) {
@@ -164,12 +167,16 @@ export function useMutationListener(
 				throw new Error("Folder or note is missing");
 			}
 			const res = await AddPathToTag(tag, `${folder}/${note}.md`);
+			console.log(res);
 			if (!res.success) throw new Error(res.message);
 
-			// Update the tags in the ui
-			const newTagsResponse = await GetTags();
-			if (!newTagsResponse.success) throw new Error(newTagsResponse.message);
-			setTags(newTagsResponse.data);
+			// Update the tags in the background after 2 seconds, so that there is enough time for the new markdown to be saved before being read
+			setTimeout(async () => {
+				// Update the tags in the ui
+				const newTagsResponse = await GetTags();
+				if (!newTagsResponse.success) throw new Error(newTagsResponse.message);
+				setTags(newTagsResponse.data);
+			}, 2000);
 		},
 		onError: (e) => {
 			if (e instanceof Error) {
