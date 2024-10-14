@@ -1,7 +1,7 @@
 import { type MotionValue, motion } from "framer-motion";
-import { useAtom } from "jotai/react";
+import { useAtom, useAtomValue } from "jotai/react";
 import { useEffect, useRef } from "react";
-import { notesAtom } from "../../atoms";
+import { isNoteMaximizedAtom, notesAtom } from "../../atoms";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { TagIcon } from "../../icons/tag";
 import { updateTagNotes } from "../../utils/fetch-functions";
@@ -20,6 +20,7 @@ export function TagsSidebar({
 	const sidebarRef = useRef<HTMLElement>(null);
 	const { tagName, note, folder } = params;
 	const [notes, setNotes] = useAtom(notesAtom);
+	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 
 	useEffect(() => {
 		updateTagNotes(tagName, setNotes);
@@ -27,32 +28,34 @@ export function TagsSidebar({
 
 	return (
 		<>
-			<motion.aside
-				ref={sidebarRef}
-				style={{ width }}
-				className="text-md flex h-screen flex-col  pb-3.5"
-			>
-				<div className="flex h-full flex-col overflow-y-auto pl-1.5 pr-2.5 relative">
-					<section className="flex items-center min-h-[3.625rem] gap-2">
-						<TagIcon className="min-w-[1.25rem]" width={20} height={20} />
-						{tagName}
-					</section>
+			{!isNoteMaximized && (
+				<motion.aside
+					ref={sidebarRef}
+					style={{ width }}
+					className="text-md flex h-screen flex-col  pb-3.5"
+				>
+					<div className="flex h-full flex-col overflow-y-auto pl-1.5 pr-2.5 relative">
+						<section className="flex items-center min-h-[3.625rem] gap-2">
+							<TagIcon className="min-w-[1.25rem]" width={20} height={20} />
+							{tagName}
+						</section>
 
-					<section className="flex flex-col gap-2 overflow-y-auto flex-1">
-						<div className="flex h-full flex-col overflow-y-auto">
-							<MyNotesAccordion
-								tagState={{
-									tagName,
-								}}
-								notes={notes}
-								noteCount={10}
-								curFolder={folder ?? ""}
-								curNote={note ?? ""}
-							/>
-						</div>
-					</section>
-				</div>
-			</motion.aside>
+						<section className="flex flex-col gap-2 overflow-y-auto flex-1">
+							<div className="flex h-full flex-col overflow-y-auto">
+								<MyNotesAccordion
+									tagState={{
+										tagName,
+									}}
+									notes={notes}
+									noteCount={notes?.length ?? 0}
+									curFolder={folder ?? ""}
+									curNote={note ?? ""}
+								/>
+							</div>
+						</section>
+					</div>
+				</motion.aside>
+			)}
 			<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
 			{folder && note && (
 				<RenderNote folder={folder} note={note} fileExtension="md" />

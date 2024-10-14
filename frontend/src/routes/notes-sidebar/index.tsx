@@ -1,7 +1,6 @@
 import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { AddNoteToFolder } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import {
@@ -33,7 +32,6 @@ import {
 	updateNotes,
 } from "../../utils/fetch-functions";
 import { useSearchParamsEntries } from "../../utils/hooks.tsx";
-import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc.ts";
 import { useCustomNavigate } from "../../utils/routing.ts";
 import { validateName } from "../../utils/string-formatting.ts";
 import { MyNotesAccordion } from "./my-notes-accordion.tsx";

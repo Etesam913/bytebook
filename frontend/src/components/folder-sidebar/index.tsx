@@ -171,7 +171,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 				style={{ width }}
 				className="text-md flex h-screen flex-col pt-[3.8rem]"
 			>
-				<header className="px-[10px] border-b border-zinc-200 dark:border-zinc-700">
+				<header className="px-[10px]">
 					<SearchBar />
 					<MotionButton
 						{...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
