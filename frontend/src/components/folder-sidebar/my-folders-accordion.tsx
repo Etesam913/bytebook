@@ -1,12 +1,20 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { type CSSProperties, useState } from "react";
-import { WINDOW_ID } from "../../App.tsx";
-import { alphabetizedFoldersAtom, draggedElementAtom } from "../../atoms.ts";
+import { useState } from "react";
+
+import {
+	alphabetizedFoldersAtom,
+	contextMenuDataAtom,
+	draggedElementAtom,
+} from "../../atoms.ts";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { FolderOpen } from "../../icons/folder-open.tsx";
 import { Folder } from "../../icons/folder.tsx";
 import { useCustomNavigate } from "../../utils/routing.ts";
+
+import { Finder } from "../../icons/finder.tsx";
+import { FolderPen } from "../../icons/folder-pen.tsx";
+import { FolderXMark } from "../../icons/folder-xmark.tsx";
 import { removeNotesFromSelection } from "../../utils/selection.ts";
 import { cn } from "../../utils/string-formatting.ts";
 import { AccordionButton } from "../sidebar/accordion-button.tsx";
@@ -23,6 +31,7 @@ export function MyFoldersAccordion({
 	const setDraggedElement = useSetAtom(draggedElementAtom);
 	const { navigate } = useCustomNavigate();
 	const [isOpen, setIsOpen] = useState(true);
+	const setContextMenuData = useSetAtom(contextMenuDataAtom);
 
 	return (
 		<section>
@@ -61,7 +70,7 @@ export function MyFoldersAccordion({
 					>
 						<Sidebar
 							contentType="folder"
-							layoutId="my-folders-accordion"
+							layoutId="folder-sidebar "
 							emptyElement={
 								<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
 									Create a folder with the "Create Folder" button above
@@ -101,7 +110,53 @@ export function MyFoldersAccordion({
 											if (e.metaKey || e.shiftKey) return;
 											navigate(`/${encodeURIComponent(sidebarFolderName)}`);
 										}}
-										onContextMenu={() => {
+										onContextMenu={(e) => {
+											setContextMenuData({
+												x: e.clientX,
+												y: e.clientY,
+												isShowing: true,
+												items: [
+													{
+														label: (
+															<span className="flex items-center gap-1.5">
+																<Finder
+																	width={17}
+																	height={17}
+																	className="will-change-transform"
+																/>{" "}
+																Reveal In Finder
+															</span>
+														),
+														value: "reveal-in-finder",
+													},
+													{
+														label: (
+															<span className="flex items-center gap-1.5">
+																<FolderPen
+																	width={17}
+																	height={17}
+																	className="will-change-transform"
+																/>{" "}
+																Rename Folder
+															</span>
+														),
+														value: "rename-folder",
+													},
+													{
+														label: (
+															<span className="flex items-center gap-1.5">
+																<FolderXMark
+																	width={17}
+																	height={17}
+																	className="will-change-transform"
+																/>{" "}
+																Delete Folder
+															</span>
+														),
+														value: "delete-folder",
+													},
+												],
+											});
 											if (selectionRange.size === 0) {
 												setSelectionRange(
 													new Set([`folder:${sidebarFolderName}`]),
@@ -141,13 +196,13 @@ export function MyFoldersAccordion({
 								);
 							}}
 							data={alphabetizedFolders}
-							getContextMenuStyle={(folderName) =>
-								({
-									"--custom-contextmenu": "folder-context-menu",
-									// WINDOW_ID is needed to only show the delete modal on the current window
-									"--custom-contextmenu-data": [folderName, WINDOW_ID],
-								}) as CSSProperties
-							}
+							// getContextMenuStyle={(folderName) =>
+							// 	({
+							// 		"--custom-contextmenu": "folder-context-menu",
+							// 		// WINDOW_ID is needed to only show the delete modal on the current window
+							// 		"--custom-contextmenu-data": [folderName, WINDOW_ID],
+							// 	}) as CSSProperties
+							// }
 						/>
 					</motion.div>
 				)}

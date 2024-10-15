@@ -102,3 +102,10 @@ export type NavigateFunction = <S = any>(
 		state?: S;
 	},
 ) => Promise<void>;
+
+export type ContextMenuData = {
+	isShowing: boolean;
+	items: DropdownItem[];
+	x: number;
+	y: number;
+};

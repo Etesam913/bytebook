@@ -3,6 +3,7 @@ import type { LexicalEditor } from "lexical";
 import type { MutableRefObject } from "react";
 import type {
 	BackendQueryDataType,
+	ContextMenuData,
 	DialogDataType,
 	ProjectSettings,
 	SearchPanelDataType,
@@ -105,6 +106,13 @@ export const dialogDataAtom = atom<DialogDataType>({
 export const backendQueryAtom = atom<BackendQueryDataType>({
 	isLoading: false,
 	message: "",
+});
+
+export const contextMenuDataAtom = atom<ContextMenuData>({
+	isShowing: false,
+	options: [],
+	x: 0,
+	y: 0,
 });
 
 export const draggedElementAtom = atom<HTMLElement | null>(null);

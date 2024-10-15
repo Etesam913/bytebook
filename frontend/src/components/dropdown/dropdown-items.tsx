@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import type { SetStateAction } from "jotai/ts3.8/esm/vanilla";
-import { type Dispatch, useEffect, useRef } from "react";
+import { type CSSProperties, type Dispatch, useEffect, useRef } from "react";
 import { easingFunctions } from "../../animations";
 import type { DropdownItem } from "../../types";
 import { cn } from "../../utils/string-formatting";
@@ -15,6 +15,7 @@ export function DropdownItems({
 	focusIndex,
 	className,
 	selectedItem,
+	style,
 }: {
 	items: DropdownItem[];
 	isOpen: boolean;
@@ -25,6 +26,7 @@ export function DropdownItems({
 	focusIndex: number | null;
 	className?: string;
 	selectedItem?: string;
+	style?: CSSProperties;
 }) {
 	const dropdownItemsRef = useRef<HTMLDivElement>(null);
 
@@ -49,6 +51,7 @@ export function DropdownItems({
 						"absolute z-20 w-full translate-y-1 overflow-hidden rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700",
 						className,
 					)}
+					style={style}
 					exit={{
 						borderColor: "transparent",
 						transition: {

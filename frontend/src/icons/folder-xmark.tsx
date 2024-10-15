@@ -1,17 +1,20 @@
 export function FolderXMark({
-	width = "1.25rem",
-	height = "1.25rem",
+	width = 20,
+	height = 20,
 	fill = "currentColor",
 	title = "folder-x-mark",
+	className = "",
 }: {
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	fill?: string;
 	title?: string;
+	className?: string;
 }) {
 	return (
 		<svg
-			style={{ width, height }}
+			className={className}
+			style={{ width: `${width}px`, height: `${height}px` }}
 			viewBox="0 0 18 18"
 			xmlns="http://www.w3.org/2000/svg"
 		>

@@ -8,7 +8,7 @@ import { Sidebar } from "../sidebar";
 import { AccordionButton } from "../sidebar/accordion-button";
 
 export function MyTagsAccordion() {
-	const [isOpen, setIsOpen] = useState(true);
+	const [isOpen, setIsOpen] = useState(false);
 	const alphabetizedTags = useAtomValue(alphabetizedTagsAtom);
 	const hasTags = alphabetizedTags && alphabetizedTags.length > 0;
 	const { navigate } = useCustomNavigate();
@@ -43,7 +43,7 @@ export function MyTagsAccordion() {
 						className="overflow-hidden hover:overflow-auto pl-1"
 					>
 						<Sidebar
-							layoutId="my-tags-accordion"
+							layoutId="folder-sidebar"
 							emptyElement={
 								<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
 									Type #tagName in a note to create a tag

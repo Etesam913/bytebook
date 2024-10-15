@@ -1,8 +1,9 @@
 import { useMotionValue } from "framer-motion";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai/react";
 import { Toaster } from "sonner";
 import { Route, Switch } from "wouter";
-import { isNoteMaximizedAtom } from "./atoms";
+import { contextMenuDataAtom, isNoteMaximizedAtom } from "./atoms";
+import { ContextMenu } from "./components/context-menu";
 import { Dialog } from "./components/dialog";
 import { FolderSidebar } from "./components/folder-sidebar";
 import { LoadingModal } from "./components/loading-modal";
@@ -24,6 +25,7 @@ function App() {
 	const folderSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
 	const notesSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+	const setContextMenuData = useSetAtom(contextMenuDataAtom);
 
 	useUserData();
 	useLoggedInEvent();
@@ -36,7 +38,12 @@ function App() {
 		<main
 			id="App"
 			className="flex max-h-screen font-display text-zinc-950 dark:text-zinc-100 overflow-hidden"
+			onClick={() =>
+				setContextMenuData((prev) => ({ ...prev, isShowing: false }))
+			}
+			onContextMenu={(e) => e.preventDefault()}
 		>
+			<ContextMenu />
 			<Dialog />
 			<SearchPanel />
 			<LoadingModal />
