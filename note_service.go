@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/lib/project_types"
 )
 
 type NoteService struct {
@@ -294,4 +295,14 @@ func (n *NoteService) GetNoteCount(folderName string) NoteCountResponse {
 		Message: "",
 		Data:    count,
 	}
+}
+
+
+func (n *NoteService) RevealNoteInFinder(folderName string, noteName string) project_types.BackendResponseWithoutData {
+	notePath := filepath.Join(n.ProjectPath, "notes", folderName, noteName)
+	err := io_helpers.RevealInFinder(notePath)
+	if err != nil {
+		return project_types.BackendResponseWithoutData{Success: false, Message: "Could not reveal folder in finder"}
+	}
+	return project_types.BackendResponseWithoutData{Success: true, Message: ""}
 }

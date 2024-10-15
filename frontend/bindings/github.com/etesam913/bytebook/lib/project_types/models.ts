@@ -5,6 +5,31 @@
 // @ts-ignore: Unused imports
 import {Create as $Create} from "@wailsio/runtime";
 
+export class BackendResponseWithoutData {
+    "success": boolean;
+    "message": string;
+
+    /** Creates a new BackendResponseWithoutData instance. */
+    constructor($$source: Partial<BackendResponseWithoutData> = {}) {
+        if (!("success" in $$source)) {
+            this["success"] = false;
+        }
+        if (!("message" in $$source)) {
+            this["message"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new BackendResponseWithoutData instance from a string or object.
+     */
+    static createFrom($$source: any = {}): BackendResponseWithoutData {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new BackendResponseWithoutData($$parsedSource as Partial<BackendResponseWithoutData>);
+    }
+}
+
 export class ProjectSettingsJson {
     "pinnedNotes": string[];
     "projectPath": string;

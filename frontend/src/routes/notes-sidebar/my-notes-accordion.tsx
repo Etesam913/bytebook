@@ -1,13 +1,14 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai/react";
-import type { CSSProperties } from "react";
+import { useAtom, useSetAtom } from "jotai/react";
 import {
+	contextMenuDataAtom,
 	draggedElementAtom,
 	noteSortAtom,
-	selectionRangeAtom,
 } from "../../atoms";
 import { SortButton } from "../../components/buttons/sort";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
+import { useNoteRevealInFinderMutation } from "../../hooks/note-events.tsx";
+import { Finder } from "../../icons/finder.tsx";
 import { Note } from "../../icons/page";
 import { useSearchParamsEntries } from "../../utils/hooks";
 import { useCustomNavigate } from "../../utils/routing";
@@ -31,14 +32,14 @@ export function MyNotesAccordion({
 	};
 }) {
 	const searchParams: { ext?: string } = useSearchParamsEntries();
+	const { mutate: revealInFinderMutation } = useNoteRevealInFinderMutation();
 	const isInTagSidebar = tagState?.tagName !== undefined;
-
+	const setContextMenuData = useSetAtom(contextMenuDataAtom);
 	// The sidebar note name includes the folder name if it's in a tag sidebar
 	const sidebarNoteNameWithExtension = `${
 		isInTagSidebar ? `${curFolder}/` : ""
 	}${curNote}?ext=${searchParams.ext}`;
 
-	const selectionRange = useAtomValue(selectionRangeAtom);
 	const setDraggedElement = useSetAtom(draggedElementAtom);
 	const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);
 	const { navigate } = useCustomNavigate();
@@ -91,18 +92,45 @@ export function MyNotesAccordion({
 									curFolder,
 								)
 							}
-							onContextMenu={() => {
+							onContextMenu={(e) => {
+								let newSelectionRange = new Set([`note:${sidebarNoteName}`]);
 								if (selectionRange.size === 0) {
 									setSelectionRange(new Set([`note:${sidebarNoteName}`]));
 								} else {
 									setSelectionRange((prev) => {
 										const setWithoutNotes = removeFoldersFromSelection(prev);
 										setWithoutNotes.add(`note:${sidebarNoteName}`);
+										newSelectionRange = setWithoutNotes;
 										return setWithoutNotes;
 									});
 								}
+
+								setContextMenuData({
+									x: e.clientX,
+									y: e.clientY,
+									isShowing: true,
+									items: [
+										{
+											label: (
+												<span className="flex items-center gap-1.5">
+													<Finder
+														width={17}
+														height={17}
+														className="will-change-transform"
+													/>{" "}
+													Reveal In Finder
+												</span>
+											),
+											value: "reveal-in-finder",
+											onChange: () =>
+												revealInFinderMutation({
+													selectionRange: newSelectionRange,
+													folder: curFolder,
+												}),
+										},
+									],
+								});
 							}}
-							// target="_blank"
 							className={cn(
 								"sidebar-item",
 								sidebarNoteNameWithExtension === sidebarNoteName &&
@@ -132,23 +160,6 @@ export function MyNotesAccordion({
 						</button>
 					);
 				}}
-				getContextMenuStyle={() =>
-					({
-						"--custom-contextmenu": "note-context-menu",
-						"--custom-contextmenu-data": [...selectionRange].map(
-							(selectionRangeItem) => {
-								const indexOfColon = selectionRangeItem.indexOf(":");
-								const noteNameWithExtension = selectionRangeItem.substring(
-									indexOfColon + 1,
-								);
-								const noteNameWithoutExtension =
-									noteNameWithExtension.split("?ext=")[0];
-								const extension = noteNameWithExtension.split("?ext=")[1];
-								return `${curFolder}/${noteNameWithoutExtension}.${extension}`;
-							},
-						),
-					}) as CSSProperties
-				}
 			/>
 		</div>
 	);

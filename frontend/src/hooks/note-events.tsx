@@ -1,9 +1,14 @@
+import { useMutation } from "@tanstack/react-query";
 import { Events } from "@wailsio/runtime";
 import { useSetAtom } from "jotai/react";
 import type { Dispatch, SetStateAction } from "react";
+import { toast } from "sonner";
+import { RevealNoteInFinder } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { selectionRangeAtom } from "../atoms";
 import { getNoteCount } from "../utils/fetch-functions";
 import { useWailsEvent } from "../utils/hooks";
+import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
+import { extractInfoFromNoteName } from "../utils/string-formatting";
 
 /** This function is used to handle note:create events */
 export function useNoteCreate(
@@ -19,7 +24,7 @@ export function useNoteCreate(
 		/*
 		If none of the added notes are in the current folder, then don't update the notes
 		This can be triggered when there are multple windows open
-		
+
 		There is notes.includes to deal with the Untitled Note race condition
     */
 		const filteredNotes = data
@@ -101,5 +106,43 @@ export function useNoteSelectionClear() {
 	const setSelectionRange = useSetAtom(selectionRangeAtom);
 	useWailsEvent("note:clear-selection", () => {
 		setSelectionRange(new Set());
+	});
+}
+
+/** Custom hook to handle revealing folders in Finder */
+export function useNoteRevealInFinderMutation() {
+	return useMutation({
+		// The main function that handles revealing folders in Finder
+		mutationFn: async ({
+			selectionRange,
+			folder,
+		}: { selectionRange: Set<string>; folder: string }) => {
+			// Limit the number of folders to reveal to 5
+			const selectedFolders = [...selectionRange].slice(0, 5);
+
+			// Reveal each selected folder in Finder
+			const res = await Promise.all(
+				selectedFolders.map(async (note) => {
+					const noteWithoutWithoutPrefix = note.split(":")[1];
+					const { noteNameWithoutExtension, queryParams } =
+						extractInfoFromNoteName(noteWithoutWithoutPrefix);
+					return await RevealNoteInFinder(
+						folder,
+						`${noteNameWithoutExtension}.${queryParams.ext}`,
+					);
+				}),
+			);
+
+			// Check if any folder failed to reveal
+			if (res.some((r) => !r.success)) {
+				throw new Error("Failed to reveal folder in finder");
+			}
+		},
+		// Handle errors that occur during the mutation
+		onError: (e) => {
+			if (e instanceof Error) {
+				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+			}
+		},
 	});
 }

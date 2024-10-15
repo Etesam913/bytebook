@@ -60,7 +60,7 @@ export function Image({
 			{isLoading ? (
 				<div
 					ref={loaderRef}
-					className="my-3 w-full h-[36rem] bg-gray-300 animate-pulse"
+					className="my-3 w-full h-[36rem] bg-gray-300 animate-pulse pointer-events-none"
 				/>
 			) : (
 				<ResizeContainer
