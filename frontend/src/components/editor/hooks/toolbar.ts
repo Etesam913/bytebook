@@ -167,7 +167,6 @@ export function useMutationListener(
 				throw new Error("Folder or note is missing");
 			}
 			const res = await AddPathToTag(tag, `${folder}/${note}.md`);
-			console.log(res);
 			if (!res.success) throw new Error(res.message);
 
 			// Update the tags in the background after 2 seconds, so that there is enough time for the new markdown to be saved before being read

@@ -387,11 +387,10 @@ func RevealInFinder(fileOrDir string) error {
 	if err != nil {
 		return fmt.Errorf("failed to stat file or directory: %v", fileOrDir)
 	}
-
 	// Run the open command with or without -R based on if fileOrDir is a directory
 	var args []string
 	if info.IsDir() {
-		args = []string{fileOrDir}
+		args = []string{"-R", fileOrDir}
 	} else {
 		args = []string{"-R", fileOrDir}
 	}

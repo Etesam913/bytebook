@@ -1,4 +1,4 @@
-import { useAtom } from "jotai/react";
+import { useAtom, useAtomValue } from "jotai/react";
 import {
 	type CSSProperties,
 	type Dispatch,
@@ -9,7 +9,7 @@ import {
 	useState,
 } from "react";
 import { useParams } from "wouter";
-import { selectionRangeAtom } from "../../atoms";
+import { contextMenuRefAtom, selectionRangeAtom } from "../../atoms";
 import { useListVirtualization, useOnClickOutside } from "../../utils/hooks";
 import { SidebarItems } from "./sidebar-items";
 
@@ -42,8 +42,11 @@ export function Sidebar({
 	const listScrollContainerRef = useRef<HTMLDivElement>(null);
 	const listRef = useRef<HTMLUListElement>(null);
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
+	const contextMenuRef = useAtomValue(contextMenuRefAtom);
 
-	useOnClickOutside(listRef, () => {
+	useOnClickOutside(listRef, (e) => {
+		// We need to use the selectionRange for the context menu so early return for this case
+		if (contextMenuRef?.current?.contains(e.target as Node)) return;
 		if (selectionRange.size === 0 || contentType === undefined) return;
 		const selectionSetAsArray = Array.from(selectionRange);
 		/*

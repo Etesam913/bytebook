@@ -108,9 +108,11 @@ export const backendQueryAtom = atom<BackendQueryDataType>({
 	message: "",
 });
 
+export const contextMenuRefAtom =
+	atom<MutableRefObject<HTMLElement | null> | null>(null);
 export const contextMenuDataAtom = atom<ContextMenuData>({
 	isShowing: false,
-	options: [],
+	items: [],
 	x: 0,
 	y: 0,
 });
