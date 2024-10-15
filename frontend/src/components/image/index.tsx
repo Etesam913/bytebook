@@ -1,5 +1,7 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { useShowWhenInViewport } from "../../hooks/observers";
+import { Loader } from "../../icons/loader";
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
@@ -20,6 +22,8 @@ export function Image({
 }) {
 	const imgRef = useRef<HTMLImageElement>(null);
 	const [editor] = useLexicalComposerContext();
+	const [isLoading, setIsLoading] = useState(true);
+	const loaderRef = useRef<HTMLDivElement>(null); // Reference for loader
 
 	const {
 		isResizing,
@@ -42,6 +46,8 @@ export function Image({
 		imgRef,
 	);
 
+	useShowWhenInViewport(loaderRef, setIsLoading);
+
 	return (
 		<div
 			className="mr-2 inline-block"
@@ -51,30 +57,37 @@ export function Image({
 				e.stopPropagation();
 			}}
 		>
-			<ResizeContainer
-				resizeState={{
-					isResizing,
-					setIsResizing,
-					isSelected,
-					setSelected,
-					isExpanded,
-					setIsExpanded,
-				}}
-				element={imgRef.current}
-				nodeKey={nodeKey}
-				defaultWidth={widthWrittenToNode}
-				writeWidthToNode={writeWidthToNode}
-				elementType="default"
-			>
-				<img
-					src={src}
-					ref={imgRef}
-					alt={alt}
-					draggable={false}
-					className={cn("w-full h-auto my-auto scroll-m-10")}
-					data-lexical-decorator="true"
+			{isLoading ? (
+				<div
+					ref={loaderRef}
+					className="my-3 w-full h-[36rem] bg-gray-300 animate-pulse"
 				/>
-			</ResizeContainer>
+			) : (
+				<ResizeContainer
+					resizeState={{
+						isResizing,
+						setIsResizing,
+						isSelected,
+						setSelected,
+						isExpanded,
+						setIsExpanded,
+					}}
+					element={imgRef.current}
+					nodeKey={nodeKey}
+					defaultWidth={widthWrittenToNode}
+					writeWidthToNode={writeWidthToNode}
+					elementType="default"
+				>
+					<img
+						src={src}
+						ref={imgRef}
+						alt={alt}
+						draggable={false}
+						className={cn("w-full h-auto my-auto scroll-m-10")}
+						data-lexical-decorator="true"
+					/>
+				</ResizeContainer>
+			)}
 		</div>
 	);
 }

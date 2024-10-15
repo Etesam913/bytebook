@@ -151,6 +151,10 @@ export function ResizeContainer({
 			</motion.div>
 			{isExpanded && (
 				<>
+					<div
+						onClick={() => setIsExpanded(false)}
+						className="fixed z-10 w-screen h-screen bg-[rgba(0,0,0,0.6)] left-0 top-0"
+					/>
 					<motion.button
 						{...getDefaultButtonVariants()}
 						onClick={(e: MouseEvent<HTMLButtonElement>) => {

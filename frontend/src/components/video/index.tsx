@@ -1,9 +1,12 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
 
+import { motion } from "framer-motion";
+import { useShowWhenInViewport } from "../../hooks/observers";
+import { Loader } from "../../icons/loader";
 import { ResizeContainer } from "../resize-container";
 
 export function Video({
@@ -21,6 +24,8 @@ export function Video({
 }) {
 	const [editor] = useLexicalComposerContext();
 	const videoRef = useRef<HTMLVideoElement>(null);
+	const [isLoading, setIsLoading] = useState(true);
+	const loaderRef = useRef<HTMLDivElement>(null); // Reference for loader
 
 	const {
 		isResizing,
@@ -43,40 +48,49 @@ export function Video({
 		videoRef,
 	);
 
+	useShowWhenInViewport(loaderRef, setIsLoading);
+
 	return (
 		<div
-			className="w-fit inline-block"
+			className={"w-full inline-block"}
 			onClick={(e) => {
 				clearSelection();
 				setSelected(true);
 				e.stopPropagation();
 			}}
 		>
-			<ResizeContainer
-				resizeState={{
-					isResizing,
-					setIsResizing,
-					isSelected,
-					setSelected,
-					isExpanded,
-					setIsExpanded,
-				}}
-				element={videoRef.current}
-				nodeKey={nodeKey}
-				defaultWidth={widthWrittenToNode}
-				writeWidthToNode={writeWidthToNode}
-				elementType="default"
-			>
-				<video
-					ref={videoRef}
-					className="w-full h-auto bg-black"
-					title={title}
-					src={`${src}#t=0.001`}
-					controls
-					preload="metadata"
-					crossOrigin="anonymous"
+			{isLoading ? (
+				<div
+					ref={loaderRef}
+					className="my-3 w-full h-[36rem] bg-gray-300 animate-pulse"
 				/>
-			</ResizeContainer>
+			) : (
+				<ResizeContainer
+					resizeState={{
+						isResizing,
+						setIsResizing,
+						isSelected,
+						setSelected,
+						isExpanded,
+						setIsExpanded,
+					}}
+					element={videoRef.current}
+					nodeKey={nodeKey}
+					defaultWidth={widthWrittenToNode}
+					writeWidthToNode={writeWidthToNode}
+					elementType="default"
+				>
+					<video
+						ref={videoRef}
+						className="w-full h-auto bg-black"
+						title={title}
+						src={`${src}#t=0.001`}
+						controls
+						preload="metadata"
+						crossOrigin="anonymous"
+					/>
+				</ResizeContainer>
+			)}
 		</div>
 	);
 }

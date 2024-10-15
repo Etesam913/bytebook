@@ -105,10 +105,10 @@ export function useFolderDialogSubmit() {
 			const formData = new FormData(e.target as HTMLFormElement);
 			const newFolderName = formData.get("folder-name");
 			const { isValid, errorMessage } = validateName(newFolderName, "folder");
-			if (!isValid) throw new Error(errorMessage);
-			if (!newFolderName) return false;
+			if (!isValid && action !== "delete") throw new Error(errorMessage);
+			if (!newFolderName && action !== "delete") return false;
 
-			const newFolderNameString = newFolderName.toString().trim();
+			const newFolderNameString = newFolderName?.toString()?.trim() ?? "";
 
 			// Handle folder creation
 			if (action === "create") {
@@ -139,6 +139,7 @@ export function useFolderDialogSubmit() {
 
 			// Handle folder deletion
 			if (action === "delete") {
+				console.log("bob");
 				if (!folderFromSidebar) throw new Error("Something went wrong");
 				const res = await DeleteFolder(folderFromSidebar);
 				if (!res.success) throw new Error(res.message);
@@ -149,7 +150,7 @@ export function useFolderDialogSubmit() {
 				);
 				if (firstFolderNotDeleted) navigate(`/${firstFolderNotDeleted}`);
 				else navigate("/");
-
+				console.log("should delete");
 				return true;
 			}
 			return false;

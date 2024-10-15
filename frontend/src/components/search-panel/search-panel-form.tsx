@@ -8,7 +8,8 @@ import {
 	mostRecentNotesWithoutQueryParamsAtom,
 	searchPanelDataAtom,
 } from "../../atoms";
-import { useListVirtualization } from "../../utils/hooks";
+
+import { useListVirtualization } from "../../hooks/observers";
 import { useCustomNavigate } from "../../utils/routing";
 import { getFileExtension } from "../../utils/string-formatting";
 import { useTrapFocus } from "../dialog/hooks";

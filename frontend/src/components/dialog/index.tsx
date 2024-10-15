@@ -89,6 +89,7 @@ export function Dialog() {
 							e.preventDefault();
 							if (dialogData.onSubmit) {
 								const result = await dialogData.onSubmit(e, setErrorText);
+								console.log(result);
 								if (result) resetDialogState();
 							}
 						}}

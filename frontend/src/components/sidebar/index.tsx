@@ -10,7 +10,8 @@ import {
 } from "react";
 import { useParams } from "wouter";
 import { contextMenuRefAtom, selectionRangeAtom } from "../../atoms";
-import { useListVirtualization, useOnClickOutside } from "../../utils/hooks";
+import { useListVirtualization } from "../../hooks/observers";
+import { useOnClickOutside } from "../../utils/hooks";
 import { SidebarItems } from "./sidebar-items";
 
 const SIDEBAR_ITEM_HEIGHT = 34;
