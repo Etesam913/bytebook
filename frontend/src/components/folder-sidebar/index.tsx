@@ -13,25 +13,13 @@ import {
 } from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
 import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
-import {
-	dialogDataAtom,
-	foldersAtom,
-	selectionRangeAtom,
-	tagsAtom,
-} from "../../atoms";
+import { dialogDataAtom, foldersAtom, tagsAtom } from "../../atoms";
 import { FolderPlus } from "../../icons/folder-plus";
 
 import {
-	useFolderContextMenuDelete,
-	useFolderContextMenuFindInFinder,
-	useFolderContextMenuRename,
 	useFolderCreate,
 	useFolderDelete,
-	useFolderOpenInNewWindow,
-	useFolderRename,
 } from "../../hooks/folder-events.tsx";
-
-import { Pen } from "../../icons/pen.tsx";
 
 import type { NavigateFunction } from "../../types.ts";
 import {
@@ -42,52 +30,14 @@ import {
 import { useCustomNavigate } from "../../utils/routing.ts";
 import { validateName } from "../../utils/string-formatting.ts";
 import { MotionButton } from "../buttons";
-import { DialogErrorText } from "../dialog/index.tsx";
-import { Input } from "../input/index.tsx";
 import { BottomItems } from "./bottom-items.tsx";
+import { FolderDialogChildren } from "./folder-dialog-children.tsx";
 import { MyFoldersAccordion } from "./my-folders-accordion.tsx";
 import { MyTagsAccordion } from "./my-tags-accordion.tsx";
 import { PinnedNotesAccordion } from "./pinned-notes-accordion.tsx";
 import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { SearchBar } from "./searchbar.tsx";
 import { Spacer } from "./spacer";
-
-export function FolderDialogChildren({
-	errorText,
-	action,
-	folderToBeRenamed,
-}: {
-	errorText: string;
-	action: "create" | "rename";
-	folderToBeRenamed?: string;
-}) {
-	return (
-		<>
-			<fieldset className="flex flex-col">
-				<Input
-					label="New Folder Name"
-					labelProps={{ htmlFor: "folder-name" }}
-					inputProps={{
-						id: "folder-name",
-						name: "folder-name",
-						placeholder: "My Todos",
-						autoFocus: true,
-						defaultValue: action === "rename" ? folderToBeRenamed : "",
-					}}
-				/>
-				<DialogErrorText errorText={errorText} />
-			</fieldset>
-			<MotionButton
-				{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
-				className="w-[calc(100%-1.5rem)] mx-auto justify-center"
-				type="submit"
-			>
-				<span>{action === "create" ? "Create" : "Rename"} Folder</span>{" "}
-				{action === "create" ? <FolderPlus /> : <Pen />}
-			</MotionButton>
-		</>
-	);
-}
 
 export async function onFolderDialogSubmit(
 	e: FormEvent<HTMLFormElement>,
@@ -136,19 +86,14 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
 	const folder = params?.folder;
 	const folders = useAtomValue(foldersAtom);
-	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
+
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const setFolders = useSetAtom(foldersAtom);
 	const setTags = useSetAtom(tagsAtom);
 	const { navigate } = useCustomNavigate();
 
 	useFolderCreate(setFolders);
-	useFolderRename(folder, setFolders);
 	useFolderDelete(setFolders);
-	useFolderOpenInNewWindow(selectionRange, setSelectionRange);
-	useFolderContextMenuRename(setDialogData);
-	useFolderContextMenuDelete(folder, folders, setDialogData, setSelectionRange);
-	useFolderContextMenuFindInFinder(selectionRange, setSelectionRange);
 
 	// Initially fetches folders from filesystem
 	useEffect(() => {
@@ -191,8 +136,8 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 						Create Folder <FolderPlus className="will-change-transform" />
 					</MotionButton>
 				</header>
-				<section className="flex flex-1 flex-col gap-2 overflow-y-scroll py-1.5">
-					<div className="flex h-full flex-col overflow-y-scroll gap-1 px-[10px]">
+				<section className="flex flex-1 flex-col overflow-y-auto gap-2  py-1.5">
+					<div className="flex h-full flex-col  gap-1 px-[10px]">
 						<PinnedNotesAccordion />
 						<RecentNotesAccordion />
 						<MyFoldersAccordion folder={folder} />

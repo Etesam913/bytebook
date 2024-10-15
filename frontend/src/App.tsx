@@ -38,9 +38,11 @@ function App() {
 		<main
 			id="App"
 			className="flex max-h-screen font-display text-zinc-950 dark:text-zinc-100 overflow-hidden"
-			onClick={() =>
-				setContextMenuData((prev) => ({ ...prev, isShowing: false }))
-			}
+			onClick={(e) => {
+				if (!e.ctrlKey) {
+					setContextMenuData((prev) => ({ ...prev, isShowing: false }));
+				}
+			}}
 			onContextMenu={(e) => e.preventDefault()}
 		>
 			<ContextMenu />

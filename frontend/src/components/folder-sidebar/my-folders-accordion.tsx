@@ -1,25 +1,30 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useState } from "react";
 
+import { AnimatePresence, motion } from "framer-motion";
 import {
 	alphabetizedFoldersAtom,
 	contextMenuDataAtom,
+	dialogDataAtom,
 	draggedElementAtom,
+	foldersAtom,
 } from "../../atoms.ts";
-
-import { AnimatePresence, motion } from "framer-motion";
-import { FolderOpen } from "../../icons/folder-open.tsx";
-import { Folder } from "../../icons/folder.tsx";
-import { useCustomNavigate } from "../../utils/routing.ts";
-
+import { useFolderRevealInFinderMutation } from "../../hooks/folder-events.tsx";
 import { Finder } from "../../icons/finder.tsx";
+import { FolderOpen } from "../../icons/folder-open.tsx";
 import { FolderPen } from "../../icons/folder-pen.tsx";
 import { FolderXMark } from "../../icons/folder-xmark.tsx";
+import { Folder } from "../../icons/folder.tsx";
+import { useCustomNavigate } from "../../utils/routing.ts";
 import { removeNotesFromSelection } from "../../utils/selection.ts";
 import { cn } from "../../utils/string-formatting.ts";
 import { AccordionButton } from "../sidebar/accordion-button.tsx";
 import { Sidebar } from "../sidebar/index.tsx";
 import { handleDragStart } from "../sidebar/utils.tsx";
+import { onFolderDialogSubmit } from "./index.tsx";
+
+import { DeleteFolder } from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
+import { FolderDialogChildren } from "./folder-dialog-children.tsx";
 
 export function MyFoldersAccordion({
 	folder,
@@ -32,6 +37,9 @@ export function MyFoldersAccordion({
 	const { navigate } = useCustomNavigate();
 	const [isOpen, setIsOpen] = useState(true);
 	const setContextMenuData = useSetAtom(contextMenuDataAtom);
+	const { mutate: revealInFinderMutation } = useFolderRevealInFinderMutation();
+	const setDialogData = useSetAtom(dialogDataAtom);
+	const folders = useAtomValue(foldersAtom);
 
 	return (
 		<section>
@@ -111,6 +119,22 @@ export function MyFoldersAccordion({
 											navigate(`/${encodeURIComponent(sidebarFolderName)}`);
 										}}
 										onContextMenu={(e) => {
+											let newSelectionRange = new Set([
+												`folder:${sidebarFolderName}`,
+											]);
+											if (selectionRange.size === 0) {
+												setSelectionRange(
+													new Set([`folder:${sidebarFolderName}`]),
+												);
+											} else {
+												setSelectionRange((prev) => {
+													const setWithoutNotes =
+														removeNotesFromSelection(prev);
+													setWithoutNotes.add(`folder:${sidebarFolderName}`);
+													newSelectionRange = setWithoutNotes;
+													return setWithoutNotes;
+												});
+											}
 											setContextMenuData({
 												x: e.clientX,
 												y: e.clientY,
@@ -128,6 +152,10 @@ export function MyFoldersAccordion({
 															</span>
 														),
 														value: "reveal-in-finder",
+														onChange: () =>
+															revealInFinderMutation({
+																selectionRange: newSelectionRange,
+															}),
 													},
 													{
 														label: (
@@ -141,6 +169,27 @@ export function MyFoldersAccordion({
 															</span>
 														),
 														value: "rename-folder",
+														onChange: () => {
+															setDialogData({
+																isOpen: true,
+																title: "Rename Folder",
+																children: (errorText) => (
+																	<FolderDialogChildren
+																		errorText={errorText}
+																		action="rename"
+																		folderName={sidebarFolderName}
+																	/>
+																),
+																onSubmit: async (e, setErrorText) =>
+																	onFolderDialogSubmit(
+																		e,
+																		navigate,
+																		setErrorText,
+																		"rename",
+																		sidebarFolderName,
+																	),
+															});
+														},
 													},
 													{
 														label: (
@@ -154,21 +203,49 @@ export function MyFoldersAccordion({
 															</span>
 														),
 														value: "delete-folder",
+														onChange: () => {
+															setDialogData({
+																isOpen: true,
+																title: "Delete Folder",
+																children: (errorText) => (
+																	<FolderDialogChildren
+																		errorText={errorText}
+																		action="delete"
+																		folderName={sidebarFolderName}
+																	/>
+																),
+																onSubmit: async (_, setErrorText) => {
+																	try {
+																		const res =
+																			await DeleteFolder(sidebarFolderName);
+																		if (!res.success)
+																			throw new Error(res.message);
+																		// Navigate to the first folder that was not deleted
+																		if (
+																			folder &&
+																			folder === sidebarFolderName
+																		) {
+																			const firstFolderNotDeleted =
+																				folders?.find(
+																					(name) => name !== sidebarFolderName,
+																				);
+																			if (firstFolderNotDeleted)
+																				navigate(`/${firstFolderNotDeleted}`);
+																			else navigate("/");
+																			// resetDialogState(setErrorText, setDialogData);
+																		}
+																		return true;
+																	} catch (e) {
+																		if (e instanceof Error)
+																			setErrorText(e.message);
+																		return false;
+																	}
+																},
+															});
+														},
 													},
 												],
 											});
-											if (selectionRange.size === 0) {
-												setSelectionRange(
-													new Set([`folder:${sidebarFolderName}`]),
-												);
-											} else {
-												setSelectionRange((prev) => {
-													const setWithoutNotes =
-														removeNotesFromSelection(prev);
-													setWithoutNotes.add(`folder:${sidebarFolderName}`);
-													return setWithoutNotes;
-												});
-											}
 										}}
 									>
 										{folder &&
@@ -196,13 +273,6 @@ export function MyFoldersAccordion({
 								);
 							}}
 							data={alphabetizedFolders}
-							// getContextMenuStyle={(folderName) =>
-							// 	({
-							// 		"--custom-contextmenu": "folder-context-menu",
-							// 		// WINDOW_ID is needed to only show the delete modal on the current window
-							// 		"--custom-contextmenu-data": [folderName, WINDOW_ID],
-							// 	}) as CSSProperties
-							// }
 						/>
 					</motion.div>
 				)}

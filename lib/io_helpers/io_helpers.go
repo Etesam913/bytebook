@@ -392,7 +392,7 @@ func RevealInFinder(fileOrDir string) error {
 	if info.IsDir() {
 		args = []string{"-R", fileOrDir}
 	} else {
-		args = []string{"-R", fileOrDir}
+		args = []string{fileOrDir}
 	}
 
 	cmd := exec.Command("open", args...)

@@ -19,7 +19,7 @@ export function DropdownItems({
 }: {
 	items: DropdownItem[];
 	isOpen: boolean;
-	setIsOpen: Dispatch<SetStateAction<boolean>>;
+	setIsOpen: Dispatch<SetStateAction<boolean>> | ((value: boolean) => void);
 	setValueIndex?: Dispatch<SetStateAction<number>>;
 	onChange?: (item: DropdownItem) => void;
 	setFocusIndex: Dispatch<SetStateAction<number>>;

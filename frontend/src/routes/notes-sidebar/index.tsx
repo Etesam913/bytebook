@@ -98,7 +98,7 @@ export function NotesSidebar({
 												<FolderDialogChildren
 													errorText={errorText}
 													action="rename"
-													folderToBeRenamed={decodeURIComponent(folder)}
+													folderName={decodeURIComponent(folder)}
 												/>
 											),
 											onSubmit: (e, setErrorText) =>

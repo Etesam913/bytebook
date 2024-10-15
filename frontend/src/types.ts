@@ -12,6 +12,7 @@ export type EditorBlockTypes = HeadingTagType | undefined | string;
 export type DropdownItem = {
 	value: string;
 	label: ReactNode;
+	onChange?: () => void;
 };
 
 export type UserData = {
