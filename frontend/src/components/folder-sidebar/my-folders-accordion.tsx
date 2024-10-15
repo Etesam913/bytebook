@@ -7,9 +7,11 @@ import {
 	contextMenuDataAtom,
 	dialogDataAtom,
 	draggedElementAtom,
-	foldersAtom,
 } from "../../atoms.ts";
-import { useFolderRevealInFinderMutation } from "../../hooks/folder-events.tsx";
+import {
+	useFolderDialogSubmit,
+	useFolderRevealInFinderMutation,
+} from "../../hooks/folder-events.tsx";
 import { Finder } from "../../icons/finder.tsx";
 import { FolderOpen } from "../../icons/folder-open.tsx";
 import { FolderPen } from "../../icons/folder-pen.tsx";
@@ -21,9 +23,6 @@ import { cn } from "../../utils/string-formatting.ts";
 import { AccordionButton } from "../sidebar/accordion-button.tsx";
 import { Sidebar } from "../sidebar/index.tsx";
 import { handleDragStart } from "../sidebar/utils.tsx";
-import { onFolderDialogSubmit } from "./index.tsx";
-
-import { DeleteFolder } from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
 import { FolderDialogChildren } from "./folder-dialog-children.tsx";
 
 export function MyFoldersAccordion({
@@ -39,7 +38,8 @@ export function MyFoldersAccordion({
 	const setContextMenuData = useSetAtom(contextMenuDataAtom);
 	const { mutate: revealInFinderMutation } = useFolderRevealInFinderMutation();
 	const setDialogData = useSetAtom(dialogDataAtom);
-	const folders = useAtomValue(foldersAtom);
+
+	const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
 
 	return (
 		<section>
@@ -181,13 +181,12 @@ export function MyFoldersAccordion({
 																	/>
 																),
 																onSubmit: async (e, setErrorText) =>
-																	onFolderDialogSubmit(
+																	folderDialogSubmit({
 																		e,
-																		navigate,
 																		setErrorText,
-																		"rename",
-																		sidebarFolderName,
-																	),
+																		action: "rename",
+																		folderFromSidebar: sidebarFolderName,
+																	}),
 															});
 														},
 													},
@@ -214,33 +213,13 @@ export function MyFoldersAccordion({
 																		folderName={sidebarFolderName}
 																	/>
 																),
-																onSubmit: async (_, setErrorText) => {
-																	try {
-																		const res =
-																			await DeleteFolder(sidebarFolderName);
-																		if (!res.success)
-																			throw new Error(res.message);
-																		// Navigate to the first folder that was not deleted
-																		if (
-																			folder &&
-																			folder === sidebarFolderName
-																		) {
-																			const firstFolderNotDeleted =
-																				folders?.find(
-																					(name) => name !== sidebarFolderName,
-																				);
-																			if (firstFolderNotDeleted)
-																				navigate(`/${firstFolderNotDeleted}`);
-																			else navigate("/");
-																			// resetDialogState(setErrorText, setDialogData);
-																		}
-																		return true;
-																	} catch (e) {
-																		if (e instanceof Error)
-																			setErrorText(e.message);
-																		return false;
-																	}
-																},
+																onSubmit: async (e, setErrorText) =>
+																	folderDialogSubmit({
+																		e,
+																		setErrorText,
+																		action: "delete",
+																		folderFromSidebar: sidebarFolderName,
+																	}),
 															});
 														},
 													},

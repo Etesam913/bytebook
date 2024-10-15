@@ -3,6 +3,7 @@ package custom_events
 import (
 	"math/rand"
 
+	"github.com/leaanthony/u"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -18,6 +19,9 @@ func CreateWindow(app *application.App, url string, backgroundColor application.
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 35,
 			TitleBar:                application.MacTitleBarHiddenInsetUnified,
+			WebviewPreferences: application.MacWebviewPreferences{
+				FullscreenEnabled: u.True,
+			},
 		},
 		EnableDragAndDrop: true,
 		BackgroundColour:  backgroundColor,

@@ -12,12 +12,11 @@ import {
 } from "../../atoms";
 import { MotionButton, MotionIconButton } from "../../components/buttons";
 import { DialogErrorText } from "../../components/dialog/index.tsx";
-import {
-	FolderDialogChildren,
-	onFolderDialogSubmit,
-} from "../../components/folder-sidebar/index.tsx";
+
+import { FolderDialogChildren } from "../../components/folder-sidebar/folder-dialog-children.tsx";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Input } from "../../components/input/index.tsx";
+import { useFolderDialogSubmit } from "../../hooks/folder-events.tsx";
 import {
 	useNoteCreate,
 	useNoteDelete,
@@ -55,6 +54,7 @@ export function NotesSidebar({
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const noteSort = useAtomValue(noteSortAtom);
 	const sidebarRef = useRef<HTMLElement>(null);
+	const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
 	const { navigate } = useCustomNavigate();
@@ -102,13 +102,12 @@ export function NotesSidebar({
 												/>
 											),
 											onSubmit: (e, setErrorText) =>
-												onFolderDialogSubmit(
+												folderDialogSubmit({
 													e,
-													navigate,
 													setErrorText,
-													"rename",
-													decodeURIComponent(folder),
-												),
+													action: "rename",
+													folderFromSidebar: decodeURIComponent(folder),
+												}),
 										})
 									}
 								>

@@ -1,34 +1,21 @@
 import { type MotionValue, motion } from "framer-motion";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import {
-	type Dispatch,
-	type FormEvent,
-	type SetStateAction,
-	useEffect,
-} from "react";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useRoute } from "wouter";
-import {
-	AddFolder,
-	RenameFolder,
-} from "../../../bindings/github.com/etesam913/bytebook/folderservice.ts";
-import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import { dialogDataAtom, foldersAtom, tagsAtom } from "../../atoms";
 import { FolderPlus } from "../../icons/folder-plus";
 
+import { useEffect } from "react";
 import {
 	useFolderCreate,
 	useFolderDelete,
+	useFolderDialogSubmit,
 } from "../../hooks/folder-events.tsx";
-
-import type { NavigateFunction } from "../../types.ts";
 import {
 	checkIfFolderExists,
 	updateFolders,
 	updateTags,
 } from "../../utils/fetch-functions";
-import { useCustomNavigate } from "../../utils/routing.ts";
-import { validateName } from "../../utils/string-formatting.ts";
 import { MotionButton } from "../buttons";
 import { BottomItems } from "./bottom-items.tsx";
 import { FolderDialogChildren } from "./folder-dialog-children.tsx";
@@ -39,49 +26,6 @@ import { RecentNotesAccordion } from "./recent-notes-accordion.tsx";
 import { SearchBar } from "./searchbar.tsx";
 import { Spacer } from "./spacer";
 
-export async function onFolderDialogSubmit(
-	e: FormEvent<HTMLFormElement>,
-	navigate: NavigateFunction,
-	setErrorText: Dispatch<SetStateAction<string>>,
-	action: "create" | "rename",
-	folderToBeRenamed?: string,
-) {
-	const formData = new FormData(e.target as HTMLFormElement);
-	try {
-		const newFolderName = formData.get("folder-name");
-		const { isValid, errorMessage } = validateName(newFolderName, "folder");
-		if (!isValid) throw new Error(errorMessage);
-		if (newFolderName) {
-			const newFolderNameString = newFolderName.toString().trim();
-			if (action === "create") {
-				const res = await AddFolder(newFolderNameString);
-				if (!res.success) throw new Error(res.message);
-
-				// Add an untitled note
-				const addNoteRes = await AddNoteToFolder(
-					newFolderNameString,
-					"Untitled",
-				);
-				if (addNoteRes.success)
-					navigate(
-						`/${encodeURIComponent(newFolderNameString)}/Untitled?ext=md`,
-					);
-				else throw new Error(addNoteRes.message);
-			} else if (action === "rename") {
-				if (!folderToBeRenamed) throw new Error("Something went wrong");
-				const res = await RenameFolder(folderToBeRenamed, newFolderNameString);
-				if (!res.success) throw new Error(res.message);
-			}
-			return true;
-		}
-		return false;
-	} catch (e) {
-		if (e instanceof Error) setErrorText(e.message);
-		else setErrorText("An unknown error occurred. Please try again later.");
-		return false;
-	}
-}
-
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
 	const folder = params?.folder;
@@ -90,10 +34,10 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const setFolders = useSetAtom(foldersAtom);
 	const setTags = useSetAtom(tagsAtom);
-	const { navigate } = useCustomNavigate();
 
 	useFolderCreate(setFolders);
 	useFolderDelete(setFolders);
+	const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
 
 	// Initially fetches folders from filesystem
 	useEffect(() => {
@@ -129,7 +73,11 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 									<FolderDialogChildren errorText={errorText} action="create" />
 								),
 								onSubmit: async (e, setErrorText) =>
-									onFolderDialogSubmit(e, navigate, setErrorText, "create"),
+									folderDialogSubmit({
+										e: e,
+										setErrorText: setErrorText,
+										action: "create",
+									}),
 							})
 						}
 					>
