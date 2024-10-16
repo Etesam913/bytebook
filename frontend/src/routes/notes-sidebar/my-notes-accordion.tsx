@@ -1,6 +1,4 @@
 import { useAtom, useSetAtom } from "jotai/react";
-import { useState } from "react";
-import { AddPathToTag } from "../../../bindings/github.com/etesam913/bytebook/tagsservice.ts";
 import {
 	contextMenuDataAtom,
 	dialogDataAtom,
@@ -11,7 +9,6 @@ import { SortButton } from "../../components/buttons/sort";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
 import {
-	useAddTagsMutation,
 	useNoteRevealInFinderMutation,
 	useSendToTrashMutation,
 } from "../../hooks/note-events.tsx";
@@ -44,7 +41,6 @@ export function MyNotesAccordion({
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
 	const { mutate: sendToTrash } = useSendToTrashMutation();
-	const { mutateAsync: addTags } = useAddTagsMutation();
 
 	const isInTagSidebar = tagState?.tagName !== undefined;
 	const setContextMenuData = useSetAtom(contextMenuDataAtom);
@@ -175,10 +171,10 @@ export function MyNotesAccordion({
 															);
 															return false;
 														}
-														return addTags({
-															tags,
-															noteName,
-														});
+														// return addTags({
+														// 	tags,
+														// 	noteName,
+														// });
 													},
 												});
 											},

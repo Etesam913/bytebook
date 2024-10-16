@@ -23,12 +23,17 @@ type TagJson struct{
 	Notes []string `json:"notes"`
 }
 
-
-/*
-createTagFiles creates the necessary folder and JSON file for a given tag.
-It initializes the JSON file with the provided note paths.
-*/
-func createTagFiles(projectPath string, tagName string, notePaths []string) error{
+// createTagFiles creates the necessary files and folders for a given tag.
+// Parameters:
+//
+//	projectPath: The root path of the project.
+//	tagName: The name of the tag to create.
+//	notePaths: A list of note paths to associate with the tag.
+//
+// Returns:
+//
+//	An error if the operation fails, otherwise nil.
+func createTagFiles(projectPath string, tagName string, folderAndNotePaths []string) error {
 	pathToTag := filepath.Join(projectPath, "tags", tagName)
 	err := io_helpers.CreateFolderIfNotExist(pathToTag)
 	if err != nil {
@@ -37,25 +42,26 @@ func createTagFiles(projectPath string, tagName string, notePaths []string) erro
 
 	pathToTagJson := filepath.Join(pathToTag, "notes.json")
 	err = io_helpers.WriteJsonToPath(pathToTagJson, TagJson{
-		Notes: notePaths,
+		Notes: folderAndNotePaths,
 	})
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
+
 /*
 AddPathToTag adds a specific note path to a given tag.
 If the tag does not exist, it creates the tag and associates the note path with it.
 */
-func (t *TagsService) AddPathToTag(tagName string, notePath string) TagResponse {
-	pathToTagFolder := filepath.Join(t.ProjectPath, "tags", tagName)
+func addPathToTag(projectPath, tagName, folderAndNotePath string) TagResponse {
+	pathToTagFolder := filepath.Join(projectPath, "tags", tagName)
 	pathToTagFile := filepath.Join(pathToTagFolder, "notes.json")
 
 	if exists, _ := io_helpers.FileOrFolderExists(pathToTagFile); !exists {
-		if err := createTagFiles(t.ProjectPath, tagName, []string{notePath}); err != nil {
+		if err := createTagFiles(projectPath, tagName, []string{folderAndNotePath}); err != nil {
 			return TagResponse{
 				Success: false,
 				Message: "Something went wrong when adding the tag. Please try again later",
@@ -72,12 +78,12 @@ func (t *TagsService) AddPathToTag(tagName string, notePath string) TagResponse 
 
 		// Check if notePath already exists in tagJson.Notes
 		for _, existingNotePath := range tagJson.Notes {
-			if existingNotePath == notePath {
+			if existingNotePath == folderAndNotePath {
 				return TagResponse{Success: true, Message: "Successfully Added Path To Tag"}
 			}
 		}
 
-		tagJson.Notes = append(tagJson.Notes, notePath)
+		tagJson.Notes = append(tagJson.Notes, folderAndNotePath)
 		if err := io_helpers.WriteJsonToPath(pathToTagFile, tagJson); err != nil {
 			return TagResponse{
 				Success: false,
@@ -89,11 +95,39 @@ func (t *TagsService) AddPathToTag(tagName string, notePath string) TagResponse 
 	return TagResponse{Success: true, Message: "Successfully Added Path To Tag"}
 }
 
+func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryParam string) project_types.BackendResponseWithData {
+	getTagsResponse := t.GetTags()
+	if !getTagsResponse.Success {
+		return getTagsResponse
+	}
+	tagsForNote := []string{}
+	allTags := getTagsResponse.Data
+	for _, tag := range allTags {
+		notesResponse := t.GetNotesFromTag(tag)
+		if !notesResponse.Success {
+			return notesResponse
+		}
+
+		notesWithQueryParamExtension := notesResponse.Data
+		for _, folderAndNoteStringWithQueryParamFromFile := range notesWithQueryParamExtension {
+			if folderAndNotePathWithQueryParam == folderAndNoteStringWithQueryParamFromFile {
+				tagsForNote = append(tagsForNote, tag)
+			}
+		}
+	}
+
+	return project_types.BackendResponseWithData{
+		Success: true,
+		Message: "Successfully retrieved tags.",
+		Data: tagsForNote,
+	}
+}
+
 /*
 DeletePathFromTag removes a specific note path from a given tag.
 If the tag no longer has any note paths associated with it, the tag folder is deleted.
 */
-func (t *TagsService) DeletePathFromTag(tagName string, notePath string) TagResponse{
+func (t *TagsService) DeletePathFromTag(tagName string, folderAndNotePathWithoutQueryParam string) TagResponse{
 	pathToTagFolder := filepath.Join(t.ProjectPath, "tags", tagName)
 	pathToTagFile := filepath.Join(pathToTagFolder, "notes.json")
 
@@ -117,7 +151,7 @@ func (t *TagsService) DeletePathFromTag(tagName string, notePath string) TagResp
 
 	// Removes the first occurence of `notePath` from `tagJson.Notes`
 	for _, addedNotePath := range tagJson.Notes {
-		if addedNotePath == notePath && !didFindNotePath {
+		if addedNotePath == folderAndNotePathWithoutQueryParam && !didFindNotePath {
 			didFindNotePath = true
 			continue
 		}
@@ -236,7 +270,7 @@ func (t *TagsService) GetTags() project_types.BackendResponseWithData{
 
 /*
 GetNotesFromTag retrieves the note paths associated with a given tag name.
-It reads the "notes.json" file within the tag's directory and returns the note paths.
+It reads the "notes.json" file within the tag's directory and returns the note paths with query params.
 */
 func (t *TagsService) GetNotesFromTag(tagName string) project_types.BackendResponseWithData {
 	pathToTagFile := filepath.Join(t.ProjectPath, "tags", tagName, "notes.json")
