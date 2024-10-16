@@ -2,6 +2,7 @@ import { motion, useAnimationControls } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { draggedElementAtom, isNoteMaximizedAtom } from "../../atoms";
 import { MaximizeNoteButton } from "../../components/buttons/maximize-note";
+import { BottomBar } from "../../components/editor/bottom-bar";
 import { useMostRecentNotes } from "../../components/editor/hooks/note-metadata";
 import { FileBan } from "../../icons/file-ban";
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from "../../types";
@@ -31,7 +32,8 @@ export function RenderNote({
 		fileExtension && IMAGE_FILE_EXTENSIONS.includes(fileExtension);
 	const isVideo =
 		fileExtension && VIDEO_FILE_EXTENSIONS.includes(fileExtension);
-	const isUnknownFile = !isPdf && !isMarkdown && !isImage && !isVideo;
+	const isUnknownFile =
+		!isPdf && !isMarkdown && !isImage && !isVideo && fileExtension;
 	const draggedElement = useAtomValue(draggedElementAtom);
 
 	const fileUrl = `${FILE_SERVER_URL}/${
@@ -71,49 +73,61 @@ export function RenderNote({
 			)}
 
 			{isPdf && (
-				<iframe
-					title={note}
-					className={cn(
-						"flex-1 overflow-auto mr-1 dark:invert",
-						isNoteMaximized && "w-full mr-0",
-						draggedElement !== null && "pointer-events-none",
-					)}
-					src={fileUrl}
-				/>
+				<>
+					<iframe
+						title={note}
+						className={cn(
+							"flex-1 overflow-auto mr-1 dark:invert",
+							isNoteMaximized && "w-full mr-0",
+							draggedElement !== null && "pointer-events-none",
+						)}
+						src={fileUrl}
+					/>
+					<BottomBar folder={folder} note={note} ext={fileExtension} />
+				</>
 			)}
 
 			{isImage && (
-				<img
-					className={cn(
-						"flex-1 overflow-auto object-contain my-auto mr-1",
-						isNoteMaximized && "w-full",
-					)}
-					alt={note}
-					title={note}
-					src={fileUrl}
-				/>
+				<>
+					<img
+						className={cn(
+							"flex-1 overflow-auto object-contain my-auto mr-1",
+							isNoteMaximized && "w-full",
+						)}
+						alt={note}
+						title={note}
+						src={fileUrl}
+					/>
+					<BottomBar folder={folder} note={note} ext={fileExtension} />
+				</>
 			)}
 
 			{isVideo && (
-				<video
-					controls
-					title={note}
-					className={cn(
-						"flex-1 overflow-auto mr-1 bg-black",
-						isNoteMaximized && "w-full mr-0",
-						draggedElement !== null && "pointer-events-none",
-					)}
-					src={fileUrl}
-				/>
+				<>
+					<video
+						controls
+						title={note}
+						className={cn(
+							"flex-1 overflow-auto mr-1 bg-black",
+							isNoteMaximized && "w-full mr-0",
+							draggedElement !== null && "pointer-events-none",
+						)}
+						src={fileUrl}
+					/>
+					<BottomBar folder={folder} note={note} ext={fileExtension} />
+				</>
 			)}
 
 			{isUnknownFile && (
-				<section className="flex-1 flex flex-col items-center justify-center text-center px-3 pb-16 gap-3">
-					<FileBan width="3rem" height="3rem" />
-					<h1 className="text-2xl font-bold">
-						This file type is not supported.
-					</h1>
-				</section>
+				<>
+					<section className="flex-1 flex flex-col items-center justify-center text-center px-3 pb-16 gap-3">
+						<FileBan width="3rem" height="3rem" />
+						<h1 className="text-2xl font-bold">
+							This file type is not supported.
+						</h1>
+					</section>
+					<BottomBar folder={folder} note={note} ext={fileExtension} />
+				</>
 			)}
 		</motion.div>
 	);

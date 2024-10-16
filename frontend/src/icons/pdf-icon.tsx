@@ -1,13 +1,13 @@
 export function PDFIcon({
-	width = "1.25rem",
-	height = "1.25rem",
+	width = 20,
+	height = 20,
 	fill = "currentColor",
 	title = "pdf-icon",
 	className,
 }: {
 	className?: string;
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	fill?: string;
 	title?: string;
 }) {

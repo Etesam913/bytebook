@@ -199,7 +199,12 @@ export function NotesEditor({
 					</div>
 				)}
 			</div>
-			<BottomBar frontmatter={frontmatter} folder={folder} note={note} />
+			<BottomBar
+				frontmatter={frontmatter}
+				folder={folder}
+				note={note}
+				ext="md"
+			/>
 		</LexicalComposer>
 	);
 }
