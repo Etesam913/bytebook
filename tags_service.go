@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
-	"github.com/etesam913/bytebook/lib/note_helpers"
+	"github.com/etesam913/bytebook/lib/project_types"
 )
 
 type TagsService struct {
@@ -17,12 +17,6 @@ type TagsService struct {
 type TagResponse struct {
 	Success bool     `json:"success"`
 	Message string   `json:"message"`
-}
-
-type TagResponseWithData struct {
-	Success bool     `json:"success"`
-	Message string   `json:"message"`
-	Data []string    `json:"data"`
 }
 
 type TagJson struct{
@@ -161,7 +155,7 @@ func (t *TagsService) DeletePathFromTag(tagName string, notePath string) TagResp
 	}
 }
 
-// doesFolderAndNoteContainTagName checks if a given note contains a specific tag name.
+// doesFolderAndNoteExist checks if a given note contains a specific tag name.
 // Parameters:
 //
 //	projectPath: The root path of the project.
@@ -170,53 +164,32 @@ func (t *TagsService) DeletePathFromTag(tagName string, notePath string) TagResp
 //
 // Returns:
 //
-//	A boolean indicating whether the note contains the specified tag name.
-func doesFolderAndNoteContainTagName(projectPath, folderAndNote, tagName string) bool {
+//	A boolean indicating whether the note exists
+func doesFolderAndNoteExist(projectPath, folderAndNote string) bool {
 	folderAndNoteArr := strings.Split(folderAndNote, "/")
 	folder := folderAndNoteArr[0]
 	note := folderAndNoteArr[1]
 
 	pathToNote := filepath.Join(projectPath, "notes", folder, note)
-	markdownContentBytes, err := os.ReadFile(pathToNote)
+	_, err := os.ReadFile(pathToNote)
 
 	// if the note does not exist anymore then we need to skip/remove it
 	if err != nil {
 		return false
 	}
-
-	markdownContentAsString := string(markdownContentBytes)
-	tagsExtractedFromMarkdown := note_helpers.GetTags(
-		note_helpers.ExcludeFrontmatter(
-			note_helpers.ExcludeCodeBlocks(markdownContentAsString),
-		),
-	)
-
-	isTagFolderNamePresentInMarkdown := false
-
-	// Checks if any of the tags present in the note is tagName
-	for _, tag := range tagsExtractedFromMarkdown {
-		if tag == "#"+tagName {
-			isTagFolderNamePresentInMarkdown = true
-			break
-		}
-	}
-
-	if !isTagFolderNamePresentInMarkdown {
-		return false
-	}
-
 	return true
+
 }
 
 /*
 GetTags retrieves a list of all tag names in the project.
 It scans the "tags" directory within the project path and returns the names of all subdirectories.
 */
-func (t *TagsService) GetTags() TagResponseWithData{
+func (t *TagsService) GetTags() project_types.BackendResponseWithData{
 	tagsPath := filepath.Join(t.ProjectPath, "tags")
 	tagFolders, err := os.ReadDir(tagsPath)
 	if err != nil {
-		return TagResponseWithData{
+		return project_types.BackendResponseWithData{
 			Success: false,
 			Message: "Something went wrong when fetching tags. Please try again later",
 			Data: nil,
@@ -239,11 +212,10 @@ func (t *TagsService) GetTags() TagResponseWithData{
 
 		/*
 			Goes through each path in a notes.json and checks if the
-			note at the given path exists, and that the given note includes
-			the tag folder in its markdown.
+			note at the given path exists
 	 	*/
 		for _, folderAndNoteString := range tagJson.Notes {
-			if doesContainTag := doesFolderAndNoteContainTagName(t.ProjectPath, folderAndNoteString, tagFolder.Name()); !doesContainTag {
+			if doesContainTag := doesFolderAndNoteExist(t.ProjectPath, folderAndNoteString); !doesContainTag {
 				continue
 			}
 
@@ -255,7 +227,7 @@ func (t *TagsService) GetTags() TagResponseWithData{
 		tags = append(tags, tagFolder.Name())
 	}
 
-	return TagResponseWithData{
+	return project_types.BackendResponseWithData{
 		Success: true,
 		Message: "Successfully retrieved tags.",
 		Data: tags,
@@ -266,11 +238,11 @@ func (t *TagsService) GetTags() TagResponseWithData{
 GetNotesFromTag retrieves the note paths associated with a given tag name.
 It reads the "notes.json" file within the tag's directory and returns the note paths.
 */
-func (t *TagsService) GetNotesFromTag(tagName string) TagResponseWithData {
+func (t *TagsService) GetNotesFromTag(tagName string) project_types.BackendResponseWithData {
 	pathToTagFile := filepath.Join(t.ProjectPath, "tags", tagName, "notes.json")
 
 	if exists, _ := io_helpers.FileOrFolderExists(pathToTagFile); !exists {
-		return TagResponseWithData{
+		return project_types.BackendResponseWithData{
 			Success: false,
 			Message: "Tag does not exist",
 			Data: nil,
@@ -279,7 +251,7 @@ func (t *TagsService) GetNotesFromTag(tagName string) TagResponseWithData {
 
 	var tagJson TagJson
 	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
-		return TagResponseWithData{
+		return project_types.BackendResponseWithData{
 			Success: false,
 			Message: "Something went wrong when fetching the tag. Please try again later",
 			Data: nil,
@@ -290,8 +262,8 @@ func (t *TagsService) GetNotesFromTag(tagName string) TagResponseWithData {
 
 	// Using the query param syntax that the app supports
 	for _, folderAndNoteString := range tagJson.Notes {
-
-		if doesContainTag := doesFolderAndNoteContainTagName(t.ProjectPath, folderAndNoteString, tagName); !doesContainTag {
+		// if the note does not exist anymore then we need to skip/remove it
+		if doesContainTag := doesFolderAndNoteExist(t.ProjectPath, folderAndNoteString); !doesContainTag {
 			continue
 		}
 
@@ -305,7 +277,7 @@ func (t *TagsService) GetNotesFromTag(tagName string) TagResponseWithData {
 	}
 
 
-	return TagResponseWithData{
+	return project_types.BackendResponseWithData{
 		Success: true,
 		Message: "Successfully retrieved tag.",
 		Data: notesWithQueryParamExtension,

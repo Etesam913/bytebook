@@ -7,6 +7,10 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as project_types$0 from "./lib/project_types/models.js";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
 /**
@@ -39,7 +43,7 @@ export function DeletePathFromTag(tagName: string, notePath: string): Promise<$m
  * GetNotesFromTag retrieves the note paths associated with a given tag name.
  * It reads the "notes.json" file within the tag's directory and returns the note paths.
  */
-export function GetNotesFromTag(tagName: string): Promise<$models.TagResponseWithData> & { cancel(): void } {
+export function GetNotesFromTag(tagName: string): Promise<project_types$0.BackendResponseWithData> & { cancel(): void } {
     let $resultPromise = $Call.ByID(3414271919, tagName) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType1($result);
@@ -52,7 +56,7 @@ export function GetNotesFromTag(tagName: string): Promise<$models.TagResponseWit
  * GetTags retrieves a list of all tag names in the project.
  * It scans the "tags" directory within the project path and returns the names of all subdirectories.
  */
-export function GetTags(): Promise<$models.TagResponseWithData> & { cancel(): void } {
+export function GetTags(): Promise<project_types$0.BackendResponseWithData> & { cancel(): void } {
     let $resultPromise = $Call.ByID(4245036661) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType1($result);
@@ -63,4 +67,4 @@ export function GetTags(): Promise<$models.TagResponseWithData> & { cancel(): vo
 
 // Private type creation functions
 const $$createType0 = $models.TagResponse.createFrom;
-const $$createType1 = $models.TagResponseWithData.createFrom;
+const $$createType1 = project_types$0.BackendResponseWithData.createFrom;

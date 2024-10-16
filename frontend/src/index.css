@@ -47,6 +47,11 @@
     will-change: transform;
 }
 
+html{
+    user-select: none;
+    -webkit-user-select: none;
+}
+
 .sidebar-item {
     @apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform;
 }
