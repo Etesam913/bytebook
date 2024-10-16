@@ -36,7 +36,7 @@ export function MyFoldersAccordion({
 	const { navigate } = useCustomNavigate();
 	const [isOpen, setIsOpen] = useState(true);
 	const setContextMenuData = useSetAtom(contextMenuDataAtom);
-	const { mutate: revealInFinderMutation } = useFolderRevealInFinderMutation();
+	const { mutate: revealInFinder } = useFolderRevealInFinderMutation();
 	const setDialogData = useSetAtom(dialogDataAtom);
 
 	const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
@@ -153,7 +153,7 @@ export function MyFoldersAccordion({
 														),
 														value: "reveal-in-finder",
 														onChange: () =>
-															revealInFinderMutation({
+															revealInFinder({
 																selectionRange: newSelectionRange,
 															}),
 													},

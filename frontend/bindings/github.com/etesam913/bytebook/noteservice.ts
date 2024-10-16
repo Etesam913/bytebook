@@ -7,9 +7,6 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import * as io_helpers$0 from "./lib/io_helpers/models.js";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: Unused imports
 import * as project_types$0 from "./lib/project_types/models.js";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -65,7 +62,7 @@ export function GetNotes(folderName: string, sortOption: string): Promise<$model
  * 
  * 	A MostRecentNoteResponse indicating the success or failure of the operation.
  */
-export function MoveToTrash(folderAndNotes: string[]): Promise<io_helpers$0.MostRecentNoteResponse> & { cancel(): void } {
+export function MoveToTrash(folderAndNotes: string[]): Promise<project_types$0.BackendResponseWithoutData> & { cancel(): void } {
     let $resultPromise = $Call.ByID(891730313, folderAndNotes) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType4($result);
@@ -83,10 +80,30 @@ export function RenameNote(folderName: string, oldNoteTitle: string, newNoteTitl
     return $typingPromise;
 }
 
+/**
+ * RevealNoteInFinder reveals the specified note in the Finder.
+ * Parameters:
+ * 
+ * 	folderName: The name of the folder containing the note.
+ * 	noteName: The name of the note to be revealed.
+ * 
+ * Returns:
+ * 
+ * 	A BackendResponseWithoutData indicating the success or failure of the operation.
+ */
 export function RevealNoteInFinder(folderName: string, noteName: string): Promise<project_types$0.BackendResponseWithoutData> & { cancel(): void } {
     let $resultPromise = $Call.ByID(3751688283, folderName, noteName) as any;
     let $typingPromise = $resultPromise.then(($result) => {
-        return $$createType5($result);
+        return $$createType4($result);
+    }) as any;
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+export function SendNotesToTrash(folderAndNotes: string[]): Promise<project_types$0.BackendResponseWithoutData> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(2389494665, folderAndNotes) as any;
+    let $typingPromise = $resultPromise.then(($result) => {
+        return $$createType4($result);
     }) as any;
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -104,7 +121,7 @@ export function SetNoteMarkdown(folderName: string, noteTitle: string, markdown:
 export function ValidateMostRecentNotes(paths: string[]): Promise<string[]> & { cancel(): void } {
     let $resultPromise = $Call.ByID(2675478292, paths) as any;
     let $typingPromise = $resultPromise.then(($result) => {
-        return $$createType6($result);
+        return $$createType5($result);
     }) as any;
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -115,6 +132,5 @@ const $$createType0 = $models.AddFolderResponse.createFrom;
 const $$createType1 = $models.NoteCountResponse.createFrom;
 const $$createType2 = $models.NoteMarkdownResponse.createFrom;
 const $$createType3 = $models.NoteResponse.createFrom;
-const $$createType4 = io_helpers$0.MostRecentNoteResponse.createFrom;
-const $$createType5 = project_types$0.BackendResponseWithoutData.createFrom;
-const $$createType6 = $Create.Array($Create.Any);
+const $$createType4 = project_types$0.BackendResponseWithoutData.createFrom;
+const $$createType5 = $Create.Array($Create.Any);

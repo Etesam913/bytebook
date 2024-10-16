@@ -271,7 +271,7 @@ func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 // Returns:
 //
 //	A MostRecentNoteResponse indicating the success or failure of the operation.
-func (n *NoteService) MoveToTrash(folderAndNotes []string) io_helpers.MostRecentNoteResponse {
+func (n *NoteService) MoveToTrash(folderAndNotes []string) project_types.BackendResponseWithoutData {
 	return io_helpers.MoveNotesToTrash(n.ProjectPath, folderAndNotes)
 }
 
@@ -298,11 +298,24 @@ func (n *NoteService) GetNoteCount(folderName string) NoteCountResponse {
 }
 
 
-func (n *NoteService) RevealNoteInFinder(folderName string, noteName string) project_types.BackendResponseWithoutData {
+// RevealNoteInFinder reveals the specified note in the Finder.
+// Parameters:
+//
+//	folderName: The name of the folder containing the note.
+//	noteName: The name of the note to be revealed.
+//
+// Returns:
+//
+//	A BackendResponseWithoutData indicating the success or failure of the operation.
+func (n *NoteService) RevealNoteInFinder(folderName, noteName string) project_types.BackendResponseWithoutData {
 	notePath := filepath.Join(n.ProjectPath, "notes", folderName, noteName)
 	err := io_helpers.RevealInFinder(notePath)
 	if err != nil {
 		return project_types.BackendResponseWithoutData{Success: false, Message: "Could not reveal folder in finder"}
 	}
 	return project_types.BackendResponseWithoutData{Success: true, Message: ""}
+}
+
+func (n *NoteService) SendNotesToTrash(folderAndNotes []string) project_types.BackendResponseWithoutData {
+	return io_helpers.MoveNotesToTrash(n.ProjectPath, folderAndNotes)
 }

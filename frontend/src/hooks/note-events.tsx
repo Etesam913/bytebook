@@ -3,7 +3,10 @@ import { Events } from "@wailsio/runtime";
 import { useSetAtom } from "jotai/react";
 import type { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
-import { RevealNoteInFinder } from "../../bindings/github.com/etesam913/bytebook/noteservice";
+import {
+	RevealNoteInFinder,
+	SendNotesToTrash,
+} from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { selectionRangeAtom } from "../atoms";
 import { getNoteCount } from "../utils/fetch-functions";
 import { useWailsEvent } from "../utils/hooks";
@@ -106,6 +109,35 @@ export function useNoteSelectionClear() {
 	const setSelectionRange = useSetAtom(selectionRangeAtom);
 	useWailsEvent("note:clear-selection", () => {
 		setSelectionRange(new Set());
+	});
+}
+
+export function useSendToTrashMutation() {
+	return useMutation({
+		// The main function that handles sending notes to trash
+		mutationFn: async ({
+			selectionRange,
+			folder,
+		}: { selectionRange: Set<string>; folder: string }) => {
+			// Map the selection range to folder and note names
+			const folderAndNoteNames = [...selectionRange].map((note) => {
+				const noteWithoutWithoutPrefix = note.split(":")[1];
+				const { noteNameWithoutExtension, queryParams } =
+					extractInfoFromNoteName(noteWithoutWithoutPrefix);
+				return `${folder}/${noteNameWithoutExtension}.${queryParams.ext}`;
+			});
+			// BUG: There may be a bug here with undefined note names?
+			// Send the notes to trash and handle the response
+			const res = await SendNotesToTrash(folderAndNoteNames);
+			if (!res.success) throw new Error(res.message);
+		},
+
+		// Handle errors that occur during the mutation
+		onError: (e) => {
+			if (e instanceof Error) {
+				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+			}
+		},
 	});
 }
 

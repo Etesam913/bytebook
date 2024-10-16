@@ -198,12 +198,7 @@ func FileOrFolderExists(path string) (bool, error) {
 	return false, err
 }
 
-type MostRecentNoteResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-}
-
-func MoveNotesToTrash(projectPath string, folderAndNotes []string) MostRecentNoteResponse {
+func MoveNotesToTrash(projectPath string, folderAndNotes []string) project_types.BackendResponseWithoutData {
 	errors := []string{} // Slice to store any errors encountered during the process.
 
 	// Iterate over each path in the provided folderAndNotes slice.
@@ -238,14 +233,14 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) MostRecentNot
 
 	// If any errors were encountered, return a failure response with the list of errors.
 	if len(errors) > 0 {
-		return MostRecentNoteResponse{
+		return project_types.BackendResponseWithoutData{
 			Success: false,
 			Message: fmt.Sprintf("Could not move %s to trash", strings.Join(errors, ", ")),
 		}
 	}
 
 	// If no errors were encountered, return a success response.
-	return MostRecentNoteResponse{
+	return project_types.BackendResponseWithoutData{
 		Success: true,
 		Message: "Successfully moved to trash",
 	}

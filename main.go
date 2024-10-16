@@ -100,20 +100,6 @@ func main() {
 
 	menus.InitializeApplicationMenu(app, backgroundColor)
 
-	folderContextMenu := app.NewMenu()
-	noteContextMenu := app.NewMenu()
-
-	project_helpers.CreateContextMenu(app, folderContextMenu, []project_helpers.MenuItem{
-		{Label: "Rename Folder", EventName: "folder:context-menu:rename"},
-		{Label: "Delete Folder", EventName: "folder:context-menu:delete"},
-		{Label: "Reveal In Finder", EventName: "folder:reveal-in-finder"},
-	})
-
-	project_helpers.CreateNoteContextMenu(app, projectPath, noteContextMenu, backgroundColor)
-
-	app.RegisterContextMenu("folder-context-menu", folderContextMenu)
-	app.RegisterContextMenu("note-context-menu", noteContextMenu)
-
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal("Failed to setup file watcher " + err.Error())

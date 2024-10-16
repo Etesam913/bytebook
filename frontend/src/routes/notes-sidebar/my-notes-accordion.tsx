@@ -7,9 +7,13 @@ import {
 import { SortButton } from "../../components/buttons/sort";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
-import { useNoteRevealInFinderMutation } from "../../hooks/note-events.tsx";
+import {
+	useNoteRevealInFinderMutation,
+	useSendToTrashMutation,
+} from "../../hooks/note-events.tsx";
 import { Finder } from "../../icons/finder.tsx";
 import { Note } from "../../icons/page";
+import { Trash } from "../../icons/trash.tsx";
 import { useSearchParamsEntries } from "../../utils/hooks";
 import { useCustomNavigate } from "../../utils/routing";
 import { removeFoldersFromSelection } from "../../utils/selection";
@@ -32,7 +36,8 @@ export function MyNotesAccordion({
 	};
 }) {
 	const searchParams: { ext?: string } = useSearchParamsEntries();
-	const { mutate: revealInFinderMutation } = useNoteRevealInFinderMutation();
+	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
+	const { mutate: sendToTrash } = useSendToTrashMutation();
 	const isInTagSidebar = tagState?.tagName !== undefined;
 	const setContextMenuData = useSetAtom(contextMenuDataAtom);
 	// The sidebar note name includes the folder name if it's in a tag sidebar
@@ -123,7 +128,25 @@ export function MyNotesAccordion({
 											),
 											value: "reveal-in-finder",
 											onChange: () =>
-												revealInFinderMutation({
+												revealInFinder({
+													selectionRange: newSelectionRange,
+													folder: curFolder,
+												}),
+										},
+										{
+											label: (
+												<span className="flex items-center gap-1.5">
+													<Trash
+														width={17}
+														height={17}
+														className="will-change-transform"
+													/>{" "}
+													Send to Trash
+												</span>
+											),
+											value: "send-to-trash",
+											onChange: () =>
+												sendToTrash({
 													selectionRange: newSelectionRange,
 													folder: curFolder,
 												}),
