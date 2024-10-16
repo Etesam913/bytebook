@@ -1,6 +1,9 @@
 import { useAtom, useSetAtom } from "jotai/react";
+import { useState } from "react";
+import { AddPathToTag } from "../../../bindings/github.com/etesam913/bytebook/tagsservice.ts";
 import {
 	contextMenuDataAtom,
+	dialogDataAtom,
 	draggedElementAtom,
 	noteSortAtom,
 } from "../../atoms";
@@ -8,16 +11,19 @@ import { SortButton } from "../../components/buttons/sort";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
 import {
+	useAddTagsMutation,
 	useNoteRevealInFinderMutation,
 	useSendToTrashMutation,
 } from "../../hooks/note-events.tsx";
 import { Finder } from "../../icons/finder.tsx";
 import { Note } from "../../icons/page";
+import TagPlus from "../../icons/tag-plus.tsx";
 import { Trash } from "../../icons/trash.tsx";
 import { useSearchParamsEntries } from "../../utils/hooks";
 import { useCustomNavigate } from "../../utils/routing";
 import { removeFoldersFromSelection } from "../../utils/selection";
 import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
+import { AddTagDialogChildren } from "./add-tag-dialog-children.tsx";
 import { RenderNoteIcon } from "./render-note-icon";
 
 export function MyNotesAccordion({
@@ -38,6 +44,8 @@ export function MyNotesAccordion({
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
 	const { mutate: sendToTrash } = useSendToTrashMutation();
+	const { mutateAsync: addTags } = useAddTagsMutation();
+
 	const isInTagSidebar = tagState?.tagName !== undefined;
 	const setContextMenuData = useSetAtom(contextMenuDataAtom);
 	// The sidebar note name includes the folder name if it's in a tag sidebar
@@ -48,6 +56,8 @@ export function MyNotesAccordion({
 	const setDraggedElement = useSetAtom(draggedElementAtom);
 	const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);
 	const { navigate } = useCustomNavigate();
+	const setDialogData = useSetAtom(dialogDataAtom);
+
 	return (
 		<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
 			<div className="flex items-center justify-between gap-2 pr-1">
@@ -132,6 +142,46 @@ export function MyNotesAccordion({
 													selectionRange: newSelectionRange,
 													folder: curFolder,
 												}),
+										},
+										{
+											label: (
+												<span className="flex items-center gap-1.5">
+													<TagPlus
+														width={17}
+														height={17}
+														className="will-change-transform"
+													/>{" "}
+													Add Tags
+												</span>
+											),
+											value: "add-tags",
+											onChange: () => {
+												setDialogData({
+													isOpen: true,
+													title: "Add Tags",
+													children: (errorText) => (
+														<AddTagDialogChildren
+															onSubmitErrorText={errorText}
+														/>
+													),
+													onSubmit: async (e, setErrorText) => {
+														const formData = new FormData(
+															e.target as HTMLFormElement,
+														);
+														const tags = formData.getAll("tags");
+														if (tags.length === 0) {
+															setErrorText(
+																"You need to add a tag before confirming.",
+															);
+															return false;
+														}
+														return addTags({
+															tags,
+															noteName,
+														});
+													},
+												});
+											},
 										},
 										{
 											label: (

@@ -69,7 +69,6 @@ func (t *TagsService) AddPathToTag(tagName string, notePath string) TagResponse 
 		}
 	} else {
 		var tagJson TagJson
-		fmt.Println(pathToTagFile, notePath, "deez")
 		if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
 			return TagResponse{
 				Success: false,

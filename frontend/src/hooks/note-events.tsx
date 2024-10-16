@@ -7,6 +7,7 @@ import {
 	RevealNoteInFinder,
 	SendNotesToTrash,
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
+import { AddPathToTag } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import { selectionRangeAtom } from "../atoms";
 import { getNoteCount } from "../utils/fetch-functions";
 import { useWailsEvent } from "../utils/hooks";
@@ -175,6 +176,49 @@ export function useNoteRevealInFinderMutation() {
 			if (e instanceof Error) {
 				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
 			}
+		},
+	});
+}
+
+export function useAddTagsMutation() {
+	return useMutation({
+		// The main function that handles adding tags to a note
+		mutationFn: async ({
+			tags,
+			selectionRange,
+		}: {
+			tags: FormDataEntryValue[];
+			selectionRange: Set<string>;
+		}) => {
+			const selectionNotes = [...selectionRange];
+			// Add the tags to each selected note
+			const addTagsRes = await Promise.all(
+				tags.map((tag) =>
+					selectionNotes.map(async (noteNameWithQueryParam) => {
+						const noteWithoutWithoutPrefix =
+							noteNameWithQueryParam.split(":")[1];
+						const { noteNameWithoutExtension, queryParams } =
+							extractInfoFromNoteName(noteWithoutWithoutPrefix);
+						return await AddPathToTag(
+							tag.toString(),
+							`${noteNameWithoutExtension}.${queryParams.ext}`,
+						);
+					}),
+				),
+			);
+
+			// Check if any tag failed to add
+			if (addTagsRes.some((r) => !r.success)) {
+				throw new Error("Failed to add tag to note");
+			}
+			return true;
+		},
+		// Handle errors that occur during the mutation
+		onError: (e) => {
+			if (e instanceof Error) {
+				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+			}
+			return false;
 		},
 	});
 }

@@ -85,7 +85,7 @@ export function NoteFindPlugin({
 						}}
 						className="absolute top-1.5 right-1.5 text-zinc-700 dark:text-zinc-300"
 					>
-						<XMark height="0.95	rem" width="0.95rem" />
+						<XMark height={15} width={15} />
 					</button>
 				</motion.form>
 			)}

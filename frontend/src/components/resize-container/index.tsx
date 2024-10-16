@@ -164,7 +164,7 @@ export function ResizeContainer({
 						className="fixed z-50 right-5 top-4 bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
 						type="submit"
 					>
-						<XMark width="1.5rem" height="1.5rem" />
+						<XMark width={24} height={24} />
 					</motion.button>
 
 					<AnimatePresence initial={false}>
