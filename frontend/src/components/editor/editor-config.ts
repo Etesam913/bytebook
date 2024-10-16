@@ -9,7 +9,6 @@ import { ExcalidrawNode } from "./nodes/excalidraw";
 import { FileNode } from "./nodes/file";
 import { InlineEquationNode } from "./nodes/inline-equation";
 import { AutoLinkNode, LinkNode } from "./nodes/link";
-import { TagNode } from "./nodes/tag";
 
 // Catch any errors that occur during Lexical updates and log them
 // or throw them as needed. If you don't throw them, Lexical will
@@ -68,7 +67,7 @@ export const editorConfig: InitialConfigType = {
 	nodes: [
 		HeadingNode,
 		QuoteNode,
-		TagNode,
+
 		HorizontalRuleNode,
 		LinkNode,
 		ListNode,

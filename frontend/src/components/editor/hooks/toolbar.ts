@@ -1,9 +1,6 @@
 import { mergeRegister } from "@lexical/utils";
-
-import { useMutation } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
-	$getNodeByKey,
 	$getSelection,
 	$isNodeSelection,
 	CAN_REDO_COMMAND,
@@ -31,23 +28,16 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
-import {
-	AddPathToTag,
-	DeletePathFromTag,
-	GetTags,
-} from "../../../../bindings/github.com/etesam913/bytebook/tagsservice";
 import { ShutoffTerminals } from "../../../../bindings/github.com/etesam913/bytebook/terminalservice";
 import {
 	draggedElementAtom,
 	noteContainerRefAtom,
 	noteEditorAtom,
-	tagsAtom,
 } from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
 import { useCustomNavigate } from "../../../utils/routing";
 import { CodeNode } from "../nodes/code";
-import { TagNode } from "../nodes/tag";
 import { CUSTOM_TRANSFORMERS } from "../transformers";
 import {
 	overrideControlledTextInsertion,
@@ -133,58 +123,56 @@ export function useMutationListener(
 	note: string,
 	frontmatter: Record<string, string>,
 ) {
-	const setTags = useSetAtom(tagsAtom);
+	// const { mutate: deleteTag } = useMutation({
+	// 	mutationFn: async ({ tag }: { tag: string }) => {
+	// 		const deletePathFromTagResponse = await DeletePathFromTag(
+	// 			tag,
+	// 			`${folder}/${note}.md`,
+	// 		);
+	// 		if (!deletePathFromTagResponse.success)
+	// 			throw new Error(deletePathFromTagResponse.message);
 
-	const { mutate: deleteTag } = useMutation({
-		mutationFn: async ({ tag }: { tag: string }) => {
-			const deletePathFromTagResponse = await DeletePathFromTag(
-				tag,
-				`${folder}/${note}.md`,
-			);
-			if (!deletePathFromTagResponse.success)
-				throw new Error(deletePathFromTagResponse.message);
+	// 		// Update the tags in the background after 2 seconds, so that there is enough time for the new markdown to be saved before being read
+	// 		setTimeout(async () => {
+	// 			// Update the tags in the ui
+	// 			const newTagsResponse = await GetTags();
+	// 			if (!newTagsResponse.success) throw new Error(newTagsResponse.message);
+	// 			setTags(newTagsResponse.data);
+	// 		}, 2000);
+	// 	},
+	// 	onError: (e) => {
+	// 		if (e instanceof Error) {
+	// 			toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+	// 		} else {
+	// 			toast.error("Something went wrong!", DEFAULT_SONNER_OPTIONS);
+	// 		}
+	// 	},
+	// });
 
-			// Update the tags in the background after 2 seconds, so that there is enough time for the new markdown to be saved before being read
-			setTimeout(async () => {
-				// Update the tags in the ui
-				const newTagsResponse = await GetTags();
-				if (!newTagsResponse.success) throw new Error(newTagsResponse.message);
-				setTags(newTagsResponse.data);
-			}, 2000);
-		},
-		onError: (e) => {
-			if (e instanceof Error) {
-				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-			} else {
-				toast.error("Something went wrong!", DEFAULT_SONNER_OPTIONS);
-			}
-		},
-	});
+	// const { mutate: createTag } = useMutation({
+	// 	mutationFn: async ({ tag }: { tag: string }) => {
+	// 		if (!folder || !note) {
+	// 			throw new Error("Folder or note is missing");
+	// 		}
+	// 		const res = await AddPathToTag(tag, `${folder}/${note}.md`);
+	// 		if (!res.success) throw new Error(res.message);
 
-	const { mutate: createTag } = useMutation({
-		mutationFn: async ({ tag }: { tag: string }) => {
-			if (!folder || !note) {
-				throw new Error("Folder or note is missing");
-			}
-			const res = await AddPathToTag(tag, `${folder}/${note}.md`);
-			if (!res.success) throw new Error(res.message);
-
-			// Update the tags in the background after 2 seconds, so that there is enough time for the new markdown to be saved before being read
-			setTimeout(async () => {
-				// Update the tags in the ui
-				const newTagsResponse = await GetTags();
-				if (!newTagsResponse.success) throw new Error(newTagsResponse.message);
-				setTags(newTagsResponse.data);
-			}, 2000);
-		},
-		onError: (e) => {
-			if (e instanceof Error) {
-				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-			} else {
-				toast.error("Something went wrong!", DEFAULT_SONNER_OPTIONS);
-			}
-		},
-	});
+	// 		// Update the tags in the background after 2 seconds, so that there is enough time for the new markdown to be saved before being read
+	// 		setTimeout(async () => {
+	// 			// Update the tags in the ui
+	// 			const newTagsResponse = await GetTags();
+	// 			if (!newTagsResponse.success) throw new Error(newTagsResponse.message);
+	// 			setTags(newTagsResponse.data);
+	// 		}, 2000);
+	// 	},
+	// 	onError: (e) => {
+	// 		if (e instanceof Error) {
+	// 			toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+	// 		} else {
+	// 			toast.error("Something went wrong!", DEFAULT_SONNER_OPTIONS);
+	// 		}
+	// 	},
+	// });
 
 	useEffect(() => {
 		const codeNodeMutationListener = editor.registerMutationListener(
@@ -200,45 +188,8 @@ export function useMutationListener(
 			},
 		);
 
-		const tagNodeMutationListener = editor.registerMutationListener(
-			TagNode,
-			(mutatedNodes, { prevEditorState }) => {
-				for (const [nodeKey, mutation] of mutatedNodes) {
-					let tagName = "";
-					(mutation === "created" ? editor : prevEditorState).read(() => {
-						const tagNode = $getNodeByKey(nodeKey);
-
-						if (!tagNode) return;
-						tagName = (tagNode as TagNode).getTag();
-					});
-					if (mutation === "created") {
-						createTag({ tag: tagName });
-					} else if (mutation === "destroyed") {
-						const newNote = note;
-						const newFolder = folder;
-
-						const oldNote = frontmatter.note;
-						const oldFolder = frontmatter.folder;
-
-						/*
-              If the frontmatter of the note is the same as the new note, then we didn't navigate to a new note and the
-              delete happened due to the user deleting the tag with backspace or something like that
-
-              If the frontmatter of the note is different from the new note, then the delete is due to navigating to a new editor.
-              This isn't really a delete for our purposes, so we don't want to do anything
-
-            */
-						if (oldFolder === newFolder && oldNote === newNote) {
-							deleteTag({ tag: tagName });
-						}
-					}
-				}
-			},
-		);
-
 		return () => {
 			codeNodeMutationListener();
-			tagNodeMutationListener();
 		};
 	}, [folder, note, frontmatter]);
 }

@@ -59,7 +59,6 @@ import {
 	InlineEquationNode,
 } from "./nodes/inline-equation.tsx";
 import { $createLinkNode, $isLinkNode, LinkNode } from "./nodes/link";
-import { $createTagNode, $isTagNode, TagNode } from "./nodes/tag.tsx";
 import { getFileElementTypeFromExtensionAndHead } from "./utils/file-node.ts";
 import type { Transformer } from "./utils/note-metadata";
 
@@ -78,24 +77,6 @@ function updateSrc(nodeSrc: string) {
 
 	return nodeSrc.replace(srcRegex, `/notes/${currentFolder}/`);
 }
-
-const TAG_TRANSFORMER: TextMatchTransformer = {
-	dependencies: [TagNode],
-	export: (node: LexicalNode) => {
-		if (!$isTagNode(node)) {
-			return null;
-		}
-		return `#${node.getTag()}`;
-	},
-	regExp: /#([a-zA-Z0-9-_]+)/,
-	importRegExp: /#([a-zA-Z0-9-_]+)/,
-	replace: (textNode, match) => {
-		const tagNode = $createTagNode({ tag: match[1] });
-		textNode.replace(tagNode);
-	},
-	trigger: " ",
-	type: "text-match",
-};
 
 const FILE_TRANSFORMER: TextMatchTransformer = {
 	dependencies: [FileNode],
@@ -449,7 +430,6 @@ const mapToTableCells = (textContent: string): Array<TableCellNode> | null => {
 
 export const CUSTOM_TRANSFORMERS = [
 	HEADING,
-	TAG_TRANSFORMER,
 	CHECK_LIST,
 	UNORDERED_LIST,
 	ORDERED_LIST,

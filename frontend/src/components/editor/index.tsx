@@ -41,7 +41,6 @@ import { FocusPlugin } from "./plugins/focus.tsx";
 import { LinkMatcherPlugin } from "./plugins/link-matcher.tsx";
 import { SAVE_MARKDOWN_CONTENT, SavePlugin } from "./plugins/save.tsx";
 import { TableOfContentsPlugin } from "./plugins/table-of-contents.tsx";
-import { TagPickerPlugin } from "./plugins/tag-picker.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 
 const debouncedHandleChange = debounce(handleChange, 275);
@@ -143,7 +142,6 @@ export function NotesEditor({
 				>
 					<NoteTitle folder={folder} note={note} />
 					<ComponentPickerMenuPlugin folder={folder} note={note} />
-					<TagPickerPlugin folder={folder} note={note} />
 					{frontmatter.showTableOfContents === "true" && (
 						<TableOfContentsPlugin />
 					)}

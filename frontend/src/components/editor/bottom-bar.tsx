@@ -78,10 +78,10 @@ export function BottomBar({
 	});
 
 	return (
-		<footer className="text-xs ml-[-4.5px] border-t border-gray-200 dark:border-gray-600 py-1.5 px-3 flex items-center gap-4 overflow-x-auto">
+		<footer className="text-xs ml-[-4.5px] border-t border-gray-200 dark:border-gray-600 py-1.5 px-3 flex items-center gap-4 overflow-x-auto overflow-y-hidden">
 			<span className="flex items-center gap-1">
 				<BreadcrumbItem to={`/${folder}`}>
-					<Folder width={18} height={18} /> {decodeURIComponent(folder)}
+					<Folder width={20} height={20} /> {decodeURIComponent(folder)}
 				</BreadcrumbItem>{" "}
 				/{" "}
 				<BreadcrumbItem to={`/${folder}/${note}?ext=${ext}`}>
@@ -97,11 +97,10 @@ export function BottomBar({
 			<span className="flex items-center gap-2">
 				<button
 					type="button"
-					className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600"
+					className="flex whitespace-nowrap items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600"
 				>
 					<TagPlus height={15} width={15} /> Add Tag
 				</button>
-
 				{tagElements}
 			</span>
 			{lastUpdatedText.length > 0 && (
