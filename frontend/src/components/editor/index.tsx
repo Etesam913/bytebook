@@ -150,9 +150,11 @@ export function NotesEditor({
 						placeholder={null}
 						contentEditable={
 							<ContentEditable
+								onContextMenu={(e) => e.stopPropagation()}
 								onKeyDown={() => setDraggableBlockElement(null)}
 								id="content-editable-editor"
 								spellCheck
+								autoCorrect="on"
 								onClick={(e) => {
 									// Clicks should not propagate to the editor when something is being dragged
 									if (draggedElement) {

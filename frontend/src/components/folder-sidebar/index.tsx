@@ -14,7 +14,6 @@ import {
 import {
 	checkIfFolderExists,
 	updateFolders,
-	updateTags,
 } from "../../utils/fetch-functions";
 import { MotionButton } from "../buttons";
 import { BottomItems } from "./bottom-items.tsx";
@@ -33,7 +32,6 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const setFolders = useSetAtom(foldersAtom);
-	const setTags = useSetAtom(tagsAtom);
 
 	useFolderCreate(setFolders);
 	useFolderDelete(setFolders);
@@ -42,7 +40,6 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	// Initially fetches folders from filesystem
 	useEffect(() => {
 		updateFolders(setFolders);
-		updateTags(setTags);
 	}, [setFolders]);
 
 	// Navigates to not-found page if folder does not exist

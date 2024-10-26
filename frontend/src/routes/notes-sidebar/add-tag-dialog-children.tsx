@@ -1,7 +1,15 @@
-import { type Dispatch, type SetStateAction, useRef, useState } from "react";
+import {
+	type Dispatch,
+	type SetStateAction,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import { getDefaultButtonVariants } from "../../animations";
 import { MotionButton } from "../../components/buttons";
+import { DropdownItems } from "../../components/dropdown/dropdown-items";
 import { Input } from "../../components/input";
+import { useTagsQuery } from "../../hooks/tag-events";
 import { XMark } from "../../icons/circle-xmark";
 import TagPlus from "../../icons/tag-plus";
 
@@ -25,6 +33,7 @@ function DialogTag({
 
 function addTag(
 	element: HTMLInputElement,
+	setCurrentTag: Dispatch<SetStateAction<string>>,
 	tags: string[],
 	setTags: Dispatch<SetStateAction<string[]>>,
 	setErrorText: Dispatch<SetStateAction<string>>,
@@ -43,9 +52,8 @@ function addTag(
 		setErrorText("Tag name already exists.");
 		return;
 	}
-	console.log(setTags, "tags should be set");
 	setTags((prev) => [...prev, tagName]);
-	element.value = "";
+	setCurrentTag("");
 	setErrorText("");
 }
 
@@ -56,52 +64,88 @@ export function AddTagDialogChildren({
 }) {
 	const [errorText, setErrorText] = useState<string>("");
 	const inputRef = useRef<HTMLInputElement>(null);
-	const [tags, setTags] = useState<string[]>([]);
+	const [addedTags, setAddedTags] = useState<string[]>([]);
+	const { data: tags } = useTagsQuery();
+	const [isOpen, setIsOpen] = useState(true);
+	const [currentTag, setCurrentTag] = useState("");
+
+	const dropdownItems = (tags ?? [])
+		.filter((tag) => tag.startsWith(inputRef.current?.value ?? ""))
+		.map((tag) => ({ value: tag, label: tag }))
+		.slice(0, 7);
 
 	return (
 		<>
 			<fieldset className="flex items-center gap-3">
-				<Input
-					ref={inputRef}
-					labelProps={{ htmlFor: "tag-name" }}
-					inputProps={{
-						id: "tag-name",
-						name: "tag-name",
-						placeholder: "Type Tag Name Here",
-						autoFocus: true,
-						className: "flex-1",
+				<div className="relative">
+					<Input
+						ref={inputRef}
+						labelProps={{ htmlFor: "tag-name" }}
+						inputProps={{
+							id: "tag-name",
+							name: "tag-name",
+							placeholder: "Type Tag Name Here",
+							autoFocus: true,
+							className: "flex-1",
+							value: currentTag,
+							onChange: (e) => {
+								setCurrentTag(e.target.value);
+							},
 
-						onKeyDown: (e) => {
-							if (e.key === "Enter") {
-								e.preventDefault();
-								addTag(
-									e.target as HTMLInputElement,
-									tags,
-									setTags,
-									setErrorText,
-								);
-							}
-						},
-					}}
-				/>
+							onKeyDown: (e) => {
+								if (e.key === "Enter") {
+									e.preventDefault();
+									addTag(
+										e.target as HTMLInputElement,
+										setCurrentTag,
+										addedTags,
+										setAddedTags,
+										setErrorText,
+									);
+								}
+							},
+						}}
+					/>
+
+					<DropdownItems
+						isOpen={dropdownItems.length > 0}
+						setIsOpen={() => {
+							setCurrentTag("");
+						}}
+						items={dropdownItems}
+						focusIndex={0}
+						setFocusIndex={() => {}}
+						className="w-full"
+					/>
+				</div>
 				<MotionButton
 					{...getDefaultButtonVariants()}
 					type="button"
 					onClick={() => {
 						if (inputRef.current)
-							addTag(inputRef.current, tags, setTags, setErrorText);
+							addTag(
+								inputRef.current,
+								setCurrentTag,
+								addedTags,
+								setAddedTags,
+								setErrorText,
+							);
 					}}
 				>
 					Add Tag
 				</MotionButton>
 			</fieldset>
-			{(errorText || tags.length > 0 || onSubmitErrorText.length > 0) && (
+			{(errorText || addedTags.length > 0 || onSubmitErrorText.length > 0) && (
 				<fieldset className="flex flex-col gap-2">
 					{errorText && <p className="text-red-500 text-sm">{errorText}</p>}
-					{tags.length > 0 && (
-						<section className="flex gap-2">
-							{tags.map((tagName) => (
-								<DialogTag key={tagName} tagName={tagName} setTags={setTags} />
+					{addedTags.length > 0 && (
+						<section className="flex gap-2 flex-wrap">
+							{addedTags.map((tagName) => (
+								<DialogTag
+									key={tagName}
+									tagName={tagName}
+									setTags={setAddedTags}
+								/>
 							))}
 						</section>
 					)}

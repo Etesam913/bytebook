@@ -60,7 +60,8 @@ export function useCodeEditorCommands(
   There are some tricky edge cases with this one.
 */
 export function useCodeEditorFocus(
-	codeMirrorRef: React.RefObject<CodeEditorRef>,
+	codeMirrorRef: RefObject<CodeEditorRef>,
+	isSelected: boolean,
 	setIsSelected: (arg0: boolean) => void,
 ) {
 	useEffect(() => {
@@ -71,6 +72,7 @@ export function useCodeEditorFocus(
 		  The `setInterval` had to be used because I couldn't find an easy way for
 			`cmInstance` to not be undefined
 		*/
+		if (!isSelected) return;
 		intervalId = setInterval(() => {
 			cmInstance = codeMirrorRef.current?.getCodemirror();
 
@@ -86,5 +88,5 @@ export function useCodeEditorFocus(
 				clearInterval(intervalId);
 			}
 		};
-	}, []);
+	}, [isSelected]);
 }

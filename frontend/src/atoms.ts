@@ -75,13 +75,6 @@ export const alphabetizedFoldersAtom = atom((get) => {
 	return folders.sort((a, b) => a.localeCompare(b));
 });
 
-export const tagsAtom = atom<string[] | null>([]);
-export const alphabetizedTagsAtom = atom((get) => {
-	const tags = get(tagsAtom);
-	if (!tags) return tags;
-	return tags.sort((a, b) => a.localeCompare(b));
-});
-
 export const folderSortAtom = atom<SortStrings>("date-updated-desc");
 export const noteSortAtom = atom<SortStrings>("date-updated-desc");
 

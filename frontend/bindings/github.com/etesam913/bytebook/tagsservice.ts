@@ -14,6 +14,20 @@ import * as project_types$0 from "./lib/project_types/models.js";
 import * as $models from "./models.js";
 
 /**
+ * AddPathsToTags adds multiple note paths to multiple tags.
+ * For each tag in tagNames, it adds all folderAndNotePaths to its notes.json.
+ * If a tag does not exist, it creates the tag and associates the note paths with it.
+ */
+export function AddPathsToTags(tagNames: string[], folderAndNotePathsWithoutQueryParam: string[]): Promise<$models.TagResponse> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(1538223693, tagNames, folderAndNotePathsWithoutQueryParam) as any;
+    let $typingPromise = $resultPromise.then(($result) => {
+        return $$createType0($result);
+    }) as any;
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
  * DeletePathFromTag removes a specific note path from a given tag.
  * If the tag no longer has any note paths associated with it, the tag folder is deleted.
  */

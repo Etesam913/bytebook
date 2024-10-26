@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useAtomValue } from "jotai/react";
+
 import { useState } from "react";
-import { alphabetizedTagsAtom } from "../../atoms";
+
+import { useTagsQuery } from "../../hooks/tag-events";
 import { TagIcon } from "../../icons/tag";
 import { useCustomNavigate } from "../../utils/routing";
 import { Sidebar } from "../sidebar";
@@ -9,7 +10,8 @@ import { AccordionButton } from "../sidebar/accordion-button";
 
 export function MyTagsAccordion() {
 	const [isOpen, setIsOpen] = useState(false);
-	const alphabetizedTags = useAtomValue(alphabetizedTagsAtom);
+	const { data: tags } = useTagsQuery();
+	const alphabetizedTags = tags?.sort((a, b) => a.localeCompare(b));
 	const hasTags = alphabetizedTags && alphabetizedTags.length > 0;
 	const { navigate } = useCustomNavigate();
 
@@ -122,7 +124,7 @@ export function MyTagsAccordion() {
 									</button>
 								);
 							}}
-							data={alphabetizedTags}
+							data={alphabetizedTags ?? null}
 						/>
 					</motion.div>
 				)}

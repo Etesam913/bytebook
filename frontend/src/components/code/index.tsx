@@ -108,7 +108,6 @@ export function CodeBlock({
 	);
 
 	// TODO: Create folder for the language if it doesn't exist
-
 	function getOptions(): SandpackInternalOptions {
 		if (language in nonTemplateLanguageDefaultFiles) {
 			return {

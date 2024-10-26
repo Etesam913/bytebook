@@ -5,6 +5,7 @@ import { isNoteMaximizedAtom, notesAtom } from "../../atoms";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { TagIcon } from "../../icons/tag";
 import { updateTagNotes } from "../../utils/fetch-functions";
+import { useSearchParamsEntries } from "../../utils/hooks";
 import { MyNotesAccordion } from "../notes-sidebar/my-notes-accordion";
 import { RenderNote } from "../notes-sidebar/render-note";
 
@@ -20,6 +21,7 @@ export function TagsSidebar({
 	const sidebarRef = useRef<HTMLElement>(null);
 	const { tagName, note, folder } = params;
 	const [notes, setNotes] = useAtom(notesAtom);
+	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 
 	useEffect(() => {
@@ -58,7 +60,11 @@ export function TagsSidebar({
 			)}
 			<Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
 			{folder && note && (
-				<RenderNote folder={folder} note={note} fileExtension="md" />
+				<RenderNote
+					folder={folder}
+					note={note}
+					fileExtension={searchParams.ext}
+				/>
 			)}
 		</>
 	);

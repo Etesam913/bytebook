@@ -51,17 +51,16 @@ func createTagFiles(projectPath string, tagName string, folderAndNotePaths []str
 	return nil
 }
 
-
 /*
 AddPathToTag adds a specific note path to a given tag.
 If the tag does not exist, it creates the tag and associates the note path with it.
 */
-func addPathToTag(projectPath, tagName, folderAndNotePath string) TagResponse {
+func addPathToTag(projectPath, tagName, folderAndNotePathWithoutQueryParam string) TagResponse {
 	pathToTagFolder := filepath.Join(projectPath, "tags", tagName)
 	pathToTagFile := filepath.Join(pathToTagFolder, "notes.json")
 
 	if exists, _ := io_helpers.FileOrFolderExists(pathToTagFile); !exists {
-		if err := createTagFiles(projectPath, tagName, []string{folderAndNotePath}); err != nil {
+		if err := createTagFiles(projectPath, tagName, []string{folderAndNotePathWithoutQueryParam}); err != nil {
 			return TagResponse{
 				Success: false,
 				Message: "Something went wrong when adding the tag. Please try again later",
@@ -78,12 +77,12 @@ func addPathToTag(projectPath, tagName, folderAndNotePath string) TagResponse {
 
 		// Check if notePath already exists in tagJson.Notes
 		for _, existingNotePath := range tagJson.Notes {
-			if existingNotePath == folderAndNotePath {
+			if existingNotePath == folderAndNotePathWithoutQueryParam {
 				return TagResponse{Success: true, Message: "Successfully Added Path To Tag"}
 			}
 		}
 
-		tagJson.Notes = append(tagJson.Notes, folderAndNotePath)
+		tagJson.Notes = append(tagJson.Notes, folderAndNotePathWithoutQueryParam)
 		if err := io_helpers.WriteJsonToPath(pathToTagFile, tagJson); err != nil {
 			return TagResponse{
 				Success: false,
@@ -94,6 +93,31 @@ func addPathToTag(projectPath, tagName, folderAndNotePath string) TagResponse {
 
 	return TagResponse{Success: true, Message: "Successfully Added Path To Tag"}
 }
+
+
+/*
+AddPathsToTags adds multiple note paths to multiple tags.
+For each tag in tagNames, it adds all folderAndNotePaths to its notes.json.
+If a tag does not exist, it creates the tag and associates the note paths with it.
+*/
+func (t *TagsService) AddPathsToTags(tagNames []string, folderAndNotePathsWithoutQueryParam []string) TagResponse {
+	for _, tagName := range tagNames {
+			for _, folderAndNotePath := range folderAndNotePathsWithoutQueryParam {
+				response := addPathToTag(t.ProjectPath, tagName, folderAndNotePath)
+				if !response.Success {
+					return TagResponse{
+						Success: false,
+						Message: fmt.Sprintf("Failed to add path %s to tag %s: %s", folderAndNotePath, tagName, response.Message),
+					}
+				}
+			}
+		}
+		return TagResponse{
+			Success: true,
+			Message: "Successfully Added Paths To Tags",
+		}
+}
+
 
 func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryParam string) project_types.BackendResponseWithData {
 	getTagsResponse := t.GetTags()
@@ -161,10 +185,10 @@ func (t *TagsService) DeletePathFromTag(tagName string, folderAndNotePathWithout
 	// If there are no note paths where this tag is being used, remove the folder for the tag
 	if len(notesWithoutDeletedPath) == 0 {
 		if err := os.RemoveAll(pathToTagFolder); err != nil {
-					return TagResponse{
-									Success: false,  // Change this to false to reflect the failure
-									Message: "Failed to remove tag folder. Please try again later.",
-					}
+			return TagResponse{
+				Success: false,  // Change this to false to reflect the failure
+				Message: "Failed to remove tag folder. Please try again later.",
+			}
 		} else {
 			return TagResponse{
 				Success: true,
@@ -189,7 +213,7 @@ func (t *TagsService) DeletePathFromTag(tagName string, folderAndNotePathWithout
 	}
 }
 
-// doesFolderAndNoteExist checks if a given note contains a specific tag name.
+// doesFolderAndNoteExist checks if a given folder and note exists
 // Parameters:
 //
 //	projectPath: The root path of the project.
@@ -205,14 +229,10 @@ func doesFolderAndNoteExist(projectPath, folderAndNote string) bool {
 	note := folderAndNoteArr[1]
 
 	pathToNote := filepath.Join(projectPath, "notes", folder, note)
-	_, err := os.ReadFile(pathToNote)
-
-	// if the note does not exist anymore then we need to skip/remove it
-	if err != nil {
+	if exists, _ := io_helpers.FileOrFolderExists(pathToNote); !exists {
 		return false
 	}
 	return true
-
 }
 
 /*

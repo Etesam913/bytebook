@@ -1,12 +1,13 @@
-import { useMutation } from "@tanstack/react-query";
+import { type QueryClient, useMutation } from "@tanstack/react-query";
 import { Events } from "@wailsio/runtime";
 import { useSetAtom } from "jotai/react";
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { toast } from "sonner";
 import {
 	RevealNoteInFinder,
 	SendNotesToTrash,
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
+import { AddPathsToTags } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import { selectionRangeAtom } from "../atoms";
 import { getNoteCount } from "../utils/fetch-functions";
 import { useWailsEvent } from "../utils/hooks";
@@ -179,45 +180,67 @@ export function useNoteRevealInFinderMutation() {
 	});
 }
 
-// export function useAddTagsMutation() {
-// 	return useMutation({
-// 		// The main function that handles adding tags to a note
-// 		mutationFn: async ({
-// 			tags,
-// 			selectionRange,
-// 		}: {
-// 			tags: FormDataEntryValue[];
-// 			selectionRange: Set<string>;
-// 		}) => {
-// 			const selectionNotes = [...selectionRange];
-// 			// Add the tags to each selected note
-// 			const addTagsRes = await Promise.all(
-// 				tags.map((tag) =>
-// 					selectionNotes.map(async (noteNameWithQueryParam) => {
-// 						const noteWithoutWithoutPrefix =
-// 							noteNameWithQueryParam.split(":")[1];
-// 						const { noteNameWithoutExtension, queryParams } =
-// 							extractInfoFromNoteName(noteWithoutWithoutPrefix);
-// 						return await AddPathToTag(
-// 							tag.toString(),
-// 							`${noteNameWithoutExtension}.${queryParams.ext}`,
-// 						);
-// 					}),
-// 				),
-// 			);
+type AddTagsMutationVariables = {
+	e: FormEvent<HTMLFormElement>;
+	setErrorText: Dispatch<SetStateAction<string>>;
+	folder: string;
+	selectionRange: Set<string>;
+	note: string;
+	ext: string;
+};
 
-// 			// Check if any tag failed to add
-// 			if (addTagsRes.some((r) => !r.success)) {
-// 				throw new Error("Failed to add tag to note");
-// 			}
-// 			return true;
-// 		},
-// 		// Handle errors that occur during the mutation
-// 		onError: (e) => {
-// 			if (e instanceof Error) {
-// 				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-// 			}
-// 			return false;
-// 		},
-// 	});
-// }
+export function useAddTagsMutation(queryClient: QueryClient) {
+	return useMutation({
+		// The main function that handles adding tags to a note
+		mutationFn: async ({
+			e,
+			folder,
+			setErrorText,
+			selectionRange,
+		}: AddTagsMutationVariables) => {
+			const formData = new FormData(e.target as HTMLFormElement);
+			const tags = formData.getAll("tags");
+			if (tags.length === 0) {
+				setErrorText("You need to add a tag before confirming.");
+				return false;
+			}
+			const tagsStrings = tags.map((tag) => tag.toString());
+			const folderAndNotePaths = [...selectionRange].map(
+				(noteWithQueryParam) => {
+					const noteWithQueryParamWithoutPrefix =
+						noteWithQueryParam.split(":")[1];
+					const { noteNameWithoutExtension, queryParams } =
+						extractInfoFromNoteName(noteWithQueryParamWithoutPrefix);
+
+					return `${folder}/${noteNameWithoutExtension}.${queryParams.ext}`;
+				},
+			);
+			// Add the tags to each selected note
+			const addTagsRes = await AddPathsToTags(tagsStrings, folderAndNotePaths);
+
+			if (!addTagsRes.success) {
+				throw new Error(addTagsRes.message);
+			}
+
+			return true;
+		},
+		onSuccess: (_, variables: AddTagsMutationVariables) => {
+			queryClient.invalidateQueries({
+				queryKey: [
+					"note-tags",
+					variables.folder,
+					variables.note,
+					variables.ext,
+				],
+			});
+			queryClient.invalidateQueries({ queryKey: ["get-tags"] });
+		},
+		// Handle errors that occur during the mutation
+		onError: (e) => {
+			if (e instanceof Error) {
+				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+			}
+			return false;
+		},
+	});
+}

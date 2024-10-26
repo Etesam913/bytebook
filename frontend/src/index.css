@@ -36,6 +36,15 @@
     font-style: italic;
 }
 
+html{
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+:root {
+    @apply transition-colors duration-300 dark:[color-scheme:dark] overscroll-none;
+}
+
 .draggable-block-menu {
     border-radius: 4px;
     padding: 2px 1px;
@@ -47,17 +56,13 @@
     will-change: transform;
 }
 
-html{
-    user-select: none;
-    -webkit-user-select: none;
+::spelling-error {
+  text-decoration: wavy red underline;
 }
+
 
 .sidebar-item {
     @apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform;
-}
-
-:root {
-    @apply transition-colors duration-300 dark:[color-scheme:dark] overscroll-none;
 }
 
 ::selection {

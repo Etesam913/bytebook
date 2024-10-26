@@ -15,7 +15,6 @@ export function ContextMenu() {
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const setContextMenuRef = useSetAtom(contextMenuRefAtom);
 	const contextMenuRefLocal = useRef<HTMLDivElement>(null);
-	console.log(selectionRange);
 	useEffect(() => {
 		setContextMenuRef(contextMenuRefLocal);
 	}, [contextMenuRefLocal]);

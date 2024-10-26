@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useAtom, useSetAtom } from "jotai/react";
 import {
 	contextMenuDataAtom,
@@ -9,6 +10,7 @@ import { SortButton } from "../../components/buttons/sort";
 import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
 import {
+	useAddTagsMutation,
 	useNoteRevealInFinderMutation,
 	useSendToTrashMutation,
 } from "../../hooks/note-events.tsx";
@@ -39,8 +41,10 @@ export function MyNotesAccordion({
 	};
 }) {
 	const searchParams: { ext?: string } = useSearchParamsEntries();
+	const queryClient = useQueryClient();
 	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
 	const { mutate: sendToTrash } = useSendToTrashMutation();
+	const { mutateAsync: addPathsToTags } = useAddTagsMutation(queryClient);
 
 	const isInTagSidebar = tagState?.tagName !== undefined;
 	const setContextMenuData = useSetAtom(contextMenuDataAtom);
@@ -161,20 +165,14 @@ export function MyNotesAccordion({
 														/>
 													),
 													onSubmit: async (e, setErrorText) => {
-														const formData = new FormData(
-															e.target as HTMLFormElement,
-														);
-														const tags = formData.getAll("tags");
-														if (tags.length === 0) {
-															setErrorText(
-																"You need to add a tag before confirming.",
-															);
-															return false;
-														}
-														// return addTags({
-														// 	tags,
-														// 	noteName,
-														// });
+														return addPathsToTags({
+															e,
+															setErrorText,
+															folder: curFolder,
+															note: curNote ?? "",
+															ext: queryParams.ext,
+															selectionRange: newSelectionRange,
+														});
 													},
 												});
 											},
@@ -210,6 +208,11 @@ export function MyNotesAccordion({
 							)}
 							onClick={(e) => {
 								if (e.metaKey || e.shiftKey) return;
+								console.log(
+									isInTagSidebar
+										? `/tags/${tagState.tagName}/${sidebarNoteName}`
+										: `/${curFolder}/${sidebarNoteName}`,
+								);
 								navigate(
 									isInTagSidebar
 										? `/tags/${tagState.tagName}/${sidebarNoteName}`

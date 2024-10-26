@@ -80,27 +80,6 @@ export async function updateFolders(
 	}
 }
 
-/** Fetches tags from the file system */
-export async function updateTags(
-	setTags: Dispatch<SetStateAction<string[] | null>>,
-) {
-	try {
-		const res = await GetTags();
-		if (res.success) {
-			const tags = res.data;
-			setTags(tags);
-		} else {
-			throw new Error(res.message);
-		}
-	} catch (e) {
-		if (e instanceof Error) {
-			toast.error(e.message);
-		} else {
-			toast.error("Error in retrieving tags.", DEFAULT_SONNER_OPTIONS);
-		}
-	}
-}
-
 /**
  * Checks if a specific note exists within a given folder.
  * If the note does not exist, it navigates to either the first note in the folder or the folder itself.

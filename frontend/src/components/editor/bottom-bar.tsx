@@ -1,18 +1,20 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useState } from "react";
 import { Link } from "wouter";
 import { XMark } from "../../icons/circle-xmark";
 import { Folder } from "../../icons/folder";
-
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import {
-	DeletePathFromTag,
-	GetTagsForFolderAndNotePath,
-} from "../../../bindings/github.com/etesam913/bytebook/tagsservice";
 import { Loader } from "../../icons/loader";
 import TagPlus from "../../icons/tag-plus";
 import { RenderNoteIcon } from "../../routes/notes-sidebar/render-note-icon";
-import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
+
+import { useSetAtom } from "jotai/react";
+import { dialogDataAtom } from "../../atoms";
+import { useAddTagsMutation } from "../../hooks/note-events";
+import {
+	useDeleteTagMutation,
+	useTagsForNoteQuery,
+} from "../../hooks/tag-events";
+import { AddTagDialogChildren } from "../../routes/notes-sidebar/add-tag-dialog-children";
 import { timeSince } from "./utils/bottom-bar";
 
 function BreadcrumbItem({ children, to }: { children: ReactNode; to: string }) {
@@ -28,7 +30,7 @@ function BreadcrumbItem({ children, to }: { children: ReactNode; to: string }) {
 
 function Tag({ tagName, onClick }: { tagName: string; onClick: () => void }) {
 	return (
-		<span className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600">
+		<span className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 whitespace-nowrap">
 			<p>{tagName}</p>
 			<button type="button" onClick={onClick}>
 				<XMark width={12} height={12} />
@@ -51,35 +53,17 @@ export function BottomBar({
 	const [lastUpdatedText, setLastUpdatedText] = useState("");
 	const queryClient = useQueryClient();
 
-	const { data: tags, isLoading } = useQuery({
-		queryKey: ["tags-fetching", folder, note, ext],
-		queryFn: async () => {
-			const res = await GetTagsForFolderAndNotePath(
-				`${folder}/${note}?ext=${ext}`,
-			);
-			return res.data;
-		},
-	});
+	const { data: tags, isLoading } = useTagsForNoteQuery(folder, note, ext);
 
-	const { mutate: deleteTag } = useMutation({
-		mutationFn: async ({ tagName }: { tagName: string }) => {
-			const res = await DeletePathFromTag(tagName, `${folder}/${note}.${ext}`);
-			if (!res.success) {
-				throw new Error(res.message);
-			}
-		},
-		onError: (e) => {
-			if (e instanceof Error) {
-				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-			}
-		},
-		onSuccess: () => {
-			console.log("deleted");
-			queryClient.invalidateQueries({
-				queryKey: ["tags-fetching", folder, note, ext],
-			});
-		},
-	});
+	const { mutate: deleteTag } = useDeleteTagMutation(
+		queryClient,
+		folder,
+		note,
+		ext,
+	);
+	const { mutateAsync: addPathsToTags } = useAddTagsMutation(queryClient);
+
+	const setDialogData = useSetAtom(dialogDataAtom);
 
 	useEffect(() => {
 		if (!frontmatter) return;
@@ -130,6 +114,25 @@ export function BottomBar({
 				<button
 					type="button"
 					className="flex whitespace-nowrap items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600"
+					onClick={() => {
+						setDialogData({
+							isOpen: true,
+							title: "Add Tags",
+							children: (errorText) => (
+								<AddTagDialogChildren onSubmitErrorText={errorText} />
+							),
+							onSubmit: (e, setErrorText) => {
+								return addPathsToTags({
+									e,
+									setErrorText,
+									folder,
+									note,
+									ext: ext,
+									selectionRange: new Set([`note:${note}?ext=${ext}`]),
+								});
+							},
+						});
+					}}
 				>
 					<TagPlus height={15} width={15} /> Add Tag
 				</button>
