@@ -130,10 +130,9 @@ export function CodeViewer({
 				<SandpackCodeEditor
 					ref={codeMirrorRef}
 					style={{ height: isFullscreen ? "100%" : "auto" }}
-					showTabs
-					showLineNumbers={false}
+					showTabs={false}
+					showLineNumbers
 					showInlineErrors
-					closableTabs
 					extensions={[autocompletion()]}
 					key={activeFile}
 					extensionsKeymap={completionKeymap}
