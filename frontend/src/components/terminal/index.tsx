@@ -63,7 +63,7 @@ export function TerminalComponent({
 		data,
 		isInCodeSnippet,
 	);
-	useTerminalResize(xtermRef, xtermFitAddonRef, nodeKey);
+	useTerminalResize(xtermRef, xtermFitAddonRef, nodeKey, isSelected);
 	useTerminalTheme(isDarkModeOn, xtermRef);
 	useTerminalWrite(nodeKey, xtermRef, data, writeDataToNode);
 	useTerminalCreateEventForBackend(nodeKey, startDirectory, shell);

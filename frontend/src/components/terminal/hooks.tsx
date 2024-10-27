@@ -17,7 +17,7 @@ import { darkTerminalTheme, handleResize, lightTerminalTheme } from "./utils";
  */
 export function useFocusOnSelect(
 	isSelected: boolean,
-	terminalRef: React.RefObject<HTMLDivElement | null>,
+	terminalRef: RefObject<HTMLDivElement | null>,
 	isInCodeSnippet: boolean,
 ) {
 	useEffect(() => {
@@ -79,8 +79,9 @@ export function useTerminalCreateEventForBackend(
  */
 export function useTerminalResize(
 	xtermRef: RefObject<Terminal | null>,
-	xtermFitAddonRef: RefObject<FitAddon | null>,
+	xtermFitAddonRef: MutableRefObject<FitAddon | null>,
 	nodeKey: string,
+	isSelected: boolean,
 ) {
 	// Get the reference to the note container from the global state
 	const noteContainerRef = useAtomValue(noteContainerRefAtom);
@@ -89,6 +90,12 @@ export function useTerminalResize(
 		// Early return if the note container reference is not available
 		if (!noteContainerRef || !noteContainerRef.current) return;
 
+		// Initialize the fit addon if it's not already initialized
+		if (xtermRef.current && isSelected && !xtermFitAddonRef.current) {
+			xtermFitAddonRef.current = new FitAddon();
+			xtermRef.current.loadAddon(xtermFitAddonRef.current);
+		}
+
 		// Create a ResizeObserver to watch for size changes
 		const resizeObserver = new ResizeObserver(() => {
 			// Check if both xterm and its fit addon are available
@@ -96,6 +103,10 @@ export function useTerminalResize(
 			// Trigger the resize handler
 			handleResize(xtermRef.current, xtermFitAddonRef.current, nodeKey);
 		});
+		// Trigger the resize handler on initial render
+		if (xtermRef.current && xtermFitAddonRef.current) {
+			handleResize(xtermRef.current, xtermFitAddonRef.current, nodeKey);
+		}
 
 		// Start observing the note container for size changes
 		resizeObserver.observe(noteContainerRef.current);
@@ -104,7 +115,7 @@ export function useTerminalResize(
 		return () => {
 			resizeObserver.disconnect();
 		};
-	}, [xtermRef, xtermFitAddonRef, nodeKey, noteContainerRef]);
+	}, [xtermRef, xtermFitAddonRef, nodeKey, noteContainerRef, isSelected]);
 }
 
 /**
@@ -121,24 +132,11 @@ export function useTerminalCreateFrontend(
 	data: CodeBlockData,
 	isInCodeSnippet: boolean,
 ) {
-	/*
-		We only want to load the fit addon when the terminal is selected as it causes the terminal to be focused.
-		We don't want the terminal to be focuesd when it is created for the first time 	
-	*/
-	useEffect(() => {
-		if (!xtermRef.current) return;
-		// Add the fit addon, but only add it if it is not already added
-		if (isSelected && !xtermFitAddonRef.current) {
-			xtermFitAddonRef.current = new FitAddon();
-			xtermRef.current.loadAddon(xtermFitAddonRef.current);
-		}
-	}, [isSelected]);
-
 	useEffect(() => {
 		xtermRef.current = new Terminal({
 			cursorBlink: true,
-			cols: 80,
-			rows: 24,
+			// cols: 80,
+			// rows: 24,
 			fontFamily: '"Jetbrains Mono", monospace',
 			fontSize: 13,
 			cursorStyle: "block",

@@ -14,11 +14,11 @@ import {
 import { SandpackCodeEditor, useSandpack } from "@codesandbox/sandpack-react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { motion } from "framer-motion";
+import { useAtomValue } from "jotai/react";
 import { type Dispatch, type SetStateAction, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { languageToTemplate, nonTemplateLanguageToExtension } from ".";
 import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook/index";
-import { useAtomValue } from "jotai/react";
 import { UpdateTempCodeFile } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
 import { RunCodeInTerminal } from "../../../bindings/github.com/etesam913/bytebook/terminalservice";
 import { getDefaultButtonVariants } from "../../animations";
