@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import type { LexicalEditor } from "lexical";
+import type { Dispatch, SetStateAction } from "react";
 import { getDefaultButtonVariants } from "../../animations";
 import { ExitFullscreen } from "../../icons/arrows-reduce-diagonal";
 import { Fullscreen } from "../../icons/fullscreen";
@@ -15,7 +16,7 @@ export function TerminalHeader({
 	onFullscreenChange,
 }: {
 	isFullscreen: boolean;
-	setIsFullscreen: React.Dispatch<React.SetStateAction<boolean>>;
+	setIsFullscreen: Dispatch<SetStateAction<boolean>>;
 	nodeKey: string;
 	editor: LexicalEditor;
 	onFullscreenChange: () => void;

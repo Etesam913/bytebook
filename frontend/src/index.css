@@ -109,6 +109,12 @@ code {
     font-size: 14px;
 }
 
+
+/* Makes sure that the code block does not overlap with the traffic lights when in fullscreen mode */
+div[data-is-fullscreen="true"] .cm-scroller{
+    padding-top: 3rem !important;
+}
+
 .cm-tooltip {
     @apply !bg-white dark:!bg-zinc-800 text-zinc-900 dark:text-zinc-200 !border-zinc-200 dark:!border-zinc-600 rounded-md overflow-hidden !p-1;
 }
