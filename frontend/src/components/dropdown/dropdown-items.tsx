@@ -43,7 +43,7 @@ export function DropdownItems({
 	}, [dropdownItemsRef, isOpen]);
 
 	return (
-		<>
+		<AnimatePresence>
 			{isOpen && (
 				<motion.div
 					role="menu"
@@ -129,6 +129,6 @@ export function DropdownItems({
 					</motion.div>
 				</motion.div>
 			)}
-		</>
+		</AnimatePresence>
 	);
 }

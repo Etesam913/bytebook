@@ -1,14 +1,7 @@
-import {
-	type Dispatch,
-	type SetStateAction,
-	useEffect,
-	useRef,
-	useState,
-} from "react";
+import { type Dispatch, type SetStateAction, useRef, useState } from "react";
 import { getDefaultButtonVariants } from "../../animations";
 import { MotionButton } from "../../components/buttons";
-import { DropdownItems } from "../../components/dropdown/dropdown-items";
-import { Input } from "../../components/input";
+import { Combobox } from "../../components/combobox";
 import { useTagsQuery } from "../../hooks/tag-events";
 import { XMark } from "../../icons/circle-xmark";
 import TagPlus from "../../icons/tag-plus";
@@ -66,19 +59,30 @@ export function AddTagDialogChildren({
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [addedTags, setAddedTags] = useState<string[]>([]);
 	const { data: tags } = useTagsQuery();
-	const [isOpen, setIsOpen] = useState(true);
+
 	const [currentTag, setCurrentTag] = useState("");
 
 	const dropdownItems = (tags ?? [])
-		.filter((tag) => tag.startsWith(inputRef.current?.value ?? ""))
+		.filter((tag) => {
+			const inputValue = inputRef.current?.value.toLowerCase().trim() ?? "";
+			const tagValue = tag.toLowerCase().trim();
+
+			return (
+				tagValue.startsWith(inputValue) &&
+				!addedTags.includes(tag) &&
+				!addedTags.includes(tagValue) &&
+				// inputValue.length > 0 &&
+				!tag.includes("#")
+			);
+		})
 		.map((tag) => ({ value: tag, label: tag }))
 		.slice(0, 7);
 
 	return (
 		<>
 			<fieldset className="flex items-center gap-3">
-				<div className="relative">
-					<Input
+				<div className="relative flex-1 flex">
+					<Combobox
 						ref={inputRef}
 						labelProps={{ htmlFor: "tag-name" }}
 						inputProps={{
@@ -88,6 +92,9 @@ export function AddTagDialogChildren({
 							autoFocus: true,
 							className: "flex-1",
 							value: currentTag,
+							autoCapitalize: "off",
+							spellCheck: false,
+							setState: setCurrentTag,
 							onChange: (e) => {
 								setCurrentTag(e.target.value);
 							},
@@ -105,17 +112,7 @@ export function AddTagDialogChildren({
 								}
 							},
 						}}
-					/>
-
-					<DropdownItems
-						isOpen={dropdownItems.length > 0}
-						setIsOpen={() => {
-							setCurrentTag("");
-						}}
 						items={dropdownItems}
-						focusIndex={0}
-						setFocusIndex={() => {}}
-						className="w-full"
 					/>
 				</div>
 				<MotionButton
