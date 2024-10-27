@@ -208,11 +208,6 @@ export function MyNotesAccordion({
 							)}
 							onClick={(e) => {
 								if (e.metaKey || e.shiftKey) return;
-								console.log(
-									isInTagSidebar
-										? `/tags/${tagState.tagName}/${sidebarNoteName}`
-										: `/${curFolder}/${sidebarNoteName}`,
-								);
 								navigate(
 									isInTagSidebar
 										? `/tags/${tagState.tagName}/${sidebarNoteName}`

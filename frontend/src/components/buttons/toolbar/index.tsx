@@ -99,17 +99,17 @@ export function ToolbarButtons({
 				),
 			key: "italic",
 		},
-		{
-			icon: <TextUnderline className="will-change-transform" />,
-			onClick: () =>
-				handleToolbarTextFormattingClick(
-					editor,
-					currentSelectionFormat,
-					setCurrentSelectionFormat,
-					"underline",
-				),
-			key: "underline",
-		},
+		// {
+		// 	icon: <TextUnderline className="will-change-transform" />,
+		// 	onClick: () =>
+		// 		handleToolbarTextFormattingClick(
+		// 			editor,
+		// 			currentSelectionFormat,
+		// 			setCurrentSelectionFormat,
+		// 			"underline",
+		// 		),
+		// 	key: "underline",
+		// },
 		{
 			icon: <TextStrikethrough className="will-change-transform" />,
 			onClick: () =>
