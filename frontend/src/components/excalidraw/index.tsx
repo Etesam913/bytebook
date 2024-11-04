@@ -96,7 +96,7 @@ export function ExcalidrawComponent({
 					className="absolute z-50 right-5 top-4 bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
 					type="submit"
 				>
-					<XMark width="1.5rem" height="1.5rem" />
+					<XMark width={24} height={24} />
 				</motion.button>
 			)}
 
@@ -144,7 +144,7 @@ export function ExcalidrawComponent({
 				className={cn("w-full h-[40rem]", isExpanded && "h-screen")}
 			>
 				<Excalidraw
-					initialData={{ elements: defaultElements }}
+					initialData={{ elements: defaultElements, scrollToContent: true }}
 					theme={isDarkModeOn ? THEME.DARK : THEME.LIGHT}
 					excalidrawAPI={(api) => {
 						excalidrawAPIRef.current = api;
