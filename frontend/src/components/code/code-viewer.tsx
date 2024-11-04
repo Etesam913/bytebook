@@ -69,6 +69,7 @@ export function CodeViewer({
 	return (
 		<>
 			<SandpackLayout
+				style={{ flex: 1 }}
 				onClick={() => {
 					const cmInstance = codeMirrorRef.current?.getCodemirror();
 					if (cmInstance) {
@@ -129,10 +130,10 @@ export function CodeViewer({
 				)}
 				<SandpackCodeEditor
 					ref={codeMirrorRef}
-					style={{ height: isFullscreen ? "100%" : "auto" }}
-					showTabs={false}
+					// style={{ height: isFullscreen ? "100%" : "27.5rem" }}
 					showLineNumbers
 					showInlineErrors
+					showTabs
 					extensions={[autocompletion()]}
 					key={activeFile}
 					extensionsKeymap={completionKeymap}

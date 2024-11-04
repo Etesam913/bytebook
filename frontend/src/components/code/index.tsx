@@ -140,7 +140,7 @@ export function CodeBlock({
 				theme={isDarkModeOn ? "dark" : "light"}
 				files={defaultFiles.current}
 				options={getOptions()}
-				className="flex flex-col h-full"
+				className="flex flex-col h-[515px]"
 				template={
 					language in languageToTemplate
 						? languageToTemplate[language]

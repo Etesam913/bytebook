@@ -71,7 +71,7 @@ export function TerminalComponent({
 	return (
 		<div
 			className={cn(
-				"w-full flex flex-col border-2 border-[rgb(229,231,235)] dark:border-[rgb(37,37,37)] rounded-md overflow-hidden bg-white dark:bg-zinc-900 font-code",
+				"w-full flex flex-col border-2 border-[rgb(229,231,235)] dark:border-[rgb(37,37,37)] overflow-hidden rounded-md bg-white dark:bg-zinc-900 font-code",
 				isSelected && "border-blue-400 dark:border-blue-500",
 				isFullscreen &&
 					"fixed top-0 left-0 right-0 bottom-0 z-20 h-screen border-0",
@@ -86,34 +86,42 @@ export function TerminalComponent({
 				onClick?.();
 			}}
 		>
-			{!isInCodeSnippet && (
-				<TerminalHeader
-					isFullscreen={isFullscreen}
-					setIsFullscreen={setIsFullscreen}
-					nodeKey={nodeKey}
-					editor={editor}
-					onFullscreenChange={() => {
-						if (!xtermRef.current || !xtermFitAddonRef.current) return;
-						handleResize(xtermRef.current, xtermFitAddonRef.current, nodeKey);
-					}}
-				/>
-			)}
-			{isInCodeSnippet && commandWrittenToNode && writeCommandToNode && (
-				<RunCommand
-					commandWrittenToNode={commandWrittenToNode}
-					writeCommandToNode={writeCommandToNode}
-					nodeKey={nodeKey}
-				/>
-			)}
+			<div className="flex flex-col-reverse">
+				<div className="flex flex-col">
+					{!isInCodeSnippet && (
+						<TerminalHeader
+							isFullscreen={isFullscreen}
+							setIsFullscreen={setIsFullscreen}
+							nodeKey={nodeKey}
+							editor={editor}
+							onFullscreenChange={() => {
+								if (!xtermRef.current || !xtermFitAddonRef.current) return;
+								handleResize(
+									xtermRef.current,
+									xtermFitAddonRef.current,
+									nodeKey,
+								);
+							}}
+						/>
+					)}
+					{isInCodeSnippet && commandWrittenToNode && writeCommandToNode && (
+						<RunCommand
+							commandWrittenToNode={commandWrittenToNode}
+							writeCommandToNode={writeCommandToNode}
+							nodeKey={nodeKey}
+						/>
+					)}
 
-			<div
-				ref={terminalRef}
-				className={cn(
-					"h-80",
-					isFullscreen && "h-screen",
-					isInCodeSnippet && "h-[10.5rem]",
-				)}
-			/>
+					<div
+						ref={terminalRef}
+						className={cn(
+							"h-80",
+							isFullscreen && "h-screen",
+							isInCodeSnippet && "h-[10.5rem]",
+						)}
+					/>
+				</div>
+			</div>
 		</div>
 	);
 }
