@@ -1,28 +1,63 @@
-import { motion } from "framer-motion";
+import { motion, MotionValue } from "framer-motion";
 
 import { getDefaultButtonVariants } from "../../animations";
 import { Play } from "../../icons/circle-play";
 
 import { RunCodeInTerminal } from "../../../bindings/github.com/etesam913/bytebook/terminalservice";
 import { Input } from "../input";
+import { dragItem } from "../../utils/draggable";
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
+import { RefObject } from "react";
+import { handleResize } from "../terminal/utils";
 
 export function RunCommand({
 	commandWrittenToNode,
 	writeCommandToNode,
 	nodeKey,
+	terminalHeight,
+	xTermRef,
+	xTermFitAddonRef,
 }: {
 	commandWrittenToNode: string;
 	writeCommandToNode: (language: string) => void;
+	terminalHeight: MotionValue<number>;
 	nodeKey: string;
+	xTermRef: RefObject<Terminal | null>;
+	xTermFitAddonRef: RefObject<FitAddon | null>;
 }) {
 	return (
 		<form
-			className="p-2 font-code justify-between border-b border-[rgb(229,231,235)] dark:border-[rgb(37,37,37)] bg-white dark:bg-[rgb(21,21,21)] overflow-auto text-zinc-950 dark:text-zinc-100"
+			className="px-2 pb-2 font-code justify-between border-b border-[rgb(229,231,235)] dark:border-[rgb(37,37,37)] bg-white dark:bg-[rgb(21,21,21)] overflow-auto text-zinc-950 dark:text-zinc-100"
 			onSubmit={(e) => {
 				e.preventDefault();
 				RunCodeInTerminal(nodeKey, commandWrittenToNode);
 			}}
 		>
+			<div
+				className="h-2 cursor-row-resize"
+				onMouseDown={(mouseEvent) => {
+					const initialHeight = terminalHeight.get();
+					dragItem(
+						(dragEvent) => {
+							const changeInHeight = mouseEvent.clientY - dragEvent.clientY;
+							terminalHeight.set(
+								Math.max(Math.min(initialHeight + changeInHeight, 352), 168),
+							);
+						},
+						() => {
+							if (xTermRef.current && xTermFitAddonRef.current) {
+								handleResize(
+									xTermRef.current,
+									xTermFitAddonRef.current,
+									nodeKey,
+								);
+							}
+						},
+					);
+				}}
+			/>
+
 			<div className="flex gap-2 justify-start items-end">
 				<div className="flex gap-1 flex-wrap items-center flex-1">
 					<Input

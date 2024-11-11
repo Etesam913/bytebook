@@ -63,7 +63,7 @@ export function CodeViewer({
 	const code = useMemo(() => files[activeFile].code, [sandpack.files]);
 	const codeMirrorRef = useRef<CodeEditorRef | null>(null);
 	const { projectPath } = useAtomValue(projectSettingsAtom);
-
+	const isInCodeSnippet = !(language in languageToTemplate);
 	useCodeEditorFocus(codeMirrorRef, isSelected, setIsSelected);
 
 	return (
@@ -76,7 +76,7 @@ export function CodeViewer({
 						cmInstance.focus();
 					}
 				}}
-				className="flex-1 rounded-bl-none rounded-br-none"
+				className="flex-1 rounded-bl-none overflow-hidden rounded-br-none"
 				onKeyDown={async (e) => {
 					setIsSelected(true);
 					if (e.key === "Enter" && e.shiftKey) {
@@ -123,7 +123,7 @@ export function CodeViewer({
 					UpdateTempCodeFile(nodeKey, language, code, commandWrittenToNode)
 				}
 			>
-				{language in languageToTemplate && (
+				{!isInCodeSnippet && (
 					<SandpackFileExplorer
 						style={{ height: isFullscreen ? "100%" : "auto" }}
 					/>
@@ -133,7 +133,6 @@ export function CodeViewer({
 					// style={{ height: isFullscreen ? "100%" : "27.5rem" }}
 					showLineNumbers
 					showInlineErrors
-					showTabs
 					extensions={[autocompletion()]}
 					key={activeFile}
 					extensionsKeymap={completionKeymap}
@@ -234,7 +233,7 @@ export function CodeViewer({
 					)}
 				</motion.button>
 			</SandpackLayout>
-			{language in languageToTemplate ? (
+			{!isInCodeSnippet ? (
 				<SandpackLayout>
 					<SandpackPreview showOpenInCodeSandbox={false} />
 				</SandpackLayout>

@@ -19,6 +19,7 @@ import {
 	useTerminalWrite,
 } from "./hooks";
 import { handleResize } from "./utils";
+import { motion, useMotionValue } from "framer-motion";
 
 export function TerminalComponent({
 	nodeKey,
@@ -50,6 +51,7 @@ export function TerminalComponent({
 	const [isSelected, setIsSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
 	const [isFullscreen, setIsFullscreen] = useState(false);
+	const terminalHeight = useMotionValue(168);
 
 	useFocusOnSelect(isSelected, terminalRef, isInCodeSnippet);
 	useTerminalCreateFrontend(
@@ -86,42 +88,26 @@ export function TerminalComponent({
 				onClick?.();
 			}}
 		>
-			<div className="flex flex-col-reverse">
-				<div className="flex flex-col">
-					{!isInCodeSnippet && (
-						<TerminalHeader
-							isFullscreen={isFullscreen}
-							setIsFullscreen={setIsFullscreen}
-							nodeKey={nodeKey}
-							editor={editor}
-							onFullscreenChange={() => {
-								if (!xtermRef.current || !xtermFitAddonRef.current) return;
-								handleResize(
-									xtermRef.current,
-									xtermFitAddonRef.current,
-									nodeKey,
-								);
-							}}
-						/>
-					)}
-					{isInCodeSnippet && commandWrittenToNode && writeCommandToNode && (
-						<RunCommand
-							commandWrittenToNode={commandWrittenToNode}
-							writeCommandToNode={writeCommandToNode}
-							nodeKey={nodeKey}
-						/>
-					)}
+			{isInCodeSnippet && commandWrittenToNode && writeCommandToNode && (
+				<RunCommand
+					terminalHeight={terminalHeight}
+					commandWrittenToNode={commandWrittenToNode}
+					writeCommandToNode={writeCommandToNode}
+					nodeKey={nodeKey}
+					xTermRef={xtermRef}
+					xTermFitAddonRef={xtermFitAddonRef}
+				/>
+			)}
 
-					<div
-						ref={terminalRef}
-						className={cn(
-							"h-80",
-							isFullscreen && "h-screen",
-							isInCodeSnippet && "h-[10.5rem]",
-						)}
-					/>
-				</div>
-			</div>
+			<motion.div
+				ref={terminalRef}
+				style={{ height: terminalHeight }}
+				className={cn(
+					"h-80",
+					isFullscreen && "h-screen",
+					isInCodeSnippet && "min-h-[10.5rem] h-[10.5rem]",
+				)}
+			/>
 		</div>
 	);
 }
