@@ -121,9 +121,6 @@ export function useFolderDialogSubmit() {
 					"Untitled",
 				);
 				if (addNoteRes.success) {
-					navigate(
-						`/${encodeURIComponent(newFolderNameString)}/Untitled?ext=md`,
-					);
 					return true;
 				}
 				throw new Error(addNoteRes.message);
@@ -139,7 +136,6 @@ export function useFolderDialogSubmit() {
 
 			// Handle folder deletion
 			if (action === "delete") {
-				console.log("bob");
 				if (!folderFromSidebar) throw new Error("Something went wrong");
 				const res = await DeleteFolder(folderFromSidebar);
 				if (!res.success) throw new Error(res.message);

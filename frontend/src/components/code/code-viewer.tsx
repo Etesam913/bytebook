@@ -63,12 +63,13 @@ export function CodeViewer({
 	const code = useMemo(() => files[activeFile].code, [sandpack.files]);
 	const codeMirrorRef = useRef<CodeEditorRef | null>(null);
 	const { projectPath } = useAtomValue(projectSettingsAtom);
-
+	const isInCodeSnippet = !(language in languageToTemplate);
 	useCodeEditorFocus(codeMirrorRef, isSelected, setIsSelected);
 
 	return (
 		<>
 			<SandpackLayout
+				style={{ flex: 1 }}
 				onClick={() => {
 					const cmInstance = codeMirrorRef.current?.getCodemirror();
 					if (cmInstance) {
@@ -122,15 +123,14 @@ export function CodeViewer({
 					UpdateTempCodeFile(nodeKey, language, code, commandWrittenToNode)
 				}
 			>
-				{language in languageToTemplate && (
+				{!isInCodeSnippet && (
 					<SandpackFileExplorer
 						style={{ height: isFullscreen ? "100%" : "auto" }}
 					/>
 				)}
 				<SandpackCodeEditor
 					ref={codeMirrorRef}
-					style={{ height: isFullscreen ? "100%" : "auto" }}
-					showTabs={false}
+					style={{ height: isFullscreen ? "100%" : "27.5rem" }}
 					showLineNumbers
 					showInlineErrors
 					extensions={[autocompletion()]}
@@ -233,7 +233,7 @@ export function CodeViewer({
 					)}
 				</motion.button>
 			</SandpackLayout>
-			{language in languageToTemplate ? (
+			{!isInCodeSnippet ? (
 				<SandpackLayout>
 					<SandpackPreview showOpenInCodeSandbox={false} />
 				</SandpackLayout>
@@ -241,6 +241,7 @@ export function CodeViewer({
 				<TerminalComponent
 					nodeKey={nodeKey}
 					data={data}
+					isFullscreen={isFullscreen}
 					shell="bash"
 					isInCodeSnippet
 					startDirectory={`${projectPath}/${language}/src`}
