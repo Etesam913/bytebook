@@ -12,6 +12,7 @@ import {
 } from "../../utils/string-formatting";
 import { LoginButton } from "../buttons/login";
 import { SyncChangesButton } from "../buttons/sync-changes";
+import { SettingsButton } from "../buttons/settings";
 
 export function BottomItems() {
 	const [, params] = useRoute("/:folder/:note?");
@@ -78,6 +79,7 @@ export function BottomItems() {
 			>
 				<Trash /> Trash
 			</Link>
+			<SettingsButton />
 			<SyncChangesButton />
 			<LoginButton />
 		</section>

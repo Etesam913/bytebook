@@ -71,14 +71,14 @@ export function LoginButton() {
 								</span>
 							),
 						},
-						{
-							value: "settings",
-							label: (
-								<span className="flex items-center gap-1.5 will-change-transform">
-									<Gear /> Settings
-								</span>
-							),
-						},
+						// {
+						// 	value: "settings",
+						// 	label: (
+						// 		<span className="flex items-center gap-1.5 will-change-transform">
+						// 			<Gear /> Settings
+						// 		</span>
+						// 	),
+						// },
 					]}
 				/>
 

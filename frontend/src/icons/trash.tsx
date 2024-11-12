@@ -26,7 +26,7 @@ export function Trash({
 					fill="none"
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					strokeWidth="1.5"
+					strokeWidth="1.75"
 					x1="2.75"
 					x2="15.25"
 					y1="4.25"
@@ -36,7 +36,7 @@ export function Trash({
 					fill="none"
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					strokeWidth="1.5"
+					strokeWidth="1.75"
 					x1="7.25"
 					x2="7.25"
 					y1="8.75"
@@ -46,7 +46,7 @@ export function Trash({
 					fill="none"
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					strokeWidth="1.5"
+					strokeWidth="1.75"
 					x1="10.75"
 					x2="10.75"
 					y1="8.75"
@@ -57,7 +57,7 @@ export function Trash({
 					fill="none"
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					strokeWidth="1.5"
+					strokeWidth="1.75"
 				/>
 				<path
 					d="M13.75,6.75v7.5c0,1.105-.895,2-2,2H6.25c-1.105,0-2-.895-2-2V6.75"
@@ -65,7 +65,7 @@ export function Trash({
 					stroke={fill}
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					strokeWidth="1.5"
+					strokeWidth="1.75"
 				/>
 			</g>
 		</svg>
