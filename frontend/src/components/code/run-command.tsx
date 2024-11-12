@@ -1,14 +1,14 @@
-import { motion, MotionValue } from "framer-motion";
+import { type MotionValue, motion } from "framer-motion";
 
 import { getDefaultButtonVariants } from "../../animations";
 import { Play } from "../../icons/circle-play";
 
+import type { FitAddon } from "@xterm/addon-fit";
+import type { Terminal } from "@xterm/xterm";
+import type { RefObject } from "react";
 import { RunCodeInTerminal } from "../../../bindings/github.com/etesam913/bytebook/terminalservice";
-import { Input } from "../input";
 import { dragItem } from "../../utils/draggable";
-import { Terminal } from "@xterm/xterm";
-import { FitAddon } from "@xterm/addon-fit";
-import { RefObject } from "react";
+import { Input } from "../input";
 import { handleResize } from "../terminal/utils";
 
 export function RunCommand({

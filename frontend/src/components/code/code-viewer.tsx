@@ -76,7 +76,7 @@ export function CodeViewer({
 						cmInstance.focus();
 					}
 				}}
-				className="flex-1 rounded-bl-none overflow-hidden rounded-br-none"
+				className="flex-1 rounded-bl-none rounded-br-none"
 				onKeyDown={async (e) => {
 					setIsSelected(true);
 					if (e.key === "Enter" && e.shiftKey) {
@@ -130,7 +130,7 @@ export function CodeViewer({
 				)}
 				<SandpackCodeEditor
 					ref={codeMirrorRef}
-					// style={{ height: isFullscreen ? "100%" : "27.5rem" }}
+					style={{ height: isFullscreen ? "100%" : "27.5rem" }}
 					showLineNumbers
 					showInlineErrors
 					extensions={[autocompletion()]}
@@ -241,6 +241,7 @@ export function CodeViewer({
 				<TerminalComponent
 					nodeKey={nodeKey}
 					data={data}
+					isFullscreen={isFullscreen}
 					shell="bash"
 					isInCodeSnippet
 					startDirectory={`${projectPath}/${language}/src`}
