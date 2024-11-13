@@ -121,9 +121,6 @@ div[data-is-fullscreen="true"] .cm-scroller{
 .cm-completionIcon {
     @apply !hidden;
 }
-.cm-gutters {
-    /* @apply !overflow-hidden; */
-}
 .cm-tooltip > ul > li {
     @apply hover:bg-zinc-150 dark:hover:bg-zinc-700 !p-1.5 rounded-md overflow-hidden mb-1.5 last:mb-0;
 }
@@ -169,6 +166,10 @@ div[data-template-is-fullscreen="true"]
     row-gap: 0.5rem;
 }
 
+.settings-row-grid{
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+}
 /**
  * Terminal styles
  */
