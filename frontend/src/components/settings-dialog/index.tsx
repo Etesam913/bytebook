@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AppearancePage } from "./appearance-page";
 import { SettingsSidebar } from "./sidebar";
 
 export type SettingsTab = "appearance" | "github" | "code-block";
@@ -12,7 +13,12 @@ export function SettingsDialog() {
 				currentSettingsTab={currentSettingsTab}
 				setCurrentSettingsTab={setCurrentSettingsTab}
 			/>
-			<div>other content</div>
+			<div className="flex-1">
+				{currentSettingsTab === "appearance" && <AppearancePage />}
+				{currentSettingsTab === "github" && <div>github content</div>}
+				{currentSettingsTab === "code-block" && <div>code-block content</div>}
+				<div className="grid grid-cols-2 px-0.5 border-b border-zinc-200 dark:border-zinc-700 " />
+			</div>
 		</div>
 	);
 }

@@ -17,7 +17,7 @@ export function SidebarHighlight({
 			transition={{ ease: easingFunctions["ease-out-expo"] }}
 			layoutId={layoutId}
 			className={cn(
-				"absolute pointer-events-none z-[-5] h-full w-full bg-zinc-100 dark:bg-zinc-650 rounded-md",
+				"absolute pointer-events-none z-[5] h-full w-full bg-zinc-100 dark:bg-zinc-650 rounded-md",
 				className,
 			)}
 		/>

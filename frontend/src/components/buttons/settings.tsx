@@ -12,7 +12,7 @@ export function SettingsButton() {
 				setDialogData({
 					isOpen: true,
 					title: "Settings",
-					dialogClassName: "w-[min(45rem,90vw)]",
+					dialogClassName: "w-[min(55rem,90vw)]",
 					children: () => <SettingsDialog />,
 					onSubmit: null,
 				});

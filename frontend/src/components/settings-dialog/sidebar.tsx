@@ -1,9 +1,9 @@
-import { Dispatch, ReactNode, SetStateAction } from "react";
-import { SettingsTab } from ".";
-import { cn } from "../../utils/string-formatting";
-import { TerminalIcon } from "../../icons/terminal";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type { SettingsTab } from ".";
 import { CodeMerge } from "../../icons/code-merge";
 import { ColorPalette2 } from "../../icons/color-palette-2";
+import { TerminalIcon } from "../../icons/terminal";
+import { cn } from "../../utils/string-formatting";
 
 const settingsItems: { id: SettingsTab; title: string; icon: ReactNode }[] = [
 	{ id: "appearance", title: "Appearance", icon: <ColorPalette2 /> },
@@ -21,6 +21,7 @@ export function SettingsSidebar({
 	const settingElements = settingsItems.map((item) => {
 		return (
 			<button
+				type="button"
 				className={cn(
 					"hover:bg-zinc-100 hover:dark:bg-zinc-650 py-1 px-2.5 rounded-md transition-colors flex items-center gap-1.5 text-left",
 					item.id === currentSettingsTab && "bg-zinc-100 dark:bg-zinc-650",

@@ -4,6 +4,7 @@ import type { MutableRefObject } from "react";
 import type {
 	BackendQueryDataType,
 	ContextMenuData,
+	DarkModeData,
 	DialogDataType,
 	ProjectSettings,
 	SearchPanelDataType,
@@ -80,7 +81,10 @@ export const noteSortAtom = atom<SortStrings>("date-updated-desc");
 
 export const selectionRangeAtom = atom<Set<string>>(new Set([]));
 
-export const darkModeAtom = atom<boolean>(false);
+export const darkModeAtom = atom<DarkModeData>({
+	isDarkModeOn: false,
+	darkModeSetting: "system",
+});
 
 export const isToolbarDisabledAtom = atom<boolean>(false);
 export const isNoteMaximizedAtom = atom<boolean>(false);

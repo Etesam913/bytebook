@@ -45,7 +45,7 @@ export function TerminalComponent({
 	const xtermRef = useRef<Terminal | null>(null);
 	const xtermFitAddonRef = useRef<FitAddon | null>(null);
 	const terminalContainerRef = useRef<HTMLDivElement | null>(null);
-	const isDarkModeOn = useAtomValue(darkModeAtom);
+	const { isDarkModeOn } = useAtomValue(darkModeAtom);
 	const [isSelected, setIsSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
 	const terminalHeight = useMotionValue(168);

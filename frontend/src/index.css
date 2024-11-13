@@ -41,10 +41,6 @@ html{
     -webkit-user-select: none;
 }
 
-:root {
-    @apply transition-colors duration-300 dark:[color-scheme:dark] overscroll-none;
-}
-
 .draggable-block-menu {
     border-radius: 4px;
     padding: 2px 1px;

@@ -90,7 +90,7 @@ export function CodeBlock({
 	writeCommandToNode: (language: string) => void;
 	writeDataToNode: (files: SandpackFiles, result: CodeResponse) => void;
 }) {
-	const isDarkModeOn = useAtomValue(darkModeAtom);
+	const { isDarkModeOn } = useAtomValue(darkModeAtom);
 	const [isSelected, setIsSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
 	const [editor] = useLexicalComposerContext();

@@ -110,3 +110,8 @@ export type ContextMenuData = {
 	x: number;
 	y: number;
 };
+
+export type DarkModeData = {
+	isDarkModeOn: boolean;
+	darkModeSetting: "system" | "light" | "dark";
+};

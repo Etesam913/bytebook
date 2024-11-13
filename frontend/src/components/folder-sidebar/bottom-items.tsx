@@ -11,8 +11,8 @@ import {
 	isInternalLink,
 } from "../../utils/string-formatting";
 import { LoginButton } from "../buttons/login";
-import { SyncChangesButton } from "../buttons/sync-changes";
 import { SettingsButton } from "../buttons/settings";
+import { SyncChangesButton } from "../buttons/sync-changes";
 
 export function BottomItems() {
 	const [, params] = useRoute("/:folder/:note?");

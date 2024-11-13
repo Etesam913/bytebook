@@ -1,7 +1,7 @@
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
 import { Events as WailsEvents } from "@wailsio/runtime";
-import { useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import {
 	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
@@ -20,6 +20,8 @@ import {
 } from "react";
 import { useSearch } from "wouter";
 import { darkModeAtom } from "../atoms";
+import { DarkModeData } from "../types";
+import { addColorSchemeClassToBody } from "./color-scheme";
 import {
 	EXPAND_CONTENT_COMMAND,
 	enterKeyDecoratorNodeCommand,
@@ -175,27 +177,42 @@ export function useOnClickOutside<T extends HTMLElement>(
 		[ref, handler],
 	);
 }
-
-/** Sets dark mode based off of window prefers-color-scheme */
 export function useDarkModeSetting() {
-	const setDarkMode = useSetAtom(darkModeAtom);
-	useEffect(() => {
-		const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)");
-		setDarkMode(isDarkMode.matches);
+	const [darkModeData, setDarkModeData] = useAtom(darkModeAtom);
 
-		window
-			.matchMedia("(prefers-color-scheme: dark)")
-			.addEventListener("change", (event) =>
-				event.matches ? setDarkMode(true) : setDarkMode(false),
-			);
+	// Memoize the handler to ensure the same reference is used
+	const handleColorSchemeChange = useCallback(
+		(event: MediaQueryListEvent) => {
+			addColorSchemeClassToBody(event.matches, setDarkModeData);
+		},
+		[setDarkModeData],
+	);
+
+	useEffect(() => {
+		const isDarkModeEvent = window.matchMedia("(prefers-color-scheme: dark)");
+
+		// Check the current dark mode setting and apply the appropriate color scheme
+		if (darkModeData.darkModeSetting === "system") {
+			// If the setting is "system", use the system's color scheme preference
+			setDarkModeData((prev) => ({
+				...prev,
+				isDarkModeOn: isDarkModeEvent.matches,
+			}));
+			addColorSchemeClassToBody(isDarkModeEvent.matches, setDarkModeData);
+			isDarkModeEvent.addEventListener("change", handleColorSchemeChange);
+		} else if (darkModeData.darkModeSetting === "light") {
+			// If the setting is "light", force light mode
+			addColorSchemeClassToBody(false, setDarkModeData);
+		} else {
+			// If the setting is "dark", force dark mode
+			addColorSchemeClassToBody(true, setDarkModeData);
+		}
+
+		// Cleanup the event listener on component unmount
 		return () => {
-			window
-				.matchMedia("(prefers-color-scheme: dark)")
-				.removeEventListener("change", (event) =>
-					event.matches ? setDarkMode(true) : setDarkMode(false),
-				);
+			isDarkModeEvent.removeEventListener("change", handleColorSchemeChange);
 		};
-	}, [setDarkMode]);
+	}, [setDarkModeData, darkModeData.darkModeSetting]);
 }
 
 type WailsEvent = {
