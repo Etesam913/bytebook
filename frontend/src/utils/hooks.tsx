@@ -1,7 +1,7 @@
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
 import { Events as WailsEvents } from "@wailsio/runtime";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom } from "jotai";
 import {
 	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
@@ -20,7 +20,6 @@ import {
 } from "react";
 import { useSearch } from "wouter";
 import { darkModeAtom } from "../atoms";
-import { DarkModeData } from "../types";
 import { addColorSchemeClassToBody } from "./color-scheme";
 import {
 	EXPAND_CONTENT_COMMAND,
@@ -184,8 +183,12 @@ export function useDarkModeSetting() {
 	const handleColorSchemeChange = useCallback(
 		(event: MediaQueryListEvent) => {
 			addColorSchemeClassToBody(event.matches, setDarkModeData);
+			localStorage.setItem(
+				"darkModeData",
+				JSON.stringify({ ...darkModeData, isDarkModeOn: event.matches }),
+			);
 		},
-		[setDarkModeData],
+		[setDarkModeData, darkModeData],
 	);
 
 	useEffect(() => {
@@ -194,25 +197,34 @@ export function useDarkModeSetting() {
 		// Check the current dark mode setting and apply the appropriate color scheme
 		if (darkModeData.darkModeSetting === "system") {
 			// If the setting is "system", use the system's color scheme preference
-			setDarkModeData((prev) => ({
-				...prev,
-				isDarkModeOn: isDarkModeEvent.matches,
-			}));
+			setDarkModeData((prev) => {
+				const updatedData = { ...prev, isDarkModeOn: isDarkModeEvent.matches };
+				localStorage.setItem("darkModeData", JSON.stringify(updatedData));
+				return updatedData;
+			});
 			addColorSchemeClassToBody(isDarkModeEvent.matches, setDarkModeData);
 			isDarkModeEvent.addEventListener("change", handleColorSchemeChange);
 		} else if (darkModeData.darkModeSetting === "light") {
 			// If the setting is "light", force light mode
 			addColorSchemeClassToBody(false, setDarkModeData);
+			localStorage.setItem(
+				"darkModeData",
+				JSON.stringify({ ...darkModeData, isDarkModeOn: false }),
+			);
 		} else {
 			// If the setting is "dark", force dark mode
 			addColorSchemeClassToBody(true, setDarkModeData);
+			localStorage.setItem(
+				"darkModeData",
+				JSON.stringify({ ...darkModeData, isDarkModeOn: true }),
+			);
 		}
 
 		// Cleanup the event listener on component unmount
 		return () => {
 			isDarkModeEvent.removeEventListener("change", handleColorSchemeChange);
 		};
-	}, [setDarkModeData, darkModeData.darkModeSetting]);
+	}, [setDarkModeData, darkModeData, handleColorSchemeChange]);
 }
 
 type WailsEvent = {

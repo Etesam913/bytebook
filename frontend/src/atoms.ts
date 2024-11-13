@@ -81,10 +81,11 @@ export const noteSortAtom = atom<SortStrings>("date-updated-desc");
 
 export const selectionRangeAtom = atom<Set<string>>(new Set([]));
 
-export const darkModeAtom = atom<DarkModeData>({
-	isDarkModeOn: false,
-	darkModeSetting: "system",
-});
+const initialDarkModeData: DarkModeData = JSON.parse(
+	localStorage.getItem("darkModeData") ||
+		'{"isDarkModeOn": false, "darkModeSetting": "system"}',
+);
+export const darkModeAtom = atom<DarkModeData>(initialDarkModeData);
 
 export const isToolbarDisabledAtom = atom<boolean>(false);
 export const isNoteMaximizedAtom = atom<boolean>(false);
