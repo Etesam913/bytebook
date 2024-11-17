@@ -58,7 +58,6 @@ function App() {
 						leftWidth={folderSidebarWidth}
 					/>
 				</Route>
-
 				<Route path="/tags/:tagName/:folder?/:note?">
 					{(folderParams) => (
 						<TagsSidebar
