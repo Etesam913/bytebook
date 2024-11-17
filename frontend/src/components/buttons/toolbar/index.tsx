@@ -192,6 +192,11 @@ export function ToolbarButtons({
 					className="relative flex items-center justify-center px-[0.075rem] h-fit w-fit"
 					key={key}
 				>
+					<AnimatePresence>
+						{highlightedButton === i && (
+							<SidebarHighlight layoutId={"toolbar-highlight"} />
+						)}
+					</AnimatePresence>
 					<button
 						onMouseEnter={() => setHighlightedButton(i)}
 						onMouseLeave={() => setHighlightedButton(-1)}
@@ -199,7 +204,7 @@ export function ToolbarButtons({
 						type="button"
 						disabled={disabled || customDisabled}
 						className={cn(
-							"p-1.5 rounded-md transition-colors",
+							"p-1.5 rounded-md transition-colors relative z-10",
 							(key === currentBlockType ||
 								currentSelectionFormat.includes(key as TextFormatType)) &&
 								!disabled &&
@@ -210,11 +215,6 @@ export function ToolbarButtons({
 					>
 						{icon}
 					</button>
-					<AnimatePresence>
-						{highlightedButton === i && (
-							<SidebarHighlight layoutId={"toolbar-highlight"} />
-						)}
-					</AnimatePresence>
 				</div>
 			);
 		},

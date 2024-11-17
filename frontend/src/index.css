@@ -61,9 +61,9 @@ html{
     @apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform;
 }
 
-::selection {
+/* ::selection {
     @apply bg-blue-500 bg-opacity-35 dark:bg-blue-400 dark:bg-opacity-55;
-}
+} */
 
 h1 {
     @apply text-3xl leading-[3.25rem];
