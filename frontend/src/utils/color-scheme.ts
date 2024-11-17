@@ -6,7 +6,12 @@ export function addColorSchemeClassToBody(
 	setDarkModeData: Dispatch<SetStateAction<DarkModeData>>,
 ) {
 	// Update the dark mode state in the application
-	setDarkModeData((prev) => ({ ...prev, isDarkModeOn: isDarkMode }));
+	setDarkModeData((prev) => {
+		const updatedDarkModeData = { ...prev, isDarkModeOn: isDarkMode };
+		localStorage.setItem("darkModeData", JSON.stringify(updatedDarkModeData));
+
+		return updatedDarkModeData;
+	});
 
 	// Get the body element from the document
 	const bodyElement = document.querySelector("body");

@@ -32,11 +32,10 @@ export function useProjectSettings() {
 
 	useEffect(() => {
 		getProjectSettings(setProjectSettings);
-	}, [getProjectSettings, setProjectSettings]);
+	}, []);
 
 	useWailsEvent("settings:update", (body) => {
 		const projectSettings = (body.data as ProjectSettings[])[0];
-		console.log("settings updated");
 		setProjectSettings({
 			...projectSettings,
 			pinnedNotes: new Set(projectSettings.pinnedNotes),

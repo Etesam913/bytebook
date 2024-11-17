@@ -181,13 +181,8 @@ export function useDarkModeSetting() {
 
 	// Memoize the handler to ensure the same reference is used
 	const handleColorSchemeChange = useCallback(
-		(event: MediaQueryListEvent) => {
-			addColorSchemeClassToBody(event.matches, setDarkModeData);
-			localStorage.setItem(
-				"darkModeData",
-				JSON.stringify({ ...darkModeData, isDarkModeOn: event.matches }),
-			);
-		},
+		(event: MediaQueryListEvent) =>
+			addColorSchemeClassToBody(event.matches, setDarkModeData),
 		[setDarkModeData, darkModeData],
 	);
 
@@ -207,24 +202,16 @@ export function useDarkModeSetting() {
 		} else if (darkModeData.darkModeSetting === "light") {
 			// If the setting is "light", force light mode
 			addColorSchemeClassToBody(false, setDarkModeData);
-			localStorage.setItem(
-				"darkModeData",
-				JSON.stringify({ ...darkModeData, isDarkModeOn: false }),
-			);
 		} else {
 			// If the setting is "dark", force dark mode
 			addColorSchemeClassToBody(true, setDarkModeData);
-			localStorage.setItem(
-				"darkModeData",
-				JSON.stringify({ ...darkModeData, isDarkModeOn: true }),
-			);
 		}
 
 		// Cleanup the event listener on component unmount
 		return () => {
 			isDarkModeEvent.removeEventListener("change", handleColorSchemeChange);
 		};
-	}, [setDarkModeData, darkModeData, handleColorSchemeChange]);
+	}, [setDarkModeData, darkModeData.darkModeSetting]);
 }
 
 type WailsEvent = {
