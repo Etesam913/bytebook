@@ -26,10 +26,12 @@ export interface FilePayload {
 	alt: string;
 	elementType: FileType;
 	width?: ResizeWidth;
+	isLoading?: boolean;
 	key?: NodeKey;
 	src: string;
 }
 
+// I think this runs on copy and paste
 function convertFileElement(domNode: HTMLElement): null | DOMConversionOutput {
 	const parentNode = $createParagraphNode();
 	if (domNode.tagName === "IMG") {
@@ -41,6 +43,8 @@ function convertFileElement(domNode: HTMLElement): null | DOMConversionOutput {
 		const node = $createFileNode({
 			alt,
 			src,
+			// isLoading maybe should be true, go back to this 👇
+			isLoading: false,
 			width: "100%",
 			elementType: "image",
 		});
@@ -75,6 +79,7 @@ export type SerializedFileNode = Spread<
 	{
 		alt: string;
 		width?: ResizeWidth;
+		isLoading?: boolean;
 		src: string;
 		elementType: FileType;
 	},
@@ -85,6 +90,7 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 	__src: string;
 	__alt: string;
 	__width: ResizeWidth;
+	__isLoading: boolean;
 	__elementType: FileType;
 
 	static getType(): string {
@@ -97,6 +103,7 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 			node.__alt,
 			node.__elementType,
 			node.__width,
+			node.__isLoading,
 			node.__key,
 		);
 	}
@@ -144,12 +151,14 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 		alt: string,
 		elementType: FileType,
 		width?: ResizeWidth,
+		isLoading?: boolean,
 		key?: NodeKey,
 	) {
 		super(key);
 		this.__src = src;
 		this.__alt = alt;
 		this.__width = width ?? "100%";
+		this.__isLoading = isLoading ?? true;
 		this.__elementType = elementType;
 	}
 
@@ -157,6 +166,7 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 		return {
 			alt: this.getAltText(),
 			width: this.getWidth(),
+			isLoading: this.__isLoading,
 			src: this.getSrc(),
 			elementType: this.__elementType,
 			type: "file",
@@ -192,6 +202,16 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 
 	getElementType(): FileType {
 		return this.__elementType;
+	}
+	setLoading(isLoading: boolean, editor: LexicalEditor) {
+		editor.update(() => {
+			const writable = this.getWritable();
+			writable.__isLoading = isLoading;
+		});
+	}
+
+	getLoading(): boolean {
+		return this.__isLoading;
 	}
 
 	setWidth(width: ResizeWidth, editor: LexicalEditor): void {
@@ -256,9 +276,12 @@ export function $createFileNode({
 	elementType,
 	src,
 	width,
+	isLoading,
 	key,
 }: FilePayload): FileNode {
-	return $applyNodeReplacement(new FileNode(src, alt, elementType, width, key));
+	return $applyNodeReplacement(
+		new FileNode(src, alt, elementType, width, isLoading, key),
+	);
 }
 
 export function $isFileNode(

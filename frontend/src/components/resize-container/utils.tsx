@@ -50,7 +50,7 @@ export function expandNearestSiblingNode(
 	editor: LexicalEditor,
 	nodeKey: string,
 	setIsExpanded: Dispatch<SetStateAction<boolean>>,
-	isRightPressed: boolean,
+	direction: "left" | "right",
 ) {
 	let didExpandToNeighbor = false;
 	editor.update(() => {
@@ -60,11 +60,11 @@ export function expandNearestSiblingNode(
 			if (!nodeParent) return;
 
 			// First check if there are any siblings to the current node
-			let nextNode = getNearestSiblingNode(node, isRightPressed);
+			let nextNode = getNearestSiblingNode(node, direction === "right");
 
 			// Then check for siblings of the parent node if no siblings were found for the current node
 			if (!nextNode) {
-				nextNode = getNearestSiblingNode(nodeParent, isRightPressed);
+				nextNode = getNearestSiblingNode(nodeParent, direction === "right");
 			}
 
 			if (!nextNode) {

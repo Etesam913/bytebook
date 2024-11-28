@@ -1,6 +1,7 @@
 import { mergeRegister } from "@lexical/utils";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
+	$getNodeByKey,
 	$getSelection,
 	$isNodeSelection,
 	CAN_REDO_COMMAND,
@@ -34,10 +35,12 @@ import {
 	noteContainerRefAtom,
 	noteEditorAtom,
 } from "../../../atoms";
+import { useFileIntersectionObserver } from "../../../hooks/observers";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
 import { useCustomNavigate } from "../../../utils/routing";
 import { CodeNode } from "../nodes/code";
+import { FileNode } from "../nodes/file";
 import { CUSTOM_TRANSFORMERS } from "../transformers";
 import {
 	overrideControlledTextInsertion,
@@ -123,57 +126,6 @@ export function useMutationListener(
 	note: string,
 	frontmatter: Record<string, string>,
 ) {
-	// const { mutate: deleteTag } = useMutation({
-	// 	mutationFn: async ({ tag }: { tag: string }) => {
-	// 		const deletePathFromTagResponse = await DeletePathFromTag(
-	// 			tag,
-	// 			`${folder}/${note}.md`,
-	// 		);
-	// 		if (!deletePathFromTagResponse.success)
-	// 			throw new Error(deletePathFromTagResponse.message);
-
-	// 		// Update the tags in the background after 2 seconds, so that there is enough time for the new markdown to be saved before being read
-	// 		setTimeout(async () => {
-	// 			// Update the tags in the ui
-	// 			const newTagsResponse = await GetTags();
-	// 			if (!newTagsResponse.success) throw new Error(newTagsResponse.message);
-	// 			setTags(newTagsResponse.data);
-	// 		}, 2000);
-	// 	},
-	// 	onError: (e) => {
-	// 		if (e instanceof Error) {
-	// 			toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-	// 		} else {
-	// 			toast.error("Something went wrong!", DEFAULT_SONNER_OPTIONS);
-	// 		}
-	// 	},
-	// });
-
-	// const { mutate: createTag } = useMutation({
-	// 	mutationFn: async ({ tag }: { tag: string }) => {
-	// 		if (!folder || !note) {
-	// 			throw new Error("Folder or note is missing");
-	// 		}
-	// 		const res = await AddPathToTag(tag, `${folder}/${note}.md`);
-	// 		if (!res.success) throw new Error(res.message);
-
-	// 		// Update the tags in the background after 2 seconds, so that there is enough time for the new markdown to be saved before being read
-	// 		setTimeout(async () => {
-	// 			// Update the tags in the ui
-	// 			const newTagsResponse = await GetTags();
-	// 			if (!newTagsResponse.success) throw new Error(newTagsResponse.message);
-	// 			setTags(newTagsResponse.data);
-	// 		}, 2000);
-	// 	},
-	// 	onError: (e) => {
-	// 		if (e instanceof Error) {
-	// 			toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-	// 		} else {
-	// 			toast.error("Something went wrong!", DEFAULT_SONNER_OPTIONS);
-	// 		}
-	// 	},
-	// });
-
 	useEffect(() => {
 		const codeNodeMutationListener = editor.registerMutationListener(
 			CodeNode,

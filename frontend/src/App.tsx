@@ -37,7 +37,7 @@ function App() {
 	return (
 		<main
 			id="App"
-			className="flex max-h-screen font-display text-zinc-950 dark:text-zinc-100 overflow-hidden"
+			className="flex max-h-screen font-display overflow-hidden"
 			onClick={(e) => {
 				if (!e.ctrlKey) {
 					setContextMenuData((prev) => ({ ...prev, isShowing: false }));

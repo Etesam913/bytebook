@@ -132,6 +132,7 @@ export function CodeViewer({
 					ref={codeMirrorRef}
 					style={{ height: isFullscreen ? "100%" : "27.5rem" }}
 					showLineNumbers
+					showTabs={false}
 					showInlineErrors
 					extensions={[autocompletion()]}
 					key={activeFile}

@@ -71,7 +71,7 @@ export function ResizeContainer({
 							editor,
 							nodeKey,
 							setIsExpanded,
-							e.key === "ArrowRight",
+							e.key === "ArrowRight" ? "right" : "left",
 						);
 
 						if (
@@ -84,10 +84,7 @@ export function ResizeContainer({
 					}
 				}}
 				tabIndex={isExpanded ? 0 : -1}
-				onClick={(e: MouseEvent) => {
-					// We don't need clicks to go to the editor when in fullscreen mode
-					if (isExpanded) e.stopPropagation();
-				}}
+				onClick={(e: MouseEvent) => isExpanded && e.stopPropagation()}
 				className={cn(
 					"relative max-w-full cursor-auto rounded-sm flex outline-none",
 					isExpanded &&
@@ -180,7 +177,7 @@ export function ResizeContainer({
 											editor,
 											nodeKey,
 											setIsExpanded,
-											false,
+											"left",
 										);
 										if (
 											isExpandableNeighbor &&
@@ -206,7 +203,7 @@ export function ResizeContainer({
 											editor,
 											nodeKey,
 											setIsExpanded,
-											true,
+											"right",
 										);
 										if (
 											isExpandableNeighbor &&

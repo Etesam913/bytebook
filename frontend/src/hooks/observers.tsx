@@ -1,3 +1,5 @@
+import { useAtomValue } from "jotai/react";
+import type { LexicalEditor } from "lexical";
 import {
 	type Dispatch,
 	type RefObject,
@@ -5,8 +7,11 @@ import {
 	useEffect,
 	useLayoutEffect,
 	useMemo,
+	useRef,
 	useState,
 } from "react";
+import { noteContainerRefAtom } from "../atoms";
+import type { FileNode } from "../components/editor/nodes/file";
 
 /**
  * Custom hook for implementing list virtualization.
@@ -102,7 +107,9 @@ export function useShowWhenInViewport(
 	loaderRef: RefObject<HTMLDivElement>,
 	setIsLoading: Dispatch<SetStateAction<boolean>>,
 ) {
+	const noteContainerRef = useAtomValue(noteContainerRefAtom);
 	useEffect(() => {
+		if (!noteContainerRef?.current) return;
 		// Create an observer to detect when the loader is in the viewport
 		const observer = new IntersectionObserver(
 			(entries) => {
@@ -113,7 +120,9 @@ export function useShowWhenInViewport(
 				}
 			},
 			{
-				threshold: 0.1, // Trigger when 10% of the spinner is visible
+				root: noteContainerRef.current,
+				rootMargin: "0 0 400px 0",
+				threshold: 0, // Trigger when 10% of the spinner is visible
 			},
 		);
 
@@ -124,5 +133,5 @@ export function useShowWhenInViewport(
 		return () => {
 			observer.disconnect();
 		};
-	}, []);
+	}, [noteContainerRef]);
 }

@@ -391,7 +391,7 @@ export function ComponentPickerMenuPlugin({
 			) =>
 				anchorElementRef.current && options.length
 					? createPortal(
-							<ul className="fixed z-10 flex overflow-auto flex-col max-h-56 gap-0.5 w-48 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1">
+							<ul className="fixed z-10 flex overflow-auto flex-col max-h-56 gap-0.5 w-48 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1 text-zinc-950 dark:text-zinc-100">
 								{options.map((option, i: number) => (
 									<DropdownPickerMenuItem
 										index={i}

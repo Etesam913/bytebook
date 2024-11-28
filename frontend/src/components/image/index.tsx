@@ -1,10 +1,8 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useRef, useState } from "react";
 import { useShowWhenInViewport } from "../../hooks/observers";
-import { Loader } from "../../icons/loader";
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
-import { cn } from "../../utils/string-formatting";
 import { ResizeContainer } from "../resize-container";
 
 export function Image({
@@ -22,9 +20,9 @@ export function Image({
 }) {
 	const imgRef = useRef<HTMLImageElement>(null);
 	const [editor] = useLexicalComposerContext();
-	const [isLoading, setIsLoading] = useState(true);
 	const loaderRef = useRef<HTMLDivElement>(null); // Reference for loader
 
+	const [isLoading, setIsLoading] = useState(true);
 	const {
 		isResizing,
 		setIsResizing,
@@ -50,7 +48,8 @@ export function Image({
 
 	return (
 		<div
-			className="mr-2 inline-block"
+			data-node-key={nodeKey}
+			className="mr-2 inline-block w-full"
 			onClick={(e) => {
 				clearSelection();
 				setSelected(true);
@@ -60,7 +59,7 @@ export function Image({
 			{isLoading ? (
 				<div
 					ref={loaderRef}
-					className="my-3 w-full h-[36rem] bg-gray-300 animate-pulse pointer-events-none"
+					className="my-3 w-full h-[36rem] bg-gray-200 dark:bg-zinc-600 animate-pulse pointer-events-none"
 				/>
 			) : (
 				<ResizeContainer
@@ -83,7 +82,7 @@ export function Image({
 						ref={imgRef}
 						alt={alt}
 						draggable={false}
-						className={cn("w-full h-auto my-auto scroll-m-10")}
+						className="opacity-20 w-full h-auto my-auto scroll-m-10"
 						data-lexical-decorator="true"
 					/>
 				</ResizeContainer>
