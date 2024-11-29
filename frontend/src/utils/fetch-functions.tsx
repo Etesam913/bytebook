@@ -45,6 +45,7 @@ export async function updateTagNotes(
 ) {
 	try {
 		const res = await GetNotesFromTag(tagName);
+		console.log(res);
 		if (res.success) {
 			const notes = res.data;
 
@@ -143,7 +144,7 @@ export async function updateNotes(
 ) {
 	try {
 		const res = await GetNotes(decodeURIComponent(folder), noteSort);
-
+		console.log(res);
 		if (!res.success) {
 			throw new Error("Failed in retrieving notes");
 		}

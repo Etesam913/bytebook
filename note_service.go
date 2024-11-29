@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/lib/list_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 )
 
@@ -32,20 +32,7 @@ type AddFolderResponse struct {
 	Message string `json:"message"`
 }
 
-// Constants representing each possible sort option.
-const (
-	DateUpdatedDesc string = "date-updated-desc"
-	DateUpdatedAsc  string = "date-updated-asc"
-	DateCreatedDesc string = "date-created-desc"
-	DateCreatedAsc  string = "date-created-asc"
-	FileNameAZ      string = "file-name-a-z"
-	FileNameZA      string = "file-name-z-a"
-	SizeDesc        string = "size-desc"
-	SizeAsc         string = "size-asc"
-	FileType        string = "file-type"
-)
 
-// GetNotes retrieves notes from a specified folder and sorts them based on the provided sort option. It returns the notes with their extension as a query param
 func (n *NoteService) GetNotes(folderName string, sortOption string) NoteResponse {
 	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	// Ensure the directory exists
@@ -70,48 +57,7 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) NoteRespons
 	}
 
 	// Sort notes based on the sort option
-	sort.Slice(notes, func(i, j int) bool {
-		switch sortOption {
-		case DateUpdatedDesc:
-			infoI, _ := notes[i].Info()
-			infoJ, _ := notes[j].Info()
-			return infoI.ModTime().After(infoJ.ModTime())
-		case DateUpdatedAsc:
-			infoI, _ := notes[i].Info()
-			infoJ, _ := notes[j].Info()
-			return infoI.ModTime().Before(infoJ.ModTime())
-		// TODO: CreatedDate is not correct as the file info does not have this information. Will need to do some frontmatter parsing
-		case DateCreatedDesc:
-			infoI, _ := notes[i].Info()
-			infoJ, _ := notes[j].Info()
-			return infoI.ModTime().After(infoJ.ModTime()) // Note: Creation time might not be available, use ModTime as fallback
-		case DateCreatedAsc:
-			infoI, _ := notes[i].Info()
-			infoJ, _ := notes[j].Info()
-			return infoI.ModTime().Before(infoJ.ModTime()) // Note: Creation time might not be available, use ModTime as fallback
-		case FileNameAZ:
-			return strings.ToLower(notes[i].Name()) < strings.ToLower(notes[j].Name())
-		case FileNameZA:
-			return strings.ToLower(notes[i].Name()) > strings.ToLower(notes[j].Name())
-		case SizeDesc:
-			infoI, _ := notes[i].Info()
-			infoJ, _ := notes[j].Info()
-			return infoI.Size() > infoJ.Size()
-		case SizeAsc:
-			infoI, _ := notes[i].Info()
-			infoJ, _ := notes[j].Info()
-			return infoI.Size() < infoJ.Size()
-		case FileType:
-			extI := filepath.Ext(notes[i].Name())
-			extJ := filepath.Ext(notes[j].Name())
-			if extI == extJ {
-				return strings.ToLower(notes[i].Name()) < strings.ToLower(notes[j].Name())
-			}
-			return extI < extJ
-		default:
-			return false
-		}
-	})
+	list_helpers.SortNotes(notes, sortOption)
 
 	var sortedNotes []string
 

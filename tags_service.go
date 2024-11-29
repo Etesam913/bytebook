@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/lib/list_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 )
 
@@ -287,7 +288,6 @@ func (t *TagsService) GetTags() project_types.BackendResponseWithData{
 		Data: tags,
 	}
 }
-
 /*
 GetNotesFromTag retrieves the note paths associated with a given tag name.
 It reads the "notes.json" file within the tag's directory and returns the note paths with query params.
@@ -311,8 +311,7 @@ func (t *TagsService) GetNotesFromTag(tagName string) project_types.BackendRespo
 			Data: nil,
 		}
 	}
-
-	notesWithQueryParamExtension := []string{}
+	notes := []os.DirEntry{}
 
 	// Using the query param syntax that the app supports
 	for _, folderAndNoteString := range tagJson.Notes {
@@ -321,19 +320,36 @@ func (t *TagsService) GetNotesFromTag(tagName string) project_types.BackendRespo
 			continue
 		}
 
-		indexOfDot := strings.LastIndex(folderAndNoteString, ".")
-		name := folderAndNoteString[:indexOfDot]
-		extension := folderAndNoteString[indexOfDot+1:]
-		notesWithQueryParamExtension = append(
-			notesWithQueryParamExtension,
-			fmt.Sprintf("%s?ext=%s", name, extension),
-		)
-	}
+		folderAndNoteArr := strings.Split(folderAndNoteString, "/")
+		folder := folderAndNoteArr[0]
+		note := folderAndNoteArr[1]
+		dirEntries, err := os.ReadDir(filepath.Join(t.ProjectPath, "notes", folder))
+		if err != nil {
+			continue
+		}
 
+		for _, dirEntry := range dirEntries {
+			if dirEntry.IsDir() {
+				continue
+			}
+			if(dirEntry.Name() == note) {
+				notes = append(notes, dirEntry)
+			}
+		}
+	}
+	list_helpers.SortNotes(notes, "date-created-desc")
+
+	sortedNotes := []string{}
+	for _, file := range notes {
+		indexOfDot := strings.LastIndex(file.Name(), ".")
+		name := file.Name()[:indexOfDot]
+		extension := file.Name()[indexOfDot+1:]
+		sortedNotes = append(sortedNotes, fmt.Sprintf("%s?ext=%s", name, extension))
+	}
 
 	return project_types.BackendResponseWithData{
 		Success: true,
 		Message: "Successfully retrieved tag.",
-		Data: notesWithQueryParamExtension,
+		Data: sortedNotes,
 	}
 }
