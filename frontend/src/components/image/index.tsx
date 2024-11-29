@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { useShowWhenInViewport } from "../../hooks/observers";
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
+import { cn } from "../../utils/string-formatting";
 import { ResizeContainer } from "../resize-container";
 
 export function Image({
@@ -39,12 +40,11 @@ export function Image({
 		setIsExpanded,
 		isSelected,
 		nodeKey,
-		setSelected,
 		clearSelection,
 		imgRef,
 	);
 
-	useShowWhenInViewport(loaderRef, setIsLoading);
+	useShowWhenInViewport(loaderRef, setIsLoading, isExpanded);
 
 	return (
 		<div
@@ -59,7 +59,9 @@ export function Image({
 			{isLoading ? (
 				<div
 					ref={loaderRef}
-					className="my-3 w-full h-[36rem] bg-gray-200 dark:bg-zinc-600 animate-pulse pointer-events-none"
+					className={cn(
+						"my-3 w-full h-[36rem] bg-gray-200 dark:bg-zinc-600 animate-pulse pointer-events-none",
+					)}
 				/>
 			) : (
 				<ResizeContainer
@@ -82,7 +84,7 @@ export function Image({
 						ref={imgRef}
 						alt={alt}
 						draggable={false}
-						className="opacity-20 w-full h-auto my-auto scroll-m-10"
+						className="w-full h-auto my-auto scroll-m-10"
 						data-lexical-decorator="true"
 					/>
 				</ResizeContainer>

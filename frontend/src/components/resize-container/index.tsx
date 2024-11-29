@@ -42,7 +42,6 @@ export function ResizeContainer({
 
 	const resizeDimensions = useRef({ height: 0, width: 0 });
 	const resizeContainerRef = useRef<HTMLDivElement>(null);
-
 	const [editor] = useLexicalComposerContext();
 
 	useEffect(() => {
@@ -150,7 +149,7 @@ export function ResizeContainer({
 				<>
 					<div
 						onClick={() => setIsExpanded(false)}
-						className="fixed z-10 w-screen h-screen bg-[rgba(0,0,0,0.6)] left-0 top-0"
+						className="fixed z-10 w-screen h-screen bg-[rgba(0,0,0,0.3)] left-0 top-0"
 					/>
 					<motion.button
 						{...getDefaultButtonVariants()}
@@ -222,12 +221,14 @@ export function ResizeContainer({
 						)}
 					</AnimatePresence>
 					{/* Prevents a bug where the resize container size is like 8x8 after leaving fullscreen */}
-					<div
+					{/* <div
 						style={{
 							width: resizeDimensions.current.width,
 							height: resizeDimensions.current.height,
 						}}
-					/>
+					>
+						testing testing 123
+					</div> */}
 				</>
 			)}
 		</div>

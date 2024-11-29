@@ -146,7 +146,6 @@ export function useFolderDialogSubmit() {
 				);
 				if (firstFolderNotDeleted) navigate(`/${firstFolderNotDeleted}`);
 				else navigate("/");
-				console.log("should delete");
 				return true;
 			}
 			return false;

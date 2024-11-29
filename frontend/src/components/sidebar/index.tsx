@@ -56,7 +56,6 @@ export function Sidebar({
 			folder side onClickOutside to clear the selection for a note valid click
 		*/
 		if (selectionSetAsArray[0].startsWith(contentType)) {
-			console.log("reset");
 			setSelectionRange(new Set());
 		}
 	});

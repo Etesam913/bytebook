@@ -43,12 +43,11 @@ export function Video({
 		setIsExpanded,
 		isSelected,
 		nodeKey,
-		setSelected,
 		clearSelection,
 		videoRef,
 	);
 
-	useShowWhenInViewport(loaderRef, setIsLoading);
+	useShowWhenInViewport(loaderRef, setIsLoading, isExpanded);
 
 	return (
 		<div

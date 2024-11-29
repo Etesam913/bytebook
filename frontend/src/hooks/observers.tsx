@@ -1,5 +1,4 @@
 import { useAtomValue } from "jotai/react";
-import type { LexicalEditor } from "lexical";
 import {
 	type Dispatch,
 	type RefObject,
@@ -7,11 +6,9 @@ import {
 	useEffect,
 	useLayoutEffect,
 	useMemo,
-	useRef,
 	useState,
 } from "react";
 import { noteContainerRefAtom } from "../atoms";
-import type { FileNode } from "../components/editor/nodes/file";
 
 /**
  * Custom hook for implementing list virtualization.
@@ -106,6 +103,7 @@ export function useListVirtualization(
 export function useShowWhenInViewport(
 	loaderRef: RefObject<HTMLDivElement>,
 	setIsLoading: Dispatch<SetStateAction<boolean>>,
+	isExpanded: boolean,
 ) {
 	const noteContainerRef = useAtomValue(noteContainerRefAtom);
 	useEffect(() => {
@@ -121,8 +119,8 @@ export function useShowWhenInViewport(
 			},
 			{
 				root: noteContainerRef.current,
-				rootMargin: "0 0 400px 0",
-				threshold: 0, // Trigger when 10% of the spinner is visible
+				rootMargin: `0 0 ${noteContainerRef.current.offsetHeight}px 0`,
+				threshold: 0,
 			},
 		);
 
@@ -134,4 +132,13 @@ export function useShowWhenInViewport(
 			observer.disconnect();
 		};
 	}, [noteContainerRef]);
+
+	// Scroll to the bottom when the image is expanded. When spamming the next image, there is a small chance that the image does not show up. This fixes that
+	useEffect(() => {
+		if (isExpanded) {
+			loaderRef.current?.scrollIntoView({
+				block: "end",
+			});
+		}
+	}, [isExpanded]);
 }

@@ -81,32 +81,12 @@ export function useResizeCommands(
 	setIsExpanded: Dispatch<SetStateAction<boolean>>,
 	isSelected: boolean,
 	nodeKey: string,
-	setSelected: (arg0: boolean) => void,
 	clearSelection: () => void,
 	elementRef: React.RefObject<HTMLElement>,
 	disabledEvents?: Record<string, boolean>,
 ) {
 	useEffect(() => {
 		return mergeRegister(
-			// editor.registerCommand<MouseEvent>(
-			// 	CLICK_COMMAND,
-			// 	(e) => {
-			// 		if (disabledEvents?.click) return false;
-			// 		if (!isExpanded) {
-			// 			return onClickDecoratorNodeCommand(
-			// 				e,
-			// 				elementRef.current,
-			// 				setSelected,
-			// 				clearSelection,
-			// 			);
-			// 		}
-
-			// 		e.preventDefault();
-			// 		e.stopPropagation();
-			// 		return true;
-			// 	},
-			// 	COMMAND_PRIORITY_NORMAL,
-			// ),
 			editor.registerCommand<KeyboardEvent>(
 				KEY_ENTER_COMMAND,
 				(e) => {
@@ -126,7 +106,7 @@ export function useResizeCommands(
 					if (keyToExpand === nodeKey) {
 						setIsExpanded(true);
 						elementRef.current?.scrollIntoView({
-							block: "start",
+							block: "end",
 						});
 						return true;
 					}

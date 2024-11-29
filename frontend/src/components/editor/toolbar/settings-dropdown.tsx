@@ -59,7 +59,6 @@ export function SettingsDropdown({
 								}
 
 								try {
-									console.log("updating project settings");
 									const res = await UpdateProjectSettings({
 										...copyOfProjectSettings,
 										pinnedNotes: [...copyOfProjectSettings.pinnedNotes],
