@@ -82,7 +82,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 					</MotionButton>
 				</header>
 				<section className="flex flex-1 flex-col overflow-y-auto gap-2  py-1.5">
-					<div className="flex h-full flex-col  gap-1 px-[10px]">
+					<div className="flex h-full flex-col gap-1 px-[10px]">
 						<PinnedNotesAccordion />
 						<RecentNotesAccordion />
 						<MyFoldersAccordion folder={folder} />

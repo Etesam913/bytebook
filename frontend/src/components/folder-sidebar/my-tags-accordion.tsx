@@ -16,7 +16,7 @@ export function MyTagsAccordion() {
 	const { navigate } = useCustomNavigate();
 
 	return (
-		<section>
+		<section className="pb-1.5">
 			<AccordionButton
 				isOpen={isOpen}
 				onClick={() => setIsOpen((prev) => !prev)}
