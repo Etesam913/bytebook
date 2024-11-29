@@ -2,7 +2,7 @@ import { type MotionValue, motion } from "framer-motion";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useRoute } from "wouter";
 import { getDefaultButtonVariants } from "../../animations.ts";
-import { dialogDataAtom, foldersAtom, tagsAtom } from "../../atoms";
+import { dialogDataAtom, foldersAtom } from "../../atoms";
 import { FolderPlus } from "../../icons/folder-plus";
 
 import { useEffect } from "react";

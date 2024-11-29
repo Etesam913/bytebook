@@ -45,7 +45,7 @@ export function MyTagsAccordion() {
 						className="overflow-hidden hover:overflow-auto pl-1"
 					>
 						<Sidebar
-							layoutId="folder-sidebar"
+							layoutId="tags-sidebar"
 							emptyElement={
 								<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
 									Type #tagName in a note to create a tag

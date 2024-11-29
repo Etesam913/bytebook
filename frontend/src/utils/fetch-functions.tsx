@@ -10,10 +10,7 @@ import {
 	GetNoteCount,
 	GetNotes,
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
-import {
-	GetNotesFromTag,
-	GetTags,
-} from "../../bindings/github.com/etesam913/bytebook/tagsservice";
+import { GetNotesFromTag } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import type { SortStrings } from "../types";
 import { DEFAULT_SONNER_OPTIONS } from "./misc";
 import { extractInfoFromNoteName } from "./string-formatting";
@@ -50,6 +47,14 @@ export async function updateTagNotes(
 		const res = await GetNotesFromTag(tagName);
 		if (res.success) {
 			const notes = res.data;
+
+			if (notes.length > 0) {
+				const { noteNameWithoutExtension, queryParams } =
+					extractInfoFromNoteName(notes[0]);
+				navigate(
+					`/tags/${tagName}/${noteNameWithoutExtension}?ext=${queryParams.ext}`,
+				);
+			}
 			setNotes(notes);
 		} else {
 			throw new Error(res.message);
@@ -129,7 +134,7 @@ export async function checkIfNoteExists(
 	}
 }
 
-/** Initially fetches notes for a folder using the filesystem */
+/** Initially fetches notes for a folder using the filesystem and navigates to the first note if it exists*/
 export async function updateNotes(
 	folder: string,
 	note: string | undefined,
