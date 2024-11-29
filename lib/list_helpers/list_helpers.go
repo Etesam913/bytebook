@@ -2,10 +2,11 @@ package list_helpers
 
 import (
 	"fmt"
-	"os"
+	"io/fs"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
+	"time"
 )
 
 // Filter is a generic function that filters elements of a slice based on a condition.
@@ -43,52 +44,109 @@ const (
 	SizeAsc         string = "size-asc"
 	FileType        string = "file-type"
 )
+// SortNotes sorts a slice of fs.DirEntry objects based on the specified sort option.
+func SortNotes(notes []fs.DirEntry, sortOption string) {
+	slices.SortFunc(notes, func(a, b fs.DirEntry) int {
+		infoA, _ := a.Info()
+		infoB, _ := b.Info()
 
-// sortNotes sorts a slice of os.DirEntry objects representing notes based on the specified sort option.
-// The sorting can be done by date updated (ascending/descending), date created (ascending/descending),
-// file name (A-Z/Z-A), file size (ascending/descending), or file type. For date created sorting,
-// modification time is currently used as a fallback since creation time is not available.
-func SortNotes(notes []os.DirEntry, sortOption string) {
-	sort.Slice(notes, func(i, j int) bool {
 		switch sortOption {
 		case DateUpdatedDesc:
-			infoI, _ := notes[i].Info()
-			infoJ, _ := notes[j].Info()
-			return infoI.ModTime().After(infoJ.ModTime())
-		case DateUpdatedAsc:
-			infoI, _ := notes[i].Info()
-			infoJ, _ := notes[j].Info()
-			return infoI.ModTime().Before(infoJ.ModTime())
-		// TODO: CreatedDate is not correct as the file info does not have this information. Will need to do some frontmatter parsing
-		case DateCreatedDesc:
-			infoI, _ := notes[i].Info()
-			infoJ, _ := notes[j].Info()
-			return infoI.ModTime().After(infoJ.ModTime()) // Note: Creation time might not be available, use ModTime as fallback
-		case DateCreatedAsc:
-			infoI, _ := notes[i].Info()
-			infoJ, _ := notes[j].Info()
-			return infoI.ModTime().Before(infoJ.ModTime()) // Note: Creation time might not be available, use ModTime as fallback
-		case FileNameAZ:
-			return strings.ToLower(notes[i].Name()) < strings.ToLower(notes[j].Name())
-		case FileNameZA:
-			return strings.ToLower(notes[i].Name()) > strings.ToLower(notes[j].Name())
-		case SizeDesc:
-			infoI, _ := notes[i].Info()
-			infoJ, _ := notes[j].Info()
-			return infoI.Size() > infoJ.Size()
-		case SizeAsc:
-			infoI, _ := notes[i].Info()
-			infoJ, _ := notes[j].Info()
-			return infoI.Size() < infoJ.Size()
-		case FileType:
-			extI := filepath.Ext(notes[i].Name())
-			extJ := filepath.Ext(notes[j].Name())
-			if extI == extJ {
-				return strings.ToLower(notes[i].Name()) < strings.ToLower(notes[j].Name())
+			if infoA.ModTime().After(infoB.ModTime()) {
+				return -1
+			} else if infoA.ModTime().Before(infoB.ModTime()) {
+				return 1
 			}
-			return extI < extJ
+			return 0
+		case DateUpdatedAsc:
+			if infoA.ModTime().Before(infoB.ModTime()) {
+				return -1
+			} else if infoA.ModTime().After(infoB.ModTime()) {
+				return 1
+			}
+			return 0
+		case FileNameAZ:
+			return strings.Compare(strings.ToLower(a.Name()), strings.ToLower(b.Name()))
+		case FileNameZA:
+			return -strings.Compare(strings.ToLower(a.Name()), strings.ToLower(b.Name()))
+		case SizeDesc:
+			if infoA.Size() > infoB.Size() {
+				return -1
+			} else if infoA.Size() < infoB.Size() {
+				return 1
+			}
+			return 0
+		case SizeAsc:
+			if infoA.Size() < infoB.Size() {
+				return -1
+			} else if infoA.Size() > infoB.Size() {
+				return 1
+			}
+			return 0
+		case FileType:
+			extA := filepath.Ext(a.Name())
+			extB := filepath.Ext(b.Name())
+			if extA == extB {
+				return strings.Compare(strings.ToLower(a.Name()), strings.ToLower(b.Name()))
+			}
+			return strings.Compare(extA, extB)
 		default:
-			return false
+			return 0
 		}
 	})
+}
+// NoteWithFolder holds the folder name and file information
+type NoteWithFolder struct {
+    Folder   string
+    Name     string
+    ModTime  time.Time
+    Size     int64
+    Ext      string
+}
+
+// SortNotesWithFolders sorts a slice of NoteWithFolder objects based on the specified sort option.
+func SortNotesWithFolders(notes []NoteWithFolder, sortOption string) {
+    slices.SortFunc(notes, func(a, b NoteWithFolder) int {
+        switch sortOption {
+        case DateUpdatedDesc:
+            if a.ModTime.After(b.ModTime) {
+                return -1
+            } else if a.ModTime.Before(b.ModTime) {
+                return 1
+            }
+            return 0
+        case DateUpdatedAsc:
+            if a.ModTime.Before(b.ModTime) {
+                return -1
+            } else if a.ModTime.After(b.ModTime) {
+                return 1
+            }
+            return 0
+        case FileNameAZ:
+            return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name))
+        case FileNameZA:
+            return -strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name))
+        case SizeDesc:
+            if a.Size > b.Size {
+                return -1
+            } else if a.Size < b.Size {
+                return 1
+            }
+            return 0
+        case SizeAsc:
+            if a.Size < b.Size {
+                return -1
+            } else if a.Size > b.Size {
+                return 1
+            }
+            return 0
+        case FileType:
+            if a.Ext == b.Ext {
+                return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name))
+            }
+            return strings.Compare(a.Ext, b.Ext)
+        default:
+            return 0
+        }
+    })
 }

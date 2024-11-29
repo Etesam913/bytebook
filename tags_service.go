@@ -128,7 +128,7 @@ func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryPara
 	tagsForNote := []string{}
 	allTags := getTagsResponse.Data
 	for _, tag := range allTags {
-		notesResponse := t.GetNotesFromTag(tag)
+		notesResponse := t.GetNotesFromTag(tag, "file-name-a-z")
 		if !notesResponse.Success {
 			return notesResponse
 		}
@@ -289,67 +289,83 @@ func (t *TagsService) GetTags() project_types.BackendResponseWithData{
 	}
 }
 /*
+/*
 GetNotesFromTag retrieves the note paths associated with a given tag name.
 It reads the "notes.json" file within the tag's directory and returns the note paths with query params.
 */
-func (t *TagsService) GetNotesFromTag(tagName string) project_types.BackendResponseWithData {
-	pathToTagFile := filepath.Join(t.ProjectPath, "tags", tagName, "notes.json")
+func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project_types.BackendResponseWithData {
+    pathToTagFile := filepath.Join(t.ProjectPath, "tags", tagName, "notes.json")
 
-	if exists, _ := io_helpers.FileOrFolderExists(pathToTagFile); !exists {
-		return project_types.BackendResponseWithData{
-			Success: false,
-			Message: "Tag does not exist",
-			Data: nil,
-		}
-	}
+    if exists, _ := io_helpers.FileOrFolderExists(pathToTagFile); !exists {
+        return project_types.BackendResponseWithData{
+            Success: false,
+            Message: "Tag does not exist",
+            Data:    nil,
+        }
+    }
 
-	var tagJson TagJson
-	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
-		return project_types.BackendResponseWithData{
-			Success: false,
-			Message: "Something went wrong when fetching the tag. Please try again later",
-			Data: nil,
-		}
-	}
-	notes := []os.DirEntry{}
+    var tagJson TagJson
+    if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
+        return project_types.BackendResponseWithData{
+            Success: false,
+            Message: "Something went wrong when fetching the tag. Please try again later",
+            Data:    nil,
+        }
+    }
 
-	// Using the query param syntax that the app supports
-	for _, folderAndNoteString := range tagJson.Notes {
-		// if the note does not exist anymore then we need to skip/remove it
-		if doesContainTag := doesFolderAndNoteExist(t.ProjectPath, folderAndNoteString); !doesContainTag {
-			continue
-		}
+    notes := []list_helpers.NoteWithFolder{}
 
-		folderAndNoteArr := strings.Split(folderAndNoteString, "/")
-		folder := folderAndNoteArr[0]
-		note := folderAndNoteArr[1]
-		dirEntries, err := os.ReadDir(filepath.Join(t.ProjectPath, "notes", folder))
-		if err != nil {
-			continue
-		}
+    // Using the query param syntax that the app supports
+    for _, folderAndNoteString := range tagJson.Notes {
+        // Check if the note exists
+        if doesContainTag := doesFolderAndNoteExist(t.ProjectPath, folderAndNoteString); !doesContainTag {
+            continue
+        }
 
-		for _, dirEntry := range dirEntries {
-			if dirEntry.IsDir() {
-				continue
-			}
-			if(dirEntry.Name() == note) {
-				notes = append(notes, dirEntry)
-			}
-		}
-	}
-	list_helpers.SortNotes(notes, "date-created-desc")
+        folderAndNoteArr := strings.Split(folderAndNoteString, "/")
+        if len(folderAndNoteArr) < 2 {
+            continue // Invalid format
+        }
+        folder := folderAndNoteArr[0]
+        note := folderAndNoteArr[1]
 
-	sortedNotes := []string{}
-	for _, file := range notes {
-		indexOfDot := strings.LastIndex(file.Name(), ".")
-		name := file.Name()[:indexOfDot]
-		extension := file.Name()[indexOfDot+1:]
-		sortedNotes = append(sortedNotes, fmt.Sprintf("%s?ext=%s", name, extension))
-	}
+        fullPath := filepath.Join(t.ProjectPath, "notes", folder, note)
+        fileInfo, err := os.Stat(fullPath)
+        if err != nil {
+            // File does not exist or other error, skip
+            continue
+        }
+        if fileInfo.IsDir() {
+            // It's a directory, skip
+            continue
+        }
 
-	return project_types.BackendResponseWithData{
-		Success: true,
-		Message: "Successfully retrieved tag.",
-		Data: sortedNotes,
-	}
+        // Extract extension
+        ext := filepath.Ext(note)
+        name := strings.TrimSuffix(note, ext)
+        ext = strings.TrimPrefix(ext, ".")
+
+        notes = append(notes, list_helpers.NoteWithFolder{
+            Folder:  folder,
+            Name:    name,
+            ModTime: fileInfo.ModTime(),
+            Size:    fileInfo.Size(),
+            Ext:     ext,
+        })
+    }
+
+    // Sort the notes
+    list_helpers.SortNotesWithFolders(notes, sortOption)
+
+    // Prepare the sorted notes
+    sortedNotes := []string{}
+    for _, note := range notes {
+        sortedNotes = append(sortedNotes, fmt.Sprintf("%s/%s?ext=%s", note.Folder, note.Name, note.Ext))
+    }
+
+    return project_types.BackendResponseWithData{
+        Success: true,
+        Message: "Successfully retrieved tag.",
+        Data:    sortedNotes,
+    }
 }

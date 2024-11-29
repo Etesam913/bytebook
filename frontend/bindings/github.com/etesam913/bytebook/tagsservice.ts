@@ -41,11 +41,12 @@ export function DeletePathFromTag(tagName: string, folderAndNotePathWithoutQuery
 }
 
 /**
+ * /*
  * GetNotesFromTag retrieves the note paths associated with a given tag name.
  * It reads the "notes.json" file within the tag's directory and returns the note paths with query params.
  */
-export function GetNotesFromTag(tagName: string): Promise<project_types$0.BackendResponseWithData> & { cancel(): void } {
-    let $resultPromise = $Call.ByID(3414271919, tagName) as any;
+export function GetNotesFromTag(tagName: string, sortOption: string): Promise<project_types$0.BackendResponseWithData> & { cancel(): void } {
+    let $resultPromise = $Call.ByID(3414271919, tagName, sortOption) as any;
     let $typingPromise = $resultPromise.then(($result) => {
         return $$createType1($result);
     }) as any;

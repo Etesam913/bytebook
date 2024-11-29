@@ -1,7 +1,7 @@
 import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue } from "jotai/react";
 import { useEffect, useRef } from "react";
-import { isNoteMaximizedAtom, notesAtom } from "../../atoms";
+import { isNoteMaximizedAtom, noteSortAtom, notesAtom } from "../../atoms";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { TagIcon } from "../../icons/tag";
 import { updateTagNotes } from "../../utils/fetch-functions";
@@ -23,10 +23,11 @@ export function TagsSidebar({
 	const [notes, setNotes] = useAtom(notesAtom);
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+	const noteSort = useAtomValue(noteSortAtom);
 
 	useEffect(() => {
-		updateTagNotes(tagName, setNotes);
-	}, [tagName]);
+		updateTagNotes(tagName, setNotes, noteSort);
+	}, [tagName, setNotes, noteSort]);
 
 	return (
 		<>
