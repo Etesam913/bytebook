@@ -30,7 +30,6 @@ export function ChevronDown({
 					strokeLinejoin="round"
 					strokeWidth={strokeWidth}
 				/>
-				//{" "}
 			</g>
 		</svg>
 	);

@@ -176,12 +176,12 @@ function getBaseOptions(
 		}),
 		...(
 			[
-				[1, <Heading1 />],
-				[2, <Heading2 />],
-				[3, <Heading3 />],
-				[4, <Heading4 />],
-				[5, <Heading5 />],
-				[6, <Heading6 />],
+				[1, <Heading1 key={"h1"} />],
+				[2, <Heading2 key={"h2"} />],
+				[3, <Heading3 key={"h3"} />],
+				[4, <Heading4 key={"h4"} />],
+				[5, <Heading5 key={"h5"} />],
+				[6, <Heading6 key={"h6"} />],
 			] as const
 		).map(
 			([n, icon]) =>

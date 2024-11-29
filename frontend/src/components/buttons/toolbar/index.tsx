@@ -15,7 +15,6 @@ import Superscript from "../../../icons/superscript";
 import { TextBold } from "../../../icons/text-bold";
 import { TextItalic } from "../../../icons/text-italic";
 import { TextStrikethrough } from "../../../icons/text-strikethrough";
-import { TextUnderline } from "../../../icons/text-underline";
 import { Undo } from "../../../icons/undo";
 import { UnorderedList } from "../../../icons/unordered-list";
 import type { EditorBlockTypes } from "../../../types";

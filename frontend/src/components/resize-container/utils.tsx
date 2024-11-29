@@ -36,7 +36,7 @@ function getNearestSiblingNode(node: LexicalNode, isRight: boolean) {
 
 		siblingNode = isRight
 			? siblingNode?.getNextSibling()
-			: siblingNode?.getPreviousSibling() ?? null;
+			: (siblingNode?.getPreviousSibling() ?? null);
 
 		if (!siblingNode) {
 			return null;

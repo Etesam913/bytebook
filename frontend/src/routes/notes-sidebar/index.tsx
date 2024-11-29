@@ -12,7 +12,6 @@ import {
 } from "../../atoms";
 import { MotionButton, MotionIconButton } from "../../components/buttons";
 import { DialogErrorText } from "../../components/dialog/index.tsx";
-
 import { FolderDialogChildren } from "../../components/folder-sidebar/folder-dialog-children.tsx";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Input } from "../../components/input/index.tsx";
@@ -25,11 +24,7 @@ import {
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
 import { Pen } from "../../icons/pen";
-import {
-	checkIfNoteExists,
-	getNoteCount,
-	updateNotes,
-} from "../../utils/fetch-functions";
+import { checkIfNoteExists, updateNotes } from "../../utils/fetch-functions";
 import { useSearchParamsEntries } from "../../utils/hooks.tsx";
 import { useCustomNavigate } from "../../utils/routing.ts";
 import { validateName } from "../../utils/string-formatting.ts";
@@ -41,13 +36,13 @@ export function NotesSidebar({
 	width,
 	leftWidth,
 }: {
-	params: { folder: string; note?: string };
+	params: { folder: string; note: string };
 	width: MotionValue<number>;
 	leftWidth: MotionValue<number>;
 }) {
+	// These are encoded params
 	const { folder, note } = params;
 	const setDialogData = useSetAtom(dialogDataAtom);
-	const [noteCount, setNoteCount] = useState(0);
 	const [notes, setNotes] = useAtom(notesAtom);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const searchParams: { ext?: string } = useSearchParamsEntries();
@@ -61,16 +56,15 @@ export function NotesSidebar({
 
 	useEffect(() => {
 		updateNotes(folder, note, setNotes, noteSort);
-		getNoteCount(folder, setNoteCount);
-	}, [folder, setNotes, noteSort]);
+	}, [folder, noteSort]);
 
 	// Navigates to not-found page if note does not exist
 	useEffect(() => {
-		checkIfNoteExists(folder, notes, note, searchParams?.ext);
+		checkIfNoteExists(folder, note, notes, searchParams?.ext);
 	}, [notes, note]);
 
-	useNoteCreate(folder, notes ?? [], setNotes, setNoteCount);
-	useNoteDelete(folder, note, setNotes, setNoteCount);
+	useNoteCreate(folder, notes ?? [], setNotes);
+	useNoteDelete(folder, note, setNotes);
 	useNoteOpenInNewWindow(folder, selectionRange, setSelectionRange);
 
 	return (
@@ -192,7 +186,7 @@ export function NotesSidebar({
 								<div className="flex h-full flex-col overflow-y-auto">
 									<MyNotesAccordion
 										notes={notes}
-										noteCount={noteCount}
+										noteCount={(notes ?? []).length}
 										curFolder={folder}
 										curNote={note}
 									/>

@@ -3,62 +3,61 @@
 @tailwind utilities;
 
 @font-face {
-    font-family: "Bricolage Grotesque";
-    src: url("./assets/fonts/BricolageGrotesque_24pt-Regular.ttf");
-    font-weight: normal;
-    font-style: normal;
+	font-family: "Bricolage Grotesque";
+	src: url("./assets/fonts/BricolageGrotesque_24pt-Regular.ttf");
+	font-weight: normal;
+	font-style: normal;
 }
 
 @font-face {
-    font-family: "Bricolage Grotesque";
-    src: url("./assets/fonts/BricolageGrotesque_24pt-SemiBold.ttf");
-    font-weight: 600;
-    font-style: normal;
+	font-family: "Bricolage Grotesque";
+	src: url("./assets/fonts/BricolageGrotesque_24pt-SemiBold.ttf");
+	font-weight: 600;
+	font-style: normal;
 }
 
 @font-face {
-    font-family: "Jetbrains Mono";
-    src: url("./assets/fonts/JetBrainsMono-Regular.ttf");
-    font-weight: normal;
-    font-style: normal;
+	font-family: "Jetbrains Mono";
+	src: url("./assets/fonts/JetBrainsMono-Regular.ttf");
+	font-weight: normal;
+	font-style: normal;
 }
 
 @font-face {
-    font-family: "Jetbrains Mono";
-    src: url("./assets/fonts/JetBrainsMono-Bold.ttf");
-    font-weight: 700;
-    font-style: normal;
+	font-family: "Jetbrains Mono";
+	src: url("./assets/fonts/JetBrainsMono-Bold.ttf");
+	font-weight: 700;
+	font-style: normal;
 }
 
 @font-face {
-    font-family: "Jetbrains Mono";
-    src: url("./assets/fonts/JetBrainsMono-Italic.ttf");
-    font-style: italic;
+	font-family: "Jetbrains Mono";
+	src: url("./assets/fonts/JetBrainsMono-Italic.ttf");
+	font-style: italic;
 }
 
-html{
-    user-select: none;
-    -webkit-user-select: none;
+html {
+	user-select: none;
+	-webkit-user-select: none;
 }
 
 .draggable-block-menu {
-    border-radius: 4px;
-    padding: 2px 1px;
-    cursor: grab;
-    opacity: 0;
-    position: absolute;
-    left: 0;
-    top: 0;
-    will-change: transform;
+	border-radius: 4px;
+	padding: 2px 1px;
+	cursor: grab;
+	opacity: 0;
+	position: absolute;
+	left: 0;
+	top: 0;
+	will-change: transform;
 }
 
 ::spelling-error {
-  text-decoration: wavy red underline;
+	text-decoration: wavy red underline;
 }
 
-
 .sidebar-item {
-    @apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform;
+	@apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform;
 }
 
 /* ::selection {
@@ -66,128 +65,127 @@ html{
 } */
 
 h1 {
-    @apply text-3xl leading-[3.25rem];
+	@apply text-3xl leading-[3.25rem];
 }
 
 h2 {
-    @apply text-2xl leading-[2.8rem];
+	@apply text-2xl leading-[2.8rem];
 }
 
 h3 {
-    @apply text-xl leading-[2.5rem];
+	@apply text-xl leading-[2.5rem];
 }
 
 h4 {
-    @apply text-lg leading-[2.25rem] font-semibold;
+	@apply text-lg leading-[2.25rem] font-semibold;
 }
 
 h5 {
-    @apply text-base leading-[2rem] font-bold;
+	@apply text-base leading-[2rem] font-bold;
 }
 
 h6 {
-    @apply text-sm leading-[1.75rem] font-bold;
+	@apply text-sm leading-[1.75rem] font-bold;
 }
 
 .button-invert {
-    @apply !bg-zinc-800 !text-zinc-200 dark:!bg-zinc-200 dark:!text-zinc-900;
+	@apply !bg-zinc-800 !text-zinc-200 dark:!bg-zinc-200 dark:!text-zinc-900;
 }
 
 code {
-    @apply bg-zinc-100 dark:bg-zinc-750 py-0.5 px-1 rounded-md border border-zinc-200 dark:border-zinc-600 font-code;
+	@apply bg-zinc-100 dark:bg-zinc-750 py-0.5 px-1 rounded-md border border-zinc-200 dark:border-zinc-600 font-code;
 }
 
 /**
  * Code mirror styles
  */
 .cm-content {
-    font-family: "Jetbrains Mono", monospace;
-    font-size: 14px;
+	font-family: "Jetbrains Mono", monospace;
+	font-size: 14px;
 }
 
-
 /* Makes sure that the code block does not overlap with the traffic lights when in fullscreen mode */
-div[data-is-fullscreen="true"] .cm-scroller{
-    padding-top: 3rem !important;
+div[data-is-fullscreen="true"] .cm-scroller {
+	padding-top: 3rem !important;
 }
 
 .cm-tooltip {
-    @apply !bg-white dark:!bg-zinc-800 text-zinc-900 dark:text-zinc-200 !border-zinc-200 dark:!border-zinc-600 rounded-md overflow-hidden !p-1;
+	@apply !bg-white dark:!bg-zinc-800 text-zinc-900 dark:text-zinc-200 !border-zinc-200 dark:!border-zinc-600 rounded-md overflow-hidden !p-1;
 }
 
 .cm-tooltip > ul {
-    @apply bg-white dark:bg-zinc-800 !max-h-48;
+	@apply bg-white dark:bg-zinc-800 !max-h-48;
 }
 .cm-completionIcon {
-    @apply !hidden;
+	@apply !hidden;
 }
 .cm-tooltip > ul > li {
-    @apply hover:bg-zinc-150 dark:hover:bg-zinc-700 !p-1.5 rounded-md overflow-hidden mb-1.5 last:mb-0;
+	@apply hover:bg-zinc-150 dark:hover:bg-zinc-700 !p-1.5 rounded-md overflow-hidden mb-1.5 last:mb-0;
 }
 
 /* Making the tabs not overlap in fullscreen mode */
 div[data-non-template-is-fullscreen="true"] > div > div > div > .sp-tabs {
-    padding-left: 72px;
-    --sp-layout-headerHeight: 52px;
+	padding-left: 72px;
+	--sp-layout-headerHeight: 52px;
 }
 
 div[data-template-is-fullscreen="true"] > div > div > div > .sp-tabs {
-    --sp-layout-headerHeight: 52px;
+	--sp-layout-headerHeight: 52px;
 }
 
 div[data-template-is-fullscreen="true"]
-    > div
-    > div
-    > div
-    > .sp-file-explorer-list {
-    padding-top: 3.25rem;
+	> div
+	> div
+	> div
+	> .sp-file-explorer-list {
+	padding-top: 3.25rem;
 }
 
 .cm-completionLabel {
-    font-family: "Jetbrains Mono", monospace;
-    font-size: 13px;
+	font-family: "Jetbrains Mono", monospace;
+	font-size: 13px;
 }
 
 /* Makes sure that the tabs are not overlapping with the icons in the code block */
 .sp-tabs {
-    padding-right: 106px;
+	padding-right: 106px;
 }
 .sp-tab-button {
-    @apply font-code;
+	@apply font-code;
 }
 
 .dragging {
-    @apply bg-zinc-50 text-left dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-zinc-200 dark:border-zinc-600 border-2 absolute top-0 left-[-9999px] px-2 py-0.5 rounded-lg font-display text-nowrap whitespace-nowrap overflow-hidden text-ellipsis max-h-[50vh];
+	@apply bg-zinc-50 text-left dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-zinc-200 dark:border-zinc-600 border-2 absolute top-0 left-[-9999px] px-2 py-0.5 rounded-lg font-display text-nowrap whitespace-nowrap overflow-hidden text-ellipsis max-h-[50vh];
 }
 
 .drag-grid {
-    display: grid;
-    grid-template-columns: 1.5rem 1fr;
-    row-gap: 0.5rem;
+	display: grid;
+	grid-template-columns: 1.5rem 1fr;
+	row-gap: 0.5rem;
 }
 
-.settings-row-grid{
-    display: grid;
-    grid-template-columns: 1fr 2fr;
+.settings-row-grid {
+	display: grid;
+	grid-template-columns: 1fr 2fr;
 }
 /**
  * Terminal styles
  */
 
 .xterm {
-    @apply p-3;
+	@apply p-3;
 }
 
-.xterm-viewport{
-    @apply !overflow-y-auto;
+.xterm-viewport {
+	@apply !overflow-y-auto;
 }
 
 /**
  * Excalidraw styles
-*/
+ */
 
 .main-menu-trigger {
-    display: none !important;
+	display: none !important;
 }
 
 /* The export options do not work with wails out of the box, so I am hiding this button */
@@ -203,7 +201,7 @@ div[data-template-is-fullscreen="true"]
 
 /* The library button is useless as well */
 .layer-ui__wrapper__top-right {
-    display: none !important;
+	display: none !important;
 }
 
 /**
@@ -211,335 +209,335 @@ div[data-template-is-fullscreen="true"]
  */
 
 .link {
-    @apply cursor-pointer text-blue-500 underline decoration-2 underline-offset-2 dark:text-blue-400 transition-colors w-fit;
+	@apply cursor-pointer text-blue-500 underline decoration-2 underline-offset-2 dark:text-blue-400 transition-colors w-fit;
 }
 
 .link:hover {
-    @apply text-blue-600 dark:text-blue-300;
+	@apply text-blue-600 dark:text-blue-300;
 }
 
 .link-internal {
-    @apply text-green-500 underline decoration-2 underline-offset-2 dark:text-green-500 transition-colors inline-flex items-baseline gap-0.5 w-fit cursor-pointer;
+	@apply text-green-500 underline decoration-2 underline-offset-2 dark:text-green-500 transition-colors inline-flex items-baseline gap-0.5 w-fit cursor-pointer;
 }
 
 .link-internal:hover {
-    @apply text-green-600 dark:text-green-400;
+	@apply text-green-600 dark:text-green-400;
 }
 
 .root-ol {
-    padding: 0;
-    margin: 0;
-    list-style: decimal;
+	padding: 0;
+	margin: 0;
+	list-style: decimal;
 }
 
 .ol-1 {
-    list-style-type: lower-alpha;
+	list-style-type: lower-alpha;
 }
 
 .check-list {
-    list-style-type: none;
+	list-style-type: none;
 }
 
 .root-ul {
-    padding: 0;
-    margin: 0;
-    list-style: disc;
+	padding: 0;
+	margin: 0;
+	list-style: disc;
 }
 
 .ul-1 {
-    list-style: circle;
+	list-style: circle;
 }
 
 .root-li {
-    margin: 0 32px;
+	margin: 0 32px;
 }
 
 .nested-li {
-    list-style-type: none;
+	list-style-type: none;
 }
 
 .nested-li:before,
 .nested-li:after {
-    display: none !important;
+	display: none !important;
 }
 
 .nested:before,
 .nested:after {
-    display: none;
+	display: none;
 }
 
 .text-italic {
-    font-style: italic;
+	font-style: italic;
 }
 
 .text-bold {
-    font-weight: bold;
+	font-weight: bold;
 }
 
 .text-underline {
-    text-decoration: underline;
+	text-decoration: underline;
 }
 
 .text-strikethrough {
-    text-decoration: line-through;
+	text-decoration: line-through;
 }
 
 .editor-scroller {
-    min-height: 150px;
-    border: 0;
-    display: flex;
-    position: relative;
-    outline: 0;
-    z-index: 0;
-    overflow: auto;
-    resize: vertical;
+	min-height: 150px;
+	border: 0;
+	display: flex;
+	position: relative;
+	outline: 0;
+	z-index: 0;
+	overflow: auto;
+	resize: vertical;
 }
 
 .editor {
-    flex: auto;
-    position: relative;
-    resize: vertical;
-    z-index: -1;
+	flex: auto;
+	position: relative;
+	resize: vertical;
+	z-index: -1;
 }
 
 [contenteditable="true"]:focus {
-    outline: 0;
+	outline: 0;
 }
 
 /* Checkbox Styles */
 .PlaygroundEditorTheme__listItemChecked,
 .PlaygroundEditorTheme__listItemUnchecked {
-    position: relative;
-    margin-left: 8px;
-    margin-right: 8px;
-    padding-left: 24px;
-    padding-right: 24px;
-    list-style-type: none;
-    outline: none;
-    cursor: pointer;
-    margin-block: 0.315rem;
-    width: fit-content;
+	position: relative;
+	margin-left: 8px;
+	margin-right: 8px;
+	padding-left: 24px;
+	padding-right: 24px;
+	list-style-type: none;
+	outline: none;
+	cursor: pointer;
+	margin-block: 0.315rem;
+	width: fit-content;
 }
 
 .PlaygroundEditorTheme__listItemChecked > span,
 .PlaygroundEditorTheme__listItemUnchecked > span {
-    cursor: text;
-    text-decoration-thickness: 0.13rem;
-    padding-left: 0.2rem;
+	cursor: text;
+	text-decoration-thickness: 0.13rem;
+	padding-left: 0.2rem;
 }
 
 .PlaygroundEditorTheme__listItemChecked {
-    text-decoration-line: line-through;
+	text-decoration-line: line-through;
 }
 
 .PlaygroundEditorTheme__listItemUnchecked:before,
 .PlaygroundEditorTheme__listItemChecked:before,
 .PlaygroundEditorTheme__listItemUnchecked:after,
 .PlaygroundEditorTheme__listItemChecked:after {
-    border-radius: 5px;
+	border-radius: 5px;
 }
 
 .PlaygroundEditorTheme__listItemUnchecked:before,
 .PlaygroundEditorTheme__listItemChecked:before {
-    content: "";
-    width: 19px;
-    height: 19px;
-    top: 4px;
-    left: 0;
-    display: block;
-    background-size: cover;
-    position: absolute;
+	content: "";
+	width: 19px;
+	height: 19px;
+	top: 4px;
+	left: 0;
+	display: block;
+	background-size: cover;
+	position: absolute;
 }
 
 .PlaygroundEditorTheme__listItemUnchecked[dir="rtl"]:before,
 .PlaygroundEditorTheme__listItemChecked[dir="rtl"]:before {
-    left: auto;
-    right: 0;
+	left: auto;
+	right: 0;
 }
 
 .PlaygroundEditorTheme__listItemUnchecked:before {
-    border: 1px solid #999;
+	border: 1px solid #999;
 }
 
 .PlaygroundEditorTheme__listItemChecked:before {
-    border: 1px solid #2ba43c;
-    background-color: #2ba43c;
-    background-repeat: no-repeat;
+	border: 1px solid #2ba43c;
+	background-color: #2ba43c;
+	background-repeat: no-repeat;
 }
 
 .PlaygroundEditorTheme__listItemChecked:after {
-    content: "";
-    border-color: #fff;
-    border-style: solid;
-    position: absolute;
-    display: block;
-    top: 8.5px;
-    width: 5.25px;
-    left: 7.25px;
-    right: 7px;
-    height: 9.5px;
-    transform: rotate(45deg);
-    border-width: 0 2.3px 2.3px 0;
-    cursor: pointer;
+	content: "";
+	border-color: #fff;
+	border-style: solid;
+	position: absolute;
+	display: block;
+	top: 8.5px;
+	width: 5.25px;
+	left: 7.25px;
+	right: 7px;
+	height: 9.5px;
+	transform: rotate(45deg);
+	border-width: 0 2.3px 2.3px 0;
+	cursor: pointer;
 }
 
 /* Table Styles */
 .PlaygroundEditorTheme__table {
-    border-collapse: collapse;
-    border-spacing: 0;
-    overflow-y: scroll;
-    overflow-x: scroll;
-    table-layout: fixed;
-    width: max-content;
-    margin: 30px 0;
+	border-collapse: collapse;
+	border-spacing: 0;
+	overflow-y: scroll;
+	overflow-x: scroll;
+	table-layout: fixed;
+	width: max-content;
+	margin: 30px 0;
 }
 .PlaygroundEditorTheme__tableSelection *::selection {
-    background-color: transparent;
+	background-color: transparent;
 }
 .PlaygroundEditorTheme__tableSelected {
-    outline: 2px solid rgb(60, 132, 244);
+	outline: 2px solid rgb(60, 132, 244);
 }
 .PlaygroundEditorTheme__tableCell {
-    border: 1px solid #bbb;
-    width: 75px;
-    min-width: 75px;
-    vertical-align: top;
-    text-align: start;
-    padding: 6px 8px;
-    position: relative;
-    outline: none;
+	border: 1px solid #bbb;
+	width: 75px;
+	min-width: 75px;
+	vertical-align: top;
+	text-align: start;
+	padding: 6px 8px;
+	position: relative;
+	outline: none;
 }
 .PlaygroundEditorTheme__tableCellSortedIndicator {
-    display: block;
-    opacity: 0.5;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background-color: #999;
+	display: block;
+	opacity: 0.5;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 4px;
+	background-color: #999;
 }
 .PlaygroundEditorTheme__tableCellResizer {
-    position: absolute;
-    right: -4px;
-    height: 100%;
-    width: 8px;
-    cursor: ew-resize;
-    z-index: 10;
-    top: 0;
+	position: absolute;
+	right: -4px;
+	height: 100%;
+	width: 8px;
+	cursor: ew-resize;
+	z-index: 10;
+	top: 0;
 }
 .PlaygroundEditorTheme__tableCellHeader {
-    background-color: #f2f3f5;
-    text-align: start;
+	background-color: #f2f3f5;
+	text-align: start;
 }
 .PlaygroundEditorTheme__tableCellSelected {
-    background-color: #c9dbf0;
+	background-color: #c9dbf0;
 }
 .PlaygroundEditorTheme__tableCellPrimarySelected {
-    border: 2px solid rgb(60, 132, 244);
-    display: block;
-    height: calc(100% - 2px);
-    position: absolute;
-    width: calc(100% - 2px);
-    left: -1px;
-    top: -1px;
-    z-index: 2;
+	border: 2px solid rgb(60, 132, 244);
+	display: block;
+	height: calc(100% - 2px);
+	position: absolute;
+	width: calc(100% - 2px);
+	left: -1px;
+	top: -1px;
+	z-index: 2;
 }
 .PlaygroundEditorTheme__tableCellEditing {
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
-    border-radius: 3px;
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
+	border-radius: 3px;
 }
 .PlaygroundEditorTheme__tableAddColumns {
-    position: absolute;
-    top: 0;
-    width: 20px;
-    background-color: #eee;
-    height: 100%;
-    right: -25px;
-    animation: table-controls 0.2s ease;
-    border: 0;
-    cursor: pointer;
+	position: absolute;
+	top: 0;
+	width: 20px;
+	background-color: #eee;
+	height: 100%;
+	right: -25px;
+	animation: table-controls 0.2s ease;
+	border: 0;
+	cursor: pointer;
 }
 .PlaygroundEditorTheme__tableAddColumns:after {
-    background-image: url(../images/icons/plus.svg);
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-    display: block;
-    content: " ";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0.4;
+	background-image: url(../images/icons/plus.svg);
+	background-size: contain;
+	background-position: center;
+	background-repeat: no-repeat;
+	display: block;
+	content: " ";
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 0.4;
 }
 .PlaygroundEditorTheme__tableAddColumns:hover {
-    background-color: #c9dbf0;
+	background-color: #c9dbf0;
 }
 .PlaygroundEditorTheme__tableAddRows {
-    position: absolute;
-    bottom: -25px;
-    width: calc(100% - 25px);
-    background-color: #eee;
-    height: 20px;
-    left: 0;
-    animation: table-controls 0.2s ease;
-    border: 0;
-    cursor: pointer;
+	position: absolute;
+	bottom: -25px;
+	width: calc(100% - 25px);
+	background-color: #eee;
+	height: 20px;
+	left: 0;
+	animation: table-controls 0.2s ease;
+	border: 0;
+	cursor: pointer;
 }
 .PlaygroundEditorTheme__tableAddRows:after {
-    background-image: url(../images/icons/plus.svg);
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-    display: block;
-    content: " ";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0.4;
+	background-image: url(../images/icons/plus.svg);
+	background-size: contain;
+	background-position: center;
+	background-repeat: no-repeat;
+	display: block;
+	content: " ";
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 0.4;
 }
 .PlaygroundEditorTheme__tableAddRows:hover {
-    background-color: #c9dbf0;
+	background-color: #c9dbf0;
 }
 @keyframes table-controls {
-    0% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
 }
 .PlaygroundEditorTheme__tableCellResizeRuler {
-    display: block;
-    position: absolute;
-    width: 1px;
-    background-color: rgb(60, 132, 244);
-    height: 100%;
-    top: 0;
+	display: block;
+	position: absolute;
+	width: 1px;
+	background-color: rgb(60, 132, 244);
+	height: 100%;
+	top: 0;
 }
 .PlaygroundEditorTheme__tableCellActionButtonContainer {
-    display: block;
-    right: 5px;
-    top: 6px;
-    position: absolute;
-    z-index: 4;
-    width: 20px;
-    height: 20px;
+	display: block;
+	right: 5px;
+	top: 6px;
+	position: absolute;
+	z-index: 4;
+	width: 20px;
+	height: 20px;
 }
 .PlaygroundEditorTheme__tableCellActionButton {
-    background-color: #eee;
-    display: block;
-    border: 0;
-    border-radius: 20px;
-    width: 20px;
-    height: 20px;
-    color: #222;
-    cursor: pointer;
+	background-color: #eee;
+	display: block;
+	border: 0;
+	border-radius: 20px;
+	width: 20px;
+	height: 20px;
+	color: #222;
+	cursor: pointer;
 }
 .PlaygroundEditorTheme__tableCellActionButton:hover {
-    background-color: #ddd;
+	background-color: #ddd;
 }

@@ -1,11 +1,12 @@
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { $nodesOfType } from "lexical";
 import { useRoute } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import { ShutoffTerminals } from "../../bindings/github.com/etesam913/bytebook/terminalservice";
-import { noteEditorAtom } from "../atoms";
+import { noteEditorAtom, noteSortAtom, notesAtom } from "../atoms";
 import { CodeNode } from "../components/editor/nodes/code";
 import { SAVE_MARKDOWN_CONTENT } from "../components/editor/plugins/save";
+import { updateNotes } from "./fetch-functions";
 
 /**
  * Custom navigation hook that handles saving the current directory of terminals when navigating away from a note.
@@ -18,16 +19,25 @@ import { SAVE_MARKDOWN_CONTENT } from "../components/editor/plugins/save";
  * @returns A function that navigates to a given URL or URL object with optional replace and state parameters.
  */
 export function useCustomNavigate() {
-	const [match, _] = useRoute("/:folder/:note");
+	const [folderNoteMatch, _] = useRoute("/:folder/:note");
 	const editor = useAtomValue(noteEditorAtom);
+	const noteSort = useAtomValue(noteSortAtom);
+	const setNotes = useSetAtom(notesAtom);
 	return {
 		// biome-ignore lint/suspicious/noExplicitAny: Any makes sense here
 		navigate: async <S = any>(
-			to: string | URL,
-			options?: { replace?: boolean; state?: S },
+			to: string,
+			options?: { replace?: boolean; state?: S; type?: "folder" },
 		) => {
+			// You are navigating to a note by clicking on a folder
+			if (options?.type === "folder") {
+				const folder = to.split("/")[1];
+				updateNotes(folder, undefined, setNotes, noteSort);
+				return;
+			}
+
 			// If you are on a note and you are navigating away you want to shutoff the terminals and save their current directory
-			if (match && editor) {
+			if (folderNoteMatch && editor) {
 				let codeNodes: CodeNode[] = [];
 				let nodeKeys: string[] = [];
 

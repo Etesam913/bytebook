@@ -116,7 +116,9 @@ export function MyFoldersAccordion({
 										)}
 										onClick={(e) => {
 											if (e.metaKey || e.shiftKey) return;
-											navigate(`/${encodeURIComponent(sidebarFolderName)}`);
+											navigate(`/${encodeURIComponent(sidebarFolderName)}`, {
+												type: "folder",
+											});
 										}}
 										onContextMenu={(e) => {
 											let newSelectionRange = new Set([

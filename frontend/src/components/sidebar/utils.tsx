@@ -77,7 +77,10 @@ export function handleDragStart(
 			return (
 				<>
 					{getFileIcon(contentType)}
-					<p className="overflow-hidden text-ellipsis whitespace-nowrap">
+					<p
+						key={file}
+						className="overflow-hidden text-ellipsis whitespace-nowrap"
+					>
 						{file.split("/").at(-1)}
 					</p>
 				</>

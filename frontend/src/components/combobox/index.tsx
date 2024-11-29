@@ -25,9 +25,14 @@ export const Combobox = forwardRef<HTMLInputElement, InputProps>(
 			onKeyDown,
 			onChange,
 			setState,
+			id,
 			...restInputProps
 		} = inputProps;
-		const { className: labelClassName, ...restLabelProps } = labelProps;
+		const {
+			className: labelClassName,
+			htmlFor,
+			...restLabelProps
+		} = labelProps;
 		const [isOpen, setIsOpen] = useState(false);
 		const [selectedIndex, setSelectedIndex] = useState(-1);
 		const comboboxRef = useRef<HTMLDivElement>(null);
@@ -65,6 +70,7 @@ export const Combobox = forwardRef<HTMLInputElement, InputProps>(
 			<div className="flex flex-1" ref={comboboxRef}>
 				{label && (
 					<label
+						htmlFor={htmlFor}
 						className={cn(
 							"text-sm cursor-pointer pb-2 text-zinc-500 dark:text-zinc-300",
 							labelClassName,
@@ -75,6 +81,7 @@ export const Combobox = forwardRef<HTMLInputElement, InputProps>(
 					</label>
 				)}
 				<input
+					id={id}
 					onFocus={() => setIsOpen(true)}
 					ref={ref}
 					maxLength={75}

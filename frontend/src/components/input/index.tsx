@@ -10,12 +10,17 @@ interface InputProps {
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
 	({ label, labelProps, inputProps }, ref) => {
-		const { className: inputClassName, ...restInputProps } = inputProps;
-		const { className: labelClassName, ...restLabelProps } = labelProps;
+		const { className: inputClassName, id, ...restInputProps } = inputProps;
+		const {
+			className: labelClassName,
+			htmlFor,
+			...restLabelProps
+		} = labelProps;
 		return (
 			<>
 				{label && (
 					<label
+						htmlFor={htmlFor}
 						className={cn(
 							"text-sm cursor-pointer pb-2 text-zinc-500 dark:text-zinc-300",
 							labelClassName,
@@ -27,6 +32,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 				)}
 				<input
 					ref={ref}
+					id={id}
 					maxLength={75}
 					className={cn(
 						"bg-zinc-150 dark:bg-zinc-700 py-1 px-2 rounded-md outline outline-offset-0 outline-2 focus-visible:outline-blue-400 dark:focus-visible:outline-blue-500 outline-zinc-300 dark:outline-zinc-600",

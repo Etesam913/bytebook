@@ -9,7 +9,6 @@ import {
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { AddPathsToTags } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import { selectionRangeAtom } from "../atoms";
-import { getNoteCount } from "../utils/fetch-functions";
 import { useWailsEvent } from "../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
 import { extractInfoFromNoteName } from "../utils/string-formatting";
@@ -19,11 +18,9 @@ export function useNoteCreate(
 	folder: string,
 	notes: string[],
 	setNotes: Dispatch<SetStateAction<string[] | null>>,
-	setNoteCount: Dispatch<SetStateAction<number>>,
 ) {
 	useWailsEvent("note:create", (body) => {
 		const data = (body.data as { folder: string; note: string }[][])[0];
-		getNoteCount(folder, setNoteCount);
 
 		/*
 		If none of the added notes are in the current folder, then don't update the notes
@@ -53,7 +50,6 @@ export function useNoteDelete(
 	folder: string,
 	note: string | undefined,
 	setNotes: Dispatch<SetStateAction<string[] | null>>,
-	setNoteCount: Dispatch<SetStateAction<number>>,
 ) {
 	useWailsEvent("note:delete", (body) => {
 		const data = (body.data as { folder: string; note: string }[][])[0];
@@ -69,8 +65,6 @@ export function useNoteDelete(
 			).length === 0
 		)
 			return;
-
-		getNoteCount(folder, setNoteCount);
 
 		setNotes((prev) => {
 			if (!prev) return prev;

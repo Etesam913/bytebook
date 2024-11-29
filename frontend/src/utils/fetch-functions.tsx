@@ -6,10 +6,7 @@ import {
 	DoesFolderExist,
 	GetFolders,
 } from "../../bindings/github.com/etesam913/bytebook/folderservice";
-import {
-	GetNoteCount,
-	GetNotes,
-} from "../../bindings/github.com/etesam913/bytebook/noteservice";
+import { GetNotes } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { GetNotesFromTag } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import type { SortStrings } from "../types";
 import { DEFAULT_SONNER_OPTIONS } from "./misc";
@@ -90,22 +87,22 @@ export async function updateFolders(
  * Checks if a specific note exists within a given folder.
  * If the note does not exist, it navigates to either the first note in the folder or the folder itself.
  *
- * @param folder - The path to the folder containing the notes.
+ * @param encodedFolder - The path to the folder containing the notes.
  * @param notes - An array of note names within the folder.
- * @param note - The name of the note to check for existence.
+ * @param encodedNote - The name of the note to check for existence.
  * @param fileExtension - The file extension of the note.
  */
 export async function checkIfNoteExists(
-	folder: string,
+	encodedFolder: string,
+	encodedNote: string,
 	notes: string[] | null,
-	note: string | undefined,
 	fileExtension: string | undefined,
 ) {
 	// If no note name or file extension is provided, exit the function early.
-	if (!note || !fileExtension) return;
+	if (!encodedNote || !fileExtension) return;
 	try {
 		// Construct the full path to the note including the folder and file extension.
-		const fullPath = `/${folder}/${note}.${fileExtension}`;
+		const fullPath = `/${decodeURIComponent(encodedFolder)}/${decodeURIComponent(encodedNote)}.${fileExtension}`;
 		// Send a request to check if the folder exists (assuming the note path is a folder).
 		const res = await DoesFolderExist(fullPath);
 		// If the request indicates the folder does not exist, throw an error.
@@ -121,7 +118,7 @@ export async function checkIfNoteExists(
 			);
 			// Navigate to the first note with its extension.
 			navigate(
-				`/${folder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
+				`/${encodedFolder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${
 					queryParams.ext
 				}`,
 				{
@@ -130,20 +127,20 @@ export async function checkIfNoteExists(
 			);
 		} else {
 			// If no notes are available, navigate to the folder.
-			navigate(`/${folder}`, { replace: true });
+			navigate(`/${encodedFolder}`, { replace: true });
 		}
 	}
 }
 
 /** Initially fetches notes for a folder using the filesystem and navigates to the first note if it exists*/
 export async function updateNotes(
-	folder: string,
-	note: string | undefined,
+	encodedFolder: string,
+	encodedNote: string | undefined,
 	setNotes: Dispatch<SetStateAction<string[] | null>>,
 	noteSort: SortStrings,
 ) {
 	try {
-		const res = await GetNotes(decodeURIComponent(folder), noteSort);
+		const res = await GetNotes(decodeURIComponent(encodedFolder), noteSort);
 		if (!res.success) {
 			throw new Error("Failed in retrieving notes");
 		}
@@ -152,21 +149,25 @@ export async function updateNotes(
 		setNotes(notes);
 
 		// If the current is not defined, then navigate to the first note so that you are never at an undefined note
-		if (!note) {
+		if (!encodedNote) {
 			const hasANote = notes.length > 0;
 			if (!hasANote) {
-				navigate(`/${folder}`, { replace: true });
+				navigate(`/${encodedFolder}`, { replace: true });
 				return;
 			}
 			// We have to extract the note name from the first note so that we can encode it to then navigate to it
-			const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-				notes[0],
+			// const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
+			// 	notes[0],
+			// );
+			const indexOfQuestionMark = notes[0].lastIndexOf("?ext=");
+			const noteNameWithoutExtension = notes[0].substring(
+				0,
+				indexOfQuestionMark,
 			);
+			const fileExtension = notes[0].substring(indexOfQuestionMark + 5);
 
 			navigate(
-				`/${decodeURIComponent(folder)}/${encodeURIComponent(
-					noteNameWithoutExtension,
-				)}?ext=${queryParams.ext}`,
+				`/${encodedFolder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${fileExtension}`,
 				{
 					replace: true,
 				},
@@ -176,35 +177,5 @@ export async function updateNotes(
 		toast.error("Error in retrieving notes", DEFAULT_SONNER_OPTIONS);
 		setNotes(null);
 		return null;
-	}
-}
-
-/**
- * Fetches the count of notes in a given folder and updates the state with the count.
- *
- * @param folder - The path to the folder for which to fetch the note count.
- * @param setNoteCount - A function to update the state with the fetched note count.
- */
-export async function getNoteCount(
-	folder: string,
-	setNoteCount: Dispatch<SetStateAction<number>>,
-) {
-	try {
-		// Decode the folder path to ensure it's correctly formatted for the request.
-		const decodedFolder = decodeURIComponent(folder);
-		// Send a request to fetch the note count for the decoded folder.
-		const res = await GetNoteCount(decodedFolder);
-		// If the request fails, throw an error.
-		if (!res.success) {
-			throw new Error("Failed to get note count");
-		}
-		// If the request is successful, update the state with the fetched note count.
-		setNoteCount(res.data);
-	} catch (e) {
-		// If an error occurs during the request, handle it.
-		if (e instanceof Error) {
-			// Display an error message to the user.
-			toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-		}
 	}
 }

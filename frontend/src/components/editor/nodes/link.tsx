@@ -32,6 +32,7 @@ import ReactDOM from "react-dom";
 import { navigate } from "wouter/use-browser-location";
 import { Folder } from "../../../icons/folder";
 import { Note } from "../../../icons/page";
+import { useCustomNavigate } from "../../../utils/routing";
 import {
 	getInternalLinkType,
 	isInternalLink,
@@ -132,11 +133,13 @@ export class LinkNode extends ElementNode {
 						const fileExtension = url.searchParams.get("ext");
 						navigate(`/${folder}/${note}?ext=${fileExtension}`);
 						e.preventDefault();
-					} else if (isFolderLink) {
-						const folder = segments[segments.length - 1];
-						navigate(`/${folder}`);
-						e.preventDefault();
-					} else {
+					}
+					// else if (isFolderLink) {
+					// 	const folder = segments[segments.length - 1];
+					// 	navigate(`/${folder}`);
+					// 	e.preventDefault();
+					// }
+					else {
 						element.href = "about:blank";
 					}
 				};

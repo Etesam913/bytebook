@@ -68,7 +68,7 @@ export function useNoteMarkdown(
 			setEditor(editor);
 			try {
 				const res = await GetNoteMarkdown(
-					`notes/${decodeURIComponent(folder)}/${note}.md`,
+					`notes/${decodeURIComponent(folder)}/${decodeURIComponent(note)}.md`,
 				);
 
 				if (res.success) {
