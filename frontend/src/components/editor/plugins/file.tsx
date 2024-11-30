@@ -13,7 +13,9 @@ import {
 import { useEffect } from "react";
 import { $createFileNode, FileNode, type FilePayload } from "../nodes/file";
 
-export const INSERT_FILES_COMMAND: LexicalCommand<FilePayload[]> =
+type InsertFilesCommandPayload = FilePayload[];
+
+export const INSERT_FILES_COMMAND: LexicalCommand<InsertFilesCommandPayload> =
 	createCommand("INSERT_FILES_COMMAND");
 
 export function FilesPlugin() {
@@ -25,7 +27,7 @@ export function FilesPlugin() {
 		}
 
 		return mergeRegister(
-			editor.registerCommand<FilePayload[]>(
+			editor.registerCommand<InsertFilesCommandPayload>(
 				INSERT_FILES_COMMAND,
 				(payload) => {
 					const nodes: ParagraphNode[] = [];

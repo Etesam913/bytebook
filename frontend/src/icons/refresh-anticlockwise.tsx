@@ -1,12 +1,12 @@
 export function RefreshAnticlockwise({
-	height = "1.25rem",
-	width = "1.25rem",
+	height = 20,
+	width = 20,
 	fill = "currentColor",
 	title = "Refresh",
 	className,
 }: {
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	fill?: string;
 	title?: string;
 	className?: string;

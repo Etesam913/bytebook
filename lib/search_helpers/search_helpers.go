@@ -182,7 +182,7 @@ func JaroWinklerSimilarity(s1, s2 string) float64 {
 	}
 
 	// Scaling factor for how much the score is adjusted upwards for having common prefixes
-	scalingFactor := 0.15
+	scalingFactor := 0.05
 
 	// Calculate the Jaro-Winkler similarity
 	jaroWinklerSimilarity := jaroDist + float64(prefixLength)*scalingFactor*(1.0-jaroDist)

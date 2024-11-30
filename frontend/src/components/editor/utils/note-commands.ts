@@ -130,7 +130,7 @@ export function overrideControlledTextInsertion(
 	const files = fileText.split(",");
 
 	const linkPayloads = [];
-	const filePayloads: FilePayload[] = [];
+	const filesPayload: FilePayload[] = [];
 
 	for (const fileText of files) {
 		if (fileText.startsWith("wails:")) {
@@ -161,7 +161,7 @@ export function overrideControlledTextInsertion(
 					});
 				} else {
 					const elementType = getFileElementTypeFromExtension(fileText);
-					filePayloads.push({
+					filesPayload.push({
 						elementType,
 						alt: title,
 						src: `${FILE_SERVER_URL}/notes/${folder}/${fileName}.${extension}`,
@@ -183,8 +183,8 @@ export function overrideControlledTextInsertion(
 			selection.insertNodes([linkNode]);
 		}
 	}
-	if (filePayloads.length > 0) {
-		editor.dispatchCommand(INSERT_FILES_COMMAND, filePayloads);
+	if (filesPayload.length > 0) {
+		editor.dispatchCommand(INSERT_FILES_COMMAND, filesPayload);
 	}
 
 	return true;

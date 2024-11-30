@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useSetAtom } from "jotai/react";
-import type { LexicalEditor } from "lexical";
+import { $getSelection, type BaseSelection, type LexicalEditor } from "lexical";
 import { toast } from "sonner";
 import { backendQueryAtom } from "../atoms";
 import { insertAttachmentFromFile } from "../components/editor/utils/toolbar";
@@ -14,11 +14,15 @@ export function useAttachmentsMutation({
 	const setBackendQuery = useSetAtom(backendQueryAtom);
 	const insertAttachmentsMutation = useMutation({
 		mutationFn: async () => {
+			let editorSelection: BaseSelection | null = null;
+			editor.read(() => {
+				editorSelection = $getSelection();
+			});
 			setBackendQuery({
 				isLoading: true,
 				message: "Inserting Attachments",
 			});
-			await insertAttachmentFromFile(folder, note, editor);
+			await insertAttachmentFromFile(folder, note, editor, editorSelection);
 		},
 		onSuccess: () => {
 			setBackendQuery({

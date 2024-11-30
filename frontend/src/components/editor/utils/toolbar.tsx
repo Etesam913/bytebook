@@ -15,6 +15,8 @@ import {
 	$getSelection,
 	$isNodeSelection,
 	$isRangeSelection,
+	$setSelection,
+	type BaseSelection,
 	FORMAT_TEXT_COMMAND,
 	type LexicalEditor,
 	type TextFormatType,
@@ -263,6 +265,7 @@ export async function insertAttachmentFromFile(
 	folder: string,
 	note: string,
 	editor: LexicalEditor,
+	editorSelection: BaseSelection | null,
 ) {
 	try {
 		const { success, message, paths } = await AddAttachments(folder, note);
@@ -275,7 +278,10 @@ export async function insertAttachmentFromFile(
 				alt: filePath.split("/").at(-1) ?? "Untitled",
 				elementType: getFileElementTypeFromExtension(filePath),
 			}));
-			editor.dispatchCommand(INSERT_FILES_COMMAND, payloads);
+			if (editorSelection) {
+				$setSelection(editorSelection.clone());
+				editor.dispatchCommand(INSERT_FILES_COMMAND, payloads);
+			}
 			if (!success) toast.error(message);
 		});
 	} catch (e: unknown) {

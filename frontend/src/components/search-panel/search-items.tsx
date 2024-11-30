@@ -46,7 +46,7 @@ export function SearchItems({
 	return (
 		<menu
 			ref={searchResultsContainerRef}
-			className="py-2 px-2 bg-zinc-50 max-h-[300px] dark:bg-zinc-800  absolute w-full border rounded-md rounded-tl-none rounded-tr-none border-zinc-300 dark:border-zinc-700 shadow-2xl overflow-y-auto overflow-x-hidden scroll-p-2"
+			className="py-2 px-2 bg-zinc-50 max-h-[300px] dark:bg-zinc-800  absolute w-full border rounded-md rounded-tl-none rounded-tr-none border-zinc-300 dark:border-zinc-700 shadow-2xl -translate-y-1 overflow-y-auto overflow-x-hidden scroll-p-2"
 			onScroll={isShowingMostRecentNotes ? undefined : onScroll}
 		>
 			{searchResultsElements.length === 0 ? (
