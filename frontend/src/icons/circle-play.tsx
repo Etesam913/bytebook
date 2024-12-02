@@ -1,12 +1,12 @@
 export function Play({
-	width = "1.25rem",
-	height = "1.25rem",
+	width = 1.25,
+	height = 1.25,
 	fill = "currentColor",
 	title = "Play",
 	className,
 }: {
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	fill?: string;
 	secondaryfill?: string;
 	title?: string;

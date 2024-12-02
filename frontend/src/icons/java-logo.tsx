@@ -1,10 +1,10 @@
 export function JavaLogo({
-	width = "1.25rem",
-	height = "1.25rem",
+	width = 1.25,
+	height = 1.25,
 	title = "java",
 }: {
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	title?: string;
 }) {
 	return (

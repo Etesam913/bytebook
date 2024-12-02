@@ -1,10 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useAtom, useSetAtom } from "jotai/react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai/react";
 import {
 	contextMenuDataAtom,
 	dialogDataAtom,
 	draggedElementAtom,
 	noteSortAtom,
+	projectSettingsAtom,
 } from "../../atoms";
 import { SortButton } from "../../components/buttons/sort";
 import { Sidebar } from "../../components/sidebar";
@@ -42,6 +43,7 @@ export function MyNotesAccordion({
 }) {
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const queryClient = useQueryClient();
+	const projectSettings = useAtomValue(projectSettingsAtom);
 	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
 	const { mutate: sendToTrash } = useSendToTrashMutation();
 	const { mutateAsync: addPathsToTags } = useAddTagsMutation(queryClient);
@@ -134,6 +136,24 @@ export function MyNotesAccordion({
 														className="will-change-transform"
 													/>{" "}
 													Reveal In Finder
+												</span>
+											),
+											value: "reveal-in-finder",
+											onChange: () =>
+												revealInFinder({
+													selectionRange: newSelectionRange,
+													folder: curFolder,
+												}),
+										},
+										{
+											label: (
+												<span className="flex items-center gap-1.5">
+													<Finder
+														width={17}
+														height={17}
+														className="will-change-transform"
+													/>{" "}
+													Pin Note
 												</span>
 											),
 											value: "reveal-in-finder",

@@ -1,10 +1,10 @@
 export function GolangLogo({
-	height = "1.25rem",
-	width = "1.25rem",
+	height = 1.25,
+	width = 1.25,
 	title = "golang",
 }: {
-	height?: string;
-	width?: string;
+	height?: number;
+	width?: number;
 	title?: string;
 }) {
 	return (

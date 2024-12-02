@@ -1,12 +1,12 @@
 export function MarkdownIcon({
-	width = "1.25rem",
-	height = "1.25rem",
+	width = 1.25,
+	height = 1.25,
 	title = "markdown",
 	fill = "currentColor",
 	className,
 }: {
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	title?: string;
 	fill?: string;
 	className?: string;

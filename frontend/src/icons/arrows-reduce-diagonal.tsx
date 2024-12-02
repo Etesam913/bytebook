@@ -1,11 +1,11 @@
 export function ExitFullscreen({
-	width = "1.25rem",
-	height = "1.25rem",
+	width = 1.25,
+	height = 1.25,
 	fill = "currentColor",
 	title = "Exit Fullscreen",
 }: {
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	fill?: string;
 	title?: string;
 	className?: string;

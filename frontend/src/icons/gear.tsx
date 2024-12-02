@@ -1,27 +1,12 @@
-// function Gear(props) {
-// 	const fill = props.fill || 'currentColor';
-// 	const secondaryfill = props.secondaryfill || fill;
-// 	const width = props.width || '100%';
-// 	const height = props.height || '100%';
-// 	const title = props.title || "gear";
-
-// 	return (
-// 		<svg height={height} width={width} viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-// 	<title>{title}</title>
-
-// </svg>
-// 	);
-// };
-
 export function Gear({
-	width = "1.25rem",
-	height = "1.25rem",
+	width = 1.25,
+	height = 1.25,
 	fill = "currentColor",
 	title = "Gear",
 	className,
 }: {
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	fill?: string;
 	secondaryfill?: string;
 	title?: string;

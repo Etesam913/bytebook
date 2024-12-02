@@ -1,12 +1,12 @@
 export function CodePullRequest({
-	width = "1.25rem",
-	height = "1.25rem",
+	width = 1.25,
+	height = 1.25,
 	fill = "currentColor",
 	secondaryfill = "currentColor",
 	title = "code-merge",
 }: {
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	fill?: string;
 	secondaryfill?: string;
 	title?: string;
