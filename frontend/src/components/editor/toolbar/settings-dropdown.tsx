@@ -1,16 +1,15 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useAtomValue } from "jotai";
 import { useRef, useState } from "react";
-import { toast } from "sonner";
-import { UpdateProjectSettings } from "../../../../bindings/github.com/etesam913/bytebook/settingsservice";
 import { getDefaultButtonVariants } from "../../../animations";
 import { projectSettingsAtom } from "../../../atoms";
+import { useUpdateProjectSettingsMutation } from "../../../hooks/project-settings";
 import { HorizontalDots } from "../../../icons/horizontal-dots";
 import { MarkdownIcon } from "../../../icons/markdown";
 import { PinTack2 } from "../../../icons/pin-tack-2";
 import { Table } from "../../../icons/table";
+import type { ProjectSettings } from "../../../types";
 import { useOnClickOutside } from "../../../utils/hooks";
-import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
 import { MotionIconButton } from "../../buttons";
 import { DropdownItems } from "../../dropdown/dropdown-items";
 import { SAVE_MARKDOWN_CONTENT } from "../plugins/save";
@@ -34,6 +33,8 @@ export function SettingsDropdown({
 	const isPinned = projectSettings.pinnedNotes.has(`${folder}/${note}.md`);
 	const [editor] = useLexicalComposerContext();
 
+	const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
+
 	return (
 		<div className="ml-auto flex flex-col" ref={dropdownContainerRef}>
 			<MotionIconButton
@@ -49,28 +50,18 @@ export function SettingsDropdown({
 						switch (item.value) {
 							case "pin-note":
 							case "unpin-note": {
-								const copyOfProjectSettings = { ...projectSettings };
+								const newProjectSettings: ProjectSettings = {
+									...projectSettings,
+								};
 								if (item.value === "pin-note") {
-									copyOfProjectSettings.pinnedNotes.add(`${folder}/${note}.md`);
+									newProjectSettings.pinnedNotes.add(`${folder}/${note}.md`);
 								} else {
-									copyOfProjectSettings.pinnedNotes.delete(
-										`${folder}/${note}.md`,
-									);
+									newProjectSettings.pinnedNotes.delete(`${folder}/${note}.md`);
 								}
+								updateProjectSettings({
+									newProjectSettings,
+								});
 
-								try {
-									const res = await UpdateProjectSettings({
-										...copyOfProjectSettings,
-										pinnedNotes: [...copyOfProjectSettings.pinnedNotes],
-									});
-									if (!res.success) {
-										throw new Error(res.message);
-									}
-								} catch (e) {
-									if (e instanceof Error) {
-										toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-									}
-								}
 								break;
 							}
 							case "show-table-of-contents":

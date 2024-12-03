@@ -8,7 +8,6 @@ import { userDataAtomWithLocalStorage } from "../../atoms";
 import { ArrowDoorIn } from "../../icons/arrow-door-in";
 import ArrowDoorOut from "../../icons/arrow-door-out";
 import { ChevronDown } from "../../icons/chevron-down";
-import { Gear } from "../../icons/gear";
 import { useOnClickOutside } from "../../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
 import { DropdownItems } from "../dropdown/dropdown-items";

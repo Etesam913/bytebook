@@ -1,7 +1,11 @@
+import { useMutation } from "@tanstack/react-query";
 import { useSetAtom } from "jotai";
 import { type Dispatch, type SetStateAction, useEffect } from "react";
 import { toast } from "sonner";
-import { GetProjectSettings } from "../../bindings/github.com/etesam913/bytebook/settingsservice";
+import {
+	GetProjectSettings,
+	UpdateProjectSettings,
+} from "../../bindings/github.com/etesam913/bytebook/settingsservice";
 import { projectSettingsAtom } from "../atoms";
 import type { ProjectSettings } from "../types";
 import { useWailsEvent } from "../utils/hooks";
@@ -40,5 +44,28 @@ export function useProjectSettings() {
 			...projectSettings,
 			pinnedNotes: new Set(projectSettings.pinnedNotes),
 		});
+	});
+}
+
+export function useUpdateProjectSettingsMutation() {
+	return useMutation({
+		mutationFn: async ({
+			newProjectSettings,
+		}: { newProjectSettings: ProjectSettings }) => {
+			await UpdateProjectSettings({
+				...newProjectSettings,
+				pinnedNotes: [...newProjectSettings.pinnedNotes],
+			});
+		},
+		onError: (e) => {
+			if (e instanceof Error) {
+				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+			} else {
+				toast.error(
+					"An Unknown Error Occurred. Please Try Again Later",
+					DEFAULT_SONNER_OPTIONS,
+				);
+			}
+		},
 	});
 }

@@ -69,7 +69,7 @@ export function DropdownItems({
 					>
 						<div
 							ref={dropdownItemsRef}
-							className="flex flex-col overflow-y-auto px-[4.5px] py-[6px] gap-0.5"
+							className="flex flex-col overflow-y-auto overflow-x-hidden px-[4.5px] py-[6px] gap-0.5"
 						>
 							{items.map(({ value, label }, i) => (
 								<div className="w-full inline relative" key={value}>

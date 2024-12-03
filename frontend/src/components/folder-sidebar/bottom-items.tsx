@@ -80,7 +80,7 @@ export function BottomItems() {
 				<Trash /> Trash
 			</Link>
 			<SettingsButton />
-			<SyncChangesButton />
+			{/* <SyncChangesButton /> */}
 			<LoginButton />
 		</section>
 	);

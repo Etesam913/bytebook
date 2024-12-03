@@ -13,13 +13,17 @@ import { handleDragStart } from "../../components/sidebar/utils";
 import {
 	useAddTagsMutation,
 	useNoteRevealInFinderMutation,
+	usePinNotesMutation,
 	useSendToTrashMutation,
 } from "../../hooks/note-events.tsx";
 import { Finder } from "../../icons/finder.tsx";
 import { Note } from "../../icons/page";
+import { PinTack2 } from "../../icons/pin-tack-2.tsx";
+import { PinTackSlash } from "../../icons/pin-tack-slash.tsx";
 import TagPlus from "../../icons/tag-plus.tsx";
 import { Trash } from "../../icons/trash.tsx";
 import { useSearchParamsEntries } from "../../utils/hooks";
+import { getFolderAndNoteFromSelectionRange } from "../../utils/note.ts";
 import { useCustomNavigate } from "../../utils/routing";
 import { removeFoldersFromSelection } from "../../utils/selection";
 import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
@@ -44,6 +48,7 @@ export function MyNotesAccordion({
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const queryClient = useQueryClient();
 	const projectSettings = useAtomValue(projectSettingsAtom);
+	const { mutate: pinOrUnpinNote } = usePinNotesMutation();
 	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
 	const { mutate: sendToTrash } = useSendToTrashMutation();
 	const { mutateAsync: addPathsToTags } = useAddTagsMutation(queryClient);
@@ -121,6 +126,18 @@ export function MyNotesAccordion({
 										return setWithoutNotes;
 									});
 								}
+								const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
+									curFolder,
+									newSelectionRange,
+								);
+								const isShowingPinOption = folderAndNoteNames.some(
+									(folderAndNoteName) =>
+										!projectSettings.pinnedNotes.has(folderAndNoteName),
+								);
+								const isShowingUnpinOption = folderAndNoteNames.some(
+									(folderAndNoteName) =>
+										projectSettings.pinnedNotes.has(folderAndNoteName),
+								);
 
 								setContextMenuData({
 									x: e.clientX,
@@ -145,23 +162,45 @@ export function MyNotesAccordion({
 													folder: curFolder,
 												}),
 										},
-										{
+										isShowingPinOption && {
 											label: (
 												<span className="flex items-center gap-1.5">
-													<Finder
+													<PinTack2
 														width={17}
 														height={17}
 														className="will-change-transform"
 													/>{" "}
-													Pin Note
+													Pin Notes
 												</span>
 											),
-											value: "reveal-in-finder",
-											onChange: () =>
-												revealInFinder({
-													selectionRange: newSelectionRange,
+											value: "pin-note",
+											onChange: () => {
+												pinOrUnpinNote({
 													folder: curFolder,
-												}),
+													selectionRange: newSelectionRange,
+													shouldPin: true,
+												});
+											},
+										},
+										isShowingUnpinOption && {
+											label: (
+												<span className="flex items-center gap-1.5">
+													<PinTackSlash
+														width={17}
+														height={17}
+														className="will-change-transform"
+													/>{" "}
+													Unpin Notes
+												</span>
+											),
+											value: "unpin-note",
+											onChange: () => {
+												pinOrUnpinNote({
+													folder: curFolder,
+													selectionRange: newSelectionRange,
+													shouldPin: false,
+												});
+											},
 										},
 										{
 											label: (
@@ -215,7 +254,7 @@ export function MyNotesAccordion({
 													folder: curFolder,
 												}),
 										},
-									],
+									].filter(Boolean),
 								});
 							}}
 							className={cn(

@@ -1,6 +1,6 @@
 export function FolderPlus({
-	width = 1.25,
-	height = 1.25,
+	width = 20,
+	height = 20,
 	fill = "currentColor",
 	title = "folder-plus",
 	className = "",

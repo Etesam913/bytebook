@@ -1,6 +1,6 @@
 import { type QueryClient, useMutation } from "@tanstack/react-query";
 import { Events } from "@wailsio/runtime";
-import { useSetAtom } from "jotai/react";
+import { useAtomValue, useSetAtom } from "jotai/react";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { toast } from "sonner";
 import {
@@ -8,10 +8,12 @@ import {
 	SendNotesToTrash,
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { AddPathsToTags } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
-import { selectionRangeAtom } from "../atoms";
+import { projectSettingsAtom, selectionRangeAtom } from "../atoms";
 import { useWailsEvent } from "../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
+import { getFolderAndNoteFromSelectionRange } from "../utils/note";
 import { extractInfoFromNoteName } from "../utils/string-formatting";
+import { useUpdateProjectSettingsMutation } from "./project-settings";
 
 /** This function is used to handle note:create events */
 export function useNoteCreate(
@@ -115,12 +117,10 @@ export function useSendToTrashMutation() {
 			folder,
 		}: { selectionRange: Set<string>; folder: string }) => {
 			// Map the selection range to folder and note names
-			const folderAndNoteNames = [...selectionRange].map((note) => {
-				const noteWithoutWithoutPrefix = note.split(":")[1];
-				const { noteNameWithoutExtension, queryParams } =
-					extractInfoFromNoteName(noteWithoutWithoutPrefix);
-				return `${folder}/${noteNameWithoutExtension}.${queryParams.ext}`;
-			});
+			const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
+				folder,
+				selectionRange,
+			);
 			// BUG: There may be a bug here with undefined note names?
 			// Send the notes to trash and handle the response
 			const res = await SendNotesToTrash(folderAndNoteNames);
@@ -164,6 +164,41 @@ export function useNoteRevealInFinderMutation() {
 			if (res.some((r) => !r.success)) {
 				throw new Error("Failed to reveal folder in finder");
 			}
+		},
+		// Handle errors that occur during the mutation
+		onError: (e) => {
+			if (e instanceof Error) {
+				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+			}
+		},
+	});
+}
+
+export function usePinNotesMutation() {
+	const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
+	const projectSettings = useAtomValue(projectSettingsAtom);
+
+	return useMutation({
+		mutationFn: async ({
+			selectionRange,
+			folder,
+			shouldPin,
+		}: { selectionRange: Set<string>; folder: string; shouldPin: boolean }) => {
+			const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
+				folder,
+				selectionRange,
+			);
+			const newProjectSettings = { ...projectSettings };
+			if (shouldPin) {
+				folderAndNoteNames.forEach((folderAndNoteName) => {
+					newProjectSettings.pinnedNotes.add(folderAndNoteName);
+				});
+			} else {
+				folderAndNoteNames.forEach((folderAndNoteName) => {
+					newProjectSettings.pinnedNotes.delete(folderAndNoteName);
+				});
+			}
+			updateProjectSettings({ newProjectSettings });
 		},
 		// Handle errors that occur during the mutation
 		onError: (e) => {

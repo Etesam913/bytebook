@@ -1,10 +1,10 @@
 export function JavascriptLogo({
-	width = "1.25rem",
-	height = "1.25rem",
+	width = 20,
+	height = 20,
 	title = "javascript",
 }: {
-	width?: string;
-	height?: string;
+	width?: number;
+	height?: number;
 	title?: string;
 }) {
 	return (
