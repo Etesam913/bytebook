@@ -23,9 +23,11 @@ import { PinTackSlash } from "../../icons/pin-tack-slash.tsx";
 import TagPlus from "../../icons/tag-plus.tsx";
 import { Trash } from "../../icons/trash.tsx";
 import { useSearchParamsEntries } from "../../utils/hooks";
-import { getFolderAndNoteFromSelectionRange } from "../../utils/note.ts";
 import { useCustomNavigate } from "../../utils/routing";
-import { removeFoldersFromSelection } from "../../utils/selection";
+import {
+	getFolderAndNoteFromSelectionRange,
+	removeFoldersFromSelection,
+} from "../../utils/selection";
 import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
 import { AddTagDialogChildren } from "./add-tag-dialog-children.tsx";
 import { RenderNoteIcon } from "./render-note-icon";

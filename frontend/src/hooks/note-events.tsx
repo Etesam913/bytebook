@@ -11,7 +11,7 @@ import { AddPathsToTags } from "../../bindings/github.com/etesam913/bytebook/tag
 import { projectSettingsAtom, selectionRangeAtom } from "../atoms";
 import { useWailsEvent } from "../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
-import { getFolderAndNoteFromSelectionRange } from "../utils/note";
+import { getFolderAndNoteFromSelectionRange } from "../utils/selection";
 import { extractInfoFromNoteName } from "../utils/string-formatting";
 import { useUpdateProjectSettingsMutation } from "./project-settings";
 
