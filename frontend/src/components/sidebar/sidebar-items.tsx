@@ -26,6 +26,7 @@ export function SidebarItems({
 	layoutId,
 	startIndex,
 	contentType,
+	shouldHideSidebarHighlight,
 }: {
 	allData: string[] | null;
 	visibleData: string[] | null;
@@ -43,6 +44,7 @@ export function SidebarItems({
 	layoutId: string;
 	startIndex: number;
 	contentType?: "note" | "folder";
+	shouldHideSidebarHighlight?: boolean;
 }) {
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 
@@ -115,11 +117,14 @@ export function SidebarItems({
 							}
 						}}
 					>
-						<AnimatePresence>
-							{hoveredIndex === i && !selectionRange.has(prefixedDataItem) && (
-								<SidebarHighlight layoutId={layoutId} />
-							)}
-						</AnimatePresence>
+						{!shouldHideSidebarHighlight && (
+							<AnimatePresence>
+								{hoveredIndex === i &&
+									!selectionRange.has(prefixedDataItem) && (
+										<SidebarHighlight layoutId={layoutId} />
+									)}
+							</AnimatePresence>
+						)}
 						{renderLink({
 							dataItem,
 							i: startIndex + i,

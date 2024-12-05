@@ -24,6 +24,7 @@ export function Sidebar({
 	emptyElement,
 	layoutId,
 	contentType,
+	shouldHideSidebarHighlight,
 }: {
 	data: string[] | null;
 	getContextMenuStyle?: (dataItem: string) => CSSProperties;
@@ -36,6 +37,7 @@ export function Sidebar({
 	emptyElement?: ReactNode;
 	layoutId: string;
 	contentType?: "note" | "folder";
+	shouldHideSidebarHighlight?: boolean;
 }) {
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 	const anchorSelectionIndex = useRef<number>(0);
@@ -112,6 +114,7 @@ export function Sidebar({
 						emptyElement={emptyElement}
 						startIndex={startIndex}
 						contentType={contentType}
+						shouldHideSidebarHighlight={shouldHideSidebarHighlight}
 					/>
 				</ul>
 			</div>

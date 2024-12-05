@@ -36,23 +36,23 @@ export function useListVirtualization(
 		() => Math.floor(scrollTop / SIDEBAR_ITEM_HEIGHT),
 		[scrollTop, SIDEBAR_ITEM_HEIGHT],
 	);
-	const endIndex = useMemo(
-		() =>
-			Math.min(
-				startIndex +
-					Math.ceil(
-						containerHeight / (SIDEBAR_ITEM_HEIGHT - VIRUTALIZATION_HEIGHT),
-					),
-				items.length,
-			),
-		[
-			startIndex,
-			containerHeight,
-			SIDEBAR_ITEM_HEIGHT,
-			VIRUTALIZATION_HEIGHT,
+	const endIndex = useMemo(() => {
+		const end = Math.min(
+			startIndex +
+				Math.ceil(
+					containerHeight / (SIDEBAR_ITEM_HEIGHT - VIRUTALIZATION_HEIGHT),
+				),
 			items.length,
-		],
-	);
+		);
+		console.log("endIndex:", end, containerHeight);
+		return end;
+	}, [
+		startIndex,
+		containerHeight,
+		SIDEBAR_ITEM_HEIGHT,
+		VIRUTALIZATION_HEIGHT,
+		items.length,
+	]);
 
 	const visibleItems = useMemo(
 		() => items.slice(startIndex, endIndex),
@@ -60,10 +60,11 @@ export function useListVirtualization(
 	);
 
 	// Update container height when resized
-	useLayoutEffect(() => {
+	useEffect(() => {
 		const resizeObserver = new ResizeObserver((entries) => {
 			const container = entries[0].target;
-			setContainerHeight(container.clientHeight);
+			// console.log(container, container.getBoundingClientRect().height);
+			setContainerHeight(container.getBoundingClientRect().height);
 		});
 		if (listRef.current) {
 			resizeObserver.observe(listRef.current);
@@ -89,6 +90,7 @@ export function useListVirtualization(
 		onScroll,
 		visibleItems,
 		startIndex,
+		endIndex,
 		setScrollTop,
 	};
 }

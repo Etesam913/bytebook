@@ -1,27 +1,41 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useAtomValue } from "jotai";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
 	projectSettingsAtom,
 	projectSettingsWithQueryParamsAtom,
 } from "../../atoms";
+import { useListVirtualization } from "../../hooks/observers";
 import { PinTack2 } from "../../icons/pin-tack-2";
-import { SidebarAccordion } from "../sidebar/accordion";
+import { AccordionButton } from "../sidebar/accordion-button";
 import { AccordionItem } from "../sidebar/accordion-item";
 
-export function PinnedNotesAccordion() {
-	const [isPinnedNotesOpen, setIsPinnedNotesOpen] = useState(true);
+const SIDEBAR_ITEM_HEIGHT = 28;
+const VIRUTALIZATION_HEIGHT = 8;
+
+function VirtualizedPinnedNotes({
+	isPinnedNotesOpen,
+}: { isPinnedNotesOpen: boolean }) {
 	const projectSettings = useAtomValue(projectSettingsAtom);
 	const pinnedNotes = projectSettings.pinnedNotes;
 	const projectSettingsWithQueryParams = useAtomValue(
 		projectSettingsWithQueryParamsAtom,
 	);
+	const listScrollContainerRef = useRef<HTMLDivElement>(null);
 	const pinnedNotesArray = Array.from(pinnedNotes);
 	const pinnedNotesWithQueryParamsArray = Array.from(
 		projectSettingsWithQueryParams.pinnedNotes,
 	);
 
-	const pinnedNotesElements = pinnedNotesArray.map((pinnedNote, i) => {
-		// const url = pinnedNotesWithQueryParamsArray[i]?.split("/").pop();
+	const { visibleItems, onScroll, listContainerHeight, listHeight, listTop } =
+		useListVirtualization(
+			pinnedNotesArray,
+			SIDEBAR_ITEM_HEIGHT,
+			VIRUTALIZATION_HEIGHT,
+			listScrollContainerRef,
+		);
+
+	const pinnedNotesElements = visibleItems.map((pinnedNote, i) => {
 		const itemName = pinnedNote.split("/").pop();
 		if (!itemName) return null;
 		const url = pinnedNotesWithQueryParamsArray[i];
@@ -29,22 +43,52 @@ export function PinnedNotesAccordion() {
 	});
 
 	return (
-		<SidebarAccordion
-			onClick={() => setIsPinnedNotesOpen((prev) => !prev)}
-			title="Pinned Notes"
-			isOpen={isPinnedNotesOpen}
-			icon={<PinTack2 className="will-change-transform" />}
+		<motion.div
+			className="overflow-y-auto max-h-[35vh] mt-1"
+			ref={listScrollContainerRef}
+			onScroll={onScroll}
+			initial={{ height: 0 }}
+			animate={{
+				height: "auto",
+				transition: { type: "spring", damping: 16 },
+			}}
+			exit={{ height: 0, opacity: 0 }}
 		>
-			{pinnedNotesElements.length > 0 ? (
-				pinnedNotesElements
-			) : (
-				<p
-					style={{ textWrap: "balance" }}
-					className="list-none pl-2 text-zinc-500 dark:text-zinc-300 text-xs"
+			<div
+				style={{
+					height: pinnedNotesArray.length > 0 ? listContainerHeight : "auto",
+				}}
+			>
+				<ul
+					style={{
+						position: "relative",
+						height: visibleItems.length > 0 ? listHeight : "auto",
+						top: listTop,
+					}}
 				>
-					Use a note's menu to pin it here
-				</p>
-			)}
-		</SidebarAccordion>
+					{isPinnedNotesOpen && pinnedNotesElements}
+				</ul>
+			</div>
+		</motion.div>
+	);
+}
+
+export function PinnedNotesAccordion() {
+	const [isPinnedNotesOpen, setIsPinnedNotesOpen] = useState(true);
+
+	return (
+		<section>
+			<AccordionButton
+				onClick={() => setIsPinnedNotesOpen((prev) => !prev)}
+				icon={<PinTack2 className="will-change-transform" />}
+				title="Pinned Notes"
+				isOpen={isPinnedNotesOpen}
+			/>
+			<AnimatePresence>
+				{isPinnedNotesOpen && (
+					<VirtualizedPinnedNotes isPinnedNotesOpen={isPinnedNotesOpen} />
+				)}
+			</AnimatePresence>
+		</section>
 	);
 }
