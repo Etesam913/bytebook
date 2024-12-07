@@ -1,6 +1,6 @@
 import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { AddNoteToFolder } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import {
@@ -53,7 +53,6 @@ export function NotesSidebar({
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
 	const { navigate } = useCustomNavigate();
-
 	useEffect(() => {
 		updateNotes(folder, note, setNotes, noteSort);
 	}, [folder, noteSort]);

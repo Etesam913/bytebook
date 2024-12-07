@@ -261,8 +261,8 @@ export function MyNotesAccordion({
 							}}
 							className={cn(
 								"sidebar-item",
-								sidebarNoteNameWithExtension === sidebarNoteName &&
-									"bg-zinc-150 dark:bg-zinc-700",
+								decodeURIComponent(sidebarNoteNameWithExtension) ===
+									sidebarNoteName && "bg-zinc-150 dark:bg-zinc-700",
 								notes?.at(i) &&
 									selectionRange.has(`note:${notes[i]}`) &&
 									"!bg-blue-400 dark:!bg-blue-600 text-white",

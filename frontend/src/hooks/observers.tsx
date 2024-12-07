@@ -44,7 +44,6 @@ export function useListVirtualization(
 				),
 			items.length,
 		);
-		console.log("endIndex:", end, containerHeight);
 		return end;
 	}, [
 		startIndex,
@@ -63,7 +62,6 @@ export function useListVirtualization(
 	useEffect(() => {
 		const resizeObserver = new ResizeObserver((entries) => {
 			const container = entries[0].target;
-			// console.log(container, container.getBoundingClientRect().height);
 			setContainerHeight(container.getBoundingClientRect().height);
 		});
 		if (listRef.current) {

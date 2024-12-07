@@ -24,7 +24,7 @@ export function NoteTitle({
 	const setIsToolbarDisabled = useSetAtom(isToolbarDisabledAtom);
 
 	useEffect(() => {
-		setNoteTitle(note);
+		setNoteTitle(decodeURIComponent(note));
 		setErrorText("");
 	}, [note]);
 

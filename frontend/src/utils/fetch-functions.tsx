@@ -155,23 +155,16 @@ export async function updateNotes(
 				navigate(`/${encodedFolder}`, { replace: true });
 				return;
 			}
-			// We have to extract the note name from the first note so that we can encode it to then navigate to it
-			// const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-			// 	notes[0],
-			// );
 			const indexOfQuestionMark = notes[0].lastIndexOf("?ext=");
 			const noteNameWithoutExtension = notes[0].substring(
 				0,
 				indexOfQuestionMark,
 			);
 			const fileExtension = notes[0].substring(indexOfQuestionMark + 5);
-
-			navigate(
-				`/${encodedFolder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${fileExtension}`,
-				{
-					replace: true,
-				},
-			);
+			const newEncodedNote = `${encodeURIComponent(noteNameWithoutExtension)}?ext=${fileExtension}`;
+			navigate(`/${encodedFolder}/${newEncodedNote}`, {
+				replace: true,
+			});
 		}
 	} catch (error) {
 		toast.error("Error in retrieving notes", DEFAULT_SONNER_OPTIONS);
