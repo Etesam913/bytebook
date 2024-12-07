@@ -21,16 +21,19 @@ import { validateName } from "../utils/string-formatting";
 export function useFolderCreate(
 	setFolders: Dispatch<SetStateAction<string[] | null>>,
 ) {
+	const { navigate } = useCustomNavigate();
 	useWailsEvent("folder:create", (body) => {
 		const data = (body.data as { folder: string }[][])[0];
 
 		setFolders((prev) => {
 			if (!prev) return data.map(({ folder }) => folder);
 			const allFolders = [...prev, ...data.map(({ folder }) => folder)];
-			// navigate to the last added folder
 
-			// TODO: Get first note and navigate to it
-			navigate(`/${encodeURIComponent(allFolders[allFolders.length - 1])}`);
+			// navigate to the last added folder
+			navigate(`/${encodeURIComponent(allFolders[allFolders.length - 1])}`, {
+				type: "folder",
+			});
+			// navigate(`/${encodeURIComponent(allFolders[allFolders.length - 1])}`);
 
 			return allFolders;
 		});
