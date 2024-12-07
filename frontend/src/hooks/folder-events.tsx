@@ -28,12 +28,10 @@ export function useFolderCreate(
 		setFolders((prev) => {
 			if (!prev) return data.map(({ folder }) => folder);
 			const allFolders = [...prev, ...data.map(({ folder }) => folder)];
-
 			// navigate to the last added folder
 			navigate(`/${encodeURIComponent(allFolders[allFolders.length - 1])}`, {
 				type: "folder",
 			});
-			// navigate(`/${encodeURIComponent(allFolders[allFolders.length - 1])}`);
 
 			return allFolders;
 		});

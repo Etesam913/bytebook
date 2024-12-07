@@ -94,7 +94,7 @@ export async function updateFolders(
  */
 export async function checkIfNoteExists(
 	encodedFolder: string,
-	encodedNote: string,
+	encodedNote: string | undefined,
 	notes: string[] | null,
 	fileExtension: string | undefined,
 ) {
@@ -151,6 +151,7 @@ export async function updateNotes(
 		// If the current is not defined, then navigate to the first note so that you are never at an undefined note
 		if (!encodedNote) {
 			const hasANote = notes.length > 0;
+
 			if (!hasANote) {
 				navigate(`/${encodedFolder}`, { replace: true });
 				return;

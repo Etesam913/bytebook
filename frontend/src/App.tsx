@@ -71,7 +71,7 @@ function App() {
 				<Route path="/not-found">
 					<NotFound />
 				</Route>
-				<Route path="/:folder/:note">
+				<Route path="/:folder/:note?">
 					{(folderParams) => (
 						<NotesSidebar
 							params={folderParams}

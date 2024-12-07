@@ -36,7 +36,7 @@ export function NotesSidebar({
 	width,
 	leftWidth,
 }: {
-	params: { folder: string; note: string };
+	params: { folder: string; note?: string };
 	width: MotionValue<number>;
 	leftWidth: MotionValue<number>;
 }) {

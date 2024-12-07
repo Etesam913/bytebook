@@ -125,10 +125,6 @@ func handleFolderEvents(
 }
 
 /*
-Handles trash:create and trash:delete events
-*/
-
-/*
 Handles note:create, note:delete, trash:create, and trash:delete events
 There is a debounce timer to prevent multiple events from being emitted
 */
@@ -150,6 +146,9 @@ func handleFileEvents(
 
 	// This works for MACOS need to test on other platforms
 	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
+		if(event.Has(fsnotify.Rename)){
+			fmt.Println(event.Name, event.Op)
+		}
 		eventKey = eventKeyPrefix + ":delete"
 	} else if event.Has(fsnotify.Create) {
 		eventKey = eventKeyPrefix + ":create"
