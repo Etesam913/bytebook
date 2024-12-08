@@ -73,9 +73,8 @@ func replaceLocalURL(url string, newFolderName string) string {
 // ReplaceMarkdownURLs finds and replaces local URLs in a markdown string
 func ReplaceMarkdownURLs(markdown string, newFolderName string) string {
 	// Regex patterns for different URL types
-	mediaRegex := regexp.MustCompile(`!\[([^\]]*)\]\(([^\s)]+)\)`)
-	// videoRegex := regexp.MustCompile(`\[video\]\(([^\s)]+)\)`)
-	linkRegex := regexp.MustCompile(`\[([^\]]+)\]\(([^\s)]+)\)`)
+	mediaRegex := regexp.MustCompile(`!\[([^\]]*)\]\(([^)]+)\)`)
+	linkRegex := regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
 
 	// Replace image URLs
 	markdown = mediaRegex.ReplaceAllStringFunc(markdown, func(match string) string {
@@ -105,9 +104,9 @@ func ReplaceMarkdownURLs(markdown string, newFolderName string) string {
 // GetMediaRefs returns a list of all image, link, and video references in a markdown string
 func GetMediaRefs(markdown string) []string {
 	// Regular expressions for different media types
-	imageRegex := regexp.MustCompile(`!\[.*?\]\((.*?)\)`) // ![alt](url)
+	imageRegex := regexp.MustCompile(`!\[.*?\]\((.*?)\)`)   // ![alt](url)
 	linkRegex := regexp.MustCompile(`[^!]\[.*?\]\((.*?)\)`) // [text](url)
-	videoRegex := regexp.MustCompile(`\[video\]\((.*?)\)`) // [video](url)
+	videoRegex := regexp.MustCompile(`\[video\]\((.*?)\)`)  // [video](url)
 
 	var refs []string
 

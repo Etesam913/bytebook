@@ -112,7 +112,7 @@ func handleFolderEvents(
 		watcher.Add(event.Name)
 	}
 	if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
-		if(event.Has(fsnotify.Rename)){
+		if event.Has(fsnotify.Rename) {
 			newFolderPath := *mostRecentFolderCreated
 
 			// Print each file in the new folder
@@ -120,9 +120,8 @@ func handleFolderEvents(
 			if err == nil {
 				for _, file := range files {
 					indexOfDot := strings.LastIndex(file.Name(), ".")
-					// name := file.Name()[:indexOfDot]
 					extension := file.Name()[indexOfDot+1:]
-					if(extension == "md"){
+					if extension == "md" {
 						pathToFile := filepath.Join(newFolderPath, file.Name())
 						noteContent, err := os.ReadFile(pathToFile)
 						if err != nil {
@@ -133,7 +132,7 @@ func handleFolderEvents(
 							string(noteContent), filepath.Base(newFolderPath),
 						)
 						err = os.WriteFile(pathToFile, []byte(noteMarkdownWithNewFolderName), 0644)
-						if err != nil{
+						if err != nil {
 							fmt.Println(err)
 							continue
 						}
