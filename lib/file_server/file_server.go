@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/lib/note_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -100,15 +101,48 @@ func handleFolderEvents(
 	watcher *fsnotify.Watcher,
 	debounceTimer *time.Timer,
 	debounceEvents map[string][]map[string]string,
+	mostRecentFolderCreated *string,
 ) {
 
 	folderName := filepath.Base(event.Name)
 	eventKey := ""
 	if event.Has(fsnotify.Create) {
 		eventKey = "folder:create"
+		*mostRecentFolderCreated = event.Name
 		watcher.Add(event.Name)
 	}
 	if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
+		if(event.Has(fsnotify.Rename)){
+			newFolderPath := *mostRecentFolderCreated
+
+			// Print each file in the new folder
+			files, err := os.ReadDir(newFolderPath)
+			if err == nil {
+				for _, file := range files {
+					indexOfDot := strings.LastIndex(file.Name(), ".")
+					// name := file.Name()[:indexOfDot]
+					extension := file.Name()[indexOfDot+1:]
+					if(extension == "md"){
+						pathToFile := filepath.Join(newFolderPath, file.Name())
+						noteContent, err := os.ReadFile(pathToFile)
+						if err != nil {
+							fmt.Println(err)
+							continue
+						}
+						noteMarkdownWithNewFolderName := note_helpers.ReplaceMarkdownURLs(
+							string(noteContent), filepath.Base(newFolderPath),
+						)
+						err = os.WriteFile(pathToFile, []byte(noteMarkdownWithNewFolderName), 0644)
+						if err != nil{
+							fmt.Println(err)
+							continue
+						}
+					}
+				}
+			}
+
+			fmt.Println(event.Name, event.Op, *mostRecentFolderCreated)
+		}
 		eventKey = "folder:delete"
 		watcher.Remove(event.Name)
 	}
@@ -134,7 +168,6 @@ func handleFileEvents(
 	oneFolderBack string,
 	debounceTimer *time.Timer,
 	debounceEvents map[string][]map[string]string,
-	eventKeyPrefix string,
 ) {
 
 	note := segments[len(segments)-1]
@@ -146,12 +179,9 @@ func handleFileEvents(
 
 	// This works for MACOS need to test on other platforms
 	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
-		if(event.Has(fsnotify.Rename)){
-			fmt.Println(event.Name, event.Op)
-		}
-		eventKey = eventKeyPrefix + ":delete"
+		eventKey = "note:delete"
 	} else if event.Has(fsnotify.Create) {
-		eventKey = eventKeyPrefix + ":create"
+		eventKey = "note:create"
 	}
 
 	if eventKey != "" {
@@ -169,6 +199,7 @@ func handleFileEvents(
 func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnotify.Watcher) {
 	debounceTimer := time.NewTimer(0)
 	debounceEvents := make(map[string][]map[string]string)
+	mostRecentFolderCreated := ""
 
 	for {
 		select {
@@ -197,14 +228,15 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 				// We do not care about folders inside of folders
 				// TODO: A user could create a folder called notes inside of notes and this would be problematic
 				if oneFolderBack == "notes" {
-					handleFolderEvents(event, watcher, debounceTimer, debounceEvents)
+					handleFolderEvents(event, watcher, debounceTimer, debounceEvents, &mostRecentFolderCreated)
 				}
 				continue
 			}
 
-			if oneFolderBack == "trash" {
-				handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents, "trash")
-			} else if oneFolderBack == "settings" {
+			// if oneFolderBack == "trash" {
+			// 	handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents, "trash")
+			// }
+			if oneFolderBack == "settings" {
 				// The settings got updated
 				var projectSettings project_types.ProjectSettingsJson
 				err := io_helpers.ReadJsonFromPath(filepath.Join(projectPath, "settings", "settings.json"), &projectSettings)
@@ -212,7 +244,7 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 					app.EmitEvent("settings:update", projectSettings)
 				}
 			} else {
-				handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents, "note")
+				handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents)
 			}
 		// Whenever the file watcher gives an error
 		case err, ok := <-watcher.Errors:

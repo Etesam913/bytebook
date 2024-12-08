@@ -39,24 +39,98 @@ func ExcludeFrontmatter(markdown string) string {
 	return strings.TrimSpace(markdownWithoutFrontmatter)
 }
 
-// GetTags extracts all valid tags from a Markdown string.
-// A tag starts with a #, followed by text (no spaces), and ends with a space, another tag, or newline.
-// It treats something like #joe#mama as two separate tags.
-func GetTags(markdown string) []string {
-	// Regular expression to match each # followed by text (no spaces)
-	tagRegex := regexp.MustCompile(`#([^\s#]+)`)
+// URLType represents the type of URL found in markdown
+type URLType int
 
-	// Find all matches in the markdown string
-	matches := tagRegex.FindAllStringSubmatch(markdown, -1)
+const (
+	ImageURL URLType = iota
+	VideoURL
+	LinkURL
+)
 
-	var tags []string
-	for _, match := range matches {
-		tags = append(tags, match[0]) // match[0] is the full tag (e.g., "#joe" or "#mama")
-	}
-
-	return tags
+// URLMatch represents a matched URL with its type and full match
+type URLMatch struct {
+	Type    URLType
+	URL     string
+	AltText string
 }
 
+// replaceLocalURL updates the folder name in a localhost URL
+func replaceLocalURL(url string, newFolderName string) string {
+	if !strings.HasPrefix(url, "http://localhost") {
+		return url
+	}
+
+	segments := strings.Split(url, "/")
+	if len(segments) < 2 {
+		return url
+	}
+
+	segments[len(segments)-2] = newFolderName
+	return strings.Join(segments, "/")
+}
+
+// ReplaceMarkdownURLs finds and replaces local URLs in a markdown string
+func ReplaceMarkdownURLs(markdown string, newFolderName string) string {
+	// Regex patterns for different URL types
+	mediaRegex := regexp.MustCompile(`!\[([^\]]*)\]\(([^\s)]+)\)`)
+	// videoRegex := regexp.MustCompile(`\[video\]\(([^\s)]+)\)`)
+	linkRegex := regexp.MustCompile(`\[([^\]]+)\]\(([^\s)]+)\)`)
+
+	// Replace image URLs
+	markdown = mediaRegex.ReplaceAllStringFunc(markdown, func(match string) string {
+		submatches := mediaRegex.FindStringSubmatch(match)
+		if len(submatches) < 3 {
+			return match
+		}
+
+		url := replaceLocalURL(submatches[2], newFolderName)
+		return "![" + submatches[1] + "](" + url + ")"
+	})
+
+	// Replace link URLs
+	markdown = linkRegex.ReplaceAllStringFunc(markdown, func(match string) string {
+		submatches := linkRegex.FindStringSubmatch(match)
+		if len(submatches) < 3 {
+			return match
+		}
+
+		url := replaceLocalURL(submatches[2], newFolderName)
+		return "[" + submatches[1] + "](" + url + ")"
+	})
+
+	return markdown
+}
+
+// GetMediaRefs returns a list of all image, link, and video references in a markdown string
+func GetMediaRefs(markdown string) []string {
+	// Regular expressions for different media types
+	imageRegex := regexp.MustCompile(`!\[.*?\]\((.*?)\)`) // ![alt](url)
+	linkRegex := regexp.MustCompile(`[^!]\[.*?\]\((.*?)\)`) // [text](url)
+	videoRegex := regexp.MustCompile(`\[video\]\((.*?)\)`) // [video](url)
+
+	var refs []string
+
+	// Find all image references
+	imageMatches := imageRegex.FindAllStringSubmatch(markdown, -1)
+	for _, match := range imageMatches {
+		refs = append(refs, match[1]) // match[1] contains the URL
+	}
+
+	// Find all link references
+	linkMatches := linkRegex.FindAllStringSubmatch(markdown, -1)
+	for _, match := range linkMatches {
+		refs = append(refs, match[1])
+	}
+
+	// Find all video references
+	videoMatches := videoRegex.FindAllStringSubmatch(markdown, -1)
+	for _, match := range videoMatches {
+		refs = append(refs, match[1])
+	}
+
+	return refs
+}
 
 // Helper function to check if the tag is valid based on the next character in the string.
 func isValidTag(tag string, markdown string) bool {

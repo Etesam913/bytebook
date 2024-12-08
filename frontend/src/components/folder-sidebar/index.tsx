@@ -1,5 +1,5 @@
 import { type MotionValue, motion } from "framer-motion";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { useRoute } from "wouter";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import { dialogDataAtom, foldersAtom } from "../../atoms";
@@ -28,7 +28,6 @@ import { Spacer } from "./spacer";
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
 	const folder = params?.folder;
-	const folders = useAtomValue(foldersAtom);
 
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const setFolders = useSetAtom(foldersAtom);
@@ -48,7 +47,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 		if (folder === "trash" || folder === "tags" || folder === "not-found")
 			return;
 		checkIfFolderExists(folder);
-	}, [folders, folder]);
+	}, [folder]);
 
 	if (folder === "settings") return null;
 
