@@ -6,9 +6,9 @@
         <key>CFBundleName</key>
         <string>My Product</string>
         <key>CFBundleExecutable</key>
-        <string>bytebook</string>
+        <string>myfirstapp</string>
         <key>CFBundleIdentifier</key>
-        <string>com.wails.bytebook</string>
+        <string>com.wails.myfirstapp</string>
         <key>CFBundleVersion</key>
         <string>0.1.0</string>
         <key>CFBundleGetInfoString</key>

@@ -1,7 +1,7 @@
 import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useRef } from "react";
-import { AddNoteToFolder } from "../../../bindings//github.com/etesam913/bytebook/noteservice.ts";
+import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import {
 	dialogDataAtom,
