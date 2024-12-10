@@ -44,11 +44,10 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) NoteRespons
 	if err != nil {
 		return NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
 	}
-
 	var notes []os.DirEntry
 	for _, file := range files {
-		// Ignore any folders inside a note folder
-		if file.IsDir() {
+		// Ignore any folders inside a note folder and hidden files
+		if file.IsDir() || strings.HasPrefix(file.Name(), ".") {
 			continue
 		} else {
 			notes = append(notes, file)
