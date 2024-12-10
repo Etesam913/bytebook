@@ -158,7 +158,7 @@ func handleFolderEvents(
 }
 
 /*
-Handles note:create, note:delete, trash:create, and trash:delete events
+Handles note:create and note:delete events
 There is a debounce timer to prevent multiple events from being emitted
 */
 func handleFileEvents(
@@ -232,9 +232,6 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 				continue
 			}
 
-			// if oneFolderBack == "trash" {
-			// 	handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents, "trash")
-			// }
 			if oneFolderBack == "settings" {
 				// The settings got updated
 				var projectSettings project_types.ProjectSettingsJson
@@ -266,7 +263,6 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 
 /** Watches each folder in the notes directory */
 func ListenToFolders(projectPath string, watcher *fsnotify.Watcher) {
-	watcher.Add(filepath.Join(projectPath, "trash"))
 	watcher.Add(filepath.Join(projectPath, "settings"))
 	notesFolderPath := filepath.Join(projectPath, "notes")
 	watcher.Add(notesFolderPath)

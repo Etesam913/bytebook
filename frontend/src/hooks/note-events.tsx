@@ -4,8 +4,8 @@ import { useAtomValue, useSetAtom } from "jotai/react";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { toast } from "sonner";
 import {
+	MoveToTrash,
 	RevealNoteInFinder,
-	SendNotesToTrash,
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { AddPathsToTags } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import { projectSettingsAtom, selectionRangeAtom } from "../atoms";
@@ -109,33 +109,6 @@ export function useNoteSelectionClear() {
 	});
 }
 
-export function useSendToTrashMutation() {
-	return useMutation({
-		// The main function that handles sending notes to trash
-		mutationFn: async ({
-			selectionRange,
-			folder,
-		}: { selectionRange: Set<string>; folder: string }) => {
-			// Map the selection range to folder and note names
-			const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
-				folder,
-				selectionRange,
-			);
-			// BUG: There may be a bug here with undefined note names?
-			// Send the notes to trash and handle the response
-			const res = await SendNotesToTrash(folderAndNoteNames);
-			if (!res.success) throw new Error(res.message);
-		},
-
-		// Handle errors that occur during the mutation
-		onError: (e) => {
-			if (e instanceof Error) {
-				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-			}
-		},
-	});
-}
-
 /** Custom hook to handle revealing folders in Finder */
 export function useNoteRevealInFinderMutation() {
 	return useMutation({
@@ -166,6 +139,27 @@ export function useNoteRevealInFinderMutation() {
 			}
 		},
 		// Handle errors that occur during the mutation
+		onError: (e) => {
+			if (e instanceof Error) {
+				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+			}
+		},
+	});
+}
+
+export function useMoveNoteToTrashMutation() {
+	return useMutation({
+		mutationFn: async ({
+			selectionRange,
+			folder,
+		}: { selectionRange: Set<string>; folder: string }) => {
+			const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
+				folder,
+				selectionRange,
+			);
+			const res = await MoveToTrash(folderAndNoteNames);
+			if (!res.success) throw new Error(res.message);
+		},
 		onError: (e) => {
 			if (e instanceof Error) {
 				toast.error(e.message, DEFAULT_SONNER_OPTIONS);

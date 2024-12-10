@@ -32,7 +32,6 @@ type AddFolderResponse struct {
 	Message string `json:"message"`
 }
 
-
 func (n *NoteService) GetNotes(folderName string, sortOption string) NoteResponse {
 	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	// Ensure the directory exists
@@ -111,7 +110,6 @@ func (n *NoteService) GetNoteMarkdown(path string) NoteMarkdownResponse {
 	}
 	return NoteMarkdownResponse{Success: true, Message: "Successfully Retrieved Note Markdown", Data: string(noteContent)}
 }
-
 
 func (n *NoteService) SetNoteMarkdown(folderName string, noteTitle string, markdown string) NoteMarkdownResponse {
 	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, fmt.Sprintf("%s.md", noteTitle))
@@ -243,7 +241,6 @@ func (n *NoteService) GetNoteCount(folderName string) NoteCountResponse {
 	}
 }
 
-
 // RevealNoteInFinder reveals the specified note in the Finder.
 // Parameters:
 //
@@ -260,8 +257,4 @@ func (n *NoteService) RevealNoteInFinder(folderName, noteName string) project_ty
 		return project_types.BackendResponseWithoutData{Success: false, Message: "Could not reveal folder in finder"}
 	}
 	return project_types.BackendResponseWithoutData{Success: true, Message: ""}
-}
-
-func (n *NoteService) SendNotesToTrash(folderAndNotes []string) project_types.BackendResponseWithoutData {
-	return io_helpers.MoveNotesToTrash(n.ProjectPath, folderAndNotes)
 }

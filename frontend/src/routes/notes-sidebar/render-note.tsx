@@ -8,7 +8,7 @@ import { FileBan } from "../../icons/file-ban";
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from "../../types";
 import { FILE_SERVER_URL } from "../../utils/misc";
 import { cn } from "../../utils/string-formatting";
-import { MarkdownNote } from "./markdown-note";
+import { NotesEditor } from "../../components/editor";
 
 export function RenderNote({
 	folder,
@@ -24,8 +24,6 @@ export function RenderNote({
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const hasCustomToolbar = fileExtension === "md";
 
-	const isInTrash = folder === "trash";
-
 	const isPdf = fileExtension === "pdf";
 	const isMarkdown = fileExtension === "md";
 	const isImage =
@@ -36,9 +34,7 @@ export function RenderNote({
 		!isPdf && !isMarkdown && !isImage && !isVideo && fileExtension;
 	const draggedElement = useAtomValue(draggedElementAtom);
 
-	const fileUrl = `${FILE_SERVER_URL}/${
-		isInTrash ? "" : "notes"
-	}/${folder}/${note}.${fileExtension}`;
+	const fileUrl = `${FILE_SERVER_URL}/notes/${folder}/${note}.${fileExtension}`;
 
 	useMostRecentNotes(folder, note, fileExtension);
 
@@ -54,20 +50,15 @@ export function RenderNote({
 						isNoteMaximized && "!pl-[5.75rem]",
 					)}
 				>
-					{!isInTrash && (
-						<MaximizeNoteButton animationControls={animationControls} />
-					)}
+					<MaximizeNoteButton animationControls={animationControls} />
 					<h1 className="text-base overflow-ellipsis overflow-hidden ">
 						{folder}/{note}.{fileExtension}
 					</h1>
 				</header>
 			)}
 			{isMarkdown && (
-				<MarkdownNote
-					isInTrash={isInTrash}
-					folder={folder}
-					note={note}
-					fileExtension={fileExtension}
+				<NotesEditor
+					params={{ folder, note }}
 					animationControls={animationControls}
 				/>
 			)}
@@ -121,7 +112,7 @@ export function RenderNote({
 			{isUnknownFile && (
 				<>
 					<section className="flex-1 flex flex-col items-center justify-center text-center px-3 pb-16 gap-3">
-						<FileBan width="3rem" height="3rem" />
+						<FileBan width={48} height={48} />
 						<h1 className="text-2xl font-bold">
 							This file type is not supported.
 						</h1>

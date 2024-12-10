@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/Kei-K23/trashbox"
 	"github.com/etesam913/bytebook/lib/list_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 )
@@ -211,12 +212,10 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) project_types
 
 		// Construct the full path of the file to be moved.
 		fullPath := filepath.Join(projectPath, "notes", path)
-		fullNewPath := filepath.Join(projectPath, "trash", fileName)
 
-		// Attempt to move the file to the trash directory.
-		err := MoveFile(fullPath, fullNewPath)
+		err := trashbox.MoveToTrash(fullPath)
+
 		if err != nil {
-			// If an error occurs, add the filename to the errors slice.
 			errors = append(errors, fileName)
 		}
 	}

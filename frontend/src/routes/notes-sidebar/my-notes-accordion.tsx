@@ -12,9 +12,9 @@ import { Sidebar } from "../../components/sidebar";
 import { handleDragStart } from "../../components/sidebar/utils";
 import {
 	useAddTagsMutation,
+	useMoveNoteToTrashMutation,
 	useNoteRevealInFinderMutation,
 	usePinNotesMutation,
-	useSendToTrashMutation,
 } from "../../hooks/note-events.tsx";
 import { Finder } from "../../icons/finder.tsx";
 import { Note } from "../../icons/page";
@@ -52,7 +52,7 @@ export function MyNotesAccordion({
 	const projectSettings = useAtomValue(projectSettingsAtom);
 	const { mutate: pinOrUnpinNote } = usePinNotesMutation();
 	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
-	const { mutate: sendToTrash } = useSendToTrashMutation();
+	const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
 	const { mutateAsync: addPathsToTags } = useAddTagsMutation(queryClient);
 
 	const isInTagSidebar = tagState?.tagName !== undefined;
@@ -246,12 +246,12 @@ export function MyNotesAccordion({
 														height={17}
 														className="will-change-transform"
 													/>{" "}
-													Send to Trash
+													Move to Trash
 												</span>
 											),
-											value: "send-to-trash",
+											value: "move-to-trash",
 											onChange: () =>
-												sendToTrash({
+												moveToTrash({
 													selectionRange: newSelectionRange,
 													folder: curFolder,
 												}),

@@ -15,7 +15,6 @@ import { useSearchPanel } from "./hooks/search";
 import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
 import { TagsSidebar } from "./routes/tags-sidebar";
-import { TrashSidebar } from "./routes/trash-sidebar";
 import { useDarkModeSetting } from "./utils/hooks";
 import { MAX_SIDEBAR_WIDTH } from "./utils/misc";
 
@@ -52,12 +51,6 @@ function App() {
 			<Toaster richColors theme="system" />
 			{!isNoteMaximized && <FolderSidebar width={folderSidebarWidth} />}
 			<Switch>
-				<Route path="/trash/:item?">
-					<TrashSidebar
-						width={notesSidebarWidth}
-						leftWidth={folderSidebarWidth}
-					/>
-				</Route>
 				<Route path="/tags/:tagName/:folder?/:note?">
 					{(folderParams) => (
 						<TagsSidebar

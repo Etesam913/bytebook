@@ -1,8 +1,11 @@
 module github.com/etesam913/bytebook
 
-go 1.22.4
+go 1.23.0
+
+toolchain go1.23.4
 
 require (
+	github.com/Kei-K23/trashbox v0.1.5
 	github.com/creack/pty v1.1.23
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-git/go-git/v5 v5.12.0

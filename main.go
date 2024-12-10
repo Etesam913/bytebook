@@ -48,9 +48,8 @@ func main() {
 	git_helpers.SetRepoOrigin("https://github.com/Etesam913/bytebook-test.git")
 
 	terminal_helpers.GenerateFoldersForLanguages(projectPath)
-	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "trash"))
 	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "settings"))
-		io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "tags"))
+	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "tags"))
 
 	// Launching file server for images/videos
 	go file_server.LaunchFileServer(projectPath)
