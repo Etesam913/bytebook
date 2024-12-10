@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/Kei-K23/trashbox"
 	"github.com/etesam913/bytebook/lib/io_helpers"
 )
 
@@ -89,7 +90,7 @@ func (f *FolderService) DeleteFolder(folderName string) FolderResponse {
 		return FolderResponse{Success: false, Message: fmt.Sprintf("Folder does not exist: %s", folderName)}
 	}
 
-	err := os.RemoveAll(folderPath)
+	err := trashbox.MoveToTrash(folderPath)
 	if err != nil {
 		return FolderResponse{Success: false, Message: err.Error()}
 	}

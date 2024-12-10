@@ -15,8 +15,8 @@ import {
 import { Finder } from "../../icons/finder.tsx";
 import { FolderOpen } from "../../icons/folder-open.tsx";
 import { FolderPen } from "../../icons/folder-pen.tsx";
-import { FolderXMark } from "../../icons/folder-xmark.tsx";
 import { Folder } from "../../icons/folder.tsx";
+import { Trash } from "../../icons/trash.tsx";
 import { useCustomNavigate } from "../../utils/routing.ts";
 import { removeNotesFromSelection } from "../../utils/selection.ts";
 import { cn } from "../../utils/string-formatting.ts";
@@ -195,19 +195,19 @@ export function MyFoldersAccordion({
 													{
 														label: (
 															<span className="flex items-center gap-1.5">
-																<FolderXMark
+																<Trash
 																	width={17}
 																	height={17}
 																	className="will-change-transform"
 																/>{" "}
-																Delete Folder
+																Move to Trash
 															</span>
 														),
-														value: "delete-folder",
+														value: "move-to-trash",
 														onChange: () => {
 															setDialogData({
 																isOpen: true,
-																title: "Delete Folder",
+																title: "Move to Trash",
 																children: (errorText) => (
 																	<FolderDialogChildren
 																		errorText={errorText}
