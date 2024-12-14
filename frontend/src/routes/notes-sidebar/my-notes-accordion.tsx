@@ -1,36 +1,10 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { useAtom, useAtomValue, useSetAtom } from "jotai/react";
-import {
-	contextMenuDataAtom,
-	dialogDataAtom,
-	draggedElementAtom,
-	noteSortAtom,
-	projectSettingsAtom,
-} from "../../atoms";
+import { useAtom } from "jotai/react";
+import { noteSortAtom } from "../../atoms";
 import { SortButton } from "../../components/buttons/sort";
 import { Sidebar } from "../../components/sidebar";
-import { handleDragStart } from "../../components/sidebar/utils";
-import {
-	useAddTagsMutation,
-	useMoveNoteToTrashMutation,
-	useNoteRevealInFinderMutation,
-	usePinNotesMutation,
-} from "../../hooks/note-events.tsx";
-import { Finder } from "../../icons/finder.tsx";
 import { Note } from "../../icons/page";
-import { PinTack2 } from "../../icons/pin-tack-2.tsx";
-import { PinTackSlash } from "../../icons/pin-tack-slash.tsx";
-import TagPlus from "../../icons/tag-plus.tsx";
-import { Trash } from "../../icons/trash.tsx";
-import { useSearchParamsEntries } from "../../utils/hooks";
-import { useCustomNavigate } from "../../utils/routing";
-import {
-	getFolderAndNoteFromSelectionRange,
-	removeFoldersFromSelection,
-} from "../../utils/selection";
-import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
-import { AddTagDialogChildren } from "./add-tag-dialog-children.tsx";
-import { RenderNoteIcon } from "./render-note-icon";
+import { extractInfoFromNoteName } from "../../utils/string-formatting";
+import { NoteSidebarButton } from "./note-sidebar-button.tsx";
 
 export function MyNotesAccordion({
 	notes,
@@ -47,30 +21,13 @@ export function MyNotesAccordion({
 		tagName: string;
 	};
 }) {
-	const searchParams: { ext?: string } = useSearchParamsEntries();
-	const queryClient = useQueryClient();
-	const projectSettings = useAtomValue(projectSettingsAtom);
-	const { mutate: pinOrUnpinNote } = usePinNotesMutation();
-	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
-	const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
-	const { mutateAsync: addPathsToTags } = useAddTagsMutation(queryClient);
-
-	const isInTagSidebar = tagState?.tagName !== undefined;
-	const setContextMenuData = useSetAtom(contextMenuDataAtom);
 	// The sidebar note name includes the folder name if it's in a tag sidebar
-	const sidebarNoteNameWithExtension = `${
-		isInTagSidebar ? `${curFolder}/` : ""
-	}${curNote}?ext=${searchParams.ext}`;
-
-	const setDraggedElement = useSetAtom(draggedElementAtom);
 	const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);
-	const { navigate } = useCustomNavigate();
-	const setDialogData = useSetAtom(dialogDataAtom);
 
 	return (
 		<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
 			<div className="flex items-center justify-between gap-2 pr-1">
-				<p className="flex items-center gap-1.5 py-1 rounded-md px-0.5 transition-colors">
+				<p className="flex items-center gap-1.5 py-1 rounded-md pl-[6px] pr-[10px] transition-colors">
 					<Note title="Note" className="min-w-[1.25rem]" />
 					My Notes{" "}
 					{noteCount > 0 && (
@@ -98,194 +55,22 @@ export function MyNotesAccordion({
 					selectionRange,
 					setSelectionRange,
 				}) => {
-					const { noteNameWithoutExtension: noteName, queryParams } =
+					const { noteNameWithoutExtension, queryParams } =
 						extractInfoFromNoteName(sidebarNoteName);
 
 					return (
-						<button
-							type="button"
-							title={sidebarNoteName}
-							draggable
-							onDragStart={(e) =>
-								handleDragStart(
-									e,
-									setSelectionRange,
-									"note",
-									notes?.at(i) ?? "",
-									setDraggedElement,
-									curFolder,
-								)
-							}
-							onContextMenu={(e) => {
-								let newSelectionRange = new Set([`note:${sidebarNoteName}`]);
-								if (selectionRange.size === 0) {
-									setSelectionRange(new Set([`note:${sidebarNoteName}`]));
-								} else {
-									setSelectionRange((prev) => {
-										const setWithoutNotes = removeFoldersFromSelection(prev);
-										setWithoutNotes.add(`note:${sidebarNoteName}`);
-										newSelectionRange = setWithoutNotes;
-										return setWithoutNotes;
-									});
-								}
-								const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
-									curFolder,
-									newSelectionRange,
-								);
-								const isShowingPinOption = folderAndNoteNames.some(
-									(folderAndNoteName) =>
-										!projectSettings.pinnedNotes.has(folderAndNoteName),
-								);
-								const isShowingUnpinOption = folderAndNoteNames.some(
-									(folderAndNoteName) =>
-										projectSettings.pinnedNotes.has(folderAndNoteName),
-								);
-
-								setContextMenuData({
-									x: e.clientX,
-									y: e.clientY,
-									isShowing: true,
-									items: [
-										{
-											label: (
-												<span className="flex items-center gap-1.5">
-													<Finder
-														width={17}
-														height={17}
-														className="will-change-transform"
-													/>{" "}
-													Reveal In Finder
-												</span>
-											),
-											value: "reveal-in-finder",
-											onChange: () =>
-												revealInFinder({
-													selectionRange: newSelectionRange,
-													folder: curFolder,
-												}),
-										},
-										isShowingPinOption && {
-											label: (
-												<span className="flex items-center gap-1.5">
-													<PinTack2
-														width={17}
-														height={17}
-														className="will-change-transform"
-													/>{" "}
-													Pin Notes
-												</span>
-											),
-											value: "pin-note",
-											onChange: () => {
-												pinOrUnpinNote({
-													folder: curFolder,
-													selectionRange: newSelectionRange,
-													shouldPin: true,
-												});
-											},
-										},
-										isShowingUnpinOption && {
-											label: (
-												<span className="flex items-center gap-1.5">
-													<PinTackSlash
-														width={17}
-														height={17}
-														className="will-change-transform"
-													/>{" "}
-													Unpin Notes
-												</span>
-											),
-											value: "unpin-note",
-											onChange: () => {
-												pinOrUnpinNote({
-													folder: curFolder,
-													selectionRange: newSelectionRange,
-													shouldPin: false,
-												});
-											},
-										},
-										{
-											label: (
-												<span className="flex items-center gap-1.5">
-													<TagPlus
-														width={17}
-														height={17}
-														className="will-change-transform"
-													/>{" "}
-													Add Tags
-												</span>
-											),
-											value: "add-tags",
-											onChange: () => {
-												setDialogData({
-													isOpen: true,
-													title: "Add Tags",
-													children: (errorText) => (
-														<AddTagDialogChildren
-															onSubmitErrorText={errorText}
-														/>
-													),
-													onSubmit: async (e, setErrorText) => {
-														return addPathsToTags({
-															e,
-															setErrorText,
-															folder: curFolder,
-															note: curNote ?? "",
-															ext: queryParams.ext,
-															selectionRange: newSelectionRange,
-														});
-													},
-												});
-											},
-										},
-										{
-											label: (
-												<span className="flex items-center gap-1.5">
-													<Trash
-														width={17}
-														height={17}
-														className="will-change-transform"
-													/>{" "}
-													Move to Trash
-												</span>
-											),
-											value: "move-to-trash",
-											onChange: () =>
-												moveToTrash({
-													selectionRange: newSelectionRange,
-													folder: curFolder,
-												}),
-										},
-									].filter(Boolean),
-								});
-							}}
-							className={cn(
-								"sidebar-item",
-								decodeURIComponent(sidebarNoteNameWithExtension) ===
-									sidebarNoteName && "bg-zinc-150 dark:bg-zinc-700",
-								notes?.at(i) &&
-									selectionRange.has(`note:${notes[i]}`) &&
-									"!bg-blue-400 dark:!bg-blue-600 text-white",
-							)}
-							onClick={(e) => {
-								if (e.metaKey || e.shiftKey) return;
-								navigate(
-									isInTagSidebar
-										? `/tags/${tagState.tagName}/${sidebarNoteName}`
-										: `/${curFolder}/${sidebarNoteName}`,
-								);
-							}}
-						>
-							<RenderNoteIcon
-								sidebarNoteName={sidebarNoteName}
-								fileExtension={queryParams.ext}
-								noteNameWithExtension={sidebarNoteNameWithExtension}
-							/>
-							<p className="whitespace-nowrap text-ellipsis overflow-hidden">
-								{isInTagSidebar ? noteName.split("/")[1] : noteName}.
-								{queryParams.ext}
-							</p>
-						</button>
+						<NoteSidebarButton
+							curNote={curNote}
+							curFolder={curFolder}
+							sidebarNoteName={sidebarNoteName}
+							sidebarNoteNameWithoutExtension={noteNameWithoutExtension}
+							sidebarQueryParams={queryParams}
+							selectionRange={selectionRange}
+							setSelectionRange={setSelectionRange}
+							notes={notes}
+							i={i}
+							tagState={tagState}
+						/>
 					);
 				}}
 			/>

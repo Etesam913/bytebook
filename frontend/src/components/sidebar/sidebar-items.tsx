@@ -6,6 +6,7 @@ import {
 	type ReactNode,
 	type SetStateAction,
 	useMemo,
+	useRef,
 } from "react";
 import { selectionRangeAtom } from "../../atoms";
 import {

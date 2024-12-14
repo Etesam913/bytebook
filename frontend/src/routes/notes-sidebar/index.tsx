@@ -73,114 +73,121 @@ export function NotesSidebar({
 					<motion.aside
 						ref={sidebarRef}
 						style={{ width }}
-						className="text-md flex h-screen flex-col  pb-3.5"
+						className="text-md flex h-screen flex-col pb-3.5"
 					>
-						<div className="flex h-full flex-col overflow-y-auto pl-1.5 pr-2.5 relative">
-							<section className="flex items-center min-h-[3.625rem] gap-2">
-								<Folder className="min-w-[1.25rem]" width={20} height={20} />{" "}
-								<p className="overflow-hidden text-ellipsis whitespace-nowrap">
-									{decodeURIComponent(folder)}
-								</p>
-								<MotionIconButton
-									{...getDefaultButtonVariants()}
+						<div className="flex h-full flex-col overflow-y-auto relative">
+							<header className="pl-[6px] pr-[10px]">
+								<section className="flex items-center min-h-[3.625rem] gap-2">
+									<Folder className="min-w-[1.25rem]" width={20} height={20} />{" "}
+									<p className="overflow-hidden text-ellipsis whitespace-nowrap">
+										{decodeURIComponent(folder)}
+									</p>
+									<MotionIconButton
+										{...getDefaultButtonVariants()}
+										onClick={() =>
+											setDialogData({
+												isOpen: true,
+												title: "Rename Folder",
+												children: (errorText) => (
+													<FolderDialogChildren
+														errorText={errorText}
+														action="rename"
+														folderName={decodeURIComponent(folder)}
+													/>
+												),
+												onSubmit: (e, setErrorText) =>
+													folderDialogSubmit({
+														e,
+														setErrorText,
+														action: "rename",
+														folderFromSidebar: decodeURIComponent(folder),
+													}),
+											})
+										}
+									>
+										<Pen className="w-full" />
+									</MotionIconButton>
+								</section>
+								<MotionButton
+									{...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
 									onClick={() =>
 										setDialogData({
 											isOpen: true,
-											title: "Rename Folder",
+											title: "Create Note",
 											children: (errorText) => (
-												<FolderDialogChildren
-													errorText={errorText}
-													action="rename"
-													folderName={decodeURIComponent(folder)}
-												/>
+												<>
+													<fieldset className="flex flex-col">
+														<Input
+															label="New Note Name"
+															labelProps={{ htmlFor: "note-name" }}
+															inputProps={{
+																id: "note-name",
+																name: "note-name",
+																placeholder: "Today's Tasks",
+																autoFocus: true,
+															}}
+														/>
+														<DialogErrorText errorText={errorText} />
+													</fieldset>
+													<MotionButton
+														{...getDefaultButtonVariants(
+															false,
+															1.05,
+															0.95,
+															1.05,
+														)}
+														className="w-[calc(100%-1.5rem)] mx-auto justify-center"
+														type="submit"
+													>
+														<span>Create Note</span> <Compose />
+													</MotionButton>
+												</>
 											),
-											onSubmit: (e, setErrorText) =>
-												folderDialogSubmit({
-													e,
-													setErrorText,
-													action: "rename",
-													folderFromSidebar: decodeURIComponent(folder),
-												}),
+											onSubmit: async (e, setErrorText) => {
+												const formData = new FormData(
+													e.target as HTMLFormElement,
+												);
+												try {
+													const newNoteName = formData.get("note-name");
+													const { isValid, errorMessage } = validateName(
+														newNoteName,
+														"note",
+													);
+													if (!isValid) throw new Error(errorMessage);
+													if (newNoteName) {
+														const newNoteNameString = newNoteName
+															.toString()
+															.trim();
+														const res = await AddNoteToFolder(
+															decodeURIComponent(folder),
+															newNoteNameString,
+														);
+														if (!res.success) throw new Error(res.message);
+
+														navigate(
+															`/${decodeURIComponent(
+																folder,
+															)}/${newNoteNameString}?ext=md`,
+														);
+														return true;
+													}
+													return false;
+												} catch (e) {
+													if (e instanceof Error) {
+														setErrorText(e.message);
+													} else {
+														setErrorText("An unknown error occurred");
+													}
+													return false;
+												}
+											},
 										})
 									}
+									className="align-center flex w-full justify-between bg-transparent mb-2"
 								>
-									<Pen className="w-full" />
-								</MotionIconButton>
-							</section>
-							<MotionButton
-								{...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
-								onClick={() =>
-									setDialogData({
-										isOpen: true,
-										title: "Create Note",
-										children: (errorText) => (
-											<>
-												<fieldset className="flex flex-col">
-													<Input
-														label="New Note Name"
-														labelProps={{ htmlFor: "note-name" }}
-														inputProps={{
-															id: "note-name",
-															name: "note-name",
-															placeholder: "Today's Tasks",
-															autoFocus: true,
-														}}
-													/>
-													<DialogErrorText errorText={errorText} />
-												</fieldset>
-												<MotionButton
-													{...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
-													className="w-[calc(100%-1.5rem)] mx-auto justify-center"
-													type="submit"
-												>
-													<span>Create Note</span> <Compose />
-												</MotionButton>
-											</>
-										),
-										onSubmit: async (e, setErrorText) => {
-											const formData = new FormData(
-												e.target as HTMLFormElement,
-											);
-											try {
-												const newNoteName = formData.get("note-name");
-												const { isValid, errorMessage } = validateName(
-													newNoteName,
-													"note",
-												);
-												if (!isValid) throw new Error(errorMessage);
-												if (newNoteName) {
-													const newNoteNameString = newNoteName
-														.toString()
-														.trim();
-													const res = await AddNoteToFolder(
-														decodeURIComponent(folder),
-														newNoteNameString,
-													);
-													if (!res.success) throw new Error(res.message);
-
-													navigate(
-														`/${decodeURIComponent(
-															folder,
-														)}/${newNoteNameString}?ext=md`,
-													);
-													return true;
-												}
-												return false;
-											} catch (e) {
-												if (e instanceof Error) {
-													setErrorText(e.message);
-												} else {
-													setErrorText("An unknown error occurred");
-												}
-												return false;
-											}
-										},
-									})
-								}
-								className="align-center flex w-full justify-between bg-transparent mb-2"
-							>
-								Create Note <Compose className="will-change-transform" />
-							</MotionButton>
+									Create Note <Compose className="will-change-transform" />
+								</MotionButton>
+							</header>
 							<section className="flex flex-col gap-2 overflow-y-auto flex-1">
 								<div className="flex h-full flex-col overflow-y-auto">
 									<MyNotesAccordion

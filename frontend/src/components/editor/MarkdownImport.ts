@@ -15,6 +15,7 @@ import {
 	$getRoot,
 	$getSelection,
 	$isParagraphNode,
+	$setSelection,
 	type ElementNode,
 } from "lexical";
 import type { CodeBlockData } from "../../types";
@@ -86,6 +87,8 @@ export function createMarkdownImport(
 		//   }
 		// }
 
+		// $setSelection(null);
+		// Below focuses the editor on markdown import
 		if ($getSelection() !== null) {
 			root.selectStart();
 		}

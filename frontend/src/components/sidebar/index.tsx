@@ -12,6 +12,7 @@ import { useParams } from "wouter";
 import { contextMenuRefAtom, selectionRangeAtom } from "../../atoms";
 import { useListVirtualization } from "../../hooks/observers";
 import { useOnClickOutside } from "../../utils/hooks";
+import { cn } from "../../utils/string-formatting";
 import { SidebarItems } from "./sidebar-items";
 
 const SIDEBAR_ITEM_HEIGHT = 34;
@@ -90,11 +91,13 @@ export function Sidebar({
 			onScroll={onScroll}
 		>
 			<div
+				className="mt-[2px]"
 				style={{
 					height: items.length > 0 ? listContainerHeight : "auto",
 				}}
 			>
 				<ul
+					className={cn(contentType === "note" && "pl-1 pr-2")}
 					style={{
 						position: "relative",
 						height: visibleItems.length > 0 ? listHeight : "auto",

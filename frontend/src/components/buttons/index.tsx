@@ -36,7 +36,7 @@ export const IconButton = forwardRef<HTMLButtonElement, ButtonProps>(
 			<button
 				ref={ref}
 				className={cn(
-					"transition-colors bg-transparent border-0 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform",
+					"transition-colors bg-transparent border-0 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform",
 					className,
 				)}
 				type="button"

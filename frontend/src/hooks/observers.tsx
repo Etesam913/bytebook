@@ -4,7 +4,6 @@ import {
 	type RefObject,
 	type SetStateAction,
 	useEffect,
-	useLayoutEffect,
 	useMemo,
 	useState,
 } from "react";
@@ -33,7 +32,7 @@ export function useListVirtualization(
 
 	// Calculate the range of visible items
 	const startIndex = useMemo(
-		() => Math.floor(scrollTop / SIDEBAR_ITEM_HEIGHT),
+		() => Math.max(0, Math.floor(scrollTop / SIDEBAR_ITEM_HEIGHT) - 2),
 		[scrollTop, SIDEBAR_ITEM_HEIGHT],
 	);
 	const endIndex = useMemo(() => {

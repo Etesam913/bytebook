@@ -59,6 +59,12 @@ html {
 .sidebar-item {
 	@apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform;
 }
+.sidebar-item:focus {
+	outline: 2px auto;
+}
+.selected-sidebar-item {
+	background-color: --webkit-focus-ring-color;
+}
 
 /* ::selection {
     @apply bg-blue-500 bg-opacity-35 dark:bg-blue-400 dark:bg-opacity-55;

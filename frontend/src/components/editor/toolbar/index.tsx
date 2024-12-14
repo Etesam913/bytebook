@@ -123,7 +123,7 @@ export function Toolbar({
 	);
 
 	// useFileDropEvent(editor, folder, note);
-
+	// TODO: I think this is not needed anymore
 	const isStandalone = useIsStandalone();
 
 	useEffect(() => {
