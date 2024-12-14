@@ -18,7 +18,10 @@ import { FolderPen } from "../../icons/folder-pen.tsx";
 import { Folder } from "../../icons/folder.tsx";
 import { Trash } from "../../icons/trash.tsx";
 import { useCustomNavigate } from "../../utils/routing.ts";
-import { removeNotesFromSelection } from "../../utils/selection.ts";
+import {
+	handleKeyNavigation,
+	removeNotesFromSelection,
+} from "../../utils/selection.ts";
 import { cn } from "../../utils/string-formatting.ts";
 import { AccordionButton } from "../sidebar/accordion-button.tsx";
 import { Sidebar } from "../sidebar/index.tsx";
@@ -103,6 +106,7 @@ export function MyFoldersAccordion({
 												setDraggedElement,
 											)
 										}
+										onKeyDown={(e) => handleKeyNavigation(e)}
 										className={cn(
 											"sidebar-item",
 											folder &&
@@ -116,6 +120,8 @@ export function MyFoldersAccordion({
 										)}
 										onClick={(e) => {
 											if (e.metaKey || e.shiftKey) return;
+											const buttonElem = e.target as HTMLButtonElement;
+											buttonElem.focus();
 											navigate(`/${encodeURIComponent(sidebarFolderName)}`, {
 												type: "folder",
 											});
@@ -233,7 +239,7 @@ export function MyFoldersAccordion({
 										decodeURIComponent(folder) === sidebarFolderName ? (
 											<FolderOpen
 												title=""
-												className="min-w-[18px]"
+												className="min-w-[18px] pointer-events-none"
 												width={18}
 												height={18}
 												strokeWidth={1.7}
@@ -241,13 +247,13 @@ export function MyFoldersAccordion({
 										) : (
 											<Folder
 												title=""
-												className="min-w-[18px]"
+												className="min-w-[18px] pointer-events-none"
 												width={18}
 												height={18}
 												strokeWidth={1.7}
 											/>
 										)}{" "}
-										<p className="whitespace-nowrap text-ellipsis overflow-hidden">
+										<p className="whitespace-nowrap text-ellipsis overflow-hidden pointer-events-none">
 											{sidebarFolderName}
 										</p>
 									</button>

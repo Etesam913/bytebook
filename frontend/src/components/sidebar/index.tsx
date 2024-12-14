@@ -97,7 +97,10 @@ export function Sidebar({
 				}}
 			>
 				<ul
-					className={cn(contentType === "note" && "pl-1 pr-2")}
+					className={cn(
+						contentType === "note" && "pl-1 pr-2",
+						contentType === "folder" && "pl-[3px] pr-[3px]",
+					)}
 					style={{
 						position: "relative",
 						height: visibleItems.length > 0 ? listHeight : "auto",

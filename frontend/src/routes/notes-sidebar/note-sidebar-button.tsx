@@ -23,6 +23,7 @@ import { useSearchParamsEntries } from "../../utils/hooks";
 import { useCustomNavigate } from "../../utils/routing";
 import {
 	getFolderAndNoteFromSelectionRange,
+	handleKeyNavigation,
 	removeFoldersFromSelection,
 } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
@@ -75,34 +76,10 @@ export function NoteSidebarButton({
 
 	return (
 		<button
-			data-focus-id="note-item"
 			type="button"
 			title={sidebarNoteName}
 			draggable
-			onKeyDown={(e) => {
-				const buttonElem = e.target as HTMLButtonElement;
-				const liAncestor = buttonElem.parentElement?.parentElement;
-				if (!liAncestor) return;
-				if (e.key === "ArrowDown") {
-					e.preventDefault();
-					const nextLi = liAncestor.nextElementSibling;
-					if (nextLi) {
-						const nextButton = nextLi.querySelector(
-							"button",
-						) as HTMLButtonElement;
-						if (nextButton) nextButton.focus();
-					}
-				} else if (e.key === "ArrowUp") {
-					e.preventDefault();
-					const prevLi = liAncestor.previousElementSibling;
-					if (prevLi) {
-						const prevButton = prevLi.querySelector(
-							"button",
-						) as HTMLButtonElement;
-						if (prevButton) prevButton.focus();
-					}
-				}
-			}}
+			onKeyDown={(e) => handleKeyNavigation(e)}
 			onDragStart={(e) =>
 				handleDragStart(
 					e,
