@@ -18,7 +18,6 @@ import { getFileExtension } from "../../../utils/string-formatting";
 import type { FilePayload } from "../nodes/file";
 import { $createLinkNode } from "../nodes/link";
 import { INSERT_FILES_COMMAND } from "../plugins/file";
-import { getFileElementTypeFromExtension } from "./file-node.ts";
 
 /**
  * Makes it so that the code-block undo/redo stack is not affected by the undo/redo stack of the editor
@@ -160,9 +159,7 @@ export function overrideControlledTextInsertion(
 						title: title,
 					});
 				} else {
-					const elementType = getFileElementTypeFromExtension(fileText);
 					filesPayload.push({
-						elementType,
 						alt: title,
 						src: `${FILE_SERVER_URL}/notes/${folder}/${fileName}.${extension}`,
 					});

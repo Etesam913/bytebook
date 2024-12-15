@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useAtom, useAtomValue } from "jotai";
 import { type FormEvent, useMemo, useRef, useState } from "react";
-
 import { SearchFileNamesFromQuery } from "../../../bindings/github.com/etesam913/bytebook/searchservice";
 import { easingFunctions } from "../../animations";
 import {

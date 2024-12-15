@@ -7,7 +7,7 @@ import { draggedElementAtom } from "../../atoms";
 import { cn } from "../../utils/string-formatting";
 import { NoteComponentControls } from "../note-component-container/component-controls";
 
-export default function Pdf({
+export function Pdf({
 	src,
 	alt,
 	nodeKey,

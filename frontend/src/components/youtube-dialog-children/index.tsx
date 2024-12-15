@@ -1,5 +1,5 @@
 import { $getSelection, type BaseSelection, type LexicalEditor } from "lexical";
-import { type MutableRefObject, useEffect, useRef } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 import { getDefaultButtonVariants } from "../../animations";
 import { Paperclip } from "../../icons/paperclip-2";
 import { MotionButton } from "../buttons";
@@ -12,7 +12,7 @@ export function YouTubeDialogChildren({
 	errorText,
 }: {
 	editor: LexicalEditor;
-	editorSelection: MutableRefObject<BaseSelection | null>;
+	editorSelection: RefObject<BaseSelection | null>;
 	errorText: string;
 }) {
 	const inputRef = useRef<HTMLInputElement>(null);

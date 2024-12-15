@@ -20,6 +20,7 @@ import {
 } from "lexical";
 import {
 	type Dispatch,
+	type JSX,
 	type RefObject,
 	type SetStateAction,
 	useCallback,
@@ -56,7 +57,7 @@ import {
 	DropdownPickerMenuItem,
 	DropdownPickerOption,
 } from "../../dropdown/dropdown-picker";
-import { YouTubeDialogChildren } from "../../youtube/youtube-dialog-children";
+import { YouTubeDialogChildren } from "../../youtube-dialog-children";
 import { $createExcalidrawNode } from "../nodes/excalidraw";
 import { $createFileNode } from "../nodes/file";
 import { extractYouTubeVideoID } from "../utils/file-node";
@@ -267,7 +268,6 @@ function getBaseOptions(
 									alt: "YouTube Video",
 									src: videoUrl,
 									width: "100%",
-									elementType: "youtube",
 								});
 								const youtubeVideoNode = $createParagraphNode();
 								youtubeVideoNode.append(youtubeVideo);

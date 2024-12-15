@@ -103,7 +103,6 @@ export function NotesEditor({
 		},
 	});
 
-	console.log("editor rerender");
 	useEffect(() => {
 		setNoteContainerRef(noteContainerRef);
 	}, [noteContainerRef]);

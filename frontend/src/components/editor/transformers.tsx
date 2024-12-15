@@ -100,10 +100,9 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 	},
 	importRegExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))/,
 	regExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))$/,
-	replace: async (textNode, match) => {
+	replace: (textNode, match) => {
 		const editor = $getEditor();
 		if (!editor) return;
-		editor.update(() => {});
 		const alt = match.at(1);
 		const filePathOrSrc = match.at(2);
 		if (!alt || !filePathOrSrc) {
@@ -118,18 +117,16 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 				: Number.parseInt(widthQueryValue)
 			: "100%";
 
-		const elementType =
-			await getFileElementTypeFromExtensionAndHead(filePathOrSrc);
+		// const elementType =
+		// 	await getFileElementTypeFromExtensionAndHead(filePathOrSrc);
 
-		editor.update(() => {
-			const nodeToCreate = $createFileNode({
-				alt: removeQueryParam(alt, "width"),
-				src: filePathOrSrc,
-				width,
-				elementType,
-			});
-			textNode.replace(nodeToCreate);
+		const nodeToCreate = $createFileNode({
+			alt: removeQueryParam(alt, "width"),
+			src: filePathOrSrc,
+			width,
+			elementType: "image",
 		});
+		textNode.replace(nodeToCreate);
 	},
 	type: "text-match",
 	trigger: ")",

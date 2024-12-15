@@ -1,12 +1,8 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useEffect, useRef, useState } from "react";
-
+import { useRef, useState } from "react";
+import { useShowWhenInViewport } from "../../hooks/observers";
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
-
-import { motion } from "framer-motion";
-import { useShowWhenInViewport } from "../../hooks/observers";
-import { Loader } from "../../icons/loader";
 import { ResizeContainer } from "../resize-container";
 
 export function Video({
