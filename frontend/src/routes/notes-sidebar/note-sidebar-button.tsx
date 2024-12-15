@@ -237,8 +237,7 @@ export function NoteSidebarButton({
 					"bg-zinc-150 dark:bg-zinc-700",
 				notes?.at(i) &&
 					selectionRange.has(`note:${notes[i]}`) &&
-					"selected-sidebar-item",
-				// "!bg-blue-400 dark:!bg-blue-600 text-white",
+					"!bg-blue-400 dark:!bg-blue-600 text-white",
 			)}
 			onClick={(e) => {
 				if (e.metaKey || e.shiftKey) return;

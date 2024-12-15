@@ -62,13 +62,6 @@ html {
 .sidebar-item:focus {
 	outline: 2px auto;
 }
-.selected-sidebar-item {
-	background-color: --webkit-focus-ring-color;
-}
-
-/* ::selection {
-    @apply bg-blue-500 bg-opacity-35 dark:bg-blue-400 dark:bg-opacity-55;
-} */
 
 h1 {
 	@apply text-3xl leading-[3.25rem];
