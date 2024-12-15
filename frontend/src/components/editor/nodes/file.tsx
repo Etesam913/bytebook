@@ -166,7 +166,7 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 	}
 
 	isInline() {
-		return true;
+		return false;
 	}
 
 	// View

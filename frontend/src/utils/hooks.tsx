@@ -82,7 +82,7 @@ export function useResizeCommands(
 	isSelected: boolean,
 	nodeKey: string,
 	clearSelection: () => void,
-	elementRef: React.RefObject<HTMLElement>,
+	elementRef: React.RefObject<HTMLElement | null>,
 	disabledEvents?: Record<string, boolean>,
 ) {
 	useEffect(() => {

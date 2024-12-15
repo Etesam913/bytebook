@@ -108,7 +108,6 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 		const filePathOrSrc = match.at(2);
 		if (!alt || !filePathOrSrc) {
 			textNode.replace(textNode);
-
 			return;
 		}
 
@@ -121,8 +120,8 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 
 		const elementType =
 			await getFileElementTypeFromExtensionAndHead(filePathOrSrc);
-		// For some reason the editor.update has to be async
-		editor.update(async () => {
+
+		editor.update(() => {
 			const nodeToCreate = $createFileNode({
 				alt: removeQueryParam(alt, "width"),
 				src: filePathOrSrc,

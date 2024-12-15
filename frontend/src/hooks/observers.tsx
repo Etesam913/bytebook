@@ -100,7 +100,7 @@ export function useListVirtualization(
  * @param setIsLoading - Function to set the loading state
  */
 export function useShowWhenInViewport(
-	loaderRef: RefObject<HTMLDivElement>,
+	loaderRef: RefObject<HTMLDivElement | null>,
 	setIsLoading: Dispatch<SetStateAction<boolean>>,
 	isExpanded: boolean,
 ) {

@@ -86,7 +86,7 @@ export function Sidebar({
 
 	return (
 		<div
-			className="overflow-y-auto mt-1"
+			className="overflow-y-auto"
 			ref={listScrollContainerRef}
 			onScroll={onScroll}
 		>
