@@ -243,7 +243,6 @@ export function NoteSidebarButton({
 				if (e.metaKey || e.shiftKey) return;
 				const buttonElem = e.target as HTMLButtonElement;
 				buttonElem.focus();
-				e.stopPropagation();
 				navigate(
 					isInTagSidebar
 						? `/tags/${tagState.tagName}/${sidebarNoteName}`

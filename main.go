@@ -88,6 +88,7 @@ func main() {
 		},
 	})
 
+
 	terminal_helpers.ListenToTerminalCreateEvent(app, projectPath)
 
 	backgroundColor := application.NewRGB(27, 38, 54)

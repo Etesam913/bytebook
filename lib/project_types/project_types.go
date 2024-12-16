@@ -1,8 +1,12 @@
 package project_types
 
-type OpenNoteEventData struct {
-	folder string
-	note   string
+type WindowEventData struct{
+	Folder string
+	Note string
+}
+
+type WindowOptions struct {
+	Title string
 }
 
 type ProjectSettingsJson struct {

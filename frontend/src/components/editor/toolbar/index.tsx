@@ -2,7 +2,13 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import type { AnimationControls } from "framer-motion";
 import { useAtom } from "jotai/react";
 import type { TextFormatType } from "lexical";
-import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import {
+	type Dispatch,
+	type RefObject,
+	type SetStateAction,
+	useEffect,
+	useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { WINDOW_ID } from "../../../App";
 import { isNoteMaximizedAtom, isToolbarDisabledAtom } from "../../../atoms";
@@ -44,7 +50,7 @@ export function Toolbar({
 	floatingData: FloatingDataType;
 	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
 	animationControls: AnimationControls;
-	noteContainerRef: React.RefObject<HTMLDivElement>;
+	noteContainerRef: RefObject<HTMLDivElement | null>;
 	frontmatter: Record<string, string>;
 	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
 	setNoteMarkdownString: Dispatch<SetStateAction<string>>;

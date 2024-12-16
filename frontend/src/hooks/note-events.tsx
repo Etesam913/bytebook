@@ -4,11 +4,16 @@ import { useAtomValue, useSetAtom } from "jotai/react";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { toast } from "sonner";
 import {
+	GetNotes,
 	MoveToTrash,
 	RevealNoteInFinder,
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { AddPathsToTags } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
-import { projectSettingsAtom, selectionRangeAtom } from "../atoms";
+import {
+	noteSortAtom,
+	projectSettingsAtom,
+	selectionRangeAtom,
+} from "../atoms";
 import { useWailsEvent } from "../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
 import { getFolderAndNoteFromSelectionRange } from "../utils/selection";
@@ -21,14 +26,15 @@ export function useNoteCreate(
 	notes: string[],
 	setNotes: Dispatch<SetStateAction<string[] | null>>,
 ) {
-	useWailsEvent("note:create", (body) => {
+	const noteSortData = useAtomValue(noteSortAtom);
+	useWailsEvent("note:create", async (body) => {
 		const data = (body.data as { folder: string; note: string }[][])[0];
 
 		/*
-		If none of the added notes are in the current folder, then don't update the notes
-		This can be triggered when there are multple windows open
+    If none of the added notes are in the current folder, then don't update the notes
+    This can be triggered when there are multple windows open
 
-		There is notes.includes to deal with the Untitled Note race condition
+    There is notes.includes to deal with the Untitled Note race condition
     */
 		const filteredNotes = data
 			.filter(
@@ -40,11 +46,12 @@ export function useNoteCreate(
 
 		if (filteredNotes.length === 0) return;
 
-		// Update the notes state
-		setNotes((prev) => {
-			if (!prev) return filteredNotes;
-			return [...prev, ...filteredNotes];
-		});
+		const newNotes = await GetNotes(data[0].folder, noteSortData);
+		if (!newNotes.success) {
+			toast.error(newNotes.message, DEFAULT_SONNER_OPTIONS);
+		} else {
+			setNotes(newNotes.data);
+		}
 	});
 }
 /** This function is used to handle note:delete events */

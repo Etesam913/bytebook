@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import type { LexicalEditor } from "lexical";
-import type { MutableRefObject } from "react";
+import type { RefObject } from "react";
 import type {
 	BackendQueryDataType,
 	ContextMenuData,
@@ -90,8 +90,9 @@ export const darkModeAtom = atom<DarkModeData>(initialDarkModeData);
 export const isToolbarDisabledAtom = atom<boolean>(false);
 export const isNoteMaximizedAtom = atom<boolean>(false);
 
-export const noteContainerRefAtom =
-	atom<MutableRefObject<HTMLElement | null> | null>(null);
+export const noteContainerRefAtom = atom<RefObject<HTMLElement | null> | null>(
+	null,
+);
 
 export const dialogDataAtom = atom<DialogDataType>({
 	isOpen: false,
@@ -106,8 +107,9 @@ export const backendQueryAtom = atom<BackendQueryDataType>({
 	message: "",
 });
 
-export const contextMenuRefAtom =
-	atom<MutableRefObject<HTMLElement | null> | null>(null);
+export const contextMenuRefAtom = atom<RefObject<HTMLElement | null> | null>(
+	null,
+);
 export const contextMenuDataAtom = atom<ContextMenuData>({
 	isShowing: false,
 	items: [],

@@ -16,6 +16,14 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
+var PORT = ":5890"
+
+
+var IMAGE_FILE_EXTENSIONS = []string{"png", "jpg", "jpeg", "webp", "gif"};
+
+var VIDEO_FILE_EXTENSIONS = []string{"mov", "mp4", "m4v"};
+
+
 // CORSResponseWriter wraps http.ResponseWriter to modify headers after the handler writes them
 type CORSResponseWriter struct {
 	http.ResponseWriter
@@ -58,11 +66,11 @@ func LaunchFileServer(projectPath string) {
 	mux.Handle("/", wrappedFileServer)
 
 	// Specify the port to listen on
-	port := ":5890"
-	log.Printf("Serving files on http://localhost%s/", port)
+
+	log.Printf("Serving files on http://localhost%s/", PORT)
 
 	// Start the HTTP server
-	err := http.ListenAndServe(port, mux)
+	err := http.ListenAndServe(PORT, mux)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

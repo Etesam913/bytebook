@@ -41,6 +41,10 @@ html {
 	-webkit-user-select: none;
 }
 
+html:has(.dark) {
+	color-scheme: dark;
+}
+
 .draggable-block-menu {
 	border-radius: 4px;
 	padding: 2px 1px;

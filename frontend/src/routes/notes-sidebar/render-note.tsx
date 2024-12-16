@@ -1,15 +1,18 @@
 import { motion, useAnimationControls } from "framer-motion";
 import { useAtomValue } from "jotai";
+import { getDefaultButtonVariants } from "../../animations";
 import { draggedElementAtom, isNoteMaximizedAtom } from "../../atoms";
+import { MotionIconButton } from "../../components/buttons";
 import { MaximizeNoteButton } from "../../components/buttons/maximize-note";
 import { NotesEditor } from "../../components/editor";
 import { BottomBar } from "../../components/editor/bottom-bar";
 import { useMostRecentNotes } from "../../components/editor/hooks/note-metadata";
+import { useNoteRevealInFinderMutation } from "../../hooks/note-events";
 import { FileBan } from "../../icons/file-ban";
+import { ShareRight } from "../../icons/share-right";
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from "../../types";
 import { FILE_SERVER_URL } from "../../utils/misc";
 import { cn } from "../../utils/string-formatting";
-
 export function RenderNote({
 	folder,
 	note,
@@ -37,6 +40,7 @@ export function RenderNote({
 	const fileUrl = `${FILE_SERVER_URL}/notes/${folder}/${note}.${fileExtension}`;
 
 	useMostRecentNotes(folder, note, fileExtension);
+	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
 
 	return (
 		<motion.div
@@ -54,6 +58,23 @@ export function RenderNote({
 					<h1 className="text-base overflow-ellipsis overflow-hidden ">
 						{folder}/{note}.{fileExtension}
 					</h1>
+					{(isVideo || isImage) && (
+						<MotionIconButton
+							title="Open In Default App"
+							{...getDefaultButtonVariants()}
+							className="ml-auto"
+							onClick={() => {
+								revealInFinder({
+									folder,
+									selectionRange: new Set([
+										`note:${note}?ext=${fileExtension}`,
+									]),
+								});
+							}}
+						>
+							<ShareRight title="Open In Default App" />
+						</MotionIconButton>
+					)}
 				</header>
 			)}
 			{isMarkdown && (
