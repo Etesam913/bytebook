@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { Loader } from "../../icons/loader";
 import type { ResizeWidth } from "../../types";
+import type { FileType } from "../editor/nodes/file";
 import { getFileElementTypeFromExtensionAndHead } from "../editor/utils/file-node";
 import { UnknownAttachment } from "../unknown-attachment";
 import { Image } from "./image";
@@ -14,17 +16,25 @@ export function File({
 	writeWidthToNode,
 	title,
 	nodeKey,
+	setElementType,
 }: {
 	src: string;
 	widthWrittenToNode: ResizeWidth;
 	writeWidthToNode: (width: ResizeWidth) => void;
 	title: string;
 	nodeKey: string;
+	setElementType: (elementType: FileType) => void;
 }) {
 	const { data: fileType, isLoading } = useQuery({
 		queryKey: ["file", src],
 		queryFn: async () => await getFileElementTypeFromExtensionAndHead(src),
 	});
+
+	useEffect(() => {
+		if (!fileType) return;
+		setElementType(fileType);
+	}, [fileType]);
+
 	if (isLoading) return <Loader width={28} height={28} />;
 
 	if (fileType === "video") {

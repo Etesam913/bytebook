@@ -78,6 +78,7 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 	__src: string;
 	__alt: string;
 	__width: ResizeWidth;
+	__elementType: FileType;
 
 	static getType(): string {
 		return "file";
@@ -129,6 +130,7 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 		this.__src = src;
 		this.__alt = alt;
 		this.__width = width ?? "100%";
+		this.__elementType = "unknown";
 	}
 
 	exportJSON(): SerializedFileNode {
@@ -174,6 +176,17 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 		});
 	}
 
+	getElementType(): FileType {
+		return this.__elementType;
+	}
+
+	setElementType(elementType: FileType, editor: LexicalEditor): void {
+		editor.update(() => {
+			const writable = this.getWritable();
+			writable.__elementType = elementType;
+		});
+	}
+
 	decorate(_editor: LexicalEditor): JSX.Element {
 		return (
 			<File
@@ -182,6 +195,9 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 				writeWidthToNode={(width) => this.setWidth(width, _editor)}
 				title={this.getAltText()}
 				nodeKey={this.getKey()}
+				setElementType={(elementType: FileType) =>
+					this.setElementType(elementType, _editor)
+				}
 			/>
 		);
 	}

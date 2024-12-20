@@ -1,6 +1,12 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { AnimatePresence, motion, useMotionValue } from "framer-motion";
-import { type MouseEvent, type ReactNode, useEffect, useRef } from "react";
+import {
+	type KeyboardEvent,
+	type MouseEvent,
+	type ReactNode,
+	useEffect,
+	useRef,
+} from "react";
 import { getDefaultButtonVariants } from "../../animations";
 import { CircleArrowLeft } from "../../icons/circle-arrow-left";
 import { CircleArrowRight } from "../../icons/circle-arrow-right";
@@ -58,7 +64,7 @@ export function ResizeContainer({
 	return (
 		<div ref={resizeContainerRef}>
 			<motion.div
-				onKeyDown={(e: KeyboardEvent) => {
+				onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
 					if (e.key === "Escape" && isExpanded) {
 						setIsExpanded(false);
 						e.stopPropagation();

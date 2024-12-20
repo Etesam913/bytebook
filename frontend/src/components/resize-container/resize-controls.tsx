@@ -1,6 +1,6 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { type MotionValue, motion } from "framer-motion";
-import type { MouseEvent, MutableRefObject, RefObject } from "react";
+import type { MouseEvent, RefObject } from "react";
 import { getDefaultButtonVariants } from "../../animations";
 import { XResize } from "../../icons/arrows-expand-x";
 import { Fullscreen } from "../../icons/fullscreen";
@@ -26,7 +26,7 @@ export function ResizeControls({
 	writeWidthToNode: (width: ResizeWidth) => void;
 	resizeState: ResizeState;
 	resizeContainerRef: RefObject<HTMLDivElement>;
-	resizeDimensionsRef: MutableRefObject<{ height: number; width: number }>;
+	resizeDimensionsRef: RefObject<{ height: number; width: number }>;
 	element: HTMLElement | null;
 }) {
 	const [editor] = useLexicalComposerContext();
