@@ -47,14 +47,7 @@ export function Image({
 	useShowWhenInViewport(loaderRef, setIsLoading, isExpanded);
 
 	return (
-		<div
-			className="mr-2 inline-block"
-			onClick={(e) => {
-				clearSelection();
-				setSelected(true);
-				e.stopPropagation();
-			}}
-		>
+		<div className="mr-2 inline-block">
 			{isLoading ? (
 				<div
 					ref={loaderRef}
@@ -84,6 +77,8 @@ export function Image({
 						alt={alt}
 						draggable={false}
 						className="w-full h-auto my-auto scroll-m-10"
+						data-nodeKey={nodeKey}
+						data-interactable="true"
 					/>
 				</ResizeContainer>
 			)}

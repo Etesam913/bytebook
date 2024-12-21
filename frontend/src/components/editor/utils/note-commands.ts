@@ -11,6 +11,7 @@ import {
 	$setSelection,
 	type LexicalEditor,
 	type LexicalNode,
+	type NodeSelection,
 } from "lexical";
 import { isDecoratorNodeSelected } from "../../../utils/commands";
 import { FILE_SERVER_URL } from "../../../utils/misc";
@@ -32,6 +33,24 @@ export function overrideUndoRedoCommand() {
 		}
 	}
 	return false;
+}
+
+export function overrideClickCommand(e: MouseEvent) {
+	const element = e.target as HTMLElement;
+	const isInteractable = element.getAttribute("data-interactable");
+	if (isInteractable) {
+		const nodeKey = element.getAttribute("data-nodeKey");
+		if (!nodeKey) return true;
+		let selection = $getSelection();
+		const isRegularClick = !e.ctrlKey && !e.shiftKey && !e.metaKey;
+		if (isRegularClick || !$isNodeSelection(selection)) {
+			selection = $createNodeSelection();
+		}
+
+		(selection as NodeSelection).add(nodeKey);
+		$setSelection(selection);
+	}
+	return true;
 }
 
 /** Goes in direction up the tree until it finds a valid sibling */

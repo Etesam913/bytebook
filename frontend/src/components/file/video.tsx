@@ -46,14 +46,7 @@ export function Video({
 	useShowWhenInViewport(loaderRef, setIsLoading, isExpanded);
 
 	return (
-		<div
-			className="inline-block mr-2"
-			onClick={(e) => {
-				clearSelection();
-				setSelected(true);
-				e.stopPropagation();
-			}}
-		>
+		<div className="inline-block mr-2">
 			{isLoading ? (
 				<div
 					ref={loaderRef}
@@ -84,6 +77,8 @@ export function Video({
 							controls
 							preload="metadata"
 							crossOrigin="anonymous"
+							data-nodeKey={nodeKey}
+							data-interactable="true"
 						/>
 					)}
 				</ResizeContainer>

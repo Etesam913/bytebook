@@ -1,12 +1,15 @@
 import { mergeRegister } from "@lexical/utils";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
+	$createNodeSelection,
 	$getNodeByKey,
 	$getSelection,
 	$isNodeSelection,
+	$setSelection,
 	CAN_REDO_COMMAND,
 	CAN_UNDO_COMMAND,
 	CLEAR_HISTORY_COMMAND,
+	CLICK_COMMAND,
 	COMMAND_PRIORITY_HIGH,
 	COMMAND_PRIORITY_LOW,
 	CONTROLLED_TEXT_INSERTION_COMMAND,
@@ -16,6 +19,7 @@ import {
 	KEY_BACKSPACE_COMMAND,
 	KEY_ESCAPE_COMMAND,
 	type LexicalEditor,
+	NodeSelection,
 	REDO_COMMAND,
 	SELECTION_CHANGE_COMMAND,
 	type TextFormatType,
@@ -24,6 +28,7 @@ import {
 import {
 	type Dispatch,
 	type MutableRefObject,
+	type RefObject,
 	type SetStateAction,
 	useEffect,
 } from "react";
@@ -43,6 +48,7 @@ import { CodeNode } from "../nodes/code";
 import { FileNode } from "../nodes/file";
 import { CUSTOM_TRANSFORMERS } from "../transformers";
 import {
+	overrideClickCommand,
 	overrideControlledTextInsertion,
 	overrideEscapeKeyCommand,
 	overrideUndoRedoCommand,
@@ -160,7 +166,7 @@ export function useToolbarEvents(
 	setCanRedo: Dispatch<SetStateAction<boolean>>,
 	setIsNodeSelection: Dispatch<SetStateAction<boolean>>,
 	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>,
-	noteContainerRef: MutableRefObject<HTMLDivElement | null>,
+	noteContainerRef: RefObject<HTMLDivElement | null>,
 ) {
 	const draggedElement = useAtomValue(draggedElementAtom);
 
@@ -250,6 +256,11 @@ export function useToolbarEvents(
 			editor.registerCommand(
 				REDO_COMMAND,
 				overrideUndoRedoCommand,
+				COMMAND_PRIORITY_LOW,
+			),
+			editor.registerCommand(
+				CLICK_COMMAND,
+				overrideClickCommand,
 				COMMAND_PRIORITY_LOW,
 			),
 			editor.registerCommand(
