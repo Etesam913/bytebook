@@ -12,6 +12,12 @@ function getPadding(level: string) {
 			return "pl-5";
 		case "3":
 			return "pl-9";
+		case "4":
+			return "pl-[3.25rem]";
+		case "5":
+			return "pl-[4.25rem]";
+		case "6":
+			return "pl-[5.25rem]";
 		default:
 			return "pl-0";
 	}

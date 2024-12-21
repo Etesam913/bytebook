@@ -1,5 +1,6 @@
 import {
 	$createNodeSelection,
+	$createRangeSelection,
 	$createTextNode,
 	$getNodeByKey,
 	$getSelection,
@@ -12,6 +13,7 @@ import {
 	type LexicalEditor,
 	type LexicalNode,
 	type NodeSelection,
+	RangeSelection,
 } from "lexical";
 import { isDecoratorNodeSelected } from "../../../utils/commands";
 import { FILE_SERVER_URL } from "../../../utils/misc";
@@ -80,8 +82,8 @@ export function overrideUpDownKeyCommand(
 ) {
 	const selection = $getSelection();
 	const node = selection?.getNodes().at(0);
-
-	if (!node) return true;
+	const isShiftHeldDown = event.shiftKey;
+	if (!node || isShiftHeldDown) return true;
 	if ($isRootNode(node)) {
 		const firstChild = node.getFirstChild();
 		if (!firstChild) return true;
