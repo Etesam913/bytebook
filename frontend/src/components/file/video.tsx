@@ -47,7 +47,7 @@ export function Video({
 
 	return (
 		<div
-			className={"w-full inline-block"}
+			className="inline-block mr-2"
 			onClick={(e) => {
 				clearSelection();
 				setSelected(true);
@@ -57,7 +57,7 @@ export function Video({
 			{isLoading ? (
 				<div
 					ref={loaderRef}
-					className="my-3 w-full h-[36rem] bg-gray-300 animate-pulse pointer-events-none"
+					className="my-3 w-full h-[36rem] bg-gray-200 dark:bg-zinc-6000 animate-pulse pointer-events-none"
 				/>
 			) : (
 				<ResizeContainer
@@ -75,15 +75,17 @@ export function Video({
 					writeWidthToNode={writeWidthToNode}
 					elementType="default"
 				>
-					<video
-						ref={videoRef}
-						className="w-full h-auto bg-black"
-						title={title}
-						src={`${src}#t=0.001`}
-						controls
-						preload="metadata"
-						crossOrigin="anonymous"
-					/>
+					{(isExpanded || !isExpanded) && (
+						<video
+							ref={videoRef}
+							className="w-full h-auto bg-black my-auto scroll-m-10"
+							title={title}
+							src={src}
+							controls
+							preload="metadata"
+							crossOrigin="anonymous"
+						/>
+					)}
 				</ResizeContainer>
 			)}
 		</div>

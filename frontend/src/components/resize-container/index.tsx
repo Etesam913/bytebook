@@ -155,7 +155,7 @@ export function ResizeContainer({
 				<>
 					<div
 						onClick={() => setIsExpanded(false)}
-						className="fixed z-10 w-screen h-screen bg-[rgba(0,0,0,0.3)] left-0 top-0"
+						className="fixed z-10 w-screen h-screen bg-black left-0 top-0"
 					/>
 					<motion.button
 						{...getDefaultButtonVariants()}
@@ -195,7 +195,7 @@ export function ResizeContainer({
 									className="fixed z-50 bottom-11 left-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
 									type="submit"
 								>
-									<CircleArrowLeft width="1.75rem" height="1.75rem" />
+									<CircleArrowLeft width={28} height={28} />
 								</motion.button>
 
 								<motion.button
@@ -221,20 +221,18 @@ export function ResizeContainer({
 									className="fixed z-50 bottom-11 right-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
 									type="submit"
 								>
-									<CircleArrowRight width="1.75rem" height="1.75rem" />
+									<CircleArrowRight width={28} height={28} />
 								</motion.button>
 							</>
 						)}
 					</AnimatePresence>
-					{/* Prevents a bug where the resize container size is like 8x8 after leaving fullscreen */}
-					{/* <div
+					{/* Prevents a bug where the resize container size is like 8x8 after leaving fullscreen for videos */}
+					<div
 						style={{
 							width: resizeDimensions.current.width,
 							height: resizeDimensions.current.height,
 						}}
-					>
-						testing testing 123
-					</div> */}
+					/>
 				</>
 			)}
 		</div>

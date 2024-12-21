@@ -87,19 +87,19 @@ export function useResizeCommands(
 ) {
 	useEffect(() => {
 		return mergeRegister(
-			editor.registerCommand<KeyboardEvent>(
-				KEY_ENTER_COMMAND,
-				(e) => {
-					if (disabledEvents?.enter) return false;
-					if (!isExpanded) {
-						return enterKeyDecoratorNodeCommand(e, nodeKey);
-					}
-					e.preventDefault();
-					e.stopPropagation();
-					return true;
-				},
-				isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
-			),
+			// editor.registerCommand<KeyboardEvent>(
+			// 	KEY_ENTER_COMMAND,
+			// 	(e) => {
+			// 		if (disabledEvents?.enter) return false;
+			// 		if (!isExpanded) {
+			// 			return enterKeyDecoratorNodeCommand(e, nodeKey);
+			// 		}
+			// 		e.preventDefault();
+			// 		e.stopPropagation();
+			// 		return true;
+			// 	},
+			// 	isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
+			// ),
 			editor.registerCommand<string>(
 				EXPAND_CONTENT_COMMAND,
 				(keyToExpand) => {
@@ -110,7 +110,6 @@ export function useResizeCommands(
 						});
 						return true;
 					}
-
 					return false;
 				},
 				COMMAND_PRIORITY_LOW,

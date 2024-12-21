@@ -48,8 +48,7 @@ export function Image({
 
 	return (
 		<div
-			data-node-key={nodeKey}
-			className="mr-2 inline-block w-full"
+			className="mr-2 inline-block"
 			onClick={(e) => {
 				clearSelection();
 				setSelected(true);
@@ -85,7 +84,6 @@ export function Image({
 						alt={alt}
 						draggable={false}
 						className="w-full h-auto my-auto scroll-m-10"
-						data-lexical-decorator="true"
 					/>
 				</ResizeContainer>
 			)}
