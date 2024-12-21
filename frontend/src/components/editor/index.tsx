@@ -10,7 +10,7 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import type { AnimationControls } from "framer-motion";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import type { LexicalEditor } from "lexical";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -35,6 +35,7 @@ import { NoteFindPlugin } from "./plugins/note-find.tsx";
 import TreeViewPlugin from "./plugins/tree-view";
 import { Toolbar } from "./toolbar";
 
+import { handleEditorEscape } from "../../utils/selection.ts";
 import { BottomBar } from "./bottom-bar.tsx";
 import { DraggableBlockPlugin } from "./plugins/draggable-block.tsx";
 import { FocusPlugin } from "./plugins/focus.tsx";
@@ -82,7 +83,7 @@ export function NotesEditor({
 }) {
 	const { folder, note } = params;
 	const editorRef = useRef<LexicalEditor | null | undefined>(null);
-	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+	const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
 	const [frontmatter, setFrontmatter] = useState<Record<string, string>>({});
 	const [floatingData, setFloatingData] = useState<FloatingDataType>({
 		isOpen: false,
@@ -151,7 +152,10 @@ export function NotesEditor({
 						contentEditable={
 							<ContentEditable
 								onContextMenu={(e) => e.stopPropagation()}
-								onKeyDown={() => setDraggableBlockElement(null)}
+								onKeyDown={(e) => {
+									handleEditorEscape(e, isNoteMaximized, setIsNoteMaximized);
+									setDraggableBlockElement(null);
+								}}
 								id="content-editable-editor"
 								spellCheck
 								autoCorrect="on"

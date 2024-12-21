@@ -73,12 +73,14 @@ export function NoteSidebarButton({
 	const sidebarNoteNameWithExtension = `${
 		isInTagSidebar ? `${curFolder}/` : ""
 	}${curNote}?ext=${searchParams.ext}`;
-
+	const isSelected =
+		decodeURIComponent(sidebarNoteNameWithExtension) === sidebarNoteName;
 	return (
 		<button
 			type="button"
 			title={sidebarNoteName}
 			draggable
+			id={isSelected ? "selected-note-button" : undefined}
 			onKeyDown={(e) => handleKeyNavigation(e)}
 			onDragStart={(e) =>
 				handleDragStart(
@@ -233,8 +235,7 @@ export function NoteSidebarButton({
 			}}
 			className={cn(
 				"sidebar-item",
-				decodeURIComponent(sidebarNoteNameWithExtension) === sidebarNoteName &&
-					"bg-zinc-150 dark:bg-zinc-700",
+				isSelected && "bg-zinc-150 dark:bg-zinc-700",
 				notes?.at(i) &&
 					selectionRange.has(`note:${notes[i]}`) &&
 					"!bg-blue-400 dark:!bg-blue-600 text-white",

@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from "react";
+import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
 import { extractInfoFromNoteName } from "./string-formatting";
 
 /**
@@ -73,6 +73,37 @@ export function handleKeyNavigation(e: KeyboardEvent) {
 		if (prevLi) {
 			const prevButton = prevLi.querySelector("button") as HTMLButtonElement;
 			if (prevButton) prevButton.focus();
+		}
+	}
+}
+/**
+ * Handles escape key behavior in the editor, toggling maximized state and managing focus.
+ * @param e - The keyboard event
+ * @param isNoteMaximized - Boolean indicating if note is currently maximized
+ * @param setIsNoteMaximized - State setter function for the maximized state
+ */
+export function handleEditorEscape(
+	e: KeyboardEvent,
+	isNoteMaximized: boolean,
+	setIsNoteMaximized: Dispatch<SetStateAction<boolean>>,
+) {
+	if (e.key === "Escape") {
+		if (isNoteMaximized) {
+			setIsNoteMaximized(false);
+
+			setTimeout(() => {
+				const selectedNoteButton = document.getElementById(
+					"selected-note-button",
+				);
+				if (!selectedNoteButton) return;
+				selectedNoteButton.focus();
+			}, 250);
+		} else {
+			const selectedNoteButton = document.getElementById(
+				"selected-note-button",
+			);
+			if (!selectedNoteButton) return;
+			selectedNoteButton.focus();
 		}
 	}
 }
