@@ -17,6 +17,13 @@ export function KatexRenderer({ equation }: { equation: string }) {
 			});
 		}
 	}, [equation]);
-
-	return <span role="button" tabIndex={-1} ref={katexElementRef} />;
+	// pointer-events-none is needed to let the parent span handle the click event
+	return (
+		<span
+			role="button"
+			tabIndex={-1}
+			ref={katexElementRef}
+			className="pointer-events-none"
+		/>
+	);
 }

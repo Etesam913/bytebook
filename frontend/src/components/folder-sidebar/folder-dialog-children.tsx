@@ -31,7 +31,7 @@ export function FolderDialogChildren({
 					{...getDefaultButtonVariants()}
 					className="w-[calc(100%-1.5rem)] mx-auto justify-center"
 				>
-					<FolderXMark /> <span>Delete Folder</span>
+					<FolderXMark /> <span>Move to Trash</span>
 				</MotionButton>
 			</>
 		);

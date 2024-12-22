@@ -21,12 +21,7 @@ import {
 	type LexicalEditor,
 	type TextFormatType,
 } from "lexical";
-import type {
-	Dispatch,
-	MutableRefObject,
-	ReactNode,
-	SetStateAction,
-} from "react";
+import type { Dispatch, ReactNode, RefObject, SetStateAction } from "react";
 import { toast } from "sonner";
 import { AddAttachments } from "../../../../bindings/github.com/etesam913/bytebook/nodeservice";
 import { ListCheckbox } from "../../../icons/list-checkbox";
@@ -191,7 +186,7 @@ export function updateToolbar(
 	setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>,
 	setIsNodeSelection: Dispatch<SetStateAction<boolean>>,
 	setFloatingData: Dispatch<SetStateAction<FloatingDataType>>,
-	noteContainerRef: MutableRefObject<HTMLDivElement | null>,
+	noteContainerRef: RefObject<HTMLDivElement | null>,
 ) {
 	const selection = $getSelection();
 	setIsNodeSelection($isNodeSelection(selection));

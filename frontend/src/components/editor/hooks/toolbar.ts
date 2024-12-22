@@ -19,7 +19,6 @@ import {
 	KEY_BACKSPACE_COMMAND,
 	KEY_ESCAPE_COMMAND,
 	type LexicalEditor,
-	NodeSelection,
 	REDO_COMMAND,
 	SELECTION_CHANGE_COMMAND,
 	type TextFormatType,
@@ -27,7 +26,6 @@ import {
 } from "lexical";
 import {
 	type Dispatch,
-	type MutableRefObject,
 	type RefObject,
 	type SetStateAction,
 	useEffect,
@@ -40,12 +38,10 @@ import {
 	noteContainerRefAtom,
 	noteEditorAtom,
 } from "../../../atoms";
-import { useFileIntersectionObserver } from "../../../hooks/observers";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
 import { useCustomNavigate } from "../../../utils/routing";
 import { CodeNode } from "../nodes/code";
-import { FileNode } from "../nodes/file";
 import { CUSTOM_TRANSFORMERS } from "../transformers";
 import {
 	overrideClickCommand,

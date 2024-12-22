@@ -1,8 +1,7 @@
-import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
-import { useAtomValue } from "jotai";
-
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { AnimatePresence } from "framer-motion";
+import { useAtomValue } from "jotai";
 import { draggedElementAtom } from "../../atoms";
 import { cn } from "../../utils/string-formatting";
 import { NoteComponentControls } from "../note-component-container/component-controls";
@@ -18,26 +17,17 @@ export function Pdf({
 }) {
 	const [editor] = useLexicalComposerContext();
 	const draggedElement = useAtomValue(draggedElementAtom);
-	const [isSelected, setSelected, clearSelection] =
-		useLexicalNodeSelection(nodeKey);
+	const [isSelected] = useLexicalNodeSelection(nodeKey);
 
 	return (
-		<div
-			className="mr-2 inline-block relative pt-[100%] h-0 w-full"
-			data-component="pdf"
-		>
+		<div className="mr-2 inline-block relative pt-[100%] h-0 w-full">
 			<div
+				data-interactable="true"
+				data-nodeKey={nodeKey}
 				className={cn(
 					"px-1 w-full h-full absolute top-0 left-0 bg-zinc-100 dark:bg-zinc-700 rounded-md py-1 border-[3px] border-zinc-200 dark:border-zinc-600 text-xs text-zinc-500 dark:text-zinc-300 transition-colors",
 					isSelected && "border-blue-400 dark:border-blue-500",
 				)}
-				onClick={(e) => {
-					e.stopPropagation();
-					if (!e.shiftKey) {
-						clearSelection();
-					}
-					setSelected(true);
-				}}
 			>
 				<AnimatePresence>
 					{isSelected && (
@@ -52,11 +42,11 @@ export function Pdf({
 						/>
 					)}
 				</AnimatePresence>
-				<div className="px-1 pb-1">{alt}</div>
+				<div className="px-1 pb-1 pointer-events-none">{alt}</div>
 				<iframe
 					title={alt}
 					className={cn(
-						"w-full h-[calc(100%-1.4rem)] rounded-md dark:invert",
+						"pointer-events-none w-full h-[calc(100%-1.4rem)] rounded-md dark:invert",
 						draggedElement && "pointer-events-none",
 					)}
 					src={src}

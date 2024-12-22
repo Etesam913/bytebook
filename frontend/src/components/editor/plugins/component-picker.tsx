@@ -43,6 +43,7 @@ import { Heading6 } from "../../../icons/heading-6";
 import { JavaLogo } from "../../../icons/java-logo";
 import { JavascriptLogo } from "../../../icons/javascript-logo";
 
+import { Equation } from "../../../icons/equation";
 import { Paintbrush } from "../../../icons/paintbrush";
 import { PythonLogo } from "../../../icons/python-logo";
 import { ReactLogo } from "../../../icons/react-logo";
@@ -60,6 +61,7 @@ import {
 import { YouTubeDialogChildren } from "../../youtube-dialog-children";
 import { $createExcalidrawNode } from "../nodes/excalidraw";
 import { $createFileNode } from "../nodes/file";
+import { $createInlineEquationNode } from "../nodes/inline-equation";
 import { extractYouTubeVideoID } from "../utils/file-node";
 import { attachmentCommandData, listCommandData } from "../utils/toolbar";
 import { INSERT_CODE_COMMAND } from "./code";
@@ -222,6 +224,20 @@ function getBaseOptions(
 			],
 			onSelect: async () => {
 				insertAttachmentsMutation.mutate();
+			},
+		}),
+		new DropdownPickerOption("Inline Equation", {
+			icon: <Equation />,
+			keywords: ["inline", "equation", "math", "latex"],
+			onSelect: () => {
+				editor.update(() => {
+					const equationNode = $createInlineEquationNode({
+						equation: "x^2 + y^2 = z^2",
+						defaultIsEditing: true,
+					});
+					$insertNodes([equationNode]);
+					// editor.dispatchCommand(FOCUS_NODE_COMMAND, equationNode);
+				});
 			},
 		}),
 		new DropdownPickerOption("YouTube", {

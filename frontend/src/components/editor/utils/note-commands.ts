@@ -13,7 +13,6 @@ import {
 	type LexicalEditor,
 	type LexicalNode,
 	type NodeSelection,
-	RangeSelection,
 } from "lexical";
 import { isDecoratorNodeSelected } from "../../../utils/commands";
 import { FILE_SERVER_URL } from "../../../utils/misc";
@@ -37,12 +36,17 @@ export function overrideUndoRedoCommand() {
 	return false;
 }
 
+/**
+ * Adds or sets a node selection if the clicked element has the data-interactable attribute
+ * and the data-nodeKey attribute
+ */
 export function overrideClickCommand(e: MouseEvent) {
 	const element = e.target as HTMLElement;
 	const isInteractable = element.getAttribute("data-interactable");
 	if (isInteractable) {
 		const nodeKey = element.getAttribute("data-nodeKey");
 		if (!nodeKey) return true;
+
 		let selection = $getSelection();
 		const isRegularClick = !e.ctrlKey && !e.shiftKey && !e.metaKey;
 		if (isRegularClick || !$isNodeSelection(selection)) {
@@ -56,7 +60,7 @@ export function overrideClickCommand(e: MouseEvent) {
 }
 
 /** Goes in direction up the tree until it finds a valid sibling */
-function getFirstSiblingNode(
+export function getFirstSiblingNode(
 	node: LexicalNode | undefined,
 	direction: "up" | "down",
 ) {
@@ -83,6 +87,7 @@ export function overrideUpDownKeyCommand(
 	const selection = $getSelection();
 	const node = selection?.getNodes().at(0);
 	const isShiftHeldDown = event.shiftKey;
+	// You should be able to select multiple nodes when holding shift, so use the default select behavior in this case
 	if (!node || isShiftHeldDown) return true;
 	if ($isRootNode(node)) {
 		const firstChild = node.getFirstChild();
