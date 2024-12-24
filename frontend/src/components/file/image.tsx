@@ -23,7 +23,9 @@ export function Image({
 	const [editor] = useLexicalComposerContext();
 	const loaderRef = useRef<HTMLDivElement>(null); // Reference for loader
 
+	const [isInViewport, setIsInViewport] = useState(true);
 	const [isLoading, setIsLoading] = useState(true);
+
 	const {
 		isResizing,
 		setIsResizing,
@@ -44,11 +46,16 @@ export function Image({
 		imgRef,
 	);
 
-	useShowWhenInViewport(loaderRef, setIsLoading, isExpanded);
+	useShowWhenInViewport(loaderRef, setIsInViewport, isExpanded);
 
 	return (
-		<div className="mr-2 inline-block">
-			{isLoading ? (
+		<div
+			className={cn(
+				"mr-2 inline-block",
+				(isLoading || isInViewport) && "block",
+			)}
+		>
+			{isInViewport ? (
 				<div
 					ref={loaderRef}
 					className={cn(
@@ -56,31 +63,42 @@ export function Image({
 					)}
 				/>
 			) : (
-				<ResizeContainer
-					resizeState={{
-						isResizing,
-						setIsResizing,
-						isSelected,
-						setSelected,
-						isExpanded,
-						setIsExpanded,
-					}}
-					element={imgRef.current}
-					nodeKey={nodeKey}
-					defaultWidth={widthWrittenToNode}
-					writeWidthToNode={writeWidthToNode}
-					elementType="default"
-				>
-					<img
-						src={src}
-						ref={imgRef}
-						alt={alt}
-						draggable={false}
-						className="w-full h-auto my-auto scroll-m-10"
-						data-nodeKey={nodeKey}
-						data-interactable="true"
-					/>
-				</ResizeContainer>
+				<>
+					{isLoading && (
+						<div
+							className={cn(
+								"my-3 w-full h-[36rem] bg-gray-200 dark:bg-zinc-600 animate-pulse pointer-events-none",
+							)}
+						/>
+					)}
+					<ResizeContainer
+						resizeState={{
+							isResizing,
+							setIsResizing,
+							isSelected,
+							setSelected,
+							isExpanded,
+							setIsExpanded,
+						}}
+						element={imgRef.current}
+						nodeKey={nodeKey}
+						defaultWidth={widthWrittenToNode}
+						writeWidthToNode={writeWidthToNode}
+						elementType="default"
+					>
+						<img
+							style={{ display: isLoading ? "none" : "block" }}
+							src={src}
+							onLoad={() => setIsLoading(false)}
+							ref={imgRef}
+							alt={alt}
+							draggable={false}
+							className="w-full h-auto my-auto scroll-m-10"
+							data-nodeKey={nodeKey}
+							data-interactable="true"
+						/>
+					</ResizeContainer>
+				</>
 			)}
 		</div>
 	);

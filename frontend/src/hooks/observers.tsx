@@ -97,11 +97,11 @@ export function useListVirtualization(
  * This hook uses the Intersection Observer API to detect when the loader element is visible.
  *
  * @param loaderRef - React ref object for the loader element
- * @param setIsLoading - Function to set the loading state
+ * @param setIsInViewport - Function to set the loading state
  */
 export function useShowWhenInViewport(
 	loaderRef: RefObject<HTMLDivElement | null>,
-	setIsLoading: Dispatch<SetStateAction<boolean>>,
+	setIsInViewport: Dispatch<SetStateAction<boolean>>,
 	isExpanded: boolean,
 ) {
 	const noteContainerRef = useAtomValue(noteContainerRefAtom);
@@ -112,7 +112,7 @@ export function useShowWhenInViewport(
 			(entries) => {
 				const entry = entries[0];
 				if (entry.isIntersecting) {
-					setIsLoading(false); // Set loading to false when spinner is in viewport
+					setIsInViewport(false); // Set loading to false when spinner is in viewport
 					observer.disconnect(); // Stop observing once the loader is visible
 				}
 			},

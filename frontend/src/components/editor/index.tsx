@@ -24,7 +24,6 @@ import { debounce } from "../../utils/draggable";
 import useHotkeys from "../../utils/hooks.tsx";
 import { cn } from "../../utils/string-formatting";
 import { editorConfig } from "./editor-config";
-
 import { NoteTitle } from "./note-title";
 import { CodePlugin } from "./plugins/code";
 import { ComponentPickerMenuPlugin } from "./plugins/component-picker";
@@ -194,7 +193,7 @@ export function NotesEditor({
 					<DraggableBlockPlugin />
 					<FocusPlugin />
 					<LinkMatcherPlugin />
-					<TreeViewPlugin />
+					{/* <TreeViewPlugin /> */}
 				</div>
 				{frontmatter.showMarkdown === "true" && (
 					<div className="w-[50%] bg-zinc-50 dark:bg-zinc-850 h-full font-code border-l border-zinc-200 dark:border-zinc-700 px-4 pt-3 pb-2 overflow-auto">

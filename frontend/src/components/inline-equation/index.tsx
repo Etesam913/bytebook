@@ -52,7 +52,7 @@ export function InlineEquation({
 							initial={{ opacity: 0, y: -35 }}
 							animate={{ opacity: 1, y: -45 }}
 							exit={{ opacity: 0, y: -35 }}
-							className="absolute top-0 left-0 flex rounded-md shadow-md items-center gap-2 bg-zinc-50 border border-zinc-200 px-1 py-0.5 z-20"
+							className="absolute top-0 left-0 flex rounded-md shadow-md items-center gap-2 bg-zinc-50 dark:bg-zinc-700 border border-zinc-200 dark:border-zinc-600 px-1 py-0.5 z-20"
 						>
 							<input
 								type="text"

@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { useShowWhenInViewport } from "../../hooks/observers";
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
+import { cn } from "../../utils/string-formatting";
 import { ResizeContainer } from "../resize-container";
 
 export function Video({
@@ -20,8 +21,9 @@ export function Video({
 }) {
 	const [editor] = useLexicalComposerContext();
 	const videoRef = useRef<HTMLVideoElement>(null);
-	const [isLoading, setIsLoading] = useState(true);
+	const [isInViewport, setIsInViewport] = useState(true);
 	const loaderRef = useRef<HTMLDivElement>(null); // Reference for loader
+	const [isLoading, setIsLoading] = useState(true);
 
 	const {
 		isResizing,
@@ -43,45 +45,57 @@ export function Video({
 		videoRef,
 	);
 
-	useShowWhenInViewport(loaderRef, setIsLoading, isExpanded);
+	useShowWhenInViewport(loaderRef, setIsInViewport, isExpanded);
 
 	return (
-		<div className="inline-block mr-2">
-			{isLoading ? (
+		<div
+			className={cn(
+				"mr-2 inline-block",
+				(isLoading || isInViewport) && "block",
+			)}
+		>
+			{isInViewport ? (
 				<div
 					ref={loaderRef}
-					className="my-3 w-full h-[36rem] bg-gray-200 dark:bg-zinc-6000 animate-pulse pointer-events-none"
+					className="my-3 w-full h-[36rem] bg-gray-200 dark:bg-zinc-600 animate-pulse pointer-events-none"
 				/>
 			) : (
-				<ResizeContainer
-					resizeState={{
-						isResizing,
-						setIsResizing,
-						isSelected,
-						setSelected,
-						isExpanded,
-						setIsExpanded,
-					}}
-					element={videoRef.current}
-					nodeKey={nodeKey}
-					defaultWidth={widthWrittenToNode}
-					writeWidthToNode={writeWidthToNode}
-					elementType="default"
-				>
-					{(isExpanded || !isExpanded) && (
-						<video
-							ref={videoRef}
-							className="w-full h-auto bg-black my-auto scroll-m-10"
-							title={title}
-							src={src}
-							controls
-							preload="metadata"
-							crossOrigin="anonymous"
-							data-nodeKey={nodeKey}
-							data-interactable="true"
-						/>
+				<>
+					{isLoading && (
+						<div className="my-3 w-full h-[36rem] bg-gray-200 dark:bg-zinc-600 animate-pulse pointer-events-none" />
 					)}
-				</ResizeContainer>
+					<ResizeContainer
+						resizeState={{
+							isResizing,
+							setIsResizing,
+							isSelected,
+							setSelected,
+							isExpanded,
+							setIsExpanded,
+						}}
+						element={videoRef.current}
+						nodeKey={nodeKey}
+						defaultWidth={widthWrittenToNode}
+						writeWidthToNode={writeWidthToNode}
+						elementType="default"
+					>
+						{(isExpanded || !isExpanded) && (
+							<video
+								ref={videoRef}
+								style={{ display: isLoading ? "none" : "block" }}
+								className="w-full h-auto bg-black my-auto scroll-m-10"
+								title={title}
+								src={src}
+								controls
+								onLoadedData={() => setIsLoading(false)}
+								preload="auto"
+								crossOrigin="anonymous"
+								data-nodeKey={nodeKey}
+								data-interactable="true"
+							/>
+						)}
+					</ResizeContainer>
+				</>
 			)}
 		</div>
 	);
