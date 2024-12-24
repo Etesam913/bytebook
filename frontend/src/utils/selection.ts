@@ -1,5 +1,9 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
 import { extractInfoFromNoteName } from "./string-formatting";
+import {
+	SIDEBAR_ITEM_HEIGHT,
+	VIRUTALIZATION_HEIGHT,
+} from "../components/sidebar";
 
 /**
  * Takes a selection set and returns a new set containing only folder items,
@@ -106,4 +110,22 @@ export function handleEditorEscape(
 			selectedNoteButton.focus();
 		}
 	}
+}
+
+function isSelectedNoteOrFolderInViewport(
+	noteOrFolder: string,
+	visibleItems: string[],
+) {
+	return visibleItems.includes(noteOrFolder);
+}
+
+export function scrollVirtualizedListToSelectedNoteOrFolder(
+	noteOrFolder: string,
+	items: string[],
+	visibleItems: string[],
+) {
+	if (isSelectedNoteOrFolderInViewport(noteOrFolder, visibleItems)) return -1;
+	const indexOfSelectedItem = items.indexOf(noteOrFolder);
+	if (indexOfSelectedItem === -1) return -1;
+	return SIDEBAR_ITEM_HEIGHT * indexOfSelectedItem;
 }

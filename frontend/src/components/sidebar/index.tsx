@@ -14,9 +14,10 @@ import { useListVirtualization } from "../../hooks/observers";
 import { useOnClickOutside } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { SidebarItems } from "./sidebar-items";
+import { scrollVirtualizedListToSelectedNoteOrFolder } from "../../utils/selection";
 
-const SIDEBAR_ITEM_HEIGHT = 34;
-const VIRUTALIZATION_HEIGHT = 8;
+export const SIDEBAR_ITEM_HEIGHT = 34;
+export const VIRUTALIZATION_HEIGHT = 8;
 
 export function Sidebar({
 	data,
@@ -26,6 +27,7 @@ export function Sidebar({
 	layoutId,
 	contentType,
 	shouldHideSidebarHighlight,
+	activeDataItem,
 }: {
 	data: string[] | null;
 	getContextMenuStyle?: (dataItem: string) => CSSProperties;
@@ -39,6 +41,7 @@ export function Sidebar({
 	layoutId: string;
 	contentType?: "note" | "folder";
 	shouldHideSidebarHighlight?: boolean;
+	activeDataItem?: string | null;
 }) {
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 	const anchorSelectionIndex = useRef<number>(0);
@@ -83,6 +86,19 @@ export function Sidebar({
 	useEffect(() => {
 		setScrollTop(0);
 	}, [folder]);
+
+	useEffect(() => {
+		if (!activeDataItem) return;
+		const scrollTopToActiveItem = scrollVirtualizedListToSelectedNoteOrFolder(
+			activeDataItem,
+			items,
+			visibleItems,
+		);
+		if (scrollTopToActiveItem === -1) return;
+		listScrollContainerRef.current?.scrollTo({
+			top: scrollTopToActiveItem,
+		});
+	}, [activeDataItem, items]);
 
 	return (
 		<div

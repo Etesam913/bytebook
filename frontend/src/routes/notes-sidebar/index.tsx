@@ -45,11 +45,11 @@ export function NotesSidebar({
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const [notes, setNotes] = useAtom(notesAtom);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const noteSort = useAtomValue(noteSortAtom);
 	const sidebarRef = useRef<HTMLElement>(null);
 	const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
+	const searchParams: { ext?: string } = useSearchParamsEntries();
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
 	const { navigate } = useCustomNavigate();

@@ -60,27 +60,22 @@ export function getFileElementTypeFromExtension(fileName: string): FileType {
 	const shouldCreateImage = IMAGE_FILE_EXTENSIONS.some((extension) =>
 		fileName.endsWith(`.${extension}`),
 	);
-
+	if (shouldCreateImage) {
+		return "image";
+	}
 	// Check if the file extension matches any of the video file extensions
 	const shouldCreateVideo = VIDEO_FILE_EXTENSIONS.some((extension) =>
 		fileName.endsWith(`.${extension}`),
 	);
 
-	const shouldCreateYouTube = extractYouTubeVideoID(fileName) !== null;
-
-	const shouldCreatePdf = fileName.endsWith(".pdf");
-
-	if (shouldCreateImage) {
-		return "image";
-	}
-
 	if (shouldCreateVideo) {
 		return "video";
 	}
-
+	const shouldCreateYouTube = extractYouTubeVideoID(fileName) !== null;
 	if (shouldCreateYouTube) {
 		return "youtube";
 	}
+	const shouldCreatePdf = fileName.endsWith(".pdf");
 
 	// Return 'pdf' if the file is a PDF document
 	if (shouldCreatePdf) {

@@ -8,7 +8,7 @@ export function SearchPanel() {
 	const [searchPanelData, setSearchPanelData] = useAtom(searchPanelDataAtom);
 
 	return (
-		<AnimatePresence>
+		<>
 			{searchPanelData.isOpen && (
 				<>
 					<Shade
@@ -20,6 +20,6 @@ export function SearchPanel() {
 					<SearchPanelForm />
 				</>
 			)}
-		</AnimatePresence>
+		</>
 	);
 }

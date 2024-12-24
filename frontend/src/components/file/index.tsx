@@ -25,6 +25,7 @@ export function File({
 	nodeKey: string;
 	setElementType: (elementType: FileType) => void;
 }) {
+	// TODO: I think there is a bottleneck with using useQuery here for some reason. Try without it
 	const { data: fileType, isLoading } = useQuery({
 		queryKey: ["file", src],
 		queryFn: async () => await getFileElementTypeFromExtensionAndHead(src),

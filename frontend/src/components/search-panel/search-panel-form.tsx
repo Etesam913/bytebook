@@ -163,14 +163,6 @@ export function SearchPanelForm() {
 					duration: 0.2,
 				},
 			}}
-			exit={{
-				opacity: 0,
-				scale: 0.5,
-				transition: {
-					ease: easingFunctions["ease-out-circ"],
-					duration: 0.3,
-				},
-			}}
 			ref={searchPanelRef}
 			className="absolute translate-x-[-50%] translate-y-[-50%] z-40 top-[25%] w-[min(29rem,90vw)] left-2/4"
 			onSubmit={(e: FormEvent<HTMLFormElement>) => {

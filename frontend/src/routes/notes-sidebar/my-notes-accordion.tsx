@@ -5,6 +5,8 @@ import { Sidebar } from "../../components/sidebar";
 import { Note } from "../../icons/page";
 import { extractInfoFromNoteName } from "../../utils/string-formatting";
 import { NoteSidebarButton } from "./note-sidebar-button.tsx";
+import { useEffect, useState } from "react";
+import { useSearchParamsEntries } from "../../utils/hooks.tsx";
 
 export function MyNotesAccordion({
 	notes,
@@ -23,6 +25,11 @@ export function MyNotesAccordion({
 }) {
 	// The sidebar note name includes the folder name if it's in a tag sidebar
 	const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);
+	const searchParams: { ext?: string } = useSearchParamsEntries();
+	// If the fileExtension is undefined, then it is a markdown file
+	const fileExtension = searchParams?.ext;
+
+	const activeDataItem = curNote ? `${curNote}?ext=${fileExtension}` : null;
 
 	return (
 		<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
@@ -48,6 +55,7 @@ export function MyNotesAccordion({
 						Create a note with the "Create Note" button above
 					</li>
 				}
+				activeDataItem={activeDataItem}
 				data={notes}
 				renderLink={({
 					dataItem: sidebarNoteName,
@@ -57,7 +65,6 @@ export function MyNotesAccordion({
 				}) => {
 					const { noteNameWithoutExtension, queryParams } =
 						extractInfoFromNoteName(sidebarNoteName);
-
 					return (
 						<NoteSidebarButton
 							curNote={curNote}

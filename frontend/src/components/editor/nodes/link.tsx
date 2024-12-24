@@ -32,7 +32,6 @@ import ReactDOM from "react-dom";
 import { navigate } from "wouter/use-browser-location";
 import { Folder } from "../../../icons/folder";
 import { Note } from "../../../icons/page";
-import { useCustomNavigate } from "../../../utils/routing";
 import {
 	getInternalLinkType,
 	isInternalLink,

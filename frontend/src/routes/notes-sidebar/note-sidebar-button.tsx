@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai/react";
-import type { Dispatch, SetStateAction } from "react";
+import { useMemo, type Dispatch, type SetStateAction } from "react";
 import {
 	contextMenuDataAtom,
 	dialogDataAtom,
@@ -73,14 +73,18 @@ export function NoteSidebarButton({
 	const sidebarNoteNameWithExtension = `${
 		isInTagSidebar ? `${curFolder}/` : ""
 	}${curNote}?ext=${searchParams.ext}`;
-	const isSelected =
-		decodeURIComponent(sidebarNoteNameWithExtension) === sidebarNoteName;
+
+	const isActive = useMemo(
+		() => decodeURIComponent(sidebarNoteNameWithExtension) === sidebarNoteName,
+		[sidebarNoteNameWithExtension, sidebarNoteName],
+	);
+
 	return (
 		<button
 			type="button"
 			title={sidebarNoteName}
 			draggable
-			id={isSelected ? "selected-note-button" : undefined}
+			id={isActive ? "selected-note-button" : undefined}
 			onKeyDown={(e) => handleKeyNavigation(e)}
 			onDragStart={(e) =>
 				handleDragStart(
@@ -235,7 +239,7 @@ export function NoteSidebarButton({
 			}}
 			className={cn(
 				"sidebar-item",
-				isSelected && "bg-zinc-150 dark:bg-zinc-700",
+				isActive && "bg-zinc-150 dark:bg-zinc-700",
 				notes?.at(i) &&
 					selectionRange.has(`note:${notes[i]}`) &&
 					"!bg-blue-400 dark:!bg-blue-600 text-white",
