@@ -23,16 +23,21 @@ export function useListVirtualization(
 	items: string[],
 	SIDEBAR_ITEM_HEIGHT: number,
 	VIRUTALIZATION_HEIGHT: number,
-	listRef: RefObject<HTMLElement>,
+	listRef: RefObject<HTMLElement | null>,
 	onScrollCallback?: (e: React.UIEvent<HTMLDivElement>) => void,
+	isSearchPanel?: boolean,
 ) {
 	// State for tracking scroll position and container height
 	const [scrollTop, setScrollTop] = useState(0);
 	const [containerHeight, setContainerHeight] = useState(0);
 
-	// Calculate the range of visible items
+	// Calculate the range of visible items. There is a -2 so that items are above the visible area as well
 	const startIndex = useMemo(
-		() => Math.max(0, Math.floor(scrollTop / SIDEBAR_ITEM_HEIGHT) - 2),
+		() =>
+			Math.max(
+				0,
+				Math.floor(scrollTop / SIDEBAR_ITEM_HEIGHT - (isSearchPanel ? 0 : 2)),
+			),
 		[scrollTop, SIDEBAR_ITEM_HEIGHT],
 	);
 	const endIndex = useMemo(() => {

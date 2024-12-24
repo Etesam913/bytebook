@@ -53,6 +53,7 @@ export function SearchPanelForm() {
 				scrollY: element.scrollTop,
 			}));
 		},
+		true,
 	);
 
 	async function handleSearch(query: string) {
