@@ -13,6 +13,9 @@ import { ShareRight } from "../../icons/share-right";
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from "../../types";
 import { FILE_SERVER_URL } from "../../utils/misc";
 import { cn } from "../../utils/string-formatting";
+import { SidebarImage } from "./sidebar-image";
+import { SidebarVideo } from "./sidebar-video";
+
 export function RenderNote({
 	folder,
 	note,
@@ -22,7 +25,6 @@ export function RenderNote({
 	note: string | undefined;
 	fileExtension: string | undefined;
 }) {
-	if (!note) return <></>;
 	const animationControls = useAnimationControls();
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const hasCustomToolbar = fileExtension === "md";
@@ -42,6 +44,7 @@ export function RenderNote({
 	useMostRecentNotes(folder, note, fileExtension);
 	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
 
+	if (!note) return <></>;
 	return (
 		<motion.div
 			className="flex min-w-0 flex-1 flex-col leading-7 h-screen "
@@ -100,34 +103,24 @@ export function RenderNote({
 			)}
 
 			{isImage && (
-				<>
-					<img
-						className={cn(
-							"flex-1 overflow-auto object-contain my-auto mr-1",
-							isNoteMaximized && "w-full",
-						)}
-						alt={note}
-						title={note}
-						src={fileUrl}
-					/>
-					<BottomBar folder={folder} note={note} ext={fileExtension} />
-				</>
+				<SidebarImage
+					folder={folder}
+					note={note}
+					fileUrl={fileUrl}
+					fileExtension={fileExtension}
+					isNoteMaximized={isNoteMaximized}
+				/>
 			)}
 
 			{isVideo && (
-				<>
-					<video
-						controls
-						title={note}
-						className={cn(
-							"flex-1 overflow-auto mr-1 bg-black",
-							isNoteMaximized && "w-full mr-0",
-							draggedElement !== null && "pointer-events-none",
-						)}
-						src={fileUrl}
-					/>
-					<BottomBar folder={folder} note={note} ext={fileExtension} />
-				</>
+				<SidebarVideo
+					folder={folder}
+					note={note}
+					fileUrl={fileUrl}
+					fileExtension={fileExtension}
+					isNoteMaximized={isNoteMaximized}
+					draggedElement={draggedElement}
+				/>
 			)}
 
 			{isUnknownFile && (

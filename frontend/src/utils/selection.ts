@@ -1,9 +1,9 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
-import { extractInfoFromNoteName } from "./string-formatting";
 import {
 	SIDEBAR_ITEM_HEIGHT,
 	VIRUTALIZATION_HEIGHT,
 } from "../components/sidebar";
+import { extractInfoFromNoteName } from "./string-formatting";
 
 /**
  * Takes a selection set and returns a new set containing only folder items,

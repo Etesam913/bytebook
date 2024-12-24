@@ -12,9 +12,9 @@ import { useParams } from "wouter";
 import { contextMenuRefAtom, selectionRangeAtom } from "../../atoms";
 import { useListVirtualization } from "../../hooks/observers";
 import { useOnClickOutside } from "../../utils/hooks";
+import { scrollVirtualizedListToSelectedNoteOrFolder } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
 import { SidebarItems } from "./sidebar-items";
-import { scrollVirtualizedListToSelectedNoteOrFolder } from "../../utils/selection";
 
 export const SIDEBAR_ITEM_HEIGHT = 34;
 export const VIRUTALIZATION_HEIGHT = 8;
