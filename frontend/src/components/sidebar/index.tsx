@@ -28,6 +28,7 @@ export function Sidebar({
 	contentType,
 	shouldHideSidebarHighlight,
 	activeDataItem,
+	maxHeight,
 }: {
 	data: string[] | null;
 	getContextMenuStyle?: (dataItem: string) => CSSProperties;
@@ -42,6 +43,7 @@ export function Sidebar({
 	contentType?: "note" | "folder";
 	shouldHideSidebarHighlight?: boolean;
 	activeDataItem?: string | null;
+	maxHeight?: string;
 }) {
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 	const anchorSelectionIndex = useRef<number>(0);
@@ -102,7 +104,10 @@ export function Sidebar({
 
 	return (
 		<div
-			className="overflow-y-auto"
+			className={cn(maxHeight ? "overflow-y-auto" : "overflow-y-hidden")}
+			style={{
+				maxHeight: maxHeight ?? "100%",
+			}}
 			ref={listScrollContainerRef}
 			onScroll={onScroll}
 		>
@@ -115,7 +120,7 @@ export function Sidebar({
 				<ul
 					className={cn(
 						contentType === "note" && "pl-1 pr-2",
-						contentType === "folder" && "pl-[3px] pr-[3px]",
+						contentType === "folder" && "pl-[3px] pr-[3px] ",
 					)}
 					style={{
 						position: "relative",

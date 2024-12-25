@@ -83,7 +83,10 @@ export function Video({
 							<video
 								ref={videoRef}
 								style={{ display: isLoading ? "none" : "block" }}
-								className="w-full h-auto bg-black my-auto scroll-m-10"
+								className={cn(
+									"w-full h-auto bg-black my-auto scroll-m-10",
+									isExpanded && "h-full",
+								)}
 								title={title}
 								src={src}
 								controls

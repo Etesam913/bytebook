@@ -46,7 +46,7 @@ export function Pdf({
 				<iframe
 					title={alt}
 					className={cn(
-						"pointer-events-none w-full h-[calc(100%-1.4rem)] rounded-md dark:invert",
+						"w-full h-[calc(100%-1.4rem)] rounded-md dark:invert",
 						draggedElement && "pointer-events-none",
 					)}
 					src={src}

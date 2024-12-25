@@ -44,7 +44,7 @@ function VirtualizedPinnedNotes({
 
 	return (
 		<motion.div
-			className="overflow-y-auto max-h-[35vh] mt-1"
+			className="overflow-y-auto max-h-[15rem] mt-1"
 			ref={listScrollContainerRef}
 			onScroll={onScroll}
 			initial={{ height: 0 }}

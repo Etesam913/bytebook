@@ -93,7 +93,10 @@ export function Image({
 							ref={imgRef}
 							alt={alt}
 							draggable={false}
-							className="w-full h-auto my-auto scroll-m-10"
+							className={cn(
+								"w-full h-auto my-auto scroll-m-10",
+								isExpanded && "h-full w-auto mx-auto",
+							)}
 							data-nodeKey={nodeKey}
 							data-interactable="true"
 						/>
