@@ -5,7 +5,12 @@ import { Note } from "../../icons/page";
 export function AccordionItem({
 	to,
 	itemName,
-}: { to: string; itemName: string }) {
+	onContextMenu,
+}: {
+	to: string;
+	itemName: string;
+	onContextMenu?: (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void;
+}) {
 	return (
 		<motion.li
 			// layout
@@ -20,6 +25,7 @@ export function AccordionItem({
 		>
 			<div className="flex select-none items-center gap-2 overflow-hidden pr-1 text-zinc-600 dark:text-zinc-300">
 				<Link
+					onContextMenu={onContextMenu}
 					title={itemName}
 					target="_blank"
 					className="flex flex-1 items-center gap-2 overflow-x-hidden rounded-md px-2 py-1"

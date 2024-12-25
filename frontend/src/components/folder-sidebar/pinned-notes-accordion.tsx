@@ -1,12 +1,15 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useRef, useState } from "react";
 import {
+	contextMenuDataAtom,
 	projectSettingsAtom,
 	projectSettingsWithQueryParamsAtom,
 } from "../../atoms";
+import { usePinNotesMutation } from "../../hooks/note-events";
 import { useListVirtualization } from "../../hooks/observers";
 import { PinTack2 } from "../../icons/pin-tack-2";
+import { PinTackSlash } from "../../icons/pin-tack-slash";
 import { AccordionButton } from "../sidebar/accordion-button";
 import { AccordionItem } from "../sidebar/accordion-item";
 
@@ -26,20 +29,68 @@ function VirtualizedPinnedNotes({
 	const pinnedNotesWithQueryParamsArray = Array.from(
 		projectSettingsWithQueryParams.pinnedNotes,
 	);
+	const setContextMenuData = useSetAtom(contextMenuDataAtom);
 
-	const { visibleItems, onScroll, listContainerHeight, listHeight, listTop } =
-		useListVirtualization(
-			pinnedNotesArray,
-			SIDEBAR_ITEM_HEIGHT,
-			VIRUTALIZATION_HEIGHT,
-			listScrollContainerRef,
-		);
+	const {
+		visibleItems,
+		onScroll,
+		listContainerHeight,
+		listHeight,
+		listTop,
+		startIndex,
+	} = useListVirtualization(
+		pinnedNotesArray,
+		SIDEBAR_ITEM_HEIGHT,
+		VIRUTALIZATION_HEIGHT,
+		listScrollContainerRef,
+	);
+	const { mutate: pinOrUnpinNote } = usePinNotesMutation();
 
 	const pinnedNotesElements = visibleItems.map((pinnedNote, i) => {
-		const itemName = pinnedNote.split("/").pop();
-		if (!itemName) return null;
-		const url = pinnedNotesWithQueryParamsArray[i];
-		return <AccordionItem key={url} to={url} itemName={itemName} />;
+		const [folderName, noteName] = pinnedNote.split("/");
+		if (!noteName) return null;
+		const itemsIndex = startIndex + i;
+		const url = pinnedNotesWithQueryParamsArray[itemsIndex];
+		const noteNameWithQueryParams = pinnedNotesWithQueryParamsArray[itemsIndex]
+			.split("/")
+			.pop();
+		return (
+			<AccordionItem
+				onContextMenu={(e) => {
+					setContextMenuData({
+						x: e.clientX,
+						y: e.clientY,
+						isShowing: true,
+						items: [
+							{
+								label: (
+									<span className="flex items-center gap-1.5">
+										<PinTackSlash
+											width={17}
+											height={17}
+											className="will-change-transform"
+										/>{" "}
+										Unpin Note
+									</span>
+								),
+								value: "unpin-note",
+								onChange: () =>
+									pinOrUnpinNote({
+										folder: folderName,
+										selectionRange: new Set([
+											`note:${noteNameWithQueryParams}`,
+										]),
+										shouldPin: false,
+									}),
+							},
+						],
+					});
+				}}
+				key={url}
+				to={url}
+				itemName={noteName}
+			/>
+		);
 	});
 
 	return (
@@ -66,7 +117,14 @@ function VirtualizedPinnedNotes({
 						top: listTop,
 					}}
 				>
-					{isPinnedNotesOpen && pinnedNotesElements}
+					{isPinnedNotesOpen && pinnedNotesElements.length > 0 ? (
+						pinnedNotesElements
+					) : (
+						<li className="text-center text-balance list-none text-zinc-500 dark:text-zinc-300 text-xs">
+							No pinned notes. Right click a note to open the context menu and
+							pin it.
+						</li>
+					)}
 				</ul>
 			</div>
 		</motion.div>

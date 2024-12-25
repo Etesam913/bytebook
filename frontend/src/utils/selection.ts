@@ -1,8 +1,5 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
-import {
-	SIDEBAR_ITEM_HEIGHT,
-	VIRUTALIZATION_HEIGHT,
-} from "../components/sidebar";
+import { SIDEBAR_ITEM_HEIGHT } from "../components/sidebar";
 import { extractInfoFromNoteName } from "./string-formatting";
 
 /**
