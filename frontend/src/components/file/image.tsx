@@ -5,6 +5,7 @@ import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { ResizeContainer } from "../resize-container";
+import { FileError } from "./error";
 
 export function Image({
 	src,
@@ -25,6 +26,7 @@ export function Image({
 
 	const [isInViewport, setIsInViewport] = useState(true);
 	const [isLoading, setIsLoading] = useState(true);
+	const [isError, setIsError] = useState(false);
 
 	const {
 		isResizing,
@@ -47,6 +49,17 @@ export function Image({
 	);
 
 	useShowWhenInViewport(loaderRef, setIsInViewport, isExpanded);
+
+	if (isError) {
+		return (
+			<FileError
+				editor={editor}
+				isSelected={isSelected}
+				src={src}
+				nodeKey={nodeKey}
+			/>
+		);
+	}
 
 	return (
 		<div
@@ -90,6 +103,7 @@ export function Image({
 							style={{ display: isLoading ? "none" : "block" }}
 							src={src}
 							onLoad={() => setIsLoading(false)}
+							onError={() => setIsError(true)}
 							ref={imgRef}
 							alt={alt}
 							draggable={false}

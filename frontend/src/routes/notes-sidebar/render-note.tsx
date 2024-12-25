@@ -61,23 +61,19 @@ export function RenderNote({
 					<h1 className="text-base overflow-ellipsis overflow-hidden ">
 						{folder}/{note}.{fileExtension}
 					</h1>
-					{(isVideo || isImage) && (
-						<MotionIconButton
-							title="Open In Default App"
-							{...getDefaultButtonVariants()}
-							className="ml-auto"
-							onClick={() => {
-								revealInFinder({
-									folder,
-									selectionRange: new Set([
-										`note:${note}?ext=${fileExtension}`,
-									]),
-								});
-							}}
-						>
-							<ShareRight title="Open In Default App" />
-						</MotionIconButton>
-					)}
+					<MotionIconButton
+						title="Open In Default App"
+						{...getDefaultButtonVariants()}
+						className="ml-auto"
+						onClick={() => {
+							revealInFinder({
+								folder,
+								selectionRange: new Set([`note:${note}?ext=${fileExtension}`]),
+							});
+						}}
+					>
+						<ShareRight title="Open In Default App" />
+					</MotionIconButton>
 				</header>
 			)}
 			{isMarkdown && (

@@ -5,6 +5,7 @@ import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { ResizeContainer } from "../resize-container";
+import { FileError } from "./error";
 
 export function Video({
 	src,
@@ -24,6 +25,7 @@ export function Video({
 	const [isInViewport, setIsInViewport] = useState(true);
 	const loaderRef = useRef<HTMLDivElement>(null); // Reference for loader
 	const [isLoading, setIsLoading] = useState(true);
+	const [isError, setIsError] = useState(false);
 
 	const {
 		isResizing,
@@ -46,6 +48,17 @@ export function Video({
 	);
 
 	useShowWhenInViewport(loaderRef, setIsInViewport, isExpanded);
+
+	if (isError) {
+		return (
+			<FileError
+				editor={editor}
+				src={src}
+				nodeKey={nodeKey}
+				isSelected={isSelected}
+			/>
+		);
+	}
 
 	return (
 		<div
@@ -91,6 +104,7 @@ export function Video({
 								src={src}
 								controls
 								onLoadedData={() => setIsLoading(false)}
+								onError={() => setIsError(true)}
 								preload="auto"
 								crossOrigin="anonymous"
 								data-nodeKey={nodeKey}

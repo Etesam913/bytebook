@@ -4,9 +4,9 @@ import { Loader } from "../../icons/loader";
 import type { ResizeWidth } from "../../types";
 import type { FileType } from "../editor/nodes/file";
 import { getFileElementTypeFromExtensionAndHead } from "../editor/utils/file-node";
-import { UnknownAttachment } from "../unknown-attachment";
 import { Image } from "./image";
 import { Pdf } from "./pdf";
+import { UnknownAttachment } from "./unknown-attachment";
 import { Video } from "./video";
 import { YouTube } from "./youtube";
 

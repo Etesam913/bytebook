@@ -120,7 +120,7 @@ function VirtualizedPinnedNotes({
 					{isPinnedNotesOpen && pinnedNotesElements.length > 0 ? (
 						pinnedNotesElements
 					) : (
-						<li className="text-center text-balance list-none text-zinc-500 dark:text-zinc-300 text-xs">
+						<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
 							No pinned notes. Right click a note to open the context menu and
 							pin it.
 						</li>

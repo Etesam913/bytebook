@@ -6,8 +6,8 @@ import { mostRecentNotesAtom } from "../../../atoms";
 /** Updates the most recent notes queue */
 export function useMostRecentNotes(
 	folder: string,
-	note: string,
-	fileExtension: string,
+	note: string | undefined,
+	fileExtension: string | undefined,
 ) {
 	const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);
 
