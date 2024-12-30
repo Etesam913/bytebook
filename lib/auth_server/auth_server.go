@@ -2,19 +2,15 @@ package auth_server
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
-
-var GithubClientId = os.Getenv("GITHUB_CLIENT_ID")
-var GithubAppSecret = os.Getenv("GITHUB_CLIENT_SECRET")
+var GithubClientId = "Ov23liBxzSobDbxBY9UJ"
 
 // CORSHandler is a middleware function that adds CORS headers to the response
 func CORSHandler(next http.Handler) http.Handler {
@@ -30,10 +26,6 @@ func CORSHandler(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
-}
-
-func helloHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, World!")
 }
 
 func readJSONBody[T any](w http.ResponseWriter, r *http.Request) (T, error) {
@@ -86,15 +78,16 @@ func revokeAuthToken(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	url := fmt.Sprintf("https://api.github.com/applications/%s/grant", GithubClientId)
 
 	bodyData, err := readJSONBody[AccessTokenBody](w, r)
 	if err != nil {
 		return
 	}
 
+	accessToken := bodyData.AccessToken
+
 	payload := map[string]string{
-		"access_token": bodyData.AccessToken,
+		"access_token": accessToken,
 	}
 
 	jsonData, err := json.Marshal(payload)
@@ -103,17 +96,13 @@ func revokeAuthToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	credentials := base64.StdEncoding.EncodeToString([]byte(GithubClientId + ":" + GithubAppSecret))
-	headers := map[string]string{
-		"Authorization": "Basic " + credentials,
-		"Content-Type":  "application/json",
-	}
+	resp, err := makeHTTPRequest(
+		http.MethodDelete,
+		"https://us-central1-inner-radius-446219-f7.cloudfunctions.net/revoke-github-auth-token",
+		map[string]string{},
+		jsonData,
+	)
 
-	resp, err := makeHTTPRequest(http.MethodDelete, url, headers, jsonData)
-	if err != nil {
-		http.Error(w, "Failed to send request", http.StatusInternalServerError)
-		return
-	}
 	defer resp.Body.Close()
 
 	_, err = io.ReadAll(resp.Body)
@@ -147,26 +136,29 @@ func githubAuthCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payload := map[string]string{
-		"client_id":     GithubClientId,
-		"client_secret": GithubAppSecret,
-		"code":          codeParam,
-		"redirect_uri":  os.Getenv("GITHUB_REDIRECT_URI"),
+		"code": codeParam,
 	}
+
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		http.Error(w, "Failed to marshal payload", http.StatusInternalServerError)
 		return
 	}
-
 	headers := map[string]string{
 		"Content-Type": "application/json",
 	}
 
-	resp, err := makeHTTPRequest(http.MethodPost, "https://github.com/login/oauth/access_token", headers, jsonData)
-	if err != nil {
-		http.Error(w, "Failed to send request", http.StatusInternalServerError)
+	resp, err := makeHTTPRequest(
+		http.MethodPost,
+		"https://us-central1-inner-radius-446219-f7.cloudfunctions.net/get-github-access-token",
+		headers,
+		jsonData,
+	)
+
+	if err != nil{
 		return
 	}
+
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
@@ -181,6 +173,7 @@ func githubAuthCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("deez", values)
 	accessToken := values.Get("access_token")
 	if accessToken == "" {
 		http.Error(w, "No access token", http.StatusInternalServerError)
@@ -194,7 +187,6 @@ func githubAuthCallback(w http.ResponseWriter, r *http.Request) {
 
 func LaunchAuthServer() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", helloHandler)
 	mux.HandleFunc("/auth/github/login", loginToGithub)
 	mux.HandleFunc("/auth/github/callback", githubAuthCallback)
 	mux.HandleFunc("/auth/github/logout", revokeAuthToken)
