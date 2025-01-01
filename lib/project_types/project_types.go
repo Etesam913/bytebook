@@ -1,17 +1,23 @@
 package project_types
 
-type WindowEventData struct{
+type WindowEventData struct {
 	Folder string
-	Note string
+	Note   string
 }
 
 type WindowOptions struct {
 	Title string
 }
-
 type ProjectSettingsJson struct {
-	PinnedNotes []string `json:"pinnedNotes"`
-	ProjectPath string   `json:"projectPath"`
+	PinnedNotes        []string `json:"pinnedNotes"`
+	ProjectPath        string   `json:"projectPath"`
+	RepositoryToSyncTo string   `json:"repositoryToSyncTo"`
+}
+
+type ProjectSettingsReponse struct {
+	Success bool                `json:"success"`
+	Message string              `json:"message"`
+	Data    ProjectSettingsJson `json:"data"`
 }
 
 type BackendResponseWithData struct {
@@ -21,6 +27,6 @@ type BackendResponseWithData struct {
 }
 
 type BackendResponseWithoutData struct {
-	Success bool     `json:"success"`
-	Message string   `json:"message"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }

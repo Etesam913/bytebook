@@ -38,6 +38,7 @@ export const windowSettingsAtom = atom<WindowSettings | null>(null);
 
 export const projectSettingsAtom = atom<ProjectSettings>({
 	pinnedNotes: new Set([]),
+	repositoryToSyncTo: "",
 	projectPath: "",
 });
 export const projectSettingsWithQueryParamsAtom = atom((get) => {

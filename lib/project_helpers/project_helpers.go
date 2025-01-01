@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/lib/project_types"
 )
 
 const ProjectName = "Bytebook"
@@ -57,4 +58,34 @@ func GenerateRandomID() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
+}
+
+func GetProjectSettings(projectPath string) project_types.ProjectSettingsReponse {
+	var projectSettings project_types.ProjectSettingsJson
+	projectSettingsPath := filepath.Join(projectPath, "settings", "settings.json")
+	err := io_helpers.ReadJsonFromPath(projectSettingsPath, &projectSettings)
+
+	// The file does not exist
+	if err != nil {
+		err = io_helpers.WriteJsonToPath(projectSettingsPath,
+			project_types.ProjectSettingsJson{
+				PinnedNotes:        []string{},
+				ProjectPath:        projectPath,
+				RepositoryToSyncTo: "",
+			},
+		)
+		if err != nil {
+			return project_types.ProjectSettingsReponse{Success: false, Message: "Failed to write project settings"}
+		}
+		err = io_helpers.ReadJsonFromPath(projectSettingsPath, &projectSettings)
+		if err != nil {
+			return project_types.ProjectSettingsReponse{Success: false, Message: "Failed to read project settings"}
+		}
+	}
+	validPinnedNotes := io_helpers.GetValidPinnedNotes(projectPath, projectSettings)
+	projectSettings.PinnedNotes = validPinnedNotes
+	// Write the updated project settings to the file
+	io_helpers.WriteJsonToPath(projectSettingsPath, projectSettings)
+
+	return project_types.ProjectSettingsReponse{Success: true, Message: "", Data: projectSettings}
 }

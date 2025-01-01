@@ -15,6 +15,7 @@ export const DropdownItems = forwardRef<
 	HTMLDivElement,
 	{
 		items: DropdownItem[];
+		maxHeight?: number;
 		isOpen: boolean;
 		setIsOpen: Dispatch<SetStateAction<boolean>> | ((value: boolean) => void);
 		setValueIndex?: Dispatch<SetStateAction<number>>;
@@ -29,6 +30,7 @@ export const DropdownItems = forwardRef<
 	(
 		{
 			items,
+			maxHeight,
 			isOpen,
 			setIsOpen,
 			setValueIndex,
@@ -62,7 +64,8 @@ export const DropdownItems = forwardRef<
 						role="menu"
 						ref={ref}
 						className={cn(
-							"absolute z-20 w-full translate-y-1 overflow-hidden rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700",
+							"absolute z-20 w-full overflow-hidden translate-y-1 rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700",
+							maxHeight && "overflow-y-auto",
 							className,
 						)}
 						style={style}
@@ -76,7 +79,7 @@ export const DropdownItems = forwardRef<
 						<motion.div
 							initial={{ height: 0 }}
 							animate={{
-								height: "auto",
+								height: maxHeight ? maxHeight : "auto",
 								transition: { type: "spring", damping: 22, stiffness: 200 },
 							}}
 							exit={{ height: 0, opacity: 0 }}
@@ -86,10 +89,7 @@ export const DropdownItems = forwardRef<
 								className="flex flex-col overflow-y-auto overflow-x-hidden px-[4.5px] py-[6px] gap-0.5"
 							>
 								{items.map(({ value, label }, i) => (
-									<div
-										className="w-full inline relative whitespace-nowrap text-ellipsis"
-										key={value}
-									>
+									<div className="w-full inline relative" key={value}>
 										{focusIndex === i && (
 											<motion.div
 												transition={{ ease: easingFunctions["ease-out-expo"] }}
@@ -102,7 +102,7 @@ export const DropdownItems = forwardRef<
 										)}
 										<button
 											className={cn(
-												"relative z-40 outline-none rounded-md w-full px-1.5 py-0.5 text-left flex",
+												"relative z-40 outline-none rounded-md w-full px-1.5 py-0.5 text-left whitespace-nowrap text-nowrap text-ellipsis overflow-hidden flex",
 											)}
 											type="button"
 											role="menuitem"

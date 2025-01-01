@@ -2,7 +2,6 @@ package git_helpers
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -37,7 +36,7 @@ c/
 	}
 }
 
-func SetRepoOrigin(originUrl string) {
+func SetRepoOrigin(originUrl string) bool {
 	projectPath, err := project_helpers.GetProjectPath()
 	if err != nil {
 		log.Fatalf("Cannot get project path: %v", err)
@@ -46,15 +45,20 @@ func SetRepoOrigin(originUrl string) {
 	if err != nil {
 		log.Fatalf("Could not open repo: %v", err)
 	}
+	originRemote, _ := repo.Remote("origin")
 
+	// Remove the "origin" remote so the CreateRemote is not stale
+	if originRemote != nil {
+		err := repo.DeleteRemote("origin")
+		if err != nil {
+			return true
+		}
+	}
 	_, err = repo.CreateRemote(&config.RemoteConfig{
 		Name: "origin",
 		URLs: []string{originUrl},
 	})
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	return err != nil
 }
 
 type GitResponse struct {

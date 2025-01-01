@@ -82,7 +82,6 @@ func SetupTerminal(app *application.App, projectPath string, nodeKey string, sta
 	handleTerminalResize(app, ptmx, nodeKey)
 	// Make sure to close the pty at the end.
 	defer func() {
-		fmt.Println("closed")
 		_ = ptmx.Close()
 
 	}()
@@ -95,7 +94,6 @@ func SetupTerminal(app *application.App, projectPath string, nodeKey string, sta
 			break
 		}
 		currentCommand := string(buf[:n])
-		fmt.Println("current command: ", currentCommand)
 		terminalOutputEventName := fmt.Sprintf("terminal:output-%s", nodeKey)
 		app.EmitEvent(terminalOutputEventName, terminalData{
 			Type:  "command",

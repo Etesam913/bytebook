@@ -36,7 +36,6 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) NoteRespons
 	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	// Ensure the directory exists
 	if _, err := os.Stat(folderPath); err != nil {
-		fmt.Println(err, fmt.Sprintf(": Cannot get notes from this %s because it does not exist", folderName))
 		return NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
 	}
 
@@ -195,14 +194,12 @@ func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 			}
 			folderAndNote := pathAsRunes[0:lastIndexOfDot]
 			extension := pathAsRunes[lastIndexOfDot+1:]
-			fmt.Println(string(pathAsRunes), string(extension))
 
 			fullPath := string(folderAndNote) + "?ext=" + string(extension)
 			validPaths = append(validPaths, fullPath)
 		}
 
 	}
-	fmt.Println(validPaths)
 	return validPaths
 }
 

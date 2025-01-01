@@ -71,7 +71,6 @@ export function AddTagDialogChildren({
 				tagValue.startsWith(inputValue) &&
 				!addedTags.includes(tag) &&
 				!addedTags.includes(tagValue) &&
-				// inputValue.length > 0 &&
 				!tag.includes("#")
 			);
 		})

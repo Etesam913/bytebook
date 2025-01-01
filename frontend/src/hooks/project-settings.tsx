@@ -19,11 +19,13 @@ async function getProjectSettings(
 		if (!projectSettingsResponse.success) {
 			throw new Error(projectSettingsResponse.message);
 		}
-		const { projectPath, pinnedNotes } = projectSettingsResponse.data;
+		const { projectPath, pinnedNotes, repositoryToSyncTo } =
+			projectSettingsResponse.data;
 
 		setProjectSettings({
 			projectPath,
 			pinnedNotes: new Set(pinnedNotes),
+			repositoryToSyncTo,
 		});
 	} catch (err) {
 		if (err instanceof Error) {
@@ -52,10 +54,11 @@ export function useUpdateProjectSettingsMutation() {
 		mutationFn: async ({
 			newProjectSettings,
 		}: { newProjectSettings: ProjectSettings }) => {
-			await UpdateProjectSettings({
+			const res = await UpdateProjectSettings({
 				...newProjectSettings,
 				pinnedNotes: [...newProjectSettings.pinnedNotes],
 			});
+			if (!res.success) throw new Error(res.message);
 		},
 		onError: (e) => {
 			if (e instanceof Error) {

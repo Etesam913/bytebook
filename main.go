@@ -42,10 +42,13 @@ func main() {
 	if err := os.MkdirAll(notesPath, os.ModePerm); err != nil {
 		log.Fatalf("Failed to create notes directory: %v", err)
 	}
-
+	projectSettings := project_helpers.GetProjectSettings(projectPath)
+	if !projectSettings.Success {
+		log.Fatalf("Failed to create/get project settings")
+	}
 	// Creating git repo if it does not already exist
 	git_helpers.InitializeGitRepo(projectPath)
-	git_helpers.SetRepoOrigin("https://github.com/Etesam913/bytebook-test.git")
+	git_helpers.SetRepoOrigin(projectSettings.Data.RepositoryToSyncTo)
 
 	terminal_helpers.GenerateFoldersForLanguages(projectPath)
 	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "settings"))

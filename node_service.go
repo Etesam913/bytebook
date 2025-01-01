@@ -110,11 +110,11 @@ type GitResponse struct {
 	Error   error  `json:"error"`
 }
 
-func (n *NodeService) SyncChangesWithRepo(username string, accessToken string) GitResponse {
+func (n *NodeService) SyncChangesWithRepo(username, accessToken, repositoryToSyncTo string) GitResponse {
 	if len(username) == 0 {
 		return GitResponse{Success: false, Message: "You must first login to be able to sync changes", Error: errors.New("username cannot be empty")}
 	}
-	fmt.Println(username, accessToken)
+	fmt.Println("repository to sync to:", repositoryToSyncTo)
 	var auth = &http.BasicAuth{
 		Username: username,
 		Password: accessToken,
@@ -136,16 +136,18 @@ func (n *NodeService) SyncChangesWithRepo(username string, accessToken string) G
 	err = worktree.Pull(&git.PullOptions{
 		RemoteName: "origin",
 		Auth:       auth,
-		RemoteURL:  "https://github.com/Etesam913/bytebook-test.git",
+		RemoteURL:  repositoryToSyncTo,
+		Force:      true,
 	})
 
 	// Handling the error
 	if err != nil {
 		fmt.Println(err)
 		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
-			return GitResponse{Success: false, Message: "Error when pulling from your repo", Error: err}
+			return GitResponse{Success: false, Message: "Error when pulling from your repo: " + err.Error(), Error: err}
 		}
 	}
+
 	// } else if !errors.Is(err, git.NoErrAlreadyUpToDate) {
 	// 	fmt.Println(err)
 	// 	fmt.Println("Pulled latest changes from origin.")

@@ -8,6 +8,7 @@ import { DropdownItems } from "./dropdown-items";
 
 export function Dropdown({
 	items,
+	maxHeight,
 	className,
 	buttonClassName,
 	controlledValueIndex,
@@ -15,6 +16,7 @@ export function Dropdown({
 	disabled,
 }: {
 	items: DropdownItem[];
+	maxHeight?: number;
 	className?: string;
 	buttonClassName?: string;
 	controlledValueIndex?: number;
@@ -32,8 +34,9 @@ export function Dropdown({
 		if (
 			controlledValueIndex !== undefined &&
 			controlledValueIndex !== valueIndex
-		)
+		) {
 			setValueIndex(controlledValueIndex > -1 ? controlledValueIndex : 0);
+		}
 	}, [controlledValueIndex, valueIndex]);
 
 	return (
@@ -46,7 +49,7 @@ export function Dropdown({
 				aria-haspopup="true"
 				aria-expanded={isOpen}
 				className={cn(
-					"flex items-center rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 px-2 py-0.5 text-left dark:border-zinc-600 dark:bg-zinc-700",
+					"flex items-center rounded-md gap-1.5 border-[1.25px] border-zinc-300 bg-zinc-50 px-2 py-0.5 text-left dark:border-zinc-600 dark:bg-zinc-700",
 					buttonClassName,
 					disabled && "pointer-events-none opacity-50",
 				)}
@@ -62,6 +65,7 @@ export function Dropdown({
 
 			<DropdownItems
 				items={items}
+				maxHeight={maxHeight}
 				isOpen={isOpen}
 				setIsOpen={setIsOpen}
 				setValueIndex={setValueIndex}
