@@ -20,8 +20,8 @@ export function FileError({
 			data-nodeKey={nodeKey}
 			data-interactable="true"
 			className={cn(
-				"max-w-80 relative flex flex-col items-center gap-1 text-center dark:text-zinc-300 dark:bg-zinc-700 rounded-md px-2 py-1.5 outline outline-2 outline-zinc-650",
-				isSelected && "  outline-blue-500",
+				"max-w-80 relative flex flex-col items-center gap-1 text-center bg-zinc-50 text-zinc-600 dark:text-zinc-300 dark:bg-zinc-700 rounded-md px-2 py-1.5 outline outline-2 outline-zinc-200 dark:outline-zinc-650",
+				isSelected && "!outline-blue-500",
 			)}
 		>
 			<AnimatePresence>

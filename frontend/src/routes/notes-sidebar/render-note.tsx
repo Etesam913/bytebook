@@ -100,6 +100,7 @@ export function RenderNote({
 
 			{isImage && (
 				<SidebarImage
+					key={`folder-${folder}-note-${note}-video`}
 					folder={folder}
 					note={note}
 					fileUrl={fileUrl}
@@ -110,6 +111,7 @@ export function RenderNote({
 
 			{isVideo && (
 				<SidebarVideo
+					key={`folder-${folder}-note-${note}-video`}
 					folder={folder}
 					note={note}
 					fileUrl={fileUrl}
