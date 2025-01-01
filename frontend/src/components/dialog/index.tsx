@@ -10,7 +10,10 @@ import { MotionIconButton } from "../buttons";
 import { useTrapFocus } from "./hooks";
 import { Shade } from "./shade";
 
-export function DialogErrorText({ errorText }: { errorText: string }) {
+export function DialogErrorText({
+	errorText,
+	className,
+}: { errorText: string; className?: string }) {
 	const [elementRef, bounds] = useMeasure();
 	return (
 		<AnimatePresence>
@@ -29,7 +32,7 @@ export function DialogErrorText({ errorText }: { errorText: string }) {
 							ease: easingFunctions["ease-out-cubic"],
 						},
 					}}
-					className="text-red-500 text-[0.85rem] text-left"
+					className={cn("text-red-500 text-[0.85rem] text-left", className)}
 				>
 					<p ref={elementRef} className="pt-2">
 						{errorText}
@@ -55,6 +58,7 @@ export function Dialog() {
 			title: "",
 			children: null,
 			onClose: undefined,
+			isPending: false,
 		});
 		setErrorText("");
 	}
@@ -88,7 +92,15 @@ export function Dialog() {
 						onSubmit={async (e: FormEvent<HTMLFormElement>) => {
 							e.preventDefault();
 							if (dialogData.onSubmit) {
+								setDialogData((prev) => ({
+									...prev,
+									isPending: true,
+								}));
 								const result = await dialogData.onSubmit(e, setErrorText);
+								setDialogData((prev) => ({
+									...prev,
+									isPending: false,
+								}));
 								if (result) resetDialogState();
 							}
 						}}
@@ -109,7 +121,7 @@ export function Dialog() {
 						)}
 					>
 						<h2 className=" text-xl">{dialogData.title}</h2>
-						{dialogData.children?.(errorText)}
+						{dialogData.children?.(errorText, dialogData.isPending)}
 						<MotionIconButton
 							autoFocus
 							{...getDefaultButtonVariants()}

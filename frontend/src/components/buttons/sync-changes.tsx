@@ -1,24 +1,31 @@
 import { useMutation } from "@tanstack/react-query";
-import { useAtomValue } from "jotai/react";
+import { useAtomValue, useSetAtom } from "jotai/react";
 import { toast } from "sonner";
 import { SyncChangesWithRepo } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
-import { projectSettingsAtom, userDataAtomWithLocalStorage } from "../../atoms";
+import {
+	dialogDataAtom,
+	projectSettingsAtom,
+	userDataAtomWithLocalStorage,
+} from "../../atoms";
 import { FileRefresh } from "../../icons/file-refresh";
-import { Loader } from "../../icons/loader";
 import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
+import { SyncChangesDialog } from "../sync-changes-dialog";
 
 export function SyncChangesButton() {
 	const userData = useAtomValue(userDataAtomWithLocalStorage);
+	const setDialogData = useSetAtom(dialogDataAtom);
 	const { repositoryToSyncTo } = useAtomValue(projectSettingsAtom);
-	const syncChangesWithRepoMutation = useMutation({
+	const { mutateAsync: syncChangesWithRepo, isPending } = useMutation({
 		mutationFn: async ({
 			login,
 			accessToken,
-		}: { login: string; accessToken: string }) => {
+			commitMessage,
+		}: { login: string; accessToken: string; commitMessage: string }) => {
 			const res = await SyncChangesWithRepo(
 				login,
 				accessToken,
 				repositoryToSyncTo,
+				commitMessage,
 			);
 			if (!res.success) throw new Error(res.message);
 			return res.message;
@@ -26,32 +33,52 @@ export function SyncChangesButton() {
 		onSuccess: (message) => {
 			toast.success(message, DEFAULT_SONNER_OPTIONS);
 		},
-		onError: (error) => {
-			if (error instanceof Error) {
-				toast.error(error.message, DEFAULT_SONNER_OPTIONS);
-			}
-		},
 	});
-
 	return (
 		<button
 			type="button"
-			disabled={syncChangesWithRepoMutation.isPending}
+			disabled={isPending}
 			className="flex gap-1 items-center hover:bg-zinc-100 hover:dark:bg-zinc-650 p-1 rounded-md transition-colors"
 			onClick={() => {
-				syncChangesWithRepoMutation.mutate({
-					login: userData?.login ?? "",
-					accessToken: userData?.accessToken ?? "",
+				setDialogData({
+					isOpen: true,
+					isPending: false,
+					title: "Sync Changes",
+					dialogClassName: "w-[min(30rem,90vw)]",
+					children: (errorText, isPending) => (
+						<SyncChangesDialog errorText={errorText} isPending={isPending} />
+					),
+					onSubmit: async (e, setErrorText) => {
+						try {
+							const formData = new FormData(e.target as HTMLFormElement);
+							const commitMessage = formData.get("commit-message");
+							if (
+								!commitMessage ||
+								typeof commitMessage !== "string" ||
+								commitMessage.trim().length === 0
+							)
+								throw new Error("Commit message cannot be empty");
+							if (userData?.login === null || userData?.accessToken === null) {
+								throw new Error("You must be logged in to sync changes");
+							}
+							const commitMessageString = commitMessage.toString().trim();
+							const resMessage = await syncChangesWithRepo({
+								login: userData?.login ?? "",
+								accessToken: userData?.accessToken ?? "",
+								commitMessage: commitMessageString,
+							});
+							const didSucceed =
+								resMessage !== null && resMessage !== undefined;
+							return didSucceed;
+						} catch (e) {
+							if (e instanceof Error) setErrorText(e.message);
+							return false;
+						}
+					},
 				});
 			}}
 		>
-			{syncChangesWithRepoMutation.isPending ? (
-				<Loader height={20} width={20} className="my-0.5 mx-auto" />
-			) : (
-				<>
-					<FileRefresh /> Sync Changes
-				</>
-			)}
+			<FileRefresh /> Sync Changes
 		</button>
 	);
 }

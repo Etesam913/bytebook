@@ -52,7 +52,7 @@ export type ResizeState = {
 export type DialogDataType = {
 	isOpen: boolean;
 	title: string;
-	children: ((errorText: string) => ReactNode) | null;
+	children: ((errorText: string, isPending: boolean) => ReactNode) | null;
 	dialogClassName?: string;
 	onSubmit:
 		| ((
@@ -61,6 +61,7 @@ export type DialogDataType = {
 		  ) => Promise<boolean>)
 		| null;
 	onClose?: () => void;
+	isPending: boolean;
 };
 
 export type SearchPanelDataType = {

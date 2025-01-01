@@ -110,7 +110,7 @@ type GitResponse struct {
 	Error   error  `json:"error"`
 }
 
-func (n *NodeService) SyncChangesWithRepo(username, accessToken, repositoryToSyncTo string) GitResponse {
+func (n *NodeService) SyncChangesWithRepo(username, accessToken, repositoryToSyncTo, commitMessage string) GitResponse {
 	if len(username) == 0 {
 		return GitResponse{Success: false, Message: "You must first login to be able to sync changes", Error: errors.New("username cannot be empty")}
 	}
@@ -142,8 +142,8 @@ func (n *NodeService) SyncChangesWithRepo(username, accessToken, repositoryToSyn
 
 	// Handling the error
 	if err != nil {
-		fmt.Println(err)
-		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
+		if !errors.Is(err, git.NoErrAlreadyUpToDate) && err.Error() != "remote repository is empty" {
+			fmt.Println(err)
 			return GitResponse{Success: false, Message: "Error when pulling from your repo: " + err.Error(), Error: err}
 		}
 	}
@@ -177,7 +177,7 @@ func (n *NodeService) SyncChangesWithRepo(username, accessToken, repositoryToSyn
 
 	fmt.Println("Comitting changes")
 	// Committing the changes
-	_, err = worktree.Commit("test-commit", &git.CommitOptions{})
+	_, err = worktree.Commit(commitMessage, &git.CommitOptions{})
 	if err != nil {
 		fmt.Println(err)
 		return GitResponse{Success: false, Message: "Error when commiting changes", Error: err}

@@ -101,6 +101,7 @@ export const dialogDataAtom = atom<DialogDataType>({
 	children: null,
 	onSubmit: null,
 	dialogClassName: "",
+	isPending: false,
 });
 
 export const backendQueryAtom = atom<BackendQueryDataType>({
