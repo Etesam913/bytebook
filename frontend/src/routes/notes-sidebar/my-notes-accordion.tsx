@@ -1,4 +1,5 @@
 import { useAtom } from "jotai/react";
+import type { NoteEntry } from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models.js";
 import { noteSortAtom } from "../../atoms";
 import { SortButton } from "../../components/buttons/sort";
 import { Sidebar } from "../../components/sidebar";
@@ -14,7 +15,7 @@ export function MyNotesAccordion({
 	curNote,
 	tagState,
 }: {
-	notes: string[] | null;
+	notes: NoteEntry[] | null;
 	noteCount: number;
 	curFolder: string;
 	curNote: string | undefined;
@@ -55,7 +56,7 @@ export function MyNotesAccordion({
 					</li>
 				}
 				activeDataItem={activeDataItem}
-				data={notes}
+				data={notes?.map((note) => note.name) ?? []}
 				renderLink={({
 					dataItem: sidebarNoteName,
 					i,

@@ -67,9 +67,9 @@ export function NoteTitle({
 								name: "notes:changed",
 								data: {
 									windowId: WINDOW_ID,
-									notes: notes?.map((v) => (v === note ? noteTitle : v)) ?? [
-										noteTitle,
-									],
+									notes: notes?.map((v) =>
+										v.name === note ? noteTitle : v,
+									) ?? [noteTitle],
 								},
 							});
 							navigate(`/${folder}/${encodeURIComponent(noteTitle)}?ext=md`);

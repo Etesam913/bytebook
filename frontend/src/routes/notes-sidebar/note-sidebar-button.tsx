@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai/react";
 import { type Dispatch, type SetStateAction, useMemo } from "react";
+import type { NoteEntry } from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
 import {
 	contextMenuDataAtom,
 	dialogDataAtom,
@@ -51,7 +52,7 @@ export function NoteSidebarButton({
 	};
 	selectionRange: Set<string>;
 	setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
-	notes: string[] | null;
+	notes: NoteEntry[] | null;
 	i: number;
 	tagState?: {
 		tagName: string;
@@ -91,7 +92,7 @@ export function NoteSidebarButton({
 					e,
 					setSelectionRange,
 					"note",
-					notes?.at(i) ?? "",
+					notes?.at(i)?.name ?? "",
 					setDraggedElement,
 					curFolder,
 				)
@@ -199,6 +200,7 @@ export function NoteSidebarButton({
 							onChange: () => {
 								setDialogData({
 									isOpen: true,
+									isPending: false,
 									title: "Add Tags",
 									children: (errorText) => (
 										<AddTagDialogChildren onSubmitErrorText={errorText} />
@@ -241,7 +243,7 @@ export function NoteSidebarButton({
 				"sidebar-item",
 				isActive && "bg-zinc-150 dark:bg-zinc-700",
 				notes?.at(i) &&
-					selectionRange.has(`note:${notes[i]}`) &&
+					selectionRange.has(`note:${notes[i].name}`) &&
 					"!bg-blue-400 dark:!bg-blue-600 text-white",
 			)}
 			onClick={(e) => {

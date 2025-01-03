@@ -117,6 +117,7 @@ export function BottomBar({
 					onClick={() => {
 						setDialogData({
 							isOpen: true,
+							isPending: false,
 							title: "Add Tags",
 							children: (errorText) => (
 								<AddTagDialogChildren onSubmitErrorText={errorText} />

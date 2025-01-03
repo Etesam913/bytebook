@@ -10,6 +10,7 @@ import (
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
+
 var GithubClientId = "Ov23liBxzSobDbxBY9UJ"
 
 // CORSHandler is a middleware function that adds CORS headers to the response
@@ -155,7 +156,7 @@ func githubAuthCallback(w http.ResponseWriter, r *http.Request) {
 		jsonData,
 	)
 
-	if err != nil{
+	if err != nil {
 		return
 	}
 
@@ -173,7 +174,6 @@ func githubAuthCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("deez", values)
 	accessToken := values.Get("access_token")
 	if accessToken == "" {
 		http.Error(w, "No access token", http.StatusInternalServerError)

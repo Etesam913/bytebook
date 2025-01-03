@@ -3,6 +3,7 @@ import { Events } from "@wailsio/runtime";
 import { useAtomValue, useSetAtom } from "jotai/react";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { toast } from "sonner";
+import type { NoteEntry } from "../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
 import {
 	GetNotes,
 	MoveToTrash,
@@ -23,8 +24,8 @@ import { useUpdateProjectSettingsMutation } from "./project-settings";
 /** This function is used to handle note:create events */
 export function useNoteCreate(
 	folder: string,
-	notes: string[],
-	setNotes: Dispatch<SetStateAction<string[] | null>>,
+	notes: NoteEntry[],
+	setNotes: Dispatch<SetStateAction<NoteEntry[] | null>>,
 ) {
 	const noteSortData = useAtomValue(noteSortAtom);
 	useWailsEvent("note:create", async (body) => {
@@ -40,7 +41,7 @@ export function useNoteCreate(
 			.filter(
 				(item) =>
 					item.folder === decodeURIComponent(folder) &&
-					!notes.includes(item.note),
+					!notes.some((note) => note.name === item.note),
 			)
 			.map((item) => item.note);
 
@@ -58,7 +59,7 @@ export function useNoteCreate(
 export function useNoteDelete(
 	folder: string,
 	note: string | undefined,
-	setNotes: Dispatch<SetStateAction<string[] | null>>,
+	setNotes: Dispatch<SetStateAction<NoteEntry[] | null>>,
 ) {
 	useWailsEvent("note:delete", (body) => {
 		const data = (body.data as { folder: string; note: string }[][])[0];
@@ -79,10 +80,11 @@ export function useNoteDelete(
 			if (!prev) return prev;
 			// Filter out all notes that are in the same folder as a deleted note/
 			const newNotes = prev.filter(
-				(noteName) =>
+				(noteEntry) =>
 					!data.some(
 						({ folder: folderWithDeletedNotes, note: deletedNote }) =>
-							folder === folderWithDeletedNotes && noteName === deletedNote,
+							folder === folderWithDeletedNotes &&
+							noteEntry.name === deletedNote,
 					),
 			);
 			if (!note) return newNotes;

@@ -30,3 +30,15 @@ type BackendResponseWithoutData struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 }
+
+type NoteEntry struct {
+	Name        string `json:"name"`
+	LastUpdated string `json:"lastUpdated"`
+	Size        int    `json:"size"`
+}
+
+type NoteResponse struct {
+	Success bool        `json:"success"`
+	Message string      `json:"message"`
+	Data    []NoteEntry `json:"data"`
+}

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/list_helpers"
@@ -13,12 +14,6 @@ import (
 
 type NoteService struct {
 	ProjectPath string
-}
-
-type NoteResponse struct {
-	Success bool     `json:"success"`
-	Message string   `json:"message"`
-	Data    []string `json:"data"`
 }
 
 type NoteMarkdownResponse struct {
@@ -32,16 +27,16 @@ type AddFolderResponse struct {
 	Message string `json:"message"`
 }
 
-func (n *NoteService) GetNotes(folderName string, sortOption string) NoteResponse {
+func (n *NoteService) GetNotes(folderName string, sortOption string) project_types.NoteResponse {
 	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	// Ensure the directory exists
 	if _, err := os.Stat(folderPath); err != nil {
-		return NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
+		return project_types.NoteResponse{Success: false, Message: err.Error(), Data: []project_types.NoteEntry{}}
 	}
 
 	files, err := os.ReadDir(folderPath)
 	if err != nil {
-		return NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
+		return project_types.NoteResponse{Success: false, Message: err.Error(), Data: []project_types.NoteEntry{}}
 	}
 	var notes []os.DirEntry
 	for _, file := range files {
@@ -56,20 +51,28 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) NoteRespons
 	// Sort notes based on the sort option
 	list_helpers.SortNotes(notes, sortOption)
 
-	var sortedNotes []string
+	var sortedNotes []project_types.NoteEntry
 
 	// Using the query param syntax that the app supports
 	for _, file := range notes {
 		indexOfDot := strings.LastIndex(file.Name(), ".")
 		name := file.Name()[:indexOfDot]
 		extension := file.Name()[indexOfDot+1:]
-		sortedNotes = append(sortedNotes, fmt.Sprintf("%s?ext=%s", name, extension))
+		fileInfo, err := file.Info()
+		lastUpdated := ""
+		if err == nil {
+			lastUpdated = fileInfo.ModTime().Format(time.RFC3339)
+		}
+		sortedNotes = append(sortedNotes, project_types.NoteEntry{
+			Name:        fmt.Sprintf("%s?ext=%s", name, extension),
+			LastUpdated: lastUpdated,
+		})
 	}
 
-	return NoteResponse{Success: true, Message: "", Data: sortedNotes}
+	return project_types.NoteResponse{Success: true, Message: "", Data: sortedNotes}
 }
 
-func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNoteTitle string) NoteResponse {
+func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNoteTitle string) project_types.BackendResponseWithoutData {
 	noteBase := filepath.Join(n.ProjectPath, "notes", folderName)
 
 	doesExist, err := io_helpers.FileOrFolderExists(
@@ -77,11 +80,11 @@ func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNote
 	)
 
 	if err != nil {
-		return NoteResponse{Success: false, Message: err.Error()}
+		return project_types.BackendResponseWithoutData{Success: false, Message: err.Error()}
 	}
 
 	if doesExist {
-		return NoteResponse{
+		return project_types.BackendResponseWithoutData{
 			Success: false,
 			Message: fmt.Sprintf("%s already exists in /%s", newNoteTitle, folderName),
 		}
@@ -93,10 +96,10 @@ func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNote
 		filepath.Join(noteBase, fmt.Sprintf("%s.md", newNoteTitle)),
 	)
 	if err != nil {
-		return NoteResponse{Success: false, Message: err.Error()}
+		return project_types.BackendResponseWithoutData{Success: false, Message: err.Error()}
 	}
 
-	return NoteResponse{Success: true, Message: "Note renamed successfully"}
+	return project_types.BackendResponseWithoutData{Success: true, Message: "Note renamed successfully"}
 }
 
 func (n *NoteService) GetNoteMarkdown(path string) NoteMarkdownResponse {

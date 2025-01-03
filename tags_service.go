@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/list_helpers"
@@ -16,11 +17,11 @@ type TagsService struct {
 }
 
 type TagResponse struct {
-	Success bool     `json:"success"`
-	Message string   `json:"message"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }
 
-type TagJson struct{
+type TagJson struct {
 	Notes []string `json:"notes"`
 }
 
@@ -95,7 +96,6 @@ func addPathToTag(projectPath, tagName, folderAndNotePathWithoutQueryParam strin
 	return TagResponse{Success: true, Message: "Successfully Added Path To Tag"}
 }
 
-
 /*
 AddPathsToTags adds multiple note paths to multiple tags.
 For each tag in tagNames, it adds all folderAndNotePaths to its notes.json.
@@ -103,22 +103,21 @@ If a tag does not exist, it creates the tag and associates the note paths with i
 */
 func (t *TagsService) AddPathsToTags(tagNames []string, folderAndNotePathsWithoutQueryParam []string) TagResponse {
 	for _, tagName := range tagNames {
-			for _, folderAndNotePath := range folderAndNotePathsWithoutQueryParam {
-				response := addPathToTag(t.ProjectPath, tagName, folderAndNotePath)
-				if !response.Success {
-					return TagResponse{
-						Success: false,
-						Message: fmt.Sprintf("Failed to add path %s to tag %s: %s", folderAndNotePath, tagName, response.Message),
-					}
+		for _, folderAndNotePath := range folderAndNotePathsWithoutQueryParam {
+			response := addPathToTag(t.ProjectPath, tagName, folderAndNotePath)
+			if !response.Success {
+				return TagResponse{
+					Success: false,
+					Message: fmt.Sprintf("Failed to add path %s to tag %s: %s", folderAndNotePath, tagName, response.Message),
 				}
 			}
 		}
-		return TagResponse{
-			Success: true,
-			Message: "Successfully Added Paths To Tags",
-		}
+	}
+	return TagResponse{
+		Success: true,
+		Message: "Successfully Added Paths To Tags",
+	}
 }
-
 
 func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryParam string) project_types.BackendResponseWithData {
 	getTagsResponse := t.GetTags()
@@ -128,12 +127,13 @@ func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryPara
 	tagsForNote := []string{}
 	allTags := getTagsResponse.Data
 	for _, tag := range allTags {
-		notesResponse := t.GetNotesFromTag(tag, "file-name-a-z")
-		if !notesResponse.Success {
-			return notesResponse
+		notesEntriesResponse := t.GetNotesFromTag(tag, "file-name-a-z")
+		notesResponse := []string{}
+		for _, noteEntry := range notesEntriesResponse.Data {
+			notesResponse = append(notesResponse, noteEntry.Name)
 		}
 
-		notesWithQueryParamExtension := notesResponse.Data
+		notesWithQueryParamExtension := notesResponse
 		for _, folderAndNoteStringWithQueryParamFromFile := range notesWithQueryParamExtension {
 			if folderAndNotePathWithQueryParam == folderAndNoteStringWithQueryParamFromFile {
 				tagsForNote = append(tagsForNote, tag)
@@ -144,7 +144,7 @@ func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryPara
 	return project_types.BackendResponseWithData{
 		Success: true,
 		Message: "Successfully retrieved tags.",
-		Data: tagsForNote,
+		Data:    tagsForNote,
 	}
 }
 
@@ -152,7 +152,7 @@ func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryPara
 DeletePathFromTag removes a specific note path from a given tag.
 If the tag no longer has any note paths associated with it, the tag folder is deleted.
 */
-func (t *TagsService) DeletePathFromTag(tagName string, folderAndNotePathWithoutQueryParam string) TagResponse{
+func (t *TagsService) DeletePathFromTag(tagName string, folderAndNotePathWithoutQueryParam string) TagResponse {
 	pathToTagFolder := filepath.Join(t.ProjectPath, "tags", tagName)
 	pathToTagFile := filepath.Join(pathToTagFolder, "notes.json")
 
@@ -187,7 +187,7 @@ func (t *TagsService) DeletePathFromTag(tagName string, folderAndNotePathWithout
 	if len(notesWithoutDeletedPath) == 0 {
 		if err := os.RemoveAll(pathToTagFolder); err != nil {
 			return TagResponse{
-				Success: false,  // Change this to false to reflect the failure
+				Success: false, // Change this to false to reflect the failure
 				Message: "Failed to remove tag folder. Please try again later.",
 			}
 		} else {
@@ -206,7 +206,6 @@ func (t *TagsService) DeletePathFromTag(tagName string, folderAndNotePathWithout
 			Message: "Something went wrong when writing the tag to file. Please try again later",
 		}
 	}
-
 
 	return TagResponse{
 		Success: true,
@@ -240,14 +239,14 @@ func doesFolderAndNoteExist(projectPath, folderAndNote string) bool {
 GetTags retrieves a list of all tag names in the project.
 It scans the "tags" directory within the project path and returns the names of all subdirectories.
 */
-func (t *TagsService) GetTags() project_types.BackendResponseWithData{
+func (t *TagsService) GetTags() project_types.BackendResponseWithData {
 	tagsPath := filepath.Join(t.ProjectPath, "tags")
 	tagFolders, err := os.ReadDir(tagsPath)
 	if err != nil {
 		return project_types.BackendResponseWithData{
 			Success: false,
 			Message: "Something went wrong when fetching tags. Please try again later",
-			Data: nil,
+			Data:    nil,
 		}
 	}
 
@@ -260,7 +259,7 @@ func (t *TagsService) GetTags() project_types.BackendResponseWithData{
 
 		pathToTagNotes := filepath.Join(tagsPath, tagFolder.Name(), "notes.json")
 		var tagJson TagJson
-		if err := io_helpers.ReadJsonFromPath(pathToTagNotes, &tagJson); err != nil{
+		if err := io_helpers.ReadJsonFromPath(pathToTagNotes, &tagJson); err != nil {
 			continue
 		}
 		validatedFolderAndNotes := []string{}
@@ -268,7 +267,7 @@ func (t *TagsService) GetTags() project_types.BackendResponseWithData{
 		/*
 			Goes through each path in a notes.json and checks if the
 			note at the given path exists
-	 	*/
+		*/
 		for _, folderAndNoteString := range tagJson.Notes {
 			if doesContainTag := doesFolderAndNoteExist(t.ProjectPath, folderAndNoteString); !doesContainTag {
 				continue
@@ -276,7 +275,7 @@ func (t *TagsService) GetTags() project_types.BackendResponseWithData{
 
 			validatedFolderAndNotes = append(validatedFolderAndNotes, folderAndNoteString)
 		}
-		tagJson.Notes=validatedFolderAndNotes
+		tagJson.Notes = validatedFolderAndNotes
 		io_helpers.WriteJsonToPath(pathToTagNotes, tagJson)
 
 		tags = append(tags, tagFolder.Name())
@@ -285,87 +284,94 @@ func (t *TagsService) GetTags() project_types.BackendResponseWithData{
 	return project_types.BackendResponseWithData{
 		Success: true,
 		Message: "Successfully retrieved tags.",
-		Data: tags,
+		Data:    tags,
 	}
 }
+
 /*
 /*
 GetNotesFromTag retrieves the note paths associated with a given tag name.
 It reads the "notes.json" file within the tag's directory and returns the note paths with query params.
 */
-func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project_types.BackendResponseWithData {
-    pathToTagFile := filepath.Join(t.ProjectPath, "tags", tagName, "notes.json")
+func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project_types.NoteResponse {
+	pathToTagFile := filepath.Join(t.ProjectPath, "tags", tagName, "notes.json")
 
-    if exists, _ := io_helpers.FileOrFolderExists(pathToTagFile); !exists {
-        return project_types.BackendResponseWithData{
-            Success: false,
-            Message: "Tag does not exist",
-            Data:    nil,
-        }
-    }
+	if exists, _ := io_helpers.FileOrFolderExists(pathToTagFile); !exists {
+		return project_types.NoteResponse{
+			Success: false,
+			Message: "Tag does not exist",
+			Data:    []project_types.NoteEntry{},
+		}
+	}
 
-    var tagJson TagJson
-    if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
-        return project_types.BackendResponseWithData{
-            Success: false,
-            Message: "Something went wrong when fetching the tag. Please try again later",
-            Data:    nil,
-        }
-    }
+	var tagJson TagJson
+	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
+		return project_types.NoteResponse{
+			Success: false,
+			Message: "Something went wrong when fetching the tag. Please try again later",
+			Data:    []project_types.NoteEntry{},
+		}
+	}
 
-    notes := []list_helpers.NoteWithFolder{}
+	notes := []list_helpers.NoteWithFolder{}
 
-    // Using the query param syntax that the app supports
-    for _, folderAndNoteString := range tagJson.Notes {
-        // Check if the note exists
-        if doesContainTag := doesFolderAndNoteExist(t.ProjectPath, folderAndNoteString); !doesContainTag {
-            continue
-        }
+	// Using the query param syntax that the app supports
+	for _, folderAndNoteString := range tagJson.Notes {
+		// Check if the note exists
+		if doesContainTag := doesFolderAndNoteExist(t.ProjectPath, folderAndNoteString); !doesContainTag {
+			continue
+		}
 
-        folderAndNoteArr := strings.Split(folderAndNoteString, "/")
-        if len(folderAndNoteArr) < 2 {
-            continue // Invalid format
-        }
-        folder := folderAndNoteArr[0]
-        note := folderAndNoteArr[1]
+		folderAndNoteArr := strings.Split(folderAndNoteString, "/")
+		if len(folderAndNoteArr) < 2 {
+			continue // Invalid format
+		}
+		folder := folderAndNoteArr[0]
+		note := folderAndNoteArr[1]
 
-        fullPath := filepath.Join(t.ProjectPath, "notes", folder, note)
-        fileInfo, err := os.Stat(fullPath)
-        if err != nil {
-            // File does not exist or other error, skip
-            continue
-        }
-        if fileInfo.IsDir() {
-            // It's a directory, skip
-            continue
-        }
+		fullPath := filepath.Join(t.ProjectPath, "notes", folder, note)
+		fileInfo, err := os.Stat(fullPath)
+		if err != nil {
+			// File does not exist or other error, skip
+			continue
+		}
+		if fileInfo.IsDir() {
+			// It's a directory, skip
+			continue
+		}
 
-        // Extract extension
-        ext := filepath.Ext(note)
-        name := strings.TrimSuffix(note, ext)
-        ext = strings.TrimPrefix(ext, ".")
+		// Extract extension
+		ext := filepath.Ext(note)
+		name := strings.TrimSuffix(note, ext)
+		ext = strings.TrimPrefix(ext, ".")
 
-        notes = append(notes, list_helpers.NoteWithFolder{
-            Folder:  folder,
-            Name:    name,
-            ModTime: fileInfo.ModTime(),
-            Size:    fileInfo.Size(),
-            Ext:     ext,
-        })
-    }
+		notes = append(notes, list_helpers.NoteWithFolder{
+			Folder:  folder,
+			Name:    name,
+			ModTime: fileInfo.ModTime(),
+			Size:    fileInfo.Size(),
+			Ext:     ext,
+		})
+	}
 
-    // Sort the notes
-    list_helpers.SortNotesWithFolders(notes, sortOption)
+	// Sort the notes
+	list_helpers.SortNotesWithFolders(notes, sortOption)
 
-    // Prepare the sorted notes
-    sortedNotes := []string{}
-    for _, note := range notes {
-        sortedNotes = append(sortedNotes, fmt.Sprintf("%s/%s?ext=%s", note.Folder, note.Name, note.Ext))
-    }
+	// Prepare the sorted notes
+	sortedNotes := []project_types.NoteEntry{}
+	for _, note := range notes {
+		sortedNotes = append(
+			sortedNotes,
+			project_types.NoteEntry{
+				Name:        fmt.Sprintf("%s/%s?ext=%s", note.Folder, note.Name, note.Ext),
+				LastUpdated: note.ModTime.Format(time.RFC3339),
+				Size:        int(note.Size),
+			})
+	}
 
-    return project_types.BackendResponseWithData{
-        Success: true,
-        Message: "Successfully retrieved tag.",
-        Data:    sortedNotes,
-    }
+	return project_types.NoteResponse{
+		Success: true,
+		Message: "Successfully retrieved tag.",
+		Data:    sortedNotes,
+	}
 }

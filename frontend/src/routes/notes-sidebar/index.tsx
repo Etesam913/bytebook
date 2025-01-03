@@ -88,6 +88,7 @@ export function NotesSidebar({
 											setDialogData({
 												isOpen: true,
 												title: "Rename Folder",
+												isPending: false,
 												children: (errorText) => (
 													<FolderDialogChildren
 														errorText={errorText}
@@ -113,6 +114,7 @@ export function NotesSidebar({
 									onClick={() =>
 										setDialogData({
 											isOpen: true,
+											isPending: false,
 											title: "Create Note",
 											children: (errorText) => (
 												<>
