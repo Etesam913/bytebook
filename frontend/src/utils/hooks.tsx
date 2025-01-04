@@ -1,13 +1,8 @@
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
 import { Events as WailsEvents } from "@wailsio/runtime";
-import { useAtom } from "jotai";
-import {
-	COMMAND_PRIORITY_HIGH,
-	COMMAND_PRIORITY_LOW,
-	KEY_ENTER_COMMAND,
-	type LexicalEditor,
-} from "lexical";
+import { useAtom, useSetAtom } from "jotai";
+import { COMMAND_PRIORITY_LOW, type LexicalEditor } from "lexical";
 import {
 	type Dispatch,
 	type RefObject,
@@ -19,12 +14,9 @@ import {
 	useState,
 } from "react";
 import { useSearch } from "wouter";
-import { darkModeAtom } from "../atoms";
+import { darkModeAtom, isDarkModeOnAtom } from "../atoms";
 import { addColorSchemeClassToBody } from "./color-scheme";
-import {
-	EXPAND_CONTENT_COMMAND,
-	enterKeyDecoratorNodeCommand,
-} from "./commands";
+import { EXPAND_CONTENT_COMMAND } from "./commands";
 
 export const useDelayedLoader = (
 	value = false,
@@ -157,11 +149,11 @@ export function useOnClickOutside<T extends HTMLElement>(
 }
 export function useDarkModeSetting() {
 	const [darkModeData, setDarkModeData] = useAtom(darkModeAtom);
-
+	const setIsDarkModeOn = useSetAtom(isDarkModeOnAtom);
 	// Memoize the handler to ensure the same reference is used
 	const handleColorSchemeChange = useCallback(
 		(event: MediaQueryListEvent) =>
-			addColorSchemeClassToBody(event.matches, setDarkModeData),
+			addColorSchemeClassToBody(event.matches, setIsDarkModeOn),
 		[setDarkModeData, darkModeData],
 	);
 
@@ -171,19 +163,14 @@ export function useDarkModeSetting() {
 		// Check the current dark mode setting and apply the appropriate color scheme
 		if (darkModeData.darkModeSetting === "system") {
 			// If the setting is "system", use the system's color scheme preference
-			setDarkModeData((prev) => {
-				const updatedData = { ...prev, isDarkModeOn: isDarkModeEvent.matches };
-				localStorage.setItem("darkModeData", JSON.stringify(updatedData));
-				return updatedData;
-			});
-			addColorSchemeClassToBody(isDarkModeEvent.matches, setDarkModeData);
+			addColorSchemeClassToBody(isDarkModeEvent.matches, setIsDarkModeOn);
 			isDarkModeEvent.addEventListener("change", handleColorSchemeChange);
 		} else if (darkModeData.darkModeSetting === "light") {
 			// If the setting is "light", force light mode
-			addColorSchemeClassToBody(false, setDarkModeData);
+			addColorSchemeClassToBody(false, setIsDarkModeOn);
 		} else {
 			// If the setting is "dark", force dark mode
-			addColorSchemeClassToBody(true, setDarkModeData);
+			addColorSchemeClassToBody(true, setIsDarkModeOn);
 		}
 
 		// Cleanup the event listener on component unmount

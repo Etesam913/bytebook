@@ -8,7 +8,7 @@ import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection"
 import { useAtomValue } from "jotai";
 import { useRef, useState } from "react";
 import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook";
-import { darkModeAtom } from "../../atoms";
+import { isDarkModeOnAtom } from "../../atoms";
 import type { CodeBlockData } from "../../types";
 import { cn } from "../../utils/string-formatting";
 import { CodeViewer } from "./code-viewer";
@@ -90,7 +90,7 @@ export function CodeBlock({
 	writeCommandToNode: (language: string) => void;
 	writeDataToNode: (files: SandpackFiles, result: CodeResponse) => void;
 }) {
-	const { isDarkModeOn } = useAtomValue(darkModeAtom);
+	const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
 	const [isSelected, setIsSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
 	const [editor] = useLexicalComposerContext();

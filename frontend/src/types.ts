@@ -114,7 +114,6 @@ export type ContextMenuData = {
 };
 
 export type DarkModeData = {
-	isDarkModeOn: boolean;
 	darkModeSetting: "system" | "light" | "dark";
 };
 export type GithubRepositoryData = {

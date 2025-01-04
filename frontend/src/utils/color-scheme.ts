@@ -1,17 +1,13 @@
 import type { Dispatch, SetStateAction } from "react";
-import type { DarkModeData } from "../types";
-
+/**
+ * @param isDarkMode - Flag to determine if dark mode is enabled
+ * @param setIsDarkModeOn - State setter function to update dark mode state
+ */
 export function addColorSchemeClassToBody(
 	isDarkMode: boolean,
-	setDarkModeData: Dispatch<SetStateAction<DarkModeData>>,
+	setIsDarkModeOn: Dispatch<SetStateAction<boolean>>,
 ) {
-	// Update the dark mode state in the application
-	setDarkModeData((prev) => {
-		const updatedDarkModeData = { ...prev, isDarkModeOn: isDarkMode };
-		localStorage.setItem("darkModeData", JSON.stringify(updatedDarkModeData));
-
-		return updatedDarkModeData;
-	});
+	setIsDarkModeOn(isDarkMode);
 
 	// Get the body element from the document
 	const bodyElement = document.querySelector("body");

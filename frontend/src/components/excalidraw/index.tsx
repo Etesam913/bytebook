@@ -16,7 +16,7 @@ import {
 } from "lexical";
 import { type MutableRefObject, useEffect, useRef, useState } from "react";
 import { getDefaultButtonVariants } from "../../animations";
-import { darkModeAtom } from "../../atoms";
+import { isDarkModeOnAtom } from "../../atoms";
 import { XMark } from "../../icons/circle-xmark";
 import { onClickDecoratorNodeCommand } from "../../utils/commands";
 import { debounce } from "../../utils/draggable";
@@ -50,8 +50,8 @@ export function ExcalidrawComponent({
 	const [isSelected, setSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
 
-	const { isDarkModeOn } = useAtomValue(darkModeAtom);
 	useFocusOnSelect(isSelected, excalidrawRef);
+	const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
 	const [isExpanded, setIsExpanded] = useState(false);
 	const excalidrawAPIRef = useRef<ExcalidrawImperativeAPI | null>(null);
 

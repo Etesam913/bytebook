@@ -5,7 +5,7 @@ import { motion, useMotionValue } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { useRef } from "react";
 import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook";
-import { darkModeAtom } from "../../atoms";
+import { isDarkModeOnAtom } from "../../atoms";
 import type { CodeBlockData } from "../../types";
 import { cn } from "../../utils/string-formatting";
 import { RunCommand } from "../code/run-command";
@@ -45,7 +45,7 @@ export function TerminalComponent({
 	const xtermRef = useRef<Terminal | null>(null);
 	const xtermFitAddonRef = useRef<FitAddon | null>(null);
 	const terminalContainerRef = useRef<HTMLDivElement | null>(null);
-	const { isDarkModeOn } = useAtomValue(darkModeAtom);
+	const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
 	const [isSelected, setIsSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
 	const terminalHeight = useMotionValue(168);
