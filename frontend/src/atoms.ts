@@ -41,6 +41,7 @@ export const projectSettingsAtom = atom<ProjectSettings>({
 	pinnedNotes: new Set([]),
 	repositoryToSyncTo: "",
 	projectPath: "",
+	darkMode: "light",
 });
 export const projectSettingsWithQueryParamsAtom = atom((get) => {
 	const projectSettings = get(projectSettingsAtom);
@@ -83,11 +84,7 @@ export const noteSortAtom = atom<SortStrings>("date-updated-desc");
 
 export const selectionRangeAtom = atom<Set<string>>(new Set([]));
 
-const initialDarkModeData: DarkModeData = JSON.parse(
-	localStorage.getItem("darkModeData") || '{"darkModeSetting": "system"}',
-);
 export const isDarkModeOnAtom = atom<boolean>(false);
-export const darkModeAtom = atom<DarkModeData>(initialDarkModeData);
 
 export const isToolbarDisabledAtom = atom<boolean>(false);
 export const isNoteMaximizedAtom = atom<boolean>(false);

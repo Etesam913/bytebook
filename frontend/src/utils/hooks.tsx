@@ -1,7 +1,7 @@
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
 import { Events as WailsEvents } from "@wailsio/runtime";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { COMMAND_PRIORITY_LOW, type LexicalEditor } from "lexical";
 import {
 	type Dispatch,
@@ -14,7 +14,7 @@ import {
 	useState,
 } from "react";
 import { useSearch } from "wouter";
-import { darkModeAtom, isDarkModeOnAtom } from "../atoms";
+import { isDarkModeOnAtom, projectSettingsAtom } from "../atoms";
 import { addColorSchemeClassToBody } from "./color-scheme";
 import { EXPAND_CONTENT_COMMAND } from "./commands";
 
@@ -148,24 +148,24 @@ export function useOnClickOutside<T extends HTMLElement>(
 	);
 }
 export function useDarkModeSetting() {
-	const [darkModeData, setDarkModeData] = useAtom(darkModeAtom);
+	const projectSettings = useAtomValue(projectSettingsAtom);
 	const setIsDarkModeOn = useSetAtom(isDarkModeOnAtom);
 	// Memoize the handler to ensure the same reference is used
 	const handleColorSchemeChange = useCallback(
 		(event: MediaQueryListEvent) =>
 			addColorSchemeClassToBody(event.matches, setIsDarkModeOn),
-		[setDarkModeData, darkModeData],
+		[setIsDarkModeOn],
 	);
 
 	useEffect(() => {
 		const isDarkModeEvent = window.matchMedia("(prefers-color-scheme: dark)");
 
 		// Check the current dark mode setting and apply the appropriate color scheme
-		if (darkModeData.darkModeSetting === "system") {
+		if (projectSettings.darkMode === "system") {
 			// If the setting is "system", use the system's color scheme preference
 			addColorSchemeClassToBody(isDarkModeEvent.matches, setIsDarkModeOn);
 			isDarkModeEvent.addEventListener("change", handleColorSchemeChange);
-		} else if (darkModeData.darkModeSetting === "light") {
+		} else if (projectSettings.darkMode === "light") {
 			// If the setting is "light", force light mode
 			addColorSchemeClassToBody(false, setIsDarkModeOn);
 		} else {
@@ -177,7 +177,7 @@ export function useDarkModeSetting() {
 		return () => {
 			isDarkModeEvent.removeEventListener("change", handleColorSchemeChange);
 		};
-	}, [setDarkModeData, darkModeData.darkModeSetting]);
+	}, [projectSettings.darkMode]);
 }
 
 type WailsEvent = {

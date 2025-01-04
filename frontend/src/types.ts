@@ -95,6 +95,7 @@ export type ProjectSettings = {
 	pinnedNotes: Set<string>;
 	projectPath: string;
 	repositoryToSyncTo: string;
+	darkMode: "light" | "dark" | "system";
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: This is fine for the navigation function
@@ -113,9 +114,6 @@ export type ContextMenuData = {
 	y: number;
 };
 
-export type DarkModeData = {
-	darkModeSetting: "system" | "light" | "dark";
-};
 export type GithubRepositoryData = {
 	name: string;
 	clone_url: string;

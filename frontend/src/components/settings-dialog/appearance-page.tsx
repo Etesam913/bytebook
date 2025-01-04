@@ -1,5 +1,6 @@
-import { useAtom } from "jotai/react";
-import { darkModeAtom } from "../../atoms";
+import { useAtomValue } from "jotai/react";
+import { projectSettingsAtom } from "../../atoms";
+import { useUpdateProjectSettingsMutation } from "../../hooks/project-settings";
 import { cn } from "../../utils/string-formatting";
 import { SettingsRow } from "./settings-row";
 
@@ -40,7 +41,8 @@ function DarkModeButton({
 }
 
 export function AppearancePage() {
-	const [darkModeData, setDarkModeData] = useAtom(darkModeAtom);
+	const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
+	const projectSettings = useAtomValue(projectSettingsAtom);
 	return (
 		<SettingsRow title="Theme" description="Customize your UI theme">
 			<div className="flex gap-3">
@@ -49,27 +51,42 @@ export function AppearancePage() {
 					imgSrc="https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/light-mode.jpg"
 					imgAlt="light mode"
 					onClick={() => {
-						setDarkModeData({ darkModeSetting: "light" });
+						updateProjectSettings({
+							newProjectSettings: {
+								...projectSettings,
+								darkMode: "light",
+							},
+						});
 					}}
-					isActive={darkModeData.darkModeSetting === "light"}
+					isActive={projectSettings.darkMode === "light"}
 				/>
 				<DarkModeButton
 					label="Dark"
 					imgSrc="https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/dark-mode.jpg"
 					imgAlt="dark mode"
 					onClick={() => {
-						setDarkModeData({ darkModeSetting: "dark" });
+						updateProjectSettings({
+							newProjectSettings: {
+								...projectSettings,
+								darkMode: "dark",
+							},
+						});
 					}}
-					isActive={darkModeData.darkModeSetting === "dark"}
+					isActive={projectSettings.darkMode === "dark"}
 				/>
 				<DarkModeButton
 					label="System"
 					imgSrc="https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/light-and-dark-mode.jpg"
 					imgAlt="light and dark mode"
 					onClick={() => {
-						setDarkModeData({ darkModeSetting: "system" });
+						updateProjectSettings({
+							newProjectSettings: {
+								...projectSettings,
+								darkMode: "system",
+							},
+						});
 					}}
-					isActive={darkModeData.darkModeSetting === "system"}
+					isActive={projectSettings.darkMode === "system"}
 				/>
 			</div>
 		</SettingsRow>

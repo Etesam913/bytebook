@@ -10,7 +10,11 @@ export function useAttachmentsMutation({
 	folder,
 	note,
 	editor,
-}: { folder: string; note: string; editor: LexicalEditor }) {
+}: {
+	folder: string;
+	note: string;
+	editor: LexicalEditor;
+}) {
 	const setBackendQuery = useSetAtom(backendQueryAtom);
 	const insertAttachmentsMutation = useMutation({
 		mutationFn: async () => {

@@ -12,6 +12,7 @@ type ProjectSettingsJson struct {
 	PinnedNotes        []string `json:"pinnedNotes"`
 	ProjectPath        string   `json:"projectPath"`
 	RepositoryToSyncTo string   `json:"repositoryToSyncTo"`
+	DarkMode           string   `json:"darkMode"`
 }
 
 type ProjectSettingsReponse struct {

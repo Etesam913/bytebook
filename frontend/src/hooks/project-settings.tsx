@@ -19,13 +19,18 @@ async function getProjectSettings(
 		if (!projectSettingsResponse.success) {
 			throw new Error(projectSettingsResponse.message);
 		}
-		const { projectPath, pinnedNotes, repositoryToSyncTo } =
+		const { projectPath, pinnedNotes, repositoryToSyncTo, darkMode } =
 			projectSettingsResponse.data;
-
+		let darkModeValidated = "system";
+		const isDarkModeValidated = ["light", "dark", "system"].includes(darkMode);
+		if (isDarkModeValidated) {
+			darkModeValidated = darkMode;
+		}
 		setProjectSettings({
 			projectPath,
 			pinnedNotes: new Set(pinnedNotes),
 			repositoryToSyncTo,
+			darkMode: darkModeValidated as "light" | "dark" | "system",
 		});
 	} catch (err) {
 		if (err instanceof Error) {

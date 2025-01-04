@@ -72,6 +72,7 @@ func GetProjectSettings(projectPath string) project_types.ProjectSettingsReponse
 				PinnedNotes:        []string{},
 				ProjectPath:        projectPath,
 				RepositoryToSyncTo: "",
+				DarkMode:           "light",
 			},
 		)
 		if err != nil {
