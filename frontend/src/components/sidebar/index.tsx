@@ -78,11 +78,11 @@ export function Sidebar({
 		[projectSettings.noteSidebarItemSize, contentType],
 	);
 	const VIRUTALIZATION_HEIGHT = useMemo(
-		() => (isRegularItemSize ? 12 : 8),
+		() => (isRegularItemSize ? 18 : 8),
 		[isRegularItemSize],
 	);
 	const SIDEBAR_ITEM_HEIGHT = useMemo(
-		() => (isRegularItemSize ? 73.5 : 34),
+		() => (isRegularItemSize ? 81.5 : 34),
 		[projectSettings.noteSidebarItemSize, contentType],
 	);
 

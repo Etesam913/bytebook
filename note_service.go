@@ -260,17 +260,30 @@ func (n *NoteService) RevealNoteInFinder(folderName, noteName string) project_ty
 	return project_types.BackendResponseWithoutData{Success: true, Message: ""}
 }
 
-func (n *NoteService) GetNotePreview(path string) project_types.BackendResponseWithData[string] {
+type NotePreviewData struct {
+	FirstLine     string `json:"firstLine"`
+	FirstImageSrc string `json:"firstImageSrc"`
+}
+
+func (n *NoteService) GetNotePreview(path string) project_types.BackendResponseWithData[NotePreviewData] {
 	noteFilePath := filepath.Join(n.ProjectPath, path)
 
 	noteContent, err := os.ReadFile(noteFilePath)
 	if err != nil {
-		return project_types.BackendResponseWithData[string]{Success: false, Message: err.Error(), Data: ""}
+		return project_types.BackendResponseWithData[NotePreviewData]{
+			Success: false,
+			Message: err.Error(),
+			Data: NotePreviewData{
+				FirstLine:     "",
+				FirstImageSrc: "",
+			},
+		}
 	}
 	firstLine := note_helpers.GetFirstLine(string(noteContent))
-	return project_types.BackendResponseWithData[string]{
+	firstImageSrc := note_helpers.GetFirstImageSrc(string(noteContent))
+	return project_types.BackendResponseWithData[NotePreviewData]{
 		Success: true,
 		Message: "Successfully retrieved note preview",
-		Data:    firstLine,
+		Data:    NotePreviewData{FirstLine: firstLine, FirstImageSrc: firstImageSrc},
 	}
 }

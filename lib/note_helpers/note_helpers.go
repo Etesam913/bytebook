@@ -166,6 +166,24 @@ func extractLinkText(markdown string) string {
 	return linkRegex.ReplaceAllString(markdown, "$1")
 }
 
+// GetFirstImageSrc returns the source URL of the first image found in a markdown string.
+// If no image is found, it returns an empty string.
+func GetFirstImageSrc(markdown string) string {
+	// Regular expression to match image markdown syntax: ![alt text](url)
+	imageRegex := regexp.MustCompile(`!\[.*?\]\((.*?)\)`)
+
+	// Find the first match
+	match := imageRegex.FindStringSubmatch(markdown)
+
+	// If there's a match, return the captured URL (first capture group)
+	if len(match) >= 2 {
+		return match[1]
+	}
+
+	// Return empty string if no image is found
+	return ""
+}
+
 // GetFirstLine returns the first few meaningful words from a markdown string,
 // excluding frontmatter, code blocks, and media elements.
 // It returns up to the first 10 words from the first non-empty line.

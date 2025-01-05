@@ -280,7 +280,7 @@ export function useAddTagsMutation(queryClient: QueryClient) {
 
 export function useNotePreviewQuery(curFolder: string, curNote: string) {
 	return useQuery({
-		queryKey: ["note-preview"],
+		queryKey: ["note-preview", curNote],
 		queryFn: async () => {
 			return await GetNotePreview(`notes/${curFolder}/${curNote}.md`);
 		},

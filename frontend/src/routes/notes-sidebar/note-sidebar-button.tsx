@@ -81,24 +81,16 @@ export function NoteSidebarButton({
 		decodeURIComponent(curFolder),
 		decodeURIComponent(sidebarNoteNameWithoutExtension),
 	);
-	console.log({
-		curFolder,
-		sidebarNoteNameWithoutExtension,
-		notePreviewResult,
-	});
+
 	const isActive = useMemo(
 		() => decodeURIComponent(sidebarNoteNameWithExtension) === sidebarNoteName,
 		[sidebarNoteNameWithExtension, sidebarNoteName],
 	);
-	// useEffect(() => {
-	// 	async function getNotePreview() {
-	// 		if (!notes || sidebarQueryParams.ext !== "md") return;
-	// 		const notePreview = await GetNotePreview(
-	// 			`notes/${decodeURIComponent(curFolder)}/${decodeURIComponent(sidebarNoteNameWithoutExtension)}.md`,
-	// 		);
-	// 	}
-	// 	getNotePreview();
-	// }, []);
+	const isSelected = useMemo(
+		() =>
+			(notes?.at(i) && selectionRange.has(`note:${notes[i].name}`)) ?? false,
+		[selectionRange, notes, i],
+	);
 
 	return (
 		<button
@@ -262,9 +254,7 @@ export function NoteSidebarButton({
 			className={cn(
 				"sidebar-item",
 				isActive && "bg-zinc-150 dark:bg-zinc-700",
-				notes?.at(i) &&
-					selectionRange.has(`note:${notes[i].name}`) &&
-					"!bg-blue-400 dark:!bg-blue-600 text-white",
+				isSelected && "!bg-blue-400 dark:!bg-blue-600 text-white",
 			)}
 			onClick={(e) => {
 				if (e.metaKey || e.shiftKey) return;
@@ -290,12 +280,11 @@ export function NoteSidebarButton({
 			{projectSettings.noteSidebarItemSize === "regular" && (
 				<RegularNoteSidebarItem
 					curNoteData={notes[i]}
-					sidebarNoteName={sidebarNoteName}
 					sidebarQueryParams={sidebarQueryParams}
-					sidebarNoteNameWithExtension={sidebarNoteNameWithExtension}
 					sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
 					isInTagSidebar={isInTagSidebar}
 					notePreviewResult={notePreviewResult}
+					isSelected={isSelected}
 				/>
 			)}
 		</button>

@@ -1,8 +1,10 @@
+import type { NotePreviewData } from "../../../bindings/github.com/etesam913/bytebook";
 import type {
 	BackendResponseWithData,
 	NoteEntry,
 } from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
 import { humanFileSize } from "../../utils/misc";
+import { cn } from "../../utils/string-formatting";
 
 function formatDateString(isoString: string): string {
 	// Parse the ISO 8601 string into a Date object
@@ -20,36 +22,68 @@ function formatDateString(isoString: string): string {
 }
 
 export function RegularNoteSidebarItem({
-	sidebarNoteName,
 	sidebarQueryParams,
-	sidebarNoteNameWithExtension,
 	sidebarNoteNameWithoutExtension,
 	isInTagSidebar,
 	curNoteData,
 	notePreviewResult,
+	isSelected,
 }: {
-	sidebarNoteName: string;
 	sidebarQueryParams: {
 		[key: string]: string;
 	};
-	sidebarNoteNameWithExtension: string;
 	sidebarNoteNameWithoutExtension: string;
 	isInTagSidebar: boolean;
 	curNoteData: NoteEntry;
-	notePreviewResult: BackendResponseWithData<string> | undefined;
+	notePreviewResult: BackendResponseWithData<NotePreviewData> | undefined;
+	isSelected: boolean;
 }) {
+	const doesHaveImage =
+		notePreviewResult?.success && notePreviewResult?.data?.firstImageSrc !== "";
 	return (
 		<div className="text-left w-full">
-			<p className="whitespace-nowrap pointer-events-none text-ellipsis overflow-hidden">
-				{isInTagSidebar
-					? sidebarNoteNameWithoutExtension.split("/")[1]
-					: sidebarNoteNameWithoutExtension}
-				.{sidebarQueryParams.ext}
-			</p>
-			<p className="text-sm text-zinc-500 dark:text-zinc-400 h-5">
-				{notePreviewResult?.success && notePreviewResult?.data}
-			</p>
-			<div className="flex justify-between text-sm text-zinc-500 dark:text-zinc-400">
+			<div className="flex w-full justify-between gap-1.5">
+				<div className="w-[calc(100%-52px)]">
+					<p
+						className={cn(
+							"whitespace-nowrap pointer-events-none text-ellipsis overflow-hidden",
+							{
+								"text-white": isSelected,
+							},
+						)}
+					>
+						{isInTagSidebar
+							? sidebarNoteNameWithoutExtension.split("/")[1]
+							: sidebarNoteNameWithoutExtension}
+						.{sidebarQueryParams.ext}
+					</p>
+					<p
+						className={cn(
+							"text-sm text-zinc-500 dark:text-zinc-400 flex flex-col justify-center h-7 text-ellipsis overflow-hidden whitespace-nowrap pointer-events-none",
+							{
+								"text-white": isSelected,
+							},
+						)}
+					>
+						{notePreviewResult?.success && notePreviewResult?.data?.firstLine}
+					</p>
+				</div>
+				{doesHaveImage && (
+					<img
+						alt={`Note preview of ${sidebarNoteNameWithoutExtension}`}
+						className="h-[52px] w-auto rounded-md"
+						src={notePreviewResult?.data?.firstImageSrc}
+					/>
+				)}
+			</div>
+			<div
+				className={cn(
+					"flex justify-between text-sm text-zinc-500 dark:text-zinc-400",
+					{
+						"text-white": isSelected,
+					},
+				)}
+			>
 				<p>{formatDateString(curNoteData.lastUpdated)}</p>
 				<p>{humanFileSize(curNoteData.size, true)}</p>
 			</div>
