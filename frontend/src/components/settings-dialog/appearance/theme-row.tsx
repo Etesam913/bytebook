@@ -1,8 +1,8 @@
 import { useAtomValue } from "jotai/react";
-import { projectSettingsAtom } from "../../atoms";
-import { useUpdateProjectSettingsMutation } from "../../hooks/project-settings";
-import { cn } from "../../utils/string-formatting";
-import { SettingsRow } from "./settings-row";
+import { projectSettingsAtom } from "../../../atoms";
+import { useUpdateProjectSettingsMutation } from "../../../hooks/project-settings";
+import { cn } from "../../../utils/string-formatting";
+import { SettingsRow } from "../settings-row";
 
 function DarkModeButton({
 	label,
@@ -40,9 +40,10 @@ function DarkModeButton({
 	);
 }
 
-export function AppearancePage() {
+export function ThemeRow() {
 	const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
 	const projectSettings = useAtomValue(projectSettingsAtom);
+
 	return (
 		<SettingsRow title="Theme" description="Customize your UI theme">
 			<div className="flex gap-3">

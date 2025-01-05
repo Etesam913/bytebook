@@ -28,7 +28,6 @@ export function MyNotesAccordion({
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
-
 	const activeDataItem = curNote ? `${curNote}?ext=${fileExtension}` : null;
 
 	return (

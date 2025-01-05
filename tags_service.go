@@ -119,7 +119,7 @@ func (t *TagsService) AddPathsToTags(tagNames []string, folderAndNotePathsWithou
 	}
 }
 
-func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryParam string) project_types.BackendResponseWithData {
+func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryParam string) project_types.BackendResponseWithData[[]string] {
 	getTagsResponse := t.GetTags()
 	if !getTagsResponse.Success {
 		return getTagsResponse
@@ -141,7 +141,7 @@ func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryPara
 		}
 	}
 
-	return project_types.BackendResponseWithData{
+	return project_types.BackendResponseWithData[[]string]{
 		Success: true,
 		Message: "Successfully retrieved tags.",
 		Data:    tagsForNote,
@@ -239,11 +239,11 @@ func doesFolderAndNoteExist(projectPath, folderAndNote string) bool {
 GetTags retrieves a list of all tag names in the project.
 It scans the "tags" directory within the project path and returns the names of all subdirectories.
 */
-func (t *TagsService) GetTags() project_types.BackendResponseWithData {
+func (t *TagsService) GetTags() project_types.BackendResponseWithData[[]string] {
 	tagsPath := filepath.Join(t.ProjectPath, "tags")
 	tagFolders, err := os.ReadDir(tagsPath)
 	if err != nil {
-		return project_types.BackendResponseWithData{
+		return project_types.BackendResponseWithData[[]string]{
 			Success: false,
 			Message: "Something went wrong when fetching tags. Please try again later",
 			Data:    nil,
@@ -281,7 +281,7 @@ func (t *TagsService) GetTags() project_types.BackendResponseWithData {
 		tags = append(tags, tagFolder.Name())
 	}
 
-	return project_types.BackendResponseWithData{
+	return project_types.BackendResponseWithData[[]string]{
 		Success: true,
 		Message: "Successfully retrieved tags.",
 		Data:    tags,

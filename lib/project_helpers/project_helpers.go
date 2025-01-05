@@ -69,10 +69,11 @@ func GetProjectSettings(projectPath string) project_types.ProjectSettingsReponse
 	if err != nil {
 		err = io_helpers.WriteJsonToPath(projectSettingsPath,
 			project_types.ProjectSettingsJson{
-				PinnedNotes:        []string{},
-				ProjectPath:        projectPath,
-				RepositoryToSyncTo: "",
-				DarkMode:           "light",
+				PinnedNotes:         []string{},
+				ProjectPath:         projectPath,
+				RepositoryToSyncTo:  "",
+				DarkMode:            "light",
+				NoteSidebarItemSize: "regular",
 			},
 		)
 		if err != nil {

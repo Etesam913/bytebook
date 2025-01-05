@@ -1,5 +1,4 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
-import { SIDEBAR_ITEM_HEIGHT } from "../components/sidebar";
 import { extractInfoFromNoteName } from "./string-formatting";
 
 /**
@@ -120,9 +119,10 @@ export function scrollVirtualizedListToSelectedNoteOrFolder(
 	noteOrFolder: string,
 	items: string[],
 	visibleItems: string[],
+	sidebarItemHeight: number,
 ) {
 	if (isSelectedNoteOrFolderInViewport(noteOrFolder, visibleItems)) return -1;
 	const indexOfSelectedItem = items.indexOf(noteOrFolder);
 	if (indexOfSelectedItem === -1) return -1;
-	return SIDEBAR_ITEM_HEIGHT * indexOfSelectedItem;
+	return sidebarItemHeight * indexOfSelectedItem;
 }

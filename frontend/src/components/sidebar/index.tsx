@@ -5,19 +5,21 @@ import {
 	type ReactNode,
 	type SetStateAction,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
 } from "react";
 import { useParams } from "wouter";
-import { contextMenuRefAtom, selectionRangeAtom } from "../../atoms";
+import {
+	contextMenuRefAtom,
+	projectSettingsAtom,
+	selectionRangeAtom,
+} from "../../atoms";
 import { useListVirtualization } from "../../hooks/observers";
 import { useOnClickOutside } from "../../utils/hooks";
 import { scrollVirtualizedListToSelectedNoteOrFolder } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
 import { SidebarItems } from "./sidebar-items";
-
-export const SIDEBAR_ITEM_HEIGHT = 34;
-export const VIRUTALIZATION_HEIGHT = 8;
 
 export function Sidebar({
 	data,
@@ -50,6 +52,7 @@ export function Sidebar({
 	const listRef = useRef<HTMLUListElement>(null);
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const contextMenuRef = useAtomValue(contextMenuRefAtom);
+	const projectSettings = useAtomValue(projectSettingsAtom);
 
 	useOnClickOutside(listRef, (e) => {
 		// We need to use the selectionRange for the context menu so early return for this case
@@ -65,7 +68,23 @@ export function Sidebar({
 			setSelectionRange(new Set());
 		}
 	});
-	const items = data ?? [];
+
+	const items = useMemo(() => data ?? [], [data]);
+
+	const isRegularItemSize = useMemo(
+		() =>
+			projectSettings.noteSidebarItemSize === "regular" &&
+			contentType === "note",
+		[projectSettings.noteSidebarItemSize, contentType],
+	);
+	const VIRUTALIZATION_HEIGHT = useMemo(
+		() => (isRegularItemSize ? 12 : 8),
+		[isRegularItemSize],
+	);
+	const SIDEBAR_ITEM_HEIGHT = useMemo(
+		() => (isRegularItemSize ? 73.5 : 34),
+		[projectSettings.noteSidebarItemSize, contentType],
+	);
 
 	const {
 		setScrollTop,
@@ -93,6 +112,7 @@ export function Sidebar({
 			activeDataItem,
 			items,
 			visibleItems,
+			SIDEBAR_ITEM_HEIGHT,
 		);
 		if (scrollTopToActiveItem === -1) return;
 		listScrollContainerRef.current?.scrollTo({

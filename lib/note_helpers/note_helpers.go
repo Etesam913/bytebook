@@ -5,6 +5,19 @@ import (
 	"strings"
 )
 
+// excludeMediaTags removes image and video markdown syntax from the given string
+func excludeMediaTags(markdown string) string {
+	// Remove image markdown syntax
+	imageRegex := regexp.MustCompile(`!\[.*?\]\(.*?\)`)
+	content := imageRegex.ReplaceAllString(markdown, "")
+
+	// Remove video markdown syntax
+	videoRegex := regexp.MustCompile(`\[video\]\(.*?\)`)
+	content = videoRegex.ReplaceAllString(content, "")
+
+	return content
+}
+
 /*
 ExcludeCodeBlocks is a function that takes a markdown string as input and returns a new string with all code blocks removed.
 Code blocks are identified as text surrounded by either ``` or ~~~.
@@ -144,4 +157,54 @@ func isValidTag(tag string, markdown string) bool {
 	}
 	// If it's at the end of the string, it's valid
 	return true
+}
+
+// extractLinkText replaces markdown links with just their text content
+// [link text](url) becomes "link text"
+func extractLinkText(markdown string) string {
+	linkRegex := regexp.MustCompile(`\[([^\]]+)\]\([^)]+\)`)
+	return linkRegex.ReplaceAllString(markdown, "$1")
+}
+
+// GetFirstLine returns the first few meaningful words from a markdown string,
+// excluding frontmatter, code blocks, and media elements.
+// It returns up to the first 10 words from the first non-empty line.
+func GetFirstLine(markdown string) string {
+	// First, remove frontmatter and code blocks
+	content := ExcludeFrontmatter(markdown)
+	content = ExcludeCodeBlocks(content)
+
+	// Remove media tags
+	content = excludeMediaTags(content)
+
+	// Extract text from link tags
+	content = extractLinkText(content)
+
+	// Remove HTML tags
+	htmlRegex := regexp.MustCompile(`<[^>]*>`)
+	content = htmlRegex.ReplaceAllString(content, "")
+
+	// Remove markdown header symbols
+	headerRegex := regexp.MustCompile(`^#+\s+`)
+	content = headerRegex.ReplaceAllString(content, "")
+
+	// Split into lines and get the first non-empty line
+	lines := strings.Split(content, "\n")
+	var firstLine string
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed != "" {
+			firstLine = trimmed
+			break
+		}
+	}
+
+	// Split into words and take up to first 10
+	words := strings.Fields(firstLine)
+	if len(words) > 10 {
+		words = words[:10]
+	}
+
+	// Join words back together
+	return strings.Join(words, " ")
 }

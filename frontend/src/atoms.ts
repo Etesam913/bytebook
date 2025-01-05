@@ -5,7 +5,6 @@ import type { NoteEntry } from "../bindings/github.com/etesam913/bytebook/lib/pr
 import type {
 	BackendQueryDataType,
 	ContextMenuData,
-	DarkModeData,
 	DialogDataType,
 	ProjectSettings,
 	SearchPanelDataType,
@@ -42,6 +41,7 @@ export const projectSettingsAtom = atom<ProjectSettings>({
 	repositoryToSyncTo: "",
 	projectPath: "",
 	darkMode: "light",
+	noteSidebarItemSize: "regular",
 });
 export const projectSettingsWithQueryParamsAtom = atom((get) => {
 	const projectSettings = get(projectSettingsAtom);

@@ -9,10 +9,11 @@ type WindowOptions struct {
 	Title string
 }
 type ProjectSettingsJson struct {
-	PinnedNotes        []string `json:"pinnedNotes"`
-	ProjectPath        string   `json:"projectPath"`
-	RepositoryToSyncTo string   `json:"repositoryToSyncTo"`
-	DarkMode           string   `json:"darkMode"`
+	PinnedNotes         []string `json:"pinnedNotes"`
+	ProjectPath         string   `json:"projectPath"`
+	RepositoryToSyncTo  string   `json:"repositoryToSyncTo"`
+	DarkMode            string   `json:"darkMode"`
+	NoteSidebarItemSize string   `json:"noteSidebarItemSize"`
 }
 
 type ProjectSettingsReponse struct {
@@ -21,10 +22,10 @@ type ProjectSettingsReponse struct {
 	Data    ProjectSettingsJson `json:"data"`
 }
 
-type BackendResponseWithData struct {
-	Success bool     `json:"success"`
-	Message string   `json:"message"`
-	Data    []string `json:"data"`
+type BackendResponseWithData[T any] struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Data    T      `json:"data"`
 }
 
 type BackendResponseWithoutData struct {

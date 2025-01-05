@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AppearancePage } from "./appearance-page";
+import { AppearancePage } from "./appearance/index";
 import { GithubPage } from "./github-page";
 import { SettingsSidebar } from "./sidebar";
 

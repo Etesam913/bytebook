@@ -11,6 +11,7 @@ export function SettingsButton() {
 			onClick={() => {
 				setDialogData({
 					isOpen: true,
+					isPending: false,
 					title: "Settings",
 					dialogClassName: "w-[min(55rem,90vw)]",
 					children: () => <SettingsDialog />,

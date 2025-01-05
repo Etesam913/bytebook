@@ -1,10 +1,11 @@
-import { type QueryClient, useMutation } from "@tanstack/react-query";
+import { type QueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { Events } from "@wailsio/runtime";
 import { useAtomValue, useSetAtom } from "jotai/react";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { toast } from "sonner";
 import type { NoteEntry } from "../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
 import {
+	GetNotePreview,
 	GetNotes,
 	MoveToTrash,
 	RevealNoteInFinder,
@@ -273,6 +274,15 @@ export function useAddTagsMutation(queryClient: QueryClient) {
 				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
 			}
 			return false;
+		},
+	});
+}
+
+export function useNotePreviewQuery(curFolder: string, curNote: string) {
+	return useQuery({
+		queryKey: ["note-preview"],
+		queryFn: async () => {
+			return await GetNotePreview(`notes/${curFolder}/${curNote}.md`);
 		},
 	});
 }

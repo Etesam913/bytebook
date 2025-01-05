@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai/react";
-import { type Dispatch, type SetStateAction, useMemo } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useMemo } from "react";
 import type { NoteEntry } from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
 import {
 	contextMenuDataAtom,
@@ -12,6 +12,7 @@ import { handleDragStart } from "../../components/sidebar/utils";
 import {
 	useAddTagsMutation,
 	useMoveNoteToTrashMutation,
+	useNotePreviewQuery,
 	useNoteRevealInFinderMutation,
 	usePinNotesMutation,
 } from "../../hooks/note-events";
@@ -29,7 +30,8 @@ import {
 } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
 import { AddTagDialogChildren } from "./add-tag-dialog-children";
-import { RenderNoteIcon } from "./render-note-icon";
+import { CompactNoteSidebarItem } from "./compact-note-sidebar-item";
+import { RegularNoteSidebarItem } from "./regular-note-sidebar-item";
 
 export function NoteSidebarButton({
 	curFolder,
@@ -75,10 +77,28 @@ export function NoteSidebarButton({
 		isInTagSidebar ? `${curFolder}/` : ""
 	}${curNote}?ext=${searchParams.ext}`;
 
+	const { data: notePreviewResult } = useNotePreviewQuery(
+		decodeURIComponent(curFolder),
+		decodeURIComponent(sidebarNoteNameWithoutExtension),
+	);
+	console.log({
+		curFolder,
+		sidebarNoteNameWithoutExtension,
+		notePreviewResult,
+	});
 	const isActive = useMemo(
 		() => decodeURIComponent(sidebarNoteNameWithExtension) === sidebarNoteName,
 		[sidebarNoteNameWithExtension, sidebarNoteName],
 	);
+	// useEffect(() => {
+	// 	async function getNotePreview() {
+	// 		if (!notes || sidebarQueryParams.ext !== "md") return;
+	// 		const notePreview = await GetNotePreview(
+	// 			`notes/${decodeURIComponent(curFolder)}/${decodeURIComponent(sidebarNoteNameWithoutExtension)}.md`,
+	// 		);
+	// 	}
+	// 	getNotePreview();
+	// }, []);
 
 	return (
 		<button
@@ -257,17 +277,27 @@ export function NoteSidebarButton({
 				);
 			}}
 		>
-			<RenderNoteIcon
-				sidebarNoteName={sidebarNoteName}
-				fileExtension={sidebarQueryParams.ext}
-				noteNameWithExtension={sidebarNoteNameWithExtension}
-			/>
-			<p className="whitespace-nowrap pointer-events-none text-ellipsis overflow-hidden">
-				{isInTagSidebar
-					? sidebarNoteNameWithoutExtension.split("/")[1]
-					: sidebarNoteNameWithoutExtension}
-				.{sidebarQueryParams.ext}
-			</p>
+			{projectSettings.noteSidebarItemSize === "compact" && (
+				<CompactNoteSidebarItem
+					sidebarNoteName={sidebarNoteName}
+					sidebarQueryParams={sidebarQueryParams}
+					sidebarNoteNameWithExtension={sidebarNoteNameWithExtension}
+					sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
+					isInTagSidebar={isInTagSidebar}
+				/>
+			)}
+
+			{projectSettings.noteSidebarItemSize === "regular" && (
+				<RegularNoteSidebarItem
+					curNoteData={notes[i]}
+					sidebarNoteName={sidebarNoteName}
+					sidebarQueryParams={sidebarQueryParams}
+					sidebarNoteNameWithExtension={sidebarNoteNameWithExtension}
+					sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
+					isInTagSidebar={isInTagSidebar}
+					notePreviewResult={notePreviewResult}
+				/>
+			)}
 		</button>
 	);
 }

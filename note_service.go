@@ -9,6 +9,7 @@ import (
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/list_helpers"
+	"github.com/etesam913/bytebook/lib/note_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 )
 
@@ -66,6 +67,7 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) project_typ
 		sortedNotes = append(sortedNotes, project_types.NoteEntry{
 			Name:        fmt.Sprintf("%s?ext=%s", name, extension),
 			LastUpdated: lastUpdated,
+			Size:        int(fileInfo.Size()),
 		})
 	}
 
@@ -256,4 +258,19 @@ func (n *NoteService) RevealNoteInFinder(folderName, noteName string) project_ty
 		return project_types.BackendResponseWithoutData{Success: false, Message: "Could not reveal folder in finder"}
 	}
 	return project_types.BackendResponseWithoutData{Success: true, Message: ""}
+}
+
+func (n *NoteService) GetNotePreview(path string) project_types.BackendResponseWithData[string] {
+	noteFilePath := filepath.Join(n.ProjectPath, path)
+
+	noteContent, err := os.ReadFile(noteFilePath)
+	if err != nil {
+		return project_types.BackendResponseWithData[string]{Success: false, Message: err.Error(), Data: ""}
+	}
+	firstLine := note_helpers.GetFirstLine(string(noteContent))
+	return project_types.BackendResponseWithData[string]{
+		Success: true,
+		Message: "Successfully retrieved note preview",
+		Data:    firstLine,
+	}
 }

@@ -170,6 +170,7 @@ div[data-template-is-fullscreen="true"]
 .settings-row-grid {
 	display: grid;
 	grid-template-columns: 1fr 2fr;
+	gap: 1rem;
 }
 /**
  * Terminal styles

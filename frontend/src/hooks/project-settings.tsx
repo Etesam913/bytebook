@@ -10,6 +10,7 @@ import { projectSettingsAtom } from "../atoms";
 import type { ProjectSettings } from "../types";
 import { useWailsEvent } from "../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
+import { validateProjectSettings } from "../utils/project-settings";
 
 async function getProjectSettings(
 	setProjectSettings: Dispatch<SetStateAction<ProjectSettings>>,
@@ -19,18 +20,25 @@ async function getProjectSettings(
 		if (!projectSettingsResponse.success) {
 			throw new Error(projectSettingsResponse.message);
 		}
-		const { projectPath, pinnedNotes, repositoryToSyncTo, darkMode } =
-			projectSettingsResponse.data;
-		let darkModeValidated = "system";
-		const isDarkModeValidated = ["light", "dark", "system"].includes(darkMode);
-		if (isDarkModeValidated) {
-			darkModeValidated = darkMode;
-		}
+		const {
+			projectPath,
+			pinnedNotes,
+			repositoryToSyncTo,
+			darkMode: darkModeUnvalidated,
+			noteSidebarItemSize: noteSidebarItemSizeUnvalidated,
+		} = projectSettingsResponse.data;
+
+		const { darkMode, noteSidebarItemSize } = validateProjectSettings({
+			darkMode: darkModeUnvalidated,
+			noteSidebarItemSize: noteSidebarItemSizeUnvalidated,
+		});
+
 		setProjectSettings({
 			projectPath,
 			pinnedNotes: new Set(pinnedNotes),
 			repositoryToSyncTo,
-			darkMode: darkModeValidated as "light" | "dark" | "system",
+			darkMode,
+			noteSidebarItemSize,
 		});
 	} catch (err) {
 		if (err instanceof Error) {

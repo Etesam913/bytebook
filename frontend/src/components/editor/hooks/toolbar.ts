@@ -1,11 +1,8 @@
 import { mergeRegister } from "@lexical/utils";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
-	$createNodeSelection,
-	$getNodeByKey,
 	$getSelection,
 	$isNodeSelection,
-	$setSelection,
 	CAN_REDO_COMMAND,
 	CAN_UNDO_COMMAND,
 	CLEAR_HISTORY_COMMAND,
