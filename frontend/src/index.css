@@ -45,6 +45,10 @@ html:has(.dark) {
 	color-scheme: dark;
 }
 
+* {
+	scrollbar-width: thin;
+}
+
 .draggable-block-menu {
 	border-radius: 4px;
 	padding: 2px 1px;
@@ -60,10 +64,17 @@ html:has(.dark) {
 	text-decoration: wavy red underline;
 }
 
-.sidebar-item {
+.list-sidebar-item {
 	@apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform;
 }
-.sidebar-item:focus {
+.list-sidebar-item:focus {
+	outline: 2px auto;
+}
+
+.card-sidebar-item {
+	@apply flex flex-1 gap-2 items-center border-b border-zinc-300 dark:border-zinc-600 px-2 py-[0.2rem] relative z-10 overflow-x-hidden transition-colors will-change-transform;
+}
+.card-sidebar-item:focus {
 	outline: 2px auto;
 }
 

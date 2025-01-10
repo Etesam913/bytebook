@@ -73,7 +73,7 @@ func GetProjectSettings(projectPath string) project_types.ProjectSettingsReponse
 				ProjectPath:         projectPath,
 				RepositoryToSyncTo:  "",
 				DarkMode:            "light",
-				NoteSidebarItemSize: "regular",
+				NoteSidebarItemSize: "card",
 			},
 		)
 		if err != nil {

@@ -71,18 +71,17 @@ export function Sidebar({
 
 	const items = useMemo(() => data ?? [], [data]);
 
-	const isRegularItemSize = useMemo(
+	const isSidebarItemCard = useMemo(
 		() =>
-			projectSettings.noteSidebarItemSize === "regular" &&
-			contentType === "note",
+			projectSettings.noteSidebarItemSize === "card" && contentType === "note",
 		[projectSettings.noteSidebarItemSize, contentType],
 	);
 	const VIRUTALIZATION_HEIGHT = useMemo(
-		() => (isRegularItemSize ? 18 : 8),
-		[isRegularItemSize],
+		() => (isSidebarItemCard ? 18 : 8),
+		[isSidebarItemCard],
 	);
 	const SIDEBAR_ITEM_HEIGHT = useMemo(
-		() => (isRegularItemSize ? 81.5 : 34),
+		() => (isSidebarItemCard ? 83 : 34),
 		[projectSettings.noteSidebarItemSize, contentType],
 	);
 

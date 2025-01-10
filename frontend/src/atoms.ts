@@ -41,7 +41,7 @@ export const projectSettingsAtom = atom<ProjectSettings>({
 	repositoryToSyncTo: "",
 	projectPath: "",
 	darkMode: "light",
-	noteSidebarItemSize: "regular",
+	noteSidebarItemSize: "card",
 });
 export const projectSettingsWithQueryParamsAtom = atom((get) => {
 	const projectSettings = get(projectSettingsAtom);

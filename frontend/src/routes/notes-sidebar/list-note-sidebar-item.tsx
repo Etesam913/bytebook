@@ -1,6 +1,6 @@
 import { RenderNoteIcon } from "./render-note-icon";
 
-export function CompactNoteSidebarItem({
+export function ListNoteSidebarItem({
 	sidebarNoteName,
 	sidebarQueryParams,
 	sidebarNoteNameWithExtension,

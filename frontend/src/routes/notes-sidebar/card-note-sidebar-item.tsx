@@ -21,7 +21,7 @@ function formatDateString(isoString: string): string {
 	return date.toLocaleDateString("en-US", options);
 }
 
-export function RegularNoteSidebarItem({
+export function CardNoteSidebarItem({
 	sidebarQueryParams,
 	sidebarNoteNameWithoutExtension,
 	isInTagSidebar,
@@ -43,7 +43,7 @@ export function RegularNoteSidebarItem({
 	return (
 		<div className="text-left w-full">
 			<div className="flex w-full justify-between gap-1.5">
-				<div className="w-[calc(100%-52px)]">
+				<div className={cn("w-full", isInTagSidebar && "w-[calc(100%-52px)]")}>
 					<p
 						className={cn(
 							"whitespace-nowrap pointer-events-none text-ellipsis overflow-hidden",

@@ -1,6 +1,6 @@
 type ValidatedProjectSettings = {
 	darkMode: "light" | "dark" | "system";
-	noteSidebarItemSize: "compact" | "regular";
+	noteSidebarItemSize: "list" | "card";
 };
 
 export function validateProjectSettings(settings: {
@@ -8,7 +8,7 @@ export function validateProjectSettings(settings: {
 	noteSidebarItemSize: string;
 }): ValidatedProjectSettings {
 	const darkModeOptions = ["light", "dark", "system"] as const;
-	const sidebarSizeOptions = ["compact", "regular"] as const;
+	const sidebarSizeOptions = ["list", "card"] as const;
 
 	// biome-ignore lint/suspicious/noExplicitAny: This is fine for proejct settings type validation
 	const darkMode = darkModeOptions.includes(settings.darkMode as any)
@@ -19,8 +19,8 @@ export function validateProjectSettings(settings: {
 		// biome-ignore lint/suspicious/noExplicitAny: This is fine for proejct settings type validation
 		settings.noteSidebarItemSize as any,
 	)
-		? (settings.noteSidebarItemSize as "compact" | "regular")
-		: "regular";
+		? (settings.noteSidebarItemSize as "list" | "card")
+		: "card";
 
 	return {
 		darkMode,

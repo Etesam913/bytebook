@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai/react";
-import { type Dispatch, type SetStateAction, useEffect, useMemo } from "react";
+import { type Dispatch, type SetStateAction, useMemo } from "react";
 import type { NoteEntry } from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
 import {
 	contextMenuDataAtom,
@@ -30,8 +30,8 @@ import {
 } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
 import { AddTagDialogChildren } from "./add-tag-dialog-children";
-import { CompactNoteSidebarItem } from "./compact-note-sidebar-item";
-import { RegularNoteSidebarItem } from "./regular-note-sidebar-item";
+import { CardNoteSidebarItem } from "./card-note-sidebar-item";
+import { ListNoteSidebarItem } from "./list-note-sidebar-item";
 
 export function NoteSidebarButton({
 	curFolder,
@@ -252,7 +252,9 @@ export function NoteSidebarButton({
 				});
 			}}
 			className={cn(
-				"sidebar-item",
+				projectSettings.noteSidebarItemSize === "list" && "list-sidebar-item",
+				projectSettings.noteSidebarItemSize === "card" && "card-sidebar-item",
+				projectSettings.noteSidebarItemSize === "card" && i === 0 && "border-t",
 				isActive && "bg-zinc-150 dark:bg-zinc-700",
 				isSelected && "!bg-blue-400 dark:!bg-blue-600 text-white",
 			)}
@@ -267,8 +269,8 @@ export function NoteSidebarButton({
 				);
 			}}
 		>
-			{projectSettings.noteSidebarItemSize === "compact" && (
-				<CompactNoteSidebarItem
+			{projectSettings.noteSidebarItemSize === "list" && (
+				<ListNoteSidebarItem
 					sidebarNoteName={sidebarNoteName}
 					sidebarQueryParams={sidebarQueryParams}
 					sidebarNoteNameWithExtension={sidebarNoteNameWithExtension}
@@ -277,8 +279,8 @@ export function NoteSidebarButton({
 				/>
 			)}
 
-			{projectSettings.noteSidebarItemSize === "regular" && (
-				<RegularNoteSidebarItem
+			{projectSettings.noteSidebarItemSize === "card" && (
+				<CardNoteSidebarItem
 					curNoteData={notes[i]}
 					sidebarQueryParams={sidebarQueryParams}
 					sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}

@@ -108,7 +108,7 @@ export function MyFoldersAccordion({
 										}
 										onKeyDown={(e) => handleKeyNavigation(e)}
 										className={cn(
-											"sidebar-item",
+											"list-sidebar-item",
 											folder &&
 												decodeURIComponent(folder) === sidebarFolderName &&
 												"bg-zinc-150 dark:bg-zinc-700",
@@ -180,6 +180,7 @@ export function MyFoldersAccordion({
 														onChange: () => {
 															setDialogData({
 																isOpen: true,
+																isPending: true,
 																title: "Rename Folder",
 																children: (errorText) => (
 																	<FolderDialogChildren

@@ -30,32 +30,32 @@ export function NoteSidebarItemSizeRow() {
 	return (
 		<SettingsRow
 			title="Note Sidebar Item Size"
-			description={"Change the note sidebar item size compactness"}
+			description={"Change the note sidebar item size type"}
 		>
 			<div className="flex gap-3">
 				<NoteSidebarItemSizeRowItem
-					isActive={projectSettings.noteSidebarItemSize === "compact"}
+					isActive={projectSettings.noteSidebarItemSize === "list"}
 					onClick={() =>
 						updateProjectSettings({
 							newProjectSettings: {
 								...projectSettings,
-								noteSidebarItemSize: "compact",
+								noteSidebarItemSize: "list",
 							},
 						})
 					}
-					label="Compact"
+					label="List"
 				/>
 				<NoteSidebarItemSizeRowItem
-					isActive={projectSettings.noteSidebarItemSize === "regular"}
+					isActive={projectSettings.noteSidebarItemSize === "card"}
 					onClick={() =>
 						updateProjectSettings({
 							newProjectSettings: {
 								...projectSettings,
-								noteSidebarItemSize: "regular",
+								noteSidebarItemSize: "card",
 							},
 						})
 					}
-					label="Regular"
+					label="Card"
 				/>
 			</div>
 		</SettingsRow>

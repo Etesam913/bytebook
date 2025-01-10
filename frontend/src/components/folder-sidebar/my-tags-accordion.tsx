@@ -61,7 +61,7 @@ export function MyTagsAccordion() {
 									<button
 										type="button"
 										draggable
-										className="sidebar-item"
+										className="list-sidebar-item"
 										// onDragStart={(e) =>
 										// 	handleDragStart(
 										// 		e,

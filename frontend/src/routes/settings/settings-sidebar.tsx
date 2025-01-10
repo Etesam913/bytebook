@@ -18,7 +18,7 @@ export function SettingsSidebar({ currentOption }: { currentOption: string }) {
 						<button
 							type="button"
 							className={cn(
-								"sidebar-item whitespace-nowrap",
+								"list-sidebar-item whitespace-nowrap",
 								currentOption === settingsOptions[i].to.split("/").pop() &&
 									"bg-zinc-150 dark:bg-zinc-700",
 							)}
