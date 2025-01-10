@@ -4,6 +4,7 @@ import {
 	type CSSProperties,
 	type Dispatch,
 	type ReactNode,
+	type RefObject,
 	type SetStateAction,
 	useMemo,
 } from "react";
@@ -18,8 +19,8 @@ export function SidebarItems({
 	allData,
 	visibleData,
 	getContextMenuStyle,
-	hoveredIndex,
-	setHoveredIndex,
+	hoveredItem,
+	setHoveredItem,
 	renderLink,
 	anchorSelectionIndex,
 	emptyElement,
@@ -31,15 +32,15 @@ export function SidebarItems({
 	allData: string[] | null;
 	visibleData: string[] | null;
 	getContextMenuStyle?: (dataItem: string) => CSSProperties;
-	hoveredIndex: number | null;
-	setHoveredIndex: Dispatch<SetStateAction<number | null>>;
+	hoveredItem: string | null;
+	setHoveredItem: Dispatch<SetStateAction<string | null>>;
 	renderLink: (data: {
 		dataItem: string;
 		i: number;
 		selectionRange: Set<string>;
 		setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
 	}) => ReactNode;
-	anchorSelectionIndex: React.MutableRefObject<number>;
+	anchorSelectionIndex: RefObject<number>;
 	emptyElement?: ReactNode;
 	layoutId: string;
 	startIndex: number;
@@ -65,10 +66,10 @@ export function SidebarItems({
 			return (
 				<li
 					onMouseEnter={() => {
-						setHoveredIndex(i);
+						setHoveredItem(dataItem);
 					}}
 					onMouseLeave={() => {
-						setHoveredIndex(null);
+						setHoveredItem(null);
 					}}
 					key={dataItem}
 					className="py-[.1rem]"
@@ -119,7 +120,7 @@ export function SidebarItems({
 					>
 						{!shouldHideSidebarHighlight && (
 							<AnimatePresence>
-								{hoveredIndex === i &&
+								{hoveredItem === dataItem &&
 									!selectionRange.has(prefixedDataItem) && (
 										<SidebarHighlight layoutId={layoutId} />
 									)}

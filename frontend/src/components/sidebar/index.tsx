@@ -45,7 +45,7 @@ export function Sidebar({
 	shouldHideSidebarHighlight?: boolean;
 	activeDataItem?: string | null;
 }) {
-	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+	const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 	const anchorSelectionIndex = useRef<number>(0);
 	const { folder } = useParams();
 	const listScrollContainerRef = useRef<HTMLDivElement>(null);
@@ -150,8 +150,8 @@ export function Sidebar({
 						visibleData={visibleItems}
 						renderLink={renderLink}
 						getContextMenuStyle={getContextMenuStyle}
-						hoveredIndex={hoveredIndex}
-						setHoveredIndex={setHoveredIndex}
+						hoveredItem={hoveredItem}
+						setHoveredItem={setHoveredItem}
 						anchorSelectionIndex={anchorSelectionIndex}
 						emptyElement={emptyElement}
 						startIndex={startIndex}
