@@ -1,4 +1,5 @@
 import { useAtom } from "jotai/react";
+import { useEffect, useMemo } from "react";
 import type { NoteEntry } from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models.js";
 import { noteSortAtom } from "../../atoms";
 import { SortButton } from "../../components/buttons/sort";
@@ -28,8 +29,14 @@ export function MyNotesAccordion({
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
-	const activeDataItem = curNote ? `${curNote}?ext=${fileExtension}` : null;
+	const activeDataItem = useMemo(
+		() => (curNote ? `${curNote}?ext=${fileExtension}` : null),
+		[curNote, fileExtension],
+	);
 
+	useEffect(() => {
+		console.log(activeDataItem);
+	}, [activeDataItem]);
 	return (
 		<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
 			<div className="flex items-center justify-between gap-2 pr-1">

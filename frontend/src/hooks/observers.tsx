@@ -61,6 +61,7 @@ export function useListVirtualization(
 		() => items.slice(startIndex, endIndex),
 		[items, startIndex, endIndex],
 	);
+	console.log(visibleItems);
 
 	// Update container height when resized
 	useEffect(() => {
@@ -78,6 +79,7 @@ export function useListVirtualization(
 
 	// Handle scroll events
 	function onScroll(e: React.UIEvent<HTMLDivElement>) {
+		console.log("scroll 🟩", visibleItems);
 		if (visibleItems.length > 0) {
 			setScrollTop(Math.max(0, (e.target as HTMLElement).scrollTop));
 			onScrollCallback?.(e);

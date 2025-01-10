@@ -114,10 +114,11 @@ export function Sidebar({
 			SIDEBAR_ITEM_HEIGHT,
 		);
 		if (scrollTopToActiveItem === -1) return;
+		setScrollTop(scrollTopToActiveItem);
 		listScrollContainerRef.current?.scrollTo({
 			top: scrollTopToActiveItem,
 		});
-	}, [activeDataItem, items]);
+	}, [activeDataItem, SIDEBAR_ITEM_HEIGHT]);
 
 	return (
 		<div
