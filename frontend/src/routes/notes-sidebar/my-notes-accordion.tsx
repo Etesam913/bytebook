@@ -1,5 +1,5 @@
 import { useAtom } from "jotai/react";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import type { NoteEntry } from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models.js";
 import { noteSortAtom } from "../../atoms";
 import { SortButton } from "../../components/buttons/sort";
@@ -11,19 +11,20 @@ import { NoteSidebarButton } from "./note-sidebar-button.tsx";
 
 export function MyNotesAccordion({
 	notes,
-	noteCount,
 	curFolder,
 	curNote,
 	tagState,
+	layoutId,
 }: {
 	notes: NoteEntry[] | null;
-	noteCount: number;
 	curFolder: string;
 	curNote: string | undefined;
 	tagState?: {
 		tagName: string;
 	};
+	layoutId: string;
 }) {
+	const noteCount = useMemo(() => notes?.length ?? 0, [notes]);
 	// The sidebar note name includes the folder name if it's in a tag sidebar
 	const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);
 	const searchParams: { ext?: string } = useSearchParamsEntries();
@@ -34,9 +35,11 @@ export function MyNotesAccordion({
 		[curNote, fileExtension],
 	);
 
-	useEffect(() => {
-		console.log(activeDataItem);
-	}, [activeDataItem]);
+	const sidebarData = useMemo(
+		() => notes?.map((note) => note.name) ?? [],
+		[notes],
+	);
+
 	return (
 		<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
 			<div className="flex items-center justify-between gap-2 pr-1">
@@ -55,14 +58,15 @@ export function MyNotesAccordion({
 			</div>
 			<Sidebar
 				contentType="note"
-				layoutId="recent-notes-accordion"
+				key={layoutId}
+				layoutId={layoutId}
 				emptyElement={
 					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
 						Create a note with the "Create Note" button above
 					</li>
 				}
 				activeDataItem={activeDataItem}
-				data={notes?.map((note) => note.name) ?? []}
+				data={sidebarData}
 				renderLink={({
 					dataItem: sidebarNoteName,
 					i,

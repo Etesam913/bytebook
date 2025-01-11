@@ -130,7 +130,7 @@ export class LinkNode extends ElementNode {
 						const note = segments[segments.length - 1];
 						const folder = segments[segments.length - 2];
 						const fileExtension = url.searchParams.get("ext");
-						navigate(`/${folder}/${note}?ext=${fileExtension}`);
+						navigate(`/${folder}/${note}?ext=${fileExtension}&focus=true`);
 						e.preventDefault();
 					}
 					// else if (isFolderLink) {

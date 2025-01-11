@@ -27,7 +27,7 @@ export const SearchItem = forwardRef<
 					const [folder, note] = filePath.split("/");
 					const { extension, fileName } = getFileExtension(note);
 					setSearchPanelData((prev) => ({ ...prev, isOpen: false }));
-					navigate(`/${folder}/${fileName}?ext=${extension}`);
+					navigate(`/${folder}/${fileName}?ext=${extension}&focus=true`);
 				}}
 				type="button"
 				className="relative flex items-center will-change-transform z-40 w-full text-left px-1.5 py-[0.225rem]"

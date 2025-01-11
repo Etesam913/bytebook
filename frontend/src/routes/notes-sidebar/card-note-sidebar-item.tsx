@@ -41,7 +41,7 @@ export function CardNoteSidebarItem({
 	const doesHaveImage =
 		notePreviewResult?.success && notePreviewResult?.data?.firstImageSrc !== "";
 	return (
-		<div className="text-left w-full">
+		<div className="text-left pointer-events-none w-full">
 			<div className="flex w-full justify-between gap-1.5">
 				<div className={cn("w-full", isInTagSidebar && "w-[calc(100%-52px)]")}>
 					<p

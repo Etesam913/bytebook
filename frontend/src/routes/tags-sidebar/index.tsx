@@ -49,8 +49,8 @@ export function TagsSidebar({
 									tagState={{
 										tagName,
 									}}
+									layoutId="tags-sidebar"
 									notes={notes}
-									noteCount={notes?.length ?? 0}
 									curFolder={folder ?? ""}
 									curNote={note ?? ""}
 								/>

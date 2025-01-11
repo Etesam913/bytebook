@@ -176,7 +176,7 @@ export function SearchPanelForm() {
 				const [folder, note] = selectedResult.split("/");
 				const { extension, fileName } = getFileExtension(note);
 				setSearchPanelData((prev) => ({ ...prev, isOpen: false }));
-				navigate(`/${folder}/${fileName}?ext=${extension}`);
+				navigate(`/${folder}/${fileName}?ext=${extension}&focus=true`);
 			}}
 		>
 			<input

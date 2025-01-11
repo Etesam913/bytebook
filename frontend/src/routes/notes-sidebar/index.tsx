@@ -53,6 +53,7 @@ export function NotesSidebar({
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
 	const { navigate } = useCustomNavigate();
+
 	useEffect(() => {
 		updateNotes(folder, note, setNotes, noteSort);
 	}, [folder, noteSort]);
@@ -194,7 +195,7 @@ export function NotesSidebar({
 								<div className="flex h-full flex-col overflow-y-auto">
 									<MyNotesAccordion
 										notes={notes}
-										noteCount={(notes ?? []).length}
+										layoutId="note-sidebar"
 										curFolder={folder}
 										curNote={note}
 									/>

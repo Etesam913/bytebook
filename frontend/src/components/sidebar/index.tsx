@@ -16,7 +16,7 @@ import {
 	selectionRangeAtom,
 } from "../../atoms";
 import { useListVirtualization } from "../../hooks/observers";
-import { useOnClickOutside } from "../../utils/hooks";
+import { useOnClickOutside, useSearchParamsEntries } from "../../utils/hooks";
 import { scrollVirtualizedListToSelectedNoteOrFolder } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
 import { SidebarItems } from "./sidebar-items";
@@ -50,6 +50,11 @@ export function Sidebar({
 	const { folder } = useParams();
 	const listScrollContainerRef = useRef<HTMLDivElement>(null);
 	const listRef = useRef<HTMLUListElement>(null);
+	/*
+	  If the activeNoteItem is set, then the note was navigated via a note link or the searchbar
+		We need to change the scroll position to the sidebar so that the active note is visible
+	*/
+	const searchParams: { focus?: string } = useSearchParamsEntries();
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const contextMenuRef = useAtomValue(contextMenuRefAtom);
 	const projectSettings = useAtomValue(projectSettingsAtom);
@@ -103,10 +108,13 @@ export function Sidebar({
 	// Reset scroll position when folder changes so that the sidebar is scrolled to the top
 	useEffect(() => {
 		setScrollTop(0);
-	}, [folder]);
+		listScrollContainerRef.current?.scrollTo({
+			top: 0,
+		});
+	}, [folder, items]);
 
 	useEffect(() => {
-		if (!activeDataItem) return;
+		if (!activeDataItem || !searchParams.focus) return;
 		const scrollTopToActiveItem = scrollVirtualizedListToSelectedNoteOrFolder(
 			activeDataItem,
 			items,
@@ -118,7 +126,7 @@ export function Sidebar({
 		listScrollContainerRef.current?.scrollTo({
 			top: scrollTopToActiveItem,
 		});
-	}, [activeDataItem, SIDEBAR_ITEM_HEIGHT]);
+	}, [activeDataItem, searchParams.focus, SIDEBAR_ITEM_HEIGHT]);
 
 	return (
 		<div
