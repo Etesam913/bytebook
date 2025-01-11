@@ -43,7 +43,7 @@ export function CardNoteSidebarItem({
 	return (
 		<div className="text-left pointer-events-none w-full">
 			<div className="flex w-full justify-between gap-1.5">
-				<div className={cn("w-full", isInTagSidebar && "w-[calc(100%-52px)]")}>
+				<div className={cn("w-full", doesHaveImage && "w-[calc(100%-52px)]")}>
 					<p
 						className={cn(
 							"whitespace-nowrap pointer-events-none text-ellipsis overflow-hidden",

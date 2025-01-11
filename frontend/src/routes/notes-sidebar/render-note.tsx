@@ -27,21 +27,22 @@ export function RenderNote({
 }) {
 	const animationControls = useAnimationControls();
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-	const hasCustomToolbar = fileExtension === "md";
+	const normalizedExtension = fileExtension?.toLowerCase().trim();
+	const hasCustomToolbar = normalizedExtension === "md";
 
-	const isPdf = fileExtension === "pdf";
-	const isMarkdown = fileExtension === "md";
+	const isPdf = normalizedExtension === "pdf";
+	const isMarkdown = normalizedExtension === "md";
 	const isImage =
-		fileExtension && IMAGE_FILE_EXTENSIONS.includes(fileExtension);
+		normalizedExtension && IMAGE_FILE_EXTENSIONS.includes(normalizedExtension);
 	const isVideo =
-		fileExtension && VIDEO_FILE_EXTENSIONS.includes(fileExtension);
+		normalizedExtension && VIDEO_FILE_EXTENSIONS.includes(normalizedExtension);
 	const isUnknownFile =
-		!isPdf && !isMarkdown && !isImage && !isVideo && fileExtension;
+		!isPdf && !isMarkdown && !isImage && !isVideo && normalizedExtension;
 	const draggedElement = useAtomValue(draggedElementAtom);
 
-	const fileUrl = `${FILE_SERVER_URL}/notes/${folder}/${note}.${fileExtension}`;
+	const fileUrl = `${FILE_SERVER_URL}/notes/${folder}/${note}.${normalizedExtension}`;
 
-	useMostRecentNotes(folder, note, fileExtension);
+	useMostRecentNotes(folder, note, normalizedExtension);
 	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
 
 	if (!note) return <></>;
@@ -59,7 +60,7 @@ export function RenderNote({
 				>
 					<MaximizeNoteButton animationControls={animationControls} />
 					<h1 className="text-base overflow-ellipsis overflow-hidden ">
-						{folder}/{note}.{fileExtension}
+						{folder}/{note}.{normalizedExtension}
 					</h1>
 					<MotionIconButton
 						title="Open In Default App"
@@ -68,7 +69,9 @@ export function RenderNote({
 						onClick={() => {
 							revealInFinder({
 								folder,
-								selectionRange: new Set([`note:${note}?ext=${fileExtension}`]),
+								selectionRange: new Set([
+									`note:${note}?ext=${normalizedExtension}`,
+								]),
 							});
 						}}
 					>
@@ -94,7 +97,7 @@ export function RenderNote({
 						)}
 						src={fileUrl}
 					/>
-					<BottomBar folder={folder} note={note} ext={fileExtension} />
+					<BottomBar folder={folder} note={note} ext={normalizedExtension} />
 				</>
 			)}
 
@@ -104,7 +107,7 @@ export function RenderNote({
 					folder={folder}
 					note={note}
 					fileUrl={fileUrl}
-					fileExtension={fileExtension}
+					fileExtension={normalizedExtension}
 					isNoteMaximized={isNoteMaximized}
 				/>
 			)}
@@ -115,7 +118,7 @@ export function RenderNote({
 					folder={folder}
 					note={note}
 					fileUrl={fileUrl}
-					fileExtension={fileExtension}
+					fileExtension={normalizedExtension}
 					isNoteMaximized={isNoteMaximized}
 					draggedElement={draggedElement}
 				/>
@@ -129,7 +132,7 @@ export function RenderNote({
 							This file type is not supported.
 						</h1>
 					</section>
-					<BottomBar folder={folder} note={note} ext={fileExtension} />
+					<BottomBar folder={folder} note={note} ext={normalizedExtension} />
 				</>
 			)}
 		</motion.div>
