@@ -21,7 +21,9 @@ import { PinTack2 } from "../../icons/pin-tack-2";
 import { PinTackSlash } from "../../icons/pin-tack-slash";
 import TagPlus from "../../icons/tag-plus";
 import { Trash } from "../../icons/trash";
+import { IMAGE_FILE_EXTENSIONS } from "../../types";
 import { useSearchParamsEntries } from "../../utils/hooks";
+import { FILE_SERVER_URL } from "../../utils/misc";
 import { useCustomNavigate } from "../../utils/routing";
 import {
 	getFolderAndNoteFromSelectionRange,
@@ -73,18 +75,29 @@ export function NoteSidebarButton({
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 
 	const isInTagSidebar = tagState?.tagName !== undefined;
-	const sidebarNoteNameWithExtension = `${
+	const activeNoteNameWithExtension = `${
 		isInTagSidebar ? `${curFolder}/` : ""
 	}${curNote}?ext=${searchParams.ext}`;
-
+	console.log(sidebarNoteName, sidebarQueryParams.ext);
 	const { data: notePreviewResult } = useNotePreviewQuery(
 		decodeURIComponent(curFolder),
 		decodeURIComponent(sidebarNoteNameWithoutExtension),
+		sidebarQueryParams.ext,
 	);
+	const imgSrc = useMemo(() => {
+		const notePreviewResultData = notePreviewResult?.data;
+		if (!notePreviewResultData) {
+			if (IMAGE_FILE_EXTENSIONS.includes(sidebarQueryParams.ext)) {
+				return `${FILE_SERVER_URL}/notes/${curFolder}/${sidebarNoteNameWithoutExtension}.${sidebarQueryParams.ext}`;
+			}
+			return "";
+		}
+		return notePreviewResultData.firstImageSrc;
+	}, [notePreviewResult]);
 
 	const isActive = useMemo(
-		() => decodeURIComponent(sidebarNoteNameWithExtension) === sidebarNoteName,
-		[sidebarNoteNameWithExtension, sidebarNoteName],
+		() => decodeURIComponent(activeNoteNameWithExtension) === sidebarNoteName,
+		[activeNoteNameWithExtension, sidebarNoteName],
 	);
 	const isSelected = useMemo(
 		() =>
@@ -273,7 +286,7 @@ export function NoteSidebarButton({
 				<ListNoteSidebarItem
 					sidebarNoteName={sidebarNoteName}
 					sidebarQueryParams={sidebarQueryParams}
-					sidebarNoteNameWithExtension={sidebarNoteNameWithExtension}
+					activeNoteNameWithExtension={activeNoteNameWithExtension}
 					sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
 					isInTagSidebar={isInTagSidebar}
 				/>
@@ -282,6 +295,7 @@ export function NoteSidebarButton({
 			{projectSettings.noteSidebarItemSize === "card" && (
 				<CardNoteSidebarItem
 					curNoteData={notes[i]}
+					imgSrc={imgSrc}
 					sidebarQueryParams={sidebarQueryParams}
 					sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
 					isInTagSidebar={isInTagSidebar}

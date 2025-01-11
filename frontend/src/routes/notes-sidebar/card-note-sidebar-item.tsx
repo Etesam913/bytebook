@@ -27,6 +27,7 @@ export function CardNoteSidebarItem({
 	isInTagSidebar,
 	curNoteData,
 	notePreviewResult,
+	imgSrc,
 	isSelected,
 }: {
 	sidebarQueryParams: {
@@ -36,10 +37,10 @@ export function CardNoteSidebarItem({
 	isInTagSidebar: boolean;
 	curNoteData: NoteEntry;
 	notePreviewResult: BackendResponseWithData<NotePreviewData> | undefined;
+	imgSrc: string;
 	isSelected: boolean;
 }) {
-	const doesHaveImage =
-		notePreviewResult?.success && notePreviewResult?.data?.firstImageSrc !== "";
+	const doesHaveImage = imgSrc !== "";
 	return (
 		<div className="text-left pointer-events-none w-full">
 			<div className="flex w-full justify-between gap-1.5">
@@ -72,7 +73,7 @@ export function CardNoteSidebarItem({
 					<img
 						alt={`Note preview of ${sidebarNoteNameWithoutExtension}`}
 						className="h-[52px] w-auto rounded-md"
-						src={notePreviewResult?.data?.firstImageSrc}
+						src={imgSrc}
 					/>
 				)}
 			</div>

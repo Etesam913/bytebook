@@ -3,7 +3,7 @@ import { RenderNoteIcon } from "./render-note-icon";
 export function ListNoteSidebarItem({
 	sidebarNoteName,
 	sidebarQueryParams,
-	sidebarNoteNameWithExtension,
+	activeNoteNameWithExtension,
 	sidebarNoteNameWithoutExtension,
 	isInTagSidebar,
 }: {
@@ -11,7 +11,7 @@ export function ListNoteSidebarItem({
 	sidebarQueryParams: {
 		[key: string]: string;
 	};
-	sidebarNoteNameWithExtension: string;
+	activeNoteNameWithExtension: string;
 	sidebarNoteNameWithoutExtension: string;
 	isInTagSidebar: boolean;
 }) {
@@ -20,7 +20,7 @@ export function ListNoteSidebarItem({
 			<RenderNoteIcon
 				sidebarNoteName={sidebarNoteName}
 				fileExtension={sidebarQueryParams.ext}
-				noteNameWithExtension={sidebarNoteNameWithExtension}
+				noteNameWithExtension={activeNoteNameWithExtension}
 			/>
 			<p className="whitespace-nowrap pointer-events-none text-ellipsis overflow-hidden">
 				{isInTagSidebar

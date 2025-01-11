@@ -278,10 +278,17 @@ export function useAddTagsMutation(queryClient: QueryClient) {
 	});
 }
 
-export function useNotePreviewQuery(curFolder: string, curNote: string) {
+export function useNotePreviewQuery(
+	curFolder: string,
+	curNote: string,
+	fileExtension: string,
+) {
 	return useQuery({
 		queryKey: ["note-preview", curNote],
 		queryFn: async () => {
+			if (fileExtension !== "md") {
+				return;
+			}
 			return await GetNotePreview(`notes/${curFolder}/${curNote}.md`);
 		},
 	});
