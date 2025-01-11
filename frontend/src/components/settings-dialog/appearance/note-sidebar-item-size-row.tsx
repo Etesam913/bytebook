@@ -1,6 +1,9 @@
 import { useAtomValue } from "jotai/react";
+import { useLocation } from "wouter";
+import { navigate } from "wouter/use-browser-location";
 import { projectSettingsAtom } from "../../../atoms";
 import { useUpdateProjectSettingsMutation } from "../../../hooks/project-settings";
+import { useSearchParamsEntries } from "../../../utils/hooks";
 import { cn } from "../../../utils/string-formatting";
 import { SettingsRow } from "../settings-row";
 
@@ -26,36 +29,40 @@ function NoteSidebarItemSizeRowItem({
 export function NoteSidebarItemSizeRow() {
 	const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
 	const projectSettings = useAtomValue(projectSettingsAtom);
-
+	const [location] = useLocation();
+	const searchParams: { ext?: string } = useSearchParamsEntries();
 	return (
 		<SettingsRow
 			title="Note Sidebar Item Size"
-			description={"Change the note sidebar item size type"}
+			description="Change the note sidebar item size type"
 		>
 			<div className="flex gap-3">
 				<NoteSidebarItemSizeRowItem
-					isActive={projectSettings.noteSidebarItemSize === "list"}
-					onClick={() =>
-						updateProjectSettings({
-							newProjectSettings: {
-								...projectSettings,
-								noteSidebarItemSize: "list",
-							},
-						})
-					}
-					label="List"
-				/>
-				<NoteSidebarItemSizeRowItem
 					isActive={projectSettings.noteSidebarItemSize === "card"}
-					onClick={() =>
+					onClick={() => {
+						navigate(`${location}?ext=${searchParams.ext}&focus=true`);
 						updateProjectSettings({
 							newProjectSettings: {
 								...projectSettings,
 								noteSidebarItemSize: "card",
 							},
-						})
-					}
+						});
+					}}
 					label="Card"
+				/>
+
+				<NoteSidebarItemSizeRowItem
+					isActive={projectSettings.noteSidebarItemSize === "list"}
+					onClick={() => {
+						navigate(`${location}?ext=${searchParams.ext}&focus=true`);
+						updateProjectSettings({
+							newProjectSettings: {
+								...projectSettings,
+								noteSidebarItemSize: "list",
+							},
+						});
+					}}
+					label="List"
 				/>
 			</div>
 		</SettingsRow>

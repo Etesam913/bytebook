@@ -59,7 +59,6 @@ import {
 	InlineEquationNode,
 } from "./nodes/inline-equation.tsx";
 import { $createLinkNode, $isLinkNode, LinkNode } from "./nodes/link";
-import { getFileElementTypeFromExtensionAndHead } from "./utils/file-node.ts";
 import type { Transformer } from "./utils/note-metadata";
 
 export const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;

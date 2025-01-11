@@ -78,7 +78,6 @@ export function NoteSidebarButton({
 	const activeNoteNameWithExtension = `${
 		isInTagSidebar ? `${curFolder}/` : ""
 	}${curNote}?ext=${searchParams.ext}`;
-	console.log(sidebarNoteName, sidebarQueryParams.ext);
 	const { data: notePreviewResult } = useNotePreviewQuery(
 		decodeURIComponent(curFolder),
 		decodeURIComponent(sidebarNoteNameWithoutExtension),
