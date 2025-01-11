@@ -164,6 +164,7 @@ export function Sidebar({
 						emptyElement={emptyElement}
 						startIndex={startIndex}
 						contentType={contentType}
+						isSidebarItemCard={isSidebarItemCard}
 						shouldHideSidebarHighlight={shouldHideSidebarHighlight}
 					/>
 				</ul>

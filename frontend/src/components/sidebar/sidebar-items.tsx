@@ -13,6 +13,7 @@ import {
 	removeFoldersFromSelection,
 	removeNotesFromSelection,
 } from "../../utils/selection";
+import { cn } from "../../utils/string-formatting";
 import { SidebarHighlight } from "./highlight";
 
 export function SidebarItems({
@@ -28,6 +29,7 @@ export function SidebarItems({
 	startIndex,
 	contentType,
 	shouldHideSidebarHighlight,
+	isSidebarItemCard,
 }: {
 	allData: string[] | null;
 	visibleData: string[] | null;
@@ -46,6 +48,7 @@ export function SidebarItems({
 	startIndex: number;
 	contentType?: "note" | "folder";
 	shouldHideSidebarHighlight?: boolean;
+	isSidebarItemCard: boolean;
 }) {
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 
@@ -122,7 +125,10 @@ export function SidebarItems({
 							<AnimatePresence>
 								{hoveredItem === dataItem &&
 									!selectionRange.has(prefixedDataItem) && (
-										<SidebarHighlight layoutId={layoutId} />
+										<SidebarHighlight
+											layoutId={layoutId}
+											className={cn(isSidebarItemCard && "rounded-none")}
+										/>
 									)}
 							</AnimatePresence>
 						)}
