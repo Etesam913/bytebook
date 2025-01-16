@@ -18,11 +18,9 @@ import (
 
 var PORT = ":5890"
 
+var IMAGE_FILE_EXTENSIONS = []string{"png", "jpg", "jpeg", "webp", "gif"}
 
-var IMAGE_FILE_EXTENSIONS = []string{"png", "jpg", "jpeg", "webp", "gif"};
-
-var VIDEO_FILE_EXTENSIONS = []string{"mov", "mp4", "m4v"};
-
+var VIDEO_FILE_EXTENSIONS = []string{"mov", "mp4", "m4v"}
 
 // CORSResponseWriter wraps http.ResponseWriter to modify headers after the handler writes them
 type CORSResponseWriter struct {
@@ -176,7 +174,6 @@ func handleFileEvents(
 	debounceTimer *time.Timer,
 	debounceEvents map[string][]map[string]string,
 ) {
-
 	note := segments[len(segments)-1]
 	lastIndexOfDot := strings.LastIndex(note, ".")
 	noteName := note[:lastIndexOfDot]

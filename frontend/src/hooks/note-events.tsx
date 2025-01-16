@@ -287,7 +287,7 @@ export function useNotePreviewQuery(
 		queryKey: ["note-preview", curNote],
 		queryFn: async () => {
 			if (fileExtension !== "md") {
-				return;
+				return null;
 			}
 			return await GetNotePreview(`notes/${curFolder}/${curNote}.md`);
 		},

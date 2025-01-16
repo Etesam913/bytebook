@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { NotePreviewData } from "../../../bindings/github.com/etesam913/bytebook";
 import type {
 	BackendResponseWithData,
@@ -41,6 +42,8 @@ export function CardNoteSidebarItem({
 	isSelected: boolean;
 }) {
 	const doesHaveImage = imgSrc !== "";
+	const [isImageLoading, setIsImageLoading] = useState(true);
+	const [isImageError, setIsImageError] = useState(false);
 	return (
 		<div className="text-left pointer-events-none w-full">
 			<div className="flex w-full justify-between gap-1.5">
@@ -69,12 +72,20 @@ export function CardNoteSidebarItem({
 						{notePreviewResult?.success && notePreviewResult?.data?.firstLine}
 					</p>
 				</div>
-				{doesHaveImage && (
-					<img
-						alt={`Note preview of ${sidebarNoteNameWithoutExtension}`}
-						className="h-[52px] w-auto rounded-md"
-						src={imgSrc}
-					/>
+				{doesHaveImage && !isImageError && (
+					<>
+						{isImageLoading && (
+							<div className="h-[52px] w-[42px] rounded-md bg-gray-200 animate-pulse" />
+						)}
+						<img
+							onLoad={() => setIsImageLoading(false)}
+							onError={() => setIsImageError(true)}
+							style={{ display: isImageLoading ? "none" : "block" }}
+							alt={`Note preview of ${sidebarNoteNameWithoutExtension}`}
+							className="h-[52px] w-auto rounded-md"
+							src={imgSrc}
+						/>
+					</>
 				)}
 			</div>
 			<div

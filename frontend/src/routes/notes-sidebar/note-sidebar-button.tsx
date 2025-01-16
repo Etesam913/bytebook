@@ -87,6 +87,10 @@ export function NoteSidebarButton({
 		const notePreviewResultData = notePreviewResult?.data;
 		if (!notePreviewResultData) {
 			if (IMAGE_FILE_EXTENSIONS.includes(sidebarQueryParams.ext)) {
+				// For tags, the sidebarNoteNameWithoutExtension includes both the folder and the note name
+				if (tagState?.tagName) {
+					return `${FILE_SERVER_URL}/notes/${sidebarNoteNameWithoutExtension}.${sidebarQueryParams.ext}`;
+				}
 				return `${FILE_SERVER_URL}/notes/${curFolder}/${sidebarNoteNameWithoutExtension}.${sidebarQueryParams.ext}`;
 			}
 			return "";
