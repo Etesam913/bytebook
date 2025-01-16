@@ -4,3 +4,4 @@ rust-contents
 backend/backend-env/
 .env
 build/windows/nsis
+.task/

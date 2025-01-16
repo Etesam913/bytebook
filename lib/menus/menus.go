@@ -31,7 +31,7 @@ func InitializeApplicationMenu(app *application.App, backgroundColor application
 		viewSubmenuItem := viewSubmenu.Add("Search")
 		viewSubmenuItem.SetAccelerator("cmdorctrl+p")
 		viewSubmenuItem.OnClick(func(data *application.Context) {
-			app.EmitEvent("search:open-panel", map[string]interface{}{})
+			app.CurrentWindow().EmitEvent("search:open-panel", map[string]interface{}{})
 		})
 	}
 
