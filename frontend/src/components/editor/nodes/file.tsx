@@ -181,10 +181,13 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 	}
 
 	setElementType(elementType: FileType, editor: LexicalEditor): void {
-		editor.update(() => {
-			const writable = this.getWritable();
-			writable.__elementType = elementType;
-		});
+		editor.update(
+			() => {
+				const writable = this.getWritable();
+				writable.__elementType = elementType;
+			},
+			{ tag: "note:changed-from-other-window" },
+		);
 	}
 
 	decorate(_editor: LexicalEditor): JSX.Element {

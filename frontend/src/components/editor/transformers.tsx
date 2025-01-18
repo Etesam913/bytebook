@@ -116,14 +116,10 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 				: Number.parseInt(widthQueryValue)
 			: "100%";
 
-		// const elementType =
-		// 	await getFileElementTypeFromExtensionAndHead(filePathOrSrc);
-
 		const nodeToCreate = $createFileNode({
 			alt: removeQueryParam(alt, "width"),
 			src: filePathOrSrc,
 			width,
-			elementType: "image",
 		});
 		textNode.replace(nodeToCreate);
 	},
