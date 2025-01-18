@@ -7,7 +7,7 @@ import {
 	type LexicalEditor,
 } from "lexical";
 import type { Dispatch, SetStateAction } from "react";
-import type { FileNode } from "../nodes/file";
+import { constructGhostElementForNode } from "./ghost-elements";
 
 export class Point {
 	private readonly _x: number;
@@ -463,6 +463,19 @@ export function handleDragStart(
 	const ghostElement = draggableBlockElement.cloneNode(true) as HTMLElement;
 	ghostElement.id = "block-element";
 	ghostElement.classList.add("dragging");
+
+	editor.read(() => {
+		const node = $getNearestNodeFromDOMNode(draggableBlockElement);
+		if (!node) return;
+		if ((node as ElementNode).getChildren) {
+			const elementNode = node as ElementNode;
+			elementNode.getChildren().forEach((child) => {
+				constructGhostElementForNode(child, ghostElement);
+			});
+		}
+		nodeKey = node.getKey();
+	});
+
 	if (noteContainer) {
 		ghostElement.style.fontFamily = noteContainer.style.fontFamily;
 		ghostElement.style.maxWidth = `${noteContainer.clientWidth}px`;
@@ -472,46 +485,6 @@ export function handleDragStart(
 
 	e.dataTransfer.setDragImage(ghostElement, 0, 0);
 	document.body.appendChild(ghostElement);
-	editor.update(() => {
-		const node = $getNearestNodeFromDOMNode(draggableBlockElement);
-		if (node) {
-			// @ts-expect-error -- It is of ElementNode type, code-blocks do not have children for example, so we don't want to run getChildren
-			if (node.getChildren) {
-				const elementNode = node as ElementNode;
-				elementNode.getChildren().forEach((child) => {
-					if (child.getType() === "file") {
-						// Provides a width and height for the iframe pdf preview
-						if (
-							(child as FileNode).getElementType() === "pdf" &&
-							noteContainer
-						) {
-							ghostElement.style.width = `${noteContainer.clientWidth}px`;
-							ghostElement.style.height = "15rem";
-							ghostElement.style.overflow = "hidden";
-						}
-						// Cloning a youtube iframe for the ghost element does not work nicely so we are just replacing with text
-						else if ((child as FileNode).getElementType() === "youtube") {
-							const youtubeText = document.createElement("div");
-							youtubeText.innerText = "YouTube Video";
-							ghostElement.replaceChildren(youtubeText);
-						}
-					}
-				});
-			}
-
-			if (node.getType() === "excalidraw") {
-				const excalidrawText = document.createElement("div");
-				excalidrawText.innerText = "Drawing";
-				ghostElement.replaceChildren(excalidrawText);
-			} else if (node.getType() === "code-block") {
-				const terminalText = document.createElement("div");
-				terminalText.innerText = "Code Block";
-				ghostElement.replaceChildren(terminalText);
-			}
-
-			nodeKey = node.getKey();
-		}
-	});
 
 	setIsDragging(true);
 	e.dataTransfer.setData(DRAG_DATA_FORMAT, nodeKey);

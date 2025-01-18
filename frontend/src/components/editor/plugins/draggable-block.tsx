@@ -86,7 +86,7 @@ export function DraggableBlockPlugin() {
 					opacity: isDragHandleShowing ? 1 : 0,
 				}}
 				style={{ x: isNoteMaximized ? 5 : -2, y: dragHandleYSpringMotionValue }}
-				className={"draggable-block-menu text-zinc-500 dark:text-zinc-300"}
+				className="draggable-block-menu text-zinc-500 dark:text-zinc-300"
 				ref={handleRef}
 			>
 				<VerticalDots height="15px" width="15px" />

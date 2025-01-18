@@ -349,7 +349,7 @@ div[data-template-is-fullscreen="true"]
 .PlaygroundEditorTheme__listItemChecked:before,
 .PlaygroundEditorTheme__listItemUnchecked:after,
 .PlaygroundEditorTheme__listItemChecked:after {
-	border-radius: 5px;
+	border-radius: 999px;
 }
 
 .PlaygroundEditorTheme__listItemUnchecked:before,
