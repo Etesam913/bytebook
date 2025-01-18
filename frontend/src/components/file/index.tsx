@@ -4,9 +4,9 @@ import { Loader } from "../../icons/loader";
 import type { ResizeWidth } from "../../types";
 import type { FileType } from "../editor/nodes/file";
 import { getFileElementTypeFromExtensionAndHead } from "../editor/utils/file-node";
+import { FileError } from "./error";
 import { Image } from "./image";
 import { Pdf } from "./pdf";
-import { UnknownAttachment } from "./unknown-attachment";
 import { Video } from "./video";
 import { YouTube } from "./youtube";
 
@@ -77,5 +77,5 @@ export function File({
 	}
 
 	// Replace with unknown attachment
-	return <UnknownAttachment nodeKey={nodeKey} src={src} />;
+	return <FileError src={src} nodeKey={nodeKey} type="unknown-attachment" />;
 }

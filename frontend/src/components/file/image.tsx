@@ -51,14 +51,7 @@ export function Image({
 	useShowWhenInViewport(loaderRef, setIsInViewport, isExpanded);
 
 	if (isError) {
-		return (
-			<FileError
-				editor={editor}
-				isSelected={isSelected}
-				src={src}
-				nodeKey={nodeKey}
-			/>
-		);
+		return <FileError src={src} nodeKey={nodeKey} type="loading-fail" />;
 	}
 
 	return (

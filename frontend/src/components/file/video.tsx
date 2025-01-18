@@ -50,14 +50,7 @@ export function Video({
 	useShowWhenInViewport(loaderRef, setIsInViewport, isExpanded);
 
 	if (isError) {
-		return (
-			<FileError
-				editor={editor}
-				src={src}
-				nodeKey={nodeKey}
-				isSelected={isSelected}
-			/>
-		);
+		return <FileError src={src} nodeKey={nodeKey} type="loading-fail" />;
 	}
 
 	return (
