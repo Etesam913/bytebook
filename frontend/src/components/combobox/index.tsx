@@ -86,7 +86,7 @@ export const Combobox = forwardRef<HTMLInputElement, InputProps>(
 					ref={ref}
 					maxLength={75}
 					className={cn(
-						"bg-zinc-150 dark:bg-zinc-700 py-1 px-2 rounded-md outline outline-offset-0 outline-2 focus-visible:outline-blue-400 dark:focus-visible:outline-blue-500 outline-zinc-300 dark:outline-zinc-600",
+						"bg-zinc-150 dark:bg-zinc-700 py-1 px-2 rounded-md border-2 outline-1 border-zinc-300 dark:border-zinc-600 focus-visible:!border-transparent",
 						inputClassName,
 					)}
 					onKeyDown={(e) => {
