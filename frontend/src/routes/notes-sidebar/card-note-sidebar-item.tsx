@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { NotePreviewData } from "../../../bindings/github.com/etesam913/bytebook";
 import type {
 	BackendResponseWithData,
 	NoteEntry,
 } from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
+import { VIDEO_FILE_EXTENSIONS } from "../../types";
 import { humanFileSize } from "../../utils/misc";
 import { cn } from "../../utils/string-formatting";
 
@@ -41,9 +42,14 @@ export function CardNoteSidebarItem({
 	imgSrc: string;
 	isSelected: boolean;
 }) {
-	const doesHaveImage = imgSrc !== "";
 	const [isImageLoading, setIsImageLoading] = useState(true);
 	const [isImageError, setIsImageError] = useState(false);
+
+	const fileExtension = useMemo(() => imgSrc.split(".").pop(), [imgSrc]);
+	const doesHaveImage = useMemo(
+		() => imgSrc !== "" && !VIDEO_FILE_EXTENSIONS.includes(fileExtension ?? ""),
+		[imgSrc, fileExtension],
+	);
 	return (
 		<div className="text-left pointer-events-none w-full">
 			<div className="flex w-full justify-between gap-1.5">

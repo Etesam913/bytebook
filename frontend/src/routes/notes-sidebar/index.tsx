@@ -77,7 +77,7 @@ export function NotesSidebar({
 						className="text-md flex h-screen flex-col pb-3.5"
 					>
 						<div className="flex h-full flex-col overflow-y-auto relative">
-							<header className="pl-[6px] pr-[10px]">
+							<header className="pl-1.5 pr-2.5">
 								<section className="flex items-center min-h-[3.625rem] gap-2">
 									<Folder className="min-w-[1.25rem]" width={20} height={20} />{" "}
 									<p className="overflow-hidden text-ellipsis whitespace-nowrap">

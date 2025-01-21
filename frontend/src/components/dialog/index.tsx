@@ -88,6 +88,11 @@ export function Dialog() {
 				<>
 					<Shade />
 					<motion.form
+						onKeyDown={(e) => {
+							if (e.metaKey && e.key === "Enter") {
+								modalRef.current?.dispatchEvent(new Event("submit"));
+							}
+						}}
 						ref={modalRef}
 						onSubmit={async (e: FormEvent<HTMLFormElement>) => {
 							e.preventDefault();

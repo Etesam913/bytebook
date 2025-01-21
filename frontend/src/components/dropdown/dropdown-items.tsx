@@ -64,7 +64,7 @@ export const DropdownItems = forwardRef<
 						role="menu"
 						ref={ref}
 						className={cn(
-							"absolute z-20 w-full overflow-hidden translate-y-1 rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700",
+							"absolute z-50 w-full overflow-hidden translate-y-1 rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700",
 							maxHeight && "overflow-y-auto",
 							className,
 						)}

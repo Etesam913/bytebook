@@ -99,7 +99,7 @@ export function AddTagDialogChildren({
 							},
 
 							onKeyDown: (e) => {
-								if (e.key === "Enter") {
+								if (e.key === "Enter" && !e.metaKey) {
 									e.preventDefault();
 									addTag(
 										e.target as HTMLInputElement,
