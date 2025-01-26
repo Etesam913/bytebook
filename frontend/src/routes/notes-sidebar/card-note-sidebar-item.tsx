@@ -45,9 +45,12 @@ export function CardNoteSidebarItem({
 	const [isImageLoading, setIsImageLoading] = useState(true);
 	const [isImageError, setIsImageError] = useState(false);
 
-	const fileExtension = useMemo(() => imgSrc.split(".").pop(), [imgSrc]);
+	const fileExtension = useMemo(
+		() => (imgSrc.split(".").pop() ?? "").toLowerCase(),
+		[imgSrc],
+	);
 	const doesHaveImage = useMemo(
-		() => imgSrc !== "" && !VIDEO_FILE_EXTENSIONS.includes(fileExtension ?? ""),
+		() => imgSrc !== "" && !VIDEO_FILE_EXTENSIONS.includes(fileExtension),
 		[imgSrc, fileExtension],
 	);
 	return (

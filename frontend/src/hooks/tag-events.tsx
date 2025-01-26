@@ -4,6 +4,7 @@ import {
 	DeletePathFromTag,
 	GetTags,
 	GetTagsForFolderAndNotePath,
+	GetTagsForFolderAndNotesPaths,
 } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
 
@@ -35,6 +36,24 @@ export function useTagsForNoteQuery(folder: string, note: string, ext: string) {
 		queryFn: async () => {
 			const res = await GetTagsForFolderAndNotePath(
 				`${folder}/${note}?ext=${ext}`,
+			);
+			return res.data;
+		},
+	});
+}
+
+/**
+ *
+ * @param folder
+ * @param notes - An array of note paths with ext query param at the end
+ * @returns
+ */
+export function useTagsForNotesQuery(folder: string, notes: string[]) {
+	return useQuery({
+		queryKey: ["notes-tags", folder, notes],
+		queryFn: async () => {
+			const res = await GetTagsForFolderAndNotesPaths(
+				notes.map((note) => `${folder}/${note}`),
 			);
 			return res.data;
 		},

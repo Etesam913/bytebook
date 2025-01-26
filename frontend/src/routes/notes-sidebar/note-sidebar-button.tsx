@@ -34,6 +34,7 @@ import { cn } from "../../utils/string-formatting";
 import { AddTagDialogChildren } from "./add-tag-dialog-children";
 import { CardNoteSidebarItem } from "./card-note-sidebar-item";
 import { ListNoteSidebarItem } from "./list-note-sidebar-item";
+import { EditTagDialogChildren } from "./edit-tag-dialog-children";
 
 export function NoteSidebarButton({
 	curFolder,
@@ -221,27 +222,52 @@ export function NoteSidebarButton({
 										height={17}
 										className="will-change-transform"
 									/>{" "}
-									Add Tags
+									Edit Tags
 								</span>
 							),
-							value: "add-tags",
+							value: "edit-tags",
 							onChange: () => {
 								setDialogData({
 									isOpen: true,
 									isPending: false,
-									title: "Add Tags",
+									title: "Edit Tags",
 									children: (errorText) => (
-										<AddTagDialogChildren onSubmitErrorText={errorText} />
+										<EditTagDialogChildren
+											onSubmitErrorText={errorText}
+											selectionRange={newSelectionRange}
+											curFolder={curFolder}
+										/>
 									),
 									onSubmit: async (e, setErrorText) => {
-										return addPathsToTags({
+										const formElement = e.target as HTMLFormElement;
+										const formCheckboxElements = formElement.querySelectorAll(
+											"input[type='checkbox']",
+										) as NodeListOf<HTMLInputElement>;
+										const tagsToAdd = Array.from(formCheckboxElements)
+											.filter(
+												(checkbox) =>
+													checkbox.value === "on" && !checkbox.indeterminate,
+											)
+											.map((checkbox) => checkbox.name);
+										const tagsToRemove = Array.from(
+											formCheckboxElements,
+										).filter((checkbox) => !checkbox.value);
+										const addPathsResponse = addPathsToTags({
 											e,
 											setErrorText,
 											folder: curFolder,
-											note: curNote ?? "",
-											ext: sidebarQueryParams.ext,
 											selectionRange: newSelectionRange,
 										});
+										console.log(tagsToAdd, tagsToRemove);
+										return true;
+										// return addPathsToTags({
+										// 	e,
+										// 	setErrorText,
+										// 	folder: curFolder,
+										// 	note: curNote ?? "",
+										// 	ext: sidebarQueryParams.ext,
+										// 	selectionRange: newSelectionRange,
+										// });
 									},
 								});
 							},

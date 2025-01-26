@@ -118,6 +118,34 @@ func (t *TagsService) AddPathsToTags(tagNames []string, folderAndNotePathsWithou
 		Message: "Successfully Added Paths To Tags",
 	}
 }
+func (t *TagsService) GetTagsForFolderAndNotesPaths(folderAndNotePathsWithQueryParams []string) project_types.BackendResponseWithData[map[string][]string] {
+	// Initialize a map to store tags for each folder and note path
+	tagsForNotes := make(map[string][]string)
+
+	// Iterate through each folder and note path
+	for _, folderAndNotePathWithQueryParam := range folderAndNotePathsWithQueryParams {
+		// Use the existing GetTagsForFolderAndNotePath function to get tags for the current path
+		singlePathTagsResponse := t.GetTagsForFolderAndNotePath(folderAndNotePathWithQueryParam)
+
+		// Check if the response was successful
+		if !singlePathTagsResponse.Success {
+			return project_types.BackendResponseWithData[map[string][]string]{
+				Success: false,
+				Message: singlePathTagsResponse.Message,
+				Data:    nil,
+			}
+		}
+
+		// Store the tags for the current path in the map
+		tagsForNotes[folderAndNotePathWithQueryParam] = singlePathTagsResponse.Data
+	}
+
+	return project_types.BackendResponseWithData[map[string][]string]{
+		Success: true,
+		Message: "Successfully retrieved tags for all specified paths.",
+		Data:    tagsForNotes,
+	}
+}
 
 func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryParam string) project_types.BackendResponseWithData[[]string] {
 	getTagsResponse := t.GetTags()
@@ -145,6 +173,22 @@ func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryPara
 		Success: true,
 		Message: "Successfully retrieved tags.",
 		Data:    tagsForNote,
+	}
+}
+
+// DeletePathsFromTag uses the old DeletePathFromTag function to delete
+// multiple note paths from the specified tag in a single call.
+func (t *TagsService) DeletePathsFromTag(tagName string, folderAndNotePathsWithoutQueryParams []string) TagResponse {
+	for _, singlePath := range folderAndNotePathsWithoutQueryParams {
+		resp := t.DeletePathFromTag(tagName, singlePath)
+		if !resp.Success {
+			// If any deletion fails, return immediately with the error.
+			return resp
+		}
+	}
+	return TagResponse{
+		Success: true,
+		Message: "All specified paths have been successfully deleted from tag",
 	}
 }
 

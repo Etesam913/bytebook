@@ -218,8 +218,6 @@ type AddTagsMutationVariables = {
 	setErrorText: Dispatch<SetStateAction<string>>;
 	folder: string;
 	selectionRange: Set<string>;
-	note: string;
-	ext: string;
 };
 
 export function useAddTagsMutation(queryClient: QueryClient) {
@@ -259,12 +257,7 @@ export function useAddTagsMutation(queryClient: QueryClient) {
 		},
 		onSuccess: (_, variables: AddTagsMutationVariables) => {
 			queryClient.invalidateQueries({
-				queryKey: [
-					"note-tags",
-					variables.folder,
-					variables.note,
-					variables.ext,
-				],
+				queryKey: ["note-tags", variables.folder],
 			});
 			queryClient.invalidateQueries({ queryKey: ["get-tags"] });
 		},
