@@ -9,10 +9,7 @@ import {
 	useMemo,
 } from "react";
 import { selectionRangeAtom } from "../../atoms";
-import {
-	removeFoldersFromSelection,
-	removeNotesFromSelection,
-} from "../../utils/selection";
+import { keepSelectionNotesWithPrefix } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
 import { SidebarHighlight } from "./highlight";
 
@@ -103,8 +100,8 @@ export function SidebarItems({
 									// Making sure to clean the selection
 									const newSelection =
 										contentType === "note"
-											? removeFoldersFromSelection(prev)
-											: removeNotesFromSelection(prev);
+											? keepSelectionNotesWithPrefix(prev, "note:")
+											: keepSelectionNotesWithPrefix(prev, "folder:");
 
 									if (newSelection.has(prefixedDataItem)) {
 										newSelection.delete(prefixedDataItem);

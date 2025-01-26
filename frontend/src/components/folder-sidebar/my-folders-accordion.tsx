@@ -20,7 +20,7 @@ import { Trash } from "../../icons/trash.tsx";
 import { useCustomNavigate } from "../../utils/routing.ts";
 import {
 	handleKeyNavigation,
-	removeNotesFromSelection,
+	keepSelectionNotesWithPrefix,
 } from "../../utils/selection.ts";
 import { cn } from "../../utils/string-formatting.ts";
 import { AccordionButton } from "../sidebar/accordion-button.tsx";
@@ -136,8 +136,10 @@ export function MyFoldersAccordion({
 												);
 											} else {
 												setSelectionRange((prev) => {
-													const setWithoutNotes =
-														removeNotesFromSelection(prev);
+													const setWithoutNotes = keepSelectionNotesWithPrefix(
+														prev,
+														"folder:",
+													);
 													setWithoutNotes.add(`folder:${sidebarFolderName}`);
 													newSelectionRange = setWithoutNotes;
 													return setWithoutNotes;

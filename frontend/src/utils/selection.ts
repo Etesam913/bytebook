@@ -2,34 +2,22 @@ import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
 import { extractInfoFromNoteName } from "./string-formatting";
 
 /**
- * Takes a selection set and returns a new set containing only folder items,
- * filtering out any note items from the selection
+ * Filters a selection Set to keep only items that start with the specified prefix.
+ * @param selection - A Set of strings to filter
+ * @param prefix - The prefix string to match against
+ * @returns A new Set containing only the items that start with the prefix
  */
-export function removeNotesFromSelection(selection: Set<string>) {
-	const setWithoutNotes: Set<string> = new Set();
-	// Remove any folder selections when selecting a note
+export function keepSelectionNotesWithPrefix(
+	selection: Set<string>,
+	prefix: string,
+) {
+	const newSelection = new Set<string>();
 	for (const item of selection) {
-		if (item.startsWith("folder:")) {
-			setWithoutNotes.add(item);
+		if (item.startsWith(prefix)) {
+			newSelection.add(item);
 		}
 	}
-
-	return setWithoutNotes;
-}
-
-/**
- * Takes a selection set and returns a new set containing only note items,
- * filtering out any folder items from the selection
- */
-export function removeFoldersFromSelection(selection: Set<string>) {
-	const setWithoutFolders: Set<string> = new Set();
-	// Remove any folder selections when selecting a note
-	for (const item of selection) {
-		if (item.startsWith("note:")) {
-			setWithoutFolders.add(item);
-		}
-	}
-	return setWithoutFolders;
+	return newSelection;
 }
 
 /**

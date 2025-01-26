@@ -66,6 +66,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 							setDialogData({
 								isOpen: true,
 								title: "Create Folder",
+								isPending: false,
 								children: (errorText) => (
 									<FolderDialogChildren errorText={errorText} action="create" />
 								),

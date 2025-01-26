@@ -28,10 +28,9 @@ import { useCustomNavigate } from "../../utils/routing";
 import {
 	getFolderAndNoteFromSelectionRange,
 	handleKeyNavigation,
-	removeFoldersFromSelection,
+	keepSelectionNotesWithPrefix,
 } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
-import { AddTagDialogChildren } from "./add-tag-dialog-children";
 import { CardNoteSidebarItem } from "./card-note-sidebar-item";
 import { ListNoteSidebarItem } from "./list-note-sidebar-item";
 import { EditTagDialogChildren } from "./edit-tag-dialog-children";
@@ -132,7 +131,7 @@ export function NoteSidebarButton({
 					setSelectionRange(new Set([`note:${sidebarNoteName}`]));
 				} else {
 					setSelectionRange((prev) => {
-						const setWithoutNotes = removeFoldersFromSelection(prev);
+						const setWithoutNotes = keepSelectionNotesWithPrefix(prev, "note:");
 						setWithoutNotes.add(`note:${sidebarNoteName}`);
 						newSelectionRange = setWithoutNotes;
 						return setWithoutNotes;
@@ -258,7 +257,6 @@ export function NoteSidebarButton({
 											folder: curFolder,
 											selectionRange: newSelectionRange,
 										});
-										console.log(tagsToAdd, tagsToRemove);
 										return true;
 										// return addPathsToTags({
 										// 	e,
