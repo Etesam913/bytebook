@@ -7,6 +7,7 @@ import { TagIcon } from "../../icons/tag";
 import { useCustomNavigate } from "../../utils/routing";
 import { Sidebar } from "../sidebar";
 import { AccordionButton } from "../sidebar/accordion-button";
+import { cn } from "../../utils/string-formatting";
 
 export function MyTagsAccordion() {
 	const [isOpen, setIsOpen] = useState(false);
@@ -51,6 +52,7 @@ export function MyTagsAccordion() {
 									Type #tagName in a note to create a tag
 								</li>
 							}
+							contentType="tag"
 							renderLink={({
 								dataItem: sidebarTagName,
 								i,
@@ -61,32 +63,23 @@ export function MyTagsAccordion() {
 									<button
 										type="button"
 										draggable
-										className="list-sidebar-item"
-										// onDragStart={(e) =>
-										// 	handleDragStart(
-										// 		e,
-										// 		setSelectionRange,
-										// 		"folder",
-										// 		alphabetizedFolders?.at(i) ?? "",
-										// 		setDraggedElement,
-										// 	)
-										// }
-										// className={cn(
-										// 	"sidebar-item",
-										// 	folder &&
-										// 		decodeURIComponent(folder) === sidebarFolderName &&
-										// 		"bg-zinc-150 dark:bg-zinc-700",
-										// 	alphabetizedFolders?.at(i) &&
-										// 		selectionRange.has(
-										// 			`folder:${alphabetizedFolders[i]}`,
-										// 		) &&
-										// 		"!bg-blue-400 dark:!bg-blue-600 text-white",
-										// )}
+										onDragStart={(e) => e.preventDefault()}
+										className={cn(
+											"list-sidebar-item",
+											alphabetizedTags?.at(i) &&
+												selectionRange.has(`tag:${alphabetizedTags[i]}`) &&
+												"!bg-blue-400 dark:!bg-blue-600 text-white",
+										)}
 										onClick={(e) => {
 											if (e.metaKey || e.shiftKey) return;
 											navigate(`/tags/${encodeURIComponent(sidebarTagName)}`);
 										}}
 										onContextMenu={() => {
+											let newSelectionRange = new Set([
+												`tag:${sidebarTagName}`,
+											]);
+											if (selectionRange.size === 0) {
+											}
 											// if (selectionRange.size === 0) {
 											// 	setSelectionRange(
 											// 		new Set([`folder:${sidebarFolderName}`]),

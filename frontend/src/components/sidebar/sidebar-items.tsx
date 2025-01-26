@@ -43,7 +43,7 @@ export function SidebarItems({
 	emptyElement?: ReactNode;
 	layoutId: string;
 	startIndex: number;
-	contentType?: "note" | "folder";
+	contentType: "note" | "folder";
 	shouldHideSidebarHighlight?: boolean;
 	isSidebarItemCard: boolean;
 }) {
@@ -98,11 +98,12 @@ export function SidebarItems({
 								anchorSelectionIndex.current = startIndex + i;
 								setSelectionRange((prev) => {
 									// Making sure to clean the selection
-									const newSelection =
-										contentType === "note"
-											? keepSelectionNotesWithPrefix(prev, "note:")
-											: keepSelectionNotesWithPrefix(prev, "folder:");
+									const newSelection = keepSelectionNotesWithPrefix(
+										prev,
+										contentType,
+									);
 
+									// Whether the clicked element is already selected or not
 									if (newSelection.has(prefixedDataItem)) {
 										newSelection.delete(prefixedDataItem);
 									} else {

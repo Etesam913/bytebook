@@ -41,7 +41,7 @@ export function Sidebar({
 	}) => ReactNode;
 	emptyElement?: ReactNode;
 	layoutId: string;
-	contentType?: "note" | "folder";
+	contentType: "note" | "folder" | "tag";
 	shouldHideSidebarHighlight?: boolean;
 	activeDataItem?: string | null;
 }) {

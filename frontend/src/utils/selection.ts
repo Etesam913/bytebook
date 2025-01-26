@@ -9,7 +9,7 @@ import { extractInfoFromNoteName } from "./string-formatting";
  */
 export function keepSelectionNotesWithPrefix(
 	selection: Set<string>,
-	prefix: string,
+	prefix: "folder" | "note" | "tag",
 ) {
 	const newSelection = new Set<string>();
 	for (const item of selection) {
