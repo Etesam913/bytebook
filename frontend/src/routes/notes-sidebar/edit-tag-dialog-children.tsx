@@ -6,13 +6,13 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { useTagsForNotesQuery, useTagsQuery } from "../../hooks/tag-events";
-import { DialogTag } from "./dialog-tag";
-import TagPlus from "../../icons/tag-plus";
-import { MotionButton } from "../../components/buttons";
 import { getDefaultButtonVariants } from "../../animations";
+import { MotionButton } from "../../components/buttons";
 import { Input } from "../../components/input";
+import { useTagsForNotesQuery, useTagsQuery } from "../../hooks/tag-events";
 import { Loader } from "../../icons/loader";
+import TagPlus from "../../icons/tag-plus";
+import { DialogTag } from "./dialog-tag";
 
 function SelectedTagInput({
 	tag,

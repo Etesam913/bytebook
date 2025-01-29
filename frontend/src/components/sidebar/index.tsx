@@ -21,6 +21,7 @@ import { scrollVirtualizedListToSelectedNoteOrFolder } from "../../utils/selecti
 import { cn } from "../../utils/string-formatting";
 import { SidebarItems } from "./sidebar-items";
 
+export type SidebarContentType = "note" | "folder" | "tag";
 export function Sidebar({
 	data,
 	getContextMenuStyle,
@@ -41,7 +42,7 @@ export function Sidebar({
 	}) => ReactNode;
 	emptyElement?: ReactNode;
 	layoutId: string;
-	contentType: "note" | "folder" | "tag";
+	contentType: SidebarContentType;
 	shouldHideSidebarHighlight?: boolean;
 	activeDataItem?: string | null;
 }) {

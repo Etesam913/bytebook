@@ -13,7 +13,7 @@ export function keepSelectionNotesWithPrefix(
 ) {
 	const newSelection = new Set<string>();
 	for (const item of selection) {
-		if (item.startsWith(prefix)) {
+		if (item.startsWith(`${prefix}:`)) {
 			newSelection.add(item);
 		}
 	}

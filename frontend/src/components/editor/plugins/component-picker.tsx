@@ -246,6 +246,7 @@ function getBaseOptions(
 			onSelect: async () => {
 				setDialogData({
 					isOpen: true,
+					isPending: false,
 					dialogClassName: "w-[min(30rem,90vw)]",
 					title: "YouTube Embed",
 					children: (dialogErrorText) => (

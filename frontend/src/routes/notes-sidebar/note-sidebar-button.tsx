@@ -29,11 +29,12 @@ import {
 	getFolderAndNoteFromSelectionRange,
 	handleKeyNavigation,
 	keepSelectionNotesWithPrefix,
+	removeFoldersFromSelection,
 } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
 import { CardNoteSidebarItem } from "./card-note-sidebar-item";
-import { ListNoteSidebarItem } from "./list-note-sidebar-item";
 import { EditTagDialogChildren } from "./edit-tag-dialog-children";
+import { ListNoteSidebarItem } from "./list-note-sidebar-item";
 
 export function NoteSidebarButton({
 	curFolder,
@@ -128,10 +129,10 @@ export function NoteSidebarButton({
 			onContextMenu={(e) => {
 				let newSelectionRange = new Set([`note:${sidebarNoteName}`]);
 				if (selectionRange.size === 0) {
-					setSelectionRange(new Set([`note:${sidebarNoteName}`]));
+					setSelectionRange(newSelectionRange);
 				} else {
 					setSelectionRange((prev) => {
-						const setWithoutNotes = keepSelectionNotesWithPrefix(prev, "note:");
+						const setWithoutNotes = keepSelectionNotesWithPrefix(prev, "note");
 						setWithoutNotes.add(`note:${sidebarNoteName}`);
 						newSelectionRange = setWithoutNotes;
 						return setWithoutNotes;

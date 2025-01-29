@@ -5,9 +5,10 @@ import { useState } from "react";
 import { useTagsQuery } from "../../hooks/tag-events";
 import { TagIcon } from "../../icons/tag";
 import { useCustomNavigate } from "../../utils/routing";
+import { keepSelectionNotesWithPrefix } from "../../utils/selection";
+import { cn } from "../../utils/string-formatting";
 import { Sidebar } from "../sidebar";
 import { AccordionButton } from "../sidebar/accordion-button";
-import { cn } from "../../utils/string-formatting";
 
 export function MyTagsAccordion() {
 	const [isOpen, setIsOpen] = useState(false);
@@ -79,37 +80,20 @@ export function MyTagsAccordion() {
 												`tag:${sidebarTagName}`,
 											]);
 											if (selectionRange.size === 0) {
+												setSelectionRange(newSelectionRange);
+											} else {
+												setSelectionRange((prev) => {
+													const setWithoutNotes = keepSelectionNotesWithPrefix(
+														prev,
+														"tag",
+													);
+													setWithoutNotes.add(`tag:${sidebarTagName}`);
+													newSelectionRange = setWithoutNotes;
+													return setWithoutNotes;
+												});
 											}
-											// if (selectionRange.size === 0) {
-											// 	setSelectionRange(
-											// 		new Set([`folder:${sidebarFolderName}`]),
-											// 	);
-											// } else {
-											// 	setSelectionRange((prev) => {
-											// 		const setWithoutNotes =
-											// 			removeNotesFromSelection(prev);
-											// 		setWithoutNotes.add(`folder:${sidebarFolderName}`);
-											// 		return setWithoutNotes;
-											// 	});
-											// }
 										}}
 									>
-										{/* {folder &&
-										decodeURIComponent(folder) === sidebarFolderName ? (
-											<FolderOpen
-												title=""
-												className="min-w-5"
-												width={20}
-												height={20}
-											/>
-										) : (
-											<Folder
-												title=""
-												className="min-w-5"
-												width={20}
-												height={20}
-											/>
-										)}{" "} */}
 										<TagIcon height={16} width={16} strokeWidth={1.75} />
 										<p className="whitespace-nowrap text-ellipsis overflow-hidden">
 											{sidebarTagName}

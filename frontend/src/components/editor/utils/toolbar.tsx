@@ -109,7 +109,7 @@ export function changeSelectedBlocksType(
 	newBlockType: EditorBlockTypes,
 	insertAttachmentsMutation: UseMutationResult<void, Error, void, unknown>,
 ) {
-	editor.update(async () => {
+	editor.update(() => {
 		const selection = $getSelection();
 		if ($isRangeSelection(selection)) {
 			switch (newBlockType) {
@@ -267,11 +267,10 @@ export async function insertAttachmentFromFile(
 		if (paths.length === 0) return;
 
 		// Goes through all the files and add them to the editor
-		editor.update(async () => {
+		editor.update(() => {
 			const payloads: FilePayload[] = paths.map((filePath) => ({
 				src: `${FILE_SERVER_URL}/${filePath}`,
 				alt: filePath.split("/").at(-1) ?? "Untitled",
-				elementType: getFileElementTypeFromExtension(filePath),
 			}));
 			if (editorSelection) {
 				$setSelection(editorSelection.clone());
