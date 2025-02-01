@@ -38,7 +38,7 @@ export function CardNoteSidebarItem({
 	sidebarNoteNameWithoutExtension: string;
 	isInTagSidebar: boolean;
 	curNoteData: NoteEntry;
-	notePreviewResult: BackendResponseWithData<NotePreviewData> | undefined;
+	notePreviewResult: BackendResponseWithData<NotePreviewData> | null;
 	imgSrc: string;
 	isSelected: boolean;
 }) {

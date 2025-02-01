@@ -29,7 +29,6 @@ import {
 	getFolderAndNoteFromSelectionRange,
 	handleKeyNavigation,
 	keepSelectionNotesWithPrefix,
-	removeFoldersFromSelection,
 } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
 import { CardNoteSidebarItem } from "./card-note-sidebar-item";
@@ -108,7 +107,7 @@ export function NoteSidebarButton({
 			(notes?.at(i) && selectionRange.has(`note:${notes[i].name}`)) ?? false,
 		[selectionRange, notes, i],
 	);
-
+	if (!notes) return null;
 	return (
 		<button
 			type="button"
@@ -327,7 +326,7 @@ export function NoteSidebarButton({
 					sidebarQueryParams={sidebarQueryParams}
 					sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
 					isInTagSidebar={isInTagSidebar}
-					notePreviewResult={notePreviewResult}
+					notePreviewResult={notePreviewResult ?? null}
 					isSelected={isSelected}
 				/>
 			)}
