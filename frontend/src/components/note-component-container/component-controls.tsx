@@ -15,13 +15,15 @@ export function NoteComponentControls({
 	animate = { opacity: 1, y: -30 },
 	exit = { opacity: 0, y: -20 },
 }: {
-	buttonOptions: {
+	buttonOptions?: {
 		trash?: {
 			enabled: boolean;
+			callback?: () => void;
 		};
 		fullscreen?: {
 			enabled: boolean;
 			setIsExpanded: Dispatch<SetStateAction<boolean>>;
+			callback?: () => void;
 		};
 	};
 	nodeKey: string;
@@ -38,8 +40,7 @@ export function NoteComponentControls({
 			animate={animate}
 			exit={exit}
 		>
-			{children}
-			{buttonOptions.trash?.enabled && (
+			{buttonOptions?.trash?.enabled && (
 				<motion.button
 					{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
 					type="button"
@@ -50,23 +51,26 @@ export function NoteComponentControls({
 						editor.update(() => {
 							removeDecoratorNode(nodeKey);
 						});
+						buttonOptions.trash?.callback?.();
 					}}
 				>
 					<Trash className="will-change-transform" />
 				</motion.button>
 			)}
 
-			{buttonOptions.fullscreen?.enabled && (
+			{buttonOptions?.fullscreen?.enabled && (
 				<motion.button
 					{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
 					type="button"
 					onClick={() => {
 						buttonOptions.fullscreen?.setIsExpanded(true);
+						buttonOptions.fullscreen?.callback?.();
 					}}
 				>
 					<Fullscreen className="will-change-transform" />
 				</motion.button>
 			)}
+			{children}
 		</motion.div>
 	);
 }

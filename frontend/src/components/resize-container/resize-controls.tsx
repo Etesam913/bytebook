@@ -1,21 +1,16 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { type MotionValue, motion } from "framer-motion";
-import type { MouseEvent, RefObject } from "react";
+import type { MouseEvent } from "react";
 import { getDefaultButtonVariants } from "../../animations";
 import { XResize } from "../../icons/arrows-expand-x";
-import { Fullscreen } from "../../icons/fullscreen";
-import { Trash } from "../../icons/trash";
 import type { ResizeState, ResizeWidth } from "../../types";
-import { removeDecoratorNode } from "../../utils/commands";
+import { NoteComponentControls } from "../note-component-container/component-controls";
 
 export function ResizeControls({
 	nodeKey,
 	motionValues,
 	writeWidthToNode,
 	resizeState,
-	resizeContainerRef,
-	resizeDimensionsRef,
-	element,
 }: {
 	nodeKey: string;
 	motionValues: {
@@ -25,9 +20,6 @@ export function ResizeControls({
 	};
 	writeWidthToNode: (width: ResizeWidth) => void;
 	resizeState: ResizeState;
-	resizeContainerRef: RefObject<HTMLDivElement>;
-	resizeDimensionsRef: RefObject<{ height: number; width: number }>;
-	element: HTMLElement | null;
 }) {
 	const [editor] = useLexicalComposerContext();
 
@@ -37,24 +29,19 @@ export function ResizeControls({
 	const { setIsExpanded } = resizeState;
 
 	return (
-		<motion.div
-			className="absolute left-[50%] bg-zinc-50 dark:bg-zinc-700 p-2 rounded-md shadow-lg border-[1px] border-zinc-300 dark:border-zinc-600 flex items-center justify-center gap-3 z-20"
-			initial={{ opacity: 0, y: -20, x: "-50%" }}
-			animate={{ opacity: 1, y: -30 }}
-			exit={{ opacity: 0, y: -20 }}
+		<NoteComponentControls
+			nodeKey={nodeKey}
+			editor={editor}
+			buttonOptions={{
+				trash: {
+					enabled: true,
+				},
+				fullscreen: {
+					enabled: true,
+					setIsExpanded,
+				},
+			}}
 		>
-			<motion.button
-				{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
-				type="button"
-				onClick={(e: MouseEvent<HTMLButtonElement>) => {
-					editor.update(() => {
-						removeDecoratorNode(nodeKey);
-					});
-					e.stopPropagation();
-				}}
-			>
-				<Trash className="will-change-transform" />
-			</motion.button>
 			<motion.button
 				{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
 				type="button"
@@ -68,21 +55,6 @@ export function ResizeControls({
 			>
 				<XResize className="will-change-transform" />
 			</motion.button>
-			<motion.button
-				{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
-				type="button"
-				onClick={(e: MouseEvent<HTMLButtonElement>) => {
-					setIsExpanded(true);
-					resizeContainerRef.current?.focus();
-					resizeDimensionsRef.current = {
-						height: element?.clientHeight ?? 0,
-						width: element?.clientWidth ?? 0,
-					};
-					e.stopPropagation();
-				}}
-			>
-				<Fullscreen className="will-change-transform" />
-			</motion.button>
-		</motion.div>
+		</NoteComponentControls>
 	);
 }

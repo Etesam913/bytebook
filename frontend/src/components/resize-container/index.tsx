@@ -133,9 +133,6 @@ export function ResizeContainer({
 								}}
 								writeWidthToNode={writeWidthToNode}
 								resizeState={resizeState}
-								resizeContainerRef={resizeContainerRef}
-								resizeDimensionsRef={resizeDimensions}
-								element={element}
 							/>
 							<ResizeHandle
 								element={element}
