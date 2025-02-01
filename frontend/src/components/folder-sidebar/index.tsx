@@ -28,7 +28,6 @@ import { Spacer } from "./spacer";
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
 	const folder = params?.folder;
-
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const setFolders = useSetAtom(foldersAtom);
 

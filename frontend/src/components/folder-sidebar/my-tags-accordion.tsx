@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
-
-import { useState } from "react";
-
+import { useMemo, useState } from "react";
+import { useRoute } from "wouter";
 import { useTagsQuery } from "../../hooks/tag-events";
 import { TagIcon } from "../../icons/tag";
 import { useCustomNavigate } from "../../utils/routing";
@@ -15,7 +14,8 @@ export function MyTagsAccordion() {
 	const { data: tags } = useTagsQuery();
 	const alphabetizedTags = tags?.sort((a, b) => a.localeCompare(b));
 	const hasTags = alphabetizedTags && alphabetizedTags.length > 0;
-	const { navigate } = useCustomNavigate();
+	const [, params] = useRoute("/tags/:tagName/:folder?/:note?");
+	const tagNameFromUrl = (params as { tagName: string })?.tagName;
 
 	return (
 		<section className="pb-1.5">
@@ -61,44 +61,14 @@ export function MyTagsAccordion() {
 								setSelectionRange,
 							}) => {
 								return (
-									<button
-										type="button"
-										draggable
-										onDragStart={(e) => e.preventDefault()}
-										className={cn(
-											"list-sidebar-item",
-											alphabetizedTags?.at(i) &&
-												selectionRange.has(`tag:${alphabetizedTags[i]}`) &&
-												"!bg-blue-400 dark:!bg-blue-600 text-white",
-										)}
-										onClick={(e) => {
-											if (e.metaKey || e.shiftKey) return;
-											navigate(`/tags/${encodeURIComponent(sidebarTagName)}`);
-										}}
-										onContextMenu={() => {
-											let newSelectionRange = new Set([
-												`tag:${sidebarTagName}`,
-											]);
-											if (selectionRange.size === 0) {
-												setSelectionRange(newSelectionRange);
-											} else {
-												setSelectionRange((prev) => {
-													const setWithoutNotes = keepSelectionNotesWithPrefix(
-														prev,
-														"tag",
-													);
-													setWithoutNotes.add(`tag:${sidebarTagName}`);
-													newSelectionRange = setWithoutNotes;
-													return setWithoutNotes;
-												});
-											}
-										}}
-									>
-										<TagIcon height={16} width={16} strokeWidth={1.75} />
-										<p className="whitespace-nowrap text-ellipsis overflow-hidden">
-											{sidebarTagName}
-										</p>
-									</button>
+									<TagAccordionButton
+										alphabetizedTags={alphabetizedTags}
+										i={i}
+										selectionRange={selectionRange}
+										setSelectionRange={setSelectionRange}
+										sidebarTagName={sidebarTagName}
+										tagNameFromUrl={tagNameFromUrl}
+									/>
 								);
 							}}
 							data={alphabetizedTags ?? null}
@@ -107,5 +77,64 @@ export function MyTagsAccordion() {
 				)}
 			</AnimatePresence>
 		</section>
+	);
+}
+
+function TagAccordionButton({
+	alphabetizedTags,
+	i,
+	selectionRange,
+	setSelectionRange,
+	sidebarTagName,
+	tagNameFromUrl,
+}: {
+	alphabetizedTags: string[] | undefined;
+	i: number;
+	selectionRange: Set<string>;
+	setSelectionRange: React.Dispatch<React.SetStateAction<Set<string>>>;
+	sidebarTagName: string;
+	tagNameFromUrl: string | undefined;
+}) {
+	const { navigate } = useCustomNavigate();
+	const isActive = decodeURIComponent(tagNameFromUrl ?? "") === sidebarTagName;
+	const isSelected = useMemo(
+		() =>
+			alphabetizedTags?.at(i) &&
+			selectionRange.has(`tag:${alphabetizedTags[i]}`),
+		[alphabetizedTags, i, selectionRange],
+	);
+	return (
+		<button
+			type="button"
+			draggable
+			onDragStart={(e) => e.preventDefault()}
+			className={cn(
+				"list-sidebar-item",
+				isActive && "bg-zinc-150 dark:bg-zinc-700",
+				isSelected && "!bg-blue-400 dark:!bg-blue-600 text-white",
+			)}
+			onClick={(e) => {
+				if (e.metaKey || e.shiftKey) return;
+				navigate(`/tags/${encodeURIComponent(sidebarTagName)}`);
+			}}
+			onContextMenu={() => {
+				let newSelectionRange = new Set([`tag:${sidebarTagName}`]);
+				if (selectionRange.size === 0) {
+					setSelectionRange(newSelectionRange);
+				} else {
+					setSelectionRange((prev) => {
+						const setWithoutNotes = keepSelectionNotesWithPrefix(prev, "tag");
+						setWithoutNotes.add(`tag:${sidebarTagName}`);
+						newSelectionRange = setWithoutNotes;
+						return setWithoutNotes;
+					});
+				}
+			}}
+		>
+			<TagIcon height={16} width={16} strokeWidth={1.75} />
+			<p className="whitespace-nowrap text-ellipsis overflow-hidden">
+				{sidebarTagName}
+			</p>
+		</button>
 	);
 }

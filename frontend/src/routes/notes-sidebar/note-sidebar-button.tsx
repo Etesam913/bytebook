@@ -97,7 +97,6 @@ export function NoteSidebarButton({
 		}
 		return notePreviewResultData.firstImageSrc;
 	}, [notePreviewResult]);
-
 	const isActive = useMemo(
 		() => decodeURIComponent(activeNoteNameWithExtension) === sidebarNoteName,
 		[activeNoteNameWithExtension, sidebarNoteName],
