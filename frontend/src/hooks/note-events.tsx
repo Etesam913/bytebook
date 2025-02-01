@@ -10,7 +10,10 @@ import {
 	MoveToTrash,
 	RevealNoteInFinder,
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
-import { AddPathsToTags } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
+import {
+	AddPathsToTags,
+	DeleteTags,
+} from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import {
 	noteSortAtom,
 	projectSettingsAtom,
@@ -19,7 +22,10 @@ import {
 import { useWailsEvent } from "../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
 import { getFolderAndNoteFromSelectionRange } from "../utils/selection";
-import { extractInfoFromNoteName } from "../utils/string-formatting";
+import {
+	extractInfoFromNoteName,
+	getTagNameFromSetValue,
+} from "../utils/string-formatting";
 import { useUpdateProjectSettingsMutation } from "./project-settings";
 
 /** This function is used to handle note:create events */
@@ -219,6 +225,33 @@ type AddTagsMutationVariables = {
 	folder: string;
 	selectionRange: Set<string>;
 };
+
+/**
+ * Custom hook to handle deleting tags.
+ *
+ * @param {Object} variables - The variables for the mutation.
+ * @param {Set<string>} variables.tagsToDelete - The set of tags to delete. The set items start with the tag: prefix as they come from the `selectionRange` set.
+ */
+export function useDeleteTagsMutation() {
+	return useMutation({
+		mutationFn: async ({ tagsToDelete }: { tagsToDelete: Set<string> }) => {
+			const tagsToDeleteList = Array.from(tagsToDelete).map((tagWithPrefix) =>
+				getTagNameFromSetValue(tagWithPrefix),
+			);
+			const res = await DeleteTags(tagsToDeleteList);
+			if (!res.success) {
+				throw new Error(res.message);
+			}
+			return true;
+		},
+		onError: (e) => {
+			if (e instanceof Error) {
+				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+			}
+			return false;
+		},
+	});
+}
 
 export function useAddTagsMutation(queryClient: QueryClient) {
 	return useMutation({

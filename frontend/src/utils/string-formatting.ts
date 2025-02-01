@@ -160,6 +160,15 @@ export function validateName(
 		isValid: true,
 	};
 }
+// Will be in tag:tagName format
+export function getTagNameFromSetValue(tagSetValue: string) {
+	const indexOfPrefix = tagSetValue.indexOf("tag:");
+	if (indexOfPrefix === -1) {
+		return tagSetValue;
+	}
+	const prefixLength = "tag:".length;
+	return tagSetValue.substring(indexOfPrefix + prefixLength);
+}
 
 /**
  * Extracts the base name and query parameters from a given note name string.

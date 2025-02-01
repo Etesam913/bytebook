@@ -1,13 +1,18 @@
 import { AnimatePresence, motion } from "framer-motion";
+import { useSetAtom } from "jotai/react";
 import { useMemo, useState } from "react";
 import { useRoute } from "wouter";
+import { contextMenuDataAtom, dialogDataAtom } from "../../atoms";
+import { useDeleteTagsMutation } from "../../hooks/note-events";
 import { useTagsQuery } from "../../hooks/tag-events";
 import { TagIcon } from "../../icons/tag";
+import TagSlash from "../../icons/tag-slash";
 import { useCustomNavigate } from "../../utils/routing";
 import { keepSelectionNotesWithPrefix } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
 import { Sidebar } from "../sidebar";
 import { AccordionButton } from "../sidebar/accordion-button";
+import { TagDialogChildren } from "./tag-dialog-children";
 
 export function MyTagsAccordion() {
 	const [isOpen, setIsOpen] = useState(false);
@@ -96,6 +101,7 @@ function TagAccordionButton({
 	tagNameFromUrl: string | undefined;
 }) {
 	const { navigate } = useCustomNavigate();
+	const { mutateAsync: deleteTags } = useDeleteTagsMutation();
 	const isActive = decodeURIComponent(tagNameFromUrl ?? "") === sidebarTagName;
 	const isSelected = useMemo(
 		() =>
@@ -103,6 +109,9 @@ function TagAccordionButton({
 			selectionRange.has(`tag:${alphabetizedTags[i]}`),
 		[alphabetizedTags, i, selectionRange],
 	);
+	const setContextMenuData = useSetAtom(contextMenuDataAtom);
+	const setDialogData = useSetAtom(dialogDataAtom);
+
 	return (
 		<button
 			type="button"
@@ -117,7 +126,7 @@ function TagAccordionButton({
 				if (e.metaKey || e.shiftKey) return;
 				navigate(`/tags/${encodeURIComponent(sidebarTagName)}`);
 			}}
-			onContextMenu={() => {
+			onContextMenu={(e) => {
 				let newSelectionRange = new Set([`tag:${sidebarTagName}`]);
 				if (selectionRange.size === 0) {
 					setSelectionRange(newSelectionRange);
@@ -129,6 +138,35 @@ function TagAccordionButton({
 						return setWithoutNotes;
 					});
 				}
+				setContextMenuData({
+					x: e.clientX,
+					y: e.clientY,
+					isShowing: true,
+					items: [
+						{
+							label: (
+								<span className="flex items-center gap-1.5">
+									<TagSlash /> Delete{" "}
+									{newSelectionRange.size > 1 ? "Tags" : "Tag"}
+								</span>
+							),
+							value: "delete-tag",
+							onChange: () => {
+								setDialogData({
+									isOpen: true,
+									isPending: false,
+									title: `Delete ${newSelectionRange.size > 1 ? "Tags" : "Tag"}`,
+									children: () => (
+										<TagDialogChildren tagsToDelete={newSelectionRange} />
+									),
+									onSubmit: async () => {
+										return deleteTags({ tagsToDelete: newSelectionRange });
+									},
+								});
+							},
+						},
+					],
+				});
 			}}
 		>
 			<TagIcon height={16} width={16} strokeWidth={1.75} />

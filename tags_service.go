@@ -96,6 +96,37 @@ func addPathToTag(projectPath, tagName, folderAndNotePathWithoutQueryParam strin
 	return TagResponse{Success: true, Message: "Successfully Added Path To Tag"}
 }
 
+// DeleteTags removes the specified tags from the project.
+// It deletes the folders associated with each tag name provided in the tagNames slice.
+// If any tag fails to be deleted, it returns a response indicating the failure.
+// Parameters:
+//
+//	tagNames: A slice of tag names to be deleted.
+//
+// Returns:
+//
+//	A BackendResponseWithoutData indicating the success or failure of the operation.
+func (t *TagsService) DeleteTags(tagNames []string) project_types.BackendResponseWithoutData {
+	failedTagsToDelete := []string{}
+	for _, tagName := range tagNames {
+		pathToTagFolder := filepath.Join(t.ProjectPath, "tags", tagName)
+		err := os.RemoveAll(pathToTagFolder)
+		if err != nil {
+			failedTagsToDelete = append(failedTagsToDelete, tagName)
+		}
+	}
+	if len(failedTagsToDelete) > 0 {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: fmt.Sprintf("Failed to delete the following tags: %v", failedTagsToDelete),
+		}
+	}
+	return project_types.BackendResponseWithoutData{
+		Success: true,
+		Message: "Successfully deleted the tags",
+	}
+}
+
 /*
 AddPathsToTags adds multiple note paths to multiple tags.
 For each tag in tagNames, it adds all folderAndNotePaths to its notes.json.
