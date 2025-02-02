@@ -47,6 +47,8 @@ html:has(.dark) {
 
 * {
 	scrollbar-width: thin;
+	--accent-color: rgb(var(--accent-color-values));
+	--accent-color-highlight: rgba(var(--accent-color-values), 0.45);
 }
 
 .draggable-block-menu {
@@ -375,8 +377,8 @@ div[data-template-is-fullscreen="true"]
 }
 
 .PlaygroundEditorTheme__listItemChecked:before {
-	border: 1px solid #2ba43c;
-	background-color: #2ba43c;
+	border: 1px solid var(--accent-color);
+	background-color: var(--accent-color);
 	background-repeat: no-repeat;
 }
 

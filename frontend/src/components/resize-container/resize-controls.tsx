@@ -25,7 +25,6 @@ export function ResizeControls({
 
 	const { widthMotionValue, resizeWidthMotionValue, resizeHeightMotionValue } =
 		motionValues;
-
 	const { setIsExpanded } = resizeState;
 
 	return (

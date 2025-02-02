@@ -1,3 +1,4 @@
+import { isServer } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { NotePreviewData } from "../../../bindings/github.com/etesam913/bytebook";
 import type {
@@ -60,9 +61,7 @@ export function CardNoteSidebarItem({
 					<p
 						className={cn(
 							"whitespace-nowrap pointer-events-none text-ellipsis overflow-hidden",
-							{
-								"text-white": isSelected,
-							},
+							isSelected && "!text-white",
 						)}
 					>
 						{isInTagSidebar
@@ -73,9 +72,7 @@ export function CardNoteSidebarItem({
 					<p
 						className={cn(
 							"text-sm text-zinc-500 dark:text-zinc-400 flex flex-col justify-center h-7 text-ellipsis overflow-hidden whitespace-nowrap pointer-events-none",
-							{
-								"text-white": isSelected,
-							},
+							isSelected && "!text-white",
 						)}
 					>
 						{notePreviewResult?.success && notePreviewResult?.data?.firstLine}
@@ -100,9 +97,7 @@ export function CardNoteSidebarItem({
 			<div
 				className={cn(
 					"flex justify-between text-sm text-zinc-500 dark:text-zinc-400",
-					{
-						"text-white": isSelected,
-					},
+					isSelected && "!text-white",
 				)}
 			>
 				<p>{formatDateString(curNoteData.lastUpdated)}</p>

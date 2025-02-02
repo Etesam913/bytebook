@@ -3,12 +3,14 @@ package project_helpers
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 
 	"os"
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 const ProjectName = "Bytebook"
@@ -74,6 +76,7 @@ func GetProjectSettings(projectPath string) project_types.ProjectSettingsReponse
 				RepositoryToSyncTo:  "",
 				DarkMode:            "light",
 				NoteSidebarItemSize: "card",
+				AccentColor:         "",
 			},
 		)
 		if err != nil {
@@ -86,6 +89,12 @@ func GetProjectSettings(projectPath string) project_types.ProjectSettingsReponse
 	}
 	validPinnedNotes := io_helpers.GetValidPinnedNotes(projectPath, projectSettings)
 	projectSettings.PinnedNotes = validPinnedNotes
+	app := application.Get()
+	// Update the accent color if it exists
+	if app != nil {
+		accentColor := app.GetAccentColor()
+		projectSettings.AccentColor = fmt.Sprintf("rgb(%d,%d,%d)", accentColor.R, accentColor.G, accentColor.B)
+	}
 	// Write the updated project settings to the file
 	io_helpers.WriteJsonToPath(projectSettingsPath, projectSettings)
 

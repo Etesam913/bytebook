@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { type Dispatch, type SetStateAction, useEffect } from "react";
 import { toast } from "sonner";
 import {
@@ -11,6 +11,23 @@ import type { ProjectSettings } from "../types";
 import { useWailsEvent } from "../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
 import { validateProjectSettings } from "../utils/project-settings";
+import { parseRGB } from "../utils/string-formatting";
+
+function updateAccentColorVariable(accentColor: string) {
+	let rgbValues = parseRGB(accentColor);
+	if (!rgbValues) {
+		rgbValues = {
+			r: 96,
+			g: 165,
+			b: 250,
+		};
+	}
+
+	document.documentElement.style.setProperty(
+		"--accent-color-values",
+		`${rgbValues.r},${rgbValues.g},${rgbValues.b}`,
+	);
+}
 
 async function getProjectSettings(
 	setProjectSettings: Dispatch<SetStateAction<ProjectSettings>>,
@@ -26,12 +43,14 @@ async function getProjectSettings(
 			repositoryToSyncTo,
 			darkMode: darkModeUnvalidated,
 			noteSidebarItemSize: noteSidebarItemSizeUnvalidated,
+			accentColor,
 		} = projectSettingsResponse.data;
 
 		const { darkMode, noteSidebarItemSize } = validateProjectSettings({
 			darkMode: darkModeUnvalidated,
 			noteSidebarItemSize: noteSidebarItemSizeUnvalidated,
 		});
+		updateAccentColorVariable(accentColor);
 
 		setProjectSettings({
 			projectPath,
@@ -39,6 +58,7 @@ async function getProjectSettings(
 			repositoryToSyncTo,
 			darkMode,
 			noteSidebarItemSize,
+			accentColor,
 		});
 	} catch (err) {
 		if (err instanceof Error) {
@@ -55,6 +75,7 @@ export function useProjectSettings() {
 
 	useWailsEvent("settings:update", (body) => {
 		const projectSettings = (body.data as ProjectSettings[])[0];
+		updateAccentColorVariable(projectSettings.accentColor);
 		setProjectSettings({
 			...projectSettings,
 			pinnedNotes: new Set(projectSettings.pinnedNotes),

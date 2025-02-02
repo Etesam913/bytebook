@@ -97,6 +97,7 @@ export type ProjectSettings = {
 	repositoryToSyncTo: string;
 	darkMode: "light" | "dark" | "system";
 	noteSidebarItemSize: "list" | "card";
+	accentColor: string;
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: This is fine for the navigation function

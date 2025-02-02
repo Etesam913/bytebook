@@ -97,7 +97,6 @@ func main() {
 	if app.IsDarkMode() {
 		backgroundColor = application.NewRGB(39, 39, 43)
 	}
-
 	custom_events.CreateWindow(app, "/", backgroundColor)
 
 	menus.InitializeApplicationMenu(app, backgroundColor)

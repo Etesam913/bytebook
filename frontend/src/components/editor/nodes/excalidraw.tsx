@@ -11,6 +11,7 @@ import type {
 	Spread,
 } from "lexical";
 import { $applyNodeReplacement, DecoratorNode } from "lexical";
+import type { JSX } from "react";
 import type { ResizeWidth } from "../../../types";
 import { ExcalidrawComponent } from "../../excalidraw";
 

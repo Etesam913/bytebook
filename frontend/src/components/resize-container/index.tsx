@@ -106,7 +106,7 @@ export function ResizeContainer({
 					{isSelected && !isExpanded && (
 						<>
 							<motion.div
-								className="absolute z-20 h-full w-full border-[4px] border-blue-400 dark:border-blue-500 rounded-sm pointer-events-none"
+								className="absolute z-20 h-full w-full border-[4px] border-[var(--accent-color)] rounded-sm pointer-events-none"
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0 }}
@@ -120,7 +120,7 @@ export function ResizeContainer({
 									animate={{ opacity: 1 }}
 									exit={{ opacity: 0, transition: { duration: 0.25 } }}
 									className={
-										"w-4 h-4 bg-blue-400 bottom-[-10px] right-[-9px] absolute cursor-nwse-resize rounded-sm pointer-events-none"
+										"w-4 h-4 bg-[var(--accent-color)] bottom-[-10px] right-[-9px] absolute cursor-nwse-resize rounded-sm pointer-events-none"
 									}
 								/>
 							</motion.div>

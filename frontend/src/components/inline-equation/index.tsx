@@ -34,7 +34,7 @@ export function InlineEquation({
 				data-nodeKey={nodeKey}
 				ref={inlineEquationRef}
 				className={cn(
-					isSelected && "relative outline-1 outline outline-blue-500",
+					isSelected && "relative bg-[var(--accent-color-highlight)]",
 				)}
 			>
 				<AnimatePresence>

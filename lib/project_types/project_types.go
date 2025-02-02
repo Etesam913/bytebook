@@ -14,6 +14,7 @@ type ProjectSettingsJson struct {
 	RepositoryToSyncTo  string   `json:"repositoryToSyncTo"`
 	DarkMode            string   `json:"darkMode"`
 	NoteSidebarItemSize string   `json:"noteSidebarItemSize"`
+	AccentColor         string   `json:"accentColor"`
 }
 
 type ProjectSettingsReponse struct {

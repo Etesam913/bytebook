@@ -73,7 +73,6 @@ export function NoteSidebarButton({
 	const projectSettings = useAtomValue(projectSettingsAtom);
 	const setDraggedElement = useSetAtom(draggedElementAtom);
 	const searchParams: { ext?: string } = useSearchParamsEntries();
-
 	const isInTagSidebar = tagState?.tagName !== undefined;
 	const activeNoteNameWithExtension = `${
 		isInTagSidebar ? `${curFolder}/` : ""
@@ -295,7 +294,7 @@ export function NoteSidebarButton({
 				projectSettings.noteSidebarItemSize === "card" && "card-sidebar-item",
 				projectSettings.noteSidebarItemSize === "card" && i === 0 && "border-t",
 				isActive && "bg-zinc-150 dark:bg-zinc-700",
-				isSelected && "!bg-blue-400 dark:!bg-blue-600 text-white",
+				isSelected && "!bg-[var(--accent-color)]",
 			)}
 			onClick={(e) => {
 				if (e.metaKey || e.shiftKey) return;

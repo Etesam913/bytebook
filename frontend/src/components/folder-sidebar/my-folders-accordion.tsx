@@ -115,7 +115,6 @@ function FolderAccordionButton({
 	const { mutate: revealInFinder } = useFolderRevealInFinderMutation();
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
-
 	const isActive = useMemo(
 		() => decodeURIComponent(folderFromUrl ?? "") === sidebarFolderName,
 		[folderFromUrl, sidebarFolderName],
@@ -144,7 +143,7 @@ function FolderAccordionButton({
 			className={cn(
 				"list-sidebar-item",
 				isActive && "bg-zinc-150 dark:bg-zinc-700",
-				isSelected && "!bg-blue-400 dark:!bg-blue-600 text-white",
+				isSelected && "bg-[var(--accent-color)]",
 			)}
 			onClick={(e) => {
 				if (e.metaKey || e.shiftKey) return;

@@ -77,7 +77,7 @@ export function ExcalidrawComponent({
 		<div
 			className={cn(
 				"relative w-full border-[4px] border-zinc-100 dark:border-zinc-900 transition-colors",
-				isSelected && !isExpanded && "border-blue-400 dark:border-blue-500",
+				isSelected && !isExpanded && "!border-[var(--accent-color)]",
 				isExpanded &&
 					"h-screen fixed top-0 left-0 right-0 bottom-0 z-30 m-auto justify-start overflow-auto",
 			)}

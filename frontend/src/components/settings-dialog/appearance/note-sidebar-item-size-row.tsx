@@ -39,7 +39,7 @@ function NoteSidebarItemSizeRowItem({
 				draggable="false"
 				className={cn(
 					"border-[3px] rounded-md p-1 border-zinc-200 dark:border-zinc-750",
-					isActive && "border-blue-400 dark:border-blue-500",
+					isActive && "!border-[var(--accent-color)]",
 				)}
 				src={imgSrc}
 				alt={imgAlt}

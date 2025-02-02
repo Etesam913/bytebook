@@ -96,7 +96,6 @@ export class LinkNode extends ElementNode {
 	createDOM(config: EditorConfig): HTMLAnchorElement {
 		const element = document.createElement("a");
 		element.href = this.sanitizeUrl(this.__url);
-
 		if (this.__target !== null) {
 			element.target = this.__target;
 		}
