@@ -91,6 +91,7 @@ export function Image({
 						defaultWidth={widthWrittenToNode}
 						writeWidthToNode={writeWidthToNode}
 						elementType="default"
+						src={src}
 					>
 						<img
 							style={{ display: isLoading ? "none" : "block" }}

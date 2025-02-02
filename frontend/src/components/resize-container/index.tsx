@@ -27,6 +27,7 @@ export function ResizeContainer({
 	writeWidthToNode,
 	elementType,
 	shouldHeightMatchWidth,
+	src,
 }: {
 	resizeState: ResizeState;
 	element: HTMLElement | null;
@@ -36,6 +37,7 @@ export function ResizeContainer({
 	writeWidthToNode: (width: ResizeWidth) => void;
 	elementType: "default" | "excalidraw";
 	shouldHeightMatchWidth?: boolean;
+	src: string;
 }) {
 	const widthMotionValue = useMotionValue<number | "100%">(defaultWidth);
 	const resizeWidthMotionValue = useMotionValue<number | "100%">(
@@ -125,6 +127,7 @@ export function ResizeContainer({
 								/>
 							</motion.div>
 							<ResizeControls
+								src={src}
 								nodeKey={nodeKey}
 								motionValues={{
 									widthMotionValue,

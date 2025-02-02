@@ -84,6 +84,7 @@ export function Video({
 						defaultWidth={widthWrittenToNode}
 						writeWidthToNode={writeWidthToNode}
 						elementType="default"
+						src={src}
 					>
 						{(isExpanded || !isExpanded) && (
 							<video

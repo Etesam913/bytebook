@@ -36,6 +36,10 @@ export function Pdf({
 								trash: {
 									enabled: true,
 								},
+								link: {
+									enabled: true,
+									src,
+								},
 							}}
 							nodeKey={nodeKey}
 							editor={editor}

@@ -11,6 +11,7 @@ export function ResizeControls({
 	motionValues,
 	writeWidthToNode,
 	resizeState,
+	src,
 }: {
 	nodeKey: string;
 	motionValues: {
@@ -20,6 +21,7 @@ export function ResizeControls({
 	};
 	writeWidthToNode: (width: ResizeWidth) => void;
 	resizeState: ResizeState;
+	src: string;
 }) {
 	const [editor] = useLexicalComposerContext();
 
@@ -38,6 +40,10 @@ export function ResizeControls({
 				fullscreen: {
 					enabled: true,
 					setIsExpanded,
+				},
+				link: {
+					enabled: true,
+					src,
 				},
 			}}
 		>
