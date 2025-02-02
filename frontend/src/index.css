@@ -226,11 +226,11 @@ div[data-template-is-fullscreen="true"]
  */
 
 .link {
-	@apply cursor-pointer text-blue-500 underline decoration-2 underline-offset-2 dark:text-blue-400 transition-colors w-fit;
+	@apply cursor-pointer text-[var(--accent-color)] underline decoration-2 underline-offset-2 transition-[filter] w-fit;
 }
 
 .link:hover {
-	@apply text-blue-600 dark:text-blue-300;
+	@apply filter brightness-125;
 }
 
 .link-internal {
@@ -319,6 +319,18 @@ div[data-template-is-fullscreen="true"]
 
 [contenteditable="true"]:focus {
 	outline: 0;
+}
+
+/* Table of contents list */
+.toc-list-item {
+	@apply break-words text-sm leading-6;
+}
+
+.toc-list-item::before {
+	content: "•";
+	font-size: 1.2em;
+	vertical-align: top;
+	margin-right: 0.5rem;
 }
 
 /* Checkbox Styles */

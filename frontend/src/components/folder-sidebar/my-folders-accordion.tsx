@@ -143,7 +143,7 @@ function FolderAccordionButton({
 			className={cn(
 				"list-sidebar-item",
 				isActive && "bg-zinc-150 dark:bg-zinc-700",
-				isSelected && "bg-[var(--accent-color)]",
+				isSelected && "!bg-[var(--accent-color)]",
 			)}
 			onClick={(e) => {
 				if (e.metaKey || e.shiftKey) return;

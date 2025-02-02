@@ -3,6 +3,7 @@ import {
 	TableOfContentsPlugin as LexicalTableOfContentsPlugin,
 	type TableOfContentsEntry,
 } from "@lexical/react/LexicalTableOfContentsPlugin";
+import { cn } from "../../../utils/string-formatting";
 
 function getPadding(level: string) {
 	switch (level) {
@@ -31,10 +32,10 @@ function TableOfContentsElement({
 	const contentElements = content.map(([key, title, tag]) => {
 		const level = tag[tag.length - 1];
 		return (
-			<li className={getPadding(level)} key={key}>
+			<li className={cn(getPadding(level), "toc-list-item flex")} key={key}>
 				<button
 					type="button"
-					className="link"
+					className="link text-left "
 					onClick={() => {
 						editor.read(() => {
 							const element = editor.getElementByKey(key);
@@ -56,7 +57,7 @@ function TableOfContentsElement({
 		<section className="border border-zinc-200 dark:border-zinc-600 rounded-md px-3 pb-2 pt-1 mb-3">
 			<h3>Table of Contents</h3>
 			{contentElements.length > 0 ? (
-				<ul className="list-disc list-inside">{contentElements}</ul>
+				<ul>{contentElements}</ul>
 			) : (
 				<p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
 					No headings found. Add headings to your document to generate a table
@@ -71,7 +72,13 @@ export function TableOfContentsPlugin() {
 	return (
 		<LexicalTableOfContentsPlugin>
 			{(tableOfContentsArray) => {
-				return <TableOfContentsElement content={tableOfContentsArray} />;
+				return (
+					<TableOfContentsElement
+						content={tableOfContentsArray.filter(
+							([_, title]) => title.trim().length > 0,
+						)}
+					/>
+				);
 			}}
 		</LexicalTableOfContentsPlugin>
 	);
