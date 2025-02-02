@@ -294,7 +294,7 @@ export function NoteSidebarButton({
 				projectSettings.noteSidebarItemSize === "card" && "card-sidebar-item",
 				projectSettings.noteSidebarItemSize === "card" && i === 0 && "border-t",
 				isActive && "bg-zinc-150 dark:bg-zinc-700",
-				isSelected && "!bg-[var(--accent-color)]",
+				isSelected && "!bg-[var(--accent-color)] text-white",
 			)}
 			onClick={(e) => {
 				if (e.metaKey || e.shiftKey) return;

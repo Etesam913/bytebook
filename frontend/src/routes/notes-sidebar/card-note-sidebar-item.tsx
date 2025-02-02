@@ -1,4 +1,3 @@
-import { isServer } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { NotePreviewData } from "../../../bindings/github.com/etesam913/bytebook";
 import type {
