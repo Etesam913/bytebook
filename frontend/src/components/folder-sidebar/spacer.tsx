@@ -45,8 +45,8 @@ export function Spacer({
 			className={cn(
 				"w-[6px] cursor-ew-resize border-l-[1px] transition-all duration-200 ease-in-out",
 				isDragged
-					? "border-l-blue-500 dark:border-l-blue-600 border-l-2"
-					: "border-l-zinc-200 dark:border-l-zinc-700 hover:border-l-blue-500 hover:dark:border-l-blue-600",
+					? "border-[var(--accent-color)] border-l-2"
+					: "border-l-zinc-200 dark:border-l-zinc-700 hover:border-l-[var(--accent-color)]",
 			)}
 		/>
 	);
