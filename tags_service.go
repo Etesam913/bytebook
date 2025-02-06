@@ -10,6 +10,7 @@ import (
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/list_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
+	"golang.org/x/exp/slices"
 )
 
 type TagsService struct {
@@ -19,10 +20,6 @@ type TagsService struct {
 type TagResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
-}
-
-type TagJson struct {
-	Notes []string `json:"notes"`
 }
 
 // createTagFiles creates the necessary files and folders for a given tag.
@@ -43,7 +40,7 @@ func createTagFiles(projectPath string, tagName string, folderAndNotePaths []str
 	}
 
 	pathToTagJson := filepath.Join(pathToTag, "notes.json")
-	err = io_helpers.WriteJsonToPath(pathToTagJson, TagJson{
+	err = io_helpers.WriteJsonToPath(pathToTagJson, project_types.TagJson{
 		Notes: folderAndNotePaths,
 	})
 	if err != nil {
@@ -69,7 +66,7 @@ func addPathToTag(projectPath, tagName, folderAndNotePathWithoutQueryParam strin
 			}
 		}
 	} else {
-		var tagJson TagJson
+		var tagJson project_types.TagJson
 		if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
 			return TagResponse{
 				Success: false,
@@ -135,6 +132,7 @@ If a tag does not exist, it creates the tag and associates the note paths with i
 func (t *TagsService) AddPathsToTags(tagNames []string, folderAndNotePathsWithoutQueryParam []string) TagResponse {
 	for _, tagName := range tagNames {
 		for _, folderAndNotePath := range folderAndNotePathsWithoutQueryParam {
+			fmt.Println("Adding ", tagName, " to ", folderAndNotePath)
 			response := addPathToTag(t.ProjectPath, tagName, folderAndNotePath)
 			if !response.Success {
 				return TagResponse{
@@ -238,7 +236,7 @@ func (t *TagsService) DeletePathFromTag(tagName string, folderAndNotePathWithout
 		}
 	}
 
-	var tagJson TagJson
+	var tagJson project_types.TagJson
 	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
 		return TagResponse{
 			Success: false,
@@ -333,7 +331,7 @@ func (t *TagsService) GetTags() project_types.BackendResponseWithData[[]string] 
 		}
 
 		pathToTagNotes := filepath.Join(tagsPath, tagFolder.Name(), "notes.json")
-		var tagJson TagJson
+		var tagJson project_types.TagJson
 		if err := io_helpers.ReadJsonFromPath(pathToTagNotes, &tagJson); err != nil {
 			continue
 		}
@@ -350,8 +348,12 @@ func (t *TagsService) GetTags() project_types.BackendResponseWithData[[]string] 
 
 			validatedFolderAndNotes = append(validatedFolderAndNotes, folderAndNoteString)
 		}
-		tagJson.Notes = validatedFolderAndNotes
-		io_helpers.WriteJsonToPath(pathToTagNotes, tagJson)
+
+		// Only write to JSON if validatedFolderAndNotes is different from tagJson.Notes
+		if !slices.Equal(tagJson.Notes, validatedFolderAndNotes) {
+			tagJson.Notes = validatedFolderAndNotes
+			io_helpers.WriteJsonToPath(pathToTagNotes, tagJson)
+		}
 
 		tags = append(tags, tagFolder.Name())
 	}
@@ -363,7 +365,6 @@ func (t *TagsService) GetTags() project_types.BackendResponseWithData[[]string] 
 	}
 }
 
-/*
 /*
 GetNotesFromTag retrieves the note paths associated with a given tag name.
 It reads the "notes.json" file within the tag's directory and returns the note paths with query params.
@@ -379,7 +380,7 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 		}
 	}
 
-	var tagJson TagJson
+	var tagJson project_types.TagJson
 	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
 		return project_types.NoteResponse{
 			Success: false,

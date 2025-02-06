@@ -222,6 +222,7 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 			// Only dealing with files at this point
 			segments := strings.Split(event.Name, "/")
 			oneFolderBack := segments[len(segments)-2]
+			twoFolderBack := segments[len(segments)-3]
 			// We can ignore chmod events unless it is a settings folder as it can run instead of just a write event
 			if event.Has(fsnotify.Chmod) && oneFolderBack != "settings" {
 				continue
@@ -243,6 +244,13 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 				err := io_helpers.ReadJsonFromPath(filepath.Join(projectPath, "settings", "settings.json"), &projectSettings)
 				if err == nil {
 					app.EmitEvent("settings:update", projectSettings)
+				}
+			} else if twoFolderBack == "tags" {
+				var tagPaths project_types.TagJson
+				err := io_helpers.ReadJsonFromPath(event.Name, &tagPaths)
+				fmt.Println("tags:update", err, event.Name)
+				if err != nil {
+					fmt.Println("tags:update", event.Name)
 				}
 			} else {
 				handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents)
@@ -270,14 +278,30 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 func ListenToFolders(projectPath string, watcher *fsnotify.Watcher) {
 	watcher.Add(filepath.Join(projectPath, "settings"))
 	notesFolderPath := filepath.Join(projectPath, "notes")
+	tagsFolderPath := filepath.Join(projectPath, "tags")
+
 	watcher.Add(notesFolderPath)
-	entries, err := os.ReadDir(notesFolderPath)
+	noteEntries, err := os.ReadDir(notesFolderPath)
+
 	if err != nil {
 		log.Fatalf("Failed to read notes directory: %v", err)
 	}
-	for _, entry := range entries {
+
+	tagEntries, err := os.ReadDir(tagsFolderPath)
+	if err != nil {
+		log.Fatalf("Failed to read tags directory: %v", err)
+	}
+
+	for _, entry := range noteEntries {
 		if entry.IsDir() {
 			folderPath := filepath.Join(notesFolderPath, entry.Name())
+			watcher.Add(folderPath)
+		}
+	}
+
+	for _, entry := range tagEntries {
+		if entry.IsDir() {
+			folderPath := filepath.Join(tagsFolderPath, entry.Name())
 			watcher.Add(folderPath)
 		}
 	}

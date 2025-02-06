@@ -8,6 +8,7 @@ type WindowEventData struct {
 type WindowOptions struct {
 	Title string
 }
+
 type ProjectSettingsJson struct {
 	PinnedNotes         []string `json:"pinnedNotes"`
 	ProjectPath         string   `json:"projectPath"`
@@ -15,6 +16,10 @@ type ProjectSettingsJson struct {
 	DarkMode            string   `json:"darkMode"`
 	NoteSidebarItemSize string   `json:"noteSidebarItemSize"`
 	AccentColor         string   `json:"accentColor"`
+}
+
+type TagJson struct {
+	Notes []string `json:"notes"`
 }
 
 type ProjectSettingsReponse struct {
