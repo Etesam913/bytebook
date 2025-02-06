@@ -89,7 +89,6 @@ export function NoteComponentControls({
 						// biome-ignore lint/style/noNonNullAssertion: It is guaranteed that src is not null in this case
 						const src = buttonOptions.link?.src!;
 						if (src.startsWith(FILE_SERVER_URL)) {
-							console.log("local file url", src);
 							const segments = src.split("/");
 							if (segments.length < 2) {
 								return;

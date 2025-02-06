@@ -1,6 +1,5 @@
 import {
 	$createNodeSelection,
-	$createRangeSelection,
 	$createTextNode,
 	$getNodeByKey,
 	$getSelection,

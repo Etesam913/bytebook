@@ -46,7 +46,6 @@ export function FilesPlugin() {
 							if ($isListItemNode(node)) {
 								topLevelElement = node.getTopLevelElement();
 							}
-							node.remove();
 						}
 					}
 					// We use the top level element when the selection is inside a list item as we don't want the image to be a child of a list item

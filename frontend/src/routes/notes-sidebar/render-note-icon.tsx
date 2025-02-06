@@ -10,28 +10,48 @@ export function RenderNoteIcon({
 	noteNameWithExtension,
 	sidebarNoteName,
 	fileExtension,
+	size,
 }: {
-	noteNameWithExtension: string;
-	sidebarNoteName: string;
+	noteNameWithExtension?: string;
+	sidebarNoteName?: string;
 	fileExtension: string;
+	size?: "sm";
 }) {
+	const iconSize = size === "sm" ? 18 : 20;
+
 	if (fileExtension === "md") {
-		if (noteNameWithExtension === sidebarNoteName) {
+		if (
+			noteNameWithExtension &&
+			sidebarNoteName &&
+			noteNameWithExtension === sidebarNoteName
+		) {
 			return (
 				<FilePen
 					title="Editing Note"
-					className="min-w-[1.25rem] pointer-events-none"
+					className="min-w-5 pointer-events-none"
+					height={iconSize}
+					width={iconSize}
 				/>
 			);
 		}
 		return (
-			<Note title="Note" className="min-w-[1.25rem] pointer-events-none" />
+			<Note
+				title="Note"
+				className="min-w-5 pointer-events-none"
+				height={iconSize}
+				width={iconSize}
+			/>
 		);
 	}
 
 	if (fileExtension === "pdf") {
 		return (
-			<PDFIcon title="PDF" className="min-w-[1.25rem] pointer-events-none" />
+			<PDFIcon
+				title="PDF"
+				className="min-w-5 pointer-events-none"
+				height={iconSize}
+				width={iconSize}
+			/>
 		);
 	}
 
@@ -39,7 +59,9 @@ export function RenderNoteIcon({
 		return (
 			<ImageIcon
 				title="Image"
-				className="min-w-[1.25rem] pointer-events-none"
+				className="min-w-5 pointer-events-none"
+				height={iconSize}
+				width={iconSize}
 			/>
 		);
 	}
@@ -48,7 +70,9 @@ export function RenderNoteIcon({
 		return (
 			<VideoIcon
 				title="Video"
-				className="min-w-[1.25rem] pointer-events-none"
+				className="min-w-5 pointer-events-none"
+				height={iconSize}
+				width={iconSize}
 			/>
 		);
 	}
@@ -56,7 +80,9 @@ export function RenderNoteIcon({
 	return (
 		<FileBan
 			title="Note Not Supported"
-			className="min-w-[1.25rem] pointer-events-none"
+			className="min-w-5 pointer-events-none"
+			height={iconSize}
+			width={iconSize}
 		/>
 	);
 }

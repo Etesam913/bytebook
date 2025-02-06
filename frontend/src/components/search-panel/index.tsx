@@ -1,4 +1,3 @@
-import { AnimatePresence } from "framer-motion";
 import { useAtom } from "jotai";
 import { searchPanelDataAtom } from "../../atoms";
 import { Shade } from "../dialog/shade";

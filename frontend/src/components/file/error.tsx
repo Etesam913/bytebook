@@ -45,7 +45,7 @@ export function FileError({
 				)}
 			</AnimatePresence>
 			{type === "loading-fail" && (
-				<div className="flex items-center gap-1">
+				<div className="flex items-center gap-1 pointer-events-none">
 					<TriangleWarning
 						width={20}
 						height={20}

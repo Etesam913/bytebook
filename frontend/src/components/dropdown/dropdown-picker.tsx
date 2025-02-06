@@ -1,5 +1,6 @@
 import { MenuOption } from "@lexical/react/LexicalTypeaheadMenuPlugin";
 import { cn } from "../../utils/string-formatting";
+import type { JSX } from "react";
 
 export class DropdownPickerOption extends MenuOption {
 	// What shows up in the editor
@@ -31,7 +32,7 @@ export class DropdownPickerOption extends MenuOption {
 	}
 }
 
-export function DropdownPickerMenuItem({
+export function ComponentPickerMenuItem({
 	index,
 	isSelected,
 	onClick,
@@ -61,6 +62,46 @@ export function DropdownPickerMenuItem({
 		>
 			{option.icon}
 			<span className="text">{option.title}</span>
+		</li>
+	);
+}
+
+export function FilePickerMenuItem({
+	index,
+	isSelected,
+	onClick,
+	onMouseEnter,
+	option,
+}: {
+	index: number;
+	isSelected: boolean;
+	onClick: () => void;
+	onMouseEnter: () => void;
+	option: DropdownPickerOption;
+}) {
+	const [folderName, noteName] = option.title.split("/");
+	return (
+		<li
+			key={option.key}
+			tabIndex={-1}
+			className={cn(
+				"text-left cursor-pointer rounded-md px-[7px] py-1 hover:bg-zinc-100 dark:hover:bg-zinc-650 ",
+				isSelected &&
+					"bg-zinc-150 dark:bg-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600",
+			)}
+			ref={option.setRefElement}
+			aria-selected={isSelected}
+			id={`typeahead-item-${index}`}
+			onMouseEnter={onMouseEnter}
+			onClick={onClick}
+		>
+			<div className="flex items-center gap-1">
+				{option.icon}
+				<span className="text-ellipsis overflow-hidden whitespace-nowrap text-sm">
+					{noteName}
+				</span>
+			</div>
+			<p className="text-xs text-zinc-500 dark:text-zinc-400">{folderName}/</p>
 		</li>
 	);
 }

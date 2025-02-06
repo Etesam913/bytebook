@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useAtom, useAtomValue } from "jotai";
 import { type FormEvent, useMemo, useRef, useState } from "react";
-import { SearchFileNamesFromQuery } from "../../../bindings/github.com/etesam913/bytebook/searchservice";
 import { easingFunctions } from "../../animations";
 import {
 	mostRecentNotesWithoutQueryParamsAtom,
@@ -13,6 +12,7 @@ import { useCustomNavigate } from "../../utils/routing";
 import { getFileExtension } from "../../utils/string-formatting";
 import { useTrapFocus } from "../dialog/hooks";
 import { SearchItems } from "./search-items";
+import { useSearchMutation } from "../../hooks/search";
 
 const SIDEBAR_ITEM_HEIGHT = 35;
 const VIRUTALIZATION_HEIGHT = 8;
@@ -33,7 +33,7 @@ export function SearchPanelForm() {
 	}, [searchResults.length, searchPanelData.query]);
 	const searchResultsContainerRef = useRef<HTMLMenuElement | null>(null);
 	const searchResultsRefs = useRef<(HTMLLIElement | null)[]>([]);
-
+	const { mutateAsync: search } = useSearchMutation();
 	const {
 		visibleItems,
 		onScroll,
@@ -55,16 +55,6 @@ export function SearchPanelForm() {
 		},
 		true,
 	);
-
-	async function handleSearch(query: string) {
-		try {
-			const results = await SearchFileNamesFromQuery(query);
-			setSearchResults(results);
-		} catch (error) {
-			console.error("Error searching files:", error);
-			setSearchResults([]);
-		}
-	}
 
 	function handleArrowKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
 		e.preventDefault();
@@ -189,7 +179,8 @@ export function SearchPanelForm() {
 				value={searchPanelData.query}
 				onFocus={async (e) => {
 					e.target.select();
-					await handleSearch(e.target.value);
+					const res = await search({ searchQuery: e.target.value });
+					setSearchResults(res);
 					setTimeout(() => {
 						searchResultsContainerRef.current?.scrollTo(
 							0,
@@ -206,7 +197,8 @@ export function SearchPanelForm() {
 					}));
 					setScrollTop(0);
 					searchResultsContainerRef.current?.scrollTo(0, 0);
-					await handleSearch(e.target.value);
+					const res = await search({ searchQuery: e.target.value });
+					setSearchResults(res);
 				}}
 				onKeyDown={(e) => {
 					if (e.key === "Escape") {
