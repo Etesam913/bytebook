@@ -226,11 +226,11 @@ div[data-template-is-fullscreen="true"]
  */
 
 .link {
-	@apply cursor-pointer text-[var(--accent-color)] underline decoration-2 underline-offset-2 transition-[filter] w-fit;
+	@apply cursor-pointer text-[var(--accent-color)] underline decoration-2 underline-offset-2 w-fit;
 }
 
 .link:hover {
-	@apply filter brightness-125;
+	@apply filter brightness-90 dark:brightness-125;
 }
 
 .link-internal {
