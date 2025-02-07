@@ -31,10 +31,10 @@ import {
 	keepSelectionNotesWithPrefix,
 } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
+import { AddTagDialogChildren } from "./add-tag-dialog-children";
 import { CardNoteSidebarItem } from "./card-note-sidebar-item";
 import { EditTagDialogChildren } from "./edit-tag-dialog-children";
 import { ListNoteSidebarItem } from "./list-note-sidebar-item";
-import { AddTagDialogChildren } from "./add-tag-dialog-children";
 
 export function NoteSidebarButton({
 	curFolder,

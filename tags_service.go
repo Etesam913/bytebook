@@ -132,7 +132,6 @@ If a tag does not exist, it creates the tag and associates the note paths with i
 func (t *TagsService) AddPathsToTags(tagNames []string, folderAndNotePathsWithoutQueryParam []string) TagResponse {
 	for _, tagName := range tagNames {
 		for _, folderAndNotePath := range folderAndNotePathsWithoutQueryParam {
-			fmt.Println("Adding ", tagName, " to ", folderAndNotePath)
 			response := addPathToTag(t.ProjectPath, tagName, folderAndNotePath)
 			if !response.Success {
 				return TagResponse{

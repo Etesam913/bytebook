@@ -8,11 +8,11 @@ import {
 } from "../../atoms";
 
 import { useListVirtualization } from "../../hooks/observers";
+import { useSearchMutation } from "../../hooks/search";
 import { useCustomNavigate } from "../../utils/routing";
 import { getFileExtension } from "../../utils/string-formatting";
 import { useTrapFocus } from "../dialog/hooks";
 import { SearchItems } from "./search-items";
-import { useSearchMutation } from "../../hooks/search";
 
 const SIDEBAR_ITEM_HEIGHT = 35;
 const VIRUTALIZATION_HEIGHT = 8;

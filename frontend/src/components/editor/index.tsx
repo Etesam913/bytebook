@@ -37,12 +37,12 @@ import { Toolbar } from "./toolbar";
 import { handleEditorEscape } from "../../utils/selection.ts";
 import { BottomBar } from "./bottom-bar.tsx";
 import { DraggableBlockPlugin } from "./plugins/draggable-block.tsx";
+import { FilePickerMenuPlugin } from "./plugins/file-picker.tsx";
 import { FocusPlugin } from "./plugins/focus.tsx";
 import { LinkMatcherPlugin } from "./plugins/link-matcher.tsx";
 import { SAVE_MARKDOWN_CONTENT, SavePlugin } from "./plugins/save.tsx";
 import { TableOfContentsPlugin } from "./plugins/table-of-contents.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
-import { FilePickerMenuPlugin } from "./plugins/file-picker.tsx";
 
 const debouncedHandleChange = debounce(handleChange, 275);
 

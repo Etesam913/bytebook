@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useState } from "react";
 import { Link } from "wouter";
 import { XMark } from "../../icons/circle-xmark";
@@ -51,17 +50,11 @@ export function BottomBar({
 	ext: string;
 }) {
 	const [lastUpdatedText, setLastUpdatedText] = useState("");
-	const queryClient = useQueryClient();
 
 	const { data: tags, isLoading } = useTagsForNoteQuery(folder, note, ext);
 
-	const { mutate: deleteTag } = useDeleteTagMutation(
-		queryClient,
-		folder,
-		note,
-		ext,
-	);
-	const { mutateAsync: addPathsToTags } = useAddTagsMutation(queryClient);
+	const { mutate: deleteTag } = useDeleteTagMutation(folder, note, ext);
+	const { mutateAsync: addPathsToTags } = useAddTagsMutation();
 
 	const setDialogData = useSetAtom(dialogDataAtom);
 

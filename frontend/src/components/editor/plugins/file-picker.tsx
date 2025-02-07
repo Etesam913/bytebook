@@ -3,28 +3,28 @@ import {
 	LexicalTypeaheadMenuPlugin,
 	useBasicTypeaheadTriggerMatch,
 } from "@lexical/react/LexicalTypeaheadMenuPlugin";
-import { useCallback, useMemo, useState } from "react";
-import {
-	DropdownPickerOption,
-	FilePickerMenuItem,
-} from "../../dropdown/dropdown-picker";
+import { useQuery } from "@tanstack/react-query";
+import { useAtomValue } from "jotai/react";
 import {
 	$createTextNode,
 	$insertNodes,
 	COMMAND_PRIORITY_NORMAL,
 	type TextNode,
 } from "lexical";
+import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { useQuery } from "@tanstack/react-query";
 import { SearchFileNamesFromQuery } from "../../../../bindings/github.com/etesam913/bytebook/searchservice";
-import { RenderNoteIcon } from "../../../routes/notes-sidebar/render-note-icon";
-import { getFileExtension } from "../../../utils/string-formatting";
-import { FILE_SERVER_URL } from "../../../utils/misc";
-import type { FilePayload } from "../nodes/file";
-import { INSERT_FILES_COMMAND } from "./file";
-import { useAtomValue } from "jotai/react";
 import { mostRecentNotesWithoutQueryParamsAtom } from "../../../atoms";
+import { RenderNoteIcon } from "../../../routes/notes-sidebar/render-note-icon";
+import { FILE_SERVER_URL } from "../../../utils/misc";
+import { getFileExtension } from "../../../utils/string-formatting";
+import {
+	DropdownPickerOption,
+	FilePickerMenuItem,
+} from "../../dropdown/dropdown-picker";
+import type { FilePayload } from "../nodes/file";
 import { $createLinkNode } from "../nodes/link";
+import { INSERT_FILES_COMMAND } from "./file";
 
 const MAX_VISIBLE_SEARCH_RESULTS = 20;
 

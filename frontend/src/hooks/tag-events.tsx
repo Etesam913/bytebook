@@ -1,12 +1,79 @@
-import { type QueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import {
+	type QueryClient,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
+import { type StringRouteParams, useRoute } from "wouter";
 import {
 	DeletePathFromTag,
 	GetTags,
 	GetTagsForFolderAndNotePath,
 	GetTagsForFolderAndNotesPaths,
 } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
+import { useSearchParamsEntries, useWailsEvent } from "../utils/hooks";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
+
+/**
+ * Invalidates the query for note tags if the current folder, note, and extension are available.
+ *
+ * @param queryClient - The TanStack Query QueryClient instance.
+ * @param routeParams - Route parameters containing folder and note.
+ * @param searchParams - Search parameters, possibly including an extension.
+ */
+function invalidateCurrentNoteTagsQueryIfNeeded(
+	queryClient: QueryClient,
+	routeParams: StringRouteParams<"/:folder/:note?"> | null,
+	searchParams: { ext?: string },
+) {
+	const currentFolder = routeParams?.folder;
+	const currentNote = routeParams?.note;
+
+	if (currentFolder && currentNote && searchParams.ext) {
+		queryClient.invalidateQueries({
+			queryKey: ["note-tags", currentFolder, currentNote, searchParams.ext],
+		});
+	}
+}
+
+/**
+ * Handles tag related events by invalidating the 'get-tags' query and conditionally invalidating the 'note-tags' query.
+ *
+ * @param queryClient - The TanStack Query QueryClient instance.
+ * @param routeParams - Route parameters containing folder and note.
+ * @param searchParams - Search parameters, possibly including an extension.
+ */
+function handleTagRelatedEvent(
+	queryClient: QueryClient,
+	routeParams: StringRouteParams<"/:folder/:note?"> | null,
+	searchParams: { ext?: string },
+) {
+	queryClient.invalidateQueries({ queryKey: ["get-tags"] });
+	invalidateCurrentNoteTagsQueryIfNeeded(
+		queryClient,
+		routeParams,
+		searchParams,
+	);
+}
+
+/**
+ * Handles the `tags-folder:create`, "tags-folder:delete", and "tags:update" events.
+ */
+export function useTags() {
+	const queryClient = useQueryClient();
+	const [, routeParams] = useRoute("/:folder/:note?");
+	const searchParams: { ext?: string } = useSearchParamsEntries();
+	useWailsEvent("tags-folder:create", () => {
+		handleTagRelatedEvent(queryClient, routeParams, searchParams);
+	});
+	useWailsEvent("tags-folder:delete", () => {
+		handleTagRelatedEvent(queryClient, routeParams, searchParams);
+	});
+	useWailsEvent("tags:update", () => {
+		handleTagRelatedEvent(queryClient, routeParams, searchParams);
+	});
+}
 
 export function useTagsQuery() {
 	return useQuery({
@@ -70,7 +137,6 @@ export function useTagsForNotesQuery(folder: string, notes: string[]) {
  * @returns The mutation result.
  */
 export function useDeleteTagMutation(
-	queryClient: QueryClient,
 	folder: string,
 	note: string,
 	ext: string,
@@ -86,12 +152,6 @@ export function useDeleteTagMutation(
 			if (e instanceof Error) {
 				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
 			}
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: ["note-tags", folder, note, ext],
-			});
-			queryClient.invalidateQueries({ queryKey: ["get-tags"] });
 		},
 	});
 }

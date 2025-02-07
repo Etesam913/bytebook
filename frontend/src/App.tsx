@@ -12,6 +12,7 @@ import { useLoggedInEvent, useUserData } from "./hooks/auth";
 import { useNoteSelectionClear } from "./hooks/note-events";
 import { useProjectSettings } from "./hooks/project-settings";
 import { useSearchPanel } from "./hooks/search";
+import { useTags } from "./hooks/tag-events";
 import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
 import { TagsSidebar } from "./routes/tags-sidebar";
@@ -27,6 +28,7 @@ function App() {
 	const setContextMenuData = useSetAtom(contextMenuDataAtom);
 
 	useUserData();
+	useTags();
 	useLoggedInEvent();
 	useDarkModeSetting();
 	useSearchPanel();

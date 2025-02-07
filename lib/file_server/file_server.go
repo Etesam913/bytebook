@@ -100,9 +100,10 @@ func handleDebounceReset(debounceTimer *time.Timer) {
 }
 
 /*
-Handles folder:create, folder:delete, and folder:rename events
+Handles notes-folder:create, notes-folder:delete, and notes-folder:rename events
 */
 func handleFolderEvents(
+	prefix string,
 	event fsnotify.Event,
 	watcher *fsnotify.Watcher,
 	debounceTimer *time.Timer,
@@ -113,15 +114,16 @@ func handleFolderEvents(
 	folderName := filepath.Base(event.Name)
 	eventKey := ""
 	if event.Has(fsnotify.Create) {
-		eventKey = "folder:create"
+		eventKey = fmt.Sprintf("%s:create", prefix)
 		*mostRecentFolderCreated = event.Name
 		watcher.Add(event.Name)
 	}
 	if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
-		if event.Has(fsnotify.Rename) {
+		// We only care about rename events for note folders.
+		if prefix == "notes-folder" && event.Has(fsnotify.Rename) {
 			newFolderPath := *mostRecentFolderCreated
 
-			// Print each file in the new folder
+			// When the note folder is renamed, all the notes in the folder need to have their paths updated to be in the new folder
 			files, err := os.ReadDir(newFolderPath)
 			if err == nil {
 				for _, file := range files {
@@ -146,9 +148,8 @@ func handleFolderEvents(
 				}
 			}
 
-			fmt.Println(event.Name, event.Op, *mostRecentFolderCreated)
 		}
-		eventKey = "folder:delete"
+		eventKey = fmt.Sprintf("%s:delete", prefix)
 		watcher.Remove(event.Name)
 	}
 
@@ -233,24 +234,49 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 				// We do not care about folders inside of folders
 				// TODO: A user could create a folder called notes inside of notes and this would be problematic
 				if oneFolderBack == "notes" {
-					handleFolderEvents(event, watcher, debounceTimer, debounceEvents, &mostRecentFolderCreated)
+					handleFolderEvents(
+						"notes-folder",
+						event,
+						watcher,
+						debounceTimer,
+						debounceEvents,
+						&mostRecentFolderCreated,
+					)
+				}
+				if oneFolderBack == "tags" {
+					handleFolderEvents(
+						"tags-folder",
+						event,
+						watcher,
+						debounceTimer,
+						debounceEvents,
+						&mostRecentFolderCreated,
+					)
 				}
 				continue
 			}
-
 			if oneFolderBack == "settings" {
-				// The settings got updated
+				// If settings.json is updated
 				var projectSettings project_types.ProjectSettingsJson
 				err := io_helpers.ReadJsonFromPath(filepath.Join(projectPath, "settings", "settings.json"), &projectSettings)
 				if err == nil {
 					app.EmitEvent("settings:update", projectSettings)
 				}
 			} else if twoFolderBack == "tags" {
+				// If a notes.json file in a tag folder is updated
+				tagName := oneFolderBack
 				var tagPaths project_types.TagJson
 				err := io_helpers.ReadJsonFromPath(event.Name, &tagPaths)
-				fmt.Println("tags:update", err, event.Name)
-				if err != nil {
-					fmt.Println("tags:update", event.Name)
+				// Create a new object that holds everything from tagPaths plus your new NoteName field.
+				eventData := struct {
+					project_types.TagJson
+					NoteName string `json:"noteName"`
+				}{
+					TagJson:  tagPaths,
+					NoteName: tagName,
+				}
+				if err == nil {
+					app.EmitEvent("tags:update", eventData)
 				}
 			} else {
 				handleFileEvents(segments, event, oneFolderBack, debounceTimer, debounceEvents)
@@ -281,6 +307,7 @@ func ListenToFolders(projectPath string, watcher *fsnotify.Watcher) {
 	tagsFolderPath := filepath.Join(projectPath, "tags")
 
 	watcher.Add(notesFolderPath)
+	watcher.Add(tagsFolderPath)
 	noteEntries, err := os.ReadDir(notesFolderPath)
 
 	if err != nil {

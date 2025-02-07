@@ -253,7 +253,7 @@ export function useDeleteTagsMutation() {
 	});
 }
 
-export function useAddTagsMutation(queryClient: QueryClient) {
+export function useAddTagsMutation() {
 	return useMutation({
 		// The main function that handles adding tags to a note
 		mutationFn: async ({
@@ -287,12 +287,6 @@ export function useAddTagsMutation(queryClient: QueryClient) {
 			}
 
 			return true;
-		},
-		onSuccess: (_, variables: AddTagsMutationVariables) => {
-			queryClient.invalidateQueries({
-				queryKey: ["note-tags", variables.folder],
-			});
-			queryClient.invalidateQueries({ queryKey: ["get-tags"] });
 		},
 		// Handle errors that occur during the mutation
 		onError: (e) => {

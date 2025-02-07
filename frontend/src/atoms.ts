@@ -42,6 +42,7 @@ export const projectSettingsAtom = atom<ProjectSettings>({
 	projectPath: "",
 	darkMode: "light",
 	noteSidebarItemSize: "card",
+	accentColor: "",
 });
 export const projectSettingsWithQueryParamsAtom = atom((get) => {
 	const projectSettings = get(projectSettingsAtom);

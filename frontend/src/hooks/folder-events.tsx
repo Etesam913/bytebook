@@ -17,12 +17,12 @@ import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
 import { useCustomNavigate } from "../utils/routing";
 import { validateName } from "../utils/string-formatting";
 
-/** This function is used to handle `folder:create` events */
+/** This function is used to handle `notes-folder:create` events */
 export function useFolderCreate(
 	setFolders: Dispatch<SetStateAction<string[] | null>>,
 ) {
 	const { navigate } = useCustomNavigate();
-	useWailsEvent("folder:create", (body) => {
+	useWailsEvent("notes-folder:create", (body) => {
 		const data = (body.data as { folder: string }[][])[0];
 
 		setFolders((prev) => {
@@ -38,11 +38,11 @@ export function useFolderCreate(
 	});
 }
 
-/** This function is used to handle `folder:delete` events. This gets triggered when renaming a folder using the */
+/** This function is used to handle `notes-folder:delete` events. This gets triggered when renaming a folder using the */
 export function useFolderDelete(
 	setFolders: Dispatch<SetStateAction<string[] | null>>,
 ) {
-	useWailsEvent("folder:delete", (body) => {
+	useWailsEvent("notes-folder:delete", (body) => {
 		const data = (body.data as { folder: string }[][])[0];
 		const deletedFolders = new Set(data.map(({ folder }) => folder));
 
@@ -52,34 +52,6 @@ export function useFolderDelete(
 				(folder) => !deletedFolders.has(folder),
 			);
 			return remainingFolders;
-		});
-	});
-}
-
-/** This function is used to handle folder:rename events.  This gets triggered when deleting a folder in finder */
-export function useFolderRename(
-	folder: string | undefined,
-	setFolders: Dispatch<SetStateAction<string[] | null>>,
-) {
-	useWailsEvent("folder:rename", (body) => {
-		const data = (body.data as { folder: string }[][])[0];
-		const renamedFolders = new Set(data.map(({ folder }) => folder));
-
-		setFolders((prev) => {
-			if (prev) {
-				// Gets all the folders that were not renamed. The create event will handle the new names
-				const newFolders = prev.filter((folder) => !renamedFolders.has(folder));
-				// the current folder was renamed
-
-				if (folder && renamedFolders.has(folder) && newFolders.length > 0) {
-					navigate(`/${encodeURIComponent(newFolders[0])}`);
-				} else {
-					navigate("/");
-				}
-
-				return newFolders;
-			}
-			return [];
 		});
 	});
 }
