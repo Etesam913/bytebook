@@ -69,7 +69,7 @@ export function handleDragStart(
 		ghostElement.id = "sidebar-element";
 		ghostElement.classList.add("dragging", "drag-grid");
 		// Remove the selected classes
-		ghostElement.classList.remove("!bg-blue-400", "dark:!bg-blue-600");
+		ghostElement.classList.remove("!bg-[var(--accent-color)]");
 		setDraggedElement(ghostElement);
 
 		// Create child elements for the drag preview
