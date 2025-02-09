@@ -333,16 +333,16 @@ div[data-template-is-fullscreen="true"]
 	margin-right: 0.5rem;
 }
 /* Image & Video Component */
-p:has(> span > div > :is(img, video, span[data-katex="true"])),
+/* p:has(> span > div > :is(img, video, span[data-katex="true"])),
 h1:has(> span > div > :is(img, video, span[data-katex="true"])),
 h2:has(> span > div > :is(img, video, span[data-katex="true"])),
 h3:has(> span > div > :is(img, video, span[data-katex="true"])),
 h4:has(> span > div > :is(img, video, span[data-katex="true"])),
 h5:has(> span > div > :is(img, video, span[data-katex="true"])),
 h6:has(> span > div > :is(img, video, span[data-katex="true"])) {
-	/* This makes the image and video work correctly with inline content */
-	@apply flex items-center;
-}
+	This makes the image and video work correctly with inline content
+	@apply block;
+} */
 /* Checkbox Styles */
 .PlaygroundEditorTheme__listItemChecked,
 .PlaygroundEditorTheme__listItemUnchecked {

@@ -12,6 +12,7 @@ import {
 	CONTROLLED_TEXT_INSERTION_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
+	KEY_ARROW_LEFT_COMMAND,
 	KEY_ARROW_UP_COMMAND,
 	KEY_BACKSPACE_COMMAND,
 	KEY_ESCAPE_COMMAND,
@@ -198,6 +199,13 @@ export function useToolbarEvents(
 				(event) => overrideUpDownKeyCommand(event, "down"),
 				COMMAND_PRIORITY_LOW,
 			),
+			// editor.registerCommand(
+			// 	KEY_ARROW_LEFT_COMMAND,
+			// 	(event) => {
+			// 	    const selection = $getSelection();
+			// 	},
+			// 	COMMAND_PRIORITY_LOW,
+			// ),
 			editor.registerCommand(
 				CAN_UNDO_COMMAND,
 				(canUndo) => {

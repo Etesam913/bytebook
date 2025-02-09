@@ -1,6 +1,7 @@
 import {
 	$createNodeSelection,
 	$createTextNode,
+	$getAdjacentNode,
 	$getNodeByKey,
 	$getSelection,
 	$isDecoratorNode,
@@ -93,7 +94,6 @@ export function overrideUpDownKeyCommand(
 		if (!firstChild) return true;
 		return true;
 	}
-
 	const nextNode = getFirstSiblingNode(node, command);
 	let nextNodeChild: LexicalNode | null = null;
 	if (nextNode && $isElementNode(nextNode)) {

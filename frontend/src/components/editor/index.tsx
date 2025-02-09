@@ -22,27 +22,25 @@ import {
 import type { FloatingDataType } from "../../types.ts";
 import { debounce } from "../../utils/draggable";
 import useHotkeys from "../../utils/hooks.tsx";
+import { handleEditorEscape } from "../../utils/selection.ts";
 import { cn } from "../../utils/string-formatting";
+import { BottomBar } from "./bottom-bar.tsx";
 import { editorConfig } from "./editor-config";
 import { NoteTitle } from "./note-title";
 import { CodePlugin } from "./plugins/code";
 import { ComponentPickerMenuPlugin } from "./plugins/component-picker";
 import { CustomMarkdownShortcutPlugin } from "./plugins/custom-markdown-shortcut.tsx";
-import { FilesPlugin } from "./plugins/file";
-import { LinkPlugin } from "./plugins/link.tsx";
-import { NoteFindPlugin } from "./plugins/note-find.tsx";
-// import TreeViewPlugin from "./plugins/tree-view";
-import { Toolbar } from "./toolbar";
-
-import { handleEditorEscape } from "../../utils/selection.ts";
-import { BottomBar } from "./bottom-bar.tsx";
 import { DraggableBlockPlugin } from "./plugins/draggable-block.tsx";
+import { FilesPlugin } from "./plugins/file";
 import { FilePickerMenuPlugin } from "./plugins/file-picker.tsx";
 import { FocusPlugin } from "./plugins/focus.tsx";
 import { LinkMatcherPlugin } from "./plugins/link-matcher.tsx";
+import { LinkPlugin } from "./plugins/link.tsx";
+import { NoteFindPlugin } from "./plugins/note-find.tsx";
 import { SAVE_MARKDOWN_CONTENT, SavePlugin } from "./plugins/save.tsx";
 import { TableOfContentsPlugin } from "./plugins/table-of-contents.tsx";
-import TreeViewPlugin from "./plugins/tree-view.tsx";
+// import TreeViewPlugin from "./plugins/tree-view";
+import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 
 const debouncedHandleChange = debounce(handleChange, 275);
@@ -196,7 +194,7 @@ export function NotesEditor({
 					<DraggableBlockPlugin />
 					<FocusPlugin />
 					<LinkMatcherPlugin />
-					<TreeViewPlugin />
+					{/* <TreeViewPlugin /> */}
 				</div>
 				{frontmatter.showMarkdown === "true" && (
 					<div className="w-[50%] bg-zinc-50 dark:bg-zinc-850 h-full font-code border-l border-zinc-200 dark:border-zinc-700 px-4 pt-3 pb-2 overflow-auto">

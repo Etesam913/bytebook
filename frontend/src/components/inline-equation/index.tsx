@@ -33,7 +33,7 @@ export function InlineEquation({
 			data-nodeKey={nodeKey}
 			ref={inlineEquationRef}
 			className={cn(
-				"relative w-fit",
+				"relative w-fit inline-block",
 				isSelected && "relative bg-[var(--accent-color-highlight)]",
 			)}
 		>

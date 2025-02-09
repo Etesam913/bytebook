@@ -32,6 +32,7 @@ import {
 } from "@lexical/table";
 import {
 	$createNodeSelection,
+	$createParagraphNode,
 	$createTextNode,
 	$getEditor,
 	$isParagraphNode,
