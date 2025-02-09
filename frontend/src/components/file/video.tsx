@@ -54,12 +54,7 @@ export function Video({
 	}
 
 	return (
-		<div
-			className={cn(
-				"mr-2 inline-block",
-				(isLoading || isInViewport) && "block",
-			)}
-		>
+		<>
 			{isInViewport ? (
 				<div
 					ref={loaderRef}
@@ -89,7 +84,7 @@ export function Video({
 						{(isExpanded || !isExpanded) && (
 							<video
 								ref={videoRef}
-								style={{ display: isLoading ? "none" : "block" }}
+								style={{ display: isLoading ? "none" : "inline" }}
 								className={cn(
 									"w-full h-auto bg-black my-auto scroll-m-10",
 									isExpanded && "h-full",
@@ -108,6 +103,6 @@ export function Video({
 					</ResizeContainer>
 				</>
 			)}
-		</div>
+		</>
 	);
 }

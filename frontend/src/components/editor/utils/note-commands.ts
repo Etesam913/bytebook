@@ -84,7 +84,7 @@ export function overrideUpDownKeyCommand(
 	command: "up" | "down",
 ) {
 	const selection = $getSelection();
-	const node = selection?.getNodes().at(0);
+	const node = selection?.getNodes().at(-1);
 	const isShiftHeldDown = event.shiftKey;
 	// You should be able to select multiple nodes when holding shift, so use the default select behavior in this case
 	if (!node || isShiftHeldDown) return true;

@@ -31,7 +31,7 @@ import { CustomMarkdownShortcutPlugin } from "./plugins/custom-markdown-shortcut
 import { FilesPlugin } from "./plugins/file";
 import { LinkPlugin } from "./plugins/link.tsx";
 import { NoteFindPlugin } from "./plugins/note-find.tsx";
-import TreeViewPlugin from "./plugins/tree-view";
+// import TreeViewPlugin from "./plugins/tree-view";
 import { Toolbar } from "./toolbar";
 
 import { handleEditorEscape } from "../../utils/selection.ts";
@@ -42,6 +42,7 @@ import { FocusPlugin } from "./plugins/focus.tsx";
 import { LinkMatcherPlugin } from "./plugins/link-matcher.tsx";
 import { SAVE_MARKDOWN_CONTENT, SavePlugin } from "./plugins/save.tsx";
 import { TableOfContentsPlugin } from "./plugins/table-of-contents.tsx";
+import TreeViewPlugin from "./plugins/tree-view.tsx";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 
 const debouncedHandleChange = debounce(handleChange, 275);
@@ -195,7 +196,7 @@ export function NotesEditor({
 					<DraggableBlockPlugin />
 					<FocusPlugin />
 					<LinkMatcherPlugin />
-					{/* <TreeViewPlugin /> */}
+					<TreeViewPlugin />
 				</div>
 				{frontmatter.showMarkdown === "true" && (
 					<div className="w-[50%] bg-zinc-50 dark:bg-zinc-850 h-full font-code border-l border-zinc-200 dark:border-zinc-700 px-4 pt-3 pb-2 overflow-auto">

@@ -83,7 +83,7 @@ export function Toolbar({
 		setNoteMarkdownString,
 	);
 
-	useMutationListener(editor, folder, note, frontmatter);
+	// useMutationListener(editor, folder, note, frontmatter);
 
 	useWailsEvent("note:changed", (e) => {
 		const data = e.data as {

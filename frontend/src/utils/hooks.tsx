@@ -1,6 +1,7 @@
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
 import { Events as WailsEvents } from "@wailsio/runtime";
+import { useMotionValue } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { COMMAND_PRIORITY_LOW, type LexicalEditor } from "lexical";
 import {
@@ -15,6 +16,7 @@ import {
 } from "react";
 import { useSearch } from "wouter";
 import { isDarkModeOnAtom, projectSettingsAtom } from "../atoms";
+import type { ResizeState, ResizeWidth } from "../types";
 import { addColorSchemeClassToBody } from "./color-scheme";
 import { EXPAND_CONTENT_COMMAND } from "./commands";
 
@@ -50,12 +52,13 @@ export const useDelayedLoader = (
 	return [delayedLoading, setLoading];
 };
 
-export function useResizeState(nodeKey: string) {
+export function useResizeState(
+	nodeKey: string,
+): ResizeState & { clearSelection: () => void } {
 	const [isResizing, setIsResizing] = useState(false);
 	const [isSelected, setSelected, clearSelection] =
 		useLexicalNodeSelection(nodeKey);
 	const [isExpanded, setIsExpanded] = useState(false);
-
 	return {
 		isResizing,
 		setIsResizing,

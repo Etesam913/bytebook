@@ -49,10 +49,6 @@ export class InlineEquationNode extends DecoratorNode<JSX.Element> {
 		return node;
 	}
 
-	isInline(): boolean {
-		return true;
-	}
-
 	constructor(equation: string, defaultIsEditing: boolean, key?: NodeKey) {
 		super(key);
 		this.__equation = equation;

@@ -21,6 +21,7 @@ export function KatexRenderer({ equation }: { equation: string }) {
 	return (
 		<span
 			role="button"
+			data-katex="true"
 			tabIndex={-1}
 			ref={katexElementRef}
 			className="pointer-events-none"

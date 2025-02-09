@@ -20,7 +20,7 @@ export function Pdf({
 	const [isSelected] = useLexicalNodeSelection(nodeKey);
 
 	return (
-		<div className="mr-2 inline-block relative pt-[100%] h-0 w-full">
+		<div className="mr-2 relative pt-[100%] h-0 w-full">
 			<div
 				data-interactable="true"
 				data-nodeKey={nodeKey}

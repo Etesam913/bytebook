@@ -96,7 +96,7 @@ export function DraggableBlockPlugin() {
 				style={{ y: targetLineYSpringMotionValue }}
 				animate={{ opacity: isDragging ? 1 : 0 }}
 				id="target-line"
-				className="absolute pointer-events-none bg-blue-400 dark:bg-blue-500 ml-4 w-[calc(100%-2.25rem)] h-[3px] rounded-full left-0 top-0 will-change-transform"
+				className="absolute pointer-events-none bg-[var(--accent-color)] ml-4 w-[calc(100%-2.25rem)] h-[3px] rounded-full left-0 top-0 will-change-transform"
 			/>
 		</>,
 		noteContainerRef.current,

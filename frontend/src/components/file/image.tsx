@@ -55,12 +55,7 @@ export function Image({
 	}
 
 	return (
-		<div
-			className={cn(
-				"mr-2 inline-block",
-				(isLoading || isInViewport) && "block",
-			)}
-		>
+		<>
 			{isInViewport ? (
 				<div
 					ref={loaderRef}
@@ -77,6 +72,7 @@ export function Image({
 							)}
 						/>
 					)}
+
 					<ResizeContainer
 						resizeState={{
 							isResizing,
@@ -94,20 +90,22 @@ export function Image({
 						src={src}
 					>
 						<img
-							style={{ display: isLoading ? "none" : "block" }}
+							style={{
+								display: isLoading ? "none" : "inline",
+							}}
 							src={src}
 							onLoad={() => setIsLoading(false)}
 							onError={() => setIsError(true)}
 							ref={imgRef}
 							alt={alt}
 							draggable={false}
-							className={"w-full h-auto my-auto scroll-m-10"}
+							className="h-auto my-auto scroll-m-10"
 							data-nodeKey={nodeKey}
 							data-interactable="true"
 						/>
 					</ResizeContainer>
 				</>
 			)}
-		</div>
+		</>
 	);
 }

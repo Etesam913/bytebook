@@ -1,5 +1,6 @@
 import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import type { HeadingTagType } from "@lexical/rich-text";
+import { MotionValue } from "framer-motion";
 import type { Dispatch, FormEvent, ReactNode, SetStateAction } from "react";
 import type { CodeResponse } from "../bindings/github.com/etesam913/bytebook/index";
 

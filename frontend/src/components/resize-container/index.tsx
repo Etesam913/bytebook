@@ -64,8 +64,9 @@ export function ResizeContainer({
 		elementType !== "excalidraw" && useMouseActivity(1500, isExpanded);
 
 	return (
-		<div ref={resizeContainerRef}>
+		<>
 			<motion.div
+				ref={resizeContainerRef}
 				onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
 					if (e.key === "Escape" && isExpanded) {
 						setIsExpanded(false);
@@ -93,9 +94,9 @@ export function ResizeContainer({
 				tabIndex={isExpanded ? 0 : -1}
 				onClick={(e: MouseEvent) => isExpanded && e.stopPropagation()}
 				className={cn(
-					"relative max-w-full cursor-auto rounded-sm flex outline-none",
+					"relative cursor-auto rounded-sm outline-none",
 					isExpanded &&
-						"max-h-screen fixed top-0 left-0 right-0 bottom-0 z-30 m-auto justify-start overflow-auto",
+						"max-h-screen fixed top-0 left-0 right-0 bottom-0 z-[45] m-auto flex justify-start overflow-auto",
 					isExpanded && elementType === "excalidraw" && "!h-screen",
 				)}
 				style={{
@@ -107,7 +108,7 @@ export function ResizeContainer({
 				<AnimatePresence>
 					{isSelected && !isExpanded && (
 						<>
-							<motion.div
+							<motion.span
 								className="absolute z-20 h-full w-full border-[4px] border-[var(--accent-color)] rounded-sm pointer-events-none"
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
@@ -125,7 +126,7 @@ export function ResizeContainer({
 										"w-4 h-4 bg-[var(--accent-color)] bottom-[-10px] right-[-9px] absolute cursor-nwse-resize rounded-sm pointer-events-none"
 									}
 								/>
-							</motion.div>
+							</motion.span>
 							<ResizeControls
 								src={src}
 								nodeKey={nodeKey}
@@ -155,7 +156,7 @@ export function ResizeContainer({
 				<>
 					<div
 						onClick={() => setIsExpanded(false)}
-						className="fixed z-10 w-screen h-screen bg-black left-0 top-0"
+						className="fixed z-40 w-screen h-screen bg-black left-0 top-0"
 					/>
 					<motion.button
 						{...getDefaultButtonVariants()}
@@ -235,6 +236,6 @@ export function ResizeContainer({
 					/>
 				</>
 			)}
-		</div>
+		</>
 	);
 }
