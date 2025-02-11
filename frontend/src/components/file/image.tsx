@@ -1,11 +1,13 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useShowWhenInViewport } from "../../hooks/observers";
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { ResizeContainer } from "../resize-container";
 import { FileError } from "./error";
+import { useAtomValue } from "jotai/react";
+import { noteSeenFileNodeKeysAtom } from "../../atoms";
 
 export function Image({
 	src,
@@ -23,10 +25,13 @@ export function Image({
 	const imgRef = useRef<HTMLImageElement>(null);
 	const [editor] = useLexicalComposerContext();
 	const loaderRef = useRef<HTMLDivElement>(null); // Reference for loader
-
-	const [isInViewport, setIsInViewport] = useState(true);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isError, setIsError] = useState(false);
+	const noteSeenFileNodeKeys = useAtomValue(noteSeenFileNodeKeysAtom);
+
+	const isImageInViewport = useMemo(() => {
+		return noteSeenFileNodeKeys.has(nodeKey);
+	}, [noteSeenFileNodeKeys]);
 
 	const {
 		isResizing,
@@ -48,7 +53,7 @@ export function Image({
 		imgRef,
 	);
 
-	useShowWhenInViewport(loaderRef, setIsInViewport, isExpanded);
+	useShowWhenInViewport(loaderRef, isExpanded, isImageInViewport);
 
 	if (isError) {
 		return <FileError src={src} nodeKey={nodeKey} type="loading-fail" />;
@@ -56,9 +61,10 @@ export function Image({
 
 	return (
 		<>
-			{isInViewport ? (
+			{!isImageInViewport ? (
 				<div
 					ref={loaderRef}
+					data-node-key={nodeKey}
 					className={cn(
 						"my-3 w-full h-[36rem] bg-gray-200 dark:bg-zinc-600 animate-pulse pointer-events-none",
 					)}

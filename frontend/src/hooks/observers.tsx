@@ -1,13 +1,6 @@
 import { useAtomValue } from "jotai/react";
-import {
-	type Dispatch,
-	type RefObject,
-	type SetStateAction,
-	useEffect,
-	useMemo,
-	useState,
-} from "react";
-import { noteContainerRefAtom } from "../atoms";
+import { type RefObject, useEffect, useMemo, useState } from "react";
+import { noteIntersectionObserverAtom } from "../atoms";
 
 /**
  * Custom hook for implementing list virtualization.
@@ -99,43 +92,25 @@ export function useListVirtualization(
 
 /**
  * Custom hook for showing an element when it enters the viewport.
- * This hook uses the Intersection Observer API to detect when the loader element is visible.
  *
  * @param loaderRef - React ref object for the loader element
- * @param setIsInViewport - Function to set the loading state
+ * @param isExpanded - Boolean indicating whether the image is expanded
+ * @param isImageInViewport - Boolean indicating whether the image is in the viewport
  */
 export function useShowWhenInViewport(
 	loaderRef: RefObject<HTMLDivElement | null>,
-	setIsInViewport: Dispatch<SetStateAction<boolean>>,
 	isExpanded: boolean,
+	isImageInViewport: boolean,
 ) {
-	const noteContainerRef = useAtomValue(noteContainerRefAtom);
+	const noteIntersectionObserver = useAtomValue(noteIntersectionObserverAtom);
 	useEffect(() => {
-		if (!noteContainerRef?.current) return;
-		// Create an observer to detect when the loader is in the viewport
-		const observer = new IntersectionObserver(
-			(entries) => {
-				const entry = entries[0];
-				if (entry.isIntersecting) {
-					setIsInViewport(false); // Set loading to false when spinner is in viewport
-					observer.disconnect(); // Stop observing once the loader is visible
-				}
-			},
-			{
-				root: noteContainerRef.current,
-				rootMargin: `0 0 ${noteContainerRef.current.offsetHeight}px 0`,
-				threshold: 0,
-			},
-		);
-
-		if (loaderRef.current) {
-			observer.observe(loaderRef.current);
-		}
-
+		if (!loaderRef.current || !noteIntersectionObserver) return;
+		noteIntersectionObserver?.observe(loaderRef.current);
 		return () => {
-			observer.disconnect();
+			if (!loaderRef.current || !noteIntersectionObserver) return;
+			noteIntersectionObserver.unobserve(loaderRef.current);
 		};
-	}, [noteContainerRef]);
+	}, [loaderRef, isImageInViewport]);
 
 	// Scroll to the bottom when the image is expanded. When spamming the next image, there is a small chance that the image does not show up. This fixes that
 	useEffect(() => {

@@ -18,6 +18,8 @@ import {
 	draggedElementAtom,
 	isNoteMaximizedAtom,
 	noteContainerRefAtom,
+	noteIntersectionObserverAtom,
+	noteSeenFileNodeKeysAtom,
 } from "../../atoms";
 import type { FloatingDataType } from "../../types.ts";
 import { debounce } from "../../utils/draggable";
@@ -93,6 +95,12 @@ export function NotesEditor({
 	const [isFindOpen, setIsFindOpen] = useState(false);
 	const noteContainerRef = useRef<HTMLDivElement | null>(null);
 	const setNoteContainerRef = useSetAtom(noteContainerRefAtom);
+	const [noteIntersectionObserver, setNoteIntersectionObserver] = useAtom(
+		noteIntersectionObserverAtom,
+	);
+	const [seenFileNodeKeys, setSeenFileNodeKeys] = useAtom(
+		noteSeenFileNodeKeysAtom,
+	);
 	const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
 	const [noteMarkdownString, setNoteMarkdownString] = useState("");
 	const draggedElement = useAtomValue(draggedElementAtom);
@@ -106,6 +114,34 @@ export function NotesEditor({
 	useEffect(() => {
 		setNoteContainerRef(noteContainerRef);
 	}, [noteContainerRef]);
+
+	useEffect(() => {
+		setNoteIntersectionObserver(() => {
+			return new IntersectionObserver((entries) => {
+				entries.forEach(
+					(entry) => {
+						if (entry.isIntersecting) {
+							const nodeKey = entry.target.getAttribute("data-node-key");
+							if (nodeKey && !seenFileNodeKeys.has(nodeKey)) {
+								setSeenFileNodeKeys(
+									(prevFileNodeKeys) => new Set([...prevFileNodeKeys, nodeKey]),
+								);
+							}
+						}
+					},
+					{
+						root: noteContainerRef.current,
+						rootMargin: "0px 0px 100px 0px",
+						threshold: 0.3,
+					},
+				);
+			});
+		});
+		setSeenFileNodeKeys(new Set([]));
+		return () => {
+			noteIntersectionObserver?.disconnect();
+		};
+	}, [folder, note, noteContainerRef]);
 
 	return (
 		<LexicalComposer initialConfig={editorConfig}>

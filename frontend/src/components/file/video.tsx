@@ -1,11 +1,13 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useShowWhenInViewport } from "../../hooks/observers";
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { ResizeContainer } from "../resize-container";
 import { FileError } from "./error";
+import { useAtomValue } from "jotai/react";
+import { noteSeenFileNodeKeysAtom } from "../../atoms";
 
 export function Video({
 	src,
@@ -22,10 +24,10 @@ export function Video({
 }) {
 	const [editor] = useLexicalComposerContext();
 	const videoRef = useRef<HTMLVideoElement>(null);
-	const [isInViewport, setIsInViewport] = useState(true);
 	const loaderRef = useRef<HTMLDivElement>(null); // Reference for loader
 	const [isLoading, setIsLoading] = useState(true);
 	const [isError, setIsError] = useState(false);
+	const noteSeenFileNodeKeys = useAtomValue(noteSeenFileNodeKeysAtom);
 
 	const {
 		isResizing,
@@ -47,7 +49,11 @@ export function Video({
 		videoRef,
 	);
 
-	useShowWhenInViewport(loaderRef, setIsInViewport, isExpanded);
+	const isVideoInViewport = useMemo(() => {
+		return noteSeenFileNodeKeys.has(nodeKey);
+	}, [noteSeenFileNodeKeys]);
+
+	useShowWhenInViewport(loaderRef, isExpanded, isVideoInViewport);
 
 	if (isError) {
 		return <FileError src={src} nodeKey={nodeKey} type="loading-fail" />;
@@ -55,9 +61,10 @@ export function Video({
 
 	return (
 		<>
-			{isInViewport ? (
+			{!isVideoInViewport ? (
 				<div
 					ref={loaderRef}
+					data-node-key={nodeKey}
 					className="my-3 w-full h-[36rem] bg-gray-200 dark:bg-zinc-600 animate-pulse pointer-events-none"
 				/>
 			) : (

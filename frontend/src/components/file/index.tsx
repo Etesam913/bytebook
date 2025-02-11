@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { type JSX, useEffect } from "react";
 import { Loader } from "../../icons/loader";
 import type { ResizeWidth } from "../../types";
 import type { FileType } from "../editor/nodes/file";
@@ -29,6 +29,7 @@ export function File({
 	const { data: fileType, isLoading } = useQuery({
 		queryKey: ["file", src],
 		queryFn: async () => await getFileElementTypeFromExtensionAndHead(src),
+		gcTime: Number.POSITIVE_INFINITY,
 	});
 
 	useEffect(() => {
@@ -38,8 +39,10 @@ export function File({
 
 	if (isLoading) return <Loader width={28} height={28} />;
 
+	let content: JSX.Element; // Explicitly define the type of content
+
 	if (fileType === "video") {
-		return (
+		content = (
 			<Video
 				src={src}
 				widthWrittenToNode={widthWrittenToNode}
@@ -48,9 +51,8 @@ export function File({
 				nodeKey={nodeKey}
 			/>
 		);
-	}
-	if (fileType === "image") {
-		return (
+	} else if (fileType === "image") {
+		content = (
 			<Image
 				src={src}
 				alt={title}
@@ -59,9 +61,8 @@ export function File({
 				nodeKey={nodeKey}
 			/>
 		);
-	}
-	if (fileType === "youtube") {
-		return (
+	} else if (fileType === "youtube") {
+		content = (
 			<YouTube
 				src={src}
 				alt={title}
@@ -70,12 +71,14 @@ export function File({
 				writeWidthToNode={writeWidthToNode}
 			/>
 		);
+	} else if (fileType === "pdf") {
+		content = <Pdf src={src} alt={title} nodeKey={nodeKey} />;
+	} else {
+		// Replace with unknown attachment
+		content = (
+			<FileError src={src} nodeKey={nodeKey} type="unknown-attachment" />
+		);
 	}
 
-	if (fileType === "pdf") {
-		return <Pdf src={src} alt={title} nodeKey={nodeKey} />;
-	}
-
-	// Replace with unknown attachment
-	return <FileError src={src} nodeKey={nodeKey} type="unknown-attachment" />;
+	return content; // Single return statement
 }

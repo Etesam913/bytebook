@@ -90,10 +90,6 @@ export const isDarkModeOnAtom = atom<boolean>(false);
 export const isToolbarDisabledAtom = atom<boolean>(false);
 export const isNoteMaximizedAtom = atom<boolean>(false);
 
-export const noteContainerRefAtom = atom<RefObject<HTMLElement | null> | null>(
-	null,
-);
-
 export const dialogDataAtom = atom<DialogDataType>({
 	isOpen: false,
 	title: "",
@@ -130,3 +126,11 @@ export const searchPanelDataAtom = atom<SearchPanelDataType>({
 });
 
 export const noteEditorAtom = atom<LexicalEditor | null>(null);
+
+export const noteContainerRefAtom = atom<RefObject<HTMLElement | null> | null>(
+	null,
+);
+export const noteIntersectionObserverAtom = atom<IntersectionObserver | null>(
+	null,
+);
+export const noteSeenFileNodeKeysAtom = atom<Set<string>>(new Set([]));
