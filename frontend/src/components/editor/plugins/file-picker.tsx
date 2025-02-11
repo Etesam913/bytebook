@@ -11,7 +11,7 @@ import {
 	COMMAND_PRIORITY_NORMAL,
 	type TextNode,
 } from "lexical";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 import { SearchFileNamesFromQuery } from "../../../../bindings/github.com/etesam913/bytebook/searchservice";
 import { mostRecentNotesWithoutQueryParamsAtom } from "../../../atoms";

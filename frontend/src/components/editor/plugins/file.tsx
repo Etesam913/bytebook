@@ -2,8 +2,10 @@ import { $isListItemNode } from "@lexical/list";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { mergeRegister } from "@lexical/utils";
 import {
+	$createNodeSelection,
 	$createParagraphNode,
 	$getSelection,
+	$setSelection,
 	COMMAND_PRIORITY_EDITOR,
 	type ElementNode,
 	type LexicalCommand,
@@ -18,6 +20,8 @@ type InsertFilesCommandPayload = FilePayload[];
 export const INSERT_FILES_COMMAND: LexicalCommand<InsertFilesCommandPayload> =
 	createCommand("INSERT_FILES_COMMAND");
 
+const IMAGE_LOAD_TIMEOUT = 150;
+
 export function FilesPlugin() {
 	const [editor] = useLexicalComposerContext();
 
@@ -31,9 +35,11 @@ export function FilesPlugin() {
 				INSERT_FILES_COMMAND,
 				(payload) => {
 					const nodes: ParagraphNode[] = [];
+					let lastFileNode: null | FileNode = null;
 					for (const fileDataPayload of payload) {
 						const fileParent = $createParagraphNode();
 						const fileNode = $createFileNode(fileDataPayload);
+						lastFileNode = fileNode;
 						fileParent.append(fileNode);
 						nodes.push(fileParent);
 					}
@@ -53,6 +59,23 @@ export function FilesPlugin() {
 						nodes.forEach((node) => topLevelElement.insertAfter(node));
 					else selection?.insertNodes(nodes);
 
+					// Selects the last file node
+					const newFileSelection = $createNodeSelection();
+					if (lastFileNode) {
+						const fileNodeKey = lastFileNode.getKey();
+						newFileSelection.add(fileNodeKey);
+						setTimeout(() => {
+							const lastFileNodeElement = editor.getElementByKey(fileNodeKey);
+							if (lastFileNodeElement) {
+								lastFileNodeElement.scrollIntoView({
+									block: "center",
+									behavior: "instant",
+								});
+							}
+						}, IMAGE_LOAD_TIMEOUT);
+					}
+
+					$setSelection(newFileSelection);
 					return true;
 				},
 				COMMAND_PRIORITY_EDITOR,

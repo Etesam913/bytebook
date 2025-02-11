@@ -1,13 +1,13 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { useAtomValue } from "jotai/react";
 import { useMemo, useRef, useState } from "react";
+import { noteSeenFileNodeKeysAtom } from "../../atoms";
 import { useShowWhenInViewport } from "../../hooks/observers";
 import type { ResizeWidth } from "../../types";
 import { useResizeCommands, useResizeState } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { ResizeContainer } from "../resize-container";
 import { FileError } from "./error";
-import { useAtomValue } from "jotai/react";
-import { noteSeenFileNodeKeysAtom } from "../../atoms";
 
 export function Video({
 	src,

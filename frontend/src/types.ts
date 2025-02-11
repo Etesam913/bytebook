@@ -121,4 +121,3 @@ export type GithubRepositoryData = {
 	name: string;
 	clone_url: string;
 };
-
