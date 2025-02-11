@@ -92,7 +92,7 @@ export function ResizeContainer({
 					}
 				}}
 				tabIndex={isExpanded ? 0 : -1}
-				onClick={(e: MouseEvent) => isExpanded && e.stopPropagation()}
+				// onClick={(e: MouseEvent) => isExpanded && e.stopPropagation()}
 				className={cn(
 					"relative inline-block cursor-auto rounded-sm outline-none",
 					isExpanded &&
