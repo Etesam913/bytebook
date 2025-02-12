@@ -8,7 +8,7 @@ import {
 	useRef,
 } from "react";
 import { XMark } from "../../../icons/circle-xmark";
-import { debounce } from "../../../utils/draggable";
+import { debounce } from "../../../utils/general";
 import { clearHighlights, searchWithinNote } from "../utils/note-search";
 
 const debouncedSearch = debounce(

@@ -19,7 +19,7 @@ import { getDefaultButtonVariants } from "../../animations";
 import { isDarkModeOnAtom } from "../../atoms";
 import { XMark } from "../../icons/circle-xmark";
 import { onClickDecoratorNodeCommand } from "../../utils/commands";
-import { debounce } from "../../utils/draggable";
+import { debounce } from "../../utils/general";
 import { cn } from "../../utils/string-formatting";
 import { NoteComponentControls } from "../note-component-container/component-controls";
 import { useFocusOnSelect } from "./hooks";

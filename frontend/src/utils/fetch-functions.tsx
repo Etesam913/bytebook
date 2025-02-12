@@ -6,7 +6,6 @@ import {
 	DoesFolderExist,
 	GetFolders,
 } from "../../bindings/github.com/etesam913/bytebook/folderservice";
-import type { NoteEntry } from "../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
 import { GetNotes } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { GetNotesFromTag } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import type { SortStrings } from "../types";
@@ -39,7 +38,7 @@ export async function checkIfFolderExists(folder: string | undefined) {
 
 export async function updateTagNotes(
 	tagName: string,
-	setNotes: Dispatch<SetStateAction<NoteEntry[] | null>>,
+	setNotes: Dispatch<SetStateAction<string[] | null>>,
 	noteSort: SortStrings,
 ) {
 	try {
@@ -49,7 +48,7 @@ export async function updateTagNotes(
 
 			if (notes.length > 0) {
 				const { noteNameWithoutExtension, queryParams } =
-					extractInfoFromNoteName(notes[0].name);
+					extractInfoFromNoteName(notes[0]);
 				navigate(
 					`/tags/${tagName}/${noteNameWithoutExtension}?ext=${queryParams.ext}`,
 				);
@@ -96,7 +95,7 @@ export async function updateFolders(
 export async function checkIfNoteExists(
 	encodedFolder: string,
 	encodedNote: string | undefined,
-	notes: NoteEntry[] | null,
+	notes: string[] | null,
 	fileExtension: string | undefined,
 ) {
 	// If no note name or file extension is provided, exit the function early.
@@ -115,7 +114,7 @@ export async function checkIfNoteExists(
 		if (notes && notes.length > 0) {
 			// Extract the base name and query parameters from the first note.
 			const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-				notes[0].name,
+				notes[0],
 			);
 			// Navigate to the first note with its extension.
 			navigate(
@@ -137,7 +136,7 @@ export async function checkIfNoteExists(
 export async function updateNotes(
 	encodedFolder: string,
 	encodedNote: string | undefined,
-	setNotes: Dispatch<SetStateAction<NoteEntry[] | null>>,
+	setNotes: Dispatch<SetStateAction<string[] | null>>,
 	noteSort: SortStrings,
 ) {
 	try {
@@ -157,12 +156,12 @@ export async function updateNotes(
 				navigate(`/${encodedFolder}`, { replace: true });
 				return;
 			}
-			const indexOfQuestionMark = notes[0].name.lastIndexOf("?ext=");
-			const noteNameWithoutExtension = notes[0].name.substring(
+			const indexOfQuestionMark = notes[0].lastIndexOf("?ext=");
+			const noteNameWithoutExtension = notes[0].substring(
 				0,
 				indexOfQuestionMark,
 			);
-			const fileExtension = notes[0].name.substring(indexOfQuestionMark + 5);
+			const fileExtension = notes[0].substring(indexOfQuestionMark + 5);
 			const newEncodedNote = `${encodeURIComponent(noteNameWithoutExtension)}?ext=${fileExtension}`;
 			navigate(`/${encodedFolder}/${newEncodedNote}`, {
 				replace: true,

@@ -1,10 +1,9 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Events } from "@wailsio/runtime";
 import { useAtomValue, useSetAtom } from "jotai/react";
 import type { LexicalEditor } from "lexical";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { toast } from "sonner";
-import type { NoteEntry } from "../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
 import {
 	GetNotePreview,
 	GetNotes,
@@ -35,8 +34,8 @@ import { useUpdateProjectSettingsMutation } from "./project-settings";
 /** This function is used to handle note:create events */
 export function useNoteCreate(
 	folder: string,
-	notes: NoteEntry[],
-	setNotes: Dispatch<SetStateAction<NoteEntry[] | null>>,
+	notes: string[],
+	setNotes: Dispatch<SetStateAction<string[]>>,
 ) {
 	const noteSortData = useAtomValue(noteSortAtom);
 	useWailsEvent("note:create", async (body) => {
@@ -52,7 +51,7 @@ export function useNoteCreate(
 			.filter(
 				(item) =>
 					item.folder === decodeURIComponent(folder) &&
-					!notes.some((note) => note.name === item.note),
+					!notes.some((noteName) => noteName === item.note),
 			)
 			.map((item) => item.note);
 
@@ -70,7 +69,7 @@ export function useNoteCreate(
 export function useNoteDelete(
 	folder: string,
 	note: string | undefined,
-	setNotes: Dispatch<SetStateAction<NoteEntry[] | null>>,
+	setNotes: Dispatch<SetStateAction<string[]>>,
 ) {
 	useWailsEvent("note:delete", (body) => {
 		const data = (body.data as { folder: string; note: string }[][])[0];
@@ -91,11 +90,10 @@ export function useNoteDelete(
 			if (!prev) return prev;
 			// Filter out all notes that are in the same folder as a deleted note/
 			const newNotes = prev.filter(
-				(noteEntry) =>
+				(noteName) =>
 					!data.some(
 						({ folder: folderWithDeletedNotes, note: deletedNote }) =>
-							folder === folderWithDeletedNotes &&
-							noteEntry.name === deletedNote,
+							folder === folderWithDeletedNotes && noteName === deletedNote,
 					),
 			);
 			if (!note) return newNotes;
@@ -308,12 +306,11 @@ export function useNotePreviewQuery(
 	fileExtension: string,
 ) {
 	return useQuery({
-		queryKey: ["note-preview", curNote],
+		queryKey: ["note-preview", curFolder, curNote],
 		queryFn: async () => {
-			if (fileExtension !== "md") {
-				return null;
-			}
-			return await GetNotePreview(`notes/${curFolder}/${curNote}.md`);
+			return await GetNotePreview(
+				`notes/${curFolder}/${curNote}.${fileExtension}`,
+			);
 		},
 	});
 }
@@ -332,6 +329,7 @@ export function useNoteChangedEvent(
 	editor: LexicalEditor,
 	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>,
 ) {
+	const queryClient = useQueryClient();
 	useWailsEvent("note:changed", (e) => {
 		const data = e.data as {
 			folder: string;
@@ -340,14 +338,14 @@ export function useNoteChangedEvent(
 			oldWindowAppId: string;
 		};
 		const {
-			folder: folderName,
-			note: noteName,
+			folder: folderNameFromEvent,
+			note: noteNameFromEvent,
 			markdown,
 			oldWindowAppId,
 		} = data;
 		if (
-			folderName === folder &&
-			noteName === note &&
+			folderNameFromEvent === folder &&
+			noteNameFromEvent === note &&
 			oldWindowAppId !== WINDOW_ID
 		) {
 			editor.update(
@@ -361,5 +359,8 @@ export function useNoteChangedEvent(
 				{ tag: "note:changed-from-other-window" },
 			);
 		}
+		// Update the appropriate note preview
+		const queryKey = ["note-preview", folderNameFromEvent, noteNameFromEvent];
+		queryClient.invalidateQueries({ queryKey });
 	});
 }

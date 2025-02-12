@@ -1,7 +1,6 @@
 import { atom } from "jotai";
 import type { LexicalEditor } from "lexical";
 import type { RefObject } from "react";
-import type { NoteEntry } from "../bindings/github.com/etesam913/bytebook/lib/project_types/models.js";
 import type {
 	BackendQueryDataType,
 	ContextMenuData,
@@ -71,7 +70,7 @@ export const userDataAtomWithLocalStorage = atom(
 	},
 );
 
-export const notesAtom = atom<NoteEntry[] | null>([]);
+export const notesAtom = atom<string[]>([]);
 
 export const foldersAtom = atom<string[] | null>([]);
 export const alphabetizedFoldersAtom = atom((get) => {

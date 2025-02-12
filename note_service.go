@@ -32,12 +32,12 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) project_typ
 	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	// Ensure the directory exists
 	if _, err := os.Stat(folderPath); err != nil {
-		return project_types.NoteResponse{Success: false, Message: err.Error(), Data: []project_types.NoteEntry{}}
+		return project_types.NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
 	}
 
 	files, err := os.ReadDir(folderPath)
 	if err != nil {
-		return project_types.NoteResponse{Success: false, Message: err.Error(), Data: []project_types.NoteEntry{}}
+		return project_types.NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
 	}
 	var notes []os.DirEntry
 	for _, file := range files {
@@ -52,23 +52,14 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) project_typ
 	// Sort notes based on the sort option
 	list_helpers.SortNotes(notes, sortOption)
 
-	var sortedNotes []project_types.NoteEntry
+	var sortedNotes []string
 
 	// Using the query param syntax that the app supports
 	for _, file := range notes {
 		indexOfDot := strings.LastIndex(file.Name(), ".")
 		name := file.Name()[:indexOfDot]
 		extension := file.Name()[indexOfDot+1:]
-		fileInfo, err := file.Info()
-		lastUpdated := ""
-		if err == nil {
-			lastUpdated = fileInfo.ModTime().Format(time.RFC3339)
-		}
-		sortedNotes = append(sortedNotes, project_types.NoteEntry{
-			Name:        fmt.Sprintf("%s?ext=%s", name, extension),
-			LastUpdated: lastUpdated,
-			Size:        int(fileInfo.Size()),
-		})
+		sortedNotes = append(sortedNotes, fmt.Sprintf("%s?ext=%s", name, extension))
 	}
 
 	return project_types.NoteResponse{Success: true, Message: "", Data: sortedNotes}
@@ -263,27 +254,42 @@ func (n *NoteService) RevealNoteInFinder(folderName, noteName string) project_ty
 type NotePreviewData struct {
 	FirstLine     string `json:"firstLine"`
 	FirstImageSrc string `json:"firstImageSrc"`
+	Size          int64  `json:"size"`
+	LastUpdated   string `json:"lastUpdated"`
 }
 
 func (n *NoteService) GetNotePreview(path string) project_types.BackendResponseWithData[NotePreviewData] {
+	fileExtension := filepath.Ext(path)
 	noteFilePath := filepath.Join(n.ProjectPath, path)
-
-	noteContent, err := os.ReadFile(noteFilePath)
-	if err != nil {
-		return project_types.BackendResponseWithData[NotePreviewData]{
-			Success: false,
-			Message: err.Error(),
-			Data: NotePreviewData{
-				FirstLine:     "",
-				FirstImageSrc: "",
-			},
-		}
+	noteSize := int64(0)
+	lastUpdated := ""
+	firstLine := ""
+	firstImageSrc := ""
+	fileInfo, err := os.Stat(noteFilePath)
+	if err == nil {
+		noteSize = fileInfo.Size()
+		lastUpdated = fileInfo.ModTime().Format(time.RFC3339)
 	}
-	firstLine := note_helpers.GetFirstLine(string(noteContent))
-	firstImageSrc := note_helpers.GetFirstImageSrc(string(noteContent))
+	if fileExtension == ".md" {
+		noteContent, err := os.ReadFile(noteFilePath)
+		if err != nil {
+			return project_types.BackendResponseWithData[NotePreviewData]{
+				Success: false,
+				Message: err.Error(),
+				Data: NotePreviewData{
+					FirstLine:     "",
+					FirstImageSrc: "",
+					Size:          noteSize,
+					LastUpdated:   lastUpdated,
+				},
+			}
+		}
+		firstLine = note_helpers.GetFirstLine(string(noteContent))
+		firstImageSrc = note_helpers.GetFirstImageSrc(string(noteContent))
+	}
 	return project_types.BackendResponseWithData[NotePreviewData]{
 		Success: true,
 		Message: "Successfully retrieved note preview",
-		Data:    NotePreviewData{FirstLine: firstLine, FirstImageSrc: firstImageSrc},
+		Data:    NotePreviewData{FirstLine: firstLine, FirstImageSrc: firstImageSrc, Size: noteSize, LastUpdated: lastUpdated},
 	}
 }

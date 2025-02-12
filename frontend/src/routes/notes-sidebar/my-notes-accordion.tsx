@@ -1,6 +1,5 @@
 import { useAtom } from "jotai/react";
 import { useMemo } from "react";
-import type { NoteEntry } from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models.js";
 import { noteSortAtom } from "../../atoms";
 import { SortButton } from "../../components/buttons/sort";
 import { Sidebar } from "../../components/sidebar";
@@ -16,7 +15,7 @@ export function MyNotesAccordion({
 	tagState,
 	layoutId,
 }: {
-	notes: NoteEntry[] | null;
+	notes: string[];
 	curFolder: string;
 	curNote: string | undefined;
 	tagState?: {
@@ -33,11 +32,6 @@ export function MyNotesAccordion({
 	const activeDataItem = useMemo(
 		() => (curNote ? `${curNote}?ext=${fileExtension}` : null),
 		[curNote, fileExtension],
-	);
-
-	const sidebarData = useMemo(
-		() => notes?.map((note) => note.name) ?? [],
-		[notes],
 	);
 
 	return (
@@ -66,7 +60,7 @@ export function MyNotesAccordion({
 					</li>
 				}
 				activeDataItem={activeDataItem}
-				data={sidebarData}
+				data={notes}
 				renderLink={({
 					dataItem: sidebarNoteName,
 					i,

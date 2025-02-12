@@ -14,12 +14,50 @@ import {
 	type NodeSelection,
 } from "lexical";
 import { isDecoratorNodeSelected } from "../../../utils/commands";
-import { FILE_SERVER_URL } from "../../../utils/general";
+import { FILE_SERVER_URL, debounce } from "../../../utils/general";
 import { getFileExtension } from "../../../utils/string-formatting";
 import type { FilePayload } from "../nodes/file";
 import { $createLinkNode } from "../nodes/link";
 import { INSERT_FILES_COMMAND } from "../plugins/file";
+import { SAVE_MARKDOWN_CONTENT } from "../plugins/save";
 
+export const debouncedNoteHandleChange = debounce(noteHandleChange, 275);
+
+/**
+ * Handles changes to the note editor.
+ *
+ * @param editor - The LexicalEditor instance that is being updated.
+ * @param tags - A set of tags indicating the context of the change, such as
+ * "note:changed-from-other-window", "note:initial-load", or "note:terminal-change".
+ */
+async function noteHandleChange(editor: LexicalEditor, tags: Set<string>) {
+	/*
+    If the note was changed from another window, don't update it again
+    If a new note is loaded for the first time, we don't need this func to run
+  */
+	if (
+		tags.has("note:changed-from-other-window") ||
+		tags.has("note:initial-load")
+	) {
+		return;
+	}
+	/*
+		Saves any changes to the markdown content. We don't want to propagate changes to the other note
+		windows when the change is made to a terminal component as this will lead to an infinite loop
+	*/
+	editor.update(
+		() => {
+			editor.dispatchCommand(
+				SAVE_MARKDOWN_CONTENT,
+				tags.has("note:terminal-change")
+					? { shouldSkipNoteChangedEmit: true }
+					: undefined,
+			);
+		},
+		{ tag: "note:changed-from-other-window" },
+	);
+	// await queryClient.invalidateQueries({ queryKey });
+}
 /**
  * Makes it so that the code-block undo/redo stack is not affected by the undo/redo stack of the editor
  */
@@ -61,7 +99,7 @@ export function overrideClickCommand(e: MouseEvent) {
 }
 
 /** Goes in direction up the tree until it finds a valid sibling */
-export function getFirstSiblingNode(
+function getFirstSiblingNode(
 	node: LexicalNode | undefined,
 	direction: "up" | "down",
 ) {

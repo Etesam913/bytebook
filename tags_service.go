@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/list_helpers"
@@ -185,10 +184,7 @@ func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryPara
 	for _, tag := range allTags {
 		notesEntriesResponse := t.GetNotesFromTag(tag, "file-name-a-z")
 		notesResponse := []string{}
-		for _, noteEntry := range notesEntriesResponse.Data {
-			notesResponse = append(notesResponse, noteEntry.Name)
-		}
-
+		notesResponse = append(notesResponse, notesEntriesResponse.Data...)
 		notesWithQueryParamExtension := notesResponse
 		for _, folderAndNoteStringWithQueryParamFromFile := range notesWithQueryParamExtension {
 			if folderAndNotePathWithQueryParam == folderAndNoteStringWithQueryParamFromFile {
@@ -375,7 +371,7 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 		return project_types.NoteResponse{
 			Success: false,
 			Message: "Tag does not exist",
-			Data:    []project_types.NoteEntry{},
+			Data:    []string{},
 		}
 	}
 
@@ -384,7 +380,7 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 		return project_types.NoteResponse{
 			Success: false,
 			Message: "Something went wrong when fetching the tag. Please try again later",
-			Data:    []project_types.NoteEntry{},
+			Data:    []string{},
 		}
 	}
 
@@ -433,15 +429,11 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 	list_helpers.SortNotesWithFolders(notes, sortOption)
 
 	// Prepare the sorted notes
-	sortedNotes := []project_types.NoteEntry{}
+	sortedNotes := []string{}
 	for _, note := range notes {
 		sortedNotes = append(
 			sortedNotes,
-			project_types.NoteEntry{
-				Name:        fmt.Sprintf("%s/%s?ext=%s", note.Folder, note.Name, note.Ext),
-				LastUpdated: note.ModTime.Format(time.RFC3339),
-				Size:        int(note.Size),
-			})
+			fmt.Sprintf("%s/%s?ext=%s", note.Folder, note.Name, note.Ext))
 	}
 
 	return project_types.NoteResponse{

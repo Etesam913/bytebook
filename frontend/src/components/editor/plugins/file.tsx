@@ -14,6 +14,7 @@ import {
 } from "lexical";
 import { useEffect } from "react";
 import { $createFileNode, FileNode, type FilePayload } from "../nodes/file";
+import { SAVE_MARKDOWN_CONTENT } from "./save";
 
 type InsertFilesCommandPayload = FilePayload[];
 
@@ -76,6 +77,7 @@ export function FilesPlugin() {
 					}
 
 					$setSelection(newFileSelection);
+					editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, undefined);
 					return true;
 				},
 				COMMAND_PRIORITY_EDITOR,

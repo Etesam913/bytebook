@@ -1,9 +1,6 @@
 import { useMemo, useState } from "react";
 import type { NotePreviewData } from "../../../bindings/github.com/etesam913/bytebook";
-import type {
-	BackendResponseWithData,
-	NoteEntry,
-} from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
+import type { BackendResponseWithData } from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
 import { VIDEO_FILE_EXTENSIONS } from "../../types";
 import { humanFileSize } from "../../utils/general";
 import { cn } from "../../utils/string-formatting";
@@ -27,7 +24,6 @@ export function CardNoteSidebarItem({
 	sidebarQueryParams,
 	sidebarNoteNameWithoutExtension,
 	isInTagSidebar,
-	curNoteData,
 	notePreviewResult,
 	imgSrc,
 	isSelected,
@@ -37,7 +33,6 @@ export function CardNoteSidebarItem({
 	};
 	sidebarNoteNameWithoutExtension: string;
 	isInTagSidebar: boolean;
-	curNoteData: NoteEntry;
 	notePreviewResult: BackendResponseWithData<NotePreviewData> | null;
 	imgSrc: string;
 	isSelected: boolean;
@@ -99,8 +94,8 @@ export function CardNoteSidebarItem({
 					isSelected && "!text-white",
 				)}
 			>
-				<p>{formatDateString(curNoteData.lastUpdated)}</p>
-				<p>{humanFileSize(curNoteData.size, true)}</p>
+				<p>{formatDateString(notePreviewResult?.data?.lastUpdated ?? "")}</p>
+				<p>{humanFileSize(notePreviewResult?.data?.size ?? 0, true)}</p>
 			</div>
 		</div>
 	);

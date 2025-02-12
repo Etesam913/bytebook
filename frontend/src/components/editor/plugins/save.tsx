@@ -1,5 +1,6 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { mergeRegister } from "@lexical/utils";
+import { useQueryClient } from "@tanstack/react-query";
 import { Events } from "@wailsio/runtime";
 import {
 	COMMAND_PRIORITY_EDITOR,
@@ -39,7 +40,17 @@ export function SavePlugin({
 	setNoteMarkdownString: Dispatch<SetStateAction<string>>;
 }) {
 	const [editor] = useLexicalComposerContext();
+	const queryClient = useQueryClient();
 
+	async function saveMarkdownContent(markdownWithFrontmatter: string) {
+		const decodedFolder = decodeURIComponent(folder);
+		const decodedNote = decodeURIComponent(note);
+
+		await SetNoteMarkdown(decodedFolder, decodedNote, markdownWithFrontmatter);
+		await queryClient.invalidateQueries({
+			queryKey: ["note-preview", decodedFolder, decodedNote],
+		});
+	}
 	// Register a command to save markdown content
 	// This effect runs once when the component mounts and sets up the command
 	// The command converts the editor content to markdown, updates frontmatter,
@@ -75,12 +86,7 @@ export function SavePlugin({
 					}
 					setFrontmatter(frontmatterCopy);
 					setNoteMarkdownString(markdownWithFrontmatter);
-					SetNoteMarkdown(
-						decodeURIComponent(folder),
-						decodeURIComponent(note),
-						markdownWithFrontmatter,
-					);
-
+					saveMarkdownContent(markdownWithFrontmatter);
 					return true;
 				},
 				COMMAND_PRIORITY_EDITOR,

@@ -9,6 +9,7 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
+import { useQueryClient } from "@tanstack/react-query";
 import type { AnimationControls } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import type { LexicalEditor } from "lexical";
@@ -20,9 +21,9 @@ import {
 	noteContainerRefAtom,
 	noteIntersectionObserverAtom,
 	noteSeenFileNodeKeysAtom,
+	notesAtom,
 } from "../../atoms";
 import type { FloatingDataType } from "../../types.ts";
-import { debounce } from "../../utils/draggable";
 import { handleEditorEscape } from "../../utils/selection.ts";
 import { cn } from "../../utils/string-formatting";
 import { BottomBar } from "./bottom-bar.tsx";
@@ -38,41 +39,12 @@ import { FocusPlugin } from "./plugins/focus.tsx";
 import { LinkMatcherPlugin } from "./plugins/link-matcher.tsx";
 import { LinkPlugin } from "./plugins/link.tsx";
 import { NoteFindPlugin } from "./plugins/note-find.tsx";
-import { SAVE_MARKDOWN_CONTENT, SavePlugin } from "./plugins/save.tsx";
+import { SavePlugin } from "./plugins/save.tsx";
 import { TableOfContentsPlugin } from "./plugins/table-of-contents.tsx";
 // import TreeViewPlugin from "./plugins/tree-view";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
-
-const debouncedHandleChange = debounce(handleChange, 275);
-
-function handleChange(editor: LexicalEditor, tags: Set<string>) {
-	/*
-    If the note was changed from another window, don't update it again
-    If a new note is loaded for the first time, we don't need this func to run
-  */
-	if (
-		tags.has("note:changed-from-other-window") ||
-		tags.has("note:initial-load")
-	)
-		return;
-
-	/*
-		Saves any changes to the markdown content. We don't want to propagate changes to the other note
-		windows when the change is made to a terminal component as this will lead to an infinite loop
-	*/
-	editor.update(
-		() => {
-			editor.dispatchCommand(
-				SAVE_MARKDOWN_CONTENT,
-				tags.has("note:terminal-change")
-					? { shouldSkipNoteChangedEmit: true }
-					: undefined,
-			);
-		},
-		{ tag: "note:changed-from-other-window" },
-	);
-}
+import { debouncedNoteHandleChange } from "./utils/note-commands.ts";
 
 export function NotesEditor({
 	params,
@@ -91,6 +63,7 @@ export function NotesEditor({
 		top: 0,
 		type: null,
 	});
+	const queryClient = useQueryClient();
 	const [isFindOpen, setIsFindOpen] = useState(false);
 	const noteContainerRef = useRef<HTMLDivElement | null>(null);
 	const setNoteContainerRef = useSetAtom(noteContainerRefAtom);
@@ -200,7 +173,9 @@ export function NotesEditor({
 					/>
 					<OnChangePlugin
 						ignoreSelectionChange
-						onChange={(_, editor, tag) => debouncedHandleChange(editor, tag)}
+						onChange={(_, editor, tag) =>
+							debouncedNoteHandleChange(editor, tag, queryClient)
+						}
 					/>
 					<CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
 					<ListPlugin />

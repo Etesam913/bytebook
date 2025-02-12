@@ -1,6 +1,5 @@
 import { useAtomValue, useSetAtom } from "jotai/react";
 import { type Dispatch, type SetStateAction, useMemo } from "react";
-import type { NoteEntry } from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
 import {
 	contextMenuDataAtom,
 	dialogDataAtom,
@@ -55,7 +54,7 @@ export function NoteSidebarButton({
 	};
 	selectionRange: Set<string>;
 	setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
-	notes: NoteEntry[] | null;
+	notes: string[] | null;
 	i: number;
 	tagState?: {
 		tagName: string;
@@ -75,6 +74,7 @@ export function NoteSidebarButton({
 	const activeNoteNameWithExtension = `${
 		isInTagSidebar ? `${curFolder}/` : ""
 	}${curNote}?ext=${searchParams.ext}`;
+
 	const { data: notePreviewResult } = useNotePreviewQuery(
 		decodeURIComponent(curFolder),
 		decodeURIComponent(sidebarNoteNameWithoutExtension),
@@ -82,7 +82,7 @@ export function NoteSidebarButton({
 	);
 	const imgSrc = useMemo(() => {
 		const notePreviewResultData = notePreviewResult?.data;
-		if (!notePreviewResultData) {
+		if (!notePreviewResultData || notePreviewResultData.firstImageSrc === "") {
 			if (IMAGE_FILE_EXTENSIONS.includes(sidebarQueryParams.ext)) {
 				// For tags, the sidebarNoteNameWithoutExtension includes both the folder and the note name
 				if (tagState?.tagName) {
@@ -99,8 +99,7 @@ export function NoteSidebarButton({
 		[activeNoteNameWithExtension, sidebarNoteName],
 	);
 	const isSelected = useMemo(
-		() =>
-			(notes?.at(i) && selectionRange.has(`note:${notes[i].name}`)) ?? false,
+		() => selectionRange.has(`note:${notes?.[i]}`) ?? false,
 		[selectionRange, notes, i],
 	);
 	if (!notes) return null;
@@ -116,7 +115,7 @@ export function NoteSidebarButton({
 					e,
 					setSelectionRange,
 					"note",
-					notes?.at(i)?.name ?? "",
+					notes?.at(i) ?? "",
 					setDraggedElement,
 					curFolder,
 				)
@@ -316,7 +315,6 @@ export function NoteSidebarButton({
 
 			{projectSettings.noteSidebarItemSize === "card" && (
 				<CardNoteSidebarItem
-					curNoteData={notes[i]}
 					imgSrc={imgSrc}
 					sidebarQueryParams={sidebarQueryParams}
 					sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
