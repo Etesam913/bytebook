@@ -5,8 +5,8 @@ import type {
 	LabelHTMLAttributes,
 	SetStateAction,
 } from "react";
+import { useOnClickOutside } from "../../hooks/general";
 import type { DropdownItem } from "../../types";
-import { useOnClickOutside } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 
 interface InputProps {

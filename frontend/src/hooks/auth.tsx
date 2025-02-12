@@ -2,9 +2,9 @@ import { useSetAtom } from "jotai";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { userDataAtomWithLocalStorage } from "../atoms";
+import { useWailsEvent } from "../hooks/events";
 import type { UserData } from "../types";
-import { useWailsEvent } from "../utils/hooks";
-import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
+import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
 
 async function getUserData(customAccessToken?: string) {
 	const accessToken = customAccessToken ?? localStorage.getItem("accessToken");

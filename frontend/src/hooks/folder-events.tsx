@@ -3,7 +3,6 @@ import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 import { toast } from "sonner";
-import { navigate } from "wouter/use-browser-location";
 import {
 	AddFolder,
 	DeleteFolder,
@@ -12,8 +11,8 @@ import {
 } from "../../bindings/github.com/etesam913/bytebook/folderservice";
 import { AddNoteToFolder } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { foldersAtom } from "../atoms";
-import { useWailsEvent } from "../utils/hooks";
-import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
+import { useWailsEvent } from "../hooks/events";
+import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
 import { useCustomNavigate } from "../utils/routing";
 import { validateName } from "../utils/string-formatting";
 

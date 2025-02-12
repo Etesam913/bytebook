@@ -12,8 +12,9 @@ import {
 	GetTagsForFolderAndNotePath,
 	GetTagsForFolderAndNotesPaths,
 } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
-import { useSearchParamsEntries, useWailsEvent } from "../utils/hooks";
-import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
+import { useWailsEvent } from "../hooks/events";
+import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
+import { useSearchParamsEntries } from "../utils/routing";
 
 /**
  * Invalidates the query for note tags if the current folder, note, and extension are available.

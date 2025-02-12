@@ -1,6 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { $nodesOfType } from "lexical";
-import { useRoute } from "wouter";
+import { useMemo } from "react";
+import { useRoute, useSearch } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import { ShutoffTerminals } from "../../bindings/github.com/etesam913/bytebook/terminalservice";
 import { noteEditorAtom, noteSortAtom, notesAtom } from "../atoms";
@@ -59,4 +60,18 @@ export function useCustomNavigate() {
 			navigate(to, options);
 		},
 	};
+}
+
+/**
+ * Custom hook to parse the search parameters from the URL and return them as an object.
+ *
+ * @returns An object containing the search parameters as key-value pairs.
+ */
+export function useSearchParamsEntries(): Record<string, string> {
+	const searchString = useSearch();
+	const searchParamsObject = useMemo(() => {
+		const searchParams = new URLSearchParams(searchString);
+		return Object.fromEntries(searchParams.entries());
+	}, [searchString]);
+	return searchParamsObject;
 }

@@ -1,6 +1,7 @@
-import { type QueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Events } from "@wailsio/runtime";
 import { useAtomValue, useSetAtom } from "jotai/react";
+import type { LexicalEditor } from "lexical";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { toast } from "sonner";
 import type { NoteEntry } from "../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
@@ -14,13 +15,16 @@ import {
 	AddPathsToTags,
 	DeleteTags,
 } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
+import { WINDOW_ID } from "../App";
 import {
 	noteSortAtom,
 	projectSettingsAtom,
 	selectionRangeAtom,
 } from "../atoms";
-import { useWailsEvent } from "../utils/hooks";
-import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
+import { CUSTOM_TRANSFORMERS } from "../components/editor/transformers";
+import { $convertFromMarkdownStringCorrect } from "../components/editor/utils/note-metadata";
+import { useWailsEvent } from "../hooks/events";
+import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
 import { getFolderAndNoteFromSelectionRange } from "../utils/selection";
 import {
 	extractInfoFromNoteName,
@@ -311,5 +315,51 @@ export function useNotePreviewQuery(
 			}
 			return await GetNotePreview(`notes/${curFolder}/${curNote}.md`);
 		},
+	});
+}
+
+/**
+ * Hook to handle the "note:changed" event.
+ *
+ * @param folder - The current folder name.
+ * @param note - The current note name.
+ * @param editor - The LexicalEditor instance to update the editor state.
+ * @param setFrontmatter - A function to update the frontmatter state.
+ */
+export function useNoteChangedEvent(
+	folder: string,
+	note: string,
+	editor: LexicalEditor,
+	setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>,
+) {
+	useWailsEvent("note:changed", (e) => {
+		const data = e.data as {
+			folder: string;
+			note: string;
+			markdown: string;
+			oldWindowAppId: string;
+		};
+		const {
+			folder: folderName,
+			note: noteName,
+			markdown,
+			oldWindowAppId,
+		} = data;
+		if (
+			folderName === folder &&
+			noteName === note &&
+			oldWindowAppId !== WINDOW_ID
+		) {
+			editor.update(
+				() => {
+					$convertFromMarkdownStringCorrect(
+						markdown,
+						CUSTOM_TRANSFORMERS,
+						setFrontmatter,
+					);
+				},
+				{ tag: "note:changed-from-other-window" },
+			);
+		}
 	});
 }

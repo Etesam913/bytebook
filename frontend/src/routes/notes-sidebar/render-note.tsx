@@ -11,7 +11,7 @@ import { useNoteRevealInFinderMutation } from "../../hooks/note-events";
 import { FileBan } from "../../icons/file-ban";
 import { ShareRight } from "../../icons/share-right";
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from "../../types";
-import { FILE_SERVER_URL } from "../../utils/misc";
+import { FILE_SERVER_URL } from "../../utils/general";
 import { cn } from "../../utils/string-formatting";
 import { SidebarImage } from "./sidebar-image";
 import { SidebarVideo } from "./sidebar-video";

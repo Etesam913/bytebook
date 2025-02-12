@@ -33,7 +33,7 @@ import { TextStrikethrough } from "../../../icons/text-strikethrough";
 import { TextUnderline } from "../../../icons/text-underline";
 import { UnorderedList } from "../../../icons/unordered-list";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
-import { FILE_SERVER_URL } from "../../../utils/misc";
+import { FILE_SERVER_URL } from "../../../utils/general.ts";
 import type { FilePayload } from "../nodes/file";
 import { INSERT_FILES_COMMAND } from "../plugins/file";
 import { getFileElementTypeFromExtension } from "./file-node.ts";

@@ -1,6 +1,7 @@
 import { type Dispatch, type SetStateAction, useRef, useState } from "react";
 import { MotionIconButton } from ".";
 import { getDefaultButtonVariants } from "../../animations";
+import { useOnClickOutside } from "../../hooks/general";
 import { Paperclip } from "../../icons/paperclip-2";
 import SortAlphaAscending from "../../icons/sort-alpha-ascending";
 import SortAlphaDescending from "../../icons/sort-alpha-descending";
@@ -9,7 +10,6 @@ import { SortDateDescending } from "../../icons/sort-date-descending";
 import { SortNumAscending } from "../../icons/sort-num-ascending";
 import SortNumDescending from "../../icons/sort-num-descending";
 import type { SortStrings } from "../../types";
-import { useOnClickOutside } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { DropdownItems } from "../dropdown/dropdown-items";
 

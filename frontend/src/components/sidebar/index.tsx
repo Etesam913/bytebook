@@ -15,8 +15,9 @@ import {
 	projectSettingsAtom,
 	selectionRangeAtom,
 } from "../../atoms";
+import { useOnClickOutside } from "../../hooks/general";
 import { useListVirtualization } from "../../hooks/observers";
-import { useOnClickOutside, useSearchParamsEntries } from "../../utils/hooks";
+import { useSearchParamsEntries } from "../../utils/routing";
 import { scrollVirtualizedListToSelectedNoteOrFolder } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
 import { SidebarItems } from "./sidebar-items";

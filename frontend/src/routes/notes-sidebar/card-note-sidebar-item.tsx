@@ -5,7 +5,7 @@ import type {
 	NoteEntry,
 } from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
 import { VIDEO_FILE_EXTENSIONS } from "../../types";
-import { humanFileSize } from "../../utils/misc";
+import { humanFileSize } from "../../utils/general";
 import { cn } from "../../utils/string-formatting";
 
 function formatDateString(isoString: string): string {

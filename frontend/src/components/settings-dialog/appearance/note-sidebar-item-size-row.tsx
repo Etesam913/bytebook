@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import { isDarkModeOnAtom, projectSettingsAtom } from "../../../atoms";
 import { useUpdateProjectSettingsMutation } from "../../../hooks/project-settings";
-import { useSearchParamsEntries } from "../../../utils/hooks";
+import { useSearchParamsEntries } from "../../../utils/routing";
 import { cn } from "../../../utils/string-formatting";
 import { SettingsRow } from "../settings-row";
 

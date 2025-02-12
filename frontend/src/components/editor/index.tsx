@@ -23,7 +23,6 @@ import {
 } from "../../atoms";
 import type { FloatingDataType } from "../../types.ts";
 import { debounce } from "../../utils/draggable";
-import useHotkeys from "../../utils/hooks.tsx";
 import { handleEditorEscape } from "../../utils/selection.ts";
 import { cn } from "../../utils/string-formatting";
 import { BottomBar } from "./bottom-bar.tsx";
@@ -41,7 +40,7 @@ import { LinkPlugin } from "./plugins/link.tsx";
 import { NoteFindPlugin } from "./plugins/note-find.tsx";
 import { SAVE_MARKDOWN_CONTENT, SavePlugin } from "./plugins/save.tsx";
 import { TableOfContentsPlugin } from "./plugins/table-of-contents.tsx";
-import TreeViewPlugin from "./plugins/tree-view";
+// import TreeViewPlugin from "./plugins/tree-view";
 import { Toolbar } from "./toolbar";
 import { CUSTOM_TRANSFORMERS } from "./transformers";
 
@@ -104,12 +103,6 @@ export function NotesEditor({
 	const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
 	const [noteMarkdownString, setNoteMarkdownString] = useState("");
 	const draggedElement = useAtomValue(draggedElementAtom);
-	useHotkeys({
-		"Meta+f": () => {
-			// const isFound = window.find("Etesam")
-			setIsFindOpen((prev) => !prev);
-		},
-	});
 
 	useEffect(() => {
 		setNoteContainerRef(noteContainerRef);
@@ -230,7 +223,7 @@ export function NotesEditor({
 					<DraggableBlockPlugin />
 					<FocusPlugin />
 					<LinkMatcherPlugin />
-					<TreeViewPlugin />
+					{/* <TreeViewPlugin /> */}
 				</div>
 				{frontmatter.showMarkdown === "true" && (
 					<div className="w-[50%] bg-zinc-50 dark:bg-zinc-850 h-full font-code border-l border-zinc-200 dark:border-zinc-700 px-4 pt-3 pb-2 overflow-auto">

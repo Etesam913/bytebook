@@ -8,7 +8,7 @@ import {
 	userDataAtomWithLocalStorage,
 } from "../../atoms";
 import { FileRefresh } from "../../icons/file-refresh";
-import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
+import { DEFAULT_SONNER_OPTIONS } from "../../utils/general";
 import { SyncChangesDialog } from "../sync-changes-dialog";
 
 export function SyncChangesButton() {

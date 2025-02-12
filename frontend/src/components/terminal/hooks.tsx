@@ -5,8 +5,8 @@ import { useAtomValue } from "jotai/react";
 import { type MutableRefObject, type RefObject, useEffect } from "react";
 import type { CodeResponse } from "../../../bindings/github.com/etesam913/bytebook";
 import { noteContainerRefAtom } from "../../atoms";
+import { useWailsEvent } from "../../hooks/events";
 import type { CodeBlockData } from "../../types";
-import { useWailsEvent } from "../../utils/hooks";
 import { darkTerminalTheme, handleResize, lightTerminalTheme } from "./utils";
 
 /**

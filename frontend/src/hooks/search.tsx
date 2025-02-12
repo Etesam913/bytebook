@@ -3,7 +3,7 @@ import { Window } from "@wailsio/runtime";
 import { useSetAtom } from "jotai";
 import { SearchFileNamesFromQuery } from "../../bindings/github.com/etesam913/bytebook/searchservice";
 import { searchPanelDataAtom } from "../atoms";
-import { useWailsEvent } from "../utils/hooks";
+import { useWailsEvent } from "../hooks/events";
 
 export function useSearchPanel() {
 	const setSearchPanelData = useSetAtom(searchPanelDataAtom);

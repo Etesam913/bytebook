@@ -13,11 +13,11 @@ import { useNoteSelectionClear } from "./hooks/note-events";
 import { useProjectSettings } from "./hooks/project-settings";
 import { useSearchPanel } from "./hooks/search";
 import { useTags } from "./hooks/tag-events";
+import { useDarkModeSetting } from "./hooks/theme";
 import { NotFound } from "./routes/not-found";
 import { NotesSidebar } from "./routes/notes-sidebar";
 import { TagsSidebar } from "./routes/tags-sidebar";
-import { useDarkModeSetting } from "./utils/hooks";
-import { MAX_SIDEBAR_WIDTH } from "./utils/misc";
+import { MAX_SIDEBAR_WIDTH } from "./utils/general";
 
 export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
 

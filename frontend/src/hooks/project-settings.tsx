@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { type Dispatch, type SetStateAction, useEffect } from "react";
 import { toast } from "sonner";
 import {
@@ -7,9 +7,9 @@ import {
 	UpdateProjectSettings,
 } from "../../bindings/github.com/etesam913/bytebook/settingsservice";
 import { projectSettingsAtom } from "../atoms";
+import { useWailsEvent } from "../hooks/events";
 import type { ProjectSettings } from "../types";
-import { useWailsEvent } from "../utils/hooks";
-import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
+import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
 import { validateProjectSettings } from "../utils/project-settings";
 import { parseRGB } from "../utils/string-formatting";
 

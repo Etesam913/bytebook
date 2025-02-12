@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import { useOnClickOutside } from "../../hooks/general";
 import { ChevronDown } from "../../icons/chevron-down";
 import type { DropdownItem } from "../../types";
-import { useOnClickOutside } from "../../utils/hooks";
 import { cn } from "../../utils/string-formatting";
 import { DropdownItems } from "./dropdown-items";
 

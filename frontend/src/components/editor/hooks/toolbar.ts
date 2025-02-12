@@ -12,7 +12,6 @@ import {
 	CONTROLLED_TEXT_INSERTION_COMMAND,
 	FORMAT_TEXT_COMMAND,
 	KEY_ARROW_DOWN_COMMAND,
-	KEY_ARROW_LEFT_COMMAND,
 	KEY_ARROW_UP_COMMAND,
 	KEY_BACKSPACE_COMMAND,
 	KEY_ESCAPE_COMMAND,
@@ -37,7 +36,7 @@ import {
 	noteEditorAtom,
 } from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
-import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
+import { DEFAULT_SONNER_OPTIONS } from "../../../utils/general";
 import { useCustomNavigate } from "../../../utils/routing";
 import { CodeNode } from "../nodes/code";
 import { CUSTOM_TRANSFORMERS } from "../transformers";

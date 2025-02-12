@@ -16,7 +16,7 @@ import { createPortal } from "react-dom";
 import { SearchFileNamesFromQuery } from "../../../../bindings/github.com/etesam913/bytebook/searchservice";
 import { mostRecentNotesWithoutQueryParamsAtom } from "../../../atoms";
 import { RenderNoteIcon } from "../../../routes/notes-sidebar/render-note-icon";
-import { FILE_SERVER_URL } from "../../../utils/misc";
+import { FILE_SERVER_URL } from "../../../utils/general";
 import { getFileExtension } from "../../../utils/string-formatting";
 import {
 	DropdownPickerOption,

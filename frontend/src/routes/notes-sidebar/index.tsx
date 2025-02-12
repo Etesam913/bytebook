@@ -25,7 +25,7 @@ import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
 import { Pen } from "../../icons/pen";
 import { checkIfNoteExists, updateNotes } from "../../utils/fetch-functions";
-import { useSearchParamsEntries } from "../../utils/hooks.tsx";
+import { useSearchParamsEntries } from "../../utils/routing";
 import { useCustomNavigate } from "../../utils/routing.ts";
 import { validateName } from "../../utils/string-formatting.ts";
 import { MyNotesAccordion } from "./my-notes-accordion.tsx";

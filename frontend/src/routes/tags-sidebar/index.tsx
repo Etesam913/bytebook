@@ -5,7 +5,7 @@ import { isNoteMaximizedAtom, noteSortAtom, notesAtom } from "../../atoms";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { TagIcon } from "../../icons/tag";
 import { updateTagNotes } from "../../utils/fetch-functions";
-import { useSearchParamsEntries } from "../../utils/hooks";
+import { useSearchParamsEntries } from "../../utils/routing";
 import { MyNotesAccordion } from "../notes-sidebar/my-notes-accordion";
 import { RenderNote } from "../notes-sidebar/render-note";
 

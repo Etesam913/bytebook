@@ -7,7 +7,7 @@ import { Fullscreen } from "../../icons/fullscreen";
 import { Link } from "../../icons/link";
 import { Trash } from "../../icons/trash";
 import { removeDecoratorNode } from "../../utils/commands";
-import { FILE_SERVER_URL } from "../../utils/misc";
+import { FILE_SERVER_URL } from "../../utils/general";
 import { useCustomNavigate } from "../../utils/routing";
 import { getFileExtension } from "../../utils/string-formatting";
 

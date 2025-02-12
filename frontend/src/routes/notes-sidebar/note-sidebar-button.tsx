@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai/react";
 import { type Dispatch, type SetStateAction, useMemo } from "react";
 import type { NoteEntry } from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
@@ -22,9 +21,9 @@ import { PinTackSlash } from "../../icons/pin-tack-slash";
 import TagPlus from "../../icons/tag-plus";
 import { Trash } from "../../icons/trash";
 import { IMAGE_FILE_EXTENSIONS } from "../../types";
-import { useSearchParamsEntries } from "../../utils/hooks";
-import { FILE_SERVER_URL } from "../../utils/misc";
+import { FILE_SERVER_URL } from "../../utils/general";
 import { useCustomNavigate } from "../../utils/routing";
+import { useSearchParamsEntries } from "../../utils/routing";
 import {
 	getFolderAndNoteFromSelectionRange,
 	handleKeyNavigation,
@@ -33,7 +32,6 @@ import {
 import { cn } from "../../utils/string-formatting";
 import { AddTagDialogChildren } from "./add-tag-dialog-children";
 import { CardNoteSidebarItem } from "./card-note-sidebar-item";
-import { EditTagDialogChildren } from "./edit-tag-dialog-children";
 import { ListNoteSidebarItem } from "./list-note-sidebar-item";
 
 export function NoteSidebarButton({
@@ -64,11 +62,10 @@ export function NoteSidebarButton({
 	};
 }) {
 	const { navigate } = useCustomNavigate();
-	const queryClient = useQueryClient();
 	const { mutate: pinOrUnpinNote } = usePinNotesMutation();
 	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
 	const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
-	const { mutateAsync: addPathsToTags } = useAddTagsMutation(queryClient);
+	const { mutateAsync: addPathsToTags } = useAddTagsMutation();
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const setContextMenuData = useSetAtom(contextMenuDataAtom);
 	const projectSettings = useAtomValue(projectSettingsAtom);

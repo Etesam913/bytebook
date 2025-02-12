@@ -1,28 +1,24 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import type { AnimationControls } from "framer-motion";
-import { useAtom } from "jotai/react";
+import { useAtom, useAtomValue } from "jotai/react";
 import type { TextFormatType } from "lexical";
 import {
 	type Dispatch,
 	type RefObject,
 	type SetStateAction,
-	useEffect,
 	useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { WINDOW_ID } from "../../../App";
 import { isNoteMaximizedAtom, isToolbarDisabledAtom } from "../../../atoms";
 import { useAttachmentsMutation } from "../../../hooks/attachments";
+import { useNoteChangedEvent } from "../../../hooks/note-events";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
-import { useIsStandalone, useWailsEvent } from "../../../utils/hooks";
 import { cn } from "../../../utils/string-formatting";
 import { MaximizeNoteButton } from "../../buttons/maximize-note";
 import { ToolbarButtons } from "../../buttons/toolbar";
 import { Dropdown } from "../../dropdown";
 import { useNoteMarkdown, useToolbarEvents } from "../hooks/toolbar";
 import { FloatingMenuPlugin } from "../plugins/floating-menu";
-import { CUSTOM_TRANSFORMERS } from "../transformers";
-import { $convertFromMarkdownStringCorrect } from "../utils/note-metadata";
 import {
 	blockTypesDropdownItems,
 	changeSelectedBlocksType,
@@ -59,7 +55,7 @@ export function Toolbar({
 		TextFormatType[]
 	>([]);
 
-	const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
+	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const [isNodeSelection, setIsNodeSelection] = useState(false);
 	const [canRedo, setCanRedo] = useState(false);
 	const [canUndo, setCanUndo] = useState(false);
@@ -81,37 +77,6 @@ export function Toolbar({
 
 	// useMutationListener(editor, folder, note, frontmatter);
 
-	useWailsEvent("note:changed", (e) => {
-		const data = e.data as {
-			folder: string;
-			note: string;
-			markdown: string;
-			oldWindowAppId: string;
-		};
-		const {
-			folder: folderName,
-			note: noteName,
-			markdown,
-			oldWindowAppId,
-		} = data;
-		if (
-			folderName === folder &&
-			noteName === note &&
-			oldWindowAppId !== WINDOW_ID
-		) {
-			editor.update(
-				() => {
-					$convertFromMarkdownStringCorrect(
-						markdown,
-						CUSTOM_TRANSFORMERS,
-						setFrontmatter,
-					);
-				},
-				{ tag: "note:changed-from-other-window" },
-			);
-		}
-	});
-
 	useToolbarEvents(
 		editor,
 		setDisabled,
@@ -124,15 +89,9 @@ export function Toolbar({
 		noteContainerRef,
 	);
 
-	// useFileDropEvent(editor, folder, note);
-	// TODO: I think this is not needed anymore
-	const isStandalone = useIsStandalone();
+	useNoteChangedEvent(folder, note, editor, setFrontmatter);
 
-	useEffect(() => {
-		if (isStandalone) {
-			setIsNoteMaximized(true);
-		}
-	}, [isStandalone]);
+	// useFileDropEvent(editor, folder, note);
 
 	const FloatingPlugin = noteContainerRef.current ? (
 		createPortal(

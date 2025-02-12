@@ -5,11 +5,11 @@ import { useAtom } from "jotai/react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { userDataAtomWithLocalStorage } from "../../atoms";
+import { useOnClickOutside } from "../../hooks/general";
 import { ArrowDoorIn } from "../../icons/arrow-door-in";
 import ArrowDoorOut from "../../icons/arrow-door-out";
 import { ChevronDown } from "../../icons/chevron-down";
-import { useOnClickOutside } from "../../utils/hooks";
-import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
+import { DEFAULT_SONNER_OPTIONS } from "../../utils/general";
 import { DropdownItems } from "../dropdown/dropdown-items";
 
 export function LoginButton() {

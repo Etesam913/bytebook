@@ -29,7 +29,7 @@ import { Fullscreen } from "../../icons/fullscreen";
 import { Trash } from "../../icons/trash";
 import type { CodeBlockData } from "../../types";
 import { removeDecoratorNode } from "../../utils/commands";
-import { DEFAULT_SONNER_OPTIONS } from "../../utils/misc";
+import { DEFAULT_SONNER_OPTIONS } from "../../utils/general";
 import { cn } from "../../utils/string-formatting";
 import { TerminalComponent } from "../terminal";
 import { useCodeEditorFocus } from "./hooks";

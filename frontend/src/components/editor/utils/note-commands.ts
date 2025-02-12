@@ -14,7 +14,7 @@ import {
 	type NodeSelection,
 } from "lexical";
 import { isDecoratorNodeSelected } from "../../../utils/commands";
-import { FILE_SERVER_URL } from "../../../utils/misc";
+import { FILE_SERVER_URL } from "../../../utils/general";
 import { getFileExtension } from "../../../utils/string-formatting";
 import type { FilePayload } from "../nodes/file";
 import { $createLinkNode } from "../nodes/link";

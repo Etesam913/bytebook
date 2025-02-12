@@ -1,6 +1,6 @@
 import { Browser } from "@wailsio/runtime";
 import { toast } from "sonner";
-import { DEFAULT_SONNER_OPTIONS } from "../../../utils/misc";
+import { DEFAULT_SONNER_OPTIONS } from "../../../utils/general";
 
 const URL_MATCHER =
 	/((https?:\/\/(www\.)?)|(www\.))[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/;

@@ -5,7 +5,7 @@ import { noteSortAtom } from "../../atoms";
 import { SortButton } from "../../components/buttons/sort";
 import { Sidebar } from "../../components/sidebar";
 import { Note } from "../../icons/page";
-import { useSearchParamsEntries } from "../../utils/hooks.tsx";
+import { useSearchParamsEntries } from "../../utils/routing";
 import { extractInfoFromNoteName } from "../../utils/string-formatting";
 import { NoteSidebarButton } from "./note-sidebar-button.tsx";
 

@@ -3,7 +3,7 @@ import { useSetAtom } from "jotai";
 import { useState } from "react";
 import { draggedElementAtom } from "../../atoms";
 import { dragItem } from "../../utils/draggable";
-import { MAX_SIDEBAR_WIDTH } from "../../utils/misc";
+import { MAX_SIDEBAR_WIDTH } from "../../utils/general";
 import { cn } from "../../utils/string-formatting";
 
 export function Spacer({

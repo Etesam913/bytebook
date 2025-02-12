@@ -10,7 +10,7 @@ import type { NoteEntry } from "../../bindings/github.com/etesam913/bytebook/lib
 import { GetNotes } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { GetNotesFromTag } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import type { SortStrings } from "../types";
-import { DEFAULT_SONNER_OPTIONS } from "./misc";
+import { DEFAULT_SONNER_OPTIONS } from "./general";
 import { extractInfoFromNoteName } from "./string-formatting";
 
 /**

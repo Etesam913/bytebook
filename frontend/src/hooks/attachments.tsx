@@ -4,7 +4,7 @@ import { $getSelection, type BaseSelection, type LexicalEditor } from "lexical";
 import { toast } from "sonner";
 import { backendQueryAtom } from "../atoms";
 import { insertAttachmentFromFile } from "../components/editor/utils/toolbar";
-import { DEFAULT_SONNER_OPTIONS } from "../utils/misc";
+import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
 
 export function useAttachmentsMutation({
 	folder,
