@@ -50,6 +50,9 @@ html:has(.dark) {
 	--accent-color: rgb(var(--accent-color-values));
 	--accent-color-highlight: rgba(var(--accent-color-values), 0.45);
 }
+button {
+	cursor: default;
+}
 
 .draggable-block-menu {
 	border-radius: 4px;
