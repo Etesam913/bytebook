@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Note } from "../../icons/page";
 
@@ -12,22 +11,28 @@ export function AccordionItem({
 	onContextMenu?: (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void;
 }) {
 	return (
-		<motion.li
-			// layout
-			className="overflow-x-hidden"
-			// initial={{ opacity: 0 }}
-			// animate={{ opacity: 1 }}
-			// transition={{
-			// 	type: "spring",
-			// 	damping: 18,
-			// 	stiffness: 110,
-			// }}
-		>
+		<li className="overflow-x-hidden">
 			<div className="flex select-none items-center gap-2 overflow-hidden pr-1 text-zinc-600 dark:text-zinc-300">
 				<Link
 					onContextMenu={onContextMenu}
 					title={itemName}
+					draggable
 					target="_blank"
+					onDragStart={(e) => {
+						const dragElement = e.target as HTMLElement;
+						const ghostElement = dragElement.cloneNode(true) as HTMLElement;
+						ghostElement.classList.add("dragging");
+						document.body.appendChild(ghostElement);
+						e.dataTransfer.setDragImage(ghostElement, -25, -25);
+						// Clean up the ghost element after the drag ends
+						function handleDragEnd() {
+							// Update the selected range so that only 1 item is highlighted
+							ghostElement.remove();
+							dragElement.removeEventListener("dragEnd", handleDragEnd);
+						}
+
+						dragElement.addEventListener("dragend", handleDragEnd);
+					}}
 					className="flex flex-1 items-center gap-2 overflow-x-hidden rounded-md px-2 py-1"
 					to={`/${encodeURI(to)}`}
 				>
@@ -37,6 +42,6 @@ export function AccordionItem({
 					</p>
 				</Link>
 			</div>
-		</motion.li>
+		</li>
 	);
 }

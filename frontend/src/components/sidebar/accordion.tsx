@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import type { ReactNode } from "react";
+import type { JSX, ReactNode } from "react";
 import { AccordionButton } from "./accordion-button";
 
 export function SidebarAccordion({
