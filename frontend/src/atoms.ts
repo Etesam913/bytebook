@@ -72,13 +72,6 @@ export const userDataAtomWithLocalStorage = atom(
 
 export const notesAtom = atom<string[]>([]);
 
-export const foldersAtom = atom<string[] | null>([]);
-export const alphabetizedFoldersAtom = atom((get) => {
-	const folders = get(foldersAtom);
-	if (!folders) return folders;
-	return folders.sort((a, b) => a.localeCompare(b));
-});
-
 export const folderSortAtom = atom<SortStrings>("date-updated-desc");
 export const noteSortAtom = atom<SortStrings>("date-updated-desc");
 

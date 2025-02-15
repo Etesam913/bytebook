@@ -9,7 +9,7 @@ import { FolderSidebar } from "./components/folder-sidebar";
 import { LoadingModal } from "./components/loading-modal";
 import { SearchPanel } from "./components/search-panel";
 import { useLoggedInEvent, useUserData } from "./hooks/auth";
-import { useNoteSelectionClear } from "./hooks/note-events";
+import { useNoteSelectionClear } from "./hooks/notes";
 import { useProjectSettings } from "./hooks/project-settings";
 import { useSearchPanel } from "./hooks/search";
 import { useTags } from "./hooks/tag-events";

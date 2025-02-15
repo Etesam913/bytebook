@@ -106,7 +106,7 @@ export function Image({
 							alt={alt}
 							draggable={false}
 							className="h-auto my-auto scroll-m-10"
-							data-nodeKey={nodeKey}
+							data-node-key={nodeKey}
 							data-interactable="true"
 						/>
 					</ResizeContainer>

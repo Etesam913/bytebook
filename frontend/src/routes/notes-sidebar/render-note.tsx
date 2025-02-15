@@ -7,7 +7,7 @@ import { MaximizeNoteButton } from "../../components/buttons/maximize-note";
 import { NotesEditor } from "../../components/editor";
 import { BottomBar } from "../../components/editor/bottom-bar";
 import { useMostRecentNotes } from "../../components/editor/hooks/note-metadata";
-import { useNoteRevealInFinderMutation } from "../../hooks/note-events";
+import { useNoteRevealInFinderMutation } from "../../hooks/notes";
 import { FileBan } from "../../icons/file-ban";
 import { ShareRight } from "../../icons/share-right";
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from "../../types";

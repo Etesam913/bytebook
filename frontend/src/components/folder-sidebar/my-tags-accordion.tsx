@@ -3,7 +3,7 @@ import { useSetAtom } from "jotai/react";
 import { useMemo, useState } from "react";
 import { useRoute } from "wouter";
 import { contextMenuDataAtom, dialogDataAtom } from "../../atoms";
-import { useDeleteTagsMutation } from "../../hooks/note-events";
+import { useDeleteTagsMutation } from "../../hooks/notes";
 import { useTagsQuery } from "../../hooks/tag-events";
 import { TagIcon } from "../../icons/tag";
 import TagSlash from "../../icons/tag-slash";

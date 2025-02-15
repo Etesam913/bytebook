@@ -8,7 +8,7 @@ import { RenderNoteIcon } from "../../routes/notes-sidebar/render-note-icon";
 
 import { useSetAtom } from "jotai/react";
 import { dialogDataAtom } from "../../atoms";
-import { useAddTagsMutation } from "../../hooks/note-events";
+import { useAddTagsMutation } from "../../hooks/notes";
 import {
 	useDeleteTagMutation,
 	useTagsForNoteQuery,

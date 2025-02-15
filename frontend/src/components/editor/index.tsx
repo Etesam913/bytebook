@@ -21,7 +21,6 @@ import {
 	noteContainerRefAtom,
 	noteIntersectionObserverAtom,
 	noteSeenFileNodeKeysAtom,
-	notesAtom,
 } from "../../atoms";
 import type { FloatingDataType } from "../../types.ts";
 import { handleEditorEscape } from "../../utils/selection.ts";

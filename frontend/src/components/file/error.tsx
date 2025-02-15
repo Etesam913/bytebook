@@ -20,7 +20,7 @@ export function FileError({
 
 	return (
 		<div
-			data-nodeKey={nodeKey}
+			data-node-key={nodeKey}
 			data-interactable="true"
 			className={cn(
 				"max-w-80 relative inline-flex flex-col items-start gap-1 text-center bg-zinc-50 text-zinc-600 dark:text-zinc-300 dark:bg-zinc-700 rounded-md px-2.5 py-1.5 mx-1.5 outline outline-2 outline-zinc-200 dark:outline-zinc-650",

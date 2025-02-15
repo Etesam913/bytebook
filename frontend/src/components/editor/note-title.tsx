@@ -8,6 +8,7 @@ import { navigate } from "wouter/use-browser-location";
 import { RenameNote } from "../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { WINDOW_ID } from "../../App";
 import { isToolbarDisabledAtom, notesAtom } from "../../atoms";
+import { QueryError } from "../../utils/query";
 import { NAME_CHARS, cn } from "../../utils/string-formatting";
 
 export function NoteTitle({
@@ -62,18 +63,7 @@ export function NoteTitle({
 							noteTitle,
 						);
 
-						if (res.success) {
-							Events.Emit({
-								name: "notes:changed",
-								data: {
-									windowId: WINDOW_ID,
-									notes: notes?.map((v) =>
-										v.name === note ? noteTitle : v,
-									) ?? [noteTitle],
-								},
-							});
-							navigate(`/${folder}/${encodeURIComponent(noteTitle)}?ext=md`);
-						} else throw new Error(res.message);
+						if (!res.success) throw new QueryError("Failed to rename note");
 					} catch (e) {
 						console.error(e);
 						if (e instanceof Error && e.message.includes("already exists")) {

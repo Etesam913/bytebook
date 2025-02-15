@@ -103,7 +103,7 @@ export function Video({
 								onError={() => setIsError(true)}
 								preload="auto"
 								crossOrigin="anonymous"
-								data-nodeKey={nodeKey}
+								data-node-key={nodeKey}
 								data-interactable="true"
 							/>
 						)}

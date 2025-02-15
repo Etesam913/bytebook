@@ -13,7 +13,7 @@ import {
 	useNotePreviewQuery,
 	useNoteRevealInFinderMutation,
 	usePinNotesMutation,
-} from "../../hooks/note-events";
+} from "../../hooks/notes";
 import { Finder } from "../../icons/finder";
 import { PinTack2 } from "../../icons/pin-tack-2";
 import { PinTackSlash } from "../../icons/pin-tack-slash";

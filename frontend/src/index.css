@@ -49,6 +49,7 @@ html:has(.dark) {
 	scrollbar-width: thin;
 	--accent-color: rgb(var(--accent-color-values));
 	--accent-color-highlight: rgba(var(--accent-color-values), 0.45);
+	caret-color: var(--accent-color) !important;
 }
 button {
 	cursor: default;
@@ -237,11 +238,11 @@ div[data-template-is-fullscreen="true"]
 }
 
 .link-internal {
-	@apply text-green-500 underline decoration-2 underline-offset-2 dark:text-green-500 transition-colors inline-flex items-baseline gap-0.5 w-fit cursor-pointer;
+	@apply text-[var(--accent-color)] underline decoration-2 underline-offset-2 transition-colors inline-flex items-baseline gap-0.5 w-fit cursor-pointer;
 }
 
 .link-internal:hover {
-	@apply text-green-600 dark:text-green-400;
+	@apply filter brightness-90 dark:brightness-125;
 }
 
 .root-ol {

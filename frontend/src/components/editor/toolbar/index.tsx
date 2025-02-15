@@ -11,7 +11,7 @@ import {
 import { createPortal } from "react-dom";
 import { isNoteMaximizedAtom, isToolbarDisabledAtom } from "../../../atoms";
 import { useAttachmentsMutation } from "../../../hooks/attachments";
-import { useNoteChangedEvent } from "../../../hooks/note-events";
+import { useNoteChangedEvent } from "../../../hooks/notes";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { cn } from "../../../utils/string-formatting";
 import { MaximizeNoteButton } from "../../buttons/maximize-note";

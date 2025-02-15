@@ -6,7 +6,7 @@ import {
 	projectSettingsAtom,
 	projectSettingsWithQueryParamsAtom,
 } from "../../atoms";
-import { usePinNotesMutation } from "../../hooks/note-events";
+import { usePinNotesMutation } from "../../hooks/notes";
 import { useListVirtualization } from "../../hooks/observers";
 import { PinTack2 } from "../../icons/pin-tack-2";
 import { PinTackSlash } from "../../icons/pin-tack-slash";

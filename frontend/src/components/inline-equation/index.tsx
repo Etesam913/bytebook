@@ -30,7 +30,7 @@ export function InlineEquation({
 	return (
 		<div
 			data-interactable="true"
-			data-nodeKey={nodeKey}
+			data-node-key={nodeKey}
 			ref={inlineEquationRef}
 			className={cn(
 				"relative w-fit inline-block",

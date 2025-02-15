@@ -75,13 +75,13 @@ export function overrideUndoRedoCommand() {
 
 /**
  * Adds or sets a node selection if the clicked element has the data-interactable attribute
- * and the data-nodeKey attribute
+ * and the data-node-key attribute
  */
 export function overrideClickCommand(e: MouseEvent) {
 	const element = e.target as HTMLElement;
 	const isInteractable = element.getAttribute("data-interactable");
 	if (isInteractable) {
-		const nodeKey = element.getAttribute("data-nodeKey");
+		const nodeKey = element.getAttribute("data-node-key");
 		if (!nodeKey) return true;
 
 		let selection = $getSelection();

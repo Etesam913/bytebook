@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Window } from "@wailsio/runtime";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { toast } from "sonner";
+import { navigate } from "wouter/use-browser-location";
 import {
 	AddFolder,
 	DeleteFolder,
@@ -11,7 +13,6 @@ import {
 import { AddNoteToFolder } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
 import { QueryError } from "../utils/query";
-import { useCustomNavigate } from "../utils/routing";
 import { validateName } from "../utils/string-formatting";
 import { useWailsEvent } from "./events";
 
@@ -22,7 +23,6 @@ import { useWailsEvent } from "./events";
  * @returns An object containing the query data and alphabetized folders.
  */
 export function useFolders(curFolder: string | undefined) {
-	const { navigate } = useCustomNavigate();
 	const queryData = useQuery({
 		queryKey: ["folders"],
 		queryFn: async () => {
@@ -36,9 +36,7 @@ export function useFolders(curFolder: string | undefined) {
 					const alphabetizedFolders = res.data.sort((a, b) =>
 						a.localeCompare(b),
 					);
-					navigate(`/${encodeURIComponent(alphabetizedFolders[0])}`, {
-						type: "folder",
-					});
+					navigate(`/${encodeURIComponent(alphabetizedFolders[0])}`);
 				} else {
 					navigate("/");
 				}
@@ -56,23 +54,25 @@ export function useFolders(curFolder: string | undefined) {
 
 /** This function is used to handle `notes-folder:create` events */
 export function useFolderCreate() {
-	const { navigate } = useCustomNavigate();
 	const queryClient = useQueryClient();
+
 	useWailsEvent("notes-folder:create", async (body) => {
 		const data = (body.data as { folder: string }[][])[0];
 		const newFolders = [...data.map(({ folder }) => folder)];
 		await queryClient.invalidateQueries({ queryKey: ["folders"] });
-		navigate(`/${encodeURIComponent(newFolders[newFolders.length - 1])}`, {
-			type: "folder",
-		});
+		const currentWindowName = await Window.Name();
+		const eventWindowName = body.sender;
+		if (currentWindowName !== eventWindowName) return;
+		navigate(`/${encodeURIComponent(newFolders[newFolders.length - 1])}`);
 	});
 }
 
 /** This function is used to handle `notes-folder:delete` events. This gets triggered when renaming a folder using the */
 export function useFolderDelete() {
 	const queryClient = useQueryClient();
-	useWailsEvent("notes-folder:delete", () => {
-		queryClient.invalidateQueries({ queryKey: ["folders"] });
+
+	useWailsEvent("notes-folder:delete", async () => {
+		await queryClient.invalidateQueries({ queryKey: ["folders"] });
 	});
 }
 

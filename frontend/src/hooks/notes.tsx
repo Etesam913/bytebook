@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Events } from "@wailsio/runtime";
+import { Window } from "@wailsio/runtime";
 import { useAtomValue, useSetAtom } from "jotai/react";
 import type { LexicalEditor } from "lexical";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { toast } from "sonner";
+import { navigate } from "wouter/use-browser-location";
 import {
 	GetNotePreview,
 	GetNotes,
@@ -22,84 +24,81 @@ import {
 } from "../atoms";
 import { CUSTOM_TRANSFORMERS } from "../components/editor/transformers";
 import { $convertFromMarkdownStringCorrect } from "../components/editor/utils/note-metadata";
-import { useWailsEvent } from "../hooks/events";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
+import { QueryError } from "../utils/query";
+import { useCustomNavigate } from "../utils/routing";
 import { getFolderAndNoteFromSelectionRange } from "../utils/selection";
 import {
 	extractInfoFromNoteName,
 	getTagNameFromSetValue,
 } from "../utils/string-formatting";
+import { useWailsEvent } from "./events";
 import { useUpdateProjectSettingsMutation } from "./project-settings";
 
-/** This function is used to handle note:create events */
-export function useNoteCreate(
-	folder: string,
-	notes: string[],
-	setNotes: Dispatch<SetStateAction<string[]>>,
+export function useNotes(
+	curFolder: string,
+	curNote?: string,
+	fileExtension?: string,
 ) {
-	const noteSortData = useAtomValue(noteSortAtom);
+	const noteSort = useAtomValue(noteSortAtom);
+	const { navigate } = useCustomNavigate();
+
+	return useQuery({
+		queryKey: ["notes", curFolder, noteSort],
+		queryFn: async () => {
+			const res = await GetNotes(decodeURIComponent(curFolder), noteSort);
+			if (!res.success) {
+				throw new QueryError("Failed in retrieving notes");
+			}
+			const notes = res.data;
+			const curNoteExists = notes.some(
+				(note) => note === `${curNote}?ext=${fileExtension}`,
+			);
+
+			// If the current note does not exist, then navigate to a safe note
+			if (!curNoteExists) {
+				if (notes.length === 0) {
+					navigate(`/${curFolder}`, { type: "folder" });
+				} else {
+					const { noteNameWithoutExtension, queryParams } =
+						extractInfoFromNoteName(notes[0]);
+					navigate(
+						`/${curFolder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${queryParams.ext}`,
+					);
+				}
+			}
+			return notes;
+		},
+	});
+}
+
+/** This function is used to handle note:create events */
+export function useNoteCreate(folder: string) {
+	const noteSort = useAtomValue(noteSortAtom);
+	const queryClient = useQueryClient();
+
 	useWailsEvent("note:create", async (body) => {
 		const data = (body.data as { folder: string; note: string }[][])[0];
+		queryClient.invalidateQueries({ queryKey: ["notes", folder, noteSort] });
+		const currentWindowName = await Window.Name();
+		const eventWindowName = body.sender;
+		if (currentWindowName !== eventWindowName) return;
+		const lastNotetoAdd = data[data.length - 1].note;
+		const { noteNameWithoutExtension, queryParams } =
+			extractInfoFromNoteName(lastNotetoAdd);
 
-		/*
-    If none of the added notes are in the current folder, then don't update the notes
-    This can be triggered when there are multple windows open
-
-    There is notes.includes to deal with the Untitled Note race condition
-    */
-		const filteredNotes = data
-			.filter(
-				(item) =>
-					item.folder === decodeURIComponent(folder) &&
-					!notes.some((noteName) => noteName === item.note),
-			)
-			.map((item) => item.note);
-
-		if (filteredNotes.length === 0) return;
-
-		const newNotes = await GetNotes(data[0].folder, noteSortData);
-		if (!newNotes.success) {
-			toast.error(newNotes.message, DEFAULT_SONNER_OPTIONS);
-		} else {
-			setNotes(newNotes.data);
-		}
+		navigate(
+			`/${folder}/${decodeURIComponent(noteNameWithoutExtension)}?ext=${queryParams.ext}`,
+		);
 	});
 }
 /** This function is used to handle note:delete events */
-export function useNoteDelete(
-	folder: string,
-	note: string | undefined,
-	setNotes: Dispatch<SetStateAction<string[]>>,
-) {
-	useWailsEvent("note:delete", (body) => {
-		const data = (body.data as { folder: string; note: string }[][])[0];
+export function useNoteDelete(folder: string) {
+	const queryClient = useQueryClient();
+	const noteSort = useAtomValue(noteSortAtom);
 
-		/*
-     If none of the deleted notes are in the current folder, then don't update the notes
-     This can be triggered when there are multple windows open
-    */
-		if (
-			data.filter(
-				({ folder: folderWithDeletedNotes }) =>
-					folderWithDeletedNotes === decodeURIComponent(folderWithDeletedNotes),
-			).length === 0
-		)
-			return;
-
-		setNotes((prev) => {
-			if (!prev) return prev;
-			// Filter out all notes that are in the same folder as a deleted note/
-			const newNotes = prev.filter(
-				(noteName) =>
-					!data.some(
-						({ folder: folderWithDeletedNotes, note: deletedNote }) =>
-							folder === folderWithDeletedNotes && noteName === deletedNote,
-					),
-			);
-			if (!note) return newNotes;
-
-			return newNotes;
-		});
+	useWailsEvent("note:delete", () => {
+		queryClient.invalidateQueries({ queryKey: ["notes", folder, noteSort] });
 	});
 }
 

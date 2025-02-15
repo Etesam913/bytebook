@@ -1,13 +1,11 @@
 import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import {
 	dialogDataAtom,
 	isNoteMaximizedAtom,
-	noteSortAtom,
-	notesAtom,
 	selectionRangeAtom,
 } from "../../atoms";
 import { MotionButton, MotionIconButton } from "../../components/buttons";
@@ -20,13 +18,12 @@ import {
 	useNoteCreate,
 	useNoteDelete,
 	useNoteOpenInNewWindow,
-} from "../../hooks/note-events.tsx";
+	useNotes,
+} from "../../hooks/notes.tsx";
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
 import { Pen } from "../../icons/pen";
-import { checkIfNoteExists, updateNotes } from "../../utils/fetch-functions";
 import { useSearchParamsEntries } from "../../utils/routing";
-import { useCustomNavigate } from "../../utils/routing.ts";
 import { validateName } from "../../utils/string-formatting.ts";
 import { MyNotesAccordion } from "./my-notes-accordion.tsx";
 import { RenderNote } from "./render-note.tsx";
@@ -43,28 +40,18 @@ export function NotesSidebar({
 	// These are encoded params
 	const { folder, note } = params;
 	const setDialogData = useSetAtom(dialogDataAtom);
-	const [notes, setNotes] = useAtom(notesAtom);
+	// const [notes, setNotes] = useAtom(notesAtom);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
-	const noteSort = useAtomValue(noteSortAtom);
 	const sidebarRef = useRef<HTMLElement>(null);
 	const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
-	const { navigate } = useCustomNavigate();
+	const { data: notes } = useNotes(folder, note, fileExtension);
 
-	useEffect(() => {
-		updateNotes(folder, note, setNotes, noteSort);
-	}, [folder, noteSort]);
-
-	// Navigates to not-found page if note does not exist
-	useEffect(() => {
-		checkIfNoteExists(folder, note, notes, searchParams?.ext);
-	}, [notes, note]);
-
-	useNoteCreate(folder, notes ?? [], setNotes);
-	useNoteDelete(folder, note, setNotes);
+	useNoteCreate(folder);
+	useNoteDelete(folder);
 	useNoteOpenInNewWindow(folder, selectionRange, setSelectionRange);
 
 	return (
@@ -167,11 +154,6 @@ export function NotesSidebar({
 														);
 														if (!res.success) throw new Error(res.message);
 
-														navigate(
-															`/${decodeURIComponent(
-																folder,
-															)}/${newNoteNameString}?ext=md`,
-														);
 														return true;
 													}
 													return false;
@@ -194,7 +176,7 @@ export function NotesSidebar({
 							<section className="flex flex-col gap-2 overflow-y-auto flex-1">
 								<div className="flex h-full flex-col overflow-y-auto">
 									<MyNotesAccordion
-										notes={notes}
+										notes={notes ?? []}
 										layoutId="note-sidebar"
 										curFolder={folder}
 										curNote={note}

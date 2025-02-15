@@ -28,7 +28,8 @@ import {
 	type Spread,
 	createCommand,
 } from "lexical";
-import ReactDOM from "react-dom";
+import ReactDOM, { flushSync } from "react-dom";
+import { createRoot } from "react-dom/client";
 import { navigate } from "wouter/use-browser-location";
 import { Folder } from "../../../icons/folder";
 import { Note } from "../../../icons/page";
@@ -119,35 +120,46 @@ export class LinkNode extends ElementNode {
 
 			const { isNoteLink, isFolderLink } = getInternalLinkType(element.href);
 			const tempContainer = document.createElement("div");
-			const folderSvg = <Folder className="translate-y-1" />;
+
+			const folderSvg = (
+				<Folder strokeWidth={2} className="mr-0.5 translate-y-1" />
+			);
 			const noteSvg = <Note className="translate-y-1" />;
 
-			ReactDOM.render(isFolderLink ? folderSvg : noteSvg, tempContainer, () => {
-				element.onclick = (e) => {
-					// The segments are encoded by default
-					if (isNoteLink) {
-						const note = segments[segments.length - 1];
-						const folder = segments[segments.length - 2];
-						const fileExtension = url.searchParams.get("ext");
-						navigate(`/${folder}/${note}?ext=${fileExtension}&focus=true`);
-						e.preventDefault();
-					}
-					// else if (isFolderLink) {
-					// 	const folder = segments[segments.length - 1];
-					// 	navigate(`/${folder}`);
-					// 	e.preventDefault();
-					// }
-					else {
-						element.href = "about:blank";
-					}
-				};
+			// Choose which icon to render
+			const content = isFolderLink ? folderSvg : noteSvg;
 
-				while (tempContainer.firstChild) {
-					element.appendChild(tempContainer.firstChild);
-				}
+			// Create a React root for the temporary container.
+			const root = createRoot(tempContainer);
+			// Use flushSync to force the update to complete synchronously.
+			flushSync(() => {
+				root.render(content);
 			});
+
+			// Now that the content is rendered, move it into the anchor element.
+			while (tempContainer.firstChild) {
+				element.appendChild(tempContainer.firstChild);
+			}
+
+			// Attach the click handler for internal navigation.
+			element.onclick = (e) => {
+				// The segments are encoded by default
+				if (isNoteLink) {
+					const note = segments[segments.length - 1];
+					const folder = segments[segments.length - 2];
+					const fileExtension = url.searchParams.get("ext");
+					navigate(`/${folder}/${note}?ext=${fileExtension}&focus=true`);
+					e.preventDefault();
+				} else if (isFolderLink) {
+					const folder = segments[segments.length - 1];
+					navigate(`/${folder}`);
+					e.preventDefault();
+				} else {
+					element.href = "about:blank";
+				}
+			};
 		}
-		// The browser should handle a regular link
+		// For a regular link, let the browser handle it.
 		else {
 			element.onclick = (e) => {
 				handleATagClick(e.target as HTMLElement);
