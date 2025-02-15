@@ -1,8 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { useMemo, useState } from "react";
 import {
-	alphabetizedFoldersAtom,
 	contextMenuDataAtom,
 	dialogDataAtom,
 	draggedElementAtom,
@@ -10,7 +9,8 @@ import {
 import {
 	useFolderDialogSubmit,
 	useFolderRevealInFinderMutation,
-} from "../../hooks/folder-events";
+	useFolders,
+} from "../../hooks/folders";
 import { Finder } from "../../icons/finder";
 import { Folder } from "../../icons/folder";
 import { FolderOpen } from "../../icons/folder-open";
@@ -28,9 +28,8 @@ import { handleDragStart } from "../sidebar/utils";
 import { FolderDialogChildren } from "./folder-dialog-children";
 
 export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
-	const alphabetizedFolders = useAtomValue(alphabetizedFoldersAtom);
-	const hasFolders = alphabetizedFolders && alphabetizedFolders.length > 0;
 	const [isOpen, setIsOpen] = useState(true);
+	const { alphabetizedFolders } = useFolders(folder);
 
 	return (
 		<section>
@@ -41,7 +40,7 @@ export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
 				title={
 					<>
 						Folders{" "}
-						{hasFolders && (
+						{alphabetizedFolders && alphabetizedFolders.length > 0 && (
 							<span className="tracking-wider">
 								({alphabetizedFolders.length})
 							</span>

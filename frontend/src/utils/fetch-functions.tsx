@@ -2,39 +2,12 @@ import type { SetStateAction } from "jotai";
 import type { Dispatch } from "react";
 import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
-import {
-	DoesFolderExist,
-	GetFolders,
-} from "../../bindings/github.com/etesam913/bytebook/folderservice";
+import { DoesFolderExist } from "../../bindings/github.com/etesam913/bytebook/folderservice";
 import { GetNotes } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { GetNotesFromTag } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import type { SortStrings } from "../types";
 import { DEFAULT_SONNER_OPTIONS } from "./general";
 import { extractInfoFromNoteName } from "./string-formatting";
-
-/**
- * Checks if a folder exists by sending a request to the server.
- * If the folder does not exist, it navigates to a "not-found" page.
- *
- * @param folder - The path to the folder to check.
- */
-export async function checkIfFolderExists(folder: string | undefined) {
-	// If no folder path is provided, exit the function early.
-	if (!folder) return;
-	try {
-		// Decode the folder path to ensure it's correctly formatted for the request.
-		const decodedFolder = decodeURIComponent(folder);
-		// Send a request to check if the folder exists.
-		const res = await DoesFolderExist(decodedFolder);
-		// If the request indicates the folder does not exist, throw an error.
-		if (!res.success) {
-			throw new Error();
-		}
-	} catch (e) {
-		// If an error occurs, navigate to a "not-found" page with the type set to "folder".
-		navigate("/not-found?type=folder", { replace: true });
-	}
-}
 
 export async function updateTagNotes(
 	tagName: string,
@@ -56,25 +29,6 @@ export async function updateTagNotes(
 			setNotes(notes);
 		} else {
 			throw new Error(res.message);
-		}
-	} catch (e) {
-		if (e instanceof Error) {
-			toast.error(e.message);
-		}
-	}
-}
-
-/** Initially fetches folders from filesystem */
-export async function updateFolders(
-	setFolders: Dispatch<SetStateAction<string[] | null>>,
-) {
-	try {
-		const res = await GetFolders();
-		if (res.success) {
-			const folders = res.data;
-			setFolders(folders);
-		} else {
-			throw new Error("Failed in retrieving folders");
 		}
 	} catch (e) {
 		if (e instanceof Error) {

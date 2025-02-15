@@ -1,57 +1,80 @@
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 import { toast } from "sonner";
 import {
 	AddFolder,
 	DeleteFolder,
+	GetFolders,
 	RenameFolder,
 	RevealFolderInFinder,
 } from "../../bindings/github.com/etesam913/bytebook/folderservice";
 import { AddNoteToFolder } from "../../bindings/github.com/etesam913/bytebook/noteservice";
-import { foldersAtom } from "../atoms";
-import { useWailsEvent } from "../hooks/events";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
+import { QueryError } from "../utils/query";
 import { useCustomNavigate } from "../utils/routing";
 import { validateName } from "../utils/string-formatting";
+import { useWailsEvent } from "./events";
+
+/**
+ * Custom hook to fetch and manage folders.
+ *
+ * @param curFolder - The current folder name from the URL.
+ * @returns An object containing the query data and alphabetized folders.
+ */
+export function useFolders(curFolder: string | undefined) {
+	const { navigate } = useCustomNavigate();
+	const queryData = useQuery({
+		queryKey: ["folders"],
+		queryFn: async () => {
+			const res = await GetFolders();
+			if (!res.success) {
+				throw new QueryError(res.message);
+			}
+			// If the current folder does not exist anymore, then navigate to a safe url
+			if (!res.data.some((folder) => folder === curFolder)) {
+				if (res.data.length > 0) {
+					const alphabetizedFolders = res.data.sort((a, b) =>
+						a.localeCompare(b),
+					);
+					navigate(`/${encodeURIComponent(alphabetizedFolders[0])}`, {
+						type: "folder",
+					});
+				} else {
+					navigate("/");
+				}
+			}
+			return res.data;
+		},
+	});
+
+	return {
+		...queryData,
+		alphabetizedFolders:
+			queryData.data?.sort((a, b) => a.localeCompare(b)) ?? null,
+	};
+}
 
 /** This function is used to handle `notes-folder:create` events */
-export function useFolderCreate(
-	setFolders: Dispatch<SetStateAction<string[] | null>>,
-) {
+export function useFolderCreate() {
 	const { navigate } = useCustomNavigate();
-	useWailsEvent("notes-folder:create", (body) => {
+	const queryClient = useQueryClient();
+	useWailsEvent("notes-folder:create", async (body) => {
 		const data = (body.data as { folder: string }[][])[0];
-
-		setFolders((prev) => {
-			if (!prev) return data.map(({ folder }) => folder);
-			const allFolders = [...prev, ...data.map(({ folder }) => folder)];
-			// navigate to the last added folder
-			navigate(`/${encodeURIComponent(allFolders[allFolders.length - 1])}`, {
-				type: "folder",
-			});
-
-			return allFolders;
+		const newFolders = [...data.map(({ folder }) => folder)];
+		await queryClient.invalidateQueries({ queryKey: ["folders"] });
+		navigate(`/${encodeURIComponent(newFolders[newFolders.length - 1])}`, {
+			type: "folder",
 		});
 	});
 }
 
 /** This function is used to handle `notes-folder:delete` events. This gets triggered when renaming a folder using the */
-export function useFolderDelete(
-	setFolders: Dispatch<SetStateAction<string[] | null>>,
-) {
-	useWailsEvent("notes-folder:delete", (body) => {
-		const data = (body.data as { folder: string }[][])[0];
-		const deletedFolders = new Set(data.map(({ folder }) => folder));
-
-		setFolders((prev) => {
-			if (!prev) return prev;
-			const remainingFolders = prev.filter(
-				(folder) => !deletedFolders.has(folder),
-			);
-			return remainingFolders;
-		});
+export function useFolderDelete() {
+	const queryClient = useQueryClient();
+	useWailsEvent("notes-folder:delete", () => {
+		queryClient.invalidateQueries({ queryKey: ["folders"] });
 	});
 }
 
@@ -59,8 +82,6 @@ export function useFolderDelete(
  * Custom hook to handle folder creation and renaming through a dialog form submission.
  */
 export function useFolderDialogSubmit() {
-	const { navigate } = useCustomNavigate();
-	const folders = useAtomValue(foldersAtom);
 	return useMutation({
 		// The main function that handles folder creation or renaming
 		mutationFn: async ({
@@ -112,12 +133,6 @@ export function useFolderDialogSubmit() {
 				const res = await DeleteFolder(folderFromSidebar);
 				if (!res.success) throw new Error(res.message);
 
-				// Navigate to the first folder that was not deleted
-				const firstFolderNotDeleted = folders?.find(
-					(name) => name !== folderFromSidebar,
-				);
-				if (firstFolderNotDeleted) navigate(`/${firstFolderNotDeleted}`);
-				else navigate("/");
 				return true;
 			}
 			return false;

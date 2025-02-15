@@ -2,19 +2,13 @@ import { type MotionValue, motion } from "framer-motion";
 import { useSetAtom } from "jotai";
 import { useRoute } from "wouter";
 import { getDefaultButtonVariants } from "../../animations.ts";
-import { dialogDataAtom, foldersAtom } from "../../atoms";
-import { FolderPlus } from "../../icons/folder-plus";
-
-import { useEffect } from "react";
+import { dialogDataAtom } from "../../atoms";
 import {
 	useFolderCreate,
 	useFolderDelete,
 	useFolderDialogSubmit,
-} from "../../hooks/folder-events.tsx";
-import {
-	checkIfFolderExists,
-	updateFolders,
-} from "../../utils/fetch-functions";
+} from "../../hooks/folders.tsx";
+import { FolderPlus } from "../../icons/folder-plus";
 import { MotionButton } from "../buttons";
 import { BottomItems } from "./bottom-items.tsx";
 import { FolderDialogChildren } from "./folder-dialog-children.tsx";
@@ -29,24 +23,10 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
 	const [, params] = useRoute("/:folder/:note?");
 	const folder = params?.folder;
 	const setDialogData = useSetAtom(dialogDataAtom);
-	const setFolders = useSetAtom(foldersAtom);
 
-	useFolderCreate(setFolders);
-	useFolderDelete(setFolders);
+	useFolderCreate();
+	useFolderDelete();
 	const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
-
-	// Initially fetches folders from filesystem
-	useEffect(() => {
-		updateFolders(setFolders);
-	}, [setFolders]);
-
-	// Navigates to not-found page if folder does not exist
-	useEffect(() => {
-		// trash folder is reserved for the trash notes, it is not a real folder
-		if (folder === "trash" || folder === "tags" || folder === "not-found")
-			return;
-		checkIfFolderExists(folder);
-	}, [folder]);
 
 	if (folder === "settings") return null;
 

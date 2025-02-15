@@ -15,7 +15,7 @@ import { DialogErrorText } from "../../components/dialog/index.tsx";
 import { FolderDialogChildren } from "../../components/folder-sidebar/folder-dialog-children.tsx";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { Input } from "../../components/input/index.tsx";
-import { useFolderDialogSubmit } from "../../hooks/folder-events.tsx";
+import { useFolderDialogSubmit } from "../../hooks/folders.tsx";
 import {
 	useNoteCreate,
 	useNoteDelete,
