@@ -50,7 +50,7 @@ export function NotesSidebar({
 	const fileExtension = searchParams?.ext;
 	const { data: notes } = useNotes(folder, note, fileExtension);
 
-	useNoteCreate(folder);
+	useNoteCreate();
 	useNoteDelete(folder);
 	useNoteOpenInNewWindow(folder, selectionRange, setSelectionRange);
 

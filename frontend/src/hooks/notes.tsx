@@ -78,6 +78,7 @@ export function useNoteCreate() {
 
 	useWailsEvent("note:create", async (body) => {
 		const data = (body.data as { folder: string; note: string }[][])[0];
+		console.info("note:create", data);
 		const lastNotetoAdd = data[data.length - 1].note;
 		const folderOfLastNote = encodeURIComponent(data[data.length - 1].folder);
 		await queryClient.invalidateQueries({
@@ -99,6 +100,7 @@ export function useNoteDelete(folder: string) {
 	const noteSort = useAtomValue(noteSortAtom);
 
 	useWailsEvent("note:delete", () => {
+		console.info("note:delete");
 		queryClient.invalidateQueries({ queryKey: ["notes", folder, noteSort] });
 	});
 }

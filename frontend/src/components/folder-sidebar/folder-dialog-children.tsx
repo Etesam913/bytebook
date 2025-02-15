@@ -58,7 +58,11 @@ export function FolderDialogChildren({
 				type="submit"
 			>
 				<span>{action === "create" ? "Create" : "Rename"} Folder</span>{" "}
-				{action === "create" ? <FolderPlus /> : <Pen />}
+				{action === "create" ? (
+					<FolderPlus className="will-change-transform" />
+				) : (
+					<Pen className="will-change-transform" />
+				)}
 			</MotionButton>
 		</>
 	);

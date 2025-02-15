@@ -56,6 +56,7 @@ export function useFolderCreate() {
 	const queryClient = useQueryClient();
 
 	useWailsEvent("notes-folder:create", async () => {
+		console.info("notes-folder:create");
 		await queryClient.invalidateQueries({ queryKey: ["folders"] });
 	});
 }
@@ -65,6 +66,7 @@ export function useFolderDelete() {
 	const queryClient = useQueryClient();
 
 	useWailsEvent("notes-folder:delete", async () => {
+		console.info("notes-folder:delete");
 		await queryClient.invalidateQueries({ queryKey: ["folders"] });
 	});
 }
@@ -99,7 +101,7 @@ export function useFolderDialogSubmit() {
 				const res = await AddFolder(newFolderNameString);
 				if (!res.success) throw new Error(res.message);
 
-				// Add an untitled note to the newly created folder
+				// Add an untitled note to the newly created folder this will trigger a note:create event and the user will be navigated to the new note
 				const addNoteRes = await AddNoteToFolder(
 					newFolderNameString,
 					"Untitled",
@@ -115,6 +117,7 @@ export function useFolderDialogSubmit() {
 				if (!folderFromSidebar) throw new Error("Something went wrong");
 				const res = await RenameFolder(folderFromSidebar, newFolderNameString);
 				if (!res.success) throw new Error(res.message);
+				navigate(`/${encodeURIComponent(newFolderNameString)}`);
 				return true;
 			}
 
