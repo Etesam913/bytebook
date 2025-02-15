@@ -54,7 +54,6 @@ export function useNotes(
 			const curNoteExists = notes.some(
 				(note) => note === `${curNote}?ext=${fileExtension}`,
 			);
-
 			// If the current note does not exist, then navigate to a safe note
 			if (!curNoteExists) {
 				if (notes.length === 0) {
@@ -73,22 +72,24 @@ export function useNotes(
 }
 
 /** This function is used to handle note:create events */
-export function useNoteCreate(folder: string) {
+export function useNoteCreate() {
 	const noteSort = useAtomValue(noteSortAtom);
 	const queryClient = useQueryClient();
 
 	useWailsEvent("note:create", async (body) => {
 		const data = (body.data as { folder: string; note: string }[][])[0];
-		queryClient.invalidateQueries({ queryKey: ["notes", folder, noteSort] });
+		const lastNotetoAdd = data[data.length - 1].note;
+		const folderOfLastNote = encodeURIComponent(data[data.length - 1].folder);
+		await queryClient.invalidateQueries({
+			queryKey: ["notes", folderOfLastNote, noteSort],
+		});
 		const currentWindowName = await Window.Name();
 		const eventWindowName = body.sender;
 		if (currentWindowName !== eventWindowName) return;
-		const lastNotetoAdd = data[data.length - 1].note;
 		const { noteNameWithoutExtension, queryParams } =
 			extractInfoFromNoteName(lastNotetoAdd);
-
 		navigate(
-			`/${folder}/${decodeURIComponent(noteNameWithoutExtension)}?ext=${queryParams.ext}`,
+			`/${folderOfLastNote}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${queryParams.ext}`,
 		);
 	});
 }

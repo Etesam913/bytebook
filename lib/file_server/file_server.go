@@ -288,7 +288,7 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 			}
 			log.Println("error:", err)
 
-		// Whenever the debounce timer expires
+			// Whenever the debounce timer expires
 		case <-debounceTimer.C:
 			// Timer expired, emit debounced events
 			for eventKey, data := range debounceEvents {

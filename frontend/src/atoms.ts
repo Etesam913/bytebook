@@ -117,8 +117,6 @@ export const searchPanelDataAtom = atom<SearchPanelDataType>({
 	scrollY: 0,
 });
 
-export const noteEditorAtom = atom<LexicalEditor | null>(null);
-
 export const noteContainerRefAtom = atom<RefObject<HTMLElement | null> | null>(
 	null,
 );

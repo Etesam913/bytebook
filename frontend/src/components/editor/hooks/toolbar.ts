@@ -1,5 +1,6 @@
 import { mergeRegister } from "@lexical/utils";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useQuery } from "@tanstack/react-query";
+import { useAtomValue } from "jotai";
 import {
 	$getSelection,
 	$isNodeSelection,
@@ -27,17 +28,11 @@ import {
 	type SetStateAction,
 	useEffect,
 } from "react";
-import { toast } from "sonner";
 import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { ShutoffTerminals } from "../../../../bindings/github.com/etesam913/bytebook/terminalservice";
-import {
-	draggedElementAtom,
-	noteContainerRefAtom,
-	noteEditorAtom,
-} from "../../../atoms";
+import { draggedElementAtom, noteContainerRefAtom } from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
-import { DEFAULT_SONNER_OPTIONS } from "../../../utils/general";
-import { useCustomNavigate } from "../../../utils/routing";
+import { QueryError } from "../../../utils/query";
 import { CodeNode } from "../nodes/code";
 import { CUSTOM_TRANSFORMERS } from "../transformers";
 import {
@@ -60,63 +55,49 @@ export function useNoteMarkdown(
 	setNoteMarkdownString: Dispatch<SetStateAction<string>>,
 ) {
 	const noteContainerRef = useAtomValue(noteContainerRefAtom);
-	const setEditor = useSetAtom(noteEditorAtom);
-	const { navigate } = useCustomNavigate();
-	useEffect(() => {
-		async function fetchNoteMarkdown() {
-			setEditor(editor);
-			try {
-				const res = await GetNoteMarkdown(
-					`notes/${decodeURIComponent(folder)}/${decodeURIComponent(note)}.md`,
-				);
 
-				if (res.success) {
-					editor.setEditable(true);
-					// You don't want a different note to access the same history when you switch notes
-					editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
-					setNoteMarkdownString(res.data);
+	useQuery({
+		queryKey: ["note-markdown", `${folder}/${note}.md`],
+		queryFn: async () => {
+			const res = await GetNoteMarkdown(
+				`notes/${decodeURIComponent(folder)}/${decodeURIComponent(note)}.md`,
+			);
 
-					// Scroll to top of the new note. There is a set timeout because there is something that has to load in for the note for its scroll to be accurate
-					setTimeout(() => {
-						if (noteContainerRef?.current) {
-							noteContainerRef.current.scrollTo(0, 0);
-						}
-					}, 20);
+			if (!res.success) throw new QueryError("Failed to get note markdown");
 
-					editor.update(
-						() => {
-							// Clear formatting
-							setCurrentSelectionFormat((prev) => {
-								for (const format of prev)
-									editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
-								return [];
-							});
+			editor.setEditable(true);
+			// You don't want a different note to access the same history when you switch notes
+			editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
+			setNoteMarkdownString(res.data);
 
-							$convertFromMarkdownStringCorrect(
-								res.data,
-								CUSTOM_TRANSFORMERS,
-								setFrontmatter,
-							);
-						},
-						{ tag: "note:initial-load" },
-					);
-				} else {
-					throw new Error("Failed in retrieving note markdown");
+			// Scroll to top of the new note. There is a set timeout because there is something that has to load in for the note for its scroll to be accurate
+			setTimeout(() => {
+				if (noteContainerRef?.current) {
+					noteContainerRef.current.scrollTo(0, 0);
 				}
-			} catch (e) {
-				if (e instanceof Error) toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-				navigate("/not-found");
-			}
-		}
+			}, 20);
 
-		fetchNoteMarkdown();
+			editor.update(
+				() => {
+					// Clear formatting
+					setCurrentSelectionFormat((prev) => {
+						for (const format of prev)
+							editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+						return [];
+					});
 
-		return () => {
-			// We don't want a stale frontmatter to be used on a new note
-			setFrontmatter({});
-			setEditor(null);
-		};
-	}, [folder, note, editor, setCurrentSelectionFormat]);
+					// Apply the new markdown to the editor
+					$convertFromMarkdownStringCorrect(
+						res.data,
+						CUSTOM_TRANSFORMERS,
+						setFrontmatter,
+					);
+				},
+				{ tag: "note:initial-load" },
+			);
+			return res.data;
+		},
+	});
 }
 
 export function useMutationListener(
@@ -198,13 +179,6 @@ export function useToolbarEvents(
 				(event) => overrideUpDownKeyCommand(event, "down"),
 				COMMAND_PRIORITY_LOW,
 			),
-			// editor.registerCommand(
-			// 	KEY_ARROW_LEFT_COMMAND,
-			// 	(event) => {
-			// 	    const selection = $getSelection();
-			// 	},
-			// 	COMMAND_PRIORITY_LOW,
-			// ),
 			editor.registerCommand(
 				CAN_UNDO_COMMAND,
 				(canUndo) => {

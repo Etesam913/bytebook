@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Window } from "@wailsio/runtime";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { toast } from "sonner";
 import { navigate } from "wouter/use-browser-location";
@@ -56,14 +55,8 @@ export function useFolders(curFolder: string | undefined) {
 export function useFolderCreate() {
 	const queryClient = useQueryClient();
 
-	useWailsEvent("notes-folder:create", async (body) => {
-		const data = (body.data as { folder: string }[][])[0];
-		const newFolders = [...data.map(({ folder }) => folder)];
+	useWailsEvent("notes-folder:create", async () => {
 		await queryClient.invalidateQueries({ queryKey: ["folders"] });
-		const currentWindowName = await Window.Name();
-		const eventWindowName = body.sender;
-		if (currentWindowName !== eventWindowName) return;
-		navigate(`/${encodeURIComponent(newFolders[newFolders.length - 1])}`);
 	});
 }
 

@@ -53,6 +53,7 @@ export function NotesEditor({
 	animationControls: AnimationControls;
 }) {
 	const { folder, note } = params;
+
 	const editorRef = useRef<LexicalEditor | null | undefined>(null);
 	const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
 	const [frontmatter, setFrontmatter] = useState<Record<string, string>>({});

@@ -175,7 +175,12 @@ function FolderAccordionButton({
 						{
 							label: (
 								<span className="flex items-center gap-1.5">
-									<Finder width={17} height={17} /> Reveal In Finder
+									<Finder
+										width={17}
+										height={17}
+										className="will-change-transform"
+									/>{" "}
+									Reveal In Finder
 								</span>
 							),
 							value: "reveal-in-finder",
@@ -185,7 +190,12 @@ function FolderAccordionButton({
 						{
 							label: (
 								<span className="flex items-center gap-1.5">
-									<FolderPen width={17} height={17} /> Rename Folder
+									<FolderPen
+										width={17}
+										height={17}
+										className="will-change-transform"
+									/>{" "}
+									Rename Folder
 								</span>
 							),
 							value: "rename-folder",
@@ -214,7 +224,12 @@ function FolderAccordionButton({
 						{
 							label: (
 								<span className="flex items-center gap-1.5">
-									<Trash width={17} height={17} /> Move to Trash
+									<Trash
+										width={17}
+										height={17}
+										className="will-change-transform"
+									/>{" "}
+									Move to Trash
 								</span>
 							),
 							value: "move-to-trash",
