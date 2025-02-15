@@ -63,9 +63,6 @@ function App() {
 					)}
 				</Route>
 
-				<Route path="/not-found">
-					<NotFound />
-				</Route>
 				<Route path="/:folder/:note?">
 					{(folderParams) => (
 						<NotesSidebar
@@ -74,6 +71,9 @@ function App() {
 							leftWidth={folderSidebarWidth}
 						/>
 					)}
+				</Route>
+				<Route path="*">
+					<NotFound />
 				</Route>
 			</Switch>
 		</main>

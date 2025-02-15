@@ -7,6 +7,8 @@ import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { toast } from "sonner";
+import { DEFAULT_SONNER_OPTIONS } from "./utils/general.ts";
 import { QueryError } from "./utils/query.ts";
 
 const rootElem = document.getElementById("root");
@@ -18,9 +20,8 @@ const queryClient = new QueryClient({
 	queryCache: new QueryCache({
 		onError: (error) => {
 			if (error instanceof QueryError) {
-				console.error("cool", error.message);
+				toast.error(error.message, DEFAULT_SONNER_OPTIONS);
 			}
-			console.error("reg", error);
 		},
 	}),
 });

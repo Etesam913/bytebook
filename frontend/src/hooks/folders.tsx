@@ -1,7 +1,5 @@
-import type { Dispatch, FormEvent, SetStateAction } from "react";
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAtomValue } from "jotai";
+import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { toast } from "sonner";
 import {
 	AddFolder,
