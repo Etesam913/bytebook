@@ -81,6 +81,7 @@ export function NotesEditor({
 		setNoteContainerRef(noteContainerRef);
 	}, [noteContainerRef]);
 
+	// Sets up intersection observer for note elements file nodes
 	useEffect(() => {
 		setNoteIntersectionObserver(() => {
 			return new IntersectionObserver((entries) => {

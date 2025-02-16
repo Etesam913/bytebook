@@ -23,6 +23,7 @@ import { useWailsEvent } from "./events";
  */
 export function useFolders(curFolder: string | undefined) {
 	const queryData = useQuery({
+		refetchOnWindowFocus: false,
 		queryKey: ["folders"],
 		queryFn: async () => {
 			const res = await GetFolders();
@@ -42,8 +43,6 @@ export function useFolders(curFolder: string | undefined) {
 			}
 			return res.data;
 		},
-		retry: 3,
-		refetchInterval: 1000,
 	});
 
 	return {

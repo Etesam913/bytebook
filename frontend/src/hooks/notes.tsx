@@ -15,6 +15,7 @@ import {
 import {
 	AddPathsToTags,
 	DeleteTags,
+	GetNotesFromTag,
 } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import { WINDOW_ID } from "../App";
 import {
@@ -26,7 +27,6 @@ import { CUSTOM_TRANSFORMERS } from "../components/editor/transformers";
 import { $convertFromMarkdownStringCorrect } from "../components/editor/utils/note-metadata";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
 import { QueryError } from "../utils/query";
-import { useCustomNavigate } from "../utils/routing";
 import { getFolderAndNoteFromSelectionRange } from "../utils/selection";
 import {
 	extractInfoFromNoteName,
@@ -41,7 +41,6 @@ export function useNotes(
 	fileExtension?: string,
 ) {
 	const noteSort = useAtomValue(noteSortAtom);
-	const { navigate } = useCustomNavigate();
 
 	return useQuery({
 		queryKey: ["notes", curFolder, noteSort],
@@ -57,12 +56,49 @@ export function useNotes(
 			// If the current note does not exist, then navigate to a safe note
 			if (!curNoteExists) {
 				if (notes.length === 0) {
-					navigate(`/${curFolder}`, { type: "folder" });
+					navigate(`/${curFolder}`);
 				} else {
 					const { noteNameWithoutExtension, queryParams } =
 						extractInfoFromNoteName(notes[0]);
 					navigate(
 						`/${curFolder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${queryParams.ext}`,
+					);
+				}
+			}
+			return notes;
+		},
+	});
+}
+
+export function useNotesFromTag(
+	tagName: string,
+	curNote?: string,
+	fileExtension?: string,
+) {
+	const noteSort = useAtomValue(noteSortAtom);
+
+	return useQuery({
+		queryKey: ["tag-notes", tagName, noteSort],
+		queryFn: async () => {
+			const res = await GetNotesFromTag(tagName, noteSort);
+			if (!res.success) {
+				throw new QueryError(`Failed in retrieving notes for tag "${tagName}"`);
+			}
+			const notes = res.data;
+			const curNoteExists = notes.some(
+				(note) => note === `${curNote}?ext=${fileExtension}`,
+			);
+			// If the current note does not exist, then navigate to a safe note
+			if (!curNoteExists) {
+				if (notes.length === 0) {
+					navigate(`/tags/${tagName}`);
+				} else {
+					const { noteNameWithoutExtension, queryParams } =
+						extractInfoFromNoteName(notes[0]);
+					const [folder, note] = noteNameWithoutExtension.split("/");
+					if (!folder || !note) return [];
+					navigate(
+						`/tags/${tagName}/${encodeURIComponent(folder)}/${encodeURIComponent(note)}?ext=${queryParams.ext}`,
 					);
 				}
 			}
@@ -304,14 +340,21 @@ export function useAddTagsMutation() {
 
 export function useNotePreviewQuery(
 	curFolder: string,
-	curNote: string,
+	sidebarNoteName: string,
 	fileExtension: string,
+	isInTagSidebar: boolean,
 ) {
 	return useQuery({
-		queryKey: ["note-preview", curFolder, curNote],
+		queryKey: ["note-preview", curFolder, sidebarNoteName],
 		queryFn: async () => {
+			// if it is in the tags sidebar, then the sidebarNoteName is folderName/noteName
+			let noteName = sidebarNoteName;
+			if (isInTagSidebar) {
+				const [, noteNamePart] = sidebarNoteName.split("/");
+				noteName = noteNamePart;
+			}
 			return await GetNotePreview(
-				`notes/${curFolder}/${curNote}.${fileExtension}`,
+				`notes/${curFolder}/${noteName}.${fileExtension}`,
 			);
 		},
 	});

@@ -1,3 +1,4 @@
+import type { UseQueryResult } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useAtom } from "jotai/react";
 import { useMemo } from "react";
@@ -6,7 +7,6 @@ import { noteSortAtom } from "../../atoms";
 import { MotionButton } from "../../components/buttons/index.tsx";
 import { SortButton } from "../../components/buttons/sort";
 import { Sidebar } from "../../components/sidebar";
-import { useNotes } from "../../hooks/notes.tsx";
 import { FileRefresh } from "../../icons/file-refresh.tsx";
 import { Loader } from "../../icons/loader.tsx";
 import { Note } from "../../icons/page";
@@ -19,6 +19,7 @@ export function MyNotesAccordion({
 	fileExtension,
 	tagState,
 	layoutId,
+	noteQueryResult,
 }: {
 	curFolder: string;
 	curNote: string | undefined;
@@ -27,13 +28,10 @@ export function MyNotesAccordion({
 		tagName: string;
 	};
 	layoutId: string;
+	noteQueryResult: UseQueryResult<string[], Error>;
 }) {
-	const {
-		data: notes,
-		refetch,
-		isError,
-		isLoading,
-	} = useNotes(curFolder, curNote, fileExtension);
+	const { data: notes, refetch, isError, isLoading } = noteQueryResult;
+
 	const noteCount = useMemo(() => notes?.length ?? 0, [notes]);
 	// The sidebar note name includes the folder name if it's in a tag sidebar
 	const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);

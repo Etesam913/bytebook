@@ -1,10 +1,10 @@
 import { type MotionValue, motion } from "framer-motion";
-import { useAtom, useAtomValue } from "jotai/react";
-import { useEffect, useRef } from "react";
-import { isNoteMaximizedAtom, noteSortAtom, notesAtom } from "../../atoms";
+import { useAtomValue } from "jotai/react";
+import { useRef } from "react";
+import { isNoteMaximizedAtom } from "../../atoms";
 import { Spacer } from "../../components/folder-sidebar/spacer";
+import { useNotesFromTag } from "../../hooks/notes";
 import { TagIcon } from "../../icons/tag";
-import { updateTagNotes } from "../../utils/fetch-functions";
 import { useSearchParamsEntries } from "../../utils/routing";
 import { MyNotesAccordion } from "../notes-sidebar/my-notes-accordion";
 import { RenderNote } from "../notes-sidebar/render-note";
@@ -20,14 +20,12 @@ export function TagsSidebar({
 }) {
 	const sidebarRef = useRef<HTMLElement>(null);
 	const { tagName, note, folder } = params;
-	const [notes, setNotes] = useAtom(notesAtom);
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-	const noteSort = useAtomValue(noteSortAtom);
+	// If the fileExtension is undefined, then it is a markdown file
+	const fileExtension = searchParams?.ext;
 
-	useEffect(() => {
-		updateTagNotes(tagName, setNotes, noteSort);
-	}, [tagName, setNotes, noteSort]);
+	const noteQueryResult = useNotesFromTag(tagName, note, fileExtension);
 
 	return (
 		<>
@@ -49,8 +47,9 @@ export function TagsSidebar({
 										tagState={{
 											tagName,
 										}}
+										noteQueryResult={noteQueryResult}
+										fileExtension={fileExtension}
 										layoutId="tags-sidebar"
-										notes={notes}
 										curFolder={folder ?? ""}
 										curNote={note ?? ""}
 									/>

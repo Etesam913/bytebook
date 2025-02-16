@@ -1,13 +1,10 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { Events } from "@wailsio/runtime";
 import { AnimatePresence, motion } from "framer-motion";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { $getRoot } from "lexical";
 import { useEffect, useState } from "react";
-import { navigate } from "wouter/use-browser-location";
 import { RenameNote } from "../../../bindings/github.com/etesam913/bytebook/noteservice";
-import { WINDOW_ID } from "../../App";
-import { isToolbarDisabledAtom, notesAtom } from "../../atoms";
+import { isToolbarDisabledAtom } from "../../atoms";
 import { QueryError } from "../../utils/query";
 import { NAME_CHARS, cn } from "../../utils/string-formatting";
 
@@ -20,7 +17,6 @@ export function NoteTitle({
 }) {
 	const [editor] = useLexicalComposerContext();
 	const [noteTitle, setNoteTitle] = useState(note);
-	const notes = useAtomValue(notesAtom);
 	const [errorText, setErrorText] = useState("");
 	const setIsToolbarDisabled = useSetAtom(isToolbarDisabledAtom);
 

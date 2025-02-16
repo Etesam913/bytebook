@@ -79,13 +79,14 @@ export function NoteSidebarButton({
 		decodeURIComponent(curFolder),
 		decodeURIComponent(sidebarNoteNameWithoutExtension),
 		sidebarQueryParams.ext,
+		isInTagSidebar,
 	);
 	const imgSrc = useMemo(() => {
 		const notePreviewResultData = notePreviewResult?.data;
 		if (!notePreviewResultData || notePreviewResultData.firstImageSrc === "") {
 			if (IMAGE_FILE_EXTENSIONS.includes(sidebarQueryParams.ext)) {
 				// For tags, the sidebarNoteNameWithoutExtension includes both the folder and the note name
-				if (tagState?.tagName) {
+				if (isInTagSidebar) {
 					return `${FILE_SERVER_URL}/notes/${sidebarNoteNameWithoutExtension}.${sidebarQueryParams.ext}`;
 				}
 				return `${FILE_SERVER_URL}/notes/${curFolder}/${sidebarNoteNameWithoutExtension}.${sidebarQueryParams.ext}`;
@@ -94,6 +95,7 @@ export function NoteSidebarButton({
 		}
 		return notePreviewResultData.firstImageSrc;
 	}, [notePreviewResult]);
+
 	const isActive = useMemo(
 		() => decodeURIComponent(activeNoteNameWithExtension) === sidebarNoteName,
 		[activeNoteNameWithExtension, sidebarNoteName],

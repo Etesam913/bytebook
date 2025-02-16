@@ -1,5 +1,4 @@
 import { atom } from "jotai";
-import type { LexicalEditor } from "lexical";
 import type { RefObject } from "react";
 import type {
 	BackendQueryDataType,
@@ -69,8 +68,6 @@ export const userDataAtomWithLocalStorage = atom(
 		set(userDataAtom, newUserData);
 	},
 );
-
-export const notesAtom = atom<string[]>([]);
 
 export const folderSortAtom = atom<SortStrings>("date-updated-desc");
 export const noteSortAtom = atom<SortStrings>("date-updated-desc");

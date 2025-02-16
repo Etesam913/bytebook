@@ -18,6 +18,7 @@ import {
 	useNoteCreate,
 	useNoteDelete,
 	useNoteOpenInNewWindow,
+	useNotes,
 } from "../../hooks/notes.tsx";
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
@@ -46,6 +47,8 @@ export function NotesSidebar({
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
+
+	const noteQueryResult = useNotes(folder, note, fileExtension);
 
 	useNoteCreate();
 	useNoteDelete(folder);
@@ -176,6 +179,7 @@ export function NotesSidebar({
 										curFolder={folder}
 										curNote={note}
 										fileExtension={fileExtension}
+										noteQueryResult={noteQueryResult}
 									/>
 								</div>
 							</section>

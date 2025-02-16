@@ -23,6 +23,7 @@ import { cn } from "../../utils/string-formatting";
 import { SidebarItems } from "./sidebar-items";
 
 export type SidebarContentType = "note" | "folder" | "tag";
+
 export function Sidebar({
 	data,
 	getContextMenuStyle,
@@ -113,7 +114,7 @@ export function Sidebar({
 		listScrollContainerRef.current?.scrollTo({
 			top: 0,
 		});
-	}, [folder, items]);
+	}, [folder]);
 
 	useEffect(() => {
 		if (!activeDataItem || !searchParams.focus) return;

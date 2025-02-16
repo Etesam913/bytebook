@@ -92,7 +92,7 @@ export function overrideClickCommand(e: MouseEvent) {
 
 		(selection as NodeSelection).add(nodeKey);
 		// Focuses the content-editable as opposed to the div container that surrounds the image. Left and right arrow keys do not work correctly when the div container is selected.
-		document.getElementById("content-editable-editor")?.focus();
+		// document.getElementById("content-editable-editor")?.focus();
 		$setSelection(selection);
 	}
 	return true;
