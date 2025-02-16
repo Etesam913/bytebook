@@ -28,7 +28,7 @@ import {
 	type Spread,
 	createCommand,
 } from "lexical";
-import ReactDOM, { flushSync } from "react-dom";
+import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { navigate } from "wouter/use-browser-location";
 import { Folder } from "../../../icons/folder";

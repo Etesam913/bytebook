@@ -8,10 +8,14 @@ import { Dropdown } from "../dropdown";
 import { SettingsRow } from "./settings-row";
 
 export function GithubPage() {
-	const { data: repositories, isLoading } = useGithubRepositoriesQuery();
+	const {
+		data: repositories,
+		isLoading,
+		isError,
+		error,
+	} = useGithubRepositoriesQuery();
 	const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
 	const projectSettings = useAtomValue(projectSettingsAtom);
-
 	const dropdownItems = useMemo(() => {
 		return (
 			repositories?.map((repo) => ({
@@ -27,7 +31,8 @@ export function GithubPage() {
 			description="Select the GitHub repository to sync your notes to."
 		>
 			{isLoading && <Loader />}
-			{repositories && (
+			{isError && <p className="text-sm text-red-500">{error.message}</p>}
+			{repositories && dropdownItems.length > 0 && (
 				<div className="flex flex-col gap-1">
 					<Dropdown
 						controlledValueIndex={dropdownItems.findIndex(

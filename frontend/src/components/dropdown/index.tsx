@@ -38,7 +38,6 @@ export function Dropdown({
 			setValueIndex(controlledValueIndex > -1 ? controlledValueIndex : 0);
 		}
 	}, [controlledValueIndex, valueIndex]);
-
 	return (
 		<div className={cn("relative w-fit", className)} ref={dropdownContainerRef}>
 			<button
@@ -54,7 +53,7 @@ export function Dropdown({
 					disabled && "pointer-events-none opacity-50",
 				)}
 			>
-				{items[valueIndex].label}
+				{items.at(valueIndex)?.label}
 				<motion.span
 					className="ml-auto"
 					animate={{ rotateZ: isOpen ? 180 : 0 }}

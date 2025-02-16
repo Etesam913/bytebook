@@ -1,9 +1,12 @@
+import { Browser } from "@wailsio/runtime";
 import { useAtomValue } from "jotai/react";
 import { useMemo } from "react";
+import { toast } from "sonner";
 import { getDefaultButtonVariants } from "../../animations";
 import { projectSettingsAtom } from "../../atoms";
 import { CodeMerge } from "../../icons/code-merge";
 import { Loader } from "../../icons/loader";
+import { DEFAULT_SONNER_OPTIONS } from "../../utils/general";
 import { MotionButton } from "../buttons";
 import { DialogErrorText } from "../dialog";
 
@@ -27,6 +30,11 @@ export function SyncChangesDialog({
 		return currentDate.toLocaleString(undefined, options).replace(",", "");
 	}, []);
 
+	const linkToRepository = useMemo(
+		() => repositoryToSyncTo.replace(".git", ""),
+		[repositoryToSyncTo],
+	);
+
 	return (
 		<section className="flex flex-col gap-2">
 			<label
@@ -42,7 +50,18 @@ export function SyncChangesDialog({
 				defaultValue={formattedDate}
 			/>
 			<p className="text-xs text-zinc-400">
-				The changes will be pushed to {repositoryToSyncTo}
+				The changes will be pushed to{" "}
+				<button
+					type="button"
+					className="link"
+					onClick={() => {
+						Browser.OpenURL(linkToRepository).catch(() => {
+							toast.error("Failed to open link", DEFAULT_SONNER_OPTIONS);
+						});
+					}}
+				>
+					{repositoryToSyncTo}
+				</button>
 			</p>
 			<DialogErrorText className="text-right" errorText={errorText} />
 			<MotionButton

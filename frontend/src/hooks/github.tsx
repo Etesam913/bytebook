@@ -11,9 +11,13 @@ import type { GithubRepositoryData } from "../types";
 export function useGithubRepositoriesQuery() {
 	const userData = useAtomValue(userDataAtomWithLocalStorage);
 	return useQuery({
+		gcTime: Number.POSITIVE_INFINITY,
 		queryKey: ["get-repositories"],
 		queryFn: async () => {
-			if (!userData?.accessToken) return [];
+			if (!userData?.accessToken)
+				throw new Error(
+					'You are not logged in to GitHub. Please login using the "Login to GitHub" button.',
+				);
 			const res = await fetch(
 				"https://api.github.com/user/repos?per_page=100",
 				{
@@ -23,6 +27,7 @@ export function useGithubRepositoriesQuery() {
 					},
 				},
 			);
+
 			const repositories = (await res.json()) as GithubRepositoryData[];
 			return repositories;
 		},
