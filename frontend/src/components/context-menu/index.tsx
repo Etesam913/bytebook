@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useAtom, useSetAtom } from "jotai/react";
 import { type RefObject, useEffect, useRef, useState } from "react";
 import {
@@ -38,7 +39,7 @@ export function ContextMenu() {
 		useAtom(contextMenuDataAtom);
 
 	const [focusedIndex, setFocusedIndex] = useState(0);
-	const setSelectionRange = useSetAtom(selectionRangeAtom);
+	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const setContextMenuRef = useSetAtom(contextMenuRefAtom);
 	const contextMenuRefLocal = useRef<HTMLDivElement>(null);
 
@@ -53,23 +54,40 @@ export function ContextMenu() {
 	);
 
 	return (
-		<DropdownItems
-			onChange={async (item) => {
-				if (item.onChange) {
-					item.onChange();
-				}
-				setSelectionRange(new Set());
-			}}
-			ref={contextMenuRefLocal}
-			style={{ transform: `translate(${adjustedX}px, ${adjustedY}px)` }}
-			className="absolute w-fit text-sm overflow-y-hidden"
-			items={items}
-			isOpen={isShowing}
-			setIsOpen={(value: boolean) =>
-				setContextMenuData((prev) => ({ ...prev, isShowing: value }))
-			}
-			setFocusIndex={setFocusedIndex}
-			focusIndex={focusedIndex}
-		/>
+		<>
+			{isShowing && (
+				<div
+					className="absolute z-50"
+					style={{ transform: `translate(${adjustedX}px, ${adjustedY}px)` }}
+				>
+					{selectionRange.size > 0 && (
+						<motion.div
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1, transition: { delay: 0.075 } }}
+							className="absolute rounded-full w-5 h-5 text-xs pointer-events-none text-white flex justify-center items-center p-0.5 bg-red-500 left-[8.5rem] z-[60]"
+						>
+							{selectionRange.size}
+						</motion.div>
+					)}
+					<DropdownItems
+						onChange={async (item) => {
+							if (item.onChange) {
+								item.onChange();
+							}
+							setSelectionRange(new Set());
+						}}
+						ref={contextMenuRefLocal}
+						className="w-fit text-sm overflow-y-hidden"
+						items={items}
+						isOpen={isShowing}
+						setIsOpen={(value: boolean) =>
+							setContextMenuData((prev) => ({ ...prev, isShowing: value }))
+						}
+						setFocusIndex={setFocusedIndex}
+						focusIndex={focusedIndex}
+					/>
+				</div>
+			)}
+		</>
 	);
 }
