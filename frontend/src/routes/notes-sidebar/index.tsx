@@ -1,6 +1,7 @@
 import { type MotionValue, motion } from "framer-motion";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useRef } from "react";
+import { navigate } from "wouter/use-browser-location";
 import { AddNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { getDefaultButtonVariants } from "../../animations.ts";
 import {
@@ -152,6 +153,9 @@ export function NotesSidebar({
 															newNoteNameString,
 														);
 														if (!res.success) throw new Error(res.message);
+														navigate(
+															`/${folder}/${encodeURIComponent(newNoteNameString)}?ext=md`,
+														);
 
 														return true;
 													}

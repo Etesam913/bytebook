@@ -113,21 +113,15 @@ export function useNoteCreate() {
 	const queryClient = useQueryClient();
 
 	useWailsEvent("note:create", async (body) => {
+		console.info("note:create", body);
 		const data = (body.data as { folder: string; note: string }[][])[0];
-		console.info("note:create", data);
-		const lastNotetoAdd = data[data.length - 1].note;
-		const folderOfLastNote = encodeURIComponent(data[data.length - 1].folder);
+		const folderOfLastNote = data[data.length - 1].folder;
 		await queryClient.invalidateQueries({
 			queryKey: ["notes", folderOfLastNote, noteSort],
 		});
 		const currentWindowName = await Window.Name();
 		const eventWindowName = body.sender;
 		if (currentWindowName !== eventWindowName) return;
-		const { noteNameWithoutExtension, queryParams } =
-			extractInfoFromNoteName(lastNotetoAdd);
-		navigate(
-			`/${folderOfLastNote}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${queryParams.ext}`,
-		);
 	});
 }
 /** This function is used to handle note:delete events */

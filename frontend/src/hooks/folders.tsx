@@ -108,6 +108,9 @@ export function useFolderDialogSubmit() {
 					"Untitled",
 				);
 				if (addNoteRes.success) {
+					navigate(
+						`/${encodeURIComponent(newFolderNameString)}/Untitled?ext=md`,
+					);
 					return true;
 				}
 				throw new Error(addNoteRes.message);

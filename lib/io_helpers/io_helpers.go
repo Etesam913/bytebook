@@ -376,18 +376,8 @@ func RevealInFinder(fileOrDir string) error {
 		return fmt.Errorf("failed to open directory: %v", fileOrDir)
 	}
 
-	// Determine if fileOrDir is a directory
-	info, err := os.Stat(fileOrDir)
-	if err != nil {
-		return fmt.Errorf("failed to stat file or directory: %v", fileOrDir)
-	}
 	// Run the open command with or without -R based on if fileOrDir is a directory
-	var args []string
-	if info.IsDir() {
-		args = []string{"-R", fileOrDir}
-	} else {
-		args = []string{fileOrDir}
-	}
+	args := []string{"-R", fileOrDir}
 
 	cmd := exec.Command("open", args...)
 	if err := cmd.Run(); err != nil {
