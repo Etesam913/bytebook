@@ -42,6 +42,8 @@ export function useFolders(curFolder: string | undefined) {
 			}
 			return res.data;
 		},
+		retry: 3,
+		refetchInterval: 1000,
 	});
 
 	return {

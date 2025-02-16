@@ -18,7 +18,6 @@ import {
 	useNoteCreate,
 	useNoteDelete,
 	useNoteOpenInNewWindow,
-	useNotes,
 } from "../../hooks/notes.tsx";
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
@@ -40,7 +39,6 @@ export function NotesSidebar({
 	// These are encoded params
 	const { folder, note } = params;
 	const setDialogData = useSetAtom(dialogDataAtom);
-	// const [notes, setNotes] = useAtom(notesAtom);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const sidebarRef = useRef<HTMLElement>(null);
@@ -48,12 +46,10 @@ export function NotesSidebar({
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
-	const { data: notes } = useNotes(folder, note, fileExtension);
 
 	useNoteCreate();
 	useNoteDelete(folder);
 	useNoteOpenInNewWindow(folder, selectionRange, setSelectionRange);
-
 	return (
 		<>
 			{!isNoteMaximized && (
@@ -126,7 +122,7 @@ export function NotesSidebar({
 															0.95,
 															1.05,
 														)}
-														className="w-[calc(100%-1.5rem)] mx-auto justify-center"
+														className="w-[calc(100%-1.5rem)] mx-auto text-center justify-center"
 														type="submit"
 													>
 														<span>Create Note</span> <Compose />
@@ -176,10 +172,10 @@ export function NotesSidebar({
 							<section className="flex flex-col gap-2 overflow-y-auto flex-1">
 								<div className="flex h-full flex-col overflow-y-auto">
 									<MyNotesAccordion
-										notes={notes ?? []}
 										layoutId="note-sidebar"
 										curFolder={folder}
 										curNote={note}
+										fileExtension={fileExtension}
 									/>
 								</div>
 							</section>

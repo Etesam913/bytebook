@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useSetAtom } from "jotai";
 import { useMemo, useState } from "react";
+import { getDefaultButtonVariants } from "../../animations";
 import {
 	contextMenuDataAtom,
 	dialogDataAtom,
@@ -15,6 +16,8 @@ import { Finder } from "../../icons/finder";
 import { Folder } from "../../icons/folder";
 import { FolderOpen } from "../../icons/folder-open";
 import { FolderPen } from "../../icons/folder-pen";
+import { FolderRefresh } from "../../icons/folder-refresh";
+import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
 import { useCustomNavigate } from "../../utils/routing";
 import {
@@ -22,6 +25,7 @@ import {
 	keepSelectionNotesWithPrefix,
 } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
+import { MotionButton } from "../buttons";
 import { Sidebar } from "../sidebar";
 import { AccordionButton } from "../sidebar/accordion-button";
 import { handleDragStart } from "../sidebar/utils";
@@ -29,7 +33,8 @@ import { FolderDialogChildren } from "./folder-dialog-children";
 
 export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
 	const [isOpen, setIsOpen] = useState(true);
-	const { alphabetizedFolders } = useFolders(folder);
+	const { alphabetizedFolders, isLoading, isError, refetch } =
+		useFolders(folder);
 
 	return (
 		<section>
@@ -59,33 +64,63 @@ export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
 						exit={{ height: 0, opacity: 0 }}
 						className="overflow-hidden hover:overflow-auto pl-1"
 					>
-						<Sidebar
-							contentType="folder"
-							layoutId="folder-sidebar"
-							emptyElement={
-								<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
-									Create a folder with the "Create Folder" button above
-								</li>
-							}
-							renderLink={({
-								dataItem: sidebarFolderName,
-								i,
-								selectionRange,
-								setSelectionRange,
-							}) => {
-								return (
-									<FolderAccordionButton
-										folderFromUrl={folder}
-										sidebarFolderName={sidebarFolderName}
-										i={i}
-										selectionRange={selectionRange}
-										setSelectionRange={setSelectionRange}
-										alphabetizedFolders={alphabetizedFolders}
+						{isError && (
+							<div className="text-center text-xs my-3 flex flex-col items-center gap-2 text-balance">
+								<p className="text-red-500">
+									Something went wrong when fetching the folders
+								</p>
+								<MotionButton
+									{...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
+									className="mx-2.5 flex text-center"
+									onClick={() => refetch()}
+								>
+									<span>Retry</span>{" "}
+									<FolderRefresh
+										className="will-change-transform"
+										width={16}
+										height={16}
 									/>
-								);
-							}}
-							data={alphabetizedFolders}
-						/>
+								</MotionButton>
+							</div>
+						)}
+						{!isError &&
+							(isLoading ? (
+								<motion.div
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									transition={{ delay: 0.35 }}
+								>
+									<Loader width={20} height={20} className="mx-auto my-3" />
+								</motion.div>
+							) : (
+								<Sidebar
+									contentType="folder"
+									layoutId="folder-sidebar"
+									emptyElement={
+										<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
+											Create a folder with the "Create Folder" button above
+										</li>
+									}
+									renderLink={({
+										dataItem: sidebarFolderName,
+										i,
+										selectionRange,
+										setSelectionRange,
+									}) => {
+										return (
+											<FolderAccordionButton
+												folderFromUrl={folder}
+												sidebarFolderName={sidebarFolderName}
+												i={i}
+												selectionRange={selectionRange}
+												setSelectionRange={setSelectionRange}
+												alphabetizedFolders={alphabetizedFolders}
+											/>
+										);
+									}}
+									data={alphabetizedFolders}
+								/>
+							))}
 					</motion.div>
 				)}
 			</AnimatePresence>

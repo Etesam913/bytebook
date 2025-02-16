@@ -1,34 +1,43 @@
+import { motion } from "framer-motion";
 import { useAtom } from "jotai/react";
 import { useMemo } from "react";
+import { getDefaultButtonVariants } from "../../animations.ts";
 import { noteSortAtom } from "../../atoms";
+import { MotionButton } from "../../components/buttons/index.tsx";
 import { SortButton } from "../../components/buttons/sort";
 import { Sidebar } from "../../components/sidebar";
+import { useNotes } from "../../hooks/notes.tsx";
+import { FileRefresh } from "../../icons/file-refresh.tsx";
+import { Loader } from "../../icons/loader.tsx";
 import { Note } from "../../icons/page";
-import { useSearchParamsEntries } from "../../utils/routing";
 import { extractInfoFromNoteName } from "../../utils/string-formatting";
 import { NoteSidebarButton } from "./note-sidebar-button.tsx";
 
 export function MyNotesAccordion({
-	notes,
 	curFolder,
 	curNote,
+	fileExtension,
 	tagState,
 	layoutId,
 }: {
-	notes: string[];
 	curFolder: string;
 	curNote: string | undefined;
+	fileExtension: string | undefined;
 	tagState?: {
 		tagName: string;
 	};
 	layoutId: string;
 }) {
+	const {
+		data: notes,
+		refetch,
+		isError,
+		isLoading,
+	} = useNotes(curFolder, curNote, fileExtension);
 	const noteCount = useMemo(() => notes?.length ?? 0, [notes]);
 	// The sidebar note name includes the folder name if it's in a tag sidebar
 	const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);
-	const searchParams: { ext?: string } = useSearchParamsEntries();
 	// If the fileExtension is undefined, then it is a markdown file
-	const fileExtension = searchParams?.ext;
 	const activeDataItem = useMemo(
 		() => (curNote ? `${curNote}?ext=${fileExtension}` : null),
 		[curNote, fileExtension],
@@ -50,41 +59,71 @@ export function MyNotesAccordion({
 					setSortDirection={setNoteSortData}
 				/>
 			</div>
-			<Sidebar
-				contentType="note"
-				key={layoutId}
-				layoutId={layoutId}
-				emptyElement={
-					<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
-						Create a note with the "Create Note" button above
-					</li>
-				}
-				activeDataItem={activeDataItem}
-				data={notes}
-				renderLink={({
-					dataItem: sidebarNoteName,
-					i,
-					selectionRange,
-					setSelectionRange,
-				}) => {
-					const { noteNameWithoutExtension, queryParams } =
-						extractInfoFromNoteName(sidebarNoteName);
-					return (
-						<NoteSidebarButton
-							curNote={curNote}
-							curFolder={curFolder}
-							sidebarNoteName={sidebarNoteName}
-							sidebarNoteNameWithoutExtension={noteNameWithoutExtension}
-							sidebarQueryParams={queryParams}
-							selectionRange={selectionRange}
-							setSelectionRange={setSelectionRange}
-							notes={notes}
-							i={i}
-							tagState={tagState}
+			{isError && (
+				<div className="text-center text-xs my-3 flex flex-col items-center gap-2 text-balance">
+					<p className="text-red-500">
+						Something went wrong when fetching the notes
+					</p>
+					<MotionButton
+						{...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
+						className="mx-2.5 flex text-center"
+						onClick={() => refetch()}
+					>
+						<span>Retry</span>{" "}
+						<FileRefresh
+							className="will-change-transform"
+							width={16}
+							height={16}
 						/>
-					);
-				}}
-			/>
+					</MotionButton>
+				</div>
+			)}
+			{!isError &&
+				(isLoading ? (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						transition={{ delay: 0.35 }}
+					>
+						<Loader width={20} height={20} className="mx-auto my-3" />
+					</motion.div>
+				) : (
+					<Sidebar
+						contentType="note"
+						key={layoutId}
+						layoutId={layoutId}
+						emptyElement={
+							<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
+								Create a note with the "Create Note" button above
+							</li>
+						}
+						activeDataItem={activeDataItem}
+						data={notes ?? []}
+						renderLink={({
+							dataItem: sidebarNoteName,
+							i,
+							selectionRange,
+							setSelectionRange,
+						}) => {
+							const { noteNameWithoutExtension, queryParams } =
+								extractInfoFromNoteName(sidebarNoteName);
+							return (
+								<NoteSidebarButton
+									curNote={curNote}
+									curFolder={curFolder}
+									sidebarNoteName={sidebarNoteName}
+									sidebarNoteNameWithoutExtension={noteNameWithoutExtension}
+									sidebarQueryParams={queryParams}
+									selectionRange={selectionRange}
+									setSelectionRange={setSelectionRange}
+									notes={notes ?? []}
+									i={i}
+									tagState={tagState}
+								/>
+							);
+						}}
+					/>
+				))}
 		</div>
 	);
 }
