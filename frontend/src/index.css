@@ -71,7 +71,7 @@ button {
 }
 
 .list-sidebar-item {
-	@apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden transition-colors will-change-transform;
+	@apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden transition-colors duration-[125ms] will-change-transform;
 }
 .list-sidebar-item:focus {
 	outline: 2px auto;

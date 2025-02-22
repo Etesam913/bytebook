@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useSetAtom } from "jotai";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { MoveNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { getDefaultButtonVariants } from "../../animations";
 import {
 	contextMenuDataAtom,
@@ -11,6 +13,7 @@ import {
 	useFolderDialogSubmit,
 	useFolderRevealInFinderMutation,
 	useFolders,
+	useMoveNoteIntoFolder,
 } from "../../hooks/folders";
 import { Finder } from "../../icons/finder";
 import { Folder } from "../../icons/folder";
@@ -19,6 +22,7 @@ import { FolderPen } from "../../icons/folder-pen";
 import { FolderRefresh } from "../../icons/folder-refresh";
 import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
+import { BYTEBOOK_DRAG_DATA_FORMAT } from "../../utils/draggable";
 import { useCustomNavigate } from "../../utils/routing";
 import {
 	handleKeyNavigation,
@@ -149,6 +153,7 @@ function FolderAccordionButton({
 	const { mutate: revealInFinder } = useFolderRevealInFinderMutation();
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
+	const { mutateAsync: moveNoteIntoFolder } = useMoveNoteIntoFolder();
 	const isActive = useMemo(
 		() => decodeURIComponent(folderFromUrl ?? "") === sidebarFolderName,
 		[folderFromUrl, sidebarFolderName],
@@ -160,10 +165,45 @@ function FolderAccordionButton({
 		return selectionRange.has(`folder:${currentFolder}`);
 	}, [alphabetizedFolders, i, selectionRange]);
 
+	const [isDraggedOver, setIsDraggedOver] = useState(false);
+
 	return (
 		<button
 			type="button"
 			draggable
+			onDrop={(e) => {
+				setIsDraggedOver(false);
+				if (!e.dataTransfer.types.includes(BYTEBOOK_DRAG_DATA_FORMAT)) return;
+				const jsonString = e.dataTransfer.getData(BYTEBOOK_DRAG_DATA_FORMAT);
+				try {
+					const data = JSON.parse(jsonString);
+					if (!data?.fileData) throw new Error();
+					moveNoteIntoFolder({
+						backendNotePaths: data.fileData.map(
+							({
+								folder,
+								note,
+								extension,
+							}: { folder: string; note: string; extension: string }) => {
+								return `${folder}/${note}.${extension}`;
+							},
+						),
+						newFolder: sidebarFolderName,
+					});
+				} catch {
+					toast.error(`Failed to move to ${sidebarFolderName}/`);
+				}
+			}}
+			onDragLeave={() => {
+				setIsDraggedOver(false);
+			}}
+			onDragOver={(e) => {
+				e.preventDefault();
+				if (e.dataTransfer.types.includes(BYTEBOOK_DRAG_DATA_FORMAT)) {
+					setIsDraggedOver(true);
+					e.dataTransfer.dropEffect = "copy";
+				}
+			}}
 			onDragStart={(e) =>
 				handleDragStart(
 					e,
@@ -177,7 +217,7 @@ function FolderAccordionButton({
 			className={cn(
 				"list-sidebar-item",
 				isActive && "bg-zinc-150 dark:bg-zinc-700",
-				isSelected && "!bg-[var(--accent-color)] text-white",
+				(isSelected || isDraggedOver) && "!bg-[var(--accent-color)] text-white",
 			)}
 			onClick={(e) => {
 				if (e.metaKey || e.shiftKey) return;

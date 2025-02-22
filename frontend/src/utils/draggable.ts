@@ -1,3 +1,5 @@
+export const BYTEBOOK_DRAG_DATA_FORMAT = "bytebook/files";
+
 function stopSelect(e: Event) {
 	e.preventDefault();
 }

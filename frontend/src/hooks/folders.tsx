@@ -9,7 +9,10 @@ import {
 	RenameFolder,
 	RevealFolderInFinder,
 } from "../../bindings/github.com/etesam913/bytebook/folderservice";
-import { AddNoteToFolder } from "../../bindings/github.com/etesam913/bytebook/noteservice";
+import {
+	AddNoteToFolder,
+	MoveNoteToFolder,
+} from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
 import { QueryError } from "../utils/query";
 import { validateName } from "../utils/string-formatting";
@@ -69,6 +72,21 @@ export function useFolderDelete() {
 	useWailsEvent("notes-folder:delete", async () => {
 		console.info("notes-folder:delete");
 		await queryClient.invalidateQueries({ queryKey: ["folders"] });
+	});
+}
+
+/**
+ * Custom hook to handle moving notes into a folder.
+ */
+export function useMoveNoteIntoFolder() {
+	return useMutation({
+		mutationFn: async ({
+			backendNotePaths,
+			newFolder,
+		}: { backendNotePaths: string[]; newFolder: string }) => {
+			const res = await MoveNoteToFolder(backendNotePaths, newFolder);
+			if (!res.success) throw new QueryError(res.message);
+		},
 	});
 }
 

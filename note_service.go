@@ -10,6 +10,7 @@ import (
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/list_helpers"
 	"github.com/etesam913/bytebook/lib/note_helpers"
+	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 )
 
@@ -234,6 +235,30 @@ type NotePreviewData struct {
 	FirstImageSrc string `json:"firstImageSrc"`
 	Size          int64  `json:"size"`
 	LastUpdated   string `json:"lastUpdated"`
+}
+
+func (n *NoteService) MoveNoteToFolder(notePaths []string, newFolder string) project_types.BackendResponseWithoutData {
+	failedNoteNames := []string{}
+	for _, pathToNote := range notePaths {
+		fullPathToNote := filepath.Join(n.ProjectPath, "notes", pathToNote)
+		fullPathWithNewFolder := filepath.Join(n.ProjectPath, "notes", newFolder, filepath.Base(pathToNote))
+		err := io_helpers.MoveFile(fullPathToNote, fullPathWithNewFolder)
+
+		if err != nil {
+			failedNoteNames = append(failedNoteNames, pathToNote)
+		}
+	}
+
+	if len(failedNoteNames) > 0 {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: fmt.Sprintf(
+				"Failed to move %s into %s", project_helpers.FormatStringListForErrorMessage(failedNoteNames, 3), newFolder,
+			),
+		}
+	}
+
+	return project_types.BackendResponseWithoutData{Success: true, Message: ""}
 }
 
 func (n *NoteService) GetNotePreview(path string) project_types.BackendResponseWithData[NotePreviewData] {

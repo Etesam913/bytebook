@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Folder } from "../../icons/folder";
 import { ImageIcon } from "../../icons/image";
 import { Note } from "../../icons/page";
+import { BYTEBOOK_DRAG_DATA_FORMAT } from "../../utils/draggable";
 import { extractInfoFromNoteName } from "../../utils/string-formatting";
 
 /** Gets the file icon for the dragged item */
@@ -57,9 +58,37 @@ export function handleDragStart(
 				return `wails://localhost:5173/${folder}/${noteNameWithoutExtension}.${queryParams.ext}`;
 			},
 		);
-
 		// Setting the data for the CONTROLLED_TEXT_INSERTION_COMMAND
 		e.dataTransfer.setData("text/plain", selectedFiles.join(","));
+
+		const bytebookFilesData = Array.from(tempSelectionRange).map(
+			(noteNameWithExtensionParam) => {
+				const noteNameWithoutPrefixWithExtension =
+					noteNameWithExtensionParam.split(":")[1];
+				const { noteNameWithoutExtension, queryParams } =
+					extractInfoFromNoteName(noteNameWithoutPrefixWithExtension);
+				let curItemFolder: string | null = null;
+				let curItemNote: string | null = null;
+				if (contentType === "folder") {
+					curItemFolder = noteNameWithoutPrefixWithExtension;
+				} else if (contentType === "note") {
+					curItemFolder = folder ?? null;
+					curItemNote = noteNameWithoutExtension;
+				}
+				return {
+					folder: curItemFolder,
+					note: curItemNote,
+					extension: queryParams.ext,
+				};
+			},
+		);
+		if (contentType === "note") {
+			e.dataTransfer.effectAllowed = "copy";
+			e.dataTransfer.setData(
+				BYTEBOOK_DRAG_DATA_FORMAT,
+				JSON.stringify({ fileData: bytebookFilesData }),
+			);
+		}
 
 		// Adding the children to the drag element in the case where multiple attachments are selected
 		const dragElement = e.target as HTMLElement;
