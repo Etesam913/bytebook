@@ -7,6 +7,7 @@ import {
 	type LexicalEditor,
 } from "lexical";
 import type { Dispatch, SetStateAction } from "react";
+import { createGhostElementFromHtmlElement } from "../../../utils/draggable";
 import { constructGhostElementForNode } from "./ghost-elements";
 
 export class Point {
@@ -460,9 +461,11 @@ export function handleDragStart(
 	}
 
 	let nodeKey = "";
-	const ghostElement = draggableBlockElement.cloneNode(true) as HTMLElement;
+	const ghostElement = createGhostElementFromHtmlElement(
+		draggableBlockElement,
+		["dragging"],
+	);
 	ghostElement.id = "block-element";
-	ghostElement.classList.add("dragging");
 
 	editor.read(() => {
 		const node = $getNearestNodeFromDOMNode(draggableBlockElement);

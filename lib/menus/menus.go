@@ -8,6 +8,17 @@ import (
 // InitializeApplicationMenu initializes the application menu with hotkeys
 func InitializeApplicationMenu(app *application.App, backgroundColor application.RGBA) {
 	menu := application.DefaultApplicationMenu()
+	appMenuItem := menu.ItemAt(0)
+
+	if appMenuItem.IsSubmenu() {
+		appMenu := appMenuItem.GetSubmenu()
+		settingsMenuItem := appMenu.Add("Settings")
+		settingsMenuItem.SetAccelerator("cmdorctrl+,")
+		settingsMenuItem.OnClick(func(data *application.Context) {
+			app.CurrentWindow().EmitEvent("settings:open")
+		})
+	}
+
 	fileMenuItem := menu.ItemAt(1)
 
 	if fileMenuItem.IsSubmenu() {

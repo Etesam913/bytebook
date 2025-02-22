@@ -175,13 +175,13 @@ div[data-template-is-fullscreen="true"]
 }
 
 .dragging {
-	@apply bg-zinc-50 text-left dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-zinc-200 dark:border-zinc-600 border-2 absolute top-0 left-[-9999px] px-2 py-0.5 rounded-lg font-display text-nowrap whitespace-nowrap overflow-hidden text-ellipsis max-h-[50vh];
+	@apply bg-zinc-50 text-left dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-zinc-200 dark:border-zinc-600 border-2 absolute top-0 left-[-9999px] px-2 py-0.5 rounded-lg font-display text-nowrap whitespace-nowrap overflow-hidden text-ellipsis;
 }
 
 .drag-grid {
 	display: grid;
 	grid-template-columns: 1.5rem 1fr;
-	row-gap: 0.5rem;
+	row-gap: 0.35rem;
 }
 
 .settings-row-grid {

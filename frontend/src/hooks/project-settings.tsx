@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { Window } from "@wailsio/runtime";
 import { useSetAtom } from "jotai";
 import { type Dispatch, type SetStateAction, useEffect } from "react";
 import { toast } from "sonner";
@@ -6,7 +7,8 @@ import {
 	GetProjectSettings,
 	UpdateProjectSettings,
 } from "../../bindings/github.com/etesam913/bytebook/settingsservice";
-import { projectSettingsAtom } from "../atoms";
+import { dialogDataAtom, projectSettingsAtom } from "../atoms";
+import { SettingsDialog } from "../components/settings-dialog";
 import { useWailsEvent } from "../hooks/events";
 import type { ProjectSettings } from "../types";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
@@ -68,10 +70,25 @@ async function getProjectSettings(
 }
 export function useProjectSettings() {
 	const setProjectSettings = useSetAtom(projectSettingsAtom);
+	const setDialogData = useSetAtom(dialogDataAtom);
 
 	useEffect(() => {
 		getProjectSettings(setProjectSettings);
 	}, []);
+
+	useWailsEvent("settings:open", async (data) => {
+		const windowName = await Window.Name();
+		if (windowName !== data.sender) return;
+		console.info("settings:open", data);
+		setDialogData({
+			isOpen: true,
+			isPending: false,
+			title: "Settings",
+			dialogClassName: "w-[min(55rem,90vw)]",
+			children: () => <SettingsDialog />,
+			onSubmit: null,
+		});
+	});
 
 	useWailsEvent("settings:update", (body) => {
 		const projectSettings = (body.data as ProjectSettings[])[0];

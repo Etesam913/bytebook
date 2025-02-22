@@ -4,6 +4,17 @@ function stopSelect(e: Event) {
 	e.preventDefault();
 }
 
+export function createGhostElementFromHtmlElement(
+	element: HTMLElement,
+	classNames = ["dragging", "drag-grid"],
+): HTMLElement {
+	const ghostElement = element.cloneNode(true) as HTMLElement;
+	ghostElement.classList.add(...classNames);
+	// Remove the selected classes
+	ghostElement.classList.remove("!bg-[var(--accent-color)]");
+	return ghostElement;
+}
+
 export function dragItem(
 	onDragCallback: (e: MouseEvent) => void,
 	onDragEndCallback?: (e: MouseEvent) => void,

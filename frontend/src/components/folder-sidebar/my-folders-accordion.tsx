@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useSetAtom } from "jotai";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { MoveNoteToFolder } from "../../../bindings/github.com/etesam913/bytebook/noteservice";
 import { getDefaultButtonVariants } from "../../animations";
 import {
 	contextMenuDataAtom,
@@ -198,8 +197,8 @@ function FolderAccordionButton({
 				setIsDraggedOver(false);
 			}}
 			onDragOver={(e) => {
-				e.preventDefault();
 				if (e.dataTransfer.types.includes(BYTEBOOK_DRAG_DATA_FORMAT)) {
+					e.preventDefault();
 					setIsDraggedOver(true);
 					e.dataTransfer.dropEffect = "copy";
 				}

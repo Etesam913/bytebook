@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Note } from "../../icons/page";
+import { createGhostElementFromHtmlElement } from "../../utils/draggable";
 
 export function AccordionItem({
 	to,
@@ -20,8 +21,10 @@ export function AccordionItem({
 					target="_blank"
 					onDragStart={(e) => {
 						const dragElement = e.target as HTMLElement;
-						const ghostElement = dragElement.cloneNode(true) as HTMLElement;
-						ghostElement.classList.add("dragging");
+						const ghostElement = createGhostElementFromHtmlElement(
+							dragElement,
+							["dragging"],
+						);
 						document.body.appendChild(ghostElement);
 						e.dataTransfer.setDragImage(ghostElement, -25, -25);
 						// Clean up the ghost element after the drag ends

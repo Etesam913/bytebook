@@ -3,7 +3,10 @@ import { createRoot } from "react-dom/client";
 import { Folder } from "../../icons/folder";
 import { ImageIcon } from "../../icons/image";
 import { Note } from "../../icons/page";
-import { BYTEBOOK_DRAG_DATA_FORMAT } from "../../utils/draggable";
+import {
+	BYTEBOOK_DRAG_DATA_FORMAT,
+	createGhostElementFromHtmlElement,
+} from "../../utils/draggable";
 import { extractInfoFromNoteName } from "../../utils/string-formatting";
 
 /** Gets the file icon for the dragged item */
@@ -17,6 +20,7 @@ function getFileIcon(fileType: "folder" | "note" | "image") {
 			return <ImageIcon className="min-w-5 w-5" title="" />;
 	}
 }
+const MAX_VISIBLE_DRAG_PREVIEW_NOTES = 10;
 
 /**
  * Handles the drag start event for dragging files of various types.
@@ -41,6 +45,7 @@ export function handleDragStart(
 		tempSelectionRange.add(`${contentType}:${draggedItem}`);
 
 		// Map selected files to their internal URLs
+		// TODO: Find a way to remove this code in favor of the BYTEBOOK_DRAG_DATA_FORMAT
 		const selectedFiles = Array.from(tempSelectionRange).map(
 			(noteNameWithExtensionParam) => {
 				const noteNameWithoutPrefixWithExtension =
@@ -92,29 +97,35 @@ export function handleDragStart(
 
 		// Adding the children to the drag element in the case where multiple attachments are selected
 		const dragElement = e.target as HTMLElement;
-
-		const ghostElement = dragElement.cloneNode(true) as HTMLElement;
-
-		ghostElement.id = "sidebar-element";
-		ghostElement.classList.add("dragging", "drag-grid");
-		// Remove the selected classes
-		ghostElement.classList.remove("!bg-[var(--accent-color)]");
+		const ghostElement = createGhostElementFromHtmlElement(dragElement);
 		setDraggedElement(ghostElement);
 
 		// Create child elements for the drag preview
-		const children = selectedFiles.map((file) => {
-			return (
-				<>
-					{getFileIcon(contentType)}
-					<p
-						key={file}
-						className="overflow-hidden text-ellipsis whitespace-nowrap"
-					>
-						{file.split("/").at(-1)}
-					</p>
-				</>
+		const children = selectedFiles
+			.slice(0, MAX_VISIBLE_DRAG_PREVIEW_NOTES)
+			.map((file) => {
+				return (
+					<>
+						{getFileIcon(contentType)}
+						<p
+							key={file}
+							className="overflow-hidden text-ellipsis whitespace-nowrap"
+						>
+							{file.split("/").at(-1)}
+						</p>
+					</>
+				);
+			});
+
+		if (selectedFiles.length > MAX_VISIBLE_DRAG_PREVIEW_NOTES) {
+			const remainingFiles =
+				selectedFiles.length - MAX_VISIBLE_DRAG_PREVIEW_NOTES;
+			children.push(
+				<p key="more-files" className="text-sm">
+					+{remainingFiles} more {remainingFiles > 1 ? "files" : "file"}
+				</p>,
 			);
-		});
+		}
 
 		// Append and render the ghost element
 		document.body.appendChild(ghostElement);
