@@ -31,6 +31,7 @@ import { getFolderAndNoteFromSelectionRange } from "../utils/selection";
 import {
 	extractInfoFromNoteName,
 	getTagNameFromSetValue,
+	parseNoteNameFromSelectionRangeValue,
 } from "../utils/string-formatting";
 import { useWailsEvent } from "./events";
 import { useUpdateProjectSettingsMutation } from "./project-settings";
@@ -168,30 +169,33 @@ export function useNoteRevealInFinderMutation() {
 			folder,
 		}: { selectionRange: Set<string>; folder: string }) => {
 			// Limit the number of folders to reveal to 5
-			const selectedFolders = [...selectionRange].slice(0, 5);
-
+			const selectedNotes = [...selectionRange].slice(0, 5);
 			// Reveal each selected folder in Finder
 			const res = await Promise.all(
-				selectedFolders.map(async (note) => {
-					const noteWithoutWithoutPrefix = note.split(":")[1];
+				selectedNotes.map(async (note) => {
 					const { noteNameWithoutExtension, queryParams } =
-						extractInfoFromNoteName(noteWithoutWithoutPrefix);
+						parseNoteNameFromSelectionRangeValue(note);
 					return await RevealNoteInFinder(
 						folder,
 						`${noteNameWithoutExtension}.${queryParams.ext}`,
 					);
 				}),
 			);
+			const failedNotes: string[] = [];
+			failedNotes.push(
+				...res
+					.filter((r) => !r.success)
+					.map(
+						(_, i) =>
+							parseNoteNameFromSelectionRangeValue(selectedNotes[i])
+								.noteNameWithoutExtension,
+					),
+			);
 
-			// Check if any folder failed to reveal
-			if (res.some((r) => !r.success)) {
-				throw new Error("Failed to reveal folder in finder");
-			}
-		},
-		// Handle errors that occur during the mutation
-		onError: (e) => {
-			if (e instanceof Error) {
-				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+			if (failedNotes.length > 0) {
+				throw new QueryError(
+					`Failed to reveal ${failedNotes.join(", ")} in finder`,
+				);
 			}
 		},
 	});
@@ -336,19 +340,13 @@ export function useNotePreviewQuery(
 	curFolder: string,
 	sidebarNoteName: string,
 	fileExtension: string,
-	isInTagSidebar: boolean,
 ) {
 	return useQuery({
 		queryKey: ["note-preview", curFolder, sidebarNoteName],
 		queryFn: async () => {
 			// if it is in the tags sidebar, then the sidebarNoteName is folderName/noteName
-			let noteName = sidebarNoteName;
-			if (isInTagSidebar) {
-				const [, noteNamePart] = sidebarNoteName.split("/");
-				noteName = noteNamePart;
-			}
 			return await GetNotePreview(
-				`notes/${curFolder}/${noteName}.${fileExtension}`,
+				`notes/${curFolder}/${sidebarNoteName}.${fileExtension}`,
 			);
 		},
 	});

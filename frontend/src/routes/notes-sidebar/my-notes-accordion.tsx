@@ -41,6 +41,11 @@ export function MyNotesAccordion({
 		[curNote, fileExtension],
 	);
 
+	const isInTagSidebar = useMemo(
+		() => tagState?.tagName !== undefined,
+		[tagState],
+	);
+
 	return (
 		<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
 			<div className="flex items-center justify-between gap-2 pr-1">
@@ -103,13 +108,20 @@ export function MyNotesAccordion({
 							selectionRange,
 							setSelectionRange,
 						}) => {
+							const revisedSidebarNoteName = isInTagSidebar
+								? sidebarNoteName.split("/")[1]
+								: sidebarNoteName;
 							const { noteNameWithoutExtension, queryParams } =
-								extractInfoFromNoteName(sidebarNoteName);
+								extractInfoFromNoteName(revisedSidebarNoteName);
+
+							if (isInTagSidebar && !revisedSidebarNoteName) {
+								return null;
+							}
 							return (
 								<NoteSidebarButton
 									curNote={curNote}
 									curFolder={curFolder}
-									sidebarNoteName={sidebarNoteName}
+									sidebarNoteName={revisedSidebarNoteName}
 									sidebarNoteNameWithoutExtension={noteNameWithoutExtension}
 									sidebarQueryParams={queryParams}
 									selectionRange={selectionRange}

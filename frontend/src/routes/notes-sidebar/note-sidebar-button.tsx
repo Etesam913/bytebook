@@ -71,24 +71,17 @@ export function NoteSidebarButton({
 	const setDraggedElement = useSetAtom(draggedElementAtom);
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const isInTagSidebar = tagState?.tagName !== undefined;
-	const activeNoteNameWithExtension = `${
-		isInTagSidebar ? `${curFolder}/` : ""
-	}${curNote}?ext=${searchParams.ext}`;
+	const activeNoteNameWithExtension = `${curNote}?ext=${searchParams.ext}`;
 
 	const { data: notePreviewResult } = useNotePreviewQuery(
 		decodeURIComponent(curFolder),
 		decodeURIComponent(sidebarNoteNameWithoutExtension),
 		sidebarQueryParams.ext,
-		isInTagSidebar,
 	);
 	const imgSrc = useMemo(() => {
 		const notePreviewResultData = notePreviewResult?.data;
 		if (!notePreviewResultData || notePreviewResultData.firstImageSrc === "") {
 			if (IMAGE_FILE_EXTENSIONS.includes(sidebarQueryParams.ext)) {
-				// For tags, the sidebarNoteNameWithoutExtension includes both the folder and the note name
-				if (isInTagSidebar) {
-					return `${FILE_SERVER_URL}/notes/${sidebarNoteNameWithoutExtension}.${sidebarQueryParams.ext}`;
-				}
 				return `${FILE_SERVER_URL}/notes/${curFolder}/${sidebarNoteNameWithoutExtension}.${sidebarQueryParams.ext}`;
 			}
 			return "";
@@ -300,7 +293,7 @@ export function NoteSidebarButton({
 				buttonElem.focus();
 				navigate(
 					isInTagSidebar
-						? `/tags/${tagState.tagName}/${sidebarNoteName}`
+						? `/tags/${tagState.tagName}/${curFolder}/${sidebarNoteName}`
 						: `/${curFolder}/${sidebarNoteName}`,
 				);
 			}}
@@ -320,7 +313,6 @@ export function NoteSidebarButton({
 					imgSrc={imgSrc}
 					sidebarQueryParams={sidebarQueryParams}
 					sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
-					isInTagSidebar={isInTagSidebar}
 					notePreviewResult={notePreviewResult ?? null}
 					isSelected={isSelected}
 				/>

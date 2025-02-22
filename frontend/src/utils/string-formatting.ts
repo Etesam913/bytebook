@@ -270,3 +270,14 @@ export function parseRGB(colorString: string): RGB | RGBA | null {
 	// Return null if the string doesn't match the expected format
 	return null;
 }
+
+export function parseNoteNameFromSelectionRangeValue(
+	selectionRangeValue: string,
+) {
+	const noteWithoutWithoutPrefix = selectionRangeValue.split(":")[1];
+	const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
+		noteWithoutWithoutPrefix,
+	);
+
+	return { noteNameWithoutExtension, queryParams };
+}

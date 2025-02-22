@@ -293,27 +293,14 @@ func GetValidPinnedNotes(projectPath string, projectSettings project_types.Proje
 //
 //	An error if the move process fails, otherwise nil.
 func MoveFile(srcPath, dstPath string) error {
-	// Get the directory and filename of the destination path
-	dstDir := filepath.Dir(dstPath)
-	dstBase := filepath.Base(dstPath)
-
-	// Separate the filename and extension
-	dstExt := filepath.Ext(dstBase)
-	dstName := strings.TrimSuffix(dstBase, dstExt)
-
-	// Create a unique destination path if a file with the same name already exists
-	uniqueDstPath := dstPath
-	counter := 1
-	for {
-		if _, err := os.Stat(uniqueDstPath); os.IsNotExist(err) {
-			break
-		}
-		uniqueDstPath = filepath.Join(dstDir, fmt.Sprintf("%s-%d%s", dstName, counter, dstExt))
-		counter++
+	// Create a unique destination path using CreateUniqueNameForFileIfExists
+	uniqueDstPath, err := CreateUniqueNameForFileIfExists(dstPath)
+	if err != nil {
+		return err
 	}
 
 	// Move the file to the unique destination path
-	err := os.Rename(srcPath, uniqueDstPath)
+	err = os.Rename(srcPath, uniqueDstPath)
 	if err != nil {
 		return err
 	}

@@ -1,4 +1,5 @@
 import {
+	MutationCache,
 	QueryCache,
 	QueryClient,
 	QueryClientProvider,
@@ -18,6 +19,13 @@ if (!rootElem) {
 
 const queryClient = new QueryClient({
 	queryCache: new QueryCache({
+		onError: (error) => {
+			if (error instanceof QueryError) {
+				toast.error(error.message, DEFAULT_SONNER_OPTIONS);
+			}
+		},
+	}),
+	mutationCache: new MutationCache({
 		onError: (error) => {
 			if (error instanceof QueryError) {
 				toast.error(error.message, DEFAULT_SONNER_OPTIONS);

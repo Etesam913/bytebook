@@ -64,7 +64,7 @@ export function ContextMenu() {
 						<motion.div
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1, transition: { delay: 0.075 } }}
-							className="absolute rounded-full w-5 h-5 text-xs pointer-events-none text-white flex justify-center items-center p-0.5 bg-red-500 left-[8.5rem] z-[60]"
+							className="absolute rounded-full font-bold w-5 h-5 text-xs pointer-events-none text-white flex justify-center items-center p-0.5 bg-red-500 left-[8.5rem] z-[60]"
 						>
 							{selectionRange.size}
 						</motion.div>

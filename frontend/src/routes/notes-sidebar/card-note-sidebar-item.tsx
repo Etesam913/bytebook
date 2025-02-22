@@ -23,7 +23,6 @@ function formatDateString(isoString: string): string {
 export function CardNoteSidebarItem({
 	sidebarQueryParams,
 	sidebarNoteNameWithoutExtension,
-	isInTagSidebar,
 	notePreviewResult,
 	imgSrc,
 	isSelected,
@@ -32,7 +31,6 @@ export function CardNoteSidebarItem({
 		[key: string]: string;
 	};
 	sidebarNoteNameWithoutExtension: string;
-	isInTagSidebar: boolean;
 	notePreviewResult: BackendResponseWithData<NotePreviewData> | null;
 	imgSrc: string;
 	isSelected: boolean;
@@ -58,10 +56,7 @@ export function CardNoteSidebarItem({
 							isSelected && "!text-white",
 						)}
 					>
-						{isInTagSidebar
-							? sidebarNoteNameWithoutExtension.split("/")[1]
-							: sidebarNoteNameWithoutExtension}
-						.{sidebarQueryParams.ext}
+						{sidebarNoteNameWithoutExtension}.{sidebarQueryParams.ext}
 					</p>
 					<p
 						className={cn(
