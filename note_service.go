@@ -211,28 +211,6 @@ func (n *NoteService) MoveToTrash(folderAndNotes []string) project_types.Backend
 	return io_helpers.MoveNotesToTrash(n.ProjectPath, folderAndNotes)
 }
 
-type NoteCountResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Data    int    `json:"data"`
-}
-
-func (n *NoteService) GetNoteCount(folderName string) NoteCountResponse {
-	count, err := io_helpers.CountFilesInDirectory(filepath.Join(n.ProjectPath, "notes", folderName))
-	if err != nil {
-		return NoteCountResponse{
-			Success: false,
-			Message: err.Error(),
-			Data:    0,
-		}
-	}
-	return NoteCountResponse{
-		Success: true,
-		Message: "",
-		Data:    count,
-	}
-}
-
 // RevealNoteInFinder reveals the specified note in the Finder.
 // Parameters:
 //

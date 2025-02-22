@@ -1,7 +1,6 @@
 package io_helpers_test
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -15,7 +14,7 @@ type TestWriteJson struct {
 	Notes []string `json:"notes"`
 }
 
-func TestWriteJsonToPath(t *testing.T){
+func TestWriteJsonToPath(t *testing.T) {
 	err := io_helpers.WriteJsonToPath("./test.json", TestWriteJson{
 		Notes: []string{"Etesam", "was", "here"},
 	})
@@ -29,7 +28,7 @@ func TestWriteJsonToPath(t *testing.T){
 		t.Errorf("failed in reading io_helpers.ReadJsonFromPath: %v", err)
 	}
 
-	if testJson.Notes[0] != "Etesam" ||  testJson.Notes[1] != "was" ||  testJson.Notes[2] != "here" {
+	if testJson.Notes[0] != "Etesam" || testJson.Notes[1] != "was" || testJson.Notes[2] != "here" {
 		t.Errorf("the written value to the temp file is incorrect %v", err)
 	}
 
@@ -40,9 +39,9 @@ func TestWriteJsonToPath(t *testing.T){
 }
 
 type TestReadJson struct {
-	StringTest string `json:"stringTest"`
-	BooleanTest bool `json:"booleanTest"`
-	NumberTest int `json:"numberTest"`
+	StringTest  string `json:"stringTest"`
+	BooleanTest bool   `json:"booleanTest"`
+	NumberTest  int    `json:"numberTest"`
 }
 
 func TestReadJsonFromPath(t *testing.T) {
@@ -56,7 +55,6 @@ func TestReadJsonFromPath(t *testing.T) {
 		t.Errorf("the read value from the temp file is incorrect %v", err)
 	}
 }
-
 
 // TestCompleteCustomActionForOS tests the CompleteCustomActionForOS function.
 func TestCompleteCustomActionForOS(t *testing.T) {
@@ -297,35 +295,6 @@ func TestCreateUniqueNameForFileIfExists(t *testing.T) {
 	expectedSuffix := "testfile 2.txt"
 	if !strings.HasSuffix(anotherFilePath, expectedSuffix) {
 		t.Errorf("Expected new file name to end with %q, but got %q", expectedSuffix, anotherFilePath)
-	}
-}
-
-// TestCountFilesInDirectory tests the CountFilesInDirectory function.
-func TestCountFilesInDirectory(t *testing.T) {
-	// Create a temporary directory to work in
-	tmpDir, err := os.MkdirTemp("", "testcountfiles")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	// Create some files in the directory
-	numFiles := 5
-	for i := 0; i < numFiles; i++ {
-		filePath := filepath.Join(tmpDir, fmt.Sprintf("file%d.txt", i))
-		err = os.WriteFile(filePath, []byte("content"), 0644)
-		if err != nil {
-			t.Fatalf("Failed to create file: %v", err)
-		}
-	}
-
-	// Call CountFilesInDirectory
-	count, err := io_helpers.CountFilesInDirectory(tmpDir)
-	if err != nil {
-		t.Errorf("CountFilesInDirectory failed: %v", err)
-	}
-	if count != numFiles {
-		t.Errorf("Expected %d files, but got %d", numFiles, count)
 	}
 }
 
