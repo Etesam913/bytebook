@@ -27,6 +27,7 @@ import { CUSTOM_TRANSFORMERS } from "../components/editor/transformers";
 import { $convertFromMarkdownStringCorrect } from "../components/editor/utils/note-metadata";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
 import { QueryError } from "../utils/query";
+import { findClosestSidebarItemToNavigateTo } from "../utils/routing";
 import { getFolderAndNoteFromSelectionRange } from "../utils/selection";
 import {
 	extractInfoFromNoteName,
@@ -42,7 +43,7 @@ export function useNotes(
 	fileExtension?: string,
 ) {
 	const noteSort = useAtomValue(noteSortAtom);
-
+	const queryClient = useQueryClient();
 	return useQuery({
 		queryKey: ["notes", curFolder, noteSort],
 		queryFn: async () => {
@@ -51,16 +52,29 @@ export function useNotes(
 				throw new QueryError("Failed in retrieving notes");
 			}
 			const notes = res.data;
-			const curNoteExists = notes.some(
-				(note) => note === `${curNote}?ext=${fileExtension}`,
-			);
+			const curNoteWithExtension = `${curNote}?ext=${fileExtension}`;
+			const curNoteExists = notes.some((note) => note === curNoteWithExtension);
+
 			// If the current note does not exist, then navigate to a safe note
 			if (!curNoteExists) {
 				if (notes.length === 0) {
 					navigate(`/${curFolder}`);
 				} else {
+					let noteIndexToNavigateTo = 0;
+					const oldNotesData = queryClient.getQueryData([
+						"notes",
+						curFolder,
+						noteSort,
+					]) as string[] | null;
+					if (oldNotesData) {
+						noteIndexToNavigateTo = findClosestSidebarItemToNavigateTo(
+							curNoteWithExtension,
+							oldNotesData,
+							notes,
+						);
+					}
 					const { noteNameWithoutExtension, queryParams } =
-						extractInfoFromNoteName(notes[0]);
+						extractInfoFromNoteName(notes[noteIndexToNavigateTo]);
 					navigate(
 						`/${curFolder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${queryParams.ext}`,
 					);

@@ -15,6 +15,7 @@ import {
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
 import { QueryError } from "../utils/query";
+import { findClosestSidebarItemToNavigateTo } from "../utils/routing";
 import { validateName } from "../utils/string-formatting";
 import { useWailsEvent } from "./events";
 
@@ -25,6 +26,7 @@ import { useWailsEvent } from "./events";
  * @returns An object containing the query data and alphabetized folders.
  */
 export function useFolders(curFolder: string | undefined) {
+	const queryClient = useQueryClient();
 	const queryData = useQuery({
 		refetchOnWindowFocus: false,
 		queryKey: ["folders"],
@@ -36,10 +38,25 @@ export function useFolders(curFolder: string | undefined) {
 			// If the current folder does not exist anymore, then navigate to a safe url
 			if (!res.data.some((folder) => folder === curFolder)) {
 				if (res.data.length > 0) {
+					let folderIndexToNavigateTo = 0;
 					const alphabetizedFolders = res.data.sort((a, b) =>
 						a.localeCompare(b),
 					);
-					navigate(`/${encodeURIComponent(alphabetizedFolders[0])}`);
+
+					const oldFoldersData = queryClient.getQueryData(["folders"]) as
+						| string[]
+						| null;
+
+					if (oldFoldersData && curFolder) {
+						folderIndexToNavigateTo = findClosestSidebarItemToNavigateTo(
+							curFolder,
+							oldFoldersData,
+							alphabetizedFolders,
+						);
+					}
+					navigate(
+						`/${encodeURIComponent(alphabetizedFolders[folderIndexToNavigateTo])}`,
+					);
 				} else {
 					navigate("/");
 				}
