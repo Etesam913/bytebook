@@ -49,20 +49,22 @@ export function SyncChangesDialog({
 				name="commit-message"
 				defaultValue={formattedDate}
 			/>
-			<p className="text-xs text-zinc-400">
-				The changes will be pushed to{" "}
-				<button
-					type="button"
-					className="link"
-					onClick={() => {
-						Browser.OpenURL(linkToRepository).catch(() => {
-							toast.error("Failed to open link", DEFAULT_SONNER_OPTIONS);
-						});
-					}}
-				>
-					{repositoryToSyncTo}
-				</button>
-			</p>
+			{repositoryToSyncTo && repositoryToSyncTo.trim().length > 0 && (
+				<p className="text-xs text-zinc-400">
+					The changes will be pushed to{" "}
+					<button
+						type="button"
+						className="link"
+						onClick={() => {
+							Browser.OpenURL(linkToRepository).catch(() => {
+								toast.error("Failed to open link", DEFAULT_SONNER_OPTIONS);
+							});
+						}}
+					>
+						{repositoryToSyncTo}
+					</button>
+				</p>
+			)}
 			<DialogErrorText className="text-right" errorText={errorText} />
 			<MotionButton
 				type="submit"

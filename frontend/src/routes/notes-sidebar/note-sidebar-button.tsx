@@ -304,7 +304,6 @@ export function NoteSidebarButton({
 					sidebarQueryParams={sidebarQueryParams}
 					activeNoteNameWithExtension={activeNoteNameWithExtension}
 					sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
-					isInTagSidebar={isInTagSidebar}
 				/>
 			)}
 

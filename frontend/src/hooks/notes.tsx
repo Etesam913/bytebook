@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Events } from "@wailsio/runtime";
-import { Window } from "@wailsio/runtime";
 import { useAtomValue, useSetAtom } from "jotai/react";
 import type { LexicalEditor } from "lexical";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
@@ -134,9 +133,6 @@ export function useNoteCreate() {
 		await queryClient.invalidateQueries({
 			queryKey: ["notes", folderOfLastNote, noteSort],
 		});
-		const currentWindowName = await Window.Name();
-		const eventWindowName = body.sender;
-		if (currentWindowName !== eventWindowName) return;
 	});
 }
 /** This function is used to handle note:delete events */

@@ -138,6 +138,7 @@ func (n *NodeService) SyncChangesWithRepo(username, accessToken, repositoryToSyn
 		Auth:       auth,
 		RemoteURL:  repositoryToSyncTo,
 		Force:      true,
+		Depth:      1,
 	})
 
 	// Handling the error

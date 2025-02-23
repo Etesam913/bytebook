@@ -5,7 +5,6 @@ export function ListNoteSidebarItem({
 	sidebarQueryParams,
 	activeNoteNameWithExtension,
 	sidebarNoteNameWithoutExtension,
-	isInTagSidebar,
 }: {
 	sidebarNoteName: string;
 	sidebarQueryParams: {
@@ -13,7 +12,6 @@ export function ListNoteSidebarItem({
 	};
 	activeNoteNameWithExtension: string;
 	sidebarNoteNameWithoutExtension: string;
-	isInTagSidebar: boolean;
 }) {
 	return (
 		<>
@@ -23,10 +21,7 @@ export function ListNoteSidebarItem({
 				noteNameWithExtension={activeNoteNameWithExtension}
 			/>
 			<p className="whitespace-nowrap pointer-events-none text-ellipsis overflow-hidden">
-				{isInTagSidebar
-					? sidebarNoteNameWithoutExtension.split("/")[1]
-					: sidebarNoteNameWithoutExtension}
-				.{sidebarQueryParams.ext}
+				{sidebarNoteNameWithoutExtension}.{sidebarQueryParams.ext}
 			</p>
 		</>
 	);
