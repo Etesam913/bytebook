@@ -21,20 +21,24 @@ export function keepSelectionNotesWithPrefix(
 }
 
 /**
- * Takes a selection range like {note:Chapter 1?ext=md}, and returns a list of folder/noteName.extension strings
+ * Takes a selection range like {note:Chapter 1?ext=md} or {note:folderabc/Chapter 1?ext=md}, and returns a list of folder/noteName.extension strings
  * @param folder
  * @param selectionRange
- *
  */
 export function getFolderAndNoteFromSelectionRange(
 	folder: string,
 	selectionRange: Set<string>,
+	isInTagsSidebar: boolean,
 ) {
 	return [...selectionRange].map((note) => {
 		const noteWithoutWithoutPrefix = note.split(":")[1];
 		const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
 			noteWithoutWithoutPrefix,
 		);
+		if (isInTagsSidebar) {
+			const [folderName, noteName] = noteNameWithoutExtension.split("/");
+			return `${folderName}/${noteName}.${queryParams.ext}`;
+		}
 		return `${folder}/${noteNameWithoutExtension}.${queryParams.ext}`;
 	});
 }

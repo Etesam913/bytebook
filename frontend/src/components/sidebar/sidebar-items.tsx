@@ -68,7 +68,7 @@ export function SidebarItems({
 	function handleCommandClick(i: number, prefixedDataItem: string) {
 		anchorSelectionIndex.current = startIndex + i;
 		setSelectionRange((prev) => {
-			// Making sure to clean the selection
+			// Making sure to clean the selection so a folder selection and a note selection don't mix
 			const newSelection = keepSelectionNotesWithPrefix(prev, contentType);
 
 			// Whether the clicked element is already selected or not

@@ -204,13 +204,13 @@ function FolderAccordionButton({
 				}
 			}}
 			onDragStart={(e) =>
-				handleDragStart(
+				handleDragStart({
 					e,
 					setSelectionRange,
-					"folder",
-					alphabetizedFolders?.at(i) ?? "",
+					contentType: "folder",
+					draggedItem: alphabetizedFolders?.at(i) ?? "",
 					setDraggedElement,
-				)
+				})
 			}
 			onKeyDown={(e) => handleKeyNavigation(e)}
 			className={cn(

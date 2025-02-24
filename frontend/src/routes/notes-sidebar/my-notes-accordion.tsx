@@ -10,7 +10,6 @@ import { Sidebar } from "../../components/sidebar";
 import { FileRefresh } from "../../icons/file-refresh.tsx";
 import { Loader } from "../../icons/loader.tsx";
 import { Note } from "../../icons/page";
-import { extractInfoFromNoteName } from "../../utils/string-formatting";
 import { NoteSidebarButton } from "./note-sidebar-button.tsx";
 
 export function MyNotesAccordion({
@@ -125,7 +124,6 @@ export function MyNotesAccordion({
 									sidebarNoteIndex={i}
 									selectionRange={selectionRange}
 									setSelectionRange={setSelectionRange}
-									noteItem={(notes ?? []).at(i)}
 									tagState={tagState}
 								/>
 							);

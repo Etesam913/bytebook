@@ -192,7 +192,7 @@ export function useTagNoteDelete(tagName: string) {
 }
 
 /** Custom hook to handle revealing folders in Finder */
-export function useNoteRevealInFinderMutation() {
+export function useNoteRevealInFinderMutation(isInTagsSidebar: boolean) {
 	return useMutation({
 		// The main function that handles revealing folders in Finder
 		mutationFn: async ({
@@ -206,6 +206,14 @@ export function useNoteRevealInFinderMutation() {
 				selectedNotes.map(async (note) => {
 					const { noteNameWithoutExtension, queryParams } =
 						parseNoteNameFromSelectionRangeValue(note);
+
+					if (isInTagsSidebar) {
+						const [folderName, noteName] = noteNameWithoutExtension.split("/");
+						return await RevealNoteInFinder(
+							folderName,
+							`${noteName}.${queryParams.ext}`,
+						);
+					}
 					return await RevealNoteInFinder(
 						folder,
 						`${noteNameWithoutExtension}.${queryParams.ext}`,
@@ -232,7 +240,7 @@ export function useNoteRevealInFinderMutation() {
 	});
 }
 
-export function useMoveNoteToTrashMutation() {
+export function useMoveNoteToTrashMutation(isInTagsSidebar: boolean) {
 	return useMutation({
 		mutationFn: async ({
 			selectionRange,
@@ -241,6 +249,7 @@ export function useMoveNoteToTrashMutation() {
 			const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
 				folder,
 				selectionRange,
+				isInTagsSidebar,
 			);
 			const res = await MoveToTrash(folderAndNoteNames);
 			if (!res.success) throw new Error(res.message);
@@ -253,7 +262,7 @@ export function useMoveNoteToTrashMutation() {
 	});
 }
 
-export function usePinNotesMutation() {
+export function usePinNotesMutation(isInTagsSidebar: boolean) {
 	const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
 	const projectSettings = useAtomValue(projectSettingsAtom);
 
@@ -266,6 +275,7 @@ export function usePinNotesMutation() {
 			const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
 				folder,
 				selectionRange,
+				isInTagsSidebar,
 			);
 			const newProjectSettings = { ...projectSettings };
 			if (shouldPin) {

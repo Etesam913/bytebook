@@ -40,7 +40,6 @@ export function NoteSidebarButton({
 	sidebarNoteIndex,
 	selectionRange,
 	setSelectionRange,
-	noteItem,
 	tagState,
 }: {
 	activeNoteNameWithoutExtension: string | undefined;
@@ -49,7 +48,6 @@ export function NoteSidebarButton({
 	sidebarNoteIndex: number;
 	selectionRange: Set<string>;
 	setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
-	noteItem: string | undefined;
 	tagState?: {
 		tagName: string;
 	};
@@ -60,10 +58,12 @@ export function NoteSidebarButton({
 	} = extractInfoFromNoteName(sidebarNoteName);
 	const sidebarNoteExtension = queryParams.ext;
 
+	const isInTagsSidebar = tagState?.tagName !== undefined;
 	const { navigate } = useCustomNavigate();
-	const { mutate: pinOrUnpinNote } = usePinNotesMutation();
-	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
-	const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
+	const { mutate: pinOrUnpinNote } = usePinNotesMutation(isInTagsSidebar);
+	const { mutate: revealInFinder } =
+		useNoteRevealInFinderMutation(isInTagsSidebar);
+	const { mutate: moveToTrash } = useMoveNoteToTrashMutation(isInTagsSidebar);
 	const { mutateAsync: addPathsToTags } = useAddTagsMutation();
 
 	const setDialogData = useSetAtom(dialogDataAtom);
@@ -72,7 +72,6 @@ export function NoteSidebarButton({
 	const setDraggedElement = useSetAtom(draggedElementAtom);
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 
-	const isInTagSidebar = tagState?.tagName !== undefined;
 	const activeNoteNameWithExtension = `${activeNoteNameWithoutExtension}?ext=${searchParams.ext}`;
 
 	const { data: notePreviewResult } = useNotePreviewQuery(
@@ -96,12 +95,20 @@ export function NoteSidebarButton({
 		() => decodeURIComponent(activeNoteNameWithExtension) === sidebarNoteName,
 		[activeNoteNameWithExtension, sidebarNoteName],
 	);
+	/*
+		The SidebarItems container component adds the folder name and the note name to the selection range
+		when a note is selected in the tags note sidebar. Therefore, selections via this comopnent should
+		follow this pattern for the tags note sidebar.
+	*/
+	const noteNameForSelection = isInTagsSidebar
+		? `${sidebarNoteFolder}/${sidebarNoteName}`
+		: sidebarNoteName;
+
 	const isSelected = useMemo(
-		() => selectionRange.has(`note:${noteItem}`) ?? false,
-		[selectionRange, noteItem],
+		() => selectionRange.has(`note:${noteNameForSelection}`) ?? false,
+		[selectionRange, sidebarNoteName],
 	);
 
-	if (!noteItem) return null;
 	return (
 		<button
 			type="button"
@@ -110,23 +117,24 @@ export function NoteSidebarButton({
 			id={isActive ? "selected-note-button" : undefined}
 			onKeyDown={(e) => handleKeyNavigation(e)}
 			onDragStart={(e) =>
-				handleDragStart(
+				handleDragStart({
 					e,
 					setSelectionRange,
-					"note",
-					noteItem,
+					contentType: "note",
+					draggedItem: noteNameForSelection,
 					setDraggedElement,
-					sidebarNoteFolder,
-				)
+					folder: sidebarNoteFolder,
+					isInTagsSidebar,
+				})
 			}
 			onContextMenu={(e) => {
-				let newSelectionRange = new Set([`note:${sidebarNoteName}`]);
+				let newSelectionRange = new Set([`note:${noteNameForSelection}`]);
 				if (selectionRange.size === 0) {
 					setSelectionRange(newSelectionRange);
 				} else {
 					setSelectionRange((prev) => {
 						const setWithoutNotes = keepSelectionNotesWithPrefix(prev, "note");
-						setWithoutNotes.add(`note:${sidebarNoteName}`);
+						setWithoutNotes.add(`note:${noteNameForSelection}`);
 						newSelectionRange = setWithoutNotes;
 						return setWithoutNotes;
 					});
@@ -134,6 +142,7 @@ export function NoteSidebarButton({
 				const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
 					sidebarNoteFolder,
 					newSelectionRange,
+					isInTagsSidebar,
 				);
 				const isShowingPinOption = folderAndNoteNames.some(
 					(folderAndNoteName) =>
@@ -298,7 +307,7 @@ export function NoteSidebarButton({
 				const buttonElem = e.target as HTMLButtonElement;
 				buttonElem.focus();
 				navigate(
-					isInTagSidebar
+					isInTagsSidebar
 						? `/tags/${tagState.tagName}/${sidebarNoteFolder}/${sidebarNoteName}`
 						: `/${sidebarNoteFolder}/${sidebarNoteName}`,
 				);
