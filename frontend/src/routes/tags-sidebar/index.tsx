@@ -3,7 +3,11 @@ import { useAtomValue } from "jotai/react";
 import { useRef } from "react";
 import { isNoteMaximizedAtom } from "../../atoms";
 import { Spacer } from "../../components/folder-sidebar/spacer";
-import { useNotesFromTag } from "../../hooks/notes";
+import {
+	useNotesFromTag,
+	useTagNoteCreate,
+	useTagNoteDelete,
+} from "../../hooks/notes";
 import { TagIcon } from "../../icons/tag";
 import { useSearchParamsEntries } from "../../utils/routing";
 import { MyNotesAccordion } from "../notes-sidebar/my-notes-accordion";
@@ -22,10 +26,13 @@ export function TagsSidebar({
 	const { tagName, note, folder } = params;
 	const searchParams: { ext?: string } = useSearchParamsEntries();
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+
 	// If the fileExtension is undefined, then it is a markdown file
 	const fileExtension = searchParams?.ext;
 
 	const noteQueryResult = useNotesFromTag(tagName, note, fileExtension);
+	useTagNoteCreate(tagName);
+	useTagNoteDelete(tagName);
 
 	return (
 		<>
