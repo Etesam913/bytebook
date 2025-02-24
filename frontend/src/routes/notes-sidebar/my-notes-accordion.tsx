@@ -103,31 +103,29 @@ export function MyNotesAccordion({
 						activeDataItem={activeDataItem}
 						data={notes ?? []}
 						renderLink={({
-							dataItem: sidebarNoteName,
+							dataItem: sidebarNoteNameTemp,
 							i,
 							selectionRange,
 							setSelectionRange,
 						}) => {
-							const revisedSidebarNoteName = isInTagSidebar
-								? sidebarNoteName.split("/")[1]
-								: sidebarNoteName;
-							const { noteNameWithoutExtension, queryParams } =
-								extractInfoFromNoteName(revisedSidebarNoteName);
+							let sidebarNoteFolder = curFolder;
+							let sidebarNoteName = sidebarNoteNameTemp;
 
-							if (isInTagSidebar && !revisedSidebarNoteName) {
-								return null;
+							// If the sidebar is a tag sidebar, then the folder and note do not come from the url
+							if (isInTagSidebar) {
+								sidebarNoteFolder = sidebarNoteName.split("/")[0];
+								sidebarNoteName = sidebarNoteName.split("/")[1];
 							}
+
 							return (
 								<NoteSidebarButton
-									curNote={curNote}
-									curFolder={curFolder}
-									sidebarNoteName={revisedSidebarNoteName}
-									sidebarNoteNameWithoutExtension={noteNameWithoutExtension}
-									sidebarQueryParams={queryParams}
+									activeNoteNameWithoutExtension={curNote}
+									sidebarNoteFolder={sidebarNoteFolder}
+									sidebarNoteName={sidebarNoteName}
+									sidebarNoteIndex={i}
 									selectionRange={selectionRange}
 									setSelectionRange={setSelectionRange}
-									notes={notes ?? []}
-									i={i}
+									noteItem={(notes ?? []).at(i)}
 									tagState={tagState}
 								/>
 							);

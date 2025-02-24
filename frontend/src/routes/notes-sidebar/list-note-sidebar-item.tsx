@@ -2,14 +2,12 @@ import { RenderNoteIcon } from "./render-note-icon";
 
 export function ListNoteSidebarItem({
 	sidebarNoteName,
-	sidebarQueryParams,
+	sidebarNoteExtension,
 	activeNoteNameWithExtension,
 	sidebarNoteNameWithoutExtension,
 }: {
 	sidebarNoteName: string;
-	sidebarQueryParams: {
-		[key: string]: string;
-	};
+	sidebarNoteExtension: string;
 	activeNoteNameWithExtension: string;
 	sidebarNoteNameWithoutExtension: string;
 }) {
@@ -17,11 +15,11 @@ export function ListNoteSidebarItem({
 		<>
 			<RenderNoteIcon
 				sidebarNoteName={sidebarNoteName}
-				fileExtension={sidebarQueryParams.ext}
+				fileExtension={sidebarNoteExtension}
 				noteNameWithExtension={activeNoteNameWithExtension}
 			/>
 			<p className="whitespace-nowrap pointer-events-none text-ellipsis overflow-hidden">
-				{sidebarNoteNameWithoutExtension}.{sidebarQueryParams.ext}
+				{sidebarNoteNameWithoutExtension}.{sidebarNoteExtension}
 			</p>
 		</>
 	);

@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Events } from "@wailsio/runtime";
-import { useAtomValue, useSetAtom } from "jotai/react";
+import { useAtomValue } from "jotai/react";
 import type { LexicalEditor } from "lexical";
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { toast } from "sonner";
@@ -17,11 +16,7 @@ import {
 	GetNotesFromTag,
 } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import { WINDOW_ID } from "../App";
-import {
-	noteSortAtom,
-	projectSettingsAtom,
-	selectionRangeAtom,
-} from "../atoms";
+import { noteSortAtom, projectSettingsAtom } from "../atoms";
 import { CUSTOM_TRANSFORMERS } from "../components/editor/transformers";
 import { $convertFromMarkdownStringCorrect } from "../components/editor/utils/note-metadata";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
@@ -143,30 +138,6 @@ export function useNoteDelete(folder: string) {
 	useWailsEvent("note:delete", () => {
 		console.info("note:delete");
 		queryClient.invalidateQueries({ queryKey: ["notes", folder, noteSort] });
-	});
-}
-
-/** This function is used to handle note:open-in-new-window events */
-export function useNoteOpenInNewWindow(
-	folder: string,
-	selectionRange: Set<string>,
-	setSelectionRange: Dispatch<SetStateAction<Set<string>>>,
-) {
-	useWailsEvent("note:open-in-new-window", () => {
-		for (const noteNameWithQueryParam of selectionRange) {
-			Events.Emit({
-				name: "open-note-in-new-window-backend",
-				data: { url: `/${folder}/${noteNameWithQueryParam}` },
-			});
-		}
-		setSelectionRange(new Set());
-	});
-}
-
-export function useNoteSelectionClear() {
-	const setSelectionRange = useSetAtom(selectionRangeAtom);
-	useWailsEvent("note:clear-selection", () => {
-		setSelectionRange(new Set());
 	});
 }
 

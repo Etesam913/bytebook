@@ -1,23 +1,14 @@
 import { type MotionValue, motion } from "framer-motion";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useRef } from "react";
 import { getDefaultButtonVariants } from "../../animations.ts";
-import {
-	dialogDataAtom,
-	isNoteMaximizedAtom,
-	selectionRangeAtom,
-} from "../../atoms";
+import { dialogDataAtom, isNoteMaximizedAtom } from "../../atoms";
 import { MotionButton, MotionIconButton } from "../../components/buttons";
 import { FolderDialogChildren } from "../../components/folder-sidebar/folder-dialog-children.tsx";
 import { Spacer } from "../../components/folder-sidebar/spacer";
 import { useCreateNoteDialog } from "../../hooks/dialogs.tsx";
 import { useFolderDialogSubmit } from "../../hooks/folders.tsx";
-import {
-	useNoteCreate,
-	useNoteDelete,
-	useNoteOpenInNewWindow,
-	useNotes,
-} from "../../hooks/notes.tsx";
+import { useNoteCreate, useNoteDelete, useNotes } from "../../hooks/notes.tsx";
 import { Compose } from "../../icons/compose";
 import { Folder } from "../../icons/folder";
 import { Pen } from "../../icons/pen";
@@ -38,7 +29,6 @@ export function NotesSidebar({
 	const { folder, note } = params;
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 	const sidebarRef = useRef<HTMLElement>(null);
 	const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
 	const searchParams: { ext?: string } = useSearchParamsEntries();
@@ -50,7 +40,7 @@ export function NotesSidebar({
 
 	useNoteCreate();
 	useNoteDelete(folder);
-	useNoteOpenInNewWindow(folder, selectionRange, setSelectionRange);
+
 	return (
 		<>
 			{!isNoteMaximized && (

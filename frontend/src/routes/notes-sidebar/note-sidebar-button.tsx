@@ -28,61 +28,64 @@ import {
 	handleKeyNavigation,
 	keepSelectionNotesWithPrefix,
 } from "../../utils/selection";
-import { cn } from "../../utils/string-formatting";
+import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
 import { AddTagDialogChildren } from "./add-tag-dialog-children";
 import { CardNoteSidebarItem } from "./card-note-sidebar-item";
 import { ListNoteSidebarItem } from "./list-note-sidebar-item";
 
 export function NoteSidebarButton({
-	curFolder,
-	curNote,
+	sidebarNoteFolder,
+	activeNoteNameWithoutExtension,
 	sidebarNoteName,
-	sidebarNoteNameWithoutExtension,
-	sidebarQueryParams,
+	sidebarNoteIndex,
 	selectionRange,
 	setSelectionRange,
-	notes,
-	i,
+	noteItem,
 	tagState,
 }: {
-	curNote: string | undefined;
-	curFolder: string;
+	activeNoteNameWithoutExtension: string | undefined;
+	sidebarNoteFolder: string;
 	sidebarNoteName: string;
-	sidebarNoteNameWithoutExtension: string;
-	sidebarQueryParams: {
-		[key: string]: string;
-	};
+	sidebarNoteIndex: number;
 	selectionRange: Set<string>;
 	setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
-	notes: string[] | null;
-	i: number;
+	noteItem: string | undefined;
 	tagState?: {
 		tagName: string;
 	};
 }) {
+	const {
+		noteNameWithoutExtension: sidebarNoteNameWithoutExtension,
+		queryParams,
+	} = extractInfoFromNoteName(sidebarNoteName);
+	const sidebarNoteExtension = queryParams.ext;
+
 	const { navigate } = useCustomNavigate();
 	const { mutate: pinOrUnpinNote } = usePinNotesMutation();
 	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
 	const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
 	const { mutateAsync: addPathsToTags } = useAddTagsMutation();
+
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const setContextMenuData = useSetAtom(contextMenuDataAtom);
 	const projectSettings = useAtomValue(projectSettingsAtom);
 	const setDraggedElement = useSetAtom(draggedElementAtom);
 	const searchParams: { ext?: string } = useSearchParamsEntries();
+
 	const isInTagSidebar = tagState?.tagName !== undefined;
-	const activeNoteNameWithExtension = `${curNote}?ext=${searchParams.ext}`;
+	const activeNoteNameWithExtension = `${activeNoteNameWithoutExtension}?ext=${searchParams.ext}`;
 
 	const { data: notePreviewResult } = useNotePreviewQuery(
-		decodeURIComponent(curFolder),
+		decodeURIComponent(sidebarNoteFolder),
 		decodeURIComponent(sidebarNoteNameWithoutExtension),
-		sidebarQueryParams.ext,
+		sidebarNoteExtension,
 	);
+
 	const imgSrc = useMemo(() => {
 		const notePreviewResultData = notePreviewResult?.data;
 		if (!notePreviewResultData || notePreviewResultData.firstImageSrc === "") {
-			if (IMAGE_FILE_EXTENSIONS.includes(sidebarQueryParams.ext)) {
-				return `${FILE_SERVER_URL}/notes/${curFolder}/${sidebarNoteNameWithoutExtension}.${sidebarQueryParams.ext}`;
+			if (IMAGE_FILE_EXTENSIONS.includes(sidebarNoteExtension)) {
+				return `${FILE_SERVER_URL}/notes/${sidebarNoteFolder}/${sidebarNoteNameWithoutExtension}.${sidebarNoteExtension}`;
 			}
 			return "";
 		}
@@ -94,10 +97,11 @@ export function NoteSidebarButton({
 		[activeNoteNameWithExtension, sidebarNoteName],
 	);
 	const isSelected = useMemo(
-		() => selectionRange.has(`note:${notes?.[i]}`) ?? false,
-		[selectionRange, notes, i],
+		() => selectionRange.has(`note:${noteItem}`) ?? false,
+		[selectionRange, noteItem],
 	);
-	if (!notes) return null;
+
+	if (!noteItem) return null;
 	return (
 		<button
 			type="button"
@@ -110,9 +114,9 @@ export function NoteSidebarButton({
 					e,
 					setSelectionRange,
 					"note",
-					notes?.at(i) ?? "",
+					noteItem,
 					setDraggedElement,
-					curFolder,
+					sidebarNoteFolder,
 				)
 			}
 			onContextMenu={(e) => {
@@ -128,7 +132,7 @@ export function NoteSidebarButton({
 					});
 				}
 				const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
-					curFolder,
+					sidebarNoteFolder,
 					newSelectionRange,
 				);
 				const isShowingPinOption = folderAndNoteNames.some(
@@ -160,7 +164,7 @@ export function NoteSidebarButton({
 							onChange: () =>
 								revealInFinder({
 									selectionRange: newSelectionRange,
-									folder: curFolder,
+									folder: sidebarNoteFolder,
 								}),
 						},
 						isShowingPinOption && {
@@ -177,7 +181,7 @@ export function NoteSidebarButton({
 							value: "pin-note",
 							onChange: () => {
 								pinOrUnpinNote({
-									folder: curFolder,
+									folder: sidebarNoteFolder,
 									selectionRange: newSelectionRange,
 									shouldPin: true,
 								});
@@ -197,7 +201,7 @@ export function NoteSidebarButton({
 							value: "unpin-note",
 							onChange: () => {
 								pinOrUnpinNote({
-									folder: curFolder,
+									folder: sidebarNoteFolder,
 									selectionRange: newSelectionRange,
 									shouldPin: false,
 								});
@@ -252,7 +256,7 @@ export function NoteSidebarButton({
 										return addPathsToTags({
 											e,
 											setErrorText,
-											folder: curFolder,
+											folder: sidebarNoteFolder,
 											selectionRange: newSelectionRange,
 										});
 									},
@@ -274,7 +278,7 @@ export function NoteSidebarButton({
 							onChange: () =>
 								moveToTrash({
 									selectionRange: newSelectionRange,
-									folder: curFolder,
+									folder: sidebarNoteFolder,
 								}),
 						},
 					].filter(Boolean),
@@ -283,7 +287,9 @@ export function NoteSidebarButton({
 			className={cn(
 				projectSettings.noteSidebarItemSize === "list" && "list-sidebar-item",
 				projectSettings.noteSidebarItemSize === "card" && "card-sidebar-item",
-				projectSettings.noteSidebarItemSize === "card" && i === 0 && "border-t",
+				projectSettings.noteSidebarItemSize === "card" &&
+					sidebarNoteIndex === 0 &&
+					"border-t",
 				isActive && "bg-zinc-150 dark:bg-zinc-700",
 				isSelected && "!bg-[var(--accent-color)] text-white",
 			)}
@@ -293,15 +299,15 @@ export function NoteSidebarButton({
 				buttonElem.focus();
 				navigate(
 					isInTagSidebar
-						? `/tags/${tagState.tagName}/${curFolder}/${sidebarNoteName}`
-						: `/${curFolder}/${sidebarNoteName}`,
+						? `/tags/${tagState.tagName}/${sidebarNoteFolder}/${sidebarNoteName}`
+						: `/${sidebarNoteFolder}/${sidebarNoteName}`,
 				);
 			}}
 		>
 			{projectSettings.noteSidebarItemSize === "list" && (
 				<ListNoteSidebarItem
 					sidebarNoteName={sidebarNoteName}
-					sidebarQueryParams={sidebarQueryParams}
+					sidebarNoteExtension={sidebarNoteExtension}
 					activeNoteNameWithExtension={activeNoteNameWithExtension}
 					sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
 				/>
@@ -310,7 +316,7 @@ export function NoteSidebarButton({
 			{projectSettings.noteSidebarItemSize === "card" && (
 				<CardNoteSidebarItem
 					imgSrc={imgSrc}
-					sidebarQueryParams={sidebarQueryParams}
+					sidebarNoteExtension={sidebarNoteExtension}
 					sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
 					notePreviewResult={notePreviewResult ?? null}
 					isSelected={isSelected}
