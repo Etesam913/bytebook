@@ -10,7 +10,41 @@ import (
 )
 
 type NotesToTagsMap struct {
-	Data map[string][]string
+	Tags map[string][]string `json:"tags"`
+}
+
+type TagsToNotesArray struct {
+	Notes []string `json:"notes"`
+}
+
+func CreateTagToNotesArrayIfNotExists(projectPath string, tag string) error {
+	tagDir := filepath.Join(projectPath, "tags", tag)
+	pathToTagToNotesArray := filepath.Join(tagDir, "notes.json")
+
+	// Ensure the "tags" directory exists
+	if err := os.MkdirAll(tagDir, os.ModePerm); err != nil {
+		return err
+	}
+
+	err := io_helpers.CreateFileIfNotExist(pathToTagToNotesArray)
+
+	if err != nil {
+		return err
+	}
+
+	tagToNotesArray := TagsToNotesArray{}
+	if err = io_helpers.ReadJsonFromPath(pathToTagToNotesArray, &tagToNotesArray); err != nil {
+		err = io_helpers.WriteJsonToPath(
+			pathToTagToNotesArray,
+			TagsToNotesArray{Notes: []string{}},
+		)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // CreateNoteToTagsMapIfNotExists ensures that the note-to-tags map exists.
@@ -33,7 +67,7 @@ func CreateNoteToTagsMapIfNotExists(projectPath string) error {
 	if err = io_helpers.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
 		err = io_helpers.WriteJsonToPath(
 			pathToNoteToTagsMap,
-			NotesToTagsMap{Data: map[string][]string{}},
+			NotesToTagsMap{Tags: map[string][]string{}},
 		)
 
 		if err != nil {
@@ -54,10 +88,10 @@ func AddNotesToTagsMap(projectPath string, notes []string, tags []string) error 
 	}
 
 	for _, note := range notes {
-		if existingTags, exists := notesToTagsMap.Data[note]; exists {
-			notesToTagsMap.Data[note] = append(existingTags, tags...)
+		if existingTags, exists := notesToTagsMap.Tags[note]; exists {
+			notesToTagsMap.Tags[note] = append(existingTags, tags...)
 		} else {
-			notesToTagsMap.Data[note] = tags
+			notesToTagsMap.Tags[note] = tags
 		}
 	}
 
@@ -78,14 +112,14 @@ func DeleteNotesFromTagsMap(projectPath string, notes []string, tags []string) e
 	}
 
 	for _, note := range notes {
-		notesToTagsMap.Data[note] = list_helpers.Filter(
-			notesToTagsMap.Data[note],
+		notesToTagsMap.Tags[note] = list_helpers.Filter(
+			notesToTagsMap.Tags[note],
 			func(curTag string) bool {
 				return !slices.Contains(tags, curTag)
 			},
 		)
-		if len(notesToTagsMap.Data[note]) == 0 {
-			delete(notesToTagsMap.Data, note)
+		if len(notesToTagsMap.Tags[note]) == 0 {
+			delete(notesToTagsMap.Tags, note)
 		}
 	}
 
