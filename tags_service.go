@@ -11,39 +11,12 @@ import (
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/list_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
+	"github.com/etesam913/bytebook/lib/tags_helper"
 	"golang.org/x/exp/slices"
 )
 
 type TagsService struct {
 	ProjectPath string
-}
-
-// createTagFiles creates the necessary files and folders for a given tag.
-// Parameters:
-//
-//	projectPath: The root path of the project.
-//	tagName: The name of the tag to create.
-//	notePaths: A list of note paths to associate with the tag.
-//
-// Returns:
-//
-//	An error if the operation fails, otherwise nil.
-func createTagFiles(projectPath string, tagName string, folderAndNotePaths []string) error {
-	pathToTag := filepath.Join(projectPath, "tags", tagName)
-	err := io_helpers.CreateFolderIfNotExist(pathToTag)
-	if err != nil {
-		return err
-	}
-
-	pathToTagJson := filepath.Join(pathToTag, "notes.json")
-	err = io_helpers.WriteJsonToPath(pathToTagJson, project_types.TagJson{
-		Notes: folderAndNotePaths,
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 /*
@@ -53,34 +26,25 @@ If the tag does not exist, it creates the tag and associates the note path with 
 func addPathToTag(projectPath, tagName, folderAndNotePathWithoutQueryParam string) project_types.BackendResponseWithoutData {
 	pathToTagFolder := filepath.Join(projectPath, "tags", tagName)
 	pathToTagFile := filepath.Join(pathToTagFolder, "notes.json")
-
-	if exists, _ := io_helpers.FileOrFolderExists(pathToTagFile); !exists {
-		if err := createTagFiles(projectPath, tagName, []string{folderAndNotePathWithoutQueryParam}); err != nil {
-			return project_types.BackendResponseWithoutData{
-				Success: false,
-				Message: "Something went wrong when adding the tag. Please try again later",
-			}
+	tags_helper.CreateTagToNotesArrayIfNotExists(projectPath, tagName)
+	var tagJson project_types.TagJson
+	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: "Something went wrong when adding the tag. Please try again later",
 		}
-	} else {
-		var tagJson project_types.TagJson
-		if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
-			return project_types.BackendResponseWithoutData{
-				Success: false,
-				Message: "Something went wrong when adding the tag. Please try again later",
-			}
-		}
+	}
 
-		// Check if notePath already exists in tagJson.Notes
-		if slices0.Contains(tagJson.Notes, folderAndNotePathWithoutQueryParam) {
-			return project_types.BackendResponseWithoutData{Success: true, Message: "Successfully Added Path To Tag"}
-		}
+	// Check if notePath already exists in tagJson.Notes
+	if slices0.Contains(tagJson.Notes, folderAndNotePathWithoutQueryParam) {
+		return project_types.BackendResponseWithoutData{Success: true, Message: "Successfully Added Path To Tag"}
+	}
 
-		tagJson.Notes = append(tagJson.Notes, folderAndNotePathWithoutQueryParam)
-		if err := io_helpers.WriteJsonToPath(pathToTagFile, tagJson); err != nil {
-			return project_types.BackendResponseWithoutData{
-				Success: false,
-				Message: "Something went wrong when writing the tag to file. Please try again later",
-			}
+	tagJson.Notes = append(tagJson.Notes, folderAndNotePathWithoutQueryParam)
+	if err := io_helpers.WriteJsonToPath(pathToTagFile, tagJson); err != nil {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: "Something went wrong when writing the tag to file. Please try again later",
 		}
 	}
 
