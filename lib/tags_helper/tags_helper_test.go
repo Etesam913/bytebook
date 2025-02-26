@@ -45,3 +45,50 @@ func TestCreateNoteToTagsMapIfNotExists(t *testing.T) {
 		})
 	})
 }
+
+func TestAddNotesToTagsMap(t *testing.T) {
+	t.Run("Adds notes and tags to the map", func(t *testing.T) {
+		tempDir, pathToFile := setupTempDir(t)
+		tags_helper.CreateNoteToTagsMapIfNotExists(tempDir)
+		expected := tags_helper.NotesToTagsMap{Data: map[string][]string{"note1": {"tag1", "tag2"}, "note2": {"tag3"}}}
+
+		err := tags_helper.AddNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag1"})
+		assert.NoError(t, err)
+		// Testing the append code branch
+		err = tags_helper.AddNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag2"})
+		assert.NoError(t, err)
+		err = tags_helper.AddNotesToTagsMap(tempDir, []string{"note2"}, []string{"tag3"})
+		assert.NoError(t, err)
+
+		notesToTagsMap := tags_helper.NotesToTagsMap{}
+		io_helpers.ReadJsonFromPath(pathToFile, &notesToTagsMap)
+
+		assert.Equal(t, expected, notesToTagsMap, "Expected notes and tags to be added to the map")
+	})
+}
+
+func TestDeleteNotesFromTagsMap(t *testing.T) {
+	t.Run("Deletes notes and tags from the map", func(t *testing.T) {
+		tempDir, pathToFile := setupTempDir(t)
+		tags_helper.CreateNoteToTagsMapIfNotExists(tempDir)
+		expected := tags_helper.NotesToTagsMap{Data: map[string][]string{"note1": {"tag1"}}}
+
+		err := tags_helper.AddNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag1"})
+		assert.NoError(t, err)
+		// Testing the append code branch
+		err = tags_helper.AddNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag2"})
+		assert.NoError(t, err)
+		err = tags_helper.AddNotesToTagsMap(tempDir, []string{"note2"}, []string{"tag3"})
+		assert.NoError(t, err)
+
+		err = tags_helper.DeleteNotesFromTagsMap(tempDir, []string{"note1"}, []string{"tag2"})
+		assert.NoError(t, err)
+		err = tags_helper.DeleteNotesFromTagsMap(tempDir, []string{"note2"}, []string{"tag3"})
+		assert.NoError(t, err)
+
+		notesToTagsMap := tags_helper.NotesToTagsMap{}
+		io_helpers.ReadJsonFromPath(pathToFile, &notesToTagsMap)
+
+		assert.Equal(t, expected, notesToTagsMap, "Expected notes and tags to be removed from the map")
+	})
+}
