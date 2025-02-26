@@ -6,3 +6,13 @@
 ```
 wails3 dev --port 5173
 ```
+## 🧪 Tests
+### golang
+```bash
+gotestsum --watch
+```
+
+### react
+```
+tbd
+```

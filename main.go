@@ -13,6 +13,7 @@ import (
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/menus"
 	"github.com/etesam913/bytebook/lib/project_helpers"
+	"github.com/etesam913/bytebook/lib/tags_helper"
 	"github.com/etesam913/bytebook/lib/terminal_helpers"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -42,6 +43,13 @@ func main() {
 	if err := os.MkdirAll(notesPath, os.ModePerm); err != nil {
 		log.Fatalf("Failed to create notes directory: %v", err)
 	}
+
+	// Creating tags map
+	if err := tags_helper.CreateNoteToTagsMapIfNotExists(projectPath); err != nil {
+		log.Fatalf("Failed to create note to tags map: %v", err)
+	}
+
+	// Retrieving project settings
 	projectSettings := project_helpers.GetProjectSettings(projectPath)
 	if !projectSettings.Success {
 		log.Fatalf("Failed to create/get project settings")

@@ -245,24 +245,44 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) project_types
 	}
 }
 
-// CreateFolderIfNotExist creates a folder at the specified pathname if it does not already exist.
+func CreateFolderIfNotExist(pathname string) error {
+	// Create the directory structure if it doesn't exist
+	err := os.MkdirAll(pathname, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// CreateFileIfNotExist creates a file at the specified pathname if it does not already exist.
 // Parameters:
 //
-//	pathname: The path where the folder should be created.
+//	pathname: The path where the file should be created.
 //
 // Returns:
 //
 //	An error if the creation process fails, otherwise nil.
-func CreateFolderIfNotExist(pathname string) error {
-	// Check if the folder already exists.
-	if _, err := os.Stat(pathname); os.IsNotExist(err) {
-		// If the folder does not exist, create it.
-		err := os.Mkdir(pathname, os.ModePerm)
+func CreateFileIfNotExist(pathname string) error {
+	// Check if the file already exists using FileOrFolderExists.
+	exists, err := FileOrFolderExists(pathname)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		// Create the directory structure if it doesn't exist
+		dir := filepath.Dir(pathname)
+		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+			return err
+		}
+
+		// If the file does not exist, create it.
+		file, err := os.Create(pathname)
 		if err != nil {
 			return err
 		}
+		defer file.Close()
 	}
-	// If the folder already exists, do nothing.
+	// If the file already exists, do nothing.
 	return nil
 }
 
