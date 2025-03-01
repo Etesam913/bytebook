@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	slices0 "slices"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/etesam913/bytebook/lib/note_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/etesam913/bytebook/lib/tags_helper"
-	"golang.org/x/exp/slices"
 )
 
 type TagsService struct {
@@ -242,76 +240,18 @@ func (t *TagsService) DeletePathFromTag(tagName string, folderAndNotePathWithout
 	}
 }
 
-// doesFolderAndNoteExist checks if a given folder and note exists
-// Parameters:
-//
-//	projectPath: The root path of the project.
-//	folderAndNote: The folder and note path in the format "folder/note".
-//	tagName: The tag name to check for in the note.
-//
-// Returns:
-//
-//	A boolean indicating whether the note exists
-func doesFolderAndNoteExist(projectPath, folderAndNote string) bool {
-	folderAndNoteArr := strings.Split(folderAndNote, "/")
-	folder := folderAndNoteArr[0]
-	note := folderAndNoteArr[1]
-
-	pathToNote := filepath.Join(projectPath, "notes", folder, note)
-	if exists, _ := io_helpers.FileOrFolderExists(pathToNote); !exists {
-		return false
-	}
-	return true
-}
-
 /*
 GetTags retrieves a list of all tag names in the project.
 It scans the "tags" directory within the project path and returns the names of all subdirectories.
 */
 func (t *TagsService) GetTags() project_types.BackendResponseWithData[[]string] {
-	tagsPath := filepath.Join(t.ProjectPath, "tags")
-	tagFolders, err := os.ReadDir(tagsPath)
+	tags, err := tags_helper.GetAllTags(t.ProjectPath)
 	if err != nil {
 		return project_types.BackendResponseWithData[[]string]{
 			Success: false,
-			Message: "Something went wrong when fetching tags. Please try again later",
+			Message: "Something went wrong when retrieving tags. Please try again later",
 			Data:    nil,
 		}
-	}
-
-	var tags []string
-
-	for _, tagFolder := range tagFolders {
-		if !tagFolder.IsDir() {
-			continue
-		}
-
-		pathToTagNotes := filepath.Join(tagsPath, tagFolder.Name(), "notes.json")
-		var tagJson project_types.TagJson
-		if err := io_helpers.ReadJsonFromPath(pathToTagNotes, &tagJson); err != nil {
-			continue
-		}
-		validatedFolderAndNotes := []string{}
-
-		/*
-			Goes through each path in a notes.json and checks if the
-			note at the given path exists
-		*/
-		for _, folderAndNoteString := range tagJson.Notes {
-			if doesContainTag := doesFolderAndNoteExist(t.ProjectPath, folderAndNoteString); !doesContainTag {
-				continue
-			}
-
-			validatedFolderAndNotes = append(validatedFolderAndNotes, folderAndNoteString)
-		}
-
-		// Only write to JSON if validatedFolderAndNotes is different from tagJson.Notes
-		if !slices.Equal(tagJson.Notes, validatedFolderAndNotes) {
-			tagJson.Notes = validatedFolderAndNotes
-			io_helpers.WriteJsonToPath(pathToTagNotes, tagJson)
-		}
-
-		tags = append(tags, tagFolder.Name())
 	}
 
 	return project_types.BackendResponseWithData[[]string]{

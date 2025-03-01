@@ -1,6 +1,7 @@
 package tags_helper_test
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -28,6 +29,55 @@ func getNotesToTagsFilePath(projectPath string) string {
 // getTagNotesFilePath returns the path to the notes.json file for a given tag under the project.
 func getTagNotesFilePath(projectPath, tag string) string {
 	return filepath.Join(projectPath, TagsDir, tag, TagNotesFile)
+}
+
+func TestGetAllTags(t *testing.T) {
+	t.Run("creates tags folder if it does not exist", func(t *testing.T) {
+		tempDir := t.TempDir()
+		// Do not pre-create the "tags" folder.
+		tags, err := tags_helper.GetAllTags(tempDir)
+		assert.NoError(t, err)
+
+		// Verify that the "tags" folder was created.
+		tagsFolder := filepath.Join(tempDir, "tags")
+		_, err = os.Stat(tagsFolder)
+		assert.NoError(t, err, "Expected tags folder to be created")
+
+		// Since no tag directories exist, the returned slice should be empty.
+		assert.Empty(t, tags, "Expected no tags when none have been added")
+	})
+
+	t.Run("returns empty slice when tags folder is empty", func(t *testing.T) {
+		tempDir := t.TempDir()
+		// Manually create an empty "tags" folder.
+		tagsFolder := filepath.Join(tempDir, "tags")
+		err := os.MkdirAll(tagsFolder, os.ModePerm)
+		assert.NoError(t, err)
+
+		tags, err := tags_helper.GetAllTags(tempDir)
+		assert.NoError(t, err)
+		assert.Empty(t, tags, "Expected empty slice when no tag directories exist")
+	})
+
+	t.Run("returns tag directories when present", func(t *testing.T) {
+		tempDir := t.TempDir()
+		tagsFolder := filepath.Join(tempDir, "tags")
+		err := os.MkdirAll(tagsFolder, os.ModePerm)
+		assert.NoError(t, err)
+
+		// Create several tag directories.
+		expectedTags := []string{"tag1", "tag2", "tag3"}
+		for _, tag := range expectedTags {
+			tagPath := filepath.Join(tagsFolder, tag)
+			err := os.Mkdir(tagPath, os.ModePerm)
+			assert.NoError(t, err)
+		}
+
+		tags, err := tags_helper.GetAllTags(tempDir)
+		assert.NoError(t, err)
+		// Since order is not guaranteed, use ElementsMatch.
+		assert.ElementsMatch(t, expectedTags, tags, "Expected list of tag directories to match")
+	})
 }
 
 func TestCreateTagToNotesArrayIfNotExists(t *testing.T) {

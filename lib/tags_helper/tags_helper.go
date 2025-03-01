@@ -17,6 +17,27 @@ type TagsToNotesArray struct {
 	Notes []string `json:"notes"`
 }
 
+func GetAllTags(projectPath string) ([]string, error) {
+	tags := []string{}
+	tagsFolder := filepath.Join(projectPath, "tags")
+
+	// Ensure the "tags" directory exists
+	if err := os.MkdirAll(tagsFolder, os.ModePerm); err != nil {
+		return nil, err
+	}
+
+	tagFolders, err := os.ReadDir(tagsFolder)
+	if err != nil {
+		return nil, err
+	}
+	for _, tagFolder := range tagFolders {
+		if tagFolder.IsDir() {
+			tags = append(tags, tagFolder.Name())
+		}
+	}
+	return tags, nil
+}
+
 // CreateTagToNotesArrayIfNotExists creates notes.json file for the given tag.
 func CreateTagToNotesArrayIfNotExists(projectPath string, tag string) error {
 	tagDir := filepath.Join(projectPath, "tags", tag)
