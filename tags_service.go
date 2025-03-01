@@ -10,6 +10,7 @@ import (
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/list_helpers"
+	"github.com/etesam913/bytebook/lib/note_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/etesam913/bytebook/lib/tags_helper"
 	"golang.org/x/exp/slices"
@@ -27,7 +28,8 @@ func addPathToTag(projectPath, tagName, folderAndNotePathWithoutQueryParam strin
 	pathToTagFolder := filepath.Join(projectPath, "tags", tagName)
 	pathToTagFile := filepath.Join(pathToTagFolder, "notes.json")
 	tags_helper.CreateTagToNotesArrayIfNotExists(projectPath, tagName)
-	var tagJson project_types.TagJson
+
+	tagJson := project_types.TagJson{}
 	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
 		return project_types.BackendResponseWithoutData{
 			Success: false,
@@ -324,18 +326,21 @@ GetNotesFromTag retrieves the note paths associated with a given tag name.
 It reads the "notes.json" file within the tag's directory and returns the note paths with query params.
 */
 func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project_types.NoteResponse {
-	pathToTagFile := filepath.Join(t.ProjectPath, "tags", tagName, "notes.json")
-
-	if exists, _ := io_helpers.FileOrFolderExists(pathToTagFile); !exists {
+	err := tags_helper.CreateTagToNotesArrayIfNotExists(t.ProjectPath, tagName)
+	if err != nil {
 		return project_types.NoteResponse{
 			Success: false,
-			Message: "Tag does not exist",
+			Message: "Something went wrong when retrieving the tagged notes. Please try again later",
 			Data:    []string{},
 		}
 	}
 
-	var tagJson project_types.TagJson
-	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
+	pathToTagFile := filepath.Join(t.ProjectPath, "tags", tagName, "notes.json")
+	notesForGivenTagData := tags_helper.TagsToNotesArray{}
+
+	// TODO: Add a validation step to ensure that the paths all still exist
+
+	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &notesForGivenTagData); err != nil {
 		return project_types.NoteResponse{
 			Success: false,
 			Message: "Something went wrong when fetching the tag. Please try again later",
@@ -343,57 +348,33 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 		}
 	}
 
-	notes := []list_helpers.NoteWithFolder{}
-
-	// Using the query param syntax that the app supports
-	for _, folderAndNoteString := range tagJson.Notes {
-		// Check if the note exists
-		if doesContainTag := doesFolderAndNoteExist(t.ProjectPath, folderAndNoteString); !doesContainTag {
+	notesFileInfo := []list_helpers.NoteWithFolder{}
+	for _, notePath := range notesForGivenTagData.Notes {
+		fullNotePath := filepath.Join(t.ProjectPath, "notes", notePath)
+		fileInfo, err := os.Stat(fullNotePath)
+		if err != nil || fileInfo.IsDir() {
 			continue
 		}
-
-		folderAndNoteArr := strings.Split(folderAndNoteString, "/")
-		if len(folderAndNoteArr) < 2 {
-			continue // Invalid format
-		}
-		folder := folderAndNoteArr[0]
-		note := folderAndNoteArr[1]
-
-		fullPath := filepath.Join(t.ProjectPath, "notes", folder, note)
-		fileInfo, err := os.Stat(fullPath)
+		frontendFileInfo, err := note_helpers.ConvertFileNameForFrontendUrl(notePath)
 		if err != nil {
-			// File does not exist or other error, skip
-			continue
-		}
-		if fileInfo.IsDir() {
-			// It's a directory, skip
 			continue
 		}
 
-		// Extract extension
-		ext := filepath.Ext(note)
-		name := strings.TrimSuffix(note, ext)
-		ext = strings.TrimPrefix(ext, ".")
-
-		notes = append(notes, list_helpers.NoteWithFolder{
-			Folder:  folder,
-			Name:    name,
-			ModTime: fileInfo.ModTime(),
-			Size:    fileInfo.Size(),
-			Ext:     ext,
-		})
+		notesFileInfo = append(
+			notesFileInfo,
+			list_helpers.NoteWithFolder{
+				Folder:  frontendFileInfo.Directory,
+				Name:    frontendFileInfo.FileName,
+				ModTime: fileInfo.ModTime(),
+				Size:    fileInfo.Size(),
+				Ext:     frontendFileInfo.Extension,
+			},
+		)
 	}
-
-	// Sort the notes
-	list_helpers.SortNotesWithFolders(notes, sortOption)
-
-	// Prepare the sorted notes
-	sortedNotes := []string{}
-	for _, note := range notes {
-		sortedNotes = append(
-			sortedNotes,
-			fmt.Sprintf("%s/%s?ext=%s", note.Folder, note.Name, note.Ext))
-	}
+	list_helpers.SortNotesWithFolders(notesFileInfo, sortOption)
+	sortedNotes := list_helpers.Map(notesFileInfo, func(noteInfo list_helpers.NoteWithFolder) string {
+		return noteInfo.Folder + noteInfo.Name + "?ext=" + noteInfo.Ext
+	})
 
 	return project_types.NoteResponse{
 		Success: true,

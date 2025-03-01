@@ -29,10 +29,10 @@ func TestConvertFileNameForFrontendUrl(t *testing.T) {
 			result, err := note_helpers.ConvertFileNameForFrontendUrl(test.input)
 			if test.expectError {
 				assert.Error(t, err)
-				assert.Equal(t, "", result)
+				assert.Empty(t, result.URL)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, test.expected, result)
+				assert.Equal(t, test.expected, result.URL)
 			}
 		})
 	}

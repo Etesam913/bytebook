@@ -70,30 +70,56 @@ type URLMatch struct {
 	AltText string
 }
 
-// ConvertFileNameForFrontendUrl converts a file path to a frontend-friendly URL format.
-// It takes the directory and file name, removes the file extension, and appends it as a query parameter.
-// Example: "path/to/file.jpg" becomes "path/to/file?ext=jpg".
-func ConvertFileNameForFrontendUrl(pathToFile string) (string, error) {
-	if len(strings.Trim(pathToFile, " ")) == 0 {
-		return "", errors.New("Empty pathToFile")
+type FrontendFileInfo struct {
+	URL       string // Frontend-friendly URL (e.g., "path/to/file?ext=jpg")
+	FileName  string // File name without extension
+	Directory string // File directory with trailing slash
+	Extension string // File extension without the dot (e.g., "jpg")
+}
+
+func ConvertFileNameForFrontendUrl(pathToFile string) (FrontendFileInfo, error) {
+	// Validate input
+	if len(strings.TrimSpace(pathToFile)) == 0 {
+		return FrontendFileInfo{}, errors.New("Empty pathToFile")
 	}
+
+	// Get file directory and file name with extension
 	fileDir := filepath.Dir(pathToFile)
 	fileNameWithExtension := filepath.Base(pathToFile)
+
+	// Check for a valid file name
 	if len(fileNameWithExtension) == 0 || fileNameWithExtension == "." || strings.HasPrefix(fileNameWithExtension, ".") {
-		return "", errors.New("Invalid file name")
+		return FrontendFileInfo{}, errors.New("Invalid file name")
 	}
+
+	// Extract the file extension
 	fileExtension := filepath.Ext(fileNameWithExtension)
-	if len(strings.Trim(fileExtension, " ")) == 0 {
-		return "", errors.New("Invalid file extension")
+	if len(strings.TrimSpace(fileExtension)) == 0 {
+		return FrontendFileInfo{}, errors.New("Invalid file extension")
 	}
+
+	// Remove the file extension from the file name
 	fileNameWithoutExtension := fileNameWithExtension[:len(fileNameWithExtension)-len(fileExtension)]
-	if len(strings.Trim(fileNameWithExtension, " ")) == 0 {
-		return "", errors.New("Invalid file name")
+	if len(strings.TrimSpace(fileNameWithoutExtension)) == 0 {
+		return FrontendFileInfo{}, errors.New("Invalid file name")
 	}
-	if fileDir[len(fileDir)-1] != '/' {
+
+	// Ensure the file directory ends with a '/'
+	if fileDir == "." {
+		fileDir = "" // current directory
+	} else if len(fileDir) > 0 && fileDir[len(fileDir)-1] != '/' {
 		fileDir += "/"
 	}
-	return fileDir + fileNameWithoutExtension + "?ext=" + fileExtension[1:], nil
+
+	// Create the frontend-friendly URL
+	frontendUrl := fileDir + fileNameWithoutExtension + "?ext=" + fileExtension[1:]
+
+	return FrontendFileInfo{
+		URL:       frontendUrl,
+		FileName:  fileNameWithoutExtension,
+		Directory: fileDir,
+		Extension: fileExtension[1:], // exclude the dot
+	}, nil
 }
 
 // replaceLocalURL updates the folder name in a localhost URL

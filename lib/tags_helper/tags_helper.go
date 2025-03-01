@@ -17,6 +17,7 @@ type TagsToNotesArray struct {
 	Notes []string `json:"notes"`
 }
 
+// CreateTagToNotesArrayIfNotExists creates notes.json file for the given tag.
 func CreateTagToNotesArrayIfNotExists(projectPath string, tag string) error {
 	tagDir := filepath.Join(projectPath, "tags", tag)
 	pathToTagToNotesArray := filepath.Join(tagDir, "notes.json")
