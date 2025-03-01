@@ -51,7 +51,7 @@ export function BottomBar({
 }) {
 	const [lastUpdatedText, setLastUpdatedText] = useState("");
 
-	const { data: tags, isLoading } = useTagsForNoteQuery(folder, note, ext);
+	const { data: tagsMap, isLoading } = useTagsForNoteQuery(folder, note, ext);
 	const { mutate: deleteTag } = useDeleteTagsMutation(folder, note, ext);
 	const { mutateAsync: addTagsToNotes } = useAddTagsMutation();
 
@@ -74,17 +74,19 @@ export function BottomBar({
 		};
 	}, [frontmatter]);
 
-	const tagElements = (tags ?? []).map((tagName) => {
-		return (
-			<Tag
-				key={tagName}
-				tagName={tagName}
-				onClick={() => {
-					deleteTag({ tagName });
-				}}
-			/>
-		);
-	});
+	const tagElements = (tagsMap?.[`${folder}/${note}.${ext}`] ?? []).map(
+		(tagName) => {
+			return (
+				<Tag
+					key={tagName}
+					tagName={tagName}
+					onClick={() => {
+						deleteTag({ tagName });
+					}}
+				/>
+			);
+		},
+	);
 
 	return (
 		<footer className="text-xs ml-[-4.5px] border-t border-gray-200 dark:border-gray-600 py-1.5 px-3 flex items-center gap-4 overflow-x-auto overflow-y-hidden">

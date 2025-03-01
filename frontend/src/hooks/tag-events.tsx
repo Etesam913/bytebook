@@ -9,8 +9,7 @@ import { type StringRouteParams, useRoute } from "wouter";
 import {
 	DeleteTagsFromNotes,
 	GetTags,
-	GetTagsForFolderAndNotePath,
-	GetTagsForFolderAndNotesPaths,
+	GetTagsForNotes,
 } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
 import { useWailsEvent } from "../hooks/events";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
@@ -112,9 +111,7 @@ export function useTagsForNoteQuery(folder: string, note: string, ext: string) {
 	return useQuery({
 		queryKey: ["note-tags", folder, note, ext],
 		queryFn: async () => {
-			const res = await GetTagsForFolderAndNotePath(
-				`${folder}/${note}?ext=${ext}`,
-			);
+			const res = await GetTagsForNotes([`${folder}/${note}.${ext}`]);
 			return res.data;
 		},
 	});
@@ -130,7 +127,7 @@ export function useTagsForNotesQuery(folder: string, notes: string[]) {
 	return useQuery({
 		queryKey: ["notes-tags", folder, notes],
 		queryFn: async () => {
-			const res = await GetTagsForFolderAndNotesPaths(
+			const res = await GetTagsForNotes(
 				notes.map((note) => `${folder}/${note}`),
 			);
 			return res.data;

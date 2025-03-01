@@ -1,12 +1,14 @@
 package tags_helper
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"slices"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/list_helpers"
+	"github.com/etesam913/bytebook/lib/map_helpers"
 )
 
 type NotesToTagsMap struct {
@@ -158,6 +160,31 @@ func CreateNoteToTagsMapIfNotExists(projectPath string) error {
 	return nil
 }
 
+func GetTagsForNotes(projectPath string, notes []string) (map[string][]string, error) {
+	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
+
+	err := CreateNoteToTagsMapIfNotExists(projectPath)
+
+	if err != nil {
+		return map[string][]string{}, err
+	}
+
+	notesToTagsMap := NotesToTagsMap{}
+	if err := io_helpers.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
+		return map[string][]string{}, err
+	}
+	notesToTagsMapForDesiredNotes := map[string][]string{}
+	for _, note := range notes {
+		if tags, exists := notesToTagsMap.Notes[note]; exists {
+			notesToTagsMapForDesiredNotes[note] = tags
+		} else {
+			return map[string][]string{}, errors.New("note does not have any tags")
+		}
+	}
+
+	return notesToTagsMapForDesiredNotes, nil
+}
+
 // AddNoteToTagsMap adds key-value pairs to the notes_to_tags.json file.
 func AddTagsToNotesToTagsMap(projectPath string, notes []string, tags []string) error {
 	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
@@ -189,8 +216,41 @@ func AddTagsToNotesToTagsMap(projectPath string, notes []string, tags []string) 
 	return nil
 }
 
+func DeleteStaleTagsFromNotesToTagsMap(projectPath string, staleTags map_helpers.Set[string]) error {
+	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
+
+	err := CreateNoteToTagsMapIfNotExists(projectPath)
+
+	if err != nil {
+		return err
+	}
+
+	notesToTagsMap := NotesToTagsMap{}
+	if err := io_helpers.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
+		return err
+	}
+
+	for note, tagsForNote := range notesToTagsMap.Notes {
+		notesToTagsMap.Notes[note] = list_helpers.Filter(
+			tagsForNote,
+			func(tagName string) bool {
+				return !staleTags.Has(tagName)
+			},
+		)
+		if len(notesToTagsMap.Notes[note]) == 0 {
+			delete(notesToTagsMap.Notes, note)
+		}
+	}
+
+	if err := io_helpers.WriteJsonToPath(pathToNoteToTagsMap, notesToTagsMap); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DeleteNoteFromTagsMap deletes key-value pairs from the notes_to_tags.json file.
-func DeleteTagsFromNotesFromTagsMap(projectPath string, notes []string, tags []string) error {
+func DeleteTagsFromNotesToTagsMap(projectPath string, notes []string, tags []string) error {
 	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
 
 	err := CreateNoteToTagsMapIfNotExists(projectPath)

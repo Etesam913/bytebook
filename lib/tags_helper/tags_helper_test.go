@@ -6,8 +6,10 @@ import (
 	"testing"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/lib/map_helpers"
 	"github.com/etesam913/bytebook/lib/tags_helper"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -276,6 +278,32 @@ func TestCreateNoteToTagsMapIfNotExists(t *testing.T) {
 	})
 }
 
+func TestGetTagsForNote(t *testing.T) {
+	// Create a temporary project directory.
+	projectPath := t.TempDir()
+
+	err := tags_helper.AddTagsToNotesToTagsMap(projectPath, []string{"note1", "note2"}, []string{"tag1", "tag2"})
+	require.NoError(t, err)
+
+	t.Run("returns tags when note exists", func(t *testing.T) {
+		tags, err := tags_helper.GetTagsForNotes(projectPath, []string{"note1", "note2"})
+		assert.NoError(t, err)
+		// Verify that the returned tags match what we expect using assert.Equal for maps.
+		expected := map[string][]string{
+			"note1": {"tag1", "tag2"},
+			"note2": {"tag1", "tag2"},
+		}
+		assert.Equal(t, expected, tags)
+	})
+
+	t.Run("returns error when note does not exist", func(t *testing.T) {
+		tags, err := tags_helper.GetTagsForNotes(projectPath, []string{"note3"})
+		assert.Error(t, err)
+		assert.Equal(t, map[string][]string{}, tags)
+		assert.Equal(t, "note does not have any tags", err.Error())
+	})
+}
+
 func TestAddTagsToNotesToTagsMap(t *testing.T) {
 	t.Run("Adds notes and tags to the map", func(t *testing.T) {
 		tempDir := t.TempDir()
@@ -297,6 +325,44 @@ func TestAddTagsToNotesToTagsMap(t *testing.T) {
 	})
 }
 
+func TestDeleteStaleTagsFromNotesToTagsMap(t *testing.T) {
+	// Create a temporary project directory.
+	projectPath := t.TempDir()
+	notesToTagsFile := getNotesToTagsFilePath(projectPath)
+	// Setup: Write an initial notes_to_tags.json file with some tags for each note.
+	err := tags_helper.AddTagsToNotesToTagsMap(projectPath, []string{"note1"}, []string{"tag1", "tag2", "tag3"})
+	err = tags_helper.AddTagsToNotesToTagsMap(projectPath, []string{"note2"}, []string{"tag2", "tag5"})
+	err = tags_helper.AddTagsToNotesToTagsMap(projectPath, []string{"note3"}, []string{"tag5", "tag1"})
+	require.NoError(t, err)
+
+	// Create a staleTags set containing "tag2" and "tag5".
+	staleTags := map_helpers.Set[string]{}
+	staleTags.Add("tag2")
+	staleTags.Add("tag5")
+
+	// Execute the function under test.
+	err = tags_helper.DeleteStaleTagsFromNotesToTagsMap(projectPath, staleTags)
+	require.NoError(t, err)
+
+	// Read back the updated notes_to_tags.json file.
+	var updatedMap tags_helper.NotesToTagsMap
+	err = io_helpers.ReadJsonFromPath(notesToTagsFile, &updatedMap)
+	require.NoError(t, err)
+
+	// Expected result:
+	// - "note1": "tag2" removed → {"tag1", "tag3"}
+	// - "note2": "tag2", "tag5" removed → {}
+	// - "note3": "tag5" removed → {"tag1"}
+	expectedMap := tags_helper.NotesToTagsMap{
+		Notes: map[string][]string{
+			"note1": {"tag1", "tag3"},
+			"note3": {"tag1"},
+		},
+	}
+
+	assert.Equal(t, expectedMap, updatedMap)
+}
+
 func TestDeleteTagsFromNotesFromTagsMap(t *testing.T) {
 	t.Run("Deletes notes and tags from the map", func(t *testing.T) {
 		tempDir := t.TempDir()
@@ -312,9 +378,9 @@ func TestDeleteTagsFromNotesFromTagsMap(t *testing.T) {
 		err = tags_helper.AddTagsToNotesToTagsMap(tempDir, []string{"note2"}, []string{"tag3"})
 		assert.NoError(t, err)
 
-		err = tags_helper.DeleteTagsFromNotesFromTagsMap(tempDir, []string{"note1"}, []string{"tag2"})
+		err = tags_helper.DeleteTagsFromNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag2"})
 		assert.NoError(t, err)
-		err = tags_helper.DeleteTagsFromNotesFromTagsMap(tempDir, []string{"note2"}, []string{"tag3"})
+		err = tags_helper.DeleteTagsFromNotesToTagsMap(tempDir, []string{"note2"}, []string{"tag3"})
 		assert.NoError(t, err)
 
 		var notesToTagsMap tags_helper.NotesToTagsMap

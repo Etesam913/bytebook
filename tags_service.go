@@ -7,6 +7,7 @@ import (
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/list_helpers"
+	"github.com/etesam913/bytebook/lib/map_helpers"
 	"github.com/etesam913/bytebook/lib/note_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/etesam913/bytebook/lib/tags_helper"
@@ -35,6 +36,19 @@ func (t *TagsService) DeleteTags(tagNames []string) project_types.BackendRespons
 			failedTagsToDelete = append(failedTagsToDelete, tagName)
 		}
 	}
+
+	err := tags_helper.DeleteStaleTagsFromNotesToTagsMap(
+		t.ProjectPath,
+		map_helpers.SliceToSet(tagNames),
+	)
+
+	if err != nil {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: "Failed to delete the tags:",
+		}
+	}
+
 	if len(failedTagsToDelete) > 0 {
 		return project_types.BackendResponseWithoutData{
 			Success: false,
@@ -54,12 +68,15 @@ If a tag does not exist, it creates the tag and associates the note paths with i
 */
 func (t *TagsService) AddTagsToNotes(tagNames []string, folderAndNotePathsWithoutQueryParam []string) project_types.BackendResponseWithoutData {
 	didError := false
+	// Adds the notes to the notes.json file for each tag
 	for _, tagName := range tagNames {
 		err := tags_helper.AddNotesToTagToNotesArray(t.ProjectPath, tagName, folderAndNotePathsWithoutQueryParam)
 		if err != nil {
 			didError = true
 		}
 	}
+
+	// Updates the map in the notes_to_tags.json file
 	err := tags_helper.AddTagsToNotesToTagsMap(t.ProjectPath, folderAndNotePathsWithoutQueryParam, tagNames)
 	if err != nil {
 		didError = true
@@ -78,11 +95,13 @@ func (t *TagsService) AddTagsToNotes(tagNames []string, folderAndNotePathsWithou
 	}
 }
 
-// DeletePathsFromTag uses the old DeletePathFromTag function to delete
-// multiple note paths from the specified tag in a single call.
+// DeleteTagsFromNotes removes specified note paths from the given tags.
+// For each tag in tagNames, it removes all folderAndNotePathsWithoutQueryParams from its notes.json.
+// If any operation fails, it returns a response indicating the failure.
 func (t *TagsService) DeleteTagsFromNotes(tagNames []string, folderAndNotePathsWithoutQueryParams []string) project_types.BackendResponseWithoutData {
 	didError := false
 	for _, tagName := range tagNames {
+		// Removes the notes from the notes.json file for each tag
 		err := tags_helper.DeleteNotesFromTagToNotesArray(
 			t.ProjectPath,
 			tagName,
@@ -92,6 +111,16 @@ func (t *TagsService) DeleteTagsFromNotes(tagNames []string, folderAndNotePathsW
 		if err != nil {
 			didError = true
 		}
+	}
+
+	err := tags_helper.DeleteTagsFromNotesToTagsMap(
+		t.ProjectPath,
+		folderAndNotePathsWithoutQueryParams,
+		tagNames,
+	)
+
+	if err != nil {
+		didError = true
 	}
 
 	if didError {
@@ -107,58 +136,21 @@ func (t *TagsService) DeleteTagsFromNotes(tagNames []string, folderAndNotePathsW
 	}
 }
 
-func (t *TagsService) GetTagsForFolderAndNotesPaths(folderAndNotePathsWithQueryParams []string) project_types.BackendResponseWithData[map[string][]string] {
+func (t *TagsService) GetTagsForNotes(folderAndNotePathsWithQueryParams []string) project_types.BackendResponseWithData[map[string][]string] {
 	// Initialize a map to store tags for each folder and note path
-	tagsForNotes := make(map[string][]string)
-
-	// Iterate through each folder and note path
-	for _, folderAndNotePathWithQueryParam := range folderAndNotePathsWithQueryParams {
-		// Use the existing GetTagsForFolderAndNotePath function to get tags for the current path
-		singlePathTagsResponse := t.GetTagsForFolderAndNotePath(folderAndNotePathWithQueryParam)
-
-		// Check if the response was successful
-		if !singlePathTagsResponse.Success {
-			return project_types.BackendResponseWithData[map[string][]string]{
-				Success: false,
-				Message: singlePathTagsResponse.Message,
-				Data:    nil,
-			}
+	noteToTagsMap, err := tags_helper.GetTagsForNotes(t.ProjectPath, folderAndNotePathsWithQueryParams)
+	if err != nil {
+		return project_types.BackendResponseWithData[map[string][]string]{
+			Success: false,
+			Message: "Failed to get tags for notes",
+			Data:    nil,
 		}
-
-		// Store the tags for the current path in the map
-		tagsForNotes[folderAndNotePathWithQueryParam] = singlePathTagsResponse.Data
 	}
 
 	return project_types.BackendResponseWithData[map[string][]string]{
 		Success: true,
 		Message: "Successfully retrieved tags for all specified paths.",
-		Data:    tagsForNotes,
-	}
-}
-
-func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryParam string) project_types.BackendResponseWithData[[]string] {
-	getTagsResponse := t.GetTags()
-	if !getTagsResponse.Success {
-		return getTagsResponse
-	}
-	tagsForNote := []string{}
-	allTags := getTagsResponse.Data
-	for _, tag := range allTags {
-		notesEntriesResponse := t.GetNotesFromTag(tag, "file-name-a-z")
-		notesResponse := []string{}
-		notesResponse = append(notesResponse, notesEntriesResponse.Data...)
-		notesWithQueryParamExtension := notesResponse
-		for _, folderAndNoteStringWithQueryParamFromFile := range notesWithQueryParamExtension {
-			if folderAndNotePathWithQueryParam == folderAndNoteStringWithQueryParamFromFile {
-				tagsForNote = append(tagsForNote, tag)
-			}
-		}
-	}
-
-	return project_types.BackendResponseWithData[[]string]{
-		Success: true,
-		Message: "Successfully retrieved tags.",
-		Data:    tagsForNote,
+		Data:    noteToTagsMap,
 	}
 }
 
