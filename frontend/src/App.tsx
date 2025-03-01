@@ -51,6 +51,7 @@ function App() {
 			<Toaster richColors theme="system" />
 			{!isNoteMaximized && <FolderSidebar width={folderSidebarWidth} />}
 			<Switch>
+				<Route path="/" />
 				<Route path="/tags/:tagName/:folder?/:note?">
 					{(folderParams) => (
 						<TagsSidebar
