@@ -7,7 +7,7 @@ import {
 import { toast } from "sonner";
 import { type StringRouteParams, useRoute } from "wouter";
 import {
-	DeletePathFromTag,
+	DeletePathsFromTag,
 	GetTags,
 	GetTagsForFolderAndNotePath,
 	GetTagsForFolderAndNotesPaths,
@@ -15,6 +15,8 @@ import {
 import { useWailsEvent } from "../hooks/events";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
 import { useSearchParamsEntries } from "../utils/routing";
+import { useAtomValue } from "jotai";
+import { noteSortAtom } from "../atoms";
 
 /**
  * Invalidates the query for note tags if the current folder, note, and extension are available.
@@ -65,13 +67,21 @@ export function useTags() {
 	const queryClient = useQueryClient();
 	const [, routeParams] = useRoute("/:folder/:note?");
 	const searchParams: { ext?: string } = useSearchParamsEntries();
+	const noteSort = useAtomValue(noteSortAtom);
 	useWailsEvent("tags-folder:create", () => {
 		handleTagRelatedEvent(queryClient, routeParams, searchParams);
 	});
 	useWailsEvent("tags-folder:delete", () => {
 		handleTagRelatedEvent(queryClient, routeParams, searchParams);
 	});
-	useWailsEvent("tags:update", () => {
+	useWailsEvent("tags:update", (body) => {
+		const data = body.data as { notes: string[] | null; tagName: string }[];
+		const updatedTag = data[0].tagName;
+
+		// Update the notes present in tags-sidebar
+		queryClient.invalidateQueries({
+			queryKey: ["tag-notes", updatedTag, noteSort],
+		});
 		handleTagRelatedEvent(queryClient, routeParams, searchParams);
 	});
 }
@@ -137,14 +147,16 @@ export function useTagsForNotesQuery(folder: string, notes: string[]) {
  * @param ext - The file extension of the note.
  * @returns The mutation result.
  */
-export function useDeleteTagMutation(
+export function useDeleteTagsMutation(
 	folder: string,
 	note: string,
 	ext: string,
 ) {
 	return useMutation({
 		mutationFn: async ({ tagName }: { tagName: string }) => {
-			const res = await DeletePathFromTag(tagName, `${folder}/${note}.${ext}`);
+			const res = await DeletePathsFromTag(tagName, [
+				`${folder}/${note}.${ext}`,
+			]);
 			if (!res.success) {
 				throw new Error(res.message);
 			}

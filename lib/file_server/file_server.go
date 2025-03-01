@@ -12,6 +12,7 @@ import (
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/note_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
+	"github.com/etesam913/bytebook/lib/tags_helper"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -265,15 +266,15 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 			} else if twoFolderBack == "tags" {
 				// If a notes.json file in a tag folder is updated
 				tagName := oneFolderBack
-				var tagPaths project_types.TagJson
-				err := io_helpers.ReadJsonFromPath(event.Name, &tagPaths)
+				tagNotesArray := tags_helper.TagsToNotesArray{}
+				err := io_helpers.ReadJsonFromPath(event.Name, &tagNotesArray)
 				// Create a new object that holds everything from tagPaths plus your new NoteName field.
 				eventData := struct {
-					project_types.TagJson
-					NoteName string `json:"noteName"`
+					tags_helper.TagsToNotesArray
+					TagName string `json:"tagName"`
 				}{
-					TagJson:  tagPaths,
-					NoteName: tagName,
+					TagsToNotesArray: tagNotesArray,
+					TagName:          tagName,
 				}
 				if err == nil {
 					app.EmitEvent("tags:update", eventData)

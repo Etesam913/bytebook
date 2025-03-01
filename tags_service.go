@@ -162,81 +162,22 @@ func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryPara
 // DeletePathsFromTag uses the old DeletePathFromTag function to delete
 // multiple note paths from the specified tag in a single call.
 func (t *TagsService) DeletePathsFromTag(tagName string, folderAndNotePathsWithoutQueryParams []string) project_types.BackendResponseWithoutData {
-	for _, singlePath := range folderAndNotePathsWithoutQueryParams {
-		resp := t.DeletePathFromTag(tagName, singlePath)
-		if !resp.Success {
-			// If any deletion fails, return immediately with the error.
-			return resp
-		}
-	}
-	return project_types.BackendResponseWithoutData{
-		Success: true,
-		Message: "All specified paths have been successfully deleted from tag",
-	}
-}
+	deleteNotePathsResponse := tags_helper.DeleteNotesFromTagToNotesArray(
+		t.ProjectPath,
+		tagName,
+		folderAndNotePathsWithoutQueryParams,
+	)
 
-/*
-DeletePathFromTag removes a specific note path from a given tag.
-If the tag no longer has any note paths associated with it, the tag folder is deleted.
-*/
-func (t *TagsService) DeletePathFromTag(tagName string, folderAndNotePathWithoutQueryParam string) project_types.BackendResponseWithoutData {
-	pathToTagFolder := filepath.Join(t.ProjectPath, "tags", tagName)
-	pathToTagFile := filepath.Join(pathToTagFolder, "notes.json")
-
-	if doesExist, _ := io_helpers.FileOrFolderExists(pathToTagFile); !doesExist {
-		return project_types.BackendResponseWithoutData{
-			Success: true,
-			Message: "Tag is already deleted",
-		}
-	}
-
-	var tagJson project_types.TagJson
-	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
+	if deleteNotePathsResponse.Err != nil {
 		return project_types.BackendResponseWithoutData{
 			Success: false,
-			Message: "Something went wrong when removing the tag. Please try again later",
-		}
-	}
-
-	notesWithoutDeletedPath := []string{}
-	didFindNotePath := false
-
-	// Removes the first occurence of `notePath` from `tagJson.Notes`
-	for _, addedNotePath := range tagJson.Notes {
-		if addedNotePath == folderAndNotePathWithoutQueryParam && !didFindNotePath {
-			didFindNotePath = true
-			continue
-		}
-		notesWithoutDeletedPath = append(notesWithoutDeletedPath, addedNotePath)
-	}
-
-	// If there are no note paths where this tag is being used, remove the folder for the tag
-	if len(notesWithoutDeletedPath) == 0 {
-		if err := os.RemoveAll(pathToTagFolder); err != nil {
-			return project_types.BackendResponseWithoutData{
-				Success: false, // Change this to false to reflect the failure
-				Message: "Failed to remove tag folder. Please try again later.",
-			}
-		} else {
-			return project_types.BackendResponseWithoutData{
-				Success: true,
-				Message: "Successfully Deleted Path From Tag",
-			}
-		}
-	}
-
-	tagJson.Notes = notesWithoutDeletedPath
-
-	if err := io_helpers.WriteJsonToPath(pathToTagFile, tagJson); err != nil {
-		return project_types.BackendResponseWithoutData{
-			Success: false,
-			Message: "Something went wrong when writing the tag to file. Please try again later",
+			Message: fmt.Sprintf("Failed to delete paths notes from %s", tagName),
 		}
 	}
 
 	return project_types.BackendResponseWithoutData{
 		Success: true,
-		Message: "Successfully Deleted Path From Tag",
+		Message: "All specified paths have been successfully deleted from tag",
 	}
 }
 
