@@ -96,6 +96,7 @@ func AddNotesToTagToNotesArray(projectPath string, tag string, notePaths []strin
 	return nil
 }
 
+// TODO: Remove this interface and just return the error
 type DeleteNotesResponse struct {
 	NotesRemaining int
 	Err            error

@@ -5,8 +5,6 @@ import (
 	"os"
 	"path/filepath"
 
-	slices0 "slices"
-
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/list_helpers"
 	"github.com/etesam913/bytebook/lib/note_helpers"
@@ -16,39 +14,6 @@ import (
 
 type TagsService struct {
 	ProjectPath string
-}
-
-/*
-AddPathToTag adds a specific note path to a given tag.
-If the tag does not exist, it creates the tag and associates the note path with it.
-*/
-func addPathToTag(projectPath, tagName, folderAndNotePathWithoutQueryParam string) project_types.BackendResponseWithoutData {
-	pathToTagFolder := filepath.Join(projectPath, "tags", tagName)
-	pathToTagFile := filepath.Join(pathToTagFolder, "notes.json")
-	tags_helper.CreateTagToNotesArrayIfNotExists(projectPath, tagName)
-
-	tagJson := project_types.TagJson{}
-	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &tagJson); err != nil {
-		return project_types.BackendResponseWithoutData{
-			Success: false,
-			Message: "Something went wrong when adding the tag. Please try again later",
-		}
-	}
-
-	// Check if notePath already exists in tagJson.Notes
-	if slices0.Contains(tagJson.Notes, folderAndNotePathWithoutQueryParam) {
-		return project_types.BackendResponseWithoutData{Success: true, Message: "Successfully Added Path To Tag"}
-	}
-
-	tagJson.Notes = append(tagJson.Notes, folderAndNotePathWithoutQueryParam)
-	if err := io_helpers.WriteJsonToPath(pathToTagFile, tagJson); err != nil {
-		return project_types.BackendResponseWithoutData{
-			Success: false,
-			Message: "Something went wrong when writing the tag to file. Please try again later",
-		}
-	}
-
-	return project_types.BackendResponseWithoutData{Success: true, Message: "Successfully Added Path To Tag"}
 }
 
 // DeleteTags removes the specified tags from the project.
@@ -88,22 +53,27 @@ For each tag in tagNames, it adds all folderAndNotePaths to its notes.json.
 If a tag does not exist, it creates the tag and associates the note paths with it.
 */
 func (t *TagsService) AddPathsToTags(tagNames []string, folderAndNotePathsWithoutQueryParam []string) project_types.BackendResponseWithoutData {
+	erroredTags := []string{}
 	for _, tagName := range tagNames {
-		for _, folderAndNotePath := range folderAndNotePathsWithoutQueryParam {
-			response := addPathToTag(t.ProjectPath, tagName, folderAndNotePath)
-			if !response.Success {
-				return project_types.BackendResponseWithoutData{
-					Success: false,
-					Message: fmt.Sprintf("Failed to add path %s to tag %s: %s", folderAndNotePath, tagName, response.Message),
-				}
-			}
+		err := tags_helper.AddNotesToTagToNotesArray(t.ProjectPath, tagName, folderAndNotePathsWithoutQueryParam)
+		if err != nil {
+			erroredTags = append(erroredTags, tagName)
 		}
 	}
+
+	if len(erroredTags) > 0 {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: fmt.Sprintf("Failed to add paths to tags: %v", erroredTags),
+		}
+	}
+
 	return project_types.BackendResponseWithoutData{
 		Success: true,
 		Message: "Successfully Added Paths To Tags",
 	}
 }
+
 func (t *TagsService) GetTagsForFolderAndNotesPaths(folderAndNotePathsWithQueryParams []string) project_types.BackendResponseWithData[map[string][]string] {
 	// Initialize a map to store tags for each folder and note path
 	tagsForNotes := make(map[string][]string)
