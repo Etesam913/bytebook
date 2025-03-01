@@ -168,10 +168,10 @@ func TestDeleteNotesFromTagToNotesArray(t *testing.T) {
 		// Setup: add several note paths.
 		err := tags_helper.AddNotesToTagToNotesArray(tempDir, TagName, []string{"note1", "note2", "note3"})
 		assert.NoError(t, err)
+
 		// Remove "note2".
-		response := tags_helper.DeleteNotesFromTagToNotesArray(tempDir, TagName, []string{"note2"})
-		assert.NoError(t, response.Err)
-		assert.Equal(t, 2, response.NotesRemaining, "Expected remaining notes count to be 2")
+		err = tags_helper.DeleteNotesFromTagToNotesArray(tempDir, TagName, []string{"note2"})
+		assert.NoError(t, err)
 
 		var tagsArray tags_helper.TagsToNotesArray
 		err = io_helpers.ReadJsonFromPath(pathToFile, &tagsArray)
@@ -190,10 +190,10 @@ func TestDeleteNotesFromTagToNotesArray(t *testing.T) {
 		// Setup: add two note paths.
 		err := tags_helper.AddNotesToTagToNotesArray(tempDir, TagName, []string{"note1", "note2"})
 		assert.NoError(t, err)
+
 		// Attempt to delete a non-existent note path.
-		response := tags_helper.DeleteNotesFromTagToNotesArray(tempDir, TagName, []string{"note3"})
-		assert.NoError(t, response.Err)
-		assert.Equal(t, 2, response.NotesRemaining, "Expected remaining notes count to be 2")
+		err = tags_helper.DeleteNotesFromTagToNotesArray(tempDir, TagName, []string{"note3"})
+		assert.NoError(t, err)
 
 		var tagsArray tags_helper.TagsToNotesArray
 		err = io_helpers.ReadJsonFromPath(pathToFile, &tagsArray)
@@ -212,10 +212,10 @@ func TestDeleteNotesFromTagToNotesArray(t *testing.T) {
 		// Setup: add four note paths.
 		err := tags_helper.AddNotesToTagToNotesArray(tempDir, TagName, []string{"note1", "note2", "note3", "note4"})
 		assert.NoError(t, err)
+
 		// Remove "note1" and "note3".
-		response := tags_helper.DeleteNotesFromTagToNotesArray(tempDir, TagName, []string{"note1", "note3"})
-		assert.NoError(t, response.Err)
-		assert.Equal(t, 2, response.NotesRemaining, "Expected remaining notes count to be 2")
+		err = tags_helper.DeleteNotesFromTagToNotesArray(tempDir, TagName, []string{"note1", "note3"})
+		assert.NoError(t, err)
 
 		var tagsArray tags_helper.TagsToNotesArray
 		err = io_helpers.ReadJsonFromPath(pathToFile, &tagsArray)
@@ -227,12 +227,17 @@ func TestDeleteNotesFromTagToNotesArray(t *testing.T) {
 		assert.Equal(t, expected, tagsArray, "Expected multiple notePaths to be removed")
 	})
 
-	t.Run("returns zero notes remaining when no notePaths are provided", func(t *testing.T) {
+	t.Run("returns no error and does not create file when no notePaths are provided", func(t *testing.T) {
 		tempDir := t.TempDir()
-		// Even if the file doesn't exist yet, providing an empty slice should return 0 without error.
-		response := tags_helper.DeleteNotesFromTagToNotesArray(tempDir, TagName, []string{})
-		assert.NoError(t, response.Err)
-		assert.Equal(t, 0, response.NotesRemaining, "Expected remaining notes count to be 0 when no notePaths are provided")
+		pathToFile := getTagNotesFilePath(tempDir, TagName)
+
+		// Even if the file doesn't exist yet, providing an empty slice should return no error.
+		err := tags_helper.DeleteNotesFromTagToNotesArray(tempDir, TagName, []string{})
+		assert.NoError(t, err)
+
+		// The file should not be created.
+		_, err = os.Stat(pathToFile)
+		assert.True(t, os.IsNotExist(err), "Expected notes file not to exist when no notePaths are provided")
 	})
 }
 

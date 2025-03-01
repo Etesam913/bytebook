@@ -20,6 +20,20 @@ func Filter[T any](slice []T, condition func(T) bool) []T {
 	return result
 }
 
+// removeDuplicates removes duplicate elements from a slice while maintaining order.
+func RemoveDuplicates[T comparable](slice []T) []T {
+	seen := make(map[T]bool)
+	var result []T
+
+	for _, item := range slice {
+		if !seen[item] {
+			seen[item] = true
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
 // Map applies the function fn to each element in the slice and returns a new slice of type U.
 func Map[T any, U any](slice []T, fn func(T) U) []U {
 	result := make([]U, len(slice))

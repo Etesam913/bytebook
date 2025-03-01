@@ -48,29 +48,62 @@ func (t *TagsService) DeleteTags(tagNames []string) project_types.BackendRespons
 }
 
 /*
-AddPathsToTags adds multiple note paths to multiple tags.
+AddTagsToNotes adds multiple note paths to multiple tags.
 For each tag in tagNames, it adds all folderAndNotePaths to its notes.json.
 If a tag does not exist, it creates the tag and associates the note paths with it.
 */
-func (t *TagsService) AddPathsToTags(tagNames []string, folderAndNotePathsWithoutQueryParam []string) project_types.BackendResponseWithoutData {
-	erroredTags := []string{}
+func (t *TagsService) AddTagsToNotes(tagNames []string, folderAndNotePathsWithoutQueryParam []string) project_types.BackendResponseWithoutData {
+	didError := false
 	for _, tagName := range tagNames {
 		err := tags_helper.AddNotesToTagToNotesArray(t.ProjectPath, tagName, folderAndNotePathsWithoutQueryParam)
 		if err != nil {
-			erroredTags = append(erroredTags, tagName)
+			didError = true
 		}
 	}
+	err := tags_helper.AddTagsToNotesToTagsMap(t.ProjectPath, folderAndNotePathsWithoutQueryParam, tagNames)
+	if err != nil {
+		didError = true
+	}
 
-	if len(erroredTags) > 0 {
+	if didError {
 		return project_types.BackendResponseWithoutData{
 			Success: false,
-			Message: fmt.Sprintf("Failed to add paths to tags: %v", erroredTags),
+			Message: fmt.Sprintf("Failed to tag notes"),
 		}
 	}
 
 	return project_types.BackendResponseWithoutData{
 		Success: true,
 		Message: "Successfully Added Paths To Tags",
+	}
+}
+
+// DeletePathsFromTag uses the old DeletePathFromTag function to delete
+// multiple note paths from the specified tag in a single call.
+func (t *TagsService) DeleteTagsFromNotes(tagNames []string, folderAndNotePathsWithoutQueryParams []string) project_types.BackendResponseWithoutData {
+	didError := false
+	for _, tagName := range tagNames {
+		err := tags_helper.DeleteNotesFromTagToNotesArray(
+			t.ProjectPath,
+			tagName,
+			folderAndNotePathsWithoutQueryParams,
+		)
+
+		if err != nil {
+			didError = true
+		}
+	}
+
+	if didError {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: fmt.Sprintf("Failed to untag notes"),
+		}
+	}
+
+	return project_types.BackendResponseWithoutData{
+		Success: true,
+		Message: "All specified paths have been successfully deleted from tag",
 	}
 }
 
@@ -126,28 +159,6 @@ func (t *TagsService) GetTagsForFolderAndNotePath(folderAndNotePathWithQueryPara
 		Success: true,
 		Message: "Successfully retrieved tags.",
 		Data:    tagsForNote,
-	}
-}
-
-// DeletePathsFromTag uses the old DeletePathFromTag function to delete
-// multiple note paths from the specified tag in a single call.
-func (t *TagsService) DeletePathsFromTag(tagName string, folderAndNotePathsWithoutQueryParams []string) project_types.BackendResponseWithoutData {
-	deleteNotePathsResponse := tags_helper.DeleteNotesFromTagToNotesArray(
-		t.ProjectPath,
-		tagName,
-		folderAndNotePathsWithoutQueryParams,
-	)
-
-	if deleteNotePathsResponse.Err != nil {
-		return project_types.BackendResponseWithoutData{
-			Success: false,
-			Message: fmt.Sprintf("Failed to delete paths notes from %s", tagName),
-		}
-	}
-
-	return project_types.BackendResponseWithoutData{
-		Success: true,
-		Message: "All specified paths have been successfully deleted from tag",
 	}
 }
 

@@ -17,6 +17,8 @@ type TagsToNotesArray struct {
 	Notes []string `json:"notes"`
 }
 
+const MAX_TAGS_PER_NOTE = 100000
+
 func GetAllTags(projectPath string) ([]string, error) {
 	tags := []string{}
 	tagsFolder := filepath.Join(projectPath, "tags")
@@ -96,36 +98,21 @@ func AddNotesToTagToNotesArray(projectPath string, tag string, notePaths []strin
 	return nil
 }
 
-// TODO: Remove this interface and just return the error
-type DeleteNotesResponse struct {
-	NotesRemaining int
-	Err            error
-}
-
 // DeleteNotesFromTagToNotesArray removes each notePath from the notes.json file for the given tag.
-func DeleteNotesFromTagToNotesArray(projectPath string, tag string, notePaths []string) DeleteNotesResponse {
+func DeleteNotesFromTagToNotesArray(projectPath string, tag string, notePaths []string) error {
 	if len(notePaths) == 0 {
-		return DeleteNotesResponse{
-			NotesRemaining: 0,
-			Err:            nil,
-		}
+		return nil
 	}
 	pathToTagToNotesArray := filepath.Join(projectPath, "tags", tag, "notes.json")
 
 	// Ensure the notes.json file exists.
 	if err := CreateTagToNotesArrayIfNotExists(projectPath, tag); err != nil {
-		return DeleteNotesResponse{
-			NotesRemaining: 0,
-			Err:            err,
-		}
+		return err
 	}
 
 	tagToNotesArray := TagsToNotesArray{}
 	if err := io_helpers.ReadJsonFromPath(pathToTagToNotesArray, &tagToNotesArray); err != nil {
-		return DeleteNotesResponse{
-			NotesRemaining: 0,
-			Err:            err,
-		}
+		return err
 	}
 
 	// Filter out the notePaths that should be removed.
@@ -134,16 +121,10 @@ func DeleteNotesFromTagToNotesArray(projectPath string, tag string, notePaths []
 	})
 
 	if err := io_helpers.WriteJsonToPath(pathToTagToNotesArray, tagToNotesArray); err != nil {
-		return DeleteNotesResponse{
-			NotesRemaining: len(tagToNotesArray.Notes),
-			Err:            err,
-		}
+		return err
 	}
 
-	return DeleteNotesResponse{
-		NotesRemaining: len(tagToNotesArray.Notes),
-		Err:            nil,
-	}
+	return nil
 }
 
 // CreateNoteToTagsMapIfNotExists ensures that the note-to-tags map exists.
@@ -181,6 +162,12 @@ func CreateNoteToTagsMapIfNotExists(projectPath string) error {
 func AddTagsToNotesToTagsMap(projectPath string, notes []string, tags []string) error {
 	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
 
+	err := CreateNoteToTagsMapIfNotExists(projectPath)
+
+	if err != nil {
+		return err
+	}
+
 	notesToTagsMap := NotesToTagsMap{}
 	if err := io_helpers.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
 		return err
@@ -188,7 +175,8 @@ func AddTagsToNotesToTagsMap(projectPath string, notes []string, tags []string) 
 
 	for _, note := range notes {
 		if existingTags, exists := notesToTagsMap.Notes[note]; exists {
-			notesToTagsMap.Notes[note] = append(existingTags, tags...)
+			newNotes := list_helpers.RemoveDuplicates(append(existingTags, tags...))
+			notesToTagsMap.Notes[note] = newNotes
 		} else {
 			notesToTagsMap.Notes[note] = tags
 		}
@@ -204,6 +192,12 @@ func AddTagsToNotesToTagsMap(projectPath string, notes []string, tags []string) 
 // DeleteNoteFromTagsMap deletes key-value pairs from the notes_to_tags.json file.
 func DeleteTagsFromNotesFromTagsMap(projectPath string, notes []string, tags []string) error {
 	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
+
+	err := CreateNoteToTagsMapIfNotExists(projectPath)
+
+	if err != nil {
+		return err
+	}
 
 	notesToTagsMap := NotesToTagsMap{}
 	if err := io_helpers.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {

@@ -53,7 +53,7 @@ export function BottomBar({
 
 	const { data: tags, isLoading } = useTagsForNoteQuery(folder, note, ext);
 	const { mutate: deleteTag } = useDeleteTagsMutation(folder, note, ext);
-	const { mutateAsync: addPathsToTags } = useAddTagsMutation();
+	const { mutateAsync: addTagsToNotes } = useAddTagsMutation();
 
 	const setDialogData = useSetAtom(dialogDataAtom);
 
@@ -115,7 +115,7 @@ export function BottomBar({
 								<AddTagDialogChildren onSubmitErrorText={errorText} />
 							),
 							onSubmit: (e, setErrorText) => {
-								return addPathsToTags({
+								return addTagsToNotes({
 									e,
 									setErrorText,
 									folder,

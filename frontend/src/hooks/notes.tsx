@@ -11,7 +11,7 @@ import {
 	RevealNoteInFinder,
 } from "../../bindings/github.com/etesam913/bytebook/noteservice";
 import {
-	AddPathsToTags,
+	AddTagsToNotes,
 	DeleteTags,
 	GetNotesFromTag,
 } from "../../bindings/github.com/etesam913/bytebook/tagsservice";
@@ -359,7 +359,7 @@ export function useAddTagsMutation() {
 				},
 			);
 			// Add the tags to each selected note
-			const addTagsRes = await AddPathsToTags(tagsStrings, folderAndNotePaths);
+			const addTagsRes = await AddTagsToNotes(tagsStrings, folderAndNotePaths);
 
 			if (!addTagsRes.success) {
 				throw new Error(addTagsRes.message);

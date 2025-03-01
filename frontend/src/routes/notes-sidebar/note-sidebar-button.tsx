@@ -32,6 +32,7 @@ import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
 import { AddTagDialogChildren } from "./add-tag-dialog-children";
 import { CardNoteSidebarItem } from "./card-note-sidebar-item";
 import { ListNoteSidebarItem } from "./list-note-sidebar-item";
+import { AddTagsToNotes } from "../../../bindings/github.com/etesam913/bytebook/tagsservice";
 
 export function NoteSidebarButton({
 	sidebarNoteFolder,
@@ -64,7 +65,7 @@ export function NoteSidebarButton({
 	const { mutate: revealInFinder } =
 		useNoteRevealInFinderMutation(isInTagsSidebar);
 	const { mutate: moveToTrash } = useMoveNoteToTrashMutation(isInTagsSidebar);
-	const { mutateAsync: addPathsToTags } = useAddTagsMutation();
+	const { mutateAsync: addTagsToNotes } = useAddTagsMutation();
 
 	const setDialogData = useSetAtom(dialogDataAtom);
 	const setContextMenuData = useSetAtom(contextMenuDataAtom);
@@ -262,7 +263,7 @@ export function NoteSidebarButton({
 										// 	selectionRange: newSelectionRange,
 										// });
 										// return true;
-										return addPathsToTags({
+										return addTagsToNotes({
 											e,
 											setErrorText,
 											folder: sidebarNoteFolder,

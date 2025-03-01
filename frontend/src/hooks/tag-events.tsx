@@ -7,7 +7,7 @@ import {
 import { toast } from "sonner";
 import { type StringRouteParams, useRoute } from "wouter";
 import {
-	DeletePathsFromTag,
+	DeleteTagsFromNotes,
 	GetTags,
 	GetTagsForFolderAndNotePath,
 	GetTagsForFolderAndNotesPaths,
@@ -154,9 +154,10 @@ export function useDeleteTagsMutation(
 ) {
 	return useMutation({
 		mutationFn: async ({ tagName }: { tagName: string }) => {
-			const res = await DeletePathsFromTag(tagName, [
-				`${folder}/${note}.${ext}`,
-			]);
+			const res = await DeleteTagsFromNotes(
+				[tagName],
+				[`${folder}/${note}.${ext}`],
+			);
 			if (!res.success) {
 				throw new Error(res.message);
 			}
