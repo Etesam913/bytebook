@@ -1,6 +1,8 @@
 package note_helpers
 
 import (
+	"errors"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -66,6 +68,32 @@ type URLMatch struct {
 	Type    URLType
 	URL     string
 	AltText string
+}
+
+// ConvertFileNameForFrontendUrl converts a file path to a frontend-friendly URL format.
+// It takes the directory and file name, removes the file extension, and appends it as a query parameter.
+// Example: "path/to/file.jpg" becomes "path/to/file?ext=jpg".
+func ConvertFileNameForFrontendUrl(pathToFile string) (string, error) {
+	if len(strings.Trim(pathToFile, " ")) == 0 {
+		return "", errors.New("Empty pathToFile")
+	}
+	fileDir := filepath.Dir(pathToFile)
+	fileNameWithExtension := filepath.Base(pathToFile)
+	if len(fileNameWithExtension) == 0 || fileNameWithExtension == "." || strings.HasPrefix(fileNameWithExtension, ".") {
+		return "", errors.New("Invalid file name")
+	}
+	fileExtension := filepath.Ext(fileNameWithExtension)
+	if len(strings.Trim(fileExtension, " ")) == 0 {
+		return "", errors.New("Invalid file extension")
+	}
+	fileNameWithoutExtension := fileNameWithExtension[:len(fileNameWithExtension)-len(fileExtension)]
+	if len(strings.Trim(fileNameWithExtension, " ")) == 0 {
+		return "", errors.New("Invalid file name")
+	}
+	if fileDir[len(fileDir)-1] != '/' {
+		fileDir += "/"
+	}
+	return fileDir + fileNameWithoutExtension + "?ext=" + fileExtension[1:], nil
 }
 
 // replaceLocalURL updates the folder name in a localhost URL
@@ -142,21 +170,6 @@ func GetMediaRefs(markdown string) []string {
 	}
 
 	return refs
-}
-
-// Helper function to check if the tag is valid based on the next character in the string.
-func isValidTag(tag string, markdown string) bool {
-	index := strings.Index(markdown, tag)
-	if index == -1 {
-		return false
-	}
-	// Check if the character after the tag is a space or newline
-	if index+len(tag) < len(markdown) {
-		nextChar := markdown[index+len(tag)]
-		return nextChar == ' ' || nextChar == '\n' || nextChar == '\r'
-	}
-	// If it's at the end of the string, it's valid
-	return true
 }
 
 // extractLinkText replaces markdown links with just their text content
