@@ -77,6 +77,9 @@ func AddNotesToTagToNotesArray(projectPath string, tag string, notePaths []strin
 
 // DeleteNotesFromTagToNotesArray removes each notePath from the notes.json file for the given tag.
 func DeleteNotesFromTagToNotesArray(projectPath string, tag string, notePaths []string) error {
+	if len(notePaths) == 0 {
+		return nil
+	}
 	pathToTagToNotesArray := filepath.Join(projectPath, "tags", tag, "notes.json")
 
 	// Ensure the notes.json file exists.

@@ -326,6 +326,7 @@ GetNotesFromTag retrieves the note paths associated with a given tag name.
 It reads the "notes.json" file within the tag's directory and returns the note paths with query params.
 */
 func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project_types.NoteResponse {
+	// Make sure the notes.json file exists
 	err := tags_helper.CreateTagToNotesArrayIfNotExists(t.ProjectPath, tagName)
 	if err != nil {
 		return project_types.NoteResponse{
@@ -338,8 +339,7 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 	pathToTagFile := filepath.Join(t.ProjectPath, "tags", tagName, "notes.json")
 	notesForGivenTagData := tags_helper.TagsToNotesArray{}
 
-	// TODO: Add a validation step to ensure that the paths all still exist
-
+	// Gets the JSON notes data
 	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &notesForGivenTagData); err != nil {
 		return project_types.NoteResponse{
 			Success: false,
@@ -349,10 +349,12 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 	}
 
 	notesFileInfo := []list_helpers.NoteWithFolder{}
+	pathsToDelete := []string{}
 	for _, notePath := range notesForGivenTagData.Notes {
 		fullNotePath := filepath.Join(t.ProjectPath, "notes", notePath)
 		fileInfo, err := os.Stat(fullNotePath)
 		if err != nil || fileInfo.IsDir() {
+			pathsToDelete = append(pathsToDelete, notePath)
 			continue
 		}
 		frontendFileInfo, err := note_helpers.ConvertFileNameForFrontendUrl(notePath)
@@ -371,6 +373,10 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 			},
 		)
 	}
+	// Clean up stale tags in the notes.json file
+	tags_helper.DeleteNotesFromTagToNotesArray(t.ProjectPath, tagName, pathsToDelete)
+
+	// Sort the folders appropriately
 	list_helpers.SortNotesWithFolders(notesFileInfo, sortOption)
 	sortedNotes := list_helpers.Map(notesFileInfo, func(noteInfo list_helpers.NoteWithFolder) string {
 		return noteInfo.Folder + noteInfo.Name + "?ext=" + noteInfo.Ext
