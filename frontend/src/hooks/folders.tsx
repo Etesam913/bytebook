@@ -8,11 +8,11 @@ import {
 	GetFolders,
 	RenameFolder,
 	RevealFolderInFinder,
-} from "../../bindings/github.com/etesam913/bytebook/folderservice";
+} from "../../bindings/github.com/etesam913/bytebook/services/folderservice";
 import {
 	AddNoteToFolder,
 	MoveNoteToFolder,
-} from "../../bindings/github.com/etesam913/bytebook/noteservice";
+} from "../../bindings/github.com/etesam913/bytebook/services/noteservice";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
 import { QueryError } from "../utils/query";
 import { findClosestSidebarItemToNavigateTo } from "../utils/routing";
@@ -35,6 +35,7 @@ export function useFolders(curFolder: string | undefined) {
 			if (!res.success) {
 				throw new QueryError(res.message);
 			}
+			console.log(res);
 			// If the current folder does not exist anymore, then navigate to a safe url
 			if (!res.data.some((folder) => folder === curFolder)) {
 				if (res.data.length > 0) {

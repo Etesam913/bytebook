@@ -28,8 +28,8 @@ import {
 	type SetStateAction,
 	useEffect,
 } from "react";
-import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
-import { ShutoffTerminals } from "../../../../bindings/github.com/etesam913/bytebook/terminalservice";
+import { GetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/services/noteservice";
+import { ShutoffTerminals } from "../../../../bindings/github.com/etesam913/bytebook/services/terminalservice";
 import { draggedElementAtom, noteContainerRefAtom } from "../../../atoms";
 import type { EditorBlockTypes, FloatingDataType } from "../../../types";
 import { QueryError } from "../../../utils/query";

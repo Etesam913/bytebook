@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { Window } from "@wailsio/runtime";
 import { useSetAtom } from "jotai";
-import { SearchFileNamesFromQuery } from "../../bindings/github.com/etesam913/bytebook/searchservice";
+import { SearchFileNamesFromQuery } from "../../bindings/github.com/etesam913/bytebook/services/searchservice";
 import { searchPanelDataAtom } from "../atoms";
 import { useWailsEvent } from "../hooks/events";
 

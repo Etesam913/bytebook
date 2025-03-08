@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import {
 	GetProjectSettings,
 	UpdateProjectSettings,
-} from "../../bindings/github.com/etesam913/bytebook/settingsservice";
+} from "../../bindings/github.com/etesam913/bytebook/services/settingsservice";
 import { dialogDataAtom, projectSettingsAtom } from "../atoms";
 import { SettingsDialog } from "../components/settings-dialog";
 import { useWailsEvent } from "../hooks/events";

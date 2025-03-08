@@ -6,7 +6,7 @@ import { Play } from "../../icons/circle-play";
 import type { FitAddon } from "@xterm/addon-fit";
 import type { Terminal } from "@xterm/xterm";
 import type { RefObject } from "react";
-import { RunCodeInTerminal } from "../../../bindings/github.com/etesam913/bytebook/terminalservice";
+import { RunCodeInTerminal } from "../../../bindings/github.com/etesam913/bytebook/services/terminalservice";
 import { dragItem } from "../../utils/draggable";
 import { Input } from "../input";
 import { handleResize } from "../terminal/utils";

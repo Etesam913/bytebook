@@ -1,4 +1,4 @@
-package main
+package services
 
 // #include <libproc.h>
 import "C"

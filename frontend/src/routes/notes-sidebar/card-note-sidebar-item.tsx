@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { NotePreviewData } from "../../../bindings/github.com/etesam913/bytebook";
+import type { NotePreviewData } from "../../../bindings/github.com/etesam913/bytebook/services";
 import type { BackendResponseWithData } from "../../../bindings/github.com/etesam913/bytebook/lib/project_types/models";
 import { VIDEO_FILE_EXTENSIONS } from "../../types";
 import { humanFileSize } from "../../utils/general";

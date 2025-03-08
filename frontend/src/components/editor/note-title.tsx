@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useSetAtom } from "jotai";
 import { $getRoot } from "lexical";
 import { useEffect, useState } from "react";
-import { RenameNote } from "../../../bindings/github.com/etesam913/bytebook/noteservice";
+import { RenameNote } from "../../../bindings/github.com/etesam913/bytebook/services/noteservice";
 import { isToolbarDisabledAtom } from "../../atoms";
 import { QueryError } from "../../utils/query";
 import { NAME_CHARS, cn } from "../../utils/string-formatting";

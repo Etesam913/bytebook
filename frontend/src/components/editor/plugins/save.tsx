@@ -8,7 +8,7 @@ import {
 	createCommand,
 } from "lexical";
 import { type Dispatch, type SetStateAction, useEffect } from "react";
-import { SetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/noteservice";
+import { SetNoteMarkdown } from "../../../../bindings/github.com/etesam913/bytebook/services/noteservice";
 import { WINDOW_ID } from "../../../App";
 import { CUSTOM_TRANSFORMERS } from "../transformers";
 import {

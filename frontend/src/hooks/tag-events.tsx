@@ -10,7 +10,7 @@ import {
 	DeleteTagsFromNotes,
 	GetTags,
 	GetTagsForNotes,
-} from "../../bindings/github.com/etesam913/bytebook/tagsservice";
+} from "../../bindings/github.com/etesam913/bytebook/services/tagsservice";
 import { useWailsEvent } from "../hooks/events";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
 import { useSearchParamsEntries } from "../utils/routing";

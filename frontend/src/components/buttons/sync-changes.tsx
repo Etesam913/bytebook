@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai/react";
 import { toast } from "sonner";
-import { SyncChangesWithRepo } from "../../../bindings/github.com/etesam913/bytebook/nodeservice";
+import { SyncChangesWithRepo } from "../../../bindings/github.com/etesam913/bytebook/services/nodeservice";
 import {
 	dialogDataAtom,
 	projectSettingsAtom,

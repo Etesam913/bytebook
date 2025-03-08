@@ -32,7 +32,6 @@ import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
 import { AddTagDialogChildren } from "./add-tag-dialog-children";
 import { CardNoteSidebarItem } from "./card-note-sidebar-item";
 import { ListNoteSidebarItem } from "./list-note-sidebar-item";
-import { AddTagsToNotes } from "../../../bindings/github.com/etesam913/bytebook/tagsservice";
 
 export function NoteSidebarButton({
 	sidebarNoteFolder,

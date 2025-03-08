@@ -15,6 +15,7 @@ import (
 	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/etesam913/bytebook/lib/tags_helper"
 	"github.com/etesam913/bytebook/lib/terminal_helpers"
+	"github.com/etesam913/bytebook/services"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -70,25 +71,25 @@ func main() {
 		Description: "A simple note taking app.",
 		Services: []application.Service{
 			application.NewService(
-				&FolderService{ProjectPath: projectPath},
+				&services.FolderService{ProjectPath: projectPath},
 			),
 			application.NewService(
-				&NoteService{ProjectPath: projectPath},
+				&services.NoteService{ProjectPath: projectPath},
 			),
 			application.NewService(
-				&NodeService{ProjectPath: projectPath},
+				&services.NodeService{ProjectPath: projectPath},
 			),
 			application.NewService(
-				&SearchService{ProjectPath: projectPath},
+				&services.SearchService{ProjectPath: projectPath},
 			),
 			application.NewService(
-				&SettingsService{ProjectPath: projectPath},
+				&services.SettingsService{ProjectPath: projectPath},
 			),
 			application.NewService(
-				&TerminalService{},
+				&services.TerminalService{},
 			),
 			application.NewService(
-				&TagsService{ProjectPath: projectPath},
+				&services.TagsService{ProjectPath: projectPath},
 			),
 		},
 		Assets: application.AssetOptions{

@@ -9,12 +9,12 @@ import {
 	GetNotes,
 	MoveToTrash,
 	RevealNoteInFinder,
-} from "../../bindings/github.com/etesam913/bytebook/noteservice";
+} from "../../bindings/github.com/etesam913/bytebook/services/noteservice";
 import {
 	AddTagsToNotes,
 	DeleteTags,
 	GetNotesFromTag,
-} from "../../bindings/github.com/etesam913/bytebook/tagsservice";
+} from "../../bindings/github.com/etesam913/bytebook/services/tagsservice";
 import { WINDOW_ID } from "../App";
 import { noteSortAtom, projectSettingsAtom } from "../atoms";
 import { CUSTOM_TRANSFORMERS } from "../components/editor/transformers";
