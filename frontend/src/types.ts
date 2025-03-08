@@ -37,8 +37,6 @@ export type FloatingDataType = {
 	type: null | "link" | "text-format";
 };
 
-export type CodeBlockData = { files: SandpackFiles; result: CodeResponse };
-
 export type ResizeWidth = number | "100%";
 
 export type ResizeState = {

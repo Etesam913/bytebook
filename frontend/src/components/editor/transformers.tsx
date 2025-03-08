@@ -32,7 +32,6 @@ import {
 } from "@lexical/table";
 import {
 	$createNodeSelection,
-	$createParagraphNode,
 	$createTextNode,
 	$getEditor,
 	$isParagraphNode,
@@ -41,7 +40,7 @@ import {
 	type LexicalNode,
 } from "lexical";
 import type { ResizeWidth } from "../../types";
-import { codeLanguages } from "../../utils/code";
+
 import {
 	addQueryParam,
 	getQueryParamValue,
@@ -165,8 +164,9 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 	dependencies: [ExcalidrawNode, CodeNode],
 	export: (node: LexicalNode) => {
 		if ($isCodeNode(node)) {
-			const textContent = JSON.stringify(node.getData());
-			return `\`\`\`${node.getLanguage()} {command="${node.getCommand()}", startDirectory="${node.getStartDirectory()}"} ${
+			// const textContent = JSON.stringify(node.getData());
+			const textContent = "sample text content goes here";
+			return `\`\`\`${node.getLanguage()}${
 				textContent ? `\n${textContent}` : ""
 			}\n\`\`\``;
 		}
@@ -181,17 +181,14 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 		// MarkdownImport.ts handles the import of code blocks
 		// This code handles creation for the first time
 		const language = match.at(1);
-		if (!language || (!codeLanguages.has(language) && language !== "drawing")) {
-			return;
-		}
+		if (!language) return;
 		let newNode = null;
 		if (language === "drawing") {
 			newNode = $createExcalidrawNode({ elements: [] });
 		} else {
 			// Code block data is empty by default
 			newNode = $createCodeNode({
-				language: language,
-				shell: "bash",
+				language,
 			});
 		}
 

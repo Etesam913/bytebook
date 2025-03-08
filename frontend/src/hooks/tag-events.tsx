@@ -4,6 +4,7 @@ import {
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
+import { useAtomValue } from "jotai";
 import { toast } from "sonner";
 import { type StringRouteParams, useRoute } from "wouter";
 import {
@@ -11,11 +12,10 @@ import {
 	GetTags,
 	GetTagsForNotes,
 } from "../../bindings/github.com/etesam913/bytebook/services/tagsservice";
+import { noteSortAtom } from "../atoms";
 import { useWailsEvent } from "../hooks/events";
 import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
 import { useSearchParamsEntries } from "../utils/routing";
-import { useAtomValue } from "jotai";
-import { noteSortAtom } from "../atoms";
 
 /**
  * Invalidates the query for note tags if the current folder, note, and extension are available.
