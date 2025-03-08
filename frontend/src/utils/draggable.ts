@@ -36,7 +36,7 @@ export function dragItem(
 	document.addEventListener("mousemove", mouseMove);
 	document.addEventListener("mouseup", cleanUpDocumentEvents);
 }
-// biome-ignore lint/suspicious/noExplicitAny: General types are suitable for a throttle function
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const throttle = <T extends (...args: any[]) => any>(
 	fn: T,
 	wait = 300,
@@ -46,7 +46,7 @@ export const throttle = <T extends (...args: any[]) => any>(
 	let lastTime: number;
 
 	return function (
-		// biome-ignore lint/suspicious/noExplicitAny: General types are suitable for a throttle function
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		this: any,
 		...args: Parameters<T>
 	): ReturnType<T> | undefined {

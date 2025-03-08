@@ -1,8 +1,5 @@
-import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import type { HeadingTagType } from "@lexical/rich-text";
-import { MotionValue } from "framer-motion";
 import type { Dispatch, FormEvent, ReactNode, SetStateAction } from "react";
-import type { CodeResponse } from "../bindings/github.com/etesam913/bytebook/services/index";
 
 export const IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "gif"];
 
@@ -98,15 +95,6 @@ export type ProjectSettings = {
 	noteSidebarItemSize: "list" | "card";
 	accentColor: string;
 };
-
-// biome-ignore lint/suspicious/noExplicitAny: This is fine for the navigation function
-export type NavigateFunction = <S = any>(
-	to: string | URL,
-	options?: {
-		replace?: boolean;
-		state?: S;
-	},
-) => Promise<void>;
 
 export type ContextMenuData = {
 	isShowing: boolean;

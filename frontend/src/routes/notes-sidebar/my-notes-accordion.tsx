@@ -96,7 +96,7 @@ export function MyNotesAccordion({
 						layoutId={layoutId}
 						emptyElement={
 							<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
-								Create a note with the "Create Note" button above
+								Create a note with the &quot;Create Note&quot; button above
 							</li>
 						}
 						activeDataItem={activeDataItem}

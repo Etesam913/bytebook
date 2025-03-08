@@ -21,7 +21,6 @@ import TagPlus from "../../icons/tag-plus";
 import { Trash } from "../../icons/trash";
 import { IMAGE_FILE_EXTENSIONS } from "../../types";
 import { FILE_SERVER_URL } from "../../utils/general";
-import { useCustomNavigate } from "../../utils/routing";
 import { useSearchParamsEntries } from "../../utils/routing";
 import {
 	getFolderAndNoteFromSelectionRange,
@@ -32,6 +31,7 @@ import { cn, extractInfoFromNoteName } from "../../utils/string-formatting";
 import { AddTagDialogChildren } from "./add-tag-dialog-children";
 import { CardNoteSidebarItem } from "./card-note-sidebar-item";
 import { ListNoteSidebarItem } from "./list-note-sidebar-item";
+import { navigate } from "wouter/use-browser-location";
 
 export function NoteSidebarButton({
 	sidebarNoteFolder,
@@ -59,7 +59,6 @@ export function NoteSidebarButton({
 	const sidebarNoteExtension = queryParams.ext;
 
 	const isInTagsSidebar = tagState?.tagName !== undefined;
-	const { navigate } = useCustomNavigate();
 	const { mutate: pinOrUnpinNote } = usePinNotesMutation(isInTagsSidebar);
 	const { mutate: revealInFinder } =
 		useNoteRevealInFinderMutation(isInTagsSidebar);

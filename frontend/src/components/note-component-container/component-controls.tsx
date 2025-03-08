@@ -8,8 +8,8 @@ import { Link } from "../../icons/link";
 import { Trash } from "../../icons/trash";
 import { removeDecoratorNode } from "../../utils/commands";
 import { FILE_SERVER_URL } from "../../utils/general";
-import { useCustomNavigate } from "../../utils/routing";
 import { getFileExtension } from "../../utils/string-formatting";
+import { navigate } from "wouter/use-browser-location";
 
 export function NoteComponentControls({
 	buttonOptions,
@@ -42,7 +42,6 @@ export function NoteComponentControls({
 	exit?: Target;
 	children?: ReactNode;
 }) {
-	const { navigate } = useCustomNavigate();
 	return (
 		<motion.div
 			className="absolute left-1/2 top-0 bg-zinc-50 dark:bg-zinc-700 p-2 rounded-md shadow-lg border-[1px] border-zinc-300 dark:border-zinc-600 flex items-center justify-center gap-3 z-20"
@@ -86,8 +85,8 @@ export function NoteComponentControls({
 					{...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
 					type="button"
 					onClick={() => {
-						// biome-ignore lint/style/noNonNullAssertion: It is guaranteed that src is not null in this case
-						const src = buttonOptions.link?.src!;
+						const src = buttonOptions.link?.src;
+            if (!src) return;
 						if (src.startsWith(FILE_SERVER_URL)) {
 							const segments = src.split("/");
 							if (segments.length < 2) {

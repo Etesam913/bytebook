@@ -185,9 +185,9 @@ export function overrideControlledTextInsertion(
 	editor: LexicalEditor,
 	draggedElement: HTMLElement | null,
 ) {
-	// @ts-ignore Data Transfer does exist when dragging a link
+	// @ts-expect-error Data Transfer does exist when dragging a link
 	if (!e.dataTransfer || !draggedElement) return false;
-	// @ts-ignore Data Transfer does exist when dragging a link
+	// @ts-expect-error Data Transfer does exist when dragging a link
 	const fileText: string = e.dataTransfer.getData("text/plain");
 
 	const files = fileText.split(",");

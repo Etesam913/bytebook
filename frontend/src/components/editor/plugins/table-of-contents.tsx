@@ -75,7 +75,7 @@ export function TableOfContentsPlugin() {
 				return (
 					<TableOfContentsElement
 						content={tableOfContentsArray.filter(
-							([_, title]) => title.trim().length > 0,
+							([, title]) => title.trim().length > 0,
 						)}
 					/>
 				);

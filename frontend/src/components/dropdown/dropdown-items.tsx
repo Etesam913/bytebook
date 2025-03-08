@@ -150,3 +150,5 @@ export const DropdownItems = forwardRef<
 		);
 	},
 );
+
+DropdownItems.displayName = "Dropdown";

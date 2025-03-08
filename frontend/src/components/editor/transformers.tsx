@@ -177,7 +177,7 @@ export const CODE_TRANSFORMER: ElementTransformer = {
 		return null;
 	},
 	regExp: /^```(\w{1,10})?\s/,
-	replace: (textNode, _1, match, _) => {
+	replace: (textNode, _1, match) => {
 		// MarkdownImport.ts handles the import of code blocks
 		// This code handles creation for the first time
 		const language = match.at(1);
@@ -245,6 +245,7 @@ export const LINK: TextMatchTransformer = {
 	regExp:
 		/(?:\[([^[]+)\])(?:\((?:([^()\s]+)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))$/,
 	replace: (textNode, match) => {
+		// eslint-disable-next-line prefer-const
 		let [, linkText, linkUrl, linkTitle] = match;
 		linkText = decodeURIComponent(linkText);
 		linkUrl = decodeURIComponent(linkUrl);
@@ -298,7 +299,7 @@ export const TABLE: ElementTransformer = {
 
 			output.push(`| ${rowOutput.join(" | ")} |`);
 			if (isHeaderRow) {
-				output.push(`| ${rowOutput.map((_) => "---").join(" | ")} |`);
+				output.push(`| ${rowOutput.map(() => "---").join(" | ")} |`);
 			}
 		}
 

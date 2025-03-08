@@ -53,14 +53,13 @@ export function RenderNote({
 			<div className="flex flex-col items-center justify-center h-screen flex-1 gap-3 pb-16 px-3 text-center">
 				<Compose width={48} height={48} />
 				<h1 className="text-base font-bold ">
-					{" "}
 					Click the{" "}
 					<button
 						type="button"
 						className="link inline"
 						onClick={() => createNoteDialog(folder)}
 					>
-						"Create Note"
+						&quot;Create Note&quot;
 					</button>{" "}
 					button to get started
 				</h1>

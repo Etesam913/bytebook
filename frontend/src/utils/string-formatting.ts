@@ -248,7 +248,7 @@ export function parseRGB(colorString: string): RGB | RGBA | null {
 
 	let match = rgbRegex.exec(sanitizedString);
 	if (match) {
-		const [_, r, g, b] = match;
+		const [, r, g, b] = match;
 		return {
 			r: Number(r),
 			g: Number(g),
@@ -258,7 +258,7 @@ export function parseRGB(colorString: string): RGB | RGBA | null {
 
 	match = rgbaRegex.exec(sanitizedString);
 	if (match) {
-		const [_, r, g, b, a] = match;
+		const [, r, g, b, a] = match;
 		return {
 			r: Number(r),
 			g: Number(g),

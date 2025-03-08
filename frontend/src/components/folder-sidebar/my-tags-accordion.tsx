@@ -7,12 +7,12 @@ import { useDeleteTagsMutation } from "../../hooks/notes";
 import { useTagsQuery } from "../../hooks/tag-events";
 import { TagIcon } from "../../icons/tag";
 import TagSlash from "../../icons/tag-slash";
-import { useCustomNavigate } from "../../utils/routing";
 import { keepSelectionNotesWithPrefix } from "../../utils/selection";
 import { cn } from "../../utils/string-formatting";
 import { Sidebar } from "../sidebar";
 import { AccordionButton } from "../sidebar/accordion-button";
 import { TagDialogChildren } from "./tag-dialog-children";
+import { navigate } from "wouter/use-browser-location";
 
 export function MyTagsAccordion() {
 	const [isOpen, setIsOpen] = useState(false);
@@ -100,7 +100,6 @@ function TagAccordionButton({
 	sidebarTagName: string;
 	tagNameFromUrl: string | undefined;
 }) {
-	const { navigate } = useCustomNavigate();
 	const { mutateAsync: deleteTags } = useDeleteTagsMutation();
 	const isActive = decodeURIComponent(tagNameFromUrl ?? "") === sidebarTagName;
 	const isSelected = useMemo(

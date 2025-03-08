@@ -6,7 +6,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 
 /** @type {import('eslint').Linter.Config} */
 export default defineConfig([
-	globalIgnores(["node_modules/", "dist/", "build/"]),
+	globalIgnores(["node_modules/", "bindings/", "dist/", "build/"]),
 	{
 		files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
 		settings: {

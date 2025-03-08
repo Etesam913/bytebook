@@ -21,8 +21,10 @@ export function FolderDialogChildren({
 				<fieldset>
 					<p className="text-sm text-zinc-500 dark:text-zinc-400">
 						Are you sure you want to{" "}
-						<span className="text-red-500">delete "{folderName}"</span> and sent
-						its notes to the trash bin?
+						<span className="text-red-500">
+							delete &quot;{folderName}&quot;
+						</span>{" "}
+						and send its notes to the trash bin?
 					</p>
 					<DialogErrorText errorText={errorText} />
 				</fieldset>

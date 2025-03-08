@@ -22,7 +22,6 @@ import { FolderRefresh } from "../../icons/folder-refresh";
 import { Loader } from "../../icons/loader";
 import { Trash } from "../../icons/trash";
 import { BYTEBOOK_DRAG_DATA_FORMAT } from "../../utils/draggable";
-import { useCustomNavigate } from "../../utils/routing";
 import {
 	handleKeyNavigation,
 	keepSelectionNotesWithPrefix,
@@ -33,6 +32,7 @@ import { Sidebar } from "../sidebar";
 import { AccordionButton } from "../sidebar/accordion-button";
 import { handleDragStart } from "../sidebar/utils";
 import { FolderDialogChildren } from "./folder-dialog-children";
+import { navigate } from "wouter/use-browser-location";
 
 export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
 	const [isOpen, setIsOpen] = useState(true);
@@ -101,7 +101,8 @@ export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
 									layoutId="folder-sidebar"
 									emptyElement={
 										<li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
-											Create a folder with the "Create Folder" button above
+											Create a folder with the &quot;Create Folder&quot; button
+											above
 										</li>
 									}
 									renderLink={({
@@ -146,7 +147,6 @@ function FolderAccordionButton({
 	setSelectionRange: React.Dispatch<React.SetStateAction<Set<string>>>;
 	alphabetizedFolders: string[] | null;
 }) {
-	const { navigate } = useCustomNavigate();
 	const setDraggedElement = useSetAtom(draggedElementAtom);
 	const setContextMenuData = useSetAtom(contextMenuDataAtom);
 	const { mutate: revealInFinder } = useFolderRevealInFinderMutation();

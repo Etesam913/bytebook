@@ -12,8 +12,7 @@ export function constructGhostElementForNode(
 	node: LexicalNode,
 	ghostElement: HTMLElement,
 ) {
-	if (node.getType() === "excalidraw") {
-	} else if (node.getType() === "file") {
+	if (node.getType() === "file") {
 		const fileNode = node as FileNode;
 		if (fileNode.getElementType() === "image") {
 			constructGhostElementForImage(node as FileNode, ghostElement);

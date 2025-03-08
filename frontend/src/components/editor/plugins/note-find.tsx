@@ -12,7 +12,6 @@ import { debounce } from "../../../utils/general";
 import { clearHighlights, searchWithinNote } from "../utils/note-search";
 
 const debouncedSearch = debounce(
-	//@ts-ignore - A weird debounce error, I need to redo this function types
 	(
 		searchText: string,
 		editor: LexicalEditor,

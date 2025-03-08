@@ -91,7 +91,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 		});
 	}
 
-	decorate(_editor: LexicalEditor): JSX.Element {
+	decorate(): JSX.Element {
 		return <div>{this.getLanguage()}</div>;
 	}
 }

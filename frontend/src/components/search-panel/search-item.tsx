@@ -43,3 +43,5 @@ export const SearchItem = forwardRef<
 		</li>
 	);
 });
+
+SearchItem.displayName = "SearchItem";

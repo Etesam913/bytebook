@@ -6,7 +6,7 @@ import {
 } from "react";
 import { cn } from "../../utils/string-formatting";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {}
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 	(props: ButtonProps, ref: ForwardedRef<HTMLButtonElement>) => {

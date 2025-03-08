@@ -51,7 +51,7 @@ export function SearchItems({
 		>
 			{searchResultsElements.length === 0 ? (
 				<p className="text-sm text-zinc-650 dark:text-zinc-300 pl-1.5">
-					There are no notes named "{searchPanelData.query}"
+					There are no notes named &quot;{searchPanelData.query}&quot;
 				</p>
 			) : isShowingMostRecentNotes ? (
 				<div className="flex flex-col gap-1">

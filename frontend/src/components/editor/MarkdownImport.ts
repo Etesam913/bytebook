@@ -6,11 +6,10 @@ import type {
 } from "@lexical/markdown";
 import type { TextNode } from "lexical";
 
-import { $isListItemNode, $isListNode, type ListItemNode } from "@lexical/list";
+import { $isListItemNode, $isListNode } from "@lexical/list";
 import { $isQuoteNode } from "@lexical/rich-text";
 import { $findMatchingParent } from "@lexical/utils";
 import {
-	$createLineBreakNode,
 	$createParagraphNode,
 	$createTextNode,
 	$getRoot,
@@ -18,7 +17,6 @@ import {
 	$isParagraphNode,
 	type ElementNode,
 } from "lexical";
-import type { CodeBlockData } from "../../types";
 import { $createCodeNode, type CodeNode } from "./nodes/code";
 import { $createExcalidrawNode, type ExcalidrawNode } from "./nodes/excalidraw";
 import { PUNCTUATION_OR_SPACE, transformersByType } from "./transformers";
@@ -133,8 +131,6 @@ function importBlocks(
 			$isQuoteNode(previousNode) ||
 			$isListNode(previousNode)
 		) {
-			let targetNode: typeof previousNode | ListItemNode | null = previousNode;
-
 			if ($isListNode(previousNode)) {
 				const lastDescendant = previousNode.getLastDescendant();
 				if (lastDescendant == null) {

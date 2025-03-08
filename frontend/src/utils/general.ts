@@ -43,11 +43,10 @@ export function humanFileSize(bytes: number, si = false, dp = 1): string {
 	return `${size.toFixed(dp)} ${units[u]}`;
 }
 
-// biome-ignore lint/complexity/noBannedTypes: General types are suitable for a debounce function
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export const debounce = (fn: Function, ms = 300) => {
-	// @ts-ignore
 	let timeoutId: ReturnType<typeof setTimeout>;
-	// biome-ignore lint/suspicious/noExplicitAny: `any` is ok here because we don't know the type of `this`
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return function (this: any, ...args: any[]) {
 		clearTimeout(timeoutId);
 		timeoutId = setTimeout(() => fn.apply(this, args), ms);

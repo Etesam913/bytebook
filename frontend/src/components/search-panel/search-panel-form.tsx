@@ -9,10 +9,10 @@ import {
 
 import { useListVirtualization } from "../../hooks/observers";
 import { useSearchMutation } from "../../hooks/search";
-import { useCustomNavigate } from "../../utils/routing";
 import { getFileExtension } from "../../utils/string-formatting";
 import { useTrapFocus } from "../dialog/hooks";
 import { SearchItems } from "./search-items";
+import { navigate } from "wouter/use-browser-location";
 
 const SIDEBAR_ITEM_HEIGHT = 35;
 const VIRUTALIZATION_HEIGHT = 8;
@@ -22,7 +22,6 @@ export function SearchPanelForm() {
 	const [searchResults, setSearchResults] = useState<string[]>([]);
 	const [searchPanelData, setSearchPanelData] = useAtom(searchPanelDataAtom);
 	const searchPanelRef = useRef<HTMLFormElement>(null);
-	const { navigate } = useCustomNavigate();
 	useTrapFocus(searchPanelRef, searchPanelData.isOpen);
 
 	const mostRecentNotes = useAtomValue(mostRecentNotesWithoutQueryParamsAtom);
