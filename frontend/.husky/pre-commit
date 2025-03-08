@@ -1,1 +1,2 @@
+cd frontend
 pnpm format:lint:tsc
