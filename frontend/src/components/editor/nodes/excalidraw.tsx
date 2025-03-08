@@ -1,8 +1,4 @@
 import type {
-	ExcalidrawElement,
-	NonDeletedExcalidrawElement,
-} from "@excalidraw/excalidraw/types/element/types";
-import type {
 	EditorConfig,
 	LexicalEditor,
 	LexicalNode,
@@ -14,6 +10,10 @@ import { $applyNodeReplacement, DecoratorNode } from "lexical";
 import type { JSX } from "react";
 import type { ResizeWidth } from "../../../types";
 import { ExcalidrawComponent } from "../../excalidraw";
+import type {
+	ExcalidrawElement,
+	NonDeletedExcalidrawElement,
+} from "@excalidraw/excalidraw/element/types";
 
 export interface ExcalidrawPayload {
 	key?: NodeKey;

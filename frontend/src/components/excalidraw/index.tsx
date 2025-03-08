@@ -1,9 +1,5 @@
+import "@excalidraw/excalidraw/index.css";
 import { Excalidraw, MainMenu, THEME } from "@excalidraw/excalidraw";
-import type {
-	ExcalidrawElement,
-	NonDeletedExcalidrawElement,
-} from "@excalidraw/excalidraw/types/element/types";
-import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
@@ -14,7 +10,7 @@ import {
 	COMMAND_PRIORITY_NORMAL,
 	KEY_ESCAPE_COMMAND,
 } from "lexical";
-import { type MutableRefObject, useEffect, useRef, useState } from "react";
+import { type RefObject, useEffect, useRef, useState } from "react";
 import { getDefaultButtonVariants } from "../../animations";
 import { isDarkModeOnAtom } from "../../atoms";
 import { XMark } from "../../icons/circle-xmark";
@@ -24,8 +20,14 @@ import { cn } from "../../utils/string-formatting";
 import { NoteComponentControls } from "../note-component-container/component-controls";
 import { useFocusOnSelect } from "./hooks";
 
+import type {
+	ExcalidrawElement,
+	NonDeletedExcalidrawElement,
+} from "@excalidraw/excalidraw/element/types";
+import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
+
 function writeElementsToNodeWrapper(
-	excalidrawAPIRef: MutableRefObject<ExcalidrawImperativeAPI | null>,
+	excalidrawAPIRef: RefObject<ExcalidrawImperativeAPI | null>,
 	writeElementsToNode: (elements: NonDeletedExcalidrawElement[]) => void,
 ) {
 	return debounce(() => {

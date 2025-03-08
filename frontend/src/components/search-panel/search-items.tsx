@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import type { LegacyRef, MutableRefObject } from "react";
+import type { Ref, RefObject } from "react";
 import {
 	mostRecentNotesWithoutQueryParamsAtom,
 	searchPanelDataAtom,
@@ -20,8 +20,8 @@ export function SearchItems({
 		listTop: string;
 		visibleItems: string[];
 	};
-	searchResultsRefs: MutableRefObject<(HTMLLIElement | null)[]>;
-	searchResultsContainerRef: LegacyRef<HTMLMenuElement>;
+	searchResultsRefs: RefObject<(HTMLLIElement | null)[]>;
+	searchResultsContainerRef: Ref<HTMLMenuElement>;
 }) {
 	const { onScroll, listContainerHeight, listHeight, listTop, visibleItems } =
 		virtualizationState;
