@@ -1,6 +1,6 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useAtomValue } from 'jotai/react';
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { noteSeenFileNodeKeysAtom } from '../../atoms';
 import { useShowWhenInViewport } from '../../hooks/observers';
 import { useResizeCommands, useResizeState } from '../../hooks/resize';
@@ -29,9 +29,7 @@ export function Image({
   const [isError, setIsError] = useState(false);
   const noteSeenFileNodeKeys = useAtomValue(noteSeenFileNodeKeysAtom);
 
-  const isImageInViewport = useMemo(() => {
-    return noteSeenFileNodeKeys.has(nodeKey);
-  }, [noteSeenFileNodeKeys]);
+  const isImageInViewport = noteSeenFileNodeKeys.has(nodeKey);
 
   const {
     isResizing,

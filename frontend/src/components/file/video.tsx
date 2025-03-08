@@ -1,6 +1,6 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useAtomValue } from 'jotai/react';
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { noteSeenFileNodeKeysAtom } from '../../atoms';
 import { useShowWhenInViewport } from '../../hooks/observers';
 import { useResizeCommands, useResizeState } from '../../hooks/resize';
@@ -49,9 +49,7 @@ export function Video({
     videoRef
   );
 
-  const isVideoInViewport = useMemo(() => {
-    return noteSeenFileNodeKeys.has(nodeKey);
-  }, [noteSeenFileNodeKeys]);
+  const isVideoInViewport = noteSeenFileNodeKeys.has(nodeKey);
 
   useShowWhenInViewport(loaderRef, isExpanded, isVideoInViewport);
 

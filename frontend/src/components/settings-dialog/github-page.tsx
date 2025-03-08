@@ -1,5 +1,4 @@
 import { useAtomValue } from 'jotai/react';
-import { useMemo } from 'react';
 import { projectSettingsAtom } from '../../atoms';
 import { useGithubRepositoriesQuery } from '../../hooks/github';
 import { useUpdateProjectSettingsMutation } from '../../hooks/project-settings';
@@ -16,14 +15,11 @@ export function GithubPage() {
   } = useGithubRepositoriesQuery();
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const dropdownItems = useMemo(() => {
-    return (
-      repositories?.map((repo) => ({
-        value: repo.clone_url,
-        label: repo.name,
-      })) || []
-    );
-  }, [repositories]);
+  const dropdownItems =
+    repositories?.map((repo) => ({
+      value: repo.clone_url,
+      label: repo.name,
+    })) || [];
 
   return (
     <SettingsRow

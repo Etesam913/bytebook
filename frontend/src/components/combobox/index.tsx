@@ -1,4 +1,4 @@
-import { forwardRef, useMemo, useRef, useState } from 'react';
+import { forwardRef, useRef, useState } from 'react';
 import type {
   Dispatch,
   InputHTMLAttributes,
@@ -61,10 +61,7 @@ export const Combobox = forwardRef<HTMLInputElement, InputProps>(
           ))
         : null;
 
-    const dropdownItemsLength = useMemo(
-      () => dropdownItems?.length ?? 0,
-      [dropdownItems]
-    );
+    const dropdownItemsLength = dropdownItems?.length ?? 0;
 
     return (
       <div className="flex flex-1" ref={comboboxRef}>

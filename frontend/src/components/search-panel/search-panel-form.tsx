@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useAtom, useAtomValue } from 'jotai';
-import { type FormEvent, useMemo, useRef, useState } from 'react';
+import { type FormEvent, useRef, useState } from 'react';
 import { easingFunctions } from '../../animations';
 import {
   mostRecentNotesWithoutQueryParamsAtom,
@@ -25,11 +25,8 @@ export function SearchPanelForm() {
   useTrapFocus(searchPanelRef, searchPanelData.isOpen);
 
   const mostRecentNotes = useAtomValue(mostRecentNotesWithoutQueryParamsAtom);
-  const isShowingMostRecentNotes = useMemo(() => {
-    return (
-      searchResults.length === 0 && searchPanelData.query.trim().length === 0
-    );
-  }, [searchResults.length, searchPanelData.query]);
+  const isShowingMostRecentNotes =
+    searchResults.length === 0 && searchPanelData.query.trim().length === 0;
   const searchResultsContainerRef = useRef<HTMLMenuElement | null>(null);
   const searchResultsRefs = useRef<(HTMLLIElement | null)[]>([]);
   const { mutateAsync: search } = useSearchMutation();

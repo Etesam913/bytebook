@@ -2,7 +2,6 @@ import type {
   ElementTransformer,
   TextFormatTransformer,
   TextMatchTransformer,
-  Transformer,
 } from '@lexical/markdown';
 import type {
   ElementNode,
@@ -19,6 +18,7 @@ import {
   $isTextNode,
 } from 'lexical';
 import { transformersByType } from './transformers';
+import type { Transformer } from './utils/note-metadata';
 
 /** THIS CODE IS PRETTY MUCH FROM META EXCEPT SMALL MODIFICATION OF NEW LINE */
 
@@ -34,7 +34,7 @@ export function createMarkdownExport(
   );
 
   return (node) => {
-    const output = [];
+    const output: string[] = [];
     const children = (node || $getRoot()).getChildren();
 
     for (const child of children) {
@@ -83,7 +83,7 @@ function exportChildren(
   textTransformersIndex: Array<TextFormatTransformer>,
   textMatchTransformers: Array<TextMatchTransformer>
 ): string {
-  const output = [];
+  const output: string[] = [];
   const children = node.getChildren();
 
   mainLoop: for (const child of children) {

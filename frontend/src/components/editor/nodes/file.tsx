@@ -99,7 +99,7 @@ export class FileNode extends DecoratorNode<JSX.Element> {
   }
 
   exportDOM(): DOMExportOutput {
-    let element = null;
+    let element: HTMLImageElement | null = null;
     // if (this.__elementType === "image") {
     element = document.createElement('img');
     element.setAttribute('src', this.__src);

@@ -1,7 +1,6 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { useAtom } from 'jotai/react';
-import { useMemo } from 'react';
 import { getDefaultButtonVariants } from '../../animations.ts';
 import { noteSortAtom } from '../../atoms';
 import { MotionButton } from '../../components/buttons/index.tsx';
@@ -31,19 +30,13 @@ export function MyNotesAccordion({
 }) {
   const { data: notes, refetch, isError, isLoading } = noteQueryResult;
 
-  const noteCount = useMemo(() => notes?.length ?? 0, [notes]);
+  const noteCount = notes?.length ?? 0;
   // The sidebar note name includes the folder name if it's in a tag sidebar
   const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);
   // If the fileExtension is undefined, then it is a markdown file
-  const activeDataItem = useMemo(
-    () => (curNote ? `${curNote}?ext=${fileExtension}` : null),
-    [curNote, fileExtension]
-  );
+  const activeDataItem = curNote ? `${curNote}?ext=${fileExtension}` : null;
 
-  const isInTagSidebar = useMemo(
-    () => tagState?.tagName !== undefined,
-    [tagState]
-  );
+  const isInTagSidebar = tagState?.tagName !== undefined;
 
   return (
     <div className="flex flex-1 flex-col gap-1 overflow-y-auto">

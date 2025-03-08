@@ -37,7 +37,6 @@ import { FilePickerMenuPlugin } from './plugins/file-picker.tsx';
 import { FocusPlugin } from './plugins/focus.tsx';
 import { LinkMatcherPlugin } from './plugins/link-matcher.tsx';
 import { LinkPlugin } from './plugins/link.tsx';
-import { NoteFindPlugin } from './plugins/note-find.tsx';
 import { SavePlugin } from './plugins/save.tsx';
 import { TableOfContentsPlugin } from './plugins/table-of-contents.tsx';
 // import TreeViewPlugin from "./plugins/tree-view";
@@ -64,7 +63,6 @@ export function NotesEditor({
     type: null,
   });
   const queryClient = useQueryClient();
-  const [isFindOpen, setIsFindOpen] = useState(false);
   const noteContainerRef = useRef<HTMLDivElement | null>(null);
   const setNoteContainerRef = useSetAtom(noteContainerRefAtom);
   const [noteIntersectionObserver, setNoteIntersectionObserver] = useAtom(
@@ -181,7 +179,6 @@ export function NotesEditor({
           <CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
           <ListPlugin />
           <LinkPlugin />
-          <NoteFindPlugin isOpen={isFindOpen} setIsOpen={setIsFindOpen} />
           <CheckListPlugin />
           <TabIndentationPlugin />
           <HistoryPlugin />

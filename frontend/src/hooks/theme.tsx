@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom } from 'jotai';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { isDarkModeOnAtom, projectSettingsAtom } from '../atoms';
 import { addColorSchemeClassToBody } from '../utils/color-scheme';
 
@@ -11,11 +11,8 @@ export function useDarkModeSetting() {
   const projectSettings = useAtomValue(projectSettingsAtom);
   const setIsDarkModeOn = useSetAtom(isDarkModeOnAtom);
   // Memoize the handler to ensure the same reference is used
-  const handleColorSchemeChange = useCallback(
-    (event: MediaQueryListEvent) =>
-      addColorSchemeClassToBody(event.matches, setIsDarkModeOn),
-    [setIsDarkModeOn]
-  );
+  const handleColorSchemeChange = (event: MediaQueryListEvent) =>
+    addColorSchemeClassToBody(event.matches, setIsDarkModeOn);
 
   useEffect(() => {
     const isDarkModeEvent = window.matchMedia('(prefers-color-scheme: dark)');

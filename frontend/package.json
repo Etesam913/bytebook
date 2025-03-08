@@ -11,7 +11,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint --fix .",
-    "lint:check": "pnpm dlx eslint ."
+    "lint:check": "pnpm dlx eslint .",
+    "tsc": "tsc",
+    "format:lint:tsc": "pnpm format:check && pnpm lint:check && pnpm tsc"
   },
   "dependencies": {
     "@excalidraw/excalidraw": "0.18.0-a9e2d23",

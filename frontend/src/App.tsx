@@ -55,7 +55,13 @@ function App() {
         <Route path="/tags/:tagName/:folder?/:note?">
           {(folderParams) => (
             <TagsSidebar
-              params={folderParams}
+              params={
+                folderParams as {
+                  tagName: string;
+                  folder?: string;
+                  note?: string;
+                }
+              }
               width={notesSidebarWidth}
               leftWidth={folderSidebarWidth}
             />

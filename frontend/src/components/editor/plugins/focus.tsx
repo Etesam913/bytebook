@@ -8,7 +8,7 @@ import {
   type LexicalCommand,
   createCommand,
 } from 'lexical';
-import { useEffect } from 'react';
+import { JSX, useEffect } from 'react';
 
 export const FOCUS_NODE_COMMAND: LexicalCommand<DecoratorNode<JSX.Element>> =
   createCommand('FOCUS_NODE_COMMAND');

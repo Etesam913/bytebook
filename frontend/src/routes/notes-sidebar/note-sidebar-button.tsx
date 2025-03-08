@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom } from 'jotai/react';
-import { type Dispatch, type SetStateAction, useMemo } from 'react';
+import { type Dispatch, type SetStateAction } from 'react';
 import {
   contextMenuDataAtom,
   dialogDataAtom,
@@ -79,21 +79,18 @@ export function NoteSidebarButton({
     sidebarNoteExtension
   );
 
-  const imgSrc = useMemo(() => {
-    const notePreviewResultData = notePreviewResult?.data;
-    if (!notePreviewResultData || notePreviewResultData.firstImageSrc === '') {
-      if (IMAGE_FILE_EXTENSIONS.includes(sidebarNoteExtension)) {
-        return `${FILE_SERVER_URL}/notes/${sidebarNoteFolder}/${sidebarNoteNameWithoutExtension}.${sidebarNoteExtension}`;
-      }
-      return '';
-    }
-    return notePreviewResultData.firstImageSrc;
-  }, [notePreviewResult]);
+  const notePreviewResultData = notePreviewResult?.data;
+  const firstImageSrc = notePreviewResultData?.firstImageSrc ?? '';
+  const isImageFile = IMAGE_FILE_EXTENSIONS.includes(sidebarNoteExtension);
+  const imgSrc =
+    !notePreviewResultData || firstImageSrc === ''
+      ? isImageFile
+        ? `${FILE_SERVER_URL}/notes/${sidebarNoteFolder}/${sidebarNoteNameWithoutExtension}.${sidebarNoteExtension}`
+        : ''
+      : firstImageSrc;
 
-  const isActive = useMemo(
-    () => decodeURIComponent(activeNoteNameWithExtension) === sidebarNoteName,
-    [activeNoteNameWithExtension, sidebarNoteName]
-  );
+  const isActive =
+    decodeURIComponent(activeNoteNameWithExtension) === sidebarNoteName;
   /*
 		The SidebarItems container component adds the folder name and the note name to the selection range
 		when a note is selected in the tags note sidebar. Therefore, selections via this comopnent should
@@ -103,10 +100,8 @@ export function NoteSidebarButton({
     ? `${sidebarNoteFolder}/${sidebarNoteName}`
     : sidebarNoteName;
 
-  const isSelected = useMemo(
-    () => selectionRange.has(`note:${noteNameForSelection}`) ?? false,
-    [selectionRange, sidebarNoteName]
-  );
+  const isSelected =
+    selectionRange.has(`note:${noteNameForSelection}`) ?? false;
 
   return (
     <button
@@ -175,46 +170,54 @@ export function NoteSidebarButton({
                   folder: sidebarNoteFolder,
                 }),
             },
-            isShowingPinOption && {
-              label: (
-                <span className="flex items-center gap-1.5">
-                  <PinTack2
-                    width={17}
-                    height={17}
-                    className="will-change-transform"
-                  />{' '}
-                  Pin Notes
-                </span>
-              ),
-              value: 'pin-note',
-              onChange: () => {
-                pinOrUnpinNote({
-                  folder: sidebarNoteFolder,
-                  selectionRange: newSelectionRange,
-                  shouldPin: true,
-                });
-              },
-            },
-            isShowingUnpinOption && {
-              label: (
-                <span className="flex items-center gap-1.5">
-                  <PinTackSlash
-                    width={17}
-                    height={17}
-                    className="will-change-transform"
-                  />{' '}
-                  Unpin Notes
-                </span>
-              ),
-              value: 'unpin-note',
-              onChange: () => {
-                pinOrUnpinNote({
-                  folder: sidebarNoteFolder,
-                  selectionRange: newSelectionRange,
-                  shouldPin: false,
-                });
-              },
-            },
+            ...(isShowingPinOption
+              ? [
+                  {
+                    label: (
+                      <span className="flex items-center gap-1.5">
+                        <PinTack2
+                          width={17}
+                          height={17}
+                          className="will-change-transform"
+                        />{' '}
+                        Pin Notes
+                      </span>
+                    ),
+                    value: 'pin-note',
+                    onChange: () => {
+                      pinOrUnpinNote({
+                        folder: sidebarNoteFolder,
+                        selectionRange: newSelectionRange,
+                        shouldPin: true,
+                      });
+                    },
+                  },
+                ]
+              : []),
+            ...(isShowingUnpinOption
+              ? [
+                  {
+                    label: (
+                      <span className="flex items-center gap-1.5">
+                        <PinTackSlash
+                          width={17}
+                          height={17}
+                          className="will-change-transform"
+                        />{' '}
+                        Unpin Notes
+                      </span>
+                    ),
+                    value: 'unpin-note',
+                    onChange: () => {
+                      pinOrUnpinNote({
+                        folder: sidebarNoteFolder,
+                        selectionRange: newSelectionRange,
+                        shouldPin: false,
+                      });
+                    },
+                  },
+                ]
+              : []),
             {
               label: (
                 <span className="flex items-center gap-1.5">
@@ -289,7 +292,7 @@ export function NoteSidebarButton({
                   folder: sidebarNoteFolder,
                 }),
             },
-          ].filter(Boolean),
+          ],
         });
       }}
       className={cn(
@@ -320,7 +323,6 @@ export function NoteSidebarButton({
           sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
         />
       )}
-
       {projectSettings.noteSidebarItemSize === 'card' && (
         <CardNoteSidebarItem
           imgSrc={imgSrc}

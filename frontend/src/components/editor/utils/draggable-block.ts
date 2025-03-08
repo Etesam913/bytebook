@@ -303,7 +303,7 @@ export function getBlockElement(
   editor: LexicalEditor,
   noteContainer: HTMLElement,
   useEdgeAsDefault = false
-) {
+): HTMLElement | null {
   const editorState = editor.getEditorState();
   // The children of the root
 
@@ -384,7 +384,7 @@ export function getBlockElement(
       index += direction;
     }
   });
-  return blockElem;
+  return blockElem as HTMLElement | null;
 }
 
 /**

@@ -192,7 +192,7 @@ export function overrideControlledTextInsertion(
 
   const files = fileText.split(',');
 
-  const linkPayloads = [];
+  const linkPayloads: { url: string; title: string }[] = [];
   const filesPayload: FilePayload[] = [];
 
   for (const fileText of files) {

@@ -5,7 +5,6 @@ import {
   type ReactNode,
   type SetStateAction,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -77,21 +76,12 @@ export function Sidebar({
     }
   });
 
-  const items = useMemo(() => data ?? [], [data]);
+  const items = data ?? [];
 
-  const isSidebarItemCard = useMemo(
-    () =>
-      projectSettings.noteSidebarItemSize === 'card' && contentType === 'note',
-    [projectSettings.noteSidebarItemSize, contentType]
-  );
-  const VIRUTALIZATION_HEIGHT = useMemo(
-    () => (isSidebarItemCard ? 18 : 8),
-    [isSidebarItemCard]
-  );
-  const SIDEBAR_ITEM_HEIGHT = useMemo(
-    () => (isSidebarItemCard ? 83 : 34),
-    [projectSettings.noteSidebarItemSize, contentType]
-  );
+  const isSidebarItemCard =
+    projectSettings.noteSidebarItemSize === 'card' && contentType === 'note';
+  const VIRUTALIZATION_HEIGHT = isSidebarItemCard ? 18 : 8;
+  const SIDEBAR_ITEM_HEIGHT = isSidebarItemCard ? 83 : 34;
 
   const {
     setScrollTop,

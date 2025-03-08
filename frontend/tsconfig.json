@@ -6,20 +6,21 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "allowJs": true,
-    /* Bundler mode */
+    "checkJs": false,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "noImplicitAny": false,
 
-    /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["./src"],
+  "exclude": ["node_modules", "dist", "bindings", "src/assets"]
+  // "references": [{ "path": "./tsconfig.node.json" }]
 }

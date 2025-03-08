@@ -1,5 +1,5 @@
 import { useAtomValue } from 'jotai/react';
-import { type RefObject, useEffect, useMemo, useState } from 'react';
+import { type RefObject, useEffect, useState } from 'react';
 import { noteIntersectionObserverAtom } from '../atoms';
 
 /**
@@ -25,35 +25,18 @@ export function useListVirtualization(
   const [containerHeight, setContainerHeight] = useState(0);
 
   // Calculate the range of visible items. There is a -2 so that items are above the visible area as well
-  const startIndex = useMemo(
-    () =>
-      Math.max(
-        0,
-        Math.floor(scrollTop / SIDEBAR_ITEM_HEIGHT - (isSearchPanel ? 0 : 2))
+  const startIndex = Math.max(
+    0,
+    Math.floor(scrollTop / SIDEBAR_ITEM_HEIGHT - (isSearchPanel ? 0 : 2))
+  );
+  const endIndex = Math.min(
+    startIndex +
+      Math.ceil(
+        containerHeight / (SIDEBAR_ITEM_HEIGHT - VIRUTALIZATION_HEIGHT)
       ),
-    [scrollTop, SIDEBAR_ITEM_HEIGHT]
+    items.length
   );
-  const endIndex = useMemo(() => {
-    const end = Math.min(
-      startIndex +
-        Math.ceil(
-          containerHeight / (SIDEBAR_ITEM_HEIGHT - VIRUTALIZATION_HEIGHT)
-        ),
-      items.length
-    );
-    return end;
-  }, [
-    startIndex,
-    containerHeight,
-    SIDEBAR_ITEM_HEIGHT,
-    VIRUTALIZATION_HEIGHT,
-    items.length,
-  ]);
-
-  const visibleItems = useMemo(
-    () => items.slice(startIndex, endIndex),
-    [items, startIndex, endIndex]
-  );
+  const visibleItems = items.slice(startIndex, endIndex);
 
   // Update container height when resized
   useEffect(() => {

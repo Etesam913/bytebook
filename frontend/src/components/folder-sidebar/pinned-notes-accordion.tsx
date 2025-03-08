@@ -46,7 +46,7 @@ function VirtualizedPinnedNotes({
     VIRUTALIZATION_HEIGHT,
     listScrollContainerRef
   );
-  const { mutate: pinOrUnpinNote } = usePinNotesMutation();
+  const { mutate: pinOrUnpinNote } = usePinNotesMutation(false);
 
   const pinnedNotesElements = visibleItems.map((pinnedNote, i) => {
     const [folderName, noteName] = pinnedNote.split('/');

@@ -119,10 +119,8 @@ export function BottomBar({
               onSubmit: (e, setErrorText) => {
                 return addTagsToNotes({
                   e,
-                  setErrorText,
                   folder,
-                  note,
-                  ext: ext,
+                  setErrorText,
                   selectionRange: new Set([`note:${note}?ext=${ext}`]),
                 });
               },

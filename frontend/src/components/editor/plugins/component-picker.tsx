@@ -16,7 +16,7 @@ import {
   type LexicalEditor,
   type TextNode,
 } from 'lexical';
-import { type JSX, useCallback, useMemo, useState } from 'react';
+import { type JSX, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useAttachmentsMutation } from '../../../hooks/attachments';
@@ -306,7 +306,6 @@ function getBaseOptions(
             editor.update(() => {
               editor.dispatchCommand(INSERT_CODE_COMMAND, {
                 language: id,
-                shell: 'bash',
               });
             });
           },
@@ -335,7 +334,7 @@ export function ComponentPickerMenuPlugin({
     editor,
   });
 
-  const options = useMemo(() => {
+  const getOptions = () => {
     const baseOptions = getBaseOptions(editor, insertAttachmentsMutation);
 
     if (!queryString) {
@@ -351,23 +350,22 @@ export function ComponentPickerMenuPlugin({
           option.keywords.some((keyword) => regex.test(keyword))
       ),
     ];
-  }, [editor, queryString, folder, note]);
+  };
 
-  const onSelectOption = useCallback(
-    (
-      selectedOption: DropdownPickerOption,
-      nodeToRemove: TextNode | null,
-      closeMenu: () => void,
-      matchingString: string
-    ) => {
-      editor.update(() => {
-        nodeToRemove?.remove();
-        selectedOption.onSelect(matchingString);
-        closeMenu();
-      });
-    },
-    [editor]
-  );
+  const options = getOptions();
+
+  const onSelectOption = (
+    selectedOption: DropdownPickerOption,
+    nodeToRemove: TextNode | null,
+    closeMenu: () => void,
+    matchingString: string
+  ) => {
+    editor.update(() => {
+      nodeToRemove?.remove();
+      selectedOption.onSelect(matchingString);
+      closeMenu();
+    });
+  };
 
   return (
     <LexicalTypeaheadMenuPlugin<DropdownPickerOption>

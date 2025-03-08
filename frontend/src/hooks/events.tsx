@@ -12,8 +12,8 @@ export function useWailsEvent(
   eventName: string,
   callback: (res: WailsEvent) => void
 ) {
-  // @ts-expect-error the events function can be returned
   useEffect(() => {
+    // @ts-expect-error the events function can be returned
     return WailsEvents.On(eventName, callback);
   }, [eventName, callback]);
 }

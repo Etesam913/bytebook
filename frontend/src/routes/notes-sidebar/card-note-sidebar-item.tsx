@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { BackendResponseWithData } from '../../../bindings/github.com/etesam913/bytebook/lib/project_types/models';
 import type { NotePreviewData } from '../../../bindings/github.com/etesam913/bytebook/services';
 import { VIDEO_FILE_EXTENSIONS } from '../../types';
@@ -36,14 +36,9 @@ export function CardNoteSidebarItem({
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [isImageError, setIsImageError] = useState(false);
 
-  const fileExtension = useMemo(
-    () => (imgSrc.split('.').pop() ?? '').toLowerCase(),
-    [imgSrc]
-  );
-  const doesHaveImage = useMemo(
-    () => imgSrc !== '' && !VIDEO_FILE_EXTENSIONS.includes(fileExtension),
-    [imgSrc, fileExtension]
-  );
+  const fileExtension = (imgSrc.split('.').pop() ?? '').toLowerCase();
+  const doesHaveImage =
+    imgSrc !== '' && !VIDEO_FILE_EXTENSIONS.includes(fileExtension);
   return (
     <div className="text-left pointer-events-none w-full">
       <div className="flex w-full justify-between gap-1.5">

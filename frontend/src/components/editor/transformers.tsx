@@ -182,7 +182,7 @@ export const CODE_TRANSFORMER: ElementTransformer = {
     // This code handles creation for the first time
     const language = match.at(1);
     if (!language) return;
-    let newNode = null;
+    let newNode: ExcalidrawNode | CodeNode | null = null;
     if (language === 'drawing') {
       newNode = $createExcalidrawNode({ elements: [] });
     } else {
@@ -276,7 +276,7 @@ export const TABLE: ElementTransformer = {
     const output: string[] = [];
 
     for (const row of node.getChildren()) {
-      const rowOutput = [];
+      const rowOutput: string[] = [];
       if (!$isTableRowNode(row)) {
         continue;
       }

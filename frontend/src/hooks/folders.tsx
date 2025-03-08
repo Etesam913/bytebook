@@ -35,7 +35,6 @@ export function useFolders(curFolder: string | undefined) {
       if (!res.success) {
         throw new QueryError(res.message);
       }
-      console.log(res);
       // If the current folder does not exist anymore, then navigate to a safe url
       if (!res.data.some((folder) => folder === curFolder)) {
         if (res.data.length > 0) {

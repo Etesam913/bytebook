@@ -345,7 +345,7 @@ export class LinkNode extends ElementNode {
 }
 
 function convertAnchorElement(domNode: Node): DOMConversionOutput {
-  let node = null;
+  let node: LinkNode | null = null;
   if (isHTMLAnchorElement(domNode)) {
     const content = domNode.textContent;
     if ((content !== null && content !== '') || domNode.children.length > 0) {

@@ -113,6 +113,7 @@ export type Transformer =
   | TextMatchTransformer;
 
 export function $convertToMarkdownStringCorrect(
+  // @ts-expect-error Will fix later
   transformers: Array<Transformer> = TRANSFORMERS,
   node?: ElementNode
 ): string {
@@ -122,6 +123,7 @@ export function $convertToMarkdownStringCorrect(
 
 export function $convertFromMarkdownStringCorrect(
   markdown: string,
+  // @ts-expect-error Will fix later
   transformers: Array<Transformer> = TRANSFORMERS,
   setFrontmatter?: Dispatch<SetStateAction<Record<string, string>>>,
   node?: ElementNode

@@ -2,24 +2,19 @@ import type {
   ElementTransformer,
   TextFormatTransformer,
   TextMatchTransformer,
-  Transformer,
 } from '@lexical/markdown';
 import type { TextNode } from 'lexical';
-
-import { $isListItemNode, $isListNode } from '@lexical/list';
-import { $isQuoteNode } from '@lexical/rich-text';
-import { $findMatchingParent } from '@lexical/utils';
 import {
   $createParagraphNode,
   $createTextNode,
   $getRoot,
   $getSelection,
-  $isParagraphNode,
   type ElementNode,
 } from 'lexical';
 import { $createCodeNode, type CodeNode } from './nodes/code';
 import { $createExcalidrawNode, type ExcalidrawNode } from './nodes/excalidraw';
 import { PUNCTUATION_OR_SPACE, transformersByType } from './transformers';
+import type { Transformer } from './utils/note-metadata';
 
 const CAN_USE_DOM: boolean =
   typeof window !== 'undefined' &&
@@ -124,32 +119,34 @@ function importBlocks(
   // If no transformer found and we left with original paragraph node
   // can check if its content can be appended to the previous node
   // if it's a paragraph, quote or list
-  if (elementNode.isAttached() && lineTextTrimmed.length > 0) {
-    const previousNode = elementNode.getPreviousSibling();
-    if (
-      $isParagraphNode(previousNode) ||
-      $isQuoteNode(previousNode) ||
-      $isListNode(previousNode)
-    ) {
-      if ($isListNode(previousNode)) {
-        const lastDescendant = previousNode.getLastDescendant();
-        if (lastDescendant == null) {
-          targetNode = null;
-        } else {
-          targetNode = $findMatchingParent(lastDescendant, $isListItemNode);
-        }
-      }
+  // if (elementNode.isAttached() && lineTextTrimmed.length > 0) {
+  //   const previousNode = elementNode.getPreviousSibling();
+  //   if (
+  //     $isParagraphNode(previousNode) ||
+  //     $isQuoteNode(previousNode) ||
+  //     $isListNode(previousNode)
+  //   ) {
+  //     // let targetNode: typeof previousNode | ListItemNode | null = previousNode;
 
-      // This is an optimization to use the previous node and just add a line break, but doing this breaks certain stuff
-      // if (targetNode != null && targetNode.getTextContentSize() > 0) {
-      // 	targetNode.splice(targetNode.getChildrenSize(), 0, [
-      // 		$createLineBreakNode(),
-      // 		...elementNode.getChildren(),
-      // 	]);
-      // 	elementNode.remove();
-      // }
-    }
-  }
+  //     // if ($isListNode(previousNode)) {
+  //     //   const lastDescendant = previousNode.getLastDescendant();
+  //     //   if (lastDescendant == null) {
+  //     //     targetNode = null;
+  //     //   } else {
+  //     //     targetNode = $findMatchingParent(lastDescendant, $isListItemNode);
+  //     //   }
+  //     // }
+
+  //     // This is an optimization to use the previous node and just add a line break, but doing this breaks certain stuff
+  //     // if (targetNode != null && targetNode.getTextContentSize() > 0) {
+  //     // 	targetNode.splice(targetNode.getChildrenSize(), 0, [
+  //     // 		$createLineBreakNode(),
+  //     // 		...elementNode.getChildren(),
+  //     // 	]);
+  //     // 	elementNode.remove();
+  //     // }
+  //   }
+  // }
 }
 const CODE_BLOCK_REG_EXP = /^```(\w{1,10})?\s*({[^}]*})?\s*$/;
 
@@ -167,19 +164,18 @@ function importCodeBlock(
       const closeMatch = lines[endLineIndex].match(CODE_BLOCK_REG_EXP);
       if (closeMatch) {
         const language = openMatch[1] ?? '';
-        const otherMatches = openMatch.slice(2).filter((v) => v !== undefined);
-        let command: string | undefined = undefined;
-        let startDirectory: string | undefined = undefined;
-        for (const match of otherMatches) {
-          // These are in the form of {key=value key2=value2}
-          const keyValuePairs = match.slice(1, -1).split(', ');
-          for (const keyValuePair of keyValuePairs) {
-            const [key, value] = keyValuePair.split('=');
-            const valueWithNoQuotes = value.replace(/"/g, '');
-            if (key === 'command') command = valueWithNoQuotes;
-            if (key === 'startDirectory') startDirectory = valueWithNoQuotes;
-          }
-        }
+        // const otherMatches = openMatch.slice(2).filter((v) => v !== undefined);
+
+        // for (const match of otherMatches) {
+        //   // These are in the form of {key=value key2=value2}
+        //   // const keyValuePairs = match.slice(1, -1).split(', ');
+        //   // for (const keyValuePair of keyValuePairs) {
+        //   //   const [key, value] = keyValuePair.split('=');
+        //   //   // const valueWithNoQuotes = value.replace(/"/g, '');
+        //   //   // if (key === 'command') command = valueWithNoQuotes;
+        //   //   // if (key === 'startDirectory') startDirectory = valueWithNoQuotes;
+        //   // }
+        // }
         if (language === 'drawing') {
           const elementsString = lines
             .slice(startLineIndex + 1, endLineIndex)
@@ -190,16 +186,11 @@ function importCodeBlock(
           return [excalidrawNode, endLineIndex];
         }
         // If not drawing then it is a code block
-        const filesString = lines
-          .slice(startLineIndex + 1, endLineIndex)
-          .join('\n');
-        const data: CodeBlockData = JSON.parse(filesString);
+        // const filesString = lines
+        //   .slice(startLineIndex + 1, endLineIndex)
+        //   .join('\n');
         const codeBlockNode = $createCodeNode({
-          data,
           language,
-          command,
-          startDirectory,
-          shell: 'bash',
         });
         rootNode.append(codeBlockNode);
         return [codeBlockNode, endLineIndex];
@@ -230,13 +221,9 @@ function importTextFormatTransformers(
     importTextMatchTransformers(textNode, textMatchTransformers);
     return;
   }
-
-  // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-  let currentNode;
-  // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-  let remainderNode;
-  // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-  let leadingNode;
+  let currentNode: TextNode | null = null;
+  let remainderNode: TextNode | null = null;
+  let leadingNode: TextNode | null = null;
 
   // If matching full content there's no need to run splitText and can reuse existing textNode
   // to update its content and apply format. E.g. for **_Hello_** string after applying bold
@@ -314,8 +301,8 @@ function importTextMatchTransformers(
 
       const startIndex = match.index || 0;
       const endIndex = startIndex + match[0].length;
-      let replaceNode = null;
-      let newTextNode = null;
+      let replaceNode: TextNode | null = null;
+      let newTextNode: TextNode | null = null;
 
       if (startIndex === 0) {
         [replaceNode, textNode] = textNode.splitText(endIndex);
@@ -384,7 +371,7 @@ function createTextFormatTransformersIndex(
 ): TextFormatTransformersIndex {
   const transformersByTag: Record<string, TextFormatTransformer> = {};
   const fullMatchRegExpByTag: Record<string, RegExp> = {};
-  const openTagsRegExp = [];
+  const openTagsRegExp: string[] = [];
   const escapeRegExp = '(?<![\\\\])';
 
   for (const transformer of textTransformers) {

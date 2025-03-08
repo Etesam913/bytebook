@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useSearch } from 'wouter';
 
 /**
@@ -8,10 +7,9 @@ import { useSearch } from 'wouter';
  */
 export function useSearchParamsEntries(): Record<string, string> {
   const searchString = useSearch();
-  const searchParamsObject = useMemo(() => {
-    const searchParams = new URLSearchParams(searchString);
-    return Object.fromEntries(searchParams.entries());
-  }, [searchString]);
+  const searchParamsObject = Object.fromEntries(
+    new URLSearchParams(searchString).entries()
+  );
   return searchParamsObject;
 }
 /**

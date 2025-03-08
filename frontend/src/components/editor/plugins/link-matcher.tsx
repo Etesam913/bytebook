@@ -222,7 +222,7 @@ function $createAutoLinkNode_(
   if (nodes.length === 1) {
     let remainingTextNode = nodes[0];
     // biome-ignore lint/suspicious/noImplicitAnyLet: This declaration is okay as this is copied from Meta, so I trust them
-    let linkTextNode;
+    let linkTextNode: null | TextNode = null;
     if (startIndex === 0) {
       [linkTextNode, remainingTextNode] = remainingTextNode.splitText(endIndex);
     } else {
@@ -242,16 +242,15 @@ function $createAutoLinkNode_(
   if (nodes.length > 1) {
     const firstTextNode = nodes[0];
     let offset = firstTextNode.getTextContent().length;
-    // biome-ignore lint/suspicious/noImplicitAnyLet: This declaration is okay as this is copied from Meta, so I trust them
-    let firstLinkTextNode;
+    let firstLinkTextNode: TextNode | null = null;
     if (startIndex === 0) {
       firstLinkTextNode = firstTextNode;
     } else {
       [, firstLinkTextNode] = firstTextNode.splitText(startIndex);
     }
-    const linkNodes = [];
+    const linkNodes: TextNode[] = [];
     // biome-ignore lint/suspicious/noImplicitAnyLet: This declaration is okay as this is copied from Meta, so I trust them
-    let remainingTextNode;
+    let remainingTextNode: TextNode | null = null;
     for (let i = 1; i < nodes.length; i++) {
       const currentNode = nodes[i];
       const currentNodeText = currentNode.getTextContent();
@@ -290,7 +289,7 @@ function $createAutoLinkNode_(
       }
     }
     firstLinkTextNode.replace(linkNode);
-    return remainingTextNode;
+    return remainingTextNode ?? undefined;
   }
   return undefined;
 }

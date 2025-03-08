@@ -1,6 +1,5 @@
 import { Browser } from '@wailsio/runtime';
 import { useAtomValue } from 'jotai/react';
-import { useMemo } from 'react';
 import { toast } from 'sonner';
 import { getDefaultButtonVariants } from '../../animations';
 import { projectSettingsAtom } from '../../atoms';
@@ -20,23 +19,20 @@ export function SyncChangesDialog({
   const { repositoryToSyncTo } = useAtomValue(projectSettingsAtom);
 
   // Memoize the current date and time in a localized format
-  const formattedDate = useMemo(() => {
-    const currentDate = new Date();
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    };
-    return currentDate.toLocaleString(undefined, options).replace(',', '');
-  }, []);
+  const currentDate = new Date();
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  };
+  const formattedDate = currentDate
+    .toLocaleString(undefined, options)
+    .replace(',', '');
 
-  const linkToRepository = useMemo(
-    () => repositoryToSyncTo.replace('.git', ''),
-    [repositoryToSyncTo]
-  );
+  const linkToRepository = repositoryToSyncTo.replace('.git', '');
 
   return (
     <section className="flex flex-col gap-2">

@@ -96,6 +96,7 @@ function runTextMatchTransformers(
   }
 
   for (const transformer of transformers) {
+    if (!transformer) continue;
     const match = textContent.match(transformer.regExp);
 
     if (match === null) {
@@ -104,7 +105,7 @@ function runTextMatchTransformers(
 
     const startIndex = match.index || 0;
     const endIndex = startIndex + match[0].length;
-    let replaceNode = null;
+    let replaceNode: TextNode | null = null;
 
     if (startIndex === 0) {
       [replaceNode] = anchorNode.splitText(endIndex);
@@ -113,6 +114,7 @@ function runTextMatchTransformers(
     }
 
     replaceNode.selectNext(0, 0);
+    // @ts-expect-error - transformer is not undefined
     transformer.replace(replaceNode, match);
     return true;
   }
@@ -326,6 +328,7 @@ export function registerMarkdownShortcuts(
   editor: LexicalEditor,
   transformers: Array<Transformer> = CUSTOM_TRANSFORMERS
 ): () => void {
+  // @ts-expect-error - transformers type is incorrect
   const byType = transformersByType(transformers);
   const textFormatTransformersIndex = indexBy(
     byType.textFormat,
@@ -333,7 +336,7 @@ export function registerMarkdownShortcuts(
   );
   const textMatchTransformersIndex = indexBy(
     byType.textMatch,
-    ({ trigger }) => trigger
+    ({ trigger }) => trigger ?? ''
   );
 
   for (const transformer of transformers) {

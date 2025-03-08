@@ -11,7 +11,7 @@ import {
   COMMAND_PRIORITY_NORMAL,
   type TextNode,
 } from 'lexical';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SearchFileNamesFromQuery } from '../../../../bindings/github.com/etesam913/bytebook/services/searchservice';
 import { mostRecentNotesWithoutQueryParamsAtom } from '../../../atoms';
@@ -76,21 +76,18 @@ export function FilePickerMenuPlugin() {
         })
     );
 
-  const onSelectOption = useCallback(
-    (
-      selectedOption: DropdownPickerOption,
-      nodeToRemove: TextNode | null,
-      closeMenu: () => void,
-      matchingString: string
-    ) => {
-      editor.update(() => {
-        nodeToRemove?.remove();
-        selectedOption.onSelect(matchingString);
-        closeMenu();
-      });
-    },
-    [editor]
-  );
+  const onSelectOption = (
+    selectedOption: DropdownPickerOption,
+    nodeToRemove: TextNode | null,
+    closeMenu: () => void,
+    matchingString: string
+  ) => {
+    editor.update(() => {
+      nodeToRemove?.remove();
+      selectedOption.onSelect(matchingString);
+      closeMenu();
+    });
+  };
 
   return (
     <LexicalTypeaheadMenuPlugin

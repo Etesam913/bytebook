@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSetAtom } from 'jotai/react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useRoute } from 'wouter';
 import { contextMenuDataAtom, dialogDataAtom } from '../../atoms';
 import { useDeleteTagsMutation } from '../../hooks/notes';
@@ -102,12 +102,8 @@ function TagAccordionButton({
 }) {
   const { mutateAsync: deleteTags } = useDeleteTagsMutation();
   const isActive = decodeURIComponent(tagNameFromUrl ?? '') === sidebarTagName;
-  const isSelected = useMemo(
-    () =>
-      alphabetizedTags?.at(i) &&
-      selectionRange.has(`tag:${alphabetizedTags[i]}`),
-    [alphabetizedTags, i, selectionRange]
-  );
+  const isSelected =
+    alphabetizedTags?.at(i) && selectionRange.has(`tag:${alphabetizedTags[i]}`);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
 

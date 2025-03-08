@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSetAtom } from 'jotai';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { getDefaultButtonVariants } from '../../animations';
 import {
@@ -153,16 +153,11 @@ function FolderAccordionButton({
   const setDialogData = useSetAtom(dialogDataAtom);
   const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
   const { mutateAsync: moveNoteIntoFolder } = useMoveNoteIntoFolder();
-  const isActive = useMemo(
-    () => decodeURIComponent(folderFromUrl ?? '') === sidebarFolderName,
-    [folderFromUrl, sidebarFolderName]
-  );
+  const isActive =
+    decodeURIComponent(folderFromUrl ?? '') === sidebarFolderName;
 
-  const isSelected = useMemo(() => {
-    const currentFolder = alphabetizedFolders?.at(i);
-    if (!currentFolder) return false;
-    return selectionRange.has(`folder:${currentFolder}`);
-  }, [alphabetizedFolders, i, selectionRange]);
+  const currentFolder = alphabetizedFolders?.at(i);
+  const isSelected = selectionRange.has(`folder:${currentFolder}`);
 
   const [isDraggedOver, setIsDraggedOver] = useState(false);
 
@@ -225,9 +220,7 @@ function FolderAccordionButton({
       onClick={(e) => {
         if (e.metaKey || e.shiftKey) return;
         (e.target as HTMLButtonElement).focus();
-        navigate(`/${encodeURIComponent(sidebarFolderName)}`, {
-          type: 'folder',
-        });
+        navigate(`/${encodeURIComponent(sidebarFolderName)}`);
       }}
       onContextMenu={(e) => {
         e.preventDefault();
