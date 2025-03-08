@@ -7,356 +7,356 @@
  *
  */
 
-import { addClassNamesToElement, isHTMLAnchorElement } from "@lexical/utils";
+import { addClassNamesToElement, isHTMLAnchorElement } from '@lexical/utils';
 import type {
-	BaseSelection,
-	DOMConversionMap,
-	DOMConversionOutput,
-	EditorConfig,
-	LexicalCommand,
-	LexicalNode,
-	NodeKey,
-	RangeSelection,
-	SerializedElementNode,
-} from "lexical";
+  BaseSelection,
+  DOMConversionMap,
+  DOMConversionOutput,
+  EditorConfig,
+  LexicalCommand,
+  LexicalNode,
+  NodeKey,
+  RangeSelection,
+  SerializedElementNode,
+} from 'lexical';
 import {
-	$applyNodeReplacement,
-	$getSelection,
-	$isElementNode,
-	$isRangeSelection,
-	ElementNode,
-	type Spread,
-	createCommand,
-} from "lexical";
-import { flushSync } from "react-dom";
-import { createRoot } from "react-dom/client";
-import { navigate } from "wouter/use-browser-location";
-import { Folder } from "../../../icons/folder";
-import { Note } from "../../../icons/page";
+  $applyNodeReplacement,
+  $getSelection,
+  $isElementNode,
+  $isRangeSelection,
+  ElementNode,
+  type Spread,
+  createCommand,
+} from 'lexical';
+import { flushSync } from 'react-dom';
+import { createRoot } from 'react-dom/client';
+import { navigate } from 'wouter/use-browser-location';
+import { Folder } from '../../../icons/folder';
+import { Note } from '../../../icons/page';
 import {
-	getInternalLinkType,
-	isInternalLink,
-} from "../../../utils/string-formatting";
-import type { AutoLinkAttributes } from "../plugins/link-matcher";
-import { handleATagClick } from "../utils/link";
+  getInternalLinkType,
+  isInternalLink,
+} from '../../../utils/string-formatting';
+import type { AutoLinkAttributes } from '../plugins/link-matcher';
+import { handleATagClick } from '../utils/link';
 
 export type LinkAttributes = {
-	rel?: null | string;
-	target?: null | string;
-	title?: null | string;
+  rel?: null | string;
+  target?: null | string;
+  title?: null | string;
 };
 
 export type SerializedLinkNode = Spread<
-	{
-		url: string;
-	},
-	Spread<LinkAttributes, SerializedElementNode>
+  {
+    url: string;
+  },
+  Spread<LinkAttributes, SerializedElementNode>
 >;
 
 const SUPPORTED_URL_PROTOCOLS = new Set([
-	"http:",
-	"https:",
-	"mailto:",
-	"sms:",
-	"tel:",
-	"wails:",
+  'http:',
+  'https:',
+  'mailto:',
+  'sms:',
+  'tel:',
+  'wails:',
 ]);
 
 /** @noInheritDoc */
 export class LinkNode extends ElementNode {
-	/** @internal */
-	__url: string;
-	/** @internal */
-	__target: null | string;
-	/** @internal */
-	__rel: null | string;
-	/** @internal */
-	__title: null | string;
+  /** @internal */
+  __url: string;
+  /** @internal */
+  __target: null | string;
+  /** @internal */
+  __rel: null | string;
+  /** @internal */
+  __title: null | string;
 
-	static getType(): string {
-		return "link";
-	}
+  static getType(): string {
+    return 'link';
+  }
 
-	static clone(node: LinkNode): LinkNode {
-		return new LinkNode(
-			node.__url,
-			{ rel: node.__rel, target: node.__target, title: node.__title },
-			node.__key,
-		);
-	}
+  static clone(node: LinkNode): LinkNode {
+    return new LinkNode(
+      node.__url,
+      { rel: node.__rel, target: node.__target, title: node.__title },
+      node.__key
+    );
+  }
 
-	constructor(url: string, attributes: LinkAttributes = {}, key?: NodeKey) {
-		super(key);
-		const { target = null, rel = null, title = null } = attributes;
-		this.__url = url;
-		this.__target = target;
-		this.__rel = rel;
-		this.__title = title;
-	}
+  constructor(url: string, attributes: LinkAttributes = {}, key?: NodeKey) {
+    super(key);
+    const { target = null, rel = null, title = null } = attributes;
+    this.__url = url;
+    this.__target = target;
+    this.__rel = rel;
+    this.__title = title;
+  }
 
-	createDOM(config: EditorConfig): HTMLAnchorElement {
-		const element = document.createElement("a");
-		element.href = this.sanitizeUrl(this.__url);
-		if (this.__target !== null) {
-			element.target = this.__target;
-		}
-		if (this.__rel !== null) {
-			element.rel = this.__rel;
-		}
-		if (this.__title !== null) {
-			element.title = this.__title;
-		}
+  createDOM(config: EditorConfig): HTMLAnchorElement {
+    const element = document.createElement('a');
+    element.href = this.sanitizeUrl(this.__url);
+    if (this.__target !== null) {
+      element.target = this.__target;
+    }
+    if (this.__rel !== null) {
+      element.rel = this.__rel;
+    }
+    if (this.__title !== null) {
+      element.title = this.__title;
+    }
 
-		const classNames = [config.theme.link];
+    const classNames = [config.theme.link];
 
-		// This is an internal link so we want it to look different
-		if (isInternalLink(element.href)) {
-			classNames.pop();
-			classNames.push(config.theme.internalLink);
+    // This is an internal link so we want it to look different
+    if (isInternalLink(element.href)) {
+      classNames.pop();
+      classNames.push(config.theme.internalLink);
 
-			const url = new URL(element.href);
-			const segments = url.pathname.split("/");
-			segments.shift();
+      const url = new URL(element.href);
+      const segments = url.pathname.split('/');
+      segments.shift();
 
-			const { isNoteLink, isFolderLink } = getInternalLinkType(element.href);
-			const tempContainer = document.createElement("div");
+      const { isNoteLink, isFolderLink } = getInternalLinkType(element.href);
+      const tempContainer = document.createElement('div');
 
-			const folderSvg = (
-				<Folder strokeWidth={2} className="mr-0.5 translate-y-1" />
-			);
-			const noteSvg = <Note className="translate-y-1" />;
+      const folderSvg = (
+        <Folder strokeWidth={2} className="mr-0.5 translate-y-1" />
+      );
+      const noteSvg = <Note className="translate-y-1" />;
 
-			// Choose which icon to render
-			const content = isFolderLink ? folderSvg : noteSvg;
+      // Choose which icon to render
+      const content = isFolderLink ? folderSvg : noteSvg;
 
-			// Create a React root for the temporary container.
-			const root = createRoot(tempContainer);
-			// Use flushSync to force the update to complete synchronously.
-			flushSync(() => {
-				root.render(content);
-			});
+      // Create a React root for the temporary container.
+      const root = createRoot(tempContainer);
+      // Use flushSync to force the update to complete synchronously.
+      flushSync(() => {
+        root.render(content);
+      });
 
-			// Now that the content is rendered, move it into the anchor element.
-			while (tempContainer.firstChild) {
-				element.appendChild(tempContainer.firstChild);
-			}
+      // Now that the content is rendered, move it into the anchor element.
+      while (tempContainer.firstChild) {
+        element.appendChild(tempContainer.firstChild);
+      }
 
-			// Attach the click handler for internal navigation.
-			element.onclick = (e) => {
-				// The segments are encoded by default
-				if (isNoteLink) {
-					const note = segments[segments.length - 1];
-					const folder = segments[segments.length - 2];
-					const fileExtension = url.searchParams.get("ext");
-					navigate(`/${folder}/${note}?ext=${fileExtension}&focus=true`);
-					e.preventDefault();
-				} else if (isFolderLink) {
-					const folder = segments[segments.length - 1];
-					navigate(`/${folder}`);
-					e.preventDefault();
-				} else {
-					element.href = "about:blank";
-				}
-			};
-		}
-		// For a regular link, let the browser handle it.
-		else {
-			element.onclick = (e) => {
-				handleATagClick(e.target as HTMLElement);
-			};
-		}
+      // Attach the click handler for internal navigation.
+      element.onclick = (e) => {
+        // The segments are encoded by default
+        if (isNoteLink) {
+          const note = segments[segments.length - 1];
+          const folder = segments[segments.length - 2];
+          const fileExtension = url.searchParams.get('ext');
+          navigate(`/${folder}/${note}?ext=${fileExtension}&focus=true`);
+          e.preventDefault();
+        } else if (isFolderLink) {
+          const folder = segments[segments.length - 1];
+          navigate(`/${folder}`);
+          e.preventDefault();
+        } else {
+          element.href = 'about:blank';
+        }
+      };
+    }
+    // For a regular link, let the browser handle it.
+    else {
+      element.onclick = (e) => {
+        handleATagClick(e.target as HTMLElement);
+      };
+    }
 
-		addClassNamesToElement(element, ...classNames);
-		return element;
-	}
+    addClassNamesToElement(element, ...classNames);
+    return element;
+  }
 
-	updateDOM(prevNode: LinkNode, anchor: HTMLAnchorElement): boolean {
-		const url = this.__url;
-		const target = this.__target;
-		const rel = this.__rel;
-		const title = this.__title;
-		if (url !== prevNode.__url) {
-			anchor.href = url;
-		}
+  updateDOM(prevNode: LinkNode, anchor: HTMLAnchorElement): boolean {
+    const url = this.__url;
+    const target = this.__target;
+    const rel = this.__rel;
+    const title = this.__title;
+    if (url !== prevNode.__url) {
+      anchor.href = url;
+    }
 
-		if (target !== prevNode.__target) {
-			if (target) {
-				anchor.target = target;
-			} else {
-				anchor.removeAttribute("target");
-			}
-		}
+    if (target !== prevNode.__target) {
+      if (target) {
+        anchor.target = target;
+      } else {
+        anchor.removeAttribute('target');
+      }
+    }
 
-		if (rel !== prevNode.__rel) {
-			if (rel) {
-				anchor.rel = rel;
-			} else {
-				anchor.removeAttribute("rel");
-			}
-		}
+    if (rel !== prevNode.__rel) {
+      if (rel) {
+        anchor.rel = rel;
+      } else {
+        anchor.removeAttribute('rel');
+      }
+    }
 
-		if (title !== prevNode.__title) {
-			if (title) {
-				anchor.title = title;
-			} else {
-				anchor.removeAttribute("title");
-			}
-		}
-		return false;
-	}
+    if (title !== prevNode.__title) {
+      if (title) {
+        anchor.title = title;
+      } else {
+        anchor.removeAttribute('title');
+      }
+    }
+    return false;
+  }
 
-	static importDOM(): DOMConversionMap | null {
-		return {
-			a: () => ({
-				conversion: convertAnchorElement,
-				priority: 1,
-			}),
-		};
-	}
+  static importDOM(): DOMConversionMap | null {
+    return {
+      a: () => ({
+        conversion: convertAnchorElement,
+        priority: 1,
+      }),
+    };
+  }
 
-	static importJSON(
-		serializedNode: SerializedLinkNode | SerializedAutoLinkNode,
-	): LinkNode {
-		const node = $createLinkNode(serializedNode.url, {
-			rel: serializedNode.rel,
-			target: serializedNode.target,
-			title: serializedNode.title,
-		});
-		node.setFormat(serializedNode.format);
-		node.setIndent(serializedNode.indent);
-		node.setDirection(serializedNode.direction);
-		return node;
-	}
+  static importJSON(
+    serializedNode: SerializedLinkNode | SerializedAutoLinkNode
+  ): LinkNode {
+    const node = $createLinkNode(serializedNode.url, {
+      rel: serializedNode.rel,
+      target: serializedNode.target,
+      title: serializedNode.title,
+    });
+    node.setFormat(serializedNode.format);
+    node.setIndent(serializedNode.indent);
+    node.setDirection(serializedNode.direction);
+    return node;
+  }
 
-	sanitizeUrl(url: string): string {
-		try {
-			const parsedUrl = new URL(url);
-			 
-			if (!SUPPORTED_URL_PROTOCOLS.has(parsedUrl.protocol)) {
-				return "about:blank";
-			}
-		} catch {
-			return url;
-		}
-		return url;
-	}
+  sanitizeUrl(url: string): string {
+    try {
+      const parsedUrl = new URL(url);
 
-	exportJSON(): SerializedLinkNode | SerializedAutoLinkNode {
-		return {
-			...super.exportJSON(),
-			rel: this.getRel(),
-			target: this.getTarget(),
-			title: this.getTitle(),
-			type: "link",
-			url: this.getURL(),
-			version: 1,
-		};
-	}
+      if (!SUPPORTED_URL_PROTOCOLS.has(parsedUrl.protocol)) {
+        return 'about:blank';
+      }
+    } catch {
+      return url;
+    }
+    return url;
+  }
 
-	getURL(): string {
-		return this.getLatest().__url;
-	}
+  exportJSON(): SerializedLinkNode | SerializedAutoLinkNode {
+    return {
+      ...super.exportJSON(),
+      rel: this.getRel(),
+      target: this.getTarget(),
+      title: this.getTitle(),
+      type: 'link',
+      url: this.getURL(),
+      version: 1,
+    };
+  }
 
-	setURL(url: string): void {
-		const writable = this.getWritable();
-		writable.__url = url;
-	}
+  getURL(): string {
+    return this.getLatest().__url;
+  }
 
-	getTarget(): null | string {
-		return this.getLatest().__target;
-	}
+  setURL(url: string): void {
+    const writable = this.getWritable();
+    writable.__url = url;
+  }
 
-	setTarget(target: null | string): void {
-		const writable = this.getWritable();
-		writable.__target = target;
-	}
+  getTarget(): null | string {
+    return this.getLatest().__target;
+  }
 
-	getRel(): null | string {
-		return this.getLatest().__rel;
-	}
+  setTarget(target: null | string): void {
+    const writable = this.getWritable();
+    writable.__target = target;
+  }
 
-	setRel(rel: null | string): void {
-		const writable = this.getWritable();
-		writable.__rel = rel;
-	}
+  getRel(): null | string {
+    return this.getLatest().__rel;
+  }
 
-	getTitle(): null | string {
-		return this.getLatest().__title;
-	}
+  setRel(rel: null | string): void {
+    const writable = this.getWritable();
+    writable.__rel = rel;
+  }
 
-	setTitle(title: null | string): void {
-		const writable = this.getWritable();
-		writable.__title = title;
-	}
+  getTitle(): null | string {
+    return this.getLatest().__title;
+  }
 
-	insertNewAfter(
-		_: RangeSelection,
-		restoreSelection = true,
-	): null | ElementNode {
-		const linkNode = $createLinkNode(this.__url, {
-			rel: this.__rel,
-			target: this.__target,
-			title: this.__title,
-		});
-		this.insertAfter(linkNode, restoreSelection);
-		return linkNode;
-	}
+  setTitle(title: null | string): void {
+    const writable = this.getWritable();
+    writable.__title = title;
+  }
 
-	canInsertTextBefore(): false {
-		return false;
-	}
+  insertNewAfter(
+    _: RangeSelection,
+    restoreSelection = true
+  ): null | ElementNode {
+    const linkNode = $createLinkNode(this.__url, {
+      rel: this.__rel,
+      target: this.__target,
+      title: this.__title,
+    });
+    this.insertAfter(linkNode, restoreSelection);
+    return linkNode;
+  }
 
-	canInsertTextAfter(): false {
-		return false;
-	}
+  canInsertTextBefore(): false {
+    return false;
+  }
 
-	canBeEmpty(): false {
-		return false;
-	}
+  canInsertTextAfter(): false {
+    return false;
+  }
 
-	isInline(): true {
-		return true;
-	}
+  canBeEmpty(): false {
+    return false;
+  }
 
-	extractWithChild(_child: LexicalNode, selection: BaseSelection): boolean {
-		if (!$isRangeSelection(selection)) {
-			return false;
-		}
+  isInline(): true {
+    return true;
+  }
 
-		const anchorNode = selection.anchor.getNode();
-		const focusNode = selection.focus.getNode();
+  extractWithChild(_child: LexicalNode, selection: BaseSelection): boolean {
+    if (!$isRangeSelection(selection)) {
+      return false;
+    }
 
-		return (
-			this.isParentOf(anchorNode) &&
-			this.isParentOf(focusNode) &&
-			selection.getTextContent().length > 0
-		);
-	}
+    const anchorNode = selection.anchor.getNode();
+    const focusNode = selection.focus.getNode();
 
-	isEmailURI(): boolean {
-		return this.__url.startsWith("mailto:");
-	}
+    return (
+      this.isParentOf(anchorNode) &&
+      this.isParentOf(focusNode) &&
+      selection.getTextContent().length > 0
+    );
+  }
 
-	isWebSiteURI(): boolean {
-		return (
-			this.__url.startsWith("https://") || this.__url.startsWith("http://")
-		);
-	}
+  isEmailURI(): boolean {
+    return this.__url.startsWith('mailto:');
+  }
+
+  isWebSiteURI(): boolean {
+    return (
+      this.__url.startsWith('https://') || this.__url.startsWith('http://')
+    );
+  }
 }
 
 function convertAnchorElement(domNode: Node): DOMConversionOutput {
-	let node = null;
-	if (isHTMLAnchorElement(domNode)) {
-		const content = domNode.textContent;
-		if ((content !== null && content !== "") || domNode.children.length > 0) {
-			node = $createLinkNode(domNode.getAttribute("href") || "", {
-				rel: domNode.getAttribute("rel"),
-				target: domNode.getAttribute("target"),
-				title: domNode.getAttribute("title"),
-			});
-		}
-	}
-	return { node };
+  let node = null;
+  if (isHTMLAnchorElement(domNode)) {
+    const content = domNode.textContent;
+    if ((content !== null && content !== '') || domNode.children.length > 0) {
+      node = $createLinkNode(domNode.getAttribute('href') || '', {
+        rel: domNode.getAttribute('rel'),
+        target: domNode.getAttribute('target'),
+        title: domNode.getAttribute('title'),
+      });
+    }
+  }
+  return { node };
 }
 
 /**
@@ -366,10 +366,10 @@ function convertAnchorElement(domNode: Node): DOMConversionOutput {
  * @returns The LinkNode.
  */
 export function $createLinkNode(
-	url: string,
-	attributes?: LinkAttributes,
+  url: string,
+  attributes?: LinkAttributes
 ): LinkNode {
-	return $applyNodeReplacement(new LinkNode(url, attributes));
+  return $applyNodeReplacement(new LinkNode(url, attributes));
 }
 
 /**
@@ -378,9 +378,9 @@ export function $createLinkNode(
  * @returns true if node is a LinkNode, false otherwise.
  */
 export function $isLinkNode(
-	node: LexicalNode | null | undefined,
+  node: LexicalNode | null | undefined
 ): node is LinkNode {
-	return node instanceof LinkNode;
+  return node instanceof LinkNode;
 }
 
 export type SerializedAutoLinkNode = SerializedLinkNode;
@@ -388,89 +388,89 @@ export type SerializedAutoLinkNode = SerializedLinkNode;
 // Custom node type to override `canInsertTextAfter` that will
 // allow typing within the link
 export class AutoLinkNode extends LinkNode {
-	/** @internal */
-	/** Indicates whether the autolink was ever unlinked. **/
-	__isUnlinked: boolean;
+  /** @internal */
+  /** Indicates whether the autolink was ever unlinked. **/
+  __isUnlinked: boolean;
 
-	constructor(url: string, attributes: AutoLinkAttributes = {}, key?: NodeKey) {
-		super(url, attributes, key);
-		this.__isUnlinked =
-			attributes.isUnlinked !== undefined && attributes.isUnlinked !== null
-				? attributes.isUnlinked
-				: false;
-	}
+  constructor(url: string, attributes: AutoLinkAttributes = {}, key?: NodeKey) {
+    super(url, attributes, key);
+    this.__isUnlinked =
+      attributes.isUnlinked !== undefined && attributes.isUnlinked !== null
+        ? attributes.isUnlinked
+        : false;
+  }
 
-	static getType(): string {
-		return "autolink";
-	}
+  static getType(): string {
+    return 'autolink';
+  }
 
-	static clone(node: AutoLinkNode): AutoLinkNode {
-		return new AutoLinkNode(
-			node.__url,
-			{
-				isUnlinked: node.__isUnlinked,
-				rel: node.__rel,
-				target: node.__target,
-				title: node.__title,
-			},
-			node.__key,
-		);
-	}
+  static clone(node: AutoLinkNode): AutoLinkNode {
+    return new AutoLinkNode(
+      node.__url,
+      {
+        isUnlinked: node.__isUnlinked,
+        rel: node.__rel,
+        target: node.__target,
+        title: node.__title,
+      },
+      node.__key
+    );
+  }
 
-	static importJSON(serializedNode: SerializedAutoLinkNode): AutoLinkNode {
-		const node = $createAutoLinkNode(serializedNode.url, {
-			rel: serializedNode.rel,
-			target: serializedNode.target,
-			title: serializedNode.title,
-		});
-		node.setFormat(serializedNode.format);
-		node.setIndent(serializedNode.indent);
-		node.setDirection(serializedNode.direction);
-		return node;
-	}
+  static importJSON(serializedNode: SerializedAutoLinkNode): AutoLinkNode {
+    const node = $createAutoLinkNode(serializedNode.url, {
+      rel: serializedNode.rel,
+      target: serializedNode.target,
+      title: serializedNode.title,
+    });
+    node.setFormat(serializedNode.format);
+    node.setIndent(serializedNode.indent);
+    node.setDirection(serializedNode.direction);
+    return node;
+  }
 
-	getIsUnlinked(): boolean {
-		return this.__isUnlinked;
-	}
+  getIsUnlinked(): boolean {
+    return this.__isUnlinked;
+  }
 
-	setIsUnlinked(value: boolean) {
-		const self = this.getWritable();
-		self.__isUnlinked = value;
-		return self;
-	}
+  setIsUnlinked(value: boolean) {
+    const self = this.getWritable();
+    self.__isUnlinked = value;
+    return self;
+  }
 
-	static importDOM(): null {
-		// TODO: Should link node should handle the import over autolink?
-		return null;
-	}
+  static importDOM(): null {
+    // TODO: Should link node should handle the import over autolink?
+    return null;
+  }
 
-	exportJSON(): SerializedAutoLinkNode {
-		return {
-			...super.exportJSON(),
-			type: "autolink",
-			version: 1,
-		};
-	}
+  exportJSON(): SerializedAutoLinkNode {
+    return {
+      ...super.exportJSON(),
+      type: 'autolink',
+      version: 1,
+    };
+  }
 
-	insertNewAfter(
-		selection: RangeSelection,
-		restoreSelection = true,
-	): null | ElementNode {
-		const element = this.getParentOrThrow().insertNewAfter(
-			selection,
-			restoreSelection,
-		);
-		if ($isElementNode(element)) {
-			const linkNode = $createAutoLinkNode(this.__url, {
-				rel: this.__rel,
-				target: this.__target,
-				title: this.__title,
-			});
-			element.append(linkNode);
-			return linkNode;
-		}
-		return null;
-	}
+  insertNewAfter(
+    selection: RangeSelection,
+    restoreSelection = true
+  ): null | ElementNode {
+    const element = this.getParentOrThrow().insertNewAfter(
+      selection,
+      restoreSelection
+    );
+    if ($isElementNode(element)) {
+      const linkNode = $createAutoLinkNode(this.__url, {
+        rel: this.__rel,
+        target: this.__target,
+        title: this.__title,
+      });
+      element.append(linkNode);
+      return linkNode;
+    }
+    return null;
+  }
 }
 
 /**
@@ -481,10 +481,10 @@ export class AutoLinkNode extends LinkNode {
  * @returns The LinkNode.
  */
 export function $createAutoLinkNode(
-	url: string,
-	attributes?: LinkAttributes,
+  url: string,
+  attributes?: LinkAttributes
 ): AutoLinkNode {
-	return $applyNodeReplacement(new AutoLinkNode(url, attributes));
+  return $applyNodeReplacement(new AutoLinkNode(url, attributes));
 }
 
 /**
@@ -493,14 +493,14 @@ export function $createAutoLinkNode(
  * @returns true if node is an AutoLinkNode, false otherwise.
  */
 export function $isAutoLinkNode(
-	node: LexicalNode | null | undefined,
+  node: LexicalNode | null | undefined
 ): node is AutoLinkNode {
-	return node instanceof AutoLinkNode;
+  return node instanceof AutoLinkNode;
 }
 
 export const TOGGLE_LINK_COMMAND: LexicalCommand<
-	string | ({ url: string } & LinkAttributes) | null
-> = createCommand("TOGGLE_LINK_COMMAND");
+  string | ({ url: string } & LinkAttributes) | null
+> = createCommand('TOGGLE_LINK_COMMAND');
 
 /**
  * Generates or updates a LinkNode. It can also delete a LinkNode if the URL is null,
@@ -509,129 +509,129 @@ export const TOGGLE_LINK_COMMAND: LexicalCommand<
  * @param attributes - Optional HTML a tag attributes. { target, rel, title }
  */
 export function toggleLink(
-	url: null | string,
-	attributes: LinkAttributes = {},
+  url: null | string,
+  attributes: LinkAttributes = {}
 ): void {
-	const { target, title } = attributes;
-	const rel = attributes.rel === undefined ? "noreferrer" : attributes.rel;
-	const selection = $getSelection();
+  const { target, title } = attributes;
+  const rel = attributes.rel === undefined ? 'noreferrer' : attributes.rel;
+  const selection = $getSelection();
 
-	if (!$isRangeSelection(selection)) {
-		return;
-	}
-	const nodes = selection.extract();
+  if (!$isRangeSelection(selection)) {
+    return;
+  }
+  const nodes = selection.extract();
 
-	if (url === null) {
-		// Remove LinkNodes
-		nodes.forEach((node) => {
-			const parent = node.getParent();
+  if (url === null) {
+    // Remove LinkNodes
+    nodes.forEach((node) => {
+      const parent = node.getParent();
 
-			if ($isLinkNode(parent)) {
-				const children = parent.getChildren();
+      if ($isLinkNode(parent)) {
+        const children = parent.getChildren();
 
-				for (let i = 0; i < children.length; i++) {
-					parent.insertBefore(children[i]);
-				}
+        for (let i = 0; i < children.length; i++) {
+          parent.insertBefore(children[i]);
+        }
 
-				parent.remove();
-			}
-		});
-	} else {
-		// Add or merge LinkNodes
-		if (nodes.length === 1) {
-			const firstNode = nodes[0];
-			// if the first node is a LinkNode or if its
-			// parent is a LinkNode, we update the URL, target and rel.
-			const linkNode = $getAncestor(firstNode, $isLinkNode);
-			if (linkNode !== null) {
-				linkNode.setURL(url);
-				if (target !== undefined) {
-					linkNode.setTarget(target);
-				}
-				if (rel !== null) {
-					linkNode.setRel(rel);
-				}
-				if (title !== undefined) {
-					linkNode.setTitle(title);
-				}
-				return;
-			}
-		}
+        parent.remove();
+      }
+    });
+  } else {
+    // Add or merge LinkNodes
+    if (nodes.length === 1) {
+      const firstNode = nodes[0];
+      // if the first node is a LinkNode or if its
+      // parent is a LinkNode, we update the URL, target and rel.
+      const linkNode = $getAncestor(firstNode, $isLinkNode);
+      if (linkNode !== null) {
+        linkNode.setURL(url);
+        if (target !== undefined) {
+          linkNode.setTarget(target);
+        }
+        if (rel !== null) {
+          linkNode.setRel(rel);
+        }
+        if (title !== undefined) {
+          linkNode.setTitle(title);
+        }
+        return;
+      }
+    }
 
-		let prevParent: ElementNode | LinkNode | null = null;
-		let linkNode: LinkNode | null = null;
+    let prevParent: ElementNode | LinkNode | null = null;
+    let linkNode: LinkNode | null = null;
 
-		nodes.forEach((node) => {
-			const parent = node.getParent();
+    nodes.forEach((node) => {
+      const parent = node.getParent();
 
-			if (
-				parent === linkNode ||
-				parent === null ||
-				($isElementNode(node) && !node.isInline())
-			) {
-				return;
-			}
+      if (
+        parent === linkNode ||
+        parent === null ||
+        ($isElementNode(node) && !node.isInline())
+      ) {
+        return;
+      }
 
-			if ($isLinkNode(parent)) {
-				linkNode = parent;
-				parent.setURL(url);
-				if (target !== undefined) {
-					parent.setTarget(target);
-				}
-				if (rel !== null) {
-					linkNode.setRel(rel);
-				}
-				if (title !== undefined) {
-					linkNode.setTitle(title);
-				}
-				return;
-			}
+      if ($isLinkNode(parent)) {
+        linkNode = parent;
+        parent.setURL(url);
+        if (target !== undefined) {
+          parent.setTarget(target);
+        }
+        if (rel !== null) {
+          linkNode.setRel(rel);
+        }
+        if (title !== undefined) {
+          linkNode.setTitle(title);
+        }
+        return;
+      }
 
-			if (!parent.is(prevParent)) {
-				prevParent = parent;
-				linkNode = $createLinkNode(url, { rel, target, title });
+      if (!parent.is(prevParent)) {
+        prevParent = parent;
+        linkNode = $createLinkNode(url, { rel, target, title });
 
-				if ($isLinkNode(parent)) {
-					if (node.getPreviousSibling() === null) {
-						parent.insertBefore(linkNode);
-					} else {
-						parent.insertAfter(linkNode);
-					}
-				} else {
-					node.insertBefore(linkNode);
-				}
-			}
+        if ($isLinkNode(parent)) {
+          if (node.getPreviousSibling() === null) {
+            parent.insertBefore(linkNode);
+          } else {
+            parent.insertAfter(linkNode);
+          }
+        } else {
+          node.insertBefore(linkNode);
+        }
+      }
 
-			if ($isLinkNode(node)) {
-				if (node.is(linkNode)) {
-					return;
-				}
-				if (linkNode !== null) {
-					const children = node.getChildren();
+      if ($isLinkNode(node)) {
+        if (node.is(linkNode)) {
+          return;
+        }
+        if (linkNode !== null) {
+          const children = node.getChildren();
 
-					for (let i = 0; i < children.length; i++) {
-						linkNode.append(children[i]);
-					}
-				}
+          for (let i = 0; i < children.length; i++) {
+            linkNode.append(children[i]);
+          }
+        }
 
-				node.remove();
-				return;
-			}
+        node.remove();
+        return;
+      }
 
-			if (linkNode !== null) {
-				linkNode.append(node);
-			}
-		});
-	}
+      if (linkNode !== null) {
+        linkNode.append(node);
+      }
+    });
+  }
 }
 
 function $getAncestor<NodeType extends LexicalNode = LexicalNode>(
-	node: LexicalNode,
-	predicate: (ancestor: LexicalNode) => ancestor is NodeType,
+  node: LexicalNode,
+  predicate: (ancestor: LexicalNode) => ancestor is NodeType
 ) {
-	let parent = node;
-	while (parent !== null && parent.getParent() !== null && !predicate(parent)) {
-		parent = parent.getParentOrThrow();
-	}
-	return predicate(parent) ? parent : null;
+  let parent = node;
+  while (parent !== null && parent.getParent() !== null && !predicate(parent)) {
+    parent = parent.getParentOrThrow();
+  }
+  return predicate(parent) ? parent : null;
 }

@@ -1,8 +1,8 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
-	return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs));
 }
 
 export const fileNameRegex = /^[0-9a-zA-Z_\-. ]+$/;
@@ -15,16 +15,16 @@ export const fileNameRegex = /^[0-9a-zA-Z_\-. ]+$/;
  * @returns The value of the query parameter if found, otherwise null.
  */
 export function getQueryParamValue(fullString: string, queryParamName: string) {
-	// Match the query string part of the URL
-	const queryParamMatch = fullString.match(/\?.*$/);
-	if (queryParamMatch) {
-		// Extract the query string without the leading '?'
-		const queryString = queryParamMatch[0].substring(1);
-		const params = new URLSearchParams(queryString);
-		// Get the value of the specified query parameter
-		return params.get(queryParamName);
-	}
-	return null;
+  // Match the query string part of the URL
+  const queryParamMatch = fullString.match(/\?.*$/);
+  if (queryParamMatch) {
+    // Extract the query string without the leading '?'
+    const queryString = queryParamMatch[0].substring(1);
+    const params = new URLSearchParams(queryString);
+    // Get the value of the specified query parameter
+    return params.get(queryParamName);
+  }
+  return null;
 }
 
 /**
@@ -36,23 +36,23 @@ export function getQueryParamValue(fullString: string, queryParamName: string) {
  * @returns The updated URL string with the new or updated query parameter.
  */
 export function addQueryParam(
-	fullString: string,
-	queryParamName: string,
-	queryParamValue: string,
+  fullString: string,
+  queryParamName: string,
+  queryParamValue: string
 ) {
-	// Match the query string part of the URL
-	const queryParamMatch = fullString.match(/\?.*$/);
-	if (queryParamMatch) {
-		// Extract the query string without the leading '?'
-		const queryString = queryParamMatch[0].substring(1);
-		const params = new URLSearchParams(queryString);
-		// Set or update the specified query parameter
-		params.set(queryParamName, queryParamValue);
-		// Replace the old query string with the new one
-		return fullString.replace(/\?.*$/, `?${params.toString()}`);
-	}
-	// If no query string exists, add the new query parameter
-	return `${fullString}?${queryParamName}=${queryParamValue}`;
+  // Match the query string part of the URL
+  const queryParamMatch = fullString.match(/\?.*$/);
+  if (queryParamMatch) {
+    // Extract the query string without the leading '?'
+    const queryString = queryParamMatch[0].substring(1);
+    const params = new URLSearchParams(queryString);
+    // Set or update the specified query parameter
+    params.set(queryParamName, queryParamValue);
+    // Replace the old query string with the new one
+    return fullString.replace(/\?.*$/, `?${params.toString()}`);
+  }
+  // If no query string exists, add the new query parameter
+  return `${fullString}?${queryParamName}=${queryParamValue}`;
 }
 
 /**
@@ -63,22 +63,22 @@ export function addQueryParam(
  * @returns The updated URL string with the query parameter removed.
  */
 export function removeQueryParam(fullString: string, queryParamName: string) {
-	// Match the query string part of the URL
-	const queryParamMatch = fullString.match(/\?.*$/);
-	if (queryParamMatch) {
-		// Extract the query string without the leading '?'
-		const queryString = queryParamMatch[0].substring(1);
-		const params = new URLSearchParams(queryString);
-		// Delete the specified query parameter
-		params.delete(queryParamName);
-		// Replace the old query string with the new one, handling the case where the query string is empty
-		return fullString.replace(
-			/\?.*$/,
-			`${params.toString().length === 0 ? "" : "?"}${params.toString()}`,
-		);
-	}
-	// If no query string exists, return the original URL
-	return fullString;
+  // Match the query string part of the URL
+  const queryParamMatch = fullString.match(/\?.*$/);
+  if (queryParamMatch) {
+    // Extract the query string without the leading '?'
+    const queryString = queryParamMatch[0].substring(1);
+    const params = new URLSearchParams(queryString);
+    // Delete the specified query parameter
+    params.delete(queryParamName);
+    // Replace the old query string with the new one, handling the case where the query string is empty
+    return fullString.replace(
+      /\?.*$/,
+      `${params.toString().length === 0 ? '' : '?'}${params.toString()}`
+    );
+  }
+  // If no query string exists, return the original URL
+  return fullString;
 }
 
 /**
@@ -89,7 +89,7 @@ export function removeQueryParam(fullString: string, queryParamName: string) {
  * @returns true if the URL is an internal link, false otherwise.
  */
 export function isInternalLink(url: string) {
-	return url.startsWith("wails:");
+  return url.startsWith('wails:');
 }
 
 /**
@@ -102,23 +102,23 @@ export function isInternalLink(url: string) {
  *          isFolderLink - true if the URL points to a folder, determined by having 1 segment in the pathname.
  */
 export function getInternalLinkType(url: string) {
-	const urlObj = new URL(url);
+  const urlObj = new URL(url);
 
-	// Split the pathname into segments.
-	const segments = urlObj.pathname.split("/");
-	// Remove the first segment as it's always empty (due to leading slash).
-	segments.shift();
+  // Split the pathname into segments.
+  const segments = urlObj.pathname.split('/');
+  // Remove the first segment as it's always empty (due to leading slash).
+  segments.shift();
 
-	// Determine the type of link based on the number of segments.
-	return {
-		isNoteLink: segments.length === 2,
-		isFolderLink: segments.length === 1,
-	};
+  // Determine the type of link based on the number of segments.
+  return {
+    isNoteLink: segments.length === 2,
+    isFolderLink: segments.length === 1,
+  };
 }
 
 interface ValidationResult {
-	isValid: boolean;
-	errorMessage?: string;
+  isValid: boolean;
+  errorMessage?: string;
 }
 
 export const NAME_CHARS = /^[^<>:"/\\|?*]+$/;
@@ -130,44 +130,44 @@ export const NAME_CHARS = /^[^<>:"/\\|?*]+$/;
  * @returns
  */
 export function validateName(
-	name: FormDataEntryValue | null,
-	nameType: "folder" | "note",
+  name: FormDataEntryValue | null,
+  nameType: 'folder' | 'note'
 ): ValidationResult {
-	if (!name) {
-		return {
-			isValid: false,
-			errorMessage: `You cannot have an empty ${nameType} name`,
-		};
-	}
+  if (!name) {
+    return {
+      isValid: false,
+      errorMessage: `You cannot have an empty ${nameType} name`,
+    };
+  }
 
-	const nameString = name.toString().trim();
+  const nameString = name.toString().trim();
 
-	if (nameString.length === 0) {
-		return {
-			isValid: false,
-			errorMessage: `You cannot have an empty ${nameType} name`,
-		};
-	}
+  if (nameString.length === 0) {
+    return {
+      isValid: false,
+      errorMessage: `You cannot have an empty ${nameType} name`,
+    };
+  }
 
-	if (!NAME_CHARS.test(nameString)) {
-		return {
-			isValid: false,
-			errorMessage: `Invalid ${nameType} name. Avoid special characters: <>:"/\\|?* and leading/trailing spaces.`,
-		};
-	}
+  if (!NAME_CHARS.test(nameString)) {
+    return {
+      isValid: false,
+      errorMessage: `Invalid ${nameType} name. Avoid special characters: <>:"/\\|?* and leading/trailing spaces.`,
+    };
+  }
 
-	return {
-		isValid: true,
-	};
+  return {
+    isValid: true,
+  };
 }
 // Will be in tag:tagName format
 export function getTagNameFromSetValue(tagSetValue: string) {
-	const indexOfPrefix = tagSetValue.indexOf("tag:");
-	if (indexOfPrefix === -1) {
-		return tagSetValue;
-	}
-	const prefixLength = "tag:".length;
-	return tagSetValue.substring(indexOfPrefix + prefixLength);
+  const indexOfPrefix = tagSetValue.indexOf('tag:');
+  if (indexOfPrefix === -1) {
+    return tagSetValue;
+  }
+  const prefixLength = 'tag:'.length;
+  return tagSetValue.substring(indexOfPrefix + prefixLength);
 }
 
 /**
@@ -177,26 +177,26 @@ export function getTagNameFromSetValue(tagSetValue: string) {
  * @returns An object with the base name and query parameters.
  */
 export function extractInfoFromNoteName(noteName: string) {
-	// Create a URL object to parse the noteName string.
-	// The base URL ("http://example.com") is used to properly parse relative URLs.
-	const url = new URL(noteName, "http://example.com");
+  // Create a URL object to parse the noteName string.
+  // The base URL ("http://example.com") is used to properly parse relative URLs.
+  const url = new URL(noteName, 'http://example.com');
 
-	// Extract the pathname and remove the leading "/" to get the base name.
-	const base = url.pathname.substring(1);
+  // Extract the pathname and remove the leading "/" to get the base name.
+  const base = url.pathname.substring(1);
 
-	// Initialize an empty object to store the query parameters.
-	const queryParams: { [key: string]: string } = {};
+  // Initialize an empty object to store the query parameters.
+  const queryParams: { [key: string]: string } = {};
 
-	// Iterate over each search parameter and add it to the queryParams object.
-	url.searchParams.forEach((value, key) => {
-		queryParams[key] = value;
-	});
+  // Iterate over each search parameter and add it to the queryParams object.
+  url.searchParams.forEach((value, key) => {
+    queryParams[key] = value;
+  });
 
-	// Return an object containing the decoded base name and query parameters.
-	return {
-		noteNameWithoutExtension: decodeURIComponent(base),
-		queryParams: queryParams,
-	};
+  // Return an object containing the decoded base name and query parameters.
+  return {
+    noteNameWithoutExtension: decodeURIComponent(base),
+    queryParams: queryParams,
+  };
 }
 
 /**
@@ -204,30 +204,30 @@ export function extractInfoFromNoteName(noteName: string) {
  * It deals with query parameters as well. This is for the CONTROLLED_TEXT_INSERTION event
  */
 export function getFileExtension(url: string) {
-	// Extract the part before the query parameters
-	const baseUrl = url.split("?")[0];
+  // Extract the part before the query parameters
+  const baseUrl = url.split('?')[0];
 
-	// Find the last period in the baseUrl
-	const lastDotIndex = baseUrl.lastIndexOf(".");
-	const lastSlashIndex = baseUrl.lastIndexOf("/");
-	// If no period is found, return null
-	if (lastDotIndex === -1 || lastSlashIndex > lastDotIndex) {
-		return { urlWithoutExtension: null, extension: null, fileName: null };
-	}
+  // Find the last period in the baseUrl
+  const lastDotIndex = baseUrl.lastIndexOf('.');
+  const lastSlashIndex = baseUrl.lastIndexOf('/');
+  // If no period is found, return null
+  if (lastDotIndex === -1 || lastSlashIndex > lastDotIndex) {
+    return { urlWithoutExtension: null, extension: null, fileName: null };
+  }
 
-	const urlWithoutExtension = baseUrl.substring(0, lastDotIndex);
+  const urlWithoutExtension = baseUrl.substring(0, lastDotIndex);
 
-	const fileName = baseUrl.substring(lastSlashIndex + 1, lastDotIndex);
+  const fileName = baseUrl.substring(lastSlashIndex + 1, lastDotIndex);
 
-	// Extract the extension
-	const extension = baseUrl.substring(lastDotIndex + 1);
+  // Extract the extension
+  const extension = baseUrl.substring(lastDotIndex + 1);
 
-	// Return the extension if it's valid (length > 0)
-	return {
-		urlWithoutExtension,
-		extension: extension.length > 0 ? extension : null,
-		fileName,
-	};
+  // Return the extension if it's valid (length > 0)
+  return {
+    urlWithoutExtension,
+    extension: extension.length > 0 ? extension : null,
+    fileName,
+  };
 }
 
 type RGB = { r: number; g: number; b: number };
@@ -239,45 +239,45 @@ type RGBA = { r: number; g: number; b: number; a: number };
  * @returns An object with r, g, b, and optionally a properties, or null if parsing fails.
  */
 export function parseRGB(colorString: string): RGB | RGBA | null {
-	// Remove all spaces for easier matching
-	const sanitizedString = colorString.replace(/\s+/g, "");
+  // Remove all spaces for easier matching
+  const sanitizedString = colorString.replace(/\s+/g, '');
 
-	// Regular expression to match rgb() and rgba() strings
-	const rgbRegex = /^rgb\((\d{1,3}),(\d{1,3}),(\d{1,3})\)$/i;
-	const rgbaRegex = /^rgba\((\d{1,3}),(\d{1,3}),(\d{1,3}),([01]?\.?\d*)\)$/i;
+  // Regular expression to match rgb() and rgba() strings
+  const rgbRegex = /^rgb\((\d{1,3}),(\d{1,3}),(\d{1,3})\)$/i;
+  const rgbaRegex = /^rgba\((\d{1,3}),(\d{1,3}),(\d{1,3}),([01]?\.?\d*)\)$/i;
 
-	let match = rgbRegex.exec(sanitizedString);
-	if (match) {
-		const [, r, g, b] = match;
-		return {
-			r: Number(r),
-			g: Number(g),
-			b: Number(b),
-		};
-	}
+  let match = rgbRegex.exec(sanitizedString);
+  if (match) {
+    const [, r, g, b] = match;
+    return {
+      r: Number(r),
+      g: Number(g),
+      b: Number(b),
+    };
+  }
 
-	match = rgbaRegex.exec(sanitizedString);
-	if (match) {
-		const [, r, g, b, a] = match;
-		return {
-			r: Number(r),
-			g: Number(g),
-			b: Number(b),
-			a: Number(a),
-		};
-	}
+  match = rgbaRegex.exec(sanitizedString);
+  if (match) {
+    const [, r, g, b, a] = match;
+    return {
+      r: Number(r),
+      g: Number(g),
+      b: Number(b),
+      a: Number(a),
+    };
+  }
 
-	// Return null if the string doesn't match the expected format
-	return null;
+  // Return null if the string doesn't match the expected format
+  return null;
 }
 
 export function parseNoteNameFromSelectionRangeValue(
-	selectionRangeValue: string,
+  selectionRangeValue: string
 ) {
-	const noteWithoutWithoutPrefix = selectionRangeValue.split(":")[1];
-	const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-		noteWithoutWithoutPrefix,
-	);
+  const noteWithoutWithoutPrefix = selectionRangeValue.split(':')[1];
+  const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
+    noteWithoutWithoutPrefix
+  );
 
-	return { noteNameWithoutExtension, queryParams };
+  return { noteNameWithoutExtension, queryParams };
 }

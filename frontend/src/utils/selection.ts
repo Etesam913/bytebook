@@ -1,5 +1,5 @@
-import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
-import { extractInfoFromNoteName } from "./string-formatting";
+import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
+import { extractInfoFromNoteName } from './string-formatting';
 
 /**
  * Filters a selection Set to keep only items that start with the specified prefix.
@@ -8,16 +8,16 @@ import { extractInfoFromNoteName } from "./string-formatting";
  * @returns A new Set containing only the items that start with the prefix
  */
 export function keepSelectionNotesWithPrefix(
-	selection: Set<string>,
-	prefix: "folder" | "note" | "tag",
+  selection: Set<string>,
+  prefix: 'folder' | 'note' | 'tag'
 ) {
-	const newSelection = new Set<string>();
-	for (const item of selection) {
-		if (item.startsWith(`${prefix}:`)) {
-			newSelection.add(item);
-		}
-	}
-	return newSelection;
+  const newSelection = new Set<string>();
+  for (const item of selection) {
+    if (item.startsWith(`${prefix}:`)) {
+      newSelection.add(item);
+    }
+  }
+  return newSelection;
 }
 
 /**
@@ -26,21 +26,21 @@ export function keepSelectionNotesWithPrefix(
  * @param selectionRange
  */
 export function getFolderAndNoteFromSelectionRange(
-	folder: string,
-	selectionRange: Set<string>,
-	isInTagsSidebar: boolean,
+  folder: string,
+  selectionRange: Set<string>,
+  isInTagsSidebar: boolean
 ) {
-	return [...selectionRange].map((note) => {
-		const noteWithoutWithoutPrefix = note.split(":")[1];
-		const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-			noteWithoutWithoutPrefix,
-		);
-		if (isInTagsSidebar) {
-			const [folderName, noteName] = noteNameWithoutExtension.split("/");
-			return `${folderName}/${noteName}.${queryParams.ext}`;
-		}
-		return `${folder}/${noteNameWithoutExtension}.${queryParams.ext}`;
-	});
+  return [...selectionRange].map((note) => {
+    const noteWithoutWithoutPrefix = note.split(':')[1];
+    const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
+      noteWithoutWithoutPrefix
+    );
+    if (isInTagsSidebar) {
+      const [folderName, noteName] = noteNameWithoutExtension.split('/');
+      return `${folderName}/${noteName}.${queryParams.ext}`;
+    }
+    return `${folder}/${noteNameWithoutExtension}.${queryParams.ext}`;
+  });
 }
 
 /**
@@ -49,24 +49,24 @@ export function getFolderAndNoteFromSelectionRange(
  * @param liAncestor - The parent list item element
  */
 export function handleKeyNavigation(e: KeyboardEvent) {
-	const buttonElem = e.target as HTMLButtonElement;
-	const liAncestor = buttonElem.parentElement?.parentElement;
-	if (!liAncestor) return;
-	if (e.key === "ArrowDown") {
-		e.preventDefault();
-		const nextLi = liAncestor.nextElementSibling;
-		if (nextLi) {
-			const nextButton = nextLi.querySelector("button") as HTMLButtonElement;
-			if (nextButton) nextButton.focus();
-		}
-	} else if (e.key === "ArrowUp") {
-		e.preventDefault();
-		const prevLi = liAncestor.previousElementSibling;
-		if (prevLi) {
-			const prevButton = prevLi.querySelector("button") as HTMLButtonElement;
-			if (prevButton) prevButton.focus();
-		}
-	}
+  const buttonElem = e.target as HTMLButtonElement;
+  const liAncestor = buttonElem.parentElement?.parentElement;
+  if (!liAncestor) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    const nextLi = liAncestor.nextElementSibling;
+    if (nextLi) {
+      const nextButton = nextLi.querySelector('button') as HTMLButtonElement;
+      if (nextButton) nextButton.focus();
+    }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    const prevLi = liAncestor.previousElementSibling;
+    if (prevLi) {
+      const prevButton = prevLi.querySelector('button') as HTMLButtonElement;
+      if (prevButton) prevButton.focus();
+    }
+  }
 }
 /**
  * Handles escape key behavior in the editor, toggling maximized state and managing focus.
@@ -75,46 +75,46 @@ export function handleKeyNavigation(e: KeyboardEvent) {
  * @param setIsNoteMaximized - State setter function for the maximized state
  */
 export function handleEditorEscape(
-	e: KeyboardEvent,
-	isNoteMaximized: boolean,
-	setIsNoteMaximized: Dispatch<SetStateAction<boolean>>,
+  e: KeyboardEvent,
+  isNoteMaximized: boolean,
+  setIsNoteMaximized: Dispatch<SetStateAction<boolean>>
 ) {
-	if (e.key === "Escape") {
-		if (isNoteMaximized) {
-			setIsNoteMaximized(false);
+  if (e.key === 'Escape') {
+    if (isNoteMaximized) {
+      setIsNoteMaximized(false);
 
-			setTimeout(() => {
-				const selectedNoteButton = document.getElementById(
-					"selected-note-button",
-				);
-				if (!selectedNoteButton) return;
-				selectedNoteButton.focus();
-			}, 250);
-		} else {
-			const selectedNoteButton = document.getElementById(
-				"selected-note-button",
-			);
-			if (!selectedNoteButton) return;
-			selectedNoteButton.focus();
-		}
-	}
+      setTimeout(() => {
+        const selectedNoteButton = document.getElementById(
+          'selected-note-button'
+        );
+        if (!selectedNoteButton) return;
+        selectedNoteButton.focus();
+      }, 250);
+    } else {
+      const selectedNoteButton = document.getElementById(
+        'selected-note-button'
+      );
+      if (!selectedNoteButton) return;
+      selectedNoteButton.focus();
+    }
+  }
 }
 
 function isSelectedNoteOrFolderInViewport(
-	noteOrFolder: string,
-	visibleItems: string[],
+  noteOrFolder: string,
+  visibleItems: string[]
 ) {
-	return visibleItems.includes(noteOrFolder);
+  return visibleItems.includes(noteOrFolder);
 }
 
 export function scrollVirtualizedListToSelectedNoteOrFolder(
-	noteOrFolder: string,
-	items: string[],
-	visibleItems: string[],
-	sidebarItemHeight: number,
+  noteOrFolder: string,
+  items: string[],
+  visibleItems: string[],
+  sidebarItemHeight: number
 ) {
-	if (isSelectedNoteOrFolderInViewport(noteOrFolder, visibleItems)) return -1;
-	const indexOfSelectedItem = items.indexOf(noteOrFolder);
-	if (indexOfSelectedItem === -1) return -1;
-	return sidebarItemHeight * indexOfSelectedItem;
+  if (isSelectedNoteOrFolderInViewport(noteOrFolder, visibleItems)) return -1;
+  const indexOfSelectedItem = items.indexOf(noteOrFolder);
+  if (indexOfSelectedItem === -1) return -1;
+  return sidebarItemHeight * indexOfSelectedItem;
 }

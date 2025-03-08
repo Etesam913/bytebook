@@ -1,21 +1,21 @@
 import {
-	type QueryClient,
-	useMutation,
-	useQuery,
-	useQueryClient,
-} from "@tanstack/react-query";
-import { useAtomValue } from "jotai";
-import { toast } from "sonner";
-import { type StringRouteParams, useRoute } from "wouter";
+  type QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { useAtomValue } from 'jotai';
+import { toast } from 'sonner';
+import { type StringRouteParams, useRoute } from 'wouter';
 import {
-	DeleteTagsFromNotes,
-	GetTags,
-	GetTagsForNotes,
-} from "../../bindings/github.com/etesam913/bytebook/services/tagsservice";
-import { noteSortAtom } from "../atoms";
-import { useWailsEvent } from "../hooks/events";
-import { DEFAULT_SONNER_OPTIONS } from "../utils/general";
-import { useSearchParamsEntries } from "../utils/routing";
+  DeleteTagsFromNotes,
+  GetTags,
+  GetTagsForNotes,
+} from '../../bindings/github.com/etesam913/bytebook/services/tagsservice';
+import { noteSortAtom } from '../atoms';
+import { useWailsEvent } from '../hooks/events';
+import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
+import { useSearchParamsEntries } from '../utils/routing';
 
 /**
  * Invalidates the query for note tags if the current folder, note, and extension are available.
@@ -25,18 +25,18 @@ import { useSearchParamsEntries } from "../utils/routing";
  * @param searchParams - Search parameters, possibly including an extension.
  */
 function invalidateCurrentNoteTagsQueryIfNeeded(
-	queryClient: QueryClient,
-	routeParams: StringRouteParams<"/:folder/:note?"> | null,
-	searchParams: { ext?: string },
+  queryClient: QueryClient,
+  routeParams: StringRouteParams<'/:folder/:note?'> | null,
+  searchParams: { ext?: string }
 ) {
-	const currentFolder = routeParams?.folder;
-	const currentNote = routeParams?.note;
+  const currentFolder = routeParams?.folder;
+  const currentNote = routeParams?.note;
 
-	if (currentFolder && currentNote && searchParams.ext) {
-		queryClient.invalidateQueries({
-			queryKey: ["note-tags", currentFolder, currentNote, searchParams.ext],
-		});
-	}
+  if (currentFolder && currentNote && searchParams.ext) {
+    queryClient.invalidateQueries({
+      queryKey: ['note-tags', currentFolder, currentNote, searchParams.ext],
+    });
+  }
 }
 
 /**
@@ -47,56 +47,56 @@ function invalidateCurrentNoteTagsQueryIfNeeded(
  * @param searchParams - Search parameters, possibly including an extension.
  */
 function handleTagRelatedEvent(
-	queryClient: QueryClient,
-	routeParams: StringRouteParams<"/:folder/:note?"> | null,
-	searchParams: { ext?: string },
+  queryClient: QueryClient,
+  routeParams: StringRouteParams<'/:folder/:note?'> | null,
+  searchParams: { ext?: string }
 ) {
-	queryClient.invalidateQueries({ queryKey: ["get-tags"] });
-	invalidateCurrentNoteTagsQueryIfNeeded(
-		queryClient,
-		routeParams,
-		searchParams,
-	);
+  queryClient.invalidateQueries({ queryKey: ['get-tags'] });
+  invalidateCurrentNoteTagsQueryIfNeeded(
+    queryClient,
+    routeParams,
+    searchParams
+  );
 }
 
 /**
  * Handles the `tags-folder:create`, "tags-folder:delete", and "tags:update" events.
  */
 export function useTags() {
-	const queryClient = useQueryClient();
-	const [, routeParams] = useRoute("/:folder/:note?");
-	const searchParams: { ext?: string } = useSearchParamsEntries();
-	const noteSort = useAtomValue(noteSortAtom);
-	useWailsEvent("tags-folder:create", () => {
-		handleTagRelatedEvent(queryClient, routeParams, searchParams);
-	});
-	useWailsEvent("tags-folder:delete", () => {
-		handleTagRelatedEvent(queryClient, routeParams, searchParams);
-	});
-	useWailsEvent("tags:update", (body) => {
-		const data = body.data as { notes: string[] | null; tagName: string }[];
-		const updatedTag = data[0].tagName;
+  const queryClient = useQueryClient();
+  const [, routeParams] = useRoute('/:folder/:note?');
+  const searchParams: { ext?: string } = useSearchParamsEntries();
+  const noteSort = useAtomValue(noteSortAtom);
+  useWailsEvent('tags-folder:create', () => {
+    handleTagRelatedEvent(queryClient, routeParams, searchParams);
+  });
+  useWailsEvent('tags-folder:delete', () => {
+    handleTagRelatedEvent(queryClient, routeParams, searchParams);
+  });
+  useWailsEvent('tags:update', (body) => {
+    const data = body.data as { notes: string[] | null; tagName: string }[];
+    const updatedTag = data[0].tagName;
 
-		// Update the notes present in tags-sidebar
-		queryClient.invalidateQueries({
-			queryKey: ["tag-notes", updatedTag, noteSort],
-		});
-		handleTagRelatedEvent(queryClient, routeParams, searchParams);
-	});
+    // Update the notes present in tags-sidebar
+    queryClient.invalidateQueries({
+      queryKey: ['tag-notes', updatedTag, noteSort],
+    });
+    handleTagRelatedEvent(queryClient, routeParams, searchParams);
+  });
 }
 
 export function useTagsQuery() {
-	return useQuery({
-		queryKey: ["get-tags"],
-		queryFn: async () => {
-			const res = await GetTags();
-			if (!res.success) {
-				throw new Error(res.message);
-			}
-			const tags = res.data;
-			return tags;
-		},
-	});
+  return useQuery({
+    queryKey: ['get-tags'],
+    queryFn: async () => {
+      const res = await GetTags();
+      if (!res.success) {
+        throw new Error(res.message);
+      }
+      const tags = res.data;
+      return tags;
+    },
+  });
 }
 
 /**
@@ -108,13 +108,13 @@ export function useTagsQuery() {
  * @returns  The query result containing the tags.
  */
 export function useTagsForNoteQuery(folder: string, note: string, ext: string) {
-	return useQuery({
-		queryKey: ["note-tags", folder, note, ext],
-		queryFn: async () => {
-			const res = await GetTagsForNotes([`${folder}/${note}.${ext}`]);
-			return res.data;
-		},
-	});
+  return useQuery({
+    queryKey: ['note-tags', folder, note, ext],
+    queryFn: async () => {
+      const res = await GetTagsForNotes([`${folder}/${note}.${ext}`]);
+      return res.data;
+    },
+  });
 }
 
 /**
@@ -124,15 +124,15 @@ export function useTagsForNoteQuery(folder: string, note: string, ext: string) {
  * @returns
  */
 export function useTagsForNotesQuery(folder: string, notes: string[]) {
-	return useQuery({
-		queryKey: ["notes-tags", folder, notes],
-		queryFn: async () => {
-			const res = await GetTagsForNotes(
-				notes.map((note) => `${folder}/${note}`),
-			);
-			return res.data;
-		},
-	});
+  return useQuery({
+    queryKey: ['notes-tags', folder, notes],
+    queryFn: async () => {
+      const res = await GetTagsForNotes(
+        notes.map((note) => `${folder}/${note}`)
+      );
+      return res.data;
+    },
+  });
 }
 
 /**
@@ -145,24 +145,24 @@ export function useTagsForNotesQuery(folder: string, notes: string[]) {
  * @returns The mutation result.
  */
 export function useDeleteTagsMutation(
-	folder: string,
-	note: string,
-	ext: string,
+  folder: string,
+  note: string,
+  ext: string
 ) {
-	return useMutation({
-		mutationFn: async ({ tagName }: { tagName: string }) => {
-			const res = await DeleteTagsFromNotes(
-				[tagName],
-				[`${folder}/${note}.${ext}`],
-			);
-			if (!res.success) {
-				throw new Error(res.message);
-			}
-		},
-		onError: (e) => {
-			if (e instanceof Error) {
-				toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-			}
-		},
-	});
+  return useMutation({
+    mutationFn: async ({ tagName }: { tagName: string }) => {
+      const res = await DeleteTagsFromNotes(
+        [tagName],
+        [`${folder}/${note}.${ext}`]
+      );
+      if (!res.success) {
+        throw new Error(res.message);
+      }
+    },
+    onError: (e) => {
+      if (e instanceof Error) {
+        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+      }
+    },
+  });
 }

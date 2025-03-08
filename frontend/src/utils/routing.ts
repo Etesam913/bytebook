@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useSearch } from "wouter";
+import { useMemo } from 'react';
+import { useSearch } from 'wouter';
 
 /**
  * Custom hook to parse the search parameters from the URL and return them as an object.
@@ -7,12 +7,12 @@ import { useSearch } from "wouter";
  * @returns An object containing the search parameters as key-value pairs.
  */
 export function useSearchParamsEntries(): Record<string, string> {
-	const searchString = useSearch();
-	const searchParamsObject = useMemo(() => {
-		const searchParams = new URLSearchParams(searchString);
-		return Object.fromEntries(searchParams.entries());
-	}, [searchString]);
-	return searchParamsObject;
+  const searchString = useSearch();
+  const searchParamsObject = useMemo(() => {
+    const searchParams = new URLSearchParams(searchString);
+    return Object.fromEntries(searchParams.entries());
+  }, [searchString]);
+  return searchParamsObject;
 }
 /**
  * Finds the closest navigable sidebar item index after a deletion.
@@ -29,33 +29,33 @@ export function useSearchParamsEntries(): Record<string, string> {
  * @returns The index of the closest item to navigate to in the new list.
  */
 export function findClosestSidebarItemToNavigateTo(
-	deletedItem: string,
-	oldItems: string[],
-	newItems: string[],
+  deletedItem: string,
+  oldItems: string[],
+  newItems: string[]
 ): number {
-	const newItemsSet = new Set(newItems);
-	const indexOfDeletedItem = oldItems.findIndex((item) => item === deletedItem);
-	if (indexOfDeletedItem === -1) return 0;
+  const newItemsSet = new Set(newItems);
+  const indexOfDeletedItem = oldItems.findIndex((item) => item === deletedItem);
+  if (indexOfDeletedItem === -1) return 0;
 
-	let leftPointer = indexOfDeletedItem - 1;
-	let rightPointer = indexOfDeletedItem + 1;
+  let leftPointer = indexOfDeletedItem - 1;
+  let rightPointer = indexOfDeletedItem + 1;
 
-	while (leftPointer > -1 || rightPointer < oldItems.length) {
-		if (leftPointer > -1) {
-			const leftItem = oldItems[leftPointer];
-			if (newItemsSet.has(leftItem)) {
-				return newItems.indexOf(leftItem);
-			}
-			leftPointer -= 1;
-		}
-		if (rightPointer < oldItems.length) {
-			const rightItem = oldItems[rightPointer];
-			if (newItemsSet.has(rightItem)) {
-				return newItems.indexOf(rightItem);
-			}
-			rightPointer += 1;
-		}
-	}
+  while (leftPointer > -1 || rightPointer < oldItems.length) {
+    if (leftPointer > -1) {
+      const leftItem = oldItems[leftPointer];
+      if (newItemsSet.has(leftItem)) {
+        return newItems.indexOf(leftItem);
+      }
+      leftPointer -= 1;
+    }
+    if (rightPointer < oldItems.length) {
+      const rightItem = oldItems[rightPointer];
+      if (newItemsSet.has(rightItem)) {
+        return newItems.indexOf(rightItem);
+      }
+      rightPointer += 1;
+    }
+  }
 
-	return 0;
+  return 0;
 }

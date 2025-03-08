@@ -1,13 +1,13 @@
 import {
-	type ElementTransformer,
-	TRANSFORMERS,
-	type TextFormatTransformer,
-	type TextMatchTransformer,
-} from "@lexical/markdown";
-import type { ElementNode } from "lexical";
-import type { Dispatch, SetStateAction } from "react";
-import { createMarkdownExport } from "../MarkdownExport";
-import { createMarkdownImport } from "../MarkdownImport";
+  type ElementTransformer,
+  TRANSFORMERS,
+  type TextFormatTransformer,
+  type TextMatchTransformer,
+} from '@lexical/markdown';
+import type { ElementNode } from 'lexical';
+import type { Dispatch, SetStateAction } from 'react';
+import { createMarkdownExport } from '../MarkdownExport';
+import { createMarkdownImport } from '../MarkdownImport';
 
 const frontMatterRegex = /^---[\s\S]+?---/;
 
@@ -22,39 +22,39 @@ const frontMatterRegex = /^---[\s\S]+?---/;
  * @returns {boolean} - Returns `true` if the Markdown string contains front matter, `false` otherwise.
  */
 export function hasFrontMatter(markdown: string): boolean {
-	return frontMatterRegex.test(markdown);
+  return frontMatterRegex.test(markdown);
 }
 
 function parseYaml(yamlString: string): Record<string, string> {
-	const lines = yamlString.split("\n");
-	const frontMatter: Record<string, string> = {};
+  const lines = yamlString.split('\n');
+  const frontMatter: Record<string, string> = {};
 
-	lines.forEach((line) => {
-		const [key, ...rest] = line.split(":");
-		if (key && rest.length > 0) {
-			frontMatter[key.trim()] = rest.join(":").trim();
-		}
-	});
+  lines.forEach((line) => {
+    const [key, ...rest] = line.split(':');
+    if (key && rest.length > 0) {
+      frontMatter[key.trim()] = rest.join(':').trim();
+    }
+  });
 
-	return frontMatter;
+  return frontMatter;
 }
 
 export function parseFrontMatter(markdown: string): {
-	frontMatter: Record<string, string>;
-	content: string;
+  frontMatter: Record<string, string>;
+  content: string;
 } {
-	const match = markdown.match(frontMatterRegex);
+  const match = markdown.match(frontMatterRegex);
 
-	let frontMatter: Record<string, string> = {};
-	let content = markdown;
+  let frontMatter: Record<string, string> = {};
+  let content = markdown;
 
-	if (match) {
-		const frontMatterString = match[0];
-		frontMatter = parseYaml(frontMatterString);
-		// We do +1 as there is a newline from the --- that we want to get rid of
-		content = markdown.slice(match[0].length + 1);
-	}
-	return { frontMatter, content };
+  if (match) {
+    const frontMatterString = match[0];
+    frontMatter = parseYaml(frontMatterString);
+    // We do +1 as there is a newline from the --- that we want to get rid of
+    content = markdown.slice(match[0].length + 1);
+  }
+  return { frontMatter, content };
 }
 
 /**
@@ -67,20 +67,20 @@ export function parseFrontMatter(markdown: string): {
  * @returns {string} - The generated front matter string.
  */
 function createFrontMatter(data: Record<string, string>): string {
-	// Initialize the front matter string with the opening triple dashes
-	let frontMatter = "---\n";
+  // Initialize the front matter string with the opening triple dashes
+  let frontMatter = '---\n';
 
-	// Iterate over each key-value pair in the input object
-	for (const [key, value] of Object.entries(data)) {
-		// Append each key-value pair to the front matter string in the format "key: value"
-		frontMatter += `${key}: ${value}\n`;
-	}
+  // Iterate over each key-value pair in the input object
+  for (const [key, value] of Object.entries(data)) {
+    // Append each key-value pair to the front matter string in the format "key: value"
+    frontMatter += `${key}: ${value}\n`;
+  }
 
-	// Close the front matter section with the closing triple dashes
-	frontMatter += "---\n";
+  // Close the front matter section with the closing triple dashes
+  frontMatter += '---\n';
 
-	// Return the generated front matter string
-	return frontMatter;
+  // Return the generated front matter string
+  return frontMatter;
 }
 
 /**
@@ -94,51 +94,51 @@ function createFrontMatter(data: Record<string, string>): string {
  * @returns {string} - The Markdown string with the replaced or prepended front matter.
  */
 export function replaceFrontMatter(
-	markdown: string,
-	newFrontMatterData: Record<string, string>,
+  markdown: string,
+  newFrontMatterData: Record<string, string>
 ): string {
-	// Create the new front matter string from the provided data
-	const newFrontMatter = createFrontMatter(newFrontMatterData);
-	if (frontMatterRegex.test(markdown)) {
-		// If existing front matter is found, replace it with the new front matter
-		return markdown.replace(frontMatterRegex, newFrontMatter);
-	}
-	// If no front matter is found, prepend the new front matter to the markdown content
-	return newFrontMatter + markdown;
+  // Create the new front matter string from the provided data
+  const newFrontMatter = createFrontMatter(newFrontMatterData);
+  if (frontMatterRegex.test(markdown)) {
+    // If existing front matter is found, replace it with the new front matter
+    return markdown.replace(frontMatterRegex, newFrontMatter);
+  }
+  // If no front matter is found, prepend the new front matter to the markdown content
+  return newFrontMatter + markdown;
 }
 
 export type Transformer =
-	| ElementTransformer
-	| TextFormatTransformer
-	| TextMatchTransformer;
+  | ElementTransformer
+  | TextFormatTransformer
+  | TextMatchTransformer;
 
 export function $convertToMarkdownStringCorrect(
-	transformers: Array<Transformer> = TRANSFORMERS,
-	node?: ElementNode,
+  transformers: Array<Transformer> = TRANSFORMERS,
+  node?: ElementNode
 ): string {
-	const exportMarkdown = createMarkdownExport(transformers);
-	return exportMarkdown(node);
+  const exportMarkdown = createMarkdownExport(transformers);
+  return exportMarkdown(node);
 }
 
 export function $convertFromMarkdownStringCorrect(
-	markdown: string,
-	transformers: Array<Transformer> = TRANSFORMERS,
-	setFrontmatter?: Dispatch<SetStateAction<Record<string, string>>>,
-	node?: ElementNode,
+  markdown: string,
+  transformers: Array<Transformer> = TRANSFORMERS,
+  setFrontmatter?: Dispatch<SetStateAction<Record<string, string>>>,
+  node?: ElementNode
 ): void {
-	// const importMarkdown = createMarkdownImport(transformers);
-	const importMarkdown = createMarkdownImport(transformers);
+  // const importMarkdown = createMarkdownImport(transformers);
+  const importMarkdown = createMarkdownImport(transformers);
 
-	let markdownString = markdown;
+  let markdownString = markdown;
 
-	if (hasFrontMatter(markdown)) {
-		const { frontMatter, content } = parseFrontMatter(markdown);
+  if (hasFrontMatter(markdown)) {
+    const { frontMatter, content } = parseFrontMatter(markdown);
 
-		if (setFrontmatter) {
-			setFrontmatter(frontMatter);
-		}
+    if (setFrontmatter) {
+      setFrontmatter(frontMatter);
+    }
 
-		markdownString = content;
-	}
-	importMarkdown(markdownString, node);
+    markdownString = content;
+  }
+  importMarkdown(markdownString, node);
 }

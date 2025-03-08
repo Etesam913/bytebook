@@ -1,4 +1,4 @@
-import { type RefObject, useEffect } from "react";
+import { type RefObject, useEffect } from 'react';
 
 /**
  * Hook that triggers a handler function when a click is detected outside of the specified element.
@@ -7,31 +7,31 @@ import { type RefObject, useEffect } from "react";
  * @param handler - A function to be called when a click outside the referenced element is detected.
  */
 export function useOnClickOutside<T extends HTMLElement>(
-	ref: RefObject<T | null>,
-	handler: (event: MouseEvent | TouchEvent) => void,
+  ref: RefObject<T | null>,
+  handler: (event: MouseEvent | TouchEvent) => void
 ): void {
-	useEffect(
-		() => {
-			const listener = (event: MouseEvent | TouchEvent): void => {
-				// Do nothing if clicking ref's element or descendent elements
-				if (!ref.current || ref.current.contains(event.target as Node)) {
-					return;
-				}
+  useEffect(
+    () => {
+      const listener = (event: MouseEvent | TouchEvent): void => {
+        // Do nothing if clicking ref's element or descendent elements
+        if (!ref.current || ref.current.contains(event.target as Node)) {
+          return;
+        }
 
-				handler(event);
-			};
+        handler(event);
+      };
 
-			// Add event listeners
-			document.addEventListener("mousedown", listener);
-			document.addEventListener("touchstart", listener);
+      // Add event listeners
+      document.addEventListener('mousedown', listener);
+      document.addEventListener('touchstart', listener);
 
-			// Remove event listeners on cleanup
-			return () => {
-				document.removeEventListener("mousedown", listener);
-				document.removeEventListener("touchstart", listener);
-			};
-		},
-		// Re-run if ref or handler changes
-		[ref, handler],
-	);
+      // Remove event listeners on cleanup
+      return () => {
+        document.removeEventListener('mousedown', listener);
+        document.removeEventListener('touchstart', listener);
+      };
+    },
+    // Re-run if ref or handler changes
+    [ref, handler]
+  );
 }
