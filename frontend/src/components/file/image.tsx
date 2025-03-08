@@ -88,7 +88,7 @@ export function Image({
 							isExpanded,
 							setIsExpanded,
 						}}
-						element={imgRef.current}
+						ref={imgRef}
 						nodeKey={nodeKey}
 						defaultWidth={widthWrittenToNode}
 						writeWidthToNode={writeWidthToNode}

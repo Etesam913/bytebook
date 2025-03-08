@@ -4,6 +4,7 @@ import {
 	type KeyboardEvent,
 	type MouseEvent,
 	type ReactNode,
+	RefObject,
 	useEffect,
 	useRef,
 } from "react";
@@ -20,19 +21,19 @@ import { expandNearestSiblingNode, useMouseActivity } from "./utils";
 
 export function ResizeContainer({
 	resizeState,
-	element,
 	children,
 	nodeKey,
 	defaultWidth,
 	writeWidthToNode,
 	elementType,
+	ref,
 	shouldHeightMatchWidth,
 	src,
 }: {
 	resizeState: ResizeState;
-	element: HTMLElement | null;
 	children: ReactNode;
 	nodeKey: string;
+	ref: RefObject<HTMLElement | null>;
 	defaultWidth: ResizeWidth;
 	writeWidthToNode: (width: ResizeWidth) => void;
 	elementType: "default" | "excalidraw";
@@ -48,7 +49,6 @@ export function ResizeContainer({
 	const { isSelected, isExpanded, setIsExpanded, setIsResizing, setSelected } =
 		resizeState;
 
-	const resizeDimensions = useRef({ height: 0, width: 0 });
 	const resizeContainerRef = useRef<HTMLDivElement>(null);
 	const [editor] = useLexicalComposerContext();
 
@@ -59,9 +59,8 @@ export function ResizeContainer({
 	}, [isExpanded]);
 
 	useTrapFocus(resizeContainerRef, isExpanded);
-
-	const isLeftAndRightArrowKeysShowing =
-		elementType !== "excalidraw" && useMouseActivity(1500, isExpanded);
+	const shouldUseMouseActivity = useMouseActivity(1500, isExpanded);
+	const isLeftAndRightArrowKeysShowing = elementType !== "excalidraw" &&shouldUseMouseActivity
 
 	return (
 		<>
@@ -84,10 +83,9 @@ export function ResizeContainer({
 
 						if (
 							isExpandableNeighbor &&
-							element &&
-							element.tagName === "VIDEO"
+							ref.current?.tagName === "VIDEO"
 						) {
-							(element as HTMLVideoElement).pause();
+							(ref.current as HTMLVideoElement).pause();
 						}
 					}
 				}}
@@ -139,7 +137,7 @@ export function ResizeContainer({
 								resizeState={resizeState}
 							/>
 							<ResizeHandle
-								element={element}
+							ref={ref}
 								resizeWidthMotionValue={resizeWidthMotionValue}
 								resizeHeightMotionValue={resizeHeightMotionValue}
 								widthMotionValue={widthMotionValue}
@@ -187,10 +185,9 @@ export function ResizeContainer({
 										);
 										if (
 											isExpandableNeighbor &&
-											element &&
-											element.tagName === "VIDEO"
+											ref.current?.tagName=== "VIDEO"
 										) {
-											(element as HTMLVideoElement).pause();
+											(ref.current as HTMLVideoElement).pause();
 										}
 									}}
 									className="fixed z-50 bottom-11 left-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
@@ -213,10 +210,9 @@ export function ResizeContainer({
 										);
 										if (
 											isExpandableNeighbor &&
-											element &&
-											element.tagName === "VIDEO"
+											ref.current?.tagName === "VIDEO"
 										) {
-											(element as HTMLVideoElement).pause();
+											(ref.current as HTMLVideoElement).pause();
 										}
 									}}
 									className="fixed z-50 bottom-11 right-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
@@ -230,8 +226,8 @@ export function ResizeContainer({
 					{/* Prevents a bug where the resize container size is like 8x8 after leaving fullscreen for videos */}
 					<div
 						style={{
-							width: resizeDimensions.current.width,
-							height: resizeDimensions.current.height,
+							width: 0,
+							height: 0,
 						}}
 					/>
 				</>

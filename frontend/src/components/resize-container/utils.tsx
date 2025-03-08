@@ -87,37 +87,39 @@ export function expandNearestSiblingNode(
  * @param timeout - The duration in milliseconds after which the elements should hide when the mouse is inactive.
  * @returns isVisible - A boolean that indicates whether the elements should be visible.
  */
-export function useMouseActivity(timeout = 1500, isActive = false): boolean {
-	const [isVisible, setIsVisible] = useState<boolean>(true);
-	let timer: ReturnType<typeof setTimeout>;
+ export function useMouseActivity(timeout = 1500, isActive = false): boolean {
+  const [isVisible, setIsVisible] = useState<boolean>(true);
+  const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
-	useEffect(() => {
-		if (!isActive) {
-			return;
-		}
-		// Function to set visibility to true and reset the timer
-		const handleMouseMovement = () => {
-			if (!isVisible) setIsVisible(true);
-			clearTimeout(timer);
-			timer = setTimeout(() => {
-				setIsVisible(false);
-			}, timeout);
-		};
+  useEffect(() => {
+   if (!isActive) {
+    return;
+   }
+   // Function to set visibility to true and reset the timer
+   const handleMouseMovement = () => {
+    if (!isVisible) setIsVisible(true);
+    if (timer) clearTimeout(timer);
+    const newTimer = setTimeout(() => {
+     setIsVisible(false);
+    }, timeout);
+    setTimer(newTimer);
+   };
 
-		// Add event listener for mouse movement
-		document.addEventListener("mousemove", handleMouseMovement);
+   // Add event listener for mouse movement
+   document.addEventListener("mousemove", handleMouseMovement);
 
-		// Set the initial timer
-		timer = setTimeout(() => {
-			setIsVisible(false);
-		}, timeout);
+   // Set the initial timer
+   const initialTimer = setTimeout(() => {
+    setIsVisible(false);
+   }, timeout);
+   setTimer(initialTimer);
 
-		// Clean up function
-		return () => {
-			clearTimeout(timer);
-			document.removeEventListener("mousemove", handleMouseMovement);
-		};
-	}, [isVisible, timeout, isActive]);
+   // Clean up function
+   return () => {
+    if (timer) clearTimeout(timer);
+    document.removeEventListener("mousemove", handleMouseMovement);
+   };
+  }, [isVisible, timeout, isActive, timer]);
 
-	return isVisible;
-}
+  return isVisible;
+ }

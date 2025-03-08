@@ -1,6 +1,6 @@
 import { type MotionValue, motion } from "framer-motion";
 import { useAtomValue, useSetAtom } from "jotai";
-import type { Dispatch, MouseEvent, SetStateAction } from "react";
+import type { Dispatch, MouseEvent, RefObject, SetStateAction } from "react";
 import { draggedElementAtom, noteContainerRefAtom } from "../../atoms";
 import type { ResizeWidth } from "../../types";
 import { dragItem } from "../../utils/draggable";
@@ -8,7 +8,7 @@ import { dragItem } from "../../utils/draggable";
 const RIGHT_BOUNDARY = 45;
 
 interface ResizeHandleProps {
-	element: HTMLElement | null;
+  ref: RefObject<HTMLElement | null>;
 	resizeWidthMotionValue: MotionValue<number | "100%">;
 	resizeHeightMotionValue: MotionValue<number | "100%">;
 	widthMotionValue: MotionValue<number | "100%">;
@@ -18,7 +18,7 @@ interface ResizeHandleProps {
 }
 
 export function ResizeHandle({
-	element,
+  ref,
 	resizeWidthMotionValue,
 	resizeHeightMotionValue,
 	widthMotionValue,
@@ -57,8 +57,8 @@ export function ResizeHandle({
 						const widthDiff = mouseDownBoxRect.right - dragEvent.clientX;
 						const heightDiff = mouseDownBoxRect.bottom - dragEvent.clientY;
 
-						// Early exit if element is not defined
-						if (!element) {
+						// Early exit if ref.current is not defined
+						if (!ref.current) {
 							return;
 						}
 
@@ -74,27 +74,27 @@ export function ResizeHandle({
 						if (isWidthSmaller) {
 							// Calculate new width based on width difference
 							newWidth = Math.min(
-								Math.max(160, Math.round(element.clientWidth - widthDiff)),
+								Math.max(160, Math.round(ref.current.clientWidth - widthDiff)),
 								noteContainerWidth,
 							);
 							newHeight = Math.round(
-								newWidth * (element.clientHeight / element.clientWidth),
+								newWidth * (ref.current.clientHeight / ref.current.clientWidth),
 							);
 						} else {
 							// Calculate new height and adjust width to maintain aspect ratio
-							newHeight = element.clientHeight - heightDiff;
+							newHeight = ref.current.clientHeight - heightDiff;
 							newWidth = Math.min(
 								Math.max(
 									160,
 									Math.round(
-										newHeight * (element.clientWidth / element.clientHeight),
+										newHeight * (ref.current.clientWidth / ref.current.clientHeight),
 									),
 								),
 								noteContainerWidth,
 							);
 							// Recalculate newHeight as the width could have changed to 160
 							newHeight = Math.round(
-								newWidth * (element.clientHeight / element.clientWidth),
+								newWidth * (ref.current.clientHeight / ref.current.clientWidth),
 							);
 						}
 						// Update the width through the motion value

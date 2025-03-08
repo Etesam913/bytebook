@@ -81,7 +81,7 @@ export function Video({
 							isExpanded,
 							setIsExpanded,
 						}}
-						element={videoRef.current}
+						ref={videoRef}
 						nodeKey={nodeKey}
 						defaultWidth={widthWrittenToNode}
 						writeWidthToNode={writeWidthToNode}

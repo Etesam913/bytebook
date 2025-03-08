@@ -11,7 +11,7 @@ import {
 } from "react";
 import { useParams } from "wouter";
 import {
-	contextMenuRefAtom,
+	contextMenuAtom,
 	projectSettingsAtom,
 	selectionRangeAtom,
 } from "../../atoms";
@@ -59,12 +59,12 @@ export function Sidebar({
 	*/
 	const searchParams: { focus?: string } = useSearchParamsEntries();
 	const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
-	const contextMenuRef = useAtomValue(contextMenuRefAtom);
+	const contextMenuRef = useAtomValue(contextMenuAtom);
 	const projectSettings = useAtomValue(projectSettingsAtom);
 
 	useOnClickOutside(listRef, (e) => {
 		// We need to use the selectionRange for the context menu so early return for this case
-		if (contextMenuRef?.current?.contains(e.target as Node)) return;
+		if (contextMenuRef?.contains(e.target as Node)) return;
 		if (selectionRange.size === 0 || contentType === undefined) return;
 		const selectionSetAsArray = Array.from(selectionRange);
 		/*

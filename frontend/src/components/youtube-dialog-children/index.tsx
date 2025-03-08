@@ -20,6 +20,7 @@ export function YouTubeDialogChildren({
 	useEffect(() => {
 		editor.update(() => {
 			const selection = $getSelection();
+			// eslint-disable-next-line react-compiler/react-compiler
 			editorSelection.current = selection;
 		});
 		setTimeout(() => {
