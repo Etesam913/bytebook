@@ -51,7 +51,7 @@ export function CardNoteSidebarItem({
 					<p
 						className={cn(
 							"whitespace-nowrap pointer-events-none text-ellipsis overflow-hidden",
-							isSelected && "!text-white",
+							isSelected && "text-white!",
 						)}
 					>
 						{sidebarNoteNameWithoutExtension}.{sidebarNoteExtension}
@@ -59,7 +59,7 @@ export function CardNoteSidebarItem({
 					<p
 						className={cn(
 							"text-sm text-zinc-500 dark:text-zinc-400 flex flex-col justify-center h-7 text-ellipsis overflow-hidden whitespace-nowrap pointer-events-none",
-							isSelected && "!text-white",
+							isSelected && "text-white!",
 						)}
 					>
 						{notePreviewResult?.success && notePreviewResult?.data?.firstLine}
@@ -84,7 +84,7 @@ export function CardNoteSidebarItem({
 			<div
 				className={cn(
 					"flex justify-between text-sm text-zinc-500 dark:text-zinc-400",
-					isSelected && "!text-white",
+					isSelected && "text-white!",
 				)}
 			>
 				<p>{formatDateString(notePreviewResult?.data?.lastUpdated ?? "")}</p>

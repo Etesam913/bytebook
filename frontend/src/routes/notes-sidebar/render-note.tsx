@@ -46,13 +46,13 @@ export function RenderNote({
 
 	const createNoteDialog = useCreateNoteDialog();
 	useMostRecentNotes(folder, note, normalizedExtension);
-	const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
+	const { mutate: revealInFinder } = useNoteRevealInFinderMutation(false);
 
 	if (!note)
 		return (
 			<div className="flex flex-col items-center justify-center h-screen flex-1 gap-3 pb-16 px-3 text-center">
 				<Compose width={48} height={48} />
-				<h1 className="text-2xl font-bold ">
+				<h1 className="text-base font-bold ">
 					{" "}
 					Click the{" "}
 					<button
@@ -74,12 +74,12 @@ export function RenderNote({
 			{!hasCustomToolbar && (
 				<header
 					className={cn(
-						"flex  items-center gap-1.5 border-b px-2 pb-1 pt-2.5 h-12 border-zinc-200 dark:border-b-zinc-700 whitespace-nowrap ml-[-4.5px]",
-						isNoteMaximized && "!pl-[5.75rem]",
+						"flex items-center gap-1.5 border-b px-2 pb-1 pt-2.5 h-12 border-zinc-200 dark:border-b-zinc-700 whitespace-nowrap ml-[-4.5px]",
+						isNoteMaximized && "pl-[5.75rem]!",
 					)}
 				>
 					<MaximizeNoteButton animationControls={animationControls} />
-					<h1 className="text-base overflow-ellipsis overflow-hidden ">
+					<h1 className="text-sm text-ellipsis overflow-hidden">
 						{folder}/{note}.{normalizedExtension}
 					</h1>
 					<MotionIconButton

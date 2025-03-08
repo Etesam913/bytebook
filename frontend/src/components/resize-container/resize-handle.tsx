@@ -35,7 +35,7 @@ export function ResizeHandle({
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0, transition: { duration: 0.25 } }}
 			className={
-				"w-7 h-7 bottom-[-7px] right-[-6px] absolute cursor-nwse-resize rounded-sm z-10"
+				"w-7 h-7 bottom-[-7px] right-[-6px] absolute cursor-nwse-resize rounded-xs z-10"
 			}
 			// onMouseUp={(e: MouseEvent<HTMLDivElement>) => {
 			// 	e.stopPropagation();

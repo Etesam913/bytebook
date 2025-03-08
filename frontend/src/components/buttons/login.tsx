@@ -84,7 +84,7 @@ export function LoginButton() {
 				<button
 					onClick={() => setIsUserOptionsOpen((prev) => !prev)}
 					type="button"
-					className="w-full text-left text-sm bg-transparent text-ellipsis rounded-md flex items-center gap-1.5  hover:bg-zinc-100 hover:dark:bg-zinc-650 py-1 px-1.5 transition-colors"
+					className="w-full text-left text-sm bg-transparent text-ellipsis rounded-md flex items-center gap-1.5  hover:bg-zinc-100 dark:hover:bg-zinc-650 py-1 px-1.5 transition-colors"
 				>
 					<img
 						src={userData.avatarUrl}
@@ -118,7 +118,7 @@ export function LoginButton() {
 	return (
 		<button
 			type="button"
-			className="w-full bg-transparent rounded-md flex gap-2 items-center hover:bg-zinc-100 hover:dark:bg-zinc-650 py-1 px-1.5 transition-colors"
+			className="w-full bg-transparent rounded-md flex gap-2 items-center hover:bg-zinc-100 dark:hover:bg-zinc-650 py-1 px-1.5 transition-colors"
 			onClick={() => {
 				Browser.OpenURL("http://localhost:8000/auth/github/login");
 			}}

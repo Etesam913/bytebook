@@ -44,7 +44,7 @@ export function SyncChangesDialog({
 				Commit Message
 			</label>
 			<textarea
-				className="bg-zinc-150 max-h-64 min-h-16 py-1 px-2 text-sm rounded-md dark:bg-zinc-700 font-mono border-2 outline-1 border-zinc-300 dark:border-zinc-600 focus-visible:!border-transparent"
+				className="bg-zinc-150 max-h-64 min-h-16 py-1 px-2 text-sm rounded-md dark:bg-zinc-700 font-mono border-2 outline-1 border-zinc-300 dark:border-zinc-600 focus-visible:border-transparent!"
 				id="commit-message"
 				name="commit-message"
 				defaultValue={formattedDate}

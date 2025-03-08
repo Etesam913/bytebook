@@ -34,7 +34,7 @@ export function InlineEquation({
 			ref={inlineEquationRef}
 			className={cn(
 				"relative w-fit inline-block",
-				isSelected && "relative bg-[var(--accent-color-highlight)]",
+				isSelected && "relative bg-(--accent-color-highlight)",
 			)}
 		>
 			<AnimatePresence>

@@ -102,7 +102,7 @@ export const DropdownItems = forwardRef<
 										)}
 										<button
 											className={cn(
-												"relative z-40 outline-none rounded-md w-full px-1.5 py-0.5 text-left whitespace-nowrap text-nowrap text-ellipsis overflow-hidden flex",
+												"relative z-40 outline-hidden rounded-md w-full px-1.5 py-0.5 text-left whitespace-nowrap text-nowrap text-ellipsis overflow-hidden flex",
 											)}
 											type="button"
 											role="menuitem"

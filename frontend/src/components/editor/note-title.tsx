@@ -29,7 +29,7 @@ export function NoteTitle({
 		<div className="mt-2 mb-3 flex flex-col">
 			<input
 				className={cn(
-					"bg-transparent text-3xl mb-1 transition-colors duration-300 outline-none font-semibold w-full",
+					"bg-transparent text-3xl mb-1 transition-colors duration-300 outline-hidden font-semibold w-full",
 					errorText.length > 0 && "text-red-600 dark:text-red-500",
 				)}
 				onClick={(e) => e.stopPropagation()}

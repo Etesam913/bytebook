@@ -72,7 +72,7 @@ export function NoteFindPlugin({
 						name="searchInput"
 						autoFocus
 						onKeyDown={(e) => e.key === "Escape" && closeFindPanel()}
-						className="px-2 py-1 bg-transparent rounded-sm pr-[1.85rem]"
+						className="px-2 py-1 bg-transparent rounded-xs pr-[1.85rem]"
 						placeholder="Find in note"
 					/>
 					<button

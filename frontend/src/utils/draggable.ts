@@ -11,7 +11,7 @@ export function createGhostElementFromHtmlElement(
 	const ghostElement = element.cloneNode(true) as HTMLElement;
 	ghostElement.classList.add(...classNames);
 	// Remove the selected classes
-	ghostElement.classList.remove("!bg-[var(--accent-color)]");
+	ghostElement.classList.remove("bg-(--accent-color)!");
 	return ghostElement;
 }
 

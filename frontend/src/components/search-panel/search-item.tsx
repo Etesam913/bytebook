@@ -17,7 +17,7 @@ export const SearchItem = forwardRef<
 		<li
 			ref={ref}
 			className={cn(
-				"relative hover:bg-zinc-100 hover:dark:bg-zinc-750 rounded-md",
+				"relative hover:bg-zinc-100 dark:hover:bg-zinc-750 rounded-md",
 				searchPanelData.focusedIndex === i && "bg-zinc-200 dark:bg-zinc-700",
 			)}
 		>

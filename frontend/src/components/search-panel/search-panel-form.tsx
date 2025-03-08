@@ -175,7 +175,7 @@ export function SearchPanelForm() {
 				autoFocus
 				name="search-query"
 				placeholder="Search Files"
-				className="py-3 px-4 bg-zinc-50 dark:bg-zinc-800 outline-none will-change-transform bg-transparent w-full border-zinc-300 rounded-bl-none rounded-br-none border-b-0 dark:border-zinc-700 rounded-lg shadow-2xl border-[1.25px] "
+				className="py-3 px-4 bg-zinc-50 dark:bg-zinc-800 outline-hidden will-change-transform bg-transparent w-full border-zinc-300 rounded-bl-none rounded-br-none border-b-0 dark:border-zinc-700 rounded-lg shadow-2xl border-[1.25px] "
 				value={searchPanelData.query}
 				onFocus={async (e) => {
 					e.target.select();

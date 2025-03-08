@@ -300,7 +300,7 @@ export function NoteSidebarButton({
 					sidebarNoteIndex === 0 &&
 					"border-t",
 				isActive && "bg-zinc-150 dark:bg-zinc-700",
-				isSelected && "!bg-[var(--accent-color)] text-white",
+				isSelected && "bg-(--accent-color)! text-white",
 			)}
 			onClick={(e) => {
 				if (e.metaKey || e.shiftKey) return;

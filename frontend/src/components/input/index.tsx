@@ -35,7 +35,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 					id={id}
 					maxLength={75}
 					className={cn(
-						"bg-zinc-150 dark:bg-zinc-700 py-1 px-2 rounded-md border-2 outline-1 border-zinc-300 dark:border-zinc-600 focus-visible:!border-transparent",
+						"bg-zinc-150 dark:bg-zinc-700 py-1 px-2 rounded-md border-2 border-zinc-300 dark:border-zinc-600 focus-visible:border-transparent!",
 						inputClassName,
 					)}
 					{...restInputProps}

@@ -122,7 +122,7 @@ export function Toolbar({
 			<nav
 				className={cn(
 					"ml-[-4px] flex gap-1.5 border-b-[1px] border-b-zinc-200 px-2 pb-2 pt-2.5 dark:border-b-zinc-700",
-					isNoteMaximized && "!pl-[5.75rem]",
+					isNoteMaximized && "pl-[5.75rem]!",
 				)}
 			>
 				<span className="flex items-center gap-1.5">

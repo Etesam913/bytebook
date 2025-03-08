@@ -46,7 +46,7 @@ export function FontFamilyInput({
 						fontFamily: "Bricolage Grotesque",
 					}));
 				}}
-				className="absolute right-2 top-1/2 -translate-y-[42.5%] text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300 disabled:hover:text-zinc-500 disabled:hover:dark:text-zinc-400"
+				className="absolute right-2 top-1/2 -translate-y-[42.5%] text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300 disabled:hover:text-zinc-500 dark:disabled:hover:text-zinc-400"
 			>
 				<RefreshAnticlockwise height={11.2} width={11.2} />
 			</button>
