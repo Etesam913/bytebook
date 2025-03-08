@@ -14,7 +14,7 @@
     "lint:check": "pnpm dlx eslint .",
     "tsc": "tsc",
     "format:lint:tsc": "pnpm format:check && pnpm lint:check && pnpm tsc",
-    "prepare": "cd .. && husky frontend/.husky"
+    "husky:prepare": "cd .. && husky frontend/.husky"
   },
   "dependencies": {
     "@excalidraw/excalidraw": "0.18.0-a9e2d23",
