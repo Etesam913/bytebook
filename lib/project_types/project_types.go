@@ -18,6 +18,16 @@ type ProjectSettingsJson struct {
 	AccentColor         string   `json:"accentColor"`
 }
 
+type AllKernels struct {
+	Python KernelJson
+	Golang KernelJson
+}
+
+type KernelJson struct {
+	Argv        []string `json:"argv"`
+	DisplayName string   `json:"display_name"`
+}
+
 type TagJson struct {
 	Notes []string `json:"notes"`
 }

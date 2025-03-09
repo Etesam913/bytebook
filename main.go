@@ -11,6 +11,7 @@ import (
 	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/lib/kernel_helpers"
 	"github.com/etesam913/bytebook/lib/menus"
 	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/etesam913/bytebook/lib/tags_helper"
@@ -32,7 +33,6 @@ var assets embed.FS
 // and starts a goroutine that emits a time-based event every second. It subsequently runs the application and
 // logs any error that might occur.
 func main() {
-
 	projectPath, err := project_helpers.GetProjectPath()
 	// TODO: Provide prompt for user to set a directory
 	if err != nil {
@@ -55,6 +55,17 @@ func main() {
 	if !projectSettings.Success {
 		log.Fatalf("Failed to create/get project settings")
 	}
+
+	connectionInfo, err := kernel_helpers.GetConnectionInfo()
+	if err != nil {
+		log.Fatalf("Failed to read connection.json")
+	}
+
+	allKernelInfo, err := kernel_helpers.GetAllKernels()
+	if err != nil {
+		log.Fatalf("Failed to read json files for kernels")
+	}
+
 	// Creating git repo if it does not already exist
 	git_helpers.InitializeGitRepo(projectPath)
 	git_helpers.SetRepoOrigin(projectSettings.Data.RepositoryToSyncTo)
@@ -90,6 +101,14 @@ func main() {
 			),
 			application.NewService(
 				&services.TagsService{ProjectPath: projectPath},
+			),
+			application.NewService(
+				&services.CodeService{
+					ShellSocketDealer:     nil,
+					IOPubSocketSubscriber: nil,
+					ConnectionInfo:        connectionInfo,
+					AllKernels:            allKernelInfo,
+				},
 			),
 		},
 		Assets: application.AssetOptions{
