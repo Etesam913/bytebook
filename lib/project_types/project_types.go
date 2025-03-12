@@ -54,3 +54,8 @@ type NoteResponse struct {
 	Message string   `json:"message"`
 	Data    []string `json:"data"`
 }
+
+// Events Types
+type KernelCodeBlockExecuteReply struct {
+	Status string `json:"status"`
+}

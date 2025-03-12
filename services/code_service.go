@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/etesam913/bytebook/lib/kernel_helpers"
+	"github.com/etesam913/bytebook/lib/messaging"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/etesam913/bytebook/lib/sockets"
 	"github.com/pebbe/zmq4"
@@ -57,4 +58,15 @@ func (c *CodeService) CreateSocketsAndListenToKernel() project_types.BackendResp
 		Success: true,
 		Message: "Sockets created and listening...",
 	}
+}
+
+func (c *CodeService) SendExecuteRequest(code string) {
+	messaging.SendExecuteRequest(
+		c.ShellSocketDealer,
+		messaging.ExecuteMessageParams{
+			MessageID: "1",
+			SessionID: "current-session",
+			Code:      code,
+		},
+	)
 }

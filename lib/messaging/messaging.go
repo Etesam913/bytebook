@@ -173,7 +173,7 @@ type ExecuteMessageParams struct {
 	Code      string
 }
 
-func SendExecuteRequest(socket *zmq4.Socket, params ExecuteMessageParams) error {
+func SendExecuteRequest(shellDealerSocket *zmq4.Socket, params ExecuteMessageParams) error {
 	// Define identities for routing (e.g., client and kernel IDs).
 	identities := []string{"client_identity", "kernel_identity"}
 
@@ -207,7 +207,7 @@ func SendExecuteRequest(socket *zmq4.Socket, params ExecuteMessageParams) error 
 
 	// Send the envelope over the ZeroMQ socket.
 	// Each element of the envelope is a frame.
-	_, err = socket.SendMessage(envelope)
+	_, err = shellDealerSocket.SendMessage(envelope)
 	if err != nil {
 		return fmt.Errorf("failed to send multipart message: %w", err)
 	}

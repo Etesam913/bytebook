@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/etesam913/bytebook/lib/messaging"
+	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/pebbe/zmq4"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 type ConnectionInfo struct {
@@ -40,7 +42,7 @@ func CreateShellSocketDealer() *zmq4.Socket {
 
 func ListenToShellSocket(shellSocketDealer *zmq4.Socket, connectionInfo ConnectionInfo) {
 	defer shellSocketDealer.Close()
-
+	app := application.Get()
 	// Connect to the same IP and shell port as your Shell socket
 	shellAddress := fmt.Sprintf("tcp://%s:%d", connectionInfo.IP, connectionInfo.ShellPort)
 	if err := shellSocketDealer.Connect(shellAddress); err != nil {
@@ -68,6 +70,12 @@ func ListenToShellSocket(shellSocketDealer *zmq4.Socket, connectionInfo Connecti
 		switch msg.Header.MsgType {
 		case "execute_reply":
 			log.Printf("🗨️ Execution reply: %v\n", msg.Content["status"])
+			app.CurrentWindow().EmitEvent(
+				"kernel:code-block:execute-reply",
+				project_types.KernelCodeBlockExecuteReply{
+					Status: msg.Content["status"].(string),
+				},
+			)
 			// emit kernel:python:code-block-{msg.Header.MsgID}:execute_result event here
 			fmt.Println("---")
 			time.Sleep(100 * time.Millisecond)

@@ -77,7 +77,7 @@ html:has(.dark) {
   scrollbar-width: thin;
   --accent-color: rgb(var(--accent-color-values));
   --accent-color-highlight: rgba(var(--accent-color-values), 0.45);
-  caret-color: var(--accent-color) !important;
+  /* caret-color: var(--accent-color); */
 }
 
 .draggable-block-menu {
@@ -137,16 +137,29 @@ html:has(.dark) {
   @apply bg-zinc-800! text-zinc-200! dark:bg-zinc-200! dark:text-zinc-900!;
 }
 
-code {
-  @apply bg-zinc-100 dark:bg-zinc-750 py-0.5 px-1 rounded-md border border-zinc-200 dark:border-zinc-600 font-code;
-}
-
 /**
  * Code mirror styles
  */
+.cm-theme {
+  /* border-radius: 0.35rem; */
+  /* overflow: hidden; */
+  /* border-left: 2px solid var(--color-zinc-700);
+  border-right: 2px solid var(--color-zinc-700); */
+  height: auto;
+}
 .cm-content {
   font-family: 'Jetbrains Mono', monospace;
-  font-size: 14px;
+  font-size: 13px;
+  padding: 12px 8px !important;
+}
+
+.cm-editor .cm-cursor {
+  border-left: 2.5px var(--accent-color) solid !important;
+}
+
+.ͼo .cm-selectionLayer .cm-selectionBackground {
+  background: var(--accent-color-highlight) !important;
+  opacity: 0.8;
 }
 
 /* Makes sure that the code block does not overlap with the traffic lights when in fullscreen mode */
@@ -154,22 +167,22 @@ div[data-is-fullscreen='true'] .cm-scroller {
   padding-top: 3rem !important;
 }
 
-.cm-tooltip {
+/* .cm-tooltip {
   @apply bg-white! dark:bg-zinc-800! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-600! rounded-md overflow-hidden p-1!;
 }
 
 .cm-tooltip > ul {
   @apply bg-white dark:bg-zinc-800 max-h-48!;
-}
+} */
 .cm-completionIcon {
   @apply hidden!;
 }
-.cm-tooltip > ul > li {
+/* .cm-tooltip > ul > li {
   @apply hover:bg-zinc-150 dark:hover:bg-zinc-700 p-1.5! rounded-md overflow-hidden mb-1.5 last:mb-0;
-}
+} */
 
 /* Making the tabs not overlap in fullscreen mode */
-div[data-non-template-is-fullscreen='true'] > div > div > div > .sp-tabs {
+/* div[data-non-template-is-fullscreen='true'] > div > div > div > .sp-tabs {
   padding-left: 72px;
   --sp-layout-headerHeight: 52px;
 }
@@ -184,12 +197,12 @@ div[data-template-is-fullscreen='true']
   > div
   > .sp-file-explorer-list {
   padding-top: 3.25rem;
-}
+} */
 
-.cm-completionLabel {
+/* .cm-completionLabel {
   font-family: 'Jetbrains Mono', monospace;
   font-size: 13px;
-}
+} */
 
 /* Makes sure that the tabs are not overlapping with the icons in the code block */
 .sp-tabs {
@@ -213,17 +226,6 @@ div[data-template-is-fullscreen='true']
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 1rem;
-}
-/**
- * Terminal styles
- */
-
-.xterm {
-  @apply p-3;
-}
-
-.xterm-viewport {
-  @apply overflow-y-auto!;
 }
 
 /**

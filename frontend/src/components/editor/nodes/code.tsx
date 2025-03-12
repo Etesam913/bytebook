@@ -8,6 +8,7 @@ import type {
 } from 'lexical';
 import { $applyNodeReplacement, DecoratorNode } from 'lexical';
 import type { JSX } from 'react';
+import { Code } from '../../code';
 
 export interface CodePayload {
   key?: NodeKey;
@@ -92,7 +93,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   }
 
   decorate(): JSX.Element {
-    return <div>{this.getLanguage()}</div>;
+    return <Code />;
   }
 }
 

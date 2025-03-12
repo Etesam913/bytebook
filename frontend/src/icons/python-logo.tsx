@@ -1,10 +1,10 @@
 export function PythonLogo({
-  height = '1.25rem',
-  width = '1.25rem',
+  height = 20,
+  width = 20,
   title = 'python',
 }: {
-  height?: string;
-  width?: string;
+  height?: number;
+  width?: number;
   title?: string;
 }) {
   return (

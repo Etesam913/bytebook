@@ -60,10 +60,15 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
           >
             Create Folder <FolderPlus className="will-change-transform" />
           </MotionButton>
-          <Button className='w-full' onClick={async () => {
-            const res = await CreateSocketsAndListenToKernel()
-            console.log(res)
-          }}>Launch Kernel</Button>
+          <Button
+            className="w-full"
+            onClick={async () => {
+              const res = await CreateSocketsAndListenToKernel();
+              console.log(res);
+            }}
+          >
+            Launch Kernel
+          </Button>
         </header>
         <section className="flex flex-1 flex-col overflow-y-auto gap-2  py-1.5">
           <div className="flex h-full flex-col gap-1 px-[10px]">
