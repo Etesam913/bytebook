@@ -1,5 +1,4 @@
-import { JSX, Suspense, lazy, useRef } from 'react';
-// import { Button } from '../buttons';
+import { JSX, Suspense, lazy, useEffect, useRef } from 'react';
 // import { SendExecuteRequest } from '../../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { langs } from '@uiw/codemirror-extensions-langs';
 import type { LanguageSupport } from '@codemirror/language';
@@ -17,6 +16,8 @@ import { Play } from '../../icons/circle-play';
 import { Loader } from '../../icons/loader';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { removeDecoratorNode } from '../../utils/commands';
+import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
+import { cn } from '../../utils/string-formatting';
 
 const CodeMirror = lazy(() => import('@uiw/react-codemirror'));
 
@@ -40,9 +41,28 @@ export function Code({ nodeKey }: { nodeKey: string }) {
   const currentLanguage = 'python';
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const [lexicalEditor] = useLexicalComposerContext();
+  const [isSelected, setSelected, clearSelection] =
+    useLexicalNodeSelection(nodeKey);
+
+  const focusEditor = () => {
+    if (editorRef.current?.view) {
+      editorRef.current.view.focus();
+    }
+  };
+
+  useEffect(() => {
+    if (isSelected) {
+      focusEditor();
+    }
+  }, [isSelected]);
 
   return (
-    <div className="flex border-1 dark:bg-[#2e3440] border-zinc-200 dark:border-zinc-700 rounded-md">
+    <div
+      className={cn(
+        'flex border-2 dark:bg-[#2e3440] transition-colors border-zinc-200 dark:border-zinc-700 rounded-md',
+        isSelected && '!border-(--accent-color)'
+      )}
+    >
       <div className="flex flex-col gap-1.5 justify-between border-r-1 px-1 pt-2.5 pb-1 border-zinc-200 dark:border-zinc-700">
         <Loader className="mx-auto" height={18} width={18} />
         <MotionIconButton {...getDefaultButtonVariants()}>
@@ -88,6 +108,22 @@ print("Hello World")
           `}
             extensions={[languageToSettings[currentLanguage].extension()]}
             theme={isDarkModeOn ? nord : vscodeLight}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                document.getElementById('content-editable-editor')?.focus();
+              } else if (e.key === 'Backspace') {
+                // Fixes weird bug where pressing backspace at beginning of first line focuses the <body> tag
+                setTimeout(() => {
+                  focusEditor();
+                }, 50);
+              } else {
+                e.stopPropagation();
+              }
+            }}
+            onClick={() => {
+              clearSelection();
+              setSelected(true);
+            }}
             basicSetup={{
               lineNumbers: false,
               foldGutter: false,
