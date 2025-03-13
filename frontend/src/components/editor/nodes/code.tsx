@@ -93,7 +93,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   }
 
   decorate(): JSX.Element {
-    return <Code />;
+    return <Code nodeKey={this.getKey()} />;
   }
 }
 
