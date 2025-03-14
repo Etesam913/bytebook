@@ -9,7 +9,7 @@ import {
   useFolderDialogSubmit,
 } from '../../hooks/folders.tsx';
 import { FolderPlus } from '../../icons/folder-plus';
-import { Button, MotionButton } from '../buttons';
+import { MotionButton } from '../buttons';
 import { BottomItems } from './bottom-items.tsx';
 import { FolderDialogChildren } from './folder-dialog-children.tsx';
 import { MyFoldersAccordion } from './my-folders-accordion.tsx';
@@ -18,7 +18,6 @@ import { PinnedNotesAccordion } from './pinned-notes-accordion.tsx';
 import { RecentNotesAccordion } from './recent-notes-accordion.tsx';
 import { SearchBar } from './searchbar.tsx';
 import { Spacer } from './spacer';
-import { CreateSocketsAndListenToKernel } from '../../../bindings/github.com/etesam913/bytebook/services/codeservice.js';
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
   const [, params] = useRoute('/:folder/:note?');
@@ -60,15 +59,6 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
           >
             Create Folder <FolderPlus className="will-change-transform" />
           </MotionButton>
-          <Button
-            className="w-full"
-            onClick={async () => {
-              const res = await CreateSocketsAndListenToKernel();
-              console.log(res);
-            }}
-          >
-            Launch Kernel
-          </Button>
         </header>
         <section className="flex flex-1 flex-col overflow-y-auto gap-2  py-1.5">
           <div className="flex h-full flex-col gap-1 px-[10px]">

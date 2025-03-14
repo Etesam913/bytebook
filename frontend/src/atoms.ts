@@ -4,6 +4,7 @@ import type {
   BackendQueryDataType,
   ContextMenuData,
   DialogDataType,
+  KernelStatus,
   ProjectSettings,
   SearchPanelDataType,
   SortStrings,
@@ -121,3 +122,6 @@ export const noteIntersectionObserverAtom = atom<IntersectionObserver | null>(
   null
 );
 export const noteSeenFileNodeKeysAtom = atom<Set<string>>(new Set([]));
+
+export const pythonKernelStatusAtom = atom<KernelStatus | null>(null);
+export const goKernelStatusAtom = atom<KernelStatus | null>(null);

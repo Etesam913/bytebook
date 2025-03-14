@@ -1,7 +1,7 @@
 import { JSX, Suspense, lazy, useEffect, useRef } from 'react';
-// import { SendExecuteRequest } from '../../../bindings/github.com/etesam913/bytebook/services/codeservice';
+import { SendExecuteRequest } from '../../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { langs } from '@uiw/codemirror-extensions-langs';
-import type { LanguageSupport } from '@codemirror/language';
+import type { LanguageSupport, StreamLanguage } from '@codemirror/language';
 import { nord } from '@uiw/codemirror-theme-nord';
 import { BasicSetupOptions, ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { PythonLogo } from '../../icons/python-logo';
@@ -9,7 +9,7 @@ import { MotionIconButton } from '../buttons';
 import { Duplicate2 } from '../../icons/duplicate-2';
 import { getDefaultButtonVariants } from '../../animations';
 import { useAtomValue } from 'jotai/react';
-import { isDarkModeOnAtom } from '../../atoms';
+import { isDarkModeOnAtom, pythonKernelStatusAtom } from '../../atoms';
 import { vscodeLight } from '@uiw/codemirror-theme-vscode';
 import { Trash } from '../../icons/trash';
 import { Play } from '../../icons/circle-play';
@@ -18,13 +18,15 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { removeDecoratorNode } from '../../utils/commands';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { cn } from '../../utils/string-formatting';
+import { Languages } from '../editor/nodes/code';
+import { GolangLogo } from '../../icons/golang-logo';
+import { MediaStop } from '../../icons/media-stop';
 
 const CodeMirror = lazy(() => import('@uiw/react-codemirror'));
 
-type Languages = 'python'; //| 'go';
 type LanguageSetting = {
   basicSetup?: BasicSetupOptions;
-  extension: () => LanguageSupport;
+  extension: () => LanguageSupport | StreamLanguage<unknown>;
   icon: JSX.Element;
 };
 
@@ -34,15 +36,26 @@ const languageToSettings: Record<Languages, LanguageSetting> = {
     extension: langs.python,
     icon: <PythonLogo width={14} height={14} />,
   },
+  go: {
+    basicSetup: { tabSize: 4 },
+    extension: langs.go,
+    icon: <GolangLogo width={16} height={16} />,
+  },
 };
 
-export function Code({ nodeKey }: { nodeKey: string }) {
+export function Code({
+  language,
+  nodeKey,
+}: {
+  language: Languages;
+  nodeKey: string;
+}) {
   const editorRef = useRef<ReactCodeMirrorRef>(null);
-  const currentLanguage = 'python';
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const [lexicalEditor] = useLexicalComposerContext();
   const [isSelected, setSelected, clearSelection] =
     useLexicalNodeSelection(nodeKey);
+  const pythonKernelStatus = useAtomValue(pythonKernelStatusAtom);
 
   const focusEditor = () => {
     if (editorRef.current?.view) {
@@ -63,18 +76,28 @@ export function Code({ nodeKey }: { nodeKey: string }) {
         isSelected && '!border-(--accent-color)'
       )}
     >
-      <div className="flex flex-col gap-1.5 justify-between border-r-1 px-1 pt-2.5 pb-1 border-zinc-200 dark:border-zinc-700">
-        <Loader className="mx-auto" height={18} width={18} />
-        <MotionIconButton {...getDefaultButtonVariants()}>
-          <Play />
+      <div className="flex flex-col justify-end gap-2 border-r-1 px-1 pt-2.5 pb-1 border-zinc-200 dark:border-zinc-700">
+        {(pythonKernelStatus === 'busy' ||
+          pythonKernelStatus === 'starting') && (
+          <Loader className="mx-auto" height={18} width={18} />
+        )}
+        <MotionIconButton
+          {...getDefaultButtonVariants()}
+          onClick={async () => {
+            const code = editorRef.current?.view?.state.doc.toString();
+            if (!code) return;
+            await SendExecuteRequest(language, code);
+          }}
+        >
+          {pythonKernelStatus === 'busy' ? <MediaStop /> : <Play />}
         </MotionIconButton>
       </div>
       <div className="flex-1">
         <Suspense fallback={<div>Loading...</div>}>
           <header className="flex justify-between gap-1.5 font-code text-xs px-2 py-1 border-b-1 border-b-zinc-200 dark:border-b-zinc-700">
             <span className="flex items-center gap-1.5">
-              {languageToSettings[currentLanguage].icon}
-              <p>code-block-1.py</p>
+              {languageToSettings[language].icon}
+              <p>{language}</p>
             </span>
             <span className="flex items-center gap-1">
               <MotionIconButton
@@ -106,7 +129,7 @@ export function Code({ nodeKey }: { nodeKey: string }) {
             value={`
 print("Hello World")
           `}
-            extensions={[languageToSettings[currentLanguage].extension()]}
+            extensions={[languageToSettings[language].extension()]}
             theme={isDarkModeOn ? nord : vscodeLight}
             onKeyDown={(e) => {
               if (e.key === 'Escape') {
@@ -127,7 +150,7 @@ print("Hello World")
             basicSetup={{
               lineNumbers: false,
               foldGutter: false,
-              ...languageToSettings[currentLanguage].basicSetup,
+              ...languageToSettings[language].basicSetup,
             }}
           />
           <footer className="flex justify-between gap-1.5 font-code text-xs pl-1 pr-2 py-1.5 border-t-1 border-t-zinc-200 dark:border-t-zinc-700"></footer>

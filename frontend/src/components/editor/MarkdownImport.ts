@@ -11,7 +11,12 @@ import {
   $getSelection,
   type ElementNode,
 } from 'lexical';
-import { $createCodeNode, type CodeNode } from './nodes/code';
+import {
+  $createCodeNode,
+  Languages,
+  validLanguages,
+  type CodeNode,
+} from './nodes/code';
 import { $createExcalidrawNode, type ExcalidrawNode } from './nodes/excalidraw';
 import { PUNCTUATION_OR_SPACE, transformersByType } from './transformers';
 import type { Transformer } from './utils/note-metadata';
@@ -189,8 +194,11 @@ function importCodeBlock(
         // const filesString = lines
         //   .slice(startLineIndex + 1, endLineIndex)
         //   .join('\n');
+        if (!validLanguages.has(language)) {
+          return [null, startLineIndex];
+        }
         const codeBlockNode = $createCodeNode({
-          language,
+          language: language as Languages,
         });
         rootNode.append(codeBlockNode);
         return [codeBlockNode, endLineIndex];

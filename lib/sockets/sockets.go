@@ -91,7 +91,7 @@ func CreateIOPubSocketSubscriber() *zmq4.Socket {
 	return iopubSocketSubscriber
 }
 
-func ListenToIOPubSocket(iopubSocketSubscriber *zmq4.Socket, connectionInfo ConnectionInfo) {
+func ListenToIOPubSocket(language string, iopubSocketSubscriber *zmq4.Socket, connectionInfo ConnectionInfo) {
 	defer iopubSocketSubscriber.Close()
 
 	// Connect to the same IP and iopub port as your IOPub socket
@@ -102,7 +102,7 @@ func ListenToIOPubSocket(iopubSocketSubscriber *zmq4.Socket, connectionInfo Conn
 
 	// Listen to everything
 	iopubSocketSubscriber.SetSubscribe("")
-
+	app := application.Get()
 	for {
 		// Receive a multipart message
 		envelope, err := iopubSocketSubscriber.RecvMessageBytes(0)
@@ -132,6 +132,17 @@ func ListenToIOPubSocket(iopubSocketSubscriber *zmq4.Socket, connectionInfo Conn
 			log.Printf("✅ Execution result: %v\n", msg.Content["data"])
 			// emit kernel:python:code-block-{msg.Header.MsgID}:execute_result event here
 		case "status":
+			status, isString := msg.Content["execution_state"].(string)
+			if isString {
+				statusEventData := struct {
+					Status   string `json:"status"`
+					Language string `json:"language"`
+				}{
+					Status:   status,
+					Language: language,
+				}
+				app.EmitEvent("code:kernel:status", statusEventData)
+			}
 			log.Printf("🔄 Code Execution State: %s\n", msg.Content["execution_state"])
 			// emit kernel:python:code-block-{msg.Header.MsgID}:status event here
 		case "error":

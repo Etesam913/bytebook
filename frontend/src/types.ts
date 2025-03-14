@@ -107,3 +107,5 @@ export type GithubRepositoryData = {
   name: string;
   clone_url: string;
 };
+
+export type KernelStatus = 'busy' | 'idle' | 'starting';

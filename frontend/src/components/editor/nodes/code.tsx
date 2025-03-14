@@ -10,14 +10,17 @@ import { $applyNodeReplacement, DecoratorNode } from 'lexical';
 import type { JSX } from 'react';
 import { Code } from '../../code';
 
+export type Languages = 'python' | 'go';
+export const validLanguages = new Set<string>(['python', 'go']);
+
 export interface CodePayload {
   key?: NodeKey;
-  language: string;
+  language: Languages;
 }
 
 export type SerializedCodeNode = Spread<
   {
-    language: string;
+    language: Languages;
   },
   SerializedLexicalNode
 >;
@@ -30,7 +33,7 @@ export type SerializedCodeNode = Spread<
         `success`: Whether the code block ran successfully or not. It is used to make the text color default or red.
 */
 export class CodeNode extends DecoratorNode<JSX.Element> {
-  __language: string;
+  __language: Languages;
 
   static getType(): string {
     return 'code-block';
@@ -52,7 +55,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return false;
   }
 
-  constructor(language: string, key?: NodeKey) {
+  constructor(language: Languages, key?: NodeKey) {
     super(key);
     // The language of the code
     this.__language = language;
@@ -81,11 +84,11 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return false;
   }
 
-  getLanguage(): string {
+  getLanguage(): Languages {
     return this.__language;
   }
 
-  setLanguage(language: string, editor: LexicalEditor): void {
+  setLanguage(language: Languages, editor: LexicalEditor): void {
     editor.update(() => {
       const writable = this.getWritable();
       writable.__language = language;
@@ -93,7 +96,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   }
 
   decorate(): JSX.Element {
-    return <Code nodeKey={this.getKey()} />;
+    return <Code language={this.getLanguage()} nodeKey={this.getKey()} />;
   }
 }
 

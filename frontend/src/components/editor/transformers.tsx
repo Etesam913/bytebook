@@ -46,7 +46,13 @@ import {
   getQueryParamValue,
   removeQueryParam,
 } from '../../utils/string-formatting';
-import { $createCodeNode, $isCodeNode, CodeNode } from './nodes/code';
+import {
+  $createCodeNode,
+  $isCodeNode,
+  CodeNode,
+  Languages,
+  validLanguages,
+} from './nodes/code';
 import {
   $createExcalidrawNode,
   $isExcalidrawNode,
@@ -181,14 +187,14 @@ export const CODE_TRANSFORMER: ElementTransformer = {
     // MarkdownImport.ts handles the import of code blocks
     // This code handles creation for the first time
     const language = match.at(1);
-    if (!language) return;
+    if (!language || !validLanguages.has(language)) return;
     let newNode: ExcalidrawNode | CodeNode | null = null;
     if (language === 'drawing') {
       newNode = $createExcalidrawNode({ elements: [] });
     } else {
       // Code block data is empty by default
       newNode = $createCodeNode({
-        language,
+        language: language as Languages,
       });
     }
 

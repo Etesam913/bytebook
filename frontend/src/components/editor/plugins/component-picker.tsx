@@ -20,8 +20,8 @@ import { type JSX, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useAttachmentsMutation } from '../../../hooks/attachments';
-import { AngularLogo } from '../../../icons/angular-logo';
-import { CppLogo } from '../../../icons/cpp-logo';
+// import { AngularLogo } from '../../../icons/angular-logo';
+// import { CppLogo } from '../../../icons/cpp-logo';
 import { GolangLogo } from '../../../icons/golang-logo';
 import { Heading1 } from '../../../icons/heading-1';
 import { Heading2 } from '../../../icons/heading-2';
@@ -29,18 +29,18 @@ import { Heading3 } from '../../../icons/heading-3';
 import { Heading4 } from '../../../icons/heading-4';
 import { Heading5 } from '../../../icons/heading-5';
 import { Heading6 } from '../../../icons/heading-6';
-import { JavaLogo } from '../../../icons/java-logo';
-import { JavascriptLogo } from '../../../icons/javascript-logo';
+// import { JavaLogo } from '../../../icons/java-logo';
+// import { JavascriptLogo } from '../../../icons/javascript-logo';
 
 import { Equation } from '../../../icons/equation';
 import { Paintbrush } from '../../../icons/paintbrush';
 import { PythonLogo } from '../../../icons/python-logo';
-import { ReactLogo } from '../../../icons/react-logo';
-import { RustLogo } from '../../../icons/rust-logo';
-import { SvelteLogo } from '../../../icons/svelte-logo';
-import { TerminalIcon } from '../../../icons/terminal';
+// import { ReactLogo } from '../../../icons/react-logo';
+// import { RustLogo } from '../../../icons/rust-logo';
+// import { SvelteLogo } from '../../../icons/svelte-logo';
+// import { TerminalIcon } from '../../../icons/terminal';
 import { Text } from '../../../icons/text';
-import { VueLogo } from '../../../icons/vue-logo';
+// import { VueLogo } from '../../../icons/vue-logo';
 import {
   ComponentPickerMenuItem,
   DropdownPickerOption,
@@ -50,21 +50,10 @@ import { $createInlineEquationNode } from '../nodes/inline-equation';
 import { attachmentCommandData, listCommandData } from '../utils/toolbar';
 import { INSERT_CODE_COMMAND } from './code';
 import { FOCUS_NODE_COMMAND } from './focus';
+import { Languages } from '../nodes/code';
 
 const languageCommandData: {
-  id:
-    | 'go'
-    | 'java'
-    | 'python'
-    | 'javascript'
-    | 'react'
-    | 'angular'
-    | 'vue'
-    | 'svelte'
-    | 'rust'
-    | 'cpp'
-    | 'c'
-    | 'terminal';
+  id: Languages;
   name: string;
   keywords: string[];
   icon?: JSX.Element;
@@ -75,59 +64,58 @@ const languageCommandData: {
     icon: <GolangLogo />,
     name: 'Golang',
   },
-  {
-    id: 'java',
-    keywords: ['java', 'coffee'],
-    icon: <JavaLogo />,
-    name: 'Java',
-  },
+  // {
+  //   id: 'java',
+  //   keywords: ['java', 'coffee'],
+  //   icon: <JavaLogo />,
+  //   name: 'Java',
+  // },
   {
     id: 'python',
     keywords: ['python', 'py'],
     icon: <PythonLogo />,
     name: 'Python',
   },
-  {
-    id: 'javascript',
-    keywords: ['javascript', 'js'],
-    icon: <JavascriptLogo />,
-    name: 'Javascript',
-  },
-  {
-    id: 'react',
-    keywords: ['javascript', 'react', 'jsx'],
-    icon: <ReactLogo />,
-    name: 'React',
-  },
-  { id: 'rust', keywords: ['rust', 'rs'], icon: <RustLogo />, name: 'Rust' },
-  { id: 'cpp', keywords: ['c++', 'cpp'], icon: <CppLogo />, name: 'C++' },
-  { id: 'c', keywords: ['c', 'c++', 'clang'], icon: <CppLogo />, name: 'C' },
-  {
-    id: 'angular',
-    keywords: ['javascript', 'angular', 'js', 'google'],
-    icon: <AngularLogo />,
-    name: 'Angular',
-  },
-  {
-    id: 'vue',
-    keywords: ['javascript', 'vue', 'js'],
-    icon: <VueLogo />,
-    name: 'Vue',
-  },
-  {
-    id: 'svelte',
-    keywords: ['javascript', 'svelte', 'js'],
-    icon: <SvelteLogo height="17" width="17" />,
-    name: 'Svelte',
-  },
-  {
-    id: 'terminal',
-    keywords: ['terminal', 'command', 'prompt', 'bash', 'zsh', 'sh'],
-    icon: <TerminalIcon />,
-    name: 'Terminal',
-  },
+  // {
+  //   id: 'javascript',
+  //   keywords: ['javascript', 'js'],
+  //   icon: <JavascriptLogo />,
+  //   name: 'Javascript',
+  // },
+  // {
+  //   id: 'react',
+  //   keywords: ['javascript', 'react', 'jsx'],
+  //   icon: <ReactLogo />,
+  //   name: 'React',
+  // },
+  // { id: 'rust', keywords: ['rust', 'rs'], icon: <RustLogo />, name: 'Rust' },
+  // { id: 'cpp', keywords: ['c++', 'cpp'], icon: <CppLogo />, name: 'C++' },
+  // { id: 'c', keywords: ['c', 'c++', 'clang'], icon: <CppLogo />, name: 'C' },
+  // {
+  //   id: 'angular',
+  //   keywords: ['javascript', 'angular', 'js', 'google'],
+  //   icon: <AngularLogo />,
+  //   name: 'Angular',
+  // },
+  // {
+  //   id: 'vue',
+  //   keywords: ['javascript', 'vue', 'js'],
+  //   icon: <VueLogo />,
+  //   name: 'Vue',
+  // },
+  // {
+  //   id: 'svelte',
+  //   keywords: ['javascript', 'svelte', 'js'],
+  //   icon: <SvelteLogo height="17" width="17" />,
+  //   name: 'Svelte',
+  // },
+  // {
+  //   id: 'terminal',
+  //   keywords: ['terminal', 'command', 'prompt', 'bash', 'zsh', 'sh'],
+  //   icon: <TerminalIcon />,
+  //   name: 'Terminal',
+  // },
 ];
-
 /**
  * Generates a list of base options for the dropdown picker menu in the Lexical editor.
  *

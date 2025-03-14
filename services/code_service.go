@@ -18,10 +18,10 @@ type CodeService struct {
 	AllKernels            project_types.AllKernels
 }
 
-func (c *CodeService) CreateSocketsAndListenToKernel() project_types.BackendResponseWithoutData {
+func (c *CodeService) createSocketsAndListenToKernel(language string) project_types.BackendResponseWithoutData {
 	if kernel_helpers.IsPortInUse(c.ConnectionInfo.ShellPort) {
 		return project_types.BackendResponseWithoutData{
-			Success: false,
+			Success: true,
 			Message: fmt.Sprintf(
 				"Something is already running on the port: %d",
 				c.ConnectionInfo.ShellPort,
@@ -49,7 +49,7 @@ func (c *CodeService) CreateSocketsAndListenToKernel() project_types.BackendResp
 
 		iopubSocketSubscriber := sockets.CreateIOPubSocketSubscriber()
 		c.IOPubSocketSubscriber = iopubSocketSubscriber
-		go sockets.ListenToIOPubSocket(iopubSocketSubscriber, c.ConnectionInfo)
+		go sockets.ListenToIOPubSocket(language, iopubSocketSubscriber, c.ConnectionInfo)
 
 	} else {
 		log.Println("Does nothing, the sockets already exist")
@@ -60,8 +60,13 @@ func (c *CodeService) CreateSocketsAndListenToKernel() project_types.BackendResp
 	}
 }
 
-func (c *CodeService) SendExecuteRequest(code string) {
-	messaging.SendExecuteRequest(
+func (c *CodeService) SendExecuteRequest(language, code string) project_types.BackendResponseWithoutData {
+	response := c.createSocketsAndListenToKernel(language)
+	// If the kernel is already running on the port, then it is fine to send the message
+	if response.Success == false {
+		return response
+	}
+	err := messaging.SendExecuteRequest(
 		c.ShellSocketDealer,
 		messaging.ExecuteMessageParams{
 			MessageID: "1",
@@ -69,4 +74,16 @@ func (c *CodeService) SendExecuteRequest(code string) {
 			Code:      code,
 		},
 	)
+
+	if err != nil {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: fmt.Sprintf("Failed to send execute request: %v", err),
+		}
+	}
+
+	return project_types.BackendResponseWithoutData{
+		Success: true,
+		Message: "Execute request sent successfully",
+	}
 }
