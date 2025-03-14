@@ -146,6 +146,8 @@ html:has(.dark) {
   /* border-left: 2px solid var(--color-zinc-700);
   border-right: 2px solid var(--color-zinc-700); */
   height: auto;
+  overflow-x: auto;
+  overflow-y: initial;
 }
 .cm-content {
   font-family: 'Jetbrains Mono', monospace;

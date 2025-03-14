@@ -170,8 +170,8 @@ export const CODE_TRANSFORMER: ElementTransformer = {
   dependencies: [ExcalidrawNode, CodeNode],
   export: (node: LexicalNode) => {
     if ($isCodeNode(node)) {
-      // const textContent = JSON.stringify(node.getData());
-      const textContent = 'sample text content goes here';
+      const textContent = node.getCode();
+      // const textContent = 'sample text content goes here';
       return `\`\`\`${node.getLanguage()}${
         textContent ? `\n${textContent}` : ''
       }\n\`\`\``;
@@ -195,6 +195,7 @@ export const CODE_TRANSFORMER: ElementTransformer = {
       // Code block data is empty by default
       newNode = $createCodeNode({
         language: language as Languages,
+        code: '',
       });
     }
 

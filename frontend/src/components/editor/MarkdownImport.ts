@@ -191,14 +191,13 @@ function importCodeBlock(
           return [excalidrawNode, endLineIndex];
         }
         // If not drawing then it is a code block
-        // const filesString = lines
-        //   .slice(startLineIndex + 1, endLineIndex)
-        //   .join('\n');
+        const code = lines.slice(startLineIndex + 1, endLineIndex).join('\n');
         if (!validLanguages.has(language)) {
           return [null, startLineIndex];
         }
         const codeBlockNode = $createCodeNode({
           language: language as Languages,
+          code,
         });
         rootNode.append(codeBlockNode);
         return [codeBlockNode, endLineIndex];

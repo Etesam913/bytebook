@@ -44,9 +44,13 @@ const languageToSettings: Record<Languages, LanguageSetting> = {
 };
 
 export function Code({
+  code,
+  setCode,
   language,
   nodeKey,
 }: {
+  code: string;
+  setCode: (newCode: string) => void;
   language: Languages;
   nodeKey: string;
 }) {
@@ -72,7 +76,7 @@ export function Code({
   return (
     <div
       className={cn(
-        'flex border-2 dark:bg-[#2e3440] transition-colors border-zinc-200 dark:border-zinc-700 rounded-md',
+        'flex overflow-hidden border-2 dark:bg-[#2e3440] transition-colors border-zinc-200 dark:border-zinc-700 rounded-md',
         isSelected && '!border-(--accent-color)'
       )}
     >
@@ -92,8 +96,10 @@ export function Code({
           {pythonKernelStatus === 'busy' ? <MediaStop /> : <Play />}
         </MotionIconButton>
       </div>
-      <div className="flex-1">
-        <Suspense fallback={<div>Loading...</div>}>
+      <div className="flex-1 overflow-x-auto">
+        <Suspense
+          fallback={<Loader className="mx-auto mt-3" height={18} width={18} />}
+        >
           <header className="flex justify-between gap-1.5 font-code text-xs px-2 py-1 border-b-1 border-b-zinc-200 dark:border-b-zinc-700">
             <span className="flex items-center gap-1.5">
               {languageToSettings[language].icon}
@@ -126,9 +132,10 @@ export function Code({
           </header>
           <CodeMirror
             ref={editorRef}
-            value={`
-print("Hello World")
-          `}
+            value={code}
+            onChange={(newCode) => {
+              setCode(newCode);
+            }}
             extensions={[languageToSettings[language].extension()]}
             theme={isDarkModeOn ? nord : vscodeLight}
             onKeyDown={(e) => {

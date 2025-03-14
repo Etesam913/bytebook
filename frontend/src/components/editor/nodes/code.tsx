@@ -16,11 +16,13 @@ export const validLanguages = new Set<string>(['python', 'go']);
 export interface CodePayload {
   key?: NodeKey;
   language: Languages;
+  code: string;
 }
 
 export type SerializedCodeNode = Spread<
   {
     language: Languages;
+    code: string;
   },
   SerializedLexicalNode
 >;
@@ -34,19 +36,21 @@ export type SerializedCodeNode = Spread<
 */
 export class CodeNode extends DecoratorNode<JSX.Element> {
   __language: Languages;
+  __code: string;
 
   static getType(): string {
     return 'code-block';
   }
 
   static clone(node: CodeNode): CodeNode {
-    return new CodeNode(node.__language, node.__key);
+    return new CodeNode(node.__language, node.__code, node.__key);
   }
 
   static importJSON(serializedNode: SerializedCodeNode): CodeNode {
-    const { language } = serializedNode;
+    const { language, code } = serializedNode;
     const node = $createCodeNode({
       language,
+      code,
     });
     return node;
   }
@@ -55,15 +59,17 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return false;
   }
 
-  constructor(language: Languages, key?: NodeKey) {
+  constructor(language: Languages, code: string, key?: NodeKey) {
     super(key);
     // The language of the code
     this.__language = language;
+    this.__code = code;
   }
 
   exportJSON(): SerializedCodeNode {
     return {
       language: this.getLanguage(),
+      code: this.getCode(),
       type: 'code-block',
       version: 1,
     };
@@ -88,6 +94,10 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return this.__language;
   }
 
+  getCode(): string {
+    return this.__code;
+  }
+
   setLanguage(language: Languages, editor: LexicalEditor): void {
     editor.update(() => {
       const writable = this.getWritable();
@@ -95,13 +105,27 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     });
   }
 
-  decorate(): JSX.Element {
-    return <Code language={this.getLanguage()} nodeKey={this.getKey()} />;
+  setCode(code: string, editor: LexicalEditor): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      writable.__code = code;
+    });
+  }
+
+  decorate(_editor: LexicalEditor): JSX.Element {
+    return (
+      <Code
+        code={this.getCode()}
+        setCode={(code: string) => this.setCode(code, _editor)}
+        language={this.getLanguage()}
+        nodeKey={this.getKey()}
+      />
+    );
   }
 }
 
-export function $createCodeNode({ language }: CodePayload): CodeNode {
-  return $applyNodeReplacement(new CodeNode(language));
+export function $createCodeNode({ language, code }: CodePayload): CodeNode {
+  return $applyNodeReplacement(new CodeNode(language, code));
 }
 
 export function $isCodeNode(
