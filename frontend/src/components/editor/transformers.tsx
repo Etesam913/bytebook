@@ -196,6 +196,7 @@ export const CODE_TRANSFORMER: ElementTransformer = {
       newNode = $createCodeNode({
         language: language as Languages,
         code: '',
+        isCreatedNow: true,
       });
     }
 

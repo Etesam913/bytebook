@@ -295,6 +295,7 @@ function getBaseOptions(
               editor.dispatchCommand(INSERT_CODE_COMMAND, {
                 language: id,
                 code: '',
+                isCreatedNow: true,
               });
             });
           },

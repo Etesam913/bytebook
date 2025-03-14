@@ -17,6 +17,7 @@ export interface CodePayload {
   key?: NodeKey;
   language: Languages;
   code: string;
+  isCreatedNow?: boolean;
 }
 
 export type SerializedCodeNode = Spread<
@@ -37,13 +38,19 @@ export type SerializedCodeNode = Spread<
 export class CodeNode extends DecoratorNode<JSX.Element> {
   __language: Languages;
   __code: string;
-
+  // If a user creates the new code block via ```{language} or /{language} then __isCreatedNow is set to true`
+  __isCreatedNow: boolean;
   static getType(): string {
     return 'code-block';
   }
 
   static clone(node: CodeNode): CodeNode {
-    return new CodeNode(node.__language, node.__code, node.__key);
+    return new CodeNode(
+      node.__language,
+      node.__code,
+      node.__isCreatedNow,
+      node.__key
+    );
   }
 
   static importJSON(serializedNode: SerializedCodeNode): CodeNode {
@@ -59,11 +66,17 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return false;
   }
 
-  constructor(language: Languages, code: string, key?: NodeKey) {
+  constructor(
+    language: Languages,
+    code: string,
+    isCreatedNow = false,
+    key?: NodeKey
+  ) {
     super(key);
     // The language of the code
     this.__language = language;
     this.__code = code;
+    this.__isCreatedNow = isCreatedNow;
   }
 
   exportJSON(): SerializedCodeNode {
@@ -98,6 +111,10 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return this.__code;
   }
 
+  getIsCreatedNow(): boolean {
+    return this.__isCreatedNow;
+  }
+
   setLanguage(language: Languages, editor: LexicalEditor): void {
     editor.update(() => {
       const writable = this.getWritable();
@@ -119,13 +136,18 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
         setCode={(code: string) => this.setCode(code, _editor)}
         language={this.getLanguage()}
         nodeKey={this.getKey()}
+        isCreatedNow={this.getIsCreatedNow()}
       />
     );
   }
 }
 
-export function $createCodeNode({ language, code }: CodePayload): CodeNode {
-  return $applyNodeReplacement(new CodeNode(language, code));
+export function $createCodeNode({
+  language,
+  code,
+  isCreatedNow,
+}: CodePayload): CodeNode {
+  return $applyNodeReplacement(new CodeNode(language, code, isCreatedNow));
 }
 
 export function $isCodeNode(

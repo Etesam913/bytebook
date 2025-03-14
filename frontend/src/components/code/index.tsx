@@ -1,4 +1,4 @@
-import { JSX, Suspense, lazy, useEffect, useRef } from 'react';
+import { JSX, Suspense, lazy, useEffect, useState } from 'react';
 import { SendExecuteRequest } from '../../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { langs } from '@uiw/codemirror-extensions-langs';
 import type { LanguageSupport, StreamLanguage } from '@codemirror/language';
@@ -48,22 +48,34 @@ export function Code({
   setCode,
   language,
   nodeKey,
+  isCreatedNow,
 }: {
   code: string;
   setCode: (newCode: string) => void;
   language: Languages;
   nodeKey: string;
+  isCreatedNow: boolean;
 }) {
-  const editorRef = useRef<ReactCodeMirrorRef>(null);
+  const [codeMirrorInstance, setCodeMirrorInstance] =
+    useState<ReactCodeMirrorRef | null>(null);
+
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const [lexicalEditor] = useLexicalComposerContext();
   const [isSelected, setSelected, clearSelection] =
     useLexicalNodeSelection(nodeKey);
+
   const pythonKernelStatus = useAtomValue(pythonKernelStatusAtom);
 
+  function handleEditorRef(instance: ReactCodeMirrorRef | null) {
+    setCodeMirrorInstance(instance);
+    if (instance?.view && isCreatedNow) {
+      instance.view.focus();
+    }
+  }
+
   const focusEditor = () => {
-    if (editorRef.current?.view) {
-      editorRef.current.view.focus();
+    if (codeMirrorInstance?.view) {
+      codeMirrorInstance.view.focus();
     }
   };
 
@@ -88,7 +100,7 @@ export function Code({
         <MotionIconButton
           {...getDefaultButtonVariants()}
           onClick={async () => {
-            const code = editorRef.current?.view?.state.doc.toString();
+            const code = codeMirrorInstance?.view?.state.doc.toString();
             if (!code) return;
             await SendExecuteRequest(language, code);
           }}
@@ -109,9 +121,9 @@ export function Code({
               <MotionIconButton
                 {...getDefaultButtonVariants()}
                 onClick={() => {
-                  if (!editorRef.current) return;
+                  if (!codeMirrorInstance) return;
                   const editorContent =
-                    editorRef.current.view?.state.doc.toString();
+                    codeMirrorInstance.view?.state.doc.toString();
                   if (!editorContent) return;
                   navigator.clipboard.writeText(editorContent);
                 }}
@@ -131,7 +143,7 @@ export function Code({
             </span>
           </header>
           <CodeMirror
-            ref={editorRef}
+            ref={handleEditorRef}
             value={code}
             onChange={(newCode) => {
               setCode(newCode);
@@ -161,7 +173,6 @@ export function Code({
             }}
           />
           <footer className="flex justify-between gap-1.5 font-code text-xs pl-1 pr-2 py-1.5 border-t-1 border-t-zinc-200 dark:border-t-zinc-700"></footer>
-          {/* <Button onClick={handleRunButtonClick}>Run</Button> */}
         </Suspense>
       </div>
     </div>
