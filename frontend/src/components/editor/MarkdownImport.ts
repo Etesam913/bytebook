@@ -153,7 +153,7 @@ function importBlocks(
   //   }
   // }
 }
-const CODE_BLOCK_REG_EXP = /^```(\w{1,10})?\s*({[^}]*})?\s*$/;
+const CODE_BLOCK_REG_EXP = /^```(\w{1,10})?(?:\s+(.+))?\s*$/;
 
 function importCodeBlock(
   lines: Array<string>,
@@ -161,6 +161,7 @@ function importCodeBlock(
   rootNode: ElementNode
 ): [CodeNode | ExcalidrawNode | null, number] {
   const openMatch = lines[startLineIndex].match(CODE_BLOCK_REG_EXP);
+  console.log({ openMatch });
   if (openMatch) {
     let endLineIndex = startLineIndex;
     const linesLength = lines.length;
@@ -169,18 +170,23 @@ function importCodeBlock(
       const closeMatch = lines[endLineIndex].match(CODE_BLOCK_REG_EXP);
       if (closeMatch) {
         const language = openMatch[1] ?? '';
-        // const otherMatches = openMatch.slice(2).filter((v) => v !== undefined);
+        const codeBlockParams = {
+          id: crypto.randomUUID() as string,
+          isCollapsed: false,
+        };
+        const otherMatches = openMatch.slice(2).filter((v) => v !== undefined);
 
-        // for (const match of otherMatches) {
-        //   // These are in the form of {key=value key2=value2}
-        //   // const keyValuePairs = match.slice(1, -1).split(', ');
-        //   // for (const keyValuePair of keyValuePairs) {
-        //   //   const [key, value] = keyValuePair.split('=');
-        //   //   // const valueWithNoQuotes = value.replace(/"/g, '');
-        //   //   // if (key === 'command') command = valueWithNoQuotes;
-        //   //   // if (key === 'startDirectory') startDirectory = valueWithNoQuotes;
-        //   // }
-        // }
+        for (const match of otherMatches) {
+          // These are in the form of key=value
+          const [key, value] = match.split('=');
+          if (key === 'isCollapsed') {
+            codeBlockParams.isCollapsed = value === 'true';
+          }
+          if (key === 'id') {
+            codeBlockParams.id = value;
+          }
+        }
+
         if (language === 'drawing') {
           const elementsString = lines
             .slice(startLineIndex + 1, endLineIndex)
@@ -190,6 +196,7 @@ function importCodeBlock(
           rootNode.append(excalidrawNode);
           return [excalidrawNode, endLineIndex];
         }
+
         // If not drawing then it is a code block
         const code = lines.slice(startLineIndex + 1, endLineIndex).join('\n');
         if (!validLanguages.has(language)) {
@@ -198,6 +205,7 @@ function importCodeBlock(
         const codeBlockNode = $createCodeNode({
           language: language as Languages,
           code,
+          isCollapsed: codeBlockParams.isCollapsed,
         });
         rootNode.append(codeBlockNode);
         return [codeBlockNode, endLineIndex];

@@ -57,5 +57,8 @@ type NoteResponse struct {
 
 // Events Types
 type KernelCodeBlockExecuteReply struct {
-	Status string `json:"status"`
+	Status         string   `json:"status"`
+	ErrorName      string   `json:"errorName"`
+	ErrorValue     string   `json:"errorValue"`
+	ErrorTraceback []string `json:"errorTraceback"`
 }

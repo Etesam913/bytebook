@@ -18,6 +18,8 @@ export interface CodePayload {
   language: Languages;
   code: string;
   isCreatedNow?: boolean;
+  isCollapsed?: boolean;
+  // lastExecutedResult?: string;
 }
 
 export type SerializedCodeNode = Spread<
@@ -38,8 +40,10 @@ export type SerializedCodeNode = Spread<
 export class CodeNode extends DecoratorNode<JSX.Element> {
   __language: Languages;
   __code: string;
+  __isCollapsed: boolean;
   // If a user creates the new code block via ```{language} or /{language} then __isCreatedNow is set to true`
   __isCreatedNow: boolean;
+  // __lastExecutedResult: string;
   static getType(): string {
     return 'code-block';
   }
@@ -48,7 +52,9 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return new CodeNode(
       node.__language,
       node.__code,
+      node.__isCollapsed,
       node.__isCreatedNow,
+      // node.__lastExecutedResult,
       node.__key
     );
   }
@@ -69,13 +75,16 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   constructor(
     language: Languages,
     code: string,
+    isCollapsed = false,
     isCreatedNow = false,
+    // lastExecutedResult = '',
     key?: NodeKey
   ) {
     super(key);
     // The language of the code
     this.__language = language;
     this.__code = code;
+    this.__isCollapsed = isCollapsed;
     this.__isCreatedNow = isCreatedNow;
   }
 
@@ -111,8 +120,23 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return this.__code;
   }
 
+  getIsCollapsed(): boolean {
+    return this.__isCollapsed;
+  }
+
   getIsCreatedNow(): boolean {
     return this.__isCreatedNow;
+  }
+
+  getLastExecutedResult(): string {
+    return this.__lastExecutedResult;
+  }
+
+  setLastExecutedResult(result: string, editor: LexicalEditor): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      writable.__lastExecutedResult = result;
+    });
   }
 
   setLanguage(language: Languages, editor: LexicalEditor): void {
@@ -129,6 +153,13 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     });
   }
 
+  setIsCollapsed(isCollapsed: boolean, editor: LexicalEditor): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      writable.__isCollapsed = isCollapsed;
+    });
+  }
+
   decorate(_editor: LexicalEditor): JSX.Element {
     return (
       <Code
@@ -137,6 +168,11 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
         language={this.getLanguage()}
         nodeKey={this.getKey()}
         isCreatedNow={this.getIsCreatedNow()}
+        isCollapsed={this.getIsCollapsed()}
+        // lastExecutedResult={this.getLastExecutedResult()}
+        setIsCollapsed={(isCollapsed: boolean) =>
+          this.setIsCollapsed(isCollapsed, _editor)
+        }
       />
     );
   }
@@ -145,9 +181,12 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 export function $createCodeNode({
   language,
   code,
+  isCollapsed,
   isCreatedNow,
 }: CodePayload): CodeNode {
-  return $applyNodeReplacement(new CodeNode(language, code, isCreatedNow));
+  return $applyNodeReplacement(
+    new CodeNode(language, code, isCollapsed, isCreatedNow)
+  );
 }
 
 export function $isCodeNode(

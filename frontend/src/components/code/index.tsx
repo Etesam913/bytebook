@@ -1,5 +1,4 @@
 import { JSX, Suspense, lazy, useEffect, useState } from 'react';
-import { SendExecuteRequest } from '../../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { langs } from '@uiw/codemirror-extensions-langs';
 import type { LanguageSupport, StreamLanguage } from '@codemirror/language';
 import { nord } from '@uiw/codemirror-theme-nord';
@@ -12,7 +11,6 @@ import { useAtomValue } from 'jotai/react';
 import { isDarkModeOnAtom, pythonKernelStatusAtom } from '../../atoms';
 import { vscodeLight } from '@uiw/codemirror-theme-vscode';
 import { Trash } from '../../icons/trash';
-import { Play } from '../../icons/circle-play';
 import { Loader } from '../../icons/loader';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { removeDecoratorNode } from '../../utils/commands';
@@ -20,7 +18,9 @@ import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection'
 import { cn } from '../../utils/string-formatting';
 import { Languages } from '../editor/nodes/code';
 import { GolangLogo } from '../../icons/golang-logo';
-import { MediaStop } from '../../icons/media-stop';
+import { ChevronDown } from '../../icons/chevron-down';
+import { motion } from 'framer-motion';
+import { PlayButton } from './play-button';
 
 const CodeMirror = lazy(() => import('@uiw/react-codemirror'));
 
@@ -49,12 +49,18 @@ export function Code({
   language,
   nodeKey,
   isCreatedNow,
+  isCollapsed,
+  setIsCollapsed,
+  // lastExecutedResult,
 }: {
   code: string;
   setCode: (newCode: string) => void;
   language: Languages;
   nodeKey: string;
   isCreatedNow: boolean;
+  isCollapsed: boolean;
+  setIsCollapsed: (newIsCollapsed: boolean) => void;
+  // lastExecutedResult: string;
 }) {
   const [codeMirrorInstance, setCodeMirrorInstance] =
     useState<ReactCodeMirrorRef | null>(null);
@@ -92,28 +98,58 @@ export function Code({
         isSelected && '!border-(--accent-color)'
       )}
     >
-      <div className="flex flex-col justify-end gap-2 border-r-1 px-1 pt-2.5 pb-1 border-zinc-200 dark:border-zinc-700">
-        {(pythonKernelStatus === 'busy' ||
-          pythonKernelStatus === 'starting') && (
-          <Loader className="mx-auto" height={18} width={18} />
+      <div
+        className={cn(
+          'flex flex-col w-10 items-center justify-between gap-2 border-r-1 px-1 pt-1.5 pb-1 border-zinc-200 dark:border-zinc-700',
+          isCollapsed && 'pt-2'
         )}
+      >
         <MotionIconButton
+          onClick={() => setIsCollapsed(!isCollapsed)}
           {...getDefaultButtonVariants()}
-          onClick={async () => {
-            const code = codeMirrorInstance?.view?.state.doc.toString();
-            if (!code) return;
-            await SendExecuteRequest(language, code);
-          }}
         >
-          {pythonKernelStatus === 'busy' ? <MediaStop /> : <Play />}
+          <motion.div
+            initial={{ rotateZ: !isCollapsed ? 180 : 0 }}
+            animate={{ rotateZ: !isCollapsed ? 180 : 0 }}
+          >
+            <ChevronDown
+              className="will-change-transform"
+              strokeWidth="2.5px"
+            />
+          </motion.div>
         </MotionIconButton>
+        {!isCollapsed && (
+          <div className="mt-auto flex flex-col gap-2">
+            {(pythonKernelStatus === 'busy' ||
+              pythonKernelStatus === 'starting') && (
+              <Loader className="mx-auto" height={18} width={18} />
+            )}
+            <PlayButton
+              nodeKey={nodeKey}
+              codeMirrorInstance={codeMirrorInstance}
+              language={language}
+            />
+          </div>
+        )}
       </div>
       <div className="flex-1 overflow-x-auto">
         <Suspense
           fallback={<Loader className="mx-auto mt-3" height={18} width={18} />}
         >
-          <header className="flex justify-between gap-1.5 font-code text-xs px-2 py-1 border-b-1 border-b-zinc-200 dark:border-b-zinc-700">
+          <header
+            className={cn(
+              'flex justify-between gap-1.5 font-code text-xs px-2 py-1 border-b-1 border-b-zinc-200 dark:border-b-zinc-700',
+              isCollapsed && 'border-b-0'
+            )}
+          >
             <span className="flex items-center gap-1.5">
+              {isCollapsed && (
+                <PlayButton
+                  nodeKey={nodeKey}
+                  codeMirrorInstance={codeMirrorInstance}
+                  language={language}
+                />
+              )}
               {languageToSettings[language].icon}
               <p>{language}</p>
             </span>
@@ -142,37 +178,39 @@ export function Code({
               </MotionIconButton>
             </span>
           </header>
-          <CodeMirror
-            ref={handleEditorRef}
-            value={code}
-            onChange={(newCode) => {
-              setCode(newCode);
-            }}
-            extensions={[languageToSettings[language].extension()]}
-            theme={isDarkModeOn ? nord : vscodeLight}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') {
-                document.getElementById('content-editable-editor')?.focus();
-              } else if (e.key === 'Backspace') {
-                // Fixes weird bug where pressing backspace at beginning of first line focuses the <body> tag
-                setTimeout(() => {
-                  focusEditor();
-                }, 50);
-              } else {
-                e.stopPropagation();
-              }
-            }}
-            onClick={() => {
-              clearSelection();
-              setSelected(true);
-            }}
-            basicSetup={{
-              lineNumbers: false,
-              foldGutter: false,
-              ...languageToSettings[language].basicSetup,
-            }}
-          />
-          <footer className="flex justify-between gap-1.5 font-code text-xs pl-1 pr-2 py-1.5 border-t-1 border-t-zinc-200 dark:border-t-zinc-700"></footer>
+          {!isCollapsed && (
+            <CodeMirror
+              ref={handleEditorRef}
+              value={code}
+              onChange={(newCode) => {
+                setCode(newCode);
+              }}
+              extensions={[languageToSettings[language].extension()]}
+              theme={isDarkModeOn ? nord : vscodeLight}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  document.getElementById('content-editable-editor')?.focus();
+                } else if (e.key === 'Backspace') {
+                  // Fixes weird bug where pressing backspace at beginning of first line focuses the <body> tag
+                  setTimeout(() => {
+                    focusEditor();
+                  }, 50);
+                } else {
+                  e.stopPropagation();
+                }
+              }}
+              onClick={() => {
+                clearSelection();
+                setSelected(true);
+              }}
+              basicSetup={{
+                lineNumbers: false,
+                foldGutter: false,
+                ...languageToSettings[language].basicSetup,
+              }}
+            />
+          )}
+          {/* <footer className="flex justify-between gap-1.5 font-code text-xs pl-1 pr-2 py-1.5 border-t-1 border-t-zinc-200 dark:border-t-zinc-700"></footer> */}
         </Suspense>
       </div>
     </div>

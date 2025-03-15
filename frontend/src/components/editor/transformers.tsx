@@ -171,14 +171,14 @@ export const CODE_TRANSFORMER: ElementTransformer = {
   export: (node: LexicalNode) => {
     if ($isCodeNode(node)) {
       const textContent = node.getCode();
+      const codeLanguage = node.getLanguage();
+      const isCollapsed = node.getIsCollapsed();
       // const textContent = 'sample text content goes here';
-      return `\`\`\`${node.getLanguage()}${
-        textContent ? `\n${textContent}` : ''
-      }\n\`\`\``;
+      return `\`\`\`${codeLanguage} isCollapsed=${isCollapsed}\n${textContent}\n\`\`\``;
     }
     if ($isExcalidrawNode(node)) {
       const textContent = JSON.stringify(node.getElements());
-      return `\`\`\`drawing ${textContent ? `\n${textContent}` : ''}\n\`\`\``;
+      return `\`\`\`drawing\n${textContent}\n\`\`\``;
     }
     return null;
   },

@@ -64,16 +64,47 @@ func ListenToShellSocket(shellSocketDealer *zmq4.Socket, connectionInfo Connecti
 		// Log the parsed message
 		log.Println("🐚 shell socket identities:", identities)
 		log.Println("🐚 shell socket signature:", signature)
-		// log.Println("🐚 shell socket header", msg.Header)
+		log.Println("🐚 shell socket parent header:", msg.ParentHeader)
 		log.Println("🐚 shell socket message type:", msg.Header.MsgType)
 		log.Println("🐚 shell socket content:", msg.Content)
 		switch msg.Header.MsgType {
 		case "execute_reply":
 			log.Printf("🗨️ Execution reply: %v\n", msg.Content["status"])
+			status, isString := msg.Content["status"].(string)
+
+			if !isString {
+				log.Println("⚠️ Invalid status type")
+				return
+			}
+			errorName := ""
+			errorValue := ""
+			errorTraceback := []string{}
+
+			if status == "error" {
+				errorName, isString = msg.Content["ename"].(string)
+				if !isString {
+					log.Println("⚠️ Invalid error name type")
+					return
+				}
+				errorValue, isString = msg.Content["evalue"].(string)
+				if !isString {
+					log.Println("⚠️ Invalid error value type")
+					return
+				}
+				errorTraceback, isString = msg.Content["traceback"].([]string)
+				if !isString {
+					log.Println("⚠️ Invalid error traceback type")
+					return
+				}
+			}
+
 			app.CurrentWindow().EmitEvent(
 				"kernel:code-block:execute-reply",
 				project_types.KernelCodeBlockExecuteReply{
-					Status: msg.Content["status"].(string),
+					Status:         status,
+					ErrorName:      errorName,
+					ErrorValue:     errorValue,
+					ErrorTraceback: errorTraceback,
 				},
 			)
 			// emit kernel:python:code-block-{msg.Header.MsgID}:execute_result event here
