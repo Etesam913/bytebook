@@ -3,30 +3,32 @@ import { Play } from '../../icons/circle-play';
 import { MediaStop } from '../../icons/media-stop';
 import { useAtomValue } from 'jotai/react';
 import { pythonKernelStatusAtom } from '../../atoms';
-import { SendExecuteRequest } from '../../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { getDefaultButtonVariants } from '../../animations';
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
+import { useSendExecuteRequestMutation } from '../../hooks/code';
+import { Languages } from '../editor/nodes/code';
 
 export function PlayButton({
-  nodeKey,
+  codeBlockId,
   codeMirrorInstance,
   language,
 }: {
-  nodeKey: string;
+  codeBlockId: string;
   codeMirrorInstance: ReactCodeMirrorRef | null;
-  language: string;
+  language: Languages;
 }) {
   const pythonKernelStatus = useAtomValue(pythonKernelStatusAtom);
-
+  const { mutate: executeCode } = useSendExecuteRequestMutation(
+    codeBlockId,
+    language
+  );
   return (
     <MotionIconButton
       {...getDefaultButtonVariants()}
-      onClick={async () => {
-        console.log(nodeKey);
+      onClick={() => {
         const code = codeMirrorInstance?.view?.state.doc.toString();
         if (!code) return;
-        await SendExecuteRequest(language, code);
-        console.log(nodeKey);
+        executeCode(code);
       }}
     >
       {pythonKernelStatus === 'busy' ? <MediaStop /> : <Play />}

@@ -14,6 +14,7 @@ export type Languages = 'python' | 'go';
 export const validLanguages = new Set<string>(['python', 'go']);
 
 export interface CodePayload {
+  id: string;
   key?: NodeKey;
   language: Languages;
   code: string;
@@ -24,6 +25,7 @@ export interface CodePayload {
 
 export type SerializedCodeNode = Spread<
   {
+    id: string;
     language: Languages;
     code: string;
   },
@@ -38,6 +40,7 @@ export type SerializedCodeNode = Spread<
         `success`: Whether the code block ran successfully or not. It is used to make the text color default or red.
 */
 export class CodeNode extends DecoratorNode<JSX.Element> {
+  __id: string;
   __language: Languages;
   __code: string;
   __isCollapsed: boolean;
@@ -50,6 +53,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 
   static clone(node: CodeNode): CodeNode {
     return new CodeNode(
+      node.__id,
       node.__language,
       node.__code,
       node.__isCollapsed,
@@ -60,8 +64,9 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   }
 
   static importJSON(serializedNode: SerializedCodeNode): CodeNode {
-    const { language, code } = serializedNode;
+    const { id, language, code } = serializedNode;
     const node = $createCodeNode({
+      id,
       language,
       code,
     });
@@ -73,6 +78,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   }
 
   constructor(
+    id: string,
     language: Languages,
     code: string,
     isCollapsed = false,
@@ -81,7 +87,8 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     key?: NodeKey
   ) {
     super(key);
-    // The language of the code
+
+    this.__id = id;
     this.__language = language;
     this.__code = code;
     this.__isCollapsed = isCollapsed;
@@ -90,6 +97,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 
   exportJSON(): SerializedCodeNode {
     return {
+      id: this.getId(),
       language: this.getLanguage(),
       code: this.getCode(),
       type: 'code-block',
@@ -128,16 +136,20 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return this.__isCreatedNow;
   }
 
-  getLastExecutedResult(): string {
-    return this.__lastExecutedResult;
+  getId(): string {
+    return this.__id;
   }
 
-  setLastExecutedResult(result: string, editor: LexicalEditor): void {
-    editor.update(() => {
-      const writable = this.getWritable();
-      writable.__lastExecutedResult = result;
-    });
-  }
+  // getLastExecutedResult(): string {
+  //   return this.__lastExecutedResult;
+  // }
+
+  // setLastExecutedResult(result: string, editor: LexicalEditor): void {
+  //   editor.update(() => {
+  //     const writable = this.getWritable();
+  //     writable.__lastExecutedResult = result;
+  //   });
+  // }
 
   setLanguage(language: Languages, editor: LexicalEditor): void {
     editor.update(() => {
@@ -163,6 +175,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   decorate(_editor: LexicalEditor): JSX.Element {
     return (
       <Code
+        id={this.getId()}
         code={this.getCode()}
         setCode={(code: string) => this.setCode(code, _editor)}
         language={this.getLanguage()}
@@ -179,13 +192,14 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 }
 
 export function $createCodeNode({
+  id,
   language,
   code,
   isCollapsed,
   isCreatedNow,
 }: CodePayload): CodeNode {
   return $applyNodeReplacement(
-    new CodeNode(language, code, isCollapsed, isCreatedNow)
+    new CodeNode(id, language, code, isCollapsed, isCreatedNow)
   );
 }
 

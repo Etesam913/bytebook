@@ -11,7 +11,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint --fix .",
-    "lint:check": "pnpm dlx eslint .",
+    "lint:check": "pnpm exec eslint .",
     "tsc": "tsc",
     "format:lint:tsc": "pnpm format:check && pnpm lint:check && pnpm tsc",
     "husky:prepare": "cd .. && husky frontend/.husky"

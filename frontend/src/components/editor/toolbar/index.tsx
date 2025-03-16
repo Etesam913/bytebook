@@ -25,6 +25,7 @@ import {
 } from '../utils/toolbar';
 import { FontFamilyInput } from './font-family-input';
 import { SettingsDropdown } from './settings-dropdown';
+import { useCodeBlockExecuteReply } from '../../../hooks/code';
 
 export function Toolbar({
   folder,
@@ -90,6 +91,7 @@ export function Toolbar({
   );
 
   useNoteChangedEvent(folder, note, editor, setFrontmatter);
+  useCodeBlockExecuteReply(editor);
 
   // useFileDropEvent(editor, folder, note);
 

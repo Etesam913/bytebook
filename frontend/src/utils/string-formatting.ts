@@ -281,3 +281,16 @@ export function parseNoteNameFromSelectionRangeValue(
 
   return { noteNameWithoutExtension, queryParams };
 }
+
+export function cleanTraceback(traceback: string[]): string {
+  // Join array with newlines
+  const joined = traceback.join('\n');
+
+  // Build regex without literal control characters.
+  const escapeChar = String.fromCharCode(27);
+  const ansiRegex = new RegExp(escapeChar + '\\[[0-9;]*m', 'g');
+
+  // Remove ANSI escape codes.
+  const cleaned = joined.replace(ansiRegex, '');
+  return cleaned;
+}

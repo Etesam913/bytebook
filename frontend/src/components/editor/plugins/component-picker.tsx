@@ -53,13 +53,13 @@ import { FOCUS_NODE_COMMAND } from './focus';
 import { Languages } from '../nodes/code';
 
 const languageCommandData: {
-  id: Languages;
+  languageName: Languages;
   name: string;
   keywords: string[];
   icon?: JSX.Element;
 }[] = [
   {
-    id: 'go',
+    languageName: 'go',
     keywords: ['go', 'google'],
     icon: <GolangLogo />,
     name: 'Golang',
@@ -71,7 +71,7 @@ const languageCommandData: {
   //   name: 'Java',
   // },
   {
-    id: 'python',
+    languageName: 'python',
     keywords: ['python', 'py'],
     icon: <PythonLogo />,
     name: 'Python',
@@ -286,14 +286,15 @@ function getBaseOptions(
       },
     }),
     ...languageCommandData.map(
-      ({ id, keywords, icon, name }) =>
+      ({ languageName, keywords, icon, name }) =>
         new DropdownPickerOption(name, {
           icon,
           keywords: [...keywords, 'code', 'syntax', 'programming', 'language'],
           onSelect: () => {
             editor.update(() => {
               editor.dispatchCommand(INSERT_CODE_COMMAND, {
-                language: id,
+                id: crypto.randomUUID(),
+                language: languageName,
                 code: '',
                 isCreatedNow: true,
               });

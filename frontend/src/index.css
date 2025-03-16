@@ -149,10 +149,19 @@ html:has(.dark) {
   overflow-x: auto;
   overflow-y: initial;
 }
+
 .cm-content {
   font-family: 'Jetbrains Mono', monospace;
   font-size: 13px;
   padding: 12px 8px !important;
+}
+
+.cm-lineNumbers {
+  @apply text-xs text-zinc-500;
+}
+
+.cm-gutter-element {
+  padding: 0 3px 0 0 !important;
 }
 
 .cm-editor .cm-cursor {

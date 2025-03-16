@@ -70,38 +70,48 @@ func ListenToShellSocket(shellSocketDealer *zmq4.Socket, connectionInfo Connecti
 		switch msg.Header.MsgType {
 		case "execute_reply":
 			log.Printf("🗨️ Execution reply: %v\n", msg.Content["status"])
-			status, isString := msg.Content["status"].(string)
+			status, ok := msg.Content["status"].(string)
 
-			if !isString {
+			if !ok {
 				log.Println("⚠️ Invalid status type")
+				return
+			}
+			msgId, ok := msg.ParentHeader["msg_id"].(string)
+			if !ok {
+				log.Println("⚠️ Invalid message ID type")
 				return
 			}
 			errorName := ""
 			errorValue := ""
 			errorTraceback := []string{}
-
 			if status == "error" {
-				errorName, isString = msg.Content["ename"].(string)
-				if !isString {
+				if errorName, ok = msg.Content["ename"].(string); !ok {
 					log.Println("⚠️ Invalid error name type")
 					return
 				}
-				errorValue, isString = msg.Content["evalue"].(string)
-				if !isString {
+				if errorValue, ok = msg.Content["evalue"].(string); !ok {
 					log.Println("⚠️ Invalid error value type")
 					return
 				}
-				errorTraceback, isString = msg.Content["traceback"].([]string)
-				if !isString {
+				uncleanTraceback, ok := msg.Content["traceback"].([]any)
+				if !ok {
 					log.Println("⚠️ Invalid error traceback type")
 					return
 				}
+
+				for _, item := range uncleanTraceback {
+					if str, ok := item.(string); ok {
+						errorTraceback = append(errorTraceback, str)
+					}
+				}
+
 			}
 
 			app.CurrentWindow().EmitEvent(
-				"kernel:code-block:execute-reply",
+				"code:code-block:execute-reply",
 				project_types.KernelCodeBlockExecuteReply{
 					Status:         status,
+					MessageId:      msgId,
 					ErrorName:      errorName,
 					ErrorValue:     errorValue,
 					ErrorTraceback: errorTraceback,

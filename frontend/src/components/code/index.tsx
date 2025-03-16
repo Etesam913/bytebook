@@ -21,6 +21,7 @@ import { GolangLogo } from '../../icons/golang-logo';
 import { ChevronDown } from '../../icons/chevron-down';
 import { motion } from 'framer-motion';
 import { PlayButton } from './play-button';
+import { debounce } from '../../utils/general';
 
 const CodeMirror = lazy(() => import('@uiw/react-codemirror'));
 
@@ -44,6 +45,7 @@ const languageToSettings: Record<Languages, LanguageSetting> = {
 };
 
 export function Code({
+  id,
   code,
   setCode,
   language,
@@ -53,6 +55,7 @@ export function Code({
   setIsCollapsed,
   // lastExecutedResult,
 }: {
+  id: string;
   code: string;
   setCode: (newCode: string) => void;
   language: Languages;
@@ -91,6 +94,8 @@ export function Code({
     }
   }, [isSelected]);
 
+  const debouncedSetCode = debounce(setCode, 300);
+
   return (
     <div
       className={cn(
@@ -125,7 +130,7 @@ export function Code({
               <Loader className="mx-auto" height={18} width={18} />
             )}
             <PlayButton
-              nodeKey={nodeKey}
+              codeBlockId={id}
               codeMirrorInstance={codeMirrorInstance}
               language={language}
             />
@@ -145,7 +150,7 @@ export function Code({
             <span className="flex items-center gap-1.5">
               {isCollapsed && (
                 <PlayButton
-                  nodeKey={nodeKey}
+                  codeBlockId={id}
                   codeMirrorInstance={codeMirrorInstance}
                   language={language}
                 />
@@ -183,7 +188,7 @@ export function Code({
               ref={handleEditorRef}
               value={code}
               onChange={(newCode) => {
-                setCode(newCode);
+                debouncedSetCode(newCode);
               }}
               extensions={[languageToSettings[language].extension()]}
               theme={isDarkModeOn ? nord : vscodeLight}
@@ -204,7 +209,6 @@ export function Code({
                 setSelected(true);
               }}
               basicSetup={{
-                lineNumbers: false,
                 foldGutter: false,
                 ...languageToSettings[language].basicSetup,
               }}

@@ -173,8 +173,8 @@ export const CODE_TRANSFORMER: ElementTransformer = {
       const textContent = node.getCode();
       const codeLanguage = node.getLanguage();
       const isCollapsed = node.getIsCollapsed();
-      // const textContent = 'sample text content goes here';
-      return `\`\`\`${codeLanguage} isCollapsed=${isCollapsed}\n${textContent}\n\`\`\``;
+      const id = node.getId();
+      return `\`\`\`${codeLanguage} id=${id} isCollapsed=${isCollapsed + ''}\n${textContent}\n\`\`\``;
     }
     if ($isExcalidrawNode(node)) {
       const textContent = JSON.stringify(node.getElements());
@@ -194,6 +194,7 @@ export const CODE_TRANSFORMER: ElementTransformer = {
     } else {
       // Code block data is empty by default
       newNode = $createCodeNode({
+        id: crypto.randomUUID(),
         language: language as Languages,
         code: '',
         isCreatedNow: true,
