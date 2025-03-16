@@ -13,6 +13,8 @@ require (
 	github.com/wailsapp/wails/v3 v3.0.0-alpha.6
 )
 
+require github.com/robert-nix/ansihtml v1.0.1
+
 require (
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect

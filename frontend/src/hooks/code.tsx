@@ -1,13 +1,12 @@
 import { useSetAtom } from 'jotai';
-import { Languages } from '../components/editor/nodes/code';
+import { CodeNode, Languages } from '../components/editor/nodes/code';
 import { useWailsEvent } from './events';
 import { goKernelStatusAtom, pythonKernelStatusAtom } from '../atoms';
 import { KernelStatus } from '../types';
 import { useMutation } from '@tanstack/react-query';
 import { SendExecuteRequest } from '../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { QueryError } from '../utils/query';
-import { cleanTraceback } from '../utils/string-formatting';
-import { LexicalEditor } from 'lexical';
+import { $nodesOfType, LexicalEditor } from 'lexical';
 
 export function useKernelStatus() {
   const setPythonKernelStatus = useSetAtom(pythonKernelStatusAtom);
@@ -41,9 +40,18 @@ export function useCodeBlockExecuteReply(editor: LexicalEditor) {
         }
     )[];
     if (data[0].status === 'error') {
-      const cleanedTraceback = cleanTraceback(data[0].errorTraceback);
-      editor.read(() => {
-        // const codeNodes = $nodesOfType(CodeNode);
+      console.log(data[0].errorTraceback);
+      const cleanedTraceback = data[0].errorTraceback
+        .map((trace) => `<div>${trace}</div>`)
+        .join('');
+      editor.update(() => {
+        const codeNodes = $nodesOfType(CodeNode);
+        const codeNodeToUpdate = codeNodes.find(
+          (node) => node.getId() === data[0].messageId
+        );
+        if (codeNodeToUpdate) {
+          codeNodeToUpdate.setLastExecutedResult(cleanedTraceback, editor);
+        }
       });
       console.error(
         `Error executing code: ${data[0].errorName} - ${data[0].errorValue}\n${cleanedTraceback}`

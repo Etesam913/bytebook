@@ -43,6 +43,7 @@ import type { ResizeWidth } from '../../types';
 
 import {
   addQueryParam,
+  flattenHtml,
   getQueryParamValue,
   removeQueryParam,
 } from '../../utils/string-formatting';
@@ -174,7 +175,11 @@ export const CODE_TRANSFORMER: ElementTransformer = {
       const codeLanguage = node.getLanguage();
       const isCollapsed = node.getIsCollapsed();
       const id = node.getId();
-      return `\`\`\`${codeLanguage} id=${id} isCollapsed=${isCollapsed + ''}\n${textContent}\n\`\`\``;
+      const lastExecutedResult = node.getLastExecutedResult();
+      const formattedLastExecutedResult = lastExecutedResult
+        ? flattenHtml(lastExecutedResult)
+        : null;
+      return `\`\`\`${codeLanguage} id=${id} isCollapsed=${isCollapsed + ''} ${formattedLastExecutedResult ? `lastExecutedResult=${formattedLastExecutedResult}` : ''}\n${textContent}\n\`\`\``;
     }
     if ($isExcalidrawNode(node)) {
       const textContent = JSON.stringify(node.getElements());

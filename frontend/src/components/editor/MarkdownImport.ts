@@ -13,6 +13,7 @@ import {
 } from 'lexical';
 import {
   $createCodeNode,
+  CodePayload,
   Languages,
   validLanguages,
   type CodeNode,
@@ -168,12 +169,29 @@ function importCodeBlock(
     while (++endLineIndex < linesLength) {
       const closeMatch = lines[endLineIndex].match(CODE_BLOCK_REG_EXP);
       if (closeMatch) {
-        const language = openMatch[1] ?? '';
+        const language = (openMatch[1] ?? 'python') as Languages | 'drawing';
+
+        if (language === 'drawing') {
+          const elementsString = lines
+            .slice(startLineIndex + 1, endLineIndex)
+            .join('\n');
+          const elements = JSON.parse(elementsString);
+          const excalidrawNode = $createExcalidrawNode({ elements });
+          rootNode.append(excalidrawNode);
+          return [excalidrawNode, endLineIndex];
+        }
+
+        // If not drawing then it is a code block
         const codeBlockParams = {
           id: crypto.randomUUID() as string,
-          isCollapsed: false,
-        };
+          isCollapsed: false as boolean,
+          lastExecutedResult: null as string | null,
+          language,
+          code: '',
+        } satisfies CodePayload;
+
         const otherMatches: string[] = [];
+
         openMatch
           .slice(2)
           .filter((v) => v !== undefined)
@@ -191,27 +209,23 @@ function importCodeBlock(
           if (key === 'id') {
             codeBlockParams.id = value;
           }
+          if (key === 'lastExecutedResult') {
+            codeBlockParams.lastExecutedResult = value;
+            console.log('lastExecutedResult:', value);
+          }
         }
 
-        if (language === 'drawing') {
-          const elementsString = lines
-            .slice(startLineIndex + 1, endLineIndex)
-            .join('\n');
-          const elements = JSON.parse(elementsString);
-          const excalidrawNode = $createExcalidrawNode({ elements });
-          rootNode.append(excalidrawNode);
-          return [excalidrawNode, endLineIndex];
-        }
-
-        // If not drawing then it is a code block
-        const code = lines.slice(startLineIndex + 1, endLineIndex).join('\n');
+        codeBlockParams.code = lines
+          .slice(startLineIndex + 1, endLineIndex)
+          .join('\n');
         if (!validLanguages.has(language)) {
           return [null, startLineIndex];
         }
         const codeBlockNode = $createCodeNode({
           id: codeBlockParams.id,
-          language: language as Languages,
-          code,
+          language: codeBlockParams.language,
+          code: codeBlockParams.code,
+          lastExecutedResult: codeBlockParams.lastExecutedResult,
           isCollapsed: codeBlockParams.isCollapsed,
         });
         rootNode.append(codeBlockNode);

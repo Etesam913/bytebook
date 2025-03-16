@@ -8,6 +8,7 @@ import (
 	"github.com/etesam913/bytebook/lib/messaging"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/pebbe/zmq4"
+	"github.com/robert-nix/ansihtml"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -100,11 +101,11 @@ func ListenToShellSocket(shellSocketDealer *zmq4.Socket, connectionInfo Connecti
 				}
 
 				for _, item := range uncleanTraceback {
-					if str, ok := item.(string); ok {
-						errorTraceback = append(errorTraceback, str)
+					if ansiStr, ok := item.(string); ok {
+						htmlStr := string(ansihtml.ConvertToHTML([]byte(ansiStr)))
+						errorTraceback = append(errorTraceback, htmlStr)
 					}
 				}
-
 			}
 
 			app.CurrentWindow().EmitEvent(

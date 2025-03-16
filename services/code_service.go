@@ -29,14 +29,12 @@ func (c *CodeService) createSocketsAndListenToKernel(language string) project_ty
 			),
 		}
 	}
-	fmt.Println("IsPortInUse")
 	// Start up the kernel
 	err := kernel_helpers.LaunchKernel(
 		c.AllKernels.Python.Argv,
 		"lib/config/connection.json",
 		"/Users/etesam/Coding/bytebook/venv",
 	)
-	fmt.Println("LaunchKernel")
 
 	if err != nil {
 		return project_types.BackendResponseWithoutData{
@@ -64,7 +62,6 @@ func (c *CodeService) createSocketsAndListenToKernel(language string) project_ty
 }
 
 func (c *CodeService) SendExecuteRequest(codeBlockId, language, code string) project_types.BackendResponseWithoutData {
-	fmt.Println(codeBlockId, language, code)
 	response := c.createSocketsAndListenToKernel(language)
 	// If the kernel is already running on the port, then it is fine to send the message
 	if response.Success == false {

@@ -53,7 +53,7 @@ export function Code({
   isCreatedNow,
   isCollapsed,
   setIsCollapsed,
-  // lastExecutedResult,
+  lastExecutedResult,
 }: {
   id: string;
   code: string;
@@ -63,7 +63,7 @@ export function Code({
   isCreatedNow: boolean;
   isCollapsed: boolean;
   setIsCollapsed: (newIsCollapsed: boolean) => void;
-  // lastExecutedResult: string;
+  lastExecutedResult: string | null;
 }) {
   const [codeMirrorInstance, setCodeMirrorInstance] =
     useState<ReactCodeMirrorRef | null>(null);
@@ -214,7 +214,12 @@ export function Code({
               }}
             />
           )}
-          {/* <footer className="flex justify-between gap-1.5 font-code text-xs pl-1 pr-2 py-1.5 border-t-1 border-t-zinc-200 dark:border-t-zinc-700"></footer> */}
+          {lastExecutedResult && (
+            <footer
+              dangerouslySetInnerHTML={{ __html: lastExecutedResult }}
+              className="flex flex-col justify-between gap-1.5 font-code text-xs pl-1 pr-2 py-1.5 border-t-1 border-t-zinc-200 dark:border-t-zinc-700"
+            ></footer>
+          )}
         </Suspense>
       </div>
     </div>
