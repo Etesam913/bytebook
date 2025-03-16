@@ -161,7 +161,6 @@ function importCodeBlock(
   rootNode: ElementNode
 ): [CodeNode | ExcalidrawNode | null, number] {
   const openMatch = lines[startLineIndex].match(CODE_BLOCK_REG_EXP);
-  console.log({ openMatch });
   if (openMatch) {
     let endLineIndex = startLineIndex;
     const linesLength = lines.length;
@@ -174,7 +173,14 @@ function importCodeBlock(
           id: crypto.randomUUID() as string,
           isCollapsed: false,
         };
-        const otherMatches = openMatch.slice(2).filter((v) => v !== undefined);
+        const otherMatches: string[] = [];
+        openMatch
+          .slice(2)
+          .filter((v) => v !== undefined)
+          .forEach((matchString) => {
+            const parameters = matchString.split(' ');
+            otherMatches.push(...parameters);
+          });
 
         for (const match of otherMatches) {
           // These are in the form of key=value
@@ -203,6 +209,7 @@ function importCodeBlock(
           return [null, startLineIndex];
         }
         const codeBlockNode = $createCodeNode({
+          id: codeBlockParams.id,
           language: language as Languages,
           code,
           isCollapsed: codeBlockParams.isCollapsed,
