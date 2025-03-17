@@ -21,11 +21,11 @@ import { MAX_SIDEBAR_WIDTH } from './utils/general';
 export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
 
 // Prevents backspace from navigating back in history
-document.onkeydown = (event) => {
-  if (event.key === 'Backspace') {
-    event.preventDefault();
-  }
-};
+// document.onkeydown = (event) => {
+//   if (event.key === 'Backspace') {
+//     event.preventDefault();
+//   }
+// };
 
 function App() {
   const folderSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);

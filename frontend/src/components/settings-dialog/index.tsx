@@ -9,12 +9,12 @@ export function SettingsDialog() {
   const [currentSettingsTab, setCurrentSettingsTab] =
     useState<SettingsTab>('appearance');
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-4 h-[calc(100vh-10rem)]">
       <SettingsSidebar
         currentSettingsTab={currentSettingsTab}
         setCurrentSettingsTab={setCurrentSettingsTab}
       />
-      <div className="flex-1">
+      <div className="flex-1 overflow-auto">
         {currentSettingsTab === 'appearance' && <AppearancePage />}
         {currentSettingsTab === 'github' && <GithubPage />}
         {currentSettingsTab === 'code-block' && <div>code-block content</div>}

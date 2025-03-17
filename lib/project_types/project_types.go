@@ -16,6 +16,7 @@ type ProjectSettingsJson struct {
 	DarkMode            string   `json:"darkMode"`
 	NoteSidebarItemSize string   `json:"noteSidebarItemSize"`
 	AccentColor         string   `json:"accentColor"`
+	NoteWidth           string   `json:"noteWidth"`
 }
 
 type AllKernels struct {

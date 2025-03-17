@@ -94,6 +94,7 @@ export type ProjectSettings = {
   darkMode: 'light' | 'dark' | 'system';
   noteSidebarItemSize: 'list' | 'card';
   accentColor: string;
+  noteWidth: 'fullWidth' | 'readability';
 };
 
 export type ContextMenuData = {

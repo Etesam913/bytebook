@@ -46,6 +46,7 @@ async function getProjectSettings(
       darkMode: darkModeUnvalidated,
       noteSidebarItemSize: noteSidebarItemSizeUnvalidated,
       accentColor,
+      noteWidth,
     } = projectSettingsResponse.data;
 
     const { darkMode, noteSidebarItemSize } = validateProjectSettings({
@@ -61,6 +62,7 @@ async function getProjectSettings(
       darkMode,
       noteSidebarItemSize,
       accentColor,
+      noteWidth: noteWidth as 'fullWidth' | 'readability',
     });
   } catch (err) {
     if (err instanceof Error) {

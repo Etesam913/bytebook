@@ -21,6 +21,7 @@ import {
   noteContainerRefAtom,
   noteIntersectionObserverAtom,
   noteSeenFileNodeKeysAtom,
+  projectSettingsAtom,
 } from '../../atoms';
 import type { FloatingDataType } from '../../types.ts';
 import { handleEditorEscape } from '../../utils/selection.ts';
@@ -52,7 +53,7 @@ export function NotesEditor({
   animationControls: AnimationControls;
 }) {
   const { folder, note } = params;
-
+  const projectSettings = useAtomValue(projectSettingsAtom);
   const editorRef = useRef<LexicalEditor | null | undefined>(null);
   const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
   const [frontmatter, setFrontmatter] = useState<Record<string, string>>({});
@@ -121,7 +122,7 @@ export function NotesEditor({
         setFrontmatter={setFrontmatter}
         setNoteMarkdownString={setNoteMarkdownString}
       />
-      <div className="flex gap-2 overflow-auto h-[calc(100vh-35px)]">
+      <div className="flex gap-2 overflow-y-auto h-[calc(100vh-2.18rem)]">
         <div
           ref={noteContainerRef}
           style={{
@@ -129,7 +130,9 @@ export function NotesEditor({
             fontFamily: `"${frontmatter.fontFamily}", "Bricolage Grotesque"`,
           }}
           className={cn(
-            'h-full overflow-x-hidden overflow-y-auto py-3 px-4 relative flex-1',
+            'h-full p-4 relative flex-1',
+            projectSettings.noteWidth === 'readability' &&
+              'max-w-[44rem] mx-auto',
             isNoteMaximized && 'px-6'
           )}
           onClick={(e) => {
