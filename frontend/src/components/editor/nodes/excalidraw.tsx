@@ -19,6 +19,7 @@ export interface ExcalidrawPayload {
   key?: NodeKey;
   elements: ExcalidrawElement[];
   width?: ResizeWidth;
+  isCreatedNow?: boolean;
 }
 
 export type SerializedExcalidrawNode = Spread<
@@ -31,32 +32,41 @@ export type SerializedExcalidrawNode = Spread<
 
 export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
   __elements: ExcalidrawElement[] = [];
+  __isCreatedNow: boolean;
 
   static getType(): string {
     return 'excalidraw';
   }
 
   static clone(node: ExcalidrawNode): ExcalidrawNode {
-    return new ExcalidrawNode(node.__elements, node.getKey());
+    return new ExcalidrawNode(
+      node.__elements,
+      node.__isCreatedNow,
+      node.getKey()
+    );
   }
 
   static importJSON(serializedNode: SerializedExcalidrawNode): ExcalidrawNode {
     const { elements } = serializedNode;
-    const node = $createExcalidrawNode({
+    return $createExcalidrawNode({
       elements,
     });
-    return node;
   }
 
   isInline(): false {
     return false;
   }
 
-  constructor(elements: ExcalidrawElement[], key?: NodeKey) {
+  constructor(
+    elements: ExcalidrawElement[],
+    isCreatedNow = false,
+    key?: NodeKey
+  ) {
     super(key);
 
     // The elements to populate the excalidraw instance with
     this.__elements = elements;
+    this.__isCreatedNow = isCreatedNow;
   }
 
   exportJSON(): SerializedExcalidrawNode {
@@ -85,6 +95,10 @@ export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
   getElements(): ExcalidrawElement[] {
     return this.__elements;
   }
+
+  getIsCreatedNow(): boolean {
+    return this.__isCreatedNow;
+  }
   setElements(
     elements: NonDeletedExcalidrawElement[],
     editor: LexicalEditor
@@ -99,6 +113,7 @@ export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
     return (
       <ExcalidrawComponent
         nodeKey={this.getKey()}
+        isCreatedNow={this.getIsCreatedNow()}
         defaultElements={this.getElements()}
         writeElementsToNode={(elements: NonDeletedExcalidrawElement[]) => {
           this.setElements(elements, _editor);
@@ -110,8 +125,9 @@ export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
 
 export function $createExcalidrawNode({
   elements,
+  isCreatedNow,
 }: ExcalidrawPayload): ExcalidrawNode {
-  return $applyNodeReplacement(new ExcalidrawNode(elements));
+  return $applyNodeReplacement(new ExcalidrawNode(elements, isCreatedNow));
 }
 
 export function $isExcalidrawNode(

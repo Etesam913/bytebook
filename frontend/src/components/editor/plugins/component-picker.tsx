@@ -49,7 +49,6 @@ import { $createExcalidrawNode } from '../nodes/excalidraw';
 import { $createInlineEquationNode } from '../nodes/inline-equation';
 import { attachmentCommandData, listCommandData } from '../utils/toolbar';
 import { INSERT_CODE_COMMAND } from './code';
-import { FOCUS_NODE_COMMAND } from './focus';
 import { Languages } from '../nodes/code';
 
 const languageCommandData: {
@@ -121,9 +120,6 @@ const languageCommandData: {
  *
  * @param  editor - The Lexical editor instance.
  * @param insertAttachmentsMutation - Mutation hook for inserting attachments.
- * @param dialogProps - Properties for dialog management.
- * @param dialogProps.setDialogData - Function to set dialog data.
- * @param dialogProps.editorSelection - Reference to the current editor selection.
  * @returns Array of dropdown picker options.
  */
 function getBaseOptions(
@@ -243,7 +239,7 @@ function getBaseOptions(
 
     // 					// Got a warning about the old selection being stale, so cloning it fixes it
     // 					const newSelection = editorSelection.current.clone();
-    // 					// Using the cloned selection and adding the youtube video
+    // 					// Using the cloned selection and adding the YouTube video
     // 					editor.update(() => {
     // 						$setSelection(newSelection);
     // 						const youtubeVideo = $createFileNode({
@@ -277,11 +273,11 @@ function getBaseOptions(
       ],
       onSelect: () => {
         editor.update(() => {
-          const excalidrawNode = $createExcalidrawNode({ elements: [] });
+          const excalidrawNode = $createExcalidrawNode({
+            elements: [],
+            isCreatedNow: true,
+          });
           $insertNodes([excalidrawNode]);
-          setTimeout(() => {
-            editor.dispatchCommand(FOCUS_NODE_COMMAND, excalidrawNode);
-          }, 200);
         });
       },
     }),

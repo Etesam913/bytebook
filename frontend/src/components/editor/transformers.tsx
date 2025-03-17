@@ -192,11 +192,14 @@ export const CODE_TRANSFORMER: ElementTransformer = {
     // MarkdownImport.ts handles the import of code blocks
     // This code handles creation for the first time
     const language = match.at(1);
-    if (!language || !validLanguages.has(language)) return;
+    if (!language) return;
     let newNode: ExcalidrawNode | CodeNode | null = null;
     if (language === 'drawing') {
-      newNode = $createExcalidrawNode({ elements: [] });
+      newNode = $createExcalidrawNode({ elements: [], isCreatedNow: true });
     } else {
+      if (!validLanguages.has(language as Languages)) {
+        return;
+      }
       // Code block data is empty by default
       newNode = $createCodeNode({
         id: crypto.randomUUID(),

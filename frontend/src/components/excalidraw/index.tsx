@@ -40,10 +40,12 @@ function writeElementsToNodeWrapper(
 
 export function ExcalidrawComponent({
   nodeKey,
+  isCreatedNow,
   defaultElements,
   writeElementsToNode,
 }: {
   nodeKey: string;
+  isCreatedNow: boolean;
   defaultElements: ExcalidrawElement[];
   writeElementsToNode: (elements: NonDeletedExcalidrawElement[]) => void;
 }) {
@@ -57,6 +59,7 @@ export function ExcalidrawComponent({
   const [isExpanded, setIsExpanded] = useState(false);
   const excalidrawAPIRef = useRef<ExcalidrawImperativeAPI | null>(null);
 
+  // Using data-interactable does not work for this component so this registerCommand is needed
   useEffect(() => {
     return mergeRegister(
       editor.registerCommand<MouseEvent>(
@@ -148,8 +151,14 @@ export function ExcalidrawComponent({
         <Excalidraw
           initialData={{ elements: defaultElements, scrollToContent: true }}
           theme={isDarkModeOn ? THEME.DARK : THEME.LIGHT}
+          // Handles the focus of the excalidraw editor
+          autoFocus={isCreatedNow}
           excalidrawAPI={(api) => {
             excalidrawAPIRef.current = api;
+            if (isCreatedNow) {
+              // Handles the focus of the lexical editor
+              setSelected(true);
+            }
           }}
         >
           <MainMenu />

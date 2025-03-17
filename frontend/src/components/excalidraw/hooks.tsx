@@ -12,7 +12,6 @@ export function useFocusOnSelect(
       const excalidrawElement = excalidrawRef.current.lastChild
         ?.lastChild as HTMLElement;
       if (!excalidrawElement) return;
-
       excalidrawElement.focus();
     }
   }, [isSelected, excalidrawRef]);

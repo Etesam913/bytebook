@@ -8,3 +8,4 @@ build/windows/nsis
 venv/
 
 .idea
+../.idea
