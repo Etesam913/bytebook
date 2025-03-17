@@ -21,7 +21,7 @@ export function DraggableBlockPlugin() {
   const [isDragging, setIsDragging] = useState(false);
   const handleRef = useRef<HTMLDivElement>(null);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-  const [draggedElement, setDraggedElenent] = useAtom(draggedElementAtom);
+  const [draggedElement, setDraggedElement] = useAtom(draggedElementAtom);
 
   const dragHandleYMotionValue = useMotionValue(0);
   const dragHandleYSpringMotionValue = useSpring(dragHandleYMotionValue, {
@@ -72,13 +72,13 @@ export function DraggableBlockPlugin() {
             editor,
             setIsDragging,
             draggableBlockElement,
-            setDraggedElenent,
+            setDraggedElement,
             noteContainerRef.current
           )
         }
         onDragEnd={() => {
           setIsDragging(false);
-          setDraggedElenent(null);
+          setDraggedElement(null);
           // Remove the ghost drag element. It is not needed anymore.
           if (draggedElement) draggedElement.remove();
         }}

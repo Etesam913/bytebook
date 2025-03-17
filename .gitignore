@@ -6,3 +6,5 @@ backend/backend-env/
 build/windows/nsis
 .task/
 venv/
+
+.idea

@@ -1,14 +1,13 @@
 export function Paintbrush({
-  width = '1.25rem',
-  height = '1.25rem',
+  width = 18,
+  height = 18,
   fill = 'currentColor',
   title = 'paperclip',
   className,
 }: {
-  width?: string;
-  height?: string;
+  width?: number;
+  height?: number;
   fill?: string;
-  secondaryfill?: string;
   title?: string;
   className?: string;
 }) {

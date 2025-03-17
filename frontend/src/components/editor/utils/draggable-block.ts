@@ -469,12 +469,15 @@ export function handleDragStart(
 
   editor.read(() => {
     const node = $getNearestNodeFromDOMNode(draggableBlockElement);
+    console.log(node);
     if (!node) return;
     if ((node as ElementNode).getChildren) {
       const elementNode = node as ElementNode;
       elementNode.getChildren().forEach((child) => {
         constructGhostElementForNode(child, ghostElement);
       });
+    } else {
+      constructGhostElementForNode(node, ghostElement);
     }
     nodeKey = node.getKey();
   });
