@@ -90,7 +90,7 @@ export function ResizeContainer({
         tabIndex={isExpanded ? 0 : -1}
         // onClick={(e: MouseEvent) => isExpanded && e.stopPropagation()}
         className={cn(
-          'relative inline-block rounded-xs outline-hidden',
+          'relative inline-block rounded-xs outline-hidden max-w-full',
           isExpanded &&
             'max-h-screen fixed top-0 left-0 right-0 bottom-0 z-45 m-auto flex justify-start overflow-auto',
           isExpanded && elementType === 'excalidraw' && 'h-screen!'
@@ -105,7 +105,7 @@ export function ResizeContainer({
           {isSelected && !isExpanded && (
             <>
               <motion.span
-                className="absolute z-20 h-full w-full border-[4px] border-(--accent-color) rounded-xs pointer-events-none"
+                className="absolute max-w-full z-20 h-full w-full border-[4px] border-(--accent-color) rounded-xs pointer-events-none"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
