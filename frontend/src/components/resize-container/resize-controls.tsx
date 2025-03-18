@@ -27,7 +27,6 @@ export function ResizeControls({
 
   const { widthMotionValue, resizeWidthMotionValue, resizeHeightMotionValue } =
     motionValues;
-  const { setIsExpanded } = resizeState;
 
   return (
     <NoteComponentControls
@@ -39,7 +38,7 @@ export function ResizeControls({
         },
         fullscreen: {
           enabled: true,
-          setIsExpanded,
+          setIsExpanded: resizeState.setIsExpanded,
         },
         link: {
           enabled: true,

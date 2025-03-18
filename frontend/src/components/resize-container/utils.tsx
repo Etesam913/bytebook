@@ -6,7 +6,13 @@ import {
   type LexicalEditor,
   type LexicalNode,
 } from 'lexical';
-import { type Dispatch, type SetStateAction, useEffect, useState } from 'react';
+import {
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { EXPAND_CONTENT_COMMAND } from '../../utils/commands';
 import type { FileNode } from '../editor/nodes/file';
 
@@ -88,40 +94,37 @@ export function expandNearestSiblingNode(
  * @returns isVisible - A boolean that indicates whether the elements should be visible.
  */
 export function useMouseActivity(timeout = 1500, isActive = false): boolean {
-  const [isVisible, setIsVisible] = useState<boolean>(true);
-  const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(
-    null
-  );
+  const [isVisible, setIsVisible] = useState(true);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!isActive) {
       return;
     }
+
     // Function to set visibility to true and reset the timer
     const handleMouseMovement = () => {
       if (!isVisible) setIsVisible(true);
-      if (timer) clearTimeout(timer);
-      const newTimer = setTimeout(() => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
         setIsVisible(false);
       }, timeout);
-      setTimer(newTimer);
     };
 
     // Add event listener for mouse movement
     document.addEventListener('mousemove', handleMouseMovement);
 
     // Set the initial timer
-    const initialTimer = setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       setIsVisible(false);
     }, timeout);
-    setTimer(initialTimer);
 
     // Clean up function
     return () => {
-      if (timer) clearTimeout(timer);
+      if (timerRef.current) clearTimeout(timerRef.current);
       document.removeEventListener('mousemove', handleMouseMovement);
     };
-  }, [isVisible, timeout, isActive, timer]);
+  }, [isVisible, timeout, isActive]); // Removed timer from dependencies
 
   return isVisible;
 }
