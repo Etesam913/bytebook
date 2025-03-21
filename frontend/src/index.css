@@ -64,20 +64,27 @@
   font-style: italic;
 }
 
+* {
+  scrollbar-width: thin;
+  --accent-color: rgb(var(--accent-color-values));
+  --accent-color-highlight: rgba(var(--accent-color-values), 0.45);
+  caret-color: var(--accent-color);
+}
+
 html {
   user-select: none;
   -webkit-user-select: none;
+  cursor: default;
 }
 
 html:has(.dark) {
   color-scheme: dark;
 }
 
-* {
-  scrollbar-width: thin;
-  --accent-color: rgb(var(--accent-color-values));
-  --accent-color-highlight: rgba(var(--accent-color-values), 0.45);
-  caret-color: var(--accent-color);
+input,
+textarea,
+[contenteditable] {
+  cursor: auto; /* Restores the default I-beam cursor for input and textarea */
 }
 
 .draggable-block-menu {
