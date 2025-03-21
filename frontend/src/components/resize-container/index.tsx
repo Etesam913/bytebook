@@ -5,7 +5,6 @@ import {
   type MouseEvent,
   type ReactNode,
   RefObject,
-  useEffect,
   useRef,
 } from 'react';
 import { getDefaultButtonVariants } from '../../animations';
@@ -46,27 +45,30 @@ export function ResizeContainer({
   );
   const resizeHeightMotionValue = useMotionValue<number | '100%'>('100%');
 
-  const { isSelected, isExpanded, setIsExpanded, setIsResizing, setSelected } =
-    resizeState;
+  const {
+    isSelected,
+    isExpanded,
+    setIsExpanded,
+    isResizing,
+    setIsResizing,
+    setSelected,
+  } = resizeState;
 
-  const resizeContainerRef = useRef<HTMLDivElement>(null);
+  const expandedResizeContainerRef = useRef<HTMLDivElement>(null);
   const [editor] = useLexicalComposerContext();
 
-  useEffect(() => {
-    if (isExpanded) {
-      resizeContainerRef.current?.focus();
-    }
-  }, [isExpanded]);
-
-  useTrapFocus(resizeContainerRef, isExpanded);
-  const shouldUseMouseActivity = useMouseActivity(1500, isExpanded);
+  useTrapFocus(expandedResizeContainerRef, isExpanded);
+  const [shouldUseMouseActivity, setShouldUseMouseActivity] = useMouseActivity(
+    1500,
+    isExpanded
+  );
   const isLeftAndRightArrowKeysShowing =
     elementType !== 'excalidraw' && shouldUseMouseActivity;
 
   return (
     <>
       <motion.div
-        ref={resizeContainerRef}
+        ref={expandedResizeContainerRef}
         onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
           if (e.key === 'Escape' && isExpanded) {
             setIsExpanded(false);
@@ -105,7 +107,10 @@ export function ResizeContainer({
           {isSelected && !isExpanded && (
             <>
               <motion.span
-                className="absolute max-w-full z-20 h-full w-full border-[4px] border-(--accent-color) rounded-xs pointer-events-none"
+                className={cn(
+                  'absolute z-20 h-full w-full border-[4px] border-(--accent-color) rounded-xs pointer-events-none',
+                  !isResizing && 'max-w-full'
+                )}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -154,80 +159,84 @@ export function ResizeContainer({
             onClick={() => setIsExpanded(false)}
             className="fixed z-40 w-screen h-screen bg-black left-0 top-0"
           />
-          <motion.button
-            {...getDefaultButtonVariants()}
-            onClick={(e: MouseEvent<HTMLButtonElement>) => {
-              setIsExpanded(false);
-              e.stopPropagation();
-            }}
-            className="fixed z-50 right-5 top-4 bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
-            type="submit"
-          >
-            <XMark width={24} height={24} />
-          </motion.button>
+          <div ref={expandedResizeContainerRef} className="relative">
+            <motion.button
+              {...getDefaultButtonVariants()}
+              onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                setIsExpanded(false);
+                e.stopPropagation();
+              }}
+              className="fixed z-50 right-5 top-4 bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
+              type="submit"
+            >
+              <XMark width={24} height={24} />
+            </motion.button>
 
-          <AnimatePresence initial={false}>
-            {isLeftAndRightArrowKeysShowing && (
-              <>
-                <motion.button
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  {...getDefaultButtonVariants()}
-                  onClick={() => {
-                    const isExpandableNeighbor = expandNearestSiblingNode(
-                      editor,
-                      nodeKey,
-                      setIsExpanded,
-                      'left'
-                    );
-                    if (
-                      isExpandableNeighbor &&
-                      ref.current?.tagName === 'VIDEO'
-                    ) {
-                      (ref.current as HTMLVideoElement).pause();
-                    }
-                  }}
-                  className="fixed z-50 bottom-11 left-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
-                  type="submit"
-                >
-                  <CircleArrowLeft width={28} height={28} />
-                </motion.button>
+            <>
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: isLeftAndRightArrowKeysShowing ? 1 : 0,
+                }}
+                onFocus={() => setShouldUseMouseActivity(true)}
+                transition={{ duration: 0.2 }}
+                {...getDefaultButtonVariants()}
+                onClick={() => {
+                  const isExpandableNeighbor = expandNearestSiblingNode(
+                    editor,
+                    nodeKey,
+                    setIsExpanded,
+                    'left'
+                  );
+                  if (
+                    isExpandableNeighbor &&
+                    ref.current?.tagName === 'VIDEO'
+                  ) {
+                    (ref.current as HTMLVideoElement).pause();
+                  }
+                }}
+                className="fixed z-50 bottom-11 left-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
+                type="submit"
+              >
+                <CircleArrowLeft width={28} height={28} />
+              </motion.button>
 
-                <motion.button
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  {...getDefaultButtonVariants()}
-                  onClick={() => {
-                    const isExpandableNeighbor = expandNearestSiblingNode(
-                      editor,
-                      nodeKey,
-                      setIsExpanded,
-                      'right'
-                    );
-                    if (
-                      isExpandableNeighbor &&
-                      ref.current?.tagName === 'VIDEO'
-                    ) {
-                      (ref.current as HTMLVideoElement).pause();
-                    }
-                  }}
-                  className="fixed z-50 bottom-11 right-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
-                  type="submit"
-                >
-                  <CircleArrowRight width={28} height={28} />
-                </motion.button>
-              </>
-            )}
-          </AnimatePresence>
-          {/* Prevents a bug where the resize container size is like 8x8 after leaving fullscreen for videos */}
-          <div
-            style={{
-              width: 0,
-              height: 0,
-            }}
-          />
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: isLeftAndRightArrowKeysShowing ? 1 : 0,
+                }}
+                transition={{ duration: 0.2 }}
+                {...getDefaultButtonVariants()}
+                onFocus={() => setShouldUseMouseActivity(true)}
+                onClick={() => {
+                  const isExpandableNeighbor = expandNearestSiblingNode(
+                    editor,
+                    nodeKey,
+                    setIsExpanded,
+                    'right'
+                  );
+                  if (
+                    isExpandableNeighbor &&
+                    ref.current?.tagName === 'VIDEO'
+                  ) {
+                    (ref.current as HTMLVideoElement).pause();
+                  }
+                }}
+                className="fixed z-50 bottom-11 right-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
+                type="submit"
+              >
+                <CircleArrowRight width={28} height={28} />
+              </motion.button>
+            </>
+            {/* Prevents a bug where the resize container size is like 8x8 after leaving fullscreen for videos */}
+            <div
+              style={{
+                width: 0,
+                height: 0,
+              }}
+            />
+          </div>
         </>
       )}
     </>

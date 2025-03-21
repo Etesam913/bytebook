@@ -93,7 +93,10 @@ export function expandNearestSiblingNode(
  * @param timeout - The duration in milliseconds after which the elements should hide when the mouse is inactive.
  * @returns isVisible - A boolean that indicates whether the elements should be visible.
  */
-export function useMouseActivity(timeout = 1500, isActive = false): boolean {
+export function useMouseActivity(
+  timeout = 1500,
+  isActive = false
+): [boolean, Dispatch<SetStateAction<boolean>>] {
   const [isVisible, setIsVisible] = useState(true);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -126,5 +129,5 @@ export function useMouseActivity(timeout = 1500, isActive = false): boolean {
     };
   }, [isVisible, timeout, isActive]); // Removed timer from dependencies
 
-  return isVisible;
+  return [isVisible, setIsVisible];
 }

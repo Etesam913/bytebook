@@ -64,3 +64,9 @@ type KernelCodeBlockExecuteReply struct {
 	ErrorValue     string   `json:"errorValue"`
 	ErrorTraceback []string `json:"errorTraceback"`
 }
+
+type StreamEventType struct {
+	MessageId string `json:"messageId"`
+	Name      string `json:"name"`
+	Text      string `json:"text"`
+}

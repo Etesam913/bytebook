@@ -10,10 +10,12 @@ import { Languages } from '../editor/nodes/code';
 
 export function PlayButton({
   codeBlockId,
+  setExecutionId,
   codeMirrorInstance,
   language,
 }: {
   codeBlockId: string;
+  setExecutionId: (id: string) => void;
   codeMirrorInstance: ReactCodeMirrorRef | null;
   language: Languages;
 }) {
@@ -26,9 +28,11 @@ export function PlayButton({
     <MotionIconButton
       {...getDefaultButtonVariants()}
       onClick={() => {
+        const newExecutionId = crypto.randomUUID();
+        // setExecutionId(newExecutionId)
         const code = codeMirrorInstance?.view?.state.doc.toString();
         if (!code) return;
-        executeCode(code);
+        executeCode({ code, newExecutionId });
       }}
     >
       {pythonKernelStatus === 'busy' ? <MediaStop /> : <Play />}

@@ -48,9 +48,9 @@ func (c *CodeService) createSocketsAndListenToKernel(language string) project_ty
 		c.ShellSocketDealer = shellSocketDealer
 		go sockets.ListenToShellSocket(shellSocketDealer, c.ConnectionInfo)
 
-		iopubSocketSubscriber := sockets.CreateIOPubSocketSubscriber()
-		c.IOPubSocketSubscriber = iopubSocketSubscriber
-		go sockets.ListenToIOPubSocket(language, iopubSocketSubscriber, c.ConnectionInfo)
+		ioPubSocketSubscriber := sockets.CreateIOPubSocketSubscriber()
+		c.IOPubSocketSubscriber = ioPubSocketSubscriber
+		go sockets.ListenToIOPubSocket(language, ioPubSocketSubscriber, c.ConnectionInfo)
 
 	} else {
 		log.Println("Does nothing, the sockets already exist")
@@ -61,7 +61,7 @@ func (c *CodeService) createSocketsAndListenToKernel(language string) project_ty
 	}
 }
 
-func (c *CodeService) SendExecuteRequest(codeBlockId, language, code string) project_types.BackendResponseWithoutData {
+func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, code string) project_types.BackendResponseWithoutData {
 	response := c.createSocketsAndListenToKernel(language)
 	// If the kernel is already running on the port, then it is fine to send the message
 	if response.Success == false {
@@ -70,7 +70,7 @@ func (c *CodeService) SendExecuteRequest(codeBlockId, language, code string) pro
 	err := messaging.SendExecuteRequest(
 		c.ShellSocketDealer,
 		messaging.ExecuteMessageParams{
-			MessageID: codeBlockId,
+			MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
 			SessionID: "current-session",
 			Code:      code,
 		},

@@ -43,6 +43,7 @@ export type SerializedCodeNode = Spread<
 export class CodeNode extends DecoratorNode<JSX.Element> {
   __id: string;
   __language: Languages;
+  __executionId: string;
   __code: string;
   __isCollapsed: boolean;
   // If a user creates the new code block via ```{language} or /{language} then __isCreatedNow is set to true`
@@ -93,6 +94,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     this.__id = id;
     this.__language = language;
     this.__code = code;
+    this.__executionId = crypto.randomUUID();
     this.__isCollapsed = isCollapsed;
     this.__isCreatedNow = isCreatedNow;
     this.__lastExecutedResult = lastExecutedResult;
@@ -144,6 +146,19 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return this.__lastExecutedResult;
   }
 
+  setTracebackResult(tracebackHTML: string, editor: LexicalEditor): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      writable.__lastExecutedResult += tracebackHTML;
+    });
+  }
+
+  setStreamResult(streamText: string, editor: LexicalEditor): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      writable.__lastExecutedResult += `<div>${streamText}</div>`;
+    });
+  }
   setLastExecutedResult(result: string, editor: LexicalEditor): void {
     editor.update(() => {
       const writable = this.getWritable();
@@ -159,6 +174,17 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     editor.update(() => {
       const writable = this.getWritable();
       writable.__language = language;
+    });
+  }
+
+  getExecutionId() {
+    return this.__executionId;
+  }
+
+  setExecutionId(executionId: string, editor: LexicalEditor): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      writable.__executionId = executionId;
     });
   }
 
@@ -180,6 +206,9 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return (
       <Code
         id={this.getId()}
+        setExecutionId={(executionId: string) =>
+          this.setExecutionId(executionId, _editor)
+        }
         code={this.getCode()}
         setCode={(code: string) => this.setCode(code, _editor)}
         language={this.getLanguage()}

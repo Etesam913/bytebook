@@ -133,21 +133,23 @@ func CreateIOPubSocketSubscriber() *zmq4.Socket {
 	return iopubSocketSubscriber
 }
 
-func ListenToIOPubSocket(language string, iopubSocketSubscriber *zmq4.Socket, connectionInfo ConnectionInfo) {
-	defer iopubSocketSubscriber.Close()
+func ListenToIOPubSocket(language string, ioPubSocketSubscriber *zmq4.Socket, connectionInfo ConnectionInfo) {
+	defer ioPubSocketSubscriber.Close()
 
 	// Connect to the same IP and iopub port as your IOPub socket
-	iopubAddress := fmt.Sprintf("tcp://%s:%d", connectionInfo.IP, connectionInfo.IOPubPort)
-	if err := iopubSocketSubscriber.Connect(iopubAddress); err != nil {
+	ioPubAddress := fmt.Sprintf("tcp://%s:%d", connectionInfo.IP, connectionInfo.IOPubPort)
+	if err := ioPubSocketSubscriber.Connect(ioPubAddress); err != nil {
 		log.Fatal("Could not connect io 🍺 socket subscriber to port:", err)
 	}
 
-	// Listen to everything
-	iopubSocketSubscriber.SetSubscribe("")
 	app := application.Get()
+	if err := ioPubSocketSubscriber.SetSubscribe(""); err != nil {
+		log.Fatal("Could not set subscribe:", err)
+	}
+
 	for {
 		// Receive a multipart message
-		envelope, err := iopubSocketSubscriber.RecvMessageBytes(0)
+		envelope, err := ioPubSocketSubscriber.RecvMessageBytes(0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -156,6 +158,12 @@ func ListenToIOPubSocket(language string, iopubSocketSubscriber *zmq4.Socket, co
 		identities, msg, signature, err := messaging.ParseMultipartMessage(envelope)
 		if err != nil {
 			log.Println("Error parsing message:", err)
+			continue
+		}
+
+		msgId, ok := msg.ParentHeader["msg_id"].(string)
+		if !ok {
+			log.Println("⚠️ Invalid message ID type")
 			continue
 		}
 
@@ -169,6 +177,15 @@ func ListenToIOPubSocket(language string, iopubSocketSubscriber *zmq4.Socket, co
 		switch msg.Header.MsgType {
 		case "stream":
 			log.Printf("📢 Stdout: %s\n", msg.Content["text"])
+			name, isNameString := msg.Content["name"].(string)
+			text, isTextString := msg.Content["text"].(string)
+			if isNameString && isTextString {
+				app.EmitEvent("code:code-block:stream", project_types.StreamEventType{
+					MessageId: msgId,
+					Name:      name,
+					Text:      text,
+				})
+			}
 			// emit kernel:python:code-block-{msg.Header.MsgID}:stdout event here
 		case "execute_result":
 			log.Printf("✅ Execution result: %v\n", msg.Content["data"])

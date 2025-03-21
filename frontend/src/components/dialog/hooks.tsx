@@ -22,6 +22,8 @@ export const useTrapFocus = (
     const lastFocusableElement = focusableElements.at(
       focusableElements.length - 1
     ) as HTMLElement | undefined;
+
+    console.log({ firstFocusableElement, lastFocusableElement });
     const handleKeyDown = (e: KeyboardEvent) => {
       const isTabPressed = e.key === 'Tab' || e.keyCode === 9;
 
@@ -42,7 +44,7 @@ export const useTrapFocus = (
         }
       }
     };
-
+    console.log(firstFocusableElement);
     firstFocusableElement?.focus();
     document.addEventListener('keydown', handleKeyDown);
 

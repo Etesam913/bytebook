@@ -46,6 +46,7 @@ const languageToSettings: Record<Languages, LanguageSetting> = {
 
 export function Code({
   id,
+  setExecutionId,
   code,
   setCode,
   language,
@@ -57,6 +58,7 @@ export function Code({
 }: {
   id: string;
   code: string;
+  setExecutionId: (executionId: string) => void;
   setCode: (newCode: string) => void;
   language: Languages;
   nodeKey: string;
@@ -130,6 +132,7 @@ export function Code({
               <Loader className="mx-auto" height={18} width={18} />
             )}
             <PlayButton
+              setExecutionId={setExecutionId}
               codeBlockId={id}
               codeMirrorInstance={codeMirrorInstance}
               language={language}
@@ -138,51 +141,53 @@ export function Code({
         )}
       </div>
       <div className="flex-1 overflow-x-auto">
+        <header
+          className={cn(
+            'flex justify-between gap-1.5 font-code text-xs px-2 py-1 border-b-1 border-b-zinc-200 dark:border-b-zinc-700',
+            isCollapsed && 'border-b-0'
+          )}
+        >
+          <span className="flex items-center gap-1.5">
+            {isCollapsed && (
+              <PlayButton
+                setExecutionId={setExecutionId}
+                codeBlockId={id}
+                codeMirrorInstance={codeMirrorInstance}
+                language={language}
+              />
+            )}
+            {languageToSettings[language].icon}
+            <p>{language}</p>
+          </span>
+          <span className="flex items-center gap-1">
+            <MotionIconButton
+              {...getDefaultButtonVariants()}
+              onClick={() => {
+                if (!codeMirrorInstance) return;
+                const editorContent =
+                  codeMirrorInstance.view?.state.doc.toString();
+                if (!editorContent) return;
+                navigator.clipboard.writeText(editorContent);
+              }}
+            >
+              <Duplicate2 height={16} width={16} />
+            </MotionIconButton>
+            <MotionIconButton
+              {...getDefaultButtonVariants()}
+              onClick={() => {
+                lexicalEditor.update(() => {
+                  removeDecoratorNode(nodeKey);
+                });
+              }}
+            >
+              <Trash height={16} width={16} />
+            </MotionIconButton>
+          </span>
+        </header>
+
         <Suspense
           fallback={<Loader className="mx-auto mt-3" height={18} width={18} />}
         >
-          <header
-            className={cn(
-              'flex justify-between gap-1.5 font-code text-xs px-2 py-1 border-b-1 border-b-zinc-200 dark:border-b-zinc-700',
-              isCollapsed && 'border-b-0'
-            )}
-          >
-            <span className="flex items-center gap-1.5">
-              {isCollapsed && (
-                <PlayButton
-                  codeBlockId={id}
-                  codeMirrorInstance={codeMirrorInstance}
-                  language={language}
-                />
-              )}
-              {languageToSettings[language].icon}
-              <p>{language}</p>
-            </span>
-            <span className="flex items-center gap-1">
-              <MotionIconButton
-                {...getDefaultButtonVariants()}
-                onClick={() => {
-                  if (!codeMirrorInstance) return;
-                  const editorContent =
-                    codeMirrorInstance.view?.state.doc.toString();
-                  if (!editorContent) return;
-                  navigator.clipboard.writeText(editorContent);
-                }}
-              >
-                <Duplicate2 height={16} width={16} />
-              </MotionIconButton>
-              <MotionIconButton
-                {...getDefaultButtonVariants()}
-                onClick={() => {
-                  lexicalEditor.update(() => {
-                    removeDecoratorNode(nodeKey);
-                  });
-                }}
-              >
-                <Trash height={16} width={16} />
-              </MotionIconButton>
-            </span>
-          </header>
           {!isCollapsed && (
             <CodeMirror
               ref={handleEditorRef}
@@ -214,13 +219,13 @@ export function Code({
               }}
             />
           )}
-          {lastExecutedResult && (
-            <footer
-              dangerouslySetInnerHTML={{ __html: lastExecutedResult }}
-              className="flex flex-col justify-between gap-1.5 font-code text-xs pl-1 pr-2 py-1.5 border-t-1 border-t-zinc-200 dark:border-t-zinc-700"
-            ></footer>
-          )}
         </Suspense>
+        {lastExecutedResult && (
+          <footer
+            dangerouslySetInnerHTML={{ __html: lastExecutedResult }}
+            className="flex flex-col justify-between gap-1.5 font-code text-xs pl-1 pr-2 py-1.5 border-t-1 border-t-zinc-200 dark:border-t-zinc-700"
+          ></footer>
+        )}
       </div>
     </div>
   );
