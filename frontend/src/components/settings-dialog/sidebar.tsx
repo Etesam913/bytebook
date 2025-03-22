@@ -2,13 +2,12 @@ import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import type { SettingsTab } from '.';
 import { CodeMerge } from '../../icons/code-merge';
 import { ColorPalette2 } from '../../icons/color-palette-2';
-import { TerminalIcon } from '../../icons/terminal';
 import { cn } from '../../utils/string-formatting';
 
 const settingsItems: { id: SettingsTab; title: string; icon: ReactNode }[] = [
   { id: 'appearance', title: 'Appearance', icon: <ColorPalette2 /> },
   { id: 'github', title: 'GitHub', icon: <CodeMerge /> },
-  { id: 'code-block', title: 'Code Block', icon: <TerminalIcon /> },
+  { id: 'code-block', title: 'Code Block', icon: <></> },
 ];
 
 export function SettingsSidebar({

@@ -7,9 +7,7 @@ import { MaximizeNoteButton } from '../../components/buttons/maximize-note';
 import { NotesEditor } from '../../components/editor';
 import { BottomBar } from '../../components/editor/bottom-bar';
 import { useMostRecentNotes } from '../../components/editor/hooks/note-metadata';
-import { useCreateNoteDialog } from '../../hooks/dialogs';
 import { useNoteRevealInFinderMutation } from '../../hooks/notes';
-import { Compose } from '../../icons/compose';
 import { FileBan } from '../../icons/file-ban';
 import { ShareRight } from '../../icons/share-right';
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../../types';
@@ -44,27 +42,10 @@ export function RenderNote({
 
   const fileUrl = `${FILE_SERVER_URL}/notes/${folder}/${note}.${normalizedExtension}`;
 
-  const createNoteDialog = useCreateNoteDialog();
   useMostRecentNotes(folder, note, normalizedExtension);
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation(false);
 
-  if (!note)
-    return (
-      <div className="flex flex-col items-center justify-center h-screen flex-1 gap-3 pb-16 px-3 text-center">
-        <Compose width={48} height={48} />
-        <h1 className="text-base font-bold ">
-          Click the{' '}
-          <button
-            type="button"
-            className="link inline"
-            onClick={() => createNoteDialog(folder)}
-          >
-            &quot;Create Note&quot;
-          </button>{' '}
-          button to get started
-        </h1>
-      </div>
-    );
+  if (!note) return null;
   return (
     <motion.div
       className="flex min-w-0 flex-1 flex-col leading-7 h-screen "

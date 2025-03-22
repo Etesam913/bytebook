@@ -15,7 +15,6 @@ import (
 	"github.com/etesam913/bytebook/lib/menus"
 	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/etesam913/bytebook/lib/tags_helper"
-	"github.com/etesam913/bytebook/lib/terminal_helpers"
 	"github.com/etesam913/bytebook/services"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -70,7 +69,6 @@ func main() {
 	git_helpers.InitializeGitRepo(projectPath)
 	git_helpers.SetRepoOrigin(projectSettings.Data.RepositoryToSyncTo)
 
-	terminal_helpers.GenerateFoldersForLanguages(projectPath)
 	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "settings"))
 	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "tags"))
 
@@ -97,9 +95,6 @@ func main() {
 				&services.SettingsService{ProjectPath: projectPath},
 			),
 			application.NewService(
-				&services.TerminalService{},
-			),
-			application.NewService(
 				&services.TagsService{ProjectPath: projectPath},
 			),
 			application.NewService(
@@ -118,8 +113,6 @@ func main() {
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
 	})
-
-	terminal_helpers.ListenToTerminalCreateEvent(app, projectPath)
 
 	backgroundColor := application.NewRGB(27, 38, 54)
 	if app.IsDarkMode() {

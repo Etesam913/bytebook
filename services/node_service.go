@@ -4,14 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/go-git/go-git/v5"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
-	"github.com/etesam913/bytebook/lib/project_helpers"
-	"github.com/etesam913/bytebook/lib/terminal_helpers"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -25,84 +22,7 @@ type NodeResponse struct {
 	Message string `json:"message"`
 }
 
-type CodeResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Id      string `json:"id"`
-}
-
 type CodeContextStore = map[string]context.CancelFunc
-
-// UpdateTempCodeFile creates a temporary file for the given code and returns a CodeResponse
-// It handles different programming languages and performs necessary setup
-func (n *NodeService) UpdateTempCodeFile(nodeKey string, language string, code string, command string) CodeResponse {
-	// Get the file extension for the given language
-	extensionExists, extension := terminal_helpers.GetExtensionFromLanguage(language)
-
-	// Generate a unique ID for this operation
-	uniqueId, _ := project_helpers.GenerateRandomID()
-
-	// Check if the language is supported
-	if !extensionExists {
-		return CodeResponse{
-			Success: false,
-			Message: "Your programming language is invalid",
-			Id:      uniqueId,
-		}
-	}
-
-	// Create the directory for the temporary file
-	dirPath := filepath.Join(n.ProjectPath, language, "src")
-	err := os.MkdirAll(dirPath, 0755)
-	if err != nil {
-		return CodeResponse{
-			Success: false,
-			Message: "Failed to create directory. Please try again later.",
-			Id:      uniqueId,
-		}
-	}
-
-	// Create the temporary file
-	filePath := filepath.Join(dirPath, "main"+extension)
-	file, err := os.Create(filePath)
-	if err != nil {
-		return CodeResponse{
-			Success: false,
-			Message: "Something went wrong when creating the file. Please try again later.",
-			Id:      uniqueId,
-		}
-	}
-	defer file.Close()
-
-	// Write the code to the file
-	_, err = file.WriteString(code)
-	if err != nil {
-		return CodeResponse{
-			Success: false,
-			Message: "Something went wrong when running your code. Please try again later",
-			Id:      uniqueId,
-		}
-	}
-
-	// Handle Rust-specific setup
-	if language == "rust" {
-		err = terminal_helpers.WriteCargoToml(filepath.Join(n.ProjectPath, language))
-		if err != nil {
-			return CodeResponse{
-				Success: false,
-				Message: "Something went wrong when running your code. Please try again later",
-				Id:      uniqueId,
-			}
-		}
-	}
-
-	// Return success response
-	return CodeResponse{
-		Success: true,
-		Message: "Successfully updated code",
-		Id:      uniqueId,
-	}
-}
 
 type GitResponse struct {
 	Success bool   `json:"success"`

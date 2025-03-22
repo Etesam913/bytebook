@@ -29,11 +29,9 @@ import {
   useEffect,
 } from 'react';
 import { GetNoteMarkdown } from '../../../../bindings/github.com/etesam913/bytebook/services/noteservice';
-import { ShutoffTerminals } from '../../../../bindings/github.com/etesam913/bytebook/services/terminalservice';
 import { draggedElementAtom, noteContainerRefAtom } from '../../../atoms';
 import type { EditorBlockTypes, FloatingDataType } from '../../../types';
 import { QueryError } from '../../../utils/query';
-import { CodeNode } from '../nodes/code';
 import { CUSTOM_TRANSFORMERS } from '../transformers';
 import {
   overrideClickCommand,
@@ -98,32 +96,6 @@ export function useNoteMarkdown(
       return res.data;
     },
   });
-}
-
-export function useMutationListener(
-  editor: LexicalEditor,
-  folder: string,
-  note: string,
-  frontmatter: Record<string, string>
-) {
-  useEffect(() => {
-    const codeNodeMutationListener = editor.registerMutationListener(
-      CodeNode,
-      (mutatedNodes) => {
-        const codeKeys: string[] = [];
-        for (const [nodeKey, mutation] of mutatedNodes) {
-          if (mutation === 'destroyed') {
-            codeKeys.push(nodeKey);
-          }
-        }
-        ShutoffTerminals(codeKeys);
-      }
-    );
-
-    return () => {
-      codeNodeMutationListener();
-    };
-  }, [folder, note, frontmatter]);
 }
 
 /**

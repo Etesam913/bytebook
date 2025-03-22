@@ -78,8 +78,6 @@ export function Toolbar({
     setNoteMarkdownString
   );
 
-  // useMutationListener(editor, folder, note, frontmatter);
-
   useToolbarEvents(
     editor,
     setDisabled,

@@ -38,7 +38,6 @@ import { PythonLogo } from '../../../icons/python-logo';
 // import { ReactLogo } from '../../../icons/react-logo';
 // import { RustLogo } from '../../../icons/rust-logo';
 // import { SvelteLogo } from '../../../icons/svelte-logo';
-// import { TerminalIcon } from '../../../icons/terminal';
 import { Text } from '../../../icons/text';
 // import { VueLogo } from '../../../icons/vue-logo';
 import {
@@ -107,13 +106,6 @@ const languageCommandData: {
   //   keywords: ['javascript', 'svelte', 'js'],
   //   icon: <SvelteLogo height="17" width="17" />,
   //   name: 'Svelte',
-  // },
-  // {
-  //   id: 'terminal',
-  //   keywords: ['terminal', 'command', 'prompt', 'bash', 'zsh', 'sh'],
-  //   icon: <TerminalIcon />,
-  //   name: 'Terminal',
-  // },
 ];
 /**
  * Generates a list of base options for the dropdown picker menu in the Lexical editor.

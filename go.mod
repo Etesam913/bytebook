@@ -6,7 +6,6 @@ toolchain go1.23.4
 
 require (
 	github.com/Kei-K23/trashbox v0.1.5
-	github.com/creack/pty v1.1.23
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/go-git/go-git/v5 v5.14.0
 	github.com/stretchr/testify v1.10.0

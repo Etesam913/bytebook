@@ -28,7 +28,7 @@ export const debouncedNoteHandleChange = debounce(noteHandleChange, 275);
  *
  * @param editor - The LexicalEditor instance that is being updated.
  * @param tags - A set of tags indicating the context of the change, such as
- * "note:changed-from-other-window", "note:initial-load", or "note:terminal-change".
+ * "note:changed-from-other-window" or "note:initial-load"
  */
 async function noteHandleChange(editor: LexicalEditor, tags: Set<string>) {
   /*
@@ -41,22 +41,12 @@ async function noteHandleChange(editor: LexicalEditor, tags: Set<string>) {
   ) {
     return;
   }
-  /*
-		Saves any changes to the markdown content. We don't want to propagate changes to the other note
-		windows when the change is made to a terminal component as this will lead to an infinite loop
-	*/
   editor.update(
     () => {
-      editor.dispatchCommand(
-        SAVE_MARKDOWN_CONTENT,
-        tags.has('note:terminal-change')
-          ? { shouldSkipNoteChangedEmit: true }
-          : undefined
-      );
+      editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, undefined);
     },
     { tag: 'note:changed-from-other-window' }
   );
-  // await queryClient.invalidateQueries({ queryKey });
 }
 /**
  * Makes it so that the code-block undo/redo stack is not affected by the undo/redo stack of the editor
