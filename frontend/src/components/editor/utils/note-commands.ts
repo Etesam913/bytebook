@@ -139,20 +139,25 @@ export function overrideUpDownKeyCommand(
     nextNodeChild = nextNode.getChildren().at(0) ?? null;
   }
   const nodeToSelect = nextNodeChild ?? nextNode;
-
   // going from <p> -> <img>
   if ($isDecoratorNode(nodeToSelect)) {
     const newNodeSelection = $createNodeSelection();
     newNodeSelection.add(nodeToSelect.getKey());
     $setSelection(newNodeSelection);
+    // The code-block has its own focus so we have to blur it
+    if (node.getType() === 'code-block') {
+      document.getElementById('content-editable-editor')?.focus();
+    }
     event.preventDefault();
   }
   // going from <img> -> <p>
   else if ($isDecoratorNode(node)) {
     event.preventDefault();
-    if (node.getType() !== 'code-block') {
-      nodeToSelect?.selectEnd();
+    // The code-block has its own focus so we have to blur it
+    if (node.getType() === 'code-block') {
+      document.getElementById('content-editable-editor')?.focus();
     }
+    nodeToSelect?.selectEnd();
   }
 
   return true;

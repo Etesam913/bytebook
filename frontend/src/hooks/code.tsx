@@ -38,7 +38,6 @@ function updateCodeBlock(
       (node) => node.getId() === codeBlockId
     );
     if (codeNodeToUpdate) {
-      console.log(executionId, codeNodeToUpdate.getExecutionId());
       // This is a fresh execution, so it does not have a result
       if (executionId !== codeNodeToUpdate.getExecutionId()) {
         codeNodeToUpdate.setExecutionId(executionId, editor);

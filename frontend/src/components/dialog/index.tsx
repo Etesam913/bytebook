@@ -105,7 +105,6 @@ export function Dialog() {
                   isPending: true,
                 }));
                 const result = await dialogData.onSubmit(e, setErrorText);
-                console.log(result);
                 setDialogData((prev) => ({
                   ...prev,
                   isPending: false,

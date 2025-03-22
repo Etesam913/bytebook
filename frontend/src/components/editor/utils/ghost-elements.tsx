@@ -13,7 +13,6 @@ export function constructGhostElementForNode(
   node: LexicalNode,
   ghostElement: HTMLElement
 ) {
-  console.log(node.getType());
   if (node.getType() === 'file') {
     const fileNode = node as FileNode;
     if (fileNode.getElementType() === 'image') {

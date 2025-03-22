@@ -10,11 +10,17 @@ import { runCode } from '../../utils/code';
 import { focusEditor, languageToSettings } from '.';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { Languages } from '../editor/nodes/code';
+import {
+  KEY_ARROW_DOWN_COMMAND,
+  KEY_ARROW_UP_COMMAND,
+  LexicalEditor,
+} from 'lexical';
 
 const CodeMirror = lazy(() => import('@uiw/react-codemirror'));
 
 export function CodeMirrorEditor({
   nodeKey,
+  lexicalEditor,
   codeMirrorInstance,
   setCodeMirrorInstance,
   code,
@@ -24,6 +30,7 @@ export function CodeMirrorEditor({
   isCreatedNow,
 }: {
   nodeKey: string;
+  lexicalEditor: LexicalEditor;
   codeMirrorInstance: ReactCodeMirrorRef | null;
   setCodeMirrorInstance: (instance: ReactCodeMirrorRef | null) => void;
   code: string;
@@ -40,6 +47,62 @@ export function CodeMirrorEditor({
   // Custom keymap for running code with keyboard shortcuts
   const runCodeKeymap = Prec.highest(
     keymap.of([
+      {
+        key: 'ArrowUp',
+        run: (view) => {
+          // Get cursor position
+          const cursorPos = view.state.selection.main.head;
+          const currentLine = view.state.doc.lineAt(cursorPos).number - 1;
+          // If on first line, handle specially
+          if (currentLine <= 0) {
+            // Just consume the event within CodeMirror
+            const arrowUpEvent = new KeyboardEvent('keydown', {
+              key: 'ArrowUp', // The key value (e.g., "ArrowUp")
+              code: 'ArrowUp', // The physical key on the keyboard
+              keyCode: 38, // Legacy property for older browsers (38 is the code for ArrowUp)
+              which: 38, // Legacy property for older browsers
+              bubbles: true, // Ensures the event bubbles up through the DOM
+              cancelable: true, // Allows the event to be canceled (e.g., preventDefault)
+            });
+
+            lexicalEditor.update(() => {
+              lexicalEditor.dispatchCommand(KEY_ARROW_UP_COMMAND, arrowUpEvent);
+            });
+
+            return false;
+          }
+
+          // Return false to let CodeMirror handle it normally
+          return false;
+        },
+      },
+      {
+        key: 'ArrowDown',
+        run: (view) => {
+          const cursorPos = view.state.selection.main.head;
+          const currentLine = view.state.doc.lineAt(cursorPos).number + 1;
+
+          if (currentLine > view.state.doc.lines) {
+            const arrowDownEvent = new KeyboardEvent('keydown', {
+              key: 'ArrowDown',
+              code: 'ArrowDown',
+              keyCode: 40, // Legacy property for older browsers
+              which: 40, // Legacy property for older browsers
+              bubbles: true,
+              cancelable: true,
+            });
+            lexicalEditor.update(() => {
+              lexicalEditor.dispatchCommand(
+                KEY_ARROW_DOWN_COMMAND,
+                arrowDownEvent
+              );
+            });
+            return true;
+          }
+
+          return false;
+        },
+      },
       {
         key: 'Shift-Enter',
         run: () => {

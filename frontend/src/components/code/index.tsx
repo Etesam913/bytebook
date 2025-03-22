@@ -161,6 +161,7 @@ export function Code({
           {!isCollapsed && (
             <CodeMirrorEditor
               nodeKey={nodeKey}
+              lexicalEditor={lexicalEditor}
               codeMirrorInstance={codeMirrorInstance}
               setCodeMirrorInstance={setCodeMirrorInstance}
               code={code}

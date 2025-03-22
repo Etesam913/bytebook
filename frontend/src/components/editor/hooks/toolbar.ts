@@ -172,11 +172,13 @@ export function useToolbarEvents(
       editor.registerCommand(
         KEY_ARROW_UP_COMMAND,
         (event) => overrideUpDownKeyCommand(event, 'up'),
+        // This priority is needed for arrow key to work with command picker
         COMMAND_PRIORITY_LOW
       ),
       editor.registerCommand(
         KEY_ARROW_DOWN_COMMAND,
         (event) => overrideUpDownKeyCommand(event, 'down'),
+        // This priority is needed for arrow key to work with command picker
         COMMAND_PRIORITY_LOW
       ),
       editor.registerCommand(

@@ -211,7 +211,6 @@ function importCodeBlock(
           }
           if (key === 'lastExecutedResult') {
             codeBlockParams.lastExecutedResult = value;
-            console.log('lastExecutedResult:', value);
           }
         }
 
