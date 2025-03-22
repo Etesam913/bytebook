@@ -1,4 +1,4 @@
-import { JSX, Suspense, useEffect, useState } from 'react';
+import { JSX, lazy, Suspense, useEffect, useState } from 'react';
 import { langs } from '@uiw/codemirror-extensions-langs';
 import type { LanguageSupport, StreamLanguage } from '@codemirror/language';
 import { BasicSetupOptions, ReactCodeMirrorRef } from '@uiw/react-codemirror';
@@ -18,8 +18,13 @@ import { Languages } from '../editor/nodes/code';
 import { GolangLogo } from '../../icons/golang-logo';
 import { PlayButton } from './play-button';
 import { CollapseButton } from './collapse-button';
-import { CodeMirrorEditor } from './codemirror-editor';
 import { CodeResult } from './code-result';
+
+const CodeMirrorEditor = lazy(() =>
+  import('./codemirror-editor').then((module) => ({
+    default: module.CodeMirrorEditor,
+  }))
+);
 
 type LanguageSetting = {
   basicSetup?: BasicSetupOptions;

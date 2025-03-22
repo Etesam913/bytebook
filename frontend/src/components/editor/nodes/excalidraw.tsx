@@ -7,13 +7,18 @@ import type {
   Spread,
 } from 'lexical';
 import { $applyNodeReplacement, DecoratorNode } from 'lexical';
-import type { JSX } from 'react';
+import { lazy, Suspense, type JSX } from 'react';
 import type { ResizeWidth } from '../../../types';
-import { ExcalidrawComponent } from '../../excalidraw';
 import type {
   ExcalidrawElement,
   NonDeletedExcalidrawElement,
 } from '@excalidraw/excalidraw/element/types';
+
+const ExcalidrawComponentLazy = lazy(() =>
+  import('../../excalidraw').then((module) => ({
+    default: module.ExcalidrawComponent,
+  }))
+);
 
 export interface ExcalidrawPayload {
   key?: NodeKey;
@@ -111,14 +116,16 @@ export class ExcalidrawNode extends DecoratorNode<JSX.Element> {
 
   decorate(_editor: LexicalEditor): JSX.Element {
     return (
-      <ExcalidrawComponent
-        nodeKey={this.getKey()}
-        isCreatedNow={this.getIsCreatedNow()}
-        defaultElements={this.getElements()}
-        writeElementsToNode={(elements: NonDeletedExcalidrawElement[]) => {
-          this.setElements(elements, _editor);
-        }}
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <ExcalidrawComponentLazy
+          nodeKey={this.getKey()}
+          isCreatedNow={this.getIsCreatedNow()}
+          defaultElements={this.getElements()}
+          writeElementsToNode={(elements: NonDeletedExcalidrawElement[]) => {
+            this.setElements(elements, _editor);
+          }}
+        />
+      </Suspense>
     );
   }
 }

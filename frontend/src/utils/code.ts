@@ -1,5 +1,5 @@
 import { UseMutateFunction } from '@tanstack/react-query';
-import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
+import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 
 export function runCode(
   codeMirrorInstance: ReactCodeMirrorRef | null,

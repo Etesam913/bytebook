@@ -6,8 +6,13 @@ import type {
   Spread,
 } from 'lexical';
 import { $applyNodeReplacement, DecoratorNode } from 'lexical';
-import type { JSX } from 'react';
-import { InlineEquation } from '../../inline-equation';
+import { Suspense, lazy, type JSX } from 'react';
+
+const InlineEquationLazy = lazy(() =>
+  import('../../inline-equation').then((module) => ({
+    default: module.InlineEquation,
+  }))
+);
 
 export interface InlineEquationPayload {
   key?: NodeKey;
@@ -91,14 +96,16 @@ export class InlineEquationNode extends DecoratorNode<JSX.Element> {
 
   decorate(_editor: LexicalEditor): JSX.Element {
     return (
-      <InlineEquation
-        writeEquationToNode={(equation: string) =>
-          this.setEquation(equation, _editor)
-        }
-        defaultIsEditing={this.getDefaultIsEditing()}
-        nodeKey={this.getKey()}
-        equationFromNode={this.getEquation()}
-      />
+      <Suspense>
+        <InlineEquationLazy
+          writeEquationToNode={(equation: string) =>
+            this.setEquation(equation, _editor)
+          }
+          defaultIsEditing={this.getDefaultIsEditing()}
+          nodeKey={this.getKey()}
+          equationFromNode={this.getEquation()}
+        />
+      </Suspense>
     );
   }
 }

@@ -1,9 +1,12 @@
 import { vscodeLight } from '@uiw/codemirror-theme-vscode';
 import { nord } from '@uiw/codemirror-theme-nord';
-import { lazy } from 'react';
 import { useAtomValue } from 'jotai/react';
 import { isDarkModeOnAtom } from '../../atoms';
-import { keymap, Prec, ReactCodeMirrorRef } from '@uiw/react-codemirror';
+import CodeMirror, {
+  keymap,
+  Prec,
+  type ReactCodeMirrorRef,
+} from '@uiw/react-codemirror';
 import { debounce } from '../../utils/general';
 import { useSendExecuteRequestMutation } from '../../hooks/code';
 import { runCode } from '../../utils/code';
@@ -15,8 +18,6 @@ import {
   KEY_ARROW_UP_COMMAND,
   LexicalEditor,
 } from 'lexical';
-
-const CodeMirror = lazy(() => import('@uiw/react-codemirror'));
 
 export function CodeMirrorEditor({
   nodeKey,

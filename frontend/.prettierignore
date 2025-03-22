@@ -3,3 +3,4 @@ dist
 bindings
 src/assets
 pnpm-lock.yaml
+bundle-analysis.html

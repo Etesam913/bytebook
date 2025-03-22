@@ -4,7 +4,7 @@ import { MediaStop } from '../../icons/media-stop';
 import { useAtomValue } from 'jotai/react';
 import { pythonKernelStatusAtom } from '../../atoms';
 import { getDefaultButtonVariants } from '../../animations';
-import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
+import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { useSendExecuteRequestMutation } from '../../hooks/code';
 import { Languages } from '../editor/nodes/code';
 import { runCode } from '../../utils/code';
