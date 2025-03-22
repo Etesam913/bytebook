@@ -46,7 +46,6 @@ const languageToSettings: Record<Languages, LanguageSetting> = {
 
 export function Code({
   id,
-  setExecutionId,
   code,
   setCode,
   language,
@@ -58,7 +57,6 @@ export function Code({
 }: {
   id: string;
   code: string;
-  setExecutionId: (executionId: string) => void;
   setCode: (newCode: string) => void;
   language: Languages;
   nodeKey: string;
@@ -132,7 +130,6 @@ export function Code({
               <Loader className="mx-auto" height={18} width={18} />
             )}
             <PlayButton
-              setExecutionId={setExecutionId}
               codeBlockId={id}
               codeMirrorInstance={codeMirrorInstance}
               language={language}
@@ -150,7 +147,6 @@ export function Code({
           <span className="flex items-center gap-1.5">
             {isCollapsed && (
               <PlayButton
-                setExecutionId={setExecutionId}
                 codeBlockId={id}
                 codeMirrorInstance={codeMirrorInstance}
                 language={language}

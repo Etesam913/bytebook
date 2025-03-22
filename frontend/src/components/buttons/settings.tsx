@@ -15,7 +15,11 @@ export function SettingsButton() {
           title: 'Settings',
           dialogClassName: 'w-[min(55rem,90vw)]',
           children: () => <SettingsDialog />,
-          onSubmit: null,
+          onSubmit: async () => {
+            return new Promise((resolve) => {
+              resolve(true);
+            });
+          },
         });
       }}
       className="flex gap-1 items-center hover:bg-zinc-100 dark:hover:bg-zinc-650 p-1 rounded-md transition-colors"

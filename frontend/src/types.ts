@@ -1,5 +1,6 @@
 import type { HeadingTagType } from '@lexical/rich-text';
 import type { Dispatch, FormEvent, ReactNode, SetStateAction } from 'react';
+import { ProjectSettingsJson } from '../bindings/github.com/etesam913/bytebook/lib/project_types/models';
 
 export const IMAGE_FILE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
 
@@ -87,13 +88,13 @@ export type WindowSettings = {
   windowId: string;
 };
 
-export type ProjectSettings = {
+export type ProjectSettings = Omit<
+  ProjectSettingsJson,
+  'pinnedNotes' | 'darkMode' | 'noteSidebarItemSize' | 'noteWidth'
+> & {
   pinnedNotes: Set<string>;
-  projectPath: string;
-  repositoryToSyncTo: string;
   darkMode: 'light' | 'dark' | 'system';
   noteSidebarItemSize: 'list' | 'card';
-  accentColor: string;
   noteWidth: 'fullWidth' | 'readability';
 };
 

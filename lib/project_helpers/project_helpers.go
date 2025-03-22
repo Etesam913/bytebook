@@ -77,6 +77,7 @@ func GetProjectSettings(projectPath string) project_types.ProjectSettingsReponse
 				DarkMode:            "light",
 				NoteSidebarItemSize: "card",
 				AccentColor:         "",
+				EditorFontFamily:    "Bricolage Grotesque",
 			},
 		)
 		if err != nil {

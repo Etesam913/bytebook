@@ -10,12 +10,10 @@ import { Languages } from '../editor/nodes/code';
 
 export function PlayButton({
   codeBlockId,
-  setExecutionId,
   codeMirrorInstance,
   language,
 }: {
   codeBlockId: string;
-  setExecutionId: (id: string) => void;
   codeMirrorInstance: ReactCodeMirrorRef | null;
   language: Languages;
 }) {

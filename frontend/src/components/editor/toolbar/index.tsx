@@ -23,7 +23,6 @@ import {
   blockTypesDropdownItems,
   changeSelectedBlocksType,
 } from '../utils/toolbar';
-import { FontFamilyInput } from './font-family-input';
 import { SettingsDropdown } from './settings-dropdown';
 import {
   useCodeBlockExecuteReply,
@@ -147,12 +146,12 @@ export function Toolbar({
             buttonClassName="w-[10rem]"
             disabled={disabled}
           />
-          <FontFamilyInput
+          {/* <FontFamilyInput
             frontmatter={frontmatter}
             setFrontmatter={setFrontmatter}
             editor={editor}
             disabled={disabled}
-          />
+          /> */}
         </span>
         <ToolbarButtons
           canUndo={canUndo}

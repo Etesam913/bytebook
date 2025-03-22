@@ -127,7 +127,7 @@ export function NotesEditor({
           ref={noteContainerRef}
           style={{
             scrollbarGutter: 'stable',
-            fontFamily: `"${frontmatter.fontFamily}", "Bricolage Grotesque"`,
+            fontFamily: `"${projectSettings.editorFontFamily}", "Bricolage Grotesque"`,
           }}
           className={cn(
             'h-full p-4 relative flex-1 w-full',

@@ -206,9 +206,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return (
       <Code
         id={this.getId()}
-        setExecutionId={(executionId: string) =>
-          this.setExecutionId(executionId, _editor)
-        }
         code={this.getCode()}
         setCode={(code: string) => this.setCode(code, _editor)}
         language={this.getLanguage()}

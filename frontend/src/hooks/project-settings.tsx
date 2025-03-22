@@ -35,41 +35,31 @@ async function getProjectSettings(
   setProjectSettings: Dispatch<SetStateAction<ProjectSettings>>
 ) {
   try {
-    const projectSettingsResponse = await GetProjectSettings();
-    if (!projectSettingsResponse.success) {
-      throw new Error(projectSettingsResponse.message);
-    }
-    const {
-      projectPath,
-      pinnedNotes,
-      repositoryToSyncTo,
-      darkMode: darkModeUnvalidated,
-      noteSidebarItemSize: noteSidebarItemSizeUnvalidated,
-      accentColor,
-      noteWidth,
-    } = projectSettingsResponse.data;
+    const { success, message, data } = await GetProjectSettings();
+    if (!success) throw new Error(message);
 
     const { darkMode, noteSidebarItemSize } = validateProjectSettings({
-      darkMode: darkModeUnvalidated,
-      noteSidebarItemSize: noteSidebarItemSizeUnvalidated,
+      darkMode: data.darkMode,
+      noteSidebarItemSize: data.noteSidebarItemSize,
     });
-    updateAccentColorVariable(accentColor);
+
+    updateAccentColorVariable(data.accentColor);
 
     setProjectSettings({
-      projectPath,
-      pinnedNotes: new Set(pinnedNotes),
-      repositoryToSyncTo,
+      ...data,
+      pinnedNotes: new Set(data.pinnedNotes),
       darkMode,
       noteSidebarItemSize,
-      accentColor,
-      noteWidth: noteWidth as 'fullWidth' | 'readability',
+      noteWidth: data.noteWidth as 'fullWidth' | 'readability',
     });
   } catch (err) {
-    if (err instanceof Error) {
-      toast.error(err.message, DEFAULT_SONNER_OPTIONS);
-    }
+    toast.error(
+      err instanceof Error ? err.message : String(err),
+      DEFAULT_SONNER_OPTIONS
+    );
   }
 }
+
 export function useProjectSettings() {
   const setProjectSettings = useSetAtom(projectSettingsAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
@@ -88,7 +78,11 @@ export function useProjectSettings() {
       title: 'Settings',
       dialogClassName: 'w-[min(55rem,90vw)]',
       children: () => <SettingsDialog />,
-      onSubmit: null,
+      onSubmit: async () => {
+        return new Promise((resolve) => {
+          resolve(true);
+        });
+      },
     });
   });
 

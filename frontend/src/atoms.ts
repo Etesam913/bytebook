@@ -43,6 +43,7 @@ export const projectSettingsAtom = atom<ProjectSettings>({
   noteSidebarItemSize: 'card',
   accentColor: '',
   noteWidth: 'fullWidth',
+  editorFontFamily: 'Bricolage Grotesque',
 });
 export const projectSettingsWithQueryParamsAtom = atom((get) => {
   const projectSettings = get(projectSettingsAtom);

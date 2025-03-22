@@ -17,6 +17,7 @@ type ProjectSettingsJson struct {
 	NoteSidebarItemSize string   `json:"noteSidebarItemSize"`
 	AccentColor         string   `json:"accentColor"`
 	NoteWidth           string   `json:"noteWidth"`
+	EditorFontFamily    string   `json:"editorFontFamily"`
 }
 
 type AllKernels struct {

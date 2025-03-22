@@ -1,4 +1,5 @@
 import { cn } from '../../../utils/string-formatting';
+import { FontFamilyRow } from './font-family-row';
 import { NoteSidebarItemSizeRow } from './note-sidebar-item-size-row';
 import { NoteWidthRow } from './note-width-row';
 import { ThemeRow } from './theme-row';
@@ -47,6 +48,7 @@ export function SettingImage({
 export function AppearancePage() {
   return (
     <>
+      <FontFamilyRow />
       <ThemeRow />
       <NoteWidthRow />
       <NoteSidebarItemSizeRow />

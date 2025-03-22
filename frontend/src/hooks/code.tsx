@@ -6,7 +6,7 @@ import { KernelStatus } from '../types';
 import { useMutation } from '@tanstack/react-query';
 import { SendExecuteRequest } from '../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { QueryError } from '../utils/query';
-import { $nodesOfType, LexicalEditor, LexicalNode } from 'lexical';
+import { $nodesOfType, LexicalEditor } from 'lexical';
 
 export function useKernelStatus() {
   const setPythonKernelStatus = useSetAtom(pythonKernelStatusAtom);
