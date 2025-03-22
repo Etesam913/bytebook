@@ -6,6 +6,6 @@ backend/backend-env/
 build/windows/nsis
 .task/
 venv/
-
+bundle-analysis.html
 .idea
 ../.idea
