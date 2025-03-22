@@ -7,6 +7,7 @@ import { getDefaultButtonVariants } from '../../animations';
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { useSendExecuteRequestMutation } from '../../hooks/code';
 import { Languages } from '../editor/nodes/code';
+import { runCode } from '../../utils/code';
 
 export function PlayButton({
   codeBlockId,
@@ -22,16 +23,11 @@ export function PlayButton({
     codeBlockId,
     language
   );
+
   return (
     <MotionIconButton
       {...getDefaultButtonVariants()}
-      onClick={() => {
-        const newExecutionId = crypto.randomUUID();
-        // setExecutionId(newExecutionId)
-        const code = codeMirrorInstance?.view?.state.doc.toString();
-        if (!code) return;
-        executeCode({ code, newExecutionId });
-      }}
+      onClick={() => runCode(codeMirrorInstance, executeCode)}
     >
       {pythonKernelStatus === 'busy' ? <MediaStop /> : <Play />}
     </MotionIconButton>
