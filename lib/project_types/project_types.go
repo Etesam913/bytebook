@@ -28,6 +28,7 @@ type AllKernels struct {
 type KernelJson struct {
 	Argv        []string `json:"argv"`
 	DisplayName string   `json:"display_name"`
+	Language    string   `json:"language"`
 }
 
 type TagJson struct {

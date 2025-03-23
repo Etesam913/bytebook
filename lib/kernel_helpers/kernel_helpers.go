@@ -66,24 +66,63 @@ func LaunchKernel(argv []string, pathToConnectionFile string, venvPath string) e
 	return nil
 }
 
-func GetConnectionInfo() (sockets.ConnectionInfo, error) {
-	// TODO: Move config values into project path not in the code
-	connectionInfo := sockets.ConnectionInfo{}
-	err := io_helpers.ReadJsonFromPath("lib/config/connection.json", &connectionInfo)
-	return connectionInfo, err
+func GetConnectionInfo(projectPath string) (sockets.ConnectionInfo, error) {
+	defaultConnectionInfo := sockets.ConnectionInfo{
+		ShellPort:       55321,
+		IOPubPort:       55322,
+		StdinPort:       55323,
+		ControlPort:     55324,
+		HBPort:          55325,
+		IP:              "127.0.0.1",
+		Key:             "abc123",
+		Transport:       "tcp",
+		SignatureScheme: "hmac-sha256",
+	}
+
+	pathToConnectionFile := filepath.Join(projectPath, "code", "connection.json")
+
+	return io_helpers.ReadOrCreateJSON(pathToConnectionFile, defaultConnectionInfo)
 }
 
-func GetAllKernels() (project_types.AllKernels, error) {
+func GetAllKernels(projectPath string) (project_types.AllKernels, error) {
 	allKernels := project_types.AllKernels{}
-	pythonKernelPath := "lib/config/python-kernel.json"
-	err := io_helpers.ReadJsonFromPath(pythonKernelPath, &allKernels.Python)
+	pathToPythonKernel := filepath.Join(projectPath, "code", "python-kernel.json")
+	pathToGolangKernel := filepath.Join(projectPath, "code", "golang-kernel.json")
+
+	pythonKernelValue, err := io_helpers.ReadOrCreateJSON(pathToPythonKernel, project_types.KernelJson{
+		Argv: []string{
+			"python3",
+			"-m",
+			"ipykernel_launcher",
+			"-f",
+			"{connection_file}",
+		},
+		DisplayName: "Python 3",
+		Language:    "python",
+	})
+
 	if err != nil {
 		return allKernels, err
 	}
-	golangKernelPath := "lib/config/golang-kernel.json"
-	err = io_helpers.ReadJsonFromPath(golangKernelPath, &allKernels.Golang)
+
+	allKernels.Python = pythonKernelValue
+
+	gonbPath, err := exec.LookPath("gonb")
+	if err != nil {
+		gonbPath = "gonb" // Fallback to just the name if not found in PATH
+	}
+
+	golangKernelValue, err := io_helpers.ReadOrCreateJSON(pathToGolangKernel, project_types.KernelJson{
+		Argv:        []string{gonbPath, "--kernel", "{connection_file}", "--logtostderr"},
+		DisplayName: "Go (gonb)",
+		Language:    "go",
+	})
+
 	if err != nil {
 		return allKernels, err
 	}
+
+	allKernels.Golang = golangKernelValue
+
 	return allKernels, nil
 }

@@ -131,33 +131,16 @@ func DeleteNotesFromTagToNotesArray(projectPath string, tag string, notePaths []
 
 // CreateNoteToTagsMapIfNotExists ensures that the note-to-tags map exists.
 func CreateNoteToTagsMapIfNotExists(projectPath string) error {
-	tagsDir := filepath.Join(projectPath, "tags")
+	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
 
-	// Ensure the "tags" directory exists
-	if err := os.MkdirAll(tagsDir, os.ModePerm); err != nil {
-		return err
+	// Default empty map structure
+	defaultMap := NotesToTagsMap{
+		Notes: map[string][]string{},
 	}
 
-	pathToNoteToTagsMap := filepath.Join(tagsDir, "notes_to_tags.json")
-	err := io_helpers.CreateFileIfNotExist(pathToNoteToTagsMap)
+	_, err := io_helpers.ReadOrCreateJSON(pathToNoteToTagsMap, defaultMap)
 
-	if err != nil {
-		return err
-	}
-
-	notesToTagsMap := NotesToTagsMap{}
-	if err = io_helpers.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
-		err = io_helpers.WriteJsonToPath(
-			pathToNoteToTagsMap,
-			NotesToTagsMap{Notes: map[string][]string{}},
-		)
-
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return err
 }
 
 func GetTagsForNotes(projectPath string, notes []string) (map[string][]string, error) {

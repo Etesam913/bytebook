@@ -4,16 +4,73 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/lib/kernel_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
+	"github.com/etesam913/bytebook/lib/sockets"
+	"github.com/etesam913/bytebook/lib/tags_helper"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 const ProjectName = "Bytebook"
+
+func CreateProjectDirectories(projectPath string) {
+	if err := os.MkdirAll(filepath.Join(projectPath, "settings"), os.ModePerm); err != nil {
+		log.Fatalf("Failed to create project settings directory: %v", err)
+	}
+
+	if err := os.MkdirAll(filepath.Join(projectPath, "code"), os.ModePerm); err != nil {
+		log.Fatalf("Failed to create project code directory: %v", err)
+	}
+
+	if err := os.MkdirAll(filepath.Join(projectPath, "tags"), os.ModePerm); err != nil {
+		log.Fatalf("Failed to create project tags directory: %v", err)
+	}
+
+	if err := os.MkdirAll(filepath.Join(projectPath, "notes"), os.ModePerm); err != nil {
+		log.Fatalf("Failed to create project notes directory: %v", err)
+	}
+}
+
+type ProjectFiles struct {
+	ProjectSettings project_types.ProjectSettingsJson
+	ConnectionInfo  sockets.ConnectionInfo
+	AllKernels      project_types.AllKernels
+}
+
+func CreateProjectFiles(projectPath string) ProjectFiles {
+	// Creating tags map
+	if err := tags_helper.CreateNoteToTagsMapIfNotExists(projectPath); err != nil {
+		log.Fatalf("Failed to create note to tags map: %v", err)
+	}
+
+	projectSettings, err := GetProjectSettings(projectPath)
+
+	if err != nil {
+		log.Fatalf("Failed to read project settings")
+	}
+
+	connectionInfo, err := kernel_helpers.GetConnectionInfo(projectPath)
+	if err != nil {
+		log.Fatalf("Failed to read connection.json")
+	}
+
+	allKernelInfo, err := kernel_helpers.GetAllKernels(projectPath)
+	if err != nil {
+		log.Fatalf("Failed to read json files for kernels")
+	}
+
+	return ProjectFiles{
+		ProjectSettings: projectSettings,
+		ConnectionInfo:  connectionInfo,
+		AllKernels:      allKernelInfo,
+	}
+}
 
 func GetProjectPath() (string, error) {
 	homeDir, err := os.UserHomeDir()
@@ -62,44 +119,56 @@ func GenerateRandomID() (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-func GetProjectSettings(projectPath string) project_types.ProjectSettingsReponse {
-	var projectSettings project_types.ProjectSettingsJson
+func GetProjectSettings(projectPath string) (project_types.ProjectSettingsJson, error) {
 	projectSettingsPath := filepath.Join(projectPath, "settings", "settings.json")
-	err := io_helpers.ReadJsonFromPath(projectSettingsPath, &projectSettings)
 
-	// The file does not exist
-	if err != nil {
-		err = io_helpers.WriteJsonToPath(projectSettingsPath,
-			project_types.ProjectSettingsJson{
-				PinnedNotes:         []string{},
-				ProjectPath:         projectPath,
-				RepositoryToSyncTo:  "",
-				DarkMode:            "light",
-				NoteSidebarItemSize: "card",
-				AccentColor:         "",
-				EditorFontFamily:    "Bricolage Grotesque",
-			},
-		)
-		if err != nil {
-			return project_types.ProjectSettingsReponse{Success: false, Message: "Failed to write project settings"}
-		}
-		err = io_helpers.ReadJsonFromPath(projectSettingsPath, &projectSettings)
-		if err != nil {
-			return project_types.ProjectSettingsReponse{Success: false, Message: "Failed to read project settings"}
-		}
+	// Default settings
+	defaultSettings := project_types.ProjectSettingsJson{
+		PinnedNotes:         []string{},
+		ProjectPath:         projectPath,
+		RepositoryToSyncTo:  "",
+		DarkMode:            "light",
+		NoteSidebarItemSize: "card",
+		AccentColor:         "",
+		EditorFontFamily:    "Bricolage Grotesque",
 	}
-	validPinnedNotes := io_helpers.GetValidPinnedNotes(projectPath, projectSettings)
-	projectSettings.PinnedNotes = validPinnedNotes
+
+	// Load or create settings file
+	projectSettings, err := io_helpers.ReadOrCreateJSON(projectSettingsPath, defaultSettings)
+
+	if err != nil {
+		return projectSettings, err
+	}
+
+	projectSettings, err = UpdatePinnedNotesAndAccentColorFromProjectSettings(
+		projectPath,
+		projectSettings,
+	)
+
+	if err != nil {
+		return projectSettings, err
+	}
+
+	return projectSettings, nil
+}
+
+func UpdatePinnedNotesAndAccentColorFromProjectSettings(projectPath string, projectSettings project_types.ProjectSettingsJson) (project_types.ProjectSettingsJson, error) {
+	projectSettingsPath := filepath.Join(projectPath, "settings", "settings.json")
+
+	// Validate pinned notes
+	projectSettings.PinnedNotes = io_helpers.GetValidPinnedNotes(projectPath, projectSettings)
+
+	// Update accent color if application is available
 	app := application.Get()
-	// Update the accent color if it exists
 	if app != nil {
 		accentColor := app.GetAccentColor()
 		projectSettings.AccentColor = fmt.Sprintf("rgb(%d,%d,%d)", accentColor.R, accentColor.G, accentColor.B)
 	}
-	// Write the updated project settings to the file
-	io_helpers.WriteJsonToPath(projectSettingsPath, projectSettings)
 
-	return project_types.ProjectSettingsReponse{Success: true, Message: "", Data: projectSettings}
+	// Write the updated settings
+	err := io_helpers.WriteJsonToPath(projectSettingsPath, projectSettings)
+
+	return projectSettings, err
 }
 
 // FormatStringListForErrorMessage formats a list of strings for error messages.

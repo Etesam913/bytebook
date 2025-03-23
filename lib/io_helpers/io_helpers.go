@@ -82,6 +82,39 @@ func ReadJsonFromPath(pathname string, data interface{}) error {
 	return nil
 }
 
+// ReadOrCreateJSON takes a file path and a default value.
+// It tries to read and parse the JSON file at the given path using io_helpers.
+// If the file doesn't exist, can't be read, or contains invalid JSON,
+// it will write the default value to the file and return it.
+func ReadOrCreateJSON[T any](filePath string, defaultValue T) (T, error) {
+	var value T
+
+	// Try to read the existing file using the helper
+	err := ReadJsonFromPath(filePath, &value)
+	if err == nil {
+		// Successfully read and parsed the file
+		return value, nil
+	}
+
+	// At this point, either:
+	// 1. The file doesn't exist
+	// 2. The file exists but couldn't be read
+	// 3. The file exists but contains invalid JSON
+
+	// Ensure the directory exists
+	dir := filepath.Dir(filePath)
+	if err = os.MkdirAll(dir, 0755); err != nil {
+		return value, fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	// Write the default value to the file using the helper
+	if err = WriteJsonToPath(filePath, defaultValue); err != nil {
+		return value, fmt.Errorf("failed to write default value to file: %w", err)
+	}
+
+	return defaultValue, nil
+}
+
 type ActionStruct struct {
 	WindowsAction func()
 	MacAction     func()
@@ -243,15 +276,6 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) project_types
 		Success: true,
 		Message: "Successfully moved to trash",
 	}
-}
-
-func CreateFolderIfNotExist(pathname string) error {
-	// Create the directory structure if it doesn't exist
-	err := os.MkdirAll(pathname, os.ModePerm)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // CreateFileIfNotExist creates a file at the specified pathname if it does not already exist.

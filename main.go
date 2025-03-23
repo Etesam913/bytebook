@@ -3,18 +3,13 @@ package main
 import (
 	"embed"
 	"log"
-	"os"
-	"path/filepath"
 
 	"github.com/etesam913/bytebook/lib/auth_server"
 	"github.com/etesam913/bytebook/lib/custom_events"
 	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
-	"github.com/etesam913/bytebook/lib/io_helpers"
-	"github.com/etesam913/bytebook/lib/kernel_helpers"
 	"github.com/etesam913/bytebook/lib/menus"
 	"github.com/etesam913/bytebook/lib/project_helpers"
-	"github.com/etesam913/bytebook/lib/tags_helper"
 	"github.com/etesam913/bytebook/services"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -33,44 +28,17 @@ var assets embed.FS
 // logs any error that might occur.
 func main() {
 	projectPath, err := project_helpers.GetProjectPath()
-	// TODO: Provide prompt for user to set a directory
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to get project path: %v", err)
 	}
 
-	// Creating notes dir
-	notesPath := filepath.Join(projectPath, "notes")
-	if err := os.MkdirAll(notesPath, os.ModePerm); err != nil {
-		log.Fatalf("Failed to create notes directory: %v", err)
-	}
-
-	// Creating tags map
-	if err := tags_helper.CreateNoteToTagsMapIfNotExists(projectPath); err != nil {
-		log.Fatalf("Failed to create note to tags map: %v", err)
-	}
-
-	// Retrieving project settings
-	projectSettings := project_helpers.GetProjectSettings(projectPath)
-	if !projectSettings.Success {
-		log.Fatalf("Failed to create/get project settings")
-	}
-
-	connectionInfo, err := kernel_helpers.GetConnectionInfo()
-	if err != nil {
-		log.Fatalf("Failed to read connection.json")
-	}
-
-	allKernelInfo, err := kernel_helpers.GetAllKernels()
-	if err != nil {
-		log.Fatalf("Failed to read json files for kernels")
-	}
+	// Creating project directories
+	project_helpers.CreateProjectDirectories(projectPath)
+	projectFiles := project_helpers.CreateProjectFiles(projectPath)
 
 	// Creating git repo if it does not already exist
 	git_helpers.InitializeGitRepo(projectPath)
-	git_helpers.SetRepoOrigin(projectSettings.Data.RepositoryToSyncTo)
-
-	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "settings"))
-	io_helpers.CreateFolderIfNotExist(filepath.Join(projectPath, "tags"))
+	git_helpers.SetRepoOrigin(projectFiles.ProjectSettings.RepositoryToSyncTo)
 
 	// Launching file server for images/videos
 	go file_server.LaunchFileServer(projectPath)
@@ -101,8 +69,8 @@ func main() {
 				&services.CodeService{
 					ShellSocketDealer:     nil,
 					IOPubSocketSubscriber: nil,
-					ConnectionInfo:        connectionInfo,
-					AllKernels:            allKernelInfo,
+					ConnectionInfo:        projectFiles.ConnectionInfo,
+					AllKernels:            projectFiles.AllKernels,
 				},
 			),
 		},

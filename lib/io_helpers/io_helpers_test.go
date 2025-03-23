@@ -105,6 +105,195 @@ func TestCompleteCustomActionForOS(t *testing.T) {
 	}
 }
 
+func TestReadOrCreateJSON(t *testing.T) {
+	// Define a test type
+	type Config struct {
+		Name    string `json:"name"`
+		Version int    `json:"version"`
+		Debug   bool   `json:"debug"`
+	}
+
+	t.Run("Reads existing JSON successfully", func(t *testing.T) {
+		// Setup
+		tempDir := t.TempDir()
+		filePath := filepath.Join(tempDir, "config.json")
+
+		expectedConfig := Config{
+			Name:    "TestApp",
+			Version: 42,
+			Debug:   true,
+		}
+
+		// Create the file using the helper
+		err := io_helpers.WriteJsonToPath(filePath, expectedConfig)
+		assert.NoError(t, err)
+
+		// Test the function
+		defaultConfig := Config{Name: "Default", Version: 1, Debug: false}
+		result, err := io_helpers.ReadOrCreateJSON(filePath, defaultConfig)
+
+		// Verify
+		assert.NoError(t, err)
+		assert.Equal(t, expectedConfig, result)
+	})
+
+	t.Run("Creates new file with default value when file doesn't exist", func(t *testing.T) {
+		// Setup
+		tempDir := t.TempDir()
+		filePath := filepath.Join(tempDir, "non-existent-config.json")
+		defaultConfig := Config{Name: "Default", Version: 1, Debug: false}
+
+		// Test the function
+		result, err := io_helpers.ReadOrCreateJSON(filePath, defaultConfig)
+
+		// Verify
+		assert.NoError(t, err)
+		assert.Equal(t, defaultConfig, result)
+
+		// Verify file exists and contains expected content
+		var readConfig Config
+		err = io_helpers.ReadJsonFromPath(filePath, &readConfig)
+		assert.NoError(t, err)
+		assert.Equal(t, defaultConfig, readConfig)
+	})
+
+	t.Run("Overwrites invalid JSON with default value", func(t *testing.T) {
+		// Setup
+		tempDir := t.TempDir()
+		filePath := filepath.Join(tempDir, "invalid.json")
+
+		// Create an invalid JSON file
+		err := os.WriteFile(filePath, []byte("This is not valid JSON"), 0644)
+		assert.NoError(t, err)
+
+		defaultConfig := Config{Name: "Default", Version: 1, Debug: false}
+
+		// Test the function
+		result, err := io_helpers.ReadOrCreateJSON(filePath, defaultConfig)
+
+		// Verify
+		assert.NoError(t, err)
+		assert.Equal(t, defaultConfig, result)
+
+		// Verify file was overwritten with correct content
+		var readConfig Config
+		err = io_helpers.ReadJsonFromPath(filePath, &readConfig)
+		assert.NoError(t, err)
+		assert.Equal(t, defaultConfig, readConfig)
+	})
+
+	t.Run("Creates directories if they don't exist", func(t *testing.T) {
+		// Setup
+		tempDir := t.TempDir()
+		nestedPath := filepath.Join(tempDir, "nested", "dirs", "config.json")
+		defaultValue := "test-value"
+
+		// Test the function
+		result, err := io_helpers.ReadOrCreateJSON(nestedPath, defaultValue)
+
+		// Verify
+		assert.NoError(t, err)
+		assert.Equal(t, defaultValue, result)
+		assert.DirExists(t, filepath.Join(tempDir, "nested", "dirs"))
+		assert.FileExists(t, nestedPath)
+	})
+
+	t.Run("Handles permission errors", func(t *testing.T) {
+		if os.Geteuid() == 0 {
+			t.Skip("Skipping test as root user can write to read-only directories")
+		}
+
+		tempDir := t.TempDir()
+		// Create a subdirectory with no write permissions
+		readOnlyDir := filepath.Join(tempDir, "readonly")
+		err := os.Mkdir(readOnlyDir, 0500) // read & execute only
+		assert.NoError(t, err)
+		defer os.Chmod(readOnlyDir, 0700) // restore permissions for cleanup
+
+		filePath := filepath.Join(readOnlyDir, "config.json")
+		defaultValue := "test-value"
+
+		// Test the function
+		_, err = io_helpers.ReadOrCreateJSON(filePath, defaultValue)
+		assert.Error(t, err)
+	})
+
+	t.Run("Handles different types", func(t *testing.T) {
+		// Test with a string
+		t.Run("string type", func(t *testing.T) {
+			tempDir := t.TempDir()
+			filePath := filepath.Join(tempDir, "string.json")
+			defaultValue := "test-string"
+
+			result, err := io_helpers.ReadOrCreateJSON(filePath, defaultValue)
+			assert.NoError(t, err)
+			assert.Equal(t, defaultValue, result)
+			assert.FileExists(t, filePath)
+
+			// Verify content
+			var readValue string
+			err = io_helpers.ReadJsonFromPath(filePath, &readValue)
+			assert.NoError(t, err)
+			assert.Equal(t, defaultValue, readValue)
+		})
+
+		// Test with an integer
+		t.Run("int type", func(t *testing.T) {
+			tempDir := t.TempDir()
+			filePath := filepath.Join(tempDir, "int.json")
+			defaultValue := 42
+
+			result, err := io_helpers.ReadOrCreateJSON(filePath, defaultValue)
+			assert.NoError(t, err)
+			assert.Equal(t, defaultValue, result)
+			assert.FileExists(t, filePath)
+
+			// Verify content
+			var readValue int
+			err = io_helpers.ReadJsonFromPath(filePath, &readValue)
+			assert.NoError(t, err)
+			assert.Equal(t, defaultValue, readValue)
+		})
+
+		// Test with a slice
+		t.Run("slice type", func(t *testing.T) {
+			tempDir := t.TempDir()
+			filePath := filepath.Join(tempDir, "slice.json")
+			defaultValue := []string{"one", "two", "three"}
+
+			result, err := io_helpers.ReadOrCreateJSON(filePath, defaultValue)
+			assert.NoError(t, err)
+			assert.Equal(t, defaultValue, result)
+			assert.FileExists(t, filePath)
+
+			// Verify content
+			var readValue []string
+			err = io_helpers.ReadJsonFromPath(filePath, &readValue)
+			assert.NoError(t, err)
+			assert.Equal(t, defaultValue, readValue)
+		})
+
+		// Test with a map
+		t.Run("map type", func(t *testing.T) {
+			tempDir := t.TempDir()
+			filePath := filepath.Join(tempDir, "map.json")
+			defaultValue := map[string]interface{}{
+				"name":   "MapTest",
+				"values": []int{1, 2, 3},
+			}
+
+			result, err := io_helpers.ReadOrCreateJSON(filePath, defaultValue)
+			assert.NoError(t, err)
+
+			// Maps with interface{} values are tricky to compare directly
+			// after JSON marshaling/unmarshaling, so we'll check keys
+			assert.Len(t, result, len(defaultValue))
+			assert.Equal(t, "MapTest", result["name"])
+			assert.FileExists(t, filePath)
+		})
+	})
+}
+
 // TestCopyFile tests the CopyFile function.
 func TestCopyFile(t *testing.T) {
 	srcFile := "test_src.txt"
