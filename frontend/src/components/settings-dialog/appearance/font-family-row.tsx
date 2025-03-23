@@ -24,18 +24,20 @@ export function FontFamilyRow() {
         <Input
           labelProps={{}}
           inputProps={{
+            type: 'text',
             className: 'w-56 h-8 text-sm my-auto',
             style: { fontFamily: fontFamilyInputValue },
             placeholder: 'Arial',
             value: fontFamilyInputValue,
-            onChange: (e) => setFontFamilyInputValue(e.target.value),
-            onBlur: () =>
+            onChange: (e) => {
+              setFontFamilyInputValue(e.target.value);
               updateProjectSettings({
                 newProjectSettings: {
                   ...projectSettings,
-                  editorFontFamily: fontFamilyInputValue,
+                  editorFontFamily: e.target.value,
                 },
-              }),
+              });
+            },
           }}
         />
         <MotionIconButton

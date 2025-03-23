@@ -26,7 +26,7 @@ import {
 import type { FloatingDataType } from '../../types.ts';
 import { handleEditorEscape } from '../../utils/selection.ts';
 import { cn } from '../../utils/string-formatting';
-import { BottomBar } from './bottom-bar.tsx';
+import { BottomBar } from './bottom-bar';
 import { editorConfig } from './editor-config';
 import { NoteTitle } from './note-title';
 import { CodePlugin } from './plugins/code';

@@ -16,7 +16,8 @@ export function ChevronDown({
   return (
     <svg
       className={className}
-      style={{ width: `${width}px`, height: `${height}px` }}
+      height={height}
+      width={width}
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >

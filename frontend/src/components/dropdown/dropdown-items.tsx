@@ -24,6 +24,7 @@ export function DropdownItems({
   selectedItem,
   style,
   ref,
+  children,
 }: {
   items: DropdownItem[];
   maxHeight?: number;
@@ -37,6 +38,7 @@ export function DropdownItems({
   selectedItem?: string;
   style?: CSSProperties;
   ref?: RefObject<HTMLDivElement | null>;
+  children?: React.ReactNode;
 }) {
   const dropdownItemsRef = useRef<HTMLDivElement>(null);
 
@@ -79,6 +81,7 @@ export function DropdownItems({
             }}
             exit={{ height: 0, opacity: 0 }}
           >
+            {children}
             <div
               ref={dropdownItemsRef}
               className="flex flex-col overflow-y-auto overflow-x-hidden px-[4.5px] py-[6px] gap-0.5"
