@@ -18,6 +18,7 @@ type ProjectSettingsJson struct {
 	AccentColor         string   `json:"accentColor"`
 	NoteWidth           string   `json:"noteWidth"`
 	EditorFontFamily    string   `json:"editorFontFamily"`
+	CodeBlockVimMode    bool     `json:"codeBlockVimMode"`
 }
 
 type AllKernels struct {

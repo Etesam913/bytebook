@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import type { SetStateAction } from 'jotai/ts3.8/esm/vanilla';
 import {
   type CSSProperties,

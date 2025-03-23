@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useRef, useState } from 'react';
 import { ChevronDown } from '../../../icons/chevron-down';
 import { DropdownItems } from '../../dropdown/dropdown-items';

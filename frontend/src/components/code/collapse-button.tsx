@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { getDefaultButtonVariants } from '../../animations';
 import { ChevronDown } from '../../icons/chevron-down';
 import { MotionIconButton } from '../buttons';

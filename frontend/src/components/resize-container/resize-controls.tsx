@@ -1,5 +1,5 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { type MotionValue, motion } from 'framer-motion';
+import { type MotionValue, motion } from 'motion/react';
 import type { MouseEvent } from 'react';
 import { getDefaultButtonVariants } from '../../animations';
 import { XResize } from '../../icons/arrows-expand-x';

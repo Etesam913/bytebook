@@ -1,5 +1,5 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'motion/react';
 import { REDO_COMMAND, type TextFormatType, UNDO_COMMAND } from 'lexical';
 import {
   type Dispatch,

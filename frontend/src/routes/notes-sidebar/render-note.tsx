@@ -1,4 +1,4 @@
-import { motion, useAnimationControls } from 'framer-motion';
+import { motion, useAnimationControls } from 'motion/react';
 import { useAtomValue } from 'jotai';
 import { getDefaultButtonVariants } from '../../animations';
 import { draggedElementAtom, isNoteMaximizedAtom } from '../../atoms';

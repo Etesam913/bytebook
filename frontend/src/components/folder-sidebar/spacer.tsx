@@ -1,4 +1,4 @@
-import type { MotionValue } from 'framer-motion';
+import type { MotionValue } from 'motion/react';
 import { useSetAtom } from 'jotai';
 import { useState } from 'react';
 import { draggedElementAtom } from '../../atoms';

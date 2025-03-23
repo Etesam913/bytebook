@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { eventFiles } from '@lexical/rich-text';
 import { calculateZoomLevel, mergeRegister } from '@lexical/utils';
-import type { MotionValue } from 'framer-motion';
+import type { MotionValue } from 'motion/react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
   $getNearestNodeFromDOMNode,

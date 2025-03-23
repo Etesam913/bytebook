@@ -1,5 +1,5 @@
 import { Browser } from '@wailsio/runtime';
-import { type Target, type TargetAndTransition, motion } from 'framer-motion';
+import { type Target, type TargetAndTransition, motion } from 'motion/react';
 import type { LexicalEditor } from 'lexical';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { getDefaultButtonVariants } from '../../animations';

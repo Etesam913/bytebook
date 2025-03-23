@@ -3,7 +3,7 @@ import { Excalidraw, MainMenu, THEME } from '@excalidraw/excalidraw';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { mergeRegister } from '@lexical/utils';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { useAtomValue } from 'jotai';
 import {
   CLICK_COMMAND,

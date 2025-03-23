@@ -1,5 +1,5 @@
 import { calculateZoomLevel } from '@lexical/utils';
-import type { MotionValue } from 'framer-motion';
+import type { MotionValue } from 'motion/react';
 import {
   $getNearestNodeFromDOMNode,
   $getRoot,

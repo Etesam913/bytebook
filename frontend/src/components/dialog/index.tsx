@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { useAtom, useAtomValue } from 'jotai';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import useMeasure from 'react-use-measure';

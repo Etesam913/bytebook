@@ -10,7 +10,7 @@ import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin';
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useQueryClient } from '@tanstack/react-query';
-import type { AnimationControls } from 'framer-motion';
+import type { AnimationControls } from 'motion/react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import type { LexicalEditor } from 'lexical';
 import { useEffect, useRef, useState } from 'react';

@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import type { ReactNode } from 'react';
 import { ChevronDown } from '../../icons/chevron-down';
 import { cn } from '../../utils/string-formatting';

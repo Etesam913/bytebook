@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { useMotionValue } from 'framer-motion';
+import { useMotionValue } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai/react';
 import { Toaster } from 'sonner';
 import { Route, Switch } from 'wouter';
@@ -49,7 +49,6 @@ function App() {
   const notesSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
-
   useUserData();
   useTags();
   useLoggedInEvent();
@@ -74,7 +73,6 @@ function App() {
       <LoadingModal />
       <Toaster richColors theme="system" />
       {!isNoteMaximized && <FolderSidebar width={folderSidebarWidth} />}
-
       <Switch>
         <Route path="/" />
         <Route path="/tags/:tagName/:folder?/:note?">

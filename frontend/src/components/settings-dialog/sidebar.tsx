@@ -3,11 +3,12 @@ import type { SettingsTab } from '.';
 import { CodeMerge } from '../../icons/code-merge';
 import { ColorPalette2 } from '../../icons/color-palette-2';
 import { cn } from '../../utils/string-formatting';
+import WindowCode from '../../icons/window-code';
 
 const settingsItems: { id: SettingsTab; title: string; icon: ReactNode }[] = [
   { id: 'appearance', title: 'Appearance', icon: <ColorPalette2 /> },
   { id: 'github', title: 'GitHub', icon: <CodeMerge /> },
-  { id: 'code-block', title: 'Code Block', icon: <></> },
+  { id: 'code-block', title: 'Code Block', icon: <WindowCode /> },
 ];
 
 export function SettingsSidebar({

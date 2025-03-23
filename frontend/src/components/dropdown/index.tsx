@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { useOnClickOutside } from '../../hooks/general';
 import { ChevronDown } from '../../icons/chevron-down';

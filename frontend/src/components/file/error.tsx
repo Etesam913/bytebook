@@ -1,6 +1,6 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'motion/react';
 import { Paperclip } from '../../icons/paperclip-2';
 import { TriangleWarning } from '../../icons/triangle-warning';
 import { cn } from '../../utils/string-formatting';

@@ -1,4 +1,4 @@
-import type { AnimationControls } from 'framer-motion';
+import type { AnimationControls } from 'motion/react';
 import { useAtom } from 'jotai';
 import { MotionIconButton } from '.';
 import { easingFunctions, getDefaultButtonVariants } from '../../animations';

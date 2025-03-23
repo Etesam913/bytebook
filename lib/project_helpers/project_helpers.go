@@ -131,6 +131,7 @@ func GetProjectSettings(projectPath string) (project_types.ProjectSettingsJson, 
 		NoteSidebarItemSize: "card",
 		AccentColor:         "",
 		EditorFontFamily:    "Bricolage Grotesque",
+		CodeBlockVimMode:    false,
 	}
 
 	// Load or create settings file

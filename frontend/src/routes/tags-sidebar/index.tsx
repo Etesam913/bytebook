@@ -1,4 +1,4 @@
-import { type MotionValue, motion } from 'framer-motion';
+import { type MotionValue, motion } from 'motion/react';
 import { useAtomValue } from 'jotai/react';
 import { useRef } from 'react';
 import { isNoteMaximizedAtom } from '../../atoms';

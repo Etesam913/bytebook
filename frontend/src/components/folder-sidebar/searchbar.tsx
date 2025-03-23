@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useSetAtom } from 'jotai';
 import { getDefaultButtonVariants } from '../../animations';
 import { searchPanelDataAtom } from '../../atoms';

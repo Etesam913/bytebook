@@ -1,5 +1,5 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import type { AnimationControls } from 'framer-motion';
+import type { AnimationControls } from 'motion/react';
 import { useAtom, useAtomValue } from 'jotai/react';
 import type { TextFormatType } from 'lexical';
 import {

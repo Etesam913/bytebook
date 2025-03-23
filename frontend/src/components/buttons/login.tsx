@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { Browser } from '@wailsio/runtime';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useAtom } from 'jotai/react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';

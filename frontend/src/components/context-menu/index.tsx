@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useAtom, useSetAtom } from 'jotai/react';
 import {
   type RefObject,

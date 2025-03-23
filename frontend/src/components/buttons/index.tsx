@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { type ButtonHTMLAttributes } from 'react';
 import { cn } from '../../utils/string-formatting';
 

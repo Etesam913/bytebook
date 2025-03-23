@@ -1,4 +1,4 @@
-import { type MotionValue, motion } from 'framer-motion';
+import { type MotionValue, motion } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import type { Dispatch, MouseEvent, RefObject, SetStateAction } from 'react';
 import { draggedElementAtom, noteContainerRefAtom } from '../../atoms';

@@ -203,6 +203,15 @@ textarea,
   border-left: 2.5px var(--accent-color) solid !important;
 }
 
+/* Styling the vim cursor */
+.ͼ37:not(.cm-focused) .cm-fat-cursor {
+  outline-color: var(--accent-color) !important;
+}
+
+.ͼ37.cm-focused .cm-fat-cursor {
+  background: var(--accent-color) !important;
+}
+
 .cm-theme .cm-selectionLayer .cm-selectionBackground {
   background: var(--accent-color-highlight) !important;
   opacity: 0.8;
@@ -210,6 +219,9 @@ textarea,
 
 .cm-focused {
   outline: none !important;
+}
+.cm-cursorLayer {
+  animation: none !important;
 }
 
 /* Makes sure that the code block does not overlap with the traffic lights when in fullscreen mode */

@@ -1,7 +1,7 @@
 import { vscodeLight } from '@uiw/codemirror-theme-vscode';
 import { nord } from '@uiw/codemirror-theme-nord';
 import { useAtomValue } from 'jotai/react';
-import { isDarkModeOnAtom } from '../../atoms';
+import { isDarkModeOnAtom, projectSettingsAtom } from '../../atoms';
 import CodeMirror, {
   keymap,
   Prec,
@@ -13,6 +13,7 @@ import { runCode } from '../../utils/code';
 import { focusEditor, languageToSettings } from '.';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { Languages } from '../editor/nodes/code';
+import { vim } from '@replit/codemirror-vim';
 import {
   KEY_ARROW_DOWN_COMMAND,
   KEY_ARROW_UP_COMMAND,
@@ -44,6 +45,7 @@ export function CodeMirrorEditor({
   const { mutate: executeCode } = useSendExecuteRequestMutation(id, language);
   const debouncedSetCode = debounce(setCode, 300);
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
+  const projectSettings = useAtomValue(projectSettingsAtom);
 
   // Custom keymap for running code with keyboard shortcuts
   const runCodeKeymap = Prec.highest(
@@ -142,12 +144,14 @@ export function CodeMirrorEditor({
       onChange={(newCode) => {
         debouncedSetCode(newCode);
       }}
-      extensions={[runCodeKeymap, languageToSettings[language].extension()]}
+      extensions={[
+        projectSettings.codeBlockVimMode ? vim() : [],
+        runCodeKeymap,
+        languageToSettings[language].extension(),
+      ]}
       theme={isDarkModeOn ? nord : vscodeLight}
       onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          document.getElementById('content-editable-editor')?.focus();
-        } else if (e.key === 'Backspace') {
+        if (e.key === 'Backspace') {
           // Fixes weird bug where pressing backspace at beginning of first line focuses the <body> tag
           setTimeout(() => {
             focusEditor(codeMirrorInstance);

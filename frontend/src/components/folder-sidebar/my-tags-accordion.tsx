@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { useSetAtom } from 'jotai/react';
 import { useState } from 'react';
 import { useRoute } from 'wouter';

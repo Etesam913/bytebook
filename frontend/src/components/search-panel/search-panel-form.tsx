@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useAtom, useAtomValue } from 'jotai';
 import { type FormEvent, useRef, useState } from 'react';
 import { easingFunctions } from '../../animations';

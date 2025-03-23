@@ -1,4 +1,4 @@
-import { type MotionValue, motion } from 'framer-motion';
+import { type MotionValue, motion } from 'motion/react';
 import { useSetAtom } from 'jotai';
 import { useRoute } from 'wouter';
 import { getDefaultButtonVariants } from '../../animations.ts';
