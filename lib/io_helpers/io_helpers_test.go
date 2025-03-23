@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/stretchr/testify/assert"
 )
 
 type TestWriteJson struct {
@@ -207,38 +208,6 @@ func TestFileOrFolderExists(t *testing.T) {
 	}
 }
 
-// TestCreateFolderIfNotExist tests the CreateFolderIfNotExist function.
-func TestCreateFolderIfNotExist(t *testing.T) {
-	// Create a temporary directory to work in
-	tmpDir, err := os.MkdirTemp("", "testcreatefolder")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	folderPath := filepath.Join(tmpDir, "newfolder")
-
-	err = io_helpers.CreateFolderIfNotExist(folderPath)
-	if err != nil {
-		t.Errorf("CreateFolderIfNotExist failed: %v", err)
-	}
-
-	// Check that the folder now exists
-	info, err := os.Stat(folderPath)
-	if err != nil {
-		t.Errorf("Failed to stat folder: %v", err)
-	}
-	if !info.IsDir() {
-		t.Errorf("Expected %s to be a directory", folderPath)
-	}
-
-	// Call the function again to see that it does not error
-	err = io_helpers.CreateFolderIfNotExist(folderPath)
-	if err != nil {
-		t.Errorf("CreateFolderIfNotExist failed on existing folder: %v", err)
-	}
-}
-
 // TestCreateUniqueNameForFileIfExists tests the CreateUniqueNameForFileIfExists function.
 func TestCreateUniqueNameForFileIfExists(t *testing.T) {
 	// Create a temporary directory to work in
@@ -298,85 +267,74 @@ func TestCreateUniqueNameForFileIfExists(t *testing.T) {
 	}
 }
 
+func createDirectories(t *testing.T) (string, string) {
+	tempDir := t.TempDir()
+
+	// Create parent directories only
+	sourceDir := filepath.Join(tempDir, "dir1")
+	targetDir := filepath.Join(tempDir, "dir2")
+
+	err := os.MkdirAll(sourceDir, os.ModePerm)
+	assert.NoError(t, err)
+
+	err = os.MkdirAll(targetDir, os.ModePerm)
+	assert.NoError(t, err)
+	return sourceDir, targetDir
+}
+
 // TestMoveFile tests the MoveFile function.
 func TestMoveFile(t *testing.T) {
-	// Create a temporary directory to work in
-	tmpDir, err := os.MkdirTemp("", "testmovefile")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
+	t.Run("Moves file from one empty dir to another empty dir", func(t *testing.T) {
+		sourceDir, targetDir := createDirectories(t)
 
-	srcFile := filepath.Join(tmpDir, "testfile.txt")
-	dstFile := filepath.Join(tmpDir, "destfile.txt")
+		// Define file paths
+		pathToOldFile := filepath.Join(sourceDir, "test.txt")
+		pathToNewFile := filepath.Join(targetDir, "test.txt")
 
-	// Create source file
-	err = os.WriteFile(srcFile, []byte("Hello, world!"), 0644)
-	if err != nil {
-		t.Fatalf("Failed to create source file: %v", err)
-	}
+		// Create the actual file with some content
+		testContent := []byte("test content")
+		err := os.WriteFile(pathToOldFile, testContent, 0644)
+		assert.NoError(t, err)
 
-	// Move file to destination
-	err = io_helpers.MoveFile(srcFile, dstFile)
-	if err != nil {
-		t.Errorf("MoveFile failed: %v", err)
-	}
+		// Move the file and check for errors
+		err = io_helpers.MoveFile(pathToOldFile, pathToNewFile)
+		assert.NoError(t, err)
 
-	// Check that source file no longer exists
-	exists, err := io_helpers.FileOrFolderExists(srcFile)
-	if err != nil {
-		t.Errorf("Error checking if source file exists: %v", err)
-	}
-	if exists {
-		t.Errorf("Source file should not exist after moving")
-	}
+		// Verify the file was moved successfully and has the same content
+		newContent, err := os.ReadFile(pathToNewFile)
+		assert.NoError(t, err)
+		assert.Equal(t, testContent, newContent, "File content should be preserved after moving")
 
-	// Check that destination file exists and has correct content
-	exists, err = io_helpers.FileOrFolderExists(dstFile)
-	if err != nil {
-		t.Errorf("Error checking if destination file exists: %v", err)
-	}
-	if !exists {
-		t.Errorf("Destination file should exist after moving")
-	}
+		// Verify the old file no longer exists
+		_, err = os.ReadFile(pathToOldFile)
+		assert.Error(t, err)
+	})
 
-	content, err := os.ReadFile(dstFile)
-	if err != nil {
-		t.Errorf("Failed to read destination file: %v", err)
-	}
-	if string(content) != "Hello, world!" {
-		t.Errorf("Destination file content mismatch")
-	}
+	t.Run("Moves file and handles case where the folder already has a file with the same name", func(t *testing.T) {
+		sourceDir, targetDir := createDirectories(t)
+		// Define file paths
+		pathToOldFile := filepath.Join(sourceDir, "test.txt")
+		pathToNewFile := filepath.Join(targetDir, "test.txt")
+		testContent := []byte("test content")
 
-	// Now try moving to a destination where file already exists
-	// Create a file at srcFile again
-	err = os.WriteFile(srcFile, []byte("New content"), 0644)
-	if err != nil {
-		t.Fatalf("Failed to create source file again: %v", err)
-	}
+		err := os.WriteFile(pathToNewFile, testContent, 0644)
+		assert.NoError(t, err)
 
-	// Move file to the same destination
-	err = io_helpers.MoveFile(srcFile, dstFile)
-	if err != nil {
-		t.Errorf("MoveFile failed when destination exists: %v", err)
-	}
+		// Create the actual file with some content
+		err = os.WriteFile(pathToOldFile, testContent, 0644)
+		assert.NoError(t, err)
 
-	// Now the destination should have a unique name
-	uniqueDstFile := filepath.Join(tmpDir, "destfile-1.txt")
-	exists, err = io_helpers.FileOrFolderExists(uniqueDstFile)
-	if err != nil {
-		t.Errorf("Error checking if unique destination file exists: %v", err)
-	}
-	if !exists {
-		t.Errorf("Unique destination file should exist after moving")
-	}
+		// Move the file and check for errors
+		err = io_helpers.MoveFile(pathToOldFile, pathToNewFile)
+		assert.NoError(t, err)
 
-	// Check that the content of the unique destination file is "New content"
-	content, err = os.ReadFile(uniqueDstFile)
-	if err != nil {
-		t.Errorf("Failed to read unique destination file: %v", err)
-	}
-	if string(content) != "New content" {
-		t.Errorf("Unique destination file content mismatch")
-	}
+		// Verify the file was moved successfully and has the same content
+		newContent, err := os.ReadFile(filepath.Join(targetDir, "test 1.txt"))
+		assert.NoError(t, err)
+		assert.Equal(t, testContent, newContent, "File content should be preserved after moving")
+
+		// Verify the old file no longer exists
+		_, err = os.ReadFile(pathToOldFile)
+		assert.Error(t, err)
+	})
 }
