@@ -1,7 +1,7 @@
 import { Browser } from '@wailsio/runtime';
 import { type Target, type TargetAndTransition, motion } from 'motion/react';
 import type { LexicalEditor } from 'lexical';
-import type { Dispatch, ReactNode, SetStateAction } from 'react';
+import type { ReactNode } from 'react';
 import { getDefaultButtonVariants } from '../../animations';
 import { Fullscreen } from '../../icons/fullscreen';
 import { Link } from '../../icons/link';
@@ -27,7 +27,6 @@ export function NoteComponentControls({
     };
     fullscreen?: {
       enabled: boolean;
-      setIsExpanded: Dispatch<SetStateAction<boolean>>;
       callback?: () => void;
     };
     link?: {
@@ -72,7 +71,13 @@ export function NoteComponentControls({
           {...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
           type="button"
           onClick={() => {
-            buttonOptions.fullscreen?.setIsExpanded(true);
+            // buttonOptions.fullscreen?.setIsExpanded(true);
+            // setAlbumData({
+            //   isShowing: true,
+            //   nodeKey,
+            //   src: buttonOptions.fullscreen?.src,
+            //   alt: '',
+            // });
             buttonOptions.fullscreen?.callback?.();
           }}
         >

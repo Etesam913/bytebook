@@ -3,15 +3,17 @@ import { type MotionValue, motion } from 'motion/react';
 import type { MouseEvent } from 'react';
 import { getDefaultButtonVariants } from '../../animations';
 import { XResize } from '../../icons/arrows-expand-x';
-import type { ResizeState, ResizeWidth } from '../../types';
+import type { ResizeWidth } from '../../types';
 import { NoteComponentControls } from '../note-component-container/component-controls';
+import { useSetAtom } from 'jotai';
+import { albumDataAtom } from '../../atoms';
 
 export function ResizeControls({
   nodeKey,
   motionValues,
   writeWidthToNode,
-  resizeState,
   src,
+  elementType,
 }: {
   nodeKey: string;
   motionValues: {
@@ -20,11 +22,11 @@ export function ResizeControls({
     resizeWidthMotionValue: MotionValue<number | '100%'>;
   };
   writeWidthToNode: (width: ResizeWidth) => void;
-  resizeState: ResizeState;
   src: string;
+  elementType: 'image' | 'video';
 }) {
   const [editor] = useLexicalComposerContext();
-
+  const setAlbumData = useSetAtom(albumDataAtom);
   const { widthMotionValue, resizeWidthMotionValue, resizeHeightMotionValue } =
     motionValues;
 
@@ -38,7 +40,15 @@ export function ResizeControls({
         },
         fullscreen: {
           enabled: true,
-          setIsExpanded: resizeState.setIsExpanded,
+          callback: () => {
+            setAlbumData({
+              isShowing: true,
+              nodeKey,
+              src,
+              alt: '',
+              elementType,
+            });
+          },
         },
         link: {
           enabled: true,

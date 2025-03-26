@@ -1,15 +1,16 @@
 import { atom } from 'jotai';
 import type { RefObject } from 'react';
-import type {
-  BackendQueryDataType,
-  ContextMenuData,
-  DialogDataType,
-  KernelStatus,
-  ProjectSettings,
-  SearchPanelDataType,
-  SortStrings,
-  UserData,
-  WindowSettings,
+import {
+  AlbumData,
+  type BackendQueryDataType,
+  type ContextMenuData,
+  type DialogDataType,
+  type KernelStatus,
+  type ProjectSettings,
+  type SearchPanelDataType,
+  type SortStrings,
+  type UserData,
+  type WindowSettings,
 } from './types.ts';
 
 const privateMostRecentNotesAtom = atom<string[]>(
@@ -128,3 +129,11 @@ export const noteSeenFileNodeKeysAtom = atom<Set<string>>(new Set([]));
 
 export const pythonKernelStatusAtom = atom<KernelStatus | null>(null);
 export const goKernelStatusAtom = atom<KernelStatus | null>(null);
+
+export const albumDataAtom = atom<AlbumData>({
+  isShowing: false,
+  nodeKey: null,
+  src: null,
+  alt: null,
+  elementType: null,
+});

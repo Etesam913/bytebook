@@ -17,6 +17,7 @@ import {
   KEY_BACKSPACE_COMMAND,
   KEY_ESCAPE_COMMAND,
   type LexicalEditor,
+  PASTE_COMMAND,
   REDO_COMMAND,
   SELECTION_CHANGE_COMMAND,
   type TextFormatType,
@@ -151,6 +152,19 @@ export function useToolbarEvents(
         KEY_ARROW_DOWN_COMMAND,
         (event) => overrideUpDownKeyCommand(event, 'down'),
         // This priority is needed for arrow key to work with command picker
+        COMMAND_PRIORITY_LOW
+      ),
+      editor.registerCommand(
+        PASTE_COMMAND,
+        () => {
+          const selection = $getSelection();
+          // When using a node selection, let lexical handle the paste command
+          // Otherwise, let the default browser paste behavior handle it
+          if (selection && $isNodeSelection(selection)) {
+            return true;
+          }
+          return false;
+        },
         COMMAND_PRIORITY_LOW
       ),
       editor.registerCommand(

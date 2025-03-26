@@ -111,3 +111,11 @@ export type GithubRepositoryData = {
 };
 
 export type KernelStatus = 'busy' | 'idle' | 'starting';
+
+export type AlbumData = {
+  isShowing: boolean;
+  nodeKey: string | null;
+  src: string | null;
+  alt: string | null;
+  elementType: string | null;
+};

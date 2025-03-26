@@ -114,7 +114,9 @@ export function ExcalidrawComponent({
               },
               fullscreen: {
                 enabled: true,
-                setIsExpanded,
+                callback: () => {
+                  setIsExpanded(true);
+                },
               },
             }}
             nodeKey={nodeKey}

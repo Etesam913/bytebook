@@ -8,6 +8,7 @@ import type { ResizeWidth } from '../../types';
 import { cn } from '../../utils/string-formatting';
 import { ResizeContainer } from '../resize-container';
 import { FileError } from './error';
+import { motion } from 'motion/react';
 
 export function Image({
   src,
@@ -90,8 +91,8 @@ export function Image({
             nodeKey={nodeKey}
             defaultWidth={widthWrittenToNode}
             writeWidthToNode={writeWidthToNode}
-            elementType="default"
             src={src}
+            elementType="image"
           >
             <img
               style={{

@@ -24,10 +24,10 @@ export function ResizeContainer({
   nodeKey,
   defaultWidth,
   writeWidthToNode,
-  elementType,
   ref,
   shouldHeightMatchWidth,
   src,
+  elementType,
 }: {
   resizeState: ResizeState;
   children: ReactNode;
@@ -35,9 +35,9 @@ export function ResizeContainer({
   ref: RefObject<HTMLElement | null>;
   defaultWidth: ResizeWidth;
   writeWidthToNode: (width: ResizeWidth) => void;
-  elementType: 'default' | 'excalidraw';
   shouldHeightMatchWidth?: boolean;
   src: string;
+  elementType: 'image' | 'video';
 }) {
   const widthMotionValue = useMotionValue<number | '100%'>(defaultWidth);
   const resizeWidthMotionValue = useMotionValue<number | '100%'>(
@@ -62,8 +62,7 @@ export function ResizeContainer({
     1500,
     isExpanded
   );
-  const isLeftAndRightArrowKeysShowing =
-    elementType !== 'excalidraw' && shouldUseMouseActivity;
+  const isLeftAndRightArrowKeysShowing = shouldUseMouseActivity;
 
   return (
     <>
@@ -94,8 +93,7 @@ export function ResizeContainer({
         className={cn(
           'relative inline-block rounded-xs outline-hidden max-w-full',
           isExpanded &&
-            'max-h-screen fixed top-0 left-0 right-0 bottom-0 z-45 m-auto flex justify-start overflow-auto',
-          isExpanded && elementType === 'excalidraw' && 'h-screen!'
+            'max-h-screen fixed top-0 left-0 right-0 bottom-0 z-45 m-auto flex justify-start overflow-auto'
         )}
         style={{
           width: !isExpanded ? widthMotionValue : '100%',
@@ -137,7 +135,7 @@ export function ResizeContainer({
                   resizeHeightMotionValue,
                 }}
                 writeWidthToNode={writeWidthToNode}
-                resizeState={resizeState}
+                elementType={elementType}
               />
               <ResizeHandle
                 ref={ref}

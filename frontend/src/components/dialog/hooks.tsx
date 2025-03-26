@@ -23,12 +23,22 @@ export const useTrapFocus = (
       focusableElements.length - 1
     ) as HTMLElement | undefined;
 
+    console.log(focusableElements, document.activeElement);
+
     const handleKeyDown = (e: KeyboardEvent) => {
       const isTabPressed = e.key === 'Tab' || e.keyCode === 9;
 
       if (!isTabPressed) {
         return;
       }
+
+      if (
+        document.activeElement &&
+        !focusableElements.includes(document.activeElement)
+      ) {
+        firstFocusableElement?.focus();
+      }
+
       if (e.shiftKey) {
         /* shift + tab */
         if (document.activeElement === firstFocusableElement) {

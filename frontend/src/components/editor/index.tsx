@@ -15,6 +15,7 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import type { LexicalEditor } from 'lexical';
 import { useEffect, useRef, useState } from 'react';
 import {
+  albumDataAtom,
   draggableBlockElementAtom,
   draggedElementAtom,
   isNoteMaximizedAtom,
@@ -44,6 +45,7 @@ import { TableOfContentsPlugin } from './plugins/table-of-contents.tsx';
 import { Toolbar } from './toolbar';
 import { CUSTOM_TRANSFORMERS } from './transformers';
 import { debouncedNoteHandleChange } from './utils/note-commands.ts';
+import { Album } from './album/index.tsx';
 
 export function NotesEditor({
   params,
@@ -69,6 +71,8 @@ export function NotesEditor({
   const [noteIntersectionObserver, setNoteIntersectionObserver] = useAtom(
     noteIntersectionObserverAtom
   );
+  const { isShowing: isAlbumShowing } = useAtomValue(albumDataAtom);
+
   const [seenFileNodeKeys, setSeenFileNodeKeys] = useAtom(
     noteSeenFileNodeKeysAtom
   );
@@ -111,6 +115,7 @@ export function NotesEditor({
 
   return (
     <LexicalComposer initialConfig={editorConfig}>
+      {isAlbumShowing && <Album />}
       <Toolbar
         noteContainerRef={noteContainerRef}
         animationControls={animationControls}
