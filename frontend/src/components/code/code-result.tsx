@@ -11,14 +11,14 @@ export function CodeResult({
   const resultContainerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <footer className="relative">
+    <footer className="relative border-t-1 border-t-zinc-200 dark:border-t-zinc-700 max-h-[calc(35vh-3.6rem)]">
       <div
         ref={resultContainerRef}
         dangerouslySetInnerHTML={{ __html: lastExecutedResult }}
-        className="flex flex-col justify-between gap-1.5 relative font-code text-xs px-2 py-3 border-t-1 border-t-zinc-200 dark:border-t-zinc-700"
+        className="flex flex-col justify-between max-h-[calc(35vh-3.6rem)] overflow-auto gap-1.5 relative font-code text-xs px-2 py-3"
       />
       <MotionIconButton
-        className="absolute right-2 top-2"
+        className="absolute right-4 top-2"
         {...getDefaultButtonVariants()}
         onClick={() => {
           if (resultContainerRef.current) {

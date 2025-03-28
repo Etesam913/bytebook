@@ -135,7 +135,7 @@ export function NotesEditor({
             fontFamily: `"${projectSettings.editorFontFamily}", "Bricolage Grotesque"`,
           }}
           className={cn(
-            'h-full p-4 relative flex-1 w-full',
+            'h-full relative p-4 flex-1 w-full',
             projectSettings.noteWidth === 'readability' &&
               'max-w-[44rem] mx-auto',
             isNoteMaximized && 'px-6'

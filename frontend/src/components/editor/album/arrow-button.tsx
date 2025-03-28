@@ -19,12 +19,12 @@ export function ArrowButton({
 }) {
   return (
     <motion.button
-      // initial={{ opacity: 0 }}
-      // animate={{
-      //   opacity: shouldUseMouseActivity ? 1 : 0,
-      // }}
+      initial={{ opacity: 0 }}
+      animate={{
+        opacity: shouldUseMouseActivity ? 1 : 0,
+      }}
       onFocus={() => setShouldUseMouseActivity(true)}
-      // transition={{ duration: 0.2 }}
+      transition={{ duration: 0.2 }}
       {...getDefaultButtonVariants()}
       onClick={onClick}
       className={cn(

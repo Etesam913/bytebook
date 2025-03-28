@@ -19,6 +19,7 @@ import { GolangLogo } from '../../icons/golang-logo';
 import { PlayButton } from './play-button';
 import { CollapseButton } from './collapse-button';
 import { CodeResult } from './code-result';
+import { Fullscreen } from '../../icons/fullscreen';
 
 const CodeMirrorEditor = lazy(() =>
   import('./codemirror-editor').then((module) => ({
@@ -74,7 +75,7 @@ export function Code({
 }) {
   const [codeMirrorInstance, setCodeMirrorInstance] =
     useState<ReactCodeMirrorRef | null>(null);
-
+  const [isExpanded, setIsExpanded] = useState(false);
   const [lexicalEditor] = useLexicalComposerContext();
   const [isSelected] = useLexicalNodeSelection(nodeKey);
   const pythonKernelStatus = useAtomValue(pythonKernelStatusAtom);
@@ -88,8 +89,10 @@ export function Code({
   return (
     <div
       className={cn(
-        'flex overflow-hidden border-2 dark:bg-[#2e3440] transition-colors border-zinc-200 dark:border-zinc-700 rounded-md',
-        isSelected && '!border-(--accent-color)'
+        'flex border-2 dark:bg-[#2e3440] transition-colors border-zinc-200 dark:border-zinc-700 rounded-md',
+        isSelected && !isExpanded && '!border-(--accent-color)',
+        isExpanded &&
+          'fixed left-0 top-0 right-0 bottom-0 h-screen w-screen z-[60] !border-0'
       )}
     >
       <div
@@ -98,10 +101,12 @@ export function Code({
           isCollapsed && 'pt-2'
         )}
       >
-        <CollapseButton
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-        />
+        {!isExpanded && (
+          <CollapseButton
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+          />
+        )}
         {!isCollapsed && (
           <div className="mt-auto flex flex-col gap-2">
             {(pythonKernelStatus === 'busy' ||
@@ -120,7 +125,8 @@ export function Code({
         <header
           className={cn(
             'flex justify-between gap-1.5 font-code text-xs px-2 py-1 border-b-1 border-b-zinc-200 dark:border-b-zinc-700',
-            isCollapsed && 'border-b-0'
+            isCollapsed && 'border-b-0',
+            isExpanded && 'py-3 pl-11'
           )}
         >
           <span className="flex items-center gap-1.5">
@@ -150,6 +156,17 @@ export function Code({
             <MotionIconButton
               {...getDefaultButtonVariants()}
               onClick={() => {
+                if (isCollapsed) {
+                  setIsCollapsed(false);
+                }
+                setIsExpanded(!isExpanded);
+              }}
+            >
+              <Fullscreen />
+            </MotionIconButton>
+            <MotionIconButton
+              {...getDefaultButtonVariants()}
+              onClick={() => {
                 lexicalEditor.update(() => {
                   removeDecoratorNode(nodeKey);
                 });
@@ -174,6 +191,8 @@ export function Code({
               id={id}
               language={language}
               isCreatedNow={isCreatedNow}
+              isExpanded={isExpanded}
+              lastExecutedResult={lastExecutedResult}
             />
           )}
         </Suspense>

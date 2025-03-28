@@ -19,6 +19,7 @@ import {
   KEY_ARROW_UP_COMMAND,
   LexicalEditor,
 } from 'lexical';
+import { cn } from '../../utils/string-formatting';
 
 export function CodeMirrorEditor({
   nodeKey,
@@ -30,6 +31,8 @@ export function CodeMirrorEditor({
   id,
   language,
   isCreatedNow,
+  isExpanded,
+  lastExecutedResult,
 }: {
   nodeKey: string;
   lexicalEditor: LexicalEditor;
@@ -40,6 +43,8 @@ export function CodeMirrorEditor({
   id: string;
   language: Languages;
   isCreatedNow: boolean;
+  isExpanded: boolean;
+  lastExecutedResult: string | null;
 }) {
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const { mutate: executeCode } = useSendExecuteRequestMutation(id, language);
@@ -136,7 +141,8 @@ export function CodeMirrorEditor({
       instance.view.focus();
     }
   }
-
+  const isExpandedAndHasResults = isExpanded && lastExecutedResult;
+  const isExpandedAndDoesNotHaveResults = isExpanded && !lastExecutedResult;
   return (
     <CodeMirror
       ref={handleEditorRef}
@@ -144,6 +150,10 @@ export function CodeMirrorEditor({
       onChange={(newCode) => {
         debouncedSetCode(newCode);
       }}
+      className={cn(
+        isExpandedAndHasResults && '!h-[65vh] max-h-[65vh]',
+        isExpandedAndDoesNotHaveResults && 'h-[calc(100vh-3.6rem)]'
+      )}
       extensions={[
         projectSettings.codeBlockVimMode ? vim() : [],
         runCodeKeymap,
