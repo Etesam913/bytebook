@@ -1,22 +1,12 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { AnimatePresence, motion, useMotionValue } from 'motion/react';
-import {
-  type KeyboardEvent,
-  type MouseEvent,
-  type ReactNode,
-  RefObject,
-  useRef,
-} from 'react';
-import { getDefaultButtonVariants } from '../../animations';
-import { CircleArrowLeft } from '../../icons/circle-arrow-left';
-import { CircleArrowRight } from '../../icons/circle-arrow-right';
-import { XMark } from '../../icons/circle-xmark';
+import { type KeyboardEvent, type ReactNode, RefObject, useRef } from 'react';
 import type { ResizeState, ResizeWidth } from '../../types';
 import { cn } from '../../utils/string-formatting';
 import { useTrapFocus } from '../dialog/hooks';
 import { ResizeControls } from './resize-controls';
 import { ResizeHandle } from './resize-handle';
-import { expandNearestSiblingNode, useMouseActivity } from './utils';
+import { expandNearestSiblingNode } from './utils';
 
 export function ResizeContainer({
   resizeState,
@@ -58,11 +48,6 @@ export function ResizeContainer({
   const [editor] = useLexicalComposerContext();
 
   useTrapFocus(expandedResizeContainerRef, isExpanded);
-  const [shouldUseMouseActivity, setShouldUseMouseActivity] = useMouseActivity(
-    1500,
-    isExpanded
-  );
-  const isLeftAndRightArrowKeysShowing = shouldUseMouseActivity;
 
   return (
     <>
@@ -151,92 +136,6 @@ export function ResizeContainer({
         </AnimatePresence>
         {children}
       </motion.div>
-      {isExpanded && (
-        <>
-          <div
-            onClick={() => setIsExpanded(false)}
-            className="fixed z-40 w-screen h-screen bg-black left-0 top-0"
-          />
-          <div ref={expandedResizeContainerRef} className="relative">
-            <motion.button
-              {...getDefaultButtonVariants()}
-              onClick={(e: MouseEvent<HTMLButtonElement>) => {
-                setIsExpanded(false);
-                e.stopPropagation();
-              }}
-              className="fixed z-50 right-5 top-4 bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
-              type="submit"
-            >
-              <XMark width={24} height={24} />
-            </motion.button>
-
-            <>
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{
-                  opacity: isLeftAndRightArrowKeysShowing ? 1 : 0,
-                }}
-                onFocus={() => setShouldUseMouseActivity(true)}
-                transition={{ duration: 0.2 }}
-                {...getDefaultButtonVariants()}
-                onClick={() => {
-                  const isExpandableNeighbor = expandNearestSiblingNode(
-                    editor,
-                    nodeKey,
-                    setIsExpanded,
-                    'left'
-                  );
-                  if (
-                    isExpandableNeighbor &&
-                    ref.current?.tagName === 'VIDEO'
-                  ) {
-                    (ref.current as HTMLVideoElement).pause();
-                  }
-                }}
-                className="fixed z-50 bottom-11 left-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
-                type="submit"
-              >
-                <CircleArrowLeft width={28} height={28} />
-              </motion.button>
-
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{
-                  opacity: isLeftAndRightArrowKeysShowing ? 1 : 0,
-                }}
-                transition={{ duration: 0.2 }}
-                {...getDefaultButtonVariants()}
-                onFocus={() => setShouldUseMouseActivity(true)}
-                onClick={() => {
-                  const isExpandableNeighbor = expandNearestSiblingNode(
-                    editor,
-                    nodeKey,
-                    setIsExpanded,
-                    'right'
-                  );
-                  if (
-                    isExpandableNeighbor &&
-                    ref.current?.tagName === 'VIDEO'
-                  ) {
-                    (ref.current as HTMLVideoElement).pause();
-                  }
-                }}
-                className="fixed z-50 bottom-11 right-[40%] bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full"
-                type="submit"
-              >
-                <CircleArrowRight width={28} height={28} />
-              </motion.button>
-            </>
-            {/* Prevents a bug where the resize container size is like 8x8 after leaving fullscreen for videos */}
-            <div
-              style={{
-                width: 0,
-                height: 0,
-              }}
-            />
-          </div>
-        </>
-      )}
     </>
   );
 }
