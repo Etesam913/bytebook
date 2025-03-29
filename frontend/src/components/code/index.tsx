@@ -79,7 +79,6 @@ export function Code({
   const [lexicalEditor] = useLexicalComposerContext();
   const [isSelected] = useLexicalNodeSelection(nodeKey);
   const pythonKernelStatus = useAtomValue(pythonKernelStatusAtom);
-
   useEffect(() => {
     if (isSelected) {
       focusEditor(codeMirrorInstance);

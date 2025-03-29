@@ -288,3 +288,21 @@ export function flattenHtml(html: string): string {
     .replace(/\s+/g, ' ') // Collapse multiple spaces into one
     .trim(); // Remove leading/trailing spaces
 }
+
+/**
+ * Escapes both single and double quotes in a string
+ * @param str The input string
+ * @returns A new string with all quotes escaped
+ */
+export function escapeQuotes(str: string): string {
+  return str.replace(/"/g, '\\"').replace(/'/g, "\\'");
+}
+
+/**
+ * Removes escape characters from quotes in a string
+ * @param str The input string with escaped quotes
+ * @returns A new string with escape characters removed from quotes
+ */
+export function unescapeQuotes(str: string): string {
+  return str.replace(/\\"/g, '"').replace(/\\'/g, "'");
+}

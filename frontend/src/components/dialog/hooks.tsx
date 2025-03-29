@@ -23,8 +23,6 @@ export const useTrapFocus = (
       focusableElements.length - 1
     ) as HTMLElement | undefined;
 
-    console.log(focusableElements, document.activeElement);
-
     const handleKeyDown = (e: KeyboardEvent) => {
       const isTabPressed = e.key === 'Tab' || e.keyCode === 9;
 

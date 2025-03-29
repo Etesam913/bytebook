@@ -31,7 +31,6 @@ export const debouncedNoteHandleChange = debounce(noteHandleChange, 275);
  * "note:changed-from-other-window" or "note:initial-load"
  */
 async function noteHandleChange(editor: LexicalEditor, tags: Set<string>) {
-  console.log('noteHandleChange called');
   /*
     If the note was changed from another window, don't update it again
     If a new note is loaded for the first time, we don't need this func to run
@@ -40,7 +39,6 @@ async function noteHandleChange(editor: LexicalEditor, tags: Set<string>) {
     tags.has('note:changed-from-other-window') ||
     tags.has('note:initial-load')
   ) {
-    console.log({ tags });
     return;
   }
   editor.update(

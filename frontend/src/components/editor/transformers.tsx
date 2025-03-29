@@ -43,6 +43,7 @@ import type { ResizeWidth } from '../../types';
 
 import {
   addQueryParam,
+  escapeQuotes,
   flattenHtml,
   getQueryParamValue,
   removeQueryParam,
@@ -172,14 +173,14 @@ export const CODE_TRANSFORMER: ElementTransformer = {
   export: (node: LexicalNode) => {
     if ($isCodeNode(node)) {
       const textContent = node.getCode();
-      const codeLanguage = node.getLanguage();
+      const codeLanguage = escapeQuotes(node.getLanguage());
       const isCollapsed = node.getIsCollapsed();
-      const id = node.getId();
+      const id = escapeQuotes(node.getId());
       const lastExecutedResult = node.getLastExecutedResult();
       const formattedLastExecutedResult = lastExecutedResult
-        ? flattenHtml(lastExecutedResult)
+        ? escapeQuotes(flattenHtml(lastExecutedResult))
         : null;
-      return `\`\`\`${codeLanguage} id=${id} isCollapsed=${isCollapsed + ''} ${formattedLastExecutedResult ? `lastExecutedResult=${formattedLastExecutedResult}` : ''}\n${textContent}\n\`\`\``;
+      return `\`\`\`${codeLanguage} id="${id}" isCollapsed="${isCollapsed.toString()}"${formattedLastExecutedResult ? `lastExecutedResult="${formattedLastExecutedResult}"` : ''}\n${textContent}\n\`\`\``;
     }
     if ($isExcalidrawNode(node)) {
       const textContent = JSON.stringify(node.getElements());

@@ -227,9 +227,17 @@ export function $createCodeNode({
   code,
   isCollapsed,
   isCreatedNow,
+  lastExecutedResult,
 }: CodePayload): CodeNode {
   return $applyNodeReplacement(
-    new CodeNode(id, language, code, isCollapsed, isCreatedNow)
+    new CodeNode(
+      id,
+      language,
+      code,
+      isCollapsed,
+      isCreatedNow,
+      lastExecutedResult
+    )
   );
 }
 

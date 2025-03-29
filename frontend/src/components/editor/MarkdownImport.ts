@@ -21,6 +21,7 @@ import {
 import { $createExcalidrawNode, type ExcalidrawNode } from './nodes/excalidraw';
 import { PUNCTUATION_OR_SPACE, transformersByType } from './transformers';
 import type { Transformer } from './utils/note-metadata';
+import { unescapeQuotes } from '../../utils/string-formatting';
 
 const CAN_USE_DOM: boolean =
   typeof window !== 'undefined' &&
@@ -156,6 +157,66 @@ function importBlocks(
 }
 const CODE_BLOCK_REG_EXP = /^```(\w{1,10})?(?:\s+(.+))?\s*$/;
 
+function isCharAtIndexEscaped(strToCheck: string, index: number) {
+  if (index === 0) return false;
+  return strToCheck[index - 1] === '\\';
+}
+// id="d5f5ed67-4552-4f32-aeb5-ad4c566ad16a" isCollapsed="false"
+function parseOutCodeBlockHeaderProperties(propertiesString: string) {
+  const propertyMap = new Map<string, string>();
+  const properties = ['isCollapsed', 'id', 'lastExecutedResult'];
+  for (let i = 0; i < propertiesString.length; i += 1) {
+    // If a quote is found without a known property value, then loop until the end of the property value
+    if (
+      propertiesString[i] === '"' &&
+      !isCharAtIndexEscaped(propertiesString, i)
+    ) {
+      i += 1;
+      // Continue updating i until either the end of the string is hit or
+      // A quote is found without being escaped
+      while (
+        i < propertiesString.length &&
+        (propertiesString[i] !== '"' ||
+          (propertiesString[i] === '"' &&
+            isCharAtIndexEscaped(propertiesString, i)))
+      ) {
+        i += 1;
+      }
+    }
+    // Look for occurences of the property
+    // If found, then get the value in between the two quotes.
+    // Any quotes inside the two quotes should be escaped
+    for (const property of properties) {
+      const indexToEndOfProperty = i + property.length - 1;
+      const indexToEquals = indexToEndOfProperty + 1;
+      const indexToQuote = indexToEquals + 1;
+      // +1 at the end to account for the = sign
+      const nextPropertyLengthCharacters = propertiesString.slice(
+        i,
+        indexToEquals + 1
+      );
+      if (nextPropertyLengthCharacters === property + '=') {
+        // Property found outside of a property value
+        let j = indexToQuote + 1;
+        // Getting to the end of the quote while skipping escaped quotes
+        while (
+          j < propertiesString.length &&
+          (propertiesString[j] !== '"' ||
+            (propertiesString[j] === '"' &&
+              isCharAtIndexEscaped(propertiesString, j)))
+        ) {
+          j += 1;
+        }
+        const propertyValue = propertiesString.slice(indexToQuote + 1, j);
+        propertyMap.set(property, propertyValue);
+        i = j;
+        break;
+      }
+    }
+  }
+  return propertyMap;
+}
+
 function importCodeBlock(
   lines: Array<string>,
   startLineIndex: number,
@@ -190,30 +251,24 @@ function importCodeBlock(
           code: '',
         } satisfies CodePayload;
 
-        const otherMatches: string[] = [];
+        const cleanedMatches = openMatch.filter((match) => match !== undefined);
+        const codeBlockHeader = cleanedMatches[cleanedMatches.length - 1];
+        const headerProperties =
+          parseOutCodeBlockHeaderProperties(codeBlockHeader);
 
-        openMatch
-          .slice(2)
-          .filter((v) => v !== undefined)
-          .forEach((matchString) => {
-            const parameters = matchString.split(' ');
-            otherMatches.push(...parameters);
-          });
-
-        for (const match of otherMatches) {
-          // These are in the form of key=value
-          const [key, value] = match.split('=');
-          if (key === 'isCollapsed') {
-            codeBlockParams.isCollapsed = value === 'true';
-          }
-          if (key === 'id') {
-            codeBlockParams.id = value;
-          }
-          if (key === 'lastExecutedResult') {
-            codeBlockParams.lastExecutedResult = value;
-          }
+        if (headerProperties.has('id')) {
+          codeBlockParams.id = headerProperties.get('id')!;
         }
-
+        if (headerProperties.has('isCollapsed')) {
+          codeBlockParams.isCollapsed =
+            headerProperties.get('isCollapsed') === 'true';
+        }
+        if (headerProperties.has('lastExecutedResult')) {
+          const value = headerProperties.get('lastExecutedResult');
+          codeBlockParams.lastExecutedResult = value
+            ? unescapeQuotes(value)
+            : null;
+        }
         codeBlockParams.code = lines
           .slice(startLineIndex + 1, endLineIndex)
           .join('\n');

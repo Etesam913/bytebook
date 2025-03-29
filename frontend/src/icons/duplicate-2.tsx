@@ -32,7 +32,7 @@ export function Duplicate2({
           stroke={fill}
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth="1.75"
           transform="translate(14.5 14.5) rotate(-180)"
           x="1.75"
           y="1.75"
@@ -43,7 +43,7 @@ export function Duplicate2({
           stroke={secondaryfill}
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth="1.75"
         />
       </g>
     </svg>
