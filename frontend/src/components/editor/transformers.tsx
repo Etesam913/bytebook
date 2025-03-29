@@ -39,7 +39,7 @@ import {
   $setSelection,
   type LexicalNode,
 } from 'lexical';
-import type { ResizeWidth } from '../../types';
+import { Languages, validLanguages, type ResizeWidth } from '../../types';
 
 import {
   addQueryParam,
@@ -48,13 +48,7 @@ import {
   getQueryParamValue,
   removeQueryParam,
 } from '../../utils/string-formatting';
-import {
-  $createCodeNode,
-  $isCodeNode,
-  CodeNode,
-  Languages,
-  validLanguages,
-} from './nodes/code';
+import { $createCodeNode, $isCodeNode, CodeNode } from './nodes/code';
 import {
   $createExcalidrawNode,
   $isExcalidrawNode,

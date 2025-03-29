@@ -12,7 +12,6 @@ import { useSendExecuteRequestMutation } from '../../hooks/code';
 import { runCode } from '../../utils/code';
 import { focusEditor, languageToSettings } from '.';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
-import { Languages } from '../editor/nodes/code';
 import { vim } from '@replit/codemirror-vim';
 import {
   KEY_ARROW_DOWN_COMMAND,
@@ -20,6 +19,7 @@ import {
   LexicalEditor,
 } from 'lexical';
 import { cn } from '../../utils/string-formatting';
+import { Languages } from '../../types';
 
 export function CodeMirrorEditor({
   nodeKey,
@@ -152,6 +152,7 @@ export function CodeMirrorEditor({
         debouncedSetCode(newCode);
       }}
       className={cn(
+        'bg-white dark:bg-[#2e3440]',
         isExpandedAndHasResults && '!h-[65vh] max-h-[65vh]',
         isExpandedAndDoesNotHaveResults && 'h-[calc(100vh-3.6rem)]'
       )}

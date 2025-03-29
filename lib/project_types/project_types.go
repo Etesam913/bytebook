@@ -73,3 +73,8 @@ type StreamEventType struct {
 	Name      string `json:"name"`
 	Text      string `json:"text"`
 }
+
+type ExecuteResultEventType struct {
+	MessageId string `json:"messageId"`
+	Data      any    `json:"data"`
+}

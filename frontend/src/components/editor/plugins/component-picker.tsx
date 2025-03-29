@@ -48,7 +48,7 @@ import { $createExcalidrawNode } from '../nodes/excalidraw';
 import { $createInlineEquationNode } from '../nodes/inline-equation';
 import { attachmentCommandData, listCommandData } from '../utils/toolbar';
 import { INSERT_CODE_COMMAND } from './code';
-import { Languages } from '../nodes/code';
+import { Languages } from '../../../types';
 
 const languageCommandData: {
   languageName: Languages;

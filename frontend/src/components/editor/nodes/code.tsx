@@ -9,9 +9,7 @@ import type {
 import { $applyNodeReplacement, DecoratorNode } from 'lexical';
 import type { JSX } from 'react';
 import { Code } from '../../code';
-
-export type Languages = 'python' | 'go';
-export const validLanguages = new Set<string>(['python', 'go']);
+import { Languages } from '../../../types';
 
 export interface CodePayload {
   id: string;

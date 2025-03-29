@@ -67,6 +67,7 @@ func main() {
 			),
 			application.NewService(
 				&services.CodeService{
+					ProjectPath:           projectPath,
 					ShellSocketDealer:     nil,
 					IOPubSocketSubscriber: nil,
 					ConnectionInfo:        projectFiles.ConnectionInfo,

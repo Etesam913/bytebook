@@ -1,16 +1,16 @@
 import { useSetAtom } from 'jotai';
-import { CodeNode, Languages } from '../components/editor/nodes/code';
+import { CodeNode } from '../components/editor/nodes/code';
 import { useWailsEvent } from './events';
-import { goKernelStatusAtom, pythonKernelStatusAtom } from '../atoms';
-import { KernelStatus } from '../types';
+import { kernelsDataAtom } from '../atoms';
+import { isValidKernelLanguage, KernelStatus, Languages } from '../types';
 import { useMutation } from '@tanstack/react-query';
 import { SendExecuteRequest } from '../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { QueryError } from '../utils/query';
 import { $nodesOfType, LexicalEditor } from 'lexical';
 
 export function useKernelStatus() {
-  const setPythonKernelStatus = useSetAtom(pythonKernelStatusAtom);
-  const setGoKernelStatus = useSetAtom(goKernelStatusAtom);
+  const setKernelsData = useSetAtom(kernelsDataAtom);
+
   useWailsEvent('code:kernel:status', (body) => {
     console.info('code:kernel:status');
     const data = body.data as {
@@ -18,10 +18,10 @@ export function useKernelStatus() {
       language: Languages;
     }[];
     if (data.length === 0) return;
-    if (data[0].language === 'python') {
-      setPythonKernelStatus(data[0].status);
-    } else if (data[0].language === 'go') {
-      setGoKernelStatus(data[0].status);
+    const language = data[0].language;
+    const status = data[0].status;
+    if (isValidKernelLanguage(language)) {
+      setKernelsData((prev) => ({ ...prev, [language]: status }));
     }
   });
 }

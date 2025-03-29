@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 
 	"github.com/etesam913/bytebook/lib/kernel_helpers"
 	"github.com/etesam913/bytebook/lib/messaging"
@@ -12,6 +13,7 @@ import (
 )
 
 type CodeService struct {
+	ProjectPath           string
 	ShellSocketDealer     *zmq4.Socket
 	IOPubSocketSubscriber *zmq4.Socket
 	ConnectionInfo        sockets.ConnectionInfo
@@ -19,7 +21,6 @@ type CodeService struct {
 }
 
 func (c *CodeService) createSocketsAndListenToKernel(language string) project_types.BackendResponseWithoutData {
-	fmt.Println("createSocketsAndListenToKernel")
 	if kernel_helpers.IsPortInUse(c.ConnectionInfo.ShellPort) {
 		return project_types.BackendResponseWithoutData{
 			Success: true,
@@ -29,11 +30,14 @@ func (c *CodeService) createSocketsAndListenToKernel(language string) project_ty
 			),
 		}
 	}
+	pathToConnectionFile := filepath.Join(c.ProjectPath, "code", "connection.json")
+	pathToVenv := filepath.Join(c.ProjectPath, "code", "python-venv")
+
 	// Start up the kernel
 	err := kernel_helpers.LaunchKernel(
 		c.AllKernels.Python.Argv,
-		"lib/config/connection.json",
-		"/Users/etesam/Coding/bytebook/venv",
+		pathToConnectionFile,
+		pathToVenv,
 	)
 
 	if err != nil {

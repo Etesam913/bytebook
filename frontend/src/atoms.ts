@@ -2,10 +2,10 @@ import { atom } from 'jotai';
 import type { RefObject } from 'react';
 import {
   AlbumData,
+  KernelsData,
   type BackendQueryDataType,
   type ContextMenuData,
   type DialogDataType,
-  type KernelStatus,
   type ProjectSettings,
   type SearchPanelDataType,
   type SortStrings,
@@ -127,8 +127,14 @@ export const noteIntersectionObserverAtom = atom<IntersectionObserver | null>(
 );
 export const noteSeenFileNodeKeysAtom = atom<Set<string>>(new Set([]));
 
-export const pythonKernelStatusAtom = atom<KernelStatus | null>(null);
-export const goKernelStatusAtom = atom<KernelStatus | null>(null);
+export const kernelsDataAtom = atom<KernelsData>({
+  python: {
+    status: 'idle',
+  },
+  go: {
+    status: 'idle',
+  },
+});
 
 export const albumDataAtom = atom<AlbumData>({
   isShowing: false,

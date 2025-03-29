@@ -110,8 +110,6 @@ export type GithubRepositoryData = {
   clone_url: string;
 };
 
-export type KernelStatus = 'busy' | 'idle' | 'starting';
-
 export type AlbumData = {
   isShowing: boolean;
   nodeKey: string | null;
@@ -119,3 +117,19 @@ export type AlbumData = {
   alt: string | null;
   elementType: string | null;
 };
+
+export type KernelStatus = 'busy' | 'idle' | 'starting';
+export type Languages = 'python' | 'go';
+
+type KernelData = {
+  status: KernelStatus;
+};
+
+export const validLanguages = new Set<string>(['python', 'go']);
+
+export type KernelsData = Record<Languages, KernelData>;
+
+// Function to check if a string is a valid key
+export function isValidKernelLanguage(key: string): key is Languages {
+  return validLanguages.has(key);
+}

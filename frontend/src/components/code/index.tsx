@@ -7,19 +7,19 @@ import { MotionIconButton } from '../buttons';
 import { Duplicate2 } from '../../icons/duplicate-2';
 import { getDefaultButtonVariants } from '../../animations';
 import { useAtomValue } from 'jotai/react';
-import { pythonKernelStatusAtom } from '../../atoms';
+import { kernelsDataAtom } from '../../atoms';
 import { Trash } from '../../icons/trash';
 import { Loader } from '../../icons/loader';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { removeDecoratorNode } from '../../utils/commands';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { cn } from '../../utils/string-formatting';
-import { Languages } from '../editor/nodes/code';
 import { GolangLogo } from '../../icons/golang-logo';
 import { PlayButton } from './play-button';
 import { CollapseButton } from './collapse-button';
 import { CodeResult } from './code-result';
 import { Fullscreen } from '../../icons/fullscreen';
+import { Languages } from '../../types';
 
 const CodeMirrorEditor = lazy(() =>
   import('./codemirror-editor').then((module) => ({
@@ -78,7 +78,9 @@ export function Code({
   const [isExpanded, setIsExpanded] = useState(false);
   const [lexicalEditor] = useLexicalComposerContext();
   const [isSelected] = useLexicalNodeSelection(nodeKey);
-  const pythonKernelStatus = useAtomValue(pythonKernelStatusAtom);
+  const kernelsData = useAtomValue(kernelsDataAtom);
+  const { status } = kernelsData[language];
+
   useEffect(() => {
     if (isSelected) {
       focusEditor(codeMirrorInstance);
@@ -88,7 +90,7 @@ export function Code({
   return (
     <div
       className={cn(
-        'flex border-2 dark:bg-[#2e3440] transition-colors border-zinc-200 dark:border-zinc-700 rounded-md',
+        'flex border-2 bg-white dark:bg-[#2e3440] transition-colors border-zinc-200 dark:border-zinc-700 rounded-md',
         isSelected && !isExpanded && '!border-(--accent-color)',
         isExpanded &&
           'fixed left-0 top-0 right-0 bottom-0 h-screen w-screen z-[60] !border-0'
@@ -108,8 +110,7 @@ export function Code({
         )}
         {!isCollapsed && (
           <div className="mt-auto flex flex-col gap-2">
-            {(pythonKernelStatus === 'busy' ||
-              pythonKernelStatus === 'starting') && (
+            {(status === 'busy' || status === 'starting') && (
               <Loader className="mx-auto" height={18} width={18} />
             )}
             <PlayButton

@@ -189,6 +189,10 @@ func ListenToIOPubSocket(language string, ioPubSocketSubscriber *zmq4.Socket, co
 			// emit kernel:python:code-block-{msg.Header.MsgID}:stdout event here
 		case "execute_result":
 			log.Printf("✅ Execution result: %v\n", msg.Content["data"])
+			// app.EmitEvent("code:code-block:execute_result", project_types.ExecuteResultEventType{
+			// 	MessageId: msgId,
+			// 	Data:      msg.Content["data"],
+			// })
 			// emit kernel:python:code-block-{msg.Header.MsgID}:execute_result event here
 		case "status":
 			status, isString := msg.Content["execution_state"].(string)

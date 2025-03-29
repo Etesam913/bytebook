@@ -36,6 +36,7 @@ func LaunchKernel(argv []string, pathToConnectionFile string, venvPath string) e
 		}
 	}
 
+	// TODO: Update this so that the user selects their venv to use
 	// Ensure the Python interpreter from the virtual environment is used.
 	pythonPath := filepath.Join(venvPath, "bin", "python3")
 	if _, err := os.Stat(pythonPath); os.IsNotExist(err) {
