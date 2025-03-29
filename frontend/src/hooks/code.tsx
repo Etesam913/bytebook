@@ -21,7 +21,7 @@ export function useKernelStatus() {
     const language = data[0].language;
     const status = data[0].status;
     if (isValidKernelLanguage(language)) {
-      setKernelsData((prev) => ({ ...prev, [language]: status }));
+      setKernelsData((prev) => ({ ...prev, [language]: { status: status } }));
     }
   });
 }
@@ -44,7 +44,6 @@ function updateCodeBlock(
         codeNodeToUpdate.setLastExecutedResult('', editor);
       }
       callback(codeNodeToUpdate);
-      // codeNodeToUpdate.setTracebackResult(cleanedTraceback, editor);
     }
   });
 }

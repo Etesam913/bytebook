@@ -1,70 +1,40 @@
-import { motion } from 'motion/react';
-import { useRef, useState } from 'react';
-import { ChevronDown } from '../../../icons/chevron-down';
-import { DropdownItems } from '../../dropdown/dropdown-items';
-import { RefreshAnticlockwise } from '../../../icons/refresh-anticlockwise';
-import PowerOff from '../../../icons/power-off';
-import { useOnClickOutside } from '../../../hooks/general';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { KernelLanguageHeartbeat } from './kernel-language-heartbeat';
+import { useEffect, useState } from 'react';
+import { CodeNode } from '../nodes/code';
+import { $nodesOfType } from 'lexical';
+import { Languages } from '../../../types';
 
 export function KernelHeartbeats() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [focusIndex, setFocusIndex] = useState(0);
-  const dropdownContainerRef = useRef<HTMLDivElement>(null);
-  useOnClickOutside(dropdownContainerRef, () => setIsOpen(false));
+  const [editor] = useLexicalComposerContext();
+  const [languagesPresentInNote, setLanguagesPresentInNote] = useState<
+    Set<Languages>
+  >(new Set());
 
-  return (
-    <div className="relative flex flex-col-reverse" ref={dropdownContainerRef}>
-      <DropdownItems
-        className="translate-y-[-2.25rem] w-32"
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        setFocusIndex={setFocusIndex}
-        onChange={async () => {}}
-        focusIndex={focusIndex}
-        items={[
-          {
-            value: 'restart',
-            label: (
-              <span className="flex items-center gap-1.5 will-change-transform">
-                <RefreshAnticlockwise height={10} width={10} /> Restart
-              </span>
-            ),
-          },
-          {
-            value: 'shut-down',
-            label: (
-              <span className="flex items-center gap-1.5 will-change-transform">
-                <PowerOff height={10} width={10} />
-                Shut Down
-              </span>
-            ),
-          },
-        ]}
-      >
-        <p className="px-2 pt-1 text-gray-500 dark:text-gray-300">
-          Status: Active
-        </p>
-      </DropdownItems>
+  useEffect(() => {
+    const removeMutationListener = editor.registerMutationListener(
+      CodeNode,
+      () => {
+        const tempLanguagesPresentInNote = new Set<Languages>();
+        editor.read(() => {
+          const allCodeNodes = $nodesOfType(CodeNode);
+          allCodeNodes.forEach((node) => {
+            const language = node.getLanguage();
+            tempLanguagesPresentInNote.add(language);
+          });
+        });
+        setLanguagesPresentInNote(tempLanguagesPresentInNote);
+      }
+    );
 
-      <button
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 whitespace-nowrap"
-      >
-        <span className="bg-green-600 h-2 w-2 rounded-full kernel-heartbeat" />
-        <p>python</p>
-        <motion.div
-          initial={{ rotate: 0 }}
-          className="ml-auto"
-          animate={{ rotate: isOpen ? 0 : 180 }}
-        >
-          <ChevronDown
-            className="text-zinc-500 dark:text-zinc-300 will-change-transform"
-            strokeWidth="3.5px"
-            width={9}
-            height={9}
-          />
-        </motion.div>
-      </button>
-    </div>
+    return () => {
+      removeMutationListener();
+    };
+  }, []);
+
+  const kernelLanguageHeartbeats = [...languagesPresentInNote].map(
+    (language) => <KernelLanguageHeartbeat key={language} language={language} />
   );
+  if (kernelLanguageHeartbeats.length === 0) return null;
+  return <span className="flex gap-1.5">{kernelLanguageHeartbeats}</span>;
 }
