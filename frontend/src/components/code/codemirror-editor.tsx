@@ -76,10 +76,10 @@ export function CodeMirrorEditor({
             lexicalEditor.update(() => {
               lexicalEditor.dispatchCommand(KEY_ARROW_UP_COMMAND, arrowUpEvent);
             });
-
             return false;
           }
 
+          setSelected(true);
           // Return false to let CodeMirror handle it normally
           return false;
         },
@@ -108,6 +108,7 @@ export function CodeMirrorEditor({
             return true;
           }
 
+          setSelected(true);
           return false;
         },
       },
@@ -167,6 +168,10 @@ export function CodeMirrorEditor({
             focusEditor(codeMirrorInstance);
           }, 50);
         } else {
+          // ArrowDown and ArrowUp are handled in the keybinding extension
+          if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
+            setSelected(true);
+          }
           e.stopPropagation();
         }
       }}

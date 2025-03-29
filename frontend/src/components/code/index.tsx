@@ -137,7 +137,7 @@ export function Code({
               />
             )}
             {languageToSettings[language].icon}
-            <p>{language}</p>
+            {/* <p>{language}</p> */}
           </span>
           <span className="flex items-center gap-1">
             <MotionIconButton
@@ -150,7 +150,7 @@ export function Code({
                 navigator.clipboard.writeText(editorContent);
               }}
             >
-              <Duplicate2 height={16} width={16} />
+              <Duplicate2 height={18} width={18} />
             </MotionIconButton>
             <MotionIconButton
               {...getDefaultButtonVariants()}
@@ -171,7 +171,7 @@ export function Code({
                 });
               }}
             >
-              <Trash height={16} width={16} />
+              <Trash height={18} width={18} />
             </MotionIconButton>
           </span>
         </header>
