@@ -2,7 +2,12 @@ import { useSetAtom } from 'jotai';
 import { CodeNode } from '../components/editor/nodes/code';
 import { useWailsEvent } from './events';
 import { kernelsDataAtom } from '../atoms';
-import { isValidKernelLanguage, KernelStatus, Languages } from '../types';
+import {
+  isValidKernelLanguage,
+  KernelHeartbeatStatus,
+  KernelStatus,
+  Languages,
+} from '../types';
 import { useMutation } from '@tanstack/react-query';
 import { SendExecuteRequest } from '../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { QueryError } from '../utils/query';
@@ -21,8 +26,30 @@ export function useKernelStatus() {
     const language = data[0].language;
     const status = data[0].status;
     if (isValidKernelLanguage(language)) {
-      setKernelsData((prev) => ({ ...prev, [language]: { status: status } }));
+      setKernelsData((prev) => ({
+        ...prev,
+        [language]: { ...prev[language], status: status },
+      }));
     }
+  });
+}
+
+export function useKernelHeartbeat() {
+  const setKernelsData = useSetAtom(kernelsDataAtom);
+
+  useWailsEvent('code:kernel:heartbeat', (body) => {
+    console.info('code:kernel:heartbeat');
+    const data = body.data as {
+      status: KernelHeartbeatStatus;
+      language: Languages;
+    }[];
+    if (data.length === 0) return;
+    const language = data[0].language;
+    const kernelHeartbeatStatus = data[0].status;
+    setKernelsData((prev) => ({
+      ...prev,
+      [language]: { ...prev[language], heartbeat: kernelHeartbeatStatus },
+    }));
   });
 }
 

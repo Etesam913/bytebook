@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"path/filepath"
@@ -14,8 +15,11 @@ import (
 
 type CodeService struct {
 	ProjectPath           string
+	Context               context.Context
 	ShellSocketDealer     *zmq4.Socket
 	IOPubSocketSubscriber *zmq4.Socket
+	HeartbeatSocketReq    *zmq4.Socket
+	HeartbeatStopChannel  chan string
 	ConnectionInfo        sockets.ConnectionInfo
 	AllKernels            project_types.AllKernels
 }
@@ -47,14 +51,39 @@ func (c *CodeService) createSocketsAndListenToKernel(language string) project_ty
 		}
 	}
 
-	if c.ShellSocketDealer == nil && c.IOPubSocketSubscriber == nil {
+	if c.ShellSocketDealer == nil && c.IOPubSocketSubscriber == nil && c.HeartbeatSocketReq == nil {
 		shellSocketDealer := sockets.CreateShellSocketDealer()
+		if shellSocketDealer == nil {
+			return project_types.BackendResponseWithoutData{
+				Success: false,
+				Message: "Failed to create shell socket dealer",
+			}
+		}
 		c.ShellSocketDealer = shellSocketDealer
-		go sockets.ListenToShellSocket(shellSocketDealer, c.ConnectionInfo)
 
 		ioPubSocketSubscriber := sockets.CreateIOPubSocketSubscriber()
+		if ioPubSocketSubscriber == nil {
+			return project_types.BackendResponseWithoutData{
+				Success: false,
+				Message: "Failed to create IOPub socket subscriber",
+			}
+		}
+
 		c.IOPubSocketSubscriber = ioPubSocketSubscriber
-		go sockets.ListenToIOPubSocket(language, ioPubSocketSubscriber, c.ConnectionInfo)
+
+		heartbeatSocketReq := sockets.CreateHeartbeatSocketReq()
+		if heartbeatSocketReq == nil {
+			return project_types.BackendResponseWithoutData{
+				Success: false,
+				Message: "Failed to create heartbeat socket request",
+			}
+		}
+
+		c.HeartbeatSocketReq = heartbeatSocketReq
+
+		go sockets.ListenToShellSocket(shellSocketDealer, c.ConnectionInfo, c.Context)
+		go sockets.ListenToIOPubSocket(ioPubSocketSubscriber, language, c.ConnectionInfo, c.Context)
+		go sockets.ListenToHeartbeatSocket(heartbeatSocketReq, language, c.ConnectionInfo, c.Context)
 
 	} else {
 		log.Println("Does nothing, the sockets already exist")
@@ -66,11 +95,6 @@ func (c *CodeService) createSocketsAndListenToKernel(language string) project_ty
 }
 
 func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, code string) project_types.BackendResponseWithoutData {
-	response := c.createSocketsAndListenToKernel(language)
-	// If the kernel is already running on the port, then it is fine to send the message
-	if response.Success == false {
-		return response
-	}
 	err := messaging.SendExecuteRequest(
 		c.ShellSocketDealer,
 		messaging.ExecuteMessageParams{
@@ -91,4 +115,8 @@ func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, cod
 		Success: true,
 		Message: "Execute request sent successfully",
 	}
+}
+
+func (c *CodeService) CreateHeartbeatSocketAndListen(language string) project_types.BackendResponseWithoutData {
+	return c.createSocketsAndListenToKernel(language)
 }

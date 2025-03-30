@@ -8,6 +8,10 @@ import { useOnClickOutside } from '../../../hooks/general';
 import { useAtomValue } from 'jotai';
 import { kernelsDataAtom } from '../../../atoms';
 import { Languages } from '../../../types';
+import { Loader } from '../../../icons/loader';
+import { cn } from '../../../utils/string-formatting';
+import { useQuery } from '@tanstack/react-query';
+import { CreateHeartbeatSocketAndListen } from '../../../../bindings/github.com/etesam913/bytebook/services/codeservice';
 
 export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,7 +19,13 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const dropdownContainerRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(dropdownContainerRef, () => setIsOpen(false));
   const kernelsData = useAtomValue(kernelsDataAtom);
-  const { status } = kernelsData[language];
+  const { status, heartbeat } = kernelsData[language];
+
+  useQuery({
+    queryKey: ['heartbeat', language],
+    queryFn: () => CreateHeartbeatSocketAndListen(language),
+  });
+
   return (
     <div className="relative flex flex-col-reverse" ref={dropdownContainerRef}>
       <DropdownItems
@@ -54,7 +64,18 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
         onClick={() => setIsOpen((prev) => !prev)}
         className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 whitespace-nowrap"
       >
-        <span className="bg-green-600 h-2 w-2 rounded-full kernel-heartbeat" />
+        {status === 'idle' && (
+          <span
+            className={cn(
+              'h-2 w-2 rounded-full kernel-heartbeat',
+              heartbeat === 'success' && 'bg-green-600',
+              heartbeat === 'failure' && 'bg-red-600'
+            )}
+          />
+        )}
+        {(status === 'busy' || status === 'starting') && (
+          <Loader height={10} width={10} />
+        )}
         <p>{language}</p>
         <motion.div
           initial={{ rotate: 0 }}

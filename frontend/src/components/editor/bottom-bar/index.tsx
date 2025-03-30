@@ -67,7 +67,7 @@ export function BottomBar({
   );
 
   return (
-    <footer className="text-xs ml-[-4.5px] border-t border-gray-200 dark:border-gray-600 py-1.5 px-3 flex items-center gap-4 overflow-auto">
+    <footer className="text-xs ml-[-4.5px] border-t border-gray-200 dark:border-gray-600 py-1.5 px-3 flex items-center gap-4">
       <span className="flex items-center gap-1">
         <BreadcrumbItem to={`/${folder}`}>
           <Folder width={20} height={20} /> {decodeURIComponent(folder)}

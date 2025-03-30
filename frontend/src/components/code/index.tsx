@@ -37,7 +37,7 @@ export const languageToSettings: Record<Languages, LanguageSetting> = {
   python: {
     basicSetup: { tabSize: 4 },
     extension: langs.python,
-    icon: <PythonLogo width={14} height={14} />,
+    icon: <PythonLogo width={16} height={16} />,
   },
   go: {
     basicSetup: { tabSize: 4 },

@@ -119,10 +119,12 @@ export type AlbumData = {
 };
 
 export type KernelStatus = 'busy' | 'idle' | 'starting';
+export type KernelHeartbeatStatus = 'success' | 'failure';
 export type Languages = 'python' | 'go';
 
 type KernelData = {
   status: KernelStatus;
+  heartbeat: KernelHeartbeatStatus;
 };
 
 export const validLanguages = new Set<string>(['python', 'go']);

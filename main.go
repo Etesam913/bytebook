@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"log"
 
@@ -42,7 +43,8 @@ func main() {
 
 	// Launching file server for images/videos
 	go file_server.LaunchFileServer(projectPath)
-
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	app := application.New(application.Options{
 		Name:        "bytebook",
 		Description: "A simple note taking app.",
@@ -68,8 +70,11 @@ func main() {
 			application.NewService(
 				&services.CodeService{
 					ProjectPath:           projectPath,
+					Context:               ctx,
 					ShellSocketDealer:     nil,
 					IOPubSocketSubscriber: nil,
+					HeartbeatSocketReq:    nil,
+					HeartbeatStopChannel:  make(chan string),
 					ConnectionInfo:        projectFiles.ConnectionInfo,
 					AllKernels:            projectFiles.AllKernels,
 				},
