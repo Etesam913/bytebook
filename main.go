@@ -4,11 +4,13 @@ import (
 	"context"
 	"embed"
 	"log"
+	"sync"
 
 	"github.com/etesam913/bytebook/lib/auth_server"
 	"github.com/etesam913/bytebook/lib/custom_events"
 	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
+	"github.com/etesam913/bytebook/lib/kernel_helpers"
 	"github.com/etesam913/bytebook/lib/menus"
 	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/etesam913/bytebook/services"
@@ -74,9 +76,12 @@ func main() {
 					ShellSocketDealer:     nil,
 					IOPubSocketSubscriber: nil,
 					HeartbeatSocketReq:    nil,
-					HeartbeatStopChannel:  make(chan string),
-					ConnectionInfo:        projectFiles.ConnectionInfo,
-					AllKernels:            projectFiles.AllKernels,
+					HeartbeatState: kernel_helpers.KernelHeartbeatState{
+						Mutex:  sync.RWMutex{},
+						Status: false,
+					},
+					ConnectionInfo: projectFiles.ConnectionInfo,
+					AllKernels:     projectFiles.AllKernels,
 				},
 			),
 		},

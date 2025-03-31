@@ -36,12 +36,6 @@ type TagJson struct {
 	Notes []string `json:"notes"`
 }
 
-type ProjectSettingsReponse struct {
-	Success bool                `json:"success"`
-	Message string              `json:"message"`
-	Data    ProjectSettingsJson `json:"data"`
-}
-
 type BackendResponseWithData[T any] struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
@@ -53,13 +47,7 @@ type BackendResponseWithoutData struct {
 	Message string `json:"message"`
 }
 
-type NoteResponse struct {
-	Success bool     `json:"success"`
-	Message string   `json:"message"`
-	Data    []string `json:"data"`
-}
-
-// Events Types
+// Kernel Types
 type KernelCodeBlockExecuteReply struct {
 	Status         string   `json:"status"`
 	MessageId      string   `json:"messageId"`
@@ -68,6 +56,19 @@ type KernelCodeBlockExecuteReply struct {
 	ErrorTraceback []string `json:"errorTraceback"`
 }
 
+type KernelConnectionInfo struct {
+	SignatureScheme string `json:"signature_scheme"`
+	Transport       string `json:"transport"`
+	StdinPort       int    `json:"stdin_port"`
+	ControlPort     int    `json:"control_port"`
+	IOPubPort       int    `json:"iopub_port"`
+	HBPort          int    `json:"hb_port"`
+	ShellPort       int    `json:"shell_port"`
+	Key             string `json:"key"`
+	IP              string `json:"ip"`
+}
+
+// Kernel Events Types
 type StreamEventType struct {
 	MessageId string `json:"messageId"`
 	Name      string `json:"name"`

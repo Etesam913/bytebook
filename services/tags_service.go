@@ -179,11 +179,11 @@ func (t *TagsService) GetTags() project_types.BackendResponseWithData[[]string] 
 GetNotesFromTag retrieves the note paths associated with a given tag name.
 It reads the "notes.json" file within the tag's directory and returns the note paths with query params.
 */
-func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project_types.NoteResponse {
+func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project_types.BackendResponseWithData[[]string] {
 	// Make sure the notes.json file exists
 	err := tags_helper.CreateTagToNotesArrayIfNotExists(t.ProjectPath, tagName)
 	if err != nil {
-		return project_types.NoteResponse{
+		return project_types.BackendResponseWithData[[]string]{
 			Success: false,
 			Message: "Something went wrong when retrieving the tagged notes. Please try again later",
 			Data:    []string{},
@@ -195,7 +195,7 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 
 	// Gets the JSON notes data
 	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &notesForGivenTagData); err != nil {
-		return project_types.NoteResponse{
+		return project_types.BackendResponseWithData[[]string]{
 			Success: false,
 			Message: "Something went wrong when fetching the tag. Please try again later",
 			Data:    []string{},
@@ -236,7 +236,7 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 		return noteInfo.Folder + noteInfo.Name + "?ext=" + noteInfo.Ext
 	})
 
-	return project_types.NoteResponse{
+	return project_types.BackendResponseWithData[[]string]{
 		Success: true,
 		Message: "Successfully retrieved tag.",
 		Data:    sortedNotes,

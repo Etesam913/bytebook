@@ -136,8 +136,9 @@ export function useSendExecuteRequestMutation(
         language,
         code
       );
+      console.log({ res });
       if (!res.success) {
-        throw new QueryError('Failed to execute code');
+        throw new QueryError(res.message);
       }
     },
   });

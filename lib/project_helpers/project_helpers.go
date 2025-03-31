@@ -12,7 +12,6 @@ import (
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/kernel_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
-	"github.com/etesam913/bytebook/lib/sockets"
 	"github.com/etesam913/bytebook/lib/tags_helper"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -39,7 +38,7 @@ func CreateProjectDirectories(projectPath string) {
 
 type ProjectFiles struct {
 	ProjectSettings project_types.ProjectSettingsJson
-	ConnectionInfo  sockets.ConnectionInfo
+	ConnectionInfo  project_types.KernelConnectionInfo
 	AllKernels      project_types.AllKernels
 }
 

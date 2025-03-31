@@ -7,33 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/etesam913/bytebook/lib/kernel_helpers"
 	"github.com/etesam913/bytebook/lib/messaging"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/pebbe/zmq4"
 	"github.com/robert-nix/ansihtml"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
-
-type ConnectionInfo struct {
-	SignatureScheme string `json:"signature_scheme"`
-	Transport       string `json:"transport"`
-	StdinPort       int    `json:"stdin_port"`
-	ControlPort     int    `json:"control_port"`
-	IOPubPort       int    `json:"iopub_port"`
-	HBPort          int    `json:"hb_port"`
-	ShellPort       int    `json:"shell_port"`
-	Key             string `json:"key"`
-	IP              string `json:"ip"`
-}
-
-type Sockets struct {
-	ShellSocket   *zmq4.Socket
-	ControlSocket *zmq4.Socket
-	StdinSocket   *zmq4.Socket
-	IOPubSocket   *zmq4.Socket
-	HBSocket      *zmq4.Socket
-	Key           []byte
-}
 
 func CreateShellSocketDealer() *zmq4.Socket {
 	shellSocketDealer, err := zmq4.NewSocket(zmq4.DEALER) // Could also use REQ
@@ -44,7 +24,7 @@ func CreateShellSocketDealer() *zmq4.Socket {
 	return shellSocketDealer
 }
 
-func ListenToShellSocket(shellSocketDealer *zmq4.Socket, connectionInfo ConnectionInfo, ctx context.Context) {
+func ListenToShellSocket(shellSocketDealer *zmq4.Socket, connectionInfo project_types.KernelConnectionInfo, ctx context.Context) {
 	defer shellSocketDealer.Close()
 	app := application.Get()
 
@@ -119,17 +99,19 @@ func ListenToShellSocket(shellSocketDealer *zmq4.Socket, connectionInfo Connecti
 						}
 					}
 				}
-
-				app.CurrentWindow().EmitEvent(
-					"code:code-block:execute-reply",
-					project_types.KernelCodeBlockExecuteReply{
-						Status:         status,
-						MessageId:      msgId,
-						ErrorName:      errorName,
-						ErrorValue:     errorValue,
-						ErrorTraceback: errorTraceback,
-					},
-				)
+				currentWindow := app.CurrentWindow()
+				if currentWindow != nil {
+					currentWindow.EmitEvent(
+						"code:code-block:execute-reply",
+						project_types.KernelCodeBlockExecuteReply{
+							Status:         status,
+							MessageId:      msgId,
+							ErrorName:      errorName,
+							ErrorValue:     errorValue,
+							ErrorTraceback: errorTraceback,
+						},
+					)
+				}
 				fmt.Println("---")
 				time.Sleep(100 * time.Millisecond)
 			}
@@ -140,13 +122,13 @@ func ListenToShellSocket(shellSocketDealer *zmq4.Socket, connectionInfo Connecti
 func CreateIOPubSocketSubscriber() *zmq4.Socket {
 	iopubSocketSubscriber, err := zmq4.NewSocket(zmq4.SUB)
 	if err != nil {
-		log.Printf("Could not create io 🍺 socket subscriber:", err)
+		log.Print("Could not create io 🍺 socket subscriber:", err)
 		return nil
 	}
 	return iopubSocketSubscriber
 }
 
-func ListenToIOPubSocket(ioPubSocketSubscriber *zmq4.Socket, language string, connectionInfo ConnectionInfo, ctx context.Context) {
+func ListenToIOPubSocket(ioPubSocketSubscriber *zmq4.Socket, language string, connectionInfo project_types.KernelConnectionInfo, ctx context.Context) {
 	defer ioPubSocketSubscriber.Close()
 
 	ioPubAddress := fmt.Sprintf("tcp://%s:%d", connectionInfo.IP, connectionInfo.IOPubPort)
@@ -243,7 +225,13 @@ type HeartbeatEvent struct {
 
 var HEARTBEAT_TICKER = 3 * time.Second
 
-func ListenToHeartbeatSocket(heartbeatSocketReq *zmq4.Socket, language string, connectionInfo ConnectionInfo, ctx context.Context) {
+func ListenToHeartbeatSocket(
+	heartbeatSocketReq *zmq4.Socket,
+	language string,
+	connectionInfo project_types.KernelConnectionInfo,
+	ctx context.Context,
+	heartbeatState *kernel_helpers.KernelHeartbeatState,
+) {
 	defer heartbeatSocketReq.Close()
 
 	heartbeatAddress := fmt.Sprintf("tcp://%s:%d", connectionInfo.IP, connectionInfo.HBPort)
@@ -267,6 +255,7 @@ func ListenToHeartbeatSocket(heartbeatSocketReq *zmq4.Socket, language string, c
 			_, err := heartbeatSocketReq.SendBytes(ping, 0)
 			if err != nil {
 				log.Printf("Could not send heartbeat ping: %v", err)
+				heartbeatState.UpdateHeartbeatStatus(false)
 				app.EmitEvent("code:kernel:heartbeat", HeartbeatEvent{
 					Status: "failure",
 				})
@@ -282,6 +271,7 @@ func ListenToHeartbeatSocket(heartbeatSocketReq *zmq4.Socket, language string, c
 				if strings.Contains(err.Error(), "resource temporarily unavailable") {
 					// Timeout occurred
 					log.Println("Heartbeat response timeout")
+					heartbeatState.UpdateHeartbeatStatus(false)
 					app.EmitEvent("code:kernel:heartbeat", HeartbeatEvent{
 						Language: language,
 						Status:   "failure",
@@ -289,6 +279,7 @@ func ListenToHeartbeatSocket(heartbeatSocketReq *zmq4.Socket, language string, c
 					continue
 				}
 				log.Printf("Could not receive heartbeat response: %v", err)
+				heartbeatState.UpdateHeartbeatStatus(false)
 				app.EmitEvent("code:kernel:heartbeat", HeartbeatEvent{
 					Language: language,
 					Status:   "failure",
@@ -298,6 +289,7 @@ func ListenToHeartbeatSocket(heartbeatSocketReq *zmq4.Socket, language string, c
 
 			// Successfully received response
 			log.Printf("Received heartbeat response: %s\n", pingResponse)
+			heartbeatState.UpdateHeartbeatStatus(true)
 			app.EmitEvent("code:kernel:heartbeat", HeartbeatEvent{
 				Language: language,
 				Status:   "success",

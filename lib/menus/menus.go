@@ -15,7 +15,10 @@ func InitializeApplicationMenu(app *application.App, backgroundColor application
 		settingsMenuItem := appMenu.Add("Settings")
 		settingsMenuItem.SetAccelerator("cmdorctrl+,")
 		settingsMenuItem.OnClick(func(data *application.Context) {
-			app.CurrentWindow().EmitEvent("settings:open")
+			currentWindow := app.CurrentWindow()
+			if currentWindow != nil {
+				app.CurrentWindow().EmitEvent("settings:open")
+			}
 		})
 	}
 
@@ -42,7 +45,10 @@ func InitializeApplicationMenu(app *application.App, backgroundColor application
 		viewSubmenuItem := viewSubmenu.Add("Search")
 		viewSubmenuItem.SetAccelerator("cmdorctrl+p")
 		viewSubmenuItem.OnClick(func(data *application.Context) {
-			app.CurrentWindow().EmitEvent("search:open-panel", map[string]interface{}{})
+			currentWindow := app.CurrentWindow()
+			if currentWindow != nil {
+				currentWindow.EmitEvent("search:open-panel", map[string]any{})
+			}
 		})
 	}
 

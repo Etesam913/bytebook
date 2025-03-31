@@ -36,7 +36,7 @@ async function getProjectSettings(
 ) {
   try {
     const { success, message, data } = await GetProjectSettings();
-    if (!success) throw new Error(message);
+    if (!success || !data) throw new Error(message);
 
     const { darkMode, noteSidebarItemSize } = validateProjectSettings({
       darkMode: data.darkMode,

@@ -11,7 +11,7 @@ import { Languages } from '../../../types';
 import { Loader } from '../../../icons/loader';
 import { cn } from '../../../utils/string-formatting';
 import { useQuery } from '@tanstack/react-query';
-import { CreateHeartbeatSocketAndListen } from '../../../../bindings/github.com/etesam913/bytebook/services/codeservice';
+import { CreateSocketsAndListen } from '../../../../bindings/github.com/etesam913/bytebook/services/codeservice';
 
 export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,7 +23,10 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
 
   useQuery({
     queryKey: ['heartbeat', language],
-    queryFn: () => CreateHeartbeatSocketAndListen(language),
+    queryFn: async () => {
+      const res = await CreateSocketsAndListen(language);
+      console.log({ res });
+    },
   });
 
   return (

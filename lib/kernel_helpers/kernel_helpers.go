@@ -6,12 +6,23 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
-	"github.com/etesam913/bytebook/lib/sockets"
 )
+
+type KernelHeartbeatState struct {
+	Mutex  sync.RWMutex
+	Status bool
+}
+
+func (k *KernelHeartbeatState) UpdateHeartbeatStatus(status bool) {
+	k.Mutex.Lock()
+	defer k.Mutex.Unlock()
+	k.Status = status
+}
 
 // isPortInUse tries to connect to the given TCP port on localhost.
 // It returns true if a connection is established, meaning the port is in use.
@@ -67,8 +78,8 @@ func LaunchKernel(argv []string, pathToConnectionFile string, venvPath string) e
 	return nil
 }
 
-func GetConnectionInfo(projectPath string) (sockets.ConnectionInfo, error) {
-	defaultConnectionInfo := sockets.ConnectionInfo{
+func GetConnectionInfo(projectPath string) (project_types.KernelConnectionInfo, error) {
+	defaultConnectionInfo := project_types.KernelConnectionInfo{
 		ShellPort:       55321,
 		IOPubPort:       55322,
 		StdinPort:       55323,

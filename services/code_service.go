@@ -19,12 +19,53 @@ type CodeService struct {
 	ShellSocketDealer     *zmq4.Socket
 	IOPubSocketSubscriber *zmq4.Socket
 	HeartbeatSocketReq    *zmq4.Socket
-	HeartbeatStopChannel  chan string
-	ConnectionInfo        sockets.ConnectionInfo
+	HeartbeatState        kernel_helpers.KernelHeartbeatState
+	ConnectionInfo        project_types.KernelConnectionInfo
 	AllKernels            project_types.AllKernels
 }
 
-func (c *CodeService) createSocketsAndListenToKernel(language string) project_types.BackendResponseWithoutData {
+func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, code string) project_types.BackendResponseWithoutData {
+	if c.ShellSocketDealer == nil || c.IOPubSocketSubscriber == nil || c.HeartbeatSocketReq == nil {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: "Coding sockets are not initialized. Try restarting the kernel using the language button at the bottom of the editor.",
+		}
+	}
+
+	c.HeartbeatState.Mutex.RLock()
+	isHeartBeating := c.HeartbeatState.Status
+	c.HeartbeatState.Mutex.RUnlock()
+
+	if !isHeartBeating {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: fmt.Sprintf("The %s kernel is not initialized. Try restarting the kernel using the language button at the bottom of the editor.", language),
+		}
+	}
+
+	err := messaging.SendExecuteRequest(
+		c.ShellSocketDealer,
+		messaging.ExecuteMessageParams{
+			MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
+			SessionID: "current-session",
+			Code:      code,
+		},
+	)
+
+	if err != nil {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: fmt.Sprintf("Failed to send execute request: %v", err),
+		}
+	}
+
+	return project_types.BackendResponseWithoutData{
+		Success: true,
+		Message: "Execute request sent successfully",
+	}
+}
+
+func (c *CodeService) CreateSocketsAndListen(language string) project_types.BackendResponseWithoutData {
 	if kernel_helpers.IsPortInUse(c.ConnectionInfo.ShellPort) {
 		return project_types.BackendResponseWithoutData{
 			Success: true,
@@ -81,9 +122,26 @@ func (c *CodeService) createSocketsAndListenToKernel(language string) project_ty
 
 		c.HeartbeatSocketReq = heartbeatSocketReq
 
-		go sockets.ListenToShellSocket(shellSocketDealer, c.ConnectionInfo, c.Context)
-		go sockets.ListenToIOPubSocket(ioPubSocketSubscriber, language, c.ConnectionInfo, c.Context)
-		go sockets.ListenToHeartbeatSocket(heartbeatSocketReq, language, c.ConnectionInfo, c.Context)
+		go sockets.ListenToShellSocket(
+			shellSocketDealer,
+			c.ConnectionInfo,
+			c.Context,
+		)
+
+		go sockets.ListenToIOPubSocket(
+			ioPubSocketSubscriber,
+			language,
+			c.ConnectionInfo,
+			c.Context,
+		)
+
+		go sockets.ListenToHeartbeatSocket(
+			heartbeatSocketReq,
+			language,
+			c.ConnectionInfo,
+			c.Context,
+			&c.HeartbeatState,
+		)
 
 	} else {
 		log.Println("Does nothing, the sockets already exist")
@@ -92,31 +150,4 @@ func (c *CodeService) createSocketsAndListenToKernel(language string) project_ty
 		Success: true,
 		Message: "Sockets created and listening...",
 	}
-}
-
-func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, code string) project_types.BackendResponseWithoutData {
-	err := messaging.SendExecuteRequest(
-		c.ShellSocketDealer,
-		messaging.ExecuteMessageParams{
-			MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
-			SessionID: "current-session",
-			Code:      code,
-		},
-	)
-
-	if err != nil {
-		return project_types.BackendResponseWithoutData{
-			Success: false,
-			Message: fmt.Sprintf("Failed to send execute request: %v", err),
-		}
-	}
-
-	return project_types.BackendResponseWithoutData{
-		Success: true,
-		Message: "Execute request sent successfully",
-	}
-}
-
-func (c *CodeService) CreateHeartbeatSocketAndListen(language string) project_types.BackendResponseWithoutData {
-	return c.createSocketsAndListenToKernel(language)
 }

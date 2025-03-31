@@ -46,7 +46,7 @@ export function useNotes(
       if (!res.success) {
         throw new QueryError('Failed in retrieving notes');
       }
-      const notes = res.data;
+      const notes = res.data ?? [];
       const curNoteWithExtension = `${curNote}?ext=${fileExtension}`;
       const curNoteExists = notes.some((note) => note === curNoteWithExtension);
 
@@ -95,7 +95,7 @@ export function useNotesFromTag(
       if (!res.success) {
         throw new QueryError(`Failed in retrieving notes for tag "${tagName}"`);
       }
-      const notes = res.data;
+      const notes = res.data ?? [];
       const curNoteWithExtension = `${curNote}?ext=${fileExtension}`;
       const curNoteExists = notes.some((note) => note === curNoteWithExtension);
 

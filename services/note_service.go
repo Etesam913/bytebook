@@ -29,16 +29,16 @@ type AddFolderResponse struct {
 	Message string `json:"message"`
 }
 
-func (n *NoteService) GetNotes(folderName string, sortOption string) project_types.NoteResponse {
+func (n *NoteService) GetNotes(folderName string, sortOption string) project_types.BackendResponseWithData[[]string] {
 	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	// Ensure the directory exists
 	if _, err := os.Stat(folderPath); err != nil {
-		return project_types.NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
+		return project_types.BackendResponseWithData[[]string]{Success: false, Message: err.Error(), Data: []string{}}
 	}
 
 	files, err := os.ReadDir(folderPath)
 	if err != nil {
-		return project_types.NoteResponse{Success: false, Message: err.Error(), Data: []string{}}
+		return project_types.BackendResponseWithData[[]string]{Success: false, Message: err.Error(), Data: []string{}}
 	}
 	var notes []os.DirEntry
 	for _, file := range files {
@@ -63,7 +63,7 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) project_typ
 		sortedNotes = append(sortedNotes, fmt.Sprintf("%s?ext=%s", name, extension))
 	}
 
-	return project_types.NoteResponse{Success: true, Message: "", Data: sortedNotes}
+	return project_types.BackendResponseWithData[[]string]{Success: true, Message: "", Data: sortedNotes}
 }
 
 func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNoteTitle string) project_types.BackendResponseWithoutData {
