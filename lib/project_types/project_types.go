@@ -1,5 +1,9 @@
 package project_types
 
+import (
+	"sync"
+)
+
 type WindowEventData struct {
 	Folder string
 	Note   string
@@ -48,15 +52,13 @@ type BackendResponseWithoutData struct {
 }
 
 // Kernel Types
-type KernelCodeBlockExecuteReply struct {
-	Status         string   `json:"status"`
-	MessageId      string   `json:"messageId"`
-	ErrorName      string   `json:"errorName"`
-	ErrorValue     string   `json:"errorValue"`
-	ErrorTraceback []string `json:"errorTraceback"`
+type LanguageToKernelConnectionInfo struct {
+	Python KernelConnectionInfo `json:"python"`
+	Golang KernelConnectionInfo `json:"golang"`
 }
 
 type KernelConnectionInfo struct {
+	Language        string `json:"language"`
 	SignatureScheme string `json:"signature_scheme"`
 	Transport       string `json:"transport"`
 	StdinPort       int    `json:"stdin_port"`
@@ -69,6 +71,19 @@ type KernelConnectionInfo struct {
 }
 
 // Kernel Events Types
+type KernelCodeBlockExecuteReply struct {
+	Status         string   `json:"status"`
+	MessageId      string   `json:"messageId"`
+	ErrorName      string   `json:"errorName"`
+	ErrorValue     string   `json:"errorValue"`
+	ErrorTraceback []string `json:"errorTraceback"`
+}
+
+type KernelHeartbeatState struct {
+	Mutex  sync.RWMutex
+	Status bool
+}
+
 type StreamEventType struct {
 	MessageId string `json:"messageId"`
 	Name      string `json:"name"`
@@ -78,4 +93,9 @@ type StreamEventType struct {
 type ExecuteResultEventType struct {
 	MessageId string `json:"messageId"`
 	Data      any    `json:"data"`
+}
+
+type ShutdownReplyEventType struct {
+	Status   string `json:"status"`
+	Language string `json:"language"`
 }

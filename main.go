@@ -45,8 +45,8 @@ func main() {
 
 	// Launching file server for images/videos
 	go file_server.LaunchFileServer(projectPath)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	kernelCtx, kernelCtxCancel := context.WithCancel(context.Background())
+	defer kernelCtxCancel()
 	app := application.New(application.Options{
 		Name:        "bytebook",
 		Description: "A simple note taking app.",
@@ -72,16 +72,18 @@ func main() {
 			application.NewService(
 				&services.CodeService{
 					ProjectPath:           projectPath,
-					Context:               ctx,
+					Context:               kernelCtx,
+					Cancel:                kernelCtxCancel,
 					ShellSocketDealer:     nil,
+					ControlSocketDealer:   nil,
 					IOPubSocketSubscriber: nil,
 					HeartbeatSocketReq:    nil,
 					HeartbeatState: kernel_helpers.KernelHeartbeatState{
 						Mutex:  sync.RWMutex{},
 						Status: false,
 					},
-					ConnectionInfo: projectFiles.ConnectionInfo,
-					AllKernels:     projectFiles.AllKernels,
+					LanguageToKernelConnectionInfo: projectFiles.ConnectionInfo,
+					AllKernels:                     projectFiles.AllKernels,
 				},
 			),
 		},

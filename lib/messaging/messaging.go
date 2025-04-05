@@ -215,3 +215,48 @@ func SendExecuteRequest(shellDealerSocket *zmq4.Socket, params ExecuteMessagePar
 	log.Println("execute_request 💬 sent successfully")
 	return nil
 }
+
+// ShutdownMessageParams defines parameters for sending a kernel shutdown message
+type ShutdownMessageParams struct {
+	MessageID string
+	SessionID string
+	Restart   bool
+}
+
+// SendShutdownMessage sends a shutdown request to the kernel
+func SendShutdownMessage(controlDealerSocket *zmq4.Socket, params ShutdownMessageParams) error {
+	// Define identities for routing
+	identities := []string{"client_identity", "kernel_identity"}
+
+	// Create a header for a shutdown_request message
+	header := newHeader(params.MessageID, "shutdown_request", params.SessionID, "username")
+
+	// Create the content for the shutdown_request message
+	// The restart field indicates whether the kernel should restart after shutting down
+	content := map[string]any{
+		"restart": params.Restart,
+	}
+
+	// Build the complete message
+	msg := Message{
+		Header:       header,
+		ParentHeader: map[string]any{},
+		Metadata:     map[string]any{},
+		Content:      content,
+	}
+
+	// Assemble the multipart message envelope
+	envelope, err := createMultipartMessage(identities, msg)
+	if err != nil {
+		return fmt.Errorf("failed to create shutdown multipart message: %w", err)
+	}
+
+	// Send the envelope over the ZeroMQ socket
+	_, err = controlDealerSocket.SendMessage(envelope)
+	if err != nil {
+		return fmt.Errorf("failed to send shutdown multipart message: %w", err)
+	}
+
+	log.Println("shutdown_request 💬 sent successfully, restart:", params.Restart)
+	return nil
+}

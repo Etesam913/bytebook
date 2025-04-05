@@ -1,6 +1,7 @@
 package kernel_helpers
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -24,6 +25,12 @@ func (k *KernelHeartbeatState) UpdateHeartbeatStatus(status bool) {
 	k.Status = status
 }
 
+func (k *KernelHeartbeatState) GetHeartbeatStatus() bool {
+	k.Mutex.RLock()
+	defer k.Mutex.RUnlock()
+	return k.Status
+}
+
 // isPortInUse tries to connect to the given TCP port on localhost.
 // It returns true if a connection is established, meaning the port is in use.
 func IsPortInUse(port int) bool {
@@ -36,6 +43,31 @@ func IsPortInUse(port int) bool {
 	}
 	conn.Close()
 	return true
+}
+
+func GetConnectionInfoFromLanguage(projectPath string, language string) (project_types.KernelConnectionInfo, error) {
+	if language == "python" {
+		pythonConnectionInfo, err := getPythonConnectionInfo(projectPath)
+		if err != nil {
+			return project_types.KernelConnectionInfo{}, err
+		}
+		if pythonConnectionInfo == (project_types.KernelConnectionInfo{}) {
+			return project_types.KernelConnectionInfo{}, errors.New("Python connection info is empty")
+		}
+		return pythonConnectionInfo, nil
+	}
+
+	if language == "golang" {
+		golangConnectionInfo, err := getGolangConnectionInfo(projectPath)
+		if err != nil {
+			return project_types.KernelConnectionInfo{}, err
+		}
+		if golangConnectionInfo == (project_types.KernelConnectionInfo{}) {
+			return project_types.KernelConnectionInfo{}, errors.New("Golang connection info is empty")
+		}
+		return golangConnectionInfo, nil
+	}
+	return project_types.KernelConnectionInfo{}, errors.New("Unsupported language")
 }
 
 // LaunchKernel runs the kernel inside the virtual environment.
@@ -78,8 +110,9 @@ func LaunchKernel(argv []string, pathToConnectionFile string, venvPath string) e
 	return nil
 }
 
-func GetConnectionInfo(projectPath string) (project_types.KernelConnectionInfo, error) {
-	defaultConnectionInfo := project_types.KernelConnectionInfo{
+func getPythonConnectionInfo(projectPath string) (project_types.KernelConnectionInfo, error) {
+	pythonConnectionInfo := project_types.KernelConnectionInfo{
+		Language:        "python",
 		ShellPort:       55321,
 		IOPubPort:       55322,
 		StdinPort:       55323,
@@ -91,9 +124,58 @@ func GetConnectionInfo(projectPath string) (project_types.KernelConnectionInfo, 
 		SignatureScheme: "hmac-sha256",
 	}
 
-	pathToConnectionFile := filepath.Join(projectPath, "code", "connection.json")
+	pathToPythonConnectionFile := filepath.Join(projectPath, "code", "python-connection.json")
+	validatedPythonConnectionInfo, err := io_helpers.ReadOrCreateJSON(pathToPythonConnectionFile, pythonConnectionInfo)
+	if err != nil {
+		return validatedPythonConnectionInfo, err
+	}
 
-	return io_helpers.ReadOrCreateJSON(pathToConnectionFile, defaultConnectionInfo)
+	return validatedPythonConnectionInfo, nil
+}
+
+func getGolangConnectionInfo(projectPath string) (project_types.KernelConnectionInfo, error) {
+	golangConnectionInfo := project_types.KernelConnectionInfo{
+		Language:        "golang",
+		ShellPort:       55326,
+		IOPubPort:       55327,
+		StdinPort:       55328,
+		ControlPort:     55329,
+		HBPort:          55330,
+		IP:              "127.0.0.1",
+		Key:             "abc123",
+		Transport:       "tcp",
+		SignatureScheme: "hmac-sha256",
+	}
+
+	pathToGolangConnectionFile := filepath.Join(projectPath, "code", "golang-connection.json")
+	validatedGolangConnectionInfo, err := io_helpers.ReadOrCreateJSON(pathToGolangConnectionFile, golangConnectionInfo)
+	if err != nil {
+		return validatedGolangConnectionInfo, err
+	}
+
+	return validatedGolangConnectionInfo, nil
+}
+
+func GetAllConnectionInfo(projectPath string) (project_types.LanguageToKernelConnectionInfo, error) {
+	validatedPythonConnectionInfo, err := getPythonConnectionInfo(projectPath)
+	if err != nil {
+		return project_types.LanguageToKernelConnectionInfo{
+			Python: validatedPythonConnectionInfo,
+		}, err
+	}
+
+	validatedGolangConnectionInfo, err := getGolangConnectionInfo(projectPath)
+	if err != nil {
+		return project_types.LanguageToKernelConnectionInfo{
+			Python: validatedPythonConnectionInfo,
+			Golang: validatedGolangConnectionInfo,
+		}, err
+	}
+
+	return project_types.LanguageToKernelConnectionInfo{
+		Python: validatedPythonConnectionInfo,
+		Golang: validatedGolangConnectionInfo,
+	}, nil
 }
 
 func GetAllKernels(projectPath string) (project_types.AllKernels, error) {

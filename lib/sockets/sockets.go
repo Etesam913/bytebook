@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/etesam913/bytebook/lib/contracts"
 	"github.com/etesam913/bytebook/lib/kernel_helpers"
 	"github.com/etesam913/bytebook/lib/messaging"
 	"github.com/etesam913/bytebook/lib/project_types"
@@ -24,7 +25,11 @@ func CreateShellSocketDealer() *zmq4.Socket {
 	return shellSocketDealer
 }
 
-func ListenToShellSocket(shellSocketDealer *zmq4.Socket, connectionInfo project_types.KernelConnectionInfo, ctx context.Context) {
+func ListenToShellSocket(
+	shellSocketDealer *zmq4.Socket,
+	connectionInfo project_types.KernelConnectionInfo,
+	ctx context.Context,
+) {
 	defer shellSocketDealer.Close()
 	app := application.Get()
 
@@ -128,7 +133,13 @@ func CreateIOPubSocketSubscriber() *zmq4.Socket {
 	return iopubSocketSubscriber
 }
 
-func ListenToIOPubSocket(ioPubSocketSubscriber *zmq4.Socket, language string, connectionInfo project_types.KernelConnectionInfo, ctx context.Context) {
+func ListenToIOPubSocket(
+	ioPubSocketSubscriber *zmq4.Socket,
+	language string,
+	connectionInfo project_types.KernelConnectionInfo,
+	ctx context.Context,
+	cancelFunc context.CancelFunc,
+) {
 	defer ioPubSocketSubscriber.Close()
 
 	ioPubAddress := fmt.Sprintf("tcp://%s:%d", connectionInfo.IP, connectionInfo.IOPubPort)
@@ -199,6 +210,14 @@ func ListenToIOPubSocket(ioPubSocketSubscriber *zmq4.Socket, language string, co
 						Language: language,
 					}
 					app.EmitEvent("code:kernel:status", statusEventData)
+					parentMessageType, ok := msg.ParentHeader["msg_type"].(string)
+					if !ok {
+						continue
+					}
+					// After the shutdown_request, everything listen function should be exited from
+					if parentMessageType == "shutdown_request" && status == "idle" {
+						cancelFunc()
+					}
 				}
 			case "error":
 				log.Printf("❌ Execution error: %v\n", msg.Content["traceback"])
@@ -223,7 +242,7 @@ type HeartbeatEvent struct {
 	Status   string `json:"status"`
 }
 
-var HEARTBEAT_TICKER = 3 * time.Second
+var HEARTBEAT_TICKER = 1 * time.Second
 
 func ListenToHeartbeatSocket(
 	heartbeatSocketReq *zmq4.Socket,
@@ -294,6 +313,86 @@ func ListenToHeartbeatSocket(
 				Language: language,
 				Status:   "success",
 			})
+		}
+	}
+}
+
+func CreateControlSocketDealer() *zmq4.Socket {
+	controlSocketDealer, err := zmq4.NewSocket(zmq4.DEALER) // Could also use REQ
+	if err != nil {
+		log.Print("Could not create 🛂 socket sender:", err)
+		return nil
+	}
+	return controlSocketDealer
+}
+
+func ListenToControlSocket(
+	controlSocketDealer *zmq4.Socket,
+	connectionInfo project_types.KernelConnectionInfo,
+	ctx context.Context,
+	codeServiceUpdater contracts.CodeServiceUpdater,
+) {
+	defer controlSocketDealer.Close()
+	app := application.Get()
+
+	controlAddress := fmt.Sprintf("tcp://%s:%d", connectionInfo.IP, connectionInfo.ControlPort)
+	if err := controlSocketDealer.Connect(controlAddress); err != nil {
+		log.Fatal("Could not connect 🛂 socket sender to port:", err)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			log.Println("🛑 Control socket listener received context cancellation")
+			app.EmitEvent("code:kernel:shutdown_reply", project_types.ShutdownReplyEventType{
+				Status:   "success",
+				Language: connectionInfo.Language,
+			})
+			codeServiceUpdater.ResetCodeServiceProperties()
+			return
+		default:
+			envelope, err := controlSocketDealer.RecvMessageBytes(zmq4.DONTWAIT)
+			if err != nil {
+				if strings.Contains(err.Error(), "resource temporarily unavailable") {
+					time.Sleep(50 * time.Millisecond)
+					continue
+				}
+				log.Println("🛂 Error receiving message:", err)
+				continue
+			}
+
+			identities, msg, signature, err := messaging.ParseMultipartMessage(envelope)
+			if err != nil {
+				log.Println("🛂 Error parsing message:", err)
+				continue
+			}
+
+			log.Println("🛂 control socket identities:", identities)
+			log.Println("🛂 control socket signature:", signature)
+			log.Println("🛂 control socket parent header:", msg.ParentHeader)
+			log.Println("🛂 control socket message type:", msg.Header.MsgType)
+			log.Println("🛂 control socket content:", msg.Content)
+
+			switch msg.Header.MsgType {
+			case "shutdown_reply":
+				restart, ok := msg.Content["restart"].(bool)
+				if !ok {
+					log.Println("⚠️ Invalid restart type")
+				}
+
+				status, ok := msg.Content["status"].(string)
+				if !ok {
+					log.Println("⚠️ Invalid status type")
+				}
+				// TODO: Handle restart functionality later
+				if status == "ok" && !restart {
+				} else if status != "ok" {
+					app.EmitEvent("code:kernel:shutdown_reply", project_types.ShutdownReplyEventType{
+						Status:   "error",
+						Language: connectionInfo.Language,
+					})
+				}
+			}
 		}
 	}
 }

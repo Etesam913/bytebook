@@ -34,6 +34,32 @@ export function useKernelStatus() {
   });
 }
 
+export function useKernelShutdown() {
+  const setKernelsData = useSetAtom(kernelsDataAtom);
+
+  useWailsEvent('code:kernel:shutdown_reply', (body) => {
+    console.info('code:kernel:shutdown_reply');
+    const data = body.data as {
+      status: string;
+      language: Languages;
+    }[];
+    if (data.length === 0) return;
+    const language = data[0].language;
+    const status = data[0].status;
+    if (isValidKernelLanguage(language) && status === 'success') {
+      setKernelsData((prev) => ({
+        ...prev,
+        [language]: {
+          status: 'idle',
+          heartbeat: 'failure',
+        },
+      }));
+    } else if (status === 'error') {
+      throw new QueryError('Kernel shutdown failed');
+    }
+  });
+}
+
 export function useKernelHeartbeat() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
 

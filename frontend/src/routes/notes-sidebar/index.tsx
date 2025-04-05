@@ -15,7 +15,11 @@ import { Pen } from '../../icons/pen';
 import { useSearchParamsEntries } from '../../utils/routing';
 import { MyNotesAccordion } from './my-notes-accordion.tsx';
 import { RenderNote } from './render-note.tsx';
-import { useKernelHeartbeat, useKernelStatus } from '../../hooks/code.tsx';
+import {
+  useKernelHeartbeat,
+  useKernelShutdown,
+  useKernelStatus,
+} from '../../hooks/code.tsx';
 
 export function NotesSidebar({
   params,
@@ -43,6 +47,8 @@ export function NotesSidebar({
   useNoteDelete(folder);
   useKernelStatus();
   useKernelHeartbeat();
+  useKernelShutdown();
+
   return (
     <>
       {!isNoteMaximized && (

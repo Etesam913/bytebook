@@ -38,7 +38,7 @@ func CreateProjectDirectories(projectPath string) {
 
 type ProjectFiles struct {
 	ProjectSettings project_types.ProjectSettingsJson
-	ConnectionInfo  project_types.KernelConnectionInfo
+	ConnectionInfo  project_types.LanguageToKernelConnectionInfo
 	AllKernels      project_types.AllKernels
 }
 
@@ -54,7 +54,7 @@ func CreateProjectFiles(projectPath string) ProjectFiles {
 		log.Fatalf("Failed to read project settings")
 	}
 
-	connectionInfo, err := kernel_helpers.GetConnectionInfo(projectPath)
+	connectionInfo, err := kernel_helpers.GetAllConnectionInfo(projectPath)
 	if err != nil {
 		log.Fatalf("Failed to read connection.json")
 	}
