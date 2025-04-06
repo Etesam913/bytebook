@@ -119,6 +119,7 @@ export type AlbumData = {
 };
 
 export type KernelStatus = 'busy' | 'idle' | 'starting';
+export type CodeBlockStatus = KernelStatus | 'queueing';
 export type KernelHeartbeatStatus = 'success' | 'failure';
 export type Languages = 'python' | 'go';
 

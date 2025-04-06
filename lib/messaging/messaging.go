@@ -14,6 +14,7 @@ import (
 
 const (
 	KERNEL_KEY = "abc123"
+	delimiter  = "<IDS|MSG>"
 )
 
 // Header defines the structure for the message header.
@@ -34,11 +35,16 @@ type Message struct {
 	Content      map[string]any `json:"content"`
 }
 
-const (
-	delimiter = "<IDS|MSG>"
-)
+// RequestParams holds common parameters for sending messages.
+type RequestParams struct {
+	MessageID string
+	SessionID string
+	MsgType   string
+	Username  string
+	Content   map[string]any
+}
 
-// Creates a header as defined here: https://jupyter-client.readthedocs.io/en/latest/messaging.html#message-header
+// newHeader creates a header as defined in the Jupyter messaging protocol.
 func newHeader(msgID, msgType, session, username string) Header {
 	return Header{
 		MsgID:    msgID,
@@ -46,11 +52,11 @@ func newHeader(msgID, msgType, session, username string) Header {
 		Session:  session,
 		MsgType:  msgType,
 		Date:     time.Now().UTC().Format(time.RFC3339),
-		Version:  "5.0",
+		Version:  "5.5",
 	}
 }
 
-// signMessage computes an HMAC-SHA256 signature as defined here: https://jupyter-client.readthedocs.io/en/latest/messaging.html#the-wire-protocol
+// signMessage computes an HMAC-SHA256 signature.
 func signMessage(parts []string) string {
 	h := hmac.New(sha256.New, []byte(KERNEL_KEY))
 	for _, part := range parts {
@@ -60,11 +66,7 @@ func signMessage(parts []string) string {
 }
 
 // createMultipartMessage assembles the complete multipart message envelope.
-// The envelope consists of identity frames, a delimiter, the HMAC signature, and then
-// the JSON-serialized message parts in the order: header, parent_header, metadata, content.
-// Defined here: https://jupyter-client.readthedocs.io/en/latest/messaging.html#the-wire-protocol
 func createMultipartMessage(identities []string, msg Message) ([][]byte, error) {
-	// Marshal each part into JSON.
 	headerBytes, err := json.Marshal(msg.Header)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling header: %w", err)
@@ -82,7 +84,6 @@ func createMultipartMessage(identities []string, msg Message) ([][]byte, error) 
 		return nil, fmt.Errorf("error marshalling content: %w", err)
 	}
 
-	// Prepare the parts for signing.
 	partsForSign := []string{
 		string(headerBytes),
 		string(parentHeaderBytes),
@@ -90,20 +91,13 @@ func createMultipartMessage(identities []string, msg Message) ([][]byte, error) 
 		string(contentBytes),
 	}
 
-	// Generating the hmac signature
 	signature := signMessage(partsForSign)
 
-	// Build the envelope.
 	var envelope [][]byte
-
-	// Append identity frames.
 	for _, id := range identities {
 		envelope = append(envelope, []byte(id))
 	}
-
-	// Append the delimiter.
 	envelope = append(envelope, []byte(delimiter))
-	// Append signature and the serialized message parts.
 	envelope = append(envelope, []byte(signature))
 	envelope = append(envelope, headerBytes)
 	envelope = append(envelope, parentHeaderBytes)
@@ -167,96 +161,106 @@ func ParseMultipartMessage(envelope [][]byte) (identities []string, msg Message,
 	return
 }
 
-type ExecuteMessageParams struct {
-	MessageID string
-	SessionID string
-	Code      string
-}
-
-func SendExecuteRequest(shellDealerSocket *zmq4.Socket, params ExecuteMessageParams) error {
-	// Define identities for routing (e.g., client and kernel IDs).
+// sendMessage is a helper that sends a message using the given parameters.
+func sendMessage(socket *zmq4.Socket, params RequestParams) error {
 	identities := []string{"client_identity", "kernel_identity"}
+	header := newHeader(params.MessageID, params.MsgType, params.SessionID, params.Username)
 
-	// Create a header for an execute_request message.
-	header := newHeader(params.MessageID, "execute_request", params.SessionID, "username")
-
-	// Create the content for the execute_request message.
-	// This includes the code to execute and other execution options.
-	content := map[string]any{
-		"code":             params.Code,
-		"silent":           false,
-		"store_history":    true,
-		"user_expressions": map[string]any{},
-		"allow_stdin":      false,
-		"stop_on_error":    true,
-	}
-
-	// Build the complete message.
 	msg := Message{
 		Header:       header,
-		ParentHeader: map[string]any{}, // If this message is a reply, include parent's header info.
-		Metadata:     map[string]any{}, // Additional metadata can go here.
-		Content:      content,
+		ParentHeader: map[string]any{},
+		Metadata:     map[string]any{},
+		Content:      params.Content,
 	}
 
-	// Assemble the multipart message envelope.
 	envelope, err := createMultipartMessage(identities, msg)
 	if err != nil {
 		return fmt.Errorf("failed to create multipart message: %w", err)
 	}
 
-	// Send the envelope over the ZeroMQ socket.
-	// Each element of the envelope is a frame.
-	_, err = shellDealerSocket.SendMessage(envelope)
+	_, err = socket.SendMessage(envelope)
 	if err != nil {
 		return fmt.Errorf("failed to send multipart message: %w", err)
+	}
+
+	return nil
+}
+
+type MessageParams struct {
+	MessageID string
+	SessionID string
+}
+
+// ExecuteMessageParams holds parameters specific to an execute_request.
+type ExecuteMessageParams struct {
+	MessageParams
+	Code string
+}
+
+// SendExecuteRequest sends an execute_request message to the kernel.
+func SendExecuteRequest(shellDealerSocket *zmq4.Socket, params ExecuteMessageParams) error {
+	requestParams := RequestParams{
+		MessageID: params.MessageID,
+		SessionID: params.SessionID,
+		MsgType:   "execute_request",
+		Username:  "username",
+		Content: map[string]any{
+			"code":             params.Code,
+			"silent":           false,
+			"store_history":    true,
+			"user_expressions": map[string]any{},
+			"allow_stdin":      false,
+			"stop_on_error":    true,
+		},
+	}
+
+	if err := sendMessage(shellDealerSocket, requestParams); err != nil {
+		return err
 	}
 
 	log.Println("execute_request 💬 sent successfully")
 	return nil
 }
 
-// ShutdownMessageParams defines parameters for sending a kernel shutdown message
+// ShutdownMessageParams holds parameters specific to a shutdown_request.
 type ShutdownMessageParams struct {
-	MessageID string
-	SessionID string
-	Restart   bool
+	MessageParams
+	Restart bool
 }
 
-// SendShutdownMessage sends a shutdown request to the kernel
+// SendShutdownMessage sends a shutdown_request message to the kernel.
 func SendShutdownMessage(controlDealerSocket *zmq4.Socket, params ShutdownMessageParams) error {
-	// Define identities for routing
-	identities := []string{"client_identity", "kernel_identity"}
-
-	// Create a header for a shutdown_request message
-	header := newHeader(params.MessageID, "shutdown_request", params.SessionID, "username")
-
-	// Create the content for the shutdown_request message
-	// The restart field indicates whether the kernel should restart after shutting down
-	content := map[string]any{
-		"restart": params.Restart,
+	requestParams := RequestParams{
+		MessageID: params.MessageID,
+		SessionID: params.SessionID,
+		MsgType:   "shutdown_request",
+		Username:  "username",
+		Content: map[string]any{
+			"restart": params.Restart,
+		},
 	}
 
-	// Build the complete message
-	msg := Message{
-		Header:       header,
-		ParentHeader: map[string]any{},
-		Metadata:     map[string]any{},
-		Content:      content,
-	}
-
-	// Assemble the multipart message envelope
-	envelope, err := createMultipartMessage(identities, msg)
-	if err != nil {
-		return fmt.Errorf("failed to create shutdown multipart message: %w", err)
-	}
-
-	// Send the envelope over the ZeroMQ socket
-	_, err = controlDealerSocket.SendMessage(envelope)
-	if err != nil {
-		return fmt.Errorf("failed to send shutdown multipart message: %w", err)
+	if err := sendMessage(controlDealerSocket, requestParams); err != nil {
+		return err
 	}
 
 	log.Println("shutdown_request 💬 sent successfully, restart:", params.Restart)
+	return nil
+}
+
+func SendInterruptMessage(controlDealerSocket *zmq4.Socket, params MessageParams) error {
+	requestParams := RequestParams{
+		MessageID: params.MessageID,
+		SessionID: params.SessionID,
+		MsgType:   "interrupt_request",
+		Username:  "username",
+		Content:   map[string]any{},
+	}
+
+	if err := sendMessage(controlDealerSocket, requestParams); err != nil {
+		return fmt.Errorf("failed to send interrupt message: %w", err)
+	}
+
+	log.Println("interrupt_request 💬 sent successfully")
 	return nil
 }

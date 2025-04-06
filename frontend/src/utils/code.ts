@@ -15,6 +15,6 @@ export function runCode(
 ) {
   const newExecutionId = crypto.randomUUID();
   const code = codeMirrorInstance?.view?.state.doc.toString();
-  if (!code) return;
+  if (code === null || code === undefined) return;
   executeCode({ code, newExecutionId });
 }

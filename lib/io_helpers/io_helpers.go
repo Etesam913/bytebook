@@ -25,7 +25,7 @@ import (
 // Returns:
 //
 //	An error if any step of the process fails, otherwise nil.
-func WriteJsonToPath(pathname string, data interface{}) error {
+func WriteJsonToPath(pathname string, data any) error {
 	// MarshalIndent converts the data to a pretty-printed JSON format.
 	jsonData, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {

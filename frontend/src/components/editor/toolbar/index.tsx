@@ -26,6 +26,7 @@ import {
 import { SettingsDropdown } from './settings-dropdown';
 import {
   useCodeBlockExecuteReply,
+  useCodeBlockStatus,
   useCodeBlockStream,
 } from '../../../hooks/code';
 
@@ -93,6 +94,7 @@ export function Toolbar({
   useNoteChangedEvent(folder, note, editor, setFrontmatter);
   useCodeBlockExecuteReply(editor);
   useCodeBlockStream(editor);
+  useCodeBlockStatus(editor);
 
   // useFileDropEvent(editor, folder, note);
 

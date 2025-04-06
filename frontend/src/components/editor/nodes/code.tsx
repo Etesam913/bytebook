@@ -9,7 +9,7 @@ import type {
 import { $applyNodeReplacement, DecoratorNode } from 'lexical';
 import type { JSX } from 'react';
 import { Code } from '../../code';
-import { Languages } from '../../../types';
+import { CodeBlockStatus, Languages } from '../../../types';
 
 export interface CodePayload {
   id: string;
@@ -17,7 +17,6 @@ export interface CodePayload {
   language: Languages;
   code: string;
   isCreatedNow?: boolean;
-  isCollapsed?: boolean;
   lastExecutedResult?: string | null;
 }
 
@@ -43,10 +42,11 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   __language: Languages;
   __executionId: string;
   __code: string;
-  __isCollapsed: boolean;
   // If a user creates the new code block via ```{language} or /{language} then __isCreatedNow is set to true`
   __isCreatedNow: boolean;
   __lastExecutedResult: string | null;
+  __status: CodeBlockStatus;
+
   static getType(): string {
     return 'code-block';
   }
@@ -56,7 +56,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       node.__id,
       node.__language,
       node.__code,
-      node.__isCollapsed,
       node.__isCreatedNow,
       node.__lastExecutedResult,
       node.__key
@@ -82,7 +81,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     id: string,
     language: Languages,
     code: string,
-    isCollapsed = false,
     isCreatedNow = false,
     lastExecutedResult: string | null = null,
     key?: NodeKey
@@ -93,9 +91,9 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     this.__language = language;
     this.__code = code;
     this.__executionId = crypto.randomUUID();
-    this.__isCollapsed = isCollapsed;
     this.__isCreatedNow = isCreatedNow;
     this.__lastExecutedResult = lastExecutedResult;
+    this.__status = 'idle';
   }
 
   exportJSON(): SerializedCodeNode {
@@ -132,8 +130,8 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return this.__code;
   }
 
-  getIsCollapsed(): boolean {
-    return this.__isCollapsed;
+  getStatus(): CodeBlockStatus {
+    return this.__status;
   }
 
   getIsCreatedNow(): boolean {
@@ -157,7 +155,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       writable.__lastExecutedResult += `<div>${streamText}</div>`;
     });
   }
-  setLastExecutedResult(result: string, editor: LexicalEditor): void {
+  setLastExecutedResult(result: string | null, editor: LexicalEditor): void {
     editor.update(() => {
       const writable = this.getWritable();
       writable.__lastExecutedResult = result;
@@ -193,10 +191,10 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     });
   }
 
-  setIsCollapsed(isCollapsed: boolean, editor: LexicalEditor): void {
+  setStatus(status: CodeBlockStatus, editor: LexicalEditor): void {
     editor.update(() => {
       const writable = this.getWritable();
-      writable.__isCollapsed = isCollapsed;
+      writable.__status = status;
     });
   }
 
@@ -206,13 +204,14 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
         id={this.getId()}
         code={this.getCode()}
         setCode={(code: string) => this.setCode(code, _editor)}
+        status={this.getStatus()}
+        setStatus={(status: CodeBlockStatus) => this.setStatus(status, _editor)}
         language={this.getLanguage()}
         nodeKey={this.getKey()}
         isCreatedNow={this.getIsCreatedNow()}
-        isCollapsed={this.getIsCollapsed()}
         lastExecutedResult={this.getLastExecutedResult()}
-        setIsCollapsed={(isCollapsed: boolean) =>
-          this.setIsCollapsed(isCollapsed, _editor)
+        setLastExecutedResult={(result: string | null) =>
+          this.setLastExecutedResult(result, _editor)
         }
       />
     );
@@ -223,19 +222,11 @@ export function $createCodeNode({
   id,
   language,
   code,
-  isCollapsed,
   isCreatedNow,
   lastExecutedResult,
 }: CodePayload): CodeNode {
   return $applyNodeReplacement(
-    new CodeNode(
-      id,
-      language,
-      code,
-      isCollapsed,
-      isCreatedNow,
-      lastExecutedResult
-    )
+    new CodeNode(id, language, code, isCreatedNow, lastExecutedResult)
   );
 }
 

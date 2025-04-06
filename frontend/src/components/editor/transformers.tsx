@@ -168,13 +168,12 @@ export const CODE_TRANSFORMER: ElementTransformer = {
     if ($isCodeNode(node)) {
       const textContent = node.getCode();
       const codeLanguage = escapeQuotes(node.getLanguage());
-      const isCollapsed = node.getIsCollapsed();
       const id = escapeQuotes(node.getId());
       const lastExecutedResult = node.getLastExecutedResult();
       const formattedLastExecutedResult = lastExecutedResult
         ? escapeQuotes(flattenHtml(lastExecutedResult))
         : null;
-      return `\`\`\`${codeLanguage} id="${id}" isCollapsed="${isCollapsed.toString()}"${formattedLastExecutedResult ? `lastExecutedResult="${formattedLastExecutedResult}"` : ''}\n${textContent}\n\`\`\``;
+      return `\`\`\`${codeLanguage} id="${id}" ${formattedLastExecutedResult ? `lastExecutedResult="${formattedLastExecutedResult}"` : ''}\n${textContent}\n\`\`\``;
     }
     if ($isExcalidrawNode(node)) {
       const textContent = JSON.stringify(node.getElements());

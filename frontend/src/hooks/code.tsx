@@ -34,6 +34,22 @@ export function useKernelStatus() {
   });
 }
 
+export function useCodeBlockStatus(editor: LexicalEditor) {
+  useWailsEvent('code:code-block:status', (body) => {
+    console.info('code:code-block:status');
+
+    const data = body.data as {
+      status: KernelStatus;
+      messageId: string;
+    }[];
+    if (data.length === 0) return;
+    const [codeBlockId] = data[0].messageId.split(':');
+    updateCodeBlock(editor, codeBlockId, (codeNode) => {
+      codeNode.setStatus(data[0].status, editor);
+    });
+  });
+}
+
 export function useKernelShutdown() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
 
@@ -60,6 +76,22 @@ export function useKernelShutdown() {
   });
 }
 
+// export function useKernelInterrupt() {
+//   const setKernelsData = useSetAtom(kernelsDataAtom);
+
+//   useWailsEvent('code:kernel:interrupt_reply', (body) => {
+//     console.info('code:kernel:interrupt_reply');
+//     const data = body.data as {
+//       status: string;
+//       messageId: string;
+//     }[];
+
+//     if (data.length === 0) return;
+
+//     const { messageId, status } = data[0];
+//   });
+// }
+
 export function useKernelHeartbeat() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
 
@@ -82,8 +114,8 @@ export function useKernelHeartbeat() {
 function updateCodeBlock(
   editor: LexicalEditor,
   codeBlockId: string,
-  executionId: string,
-  callback: (codeNodeToUpdate: CodeNode) => void
+  callback: (codeNodeToUpdate: CodeNode) => void,
+  executionId?: string
 ) {
   editor.update(() => {
     const codeNodes = $nodesOfType(CodeNode);
@@ -92,7 +124,7 @@ function updateCodeBlock(
     );
     if (codeNodeToUpdate) {
       // This is a fresh execution, so it does not have a result
-      if (executionId !== codeNodeToUpdate.getExecutionId()) {
+      if (executionId && executionId !== codeNodeToUpdate.getExecutionId()) {
         codeNodeToUpdate.setExecutionId(executionId, editor);
         codeNodeToUpdate.setLastExecutedResult('', editor);
       }
@@ -119,9 +151,14 @@ export function useCodeBlockExecuteReply(editor: LexicalEditor) {
         .map((trace) => `<div>${trace}</div>`)
         .join('');
       const [codeBlockId, executionId] = data[0].messageId.split(':');
-      updateCodeBlock(editor, codeBlockId, executionId, (codeNode) => {
-        codeNode.setTracebackResult(cleanedTraceback, editor);
-      });
+      updateCodeBlock(
+        editor,
+        codeBlockId,
+        (codeNode) => {
+          codeNode.setTracebackResult(cleanedTraceback, editor);
+        },
+        executionId
+      );
       console.error(
         `Error executing code: ${data[0].errorName} - ${data[0].errorValue}\n${cleanedTraceback}`
       );
@@ -138,9 +175,14 @@ export function useCodeBlockStream(editor: LexicalEditor) {
       text: string;
     }[];
     const [codeBlockId, executionId] = data[0].messageId.split(':');
-    updateCodeBlock(editor, codeBlockId, executionId, (codeNode) => {
-      codeNode.setStreamResult(data[0].text, editor);
-    });
+    updateCodeBlock(
+      editor,
+      codeBlockId,
+      (codeNode) => {
+        codeNode.setStreamResult(data[0].text, editor);
+      },
+      executionId
+    );
   });
 }
 
@@ -156,6 +198,7 @@ export function useSendExecuteRequestMutation(
       code: string;
       newExecutionId: string;
     }) => {
+      console.log({ codeBlockId, newExecutionId, language, code });
       const res = await SendExecuteRequest(
         codeBlockId,
         newExecutionId,

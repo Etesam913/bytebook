@@ -95,7 +95,22 @@ type ExecuteResultEventType struct {
 	Data      any    `json:"data"`
 }
 
+type KernelStatusEventType struct {
+	Status   string `json:"status"`
+	Language string `json:"language"`
+}
+
+type CodeBlockStatusEventType struct {
+	MessageId string `json:"messageId"`
+	Status    string `json:"status"`
+}
+
 type ShutdownReplyEventType struct {
 	Status   string `json:"status"`
 	Language string `json:"language"`
+}
+
+type InterruptReplyEventType struct {
+	MessageId string `json:"messageId"`
+	Status    string `json:"status"`
 }

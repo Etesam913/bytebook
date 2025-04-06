@@ -48,7 +48,7 @@ export function RenderNote({
   if (!note) return null;
   return (
     <motion.div
-      className="flex min-w-0 flex-1 flex-col leading-7 h-screen "
+      className="flex min-w-0 flex-1 flex-col leading-7 h-screen"
       animate={animationControls}
     >
       {!hasCustomToolbar && (

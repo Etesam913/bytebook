@@ -202,20 +202,23 @@ func ListenToIOPubSocket(
 			case "status":
 				status, isString := msg.Content["execution_state"].(string)
 				if isString {
-					statusEventData := struct {
-						Status   string `json:"status"`
-						Language string `json:"language"`
-					}{
+					statusEventData := project_types.KernelStatusEventType{
 						Status:   status,
 						Language: language,
 					}
+
 					app.EmitEvent("code:kernel:status", statusEventData)
 					parentMessageType, ok := msg.ParentHeader["msg_type"].(string)
 					if !ok {
 						continue
 					}
-					// After the shutdown_request, everything listen function should be exited from
-					if parentMessageType == "shutdown_request" && status == "idle" {
+					if parentMessageType == "execute_request" {
+						app.EmitEvent("code:code-block:status", project_types.CodeBlockStatusEventType{
+							MessageId: msgId,
+							Status:    status,
+						})
+					} else if parentMessageType == "shutdown_request" && status == "idle" {
+						// After the shutdown_request, everything listen function should be exited from
 						cancelFunc()
 					}
 				}
@@ -392,6 +395,27 @@ func ListenToControlSocket(
 						Language: connectionInfo.Language,
 					})
 				}
+			case "interrupt_reply":
+				status, ok := msg.Content["status"].(string)
+				if !ok {
+					log.Println("⚠️ Invalid status type in interrupt_reply")
+					continue
+				}
+
+				// Get the message ID from the parent header to match it with the request
+				msgId, ok := msg.ParentHeader["msg_id"].(string)
+				if !ok {
+					log.Println("⚠️ Invalid message ID type in interrupt_reply")
+					continue
+				}
+
+				// Emit event to notify frontend that the interrupt has been processed
+				app.EmitEvent("code:kernel:interrupt_reply", project_types.InterruptReplyEventType{
+					Status:    status,
+					MessageId: msgId,
+				})
+
+				log.Printf("🔴 Received interrupt reply with status: %s\n", status)
 			}
 		}
 	}

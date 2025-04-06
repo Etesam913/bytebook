@@ -20,6 +20,7 @@ import {
 } from 'lexical';
 import { cn } from '../../utils/string-formatting';
 import { Languages } from '../../types';
+import { motion } from 'motion/react';
 
 export function CodeMirrorEditor({
   nodeKey,
@@ -58,6 +59,7 @@ export function CodeMirrorEditor({
       {
         key: 'ArrowUp',
         run: (view) => {
+          if (isExpanded) return false;
           // Get cursor position
           const cursorPos = view.state.selection.main.head;
           const currentLine = view.state.doc.lineAt(cursorPos).number - 1;
@@ -87,6 +89,7 @@ export function CodeMirrorEditor({
       {
         key: 'ArrowDown',
         run: (view) => {
+          if (isExpanded) return false;
           const cursorPos = view.state.selection.main.head;
           const currentLine = view.state.doc.lineAt(cursorPos).number + 1;
 
@@ -145,45 +148,48 @@ export function CodeMirrorEditor({
   const isExpandedAndHasResults = isExpanded && lastExecutedResult;
   const isExpandedAndDoesNotHaveResults = isExpanded && !lastExecutedResult;
   return (
-    <CodeMirror
-      ref={handleEditorRef}
-      value={code}
-      onChange={(newCode) => {
-        debouncedSetCode(newCode);
-      }}
-      className={cn(
-        'bg-white dark:bg-[#2e3440]',
-        isExpandedAndHasResults && '!h-[65vh] max-h-[65vh]',
-        isExpandedAndDoesNotHaveResults && 'h-[calc(100vh-3.6rem)]'
-      )}
-      extensions={[
-        projectSettings.codeBlockVimMode ? vim() : [],
-        runCodeKeymap,
-        languageToSettings[language].extension(),
-      ]}
-      theme={isDarkModeOn ? nord : vscodeLight}
-      onKeyDown={(e) => {
-        if (e.key === 'Backspace') {
-          // Fixes weird bug where pressing backspace at beginning of first line focuses the <body> tag
-          setTimeout(() => {
-            focusEditor(codeMirrorInstance);
-          }, 50);
-        } else {
-          // ArrowDown and ArrowUp are handled in the keybinding extension
-          if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
-            setSelected(true);
+    <motion.div layout="position" className="min-h-12">
+      <CodeMirror
+        ref={handleEditorRef}
+        value={code}
+        onChange={(newCode) => {
+          debouncedSetCode(newCode);
+        }}
+        className={cn(
+          'bg-white dark:bg-[#2e3440]',
+          isExpandedAndHasResults && '!h-[65vh] max-h-[65vh]',
+          isExpandedAndDoesNotHaveResults && 'h-[calc(100vh-3.6rem)]'
+        )}
+        extensions={[
+          projectSettings.codeBlockVimMode ? vim() : [],
+          runCodeKeymap,
+          languageToSettings[language].extension(),
+        ]}
+        theme={isDarkModeOn ? nord : vscodeLight}
+        onKeyDown={(e) => {
+          if (e.key === 'Backspace') {
+            // Fixes weird bug where pressing backspace at beginning of first line focuses the <body> tag
+            setTimeout(() => {
+              focusEditor(codeMirrorInstance);
+            }, 50);
+          } else {
+            // ArrowDown and ArrowUp are handled in the keybinding extension
+            if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
+              setSelected(true);
+            }
+            e.stopPropagation();
           }
-          e.stopPropagation();
-        }
-      }}
-      onClick={() => {
-        clearSelection();
-        setSelected(true);
-      }}
-      basicSetup={{
-        foldGutter: false,
-        ...languageToSettings[language].basicSetup,
-      }}
-    />
+        }}
+        onClick={() => {
+          clearSelection();
+          setSelected(true);
+        }}
+        basicSetup={{
+          foldGutter: false,
+          lineNumbers: false,
+          ...languageToSettings[language].basicSetup,
+        }}
+      />
+    </motion.div>
   );
 }

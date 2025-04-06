@@ -156,10 +156,10 @@ function isCharAtIndexEscaped(strToCheck: string, index: number) {
   if (index === 0) return false;
   return strToCheck[index - 1] === '\\';
 }
-// id="d5f5ed67-4552-4f32-aeb5-ad4c566ad16a" isCollapsed="false"
+// id="d5f5ed67-4552-4f32-aeb5-ad4c566ad16a" lastExecutedResult="<div>test</div>"
 function parseOutCodeBlockHeaderProperties(propertiesString: string) {
   const propertyMap = new Map<string, string>();
-  const properties = ['isCollapsed', 'id', 'lastExecutedResult'];
+  const properties = ['id', 'lastExecutedResult'];
   for (let i = 0; i < propertiesString.length; i += 1) {
     // If a quote is found without a known property value, then loop until the end of the property value
     if (
@@ -240,7 +240,6 @@ function importCodeBlock(
         // If not drawing then it is a code block
         const codeBlockParams = {
           id: crypto.randomUUID() as string,
-          isCollapsed: false as boolean,
           lastExecutedResult: null as string | null,
           language,
           code: '',
@@ -253,10 +252,6 @@ function importCodeBlock(
 
         if (headerProperties.has('id')) {
           codeBlockParams.id = headerProperties.get('id')!;
-        }
-        if (headerProperties.has('isCollapsed')) {
-          codeBlockParams.isCollapsed =
-            headerProperties.get('isCollapsed') === 'true';
         }
         if (headerProperties.has('lastExecutedResult')) {
           const value = headerProperties.get('lastExecutedResult');
@@ -275,7 +270,6 @@ function importCodeBlock(
           language: codeBlockParams.language,
           code: codeBlockParams.code,
           lastExecutedResult: codeBlockParams.lastExecutedResult,
-          isCollapsed: codeBlockParams.isCollapsed,
         });
         rootNode.append(codeBlockNode);
         return [codeBlockNode, endLineIndex];

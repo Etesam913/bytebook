@@ -49,9 +49,11 @@ func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, cod
 	err := messaging.SendExecuteRequest(
 		c.ShellSocketDealer,
 		messaging.ExecuteMessageParams{
-			MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
-			SessionID: "current-session",
-			Code:      code,
+			MessageParams: messaging.MessageParams{
+				MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
+				SessionID: "current-session",
+			},
+			Code: code,
 		},
 	)
 
@@ -88,9 +90,11 @@ func (c *CodeService) SendShutdownMessage(restart bool) project_types.BackendRes
 	err := messaging.SendShutdownMessage(
 		c.ControlSocketDealer,
 		messaging.ShutdownMessageParams{
-			MessageID: fmt.Sprintf("shutdown-%d", time.Now().UnixNano()),
-			SessionID: "current-session",
-			Restart:   restart,
+			MessageParams: messaging.MessageParams{
+				MessageID: fmt.Sprintf("shutdown-%d", time.Now().UnixNano()),
+				SessionID: "current-session",
+			},
+			Restart: restart,
 		},
 	)
 
@@ -104,6 +108,44 @@ func (c *CodeService) SendShutdownMessage(restart bool) project_types.BackendRes
 	return project_types.BackendResponseWithoutData{
 		Success: true,
 		Message: fmt.Sprintf("Kernel shutdown request sent successfully (restart: %v)", restart),
+	}
+}
+
+// SendInterruptRequest sends an interrupt request to the kernel to stop the currently executing code
+func (c *CodeService) SendInterruptRequest() project_types.BackendResponseWithoutData {
+	if c.ControlSocketDealer == nil {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: "Control socket is not initialized. Unable to interrupt kernel.",
+		}
+	}
+
+	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
+	if !isHeartBeating {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: "The kernel is not running. No execution to interrupt.",
+		}
+	}
+
+	err := messaging.SendInterruptMessage(
+		c.ControlSocketDealer,
+		messaging.MessageParams{
+			MessageID: fmt.Sprintf("interrupt-%d", time.Now().UnixNano()),
+			SessionID: "current-session",
+		},
+	)
+
+	if err != nil {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: fmt.Sprintf("Failed to send interrupt request: %v", err),
+		}
+	}
+
+	return project_types.BackendResponseWithoutData{
+		Success: true,
+		Message: "Kernel interrupt request sent successfully",
 	}
 }
 
