@@ -219,6 +219,7 @@ export function NotesEditor({
         folder={folder}
         note={note}
         ext="md"
+        editorRef={editorRef}
       />
     </LexicalComposer>
   );

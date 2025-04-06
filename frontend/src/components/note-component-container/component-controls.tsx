@@ -3,7 +3,7 @@ import { type Target, type TargetAndTransition, motion } from 'motion/react';
 import type { LexicalEditor } from 'lexical';
 import type { ReactNode } from 'react';
 import { getDefaultButtonVariants } from '../../animations';
-import { Fullscreen } from '../../icons/fullscreen';
+import { Maximize } from '../../icons/maximize';
 import { Link } from '../../icons/link';
 import { Trash } from '../../icons/trash';
 import { removeDecoratorNode } from '../../utils/commands';
@@ -81,7 +81,7 @@ export function NoteComponentControls({
             buttonOptions.fullscreen?.callback?.();
           }}
         >
-          <Fullscreen className="will-change-transform" />
+          <Maximize className="will-change-transform" />
         </motion.button>
       )}
       {children}

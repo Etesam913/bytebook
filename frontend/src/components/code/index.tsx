@@ -15,9 +15,10 @@ import { cn } from '../../utils/string-formatting';
 import { GolangLogo } from '../../icons/golang-logo';
 import { PlayButton } from './play-button';
 import { CodeResult } from './code-result';
-import { Fullscreen } from '../../icons/fullscreen';
+import { Maximize } from '../../icons/maximize';
 import { CodeBlockStatus, Languages } from '../../types';
 import { AnimatePresence, motion } from 'motion/react';
+import { CodeActions } from './code-actions';
 
 const CodeMirrorEditor = lazy(() =>
   import('./codemirror-editor').then((module) => ({
@@ -99,7 +100,6 @@ export function Code({
       </AnimatePresence>
       <motion.div
         layout
-        layoutRoot={isExpanded}
         className={cn(
           'relative outline-[2px] overflow-hidden bg-white dark:bg-[#2e3440] transition-colors outline-zinc-150 dark:outline-zinc-700 rounded-md',
           isSelected && '!outline-(--accent-color)',
@@ -110,49 +110,18 @@ export function Code({
         <Suspense
           fallback={<Loader className="mx-auto my-3" height={18} width={18} />}
         >
-          <motion.div
-            layout="position"
-            className="absolute flex gap-1 top-1 right-1 z-10 p-1 border-1 border-zinc-200 dark:border-zinc-600 rounded-md shadow-lg bg-white dark:bg-[#2e3440]"
-          >
-            <PlayButton
-              codeBlockId={id}
-              codeMirrorInstance={codeMirrorInstance}
-              language={language}
-              status={status}
-              setStatus={setStatus}
-              setLastExecutedResult={setLastExecutedResult}
-            />
-            <MotionIconButton
-              {...getDefaultButtonVariants(false, 1.05, 0.975, 1.05)}
-              onClick={() => {
-                setIsExpanded(!isExpanded);
-              }}
-            >
-              <Fullscreen />
-            </MotionIconButton>
-            <MotionIconButton
-              {...getDefaultButtonVariants(false, 1.05, 0.975, 1.05)}
-              onClick={() => {
-                if (!codeMirrorInstance) return;
-                const editorContent =
-                  codeMirrorInstance.view?.state.doc.toString();
-                if (!editorContent) return;
-                navigator.clipboard.writeText(editorContent);
-              }}
-            >
-              <Duplicate2 height={18} width={18} />
-            </MotionIconButton>
-            <MotionIconButton
-              {...getDefaultButtonVariants(false, 1.05, 0.975, 1.05)}
-              onClick={() => {
-                lexicalEditor.update(() => {
-                  removeDecoratorNode(nodeKey);
-                });
-              }}
-            >
-              <Trash height={18} width={18} />
-            </MotionIconButton>
-          </motion.div>
+          <CodeActions
+            id={id}
+            codeMirrorInstance={codeMirrorInstance}
+            language={language}
+            status={status}
+            setStatus={setStatus}
+            setLastExecutedResult={setLastExecutedResult}
+            isExpanded={isExpanded}
+            setIsExpanded={setIsExpanded}
+            nodeKey={nodeKey}
+            lexicalEditor={lexicalEditor}
+          />
           <CodeMirrorEditor
             nodeKey={nodeKey}
             lexicalEditor={lexicalEditor}
@@ -164,13 +133,16 @@ export function Code({
             language={language}
             isCreatedNow={isCreatedNow}
             isExpanded={isExpanded}
+            setStatus={setStatus}
             lastExecutedResult={lastExecutedResult}
+            setLastExecutedResult={setLastExecutedResult}
           />
         </Suspense>
         {lastExecutedResult !== null && (
           <CodeResult
             lastExecutedResult={lastExecutedResult}
             isExpanded={isExpanded}
+            status={status}
           />
         )}
       </motion.div>

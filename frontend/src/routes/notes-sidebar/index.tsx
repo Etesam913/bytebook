@@ -48,7 +48,6 @@ export function NotesSidebar({
   useKernelStatus();
   useKernelHeartbeat();
   useKernelShutdown();
-  useKernelInterrupt();
 
   return (
     <>

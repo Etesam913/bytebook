@@ -33,9 +33,12 @@ export function PlayButton({
       {...getDefaultButtonVariants(false, 1.05, 0.975, 1.05)}
       disabled={status === 'starting' || status === 'queueing'}
       onClick={() => {
-        setStatus('queueing');
-        setLastExecutedResult('');
-        runCode(codeMirrorInstance, executeCode);
+        runCode(
+          codeMirrorInstance,
+          executeCode,
+          setStatus,
+          setLastExecutedResult
+        );
       }}
     >
       {status === 'busy' && <MediaStop />}

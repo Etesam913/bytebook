@@ -19,7 +19,7 @@ import {
   LexicalEditor,
 } from 'lexical';
 import { cn } from '../../utils/string-formatting';
-import { Languages } from '../../types';
+import { CodeBlockStatus, Languages } from '../../types';
 import { motion } from 'motion/react';
 
 export function CodeMirrorEditor({
@@ -33,7 +33,9 @@ export function CodeMirrorEditor({
   language,
   isCreatedNow,
   isExpanded,
+  setStatus,
   lastExecutedResult,
+  setLastExecutedResult,
 }: {
   nodeKey: string;
   lexicalEditor: LexicalEditor;
@@ -45,7 +47,9 @@ export function CodeMirrorEditor({
   language: Languages;
   isCreatedNow: boolean;
   isExpanded: boolean;
+  setStatus: (status: CodeBlockStatus) => void;
   lastExecutedResult: string | null;
+  setLastExecutedResult: (result: string) => void;
 }) {
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const { mutate: executeCode } = useSendExecuteRequestMutation(id, language);
@@ -118,21 +122,36 @@ export function CodeMirrorEditor({
       {
         key: 'Shift-Enter',
         run: () => {
-          runCode(codeMirrorInstance, executeCode);
+          runCode(
+            codeMirrorInstance,
+            executeCode,
+            setStatus,
+            setLastExecutedResult
+          );
           return true;
         },
       },
       {
         key: 'Ctrl-Enter',
         run: () => {
-          runCode(codeMirrorInstance, executeCode);
+          runCode(
+            codeMirrorInstance,
+            executeCode,
+            setStatus,
+            setLastExecutedResult
+          );
           return true;
         },
       },
       {
         key: 'Mod-Enter',
         run: () => {
-          runCode(codeMirrorInstance, executeCode);
+          runCode(
+            codeMirrorInstance,
+            executeCode,
+            setStatus,
+            setLastExecutedResult
+          );
           return true;
         },
       },
@@ -145,21 +164,18 @@ export function CodeMirrorEditor({
       instance.view.focus();
     }
   }
-  const isExpandedAndHasResults = isExpanded && lastExecutedResult;
-  const isExpandedAndDoesNotHaveResults = isExpanded && !lastExecutedResult;
   return (
-    <motion.div layout="position" className="min-h-12">
+    <motion.div
+      layout="position"
+      className={cn('min-h-12', isExpanded && 'h-4/5')}
+    >
       <CodeMirror
         ref={handleEditorRef}
         value={code}
         onChange={(newCode) => {
           debouncedSetCode(newCode);
         }}
-        className={cn(
-          'bg-white dark:bg-[#2e3440]',
-          isExpandedAndHasResults && '!h-[65vh] max-h-[65vh]',
-          isExpandedAndDoesNotHaveResults && 'h-[calc(100vh-3.6rem)]'
-        )}
+        className="bg-white dark:bg-[#2e3440]"
         extensions={[
           projectSettings.codeBlockVimMode ? vim() : [],
           runCodeKeymap,
