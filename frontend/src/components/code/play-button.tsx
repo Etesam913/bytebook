@@ -2,7 +2,10 @@ import { MotionIconButton } from '../buttons';
 import { Play } from '../../icons/circle-play';
 import { getDefaultButtonVariants } from '../../animations';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
-import { useSendExecuteRequestMutation } from '../../hooks/code';
+import {
+  useSendExecuteRequestMutation,
+  useSendInterruptRequestMutation,
+} from '../../hooks/code';
 import { runCode } from '../../utils/code';
 import { CodeBlockStatus, Languages } from '../../types';
 import { MediaStop } from '../../icons/media-stop';
@@ -28,17 +31,26 @@ export function PlayButton({
     language
   );
 
+  const { mutate: interruptExecution } =
+    useSendInterruptRequestMutation(codeBlockId);
+
   return (
     <MotionIconButton
       {...getDefaultButtonVariants(false, 1.05, 0.975, 1.05)}
       disabled={status === 'starting' || status === 'queueing'}
       onClick={() => {
-        runCode(
-          codeMirrorInstance,
-          executeCode,
-          setStatus,
-          setLastExecutedResult
-        );
+        if (status === 'busy') {
+          interruptExecution({
+            newExecutionId: '',
+          });
+        } else {
+          runCode(
+            codeMirrorInstance,
+            executeCode,
+            setStatus,
+            setLastExecutedResult
+          );
+        }
       }}
     >
       {status === 'busy' && <MediaStop />}

@@ -9,7 +9,10 @@ import {
   Languages,
 } from '../types';
 import { useMutation } from '@tanstack/react-query';
-import { SendExecuteRequest } from '../../bindings/github.com/etesam913/bytebook/services/codeservice';
+import {
+  SendExecuteRequest,
+  SendInterruptRequest,
+} from '../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { QueryError } from '../utils/query';
 import { $nodesOfType, LexicalEditor } from 'lexical';
 
@@ -75,22 +78,6 @@ export function useKernelShutdown() {
     }
   });
 }
-
-// export function useKernelInterrupt() {
-//   const setKernelsData = useSetAtom(kernelsDataAtom);
-
-//   useWailsEvent('code:kernel:interrupt_reply', (body) => {
-//     console.info('code:kernel:interrupt_reply');
-//     const data = body.data as {
-//       status: string;
-//       messageId: string;
-//     }[];
-
-//     if (data.length === 0) return;
-
-//     const { messageId, status } = data[0];
-//   });
-// }
 
 export function useKernelHeartbeat() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
@@ -198,14 +185,23 @@ export function useSendExecuteRequestMutation(
       code: string;
       newExecutionId: string;
     }) => {
-      console.log({ codeBlockId, newExecutionId, language, code });
       const res = await SendExecuteRequest(
         codeBlockId,
         newExecutionId,
         language,
         code
       );
-      console.log({ res });
+      if (!res.success) {
+        throw new QueryError(res.message);
+      }
+    },
+  });
+}
+
+export function useSendInterruptRequestMutation(codeBlockId: string) {
+  return useMutation({
+    mutationFn: async ({ newExecutionId }: { newExecutionId: string }) => {
+      const res = await SendInterruptRequest(codeBlockId, newExecutionId);
       if (!res.success) {
         throw new QueryError(res.message);
       }

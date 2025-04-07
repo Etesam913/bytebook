@@ -112,7 +112,7 @@ func (c *CodeService) SendShutdownMessage(restart bool) project_types.BackendRes
 }
 
 // SendInterruptRequest sends an interrupt request to the kernel to stop the currently executing code
-func (c *CodeService) SendInterruptRequest() project_types.BackendResponseWithoutData {
+func (c *CodeService) SendInterruptRequest(codeBlockId, executionId string) project_types.BackendResponseWithoutData {
 	if c.ControlSocketDealer == nil {
 		return project_types.BackendResponseWithoutData{
 			Success: false,
@@ -131,7 +131,7 @@ func (c *CodeService) SendInterruptRequest() project_types.BackendResponseWithou
 	err := messaging.SendInterruptMessage(
 		c.ControlSocketDealer,
 		messaging.MessageParams{
-			MessageID: fmt.Sprintf("interrupt-%d", time.Now().UnixNano()),
+			MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
 			SessionID: "current-session",
 		},
 	)

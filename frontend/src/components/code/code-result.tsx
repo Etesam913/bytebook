@@ -17,14 +17,13 @@ export function CodeResult({
   status: CodeBlockStatus;
 }) {
   const resultContainerRef = useRef<HTMLDivElement>(null);
-
   return (
     <motion.footer
       key={isExpanded.toString()}
       layout
       className={cn(
-        'group relative overflow-hidden border-t-1 border-t-zinc-200 dark:border-t-zinc-700 min-h-11',
-        isExpanded && 'h-1/5'
+        'group relative overflow-y-hidden border-t-1 border-t-zinc-200 dark:border-t-zinc-700 min-h-11 bg-white dark:bg-[#2e3440]',
+        isExpanded && 'h-1/5 overflow-y-auto'
       )}
     >
       <AnimatePresence>

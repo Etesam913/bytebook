@@ -8,7 +8,10 @@ import CodeMirror, {
   type ReactCodeMirrorRef,
 } from '@uiw/react-codemirror';
 import { debounce } from '../../utils/general';
-import { useSendExecuteRequestMutation } from '../../hooks/code';
+import {
+  useSendExecuteRequestMutation,
+  useSendInterruptRequestMutation,
+} from '../../hooks/code';
 import { runCode } from '../../utils/code';
 import { focusEditor, languageToSettings } from '.';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
@@ -21,6 +24,33 @@ import {
 import { cn } from '../../utils/string-formatting';
 import { CodeBlockStatus, Languages } from '../../types';
 import { motion } from 'motion/react';
+import { UseMutateFunction } from '@tanstack/react-query';
+
+function handleRunOrInterruptCode(
+  status: CodeBlockStatus,
+  interruptExecution: ({ newExecutionId }: { newExecutionId: string }) => void,
+  codeMirrorInstance: ReactCodeMirrorRef | null,
+  executeCode: UseMutateFunction<
+    void,
+    Error,
+    {
+      code: string;
+      newExecutionId: string;
+    },
+    unknown
+  >,
+  setStatus: (status: CodeBlockStatus) => void,
+  setLastExecutedResult: (result: string) => void
+) {
+  if (status === 'busy') {
+    interruptExecution({
+      newExecutionId: '',
+    });
+  } else {
+    runCode(codeMirrorInstance, executeCode, setStatus, setLastExecutedResult);
+  }
+  return true;
+}
 
 export function CodeMirrorEditor({
   nodeKey,
@@ -33,8 +63,8 @@ export function CodeMirrorEditor({
   language,
   isCreatedNow,
   isExpanded,
+  status,
   setStatus,
-  lastExecutedResult,
   setLastExecutedResult,
 }: {
   nodeKey: string;
@@ -47,8 +77,8 @@ export function CodeMirrorEditor({
   language: Languages;
   isCreatedNow: boolean;
   isExpanded: boolean;
+  status: CodeBlockStatus;
   setStatus: (status: CodeBlockStatus) => void;
-  lastExecutedResult: string | null;
   setLastExecutedResult: (result: string) => void;
 }) {
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
@@ -56,6 +86,8 @@ export function CodeMirrorEditor({
   const debouncedSetCode = debounce(setCode, 300);
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
   const projectSettings = useAtomValue(projectSettingsAtom);
+
+  const { mutate: interruptExecution } = useSendInterruptRequestMutation(id);
 
   // Custom keymap for running code with keyboard shortcuts
   const runCodeKeymap = Prec.highest(
@@ -121,39 +153,39 @@ export function CodeMirrorEditor({
       },
       {
         key: 'Shift-Enter',
-        run: () => {
-          runCode(
+        run: () =>
+          handleRunOrInterruptCode(
+            status,
+            interruptExecution,
             codeMirrorInstance,
             executeCode,
             setStatus,
             setLastExecutedResult
-          );
-          return true;
-        },
+          ),
       },
       {
         key: 'Ctrl-Enter',
-        run: () => {
-          runCode(
+        run: () =>
+          handleRunOrInterruptCode(
+            status,
+            interruptExecution,
             codeMirrorInstance,
             executeCode,
             setStatus,
             setLastExecutedResult
-          );
-          return true;
-        },
+          ),
       },
       {
         key: 'Mod-Enter',
-        run: () => {
-          runCode(
+        run: () =>
+          handleRunOrInterruptCode(
+            status,
+            interruptExecution,
             codeMirrorInstance,
             executeCode,
             setStatus,
             setLastExecutedResult
-          );
-          return true;
-        },
+          ),
       },
     ])
   );

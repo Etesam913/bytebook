@@ -3,19 +3,12 @@ import { langs } from '@uiw/codemirror-extensions-langs';
 import type { LanguageSupport, StreamLanguage } from '@codemirror/language';
 import { BasicSetupOptions, ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { PythonLogo } from '../../icons/python-logo';
-import { MotionIconButton } from '../buttons';
-import { Duplicate2 } from '../../icons/duplicate-2';
-import { getDefaultButtonVariants } from '../../animations';
-import { Trash } from '../../icons/trash';
 import { Loader } from '../../icons/loader';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { removeDecoratorNode } from '../../utils/commands';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { cn } from '../../utils/string-formatting';
 import { GolangLogo } from '../../icons/golang-logo';
-import { PlayButton } from './play-button';
 import { CodeResult } from './code-result';
-import { Maximize } from '../../icons/maximize';
 import { CodeBlockStatus, Languages } from '../../types';
 import { AnimatePresence, motion } from 'motion/react';
 import { CodeActions } from './code-actions';
@@ -133,8 +126,8 @@ export function Code({
             language={language}
             isCreatedNow={isCreatedNow}
             isExpanded={isExpanded}
+            status={status}
             setStatus={setStatus}
-            lastExecutedResult={lastExecutedResult}
             setLastExecutedResult={setLastExecutedResult}
           />
         </Suspense>

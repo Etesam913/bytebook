@@ -403,17 +403,17 @@ func ListenToControlSocket(
 				}
 
 				// Get the message ID from the parent header to match it with the request
-				msgId, ok := msg.ParentHeader["msg_id"].(string)
-				if !ok {
-					log.Println("⚠️ Invalid message ID type in interrupt_reply")
-					continue
-				}
+				// msgId, ok := msg.ParentHeader["msg_id"].(string)
+				// if !ok {
+				// 	log.Println("⚠️ Invalid message ID type in interrupt_reply")
+				// 	continue
+				// }
 
 				// Emit event to notify frontend that the interrupt has been processed
-				app.EmitEvent("code:kernel:interrupt_reply", project_types.InterruptReplyEventType{
-					Status:    status,
-					MessageId: msgId,
-				})
+				// app.EmitEvent("code:kernel:interrupt_reply", project_types.InterruptReplyEventType{
+				// 	Status:    status,
+				// 	MessageId: msgId,
+				// })
 
 				log.Printf("🔴 Received interrupt reply with status: %s\n", status)
 			}
