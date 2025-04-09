@@ -19,6 +19,7 @@ export interface CodePayload {
   isCreatedNow?: boolean;
   lastExecutedResult?: string | null;
   status?: CodeBlockStatus;
+  executionId?: string;
 }
 
 export type SerializedCodeNode = Spread<
@@ -60,6 +61,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       node.__isCreatedNow,
       node.__lastExecutedResult,
       node.__status,
+      node.__executionId,
       node.__key
     );
   }
@@ -86,6 +88,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     isCreatedNow = false,
     lastExecutedResult: string | null = null,
     status: CodeBlockStatus = 'idle',
+    executionId?: string,
     key?: NodeKey
   ) {
     super(key);
@@ -93,11 +96,10 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     this.__id = id;
     this.__language = language;
     this.__code = code;
-    this.__executionId = crypto.randomUUID();
+    this.__executionId = executionId ?? crypto.randomUUID();
     this.__isCreatedNow = isCreatedNow;
     this.__lastExecutedResult = lastExecutedResult;
     this.__status = status;
-    // this.__status = 'idle';
   }
 
   exportJSON(): SerializedCodeNode {
@@ -229,9 +231,18 @@ export function $createCodeNode({
   isCreatedNow,
   lastExecutedResult,
   status = 'idle',
+  executionId = crypto.randomUUID(),
 }: CodePayload): CodeNode {
   return $applyNodeReplacement(
-    new CodeNode(id, language, code, isCreatedNow, lastExecutedResult, status)
+    new CodeNode(
+      id,
+      language,
+      code,
+      isCreatedNow,
+      lastExecutedResult,
+      status,
+      executionId
+    )
   );
 }
 
