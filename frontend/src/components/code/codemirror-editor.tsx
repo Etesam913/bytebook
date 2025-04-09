@@ -199,6 +199,12 @@ export function CodeMirrorEditor({
   return (
     <motion.div
       layout="position"
+      onClick={() => {
+        // Refocuses the editor when clicks happen outside of it but still inside the overall component
+        if (codeMirrorInstance?.view) {
+          codeMirrorInstance.view.focus();
+        }
+      }}
       className={cn('min-h-12', isExpanded && 'h-4/5')}
     >
       <CodeMirror
@@ -228,9 +234,10 @@ export function CodeMirrorEditor({
             e.stopPropagation();
           }
         }}
-        onClick={() => {
+        onClick={(e) => {
           clearSelection();
           setSelected(true);
+          e.stopPropagation();
         }}
         basicSetup={{
           foldGutter: false,
