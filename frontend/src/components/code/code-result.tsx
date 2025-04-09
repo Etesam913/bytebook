@@ -22,8 +22,8 @@ export function CodeResult({
       key={isExpanded.toString()}
       layout
       className={cn(
-        'group relative overflow-y-hidden border-t-1 border-t-zinc-200 dark:border-t-zinc-700 min-h-11 bg-white dark:bg-[#2e3440]',
-        isExpanded && 'h-1/5 overflow-y-auto'
+        'group relative border-t-1 border-t-zinc-200 dark:border-t-zinc-700 min-h-11 bg-white dark:bg-[#2e3440]',
+        isExpanded && 'h-1/5'
       )}
     >
       <AnimatePresence>
@@ -33,7 +33,7 @@ export function CodeResult({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute flex items-center justify-center z-20 bg-zinc-400/20 dark:bg-zinc-900/20 h-full w-full"
+            className="absolute inset-0 flex items-center justify-center z-20 bg-zinc-400/20 dark:bg-zinc-900/20"
           >
             <motion.div
               layout
@@ -47,12 +47,16 @@ export function CodeResult({
           </motion.div>
         )}
       </AnimatePresence>
-      <motion.div
-        layout="position"
-        ref={resultContainerRef}
-        dangerouslySetInnerHTML={{ __html: lastExecutedResult }}
-        className="flex flex-col justify-between overflow-x-hidden overflow-y-auto gap-1.5 relative font-code text-xs px-2 py-3"
-      />
+
+      <div className="overflow-y-auto h-full">
+        <motion.div
+          layout="position"
+          ref={resultContainerRef}
+          dangerouslySetInnerHTML={{ __html: lastExecutedResult }}
+          className="flex flex-col justify-between overflow-x-hidden gap-1.5 relative font-code text-xs px-2 py-3"
+        />
+      </div>
+
       <MotionIconButton
         className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
         key={isExpanded.toString()}
