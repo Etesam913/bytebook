@@ -73,6 +73,8 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       language,
       code,
       lastExecutedResult,
+      // Hardcoding status:idle ensures that that when cmd+z recreates a code block, it is not in the loading state
+      status: 'idle',
     });
     return node;
   }

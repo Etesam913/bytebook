@@ -2,14 +2,12 @@ import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { MotionIconButton } from '../buttons';
 import { getDefaultButtonVariants } from '../../animations';
 import { Duplicate2 } from '../../icons/duplicate-2';
-import { Trash } from '../../icons/trash';
 import { Maximize } from '../../icons/maximize';
 import { CodeBlockStatus, Languages } from '../../types';
 import { motion } from 'motion/react';
 import { PlayButton } from './play-button';
-import { LexicalEditor } from 'lexical';
-import { removeDecoratorNode } from '../../utils/commands';
 import { Minimize } from '../../icons/minimize';
+import { DeleteButton } from './delete-button';
 
 export function CodeActions({
   id,
@@ -19,9 +17,8 @@ export function CodeActions({
   setStatus,
   setLastExecutedResult,
   isExpanded,
-  setIsExpanded,
   nodeKey,
-  lexicalEditor,
+  setIsExpanded,
 }: {
   id: string;
   codeMirrorInstance: ReactCodeMirrorRef | null;
@@ -32,7 +29,6 @@ export function CodeActions({
   isExpanded: boolean;
   setIsExpanded: (value: boolean) => void;
   nodeKey: string;
-  lexicalEditor: LexicalEditor;
 }) {
   return (
     <motion.div
@@ -66,16 +62,7 @@ export function CodeActions({
       >
         <Duplicate2 height={18} width={18} />
       </MotionIconButton>
-      <MotionIconButton
-        {...getDefaultButtonVariants(false, 1.05, 0.975, 1.05)}
-        onClick={() => {
-          lexicalEditor.update(() => {
-            removeDecoratorNode(nodeKey);
-          });
-        }}
-      >
-        <Trash height={18} width={18} />
-      </MotionIconButton>
+      <DeleteButton nodeKey={nodeKey} codeBlockId={id} />
     </motion.div>
   );
 }

@@ -22,7 +22,7 @@ export function CodeResult({
       key={isExpanded.toString()}
       layout
       className={cn(
-        'group relative border-t-1 border-t-zinc-200 dark:border-t-zinc-700 min-h-11 bg-white dark:bg-[#2e3440]',
+        'group overflow-hidden relative border-t-1 border-t-zinc-200 dark:border-t-zinc-700 min-h-11 bg-white dark:bg-[#2e3440]',
         isExpanded && 'h-1/5'
       )}
     >

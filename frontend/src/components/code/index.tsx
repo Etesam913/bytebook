@@ -116,7 +116,6 @@ export function Code({
             isExpanded={isExpanded}
             setIsExpanded={setIsExpanded}
             nodeKey={nodeKey}
-            lexicalEditor={lexicalEditor}
           />
           <CodeMirrorEditor
             nodeKey={nodeKey}

@@ -198,13 +198,15 @@ export function useSendExecuteRequestMutation(
   });
 }
 
-export function useSendInterruptRequestMutation(codeBlockId: string) {
+export function useSendInterruptRequestMutation(
+  codeBlockId: string,
+  onSuccess?: () => void
+) {
   return useMutation({
     mutationFn: async ({ newExecutionId }: { newExecutionId: string }) => {
       const res = await SendInterruptRequest(codeBlockId, newExecutionId);
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
+      if (!res.success) throw new QueryError(res.message);
     },
+    onSuccess,
   });
 }
