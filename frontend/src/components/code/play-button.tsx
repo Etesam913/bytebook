@@ -31,8 +31,7 @@ export function PlayButton({
     language
   );
 
-  const { mutate: interruptExecution } =
-    useSendInterruptRequestMutation(codeBlockId);
+  const { mutate: interruptExecution } = useSendInterruptRequestMutation();
 
   return (
     <MotionIconButton
@@ -41,6 +40,7 @@ export function PlayButton({
       onClick={() => {
         if (status === 'busy') {
           interruptExecution({
+            codeBlockId,
             newExecutionId: '',
           });
         } else {

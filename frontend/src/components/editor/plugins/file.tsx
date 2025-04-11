@@ -56,9 +56,11 @@ export function FilesPlugin() {
             }
           }
           // We use the top level element when the selection is inside a list item as we don't want the image to be a child of a list item
-          if (topLevelElement)
-            nodes.forEach((node) => topLevelElement.insertAfter(node));
-          else selection?.insertNodes(nodes);
+          if (topLevelElement) {
+            for (const node of nodes) {
+              topLevelElement.insertAfter(node);
+            }
+          } else selection?.insertNodes(nodes);
 
           // Selects the last file node
           const newFileSelection = $createNodeSelection();

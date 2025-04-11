@@ -28,7 +28,14 @@ import { UseMutateFunction } from '@tanstack/react-query';
 
 function handleRunOrInterruptCode(
   status: CodeBlockStatus,
-  interruptExecution: ({ newExecutionId }: { newExecutionId: string }) => void,
+  codeBlockId: string,
+  interruptExecution: ({
+    newExecutionId,
+    codeBlockId,
+  }: {
+    newExecutionId: string;
+    codeBlockId: string;
+  }) => void,
   codeMirrorInstance: ReactCodeMirrorRef | null,
   executeCode: UseMutateFunction<
     void,
@@ -44,6 +51,7 @@ function handleRunOrInterruptCode(
 ) {
   if (status === 'busy') {
     interruptExecution({
+      codeBlockId,
       newExecutionId: '',
     });
   } else {
@@ -87,7 +95,7 @@ export function CodeMirrorEditor({
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
   const projectSettings = useAtomValue(projectSettingsAtom);
 
-  const { mutate: interruptExecution } = useSendInterruptRequestMutation(id);
+  const { mutate: interruptExecution } = useSendInterruptRequestMutation();
 
   // Custom keymap for running code with keyboard shortcuts
   const runCodeKeymap = Prec.highest(
@@ -156,6 +164,7 @@ export function CodeMirrorEditor({
         run: () =>
           handleRunOrInterruptCode(
             status,
+            id,
             interruptExecution,
             codeMirrorInstance,
             executeCode,
@@ -168,6 +177,7 @@ export function CodeMirrorEditor({
         run: () =>
           handleRunOrInterruptCode(
             status,
+            id,
             interruptExecution,
             codeMirrorInstance,
             executeCode,
@@ -180,6 +190,7 @@ export function CodeMirrorEditor({
         run: () =>
           handleRunOrInterruptCode(
             status,
+            id,
             interruptExecution,
             codeMirrorInstance,
             executeCode,

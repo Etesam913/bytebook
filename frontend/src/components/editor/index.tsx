@@ -12,7 +12,7 @@ import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useQueryClient } from '@tanstack/react-query';
 import type { AnimationControls } from 'motion/react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import type { LexicalEditor } from 'lexical';
+import { $nodesOfType, type LexicalEditor } from 'lexical';
 import { useEffect, useRef, useState } from 'react';
 import {
   albumDataAtom,
@@ -41,12 +41,13 @@ import { LinkMatcherPlugin } from './plugins/link-matcher.tsx';
 import { LinkPlugin } from './plugins/link.tsx';
 import { SavePlugin } from './plugins/save.tsx';
 import { TableOfContentsPlugin } from './plugins/table-of-contents.tsx';
-// import TreeViewPlugin from './plugins/tree-view';
+import TreeViewPlugin from './plugins/tree-view';
 import { Toolbar } from './toolbar';
 import { CUSTOM_TRANSFORMERS } from './transformers';
 import { debouncedNoteHandleChange } from './utils/note-commands.ts';
 import { Album } from './album/index.tsx';
-// import TreeViewPlugin from './plugins/tree-view.tsx';
+import { CodeNode } from './nodes/code.tsx';
+import { useSendInterruptRequestMutation } from '../../hooks/code.tsx';
 
 export function NotesEditor({
   params,
@@ -80,9 +81,26 @@ export function NotesEditor({
   const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
   const [noteMarkdownString, setNoteMarkdownString] = useState('');
   const draggedElement = useAtomValue(draggedElementAtom);
+  const { mutate: interruptExecution } = useSendInterruptRequestMutation();
 
   useEffect(() => {
     setNoteContainerRef(noteContainerRef);
+
+    return () => {
+      // Cancels ongoing requests for a code block when navigating away from the editor
+      const editor = editorRef.current;
+      if (editor) {
+        editor.read(() => {
+          const allCodeNodes = $nodesOfType(CodeNode);
+          allCodeNodes.forEach((codeNode) => {
+            interruptExecution({
+              codeBlockId: codeNode.getId(),
+              newExecutionId: '',
+            });
+          });
+        });
+      }
+    };
   }, [noteContainerRef]);
 
   // Sets up intersection observer for note elements file nodes
@@ -205,7 +223,7 @@ export function NotesEditor({
           <DraggableBlockPlugin />
           <FocusPlugin />
           <LinkMatcherPlugin />
-          {/* <TreeViewPlugin /> */}
+          <TreeViewPlugin />
         </div>
         {frontmatter.showMarkdown === 'true' && (
           <div className="w-[50%] bg-zinc-50 dark:bg-zinc-850 h-full font-code border-l border-zinc-200 dark:border-zinc-700 px-4 pt-3 pb-2 overflow-auto">
@@ -219,6 +237,7 @@ export function NotesEditor({
         folder={folder}
         note={note}
         ext="md"
+        isNoteEditor
       />
     </LexicalComposer>
   );

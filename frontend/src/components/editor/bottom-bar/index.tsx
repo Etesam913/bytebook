@@ -21,11 +21,13 @@ export function BottomBar({
   folder,
   note,
   ext,
+  isNoteEditor,
 }: {
   frontmatter?: Record<string, string>;
   folder: string;
   note: string;
   ext: string;
+  isNoteEditor?: boolean;
 }) {
   const [lastUpdatedText, setLastUpdatedText] = useState('');
 
@@ -82,7 +84,7 @@ export function BottomBar({
           {note}
         </BreadcrumbItem>
       </span>
-      <KernelHeartbeats />
+      {isNoteEditor && <KernelHeartbeats />}
       <span className="flex items-center gap-2">
         <button
           type="button"

@@ -62,7 +62,7 @@ export function CodeActions({
       >
         <Duplicate2 height={18} width={18} />
       </MotionIconButton>
-      <DeleteButton nodeKey={nodeKey} codeBlockId={id} />
+      <DeleteButton nodeKey={nodeKey} />
     </motion.div>
   );
 }
