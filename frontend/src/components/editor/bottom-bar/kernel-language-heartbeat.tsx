@@ -6,7 +6,7 @@ import PowerOff from '../../../icons/power-off';
 import { useOnClickOutside } from '../../../hooks/general';
 import { useAtomValue } from 'jotai';
 import { kernelsDataAtom } from '../../../atoms';
-import { Languages } from '../../../types';
+import { DropdownItem, Languages } from '../../../types';
 import { Loader } from '../../../icons/loader';
 import { cn } from '../../../utils/string-formatting';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -15,6 +15,27 @@ import {
   SendShutdownMessage,
 } from '../../../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { QueryError } from '../../../utils/query';
+import { FolderOpen } from '../../../icons/folder-open';
+
+const languageSpecificOptions: {
+  heartbeatSuccess: Partial<Record<Languages, DropdownItem[]>>;
+  heartbeatFailure: Partial<Record<Languages, DropdownItem[]>>;
+} = {
+  heartbeatSuccess: {
+    python: [
+      {
+        value: 'change-venv',
+        label: (
+          <span className="flex items-center gap-1.5 will-change-transform">
+            <FolderOpen height={14.5} width={14.5} />
+            Change Virtual Environment
+          </span>
+        ),
+      },
+    ],
+  },
+  heartbeatFailure: {},
+};
 
 export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +50,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
     queryFn: () => CreateSocketsAndListen(language),
   });
 
-  const shutdownMutation = useMutation({
+  const { mutate: shutdownKernel } = useMutation({
     mutationFn: async (restart: boolean) => {
       const res = await SendShutdownMessage(restart);
       if (!res.success) {
@@ -38,7 +59,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
     },
   });
 
-  const turnOnMutation = useMutation({
+  const { mutate: turnOnKernel } = useMutation({
     mutationFn: async () => {
       const res = await CreateSocketsAndListen(language);
       if (!res.success) {
@@ -46,6 +67,16 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
       }
     },
   });
+
+  const heartbeatSuccessDropdownItems = languageSpecificOptions
+    .heartbeatSuccess[language]
+    ? [...languageSpecificOptions.heartbeatSuccess[language]]
+    : [];
+
+  const heartbeatFailureDropdownItems = languageSpecificOptions
+    .heartbeatFailure[language]
+    ? [...languageSpecificOptions.heartbeatFailure[language]]
+    : [];
 
   const kernelOptions =
     heartbeat === 'success'
@@ -67,6 +98,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
               </span>
             ),
           },
+          ...heartbeatSuccessDropdownItems,
         ]
       : [
           {
@@ -78,20 +110,21 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
               </span>
             ),
           },
+          ...heartbeatFailureDropdownItems,
         ];
 
   return (
     <div className="relative flex flex-col-reverse" ref={dropdownContainerRef}>
       <DropdownItems
-        className="translate-y-[-2.25rem] w-32"
+        className="translate-y-[-2.25rem] w-auto"
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         setFocusIndex={setFocusIndex}
         onChange={({ value }) => {
           if (value === 'shut-down') {
-            shutdownMutation.mutate(false);
+            shutdownKernel(false);
           } else if (value === 'turn-on') {
-            turnOnMutation.mutate();
+            turnOnKernel();
           }
         }}
         focusIndex={focusIndex}

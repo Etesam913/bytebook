@@ -16,12 +16,15 @@ export function CodeBlockPage() {
       >
         <div className="flex items-center gap-1.5">
           <Toggle
-            checked={projectSettings.codeBlockVimMode}
+            checked={projectSettings.code.codeBlockVimMode}
             onChange={() => {
               updateProjectSettings({
                 newProjectSettings: {
                   ...projectSettings,
-                  codeBlockVimMode: !projectSettings.codeBlockVimMode,
+                  code: {
+                    ...projectSettings.code,
+                    codeBlockVimMode: !projectSettings.code.codeBlockVimMode,
+                  },
                 },
               });
             }}

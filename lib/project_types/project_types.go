@@ -21,12 +21,17 @@ type AppearanceProjectSettingsJson struct {
 	NoteSidebarItemSize string `json:"noteSidebarItemSize"`
 }
 
+type CodeProjectSettingsJson struct {
+	CodeBlockVimMode bool   `json:"codeBlockVimMode"`
+	PythonVenvPath   string `json:"pythonVenvPath"`
+}
+
 type ProjectSettingsJson struct {
 	PinnedNotes        []string                      `json:"pinnedNotes"`
 	ProjectPath        string                        `json:"projectPath"`
 	RepositoryToSyncTo string                        `json:"repositoryToSyncTo"`
 	Appearance         AppearanceProjectSettingsJson `json:"appearance"`
-	CodeBlockVimMode   bool                          `json:"codeBlockVimMode"`
+	Code               CodeProjectSettingsJson       `json:"code"`
 }
 
 type AllKernels struct {

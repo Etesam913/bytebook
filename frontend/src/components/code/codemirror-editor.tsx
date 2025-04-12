@@ -226,7 +226,7 @@ export function CodeMirrorEditor({
         }}
         className="bg-white dark:bg-[#2e3440]"
         extensions={[
-          projectSettings.codeBlockVimMode ? vim() : [],
+          projectSettings.code.codeBlockVimMode ? vim() : [],
           runCodeKeymap,
           languageToSettings[language].extension(),
         ]}

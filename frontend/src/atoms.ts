@@ -47,7 +47,10 @@ export const projectSettingsAtom = atom<ProjectSettings>({
     noteWidth: 'fullWidth',
     editorFontFamily: 'Bricolage Grotesque',
   },
-  codeBlockVimMode: false,
+  code: {
+    codeBlockVimMode: false,
+    pythonVenvPath: '',
+  },
 });
 
 export const projectSettingsWithQueryParamsAtom = atom((get) => {
