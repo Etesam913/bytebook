@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { Window } from '@wailsio/runtime';
 import { useSetAtom } from 'jotai';
-import { type Dispatch, type SetStateAction, useEffect } from 'react';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 import {
   GetProjectSettings,
@@ -14,6 +14,8 @@ import type { ProjectSettings } from '../types';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { validateProjectSettings } from '../utils/project-settings';
 import { parseRGB } from '../utils/string-formatting';
+import { QueryError } from '../utils/query';
+import { ProjectSettingsJson } from '../../bindings/github.com/etesam913/bytebook/lib/project_types/models';
 
 function updateAccentColorVariable(accentColor: string) {
   let rgbValues = parseRGB(accentColor);
@@ -30,44 +32,64 @@ function updateAccentColorVariable(accentColor: string) {
     `${rgbValues.r},${rgbValues.g},${rgbValues.b}`
   );
 }
+/**
+ * Validates project settings from the server.
+ *
+ * @returns  The validated project settings.
+ * @throws  If the fetch operation fails or returns invalid data.
+ */
+function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
+  const { theme, noteSidebarItemSize, noteWidth } = validateProjectSettings({
+    theme: data.appearance.theme,
+    noteSidebarItemSize: data.appearance.noteSidebarItemSize,
+    noteWidth: data.appearance.noteWidth,
+  });
 
-async function getProjectSettings(
-  setProjectSettings: Dispatch<SetStateAction<ProjectSettings>>
-) {
-  try {
-    const { success, message, data } = await GetProjectSettings();
-    if (!success || !data) throw new Error(message);
+  updateAccentColorVariable(data.appearance.accentColor);
 
-    const { darkMode, noteSidebarItemSize } = validateProjectSettings({
-      darkMode: data.darkMode,
-      noteSidebarItemSize: data.noteSidebarItemSize,
-    });
-
-    updateAccentColorVariable(data.accentColor);
-
-    setProjectSettings({
-      ...data,
-      pinnedNotes: new Set(data.pinnedNotes),
-      darkMode,
+  return {
+    ...data,
+    pinnedNotes: new Set(data.pinnedNotes),
+    appearance: {
+      ...data.appearance,
+      accentColor: data.appearance.accentColor,
+      theme,
       noteSidebarItemSize,
-      noteWidth: data.noteWidth as 'fullWidth' | 'readability',
-    });
-  } catch (err) {
-    toast.error(
-      err instanceof Error ? err.message : String(err),
-      DEFAULT_SONNER_OPTIONS
-    );
-  }
+      noteWidth,
+    },
+  };
 }
-
+/**
+ * Custom hook to manage project settings.
+ *
+ * This hook fetches and validates project settings on component initialization,
+ * opens the settings dialog on 'settings:open' event, and re-fetches settings
+ * on 'settings:update' event.
+ */
 export function useProjectSettings() {
   const setProjectSettings = useSetAtom(projectSettingsAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
 
+  // Create a mutation using react-query's useMutation hook.
+  const { mutate: fetchAndValidateProjectSettings } = useMutation({
+    mutationFn: async () => {
+      const { success, message, data } = await GetProjectSettings();
+      if (!success || !data) {
+        throw new QueryError(message);
+      }
+      return validateProjectSettingsWrapper(data);
+    },
+    onSuccess: (updatedSettings) => {
+      setProjectSettings(updatedSettings);
+    },
+  });
+
+  // Run the mutation on component initialization.
   useEffect(() => {
-    getProjectSettings(setProjectSettings);
+    fetchAndValidateProjectSettings();
   }, []);
 
+  // Open the settings dialog on 'settings:open' event.
   useWailsEvent('settings:open', async (data) => {
     const windowName = await Window.Name();
     if (windowName !== data.sender) return;
@@ -78,24 +100,26 @@ export function useProjectSettings() {
       title: 'Settings',
       dialogClassName: 'w-[min(55rem,90vw)]',
       children: () => <SettingsDialog />,
-      onSubmit: async () => {
-        return new Promise((resolve) => {
-          resolve(true);
-        });
-      },
+      onSubmit: async () => Promise.resolve(true),
     });
   });
 
+  // Re-run the mutation when a 'settings:update' event is received.
   useWailsEvent('settings:update', (body) => {
-    const projectSettings = (body.data as ProjectSettings[])[0];
-    updateAccentColorVariable(projectSettings.accentColor);
-    setProjectSettings({
-      ...projectSettings,
-      pinnedNotes: new Set(projectSettings.pinnedNotes),
-    });
+    const projectSettings = (body.data as ProjectSettingsJson[])[0];
+    setProjectSettings(validateProjectSettingsWrapper(projectSettings));
   });
 }
 
+/**
+ * Custom hook to create a mutation for updating project settings.
+ *
+ * This hook uses react-query's useMutation to handle the update operation.
+ * It takes new project settings, sends them to the backend, and handles
+ * success and error responses.
+ *
+ * @returns  Te mutation object from useMutation.
+ */
 export function useUpdateProjectSettingsMutation() {
   return useMutation({
     mutationFn: async ({

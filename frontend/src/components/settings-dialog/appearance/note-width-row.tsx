@@ -13,12 +13,15 @@ export function NoteWidthRow() {
     <SettingsRow title="Note Width" description="Change the width of the note">
       <div className="flex gap-3">
         <SettingImage
-          isActive={projectSettings.noteWidth === 'fullWidth'}
+          isActive={projectSettings.appearance.noteWidth === 'fullWidth'}
           onClick={() => {
             updateProjectSettings({
               newProjectSettings: {
                 ...projectSettings,
-                noteWidth: 'fullWidth',
+                appearance: {
+                  ...projectSettings.appearance,
+                  noteWidth: 'fullWidth',
+                },
               },
             });
           }}
@@ -31,12 +34,15 @@ export function NoteWidthRow() {
           label="Full Width"
         />
         <SettingImage
-          isActive={projectSettings.noteWidth === 'readability'}
+          isActive={projectSettings.appearance.noteWidth === 'readability'}
           onClick={() => {
             updateProjectSettings({
               newProjectSettings: {
                 ...projectSettings,
-                noteWidth: 'readability',
+                appearance: {
+                  ...projectSettings.appearance,
+                  noteWidth: 'readability',
+                },
               },
             });
           }}

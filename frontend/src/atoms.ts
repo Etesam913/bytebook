@@ -37,16 +37,19 @@ export const mostRecentNotesWithoutQueryParamsAtom = atom((get) => {
 export const windowSettingsAtom = atom<WindowSettings | null>(null);
 
 export const projectSettingsAtom = atom<ProjectSettings>({
-  pinnedNotes: new Set([]),
+  pinnedNotes: new Set<string>([]),
   repositoryToSyncTo: '',
   projectPath: '',
-  darkMode: 'light',
-  noteSidebarItemSize: 'card',
-  accentColor: '',
-  noteWidth: 'fullWidth',
-  editorFontFamily: 'Bricolage Grotesque',
+  appearance: {
+    theme: 'light',
+    noteSidebarItemSize: 'card',
+    accentColor: '',
+    noteWidth: 'fullWidth',
+    editorFontFamily: 'Bricolage Grotesque',
+  },
   codeBlockVimMode: false,
 });
+
 export const projectSettingsWithQueryParamsAtom = atom((get) => {
   const projectSettings = get(projectSettingsAtom);
   const pinnedNotes = projectSettings.pinnedNotes;

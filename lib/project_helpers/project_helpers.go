@@ -123,14 +123,16 @@ func GetProjectSettings(projectPath string) (project_types.ProjectSettingsJson, 
 
 	// Default settings
 	defaultSettings := project_types.ProjectSettingsJson{
-		PinnedNotes:         []string{},
-		ProjectPath:         projectPath,
-		RepositoryToSyncTo:  "",
-		DarkMode:            "light",
-		NoteSidebarItemSize: "card",
-		AccentColor:         "",
-		EditorFontFamily:    "Bricolage Grotesque",
-		CodeBlockVimMode:    false,
+		PinnedNotes:        []string{},
+		ProjectPath:        projectPath,
+		RepositoryToSyncTo: "",
+		Appearance: project_types.AppearanceProjectSettingsJson{
+			Theme:               "light",
+			AccentColor:         "",
+			EditorFontFamily:    "Bricolage Grotesque",
+			NoteSidebarItemSize: "card",
+		},
+		CodeBlockVimMode: false,
 	}
 
 	// Load or create settings file
@@ -152,7 +154,13 @@ func GetProjectSettings(projectPath string) (project_types.ProjectSettingsJson, 
 	return projectSettings, nil
 }
 
-func UpdatePinnedNotesAndAccentColorFromProjectSettings(projectPath string, projectSettings project_types.ProjectSettingsJson) (project_types.ProjectSettingsJson, error) {
+func UpdatePinnedNotesAndAccentColorFromProjectSettings(
+	projectPath string,
+	projectSettings project_types.ProjectSettingsJson,
+) (
+	project_types.ProjectSettingsJson,
+	error,
+) {
 	projectSettingsPath := filepath.Join(projectPath, "settings", "settings.json")
 
 	// Validate pinned notes
@@ -162,7 +170,7 @@ func UpdatePinnedNotesAndAccentColorFromProjectSettings(projectPath string, proj
 	app := application.Get()
 	if app != nil {
 		accentColor := app.GetAccentColor()
-		projectSettings.AccentColor = fmt.Sprintf("rgb(%d,%d,%d)", accentColor.R, accentColor.G, accentColor.B)
+		projectSettings.Appearance.AccentColor = fmt.Sprintf("rgb(%d,%d,%d)", accentColor.R, accentColor.G, accentColor.B)
 	}
 
 	// Write the updated settings

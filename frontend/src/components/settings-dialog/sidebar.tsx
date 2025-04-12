@@ -24,7 +24,8 @@ export function SettingsSidebar({
         type="button"
         className={cn(
           'hover:bg-zinc-100 dark:hover:bg-zinc-650 py-1 px-2.5 rounded-md transition-colors flex items-center gap-1.5 text-left',
-          item.id === currentSettingsTab && 'bg-zinc-100 dark:bg-zinc-650'
+          item.id === currentSettingsTab &&
+            'bg-zinc-150 hover:bg-zinc-150 dark:bg-zinc-650 dark:hover:bg-zinc-650'
         )}
         onClick={() => setCurrentSettingsTab(item.id)}
         key={item.id}

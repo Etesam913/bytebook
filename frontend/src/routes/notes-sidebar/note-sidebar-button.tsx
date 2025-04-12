@@ -296,9 +296,11 @@ export function NoteSidebarButton({
         });
       }}
       className={cn(
-        projectSettings.noteSidebarItemSize === 'list' && 'list-sidebar-item',
-        projectSettings.noteSidebarItemSize === 'card' && 'card-sidebar-item',
-        projectSettings.noteSidebarItemSize === 'card' &&
+        projectSettings.appearance.noteSidebarItemSize === 'list' &&
+          'list-sidebar-item',
+        projectSettings.appearance.noteSidebarItemSize === 'card' &&
+          'card-sidebar-item',
+        projectSettings.appearance.noteSidebarItemSize === 'card' &&
           sidebarNoteIndex === 0 &&
           'border-t',
         isActive && 'bg-zinc-150 dark:bg-zinc-700',
@@ -315,7 +317,7 @@ export function NoteSidebarButton({
         );
       }}
     >
-      {projectSettings.noteSidebarItemSize === 'list' && (
+      {projectSettings.appearance.noteSidebarItemSize === 'list' && (
         <ListNoteSidebarItem
           sidebarNoteName={sidebarNoteName}
           sidebarNoteExtension={sidebarNoteExtension}
@@ -323,7 +325,7 @@ export function NoteSidebarButton({
           sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
         />
       )}
-      {projectSettings.noteSidebarItemSize === 'card' && (
+      {projectSettings.appearance.noteSidebarItemSize === 'card' && (
         <CardNoteSidebarItem
           imgSrc={imgSrc}
           sidebarNoteExtension={sidebarNoteExtension}

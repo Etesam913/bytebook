@@ -13,16 +13,20 @@ type WindowOptions struct {
 	Title string
 }
 
+type AppearanceProjectSettingsJson struct {
+	Theme               string `json:"theme"`
+	AccentColor         string `json:"accentColor"`
+	NoteWidth           string `json:"noteWidth"`
+	EditorFontFamily    string `json:"editorFontFamily"`
+	NoteSidebarItemSize string `json:"noteSidebarItemSize"`
+}
+
 type ProjectSettingsJson struct {
-	PinnedNotes         []string `json:"pinnedNotes"`
-	ProjectPath         string   `json:"projectPath"`
-	RepositoryToSyncTo  string   `json:"repositoryToSyncTo"`
-	DarkMode            string   `json:"darkMode"`
-	NoteSidebarItemSize string   `json:"noteSidebarItemSize"`
-	AccentColor         string   `json:"accentColor"`
-	NoteWidth           string   `json:"noteWidth"`
-	EditorFontFamily    string   `json:"editorFontFamily"`
-	CodeBlockVimMode    bool     `json:"codeBlockVimMode"`
+	PinnedNotes        []string                      `json:"pinnedNotes"`
+	ProjectPath        string                        `json:"projectPath"`
+	RepositoryToSyncTo string                        `json:"repositoryToSyncTo"`
+	Appearance         AppearanceProjectSettingsJson `json:"appearance"`
+	CodeBlockVimMode   bool                          `json:"codeBlockVimMode"`
 }
 
 type AllKernels struct {

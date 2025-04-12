@@ -151,11 +151,11 @@ export function NotesEditor({
           ref={noteContainerRef}
           style={{
             scrollbarGutter: 'stable',
-            fontFamily: `"${projectSettings.editorFontFamily}", "Bricolage Grotesque"`,
+            fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
           }}
           className={cn(
             'h-full relative p-4 flex-1 w-full',
-            projectSettings.noteWidth === 'readability' &&
+            projectSettings.appearance.noteWidth === 'readability' &&
               'max-w-[44rem] mx-auto',
             isNoteMaximized && 'px-6'
           )}

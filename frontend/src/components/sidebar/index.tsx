@@ -79,7 +79,8 @@ export function Sidebar({
   const items = data ?? [];
 
   const isSidebarItemCard =
-    projectSettings.noteSidebarItemSize === 'card' && contentType === 'note';
+    projectSettings.appearance.noteSidebarItemSize === 'card' &&
+    contentType === 'note';
   const VIRUTALIZATION_HEIGHT = isSidebarItemCard ? 18 : 8;
   const SIDEBAR_ITEM_HEIGHT = isSidebarItemCard ? 83 : 34;
 

@@ -12,7 +12,7 @@ export function FontFamilyRow() {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [fontFamilyInputValue, setFontFamilyInputValue] = useState(
-    projectSettings.editorFontFamily
+    projectSettings.appearance.editorFontFamily
   );
 
   return (
@@ -34,7 +34,10 @@ export function FontFamilyRow() {
               updateProjectSettings({
                 newProjectSettings: {
                   ...projectSettings,
-                  editorFontFamily: e.target.value,
+                  appearance: {
+                    ...projectSettings.appearance,
+                    editorFontFamily: e.target.value,
+                  },
                 },
               });
             },
@@ -48,7 +51,10 @@ export function FontFamilyRow() {
             updateProjectSettings({
               newProjectSettings: {
                 ...projectSettings,
-                editorFontFamily: 'Bricolage Grotesque',
+                appearance: {
+                  ...projectSettings.appearance,
+                  editorFontFamily: 'Bricolage Grotesque',
+                },
               },
             });
           }}

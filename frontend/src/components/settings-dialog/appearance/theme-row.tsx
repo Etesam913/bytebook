@@ -4,7 +4,7 @@ import { useUpdateProjectSettingsMutation } from '../../../hooks/project-setting
 import { cn } from '../../../utils/string-formatting';
 import { SettingsRow } from '../settings-row';
 
-function DarkModeButton({
+function ThemeButton({
   label,
   imgSrc,
   imgAlt,
@@ -47,7 +47,7 @@ export function ThemeRow() {
   return (
     <SettingsRow title="Theme" description="Customize your UI theme">
       <div className="flex gap-3">
-        <DarkModeButton
+        <ThemeButton
           label="Light"
           imgSrc="https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/light-mode.jpg"
           imgAlt="light mode"
@@ -55,13 +55,16 @@ export function ThemeRow() {
             updateProjectSettings({
               newProjectSettings: {
                 ...projectSettings,
-                darkMode: 'light',
+                appearance: {
+                  ...projectSettings.appearance,
+                  theme: 'light',
+                },
               },
             });
           }}
-          isActive={projectSettings.darkMode === 'light'}
+          isActive={projectSettings.appearance.theme === 'light'}
         />
-        <DarkModeButton
+        <ThemeButton
           label="Dark"
           imgSrc="https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/dark-mode.jpg"
           imgAlt="dark mode"
@@ -69,13 +72,16 @@ export function ThemeRow() {
             updateProjectSettings({
               newProjectSettings: {
                 ...projectSettings,
-                darkMode: 'dark',
+                appearance: {
+                  ...projectSettings.appearance,
+                  theme: 'dark',
+                },
               },
             });
           }}
-          isActive={projectSettings.darkMode === 'dark'}
+          isActive={projectSettings.appearance.theme === 'dark'}
         />
-        <DarkModeButton
+        <ThemeButton
           label="System"
           imgSrc="https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/light-and-dark-mode.jpg"
           imgAlt="light and dark mode"
@@ -83,11 +89,14 @@ export function ThemeRow() {
             updateProjectSettings({
               newProjectSettings: {
                 ...projectSettings,
-                darkMode: 'system',
+                appearance: {
+                  ...projectSettings.appearance,
+                  theme: 'system',
+                },
               },
             });
           }}
-          isActive={projectSettings.darkMode === 'system'}
+          isActive={projectSettings.appearance.theme === 'system'}
         />
       </div>
     </SettingsRow>

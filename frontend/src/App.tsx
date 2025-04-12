@@ -13,7 +13,7 @@ import { useLoggedInEvent, useUserData } from './hooks/auth';
 import { useProjectSettings } from './hooks/project-settings';
 import { useSearchPanel } from './hooks/search';
 import { useTags } from './hooks/tag-events';
-import { useDarkModeSetting } from './hooks/theme';
+import { useThemeSetting } from './hooks/theme';
 import { MAX_SIDEBAR_WIDTH } from './utils/general';
 
 // Lazy load route components
@@ -49,10 +49,11 @@ function App() {
   const notesSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
+
   useUserData();
   useTags();
   useLoggedInEvent();
-  useDarkModeSetting();
+  useThemeSetting();
   useSearchPanel();
   useProjectSettings();
 

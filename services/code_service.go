@@ -174,6 +174,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 	err = kernel_helpers.LaunchKernel(
 		c.AllKernels.Python.Argv,
 		pathToConnectionFile,
+		"python",
 		pathToVenv,
 	)
 

@@ -21,13 +21,16 @@ export function NoteSidebarItemSizeRow() {
     >
       <div className="flex gap-3 items-start">
         <SettingImage
-          isActive={projectSettings.noteSidebarItemSize === 'card'}
+          isActive={projectSettings.appearance.noteSidebarItemSize === 'card'}
           onClick={() => {
             navigate(`${location}?ext=${searchParams.ext}&focus=true`);
             updateProjectSettings({
               newProjectSettings: {
                 ...projectSettings,
-                noteSidebarItemSize: 'card',
+                appearance: {
+                  ...projectSettings.appearance,
+                  noteSidebarItemSize: 'card',
+                },
               },
             });
           }}
@@ -41,13 +44,16 @@ export function NoteSidebarItemSizeRow() {
         />
 
         <SettingImage
-          isActive={projectSettings.noteSidebarItemSize === 'list'}
+          isActive={projectSettings.appearance.noteSidebarItemSize === 'list'}
           onClick={() => {
             navigate(`${location}?ext=${searchParams.ext}&focus=true`);
             updateProjectSettings({
               newProjectSettings: {
                 ...projectSettings,
-                noteSidebarItemSize: 'list',
+                appearance: {
+                  ...projectSettings.appearance,
+                  noteSidebarItemSize: 'list',
+                },
               },
             });
           }}

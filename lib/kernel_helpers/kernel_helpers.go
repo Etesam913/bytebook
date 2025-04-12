@@ -45,7 +45,15 @@ func IsPortInUse(port int) bool {
 	return true
 }
 
+func isSupportedLanguage(language string) bool {
+	return language == "python" || language == "go"
+}
+
 func GetConnectionInfoFromLanguage(projectPath string, language string) (project_types.KernelConnectionInfo, error) {
+	if !isSupportedLanguage(language) {
+		return project_types.KernelConnectionInfo{}, errors.New("Unsupported language")
+	}
+
 	if language == "python" {
 		pythonConnectionInfo, err := getPythonConnectionInfo(projectPath)
 		if err != nil {
@@ -70,8 +78,8 @@ func GetConnectionInfoFromLanguage(projectPath string, language string) (project
 	return project_types.KernelConnectionInfo{}, errors.New("Unsupported language")
 }
 
-// LaunchKernel runs the kernel inside the virtual environment.
-func LaunchKernel(argv []string, pathToConnectionFile string, venvPath string) error {
+// LaunchKernel runs the kernel for the specified language.
+func LaunchKernel(argv []string, pathToConnectionFile, language, venvPath string) error {
 	// Replace placeholder with the actual connection file path.
 	for i, arg := range argv {
 		if arg == "{connection_file}" {
@@ -79,30 +87,46 @@ func LaunchKernel(argv []string, pathToConnectionFile string, venvPath string) e
 		}
 	}
 
-	// TODO: Update this so that the user selects their venv to use
-	// Ensure the Python interpreter from the virtual environment is used.
-	pythonPath := filepath.Join(venvPath, "bin", "python3")
-	if _, err := os.Stat(pythonPath); os.IsNotExist(err) {
-		return fmt.Errorf("virtual environment Python not found at %s", pythonPath)
+	var cmd *exec.Cmd
+
+	// Handle language-specific kernel launch configurations
+	switch language {
+	case "python":
+		// For Python, use the virtual environment
+		pythonPath := filepath.Join(venvPath, "bin", "python3")
+		if _, err := os.Stat(pythonPath); os.IsNotExist(err) {
+			return fmt.Errorf("virtual environment Python not found at %s", pythonPath)
+		}
+
+		// Replace "python3" in argv with the virtual env Python
+		if len(argv) > 0 && (argv[0] == "python" || argv[0] == "python3") {
+			argv[0] = pythonPath
+		}
+
+		cmd = exec.Command(argv[0], argv[1:]...)
+
+		// Set environment variables to use the virtual environment
+		cmd.Env = append(os.Environ(),
+			fmt.Sprintf("VIRTUAL_ENV=%s", venvPath),
+			fmt.Sprintf("PATH=%s/bin:%s", venvPath, os.Getenv("PATH")),
+		)
+
+	case "golang", "go":
+		// For Go, use the standard command without virtual environment
+		cmd = exec.Command(argv[0], argv[1:]...)
+		cmd.Env = os.Environ()
+
+	default:
+		// For other languages, use a generic approach
+		cmd = exec.Command(argv[0], argv[1:]...)
+		cmd.Env = os.Environ()
 	}
 
-	// Replace "python3" in argv with the virtual env Python.
-	argv[0] = pythonPath
-
-	// Create the command using the virtual environment's Python.
-	cmd := exec.Command(argv[0], argv[1:]...)
-
-	// Set environment variables to use the virtual environment.
-	cmd.Env = append(os.Environ(),
-		fmt.Sprintf("VIRTUAL_ENV=%s", venvPath),
-		fmt.Sprintf("PATH=%s/bin:%s", venvPath, os.Getenv("PATH")),
-	)
-
-	// Redirect stdout and stderr.
+	// Redirect stdout and stderr for all languages
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	// Start the command (this spawns a separate process).
+	// Start the command (this spawns a separate process)
 	if err := cmd.Start(); err != nil {
 		return err
 	}

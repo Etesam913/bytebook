@@ -56,9 +56,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.3.4
         version: 4.3.4(vite@6.2.6(@types/node@22.14.1)(jiti@2.4.2)(lightningcss@1.29.2)(sass@1.51.0))
-      '@xterm/addon-fit':
-        specifier: ^0.10.0
-        version: 0.10.0(@xterm/xterm@5.5.0)
       jotai:
         specifier: ^2.12.2
         version: 2.12.2(@types/react@19.1.1)(react@19.1.0)
@@ -1455,14 +1452,6 @@ packages:
 
   '@wailsio/runtime@3.0.0-alpha.66':
     resolution: {integrity: sha512-ENLu8rn1griL1gFHJqkq1i+BVxrrA0JPJHYneUJYuf/s54kjuQViW0RKDEe/WTDo56ABpfykrd/T8OYpPUyXUw==}
-
-  '@xterm/addon-fit@0.10.0':
-    resolution: {integrity: sha512-UFYkDm4HUahf2lnEyHvio51TNGiLK66mqP2JoATy7hRZeXaGMRDr00JiSF7m63vR5WKATF605yEggJKsw0JpMQ==}
-    peerDependencies:
-      '@xterm/xterm': ^5.0.0
-
-  '@xterm/xterm@5.5.0':
-    resolution: {integrity: sha512-hqJHYaQb5OptNunnyAnkHyM8aCjZ1MEIDTQu1iIbbTD/xops91NB5yq1ZK/dC2JDbVWtF23zUtl9JE2NqwT87A==}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -4930,12 +4919,6 @@ snapshots:
       - supports-color
 
   '@wailsio/runtime@3.0.0-alpha.66': {}
-
-  '@xterm/addon-fit@0.10.0(@xterm/xterm@5.5.0)':
-    dependencies:
-      '@xterm/xterm': 5.5.0
-
-  '@xterm/xterm@5.5.0': {}
 
   acorn-jsx@5.3.2(acorn@8.14.1):
     dependencies:

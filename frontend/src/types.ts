@@ -1,6 +1,9 @@
 import type { HeadingTagType } from '@lexical/rich-text';
 import type { Dispatch, FormEvent, ReactNode, SetStateAction } from 'react';
-import { ProjectSettingsJson } from '../bindings/github.com/etesam913/bytebook/lib/project_types/models';
+import {
+  AppearanceProjectSettingsJson,
+  ProjectSettingsJson,
+} from '../bindings/github.com/etesam913/bytebook/lib/project_types/models';
 
 export const IMAGE_FILE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
 
@@ -88,14 +91,21 @@ export type WindowSettings = {
   windowId: string;
 };
 
+type AppearanceSettings = Omit<
+  AppearanceProjectSettingsJson,
+  'theme' | 'noteSidebarItemSize' | 'noteWidth'
+> & {
+  theme: 'light' | 'dark' | 'system';
+  noteSidebarItemSize: 'card' | 'list';
+  noteWidth: 'fullWidth' | 'readability';
+};
+
 export type ProjectSettings = Omit<
   ProjectSettingsJson,
-  'pinnedNotes' | 'darkMode' | 'noteSidebarItemSize' | 'noteWidth'
+  'pinnedNotes' | 'appearance'
 > & {
   pinnedNotes: Set<string>;
-  darkMode: 'light' | 'dark' | 'system';
-  noteSidebarItemSize: 'list' | 'card';
-  noteWidth: 'fullWidth' | 'readability';
+  appearance: AppearanceSettings;
 };
 
 export type ContextMenuData = {
