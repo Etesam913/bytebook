@@ -7,11 +7,11 @@ import {
   DeleteFolder,
   GetFolders,
   RenameFolder,
-  RevealFolderInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/services/folderservice';
 import {
   AddNoteToFolder,
   MoveNoteToFolder,
+  RevealFolderOrFileInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/services/noteservice';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
@@ -204,13 +204,16 @@ export function useFolderRevealInFinderMutation() {
       const res = await Promise.all(
         selectedFolders.map(async (folder) => {
           const folderWithoutPrefix = folder.split(':')[1];
-          return await RevealFolderInFinder(folderWithoutPrefix);
+          return await RevealFolderOrFileInFinder(
+            `notes/${folderWithoutPrefix}`,
+            true
+          );
         })
       );
 
       // Check if any folder failed to reveal
       if (res.some((r) => !r.success)) {
-        throw new Error('Failed to reveal folder in finder');
+        throw new Error('Failed to reveal a folder in Finder');
       }
     },
     // Handle errors that occur during the mutation

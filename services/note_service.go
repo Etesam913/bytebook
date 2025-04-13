@@ -221,11 +221,25 @@ func (n *NoteService) MoveToTrash(folderAndNotes []string) project_types.Backend
 // Returns:
 //
 //	A BackendResponseWithoutData indicating the success or failure of the operation.
-func (n *NoteService) RevealNoteInFinder(folderName, noteName string) project_types.BackendResponseWithoutData {
-	notePath := filepath.Join(n.ProjectPath, "notes", folderName, noteName)
-	err := io_helpers.RevealInFinder(notePath)
+func (n *NoteService) RevealFolderOrFileInFinder(
+	pathToFolderOrFile string,
+	shouldPrefixWithProjectPath bool,
+) project_types.BackendResponseWithoutData {
+	path := pathToFolderOrFile
+
+	if shouldPrefixWithProjectPath {
+		path = filepath.Join(n.ProjectPath, pathToFolderOrFile)
+	}
+	err := io_helpers.RevealInFinder(path)
 	if err != nil {
-		return project_types.BackendResponseWithoutData{Success: false, Message: "Could not reveal folder in finder"}
+		fileInfo, statErr := os.Stat(path)
+		if statErr != nil {
+			return project_types.BackendResponseWithoutData{Success: false, Message: "Could not reveal item in finder"}
+		}
+		if fileInfo.IsDir() {
+			return project_types.BackendResponseWithoutData{Success: false, Message: "Could not reveal folder in finder"}
+		}
+		return project_types.BackendResponseWithoutData{Success: false, Message: "Could not reveal file in finder"}
 	}
 	return project_types.BackendResponseWithoutData{Success: true, Message: ""}
 }

@@ -8,7 +8,7 @@ import {
   GetNotePreview,
   GetNotes,
   MoveToTrash,
-  RevealNoteInFinder,
+  RevealFolderOrFileInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/services/noteservice';
 import {
   AddTagsToNotes,
@@ -212,14 +212,14 @@ export function useNoteRevealInFinderMutation(isInTagsSidebar: boolean) {
 
           if (isInTagsSidebar) {
             const [folderName, noteName] = noteNameWithoutExtension.split('/');
-            return await RevealNoteInFinder(
-              folderName,
-              `${noteName}.${queryParams.ext}`
+            return await RevealFolderOrFileInFinder(
+              `notes/${folderName}/${noteName}.${queryParams.ext}`,
+              true
             );
           }
-          return await RevealNoteInFinder(
-            folder,
-            `${noteNameWithoutExtension}.${queryParams.ext}`
+          return await RevealFolderOrFileInFinder(
+            `notes/${folder}/${noteNameWithoutExtension}.${queryParams.ext}`,
+            true
           );
         })
       );

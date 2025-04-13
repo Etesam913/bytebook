@@ -14,6 +14,7 @@ import (
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/etesam913/bytebook/lib/sockets"
 	"github.com/pebbe/zmq4"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 type CodeService struct {
@@ -268,6 +269,62 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 	return project_types.BackendResponseWithoutData{
 		Success: true,
 		Message: "Sockets created and listening...",
+	}
+}
+
+// GetPythonVirtualEnvironments retrieves the paths to all Python virtual environments in the project code directory.
+func (c *CodeService) GetPythonVirtualEnvironments() project_types.BackendResponseWithData[[]string] {
+	virtualEnvironmentPaths, err := kernel_helpers.GetPythonVirtualEnvironments(c.ProjectPath)
+	if err != nil {
+		return project_types.BackendResponseWithData[[]string]{
+			Success: false,
+			Message: err.Error(),
+			Data:    []string{},
+		}
+	}
+	return project_types.BackendResponseWithData[[]string]{
+		Success: true,
+		Message: "Successfully got virtual environment paths",
+		Data:    virtualEnvironmentPaths,
+	}
+}
+func (c *CodeService) IsPathAValidVirtualEnvironment(path string) project_types.BackendResponseWithoutData {
+	if path == "" {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: "The provided path is empty. Please provide a valid path to a virtual environment.",
+		}
+	}
+
+	if kernel_helpers.IsVirtualEnv(path) {
+		return project_types.BackendResponseWithoutData{
+			Success: true,
+			Message: fmt.Sprintf("%s is a valid virtual environment", path),
+		}
+	}
+
+	return project_types.BackendResponseWithoutData{
+		Success: false,
+		Message: fmt.Sprintf("%s is not a valid virtual environment as a pyvenv.cfg could not be found", path),
+	}
+}
+
+// ChooseCustomVirtualEnvironmentPath opens a file dialog for the user to select a custom Python virtual environment path.
+func (c *CodeService) ChooseCustomVirtualEnvironmentPath() project_types.BackendResponseWithData[string] {
+	localFilePath, err := application.OpenFileDialog().CanChooseDirectories(true).CanChooseFiles(false).PromptForSingleSelection()
+
+	if err != nil {
+		return project_types.BackendResponseWithData[string]{
+			Success: false,
+			Data:    "",
+			Message: "Failed to open file dialog",
+		}
+	}
+
+	return project_types.BackendResponseWithData[string]{
+		Success: true,
+		Data:    localFilePath,
+		Message: "Successfully selected virtual environment",
 	}
 }
 

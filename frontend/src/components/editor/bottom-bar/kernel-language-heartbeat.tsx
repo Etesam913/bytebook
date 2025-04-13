@@ -4,18 +4,20 @@ import { ChevronDown } from '../../../icons/chevron-down';
 import { DropdownItems } from '../../dropdown/dropdown-items';
 import PowerOff from '../../../icons/power-off';
 import { useOnClickOutside } from '../../../hooks/general';
-import { useAtomValue } from 'jotai';
-import { kernelsDataAtom } from '../../../atoms';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { dialogDataAtom, kernelsDataAtom } from '../../../atoms';
 import { DropdownItem, Languages } from '../../../types';
 import { Loader } from '../../../icons/loader';
 import { cn } from '../../../utils/string-formatting';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   CreateSocketsAndListen,
+  IsPathAValidVirtualEnvironment,
   SendShutdownMessage,
 } from '../../../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { QueryError } from '../../../utils/query';
 import { FolderOpen } from '../../../icons/folder-open';
+import { PythonVenvDialog } from '../python-venv-dialog';
 
 const languageSpecificOptions: {
   heartbeatSuccess: Partial<Record<Languages, DropdownItem[]>>;
@@ -39,6 +41,7 @@ const languageSpecificOptions: {
 
 export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const [isOpen, setIsOpen] = useState(false);
+  const setDialogData = useSetAtom(dialogDataAtom);
   const [focusIndex, setFocusIndex] = useState(0);
   const dropdownContainerRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(dropdownContainerRef, () => setIsOpen(false));
@@ -81,14 +84,6 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const kernelOptions =
     heartbeat === 'success'
       ? [
-          // {
-          //   value: 'restart',
-          //   label: (
-          //     <span className="flex items-center gap-1.5 will-change-transform">
-          //       <RefreshAnticlockwise height={10} width={10} /> Restart
-          //     </span>
-          //   ),
-          // },
           {
             value: 'shut-down',
             label: (
@@ -121,10 +116,51 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
         setIsOpen={setIsOpen}
         setFocusIndex={setFocusIndex}
         onChange={({ value }) => {
-          if (value === 'shut-down') {
-            shutdownKernel(false);
-          } else if (value === 'turn-on') {
-            turnOnKernel();
+          switch (value) {
+            case 'shut-down':
+              shutdownKernel(false);
+              break;
+            case 'turn-on':
+              turnOnKernel();
+              break;
+            case 'change-venv':
+              setDialogData({
+                isOpen: true,
+                isPending: false,
+                title: 'Change Python Virtual Environment',
+                dialogClassName: 'w-[min(35rem,90vw)]',
+                children: (errorText) => (
+                  <PythonVenvDialog errorText={errorText} />
+                ),
+                onSubmit: async (e, setErrorText) => {
+                  // Getting the selected virtual env from the form and checking if it is valid
+                  const formData = new FormData(e.target as HTMLFormElement);
+                  const entries = Array.from(formData.entries());
+                  const selectedVirtualEnvironmentElement = entries.at(0);
+                  if (selectedVirtualEnvironmentElement) {
+                    const venvPath = selectedVirtualEnvironmentElement[1];
+                    try {
+                      const isVenvPathValid =
+                        await IsPathAValidVirtualEnvironment(
+                          venvPath as string
+                        );
+                      if (isVenvPathValid.success) {
+                        setErrorText('');
+                        return true;
+                      }
+                      throw new Error(isVenvPathValid.message);
+                    } catch (error) {
+                      if (error instanceof Error) {
+                        setErrorText(error.message);
+                      }
+                    }
+                  }
+                  return false;
+                },
+              });
+              break;
+            default:
+              break;
           }
         }}
         focusIndex={focusIndex}

@@ -155,9 +155,13 @@ func (n *NodeService) AddFilePathsToProject(filePaths []string, folderPath strin
 }
 
 func (n *NodeService) AddAttachments(folder string, note string) AttachmentResponse {
-	localFilePaths, _ := application.OpenFileDialog().
+	localFilePaths, err := application.OpenFileDialog().
 		CanChooseFiles(true).
 		PromptForMultipleSelection()
+	if err != nil {
+		return AttachmentResponse{Success: false, Message: err.Error(), Paths: []string{}}
+	}
+
 	fileServerPaths, err := n.AddFilePathsToProject(localFilePaths, folder, note)
 	if err != nil {
 		return AttachmentResponse{Success: false, Message: err.Error(), Paths: fileServerPaths}

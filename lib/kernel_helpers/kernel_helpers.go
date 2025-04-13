@@ -46,7 +46,7 @@ func IsPortInUse(port int) bool {
 }
 
 func isSupportedLanguage(language string) bool {
-	return language == "python" || language == "go"
+	return language == "python" || language == "golang"
 }
 
 func GetConnectionInfoFromLanguage(projectPath string, language string) (project_types.KernelConnectionInfo, error) {
@@ -202,10 +202,8 @@ func GetAllConnectionInfo(projectPath string) (project_types.LanguageToKernelCon
 	}, nil
 }
 
-func GetAllKernels(projectPath string) (project_types.AllKernels, error) {
-	allKernels := project_types.AllKernels{}
+func getPythonKernel(projectPath string) (project_types.KernelJson, error) {
 	pathToPythonKernel := filepath.Join(projectPath, "code", "python-kernel.json")
-	pathToGolangKernel := filepath.Join(projectPath, "code", "golang-kernel.json")
 
 	pythonKernelValue, err := io_helpers.ReadOrCreateJSON(pathToPythonKernel, project_types.KernelJson{
 		Argv: []string{
@@ -219,11 +217,11 @@ func GetAllKernels(projectPath string) (project_types.AllKernels, error) {
 		Language:    "python",
 	})
 
-	if err != nil {
-		return allKernels, err
-	}
+	return pythonKernelValue, err
+}
 
-	allKernels.Python = pythonKernelValue
+func getGolangKernel(projectPath string) (project_types.KernelJson, error) {
+	pathToGolangKernel := filepath.Join(projectPath, "code", "golang-kernel.json")
 
 	gonbPath, err := exec.LookPath("gonb")
 	if err != nil {
@@ -236,11 +234,65 @@ func GetAllKernels(projectPath string) (project_types.AllKernels, error) {
 		Language:    "go",
 	})
 
+	return golangKernelValue, err
+}
+
+func GetAllKernels(projectPath string) (project_types.AllKernels, error) {
+	allKernels := project_types.AllKernels{}
+
+	pythonKernelValue, err := getPythonKernel(projectPath)
 	if err != nil {
 		return allKernels, err
 	}
 
+	golangKernelValue, err := getGolangKernel(projectPath)
+	if err != nil {
+		return allKernels, err
+	}
+
+	allKernels.Python = pythonKernelValue
 	allKernels.Golang = golangKernelValue
 
 	return allKernels, nil
+}
+
+// isVirtualEnv checks if a directory likely represents a Python virtual environment.
+// It looks for a "pyvenv.cfg" file or a "bin/python3" executable.
+// For Windows, you might also look for "Scripts/python.exe".
+func IsVirtualEnv(dir string) bool {
+	// Check for pyvenv.cfg file (present in most venvs)
+	cfgPath := filepath.Join(dir, "pyvenv.cfg")
+	if _, err := os.Stat(cfgPath); err == nil {
+		return true
+	}
+
+	// Optional: Uncomment the following lines if you want to support Windows detection.
+	/*
+		winPythonPath := filepath.Join(dir, "Scripts", "python.exe")
+		if info, err := os.Stat(winPythonPath); err == nil && !info.IsDir() {
+			return true
+		}
+	*/
+
+	return false
+}
+
+func GetPythonVirtualEnvironments(projectPath string) ([]string, error) {
+	pathToCodeFolder := filepath.Join(projectPath, "code")
+	entries, err := os.ReadDir(pathToCodeFolder)
+	if err != nil {
+		return []string{}, errors.New(fmt.Sprintf("Couldn't read files in %s", pathToCodeFolder))
+	}
+
+	virtualEnvironmentPaths := []string{}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			pathToEntry := filepath.Join(pathToCodeFolder, entry.Name())
+			if IsVirtualEnv(pathToEntry) {
+				virtualEnvironmentPaths = append(virtualEnvironmentPaths, pathToEntry)
+			}
+		}
+	}
+
+	return virtualEnvironmentPaths, nil
 }

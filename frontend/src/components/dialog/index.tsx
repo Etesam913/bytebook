@@ -84,7 +84,6 @@ export function Dialog() {
       document.removeEventListener('keydown', keyDownHandler);
     };
   }, [dialogData.isOpen]);
-
   return (
     <AnimatePresence>
       {dialogData.isOpen && !backendQuery.isLoading && (
@@ -124,7 +123,7 @@ export function Dialog() {
               transition: { ease: easingFunctions['ease-out-quint'] },
             }}
             className={cn(
-              'absolute flex flex-col gap-5 bg-zinc-50 dark:bg-zinc-800 z-[60] top-2/4 py-3 px-4 w-[min(23rem,90vw)] rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4',
+              'absolute flex flex-col gap-5 bg-zinc-50 dark:bg-zinc-800 z-[60] top-2/4 py-3 px-4 w-[min(23rem,90vw)] rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4 overflow-hidden',
               dialogData.dialogClassName
             )}
           >

@@ -34,11 +34,16 @@ export function useAttachmentsMutation({
         message: '',
       });
     },
-    onError: () =>
+    onError: () => {
+      setBackendQuery({
+        isLoading: false,
+        message: '',
+      });
       toast.error(
         'An Unknown Error Occurred. Please Try Again Later',
         DEFAULT_SONNER_OPTIONS
-      ),
+      );
+    },
   });
 
   return { insertAttachmentsMutation };

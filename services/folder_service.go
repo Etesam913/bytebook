@@ -112,12 +112,3 @@ func (f *FolderService) RenameFolder(oldFolderName string, newFolderName string)
 	}
 	return FolderResponse{Success: true, Message: ""}
 }
-
-func (f *FolderService) RevealFolderInFinder(folderName string) FolderResponse {
-	folderPath := filepath.Join(f.ProjectPath, "notes", folderName)
-	err := io_helpers.RevealInFinder(folderPath)
-	if err != nil {
-		return FolderResponse{Success: false, Message: "Could not reveal folder in finder"}
-	}
-	return FolderResponse{Success: true, Message: ""}
-}
