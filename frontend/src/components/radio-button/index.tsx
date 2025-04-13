@@ -14,12 +14,20 @@ export function RadioButton({
   ...rest
 }: RadioButtonProps): JSX.Element {
   return (
-    <label className="flex items-center">
-      <input type="radio" checked={checked} {...rest} className="hidden" />
+    <label className="flex items-center cursor-pointer">
+      <input
+        type="radio"
+        checked={checked}
+        {...rest}
+        // Using sr-only keeps the input accessible
+        className="sr-only peer"
+      />
       <span
         className={cn(
           'w-4 h-4 border-2 rounded-full flex-shrink-0 mr-2 flex justify-center items-center',
-          checked ? 'border-(--accent-color)' : 'border-zinc-500'
+          checked ? 'border-(--accent-color)' : 'border-zinc-500',
+          // Add a focus ring when the input is focused via keyboard
+          'peer-focus:ring-2 peer-focus:ring-(--accent-color)'
         )}
       >
         <span

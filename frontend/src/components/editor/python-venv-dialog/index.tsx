@@ -6,7 +6,11 @@ import {
 import { Loader } from '../../../icons/loader';
 import { RadioButton } from '../../radio-button';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { backendQueryAtom, projectSettingsAtom } from '../../../atoms';
+import {
+  backendQueryAtom,
+  dialogDataAtom,
+  projectSettingsAtom,
+} from '../../../atoms';
 import { ShareRight } from '../../../icons/share-right';
 import { MotionButton, MotionIconButton } from '../../buttons';
 import { easingFunctions, getDefaultButtonVariants } from '../../../animations';
@@ -17,6 +21,7 @@ import { PlainCodeSnippet } from '../../plain-code-snippet';
 import { AnimatePresence, motion, Variants } from 'motion/react';
 import { FloppyDisk } from '../../../icons/floppy-disk';
 import { DialogErrorText } from '../../dialog';
+import { useEffect } from 'react';
 
 export function PythonVenvDialog({ errorText }: { errorText: string }) {
   const { data, error, isLoading } = useQuery({
@@ -27,6 +32,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const projectSettings = useAtomValue(projectSettingsAtom);
   const setBackendQuery = useSetAtom(backendQueryAtom);
+  const setDialogData = useSetAtom(dialogDataAtom);
   const { mutate: revealInFinder } = useMutation({
     mutationFn: async ({ venvPath }: { venvPath: string }) => {
       const res = await RevealFolderOrFileInFinder(venvPath, false);
@@ -35,7 +41,12 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
       }
     },
   });
-
+  useEffect(() => {
+    setDialogData((prev) => ({
+      ...prev,
+      dynamicData: data,
+    }));
+  }, [data]);
   const { mutateAsync: chooseCustomVirtualEnvironmentPath } = useMutation({
     mutationFn: async () => {
       const res = await ChooseCustomVirtualEnvironmentPath();
@@ -58,16 +69,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
     },
   });
 
-  // While the request is loading or if data is not available yet, show a loader.
-  if (isLoading || !data) {
-    return (
-      <section>
-        <Loader />
-      </section>
-    );
-  }
-
-  const pythonVenvPaths = data.data;
+  const pythonVenvPaths = data?.data ?? [];
 
   const isVenvPathCustom = (pythonVenvPaths ?? []).every(
     (path) => path !== projectSettings.code.pythonVenvPath
@@ -97,7 +99,8 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
           code={`cd "${projectSettings.projectPath}/code" && python3 -m venv bytebook-venv`}
         />
       </div>
-      {data.success &&
+      {isLoading && <Loader />}
+      {data?.success &&
         (pythonVenvPaths?.length ? (
           <div className="flex flex-col gap-1.5">
             {pythonVenvPaths.map((venvPath) => (
@@ -131,7 +134,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                   }}
                 />
                 <MotionIconButton
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity"
                   {...getDefaultButtonVariants()}
                   onClick={() => revealInFinder({ venvPath })}
                 >
@@ -143,7 +146,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                 </MotionIconButton>
               </span>
             ))}
-            <div className="flex flex-col group py-2 px-2 bg-zinc-150 dark:bg-zinc-750 rounded-md overflow-hidden">
+            <div className="flex flex-col group p-2 bg-zinc-150 dark:bg-zinc-750 rounded-md overflow-hidden">
               <RadioButton
                 name="custom-virtual-environment"
                 value={projectSettings.code.pythonVenvPath}
@@ -171,9 +174,8 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                     initial="hidden"
                     animate="visible"
                     exit="hidden"
-                    // className="overflow-idden"
                   >
-                    <div className="mt-2.5 flex items-center gap-2 ">
+                    <div className="mt-2.5 flex items-center gap-3">
                       <MotionButton
                         {...getDefaultButtonVariants()}
                         className="w-fit text-sm text-nowrap"
@@ -214,9 +216,9 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
           <p>No virtual environments found</p>
         ))}
 
-      {(error || !data.success) && (
+      {(error || !data?.success) && (
         <DialogErrorText
-          errorText={data.message}
+          errorText={data?.message ?? ''}
           className="text-red-500 text-sm"
         />
       )}
@@ -229,7 +231,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
       <MotionButton
         type="submit"
         {...getDefaultButtonVariants()}
-        className="w-fit ml-auto"
+        className="w-32 ml-auto flex items-center justify-center"
       >
         <FloppyDisk /> Save
       </MotionButton>

@@ -2,7 +2,8 @@ import { type RefObject, useEffect } from 'react';
 
 export const useTrapFocus = (
   elementRef: RefObject<HTMLElement | null>,
-  isActive: boolean
+  isActive: boolean,
+  dynamicData?: unknown
 ): void => {
   useEffect(() => {
     const element = elementRef.current;
@@ -25,7 +26,6 @@ export const useTrapFocus = (
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const isTabPressed = e.key === 'Tab' || e.keyCode === 9;
-
       if (!isTabPressed) {
         return;
       }
@@ -51,11 +51,17 @@ export const useTrapFocus = (
         }
       }
     };
-    firstFocusableElement?.focus();
+
+    if (
+      document.activeElement &&
+      !focusableElements.includes(document.activeElement)
+    ) {
+      firstFocusableElement?.focus();
+    }
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [elementRef, isActive]);
+  }, [elementRef, isActive, dynamicData]);
 };

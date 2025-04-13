@@ -51,7 +51,7 @@ export function Dialog() {
   const backendQuery = useAtomValue(backendQueryAtom);
   const [errorText, setErrorText] = useState('');
   const modalRef = useRef<HTMLFormElement>(null);
-  useTrapFocus(modalRef, dialogData.isOpen);
+  useTrapFocus(modalRef, dialogData.isOpen, dialogData.dynamicData);
 
   function resetDialogState() {
     dialogData.onClose?.();

@@ -16,7 +16,7 @@ export function PlainCodeSnippet({ code }: { code: string }) {
       <MotionButton
         {...getDefaultButtonVariants()}
         type="button"
-        className="absolute top-1.5 right-1 bg-zinc-100 dark:bg-zinc-750 shadow-md hidden group-hover:block"
+        className="absolute top-1.5 right-1 bg-zinc-100 dark:bg-zinc-750 shadow-md opacity-0 group-hover:opacity-100 focus:opacity-100"
         onClick={copyToClipboard}
       >
         <Duplicate2 height={16} width={16} />

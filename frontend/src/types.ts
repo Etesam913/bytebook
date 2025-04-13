@@ -62,6 +62,8 @@ export type DialogDataType = {
     | null;
   onClose?: () => void;
   isPending: boolean;
+  // Can be used to tell the dialog that new data came in so that the focus selectors can be updated
+  dynamicData?: unknown;
 };
 
 export type SearchPanelDataType = {
