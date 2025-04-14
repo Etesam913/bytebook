@@ -21,7 +21,7 @@ import {
 import { QueryError } from '../../../utils/query';
 import { FolderOpen } from '../../../icons/folder-open';
 import { PythonVenvDialog } from '../python-venv-dialog';
-import { usePythonVirtualEnvironmentSubmit } from '../../../hooks/code';
+import { pythonVirtualEnvironmentSubmit } from '../../../utils/code';
 
 const languageSpecificOptions: {
   heartbeatSuccess: Partial<Record<Languages, DropdownItem[]>>;
@@ -69,9 +69,6 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
       }
     },
   });
-
-  const { mutateAsync: pythonVirtualEnvironmentSubmit } =
-    usePythonVirtualEnvironmentSubmit();
 
   const { mutate: turnOnKernel } = useMutation({
     mutationFn: async () => {
@@ -147,7 +144,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
                   <PythonVenvDialog errorText={errorText} />
                 ),
                 onSubmit: async (e, setErrorText) =>
-                  pythonVirtualEnvironmentSubmit({ e, setErrorText }),
+                  pythonVirtualEnvironmentSubmit(e, setErrorText),
               });
               break;
             default:

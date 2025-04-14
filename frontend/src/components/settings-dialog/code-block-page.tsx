@@ -6,15 +6,13 @@ import { useUpdateProjectSettingsMutation } from '../../hooks/project-settings';
 import { MotionButton } from '../buttons';
 import { getDefaultButtonVariants } from '../../animations';
 import { PythonVenvDialog } from '../editor/python-venv-dialog';
-import { usePythonVirtualEnvironmentSubmit } from '../../hooks/code';
 import { FolderOpen } from '../../icons/folder-open';
+import { pythonVirtualEnvironmentSubmit } from '../../utils/code';
 
 export function CodeBlockPage() {
   const projectSettings = useAtomValue(projectSettingsAtom);
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const setDialogData = useSetAtom(dialogDataAtom);
-  const { mutateAsync: pythonVirtualEnvironmentSubmit } =
-    usePythonVirtualEnvironmentSubmit();
 
   return (
     <>
@@ -46,7 +44,7 @@ export function CodeBlockPage() {
                   <PythonVenvDialog errorText={errorText} />
                 ),
                 onSubmit: async (e, setErrorText) =>
-                  pythonVirtualEnvironmentSubmit({ e, setErrorText }),
+                  pythonVirtualEnvironmentSubmit(e, setErrorText),
               });
             }}
           >
