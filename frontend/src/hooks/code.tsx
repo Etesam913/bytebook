@@ -10,11 +10,13 @@ import {
 } from '../types';
 import { useMutation } from '@tanstack/react-query';
 import {
+  IsPathAValidVirtualEnvironment,
   SendExecuteRequest,
   SendInterruptRequest,
 } from '../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { QueryError } from '../utils/query';
 import { $nodesOfType, LexicalEditor } from 'lexical';
+import { FormEvent } from 'react';
 
 export function useKernelStatus() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
@@ -211,5 +213,48 @@ export function useSendInterruptRequestMutation(onSuccess?: () => void) {
       if (!res.success) throw new QueryError(res.message);
     },
     onSuccess,
+  });
+}
+
+/**
+ * Hook for validating and submitting a Python virtual environment path.
+ * Uses React Query's useMutation to handle the validation process.
+ *
+ * @returns A mutation object that can be used to validate Python virtual environments
+ */
+export function usePythonVirtualEnvironmentSubmit() {
+  return useMutation({
+    mutationFn: async ({
+      e,
+      setErrorText,
+    }: {
+      e: FormEvent<HTMLFormElement>;
+      setErrorText: (error: string) => void;
+    }) => {
+      // Getting the selected virtual env from the form and checking if it is valid
+      const formData = new FormData(e.target as HTMLFormElement);
+      const entries = Array.from(formData.entries());
+      const selectedVirtualEnvironmentElement = entries.at(0);
+
+      if (selectedVirtualEnvironmentElement) {
+        const venvPath = selectedVirtualEnvironmentElement[1];
+        try {
+          const isVenvPathValid = await IsPathAValidVirtualEnvironment(
+            venvPath as string
+          );
+          if (isVenvPathValid.success) {
+            setErrorText('');
+            return true;
+          }
+          throw new Error(isVenvPathValid.message);
+        } catch (error) {
+          if (error instanceof Error) {
+            setErrorText(error.message);
+          }
+          return false;
+        }
+      }
+      return false;
+    },
   });
 }

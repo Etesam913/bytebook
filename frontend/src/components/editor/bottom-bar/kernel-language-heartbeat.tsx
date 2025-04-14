@@ -5,19 +5,23 @@ import { DropdownItems } from '../../dropdown/dropdown-items';
 import PowerOff from '../../../icons/power-off';
 import { useOnClickOutside } from '../../../hooks/general';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { dialogDataAtom, kernelsDataAtom } from '../../../atoms';
+import {
+  dialogDataAtom,
+  kernelsDataAtom,
+  projectSettingsAtom,
+} from '../../../atoms';
 import { DropdownItem, Languages } from '../../../types';
 import { Loader } from '../../../icons/loader';
 import { cn } from '../../../utils/string-formatting';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   CreateSocketsAndListen,
-  IsPathAValidVirtualEnvironment,
   SendShutdownMessage,
 } from '../../../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { QueryError } from '../../../utils/query';
 import { FolderOpen } from '../../../icons/folder-open';
 import { PythonVenvDialog } from '../python-venv-dialog';
+import { usePythonVirtualEnvironmentSubmit } from '../../../hooks/code';
 
 const languageSpecificOptions: {
   heartbeatSuccess: Partial<Record<Languages, DropdownItem[]>>;
@@ -48,9 +52,13 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const kernelsData = useAtomValue(kernelsDataAtom);
   const { status, heartbeat } = kernelsData[language];
 
+  // TODO: Remove the need to pass in the pythonVenvPath into the CreateSocketAndListen
+  const projectSettings = useAtomValue(projectSettingsAtom);
+
   useQuery({
     queryKey: ['heartbeat', language],
-    queryFn: () => CreateSocketsAndListen(language),
+    queryFn: () =>
+      CreateSocketsAndListen(language, projectSettings.code.pythonVenvPath),
   });
 
   const { mutate: shutdownKernel } = useMutation({
@@ -62,9 +70,15 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
     },
   });
 
+  const { mutateAsync: pythonVirtualEnvironmentSubmit } =
+    usePythonVirtualEnvironmentSubmit();
+
   const { mutate: turnOnKernel } = useMutation({
     mutationFn: async () => {
-      const res = await CreateSocketsAndListen(language);
+      const res = await CreateSocketsAndListen(
+        language,
+        projectSettings.code.pythonVenvPath
+      );
       if (!res.success) {
         throw new QueryError(res.message);
       }
@@ -128,35 +142,12 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
                 isOpen: true,
                 isPending: false,
                 title: 'Change Python Virtual Environment',
-                dialogClassName: 'w-[min(35rem,90vw)]',
+                dialogClassName: 'w-[min(40rem,90vw)]',
                 children: (errorText) => (
                   <PythonVenvDialog errorText={errorText} />
                 ),
-                onSubmit: async (e, setErrorText) => {
-                  // Getting the selected virtual env from the form and checking if it is valid
-                  const formData = new FormData(e.target as HTMLFormElement);
-                  const entries = Array.from(formData.entries());
-                  const selectedVirtualEnvironmentElement = entries.at(0);
-                  if (selectedVirtualEnvironmentElement) {
-                    const venvPath = selectedVirtualEnvironmentElement[1];
-                    try {
-                      const isVenvPathValid =
-                        await IsPathAValidVirtualEnvironment(
-                          venvPath as string
-                        );
-                      if (isVenvPathValid.success) {
-                        setErrorText('');
-                        return true;
-                      }
-                      throw new Error(isVenvPathValid.message);
-                    } catch (error) {
-                      if (error instanceof Error) {
-                        setErrorText(error.message);
-                      }
-                    }
-                  }
-                  return false;
-                },
+                onSubmit: async (e, setErrorText) =>
+                  pythonVirtualEnvironmentSubmit({ e, setErrorText }),
               });
               break;
             default:

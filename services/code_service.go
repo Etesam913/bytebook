@@ -150,7 +150,14 @@ func (c *CodeService) SendInterruptRequest(codeBlockId, executionId string) proj
 	}
 }
 
-func (c *CodeService) CreateSocketsAndListen(language string) project_types.BackendResponseWithoutData {
+func (c *CodeService) CreateSocketsAndListen(language, venvPath string) project_types.BackendResponseWithoutData {
+	if !kernel_helpers.IsVirtualEnv(venvPath) {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: "A virtual environment is not set. A virtual environment can be configured in the \"Code Block\" section of the settings.",
+		}
+	}
+
 	connectionInfo, err := kernel_helpers.GetConnectionInfoFromLanguage(c.ProjectPath, language)
 	if err != nil {
 		return project_types.BackendResponseWithoutData{
@@ -168,6 +175,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 			),
 		}
 	}
+
 	pathToConnectionFile := filepath.Join(c.ProjectPath, "code", "connection.json")
 	pathToVenv := filepath.Join(c.ProjectPath, "code", "python-venv")
 

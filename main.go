@@ -47,6 +47,7 @@ func main() {
 	go file_server.LaunchFileServer(projectPath)
 	kernelCtx, kernelCtxCancel := context.WithCancel(context.Background())
 	defer kernelCtxCancel()
+
 	app := application.New(application.Options{
 		Name:        "bytebook",
 		Description: "A simple note taking app.",
