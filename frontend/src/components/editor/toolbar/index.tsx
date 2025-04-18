@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import type { AnimationControls } from 'motion/react';
 import { useAtom, useAtomValue } from 'jotai/react';
-import type { TextFormatType } from 'lexical';
+import { $isNodeSelection, type TextFormatType } from 'lexical';
 import {
   type Dispatch,
   type RefObject,
@@ -9,7 +9,11 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { isNoteMaximizedAtom, isToolbarDisabledAtom } from '../../../atoms';
+import {
+  isNoteMaximizedAtom,
+  isToolbarDisabledAtom,
+  noteSelectionAtom,
+} from '../../../atoms';
 import { useAttachmentsMutation } from '../../../hooks/attachments';
 import { useNoteChangedEvent } from '../../../hooks/notes';
 import type { EditorBlockTypes, FloatingDataType } from '../../../types';
@@ -60,10 +64,12 @@ export function Toolbar({
   >([]);
 
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-  const [isNodeSelection, setIsNodeSelection] = useState(false);
+  // const [isNodeSelection, setIsNodeSelection] = useState(false);
+  const [noteSelection, setNoteSelection] = useAtom(noteSelectionAtom);
   const [canRedo, setCanRedo] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
 
+  const isNodeSelection = $isNodeSelection(noteSelection);
   const { insertAttachmentsMutation } = useAttachmentsMutation({
     folder,
     note,
@@ -86,7 +92,7 @@ export function Toolbar({
     setCurrentBlockType,
     setCanUndo,
     setCanRedo,
-    setIsNodeSelection,
+    setNoteSelection,
     setFloatingData,
     noteContainerRef
   );

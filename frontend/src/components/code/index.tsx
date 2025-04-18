@@ -96,6 +96,8 @@ export function Code({
         style={{
           borderRadius: 6,
         }}
+        data-interactable="true"
+        data-node-key={nodeKey}
         className={cn(
           'relative border-[2px] overflow-hidden bg-white dark:bg-[#2e3440] transition-colors border-zinc-150 dark:border-zinc-700',
           isSelected && '!border-(--accent-color)',

@@ -4,6 +4,7 @@ import { useAtomValue } from 'jotai';
 import {
   $getSelection,
   $isNodeSelection,
+  BaseSelection,
   CAN_REDO_COMMAND,
   CAN_UNDO_COMMAND,
   CLEAR_HISTORY_COMMAND,
@@ -111,7 +112,7 @@ export function useToolbarEvents(
   setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>,
   setCanUndo: Dispatch<SetStateAction<boolean>>,
   setCanRedo: Dispatch<SetStateAction<boolean>>,
-  setIsNodeSelection: Dispatch<SetStateAction<boolean>>,
+  setNoteSelection: Dispatch<SetStateAction<BaseSelection | null>>,
   setFloatingData: Dispatch<SetStateAction<FloatingDataType>>,
   noteContainerRef: RefObject<HTMLDivElement | null>
 ) {
@@ -127,7 +128,7 @@ export function useToolbarEvents(
             setDisabled,
             setCurrentSelectionFormat,
             setCurrentBlockType,
-            setIsNodeSelection,
+            setNoteSelection,
             setFloatingData,
             noteContainerRef
           );

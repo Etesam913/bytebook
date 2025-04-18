@@ -183,12 +183,13 @@ export function updateToolbar(
   setDisabled: Dispatch<SetStateAction<boolean>>,
   setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
   setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>,
-  setIsNodeSelection: Dispatch<SetStateAction<boolean>>,
+  setNoteSelection: Dispatch<SetStateAction<BaseSelection | null>>,
   setFloatingData: Dispatch<SetStateAction<FloatingDataType>>,
   noteContainerRef: RefObject<HTMLDivElement | null>
 ) {
   const selection = $getSelection();
-  setIsNodeSelection($isNodeSelection(selection));
+  setNoteSelection(selection);
+  // setIsNodeSelection($isNodeSelection(selection));
 
   if ($isRangeSelection(selection)) {
     setDisabled(false);

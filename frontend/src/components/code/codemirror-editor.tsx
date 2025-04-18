@@ -1,11 +1,16 @@
 import { vscodeLight } from '@uiw/codemirror-theme-vscode';
 import { nord } from '@uiw/codemirror-theme-nord';
 import { useAtomValue } from 'jotai/react';
-import { isDarkModeOnAtom, projectSettingsAtom } from '../../atoms';
+import {
+  isDarkModeOnAtom,
+  noteSelectionAtom,
+  projectSettingsAtom,
+} from '../../atoms';
 import CodeMirror, {
   keymap,
   Prec,
   type ReactCodeMirrorRef,
+  EditorView,
 } from '@uiw/react-codemirror';
 import { debounce } from '../../utils/general';
 import {
@@ -17,6 +22,7 @@ import { focusEditor, languageToSettings } from '.';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { vim } from '@replit/codemirror-vim';
 import {
+  $isNodeSelection,
   KEY_ARROW_DOWN_COMMAND,
   KEY_ARROW_UP_COMMAND,
   LexicalEditor,
@@ -92,10 +98,10 @@ export function CodeMirrorEditor({
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const { mutate: executeCode } = useSendExecuteRequestMutation(id, language);
   const debouncedSetCode = debounce(setCode, 300);
-  const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
   const projectSettings = useAtomValue(projectSettingsAtom);
-
+  const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
   const { mutate: interruptExecution } = useSendInterruptRequestMutation();
+  const noteSelection = useAtomValue(noteSelectionAtom);
 
   // Custom keymap for running code with keyboard shortcuts
   const runCodeKeymap = Prec.highest(
@@ -207,6 +213,7 @@ export function CodeMirrorEditor({
       instance.view.focus();
     }
   }
+
   return (
     <motion.div
       layout="position"
@@ -226,6 +233,7 @@ export function CodeMirrorEditor({
         }}
         className="bg-white dark:bg-[#2e3440]"
         extensions={[
+          EditorView.editable.of($isNodeSelection(noteSelection)),
           projectSettings.code.codeBlockVimMode ? vim() : [],
           runCodeKeymap,
           languageToSettings[language].extension(),

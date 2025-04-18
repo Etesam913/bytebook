@@ -33,6 +33,7 @@ export function CodeResult({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ delay: 0.25 }}
             className="absolute inset-0 flex items-center justify-center z-20 bg-zinc-400/20 dark:bg-zinc-900/20"
           >
             <motion.div
@@ -40,7 +41,10 @@ export function CodeResult({
               initial={{ y: -100 }}
               animate={{ y: 0 }}
               exit={{ y: 100 }}
-              transition={{ ease: easingFunctions['ease-in-out-cubic'] }}
+              transition={{
+                delay: 0.25,
+                ease: easingFunctions['ease-in-out-cubic'],
+              }}
             >
               <Loader width={16} height={16} />
             </motion.div>
