@@ -51,7 +51,6 @@ export const useTrapFocus = (
         }
       }
     };
-
     if (
       document.activeElement &&
       !focusableElements.includes(document.activeElement)

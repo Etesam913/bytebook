@@ -67,6 +67,7 @@ export function Dialog() {
   }
 
   function handleDialogKeyDown(e: globalThis.KeyboardEvent) {
+    e.stopPropagation();
     if (e.key === 'Escape') {
       resetDialogState();
     }
@@ -84,6 +85,7 @@ export function Dialog() {
       document.removeEventListener('keydown', keyDownHandler);
     };
   }, [dialogData.isOpen]);
+
   return (
     <AnimatePresence>
       {dialogData.isOpen && !backendQuery.isLoading && (
@@ -130,7 +132,6 @@ export function Dialog() {
             <h2 className=" text-xl">{dialogData.title}</h2>
             {dialogData.children?.(errorText, dialogData.isPending)}
             <MotionIconButton
-              autoFocus
               {...getDefaultButtonVariants()}
               onClick={resetDialogState}
               className="absolute top-2 right-2"

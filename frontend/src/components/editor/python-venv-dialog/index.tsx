@@ -109,7 +109,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                 key={venvPath}
               >
                 <RadioButton
-                  name={venvPath}
+                  name="venv-path-option"
                   value={venvPath}
                   onChange={(e) => {
                     const pathToVenv = e.target.value;
@@ -148,7 +148,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
             ))}
             <div className="flex flex-col group p-2 bg-zinc-150 dark:bg-zinc-750 rounded-md overflow-hidden">
               <RadioButton
-                name="custom-virtual-environment"
+                name="venv-path-option"
                 value={projectSettings.code.pythonVenvPath}
                 checked={isVenvPathCustom}
                 onChange={() => {

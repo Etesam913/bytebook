@@ -26,8 +26,7 @@ export function RadioButton({
         className={cn(
           'w-4 h-4 border-2 rounded-full flex-shrink-0 mr-2 flex justify-center items-center',
           checked ? 'border-(--accent-color)' : 'border-zinc-500',
-          // Add a focus ring when the input is focused via keyboard
-          'peer-focus:border-(--accent-color)'
+          'peer-focus:ring-1 peer-focus:ring-(--accent-color)'
         )}
       >
         <span
