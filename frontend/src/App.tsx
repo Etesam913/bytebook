@@ -15,6 +15,7 @@ import { useSearchPanel } from './hooks/search';
 import { useTags } from './hooks/tag-events';
 import { useThemeSetting } from './hooks/theme';
 import { MAX_SIDEBAR_WIDTH } from './utils/general';
+import { disableBackspaceNavigation } from './utils/routing';
 
 // Lazy load route components
 const NotFound = lazy(() =>
@@ -43,6 +44,8 @@ const RouteFallback = () => (
     <div className="animate-pulse text-gray-400">Loading route...</div>
   </div>
 );
+
+disableBackspaceNavigation();
 
 function App() {
   const folderSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
