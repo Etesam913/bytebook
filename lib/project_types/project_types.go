@@ -2,6 +2,8 @@ package project_types
 
 import (
 	"sync"
+
+	"github.com/pebbe/zmq4"
 )
 
 type WindowEventData struct {
@@ -122,4 +124,11 @@ type ShutdownReplyEventType struct {
 type InterruptReplyEventType struct {
 	MessageId string `json:"messageId"`
 	Status    string `json:"status"`
+}
+
+type SocketSet struct {
+	ShellSocketDealer     *zmq4.Socket
+	ControlSocketDealer   *zmq4.Socket
+	IOPubSocketSubscriber *zmq4.Socket
+	HeartbeatSocketReq    *zmq4.Socket
 }

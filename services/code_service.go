@@ -158,6 +158,7 @@ func (c *CodeService) CreateSocketsAndListen(language, venvPath string) project_
 		}
 	}
 
+	codeServiceUpdater := contracts.CodeServiceUpdater(c)
 	connectionInfo, err := kernel_helpers.GetConnectionInfoFromLanguage(c.ProjectPath, language)
 	if err != nil {
 		return project_types.BackendResponseWithoutData{
@@ -167,6 +168,32 @@ func (c *CodeService) CreateSocketsAndListen(language, venvPath string) project_
 	}
 
 	if kernel_helpers.IsPortInUse(connectionInfo.ShellPort) {
+		// Still have to make sure that the sockets exist
+		createdSockets, err := sockets.CreateSockets(
+			c.ShellSocketDealer,
+			c.IOPubSocketSubscriber,
+			c.HeartbeatSocketReq,
+			c.ControlSocketDealer,
+			language,
+			connectionInfo,
+			c.Context,
+			c.Cancel,
+			codeServiceUpdater,
+			&c.HeartbeatState,
+		)
+
+		if err != nil {
+			return project_types.BackendResponseWithoutData{
+				Success: false,
+				Message: err.Error(),
+			}
+		}
+
+		c.ShellSocketDealer = createdSockets.ShellSocketDealer
+		c.IOPubSocketSubscriber = createdSockets.IOPubSocketSubscriber
+		c.HeartbeatSocketReq = createdSockets.HeartbeatSocketReq
+		c.ControlSocketDealer = createdSockets.ControlSocketDealer
+
 		return project_types.BackendResponseWithoutData{
 			Success: true,
 			Message: fmt.Sprintf(
@@ -196,84 +223,31 @@ func (c *CodeService) CreateSocketsAndListen(language, venvPath string) project_
 
 	log.Println("🟩 launched kernel")
 
-	codeServiceUpdater := contracts.CodeServiceUpdater(c)
-	if c.ShellSocketDealer == nil {
-		shellSocketDealer := sockets.CreateShellSocketDealer()
-		if shellSocketDealer == nil {
-			return project_types.BackendResponseWithoutData{
-				Success: false,
-				Message: "Failed to create shell socket dealer",
-			}
+	createdSockets, err := sockets.CreateSockets(
+		c.ShellSocketDealer,
+		c.IOPubSocketSubscriber,
+		c.HeartbeatSocketReq,
+		c.ControlSocketDealer,
+		language,
+		connectionInfo,
+		c.Context,
+		c.Cancel,
+		codeServiceUpdater,
+		&c.HeartbeatState,
+	)
+
+	if err != nil {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: err.Error(),
 		}
-		c.ShellSocketDealer = shellSocketDealer
-		log.Println("🟩 created shell socket dealer")
-		go sockets.ListenToShellSocket(
-			shellSocketDealer,
-			connectionInfo,
-			c.Context,
-		)
 	}
 
-	if c.IOPubSocketSubscriber == nil {
-		ioPubSocketSubscriber := sockets.CreateIOPubSocketSubscriber()
-		if ioPubSocketSubscriber == nil {
-			return project_types.BackendResponseWithoutData{
-				Success: false,
-				Message: "Failed to create IOPub socket subscriber",
-			}
-		}
-		c.IOPubSocketSubscriber = ioPubSocketSubscriber
-		log.Println("🟩 created IOPub socket subscriber")
-		go sockets.ListenToIOPubSocket(
-			ioPubSocketSubscriber,
-			language,
-			connectionInfo,
-			c.Context,
-			c.Cancel,
-		)
-	}
+	c.ShellSocketDealer = createdSockets.ShellSocketDealer
+	c.IOPubSocketSubscriber = createdSockets.IOPubSocketSubscriber
+	c.HeartbeatSocketReq = createdSockets.HeartbeatSocketReq
+	c.ControlSocketDealer = createdSockets.ControlSocketDealer
 
-	if c.HeartbeatSocketReq == nil {
-		heartbeatSocketReq := sockets.CreateHeartbeatSocketReq()
-		if heartbeatSocketReq == nil {
-			return project_types.BackendResponseWithoutData{
-				Success: false,
-				Message: "Failed to create heartbeat socket request",
-			}
-		}
-		c.HeartbeatSocketReq = heartbeatSocketReq
-		log.Println("🟩 created heartbeat socket request")
-		go sockets.ListenToHeartbeatSocket(
-			heartbeatSocketReq,
-			language,
-			connectionInfo,
-			c.Context,
-			&c.HeartbeatState,
-		)
-	}
-
-	if c.ControlSocketDealer == nil {
-		controlSocketDealer := sockets.CreateControlSocketDealer()
-
-		if controlSocketDealer == nil {
-			return project_types.BackendResponseWithoutData{
-				Success: false,
-				Message: "Failed to create control socket dealer",
-			}
-		}
-
-		c.ControlSocketDealer = controlSocketDealer
-		log.Println("🟩 created control socket dealer")
-		go sockets.ListenToControlSocket(
-			controlSocketDealer,
-			connectionInfo,
-			c.Context,
-			codeServiceUpdater,
-		)
-
-	} else {
-		log.Println("Does nothing, the sockets already exist")
-	}
 	return project_types.BackendResponseWithoutData{
 		Success: true,
 		Message: "Sockets created and listening...",

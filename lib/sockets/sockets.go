@@ -2,6 +2,7 @@ package sockets
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -419,4 +420,88 @@ func ListenToControlSocket(
 			}
 		}
 	}
+}
+
+// CreateSockets initializes the required ZMQ sockets for kernel communication if they don't already exist
+// and starts the appropriate listeners for each socket.
+func CreateSockets(
+	shellSocketDealer *zmq4.Socket,
+	ioPubSocketSubscriber *zmq4.Socket,
+	heartbeatSocketReq *zmq4.Socket,
+	controlSocketDealer *zmq4.Socket,
+	language string,
+	connectionInfo project_types.KernelConnectionInfo,
+	ctx context.Context,
+	cancelFunc context.CancelFunc,
+	codeServiceUpdater contracts.CodeServiceUpdater,
+	heartbeatState *kernel_helpers.KernelHeartbeatState,
+) (*project_types.SocketSet, error) {
+	socketSet := &project_types.SocketSet{}
+
+	// Create shell socket if it doesn't exist
+	if shellSocketDealer == nil {
+		shellSocketDealer = CreateShellSocketDealer()
+		if shellSocketDealer == nil {
+			return nil, errors.New("failed to create shell socket dealer")
+		}
+		log.Println("🟩 created shell socket dealer")
+		go ListenToShellSocket(
+			shellSocketDealer,
+			connectionInfo,
+			ctx,
+		)
+	}
+	socketSet.ShellSocketDealer = shellSocketDealer
+
+	// Create IOPub socket if it doesn't exist
+	if ioPubSocketSubscriber == nil {
+		ioPubSocketSubscriber = CreateIOPubSocketSubscriber()
+		if ioPubSocketSubscriber == nil {
+			return nil, errors.New("failed to create IOPub socket subscriber")
+		}
+		log.Println("🟩 created IOPub socket subscriber")
+		go ListenToIOPubSocket(
+			ioPubSocketSubscriber,
+			language,
+			connectionInfo,
+			ctx,
+			cancelFunc,
+		)
+	}
+	socketSet.IOPubSocketSubscriber = ioPubSocketSubscriber
+
+	// Create heartbeat socket if it doesn't exist
+	if heartbeatSocketReq == nil {
+		heartbeatSocketReq = CreateHeartbeatSocketReq()
+		if heartbeatSocketReq == nil {
+			return nil, errors.New("failed to create heartbeat socket request")
+		}
+		log.Println("🟩 created heartbeat socket request")
+		go ListenToHeartbeatSocket(
+			heartbeatSocketReq,
+			language,
+			connectionInfo,
+			ctx,
+			heartbeatState,
+		)
+	}
+	socketSet.HeartbeatSocketReq = heartbeatSocketReq
+
+	// Create control socket if it doesn't exist
+	if controlSocketDealer == nil {
+		controlSocketDealer = CreateControlSocketDealer()
+		if controlSocketDealer == nil {
+			return nil, errors.New("failed to create control socket dealer")
+		}
+		log.Println("🟩 created control socket dealer")
+		go ListenToControlSocket(
+			controlSocketDealer,
+			connectionInfo,
+			ctx,
+			codeServiceUpdater,
+		)
+	}
+	socketSet.ControlSocketDealer = controlSocketDealer
+
+	return socketSet, nil
 }
