@@ -3,7 +3,7 @@ import { useAtom, useAtomValue } from 'jotai';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import useMeasure from 'react-use-measure';
 import { easingFunctions, getDefaultButtonVariants } from '../../animations';
-import { backendQueryAtom, dialogDataAtom } from '../../atoms';
+import { backendQueryAtom, dialogDataAtom, editorAtom } from '../../atoms';
 import { XMark } from '../../icons/circle-xmark';
 import { cn } from '../../utils/string-formatting';
 import { MotionIconButton } from '../buttons';
@@ -49,6 +49,7 @@ export function DialogErrorText({
 export function Dialog() {
   const [dialogData, setDialogData] = useAtom(dialogDataAtom);
   const backendQuery = useAtomValue(backendQueryAtom);
+  const editor = useAtomValue(editorAtom);
   const [errorText, setErrorText] = useState('');
   const modalRef = useRef<HTMLFormElement>(null);
   useTrapFocus(modalRef, dialogData.isOpen, dialogData.dynamicData);
@@ -79,7 +80,11 @@ export function Dialog() {
       handleDialogKeyDown(e);
 
     if (dialogData.isOpen) {
+      // The editor should not be able to be edited when the dialog is open
+      editor?.blur();
       document.addEventListener('keydown', keyDownHandler);
+    } else {
+      editor?.focus();
     }
     return () => {
       document.removeEventListener('keydown', keyDownHandler);

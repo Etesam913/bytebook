@@ -12,7 +12,7 @@ import {
   type UserData,
   type WindowSettings,
 } from './types.ts';
-import { BaseSelection } from 'lexical';
+import { BaseSelection, LexicalEditor } from 'lexical';
 
 const privateMostRecentNotesAtom = atom<string[]>(
   JSON.parse(localStorage.getItem('mostRecentNotes') ?? '[]') as string[]
@@ -125,6 +125,8 @@ export const searchPanelDataAtom = atom<SearchPanelDataType>({
   focusedIndex: 0,
   scrollY: 0,
 });
+
+export const editorAtom = atom<LexicalEditor | null>(null);
 
 export const noteContainerRefAtom = atom<RefObject<HTMLElement | null> | null>(
   null

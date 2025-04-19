@@ -12,12 +12,13 @@ import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useQueryClient } from '@tanstack/react-query';
 import type { AnimationControls } from 'motion/react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { $nodesOfType, type LexicalEditor } from 'lexical';
+import { $nodesOfType } from 'lexical';
 import { useEffect, useRef, useState } from 'react';
 import {
   albumDataAtom,
   draggableBlockElementAtom,
   draggedElementAtom,
+  editorAtom,
   isNoteMaximizedAtom,
   noteContainerRefAtom,
   noteIntersectionObserverAtom,
@@ -58,7 +59,7 @@ export function NotesEditor({
 }) {
   const { folder, note } = params;
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const editorRef = useRef<LexicalEditor | null | undefined>(null);
+  const [editor, setEditor] = useAtom(editorAtom);
   const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
   const [frontmatter, setFrontmatter] = useState<Record<string, string>>({});
   const [floatingData, setFloatingData] = useState<FloatingDataType>({
@@ -88,7 +89,6 @@ export function NotesEditor({
 
     return () => {
       // Cancels ongoing requests for a code block when navigating away from the editor
-      const editor = editorRef.current;
       if (editor) {
         editor.read(() => {
           const allCodeNodes = $nodesOfType(CodeNode);
@@ -162,7 +162,7 @@ export function NotesEditor({
           onClick={(e) => {
             // When the note container is clicked and not the content, we want to focus the editor
             if (e.target === noteContainerRef.current) {
-              editorRef.current?.focus(undefined, {
+              editor?.focus(undefined, {
                 defaultSelection: 'rootStart',
               });
             }
@@ -217,7 +217,11 @@ export function NotesEditor({
             setFrontmatter={setFrontmatter}
             setNoteMarkdownString={setNoteMarkdownString}
           />
-          <EditorRefPlugin editorRef={editorRef} />
+          <EditorRefPlugin
+            editorRef={(editorRefValue) => {
+              setEditor(editorRefValue);
+            }}
+          />
           <FilesPlugin />
           <CodePlugin />
           <DraggableBlockPlugin />
