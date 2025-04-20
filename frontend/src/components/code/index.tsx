@@ -8,7 +8,6 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { cn } from '../../utils/string-formatting';
 import { GolangLogo } from '../../icons/golang-logo';
-import { CodeResult } from './code-result';
 import { CodeBlockStatus, Languages } from '../../types';
 import { AnimatePresence, motion } from 'motion/react';
 import { CodeActions } from './code-actions';
@@ -16,6 +15,12 @@ import { CodeActions } from './code-actions';
 const CodeMirrorEditor = lazy(() =>
   import('./codemirror-editor').then((module) => ({
     default: module.CodeMirrorEditor,
+  }))
+);
+
+const LazyCodeResult = lazy(() =>
+  import('./code-result').then((module) => ({
+    default: module.CodeResult,
   }))
 );
 
@@ -136,11 +141,17 @@ export function Code({
           />
         </Suspense>
         {lastExecutedResult !== null && (
-          <CodeResult
-            lastExecutedResult={lastExecutedResult}
-            isExpanded={isExpanded}
-            status={status}
-          />
+          <Suspense
+            fallback={
+              <Loader className="mx-auto my-3" height={18} width={18} />
+            }
+          >
+            <LazyCodeResult
+              lastExecutedResult={lastExecutedResult}
+              isExpanded={isExpanded}
+              status={status}
+            />
+          </Suspense>
         )}
       </motion.div>
     </>

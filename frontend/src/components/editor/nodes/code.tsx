@@ -163,6 +163,14 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       writable.__lastExecutedResult += `<div>${streamText}</div>`;
     });
   }
+
+  setExecutionResult(executionResult: string, editor: LexicalEditor): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      writable.__lastExecutedResult += `<div>${executionResult}</div>`;
+    });
+  }
+
   setLastExecutedResult(result: string | null, editor: LexicalEditor): void {
     editor.update(() => {
       const writable = this.getWritable();

@@ -84,12 +84,12 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
 
   const heartbeatSuccessDropdownItems = languageSpecificOptions
     .heartbeatSuccess[language]
-    ? [...languageSpecificOptions.heartbeatSuccess[language]]
+    ? [...(languageSpecificOptions.heartbeatSuccess[language] ?? [])]
     : [];
 
   const heartbeatFailureDropdownItems = languageSpecificOptions
     .heartbeatFailure[language]
-    ? [...languageSpecificOptions.heartbeatFailure[language]]
+    ? [...(languageSpecificOptions.heartbeatFailure[language] ?? [])]
     : [];
 
   const kernelOptions =

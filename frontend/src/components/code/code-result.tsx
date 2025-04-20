@@ -23,6 +23,7 @@ export function CodeResult({
       layout
       className={cn(
         'group overflow-hidden relative border-t-1 border-t-zinc-200 dark:border-t-zinc-700 min-h-11 bg-white dark:bg-[#2e3440]',
+        !isExpanded && 'max-h-[35vh]',
         isExpanded && 'h-1/5'
       )}
     >
@@ -64,6 +65,7 @@ export function CodeResult({
       <MotionIconButton
         className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
         key={isExpanded.toString()}
+        layout="position"
         {...getDefaultButtonVariants()}
         onClick={() => {
           if (resultContainerRef.current) {

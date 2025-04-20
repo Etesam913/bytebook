@@ -55,7 +55,6 @@ function handleRunOrInterruptCode(
     },
     unknown
   >,
-  setStatus: (status: CodeBlockStatus) => void,
   setLastExecutedResult: (result: string) => void
 ) {
   if (status === 'busy') {
@@ -65,7 +64,7 @@ function handleRunOrInterruptCode(
       newExecutionId: '',
     });
   } else {
-    runCode(codeMirrorInstance, executeCode, setStatus, setLastExecutedResult);
+    runCode(codeMirrorInstance, executeCode, setLastExecutedResult);
   }
   return true;
 }
@@ -100,7 +99,11 @@ export function CodeMirrorEditor({
   setLastExecutedResult: (result: string) => void;
 }) {
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
-  const { mutate: executeCode } = useSendExecuteRequestMutation(id, language);
+  const { mutate: executeCode } = useSendExecuteRequestMutation(
+    id,
+    language,
+    setStatus
+  );
   const debouncedSetCode = debounce(setCode, 300);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
@@ -179,7 +182,6 @@ export function CodeMirrorEditor({
             interruptExecution,
             codeMirrorInstance,
             executeCode,
-            setStatus,
             setLastExecutedResult
           ),
       },
@@ -193,7 +195,6 @@ export function CodeMirrorEditor({
             interruptExecution,
             codeMirrorInstance,
             executeCode,
-            setStatus,
             setLastExecutedResult
           ),
       },
@@ -207,7 +208,6 @@ export function CodeMirrorEditor({
             interruptExecution,
             codeMirrorInstance,
             executeCode,
-            setStatus,
             setLastExecutedResult
           ),
       },

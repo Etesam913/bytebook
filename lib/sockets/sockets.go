@@ -200,6 +200,26 @@ func ListenToIOPubSocket(
 				}
 			case "execute_result":
 				log.Printf("✅ Execution result: %v\n", msg.Content["data"])
+				dataMap, exists := msg.Content["data"].(map[string]any)
+
+				if exists {
+					// Create a structure to hold the execution result with different mime types
+					executionResult := project_types.ExecuteResultEventType{
+						MessageId: msgId,
+						Data:      map[string]string{},
+					}
+
+					// Process different mime types
+					for mimeType, content := range dataMap {
+						if contentStr, ok := content.(string); ok {
+							executionResult.Data[mimeType] = contentStr
+							log.Printf("MIME type %s: %v\n", mimeType, contentStr)
+						}
+					}
+
+					// Emit the event with all the data
+					app.EmitEvent("code:code-block:execute_result", executionResult)
+				}
 			case "status":
 				status, isString := msg.Content["execution_state"].(string)
 				if isString {

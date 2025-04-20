@@ -102,8 +102,8 @@ type StreamEventType struct {
 }
 
 type ExecuteResultEventType struct {
-	MessageId string `json:"messageId"`
-	Data      any    `json:"data"`
+	MessageId string            `json:"messageId"`
+	Data      map[string]string `json:"data"`
 }
 
 type KernelStatusEventType struct {

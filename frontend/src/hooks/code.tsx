@@ -3,6 +3,7 @@ import { CodeNode } from '../components/editor/nodes/code';
 import { useWailsEvent } from './events';
 import { kernelsDataAtom } from '../atoms';
 import {
+  CodeBlockStatus,
   isValidKernelLanguage,
   KernelHeartbeatStatus,
   KernelStatus,
@@ -16,6 +17,10 @@ import {
 import { QueryError } from '../utils/query';
 import { $nodesOfType, LexicalEditor } from 'lexical';
 
+/**
+ * Hook that listens for kernel status updates and updates the kernels data atom.
+ * Subscribes to the 'code:kernel:status' event to track changes in kernel status.
+ */
 export function useKernelStatus() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
 
@@ -37,6 +42,12 @@ export function useKernelStatus() {
   });
 }
 
+/**
+ * Hook that listens for code block status updates and updates the corresponding code block.
+ * Subscribes to the 'code:code-block:status' event to track changes in code block execution status.
+ *
+ * @param editor - The Lexical editor instance to update code blocks in
+ */
 export function useCodeBlockStatus(editor: LexicalEditor) {
   useWailsEvent('code:code-block:status', (body) => {
     console.info('code:code-block:status');
@@ -53,6 +64,33 @@ export function useCodeBlockStatus(editor: LexicalEditor) {
   });
 }
 
+export function useCodeBlockExecuteResult(editor: LexicalEditor) {
+  useWailsEvent('code:code-block:execute_result', (body) => {
+    console.info('code:code-block:execute_result');
+
+    const data = body.data as {
+      messageId: string;
+      data: Record<string, string>;
+    }[];
+    if (data.length === 0) return;
+    const [codeBlockId] = data[0].messageId.split(':');
+    console.log(codeBlockId, data[0].data);
+    const executionResultContent: string[] = [];
+    for (const content of Object.values(data[0].data)) {
+      executionResultContent.push(content);
+    }
+
+    updateCodeBlock(editor, codeBlockId, (codeNode) => {
+      codeNode.setExecutionResult(executionResultContent.join('\n'), editor);
+    });
+  });
+}
+
+/**
+ * Hook that listens for kernel shutdown events and updates the kernels data atom.
+ * Subscribes to the 'code:kernel:shutdown_reply' event to handle kernel shutdown responses.
+ * Throws an error if the shutdown fails.
+ */
 export function useKernelShutdown() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
 
@@ -79,6 +117,10 @@ export function useKernelShutdown() {
   });
 }
 
+/**
+ * Hook that listens for kernel heartbeat events and updates the kernels data atom.
+ * Subscribes to the 'code:kernel:heartbeat' event to track kernel health status.
+ */
 export function useKernelHeartbeat() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
 
@@ -98,6 +140,13 @@ export function useKernelHeartbeat() {
   });
 }
 
+/**
+ * Updates a code block node in the editor
+ * @param editor - The Lexical editor instance
+ * @param codeBlockId - The ID of the code block to update
+ * @param callback - Function to call with the found code node
+ * @param executionId - Optional execution ID for fresh executions
+ */
 function updateCodeBlock(
   editor: LexicalEditor,
   codeBlockId: string,
@@ -120,6 +169,12 @@ function updateCodeBlock(
   });
 }
 
+/**
+ * Hook that listens for code block execution replies and updates the editor with error traceback info.
+ * Subscribes to the 'code:code-block:execute-reply' event to handle execution responses.
+ *
+ * @param editor - The Lexical editor instance to update code blocks in
+ */
 export function useCodeBlockExecuteReply(editor: LexicalEditor) {
   useWailsEvent('code:code-block:execute-reply', (body) => {
     console.info('code:code-block:execute-reply');
@@ -153,6 +208,12 @@ export function useCodeBlockExecuteReply(editor: LexicalEditor) {
   });
 }
 
+/**
+ * Hook that listens for code block output streams and updates the editor with stream content.
+ * Subscribes to the 'code:code-block:stream' event to handle stdout/stderr outputs.
+ *
+ * @param editor - The Lexical editor instance to update code blocks in
+ */
 export function useCodeBlockStream(editor: LexicalEditor) {
   useWailsEvent('code:code-block:stream', (body) => {
     console.info('code:code-block:stream');
@@ -173,9 +234,19 @@ export function useCodeBlockStream(editor: LexicalEditor) {
   });
 }
 
+/**
+ * Hook that creates a mutation for sending code execution requests to the kernel.
+ * Sets the code block status to 'queueing' while the request is processed.
+ *
+ * @param codeBlockId - The ID of the code block to execute
+ * @param language - The programming language of the code block
+ * @param setStatus - Function to update the code block's status
+ * @returns A mutation object for executing code
+ */
 export function useSendExecuteRequestMutation(
   codeBlockId: string,
-  language: Languages
+  language: Languages,
+  setStatus: (status: CodeBlockStatus) => void
 ) {
   return useMutation({
     mutationFn: async ({
@@ -185,6 +256,7 @@ export function useSendExecuteRequestMutation(
       code: string;
       newExecutionId: string;
     }) => {
+      setStatus('queueing');
       const res = await SendExecuteRequest(
         codeBlockId,
         newExecutionId,
@@ -192,12 +264,20 @@ export function useSendExecuteRequestMutation(
         code
       );
       if (!res.success) {
+        setStatus('idle');
         throw new QueryError(res.message);
       }
     },
   });
 }
 
+/**
+ * Hook that creates a mutation for sending interrupt requests to the kernel.
+ * Only sends the request if the kernel's heartbeat status is not 'failure'.
+ *
+ * @param onSuccess - Optional callback function to execute when the interrupt is successful
+ * @returns A mutation object for interrupting code execution
+ */
 export function useSendInterruptRequestMutation(onSuccess?: () => void) {
   const kernelsData = useAtomValue(kernelsDataAtom);
   return useMutation({

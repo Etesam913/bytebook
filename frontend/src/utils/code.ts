@@ -1,6 +1,5 @@
 import { UseMutateFunction } from '@tanstack/react-query';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
-import { CodeBlockStatus } from '../types';
 import { FormEvent } from 'react';
 import { IsPathAValidVirtualEnvironment } from '../../bindings/github.com/etesam913/bytebook/services/codeservice';
 
@@ -15,13 +14,11 @@ export function runCode(
     },
     unknown
   >,
-  setStatus: (status: CodeBlockStatus) => void,
   setLastExecutedResult: (result: string) => void
 ) {
   const newExecutionId = crypto.randomUUID();
   const code = codeMirrorInstance?.view?.state.doc.toString();
   if (code === null || code === undefined) return;
-  setStatus('queueing');
   setLastExecutedResult('');
   executeCode({ code, newExecutionId });
 }

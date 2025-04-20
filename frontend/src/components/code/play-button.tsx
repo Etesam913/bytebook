@@ -28,7 +28,8 @@ export function PlayButton({
 }) {
   const { mutate: executeCode } = useSendExecuteRequestMutation(
     codeBlockId,
-    language
+    language,
+    setStatus
   );
 
   const { mutate: interruptExecution } = useSendInterruptRequestMutation();
@@ -45,12 +46,7 @@ export function PlayButton({
             newExecutionId: '',
           });
         } else {
-          runCode(
-            codeMirrorInstance,
-            executeCode,
-            setStatus,
-            setLastExecutedResult
-          );
+          runCode(codeMirrorInstance, executeCode, setLastExecutedResult);
         }
       }}
     >
