@@ -117,7 +117,7 @@ export function NotesSidebar({
         </>
       )}
 
-      <RenderNote folder={folder} note={note} fileExtension={fileExtension} />
+      <RenderNote />
     </>
   );
 }

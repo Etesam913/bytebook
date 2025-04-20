@@ -15,18 +15,20 @@ import { FILE_SERVER_URL } from '../../utils/general';
 import { cn } from '../../utils/string-formatting';
 import { SidebarImage } from './sidebar-image';
 import { SidebarVideo } from './sidebar-video';
+import { useSearchParamsEntries } from '../../utils/routing';
+import { useRoute } from 'wouter';
 
-export function RenderNote({
-  folder,
-  note,
-  fileExtension,
-}: {
-  folder: string;
-  note: string | undefined;
-  fileExtension: string | undefined;
-}) {
+export function RenderNote() {
   const animationControls = useAnimationControls();
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+
+  // The attributes have to be retrieved from useRoute as passing in the params as props was lagging behind for some reason
+  const [, params] = useRoute('/:folder/:note?');
+  const folder = params?.folder ?? '';
+  const note = params?.note ?? '';
+
+  const searchParams: { ext?: string } = useSearchParamsEntries();
+  const fileExtension = searchParams.ext;
   const normalizedExtension = fileExtension?.toLowerCase().trim();
   const hasCustomToolbar = normalizedExtension === 'md';
 
@@ -44,7 +46,6 @@ export function RenderNote({
 
   useMostRecentNotes(folder, note, normalizedExtension);
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation(false);
-
   if (!note) return null;
   return (
     <motion.div

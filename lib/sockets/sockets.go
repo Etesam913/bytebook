@@ -353,6 +353,17 @@ func ListenToControlSocket(
 				Language: connectionInfo.Language,
 			})
 			codeServiceUpdater.ResetCodeServiceProperties()
+			messaging.SendShutdownMessage(
+				controlSocketDealer,
+				messaging.ShutdownMessageParams{
+					MessageParams: messaging.MessageParams{
+						// The MessageID does not matter in this case as the app is shutting down
+						MessageID: "",
+						SessionID: "current-session",
+					},
+					Restart: false,
+				},
+			)
 			return
 		default:
 			envelope, err := controlSocketDealer.RecvMessageBytes(zmq4.DONTWAIT)

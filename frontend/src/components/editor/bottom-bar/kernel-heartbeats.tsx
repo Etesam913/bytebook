@@ -33,13 +33,11 @@ export function KernelHeartbeats() {
         mutationsMap.forEach((mutation, nodeKey) => {
           if (mutation === 'destroyed') {
             prevEditorState.read(() => {
-              const codeBlockNode = $getNodeByKey(nodeKey) as
-                | CodeNode
-                | undefined;
-              if (codeBlockNode) {
-                const codeBlockId = codeBlockNode.getId();
+              const codeNode = $getNodeByKey(nodeKey) as CodeNode | undefined;
+              if (codeNode) {
                 interruptExecution({
-                  codeBlockId,
+                  codeBlockId: codeNode.getId(),
+                  codeBlockLanguage: codeNode.getLanguage(),
                   newExecutionId: '',
                 });
               }

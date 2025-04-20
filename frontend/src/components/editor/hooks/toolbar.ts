@@ -59,11 +59,13 @@ export function useNoteMarkdown(
   useQuery({
     queryKey: ['note-markdown', `${folder}/${note}.md`],
     queryFn: async () => {
-      const res = await GetNoteMarkdown(
-        `notes/${decodeURIComponent(folder)}/${decodeURIComponent(note)}.md`
-      );
+      const folderAndNote = `${decodeURIComponent(folder)}/${decodeURIComponent(note)}.md`;
+      const res = await GetNoteMarkdown(`notes/${folderAndNote}`);
 
-      if (!res.success) throw new QueryError('Failed to get note markdown');
+      if (!res.success)
+        throw new QueryError(
+          `Failed to get note markdown for ${folderAndNote}`
+        );
 
       editor.setEditable(true);
       // You don't want a different note to access the same history when you switch notes

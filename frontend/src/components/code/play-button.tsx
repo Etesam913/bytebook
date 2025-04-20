@@ -41,6 +41,7 @@ export function PlayButton({
         if (status === 'busy') {
           interruptExecution({
             codeBlockId,
+            codeBlockLanguage: language,
             newExecutionId: '',
           });
         } else {

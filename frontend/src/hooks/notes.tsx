@@ -71,7 +71,10 @@ export function useNotes(
           const { noteNameWithoutExtension, queryParams } =
             extractInfoFromNoteName(notes[noteIndexToNavigateTo]);
           navigate(
-            `/${curFolder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${queryParams.ext}`
+            `/${curFolder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${queryParams.ext}`,
+            {
+              replace: true,
+            }
           );
         }
       }

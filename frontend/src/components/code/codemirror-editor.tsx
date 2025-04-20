@@ -35,12 +35,15 @@ import { UseMutateFunction } from '@tanstack/react-query';
 function handleRunOrInterruptCode(
   status: CodeBlockStatus,
   codeBlockId: string,
+  codeBlockLanguage: Languages,
   interruptExecution: ({
     newExecutionId,
     codeBlockId,
+    codeBlockLanguage,
   }: {
     newExecutionId: string;
     codeBlockId: string;
+    codeBlockLanguage: Languages;
   }) => void,
   codeMirrorInstance: ReactCodeMirrorRef | null,
   executeCode: UseMutateFunction<
@@ -58,6 +61,7 @@ function handleRunOrInterruptCode(
   if (status === 'busy') {
     interruptExecution({
       codeBlockId,
+      codeBlockLanguage,
       newExecutionId: '',
     });
   } else {
@@ -171,6 +175,7 @@ export function CodeMirrorEditor({
           handleRunOrInterruptCode(
             status,
             id,
+            language,
             interruptExecution,
             codeMirrorInstance,
             executeCode,
@@ -184,6 +189,7 @@ export function CodeMirrorEditor({
           handleRunOrInterruptCode(
             status,
             id,
+            language,
             interruptExecution,
             codeMirrorInstance,
             executeCode,
@@ -197,6 +203,7 @@ export function CodeMirrorEditor({
           handleRunOrInterruptCode(
             status,
             id,
+            language,
             interruptExecution,
             codeMirrorInstance,
             executeCode,
@@ -221,6 +228,7 @@ export function CodeMirrorEditor({
         // Refocuses the editor when clicks happen outside of it but still inside the overall component
         if (codeMirrorInstance?.view) {
           codeMirrorInstance.view.focus();
+          setSelected(true);
         }
       }}
       className={cn('min-h-12', isExpanded && 'h-4/5')}

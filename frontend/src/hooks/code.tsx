@@ -1,4 +1,4 @@
-import { useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { CodeNode } from '../components/editor/nodes/code';
 import { useWailsEvent } from './events';
 import { kernelsDataAtom } from '../atoms';
@@ -199,14 +199,22 @@ export function useSendExecuteRequestMutation(
 }
 
 export function useSendInterruptRequestMutation(onSuccess?: () => void) {
+  const kernelsData = useAtomValue(kernelsDataAtom);
   return useMutation({
     mutationFn: async ({
       codeBlockId,
+      codeBlockLanguage,
       newExecutionId,
     }: {
       codeBlockId: string;
+      codeBlockLanguage: Languages;
       newExecutionId: string;
     }) => {
+      // Nothing to interrupt if the kernel is not running
+      if (kernelsData[codeBlockLanguage].heartbeat === 'failure') {
+        return;
+      }
+
       const res = await SendInterruptRequest(codeBlockId, newExecutionId);
       if (!res.success) throw new QueryError(res.message);
     },
