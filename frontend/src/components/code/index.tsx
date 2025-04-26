@@ -139,20 +139,14 @@ export function Code({
             setStatus={setStatus}
             setLastExecutedResult={setLastExecutedResult}
           />
-        </Suspense>
-        {lastExecutedResult !== null && (
-          <Suspense
-            fallback={
-              <Loader className="mx-auto my-3" height={18} width={18} />
-            }
-          >
+          {lastExecutedResult !== null && (
             <LazyCodeResult
               lastExecutedResult={lastExecutedResult}
               isExpanded={isExpanded}
               status={status}
             />
-          </Suspense>
-        )}
+          )}
+        </Suspense>
       </motion.div>
     </>
   );

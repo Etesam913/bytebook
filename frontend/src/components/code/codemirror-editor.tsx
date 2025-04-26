@@ -20,7 +20,7 @@ import {
 import { runCode } from '../../utils/code';
 import { focusEditor, languageToSettings } from '.';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
-import { vim } from '@replit/codemirror-vim';
+import { vim, getCM, Vim, CodeMirrorV } from '@replit/codemirror-vim';
 import {
   $isNodeSelection,
   KEY_ARROW_DOWN_COMMAND,
@@ -232,6 +232,21 @@ export function CodeMirrorEditor({
         }
       }}
       className={cn('min-h-12', isExpanded && 'flex-1')}
+      onKeyDownCapture={(e) => {
+        if (
+          projectSettings.code.codeBlockVimMode &&
+          e.key === 'Escape' &&
+          codeMirrorInstance?.view
+        ) {
+          // Ensures that the editor goes into normal mode when escape is pressed
+          // Previously, the editor would remain in insert mode after pressing escape
+          // when autocomplete suggestions were showing.
+          const codeMirrorVim = getCM(codeMirrorInstance.view);
+          if (codeMirrorVim) {
+            Vim.exitInsertMode(codeMirrorVim as CodeMirrorV);
+          }
+        }
+      }}
     >
       <CodeMirror
         ref={handleEditorRef}
