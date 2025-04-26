@@ -170,30 +170,28 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   ): void {
     editor.update(() => {
       const writable = this.getWritable();
-      Object.entries(mimeTypeToData).forEach(([mimeType, data]) => {
-        if (mimeType.startsWith('image/')) {
-          // render images (PNG, JPEG…)
-          writable.__lastExecutedResult += `<div><img src="data:${mimeType};base64,${data}" alt="${mimeType} result"/></div>`;
-        } else if (mimeType === 'text/html') {
-          // raw HTML
-          writable.__lastExecutedResult += `<div>${data}</div>`;
-        } else if (mimeType === 'text/plain') {
-          // plain text
-          writable.__lastExecutedResult += `<pre>${data}</pre>`;
-        } else if (mimeType === 'application/json') {
-          // JSON, pretty-printed
-          try {
-            const obj = JSON.parse(data);
-            const pretty = JSON.stringify(obj, null, 2);
-            writable.__lastExecutedResult += `<pre>${pretty}</pre>`;
-          } catch {
-            // fallback if it wasn’t valid JSON
-            writable.__lastExecutedResult += `<pre>${data}</pre>`;
-          }
-        } else {
-          // everything else
-          writable.__lastExecutedResult += `<div>${data}</div>`;
-        }
+      // 1. If there's HTML, show that
+      if (mimeTypeToData['text/html']) {
+        writable.__lastExecutedResult = mimeTypeToData['text/html'];
+        return;
+      }
+      // 2. Otherwise, if there's an image, show that
+      const imageEntry = Object.entries(mimeTypeToData).find(([mt]) =>
+        mt.startsWith('image/')
+      );
+      if (imageEntry) {
+        const [mt, data] = imageEntry;
+        writable.__lastExecutedResult = `<img src="data:${mt};base64,${data}" alt="result"/>`;
+        return;
+      }
+      // 3. Fallback to plain text
+      if (mimeTypeToData['text/plain']) {
+        writable.__lastExecutedResult = `<pre>${mimeTypeToData['text/plain']}</pre>`;
+        return;
+      }
+      // 4. Anything else, just dump it
+      Object.values(mimeTypeToData).forEach((data) => {
+        writable.__lastExecutedResult += `<div>${data}</div>`;
       });
     });
   }

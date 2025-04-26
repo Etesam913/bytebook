@@ -282,11 +282,15 @@ export function parseNoteNameFromSelectionRangeValue(
   return { noteNameWithoutExtension, queryParams };
 }
 
+/**
+ * Flattens HTML by replacing newlines with escaped newlines and trimming whitespace.
+ * @param html The HTML string to flatten
+ * @returns A flattened string with newlines replaced by '\n' character sequences and trimmed
+ */
 export function flattenHtml(html: string): string {
   return html
-    .replace(/\n/g, ' ') // Replace newline characters with a space
-    .replace(/\s+/g, ' ') // Collapse multiple spaces into one
-    .trim(); // Remove leading/trailing spaces
+    .replace(/\n/g, '\\n') // turn each real newline into two characters "\" + "n"
+    .trim();
 }
 
 /**
@@ -305,4 +309,13 @@ export function escapeQuotes(str: string): string {
  */
 export function unescapeQuotes(str: string): string {
   return str.replace(/\\"/g, '"').replace(/\\'/g, "'");
+}
+
+/**
+ * Converts escaped newline characters (\\n) back to actual newline characters (\n)
+ * @param str The input string with escaped newlines
+ * @returns A new string with escaped newlines converted to actual newlines
+ */
+export function unescapeNewlines(str: string): string {
+  return str.replace(/\\n/g, '\n');
 }

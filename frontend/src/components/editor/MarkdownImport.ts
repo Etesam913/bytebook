@@ -15,7 +15,10 @@ import { $createCodeNode, CodePayload, type CodeNode } from './nodes/code';
 import { $createExcalidrawNode, type ExcalidrawNode } from './nodes/excalidraw';
 import { PUNCTUATION_OR_SPACE, transformersByType } from './transformers';
 import type { Transformer } from './utils/note-metadata';
-import { unescapeQuotes } from '../../utils/string-formatting';
+import {
+  unescapeNewlines,
+  unescapeQuotes,
+} from '../../utils/string-formatting';
 import { Languages, validLanguages } from '../../types';
 
 const CAN_USE_DOM: boolean =
@@ -256,7 +259,7 @@ function importCodeBlock(
         if (headerProperties.has('lastExecutedResult')) {
           const value = headerProperties.get('lastExecutedResult');
           codeBlockParams.lastExecutedResult = value
-            ? unescapeQuotes(value)
+            ? unescapeQuotes(unescapeNewlines(value))
             : null;
         }
         codeBlockParams.code = lines
