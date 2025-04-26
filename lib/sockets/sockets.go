@@ -192,10 +192,11 @@ func ListenToIOPubSocket(
 				name, isNameString := msg.Content["name"].(string)
 				text, isTextString := msg.Content["text"].(string)
 				if isNameString && isTextString {
+					htmlStr := string(ansihtml.ConvertToHTML([]byte(text)))
 					app.EmitEvent("code:code-block:stream", project_types.StreamEventType{
 						MessageId: msgId,
 						Name:      name,
-						Text:      text,
+						Text:      htmlStr,
 					})
 				}
 			case "execute_result":
@@ -219,6 +220,28 @@ func ListenToIOPubSocket(
 
 					// Emit the event with all the data
 					app.EmitEvent("code:code-block:execute_result", executionResult)
+				}
+			case "display_data":
+				log.Printf("🖼️ Display data: %v\n", msg.Content["data"])
+				dataMap, exists := msg.Content["data"].(map[string]any)
+
+				if exists {
+					// Create a structure to hold the display data with different mime types
+					displayData := project_types.ExecuteResultEventType{
+						MessageId: msgId,
+						Data:      map[string]string{},
+					}
+
+					// Process different mime types
+					for mimeType, content := range dataMap {
+						if contentStr, ok := content.(string); ok {
+							displayData.Data[mimeType] = contentStr
+							log.Printf("MIME type %s: %v\n", mimeType, contentStr)
+						}
+					}
+
+					// Emit the event with all the data
+					app.EmitEvent("code:code-block:display_data", displayData)
 				}
 			case "status":
 				status, isString := msg.Content["execution_state"].(string)

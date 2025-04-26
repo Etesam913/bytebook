@@ -74,7 +74,6 @@ export function useCodeBlockExecuteResult(editor: LexicalEditor) {
     }[];
     if (data.length === 0) return;
     const [codeBlockId] = data[0].messageId.split(':');
-    console.log(codeBlockId, data[0].data);
     const executionResultContent: string[] = [];
     for (const content of Object.values(data[0].data)) {
       executionResultContent.push(content);
@@ -228,6 +227,24 @@ export function useCodeBlockStream(editor: LexicalEditor) {
       codeBlockId,
       (codeNode) => {
         codeNode.setStreamResult(data[0].text, editor);
+      },
+      executionId
+    );
+  });
+}
+
+export function useCodeBlockDisplayData(editor: LexicalEditor) {
+  useWailsEvent('code:code-block:display_data', (body) => {
+    const data = body.data as {
+      messageId: string;
+      data: Record<string, string>;
+    }[];
+    const [codeBlockId, executionId] = data[0].messageId.split(':');
+    updateCodeBlock(
+      editor,
+      codeBlockId,
+      (codeNode) => {
+        codeNode.setDisplayResult(data[0].data, editor);
       },
       executionId
     );

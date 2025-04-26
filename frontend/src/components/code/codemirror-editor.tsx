@@ -231,7 +231,7 @@ export function CodeMirrorEditor({
           setSelected(true);
         }
       }}
-      className={cn('min-h-12', isExpanded && 'h-4/5')}
+      className={cn('min-h-12', isExpanded && 'flex-1')}
     >
       <CodeMirror
         ref={handleEditorRef}

@@ -29,6 +29,7 @@ import {
 } from '../utils/toolbar';
 import { SettingsDropdown } from './settings-dropdown';
 import {
+  useCodeBlockDisplayData,
   useCodeBlockExecuteReply,
   useCodeBlockExecuteResult,
   useCodeBlockStatus,
@@ -101,6 +102,7 @@ export function Toolbar({
   useNoteChangedEvent(folder, note, editor, setFrontmatter);
   useCodeBlockExecuteReply(editor);
   useCodeBlockStream(editor);
+  useCodeBlockDisplayData(editor);
   useCodeBlockStatus(editor);
   useCodeBlockExecuteResult(editor);
 

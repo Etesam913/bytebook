@@ -164,6 +164,40 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     });
   }
 
+  setDisplayResult(
+    mimeTypeToData: Record<string, string>,
+    editor: LexicalEditor
+  ): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      Object.entries(mimeTypeToData).forEach(([mimeType, data]) => {
+        if (mimeType.startsWith('image/')) {
+          // render images (PNG, JPEG…)
+          writable.__lastExecutedResult += `<div><img src="data:${mimeType};base64,${data}" alt="${mimeType} result"/></div>`;
+        } else if (mimeType === 'text/html') {
+          // raw HTML
+          writable.__lastExecutedResult += `<div>${data}</div>`;
+        } else if (mimeType === 'text/plain') {
+          // plain text
+          writable.__lastExecutedResult += `<pre>${data}</pre>`;
+        } else if (mimeType === 'application/json') {
+          // JSON, pretty-printed
+          try {
+            const obj = JSON.parse(data);
+            const pretty = JSON.stringify(obj, null, 2);
+            writable.__lastExecutedResult += `<pre>${pretty}</pre>`;
+          } catch {
+            // fallback if it wasn’t valid JSON
+            writable.__lastExecutedResult += `<pre>${data}</pre>`;
+          }
+        } else {
+          // everything else
+          writable.__lastExecutedResult += `<div>${data}</div>`;
+        }
+      });
+    });
+  }
+
   setExecutionResult(executionResult: string, editor: LexicalEditor): void {
     editor.update(() => {
       const writable = this.getWritable();
