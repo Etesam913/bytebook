@@ -3,7 +3,7 @@ import pluginJs from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import pluginReact from 'eslint-plugin-react';
 import { defineConfig, globalIgnores } from 'eslint/config';
-import reactCompiler from 'eslint-plugin-react-compiler';
+import * as reactHooks from 'eslint-plugin-react-hooks';
 
 /** @type {import('eslint').Linter.Config} */
 export default defineConfig([
@@ -22,19 +22,23 @@ export default defineConfig([
         version: 'detect',
       },
     },
-    languageOptions: { globals: globals.browser },
+    languageOptions: {
+      globals: globals.browser,
+    },
+    plugins: {
+      'react-hooks': reactHooks,
+    },
     extends: [
       pluginJs.configs.recommended,
       ...tseslint.configs.recommended,
       pluginReact.configs.flat.recommended,
     ],
-    plugins: {
-      'react-compiler': reactCompiler,
-    },
     rules: {
+      ...reactHooks.configs.recommended.rules,
+      'react-hooks/exhaustive-deps': 'off',
       // Disable the rule that requires React to be in scope for JSX
       'react/react-in-jsx-scope': 'off',
-      'react-compiler/react-compiler': 'error',
+      'react-hooks/react-compiler': 'error',
     },
   },
 ]);
