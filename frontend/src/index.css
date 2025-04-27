@@ -385,7 +385,7 @@ div[data-template-is-fullscreen='true']
 }
 
 .text-underline {
-  text-decoration: underline;
+  text-decoration: unset;
 }
 
 .text-strikethrough {
