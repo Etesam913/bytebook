@@ -24,6 +24,8 @@ export function constructGhostElementForNode(
     }
   } else if (node.getType() === 'excalidraw') {
     constructGhostElementForDrawing(ghostElement);
+  } else if (node.getType() === 'code-block') {
+    ghostElement.style.minWidth = '400px';
   }
 }
 
