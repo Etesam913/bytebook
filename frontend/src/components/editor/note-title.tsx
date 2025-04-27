@@ -5,14 +5,36 @@ import { $getRoot } from 'lexical';
 import { useEffect, useState } from 'react';
 import { RenameNote } from '../../../bindings/github.com/etesam913/bytebook/services/noteservice';
 import { isToolbarDisabledAtom } from '../../atoms';
-import { QueryError } from '../../utils/query';
 import { NAME_CHARS, cn } from '../../utils/string-formatting';
+import { useMutation } from '@tanstack/react-query';
+import { navigate } from 'wouter/use-browser-location';
 
 export function NoteTitle({ note, folder }: { note: string; folder: string }) {
   const [editor] = useLexicalComposerContext();
   const [noteTitle, setNoteTitle] = useState(note);
   const [errorText, setErrorText] = useState('');
   const setIsToolbarDisabled = useSetAtom(isToolbarDisabledAtom);
+  const { mutate: renameNote } = useMutation({
+    mutationFn: async ({
+      folder,
+      oldNoteName,
+      newNoteName,
+    }: {
+      folder: string;
+      oldNoteName: string;
+      newNoteName: string;
+    }) => {
+      const res = await RenameNote(folder, oldNoteName, newNoteName);
+      if (!res.success) throw new Error(res.message);
+      navigate(
+        `/${encodeURIComponent(folder)}/${encodeURIComponent(newNoteName)}?ext=md`
+      );
+      return res;
+    },
+    onError: (error) => {
+      setErrorText(error.message);
+    },
+  });
 
   useEffect(() => {
     setNoteTitle(decodeURIComponent(note));
@@ -42,26 +64,14 @@ export function NoteTitle({ note, folder }: { note: string; folder: string }) {
         }}
         placeholder="Untitled Note"
         onFocus={() => setIsToolbarDisabled(true)}
-        onBlur={async () => {
+        onBlur={() => {
           setIsToolbarDisabled(false);
           if (noteTitle === note || errorText.length > 0) return;
-
-          try {
-            const res = await RenameNote(
-              decodeURIComponent(folder),
-              decodeURIComponent(note),
-              noteTitle
-            );
-
-            if (!res.success) throw new QueryError('Failed to rename note');
-          } catch (e) {
-            console.error(e);
-            if (e instanceof Error && e.message.includes('already exists')) {
-              setErrorText(
-                `A note with the name "${noteTitle}" already exists.`
-              );
-            }
-          }
+          renameNote({
+            folder: decodeURIComponent(folder),
+            oldNoteName: decodeURIComponent(note),
+            newNoteName: noteTitle,
+          });
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {

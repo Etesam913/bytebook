@@ -68,9 +68,9 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) project_typ
 
 func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNoteTitle string) project_types.BackendResponseWithoutData {
 	noteBase := filepath.Join(n.ProjectPath, "notes", folderName)
-
+	pathToNewNote := filepath.Join(noteBase, newNoteTitle+".md")
 	doesExist, err := io_helpers.FileOrFolderExists(
-		filepath.Join(noteBase, newNoteTitle+".md"),
+		pathToNewNote,
 	)
 
 	if err != nil {

@@ -82,7 +82,7 @@ export function useFolderCreate() {
   });
 }
 
-/** This function is used to handle `notes-folder:delete` events. This gets triggered when renaming a folder using the */
+/** This function is used to handle `notes-folder:delete` events. This gets triggered when renaming a folder using the file system*/
 export function useFolderDelete() {
   const queryClient = useQueryClient();
 

@@ -28,6 +28,9 @@ type CORSResponseWriter struct {
 	http.ResponseWriter
 }
 
+// WriteHeader sets the appropriate CORS headers on the response and then calls
+// the underlying ResponseWriter's WriteHeader method with the provided status code.
+// This ensures that CORS headers are included in every response before sending headers.
 func (w *CORSResponseWriter) WriteHeader(statusCode int) {
 	// Set CORS headers before writing the status code and headers
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -38,6 +41,9 @@ func (w *CORSResponseWriter) WriteHeader(statusCode int) {
 	w.ResponseWriter.WriteHeader(statusCode)
 }
 
+// corsMiddleware creates middleware that adds CORS support to an HTTP handler.
+// It handles OPTIONS preflight requests automatically and wraps the response writer
+// with a CORSResponseWriter to ensure all responses include the required CORS headers.
 func corsMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Handle preflight OPTIONS request
@@ -56,6 +62,9 @@ func corsMiddleware(handler http.Handler) http.Handler {
 	})
 }
 
+// LaunchFileServer starts an HTTP file server that serves files from the specified project path.
+// It configures the server with CORS support and listens on the port defined by the PORT constant.
+// The server runs until the process is terminated or an error occurs during startup.
 func LaunchFileServer(projectPath string) {
 	mux := http.NewServeMux()
 	// Create a file server handler
@@ -183,7 +192,7 @@ func handleFileEvents(
 
 	eventKey := ""
 
-	// This works for MACOS need to test on other platforms
+	// A RENAME gets triggered when a file is deleted on macos
 	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
 		eventKey = "note:delete"
 	} else if event.Has(fsnotify.Create) {
