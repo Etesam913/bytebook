@@ -20,14 +20,24 @@ import { SearchBar } from './searchbar.tsx';
 import { Spacer } from './spacer';
 import { CircleArrowLeft } from '../../icons/circle-arrow-left.tsx';
 import { CircleArrowRight } from '../../icons/circle-arrow-right.tsx';
+import { useRef } from 'react';
+import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
+  const sidebarAccordionSectionRef = useRef<HTMLDivElement | null>(null);
   const [, params] = useRoute('/:folder/:note?');
   const folder = params?.folder;
   const setDialogData = useSetAtom(dialogDataAtom);
   useFolderCreate();
   useFolderDelete();
   const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
+  const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(
+    sidebarAccordionSectionRef,
+    {
+      threshold: 60,
+      speed: 20,
+    }
+  );
 
   if (folder === 'settings') return null;
 
@@ -76,7 +86,13 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
             Create Folder <FolderPlus className="will-change-transform" />
           </MotionButton>
         </section>
-        <section className="flex flex-1 flex-col overflow-y-auto gap-2 py-1.5">
+        <section
+          className="flex flex-1 flex-col overflow-y-auto gap-2 py-1.5"
+          ref={sidebarAccordionSectionRef}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+        >
           <div className="flex h-full flex-col gap-1 px-2.5">
             <PinnedNotesAccordion />
             <RecentNotesAccordion />

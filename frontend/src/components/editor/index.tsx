@@ -49,6 +49,7 @@ import { debouncedNoteHandleChange } from './utils/note-commands.ts';
 import { Album } from './album/index.tsx';
 import { CodeNode } from './nodes/code.tsx';
 import { useSendInterruptRequestMutation } from '../../hooks/code.tsx';
+import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 
 export function NotesEditor({
   params,
@@ -69,6 +70,7 @@ export function NotesEditor({
     type: null,
   });
   const queryClient = useQueryClient();
+  const overflowContainerRef = useRef<HTMLDivElement | null>(null);
   const noteContainerRef = useRef<HTMLDivElement | null>(null);
   const setNoteContainerRef = useSetAtom(noteContainerRefAtom);
   const [noteIntersectionObserver, setNoteIntersectionObserver] = useAtom(
@@ -82,6 +84,14 @@ export function NotesEditor({
   const [noteMarkdownString, setNoteMarkdownString] = useState('');
   const draggedElement = useAtomValue(draggedElementAtom);
   const { mutate: interruptExecution } = useSendInterruptRequestMutation();
+
+  const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(
+    overflowContainerRef,
+    {
+      threshold: 80,
+      speed: 20,
+    }
+  );
 
   useEffect(() => {
     setNoteContainerRef(noteContainerRef);
@@ -146,7 +156,13 @@ export function NotesEditor({
         setFrontmatter={setFrontmatter}
         setNoteMarkdownString={setNoteMarkdownString}
       />
-      <div className="flex gap-2 overflow-y-auto h-[calc(100vh-2.18rem)]">
+      <div
+        ref={overflowContainerRef}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        className="flex gap-2 overflow-y-auto h-[calc(100vh-2.18rem)]"
+      >
         <div
           ref={noteContainerRef}
           style={{

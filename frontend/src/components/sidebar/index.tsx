@@ -60,7 +60,6 @@ export function Sidebar({
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const contextMenuRef = useAtomValue(contextMenuRefAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-
   useOnClickOutside(listRef, (e) => {
     // We need to use the selectionRange for the context menu so early return for this case
     if (contextMenuRef?.current?.contains(e.target as Node)) return;
