@@ -138,6 +138,7 @@ export type Languages = 'python' | 'go';
 type KernelData = {
   status: KernelStatus;
   heartbeat: KernelHeartbeatStatus;
+  errorMessage: string | null;
 };
 
 export const validLanguages = new Set<string>(['python', 'go']);

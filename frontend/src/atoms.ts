@@ -143,10 +143,12 @@ export const kernelsDataAtom = atom<KernelsData>({
   python: {
     status: 'idle',
     heartbeat: 'failure',
+    errorMessage: null,
   },
   go: {
     status: 'idle',
     heartbeat: 'failure',
+    errorMessage: null,
   },
 });
 

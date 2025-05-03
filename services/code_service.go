@@ -11,6 +11,7 @@ import (
 	"github.com/etesam913/bytebook/lib/contracts"
 	"github.com/etesam913/bytebook/lib/kernel_helpers"
 	"github.com/etesam913/bytebook/lib/messaging"
+	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/etesam913/bytebook/lib/sockets"
 	"github.com/pebbe/zmq4"
@@ -41,10 +42,25 @@ func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, cod
 	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
 
 	if !isHeartBeating {
-		return project_types.BackendResponseWithoutData{
-			Success: false,
-			Message: fmt.Sprintf("The %s kernel is not initialized. Try turning on the kernel by using the language button at the bottom of the editor.", language),
+		// Try to initialize kernel here
+		projectSettings, err := project_helpers.GetProjectSettings(c.ProjectPath)
+
+		if err != nil {
+			return project_types.BackendResponseWithoutData{
+				Success: false,
+				Message: fmt.Sprintf("The %s kernel is not initialized. Try turning on the kernel by using the language button at the bottom of the editor.", language),
+			}
 		}
+
+		response := c.CreateSocketsAndListen(language, projectSettings.Code.PythonVenvPath)
+
+		if !response.Success {
+			return project_types.BackendResponseWithoutData{
+				Success: false,
+				Message: response.Message,
+			}
+		}
+
 	}
 
 	err := messaging.SendExecuteRequest(
@@ -202,16 +218,16 @@ func (c *CodeService) CreateSocketsAndListen(language, venvPath string) project_
 			),
 		}
 	}
+	projectSettings, err := project_helpers.GetProjectSettings(c.ProjectPath)
 
 	pathToConnectionFile := filepath.Join(c.ProjectPath, "code", "connection.json")
-	pathToVenv := filepath.Join(c.ProjectPath, "code", "python-venv")
 
 	// Start up the kernel
 	err = kernel_helpers.LaunchKernel(
 		c.AllKernels.Python.Argv,
 		pathToConnectionFile,
 		"python",
-		pathToVenv,
+		projectSettings.Code.PythonVenvPath,
 	)
 
 	if err != nil {
@@ -247,6 +263,13 @@ func (c *CodeService) CreateSocketsAndListen(language, venvPath string) project_
 	c.IOPubSocketSubscriber = createdSockets.IOPubSocketSubscriber
 	c.HeartbeatSocketReq = createdSockets.HeartbeatSocketReq
 	c.ControlSocketDealer = createdSockets.ControlSocketDealer
+	app := application.Get()
+	if app != nil {
+		app.EmitEvent("kernel:launch-success", project_types.KernelLaunchEventType{
+			Language: language,
+			Data:     "",
+		})
+	}
 
 	return project_types.BackendResponseWithoutData{
 		Success: true,

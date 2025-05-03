@@ -42,6 +42,7 @@ func ListenToShellSocket(
 	for {
 		select {
 		case <-ctx.Done():
+			shellSocketDealer.Close()
 			log.Println("🛑 Shell socket listener received context cancellation")
 			return
 		default:
@@ -156,6 +157,7 @@ func ListenToIOPubSocket(
 	for {
 		select {
 		case <-ctx.Done():
+			ioPubSocketSubscriber.Close()
 			log.Println("🛑 IOPub socket listener received context cancellation")
 			return
 		default:
@@ -313,6 +315,7 @@ func ListenToHeartbeatSocket(
 	for {
 		select {
 		case <-ctx.Done():
+			heartbeatSocketReq.Close()
 			log.Println("🛑 heartbeat socket listener received context cancellation")
 			return
 		case <-ticker.C:
@@ -390,6 +393,7 @@ func ListenToControlSocket(
 	for {
 		select {
 		case <-ctx.Done():
+			controlSocketDealer.Close()
 			log.Println("🛑 Control socket listener received context cancellation")
 			app.EmitEvent("code:kernel:shutdown_reply", project_types.ShutdownReplyEventType{
 				Status:   "success",

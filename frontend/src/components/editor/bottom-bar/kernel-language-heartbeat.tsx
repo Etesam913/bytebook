@@ -50,15 +50,24 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const dropdownContainerRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(dropdownContainerRef, () => setIsOpen(false));
   const kernelsData = useAtomValue(kernelsDataAtom);
-  const { status, heartbeat } = kernelsData[language];
+  const { status, heartbeat, errorMessage } = kernelsData[language];
 
   // TODO: Remove the need to pass in the pythonVenvPath into the CreateSocketAndListen
   const projectSettings = useAtomValue(projectSettingsAtom);
 
   useQuery({
     queryKey: ['heartbeat', language],
-    queryFn: () =>
-      CreateSocketsAndListen(language, projectSettings.code.pythonVenvPath),
+    queryFn: async () => {
+      const res = await CreateSocketsAndListen(
+        language,
+        projectSettings.code.pythonVenvPath
+      );
+      console.log(res);
+      if (!res.success) {
+        throw new QueryError(res.message);
+      }
+      return res;
+    },
   });
 
   const { mutate: shutdownKernel } = useMutation({
@@ -154,9 +163,16 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
         focusIndex={focusIndex}
         items={kernelOptions}
       >
-        <p className="px-2 pt-1 text-gray-500 dark:text-gray-300">
-          Status: {status.charAt(0).toUpperCase() + status.slice(1)}
-        </p>
+        <div>
+          <p className="px-2 pt-1 text-gray-500 dark:text-gray-300">
+            Status: {status.charAt(0).toUpperCase() + status.slice(1)}
+          </p>
+          {errorMessage && (
+            <p className="px-2 pt-1 text-red-500">
+              Error: <span className="text-xs">{errorMessage}</span>
+            </p>
+          )}
+        </div>
       </DropdownItems>
 
       <button

@@ -16,6 +16,8 @@ import {
 } from '../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { QueryError } from '../utils/query';
 import { $nodesOfType, LexicalEditor } from 'lexical';
+import { toast } from 'sonner';
+import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 
 /**
  * Hook that listens for kernel status updates and updates the kernels data atom.
@@ -135,6 +137,51 @@ export function useKernelHeartbeat() {
     setKernelsData((prev) => ({
       ...prev,
       [language]: { ...prev[language], heartbeat: kernelHeartbeatStatus },
+    }));
+  });
+}
+
+export function useKernelLaunchEvents(editor: LexicalEditor) {
+  const setKernelsData = useSetAtom(kernelsDataAtom);
+  useWailsEvent('kernel:launch-error', (body) => {
+    console.info('kernel:launch-error');
+    const data = body.data as {
+      language: Languages;
+      data: string;
+    }[];
+
+    if (data.length === 0) return;
+    const language = data[0].language;
+    toast.error(data[0].data, DEFAULT_SONNER_OPTIONS);
+    setKernelsData((prev) => ({
+      ...prev,
+      [language]: { ...prev[language], errorMessage: data[0].data },
+    }));
+
+    // All the nodes of the kernel should be back to idle if the kernel errors out
+    editor.update(() => {
+      const codeNodes = $nodesOfType(CodeNode);
+      const codeNodesToUpdate = codeNodes.filter(
+        (node) => node.getLanguage() === language
+      );
+
+      for (const node of codeNodesToUpdate) {
+        node.setStatus('idle', editor);
+      }
+    });
+  });
+
+  useWailsEvent('kernel:launch-success', (body) => {
+    console.info('kernel:launch-success');
+    const data = body.data as {
+      language: Languages;
+      data: string;
+    }[];
+    if (data.length === 0) return;
+    const language = data[0].language;
+    setKernelsData((prev) => ({
+      ...prev,
+      [language]: { ...prev[language], errorMessage: null },
     }));
   });
 }

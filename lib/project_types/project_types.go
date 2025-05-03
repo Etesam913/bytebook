@@ -126,6 +126,11 @@ type InterruptReplyEventType struct {
 	Status    string `json:"status"`
 }
 
+type KernelLaunchEventType struct {
+	Language string `json:"language"`
+	Data     string `json:"data"`
+}
+
 type SocketSet struct {
 	ShellSocketDealer     *zmq4.Socket
 	ControlSocketDealer   *zmq4.Socket

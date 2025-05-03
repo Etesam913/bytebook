@@ -1,8 +1,10 @@
 package kernel_helpers
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"os/exec"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 type KernelHeartbeatState struct {
@@ -88,6 +91,7 @@ func LaunchKernel(argv []string, pathToConnectionFile, language, venvPath string
 	}
 
 	var cmd *exec.Cmd
+	var stderrBuf bytes.Buffer
 
 	// Handle language-specific kernel launch configurations
 	switch language {
@@ -124,12 +128,26 @@ func LaunchKernel(argv []string, pathToConnectionFile, language, venvPath string
 
 	// Redirect stdout and stderr for all languages
 	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
 
 	// Start the command (this spawns a separate process)
 	if err := cmd.Start(); err != nil {
 		return err
 	}
+
+	go func() {
+		if err := cmd.Wait(); err != nil {
+			app := application.Get()
+			if app == nil {
+				return
+			}
+			msg := stderrBuf.String()
+			app.EmitEvent("kernel:launch-error", project_types.KernelLaunchEventType{
+				Language: language,
+				Data:     msg,
+			})
+		}
+	}()
 
 	return nil
 }

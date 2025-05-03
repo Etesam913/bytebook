@@ -34,6 +34,7 @@ import {
   useCodeBlockExecuteResult,
   useCodeBlockStatus,
   useCodeBlockStream,
+  useKernelLaunchEvents,
 } from '../../../hooks/code';
 
 export function Toolbar({
@@ -100,6 +101,7 @@ export function Toolbar({
   );
 
   useNoteChangedEvent(folder, note, editor, setFrontmatter);
+  useKernelLaunchEvents(editor);
   useCodeBlockExecuteReply(editor);
   useCodeBlockStream(editor);
   useCodeBlockDisplayData(editor);
