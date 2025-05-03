@@ -7,7 +7,10 @@ import { MaximizeNoteButton } from '../../components/buttons/maximize-note';
 import { NotesEditor } from '../../components/editor';
 import { BottomBar } from '../../components/editor/bottom-bar';
 import { useMostRecentNotes } from '../../components/editor/hooks/note-metadata';
-import { useNoteRevealInFinderMutation } from '../../hooks/notes';
+import {
+  useNoteExists,
+  useNoteRevealInFinderMutation,
+} from '../../hooks/notes';
 import { FileBan } from '../../icons/file-ban';
 import { ShareRight } from '../../icons/share-right';
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../../types';
@@ -17,6 +20,8 @@ import { SidebarImage } from './sidebar-image';
 import { SidebarVideo } from './sidebar-video';
 import { useSearchParamsEntries } from '../../utils/routing';
 import { useRoute } from 'wouter';
+import { navigate } from 'wouter/use-browser-location';
+import { RouteFallback } from '../../components/route-fallback';
 
 export function RenderNote() {
   const animationControls = useAnimationControls();
@@ -43,10 +48,24 @@ export function RenderNote() {
   const draggedElement = useAtomValue(draggedElementAtom);
 
   const fileUrl = `${FILE_SERVER_URL}/notes/${folder}/${note}.${normalizedExtension}`;
-
+  const {
+    data: noteExists,
+    isLoading,
+    error,
+  } = useNoteExists(folder, note, fileExtension);
   useMostRecentNotes(folder, note, normalizedExtension);
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation(false);
+
   if (!note) return null;
+  if (isLoading) {
+    return <RouteFallback height={42} width={42} className="mx-auto my-auto" />;
+  }
+
+  if (!noteExists || error) {
+    navigate('/404/404/404', { replace: true });
+    return null;
+  }
+
   return (
     <motion.div
       className="flex min-w-0 flex-1 flex-col leading-7 h-screen"
@@ -104,7 +123,7 @@ export function RenderNote() {
 
       {isImage && (
         <SidebarImage
-          key={`folder-${folder}-note-${note}-video`}
+          key={`folder-${folder}-note-${note}-image`}
           folder={folder}
           note={note}
           fileUrl={fileUrl}

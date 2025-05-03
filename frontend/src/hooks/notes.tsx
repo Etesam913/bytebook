@@ -5,6 +5,7 @@ import type { Dispatch, FormEvent, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
 import {
+  DoesNoteExist,
   GetNotePreview,
   GetNotes,
   MoveToTrash,
@@ -453,5 +454,27 @@ export function useNoteChangedEvent(
     // Update the appropriate note preview
     const queryKey = ['note-preview', folderNameFromEvent, noteNameFromEvent];
     queryClient.invalidateQueries({ queryKey });
+  });
+}
+
+/**
+ * Custom hook to check if a note exists in a given folder
+ * @param folder - The folder path to check
+ * @param note - The note name to check
+ * @param fileExtension - The file extension of the note
+ * @returns Query result indicating if the note exists
+ */
+export function useNoteExists(
+  folder: string,
+  note: string | undefined,
+  fileExtension: string | undefined
+) {
+  return useQuery({
+    queryKey: ['doesNoteExist', folder, note, fileExtension],
+    queryFn: () => {
+      return DoesNoteExist(`${folder}/${note}.${fileExtension}`);
+      return null;
+    },
+    enabled: !!note,
   });
 }

@@ -16,7 +16,7 @@ import { useTags } from './hooks/tag-events';
 import { useThemeSetting } from './hooks/theme';
 import { MAX_SIDEBAR_WIDTH } from './utils/general';
 import { disableBackspaceNavigation } from './utils/routing';
-import { Loader } from './icons/loader';
+import { RouteFallback } from './components/route-fallback';
 
 // Lazy load route components
 const NotFound = lazy(() =>
@@ -38,15 +38,6 @@ const TagsSidebar = lazy(() =>
 );
 
 export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
-
-// Route loading fallback component
-const RouteFallback = () => (
-  <div className="flex-grow flex items-center justify-center">
-    <div className="animate-pulse text-gray-400">
-      <Loader />
-    </div>
-  </div>
-);
 
 disableBackspaceNavigation();
 

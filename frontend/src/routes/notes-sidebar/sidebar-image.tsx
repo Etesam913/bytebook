@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { BottomBar } from '../../components/editor/bottom-bar';
-import { Loader } from '../../icons/loader';
 import { cn } from '../../utils/string-formatting';
 import { ErrorLoading } from './error-loading';
+import { RouteFallback } from '../../components/route-fallback';
 
 export function SidebarImage({
   folder,
@@ -23,7 +23,7 @@ export function SidebarImage({
   return (
     <>
       {isLoading && (
-        <Loader width={42} height={42} className="mx-auto my-auto" />
+        <RouteFallback height={42} width={42} className="mx-auto my-auto" />
       )}
       {isError ? (
         <ErrorLoading />

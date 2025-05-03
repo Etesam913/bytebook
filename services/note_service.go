@@ -310,3 +310,9 @@ func (n *NoteService) GetNotePreview(path string) project_types.BackendResponseW
 		Data:    NotePreviewData{FirstLine: firstLine, FirstImageSrc: firstImageSrc, Size: noteSize, LastUpdated: lastUpdated},
 	}
 }
+
+func (n *NoteService) DoesNoteExist(path string) bool {
+	fullPath := filepath.Join(n.ProjectPath, "notes", path)
+	doesExist, _ := io_helpers.FileOrFolderExists(fullPath)
+	return doesExist
+}
