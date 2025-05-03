@@ -49,6 +49,7 @@ export function FolderDialogChildren({
             name: 'folder-name',
             placeholder: 'My Todos',
             autoFocus: true,
+            onFocus: (e) => e.target.select(),
             defaultValue: action === 'rename' ? folderName : '',
           }}
         />
