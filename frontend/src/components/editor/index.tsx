@@ -146,6 +146,7 @@ export function NotesEditor({
     <LexicalComposer initialConfig={editorConfig}>
       {isAlbumShowing && <Album />}
       <Toolbar
+        overflowContainerRef={overflowContainerRef}
         noteContainerRef={noteContainerRef}
         animationControls={animationControls}
         folder={folder}
@@ -202,6 +203,7 @@ export function NotesEditor({
                 }}
                 id="content-editable-editor"
                 spellCheck
+                autoFocus
                 autoCorrect="on"
                 onClick={(e) => {
                   // Clicks should not propagate to the editor when something is being dragged

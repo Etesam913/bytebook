@@ -62,7 +62,6 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
         language,
         projectSettings.code.pythonVenvPath
       );
-      console.log(res);
       if (!res.success) {
         throw new QueryError(res.message);
       }

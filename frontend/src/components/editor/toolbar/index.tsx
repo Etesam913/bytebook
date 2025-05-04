@@ -43,6 +43,7 @@ export function Toolbar({
   floatingData,
   setFloatingData,
   noteContainerRef,
+  overflowContainerRef,
   animationControls,
   frontmatter,
   setFrontmatter,
@@ -54,6 +55,7 @@ export function Toolbar({
   setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
   animationControls: AnimationControls;
   noteContainerRef: RefObject<HTMLDivElement | null>;
+  overflowContainerRef: RefObject<HTMLDivElement | null>;
   frontmatter: Record<string, string>;
   setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
   setNoteMarkdownString: Dispatch<SetStateAction<string>>;
@@ -83,6 +85,7 @@ export function Toolbar({
     editor,
     folder,
     note,
+    overflowContainerRef,
     setCurrentSelectionFormat,
     setFrontmatter,
     setNoteMarkdownString

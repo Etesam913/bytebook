@@ -31,7 +31,7 @@ import {
   useEffect,
 } from 'react';
 import { GetNoteMarkdown } from '../../../../bindings/github.com/etesam913/bytebook/services/noteservice';
-import { draggedElementAtom, noteContainerRefAtom } from '../../../atoms';
+import { draggedElementAtom } from '../../../atoms';
 import type { EditorBlockTypes, FloatingDataType } from '../../../types';
 import { QueryError } from '../../../utils/query';
 import { CUSTOM_TRANSFORMERS } from '../transformers';
@@ -50,12 +50,11 @@ export function useNoteMarkdown(
   editor: LexicalEditor,
   folder: string,
   note: string,
+  overflowContainerRef: RefObject<HTMLDivElement | null>,
   setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
   setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>,
   setNoteMarkdownString: Dispatch<SetStateAction<string>>
 ) {
-  const noteContainerRef = useAtomValue(noteContainerRefAtom);
-
   useQuery({
     queryKey: ['note-markdown', `${folder}/${note}.md`],
     queryFn: async () => {
@@ -73,11 +72,6 @@ export function useNoteMarkdown(
       setNoteMarkdownString(res.data);
 
       // Scroll to top of the new note. There is a set timeout because there is something that has to load in for the note for its scroll to be accurate
-      setTimeout(() => {
-        if (noteContainerRef?.current) {
-          noteContainerRef.current.scrollTo(0, 0);
-        }
-      }, 20);
 
       editor.update(
         () => {
@@ -94,6 +88,7 @@ export function useNoteMarkdown(
             CUSTOM_TRANSFORMERS,
             setFrontmatter
           );
+          overflowContainerRef.current?.scrollTo(0, 0);
         },
         { tag: 'note:initial-load' }
       );

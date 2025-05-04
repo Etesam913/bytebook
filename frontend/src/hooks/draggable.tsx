@@ -45,7 +45,6 @@ export function useAutoScrollDuringDrag(
   };
 
   const onDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
     const container = containerRef.current;
     if (!container) return;
     const rect = container.getBoundingClientRect();
