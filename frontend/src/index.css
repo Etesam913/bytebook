@@ -144,27 +144,33 @@ textarea,
   outline: 2px auto;
 }
 
-#content-editable-editor > h1 {
+#content-editable-editor > h1,
+h1.dragging {
   @apply text-3xl leading-[3.25rem];
 }
 
-#content-editable-editor > h2 {
+#content-editable-editor > h2,
+h2.dragging {
   @apply text-2xl leading-[2.8rem];
 }
 
-#content-editable-editor > h3 {
+#content-editable-editor > h3,
+h3.dragging {
   @apply text-xl leading-[2.5rem];
 }
 
-#content-editable-editor > h4 {
+#content-editable-editor > h4,
+h4.dragging {
   @apply text-lg leading-[2.25rem] font-semibold;
 }
 
-#content-editable-editor > h5 {
+#content-editable-editor > h5,
+h5.dragging {
   @apply text-base leading-[2rem] font-bold;
 }
 
-#content-editable-editor > h6 {
+#content-editable-editor > h6,
+h6.dragging {
   @apply text-sm leading-[1.75rem] font-bold;
 }
 

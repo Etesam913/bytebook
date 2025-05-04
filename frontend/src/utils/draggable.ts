@@ -12,6 +12,7 @@ export function createGhostElementFromHtmlElement(
   ghostElement.classList.add(...classNames);
   // Remove the selected classes
   ghostElement.classList.remove('bg-(--accent-color)!');
+  console.log(ghostElement);
   return ghostElement;
 }
 
