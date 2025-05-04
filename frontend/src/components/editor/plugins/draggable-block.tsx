@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { motion, useMotionValue, useSpring } from 'motion/react';
 import { useAtom, useAtomValue } from 'jotai';
-import { useEffect, useRef, useState } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   draggedElementAtom,
@@ -13,10 +13,14 @@ import { VerticalDots } from '../../../icons/vertical-dots';
 import { useDraggableBlock, useNodeDragEvents } from '../hooks/draggable-block';
 import { handleDragStart, setHandlePosition } from '../utils/draggable-block';
 
-export function DraggableBlockPlugin() {
-  const noteContainerRef = useAtomValue(noteContainerRefAtom);
+export function DraggableBlockPlugin({
+  overflowContainerRef,
+}: {
+  overflowContainerRef: RefObject<HTMLDivElement | null>;
+}) {
   const [editor] = useLexicalComposerContext();
-  const { draggableBlockElement } = useDraggableBlock(noteContainerRef);
+  const { draggableBlockElement } = useDraggableBlock(overflowContainerRef);
+  const noteContainerRef = useAtomValue(noteContainerRefAtom);
   const [isDragHandleShowing, setIsDragHandleShowing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const handleRef = useRef<HTMLDivElement>(null);

@@ -84,7 +84,6 @@ export function NotesEditor({
   const [noteMarkdownString, setNoteMarkdownString] = useState('');
   const draggedElement = useAtomValue(draggedElementAtom);
   const { mutate: interruptExecution } = useSendInterruptRequestMutation();
-
   const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(
     overflowContainerRef,
     {
@@ -171,19 +170,11 @@ export function NotesEditor({
             fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
           }}
           className={cn(
-            'h-full relative p-4 flex-1 w-full',
+            'h-full relative p-4 flex-1 w-full flex flex-col',
             projectSettings.appearance.noteWidth === 'readability' &&
               'max-w-[44rem] mx-auto',
             isNoteMaximized && 'px-6'
           )}
-          onClick={(e) => {
-            // When the note container is clicked and not the content, we want to focus the editor
-            if (e.target === noteContainerRef.current) {
-              editor?.focus(undefined, {
-                defaultSelection: 'rootStart',
-              });
-            }
-          }}
         >
           <NoteTitle folder={folder} note={note} />
           <ComponentPickerMenuPlugin folder={folder} note={note} />
@@ -202,6 +193,7 @@ export function NotesEditor({
                   setDraggableBlockElement(null);
                 }}
                 id="content-editable-editor"
+                className="flex-1"
                 spellCheck
                 autoFocus
                 autoCorrect="on"
@@ -242,7 +234,7 @@ export function NotesEditor({
           />
           <FilesPlugin />
           <CodePlugin />
-          <DraggableBlockPlugin />
+          <DraggableBlockPlugin overflowContainerRef={overflowContainerRef} />
           <FocusPlugin />
           <LinkMatcherPlugin />
           {/* <TreeViewPlugin /> */}

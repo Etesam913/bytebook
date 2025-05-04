@@ -71,8 +71,6 @@ export function useNoteMarkdown(
       editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
       setNoteMarkdownString(res.data);
 
-      // Scroll to top of the new note. There is a set timeout because there is something that has to load in for the note for its scroll to be accurate
-
       editor.update(
         () => {
           // Clear formatting
@@ -88,6 +86,7 @@ export function useNoteMarkdown(
             CUSTOM_TRANSFORMERS,
             setFrontmatter
           );
+          // Scroll to top of page after note markdown has loaded in
           overflowContainerRef.current?.scrollTo(0, 0);
         },
         { tag: 'note:initial-load' }

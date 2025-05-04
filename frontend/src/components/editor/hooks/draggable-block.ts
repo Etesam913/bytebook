@@ -36,7 +36,8 @@ export function useDraggableBlock(
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
-    const noteContainerValue = noteContainerRef?.current;
+    if (!noteContainerRef?.current) return;
+    const noteContainerValue = noteContainerRef.current;
     function handleMouseMove(e: MouseEvent) {
       if (!noteContainerValue) {
         return;
@@ -61,8 +62,8 @@ export function useDraggableBlock(
       setDraggableBlockElement(null);
     }
 
-    noteContainerRef?.current?.addEventListener('mousemove', handleMouseMove);
-    noteContainerRef?.current?.addEventListener('mouseleave', handleMouseLeave);
+    noteContainerRef.current.addEventListener('mousemove', handleMouseMove);
+    noteContainerRef.current.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
       noteContainerRef?.current?.removeEventListener(
@@ -125,6 +126,7 @@ export function useNodeDragEvents(
     }, 100);
 
     function handleOnDrop(event: DragEvent): boolean {
+      console.log('handleOnDrop');
       if (!isDragging) {
         return false;
       }
