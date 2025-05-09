@@ -133,7 +133,9 @@ func GetProjectSettings(projectPath string) (project_types.ProjectSettingsJson, 
 			NoteSidebarItemSize: "card",
 		},
 		Code: project_types.CodeProjectSettingsJson{
-			CodeBlockVimMode: false,
+			CodeBlockVimMode:      false,
+			PythonVenvPath:        "",
+			CustomPythonVenvPaths: []string{},
 		},
 	}
 

@@ -8,16 +8,23 @@ import {
   KernelHeartbeatStatus,
   KernelStatus,
   Languages,
+  ProjectSettings,
 } from '../types';
 import { useMutation } from '@tanstack/react-query';
 import {
+  CreateSocketsAndListen,
+  IsKernelAvailable,
+  IsPathAValidVirtualEnvironment,
   SendExecuteRequest,
   SendInterruptRequest,
+  SendShutdownMessage,
 } from '../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { QueryError } from '../utils/query';
 import { $nodesOfType, LexicalEditor } from 'lexical';
 import { toast } from 'sonner';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
+import { useUpdateProjectSettingsMutation } from './project-settings';
+import { Dispatch, FormEvent, SetStateAction } from 'react';
 
 /**
  * Hook that listens for kernel status updates and updates the kernels data atom.
@@ -363,5 +370,128 @@ export function useSendInterruptRequestMutation(onSuccess?: () => void) {
       if (!res.success) throw new QueryError(res.message);
     },
     onSuccess,
+  });
+}
+
+/**
+ * Hook that creates a mutation for shutting down a kernel.
+ * Can optionally restart the kernel after shutdown.
+ * Throws an error if the shutdown request fails.
+ *
+ * @returns A mutation object for shutting down the kernel
+ */
+export function useShutdownKernelMutation() {
+  return useMutation({
+    mutationFn: async (restart: boolean) => {
+      const res = await SendShutdownMessage(restart);
+      if (!res.success) {
+        throw new QueryError(res.message);
+      }
+    },
+  });
+}
+
+/**
+ * Hook that creates a mutation for starting up a kernel.
+ * Creates sockets and establishes event listeners for the specified language.
+ * Throws an error if the startup request fails.
+ *
+ * @returns A mutation object for starting up the kernel
+ */
+export function useTurnOnKernelMutation() {
+  return useMutation({
+    mutationFn: async (language: Languages) => {
+      const res = await CreateSocketsAndListen(language);
+      if (!res.success) {
+        throw new QueryError(res.message);
+      }
+    },
+  });
+}
+
+type pythonVenvMutationParams = {
+  e: FormEvent<HTMLFormElement>;
+  setErrorText: Dispatch<SetStateAction<string>>;
+};
+
+/**
+ * Hook that creates a mutation for updating Python virtual environment settings.
+ * Validates the virtual environment path, updates project settings, and restarts the Python kernel.
+ * Throws an error if the path is invalid or virtual environment validation fails.
+ *
+ * @param projectSettings - The current project settings object
+ * @returns A mutation object for updating Python virtual environment settings
+ */
+export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
+  const { mutateAsync: updateProjectSettings } =
+    useUpdateProjectSettingsMutation();
+  const { mutateAsync: shutdownKernel } = useShutdownKernelMutation();
+  const { mutateAsync: turnOnKernel } = useTurnOnKernelMutation();
+
+  return useMutation({
+    mutationFn: async (variables: pythonVenvMutationParams) => {
+      const { e } = variables;
+      e.preventDefault();
+      const form = e.target as HTMLFormElement;
+      const formData = new FormData(form);
+      const selectedVenvPath = formData.get('venv-path-option');
+      const elementForSelectedVenvPath = form.querySelector(
+        'input[name="venv-path-option"]:checked'
+      );
+      if (
+        !elementForSelectedVenvPath ||
+        typeof selectedVenvPath !== 'string' ||
+        !selectedVenvPath
+      ) {
+        throw new Error('No virtual environment path provided');
+      }
+
+      const check = await IsPathAValidVirtualEnvironment(selectedVenvPath);
+      if (!check.success) {
+        throw new Error(check.message);
+      }
+      let newCustomVenvPaths = projectSettings.code.customPythonVenvPaths;
+      // If the custom venv radio button is selected, then add the path to the list of custom paths so
+      // that it can be shown as a radio button when the dialog is opened in the future
+      if (elementForSelectedVenvPath.id === 'custom-venv-path') {
+        newCustomVenvPaths = [
+          ...new Set([
+            ...projectSettings.code.customPythonVenvPaths,
+            selectedVenvPath,
+          ]),
+        ];
+      }
+      await updateProjectSettings({
+        newProjectSettings: {
+          ...projectSettings,
+          code: {
+            ...projectSettings.code,
+            pythonVenvPath: selectedVenvPath,
+            customPythonVenvPaths: newCustomVenvPaths,
+          },
+        },
+      });
+      const canUseKernel = await IsKernelAvailable();
+
+      if (canUseKernel) {
+        await shutdownKernel(false);
+        // Switch the kernel on after 2 seconds, hopefully after the shutdown kernel message has been processed
+        setTimeout(() => {
+          turnOnKernel('python');
+        }, 2000);
+      } else {
+        turnOnKernel('python');
+      }
+
+      return true;
+    },
+    onError: (error, variables) => {
+      const { setErrorText } = variables;
+      if (error instanceof Error) {
+        setErrorText(error.message);
+      } else {
+        setErrorText('An unknown error occurred');
+      }
+    },
   });
 }

@@ -175,7 +175,7 @@ func TestGetPythonVirtualEnvironments(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Test GetPythonVirtualEnvironments
-		venvs, err := kernel_helpers.GetPythonVirtualEnvironments(projectDir)
+		venvs, err := kernel_helpers.GetPythonVirtualEnvironments(projectDir, []string{})
 		assert.NoError(t, err)
 		assert.Len(t, venvs, 2, "Should find exactly 2 virtual environments")
 		assert.Contains(t, venvs, venv1, "Should include venv1")
@@ -187,7 +187,7 @@ func TestGetPythonVirtualEnvironments(t *testing.T) {
 		projectDir := t.TempDir()
 
 		// Test with no code directory
-		venvs, err := kernel_helpers.GetPythonVirtualEnvironments(projectDir)
+		venvs, err := kernel_helpers.GetPythonVirtualEnvironments(projectDir, []string{})
 		assert.Error(t, err, "Should return error when code directory doesn't exist")
 		assert.Empty(t, venvs, "Should return empty list when code directory doesn't exist")
 	})
@@ -207,7 +207,7 @@ func TestGetPythonVirtualEnvironments(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Test with no virtual environments
-		venvs, err := kernel_helpers.GetPythonVirtualEnvironments(projectDir)
+		venvs, err := kernel_helpers.GetPythonVirtualEnvironments(projectDir, []string{})
 		assert.NoError(t, err)
 		assert.Empty(t, venvs, "Should return empty list when no virtual environments exist")
 	})

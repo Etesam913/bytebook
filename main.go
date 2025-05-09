@@ -6,12 +6,11 @@ import (
 	"log"
 	"sync"
 
+	"github.com/etesam913/bytebook/internal/ui"
 	"github.com/etesam913/bytebook/lib/auth_server"
-	"github.com/etesam913/bytebook/lib/custom_events"
 	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
 	"github.com/etesam913/bytebook/lib/kernel_helpers"
-	"github.com/etesam913/bytebook/lib/menus"
 	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/etesam913/bytebook/services"
 	"github.com/fsnotify/fsnotify"
@@ -100,9 +99,9 @@ func main() {
 	if app.IsDarkMode() {
 		backgroundColor = application.NewRGB(39, 39, 43)
 	}
-	custom_events.CreateWindow(app, "/", backgroundColor)
-
-	menus.InitializeApplicationMenu(app, backgroundColor)
+	// Creates the default window
+	ui.CreateWindow(app, "/", backgroundColor)
+	ui.InitializeApplicationMenu(backgroundColor)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {

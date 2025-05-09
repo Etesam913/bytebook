@@ -37,7 +37,6 @@ export function useAutoScrollDuringDrag(
   };
 
   const stop = () => {
-    console.log('leave or drop');
     if (frameId.current) {
       cancelAnimationFrame(frameId.current);
       frameId.current = 0;

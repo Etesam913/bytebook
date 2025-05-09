@@ -3,7 +3,7 @@ import { useAtom, useAtomValue } from 'jotai';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import useMeasure from 'react-use-measure';
 import { easingFunctions, getDefaultButtonVariants } from '../../animations';
-import { backendQueryAtom, dialogDataAtom, editorAtom } from '../../atoms';
+import { dialogDataAtom, editorAtom } from '../../atoms';
 import { XMark } from '../../icons/circle-xmark';
 import { cn } from '../../utils/string-formatting';
 import { MotionIconButton } from '../buttons';
@@ -48,7 +48,6 @@ export function DialogErrorText({
 
 export function Dialog() {
   const [dialogData, setDialogData] = useAtom(dialogDataAtom);
-  const backendQuery = useAtomValue(backendQueryAtom);
   const editor = useAtomValue(editorAtom);
   const [errorText, setErrorText] = useState('');
   const modalRef = useRef<HTMLFormElement>(null);
@@ -93,7 +92,7 @@ export function Dialog() {
 
   return (
     <AnimatePresence>
-      {dialogData.isOpen && !backendQuery.isLoading && (
+      {dialogData.isOpen && (
         <>
           <Shade />
           <motion.form

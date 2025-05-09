@@ -1,4 +1,4 @@
-package custom_events
+package ui
 
 import (
 	"math/rand"
@@ -6,7 +6,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-/* Creates a new webview window. Used in the file menu */
+/* Creates a new Bytebook window. */
 func CreateWindow(app *application.App, url string, backgroundColor application.RGBA) application.Window {
 	return app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
 		Title:     "Bytebook",

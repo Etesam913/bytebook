@@ -13,15 +13,16 @@ import {
 import { DropdownItem, Languages } from '../../../types';
 import { Loader } from '../../../icons/loader';
 import { cn } from '../../../utils/string-formatting';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import {
-  CreateSocketsAndListen,
-  SendShutdownMessage,
-} from '../../../../bindings/github.com/etesam913/bytebook/services/codeservice';
+import { useQuery } from '@tanstack/react-query';
+import { CreateSocketsAndListen } from '../../../../bindings/github.com/etesam913/bytebook/services/codeservice';
 import { QueryError } from '../../../utils/query';
 import { FolderOpen } from '../../../icons/folder-open';
 import { PythonVenvDialog } from '../python-venv-dialog';
-import { pythonVirtualEnvironmentSubmit } from '../../../utils/code';
+import {
+  usePythonVenvSubmitMutation,
+  useShutdownKernelMutation,
+  useTurnOnKernelMutation,
+} from '../../../hooks/code';
 
 const languageSpecificOptions: {
   heartbeatSuccess: Partial<Record<Languages, DropdownItem[]>>;
@@ -49,44 +50,22 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const [focusIndex, setFocusIndex] = useState(0);
   const dropdownContainerRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(dropdownContainerRef, () => setIsOpen(false));
+  const projectSettings = useAtomValue(projectSettingsAtom);
   const kernelsData = useAtomValue(kernelsDataAtom);
   const { status, heartbeat, errorMessage } = kernelsData[language];
-
-  // TODO: Remove the need to pass in the pythonVenvPath into the CreateSocketAndListen
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const { mutate: shutdownKernel } = useShutdownKernelMutation();
+  const { mutate: turnOnKernel } = useTurnOnKernelMutation();
+  const { mutateAsync: submitPythonVenv } =
+    usePythonVenvSubmitMutation(projectSettings);
 
   useQuery({
     queryKey: ['heartbeat', language],
     queryFn: async () => {
-      const res = await CreateSocketsAndListen(
-        language,
-        projectSettings.code.pythonVenvPath
-      );
+      const res = await CreateSocketsAndListen(language);
       if (!res.success) {
         throw new QueryError(res.message);
       }
       return res;
-    },
-  });
-
-  const { mutate: shutdownKernel } = useMutation({
-    mutationFn: async (restart: boolean) => {
-      const res = await SendShutdownMessage(restart);
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
-    },
-  });
-
-  const { mutate: turnOnKernel } = useMutation({
-    mutationFn: async () => {
-      const res = await CreateSocketsAndListen(
-        language,
-        projectSettings.code.pythonVenvPath
-      );
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
     },
   });
 
@@ -140,7 +119,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
               shutdownKernel(false);
               break;
             case 'turn-on':
-              turnOnKernel();
+              turnOnKernel(language);
               break;
             case 'change-venv':
               setDialogData({
@@ -151,8 +130,9 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
                 children: (errorText) => (
                   <PythonVenvDialog errorText={errorText} />
                 ),
-                onSubmit: async (e, setErrorText) =>
-                  pythonVirtualEnvironmentSubmit(e, setErrorText),
+                onSubmit: async (e, setErrorText) => {
+                  return await submitPythonVenv({ e, setErrorText });
+                },
               });
               break;
             default:

@@ -24,8 +24,9 @@ type AppearanceProjectSettingsJson struct {
 }
 
 type CodeProjectSettingsJson struct {
-	CodeBlockVimMode bool   `json:"codeBlockVimMode"`
-	PythonVenvPath   string `json:"pythonVenvPath"`
+	CodeBlockVimMode      bool     `json:"codeBlockVimMode"`
+	PythonVenvPath        string   `json:"pythonVenvPath"`
+	CustomPythonVenvPaths []string `json:"customPythonVenvPaths"`
 }
 
 type ProjectSettingsJson struct {

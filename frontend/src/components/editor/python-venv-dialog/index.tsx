@@ -13,23 +13,21 @@ import {
 } from '../../../atoms';
 import { ShareRight } from '../../../icons/share-right';
 import { MotionButton, MotionIconButton } from '../../buttons';
-import { easingFunctions, getDefaultButtonVariants } from '../../../animations';
+import { getDefaultButtonVariants } from '../../../animations';
 import { RevealFolderOrFileInFinder } from '../../../../bindings/github.com/etesam913/bytebook/services/noteservice';
 import { QueryError } from '../../../utils/query';
-import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
 import { PlainCodeSnippet } from '../../plain-code-snippet';
-import { AnimatePresence, motion, Variants } from 'motion/react';
 import { FloppyDisk } from '../../../icons/floppy-disk';
 import { DialogErrorText } from '../../dialog';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export function PythonVenvDialog({ errorText }: { errorText: string }) {
+  const [customVenvPath, setCustomVenvPath] = useState<string | null>(null);
   const { data, error, isLoading } = useQuery({
     queryKey: ['python-venvs'],
     queryFn: () => GetPythonVirtualEnvironments(),
     refetchInterval: 3500,
   });
-  const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const projectSettings = useAtomValue(projectSettingsAtom);
   const setBackendQuery = useSetAtom(backendQueryAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
@@ -41,12 +39,14 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
       }
     },
   });
+
   useEffect(() => {
     setDialogData((prev) => ({
       ...prev,
       dynamicData: data,
     }));
   }, [data]);
+
   const { mutateAsync: chooseCustomVirtualEnvironmentPath } = useMutation({
     mutationFn: async () => {
       const res = await ChooseCustomVirtualEnvironmentPath();
@@ -70,19 +70,6 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
   });
 
   const pythonVenvPaths = data?.data ?? [];
-
-  const isVenvPathCustom = (pythonVenvPaths ?? []).every(
-    (path) => path !== projectSettings.code.pythonVenvPath
-  );
-
-  const variants: Variants = {
-    hidden: {
-      height: 0,
-      opacity: 0,
-      transition: { ease: easingFunctions['ease-in-out-cubic'] },
-    },
-    visible: { height: 44, opacity: 1, transition: { type: 'spring' } },
-  };
 
   return (
     <section className="flex flex-col gap-3.5">
@@ -111,19 +98,9 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                 <RadioButton
                   name="venv-path-option"
                   value={venvPath}
-                  onChange={(e) => {
-                    const pathToVenv = e.target.value;
-                    updateProjectSettings({
-                      newProjectSettings: {
-                        ...projectSettings,
-                        code: {
-                          ...projectSettings.code,
-                          pythonVenvPath: pathToVenv,
-                        },
-                      },
-                    });
-                  }}
-                  checked={venvPath === projectSettings.code.pythonVenvPath}
+                  defaultChecked={
+                    venvPath === projectSettings.code.pythonVenvPath
+                  }
                   label={
                     venvPath.split('/').length > 3
                       ? venvPath.split('/').slice(-3).join('/')
@@ -148,68 +125,39 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
             ))}
             <div className="flex flex-col group p-2 bg-zinc-150 dark:bg-zinc-750 rounded-md overflow-hidden">
               <RadioButton
+                id="custom-venv-path"
                 name="venv-path-option"
-                value={projectSettings.code.pythonVenvPath}
-                checked={isVenvPathCustom}
-                onChange={() => {
-                  updateProjectSettings({
-                    newProjectSettings: {
-                      ...projectSettings,
-                      code: {
-                        ...projectSettings.code,
-                        pythonVenvPath: '',
-                      },
-                    },
-                  });
-                }}
+                value={customVenvPath ?? ''}
                 label={'Or choose a custom virtual environment'}
                 labelProps={{
                   className: 'text-sm',
                 }}
               />
-              <AnimatePresence>
-                {isVenvPathCustom && (
-                  <motion.footer
-                    variants={variants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="hidden"
+              <footer>
+                <div className="mt-2.5 flex items-center gap-3">
+                  <MotionButton
+                    {...getDefaultButtonVariants()}
+                    className="w-fit text-sm text-nowrap"
+                    onClick={async () => {
+                      setBackendQuery({
+                        isLoading: true,
+                        message: 'Select a virtual environment folder',
+                      });
+
+                      const res = await chooseCustomVirtualEnvironmentPath();
+                      if (res.success) {
+                        setCustomVenvPath(res.data);
+                      }
+                    }}
                   >
-                    <div className="mt-2.5 flex items-center gap-3">
-                      <MotionButton
-                        {...getDefaultButtonVariants()}
-                        className="w-fit text-sm text-nowrap"
-                        onClick={async () => {
-                          setBackendQuery({
-                            isLoading: true,
-                            message: 'Select a virtual environment folder',
-                          });
+                    Select a custom path
+                  </MotionButton>
 
-                          const res =
-                            await chooseCustomVirtualEnvironmentPath();
-                          updateProjectSettings({
-                            newProjectSettings: {
-                              ...projectSettings,
-                              code: {
-                                ...projectSettings.code,
-                                pythonVenvPath: res.data ?? '',
-                              },
-                            },
-                          });
-                        }}
-                      >
-                        Select a custom path
-                      </MotionButton>
-
-                      <p className="text-xs text-zinc-600 dark:text-zinc-300 overflow-hidden text-nowrap overflow-ellipsis">
-                        {projectSettings.code.pythonVenvPath === ''
-                          ? 'No virtual environment selected'
-                          : projectSettings.code.pythonVenvPath}
-                      </p>
-                    </div>
-                  </motion.footer>
-                )}
-              </AnimatePresence>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-300 overflow-hidden text-nowrap overflow-ellipsis">
+                    {customVenvPath ?? 'No virtual environment selected'}
+                  </p>
+                </div>
+              </footer>
             </div>
           </div>
         ) : (

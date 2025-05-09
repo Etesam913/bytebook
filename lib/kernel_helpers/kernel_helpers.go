@@ -9,10 +9,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"sync"
 	"time"
 
 	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/lib/map_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -295,22 +297,31 @@ func IsVirtualEnv(dir string) bool {
 	return false
 }
 
-func GetPythonVirtualEnvironments(projectPath string) ([]string, error) {
+// GetPythonVirtualEnvironments returns a list of paths to Python virtual environments found in the project's
+// code directory and any custom virtual environment paths specified in project settings. It scans the code
+// directory for standard virtual environments and combines those with user-configured custom paths.
+func GetPythonVirtualEnvironments(projectPath string, customPythonVenvPaths []string) ([]string, error) {
 	pathToCodeFolder := filepath.Join(projectPath, "code")
 	entries, err := os.ReadDir(pathToCodeFolder)
 	if err != nil {
 		return []string{}, errors.New(fmt.Sprintf("Couldn't read files in %s", pathToCodeFolder))
 	}
 
-	virtualEnvironmentPaths := []string{}
+	virtualEnvironmentPaths := map_helpers.Set[string]{}
 	for _, entry := range entries {
 		if entry.IsDir() {
 			pathToEntry := filepath.Join(pathToCodeFolder, entry.Name())
 			if IsVirtualEnv(pathToEntry) {
-				virtualEnvironmentPaths = append(virtualEnvironmentPaths, pathToEntry)
+				virtualEnvironmentPaths.Add(pathToEntry)
 			}
 		}
 	}
 
-	return virtualEnvironmentPaths, nil
+	for _, customVirtualEnvironmentPath := range customPythonVenvPaths {
+		virtualEnvironmentPaths.Add(customVirtualEnvironmentPath)
+	}
+
+	paths := map_helpers.MapKeys(virtualEnvironmentPaths)
+	sort.Strings(paths)
+	return paths, nil
 }

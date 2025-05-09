@@ -42,25 +42,10 @@ func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, cod
 	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
 
 	if !isHeartBeating {
-		// Try to initialize kernel here
-		projectSettings, err := project_helpers.GetProjectSettings(c.ProjectPath)
-
-		if err != nil {
-			return project_types.BackendResponseWithoutData{
-				Success: false,
-				Message: fmt.Sprintf("The %s kernel is not initialized. Try turning on the kernel by using the language button at the bottom of the editor.", language),
-			}
-		}
-
-		response := c.CreateSocketsAndListen(language, projectSettings.Code.PythonVenvPath)
-
+		response := c.CreateSocketsAndListen(language)
 		if !response.Success {
-			return project_types.BackendResponseWithoutData{
-				Success: false,
-				Message: response.Message,
-			}
+			return response
 		}
-
 	}
 
 	err := messaging.SendExecuteRequest(
@@ -166,7 +151,30 @@ func (c *CodeService) SendInterruptRequest(codeBlockId, executionId string) proj
 	}
 }
 
-func (c *CodeService) CreateSocketsAndListen(language, venvPath string) project_types.BackendResponseWithoutData {
+// IsKernelAvailable returns true if the kernel sockets are initialized
+// and the heartbeat is currently active.
+func (c *CodeService) IsKernelAvailable() bool {
+	// First, make sure all sockets have been wired up
+	if c.ShellSocketDealer == nil ||
+		c.IOPubSocketSubscriber == nil ||
+		c.ControlSocketDealer == nil ||
+		c.HeartbeatSocketReq == nil {
+		return false
+	}
+	// Then check that the heartbeat state reports “alive”
+	return c.HeartbeatState.GetHeartbeatStatus()
+}
+
+func (c *CodeService) CreateSocketsAndListen(language string) project_types.BackendResponseWithoutData {
+	projectSettings, err := project_helpers.GetProjectSettings(c.ProjectPath)
+	if err != nil {
+		return project_types.BackendResponseWithoutData{
+			Success: false,
+			Message: "Failed to retrieve project settings. Check if settings.json exists.",
+		}
+	}
+	venvPath := projectSettings.Code.PythonVenvPath
+
 	if !kernel_helpers.IsVirtualEnv(venvPath) {
 		return project_types.BackendResponseWithoutData{
 			Success: false,
@@ -218,7 +226,6 @@ func (c *CodeService) CreateSocketsAndListen(language, venvPath string) project_
 			),
 		}
 	}
-	projectSettings, err := project_helpers.GetProjectSettings(c.ProjectPath)
 
 	pathToConnectionFile := filepath.Join(c.ProjectPath, "code", "connection.json")
 
@@ -227,7 +234,7 @@ func (c *CodeService) CreateSocketsAndListen(language, venvPath string) project_
 		c.AllKernels.Python.Argv,
 		pathToConnectionFile,
 		"python",
-		projectSettings.Code.PythonVenvPath,
+		venvPath,
 	)
 
 	if err != nil {
@@ -279,7 +286,19 @@ func (c *CodeService) CreateSocketsAndListen(language, venvPath string) project_
 
 // GetPythonVirtualEnvironments retrieves the paths to all Python virtual environments in the project code directory.
 func (c *CodeService) GetPythonVirtualEnvironments() project_types.BackendResponseWithData[[]string] {
-	virtualEnvironmentPaths, err := kernel_helpers.GetPythonVirtualEnvironments(c.ProjectPath)
+	projectSettings, err := project_helpers.GetProjectSettings(c.ProjectPath)
+	if err != nil {
+		return project_types.BackendResponseWithData[[]string]{
+			Success: false,
+			Message: "Failed to retrieve project settings",
+			Data:    []string{},
+		}
+	}
+
+	virtualEnvironmentPaths, err := kernel_helpers.GetPythonVirtualEnvironments(
+		c.ProjectPath,
+		projectSettings.Code.CustomPythonVenvPaths,
+	)
 	if err != nil {
 		return project_types.BackendResponseWithData[[]string]{
 			Success: false,
