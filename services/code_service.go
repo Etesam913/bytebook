@@ -9,12 +9,10 @@ import (
 	"time"
 
 	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/jupyter_protocol"
+	"github.com/etesam913/bytebook/internal/jupyter_protocol/sockets"
 	"github.com/etesam913/bytebook/internal/util"
-	"github.com/etesam913/bytebook/lib/contracts"
-	"github.com/etesam913/bytebook/lib/kernel_helpers"
-	"github.com/etesam913/bytebook/lib/messaging"
 	"github.com/etesam913/bytebook/lib/project_types"
-	"github.com/etesam913/bytebook/lib/sockets"
 	"github.com/pebbe/zmq4"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -27,7 +25,7 @@ type CodeService struct {
 	IOPubSocketSubscriber          *zmq4.Socket
 	ControlSocketDealer            *zmq4.Socket
 	HeartbeatSocketReq             *zmq4.Socket
-	HeartbeatState                 kernel_helpers.KernelHeartbeatState
+	HeartbeatState                 jupyter_protocol.KernelHeartbeatState
 	LanguageToKernelConnectionInfo config.LanguageToKernelConnectionInfo
 	AllKernels                     config.AllKernels
 }
@@ -49,10 +47,10 @@ func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, cod
 		}
 	}
 
-	err := messaging.SendExecuteRequest(
+	err := jupyter_protocol.SendExecuteRequest(
 		c.ShellSocketDealer,
-		messaging.ExecuteMessageParams{
-			MessageParams: messaging.MessageParams{
+		jupyter_protocol.ExecuteMessageParams{
+			MessageParams: jupyter_protocol.MessageParams{
 				MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
 				SessionID: "current-session",
 			},
@@ -90,10 +88,10 @@ func (c *CodeService) SendShutdownMessage(restart bool) project_types.BackendRes
 		}
 	}
 
-	err := messaging.SendShutdownMessage(
+	err := jupyter_protocol.SendShutdownMessage(
 		c.ControlSocketDealer,
-		messaging.ShutdownMessageParams{
-			MessageParams: messaging.MessageParams{
+		jupyter_protocol.ShutdownMessageParams{
+			MessageParams: jupyter_protocol.MessageParams{
 				MessageID: fmt.Sprintf("shutdown-%d", time.Now().UnixNano()),
 				SessionID: "current-session",
 			},
@@ -131,9 +129,9 @@ func (c *CodeService) SendInterruptRequest(codeBlockId, executionId string) proj
 		}
 	}
 
-	err := messaging.SendInterruptMessage(
+	err := jupyter_protocol.SendInterruptMessage(
 		c.ControlSocketDealer,
-		messaging.MessageParams{
+		jupyter_protocol.MessageParams{
 			MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
 			SessionID: "current-session",
 		},
@@ -183,7 +181,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 		}
 	}
 
-	codeServiceUpdater := contracts.CodeServiceUpdater(c)
+	codeServiceUpdater := sockets.CodeServiceUpdater(c)
 	connectionInfo, err := config.GetConnectionInfoFromLanguage(c.ProjectPath, language)
 	if err != nil {
 		return project_types.BackendResponseWithoutData{
@@ -231,7 +229,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 	pathToConnectionFile := filepath.Join(c.ProjectPath, "code", "connection.json")
 
 	// Start up the kernel
-	err = kernel_helpers.LaunchKernel(
+	err = jupyter_protocol.LaunchKernel(
 		c.AllKernels.Python.Argv,
 		pathToConnectionFile,
 		"python",
@@ -361,10 +359,10 @@ func (c *CodeService) ResetCodeServiceProperties() {
 	c.IOPubSocketSubscriber = nil
 	c.ControlSocketDealer = nil
 	c.HeartbeatSocketReq = nil
-	c.HeartbeatState = kernel_helpers.KernelHeartbeatState{
+	c.HeartbeatState = jupyter_protocol.KernelHeartbeatState{
 		Mutex:  sync.RWMutex{},
 		Status: false,
 	}
 }
 
-var _ contracts.CodeServiceUpdater = (*CodeService)(nil)
+var _ sockets.CodeServiceUpdater = (*CodeService)(nil)

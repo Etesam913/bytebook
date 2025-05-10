@@ -1,4 +1,4 @@
-package messaging
+package jupyter_protocol
 
 import (
 	"crypto/hmac"

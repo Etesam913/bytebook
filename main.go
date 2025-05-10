@@ -7,11 +7,11 @@ import (
 	"sync"
 
 	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/jupyter_protocol"
 	"github.com/etesam913/bytebook/internal/ui"
 	"github.com/etesam913/bytebook/lib/auth_server"
 	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
-	"github.com/etesam913/bytebook/lib/kernel_helpers"
 	"github.com/etesam913/bytebook/services"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -84,7 +84,7 @@ func main() {
 					ControlSocketDealer:   nil,
 					IOPubSocketSubscriber: nil,
 					HeartbeatSocketReq:    nil,
-					HeartbeatState: kernel_helpers.KernelHeartbeatState{
+					HeartbeatState: jupyter_protocol.KernelHeartbeatState{
 						Mutex:  sync.RWMutex{},
 						Status: false,
 					},
