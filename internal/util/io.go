@@ -12,7 +12,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/Kei-K23/trashbox"
-	"github.com/etesam913/bytebook/lib/project_types"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -220,22 +219,6 @@ func CreateFileIfNotExist(pathname string) error {
 	return nil
 }
 
-/*
-GetValidPinnedNotes returns a list of valid pinned notes.
-It checks if the pinned note exists in the notes folder and returns all of the pinned notes that exist.
-*/
-func GetValidPinnedNotes(projectPath string, projectSettings project_types.ProjectSettingsJson) []string {
-	validPinnedNotes := []string{}
-	for _, pinnedNote := range projectSettings.PinnedNotes {
-		pathToPinnedNote := filepath.Join(projectPath, "notes", pinnedNote)
-		pathExists, _ := FileOrFolderExists(pathToPinnedNote)
-		if pathExists {
-			validPinnedNotes = append(validPinnedNotes, pinnedNote)
-		}
-	}
-	return validPinnedNotes
-}
-
 // MoveNotesToTrash moves the given notes (and folders) into the system trash.
 // Returns an error if any individual move fails, or nil on full success.
 func MoveNotesToTrash(projectPath string, folderAndNotes []string) error {
@@ -252,13 +235,13 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) error {
 		}
 	}
 
-	// Update pinned-notes in settings.json if present (ignore errors here)
-	settingsPath := filepath.Join(projectPath, "settings", "settings.json")
-	var cfg project_types.ProjectSettingsJson
-	if err := ReadJsonFromPath(settingsPath, &cfg); err == nil {
-		cfg.PinnedNotes = GetValidPinnedNotes(projectPath, cfg)
-		_ = WriteJsonToPath(settingsPath, cfg)
-	}
+	// // Update pinned-notes in settings.json if present (ignore errors here)
+	// settingsPath := filepath.Join(projectPath, "settings", "settings.json")
+	// var cfg project_types.ProjectSettingsJson
+	// if err := ReadJsonFromPath(settingsPath, &cfg); err == nil {
+	// 	cfg.PinnedNotes = GetValidPinnedNotes(projectPath, cfg)
+	// 	_ = WriteJsonToPath(settingsPath, cfg)
+	// }
 
 	// Return a combined error if any moves failed
 	if len(failed) > 0 {

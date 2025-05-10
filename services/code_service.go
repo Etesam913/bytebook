@@ -8,10 +8,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/etesam913/bytebook/lib/contracts"
 	"github.com/etesam913/bytebook/lib/kernel_helpers"
 	"github.com/etesam913/bytebook/lib/messaging"
-	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/etesam913/bytebook/lib/sockets"
 	"github.com/pebbe/zmq4"
@@ -27,8 +28,8 @@ type CodeService struct {
 	ControlSocketDealer            *zmq4.Socket
 	HeartbeatSocketReq             *zmq4.Socket
 	HeartbeatState                 kernel_helpers.KernelHeartbeatState
-	LanguageToKernelConnectionInfo project_types.LanguageToKernelConnectionInfo
-	AllKernels                     project_types.AllKernels
+	LanguageToKernelConnectionInfo config.LanguageToKernelConnectionInfo
+	AllKernels                     config.AllKernels
 }
 
 func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, code string) project_types.BackendResponseWithoutData {
@@ -166,7 +167,7 @@ func (c *CodeService) IsKernelAvailable() bool {
 }
 
 func (c *CodeService) CreateSocketsAndListen(language string) project_types.BackendResponseWithoutData {
-	projectSettings, err := project_helpers.GetProjectSettings(c.ProjectPath)
+	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
 	if err != nil {
 		return project_types.BackendResponseWithoutData{
 			Success: false,
@@ -175,7 +176,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 	}
 	venvPath := projectSettings.Code.PythonVenvPath
 
-	if !kernel_helpers.IsVirtualEnv(venvPath) {
+	if !util.IsVirtualEnv(venvPath) {
 		return project_types.BackendResponseWithoutData{
 			Success: false,
 			Message: "A virtual environment is not set. A virtual environment can be configured in the \"Code Block\" section of the settings.",
@@ -183,7 +184,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 	}
 
 	codeServiceUpdater := contracts.CodeServiceUpdater(c)
-	connectionInfo, err := kernel_helpers.GetConnectionInfoFromLanguage(c.ProjectPath, language)
+	connectionInfo, err := config.GetConnectionInfoFromLanguage(c.ProjectPath, language)
 	if err != nil {
 		return project_types.BackendResponseWithoutData{
 			Success: false,
@@ -191,7 +192,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 		}
 	}
 
-	if kernel_helpers.IsPortInUse(connectionInfo.ShellPort) {
+	if util.IsPortInUse(connectionInfo.ShellPort) {
 		// Still have to make sure that the sockets exist
 		createdSockets, err := sockets.CreateSockets(
 			c.ShellSocketDealer,
@@ -286,7 +287,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 
 // GetPythonVirtualEnvironments retrieves the paths to all Python virtual environments in the project code directory.
 func (c *CodeService) GetPythonVirtualEnvironments() project_types.BackendResponseWithData[[]string] {
-	projectSettings, err := project_helpers.GetProjectSettings(c.ProjectPath)
+	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
 	if err != nil {
 		return project_types.BackendResponseWithData[[]string]{
 			Success: false,
@@ -295,7 +296,7 @@ func (c *CodeService) GetPythonVirtualEnvironments() project_types.BackendRespon
 		}
 	}
 
-	virtualEnvironmentPaths, err := kernel_helpers.GetPythonVirtualEnvironments(
+	virtualEnvironmentPaths, err := config.GetPythonVirtualEnvironments(
 		c.ProjectPath,
 		projectSettings.Code.CustomPythonVenvPaths,
 	)
@@ -320,7 +321,7 @@ func (c *CodeService) IsPathAValidVirtualEnvironment(path string) project_types.
 		}
 	}
 
-	if kernel_helpers.IsVirtualEnv(path) {
+	if util.IsVirtualEnv(path) {
 		return project_types.BackendResponseWithoutData{
 			Success: true,
 			Message: fmt.Sprintf("%s is a valid virtual environment", path),

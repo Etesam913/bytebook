@@ -6,12 +6,12 @@ import (
 	"log"
 	"sync"
 
+	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/ui"
 	"github.com/etesam913/bytebook/lib/auth_server"
 	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/lib/git_helpers"
 	"github.com/etesam913/bytebook/lib/kernel_helpers"
-	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/etesam913/bytebook/services"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -29,14 +29,20 @@ var assets embed.FS
 // and starts a goroutine that emits a time-based event every second. It subsequently runs the application and
 // logs any error that might occur.
 func main() {
-	projectPath, err := project_helpers.GetProjectPath()
+	projectPath, err := config.GetProjectPath()
 	if err != nil {
-		log.Fatalf("Failed to get project path: %v", err)
+		log.Fatalf(err.Error())
 	}
 
-	// Creating project directories
-	project_helpers.CreateProjectDirectories(projectPath)
-	projectFiles := project_helpers.CreateProjectFiles(projectPath)
+	err = config.CreateProjectDirectories(projectPath)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	projectFiles, err := config.CreateProjectFiles(projectPath)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
 
 	// Creating git repo if it does not already exist
 	git_helpers.InitializeGitRepo(projectPath)

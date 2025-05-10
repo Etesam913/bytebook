@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/lib/contracts"
 	"github.com/etesam913/bytebook/lib/kernel_helpers"
 	"github.com/etesam913/bytebook/lib/messaging"
@@ -28,7 +29,7 @@ func CreateShellSocketDealer() *zmq4.Socket {
 
 func ListenToShellSocket(
 	shellSocketDealer *zmq4.Socket,
-	connectionInfo project_types.KernelConnectionInfo,
+	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
 ) {
 	defer shellSocketDealer.Close()
@@ -138,7 +139,7 @@ func CreateIOPubSocketSubscriber() *zmq4.Socket {
 func ListenToIOPubSocket(
 	ioPubSocketSubscriber *zmq4.Socket,
 	language string,
-	connectionInfo project_types.KernelConnectionInfo,
+	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
 	cancelFunc context.CancelFunc,
 ) {
@@ -296,7 +297,7 @@ var HEARTBEAT_TICKER = 1 * time.Second
 func ListenToHeartbeatSocket(
 	heartbeatSocketReq *zmq4.Socket,
 	language string,
-	connectionInfo project_types.KernelConnectionInfo,
+	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
 	heartbeatState *kernel_helpers.KernelHeartbeatState,
 ) {
@@ -378,7 +379,7 @@ func CreateControlSocketDealer() *zmq4.Socket {
 
 func ListenToControlSocket(
 	controlSocketDealer *zmq4.Socket,
-	connectionInfo project_types.KernelConnectionInfo,
+	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
 	codeServiceUpdater contracts.CodeServiceUpdater,
 ) {
@@ -488,7 +489,7 @@ func CreateSockets(
 	heartbeatSocketReq *zmq4.Socket,
 	controlSocketDealer *zmq4.Socket,
 	language string,
-	connectionInfo project_types.KernelConnectionInfo,
+	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
 	cancelFunc context.CancelFunc,
 	codeServiceUpdater contracts.CodeServiceUpdater,

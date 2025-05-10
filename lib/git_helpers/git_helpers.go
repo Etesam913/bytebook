@@ -6,15 +6,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/etesam913/bytebook/lib/project_helpers"
+	"github.com/etesam913/bytebook/internal/config"
 	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
+	gitconfig "github.com/go-git/go-git/v5/config"
 )
 
 func InitializeGitRepo(projectPath string) {
 	// Creates the git repository
 	_, err := git.PlainInit(projectPath, false)
-	if err != nil && !errors.Is(git.ErrRepositoryAlreadyExists, err) {
+	if err != nil && !errors.Is(err, git.ErrRepositoryAlreadyExists) {
 		log.Fatalf("Could not initialize git repo, %v", err)
 	} else {
 		// Adds the .gitignore file
@@ -37,7 +37,7 @@ c/
 }
 
 func SetRepoOrigin(originUrl string) bool {
-	projectPath, err := project_helpers.GetProjectPath()
+	projectPath, err := config.GetProjectPath()
 	if err != nil {
 		log.Fatalf("Cannot get project path: %v", err)
 	}
@@ -54,7 +54,7 @@ func SetRepoOrigin(originUrl string) bool {
 			return true
 		}
 	}
-	_, err = repo.CreateRemote(&config.RemoteConfig{
+	_, err = repo.CreateRemote(&gitconfig.RemoteConfig{
 		Name: "origin",
 		URLs: []string{originUrl},
 	})

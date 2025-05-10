@@ -3,7 +3,7 @@ import type { Dispatch, FormEvent, ReactNode, SetStateAction } from 'react';
 import {
   AppearanceProjectSettingsJson,
   ProjectSettingsJson,
-} from '../bindings/github.com/etesam913/bytebook/lib/project_types/models';
+} from '../bindings/github.com/etesam913/bytebook/internal/config/models';
 
 export const IMAGE_FILE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
 

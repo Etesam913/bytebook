@@ -15,7 +15,7 @@ import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { validateProjectSettings } from '../utils/project-settings';
 import { parseRGB } from '../utils/string-formatting';
 import { QueryError } from '../utils/query';
-import { ProjectSettingsJson } from '../../bindings/github.com/etesam913/bytebook/lib/project_types/models';
+import { ProjectSettingsJson } from '../../bindings/github.com/etesam913/bytebook/internal/config/models';
 
 function updateAccentColorVariable(accentColor: string) {
   let rgbValues = parseRGB(accentColor);

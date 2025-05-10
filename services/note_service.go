@@ -10,7 +10,6 @@ import (
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/etesam913/bytebook/lib/list_helpers"
 	"github.com/etesam913/bytebook/lib/note_helpers"
-	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 )
 
@@ -212,13 +211,13 @@ func (n *NoteService) MoveToTrash(folderAndNotes []string) project_types.Backend
 	err := util.MoveNotesToTrash(n.ProjectPath, folderAndNotes)
 	if err != nil {
 		return project_types.BackendResponseWithoutData{
-			Success: true,
-			Message: "Successfully moved notes to trash",
+			Success: false,
+			Message: err.Error(),
 		}
 	}
 	return project_types.BackendResponseWithoutData{
-		Success: false,
-		Message: err.Error(),
+		Success: true,
+		Message: "Successfully moved notes to trash",
 	}
 }
 
@@ -277,7 +276,7 @@ func (n *NoteService) MoveNoteToFolder(notePaths []string, newFolder string) pro
 		return project_types.BackendResponseWithoutData{
 			Success: false,
 			Message: fmt.Sprintf(
-				"Failed to move %s into %s", project_helpers.FormatStringListForErrorMessage(failedNoteNames, 3), newFolder,
+				"Failed to move %s into %s", util.FormatStringListForErrorMessage(failedNoteNames, 3), newFolder,
 			),
 		}
 	}
