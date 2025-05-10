@@ -12,8 +12,15 @@ import (
 
 const PROJECT_NAME = "Bytebook"
 
+var UserHomeDir = os.UserHomeDir
+
+// GetProjectPath returns the path to the project directory in the user's home directory.
+// On macOS, this is located in ~/Library/Application Support/Bytebook.
+// It creates the parent directory if it doesn't exist.
+// Returns the project path or an error if the home directory cannot be determined
+// or if the directory creation fails.
 func GetProjectPath() (string, error) {
-	homeDir, err := os.UserHomeDir()
+	homeDir, err := UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("could not get user's home directory: %w", err)
 	}
@@ -116,6 +123,10 @@ type ProjectSettingsJson struct {
 	Code               CodeProjectSettingsJson       `json:"code"`
 }
 
+// GetProjectSettings retrieves the project settings from the settings.json file.
+// If the file doesn't exist, it creates it with default settings.
+// It also validates pinned notes and updates the accent color.
+// Returns the project settings and any error encountered.
 func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 	projectSettingsPath := filepath.Join(projectPath, "settings", "settings.json")
 
@@ -158,6 +169,10 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 
 	return projectSettings, nil
 }
+
+// UpdatePinnedNotesAndAccentColorFromProjectSettings validates pinned notes and updates
+// the accent color in the project settings. It writes the updated settings back to the
+// settings.json file and returns the updated settings along with any error encountered.
 func UpdatePinnedNotesAndAccentColorFromProjectSettings(
 	projectPath string,
 	projectSettings ProjectSettingsJson,

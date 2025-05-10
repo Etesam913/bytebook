@@ -42,8 +42,16 @@ wails3 dev --port 5173
 
 #### Run all Tests
 
+With caching:
+
 ```bash
-gotestsum ./lib/...
+gotestsum --format=pkgname --format-icons=hivis ./internal/...
+```
+
+No caching:
+
+```bash
+gotestsum --format=pkgname --format-icons=hivis -- -count=1  ./internal/...
 ```
 
 #### Run tests that are being developed in watch mode

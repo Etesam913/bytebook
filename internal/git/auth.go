@@ -1,4 +1,4 @@
-package auth_server
+package git
 
 import (
 	"bytes"
@@ -11,10 +11,10 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-var GithubClientId = "Ov23liBxzSobDbxBY9UJ"
+var GITHUB_CLIENT_ID = "Ov23liBxzSobDbxBY9UJ"
 
-// CORSHandler is a middleware function that adds CORS headers to the response
-func CORSHandler(next http.Handler) http.Handler {
+// corsHandler is a middleware function that adds CORS headers to the response
+func corsHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE")
@@ -29,6 +29,8 @@ func CORSHandler(next http.Handler) http.Handler {
 	})
 }
 
+// readJSONBody reads and unmarshals the JSON body of an HTTP request into the specified type T.
+// It returns the unmarshaled data and any error encountered during reading or unmarshaling.
 func readJSONBody[T any](w http.ResponseWriter, r *http.Request) (T, error) {
 	var data T
 
@@ -50,7 +52,8 @@ func readJSONBody[T any](w http.ResponseWriter, r *http.Request) (T, error) {
 	return data, nil
 }
 
-// Helper function for making HTTP requests
+// makeHTTPRequest is a helper function for making HTTP requests with specified method, URL, headers, and body.
+// It returns the HTTP response and any error encountered during the request creation or execution.
 func makeHTTPRequest(method, url string, headers map[string]string, body []byte) (*http.Response, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
@@ -70,10 +73,13 @@ func makeHTTPRequest(method, url string, headers map[string]string, body []byte)
 	return resp, nil
 }
 
+// AccessTokenBody represents the structure for access token requests and responses
 type AccessTokenBody struct {
 	AccessToken string `json:"access_token"`
 }
 
+// revokeAuthToken handles HTTP requests to revoke a GitHub authentication token.
+// It expects a DELETE request with an access token in the request body.
 func revokeAuthToken(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -103,6 +109,10 @@ func revokeAuthToken(w http.ResponseWriter, r *http.Request) {
 		map[string]string{},
 		jsonData,
 	)
+	if err != nil {
+		http.Error(w, "Failed to revoke token", http.StatusInternalServerError)
+		return
+	}
 
 	defer resp.Body.Close()
 
@@ -116,6 +126,8 @@ func revokeAuthToken(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// loginToGithub handles HTTP requests to initiate GitHub OAuth login.
+// It redirects the user to GitHub's authorization page with appropriate parameters.
 func loginToGithub(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -123,12 +135,14 @@ func loginToGithub(w http.ResponseWriter, r *http.Request) {
 	}
 	baseURL := "https://github.com/login/oauth/authorize"
 	params := url.Values{}
-	params.Add("client_id", GithubClientId)
+	params.Add("client_id", GITHUB_CLIENT_ID)
 	params.Add("scope", "repo")
 	fullURL := fmt.Sprintf("%s?%s", baseURL, params.Encode())
 	http.Redirect(w, r, fullURL, http.StatusSeeOther)
 }
 
+// githubAuthCallback handles the OAuth callback from GitHub after user authorization.
+// It exchanges the authorization code for an access token and emits an event with the token.
 func githubAuthCallback(w http.ResponseWriter, r *http.Request) {
 	codeParam := r.URL.Query().Get("code")
 	if codeParam == "" {
@@ -185,13 +199,15 @@ func githubAuthCallback(w http.ResponseWriter, r *http.Request) {
 	app.EmitEvent("auth:access-token", accessToken)
 }
 
+// LaunchAuthServer starts an HTTP server on port 8000 to handle GitHub authentication.
+// It sets up routes for login, callback, and logout endpoints with CORS support.
 func LaunchAuthServer() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/auth/github/login", loginToGithub)
 	mux.HandleFunc("/auth/github/callback", githubAuthCallback)
 	mux.HandleFunc("/auth/github/logout", revokeAuthToken)
 
-	corsMux := CORSHandler(mux)
+	corsMux := corsHandler(mux)
 
 	port := "8000"
 	fmt.Printf("Server is starting on port %s...\n", port)

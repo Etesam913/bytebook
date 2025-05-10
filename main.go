@@ -7,11 +7,10 @@ import (
 	"sync"
 
 	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/git"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
 	"github.com/etesam913/bytebook/internal/ui"
-	"github.com/etesam913/bytebook/lib/auth_server"
 	"github.com/etesam913/bytebook/lib/file_server"
-	"github.com/etesam913/bytebook/lib/git_helpers"
 	"github.com/etesam913/bytebook/services"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -45,11 +44,16 @@ func main() {
 	}
 
 	// Creating git repo if it does not already exist
-	git_helpers.InitializeGitRepo(projectPath)
-	git_helpers.SetRepoOrigin(projectFiles.ProjectSettings.RepositoryToSyncTo)
+	err = git.InitializeGitRepo(projectPath)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
 
-	// Launching file server for images/videos
-	go file_server.LaunchFileServer(projectPath)
+	err = git.SetRepoOrigin(projectFiles.ProjectSettings.RepositoryToSyncTo)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
 	kernelCtx, kernelCtxCancel := context.WithCancel(context.Background())
 	defer kernelCtxCancel()
 
@@ -115,7 +119,7 @@ func main() {
 	}
 	defer watcher.Close()
 	go file_server.LaunchFileWatcher(app, projectPath, watcher)
-	go auth_server.LaunchAuthServer()
+	go git.LaunchAuthServer()
 	file_server.ListenToFolders(projectPath, watcher)
 
 	// Run the application. This blocks until the application has been exited.

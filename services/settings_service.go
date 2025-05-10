@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/git"
 	"github.com/etesam913/bytebook/internal/util"
-	"github.com/etesam913/bytebook/lib/git_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 )
 
@@ -46,8 +46,8 @@ func (s *SettingsService) UpdateProjectSettings(
 		}
 	}
 	if newProjectSettings.RepositoryToSyncTo != projectSettings.RepositoryToSyncTo {
-		isError := git_helpers.SetRepoOrigin(newProjectSettings.RepositoryToSyncTo)
-		if isError {
+		error := git.SetRepoOrigin(newProjectSettings.RepositoryToSyncTo)
+		if error != nil {
 			return project_types.BackendResponseWithData[config.ProjectSettingsJson]{
 				Success: false,
 				Message: fmt.Sprintf("Failed to set %s as origin", newProjectSettings.RepositoryToSyncTo),
