@@ -1,19 +1,19 @@
-package io_helpers
+package util
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
+	"regexp"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/Kei-K23/trashbox"
-	"github.com/etesam913/bytebook/lib/list_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
+	"golang.org/x/text/unicode/norm"
 )
 
 // WriteJsonToPath writes the provided data as a JSON file at the specified pathname.
@@ -58,7 +58,7 @@ func WriteJsonToPath(pathname string, data any) error {
 // Returns:
 //
 //	An error if any step of the process fails, otherwise nil.
-func ReadJsonFromPath(pathname string, data interface{}) error {
+func ReadJsonFromPath(pathname string, data any) error {
 	// Open the file at the given pathname.
 	file, err := os.Open(pathname)
 	if err != nil {
@@ -83,7 +83,6 @@ func ReadJsonFromPath(pathname string, data interface{}) error {
 }
 
 // ReadOrCreateJSON takes a file path and a default value.
-// It tries to read and parse the JSON file at the given path using io_helpers.
 // If the file doesn't exist, can't be read, or contains invalid JSON,
 // it will write the default value to the file and return it.
 func ReadOrCreateJSON[T any](filePath string, defaultValue T) (T, error) {
@@ -115,102 +114,6 @@ func ReadOrCreateJSON[T any](filePath string, defaultValue T) (T, error) {
 	return defaultValue, nil
 }
 
-type ActionStruct struct {
-	WindowsAction func()
-	MacAction     func()
-	LinuxAction   func()
-}
-
-func CompleteCustomActionForOS(action ActionStruct) error {
-	var err error = nil
-	switch os := runtime.GOOS; os {
-	case "windows":
-		action.WindowsAction()
-	case "darwin":
-		action.MacAction()
-	case "linux":
-		action.LinuxAction()
-	default:
-		// Fallback for other OS or as a default (can also decide to return an error instead)
-		err = errors.New("unsupported os")
-	}
-	return err
-}
-
-type CopyFileErr struct {
-	Err         error
-	IsDstExists bool
-}
-
-// CopyFile copies a file from src to dst. If dst does not exist, it will be created.
-// If dst exists, it will be overwritten.
-func CopyFile(src, dst string, shouldOverride bool) CopyFileErr {
-	// Open the source file for reading.
-	sourceFile, err := os.Open(src)
-	if err != nil {
-		return CopyFileErr{Err: err, IsDstExists: false}
-	}
-	defer sourceFile.Close()
-
-	doesDstExist, err := FileOrFolderExists(dst)
-	if err != nil {
-		return CopyFileErr{Err: err, IsDstExists: false}
-	}
-	if doesDstExist && !shouldOverride {
-		pathSegments := strings.Split(dst, "/")
-		return CopyFileErr{
-			Err: fmt.Errorf(
-				fmt.Sprintf("%s already exists", pathSegments[len(pathSegments)-1])),
-			IsDstExists: true,
-		}
-	}
-
-	// Create the destination file for writing. Use os.Create to create or truncate it before writing.
-	destinationFile, err := os.Create(dst)
-	if err != nil {
-		return CopyFileErr{Err: err, IsDstExists: false}
-	}
-	defer destinationFile.Close()
-
-	// Copy the contents of the source file to the destination file.
-	_, err = io.Copy(destinationFile, sourceFile)
-	if err != nil {
-		return CopyFileErr{Err: err, IsDstExists: false}
-	}
-
-	// Ensure that any writes to the destination file are committed to stable storage.
-	err = destinationFile.Sync()
-	return CopyFileErr{Err: err, IsDstExists: false}
-}
-
-// cleanFileName removes unsafe characters and trims spaces from a filename.
-func CleanFileName(filename string) string {
-	// Define a regular expression for characters you want to remove
-
-	// Replace those characters with an empty string
-
-	// Trim leading and trailing spaces
-	cleaned := strings.ReplaceAll(filename, " ", "_")
-	cleaned = strings.ReplaceAll(cleaned, ":", "_")
-	cleaned = strings.ReplaceAll(cleaned, "/", "_")
-	cleaned = strings.ReplaceAll(cleaned, "\\", "_")
-	cleaned = strings.ReplaceAll(cleaned, "*", "_")
-	cleaned = strings.ReplaceAll(cleaned, "?", "_")
-	cleaned = strings.ReplaceAll(cleaned, "\"", "_")
-	cleaned = strings.ReplaceAll(cleaned, "<", "_")
-	cleaned = strings.ReplaceAll(cleaned, ">", "_")
-	cleaned = strings.ReplaceAll(cleaned, "|", "_")
-	cleaned = strings.ReplaceAll(cleaned, "[", "_")
-	cleaned = strings.ReplaceAll(cleaned, "]", "_")
-	cleaned = strings.ReplaceAll(cleaned, "(", "_")
-	cleaned = strings.ReplaceAll(cleaned, ")", "_")
-	cleaned = strings.ReplaceAll(cleaned, "_", "")
-
-	// Further modifications could include truncating the filename if it's too long,
-	// ensuring it does not start with a dot if hidden files are a concern, etc.
-	return cleaned
-}
-
 /*
 FileOrFolderExists checks if a file or folder exists at the specified path.
 Parameters:
@@ -232,50 +135,57 @@ func FileOrFolderExists(path string) (bool, error) {
 	return false, err
 }
 
-func MoveNotesToTrash(projectPath string, folderAndNotes []string) project_types.BackendResponseWithoutData {
-	errors := []string{} // Slice to store any errors encountered during the process.
+// CleanFileName takes an arbitrary user string and returns a safe filename
+// using only letters, digits, dash, underscore, and dot. It enforces max length,
+// avoids Windows reserved names, collapses runs of underscores, and trims
+// undesirable leading/trailing characters.
+func CleanFileName(name string) string {
+	// 1) Normalize Unicode
+	name = norm.NFC.String(name)
 
-	// Iterate over each path in the provided folderAndNotes slice.
-	for _, path := range folderAndNotes {
-		// Split the path into parts using "/" as the delimiter.
-		pathParts := strings.Split(path, "/")
+	// 2) Replace any whitespace with single underscore
+	ws := regexp.MustCompile(`\s+`)
+	name = ws.ReplaceAllString(name, "_")
 
-		// Extract the filename from the path using a helper function.
-		_, fileName, _ := list_helpers.Pop(pathParts)
+	// 3) Remove any character that is NOT [A-Za-z0-9-_.]
+	valid := regexp.MustCompile(`[^A-Za-z0-9\-\._]+`)
+	name = valid.ReplaceAllString(name, "")
 
-		// Construct the full path of the file to be moved.
-		fullPath := filepath.Join(projectPath, "notes", path)
+	// 4) Collapse multiple underscores into one
+	dupUnderscore := regexp.MustCompile(`_+`)
+	name = dupUnderscore.ReplaceAllString(name, "_")
 
-		err := trashbox.MoveToTrash(fullPath)
+	// 5) Trim leading/trailing dots, underscores, and spaces
+	name = strings.Trim(name, "._ ")
 
-		if err != nil {
-			errors = append(errors, fileName)
+	// 6) Avoid Windows reserved filenames
+	upper := strings.ToUpper(name)
+	reserved := map[string]bool{
+		"CON": true, "PRN": true, "AUX": true, "NUL": true,
+	}
+	for i := 1; i <= 9; i++ {
+		reserved[fmt.Sprintf("COM%d", i)] = true
+		reserved[fmt.Sprintf("LPT%d", i)] = true
+	}
+	if reserved[upper] {
+		name = "_" + name
+	}
+
+	// 7) Truncate to 255 bytes without cutting UTF-8 codepoints:
+	const maxFilenameBytes = 255
+	if len(name) > maxFilenameBytes {
+		cutoff := maxFilenameBytes
+		for !utf8.ValidString(name[:cutoff]) {
+			cutoff--
 		}
+		name = name[:cutoff]
 	}
 
-	// Update the project settings to remove the moved notes from the pinned notes list if they are pinned
-	var projectSettings project_types.ProjectSettingsJson
-	projectSettingsPath := filepath.Join(projectPath, "settings", "settings.json")
-	err := ReadJsonFromPath(projectSettingsPath, &projectSettings)
-	if err == nil {
-		validPinnedNotes := GetValidPinnedNotes(projectPath, projectSettings)
-		projectSettings.PinnedNotes = validPinnedNotes
-		WriteJsonToPath(projectSettingsPath, projectSettings)
+	// 8) Fallback for empty string
+	if name == "" {
+		return "file"
 	}
-
-	// If any errors were encountered, return a failure response with the list of errors.
-	if len(errors) > 0 {
-		return project_types.BackendResponseWithoutData{
-			Success: false,
-			Message: fmt.Sprintf("Could not move %s to trash", strings.Join(errors, ", ")),
-		}
-	}
-
-	// If no errors were encountered, return a success response.
-	return project_types.BackendResponseWithoutData{
-		Success: true,
-		Message: "Successfully moved to trash",
-	}
+	return name
 }
 
 // CreateFileIfNotExist creates a file at the specified pathname if it does not already exist.
@@ -326,27 +236,36 @@ func GetValidPinnedNotes(projectPath string, projectSettings project_types.Proje
 	return validPinnedNotes
 }
 
-// MoveFile moves a file from srcPath to dstPath. If a file with the same name already exists at the destination,
-// it appends a number to the filename to make it unique.
-// Parameters:
-//
-//	srcPath: The source path of the file to be moved.
-//	dstPath: The destination path where the file should be moved.
-//
-// Returns:
-//
-//	An error if the move process fails, otherwise nil.
-func MoveFile(srcPath, dstPath string) error {
-	// Create a unique destination path using CreateUniqueNameForFileIfExists
-	uniqueDstPath, err := CreateUniqueNameForFileIfExists(dstPath)
-	if err != nil {
-		return err
+// MoveNotesToTrash moves the given notes (and folders) into the system trash.
+// Returns an error if any individual move fails, or nil on full success.
+func MoveNotesToTrash(projectPath string, folderAndNotes []string) error {
+	var failed []string
+
+	// Attempt to move each note/folder to trash
+	for _, relPath := range folderAndNotes {
+		parts := strings.Split(relPath, "/")
+		_, fileName, _ := Pop(parts)
+		fullPath := filepath.Join(projectPath, "notes", relPath)
+
+		if err := trashbox.MoveToTrash(fullPath); err != nil {
+			failed = append(failed, fileName)
+		}
 	}
 
-	// Move the file to the unique destination path
-	err = os.Rename(srcPath, uniqueDstPath)
-	if err != nil {
-		return err
+	// Update pinned-notes in settings.json if present (ignore errors here)
+	settingsPath := filepath.Join(projectPath, "settings", "settings.json")
+	var cfg project_types.ProjectSettingsJson
+	if err := ReadJsonFromPath(settingsPath, &cfg); err == nil {
+		cfg.PinnedNotes = GetValidPinnedNotes(projectPath, cfg)
+		_ = WriteJsonToPath(settingsPath, cfg)
+	}
+
+	// Return a combined error if any moves failed
+	if len(failed) > 0 {
+		return fmt.Errorf(
+			"could not move %s to trash",
+			strings.Join(failed, ", "),
+		)
 	}
 
 	return nil
@@ -383,6 +302,68 @@ func CreateUniqueNameForFileIfExists(filePath string) (string, error) {
 	}
 
 	return newFilePath, nil
+}
+
+// CopyFile copies a file from src to dst. If dst does not exist, it will be created.
+// If dst exists, it will be overwritten only if shouldOverride is true.
+func CopyFile(src, dst string, shouldOverride bool) error {
+	// Open the source file for reading.
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	doesDstExist, err := FileOrFolderExists(dst)
+	if err != nil {
+		return err
+	}
+	if doesDstExist && !shouldOverride {
+		pathSegments := strings.Split(dst, "/")
+		return fmt.Errorf("%s already exists", pathSegments[len(pathSegments)-1])
+	}
+
+	// Create the destination file for writing. Use os.Create to create or truncate it before writing.
+	destinationFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destinationFile.Close()
+
+	// Copy the contents of the source file to the destination file.
+	_, err = io.Copy(destinationFile, sourceFile)
+	if err != nil {
+		return err
+	}
+
+	// Ensure that any writes to the destination file are committed to stable storage.
+	return destinationFile.Sync()
+}
+
+// MoveFile moves a file from srcPath to dstPath. If a file with the same name already exists at the destination,
+// it appends a number to the filename to make it unique.
+// Parameters:
+//
+//	srcPath: The source path of the file to be moved.
+//	dstPath: The destination path where the file should be moved.
+//
+// Returns:
+//
+//	An error if the move process fails, otherwise nil.
+func MoveFile(srcPath, dstPath string) error {
+	// Create a unique destination path using CreateUniqueNameForFileIfExists
+	uniqueDstPath, err := CreateUniqueNameForFileIfExists(dstPath)
+	if err != nil {
+		return err
+	}
+
+	// Move the file to the unique destination path
+	err = os.Rename(srcPath, uniqueDstPath)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Powers the reveal in finder option in the context menu

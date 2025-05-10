@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/etesam913/bytebook/lib/kernel_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/etesam913/bytebook/lib/tags_helper"
@@ -77,26 +77,14 @@ func GetProjectPath() (string, error) {
 		return "Could not get user's home directory", err
 	}
 
-	// Customize the folder and database name as needed
-	var projectPath string
-
-	err = io_helpers.CompleteCustomActionForOS(
-		io_helpers.ActionStruct{
-			WindowsAction: func() {
-				projectPath = filepath.Join(homeDir, "AppData", "Local", ProjectName)
-			},
-			MacAction: func() {
-				projectPath = filepath.Join(homeDir, "Library", "Application Support", ProjectName)
-			},
-			LinuxAction: func() {
-				projectPath = filepath.Join(homeDir, ".local", "share", ProjectName)
-			},
-		},
+	// TODO: This projectPath solution only works on MacOS.
+	projectPath := filepath.Join(
+		homeDir,
+		"Library",
+		"Application Support",
+		ProjectName,
 	)
 
-	if err != nil {
-		return "Could not get the project path", err
-	}
 	// Ensure the directory exists
 	if err := os.MkdirAll(filepath.Dir(projectPath), os.ModePerm); err != nil {
 		return "Could not create the dbPath directory", err
@@ -140,7 +128,7 @@ func GetProjectSettings(projectPath string) (project_types.ProjectSettingsJson, 
 	}
 
 	// Load or create settings file
-	projectSettings, err := io_helpers.ReadOrCreateJSON(projectSettingsPath, defaultSettings)
+	projectSettings, err := util.ReadOrCreateJSON(projectSettingsPath, defaultSettings)
 
 	if err != nil {
 		return projectSettings, err
@@ -168,7 +156,7 @@ func UpdatePinnedNotesAndAccentColorFromProjectSettings(
 	projectSettingsPath := filepath.Join(projectPath, "settings", "settings.json")
 
 	// Validate pinned notes
-	projectSettings.PinnedNotes = io_helpers.GetValidPinnedNotes(projectPath, projectSettings)
+	projectSettings.PinnedNotes = util.GetValidPinnedNotes(projectPath, projectSettings)
 
 	// Update accent color if application is available
 	app := application.Get()
@@ -178,7 +166,7 @@ func UpdatePinnedNotesAndAccentColorFromProjectSettings(
 	}
 
 	// Write the updated settings
-	err := io_helpers.WriteJsonToPath(projectSettingsPath, projectSettings)
+	err := util.WriteJsonToPath(projectSettingsPath, projectSettings)
 
 	return projectSettings, err
 }

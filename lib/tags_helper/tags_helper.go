@@ -6,9 +6,7 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/etesam913/bytebook/lib/io_helpers"
-	"github.com/etesam913/bytebook/lib/list_helpers"
-	"github.com/etesam913/bytebook/lib/map_helpers"
+	"github.com/etesam913/bytebook/internal/util"
 )
 
 type NotesToTagsMap struct {
@@ -52,15 +50,15 @@ func CreateTagToNotesArrayIfNotExists(projectPath string, tag string) error {
 		return err
 	}
 
-	err := io_helpers.CreateFileIfNotExist(pathToTagToNotesArray)
+	err := util.CreateFileIfNotExist(pathToTagToNotesArray)
 
 	if err != nil {
 		return err
 	}
 
 	tagToNotesArray := TagsToNotesArray{}
-	if err = io_helpers.ReadJsonFromPath(pathToTagToNotesArray, &tagToNotesArray); err != nil {
-		err = io_helpers.WriteJsonToPath(
+	if err = util.ReadJsonFromPath(pathToTagToNotesArray, &tagToNotesArray); err != nil {
+		err = util.WriteJsonToPath(
 			pathToTagToNotesArray,
 			TagsToNotesArray{Notes: []string{}},
 		)
@@ -82,7 +80,7 @@ func AddNotesToTagToNotesArray(projectPath string, tag string, notePaths []strin
 	}
 
 	tagToNotesArray := TagsToNotesArray{}
-	if err := io_helpers.ReadJsonFromPath(pathToTagToNotesArray, &tagToNotesArray); err != nil {
+	if err := util.ReadJsonFromPath(pathToTagToNotesArray, &tagToNotesArray); err != nil {
 		return err
 	}
 
@@ -93,7 +91,7 @@ func AddNotesToTagToNotesArray(projectPath string, tag string, notePaths []strin
 		}
 	}
 
-	if err := io_helpers.WriteJsonToPath(pathToTagToNotesArray, tagToNotesArray); err != nil {
+	if err := util.WriteJsonToPath(pathToTagToNotesArray, tagToNotesArray); err != nil {
 		return err
 	}
 
@@ -113,16 +111,16 @@ func DeleteNotesFromTagToNotesArray(projectPath string, tag string, notePaths []
 	}
 
 	tagToNotesArray := TagsToNotesArray{}
-	if err := io_helpers.ReadJsonFromPath(pathToTagToNotesArray, &tagToNotesArray); err != nil {
+	if err := util.ReadJsonFromPath(pathToTagToNotesArray, &tagToNotesArray); err != nil {
 		return err
 	}
 
 	// Filter out the notePaths that should be removed.
-	tagToNotesArray.Notes = list_helpers.Filter(tagToNotesArray.Notes, func(note string) bool {
+	tagToNotesArray.Notes = util.Filter(tagToNotesArray.Notes, func(note string) bool {
 		return !slices.Contains(notePaths, note)
 	})
 
-	if err := io_helpers.WriteJsonToPath(pathToTagToNotesArray, tagToNotesArray); err != nil {
+	if err := util.WriteJsonToPath(pathToTagToNotesArray, tagToNotesArray); err != nil {
 		return err
 	}
 
@@ -138,7 +136,7 @@ func CreateNoteToTagsMapIfNotExists(projectPath string) error {
 		Notes: map[string][]string{},
 	}
 
-	_, err := io_helpers.ReadOrCreateJSON(pathToNoteToTagsMap, defaultMap)
+	_, err := util.ReadOrCreateJSON(pathToNoteToTagsMap, defaultMap)
 
 	return err
 }
@@ -153,7 +151,7 @@ func GetTagsForNotes(projectPath string, notes []string) (map[string][]string, e
 	}
 
 	notesToTagsMap := NotesToTagsMap{}
-	if err := io_helpers.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
+	if err := util.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
 		return map[string][]string{}, err
 	}
 	notesToTagsMapForDesiredNotes := map[string][]string{}
@@ -179,27 +177,27 @@ func AddTagsToNotesToTagsMap(projectPath string, notes []string, tags []string) 
 	}
 
 	notesToTagsMap := NotesToTagsMap{}
-	if err := io_helpers.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
+	if err := util.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
 		return err
 	}
 
 	for _, note := range notes {
 		if existingTags, exists := notesToTagsMap.Notes[note]; exists {
-			newNotes := list_helpers.RemoveDuplicates(append(existingTags, tags...))
+			newNotes := util.RemoveDuplicates(append(existingTags, tags...))
 			notesToTagsMap.Notes[note] = newNotes
 		} else {
 			notesToTagsMap.Notes[note] = tags
 		}
 	}
 
-	if err := io_helpers.WriteJsonToPath(pathToNoteToTagsMap, notesToTagsMap); err != nil {
+	if err := util.WriteJsonToPath(pathToNoteToTagsMap, notesToTagsMap); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func DeleteStaleTagsFromNotesToTagsMap(projectPath string, staleTags map_helpers.Set[string]) error {
+func DeleteStaleTagsFromNotesToTagsMap(projectPath string, staleTags util.Set[string]) error {
 	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
 
 	err := CreateNoteToTagsMapIfNotExists(projectPath)
@@ -209,12 +207,12 @@ func DeleteStaleTagsFromNotesToTagsMap(projectPath string, staleTags map_helpers
 	}
 
 	notesToTagsMap := NotesToTagsMap{}
-	if err := io_helpers.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
+	if err := util.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
 		return err
 	}
 
 	for note, tagsForNote := range notesToTagsMap.Notes {
-		notesToTagsMap.Notes[note] = list_helpers.Filter(
+		notesToTagsMap.Notes[note] = util.Filter(
 			tagsForNote,
 			func(tagName string) bool {
 				return !staleTags.Has(tagName)
@@ -225,7 +223,7 @@ func DeleteStaleTagsFromNotesToTagsMap(projectPath string, staleTags map_helpers
 		}
 	}
 
-	if err := io_helpers.WriteJsonToPath(pathToNoteToTagsMap, notesToTagsMap); err != nil {
+	if err := util.WriteJsonToPath(pathToNoteToTagsMap, notesToTagsMap); err != nil {
 		return err
 	}
 
@@ -243,12 +241,12 @@ func DeleteTagsFromNotesToTagsMap(projectPath string, notes []string, tags []str
 	}
 
 	notesToTagsMap := NotesToTagsMap{}
-	if err := io_helpers.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
+	if err := util.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
 		return err
 	}
 
 	for _, note := range notes {
-		notesToTagsMap.Notes[note] = list_helpers.Filter(
+		notesToTagsMap.Notes[note] = util.Filter(
 			notesToTagsMap.Notes[note],
 			func(curTag string) bool {
 				return !slices.Contains(tags, curTag)
@@ -259,7 +257,7 @@ func DeleteTagsFromNotesToTagsMap(projectPath string, notes []string, tags []str
 		}
 	}
 
-	if err := io_helpers.WriteJsonToPath(pathToNoteToTagsMap, notesToTagsMap); err != nil {
+	if err := util.WriteJsonToPath(pathToNoteToTagsMap, notesToTagsMap); err != nil {
 		return err
 	}
 

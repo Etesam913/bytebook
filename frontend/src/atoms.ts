@@ -51,6 +51,7 @@ export const projectSettingsAtom = atom<ProjectSettings>({
   code: {
     codeBlockVimMode: false,
     pythonVenvPath: '',
+    customPythonVenvPaths: [],
   },
 });
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/etesam913/bytebook/lib/git_helpers"
-	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/etesam913/bytebook/lib/project_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 )
@@ -38,7 +38,7 @@ func (s *SettingsService) UpdateProjectSettings(
 	newProjectSettings project_types.ProjectSettingsJson) project_types.BackendResponseWithData[project_types.ProjectSettingsJson] {
 	var projectSettings project_types.ProjectSettingsJson
 	projectSettingsPath := filepath.Join(s.ProjectPath, "settings", "settings.json")
-	err := io_helpers.ReadJsonFromPath(projectSettingsPath, &projectSettings)
+	err := util.ReadJsonFromPath(projectSettingsPath, &projectSettings)
 	if err != nil {
 		return project_types.BackendResponseWithData[project_types.ProjectSettingsJson]{
 			Success: false,
@@ -54,9 +54,9 @@ func (s *SettingsService) UpdateProjectSettings(
 			}
 		}
 	}
-	validPinnedNotes := io_helpers.GetValidPinnedNotes(s.ProjectPath, newProjectSettings)
+	validPinnedNotes := util.GetValidPinnedNotes(s.ProjectPath, newProjectSettings)
 	newProjectSettings.PinnedNotes = validPinnedNotes
-	err = io_helpers.WriteJsonToPath(projectSettingsPath, newProjectSettings)
+	err = util.WriteJsonToPath(projectSettingsPath, newProjectSettings)
 	if err != nil {
 		return project_types.BackendResponseWithData[project_types.ProjectSettingsJson]{
 			Success: false,

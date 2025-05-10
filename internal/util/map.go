@@ -1,4 +1,4 @@
-package map_helpers
+package util
 
 type Set[T comparable] map[T]struct{} // Generic Set type
 

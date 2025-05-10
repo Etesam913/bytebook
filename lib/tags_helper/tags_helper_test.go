@@ -5,8 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/etesam913/bytebook/lib/io_helpers"
-	"github.com/etesam913/bytebook/lib/map_helpers"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/etesam913/bytebook/lib/tags_helper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -99,7 +98,7 @@ func TestCreateTagToNotesArrayIfNotExists(t *testing.T) {
 			assert.FileExists(t, pathToFile)
 			expected := []string{}
 			notes := []string{}
-			io_helpers.ReadJsonFromPath(pathToFile, &notes)
+			util.ReadJsonFromPath(pathToFile, &notes)
 			assert.Equal(t, expected, notes, "Expected data to be empty")
 		})
 	})
@@ -107,15 +106,15 @@ func TestCreateTagToNotesArrayIfNotExists(t *testing.T) {
 		t.Run("the file should not be overwritten", func(t *testing.T) {
 			tempDir := t.TempDir()
 			pathToFile := getTagNotesFilePath(tempDir, TagName)
-			io_helpers.CreateFileIfNotExist(pathToFile)
+			util.CreateFileIfNotExist(pathToFile)
 			expected := tags_helper.TagsToNotesArray{
 				Notes: []string{"note1", "note2"},
 			}
-			io_helpers.WriteJsonToPath(pathToFile, expected)
+			util.WriteJsonToPath(pathToFile, expected)
 			err := tags_helper.CreateTagToNotesArrayIfNotExists(tempDir, TagName)
 			assert.NoError(t, err)
 			var notesArray tags_helper.TagsToNotesArray
-			io_helpers.ReadJsonFromPath(pathToFile, &notesArray)
+			util.ReadJsonFromPath(pathToFile, &notesArray)
 			assert.Equal(t, expected, notesArray, "Expected pre-existing data to not be overwritten")
 		})
 	})
@@ -131,7 +130,7 @@ func TestAddNotesToTagToNotesArray(t *testing.T) {
 		assert.NoError(t, err)
 
 		tagsArray := tags_helper.TagsToNotesArray{}
-		err = io_helpers.ReadJsonFromPath(pathToFile, &tagsArray)
+		err = util.ReadJsonFromPath(pathToFile, &tagsArray)
 		assert.NoError(t, err)
 
 		expected := tags_helper.TagsToNotesArray{
@@ -152,7 +151,7 @@ func TestAddNotesToTagToNotesArray(t *testing.T) {
 		assert.NoError(t, err)
 
 		tagsArray := tags_helper.TagsToNotesArray{}
-		err = io_helpers.ReadJsonFromPath(pathToFile, &tagsArray)
+		err = util.ReadJsonFromPath(pathToFile, &tagsArray)
 		assert.NoError(t, err)
 
 		expected := tags_helper.TagsToNotesArray{
@@ -176,7 +175,7 @@ func TestDeleteNotesFromTagToNotesArray(t *testing.T) {
 		assert.NoError(t, err)
 
 		var tagsArray tags_helper.TagsToNotesArray
-		err = io_helpers.ReadJsonFromPath(pathToFile, &tagsArray)
+		err = util.ReadJsonFromPath(pathToFile, &tagsArray)
 		assert.NoError(t, err)
 
 		expected := tags_helper.TagsToNotesArray{
@@ -198,7 +197,7 @@ func TestDeleteNotesFromTagToNotesArray(t *testing.T) {
 		assert.NoError(t, err)
 
 		var tagsArray tags_helper.TagsToNotesArray
-		err = io_helpers.ReadJsonFromPath(pathToFile, &tagsArray)
+		err = util.ReadJsonFromPath(pathToFile, &tagsArray)
 		assert.NoError(t, err)
 
 		expected := tags_helper.TagsToNotesArray{
@@ -220,7 +219,7 @@ func TestDeleteNotesFromTagToNotesArray(t *testing.T) {
 		assert.NoError(t, err)
 
 		var tagsArray tags_helper.TagsToNotesArray
-		err = io_helpers.ReadJsonFromPath(pathToFile, &tagsArray)
+		err = util.ReadJsonFromPath(pathToFile, &tagsArray)
 		assert.NoError(t, err)
 
 		expected := tags_helper.TagsToNotesArray{
@@ -258,7 +257,7 @@ func TestCreateNoteToTagsMapIfNotExists(t *testing.T) {
 			tags_helper.CreateNoteToTagsMapIfNotExists(tempDir)
 			expected := tags_helper.NotesToTagsMap{Notes: map[string][]string{}}
 			var notesToTagsMap tags_helper.NotesToTagsMap
-			io_helpers.ReadJsonFromPath(pathToFile, &notesToTagsMap)
+			util.ReadJsonFromPath(pathToFile, &notesToTagsMap)
 			assert.Equal(t, expected, notesToTagsMap, "Expected data to be empty")
 		})
 	})
@@ -266,13 +265,13 @@ func TestCreateNoteToTagsMapIfNotExists(t *testing.T) {
 		t.Run("the file content should not be overwritten when valid", func(t *testing.T) {
 			tempDir := t.TempDir()
 			pathToFile := getNotesToTagsFilePath(tempDir)
-			io_helpers.CreateFileIfNotExist(pathToFile)
+			util.CreateFileIfNotExist(pathToFile)
 			expected := tags_helper.NotesToTagsMap{Notes: map[string][]string{"note1": {"tag1", "tag2"}, "note2": {"tag3"}}}
-			io_helpers.WriteJsonToPath(pathToFile, expected)
+			util.WriteJsonToPath(pathToFile, expected)
 
 			tags_helper.CreateNoteToTagsMapIfNotExists(tempDir)
 			var notesToTagsMap tags_helper.NotesToTagsMap
-			io_helpers.ReadJsonFromPath(pathToFile, &notesToTagsMap)
+			util.ReadJsonFromPath(pathToFile, &notesToTagsMap)
 			assert.Equal(t, expected, notesToTagsMap, "Expected pre-existing data to not be overwritten")
 		})
 	})
@@ -320,7 +319,7 @@ func TestAddTagsToNotesToTagsMap(t *testing.T) {
 		assert.NoError(t, err)
 
 		var notesToTagsMap tags_helper.NotesToTagsMap
-		io_helpers.ReadJsonFromPath(pathToFile, &notesToTagsMap)
+		util.ReadJsonFromPath(pathToFile, &notesToTagsMap)
 		assert.Equal(t, expected, notesToTagsMap, "Expected notes and tags to be added to the map")
 	})
 }
@@ -336,7 +335,7 @@ func TestDeleteStaleTagsFromNotesToTagsMap(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a staleTags set containing "tag2" and "tag5".
-	staleTags := map_helpers.Set[string]{}
+	staleTags := util.Set[string]{}
 	staleTags.Add("tag2")
 	staleTags.Add("tag5")
 
@@ -346,7 +345,7 @@ func TestDeleteStaleTagsFromNotesToTagsMap(t *testing.T) {
 
 	// Read back the updated notes_to_tags.json file.
 	var updatedMap tags_helper.NotesToTagsMap
-	err = io_helpers.ReadJsonFromPath(notesToTagsFile, &updatedMap)
+	err = util.ReadJsonFromPath(notesToTagsFile, &updatedMap)
 	require.NoError(t, err)
 
 	// Expected result:
@@ -384,7 +383,7 @@ func TestDeleteTagsFromNotesFromTagsMap(t *testing.T) {
 		assert.NoError(t, err)
 
 		var notesToTagsMap tags_helper.NotesToTagsMap
-		io_helpers.ReadJsonFromPath(pathToFile, &notesToTagsMap)
+		util.ReadJsonFromPath(pathToFile, &notesToTagsMap)
 		assert.Equal(t, expected, notesToTagsMap, "Expected notes and tags to be removed from the map")
 	})
 }

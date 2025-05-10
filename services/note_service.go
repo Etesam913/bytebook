@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/etesam913/bytebook/lib/list_helpers"
 	"github.com/etesam913/bytebook/lib/note_helpers"
 	"github.com/etesam913/bytebook/lib/project_helpers"
@@ -69,7 +69,7 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) project_typ
 func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNoteTitle string) project_types.BackendResponseWithoutData {
 	noteBase := filepath.Join(n.ProjectPath, "notes", folderName)
 	pathToNewNote := filepath.Join(noteBase, newNoteTitle+".md")
-	doesExist, err := io_helpers.FileOrFolderExists(
+	doesExist, err := util.FileOrFolderExists(
 		pathToNewNote,
 	)
 
@@ -176,7 +176,7 @@ func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 
 		notePath := filepath.Join(n.ProjectPath, "notes", folder, note)
 
-		exists, err := io_helpers.FileOrFolderExists(notePath)
+		exists, err := util.FileOrFolderExists(notePath)
 		if exists && err == nil {
 			lastIndexOfDot := -1
 			pathAsRunes := []rune(path)
@@ -209,7 +209,17 @@ func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 //
 //	A MostRecentNoteResponse indicating the success or failure of the operation.
 func (n *NoteService) MoveToTrash(folderAndNotes []string) project_types.BackendResponseWithoutData {
-	return io_helpers.MoveNotesToTrash(n.ProjectPath, folderAndNotes)
+	err := util.MoveNotesToTrash(n.ProjectPath, folderAndNotes)
+	if err != nil {
+		return project_types.BackendResponseWithoutData{
+			Success: true,
+			Message: "Successfully moved notes to trash",
+		}
+	}
+	return project_types.BackendResponseWithoutData{
+		Success: false,
+		Message: err.Error(),
+	}
 }
 
 // RevealNoteInFinder reveals the specified note in the Finder.
@@ -230,7 +240,7 @@ func (n *NoteService) RevealFolderOrFileInFinder(
 	if shouldPrefixWithProjectPath {
 		path = filepath.Join(n.ProjectPath, pathToFolderOrFile)
 	}
-	err := io_helpers.RevealInFinder(path)
+	err := util.RevealInFinder(path)
 	if err != nil {
 		fileInfo, statErr := os.Stat(path)
 		if statErr != nil {
@@ -256,7 +266,7 @@ func (n *NoteService) MoveNoteToFolder(notePaths []string, newFolder string) pro
 	for _, pathToNote := range notePaths {
 		fullPathToNote := filepath.Join(n.ProjectPath, "notes", pathToNote)
 		fullPathWithNewFolder := filepath.Join(n.ProjectPath, "notes", newFolder, filepath.Base(pathToNote))
-		err := io_helpers.MoveFile(fullPathToNote, fullPathWithNewFolder)
+		err := util.MoveFile(fullPathToNote, fullPathWithNewFolder)
 
 		if err != nil {
 			failedNoteNames = append(failedNoteNames, pathToNote)
@@ -313,6 +323,6 @@ func (n *NoteService) GetNotePreview(path string) project_types.BackendResponseW
 
 func (n *NoteService) DoesNoteExist(path string) bool {
 	fullPath := filepath.Join(n.ProjectPath, "notes", path)
-	doesExist, _ := io_helpers.FileOrFolderExists(fullPath)
+	doesExist, _ := util.FileOrFolderExists(fullPath)
 	return doesExist
 }

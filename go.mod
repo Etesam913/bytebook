@@ -12,7 +12,10 @@ require (
 	github.com/wailsapp/wails/v3 v3.0.0-alpha.6
 )
 
-require github.com/robert-nix/ansihtml v1.0.1
+require (
+	github.com/robert-nix/ansihtml v1.0.1
+	golang.org/x/text v0.23.0
+)
 
 require (
 	dario.cat/mergo v1.0.1 // indirect

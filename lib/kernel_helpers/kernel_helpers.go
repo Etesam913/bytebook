@@ -13,8 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/etesam913/bytebook/lib/io_helpers"
-	"github.com/etesam913/bytebook/lib/map_helpers"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -169,7 +168,7 @@ func getPythonConnectionInfo(projectPath string) (project_types.KernelConnection
 	}
 
 	pathToPythonConnectionFile := filepath.Join(projectPath, "code", "python-connection.json")
-	validatedPythonConnectionInfo, err := io_helpers.ReadOrCreateJSON(pathToPythonConnectionFile, pythonConnectionInfo)
+	validatedPythonConnectionInfo, err := util.ReadOrCreateJSON(pathToPythonConnectionFile, pythonConnectionInfo)
 	if err != nil {
 		return validatedPythonConnectionInfo, err
 	}
@@ -192,7 +191,7 @@ func getGolangConnectionInfo(projectPath string) (project_types.KernelConnection
 	}
 
 	pathToGolangConnectionFile := filepath.Join(projectPath, "code", "golang-connection.json")
-	validatedGolangConnectionInfo, err := io_helpers.ReadOrCreateJSON(pathToGolangConnectionFile, golangConnectionInfo)
+	validatedGolangConnectionInfo, err := util.ReadOrCreateJSON(pathToGolangConnectionFile, golangConnectionInfo)
 	if err != nil {
 		return validatedGolangConnectionInfo, err
 	}
@@ -225,7 +224,7 @@ func GetAllConnectionInfo(projectPath string) (project_types.LanguageToKernelCon
 func getPythonKernel(projectPath string) (project_types.KernelJson, error) {
 	pathToPythonKernel := filepath.Join(projectPath, "code", "python-kernel.json")
 
-	pythonKernelValue, err := io_helpers.ReadOrCreateJSON(pathToPythonKernel, project_types.KernelJson{
+	pythonKernelValue, err := util.ReadOrCreateJSON(pathToPythonKernel, project_types.KernelJson{
 		Argv: []string{
 			"python3",
 			"-m",
@@ -248,7 +247,7 @@ func getGolangKernel(projectPath string) (project_types.KernelJson, error) {
 		gonbPath = "gonb" // Fallback to just the name if not found in PATH
 	}
 
-	golangKernelValue, err := io_helpers.ReadOrCreateJSON(pathToGolangKernel, project_types.KernelJson{
+	golangKernelValue, err := util.ReadOrCreateJSON(pathToGolangKernel, project_types.KernelJson{
 		Argv:        []string{gonbPath, "--kernel", "{connection_file}", "--logtostderr"},
 		DisplayName: "Go (gonb)",
 		Language:    "go",
@@ -307,7 +306,7 @@ func GetPythonVirtualEnvironments(projectPath string, customPythonVenvPaths []st
 		return []string{}, errors.New(fmt.Sprintf("Couldn't read files in %s", pathToCodeFolder))
 	}
 
-	virtualEnvironmentPaths := map_helpers.Set[string]{}
+	virtualEnvironmentPaths := util.Set[string]{}
 	for _, entry := range entries {
 		if entry.IsDir() {
 			pathToEntry := filepath.Join(pathToCodeFolder, entry.Name())
@@ -321,7 +320,7 @@ func GetPythonVirtualEnvironments(projectPath string, customPythonVenvPaths []st
 		virtualEnvironmentPaths.Add(customVirtualEnvironmentPath)
 	}
 
-	paths := map_helpers.MapKeys(virtualEnvironmentPaths)
+	paths := util.MapKeys(virtualEnvironmentPaths)
 	sort.Strings(paths)
 	return paths, nil
 }

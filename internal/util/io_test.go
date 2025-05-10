@@ -1,13 +1,11 @@
-package io_helpers_test
+package util
 
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
-	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,17 +14,17 @@ type TestWriteJson struct {
 }
 
 func TestWriteJsonToPath(t *testing.T) {
-	err := io_helpers.WriteJsonToPath("./test.json", TestWriteJson{
+	err := WriteJsonToPath("./test.json", TestWriteJson{
 		Notes: []string{"Etesam", "was", "here"},
 	})
 	if err != nil {
-		t.Errorf("failed in writing io_helpers.WriteJsonToPath: %v", err)
+		t.Errorf("failed in writing WriteJsonToPath: %v", err)
 	}
 	var testJson TestWriteJson
-	err = io_helpers.ReadJsonFromPath("./test.json", &testJson)
+	err = ReadJsonFromPath("./test.json", &testJson)
 
 	if err != nil {
-		t.Errorf("failed in reading io_helpers.ReadJsonFromPath: %v", err)
+		t.Errorf("failed in reading ReadJsonFromPath: %v", err)
 	}
 
 	if testJson.Notes[0] != "Etesam" || testJson.Notes[1] != "was" || testJson.Notes[2] != "here" {
@@ -47,61 +45,13 @@ type TestReadJson struct {
 
 func TestReadJsonFromPath(t *testing.T) {
 	var testReadJson TestReadJson
-	err := io_helpers.ReadJsonFromPath("./test_read.json", &testReadJson)
+	err := ReadJsonFromPath("./test_read.json", &testReadJson)
 	if err != nil {
-		t.Errorf("failed in reading io_helpers.ReadJsonFromPath: %v", err)
+		t.Errorf("failed in reading ReadJsonFromPath: %v", err)
 	}
 
 	if testReadJson.StringTest != "entry" || testReadJson.BooleanTest != true || testReadJson.NumberTest != 1234 {
 		t.Errorf("the read value from the temp file is incorrect %v", err)
-	}
-}
-
-// TestCompleteCustomActionForOS tests the CompleteCustomActionForOS function.
-func TestCompleteCustomActionForOS(t *testing.T) {
-	var windowsCalled, macCalled, linuxCalled bool
-
-	action := io_helpers.ActionStruct{
-		WindowsAction: func() { windowsCalled = true },
-		MacAction:     func() { macCalled = true },
-		LinuxAction:   func() { linuxCalled = true },
-	}
-
-	err := io_helpers.CompleteCustomActionForOS(action)
-	if err != nil {
-		if runtime.GOOS != "windows" && runtime.GOOS != "darwin" && runtime.GOOS != "linux" {
-			// Expected error on unsupported OS
-		} else {
-			t.Errorf("Unexpected error: %v", err)
-		}
-	}
-
-	switch runtime.GOOS {
-	case "windows":
-		if !windowsCalled {
-			t.Errorf("WindowsAction was not called on Windows")
-		}
-		if macCalled || linuxCalled {
-			t.Errorf("Unexpected actions called on Windows")
-		}
-	case "darwin":
-		if !macCalled {
-			t.Errorf("MacAction was not called on Mac")
-		}
-		if windowsCalled || linuxCalled {
-			t.Errorf("Unexpected actions called on Mac")
-		}
-	case "linux":
-		if !linuxCalled {
-			t.Errorf("LinuxAction was not called on Linux")
-		}
-		if windowsCalled || macCalled {
-			t.Errorf("Unexpected actions called on Linux")
-		}
-	default:
-		if err == nil {
-			t.Errorf("Expected error on unsupported OS")
-		}
 	}
 }
 
@@ -125,12 +75,12 @@ func TestReadOrCreateJSON(t *testing.T) {
 		}
 
 		// Create the file using the helper
-		err := io_helpers.WriteJsonToPath(filePath, expectedConfig)
+		err := WriteJsonToPath(filePath, expectedConfig)
 		assert.NoError(t, err)
 
 		// Test the function
 		defaultConfig := Config{Name: "Default", Version: 1, Debug: false}
-		result, err := io_helpers.ReadOrCreateJSON(filePath, defaultConfig)
+		result, err := ReadOrCreateJSON(filePath, defaultConfig)
 
 		// Verify
 		assert.NoError(t, err)
@@ -144,7 +94,7 @@ func TestReadOrCreateJSON(t *testing.T) {
 		defaultConfig := Config{Name: "Default", Version: 1, Debug: false}
 
 		// Test the function
-		result, err := io_helpers.ReadOrCreateJSON(filePath, defaultConfig)
+		result, err := ReadOrCreateJSON(filePath, defaultConfig)
 
 		// Verify
 		assert.NoError(t, err)
@@ -152,7 +102,7 @@ func TestReadOrCreateJSON(t *testing.T) {
 
 		// Verify file exists and contains expected content
 		var readConfig Config
-		err = io_helpers.ReadJsonFromPath(filePath, &readConfig)
+		err = ReadJsonFromPath(filePath, &readConfig)
 		assert.NoError(t, err)
 		assert.Equal(t, defaultConfig, readConfig)
 	})
@@ -169,7 +119,7 @@ func TestReadOrCreateJSON(t *testing.T) {
 		defaultConfig := Config{Name: "Default", Version: 1, Debug: false}
 
 		// Test the function
-		result, err := io_helpers.ReadOrCreateJSON(filePath, defaultConfig)
+		result, err := ReadOrCreateJSON(filePath, defaultConfig)
 
 		// Verify
 		assert.NoError(t, err)
@@ -177,7 +127,7 @@ func TestReadOrCreateJSON(t *testing.T) {
 
 		// Verify file was overwritten with correct content
 		var readConfig Config
-		err = io_helpers.ReadJsonFromPath(filePath, &readConfig)
+		err = ReadJsonFromPath(filePath, &readConfig)
 		assert.NoError(t, err)
 		assert.Equal(t, defaultConfig, readConfig)
 	})
@@ -189,7 +139,7 @@ func TestReadOrCreateJSON(t *testing.T) {
 		defaultValue := "test-value"
 
 		// Test the function
-		result, err := io_helpers.ReadOrCreateJSON(nestedPath, defaultValue)
+		result, err := ReadOrCreateJSON(nestedPath, defaultValue)
 
 		// Verify
 		assert.NoError(t, err)
@@ -214,7 +164,7 @@ func TestReadOrCreateJSON(t *testing.T) {
 		defaultValue := "test-value"
 
 		// Test the function
-		_, err = io_helpers.ReadOrCreateJSON(filePath, defaultValue)
+		_, err = ReadOrCreateJSON(filePath, defaultValue)
 		assert.Error(t, err)
 	})
 
@@ -225,14 +175,14 @@ func TestReadOrCreateJSON(t *testing.T) {
 			filePath := filepath.Join(tempDir, "string.json")
 			defaultValue := "test-string"
 
-			result, err := io_helpers.ReadOrCreateJSON(filePath, defaultValue)
+			result, err := ReadOrCreateJSON(filePath, defaultValue)
 			assert.NoError(t, err)
 			assert.Equal(t, defaultValue, result)
 			assert.FileExists(t, filePath)
 
 			// Verify content
 			var readValue string
-			err = io_helpers.ReadJsonFromPath(filePath, &readValue)
+			err = ReadJsonFromPath(filePath, &readValue)
 			assert.NoError(t, err)
 			assert.Equal(t, defaultValue, readValue)
 		})
@@ -243,14 +193,14 @@ func TestReadOrCreateJSON(t *testing.T) {
 			filePath := filepath.Join(tempDir, "int.json")
 			defaultValue := 42
 
-			result, err := io_helpers.ReadOrCreateJSON(filePath, defaultValue)
+			result, err := ReadOrCreateJSON(filePath, defaultValue)
 			assert.NoError(t, err)
 			assert.Equal(t, defaultValue, result)
 			assert.FileExists(t, filePath)
 
 			// Verify content
 			var readValue int
-			err = io_helpers.ReadJsonFromPath(filePath, &readValue)
+			err = ReadJsonFromPath(filePath, &readValue)
 			assert.NoError(t, err)
 			assert.Equal(t, defaultValue, readValue)
 		})
@@ -261,14 +211,14 @@ func TestReadOrCreateJSON(t *testing.T) {
 			filePath := filepath.Join(tempDir, "slice.json")
 			defaultValue := []string{"one", "two", "three"}
 
-			result, err := io_helpers.ReadOrCreateJSON(filePath, defaultValue)
+			result, err := ReadOrCreateJSON(filePath, defaultValue)
 			assert.NoError(t, err)
 			assert.Equal(t, defaultValue, result)
 			assert.FileExists(t, filePath)
 
 			// Verify content
 			var readValue []string
-			err = io_helpers.ReadJsonFromPath(filePath, &readValue)
+			err = ReadJsonFromPath(filePath, &readValue)
 			assert.NoError(t, err)
 			assert.Equal(t, defaultValue, readValue)
 		})
@@ -282,7 +232,7 @@ func TestReadOrCreateJSON(t *testing.T) {
 				"values": []int{1, 2, 3},
 			}
 
-			result, err := io_helpers.ReadOrCreateJSON(filePath, defaultValue)
+			result, err := ReadOrCreateJSON(filePath, defaultValue)
 			assert.NoError(t, err)
 
 			// Maps with interface{} values are tricky to compare directly
@@ -294,7 +244,82 @@ func TestReadOrCreateJSON(t *testing.T) {
 	})
 }
 
-// TestCopyFile tests the CopyFile function.
+func TestCreateFileIfNotExist(t *testing.T) {
+	t.Run("Creates new file in existing directory", func(t *testing.T) {
+		// Setup
+		tempDir := t.TempDir()
+		filePath := filepath.Join(tempDir, "newfile.txt")
+
+		// Test
+		err := CreateFileIfNotExist(filePath)
+		assert.NoError(t, err)
+
+		// Verify
+		exists, err := FileOrFolderExists(filePath)
+		assert.NoError(t, err)
+		assert.True(t, exists, "File should exist after creation")
+	})
+
+	t.Run("Creates new file with nested directories", func(t *testing.T) {
+		// Setup
+		tempDir := t.TempDir()
+		nestedPath := filepath.Join(tempDir, "nested", "dirs", "newfile.txt")
+
+		// Test
+		err := CreateFileIfNotExist(nestedPath)
+		assert.NoError(t, err)
+
+		// Verify
+		exists, err := FileOrFolderExists(nestedPath)
+		assert.NoError(t, err)
+		assert.True(t, exists, "File should exist after creation")
+		assert.DirExists(t, filepath.Join(tempDir, "nested", "dirs"))
+	})
+
+	t.Run("Handles existing file", func(t *testing.T) {
+		// Setup
+		tempDir := t.TempDir()
+		filePath := filepath.Join(tempDir, "existingfile.txt")
+
+		// Create file first
+		err := os.WriteFile(filePath, []byte("original content"), 0644)
+		assert.NoError(t, err)
+
+		// Get original modification time
+		originalStat, err := os.Stat(filePath)
+		assert.NoError(t, err)
+		originalModTime := originalStat.ModTime()
+
+		// Test
+		err = CreateFileIfNotExist(filePath)
+		assert.NoError(t, err)
+
+		// Verify file wasn't modified
+		newStat, err := os.Stat(filePath)
+		assert.NoError(t, err)
+		assert.Equal(t, originalModTime, newStat.ModTime(), "File should not have been modified")
+	})
+
+	t.Run("Handles permission errors", func(t *testing.T) {
+		if os.Geteuid() == 0 {
+			t.Skip("Skipping test as root user can write to read-only directories")
+		}
+
+		// Setup
+		tempDir := t.TempDir()
+		readOnlyDir := filepath.Join(tempDir, "readonly")
+		err := os.Mkdir(readOnlyDir, 0500) // read & execute only
+		assert.NoError(t, err)
+		defer os.Chmod(readOnlyDir, 0700) // restore permissions for cleanup
+
+		filePath := filepath.Join(readOnlyDir, "newfile.txt")
+
+		// Test
+		err = CreateFileIfNotExist(filePath)
+		assert.Error(t, err, "Should fail to create file in read-only directory")
+	})
+}
+
 func TestCopyFile(t *testing.T) {
 	srcFile := "test_src.txt"
 	dstFile := "test_dst.txt"
@@ -307,9 +332,9 @@ func TestCopyFile(t *testing.T) {
 	defer os.Remove(srcFile) // Clean up
 
 	// Copy file when destination does not exist
-	copyErr := io_helpers.CopyFile(srcFile, dstFile, false)
-	if copyErr.Err != nil {
-		t.Errorf("CopyFile failed: %v", copyErr.Err)
+	err = CopyFile(srcFile, dstFile, false)
+	if err != nil {
+		t.Errorf("CopyFile failed: %v", err)
 	}
 	defer os.Remove(dstFile) // Clean up
 
@@ -323,34 +348,51 @@ func TestCopyFile(t *testing.T) {
 	}
 
 	// Now test copying when destination exists and shouldOverride is false
-	copyErr = io_helpers.CopyFile(srcFile, dstFile, false)
-	if copyErr.Err == nil || !copyErr.IsDstExists {
-		t.Errorf("Expected error when destination exists and shouldOverride is false")
+	err = CopyFile(srcFile, dstFile, false)
+	if err == nil {
+		t.Error("Expected error when destination exists and shouldOverride is false")
 	}
 
 	// Now test copying when destination exists and shouldOverride is true
-	copyErr = io_helpers.CopyFile(srcFile, dstFile, true)
-	if copyErr.Err != nil {
-		t.Errorf("CopyFile failed with shouldOverride=true: %v", copyErr.Err)
+	err = CopyFile(srcFile, dstFile, true)
+	if err != nil {
+		t.Errorf("CopyFile failed with shouldOverride=true: %v", err)
 	}
 }
 
-// TestCleanFileName tests the CleanFileName function.
 func TestCleanFileName(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected string
 	}{
+		// basic pass-through
 		{"validfilename", "validfilename"},
-		{"file name with spaces", "filenamewithspaces"},
+
+		// spaces → underscore; runs collapse
+		{"file name with spaces", "file_name_with_spaces"},
+		{"My   file\tname\n", "My_file_name"},
+
+		// illegal chars dropped—but words concatenated
 		{"file/name:with*illegal|chars?", "filenamewithillegalchars"},
+
+		// brackets/parentheses dropped
 		{"[test](file)", "testfile"},
+
+		// Windows reserved names get a leading underscore
+		{"CON", "_CON"},
+		{"LPT9", "_LPT9"},
+
+		// collapse existing underscores
+		{"a__b___c", "a_b_c"},
+
+		// all-illegal → empty → fallback
+		{"////", "file"},
 	}
 
-	for _, test := range tests {
-		cleaned := io_helpers.CleanFileName(test.input)
-		if cleaned != test.expected {
-			t.Errorf("CleanFileName(%q) = %q; expected %q", test.input, cleaned, test.expected)
+	for _, tt := range tests {
+		got := CleanFileName(tt.input)
+		if got != tt.expected {
+			t.Errorf("CleanFileName(%q) = %q; want %q", tt.input, got, tt.expected)
 		}
 	}
 }
@@ -364,7 +406,7 @@ func TestFileOrFolderExists(t *testing.T) {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	exists, err := io_helpers.FileOrFolderExists(tmpFile.Name())
+	exists, err := FileOrFolderExists(tmpFile.Name())
 	if err != nil {
 		t.Errorf("Error checking if file exists: %v", err)
 	}
@@ -379,7 +421,7 @@ func TestFileOrFolderExists(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	exists, err = io_helpers.FileOrFolderExists(tmpDir)
+	exists, err = FileOrFolderExists(tmpDir)
 	if err != nil {
 		t.Errorf("Error checking if directory exists: %v", err)
 	}
@@ -388,7 +430,7 @@ func TestFileOrFolderExists(t *testing.T) {
 	}
 
 	// Check a non-existent path
-	exists, err = io_helpers.FileOrFolderExists("/path/that/does/not/exist")
+	exists, err = FileOrFolderExists("/path/that/does/not/exist")
 	if err != nil {
 		t.Errorf("Error checking non-existent path: %v", err)
 	}
@@ -415,7 +457,7 @@ func TestCreateUniqueNameForFileIfExists(t *testing.T) {
 	}
 
 	// Call CreateUniqueNameForFileIfExists
-	newFilePath, err := io_helpers.CreateUniqueNameForFileIfExists(filePath)
+	newFilePath, err := CreateUniqueNameForFileIfExists(filePath)
 	if err != nil {
 		t.Errorf("CreateUniqueNameForFileIfExists failed: %v", err)
 	}
@@ -426,7 +468,7 @@ func TestCreateUniqueNameForFileIfExists(t *testing.T) {
 	}
 
 	// Check that the new file does not exist
-	exists, err := io_helpers.FileOrFolderExists(newFilePath)
+	exists, err := FileOrFolderExists(newFilePath)
 	if err != nil {
 		t.Errorf("Error checking if file exists: %v", err)
 	}
@@ -441,7 +483,7 @@ func TestCreateUniqueNameForFileIfExists(t *testing.T) {
 	}
 
 	// Now call the function again
-	anotherFilePath, err := io_helpers.CreateUniqueNameForFileIfExists(filePath)
+	anotherFilePath, err := CreateUniqueNameForFileIfExists(filePath)
 	if err != nil {
 		t.Errorf("CreateUniqueNameForFileIfExists failed: %v", err)
 	}
@@ -486,7 +528,7 @@ func TestMoveFile(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Move the file and check for errors
-		err = io_helpers.MoveFile(pathToOldFile, pathToNewFile)
+		err = MoveFile(pathToOldFile, pathToNewFile)
 		assert.NoError(t, err)
 
 		// Verify the file was moved successfully and has the same content
@@ -514,7 +556,7 @@ func TestMoveFile(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Move the file and check for errors
-		err = io_helpers.MoveFile(pathToOldFile, pathToNewFile)
+		err = MoveFile(pathToOldFile, pathToNewFile)
 		assert.NoError(t, err)
 
 		// Verify the file was moved successfully and has the same content

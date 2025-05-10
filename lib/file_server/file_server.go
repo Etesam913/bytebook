@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/etesam913/bytebook/lib/note_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/etesam913/bytebook/lib/tags_helper"
@@ -268,7 +268,7 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 			if oneFolderBack == "settings" {
 				// If settings.json is updated
 				var projectSettings project_types.ProjectSettingsJson
-				err := io_helpers.ReadJsonFromPath(filepath.Join(projectPath, "settings", "settings.json"), &projectSettings)
+				err := util.ReadJsonFromPath(filepath.Join(projectPath, "settings", "settings.json"), &projectSettings)
 				if err == nil {
 					app.EmitEvent("settings:update", projectSettings)
 				}
@@ -276,7 +276,7 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 				// If a notes.json file in a tag folder is updated
 				tagName := oneFolderBack
 				tagNotesArray := tags_helper.TagsToNotesArray{}
-				err := io_helpers.ReadJsonFromPath(event.Name, &tagNotesArray)
+				err := util.ReadJsonFromPath(event.Name, &tagNotesArray)
 				// Create a new object that holds everything from tagPaths plus your new NoteName field.
 				eventData := struct {
 					tags_helper.TagsToNotesArray

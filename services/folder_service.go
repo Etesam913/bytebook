@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/Kei-K23/trashbox"
-	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/internal/util"
 )
 
 type FolderService struct {
@@ -55,7 +55,7 @@ func (f *FolderService) GetFolders() FolderResponse {
 
 func (f *FolderService) DoesFolderExist(folderName string) FolderResponse {
 	folderPath := filepath.Join(f.ProjectPath, "notes", folderName)
-	exists, err := io_helpers.FileOrFolderExists(folderPath)
+	exists, err := util.FileOrFolderExists(folderPath)
 	if err != nil {
 		return FolderResponse{Success: false, Message: err.Error()}
 	}

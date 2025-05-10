@@ -5,9 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/etesam913/bytebook/lib/io_helpers"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/etesam913/bytebook/lib/list_helpers"
-	"github.com/etesam913/bytebook/lib/map_helpers"
 	"github.com/etesam913/bytebook/lib/note_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/etesam913/bytebook/lib/tags_helper"
@@ -39,7 +38,7 @@ func (t *TagsService) DeleteTags(tagNames []string) project_types.BackendRespons
 
 	err := tags_helper.DeleteStaleTagsFromNotesToTagsMap(
 		t.ProjectPath,
-		map_helpers.SliceToSet(tagNames),
+		util.SliceToSet(tagNames),
 	)
 
 	if err != nil {
@@ -194,7 +193,7 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 	notesForGivenTagData := tags_helper.TagsToNotesArray{}
 
 	// Gets the JSON notes data
-	if err := io_helpers.ReadJsonFromPath(pathToTagFile, &notesForGivenTagData); err != nil {
+	if err := util.ReadJsonFromPath(pathToTagFile, &notesForGivenTagData); err != nil {
 		return project_types.BackendResponseWithData[[]string]{
 			Success: false,
 			Message: "Something went wrong when fetching the tag. Please try again later",
@@ -232,7 +231,7 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 
 	// Sort the folders appropriately
 	list_helpers.SortNotesWithFolders(notesFileInfo, sortOption)
-	sortedNotes := list_helpers.Map(notesFileInfo, func(noteInfo list_helpers.NoteWithFolder) string {
+	sortedNotes := util.Map(notesFileInfo, func(noteInfo list_helpers.NoteWithFolder) string {
 		return noteInfo.Folder + noteInfo.Name + "?ext=" + noteInfo.Ext
 	})
 

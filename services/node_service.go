@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/go-git/go-git/v5"
-
-	"github.com/etesam913/bytebook/lib/io_helpers"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -125,16 +124,16 @@ type AttachmentResponse struct {
 }
 
 // Copies the files from the selected folder to the project folder and returns the file paths
-func (n *NodeService) AddFilePathsToProject(filePaths []string, folderPath string, notePath string) ([]string, error) {
+func addFilePathsToProject(projectPath string, filePaths []string, folderPath string) ([]string, error) {
 	// We have to use a string for filePaths instead of an array because of a binding problem, might get fixed later on
 	newFilePaths := make([]string, 0)
 
 	// Process the selected file
 	if len(filePaths) > 0 {
 		for _, file := range filePaths {
-			cleanedFileName := io_helpers.CleanFileName(filepath.Base(file))
-			fileInProjectPath := filepath.Join(n.ProjectPath, "notes", folderPath, cleanedFileName)
-			fileInProjectPath, err := io_helpers.CreateUniqueNameForFileIfExists(fileInProjectPath)
+			cleanedFileName := util.CleanFileName(filepath.Base(file))
+			fileInProjectPath := filepath.Join(projectPath, "notes", folderPath, cleanedFileName)
+			fileInProjectPath, err := util.CreateUniqueNameForFileIfExists(fileInProjectPath)
 			if err != nil {
 				return []string{}, err
 			}
@@ -143,9 +142,9 @@ func (n *NodeService) AddFilePathsToProject(filePaths []string, folderPath strin
 			// This is the path url that the frontend will access
 			fileServerPath := filepath.Join("notes", folderPath, newFileName)
 
-			errObj := io_helpers.CopyFile(file, fileInProjectPath, false)
-			if errObj.Err != nil {
-				return []string{}, errObj.Err
+			error := util.CopyFile(file, fileInProjectPath, false)
+			if error != nil {
+				return []string{}, error
 			}
 			newFilePaths = append(newFilePaths, fileServerPath)
 		}
@@ -162,7 +161,7 @@ func (n *NodeService) AddAttachments(folder string, note string) AttachmentRespo
 		return AttachmentResponse{Success: false, Message: err.Error(), Paths: []string{}}
 	}
 
-	fileServerPaths, err := n.AddFilePathsToProject(localFilePaths, folder, note)
+	fileServerPaths, err := addFilePathsToProject(n.ProjectPath, localFilePaths, folder)
 	if err != nil {
 		return AttachmentResponse{Success: false, Message: err.Error(), Paths: fileServerPaths}
 	}
