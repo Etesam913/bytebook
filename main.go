@@ -10,8 +10,8 @@ import (
 	"github.com/etesam913/bytebook/internal/git"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
 	"github.com/etesam913/bytebook/internal/notes"
+	"github.com/etesam913/bytebook/internal/services"
 	"github.com/etesam913/bytebook/internal/ui"
-	"github.com/etesam913/bytebook/services"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -30,28 +30,28 @@ var assets embed.FS
 func main() {
 	projectPath, err := config.GetProjectPath()
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err.Error())
 	}
 
 	err = config.CreateProjectDirectories(projectPath)
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err.Error())
 	}
 
 	projectFiles, err := config.CreateProjectFiles(projectPath)
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err.Error())
 	}
 
 	// Creating git repo if it does not already exist
 	err = git.InitializeGitRepo(projectPath)
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err.Error())
 	}
 
 	err = git.SetRepoOrigin(projectFiles.ProjectSettings.RepositoryToSyncTo)
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err.Error())
 	}
 
 	kernelCtx, kernelCtxCancel := context.WithCancel(context.Background())
