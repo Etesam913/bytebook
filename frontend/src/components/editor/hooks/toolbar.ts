@@ -30,7 +30,7 @@ import {
   type SetStateAction,
   useEffect,
 } from 'react';
-import { GetNoteMarkdown } from '../../../../bindings/github.com/etesam913/bytebook/services/noteservice';
+import { GetNoteMarkdown } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { draggedElementAtom } from '../../../atoms';
 import type { EditorBlockTypes, FloatingDataType } from '../../../types';
 import { QueryError } from '../../../utils/query';

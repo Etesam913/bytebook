@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import type { BackendResponseWithData } from '../../../bindings/github.com/etesam913/bytebook/lib/project_types/models';
-import type { NotePreviewData } from '../../../bindings/github.com/etesam913/bytebook/services';
+import type { BackendResponseWithData } from '../../../bindings/github.com/etesam913/bytebook/internal/config/models';
+import type { NotePreviewData } from '../../../bindings/github.com/etesam913/bytebook/internal/services';
 import { VIDEO_FILE_EXTENSIONS } from '../../types';
 import { humanFileSize } from '../../utils/general';
 import { cn } from '../../utils/string-formatting';

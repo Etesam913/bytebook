@@ -7,12 +7,12 @@ import {
   DeleteFolder,
   GetFolders,
   RenameFolder,
-} from '../../bindings/github.com/etesam913/bytebook/services/folderservice';
+} from '../../bindings/github.com/etesam913/bytebook/internal/services/folderservice';
 import {
   AddNoteToFolder,
   MoveNoteToFolder,
   RevealFolderOrFileInFinder,
-} from '../../bindings/github.com/etesam913/bytebook/services/noteservice';
+} from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import { findClosestSidebarItemToNavigateTo } from '../utils/routing';

@@ -23,7 +23,7 @@ import {
 } from 'lexical';
 import type { Dispatch, ReactNode, RefObject, SetStateAction } from 'react';
 import { toast } from 'sonner';
-import { AddAttachments } from '../../../../bindings/github.com/etesam913/bytebook/services/nodeservice';
+import { AddAttachments } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/nodeservice';
 import { ListCheckbox } from '../../../icons/list-checkbox';
 import { OrderedList } from '../../../icons/ordered-list';
 import { Paperclip } from '../../../icons/paperclip-2.tsx';

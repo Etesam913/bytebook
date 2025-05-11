@@ -2,7 +2,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   ChooseCustomVirtualEnvironmentPath,
   GetPythonVirtualEnvironments,
-} from '../../../../bindings/github.com/etesam913/bytebook/services/codeservice';
+} from '../../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import { Loader } from '../../../icons/loader';
 import { RadioButton } from '../../radio-button';
 import { useAtomValue, useSetAtom } from 'jotai';
@@ -14,7 +14,7 @@ import {
 import { ShareRight } from '../../../icons/share-right';
 import { MotionButton, MotionIconButton } from '../../buttons';
 import { getDefaultButtonVariants } from '../../../animations';
-import { RevealFolderOrFileInFinder } from '../../../../bindings/github.com/etesam913/bytebook/services/noteservice';
+import { RevealFolderOrFileInFinder } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { QueryError } from '../../../utils/query';
 import { PlainCodeSnippet } from '../../plain-code-snippet';
 import { FloppyDisk } from '../../../icons/floppy-disk';

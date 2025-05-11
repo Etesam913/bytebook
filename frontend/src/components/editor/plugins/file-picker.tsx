@@ -13,7 +13,7 @@ import {
 } from 'lexical';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { SearchFileNamesFromQuery } from '../../../../bindings/github.com/etesam913/bytebook/services/searchservice';
+import { SearchFileNamesFromQuery } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
 import { mostRecentNotesWithoutQueryParamsAtom } from '../../../atoms';
 import { RenderNoteIcon } from '../../../routes/notes-sidebar/render-note-icon';
 import { FILE_SERVER_URL } from '../../../utils/general';

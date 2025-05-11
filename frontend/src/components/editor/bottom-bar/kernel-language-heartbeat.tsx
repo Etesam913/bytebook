@@ -14,7 +14,7 @@ import { DropdownItem, Languages } from '../../../types';
 import { Loader } from '../../../icons/loader';
 import { cn } from '../../../utils/string-formatting';
 import { useQuery } from '@tanstack/react-query';
-import { CreateSocketsAndListen } from '../../../../bindings/github.com/etesam913/bytebook/services/codeservice';
+import { CreateSocketsAndListen } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import { QueryError } from '../../../utils/query';
 import { FolderOpen } from '../../../icons/folder-open';
 import { PythonVenvDialog } from '../python-venv-dialog';

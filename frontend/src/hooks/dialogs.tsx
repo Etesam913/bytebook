@@ -1,6 +1,6 @@
 import { useSetAtom } from 'jotai/react';
 import { navigate } from 'wouter/use-browser-location';
-import { AddNoteToFolder } from '../../bindings/github.com/etesam913/bytebook/services/noteservice';
+import { AddNoteToFolder } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { getDefaultButtonVariants } from '../animations';
 import { dialogDataAtom } from '../atoms';
 import { MotionButton } from '../components/buttons';

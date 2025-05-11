@@ -11,7 +11,7 @@ import {
   DeleteTagsFromNotes,
   GetTags,
   GetTagsForNotes,
-} from '../../bindings/github.com/etesam913/bytebook/services/tagsservice';
+} from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 import { noteSortAtom } from '../atoms';
 import { useWailsEvent } from '../hooks/events';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';

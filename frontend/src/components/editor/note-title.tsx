@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useSetAtom } from 'jotai';
 import { $getRoot } from 'lexical';
 import { useEffect, useState } from 'react';
-import { RenameNote } from '../../../bindings/github.com/etesam913/bytebook/services/noteservice';
+import { RenameNote } from '../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { isToolbarDisabledAtom } from '../../atoms';
 import { NAME_CHARS, cn } from '../../utils/string-formatting';
 import { useMutation } from '@tanstack/react-query';

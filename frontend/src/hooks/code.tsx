@@ -18,7 +18,7 @@ import {
   SendExecuteRequest,
   SendInterruptRequest,
   SendShutdownMessage,
-} from '../../bindings/github.com/etesam913/bytebook/services/codeservice';
+} from '../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import { QueryError } from '../utils/query';
 import { $nodesOfType, LexicalEditor } from 'lexical';
 import { toast } from 'sonner';

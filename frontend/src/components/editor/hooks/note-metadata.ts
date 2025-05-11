@@ -1,6 +1,6 @@
 import { useAtom } from 'jotai';
 import { useEffect } from 'react';
-import { ValidateMostRecentNotes } from '../../../../bindings/github.com/etesam913/bytebook/services/noteservice';
+import { ValidateMostRecentNotes } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { mostRecentNotesAtom } from '../../../atoms';
 
 /** Updates the most recent notes queue */
