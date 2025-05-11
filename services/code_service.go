@@ -271,7 +271,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 	c.ControlSocketDealer = createdSockets.ControlSocketDealer
 	app := application.Get()
 	if app != nil {
-		app.EmitEvent("kernel:launch-success", project_types.KernelLaunchEventType{
+		app.EmitEvent("kernel:launch-success", jupyter_protocol.KernelLaunchEvent{
 			Language: language,
 			Data:     "",
 		})

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/etesam913/bytebook/lib/note_helpers"
-	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/etesam913/bytebook/lib/tags_helper"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -164,7 +164,7 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 
 // handleSettingsUpdate processes updates to settings files
 func (fw *FileWatcher) handleSettingsUpdate() {
-	var projectSettings project_types.ProjectSettingsJson
+	var projectSettings config.ProjectSettingsJson
 	err := util.ReadJsonFromPath(filepath.Join(fw.projectPath, "settings", "settings.json"), &projectSettings)
 	if err == nil {
 		fw.app.EmitEvent("settings:update", projectSettings)

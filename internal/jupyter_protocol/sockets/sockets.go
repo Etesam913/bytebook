@@ -7,7 +7,6 @@ import (
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
-	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/pebbe/zmq4"
 )
 
@@ -24,6 +23,13 @@ type CodeServiceUpdater interface {
 	ResetCodeServiceProperties()
 }
 
+type SocketSet struct {
+	ShellSocketDealer     *zmq4.Socket
+	ControlSocketDealer   *zmq4.Socket
+	IOPubSocketSubscriber *zmq4.Socket
+	HeartbeatSocketReq    *zmq4.Socket
+}
+
 // CreateSockets initializes the required ZMQ sockets for kernel communication if they don't already exist
 // and starts the appropriate listeners for each socket.
 func CreateSockets(
@@ -37,8 +43,8 @@ func CreateSockets(
 	cancelFunc context.CancelFunc,
 	codeServiceUpdater CodeServiceUpdater,
 	heartbeatState *jupyter_protocol.KernelHeartbeatState,
-) (*project_types.SocketSet, error) {
-	socketSet := &project_types.SocketSet{}
+) (*SocketSet, error) {
+	socketSet := &SocketSet{}
 
 	// Create shell socket if it doesn't exist
 	var newlyCreatedShellSocket JupyterSocket

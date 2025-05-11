@@ -17,8 +17,6 @@ require (
 	golang.org/x/text v0.23.0
 )
 
-require github.com/stretchr/objx v0.5.2 // indirect
-
 require (
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect

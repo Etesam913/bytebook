@@ -36,7 +36,7 @@ func (s *SettingsService) GetProjectSettings() project_types.BackendResponseWith
 
 func (s *SettingsService) UpdateProjectSettings(
 	newProjectSettings config.ProjectSettingsJson) project_types.BackendResponseWithData[config.ProjectSettingsJson] {
-	var projectSettings project_types.ProjectSettingsJson
+	var projectSettings config.ProjectSettingsJson
 	projectSettingsPath := filepath.Join(s.ProjectPath, "settings", "settings.json")
 	err := util.ReadJsonFromPath(projectSettingsPath, &projectSettings)
 	if err != nil {

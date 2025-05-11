@@ -9,7 +9,6 @@ import (
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
-	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/pebbe/zmq4"
 	"github.com/robert-nix/ansihtml"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -17,6 +16,14 @@ import (
 
 type ShellSocket struct {
 	socket *zmq4.Socket
+}
+
+type ExecuteReplyEvent struct {
+	Status         string   `json:"status"`
+	MessageId      string   `json:"messageId"`
+	ErrorName      string   `json:"errorName"`
+	ErrorValue     string   `json:"errorValue"`
+	ErrorTraceback []string `json:"errorTraceback"`
 }
 
 func CreateShellSocket() *ShellSocket {
@@ -120,7 +127,7 @@ func (s *ShellSocket) Listen(
 				if currentWindow != nil {
 					currentWindow.EmitEvent(
 						"code:code-block:execute-reply",
-						project_types.KernelCodeBlockExecuteReply{
+						ExecuteReplyEvent{
 							Status:         status,
 							MessageId:      msgId,
 							ErrorName:      errorName,

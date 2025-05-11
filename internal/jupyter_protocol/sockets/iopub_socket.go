@@ -9,7 +9,6 @@ import (
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
-	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/pebbe/zmq4"
 	"github.com/robert-nix/ansihtml"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -19,6 +18,27 @@ type IOPubSocket struct {
 	socket     *zmq4.Socket
 	language   string
 	cancelFunc context.CancelFunc
+}
+
+type ExecuteResultEvent struct {
+	MessageId string            `json:"messageId"`
+	Data      map[string]string `json:"data"`
+}
+
+type KernelStatusEvent struct {
+	Status   string `json:"status"`
+	Language string `json:"language"`
+}
+
+type CodeBlockStatusEvent struct {
+	MessageId string `json:"messageId"`
+	Status    string `json:"status"`
+}
+
+type StreamEvent struct {
+	MessageId string `json:"messageId"`
+	Name      string `json:"name"`
+	Text      string `json:"text"`
 }
 
 func CreateIOPubSocket(language string, cancelFunc context.CancelFunc) *IOPubSocket {
@@ -103,7 +123,7 @@ func (i *IOPubSocket) Listen(
 				text, isTextString := msg.Content["text"].(string)
 				if isNameString && isTextString {
 					htmlStr := string(ansihtml.ConvertToHTML([]byte(text)))
-					app.EmitEvent("code:code-block:stream", project_types.StreamEventType{
+					app.EmitEvent("code:code-block:stream", StreamEvent{
 						MessageId: msgId,
 						Name:      name,
 						Text:      htmlStr,
@@ -115,7 +135,7 @@ func (i *IOPubSocket) Listen(
 
 				if exists {
 					// Create a structure to hold the execution result with different mime types
-					executionResult := project_types.ExecuteResultEventType{
+					executionResult := ExecuteResultEvent{
 						MessageId: msgId,
 						Data:      map[string]string{},
 					}
@@ -137,7 +157,7 @@ func (i *IOPubSocket) Listen(
 
 				if exists {
 					// Create a structure to hold the display data with different mime types
-					displayData := project_types.ExecuteResultEventType{
+					displayData := ExecuteResultEvent{
 						MessageId: msgId,
 						Data:      map[string]string{},
 					}
@@ -156,7 +176,7 @@ func (i *IOPubSocket) Listen(
 			case "status":
 				status, isString := msg.Content["execution_state"].(string)
 				if isString {
-					statusEventData := project_types.KernelStatusEventType{
+					statusEventData := KernelStatusEvent{
 						Status:   status,
 						Language: i.language,
 					}
@@ -167,7 +187,7 @@ func (i *IOPubSocket) Listen(
 						continue
 					}
 					if parentMessageType == "execute_request" {
-						app.EmitEvent("code:code-block:status", project_types.CodeBlockStatusEventType{
+						app.EmitEvent("code:code-block:status", CodeBlockStatusEvent{
 							MessageId: msgId,
 							Status:    status,
 						})

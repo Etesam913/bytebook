@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -28,6 +27,11 @@ func (k *KernelHeartbeatState) GetHeartbeatStatus() bool {
 	k.Mutex.RLock()
 	defer k.Mutex.RUnlock()
 	return k.Status
+}
+
+type KernelLaunchEvent struct {
+	Language string `json:"language"`
+	Data     string `json:"data"`
 }
 
 // LaunchKernel runs the kernel for the specified language.
@@ -131,7 +135,7 @@ func monitorCommandExecution(cmd *exec.Cmd, stderrBuf bytes.Buffer, language str
 				return
 			}
 			msg := stderrBuf.String()
-			app.EmitEvent("kernel:launch-error", project_types.KernelLaunchEventType{
+			app.EmitEvent("kernel:launch-error", KernelLaunchEvent{
 				Language: language,
 				Data:     msg,
 			})
