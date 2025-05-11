@@ -16,11 +16,6 @@ type NodeService struct {
 	ProjectPath string
 }
 
-type NodeResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-}
-
 type CodeContextStore = map[string]context.CancelFunc
 
 type GitResponse struct {

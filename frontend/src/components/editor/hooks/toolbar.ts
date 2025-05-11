@@ -69,7 +69,7 @@ export function useNoteMarkdown(
       editor.setEditable(true);
       // You don't want a different note to access the same history when you switch notes
       editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
-      setNoteMarkdownString(res.data);
+      setNoteMarkdownString(res.data ?? '');
 
       editor.update(
         () => {
@@ -82,7 +82,7 @@ export function useNoteMarkdown(
 
           // Apply the new markdown to the editor
           $convertFromMarkdownStringCorrect(
-            res.data,
+            res.data ?? '',
             CUSTOM_TRANSFORMERS,
             setFrontmatter
           );

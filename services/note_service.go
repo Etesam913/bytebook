@@ -7,36 +7,33 @@ import (
 	"strings"
 	"time"
 
+	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/util"
-	"github.com/etesam913/bytebook/lib/note_helpers"
-	"github.com/etesam913/bytebook/lib/project_types"
 )
 
 type NoteService struct {
 	ProjectPath string
 }
 
-type NoteMarkdownResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Data    string `json:"data"`
-}
-
-type AddFolderResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-}
-
-func (n *NoteService) GetNotes(folderName string, sortOption string) project_types.BackendResponseWithData[[]string] {
+func (n *NoteService) GetNotes(folderName string, sortOption string) config.BackendResponseWithData[[]string] {
 	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	// Ensure the directory exists
 	if _, err := os.Stat(folderPath); err != nil {
-		return project_types.BackendResponseWithData[[]string]{Success: false, Message: err.Error(), Data: []string{}}
+		return config.BackendResponseWithData[[]string]{
+			Success: false,
+			Message: err.Error(),
+			Data:    []string{},
+		}
 	}
 
 	files, err := os.ReadDir(folderPath)
 	if err != nil {
-		return project_types.BackendResponseWithData[[]string]{Success: false, Message: err.Error(), Data: []string{}}
+		return config.BackendResponseWithData[[]string]{
+			Success: false,
+			Message: err.Error(),
+			Data:    []string{},
+		}
 	}
 	var notes []os.DirEntry
 	for _, file := range files {
@@ -61,10 +58,10 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) project_typ
 		sortedNotes = append(sortedNotes, fmt.Sprintf("%s?ext=%s", name, extension))
 	}
 
-	return project_types.BackendResponseWithData[[]string]{Success: true, Message: "", Data: sortedNotes}
+	return config.BackendResponseWithData[[]string]{Success: true, Message: "", Data: sortedNotes}
 }
 
-func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNoteTitle string) project_types.BackendResponseWithoutData {
+func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNoteTitle string) config.BackendResponseWithoutData {
 	noteBase := filepath.Join(n.ProjectPath, "notes", folderName)
 	pathToNewNote := filepath.Join(noteBase, newNoteTitle+".md")
 	doesExist, err := util.FileOrFolderExists(
@@ -72,11 +69,11 @@ func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNote
 	)
 
 	if err != nil {
-		return project_types.BackendResponseWithoutData{Success: false, Message: err.Error()}
+		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
 	}
 
 	if doesExist {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: fmt.Sprintf("%s already exists in /%s", newNoteTitle, folderName),
 		}
@@ -88,63 +85,95 @@ func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNote
 		filepath.Join(noteBase, fmt.Sprintf("%s.md", newNoteTitle)),
 	)
 	if err != nil {
-		return project_types.BackendResponseWithoutData{Success: false, Message: err.Error()}
+		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
 	}
 
-	return project_types.BackendResponseWithoutData{Success: true, Message: "Note renamed successfully"}
+	return config.BackendResponseWithoutData{Success: true, Message: "Note renamed successfully"}
 }
 
-func (n *NoteService) GetNoteMarkdown(path string) NoteMarkdownResponse {
+func (n *NoteService) GetNoteMarkdown(path string) config.BackendResponseWithData[string] {
 	noteFilePath := filepath.Join(n.ProjectPath, path)
 
 	noteContent, err := os.ReadFile(noteFilePath)
 	if err != nil {
-		return NoteMarkdownResponse{Success: false, Message: err.Error(), Data: ""}
+		return config.BackendResponseWithData[string]{
+			Success: false,
+			Message: err.Error(),
+			Data:    "",
+		}
 	}
-	return NoteMarkdownResponse{Success: true, Message: "Successfully Retrieved Note Markdown", Data: string(noteContent)}
+	return config.BackendResponseWithData[string]{
+		Success: true,
+		Message: "Successfully Retrieved Note Markdown",
+		Data:    string(noteContent),
+	}
 }
 
-func (n *NoteService) SetNoteMarkdown(folderName string, noteTitle string, markdown string) NoteMarkdownResponse {
+func (n *NoteService) SetNoteMarkdown(
+	folderName string,
+	noteTitle string,
+	markdown string,
+) config.BackendResponseWithData[string] {
 	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, fmt.Sprintf("%s.md", noteTitle))
 
 	err := os.WriteFile(noteFilePath, []byte(markdown), 0644)
 
 	if err != nil {
-		return NoteMarkdownResponse{Success: false, Message: err.Error(), Data: ""}
+		return config.BackendResponseWithData[string]{
+			Success: false,
+			Message: err.Error(),
+			Data:    "",
+		}
 	}
-	return NoteMarkdownResponse{Success: true, Message: "Successfully set note markdown", Data: ""}
+	return config.BackendResponseWithData[string]{
+		Success: true,
+		Message: "Successfully set note markdown",
+		Data:    "",
+	}
 }
 
-func AddFolder(folderName string, projectPath string) AddFolderResponse {
+func AddFolder(folderName string, projectPath string) config.BackendResponseWithoutData {
 	pathToFolder := filepath.Join(projectPath, "notes", folderName)
 
 	info, err := os.Stat(pathToFolder)
 	if err == nil {
 		if info.IsDir() {
-			return AddFolderResponse{
+			return config.BackendResponseWithoutData{
 				Success: false,
-				Message: fmt.Sprintf("Folder name, \"%s\", already exists, please choose a different name", folderName),
+				Message: fmt.Sprintf(
+					"Folder name, \"%s\", already exists, please choose a different name",
+					folderName,
+				),
 			}
 		}
 	}
 
 	// Ensure the directory exists
 	if err := os.MkdirAll(pathToFolder, os.ModePerm); err != nil {
-		return AddFolderResponse{Success: false, Message: err.Error()}
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: err.Error(),
+		}
 	}
-	return AddFolderResponse{Success: true, Message: ""}
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "",
+	}
 }
 
-func (n *NoteService) AddNoteToFolder(folderName string, noteName string) AddFolderResponse {
+func (n *NoteService) AddNoteToFolder(folderName string, noteName string) config.BackendResponseWithoutData {
 	noteFolderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	pathToNote := filepath.Join(noteFolderPath, fmt.Sprintf("%s.md", noteName))
 
 	info, err := os.Stat(pathToNote)
 
 	if err == nil && info.Mode().IsRegular() {
-		return AddFolderResponse{
+		return config.BackendResponseWithoutData{
 			Success: false,
-			Message: fmt.Sprintf("Note name, \"%s\", already exists, please choose a different name", noteName),
+			Message: fmt.Sprintf(
+				"Note name, \"%s\", already exists, please choose a different name",
+				noteName,
+			),
 		}
 	}
 
@@ -153,10 +182,16 @@ func (n *NoteService) AddNoteToFolder(folderName string, noteName string) AddFol
 
 	if err != nil {
 		fmt.Printf("Error writing to %s: %v", noteFolderPath, err)
-		return AddFolderResponse{Success: false, Message: err.Error()}
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: err.Error(),
+		}
 	}
 
-	return AddFolderResponse{Success: true, Message: ""}
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "",
+	}
 }
 
 func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
@@ -206,15 +241,15 @@ func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 // Returns:
 //
 //	A MostRecentNoteResponse indicating the success or failure of the operation.
-func (n *NoteService) MoveToTrash(folderAndNotes []string) project_types.BackendResponseWithoutData {
+func (n *NoteService) MoveToTrash(folderAndNotes []string) config.BackendResponseWithoutData {
 	err := util.MoveNotesToTrash(n.ProjectPath, folderAndNotes)
 	if err != nil {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: err.Error(),
 		}
 	}
-	return project_types.BackendResponseWithoutData{
+	return config.BackendResponseWithoutData{
 		Success: true,
 		Message: "Successfully moved notes to trash",
 	}
@@ -232,7 +267,7 @@ func (n *NoteService) MoveToTrash(folderAndNotes []string) project_types.Backend
 func (n *NoteService) RevealFolderOrFileInFinder(
 	pathToFolderOrFile string,
 	shouldPrefixWithProjectPath bool,
-) project_types.BackendResponseWithoutData {
+) config.BackendResponseWithoutData {
 	path := pathToFolderOrFile
 
 	if shouldPrefixWithProjectPath {
@@ -242,14 +277,26 @@ func (n *NoteService) RevealFolderOrFileInFinder(
 	if err != nil {
 		fileInfo, statErr := os.Stat(path)
 		if statErr != nil {
-			return project_types.BackendResponseWithoutData{Success: false, Message: "Could not reveal item in finder"}
+			return config.BackendResponseWithoutData{
+				Success: false,
+				Message: "Could not reveal item in finder",
+			}
 		}
 		if fileInfo.IsDir() {
-			return project_types.BackendResponseWithoutData{Success: false, Message: "Could not reveal folder in finder"}
+			return config.BackendResponseWithoutData{
+				Success: false,
+				Message: "Could not reveal folder in finder",
+			}
 		}
-		return project_types.BackendResponseWithoutData{Success: false, Message: "Could not reveal file in finder"}
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "Could not reveal file in finder",
+		}
 	}
-	return project_types.BackendResponseWithoutData{Success: true, Message: ""}
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "",
+	}
 }
 
 type NotePreviewData struct {
@@ -259,7 +306,7 @@ type NotePreviewData struct {
 	LastUpdated   string `json:"lastUpdated"`
 }
 
-func (n *NoteService) MoveNoteToFolder(notePaths []string, newFolder string) project_types.BackendResponseWithoutData {
+func (n *NoteService) MoveNoteToFolder(notePaths []string, newFolder string) config.BackendResponseWithoutData {
 	failedNoteNames := []string{}
 	for _, pathToNote := range notePaths {
 		fullPathToNote := filepath.Join(n.ProjectPath, "notes", pathToNote)
@@ -272,7 +319,7 @@ func (n *NoteService) MoveNoteToFolder(notePaths []string, newFolder string) pro
 	}
 
 	if len(failedNoteNames) > 0 {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: fmt.Sprintf(
 				"Failed to move %s into %s", util.FormatStringListForErrorMessage(failedNoteNames, 3), newFolder,
@@ -280,10 +327,10 @@ func (n *NoteService) MoveNoteToFolder(notePaths []string, newFolder string) pro
 		}
 	}
 
-	return project_types.BackendResponseWithoutData{Success: true, Message: ""}
+	return config.BackendResponseWithoutData{Success: true, Message: ""}
 }
 
-func (n *NoteService) GetNotePreview(path string) project_types.BackendResponseWithData[NotePreviewData] {
+func (n *NoteService) GetNotePreview(path string) config.BackendResponseWithData[NotePreviewData] {
 	fileExtension := filepath.Ext(path)
 	noteFilePath := filepath.Join(n.ProjectPath, path)
 	noteSize := int64(0)
@@ -298,7 +345,7 @@ func (n *NoteService) GetNotePreview(path string) project_types.BackendResponseW
 	if fileExtension == ".md" {
 		noteContent, err := os.ReadFile(noteFilePath)
 		if err != nil {
-			return project_types.BackendResponseWithData[NotePreviewData]{
+			return config.BackendResponseWithData[NotePreviewData]{
 				Success: false,
 				Message: err.Error(),
 				Data: NotePreviewData{
@@ -309,13 +356,18 @@ func (n *NoteService) GetNotePreview(path string) project_types.BackendResponseW
 				},
 			}
 		}
-		firstLine = note_helpers.GetFirstLine(string(noteContent))
-		firstImageSrc = note_helpers.GetFirstImageSrc(string(noteContent))
+		firstLine = notes.GetFirstLineFromMarkdown(string(noteContent))
+		firstImageSrc = notes.GetFirstImageSrcFromMarkdown(string(noteContent))
 	}
-	return project_types.BackendResponseWithData[NotePreviewData]{
+	return config.BackendResponseWithData[NotePreviewData]{
 		Success: true,
 		Message: "Successfully retrieved note preview",
-		Data:    NotePreviewData{FirstLine: firstLine, FirstImageSrc: firstImageSrc, Size: noteSize, LastUpdated: lastUpdated},
+		Data: NotePreviewData{
+			FirstLine:     firstLine,
+			FirstImageSrc: firstImageSrc,
+			Size:          noteSize,
+			LastUpdated:   lastUpdated,
+		},
 	}
 }
 

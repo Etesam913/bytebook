@@ -35,11 +35,12 @@ export function useFolders(curFolder: string | undefined) {
       if (!res.success) {
         throw new QueryError(res.message);
       }
+      const folders = res.data ?? [];
       // If the current folder does not exist anymore, then navigate to a safe url
-      if (!res.data.some((folder) => folder === curFolder)) {
-        if (res.data.length > 0) {
+      if (!folders.some((folder) => folder === curFolder)) {
+        if (folders.length > 0) {
           let folderIndexToNavigateTo = 0;
-          const alphabetizedFolders = res.data.sort((a, b) =>
+          const alphabetizedFolders = folders.sort((a, b) =>
             a.localeCompare(b)
           );
 

@@ -6,13 +6,23 @@ import (
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/util"
-	"github.com/etesam913/bytebook/lib/tags_helper"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 const PROJECT_NAME = "Bytebook"
 
 var UserHomeDir = os.UserHomeDir
+
+type BackendResponseWithData[T any] struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Data    T      `json:"data"`
+}
+
+type BackendResponseWithoutData struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
 
 // GetProjectPath returns the path to the project directory in the user's home directory.
 // On macOS, this is located in ~/Library/Application Support/Bytebook.
@@ -40,6 +50,24 @@ func GetProjectPath() (string, error) {
 	return projectPath, nil
 }
 
+type NotesToTagsMap struct {
+	Notes map[string][]string `json:"notes"`
+}
+
+// CreateNoteToTagsMapIfNotExists ensures that the note-to-tags map exists.
+func CreateNoteToTagsMapIfNotExists(projectPath string) error {
+	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
+
+	// Default empty map structure
+	defaultMap := NotesToTagsMap{
+		Notes: map[string][]string{},
+	}
+
+	_, err := util.ReadOrCreateJSON(pathToNoteToTagsMap, defaultMap)
+
+	return err
+}
+
 type ProjectFiles struct {
 	ProjectSettings ProjectSettingsJson
 	ConnectionInfo  LanguageToKernelConnectionInfo
@@ -52,7 +80,7 @@ type ProjectFiles struct {
 // if any operation fails.
 func CreateProjectFiles(projectPath string) (ProjectFiles, error) {
 	// Creating tags map
-	if err := tags_helper.CreateNoteToTagsMapIfNotExists(projectPath); err != nil {
+	if err := CreateNoteToTagsMapIfNotExists(projectPath); err != nil {
 		return ProjectFiles{}, fmt.Errorf("failed to create note to tags map: %w", err)
 	}
 

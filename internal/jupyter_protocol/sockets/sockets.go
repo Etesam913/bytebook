@@ -24,10 +24,10 @@ type CodeServiceUpdater interface {
 }
 
 type socketSet struct {
-	shellSocketDealer     *zmq4.Socket
-	controlSocketDealer   *zmq4.Socket
-	ioPubSocketSubscriber *zmq4.Socket
-	heartbeatSocketReq    *zmq4.Socket
+	ShellSocketDealer     *zmq4.Socket
+	ControlSocketDealer   *zmq4.Socket
+	IOPubSocketSubscriber *zmq4.Socket
+	HeartbeatSocketReq    *zmq4.Socket
 }
 
 // CreateSockets initializes the required ZMQ sockets for kernel communication if they don't already exist
@@ -56,7 +56,7 @@ func CreateSockets(
 		log.Println("🟩 created shell socket dealer")
 		go newlyCreatedShellSocket.Listen(newlyCreatedShellSocket.Get(), connectionInfo, ctx)
 	}
-	socketSet.shellSocketDealer = newlyCreatedShellSocket.Get()
+	socketSet.ShellSocketDealer = newlyCreatedShellSocket.Get()
 
 	// Create IOPub socket if it doesn't exist
 	var newlyCreatedIoPubSocket JupyterSocket
@@ -68,7 +68,7 @@ func CreateSockets(
 		log.Println("🟩 created IOPub socket subscriber")
 		go newlyCreatedIoPubSocket.Listen(newlyCreatedIoPubSocket.Get(), connectionInfo, ctx)
 	}
-	socketSet.ioPubSocketSubscriber = newlyCreatedIoPubSocket.Get()
+	socketSet.IOPubSocketSubscriber = newlyCreatedIoPubSocket.Get()
 
 	// Create heartbeat socket if it doesn't exist
 	var newlyCreatedHeartbeatSocket JupyterSocket
@@ -80,7 +80,7 @@ func CreateSockets(
 		log.Println("🟩 created heartbeat socket request")
 		go newlyCreatedHeartbeatSocket.Listen(newlyCreatedHeartbeatSocket.Get(), connectionInfo, ctx)
 	}
-	socketSet.heartbeatSocketReq = newlyCreatedHeartbeatSocket.Get()
+	socketSet.HeartbeatSocketReq = newlyCreatedHeartbeatSocket.Get()
 
 	// Create control socket if it doesn't exist
 	var newlyCreatedControlSocket JupyterSocket
@@ -92,7 +92,7 @@ func CreateSockets(
 		log.Println("🟩 created control socket dealer")
 		go newlyCreatedControlSocket.Listen(newlyCreatedControlSocket.Get(), connectionInfo, ctx)
 	}
-	socketSet.controlSocketDealer = newlyCreatedControlSocket.Get()
+	socketSet.ControlSocketDealer = newlyCreatedControlSocket.Get()
 
 	return socketSet, nil
 }

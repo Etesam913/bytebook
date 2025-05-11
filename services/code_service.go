@@ -12,7 +12,6 @@ import (
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol/sockets"
 	"github.com/etesam913/bytebook/internal/util"
-	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/pebbe/zmq4"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -30,9 +29,9 @@ type CodeService struct {
 	AllKernels                     config.AllKernels
 }
 
-func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, code string) project_types.BackendResponseWithoutData {
+func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, code string) config.BackendResponseWithoutData {
 	if c.ShellSocketDealer == nil || c.IOPubSocketSubscriber == nil || c.HeartbeatSocketReq == nil {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: "Coding sockets are not initialized. Try turning on the kernel by using the language button at the bottom of the editor.",
 		}
@@ -59,22 +58,22 @@ func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, cod
 	)
 
 	if err != nil {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: fmt.Sprintf("Failed to send execute request: %v", err),
 		}
 	}
 
-	return project_types.BackendResponseWithoutData{
+	return config.BackendResponseWithoutData{
 		Success: true,
 		Message: "Execute request sent successfully",
 	}
 }
 
 // SendShutdownMessage sends a shutdown request to the kernel with an option to restart
-func (c *CodeService) SendShutdownMessage(restart bool) project_types.BackendResponseWithoutData {
+func (c *CodeService) SendShutdownMessage(restart bool) config.BackendResponseWithoutData {
 	if c.ControlSocketDealer == nil {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: "Control socket is not initialized. Unable to shut down kernel.",
 		}
@@ -82,7 +81,7 @@ func (c *CodeService) SendShutdownMessage(restart bool) project_types.BackendRes
 
 	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
 	if !isHeartBeating {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: "The kernel is not running. No need to shut it down.",
 		}
@@ -100,22 +99,22 @@ func (c *CodeService) SendShutdownMessage(restart bool) project_types.BackendRes
 	)
 
 	if err != nil {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: fmt.Sprintf("Failed to send shutdown request: %v", err),
 		}
 	}
 
-	return project_types.BackendResponseWithoutData{
+	return config.BackendResponseWithoutData{
 		Success: true,
 		Message: fmt.Sprintf("Kernel shutdown request sent successfully (restart: %v)", restart),
 	}
 }
 
 // SendInterruptRequest sends an interrupt request to the kernel to stop the currently executing code
-func (c *CodeService) SendInterruptRequest(codeBlockId, executionId string) project_types.BackendResponseWithoutData {
+func (c *CodeService) SendInterruptRequest(codeBlockId, executionId string) config.BackendResponseWithoutData {
 	if c.ControlSocketDealer == nil {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: "Control socket is not initialized. Unable to interrupt kernel.",
 		}
@@ -123,7 +122,7 @@ func (c *CodeService) SendInterruptRequest(codeBlockId, executionId string) proj
 
 	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
 	if !isHeartBeating {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: "The kernel is not running. No execution to interrupt.",
 		}
@@ -138,13 +137,13 @@ func (c *CodeService) SendInterruptRequest(codeBlockId, executionId string) proj
 	)
 
 	if err != nil {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: fmt.Sprintf("Failed to send interrupt request: %v", err),
 		}
 	}
 
-	return project_types.BackendResponseWithoutData{
+	return config.BackendResponseWithoutData{
 		Success: true,
 		Message: "Kernel interrupt request sent successfully",
 	}
@@ -164,10 +163,10 @@ func (c *CodeService) IsKernelAvailable() bool {
 	return c.HeartbeatState.GetHeartbeatStatus()
 }
 
-func (c *CodeService) CreateSocketsAndListen(language string) project_types.BackendResponseWithoutData {
+func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResponseWithoutData {
 	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
 	if err != nil {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: "Failed to retrieve project settings. Check if settings.json exists.",
 		}
@@ -175,7 +174,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 	venvPath := projectSettings.Code.PythonVenvPath
 
 	if !util.IsVirtualEnv(venvPath) {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: "A virtual environment is not set. A virtual environment can be configured in the \"Code Block\" section of the settings.",
 		}
@@ -184,7 +183,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 	codeServiceUpdater := sockets.CodeServiceUpdater(c)
 	connectionInfo, err := config.GetConnectionInfoFromLanguage(c.ProjectPath, language)
 	if err != nil {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: err.Error(),
 		}
@@ -206,7 +205,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 		)
 
 		if err != nil {
-			return project_types.BackendResponseWithoutData{
+			return config.BackendResponseWithoutData{
 				Success: false,
 				Message: err.Error(),
 			}
@@ -217,7 +216,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 		c.HeartbeatSocketReq = createdSockets.HeartbeatSocketReq
 		c.ControlSocketDealer = createdSockets.ControlSocketDealer
 
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: true,
 			Message: fmt.Sprintf(
 				"Something is already running on the port: %d",
@@ -237,7 +236,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 	)
 
 	if err != nil {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: fmt.Sprintf("Failed to launch kernel: %v", err),
 		}
@@ -259,7 +258,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 	)
 
 	if err != nil {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: err.Error(),
 		}
@@ -277,17 +276,17 @@ func (c *CodeService) CreateSocketsAndListen(language string) project_types.Back
 		})
 	}
 
-	return project_types.BackendResponseWithoutData{
+	return config.BackendResponseWithoutData{
 		Success: true,
 		Message: "Sockets created and listening...",
 	}
 }
 
 // GetPythonVirtualEnvironments retrieves the paths to all Python virtual environments in the project code directory.
-func (c *CodeService) GetPythonVirtualEnvironments() project_types.BackendResponseWithData[[]string] {
+func (c *CodeService) GetPythonVirtualEnvironments() config.BackendResponseWithData[[]string] {
 	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
 	if err != nil {
-		return project_types.BackendResponseWithData[[]string]{
+		return config.BackendResponseWithData[[]string]{
 			Success: false,
 			Message: "Failed to retrieve project settings",
 			Data:    []string{},
@@ -299,52 +298,52 @@ func (c *CodeService) GetPythonVirtualEnvironments() project_types.BackendRespon
 		projectSettings.Code.CustomPythonVenvPaths,
 	)
 	if err != nil {
-		return project_types.BackendResponseWithData[[]string]{
+		return config.BackendResponseWithData[[]string]{
 			Success: false,
 			Message: err.Error(),
 			Data:    []string{},
 		}
 	}
-	return project_types.BackendResponseWithData[[]string]{
+	return config.BackendResponseWithData[[]string]{
 		Success: true,
 		Message: "Successfully got virtual environment paths",
 		Data:    virtualEnvironmentPaths,
 	}
 }
-func (c *CodeService) IsPathAValidVirtualEnvironment(path string) project_types.BackendResponseWithoutData {
+func (c *CodeService) IsPathAValidVirtualEnvironment(path string) config.BackendResponseWithoutData {
 	if path == "" {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: "The provided path is empty. Please provide a valid path to a virtual environment.",
 		}
 	}
 
 	if util.IsVirtualEnv(path) {
-		return project_types.BackendResponseWithoutData{
+		return config.BackendResponseWithoutData{
 			Success: true,
 			Message: fmt.Sprintf("%s is a valid virtual environment", path),
 		}
 	}
 
-	return project_types.BackendResponseWithoutData{
+	return config.BackendResponseWithoutData{
 		Success: false,
 		Message: fmt.Sprintf("%s is not a valid virtual environment as a pyvenv.cfg could not be found", path),
 	}
 }
 
 // ChooseCustomVirtualEnvironmentPath opens a file dialog for the user to select a custom Python virtual environment path.
-func (c *CodeService) ChooseCustomVirtualEnvironmentPath() project_types.BackendResponseWithData[string] {
+func (c *CodeService) ChooseCustomVirtualEnvironmentPath() config.BackendResponseWithData[string] {
 	localFilePath, err := application.OpenFileDialog().CanChooseDirectories(true).CanChooseFiles(false).PromptForSingleSelection()
 
 	if err != nil {
-		return project_types.BackendResponseWithData[string]{
+		return config.BackendResponseWithData[string]{
 			Success: false,
 			Data:    "",
 			Message: "Failed to open file dialog",
 		}
 	}
 
-	return project_types.BackendResponseWithData[string]{
+	return config.BackendResponseWithData[string]{
 		Success: true,
 		Data:    localFilePath,
 		Message: "Successfully selected virtual environment",

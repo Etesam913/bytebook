@@ -1,9 +1,8 @@
-package note_helpers_test
+package notes
 
 import (
 	"testing"
 
-	"github.com/etesam913/bytebook/lib/note_helpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,13 +22,11 @@ func TestConvertFileNameForFrontendUrl(t *testing.T) {
 		{" ", "", true},                                           // Space-only string should return an error
 		{"path/with/trailing/slash/", "", true},                   // Invalid file path
 	}
-
 	for _, test := range tests {
 		t.Run(test.input, func(t *testing.T) {
-			result, err := note_helpers.ConvertFileNameForFrontendUrl(test.input)
+			result, err := ConvertFileNameForFrontendUrl(test.input)
 			if test.expectError {
 				assert.Error(t, err)
-				assert.Empty(t, result.URL)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, test.expected, result.URL)

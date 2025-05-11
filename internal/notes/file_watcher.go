@@ -10,8 +10,6 @@ import (
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/util"
-	"github.com/etesam913/bytebook/lib/note_helpers"
-	"github.com/etesam913/bytebook/lib/tags_helper"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -120,7 +118,7 @@ func (fw *FileWatcher) handleNoteFolderRename() {
 			continue
 		}
 
-		noteMarkdownWithNewFolderName := note_helpers.ReplaceMarkdownURLs(
+		noteMarkdownWithNewFolderName := ReplaceMarkdownURLs(
 			string(noteContent), filepath.Base(newFolderPath),
 		)
 
@@ -173,7 +171,7 @@ func (fw *FileWatcher) handleSettingsUpdate() {
 
 // handleTagsUpdate processes updates to tag files
 func (fw *FileWatcher) handleTagsUpdate(event fsnotify.Event, tagName string) {
-	tagNotesArray := tags_helper.TagsToNotesArray{}
+	tagNotesArray := TagsToNotesArray{}
 	err := util.ReadJsonFromPath(event.Name, &tagNotesArray)
 
 	if err != nil {
@@ -182,7 +180,7 @@ func (fw *FileWatcher) handleTagsUpdate(event fsnotify.Event, tagName string) {
 
 	// Create a new object that holds everything from tagPaths plus the TagName field
 	eventData := struct {
-		tags_helper.TagsToNotesArray
+		TagsToNotesArray
 		TagName string `json:"tagName"`
 	}{
 		TagsToNotesArray: tagNotesArray,

@@ -1,4 +1,4 @@
-package tags_helper
+package notes
 
 import (
 	"errors"
@@ -6,12 +6,9 @@ import (
 	"path/filepath"
 	"slices"
 
+	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/util"
 )
-
-type NotesToTagsMap struct {
-	Notes map[string][]string `json:"notes"`
-}
 
 type TagsToNotesArray struct {
 	Notes []string `json:"notes"`
@@ -127,30 +124,16 @@ func DeleteNotesFromTagToNotesArray(projectPath string, tag string, notePaths []
 	return nil
 }
 
-// CreateNoteToTagsMapIfNotExists ensures that the note-to-tags map exists.
-func CreateNoteToTagsMapIfNotExists(projectPath string) error {
-	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
-
-	// Default empty map structure
-	defaultMap := NotesToTagsMap{
-		Notes: map[string][]string{},
-	}
-
-	_, err := util.ReadOrCreateJSON(pathToNoteToTagsMap, defaultMap)
-
-	return err
-}
-
 func GetTagsForNotes(projectPath string, notes []string) (map[string][]string, error) {
 	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
 
-	err := CreateNoteToTagsMapIfNotExists(projectPath)
+	err := config.CreateNoteToTagsMapIfNotExists(projectPath)
 
 	if err != nil {
 		return map[string][]string{}, err
 	}
 
-	notesToTagsMap := NotesToTagsMap{}
+	notesToTagsMap := config.NotesToTagsMap{}
 	if err := util.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
 		return map[string][]string{}, err
 	}
@@ -170,13 +153,13 @@ func GetTagsForNotes(projectPath string, notes []string) (map[string][]string, e
 func AddTagsToNotesToTagsMap(projectPath string, notes []string, tags []string) error {
 	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
 
-	err := CreateNoteToTagsMapIfNotExists(projectPath)
+	err := config.CreateNoteToTagsMapIfNotExists(projectPath)
 
 	if err != nil {
 		return err
 	}
 
-	notesToTagsMap := NotesToTagsMap{}
+	notesToTagsMap := config.NotesToTagsMap{}
 	if err := util.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
 		return err
 	}
@@ -200,13 +183,13 @@ func AddTagsToNotesToTagsMap(projectPath string, notes []string, tags []string) 
 func DeleteStaleTagsFromNotesToTagsMap(projectPath string, staleTags util.Set[string]) error {
 	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
 
-	err := CreateNoteToTagsMapIfNotExists(projectPath)
+	err := config.CreateNoteToTagsMapIfNotExists(projectPath)
 
 	if err != nil {
 		return err
 	}
 
-	notesToTagsMap := NotesToTagsMap{}
+	notesToTagsMap := config.NotesToTagsMap{}
 	if err := util.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
 		return err
 	}
@@ -234,13 +217,13 @@ func DeleteStaleTagsFromNotesToTagsMap(projectPath string, staleTags util.Set[st
 func DeleteTagsFromNotesToTagsMap(projectPath string, notes []string, tags []string) error {
 	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
 
-	err := CreateNoteToTagsMapIfNotExists(projectPath)
+	err := config.CreateNoteToTagsMapIfNotExists(projectPath)
 
 	if err != nil {
 		return err
 	}
 
-	notesToTagsMap := NotesToTagsMap{}
+	notesToTagsMap := config.NotesToTagsMap{}
 	if err := util.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
 		return err
 	}

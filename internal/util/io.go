@@ -237,7 +237,7 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) error {
 
 	// // Update pinned-notes in settings.json if present (ignore errors here)
 	// settingsPath := filepath.Join(projectPath, "settings", "settings.json")
-	// var cfg project_types.ProjectSettingsJson
+	// var cfg config.ProjectSettingsJson
 	// if err := ReadJsonFromPath(settingsPath, &cfg); err == nil {
 	// 	cfg.PinnedNotes = GetValidPinnedNotes(projectPath, cfg)
 	// 	_ = WriteJsonToPath(settingsPath, cfg)
