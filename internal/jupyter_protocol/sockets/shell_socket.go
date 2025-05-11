@@ -14,11 +14,11 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-type ShellSocket struct {
+type shellSocket struct {
 	socket *zmq4.Socket
 }
 
-type ExecuteReplyEvent struct {
+type executeReplyEvent struct {
 	Status         string   `json:"status"`
 	MessageId      string   `json:"messageId"`
 	ErrorName      string   `json:"errorName"`
@@ -26,24 +26,24 @@ type ExecuteReplyEvent struct {
 	ErrorTraceback []string `json:"errorTraceback"`
 }
 
-func CreateShellSocket() *ShellSocket {
+func CreateShellSocket() *shellSocket {
 	shellSocketDealer, err := zmq4.NewSocket(zmq4.DEALER) // Could also use REQ
 	if err != nil {
 		log.Print("Could not create 🐚 socket sender:", err)
-		return &ShellSocket{
+		return &shellSocket{
 			socket: nil,
 		}
 	}
-	return &ShellSocket{
+	return &shellSocket{
 		socket: shellSocketDealer,
 	}
 }
 
-func (s *ShellSocket) Get() *zmq4.Socket {
+func (s *shellSocket) Get() *zmq4.Socket {
 	return s.socket
 }
 
-func (s *ShellSocket) Listen(
+func (s *shellSocket) Listen(
 	shellSocketDealer *zmq4.Socket,
 	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
@@ -127,7 +127,7 @@ func (s *ShellSocket) Listen(
 				if currentWindow != nil {
 					currentWindow.EmitEvent(
 						"code:code-block:execute-reply",
-						ExecuteReplyEvent{
+						executeReplyEvent{
 							Status:         status,
 							MessageId:      msgId,
 							ErrorName:      errorName,

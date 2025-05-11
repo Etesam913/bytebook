@@ -14,55 +14,55 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-type IOPubSocket struct {
+type ioPubSocket struct {
 	socket     *zmq4.Socket
 	language   string
 	cancelFunc context.CancelFunc
 }
 
-type ExecuteResultEvent struct {
+type executeResultEvent struct {
 	MessageId string            `json:"messageId"`
 	Data      map[string]string `json:"data"`
 }
 
-type KernelStatusEvent struct {
+type kernelStatusEvent struct {
 	Status   string `json:"status"`
 	Language string `json:"language"`
 }
 
-type CodeBlockStatusEvent struct {
+type codeBlockStatusEvent struct {
 	MessageId string `json:"messageId"`
 	Status    string `json:"status"`
 }
 
-type StreamEvent struct {
+type streamEvent struct {
 	MessageId string `json:"messageId"`
 	Name      string `json:"name"`
 	Text      string `json:"text"`
 }
 
-func CreateIOPubSocket(language string, cancelFunc context.CancelFunc) *IOPubSocket {
+func CreateIOPubSocket(language string, cancelFunc context.CancelFunc) *ioPubSocket {
 	iopubSocketSubscriber, err := zmq4.NewSocket(zmq4.SUB)
 	if err != nil {
 		log.Print("Could not create io 🍺 socket subscriber:", err)
-		return &IOPubSocket{
+		return &ioPubSocket{
 			socket:     nil,
 			language:   language,
 			cancelFunc: cancelFunc,
 		}
 	}
-	return &IOPubSocket{
+	return &ioPubSocket{
 		socket:     iopubSocketSubscriber,
 		language:   language,
 		cancelFunc: cancelFunc,
 	}
 }
 
-func (i *IOPubSocket) Get() *zmq4.Socket {
+func (i *ioPubSocket) Get() *zmq4.Socket {
 	return i.socket
 }
 
-func (i *IOPubSocket) Listen(
+func (i *ioPubSocket) Listen(
 	ioPubSocketSubscriber *zmq4.Socket,
 	// language string,
 	connectionInfo config.KernelConnectionInfo,
@@ -123,7 +123,7 @@ func (i *IOPubSocket) Listen(
 				text, isTextString := msg.Content["text"].(string)
 				if isNameString && isTextString {
 					htmlStr := string(ansihtml.ConvertToHTML([]byte(text)))
-					app.EmitEvent("code:code-block:stream", StreamEvent{
+					app.EmitEvent("code:code-block:stream", streamEvent{
 						MessageId: msgId,
 						Name:      name,
 						Text:      htmlStr,
@@ -135,7 +135,7 @@ func (i *IOPubSocket) Listen(
 
 				if exists {
 					// Create a structure to hold the execution result with different mime types
-					executionResult := ExecuteResultEvent{
+					executionResult := executeResultEvent{
 						MessageId: msgId,
 						Data:      map[string]string{},
 					}
@@ -157,7 +157,7 @@ func (i *IOPubSocket) Listen(
 
 				if exists {
 					// Create a structure to hold the display data with different mime types
-					displayData := ExecuteResultEvent{
+					displayData := executeResultEvent{
 						MessageId: msgId,
 						Data:      map[string]string{},
 					}
@@ -176,7 +176,7 @@ func (i *IOPubSocket) Listen(
 			case "status":
 				status, isString := msg.Content["execution_state"].(string)
 				if isString {
-					statusEventData := KernelStatusEvent{
+					statusEventData := kernelStatusEvent{
 						Status:   status,
 						Language: i.language,
 					}
@@ -187,7 +187,7 @@ func (i *IOPubSocket) Listen(
 						continue
 					}
 					if parentMessageType == "execute_request" {
-						app.EmitEvent("code:code-block:status", CodeBlockStatusEvent{
+						app.EmitEvent("code:code-block:status", codeBlockStatusEvent{
 							MessageId: msgId,
 							Status:    status,
 						})

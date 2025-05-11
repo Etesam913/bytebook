@@ -13,36 +13,36 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-type ControlSocket struct {
+type controlSocket struct {
 	socket             *zmq4.Socket
 	codeServiceUpdater CodeServiceUpdater
 }
 
-type ShutdownReplyEvent struct {
+type shutdownReplyEvent struct {
 	Status   string `json:"status"`
 	Language string `json:"language"`
 }
 
-func CreateControlSocket(codeServiceUpdater CodeServiceUpdater) *ControlSocket {
+func CreateControlSocket(codeServiceUpdater CodeServiceUpdater) *controlSocket {
 	controlSocketDealer, err := zmq4.NewSocket(zmq4.DEALER)
 	if err != nil {
 		log.Print("Could not create 🛂 socket sender:", err)
-		return &ControlSocket{
+		return &controlSocket{
 			socket:             nil,
 			codeServiceUpdater: codeServiceUpdater,
 		}
 	}
-	return &ControlSocket{
+	return &controlSocket{
 		socket:             controlSocketDealer,
 		codeServiceUpdater: codeServiceUpdater,
 	}
 }
 
-func (s *ControlSocket) Get() *zmq4.Socket {
+func (s *controlSocket) Get() *zmq4.Socket {
 	return s.socket
 }
 
-func (s *ControlSocket) Listen(
+func (s *controlSocket) Listen(
 	controlSocketDealer *zmq4.Socket,
 	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
@@ -60,7 +60,7 @@ func (s *ControlSocket) Listen(
 		case <-ctx.Done():
 			controlSocketDealer.Close()
 			log.Println("🛑 Control socket listener received context cancellation")
-			app.EmitEvent("code:kernel:shutdown_reply", ShutdownReplyEvent{
+			app.EmitEvent("code:kernel:shutdown_reply", shutdownReplyEvent{
 				Status:   "success",
 				Language: connectionInfo.Language,
 			})
@@ -113,7 +113,7 @@ func (s *ControlSocket) Listen(
 				}
 
 				if status != "ok" {
-					app.EmitEvent("code:kernel:shutdown_reply", ShutdownReplyEvent{
+					app.EmitEvent("code:kernel:shutdown_reply", shutdownReplyEvent{
 						Status:   "error",
 						Language: connectionInfo.Language,
 					})

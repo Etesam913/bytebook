@@ -23,11 +23,11 @@ type CodeServiceUpdater interface {
 	ResetCodeServiceProperties()
 }
 
-type SocketSet struct {
-	ShellSocketDealer     *zmq4.Socket
-	ControlSocketDealer   *zmq4.Socket
-	IOPubSocketSubscriber *zmq4.Socket
-	HeartbeatSocketReq    *zmq4.Socket
+type socketSet struct {
+	shellSocketDealer     *zmq4.Socket
+	controlSocketDealer   *zmq4.Socket
+	ioPubSocketSubscriber *zmq4.Socket
+	heartbeatSocketReq    *zmq4.Socket
 }
 
 // CreateSockets initializes the required ZMQ sockets for kernel communication if they don't already exist
@@ -43,8 +43,8 @@ func CreateSockets(
 	cancelFunc context.CancelFunc,
 	codeServiceUpdater CodeServiceUpdater,
 	heartbeatState *jupyter_protocol.KernelHeartbeatState,
-) (*SocketSet, error) {
-	socketSet := &SocketSet{}
+) (*socketSet, error) {
+	socketSet := &socketSet{}
 
 	// Create shell socket if it doesn't exist
 	var newlyCreatedShellSocket JupyterSocket
@@ -56,7 +56,7 @@ func CreateSockets(
 		log.Println("🟩 created shell socket dealer")
 		go newlyCreatedShellSocket.Listen(newlyCreatedShellSocket.Get(), connectionInfo, ctx)
 	}
-	socketSet.ShellSocketDealer = newlyCreatedShellSocket.Get()
+	socketSet.shellSocketDealer = newlyCreatedShellSocket.Get()
 
 	// Create IOPub socket if it doesn't exist
 	var newlyCreatedIoPubSocket JupyterSocket
@@ -68,7 +68,7 @@ func CreateSockets(
 		log.Println("🟩 created IOPub socket subscriber")
 		go newlyCreatedIoPubSocket.Listen(newlyCreatedIoPubSocket.Get(), connectionInfo, ctx)
 	}
-	socketSet.IOPubSocketSubscriber = newlyCreatedIoPubSocket.Get()
+	socketSet.ioPubSocketSubscriber = newlyCreatedIoPubSocket.Get()
 
 	// Create heartbeat socket if it doesn't exist
 	var newlyCreatedHeartbeatSocket JupyterSocket
@@ -80,7 +80,7 @@ func CreateSockets(
 		log.Println("🟩 created heartbeat socket request")
 		go newlyCreatedHeartbeatSocket.Listen(newlyCreatedHeartbeatSocket.Get(), connectionInfo, ctx)
 	}
-	socketSet.HeartbeatSocketReq = newlyCreatedHeartbeatSocket.Get()
+	socketSet.heartbeatSocketReq = newlyCreatedHeartbeatSocket.Get()
 
 	// Create control socket if it doesn't exist
 	var newlyCreatedControlSocket JupyterSocket
@@ -92,7 +92,7 @@ func CreateSockets(
 		log.Println("🟩 created control socket dealer")
 		go newlyCreatedControlSocket.Listen(newlyCreatedControlSocket.Get(), connectionInfo, ctx)
 	}
-	socketSet.ControlSocketDealer = newlyCreatedControlSocket.Get()
+	socketSet.controlSocketDealer = newlyCreatedControlSocket.Get()
 
 	return socketSet, nil
 }

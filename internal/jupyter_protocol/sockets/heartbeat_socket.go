@@ -13,38 +13,38 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-type HeartbeatSocket struct {
+type heartbeatSocket struct {
 	socket         *zmq4.Socket
 	heartbeatState *jupyter_protocol.KernelHeartbeatState
 }
 
-type HeartbeatEvent struct {
+type heartbeatEvent struct {
 	Language string `json:"language"`
 	Status   string `json:"status"`
 }
 
 var HEARTBEAT_TICKER = 1 * time.Second
 
-func CreateHeartbeatSocket(heartbeatState *jupyter_protocol.KernelHeartbeatState) *HeartbeatSocket {
-	heartbeatSocket, err := zmq4.NewSocket(zmq4.REQ)
+func CreateHeartbeatSocket(heartbeatState *jupyter_protocol.KernelHeartbeatState) *heartbeatSocket {
+	socket, err := zmq4.NewSocket(zmq4.REQ)
 	if err != nil {
 		log.Print("Could not create ❤️beat socket:", err)
-		return &HeartbeatSocket{
+		return &heartbeatSocket{
 			socket:         nil,
 			heartbeatState: heartbeatState,
 		}
 	}
-	return &HeartbeatSocket{
-		socket:         heartbeatSocket,
+	return &heartbeatSocket{
+		socket:         socket,
 		heartbeatState: heartbeatState,
 	}
 }
 
-func (h *HeartbeatSocket) Get() *zmq4.Socket {
+func (h *heartbeatSocket) Get() *zmq4.Socket {
 	return h.socket
 }
 
-func (h *HeartbeatSocket) Listen(
+func (h *heartbeatSocket) Listen(
 	heartbeatSocketReq *zmq4.Socket,
 	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
@@ -72,7 +72,7 @@ func (h *HeartbeatSocket) Listen(
 			if err != nil {
 				log.Printf("Could not send heartbeat ping: %v", err)
 				h.heartbeatState.UpdateHeartbeatStatus(false)
-				app.EmitEvent("code:kernel:heartbeat", HeartbeatEvent{
+				app.EmitEvent("code:kernel:heartbeat", heartbeatEvent{
 					Language: connectionInfo.Language,
 					Status:   "failure",
 				})
@@ -86,7 +86,7 @@ func (h *HeartbeatSocket) Listen(
 				if strings.Contains(err.Error(), "resource temporarily unavailable") {
 					log.Println("Heartbeat response timeout")
 					h.heartbeatState.UpdateHeartbeatStatus(false)
-					app.EmitEvent("code:kernel:heartbeat", HeartbeatEvent{
+					app.EmitEvent("code:kernel:heartbeat", heartbeatEvent{
 						Language: connectionInfo.Language,
 						Status:   "failure",
 					})
@@ -94,7 +94,7 @@ func (h *HeartbeatSocket) Listen(
 				}
 				log.Printf("Could not receive heartbeat response: %v", err)
 				h.heartbeatState.UpdateHeartbeatStatus(false)
-				app.EmitEvent("code:kernel:heartbeat", HeartbeatEvent{
+				app.EmitEvent("code:kernel:heartbeat", heartbeatEvent{
 					Language: connectionInfo.Language,
 					Status:   "failure",
 				})
@@ -103,7 +103,7 @@ func (h *HeartbeatSocket) Listen(
 
 			log.Printf("Received heartbeat response: %s\n", pingResponse)
 			h.heartbeatState.UpdateHeartbeatStatus(true)
-			app.EmitEvent("code:kernel:heartbeat", HeartbeatEvent{
+			app.EmitEvent("code:kernel:heartbeat", heartbeatEvent{
 				Language: connectionInfo.Language,
 				Status:   "success",
 			})
