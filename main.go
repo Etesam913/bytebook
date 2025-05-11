@@ -9,8 +9,8 @@ import (
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/git"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
+	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/ui"
-	"github.com/etesam913/bytebook/lib/file_server"
 	"github.com/etesam913/bytebook/services"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -115,13 +115,13 @@ func main() {
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Fatal("Failed to setup file watcher " + err.Error())
+		log.Fatal("failed to setup file watcher " + err.Error())
 	}
 	defer watcher.Close()
-	go file_server.LaunchFileWatcher(app, projectPath, watcher)
-	go git.LaunchAuthServer()
-	file_server.ListenToFolders(projectPath, watcher)
+	go notes.LaunchFileWatcher(app, projectPath, watcher)
+	notes.AddProjectFoldersToWatcher(projectPath, watcher)
 
+	go git.LaunchAuthServer()
 	// Run the application. This blocks until the application has been exited.
 	err = app.Run()
 

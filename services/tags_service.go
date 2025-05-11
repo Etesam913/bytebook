@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/util"
-	"github.com/etesam913/bytebook/lib/list_helpers"
 	"github.com/etesam913/bytebook/lib/note_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 	"github.com/etesam913/bytebook/lib/tags_helper"
@@ -201,7 +200,7 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 		}
 	}
 
-	notesFileInfo := []list_helpers.NoteWithFolder{}
+	notesFileInfo := []util.NoteWithFolder{}
 	pathsToDelete := []string{}
 	for _, notePath := range notesForGivenTagData.Notes {
 		fullNotePath := filepath.Join(t.ProjectPath, "notes", notePath)
@@ -217,7 +216,7 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 
 		notesFileInfo = append(
 			notesFileInfo,
-			list_helpers.NoteWithFolder{
+			util.NoteWithFolder{
 				Folder:  frontendFileInfo.Directory,
 				Name:    frontendFileInfo.FileName,
 				ModTime: fileInfo.ModTime(),
@@ -230,8 +229,8 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) project
 	tags_helper.DeleteNotesFromTagToNotesArray(t.ProjectPath, tagName, pathsToDelete)
 
 	// Sort the folders appropriately
-	list_helpers.SortNotesWithFolders(notesFileInfo, sortOption)
-	sortedNotes := util.Map(notesFileInfo, func(noteInfo list_helpers.NoteWithFolder) string {
+	util.SortNotesWithFolders(notesFileInfo, sortOption)
+	sortedNotes := util.Map(notesFileInfo, func(noteInfo util.NoteWithFolder) string {
 		return noteInfo.Folder + noteInfo.Name + "?ext=" + noteInfo.Ext
 	})
 

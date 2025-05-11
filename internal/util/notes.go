@@ -1,4 +1,4 @@
-package list_helpers
+package util
 
 import (
 	"io/fs"

@@ -21,11 +21,11 @@ func excludeMediaTags(markdown string) string {
 }
 
 /*
-ExcludeCodeBlocks is a function that takes a markdown string as input and returns a new string with all code blocks removed.
+excludeCodeBlocks is a function that takes a markdown string as input and returns a new string with all code blocks removed.
 Code blocks are identified as text surrounded by either ``` or ~~~.
 This function uses regular expressions to find all code blocks, replaces them with an empty string, and trims leading/trailing whitespace from the resulting string.
 */
-func ExcludeCodeBlocks(markdown string) string {
+func excludeCodeBlocks(markdown string) string {
 	// Regex to find all code blocks surrounded by ``` or ~~~
 	codeBlockRegex := regexp.MustCompile("(?s)```.*?```|~~~.*?~~~")
 
@@ -41,9 +41,9 @@ func ExcludeCodeBlocks(markdown string) string {
 	return strings.TrimSpace(markdown)
 }
 
-// ExcludeFrontmatter removes the frontmatter from a Markdown string.
+// excludeFrontmatter removes the frontmatter from a Markdown string.
 // Frontmatter is the content enclosed between two lines of "---".
-func ExcludeFrontmatter(markdown string) string {
+func excludeFrontmatter(markdown string) string {
 	// Regex to match frontmatter, which starts and ends with "---"
 	frontmatterRegex := regexp.MustCompile(`(?s)^---.*?---\s*`)
 
@@ -80,7 +80,7 @@ type FrontendFileInfo struct {
 func ConvertFileNameForFrontendUrl(pathToFile string) (FrontendFileInfo, error) {
 	// Validate input
 	if len(strings.TrimSpace(pathToFile)) == 0 {
-		return FrontendFileInfo{}, errors.New("Empty pathToFile")
+		return FrontendFileInfo{}, errors.New("empty pathToFile")
 	}
 
 	// Get file directory and file name with extension
@@ -89,19 +89,19 @@ func ConvertFileNameForFrontendUrl(pathToFile string) (FrontendFileInfo, error) 
 
 	// Check for a valid file name
 	if len(fileNameWithExtension) == 0 || fileNameWithExtension == "." || strings.HasPrefix(fileNameWithExtension, ".") {
-		return FrontendFileInfo{}, errors.New("Invalid file name")
+		return FrontendFileInfo{}, errors.New("invalid file name")
 	}
 
 	// Extract the file extension
 	fileExtension := filepath.Ext(fileNameWithExtension)
 	if len(strings.TrimSpace(fileExtension)) == 0 {
-		return FrontendFileInfo{}, errors.New("Invalid file extension")
+		return FrontendFileInfo{}, errors.New("invalid file extension")
 	}
 
 	// Remove the file extension from the file name
 	fileNameWithoutExtension := fileNameWithExtension[:len(fileNameWithExtension)-len(fileExtension)]
 	if len(strings.TrimSpace(fileNameWithoutExtension)) == 0 {
-		return FrontendFileInfo{}, errors.New("Invalid file name")
+		return FrontendFileInfo{}, errors.New("invalid file name")
 	}
 
 	// Ensure the file directory ends with a '/'
@@ -228,8 +228,8 @@ func GetFirstImageSrc(markdown string) string {
 // It returns up to the first 10 words from the first non-empty line.
 func GetFirstLine(markdown string) string {
 	// First, remove frontmatter and code blocks
-	content := ExcludeFrontmatter(markdown)
-	content = ExcludeCodeBlocks(content)
+	content := excludeFrontmatter(markdown)
+	content = excludeCodeBlocks(content)
 
 	// Remove media tags
 	content = excludeMediaTags(content)

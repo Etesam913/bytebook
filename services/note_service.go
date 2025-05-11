@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/etesam913/bytebook/internal/util"
-	"github.com/etesam913/bytebook/lib/list_helpers"
 	"github.com/etesam913/bytebook/lib/note_helpers"
 	"github.com/etesam913/bytebook/lib/project_types"
 )
@@ -50,7 +49,7 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) project_typ
 	}
 
 	// Sort notes based on the sort option
-	list_helpers.SortNotes(notes, sortOption)
+	util.SortNotes(notes, sortOption)
 
 	var sortedNotes []string
 
