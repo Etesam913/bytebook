@@ -1,4 +1,4 @@
-package search_helpers
+package search
 
 import (
 	"log"
@@ -7,22 +7,34 @@ import (
 	"strings"
 )
 
-/*
-Generates trigrams for a given word using sliding window
-*/
-func GenerateTrigrams(word []rune) []string{
+// GenerateTrigrams creates a slice of trigrams (3-character sequences) from a given word
+// using a sliding window approach. It iterates through the word and creates trigrams
+// from consecutive characters.
+// Parameters:
+//   - word: A slice of runes representing the input word
+//
+// Returns:
+//   - A slice of strings containing all trigrams generated from the word
+func GenerateTrigrams(word []rune) []string {
 	trigrams := []string{}
-	for j:=2; j < len(word); j++{
-		trigram := string([]rune{word[j-2],word[j-1], word[j]})
+	for j := 2; j < len(word); j++ {
+		trigram := string([]rune{word[j-2], word[j-1], word[j]})
 		trigrams = append(trigrams, trigram)
 	}
 	return trigrams
 }
 
-/*
-Adds a trigram to the inverse map
-*/
-func addTrigramToInverseMap(trigram string, fileName string, inverseMap *map[string]map[string]int) {
+// addTrigramToInverseMap adds a trigram to the inverse map data structure, which maps
+// trigrams to files containing them and their frequency counts.
+// Parameters:
+//   - trigram: The trigram string to add
+//   - fileName: The name of the file containing the trigram
+//   - inverseMap: Pointer to the map that stores trigram-to-file relationships
+func addTrigramToInverseMap(
+	trigram string,
+	fileName string,
+	inverseMap *map[string]map[string]int,
+) {
 	// Dereference the pointer to access the map
 	if _, trigramExists := (*inverseMap)[trigram]; !trigramExists {
 		// Initialize the inner map if the trigram does not exist
@@ -33,16 +45,24 @@ func addTrigramToInverseMap(trigram string, fileName string, inverseMap *map[str
 	(*inverseMap)[trigram][fileName]++
 }
 
-func GetNoteNamesStream(notesPath string)  <-chan string{
+// GetNoteNamesStream creates a channel that streams note file paths from the given notes directory.
+// It traverses the directory structure, finds all note files, and sends their relative paths
+// to the returned channel.
+// Parameters:
+//   - notesPath: The path to the notes directory
+//
+// Returns:
+//   - A channel that streams note file paths
+func GetNoteNamesStream(notesPath string) <-chan string {
 	noteChannel := make(chan string)
 	folders, err := os.ReadDir(notesPath)
 
-	if err != nil{
+	if err != nil {
 		log.Fatalf("Failed to read notes directory: %v", err)
 	}
 
-	go func(){
-		for _,folderName := range folders {
+	go func() {
+		for _, folderName := range folders {
 			if folderName.IsDir() {
 				// We want to look at notes
 				pathToUserFiles := filepath.Join(notesPath, folderName.Name())
@@ -50,11 +70,14 @@ func GetNoteNamesStream(notesPath string)  <-chan string{
 				if err != nil {
 					continue
 				}
-				for _, userFile := range markdownFiles{
-					if !userFile.IsDir(){
+				for _, userFile := range markdownFiles {
+					if !userFile.IsDir() {
 						pathToFile := filepath.Join(pathToUserFiles, userFile.Name())
 						pathSegments := strings.Split(pathToFile, "/")
-						trimmedPathToFile := strings.Join([]string{pathSegments[len(pathSegments)-2], pathSegments[len(pathSegments)-1]}, "/")
+						trimmedPathToFile := strings.Join([]string{
+							pathSegments[len(pathSegments)-2],
+							pathSegments[len(pathSegments)-1],
+						}, "/")
 						noteChannel <- trimmedPathToFile
 					}
 				}
@@ -66,6 +89,13 @@ func GetNoteNamesStream(notesPath string)  <-chan string{
 	return noteChannel
 }
 
+// ConstructInverseMap builds an inverse map that associates trigrams with the files that contain them.
+// This map is used for efficient searching of notes based on trigram matching.
+// Parameters:
+//   - projectPath: The root path of the project
+//
+// Returns:
+//   - A map where keys are trigrams and values are maps of file names to occurrence counts
 func ConstructInverseMap(projectPath string) map[string]map[string]int {
 	notesPath := filepath.Join(projectPath, "notes")
 
@@ -73,13 +103,12 @@ func ConstructInverseMap(projectPath string) map[string]map[string]int {
 
 	inverseMap := map[string]map[string]int{}
 
-
 	for filePath := range filePathsChannel {
 		filePathWithoutExtension := strings.Split(filePath, ".")[0]
 		filePathWithoutExtensionLowercase := strings.ToLower(filePathWithoutExtension)
 		fileNameRunes := []rune(filePathWithoutExtensionLowercase)
 		trigrams := GenerateTrigrams(fileNameRunes)
-		for j := 0; j < len(trigrams); j++{
+		for j := 0; j < len(trigrams); j++ {
 			addTrigramToInverseMap(trigrams[j], filePathWithoutExtension, &inverseMap)
 		}
 	}
@@ -87,7 +116,15 @@ func ConstructInverseMap(projectPath string) map[string]map[string]int {
 	return inverseMap
 }
 
-func jaroDistance(s1 string, s2 string) float64{
+// jaroDistance calculates the Jaro distance between two strings, which is a measure of similarity.
+// The score ranges from 0 (completely different) to 1 (identical).
+// Parameters:
+//   - s1: First string to compare
+//   - s2: Second string to compare
+//
+// Returns:
+//   - A float64 value representing the Jaro distance (0-1)
+func jaroDistance(s1 string, s2 string) float64 {
 	s1Len := len(s1)
 	s2Len := len(s2)
 
@@ -166,14 +203,20 @@ func jaroDistance(s1 string, s2 string) float64{
 	return jaroDistance
 }
 
-
 // JaroWinklerSimilarity calculates the Jaro-Winkler similarity between two strings.
+// This is an extension of the Jaro distance that gives more weight to strings with matching prefixes.
+// Parameters:
+//   - s1: First string to compare
+//   - s2: Second string to compare
+//
+// Returns:
+//   - A float64 value representing the Jaro-Winkler similarity (0-1)
 func JaroWinklerSimilarity(s1, s2 string) float64 {
 	jaroDist := jaroDistance(s1, s2)
 
 	// Find the common prefix length (up to a maximum of 4)
 	prefixLength := 0
-	for i := 0; i < min(min(len(s1), len(s2)), 4); i++ {
+	for i := range min(min(len(s1), len(s2)), 4) {
 		if s1[i] == s2[i] {
 			prefixLength++
 		} else {

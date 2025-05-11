@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/etesam913/bytebook/lib/search_helpers"
+	"github.com/etesam913/bytebook/internal/search"
 )
 
 type SearchService struct {
@@ -15,7 +15,7 @@ type SearchService struct {
 
 func (s *SearchService) SearchFileNamesFromQueryTrigram(searchQuery string) []string {
 
-	queryTrigrams := search_helpers.GenerateTrigrams([]rune(strings.ToLower(searchQuery)))
+	queryTrigrams := search.GenerateTrigrams([]rune(strings.ToLower(searchQuery)))
 	searchResults := map[string]int{}
 
 	// Populating the searchResults map by aggregating the frequencies from each matching trigram
@@ -57,7 +57,7 @@ func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []string {
 	notesPath := filepath.Join(s.ProjectPath, "notes")
 	lowerSearchQuery := strings.ToLower(searchQuery)
 
-	filePathsChannel := search_helpers.GetNoteNamesStream(notesPath)
+	filePathsChannel := search.GetNoteNamesStream(notesPath)
 
 	// Ignore results less than similarity threshold
 	similarityThreshold := 0.7
@@ -74,8 +74,8 @@ func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []string {
 		segments := strings.Split(filePath, "/")
 		folder := segments[len(segments)-2]
 		note := segments[len(segments)-1]
-		noteSimilarity := search_helpers.JaroWinklerSimilarity(lowerSearchQuery, strings.ToLower(note))
-		folderSimilarity := search_helpers.JaroWinklerSimilarity(lowerSearchQuery, strings.ToLower(folder))
+		noteSimilarity := search.JaroWinklerSimilarity(lowerSearchQuery, strings.ToLower(note))
+		folderSimilarity := search.JaroWinklerSimilarity(lowerSearchQuery, strings.ToLower(folder))
 
 		if len(segments) < 2 {
 			continue
