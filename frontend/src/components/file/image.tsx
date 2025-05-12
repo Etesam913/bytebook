@@ -95,7 +95,7 @@ export function Image({
           >
             <img
               style={{
-                display: isLoading ? 'none' : 'inline',
+                display: isLoading ? 'none' : 'block',
               }}
               src={src}
               onLoad={() => setIsLoading(false)}

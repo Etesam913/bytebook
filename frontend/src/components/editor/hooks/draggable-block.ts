@@ -126,7 +126,6 @@ export function useNodeDragEvents(
     }, 100);
 
     function handleOnDrop(event: DragEvent): boolean {
-      console.log('handleOnDrop');
       if (!isDragging) {
         return false;
       }

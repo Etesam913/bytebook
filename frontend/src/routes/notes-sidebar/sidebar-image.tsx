@@ -18,7 +18,6 @@ export function SidebarImage({
   isNoteMaximized: boolean;
 }) {
   const [isLoading, setIsLoading] = useState(true);
-
   const [isError, setIsError] = useState(false);
   return (
     <>

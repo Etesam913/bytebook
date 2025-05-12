@@ -53,6 +53,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	// Launches the file server for video/image files to be served to the frontend
+	go notes.LaunchFileServer(projectPath)
 
 	kernelCtx, kernelCtxCancel := context.WithCancel(context.Background())
 	defer kernelCtxCancel()

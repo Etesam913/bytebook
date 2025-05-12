@@ -21,6 +21,7 @@ export function SidebarVideo({
 }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
+  console.log(fileUrl);
   return (
     <>
       {isLoading && (
@@ -32,7 +33,8 @@ export function SidebarVideo({
         <video
           controls
           title={note}
-          onError={() => {
+          onError={(e) => {
+            console.log(e);
             setIsError(true);
             setIsLoading(false);
           }}

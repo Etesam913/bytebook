@@ -76,7 +76,7 @@ export function ResizeContainer({
         tabIndex={isExpanded ? 0 : -1}
         // onClick={(e: MouseEvent) => isExpanded && e.stopPropagation()}
         className={cn(
-          'relative inline-block rounded-xs outline-hidden max-w-full',
+          'relative rounded-xs outline-hidden max-w-full',
           isExpanded &&
             'max-h-screen fixed top-0 left-0 right-0 bottom-0 z-45 m-auto flex justify-start overflow-auto'
         )}

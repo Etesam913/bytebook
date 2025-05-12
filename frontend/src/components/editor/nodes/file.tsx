@@ -176,9 +176,9 @@ export class FileNode extends DecoratorNode<JSX.Element> {
     return this.__elementType;
   }
 
-  isInline(): boolean {
-    return true;
-  }
+  // isInline(): boolean {
+  //   return true;
+  // }
 
   setElementType(elementType: FileType, editor: LexicalEditor): void {
     editor.update(

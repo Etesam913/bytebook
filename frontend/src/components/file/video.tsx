@@ -56,7 +56,6 @@ export function Video({
   if (isError) {
     return <FileError src={src} nodeKey={nodeKey} type="loading-fail" />;
   }
-
   return (
     <>
       {!isVideoInViewport ? (
@@ -100,7 +99,6 @@ export function Video({
                 onLoadedData={() => setIsLoading(false)}
                 onError={() => setIsError(true)}
                 preload="auto"
-                crossOrigin="anonymous"
                 data-node-key={nodeKey}
                 data-interactable="true"
               />
