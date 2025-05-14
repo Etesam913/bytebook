@@ -34,6 +34,9 @@ func CreateShellSocket() *shellSocket {
 			socket: nil,
 		}
 	}
+	if err := shellSocketDealer.SetIdentity("current-session"); err != nil {
+		log.Fatalf("could not set ZMQ IDENTITY: %v", err)
+	}
 	return &shellSocket{
 		socket: shellSocketDealer,
 	}

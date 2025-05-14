@@ -218,10 +218,6 @@ function updateCodeBlock(
     );
     if (codeNodeToUpdate) {
       // This is a fresh execution, so it does not have a result
-      console.log({
-        messageExecutionId: executionId,
-        codeBlockExecutionId: codeNodeToUpdate.getExecutionId(),
-      });
       if (executionId && executionId !== codeNodeToUpdate.getExecutionId()) {
         codeNodeToUpdate.setExecutionId(executionId, editor);
         codeNodeToUpdate.setLastExecutedResult('', editor);
@@ -293,6 +289,12 @@ export function useCodeBlockStream(editor: LexicalEditor) {
   });
 }
 
+/**
+ * Hook that listens for code block display data and updates the editor with rich display content.
+ * Subscribes to the 'code:code-block:display_data' event to handle rich output like images, HTML, etc.
+ *
+ * @param editor - The Lexical editor instance to update code blocks in
+ */
 export function useCodeBlockDisplayData(editor: LexicalEditor) {
   useWailsEvent('code:code-block:display_data', (body) => {
     const data = body.data as {
@@ -308,6 +310,34 @@ export function useCodeBlockDisplayData(editor: LexicalEditor) {
       },
       executionId
     );
+  });
+}
+
+/**
+ * Hook that listens for code block input requests and updates the editor to show input prompts.
+ * Subscribes to the 'code:code-block:input_request' event to handle input requests from the kernel.
+ *
+ * @param editor - The Lexical editor instance to update code blocks in
+ */
+export function useCodeBlockInputRequest(editor: LexicalEditor) {
+  useWailsEvent('code:code-block:input_request', (body) => {
+    console.info('code:code-block:input_request', body);
+    const data = body.data as {
+      messageId: string;
+      prompt: string;
+      password: boolean;
+    }[];
+
+    if (data.length === 0) return;
+
+    const [codeBlockId] = data[0].messageId.split(':');
+    // const prompt = data[0].prompt;
+    // const isPassword = data[0].password;
+
+    // TODO: Create setInputPrompt method in code node
+    updateCodeBlock(editor, codeBlockId, () => {
+      // codeNode.setInputPrompt(prompt, isPassword, editor);
+    });
   });
 }
 

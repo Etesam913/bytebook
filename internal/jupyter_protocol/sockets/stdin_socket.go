@@ -17,7 +17,7 @@ type stdinSocket struct {
 	socket *zmq4.Socket
 }
 
-type inputRequestEvent struct {
+type InputRequestEvent struct {
 	MessageId string `json:"messageId"`
 	Prompt    string `json:"prompt"`
 	Password  bool   `json:"password"`
@@ -26,14 +26,16 @@ type inputRequestEvent struct {
 func CreateStdinSocket() *stdinSocket {
 	stdinSocketDealer, err := zmq4.NewSocket(zmq4.DEALER)
 	if err != nil {
-		log.Print("Could not create 📥 stdin socket dealer:", err)
-		return &stdinSocket{
-			socket: nil,
-		}
+		log.Print("Could not create stdin socket:", err)
+		return &stdinSocket{socket: nil}
 	}
-	return &stdinSocket{
-		socket: stdinSocketDealer,
+	// the identity of the stdin socket has to be the same as the identity
+	// of the shell socket. This is required to be set on the stdin socket
+	// as it receives messages from the kernel via the shell socket.
+	if err := stdinSocketDealer.SetIdentity("current-session"); err != nil {
+		log.Fatalf("could not set ZMQ IDENTITY: %v", err)
 	}
+	return &stdinSocket{socket: stdinSocketDealer}
 }
 
 func (s *stdinSocket) Get() *zmq4.Socket {
@@ -101,7 +103,7 @@ func (s *stdinSocket) Listen(
 					password = false
 				}
 
-				app.EmitEvent("code:code-block:input_request", inputRequestEvent{
+				app.EmitEvent("code:code-block:input_request", InputRequestEvent{
 					MessageId: msgId,
 					Prompt:    prompt,
 					Password:  password,

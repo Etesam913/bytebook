@@ -124,7 +124,7 @@ func ParseMultipartMessage(envelope [][]byte) (identities []string, msg Message,
 	}
 
 	// All frames before the delimiter are identities.
-	for i := range delimiterIndex {
+	for i := 0; i < delimiterIndex; i++ {
 		identities = append(identities, string(envelope[i]))
 	}
 
@@ -216,7 +216,7 @@ func SendExecuteRequest(shellDealerSocket *zmq4.Socket, params ExecuteMessagePar
 			"silent":           false,
 			"store_history":    true,
 			"user_expressions": map[string]any{},
-			"allow_stdin":      false,
+			"allow_stdin":      true,
 			"stop_on_error":    true,
 		},
 	}
