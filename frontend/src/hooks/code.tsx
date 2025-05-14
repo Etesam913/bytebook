@@ -239,7 +239,7 @@ function updateCodeBlock(
  */
 export function useCodeBlockExecuteReply(editor: LexicalEditor) {
   useWailsEvent('code:code-block:execute_reply', (body) => {
-    console.info('code:code-block:execute_reply');
+    console.info('code:code-block:execute_reply', body);
     const data = body.data as (
       | { status: 'ok'; messageId: string }
       | {
@@ -250,23 +250,20 @@ export function useCodeBlockExecuteReply(editor: LexicalEditor) {
           errorName: string;
         }
     )[];
-    if (data[0].status === 'error') {
-      const cleanedTraceback = data[0].errorTraceback
-        .map((trace) => `<div>${trace}</div>`)
-        .join('');
-      const [codeBlockId, executionId] = data[0].messageId.split(':');
-      updateCodeBlock(
-        editor,
-        codeBlockId,
-        (codeNode) => {
+    const [codeBlockId, executionId] = data[0].messageId.split(':');
+    updateCodeBlock(
+      editor,
+      codeBlockId,
+      (codeNode) => {
+        if (data[0].status === 'error') {
+          const cleanedTraceback = data[0].errorTraceback
+            .map((trace) => `<div>${trace}</div>`)
+            .join('');
           codeNode.setTracebackResult(cleanedTraceback, editor);
-        },
-        executionId
-      );
-      console.error(
-        `Error executing code: ${data[0].errorName} - ${data[0].errorValue}\n${cleanedTraceback}`
-      );
-    }
+        }
+      },
+      executionId
+    );
   });
 }
 
