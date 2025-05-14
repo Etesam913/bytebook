@@ -186,15 +186,22 @@ func sendMessage(socket *zmq4.Socket, params RequestParams) error {
 	return nil
 }
 
+// MessageParams contains common parameters used in all message types.
 type MessageParams struct {
 	MessageID string
 	SessionID string
 }
 
-// ExecuteMessageParams holds parameters specific to an execute_request.
+// ExecuteMessageParams contains parameters for execute request messages.
 type ExecuteMessageParams struct {
 	MessageParams
 	Code string
+}
+
+// InputReplyMessageParams contains parameters for input reply messages.
+type InputReplyMessageParams struct {
+	MessageParams
+	Value string
 }
 
 // SendExecuteRequest sends an execute_request message to the kernel.
@@ -248,6 +255,7 @@ func SendShutdownMessage(controlDealerSocket *zmq4.Socket, params ShutdownMessag
 	return nil
 }
 
+// SendInterruptMessage sends an interrupt_request message to the kernel.
 func SendInterruptMessage(controlDealerSocket *zmq4.Socket, params MessageParams) error {
 	requestParams := RequestParams{
 		MessageID: params.MessageID,
@@ -262,5 +270,25 @@ func SendInterruptMessage(controlDealerSocket *zmq4.Socket, params MessageParams
 	}
 
 	log.Println("interrupt_request 💬 sent successfully")
+	return nil
+}
+
+// SendInputReplyMessage sends an input_reply message to the kernel in response to an input_request.
+func SendInputReplyMessage(stdinDealerSocket *zmq4.Socket, params InputReplyMessageParams) error {
+	requestParams := RequestParams{
+		MessageID: params.MessageID,
+		SessionID: params.SessionID,
+		MsgType:   "input_reply",
+		Username:  "username",
+		Content: map[string]any{
+			"value": params.Value,
+		},
+	}
+
+	if err := sendMessage(stdinDealerSocket, requestParams); err != nil {
+		return fmt.Errorf("failed to send input reply message: %w", err)
+	}
+
+	log.Println("input_reply 💬 sent successfully")
 	return nil
 }

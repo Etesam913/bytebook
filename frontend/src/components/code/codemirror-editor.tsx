@@ -29,7 +29,6 @@ import {
 } from 'lexical';
 import { cn } from '../../utils/string-formatting';
 import { CodeBlockStatus, Languages } from '../../types';
-import { motion } from 'motion/react';
 import { UseMutateFunction } from '@tanstack/react-query';
 
 function handleRunOrInterruptCode(
@@ -216,8 +215,7 @@ export function CodeMirrorEditor({
   }
 
   return (
-    <motion.div
-      layout="position"
+    <div
       onClick={() => {
         // Refocuses the editor when clicks happen outside of it but still inside the overall component
         if (codeMirrorInstance?.view) {
@@ -225,7 +223,7 @@ export function CodeMirrorEditor({
           setSelected(true);
         }
       }}
-      className={cn('min-h-12', isExpanded && 'flex-1')}
+      className={cn('min-h-12', isExpanded && 'flex-1 overflow-y-auto')}
       onKeyDownCapture={(e) => {
         if (
           projectSettings.code.codeBlockVimMode &&
@@ -281,6 +279,6 @@ export function CodeMirrorEditor({
           ...languageToSettings[language].basicSetup,
         }}
       />
-    </motion.div>
+    </div>
   );
 }

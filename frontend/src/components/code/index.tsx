@@ -89,15 +89,11 @@ export function Code({
           />
         )}
       </AnimatePresence>
-      <motion.div
-        layout
-        style={{
-          borderRadius: 6,
-        }}
+      <div
         data-interactable="true"
         data-node-key={nodeKey}
         className={cn(
-          'relative border-[2px] overflow-hidden bg-white dark:bg-[#2e3440] transition-colors border-zinc-150 dark:border-zinc-700',
+          'relative rounded-md border-[2px] overflow-hidden bg-white dark:bg-[#2e3440] transition-colors border-zinc-150 dark:border-zinc-700',
           isSelected && '!border-(--accent-color)',
           isExpanded &&
             'fixed z-[60] left-0 top-0 right-0 bottom-0 h-[calc(100vh-5rem)] m-auto w-[calc(100vw-5rem)] flex flex-col'
@@ -138,7 +134,7 @@ export function Code({
             />
           )}
         </Suspense>
-      </motion.div>
+      </div>
     </>
   );
 }

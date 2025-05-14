@@ -24,6 +24,7 @@ type CodeService struct {
 	IOPubSocketSubscriber          *zmq4.Socket
 	ControlSocketDealer            *zmq4.Socket
 	HeartbeatSocketReq             *zmq4.Socket
+	StdinSocketDealer              *zmq4.Socket
 	HeartbeatState                 jupyter_protocol.KernelHeartbeatState
 	LanguageToKernelConnectionInfo config.LanguageToKernelConnectionInfo
 	AllKernels                     config.AllKernels
@@ -196,6 +197,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 			c.IOPubSocketSubscriber,
 			c.HeartbeatSocketReq,
 			c.ControlSocketDealer,
+			c.StdinSocketDealer,
 			language,
 			connectionInfo,
 			c.Context,
@@ -249,6 +251,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 		c.IOPubSocketSubscriber,
 		c.HeartbeatSocketReq,
 		c.ControlSocketDealer,
+		c.StdinSocketDealer,
 		language,
 		connectionInfo,
 		c.Context,

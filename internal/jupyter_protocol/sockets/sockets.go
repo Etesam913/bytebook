@@ -28,6 +28,7 @@ type socketSet struct {
 	ControlSocketDealer   *zmq4.Socket
 	IOPubSocketSubscriber *zmq4.Socket
 	HeartbeatSocketReq    *zmq4.Socket
+	StdinSocketDealer     *zmq4.Socket
 }
 
 // CreateSockets initializes the required ZMQ sockets for kernel communication if they don't already exist
@@ -37,6 +38,7 @@ func CreateSockets(
 	ioPubSocketSubscriber *zmq4.Socket,
 	heartbeatSocketReq *zmq4.Socket,
 	controlSocketDealer *zmq4.Socket,
+	stdinSocketDealer *zmq4.Socket,
 	language string,
 	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
@@ -93,6 +95,18 @@ func CreateSockets(
 		go newlyCreatedControlSocket.Listen(newlyCreatedControlSocket.Get(), connectionInfo, ctx)
 	}
 	socketSet.ControlSocketDealer = newlyCreatedControlSocket.Get()
+
+	// Create stdin socket if it doesn't exist
+	var newlyCreatedStdinSocket JupyterSocket
+	if stdinSocketDealer == nil {
+		newlyCreatedStdinSocket = CreateStdinSocket()
+		if newlyCreatedStdinSocket.Get() == nil {
+			return nil, errors.New("failed to create stdin socket dealer")
+		}
+		log.Println("🟩 created stdin socket dealer")
+		go newlyCreatedStdinSocket.Listen(newlyCreatedStdinSocket.Get(), connectionInfo, ctx)
+	}
+	socketSet.StdinSocketDealer = newlyCreatedStdinSocket.Get()
 
 	return socketSet, nil
 }

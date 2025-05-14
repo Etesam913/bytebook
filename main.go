@@ -90,6 +90,7 @@ func main() {
 					ControlSocketDealer:   nil,
 					IOPubSocketSubscriber: nil,
 					HeartbeatSocketReq:    nil,
+					StdinSocketDealer:     nil,
 					HeartbeatState: jupyter_protocol.KernelHeartbeatState{
 						Mutex:  sync.RWMutex{},
 						Status: false,
