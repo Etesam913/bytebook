@@ -15,7 +15,6 @@ export function CodeActions({
   language,
   status,
   setStatus,
-  setLastExecutedResult,
   isExpanded,
   nodeKey,
   setIsExpanded,
@@ -25,7 +24,6 @@ export function CodeActions({
   language: Languages;
   status: CodeBlockStatus;
   setStatus: (newStatus: CodeBlockStatus) => void;
-  setLastExecutedResult: (result: string | null) => void;
   isExpanded: boolean;
   setIsExpanded: (value: boolean) => void;
   nodeKey: string;
@@ -41,7 +39,6 @@ export function CodeActions({
         language={language}
         status={status}
         setStatus={setStatus}
-        setLastExecutedResult={setLastExecutedResult}
       />
       <MotionIconButton
         {...getDefaultButtonVariants(false, 1.05, 0.975, 1.05)}

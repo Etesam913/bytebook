@@ -54,8 +54,7 @@ function handleRunOrInterruptCode(
       newExecutionId: string;
     },
     unknown
-  >,
-  setLastExecutedResult: (result: string) => void
+  >
 ) {
   if (status === 'busy') {
     interruptExecution({
@@ -64,7 +63,7 @@ function handleRunOrInterruptCode(
       newExecutionId: '',
     });
   } else {
-    runCode(codeMirrorInstance, executeCode, setLastExecutedResult);
+    runCode(codeMirrorInstance, executeCode);
   }
   return true;
 }
@@ -82,7 +81,6 @@ export function CodeMirrorEditor({
   isExpanded,
   status,
   setStatus,
-  setLastExecutedResult,
 }: {
   nodeKey: string;
   lexicalEditor: LexicalEditor;
@@ -96,7 +94,6 @@ export function CodeMirrorEditor({
   isExpanded: boolean;
   status: CodeBlockStatus;
   setStatus: (status: CodeBlockStatus) => void;
-  setLastExecutedResult: (result: string) => void;
 }) {
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const { mutate: executeCode } = useSendExecuteRequestMutation(
@@ -181,8 +178,7 @@ export function CodeMirrorEditor({
             language,
             interruptExecution,
             codeMirrorInstance,
-            executeCode,
-            setLastExecutedResult
+            executeCode
           ),
       },
       {
@@ -194,8 +190,7 @@ export function CodeMirrorEditor({
             language,
             interruptExecution,
             codeMirrorInstance,
-            executeCode,
-            setLastExecutedResult
+            executeCode
           ),
       },
       {
@@ -207,8 +202,7 @@ export function CodeMirrorEditor({
             language,
             interruptExecution,
             codeMirrorInstance,
-            executeCode,
-            setLastExecutedResult
+            executeCode
           ),
       },
     ])

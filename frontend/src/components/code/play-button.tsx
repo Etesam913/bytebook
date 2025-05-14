@@ -17,14 +17,12 @@ export function PlayButton({
   language,
   status,
   setStatus,
-  setLastExecutedResult,
 }: {
   codeBlockId: string;
   codeMirrorInstance: ReactCodeMirrorRef | null;
   language: Languages;
   status: CodeBlockStatus;
   setStatus: (status: CodeBlockStatus) => void;
-  setLastExecutedResult: (result: string | null) => void;
 }) {
   const { mutate: executeCode } = useSendExecuteRequestMutation(
     codeBlockId,
@@ -46,7 +44,7 @@ export function PlayButton({
             newExecutionId: '',
           });
         } else {
-          runCode(codeMirrorInstance, executeCode, setLastExecutedResult);
+          runCode(codeMirrorInstance, executeCode);
         }
       }}
     >

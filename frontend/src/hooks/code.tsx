@@ -82,15 +82,20 @@ export function useCodeBlockExecuteResult(editor: LexicalEditor) {
       data: Record<string, string>;
     }[];
     if (data.length === 0) return;
-    const [codeBlockId] = data[0].messageId.split(':');
+    const [codeBlockId, executionId] = data[0].messageId.split(':');
     const executionResultContent: string[] = [];
     for (const content of Object.values(data[0].data)) {
       executionResultContent.push(content);
     }
 
-    updateCodeBlock(editor, codeBlockId, (codeNode) => {
-      codeNode.setExecutionResult(executionResultContent.join('\n'), editor);
-    });
+    updateCodeBlock(
+      editor,
+      codeBlockId,
+      (codeNode) => {
+        codeNode.setExecutionResult(executionResultContent.join('\n'), editor);
+      },
+      executionId
+    );
   });
 }
 
@@ -213,6 +218,10 @@ function updateCodeBlock(
     );
     if (codeNodeToUpdate) {
       // This is a fresh execution, so it does not have a result
+      console.log({
+        messageExecutionId: executionId,
+        codeBlockExecutionId: codeNodeToUpdate.getExecutionId(),
+      });
       if (executionId && executionId !== codeNodeToUpdate.getExecutionId()) {
         codeNodeToUpdate.setExecutionId(executionId, editor);
         codeNodeToUpdate.setLastExecutedResult('', editor);
@@ -224,13 +233,13 @@ function updateCodeBlock(
 
 /**
  * Hook that listens for code block execution replies and updates the editor with error traceback info.
- * Subscribes to the 'code:code-block:execute-reply' event to handle execution responses.
+ * Subscribes to the 'code:code-block:execute_reply' event to handle execution responses.
  *
  * @param editor - The Lexical editor instance to update code blocks in
  */
 export function useCodeBlockExecuteReply(editor: LexicalEditor) {
-  useWailsEvent('code:code-block:execute-reply', (body) => {
-    console.info('code:code-block:execute-reply');
+  useWailsEvent('code:code-block:execute_reply', (body) => {
+    console.info('code:code-block:execute_reply');
     const data = body.data as (
       | { status: 'ok'; messageId: string }
       | {

@@ -258,9 +258,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
         nodeKey={this.getKey()}
         isCreatedNow={this.getIsCreatedNow()}
         lastExecutedResult={this.getLastExecutedResult()}
-        setLastExecutedResult={(result: string | null) =>
-          this.setLastExecutedResult(result, _editor)
-        }
       />
     );
   }

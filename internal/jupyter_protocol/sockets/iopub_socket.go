@@ -64,10 +64,8 @@ func (i *ioPubSocket) Get() *zmq4.Socket {
 
 func (i *ioPubSocket) Listen(
 	ioPubSocketSubscriber *zmq4.Socket,
-	// language string,
 	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
-	// cancelFunc context.CancelFunc,
 ) {
 
 	defer ioPubSocketSubscriber.Close()

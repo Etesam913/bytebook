@@ -11,12 +11,10 @@ export function runCode(
       newExecutionId: string;
     },
     unknown
-  >,
-  setLastExecutedResult: (result: string) => void
+  >
 ) {
   const newExecutionId = crypto.randomUUID();
   const code = codeMirrorInstance?.view?.state.doc.toString();
   if (code === null || code === undefined) return;
-  setLastExecutedResult('');
   executeCode({ code, newExecutionId });
 }

@@ -11,16 +11,11 @@ import { GolangLogo } from '../../icons/golang-logo';
 import { CodeBlockStatus, Languages } from '../../types';
 import { AnimatePresence, motion } from 'motion/react';
 import { CodeActions } from './code-actions';
+import { CodeResult } from './code-result';
 
 const CodeMirrorEditor = lazy(() =>
   import('./codemirror-editor').then((module) => ({
     default: module.CodeMirrorEditor,
-  }))
-);
-
-const LazyCodeResult = lazy(() =>
-  import('./code-result').then((module) => ({
-    default: module.CodeResult,
   }))
 );
 
@@ -59,7 +54,6 @@ export function Code({
   nodeKey,
   isCreatedNow,
   lastExecutedResult,
-  setLastExecutedResult,
 }: {
   id: string;
   code: string;
@@ -70,7 +64,6 @@ export function Code({
   nodeKey: string;
   isCreatedNow: boolean;
   lastExecutedResult: string | null;
-  setLastExecutedResult: (result: string | null) => void;
 }) {
   const [codeMirrorInstance, setCodeMirrorInstance] =
     useState<ReactCodeMirrorRef | null>(null);
@@ -119,7 +112,6 @@ export function Code({
             language={language}
             status={status}
             setStatus={setStatus}
-            setLastExecutedResult={setLastExecutedResult}
             isExpanded={isExpanded}
             setIsExpanded={setIsExpanded}
             nodeKey={nodeKey}
@@ -137,10 +129,9 @@ export function Code({
             isExpanded={isExpanded}
             status={status}
             setStatus={setStatus}
-            setLastExecutedResult={setLastExecutedResult}
           />
           {lastExecutedResult !== null && (
-            <LazyCodeResult
+            <CodeResult
               lastExecutedResult={lastExecutedResult}
               isExpanded={isExpanded}
               status={status}

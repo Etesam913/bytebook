@@ -126,7 +126,7 @@ func (s *shellSocket) Listen(
 				currentWindow := app.CurrentWindow()
 				if currentWindow != nil {
 					currentWindow.EmitEvent(
-						"code:code-block:execute-reply",
+						"code:code-block:execute_reply",
 						executeReplyEvent{
 							Status:         status,
 							MessageId:      msgId,
