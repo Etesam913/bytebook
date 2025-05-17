@@ -43,6 +43,8 @@ export const Combobox = forwardRef<HTMLInputElement, InputProps>(
       items.length > 0
         ? items.map(({ value, label }, i) => (
             <button
+              role="menuitem"
+              tabIndex={-1}
               onMouseEnter={() => setSelectedIndex(i)}
               onMouseLeave={() => setSelectedIndex(-1)}
               onClick={() => {
@@ -120,6 +122,7 @@ export const Combobox = forwardRef<HTMLInputElement, InputProps>(
             setSelectedIndex(-1);
             onChange?.(e);
           }}
+          onBlur={() => setIsOpen(false)}
           {...restInputProps}
         />
 
