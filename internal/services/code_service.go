@@ -150,6 +150,49 @@ func (c *CodeService) SendInterruptRequest(codeBlockId, executionId string) conf
 	}
 }
 
+// SendInputReply sends an input_reply message to the kernel.
+func (c *CodeService) SendInputReply(codeBlockId, executionId, value string) config.BackendResponseWithoutData {
+	if c.ShellSocketDealer == nil || c.StdinSocketDealer == nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "Stdin socket is not initialized. Unable to send input reply.",
+		}
+	}
+
+	// It's good practice to check if the kernel is actually running,
+	// though input_reply is usually in response to an input_request from an active kernel.
+	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
+	if !isHeartBeating {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "The kernel is not running. Cannot send input reply.",
+		}
+	}
+
+	err := jupyter_protocol.SendInputReplyMessage(
+		c.StdinSocketDealer,
+		jupyter_protocol.InputReplyMessageParams{
+			MessageParams: jupyter_protocol.MessageParams{
+				MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
+				SessionID: "current-session",
+			},
+			Value: value,
+		},
+	)
+
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: fmt.Sprintf("Failed to send input reply: %v", err),
+		}
+	}
+
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "Input reply sent successfully",
+	}
+}
+
 // IsKernelAvailable returns true if the kernel sockets are initialized
 // and the heartbeat is currently active.
 func (c *CodeService) IsKernelAvailable() bool {
@@ -160,7 +203,7 @@ func (c *CodeService) IsKernelAvailable() bool {
 		c.HeartbeatSocketReq == nil {
 		return false
 	}
-	// Then check that the heartbeat state reports “alive”
+	// Then check that the heartbeat state reports "alive"
 	return c.HeartbeatState.GetHeartbeatStatus()
 }
 
@@ -181,7 +224,6 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 		}
 	}
 
-	codeServiceUpdater := sockets.CodeServiceUpdater(c)
 	connectionInfo, err := config.GetConnectionInfoFromLanguage(c.ProjectPath, language)
 	if err != nil {
 		return config.BackendResponseWithoutData{
@@ -190,8 +232,9 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 		}
 	}
 
-	if util.IsPortInUse(connectionInfo.ShellPort) {
-		// Still have to make sure that the sockets exist
+	// Function to create sockets and update CodeService properties
+	createAndUpdateSockets := func() (*sockets.SocketSet, error) {
+		codeServiceUpdater := sockets.CodeServiceUpdater(c)
 		createdSockets, err := sockets.CreateSockets(
 			c.ShellSocketDealer,
 			c.IOPubSocketSubscriber,
@@ -207,16 +250,28 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 		)
 
 		if err != nil {
+			return nil, err
+		}
+
+		// Update CodeService socket properties
+		c.ShellSocketDealer = createdSockets.ShellSocketDealer
+		c.IOPubSocketSubscriber = createdSockets.IOPubSocketSubscriber
+		c.HeartbeatSocketReq = createdSockets.HeartbeatSocketReq
+		c.ControlSocketDealer = createdSockets.ControlSocketDealer
+		c.StdinSocketDealer = createdSockets.StdinSocketDealer
+
+		return createdSockets, nil
+	}
+
+	if util.IsPortInUse(connectionInfo.ShellPort) {
+		// Still have to make sure that the sockets exist
+		_, err := createAndUpdateSockets()
+		if err != nil {
 			return config.BackendResponseWithoutData{
 				Success: false,
 				Message: err.Error(),
 			}
 		}
-
-		c.ShellSocketDealer = createdSockets.ShellSocketDealer
-		c.IOPubSocketSubscriber = createdSockets.IOPubSocketSubscriber
-		c.HeartbeatSocketReq = createdSockets.HeartbeatSocketReq
-		c.ControlSocketDealer = createdSockets.ControlSocketDealer
 
 		return config.BackendResponseWithoutData{
 			Success: true,
@@ -246,20 +301,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 
 	log.Println("🟩 launched kernel")
 
-	createdSockets, err := sockets.CreateSockets(
-		c.ShellSocketDealer,
-		c.IOPubSocketSubscriber,
-		c.HeartbeatSocketReq,
-		c.ControlSocketDealer,
-		c.StdinSocketDealer,
-		language,
-		connectionInfo,
-		c.Context,
-		c.Cancel,
-		codeServiceUpdater,
-		&c.HeartbeatState,
-	)
-
+	_, err = createAndUpdateSockets()
 	if err != nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
@@ -267,10 +309,6 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 		}
 	}
 
-	c.ShellSocketDealer = createdSockets.ShellSocketDealer
-	c.IOPubSocketSubscriber = createdSockets.IOPubSocketSubscriber
-	c.HeartbeatSocketReq = createdSockets.HeartbeatSocketReq
-	c.ControlSocketDealer = createdSockets.ControlSocketDealer
 	app := application.Get()
 	if app != nil {
 		app.EmitEvent("kernel:launch-success", jupyter_protocol.KernelLaunchEvent{

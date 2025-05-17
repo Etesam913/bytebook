@@ -18,6 +18,7 @@ import {
   SendExecuteRequest,
   SendInterruptRequest,
   SendShutdownMessage,
+  SendInputReply,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import { QueryError } from '../utils/query';
 import { $nodesOfType, LexicalEditor } from 'lexical';
@@ -220,7 +221,7 @@ function updateCodeBlock(
       // This is a fresh execution, so it does not have a result
       if (executionId && executionId !== codeNodeToUpdate.getExecutionId()) {
         codeNodeToUpdate.setExecutionId(executionId, editor);
-        codeNodeToUpdate.setLastExecutedResult('', editor);
+        codeNodeToUpdate.resetLastExecutedResult(editor);
       }
       callback(codeNodeToUpdate);
     }
@@ -324,20 +325,52 @@ export function useCodeBlockInputRequest(editor: LexicalEditor) {
     console.info('code:code-block:input_request', body);
     const data = body.data as {
       messageId: string;
-      prompt: string;
-      password: boolean;
+      prompt: string | null;
+      password: boolean | null;
     }[];
 
     if (data.length === 0) return;
 
-    const [codeBlockId] = data[0].messageId.split(':');
-    // const prompt = data[0].prompt;
-    // const isPassword = data[0].password;
+    const [codeBlockId, executionId] = data[0].messageId.split(':');
+    const prompt = data[0].prompt;
+    const isPassword = data[0].password;
 
-    // TODO: Create setInputPrompt method in code node
-    updateCodeBlock(editor, codeBlockId, () => {
-      // codeNode.setInputPrompt(prompt, isPassword, editor);
-    });
+    updateCodeBlock(
+      editor,
+      codeBlockId,
+      (codeNode) => {
+        codeNode.setInputPrompt(
+          {
+            prompt: prompt ?? '',
+            isPassword: isPassword ?? false,
+          },
+          editor
+        );
+      },
+      executionId
+    );
+  });
+}
+
+/**
+ * Hook that creates a mutation for sending an input reply to the kernel.
+ *
+ * @returns A mutation object for sending input replies
+ */
+export function useSendInputReplyMutation(codeBlockId: string) {
+  return useMutation({
+    mutationFn: async ({
+      executionId,
+      value,
+    }: {
+      executionId: string;
+      value: string;
+    }) => {
+      const res = await SendInputReply(codeBlockId, executionId, value);
+      if (!res.success) {
+        throw new QueryError(res.message);
+      }
+    },
   });
 }
 

@@ -23,7 +23,7 @@ type CodeServiceUpdater interface {
 	ResetCodeServiceProperties()
 }
 
-type socketSet struct {
+type SocketSet struct {
 	ShellSocketDealer     *zmq4.Socket
 	ControlSocketDealer   *zmq4.Socket
 	IOPubSocketSubscriber *zmq4.Socket
@@ -45,8 +45,8 @@ func CreateSockets(
 	cancelFunc context.CancelFunc,
 	codeServiceUpdater CodeServiceUpdater,
 	heartbeatState *jupyter_protocol.KernelHeartbeatState,
-) (*socketSet, error) {
-	socketSet := &socketSet{}
+) (*SocketSet, error) {
+	socketSet := &SocketSet{}
 
 	// Create shell socket if it doesn't exist
 	var newlyCreatedShellSocket JupyterSocket

@@ -54,6 +54,9 @@ export function Code({
   nodeKey,
   isCreatedNow,
   lastExecutedResult,
+  setLastExecutedResult,
+  isWaitingForInput,
+  setIsWaitingForInput,
 }: {
   id: string;
   code: string;
@@ -64,6 +67,9 @@ export function Code({
   nodeKey: string;
   isCreatedNow: boolean;
   lastExecutedResult: string | null;
+  setLastExecutedResult: (lastExecutedResult: string) => void;
+  isWaitingForInput: boolean;
+  setIsWaitingForInput: (isWaitingForInput: boolean) => void;
 }) {
   const [codeMirrorInstance, setCodeMirrorInstance] =
     useState<ReactCodeMirrorRef | null>(null);
@@ -128,9 +134,14 @@ export function Code({
           />
           {lastExecutedResult !== null && (
             <CodeResult
+              id={id}
               lastExecutedResult={lastExecutedResult}
+              setLastExecutedResult={setLastExecutedResult}
               isExpanded={isExpanded}
               status={status}
+              isWaitingForInput={isWaitingForInput}
+              setIsWaitingForInput={setIsWaitingForInput}
+              codeMirrorInstance={codeMirrorInstance}
             />
           )}
         </Suspense>

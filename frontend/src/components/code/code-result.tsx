@@ -6,17 +6,30 @@ import { AnimatePresence, motion } from 'motion/react';
 import { CodeBlockStatus } from '../../types';
 import { Loader } from '../../icons/loader';
 import { cn } from '../../utils/string-formatting';
+import { useSendInputReplyMutation } from '../../hooks/code';
+import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 
 export function CodeResult({
+  id,
   lastExecutedResult,
+  setLastExecutedResult,
   isExpanded,
   status,
+  isWaitingForInput,
+  setIsWaitingForInput,
+  codeMirrorInstance,
 }: {
+  id: string;
   lastExecutedResult: string;
+  setLastExecutedResult: (lastExecutedResult: string) => void;
   isExpanded: boolean;
   status: CodeBlockStatus;
+  isWaitingForInput: boolean;
+  setIsWaitingForInput: (isWaitingForInput: boolean) => void;
+  codeMirrorInstance: ReactCodeMirrorRef | null;
 }) {
-  const resultContainerRef = useRef<HTMLDivElement>(null);
+  const resultContainerRef = useRef<HTMLFormElement>(null);
+  const { mutate: sendInputReply } = useSendInputReplyMutation(id);
   return (
     <motion.footer
       className={cn(
@@ -26,7 +39,7 @@ export function CodeResult({
       )}
     >
       <AnimatePresence>
-        {status === 'busy' && (
+        {status === 'busy' && !isWaitingForInput && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -50,8 +63,46 @@ export function CodeResult({
       </AnimatePresence>
 
       <div className="overflow-y-auto h-full">
-        <motion.div
+        <form
           ref={resultContainerRef}
+          onSubmit={(e) => {
+            e.preventDefault();
+            // Gets the submit button element
+            const submitter = (e.nativeEvent as SubmitEvent)
+              .submitter as HTMLButtonElement | null;
+
+            // Gets the parent div of the submit button
+            const parentDiv = submitter?.parentElement;
+
+            // Gets the input element from the parent div
+            const inputEl = parentDiv?.querySelector('input');
+
+            setIsWaitingForInput(false);
+            if (!parentDiv || !inputEl) return;
+
+            // Creates a new paragraph element to store the input value
+            const typedInputContentElement = document.createElement('p');
+            typedInputContentElement.textContent = inputEl.value;
+
+            // Replaces the input element with the new paragraph element as
+            // there is nothing to type anymore
+            parentDiv.replaceWith(typedInputContentElement);
+
+            // Update the lastExecutedResult with the current HTML content
+            // This makes the html content persist
+            if (resultContainerRef.current) {
+              setLastExecutedResult(resultContainerRef.current.innerHTML);
+            }
+
+            if (codeMirrorInstance?.view) {
+              codeMirrorInstance.view.focus();
+            }
+
+            sendInputReply({
+              executionId: crypto.randomUUID(),
+              value: inputEl.value,
+            });
+          }}
           dangerouslySetInnerHTML={{ __html: lastExecutedResult }}
           className="flex flex-col justify-between overflow-x-hidden gap-1.5 relative font-code text-xs px-2 py-3"
         />

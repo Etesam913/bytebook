@@ -32,6 +32,11 @@ export type SerializedCodeNode = Spread<
   SerializedLexicalNode
 >;
 
+type InputPrompt = {
+  prompt: string;
+  isPassword: boolean;
+};
+
 /**
     * A node that represents a code block
     `files`: The files that are present in the code block
@@ -48,6 +53,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   __isCreatedNow: boolean;
   __lastExecutedResult: string | null;
   __status: CodeBlockStatus;
+  __isWaitingForInput: boolean;
 
   static getType(): string {
     return 'code-block';
@@ -62,6 +68,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       node.__lastExecutedResult,
       node.__status,
       node.__executionId,
+      node.__isWaitingForInput,
       node.__key
     );
   }
@@ -91,6 +98,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     lastExecutedResult: string | null = null,
     status: CodeBlockStatus = 'idle',
     executionId?: string,
+    isWaitingForInput: boolean = false,
     key?: NodeKey
   ) {
     super(key);
@@ -102,6 +110,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     this.__isCreatedNow = isCreatedNow;
     this.__lastExecutedResult = lastExecutedResult;
     this.__status = status;
+    this.__isWaitingForInput = isWaitingForInput;
   }
 
   exportJSON(): SerializedCodeNode {
@@ -150,6 +159,10 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return this.__lastExecutedResult;
   }
 
+  getIsWaitingForInput(): boolean {
+    return this.__isWaitingForInput;
+  }
+
   setTracebackResult(tracebackHTML: string, editor: LexicalEditor): void {
     editor.update(() => {
       const writable = this.getWritable();
@@ -191,7 +204,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       }
       // 4. Anything else, just dump it
       Object.values(mimeTypeToData).forEach((data) => {
-        writable.__lastExecutedResult += `<div>${data}</div>`;
+        writable.__lastExecutedResult = `<div>${data}</div>`;
       });
     });
   }
@@ -203,10 +216,40 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     });
   }
 
-  setLastExecutedResult(result: string | null, editor: LexicalEditor): void {
+  setIsWaitingForInput(
+    isWaitingForInput: boolean,
+    editor: LexicalEditor
+  ): void {
     editor.update(() => {
       const writable = this.getWritable();
-      writable.__lastExecutedResult = result;
+      writable.__isWaitingForInput = isWaitingForInput;
+    });
+  }
+  setInputPrompt(inputPrompt: InputPrompt, editor: LexicalEditor): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      this.setIsWaitingForInput(true, editor);
+
+      writable.__lastExecutedResult += `<div class="prompt-block flex gap-2 items-center flex-wrap"><label>${inputPrompt.prompt}</label><span><input class="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-1" type="${
+        inputPrompt.isPassword ? 'password' : 'text'
+      }"/><button type="submit" class="ml-2 px-2 py-1 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600">Submit</button></span></div>`;
+    });
+  }
+
+  setLastExecutedResult(
+    lastExecutedResult: string,
+    editor: LexicalEditor
+  ): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      writable.__lastExecutedResult = lastExecutedResult;
+    });
+  }
+
+  resetLastExecutedResult(editor: LexicalEditor): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      writable.__lastExecutedResult = '';
     });
   }
 
@@ -258,6 +301,13 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
         nodeKey={this.getKey()}
         isCreatedNow={this.getIsCreatedNow()}
         lastExecutedResult={this.getLastExecutedResult()}
+        setLastExecutedResult={(lastExecutedResult: string) =>
+          this.setLastExecutedResult(lastExecutedResult, _editor)
+        }
+        isWaitingForInput={this.getIsWaitingForInput()}
+        setIsWaitingForInput={(isWaitingForInput: boolean) =>
+          this.setIsWaitingForInput(isWaitingForInput, _editor)
+        }
       />
     );
   }
