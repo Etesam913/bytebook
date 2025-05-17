@@ -282,7 +282,13 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 		}
 	}
 
-	pathToConnectionFile := filepath.Join(c.ProjectPath, "code", "connection.json")
+	pathToConnectionFile := filepath.Join(c.ProjectPath, "code", fmt.Sprintf("%s-connection.json", language))
+	if fileExists, _ := util.FileOrFolderExists(pathToConnectionFile); !fileExists {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: fmt.Sprintf("Connection file for %s not found", language),
+		}
+	}
 
 	// Start up the kernel
 	err = jupyter_protocol.LaunchKernel(
