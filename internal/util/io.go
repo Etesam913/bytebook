@@ -81,36 +81,40 @@ func ReadJsonFromPath(pathname string, data any) error {
 	return nil
 }
 
-// ReadOrCreateJSON takes a file path and a default value.
-// If the file doesn't exist, can't be read, or contains invalid JSON,
-// it will write the default value to the file and return it.
+// ReadOrCreateJSON attempts to read a JSON file from the given path. If the file doesn't exist,
+// it creates the necessary directories and writes the default value as JSON. If the file exists
+// but contains invalid JSON, it returns an error.
+//
+// Parameters:
+//   - filePath: The path where the JSON file should be read from or created
+//   - defaultValue: The value to write if the file doesn't exist
+//
+// Returns:
+//   - The read value if successful, or the default value if the file was created
+//   - An error if the operation fails
 func ReadOrCreateJSON[T any](filePath string, defaultValue T) (T, error) {
 	var value T
 
-	// Try to read the existing file using the helper
-	err := ReadJsonFromPath(filePath, &value)
-	if err == nil {
-		// Successfully read and parsed the file
-		return value, nil
+	// 1) Does the file exist at all?
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		// directory creation, then write default
+		if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
+			return defaultValue, fmt.Errorf("couldn't mkdir: %w", err)
+		}
+		if err := WriteJsonToPath(filePath, defaultValue); err != nil {
+			return defaultValue, fmt.Errorf("couldn't write default JSON: %w", err)
+		}
+		return defaultValue, nil
+	} else if err != nil {
+		// some other Stat error (permissions?), bubble it up
+		return defaultValue, fmt.Errorf("stat error: %w", err)
 	}
 
-	// At this point, either:
-	// 1. The file doesn't exist
-	// 2. The file exists but couldn't be read
-	// 3. The file exists but contains invalid JSON
-
-	// Ensure the directory exists
-	dir := filepath.Dir(filePath)
-	if err = os.MkdirAll(dir, 0755); err != nil {
-		return value, fmt.Errorf("failed to create directory: %w", err)
+	// 2) File is there—try to load it.  If this fails, return the error
+	if err := ReadJsonFromPath(filePath, &value); err != nil {
+		return value, fmt.Errorf("invalid JSON or read error: %w", err)
 	}
-
-	// Write the default value to the file using the helper
-	if err = WriteJsonToPath(filePath, defaultValue); err != nil {
-		return value, fmt.Errorf("failed to write default value to file: %w", err)
-	}
-
-	return defaultValue, nil
+	return value, nil
 }
 
 /*

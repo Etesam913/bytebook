@@ -34,7 +34,11 @@ const languageSpecificOptions: {
         value: 'change-venv',
         label: (
           <span className="flex items-center gap-1.5 will-change-transform">
-            <FolderOpen height={14.5} width={14.5} />
+            <FolderOpen
+              className="will-change-transform"
+              height={14.5}
+              width={14.5}
+            />
             Change Virtual Environment
           </span>
         ),

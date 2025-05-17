@@ -141,7 +141,7 @@ export function CodeMirrorEditor({
           e.stopPropagation();
         }}
         basicSetup={{
-          lineNumbers: false,
+          lineNumbers: true,
           ...languageToSettings[language].basicSetup,
         }}
       />

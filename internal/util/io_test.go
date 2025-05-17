@@ -107,7 +107,7 @@ func TestReadOrCreateJSON(t *testing.T) {
 		assert.Equal(t, defaultConfig, readConfig)
 	})
 
-	t.Run("Overwrites invalid JSON with default value", func(t *testing.T) {
+	t.Run("Returns error if file is not valid JSON", func(t *testing.T) {
 		// Setup
 		tempDir := t.TempDir()
 		filePath := filepath.Join(tempDir, "invalid.json")
@@ -119,17 +119,10 @@ func TestReadOrCreateJSON(t *testing.T) {
 		defaultConfig := Config{Name: "Default", Version: 1, Debug: false}
 
 		// Test the function
-		result, err := ReadOrCreateJSON(filePath, defaultConfig)
+		_, err = ReadOrCreateJSON(filePath, defaultConfig)
 
 		// Verify
-		assert.NoError(t, err)
-		assert.Equal(t, defaultConfig, result)
-
-		// Verify file was overwritten with correct content
-		var readConfig Config
-		err = ReadJsonFromPath(filePath, &readConfig)
-		assert.NoError(t, err)
-		assert.Equal(t, defaultConfig, readConfig)
+		assert.Error(t, err)
 	})
 
 	t.Run("Creates directories if they don't exist", func(t *testing.T) {

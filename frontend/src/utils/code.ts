@@ -25,6 +25,17 @@ export function runCode(
   executeCode({ code, newExecutionId });
 }
 
+/**
+ * Handles running or interrupting code execution based on the current status of the code block.
+ *
+ * @param status - Current execution status of the code block
+ * @param codeBlockId - Unique identifier for the code block
+ * @param codeBlockLanguage - Programming language of the code block
+ * @param interruptExecution - Function to interrupt code execution
+ * @param codeMirrorInstance - Reference to the CodeMirror editor instance
+ * @param executeCode - Function to execute the code in the editor
+ * @returns True if the code was run or interrupted, false otherwise
+ */
 function handleRunOrInterruptCode(
   status: CodeBlockStatus,
   codeBlockId: string,
