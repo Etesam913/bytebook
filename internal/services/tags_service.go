@@ -192,10 +192,21 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) config.
 	}
 }
 
-// func (t *TagsService) GetPreviewForTag(tag string) config.BackendResponseWithData[notes.TagPreview]{
-// 	notePreview, err := notes.GetTagPreview(t.ProjectPath, tag)
+// GetPreviewForTag retrieves a preview of a tag, which includes the count of notes associated with it.
+// It calls GetTagPreview to get the list of notes and returns the count.
+func (t *TagsService) GetPreviewForTag(tag string) config.BackendResponseWithData[notes.TagPreview] {
+	notePreview, err := notes.GetTagPreview(t.ProjectPath, tag)
 
-// 	if err != nil [
-// 		return
-// 	]
-// }
+	if err != nil {
+		return config.BackendResponseWithData[notes.TagPreview]{
+			Success: false,
+			Message: fmt.Sprintf("Failed to get preview for tag: %s", tag),
+			Data:    notePreview,
+		}
+	}
+	return config.BackendResponseWithData[notes.TagPreview]{
+		Success: true,
+		Message: fmt.Sprintf("Successfully got preview for tag: %s", tag),
+		Data:    notePreview,
+	}
+}

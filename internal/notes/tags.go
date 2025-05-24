@@ -106,7 +106,7 @@ func GetNotesFromTag(projectPath string, tag string, sortOption *string) ([]stri
 }
 
 type TagPreview struct {
-	Count int
+	Count int `json:"count"`
 }
 
 /*
