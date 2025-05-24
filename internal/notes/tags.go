@@ -140,7 +140,6 @@ func CreateTagToNotesArrayIfNotExists(projectPath string, tag string) error {
 
 	_, err = util.ReadOrCreateJSON(pathToTagToNotesArray, TagsToNotesArray{Notes: []string{}})
 	if err != nil {
-		log.Println("yolo2")
 		return err
 	}
 	return nil
@@ -152,7 +151,6 @@ func AddNotesToTagToNotesArray(projectPath string, tag string, notePaths []strin
 
 	// Ensure the notes.json file exists.
 	if err := CreateTagToNotesArrayIfNotExists(projectPath, tag); err != nil {
-		log.Println("no1")
 		return err
 	}
 

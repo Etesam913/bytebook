@@ -81,6 +81,12 @@ export function useTags() {
     queryClient.invalidateQueries({
       queryKey: ['tag-notes', updatedTag, noteSort],
     });
+
+    // Invalidate the tag previews for each tag
+    queryClient.invalidateQueries({
+      predicate: (query) => query.queryKey[0] === 'tag-preview',
+    });
+
     handleTagRelatedEvent(queryClient, routeParams, searchParams);
   });
 }
