@@ -117,7 +117,7 @@ export function NotesSidebar({
         </>
       )}
 
-      <RenderNote />
+      <RenderNote isInTagsSidebar={false} />
     </>
   );
 }

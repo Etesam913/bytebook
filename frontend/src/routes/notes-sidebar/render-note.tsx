@@ -23,12 +23,14 @@ import { useRoute } from 'wouter';
 import { navigate } from 'wouter/use-browser-location';
 import { RouteFallback } from '../../components/route-fallback';
 
-export function RenderNote() {
+export function RenderNote({ isInTagsSidebar }: { isInTagsSidebar: boolean }) {
   const animationControls = useAnimationControls();
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 
   // The attributes have to be retrieved from useRoute as passing in the params as props was lagging behind for some reason
-  const [, params] = useRoute('/:folder/:note?');
+  const [, params] = useRoute(
+    isInTagsSidebar ? '/tags/:tagName/:folder/:note' : '/:folder/:note?'
+  );
   const folder = params?.folder ?? '';
   const note = params?.note ?? '';
 
@@ -55,7 +57,6 @@ export function RenderNote() {
   } = useNoteExists(folder, note, fileExtension);
   useMostRecentNotes(folder, note, normalizedExtension);
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation(false);
-
   if (!note) return null;
   if (isLoading) {
     return <RouteFallback height={42} width={42} className="mx-auto my-auto" />;
