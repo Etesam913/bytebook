@@ -398,12 +398,8 @@ export function useNotePreviewQuery(
 ) {
   return useQuery({
     queryKey: ['note-preview', curFolder, sidebarNoteName],
-    queryFn: async () => {
-      // if it is in the tags sidebar, then the sidebarNoteName is folderName/noteName
-      return await GetNotePreview(
-        `notes/${curFolder}/${sidebarNoteName}.${fileExtension}`
-      );
-    },
+    queryFn: () =>
+      GetNotePreview(`notes/${curFolder}/${sidebarNoteName}.${fileExtension}`),
   });
 }
 

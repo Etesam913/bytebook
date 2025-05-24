@@ -2,6 +2,7 @@ package notes
 
 import (
 	"errors"
+	"log"
 	"os"
 	"path/filepath"
 	"slices"
@@ -16,6 +17,14 @@ type TagsToNotesArray struct {
 
 const MAX_TAGS_PER_NOTE = 100000
 
+// GetAllTags retrieves all tag names from the project's tags directory.
+// It ensures the tags directory exists and returns a list of all tag folder names.
+// Parameters:
+//   - projectPath: The root path of the project
+//
+// Returns:
+//   - A slice of tag names
+//   - An error if directory operations fail
 func GetAllTags(projectPath string) ([]string, error) {
 	tags := []string{}
 	tagsFolder := filepath.Join(projectPath, "tags")
@@ -37,6 +46,82 @@ func GetAllTags(projectPath string) ([]string, error) {
 	return tags, nil
 }
 
+func GetNotesFromTag(projectPath string, tag string, sortOption *string) ([]string, error) {
+	// Make sure the notes.json file exists
+	err := CreateTagToNotesArrayIfNotExists(projectPath, tag)
+	if err != nil {
+		return nil, err
+	}
+
+	pathToTagFile := filepath.Join(projectPath, "tags", tag, "notes.json")
+	notesForGivenTagData := TagsToNotesArray{}
+
+	// Gets the JSON notes data
+	if err := util.ReadJsonFromPath(pathToTagFile, &notesForGivenTagData); err != nil {
+		return nil, err
+	}
+
+	if sortOption == nil {
+		return notesForGivenTagData.Notes, nil
+	}
+
+	notesFileInfo := []util.NoteWithFolder{}
+	pathsToDelete := []string{}
+	for _, notePath := range notesForGivenTagData.Notes {
+		fullNotePath := filepath.Join(projectPath, "notes", notePath)
+		fileInfo, err := os.Stat(fullNotePath)
+		if err != nil || fileInfo.IsDir() {
+			pathsToDelete = append(pathsToDelete, notePath)
+			continue
+		}
+		frontendFileInfo, err := ConvertFileNameForFrontendUrl(notePath)
+		if err != nil {
+			continue
+		}
+
+		notesFileInfo = append(
+			notesFileInfo,
+			util.NoteWithFolder{
+				Folder:  frontendFileInfo.Directory,
+				Name:    frontendFileInfo.FileName,
+				ModTime: fileInfo.ModTime(),
+				Size:    fileInfo.Size(),
+				Ext:     frontendFileInfo.Extension,
+			},
+		)
+	}
+	// Clean up stale tags in the notes.json file
+	if err := DeleteNotesFromTagToNotesArray(projectPath, tag, pathsToDelete); err != nil {
+		return nil, err
+	}
+
+	// Sort the folders appropriately
+	util.SortNotesWithFolders(notesFileInfo, *sortOption)
+	sortedNotes := util.Map(notesFileInfo, func(noteInfo util.NoteWithFolder) string {
+		return noteInfo.Folder + noteInfo.Name + "?ext=" + noteInfo.Ext
+	})
+
+	return sortedNotes, nil
+
+}
+
+type TagPreview struct {
+	Count int
+}
+
+/*
+GetTagPreview retrieves a preview of a tag, which includes the count of notes associated with it.
+It calls GetNotesFromTag to get the list of notes and returns the count.
+*/
+func GetTagPreview(projectPath string, tag string) (TagPreview, error) {
+	notesForTag, err := GetNotesFromTag(projectPath, tag, nil)
+	if err != nil {
+		return TagPreview{Count: 0}, err
+	}
+
+	return TagPreview{Count: len(notesForTag)}, nil
+}
+
 // CreateTagToNotesArrayIfNotExists creates notes.json file for the given tag.
 func CreateTagToNotesArrayIfNotExists(projectPath string, tag string) error {
 	tagDir := filepath.Join(projectPath, "tags", tag)
@@ -47,22 +132,16 @@ func CreateTagToNotesArrayIfNotExists(projectPath string, tag string) error {
 		return err
 	}
 
-	err := util.CreateFileIfNotExist(pathToTagToNotesArray)
+	_, err := util.CreateJSONFileIfNotExists(pathToTagToNotesArray)
 
 	if err != nil {
 		return err
 	}
 
-	tagToNotesArray := TagsToNotesArray{}
-	if err = util.ReadJsonFromPath(pathToTagToNotesArray, &tagToNotesArray); err != nil {
-		err = util.WriteJsonToPath(
-			pathToTagToNotesArray,
-			TagsToNotesArray{Notes: []string{}},
-		)
-
-		if err != nil {
-			return err
-		}
+	_, err = util.ReadOrCreateJSON(pathToTagToNotesArray, TagsToNotesArray{Notes: []string{}})
+	if err != nil {
+		log.Println("yolo2")
+		return err
 	}
 	return nil
 }
@@ -73,11 +152,13 @@ func AddNotesToTagToNotesArray(projectPath string, tag string, notePaths []strin
 
 	// Ensure the notes.json file exists.
 	if err := CreateTagToNotesArrayIfNotExists(projectPath, tag); err != nil {
+		log.Println("no1")
 		return err
 	}
 
 	tagToNotesArray := TagsToNotesArray{}
 	if err := util.ReadJsonFromPath(pathToTagToNotesArray, &tagToNotesArray); err != nil {
+		log.Println("failed to read", err)
 		return err
 	}
 
@@ -89,6 +170,7 @@ func AddNotesToTagToNotesArray(projectPath string, tag string, notePaths []strin
 	}
 
 	if err := util.WriteJsonToPath(pathToTagToNotesArray, tagToNotesArray); err != nil {
+		log.Println("no2", err)
 		return err
 	}
 
@@ -124,6 +206,17 @@ func DeleteNotesFromTagToNotesArray(projectPath string, tag string, notePaths []
 	return nil
 }
 
+// GetTagsForNotes retrieves the tags associated with each note from the notes_to_tags.json file.
+// It returns a map where each key is a note path and the value is an array of associated tags.
+// If any note in the input array doesn't have any tags, it returns an error.
+//
+// Parameters:
+//   - projectPath: The path to the project directory
+//   - notes: An array of note paths to look up tags for
+//
+// Returns:
+//   - A map of note paths to their associated tags
+//   - An error if the operation fails or if any note has no tags
 func GetTagsForNotes(projectPath string, notes []string) (map[string][]string, error) {
 	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
 
@@ -180,6 +273,15 @@ func AddTagsToNotesToTagsMap(projectPath string, notes []string, tags []string) 
 	return nil
 }
 
+// DeleteStaleTagsFromNotesToTagsMap removes stale tags from the notes_to_tags.json file.
+// It filters out any tags that exist in the staleTags set and removes notes that have no remaining tags.
+//
+// Parameters:
+//   - projectPath: The path to the project directory
+//   - staleTags: A set of tag names that should be removed from all notes
+//
+// Returns:
+//   - An error if the operation fails, otherwise nil
 func DeleteStaleTagsFromNotesToTagsMap(projectPath string, staleTags util.Set[string]) error {
 	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
 

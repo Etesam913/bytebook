@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/notes"
@@ -19,10 +18,11 @@ type NoteService struct {
 func (n *NoteService) GetNotes(folderName string, sortOption string) config.BackendResponseWithData[[]string] {
 	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	// Ensure the directory exists
-	if _, err := os.Stat(folderPath); err != nil {
+	exists, err := util.FileOrFolderExists(folderPath)
+	if !exists || err != nil {
 		return config.BackendResponseWithData[[]string]{
 			Success: false,
-			Message: err.Error(),
+			Message: "Could not get notes from " + folderPath,
 			Data:    []string{},
 		}
 	}
@@ -135,9 +135,18 @@ func (n *NoteService) SetNoteMarkdown(
 func AddFolder(folderName string, projectPath string) config.BackendResponseWithoutData {
 	pathToFolder := filepath.Join(projectPath, "notes", folderName)
 
-	info, err := os.Stat(pathToFolder)
-	if err == nil {
-		if info.IsDir() {
+	exists, err := util.FileOrFolderExists(pathToFolder)
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: err.Error(),
+		}
+	}
+
+	if exists {
+		// Check if it's a directory
+		info, err := os.Stat(pathToFolder)
+		if err == nil && info.IsDir() {
 			return config.BackendResponseWithoutData{
 				Success: false,
 				Message: fmt.Sprintf(
@@ -299,13 +308,6 @@ func (n *NoteService) RevealFolderOrFileInFinder(
 	}
 }
 
-type NotePreviewData struct {
-	FirstLine     string `json:"firstLine"`
-	FirstImageSrc string `json:"firstImageSrc"`
-	Size          int64  `json:"size"`
-	LastUpdated   string `json:"lastUpdated"`
-}
-
 func (n *NoteService) MoveNoteToFolder(notePaths []string, newFolder string) config.BackendResponseWithoutData {
 	failedNoteNames := []string{}
 	for _, pathToNote := range notePaths {
@@ -330,43 +332,41 @@ func (n *NoteService) MoveNoteToFolder(notePaths []string, newFolder string) con
 	return config.BackendResponseWithoutData{Success: true, Message: ""}
 }
 
+type NotePreviewData struct {
+	FirstLine     string `json:"firstLine"`
+	FirstImageSrc string `json:"firstImageSrc"`
+	Size          int64  `json:"size"`
+	LastUpdated   string `json:"lastUpdated"`
+}
+
 func (n *NoteService) GetNotePreview(path string) config.BackendResponseWithData[NotePreviewData] {
-	fileExtension := filepath.Ext(path)
 	noteFilePath := filepath.Join(n.ProjectPath, path)
-	noteSize := int64(0)
-	lastUpdated := ""
-	firstLine := ""
-	firstImageSrc := ""
-	fileInfo, err := os.Stat(noteFilePath)
-	if err == nil {
-		noteSize = fileInfo.Size()
-		lastUpdated = fileInfo.ModTime().Format(time.RFC3339)
-	}
-	if fileExtension == ".md" {
-		noteContent, err := os.ReadFile(noteFilePath)
-		if err != nil {
-			return config.BackendResponseWithData[NotePreviewData]{
-				Success: false,
-				Message: err.Error(),
-				Data: NotePreviewData{
-					FirstLine:     "",
-					FirstImageSrc: "",
-					Size:          noteSize,
-					LastUpdated:   lastUpdated,
-				},
-			}
+
+	processedData, err := notes.ProcessNoteContent(noteFilePath)
+
+	if err != nil {
+		// This error comes from notes.ProcessNoteContent if reading a .md file failed.
+		// We still return any data that might have been populated (e.g., Size, LastUpdated if os.Stat succeeded).
+		return config.BackendResponseWithData[NotePreviewData]{
+			Success: false,
+			Message: err.Error(),
+			Data: NotePreviewData{
+				FirstLine:     processedData.FirstLine,     // Will be empty if .md read failed
+				FirstImageSrc: processedData.FirstImageSrc, // Will be empty if .md read failed
+				Size:          processedData.Size,
+				LastUpdated:   processedData.LastUpdated,
+			},
 		}
-		firstLine = notes.GetFirstLineFromMarkdown(string(noteContent))
-		firstImageSrc = notes.GetFirstImageSrcFromMarkdown(string(noteContent))
 	}
+
 	return config.BackendResponseWithData[NotePreviewData]{
 		Success: true,
 		Message: "Successfully retrieved note preview",
 		Data: NotePreviewData{
-			FirstLine:     firstLine,
-			FirstImageSrc: firstImageSrc,
-			Size:          noteSize,
-			LastUpdated:   lastUpdated,
+			FirstLine:     processedData.FirstLine,
+			FirstImageSrc: processedData.FirstImageSrc,
+			Size:          processedData.Size,
+			LastUpdated:   processedData.LastUpdated,
 		},
 	}
 }

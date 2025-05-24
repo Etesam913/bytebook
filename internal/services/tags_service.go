@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -64,22 +65,21 @@ For each tag in tagNames, it adds all folderAndNotePaths to its notes.json.
 If a tag does not exist, it creates the tag and associates the note paths with it.
 */
 func (t *TagsService) AddTagsToNotes(tagNames []string, folderAndNotePathsWithoutQueryParam []string) config.BackendResponseWithoutData {
-	didError := false
 	// Adds the notes to the notes.json file for each tag
 	for _, tagName := range tagNames {
 		err := notes.AddNotesToTagToNotesArray(t.ProjectPath, tagName, folderAndNotePathsWithoutQueryParam)
+		log.Println(err)
 		if err != nil {
-			didError = true
+			return config.BackendResponseWithoutData{
+				Success: false,
+				Message: "Failed to tag notes",
+			}
 		}
 	}
 
 	// Updates the map in the notes_to_tags.json file
 	err := notes.AddTagsToNotesToTagsMap(t.ProjectPath, folderAndNotePathsWithoutQueryParam, tagNames)
 	if err != nil {
-		didError = true
-	}
-
-	if didError {
 		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: "Failed to tag notes",
@@ -96,7 +96,6 @@ func (t *TagsService) AddTagsToNotes(tagNames []string, folderAndNotePathsWithou
 // For each tag in tagNames, it removes all folderAndNotePathsWithoutQueryParams from its notes.json.
 // If any operation fails, it returns a response indicating the failure.
 func (t *TagsService) DeleteTagsFromNotes(tagNames []string, folderAndNotePathsWithoutQueryParams []string) config.BackendResponseWithoutData {
-	didError := false
 	for _, tagName := range tagNames {
 		// Removes the notes from the notes.json file for each tag
 		err := notes.DeleteNotesFromTagToNotesArray(
@@ -106,7 +105,10 @@ func (t *TagsService) DeleteTagsFromNotes(tagNames []string, folderAndNotePathsW
 		)
 
 		if err != nil {
-			didError = true
+			return config.BackendResponseWithoutData{
+				Success: false,
+				Message: "Failed to untag notes",
+			}
 		}
 	}
 
@@ -117,13 +119,9 @@ func (t *TagsService) DeleteTagsFromNotes(tagNames []string, folderAndNotePathsW
 	)
 
 	if err != nil {
-		didError = true
-	}
-
-	if didError {
 		return config.BackendResponseWithoutData{
 			Success: false,
-			Message: fmt.Sprintf("Failed to untag notes"),
+			Message: "Failed to untag notes",
 		}
 	}
 
@@ -177,8 +175,8 @@ GetNotesFromTag retrieves the note paths associated with a given tag name.
 It reads the "notes.json" file within the tag's directory and returns the note paths with query params.
 */
 func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) config.BackendResponseWithData[[]string] {
-	// Make sure the notes.json file exists
-	err := notes.CreateTagToNotesArrayIfNotExists(t.ProjectPath, tagName)
+	sortOptionPtr := &sortOption
+	sortedNotes, err := notes.GetNotesFromTag(t.ProjectPath, tagName, sortOptionPtr)
 	if err != nil {
 		return config.BackendResponseWithData[[]string]{
 			Success: false,
@@ -187,55 +185,17 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) config.
 		}
 	}
 
-	pathToTagFile := filepath.Join(t.ProjectPath, "tags", tagName, "notes.json")
-	notesForGivenTagData := notes.TagsToNotesArray{}
-
-	// Gets the JSON notes data
-	if err := util.ReadJsonFromPath(pathToTagFile, &notesForGivenTagData); err != nil {
-		return config.BackendResponseWithData[[]string]{
-			Success: false,
-			Message: "Something went wrong when fetching the tag. Please try again later",
-			Data:    []string{},
-		}
-	}
-
-	notesFileInfo := []util.NoteWithFolder{}
-	pathsToDelete := []string{}
-	for _, notePath := range notesForGivenTagData.Notes {
-		fullNotePath := filepath.Join(t.ProjectPath, "notes", notePath)
-		fileInfo, err := os.Stat(fullNotePath)
-		if err != nil || fileInfo.IsDir() {
-			pathsToDelete = append(pathsToDelete, notePath)
-			continue
-		}
-		frontendFileInfo, err := notes.ConvertFileNameForFrontendUrl(notePath)
-		if err != nil {
-			continue
-		}
-
-		notesFileInfo = append(
-			notesFileInfo,
-			util.NoteWithFolder{
-				Folder:  frontendFileInfo.Directory,
-				Name:    frontendFileInfo.FileName,
-				ModTime: fileInfo.ModTime(),
-				Size:    fileInfo.Size(),
-				Ext:     frontendFileInfo.Extension,
-			},
-		)
-	}
-	// Clean up stale tags in the notes.json file
-	notes.DeleteNotesFromTagToNotesArray(t.ProjectPath, tagName, pathsToDelete)
-
-	// Sort the folders appropriately
-	util.SortNotesWithFolders(notesFileInfo, sortOption)
-	sortedNotes := util.Map(notesFileInfo, func(noteInfo util.NoteWithFolder) string {
-		return noteInfo.Folder + noteInfo.Name + "?ext=" + noteInfo.Ext
-	})
-
 	return config.BackendResponseWithData[[]string]{
 		Success: true,
 		Message: "Successfully retrieved tag.",
 		Data:    sortedNotes,
 	}
 }
+
+// func (t *TagsService) GetPreviewForTag(tag string) config.BackendResponseWithData[notes.TagPreview]{
+// 	notePreview, err := notes.GetTagPreview(t.ProjectPath, tag)
+
+// 	if err != nil [
+// 		return
+// 	]
+// }

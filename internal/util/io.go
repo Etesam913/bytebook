@@ -191,6 +191,36 @@ func CleanFileName(name string) string {
 	return name
 }
 
+// CreateJSONFileIfNotExists creates a JSON file at the specified pathname if it does not already exist.
+// It creates any necessary parent directories and initializes the file with an empty struct.
+// Parameters:
+//
+//	pathname: The path where the JSON file should be created.
+//
+// Returns:
+//
+//	bool: true if the file is created, false otherwise
+//	error: An error if the creation process fails, otherwise nil
+func CreateJSONFileIfNotExists(pathname string) (bool, error) {
+	exists, err := FileOrFolderExists(pathname)
+	if err != nil {
+		return false, err
+	}
+	if !exists {
+		// Create the directory structure if it doesn't exist
+		dir := filepath.Dir(pathname)
+		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+			return false, err
+		}
+		if err := WriteJsonToPath(pathname, struct{}{}); err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+	// If the file already exists, do nothing.
+	return false, nil
+}
+
 // CreateFileIfNotExist creates a file at the specified pathname if it does not already exist.
 // Parameters:
 //
@@ -198,29 +228,31 @@ func CleanFileName(name string) string {
 //
 // Returns:
 //
-//	An error if the creation process fails, otherwise nil.
-func CreateFileIfNotExist(pathname string) error {
+//	bool: true if the file is created, false otherwise
+//	error: An error if the creation process fails, otherwise nil
+func CreateFileIfNotExist(pathname string) (bool, error) {
 	// Check if the file already exists using FileOrFolderExists.
 	exists, err := FileOrFolderExists(pathname)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if !exists {
 		// Create the directory structure if it doesn't exist
 		dir := filepath.Dir(pathname)
 		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-			return err
+			return false, err
 		}
 
 		// If the file does not exist, create it.
 		file, err := os.Create(pathname)
 		if err != nil {
-			return err
+			return false, err
 		}
 		defer file.Close()
+		return true, nil
 	}
 	// If the file already exists, do nothing.
-	return nil
+	return false, nil
 }
 
 // MoveNotesToTrash moves the given notes (and folders) into the system trash.

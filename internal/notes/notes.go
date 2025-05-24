@@ -2,8 +2,10 @@ package notes
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // frontendFileInfo contains information about a file formatted for frontend use
@@ -60,4 +62,43 @@ func ConvertFileNameForFrontendUrl(pathToFile string) (frontendFileInfo, error) 
 		Directory: fileDir,
 		Extension: fileExtension[1:], // exclude the dot
 	}, nil
+}
+
+// NoteMetadata holds extracted information from a note file.
+type NoteMetadata struct {
+	FirstLine     string
+	FirstImageSrc string
+	Size          int64
+	LastUpdated   string // RFC3339 format
+}
+
+// ProcessNoteContent extracts metadata from a note file.
+// It attempts to get file stats (size, last updated).
+// For markdown files, it also attempts to read content to extract the first line and first image.
+// An error is returned *only* if reading the content of a markdown file fails.
+// Errors from os.Stat will result in zero values for Size and an empty string for LastUpdated,
+// but no error will be returned from this function for os.Stat failures.
+func ProcessNoteContent(fullPath string) (metadata NoteMetadata, contentReadError error) {
+	fileExtension := filepath.Ext(fullPath)
+
+	fileInfo, statErr := os.Stat(fullPath)
+	if statErr == nil {
+		metadata.Size = fileInfo.Size()
+		metadata.LastUpdated = fileInfo.ModTime().Format(time.RFC3339)
+	}
+	// If statErr != nil, metadata.Size will be 0 and metadata.LastUpdated will be ""
+
+	if fileExtension == ".md" {
+		noteContent, readErr := os.ReadFile(fullPath)
+		if readErr != nil {
+			// Return metadata (possibly with Size/LastUpdated if os.Stat succeeded) and the readErr.
+			return metadata, readErr
+		}
+		metadata.FirstLine = GetFirstLineFromMarkdown(string(noteContent))
+		metadata.FirstImageSrc = GetFirstImageSrcFromMarkdown(string(noteContent))
+	}
+
+	// No error means markdown content (if applicable) was processed successfully,
+	// or it wasn't a markdown file. os.Stat errors are reflected in zero-values in metadata.
+	return metadata, nil
 }

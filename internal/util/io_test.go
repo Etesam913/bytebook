@@ -244,8 +244,9 @@ func TestCreateFileIfNotExist(t *testing.T) {
 		filePath := filepath.Join(tempDir, "newfile.txt")
 
 		// Test
-		err := CreateFileIfNotExist(filePath)
+		created, err := CreateFileIfNotExist(filePath)
 		assert.NoError(t, err)
+		assert.True(t, created, "File should have been created")
 
 		// Verify
 		exists, err := FileOrFolderExists(filePath)
@@ -259,8 +260,9 @@ func TestCreateFileIfNotExist(t *testing.T) {
 		nestedPath := filepath.Join(tempDir, "nested", "dirs", "newfile.txt")
 
 		// Test
-		err := CreateFileIfNotExist(nestedPath)
+		created, err := CreateFileIfNotExist(nestedPath)
 		assert.NoError(t, err)
+		assert.True(t, created, "File should have been created")
 
 		// Verify
 		exists, err := FileOrFolderExists(nestedPath)
@@ -284,8 +286,9 @@ func TestCreateFileIfNotExist(t *testing.T) {
 		originalModTime := originalStat.ModTime()
 
 		// Test
-		err = CreateFileIfNotExist(filePath)
+		created, err := CreateFileIfNotExist(filePath)
 		assert.NoError(t, err)
+		assert.False(t, created, "File should not have been created")
 
 		// Verify file wasn't modified
 		newStat, err := os.Stat(filePath)
@@ -308,8 +311,9 @@ func TestCreateFileIfNotExist(t *testing.T) {
 		filePath := filepath.Join(readOnlyDir, "newfile.txt")
 
 		// Test
-		err = CreateFileIfNotExist(filePath)
+		created, err := CreateFileIfNotExist(filePath)
 		assert.Error(t, err, "Should fail to create file in read-only directory")
+		assert.False(t, created, "File should not have been created")
 	})
 }
 
@@ -560,5 +564,100 @@ func TestMoveFile(t *testing.T) {
 		// Verify the old file no longer exists
 		_, err = os.ReadFile(pathToOldFile)
 		assert.Error(t, err)
+	})
+}
+
+func TestCreateJSONFileIfNotExists(t *testing.T) {
+	t.Run("Creates new JSON file in existing directory", func(t *testing.T) {
+		// Setup
+		tempDir := t.TempDir()
+		filePath := filepath.Join(tempDir, "newfile.json")
+
+		// Test
+		created, err := CreateJSONFileIfNotExists(filePath)
+		assert.NoError(t, err)
+		assert.True(t, created, "Should return true when creating new file")
+
+		// Verify file exists and contains empty JSON object
+		exists, err := FileOrFolderExists(filePath)
+		assert.NoError(t, err)
+		assert.True(t, exists, "File should exist after creation")
+
+		// Verify content is an empty JSON object
+		content, err := os.ReadFile(filePath)
+		assert.NoError(t, err)
+		assert.Equal(t, "{}", strings.TrimSpace(string(content)))
+	})
+
+	t.Run("Creates new JSON file with nested directories", func(t *testing.T) {
+		// Setup
+		tempDir := t.TempDir()
+		nestedPath := filepath.Join(tempDir, "nested", "dirs", "newfile.json")
+
+		// Test
+		created, err := CreateJSONFileIfNotExists(nestedPath)
+		assert.NoError(t, err)
+		assert.True(t, created, "Should return true when creating new file")
+
+		// Verify
+		exists, err := FileOrFolderExists(nestedPath)
+		assert.NoError(t, err)
+		assert.True(t, exists, "File should exist after creation")
+		assert.DirExists(t, filepath.Join(tempDir, "nested", "dirs"))
+
+		// Verify content is an empty JSON object
+		content, err := os.ReadFile(nestedPath)
+		assert.NoError(t, err)
+		assert.Equal(t, "{}", strings.TrimSpace(string(content)))
+	})
+
+	t.Run("Returns false for existing file", func(t *testing.T) {
+		// Setup
+		tempDir := t.TempDir()
+		filePath := filepath.Join(tempDir, "existingfile.json")
+
+		// Create file first with some content
+		err := os.WriteFile(filePath, []byte(`{"existing": "content"}`), 0644)
+		assert.NoError(t, err)
+
+		// Get original modification time
+		originalStat, err := os.Stat(filePath)
+		assert.NoError(t, err)
+		originalModTime := originalStat.ModTime()
+
+		// Test
+		created, err := CreateJSONFileIfNotExists(filePath)
+		assert.NoError(t, err)
+		assert.False(t, created, "Should return false for existing file")
+
+		// Verify file wasn't modified
+		newStat, err := os.Stat(filePath)
+		assert.NoError(t, err)
+		assert.Equal(t, originalModTime, newStat.ModTime(), "File should not have been modified")
+
+		// Verify content wasn't changed
+		content, err := os.ReadFile(filePath)
+		assert.NoError(t, err)
+		assert.Equal(t, `{"existing": "content"}`, strings.TrimSpace(string(content)))
+	})
+
+	t.Run("Handles permission errors", func(t *testing.T) {
+		if os.Geteuid() == 0 {
+			t.Skip("Skipping test as root user can write to read-only directories")
+		}
+
+		// Setup
+		tempDir := t.TempDir()
+		readOnlyDir := filepath.Join(tempDir, "readonly")
+		err := os.Mkdir(readOnlyDir, 0500) // read & execute only
+		assert.NoError(t, err)
+		defer os.Chmod(readOnlyDir, 0700) // restore permissions for cleanup
+
+		filePath := filepath.Join(readOnlyDir, "newfile.json")
+
+		// Test
+		created, err := CreateJSONFileIfNotExists(filePath)
+		assert.Error(t, err, "Should fail to create file in read-only directory")
+		assert.False(t, created, "Should return false when creation fails")
 	})
 }
