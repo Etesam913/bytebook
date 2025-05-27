@@ -133,7 +133,7 @@ export type AlbumData = {
 
 export type KernelStatus = 'busy' | 'idle' | 'starting';
 export type CodeBlockStatus = KernelStatus | 'queueing';
-export type KernelHeartbeatStatus = 'success' | 'failure';
+export type KernelHeartbeatStatus = 'success' | 'failure' | 'idle';
 export type Languages = 'python' | 'go';
 
 type KernelData = {

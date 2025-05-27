@@ -4,7 +4,7 @@ import { ChevronDown } from '../../../icons/chevron-down';
 import { DropdownItems } from '../../dropdown/dropdown-items';
 import PowerOff from '../../../icons/power-off';
 import { useOnClickOutside } from '../../../hooks/general';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
   dialogDataAtom,
   kernelsDataAtom,
@@ -15,7 +15,6 @@ import { Loader } from '../../../icons/loader';
 import { cn } from '../../../utils/string-formatting';
 import { useQuery } from '@tanstack/react-query';
 import { CreateSocketsAndListen } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
-import { QueryError } from '../../../utils/query';
 import { FolderOpen } from '../../../icons/folder-open';
 import { PythonVenvDialog } from '../python-venv-dialog';
 import {
@@ -55,7 +54,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const dropdownContainerRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(dropdownContainerRef, () => setIsOpen(false));
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const kernelsData = useAtomValue(kernelsDataAtom);
+  const [kernelsData, setKernelsData] = useAtom(kernelsDataAtom);
   const { status, heartbeat, errorMessage } = kernelsData[language];
   const { mutate: shutdownKernel } = useShutdownKernelMutation();
   const { mutate: turnOnKernel } = useTurnOnKernelMutation();
@@ -63,11 +62,14 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
     usePythonVenvSubmitMutation(projectSettings);
 
   useQuery({
-    queryKey: ['heartbeat', language],
+    queryKey: ['create-sockets-and-listen', language],
     queryFn: async () => {
       const res = await CreateSocketsAndListen(language);
       if (!res.success) {
-        throw new QueryError(res.message);
+        setKernelsData((prev) => ({
+          ...prev,
+          [language]: { ...prev[language], errorMessage: res.message },
+        }));
       }
       return res;
     },
@@ -113,7 +115,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   return (
     <div className="relative flex flex-col-reverse" ref={dropdownContainerRef}>
       <DropdownItems
-        className="translate-y-[-2.25rem] w-auto"
+        className="translate-y-[-2.25rem] w-60"
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         setFocusIndex={setFocusIndex}
@@ -151,7 +153,12 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
             Status: {status.charAt(0).toUpperCase() + status.slice(1)}
           </p>
           {errorMessage && (
-            <p className="px-2 pt-1 text-red-500">
+            <p
+              className={cn(
+                'px-2 pt-1 text-red-500',
+                status === 'idle' && 'text-gray-500 dark:text-gray-300'
+              )}
+            >
               Error: <span className="text-xs">{errorMessage}</span>
             </p>
           )}
@@ -167,7 +174,8 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
             className={cn(
               'h-2 w-2 rounded-full kernel-heartbeat',
               heartbeat === 'success' && 'bg-green-600',
-              heartbeat === 'failure' && 'bg-red-600'
+              heartbeat === 'failure' && 'bg-red-600',
+              heartbeat === 'idle' && 'bg-gray-500'
             )}
           />
         )}

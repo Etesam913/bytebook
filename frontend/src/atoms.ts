@@ -143,12 +143,12 @@ export const noteSeenFileNodeKeysAtom = atom<Set<string>>(new Set([]));
 export const kernelsDataAtom = atom<KernelsData>({
   python: {
     status: 'idle',
-    heartbeat: 'failure',
+    heartbeat: 'idle',
     errorMessage: null,
   },
   go: {
     status: 'idle',
-    heartbeat: 'failure',
+    heartbeat: 'idle',
     errorMessage: null,
   },
 });

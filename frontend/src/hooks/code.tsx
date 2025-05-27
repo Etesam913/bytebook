@@ -436,7 +436,9 @@ export function useSendInterruptRequestMutation(onSuccess?: () => void) {
       }
 
       const res = await SendInterruptRequest(codeBlockId, newExecutionId);
-      if (!res.success) throw new QueryError(res.message);
+      if (!res.success) {
+        toast.error(res.message, DEFAULT_SONNER_OPTIONS);
+      }
     },
     onSuccess,
   });
