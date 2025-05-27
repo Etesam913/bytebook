@@ -91,7 +91,7 @@ export function ResizeContainer({
             <>
               <motion.span
                 className={cn(
-                  'absolute z-20 h-full w-full border-[4px] border-(--accent-color) rounded-xs pointer-events-none',
+                  'absolute z-20 h-full w-full border-4 border-(--accent-color) rounded-xs pointer-events-none',
                   !isResizing && 'max-w-full'
                 )}
                 initial={{ opacity: 0 }}

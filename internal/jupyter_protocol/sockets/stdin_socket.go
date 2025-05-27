@@ -24,7 +24,7 @@ type InputRequestEvent struct {
 }
 
 func CreateStdinSocket() *stdinSocket {
-	stdinSocketDealer, err := zmq4.NewSocket(zmq4.DEALER)
+	stdinSocketDealer, err := zmq4.NewSocket(zmq4.Type(zmq4.DEALER))
 	if err != nil {
 		log.Print("Could not create stdin socket:", err)
 		return &stdinSocket{socket: nil}
@@ -62,7 +62,7 @@ func (s *stdinSocket) Listen(
 			log.Println("🛑 Stdin socket listener received context cancellation")
 			return
 		default:
-			envelope, err := stdinSocketDealer.RecvMessageBytes(zmq4.DONTWAIT)
+			envelope, err := stdinSocketDealer.RecvMessageBytes(zmq4.Flag(zmq4.DONTWAIT))
 			if err != nil {
 				if strings.Contains(err.Error(), "resource temporarily unavailable") {
 					time.Sleep(50 * time.Millisecond)

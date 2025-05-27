@@ -26,7 +26,7 @@ type heartbeatEvent struct {
 var HEARTBEAT_TICKER = 1 * time.Second
 
 func CreateHeartbeatSocket(heartbeatState *jupyter_protocol.KernelHeartbeatState) *heartbeatSocket {
-	socket, err := zmq4.NewSocket(zmq4.REQ)
+	socket, err := zmq4.NewSocket(zmq4.Type(zmq4.REQ))
 	if err != nil {
 		log.Print("Could not create ❤️beat socket:", err)
 		return &heartbeatSocket{

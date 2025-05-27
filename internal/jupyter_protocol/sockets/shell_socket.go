@@ -27,7 +27,7 @@ type executeReplyEvent struct {
 }
 
 func CreateShellSocket() *shellSocket {
-	shellSocketDealer, err := zmq4.NewSocket(zmq4.DEALER) // Could also use REQ
+	shellSocketDealer, err := zmq4.NewSocket(zmq4.Type(zmq4.DEALER)) // Could also use REQ
 	if err != nil {
 		log.Print("Could not create 🐚 socket sender:", err)
 		return &shellSocket{
@@ -66,7 +66,7 @@ func (s *shellSocket) Listen(
 			log.Println("🛑 Shell socket listener received context cancellation")
 			return
 		default:
-			envelope, err := shellSocketDealer.RecvMessageBytes(zmq4.DONTWAIT)
+			envelope, err := shellSocketDealer.RecvMessageBytes(zmq4.Flag(zmq4.DONTWAIT))
 			if err != nil {
 				if strings.Contains(err.Error(), "resource temporarily unavailable") {
 					time.Sleep(50 * time.Millisecond)

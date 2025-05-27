@@ -24,7 +24,7 @@ type shutdownReplyEvent struct {
 }
 
 func CreateControlSocket(codeServiceUpdater CodeServiceUpdater) *controlSocket {
-	controlSocketDealer, err := zmq4.NewSocket(zmq4.DEALER)
+	controlSocketDealer, err := zmq4.NewSocket(zmq4.Type(zmq4.DEALER))
 	if err != nil {
 		log.Print("Could not create 🛂 socket sender:", err)
 		return &controlSocket{
@@ -77,7 +77,7 @@ func (s *controlSocket) Listen(
 			)
 			return
 		default:
-			envelope, err := controlSocketDealer.RecvMessageBytes(zmq4.DONTWAIT)
+			envelope, err := controlSocketDealer.RecvMessageBytes(zmq4.Flag(zmq4.DONTWAIT))
 			if err != nil {
 				if strings.Contains(err.Error(), "resource temporarily unavailable") {
 					time.Sleep(50 * time.Millisecond)

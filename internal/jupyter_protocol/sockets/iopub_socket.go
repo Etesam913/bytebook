@@ -42,7 +42,7 @@ type streamEvent struct {
 }
 
 func CreateIOPubSocket(language string, cancelFunc context.CancelFunc) *ioPubSocket {
-	iopubSocketSubscriber, err := zmq4.NewSocket(zmq4.SUB)
+	iopubSocketSubscriber, err := zmq4.NewSocket(zmq4.Type(zmq4.SUB))
 	if err != nil {
 		log.Print("Could not create io 🍺 socket subscriber:", err)
 		return &ioPubSocket{
@@ -87,7 +87,7 @@ func (i *ioPubSocket) Listen(
 			log.Println("🛑 IOPub socket listener received context cancellation")
 			return
 		default:
-			envelope, err := ioPubSocketSubscriber.RecvMessageBytes(zmq4.DONTWAIT)
+			envelope, err := ioPubSocketSubscriber.RecvMessageBytes(zmq4.Flag(zmq4.DONTWAIT))
 			if err != nil {
 				if strings.Contains(err.Error(), "resource temporarily unavailable") {
 					time.Sleep(50 * time.Millisecond)
