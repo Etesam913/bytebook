@@ -469,7 +469,6 @@ export function useNoteExists(
     queryKey: ['doesNoteExist', folder, note, fileExtension],
     queryFn: () => {
       return DoesNoteExist(`${folder}/${note}.${fileExtension}`);
-      return null;
     },
     enabled: !!note,
   });

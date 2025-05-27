@@ -146,7 +146,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
 
                       const res = await chooseCustomVirtualEnvironmentPath();
                       if (res.success) {
-                        setCustomVenvPath(res.data);
+                        setCustomVenvPath(res.data ?? null);
                       }
                     }}
                   >

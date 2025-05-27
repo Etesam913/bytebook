@@ -31,6 +31,21 @@ type CodeService struct {
 }
 
 func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, code string) config.BackendResponseWithoutData {
+	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "Failed to get project settings. Please check if the settings.json file exists.",
+		}
+	}
+
+	if !util.IsVirtualEnv(projectSettings.Code.PythonVenvPath) {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "A virtual environment is not set. A virtual environment can be configured in the \"Code Block\" section of the settings.",
+		}
+	}
+
 	if c.ShellSocketDealer == nil || c.IOPubSocketSubscriber == nil || c.HeartbeatSocketReq == nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
@@ -47,7 +62,7 @@ func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, cod
 		}
 	}
 
-	err := jupyter_protocol.SendExecuteRequest(
+	err = jupyter_protocol.SendExecuteRequest(
 		c.ShellSocketDealer,
 		jupyter_protocol.ExecuteMessageParams{
 			MessageParams: jupyter_protocol.MessageParams{
