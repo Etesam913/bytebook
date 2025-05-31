@@ -91,7 +91,7 @@ func GetNotesFromTag(projectPath string, tag string, sortOption *string) ([]stri
 		)
 	}
 	// Clean up stale tags in the notes.json file
-	if err := DeleteNotesFromTagToNotesArray(projectPath, tag, pathsToDelete); err != nil {
+	if err := deleteNotesFromTagToNotesArray(projectPath, tag, pathsToDelete); err != nil {
 		return nil, err
 	}
 
@@ -145,8 +145,8 @@ func CreateTagToNotesArrayIfNotExists(projectPath string, tag string) error {
 	return nil
 }
 
-// AddNotesToTagToNotesArray adds each notePath to the notes.json file for the given tag.
-func AddNotesToTagToNotesArray(projectPath string, tag string, notePaths []string) error {
+// addNotesToTagNotesArray adds each notePath to the notes.json file for the given tag.
+func addNotesToTagNotesArray(projectPath string, tag string, notePaths []string) error {
 	pathToTagToNotesArray := filepath.Join(projectPath, "tags", tag, "notes.json")
 
 	// Ensure the notes.json file exists.
@@ -175,8 +175,28 @@ func AddNotesToTagToNotesArray(projectPath string, tag string, notePaths []strin
 	return nil
 }
 
-// DeleteNotesFromTagToNotesArray removes each notePath from the notes.json file for the given tag.
-func DeleteNotesFromTagToNotesArray(projectPath string, tag string, notePaths []string) error {
+// setNotesInTagNotesArray sets the notes.json file for the given tag to contain exactly the specified notePaths.
+func setNotesInTagNotesArray(projectPath string, tag string, notePaths []string) error {
+	pathToTagToNotesArray := filepath.Join(projectPath, "tags", tag, "notes.json")
+
+	// Ensure the notes.json file exists.
+	if err := CreateTagToNotesArrayIfNotExists(projectPath, tag); err != nil {
+		return err
+	}
+
+	tagToNotesArray := TagsToNotesArray{
+		Notes: notePaths,
+	}
+
+	if err := util.WriteJsonToPath(pathToTagToNotesArray, tagToNotesArray); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// deleteNotesFromTagToNotesArray removes each notePath from the notes.json file for the given tag.
+func deleteNotesFromTagToNotesArray(projectPath string, tag string, notePaths []string) error {
 	if len(notePaths) == 0 {
 		return nil
 	}
@@ -241,7 +261,7 @@ func GetTagsForNotes(projectPath string, notes []string) (map[string][]string, e
 }
 
 // AddNoteToTagsMap adds key-value pairs to the notes_to_tags.json file.
-func AddTagsToNotesToTagsMap(projectPath string, notes []string, tags []string) error {
+func addTagsToNotesToTagsMap(projectPath string, notes []string, tags []string) error {
 	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
 
 	err := config.CreateNoteToTagsMapIfNotExists(projectPath)
@@ -314,7 +334,7 @@ func DeleteStaleTagsFromNotesToTagsMap(projectPath string, staleTags util.Set[st
 }
 
 // DeleteNoteFromTagsMap deletes key-value pairs from the notes_to_tags.json file.
-func DeleteTagsFromNotesToTagsMap(projectPath string, notes []string, tags []string) error {
+func deleteTagsFromNotesToTagsMap(projectPath string, notes []string, tags []string) error {
 	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
 
 	err := config.CreateNoteToTagsMapIfNotExists(projectPath)
@@ -342,6 +362,109 @@ func DeleteTagsFromNotesToTagsMap(projectPath string, notes []string, tags []str
 
 	if err := util.WriteJsonToPath(pathToNoteToTagsMap, notesToTagsMap); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// AddTags adds the specified tags to the given notes.
+// It updates both the tag-to-notes mapping (notes.json files) and the notes-to-tags mapping.
+//
+// Parameters:
+//   - projectPath: The path to the project directory
+//   - tagNames: A slice of tag names to add
+//   - notePaths: A slice of note paths to associate with the tags
+//
+// Returns:
+//   - An error if the operation fails, otherwise nil
+func AddTags(projectPath string, tagNames []string, notePaths []string) error {
+	// Add notes to each tag's notes.json file
+	for _, tagName := range tagNames {
+		err := addNotesToTagNotesArray(projectPath, tagName, notePaths)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Update the notes-to-tags mapping
+	err := addTagsToNotesToTagsMap(projectPath, notePaths, tagNames)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteTags removes the specified tags from the given notes.
+// It updates both the tag-to-notes mapping (notes.json files) and the notes-to-tags mapping.
+//
+// Parameters:
+//   - projectPath: The path to the project directory
+//   - tagNames: A slice of tag names to remove
+//   - notePaths: A slice of note paths to disassociate from the tags
+//
+// Returns:
+//   - An error if the operation fails, otherwise nil
+func DeleteTags(projectPath string, tagNames []string, notePaths []string) error {
+	// Remove notes from each tag's notes.json file
+	for _, tagName := range tagNames {
+		err := deleteNotesFromTagToNotesArray(projectPath, tagName, notePaths)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Update the notes-to-tags mapping
+	err := deleteTagsFromNotesToTagsMap(projectPath, notePaths, tagNames)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SetTags sets the exact tags for the given notes, replacing any existing tags.
+// It updates both the tag-to-notes mapping (notes.json files) and the notes-to-tags mapping.
+// This function first removes the notes from all existing tags, then adds them to the specified tags.
+//
+// Parameters:
+//   - projectPath: The path to the project directory
+//   - tagNames: A slice of tag names that should be the only tags for these notes
+//   - notePaths: A slice of note paths to set tags for
+//
+// Returns:
+//   - An error if the operation fails, otherwise nil
+func SetTags(projectPath string, tagNames []string, notePaths []string) error {
+	// First, get the current tags for these notes so we can remove them from old tags
+	currentTagsMap, err := GetTagsForNotes(projectPath, notePaths)
+	if err != nil {
+		// If notes don't have any tags currently, that's okay, we'll just add the new ones
+		currentTagsMap = make(map[string][]string)
+	}
+
+	// Collect all current tags that need to be removed
+	currentTagsSet := make(util.Set[string])
+	for _, tags := range currentTagsMap {
+		for _, tag := range tags {
+			currentTagsSet.Add(tag)
+		}
+	}
+
+	// Remove notes from all current tags using DeleteTags
+	if len(currentTagsSet) > 0 {
+		currentTagsSlice := currentTagsSet.Elements()
+		err := DeleteTags(projectPath, currentTagsSlice, notePaths)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Add notes to the new tags using AddTags
+	if len(tagNames) > 0 {
+		err = AddTags(projectPath, tagNames, notePaths)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

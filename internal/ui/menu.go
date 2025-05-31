@@ -18,7 +18,7 @@ func InitializeApplicationMenu(backgroundColor application.RGBA) {
 	configureViewMenu(app, menu)
 
 	app.SetMenu(menu)
-	menu.Update()
+	// menu.Update()
 }
 
 // configureSettingsMenu sets up the "Settings" submenu item and its accelerator and click handler.

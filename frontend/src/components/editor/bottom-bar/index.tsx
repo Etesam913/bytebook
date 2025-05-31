@@ -34,7 +34,6 @@ export function BottomBar({
   const { data: tagsMap, isLoading } = useTagsForNoteQuery(folder, note, ext);
   const { mutate: deleteTag } = useDeleteTagsMutation(folder, note, ext);
   const { mutateAsync: addTagsToNotes } = useAddTagsMutation();
-
   const setDialogData = useSetAtom(dialogDataAtom);
 
   useEffect(() => {

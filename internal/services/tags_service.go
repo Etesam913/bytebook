@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -65,20 +64,7 @@ For each tag in tagNames, it adds all folderAndNotePaths to its notes.json.
 If a tag does not exist, it creates the tag and associates the note paths with it.
 */
 func (t *TagsService) AddTagsToNotes(tagNames []string, folderAndNotePathsWithoutQueryParam []string) config.BackendResponseWithoutData {
-	// Adds the notes to the notes.json file for each tag
-	for _, tagName := range tagNames {
-		err := notes.AddNotesToTagToNotesArray(t.ProjectPath, tagName, folderAndNotePathsWithoutQueryParam)
-		log.Println(err)
-		if err != nil {
-			return config.BackendResponseWithoutData{
-				Success: false,
-				Message: "Failed to tag notes",
-			}
-		}
-	}
-
-	// Updates the map in the notes_to_tags.json file
-	err := notes.AddTagsToNotesToTagsMap(t.ProjectPath, folderAndNotePathsWithoutQueryParam, tagNames)
+	err := notes.AddTags(t.ProjectPath, tagNames, folderAndNotePathsWithoutQueryParam)
 	if err != nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
@@ -96,28 +82,7 @@ func (t *TagsService) AddTagsToNotes(tagNames []string, folderAndNotePathsWithou
 // For each tag in tagNames, it removes all folderAndNotePathsWithoutQueryParams from its notes.json.
 // If any operation fails, it returns a response indicating the failure.
 func (t *TagsService) DeleteTagsFromNotes(tagNames []string, folderAndNotePathsWithoutQueryParams []string) config.BackendResponseWithoutData {
-	for _, tagName := range tagNames {
-		// Removes the notes from the notes.json file for each tag
-		err := notes.DeleteNotesFromTagToNotesArray(
-			t.ProjectPath,
-			tagName,
-			folderAndNotePathsWithoutQueryParams,
-		)
-
-		if err != nil {
-			return config.BackendResponseWithoutData{
-				Success: false,
-				Message: "Failed to untag notes",
-			}
-		}
-	}
-
-	err := notes.DeleteTagsFromNotesToTagsMap(
-		t.ProjectPath,
-		folderAndNotePathsWithoutQueryParams,
-		tagNames,
-	)
-
+	err := notes.DeleteTags(t.ProjectPath, tagNames, folderAndNotePathsWithoutQueryParams)
 	if err != nil {
 		return config.BackendResponseWithoutData{
 			Success: false,

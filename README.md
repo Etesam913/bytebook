@@ -18,6 +18,10 @@ git clone https://github.com/etesam913/bytebook.git
 go mod tidy
 ```
 
+```
+go install gotest.tools/gotestsum@latest
+```
+
 #### Installing react dependencies
 
 ```

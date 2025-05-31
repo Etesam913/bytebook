@@ -37,8 +37,8 @@ export function AddTagDialogChildren({
 }: {
   onSubmitErrorText: string;
 }) {
-  const [errorText, setErrorText] = useState<string>('');
   const [addedTags, setAddedTags] = useState<string[]>([]);
+  const [errorText, setErrorText] = useState<string>('');
   const { data: tags } = useTagsQuery();
   const [currentTag, setCurrentTag] = useState('');
 

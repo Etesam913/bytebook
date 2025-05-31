@@ -12,6 +12,7 @@ import {
   COMMAND_PRIORITY_HIGH,
   COMMAND_PRIORITY_LOW,
   CONTROLLED_TEXT_INSERTION_COMMAND,
+  CUT_COMMAND,
   FORMAT_TEXT_COMMAND,
   KEY_ARROW_DOWN_COMMAND,
   KEY_ARROW_UP_COMMAND,
@@ -159,6 +160,22 @@ export function useToolbarEvents(
           // Otherwise, let the default browser paste behavior handle it
           if (selection && $isNodeSelection(selection)) {
             return true;
+          }
+          return false;
+        },
+        COMMAND_PRIORITY_LOW
+      ),
+      editor.registerCommand(
+        CUT_COMMAND,
+        () => {
+          const selection = $getSelection();
+          if (selection && $isNodeSelection(selection)) {
+            const nodes = selection.getNodes();
+            // cmd+x in a code block should not cut the whole code block, it should cut the selected text inside of the code block.
+            // The code block maintains its own selection logic as it is using codemirror.
+            if (nodes.some((node) => node.getType() === 'code-block')) {
+              return true;
+            }
           }
           return false;
         },

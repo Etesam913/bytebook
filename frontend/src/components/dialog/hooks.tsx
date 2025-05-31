@@ -29,11 +29,11 @@ export const useTrapFocus = (
       if (!isTabPressed) {
         return;
       }
-
       if (
         document.activeElement &&
         !focusableElements.includes(document.activeElement)
       ) {
+        console.log('first element');
         firstFocusableElement?.focus();
       }
 

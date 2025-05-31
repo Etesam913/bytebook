@@ -28,10 +28,10 @@ import {
   keepSelectionNotesWithPrefix,
 } from '../../utils/selection';
 import { cn, extractInfoFromNoteName } from '../../utils/string-formatting';
-import { AddTagDialogChildren } from './add-tag-dialog-children';
 import { CardNoteSidebarItem } from './card-note-sidebar-item';
 import { ListNoteSidebarItem } from './list-note-sidebar-item';
 import { navigate } from 'wouter/use-browser-location';
+import { EditTagDialogChildren } from './edit-tag-dialog-children';
 
 export function NoteSidebarButton({
   sidebarNoteFolder,
@@ -235,13 +235,10 @@ export function NoteSidebarButton({
                   isOpen: true,
                   isPending: false,
                   title: 'Edit Tags',
-                  children: (errorText) => (
-                    <AddTagDialogChildren onSubmitErrorText={errorText} />
-                    // <EditTagDialogChildren
-                    // 	onSubmitErrorText={errorText}
-                    // 	selectionRange={newSelectionRange}
-                    // 	curFolder={curFolder}
-                    // />
+                  dialogClassName: '',
+                  children: () => (
+                    // <AddTagDialogChildren onSubmitErrorText={errorText} />
+                    <EditTagDialogChildren />
                   ),
                   onSubmit: async (e, setErrorText) => {
                     // const formElement = e.target as HTMLFormElement;

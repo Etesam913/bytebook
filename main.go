@@ -115,7 +115,7 @@ func main() {
 	// Creates the default window
 	ui.CreateWindow(app, "/", backgroundColor)
 	// TODO: Fix bug with ui.InitializeApplicationMenu breaking the app
-	// ui.InitializeApplicationMenu(backgroundColor)
+	ui.InitializeApplicationMenu(backgroundColor)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {

@@ -122,7 +122,6 @@ export const Combobox = forwardRef<HTMLInputElement, InputProps>(
             setSelectedIndex(-1);
             onChange?.(e);
           }}
-          onBlur={() => setIsOpen(false)}
           {...restInputProps}
         />
 

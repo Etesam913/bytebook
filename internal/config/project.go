@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/util"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 const PROJECT_NAME = "Bytebook"
@@ -211,9 +212,10 @@ func UpdatePinnedNotesAndAccentColorFromProjectSettings(
 
 	// Validate pinned notes
 	projectSettings.PinnedNotes = GetValidPinnedNotes(projectPath, projectSettings)
-
-	// Update accent color if application is available
-	projectSettings.Appearance.AccentColor = "rgb(0,122,255)"
+	app := application.Get()
+	if app != nil {
+		projectSettings.Appearance.AccentColor = app.GetAccentColor()
+	}
 
 	// Write the updated settings
 	err := util.WriteJsonToPath(projectSettingsPath, projectSettings)

@@ -126,7 +126,7 @@ func TestAddNotesToTagToNotesArray(t *testing.T) {
 		pathToFile := getTagNotesFilePath(tempDir, TagName)
 
 		// Call AddNotesToTagToNotesArray with two note paths.
-		err := AddNotesToTagToNotesArray(tempDir, TagName, []string{"note1", "note2"})
+		err := addNotesToTagNotesArray(tempDir, TagName, []string{"note1", "note2"})
 		assert.NoError(t, err)
 
 		tagsArray := TagsToNotesArray{}
@@ -144,10 +144,10 @@ func TestAddNotesToTagToNotesArray(t *testing.T) {
 		pathToFile := getTagNotesFilePath(tempDir, TagName)
 
 		// Add a note path.
-		err := AddNotesToTagToNotesArray(tempDir, TagName, []string{"note1"})
+		err := addNotesToTagNotesArray(tempDir, TagName, []string{"note1"})
 		assert.NoError(t, err)
 		// Attempt to add the same note path again.
-		err = AddNotesToTagToNotesArray(tempDir, TagName, []string{"note1"})
+		err = addNotesToTagNotesArray(tempDir, TagName, []string{"note1"})
 		assert.NoError(t, err)
 
 		tagsArray := TagsToNotesArray{}
@@ -167,11 +167,11 @@ func TestDeleteNotesFromTagToNotesArray(t *testing.T) {
 		pathToFile := getTagNotesFilePath(tempDir, TagName)
 
 		// Setup: add several note paths.
-		err := AddNotesToTagToNotesArray(tempDir, TagName, []string{"note1", "note2", "note3"})
+		err := addNotesToTagNotesArray(tempDir, TagName, []string{"note1", "note2", "note3"})
 		assert.NoError(t, err)
 
 		// Remove "note2".
-		err = DeleteNotesFromTagToNotesArray(tempDir, TagName, []string{"note2"})
+		err = deleteNotesFromTagToNotesArray(tempDir, TagName, []string{"note2"})
 		assert.NoError(t, err)
 
 		var tagsArray TagsToNotesArray
@@ -189,11 +189,11 @@ func TestDeleteNotesFromTagToNotesArray(t *testing.T) {
 		pathToFile := getTagNotesFilePath(tempDir, TagName)
 
 		// Setup: add two note paths.
-		err := AddNotesToTagToNotesArray(tempDir, TagName, []string{"note1", "note2"})
+		err := addNotesToTagNotesArray(tempDir, TagName, []string{"note1", "note2"})
 		assert.NoError(t, err)
 
 		// Attempt to delete a non-existent note path.
-		err = DeleteNotesFromTagToNotesArray(tempDir, TagName, []string{"note3"})
+		err = deleteNotesFromTagToNotesArray(tempDir, TagName, []string{"note3"})
 		assert.NoError(t, err)
 
 		var tagsArray TagsToNotesArray
@@ -211,11 +211,11 @@ func TestDeleteNotesFromTagToNotesArray(t *testing.T) {
 		pathToFile := getTagNotesFilePath(tempDir, TagName)
 
 		// Setup: add four note paths.
-		err := AddNotesToTagToNotesArray(tempDir, TagName, []string{"note1", "note2", "note3", "note4"})
+		err := addNotesToTagNotesArray(tempDir, TagName, []string{"note1", "note2", "note3", "note4"})
 		assert.NoError(t, err)
 
 		// Remove "note1" and "note3".
-		err = DeleteNotesFromTagToNotesArray(tempDir, TagName, []string{"note1", "note3"})
+		err = deleteNotesFromTagToNotesArray(tempDir, TagName, []string{"note1", "note3"})
 		assert.NoError(t, err)
 
 		var tagsArray TagsToNotesArray
@@ -233,7 +233,7 @@ func TestDeleteNotesFromTagToNotesArray(t *testing.T) {
 		pathToFile := getTagNotesFilePath(tempDir, TagName)
 
 		// Even if the file doesn't exist yet, providing an empty slice should return no error.
-		err := DeleteNotesFromTagToNotesArray(tempDir, TagName, []string{})
+		err := deleteNotesFromTagToNotesArray(tempDir, TagName, []string{})
 		assert.NoError(t, err)
 
 		// The file should not be created.
@@ -281,7 +281,7 @@ func TestGetTagsForNote(t *testing.T) {
 	// Create a temporary project directory.
 	projectPath := t.TempDir()
 
-	err := AddTagsToNotesToTagsMap(projectPath, []string{"note1", "note2"}, []string{"tag1", "tag2"})
+	err := addTagsToNotesToTagsMap(projectPath, []string{"note1", "note2"}, []string{"tag1", "tag2"})
 	require.NoError(t, err)
 
 	t.Run("returns tags when note exists", func(t *testing.T) {
@@ -310,12 +310,12 @@ func TestAddTagsToNotesToTagsMap(t *testing.T) {
 		config.CreateNoteToTagsMapIfNotExists(tempDir)
 		expected := config.NotesToTagsMap{Notes: map[string][]string{"note1": {"tag1", "tag2"}, "note2": {"tag3"}}}
 
-		err := AddTagsToNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag1"})
+		err := addTagsToNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag1"})
 		assert.NoError(t, err)
 		// Testing the append code branch.
-		err = AddTagsToNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag2"})
+		err = addTagsToNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag2"})
 		assert.NoError(t, err)
-		err = AddTagsToNotesToTagsMap(tempDir, []string{"note2"}, []string{"tag3"})
+		err = addTagsToNotesToTagsMap(tempDir, []string{"note2"}, []string{"tag3"})
 		assert.NoError(t, err)
 
 		var notesToTagsMap config.NotesToTagsMap
@@ -329,11 +329,11 @@ func TestDeleteStaleTagsFromNotesToTagsMap(t *testing.T) {
 	projectPath := t.TempDir()
 	notesToTagsFile := getNotesToTagsFilePath(projectPath)
 	// Setup: Write an initial notes_to_tags.json file with some tags for each note.
-	err := AddTagsToNotesToTagsMap(projectPath, []string{"note1"}, []string{"tag1", "tag2", "tag3"})
+	err := addTagsToNotesToTagsMap(projectPath, []string{"note1"}, []string{"tag1", "tag2", "tag3"})
 	assert.NoError(t, err)
-	err = AddTagsToNotesToTagsMap(projectPath, []string{"note2"}, []string{"tag2", "tag5"})
+	err = addTagsToNotesToTagsMap(projectPath, []string{"note2"}, []string{"tag2", "tag5"})
 	assert.NoError(t, err)
-	err = AddTagsToNotesToTagsMap(projectPath, []string{"note3"}, []string{"tag5", "tag1"})
+	err = addTagsToNotesToTagsMap(projectPath, []string{"note3"}, []string{"tag5", "tag1"})
 	require.NoError(t, err)
 
 	// Create a staleTags set containing "tag2" and "tag5".
@@ -371,21 +371,403 @@ func TestDeleteTagsFromNotesFromTagsMap(t *testing.T) {
 		config.CreateNoteToTagsMapIfNotExists(tempDir)
 		expected := config.NotesToTagsMap{Notes: map[string][]string{"note1": {"tag1"}}}
 
-		err := AddTagsToNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag1"})
+		err := addTagsToNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag1"})
 		assert.NoError(t, err)
 		// Testing the append code branch.
-		err = AddTagsToNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag2"})
+		err = addTagsToNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag2"})
 		assert.NoError(t, err)
-		err = AddTagsToNotesToTagsMap(tempDir, []string{"note2"}, []string{"tag3"})
+		err = addTagsToNotesToTagsMap(tempDir, []string{"note2"}, []string{"tag3"})
 		assert.NoError(t, err)
 
-		err = DeleteTagsFromNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag2"})
+		err = deleteTagsFromNotesToTagsMap(tempDir, []string{"note1"}, []string{"tag2"})
 		assert.NoError(t, err)
-		err = DeleteTagsFromNotesToTagsMap(tempDir, []string{"note2"}, []string{"tag3"})
+		err = deleteTagsFromNotesToTagsMap(tempDir, []string{"note2"}, []string{"tag3"})
 		assert.NoError(t, err)
 
 		var notesToTagsMap config.NotesToTagsMap
 		util.ReadJsonFromPath(pathToFile, &notesToTagsMap)
 		assert.Equal(t, expected, notesToTagsMap, "Expected notes and tags to be removed from the map")
+	})
+}
+
+func TestAddTags(t *testing.T) {
+	t.Run("adds tags to notes successfully", func(t *testing.T) {
+		tempDir := t.TempDir()
+		tagNames := []string{"tag1", "tag2"}
+		notePaths := []string{"note1", "note2"}
+
+		err := AddTags(tempDir, tagNames, notePaths)
+		assert.NoError(t, err)
+
+		// Verify that notes were added to each tag's notes.json file
+		for _, tagName := range tagNames {
+			pathToTagFile := getTagNotesFilePath(tempDir, tagName)
+			var tagsArray TagsToNotesArray
+			err := util.ReadJsonFromPath(pathToTagFile, &tagsArray)
+			assert.NoError(t, err)
+			assert.ElementsMatch(t, notePaths, tagsArray.Notes, "Expected notes to be added to tag %s", tagName)
+		}
+
+		// Verify that tags were added to notes_to_tags.json
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+
+		for _, notePath := range notePaths {
+			assert.ElementsMatch(t, tagNames, notesToTagsMap.Notes[notePath], "Expected tags to be added to note %s", notePath)
+		}
+	})
+
+	t.Run("handles empty tag names", func(t *testing.T) {
+		tempDir := t.TempDir()
+		err := AddTags(tempDir, []string{}, []string{"note1"})
+		assert.NoError(t, err)
+
+		// Verify notes_to_tags.json gets created and the note has an empty tag array
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+		// When we add empty tags to a note, it should create an entry with empty tags
+		assert.Equal(t, []string{}, notesToTagsMap.Notes["note1"])
+	})
+
+	t.Run("handles empty note paths", func(t *testing.T) {
+		tempDir := t.TempDir()
+		err := AddTags(tempDir, []string{"tag1"}, []string{})
+		assert.NoError(t, err)
+
+		// Verify tag directory and notes.json file are created but empty
+		pathToTagFile := getTagNotesFilePath(tempDir, "tag1")
+		var tagsArray TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToTagFile, &tagsArray)
+		assert.NoError(t, err)
+		assert.Empty(t, tagsArray.Notes)
+	})
+
+	t.Run("appends to existing tags", func(t *testing.T) {
+		tempDir := t.TempDir()
+
+		// First, add some tags
+		err := AddTags(tempDir, []string{"tag1"}, []string{"note1"})
+		assert.NoError(t, err)
+
+		// Then add more tags and notes
+		err = AddTags(tempDir, []string{"tag1", "tag2"}, []string{"note1", "note2"})
+		assert.NoError(t, err)
+
+		// Verify tag1 has both notes
+		pathToTag1File := getTagNotesFilePath(tempDir, "tag1")
+		var tag1Array TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToTag1File, &tag1Array)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"note1", "note2"}, tag1Array.Notes)
+
+		// Verify tag2 has both notes
+		pathToTag2File := getTagNotesFilePath(tempDir, "tag2")
+		var tag2Array TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToTag2File, &tag2Array)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"note1", "note2"}, tag2Array.Notes)
+
+		// Verify notes_to_tags mapping
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"tag1", "tag2"}, notesToTagsMap.Notes["note1"])
+		assert.ElementsMatch(t, []string{"tag1", "tag2"}, notesToTagsMap.Notes["note2"])
+	})
+}
+
+func TestDeleteTags(t *testing.T) {
+	t.Run("deletes tags from notes successfully", func(t *testing.T) {
+		tempDir := t.TempDir()
+		tagNames := []string{"tag1", "tag2", "tag3"}
+		notePaths := []string{"note1", "note2"}
+
+		// Setup: Add tags first
+		err := AddTags(tempDir, tagNames, notePaths)
+		assert.NoError(t, err)
+
+		// Delete some tags
+		tagsToDelete := []string{"tag1", "tag3"}
+		err = DeleteTags(tempDir, tagsToDelete, notePaths)
+		assert.NoError(t, err)
+
+		// Verify notes were removed from deleted tags
+		for _, tagName := range tagsToDelete {
+			pathToTagFile := getTagNotesFilePath(tempDir, tagName)
+			var tagsArray TagsToNotesArray
+			err := util.ReadJsonFromPath(pathToTagFile, &tagsArray)
+			assert.NoError(t, err)
+			assert.Empty(t, tagsArray.Notes, "Expected notes to be removed from tag %s", tagName)
+		}
+
+		// Verify notes remain in tag2
+		pathToTag2File := getTagNotesFilePath(tempDir, "tag2")
+		var tag2Array TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToTag2File, &tag2Array)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, notePaths, tag2Array.Notes)
+
+		// Verify notes_to_tags mapping updated correctly
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+
+		for _, notePath := range notePaths {
+			assert.ElementsMatch(t, []string{"tag2"}, notesToTagsMap.Notes[notePath], "Expected only tag2 to remain for note %s", notePath)
+		}
+	})
+
+	t.Run("handles partial deletions", func(t *testing.T) {
+		tempDir := t.TempDir()
+
+		// Setup: note1 has tag1 and tag2, note2 has only tag1
+		err := AddTags(tempDir, []string{"tag1", "tag2"}, []string{"note1"})
+		assert.NoError(t, err)
+		err = AddTags(tempDir, []string{"tag1"}, []string{"note2"})
+		assert.NoError(t, err)
+
+		// Delete tag1 from note1 only
+		err = DeleteTags(tempDir, []string{"tag1"}, []string{"note1"})
+		assert.NoError(t, err)
+
+		// Verify tag1 still has note2 but not note1
+		pathToTag1File := getTagNotesFilePath(tempDir, "tag1")
+		var tag1Array TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToTag1File, &tag1Array)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"note2"}, tag1Array.Notes)
+
+		// Verify tag2 still has note1
+		pathToTag2File := getTagNotesFilePath(tempDir, "tag2")
+		var tag2Array TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToTag2File, &tag2Array)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"note1"}, tag2Array.Notes)
+
+		// Verify notes_to_tags mapping
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"tag2"}, notesToTagsMap.Notes["note1"])
+		assert.ElementsMatch(t, []string{"tag1"}, notesToTagsMap.Notes["note2"])
+	})
+
+	t.Run("handles empty parameters gracefully", func(t *testing.T) {
+		tempDir := t.TempDir()
+
+		// Setup some initial state
+		err := AddTags(tempDir, []string{"tag1"}, []string{"note1"})
+		assert.NoError(t, err)
+
+		// Delete with empty tag names
+		err = DeleteTags(tempDir, []string{}, []string{"note1"})
+		assert.NoError(t, err)
+
+		// Delete with empty note paths
+		err = DeleteTags(tempDir, []string{"tag1"}, []string{})
+		assert.NoError(t, err)
+
+		// Verify original state is unchanged
+		pathToTag1File := getTagNotesFilePath(tempDir, "tag1")
+		var tag1Array TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToTag1File, &tag1Array)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"note1"}, tag1Array.Notes)
+	})
+}
+
+func TestSetTags(t *testing.T) {
+	t.Run("sets tags for notes with no existing tags", func(t *testing.T) {
+		tempDir := t.TempDir()
+		tagNames := []string{"tag1", "tag2"}
+		notePaths := []string{"note1", "note2"}
+
+		err := SetTags(tempDir, tagNames, notePaths)
+		assert.NoError(t, err)
+
+		// Verify tags were set correctly
+		for _, tagName := range tagNames {
+			pathToTagFile := getTagNotesFilePath(tempDir, tagName)
+			var tagsArray TagsToNotesArray
+			err := util.ReadJsonFromPath(pathToTagFile, &tagsArray)
+			assert.NoError(t, err)
+			assert.ElementsMatch(t, notePaths, tagsArray.Notes, "Expected notes to be set for tag %s", tagName)
+		}
+
+		// Verify notes_to_tags mapping
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+
+		for _, notePath := range notePaths {
+			assert.ElementsMatch(t, tagNames, notesToTagsMap.Notes[notePath], "Expected tags to be set for note %s", notePath)
+		}
+	})
+
+	t.Run("replaces existing tags completely", func(t *testing.T) {
+		tempDir := t.TempDir()
+		notePaths := []string{"note1", "note2"}
+
+		// Setup: Add initial tags
+		initialTags := []string{"oldTag1", "oldTag2", "oldTag3"}
+		err := AddTags(tempDir, initialTags, notePaths)
+		assert.NoError(t, err)
+
+		// Set completely new tags
+		newTags := []string{"newTag1", "newTag2"}
+		err = SetTags(tempDir, newTags, notePaths)
+		assert.NoError(t, err)
+
+		// Verify old tags no longer contain the notes
+		for _, oldTag := range initialTags {
+			pathToOldTagFile := getTagNotesFilePath(tempDir, oldTag)
+			var oldTagArray TagsToNotesArray
+			err := util.ReadJsonFromPath(pathToOldTagFile, &oldTagArray)
+			assert.NoError(t, err)
+			assert.Empty(t, oldTagArray.Notes, "Expected old tag %s to have no notes", oldTag)
+		}
+
+		// Verify new tags contain the notes
+		for _, newTag := range newTags {
+			pathToNewTagFile := getTagNotesFilePath(tempDir, newTag)
+			var newTagArray TagsToNotesArray
+			err := util.ReadJsonFromPath(pathToNewTagFile, &newTagArray)
+			assert.NoError(t, err)
+			assert.ElementsMatch(t, notePaths, newTagArray.Notes, "Expected new tag %s to contain all notes", newTag)
+		}
+
+		// Verify notes_to_tags mapping shows only new tags
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+
+		for _, notePath := range notePaths {
+			assert.ElementsMatch(t, newTags, notesToTagsMap.Notes[notePath], "Expected note %s to have only new tags", notePath)
+		}
+	})
+
+	t.Run("handles partial overlap in tags", func(t *testing.T) {
+		tempDir := t.TempDir()
+		notePaths := []string{"note1"}
+
+		// Setup: Add initial tags
+		initialTags := []string{"tag1", "tag2", "tag3"}
+		err := AddTags(tempDir, initialTags, notePaths)
+		assert.NoError(t, err)
+
+		// Set tags with partial overlap (keep tag2, remove tag1 and tag3, add tag4)
+		newTags := []string{"tag2", "tag4"}
+		err = SetTags(tempDir, newTags, notePaths)
+		assert.NoError(t, err)
+
+		// Verify tag1 and tag3 no longer contain the note
+		for _, removedTag := range []string{"tag1", "tag3"} {
+			pathToRemovedTagFile := getTagNotesFilePath(tempDir, removedTag)
+			var removedTagArray TagsToNotesArray
+			err := util.ReadJsonFromPath(pathToRemovedTagFile, &removedTagArray)
+			assert.NoError(t, err)
+			assert.Empty(t, removedTagArray.Notes, "Expected removed tag %s to have no notes", removedTag)
+		}
+
+		// Verify tag2 and tag4 contain the note
+		for _, keptTag := range newTags {
+			pathToKeptTagFile := getTagNotesFilePath(tempDir, keptTag)
+			var keptTagArray TagsToNotesArray
+			err := util.ReadJsonFromPath(pathToKeptTagFile, &keptTagArray)
+			assert.NoError(t, err)
+			assert.ElementsMatch(t, notePaths, keptTagArray.Notes, "Expected kept tag %s to contain the note", keptTag)
+		}
+
+		// Verify notes_to_tags mapping
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, newTags, notesToTagsMap.Notes["note1"])
+	})
+
+	t.Run("handles setting empty tags", func(t *testing.T) {
+		tempDir := t.TempDir()
+		notePaths := []string{"note1"}
+
+		// Setup: Add initial tags
+		initialTags := []string{"tag1", "tag2"}
+		err := AddTags(tempDir, initialTags, notePaths)
+		assert.NoError(t, err)
+
+		// Set empty tags (remove all tags)
+		err = SetTags(tempDir, []string{}, notePaths)
+		assert.NoError(t, err)
+
+		// Verify all old tags no longer contain the notes
+		for _, oldTag := range initialTags {
+			pathToOldTagFile := getTagNotesFilePath(tempDir, oldTag)
+			var oldTagArray TagsToNotesArray
+			err := util.ReadJsonFromPath(pathToOldTagFile, &oldTagArray)
+			assert.NoError(t, err)
+			assert.Empty(t, oldTagArray.Notes, "Expected old tag %s to have no notes", oldTag)
+		}
+
+		// Verify notes_to_tags mapping shows no tags for the notes
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+
+		// The notes should not appear in the map at all when they have no tags
+		_, exists := notesToTagsMap.Notes["note1"]
+		assert.False(t, exists, "Expected note1 to not exist in notes_to_tags map when it has no tags")
+	})
+
+	t.Run("handles multiple notes with different existing tags", func(t *testing.T) {
+		tempDir := t.TempDir()
+
+		// Setup: note1 has tag1 and tag2, note2 has tag2 and tag3
+		err := AddTags(tempDir, []string{"tag1", "tag2"}, []string{"note1"})
+		assert.NoError(t, err)
+		err = AddTags(tempDir, []string{"tag2", "tag3"}, []string{"note2"})
+		assert.NoError(t, err)
+
+		// Set both notes to have tag4 and tag5
+		newTags := []string{"tag4", "tag5"}
+		err = SetTags(tempDir, newTags, []string{"note1", "note2"})
+		assert.NoError(t, err)
+
+		// Verify old tags no longer contain either note
+		for _, oldTag := range []string{"tag1", "tag2", "tag3"} {
+			pathToOldTagFile := getTagNotesFilePath(tempDir, oldTag)
+			var oldTagArray TagsToNotesArray
+			err := util.ReadJsonFromPath(pathToOldTagFile, &oldTagArray)
+			assert.NoError(t, err)
+			assert.Empty(t, oldTagArray.Notes, "Expected old tag %s to have no notes", oldTag)
+		}
+
+		// Verify new tags contain both notes
+		for _, newTag := range newTags {
+			pathToNewTagFile := getTagNotesFilePath(tempDir, newTag)
+			var newTagArray TagsToNotesArray
+			err := util.ReadJsonFromPath(pathToNewTagFile, &newTagArray)
+			assert.NoError(t, err)
+			assert.ElementsMatch(t, []string{"note1", "note2"}, newTagArray.Notes, "Expected new tag %s to contain both notes", newTag)
+		}
+
+		// Verify notes_to_tags mapping
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+
+		for _, notePath := range []string{"note1", "note2"} {
+			assert.ElementsMatch(t, newTags, notesToTagsMap.Notes[notePath], "Expected note %s to have only new tags", notePath)
+		}
 	})
 }
