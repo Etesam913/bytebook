@@ -34,7 +34,11 @@ function invalidateCurrentNoteTagsQueryIfNeeded(
 
   if (currentFolder && currentNote && searchParams.ext) {
     queryClient.invalidateQueries({
-      queryKey: ['note-tags', currentFolder, currentNote, searchParams.ext],
+      queryKey: [
+        'notes-tags',
+        currentFolder,
+        [`${currentNote}.${searchParams.ext}`],
+      ],
     });
   }
 }

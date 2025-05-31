@@ -295,11 +295,14 @@ func TestGetTagsForNote(t *testing.T) {
 		assert.Equal(t, expected, tags)
 	})
 
-	t.Run("returns error when note does not exist", func(t *testing.T) {
-		tags, err := GetTagsForNotes(projectPath, []string{"note3"})
-		assert.Error(t, err)
-		assert.Equal(t, map[string][]string{}, tags)
-		assert.Equal(t, "note does not have any tags", err.Error())
+	t.Run("skips notes that do not exist", func(t *testing.T) {
+		tags, err := GetTagsForNotes(projectPath, []string{"note1", "note3"})
+		assert.NoError(t, err)
+		// Verify that the returned tags match what we expect using assert.Equal for maps.
+		expected := map[string][]string{
+			"note1": {"tag1", "tag2"},
+		}
+		assert.Equal(t, expected, tags)
 	})
 }
 

@@ -62,11 +62,12 @@ export function EditTagDialogChildren({
 
   return (
     <fieldset className="flex flex-col gap-2">
+      <p>Select tags to add or remove from {totalSelectedNotes} note(s) </p>
       <div className="py-1.5">
         {(areTagsLoading || areTagsForSelectedNotesLoading) && (
           <RouteFallback className="my-1" />
         )}
-
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Your tags</p>
         {tags && !areTagsLoading && !areTagsError && (
           <div className="max-h-64 overflow-y-auto space-y-1 p-1 bg-zinc-100 dark:bg-zinc-750 border border-zinc-150 dark:border-zinc-650 rounded-md">
             {tags.map((tag) => {
