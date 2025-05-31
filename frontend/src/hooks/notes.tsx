@@ -14,6 +14,7 @@ import {
 import {
   AddTagsToNotes,
   DeleteTags,
+  EditTagsForNotes,
   GetNotesFromTag,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 import { WINDOW_ID } from '../App';
@@ -382,6 +383,50 @@ export function useAddTagsMutation() {
       return true;
     },
     // Handle errors that occur during the mutation
+    onError: (e) => {
+      if (e instanceof Error) {
+        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+      }
+      return false;
+    },
+  });
+}
+
+export function useEditTagsForNotesMutation(isInTagsSidebar: boolean) {
+  return useMutation({
+    mutationFn: async ({
+      tagNamesToAdd,
+      tagNamesToRemove,
+      selectionRange,
+      folder,
+    }: {
+      tagNamesToAdd: string[];
+      tagNamesToRemove: string[];
+      selectionRange: Set<string>;
+      folder: string;
+    }) => {
+      const folderAndNotePaths = getFolderAndNoteFromSelectionRange(
+        folder,
+        selectionRange,
+        isInTagsSidebar
+      );
+
+      const res = await EditTagsForNotes(
+        tagNamesToAdd,
+        tagNamesToRemove,
+        folderAndNotePaths
+      );
+      if (!res.success) {
+        throw new Error(res.message);
+      }
+
+      // // Invalidate the queries related to tag notes to ensure the data is up-to-date.
+      // await queryClient.invalidateQueries({
+      //   queryKey: ['notes-tags', folder, folderAndNotePaths],
+      // });
+
+      return true;
+    },
     onError: (e) => {
       if (e instanceof Error) {
         toast.error(e.message, DEFAULT_SONNER_OPTIONS);

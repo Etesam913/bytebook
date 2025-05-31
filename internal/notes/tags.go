@@ -1,7 +1,6 @@
 package notes
 
 import (
-	"errors"
 	"log"
 	"os"
 	"path/filepath"
@@ -253,7 +252,8 @@ func GetTagsForNotes(projectPath string, notes []string) (map[string][]string, e
 		if tags, exists := notesToTagsMap.Notes[note]; exists {
 			notesToTagsMapForDesiredNotes[note] = tags
 		} else {
-			return map[string][]string{}, errors.New("note does not have any tags")
+			// The note does not have any tags
+			continue
 		}
 	}
 

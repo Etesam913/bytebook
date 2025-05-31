@@ -8,7 +8,7 @@ import {
 } from '../../atoms';
 import { handleDragStart } from '../../components/sidebar/utils';
 import {
-  useAddTagsMutation,
+  useEditTagsForNotesMutation,
   useMoveNoteToTrashMutation,
   useNotePreviewQuery,
   useNoteRevealInFinderMutation,
@@ -63,7 +63,8 @@ export function NoteSidebarButton({
   const { mutate: revealInFinder } =
     useNoteRevealInFinderMutation(isInTagsSidebar);
   const { mutate: moveToTrash } = useMoveNoteToTrashMutation(isInTagsSidebar);
-  const { mutateAsync: addTagsToNotes } = useAddTagsMutation();
+  const { mutateAsync: editTagsForNotes } =
+    useEditTagsForNotesMutation(isInTagsSidebar);
 
   const setDialogData = useSetAtom(dialogDataAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
@@ -235,38 +236,51 @@ export function NoteSidebarButton({
                   isOpen: true,
                   isPending: false,
                   title: 'Edit Tags',
-                  dialogClassName: '',
-                  children: () => (
-                    // <AddTagDialogChildren onSubmitErrorText={errorText} />
-                    <EditTagDialogChildren />
+                  dialogClassName: 'w-[min(30rem,90vw)]',
+                  children: (errorText) => (
+                    <EditTagDialogChildren
+                      selectionRange={newSelectionRange}
+                      folder={sidebarNoteFolder}
+                      errorText={errorText}
+                    />
                   ),
                   onSubmit: async (e, setErrorText) => {
-                    // const formElement = e.target as HTMLFormElement;
-                    // const formCheckboxElements = formElement.querySelectorAll(
-                    // 	"input[type='checkbox']",
-                    // ) as NodeListOf<HTMLInputElement>;
-                    // const tagsToAdd = Array.from(formCheckboxElements)
-                    // 	.filter(
-                    // 		(checkbox) =>
-                    // 			checkbox.value === "on" && !checkbox.indeterminate,
-                    // 	)
-                    // 	.map((checkbox) => checkbox.name);
-                    // const tagsToRemove = Array.from(
-                    // 	formCheckboxElements,
-                    // ).filter((checkbox) => !checkbox.value);
-                    // const addPathsResponse = addPathsToTags({
-                    // 	e,
-                    // 	setErrorText,
-                    // 	folder: curFolder,
-                    // 	selectionRange: newSelectionRange,
-                    // });
-                    // return true;
-                    return addTagsToNotes({
-                      e,
-                      setErrorText,
-                      folder: sidebarNoteFolder,
-                      selectionRange: newSelectionRange,
-                    });
+                    try {
+                      const tagNamesToAdd: string[] = [];
+                      const tagNamesToRemove: string[] = [];
+
+                      // Get all checkbox elements from the form
+                      const checkboxes = (
+                        e.target as HTMLFormElement
+                      ).querySelectorAll(
+                        'input[type="checkbox"]'
+                      ) as NodeListOf<HTMLInputElement>;
+
+                      checkboxes.forEach((checkbox: HTMLInputElement) => {
+                        // Only process checkboxes that are not indeterminate
+                        if (!checkbox.indeterminate) {
+                          if (checkbox.checked) {
+                            tagNamesToAdd.push(checkbox.value);
+                          } else {
+                            tagNamesToRemove.push(checkbox.value);
+                          }
+                        }
+                      });
+
+                      return await editTagsForNotes({
+                        tagNamesToAdd,
+                        tagNamesToRemove,
+                        selectionRange: newSelectionRange,
+                        folder: sidebarNoteFolder,
+                      });
+                    } catch (error) {
+                      setErrorText(
+                        error instanceof Error
+                          ? error.message
+                          : 'Failed to set tags'
+                      );
+                      return false;
+                    }
                   },
                 });
               },

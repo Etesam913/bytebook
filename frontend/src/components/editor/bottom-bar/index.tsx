@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSetAtom } from 'jotai/react';
 import {
   useDeleteTagsMutation,
-  useTagsForNoteQuery,
+  useTagsForNotesQuery,
 } from '../../../hooks/tag-events';
 import { useAddTagsMutation } from '../../../hooks/notes';
 import { dialogDataAtom } from '../../../atoms';
@@ -31,7 +31,9 @@ export function BottomBar({
 }) {
   const [lastUpdatedText, setLastUpdatedText] = useState('');
 
-  const { data: tagsMap, isLoading } = useTagsForNoteQuery(folder, note, ext);
+  const { data: tagsMap, isLoading } = useTagsForNotesQuery(folder, [
+    `${note}.${ext}`,
+  ]);
   const { mutate: deleteTag } = useDeleteTagsMutation(folder, note, ext);
   const { mutateAsync: addTagsToNotes } = useAddTagsMutation();
   const setDialogData = useSetAtom(dialogDataAtom);

@@ -91,6 +91,13 @@ export function useTags() {
   });
 }
 
+/**
+ * Hook to fetch all tags in the project.
+ *
+ * @returns A query result containing an array of all tags.
+ * The query will automatically refetch when tags are created, deleted or updated
+ * via the useTags event handlers.
+ */
 export function useTagsQuery() {
   return useQuery({
     queryKey: ['get-tags'],
@@ -106,36 +113,24 @@ export function useTagsQuery() {
 }
 
 /**
- * Fetches tags for a specific note within a folder.
  *
- * @param  folder - The folder containing the note.
- * @param  note - The note for which tags are being fetched.
- * @param  ext - The file extension of the note.
- * @returns  The query result containing the tags.
- */
-export function useTagsForNoteQuery(folder: string, note: string, ext: string) {
-  return useQuery({
-    queryKey: ['note-tags', folder, note, ext],
-    queryFn: async () => {
-      const res = await GetTagsForNotes([`${folder}/${note}.${ext}`]);
-      return res.data;
-    },
-  });
-}
-
-/**
- *
- * @param folder
- * @param notes - An array of note paths with ext query param at the end
+ * @param folder - The folder containing the note.
+ * @param notesWithExtensions - An array of note paths with ext query param at the end
  * @returns
  */
-export function useTagsForNotesQuery(folder: string, notes: string[]) {
+export function useTagsForNotesQuery(
+  folder: string,
+  notesWithExtensions: string[]
+) {
   return useQuery({
-    queryKey: ['notes-tags', folder, notes],
+    queryKey: ['notes-tags', folder, notesWithExtensions],
     queryFn: async () => {
       const res = await GetTagsForNotes(
-        notes.map((note) => `${folder}/${note}`)
+        notesWithExtensions.map((note) => `${folder}/${note}`)
       );
+      if (!res.success) {
+        throw new Error(res.message);
+      }
       return res.data;
     },
   });

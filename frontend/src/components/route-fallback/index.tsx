@@ -17,7 +17,7 @@ export function RouteFallback({
       transition={{ delay: 0.5 }}
       className="flex-grow flex items-center justify-center"
     >
-      <div className="animate-pulse text-gray-400">
+      <div className="animate-pulse text-gray-500 dark:text-zinc-400">
         <Loader height={height} width={width} className={className} />
       </div>
     </motion.div>

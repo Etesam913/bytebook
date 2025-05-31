@@ -96,9 +96,9 @@ func (t *TagsService) DeleteTagsFromNotes(tagNames []string, folderAndNotePathsW
 	}
 }
 
-func (t *TagsService) GetTagsForNotes(folderAndNotePathsWithQueryParams []string) config.BackendResponseWithData[map[string][]string] {
+func (t *TagsService) GetTagsForNotes(folderAndNotePaths []string) config.BackendResponseWithData[map[string][]string] {
 	// Initialize a map to store tags for each folder and note path
-	noteToTagsMap, err := notes.GetTagsForNotes(t.ProjectPath, folderAndNotePathsWithQueryParams)
+	noteToTagsMap, err := notes.GetTagsForNotes(t.ProjectPath, folderAndNotePaths)
 	if err != nil {
 		return config.BackendResponseWithData[map[string][]string]{
 			Success: false,
@@ -173,5 +173,28 @@ func (t *TagsService) GetPreviewForTag(tag string) config.BackendResponseWithDat
 		Success: true,
 		Message: fmt.Sprintf("Successfully got preview for tag: %s", tag),
 		Data:    notePreview,
+	}
+}
+
+func (t *TagsService) EditTagsForNotes(tagNamesToAdd []string, tagNamesToRemove []string, folderAndNotePathsWithExtension []string) config.BackendResponseWithoutData {
+	err := notes.DeleteTags(t.ProjectPath, tagNamesToRemove, folderAndNotePathsWithExtension)
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "Failed to set tags for notes",
+		}
+	}
+
+	err = notes.AddTags(t.ProjectPath, tagNamesToAdd, folderAndNotePathsWithExtension)
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "Failed to set tags for notes",
+		}
+	}
+
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "Successfully set tags for notes",
 	}
 }
