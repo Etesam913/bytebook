@@ -162,7 +162,6 @@ export function useKernelLaunchEvents(editor: LexicalEditor) {
       language: Languages;
       data: string;
     }[];
-
     if (data.length === 0) return;
     const language = data[0].language;
     toast.error(data[0].data, DEFAULT_SONNER_OPTIONS);
@@ -476,6 +475,7 @@ export function useTurnOnKernelMutation() {
   return useMutation({
     mutationFn: async (language: Languages) => {
       const res = await CreateSocketsAndListen(language);
+      console.log(res);
       if (!res.success) {
         throw new QueryError(res.message);
       }

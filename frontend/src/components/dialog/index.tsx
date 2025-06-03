@@ -129,12 +129,16 @@ export function Dialog() {
               transition: { ease: easingFunctions['ease-out-quint'] },
             }}
             className={cn(
-              'absolute flex flex-col gap-5 bg-zinc-50 dark:bg-zinc-800 z-[60] top-2/4 py-3 px-4 w-[min(23rem,90vw)] rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4',
+              'absolute bg-zinc-50 dark:bg-zinc-800 z-[60] top-2/4 py-3 w-[min(23rem,90vw)] rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4 max-h-11/12 flex flex-col',
               dialogData.dialogClassName
             )}
           >
-            <h2 className=" text-xl">{dialogData.title}</h2>
-            {dialogData.children?.(errorText, dialogData.isPending)}
+            <h2 className="px-3 text-xl pb-2 border-b-2 border-zinc-150 dark:border-zinc-750">
+              {dialogData.title}
+            </h2>
+            <div className="pt-3 pb-2 px-3 overflow-y-auto flex flex-col gap-5 flex-1 min-h-0">
+              {dialogData.children?.(errorText, dialogData.isPending)}
+            </div>
             <MotionIconButton
               {...getDefaultButtonVariants()}
               onClick={resetDialogState}

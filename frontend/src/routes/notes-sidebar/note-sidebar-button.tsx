@@ -8,6 +8,7 @@ import {
 } from '../../atoms';
 import { handleDragStart } from '../../components/sidebar/utils';
 import {
+  useAddTagsMutation,
   useEditTagsForNotesMutation,
   useMoveNoteToTrashMutation,
   useNotePreviewQuery,
@@ -32,6 +33,7 @@ import { CardNoteSidebarItem } from './card-note-sidebar-item';
 import { ListNoteSidebarItem } from './list-note-sidebar-item';
 import { navigate } from 'wouter/use-browser-location';
 import { EditTagDialogChildren } from './edit-tag-dialog-children';
+import { AddTagDialogChildren } from './add-tag-dialog-children';
 
 export function NoteSidebarButton({
   sidebarNoteFolder,
@@ -65,6 +67,7 @@ export function NoteSidebarButton({
   const { mutate: moveToTrash } = useMoveNoteToTrashMutation(isInTagsSidebar);
   const { mutateAsync: editTagsForNotes } =
     useEditTagsForNotesMutation(isInTagsSidebar);
+  const { mutateAsync: addTagsToNotes } = useAddTagsMutation();
 
   const setDialogData = useSetAtom(dialogDataAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
@@ -219,6 +222,37 @@ export function NoteSidebarButton({
                   },
                 ]
               : []),
+            {
+              label: (
+                <span className="flex items-center gap-1.5">
+                  <TagPlus
+                    width={17}
+                    height={17}
+                    className="will-change-transform"
+                  />{' '}
+                  Add Tags
+                </span>
+              ),
+              value: 'add-tags',
+              onChange: () => {
+                setDialogData({
+                  isOpen: true,
+                  isPending: false,
+                  title: 'Add Tags',
+                  children: (errorText) => (
+                    <AddTagDialogChildren onSubmitErrorText={errorText} />
+                  ),
+                  onSubmit: async (e, setErrorText) => {
+                    return addTagsToNotes({
+                      e,
+                      setErrorText,
+                      folder: sidebarNoteFolder,
+                      selectionRange: newSelectionRange,
+                    });
+                  },
+                });
+              },
+            },
             {
               label: (
                 <span className="flex items-center gap-1.5">

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -69,7 +70,7 @@ func replaceConnectionFilePlaceholder(argv []string, pathToConnectionFile string
 }
 
 // createCommandForLanguage creates the appropriate command based on the language
-func createCommandForLanguage(argv []string, language, venvPath string) (*exec.Cmd, bytes.Buffer, error) {
+func createCommandForLanguage(argv []string, language, venvPath string) (*exec.Cmd, *bytes.Buffer, error) {
 	var cmd *exec.Cmd
 	var stderrBuf bytes.Buffer
 
@@ -85,21 +86,21 @@ func createCommandForLanguage(argv []string, language, venvPath string) (*exec.C
 		cmd.Env = os.Environ()
 	}
 
-	// Redirect stdout and stderr for all languages
+	// Capture stdout and stderr
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
 
-	return cmd, stderrBuf, nil
+	return cmd, &stderrBuf, nil
 }
 
 // createPythonCommand creates a command specifically for Python with virtual environment support
-func createPythonCommand(argv []string, venvPath string) (*exec.Cmd, bytes.Buffer, error) {
+func createPythonCommand(argv []string, venvPath string) (*exec.Cmd, *bytes.Buffer, error) {
 	var stderrBuf bytes.Buffer
 
 	// For Python, use the virtual environment
 	pythonPath := filepath.Join(venvPath, "bin", "python3")
 	if _, err := os.Stat(pythonPath); os.IsNotExist(err) {
-		return nil, stderrBuf, fmt.Errorf("virtual environment Python not found at %s", pythonPath)
+		return nil, &stderrBuf, fmt.Errorf("virtual environment Python not found at %s", pythonPath)
 	}
 
 	// Make a copy of argv to avoid modifying the original
@@ -123,21 +124,40 @@ func createPythonCommand(argv []string, venvPath string) (*exec.Cmd, bytes.Buffe
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
 
-	return cmd, stderrBuf, nil
+	return cmd, &stderrBuf, nil
 }
 
 // monitorCommandExecution monitors the command execution and handles errors
-func monitorCommandExecution(cmd *exec.Cmd, stderrBuf bytes.Buffer, language string) {
+func monitorCommandExecution(cmd *exec.Cmd, stderrBuf *bytes.Buffer, language string) {
 	go func() {
 		if err := cmd.Wait(); err != nil {
 			app := application.Get()
 			if app == nil {
 				return
 			}
-			msg := stderrBuf.String()
+
+			stderrMsg := stderrBuf.String()
+			
+			var errorMsg string
+			
+			// Use stderr if available, otherwise fallback to exit error
+			if stderrMsg != "" {
+				errorMsg = stderrMsg
+			} else {
+				// Fallback to exit error information
+				if exitError, ok := err.(*exec.ExitError); ok {
+					errorMsg = fmt.Sprintf("Exit code: %d\nError: %s", 
+						exitError.ExitCode(), exitError.Error())
+				} else {
+					errorMsg = fmt.Sprintf("Error: %s", err.Error())
+				}
+			}
+			
+			log.Printf("Kernel launch failed for %s: %s", language, errorMsg)
+			
 			app.EmitEvent("kernel:launch-error", KernelLaunchEvent{
 				Language: language,
-				Data:     msg,
+				Data:     errorMsg,
 			})
 		}
 	}()

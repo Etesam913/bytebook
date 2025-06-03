@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react';
 import type { JSX, ReactNode } from 'react';
 import { AccordionButton } from './accordion-button';
+import { cn } from '../../utils/string-formatting';
 
 export function SidebarAccordion({
   onClick,
@@ -8,12 +9,16 @@ export function SidebarAccordion({
   children,
   title,
   icon,
+  buttonClassName,
+  listClassName,
 }: {
   onClick: () => void;
   isOpen: boolean;
   children: ReactNode;
   title: string;
   icon?: JSX.Element;
+  buttonClassName?: string;
+  listClassName?: string;
 }) {
   return (
     <section>
@@ -22,6 +27,7 @@ export function SidebarAccordion({
         isOpen={isOpen}
         title={title}
         icon={icon}
+        className={buttonClassName}
       />
       <AnimatePresence>
         {isOpen && (
@@ -32,7 +38,10 @@ export function SidebarAccordion({
               transition: { type: 'spring', damping: 16 },
             }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden hover:overflow-auto pl-1"
+            className={cn(
+              'overflow-hidden hover:overflow-auto pl-1',
+              listClassName
+            )}
           >
             {children}
           </motion.ul>

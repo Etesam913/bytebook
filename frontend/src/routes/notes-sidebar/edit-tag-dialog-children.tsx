@@ -69,44 +69,52 @@ export function EditTagDialogChildren({
         )}
         <p className="text-sm text-zinc-500 dark:text-zinc-400">Your tags</p>
         {tags && !areTagsLoading && !areTagsError && (
-          <div className="max-h-64 overflow-y-auto space-y-1 p-1 bg-zinc-100 dark:bg-zinc-750 border border-zinc-150 dark:border-zinc-650 rounded-md">
-            {tags.map((tag) => {
-              const tagCount = selectedTagCounts.get(tag) || 0;
-              const isFullySelected =
-                tagCount === totalSelectedNotes && totalSelectedNotes > 0;
-              const isIndeterminate =
-                tagCount > 0 && tagCount < totalSelectedNotes;
+          <>
+            {tags.length === 0 ? (
+              <div className="p-4 text-center text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-750 border border-zinc-150 dark:border-zinc-650 rounded-md">
+                <p>No tags found.</p>
+              </div>
+            ) : (
+              <div className="max-h-[calc(100vh-15rem)] overflow-y-auto space-y-1 p-1 bg-zinc-100 dark:bg-zinc-750 border border-zinc-150 dark:border-zinc-650 rounded-md">
+                {tags.map((tag) => {
+                  const tagCount = selectedTagCounts.get(tag) || 0;
+                  const isFullySelected =
+                    tagCount === totalSelectedNotes && totalSelectedNotes > 0;
+                  const isIndeterminate =
+                    tagCount > 0 && tagCount < totalSelectedNotes;
 
-              return (
-                <label
-                  key={tag}
-                  className="flex items-center gap-2 py-0.5 px-1.5 hover:bg-zinc-150 dark:hover:bg-zinc-700 rounded"
-                >
-                  <Checkbox
-                    name="tags"
-                    value={tag}
-                    checked={isFullySelected}
-                    indeterminate={isIndeterminate}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedTagCounts(
-                          new Map(
-                            selectedTagCounts.set(tag, totalSelectedNotes)
-                          )
-                        );
-                      } else {
-                        const newCounts = new Map(selectedTagCounts);
-                        newCounts.delete(tag);
-                        setSelectedTagCounts(newCounts);
-                      }
-                    }}
-                    className="rounded h-3.5 w-3.5 border-gray-300 dark:border-zinc-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400"
-                  />
-                  <span className="dark:text-zinc-200">{tag}</span>
-                </label>
-              );
-            })}
-          </div>
+                  return (
+                    <label
+                      key={tag}
+                      className="flex items-center gap-2 py-0.5 px-1.5 hover:bg-zinc-150 dark:hover:bg-zinc-700 rounded"
+                    >
+                      <Checkbox
+                        name="tags"
+                        value={tag}
+                        checked={isFullySelected}
+                        indeterminate={isIndeterminate}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedTagCounts(
+                              new Map(
+                                selectedTagCounts.set(tag, totalSelectedNotes)
+                              )
+                            );
+                          } else {
+                            const newCounts = new Map(selectedTagCounts);
+                            newCounts.delete(tag);
+                            setSelectedTagCounts(newCounts);
+                          }
+                        }}
+                        className="rounded h-3.5 w-3.5 border-gray-300 dark:border-zinc-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400"
+                      />
+                      <span className="dark:text-zinc-200">{tag}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
       {(areTagsError || areTagsForSelectedNotesError) && (

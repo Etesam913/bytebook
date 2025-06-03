@@ -9,7 +9,7 @@ export function PlainCodeSnippet({ code }: { code: string }) {
   };
 
   return (
-    <div className="relative bg-zinc-150 group dark:bg-zinc-750 cursor-auto mb-2">
+    <div className="relative bg-zinc-150 group dark:bg-zinc-700 rounded-md border border-zinc-200 dark:border-zinc-600 cursor-auto mb-2">
       <div className="overflow-x-auto">
         <pre className="w-full text-xs py-4 px-2 !select-auto">{code}</pre>
       </div>

@@ -23,8 +23,8 @@ export function FileError({
       data-node-key={nodeKey}
       data-interactable="true"
       className={cn(
-        'max-w-80 relative text-center bg-zinc-50 text-zinc-600 dark:text-zinc-300 dark:bg-zinc-700 rounded-md px-2.5 py-1.5 mx-1.5 border-4 border-solid border-zinc-200 border:outline-zinc-650 transition-colors',
-        isSelected && 'border-(--accent-color)'
+        'max-w-80 relative bg-zinc-50 text-zinc-600 dark:text-zinc-300 dark:bg-zinc-700 rounded-md px-2.5 py-1.5 mx-1.5 border-4 border-solid border-zinc-200 dark:border-zinc-650 transition-colors',
+        isSelected && '!border-(--accent-color)'
       )}
     >
       <AnimatePresence>
@@ -62,7 +62,7 @@ export function FileError({
           <h3 className="text-sm pointer-events-none">Unknown attachment</h3>
         </div>
       )}
-      <p className="text-xs pointer-events-none">src: {src}</p>
+      <p className="text-xs pointer-events-none">{src}</p>
     </div>
   );
 }

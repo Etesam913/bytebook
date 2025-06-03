@@ -49,64 +49,69 @@ func CreateSockets(
 	socketSet := &SocketSet{}
 
 	// Create shell socket if it doesn't exist
-	var newlyCreatedShellSocket JupyterSocket
 	if shellSocketDealer == nil {
-		newlyCreatedShellSocket = CreateShellSocket()
+		newlyCreatedShellSocket := CreateShellSocket()
 		if newlyCreatedShellSocket.Get() == nil {
 			return nil, errors.New("failed to create shell socket dealer")
 		}
 		log.Println("🟩 created shell socket dealer")
 		go newlyCreatedShellSocket.Listen(newlyCreatedShellSocket.Get(), connectionInfo, ctx)
+		socketSet.ShellSocketDealer = newlyCreatedShellSocket.Get()
+	} else {
+		socketSet.ShellSocketDealer = shellSocketDealer
 	}
-	socketSet.ShellSocketDealer = newlyCreatedShellSocket.Get()
 
 	// Create IOPub socket if it doesn't exist
-	var newlyCreatedIoPubSocket JupyterSocket
 	if ioPubSocketSubscriber == nil {
-		newlyCreatedIoPubSocket = CreateIOPubSocket(language, cancelFunc)
+		newlyCreatedIoPubSocket := CreateIOPubSocket(language, cancelFunc)
 		if newlyCreatedIoPubSocket.Get() == nil {
 			return nil, errors.New("failed to create IOPub socket subscriber")
 		}
 		log.Println("🟩 created IOPub socket subscriber")
 		go newlyCreatedIoPubSocket.Listen(newlyCreatedIoPubSocket.Get(), connectionInfo, ctx)
+		socketSet.IOPubSocketSubscriber = newlyCreatedIoPubSocket.Get()
+	} else {
+		socketSet.IOPubSocketSubscriber = ioPubSocketSubscriber
 	}
-	socketSet.IOPubSocketSubscriber = newlyCreatedIoPubSocket.Get()
 
 	// Create heartbeat socket if it doesn't exist
-	var newlyCreatedHeartbeatSocket JupyterSocket
 	if heartbeatSocketReq == nil {
-		newlyCreatedHeartbeatSocket = CreateHeartbeatSocket(heartbeatState)
+		newlyCreatedHeartbeatSocket := CreateHeartbeatSocket(heartbeatState)
 		if newlyCreatedHeartbeatSocket.Get() == nil {
 			return nil, errors.New("failed to create heartbeat socket request")
 		}
 		log.Println("🟩 created heartbeat socket request")
 		go newlyCreatedHeartbeatSocket.Listen(newlyCreatedHeartbeatSocket.Get(), connectionInfo, ctx)
+		socketSet.HeartbeatSocketReq = newlyCreatedHeartbeatSocket.Get()
+	} else {
+		socketSet.HeartbeatSocketReq = heartbeatSocketReq
 	}
-	socketSet.HeartbeatSocketReq = newlyCreatedHeartbeatSocket.Get()
 
 	// Create control socket if it doesn't exist
-	var newlyCreatedControlSocket JupyterSocket
 	if controlSocketDealer == nil {
-		newlyCreatedControlSocket = CreateControlSocket(codeServiceUpdater)
+		newlyCreatedControlSocket := CreateControlSocket(codeServiceUpdater)
 		if newlyCreatedControlSocket.Get() == nil {
 			return nil, errors.New("failed to create control socket dealer")
 		}
 		log.Println("🟩 created control socket dealer")
 		go newlyCreatedControlSocket.Listen(newlyCreatedControlSocket.Get(), connectionInfo, ctx)
+		socketSet.ControlSocketDealer = newlyCreatedControlSocket.Get()
+	} else {
+		socketSet.ControlSocketDealer = controlSocketDealer
 	}
-	socketSet.ControlSocketDealer = newlyCreatedControlSocket.Get()
 
 	// Create stdin socket if it doesn't exist
-	var newlyCreatedStdinSocket JupyterSocket
 	if stdinSocketDealer == nil {
-		newlyCreatedStdinSocket = CreateStdinSocket()
+		newlyCreatedStdinSocket := CreateStdinSocket()
 		if newlyCreatedStdinSocket.Get() == nil {
 			return nil, errors.New("failed to create stdin socket dealer")
 		}
 		log.Println("🟩 created stdin socket dealer")
 		go newlyCreatedStdinSocket.Listen(newlyCreatedStdinSocket.Get(), connectionInfo, ctx)
+		socketSet.StdinSocketDealer = newlyCreatedStdinSocket.Get()
+	} else {
+		socketSet.StdinSocketDealer = stdinSocketDealer
 	}
-	socketSet.StdinSocketDealer = newlyCreatedStdinSocket.Get()
 
 	return socketSet, nil
 }

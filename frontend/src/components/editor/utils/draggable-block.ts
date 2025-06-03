@@ -466,7 +466,6 @@ export function handleDragStart(
     ['dragging']
   );
   ghostElement.id = 'block-element';
-
   editor.read(() => {
     const node = $getNearestNodeFromDOMNode(draggableBlockElement);
     if (!node) return;
@@ -485,7 +484,6 @@ export function handleDragStart(
     ghostElement.style.fontFamily = noteContainer.style.fontFamily;
     ghostElement.style.maxWidth = `${noteContainer.clientWidth}px`;
   }
-
   setDraggedElement(ghostElement);
 
   e.dataTransfer.setDragImage(ghostElement, 0, 0);

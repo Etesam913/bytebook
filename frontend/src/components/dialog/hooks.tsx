@@ -33,7 +33,6 @@ export const useTrapFocus = (
         document.activeElement &&
         !focusableElements.includes(document.activeElement)
       ) {
-        console.log('first element');
         firstFocusableElement?.focus();
       }
 
