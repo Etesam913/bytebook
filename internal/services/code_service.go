@@ -208,6 +208,91 @@ func (c *CodeService) SendInputReply(codeBlockId, executionId, value string) con
 	}
 }
 
+// SendCompleteRequest sends a complete_request message to the kernel.
+func (c *CodeService) SendCompleteRequest(codeBlockId, executionId, code string, cursorPos int) config.BackendResponseWithoutData {
+	if c.ShellSocketDealer == nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "Shell socket is not initialized. Unable to send completion request.",
+		}
+	}
+
+	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
+	if !isHeartBeating {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "The kernel is not running. Cannot send completion request.",
+		}
+	}
+
+	err := jupyter_protocol.SendCompleteRequest(
+		c.ShellSocketDealer,
+		jupyter_protocol.CompleteRequestParams{
+			MessageParams: jupyter_protocol.MessageParams{
+				MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
+				SessionID: "current-session",
+			},
+			Code:      code,
+			CursorPos: cursorPos,
+		},
+	)
+
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: fmt.Sprintf("Failed to send completion request: %v", err),
+		}
+	}
+
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "Completion request sent successfully",
+	}
+}
+
+// SendInspectRequest sends an inspect_request message to the kernel.
+func (c *CodeService) SendInspectRequest(codeBlockId, executionId, code string, cursorPos, detailLevel int) config.BackendResponseWithoutData {
+	if c.ShellSocketDealer == nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "Shell socket is not initialized. Unable to send inspection request.",
+		}
+	}
+
+	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
+	if !isHeartBeating {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "The kernel is not running. Cannot send inspection request.",
+		}
+	}
+
+	err := jupyter_protocol.SendInspectRequest(
+		c.ShellSocketDealer,
+		jupyter_protocol.InspectRequestParams{
+			MessageParams: jupyter_protocol.MessageParams{
+				MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
+				SessionID: "current-session",
+			},
+			Code:        code,
+			CursorPos:   cursorPos,
+			DetailLevel: detailLevel,
+		},
+	)
+
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: fmt.Sprintf("Failed to send inspection request: %v", err),
+		}
+	}
+
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "Inspection request sent successfully",
+	}
+}
+
 // IsKernelAvailable returns true if the kernel sockets are initialized
 // and the heartbeat is currently active.
 func (c *CodeService) IsKernelAvailable() bool {

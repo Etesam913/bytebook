@@ -26,6 +26,23 @@ type executeReplyEvent struct {
 	ErrorTraceback []string `json:"errorTraceback"`
 }
 
+type completeReplyEvent struct {
+	Status      string            `json:"status"`
+	MessageId   string            `json:"messageId"`
+	Matches     []string          `json:"matches"`
+	CursorStart int               `json:"cursorStart"`
+	CursorEnd   int               `json:"cursorEnd"`
+	Metadata    map[string]any    `json:"metadata"`
+}
+
+type inspectReplyEvent struct {
+	Status    string         `json:"status"`
+	MessageId string         `json:"messageId"`
+	Found     bool           `json:"found"`
+	Data      map[string]any `json:"data"`
+	Metadata  map[string]any `json:"metadata"`
+}
+
 func CreateShellSocket() *shellSocket {
 	shellSocketDealer, err := zmq4.NewSocket(zmq4.Type(zmq4.DEALER)) // Could also use REQ
 	if err != nil {
@@ -141,6 +158,99 @@ func (s *shellSocket) Listen(
 				}
 				fmt.Println("---")
 				time.Sleep(100 * time.Millisecond)
+
+			case "complete_reply":
+				status, ok := msg.Content["status"].(string)
+				if !ok {
+					log.Println("⚠️ Invalid status type in complete_reply")
+					continue
+				}
+				msgId, ok := msg.ParentHeader["msg_id"].(string)
+				if !ok {
+					log.Println("⚠️ Invalid message ID type in complete_reply")
+					continue
+				}
+
+				matches := []string{}
+				cursorStart := 0
+				cursorEnd := 0
+				metadata := map[string]any{}
+
+				if status == "ok" {
+					if matchesRaw, ok := msg.Content["matches"].([]any); ok {
+						for _, match := range matchesRaw {
+							if matchStr, ok := match.(string); ok {
+								matches = append(matches, matchStr)
+							}
+						}
+					}
+					if cursorStartFloat, ok := msg.Content["cursor_start"].(float64); ok {
+						cursorStart = int(cursorStartFloat)
+					}
+					if cursorEndFloat, ok := msg.Content["cursor_end"].(float64); ok {
+						cursorEnd = int(cursorEndFloat)
+					}
+					if metadataRaw, ok := msg.Content["metadata"].(map[string]any); ok {
+						metadata = metadataRaw
+					}
+				}
+
+				currentWindow := app.CurrentWindow()
+				if currentWindow != nil {
+					currentWindow.EmitEvent(
+						"code:code-block:complete_reply",
+						completeReplyEvent{
+							Status:      status,
+							MessageId:   msgId,
+							Matches:     matches,
+							CursorStart: cursorStart,
+							CursorEnd:   cursorEnd,
+							Metadata:    metadata,
+						},
+					)
+				}
+
+			case "inspect_reply":
+				status, ok := msg.Content["status"].(string)
+				if !ok {
+					log.Println("⚠️ Invalid status type in inspect_reply")
+					continue
+				}
+				msgId, ok := msg.ParentHeader["msg_id"].(string)
+				if !ok {
+					log.Println("⚠️ Invalid message ID type in inspect_reply")
+					continue
+				}
+
+				found := false
+				data := map[string]any{}
+				metadata := map[string]any{}
+
+				if status == "ok" {
+					if foundBool, ok := msg.Content["found"].(bool); ok {
+						found = foundBool
+					}
+					if dataRaw, ok := msg.Content["data"].(map[string]any); ok {
+						data = dataRaw
+					}
+					if metadataRaw, ok := msg.Content["metadata"].(map[string]any); ok {
+						metadata = metadataRaw
+					}
+				}
+
+				currentWindow := app.CurrentWindow()
+				if currentWindow != nil {
+					currentWindow.EmitEvent(
+						"code:code-block:inspect_reply",
+						inspectReplyEvent{
+							Status:    status,
+							MessageId: msgId,
+							Found:     found,
+							Data:      data,
+							Metadata:  metadata,
+						},
+					)
+				}
 			}
 		}
 	}
