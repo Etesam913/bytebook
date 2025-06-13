@@ -42,7 +42,7 @@ import { LinkMatcherPlugin } from './plugins/link-matcher.tsx';
 import { LinkPlugin } from './plugins/link.tsx';
 import { SavePlugin } from './plugins/save.tsx';
 import { TableOfContentsPlugin } from './plugins/table-of-contents.tsx';
-import TreeViewPlugin from './plugins/tree-view';
+// import TreeViewPlugin from './plugins/tree-view';
 import { Toolbar } from './toolbar';
 import { CUSTOM_TRANSFORMERS } from './transformers';
 import { debouncedNoteHandleChange } from './utils/note-commands.ts';

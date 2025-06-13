@@ -4,6 +4,7 @@ import { useWailsEvent } from './events';
 import { kernelsDataAtom } from '../atoms';
 import {
   CodeBlockStatus,
+  CompletionData,
   isValidKernelLanguage,
   KernelHeartbeatStatus,
   KernelStatus,
@@ -19,13 +20,15 @@ import {
   SendInterruptRequest,
   SendShutdownMessage,
   SendInputReply,
+  SendCompleteRequest,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import { QueryError } from '../utils/query';
 import { $nodesOfType, LexicalEditor } from 'lexical';
 import { toast } from 'sonner';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { useUpdateProjectSettingsMutation } from './project-settings';
-import { Dispatch, FormEvent, SetStateAction } from 'react';
+import { Dispatch, FormEvent, SetStateAction, useRef } from 'react';
+import { CompletionContext, CompletionResult } from '@codemirror/autocomplete';
 
 /**
  * Hook that listens for kernel status updates and updates the kernels data atom.
@@ -568,4 +571,90 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
       }
     },
   });
+}
+
+/**
+ * Creates a completion source function for code autocompletion.
+ *
+ * @param id - The ID of the code block
+ * @param executionId - The execution ID for the completion request
+ * @param pendingCompletions - Map to store pending completion promises by messageId
+ * @param COMPLETION_TIMEOUT - Timeout duration in ms before abandoning completion request (default: 3000)
+ * @returns An async completion source function that handles code completion requests
+ */
+export function useCompletionSource(
+  id: string,
+  executionId: string,
+  pendingCompletions: Map<string, (data: CompletionData) => void>,
+  COMPLETION_TIMEOUT = 3000
+) {
+  // Store the latest messageId to match responses
+  const latestMessageId = useRef<string | null>(null);
+
+  // Listen for completion replies
+  useWailsEvent('code:code-block:complete_reply', (body) => {
+    const data = body.data as CompletionData[];
+    if (data.length === 0) return;
+    const completion = data[0];
+    // Resolve the pending promise if it exists
+    const resolve = pendingCompletions.get(completion.messageId);
+    if (resolve) {
+      resolve(completion);
+      pendingCompletions.delete(completion.messageId);
+    }
+  });
+
+  // The async completion source
+  return async function completionSource(
+    context: CompletionContext
+  ): Promise<CompletionResult | null> {
+    const code = context.state.doc.toString();
+    const cursorPos = context.pos;
+    // Send the request
+    const completeReq = await SendCompleteRequest(
+      id,
+      executionId,
+      code,
+      cursorPos
+    );
+    const completionMessageId = completeReq.data?.messageId;
+    if (!completionMessageId) {
+      return null;
+    }
+    // Generate a unique messageId for this request
+    latestMessageId.current = completionMessageId;
+
+    // Return a promise that resolves when the response arrives
+    return new Promise((resolve) => {
+      // Store the resolver so the event handler can call it
+      pendingCompletions.set(
+        completionMessageId,
+        (completionData: CompletionData) => {
+          // Only resolve if this is the latest request
+          if (latestMessageId.current === completionMessageId) {
+            resolve({
+              from: completionData.cursorStart,
+              to: completionData.cursorEnd,
+              options: completionData.matches
+                // Filters out magic commands
+                .filter((match) => !match.startsWith('%'))
+                .map((match) => ({
+                  label: match,
+                })),
+            });
+          } else {
+            // Ignore the request if it is not the latest request
+            resolve(null);
+          }
+        }
+      );
+      // Optionally, add a timeout to avoid hanging forever
+      setTimeout(() => {
+        if (pendingCompletions.has(completionMessageId)) {
+          pendingCompletions.delete(completionMessageId);
+          resolve(null);
+        }
+      }, COMPLETION_TIMEOUT);
+    });
+  };
 }

@@ -14,6 +14,7 @@ import { debounce } from '../../utils/general';
 import {
   useSendExecuteRequestMutation,
   useSendInterruptRequestMutation,
+  useCompletionSource,
 } from '../../hooks/code';
 import { getCodemirrorKeymap } from '../../utils/code';
 import { focusEditor, languageToSettings } from '.';
@@ -21,7 +22,11 @@ import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection'
 import { vim, getCM, Vim, CodeMirrorV } from '@replit/codemirror-vim';
 import { $isNodeSelection, LexicalEditor } from 'lexical';
 import { cn } from '../../utils/string-formatting';
-import { CodeBlockStatus, Languages } from '../../types';
+import { CodeBlockStatus, Languages, CompletionData } from '../../types';
+import { autocompletion } from '@codemirror/autocomplete';
+
+// Map to store pending completion promises by messageId
+const pendingCompletions = new Map<string, (data: CompletionData) => void>();
 
 export function CodeMirrorEditor({
   nodeKey,
@@ -56,6 +61,8 @@ export function CodeMirrorEditor({
     language,
     setStatus
   );
+
+  const completionSource = useCompletionSource(id, '1', pendingCompletions);
   const debouncedSetCode = debounce(setCode, 300);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
@@ -119,6 +126,7 @@ export function CodeMirrorEditor({
           projectSettings.code.codeBlockVimMode ? vim() : [],
           runCodeKeymap,
           languageToSettings[language].extension(),
+          autocompletion({ override: [completionSource] }),
         ]}
         theme={isDarkModeOn ? nord : vscodeLight}
         onKeyDown={(e) => {

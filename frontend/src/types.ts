@@ -150,3 +150,12 @@ export type KernelsData = Record<Languages, KernelData>;
 export function isValidKernelLanguage(key: string): key is Languages {
   return validLanguages.has(key);
 }
+
+export type CompletionData = {
+  status: string;
+  messageId: string;
+  matches: string[];
+  cursorStart: number;
+  cursorEnd: number;
+  metadata: Record<string, unknown>;
+};

@@ -208,28 +208,35 @@ func (c *CodeService) SendInputReply(codeBlockId, executionId, value string) con
 	}
 }
 
+type SendCompleteRequestResponse struct { 
+	MessageId *string `json:"messageId"`
+}
+
 // SendCompleteRequest sends a complete_request message to the kernel.
-func (c *CodeService) SendCompleteRequest(codeBlockId, executionId, code string, cursorPos int) config.BackendResponseWithoutData {
+func (c *CodeService) SendCompleteRequest(codeBlockId, executionId, code string, cursorPos int) config.BackendResponseWithData[SendCompleteRequestResponse] {
 	if c.ShellSocketDealer == nil {
-		return config.BackendResponseWithoutData{
+		return config.BackendResponseWithData[SendCompleteRequestResponse]{
 			Success: false,
 			Message: "Shell socket is not initialized. Unable to send completion request.",
+			Data:    SendCompleteRequestResponse{},
 		}
 	}
 
 	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
 	if !isHeartBeating {
-		return config.BackendResponseWithoutData{
+		return config.BackendResponseWithData[SendCompleteRequestResponse]{
 			Success: false,
 			Message: "The kernel is not running. Cannot send completion request.",
+			Data:    SendCompleteRequestResponse{},
 		}
 	}
 
+	messageId := fmt.Sprintf("%s:%s", codeBlockId, executionId)
 	err := jupyter_protocol.SendCompleteRequest(
 		c.ShellSocketDealer,
 		jupyter_protocol.CompleteRequestParams{
 			MessageParams: jupyter_protocol.MessageParams{
-				MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
+				MessageID: messageId,
 				SessionID: "current-session",
 			},
 			Code:      code,
@@ -238,15 +245,19 @@ func (c *CodeService) SendCompleteRequest(codeBlockId, executionId, code string,
 	)
 
 	if err != nil {
-		return config.BackendResponseWithoutData{
+		return config.BackendResponseWithData[SendCompleteRequestResponse]{
 			Success: false,
 			Message: fmt.Sprintf("Failed to send completion request: %v", err),
+			Data:    SendCompleteRequestResponse{},
 		}
 	}
 
-	return config.BackendResponseWithoutData{
+	return config.BackendResponseWithData[SendCompleteRequestResponse]{
 		Success: true,
 		Message: "Completion request sent successfully",
+		Data: SendCompleteRequestResponse{
+			MessageId: &messageId,
+		},
 	}
 }
 
