@@ -230,47 +230,26 @@ h6.dragging {
   animation: none !important;
 }
 
+.cm-tooltip-autocomplete {
+  @apply !bg-zinc-50 dark:bg-zinc-800! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-600! rounded-md overflow-hidden py-1.5 px-1 shadow-lg;
+}
+
+.cm-tooltip-autocomplete > ul > li {
+  @apply !py-1 !px-1.5 rounded-md overflow-hidden;
+}
+
+.cm-tooltip-autocomplete > ul > li[aria-selected='true'] {
+  @apply !bg-(--accent-color);
+}
+
 /* Makes sure that the code block does not overlap with the traffic lights when in fullscreen mode */
 div[data-is-fullscreen='true'] .cm-scroller {
   padding-top: 3rem !important;
 }
 
-/* .cm-tooltip {
-  @apply bg-white! dark:bg-zinc-800! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-600! rounded-md overflow-hidden p-1!;
-}
-
-.cm-tooltip > ul {
-  @apply bg-white dark:bg-zinc-800 max-h-48!;
-} */
 .cm-completionIcon {
   @apply hidden!;
 }
-/* .cm-tooltip > ul > li {
-  @apply hover:bg-zinc-150 dark:hover:bg-zinc-700 p-1.5! rounded-md overflow-hidden mb-1.5 last:mb-0;
-} */
-
-/* Making the tabs not overlap in fullscreen mode */
-/* div[data-non-template-is-fullscreen='true'] > div > div > div > .sp-tabs {
-  padding-left: 72px;
-  --sp-layout-headerHeight: 52px;
-}
-
-div[data-template-is-fullscreen='true'] > div > div > div > .sp-tabs {
-  --sp-layout-headerHeight: 52px;
-}
-
-div[data-template-is-fullscreen='true']
-  > div
-  > div
-  > div
-  > .sp-file-explorer-list {
-  padding-top: 3.25rem;
-} */
-
-/* .cm-completionLabel {
-  font-family: 'Jetbrains Mono', monospace;
-  font-size: 13px;
-} */
 
 /* Makes sure that the tabs are not overlapping with the icons in the code block */
 .sp-tabs {
