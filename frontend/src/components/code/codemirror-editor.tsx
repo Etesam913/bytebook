@@ -1,11 +1,7 @@
 import { vscodeLight } from '@uiw/codemirror-theme-vscode';
 import { nord } from '@uiw/codemirror-theme-nord';
 import { useAtomValue } from 'jotai/react';
-import {
-  isDarkModeOnAtom,
-  noteSelectionAtom,
-  projectSettingsAtom,
-} from '../../atoms';
+import { isDarkModeOnAtom, projectSettingsAtom } from '../../atoms';
 import CodeMirror, {
   type ReactCodeMirrorRef,
   EditorView,
@@ -20,10 +16,11 @@ import { getCodemirrorKeymap } from '../../utils/code';
 import { focusEditor, languageToSettings } from '.';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { vim, getCM, Vim, CodeMirrorV } from '@replit/codemirror-vim';
-import { $isNodeSelection, LexicalEditor } from 'lexical';
+import { LexicalEditor } from 'lexical';
 import { cn } from '../../utils/string-formatting';
 import { CodeBlockStatus, Languages, CompletionData } from '../../types';
 import { autocompletion } from '@codemirror/autocomplete';
+import { useNodeInNodeSelection } from '../../hooks/lexical';
 
 // Map to store pending completion promises by messageId
 const pendingCompletions = new Map<string, (data: CompletionData) => void>();
@@ -67,7 +64,7 @@ export function CodeMirrorEditor({
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
   const { mutate: interruptExecution } = useSendInterruptRequestMutation();
-  const noteSelection = useAtomValue(noteSelectionAtom);
+  const isInNodeSelection = useNodeInNodeSelection(lexicalEditor, nodeKey);
 
   function handleEditorRef(instance: ReactCodeMirrorRef | null) {
     setCodeMirrorInstance(instance);
@@ -122,7 +119,7 @@ export function CodeMirrorEditor({
         }}
         className="bg-white dark:bg-[#2e3440]"
         extensions={[
-          EditorView.editable.of($isNodeSelection(noteSelection)),
+          EditorView.editable.of(isInNodeSelection),
           projectSettings.code.codeBlockVimMode ? vim() : [],
           runCodeKeymap,
           languageToSettings[language].extension(),
