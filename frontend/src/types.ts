@@ -151,11 +151,23 @@ export function isValidKernelLanguage(key: string): key is Languages {
   return validLanguages.has(key);
 }
 
+export type RawCompletionData = Omit<CompletionData, 'matches'> & {
+  matches: string[];
+};
+
 export type CompletionData = {
   status: string;
   messageId: string;
-  matches: string[];
+  matches: { label: string; info?: string; detail?: string; type?: string }[];
   cursorStart: number;
   cursorEnd: number;
   metadata: Record<string, unknown>;
 };
+
+export type PythonCompletionMetadata = {
+  type: string;
+  text: string;
+  start: number;
+  end: number;
+  signature: string;
+}[];

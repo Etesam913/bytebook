@@ -126,7 +126,10 @@ export function CodeMirrorEditor({
           projectSettings.code.codeBlockVimMode ? vim() : [],
           runCodeKeymap,
           languageToSettings[language].extension(),
-          autocompletion({ override: [completionSource] }),
+          autocompletion({
+            override: [completionSource],
+            activateOnTypingDelay: 50,
+          }),
         ]}
         theme={isDarkModeOn ? nord : vscodeLight}
         onKeyDown={(e) => {

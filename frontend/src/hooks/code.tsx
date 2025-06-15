@@ -10,6 +10,8 @@ import {
   KernelStatus,
   Languages,
   ProjectSettings,
+  PythonCompletionMetadata,
+  RawCompletionData,
 } from '../types';
 import { useMutation } from '@tanstack/react-query';
 import {
@@ -593,14 +595,28 @@ export function useCompletionSource(
 
   // Listen for completion replies
   useWailsEvent('code:code-block:complete_reply', (body) => {
-    const data = body.data as CompletionData[];
+    const data = body.data as RawCompletionData[];
     if (data.length === 0) return;
-    const completion = data[0];
+    const rawCompletionData = data[0];
+    const completionData: CompletionData = {
+      ...rawCompletionData,
+      matches: rawCompletionData.matches.map((match) => ({ label: match })),
+    };
+    const jupyterTypesExperimental = completionData.metadata[
+      '_jupyter_types_experimental'
+    ] as PythonCompletionMetadata | undefined;
+    if (jupyterTypesExperimental) {
+      jupyterTypesExperimental.forEach(({ signature, type }, i) => {
+        completionData.matches[i].detail = signature;
+        completionData.matches[i].type = type;
+      });
+    }
+    console.log('🔴 completion', completionData);
     // Resolve the pending promise if it exists
-    const resolve = pendingCompletions.get(completion.messageId);
+    const resolve = pendingCompletions.get(completionData.messageId);
     if (resolve) {
-      resolve(completion);
-      pendingCompletions.delete(completion.messageId);
+      resolve(completionData);
+      pendingCompletions.delete(completionData.messageId);
     }
   });
 
@@ -637,9 +653,11 @@ export function useCompletionSource(
               to: completionData.cursorEnd,
               options: completionData.matches
                 // Filters out magic commands
-                .filter((match) => !match.startsWith('%'))
-                .map((match) => ({
-                  label: match,
+                .filter((match) => !match.label.startsWith('%'))
+                .map(({ label, detail, type }) => ({
+                  label,
+                  detail,
+                  type,
                 })),
             });
           } else {

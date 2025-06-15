@@ -231,7 +231,7 @@ h6.dragging {
 }
 
 .cm-tooltip-autocomplete {
-  @apply !bg-zinc-50 dark:bg-zinc-800! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-600! rounded-md overflow-hidden py-1.5 px-1 shadow-lg;
+  @apply !bg-zinc-50 dark:bg-zinc-800! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-750! !rounded-lg py-1.5 px-1 shadow-lg !border;
 }
 
 .cm-tooltip-autocomplete > ul > li {
@@ -241,14 +241,34 @@ h6.dragging {
 .cm-tooltip-autocomplete > ul > li[aria-selected='true'] {
   @apply !bg-(--accent-color);
 }
+/* The signature that shows to the right of the completion label */
+.cm-completionDetail {
+  @apply text-[0.65rem] text-zinc-400;
+}
+
+.cm-tooltip-autocomplete
+  > ul
+  > li[aria-selected='true']
+  > .cm-completionDetail {
+  @apply text-zinc-50;
+}
+
+/* Adding some icons to the completion list */
+.cm-tooltip-autocomplete .cm-completionIcon-path::before {
+  content: '𝐩';
+}
+
+.cm-tooltip-autocomplete .cm-completionIcon-instance::before {
+  content: '𝐢';
+}
+
+.cm-tooltip-autocomplete .cm-completionIcon-module::before {
+  content: '𝐦';
+}
 
 /* Makes sure that the code block does not overlap with the traffic lights when in fullscreen mode */
 div[data-is-fullscreen='true'] .cm-scroller {
   padding-top: 3rem !important;
-}
-
-.cm-completionIcon {
-  @apply hidden!;
 }
 
 /* Makes sure that the tabs are not overlapping with the icons in the code block */
