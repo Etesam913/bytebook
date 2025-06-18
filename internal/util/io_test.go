@@ -2,7 +2,9 @@ package util
 
 import (
 	"os"
+	"os/user"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -659,5 +661,213 @@ func TestCreateJSONFileIfNotExists(t *testing.T) {
 		created, err := CreateJSONFileIfNotExists(filePath)
 		assert.Error(t, err, "Should fail to create file in read-only directory")
 		assert.False(t, created, "Should return false when creation fails")
+	})
+}
+
+func TestMoveToTrash(t *testing.T) {
+	t.Run("Successfully moves file to trash", func(t *testing.T) {
+		// Create test file
+		testDir := t.TempDir()
+		testFile := filepath.Join(testDir, "test_file.txt")
+		testContent := []byte("This is test content")
+		err := os.WriteFile(testFile, testContent, 0644)
+		assert.NoError(t, err)
+		
+		if runtime.GOOS == "darwin" {
+			// macOS: Just test that the function works without error
+			// We can't easily test the actual trash without permissions issues
+			err = MoveToTrash(testFile)
+			assert.NoError(t, err)
+			
+			// Verify: Original file should no longer exist
+			exists, err := FileOrFolderExists(testFile)
+			assert.NoError(t, err)
+			assert.False(t, exists, "Original file should no longer exist")
+		} else {
+			// Linux: Full testing with mocked environment
+			tempHome := t.TempDir()
+			xdgDataHome := filepath.Join(tempHome, ".local", "share")
+			trashDir := filepath.Join(xdgDataHome, "Trash", "files")
+			
+			// Set XDG_DATA_HOME to control where trash goes
+			originalXDGDataHome := os.Getenv("XDG_DATA_HOME")
+			defer os.Setenv("XDG_DATA_HOME", originalXDGDataHome)
+			os.Setenv("XDG_DATA_HOME", xdgDataHome)
+			
+			// Test: Move file to trash
+			err = MoveToTrash(testFile)
+			assert.NoError(t, err)
+			
+			// Verify: Original file should no longer exist
+			exists, err := FileOrFolderExists(testFile)
+			assert.NoError(t, err)
+			assert.False(t, exists, "Original file should no longer exist")
+			
+			// Verify: File should exist in trash/files directory
+			assert.DirExists(t, trashDir)
+			
+			// Find the trashed file (it will have a timestamp prefix)
+			files, err := os.ReadDir(trashDir)
+			assert.NoError(t, err)
+			assert.Len(t, files, 1, "Should have exactly one file in trash")
+			
+			trashedFileName := files[0].Name()
+			assert.True(t, strings.HasSuffix(trashedFileName, "_test_file.txt"), 
+				"Trashed file should end with original filename")
+			
+			// Verify: Trashed file has correct content
+			trashedFilePath := filepath.Join(trashDir, trashedFileName)
+			trashedContent, err := os.ReadFile(trashedFilePath)
+			assert.NoError(t, err)
+			assert.Equal(t, testContent, trashedContent, "Trashed file should have same content")
+			
+			// Verify: .trashinfo file exists and has correct format
+			trashInfoDir := filepath.Join(xdgDataHome, "Trash", "info")
+			assert.DirExists(t, trashInfoDir)
+			
+			infoFileName := trashedFileName + ".trashinfo"
+			infoFilePath := filepath.Join(trashInfoDir, infoFileName)
+			assert.FileExists(t, infoFilePath)
+			
+			// Read and verify .trashinfo content
+			infoContent, err := os.ReadFile(infoFilePath)
+			assert.NoError(t, err)
+			
+			infoString := string(infoContent)
+			assert.Contains(t, infoString, "[Trash Info]")
+			assert.Contains(t, infoString, "Path="+testFile)
+			assert.Contains(t, infoString, "DeletionDate=")
+		}
+	})
+	
+	t.Run("Successfully moves directory to trash", func(t *testing.T) {
+		// Create test directory with files
+		testBaseDir := t.TempDir()
+		testDir := filepath.Join(testBaseDir, "test_directory")
+		err := os.Mkdir(testDir, 0755)
+		assert.NoError(t, err)
+		
+		// Add a file inside the directory
+		testFile := filepath.Join(testDir, "inner_file.txt")
+		err = os.WriteFile(testFile, []byte("inner content"), 0644)
+		assert.NoError(t, err)
+		
+		if runtime.GOOS == "darwin" {
+			// macOS: Just test that the function works without error
+			err = MoveToTrash(testDir)
+			assert.NoError(t, err)
+			
+			// Verify: Original directory should no longer exist
+			exists, err := FileOrFolderExists(testDir)
+			assert.NoError(t, err)
+			assert.False(t, exists, "Original directory should no longer exist")
+		} else {
+			// Linux: Full testing with mocked environment
+			tempHome := t.TempDir()
+			xdgDataHome := filepath.Join(tempHome, ".local", "share")
+			trashFilesDir := filepath.Join(xdgDataHome, "Trash", "files")
+			
+			// Set XDG_DATA_HOME to control where trash goes
+			originalXDGDataHome := os.Getenv("XDG_DATA_HOME")
+			defer os.Setenv("XDG_DATA_HOME", originalXDGDataHome)
+			os.Setenv("XDG_DATA_HOME", xdgDataHome)
+			
+			// Test: Move directory to trash
+			err = MoveToTrash(testDir)
+			assert.NoError(t, err)
+			
+			// Verify: Original directory should no longer exist
+			exists, err := FileOrFolderExists(testDir)
+			assert.NoError(t, err)
+			assert.False(t, exists, "Original directory should no longer exist")
+			
+			// Verify: Directory should exist in trash
+			assert.DirExists(t, trashFilesDir)
+			files, err := os.ReadDir(trashFilesDir)
+			assert.NoError(t, err)
+			assert.Len(t, files, 1, "Should have exactly one item in trash")
+			
+			trashedDirName := files[0].Name()
+			assert.True(t, strings.HasSuffix(trashedDirName, "_test_directory"))
+			
+			// Verify: Inner file still exists in trashed directory
+			trashedDirPath := filepath.Join(trashFilesDir, trashedDirName)
+			innerFilePath := filepath.Join(trashedDirPath, "inner_file.txt")
+			assert.FileExists(t, innerFilePath)
+			
+			content, err := os.ReadFile(innerFilePath)
+			assert.NoError(t, err)
+			assert.Equal(t, []byte("inner content"), content)
+		}
+	})
+	
+	t.Run("Handles non-existent file", func(t *testing.T) {
+		nonExistentFile := "/path/that/does/not/exist/file.txt"
+		
+		err := MoveToTrash(nonExistentFile)
+		assert.Error(t, err, "Should return error for non-existent file")
+		
+		// Check for platform-specific error messages
+		if runtime.GOOS == "darwin" {
+			assert.Contains(t, err.Error(), "could not move file to macOS trash")
+		} else {
+			assert.Contains(t, err.Error(), "could not move file to trash")
+		}
+	})
+	
+	t.Run("Creates trash directories if they don't exist", func(t *testing.T) {
+		// Create test file
+		testDir := t.TempDir()
+		testFile := filepath.Join(testDir, "test.txt")
+		err := os.WriteFile(testFile, []byte("test"), 0644)
+		assert.NoError(t, err)
+		
+		if runtime.GOOS == "darwin" {
+			// macOS: Test that .Trash directory gets created if it doesn't exist
+			// We can't easily test this without affecting the real user directory,
+			// so we'll just verify the function works without error
+			err = MoveToTrash(testFile)
+			assert.NoError(t, err)
+			
+			// Verify: Original file should no longer exist
+			exists, err := FileOrFolderExists(testFile)
+			assert.NoError(t, err)
+			assert.False(t, exists, "Original file should no longer exist")
+			
+			// Cleanup: Find and remove the test file from actual trash
+			usr, err := user.Current()
+			assert.NoError(t, err)
+			trashDir := filepath.Join(usr.HomeDir, ".Trash")
+			if files, err := os.ReadDir(trashDir); err == nil {
+				for _, file := range files {
+					if strings.HasSuffix(file.Name(), "_test.txt") {
+						os.Remove(filepath.Join(trashDir, file.Name()))
+						break
+					}
+				}
+			}
+		} else {
+			// Linux: Set up environment where trash directories don't exist yet
+			tempHome := t.TempDir()
+			xdgDataHome := filepath.Join(tempHome, ".local", "share")
+			
+			originalXDGDataHome := os.Getenv("XDG_DATA_HOME")
+			defer os.Setenv("XDG_DATA_HOME", originalXDGDataHome)
+			os.Setenv("XDG_DATA_HOME", xdgDataHome)
+			
+			// Verify trash directories don't exist yet
+			trashBase := filepath.Join(xdgDataHome, "Trash")
+			exists, _ := FileOrFolderExists(trashBase)
+			assert.False(t, exists, "Trash directory should not exist initially")
+			
+			// Test: Move file to trash (should create directories)
+			err = MoveToTrash(testFile)
+			assert.NoError(t, err)
+			
+			// Verify: Trash directories were created
+			assert.DirExists(t, trashBase)
+			assert.DirExists(t, filepath.Join(trashBase, "files"))
+			assert.DirExists(t, filepath.Join(trashBase, "info"))
+		}
 	})
 }

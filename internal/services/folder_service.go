@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Kei-K23/trashbox"
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/util"
 )
@@ -110,7 +109,7 @@ func (f *FolderService) DeleteFolder(folderName string) config.BackendResponseWi
 		}
 	}
 
-	err := trashbox.MoveToTrash(folderPath)
+	err := util.MoveToTrash(folderPath)
 	if err != nil {
 		return config.BackendResponseWithData[[]string]{
 			Success: false,

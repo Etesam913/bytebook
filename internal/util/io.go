@@ -1,17 +1,25 @@
 package util
 
+/*
+#cgo darwin LDFLAGS: -framework CoreServices
+#include <CoreServices/CoreServices.h>
+*/
+import "C"
 import (
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
+	"time"
 	"unicode/utf8"
+	"unsafe"
 
-	"github.com/Kei-K23/trashbox"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -136,6 +144,87 @@ func FileOrFolderExists(path string) (bool, error) {
 		return false, nil
 	}
 	return false, err
+}
+
+
+// MoveToTrash moves a file or directory to the system trash following the FreeDesktop.org trash specification.
+// It creates the necessary trash directories if they don't exist, moves the file/directory to the trash files
+// directory with a timestamped name to avoid collisions, and creates a corresponding .trashinfo metadata file.
+// Parameters:
+//   - src: The path to the file or directory to be moved to trash
+//
+// Returns:
+//   - error: An error if any step fails, nil on success
+// MoveToTrash moves the file or directory at src to the user's home trash directory.
+// On macOS it first tries FSPathMoveObjectToTrashSync to preserve Finder metadata;
+// on failure or Linux it falls back to the FreeDesktop spec or ~/.Trash rename.
+func MoveToTrash(src string) error {
+    usr, err := user.Current()
+    if err != nil {
+        return fmt.Errorf("could not get current user: %w", err)
+    }
+
+    // Ensure absolute path for metadata accuracy
+    srcAbs, err := filepath.Abs(src)
+    if err == nil {
+        src = srcAbs
+    }
+
+    if runtime.GOOS == "darwin" {
+        // Try CoreServices API for full Finder compatibility
+        cpath := C.CString(src)
+        defer C.free(unsafe.Pointer(cpath))
+        var ctarget *C.char
+        status := C.FSPathMoveObjectToTrashSync(cpath, &ctarget, C.kFSFileOperationDefaultOptions)
+        if status == 0 {
+            return nil
+        }
+        // Fallback to manual rename
+        trashDir := filepath.Join(usr.HomeDir, ".Trash")
+        if err := os.MkdirAll(trashDir, 0755); err != nil {
+            return fmt.Errorf("could not create macOS trash directory: %w", err)
+        }
+        name := filepath.Base(src)
+        timestamp := time.Now().Format("20060102T150405")
+        trashedName := fmt.Sprintf("%s_%s", timestamp, name)
+        dest := filepath.Join(trashDir, trashedName)
+        if err := os.Rename(src, dest); err != nil {
+            return fmt.Errorf("could not move file to macOS trash fallback: %w", err)
+        }
+        return nil
+    }
+
+    // Linux & others: use XDG Trash spec
+    dataHome := os.Getenv("XDG_DATA_HOME")
+    if dataHome == "" {
+        dataHome = filepath.Join(usr.HomeDir, ".local", "share")
+    }
+    trashBase := filepath.Join(dataHome, "Trash")
+    filesDir := filepath.Join(trashBase, "files")
+    infoDir := filepath.Join(trashBase, "info")
+
+    for _, d := range []string{filesDir, infoDir} {
+        if err := os.MkdirAll(d, 0755); err != nil {
+            return fmt.Errorf("could not create trash directory %s: %w", d, err)
+        }
+    }
+
+    name := filepath.Base(src)
+    timestamp := time.Now().Format("20060102T150405")
+    trashedName := fmt.Sprintf("%s_%s", timestamp, name)
+    dest := filepath.Join(filesDir, trashedName)
+
+    if err := os.Rename(src, dest); err != nil {
+        return fmt.Errorf("could not move file to trash: %w", err)
+    }
+
+    infoPath := filepath.Join(infoDir, trashedName+".trashinfo")
+    info := fmt.Sprintf("[Trash Info]\nPath=%s\nDeletionDate=%s\n", src, time.Now().Format(time.RFC3339))
+    if err := os.WriteFile(infoPath, []byte(info), 0644); err != nil {
+        return fmt.Errorf("could not write trashinfo file: %w", err)
+    }
+
+    return nil
 }
 
 // CleanFileName takes an arbitrary user string and returns a safe filename
@@ -266,7 +355,7 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) error {
 		_, fileName, _ := Pop(parts)
 		fullPath := filepath.Join(projectPath, "notes", relPath)
 
-		if err := trashbox.MoveToTrash(fullPath); err != nil {
+		if err := MoveToTrash(fullPath); err != nil {
 			failed = append(failed, fileName)
 		}
 	}
