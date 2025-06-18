@@ -258,6 +258,10 @@ h6.dragging {
   content: '𝐩';
 }
 
+.cm-tooltip-autocomplete .cm-completionIcon-statement::before {
+  content: '𝑺';
+}
+
 .cm-tooltip-autocomplete .cm-completionIcon-instance::before {
   content: '𝐢';
 }

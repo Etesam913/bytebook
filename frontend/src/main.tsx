@@ -18,6 +18,11 @@ if (!rootElem) {
 }
 
 const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
   queryCache: new QueryCache({
     onError: (error) => {
       if (error instanceof QueryError) {
