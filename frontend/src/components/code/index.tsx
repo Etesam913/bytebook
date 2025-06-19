@@ -1,4 +1,4 @@
-import { JSX, lazy, Suspense, useEffect, useState } from 'react';
+import { JSX, lazy, Suspense, useState } from 'react';
 import { langs } from '@uiw/codemirror-extensions-langs';
 import type { LanguageSupport, StreamLanguage } from '@codemirror/language';
 import { BasicSetupOptions, ReactCodeMirrorRef } from '@uiw/react-codemirror';

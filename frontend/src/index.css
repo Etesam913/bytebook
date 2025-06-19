@@ -398,7 +398,7 @@ div[data-is-fullscreen='true'] .cm-scroller {
 }
 
 .text-strikethrough {
-  text-decoration: line-through;
+  @apply line-through decoration-[0.1rem];
 }
 
 .editor-scroller {

@@ -143,11 +143,13 @@ export function overrideUpDownKeyCommand(
   // going from <img> -> <p>
   else if ($isDecoratorNode(node)) {
     event.preventDefault();
-    // The code-block has its own focus so we have to blur it
-    if (node.getType() === 'code-block') {
-      document.getElementById('content-editable-editor')?.focus();
+    if (nodeToSelect) {
+      // The code-block has its own focus so we have to blur it
+      if (node.getType() === 'code-block') {
+        document.getElementById('content-editable-editor')?.focus();
+      }
+      nodeToSelect.selectEnd();
     }
-    nodeToSelect?.selectEnd();
   }
 
   return true;
