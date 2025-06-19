@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRoute } from 'wouter';
 import { contextMenuDataAtom, dialogDataAtom } from '../../atoms';
 import { useDeleteTagsMutation } from '../../hooks/notes';
-import { useTagsQuery } from '../../hooks/tag-events';
+import { useTagsQuery } from '../../hooks/tags';
 import { TagIcon } from '../../icons/tag';
 import TagSlash from '../../icons/tag-slash';
 import { keepSelectionNotesWithPrefix } from '../../utils/selection';

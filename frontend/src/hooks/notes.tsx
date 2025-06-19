@@ -12,7 +12,6 @@ import {
   RevealFolderOrFileInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import {
-  AddTagsToNotes,
   DeleteTags,
   EditTagsForNotes,
   GetNotesFromTag,
@@ -316,13 +315,6 @@ export function usePinNotesMutation(isInTagsSidebar: boolean) {
   });
 }
 
-type AddTagsMutationVariables = {
-  e: FormEvent<HTMLFormElement>;
-  setErrorText: Dispatch<SetStateAction<string>>;
-  folder: string;
-  selectionRange: Set<string>;
-};
-
 /**
  * Custom hook to handle deleting tags.
  *
@@ -341,51 +333,6 @@ export function useDeleteTagsMutation() {
       }
       return true;
     },
-    onError: (e) => {
-      if (e instanceof Error) {
-        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-      }
-      return false;
-    },
-  });
-}
-
-export function useAddTagsMutation() {
-  return useMutation({
-    // The main function that handles adding tags to a note
-    mutationFn: async ({
-      e,
-      folder,
-      setErrorText,
-      selectionRange,
-    }: AddTagsMutationVariables) => {
-      const formData = new FormData(e.target as HTMLFormElement);
-      const tags = formData.getAll('tags');
-      if (tags.length === 0) {
-        setErrorText('You need to add a tag before confirming.');
-        return false;
-      }
-      const tagsStrings = tags.map((tag) => tag.toString());
-      const folderAndNotePaths = [...selectionRange].map(
-        (noteWithQueryParam) => {
-          const noteWithQueryParamWithoutPrefix =
-            noteWithQueryParam.split(':')[1];
-          const { noteNameWithoutExtension, queryParams } =
-            extractInfoFromNoteName(noteWithQueryParamWithoutPrefix);
-
-          return `${folder}/${noteNameWithoutExtension}.${queryParams.ext}`;
-        }
-      );
-      // Add the tags to each selected note
-      const addTagsRes = await AddTagsToNotes(tagsStrings, folderAndNotePaths);
-
-      if (!addTagsRes.success) {
-        throw new Error(addTagsRes.message);
-      }
-
-      return true;
-    },
-    // Handle errors that occur during the mutation
     onError: (e) => {
       if (e instanceof Error) {
         toast.error(e.message, DEFAULT_SONNER_OPTIONS);
@@ -435,6 +382,63 @@ export function useEditTagsForNotesMutation(isInTagsSidebar: boolean) {
         toast.error(e.message, DEFAULT_SONNER_OPTIONS);
       }
       return false;
+    },
+  });
+}
+
+/**
+ * Custom hook to handle editing tags for notes via form submission.
+ * Extracts tag data from form's fieldset data attribute and calls EditTagsForNotes.
+ */
+export function useEditTagsMutation() {
+  return useMutation({
+    mutationFn: async ({
+      e,
+      setErrorText,
+      selectionRange,
+      folder,
+      isInTagsSidebar,
+    }: {
+      e: FormEvent<HTMLFormElement>;
+      setErrorText: Dispatch<SetStateAction<string>>;
+      selectionRange: Set<string>;
+      folder: string;
+      isInTagsSidebar: boolean;
+    }) => {
+      try {
+        // Get the tags to add or delete from the data attribute
+        const fieldset = (e.target as HTMLFormElement).querySelector(
+          'fieldset[data-tags-to-add-or-remove]'
+        ) as HTMLFieldSetElement;
+
+        const tagsData = fieldset?.getAttribute('data-tags-to-add-or-remove');
+        const { tagNamesToAdd, tagNamesToRemove } = tagsData
+          ? JSON.parse(tagsData)
+          : { tagNamesToAdd: [], tagNamesToRemove: [] };
+
+        const folderAndNotePaths = getFolderAndNoteFromSelectionRange(
+          folder,
+          selectionRange,
+          isInTagsSidebar
+        );
+
+        const res = await EditTagsForNotes(
+          tagNamesToAdd,
+          tagNamesToRemove,
+          folderAndNotePaths
+        );
+
+        if (!res.success) {
+          throw new QueryError(res.message);
+        }
+
+        return true;
+      } catch (error) {
+        setErrorText(
+          error instanceof Error ? error.message : 'Failed to set tags'
+        );
+        return false;
+      }
     },
   });
 }

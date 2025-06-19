@@ -1,7 +1,6 @@
 package notes
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"slices"
@@ -46,6 +45,43 @@ func GetAllTags(projectPath string) ([]string, error) {
 	// Sort tags alphabetically
 	slices.Sort(tags)
 	return tags, nil
+}
+
+// TagExists checks if a tag exists in the project's tags directory.
+// It returns true only if both the tag directory and notes.json file exist.
+// Parameters:
+//   - projectPath: The root path of the project
+//   - tagName: The name of the tag to check
+//
+// Returns:
+//   - A boolean indicating whether the tag exists (both directory and notes.json file)
+//   - An error if directory operations fail
+func TagExists(projectPath string, tagName string) (bool, error) {
+	tagDir := filepath.Join(projectPath, "tags", tagName)
+	
+	info, err := os.Stat(tagDir)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	
+	if !info.IsDir() {
+		return false, nil
+	}
+	
+	// Check if notes.json file exists
+	notesFile := filepath.Join(tagDir, "notes.json")
+	_, err = os.Stat(notesFile)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	
+	return true, nil
 }
 
 
@@ -159,7 +195,6 @@ func addNotesToTagNotesArray(projectPath string, tag string, notePaths []string)
 
 	tagToNotesArray := TagsToNotesArray{}
 	if err := util.ReadJsonFromPath(pathToTagToNotesArray, &tagToNotesArray); err != nil {
-		log.Println("failed to read", err)
 		return err
 	}
 
@@ -171,32 +206,13 @@ func addNotesToTagNotesArray(projectPath string, tag string, notePaths []string)
 	}
 
 	if err := util.WriteJsonToPath(pathToTagToNotesArray, tagToNotesArray); err != nil {
-		log.Println("no2", err)
 		return err
 	}
 
 	return nil
 }
 
-// setNotesInTagNotesArray sets the notes.json file for the given tag to contain exactly the specified notePaths.
-func setNotesInTagNotesArray(projectPath string, tag string, notePaths []string) error {
-	pathToTagToNotesArray := filepath.Join(projectPath, "tags", tag, "notes.json")
 
-	// Ensure the notes.json file exists.
-	if err := CreateTagToNotesArrayIfNotExists(projectPath, tag); err != nil {
-		return err
-	}
-
-	tagToNotesArray := TagsToNotesArray{
-		Notes: notePaths,
-	}
-
-	if err := util.WriteJsonToPath(pathToTagToNotesArray, tagToNotesArray); err != nil {
-		return err
-	}
-
-	return nil
-}
 
 // deleteNotesFromTagToNotesArray removes each notePath from the notes.json file for the given tag.
 func deleteNotesFromTagToNotesArray(projectPath string, tag string, notePaths []string) error {

@@ -12,7 +12,7 @@ import { SearchPanel } from './components/search-panel';
 import { useLoggedInEvent, useUserData } from './hooks/auth';
 import { useProjectSettings } from './hooks/project-settings';
 import { useSearchPanel } from './hooks/search';
-import { useTags } from './hooks/tag-events';
+import { useTags } from './hooks/tags';
 import { useThemeSetting } from './hooks/theme';
 import { MAX_SIDEBAR_WIDTH } from './utils/general';
 import { disableBackspaceNavigation } from './utils/routing';

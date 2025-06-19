@@ -3,11 +3,11 @@ import { useSetAtom } from 'jotai/react';
 import {
   useDeleteTagsMutation,
   useTagsForNotesQuery,
-} from '../../../hooks/tag-events';
-import { useAddTagsMutation } from '../../../hooks/notes';
+} from '../../../hooks/tags';
+import { useEditTagsMutation } from '../../../hooks/notes';
 import { dialogDataAtom } from '../../../atoms';
+import { EditTagDialogChildren } from '../../../routes/notes-sidebar/edit-tag-dialog-children';
 import { timeSince } from '../utils/bottom-bar';
-import { AddTagDialogChildren } from '../../../routes/notes-sidebar/add-tag-dialog-children';
 import TagPlus from '../../../icons/tag-plus';
 import { Loader } from '../../../icons/loader';
 import { RenderNoteIcon } from '../../../routes/notes-sidebar/render-note-icon';
@@ -36,7 +36,7 @@ export function BottomBar({
     `${note}.${ext}`,
   ]);
   const { mutate: deleteTag } = useDeleteTagsMutation(folder, note, ext);
-  const { mutateAsync: addTagsToNotes } = useAddTagsMutation();
+  const { mutateAsync: editTags } = useEditTagsMutation();
   const setDialogData = useSetAtom(dialogDataAtom);
 
   useEffect(() => {
@@ -92,25 +92,32 @@ export function BottomBar({
           type="button"
           className="flex whitespace-nowrap items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600"
           onClick={() => {
+            const selectionRange = new Set([`note:${note}?ext=${ext}`]);
             setDialogData({
               isOpen: true,
               isPending: false,
-              title: 'Add Tags',
+              title: 'Edit Tags',
+              dialogClassName: 'w-[min(30rem,90vw)]',
               children: (errorText) => (
-                <AddTagDialogChildren onSubmitErrorText={errorText} />
+                <EditTagDialogChildren
+                  selectionRange={selectionRange}
+                  folder={folder}
+                  errorText={errorText}
+                />
               ),
-              onSubmit: (e, setErrorText) => {
-                return addTagsToNotes({
+              onSubmit: async (e, setErrorText) => {
+                return await editTags({
                   e,
-                  folder,
                   setErrorText,
-                  selectionRange: new Set([`note:${note}?ext=${ext}`]),
+                  selectionRange,
+                  folder,
+                  isInTagsSidebar: false,
                 });
               },
             });
           }}
         >
-          <TagPlus height={15} width={15} /> Add Tag
+          <TagPlus height={15} width={15} /> Edit Tags
         </button>
         {isLoading ? (
           <motion.span

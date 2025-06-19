@@ -58,26 +58,6 @@ func (t *TagsService) DeleteTags(tagNames []string) config.BackendResponseWithou
 	}
 }
 
-/*
-AddTagsToNotes adds multiple note paths to multiple tags.
-For each tag in tagNames, it adds all folderAndNotePaths to its notes.json.
-If a tag does not exist, it creates the tag and associates the note paths with it.
-*/
-func (t *TagsService) AddTagsToNotes(tagNames []string, folderAndNotePathsWithoutQueryParam []string) config.BackendResponseWithoutData {
-	err := notes.AddTags(t.ProjectPath, tagNames, folderAndNotePathsWithoutQueryParam)
-	if err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "Failed to tag notes",
-		}
-	}
-
-	return config.BackendResponseWithoutData{
-		Success: true,
-		Message: "Successfully Added Paths To Tags",
-	}
-}
-
 // DeleteTagsFromNotes removes specified note paths from the given tags.
 // For each tag in tagNames, it removes all folderAndNotePathsWithoutQueryParams from its notes.json.
 // If any operation fails, it returns a response indicating the failure.
@@ -185,6 +165,27 @@ func (t *TagsService) EditTagsForNotes(tagNamesToAdd []string, tagNamesToRemove 
 		}
 	}
 
+	// Check if tags to add exist, create them if they don't
+	for _, tagName := range tagNamesToAdd {
+		exists, err := notes.TagExists(t.ProjectPath, tagName)
+		if err != nil {
+			return config.BackendResponseWithoutData{
+				Success: false,
+				Message: "Failed to check if tag exists",
+			}
+		}
+		
+		if !exists {
+			err = notes.CreateTagToNotesArrayIfNotExists(t.ProjectPath, tagName)
+			if err != nil {
+				return config.BackendResponseWithoutData{
+					Success: false,
+					Message: "Failed to create tag",
+				}
+			}
+		}
+	}
+
 	err = notes.AddTags(t.ProjectPath, tagNamesToAdd, folderAndNotePathsWithExtension)
 	if err != nil {
 		return config.BackendResponseWithoutData{
@@ -196,5 +197,19 @@ func (t *TagsService) EditTagsForNotes(tagNamesToAdd []string, tagNamesToRemove 
 	return config.BackendResponseWithoutData{
 		Success: true,
 		Message: "Successfully set tags for notes",
+	}
+}
+
+func (t * TagsService) CreateTags(tagNames []string) config.BackendResponseWithoutData {
+	err := notes.AddTags(t.ProjectPath, tagNames, []string{})
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "Failed to create tags",
+		}
+	}
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "Successfully created tags",
 	}
 }

@@ -8,8 +8,7 @@ import {
 } from '../../atoms';
 import { handleDragStart } from '../../components/sidebar/utils';
 import {
-  useAddTagsMutation,
-  useEditTagsForNotesMutation,
+  useEditTagsMutation,
   useMoveNoteToTrashMutation,
   useNotePreviewQuery,
   useNoteRevealInFinderMutation,
@@ -33,7 +32,6 @@ import { CardNoteSidebarItem } from './card-note-sidebar-item';
 import { ListNoteSidebarItem } from './list-note-sidebar-item';
 import { navigate } from 'wouter/use-browser-location';
 import { EditTagDialogChildren } from './edit-tag-dialog-children';
-import { AddTagDialogChildren } from './add-tag-dialog-children';
 
 export function NoteSidebarButton({
   sidebarNoteFolder,
@@ -65,9 +63,7 @@ export function NoteSidebarButton({
   const { mutate: revealInFinder } =
     useNoteRevealInFinderMutation(isInTagsSidebar);
   const { mutate: moveToTrash } = useMoveNoteToTrashMutation(isInTagsSidebar);
-  const { mutateAsync: editTagsForNotes } =
-    useEditTagsForNotesMutation(isInTagsSidebar);
-  const { mutateAsync: addTagsToNotes } = useAddTagsMutation();
+  const { mutateAsync: editTags } = useEditTagsMutation();
 
   const setDialogData = useSetAtom(dialogDataAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
@@ -230,37 +226,6 @@ export function NoteSidebarButton({
                     height={17}
                     className="will-change-transform"
                   />{' '}
-                  Add Tags
-                </span>
-              ),
-              value: 'add-tags',
-              onChange: () => {
-                setDialogData({
-                  isOpen: true,
-                  isPending: false,
-                  title: 'Add Tags',
-                  children: (errorText) => (
-                    <AddTagDialogChildren onSubmitErrorText={errorText} />
-                  ),
-                  onSubmit: async (e, setErrorText) => {
-                    return addTagsToNotes({
-                      e,
-                      setErrorText,
-                      folder: sidebarNoteFolder,
-                      selectionRange: newSelectionRange,
-                    });
-                  },
-                });
-              },
-            },
-            {
-              label: (
-                <span className="flex items-center gap-1.5">
-                  <TagPlus
-                    width={17}
-                    height={17}
-                    className="will-change-transform"
-                  />{' '}
                   Edit Tags
                 </span>
               ),
@@ -279,42 +244,13 @@ export function NoteSidebarButton({
                     />
                   ),
                   onSubmit: async (e, setErrorText) => {
-                    try {
-                      const tagNamesToAdd: string[] = [];
-                      const tagNamesToRemove: string[] = [];
-
-                      // Get all checkbox elements from the form
-                      const checkboxes = (
-                        e.target as HTMLFormElement
-                      ).querySelectorAll(
-                        'input[type="checkbox"]'
-                      ) as NodeListOf<HTMLInputElement>;
-
-                      checkboxes.forEach((checkbox: HTMLInputElement) => {
-                        // Only process checkboxes that are not indeterminate
-                        if (!checkbox.indeterminate) {
-                          if (checkbox.checked) {
-                            tagNamesToAdd.push(checkbox.value);
-                          } else {
-                            tagNamesToRemove.push(checkbox.value);
-                          }
-                        }
-                      });
-
-                      return await editTagsForNotes({
-                        tagNamesToAdd,
-                        tagNamesToRemove,
-                        selectionRange: newSelectionRange,
-                        folder: sidebarNoteFolder,
-                      });
-                    } catch (error) {
-                      setErrorText(
-                        error instanceof Error
-                          ? error.message
-                          : 'Failed to set tags'
-                      );
-                      return false;
-                    }
+                    return await editTags({
+                      e,
+                      setErrorText,
+                      selectionRange: newSelectionRange,
+                      folder: sidebarNoteFolder,
+                      isInTagsSidebar,
+                    });
                   },
                 });
               },

@@ -5,17 +5,17 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useAtomValue } from 'jotai';
-import { toast } from 'sonner';
 import { type StringRouteParams, useRoute } from 'wouter';
 import {
+  CreateTags,
   DeleteTagsFromNotes,
   GetTags,
   GetTagsForNotes,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 import { noteSortAtom } from '../atoms';
-import { useWailsEvent } from '../hooks/events';
-import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
+import { useWailsEvent } from './events';
 import { useSearchParamsEntries } from '../utils/routing';
+import { QueryError } from '../utils/query';
 
 /**
  * Invalidates the query for note tags if the current folder, note, and extension are available.
@@ -141,6 +141,22 @@ export function useTagsForNotesQuery(
 }
 
 /**
+ * Creates a tag.
+ *
+ * @returns The mutation result.
+ */
+export function useCreateTagsMutation() {
+  return useMutation({
+    mutationFn: async ({ tagNames }: { tagNames: string[] }) => {
+      const res = await CreateTags(tagNames);
+      if (!res.success) {
+        throw new QueryError(res.message);
+      }
+    },
+  });
+}
+
+/**
  * Deletes a tag from a specific note within a folder.
  *
  * @param queryClient - The react-query client for managing queries.
@@ -161,12 +177,7 @@ export function useDeleteTagsMutation(
         [`${folder}/${note}.${ext}`]
       );
       if (!res.success) {
-        throw new Error(res.message);
-      }
-    },
-    onError: (e) => {
-      if (e instanceof Error) {
-        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+        throw new QueryError(res.message);
       }
     },
   });

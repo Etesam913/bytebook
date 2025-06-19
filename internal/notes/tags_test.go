@@ -81,6 +81,71 @@ func TestGetAllTags(t *testing.T) {
 	})
 }
 
+func TestTagExists(t *testing.T) {
+	t.Run("returns false when tag directory does not exist", func(t *testing.T) {
+		tempDir := t.TempDir()
+		exists, err := TagExists(tempDir, "nonexistent-tag")
+		assert.NoError(t, err)
+		assert.False(t, exists, "Expected tag to not exist when directory doesn't exist")
+	})
+
+	t.Run("returns false when tag directory exists but notes.json does not exist", func(t *testing.T) {
+		tempDir := t.TempDir()
+		tagName := "test-tag"
+		
+		// Create tag directory but not the notes.json file
+		tagDir := filepath.Join(tempDir, "tags", tagName)
+		err := os.MkdirAll(tagDir, os.ModePerm)
+		assert.NoError(t, err)
+		
+		exists, err := TagExists(tempDir, tagName)
+		assert.NoError(t, err)
+		assert.False(t, exists, "Expected tag to not exist when notes.json file is missing")
+	})
+
+	t.Run("returns false when the tags directory does not exist", func(t *testing.T) {
+		tempDir := t.TempDir()
+		// Don't create the tags directory at all
+		
+		exists, err := TagExists(tempDir, "any-tag")
+		assert.NoError(t, err)
+		assert.False(t, exists, "Expected tag to not exist when tags directory doesn't exist")
+	})
+	t.Run("returns false when path exists but is not a directory", func(t *testing.T) {
+		tempDir := t.TempDir()
+		tagName := "test-tag"
+		
+		// Create tags directory first
+		tagsDir := filepath.Join(tempDir, "tags")
+		err := os.MkdirAll(tagsDir, os.ModePerm)
+		assert.NoError(t, err)
+		
+		// Create a file with the tag name instead of a directory
+		tagPath := filepath.Join(tagsDir, tagName)
+		file, err := os.Create(tagPath)
+		assert.NoError(t, err)
+		file.Close()
+		
+		exists, err := TagExists(tempDir, tagName)
+		assert.NoError(t, err)
+		assert.False(t, exists, "Expected tag to not exist when path is a file, not a directory")
+	})
+	t.Run("returns true when both tag directory and notes.json exist", func(t *testing.T) {
+		tempDir := t.TempDir()
+		tagName := "test-tag"
+		
+		// Create tag directory and notes.json file
+		err := CreateTagToNotesArrayIfNotExists(tempDir, tagName)
+		assert.NoError(t, err)
+		
+		exists, err := TagExists(tempDir, tagName)
+		assert.NoError(t, err)
+		assert.True(t, exists, "Expected tag to exist when both directory and notes.json exist")
+	})
+
+
+}
+
 func TestCreateTagToNotesArrayIfNotExists(t *testing.T) {
 	t.Run("when notes.json does not exist for a tag", func(t *testing.T) {
 		t.Run("the file should be created", func(t *testing.T) {

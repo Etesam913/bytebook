@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Loader } from '../../icons/loader';
+import { LoadingSpinner } from '../loading-spinner';
 
 export function RouteFallback({
   height,
@@ -17,9 +17,7 @@ export function RouteFallback({
       transition={{ delay: 0.5 }}
       className="flex-grow flex items-center justify-center"
     >
-      <div className="animate-pulse text-gray-500 dark:text-zinc-400">
-        <Loader height={height} width={width} className={className} />
-      </div>
+      <LoadingSpinner height={height} width={width} className={className} />
     </motion.div>
   );
 }
