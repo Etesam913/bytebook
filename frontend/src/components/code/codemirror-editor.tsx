@@ -21,6 +21,7 @@ import { cn } from '../../utils/string-formatting';
 import { CodeBlockStatus, Languages, CompletionData } from '../../types';
 import { autocompletion } from '@codemirror/autocomplete';
 import { useNodeInNodeSelection } from '../../hooks/lexical';
+import { useEffect } from 'react';
 
 // Map to store pending completion promises by messageId
 const pendingCompletions = new Map<string, (data: CompletionData) => void>();
@@ -72,6 +73,13 @@ export function CodeMirrorEditor({
       instance.view.focus();
     }
   }
+
+  useEffect(() => {
+    // Focuses the editor when the node is selected
+    if (codeMirrorInstance?.view && isInNodeSelection) {
+      codeMirrorInstance.view.focus();
+    }
+  }, [codeMirrorInstance, isInNodeSelection]);
 
   const runCodeKeymap = getCodemirrorKeymap({
     isExpanded,
@@ -131,10 +139,10 @@ export function CodeMirrorEditor({
         theme={isDarkModeOn ? nord : vscodeLight}
         onKeyDown={(e) => {
           if (e.key === 'Backspace') {
-            // Fixes weird bug where pressing backspace at beginning of first line focuses the <body> tag
+            //  TODO: Think of a better fix than this, Fixes weird bug where pressing backspace at beginning of first line focuses the <body> tag
             setTimeout(() => {
               focusEditor(codeMirrorInstance);
-            }, 50);
+            }, 5);
           } else {
             // ArrowDown and ArrowUp are handled in the keybinding extension
             if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {

@@ -77,12 +77,6 @@ export function Code({
   const [lexicalEditor] = useLexicalComposerContext();
   const [isSelected] = useLexicalNodeSelection(nodeKey);
 
-  useEffect(() => {
-    if (isSelected || isExpanded) {
-      focusEditor(codeMirrorInstance);
-    }
-  }, [isSelected, isExpanded]);
-
   return (
     <>
       <AnimatePresence>

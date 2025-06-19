@@ -18,27 +18,35 @@ export function useNodeInNodeSelection(editor: LexicalEditor, key: string) {
 
   useEffect(() => {
     let isMounted = true;
-    const unregister = editor.registerUpdateListener(() => {
-      if (isMounted) {
-        editor.read(() => {
-          const node = $getNodeByKey(key);
-          if (!node) {
-            setIsInNodeSelection(false);
-            return;
-          }
 
-          const selection = $getSelection();
-          if (!$isNodeSelection(selection)) {
-            setIsInNodeSelection(false);
-            return;
+    const checkNodeSelection = () => {
+      if (!isMounted) return;
+
+      editor.read(() => {
+        const node = $getNodeByKey(key);
+        if (!node) {
+          setIsInNodeSelection(false);
+          return;
+        }
+
+        const selection = $getSelection();
+        if (!$isNodeSelection(selection)) {
+          setIsInNodeSelection(false);
+          return;
+        }
+        selection?.getNodes().forEach((node) => {
+          if (node.getKey() === key) {
+            setIsInNodeSelection(true);
           }
-          selection?.getNodes().forEach((node) => {
-            if (node.getKey() === key) {
-              setIsInNodeSelection(true);
-            }
-          });
         });
-      }
+      });
+    };
+
+    // Check initial state
+    checkNodeSelection();
+
+    const unregister = editor.registerUpdateListener(() => {
+      checkNodeSelection();
     });
 
     return () => {
