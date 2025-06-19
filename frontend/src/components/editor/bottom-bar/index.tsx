@@ -15,6 +15,7 @@ import { Folder } from '../../../icons/folder';
 import { BreadcrumbItem } from './breadcrumb-item';
 import { Tag } from './tag';
 import { KernelHeartbeats } from './kernel-heartbeats';
+import { motion } from 'motion/react';
 
 export function BottomBar({
   frontmatter,
@@ -112,10 +113,14 @@ export function BottomBar({
           <TagPlus height={15} width={15} /> Add Tag
         </button>
         {isLoading ? (
-          <>
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
             <Loader height={14} width={14} />
             Loading Tags
-          </>
+          </motion.span>
         ) : (
           tagElements
         )}

@@ -19,8 +19,7 @@ import { GetPreviewForTag } from '../../../bindings/github.com/etesam913/byteboo
 export function MyTagsAccordion() {
   const [isOpen, setIsOpen] = useState(false);
   const { data: tags } = useTagsQuery();
-  const alphabetizedTags = tags?.sort((a, b) => a.localeCompare(b));
-  const hasTags = alphabetizedTags && alphabetizedTags.length > 0;
+  const hasTags = tags && tags?.length > 0;
   const [, params] = useRoute('/tags/:tagName/:folder?/:note?');
   const tagNameFromUrl = (params as { tagName: string })?.tagName;
 
@@ -33,11 +32,7 @@ export function MyTagsAccordion() {
         title={
           <>
             Tags{' '}
-            {hasTags && (
-              <span className="tracking-wider">
-                ({alphabetizedTags.length})
-              </span>
-            )}
+            {hasTags && <span className="tracking-wider">({tags.length})</span>}
           </>
         }
       />
@@ -69,7 +64,7 @@ export function MyTagsAccordion() {
               }) => {
                 return (
                   <TagAccordionButton
-                    alphabetizedTags={alphabetizedTags}
+                    tags={tags}
                     i={i}
                     selectionRange={selectionRange}
                     setSelectionRange={setSelectionRange}
@@ -78,7 +73,7 @@ export function MyTagsAccordion() {
                   />
                 );
               }}
-              data={alphabetizedTags ?? null}
+              data={tags ?? null}
             />
           </motion.div>
         )}
@@ -88,14 +83,14 @@ export function MyTagsAccordion() {
 }
 
 function TagAccordionButton({
-  alphabetizedTags,
+  tags,
   i,
   selectionRange,
   setSelectionRange,
   sidebarTagName,
   tagNameFromUrl,
 }: {
-  alphabetizedTags: string[] | undefined;
+  tags: string[] | undefined;
   i: number;
   selectionRange: Set<string>;
   setSelectionRange: React.Dispatch<React.SetStateAction<Set<string>>>;
@@ -104,8 +99,7 @@ function TagAccordionButton({
 }) {
   const { mutateAsync: deleteTags } = useDeleteTagsMutation();
   const isActive = decodeURIComponent(tagNameFromUrl ?? '') === sidebarTagName;
-  const isSelected =
-    alphabetizedTags?.at(i) && selectionRange.has(`tag:${alphabetizedTags[i]}`);
+  const isSelected = tags?.at(i) && selectionRange.has(`tag:${tags[i]}`);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
 

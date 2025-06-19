@@ -22,7 +22,7 @@ const MAX_TAGS_PER_NOTE = 100000
 //   - projectPath: The root path of the project
 //
 // Returns:
-//   - A slice of tag names
+//   - A slice of tag names sorted alphabetically
 //   - An error if directory operations fail
 func GetAllTags(projectPath string) ([]string, error) {
 	tags := []string{}
@@ -42,8 +42,12 @@ func GetAllTags(projectPath string) ([]string, error) {
 			tags = append(tags, tagFolder.Name())
 		}
 	}
+	
+	// Sort tags alphabetically
+	slices.Sort(tags)
 	return tags, nil
 }
+
 
 func GetNotesFromTag(projectPath string, tag string, sortOption *string) ([]string, error) {
 	// Make sure the notes.json file exists

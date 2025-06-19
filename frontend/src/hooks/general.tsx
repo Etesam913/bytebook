@@ -90,7 +90,7 @@ export function useTrapFocus() {
     if (items.length) {
       items[0].focus();
     } else {
-      trapFocusContainer.setAttribute('tabindex', '-1');
+      // trapFocusContainer.setAttribute('tabindex', '-1');
       trapFocusContainer.focus();
     }
 
@@ -102,16 +102,27 @@ export function useTrapFocus() {
         e.preventDefault();
         return;
       }
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
       const active = document.activeElement as HTMLElement;
-
-      if (e.shiftKey && active === first) {
+      active.classList.remove('focus-visible');
+      if (e.shiftKey) {
+        const currentIndex = focusable.indexOf(active);
+        const nextIndex = currentIndex - 1;
+        const nextElement =
+          nextIndex < 0
+            ? focusable[focusable.length - 1]
+            : focusable[nextIndex];
+        nextElement.focus();
+        nextElement.classList.add('focus-visible');
         e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && active === last) {
+      } else {
         e.preventDefault();
-        first.focus();
+        const currentIndex = focusable.indexOf(active);
+        const nextIndex = currentIndex + 1;
+        const nextElement =
+          nextIndex >= focusable.length ? focusable[0] : focusable[nextIndex];
+        nextElement.focus();
+        nextElement.classList.add('focus-visible');
+        e.preventDefault();
       }
     };
 

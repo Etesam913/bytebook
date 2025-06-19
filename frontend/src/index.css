@@ -105,7 +105,11 @@ html:has(.dark) {
   color-scheme: dark;
 }
 
-input,
+.focus-visible {
+  outline: 2px auto var(--accent-color);
+}
+
+input[type='text'],
 textarea,
 [contenteditable] {
   cursor: text;

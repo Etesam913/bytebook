@@ -7,6 +7,7 @@ import { getDefaultButtonVariants } from '../../animations';
 import TagPlus from '../../icons/tag-plus';
 import { DialogErrorText } from '../../components/dialog';
 import { Checkbox } from '../../components/indeterminate-checkbox';
+import { Input } from '../../components/input';
 
 export function EditTagDialogChildren({
   selectionRange,
@@ -37,6 +38,8 @@ export function EditTagDialogChildren({
     Map<string, number>
   >(new Map());
 
+  const [searchTerm, setSearchTerm] = useState('');
+
   const {
     data: tagsForSelectedNotes,
     isLoading: areTagsForSelectedNotesLoading,
@@ -60,6 +63,12 @@ export function EditTagDialogChildren({
 
   const totalSelectedNotes = selectedNotesWithExtensions.length;
 
+  // Filter tags based on search term
+  const filteredTags =
+    tags?.filter((tag) =>
+      tag.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
+
   return (
     <fieldset className="flex flex-col gap-2">
       <p>Select tags to add or remove from {totalSelectedNotes} note(s) </p>
@@ -68,6 +77,20 @@ export function EditTagDialogChildren({
           <RouteFallback className="my-1" />
         )}
         <p className="text-sm text-zinc-500 dark:text-zinc-400">Your tags</p>
+        {tags && !areTagsLoading && !areTagsError && tags.length > 0 && (
+          <div className="mb-2">
+            <Input
+              labelProps={{}}
+              inputProps={{
+                placeholder: 'Search tags...',
+                value: searchTerm,
+                onChange: (e) => setSearchTerm(e.target.value),
+                className: 'text-sm',
+              }}
+              clearable={true}
+            />
+          </div>
+        )}
         {tags && !areTagsLoading && !areTagsError && (
           <>
             {tags.length === 0 ? (
@@ -75,8 +98,8 @@ export function EditTagDialogChildren({
                 <p>No tags found.</p>
               </div>
             ) : (
-              <div className="max-h-[calc(100vh-15rem)] overflow-y-auto space-y-1 p-1 bg-zinc-100 dark:bg-zinc-750 border border-zinc-150 dark:border-zinc-650 rounded-md">
-                {tags.map((tag) => {
+              <div className="h-64 overflow-y-auto space-y-1 p-1 border border-zinc-150 dark:border-zinc-650 rounded-md">
+                {filteredTags.map((tag) => {
                   const tagCount = selectedTagCounts.get(tag) || 0;
                   const isFullySelected =
                     tagCount === totalSelectedNotes && totalSelectedNotes > 0;
@@ -86,7 +109,7 @@ export function EditTagDialogChildren({
                   return (
                     <label
                       key={tag}
-                      className="flex items-center gap-2 py-0.5 px-1.5 hover:bg-zinc-150 dark:hover:bg-zinc-700 rounded"
+                      className="flex items-center gap-2 py-0.5 px-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-750 rounded-md "
                     >
                       <Checkbox
                         name="tags"
@@ -106,7 +129,7 @@ export function EditTagDialogChildren({
                             setSelectedTagCounts(newCounts);
                           }
                         }}
-                        className="rounded h-3.5 w-3.5 border-gray-300 dark:border-zinc-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400"
+                        className="h-3.5 w-3.5 border-gray-200 dark:border-zinc-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
                       />
                       <span className="dark:text-zinc-200">{tag}</span>
                     </label>
