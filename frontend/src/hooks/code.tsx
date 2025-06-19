@@ -480,7 +480,6 @@ export function useTurnOnKernelMutation() {
   return useMutation({
     mutationFn: async (language: Languages) => {
       const res = await CreateSocketsAndListen(language);
-      console.log(res);
       if (!res.success) {
         throw new QueryError(res.message);
       }
@@ -611,7 +610,6 @@ export function useCompletionSource(
         completionData.matches[i].type = type;
       });
     }
-    console.log('🔴 completion', completionData);
     // Resolve the pending promise if it exists
     const resolve = pendingCompletions.get(completionData.messageId);
     if (resolve) {

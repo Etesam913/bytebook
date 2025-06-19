@@ -92,6 +92,8 @@ export const isDarkModeOnAtom = atom<boolean>(false);
 export const isToolbarDisabledAtom = atom<boolean>(false);
 export const isNoteMaximizedAtom = atom<boolean>(false);
 
+export const trapFocusContainerAtom = atom<HTMLElement | null>(null);
+
 export const dialogDataAtom = atom<DialogDataType>({
   isOpen: false,
   title: '',

@@ -1,16 +1,16 @@
 import { motion } from 'motion/react';
-import { useAtom, useAtomValue } from 'jotai';
-import { type FormEvent, useRef, useState } from 'react';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { easingFunctions } from '../../animations';
 import {
   mostRecentNotesWithoutQueryParamsAtom,
   searchPanelDataAtom,
+  trapFocusContainerAtom,
 } from '../../atoms';
 
 import { useListVirtualization } from '../../hooks/observers';
 import { useSearchMutation } from '../../hooks/search';
 import { getFileExtension } from '../../utils/string-formatting';
-import { useTrapFocus } from '../dialog/hooks';
 import { SearchItems } from './search-items';
 import { navigate } from 'wouter/use-browser-location';
 
@@ -21,9 +21,8 @@ const ITEMS_THAT_FIT_ON_SCREEN = 8;
 export function SearchPanelForm() {
   const [searchResults, setSearchResults] = useState<string[]>([]);
   const [searchPanelData, setSearchPanelData] = useAtom(searchPanelDataAtom);
-  const searchPanelRef = useRef<HTMLFormElement>(null);
-  useTrapFocus(searchPanelRef, searchPanelData.isOpen);
-
+  const albumRef = useRef<HTMLFormElement>(null);
+  const setTrapFocusContainer = useSetAtom(trapFocusContainerAtom);
   const mostRecentNotes = useAtomValue(mostRecentNotesWithoutQueryParamsAtom);
   const isShowingMostRecentNotes =
     searchResults.length === 0 && searchPanelData.query.trim().length === 0;
@@ -51,6 +50,16 @@ export function SearchPanelForm() {
     },
     true
   );
+
+  useEffect(() => {
+    if (albumRef.current) {
+      setTrapFocusContainer(albumRef.current);
+    }
+
+    return () => {
+      setTrapFocusContainer(null);
+    };
+  }, [albumRef.current]);
 
   function handleArrowKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     e.preventDefault();
@@ -149,7 +158,6 @@ export function SearchPanelForm() {
           duration: 0.2,
         },
       }}
-      ref={searchPanelRef}
       className="absolute translate-x-[-50%] translate-y-[-50%] z-40 top-[25%] w-[min(29rem,90vw)] left-2/4"
       onSubmit={(e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -164,6 +172,7 @@ export function SearchPanelForm() {
         setSearchPanelData((prev) => ({ ...prev, isOpen: false }));
         navigate(`/${folder}/${fileName}?ext=${extension}&focus=true`);
       }}
+      ref={albumRef}
     >
       <input
         spellCheck="false"
@@ -171,7 +180,7 @@ export function SearchPanelForm() {
         autoFocus
         name="search-query"
         placeholder="Search Files"
-        className="py-3 px-4 bg-zinc-50 dark:bg-zinc-800 outline-hidden will-change-transform bg-transparent w-full border-zinc-300 rounded-bl-none rounded-br-none border-b-0 dark:border-zinc-700 rounded-lg shadow-2xl border-[1.25px] "
+        className="py-3 px-4 bg-transparent dark:bg-zinc-800 outline-hidden will-change-transform w-full border-zinc-300 rounded-bl-none rounded-br-none border-b-0 dark:border-zinc-700 rounded-lg shadow-2xl border-[1.25px] "
         value={searchPanelData.query}
         onFocus={async (e) => {
           e.target.select();

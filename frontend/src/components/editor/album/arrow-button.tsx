@@ -31,7 +31,7 @@ export function ArrowButton({
         'fixed z-50 bottom-11 bg-[rgba(0,0,0,0.55)] text-white p-1 rounded-full',
         direction === 'left' ? 'left-[40%]' : 'right-[40%]'
       )}
-      type="submit"
+      type="button"
     >
       {direction === 'left' ? (
         <CircleArrowLeft width={28} height={28} />

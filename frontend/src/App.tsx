@@ -17,6 +17,7 @@ import { useThemeSetting } from './hooks/theme';
 import { MAX_SIDEBAR_WIDTH } from './utils/general';
 import { disableBackspaceNavigation } from './utils/routing';
 import { RouteFallback } from './components/route-fallback';
+import { useTrapFocus } from './hooks/general';
 
 // Lazy load route components
 const NotFound = lazy(() =>
@@ -49,6 +50,7 @@ function App() {
 
   useUserData();
   useTags();
+  useTrapFocus();
   useLoggedInEvent();
   useThemeSetting();
   useSearchPanel();

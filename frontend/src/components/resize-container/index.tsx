@@ -1,12 +1,9 @@
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { AnimatePresence, motion, useMotionValue } from 'motion/react';
-import { type KeyboardEvent, type ReactNode, RefObject, useRef } from 'react';
+import { type ReactNode, RefObject } from 'react';
 import type { ResizeState, ResizeWidth } from '../../types';
 import { cn } from '../../utils/string-formatting';
-import { useTrapFocus } from '../dialog/hooks';
 import { ResizeControls } from './resize-controls';
 import { ResizeHandle } from './resize-handle';
-import { expandNearestSiblingNode } from './utils';
 
 export function ResizeContainer({
   resizeState,
@@ -35,46 +32,13 @@ export function ResizeContainer({
   );
   const resizeHeightMotionValue = useMotionValue<number | '100%'>('100%');
 
-  const {
-    isSelected,
-    isExpanded,
-    setIsExpanded,
-    isResizing,
-    setIsResizing,
-    setSelected,
-  } = resizeState;
-
-  const expandedResizeContainerRef = useRef<HTMLDivElement>(null);
-  const [editor] = useLexicalComposerContext();
-
-  useTrapFocus(expandedResizeContainerRef, isExpanded);
+  const { isSelected, isExpanded, isResizing, setIsResizing, setSelected } =
+    resizeState;
 
   return (
     <>
       <motion.div
-        ref={expandedResizeContainerRef}
-        onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
-          if (e.key === 'Escape' && isExpanded) {
-            setIsExpanded(false);
-            e.stopPropagation();
-          }
-          if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && isExpanded) {
-            e.preventDefault();
-            e.stopPropagation();
-            const isExpandableNeighbor = expandNearestSiblingNode(
-              editor,
-              nodeKey,
-              setIsExpanded,
-              e.key === 'ArrowRight' ? 'right' : 'left'
-            );
-
-            if (isExpandableNeighbor && ref.current?.tagName === 'VIDEO') {
-              (ref.current as HTMLVideoElement).pause();
-            }
-          }
-        }}
         tabIndex={isExpanded ? 0 : -1}
-        // onClick={(e: MouseEvent) => isExpanded && e.stopPropagation()}
         className={cn(
           'relative rounded-xs outline-hidden max-w-full',
           isExpanded &&

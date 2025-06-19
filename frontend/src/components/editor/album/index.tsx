@@ -3,24 +3,23 @@ import { ArrowButton } from './arrow-button';
 import { motion } from 'motion/react';
 import { getDefaultButtonVariants } from '../../../animations';
 import { XMark } from '../../../icons/circle-xmark';
-import { useAtom } from 'jotai/react';
-import { albumDataAtom } from '../../../atoms';
-import { useTrapFocus } from '../../dialog/hooks';
-import { useRef } from 'react';
+import { useAtom, useSetAtom } from 'jotai/react';
+import { albumDataAtom, trapFocusContainerAtom } from '../../../atoms';
+import { useEffect, useRef } from 'react';
 import { useMouseActivity } from '../../resize-container/utils';
 import { FileNode } from '../nodes/file';
 import { $nodesOfType } from 'lexical';
 
 export function Album() {
   const [{ elementType, src, nodeKey }, setAlbumData] = useAtom(albumDataAtom);
-  const albumRef = useRef<HTMLDivElement>(null);
-  useTrapFocus(albumRef, true);
+
   const [editor] = useLexicalComposerContext();
 
   const [shouldUseMouseActivity, setShouldUseMouseActivity] = useMouseActivity(
     10000,
     true
   );
+  const albumRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   function moveToNextOrPrevFile(direction: 'left' | 'right') {
@@ -68,12 +67,30 @@ export function Album() {
           elementType: fileNodeToRight.getElementType(),
         });
       }
+
+      if (albumRef.current) {
+        albumRef.current.scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        });
+      }
     });
   }
 
+  const setTrapFocusContainer = useSetAtom(trapFocusContainerAtom);
+
+  useEffect(() => {
+    if (albumRef.current) {
+      setTrapFocusContainer(albumRef.current);
+    }
+    return () => {
+      setTrapFocusContainer(null);
+    };
+  }, [albumRef]);
+
   return (
     <div
-      tabIndex={0}
+      ref={albumRef}
       onKeyDown={(e) => {
         if (e.key === 'ArrowLeft') {
           moveToNextOrPrevFile('left');
@@ -91,7 +108,6 @@ export function Album() {
           });
         }
       }}
-      ref={albumRef}
       className="overflow-auto flex flex-col items-center absolute bg-black w-screen h-screen top-0 left-0 z-60"
     >
       {nodeKey && (

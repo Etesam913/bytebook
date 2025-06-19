@@ -1,13 +1,16 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import useMeasure from 'react-use-measure';
 import { easingFunctions, getDefaultButtonVariants } from '../../animations';
-import { dialogDataAtom, editorAtom } from '../../atoms';
+import {
+  dialogDataAtom,
+  editorAtom,
+  trapFocusContainerAtom,
+} from '../../atoms';
 import { XMark } from '../../icons/circle-xmark';
 import { cn } from '../../utils/string-formatting';
 import { MotionIconButton } from '../buttons';
-import { useTrapFocus } from './hooks';
 import { Shade } from './shade';
 
 export function DialogErrorText({
@@ -48,10 +51,10 @@ export function DialogErrorText({
 
 export function Dialog() {
   const [dialogData, setDialogData] = useAtom(dialogDataAtom);
+  const setTrapFocusContainer = useSetAtom(trapFocusContainerAtom);
   const editor = useAtomValue(editorAtom);
   const [errorText, setErrorText] = useState('');
   const modalRef = useRef<HTMLFormElement>(null);
-  useTrapFocus(modalRef, dialogData.isOpen, dialogData.dynamicData);
 
   function resetDialogState() {
     dialogData.onClose?.();
@@ -82,11 +85,14 @@ export function Dialog() {
       // The editor should not be able to be edited when the dialog is open
       editor?.blur();
       document.addEventListener('keydown', keyDownHandler);
+      setTrapFocusContainer(modalRef.current);
     } else {
       editor?.focus();
+      setTrapFocusContainer(null);
     }
     return () => {
       document.removeEventListener('keydown', keyDownHandler);
+      setTrapFocusContainer(null);
     };
   }, [dialogData.isOpen]);
 

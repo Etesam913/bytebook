@@ -1,4 +1,6 @@
-import { type RefObject, useEffect } from 'react';
+import { type RefObject, useEffect, useRef } from 'react';
+import { trapFocusContainerAtom } from '../atoms';
+import { useAtomValue } from 'jotai';
 
 /**
  * Hook that triggers a handler function when a click is detected outside of the specified element or when tab is pressed.
@@ -42,4 +44,82 @@ export function useOnClickOutside<T extends HTMLElement>(
     // Re-run if ref or handler changes
     [ref, handler]
   );
+}
+
+/**
+ * Hook to trap focus within a given container element.
+ * Attach this in App.tsx by passing the container node (e.g., modal root).
+ * Listens on document for Tab presses and cycles focus inside the container.
+ */
+export function useTrapFocus() {
+  const previouslyFocused = useRef<HTMLElement | null>(null);
+  const trapFocusContainer = useAtomValue(trapFocusContainerAtom);
+
+  useEffect(() => {
+    if (!trapFocusContainer) return;
+
+    // Save focus before trap
+    previouslyFocused.current = document.activeElement as HTMLElement;
+
+    // Utility: get visible, focusable elements
+    const getFocusable = (): HTMLElement[] => {
+      const selectors = [
+        'a[href]',
+        'button:not([disabled])',
+        'textarea:not([disabled])',
+        'input:not([type="hidden"]):not([disabled])',
+        'select:not([disabled])',
+        '[tabindex]',
+      ];
+      return Array.from(
+        trapFocusContainer.querySelectorAll<HTMLElement>(selectors.join(','))
+      ).filter((el) => {
+        // Must be focusable by tabindex and actually visible (including fixed elements)
+        const hasValidTabIndex = el.tabIndex >= 0;
+        const isVisible =
+          el.offsetParent !== null || el.getClientRects().length > 0;
+        const notHiddenInput = !(
+          el instanceof HTMLInputElement && el.type === 'hidden'
+        );
+        return hasValidTabIndex && isVisible && notHiddenInput;
+      });
+    };
+
+    // Initial focus into container
+    const items = getFocusable();
+    if (items.length) {
+      items[0].focus();
+    } else {
+      trapFocusContainer.setAttribute('tabindex', '-1');
+      trapFocusContainer.focus();
+    }
+
+    // Key handler
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const focusable = getFocusable();
+      if (!focusable.length) {
+        e.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement;
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKey);
+
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      previouslyFocused.current?.focus();
+    };
+  }, [trapFocusContainer]);
 }

@@ -44,7 +44,6 @@ export const Combobox = forwardRef<HTMLInputElement, InputProps>(
         ? items.map(({ value, label }, i) => (
             <button
               role="menuitem"
-              // tabIndex={-1}
               onMouseEnter={() => setSelectedIndex(i)}
               onMouseLeave={() => setSelectedIndex(-1)}
               onClick={() => {
