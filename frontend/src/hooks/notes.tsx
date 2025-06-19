@@ -102,8 +102,10 @@ export function useNotesFromTag(
       }
       const notes = res.data ?? [];
       const curNoteWithExtension = `${curNote}?ext=${fileExtension}`;
-      const curNoteExists = notes.some((note) => note === curNoteWithExtension);
-
+      const curNoteExists = notes.some((noteAndFolder) => {
+        const [, note] = noteAndFolder.split('/');
+        return note === curNoteWithExtension;
+      });
       // If the current note does not exist, then navigate to a safe note
       if (!curNoteExists) {
         if (notes.length === 0) {
@@ -127,7 +129,8 @@ export function useNotesFromTag(
           const [folder, note] = noteNameWithoutExtension.split('/');
           if (!folder || !note) return [];
           navigate(
-            `/tags/${tagName}/${encodeURIComponent(folder)}/${encodeURIComponent(note)}?ext=${queryParams.ext}`
+            `/tags/${tagName}/${encodeURIComponent(folder)}/${encodeURIComponent(note)}?ext=${queryParams.ext}`,
+            { replace: true }
           );
         }
       }
