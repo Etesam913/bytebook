@@ -498,3 +498,139 @@ func SetTags(projectPath string, tagNames []string, notePaths []string) error {
 
 	return nil
 }
+
+// updateNotesToTagsMapForFolderRename updates the notes_to_tags.json file when a folder is renamed.
+// It returns a map of old note paths to their tags for notes that were updated.
+//
+// Parameters:
+//   - projectPath: The path to the project directory
+//   - oldFolderName: The current folder name that needs to be updated
+//   - newFolderName: The new folder name to replace the old one
+//
+// Returns:
+//   - A map of old note paths to their associated tags for updated notes
+//   - An error if the operation fails, otherwise nil
+func updateNotesToTagsMapForFolderRename(projectPath string, oldFolderName string, newFolderName string) (map[string][]string, error) {
+	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
+
+	err := config.CreateNoteToTagsMapIfNotExists(projectPath)
+	if err != nil {
+		return nil, err
+	}
+
+	notesToTagsMap := config.NotesToTagsMap{}
+	if err := util.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
+		return nil, err
+	}
+
+	// Track which notes were updated and their associated tags
+	updatedNotes := make(map[string][]string) // old note path -> tags
+	newNotesToTagsMap := make(map[string][]string)
+
+	// Update notes_to_tags.json
+	for notePath, tags := range notesToTagsMap.Notes {
+		if len(notePath) > len(oldFolderName) && notePath[:len(oldFolderName)+1] == oldFolderName+"/" {
+			// This note starts with the old folder name
+			newNotePath := newFolderName + notePath[len(oldFolderName):]
+			updatedNotes[notePath] = tags
+			newNotesToTagsMap[newNotePath] = tags
+		} else {
+			// Keep the note path as is
+			newNotesToTagsMap[notePath] = tags
+		}
+	}
+
+	// Write the updated notes_to_tags.json
+	notesToTagsMap.Notes = newNotesToTagsMap
+	if err := util.WriteJsonToPath(pathToNoteToTagsMap, notesToTagsMap); err != nil {
+		return nil, err
+	}
+
+	return updatedNotes, nil
+}
+
+// updateTagNotesFilesForFolderRename updates individual tag notes.json files when a folder is renamed.
+//
+// Parameters:
+//   - projectPath: The path to the project directory
+//   - oldFolderName: The current folder name that needs to be updated
+//   - newFolderName: The new folder name to replace the old one
+//   - updatedNotes: A map of old note paths to their tags (from updateNotesToTagsMapForFolderRename)
+//
+// Returns:
+//   - An error if the operation fails, otherwise nil
+func updateTagNotesFilesForFolderRename(projectPath string, oldFolderName string, newFolderName string, updatedNotes map[string][]string) error {
+	// Update individual tag notes.json files
+	allTagsToUpdate := make(util.Set[string])
+	for _, tags := range updatedNotes {
+		for _, tag := range tags {
+			allTagsToUpdate.Add(tag)
+		}
+	}
+
+	// For each tag that needs updating
+	for _, tagName := range allTagsToUpdate.Elements() {
+		pathToTagFile := filepath.Join(projectPath, "tags", tagName, "notes.json")
+		
+		// Check if tag exists
+		exists, err := TagExists(projectPath, tagName)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			continue // Skip if tag doesn't exist
+		}
+
+		notesForGivenTagData := TagsToNotesArray{}
+		if err := util.ReadJsonFromPath(pathToTagFile, &notesForGivenTagData); err != nil {
+			return err
+		}
+
+		// Update notes in this tag's notes.json
+		updatedTagNotes := make([]string, 0, len(notesForGivenTagData.Notes))
+		for _, notePath := range notesForGivenTagData.Notes {
+			if len(notePath) > len(oldFolderName) && notePath[:len(oldFolderName)+1] == oldFolderName+"/" {
+				// Update this note path
+				newNotePath := newFolderName + notePath[len(oldFolderName):]
+				updatedTagNotes = append(updatedTagNotes, newNotePath)
+			} else {
+				// Keep the note path as is
+				updatedTagNotes = append(updatedTagNotes, notePath)
+			}
+		}
+
+		// Write the updated tag notes.json
+		notesForGivenTagData.Notes = updatedTagNotes
+		if err := util.WriteJsonToPath(pathToTagFile, notesForGivenTagData); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// UpdateFolderNameInTags updates all references to notes in the old folder name
+// to use the new folder name in both notes_to_tags.json and individual tag notes.json files.
+//
+// Parameters:
+//   - projectPath: The path to the project directory
+//   - oldFolderName: The current folder name that needs to be updated
+//   - newFolderName: The new folder name to replace the old one
+//
+// Returns:
+//   - An error if the operation fails, otherwise nil
+func UpdateFolderNameInTags(projectPath string, oldFolderName string, newFolderName string) error {
+	// Update the notes_to_tags.json file
+	updatedNotes, err := updateNotesToTagsMapForFolderRename(projectPath, oldFolderName, newFolderName)
+	if err != nil {
+		return err
+	}
+
+	// Update individual tag notes.json files
+	err = updateTagNotesFilesForFolderRename(projectPath, oldFolderName, newFolderName, updatedNotes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

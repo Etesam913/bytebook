@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
@@ -147,6 +148,16 @@ func (f *FolderService) RenameFolder(oldFolderName string, newFolderName string)
 			Message: err.Error(),
 		}
 	}
+
+	// Update tag system to reflect the folder name change
+	err = notes.UpdateFolderNameInTags(f.ProjectPath, oldFolderName, newFolderName)
+	if err != nil {
+		return config.BackendResponseWithData[[]string]{
+			Success: false,
+			Message: fmt.Sprintf("Folder renamed but failed to update tags: %s", err.Error()),
+		}
+	}
+
 	return config.BackendResponseWithData[[]string]{
 		Success: true,
 		Message: "",
