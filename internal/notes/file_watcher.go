@@ -216,9 +216,10 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 
 	// Handle directory events
 	if isDir {
-		if oneFolderBack == "notes" {
+		switch oneFolderBack {
+		case "notes":
 			fw.handleFolderEvents("notes-folder", event)
-		} else if oneFolderBack == "tags" {
+		case "tags":
 			fw.handleFolderEvents("tags-folder", event)
 		}
 		return

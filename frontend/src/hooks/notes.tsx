@@ -97,7 +97,14 @@ export function useNotesFromTag(
     queryFn: async () => {
       const res = await GetNotesFromTag(tagName, noteSort);
       if (!res.success) {
-        throw new QueryError(`Failed in retrieving notes for tag "${tagName}"`);
+        if (res.message === 'tag does not exist') {
+          navigate('/', { replace: true });
+          return [];
+        } else {
+          throw new QueryError(
+            `Failed in retrieving notes for tag "${tagName}"`
+          );
+        }
       }
       const notes = res.data ?? [];
       const curNoteWithExtension = `${curNote}?ext=${fileExtension}`;
@@ -105,6 +112,7 @@ export function useNotesFromTag(
         const [, note] = noteAndFolder.split('/');
         return note === curNoteWithExtension;
       });
+      console.log({ res, notes, curNoteExists, curNoteWithExtension });
       // If the current note does not exist, then navigate to a safe note
       if (!curNoteExists) {
         if (notes.length === 0) {

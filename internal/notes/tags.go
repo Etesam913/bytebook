@@ -1,6 +1,7 @@
 package notes
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"slices"
@@ -85,12 +86,20 @@ func TagExists(projectPath string, tagName string) (bool, error) {
 }
 
 
+/**
+ * GetNotesFromTag retrieves a list of notes associated with a given tag.
+ * If the tag doesn't exist, returns an empty array. If a sort option is provided,
+ * the notes will be sorted accordingly and stale notes will be cleaned up.
+ */
 func GetNotesFromTag(projectPath string, tag string, sortOption *string) ([]string, error) {
-	// Make sure the notes.json file exists
-	err := CreateTagToNotesArrayIfNotExists(projectPath, tag)
-	if err != nil {
-		return nil, err
-	}
+    // If the tag does not exist, return an empty array
+    exists, err := TagExists(projectPath, tag)
+    if err != nil {
+        return []string{}, err
+    }
+    if !exists {
+        return []string{}, errors.New("tag does not exist")
+    }
 
 	pathToTagFile := filepath.Join(projectPath, "tags", tag, "notes.json")
 	notesForGivenTagData := TagsToNotesArray{}

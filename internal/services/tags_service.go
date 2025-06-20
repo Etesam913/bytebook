@@ -125,7 +125,7 @@ func (t *TagsService) GetNotesFromTag(tagName string, sortOption string) config.
 	if err != nil {
 		return config.BackendResponseWithData[[]string]{
 			Success: false,
-			Message: "Something went wrong when retrieving the tagged notes. Please try again later",
+			Message: err.Error(),
 			Data:    []string{},
 		}
 	}

@@ -66,15 +66,24 @@ function handleTagRelatedEvent(
 /**
  * Handles the `tags-folder:create`, "tags-folder:delete", and "tags:update" events.
  */
-export function useTags() {
+export function useTagEvents() {
   const queryClient = useQueryClient();
   const [, routeParams] = useRoute('/:folder/:note?');
   const searchParams: { ext?: string } = useSearchParamsEntries();
   const noteSort = useAtomValue(noteSortAtom);
   useWailsEvent('tags-folder:create', () => {
+    console.info('tags-folder:create');
     handleTagRelatedEvent(queryClient, routeParams, searchParams);
   });
-  useWailsEvent('tags-folder:delete', () => {
+  useWailsEvent('tags-folder:delete', (body) => {
+    console.info('tags-folder:delete', body);
+    const data = body.data as { folder: string }[][];
+    const folders = data[0].map((obj) => obj.folder);
+    folders.forEach((folder) => {
+      queryClient.invalidateQueries({
+        queryKey: ['tag-notes', folder, noteSort],
+      });
+    });
     handleTagRelatedEvent(queryClient, routeParams, searchParams);
   });
   useWailsEvent('tags:update', (body) => {
