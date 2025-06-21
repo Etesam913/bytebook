@@ -113,7 +113,6 @@ export function useNotesFromTag(
         const [, note] = noteAndFolder.split('/');
         return note === curNoteWithExtension;
       });
-      console.log({ res, notes, curNoteExists, curNoteWithExtension });
       // If the current note does not exist, then navigate to a safe note
       if (!curNoteExists) {
         if (notes.length === 0) {

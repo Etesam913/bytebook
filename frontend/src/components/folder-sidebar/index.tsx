@@ -25,8 +25,16 @@ import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
   const sidebarAccordionSectionRef = useRef<HTMLDivElement | null>(null);
-  const [, params] = useRoute('/:folder/:note?');
-  const folder = params?.folder;
+  const [isInNoteSidebar, noteSidebarParams] = useRoute('/:folder/:note?');
+  const [, tagSidebarParams] = useRoute('/tags/:tagName/:folder?/:note?') as [
+    boolean,
+    { folder?: string; note?: string; tagName?: string },
+  ];
+
+  const folder = isInNoteSidebar
+    ? noteSidebarParams?.folder
+    : tagSidebarParams?.folder;
+
   const setDialogData = useSetAtom(dialogDataAtom);
   useFolderCreate();
   useFolderDelete();
