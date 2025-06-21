@@ -251,7 +251,9 @@ function FolderAccordionButton({
                     height={17}
                     className="will-change-transform"
                   />{' '}
-                  Reveal In Finder
+                  <span className="will-change-transform">
+                    Reveal In Finder
+                  </span>
                 </span>
               ),
               value: 'reveal-in-finder',
@@ -266,7 +268,7 @@ function FolderAccordionButton({
                     height={17}
                     className="will-change-transform"
                   />{' '}
-                  Rename Folder
+                  <span className="will-change-transform">Rename Folder</span>
                 </span>
               ),
               value: 'rename-folder',
@@ -300,7 +302,7 @@ function FolderAccordionButton({
                     height={17}
                     className="will-change-transform"
                   />{' '}
-                  Move to Trash
+                  <span className="will-change-transform">Move to Trash</span>
                 </span>
               ),
               value: 'move-to-trash',

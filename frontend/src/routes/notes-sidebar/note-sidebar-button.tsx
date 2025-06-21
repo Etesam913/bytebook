@@ -160,7 +160,10 @@ export function NoteSidebarButton({
                     height={17}
                     className="will-change-transform"
                   />{' '}
-                  Reveal In Finder
+                  <span className="will-change-transform">
+                    {' '}
+                    Reveal In Finder
+                  </span>
                 </span>
               ),
               value: 'reveal-in-finder',
@@ -180,7 +183,7 @@ export function NoteSidebarButton({
                           height={17}
                           className="will-change-transform"
                         />{' '}
-                        Pin Notes
+                        <span className="will-change-transform">Pin Notes</span>
                       </span>
                     ),
                     value: 'pin-note',
@@ -204,7 +207,10 @@ export function NoteSidebarButton({
                           height={17}
                           className="will-change-transform"
                         />{' '}
-                        Unpin Notes
+                        <span className="will-change-transform">
+                          {' '}
+                          Unpin Notes
+                        </span>
                       </span>
                     ),
                     value: 'unpin-note',
@@ -226,7 +232,7 @@ export function NoteSidebarButton({
                     height={17}
                     className="will-change-transform"
                   />{' '}
-                  Edit Tags
+                  <span className="will-change-transform"> Edit Tags</span>
                 </span>
               ),
               value: 'edit-tags',
@@ -263,7 +269,7 @@ export function NoteSidebarButton({
                     height={17}
                     className="will-change-transform"
                   />{' '}
-                  Move to Trash
+                  <span className="will-change-transform"> Move to Trash</span>
                 </span>
               ),
               value: 'move-to-trash',

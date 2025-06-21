@@ -88,16 +88,6 @@ export function DropdownItems({
             >
               {items.map(({ value, label }, i) => (
                 <div className="w-full inline relative" key={value}>
-                  {focusIndex === i && (
-                    <motion.div
-                      transition={{ ease: easingFunctions['ease-out-expo'] }}
-                      layoutId={'dropdown-highlight'}
-                      className="absolute z-30 inset-0 rounded-md w-full px-1.5 py-0.5 bg-zinc-150 dark:bg-zinc-600"
-                    />
-                  )}
-                  {selectedItem === value && (
-                    <div className="absolute z-20 inset-0 rounded-md w-full px-1.5 py-0.5 bg-zinc-150 dark:bg-zinc-600" />
-                  )}
                   <button
                     className={cn(
                       'relative z-40 outline-hidden rounded-md w-full px-1.5 py-0.5 text-left whitespace-nowrap text-nowrap text-ellipsis overflow-hidden flex'
@@ -138,6 +128,18 @@ export function DropdownItems({
                   >
                     {label}
                   </button>
+                  {focusIndex === i && (
+                    <motion.div
+                      transition={{
+                        ease: easingFunctions['ease-out-expo'],
+                      }}
+                      layoutId={'dropdown-highlight'}
+                      className="absolute z-0 inset-0 rounded-md w-full px-1.5 py-0.5 bg-zinc-150 dark:bg-zinc-600"
+                    />
+                  )}
+                  {selectedItem === value && (
+                    <div className="absolute z-20 inset-0 rounded-md w-full px-1.5 py-0.5 bg-zinc-150 dark:bg-zinc-600" />
+                  )}
                 </div>
               ))}
             </div>

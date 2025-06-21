@@ -88,7 +88,7 @@ export function ContextMenu() {
               setSelectionRange(new Set());
             }}
             ref={contextMenuRefLocal}
-            className="w-fit text-sm overflow-y-hidden"
+            className="w-fit text-sm overflow-hidden"
             items={items}
             isOpen={isShowing}
             setIsOpen={(value: boolean) =>
