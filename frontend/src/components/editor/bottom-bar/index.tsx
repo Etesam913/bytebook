@@ -32,8 +32,8 @@ export function BottomBar({
 }) {
   const [lastUpdatedText, setLastUpdatedText] = useState('');
 
-  const { data: tagsMap, isLoading } = useTagsForNotesQuery(folder, [
-    `${note}.${ext}`,
+  const { data: tagsMap, isLoading } = useTagsForNotesQuery([
+    `${folder}/${note}.${ext}`,
   ]);
   const { mutate: deleteTag } = useDeleteTagsMutation(folder, note, ext);
   const { mutateAsync: editTags } = useEditTagsMutation();
@@ -121,6 +121,7 @@ export function BottomBar({
         </button>
         {isLoading ? (
           <motion.span
+            className="flex items-center gap-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}

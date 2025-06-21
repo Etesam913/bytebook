@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useAtomValue } from 'jotai';
-import { type StringRouteParams, useRoute } from 'wouter';
+import { useRoute } from 'wouter';
 import {
   CreateTags,
   DeleteTagsFromNotes,
@@ -26,19 +26,11 @@ import { QueryError } from '../utils/query';
  */
 function invalidateCurrentNoteTagsQueryIfNeeded(
   queryClient: QueryClient,
-  routeParams: StringRouteParams<'/:folder/:note?'> | null,
-  searchParams: { ext?: string }
+  folderNotePath: string | null
 ) {
-  const currentFolder = routeParams?.folder;
-  const currentNote = routeParams?.note;
-
-  if (currentFolder && currentNote && searchParams.ext) {
+  if (folderNotePath) {
     queryClient.invalidateQueries({
-      queryKey: [
-        'notes-tags',
-        currentFolder,
-        [`${currentNote}.${searchParams.ext}`],
-      ],
+      queryKey: ['notes-tags', [folderNotePath]],
     });
   }
 }
@@ -52,15 +44,10 @@ function invalidateCurrentNoteTagsQueryIfNeeded(
  */
 function handleTagRelatedEvent(
   queryClient: QueryClient,
-  routeParams: StringRouteParams<'/:folder/:note?'> | null,
-  searchParams: { ext?: string }
+  folderNotePath: string | null
 ) {
   queryClient.invalidateQueries({ queryKey: ['get-tags'] });
-  invalidateCurrentNoteTagsQueryIfNeeded(
-    queryClient,
-    routeParams,
-    searchParams
-  );
+  invalidateCurrentNoteTagsQueryIfNeeded(queryClient, folderNotePath);
 }
 
 /**
@@ -68,12 +55,34 @@ function handleTagRelatedEvent(
  */
 export function useTagEvents() {
   const queryClient = useQueryClient();
-  const [, routeParams] = useRoute('/:folder/:note?');
+  const [isInNotesSidebar, notesSidebarRouteParams] =
+    useRoute('/:folder/:note?');
+  const [isInTagsSidebar, tagsSidebarRouteParams] = useRoute(
+    '/tags/:tagName/:folder?/:note?'
+  );
+
   const searchParams: { ext?: string } = useSearchParamsEntries();
+  let folderAndNotePath: string | null = null;
+  if (isInNotesSidebar) {
+    const { folder, note } = notesSidebarRouteParams;
+    if (note) {
+      folderAndNotePath = `${folder}/${note}.${searchParams.ext}`;
+    }
+  } else if (isInTagsSidebar) {
+    const { folder, note } = tagsSidebarRouteParams as {
+      tagName: string;
+      folder?: string;
+      note?: string;
+    };
+    if (note && folder) {
+      folderAndNotePath = `${folder}/${note}.${searchParams.ext}`;
+    }
+  }
+
   const noteSort = useAtomValue(noteSortAtom);
   useWailsEvent('tags-folder:create', () => {
     console.info('tags-folder:create');
-    handleTagRelatedEvent(queryClient, routeParams, searchParams);
+    handleTagRelatedEvent(queryClient, folderAndNotePath);
   });
   useWailsEvent('tags-folder:delete', (body) => {
     console.info('tags-folder:delete', body);
@@ -84,7 +93,7 @@ export function useTagEvents() {
         queryKey: ['tag-notes', folder, noteSort],
       });
     });
-    handleTagRelatedEvent(queryClient, routeParams, searchParams);
+    handleTagRelatedEvent(queryClient, folderAndNotePath);
   });
   useWailsEvent('tags:update', (body) => {
     const data = body.data as { notes: string[] | null; tagName: string }[];
@@ -100,7 +109,7 @@ export function useTagEvents() {
       predicate: (query) => query.queryKey[0] === 'tag-preview',
     });
 
-    handleTagRelatedEvent(queryClient, routeParams, searchParams);
+    handleTagRelatedEvent(queryClient, folderAndNotePath);
   });
 }
 
@@ -131,16 +140,11 @@ export function useTagsQuery() {
  * @param notesWithExtensions - An array of note paths with ext query param at the end
  * @returns
  */
-export function useTagsForNotesQuery(
-  folder: string,
-  notesWithExtensions: string[]
-) {
+export function useTagsForNotesQuery(folderAndNotesWithExtensions: string[]) {
   return useQuery({
-    queryKey: ['notes-tags', folder, notesWithExtensions],
+    queryKey: ['notes-tags', folderAndNotesWithExtensions],
     queryFn: async () => {
-      const res = await GetTagsForNotes(
-        notesWithExtensions.map((note) => `${folder}/${note}`)
-      );
+      const res = await GetTagsForNotes(folderAndNotesWithExtensions);
       if (!res.success) {
         throw new Error(res.message);
       }

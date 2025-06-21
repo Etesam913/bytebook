@@ -15,6 +15,7 @@ import { Input } from '../../components/input';
 import { Tag } from '../../components/editor/bottom-bar/tag';
 import { motion } from 'motion/react';
 import { LoadingSpinner } from '../../components/loading-spinner';
+import { useRoute } from 'wouter';
 
 export function EditTagDialogChildren({
   selectionRange,
@@ -25,6 +26,7 @@ export function EditTagDialogChildren({
   folder: string;
   errorText: string;
 }) {
+  const [isInTagsSidebar] = useRoute('/tags/:tagName/:folder?/:note?');
   const {
     data: tags,
     isLoading: areTagsLoading,
@@ -57,7 +59,11 @@ export function EditTagDialogChildren({
     isLoading: areTagsForSelectedNotesLoading,
     isError: areTagsForSelectedNotesError,
     error: tagsForSelectedNotesError,
-  } = useTagsForNotesQuery(folder, selectedNotesWithExtensions);
+  } = useTagsForNotesQuery(
+    isInTagsSidebar
+      ? selectedNotesWithExtensions
+      : selectedNotesWithExtensions.map((note) => `${folder}/${note}`)
+  );
 
   useEffect(() => {
     if (tagsForSelectedNotes) {
@@ -186,6 +192,7 @@ export function EditTagDialogChildren({
             <Input
               labelProps={{}}
               inputProps={{
+                autoFocus: true,
                 placeholder: 'Search tags or create new tag...',
                 value: searchTerm,
                 onChange: (e) => setSearchTerm(e.target.value),
@@ -193,6 +200,7 @@ export function EditTagDialogChildren({
                 autoCapitalize: 'off',
                 autoComplete: 'off',
                 spellCheck: 'false',
+                type: 'text',
               }}
               clearable={true}
             />

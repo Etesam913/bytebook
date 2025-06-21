@@ -88,7 +88,13 @@ export function useTrapFocus() {
     // Initial focus into container
     const items = getFocusable();
     if (items.length) {
-      items[0].focus();
+      // Check for element with autofocus first
+      const autofocusElement = items.find((el) => el.hasAttribute('autofocus'));
+      if (autofocusElement) {
+        autofocusElement.focus();
+      } else {
+        items[0].focus();
+      }
     } else {
       // trapFocusContainer.setAttribute('tabindex', '-1');
       trapFocusContainer.focus();
