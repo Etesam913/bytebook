@@ -92,12 +92,12 @@ func TestTagExists(t *testing.T) {
 	t.Run("returns false when tag directory exists but notes.json does not exist", func(t *testing.T) {
 		tempDir := t.TempDir()
 		tagName := "test-tag"
-		
+
 		// Create tag directory but not the notes.json file
 		tagDir := filepath.Join(tempDir, "tags", tagName)
 		err := os.MkdirAll(tagDir, os.ModePerm)
 		assert.NoError(t, err)
-		
+
 		exists, err := TagExists(tempDir, tagName)
 		assert.NoError(t, err)
 		assert.False(t, exists, "Expected tag to not exist when notes.json file is missing")
@@ -106,7 +106,7 @@ func TestTagExists(t *testing.T) {
 	t.Run("returns false when the tags directory does not exist", func(t *testing.T) {
 		tempDir := t.TempDir()
 		// Don't create the tags directory at all
-		
+
 		exists, err := TagExists(tempDir, "any-tag")
 		assert.NoError(t, err)
 		assert.False(t, exists, "Expected tag to not exist when tags directory doesn't exist")
@@ -114,18 +114,18 @@ func TestTagExists(t *testing.T) {
 	t.Run("returns false when path exists but is not a directory", func(t *testing.T) {
 		tempDir := t.TempDir()
 		tagName := "test-tag"
-		
+
 		// Create tags directory first
 		tagsDir := filepath.Join(tempDir, "tags")
 		err := os.MkdirAll(tagsDir, os.ModePerm)
 		assert.NoError(t, err)
-		
+
 		// Create a file with the tag name instead of a directory
 		tagPath := filepath.Join(tagsDir, tagName)
 		file, err := os.Create(tagPath)
 		assert.NoError(t, err)
 		file.Close()
-		
+
 		exists, err := TagExists(tempDir, tagName)
 		assert.NoError(t, err)
 		assert.False(t, exists, "Expected tag to not exist when path is a file, not a directory")
@@ -133,16 +133,15 @@ func TestTagExists(t *testing.T) {
 	t.Run("returns true when both tag directory and notes.json exist", func(t *testing.T) {
 		tempDir := t.TempDir()
 		tagName := "test-tag"
-		
+
 		// Create tag directory and notes.json file
 		err := CreateTagToNotesArrayIfNotExists(tempDir, tagName)
 		assert.NoError(t, err)
-		
+
 		exists, err := TagExists(tempDir, tagName)
 		assert.NoError(t, err)
 		assert.True(t, exists, "Expected tag to exist when both directory and notes.json exist")
 	})
-
 
 }
 
@@ -843,9 +842,9 @@ func TestSetTags(t *testing.T) {
 func TestUpdateFolderNameInTags(t *testing.T) {
 	t.Run("updates folder name in tags successfully", func(t *testing.T) {
 		tempDir := t.TempDir()
-		
+
 		// Setup: Create notes with tags in different folders
-		
+
 		// Add tags to notes
 		err := AddTags(tempDir, []string{"tag1", "tag2"}, []string{"oldFolder/note1.md", "oldFolder/note2.md"})
 		assert.NoError(t, err)
@@ -853,25 +852,25 @@ func TestUpdateFolderNameInTags(t *testing.T) {
 		assert.NoError(t, err)
 		err = AddTags(tempDir, []string{"tag1"}, []string{"oldFolder/note2.md"})
 		assert.NoError(t, err)
-		
+
 		// Execute the function under test
 		err = UpdateFolderNameInTags(tempDir, "oldFolder", "newFolder")
 		assert.NoError(t, err)
-		
+
 		// Verify notes_to_tags.json was updated correctly
 		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
 		var notesToTagsMap config.NotesToTagsMap
 		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
 		assert.NoError(t, err)
-		
+
 		// Check that old folder paths are updated
 		expectedNotesToTags := map[string][]string{
-			"newFolder/note1.md": {"tag1", "tag2"},
-			"newFolder/note2.md": {"tag1", "tag2"},
+			"newFolder/note1.md":   {"tag1", "tag2"},
+			"newFolder/note2.md":   {"tag1", "tag2"},
 			"otherFolder/note3.md": {"tag2", "tag3"},
 		}
 		assert.Equal(t, expectedNotesToTags, notesToTagsMap.Notes)
-		
+
 		// Verify individual tag files were updated
 		// Check tag1 notes.json
 		pathToTag1File := getTagNotesFilePath(tempDir, "tag1")
@@ -879,14 +878,14 @@ func TestUpdateFolderNameInTags(t *testing.T) {
 		err = util.ReadJsonFromPath(pathToTag1File, &tag1Array)
 		assert.NoError(t, err)
 		assert.ElementsMatch(t, []string{"newFolder/note1.md", "newFolder/note2.md"}, tag1Array.Notes)
-		
+
 		// Check tag2 notes.json
 		pathToTag2File := getTagNotesFilePath(tempDir, "tag2")
 		var tag2Array TagsToNotesArray
 		err = util.ReadJsonFromPath(pathToTag2File, &tag2Array)
 		assert.NoError(t, err)
 		assert.ElementsMatch(t, []string{"newFolder/note1.md", "newFolder/note2.md", "otherFolder/note3.md"}, tag2Array.Notes)
-		
+
 		// Check tag3 notes.json (should only have the unchanged note)
 		pathToTag3File := getTagNotesFilePath(tempDir, "tag3")
 		var tag3Array TagsToNotesArray
@@ -894,31 +893,31 @@ func TestUpdateFolderNameInTags(t *testing.T) {
 		assert.NoError(t, err)
 		assert.ElementsMatch(t, []string{"otherFolder/note3.md"}, tag3Array.Notes)
 	})
-	
+
 	t.Run("handles partial path matches correctly", func(t *testing.T) {
 		tempDir := t.TempDir()
-		
+
 		// Setup notes with similar folder names
 		err := AddTags(tempDir, []string{"tag1"}, []string{"folder/note1.md", "folder2/note2.md", "anotherfolder/note3.md"})
 		assert.NoError(t, err)
-		
+
 		// Rename only "folder" (not "folder2" or "anotherfolder")
 		err = UpdateFolderNameInTags(tempDir, "folder", "renamed")
 		assert.NoError(t, err)
-		
+
 		// Verify only exact folder matches were updated
 		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
 		var notesToTagsMap config.NotesToTagsMap
 		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
 		assert.NoError(t, err)
-		
+
 		expectedNotesToTags := map[string][]string{
-			"renamed/note1.md": {"tag1"},
-			"folder2/note2.md": {"tag1"},
+			"renamed/note1.md":       {"tag1"},
+			"folder2/note2.md":       {"tag1"},
 			"anotherfolder/note3.md": {"tag1"},
 		}
 		assert.Equal(t, expectedNotesToTags, notesToTagsMap.Notes)
-		
+
 		// Verify tag file was updated correctly
 		pathToTag1File := getTagNotesFilePath(tempDir, "tag1")
 		var tag1Array TagsToNotesArray
@@ -926,41 +925,41 @@ func TestUpdateFolderNameInTags(t *testing.T) {
 		assert.NoError(t, err)
 		assert.ElementsMatch(t, []string{"renamed/note1.md", "folder2/note2.md", "anotherfolder/note3.md"}, tag1Array.Notes)
 	})
-	
+
 	t.Run("handles empty folder with no notes", func(t *testing.T) {
 		tempDir := t.TempDir()
-		
+
 		// Setup some notes in other folders
 		err := AddTags(tempDir, []string{"tag1"}, []string{"existingFolder/note1.md"})
 		assert.NoError(t, err)
-		
+
 		// Try to rename a folder that has no notes
 		err = UpdateFolderNameInTags(tempDir, "nonexistentFolder", "newName")
 		assert.NoError(t, err)
-		
+
 		// Verify nothing was changed
 		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
 		var notesToTagsMap config.NotesToTagsMap
 		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
 		assert.NoError(t, err)
-		
+
 		expectedNotesToTags := map[string][]string{
 			"existingFolder/note1.md": {"tag1"},
 		}
 		assert.Equal(t, expectedNotesToTags, notesToTagsMap.Notes)
 	})
-	
+
 	t.Run("handles notes with no tags", func(t *testing.T) {
 		tempDir := t.TempDir()
-		
+
 		// Create notes_to_tags.json file but don't add any tags
 		err := config.CreateNoteToTagsMapIfNotExists(tempDir)
 		assert.NoError(t, err)
-		
+
 		// Try to rename a folder
 		err = UpdateFolderNameInTags(tempDir, "oldFolder", "newFolder")
 		assert.NoError(t, err)
-		
+
 		// Verify the file still exists and is unchanged
 		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
 		var notesToTagsMap config.NotesToTagsMap
@@ -968,15 +967,15 @@ func TestUpdateFolderNameInTags(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Empty(t, notesToTagsMap.Notes)
 	})
-	
+
 	t.Run("handles nonexistent tags gracefully", func(t *testing.T) {
 		tempDir := t.TempDir()
-		
+
 		// Manually create notes_to_tags.json with a tag that doesn't have a directory
 		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
 		err := config.CreateNoteToTagsMapIfNotExists(tempDir)
 		assert.NoError(t, err)
-		
+
 		// Manually add a note with a tag that doesn't exist as a directory
 		initialMap := config.NotesToTagsMap{
 			Notes: map[string][]string{
@@ -985,25 +984,25 @@ func TestUpdateFolderNameInTags(t *testing.T) {
 		}
 		err = util.WriteJsonToPath(pathToNotesToTagsFile, initialMap)
 		assert.NoError(t, err)
-		
+
 		// Execute the function
 		err = UpdateFolderNameInTags(tempDir, "oldFolder", "newFolder")
 		assert.NoError(t, err)
-		
+
 		// Verify notes_to_tags.json was still updated
 		var notesToTagsMap config.NotesToTagsMap
 		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
 		assert.NoError(t, err)
-		
+
 		expectedNotesToTags := map[string][]string{
 			"newFolder/note1.md": {"nonexistentTag"},
 		}
 		assert.Equal(t, expectedNotesToTags, notesToTagsMap.Notes)
 	})
-	
+
 	t.Run("handles complex nested folder structures", func(t *testing.T) {
 		tempDir := t.TempDir()
-		
+
 		// Setup notes in nested folder structures
 		notePaths := []string{
 			"oldFolder/note1.md",
@@ -1011,28 +1010,28 @@ func TestUpdateFolderNameInTags(t *testing.T) {
 			"oldFolder/subfolder/nested/note3.md",
 			"otherFolder/oldFolder/note4.md", // This should NOT be renamed
 		}
-		
+
 		err := AddTags(tempDir, []string{"tag1"}, notePaths)
 		assert.NoError(t, err)
-		
+
 		// Rename the top-level oldFolder
 		err = UpdateFolderNameInTags(tempDir, "oldFolder", "newFolder")
 		assert.NoError(t, err)
-		
+
 		// Verify the updates
 		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
 		var notesToTagsMap config.NotesToTagsMap
 		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
 		assert.NoError(t, err)
-		
+
 		expectedNotesToTags := map[string][]string{
-			"newFolder/note1.md": {"tag1"},
-			"newFolder/subfolder/note2.md": {"tag1"},
+			"newFolder/note1.md":                  {"tag1"},
+			"newFolder/subfolder/note2.md":        {"tag1"},
 			"newFolder/subfolder/nested/note3.md": {"tag1"},
-			"otherFolder/oldFolder/note4.md": {"tag1"}, // Should remain unchanged
+			"otherFolder/oldFolder/note4.md":      {"tag1"}, // Should remain unchanged
 		}
 		assert.Equal(t, expectedNotesToTags, notesToTagsMap.Notes)
-		
+
 		// Verify tag file
 		pathToTag1File := getTagNotesFilePath(tempDir, "tag1")
 		var tag1Array TagsToNotesArray
@@ -1040,10 +1039,262 @@ func TestUpdateFolderNameInTags(t *testing.T) {
 		assert.NoError(t, err)
 		expectedNotes := []string{
 			"newFolder/note1.md",
-			"newFolder/subfolder/note2.md", 
+			"newFolder/subfolder/note2.md",
 			"newFolder/subfolder/nested/note3.md",
 			"otherFolder/oldFolder/note4.md",
 		}
 		assert.ElementsMatch(t, expectedNotes, tag1Array.Notes)
+	})
+}
+
+func TestUpdateNoteNameInTags(t *testing.T) {
+	t.Run("updates note name in tags successfully", func(t *testing.T) {
+		tempDir := t.TempDir()
+
+		// Setup: Create notes with tags
+		err := AddTags(tempDir, []string{"tag1", "tag2"}, []string{"folder/old-note.md"})
+		assert.NoError(t, err)
+		err = AddTags(tempDir, []string{"tag2", "tag3"}, []string{"folder/other-note.md"})
+		assert.NoError(t, err)
+		err = AddTags(tempDir, []string{"tag1"}, []string{"folder/old-note.md"})
+		assert.NoError(t, err)
+
+		// Execute the function under test
+		err = UpdateNoteNameInTags(tempDir, "folder/old-note.md", "folder/new-note.md")
+		assert.NoError(t, err)
+
+		// Verify notes_to_tags.json was updated correctly
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+
+		// Check that the note name was updated
+		expectedNotesToTags := map[string][]string{
+			"folder/new-note.md":   {"tag1", "tag2"},
+			"folder/other-note.md": {"tag2", "tag3"},
+		}
+		assert.Equal(t, expectedNotesToTags, notesToTagsMap.Notes)
+
+		// Verify individual tag files were updated
+		// Check tag1 notes.json
+		pathToTag1File := getTagNotesFilePath(tempDir, "tag1")
+		var tag1Array TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToTag1File, &tag1Array)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"folder/new-note.md"}, tag1Array.Notes)
+
+		// Check tag2 notes.json
+		pathToTag2File := getTagNotesFilePath(tempDir, "tag2")
+		var tag2Array TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToTag2File, &tag2Array)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"folder/new-note.md", "folder/other-note.md"}, tag2Array.Notes)
+
+		// Check tag3 notes.json (should only have the unchanged note)
+		pathToTag3File := getTagNotesFilePath(tempDir, "tag3")
+		var tag3Array TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToTag3File, &tag3Array)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"folder/other-note.md"}, tag3Array.Notes)
+	})
+
+	t.Run("handles renaming note with no tags", func(t *testing.T) {
+		tempDir := t.TempDir()
+
+		// Setup: Create a note with tags and another without
+		err := AddTags(tempDir, []string{"tag1"}, []string{"folder/tagged-note.md"})
+		assert.NoError(t, err)
+
+		// Try to rename a note that doesn't have any tags
+		err = UpdateNoteNameInTags(tempDir, "folder/untagged-note.md", "folder/renamed-untagged.md")
+		assert.NoError(t, err)
+
+		// Verify the existing tagged note was not affected
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+
+		expectedNotesToTags := map[string][]string{
+			"folder/tagged-note.md": {"tag1"},
+		}
+		assert.Equal(t, expectedNotesToTags, notesToTagsMap.Notes)
+
+		// Verify tag1 still has the correct note
+		pathToTag1File := getTagNotesFilePath(tempDir, "tag1")
+		var tag1Array TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToTag1File, &tag1Array)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"folder/tagged-note.md"}, tag1Array.Notes)
+	})
+
+	t.Run("handles exact path matching", func(t *testing.T) {
+		tempDir := t.TempDir()
+
+		// Setup notes with similar names
+		err := AddTags(tempDir, []string{"tag1"}, []string{
+			"folder/note.md",
+			"folder/note-extended.md",
+			"folder/my-note.md",
+		})
+		assert.NoError(t, err)
+
+		// Rename only "folder/note.md" (not the others)
+		err = UpdateNoteNameInTags(tempDir, "folder/note.md", "folder/renamed.md")
+		assert.NoError(t, err)
+
+		// Verify only the exact match was updated
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+
+		expectedNotesToTags := map[string][]string{
+			"folder/renamed.md":       {"tag1"},
+			"folder/note-extended.md": {"tag1"},
+			"folder/my-note.md":       {"tag1"},
+		}
+		assert.Equal(t, expectedNotesToTags, notesToTagsMap.Notes)
+
+		// Verify tag file was updated correctly
+		pathToTag1File := getTagNotesFilePath(tempDir, "tag1")
+		var tag1Array TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToTag1File, &tag1Array)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"folder/renamed.md", "folder/note-extended.md", "folder/my-note.md"}, tag1Array.Notes)
+	})
+
+	t.Run("handles renaming note with multiple tags", func(t *testing.T) {
+		tempDir := t.TempDir()
+
+		// Setup: Create a note with multiple tags
+		err := AddTags(tempDir, []string{"tag1", "tag2", "tag3", "tag4"}, []string{"project/important-note.md"})
+		assert.NoError(t, err)
+
+		// Rename the note
+		err = UpdateNoteNameInTags(tempDir, "project/important-note.md", "project/critical-note.md")
+		assert.NoError(t, err)
+
+		// Verify notes_to_tags.json was updated
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+
+		expectedNotesToTags := map[string][]string{
+			"project/critical-note.md": {"tag1", "tag2", "tag3", "tag4"},
+		}
+		assert.Equal(t, expectedNotesToTags, notesToTagsMap.Notes)
+
+		// Verify all tag files were updated
+		for _, tagName := range []string{"tag1", "tag2", "tag3", "tag4"} {
+			pathToTagFile := getTagNotesFilePath(tempDir, tagName)
+			var tagArray TagsToNotesArray
+			err = util.ReadJsonFromPath(pathToTagFile, &tagArray)
+			assert.NoError(t, err)
+			assert.ElementsMatch(t, []string{"project/critical-note.md"}, tagArray.Notes, "Expected tag %s to contain the renamed note", tagName)
+		}
+	})
+
+	t.Run("handles nonexistent tags gracefully", func(t *testing.T) {
+		tempDir := t.TempDir()
+
+		// Manually create notes_to_tags.json with a tag that doesn't have a directory
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		err := config.CreateNoteToTagsMapIfNotExists(tempDir)
+		assert.NoError(t, err)
+
+		// Manually add a note with a tag that doesn't exist as a directory
+		initialMap := config.NotesToTagsMap{
+			Notes: map[string][]string{
+				"folder/note.md": {"nonexistentTag"},
+			},
+		}
+		err = util.WriteJsonToPath(pathToNotesToTagsFile, initialMap)
+		assert.NoError(t, err)
+
+		// Execute the function
+		err = UpdateNoteNameInTags(tempDir, "folder/note.md", "folder/renamed-note.md")
+		assert.NoError(t, err)
+
+		// Verify notes_to_tags.json was still updated
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+
+		expectedNotesToTags := map[string][]string{
+			"folder/renamed-note.md": {"nonexistentTag"},
+		}
+		assert.Equal(t, expectedNotesToTags, notesToTagsMap.Notes)
+	})
+
+	t.Run("handles mixed scenarios with multiple notes", func(t *testing.T) {
+		tempDir := t.TempDir()
+
+		// Setup: Create multiple notes with various tag combinations
+		err := AddTags(tempDir, []string{"shared", "unique1"}, []string{"docs/note1.md"})
+		assert.NoError(t, err)
+		err = AddTags(tempDir, []string{"shared", "unique2"}, []string{"docs/note2.md"})
+		assert.NoError(t, err)
+		err = AddTags(tempDir, []string{"shared"}, []string{"docs/note3.md"})
+		assert.NoError(t, err)
+
+		// Rename one note
+		err = UpdateNoteNameInTags(tempDir, "docs/note2.md", "docs/updated-note2.md")
+		assert.NoError(t, err)
+
+		// Verify notes_to_tags.json
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+
+		expectedNotesToTags := map[string][]string{
+			"docs/note1.md":         {"shared", "unique1"},
+			"docs/updated-note2.md": {"shared", "unique2"},
+			"docs/note3.md":         {"shared"},
+		}
+		assert.Equal(t, expectedNotesToTags, notesToTagsMap.Notes)
+
+		// Verify shared tag contains all notes (with updated name)
+		pathToSharedTagFile := getTagNotesFilePath(tempDir, "shared")
+		var sharedTagArray TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToSharedTagFile, &sharedTagArray)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"docs/note1.md", "docs/updated-note2.md", "docs/note3.md"}, sharedTagArray.Notes)
+
+		// Verify unique1 tag still has note1
+		pathToUnique1TagFile := getTagNotesFilePath(tempDir, "unique1")
+		var unique1TagArray TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToUnique1TagFile, &unique1TagArray)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"docs/note1.md"}, unique1TagArray.Notes)
+
+		// Verify unique2 tag has the renamed note
+		pathToUnique2TagFile := getTagNotesFilePath(tempDir, "unique2")
+		var unique2TagArray TagsToNotesArray
+		err = util.ReadJsonFromPath(pathToUnique2TagFile, &unique2TagArray)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"docs/updated-note2.md"}, unique2TagArray.Notes)
+	})
+
+	t.Run("handles empty tag system", func(t *testing.T) {
+		tempDir := t.TempDir()
+
+		// Create empty notes_to_tags.json
+		err := config.CreateNoteToTagsMapIfNotExists(tempDir)
+		assert.NoError(t, err)
+
+		// Try to rename a note in an empty system
+		err = UpdateNoteNameInTags(tempDir, "folder/note.md", "folder/renamed.md")
+		assert.NoError(t, err)
+
+		// Verify the system remains empty
+		pathToNotesToTagsFile := getNotesToTagsFilePath(tempDir)
+		var notesToTagsMap config.NotesToTagsMap
+		err = util.ReadJsonFromPath(pathToNotesToTagsFile, &notesToTagsMap)
+		assert.NoError(t, err)
+		assert.Empty(t, notesToTagsMap.Notes)
 	})
 }

@@ -308,6 +308,10 @@ func (n *NoteService) RevealFolderOrFileInFinder(
 	}
 }
 
+// MoveNoteToFolder moves one or more notes to a new folder within the notes directory.
+// It takes a slice of note paths relative to the notes directory and the name of the destination folder.
+// If any notes fail to move, their names will be included in an error message.
+// Returns a BackendResponseWithoutData indicating success or failure of the operation.
 func (n *NoteService) MoveNoteToFolder(notePaths []string, newFolder string) config.BackendResponseWithoutData {
 	failedNoteNames := []string{}
 	for _, pathToNote := range notePaths {
@@ -339,6 +343,9 @@ type NotePreviewData struct {
 	LastUpdated   string `json:"lastUpdated"`
 }
 
+// GetNotePreview retrieves preview data for a note at the given path, including the first line,
+// first image source, file size, and last updated timestamp. If there is an error reading the note,
+// it will still return any metadata that could be retrieved, with Success=false.
 func (n *NoteService) GetNotePreview(path string) config.BackendResponseWithData[NotePreviewData] {
 	noteFilePath := filepath.Join(n.ProjectPath, path)
 
@@ -371,6 +378,8 @@ func (n *NoteService) GetNotePreview(path string) config.BackendResponseWithData
 	}
 }
 
+// DoesNoteExist checks if a note exists at the given path relative to the project's notes directory.
+// Returns true if the note exists, false otherwise.
 func (n *NoteService) DoesNoteExist(path string) bool {
 	fullPath := filepath.Join(n.ProjectPath, "notes", path)
 	doesExist, _ := util.FileOrFolderExists(fullPath)

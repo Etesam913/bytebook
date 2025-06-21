@@ -21,26 +21,40 @@ const (
 
 var IMAGE_FILE_EXTENSIONS = []string{"png", "jpg", "jpeg", "webp", "gif"}
 var VIDEO_FILE_EXTENSIONS = []string{"mov", "mp4", "m4v"}
+var TIME_FOR_TWO_EVENTS_TO_BE_RELATED = time.Second * 2
+
+type MostRecentCreatedEvent struct {
+	event fsnotify.Event
+	time  time.Time
+}
 
 // FileWatcher manages file system monitoring and event handling
 type FileWatcher struct {
-	app                     *application.App
-	projectPath             string
-	watcher                 *fsnotify.Watcher
-	debounceTimer           *time.Timer
-	debounceEvents          map[string][]map[string]string
-	mostRecentFolderCreated string
+	app                          *application.App
+	projectPath                  string
+	watcher                      *fsnotify.Watcher
+	debounceTimer                *time.Timer
+	debounceEvents               map[string][]map[string]string
+	mostRecentFolderCreatedEvent MostRecentCreatedEvent
+	mostRecentFileCreatedEvent   MostRecentCreatedEvent
 }
 
 // newFileWatcher creates and initializes a new FileWatcher
 func newFileWatcher(app *application.App, projectPath string, watcher *fsnotify.Watcher) *FileWatcher {
 	return &FileWatcher{
-		app:                     app,
-		projectPath:             projectPath,
-		watcher:                 watcher,
-		debounceTimer:           time.NewTimer(0),
-		debounceEvents:          make(map[string][]map[string]string),
-		mostRecentFolderCreated: "",
+		app:            app,
+		projectPath:    projectPath,
+		watcher:        watcher,
+		debounceTimer:  time.NewTimer(0),
+		debounceEvents: make(map[string][]map[string]string),
+		mostRecentFolderCreatedEvent: MostRecentCreatedEvent{
+			event: fsnotify.Event{},
+			time:  time.Now(),
+		},
+		mostRecentFileCreatedEvent: MostRecentCreatedEvent{
+			event: fsnotify.Event{},
+			time:  time.Now(),
+		},
 	}
 }
 
@@ -66,13 +80,17 @@ func (fw *FileWatcher) handleFolderEvents(prefix string, event fsnotify.Event) {
 
 	if event.Has(fsnotify.Create) {
 		eventKey = fmt.Sprintf("%s:create", prefix)
-		fw.mostRecentFolderCreated = event.Name
+		fw.mostRecentFolderCreatedEvent = MostRecentCreatedEvent{
+			event: event,
+			time:  time.Now(),
+		}
 		fw.watcher.Add(event.Name)
 	}
 
 	if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
 		// Handle rename events for note folders
-		if prefix == "notes-folder" && event.Has(fsnotify.Rename) {
+		timeDiff := time.Since(fw.mostRecentFolderCreatedEvent.time)
+		if prefix == "notes-folder" && event.Has(fsnotify.Rename) && timeDiff < TIME_FOR_TWO_EVENTS_TO_BE_RELATED {
 			fw.handleNoteFolderRename(folderName)
 		}
 		eventKey = fmt.Sprintf("%s:delete", prefix)
@@ -90,9 +108,12 @@ func (fw *FileWatcher) handleFolderEvents(prefix string, event fsnotify.Event) {
 	fw.handleDebounceReset()
 }
 
-// handleNoteFolderRename processes the consequences of renaming a note folder
+// handleNoteFolderRename processes a folder rename event by updating all markdown files within the folder
+// and their associated tags. It updates internal markdown URLs to reflect the new folder name and updates
+// any references to the folder in the tags system. The function takes the old folder name as input and uses
+// the most recent folder created event to determine the new folder path and name.
 func (fw *FileWatcher) handleNoteFolderRename(oldFolderName string) {
-	newFolderPath := fw.mostRecentFolderCreated
+	newFolderPath := fw.mostRecentFolderCreatedEvent.event.Name
 	newFolderName := filepath.Base(newFolderPath)
 	// When the note folder is renamed, all notes need path updates
 	files, err := os.ReadDir(newFolderPath)
@@ -148,13 +169,26 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 	extension := note[lastIndexOfDot+1:]
 	eventKey := ""
 
-	// A RENAME gets triggered when a file is deleted on macOS
-	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
-		eventKey = "note:delete"
-	} else if event.Has(fsnotify.Create) {
+	if event.Has(fsnotify.Create) {
 		eventKey = "note:create"
+		fw.mostRecentFileCreatedEvent = MostRecentCreatedEvent{
+			event: event,
+			time:  time.Now(),
+		}
 	}
 
+	// A RENAME gets triggered when a file is deleted on macOS
+	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
+		timeDiff := time.Since(fw.mostRecentFileCreatedEvent.time)
+		if event.Has(fsnotify.Rename) && timeDiff < TIME_FOR_TWO_EVENTS_TO_BE_RELATED {
+			oldFileFolder := filepath.Base(filepath.Dir(event.Name))
+			oldFileName := filepath.Base(event.Name)
+			oldFolderAndNote := filepath.Join(oldFileFolder, oldFileName)
+			fw.handleFileRename(oldFolderAndNote)
+		}
+
+		eventKey = "note:delete"
+	}
 	if eventKey != "" {
 		fw.debounceEvents[eventKey] = append(
 			fw.debounceEvents[eventKey],
@@ -165,6 +199,19 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 		)
 	}
 	fw.handleDebounceReset()
+}
+
+// handleFileRename updates the tag paths associated with the old file name to the new file name
+func (fw *FileWatcher) handleFileRename(oldFolderAndNote string) {
+	newFilePath := fw.mostRecentFileCreatedEvent.event.Name
+	newFileFolder := filepath.Base(filepath.Dir(newFilePath))
+	newFile := filepath.Base(newFilePath)
+	newFolderAndNote := filepath.Join(newFileFolder, newFile)
+	fmt.Println(oldFolderAndNote, "->", newFolderAndNote)
+	err := UpdateNoteNameInTags(fw.projectPath, oldFolderAndNote, newFolderAndNote)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
 
 // handleSettingsUpdate processes updates to settings files

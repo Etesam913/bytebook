@@ -42,7 +42,7 @@ func GetAllTags(projectPath string) ([]string, error) {
 			tags = append(tags, tagFolder.Name())
 		}
 	}
-	
+
 	// Sort tags alphabetically
 	slices.Sort(tags)
 	return tags, nil
@@ -59,7 +59,7 @@ func GetAllTags(projectPath string) ([]string, error) {
 //   - An error if directory operations fail
 func TagExists(projectPath string, tagName string) (bool, error) {
 	tagDir := filepath.Join(projectPath, "tags", tagName)
-	
+
 	info, err := os.Stat(tagDir)
 	if os.IsNotExist(err) {
 		return false, nil
@@ -67,11 +67,11 @@ func TagExists(projectPath string, tagName string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	
+
 	if !info.IsDir() {
 		return false, nil
 	}
-	
+
 	// Check if notes.json file exists
 	notesFile := filepath.Join(tagDir, "notes.json")
 	_, err = os.Stat(notesFile)
@@ -81,10 +81,9 @@ func TagExists(projectPath string, tagName string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	
+
 	return true, nil
 }
-
 
 /**
  * GetNotesFromTag retrieves a list of notes associated with a given tag.
@@ -92,14 +91,14 @@ func TagExists(projectPath string, tagName string) (bool, error) {
  * the notes will be sorted accordingly and stale notes will be cleaned up.
  */
 func GetNotesFromTag(projectPath string, tag string, sortOption *string) ([]string, error) {
-    // If the tag does not exist, return an empty array
-    exists, err := TagExists(projectPath, tag)
-    if err != nil {
-        return []string{}, err
-    }
-    if !exists {
-        return []string{}, errors.New("tag does not exist")
-    }
+	// If the tag does not exist, return an empty array
+	exists, err := TagExists(projectPath, tag)
+	if err != nil {
+		return []string{}, err
+	}
+	if !exists {
+		return []string{}, errors.New("tag does not exist")
+	}
 
 	pathToTagFile := filepath.Join(projectPath, "tags", tag, "notes.json")
 	notesForGivenTagData := TagsToNotesArray{}
@@ -220,8 +219,6 @@ func addNotesToTagNotesArray(projectPath string, tag string, notePaths []string)
 
 	return nil
 }
-
-
 
 // deleteNotesFromTagToNotesArray removes each notePath from the notes.json file for the given tag.
 func deleteNotesFromTagToNotesArray(projectPath string, tag string, notePaths []string) error {
@@ -571,7 +568,7 @@ func updateTagNotesFilesForFolderRename(projectPath string, oldFolderName string
 	// For each tag that needs updating
 	for _, tagName := range allTagsToUpdate.Elements() {
 		pathToTagFile := filepath.Join(projectPath, "tags", tagName, "notes.json")
-		
+
 		// Check if tag exists
 		exists, err := TagExists(projectPath, tagName)
 		if err != nil {
@@ -628,6 +625,132 @@ func UpdateFolderNameInTags(projectPath string, oldFolderName string, newFolderN
 
 	// Update individual tag notes.json files
 	err = updateTagNotesFilesForFolderRename(projectPath, oldFolderName, newFolderName, updatedNotes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// updateNotesToTagsMapForNoteRename updates the notes_to_tags.json file when a note is renamed.
+// It returns the tags associated with the renamed note.
+//
+// Parameters:
+//   - projectPath: The path to the project directory
+//   - oldFolderAndNoteName: The current note path that needs to be updated (e.g., "folder/note.md")
+//   - newFolderAndNoteName: The new note path to replace the old one (e.g., "folder/new-note.md")
+//
+// Returns:
+//   - A slice of tags associated with the renamed note
+//   - An error if the operation fails, otherwise nil
+func updateNotesToTagsMapForNoteRename(projectPath string, oldFolderAndNoteName string, newFolderAndNoteName string) ([]string, error) {
+	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
+
+	err := config.CreateNoteToTagsMapIfNotExists(projectPath)
+	if err != nil {
+		return nil, err
+	}
+
+	notesToTagsMap := config.NotesToTagsMap{}
+	if err := util.ReadJsonFromPath(pathToNoteToTagsMap, &notesToTagsMap); err != nil {
+		return nil, err
+	}
+
+	// Find the tags for the old note name
+	var tagsForNote []string
+	newNotesToTagsMap := make(map[string][]string)
+
+	// Update notes_to_tags.json
+	for notePath, tags := range notesToTagsMap.Notes {
+		if notePath == oldFolderAndNoteName {
+			// This is the note we want to rename
+			tagsForNote = tags
+			newNotesToTagsMap[newFolderAndNoteName] = tags
+		} else {
+			// Keep the note path as is
+			newNotesToTagsMap[notePath] = tags
+		}
+	}
+
+	// Write the updated notes_to_tags.json
+	notesToTagsMap.Notes = newNotesToTagsMap
+	if err := util.WriteJsonToPath(pathToNoteToTagsMap, notesToTagsMap); err != nil {
+		return nil, err
+	}
+
+	return tagsForNote, nil
+}
+
+// updateTagNotesFilesForNoteRename updates individual tag notes.json files when a note is renamed.
+//
+// Parameters:
+//   - projectPath: The path to the project directory
+//   - oldFolderAndNoteName: The current note path that needs to be updated
+//   - newFolderAndNoteName: The new note path to replace the old one
+//   - tagsForNote: A slice of tags associated with the renamed note (from updateNotesToTagsMapForNoteRename)
+//
+// Returns:
+//   - An error if the operation fails, otherwise nil
+func updateTagNotesFilesForNoteRename(projectPath string, oldFolderAndNoteName string, newFolderAndNoteName string, tagsForNote []string) error {
+	// Update individual tag notes.json files
+	for _, tagName := range tagsForNote {
+		pathToTagFile := filepath.Join(projectPath, "tags", tagName, "notes.json")
+
+		// Check if tag exists
+		exists, err := TagExists(projectPath, tagName)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			continue // Skip if tag doesn't exist
+		}
+
+		notesForGivenTagData := TagsToNotesArray{}
+		if err := util.ReadJsonFromPath(pathToTagFile, &notesForGivenTagData); err != nil {
+			return err
+		}
+
+		// Update notes in this tag's notes.json
+		updatedTagNotes := make([]string, 0, len(notesForGivenTagData.Notes))
+		for _, notePath := range notesForGivenTagData.Notes {
+			if notePath == oldFolderAndNoteName {
+				// Replace with the new note name
+				updatedTagNotes = append(updatedTagNotes, newFolderAndNoteName)
+			} else {
+				// Keep the note path as is
+				updatedTagNotes = append(updatedTagNotes, notePath)
+			}
+		}
+
+		// Write the updated tag notes.json
+		notesForGivenTagData.Notes = updatedTagNotes
+		if err := util.WriteJsonToPath(pathToTagFile, notesForGivenTagData); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// UpdateNoteNameInTags updates all references to a specific note when it is renamed.
+// It updates both the notes_to_tags.json file and individual tag notes.json files.
+//
+// Parameters:
+//   - projectPath: The path to the project directory
+//   - oldFolderAndNoteName: The current note path that needs to be updated (e.g., "folder/note.md")
+//   - newFolderAndNoteName: The new note path to replace the old one (e.g., "folder/new-note.md")
+//
+// Returns:
+//   - An error if the operation fails, otherwise nil
+func UpdateNoteNameInTags(projectPath string, oldFolderAndNoteName string, newFolderAndNoteName string) error {
+	// Update the notes_to_tags.json file
+	tagsForNote, err := updateNotesToTagsMapForNoteRename(projectPath, oldFolderAndNoteName, newFolderAndNoteName)
+	if err != nil {
+		return err
+	}
+
+	// Update individual tag notes.json files
+	err = updateTagNotesFilesForNoteRename(projectPath, oldFolderAndNoteName, newFolderAndNoteName, tagsForNote)
 	if err != nil {
 		return err
 	}
