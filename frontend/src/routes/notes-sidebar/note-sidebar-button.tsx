@@ -13,8 +13,10 @@ import {
   useNotePreviewQuery,
   useNoteRevealInFinderMutation,
   usePinNotesMutation,
+  useRenameFileMutation,
 } from '../../hooks/notes';
 import { Finder } from '../../icons/finder';
+import { FilePen } from '../../icons/file-pen';
 import { PinTack2 } from '../../icons/pin-tack-2';
 import { PinTackSlash } from '../../icons/pin-tack-slash';
 import TagPlus from '../../icons/tag-plus';
@@ -32,6 +34,7 @@ import { CardNoteSidebarItem } from './card-note-sidebar-item';
 import { ListNoteSidebarItem } from './list-note-sidebar-item';
 import { navigate } from 'wouter/use-browser-location';
 import { EditTagDialogChildren } from './edit-tag-dialog-children';
+import { RenameFileDialogChildren } from './rename-file-dialog-children';
 
 export function NoteSidebarButton({
   sidebarNoteFolder,
@@ -64,6 +67,7 @@ export function NoteSidebarButton({
     useNoteRevealInFinderMutation(isInTagsSidebar);
   const { mutate: moveToTrash } = useMoveNoteToTrashMutation(isInTagsSidebar);
   const { mutateAsync: editTags } = useEditTagsMutation();
+  const { mutateAsync: renameFile } = useRenameFileMutation();
 
   const setDialogData = useSetAtom(dialogDataAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
@@ -261,6 +265,101 @@ export function NoteSidebarButton({
                 });
               },
             },
+            ...(newSelectionRange.size === 1
+              ? [
+                  {
+                    label: (
+                      <span className="flex items-center gap-1.5">
+                        <FilePen
+                          width={17}
+                          height={17}
+                          className="will-change-transform"
+                        />{' '}
+                        <span className="will-change-transform"> Rename</span>
+                      </span>
+                    ),
+                    value: 'rename-file',
+                    onChange: () => {
+                      setDialogData({
+                        isOpen: true,
+                        isPending: false,
+                        title: 'Rename File',
+                        dialogClassName: 'w-[min(25rem,90vw)]',
+                        children: (errorText) => {
+                          const selectedNote = [...newSelectionRange][0];
+
+                          return (
+                            <RenameFileDialogChildren
+                              selectedNote={selectedNote}
+                              errorText={errorText}
+                              isInTagsSidebar={isInTagsSidebar}
+                            />
+                          );
+                        },
+                        onSubmit: async (e, setErrorText) => {
+                          try {
+                            const form = e.target as HTMLFormElement;
+                            const formData = new FormData(form);
+                            const newFileName = formData.get(
+                              'new-file-name'
+                            ) as string;
+                            if (!newFileName) {
+                              setErrorText('Please enter a new file name');
+                              return false;
+                            }
+
+                            // Recalculate paths using the context we already have
+                            const selectedNote = [...newSelectionRange][0];
+                            const noteWithoutPrefix =
+                              selectedNote.split(':')[1] || '';
+                            const { queryParams, noteNameWithoutExtension } =
+                              extractInfoFromNoteName(noteWithoutPrefix);
+                            const fileExtension = queryParams.ext;
+                            const originalPath = isInTagsSidebar
+                              ? `${noteNameWithoutExtension}.${fileExtension}`
+                              : `${sidebarNoteFolder}/${noteNameWithoutExtension}.${fileExtension}`;
+
+                            const targetFolder = isInTagsSidebar
+                              ? noteWithoutPrefix
+                                  .split('/')
+                                  .slice(0, -1)
+                                  .join('/')
+                              : sidebarNoteFolder;
+
+                            const newPath = `${targetFolder}/${newFileName}.${fileExtension}`;
+                            await renameFile({
+                              oldPath: originalPath,
+                              newPath: newPath,
+                            });
+
+                            const encodedTargetFolder =
+                              encodeURIComponent(targetFolder);
+                            const encodedNewFileName =
+                              encodeURIComponent(newFileName);
+                            if (isInTagsSidebar) {
+                              navigate(
+                                `/tags/${encodeURIComponent(tagState.tagName)}/${encodedTargetFolder}/${encodedNewFileName}?ext=${fileExtension}`
+                              );
+                            } else {
+                              navigate(
+                                `/${encodedTargetFolder}/${encodedNewFileName}?ext=${fileExtension}`
+                              );
+                            }
+                            return true;
+                          } catch (error) {
+                            setErrorText(
+                              error instanceof Error
+                                ? error.message
+                                : 'Failed to rename file'
+                            );
+                            return false;
+                          }
+                        },
+                      });
+                    },
+                  },
+                ]
+              : []),
             {
               label: (
                 <span className="flex items-center gap-1.5">

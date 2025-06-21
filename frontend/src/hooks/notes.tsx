@@ -9,6 +9,7 @@ import {
   GetNotePreview,
   GetNotes,
   MoveToTrash,
+  RenameFile,
   RevealFolderOrFileInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import {
@@ -319,6 +320,32 @@ export function usePinNotesMutation(isInTagsSidebar: boolean) {
       if (e instanceof Error) {
         toast.error(e.message, DEFAULT_SONNER_OPTIONS);
       }
+    },
+  });
+}
+
+export function useRenameFileMutation() {
+  return useMutation({
+    mutationFn: async ({
+      oldPath,
+      newPath,
+    }: {
+      oldPath: string;
+      newPath: string;
+    }) => {
+      const res = await RenameFile(oldPath, newPath);
+      if (!res.success) {
+        throw new Error(res.message);
+      }
+      return res.data;
+    },
+    onError: (e) => {
+      if (e instanceof Error) {
+        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+      }
+    },
+    onSuccess: () => {
+      toast.success('File renamed successfully', DEFAULT_SONNER_OPTIONS);
     },
   });
 }

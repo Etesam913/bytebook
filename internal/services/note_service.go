@@ -91,6 +91,67 @@ func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNote
 	return config.BackendResponseWithoutData{Success: true, Message: "Note renamed successfully"}
 }
 
+// RenameFile renames a file from oldFolderNotePath to newFolderNotePath.
+// Both paths should be relative to the notes directory (e.g., "folder/note.ext").
+func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath string) config.BackendResponseWithData[string] {
+	oldPath := filepath.Join(n.ProjectPath, "notes", oldFolderNotePath)
+	newPath := filepath.Join(n.ProjectPath, "notes", newFolderNotePath)
+
+	// Check if the old file exists
+	exists, err := util.FileOrFolderExists(oldPath)
+	if !exists || err != nil {
+		return config.BackendResponseWithData[string]{
+			Success: false,
+			Message: "Source file does not exist",
+			Data:    "",
+		}
+	}
+
+	// Check if the new file already exists
+	newExists, err := util.FileOrFolderExists(newPath)
+	if err != nil {
+		return config.BackendResponseWithData[string]{
+			Success: false,
+			Message: err.Error(),
+			Data:    "",
+		}
+	}
+
+	if newExists {
+		return config.BackendResponseWithData[string]{
+			Success: false,
+			Message: "A file with the new name already exists",
+			Data:    "",
+		}
+	}
+
+	// Ensure the destination directory exists
+	newDir := filepath.Dir(newPath)
+	if err := os.MkdirAll(newDir, os.ModePerm); err != nil {
+		return config.BackendResponseWithData[string]{
+			Success: false,
+			Message: err.Error(),
+			Data:    "",
+		}
+	}
+
+	// Rename the file
+	err = os.Rename(oldPath, newPath)
+	if err != nil {
+		return config.BackendResponseWithData[string]{
+			Success: false,
+			Message: err.Error(),
+			Data:    "",
+		}
+	}
+
+	return config.BackendResponseWithData[string]{
+		Success: true,
+		Message: "File renamed successfully",
+		Data:    newFolderNotePath,
+	}
+}
+
 func (n *NoteService) GetNoteMarkdown(path string) config.BackendResponseWithData[string] {
 	noteFilePath := filepath.Join(n.ProjectPath, path)
 
