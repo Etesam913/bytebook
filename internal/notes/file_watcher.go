@@ -73,7 +73,7 @@ func (fw *FileWatcher) handleFolderEvents(prefix string, event fsnotify.Event) {
 	if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
 		// Handle rename events for note folders
 		if prefix == "notes-folder" && event.Has(fsnotify.Rename) {
-			fw.handleNoteFolderRename()
+			fw.handleNoteFolderRename(folderName)
 		}
 		eventKey = fmt.Sprintf("%s:delete", prefix)
 		fw.watcher.Remove(event.Name)
@@ -91,9 +91,9 @@ func (fw *FileWatcher) handleFolderEvents(prefix string, event fsnotify.Event) {
 }
 
 // handleNoteFolderRename processes the consequences of renaming a note folder
-func (fw *FileWatcher) handleNoteFolderRename() {
+func (fw *FileWatcher) handleNoteFolderRename(oldFolderName string) {
 	newFolderPath := fw.mostRecentFolderCreated
-
+	newFolderName := filepath.Base(newFolderPath)
 	// When the note folder is renamed, all notes need path updates
 	files, err := os.ReadDir(newFolderPath)
 	if err != nil {
@@ -117,7 +117,7 @@ func (fw *FileWatcher) handleNoteFolderRename() {
 			fmt.Println(err)
 			continue
 		}
-
+		// Updates the urls inside the note markdown
 		noteMarkdownWithNewFolderName := ReplaceMarkdownURLs(
 			string(noteContent), filepath.Base(newFolderPath),
 		)
@@ -125,6 +125,13 @@ func (fw *FileWatcher) handleNoteFolderRename() {
 		err = os.WriteFile(pathToFile, []byte(noteMarkdownWithNewFolderName), 0644)
 		if err != nil {
 			fmt.Println(err)
+			continue
+		}
+
+		err = UpdateFolderNameInTags(fw.projectPath, oldFolderName, newFolderName)
+		if err != nil {
+			fmt.Println(err)
+			continue
 		}
 	}
 }
