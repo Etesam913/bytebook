@@ -158,7 +158,7 @@ export function SearchPanelForm() {
           duration: 0.2,
         },
       }}
-      className="absolute translate-x-[-50%] translate-y-[-50%] z-40 top-[25%] w-[min(29rem,90vw)] left-2/4"
+      className="absolute -translate-x-1/2 -translate-y-1/2 z-40 top-[25%] w-[min(29rem,90vw)] left-2/4"
       onSubmit={(e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -180,7 +180,7 @@ export function SearchPanelForm() {
         autoFocus
         name="search-query"
         placeholder="Search Files"
-        className="py-3 px-4 bg-transparent dark:bg-zinc-800 outline-hidden will-change-transform w-full border-zinc-300 rounded-bl-none rounded-br-none border-b-0 dark:border-zinc-700 rounded-lg shadow-2xl border-[1.25px] "
+        className="py-3 px-4 bg-white dark:bg-zinc-800 outline-hidden will-change-transform w-full border-zinc-300 rounded-bl-none rounded-br-none border-b-0 dark:border-zinc-700 rounded-lg shadow-2xl border-[1.25px]"
         value={searchPanelData.query}
         onFocus={async (e) => {
           e.target.select();

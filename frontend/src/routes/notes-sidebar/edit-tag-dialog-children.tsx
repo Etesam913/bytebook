@@ -187,7 +187,7 @@ export function EditTagDialogChildren({
         {(areTagsLoading || areTagsForSelectedNotesLoading) && (
           <RouteFallback className="my-1" />
         )}
-        {tags && !areTagsLoading && !areTagsError && tags.length > 0 && (
+        {tags && !areTagsLoading && !areTagsError && (
           <div className="mb-2">
             <Input
               labelProps={{}}
@@ -208,43 +208,39 @@ export function EditTagDialogChildren({
         )}
         {tags && !areTagsLoading && !areTagsError && (
           <>
-            {tags.length === 0 ? (
-              <div className="p-4 text-center text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-750 border border-zinc-150 dark:border-zinc-650 rounded-md">
-                <p>No tags found.</p>
-              </div>
-            ) : (
-              <div className="h-64 overflow-y-auto space-y-1 p-1 border border-zinc-150 dark:border-zinc-650 rounded-md">
-                {isCreatingTags && (
-                  <span className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 p-1.5">
-                    <LoadingSpinner height={16} width={16} />{' '}
-                    <span>Creating tag...</span>
-                  </span>
+            <div className="h-64 overflow-y-auto space-y-1 p-1 border border-zinc-150 dark:border-zinc-650 rounded-md">
+              {isCreatingTags && (
+                <span className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 p-1.5">
+                  <LoadingSpinner height={16} width={16} />{' '}
+                  <span>Creating tag...</span>
+                </span>
+              )}
+              {searchTerm.length > 0 &&
+                !tags.includes(searchTerm.toLowerCase().trim()) && (
+                  <IconButton
+                    className="text-sm w-full flex items-center gap-2"
+                    onClick={async () => {
+                      // Create the tag and set its count to the total number of selected notes (every note will have it added)
+                      await createTags({ tagNames: [searchTerm] });
+                      setSelectedTagCounts(
+                        new Map(
+                          selectedTagCounts.set(searchTerm, totalSelectedNotes)
+                        )
+                      );
+                      setSearchTerm('');
+                    }}
+                  >
+                    <TagPlus height={18} width={18} /> Create tag &quot;
+                    {searchTerm}&quot;
+                  </IconButton>
                 )}
-                {searchTerm.length > 0 &&
-                  !tags.includes(searchTerm.toLowerCase().trim()) && (
-                    <IconButton
-                      className="text-sm w-full flex items-center gap-2"
-                      onClick={async () => {
-                        // Create the tag and set its count to the total number of selected notes (every note will have it added)
-                        await createTags({ tagNames: [searchTerm] });
-                        setSelectedTagCounts(
-                          new Map(
-                            selectedTagCounts.set(
-                              searchTerm,
-                              totalSelectedNotes
-                            )
-                          )
-                        );
-                        setSearchTerm('');
-                      }}
-                    >
-                      <TagPlus height={18} width={18} /> Create tag &quot;
-                      {searchTerm}&quot;
-                    </IconButton>
-                  )}
-                {filteredTagElements}
-              </div>
-            )}
+              {filteredTagElements.length === 0 && (
+                <span className="text-sm text-zinc-500 dark:text-zinc-400 p-1.5">
+                  No tags found
+                </span>
+              )}
+              {filteredTagElements}
+            </div>
           </>
         )}
       </div>

@@ -4,6 +4,7 @@ import type { ResizeState, ResizeWidth } from '../../types';
 import { cn } from '../../utils/string-formatting';
 import { ResizeControls } from './resize-controls';
 import { ResizeHandle } from './resize-handle';
+import { FILE_SERVER_URL } from '../../utils/general';
 
 export function ResizeContainer({
   resizeState,
@@ -75,6 +76,16 @@ export function ResizeContainer({
                   }
                 />
               </motion.span>
+              {src.startsWith(FILE_SERVER_URL) && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, transition: { duration: 0.25 } }}
+                  className="absolute top-2 right-2 bg-zinc-200/70 rounded-md py-1 px-1.5 text-xs dark:bg-zinc-650/70"
+                >
+                  {src.split('/').at(-2)}/{src.split('/').at(-1)}
+                </motion.div>
+              )}
               <ResizeControls
                 src={src}
                 nodeKey={nodeKey}
