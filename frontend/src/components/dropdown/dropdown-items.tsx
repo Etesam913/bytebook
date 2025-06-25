@@ -49,7 +49,7 @@ export function DropdownItems({
       const children = Array.from(dropdownItemsRef.current.children);
       const firstChild = children.at(indexToFocus);
       if (!firstChild) return;
-      const firstButton = firstChild.lastChild as HTMLElement;
+      const firstButton = firstChild.firstChild as HTMLElement;
       firstButton.focus();
     }
   }, [dropdownItemsRef, isOpen]);

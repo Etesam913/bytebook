@@ -160,7 +160,7 @@ export function EditTagDialogChildren({
       {fullySelectedTags.length > 0 && (
         <div className="space-y-2">
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Selected tags
+            Selected tags:
           </p>
           <motion.div layout className="flex flex-wrap gap-1.5">
             {fullySelectedTags.map(({ tagName, count, isFullySelected }) => (

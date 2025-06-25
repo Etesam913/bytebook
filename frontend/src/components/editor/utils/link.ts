@@ -32,3 +32,32 @@ export const MATCHERS = [
     };
   },
 ];
+
+const SUPPORTED_URL_PROTOCOLS = new Set([
+  'http:',
+  'https:',
+  'mailto:',
+  'sms:',
+  'tel:',
+  'wails:',
+]);
+
+/**
+ * Sanitizes a URL by checking if it has a supported protocol.
+ * If the URL has an unsupported protocol, returns 'about:blank'.
+ * If the URL cannot be parsed, returns the original URL.
+ * @param url The URL string to sanitize
+ * @returns The sanitized URL string
+ */
+export function sanitizeUrl(url: string): string {
+  try {
+    const parsedUrl = new URL(url);
+
+    if (!SUPPORTED_URL_PROTOCOLS.has(parsedUrl.protocol)) {
+      return 'about:blank';
+    }
+  } catch {
+    return url;
+  }
+  return url;
+}
