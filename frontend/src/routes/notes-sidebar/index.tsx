@@ -20,6 +20,8 @@ import {
   useKernelShutdown,
   useKernelStatus,
 } from '../../hooks/code.tsx';
+import { ErrorBoundary } from 'react-error-boundary';
+import { RenderNoteFallback } from '../../components/error-boundary/render-note.tsx';
 
 export function NotesSidebar({
   params,
@@ -116,8 +118,19 @@ export function NotesSidebar({
           <Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
         </>
       )}
-
-      <RenderNote isInTagsSidebar={false} />
+      <ErrorBoundary
+        key={`${folder}-${note}-${fileExtension}`}
+        FallbackComponent={(fallbackProps) => (
+          <RenderNoteFallback
+            {...fallbackProps}
+            folder={decodeURIComponent(folder)}
+            note={note}
+            fileExtension={fileExtension}
+          />
+        )}
+      >
+        <RenderNote isInTagsSidebar={false} />
+      </ErrorBoundary>
     </>
   );
 }
