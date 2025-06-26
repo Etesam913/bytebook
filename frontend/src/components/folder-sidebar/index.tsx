@@ -22,6 +22,7 @@ import { CircleArrowLeft } from '../../icons/circle-arrow-left.tsx';
 import { CircleArrowRight } from '../../icons/circle-arrow-right.tsx';
 import { useRef } from 'react';
 import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
+import { RefreshAnticlockwise } from '../../icons/refresh-anticlockwise.tsx';
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
   const sidebarAccordionSectionRef = useRef<HTMLDivElement | null>(null);
@@ -55,7 +56,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
         style={{ width }}
         className="text-md flex h-screen flex-col"
       >
-        <header className="px-2.5 pt-[0.7rem] ml-auto">
+        <header className="px-2.5 pt-[0.7rem] ml-auto flex gap-1">
           <MotionIconButton
             {...getDefaultButtonVariants()}
             onClick={() => window.history.back()}
@@ -67,6 +68,12 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
             onClick={() => window.history.forward()}
           >
             <CircleArrowRight className="w-6 h-6" />
+          </MotionIconButton>
+          <MotionIconButton
+            {...getDefaultButtonVariants()}
+            onClick={() => window.location.reload()}
+          >
+            <RefreshAnticlockwise className="min-w-4 h-4" />
           </MotionIconButton>
         </header>
         <section className="px-2.5 pt-[1rem]">
