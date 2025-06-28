@@ -20,6 +20,7 @@ export interface CodePayload {
   lastExecutedResult?: string | null;
   status?: CodeBlockStatus;
   executionId?: string;
+  executionCount?: number;
 }
 
 export type SerializedCodeNode = Spread<
@@ -28,6 +29,7 @@ export type SerializedCodeNode = Spread<
     language: Languages;
     code: string;
     lastExecutedResult: string | null;
+    executionCount: number;
   },
   SerializedLexicalNode
 >;
@@ -54,6 +56,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   __lastExecutedResult: string | null;
   __status: CodeBlockStatus;
   __isWaitingForInput: boolean;
+  __executionCount: number;
 
   static getType(): string {
     return 'code-block';
@@ -68,18 +71,21 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       node.__lastExecutedResult,
       node.__status,
       node.__executionId,
+      node.__executionCount,
       node.__isWaitingForInput,
       node.__key
     );
   }
 
   static importJSON(serializedNode: SerializedCodeNode): CodeNode {
-    const { id, language, code, lastExecutedResult } = serializedNode;
+    const { id, language, code, lastExecutedResult, executionCount } =
+      serializedNode;
     const node = $createCodeNode({
       id,
       language,
       code,
       lastExecutedResult,
+      executionCount,
       // Hardcoding status:idle ensures that that when cmd+z recreates a code block, it is not in the loading state
       status: 'idle',
     });
@@ -98,6 +104,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     lastExecutedResult: string | null = null,
     status: CodeBlockStatus = 'idle',
     executionId?: string,
+    executionCount: number = 0,
     isWaitingForInput: boolean = false,
     key?: NodeKey
   ) {
@@ -111,6 +118,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     this.__lastExecutedResult = lastExecutedResult;
     this.__status = status;
     this.__isWaitingForInput = isWaitingForInput;
+    this.__executionCount = executionCount;
   }
 
   exportJSON(): SerializedCodeNode {
@@ -119,6 +127,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       language: this.getLanguage(),
       code: this.getCode(),
       lastExecutedResult: this.getLastExecutedResult(),
+      executionCount: this.getExecutionCount(),
       type: 'code-block',
       version: 1,
     };
@@ -308,8 +317,20 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
         setIsWaitingForInput={(isWaitingForInput: boolean) =>
           this.setIsWaitingForInput(isWaitingForInput, _editor)
         }
+        executionCount={this.getExecutionCount()}
       />
     );
+  }
+
+  getExecutionCount(): number {
+    return this.__executionCount;
+  }
+
+  setExecutionCount(executionCount: number, editor: LexicalEditor): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      writable.__executionCount = executionCount;
+    });
   }
 }
 
@@ -321,6 +342,7 @@ export function $createCodeNode({
   lastExecutedResult,
   status = 'idle',
   executionId = crypto.randomUUID(),
+  executionCount = 0,
 }: CodePayload): CodeNode {
   return $applyNodeReplacement(
     new CodeNode(
@@ -330,7 +352,9 @@ export function $createCodeNode({
       isCreatedNow,
       lastExecutedResult,
       status,
-      executionId
+      executionId,
+      executionCount,
+      false
     )
   );
 }
