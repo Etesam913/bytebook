@@ -1,6 +1,12 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { AnimatePresence } from 'motion/react';
-import { REDO_COMMAND, type TextFormatType, UNDO_COMMAND } from 'lexical';
+import {
+  $getSelection,
+  $isRangeSelection,
+  REDO_COMMAND,
+  type TextFormatType,
+  UNDO_COMMAND,
+} from 'lexical';
 import {
   type Dispatch,
   type ReactNode,
@@ -17,13 +23,15 @@ import { TextItalic } from '../../../icons/text-italic';
 import { TextStrikethrough } from '../../../icons/text-strikethrough';
 import { Undo } from '../../../icons/undo';
 import { UnorderedList } from '../../../icons/unordered-list';
-import type { EditorBlockTypes } from '../../../types';
+import type { EditorBlockTypes, FloatingDataType } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
 import {
   handleToolbarBlockElementClick,
   handleToolbarTextFormattingClick,
 } from '../../editor/utils/toolbar';
 import { SidebarHighlight } from '../../sidebar/highlight';
+import { Link } from '../../../icons/link';
+import { $isLinkNode } from '../../editor/nodes/link';
 
 type ButtonData = {
   icon: ReactNode;
@@ -42,6 +50,7 @@ export function ToolbarButtons({
   currentSelectionFormat,
   setCurrentSelectionFormat,
   shouldShowUndoRedo,
+  setFloatingData,
 }: {
   canUndo: boolean;
   canRedo: boolean;
@@ -52,6 +61,7 @@ export function ToolbarButtons({
   currentSelectionFormat: TextFormatType[];
   setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>;
   shouldShowUndoRedo?: boolean;
+  setFloatingData?: Dispatch<SetStateAction<FloatingDataType>>;
 }) {
   const [highlightedButton, setHighlightedButton] = useState(-1);
   const [editor] = useLexicalComposerContext();
@@ -176,6 +186,36 @@ export function ToolbarButtons({
       key: 'check',
     },
   ];
+
+  if (setFloatingData) {
+    buttonData.push({
+      icon: <Link className="will-change-transform" />,
+      onClick: () => {
+        editor.read(() => {
+          const selection = $getSelection();
+          if (!$isRangeSelection(selection)) {
+            return;
+          }
+          const selectionNodes = selection.getNodes();
+          let previousUrl: string | undefined;
+          selectionNodes.forEach((node) => {
+            const parent = node.getParent();
+            if ($isLinkNode(parent)) {
+              previousUrl = parent.getURL();
+              return;
+            }
+          });
+          setFloatingData((prev) => ({
+            ...prev,
+            isOpen: true,
+            type: 'link',
+            previousUrl,
+          }));
+        });
+      },
+      key: 'link',
+    });
+  }
 
   function getButtonsData() {
     if (shouldShowUndoRedo) {

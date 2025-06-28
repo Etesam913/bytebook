@@ -477,7 +477,7 @@ export function $isAutoLinkNode(
 }
 
 export const TOGGLE_LINK_COMMAND: LexicalCommand<
-  string | ({ url: string } & LinkAttributes) | null
+  string | ({ url: string | null } & LinkAttributes) | null
 > = createCommand('TOGGLE_LINK_COMMAND');
 
 /**

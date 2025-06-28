@@ -5,6 +5,7 @@ import { cn } from '../../utils/string-formatting';
 import { ResizeControls } from './resize-controls';
 import { ResizeHandle } from './resize-handle';
 import { FILE_SERVER_URL } from '../../utils/general';
+import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 
 export function ResizeContainer({
   resizeState,
@@ -32,9 +33,8 @@ export function ResizeContainer({
     widthMotionValue.get()
   );
   const resizeHeightMotionValue = useMotionValue<number | '100%'>('100%');
-
-  const { isSelected, isExpanded, isResizing, setIsResizing, setSelected } =
-    resizeState;
+  const [isSelected, setSelected] = useLexicalNodeSelection(nodeKey);
+  const { isExpanded, isResizing, setIsResizing } = resizeState;
 
   return (
     <>

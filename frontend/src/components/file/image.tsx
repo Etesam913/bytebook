@@ -31,27 +31,12 @@ export function Image({
 
   const isImageInViewport = noteSeenFileNodeKeys.has(nodeKey);
 
-  const {
-    isResizing,
-    setIsResizing,
-    isSelected,
-    setSelected,
-    clearSelection,
-    isExpanded,
-    setIsExpanded,
-  } = useResizeState(nodeKey);
+  const { isResizing, setIsResizing, isExpanded, setIsExpanded } =
+    useResizeState();
 
-  useResizeCommands(
-    editor,
-    isExpanded,
-    setIsExpanded,
-    isSelected,
-    nodeKey,
-    clearSelection,
-    imgRef
-  );
+  useResizeCommands(editor, isExpanded, setIsExpanded, nodeKey, imgRef);
 
-  useShowWhenInViewport(loaderRef, isExpanded, isImageInViewport);
+  useShowWhenInViewport(loaderRef);
 
   if (isError) {
     return <FileError src={src} nodeKey={nodeKey} type="loading-fail" />;
@@ -81,8 +66,6 @@ export function Image({
             resizeState={{
               isResizing,
               setIsResizing,
-              isSelected,
-              setSelected,
               isExpanded,
               setIsExpanded,
             }}

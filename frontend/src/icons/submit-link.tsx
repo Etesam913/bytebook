@@ -1,12 +1,12 @@
 export function SubmitLink({
-  width = '1.25rem',
-  height = '1.25rem',
+  width = 16,
+  height = 16,
   fill = 'currentColor',
   title = 'submit-link',
   className,
 }: {
-  width?: string;
-  height?: string;
+  width?: number;
+  height?: number;
   fill?: string;
   title?: string;
   className?: string;

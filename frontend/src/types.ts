@@ -36,6 +36,7 @@ export type FloatingDataType = {
   top: number;
   left: number;
   type: null | 'link' | 'text-format';
+  previousUrl?: string;
 };
 
 export type ResizeWidth = number | '100%';

@@ -29,7 +29,6 @@ export function File({
   const { data: fileType, isLoading } = useQuery({
     queryKey: ['file', src],
     queryFn: async () => await getFileElementTypeFromExtensionAndHead(src),
-    gcTime: Number.POSITIVE_INFINITY,
   });
 
   useEffect(() => {

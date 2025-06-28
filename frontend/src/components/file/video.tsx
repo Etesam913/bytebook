@@ -29,29 +29,14 @@ export function Video({
   const [isError, setIsError] = useState(false);
   const noteSeenFileNodeKeys = useAtomValue(noteSeenFileNodeKeysAtom);
 
-  const {
-    isResizing,
-    setIsResizing,
-    isSelected,
-    setSelected,
-    clearSelection,
-    isExpanded,
-    setIsExpanded,
-  } = useResizeState(nodeKey);
+  const { isResizing, setIsResizing, isExpanded, setIsExpanded } =
+    useResizeState();
 
-  useResizeCommands(
-    editor,
-    isExpanded,
-    setIsExpanded,
-    isSelected,
-    nodeKey,
-    clearSelection,
-    videoRef
-  );
+  useResizeCommands(editor, isExpanded, setIsExpanded, nodeKey, videoRef);
 
   const isVideoInViewport = noteSeenFileNodeKeys.has(nodeKey);
 
-  useShowWhenInViewport(loaderRef, isExpanded, isVideoInViewport);
+  useShowWhenInViewport(loaderRef);
 
   if (isError) {
     return <FileError src={src} nodeKey={nodeKey} type="loading-fail" />;
@@ -73,8 +58,6 @@ export function Video({
             resizeState={{
               isResizing,
               setIsResizing,
-              isSelected,
-              setSelected,
               isExpanded,
               setIsExpanded,
             }}

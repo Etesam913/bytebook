@@ -81,11 +81,10 @@ export function useListVirtualization(
  * @param isImageInViewport - Boolean indicating whether the image is in the viewport
  */
 export function useShowWhenInViewport(
-  loaderRef: RefObject<HTMLDivElement | null>,
-  isExpanded: boolean,
-  isImageInViewport: boolean
+  loaderRef: RefObject<HTMLDivElement | null>
 ) {
   const noteIntersectionObserver = useAtomValue(noteIntersectionObserverAtom);
+
   useEffect(() => {
     if (!loaderRef.current || !noteIntersectionObserver) return;
     noteIntersectionObserver?.observe(loaderRef.current);
@@ -93,14 +92,14 @@ export function useShowWhenInViewport(
       if (!loaderRef.current || !noteIntersectionObserver) return;
       noteIntersectionObserver.unobserve(loaderRef.current);
     };
-  }, [loaderRef, isImageInViewport]);
+  }, [loaderRef]);
 
   // Scroll to the bottom when the image is expanded. When spamming the next image, there is a small chance that the image does not show up. This fixes that
-  useEffect(() => {
-    if (isExpanded) {
-      loaderRef.current?.scrollIntoView({
-        block: 'end',
-      });
-    }
-  }, [isExpanded]);
+  // useEffect(() => {
+  //   if (isExpanded) {
+  //     loaderRef.current?.scrollIntoView({
+  //       block: 'end',
+  //     });
+  //   }
+  // }, [isExpanded]);
 }

@@ -124,6 +124,7 @@ export function Toolbar({
         <ToolbarButtons
           canUndo={canUndo}
           canRedo={canRedo}
+          setFloatingData={setFloatingData}
           disabled={disabled}
           isNodeSelection={isNodeSelection}
           currentBlockType={currentBlockType}
