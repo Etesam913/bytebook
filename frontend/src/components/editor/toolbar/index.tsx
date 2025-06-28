@@ -30,6 +30,7 @@ import {
 import { SettingsDropdown } from './settings-dropdown';
 import {
   useCodeBlockDisplayData,
+  useCodeBlockExecuteInput,
   useCodeBlockExecuteReply,
   useCodeBlockExecuteResult,
   useCodeBlockInputRequest,
@@ -112,6 +113,7 @@ export function Toolbar({
   useCodeBlockInputRequest(editor);
   useCodeBlockStatus(editor);
   useCodeBlockExecuteResult(editor);
+  useCodeBlockExecuteInput(editor);
 
   // useFileDropEvent(editor, folder, note);
 

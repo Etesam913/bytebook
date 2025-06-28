@@ -44,6 +44,8 @@ export const focusEditor = (codeMirrorInstance: ReactCodeMirrorRef | null) => {
   }
 };
 
+const MAX_EXECUTION_COUNT = 999;
+
 export function Code({
   id,
   code,
@@ -57,6 +59,7 @@ export function Code({
   setLastExecutedResult,
   isWaitingForInput,
   setIsWaitingForInput,
+  executionCount,
 }: {
   id: string;
   code: string;
@@ -70,6 +73,7 @@ export function Code({
   setLastExecutedResult: (lastExecutedResult: string) => void;
   isWaitingForInput: boolean;
   setIsWaitingForInput: (isWaitingForInput: boolean) => void;
+  executionCount: number;
 }) {
   const [codeMirrorInstance, setCodeMirrorInstance] =
     useState<ReactCodeMirrorRef | null>(null);
@@ -77,8 +81,17 @@ export function Code({
   const [lexicalEditor] = useLexicalComposerContext();
   const [isSelected] = useLexicalNodeSelection(nodeKey);
 
+  // Calculate translate-x based on execution count digits
+  const getTranslateValue = (count: number) => {
+    const digits = count.toString().length;
+    // Base translation for brackets + 1 digit, then add more for each additional digit
+    const baseTranslation = 32; // ~8 * 0.25rem (32px for [1])
+    const additionalTranslation = digits > 1 ? (digits - 1) * 6 : 0; // ~1.5 * 0.25rem per additional digit
+    return -(baseTranslation + additionalTranslation * 0.71);
+  };
+
   return (
-    <>
+    <div className="flex items-center gap-2 relative">
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -89,11 +102,24 @@ export function Code({
           />
         )}
       </AnimatePresence>
-      <div
+      <span
+        className="absolute z-20 text-xs text-zinc-400 font-code"
+        style={{
+          transform: `translateX(${getTranslateValue(executionCount)}px)`,
+        }}
+      >
+        {executionCount > 0 &&
+          `[${
+            executionCount > MAX_EXECUTION_COUNT
+              ? MAX_EXECUTION_COUNT
+              : executionCount
+          }]`}
+      </span>
+      <span
         data-interactable="true"
         data-node-key={nodeKey}
         className={cn(
-          'relative rounded-md border-[2px] overflow-hidden bg-white dark:bg-[#2e3440] transition-colors border-zinc-150 dark:border-zinc-700',
+          'relative rounded-md border-[2px] overflow-hidden grow bg-white dark:bg-[#2e3440] transition-colors border-zinc-150 dark:border-zinc-700',
           isSelected && '!border-(--accent-color)',
           isExpanded &&
             'fixed z-[60] left-0 top-0 right-0 bottom-0 h-[calc(100vh-5rem)] m-auto w-[calc(100vw-5rem)] flex flex-col'
@@ -139,7 +165,7 @@ export function Code({
             />
           )}
         </Suspense>
-      </div>
-    </>
+      </span>
+    </div>
   );
 }

@@ -105,6 +105,30 @@ export function useCodeBlockExecuteResult(editor: LexicalEditor) {
   });
 }
 
+export function useCodeBlockExecuteInput(editor: LexicalEditor) {
+  useWailsEvent('code:code-block:execute_input', (body) => {
+    console.info('code:code-block:execute_input');
+
+    const data = body.data as {
+      messageId: string;
+      code: string;
+      executionCount: number;
+    }[];
+    if (data.length === 0) return;
+    const [codeBlockId, executionId] = data[0].messageId.split(':');
+
+    updateCodeBlock(
+      editor,
+      codeBlockId,
+      (codeNode) => {
+        // Set the execution count on the code node
+        codeNode.setExecutionCount(data[0].executionCount, editor);
+      },
+      executionId
+    );
+  });
+}
+
 /**
  * Hook that listens for kernel shutdown events and updates the kernels data atom.
  * Subscribes to the 'code:kernel:shutdown_reply' event to handle kernel shutdown responses.

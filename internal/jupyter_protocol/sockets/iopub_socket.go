@@ -25,6 +25,12 @@ type executeResultEvent struct {
 	Data      map[string]string `json:"data"`
 }
 
+type executeInputEvent struct {
+	MessageId      string `json:"messageId"`
+	Code           string `json:"code"`
+	ExecutionCount int    `json:"executionCount"`
+}
+
 type kernelStatusEvent struct {
 	Status   string `json:"status"`
 	Language string `json:"language"`
@@ -170,6 +176,19 @@ func (i *ioPubSocket) Listen(
 
 					// Emit the event with all the data
 					app.EmitEvent("code:code-block:display_data", displayData)
+				}
+			case "execute_input":
+				log.Printf("🎯 Execute input: %v\n", msg.Content)
+				code, isCodeString := msg.Content["code"].(string)
+				executionCount, isExecutionCountFloat := msg.Content["execution_count"].(float64)
+
+				if isCodeString && isExecutionCountFloat {
+					executeInputData := executeInputEvent{
+						MessageId:      msgId,
+						Code:           code,
+						ExecutionCount: int(executionCount),
+					}
+					app.EmitEvent("code:code-block:execute_input", executeInputData)
 				}
 			case "status":
 				status, isString := msg.Content["execution_state"].(string)

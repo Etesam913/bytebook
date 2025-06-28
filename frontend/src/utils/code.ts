@@ -221,6 +221,20 @@ export function getCodemirrorKeymap({
             executeCode
           ),
       },
+      {
+        key: 'Ctrl-c',
+        run: () => {
+          if (status === 'busy') {
+            interruptExecution({
+              codeBlockId: id,
+              codeBlockLanguage: language,
+              newExecutionId: '',
+            });
+            return true;
+          }
+          return false;
+        },
+      },
     ])
   );
 }

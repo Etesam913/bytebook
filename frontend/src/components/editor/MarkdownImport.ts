@@ -159,10 +159,10 @@ function isCharAtIndexEscaped(strToCheck: string, index: number) {
   if (index === 0) return false;
   return strToCheck[index - 1] === '\\';
 }
-// id="d5f5ed67-4552-4f32-aeb5-ad4c566ad16a" lastExecutedResult="<div>test</div>"
+// id="d5f5ed67-4552-4f32-aeb5-ad4c566ad16a" lastExecutedResult="<div>test</div>" executionCount="5"
 function parseOutCodeBlockHeaderProperties(propertiesString: string) {
   const propertyMap = new Map<string, string>();
-  const properties = ['id', 'lastExecutedResult'];
+  const properties = ['id', 'lastExecutedResult', 'executionCount'];
   for (let i = 0; i < propertiesString.length; i += 1) {
     // If a quote is found without a known property value, then loop until the end of the property value
     if (
