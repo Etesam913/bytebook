@@ -222,7 +222,7 @@ type InspectRequestParams struct {
 // SendExecuteRequest sends an execute_request message to the kernel.
 func SendExecuteRequest(shellDealerSocket *zmq4.Socket, params ExecuteMessageParams) error {
 	requestParams := RequestParams{
-		MessageID: params.MessageID,
+		MessageID: fmt.Sprintf("%s|%s", params.MessageID, time.Now().Format(time.RFC3339)),
 		SessionID: params.SessionID,
 		MsgType:   "execute_request",
 		Username:  "username",

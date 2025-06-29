@@ -60,6 +60,7 @@ export function Code({
   isWaitingForInput,
   setIsWaitingForInput,
   executionCount,
+  durationText,
 }: {
   id: string;
   code: string;
@@ -74,21 +75,13 @@ export function Code({
   isWaitingForInput: boolean;
   setIsWaitingForInput: (isWaitingForInput: boolean) => void;
   executionCount: number;
+  durationText: string;
 }) {
   const [codeMirrorInstance, setCodeMirrorInstance] =
     useState<ReactCodeMirrorRef | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [lexicalEditor] = useLexicalComposerContext();
   const [isSelected] = useLexicalNodeSelection(nodeKey);
-
-  // Calculate translate-x based on execution count digits
-  const getTranslateValue = (count: number) => {
-    const digits = count.toString().length;
-    // Base translation for brackets + 1 digit, then add more for each additional digit
-    const baseTranslation = 32; // ~8 * 0.25rem (32px for [1])
-    const additionalTranslation = digits > 1 ? (digits - 1) * 6 : 0; // ~1.5 * 0.25rem per additional digit
-    return -(baseTranslation + additionalTranslation * 0.71);
-  };
 
   return (
     <div className="flex items-center gap-2 relative">
@@ -102,19 +95,17 @@ export function Code({
           />
         )}
       </AnimatePresence>
-      <span
-        className="absolute z-20 text-xs text-zinc-400 font-code"
-        style={{
-          transform: `translateX(${getTranslateValue(executionCount)}px)`,
-        }}
-      >
-        {executionCount > 0 &&
-          `[${
-            executionCount > MAX_EXECUTION_COUNT
-              ? MAX_EXECUTION_COUNT
-              : executionCount
-          }]`}
-      </span>
+      <div className="absolute z-20 text-xs -translate-x-10 text-zinc-400 font-code">
+        <div>
+          {executionCount > 0 &&
+            `[${
+              executionCount > MAX_EXECUTION_COUNT
+                ? MAX_EXECUTION_COUNT
+                : executionCount
+            }]`}
+        </div>
+        <div>{durationText}</div>
+      </div>
       <span
         data-interactable="true"
         data-node-key={nodeKey}

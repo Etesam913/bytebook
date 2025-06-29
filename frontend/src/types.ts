@@ -44,8 +44,6 @@ export type ResizeWidth = number | '100%';
 export type ResizeState = {
   isResizing: boolean;
   setIsResizing: Dispatch<SetStateAction<boolean>>;
-  isSelected: boolean;
-  setSelected: (arg0: boolean) => void;
   isExpanded: boolean;
   setIsExpanded: Dispatch<SetStateAction<boolean>>;
 };

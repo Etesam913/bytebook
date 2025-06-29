@@ -1,5 +1,5 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import type { AnimationControls } from 'motion/react';
+import type { LegacyAnimationControls } from 'motion/react';
 import { useAtom, useAtomValue } from 'jotai/react';
 import { $isNodeSelection, type TextFormatType } from 'lexical';
 import {
@@ -55,7 +55,7 @@ export function Toolbar({
   note: string;
   floatingData: FloatingDataType;
   setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
-  animationControls: AnimationControls;
+  animationControls: LegacyAnimationControls;
   noteContainerRef: RefObject<HTMLDivElement | null>;
   overflowContainerRef: RefObject<HTMLDivElement | null>;
   frontmatter: Record<string, string>;

@@ -49,13 +49,14 @@ import { Album } from './album/index.tsx';
 import { CodeNode } from './nodes/code.tsx';
 import { useSendInterruptRequestMutation } from '../../hooks/code.tsx';
 import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
+import type { LegacyAnimationControls } from 'motion/react';
 
 export function NotesEditor({
   params,
   animationControls,
 }: {
   params: { folder: string; note: string };
-  animationControls: AnimationControls;
+  animationControls: LegacyAnimationControls;
 }) {
   const { folder, note } = params;
   const projectSettings = useAtomValue(projectSettingsAtom);

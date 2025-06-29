@@ -70,11 +70,14 @@ export function useCodeBlockStatus(editor: LexicalEditor) {
     const data = body.data as {
       status: KernelStatus;
       messageId: string;
+      duration: string;
     }[];
     if (data.length === 0) return;
-    const [codeBlockId] = data[0].messageId.split(':');
+    const [codeBlockId] = data[0].messageId.split('|');
+    console.log(data[0].duration);
     updateCodeBlock(editor, codeBlockId, (codeNode) => {
       codeNode.setStatus(data[0].status, editor);
+      codeNode.setDuration(data[0].duration, editor);
     });
   });
 }
@@ -88,7 +91,7 @@ export function useCodeBlockExecuteResult(editor: LexicalEditor) {
       data: Record<string, string>;
     }[];
     if (data.length === 0) return;
-    const [codeBlockId, executionId] = data[0].messageId.split(':');
+    const [codeBlockId, executionId] = data[0].messageId.split('|');
     const executionResultContent: string[] = [];
     for (const content of Object.values(data[0].data)) {
       executionResultContent.push(content);
@@ -115,7 +118,7 @@ export function useCodeBlockExecuteInput(editor: LexicalEditor) {
       executionCount: number;
     }[];
     if (data.length === 0) return;
-    const [codeBlockId, executionId] = data[0].messageId.split(':');
+    const [codeBlockId, executionId] = data[0].messageId.split('|');
 
     updateCodeBlock(
       editor,
@@ -275,7 +278,7 @@ export function useCodeBlockExecuteReply(editor: LexicalEditor) {
           errorName: string;
         }
     )[];
-    const [codeBlockId, executionId] = data[0].messageId.split(':');
+    const [codeBlockId, executionId] = data[0].messageId.split('|');
     updateCodeBlock(
       editor,
       codeBlockId,
@@ -306,7 +309,7 @@ export function useCodeBlockStream(editor: LexicalEditor) {
       name: 'stdout' | 'stderr';
       text: string;
     }[];
-    const [codeBlockId, executionId] = data[0].messageId.split(':');
+    const [codeBlockId, executionId] = data[0].messageId.split('|');
     updateCodeBlock(
       editor,
       codeBlockId,
@@ -330,7 +333,7 @@ export function useCodeBlockDisplayData(editor: LexicalEditor) {
       messageId: string;
       data: Record<string, string>;
     }[];
-    const [codeBlockId, executionId] = data[0].messageId.split(':');
+    const [codeBlockId, executionId] = data[0].messageId.split('|');
     updateCodeBlock(
       editor,
       codeBlockId,
@@ -359,7 +362,7 @@ export function useCodeBlockInputRequest(editor: LexicalEditor) {
 
     if (data.length === 0) return;
 
-    const [codeBlockId, executionId] = data[0].messageId.split(':');
+    const [codeBlockId, executionId] = data[0].messageId.split('|');
     const prompt = data[0].prompt;
     const isPassword = data[0].password;
 

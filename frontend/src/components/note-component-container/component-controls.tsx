@@ -1,5 +1,5 @@
 import { Browser } from '@wailsio/runtime';
-import { type Target, type TargetAndTransition, motion } from 'motion/react';
+import { type TargetAndTransition, motion } from 'motion/react';
 import type { LexicalEditor } from 'lexical';
 import type { ReactNode } from 'react';
 import { getDefaultButtonVariants } from '../../animations';
@@ -36,9 +36,9 @@ export function NoteComponentControls({
   };
   nodeKey: string;
   editor: LexicalEditor;
-  initial?: Target;
+  initial?: TargetAndTransition;
   animate?: TargetAndTransition;
-  exit?: Target;
+  exit?: TargetAndTransition;
   children?: ReactNode;
 }) {
   return (

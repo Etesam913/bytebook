@@ -9,6 +9,7 @@ import (
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/pebbe/zmq4"
 	"github.com/robert-nix/ansihtml"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -39,6 +40,7 @@ type kernelStatusEvent struct {
 type codeBlockStatusEvent struct {
 	MessageId string `json:"messageId"`
 	Status    string `json:"status"`
+	Duration  string `json:"duration"`
 }
 
 type streamEvent struct {
@@ -204,9 +206,28 @@ func (i *ioPubSocket) Listen(
 						continue
 					}
 					if parentMessageType == "execute_request" {
+						curTime := time.Now()
+						msgParts := strings.Split(msgId, "|")
+						// The msgId should be made up of {codeBlockId:executionId}|{startTime}
+						if len(msgParts) < 3 {
+							continue
+						}
+						requestTimeString := msgParts[2]
+						requestTime, err := time.Parse(time.RFC3339, requestTimeString)
+						if err != nil {
+							log.Printf("⚠️ Error parsing request time: %v", err)
+							continue
+						}
+
+						duration := ""
+
+						if status == "idle" {
+							duration = util.FormatExecutionDuration(requestTime, curTime)
+						}
 						app.EmitEvent("code:code-block:status", codeBlockStatusEvent{
 							MessageId: msgId,
 							Status:    status,
+							Duration:  duration,
 						})
 					} else if parentMessageType == "shutdown_request" && status == "idle" {
 						// After the shutdown_request, everything listen function should be exited from

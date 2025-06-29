@@ -66,7 +66,7 @@ func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, cod
 		c.ShellSocketDealer,
 		jupyter_protocol.ExecuteMessageParams{
 			MessageParams: jupyter_protocol.MessageParams{
-				MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
+				MessageID: fmt.Sprintf("%s|%s", codeBlockId, executionId),
 				SessionID: "current-session",
 			},
 			Code: code,
@@ -147,7 +147,7 @@ func (c *CodeService) SendInterruptRequest(codeBlockId, executionId string) conf
 	err := jupyter_protocol.SendInterruptMessage(
 		c.ControlSocketDealer,
 		jupyter_protocol.MessageParams{
-			MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
+			MessageID: fmt.Sprintf("%s|%s", codeBlockId, executionId),
 			SessionID: "current-session",
 		},
 	)
@@ -188,7 +188,7 @@ func (c *CodeService) SendInputReply(codeBlockId, executionId, value string) con
 		c.StdinSocketDealer,
 		jupyter_protocol.InputReplyMessageParams{
 			MessageParams: jupyter_protocol.MessageParams{
-				MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
+				MessageID: fmt.Sprintf("%s|%s", codeBlockId, executionId),
 				SessionID: "current-session",
 			},
 			Value: value,
@@ -208,7 +208,7 @@ func (c *CodeService) SendInputReply(codeBlockId, executionId, value string) con
 	}
 }
 
-type SendCompleteRequestResponse struct { 
+type SendCompleteRequestResponse struct {
 	MessageId *string `json:"messageId"`
 }
 
@@ -231,7 +231,7 @@ func (c *CodeService) SendCompleteRequest(codeBlockId, executionId, code string,
 		}
 	}
 
-	messageId := fmt.Sprintf("%s:%s", codeBlockId, executionId)
+	messageId := fmt.Sprintf("%s|%s", codeBlockId, executionId)
 	err := jupyter_protocol.SendCompleteRequest(
 		c.ShellSocketDealer,
 		jupyter_protocol.CompleteRequestParams{
@@ -282,7 +282,7 @@ func (c *CodeService) SendInspectRequest(codeBlockId, executionId, code string, 
 		c.ShellSocketDealer,
 		jupyter_protocol.InspectRequestParams{
 			MessageParams: jupyter_protocol.MessageParams{
-				MessageID: fmt.Sprintf("%s:%s", codeBlockId, executionId),
+				MessageID: fmt.Sprintf("%s|%s", codeBlockId, executionId),
 				SessionID: "current-session",
 			},
 			Code:        code,

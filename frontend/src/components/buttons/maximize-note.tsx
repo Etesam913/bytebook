@@ -1,4 +1,4 @@
-import type { AnimationControls } from 'motion/react';
+import type { LegacyAnimationControls } from 'motion/react';
 import { useAtom } from 'jotai';
 import { MotionIconButton } from '.';
 import { easingFunctions, getDefaultButtonVariants } from '../../animations';
@@ -9,7 +9,7 @@ export function MaximizeNoteButton({
   animationControls,
   disabled,
 }: {
-  animationControls: AnimationControls;
+  animationControls: LegacyAnimationControls;
   disabled?: boolean;
 }) {
   const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);

@@ -94,7 +94,11 @@ export function NoteTitle({ note, folder }: { note: string; folder: string }) {
           <motion.p
             initial={{ height: 0 }}
             animate={{ height: 'auto' }}
-            exit={{ height: 0, opacity: 0, transition: { opacity: 0.2 } }}
+            exit={{
+              height: 0,
+              opacity: 0,
+              transition: { opacity: { duration: 0.2 } },
+            }}
             transition={{ type: 'spring', damping: 12, stiffness: 130 }}
             className="text-red-600 overflow-auto dark:text-red-500 text-xs pointer-events-none select-none"
           >
