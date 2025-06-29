@@ -51,6 +51,10 @@ export function FolderDialogChildren({
             autoFocus: true,
             onFocus: (e) => e.target.select(),
             defaultValue: action === 'rename' ? folderName : '',
+            autoCapitalize: 'off',
+            autoComplete: 'off',
+            spellCheck: 'false',
+            type: 'text',
           }}
         />
         <DialogErrorText errorText={errorText} />

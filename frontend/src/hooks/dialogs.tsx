@@ -28,6 +28,10 @@ export function useCreateNoteDialog() {
                 name: 'note-name',
                 placeholder: "Today's Tasks",
                 autoFocus: true,
+                autoCapitalize: 'off',
+                autoComplete: 'off',
+                spellCheck: 'false',
+                type: 'text',
               }}
             />
             <DialogErrorText errorText={errorText} />
