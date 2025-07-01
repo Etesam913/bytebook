@@ -1,4 +1,4 @@
-import { JSX, lazy, Suspense, useState } from 'react';
+import { JSX, lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { langs } from '@uiw/codemirror-extensions-langs';
 import type { LanguageSupport, StreamLanguage } from '@codemirror/language';
 import { BasicSetupOptions, ReactCodeMirrorRef } from '@uiw/react-codemirror';
@@ -12,6 +12,8 @@ import { CodeBlockStatus, Languages } from '../../types';
 import { AnimatePresence, motion } from 'motion/react';
 import { CodeActions } from './code-actions';
 import { CodeResult } from './code-result';
+import { trapFocusContainerAtom } from '../../atoms';
+import { useSetAtom } from 'jotai';
 
 const CodeMirrorEditor = lazy(() =>
   import('./codemirror-editor').then((module) => ({
@@ -82,9 +84,21 @@ export function Code({
   const [isExpanded, setIsExpanded] = useState(false);
   const [lexicalEditor] = useLexicalComposerContext();
   const [isSelected] = useLexicalNodeSelection(nodeKey);
+  const setTrapFocusContainer = useSetAtom(trapFocusContainerAtom);
+  const codeBlockRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isExpanded) {
+      if (isSelected) {
+        setTrapFocusContainer(codeBlockRef.current);
+      } else {
+        setTrapFocusContainer(null);
+      }
+    }
+  }, [isSelected, isExpanded]);
 
   return (
-    <div className="flex items-center gap-2 relative">
+    <div className="flex items-center gap-2 relative" ref={codeBlockRef}>
       <AnimatePresence>
         {isExpanded && (
           <motion.div

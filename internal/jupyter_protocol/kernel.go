@@ -137,24 +137,24 @@ func monitorCommandExecution(cmd *exec.Cmd, stderrBuf *bytes.Buffer, language st
 			}
 
 			stderrMsg := stderrBuf.String()
-			
+
 			var errorMsg string
-			
+
 			// Use stderr if available, otherwise fallback to exit error
 			if stderrMsg != "" {
 				errorMsg = stderrMsg
 			} else {
 				// Fallback to exit error information
 				if exitError, ok := err.(*exec.ExitError); ok {
-					errorMsg = fmt.Sprintf("Exit code: %d\nError: %s", 
+					errorMsg = fmt.Sprintf("Exit code: %d\nError: %s",
 						exitError.ExitCode(), exitError.Error())
 				} else {
 					errorMsg = fmt.Sprintf("Error: %s", err.Error())
 				}
 			}
-			
+
 			log.Printf("Kernel launch failed for %s: %s", language, errorMsg)
-			
+
 			app.EmitEvent("kernel:launch-error", KernelLaunchEvent{
 				Language: language,
 				Data:     errorMsg,

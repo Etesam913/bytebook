@@ -326,12 +326,15 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 			Message: "Failed to retrieve project settings. Check if settings.json exists.",
 		}
 	}
-	venvPath := projectSettings.Code.PythonVenvPath
+	venvPath := ""
+	if language == "python" {
+		venvPath = projectSettings.Code.PythonVenvPath
 
-	if !util.IsVirtualEnv(venvPath) {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "A virtual environment is not set. A virtual environment can be configured in the \"Code Block\" section of the settings.",
+		if !util.IsVirtualEnv(venvPath) {
+			return config.BackendResponseWithoutData{
+				Success: false,
+				Message: "A virtual environment is not set. A virtual environment can be configured in the \"Code Block\" section of the settings.",
+			}
 		}
 	}
 
@@ -401,11 +404,25 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 		}
 	}
 
+	var argv []string
+
+	switch language {
+	case "python":
+		argv = c.AllKernels.Python.Argv
+	case "go":
+		argv = c.AllKernels.Golang.Argv
+	default:
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "Couldn't get launch command for language",
+		}
+	}
+
 	// Start up the kernel
 	err = jupyter_protocol.LaunchKernel(
-		c.AllKernels.Python.Argv,
+		argv,
 		pathToConnectionFile,
-		"python",
+		language,
 		venvPath,
 	)
 

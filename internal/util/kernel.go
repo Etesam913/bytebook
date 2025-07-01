@@ -44,5 +44,5 @@ func IsPortInUse(port int) bool {
 }
 
 func IsSupportedLanguage(language string) bool {
-	return language == "python" || language == "golang"
+	return language == "python" || language == "go"
 }

@@ -135,7 +135,7 @@ func TestGetAllConnectionInfo(t *testing.T) {
 	_, err = os.Stat(pythonConnectionFile)
 	assert.NoError(t, err)
 
-	golangConnectionFile := filepath.Join(codeDir, "golang-connection.json")
+	golangConnectionFile := filepath.Join(codeDir, "go-connection.json")
 	_, err = os.Stat(golangConnectionFile)
 	assert.NoError(t, err)
 }
@@ -199,7 +199,7 @@ func TestGetConnectionInfoFromLanguage(t *testing.T) {
 		assert.Equal(t, "hmac-sha256", info.SignatureScheme)
 
 		// Check if the file was created
-		golangConnectionFile := filepath.Join(codeDir, "golang-connection.json")
+		golangConnectionFile := filepath.Join(codeDir, "go-connection.json")
 		_, err = os.Stat(golangConnectionFile)
 		assert.NoError(t, err)
 	})

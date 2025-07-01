@@ -143,7 +143,7 @@ func getPythonConnectionInfo(projectPath string) (KernelConnectionInfo, error) {
 // getGolangConnectionInfo retrieves connection information for the Golang kernel.
 // It uses a base port of 55326 for the Golang kernel connections.
 func getGolangConnectionInfo(projectPath string) (KernelConnectionInfo, error) {
-	return getKernelConnectionInfo(projectPath, "golang", 55326)
+	return getKernelConnectionInfo(projectPath, "go", 55326)
 }
 
 // GetAllConnectionInfo retrieves connection information for all supported kernels.
@@ -175,6 +175,7 @@ func GetAllConnectionInfo(projectPath string) (LanguageToKernelConnectionInfo, e
 // It validates that the language is supported and returns the appropriate KernelConnectionInfo.
 // If the language is not supported or the connection information is empty, it returns an error.
 func GetConnectionInfoFromLanguage(projectPath string, language string) (KernelConnectionInfo, error) {
+	fmt.Println("👆", projectPath, language)
 	if !util.IsSupportedLanguage(language) {
 		return KernelConnectionInfo{}, fmt.Errorf("unsupported language: %s", language)
 	}
@@ -190,7 +191,7 @@ func GetConnectionInfoFromLanguage(projectPath string, language string) (KernelC
 		return pythonConnectionInfo, nil
 	}
 
-	if language == "golang" {
+	if language == "go" {
 		golangConnectionInfo, err := getGolangConnectionInfo(projectPath)
 		if err != nil {
 			return KernelConnectionInfo{}, err

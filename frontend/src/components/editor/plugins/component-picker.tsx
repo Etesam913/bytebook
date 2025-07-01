@@ -58,9 +58,9 @@ const languageCommandData: {
 }[] = [
   {
     languageName: 'go',
-    keywords: ['go', 'google'],
+    keywords: ['go', 'golang', 'google'],
     icon: <GolangLogo />,
-    name: 'Golang',
+    name: 'Go',
   },
   // {
   //   id: 'java',
