@@ -6,6 +6,7 @@ import { easingFunctions, getDefaultButtonVariants } from '../../animations';
 import {
   dialogDataAtom,
   editorAtom,
+  selectionRangeAtom,
   trapFocusContainerAtom,
 } from '../../atoms';
 import { XMark } from '../../icons/circle-xmark';
@@ -55,6 +56,7 @@ export function Dialog() {
   const editor = useAtomValue(editorAtom);
   const [errorText, setErrorText] = useState('');
   const modalRef = useRef<HTMLFormElement>(null);
+  const setSelectionRange = useSetAtom(selectionRangeAtom);
 
   function resetDialogState() {
     dialogData.onClose?.();
@@ -107,7 +109,13 @@ export function Dialog() {
                 modalRef.current?.dispatchEvent(new Event('submit'));
               }
             }}
-            ref={modalRef}
+            ref={(refValue) => {
+              modalRef.current = refValue;
+              setDialogData((prev) => ({
+                ...prev,
+                element: refValue ?? undefined,
+              }));
+            }}
             onSubmit={async (e: FormEvent<HTMLFormElement>) => {
               e.preventDefault();
               if (dialogData.onSubmit) {
@@ -120,7 +128,10 @@ export function Dialog() {
                   ...prev,
                   isPending: false,
                 }));
-                if (result) resetDialogState();
+                if (result) {
+                  resetDialogState();
+                  setSelectionRange(new Set());
+                }
               }
             }}
             initial={{ opacity: 0, scale: 0.5, x: '-50%', y: '-50%' }}

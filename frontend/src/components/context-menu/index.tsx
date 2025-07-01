@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { useAtom, useSetAtom } from 'jotai/react';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
 import {
   type RefObject,
   useEffect,
@@ -46,7 +46,7 @@ export function ContextMenu() {
     useAtom(contextMenuDataAtom);
 
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
+  const selectionRange = useAtomValue(selectionRangeAtom);
   const setContextMenuRef = useSetAtom(contextMenuRefAtom);
   const contextMenuRefLocal = useRef<HTMLDivElement>(null);
 
@@ -85,7 +85,6 @@ export function ContextMenu() {
               if (item.onChange) {
                 item.onChange();
               }
-              setSelectionRange(new Set());
             }}
             ref={contextMenuRefLocal}
             className="w-fit text-sm overflow-hidden"

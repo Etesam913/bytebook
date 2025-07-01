@@ -7,19 +7,30 @@ import { useAtomValue } from 'jotai';
  *
  * @param ref - A React ref object pointing to the element to detect outside clicks for.
  * @param handler - A function to be called when a click outside the referenced element is detected or tab is pressed.
+ * @param excludedElements - A list of html elememnts that ignore the onClickOutside if the click is in the excluded element
  */
 export function useOnClickOutside<T extends HTMLElement>(
   ref: RefObject<T | null>,
-  handler: (event: MouseEvent | TouchEvent | KeyboardEvent) => void
+  handler: (event: MouseEvent | TouchEvent | KeyboardEvent) => void,
+  excludedElements?: (HTMLElement | null)[]
 ): void {
   useEffect(
     () => {
       const listener = (event: MouseEvent | TouchEvent): void => {
         // Do nothing if clicking ref's element or descendent elements
-        if (!ref.current || ref.current.contains(event.target as Node)) {
+        if (
+          !ref.current ||
+          ref.current.contains(event.target as Node) ||
+          (excludedElements ?? []).some((element) =>
+            element?.contains(event.target as Node)
+          ) ||
+          (event.target as HTMLElement).getAttribute(
+            'data-exclude-from-on-click-outside'
+          ) === 'true'
+        ) {
           return;
         }
-
+        console.count('handler ran');
         handler(event);
       };
 
@@ -42,7 +53,7 @@ export function useOnClickOutside<T extends HTMLElement>(
       };
     },
     // Re-run if ref or handler changes
-    [ref, handler]
+    [ref, handler, excludedElements]
   );
 }
 

@@ -74,7 +74,6 @@ export function useCodeBlockStatus(editor: LexicalEditor) {
     }[];
     if (data.length === 0) return;
     const [codeBlockId] = data[0].messageId.split('|');
-    console.log(data[0].duration);
     updateCodeBlock(editor, codeBlockId, (codeNode) => {
       codeNode.setStatus(data[0].status, editor);
       codeNode.setDuration(data[0].duration, editor);

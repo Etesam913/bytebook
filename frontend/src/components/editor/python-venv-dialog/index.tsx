@@ -6,11 +6,7 @@ import {
 import { Loader } from '../../../icons/loader';
 import { RadioButton } from '../../radio-button';
 import { useAtomValue, useSetAtom } from 'jotai';
-import {
-  backendQueryAtom,
-  dialogDataAtom,
-  projectSettingsAtom,
-} from '../../../atoms';
+import { backendQueryAtom, projectSettingsAtom } from '../../../atoms';
 import { ShareRight } from '../../../icons/share-right';
 import { MotionButton, MotionIconButton } from '../../buttons';
 import { getDefaultButtonVariants } from '../../../animations';
@@ -19,7 +15,7 @@ import { QueryError } from '../../../utils/query';
 import { PlainCodeSnippet } from '../../plain-code-snippet';
 import { FloppyDisk } from '../../../icons/floppy-disk';
 import { DialogErrorText } from '../../dialog';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { SidebarAccordion } from '../../sidebar/accordion';
 import { DesktopArrowDown } from '../../../icons/desktop-arrow-down';
 import { cn } from '../../../utils/string-formatting';
@@ -34,7 +30,6 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
   });
   const projectSettings = useAtomValue(projectSettingsAtom);
   const setBackendQuery = useSetAtom(backendQueryAtom);
-  const setDialogData = useSetAtom(dialogDataAtom);
   const { mutate: revealInFinder } = useMutation({
     mutationFn: async ({ venvPath }: { venvPath: string }) => {
       const res = await RevealFolderOrFileInFinder(venvPath, false);
@@ -43,13 +38,6 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
       }
     },
   });
-
-  useEffect(() => {
-    setDialogData((prev) => ({
-      ...prev,
-      dynamicData: data,
-    }));
-  }, [data]);
 
   const { mutateAsync: chooseCustomVirtualEnvironmentPath } = useMutation({
     mutationFn: async () => {

@@ -11,6 +11,7 @@ import {
 import { useParams } from 'wouter';
 import {
   contextMenuRefAtom,
+  dialogDataAtom,
   projectSettingsAtom,
   selectionRangeAtom,
 } from '../../atoms';
@@ -52,6 +53,7 @@ export function Sidebar({
   const { folder } = useParams();
   const listScrollContainerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const dialogData = useAtomValue(dialogDataAtom);
   /*
 	  If the activeNoteItem is set, then the note was navigated via a note link or the searchbar
 		We need to change the scroll position to the sidebar so that the active note is visible
@@ -60,20 +62,24 @@ export function Sidebar({
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const contextMenuRef = useAtomValue(contextMenuRefAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  useOnClickOutside(listRef, (e) => {
-    // We need to use the selectionRange for the context menu so early return for this case
-    if (contextMenuRef?.current?.contains(e.target as Node)) return;
-    if (selectionRange.size === 0 || contentType === undefined) return;
-    const selectionSetAsArray = Array.from(selectionRange);
-    /*
+  useOnClickOutside(
+    listRef,
+    (e) => {
+      // We need to use the selectionRange for the context menu so early return for this case
+      if (contextMenuRef?.current?.contains(e.target as Node)) return;
+      if (selectionRange.size === 0 || contentType === undefined) return;
+      const selectionSetAsArray = Array.from(selectionRange);
+      /*
 			When a click is detected outside of the sidebar and the selection is of the same
 			type as the contentType, then you can clear the selection. You do not want a
-			folder side onClickOutside to clear the selection for a note valid click
+			folder sidebar onClickOutside to clear the selection for a note valid click
 		*/
-    if (selectionSetAsArray[0].startsWith(contentType)) {
-      setSelectionRange(new Set());
-    }
-  });
+      if (selectionSetAsArray[0].startsWith(contentType)) {
+        setSelectionRange(new Set());
+      }
+    },
+    [dialogData.element ?? null]
+  );
 
   const items = data ?? [];
 

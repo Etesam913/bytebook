@@ -10,6 +10,7 @@ export function Shade({
 }) {
   return (
     <motion.div
+      data-exclude-from-on-click-outside={true}
       onClick={onClick}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
