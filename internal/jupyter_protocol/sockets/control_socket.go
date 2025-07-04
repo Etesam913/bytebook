@@ -64,7 +64,7 @@ func (s *controlSocket) Listen(
 				Status:   "success",
 				Language: connectionInfo.Language,
 			})
-			s.codeServiceUpdater.ResetCodeServiceProperties()
+			s.codeServiceUpdater.ResetCodeServiceProperties(connectionInfo.Language)
 			jupyter_protocol.SendShutdownMessage(
 				controlSocketDealer,
 				jupyter_protocol.ShutdownMessageParams{

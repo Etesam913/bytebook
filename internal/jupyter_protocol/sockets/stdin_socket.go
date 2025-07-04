@@ -23,7 +23,7 @@ type InputRequestEvent struct {
 	Password  bool   `json:"password"`
 }
 
-func CreateStdinSocket() *stdinSocket {
+func CreateStdinSocket(language string) *stdinSocket {
 	stdinSocketDealer, err := zmq4.NewSocket(zmq4.Type(zmq4.DEALER))
 	if err != nil {
 		log.Print("Could not create stdin socket:", err)

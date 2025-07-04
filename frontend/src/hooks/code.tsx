@@ -387,7 +387,10 @@ export function useCodeBlockInputRequest(editor: LexicalEditor) {
  *
  * @returns A mutation object for sending input replies
  */
-export function useSendInputReplyMutation(codeBlockId: string) {
+export function useSendInputReplyMutation(
+  codeBlockId: string,
+  language: Languages
+) {
   return useMutation({
     mutationFn: async ({
       executionId,
@@ -396,7 +399,12 @@ export function useSendInputReplyMutation(codeBlockId: string) {
       executionId: string;
       value: string;
     }) => {
-      const res = await SendInputReply(codeBlockId, executionId, value);
+      const res = await SendInputReply(
+        language,
+        codeBlockId,
+        executionId,
+        value
+      );
       if (!res.success) {
         throw new QueryError(res.message);
       }
@@ -468,7 +476,11 @@ export function useSendInterruptRequestMutation(onSuccess?: () => void) {
         return;
       }
 
-      const res = await SendInterruptRequest(codeBlockId, newExecutionId);
+      const res = await SendInterruptRequest(
+        codeBlockLanguage,
+        codeBlockId,
+        newExecutionId
+      );
       if (!res.success) {
         toast.error(res.message, DEFAULT_SONNER_OPTIONS);
       }
@@ -484,10 +496,10 @@ export function useSendInterruptRequestMutation(onSuccess?: () => void) {
  *
  * @returns A mutation object for shutting down the kernel
  */
-export function useShutdownKernelMutation() {
+export function useShutdownKernelMutation(language: Languages) {
   return useMutation({
     mutationFn: async (restart: boolean) => {
-      const res = await SendShutdownMessage(restart);
+      const res = await SendShutdownMessage(language, restart);
       if (!res.success) {
         throw new QueryError(res.message);
       }
@@ -527,9 +539,11 @@ type pythonVenvMutationParams = {
  * @returns A mutation object for updating Python virtual environment settings
  */
 export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
+  // Only python uses virtual environments
+  const language = 'python';
   const { mutateAsync: updateProjectSettings } =
     useUpdateProjectSettingsMutation();
-  const { mutateAsync: shutdownKernel } = useShutdownKernelMutation();
+  const { mutateAsync: shutdownKernel } = useShutdownKernelMutation(language);
   const { mutateAsync: turnOnKernel } = useTurnOnKernelMutation();
 
   return useMutation({
@@ -575,16 +589,16 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
           },
         },
       });
-      const canUseKernel = await IsKernelAvailable();
+      const canUseKernel = await IsKernelAvailable(language);
 
       if (canUseKernel) {
         await shutdownKernel(false);
         // Switch the kernel on after 2 seconds, hopefully after the shutdown kernel message has been processed
         setTimeout(() => {
-          turnOnKernel('python');
+          turnOnKernel(language);
         }, 2000);
       } else {
-        turnOnKernel('python');
+        turnOnKernel(language);
       }
 
       return true;
@@ -612,6 +626,7 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
 export function useCompletionSource(
   id: string,
   executionId: string,
+  language: Languages,
   pendingCompletions: Map<string, (data: CompletionData) => void>,
   COMPLETION_TIMEOUT = 3000
 ) {
@@ -652,6 +667,7 @@ export function useCompletionSource(
     const cursorPos = context.pos;
     // Send the request
     const completeReq = await SendCompleteRequest(
+      language,
       id,
       executionId,
       code,

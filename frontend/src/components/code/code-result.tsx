@@ -3,7 +3,7 @@ import { easingFunctions, getDefaultButtonVariants } from '../../animations';
 import { MotionIconButton } from '../buttons';
 import { Duplicate2 } from '../../icons/duplicate-2';
 import { AnimatePresence, motion } from 'motion/react';
-import { CodeBlockStatus } from '../../types';
+import { CodeBlockStatus, Languages } from '../../types';
 import { Loader } from '../../icons/loader';
 import { cn } from '../../utils/string-formatting';
 import { useSendInputReplyMutation } from '../../hooks/code';
@@ -11,6 +11,7 @@ import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 
 export function CodeResult({
   id,
+  language,
   lastExecutedResult,
   setLastExecutedResult,
   isExpanded,
@@ -20,6 +21,7 @@ export function CodeResult({
   codeMirrorInstance,
 }: {
   id: string;
+  language: Languages;
   lastExecutedResult: string;
   setLastExecutedResult: (lastExecutedResult: string) => void;
   isExpanded: boolean;
@@ -29,7 +31,7 @@ export function CodeResult({
   codeMirrorInstance: ReactCodeMirrorRef | null;
 }) {
   const resultContainerRef = useRef<HTMLFormElement>(null);
-  const { mutate: sendInputReply } = useSendInputReplyMutation(id);
+  const { mutate: sendInputReply } = useSendInputReplyMutation(id, language);
   return (
     <motion.footer
       className={cn(

@@ -7,6 +7,23 @@ import {
   LexicalEditor,
 } from 'lexical';
 
+/**
+ * Returns the default code template for a given programming language.
+ *
+ * @param language - The programming language to get the default code for
+ * @returns A string containing the default code template for the specified language
+ */
+export function getDefaultCodeForLanguage(language: Languages) {
+  switch (language) {
+    case 'python':
+      return 'print("Hello, World!")';
+    case 'go':
+      return '%% \n fmt.Println("Hello, World!")';
+    default:
+      return '';
+  }
+}
+
 export function runCode(
   codeMirrorInstance: ReactCodeMirrorRef | null,
   executeCode: UseMutateFunction<

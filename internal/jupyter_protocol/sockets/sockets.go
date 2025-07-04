@@ -20,7 +20,7 @@ type JupyterSocket interface {
 }
 
 type CodeServiceUpdater interface {
-	ResetCodeServiceProperties()
+	ResetCodeServiceProperties(language string)
 }
 
 type SocketSet struct {
@@ -50,7 +50,7 @@ func CreateSockets(
 
 	// Create shell socket if it doesn't exist
 	if shellSocketDealer == nil {
-		newlyCreatedShellSocket := CreateShellSocket()
+		newlyCreatedShellSocket := CreateShellSocket(language)
 		if newlyCreatedShellSocket.Get() == nil {
 			return nil, errors.New("failed to create shell socket dealer")
 		}
@@ -102,7 +102,7 @@ func CreateSockets(
 
 	// Create stdin socket if it doesn't exist
 	if stdinSocketDealer == nil {
-		newlyCreatedStdinSocket := CreateStdinSocket()
+		newlyCreatedStdinSocket := CreateStdinSocket(language)
 		if newlyCreatedStdinSocket.Get() == nil {
 			return nil, errors.New("failed to create stdin socket dealer")
 		}

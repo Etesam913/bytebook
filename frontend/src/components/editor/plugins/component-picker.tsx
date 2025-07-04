@@ -49,6 +49,7 @@ import { $createInlineEquationNode } from '../nodes/inline-equation';
 import { attachmentCommandData, listCommandData } from '../utils/toolbar';
 import { INSERT_CODE_COMMAND } from './code';
 import { Languages } from '../../../types';
+import { getDefaultCodeForLanguage } from '../../../utils/code';
 
 const languageCommandData: {
   languageName: Languages;
@@ -283,7 +284,7 @@ function getBaseOptions(
               editor.dispatchCommand(INSERT_CODE_COMMAND, {
                 id: crypto.randomUUID(),
                 language: languageName,
-                code: '',
+                code: getDefaultCodeForLanguage(languageName),
                 isCreatedNow: true,
               });
             });

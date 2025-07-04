@@ -60,7 +60,12 @@ export function CodeMirrorEditor({
     setStatus
   );
 
-  const completionSource = useCompletionSource(id, '1', pendingCompletions);
+  const completionSource = useCompletionSource(
+    id,
+    '1',
+    language,
+    pendingCompletions
+  );
   const debouncedSetCode = debounce(setCode, 300);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);

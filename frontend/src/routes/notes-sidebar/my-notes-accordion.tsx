@@ -29,7 +29,6 @@ export function MyNotesAccordion({
   noteQueryResult: UseQueryResult<string[], Error>;
 }) {
   const { data: notes, refetch, isError, isLoading } = noteQueryResult;
-
   const noteCount = notes?.length ?? 0;
   // The sidebar note name includes the folder name if it's in a tag sidebar
   const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);

@@ -83,17 +83,30 @@ func main() {
 			),
 			application.NewService(
 				&services.CodeService{
-					ProjectPath:           projectPath,
-					Context:               kernelCtx,
-					Cancel:                kernelCtxCancel,
-					ShellSocketDealer:     nil,
-					ControlSocketDealer:   nil,
-					IOPubSocketSubscriber: nil,
-					HeartbeatSocketReq:    nil,
-					StdinSocketDealer:     nil,
-					HeartbeatState: jupyter_protocol.KernelHeartbeatState{
-						Mutex:  sync.RWMutex{},
-						Status: false,
+					ProjectPath: projectPath,
+					Context:     kernelCtx,
+					Cancel:      kernelCtxCancel,
+					PythonSockets: services.LanguageSockets{
+						ShellSocketDealer:     nil,
+						ControlSocketDealer:   nil,
+						IOPubSocketSubscriber: nil,
+						HeartbeatSocketReq:    nil,
+						StdinSocketDealer:     nil,
+						HeartbeatState: jupyter_protocol.KernelHeartbeatState{
+							Mutex:  sync.RWMutex{},
+							Status: false,
+						},
+					},
+					GoSockets: services.LanguageSockets{
+						ShellSocketDealer:     nil,
+						ControlSocketDealer:   nil,
+						IOPubSocketSubscriber: nil,
+						HeartbeatSocketReq:    nil,
+						StdinSocketDealer:     nil,
+						HeartbeatState: jupyter_protocol.KernelHeartbeatState{
+							Mutex:  sync.RWMutex{},
+							Status: false,
+						},
 					},
 					LanguageToKernelConnectionInfo: projectFiles.ConnectionInfo,
 					AllKernels:                     projectFiles.AllKernels,

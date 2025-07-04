@@ -62,6 +62,7 @@ import {
 } from './nodes/inline-equation.tsx';
 import { $createLinkNode, $isLinkNode, LinkNode } from './nodes/link';
 import type { Transformer } from './utils/note-metadata';
+import { getDefaultCodeForLanguage } from '../../utils/code.ts';
 
 export const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
 
@@ -198,7 +199,7 @@ export const CODE_TRANSFORMER: ElementTransformer = {
       newNode = $createCodeNode({
         id: crypto.randomUUID(),
         language: language as Languages,
-        code: '',
+        code: getDefaultCodeForLanguage(language as Languages),
         isCreatedNow: true,
       });
     }

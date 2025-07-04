@@ -22,6 +22,7 @@ import {
   useShutdownKernelMutation,
   useTurnOnKernelMutation,
 } from '../../../hooks/code';
+import { QueryError } from '../../../utils/query';
 
 const languageSpecificOptions: {
   heartbeatSuccess: Partial<Record<Languages, DropdownItem[]>>;
@@ -56,7 +57,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [kernelsData, setKernelsData] = useAtom(kernelsDataAtom);
   const { status, heartbeat, errorMessage } = kernelsData[language];
-  const { mutate: shutdownKernel } = useShutdownKernelMutation();
+  const { mutate: shutdownKernel } = useShutdownKernelMutation(language);
   const { mutate: turnOnKernel } = useTurnOnKernelMutation();
   const { mutateAsync: submitPythonVenv } =
     usePythonVenvSubmitMutation(projectSettings);
@@ -70,6 +71,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
           ...prev,
           [language]: { ...prev[language], errorMessage: res.message },
         }));
+        throw new QueryError(res.message);
       }
       return res;
     },

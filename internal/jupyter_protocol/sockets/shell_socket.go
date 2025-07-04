@@ -27,12 +27,12 @@ type executeReplyEvent struct {
 }
 
 type completeReplyEvent struct {
-	Status      string            `json:"status"`
-	MessageId   string            `json:"messageId"`
-	Matches     []string          `json:"matches"`
-	CursorStart int               `json:"cursorStart"`
-	CursorEnd   int               `json:"cursorEnd"`
-	Metadata    map[string]any    `json:"metadata"`
+	Status      string         `json:"status"`
+	MessageId   string         `json:"messageId"`
+	Matches     []string       `json:"matches"`
+	CursorStart int            `json:"cursorStart"`
+	CursorEnd   int            `json:"cursorEnd"`
+	Metadata    map[string]any `json:"metadata"`
 }
 
 type inspectReplyEvent struct {
@@ -43,7 +43,7 @@ type inspectReplyEvent struct {
 	Metadata  map[string]any `json:"metadata"`
 }
 
-func CreateShellSocket() *shellSocket {
+func CreateShellSocket(language string) *shellSocket {
 	shellSocketDealer, err := zmq4.NewSocket(zmq4.Type(zmq4.DEALER)) // Could also use REQ
 	if err != nil {
 		log.Print("Could not create 🐚 socket sender:", err)

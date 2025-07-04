@@ -160,6 +160,7 @@ export function Code({
           {lastExecutedResult !== null && (
             <CodeResult
               id={id}
+              language={language}
               lastExecutedResult={lastExecutedResult}
               setLastExecutedResult={setLastExecutedResult}
               isExpanded={isExpanded}

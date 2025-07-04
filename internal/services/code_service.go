@@ -16,18 +16,34 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
+type LanguageSockets struct {
+	ShellSocketDealer     *zmq4.Socket
+	IOPubSocketSubscriber *zmq4.Socket
+	ControlSocketDealer   *zmq4.Socket
+	HeartbeatSocketReq    *zmq4.Socket
+	StdinSocketDealer     *zmq4.Socket
+	HeartbeatState        jupyter_protocol.KernelHeartbeatState
+}
+
 type CodeService struct {
 	ProjectPath                    string
 	Context                        context.Context
 	Cancel                         context.CancelFunc
-	ShellSocketDealer              *zmq4.Socket
-	IOPubSocketSubscriber          *zmq4.Socket
-	ControlSocketDealer            *zmq4.Socket
-	HeartbeatSocketReq             *zmq4.Socket
-	StdinSocketDealer              *zmq4.Socket
-	HeartbeatState                 jupyter_protocol.KernelHeartbeatState
+	PythonSockets                  LanguageSockets
+	GoSockets                      LanguageSockets
 	LanguageToKernelConnectionInfo config.LanguageToKernelConnectionInfo
 	AllKernels                     config.AllKernels
+}
+
+func (c *CodeService) getLanguageSockets(language string) *LanguageSockets {
+	switch language {
+	case "python":
+		return &c.PythonSockets
+	case "go":
+		return &c.GoSockets
+	default:
+		return nil
+	}
 }
 
 func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, code string) config.BackendResponseWithoutData {
@@ -46,24 +62,27 @@ func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, cod
 		}
 	}
 
-	if c.ShellSocketDealer == nil || c.IOPubSocketSubscriber == nil || c.HeartbeatSocketReq == nil {
+	sockets := c.getLanguageSockets(language)
+	if sockets == nil || sockets.ShellSocketDealer == nil || sockets.IOPubSocketSubscriber == nil || sockets.HeartbeatSocketReq == nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: "Coding sockets are not initialized. Try turning on the kernel by using the language button at the bottom of the editor.",
 		}
 	}
 
-	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
+	isHeartBeating := sockets.HeartbeatState.GetHeartbeatStatus()
 
 	if !isHeartBeating {
 		response := c.CreateSocketsAndListen(language)
 		if !response.Success {
 			return response
 		}
+		// Refresh sockets after (re)creation
+		sockets = c.getLanguageSockets(language)
 	}
 
 	err = jupyter_protocol.SendExecuteRequest(
-		c.ShellSocketDealer,
+		sockets.ShellSocketDealer,
 		jupyter_protocol.ExecuteMessageParams{
 			MessageParams: jupyter_protocol.MessageParams{
 				MessageID: fmt.Sprintf("%s|%s", codeBlockId, executionId),
@@ -87,15 +106,16 @@ func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, cod
 }
 
 // SendShutdownMessage sends a shutdown request to the kernel with an option to restart
-func (c *CodeService) SendShutdownMessage(restart bool) config.BackendResponseWithoutData {
-	if c.ControlSocketDealer == nil {
+func (c *CodeService) SendShutdownMessage(language string, restart bool) config.BackendResponseWithoutData {
+	sockets := c.getLanguageSockets(language)
+	if sockets == nil || sockets.ControlSocketDealer == nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: "Control socket is not initialized. Unable to shut down kernel.",
 		}
 	}
 
-	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
+	isHeartBeating := sockets.HeartbeatState.GetHeartbeatStatus()
 	if !isHeartBeating {
 		return config.BackendResponseWithoutData{
 			Success: false,
@@ -104,7 +124,7 @@ func (c *CodeService) SendShutdownMessage(restart bool) config.BackendResponseWi
 	}
 
 	err := jupyter_protocol.SendShutdownMessage(
-		c.ControlSocketDealer,
+		sockets.ControlSocketDealer,
 		jupyter_protocol.ShutdownMessageParams{
 			MessageParams: jupyter_protocol.MessageParams{
 				MessageID: fmt.Sprintf("shutdown-%d", time.Now().UnixNano()),
@@ -128,15 +148,16 @@ func (c *CodeService) SendShutdownMessage(restart bool) config.BackendResponseWi
 }
 
 // SendInterruptRequest sends an interrupt request to the kernel to stop the currently executing code
-func (c *CodeService) SendInterruptRequest(codeBlockId, executionId string) config.BackendResponseWithoutData {
-	if c.ControlSocketDealer == nil {
+func (c *CodeService) SendInterruptRequest(language, codeBlockId, executionId string) config.BackendResponseWithoutData {
+	sockets := c.getLanguageSockets(language)
+	if sockets == nil || sockets.ControlSocketDealer == nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: "Control socket is not initialized. Unable to interrupt kernel.",
 		}
 	}
 
-	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
+	isHeartBeating := sockets.HeartbeatState.GetHeartbeatStatus()
 	if !isHeartBeating {
 		return config.BackendResponseWithoutData{
 			Success: false,
@@ -145,7 +166,7 @@ func (c *CodeService) SendInterruptRequest(codeBlockId, executionId string) conf
 	}
 
 	err := jupyter_protocol.SendInterruptMessage(
-		c.ControlSocketDealer,
+		sockets.ControlSocketDealer,
 		jupyter_protocol.MessageParams{
 			MessageID: fmt.Sprintf("%s|%s", codeBlockId, executionId),
 			SessionID: "current-session",
@@ -166,8 +187,9 @@ func (c *CodeService) SendInterruptRequest(codeBlockId, executionId string) conf
 }
 
 // SendInputReply sends an input_reply message to the kernel.
-func (c *CodeService) SendInputReply(codeBlockId, executionId, value string) config.BackendResponseWithoutData {
-	if c.ShellSocketDealer == nil || c.StdinSocketDealer == nil {
+func (c *CodeService) SendInputReply(language, codeBlockId, executionId, value string) config.BackendResponseWithoutData {
+	sockets := c.getLanguageSockets(language)
+	if sockets == nil || sockets.ShellSocketDealer == nil || sockets.StdinSocketDealer == nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: "Stdin socket is not initialized. Unable to send input reply.",
@@ -176,7 +198,7 @@ func (c *CodeService) SendInputReply(codeBlockId, executionId, value string) con
 
 	// It's good practice to check if the kernel is actually running,
 	// though input_reply is usually in response to an input_request from an active kernel.
-	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
+	isHeartBeating := sockets.HeartbeatState.GetHeartbeatStatus()
 	if !isHeartBeating {
 		return config.BackendResponseWithoutData{
 			Success: false,
@@ -185,7 +207,7 @@ func (c *CodeService) SendInputReply(codeBlockId, executionId, value string) con
 	}
 
 	err := jupyter_protocol.SendInputReplyMessage(
-		c.StdinSocketDealer,
+		sockets.StdinSocketDealer,
 		jupyter_protocol.InputReplyMessageParams{
 			MessageParams: jupyter_protocol.MessageParams{
 				MessageID: fmt.Sprintf("%s|%s", codeBlockId, executionId),
@@ -213,8 +235,9 @@ type SendCompleteRequestResponse struct {
 }
 
 // SendCompleteRequest sends a complete_request message to the kernel.
-func (c *CodeService) SendCompleteRequest(codeBlockId, executionId, code string, cursorPos int) config.BackendResponseWithData[SendCompleteRequestResponse] {
-	if c.ShellSocketDealer == nil {
+func (c *CodeService) SendCompleteRequest(language, codeBlockId, executionId, code string, cursorPos int) config.BackendResponseWithData[SendCompleteRequestResponse] {
+	sockets := c.getLanguageSockets(language)
+	if sockets == nil || sockets.ShellSocketDealer == nil {
 		return config.BackendResponseWithData[SendCompleteRequestResponse]{
 			Success: false,
 			Message: "Shell socket is not initialized. Unable to send completion request.",
@@ -222,7 +245,7 @@ func (c *CodeService) SendCompleteRequest(codeBlockId, executionId, code string,
 		}
 	}
 
-	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
+	isHeartBeating := sockets.HeartbeatState.GetHeartbeatStatus()
 	if !isHeartBeating {
 		return config.BackendResponseWithData[SendCompleteRequestResponse]{
 			Success: false,
@@ -233,7 +256,7 @@ func (c *CodeService) SendCompleteRequest(codeBlockId, executionId, code string,
 
 	messageId := fmt.Sprintf("%s|%s", codeBlockId, executionId)
 	err := jupyter_protocol.SendCompleteRequest(
-		c.ShellSocketDealer,
+		sockets.ShellSocketDealer,
 		jupyter_protocol.CompleteRequestParams{
 			MessageParams: jupyter_protocol.MessageParams{
 				MessageID: messageId,
@@ -262,15 +285,16 @@ func (c *CodeService) SendCompleteRequest(codeBlockId, executionId, code string,
 }
 
 // SendInspectRequest sends an inspect_request message to the kernel.
-func (c *CodeService) SendInspectRequest(codeBlockId, executionId, code string, cursorPos, detailLevel int) config.BackendResponseWithoutData {
-	if c.ShellSocketDealer == nil {
+func (c *CodeService) SendInspectRequest(language, codeBlockId, executionId, code string, cursorPos, detailLevel int) config.BackendResponseWithoutData {
+	sockets := c.getLanguageSockets(language)
+	if sockets == nil || sockets.ShellSocketDealer == nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: "Shell socket is not initialized. Unable to send inspection request.",
 		}
 	}
 
-	isHeartBeating := c.HeartbeatState.GetHeartbeatStatus()
+	isHeartBeating := sockets.HeartbeatState.GetHeartbeatStatus()
 	if !isHeartBeating {
 		return config.BackendResponseWithoutData{
 			Success: false,
@@ -279,7 +303,7 @@ func (c *CodeService) SendInspectRequest(codeBlockId, executionId, code string, 
 	}
 
 	err := jupyter_protocol.SendInspectRequest(
-		c.ShellSocketDealer,
+		sockets.ShellSocketDealer,
 		jupyter_protocol.InspectRequestParams{
 			MessageParams: jupyter_protocol.MessageParams{
 				MessageID: fmt.Sprintf("%s|%s", codeBlockId, executionId),
@@ -306,16 +330,12 @@ func (c *CodeService) SendInspectRequest(codeBlockId, executionId, code string, 
 
 // IsKernelAvailable returns true if the kernel sockets are initialized
 // and the heartbeat is currently active.
-func (c *CodeService) IsKernelAvailable() bool {
-	// First, make sure all sockets have been wired up
-	if c.ShellSocketDealer == nil ||
-		c.IOPubSocketSubscriber == nil ||
-		c.ControlSocketDealer == nil ||
-		c.HeartbeatSocketReq == nil {
+func (c *CodeService) IsKernelAvailable(language string) bool {
+	sockets := c.getLanguageSockets(language)
+	if sockets == nil || sockets.ShellSocketDealer == nil || sockets.IOPubSocketSubscriber == nil || sockets.ControlSocketDealer == nil || sockets.HeartbeatSocketReq == nil {
 		return false
 	}
-	// Then check that the heartbeat state reports "alive"
-	return c.HeartbeatState.GetHeartbeatStatus()
+	return sockets.HeartbeatState.GetHeartbeatStatus()
 }
 
 func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResponseWithoutData {
@@ -346,39 +366,46 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 		}
 	}
 
+	socketsStruct := c.getLanguageSockets(language)
+	if socketsStruct == nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "Unknown language for sockets",
+		}
+	}
+
 	// Function to create sockets and update CodeService properties
 	createAndUpdateSockets := func() (*sockets.SocketSet, error) {
 		codeServiceUpdater := sockets.CodeServiceUpdater(c)
 		createdSockets, err := sockets.CreateSockets(
-			c.ShellSocketDealer,
-			c.IOPubSocketSubscriber,
-			c.HeartbeatSocketReq,
-			c.ControlSocketDealer,
-			c.StdinSocketDealer,
+			socketsStruct.ShellSocketDealer,
+			socketsStruct.IOPubSocketSubscriber,
+			socketsStruct.HeartbeatSocketReq,
+			socketsStruct.ControlSocketDealer,
+			socketsStruct.StdinSocketDealer,
 			language,
 			connectionInfo,
 			c.Context,
 			c.Cancel,
 			codeServiceUpdater,
-			&c.HeartbeatState,
+			&socketsStruct.HeartbeatState,
 		)
 
 		if err != nil {
 			return nil, err
 		}
 
-		// Update CodeService socket properties
-		c.ShellSocketDealer = createdSockets.ShellSocketDealer
-		c.IOPubSocketSubscriber = createdSockets.IOPubSocketSubscriber
-		c.HeartbeatSocketReq = createdSockets.HeartbeatSocketReq
-		c.ControlSocketDealer = createdSockets.ControlSocketDealer
-		c.StdinSocketDealer = createdSockets.StdinSocketDealer
+		// Update socket properties for the selected language
+		socketsStruct.ShellSocketDealer = createdSockets.ShellSocketDealer
+		socketsStruct.IOPubSocketSubscriber = createdSockets.IOPubSocketSubscriber
+		socketsStruct.HeartbeatSocketReq = createdSockets.HeartbeatSocketReq
+		socketsStruct.ControlSocketDealer = createdSockets.ControlSocketDealer
+		socketsStruct.StdinSocketDealer = createdSockets.StdinSocketDealer
 
 		return createdSockets, nil
 	}
 
 	if util.IsPortInUse(connectionInfo.ShellPort) {
-		// Still have to make sure that the sockets exist
 		_, err := createAndUpdateSockets()
 		if err != nil {
 			return config.BackendResponseWithoutData{
@@ -525,17 +552,37 @@ func (c *CodeService) ChooseCustomVirtualEnvironmentPath() config.BackendRespons
 	}
 }
 
-func (c *CodeService) ResetCodeServiceProperties() {
+func (c *CodeService) ResetCodeServiceProperties(language string) {
 	newKernelCtx, newKernelCtxCancel := context.WithCancel(context.Background())
 	c.Context = newKernelCtx
 	c.Cancel = newKernelCtxCancel
-	c.ShellSocketDealer = nil
-	c.IOPubSocketSubscriber = nil
-	c.ControlSocketDealer = nil
-	c.HeartbeatSocketReq = nil
-	c.HeartbeatState = jupyter_protocol.KernelHeartbeatState{
-		Mutex:  sync.RWMutex{},
-		Status: false,
+	switch language {
+	case "python":
+		// Reset PythonSockets
+		c.PythonSockets = LanguageSockets{
+			ShellSocketDealer:     nil,
+			IOPubSocketSubscriber: nil,
+			ControlSocketDealer:   nil,
+			HeartbeatSocketReq:    nil,
+			StdinSocketDealer:     nil,
+			HeartbeatState: jupyter_protocol.KernelHeartbeatState{
+				Mutex:  sync.RWMutex{},
+				Status: false,
+			},
+		}
+	case "go":
+		// Reset GoSockets
+		c.GoSockets = LanguageSockets{
+			ShellSocketDealer:     nil,
+			IOPubSocketSubscriber: nil,
+			ControlSocketDealer:   nil,
+			HeartbeatSocketReq:    nil,
+			StdinSocketDealer:     nil,
+			HeartbeatState: jupyter_protocol.KernelHeartbeatState{
+				Mutex:  sync.RWMutex{},
+				Status: false,
+			},
+		}
 	}
 }
 
