@@ -18,7 +18,7 @@ export function getDefaultCodeForLanguage(language: Languages) {
     case 'python':
       return 'print("Hello, World!")';
     case 'go':
-      return '%% \n fmt.Println("Hello, World!")';
+      return '%% \nfmt.Println("Hello, World!")';
     default:
       return '';
   }

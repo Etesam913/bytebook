@@ -12,30 +12,18 @@ import (
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol/sockets"
 	"github.com/etesam913/bytebook/internal/util"
-	"github.com/pebbe/zmq4"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-type LanguageSockets struct {
-	ShellSocketDealer     *zmq4.Socket
-	IOPubSocketSubscriber *zmq4.Socket
-	ControlSocketDealer   *zmq4.Socket
-	HeartbeatSocketReq    *zmq4.Socket
-	StdinSocketDealer     *zmq4.Socket
-	HeartbeatState        jupyter_protocol.KernelHeartbeatState
-}
-
 type CodeService struct {
 	ProjectPath                    string
-	Context                        context.Context
-	Cancel                         context.CancelFunc
-	PythonSockets                  LanguageSockets
-	GoSockets                      LanguageSockets
+	PythonSockets                  sockets.LanguageSockets
+	GoSockets                      sockets.LanguageSockets
 	LanguageToKernelConnectionInfo config.LanguageToKernelConnectionInfo
 	AllKernels                     config.AllKernels
 }
 
-func (c *CodeService) getLanguageSockets(language string) *LanguageSockets {
+func (c *CodeService) getLanguageSockets(language string) *sockets.LanguageSockets {
 	switch language {
 	case "python":
 		return &c.PythonSockets
@@ -108,6 +96,7 @@ func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, cod
 // SendShutdownMessage sends a shutdown request to the kernel with an option to restart
 func (c *CodeService) SendShutdownMessage(language string, restart bool) config.BackendResponseWithoutData {
 	sockets := c.getLanguageSockets(language)
+	fmt.Println("sockets", sockets)
 	if sockets == nil || sockets.ControlSocketDealer == nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
@@ -385,8 +374,8 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 			socketsStruct.StdinSocketDealer,
 			language,
 			connectionInfo,
-			c.Context,
-			c.Cancel,
+			socketsStruct.Context,
+			socketsStruct.Cancel,
 			codeServiceUpdater,
 			&socketsStruct.HeartbeatState,
 		)
@@ -552,14 +541,12 @@ func (c *CodeService) ChooseCustomVirtualEnvironmentPath() config.BackendRespons
 	}
 }
 
-func (c *CodeService) ResetCodeServiceProperties(language string) {
-	newKernelCtx, newKernelCtxCancel := context.WithCancel(context.Background())
-	c.Context = newKernelCtx
-	c.Cancel = newKernelCtxCancel
+func (c *CodeService) ResetCodeServiceProperties(language string) *sockets.LanguageSockets {
 	switch language {
 	case "python":
-		// Reset PythonSockets
-		c.PythonSockets = LanguageSockets{
+		// Reset Python context and sockets
+		newKernelCtx, newKernelCtxCancel := context.WithCancel(context.Background())
+		c.PythonSockets = sockets.LanguageSockets{
 			ShellSocketDealer:     nil,
 			IOPubSocketSubscriber: nil,
 			ControlSocketDealer:   nil,
@@ -569,10 +556,14 @@ func (c *CodeService) ResetCodeServiceProperties(language string) {
 				Mutex:  sync.RWMutex{},
 				Status: false,
 			},
+			Context: newKernelCtx,
+			Cancel:  newKernelCtxCancel,
 		}
+		return &c.PythonSockets
 	case "go":
-		// Reset GoSockets
-		c.GoSockets = LanguageSockets{
+		// Reset Go context and sockets
+		newKernelCtx, newKernelCtxCancel := context.WithCancel(context.Background())
+		c.GoSockets = sockets.LanguageSockets{
 			ShellSocketDealer:     nil,
 			IOPubSocketSubscriber: nil,
 			ControlSocketDealer:   nil,
@@ -582,8 +573,12 @@ func (c *CodeService) ResetCodeServiceProperties(language string) {
 				Mutex:  sync.RWMutex{},
 				Status: false,
 			},
+			Context: newKernelCtx,
+			Cancel:  newKernelCtxCancel,
 		}
+		return &c.GoSockets
 	}
+	return nil
 }
 
 var _ sockets.CodeServiceUpdater = (*CodeService)(nil)

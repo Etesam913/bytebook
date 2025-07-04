@@ -15,7 +15,8 @@ import (
 )
 
 type shellSocket struct {
-	socket *zmq4.Socket
+	socket     *zmq4.Socket
+	cancelFunc context.CancelFunc
 }
 
 type executeReplyEvent struct {
@@ -43,7 +44,7 @@ type inspectReplyEvent struct {
 	Metadata  map[string]any `json:"metadata"`
 }
 
-func CreateShellSocket(language string) *shellSocket {
+func CreateShellSocket(language string, cancelFunc context.CancelFunc) *shellSocket {
 	shellSocketDealer, err := zmq4.NewSocket(zmq4.Type(zmq4.DEALER)) // Could also use REQ
 	if err != nil {
 		log.Print("Could not create 🐚 socket sender:", err)
@@ -55,7 +56,8 @@ func CreateShellSocket(language string) *shellSocket {
 		log.Fatalf("could not set ZMQ IDENTITY: %v", err)
 	}
 	return &shellSocket{
-		socket: shellSocketDealer,
+		socket:     shellSocketDealer,
+		cancelFunc: cancelFunc,
 	}
 }
 
@@ -209,7 +211,24 @@ func (s *shellSocket) Listen(
 						},
 					)
 				}
+			case "shutdown_reply":
+				// TODO: Handle restart functionality later
 
+				status, ok := msg.Content["status"].(string)
+				if !ok {
+					log.Println("⚠️ Invalid status type")
+				}
+
+				if status != "ok" {
+					app.EmitEvent("code:kernel:shutdown_reply", shutdownReplyEvent{
+						Status:   "error",
+						Language: connectionInfo.Language,
+					})
+				} else if connectionInfo.Language == "go" {
+					// For some reason gonb only sends shutdown_request to the shell socket
+					// It does not use a control socket
+					s.cancelFunc()
+				}
 			case "inspect_reply":
 				status, ok := msg.Content["status"].(string)
 				if !ok {

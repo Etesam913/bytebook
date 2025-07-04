@@ -9,6 +9,7 @@ import (
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/git"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
+	"github.com/etesam913/bytebook/internal/jupyter_protocol/sockets"
 	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/services"
 	"github.com/etesam913/bytebook/internal/ui"
@@ -56,8 +57,11 @@ func main() {
 	// Launches the file server for video/image files to be served to the frontend
 	go notes.LaunchFileServer(projectPath)
 
-	kernelCtx, kernelCtxCancel := context.WithCancel(context.Background())
-	defer kernelCtxCancel()
+	// Create separate contexts for Python and Go kernels
+	pythonCtx, pythonCtxCancel := context.WithCancel(context.Background())
+	goCtx, goCtxCancel := context.WithCancel(context.Background())
+	defer pythonCtxCancel()
+	defer goCtxCancel()
 
 	app := application.New(application.Options{
 		Name:        "bytebook",
@@ -84,9 +88,7 @@ func main() {
 			application.NewService(
 				&services.CodeService{
 					ProjectPath: projectPath,
-					Context:     kernelCtx,
-					Cancel:      kernelCtxCancel,
-					PythonSockets: services.LanguageSockets{
+					PythonSockets: sockets.LanguageSockets{
 						ShellSocketDealer:     nil,
 						ControlSocketDealer:   nil,
 						IOPubSocketSubscriber: nil,
@@ -96,8 +98,10 @@ func main() {
 							Mutex:  sync.RWMutex{},
 							Status: false,
 						},
+						Context: pythonCtx,
+						Cancel:  pythonCtxCancel,
 					},
-					GoSockets: services.LanguageSockets{
+					GoSockets: sockets.LanguageSockets{
 						ShellSocketDealer:     nil,
 						ControlSocketDealer:   nil,
 						IOPubSocketSubscriber: nil,
@@ -107,6 +111,8 @@ func main() {
 							Mutex:  sync.RWMutex{},
 							Status: false,
 						},
+						Context: goCtx,
+						Cancel:  goCtxCancel,
 					},
 					LanguageToKernelConnectionInfo: projectFiles.ConnectionInfo,
 					AllKernels:                     projectFiles.AllKernels,

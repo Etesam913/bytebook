@@ -32,6 +32,10 @@ func CreateControlSocket(codeServiceUpdater CodeServiceUpdater) *controlSocket {
 			codeServiceUpdater: codeServiceUpdater,
 		}
 	}
+
+	if err := controlSocketDealer.SetIdentity("current-session"); err != nil {
+		log.Fatalf("could not set ZMQ IDENTITY: %v", err)
+	}
 	return &controlSocket{
 		socket:             controlSocketDealer,
 		codeServiceUpdater: codeServiceUpdater,
@@ -102,11 +106,6 @@ func (s *controlSocket) Listen(
 			switch msg.Header.MsgType {
 			case "shutdown_reply":
 				// TODO: Handle restart functionality later
-				// restart, ok := msg.Content["restart"].(bool)
-				// if !ok {
-				// 	log.Println("⚠️ Invalid restart type")
-				// }
-
 				status, ok := msg.Content["status"].(string)
 				if !ok {
 					log.Println("⚠️ Invalid status type")

@@ -153,7 +153,8 @@ export function useKernelShutdown() {
         ...prev,
         [language]: {
           status: 'idle',
-          heartbeat: 'failure',
+          heartbeat: 'idle',
+          errorMessage: null,
         },
       }));
     } else if (status === 'error') {
