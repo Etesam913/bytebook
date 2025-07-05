@@ -319,3 +319,20 @@ export function unescapeQuotes(str: string): string {
 export function unescapeNewlines(str: string): string {
   return str.replace(/\\n/g, '\n');
 }
+
+/**
+ * Escape special Markdown characters in file content so it can be used
+ * inside [text](url) without breaking the link.
+ */
+export function escapeFileContentForMarkdown(content: string): string {
+  // Matches any of: \ [ ] ( )
+  return content.replace(/([\\\[\]\(\)])/g, '\\$1');
+}
+
+/**
+ * Unescape a Markdown-escaped file content back to its original form.
+ */
+export function unescapeFileContentFromMarkdown(escaped: string): string {
+  // Matches a backslash followed by one of: \ [ ] ( )
+  return escaped.replace(/\\([\\\[\]\(\)])/g, '$1');
+}

@@ -43,10 +43,12 @@ import { Languages, validLanguages, type ResizeWidth } from '../../types';
 
 import {
   addQueryParam,
+  escapeFileContentForMarkdown,
   escapeQuotes,
   flattenHtml,
   getQueryParamValue,
   removeQueryParam,
+  unescapeFileContentFromMarkdown,
 } from '../../utils/string-formatting';
 import { $createCodeNode, $isCodeNode, CodeNode } from './nodes/code';
 import {
@@ -97,11 +99,10 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
       String(node.getWidth())
     );
 
-    // TODO: need to do sanitizing on the alt text
-    return `![${altText}](${filePathOrSrc}) `;
+    return `![${escapeFileContentForMarkdown(altText)}](${escapeFileContentForMarkdown(filePathOrSrc)}) `;
   },
-  importRegExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))/,
-  regExp: /!(?:\[([^[]*)\])(?:\(([^(]+)\))$/,
+  importRegExp: /!(?:\[((?:[^\[\]\\]|\\.)*)\])(?:\(((?:[^()\\]|\\.)+)\))/,
+  regExp: /!(?:\[((?:[^\[\]\\]|\\.)*)\])(?:\(((?:[^()\\]|\\.)+)\))$/,
   replace: (textNode, match) => {
     const editor = $getEditor();
     if (!editor) return;
@@ -120,8 +121,8 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
       : '100%';
 
     const nodeToCreate = $createFileNode({
-      alt: removeQueryParam(alt, 'width'),
-      src: filePathOrSrc,
+      alt: unescapeFileContentFromMarkdown(removeQueryParam(alt, 'width')),
+      src: unescapeFileContentFromMarkdown(filePathOrSrc),
       width,
     });
     textNode.replace(nodeToCreate);
@@ -259,8 +260,21 @@ export const LINK: TextMatchTransformer = {
   replace: (textNode, match) => {
     // eslint-disable-next-line prefer-const
     let [, linkText, linkUrl, linkTitle] = match;
-    linkText = decodeURIComponent(linkText);
-    linkUrl = decodeURIComponent(linkUrl);
+
+    // Safely decode URI components, falling back to original if decoding fails
+    try {
+      linkText = decodeURIComponent(linkText);
+    } catch (e) {
+      // If decoding fails, use the original text (likely contains escaped markdown)
+      console.warn('Failed to decode linkText:', linkText, e);
+    }
+
+    try {
+      linkUrl = decodeURIComponent(linkUrl);
+    } catch (e) {
+      // If decoding fails, use the original URL (likely contains escaped markdown)
+      console.warn('Failed to decode linkUrl:', linkUrl, e);
+    }
 
     const linkNode = $createLinkNode(linkUrl, {
       title: linkTitle,
