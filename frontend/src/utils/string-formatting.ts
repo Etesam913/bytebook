@@ -326,7 +326,7 @@ export function unescapeNewlines(str: string): string {
  */
 export function escapeFileContentForMarkdown(content: string): string {
   // Matches any of: \ [ ] ( )
-  return content.replace(/([\\\[\]\(\)])/g, '\\$1');
+  return content.replace(/([\\[\]()])/g, '\\$1');
 }
 
 /**
@@ -334,5 +334,5 @@ export function escapeFileContentForMarkdown(content: string): string {
  */
 export function unescapeFileContentFromMarkdown(escaped: string): string {
   // Matches a backslash followed by one of: \ [ ] ( )
-  return escaped.replace(/\\([\\\[\]\(\)])/g, '$1');
+  return escaped.replace(/\\([\\[\]()])/g, '$1');
 }

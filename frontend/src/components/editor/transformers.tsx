@@ -101,8 +101,8 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
 
     return `![${escapeFileContentForMarkdown(altText)}](${escapeFileContentForMarkdown(filePathOrSrc)}) `;
   },
-  importRegExp: /!(?:\[((?:[^\[\]\\]|\\.)*)\])(?:\(((?:[^()\\]|\\.)+)\))/,
-  regExp: /!(?:\[((?:[^\[\]\\]|\\.)*)\])(?:\(((?:[^()\\]|\\.)+)\))$/,
+  importRegExp: /!(?:\[((?:[^\]\\]|\\.)*)\])(?:\(((?:[^()\\]|\\.)+)\))/,
+  regExp: /!(?:\[((?:[^\]\\]|\\.)*)\])(?:\(((?:[^()\\]|\\.)+)\))$/,
   replace: (textNode, match) => {
     const editor = $getEditor();
     if (!editor) return;

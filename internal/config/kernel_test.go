@@ -123,7 +123,7 @@ func TestGetAllConnectionInfo(t *testing.T) {
 	assert.Equal(t, 55325, allInfo.Python.HBPort)
 
 	// Check Golang connection info
-	assert.Equal(t, "golang", allInfo.Golang.Language)
+	assert.Equal(t, "go", allInfo.Golang.Language)
 	assert.Equal(t, 55326, allInfo.Golang.ShellPort)
 	assert.Equal(t, 55327, allInfo.Golang.IOPubPort)
 	assert.Equal(t, 55328, allInfo.Golang.StdinPort)
@@ -185,9 +185,9 @@ func TestGetConnectionInfoFromLanguage(t *testing.T) {
 
 	// Test with Golang language
 	t.Run("Golang language", func(t *testing.T) {
-		info, err := GetConnectionInfoFromLanguage(tempDir, "golang")
+		info, err := GetConnectionInfoFromLanguage(tempDir, "go")
 		assert.NoError(t, err)
-		assert.Equal(t, "golang", info.Language)
+		assert.Equal(t, "go", info.Language)
 		assert.Equal(t, 55326, info.ShellPort)
 		assert.Equal(t, 55327, info.IOPubPort)
 		assert.Equal(t, 55328, info.StdinPort)
