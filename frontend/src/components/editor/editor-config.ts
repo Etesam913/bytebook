@@ -67,7 +67,6 @@ export const editorConfig: InitialConfigType = {
   nodes: [
     HeadingNode,
     QuoteNode,
-
     HorizontalRuleNode,
     LinkNode,
     ListNode,

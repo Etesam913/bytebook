@@ -30,7 +30,6 @@ export function useOnClickOutside<T extends HTMLElement>(
         ) {
           return;
         }
-        console.count('handler ran');
         handler(event);
       };
 

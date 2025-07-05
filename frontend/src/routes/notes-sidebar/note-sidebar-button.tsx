@@ -29,7 +29,11 @@ import {
   handleKeyNavigation,
   keepSelectionNotesWithPrefix,
 } from '../../utils/selection';
-import { cn, extractInfoFromNoteName } from '../../utils/string-formatting';
+import {
+  cn,
+  encodeNoteName,
+  extractInfoFromNoteName,
+} from '../../utils/string-formatting';
 import { CardNoteSidebarItem } from './card-note-sidebar-item';
 import { ListNoteSidebarItem } from './list-note-sidebar-item';
 import { navigate } from 'wouter/use-browser-location';
@@ -399,7 +403,7 @@ export function NoteSidebarButton({
         navigate(
           isInTagsSidebar
             ? `/tags/${tagState.tagName}/${sidebarNoteFolder}/${sidebarNoteName}`
-            : `/${sidebarNoteFolder}/${sidebarNoteName}`
+            : `/${sidebarNoteFolder}/${encodeNoteName(sidebarNoteName)}`
         );
       }}
     >
