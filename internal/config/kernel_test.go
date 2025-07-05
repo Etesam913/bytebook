@@ -37,12 +37,12 @@ func TestGetAllKernels(t *testing.T) {
 		}, kernels.Python.Argv)
 
 		// Golang kernel
-		assert.Equal(t, "go", kernels.Golang.Language)
-		assert.Equal(t, "Go (gonb)", kernels.Golang.DisplayName)
+		assert.Equal(t, "go", kernels.Go.Language)
+		assert.Equal(t, "Go (gonb)", kernels.Go.DisplayName)
 		// We can't know exact gonbPath, but we can verify the rest
-		assert.Contains(t, kernels.Golang.Argv, "--kernel")
-		assert.Contains(t, kernels.Golang.Argv, "{connection_file}")
-		assert.Contains(t, kernels.Golang.Argv, "--logtostderr")
+		assert.Contains(t, kernels.Go.Argv, "--kernel")
+		assert.Contains(t, kernels.Go.Argv, "{connection_file}")
+		assert.Contains(t, kernels.Go.Argv, "--logtostderr")
 
 		// Verify the kernel files were created
 		pythonKernelFile := filepath.Join(codePath, "python-kernel.json")
@@ -92,7 +92,7 @@ func TestGetAllKernels(t *testing.T) {
 
 		// Verify the existing values were read correctly
 		assert.Equal(t, pythonKernel, kernels.Python)
-		assert.Equal(t, golangKernel, kernels.Golang)
+		assert.Equal(t, golangKernel, kernels.Go)
 	})
 }
 func TestGetAllConnectionInfo(t *testing.T) {

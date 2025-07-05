@@ -25,7 +25,6 @@ export function File({
   nodeKey: string;
   setElementType: (elementType: FileType) => void;
 }) {
-  // TODO: I think there is a bottleneck with using useQuery here for some reason. Try without it
   const { data: fileType, isLoading } = useQuery({
     queryKey: ['file', src],
     queryFn: async () => await getFileElementTypeFromExtensionAndHead(src),
@@ -39,11 +38,19 @@ export function File({
   if (isLoading) return <Loader width={28} height={28} />;
 
   let content: JSX.Element; // Explicitly define the type of content
+  const segments = src.split('/');
+  const fileName = segments[segments.length - 1];
+  const folder = segments[segments.length - 2];
+
+  const encodedSrc = segments
+    .slice(0, -2)
+    .join('/')
+    .concat(`/${encodeURIComponent(folder)}/${encodeURIComponent(fileName)}`);
 
   if (fileType === 'video') {
     content = (
       <Video
-        src={src}
+        src={encodedSrc}
         widthWrittenToNode={widthWrittenToNode}
         writeWidthToNode={writeWidthToNode}
         title={title}
@@ -53,7 +60,7 @@ export function File({
   } else if (fileType === 'image') {
     content = (
       <Image
-        src={src}
+        src={encodedSrc}
         alt={title}
         widthWrittenToNode={widthWrittenToNode}
         writeWidthToNode={writeWidthToNode}
@@ -63,7 +70,7 @@ export function File({
   } else if (fileType === 'youtube') {
     content = (
       <YouTube
-        src={src}
+        src={encodedSrc}
         alt={title}
         nodeKey={nodeKey}
         widthWrittenToNode={widthWrittenToNode}

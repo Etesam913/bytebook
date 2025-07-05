@@ -49,7 +49,8 @@ export function useNotes(
         throw new QueryError('Failed in retrieving notes');
       }
       const notes = res.data ?? [];
-      const curNoteWithExtension = `${curNote}?ext=${fileExtension}`;
+
+      const curNoteWithExtension = `${decodeURIComponent(curNote ?? '')}?ext=${fileExtension}`;
       const curNoteExists = notes.some((note) => note === curNoteWithExtension);
 
       // If the current note does not exist, then navigate to a safe note

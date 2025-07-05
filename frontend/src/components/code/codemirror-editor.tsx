@@ -39,6 +39,7 @@ export function CodeMirrorEditor({
   isExpanded,
   status,
   setStatus,
+  executionId,
 }: {
   nodeKey: string;
   lexicalEditor: LexicalEditor;
@@ -52,6 +53,7 @@ export function CodeMirrorEditor({
   isExpanded: boolean;
   status: CodeBlockStatus;
   setStatus: (status: CodeBlockStatus) => void;
+  executionId: string;
 }) {
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const { mutate: executeCode } = useSendExecuteRequestMutation(
@@ -62,10 +64,11 @@ export function CodeMirrorEditor({
 
   const completionSource = useCompletionSource(
     id,
-    '1',
+    executionId,
     language,
     pendingCompletions
   );
+
   const debouncedSetCode = debounce(setCode, 300);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);

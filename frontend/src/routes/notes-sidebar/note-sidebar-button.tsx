@@ -31,7 +31,7 @@ import {
 } from '../../utils/selection';
 import {
   cn,
-  encodeNoteName,
+  encodeNoteNameWithQueryParams,
   extractInfoFromNoteName,
 } from '../../utils/string-formatting';
 import { CardNoteSidebarItem } from './card-note-sidebar-item';
@@ -402,8 +402,8 @@ export function NoteSidebarButton({
         buttonElem.focus();
         navigate(
           isInTagsSidebar
-            ? `/tags/${tagState.tagName}/${sidebarNoteFolder}/${sidebarNoteName}`
-            : `/${sidebarNoteFolder}/${encodeNoteName(sidebarNoteName)}`
+            ? `/tags/${tagState.tagName}/${sidebarNoteFolder}/${encodeNoteNameWithQueryParams(sidebarNoteName)}`
+            : `/${sidebarNoteFolder}/${encodeNoteNameWithQueryParams(sidebarNoteName)}`
         );
       }}
     >

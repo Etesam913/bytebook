@@ -83,7 +83,7 @@ export function BottomBar({
             sidebarNoteName={''}
             fileExtension={ext}
           />
-          {note}
+          {decodeURIComponent(note)}
         </BreadcrumbItem>
       </span>
       {isNoteEditor && <KernelHeartbeats />}

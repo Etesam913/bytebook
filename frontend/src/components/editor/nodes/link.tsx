@@ -34,6 +34,8 @@ import { navigate } from 'wouter/use-browser-location';
 import { Folder } from '../../../icons/folder';
 import { Note } from '../../../icons/page';
 import {
+  encodeNoteNameWithQueryParams,
+  extractInfoFromNoteName,
   getInternalLinkType,
   isInternalLink,
 } from '../../../utils/string-formatting';
@@ -104,10 +106,18 @@ export class LinkNode extends ElementNode {
     if (isInternalLink(element.href)) {
       classNames.pop();
       classNames.push(config.theme.internalLink);
-
-      const url = new URL(element.href);
-      const segments = url.pathname.split('/');
-      segments.shift();
+      const segments = element.href.split('/');
+      if (segments.length < 2) {
+        throw new Error('Invalid link');
+      }
+      // Makes sure that the content before ?ext= is encoded
+      const noteName = encodeNoteNameWithQueryParams(
+        segments[segments.length - 1]
+      );
+      const { noteNameWithoutExtension, queryParams } =
+        extractInfoFromNoteName(noteName);
+      const extension = queryParams.ext;
+      const folder = encodeURIComponent(segments[segments.length - 2]);
 
       const { isNoteLink, isFolderLink } = getInternalLinkType(element.href);
       const tempContainer = document.createElement('div');
@@ -136,14 +146,11 @@ export class LinkNode extends ElementNode {
       element.onclick = (e) => {
         // The segments are encoded by default
         if (isNoteLink) {
-          const note = segments[segments.length - 1];
-          const folder = segments[segments.length - 2];
-          const fileExtension = url.searchParams.get('ext');
-          navigate(`/${folder}/${note}?ext=${fileExtension}&focus=true`);
+          navigate(`/${folder}/${noteNameWithoutExtension}?ext=${extension}`);
           e.preventDefault();
         } else if (isFolderLink) {
           const folder = segments[segments.length - 1];
-          navigate(`/${folder}`);
+          navigate(`/${encodeURIComponent(folder)}`);
           e.preventDefault();
         } else {
           element.href = 'about:blank';

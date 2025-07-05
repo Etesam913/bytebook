@@ -63,6 +63,7 @@ export function Code({
   setIsWaitingForInput,
   executionCount,
   durationText,
+  executionId,
 }: {
   id: string;
   code: string;
@@ -78,6 +79,7 @@ export function Code({
   setIsWaitingForInput: (isWaitingForInput: boolean) => void;
   executionCount: number;
   durationText: string;
+  executionId: string;
 }) {
   const [codeMirrorInstance, setCodeMirrorInstance] =
     useState<ReactCodeMirrorRef | null>(null);
@@ -156,6 +158,7 @@ export function Code({
             isExpanded={isExpanded}
             status={status}
             setStatus={setStatus}
+            executionId={executionId}
           />
           {lastExecutedResult !== null && (
             <CodeResult

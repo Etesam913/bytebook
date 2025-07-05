@@ -318,6 +318,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
         }
         executionCount={this.getExecutionCount()}
         durationText={this.getDuration()}
+        executionId={this.getExecutionId()}
       />
     );
   }

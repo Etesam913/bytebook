@@ -426,7 +426,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 	case "python":
 		argv = c.AllKernels.Python.Argv
 	case "go":
-		argv = c.AllKernels.Golang.Argv
+		argv = c.AllKernels.Go.Argv
 	default:
 		return config.BackendResponseWithoutData{
 			Success: false,

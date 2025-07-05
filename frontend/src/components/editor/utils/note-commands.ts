@@ -15,7 +15,10 @@ import {
 } from 'lexical';
 import { isDecoratorNodeSelected } from '../../../utils/commands';
 import { FILE_SERVER_URL, debounce } from '../../../utils/general';
-import { getFileExtension } from '../../../utils/string-formatting';
+import {
+  encodeNoteNameWithQueryParams,
+  getFileExtension,
+} from '../../../utils/string-formatting';
 import type { FilePayload } from '../nodes/file';
 import { $createLinkNode } from '../nodes/link';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
@@ -188,7 +191,6 @@ export function overrideControlledTextInsertion(
   const fileText: string = e.dataTransfer.getData('text/plain');
 
   const files = fileText.split(',');
-
   const linkPayloads: { url: string; title: string }[] = [];
   const filesPayload: FilePayload[] = [];
 
@@ -204,25 +206,24 @@ export function overrideControlledTextInsertion(
       }
       // You are dealing with a note link or a file link
       else {
-        const { urlWithoutExtension, extension, fileName } =
-          getFileExtension(fileText);
-
+        const { urlWithoutExtension, extension, fileName } = getFileExtension(
+          encodeNoteNameWithQueryParams(fileText)
+        );
         // Create a link to the markdown note
         if (!urlWithoutExtension || !extension || !fileName) return true;
-        const segments = urlWithoutExtension.split('/');
-
+        const segments = decodeURIComponent(urlWithoutExtension).split('/');
         const title = segments.pop() ?? '';
         const folder = segments.pop() ?? '';
-
+        // All payload contents are decoded, the components will do the encoding
         if (extension === 'md') {
           linkPayloads.push({
-            url: `${urlWithoutExtension}?ext=${extension}`,
+            url: `${decodeURIComponent(urlWithoutExtension)}?ext=${extension}`,
             title: title,
           });
         } else {
           filesPayload.push({
             alt: title,
-            src: `${FILE_SERVER_URL}/notes/${folder}/${fileName}.${extension}`,
+            src: `${FILE_SERVER_URL}/notes/${folder}/${title}.${extension}`,
           });
         }
       }

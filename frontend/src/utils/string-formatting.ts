@@ -177,14 +177,12 @@ export function getTagNameFromSetValue(tagSetValue: string) {
  * @returns An object with the base name and query parameters.
  */
 export function extractInfoFromNoteName(noteName: string) {
-  const splitByExtension = noteName.split('?ext=');
-  const encodedNoteName = encodeURIComponent(
-    splitByExtension.slice(0, -1).join()
-  );
-  const fullNote = `${encodedNoteName}?ext=${splitByExtension[splitByExtension.length - 1]}`;
   // Create a URL object to parse the noteName string.
   // The base URL ("http://example.com") is used to properly parse relative URLs.
-  const url = new URL(fullNote, 'http://example.com');
+  const url = new URL(
+    encodeNoteNameWithQueryParams(noteName),
+    'http://example.com'
+  );
 
   // Extract the pathname and remove the leading "/" to get the base name.
   const base = url.pathname.substring(1);
@@ -210,8 +208,12 @@ export function extractInfoFromNoteName(noteName: string) {
  * @param noteName
  * @returns
  */
-export function encodeNoteName(noteName: string) {
+export function encodeNoteNameWithQueryParams(noteName: string) {
   const splitByExtension = noteName.split('?ext=');
+  // If there is no extension, return the original note name
+  if (splitByExtension.length === 1) {
+    return encodeURIComponent(noteName);
+  }
   const encodedNoteName = encodeURIComponent(
     splitByExtension.slice(0, -1).join()
   );
@@ -222,9 +224,9 @@ export function encodeNoteName(noteName: string) {
  * Gets the file extension of a URL if it points to a file like a pdf
  * It deals with query parameters as well. This is for the CONTROLLED_TEXT_INSERTION event
  */
-export function getFileExtension(url: string) {
+export function getFileExtension(encodedURL: string) {
   // Extract the part before the query parameters
-  const baseUrl = url.split('?')[0];
+  const baseUrl = encodedURL.split('?')[0];
 
   // Find the last period in the baseUrl
   const lastDotIndex = baseUrl.lastIndexOf('.');

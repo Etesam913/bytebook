@@ -59,14 +59,14 @@ func getPythonKernel(projectPath string) (kernelJson, error) {
 // It returns a kernelJson struct containing the Golang kernel configuration.
 // The function attempts to locate the gonb executable in the system PATH, falling back to just "gonb" if not found.
 func getGolangKernel(projectPath string) (kernelJson, error) {
-	pathToGolangKernel := filepath.Join(projectPath, "code", "golang-kernel.json")
+	pathToGoKernel := filepath.Join(projectPath, "code", "go-kernel.json")
 
 	gonbPath, err := exec.LookPath("gonb")
 	if err != nil {
 		gonbPath = "gonb" // Fallback to just the name if not found in PATH
 	}
 
-	golangKernelValue, err := util.ReadOrCreateJSON(pathToGolangKernel, kernelJson{
+	goKernelValue, err := util.ReadOrCreateJSON(pathToGoKernel, kernelJson{
 		Argv: []string{
 			gonbPath,
 			"--kernel",
@@ -77,12 +77,12 @@ func getGolangKernel(projectPath string) (kernelJson, error) {
 		Language:    "go",
 	})
 
-	return golangKernelValue, err
+	return goKernelValue, err
 }
 
 type AllKernels struct {
 	Python kernelJson
-	Golang kernelJson
+	Go     kernelJson
 }
 
 // GetAllKernels retrieves configurations for all supported kernels (Python and Golang).
@@ -102,7 +102,7 @@ func GetAllKernels(projectPath string) (AllKernels, error) {
 	}
 
 	allKernels.Python = pythonKernelValue
-	allKernels.Golang = golangKernelValue
+	allKernels.Go = golangKernelValue
 
 	return allKernels, nil
 }

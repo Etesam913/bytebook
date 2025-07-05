@@ -54,7 +54,11 @@ export function RenderNote({ isInTagsSidebar }: { isInTagsSidebar: boolean }) {
     data: noteExists,
     isLoading,
     error,
-  } = useNoteExists(folder, note, fileExtension);
+  } = useNoteExists(
+    decodeURIComponent(folder),
+    decodeURIComponent(note),
+    fileExtension
+  );
   useMostRecentNotes(folder, note, normalizedExtension);
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation(false);
   if (!note) return null;
