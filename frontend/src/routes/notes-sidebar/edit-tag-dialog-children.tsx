@@ -54,6 +54,15 @@ export function EditTagDialogChildren({
 
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Function to handle creating a new tag
+  const handleCreateTag = async (tagName: string) => {
+    await createTags({ tagNames: [tagName] });
+    setSelectedTagCounts(
+      new Map(selectedTagCounts.set(tagName, totalSelectedNotes))
+    );
+    setSearchTerm('');
+  };
+
   const {
     data: tagsForSelectedNotes,
     isLoading: areTagsForSelectedNotesLoading,
@@ -201,6 +210,14 @@ export function EditTagDialogChildren({
                 autoComplete: 'off',
                 spellCheck: 'false',
                 type: 'text',
+                onKeyDown: async (e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (searchTerm.length > 0) {
+                      await handleCreateTag(searchTerm);
+                    }
+                  }
+                },
               }}
               clearable={true}
             />
@@ -220,14 +237,7 @@ export function EditTagDialogChildren({
                   <IconButton
                     className="text-sm w-full flex items-center gap-2"
                     onClick={async () => {
-                      // Create the tag and set its count to the total number of selected notes (every note will have it added)
-                      await createTags({ tagNames: [searchTerm] });
-                      setSelectedTagCounts(
-                        new Map(
-                          selectedTagCounts.set(searchTerm, totalSelectedNotes)
-                        )
-                      );
-                      setSearchTerm('');
+                      await handleCreateTag(searchTerm);
                     }}
                   >
                     <TagPlus height={18} width={18} /> Create tag &quot;

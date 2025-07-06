@@ -46,7 +46,7 @@ func TestGetAllKernels(t *testing.T) {
 
 		// Verify the kernel files were created
 		pythonKernelFile := filepath.Join(codePath, "python-kernel.json")
-		golangKernelFile := filepath.Join(codePath, "golang-kernel.json")
+		golangKernelFile := filepath.Join(codePath, "go-kernel.json")
 
 		assert.FileExists(t, pythonKernelFile)
 		assert.FileExists(t, golangKernelFile)
@@ -83,7 +83,7 @@ func TestGetAllKernels(t *testing.T) {
 
 		golangKernelJSON, err := json.Marshal(golangKernel)
 		assert.NoError(t, err)
-		err = os.WriteFile(filepath.Join(codePath, "golang-kernel.json"), golangKernelJSON, 0644)
+		err = os.WriteFile(filepath.Join(codePath, "go-kernel.json"), golangKernelJSON, 0644)
 		assert.NoError(t, err)
 
 		// Call GetAllKernels
