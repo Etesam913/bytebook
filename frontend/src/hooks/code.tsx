@@ -44,10 +44,9 @@ export function useKernelStatus() {
     const data = body.data as {
       status: KernelStatus;
       language: Languages;
-    }[];
-    if (data.length === 0) return;
-    const language = data[0].language;
-    const status = data[0].status;
+    };
+    const language = data.language;
+    const status = data.status;
     if (isValidKernelLanguage(language)) {
       setKernelsData((prev) => ({
         ...prev,
@@ -71,12 +70,11 @@ export function useCodeBlockStatus(editor: LexicalEditor) {
       status: KernelStatus;
       messageId: string;
       duration: string;
-    }[];
-    if (data.length === 0) return;
-    const [codeBlockId] = data[0].messageId.split('|');
+    };
+    const [codeBlockId] = data.messageId.split('|');
     updateCodeBlock(editor, codeBlockId, (codeNode) => {
-      codeNode.setStatus(data[0].status, editor);
-      codeNode.setDuration(data[0].duration, editor);
+      codeNode.setStatus(data.status, editor);
+      codeNode.setDuration(data.duration, editor);
     });
   });
 }
@@ -88,11 +86,10 @@ export function useCodeBlockExecuteResult(editor: LexicalEditor) {
     const data = body.data as {
       messageId: string;
       data: Record<string, string>;
-    }[];
-    if (data.length === 0) return;
-    const [codeBlockId, executionId] = data[0].messageId.split('|');
+    };
+    const [codeBlockId, executionId] = data.messageId.split('|');
     const executionResultContent: string[] = [];
-    for (const content of Object.values(data[0].data)) {
+    for (const content of Object.values(data.data)) {
       executionResultContent.push(content);
     }
 
@@ -115,16 +112,15 @@ export function useCodeBlockExecuteInput(editor: LexicalEditor) {
       messageId: string;
       code: string;
       executionCount: number;
-    }[];
-    if (data.length === 0) return;
-    const [codeBlockId, executionId] = data[0].messageId.split('|');
+    };
+    const [codeBlockId, executionId] = data.messageId.split('|');
 
     updateCodeBlock(
       editor,
       codeBlockId,
       (codeNode) => {
         // Set the execution count on the code node
-        codeNode.setExecutionCount(data[0].executionCount, editor);
+        codeNode.setExecutionCount(data.executionCount, editor);
       },
       executionId
     );
@@ -144,10 +140,9 @@ export function useKernelShutdown() {
     const data = body.data as {
       status: string;
       language: Languages;
-    }[];
-    if (data.length === 0) return;
-    const language = data[0].language;
-    const status = data[0].status;
+    };
+    const language = data.language;
+    const status = data.status;
     if (isValidKernelLanguage(language) && status === 'success') {
       setKernelsData((prev) => ({
         ...prev,
@@ -175,10 +170,9 @@ export function useKernelHeartbeat() {
     const data = body.data as {
       status: KernelHeartbeatStatus;
       language: Languages;
-    }[];
-    if (data.length === 0) return;
-    const language = data[0].language;
-    const kernelHeartbeatStatus = data[0].status;
+    };
+    const language = data.language;
+    const kernelHeartbeatStatus = data.status;
     setKernelsData((prev) => ({
       ...prev,
       [language]: { ...prev[language], heartbeat: kernelHeartbeatStatus },
@@ -193,13 +187,12 @@ export function useKernelLaunchEvents(editor: LexicalEditor) {
     const data = body.data as {
       language: Languages;
       data: string;
-    }[];
-    if (data.length === 0) return;
-    const language = data[0].language;
-    toast.error(data[0].data, DEFAULT_SONNER_OPTIONS);
+    };
+    const language = data.language;
+    toast.error(data.data, DEFAULT_SONNER_OPTIONS);
     setKernelsData((prev) => ({
       ...prev,
-      [language]: { ...prev[language], errorMessage: data[0].data },
+      [language]: { ...prev[language], errorMessage: data.data },
     }));
 
     // All the nodes of the kernel should be back to idle if the kernel errors out
@@ -220,9 +213,8 @@ export function useKernelLaunchEvents(editor: LexicalEditor) {
     const data = body.data as {
       language: Languages;
       data: string;
-    }[];
-    if (data.length === 0) return;
-    const language = data[0].language;
+    };
+    const language = data.language;
     setKernelsData((prev) => ({
       ...prev,
       [language]: { ...prev[language], errorMessage: null },
@@ -268,7 +260,7 @@ function updateCodeBlock(
 export function useCodeBlockExecuteReply(editor: LexicalEditor) {
   useWailsEvent('code:code-block:execute_reply', (body) => {
     console.info('code:code-block:execute_reply', body);
-    const data = body.data as (
+    const data = body.data as
       | { status: 'ok'; messageId: string }
       | {
           status: 'error';
@@ -276,15 +268,14 @@ export function useCodeBlockExecuteReply(editor: LexicalEditor) {
           errorValue: string;
           errorTraceback: string[];
           errorName: string;
-        }
-    )[];
-    const [codeBlockId, executionId] = data[0].messageId.split('|');
+        };
+    const [codeBlockId, executionId] = data.messageId.split('|');
     updateCodeBlock(
       editor,
       codeBlockId,
       (codeNode) => {
-        if (data[0].status === 'error') {
-          const cleanedTraceback = data[0].errorTraceback
+        if (data.status === 'error') {
+          const cleanedTraceback = data.errorTraceback
             .map((trace) => `<div>${trace}</div>`)
             .join('');
           codeNode.setTracebackResult(cleanedTraceback, editor);
@@ -308,13 +299,13 @@ export function useCodeBlockStream(editor: LexicalEditor) {
       messageId: string;
       name: 'stdout' | 'stderr';
       text: string;
-    }[];
-    const [codeBlockId, executionId] = data[0].messageId.split('|');
+    };
+    const [codeBlockId, executionId] = data.messageId.split('|');
     updateCodeBlock(
       editor,
       codeBlockId,
       (codeNode) => {
-        codeNode.setStreamResult(data[0].text, editor);
+        codeNode.setStreamResult(data.text, editor);
       },
       executionId
     );
@@ -332,13 +323,13 @@ export function useCodeBlockDisplayData(editor: LexicalEditor) {
     const data = body.data as {
       messageId: string;
       data: Record<string, string>;
-    }[];
-    const [codeBlockId, executionId] = data[0].messageId.split('|');
+    };
+    const [codeBlockId, executionId] = data.messageId.split('|');
     updateCodeBlock(
       editor,
       codeBlockId,
       (codeNode) => {
-        codeNode.setDisplayResult(data[0].data, editor);
+        codeNode.setDisplayResult(data.data, editor);
       },
       executionId
     );
@@ -358,13 +349,11 @@ export function useCodeBlockInputRequest(editor: LexicalEditor) {
       messageId: string;
       prompt: string | null;
       password: boolean | null;
-    }[];
+    };
 
-    if (data.length === 0) return;
-
-    const [codeBlockId, executionId] = data[0].messageId.split('|');
-    const prompt = data[0].prompt;
-    const isPassword = data[0].password;
+    const [codeBlockId, executionId] = data.messageId.split('|');
+    const prompt = data.prompt;
+    const isPassword = data.password;
 
     updateCodeBlock(
       editor,

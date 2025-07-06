@@ -155,9 +155,12 @@ func monitorCommandExecution(cmd *exec.Cmd, stderrBuf *bytes.Buffer, language st
 
 			log.Printf("Kernel launch failed for %s: %s", language, errorMsg)
 
-			app.EmitEvent("kernel:launch-error", KernelLaunchEvent{
-				Language: language,
-				Data:     errorMsg,
+			app.Event.EmitEvent(&application.CustomEvent{
+				Name: "kernel:launch-error",
+				Data: KernelLaunchEvent{
+					Language: language,
+					Data:     errorMsg,
+				},
 			})
 		}
 	}()

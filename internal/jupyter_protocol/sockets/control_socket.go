@@ -64,9 +64,12 @@ func (s *controlSocket) Listen(
 		case <-ctx.Done():
 			controlSocketDealer.Close()
 			log.Println("🛑 Control socket listener received context cancellation")
-			app.EmitEvent("code:kernel:shutdown_reply", shutdownReplyEvent{
-				Status:   "success",
-				Language: connectionInfo.Language,
+			app.Event.EmitEvent(&application.CustomEvent{
+				Name: "code:kernel:shutdown_reply",
+				Data: shutdownReplyEvent{
+					Status:   "success",
+					Language: connectionInfo.Language,
+				},
 			})
 			s.codeServiceUpdater.ResetCodeServiceProperties(connectionInfo.Language)
 			jupyter_protocol.SendShutdownMessage(
@@ -112,9 +115,12 @@ func (s *controlSocket) Listen(
 				}
 
 				if status != "ok" {
-					app.EmitEvent("code:kernel:shutdown_reply", shutdownReplyEvent{
-						Status:   "error",
-						Language: connectionInfo.Language,
+					app.Event.EmitEvent(&application.CustomEvent{
+						Name: "code:kernel:shutdown_reply",
+						Data: shutdownReplyEvent{
+							Status:   "error",
+							Language: connectionInfo.Language,
+						},
 					})
 				}
 			case "interrupt_reply":

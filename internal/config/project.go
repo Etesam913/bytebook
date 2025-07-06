@@ -214,7 +214,8 @@ func UpdatePinnedNotesAndAccentColorFromProjectSettings(
 	projectSettings.PinnedNotes = GetValidPinnedNotes(projectPath, projectSettings)
 	app := application.Get()
 	if app != nil {
-		projectSettings.Appearance.AccentColor = app.GetAccentColor()
+		// projectSettings.Appearance.AccentColor = app.GetAccentColor()
+		projectSettings.Appearance.AccentColor = "rgb(0,122,255)"
 	}
 
 	// Write the updated settings

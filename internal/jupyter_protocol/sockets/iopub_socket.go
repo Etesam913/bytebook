@@ -129,10 +129,13 @@ func (i *ioPubSocket) Listen(
 				text, isTextString := msg.Content["text"].(string)
 				if isNameString && isTextString {
 					htmlStr := string(ansihtml.ConvertToHTML([]byte(text)))
-					app.EmitEvent("code:code-block:stream", streamEvent{
-						MessageId: msgId,
-						Name:      name,
-						Text:      htmlStr,
+					app.Event.EmitEvent(&application.CustomEvent{
+						Name: "code:code-block:stream",
+						Data: streamEvent{
+							MessageId: msgId,
+							Name:      name,
+							Text:      htmlStr,
+						},
 					})
 				}
 			case "execute_result":
@@ -155,7 +158,10 @@ func (i *ioPubSocket) Listen(
 					}
 
 					// Emit the event with all the data
-					app.EmitEvent("code:code-block:execute_result", executionResult)
+					app.Event.EmitEvent(&application.CustomEvent{
+						Name: "code:code-block:execute_result",
+						Data: executionResult,
+					})
 				}
 			case "display_data":
 				log.Printf("🖼️ Display data: %v\n", msg.Content["data"])
@@ -177,7 +183,10 @@ func (i *ioPubSocket) Listen(
 					}
 
 					// Emit the event with all the data
-					app.EmitEvent("code:code-block:display_data", displayData)
+					app.Event.EmitEvent(&application.CustomEvent{
+						Name: "code:code-block:display_data",
+						Data: displayData,
+					})
 				}
 			case "execute_input":
 				log.Printf("🎯 Execute input: %v\n", msg.Content)
@@ -190,7 +199,10 @@ func (i *ioPubSocket) Listen(
 						Code:           code,
 						ExecutionCount: int(executionCount),
 					}
-					app.EmitEvent("code:code-block:execute_input", executeInputData)
+					app.Event.EmitEvent(&application.CustomEvent{
+						Name: "code:code-block:execute_input",
+						Data: executeInputData,
+					})
 				}
 			case "status":
 				status, isString := msg.Content["execution_state"].(string)
@@ -200,7 +212,10 @@ func (i *ioPubSocket) Listen(
 						Language: i.language,
 					}
 
-					app.EmitEvent("code:kernel:status", statusEventData)
+					app.Event.EmitEvent(&application.CustomEvent{
+						Name: "code:kernel:status",
+						Data: statusEventData,
+					})
 					parentMessageType, ok := msg.ParentHeader["msg_type"].(string)
 					if !ok {
 						continue
@@ -224,10 +239,13 @@ func (i *ioPubSocket) Listen(
 						if status == "idle" {
 							duration = util.FormatExecutionDuration(requestTime, curTime)
 						}
-						app.EmitEvent("code:code-block:status", codeBlockStatusEvent{
-							MessageId: msgId,
-							Status:    status,
-							Duration:  duration,
+						app.Event.EmitEvent(&application.CustomEvent{
+							Name: "code:code-block:status",
+							Data: codeBlockStatusEvent{
+								MessageId: msgId,
+								Status:    status,
+								Duration:  duration,
+							},
 						})
 					} else if parentMessageType == "shutdown_request" && status == "idle" {
 						// After the shutdown_request, everything listen function should be exited from

@@ -219,7 +219,10 @@ func (fw *FileWatcher) handleSettingsUpdate() {
 	var projectSettings config.ProjectSettingsJson
 	err := util.ReadJsonFromPath(filepath.Join(fw.projectPath, "settings", "settings.json"), &projectSettings)
 	if err == nil {
-		fw.app.EmitEvent("settings:update", projectSettings)
+		fw.app.Event.EmitEvent(&application.CustomEvent{
+			Name: "settings:update",
+			Data: projectSettings,
+		})
 	}
 }
 
@@ -241,7 +244,10 @@ func (fw *FileWatcher) handleTagsUpdate(event fsnotify.Event, tagName string) {
 		TagName:          tagName,
 	}
 
-	fw.app.EmitEvent("tags:update", eventData)
+	fw.app.Event.EmitEvent(&application.CustomEvent{
+		Name: "tags:update",
+		Data: eventData,
+	})
 }
 
 // processEvent handles a single filesystem event
@@ -293,7 +299,10 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 func (fw *FileWatcher) emitDebouncedEvents() {
 	for eventKey, data := range fw.debounceEvents {
 		fmt.Println(eventKey, data)
-		fw.app.EmitEvent(eventKey, data)
+		fw.app.Event.EmitEvent(&application.CustomEvent{
+			Name: eventKey,
+			Data: data,
+		})
 	}
 	// Clear the debounced events
 	fw.debounceEvents = make(map[string][]map[string]string)

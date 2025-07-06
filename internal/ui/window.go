@@ -9,7 +9,7 @@ import (
 
 /* Creates a new Bytebook window. */
 func CreateWindow(app *application.App, url string, backgroundColor application.RGBA) application.Window {
-	return app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
+	return app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:     "Bytebook",
 		MinWidth:  800,
 		MinHeight: 600,

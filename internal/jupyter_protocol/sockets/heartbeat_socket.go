@@ -112,9 +112,12 @@ func (h *heartbeatSocket) Listen(
 			log.Printf("Received heartbeat response: %s\n", pingResponse)
 			h.consecutiveFailures = 0 // Reset failure count on successful heartbeat
 			h.heartbeatState.UpdateHeartbeatStatus(true)
-			app.EmitEvent("code:kernel:heartbeat", heartbeatEvent{
-				Language: connectionInfo.Language,
-				Status:   "success",
+			app.Event.EmitEvent(&application.CustomEvent{
+				Name: "code:kernel:heartbeat",
+				Data: heartbeatEvent{
+					Language: connectionInfo.Language,
+					Status:   "success",
+				},
 			})
 		}
 	}
@@ -122,8 +125,11 @@ func (h *heartbeatSocket) Listen(
 
 func (h *heartbeatSocket) handleHeartbeatFailure(language string, app *application.App) {
 	h.heartbeatState.UpdateHeartbeatStatus(false)
-	app.EmitEvent("code:kernel:heartbeat", heartbeatEvent{
-		Language: language,
-		Status:   "failure",
+	app.Event.EmitEvent(&application.CustomEvent{
+		Name: "code:kernel:heartbeat",
+		Data: heartbeatEvent{
+			Language: language,
+			Status:   "failure",
+		},
 	})
 }

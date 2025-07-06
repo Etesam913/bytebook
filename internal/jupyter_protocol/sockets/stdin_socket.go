@@ -103,10 +103,13 @@ func (s *stdinSocket) Listen(
 					password = false
 				}
 
-				app.EmitEvent("code:code-block:input_request", InputRequestEvent{
-					MessageId: msgId,
-					Prompt:    prompt,
-					Password:  password,
+				app.Event.EmitEvent(&application.CustomEvent{
+					Name: "code:code-block:input_request",
+					Data: InputRequestEvent{
+						MessageId: msgId,
+						Prompt:    prompt,
+						Password:  password,
+					},
 				})
 			}
 		}

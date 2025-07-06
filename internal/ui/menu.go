@@ -16,8 +16,7 @@ func InitializeApplicationMenu(backgroundColor application.RGBA) {
 	configureFileMenu(app, menu, backgroundColor)
 	configureToggleFullscreen(menu)
 	configureViewMenu(app, menu)
-
-	app.SetMenu(menu)
+	app.Menu.SetApplicationMenu(menu)
 	// menu.Update()
 }
 
@@ -28,10 +27,11 @@ func configureSettingsMenu(app *application.App, menu *application.Menu) {
 		return
 	}
 	sub := item.GetSubmenu()
+
 	settings := sub.Add("Settings")
 	settings.SetAccelerator("cmdorctrl+,")
 	settings.OnClick(func(ctx *application.Context) {
-		win := app.CurrentWindow()
+		win := app.Window.Current()
 		if win != nil {
 			win.EmitEvent("settings:open")
 		} else {
@@ -76,7 +76,7 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	search := sub.Add("Search")
 	search.SetAccelerator("cmdorctrl+p")
 	search.OnClick(func(ctx *application.Context) {
-		win := app.CurrentWindow()
+		win := app.Window.Current()
 		if win != nil {
 			win.EmitEvent("search:open-panel", map[string]any{})
 		} else {

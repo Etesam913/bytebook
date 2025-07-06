@@ -461,9 +461,12 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 
 	app := application.Get()
 	if app != nil {
-		app.EmitEvent("kernel:launch-success", jupyter_protocol.KernelLaunchEvent{
-			Language: language,
-			Data:     "",
+		app.Event.EmitEvent(&application.CustomEvent{
+			Name: "kernel:launch-success",
+			Data: jupyter_protocol.KernelLaunchEvent{
+				Language: language,
+				Data:     "",
+			},
 		})
 	}
 

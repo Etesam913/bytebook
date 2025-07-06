@@ -145,7 +145,7 @@ func (s *shellSocket) Listen(
 						}
 					}
 				}
-				currentWindow := app.CurrentWindow()
+				currentWindow := app.Window.Current()
 				if currentWindow != nil {
 					currentWindow.EmitEvent(
 						"code:code-block:execute_reply",
@@ -197,7 +197,7 @@ func (s *shellSocket) Listen(
 					}
 				}
 
-				currentWindow := app.CurrentWindow()
+				currentWindow := app.Window.Current()
 				if currentWindow != nil {
 					currentWindow.EmitEvent(
 						"code:code-block:complete_reply",
@@ -220,9 +220,12 @@ func (s *shellSocket) Listen(
 				}
 
 				if status != "ok" {
-					app.EmitEvent("code:kernel:shutdown_reply", shutdownReplyEvent{
-						Status:   "error",
-						Language: connectionInfo.Language,
+					app.Event.EmitEvent(&application.CustomEvent{
+						Name: "code:kernel:shutdown_reply",
+						Data: shutdownReplyEvent{
+							Status:   "error",
+							Language: connectionInfo.Language,
+						},
 					})
 				} else if connectionInfo.Language == "go" {
 					// For some reason gonb only sends shutdown_request to the shell socket
@@ -257,7 +260,7 @@ func (s *shellSocket) Listen(
 					}
 				}
 
-				currentWindow := app.CurrentWindow()
+				currentWindow := app.Window.Current()
 				if currentWindow != nil {
 					currentWindow.EmitEvent(
 						"code:code-block:inspect_reply",

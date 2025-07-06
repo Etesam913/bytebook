@@ -128,7 +128,8 @@ func main() {
 	})
 
 	backgroundColor := application.NewRGB(27, 38, 54)
-	if app.IsDarkMode() {
+
+	if app.Env.IsDarkMode() {
 		backgroundColor = application.NewRGB(39, 39, 43)
 	}
 	// Creates the default window

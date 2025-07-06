@@ -196,7 +196,10 @@ func githubAuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "https://google.com", http.StatusSeeOther)
 	app := application.Get()
-	app.EmitEvent("auth:access-token", accessToken)
+	app.Event.EmitEvent(&application.CustomEvent{
+		Name: "auth:access-token",
+		Data: accessToken,
+	})
 }
 
 // LaunchAuthServer starts an HTTP server on port 8000 to handle GitHub authentication.
