@@ -10,6 +10,9 @@ import { KernelInfoCard } from './kernel-info-card';
 import { KernelErrorCard } from './kernel-error-card';
 import { Languages } from '../../types';
 
+// Export the reusable KernelHeartbeat component
+export { KernelHeartbeat } from './kernel-heartbeat';
+
 interface KernelConfig {
   displayName: string;
   executable: string;
@@ -67,7 +70,7 @@ export function KernelInfo() {
             Kernel Not Found
           </h2>
           <p className="text-zinc-500 dark:text-zinc-400">
-            The requested kernel "{kernelName}" is not available.
+            The requested kernel &quot;{kernelName}&quot; is not available.
           </p>
           <p className="text-zinc-500 dark:text-zinc-400 mt-2 text-sm">
             Supported kernels: {supportedKernels.join(', ')}
@@ -105,6 +108,7 @@ export function KernelInfo() {
         {/* Status Section */}
         <div className="mb-8">
           <KernelStatusCard
+            language={kernelName as Languages}
             status={kernelData.status}
             heartbeat={kernelData.heartbeat}
           />

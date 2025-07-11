@@ -15,11 +15,6 @@ import { Pen } from '../../icons/pen';
 import { useSearchParamsEntries } from '../../utils/routing';
 import { MyNotesAccordion } from './my-notes-accordion.tsx';
 import { RenderNote } from './render-note.tsx';
-import {
-  useKernelHeartbeat,
-  useKernelShutdown,
-  useKernelStatus,
-} from '../../hooks/code.tsx';
 import { ErrorBoundary } from 'react-error-boundary';
 import { RenderNoteFallback } from '../../components/error-boundary/render-note.tsx';
 
@@ -47,9 +42,6 @@ export function NotesSidebar({
 
   useNoteCreate();
   useNoteDelete(folder);
-  useKernelStatus();
-  useKernelHeartbeat();
-  useKernelShutdown();
 
   return (
     <>

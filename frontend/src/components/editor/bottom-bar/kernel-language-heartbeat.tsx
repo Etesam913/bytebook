@@ -11,8 +11,8 @@ import {
   projectSettingsAtom,
 } from '../../../atoms';
 import { DropdownItem, Languages } from '../../../types';
-import { Loader } from '../../../icons/loader';
 import { cn } from '../../../utils/string-formatting';
+import { KernelHeartbeat } from '../../kernel-info';
 import { useQuery } from '@tanstack/react-query';
 import { CreateSocketsAndListen } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import { FolderOpen } from '../../../icons/folder-open';
@@ -169,21 +169,16 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
 
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 whitespace-nowrap"
+        className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 whitespace-nowrap"
       >
-        {status === 'idle' && (
-          <span
-            className={cn(
-              'h-2 w-2 rounded-full kernel-heartbeat',
-              heartbeat === 'success' && 'bg-green-600',
-              heartbeat === 'failure' && 'bg-red-600',
-              heartbeat === 'idle' && 'bg-gray-500'
-            )}
-          />
-        )}
-        {(status === 'busy' || status === 'starting') && (
-          <Loader height={10} width={10} />
-        )}
+        <KernelHeartbeat
+          status={status}
+          heartbeat={heartbeat}
+          isBlinking={true}
+          className="h-2 w-2"
+          loaderHeight={10}
+          loaderWidth={10}
+        />
         <p>{language}</p>
         <motion.div
           initial={{ rotate: 0 }}

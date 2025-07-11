@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { useRoute } from 'wouter';
 import { SquareTerminal } from '../../icons/square-terminal';
 import { PythonLogo } from '../../icons/python-logo';
@@ -8,6 +8,19 @@ import { cn } from '../../utils/string-formatting';
 import { Sidebar } from '../sidebar';
 import { AccordionButton } from '../sidebar/accordion-button';
 import { navigate } from 'wouter/use-browser-location';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { kernelsDataAtom, contextMenuDataAtom } from '../../atoms';
+import { handleContextMenuSelection } from '../../utils/selection';
+import { KernelHeartbeat } from '../kernel-info';
+import PowerOff from '../../icons/power-off';
+import { Play } from '../../icons/circle-play';
+import {
+  useKernelHeartbeat,
+  useKernelShutdown,
+  useKernelStatus,
+  useShutdownKernelMutation,
+  useTurnOnKernelMutation,
+} from '../../hooks/code';
 
 const KERNELS: string[] = ['python', 'go'];
 type KernelType = 'python' | 'go';
@@ -16,6 +29,10 @@ export function MyKernelsAccordion() {
   const [isOpen, setIsOpen] = useState(false);
   const [, params] = useRoute('/kernels/:kernelName/:folder?/:note?');
   const kernelNameFromUrl = (params as { kernelName: string })?.kernelName;
+
+  useKernelStatus();
+  useKernelHeartbeat();
+  useKernelShutdown();
 
   return (
     <section className="pb-1.5">
@@ -47,13 +64,11 @@ export function MyKernelsAccordion() {
               contentType="tag"
               renderLink={({
                 dataItem: kernelName,
-                i,
                 selectionRange,
                 setSelectionRange,
               }) => {
                 return (
                   <KernelAccordionButton
-                    i={i}
                     selectionRange={selectionRange}
                     setSelectionRange={setSelectionRange}
                     kernelName={kernelName as KernelType}
@@ -71,27 +86,32 @@ export function MyKernelsAccordion() {
 }
 
 function KernelAccordionButton({
-  i,
   selectionRange,
   setSelectionRange,
   kernelName,
   kernelNameFromUrl,
 }: {
-  i: number;
   selectionRange: Set<string>;
-  setSelectionRange: React.Dispatch<React.SetStateAction<Set<string>>>;
+  setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
   kernelName: KernelType;
   kernelNameFromUrl: string | undefined;
 }) {
   const isActive = decodeURIComponent(kernelNameFromUrl ?? '') === kernelName;
   const isSelected = selectionRange.has(`kernel:${kernelName}`);
+  const kernelsData = useAtomValue(kernelsDataAtom);
+  const { status, heartbeat } = kernelsData[kernelName];
+  const setContextMenuData = useSetAtom(contextMenuDataAtom);
+  const { mutate: shutdownKernel } = useShutdownKernelMutation(kernelName);
+  const { mutate: turnOnKernel } = useTurnOnKernelMutation();
+
+  const isKernelRunning = heartbeat === 'success';
 
   const getKernelIcon = (kernel: KernelType) => {
     switch (kernel) {
       case 'python':
         return <PythonLogo height={18} width={18} />;
       case 'go':
-        return <GolangLogo height={20} width={20} />;
+        return <GolangLogo height={18} width={18} />;
       default:
         return <SquareTerminal height={16} width={16} />;
     }
@@ -111,8 +131,52 @@ function KernelAccordionButton({
         if (e.metaKey || e.shiftKey) return;
         navigate(`/kernels/${encodeURIComponent(kernelName)}`);
       }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        handleContextMenuSelection({
+          setSelectionRange,
+          itemType: 'kernel',
+          itemName: kernelName,
+          onlyOne: true,
+        });
+        setContextMenuData({
+          x: e.clientX,
+          y: e.clientY,
+          isShowing: true,
+          items: [
+            {
+              label: (
+                <span className="flex items-center gap-1.5">
+                  {isKernelRunning ? (
+                    <PowerOff height={12} width={12} />
+                  ) : (
+                    <Play height={18} width={18} />
+                  )}
+                  {isKernelRunning ? 'Stop Kernel' : 'Start Kernel'}
+                </span>
+              ),
+              value: isKernelRunning ? 'stop-kernel' : 'start-kernel',
+              onChange: () => {
+                if (isKernelRunning) {
+                  shutdownKernel(false);
+                } else {
+                  turnOnKernel(kernelName);
+                }
+              },
+            },
+          ],
+        });
+      }}
     >
-      {getKernelIcon(kernelName)}
+      <div className="flex items-center gap-2">
+        {getKernelIcon(kernelName)}
+        <KernelHeartbeat
+          status={status}
+          heartbeat={heartbeat}
+          isBlinking={false}
+          className="h-2.25 w-2.25"
+        />
+      </div>
       <p className="whitespace-nowrap text-ellipsis overflow-hidden capitalize">
         {kernelName}
       </p>

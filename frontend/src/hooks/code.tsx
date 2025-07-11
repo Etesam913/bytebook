@@ -47,6 +47,7 @@ export function useKernelStatus() {
     };
     const language = data.language;
     const status = data.status;
+    console.log({ status });
     if (isValidKernelLanguage(language)) {
       setKernelsData((prev) => ({
         ...prev,
@@ -79,6 +80,13 @@ export function useCodeBlockStatus(editor: LexicalEditor) {
   });
 }
 
+/**
+ * Hook that listens for code block execution result events and updates the corresponding code block
+ * in the Lexical editor with the execution result.
+ * Subscribes to the 'code:code-block:execute_result' event.
+ *
+ * @param editor - The Lexical editor instance to update code blocks in
+ */
 export function useCodeBlockExecuteResult(editor: LexicalEditor) {
   useWailsEvent('code:code-block:execute_result', (body) => {
     console.info('code:code-block:execute_result');
@@ -104,6 +112,13 @@ export function useCodeBlockExecuteResult(editor: LexicalEditor) {
   });
 }
 
+/**
+ * Hook that listens for code block execution input events and updates the execution count
+ * for the corresponding code block in the Lexical editor.
+ * Subscribes to the 'code:code-block:execute_input' event.
+ *
+ * @param editor - The Lexical editor instance to update code blocks in
+ */
 export function useCodeBlockExecuteInput(editor: LexicalEditor) {
   useWailsEvent('code:code-block:execute_input', (body) => {
     console.info('code:code-block:execute_input');

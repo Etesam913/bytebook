@@ -24,7 +24,7 @@ import { Trash } from '../../icons/trash';
 import { BYTEBOOK_DRAG_DATA_FORMAT } from '../../utils/draggable';
 import {
   handleKeyNavigation,
-  keepSelectionNotesWithPrefix,
+  handleContextMenuSelection,
 } from '../../utils/selection';
 import { cn } from '../../utils/string-formatting';
 import { MotionButton } from '../buttons';
@@ -224,20 +224,11 @@ function FolderAccordionButton({
       }}
       onContextMenu={(e) => {
         e.preventDefault();
-        let newSelectionRange = new Set([`folder:${sidebarFolderName}`]);
-        if (selectionRange.size === 0) {
-          setSelectionRange(newSelectionRange);
-        } else {
-          setSelectionRange((prev) => {
-            const setWithoutNotes = keepSelectionNotesWithPrefix(
-              prev,
-              'folder'
-            );
-            setWithoutNotes.add(`folder:${sidebarFolderName}`);
-            newSelectionRange = setWithoutNotes;
-            return setWithoutNotes;
-          });
-        }
+        const newSelectionRange = handleContextMenuSelection({
+          setSelectionRange,
+          itemType: 'folder',
+          itemName: sidebarFolderName,
+        });
         setContextMenuData({
           x: e.clientX,
           y: e.clientY,

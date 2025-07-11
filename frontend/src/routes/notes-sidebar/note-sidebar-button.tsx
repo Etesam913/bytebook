@@ -27,7 +27,7 @@ import { useSearchParamsEntries } from '../../utils/routing';
 import {
   getFolderAndNoteFromSelectionRange,
   handleKeyNavigation,
-  keepSelectionNotesWithPrefix,
+  handleContextMenuSelection,
 } from '../../utils/selection';
 import {
   cn,
@@ -130,17 +130,11 @@ export function NoteSidebarButton({
         })
       }
       onContextMenu={(e) => {
-        let newSelectionRange = new Set([`note:${noteNameForSelection}`]);
-        if (selectionRange.size === 0) {
-          setSelectionRange(newSelectionRange);
-        } else {
-          setSelectionRange((prev) => {
-            const setWithoutNotes = keepSelectionNotesWithPrefix(prev, 'note');
-            setWithoutNotes.add(`note:${noteNameForSelection}`);
-            newSelectionRange = setWithoutNotes;
-            return setWithoutNotes;
-          });
-        }
+        const newSelectionRange = handleContextMenuSelection({
+          setSelectionRange,
+          itemType: 'note',
+          itemName: noteNameForSelection,
+        });
         const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
           sidebarNoteFolder,
           newSelectionRange,

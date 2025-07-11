@@ -9,15 +9,50 @@ import { extractInfoFromNoteName } from './string-formatting';
  */
 export function keepSelectionNotesWithPrefix(
   selection: Set<string>,
-  prefix: 'folder' | 'note' | 'tag'
+  prefix: 'folder' | 'note' | 'tag' | 'kernel'
 ) {
-  const newSelection = new Set<string>();
-  for (const item of selection) {
-    if (item.startsWith(`${prefix}:`)) {
-      newSelection.add(item);
+  return new Set(
+    [...selection].filter((item) => item.startsWith(`${prefix}:`))
+  );
+}
+
+/**
+ * Handles selection range logic for context menus across different sidebar components.
+ * Creates or updates the selection range when right-clicking on an item.
+ * Optionally allows only one item in the selection set.
+ * @param params - Object containing the selection parameters
+ * @param params.setSelectionRange - Function to update the selection range
+ * @param params.itemType - The type of item being selected ('folder', 'note', 'tag', 'kernel')
+ * @param params.itemName - The name/identifier of the item being selected
+ * @param params.onlyOne - If true, only allow one item in the selection set (default: false)
+ * @returns The new selection range Set
+ */
+export function handleContextMenuSelection({
+  setSelectionRange,
+  itemType,
+  itemName,
+  onlyOne = false,
+}: {
+  setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
+  itemType: 'folder' | 'note' | 'tag' | 'kernel';
+  itemName: string;
+  onlyOne?: boolean;
+}): Set<string> {
+  let newSelectionRange = new Set([`${itemType}:${itemName}`]);
+
+  setSelectionRange((prev) => {
+    if (onlyOne || prev.size === 0) {
+      // Only allow one item in the selection set
+      newSelectionRange = new Set([`${itemType}:${itemName}`]);
+      return newSelectionRange;
     }
-  }
-  return newSelection;
+    const setWithoutItems = keepSelectionNotesWithPrefix(prev, itemType);
+    setWithoutItems.add(`${itemType}:${itemName}`);
+    newSelectionRange = setWithoutItems;
+    return setWithoutItems;
+  });
+
+  return newSelectionRange;
 }
 
 /**

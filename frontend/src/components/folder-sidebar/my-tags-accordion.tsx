@@ -7,7 +7,7 @@ import { useDeleteTagsMutation } from '../../hooks/notes';
 import { useTagsQuery } from '../../hooks/tags';
 import { TagIcon } from '../../icons/tag';
 import TagSlash from '../../icons/tag-slash';
-import { keepSelectionNotesWithPrefix } from '../../utils/selection';
+import { handleContextMenuSelection } from '../../utils/selection';
 import { cn } from '../../utils/string-formatting';
 import { Sidebar } from '../sidebar';
 import { AccordionButton } from '../sidebar/accordion-button';
@@ -125,17 +125,11 @@ function TagAccordionButton({
         navigate(`/tags/${encodeURIComponent(sidebarTagName)}`);
       }}
       onContextMenu={(e) => {
-        let newSelectionRange = new Set([`tag:${sidebarTagName}`]);
-        if (selectionRange.size === 0) {
-          setSelectionRange(newSelectionRange);
-        } else {
-          setSelectionRange((prev) => {
-            const setWithoutNotes = keepSelectionNotesWithPrefix(prev, 'tag');
-            setWithoutNotes.add(`tag:${sidebarTagName}`);
-            newSelectionRange = setWithoutNotes;
-            return setWithoutNotes;
-          });
-        }
+        const newSelectionRange = handleContextMenuSelection({
+          setSelectionRange,
+          itemType: 'tag',
+          itemName: sidebarTagName,
+        });
         setContextMenuData({
           x: e.clientX,
           y: e.clientY,
