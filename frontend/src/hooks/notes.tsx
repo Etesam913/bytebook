@@ -154,7 +154,8 @@ export function useNoteCreate() {
 
   useWailsEvent('note:create', async (body) => {
     console.info('note:create', body);
-    const data = (body.data as { folder: string; note: string }[][])[0];
+    const data = body.data as { folder: string; note: string }[];
+
     const folderOfLastNote = data[data.length - 1].folder;
     await queryClient.invalidateQueries({
       queryKey: ['notes', folderOfLastNote, noteSort],

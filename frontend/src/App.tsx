@@ -38,6 +38,12 @@ const TagsSidebar = lazy(() =>
   }))
 );
 
+const KernelInfo = lazy(() =>
+  import('./components/kernel-info').then((module) => ({
+    default: module.KernelInfo,
+  }))
+);
+
 export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
 
 disableBackspaceNavigation();
@@ -91,6 +97,12 @@ function App() {
               />
             </Suspense>
           )}
+        </Route>
+
+        <Route path="/kernels/:kernelName">
+          <Suspense fallback={<RouteFallback />}>
+            <KernelInfo />
+          </Suspense>
         </Route>
 
         <Route path="/:folder/:note?">

@@ -96,8 +96,8 @@ export function useTagEvents() {
     handleTagRelatedEvent(queryClient, folderAndNotePath);
   });
   useWailsEvent('tags:update', (body) => {
-    const data = body.data as { notes: string[] | null; tagName: string }[];
-    const updatedTag = data[0].tagName;
+    const data = body.data as { notes: string[] | null; tagName: string };
+    const updatedTag = data.tagName;
 
     // Update the notes present in tags-sidebar
     queryClient.invalidateQueries({

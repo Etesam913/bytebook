@@ -63,13 +63,13 @@ func TestGetAllKernels(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Create valid kernel files
-		pythonKernel := kernelJson{
+		pythonKernel := KernelJson{
 			Argv:        []string{"custom-python", "-f", "{connection_file}"},
 			DisplayName: "Custom Python",
 			Language:    "python",
 		}
 
-		golangKernel := kernelJson{
+		golangKernel := KernelJson{
 			Argv:        []string{"/custom/gonb/path", "--kernel", "{connection_file}"},
 			DisplayName: "Custom Go",
 			Language:    "go",
@@ -123,12 +123,12 @@ func TestGetAllConnectionInfo(t *testing.T) {
 	assert.Equal(t, 55325, allInfo.Python.HBPort)
 
 	// Check Golang connection info
-	assert.Equal(t, "go", allInfo.Golang.Language)
-	assert.Equal(t, 55326, allInfo.Golang.ShellPort)
-	assert.Equal(t, 55327, allInfo.Golang.IOPubPort)
-	assert.Equal(t, 55328, allInfo.Golang.StdinPort)
-	assert.Equal(t, 55329, allInfo.Golang.ControlPort)
-	assert.Equal(t, 55330, allInfo.Golang.HBPort)
+	assert.Equal(t, "go", allInfo.Go.Language)
+	assert.Equal(t, 55326, allInfo.Go.ShellPort)
+	assert.Equal(t, 55327, allInfo.Go.IOPubPort)
+	assert.Equal(t, 55328, allInfo.Go.StdinPort)
+	assert.Equal(t, 55329, allInfo.Go.ControlPort)
+	assert.Equal(t, 55330, allInfo.Go.HBPort)
 
 	// Check if the files were created
 	pythonConnectionFile := filepath.Join(codeDir, "python-connection.json")

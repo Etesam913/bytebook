@@ -23,6 +23,7 @@ import { CircleArrowRight } from '../../icons/circle-arrow-right.tsx';
 import { useRef } from 'react';
 import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 import { RefreshAnticlockwise } from '../../icons/refresh-anticlockwise.tsx';
+import { MyKernelsAccordion } from './my-kernels-accordion.tsx';
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
   const sidebarAccordionSectionRef = useRef<HTMLDivElement | null>(null);
@@ -112,6 +113,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
             <PinnedNotesAccordion />
             <RecentNotesAccordion />
             <MyFoldersAccordion folder={folder} />
+            <MyKernelsAccordion />
             <MyTagsAccordion />
           </div>
         </section>

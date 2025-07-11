@@ -584,4 +584,15 @@ func (c *CodeService) ResetCodeServiceProperties(language string) *sockets.Langu
 	return nil
 }
 
+func (c *CodeService) GetKernelInfoByLanguage(language string) *config.KernelJson {
+	switch language {
+	case "python":
+		return &c.AllKernels.Python
+	case "go":
+		return &c.AllKernels.Go
+	default:
+		return nil
+	}
+}
+
 var _ sockets.CodeServiceUpdater = (*CodeService)(nil)
