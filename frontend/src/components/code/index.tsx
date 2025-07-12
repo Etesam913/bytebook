@@ -39,18 +39,18 @@ export const languageToSettings: Record<Languages, LanguageSetting> = {
     basicSetup: { tabSize: 4 },
     extension: langs.python,
     language: pythonLanguage,
-    icon: <PythonLogo width={16} height={16} />,
+    icon: <PythonLogo width={18} height={18} />,
   },
   go: {
     basicSetup: { tabSize: 4 },
     extension: langs.go,
-    icon: <GolangLogo width={16} height={16} />,
+    icon: <GolangLogo width={18} height={18} />,
   },
   javascript: {
     basicSetup: { tabSize: 2 },
     extension: langs.javascript,
     language: javascriptLanguage,
-    icon: <JavascriptLogo width={16} height={16} />,
+    icon: <JavascriptLogo width={18} height={18} />,
   },
 };
 
@@ -114,7 +114,7 @@ export function Code({
   }, [isSelected, isExpanded]);
 
   return (
-    <div className="flex items-center gap-2 relative" ref={codeBlockRef}>
+    <div className="flex gap-2 items-center relative" ref={codeBlockRef}>
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -125,7 +125,7 @@ export function Code({
           />
         )}
       </AnimatePresence>
-      <div className="absolute z-20 text-xs -translate-x-10 text-zinc-400 font-code">
+      <div className="absolute -translate-x-10 font-code text-xs text-zinc-400">
         <div>
           {executionCount > 0 &&
             `[${
@@ -189,6 +189,10 @@ export function Code({
           )}
         </Suspense>
       </span>
+
+      <div className="translate-x-7 absolute text-zinc-400 right-1">
+        {languageToSettings[language].icon}
+      </div>
     </div>
   );
 }
