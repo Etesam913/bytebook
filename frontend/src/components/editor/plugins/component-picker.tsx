@@ -50,6 +50,7 @@ import { attachmentCommandData, listCommandData } from '../utils/toolbar';
 import { INSERT_CODE_COMMAND } from './code';
 import { Languages } from '../../../types';
 import { getDefaultCodeForLanguage } from '../../../utils/code';
+import { JavascriptLogo } from '../../../icons/javascript-logo';
 
 const languageCommandData: {
   languageName: Languages;
@@ -75,12 +76,12 @@ const languageCommandData: {
     icon: <PythonLogo />,
     name: 'Python',
   },
-  // {
-  //   id: 'javascript',
-  //   keywords: ['javascript', 'js'],
-  //   icon: <JavascriptLogo />,
-  //   name: 'Javascript',
-  // },
+  {
+    languageName: 'javascript',
+    keywords: ['javascript', 'js'],
+    icon: <JavascriptLogo />,
+    name: 'Javascript',
+  },
   // {
   //   id: 'react',
   //   keywords: ['javascript', 'react', 'jsx'],

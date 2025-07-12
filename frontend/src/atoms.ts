@@ -152,6 +152,11 @@ export const kernelsDataAtom = atom<KernelsData>({
     heartbeat: 'idle',
     errorMessage: null,
   },
+  javascript: {
+    status: 'idle',
+    heartbeat: 'idle',
+    errorMessage: null,
+  },
 });
 
 export const albumDataAtom = atom<AlbumData>({

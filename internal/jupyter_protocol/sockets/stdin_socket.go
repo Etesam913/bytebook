@@ -47,6 +47,10 @@ func (s *stdinSocket) Listen(
 	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
 ) {
+	if stdinSocketDealer == nil {
+		log.Println("📥 Stdin socket is nil, cannot listen")
+		return
+	}
 	defer stdinSocketDealer.Close()
 	app := application.Get()
 

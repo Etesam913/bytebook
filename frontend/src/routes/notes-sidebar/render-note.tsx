@@ -116,7 +116,7 @@ export function RenderNote({ isInTagsSidebar }: { isInTagsSidebar: boolean }) {
           <iframe
             title={note}
             className={cn(
-              'flex-1 overflow-auto mr-1 dark:invert',
+              'flex-1 overflow-auto mr-1',
               isNoteMaximized && 'w-full mr-0',
               draggedElement !== null && 'pointer-events-none'
             )}

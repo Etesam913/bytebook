@@ -75,6 +75,10 @@ func (i *ioPubSocket) Listen(
 	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
 ) {
+	if ioPubSocketSubscriber == nil {
+		log.Println("🍺 IOPub socket is nil, cannot listen")
+		return
+	}
 
 	defer ioPubSocketSubscriber.Close()
 

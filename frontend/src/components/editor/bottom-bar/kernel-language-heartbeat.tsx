@@ -76,7 +76,6 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
       return res;
     },
   });
-
   const heartbeatSuccessDropdownItems = languageSpecificOptions
     .heartbeatSuccess[language]
     ? [...(languageSpecificOptions.heartbeatSuccess[language] ?? [])]

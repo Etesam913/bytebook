@@ -51,6 +51,10 @@ func (s *controlSocket) Listen(
 	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
 ) {
+	if controlSocketDealer == nil {
+		log.Println("🛂 Control socket is nil, cannot listen")
+		return
+	}
 	defer controlSocketDealer.Close()
 	app := application.Get()
 

@@ -83,7 +83,6 @@ export function CodeMirrorEditor({
   }
 
   useEffect(() => {
-    // Focuses the editor when the node is selected
     if (codeMirrorInstance?.view && isInNodeSelection) {
       codeMirrorInstance.view.focus();
     }
@@ -100,6 +99,14 @@ export function CodeMirrorEditor({
     executeCode,
     setSelected,
   });
+  // gives syntax highlighting
+  const cmLanguageObject = languageToSettings[language].language;
+  // gives autocomplete from kernel
+  const extraCompletions = cmLanguageObject
+    ? cmLanguageObject.data.of({
+        autocomplete: completionSource,
+      })
+    : [];
 
   return (
     <div
@@ -138,10 +145,13 @@ export function CodeMirrorEditor({
           EditorView.editable.of(isInNodeSelection),
           projectSettings.code.codeBlockVimMode ? vim() : [],
           runCodeKeymap,
+          extraCompletions,
           languageToSettings[language].extension(),
           autocompletion({
-            override: [completionSource],
             activateOnTypingDelay: 50,
+            // For languages that do not have a language object, there is now way to attach completions
+            // to the language object, so we need to attach it to the autocompletion extension
+            override: cmLanguageObject ? undefined : [completionSource],
           }),
         ]}
         theme={isDarkModeOn ? nord : vscodeLight}

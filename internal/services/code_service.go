@@ -19,6 +19,7 @@ type CodeService struct {
 	ProjectPath                    string
 	PythonSockets                  sockets.LanguageSockets
 	GoSockets                      sockets.LanguageSockets
+	JavascriptSockets              sockets.LanguageSockets
 	LanguageToKernelConnectionInfo config.LanguageToKernelConnectionInfo
 	AllKernels                     config.AllKernels
 }
@@ -29,6 +30,8 @@ func (c *CodeService) getLanguageSockets(language string) *sockets.LanguageSocke
 		return &c.PythonSockets
 	case "go":
 		return &c.GoSockets
+	case "javascript":
+		return &c.JavascriptSockets
 	default:
 		return nil
 	}
@@ -427,6 +430,8 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 		argv = c.AllKernels.Python.Argv
 	case "go":
 		argv = c.AllKernels.Go.Argv
+	case "javascript":
+		argv = c.AllKernels.Javascript.Argv
 	default:
 		return config.BackendResponseWithoutData{
 			Success: false,
@@ -580,6 +585,23 @@ func (c *CodeService) ResetCodeServiceProperties(language string) *sockets.Langu
 			Cancel:  newKernelCtxCancel,
 		}
 		return &c.GoSockets
+	case "javascript":
+		// Reset JavaScript context and sockets
+		newKernelCtx, newKernelCtxCancel := context.WithCancel(context.Background())
+		c.JavascriptSockets = sockets.LanguageSockets{
+			ShellSocketDealer:     nil,
+			IOPubSocketSubscriber: nil,
+			ControlSocketDealer:   nil,
+			HeartbeatSocketReq:    nil,
+			StdinSocketDealer:     nil,
+			HeartbeatState: jupyter_protocol.KernelHeartbeatState{
+				Mutex:  sync.RWMutex{},
+				Status: false,
+			},
+			Context: newKernelCtx,
+			Cancel:  newKernelCtxCancel,
+		}
+		return &c.JavascriptSockets
 	}
 	return nil
 }
@@ -590,6 +612,8 @@ func (c *CodeService) GetKernelInfoByLanguage(language string) *config.KernelJso
 		return &c.AllKernels.Python
 	case "go":
 		return &c.AllKernels.Go
+	case "javascript":
+		return &c.AllKernels.Javascript
 	default:
 		return nil
 	}

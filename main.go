@@ -60,8 +60,10 @@ func main() {
 	// Create separate contexts for Python and Go kernels
 	pythonCtx, pythonCtxCancel := context.WithCancel(context.Background())
 	goCtx, goCtxCancel := context.WithCancel(context.Background())
+	javascriptCtx, javascriptCtxCancel := context.WithCancel(context.Background())
 	defer pythonCtxCancel()
 	defer goCtxCancel()
+	defer javascriptCtxCancel()
 
 	app := application.New(application.Options{
 		Name:        "bytebook",
@@ -113,6 +115,19 @@ func main() {
 						},
 						Context: goCtx,
 						Cancel:  goCtxCancel,
+					},
+					JavascriptSockets: sockets.LanguageSockets{
+						ShellSocketDealer:     nil,
+						ControlSocketDealer:   nil,
+						IOPubSocketSubscriber: nil,
+						HeartbeatSocketReq:    nil,
+						StdinSocketDealer:     nil,
+						HeartbeatState: jupyter_protocol.KernelHeartbeatState{
+							Mutex:  sync.RWMutex{},
+							Status: false,
+						},
+						Context: javascriptCtx,
+						Cancel:  javascriptCtxCancel,
 					},
 					LanguageToKernelConnectionInfo: projectFiles.ConnectionInfo,
 					AllKernels:                     projectFiles.AllKernels,

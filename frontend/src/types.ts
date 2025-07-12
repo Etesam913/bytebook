@@ -132,7 +132,7 @@ export type AlbumData = {
 export type KernelStatus = 'busy' | 'idle' | 'starting';
 export type CodeBlockStatus = KernelStatus | 'queueing';
 export type KernelHeartbeatStatus = 'success' | 'failure' | 'idle';
-export type Languages = 'python' | 'go';
+export type Languages = 'python' | 'go' | 'javascript';
 
 type KernelData = {
   status: KernelStatus;
@@ -140,13 +140,17 @@ type KernelData = {
   errorMessage: string | null;
 };
 
-export const validLanguages = new Set<string>(['python', 'go']);
+export const validLanguages = new Set<Languages>([
+  'python',
+  'go',
+  'javascript',
+]);
 
 export type KernelsData = Record<Languages, KernelData>;
 
 // Function to check if a string is a valid key
-export function isValidKernelLanguage(key: string): key is Languages {
-  return validLanguages.has(key);
+export function isValidKernelLanguage(key: unknown): key is Languages {
+  return typeof key === 'string' && validLanguages.has(key as Languages);
 }
 
 export type RawCompletionData = Omit<CompletionData, 'matches'> & {

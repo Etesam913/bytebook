@@ -47,7 +47,6 @@ export function useKernelStatus() {
     };
     const language = data.language;
     const status = data.status;
-    console.log({ status });
     if (isValidKernelLanguage(language)) {
       setKernelsData((prev) => ({
         ...prev,
@@ -276,21 +275,23 @@ export function useCodeBlockExecuteReply(editor: LexicalEditor) {
   useWailsEvent('code:code-block:execute_reply', (body) => {
     console.info('code:code-block:execute_reply', body);
     const data = body.data as
-      | { status: 'ok'; messageId: string }
+      | { status: 'ok'; messageId: string }[]
       | {
           status: 'error';
           messageId: string;
           errorValue: string;
           errorTraceback: string[];
           errorName: string;
-        };
-    const [codeBlockId, executionId] = data.messageId.split('|');
+        }[];
+    if (data.length === 0) return;
+    const replyData = data[0];
+    const [codeBlockId, executionId] = replyData.messageId.split('|');
     updateCodeBlock(
       editor,
       codeBlockId,
       (codeNode) => {
-        if (data.status === 'error') {
-          const cleanedTraceback = data.errorTraceback
+        if (replyData.status === 'error') {
+          const cleanedTraceback = replyData.errorTraceback
             .map((trace) => `<div>${trace}</div>`)
             .join('');
           codeNode.setTracebackResult(cleanedTraceback, editor);
@@ -641,6 +642,7 @@ export function useCompletionSource(
   // Listen for completion replies
   useWailsEvent('code:code-block:complete_reply', (body) => {
     const data = body.data as RawCompletionData[];
+    console.log(data);
     if (data.length === 0) return;
     const rawCompletionData = data[0];
     const completionData: CompletionData = {

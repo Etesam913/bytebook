@@ -21,9 +21,7 @@ import {
   useShutdownKernelMutation,
   useTurnOnKernelMutation,
 } from '../../hooks/code';
-
-const KERNELS: string[] = ['python', 'go'];
-type KernelType = 'python' | 'go';
+import { isValidKernelLanguage, Languages, validLanguages } from '../../types';
 
 export function MyKernelsAccordion() {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,16 +33,12 @@ export function MyKernelsAccordion() {
   useKernelShutdown();
 
   return (
-    <section className="pb-1.5">
+    <section>
       <AccordionButton
         isOpen={isOpen}
         onClick={() => setIsOpen((prev) => !prev)}
-        icon={<SquareTerminal width={18} height={18} />}
-        title={
-          <>
-            Kernels <span className="tracking-wider">({KERNELS.length})</span>
-          </>
-        }
+        icon={<SquareTerminal width={20} height={20} />}
+        title={'Kernels'}
       />
 
       <AnimatePresence>
@@ -67,16 +61,19 @@ export function MyKernelsAccordion() {
                 selectionRange,
                 setSelectionRange,
               }) => {
+                if (!isValidKernelLanguage(kernelName)) {
+                  return <></>;
+                }
                 return (
                   <KernelAccordionButton
                     selectionRange={selectionRange}
                     setSelectionRange={setSelectionRange}
-                    kernelName={kernelName as KernelType}
+                    kernelName={kernelName}
                     kernelNameFromUrl={kernelNameFromUrl}
                   />
                 );
               }}
-              data={KERNELS}
+              data={[...validLanguages]}
             />
           </motion.div>
         )}
@@ -93,7 +90,7 @@ function KernelAccordionButton({
 }: {
   selectionRange: Set<string>;
   setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
-  kernelName: KernelType;
+  kernelName: Languages;
   kernelNameFromUrl: string | undefined;
 }) {
   const isActive = decodeURIComponent(kernelNameFromUrl ?? '') === kernelName;
@@ -106,7 +103,7 @@ function KernelAccordionButton({
 
   const isKernelRunning = heartbeat === 'success';
 
-  const getKernelIcon = (kernel: KernelType) => {
+  const getKernelIcon = (kernel: Languages) => {
     switch (kernel) {
       case 'python':
         return <PythonLogo height={18} width={18} />;

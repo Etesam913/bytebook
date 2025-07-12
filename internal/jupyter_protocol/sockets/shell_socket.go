@@ -70,6 +70,10 @@ func (s *shellSocket) Listen(
 	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
 ) {
+	if shellSocketDealer == nil {
+		log.Println("🐚 Shell socket is nil, cannot listen")
+		return
+	}
 	defer shellSocketDealer.Close()
 	app := application.Get()
 

@@ -1,6 +1,10 @@
 import { JSX, lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { langs } from '@uiw/codemirror-extensions-langs';
-import type { LanguageSupport, StreamLanguage } from '@codemirror/language';
+import {
+  Language,
+  LanguageSupport,
+  StreamLanguage,
+} from '@codemirror/language';
 import { BasicSetupOptions, ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { PythonLogo } from '../../icons/python-logo';
 import { Loader } from '../../icons/loader';
@@ -14,6 +18,9 @@ import { CodeActions } from './code-actions';
 import { CodeResult } from './code-result';
 import { trapFocusContainerAtom } from '../../atoms';
 import { useSetAtom } from 'jotai';
+import { JavascriptLogo } from '../../icons/javascript-logo';
+import { javascriptLanguage } from '@codemirror/lang-javascript';
+import { pythonLanguage } from '@codemirror/lang-python';
 
 const CodeMirrorEditor = lazy(() =>
   import('./codemirror-editor').then((module) => ({
@@ -24,19 +31,26 @@ const CodeMirrorEditor = lazy(() =>
 type LanguageSetting = {
   basicSetup?: BasicSetupOptions;
   extension: () => LanguageSupport | StreamLanguage<unknown>;
+  language?: Language;
   icon: JSX.Element;
 };
-
 export const languageToSettings: Record<Languages, LanguageSetting> = {
   python: {
     basicSetup: { tabSize: 4 },
     extension: langs.python,
+    language: pythonLanguage,
     icon: <PythonLogo width={16} height={16} />,
   },
   go: {
     basicSetup: { tabSize: 4 },
     extension: langs.go,
     icon: <GolangLogo width={16} height={16} />,
+  },
+  javascript: {
+    basicSetup: { tabSize: 2 },
+    extension: langs.javascript,
+    language: javascriptLanguage,
+    icon: <JavascriptLogo width={16} height={16} />,
   },
 };
 

@@ -58,6 +58,10 @@ func (h *heartbeatSocket) Listen(
 	connectionInfo config.KernelConnectionInfo,
 	ctx context.Context,
 ) {
+	if heartbeatSocketReq == nil {
+		log.Println("❤️ Heartbeat socket is nil, cannot listen")
+		return
+	}
 	defer heartbeatSocketReq.Close()
 	app := application.Get()
 

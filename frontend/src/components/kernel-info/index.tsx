@@ -9,6 +9,7 @@ import { KernelStatusCard } from './kernel-status-card';
 import { KernelInfoCard } from './kernel-info-card';
 import { KernelErrorCard } from './kernel-error-card';
 import { Languages } from '../../types';
+import { JavascriptLogo } from '../../icons/javascript-logo';
 
 // Export the reusable KernelHeartbeat component
 export { KernelHeartbeat } from './kernel-heartbeat';
@@ -19,7 +20,7 @@ interface KernelConfig {
   icon: ReactNode;
 }
 
-const KERNEL_CONFIGS: Record<string, KernelConfig> = {
+const KERNEL_CONFIGS: Record<Languages, KernelConfig> = {
   python: {
     displayName: 'Python',
     executable: 'python',
@@ -31,11 +32,11 @@ const KERNEL_CONFIGS: Record<string, KernelConfig> = {
     icon: <GolangLogo height={32} width={32} />,
   },
   // Future kernels can be added here:
-  // javascript: {
-  //   displayName: 'JavaScript',
-  //   executable: 'node',
-  //   icon: <JavaScriptLogo height={32} width={32} />,
-  // },
+  javascript: {
+    displayName: 'JavaScript',
+    executable: 'deno',
+    icon: <JavascriptLogo height={32} width={32} />,
+  },
   // rust: {
   //   displayName: 'Rust',
   //   executable: 'rust',
