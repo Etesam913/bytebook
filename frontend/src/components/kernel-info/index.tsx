@@ -8,11 +8,9 @@ import { ReactNode } from 'react';
 import { KernelStatusCard } from './kernel-status-card';
 import { KernelInfoCard } from './kernel-info-card';
 import { KernelErrorCard } from './kernel-error-card';
+import { KernelQuickstart } from './kernel-quickstart';
 import { Languages } from '../../types';
 import { JavascriptLogo } from '../../icons/javascript-logo';
-
-// Export the reusable KernelHeartbeat component
-export { KernelHeartbeat } from './kernel-heartbeat';
 
 interface KernelConfig {
   displayName: string;
@@ -37,11 +35,6 @@ const KERNEL_CONFIGS: Record<Languages, KernelConfig> = {
     executable: 'deno',
     icon: <JavascriptLogo height={32} width={32} />,
   },
-  // rust: {
-  //   displayName: 'Rust',
-  //   executable: 'rust',
-  //   icon: <RustLogo height={32} width={32} />,
-  // }
 };
 
 export function KernelInfo() {
@@ -122,7 +115,14 @@ export function KernelInfo() {
 
         {/* Kernel Info Section */}
         <KernelInfoCard language={kernelName as Languages} />
+
+        {/* Quickstart Section */}
+        <div className="mt-8">
+          <KernelQuickstart language={kernelName as Languages} />
+        </div>
       </div>
     </div>
   );
 }
+
+export { KernelHeartbeat } from './kernel-heartbeat';

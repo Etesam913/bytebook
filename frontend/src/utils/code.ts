@@ -19,6 +19,8 @@ export function getDefaultCodeForLanguage(language: Languages) {
       return 'print("Hello, World!")';
     case 'go':
       return '%% \nfmt.Println("Hello, World!")';
+    case 'javascript':
+      return 'console.log("Hello, World!");';
     default:
       return '';
   }
