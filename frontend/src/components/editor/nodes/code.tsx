@@ -37,6 +37,8 @@ type InputPrompt = {
   isPassword: boolean;
 };
 
+const MAX_CODE_RESULT_LENGTH = 10000;
+
 /**
     * A node that represents a code block
     `files`: The files that are present in the code block
@@ -178,13 +180,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     });
   }
 
-  setStreamResult(streamText: string, editor: LexicalEditor): void {
-    editor.update(() => {
-      const writable = this.getWritable();
-      writable.__lastExecutedResult += `<div>${streamText}</div>`;
-    });
-  }
-
   setDisplayResult(
     mimeTypeToData: Record<string, string>,
     editor: LexicalEditor
@@ -220,8 +215,24 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   setExecutionResult(executionResult: string, editor: LexicalEditor): void {
     editor.update(() => {
       const writable = this.getWritable();
-      writable.__lastExecutedResult += `<div>${executionResult}</div>`;
+      const lengthOfResult = writable.__lastExecutedResult?.length ?? 0;
+      if (lengthOfResult >= MAX_CODE_RESULT_LENGTH) {
+        return;
+      }
+      const newResultLength = lengthOfResult + executionResult.length;
+      if (newResultLength >= MAX_CODE_RESULT_LENGTH) {
+        writable.__lastExecutedResult += `<div>${executionResult}</div>`;
+        writable.__lastExecutedResult =
+          writable.__lastExecutedResult?.slice(0, MAX_CODE_RESULT_LENGTH) +
+          `<div>Result too long, truncated</div>`;
+      } else {
+        writable.__lastExecutedResult += `<div>${executionResult}</div>`;
+      }
     });
+  }
+
+  setStreamResult(streamText: string, editor: LexicalEditor): void {
+    this.setExecutionResult(streamText, editor);
   }
 
   setIsWaitingForInput(

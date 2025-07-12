@@ -69,29 +69,21 @@ export function CodeResult({
           ref={resultContainerRef}
           onSubmit={(e) => {
             e.preventDefault();
-            // Gets the submit button element
             const submitter = (e.nativeEvent as SubmitEvent)
               .submitter as HTMLButtonElement | null;
 
-            // Gets the parent div of the submit button
             const parentDiv = submitter?.parentElement;
 
-            // Gets the input element from the parent div
             const inputEl = parentDiv?.querySelector('input');
 
             setIsWaitingForInput(false);
             if (!parentDiv || !inputEl) return;
 
-            // Creates a new paragraph element to store the input value
             const typedInputContentElement = document.createElement('p');
             typedInputContentElement.textContent = inputEl.value;
 
-            // Replaces the input element with the new paragraph element as
-            // there is nothing to type anymore
             parentDiv.replaceWith(typedInputContentElement);
 
-            // Update the lastExecutedResult with the current HTML content
-            // This makes the html content persist
             if (resultContainerRef.current) {
               setLastExecutedResult(resultContainerRef.current.innerHTML);
             }
