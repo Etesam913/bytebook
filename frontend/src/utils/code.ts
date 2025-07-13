@@ -21,6 +21,8 @@ export function getDefaultCodeForLanguage(language: Languages) {
       return '%% \nfmt.Println("Hello, World!")';
     case 'javascript':
       return 'console.log("Hello, World!");';
+    case 'java':
+      return 'System.out.println("Hello, World!");';
     default:
       return '';
   }

@@ -61,10 +61,11 @@ func main() {
 	pythonCtx, pythonCtxCancel := context.WithCancel(context.Background())
 	goCtx, goCtxCancel := context.WithCancel(context.Background())
 	javascriptCtx, javascriptCtxCancel := context.WithCancel(context.Background())
+	javaCtx, javaCtxCancel := context.WithCancel(context.Background())
 	defer pythonCtxCancel()
 	defer goCtxCancel()
 	defer javascriptCtxCancel()
-
+	defer javaCtxCancel()
 	app := application.New(application.Options{
 		Name:        "bytebook",
 		Description: "A simple note taking app.",
@@ -128,6 +129,19 @@ func main() {
 						},
 						Context: javascriptCtx,
 						Cancel:  javascriptCtxCancel,
+					},
+					JavaSockets: sockets.LanguageSockets{
+						ShellSocketDealer:     nil,
+						ControlSocketDealer:   nil,
+						IOPubSocketSubscriber: nil,
+						HeartbeatSocketReq:    nil,
+						StdinSocketDealer:     nil,
+						HeartbeatState: jupyter_protocol.KernelHeartbeatState{
+							Mutex:  sync.RWMutex{},
+							Status: false,
+						},
+						Context: javaCtx,
+						Cancel:  javaCtxCancel,
 					},
 					LanguageToKernelConnectionInfo: projectFiles.ConnectionInfo,
 					AllKernels:                     projectFiles.AllKernels,

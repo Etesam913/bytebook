@@ -8,8 +8,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 
+	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -37,9 +40,38 @@ type KernelLaunchEvent struct {
 
 // LaunchKernel runs the kernel for the specified language.
 func LaunchKernel(argv []string, pathToConnectionFile, language, venvPath string) error {
-	// Replace placeholder with the actual connection file path.
-	updatedArgv := replaceConnectionFilePlaceholder(argv, pathToConnectionFile)
+	projectPath, err := config.GetProjectPath()
+	if err != nil {
+		return err
+	}
 
+	// Prepare placeholder replacements
+	replacements := map[string]string{
+		"{connection_file}": pathToConnectionFile,
+	}
+	// For Java, also replace {resource_dir} with the directory containing the connection file
+	if language == "java" {
+		pathToJJavaLauncher := filepath.Join(projectPath, "code", "java-resource", "jjava-launcher.jar")
+		exists, err := util.FileOrFolderExists(pathToJJavaLauncher)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return fmt.Errorf("jjava-launcher.jar not found at %s", pathToJJavaLauncher)
+		}
+		pathToJJavaJar := filepath.Join(projectPath, "code", "java-resource", "jjava.jar")
+		exists, err = util.FileOrFolderExists(pathToJJavaJar)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return fmt.Errorf("jjava.jar not found at %s", pathToJJavaJar)
+		}
+		replacements["{resource_dir}"] = filepath.Join(projectPath, "code", "java-resource")
+	}
+
+	updatedArgv := replaceArgPlaceholders(argv, replacements)
+	fmt.Println("updatedArgv", updatedArgv)
 	cmd, stderrBuf, err := createCommandForLanguage(updatedArgv, language, venvPath)
 	if err != nil {
 		return err
@@ -56,15 +88,17 @@ func LaunchKernel(argv []string, pathToConnectionFile, language, venvPath string
 	return nil
 }
 
-// replaceConnectionFilePlaceholder replaces the {connection_file} placeholder with the actual path
-func replaceConnectionFilePlaceholder(argv []string, pathToConnectionFile string) []string {
+// replaceArgPlaceholders replaces placeholders in argv with their corresponding values from the replacements map.
+// It performs a replaceAll for each replacement in each argument.
+func replaceArgPlaceholders(argv []string, replacements map[string]string) []string {
 	result := make([]string, len(argv))
 	copy(result, argv)
 
 	for i, arg := range result {
-		if arg == "{connection_file}" {
-			result[i] = pathToConnectionFile
+		for placeholder, val := range replacements {
+			arg = strings.ReplaceAll(arg, placeholder, val)
 		}
+		result[i] = arg
 	}
 	return result
 }
@@ -77,10 +111,6 @@ func createCommandForLanguage(argv []string, language, venvPath string) (*exec.C
 	switch language {
 	case "python":
 		return createPythonCommand(argv, venvPath)
-	// TODO: Handle other cases, python is the only language that works currently
-	case "golang", "go":
-		cmd = exec.Command(argv[0], argv[1:]...)
-		cmd.Env = os.Environ()
 	default:
 		cmd = exec.Command(argv[0], argv[1:]...)
 		cmd.Env = os.Environ()

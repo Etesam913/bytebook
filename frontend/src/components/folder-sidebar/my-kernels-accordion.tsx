@@ -4,6 +4,8 @@ import { useRoute } from 'wouter';
 import { SquareTerminal } from '../../icons/square-terminal';
 import { PythonLogo } from '../../icons/python-logo';
 import { GolangLogo } from '../../icons/golang-logo';
+import { JavascriptLogo } from '../../icons/javascript-logo';
+import { JavaLogo } from '../../icons/java-logo';
 import { cn } from '../../utils/string-formatting';
 import { Sidebar } from '../sidebar';
 import { AccordionButton } from '../sidebar/accordion-button';
@@ -109,6 +111,10 @@ function KernelAccordionButton({
         return <PythonLogo height={18} width={18} />;
       case 'go':
         return <GolangLogo height={18} width={18} />;
+      case 'javascript':
+        return <JavascriptLogo height={18} width={18} />;
+      case 'java':
+        return <JavaLogo height={18} width={18} />;
       default:
         return <SquareTerminal height={16} width={16} />;
     }

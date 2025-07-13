@@ -19,8 +19,10 @@ import { CodeResult } from './code-result';
 import { trapFocusContainerAtom } from '../../atoms';
 import { useSetAtom } from 'jotai';
 import { JavascriptLogo } from '../../icons/javascript-logo';
+import { javaLanguage } from '@codemirror/lang-java';
 import { javascriptLanguage } from '@codemirror/lang-javascript';
 import { pythonLanguage } from '@codemirror/lang-python';
+import { JavaLogo } from '../../icons/java-logo';
 
 const CodeMirrorEditor = lazy(() =>
   import('./codemirror-editor').then((module) => ({
@@ -51,6 +53,12 @@ export const languageToSettings: Record<Languages, LanguageSetting> = {
     extension: langs.javascript,
     language: javascriptLanguage,
     icon: <JavascriptLogo width={18} height={18} />,
+  },
+  java: {
+    basicSetup: { tabSize: 2 },
+    extension: langs.java,
+    language: javaLanguage,
+    icon: <JavaLogo width={18} height={18} />,
   },
 };
 

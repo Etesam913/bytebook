@@ -68,3 +68,22 @@ func TestIsPortInUse(t *testing.T) {
 		assert.True(t, result, "Port %d should be detected as in use", usedPort)
 	})
 }
+
+// TestIsSupportedLanguage tests the IsSupportedLanguage function.
+func TestIsSupportedLanguage(t *testing.T) {
+	t.Run("Supported languages should return true", func(t *testing.T) {
+		supportedLanguages := []string{"python", "go", "javascript", "java"}
+		for _, lang := range supportedLanguages {
+			result := IsSupportedLanguage(lang)
+			assert.True(t, result, "Language %s should be supported", lang)
+		}
+	})
+
+	t.Run("Unsupported languages should return false", func(t *testing.T) {
+		unsupportedLanguages := []string{"cpp", "rust", "ruby", "php", "c", "c#", ""}
+		for _, lang := range unsupportedLanguages {
+			result := IsSupportedLanguage(lang)
+			assert.False(t, result, "Language %s should not be supported", lang)
+		}
+	})
+}

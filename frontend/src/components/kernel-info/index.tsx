@@ -11,6 +11,7 @@ import { KernelErrorCard } from './kernel-error-card';
 import { KernelQuickstart } from './kernel-quickstart';
 import { Languages } from '../../types';
 import { JavascriptLogo } from '../../icons/javascript-logo';
+import { JavaLogo } from '../../icons/java-logo';
 
 interface KernelConfig {
   displayName: string;
@@ -31,9 +32,14 @@ const KERNEL_CONFIGS: Record<Languages, KernelConfig> = {
   },
   // Future kernels can be added here:
   javascript: {
-    displayName: 'JavaScript',
+    displayName: 'Javascript',
     executable: 'deno',
     icon: <JavascriptLogo height={32} width={32} />,
+  },
+  java: {
+    displayName: 'Java',
+    executable: 'java',
+    icon: <JavaLogo height={32} width={32} />,
   },
 };
 

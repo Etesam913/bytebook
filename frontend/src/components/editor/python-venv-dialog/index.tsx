@@ -10,7 +10,6 @@ import { backendQueryAtom, projectSettingsAtom } from '../../../atoms';
 import { ShareRight } from '../../../icons/share-right';
 import { MotionButton, MotionIconButton } from '../../buttons';
 import { getDefaultButtonVariants } from '../../../animations';
-import { RevealFolderOrFileInFinder } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { QueryError } from '../../../utils/query';
 import { PlainCodeSnippet } from '../../plain-code-snippet';
 import { FloppyDisk } from '../../../icons/floppy-disk';
@@ -19,6 +18,7 @@ import { useState } from 'react';
 import { SidebarAccordion } from '../../sidebar/accordion';
 import { DesktopArrowDown } from '../../../icons/desktop-arrow-down';
 import { cn } from '../../../utils/string-formatting';
+import { useRevealInFinderMutation } from '../../../hooks/code';
 
 export function PythonVenvDialog({ errorText }: { errorText: string }) {
   const [customVenvPath, setCustomVenvPath] = useState<string | null>(null);
@@ -30,14 +30,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
   });
   const projectSettings = useAtomValue(projectSettingsAtom);
   const setBackendQuery = useSetAtom(backendQueryAtom);
-  const { mutate: revealInFinder } = useMutation({
-    mutationFn: async ({ venvPath }: { venvPath: string }) => {
-      const res = await RevealFolderOrFileInFinder(venvPath, false);
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
-    },
-  });
+  const { mutate: revealInFinder } = useRevealInFinderMutation();
 
   const { mutateAsync: chooseCustomVirtualEnvironmentPath } = useMutation({
     mutationFn: async () => {
@@ -133,7 +126,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                 <MotionIconButton
                   className="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity"
                   {...getDefaultButtonVariants()}
-                  onClick={() => revealInFinder({ venvPath })}
+                  onClick={() => revealInFinder({ path: venvPath })}
                 >
                   <ShareRight
                     height={16}

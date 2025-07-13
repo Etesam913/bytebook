@@ -44,12 +44,32 @@ func TestGetAllKernels(t *testing.T) {
 		assert.Contains(t, kernels.Go.Argv, "{connection_file}")
 		assert.Contains(t, kernels.Go.Argv, "--logtostderr")
 
+		// Javascript kernel
+		assert.Equal(t, "javascript", kernels.Javascript.Language)
+		assert.Equal(t, "Deno", kernels.Javascript.DisplayName)
+		// We can't know exact denoPath, but we can verify the rest
+		assert.Contains(t, kernels.Javascript.Argv, "jupyter")
+		assert.Contains(t, kernels.Javascript.Argv, "--kernel")
+		assert.Contains(t, kernels.Javascript.Argv, "--conn")
+		assert.Contains(t, kernels.Javascript.Argv, "{connection_file}")
+
+		// Java kernel
+		assert.Equal(t, "java", kernels.Java.Language)
+		assert.Equal(t, "Java (jjava)", kernels.Java.DisplayName)
+		assert.Contains(t, kernels.Java.Argv, "java")
+		assert.Contains(t, kernels.Java.Argv, "-jar")
+		assert.Contains(t, kernels.Java.Argv, "{connection_file}")
+
 		// Verify the kernel files were created
 		pythonKernelFile := filepath.Join(codePath, "python-kernel.json")
 		golangKernelFile := filepath.Join(codePath, "go-kernel.json")
+		javascriptKernelFile := filepath.Join(codePath, "javascript-kernel.json")
+		javaKernelFile := filepath.Join(codePath, "java-kernel.json")
 
 		assert.FileExists(t, pythonKernelFile)
 		assert.FileExists(t, golangKernelFile)
+		assert.FileExists(t, javascriptKernelFile)
+		assert.FileExists(t, javaKernelFile)
 	})
 
 	t.Run("Existing Valid Files", func(t *testing.T) {
@@ -75,6 +95,18 @@ func TestGetAllKernels(t *testing.T) {
 			Language:    "go",
 		}
 
+		javascriptKernel := KernelJson{
+			Argv:        []string{"/custom/deno/path", "jupyter", "--kernel", "--conn", "{connection_file}"},
+			DisplayName: "Custom Deno",
+			Language:    "javascript",
+		}
+
+		javaKernel := KernelJson{
+			Argv:        []string{"java", "-jar", "{resource_dir}/jjava-launcher.jar", "{resource_dir}/jjava.jar", "{connection_file}"},
+			DisplayName: "Java (jjava)",
+			Language:    "java",
+		}
+
 		// Write the kernel files
 		pythonKernelJSON, err := json.Marshal(pythonKernel)
 		assert.NoError(t, err)
@@ -86,6 +118,16 @@ func TestGetAllKernels(t *testing.T) {
 		err = os.WriteFile(filepath.Join(codePath, "go-kernel.json"), golangKernelJSON, 0644)
 		assert.NoError(t, err)
 
+		javascriptKernelJSON, err := json.Marshal(javascriptKernel)
+		assert.NoError(t, err)
+		err = os.WriteFile(filepath.Join(codePath, "javascript-kernel.json"), javascriptKernelJSON, 0644)
+		assert.NoError(t, err)
+
+		javaKernelJSON, err := json.Marshal(javaKernel)
+		assert.NoError(t, err)
+		err = os.WriteFile(filepath.Join(codePath, "java-kernel.json"), javaKernelJSON, 0644)
+		assert.NoError(t, err)
+
 		// Call GetAllKernels
 		kernels, err := GetAllKernels(projectPath)
 		assert.NoError(t, err)
@@ -93,6 +135,8 @@ func TestGetAllKernels(t *testing.T) {
 		// Verify the existing values were read correctly
 		assert.Equal(t, pythonKernel, kernels.Python)
 		assert.Equal(t, golangKernel, kernels.Go)
+		assert.Equal(t, javascriptKernel, kernels.Javascript)
+		assert.Equal(t, javaKernel, kernels.Java)
 	})
 }
 func TestGetAllConnectionInfo(t *testing.T) {
@@ -130,6 +174,22 @@ func TestGetAllConnectionInfo(t *testing.T) {
 	assert.Equal(t, 55329, allInfo.Go.ControlPort)
 	assert.Equal(t, 55330, allInfo.Go.HBPort)
 
+	// Check Javascript connection info
+	assert.Equal(t, "javascript", allInfo.Javascript.Language)
+	assert.Equal(t, 55331, allInfo.Javascript.ShellPort)
+	assert.Equal(t, 55332, allInfo.Javascript.IOPubPort)
+	assert.Equal(t, 55333, allInfo.Javascript.StdinPort)
+	assert.Equal(t, 55334, allInfo.Javascript.ControlPort)
+	assert.Equal(t, 55335, allInfo.Javascript.HBPort)
+
+	// Check Java connection info
+	assert.Equal(t, "java", allInfo.Java.Language)
+	assert.Equal(t, 55336, allInfo.Java.ShellPort)
+	assert.Equal(t, 55337, allInfo.Java.IOPubPort)
+	assert.Equal(t, 55338, allInfo.Java.StdinPort)
+	assert.Equal(t, 55339, allInfo.Java.ControlPort)
+	assert.Equal(t, 55340, allInfo.Java.HBPort)
+
 	// Check if the files were created
 	pythonConnectionFile := filepath.Join(codeDir, "python-connection.json")
 	_, err = os.Stat(pythonConnectionFile)
@@ -137,6 +197,14 @@ func TestGetAllConnectionInfo(t *testing.T) {
 
 	golangConnectionFile := filepath.Join(codeDir, "go-connection.json")
 	_, err = os.Stat(golangConnectionFile)
+	assert.NoError(t, err)
+
+	javascriptConnectionFile := filepath.Join(codeDir, "javascript-connection.json")
+	_, err = os.Stat(javascriptConnectionFile)
+	assert.NoError(t, err)
+
+	javaConnectionFile := filepath.Join(codeDir, "java-connection.json")
+	_, err = os.Stat(javaConnectionFile)
 	assert.NoError(t, err)
 }
 
@@ -201,6 +269,48 @@ func TestGetConnectionInfoFromLanguage(t *testing.T) {
 		// Check if the file was created
 		golangConnectionFile := filepath.Join(codeDir, "go-connection.json")
 		_, err = os.Stat(golangConnectionFile)
+		assert.NoError(t, err)
+	})
+
+	// Test with Javascript language
+	t.Run("Javascript language", func(t *testing.T) {
+		info, err := GetConnectionInfoFromLanguage(tempDir, "javascript")
+		assert.NoError(t, err)
+		assert.Equal(t, "javascript", info.Language)
+		assert.Equal(t, 55331, info.ShellPort)
+		assert.Equal(t, 55332, info.IOPubPort)
+		assert.Equal(t, 55333, info.StdinPort)
+		assert.Equal(t, 55334, info.ControlPort)
+		assert.Equal(t, 55335, info.HBPort)
+		assert.Equal(t, "127.0.0.1", info.IP)
+		assert.Equal(t, "abc123", info.Key)
+		assert.Equal(t, "tcp", info.Transport)
+		assert.Equal(t, "hmac-sha256", info.SignatureScheme)
+
+		// Check if the file was created
+		javascriptConnectionFile := filepath.Join(codeDir, "javascript-connection.json")
+		_, err = os.Stat(javascriptConnectionFile)
+		assert.NoError(t, err)
+	})
+
+	// Test with Java language
+	t.Run("Java language", func(t *testing.T) {
+		info, err := GetConnectionInfoFromLanguage(tempDir, "java")
+		assert.NoError(t, err)
+		assert.Equal(t, "java", info.Language)
+		assert.Equal(t, 55336, info.ShellPort)
+		assert.Equal(t, 55337, info.IOPubPort)
+		assert.Equal(t, 55338, info.StdinPort)
+		assert.Equal(t, 55339, info.ControlPort)
+		assert.Equal(t, 55340, info.HBPort)
+		assert.Equal(t, "127.0.0.1", info.IP)
+		assert.Equal(t, "abc123", info.Key)
+		assert.Equal(t, "tcp", info.Transport)
+		assert.Equal(t, "hmac-sha256", info.SignatureScheme)
+
+		// Check if the file was created
+		javaConnectionFile := filepath.Join(codeDir, "java-connection.json")
+		_, err = os.Stat(javaConnectionFile)
 		assert.NoError(t, err)
 	})
 }

@@ -132,7 +132,7 @@ export type AlbumData = {
 export type KernelStatus = 'busy' | 'idle' | 'starting';
 export type CodeBlockStatus = KernelStatus | 'queueing';
 export type KernelHeartbeatStatus = 'success' | 'failure' | 'idle';
-export type Languages = 'python' | 'go' | 'javascript';
+export type Languages = 'python' | 'go' | 'javascript' | 'java';
 
 type KernelData = {
   status: KernelStatus;
@@ -144,6 +144,7 @@ export const validLanguages = new Set<Languages>([
   'python',
   'go',
   'javascript',
+  'java',
 ]);
 
 export type KernelsData = Record<Languages, KernelData>;

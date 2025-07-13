@@ -20,6 +20,7 @@ type LanguageToKernelConnectionInfo struct {
 	Python     KernelConnectionInfo `json:"python"`
 	Go         KernelConnectionInfo `json:"go"`
 	Javascript KernelConnectionInfo `json:"javascript"`
+	Java       KernelConnectionInfo `json:"java"`
 }
 
 type KernelConnectionInfo struct {
@@ -108,10 +109,36 @@ func getJavascriptKernel(projectPath string) (KernelJson, error) {
 	return javascriptKernelValue, err
 }
 
+func getJavaKernel(projectPath string) (KernelJson, error) {
+	pathToJavaKernel := filepath.Join(projectPath, "code", "java-kernel.json")
+	// The resource dir is where the jjava.jar file is located.
+	pathToJavaResourceDir := filepath.Join(projectPath, "code", "java-resource")
+	if _, err := os.Stat(pathToJavaResourceDir); os.IsNotExist(err) {
+		if err := os.MkdirAll(pathToJavaResourceDir, 0755); err != nil {
+			return KernelJson{}, fmt.Errorf("couldn't mkdir: %w", err)
+		}
+	}
+
+	javaKernelValue, err := util.ReadOrCreateJSON(pathToJavaKernel, KernelJson{
+		Argv: []string{
+			"java",
+			"-jar",
+			"{resource_dir}/jjava-launcher.jar",
+			"{resource_dir}/jjava.jar",
+			"{connection_file}",
+		},
+		DisplayName: "Java (jjava)",
+		Language:    "java",
+	})
+
+	return javaKernelValue, err
+}
+
 type AllKernels struct {
 	Python     KernelJson
 	Go         KernelJson
 	Javascript KernelJson
+	Java       KernelJson
 }
 
 // GetAllKernels retrieves configurations for all supported kernels (Python and Golang).
@@ -135,9 +162,15 @@ func GetAllKernels(projectPath string) (AllKernels, error) {
 		return allKernels, err
 	}
 
+	javaKernelValue, err := getJavaKernel(projectPath)
+	if err != nil {
+		return allKernels, err
+	}
+
 	allKernels.Python = pythonKernelValue
 	allKernels.Go = golangKernelValue
 	allKernels.Javascript = javascriptKernelValue
+	allKernels.Java = javaKernelValue
 
 	return allKernels, nil
 }
@@ -182,8 +215,16 @@ func getGolangConnectionInfo(projectPath string) (KernelConnectionInfo, error) {
 	return getKernelConnectionInfo(projectPath, "go", 55326)
 }
 
+// getJavascriptConnectionInfo retrieves connection information for the Javascript kernel.
+// It uses a base port of 55331 for the Javascript kernel connections.
 func getJavascriptConnectionInfo(projectPath string) (KernelConnectionInfo, error) {
 	return getKernelConnectionInfo(projectPath, "javascript", 55331)
+}
+
+// getJavaConnectionInfo retrieves connection information for the Java kernel.
+// It uses a base port of 55336 for the Java kernel connections.
+func getJavaConnectionInfo(projectPath string) (KernelConnectionInfo, error) {
+	return getKernelConnectionInfo(projectPath, "java", 55336)
 }
 
 // GetAllConnectionInfo retrieves connection information for all supported kernels.
@@ -205,10 +246,16 @@ func GetAllConnectionInfo(projectPath string) (LanguageToKernelConnectionInfo, e
 		return LanguageToKernelConnectionInfo{}, err
 	}
 
+	validatedJavaConnectionInfo, err := getJavaConnectionInfo(projectPath)
+	if err != nil {
+		return LanguageToKernelConnectionInfo{}, err
+	}
+
 	return LanguageToKernelConnectionInfo{
 		Python:     validatedPythonConnectionInfo,
 		Go:         validatedGolangConnectionInfo,
 		Javascript: validatedJavascriptConnectionInfo,
+		Java:       validatedJavaConnectionInfo,
 	}, nil
 }
 
@@ -248,6 +295,15 @@ func GetConnectionInfoFromLanguage(projectPath string, language string) (KernelC
 			return KernelConnectionInfo{}, fmt.Errorf("javascript connection info is empty")
 		}
 		return javascriptConnectionInfo, nil
+	case "java":
+		javaConnectionInfo, err := getJavaConnectionInfo(projectPath)
+		if err != nil {
+			return KernelConnectionInfo{}, err
+		}
+		if javaConnectionInfo == (KernelConnectionInfo{}) {
+			return KernelConnectionInfo{}, fmt.Errorf("java connection info is empty")
+		}
+		return javaConnectionInfo, nil
 	default:
 		return KernelConnectionInfo{}, fmt.Errorf("unsupported language: %s", language)
 	}

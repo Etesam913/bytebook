@@ -24,6 +24,7 @@ import {
   SendInputReply,
   SendCompleteRequest,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
+import { RevealFolderOrFileInFinder } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { QueryError } from '../utils/query';
 import { $nodesOfType, LexicalEditor } from 'lexical';
 import { toast } from 'sonner';
@@ -180,7 +181,7 @@ export function useKernelHeartbeat() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
 
   useWailsEvent('code:kernel:heartbeat', (body) => {
-    console.info('code:kernel:heartbeat');
+    console.info('code:kernel:heartbeat', body);
     const data = body.data as {
       status: KernelHeartbeatStatus;
       language: Languages;
@@ -615,6 +616,22 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
         setErrorText(error.message);
       } else {
         setErrorText('An unknown error occurred');
+      }
+    },
+  });
+}
+
+/**
+ * Hook that creates a mutation for revealing a folder or file in the system's file manager.
+ *
+ * @returns A mutation object for revealing folders/files in finder
+ */
+export function useRevealInFinderMutation() {
+  return useMutation({
+    mutationFn: async ({ path }: { path: string }) => {
+      const res = await RevealFolderOrFileInFinder(path, false);
+      if (!res.success) {
+        throw new QueryError(res.message);
       }
     },
   });

@@ -29,7 +29,7 @@ import { Heading3 } from '../../../icons/heading-3';
 import { Heading4 } from '../../../icons/heading-4';
 import { Heading5 } from '../../../icons/heading-5';
 import { Heading6 } from '../../../icons/heading-6';
-// import { JavaLogo } from '../../../icons/java-logo';
+import { JavaLogo } from '../../../icons/java-logo';
 // import { JavascriptLogo } from '../../../icons/javascript-logo';
 
 import { Equation } from '../../../icons/equation';
@@ -89,7 +89,12 @@ const languageCommandData: {
   //   name: 'React',
   // },
   // { id: 'rust', keywords: ['rust', 'rs'], icon: <RustLogo />, name: 'Rust' },
-  // { id: 'cpp', keywords: ['c++', 'cpp'], icon: <CppLogo />, name: 'C++' },
+  {
+    languageName: 'java',
+    keywords: ['java', 'jjava'],
+    icon: <JavaLogo />,
+    name: 'Java',
+  },
   // { id: 'c', keywords: ['c', 'c++', 'clang'], icon: <CppLogo />, name: 'C' },
   // {
   //   id: 'angular',

@@ -37,7 +37,7 @@ export function CodeResult({
       className={cn(
         'group overflow-hidden hover:overflow-auto relative border-t-1 border-t-zinc-200 dark:border-t-zinc-700 min-h-11 bg-white dark:bg-[#2e3440]',
         !isExpanded && 'max-h-[1000px]',
-        isExpanded && 'min-h-1/5 max-h-4/5'
+        isExpanded && 'min-h-1/5 max-h-2/5'
       )}
     >
       <AnimatePresence>
