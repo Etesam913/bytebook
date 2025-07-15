@@ -49,6 +49,13 @@ type streamEvent struct {
 	Text      string `json:"text"`
 }
 
+type errorEvent struct {
+	MessageId      string   `json:"messageId"`
+	ErrorName      string   `json:"errorName"`
+	ErrorValue     string   `json:"errorValue"`
+	ErrorTraceback []string `json:"errorTraceback"`
+}
+
 func CreateIOPubSocket(language string, cancelFunc context.CancelFunc) *ioPubSocket {
 	iopubSocketSubscriber, err := zmq4.NewSocket(zmq4.Type(zmq4.SUB))
 	if err != nil {
@@ -117,7 +124,7 @@ func (i *ioPubSocket) Listen(
 
 			msgId, ok := msg.ParentHeader["msg_id"].(string)
 			if !ok {
-				log.Println("⚠️ Invalid message ID type")
+				log.Printf("⚠️ Invalid message ID type: %v (type: %T)", msg.ParentHeader["msg_id"], msg.ParentHeader["msg_id"])
 				continue
 			}
 
@@ -234,7 +241,7 @@ func (i *ioPubSocket) Listen(
 						requestTimeString := msgParts[2]
 						requestTime, err := time.Parse(time.RFC3339, requestTimeString)
 						if err != nil {
-							log.Printf("⚠️ Error parsing request time: %v", err)
+							log.Printf("⚠️ Error parsing request time: %v (requestTimeString: %s)", err, requestTimeString)
 							continue
 						}
 
@@ -258,6 +265,39 @@ func (i *ioPubSocket) Listen(
 				}
 			case "error":
 				log.Printf("❌ Execution error: %v\n", msg.Content["traceback"])
+				errorName := ""
+				errorValue := ""
+				uncleanTraceback, ok := msg.Content["traceback"].([]any)
+				errorTraceback := []string{}
+
+				if !ok {
+					log.Printf("⚠️ Invalid traceback type: %v (type: %T)", msg.Content["traceback"], msg.Content["traceback"])
+				} else {
+					for _, item := range uncleanTraceback {
+						if ansiStr, ok := item.(string); ok {
+							htmlStr := string(ansihtml.ConvertToHTML([]byte(ansiStr)))
+							errorTraceback = append(errorTraceback, htmlStr)
+						}
+					}
+				}
+
+				if errorName, ok = msg.Content["ename"].(string); !ok {
+					log.Printf("⚠️ Invalid error name type: %v (type: %T)", msg.Content["ename"], msg.Content["ename"])
+					errorName = ""
+				}
+				if errorValue, ok = msg.Content["evalue"].(string); !ok {
+					log.Printf("⚠️ Invalid error value type: %v (type: %T)", msg.Content["evalue"], msg.Content["evalue"])
+					errorValue = ""
+				}
+				app.Event.EmitEvent(&application.CustomEvent{
+					Name: "code:code-block:iopub_error",
+					Data: errorEvent{
+						MessageId:      msgId,
+						ErrorName:      errorName,
+						ErrorValue:     errorValue,
+						ErrorTraceback: errorTraceback,
+					},
+				})
 			}
 			fmt.Println("---")
 			time.Sleep(100 * time.Millisecond)

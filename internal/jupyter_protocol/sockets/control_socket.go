@@ -115,7 +115,7 @@ func (s *controlSocket) Listen(
 				// TODO: Handle restart functionality later
 				status, ok := msg.Content["status"].(string)
 				if !ok {
-					log.Println("⚠️ Invalid status type")
+					log.Printf("⚠️ Invalid status type: %v (type: %T)", msg.Content["status"], msg.Content["status"])
 				}
 
 				if status != "ok" {
@@ -130,7 +130,7 @@ func (s *controlSocket) Listen(
 			case "interrupt_reply":
 				status, ok := msg.Content["status"].(string)
 				if !ok {
-					log.Println("⚠️ Invalid status type in interrupt_reply")
+					log.Printf("⚠️ Invalid status type in interrupt_reply: %v (type: %T)", msg.Content["status"], msg.Content["status"])
 					continue
 				}
 				log.Printf("🔴 Received interrupt reply with status: %s\n", status)

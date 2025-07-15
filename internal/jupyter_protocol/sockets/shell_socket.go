@@ -115,13 +115,13 @@ func (s *shellSocket) Listen(
 			case "execute_reply":
 				status, ok := msg.Content["status"].(string)
 				if !ok {
-					log.Println("⚠️ Invalid status type")
-					return
+					log.Printf("⚠️ Invalid status type: %v (type: %T)", msg.Content["status"], msg.Content["status"])
+					continue
 				}
 				msgId, ok := msg.ParentHeader["msg_id"].(string)
 				if !ok {
-					log.Println("⚠️ Invalid message ID type")
-					return
+					log.Printf("⚠️ Invalid message ID type: %v (type: %T)", msg.ParentHeader["msg_id"], msg.ParentHeader["msg_id"])
+					continue
 				}
 
 				errorName := ""
@@ -130,22 +130,24 @@ func (s *shellSocket) Listen(
 
 				if status == "error" {
 					if errorName, ok = msg.Content["ename"].(string); !ok {
-						log.Println("⚠️ Invalid error name type")
-						return
+						log.Printf("⚠️ Invalid error name type: %v (type: %T)", msg.Content["ename"], msg.Content["ename"])
+						errorName = ""
 					}
 					if errorValue, ok = msg.Content["evalue"].(string); !ok {
-						log.Println("⚠️ Invalid error value type")
-						return
+						log.Printf("⚠️ Invalid error value type: %v (type: %T)", msg.Content["evalue"], msg.Content["evalue"])
+						errorValue = ""
 					}
 					uncleanTraceback, ok := msg.Content["traceback"].([]any)
 					if !ok {
-						log.Println("⚠️ Invalid error traceback type")
-						return
-					}
-					for _, item := range uncleanTraceback {
-						if ansiStr, ok := item.(string); ok {
-							htmlStr := string(ansihtml.ConvertToHTML([]byte(ansiStr)))
-							errorTraceback = append(errorTraceback, htmlStr)
+						log.Printf("⚠️ Invalid error traceback type: %v (type: %T)", msg.Content["traceback"], msg.Content["traceback"])
+						errorTraceback = []string{}
+					} else {
+
+						for _, item := range uncleanTraceback {
+							if ansiStr, ok := item.(string); ok {
+								htmlStr := string(ansihtml.ConvertToHTML([]byte(ansiStr)))
+								errorTraceback = append(errorTraceback, htmlStr)
+							}
 						}
 					}
 				}
@@ -168,12 +170,12 @@ func (s *shellSocket) Listen(
 			case "complete_reply":
 				status, ok := msg.Content["status"].(string)
 				if !ok {
-					log.Println("⚠️ Invalid status type in complete_reply")
+					log.Printf("⚠️ Invalid status type in complete_reply: %v (type: %T)", msg.Content["status"], msg.Content["status"])
 					continue
 				}
 				msgId, ok := msg.ParentHeader["msg_id"].(string)
 				if !ok {
-					log.Println("⚠️ Invalid message ID type in complete_reply")
+					log.Printf("⚠️ Invalid message ID type in complete_reply: %v (type: %T)", msg.ParentHeader["msg_id"], msg.ParentHeader["msg_id"])
 					continue
 				}
 
@@ -220,7 +222,7 @@ func (s *shellSocket) Listen(
 
 				status, ok := msg.Content["status"].(string)
 				if !ok {
-					log.Println("⚠️ Invalid status type")
+					log.Printf("⚠️ Invalid status type: %v (type: %T)", msg.Content["status"], msg.Content["status"])
 				}
 
 				if status != "ok" {
@@ -239,12 +241,12 @@ func (s *shellSocket) Listen(
 			case "inspect_reply":
 				status, ok := msg.Content["status"].(string)
 				if !ok {
-					log.Println("⚠️ Invalid status type in inspect_reply")
+					log.Printf("⚠️ Invalid status type in inspect_reply: %v (type: %T)", msg.Content["status"], msg.Content["status"])
 					continue
 				}
 				msgId, ok := msg.ParentHeader["msg_id"].(string)
 				if !ok {
-					log.Println("⚠️ Invalid message ID type in inspect_reply")
+					log.Printf("⚠️ Invalid message ID type in inspect_reply: %v (type: %T)", msg.ParentHeader["msg_id"], msg.ParentHeader["msg_id"])
 					continue
 				}
 

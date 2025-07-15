@@ -287,19 +287,19 @@ export function useCodeBlockExecuteReply(editor: LexicalEditor) {
     if (data.length === 0) return;
     const replyData = data[0];
     const [codeBlockId, executionId] = replyData.messageId.split('|');
-    updateCodeBlock(
-      editor,
-      codeBlockId,
-      (codeNode) => {
-        if (replyData.status === 'error') {
-          const cleanedTraceback = replyData.errorTraceback
-            .map((trace) => `<div>${trace}</div>`)
-            .join('');
-          codeNode.setTracebackResult(cleanedTraceback, editor);
-        }
-      },
-      executionId
-    );
+    // updateCodeBlock(
+    //   editor,
+    //   codeBlockId,
+    //   (codeNode) => {
+    //     if (replyData.status === 'error') {
+    //       const cleanedTraceback = replyData.errorTraceback
+    //         .map((trace) => `<div>${trace}</div>`)
+    //         .join('');
+    //       codeNode.setTracebackResult(cleanedTraceback, editor);
+    //     }
+    //   },
+    //   executionId
+    // );
   });
 }
 
@@ -323,6 +323,39 @@ export function useCodeBlockStream(editor: LexicalEditor) {
       codeBlockId,
       (codeNode) => {
         codeNode.setStreamResult(data.text, editor);
+      },
+      executionId
+    );
+  });
+}
+
+export function useCodeBlockIOPubError(editor: LexicalEditor) {
+  useWailsEvent('code:code-block:iopub_error', (body) => {
+    console.info('code:code-block:iopub_error', body);
+    const data = body.data as {
+      messageId: string;
+      errorName: string;
+      errorValue: string;
+      errorTraceback: string[];
+    };
+    const [codeBlockId, executionId] = data.messageId.split('|');
+    updateCodeBlock(
+      editor,
+      codeBlockId,
+      (codeNode) => {
+        const errorName =
+          data.errorName && data.errorName.trim().length > 0
+            ? `<div style="font-size: 0.7rem" class="text-zinc-500 dark:text-zinc-300">Error Name: ${data.errorName}</div>`
+            : '';
+        const errorValue =
+          data.errorValue && data.errorValue.trim().length > 0
+            ? `<div style="font-size: 0.7rem" class="text-zinc-500 dark:text-zinc-300">Error Value: ${data.errorValue}</div>`
+            : '';
+        const errorTraceback = data.errorTraceback
+          .map((trace) => `<div>${trace}</div>`)
+          .join('');
+        const fullError = `${errorTraceback} ${errorName} ${errorValue}`;
+        codeNode.setTracebackResult(fullError, editor);
       },
       executionId
     );
@@ -659,7 +692,6 @@ export function useCompletionSource(
   // Listen for completion replies
   useWailsEvent('code:code-block:complete_reply', (body) => {
     const data = body.data as RawCompletionData[];
-    console.log(data);
     if (data.length === 0) return;
     const rawCompletionData = data[0];
     const completionData: CompletionData = {

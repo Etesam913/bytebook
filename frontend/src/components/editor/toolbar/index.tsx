@@ -34,6 +34,7 @@ import {
   useCodeBlockExecuteReply,
   useCodeBlockExecuteResult,
   useCodeBlockInputRequest,
+  useCodeBlockIOPubError,
   useCodeBlockStatus,
   useCodeBlockStream,
   useKernelLaunchEvents,
@@ -109,6 +110,7 @@ export function Toolbar({
   useKernelLaunchEvents(editor);
   useCodeBlockExecuteReply(editor);
   useCodeBlockStream(editor);
+  useCodeBlockIOPubError(editor);
   useCodeBlockDisplayData(editor);
   useCodeBlockInputRequest(editor);
   useCodeBlockStatus(editor);

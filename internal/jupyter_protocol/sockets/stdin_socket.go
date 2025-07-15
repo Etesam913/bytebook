@@ -92,13 +92,13 @@ func (s *stdinSocket) Listen(
 			case "input_request":
 				msgId, ok := msg.ParentHeader["msg_id"].(string)
 				if !ok {
-					log.Println("⚠️ Invalid message ID type")
+					log.Printf("⚠️ Invalid message ID type: %v (type: %T)", msg.ParentHeader["msg_id"], msg.ParentHeader["msg_id"])
 					continue
 				}
 
 				prompt, promptOk := msg.Content["prompt"].(string)
 				if !promptOk {
-					log.Println("⚠️ Invalid prompt type")
+					log.Printf("⚠️ Invalid prompt type: %v (type: %T)", msg.Content["prompt"], msg.Content["prompt"])
 					prompt = "Input: "
 				}
 

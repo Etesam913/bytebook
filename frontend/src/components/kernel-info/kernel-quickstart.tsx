@@ -95,7 +95,11 @@ export function KernelQuickstart({ language }: { language: Languages }) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <QuickstartHeading>5. Create a Python code block</QuickstartHeading>
+        <QuickstartHeading>5. Restart Bytebook</QuickstartHeading>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <QuickstartHeading>6. Create a Python code block</QuickstartHeading>
         <QuickstartDescription>
           Go into a note and type /python
         </QuickstartDescription>
@@ -133,6 +137,17 @@ export function KernelQuickstart({ language }: { language: Languages }) {
       </div>
       <div className="flex flex-col gap-2">
         <QuickstartHeading>3. Create a Go code block</QuickstartHeading>
+        <QuickstartDescription>
+          Go into a note and type /go
+        </QuickstartDescription>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <QuickstartHeading>3. Restart Bytebook</QuickstartHeading>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <QuickstartHeading>4. Create a Go code block</QuickstartHeading>
         <QuickstartDescription>
           Go into a note and type /go
         </QuickstartDescription>
@@ -176,6 +191,17 @@ export function KernelQuickstart({ language }: { language: Languages }) {
 
       <div className="flex flex-col gap-2">
         <QuickstartHeading>3. Create a JavaScript code block</QuickstartHeading>
+        <QuickstartDescription>
+          Go into a note and type /javascript
+        </QuickstartDescription>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <QuickstartHeading>3. Restart Bytebook</QuickstartHeading>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <QuickstartHeading>4. Create a JavaScript code block</QuickstartHeading>
         <QuickstartDescription>
           Go into a note and type /javascript
         </QuickstartDescription>
