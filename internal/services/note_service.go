@@ -15,6 +15,9 @@ type NoteService struct {
 	ProjectPath string
 }
 
+// GetNotes returns a list of note filenames (with extension as a query param) in the specified folder,
+// sorted according to the provided sortOption. Only files (not directories or hidden files) are included.
+// Returns a BackendResponseWithData containing the sorted note names or an error message.
 func (n *NoteService) GetNotes(folderName string, sortOption string) config.BackendResponseWithData[[]string] {
 	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	// Ensure the directory exists
@@ -61,6 +64,8 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) config.Back
 	return config.BackendResponseWithData[[]string]{Success: true, Message: "", Data: sortedNotes}
 }
 
+// RenameNote renames a note file within a folder from oldNoteTitle to newNoteTitle (both without extension).
+// Returns a BackendResponseWithoutData indicating success or failure.
 func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNoteTitle string) config.BackendResponseWithoutData {
 	noteBase := filepath.Join(n.ProjectPath, "notes", folderName)
 	pathToNewNote := filepath.Join(noteBase, newNoteTitle+".md")
@@ -93,6 +98,7 @@ func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNote
 
 // RenameFile renames a file from oldFolderNotePath to newFolderNotePath.
 // Both paths should be relative to the notes directory (e.g., "folder/note.ext").
+// Returns a BackendResponseWithData containing the new path or an error message.
 func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath string) config.BackendResponseWithData[string] {
 	oldPath := filepath.Join(n.ProjectPath, "notes", oldFolderNotePath)
 	newPath := filepath.Join(n.ProjectPath, "notes", newFolderNotePath)
@@ -152,6 +158,8 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 	}
 }
 
+// GetNoteMarkdown reads and returns the markdown content of a note at the given path (relative to project root).
+// Returns a BackendResponseWithData containing the markdown string or an error message.
 func (n *NoteService) GetNoteMarkdown(path string) config.BackendResponseWithData[string] {
 	noteFilePath := filepath.Join(n.ProjectPath, path)
 
@@ -170,6 +178,8 @@ func (n *NoteService) GetNoteMarkdown(path string) config.BackendResponseWithDat
 	}
 }
 
+// SetNoteMarkdown writes the provided markdown string to the note file specified by folderName and noteTitle.
+// Returns a BackendResponseWithData indicating success or failure.
 func (n *NoteService) SetNoteMarkdown(
 	folderName string,
 	noteTitle string,
@@ -178,6 +188,10 @@ func (n *NoteService) SetNoteMarkdown(
 	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, fmt.Sprintf("%s.md", noteTitle))
 
 	err := os.WriteFile(noteFilePath, []byte(markdown), 0644)
+	internalLinks := notes.GetInternalLinksAndMedia(markdown)
+	for _, link := range internalLinks {
+		notes.AddNoteToAttachment(n.ProjectPath, folderName, link, fmt.Sprintf("%s.md", noteTitle))
+	}
 
 	if err != nil {
 		return config.BackendResponseWithData[string]{
@@ -193,6 +207,8 @@ func (n *NoteService) SetNoteMarkdown(
 	}
 }
 
+// AddFolder creates a new folder for notes in the project at the specified folderName.
+// Returns a BackendResponseWithoutData indicating success or failure.
 func AddFolder(folderName string, projectPath string) config.BackendResponseWithoutData {
 	pathToFolder := filepath.Join(projectPath, "notes", folderName)
 
@@ -231,6 +247,8 @@ func AddFolder(folderName string, projectPath string) config.BackendResponseWith
 	}
 }
 
+// AddNoteToFolder creates a new empty markdown note with the given noteName in the specified folder.
+// Returns a BackendResponseWithoutData indicating success or failure.
 func (n *NoteService) AddNoteToFolder(folderName string, noteName string) config.BackendResponseWithoutData {
 	noteFolderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	pathToNote := filepath.Join(noteFolderPath, fmt.Sprintf("%s.md", noteName))
@@ -264,6 +282,9 @@ func (n *NoteService) AddNoteToFolder(folderName string, noteName string) config
 	}
 }
 
+// ValidateMostRecentNotes takes a slice of note paths (in the form "folder/note.ext") and returns only those
+// that currently exist in the notes directory, formatted as "folder/note?ext=ext".
+// Used to filter out recently used notes that have been deleted or moved.
 func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 	var validPaths []string
 
@@ -445,4 +466,70 @@ func (n *NoteService) DoesNoteExist(path string) bool {
 	fullPath := filepath.Join(n.ProjectPath, "notes", path)
 	doesExist, _ := util.FileOrFolderExists(fullPath)
 	return doesExist
+}
+
+// GetNotesForAttachment returns note names linked to an attachment from attachments.json in the specified folder.
+func (n *NoteService) GetNotesForAttachment(folderName, attachmentName string) config.BackendResponseWithData[[]string] {
+	noteNames, err := notes.GetNotesForAttachment(n.ProjectPath, folderName, attachmentName)
+	if err != nil {
+		return config.BackendResponseWithData[[]string]{
+			Success: false,
+			Message: err.Error(),
+			Data:    []string{},
+		}
+	}
+
+	return config.BackendResponseWithData[[]string]{
+		Success: true,
+		Message: "Successfully retrieved notes for attachment",
+		Data:    noteNames,
+	}
+}
+
+// AddNoteToAttachment adds a note to an attachment's note list in attachments.json.
+func (n *NoteService) AddNoteToAttachment(folderName, noteName, attachmentName string) config.BackendResponseWithoutData {
+	err := notes.AddNoteToAttachment(n.ProjectPath, folderName, attachmentName, noteName)
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: err.Error(),
+		}
+	}
+
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "Successfully added note to attachment",
+	}
+}
+
+// RemoveNoteFromAttachment removes a note from an attachment's note list in attachments.json.
+func (n *NoteService) RemoveNoteFromAttachment(folderName, noteName, attachmentName string) config.BackendResponseWithoutData {
+	err := notes.RemoveNoteFromAttachment(n.ProjectPath, folderName, attachmentName, noteName)
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: err.Error(),
+		}
+	}
+
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "Successfully removed note from attachment",
+	}
+}
+
+// UpdateAttachmentName renames an attachment in attachments.json by updating the key.
+func (n *NoteService) UpdateAttachmentName(folderName, oldAttachmentName, newAttachmentName string) config.BackendResponseWithoutData {
+	err := notes.UpdateAttachmentName(n.ProjectPath, folderName, oldAttachmentName, newAttachmentName)
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: err.Error(),
+		}
+	}
+
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "Successfully updated attachment name",
+	}
 }

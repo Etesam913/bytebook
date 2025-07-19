@@ -94,8 +94,8 @@ func ProcessNoteContent(fullPath string) (metadata NoteMetadata, contentReadErro
 			// Return metadata (possibly with Size/LastUpdated if os.Stat succeeded) and the readErr.
 			return metadata, readErr
 		}
-		metadata.FirstLine = GetFirstLineFromMarkdown(string(noteContent))
-		metadata.FirstImageSrc = GetFirstImageSrcFromMarkdown(string(noteContent))
+		metadata.FirstLine = GetFirstLine(string(noteContent))
+		metadata.FirstImageSrc = GetFirstImageSrc(string(noteContent))
 	}
 
 	// No error means markdown content (if applicable) was processed successfully,
