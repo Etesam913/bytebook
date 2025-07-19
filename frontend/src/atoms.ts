@@ -1,19 +1,18 @@
 import { atom } from 'jotai';
 import type { RefObject } from 'react';
 import {
-  AlbumData,
-  KernelsData,
   type BackendQueryDataType,
   type ContextMenuData,
   type DialogDataType,
+  KernelsData,
   type ProjectSettings,
   type SearchPanelDataType,
   type SortStrings,
   type UserData,
   type WindowSettings,
 } from './types.ts';
-import { BaseSelection, LexicalEditor } from 'lexical';
 
+// Most recent notes atoms
 const privateMostRecentNotesAtom = atom<string[]>(
   JSON.parse(localStorage.getItem('mostRecentNotes') ?? '[]') as string[]
 );
@@ -89,6 +88,7 @@ export const selectionRangeAtom = atom<Set<string>>(new Set([]));
 
 export const isDarkModeOnAtom = atom<boolean>(false);
 
+// Editor UI state atoms
 export const isToolbarDisabledAtom = atom<boolean>(false);
 export const isNoteMaximizedAtom = atom<boolean>(false);
 
@@ -117,10 +117,6 @@ export const contextMenuDataAtom = atom<ContextMenuData>({
   y: 0,
 });
 
-export const draggedElementAtom = atom<HTMLElement | null>(null);
-
-export const draggableBlockElementAtom = atom<HTMLElement | null>(null);
-
 export const searchPanelDataAtom = atom<SearchPanelDataType>({
   isOpen: false,
   query: '',
@@ -128,22 +124,9 @@ export const searchPanelDataAtom = atom<SearchPanelDataType>({
   scrollY: 0,
 });
 
-export const editorAtom = atom<LexicalEditor | null>(null);
-
-export const noteContainerRefAtom = atom<RefObject<HTMLElement | null> | null>(
-  null
-);
-export const noteIntersectionObserverAtom = atom<IntersectionObserver | null>(
-  null
-);
-
 export const loadingToastIdsAtom = atom<Map<string, string | number>>(
   new Map()
 );
-
-export const noteSelectionAtom = atom<BaseSelection | null>(null);
-
-export const noteSeenFileNodeKeysAtom = atom<Set<string>>(new Set([]));
 
 export const kernelsDataAtom = atom<KernelsData>({
   python: {
@@ -166,12 +149,4 @@ export const kernelsDataAtom = atom<KernelsData>({
     heartbeat: 'idle',
     errorMessage: null,
   },
-});
-
-export const albumDataAtom = atom<AlbumData>({
-  isShowing: false,
-  nodeKey: null,
-  src: null,
-  alt: null,
-  elementType: null,
 });

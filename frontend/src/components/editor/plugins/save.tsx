@@ -8,13 +8,16 @@ import {
   createCommand,
 } from 'lexical';
 import { type Dispatch, type SetStateAction, useEffect } from 'react';
+import { useAtom } from 'jotai';
 import { SetNoteMarkdown } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { WINDOW_ID } from '../../../App';
 import { CUSTOM_TRANSFORMERS } from '../transformers';
 import {
   $convertToMarkdownStringCorrect,
   replaceFrontMatter,
+  parseFrontMatter,
 } from '../utils/note-metadata';
+import { previousMarkdownAtom } from '../atoms';
 
 type SaveMarkdownContentPayload =
   | undefined
@@ -29,24 +32,29 @@ export const SAVE_MARKDOWN_CONTENT: LexicalCommand<SaveMarkdownContentPayload> =
 export function SavePlugin({
   folder,
   note,
-  frontmatter,
   setFrontmatter,
   setNoteMarkdownString,
 }: {
   folder: string;
   note: string;
-  frontmatter: Record<string, string>;
   setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
   setNoteMarkdownString: Dispatch<SetStateAction<string>>;
 }) {
+  const [previousMarkdownWithFrontmatter, setPreviousMarkdownWithFrontmatter] =
+    useAtom(previousMarkdownAtom);
   const [editor] = useLexicalComposerContext();
   const queryClient = useQueryClient();
 
   async function saveMarkdownContent(markdownWithFrontmatter: string) {
     const decodedFolder = decodeURIComponent(folder);
     const decodedNote = decodeURIComponent(note);
-
-    await SetNoteMarkdown(decodedFolder, decodedNote, markdownWithFrontmatter);
+    console.log('empty?', previousMarkdownWithFrontmatter);
+    await SetNoteMarkdown(
+      decodedFolder,
+      decodedNote,
+      previousMarkdownWithFrontmatter,
+      markdownWithFrontmatter
+    );
     await queryClient.invalidateQueries({
       queryKey: ['note-preview', decodedFolder, decodedNote],
     });
@@ -56,12 +64,22 @@ export function SavePlugin({
   // The command converts the editor content to markdown, updates frontmatter,
   // emits a 'note:changed' event, updates state, and saves the note to the backend
   useEffect(() => {
+    // previousMarkdownWithFrontmatter.current = frontmatter.markdown;
     return mergeRegister(
       editor.registerCommand<SaveMarkdownContentPayload>(
         SAVE_MARKDOWN_CONTENT,
         (payload) => {
           const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
-          const frontmatterCopy = payload?.newFrontmatter ?? { ...frontmatter };
+
+          let frontmatterCopy = payload?.newFrontmatter;
+          if (!frontmatterCopy) {
+            const { frontMatter: existingFrontmatter } = parseFrontMatter(
+              previousMarkdownWithFrontmatter
+            );
+            frontmatterCopy = {
+              ...existingFrontmatter,
+            };
+          }
           const timeOfChange = new Date().toISOString();
           frontmatterCopy.folder = folder;
           frontmatterCopy.note = note;
@@ -73,7 +91,9 @@ export function SavePlugin({
             markdown,
             frontmatterCopy
           );
+
           if (!payload?.shouldSkipNoteChangedEmit) {
+            // To prevent infinite loops when there are multiple windows open
             Events.Emit({
               name: 'note:changed',
               data: {
@@ -84,15 +104,34 @@ export function SavePlugin({
               },
             });
           }
+          console.log(
+            '💾 SAVE: previousMarkdown before save:',
+            previousMarkdownWithFrontmatter?.substring(0, 100) + '...'
+          );
+          console.log(
+            '💾 SAVE: newMarkdown to save:',
+            markdownWithFrontmatter?.substring(0, 100) + '...'
+          );
+
           setFrontmatter(frontmatterCopy);
           setNoteMarkdownString(markdownWithFrontmatter);
           saveMarkdownContent(markdownWithFrontmatter);
+          setPreviousMarkdownWithFrontmatter(markdownWithFrontmatter);
+          console.log('💾 SAVE: Updated previousMarkdown atom');
+
           return true;
         },
         COMMAND_PRIORITY_EDITOR
       )
     );
-  }, [editor, folder, note, frontmatter, setFrontmatter]);
+  }, [
+    editor,
+    folder,
+    note,
+    setFrontmatter,
+    CUSTOM_TRANSFORMERS,
+    previousMarkdownWithFrontmatter,
+  ]);
 
   return null;
 }

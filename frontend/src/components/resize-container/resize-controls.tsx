@@ -6,7 +6,7 @@ import { XResize } from '../../icons/arrows-expand-x';
 import type { ResizeWidth } from '../../types';
 import { NoteComponentControls } from '../note-component-container/component-controls';
 import { useSetAtom } from 'jotai';
-import { albumDataAtom } from '../../atoms';
+import { albumDataAtom } from '../editor/atoms';
 
 export function ResizeControls({
   nodeKey,

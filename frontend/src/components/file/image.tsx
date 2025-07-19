@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useAtomValue } from 'jotai/react';
 import { useRef, useState } from 'react';
-import { noteSeenFileNodeKeysAtom } from '../../atoms';
+import { noteSeenFileNodeKeysAtom } from '../editor/atoms';
 import { useShowWhenInViewport } from '../../hooks/observers';
 import { useResizeCommands, useResizeState } from '../../hooks/resize';
 import type { ResizeWidth } from '../../types';

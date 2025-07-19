@@ -3,9 +3,9 @@ import { type Dispatch, type SetStateAction } from 'react';
 import {
   contextMenuDataAtom,
   dialogDataAtom,
-  draggedElementAtom,
   projectSettingsAtom,
 } from '../../atoms';
+import { draggedElementAtom } from '../../components/editor/atoms';
 import { handleDragStart } from '../../components/sidebar/utils';
 import {
   useEditTagsMutation,

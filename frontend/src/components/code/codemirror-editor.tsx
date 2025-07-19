@@ -3,8 +3,8 @@ import { nord } from '@uiw/codemirror-theme-nord';
 import { useAtomValue } from 'jotai/react';
 import {
   isDarkModeOnAtom,
-  kernelsDataAtom,
   projectSettingsAtom,
+  kernelsDataAtom,
 } from '../../atoms';
 import CodeMirror, {
   type ReactCodeMirrorRef,

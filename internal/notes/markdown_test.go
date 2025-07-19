@@ -195,34 +195,137 @@ func TestGetInternalLinksAndMedia(t *testing.T) {
 	t.Run("should extract internal media URLs", func(t *testing.T) {
 		markdown := "![Image](http://localhost:3000/folder/image.png)"
 		result := GetInternalLinksAndMedia(markdown)
-		assert.Contains(t, result, "http://localhost:3000/folder/image.png")
+		assert.True(t, result.Has("http://localhost:3000/folder/image.png"))
 	})
 
 	t.Run("should extract internal link URLs", func(t *testing.T) {
 		markdown := "[Link](./local-file.md)"
 		result := GetInternalLinksAndMedia(markdown)
-		assert.Contains(t, result, "./local-file.md")
+		assert.True(t, result.Has("./local-file.md"))
 	})
 
 	t.Run("should exclude external URLs", func(t *testing.T) {
 		markdown := "![External](https://example.com/image.png) [External Link](https://example.com/page.html)"
 		result := GetInternalLinksAndMedia(markdown)
-		assert.Len(t, result, 0)
+		assert.Len(t, result.Elements(), 0)
 	})
 
 	t.Run("should deduplicate URLs", func(t *testing.T) {
-		markdown := "![ellaalove-1?width=100%](http://localhost:5890/notes/tests/ellaalove-1.mp4)"
+		markdown := "![ellaalove-1?width=100%](http://localhost:5890/notes/tests/ellaalove-1.mp4) ![ellaalove-1?width=100%](http://localhost:5890/notes/tests/ellaalove-1.mp4)"
 		result := GetInternalLinksAndMedia(markdown)
-		assert.Len(t, result, 1)
-		assert.Contains(t, result, "http://localhost:5890/notes/tests/ellaalove-1.mp4")
+		assert.Len(t, result.Elements(), 1)
+		assert.True(t, result.Has("http://localhost:5890/notes/tests/ellaalove-1.mp4"))
 	})
 
 	t.Run("should handle mixed internal and external URLs", func(t *testing.T) {
 		markdown := "![Local](./image.png) ![External](https://example.com/image.png) [Local Link](./page.md) [External Link](https://example.com/page.html)"
 		result := GetInternalLinksAndMedia(markdown)
+		assert.Len(t, result.Elements(), 2)
+		assert.True(t, result.Has("./image.png"))
+		assert.True(t, result.Has("./page.md"))
+	})
+}
+
+func TestGetInternalLinksAndMediaAsSlice(t *testing.T) {
+	t.Run("should extract internal media URLs as slice", func(t *testing.T) {
+		markdown := "![Image](http://localhost:3000/folder/image.png)"
+		result := GetInternalLinksAndMediaAsSlice(markdown)
+		assert.Contains(t, result, "http://localhost:3000/folder/image.png")
+	})
+
+	t.Run("should extract internal link URLs as slice", func(t *testing.T) {
+		markdown := "[Link](./local-file.md)"
+		result := GetInternalLinksAndMediaAsSlice(markdown)
+		assert.Contains(t, result, "./local-file.md")
+	})
+
+	t.Run("should exclude external URLs as slice", func(t *testing.T) {
+		markdown := "![External](https://example.com/image.png) [External Link](https://example.com/page.html)"
+		result := GetInternalLinksAndMediaAsSlice(markdown)
+		assert.Len(t, result, 0)
+	})
+
+	t.Run("should deduplicate URLs as slice", func(t *testing.T) {
+		markdown := "![ellaalove-1?width=100%](http://localhost:5890/notes/tests/ellaalove-1.mp4) ![ellaalove-1?width=100%](http://localhost:5890/notes/tests/ellaalove-1.mp4)"
+		result := GetInternalLinksAndMediaAsSlice(markdown)
+		assert.Len(t, result, 1)
+		assert.Contains(t, result, "http://localhost:5890/notes/tests/ellaalove-1.mp4")
+	})
+
+	t.Run("should handle mixed internal and external URLs as slice", func(t *testing.T) {
+		markdown := "![Local](./image.png) ![External](https://example.com/image.png) [Local Link](./page.md) [External Link](https://example.com/page.html)"
+		result := GetInternalLinksAndMediaAsSlice(markdown)
 		assert.Len(t, result, 2)
 		assert.Contains(t, result, "./image.png")
 		assert.Contains(t, result, "./page.md")
+	})
+}
+
+func TestCalculateInternalLinksDiff(t *testing.T) {
+	t.Run("should identify newly added links", func(t *testing.T) {
+		previousMarkdown := "![Image1](./image1.png) [Link1](./page1.md)"
+		newMarkdown := "![Image1](./image1.png) [Link1](./page1.md) ![Image2](./image2.png) [Link2](./page2.md)"
+
+		added, removed := CalculateInternalLinksDiff(previousMarkdown, newMarkdown)
+
+		assert.Len(t, added, 2)
+		assert.Contains(t, added, "./image2.png")
+		assert.Contains(t, added, "./page2.md")
+		assert.Len(t, removed, 0)
+	})
+
+	t.Run("should identify newly removed links", func(t *testing.T) {
+		previousMarkdown := "![Image1](./image1.png) [Link1](./page1.md) ![Image2](./image2.png) [Link2](./page2.md)"
+		newMarkdown := "![Image1](./image1.png) [Link1](./page1.md)"
+
+		added, removed := CalculateInternalLinksDiff(previousMarkdown, newMarkdown)
+
+		assert.Len(t, added, 0)
+		assert.Len(t, removed, 2)
+		assert.Contains(t, removed, "./image2.png")
+		assert.Contains(t, removed, "./page2.md")
+	})
+
+	t.Run("should identify both added and removed links", func(t *testing.T) {
+		previousMarkdown := "![Image1](./image1.png) [Link1](./page1.md)"
+		newMarkdown := "![Image2](./image2.png) [Link2](./page2.md)"
+
+		added, removed := CalculateInternalLinksDiff(previousMarkdown, newMarkdown)
+
+		assert.Len(t, added, 2)
+		assert.Contains(t, added, "./image2.png")
+		assert.Contains(t, added, "./page2.md")
+		assert.Len(t, removed, 2)
+		assert.Contains(t, removed, "./image1.png")
+		assert.Contains(t, removed, "./page1.md")
+	})
+
+	t.Run("should handle no changes", func(t *testing.T) {
+		markdown := "![Image1](./image1.png) [Link1](./page1.md)"
+
+		added, removed := CalculateInternalLinksDiff(markdown, markdown)
+
+		assert.Len(t, added, 0)
+		assert.Len(t, removed, 0)
+	})
+
+	t.Run("should handle empty markdown", func(t *testing.T) {
+		added, removed := CalculateInternalLinksDiff("", "")
+
+		assert.Len(t, added, 0)
+		assert.Len(t, removed, 0)
+	})
+
+	t.Run("should ignore external URLs", func(t *testing.T) {
+		previousMarkdown := "![External](https://example.com/image.png) [Internal](./page.md)"
+		newMarkdown := "![External2](https://example.com/image2.png) [Internal2](./page2.md)"
+
+		added, removed := CalculateInternalLinksDiff(previousMarkdown, newMarkdown)
+
+		assert.Len(t, added, 1)
+		assert.Contains(t, added, "./page2.md")
+		assert.Len(t, removed, 1)
+		assert.Contains(t, removed, "./page.md")
 	})
 }
 

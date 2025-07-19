@@ -1,9 +1,7 @@
 import { useAtomValue } from 'jotai';
 import type { Ref, RefObject } from 'react';
-import {
-  mostRecentNotesWithoutQueryParamsAtom,
-  searchPanelDataAtom,
-} from '../../atoms';
+import { searchPanelDataAtom } from '../../atoms';
+import { mostRecentNotesWithoutQueryParamsAtom } from '../../atoms';
 import { SearchItem } from './search-item';
 
 export function SearchItems({

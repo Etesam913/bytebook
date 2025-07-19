@@ -2,11 +2,8 @@ import { motion } from 'motion/react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { easingFunctions } from '../../animations';
-import {
-  mostRecentNotesWithoutQueryParamsAtom,
-  searchPanelDataAtom,
-  trapFocusContainerAtom,
-} from '../../atoms';
+import { searchPanelDataAtom, trapFocusContainerAtom } from '../../atoms';
+import { mostRecentNotesWithoutQueryParamsAtom } from '../../atoms';
 
 import { useListVirtualization } from '../../hooks/observers';
 import { useSearchMutation } from '../../hooks/search';

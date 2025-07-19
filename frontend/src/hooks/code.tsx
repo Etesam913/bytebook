@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from 'jotai';
 import { CodeNode } from '../components/editor/nodes/code';
 import { useWailsEvent } from './events';
-import { kernelsDataAtom, loadingToastIdsAtom } from '../atoms';
+import { loadingToastIdsAtom, kernelsDataAtom } from '../atoms';
 import {
   CodeBlockStatus,
   CompletionData,

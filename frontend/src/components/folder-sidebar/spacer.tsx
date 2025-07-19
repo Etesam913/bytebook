@@ -1,7 +1,7 @@
 import type { MotionValue } from 'motion/react';
 import { useSetAtom } from 'jotai';
 import { useState } from 'react';
-import { draggedElementAtom } from '../../atoms';
+import { draggedElementAtom } from '../editor/atoms';
 import { dragItem } from '../../utils/draggable';
 import { MAX_SIDEBAR_WIDTH } from '../../utils/general';
 import { cn } from '../../utils/string-formatting';

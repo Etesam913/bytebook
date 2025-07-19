@@ -1,7 +1,8 @@
 import { motion, useAnimationControls } from 'motion/react';
 import { useAtomValue } from 'jotai';
 import { getDefaultButtonVariants } from '../../animations';
-import { draggedElementAtom, isNoteMaximizedAtom } from '../../atoms';
+import { draggedElementAtom } from '../../components/editor/atoms';
+import { isNoteMaximizedAtom } from '../../atoms';
 import { MotionIconButton } from '../../components/buttons';
 import { MaximizeNoteButton } from '../../components/buttons/maximize-note';
 import { NotesEditor } from '../../components/editor';

@@ -3,6 +3,8 @@ package notes
 import (
 	"regexp"
 	"strings"
+
+	"github.com/etesam913/bytebook/internal/util"
 )
 
 // Regex patterns used throughout the package
@@ -107,9 +109,9 @@ func GetFirstImageSrc(markdown string) string {
 }
 
 // GetInternalLinksAndMedia extracts all internal links and media URLs from markdown.
-// Returns an array of URL strings that are considered internal.
-func GetInternalLinksAndMedia(markdown string) []string {
-	urlSet := make(map[string]bool)
+// Returns a set of URL strings that are considered internal for efficient lookup.
+func GetInternalLinksAndMedia(markdown string) util.Set[string] {
+	urlSet := make(util.Set[string])
 
 	// Extract media URLs
 	mediaMatches := mediaRegex.FindAllStringSubmatch(markdown, -1)
@@ -117,29 +119,55 @@ func GetInternalLinksAndMedia(markdown string) []string {
 		if len(match) >= 3 {
 			url := strings.TrimSpace(match[2])
 			if IsInternalURL(url) {
-				urlSet[url] = true
+				urlSet.Add(url)
 			}
 		}
 	}
 
-	// Extract link URLs (skip if already found in media)
+	// Extract link URLs
 	linkMatches := linkRegex.FindAllStringSubmatch(markdown, -1)
 	for _, match := range linkMatches {
 		if len(match) >= 3 {
 			url := strings.TrimSpace(match[2])
-			if IsInternalURL(url) && !urlSet[url] {
-				urlSet[url] = true
+			if IsInternalURL(url) {
+				urlSet.Add(url)
 			}
 		}
 	}
 
-	// Convert map to slice
-	var internalURLs []string
-	for url := range urlSet {
-		internalURLs = append(internalURLs, url)
+	return urlSet
+}
+
+// GetInternalLinksAndMediaAsSlice extracts all internal links and media URLs from markdown.
+// Returns an array of URL strings that are considered internal.
+func GetInternalLinksAndMediaAsSlice(markdown string) []string {
+	urlSet := GetInternalLinksAndMedia(markdown)
+	return urlSet.Elements()
+}
+
+// CalculateInternalLinksDiff calculates the differences between two sets of internal links.
+// Returns newly added links and newly removed links.
+func CalculateInternalLinksDiff(previousMarkdown, newMarkdown string) ([]string, []string) {
+	previousLinks := GetInternalLinksAndMedia(previousMarkdown)
+	newLinks := GetInternalLinksAndMedia(newMarkdown)
+
+	// Calculate newly added links (in new but not in previous)
+	var newlyAddedLinks []string
+	for _, link := range newLinks.Elements() {
+		if !previousLinks.Has(link) {
+			newlyAddedLinks = append(newlyAddedLinks, link)
+		}
 	}
 
-	return internalURLs
+	// Calculate newly removed links (in previous but not in new)
+	var newlyRemovedLinks []string
+	for _, link := range previousLinks.Elements() {
+		if !newLinks.Has(link) {
+			newlyRemovedLinks = append(newlyRemovedLinks, link)
+		}
+	}
+
+	return newlyAddedLinks, newlyRemovedLinks
 }
 
 // Content Filtering Functions

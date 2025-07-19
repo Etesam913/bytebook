@@ -18,12 +18,13 @@ import {
   draggableBlockElementAtom,
   draggedElementAtom,
   editorAtom,
-  isNoteMaximizedAtom,
   noteContainerRefAtom,
   noteIntersectionObserverAtom,
   noteSeenFileNodeKeysAtom,
-  projectSettingsAtom,
-} from '../../atoms';
+  previousMarkdownAtom,
+} from './atoms';
+import { isNoteMaximizedAtom } from '../../atoms';
+import { projectSettingsAtom } from '../../atoms';
 import type { FloatingDataType } from '../../types.ts';
 import { handleEditorEscape } from '../../utils/selection.ts';
 import { cn } from '../../utils/string-formatting';
@@ -76,6 +77,7 @@ export function NotesEditor({
   const [noteIntersectionObserver, setNoteIntersectionObserver] = useAtom(
     noteIntersectionObserverAtom
   );
+  const setPreviousMarkdown = useSetAtom(previousMarkdownAtom);
   const { isShowing: isAlbumShowing } = useAtomValue(albumDataAtom);
   const [seenFileNodeKeys, setSeenFileNodeKeys] = useAtom(
     noteSeenFileNodeKeysAtom
@@ -96,6 +98,10 @@ export function NotesEditor({
     setNoteContainerRef(noteContainerRef);
 
     return () => {
+      // Resets some state
+      setNoteContainerRef(null);
+      setEditor(null);
+
       // Cancels ongoing requests for a code block when navigating away from the editor
       if (editor) {
         editor.read(() => {
@@ -114,6 +120,7 @@ export function NotesEditor({
 
   // Sets up intersection observer for note elements file nodes
   useEffect(() => {
+    setSeenFileNodeKeys(new Set([]));
     setNoteIntersectionObserver(() => {
       return new IntersectionObserver((entries) => {
         entries.forEach(
@@ -135,9 +142,10 @@ export function NotesEditor({
         );
       });
     });
-    setSeenFileNodeKeys(new Set([]));
     return () => {
       noteIntersectionObserver?.disconnect();
+      setNoteIntersectionObserver(null);
+      setSeenFileNodeKeys(new Set([]));
     };
   }, [folder, note, noteContainerRef]);
 
@@ -222,7 +230,6 @@ export function NotesEditor({
           <SavePlugin
             folder={folder}
             note={note}
-            frontmatter={frontmatter}
             setFrontmatter={setFrontmatter}
             setNoteMarkdownString={setNoteMarkdownString}
           />

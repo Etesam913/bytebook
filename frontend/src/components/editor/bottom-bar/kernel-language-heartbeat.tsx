@@ -7,8 +7,8 @@ import { useOnClickOutside } from '../../../hooks/general';
 import { useAtomValue, useSetAtom } from 'jotai';
 import {
   dialogDataAtom,
-  kernelsDataAtom,
   projectSettingsAtom,
+  kernelsDataAtom,
 } from '../../../atoms';
 import { DropdownItem, Languages } from '../../../types';
 import { cn } from '../../../utils/string-formatting';

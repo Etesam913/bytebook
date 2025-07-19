@@ -1,6 +1,6 @@
 import { mergeRegister } from '@lexical/utils';
 import { useQuery } from '@tanstack/react-query';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import {
   $getSelection,
   $isNodeSelection,
@@ -32,7 +32,7 @@ import {
   useEffect,
 } from 'react';
 import { GetNoteMarkdown } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { draggedElementAtom } from '../../../atoms';
+import { draggedElementAtom, previousMarkdownAtom } from '../atoms';
 import type { EditorBlockTypes, FloatingDataType } from '../../../types';
 import { QueryError } from '../../../utils/query';
 import { CUSTOM_TRANSFORMERS } from '../transformers';
@@ -46,7 +46,7 @@ import {
 import { $convertFromMarkdownStringCorrect } from '../utils/note-metadata';
 import { updateToolbar } from '../utils/toolbar';
 
-/** Gets note markdown from local system */
+/** Gets note markdown from local system on mount */
 export function useNoteMarkdown(
   editor: LexicalEditor,
   folder: string,
@@ -56,12 +56,16 @@ export function useNoteMarkdown(
   setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>,
   setNoteMarkdownString: Dispatch<SetStateAction<string>>
 ) {
+  const setPreviousMarkdown = useSetAtom(previousMarkdownAtom);
+
   useQuery({
     queryKey: ['note-markdown', `${folder}/${note}.md`],
     queryFn: async () => {
+      // Reset previous markdown when loading a new note
+      console.log('🔄 Loading new note, resetting previousMarkdown');
+      setPreviousMarkdown('');
       const folderAndNote = `${decodeURIComponent(folder)}/${decodeURIComponent(note)}.md`;
       const res = await GetNoteMarkdown(`notes/${folderAndNote}`);
-
       if (!res.success)
         throw new QueryError(
           `Failed to get note markdown for ${folderAndNote}`
@@ -71,6 +75,11 @@ export function useNoteMarkdown(
       // You don't want a different note to access the same history when you switch notes
       editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
       setNoteMarkdownString(res.data ?? '');
+      console.log(
+        '✅ Setting previousMarkdown to loaded data:',
+        res.data?.substring(0, 100) + '...'
+      );
+      setPreviousMarkdown(res.data ?? '');
 
       editor.update(
         () => {

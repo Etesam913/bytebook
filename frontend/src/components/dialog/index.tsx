@@ -5,10 +5,10 @@ import useMeasure from 'react-use-measure';
 import { easingFunctions, getDefaultButtonVariants } from '../../animations';
 import {
   dialogDataAtom,
-  editorAtom,
   selectionRangeAtom,
   trapFocusContainerAtom,
 } from '../../atoms';
+import { editorAtom } from '../editor/atoms';
 import { XMark } from '../../icons/circle-xmark';
 import { cn } from '../../utils/string-formatting';
 import { MotionIconButton } from '../buttons';

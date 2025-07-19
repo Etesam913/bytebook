@@ -1,7 +1,7 @@
 import { type MotionValue, motion } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import type { Dispatch, MouseEvent, RefObject, SetStateAction } from 'react';
-import { draggedElementAtom, noteContainerRefAtom } from '../../atoms';
+import { draggedElementAtom, noteContainerRefAtom } from '../editor/atoms';
 import type { ResizeWidth } from '../../types';
 import { dragItem } from '../../utils/draggable';
 

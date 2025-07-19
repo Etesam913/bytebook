@@ -3,11 +3,8 @@ import { useSetAtom } from 'jotai';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { getDefaultButtonVariants } from '../../animations';
-import {
-  contextMenuDataAtom,
-  dialogDataAtom,
-  draggedElementAtom,
-} from '../../atoms';
+import { contextMenuDataAtom, dialogDataAtom } from '../../atoms';
+import { draggedElementAtom } from '../editor/atoms';
 import {
   useFolderDialogSubmit,
   useFolderRevealInFinderMutation,

@@ -1,6 +1,6 @@
 import { useAtomValue } from 'jotai/react';
 import { type RefObject, useEffect, useState } from 'react';
-import { noteIntersectionObserverAtom } from '../atoms';
+import { noteIntersectionObserverAtom } from '../components/editor/atoms';
 
 /**
  * Custom hook for implementing list virtualization.

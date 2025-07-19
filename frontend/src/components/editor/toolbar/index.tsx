@@ -9,11 +9,8 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  isNoteMaximizedAtom,
-  isToolbarDisabledAtom,
-  noteSelectionAtom,
-} from '../../../atoms';
+import { isNoteMaximizedAtom, isToolbarDisabledAtom } from '../../../atoms';
+import { noteSelectionAtom } from '../atoms';
 import { useAttachmentsMutation } from '../../../hooks/attachments';
 import { useNoteChangedEvent } from '../../../hooks/notes';
 import type { EditorBlockTypes, FloatingDataType } from '../../../types';

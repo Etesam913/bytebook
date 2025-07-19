@@ -3,7 +3,7 @@ import { useState } from 'react';
 import {
   mostRecentNotesAtom,
   mostRecentNotesWithoutQueryParamsAtom,
-} from '../../atoms.ts';
+} from '../../atoms';
 import HourglassStart from '../../icons/hourglass-start.tsx';
 import { AccordionItem } from '../sidebar/accordion-item.tsx';
 import { SidebarAccordion } from '../sidebar/accordion.tsx';

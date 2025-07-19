@@ -3,11 +3,8 @@ import { motion, useMotionValue, useSpring } from 'motion/react';
 import { useAtom, useAtomValue } from 'jotai';
 import { RefObject, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  draggedElementAtom,
-  isNoteMaximizedAtom,
-  noteContainerRefAtom,
-} from '../../../atoms';
+import { draggedElementAtom, noteContainerRefAtom } from '../atoms';
+import { isNoteMaximizedAtom } from '../../../atoms';
 import { VerticalDots } from '../../../icons/vertical-dots';
 
 import { useDraggableBlock, useNodeDragEvents } from '../hooks/draggable-block';

@@ -11,7 +11,7 @@ import { Sidebar } from '../sidebar';
 import { AccordionButton } from '../sidebar/accordion-button';
 import { navigate } from 'wouter/use-browser-location';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { kernelsDataAtom, contextMenuDataAtom } from '../../atoms';
+import { contextMenuDataAtom, kernelsDataAtom } from '../../atoms';
 import { handleContextMenuSelection } from '../../utils/selection';
 import { KernelHeartbeat } from '../kernel-info';
 import PowerOff from '../../icons/power-off';

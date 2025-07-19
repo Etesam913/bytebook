@@ -14,7 +14,7 @@ import {
   isHTMLElement,
 } from 'lexical';
 import { type RefObject, useEffect } from 'react';
-import { draggableBlockElementAtom, draggedElementAtom } from '../../../atoms';
+import { draggableBlockElementAtom, draggedElementAtom } from '../atoms';
 import { throttle } from '../../../utils/draggable';
 import {
   DRAG_DATA_FORMAT,

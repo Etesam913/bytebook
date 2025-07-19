@@ -183,16 +183,12 @@ func (n *NoteService) GetNoteMarkdown(path string) config.BackendResponseWithDat
 func (n *NoteService) SetNoteMarkdown(
 	folderName string,
 	noteTitle string,
+	previousMarkdown string,
 	markdown string,
 ) config.BackendResponseWithData[string] {
 	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, fmt.Sprintf("%s.md", noteTitle))
 
 	err := os.WriteFile(noteFilePath, []byte(markdown), 0644)
-	internalLinks := notes.GetInternalLinksAndMedia(markdown)
-	for _, link := range internalLinks {
-		notes.AddNoteToAttachment(n.ProjectPath, folderName, link, fmt.Sprintf("%s.md", noteTitle))
-	}
-
 	if err != nil {
 		return config.BackendResponseWithData[string]{
 			Success: false,
@@ -200,6 +196,20 @@ func (n *NoteService) SetNoteMarkdown(
 			Data:    "",
 		}
 	}
+
+	// Calculate the differences in internal links
+	newlyAddedLinks, newlyRemovedLinks := notes.CalculateInternalLinksDiff(previousMarkdown, markdown)
+
+	// Add newly added links to attachments
+	for _, link := range newlyAddedLinks {
+		notes.AddNoteToAttachment(n.ProjectPath, folderName, link, fmt.Sprintf("%s.md", noteTitle))
+	}
+
+	// Remove newly deleted links from attachments
+	for _, link := range newlyRemovedLinks {
+		notes.RemoveNoteFromAttachment(n.ProjectPath, folderName, link, fmt.Sprintf("%s.md", noteTitle))
+	}
+
 	return config.BackendResponseWithData[string]{
 		Success: true,
 		Message: "Successfully set note markdown",
@@ -486,37 +496,36 @@ func (n *NoteService) GetNotesForAttachment(folderName, attachmentName string) c
 	}
 }
 
-// AddNoteToAttachment adds a note to an attachment's note list in .attachments.json.
-func (n *NoteService) AddNoteToAttachment(folderName, noteName, attachmentName string) config.BackendResponseWithoutData {
-	err := notes.AddNoteToAttachment(n.ProjectPath, folderName, attachmentName, noteName)
-	if err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: err.Error(),
-		}
-	}
-
-	return config.BackendResponseWithoutData{
-		Success: true,
-		Message: "Successfully added note to attachment",
-	}
-}
+// // AddNoteToAttachment adds a note to an attachment's note list in .attachments.json.
+// func (n *NoteService) AddNoteToAttachment(folderName, noteName, attachmentName string) config.BackendResponseWithoutData {
+// 	err := notes.AddNoteToAttachment(n.ProjectPath, folderName, attachmentName, noteName)
+// 	if err != nil {
+// 		return config.BackendResponseWithoutData{
+// 			Success: false,
+// 			Message: err.Error(),
+// 		}
+// 	}
+// 	return config.BackendResponseWithoutData{
+// 		Success: true,
+// 		Message: "Successfully added note to attachment",
+// 	}
+// }
 
 // RemoveNoteFromAttachment removes a note from an attachment's note list in .attachments.json.
-func (n *NoteService) RemoveNoteFromAttachment(folderName, noteName, attachmentName string) config.BackendResponseWithoutData {
-	err := notes.RemoveNoteFromAttachment(n.ProjectPath, folderName, attachmentName, noteName)
-	if err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: err.Error(),
-		}
-	}
+// func (n *NoteService) RemoveNoteFromAttachment(folderName, noteName, attachmentName string) config.BackendResponseWithoutData {
+// 	err := notes.RemoveNoteFromAttachment(n.ProjectPath, folderName, attachmentName, noteName)
+// 	if err != nil {
+// 		return config.BackendResponseWithoutData{
+// 			Success: false,
+// 			Message: err.Error(),
+// 		}
+// 	}
 
-	return config.BackendResponseWithoutData{
-		Success: true,
-		Message: "Successfully removed note from attachment",
-	}
-}
+// 	return config.BackendResponseWithoutData{
+// 		Success: true,
+// 		Message: "Successfully removed note from attachment",
+// 	}
+// }
 
 // UpdateAttachmentName renames an attachment in .attachments.json by updating the key.
 func (n *NoteService) UpdateAttachmentName(folderName, oldAttachmentName, newAttachmentName string) config.BackendResponseWithoutData {
