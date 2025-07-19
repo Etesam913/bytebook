@@ -202,12 +202,16 @@ func (n *NoteService) SetNoteMarkdown(
 
 	// Add newly added links to attachments
 	for _, link := range newlyAddedLinks {
-		notes.AddNoteToAttachment(n.ProjectPath, folderName, link, fmt.Sprintf("%s.md", noteTitle))
+		segments := strings.Split(filepath.Dir(link), "/")
+		folderOfAttachment := segments[len(segments)-1]
+		notes.AddNoteToAttachment(n.ProjectPath, folderOfAttachment, link, fmt.Sprintf("%s/%s.md", folderName, noteTitle))
 	}
 
 	// Remove newly deleted links from attachments
 	for _, link := range newlyRemovedLinks {
-		notes.RemoveNoteFromAttachment(n.ProjectPath, folderName, link, fmt.Sprintf("%s.md", noteTitle))
+		segments := strings.Split(filepath.Dir(link), "/")
+		folderOfAttachment := segments[len(segments)-1]
+		notes.RemoveNoteFromAttachment(n.ProjectPath, folderOfAttachment, link, fmt.Sprintf("%s/%s.md", folderName, noteTitle))
 	}
 
 	return config.BackendResponseWithData[string]{
@@ -497,8 +501,8 @@ func (n *NoteService) GetNotesForAttachment(folderName, attachmentName string) c
 }
 
 // // AddNoteToAttachment adds a note to an attachment's note list in .attachments.json.
-// func (n *NoteService) AddNoteToAttachment(folderName, noteName, attachmentName string) config.BackendResponseWithoutData {
-// 	err := notes.AddNoteToAttachment(n.ProjectPath, folderName, attachmentName, noteName)
+// func (n *NoteService) AddNoteToAttachment(folderName, attachmentName, folderAndNoteName string) config.BackendResponseWithoutData {
+// 	err := notes.AddNoteToAttachment(n.ProjectPath, folderName, attachmentName, folderAndNoteName)
 // 	if err != nil {
 // 		return config.BackendResponseWithoutData{
 // 			Success: false,
@@ -512,8 +516,8 @@ func (n *NoteService) GetNotesForAttachment(folderName, attachmentName string) c
 // }
 
 // RemoveNoteFromAttachment removes a note from an attachment's note list in .attachments.json.
-// func (n *NoteService) RemoveNoteFromAttachment(folderName, noteName, attachmentName string) config.BackendResponseWithoutData {
-// 	err := notes.RemoveNoteFromAttachment(n.ProjectPath, folderName, attachmentName, noteName)
+// func (n *NoteService) RemoveNoteFromAttachment(folderName, attachmentName, folderAndNoteName string) config.BackendResponseWithoutData {
+// 	err := notes.RemoveNoteFromAttachment(n.ProjectPath, folderName, attachmentName, folderAndNoteName)
 // 	if err != nil {
 // 		return config.BackendResponseWithoutData{
 // 			Success: false,

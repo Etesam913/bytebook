@@ -48,7 +48,6 @@ export function SavePlugin({
   async function saveMarkdownContent(markdownWithFrontmatter: string) {
     const decodedFolder = decodeURIComponent(folder);
     const decodedNote = decodeURIComponent(note);
-    console.log('empty?', previousMarkdownWithFrontmatter);
     await SetNoteMarkdown(
       decodedFolder,
       decodedNote,
@@ -104,20 +103,11 @@ export function SavePlugin({
               },
             });
           }
-          console.log(
-            '💾 SAVE: previousMarkdown before save:',
-            previousMarkdownWithFrontmatter?.substring(0, 100) + '...'
-          );
-          console.log(
-            '💾 SAVE: newMarkdown to save:',
-            markdownWithFrontmatter?.substring(0, 100) + '...'
-          );
 
           setFrontmatter(frontmatterCopy);
           setNoteMarkdownString(markdownWithFrontmatter);
           saveMarkdownContent(markdownWithFrontmatter);
           setPreviousMarkdownWithFrontmatter(markdownWithFrontmatter);
-          console.log('💾 SAVE: Updated previousMarkdown atom');
 
           return true;
         },

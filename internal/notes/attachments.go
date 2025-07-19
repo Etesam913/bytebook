@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/etesam913/bytebook/internal/util"
 )
@@ -34,8 +35,13 @@ func GetNotesForAttachment(projectPath, folderName, attachmentName string) ([]st
 
 // AddNoteToAttachment adds a note to an attachment's note list in .attachments.json.
 // If the attachment doesn't exist, it creates a new entry. Returns an error if the operation fails.
-func AddNoteToAttachment(projectPath, folderName, attachmentName, noteName string) error {
-	attachmentPath := filepath.Join(projectPath, "notes", folderName, ".attachments.json")
+func AddNoteToAttachment(projectPath, folderOfAttachment, attachmentName, folderAndNoteName string) error {
+	// Parse folder and note name from the combined parameter
+	parts := strings.Split(folderAndNoteName, "/")
+	if len(parts) != 2 {
+		return fmt.Errorf("folderAndNoteName must be in format 'folder/noteName', got: %s", folderAndNoteName)
+	}
+	attachmentPath := filepath.Join(projectPath, "notes", folderOfAttachment, ".attachments.json")
 	attachmentToNotesArray, err := util.ReadOrCreateJSON(
 		attachmentPath, AttachmentToNotesArray{
 			Attachments: map[string][]string{},
@@ -49,12 +55,12 @@ func AddNoteToAttachment(projectPath, folderName, attachmentName, noteName strin
 	notes := attachmentToNotesArray.Attachments[attachmentName]
 
 	// Check if note already exists to avoid duplicates
-	if slices.Contains(notes, noteName) {
+	if slices.Contains(notes, folderAndNoteName) {
 		return nil // Note already exists, no need to add
 	}
 
 	// Add the note
-	attachmentToNotesArray.Attachments[attachmentName] = append(notes, noteName)
+	attachmentToNotesArray.Attachments[attachmentName] = append(notes, folderAndNoteName)
 
 	return util.WriteJsonToPath(attachmentPath, attachmentToNotesArray)
 }
@@ -62,7 +68,13 @@ func AddNoteToAttachment(projectPath, folderName, attachmentName, noteName strin
 // RemoveNoteFromAttachment removes a note from an attachment's note list in .attachments.json.
 // If the attachment has no notes left after removal, the attachment entry is deleted.
 // Returns an error if the operation fails.
-func RemoveNoteFromAttachment(projectPath, folderName, attachmentName, noteName string) error {
+func RemoveNoteFromAttachment(projectPath, folderName, attachmentName, folderAndNoteName string) error {
+	// Parse folder and note name from the combined parameter
+	parts := strings.Split(folderAndNoteName, "/")
+	if len(parts) != 2 {
+		return fmt.Errorf("folderAndNoteName must be in format 'folder/noteName', got: %s", folderAndNoteName)
+	}
+
 	attachmentPath := filepath.Join(projectPath, "notes", folderName, ".attachments.json")
 	attachmentToNotesArray, err := util.ReadOrCreateJSON(
 		attachmentPath, AttachmentToNotesArray{
@@ -80,7 +92,7 @@ func RemoveNoteFromAttachment(projectPath, folderName, attachmentName, noteName 
 
 	// Remove the note from the list
 	filteredNotes := util.Filter(notes, func(note string) bool {
-		return note != noteName
+		return note != folderAndNoteName
 	})
 
 	// If no notes are left, remove the attachment entirely

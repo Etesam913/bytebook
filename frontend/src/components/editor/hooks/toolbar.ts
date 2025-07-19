@@ -62,7 +62,6 @@ export function useNoteMarkdown(
     queryKey: ['note-markdown', `${folder}/${note}.md`],
     queryFn: async () => {
       // Reset previous markdown when loading a new note
-      console.log('🔄 Loading new note, resetting previousMarkdown');
       setPreviousMarkdown('');
       const folderAndNote = `${decodeURIComponent(folder)}/${decodeURIComponent(note)}.md`;
       const res = await GetNoteMarkdown(`notes/${folderAndNote}`);
@@ -75,10 +74,6 @@ export function useNoteMarkdown(
       // You don't want a different note to access the same history when you switch notes
       editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
       setNoteMarkdownString(res.data ?? '');
-      console.log(
-        '✅ Setting previousMarkdown to loaded data:',
-        res.data?.substring(0, 100) + '...'
-      );
       setPreviousMarkdown(res.data ?? '');
 
       editor.update(

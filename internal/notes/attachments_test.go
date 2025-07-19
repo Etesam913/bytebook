@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 )
 
@@ -192,7 +193,7 @@ func TestAddNoteToAttachment(t *testing.T) {
 
 	t.Run("add note to new attachment", func(t *testing.T) {
 		// Add a note to a new attachment
-		err := AddNoteToAttachment(tmpDir, testFolder, "new-image.jpg", "test-note.md")
+		err := AddNoteToAttachment(tmpDir, testFolder, "new-image.jpg", "test-folder/test-note.md")
 		if err != nil {
 			t.Errorf("Expected no error, got: %v", err)
 		}
@@ -203,20 +204,20 @@ func TestAddNoteToAttachment(t *testing.T) {
 			t.Errorf("Expected no error when retrieving notes, got: %v", err)
 		}
 
-		if len(notes) != 1 || notes[0] != "test-note.md" {
-			t.Errorf("Expected ['test-note.md'], got %v", notes)
+		if len(notes) != 1 || notes[0] != "test-folder/test-note.md" {
+			t.Errorf("Expected ['test-folder/test-note.md'], got %v", notes)
 		}
 	})
 
 	t.Run("add note to existing attachment", func(t *testing.T) {
 		// First, add a note
-		err := AddNoteToAttachment(tmpDir, testFolder, "existing-image.png", "first-note.md")
+		err := AddNoteToAttachment(tmpDir, testFolder, "existing-image.png", "test-folder/first-note.md")
 		if err != nil {
 			t.Errorf("Expected no error, got: %v", err)
 		}
 
 		// Add another note to the same attachment
-		err = AddNoteToAttachment(tmpDir, testFolder, "existing-image.png", "second-note.md")
+		err = AddNoteToAttachment(tmpDir, testFolder, "existing-image.png", "test-folder/second-note.md")
 		if err != nil {
 			t.Errorf("Expected no error, got: %v", err)
 		}
@@ -231,15 +232,9 @@ func TestAddNoteToAttachment(t *testing.T) {
 			t.Errorf("Expected 2 notes, got %d", len(notes))
 		}
 
-		expectedNotes := []string{"first-note.md", "second-note.md"}
+		expectedNotes := []string{"test-folder/first-note.md", "test-folder/second-note.md"}
 		for _, expected := range expectedNotes {
-			found := false
-			for _, actual := range notes {
-				if actual == expected {
-					found = true
-					break
-				}
-			}
+			found := slices.Contains(notes, expected)
 			if !found {
 				t.Errorf("Expected to find note %s in %v", expected, notes)
 			}
@@ -248,13 +243,13 @@ func TestAddNoteToAttachment(t *testing.T) {
 
 	t.Run("add duplicate note", func(t *testing.T) {
 		// Add a note
-		err := AddNoteToAttachment(tmpDir, testFolder, "duplicate-test.pdf", "duplicate-note.md")
+		err := AddNoteToAttachment(tmpDir, testFolder, "duplicate-test.pdf", "test-folder/duplicate-note.md")
 		if err != nil {
 			t.Errorf("Expected no error, got: %v", err)
 		}
 
 		// Try to add the same note again
-		err = AddNoteToAttachment(tmpDir, testFolder, "duplicate-test.pdf", "duplicate-note.md")
+		err = AddNoteToAttachment(tmpDir, testFolder, "duplicate-test.pdf", "test-folder/duplicate-note.md")
 		if err != nil {
 			t.Errorf("Expected no error when adding duplicate, got: %v", err)
 		}
@@ -265,15 +260,37 @@ func TestAddNoteToAttachment(t *testing.T) {
 			t.Errorf("Expected no error when retrieving notes, got: %v", err)
 		}
 
-		if len(notes) != 1 || notes[0] != "duplicate-note.md" {
-			t.Errorf("Expected ['duplicate-note.md'], got %v", notes)
+		if len(notes) != 1 || notes[0] != "test-folder/duplicate-note.md" {
+			t.Errorf("Expected ['test-folder/duplicate-note.md'], got %v", notes)
 		}
 	})
 
 	t.Run("invalid folder path", func(t *testing.T) {
-		err := AddNoteToAttachment("/nonexistent/path", testFolder, "image.jpg", "note.md")
+		err := AddNoteToAttachment("/nonexistent/path", testFolder, "image.jpg", "test-folder/note.md")
 		if err == nil {
 			t.Error("Expected error for invalid project path, got nil")
+		}
+	})
+
+	t.Run("invalid folderAndNoteName format - no slash", func(t *testing.T) {
+		err := AddNoteToAttachment(tmpDir, testFolder, "image.jpg", "invalid-format")
+		if err == nil {
+			t.Error("Expected error for invalid folderAndNoteName format, got nil")
+		}
+		expectedError := "folderAndNoteName must be in format 'folder/noteName', got: invalid-format"
+		if err.Error() != expectedError {
+			t.Errorf("Expected error message '%s', got '%s'", expectedError, err.Error())
+		}
+	})
+
+	t.Run("invalid folderAndNoteName format - too many slashes", func(t *testing.T) {
+		err := AddNoteToAttachment(tmpDir, testFolder, "image.jpg", "folder/subfolder/note.md")
+		if err == nil {
+			t.Error("Expected error for invalid folderAndNoteName format, got nil")
+		}
+		expectedError := "folderAndNoteName must be in format 'folder/noteName', got: folder/subfolder/note.md"
+		if err.Error() != expectedError {
+			t.Errorf("Expected error message '%s', got '%s'", expectedError, err.Error())
 		}
 	})
 }
@@ -298,21 +315,21 @@ func TestRemoveNoteFromAttachment(t *testing.T) {
 
 	t.Run("remove note from attachment with multiple notes", func(t *testing.T) {
 		// Setup: Add multiple notes to an attachment
-		err := AddNoteToAttachment(tmpDir, testFolder, "multi-note.jpg", "note1.md")
+		err := AddNoteToAttachment(tmpDir, testFolder, "multi-note.jpg", "test-folder/note1.md")
 		if err != nil {
 			t.Fatalf("Failed to setup test: %v", err)
 		}
-		err = AddNoteToAttachment(tmpDir, testFolder, "multi-note.jpg", "note2.md")
+		err = AddNoteToAttachment(tmpDir, testFolder, "multi-note.jpg", "test-folder/note2.md")
 		if err != nil {
 			t.Fatalf("Failed to setup test: %v", err)
 		}
-		err = AddNoteToAttachment(tmpDir, testFolder, "multi-note.jpg", "note3.md")
+		err = AddNoteToAttachment(tmpDir, testFolder, "multi-note.jpg", "test-folder/note3.md")
 		if err != nil {
 			t.Fatalf("Failed to setup test: %v", err)
 		}
 
 		// Remove one note
-		err = RemoveNoteFromAttachment(tmpDir, testFolder, "multi-note.jpg", "note2.md")
+		err = RemoveNoteFromAttachment(tmpDir, testFolder, "multi-note.jpg", "test-folder/note2.md")
 		if err != nil {
 			t.Errorf("Expected no error, got: %v", err)
 		}
@@ -328,21 +345,21 @@ func TestRemoveNoteFromAttachment(t *testing.T) {
 		}
 
 		for _, note := range notes {
-			if note == "note2.md" {
-				t.Errorf("Note 'note2.md' should have been removed but was found in %v", notes)
+			if note == "test-folder/note2.md" {
+				t.Errorf("Note 'test-folder/note2.md' should have been removed but was found in %v", notes)
 			}
 		}
 	})
 
 	t.Run("remove last note removes attachment entirely", func(t *testing.T) {
 		// Setup: Add a single note to an attachment
-		err := AddNoteToAttachment(tmpDir, testFolder, "single-note.png", "only-note.md")
+		err := AddNoteToAttachment(tmpDir, testFolder, "single-note.png", "test-folder/only-note.md")
 		if err != nil {
 			t.Fatalf("Failed to setup test: %v", err)
 		}
 
 		// Remove the only note
-		err = RemoveNoteFromAttachment(tmpDir, testFolder, "single-note.png", "only-note.md")
+		err = RemoveNoteFromAttachment(tmpDir, testFolder, "single-note.png", "test-folder/only-note.md")
 		if err != nil {
 			t.Errorf("Expected no error, got: %v", err)
 		}
@@ -365,7 +382,7 @@ func TestRemoveNoteFromAttachment(t *testing.T) {
 
 	t.Run("remove note from nonexistent attachment", func(t *testing.T) {
 		// This should not cause an error
-		err := RemoveNoteFromAttachment(tmpDir, testFolder, "nonexistent.pdf", "some-note.md")
+		err := RemoveNoteFromAttachment(tmpDir, testFolder, "nonexistent.pdf", "test-folder/some-note.md")
 		if err != nil {
 			t.Errorf("Expected no error for removing from nonexistent attachment, got: %v", err)
 		}
@@ -373,13 +390,13 @@ func TestRemoveNoteFromAttachment(t *testing.T) {
 
 	t.Run("remove nonexistent note from existing attachment", func(t *testing.T) {
 		// Setup: Add a note to an attachment
-		err := AddNoteToAttachment(tmpDir, testFolder, "existing-attachment.gif", "existing-note.md")
+		err := AddNoteToAttachment(tmpDir, testFolder, "existing-attachment.gif", "test-folder/existing-note.md")
 		if err != nil {
 			t.Fatalf("Failed to setup test: %v", err)
 		}
 
 		// Try to remove a note that doesn't exist
-		err = RemoveNoteFromAttachment(tmpDir, testFolder, "existing-attachment.gif", "nonexistent-note.md")
+		err = RemoveNoteFromAttachment(tmpDir, testFolder, "existing-attachment.gif", "test-folder/nonexistent-note.md")
 		if err != nil {
 			t.Errorf("Expected no error for removing nonexistent note, got: %v", err)
 		}
@@ -390,15 +407,37 @@ func TestRemoveNoteFromAttachment(t *testing.T) {
 			t.Errorf("Expected no error when retrieving notes, got: %v", err)
 		}
 
-		if len(notes) != 1 || notes[0] != "existing-note.md" {
-			t.Errorf("Expected ['existing-note.md'], got %v", notes)
+		if len(notes) != 1 || notes[0] != "test-folder/existing-note.md" {
+			t.Errorf("Expected ['test-folder/existing-note.md'], got %v", notes)
 		}
 	})
 
 	t.Run("invalid folder path", func(t *testing.T) {
-		err := RemoveNoteFromAttachment("/nonexistent/path", testFolder, "image.jpg", "note.md")
+		err := RemoveNoteFromAttachment("/nonexistent/path", testFolder, "image.jpg", "test-folder/note.md")
 		if err == nil {
 			t.Error("Expected error for invalid project path, got nil")
+		}
+	})
+
+	t.Run("invalid folderAndNoteName format - no slash", func(t *testing.T) {
+		err := RemoveNoteFromAttachment(tmpDir, testFolder, "image.jpg", "invalid-format")
+		if err == nil {
+			t.Error("Expected error for invalid folderAndNoteName format, got nil")
+		}
+		expectedError := "folderAndNoteName must be in format 'folder/noteName', got: invalid-format"
+		if err.Error() != expectedError {
+			t.Errorf("Expected error message '%s', got '%s'", expectedError, err.Error())
+		}
+	})
+
+	t.Run("invalid folderAndNoteName format - too many slashes", func(t *testing.T) {
+		err := RemoveNoteFromAttachment(tmpDir, testFolder, "image.jpg", "folder/subfolder/note.md")
+		if err == nil {
+			t.Error("Expected error for invalid folderAndNoteName format, got nil")
+		}
+		expectedError := "folderAndNoteName must be in format 'folder/noteName', got: folder/subfolder/note.md"
+		if err.Error() != expectedError {
+			t.Errorf("Expected error message '%s', got '%s'", expectedError, err.Error())
 		}
 	})
 }
@@ -423,11 +462,11 @@ func TestUpdateAttachmentName(t *testing.T) {
 
 	t.Run("rename attachment successfully", func(t *testing.T) {
 		// Setup: Add notes to an attachment
-		err := AddNoteToAttachment(tmpDir, testFolder, "old-name.jpg", "note1.md")
+		err := AddNoteToAttachment(tmpDir, testFolder, "old-name.jpg", "test-folder/note1.md")
 		if err != nil {
 			t.Fatalf("Failed to setup test: %v", err)
 		}
-		err = AddNoteToAttachment(tmpDir, testFolder, "old-name.jpg", "note2.md")
+		err = AddNoteToAttachment(tmpDir, testFolder, "old-name.jpg", "test-folder/note2.md")
 		if err != nil {
 			t.Fatalf("Failed to setup test: %v", err)
 		}
@@ -454,7 +493,7 @@ func TestUpdateAttachmentName(t *testing.T) {
 			t.Errorf("Expected 2 notes, got %d", len(notes))
 		}
 
-		expectedNotes := []string{"note1.md", "note2.md"}
+		expectedNotes := []string{"test-folder/note1.md", "test-folder/note2.md"}
 		for _, expected := range expectedNotes {
 			found := false
 			for _, actual := range notes {
@@ -471,16 +510,16 @@ func TestUpdateAttachmentName(t *testing.T) {
 
 	t.Run("rename to existing attachment merges notes", func(t *testing.T) {
 		// Setup: Create two attachments with different notes
-		err := AddNoteToAttachment(tmpDir, testFolder, "source.png", "source-note1.md")
+		err := AddNoteToAttachment(tmpDir, testFolder, "source.png", "test-folder/source-note1.md")
 		if err != nil {
 			t.Fatalf("Failed to setup test: %v", err)
 		}
-		err = AddNoteToAttachment(tmpDir, testFolder, "source.png", "source-note2.md")
+		err = AddNoteToAttachment(tmpDir, testFolder, "source.png", "test-folder/source-note2.md")
 		if err != nil {
 			t.Fatalf("Failed to setup test: %v", err)
 		}
 
-		err = AddNoteToAttachment(tmpDir, testFolder, "target.png", "target-note1.md")
+		err = AddNoteToAttachment(tmpDir, testFolder, "target.png", "test-folder/target-note1.md")
 		if err != nil {
 			t.Fatalf("Failed to setup test: %v", err)
 		}
@@ -507,7 +546,7 @@ func TestUpdateAttachmentName(t *testing.T) {
 			t.Errorf("Expected 3 notes after merge, got %d", len(notes))
 		}
 
-		expectedNotes := []string{"target-note1.md", "source-note1.md", "source-note2.md"}
+		expectedNotes := []string{"test-folder/target-note1.md", "test-folder/source-note1.md", "test-folder/source-note2.md"}
 		for _, expected := range expectedNotes {
 			found := false
 			for _, actual := range notes {
@@ -524,20 +563,20 @@ func TestUpdateAttachmentName(t *testing.T) {
 
 	t.Run("rename to existing attachment removes duplicates", func(t *testing.T) {
 		// Setup: Create two attachments with overlapping notes
-		err := AddNoteToAttachment(tmpDir, testFolder, "dup-source.gif", "shared-note.md")
+		err := AddNoteToAttachment(tmpDir, testFolder, "dup-source.gif", "test-folder/shared-note.md")
 		if err != nil {
 			t.Fatalf("Failed to setup test: %v", err)
 		}
-		err = AddNoteToAttachment(tmpDir, testFolder, "dup-source.gif", "unique-source.md")
+		err = AddNoteToAttachment(tmpDir, testFolder, "dup-source.gif", "test-folder/unique-source.md")
 		if err != nil {
 			t.Fatalf("Failed to setup test: %v", err)
 		}
 
-		err = AddNoteToAttachment(tmpDir, testFolder, "dup-target.gif", "shared-note.md")
+		err = AddNoteToAttachment(tmpDir, testFolder, "dup-target.gif", "test-folder/shared-note.md")
 		if err != nil {
 			t.Fatalf("Failed to setup test: %v", err)
 		}
-		err = AddNoteToAttachment(tmpDir, testFolder, "dup-target.gif", "unique-target.md")
+		err = AddNoteToAttachment(tmpDir, testFolder, "dup-target.gif", "test-folder/unique-target.md")
 		if err != nil {
 			t.Fatalf("Failed to setup test: %v", err)
 		}
@@ -558,7 +597,7 @@ func TestUpdateAttachmentName(t *testing.T) {
 			t.Errorf("Expected 3 unique notes after merge, got %d", len(notes))
 		}
 
-		expectedNotes := []string{"shared-note.md", "unique-target.md", "unique-source.md"}
+		expectedNotes := []string{"test-folder/shared-note.md", "test-folder/unique-target.md", "test-folder/unique-source.md"}
 		for _, expected := range expectedNotes {
 			found := false
 			for _, actual := range notes {
