@@ -468,7 +468,7 @@ func (n *NoteService) DoesNoteExist(path string) bool {
 	return doesExist
 }
 
-// GetNotesForAttachment returns note names linked to an attachment from attachments.json in the specified folder.
+// GetNotesForAttachment returns note names linked to an attachment from .attachments.json in the specified folder.
 func (n *NoteService) GetNotesForAttachment(folderName, attachmentName string) config.BackendResponseWithData[[]string] {
 	noteNames, err := notes.GetNotesForAttachment(n.ProjectPath, folderName, attachmentName)
 	if err != nil {
@@ -486,7 +486,7 @@ func (n *NoteService) GetNotesForAttachment(folderName, attachmentName string) c
 	}
 }
 
-// AddNoteToAttachment adds a note to an attachment's note list in attachments.json.
+// AddNoteToAttachment adds a note to an attachment's note list in .attachments.json.
 func (n *NoteService) AddNoteToAttachment(folderName, noteName, attachmentName string) config.BackendResponseWithoutData {
 	err := notes.AddNoteToAttachment(n.ProjectPath, folderName, attachmentName, noteName)
 	if err != nil {
@@ -502,7 +502,7 @@ func (n *NoteService) AddNoteToAttachment(folderName, noteName, attachmentName s
 	}
 }
 
-// RemoveNoteFromAttachment removes a note from an attachment's note list in attachments.json.
+// RemoveNoteFromAttachment removes a note from an attachment's note list in .attachments.json.
 func (n *NoteService) RemoveNoteFromAttachment(folderName, noteName, attachmentName string) config.BackendResponseWithoutData {
 	err := notes.RemoveNoteFromAttachment(n.ProjectPath, folderName, attachmentName, noteName)
 	if err != nil {
@@ -518,7 +518,7 @@ func (n *NoteService) RemoveNoteFromAttachment(folderName, noteName, attachmentN
 	}
 }
 
-// UpdateAttachmentName renames an attachment in attachments.json by updating the key.
+// UpdateAttachmentName renames an attachment in .attachments.json by updating the key.
 func (n *NoteService) UpdateAttachmentName(folderName, oldAttachmentName, newAttachmentName string) config.BackendResponseWithoutData {
 	err := notes.UpdateAttachmentName(n.ProjectPath, folderName, oldAttachmentName, newAttachmentName)
 	if err != nil {

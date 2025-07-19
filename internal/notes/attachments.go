@@ -12,10 +12,10 @@ type AttachmentToNotesArray struct {
 	Attachments map[string][]string `json:"attachments"`
 }
 
-// GetNotesForAttachment returns note names linked to an attachment from attachments.json in the specified folder.
+// GetNotesForAttachment returns note names linked to an attachment from .attachments.json in the specified folder.
 // Returns an error if the attachment is not found or reading fails.
 func GetNotesForAttachment(projectPath, folderName, attachmentName string) ([]string, error) {
-	attachmentPath := filepath.Join(projectPath, "notes", folderName, "attachments.json")
+	attachmentPath := filepath.Join(projectPath, "notes", folderName, ".attachments.json")
 	attachmentToNotesArray, err := util.ReadOrCreateJSON(
 		attachmentPath, AttachmentToNotesArray{
 			Attachments: map[string][]string{},
@@ -32,10 +32,10 @@ func GetNotesForAttachment(projectPath, folderName, attachmentName string) ([]st
 	return notes, nil
 }
 
-// AddNoteToAttachment adds a note to an attachment's note list in attachments.json.
+// AddNoteToAttachment adds a note to an attachment's note list in .attachments.json.
 // If the attachment doesn't exist, it creates a new entry. Returns an error if the operation fails.
 func AddNoteToAttachment(projectPath, folderName, attachmentName, noteName string) error {
-	attachmentPath := filepath.Join(projectPath, "notes", folderName, "attachments.json")
+	attachmentPath := filepath.Join(projectPath, "notes", folderName, ".attachments.json")
 	attachmentToNotesArray, err := util.ReadOrCreateJSON(
 		attachmentPath, AttachmentToNotesArray{
 			Attachments: map[string][]string{},
@@ -59,11 +59,11 @@ func AddNoteToAttachment(projectPath, folderName, attachmentName, noteName strin
 	return util.WriteJsonToPath(attachmentPath, attachmentToNotesArray)
 }
 
-// RemoveNoteFromAttachment removes a note from an attachment's note list in attachments.json.
+// RemoveNoteFromAttachment removes a note from an attachment's note list in .attachments.json.
 // If the attachment has no notes left after removal, the attachment entry is deleted.
 // Returns an error if the operation fails.
 func RemoveNoteFromAttachment(projectPath, folderName, attachmentName, noteName string) error {
-	attachmentPath := filepath.Join(projectPath, "notes", folderName, "attachments.json")
+	attachmentPath := filepath.Join(projectPath, "notes", folderName, ".attachments.json")
 	attachmentToNotesArray, err := util.ReadOrCreateJSON(
 		attachmentPath, AttachmentToNotesArray{
 			Attachments: map[string][]string{},
@@ -93,11 +93,11 @@ func RemoveNoteFromAttachment(projectPath, folderName, attachmentName, noteName 
 	return util.WriteJsonToPath(attachmentPath, attachmentToNotesArray)
 }
 
-// UpdateAttachmentName renames an attachment in attachments.json by updating the key.
+// UpdateAttachmentName renames an attachment in .attachments.json by updating the key.
 // All notes associated with the old attachment name will be moved to the new name.
 // Returns an error if the old attachment doesn't exist or the operation fails.
 func UpdateAttachmentName(projectPath, folderName, oldAttachmentName, newAttachmentName string) error {
-	attachmentPath := filepath.Join(projectPath, "notes", folderName, "attachments.json")
+	attachmentPath := filepath.Join(projectPath, "notes", folderName, ".attachments.json")
 	attachmentToNotesArray, err := util.ReadOrCreateJSON(
 		attachmentPath, AttachmentToNotesArray{
 			Attachments: map[string][]string{},

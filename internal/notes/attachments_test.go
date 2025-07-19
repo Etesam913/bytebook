@@ -26,7 +26,7 @@ func TestGetNotesForAttachment(t *testing.T) {
 	}
 
 	t.Run("successful attachment retrieval", func(t *testing.T) {
-		// Create test attachments.json
+		// Create test .attachments.json
 		attachmentsData := AttachmentToNotesArray{
 			Attachments: map[string][]string{
 				"image1.png": {"note1.md", "note2.md"},
@@ -35,7 +35,7 @@ func TestGetNotesForAttachment(t *testing.T) {
 			},
 		}
 
-		attachmentsPath := filepath.Join(folderPath, "attachments.json")
+		attachmentsPath := filepath.Join(folderPath, ".attachments.json")
 		data, err := json.Marshal(attachmentsData)
 		if err != nil {
 			t.Fatalf("Failed to marshal test data: %v", err)
@@ -100,8 +100,8 @@ func TestGetNotesForAttachment(t *testing.T) {
 		}
 	})
 
-	t.Run("file creation when attachments.json doesn't exist", func(t *testing.T) {
-		// Create a new folder without attachments.json
+	t.Run("file creation when .attachments.json doesn't exist", func(t *testing.T) {
+		// Create a new folder without .attachments.json
 		newTestFolder := "new-test-folder"
 		newFolderPath := filepath.Join(notesDir, newTestFolder)
 
@@ -110,7 +110,7 @@ func TestGetNotesForAttachment(t *testing.T) {
 			t.Fatalf("Failed to create new test folder: %v", err)
 		}
 
-		// This should create a new attachments.json file and return error for nonexistent attachment
+		// This should create a new .attachments.json file and return error for nonexistent attachment
 		notes, err := GetNotesForAttachment(tmpDir, newTestFolder, "some-attachment.png")
 		if err == nil {
 			t.Error("Expected error for nonexistent attachment in new file, got nil")
@@ -120,22 +120,22 @@ func TestGetNotesForAttachment(t *testing.T) {
 			t.Errorf("Expected nil notes, got %v", notes)
 		}
 
-		// Verify that attachments.json was created
-		attachmentsPath := filepath.Join(newFolderPath, "attachments.json")
+		// Verify that .attachments.json was created
+		attachmentsPath := filepath.Join(newFolderPath, ".attachments.json")
 		if _, err := os.Stat(attachmentsPath); os.IsNotExist(err) {
-			t.Error("Expected attachments.json to be created, but it doesn't exist")
+			t.Error("Expected .attachments.json to be created, but it doesn't exist")
 		}
 
 		// Verify the created file has the correct structure
 		var createdData AttachmentToNotesArray
 		data, err := os.ReadFile(attachmentsPath)
 		if err != nil {
-			t.Fatalf("Failed to read created attachments.json: %v", err)
+			t.Fatalf("Failed to read created .attachments.json: %v", err)
 		}
 
 		err = json.Unmarshal(data, &createdData)
 		if err != nil {
-			t.Fatalf("Failed to unmarshal created attachments.json: %v", err)
+			t.Fatalf("Failed to unmarshal created .attachments.json: %v", err)
 		}
 
 		if createdData.Attachments == nil {
