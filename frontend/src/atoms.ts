@@ -137,6 +137,10 @@ export const noteIntersectionObserverAtom = atom<IntersectionObserver | null>(
   null
 );
 
+export const loadingToastIdsAtom = atom<Map<string, string | number>>(
+  new Map()
+);
+
 export const noteSelectionAtom = atom<BaseSelection | null>(null);
 
 export const noteSeenFileNodeKeysAtom = atom<Set<string>>(new Set([]));

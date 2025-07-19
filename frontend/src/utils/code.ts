@@ -1,6 +1,6 @@
 import { UseMutateFunction } from '@tanstack/react-query';
 import { keymap, Prec, type ReactCodeMirrorRef } from '@uiw/react-codemirror';
-import { CodeBlockStatus, Languages } from '../types';
+import { CodeBlockStatus, KernelsData, Languages } from '../types';
 import {
   KEY_ARROW_DOWN_COMMAND,
   KEY_ARROW_UP_COMMAND,
@@ -49,18 +49,30 @@ export function runCode(
 /**
  * Handles running or interrupting code execution based on the current status of the code block.
  *
- * @param status - Current execution status of the code block
- * @param codeBlockId - Unique identifier for the code block
- * @param codeBlockLanguage - Programming language of the code block
- * @param interruptExecution - Function to interrupt code execution
- * @param codeMirrorInstance - Reference to the CodeMirror editor instance
- * @param executeCode - Function to execute the code in the editor
+ * @param options - Configuration object containing all parameters
+ * @param options.status - Current execution status of the code block
+ * @param options.codeBlockId - Unique identifier for the code block
+ * @param options.codeBlockLanguage - Programming language of the code block
+ * @param options.interruptExecution - Function to interrupt code execution
+ * @param options.codeMirrorInstance - Reference to the CodeMirror editor instance
+ * @param options.executeCode - Function to execute the code in the editor
+ * @param options.kernelsData - Data about the kernels for the code block
+ * @param options.turnOnKernel - Function to turn on the kernel for the code block
  * @returns True if the code was run or interrupted, false otherwise
  */
-function handleRunOrInterruptCode(
-  status: CodeBlockStatus,
-  codeBlockId: string,
-  codeBlockLanguage: Languages,
+export function handleRunOrInterruptCode({
+  status,
+  codeBlockId,
+  codeBlockLanguage,
+  interruptExecution,
+  codeMirrorInstance,
+  executeCode,
+  kernelsData,
+  turnOnKernel,
+}: {
+  status: CodeBlockStatus;
+  codeBlockId: string;
+  codeBlockLanguage: Languages;
   interruptExecution: ({
     newExecutionId,
     codeBlockId,
@@ -69,8 +81,8 @@ function handleRunOrInterruptCode(
     newExecutionId: string;
     codeBlockId: string;
     codeBlockLanguage: Languages;
-  }) => void,
-  codeMirrorInstance: ReactCodeMirrorRef | null,
+  }) => void;
+  codeMirrorInstance: ReactCodeMirrorRef | null;
   executeCode: UseMutateFunction<
     void,
     Error,
@@ -79,8 +91,16 @@ function handleRunOrInterruptCode(
       newExecutionId: string;
     },
     unknown
-  >
-) {
+  >;
+  kernelsData: KernelsData;
+  turnOnKernel: UseMutateFunction<void, Error, Languages, unknown>;
+}) {
+  const languageHearbeat = kernelsData[codeBlockLanguage].heartbeat;
+  if (languageHearbeat === 'failure' || languageHearbeat === 'idle') {
+    turnOnKernel(codeBlockLanguage);
+    return true;
+  }
+
   if (status === 'busy') {
     interruptExecution({
       codeBlockId,
@@ -103,9 +123,11 @@ function handleRunOrInterruptCode(
  * @param options.id - Unique identifier for the code block
  * @param options.language - Programming language of the code block
  * @param options.interruptExecution - Function to interrupt code execution
- * @param options.codeMirrorInstance - Reference to the CodeMirror editor instance
  * @param options.executeCode - Function to execute the code in the editor
+ * @param options.turnOnKernel - Function to turn on the kernel for the code block
+ * @param options.codeMirrorInstance - Reference to the CodeMirror editor instance
  * @param options.setSelected - Function to set the selection state of the node
+ * @param options.kernelsData - Data about the kernels for the code block
  * @returns A CodeMirror keymap extension with custom key bindings
  */
 export function getCodemirrorKeymap({
@@ -114,10 +136,12 @@ export function getCodemirrorKeymap({
   status,
   id,
   language,
-  interruptExecution,
-  codeMirrorInstance,
   executeCode,
+  interruptExecution,
+  turnOnKernel,
+  codeMirrorInstance,
   setSelected,
+  kernelsData,
 }: {
   isExpanded: boolean;
   lexicalEditor: LexicalEditor;
@@ -133,6 +157,7 @@ export function getCodemirrorKeymap({
     codeBlockId: string;
     codeBlockLanguage: Languages;
   }) => void;
+  turnOnKernel: UseMutateFunction<void, Error, Languages, unknown>;
   codeMirrorInstance: ReactCodeMirrorRef | null;
   executeCode: UseMutateFunction<
     void,
@@ -144,6 +169,7 @@ export function getCodemirrorKeymap({
     unknown
   >;
   setSelected: (selected: boolean) => void;
+  kernelsData: KernelsData;
 }) {
   return Prec.highest(
     keymap.of([
@@ -209,38 +235,44 @@ export function getCodemirrorKeymap({
       {
         key: 'Shift-Enter',
         run: () =>
-          handleRunOrInterruptCode(
+          handleRunOrInterruptCode({
             status,
-            id,
-            language,
+            codeBlockId: id,
+            codeBlockLanguage: language,
             interruptExecution,
             codeMirrorInstance,
-            executeCode
-          ),
+            executeCode,
+            kernelsData,
+            turnOnKernel,
+          }),
       },
       {
         key: 'Ctrl-Enter',
         run: () =>
-          handleRunOrInterruptCode(
+          handleRunOrInterruptCode({
             status,
-            id,
-            language,
+            codeBlockId: id,
+            codeBlockLanguage: language,
             interruptExecution,
             codeMirrorInstance,
-            executeCode
-          ),
+            executeCode,
+            kernelsData,
+            turnOnKernel,
+          }),
       },
       {
         key: 'Mod-Enter',
         run: () =>
-          handleRunOrInterruptCode(
+          handleRunOrInterruptCode({
             status,
-            id,
-            language,
+            codeBlockId: id,
+            codeBlockLanguage: language,
             interruptExecution,
             codeMirrorInstance,
-            executeCode
-          ),
+            executeCode,
+            kernelsData,
+            turnOnKernel,
+          }),
       },
       {
         key: 'Ctrl-c',

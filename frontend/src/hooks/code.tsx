@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from 'jotai';
 import { CodeNode } from '../components/editor/nodes/code';
 import { useWailsEvent } from './events';
-import { kernelsDataAtom } from '../atoms';
+import { kernelsDataAtom, loadingToastIdsAtom } from '../atoms';
 import {
   CodeBlockStatus,
   CompletionData,
@@ -179,6 +179,7 @@ export function useKernelShutdown() {
  */
 export function useKernelHeartbeat() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
+  const setLoadingToastIds = useSetAtom(loadingToastIdsAtom);
 
   useWailsEvent('code:kernel:heartbeat', (body) => {
     console.info('code:kernel:heartbeat', body);
@@ -188,6 +189,17 @@ export function useKernelHeartbeat() {
     };
     const language = data.language;
     const kernelHeartbeatStatus = data.status;
+
+    setLoadingToastIds((prev) => {
+      const newMap = new Map(prev);
+      const loadingToastId = newMap.get(`starting-${language}`);
+      if (loadingToastId) {
+        toast.dismiss(loadingToastId);
+        newMap.delete(`starting-${language}`);
+      }
+      return newMap;
+    });
+
     setKernelsData((prev) => ({
       ...prev,
       [language]: { ...prev[language], heartbeat: kernelHeartbeatStatus },
@@ -267,41 +279,44 @@ function updateCodeBlock(
 }
 
 /**
+ * THIS IS BEING DONE BY THE useCodeBlockIOPubError hook instead
  * Hook that listens for code block execution replies and updates the editor with error traceback info.
  * Subscribes to the 'code:code-block:execute_reply' event to handle execution responses.
  *
  * @param editor - The Lexical editor instance to update code blocks in
  */
-export function useCodeBlockExecuteReply(editor: LexicalEditor) {
-  useWailsEvent('code:code-block:execute_reply', (body) => {
-    console.info('code:code-block:execute_reply', body);
-    const data = body.data as
-      | { status: 'ok'; messageId: string }[]
-      | {
-          status: 'error';
-          messageId: string;
-          errorValue: string;
-          errorTraceback: string[];
-          errorName: string;
-        }[];
-    if (data.length === 0) return;
-    const replyData = data[0];
-    const [codeBlockId, executionId] = replyData.messageId.split('|');
-    // updateCodeBlock(
-    //   editor,
-    //   codeBlockId,
-    //   (codeNode) => {
-    //     if (replyData.status === 'error') {
-    //       const cleanedTraceback = replyData.errorTraceback
-    //         .map((trace) => `<div>${trace}</div>`)
-    //         .join('');
-    //       codeNode.setTracebackResult(cleanedTraceback, editor);
-    //     }
-    //   },
-    //   executionId
-    // );
-  });
-}
+// export function useCodeBlockExecuteReply() {
+//   useWailsEvent('code:code-block:execute_reply', (body) => {
+//     console.info('code:code-block:execute_reply', body);
+//     const data = body.data as
+//       | { status: 'ok'; messageId: string }[]
+//       | {
+//           status: 'error';
+//           messageId: string;
+//           errorValue: string;
+//           errorTraceback: string[];
+//           errorName: string;
+//         }[];
+//     if (data.length === 0) return;
+//     // const replyData = data[0];
+
+//     // const [codeBlockId, executionId] = replyData.messageId.split('|');
+//     // updateCodeBlock(
+//     //   editor,
+//     //   codeBlockId,
+//     //   (codeNode) => {
+//     //     if (replyData.status === 'error') {
+//     //       const cleanedTraceback = replyData.errorTraceback
+//     //         .map((trace) => `<div>${trace}</div>`)
+//     //         .join('');
+//     //       codeNode.setTracebackResult(cleanedTraceback, editor);
+//     //     }
+//     //   },
+//     //   executionId
+//     // );
+
+//   });
+// }
 
 /**
  * Hook that listens for code block output streams and updates the editor with stream content.
@@ -329,6 +344,12 @@ export function useCodeBlockStream(editor: LexicalEditor) {
   });
 }
 
+/**
+ * Hook that listens for IOPub error messages from code blocks and updates the editor with error details.
+ * Subscribes to the 'code:code-block:iopub_error' event to handle error outputs from the kernel.
+ *
+ * @param editor - The Lexical editor instance to update code blocks in
+ */
 export function useCodeBlockIOPubError(editor: LexicalEditor) {
   useWailsEvent('code:code-block:iopub_error', (body) => {
     console.info('code:code-block:iopub_error', body);
@@ -555,11 +576,19 @@ export function useShutdownKernelMutation(language: Languages) {
  * @returns A mutation object for starting up the kernel
  */
 export function useTurnOnKernelMutation() {
+  const setLoadingToastIds = useSetAtom(loadingToastIdsAtom);
   return useMutation({
     mutationFn: async (language: Languages) => {
       const res = await CreateSocketsAndListen(language);
       if (!res.success) {
         throw new QueryError(res.message);
+      } else {
+        const loadingToastId = toast.loading(`Starting ${language} kernel`);
+        setLoadingToastIds((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(`starting-${language}`, loadingToastId);
+          return newMap;
+        });
       }
     },
   });

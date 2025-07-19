@@ -4,7 +4,7 @@ import { ChevronDown } from '../../../icons/chevron-down';
 import { DropdownItems } from '../../dropdown/dropdown-items';
 import PowerOff from '../../../icons/power-off';
 import { useOnClickOutside } from '../../../hooks/general';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import {
   dialogDataAtom,
   kernelsDataAtom,
@@ -13,8 +13,6 @@ import {
 import { DropdownItem, Languages } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
 import { KernelHeartbeat } from '../../kernel-info';
-import { useQuery } from '@tanstack/react-query';
-import { CreateSocketsAndListen } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import { FolderOpen } from '../../../icons/folder-open';
 import { PythonVenvDialog } from '../python-venv-dialog';
 import {
@@ -22,7 +20,6 @@ import {
   useShutdownKernelMutation,
   useTurnOnKernelMutation,
 } from '../../../hooks/code';
-import { QueryError } from '../../../utils/query';
 
 const languageSpecificOptions: {
   heartbeatSuccess: Partial<Record<Languages, DropdownItem[]>>;
@@ -55,27 +52,13 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const dropdownContainerRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(dropdownContainerRef, () => setIsOpen(false));
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const [kernelsData, setKernelsData] = useAtom(kernelsDataAtom);
+  const kernelsData = useAtomValue(kernelsDataAtom);
   const { status, heartbeat, errorMessage } = kernelsData[language];
   const { mutate: shutdownKernel } = useShutdownKernelMutation(language);
   const { mutate: turnOnKernel } = useTurnOnKernelMutation();
   const { mutateAsync: submitPythonVenv } =
     usePythonVenvSubmitMutation(projectSettings);
 
-  useQuery({
-    queryKey: ['create-sockets-and-listen', language],
-    queryFn: async () => {
-      const res = await CreateSocketsAndListen(language);
-      if (!res.success) {
-        setKernelsData((prev) => ({
-          ...prev,
-          [language]: { ...prev[language], errorMessage: res.message },
-        }));
-        throw new QueryError(res.message);
-      }
-      return res;
-    },
-  });
   const heartbeatSuccessDropdownItems = languageSpecificOptions
     .heartbeatSuccess[language]
     ? [...(languageSpecificOptions.heartbeatSuccess[language] ?? [])]

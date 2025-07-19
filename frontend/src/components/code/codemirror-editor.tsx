@@ -1,7 +1,11 @@
 import { vscodeLight } from '@uiw/codemirror-theme-vscode';
 import { nord } from '@uiw/codemirror-theme-nord';
 import { useAtomValue } from 'jotai/react';
-import { isDarkModeOnAtom, projectSettingsAtom } from '../../atoms';
+import {
+  isDarkModeOnAtom,
+  kernelsDataAtom,
+  projectSettingsAtom,
+} from '../../atoms';
 import CodeMirror, {
   type ReactCodeMirrorRef,
   EditorView,
@@ -11,6 +15,7 @@ import {
   useSendExecuteRequestMutation,
   useSendInterruptRequestMutation,
   useCompletionSource,
+  useTurnOnKernelMutation,
 } from '../../hooks/code';
 import { getCodemirrorKeymap } from '../../utils/code';
 import { focusEditor, languageToSettings } from '.';
@@ -56,11 +61,17 @@ export function CodeMirrorEditor({
   executionId: string;
 }) {
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
+  const kernelsData = useAtomValue(kernelsDataAtom);
+
   const { mutate: executeCode } = useSendExecuteRequestMutation(
     id,
     language,
     setStatus
   );
+
+  const { mutate: interruptExecution } = useSendInterruptRequestMutation();
+
+  const { mutate: turnOnKernel } = useTurnOnKernelMutation();
 
   const completionSource = useCompletionSource(
     id,
@@ -72,7 +83,6 @@ export function CodeMirrorEditor({
   const debouncedSetCode = debounce(setCode, 300);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
-  const { mutate: interruptExecution } = useSendInterruptRequestMutation();
   const isInNodeSelection = useNodeInNodeSelection(lexicalEditor, nodeKey);
 
   function handleEditorRef(instance: ReactCodeMirrorRef | null) {
@@ -94,11 +104,14 @@ export function CodeMirrorEditor({
     status,
     id,
     language,
-    interruptExecution,
-    codeMirrorInstance,
     executeCode,
+    interruptExecution,
+    turnOnKernel,
+    codeMirrorInstance,
     setSelected,
+    kernelsData,
   });
+
   // gives syntax highlighting
   const cmLanguageObject = languageToSettings[language].language;
   // gives autocomplete from kernel
