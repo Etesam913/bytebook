@@ -240,9 +240,9 @@ export const LINK: TextMatchTransformer = {
       return null;
     }
 
-    const linkContent = `[${encodeURIComponent(
+    const linkContent = `[${escapeFileContentForMarkdown(
       node.getTextContent()
-    )}](${encodeURIComponent(node.getURL())})`;
+    )}](${escapeFileContentForMarkdown(node.getURL())})`;
     const firstChild = node.getFirstChild();
     // Add text styles only if link has single text node inside. If it's more
     // than one we ignore it as markdown does not support nested styles for links
@@ -254,28 +254,12 @@ export const LINK: TextMatchTransformer = {
     return linkContent;
   },
   importRegExp:
-    /(?:\[([^[]+)\])(?:\((?:([^()\s]+)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))/,
+    /(?:\[([^[]+)\])(?:\((?:([^()]+?)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))/,
   regExp:
-    /(?:\[([^[]+)\])(?:\((?:([^()\s]+)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))$/,
+    /(?:\[([^[]+)\])(?:\((?:([^()]+?)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))$/,
   replace: (textNode, match) => {
-    // eslint-disable-next-line prefer-const
-    let [, linkText, linkUrl, linkTitle] = match;
-
-    // Safely decode URI components, falling back to original if decoding fails
-    try {
-      linkText = decodeURIComponent(linkText);
-    } catch (e) {
-      // If decoding fails, use the original text (likely contains escaped markdown)
-      console.warn('Failed to decode linkText:', linkText, e);
-    }
-
-    try {
-      linkUrl = decodeURIComponent(linkUrl);
-    } catch (e) {
-      // If decoding fails, use the original URL (likely contains escaped markdown)
-      console.warn('Failed to decode linkUrl:', linkUrl, e);
-    }
-
+    const [, linkText, linkUrl, linkTitle] = match;
+    console.log('replace');
     const linkNode = $createLinkNode(linkUrl, {
       title: linkTitle,
     });

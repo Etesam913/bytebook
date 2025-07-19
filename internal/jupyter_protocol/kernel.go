@@ -71,7 +71,6 @@ func LaunchKernel(argv []string, pathToConnectionFile, language, venvPath string
 	}
 
 	updatedArgv := replaceArgPlaceholders(argv, replacements)
-	fmt.Println("updatedArgv", updatedArgv)
 	cmd, stderrBuf, err := createCommandForLanguage(updatedArgv, language, venvPath)
 	if err != nil {
 		return err

@@ -56,6 +56,7 @@ export function FilePickerMenuPlugin() {
             const { extension, urlWithoutExtension } =
               getFileExtension(fileName);
             if (extension === 'md') {
+              console.log(urlWithoutExtension);
               editor.update(() => {
                 const linkNode = $createLinkNode(
                   `wails://localhost:5173/${urlWithoutExtension}?ext=${extension}`

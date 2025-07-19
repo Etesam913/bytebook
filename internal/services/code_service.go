@@ -102,7 +102,6 @@ func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, cod
 // SendShutdownMessage sends a shutdown request to the kernel with an option to restart
 func (c *CodeService) SendShutdownMessage(language string, restart bool) config.BackendResponseWithoutData {
 	sockets := c.getLanguageSockets(language)
-	fmt.Println("sockets", sockets)
 	if sockets == nil || sockets.ControlSocketDealer == nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
