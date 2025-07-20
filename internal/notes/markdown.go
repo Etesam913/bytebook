@@ -24,10 +24,10 @@ var (
 
 // URL Management Functions
 
-// ReplaceLocalURL updates the folder name in a localhost URL.
+// replaceFolderOfLocalURL updates the folder name in a localhost URL.
 // Returns the original URL if it's not a localhost URL.
-func ReplaceLocalURL(url string, newFolderName string) string {
-	if !strings.HasPrefix(url, "http://localhost") && !strings.HasPrefix(url, "wails://localhost") {
+func replaceFolderOfLocalURL(url string, oldFolderName string, newFolderName string) string {
+	if !strings.HasPrefix(url, util.FILE_SERVER_URL) && !strings.HasPrefix(url, util.INTERNAL_LINK_PREFIX) {
 		return url
 	}
 
@@ -37,20 +37,97 @@ func ReplaceLocalURL(url string, newFolderName string) string {
 		return url
 	}
 
+	// Only replace if the URL contains the old folder name
+	if segments[len(segments)-2] != oldFolderName {
+		return url
+	}
+
 	segments[len(segments)-2] = newFolderName
+	return strings.Join(segments, "/")
+}
+
+// replaceNoteNameOfLocalURL updates the note name (filename) in a localhost URL for a specific folder.
+// Returns the original URL if it's not a localhost URL or not in the specified folder.
+func replaceNoteNameOfLocalURL(url string, folderName string, newNoteName string) string {
+	// Check if it's a localhost URL (either http://localhost or wails://localhost)
+	if !strings.Contains(url, "localhost") {
+		return url
+	}
+
+	segments := strings.Split(url, "/")
+	// An empty localhost url will have 3 segments: http:, '', and localhost
+	if len(segments) <= 3 {
+		return url
+	}
+
+	// Check if the second-to-last segment matches the specified folder name
+	// This works for both patterns:
+	// - http://localhost:3000/folderName/fileName (5 segments)
+	// - http://localhost:5890/notes/folderName/fileName (6 segments)
+	folderIndex := len(segments) - 2
+	if segments[folderIndex] != folderName {
+		return url
+	}
+
+	// Replace the note name (last segment)
+	segments[len(segments)-1] = newNoteName
 	return strings.Join(segments, "/")
 }
 
 // UpdateFolderNameOfInternalLinksAndMedia finds and replaces folder names in internal URLs within markdown content.
 // Updates both image and link URLs that are considered internal with the new folder name.
-func UpdateFolderNameOfInternalLinksAndMedia(markdown string, newFolderName string) string {
+func UpdateFolderNameOfInternalLinksAndMedia(markdown string, oldFolderName string, newFolderName string) string {
 	// Get all internal links and media from the markdown
 	internalURLs := GetInternalLinksAndMedia(markdown)
 
 	// Create a map of old URL to new URL for efficient replacement
 	urlReplacements := make(map[string]string)
 	for _, url := range internalURLs.Elements() {
-		newURL := ReplaceLocalURL(url, newFolderName)
+		newURL := replaceFolderOfLocalURL(url, oldFolderName, newFolderName)
+		if newURL != url {
+			urlReplacements[url] = newURL
+		}
+	}
+
+	// Replace image URLs
+	markdown = MEDIA_REGEX.ReplaceAllStringFunc(markdown, func(match string) string {
+		submatches := MEDIA_REGEX.FindStringSubmatch(match)
+		if len(submatches) < 3 {
+			return match
+		}
+		url := strings.TrimSpace(submatches[2])
+		if newURL, exists := urlReplacements[url]; exists {
+			return "![" + submatches[1] + "](" + newURL + ")"
+		}
+		return match
+	})
+
+	// Replace link URLs
+	markdown = LINK_REGEX.ReplaceAllStringFunc(markdown, func(match string) string {
+		submatches := LINK_REGEX.FindStringSubmatch(match)
+		if len(submatches) < 3 {
+			return match
+		}
+		url := strings.TrimSpace(submatches[2])
+		if newURL, exists := urlReplacements[url]; exists {
+			return "[" + submatches[1] + "](" + newURL + ")"
+		}
+		return match
+	})
+
+	return markdown
+}
+
+// UpdateNoteNameOfInternalLinksAndMedia finds and replaces note names in internal URLs within markdown content
+// for a specific folder. Updates both image and link URLs that are in the specified folder with the new note name.
+func UpdateNoteNameOfInternalLinksAndMedia(markdown string, folderName string, newNoteName string) string {
+	// Get all internal links and media from the markdown
+	internalURLs := GetInternalLinksAndMedia(markdown)
+
+	// Create a map of old URL to new URL for efficient replacement
+	urlReplacements := make(map[string]string)
+	for _, url := range internalURLs.Elements() {
+		newURL := replaceNoteNameOfLocalURL(url, folderName, newNoteName)
 		if newURL != url {
 			urlReplacements[url] = newURL
 		}

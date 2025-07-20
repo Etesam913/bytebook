@@ -120,6 +120,8 @@ func UpdateAttachmentName(projectPath, folderName, oldAttachmentName, newAttachm
 	}
 
 	notes, exists := attachmentToNotesArray.Attachments[oldAttachmentName]
+	fmt.Println("attachmentToNotesArray:", attachmentToNotesArray)
+	fmt.Println("attachmentToNotesArray.Attachments:", attachmentToNotesArray.Attachments)
 	if !exists {
 		return fmt.Errorf("attachment %s not found", oldAttachmentName)
 	}
@@ -162,19 +164,14 @@ func UpdateFolderNameInAttachments(projectPath, folderName, oldFolderName, newFo
 		newKey := attachmentKey
 
 		// Handle http://localhost:5890/notes/folderName/ format
-		httpPrefix := "http://localhost:5890/notes/"
-		if remainder, found := strings.CutPrefix(attachmentKey, httpPrefix); found {
-			if pathAfterFolder, found := strings.CutPrefix(remainder, oldFolderName+"/"); found {
-				newKey = httpPrefix + newFolderName + "/" + pathAfterFolder
-			}
+		notesPath := "notes/" + oldFolderName
+		if remainder, found := strings.CutPrefix(attachmentKey, util.FILE_SERVER_URL+"/"+notesPath+"/"); found {
+			newKey = util.FILE_SERVER_URL + "/notes/" + newFolderName + "/" + remainder
 		}
 
 		// Handle wails://localhost:5173/folderName/ format
-		wailsPrefix := "wails://localhost:5173/"
-		if remainder, found := strings.CutPrefix(attachmentKey, wailsPrefix); found {
-			if pathAfterFolder, found := strings.CutPrefix(remainder, oldFolderName+"/"); found {
-				newKey = wailsPrefix + newFolderName + "/" + pathAfterFolder
-			}
+		if remainder, found := strings.CutPrefix(attachmentKey, util.INTERNAL_LINK_PREFIX+"/"+oldFolderName+"/"); found {
+			newKey = util.INTERNAL_LINK_PREFIX + "/" + newFolderName + "/" + remainder
 		}
 
 		// Update folder names in note paths (values)

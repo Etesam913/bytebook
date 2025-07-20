@@ -8,125 +8,150 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestReplaceLocalURL(t *testing.T) {
+func TestReplaceFolderOfLocalURL(t *testing.T) {
 	t.Run("should replace folder name in localhost URL", func(t *testing.T) {
-		url := "http://localhost:3000/old-folder/image.png"
-		result := ReplaceLocalURL(url, "new-folder")
-		assert.Equal(t, "http://localhost:3000/new-folder/image.png", result)
+		url := "http://localhost:5890/old-folder/image.png"
+		result := replaceFolderOfLocalURL(url, "old-folder", "new-folder")
+		assert.Equal(t, "http://localhost:5890/new-folder/image.png", result)
 	})
 
 	t.Run("should replace folder name in wails://localhost URL", func(t *testing.T) {
 		url := "wails://localhost:5173/old-folder/image.png"
-		result := ReplaceLocalURL(url, "new-folder")
+		result := replaceFolderOfLocalURL(url, "old-folder", "new-folder")
 		assert.Equal(t, "wails://localhost:5173/new-folder/image.png", result)
 	})
 
 	t.Run("should handle wails URLs with spaces in folder names", func(t *testing.T) {
 		url := "wails://localhost:5173/Folder Rename Test 2/Second.md"
-		result := ReplaceLocalURL(url, "New Folder")
+		result := replaceFolderOfLocalURL(url, "Folder Rename Test 2", "New Folder")
 		assert.Equal(t, "wails://localhost:5173/New Folder/Second.md", result)
 	})
 
 	t.Run("should not modify non-localhost URLs", func(t *testing.T) {
 		url := "https://example.com/folder/image.png"
-		result := ReplaceLocalURL(url, "new-folder")
+		result := replaceFolderOfLocalURL(url, "old-folder", "new-folder")
 		assert.Equal(t, url, result)
 	})
 
 	t.Run("should handle URLs with insufficient segments", func(t *testing.T) {
 		url := "http://localhost"
-		result := ReplaceLocalURL(url, "new-folder")
+		result := replaceFolderOfLocalURL(url, "old-folder", "new-folder")
 		assert.Equal(t, url, result)
 	})
 
 	t.Run("should handle wails URLs with insufficient segments", func(t *testing.T) {
 		url := "wails://localhost"
-		result := ReplaceLocalURL(url, "new-folder")
+		result := replaceFolderOfLocalURL(url, "old-folder", "new-folder")
+		assert.Equal(t, url, result)
+	})
+
+	t.Run("should not replace URLs when old folder name doesn't match", func(t *testing.T) {
+		url := "http://localhost:5890/different-folder/image.png"
+		result := replaceFolderOfLocalURL(url, "old-folder", "new-folder")
+		assert.Equal(t, url, result)
+	})
+
+	t.Run("should not replace wails URLs when old folder name doesn't match", func(t *testing.T) {
+		url := "wails://localhost:5173/some-other-folder/file.md"
+		result := replaceFolderOfLocalURL(url, "old-folder", "new-folder")
 		assert.Equal(t, url, result)
 	})
 }
 
 func TestUpdateFolderNameOfInternalLinksAndMedia(t *testing.T) {
 	t.Run("should replace http://localhost image URLs", func(t *testing.T) {
-		markdown := "![Image](http://localhost:3000/old-folder/image.png)"
-		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
-		assert.Equal(t, "![Image](http://localhost:3000/new-folder/image.png)", result)
+		markdown := "![Image](http://localhost:5890/old-folder/image.png)"
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "old-folder", "new-folder")
+		assert.Equal(t, "![Image](http://localhost:5890/new-folder/image.png)", result)
 	})
 
 	t.Run("should replace http://localhost link URLs", func(t *testing.T) {
-		markdown := "[Link](http://localhost:3000/old-folder/page.html)"
-		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
-		assert.Equal(t, "[Link](http://localhost:3000/new-folder/page.html)", result)
+		markdown := "[Link](http://localhost:5890/old-folder/page.html)"
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "old-folder", "new-folder")
+		assert.Equal(t, "[Link](http://localhost:5890/new-folder/page.html)", result)
 	})
 
 	t.Run("should replace wails://localhost image URLs", func(t *testing.T) {
 		markdown := "![Image](wails://localhost:5173/old-folder/image.png)"
-		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "old-folder", "new-folder")
 		assert.Equal(t, "![Image](wails://localhost:5173/new-folder/image.png)", result)
 	})
 
 	t.Run("should replace wails://localhost link URLs", func(t *testing.T) {
 		markdown := "[Link](wails://localhost:5173/Folder Rename Test 2/Second.md)"
-		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "Folder Rename Test 2", "new-folder")
 		assert.Equal(t, "[Link](wails://localhost:5173/new-folder/Second.md)", result)
 	})
 
 	t.Run("should not modify external URLs", func(t *testing.T) {
 		markdown := "![Image](https://example.com/image.png) [Link](https://example.com/page.html)"
-		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "old-folder", "new-folder")
 		assert.Equal(t, markdown, result)
 	})
 
 	t.Run("should not modify relative URLs", func(t *testing.T) {
 		markdown := "![Image](./image.png) [Link](../folder/page.md)"
-		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "old-folder", "new-folder")
 		assert.Equal(t, markdown, result)
 	})
 
 	t.Run("should handle multiple localhost URLs", func(t *testing.T) {
-		markdown := "![Image1](http://localhost:3000/old-folder/image1.png) ![Image2](http://localhost:3000/old-folder/image2.png)"
-		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
-		expected := "![Image1](http://localhost:3000/new-folder/image1.png) ![Image2](http://localhost:3000/new-folder/image2.png)"
+		markdown := "![Image1](http://localhost:5890/old-folder/image1.png) ![Image2](http://localhost:5890/old-folder/image2.png)"
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "old-folder", "new-folder")
+		expected := "![Image1](http://localhost:5890/new-folder/image1.png) ![Image2](http://localhost:5890/new-folder/image2.png)"
 		assert.Equal(t, expected, result)
 	})
 
 	t.Run("should handle mixed localhost and wails URLs", func(t *testing.T) {
-		markdown := "![Image](http://localhost:3000/old-folder/image.png) [Link](wails://localhost:5173/old-folder/page.md)"
-		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
-		expected := "![Image](http://localhost:3000/new-folder/image.png) [Link](wails://localhost:5173/new-folder/page.md)"
+		markdown := "![Image](http://localhost:5890/old-folder/image.png) [Link](wails://localhost:5173/old-folder/page.md)"
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "old-folder", "new-folder")
+		expected := "![Image](http://localhost:5890/new-folder/image.png) [Link](wails://localhost:5173/new-folder/page.md)"
 		assert.Equal(t, expected, result)
 	})
 
 	t.Run("should handle mixed internal and external URLs", func(t *testing.T) {
-		markdown := "![Local](http://localhost:3000/old-folder/image.png) ![External](https://example.com/image.png) [Local](wails://localhost:5173/old-folder/page.md) [External](https://example.com/page.html)"
-		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
-		expected := "![Local](http://localhost:3000/new-folder/image.png) ![External](https://example.com/image.png) [Local](wails://localhost:5173/new-folder/page.md) [External](https://example.com/page.html)"
+		markdown := "![Local](http://localhost:5890/old-folder/image.png) ![External](https://example.com/image.png) [Local](wails://localhost:5173/old-folder/page.md) [External](https://example.com/page.html)"
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "old-folder", "new-folder")
+		expected := "![Local](http://localhost:5890/new-folder/image.png) ![External](https://example.com/image.png) [Local](wails://localhost:5173/new-folder/page.md) [External](https://example.com/page.html)"
 		assert.Equal(t, expected, result)
 	})
 
 	t.Run("should handle URLs with spaces in folder names", func(t *testing.T) {
 		markdown := "[Link](wails://localhost:5173/Folder Rename Test 2/Second.md)"
-		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "New Folder Name")
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "Folder Rename Test 2", "New Folder Name")
 		assert.Equal(t, "[Link](wails://localhost:5173/New Folder Name/Second.md)", result)
 	})
 
 	t.Run("should handle empty markdown", func(t *testing.T) {
-		result := UpdateFolderNameOfInternalLinksAndMedia("", "new-folder")
+		result := UpdateFolderNameOfInternalLinksAndMedia("", "old-folder", "new-folder")
 		assert.Equal(t, "", result)
 	})
 
 	t.Run("should handle markdown with no URLs", func(t *testing.T) {
 		markdown := "# Title\nThis is just plain text with no links or images."
-		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "old-folder", "new-folder")
+		assert.Equal(t, markdown, result)
+	})
+
+	t.Run("should only replace URLs with matching old folder name", func(t *testing.T) {
+		markdown := "![Image1](http://localhost:5890/old-folder/image1.png) ![Image2](http://localhost:5890/different-folder/image2.png)"
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "old-folder", "new-folder")
+		expected := "![Image1](http://localhost:5890/new-folder/image1.png) ![Image2](http://localhost:5890/different-folder/image2.png)"
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("should not replace URLs when old folder name doesn't match", func(t *testing.T) {
+		markdown := "![Image](http://localhost:5890/some-other-folder/image.png) [Link](wails://localhost:5173/another-folder/page.md)"
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "old-folder", "new-folder")
 		assert.Equal(t, markdown, result)
 	})
 }
 
 func TestGetFirstImageSrc(t *testing.T) {
 	t.Run("should return the first image URL", func(t *testing.T) {
-		markdown := "# Title\n![Image](http://localhost:3000/folder/image.png)\nSome text\n![Another](http://example.com/another.jpg)"
+		markdown := "# Title\n![Image](http://localhost:5890/folder/image.png)\nSome text\n![Another](http://example.com/another.jpg)"
 		result := GetFirstImageSrc(markdown)
-		assert.Equal(t, "http://localhost:3000/folder/image.png", result)
+		assert.Equal(t, "http://localhost:5890/folder/image.png", result)
 	})
 
 	t.Run("should return empty string if no image is found", func(t *testing.T) {
@@ -136,27 +161,27 @@ func TestGetFirstImageSrc(t *testing.T) {
 	})
 
 	t.Run("should handle image with empty alt text", func(t *testing.T) {
-		markdown := "![](http://localhost:3000/folder/image.png)"
+		markdown := "![](http://localhost:5890/folder/image.png)"
 		result := GetFirstImageSrc(markdown)
-		assert.Equal(t, "http://localhost:3000/folder/image.png", result)
+		assert.Equal(t, "http://localhost:5890/folder/image.png", result)
 	})
 }
 
 func TestExcludeMediaTags(t *testing.T) {
 	t.Run("should remove image tags", func(t *testing.T) {
-		markdown := "# Title\n![Image](http://localhost:3000/folder/image.png)\nSome text"
+		markdown := "# Title\n![Image](http://localhost:5890/folder/image.png)\nSome text"
 		result := ExcludeMediaTags(markdown)
 		assert.Equal(t, "# Title\n\nSome text", result)
 	})
 
 	t.Run("should remove video tags", func(t *testing.T) {
-		markdown := "# Title\n[video](http://localhost:3000/folder/video.mp4)\nSome text"
+		markdown := "# Title\n[video](http://localhost:5890/folder/video.mp4)\nSome text"
 		result := ExcludeMediaTags(markdown)
 		assert.Equal(t, "# Title\n\nSome text", result)
 	})
 
 	t.Run("should remove both image and video tags", func(t *testing.T) {
-		markdown := "# Title\n![Image](http://localhost:3000/folder/image.png)\nSome text\n[video](http://localhost:3000/folder/video.mp4)"
+		markdown := "# Title\n![Image](http://localhost:5890/folder/image.png)\nSome text\n[video](http://localhost:5890/folder/video.mp4)"
 		result := ExcludeMediaTags(markdown)
 		assert.Equal(t, "# Title\n\nSome text\n", result)
 	})
@@ -218,7 +243,7 @@ func TestExtractLinkText(t *testing.T) {
 
 func TestIsInternalURL(t *testing.T) {
 	t.Run("should identify localhost URLs as internal", func(t *testing.T) {
-		assert.True(t, IsInternalURL("http://localhost:3000/path"))
+		assert.True(t, IsInternalURL("http://localhost:5890/path"))
 		assert.True(t, IsInternalURL("http://localhost/path"))
 	})
 
@@ -268,9 +293,9 @@ func TestIsInternalURL(t *testing.T) {
 
 func TestGetInternalLinksAndMedia(t *testing.T) {
 	t.Run("should extract internal media URLs", func(t *testing.T) {
-		markdown := "![Image](http://localhost:3000/folder/image.png)"
+		markdown := "![Image](http://localhost:5890/folder/image.png)"
 		result := GetInternalLinksAndMedia(markdown)
-		assert.True(t, result.Has("http://localhost:3000/folder/image.png"))
+		assert.True(t, result.Has("http://localhost:5890/folder/image.png"))
 	})
 
 	t.Run("should extract internal link URLs", func(t *testing.T) {
@@ -303,9 +328,9 @@ func TestGetInternalLinksAndMedia(t *testing.T) {
 
 func TestGetInternalLinksAndMediaAsSlice(t *testing.T) {
 	t.Run("should extract internal media URLs as slice", func(t *testing.T) {
-		markdown := "![Image](http://localhost:3000/folder/image.png)"
+		markdown := "![Image](http://localhost:5890/folder/image.png)"
 		result := GetInternalLinksAndMediaAsSlice(markdown)
-		assert.Contains(t, result, "http://localhost:3000/folder/image.png")
+		assert.Contains(t, result, "http://localhost:5890/folder/image.png")
 	})
 
 	t.Run("should extract internal link URLs as slice", func(t *testing.T) {
@@ -483,5 +508,181 @@ func TestGetFirstLine(t *testing.T) {
 		markdown := "---\ntitle: Test\n---\n# Header\n![Image](image.png)\n```\ncode\n```\n<em>This</em> is [the content](http://example.com) with many elements"
 		result := GetFirstLine(markdown)
 		assert.Equal(t, "Header", result)
+	})
+}
+
+func TestReplaceNoteNameOfLocalURL(t *testing.T) {
+	t.Run("should replace note name in FILE_SERVER_URL", func(t *testing.T) {
+		url := "http://localhost:5890/notes/test-folder/old-note.md"
+		result := replaceNoteNameOfLocalURL(url, "test-folder", "new-note.md")
+		assert.Equal(t, "http://localhost:5890/notes/test-folder/new-note.md", result)
+	})
+
+	t.Run("should replace note name in INTERNAL_LINK_PREFIX URL", func(t *testing.T) {
+		url := "wails://localhost:5173/notes/test-folder/old-note.md"
+		result := replaceNoteNameOfLocalURL(url, "test-folder", "new-note.md")
+		assert.Equal(t, "wails://localhost:5173/notes/test-folder/new-note.md", result)
+	})
+
+	t.Run("should handle folder names with spaces", func(t *testing.T) {
+		url := "http://localhost:5890/notes/My Test Folder/old-note.md"
+		result := replaceNoteNameOfLocalURL(url, "My Test Folder", "new-note.md")
+		assert.Equal(t, "http://localhost:5890/notes/My Test Folder/new-note.md", result)
+	})
+
+	t.Run("should handle note names with spaces", func(t *testing.T) {
+		url := "wails://localhost:5173/notes/test-folder/old note.md"
+		result := replaceNoteNameOfLocalURL(url, "test-folder", "new note name.md")
+		assert.Equal(t, "wails://localhost:5173/notes/test-folder/new note name.md", result)
+	})
+
+	t.Run("should not modify URL if folder doesn't match", func(t *testing.T) {
+		url := "http://localhost:5890/notes/different-folder/note.md"
+		result := replaceNoteNameOfLocalURL(url, "test-folder", "new-note.md")
+		assert.Equal(t, url, result)
+	})
+
+	t.Run("should not modify non-localhost URLs", func(t *testing.T) {
+		url := "https://example.com/test-folder/note.md"
+		result := replaceNoteNameOfLocalURL(url, "test-folder", "new-note.md")
+		assert.Equal(t, url, result)
+	})
+
+	t.Run("should handle URLs with insufficient segments", func(t *testing.T) {
+		url := "http://localhost:5890/notes"
+		result := replaceNoteNameOfLocalURL(url, "test-folder", "new-note.md")
+		assert.Equal(t, url, result)
+	})
+
+	t.Run("should handle empty folder URL", func(t *testing.T) {
+		url := "http://localhost:5890/notes/"
+		result := replaceNoteNameOfLocalURL(url, "test-folder", "new-note.md")
+		assert.Equal(t, url, result)
+	})
+
+	t.Run("should handle URL with nested path structure", func(t *testing.T) {
+		url := "http://localhost:5890/notes/parent-folder/subfolder/note.md"
+		result := replaceNoteNameOfLocalURL(url, "subfolder", "new-note.md")
+		assert.Equal(t, "http://localhost:5890/notes/parent-folder/subfolder/new-note.md", result) // Should modify when folder matches second-to-last segment
+	})
+
+	t.Run("should not modify URL with nested structure when folder doesn't match", func(t *testing.T) {
+		url := "http://localhost:5890/notes/parent-folder/subfolder/note.md"
+		result := replaceNoteNameOfLocalURL(url, "parent-folder", "new-note.md")
+		assert.Equal(t, url, result) // Should not modify since "parent-folder" is not the second-to-last segment
+	})
+
+	t.Run("should handle file extensions in note names", func(t *testing.T) {
+		url := "wails://localhost:5173/notes/docs/image.png"
+		result := replaceNoteNameOfLocalURL(url, "docs", "new-image.jpg")
+		assert.Equal(t, "wails://localhost:5173/notes/docs/new-image.jpg", result)
+	})
+}
+
+func TestUpdateNoteNameOfInternalLinksAndMedia(t *testing.T) {
+	t.Run("should replace note name in FILE_SERVER_URL image URLs", func(t *testing.T) {
+		markdown := "![Image](http://localhost:5890/notes/test-folder/old-image.png)"
+		result := UpdateNoteNameOfInternalLinksAndMedia(markdown, "test-folder", "new-image.png")
+		assert.Equal(t, "![Image](http://localhost:5890/notes/test-folder/new-image.png)", result)
+	})
+
+	t.Run("should replace note name in FILE_SERVER_URL link URLs", func(t *testing.T) {
+		markdown := "[Link](http://localhost:5890/notes/test-folder/old-note.md)"
+		result := UpdateNoteNameOfInternalLinksAndMedia(markdown, "test-folder", "new-note.md")
+		assert.Equal(t, "[Link](http://localhost:5890/notes/test-folder/new-note.md)", result)
+	})
+
+	t.Run("should replace note name in INTERNAL_LINK_PREFIX image URLs", func(t *testing.T) {
+		markdown := "![Image](wails://localhost:5173/notes/test-folder/old-image.png)"
+		result := UpdateNoteNameOfInternalLinksAndMedia(markdown, "test-folder", "new-image.png")
+		assert.Equal(t, "![Image](wails://localhost:5173/notes/test-folder/new-image.png)", result)
+	})
+
+	t.Run("should replace note name in INTERNAL_LINK_PREFIX link URLs", func(t *testing.T) {
+		markdown := "[Link](wails://localhost:5173/notes/test-folder/old-note.md)"
+		result := UpdateNoteNameOfInternalLinksAndMedia(markdown, "test-folder", "new-note.md")
+		assert.Equal(t, "[Link](wails://localhost:5173/notes/test-folder/new-note.md)", result)
+	})
+
+	t.Run("should not modify URLs from different folders", func(t *testing.T) {
+		markdown := "![Image](http://localhost:5890/notes/other-folder/image.png) [Link](wails://localhost:5173/notes/different-folder/note.md)"
+		result := UpdateNoteNameOfInternalLinksAndMedia(markdown, "test-folder", "new-name.md")
+		assert.Equal(t, markdown, result)
+	})
+
+	t.Run("should not modify external URLs", func(t *testing.T) {
+		markdown := "![Image](https://example.com/image.png) [Link](https://example.com/page.html)"
+		result := UpdateNoteNameOfInternalLinksAndMedia(markdown, "test-folder", "new-name.md")
+		assert.Equal(t, markdown, result)
+	})
+
+	t.Run("should not modify relative URLs", func(t *testing.T) {
+		markdown := "![Image](./image.png) [Link](../folder/page.md)"
+		result := UpdateNoteNameOfInternalLinksAndMedia(markdown, "test-folder", "new-name.md")
+		assert.Equal(t, markdown, result)
+	})
+
+	t.Run("should handle multiple URLs in the same folder", func(t *testing.T) {
+		markdown := "![Image1](http://localhost:5890/notes/docs/image1.png) ![Image2](http://localhost:5890/notes/docs/image2.png)"
+		result := UpdateNoteNameOfInternalLinksAndMedia(markdown, "docs", "new-image.png")
+		expected := "![Image1](http://localhost:5890/notes/docs/new-image.png) ![Image2](http://localhost:5890/notes/docs/new-image.png)"
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("should handle mixed localhost and wails URLs in same folder", func(t *testing.T) {
+		markdown := "![Image](http://localhost:5890/notes/test-folder/image.png) [Link](wails://localhost:5173/notes/test-folder/note.md)"
+		result := UpdateNoteNameOfInternalLinksAndMedia(markdown, "test-folder", "new-file.md")
+		expected := "![Image](http://localhost:5890/notes/test-folder/new-file.md) [Link](wails://localhost:5173/notes/test-folder/new-file.md)"
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("should handle mixed target and non-target folders", func(t *testing.T) {
+		markdown := "![Target](http://localhost:5890/notes/target-folder/image.png) ![Other](http://localhost:5890/notes/other-folder/image.png) [Target](wails://localhost:5173/notes/target-folder/note.md)"
+		result := UpdateNoteNameOfInternalLinksAndMedia(markdown, "target-folder", "new-name.md")
+		expected := "![Target](http://localhost:5890/notes/target-folder/new-name.md) ![Other](http://localhost:5890/notes/other-folder/image.png) [Target](wails://localhost:5173/notes/target-folder/new-name.md)"
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("should handle folder and note names with spaces", func(t *testing.T) {
+		markdown := "[Link](wails://localhost:5173/notes/My Test Folder/Old Note Name.md)"
+		result := UpdateNoteNameOfInternalLinksAndMedia(markdown, "My Test Folder", "New Note Name.md")
+		assert.Equal(t, "[Link](wails://localhost:5173/notes/My Test Folder/New Note Name.md)", result)
+	})
+
+	t.Run("should handle empty markdown", func(t *testing.T) {
+		result := UpdateNoteNameOfInternalLinksAndMedia("", "test-folder", "new-name.md")
+		assert.Equal(t, "", result)
+	})
+
+	t.Run("should handle markdown with no URLs", func(t *testing.T) {
+		markdown := "# Title\nThis is just plain text with no links or images."
+		result := UpdateNoteNameOfInternalLinksAndMedia(markdown, "test-folder", "new-name.md")
+		assert.Equal(t, markdown, result)
+	})
+
+	t.Run("should handle complex markdown with mixed content", func(t *testing.T) {
+		markdown := `# My Document
+
+Here's an image: ![Local Image](http://localhost:5890/notes/assets/picture.jpg)
+
+And here's a link: [My Note](wails://localhost:5173/notes/assets/document.md)
+
+External content: ![External](https://example.com/external.png) and [External Link](https://example.com)
+
+Some more text and another local link: [Another Note](http://localhost:5890/notes/other-folder/other.md)`
+
+		result := UpdateNoteNameOfInternalLinksAndMedia(markdown, "assets", "renamed-file.md")
+
+		expected := `# My Document
+
+Here's an image: ![Local Image](http://localhost:5890/notes/assets/renamed-file.md)
+
+And here's a link: [My Note](wails://localhost:5173/notes/assets/renamed-file.md)
+
+External content: ![External](https://example.com/external.png) and [External Link](https://example.com)
+
+Some more text and another local link: [Another Note](http://localhost:5890/notes/other-folder/other.md)`
+
+		assert.Equal(t, expected, result)
 	})
 }
