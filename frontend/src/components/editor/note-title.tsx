@@ -5,7 +5,11 @@ import { $getRoot } from 'lexical';
 import { useEffect, useState } from 'react';
 import { RenameNote } from '../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { isToolbarDisabledAtom } from '../../atoms';
-import { NAME_CHARS, cn } from '../../utils/string-formatting';
+import {
+  NAME_CHARS,
+  cn,
+  convertFilePathToQueryNotation,
+} from '../../utils/string-formatting';
 import { useMutation } from '@tanstack/react-query';
 import { navigate } from 'wouter/use-browser-location';
 
@@ -27,7 +31,7 @@ export function NoteTitle({ note, folder }: { note: string; folder: string }) {
       const res = await RenameNote(folder, oldNoteName, newNoteName);
       if (!res.success) throw new Error(res.message);
       navigate(
-        `/${encodeURIComponent(folder)}/${encodeURIComponent(newNoteName)}?ext=md`
+        `/${convertFilePathToQueryNotation(`${encodeURIComponent(folder)}/${encodeURIComponent(newNoteName)}.md`)}`
       );
       return res;
     },

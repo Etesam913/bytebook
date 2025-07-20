@@ -42,6 +42,7 @@ import { Languages, validLanguages, type ResizeWidth } from '../../types';
 
 import {
   addQueryParam,
+  convertFilePathToQueryNotation,
   convertNoteNameToDotNotation,
   escapeFileContentForMarkdown,
   escapeQuotes,
@@ -93,7 +94,6 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
     }
 
     filePathOrSrc = updateSrc(node.getSrc());
-    console.log({ filePathOrSrc });
     altText = addQueryParam(
       node.getAltText(),
       'width',
@@ -241,7 +241,6 @@ export const LINK: TextMatchTransformer = {
     let linkUrl = node.getURL();
     if (isInternalLink(linkUrl)) {
       const urlSegments = linkUrl.split('/');
-      console.log(urlSegments, urlSegments.slice(-1));
       const noteName = urlSegments[urlSegments.length - 1];
       linkUrl = [
         ...urlSegments.slice(0, -1),
@@ -273,9 +272,13 @@ export const LINK: TextMatchTransformer = {
       textNode.replace(textNode);
       return;
     }
-    const [, linkText, linkUrl, linkTitle] = match;
-    const linkNode = $createLinkNode(unescapeFileContentFromMarkdown(linkUrl), {
-      title: unescapeFileContentFromMarkdown(linkTitle ?? ''),
+    const [linkText, linkUrl, linkTitle] = [
+      match.at(1),
+      unescapeFileContentFromMarkdown(match.at(2) ?? ''),
+      unescapeFileContentFromMarkdown(match.at(3) ?? ''),
+    ];
+    const linkNode = $createLinkNode(convertFilePathToQueryNotation(linkUrl), {
+      title: linkTitle,
     });
     const linkTextNode = $createTextNode(linkText);
     linkTextNode.setFormat(textNode.getFormat());

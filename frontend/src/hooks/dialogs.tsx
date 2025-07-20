@@ -7,7 +7,10 @@ import { MotionButton } from '../components/buttons';
 import { DialogErrorText } from '../components/dialog';
 import { Input } from '../components/input';
 import { Compose } from '../icons/compose';
-import { validateName } from '../utils/string-formatting';
+import {
+  validateName,
+  convertFilePathToQueryNotation,
+} from '../utils/string-formatting';
 
 export function useCreateNoteDialog() {
   const setDialogData = useSetAtom(dialogDataAtom);
@@ -59,7 +62,7 @@ export function useCreateNoteDialog() {
             );
             if (!res.success) throw new Error(res.message);
             navigate(
-              `/${folder}/${encodeURIComponent(newNoteNameString)}?ext=md`
+              `/${convertFilePathToQueryNotation(`${folder}/${encodeURIComponent(newNoteNameString)}.md`)}`
             );
 
             return true;

@@ -11,6 +11,7 @@ import {
   type UserData,
   type WindowSettings,
 } from './types.ts';
+import { convertFilePathToQueryNotation } from './utils/string-formatting';
 
 // Most recent notes atoms
 const privateMostRecentNotesAtom = atom<string[]>(
@@ -61,10 +62,7 @@ export const projectSettingsWithQueryParamsAtom = atom((get) => {
     ...projectSettings,
     pinnedNotes: new Set(
       [...pinnedNotes].map((path) => {
-        const lastIndex = path.lastIndexOf('.');
-        const folderAndNote = path.substring(0, lastIndex);
-        const ext = path.substring(lastIndex + 1);
-        return `${folderAndNote}?ext=${ext}`;
+        return convertFilePathToQueryNotation(path);
       })
     ),
   };

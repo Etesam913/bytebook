@@ -139,7 +139,7 @@ func (fw *FileWatcher) handleNoteFolderRename(oldFolderName string) {
 			continue
 		}
 		// Updates the urls inside the note markdown
-		noteMarkdownWithNewFolderName := ReplaceMarkdownURLs(
+		noteMarkdownWithNewFolderName := UpdateFolderNameOfInternalLinksAndMedia(
 			string(noteContent), filepath.Base(newFolderPath),
 		)
 

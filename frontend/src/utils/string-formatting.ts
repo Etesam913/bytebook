@@ -229,6 +229,35 @@ export function convertNoteNameToDotNotation(
 }
 
 /**
+ * Converts a file path with dot notation to query parameter format.
+ *
+ * @param filePath - The file path with extension (e.g., "folderName/noteName.md")
+ * @returns The file path with query parameter format (e.g., "folderName/noteName?ext=md")
+ *
+ * @example
+ * convertFilePathToQueryNotation("folderName/noteName.md") // returns "folderName/noteName?ext=md"
+ * convertFilePathToQueryNotation("docs/readme.txt") // returns "docs/readme?ext=txt"
+ * convertFilePathToQueryNotation("noextension") // returns "noextension"
+ */
+export function convertFilePathToQueryNotation(filePath: string): string {
+  // Find the last dot in the file path
+  const lastDotIndex = filePath.lastIndexOf('.');
+  const lastSlashIndex = filePath.lastIndexOf('/');
+
+  // If no dot found, or dot is before the last slash (part of folder name), return original
+  if (lastDotIndex === -1 || lastSlashIndex > lastDotIndex) {
+    return filePath;
+  }
+
+  // Split into base path and extension
+  const basePath = filePath.substring(0, lastDotIndex);
+  const extension = filePath.substring(lastDotIndex + 1);
+
+  // Return in query parameter format
+  return `${basePath}?ext=${extension}`;
+}
+
+/**
  * Encodes the note name and query params
  * ex: "abc??ext=md" encodes the abc? part"
  * @param noteNameWithQueryParams

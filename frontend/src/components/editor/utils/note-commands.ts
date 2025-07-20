@@ -16,6 +16,7 @@ import {
 import { isDecoratorNodeSelected } from '../../../utils/commands';
 import { FILE_SERVER_URL, debounce } from '../../../utils/general';
 import {
+  convertFilePathToQueryNotation,
   encodeNoteNameWithQueryParams,
   getFileExtension,
 } from '../../../utils/string-formatting';
@@ -217,7 +218,9 @@ export function overrideControlledTextInsertion(
         // All payload contents are decoded, the components will do the encoding
         if (extension === 'md') {
           linkPayloads.push({
-            url: `${decodeURIComponent(urlWithoutExtension)}?ext=${extension}`,
+            url: convertFilePathToQueryNotation(
+              `${decodeURIComponent(urlWithoutExtension)}.${extension}`
+            ),
             title: title,
           });
         } else {
@@ -232,6 +235,7 @@ export function overrideControlledTextInsertion(
 
   // Creating links
   for (const linkPayload of linkPayloads) {
+    console.log(linkPayload);
     const linkNode = $createLinkNode(linkPayload.url, {
       title: linkPayload.title,
     });

@@ -15,6 +15,18 @@ func TestReplaceLocalURL(t *testing.T) {
 		assert.Equal(t, "http://localhost:3000/new-folder/image.png", result)
 	})
 
+	t.Run("should replace folder name in wails://localhost URL", func(t *testing.T) {
+		url := "wails://localhost:5173/old-folder/image.png"
+		result := ReplaceLocalURL(url, "new-folder")
+		assert.Equal(t, "wails://localhost:5173/new-folder/image.png", result)
+	})
+
+	t.Run("should handle wails URLs with spaces in folder names", func(t *testing.T) {
+		url := "wails://localhost:5173/Folder Rename Test 2/Second.md"
+		result := ReplaceLocalURL(url, "New Folder")
+		assert.Equal(t, "wails://localhost:5173/New Folder/Second.md", result)
+	})
+
 	t.Run("should not modify non-localhost URLs", func(t *testing.T) {
 		url := "https://example.com/folder/image.png"
 		result := ReplaceLocalURL(url, "new-folder")
@@ -26,32 +38,87 @@ func TestReplaceLocalURL(t *testing.T) {
 		result := ReplaceLocalURL(url, "new-folder")
 		assert.Equal(t, url, result)
 	})
+
+	t.Run("should handle wails URLs with insufficient segments", func(t *testing.T) {
+		url := "wails://localhost"
+		result := ReplaceLocalURL(url, "new-folder")
+		assert.Equal(t, url, result)
+	})
 }
 
-func TestReplaceMarkdownURLs(t *testing.T) {
-	t.Run("should replace image URLs", func(t *testing.T) {
+func TestUpdateFolderNameOfInternalLinksAndMedia(t *testing.T) {
+	t.Run("should replace http://localhost image URLs", func(t *testing.T) {
 		markdown := "![Image](http://localhost:3000/old-folder/image.png)"
-		result := ReplaceMarkdownURLs(markdown, "new-folder")
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
 		assert.Equal(t, "![Image](http://localhost:3000/new-folder/image.png)", result)
 	})
 
-	t.Run("should replace link URLs", func(t *testing.T) {
+	t.Run("should replace http://localhost link URLs", func(t *testing.T) {
 		markdown := "[Link](http://localhost:3000/old-folder/page.html)"
-		result := ReplaceMarkdownURLs(markdown, "new-folder")
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
 		assert.Equal(t, "[Link](http://localhost:3000/new-folder/page.html)", result)
 	})
 
-	t.Run("should not modify non-localhost URLs", func(t *testing.T) {
+	t.Run("should replace wails://localhost image URLs", func(t *testing.T) {
+		markdown := "![Image](wails://localhost:5173/old-folder/image.png)"
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
+		assert.Equal(t, "![Image](wails://localhost:5173/new-folder/image.png)", result)
+	})
+
+	t.Run("should replace wails://localhost link URLs", func(t *testing.T) {
+		markdown := "[Link](wails://localhost:5173/Folder Rename Test 2/Second.md)"
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
+		assert.Equal(t, "[Link](wails://localhost:5173/new-folder/Second.md)", result)
+	})
+
+	t.Run("should not modify external URLs", func(t *testing.T) {
 		markdown := "![Image](https://example.com/image.png) [Link](https://example.com/page.html)"
-		result := ReplaceMarkdownURLs(markdown, "new-folder")
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
 		assert.Equal(t, markdown, result)
 	})
 
-	t.Run("should handle multiple URLs", func(t *testing.T) {
+	t.Run("should not modify relative URLs", func(t *testing.T) {
+		markdown := "![Image](./image.png) [Link](../folder/page.md)"
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
+		assert.Equal(t, markdown, result)
+	})
+
+	t.Run("should handle multiple localhost URLs", func(t *testing.T) {
 		markdown := "![Image1](http://localhost:3000/old-folder/image1.png) ![Image2](http://localhost:3000/old-folder/image2.png)"
-		result := ReplaceMarkdownURLs(markdown, "new-folder")
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
 		expected := "![Image1](http://localhost:3000/new-folder/image1.png) ![Image2](http://localhost:3000/new-folder/image2.png)"
 		assert.Equal(t, expected, result)
+	})
+
+	t.Run("should handle mixed localhost and wails URLs", func(t *testing.T) {
+		markdown := "![Image](http://localhost:3000/old-folder/image.png) [Link](wails://localhost:5173/old-folder/page.md)"
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
+		expected := "![Image](http://localhost:3000/new-folder/image.png) [Link](wails://localhost:5173/new-folder/page.md)"
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("should handle mixed internal and external URLs", func(t *testing.T) {
+		markdown := "![Local](http://localhost:3000/old-folder/image.png) ![External](https://example.com/image.png) [Local](wails://localhost:5173/old-folder/page.md) [External](https://example.com/page.html)"
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
+		expected := "![Local](http://localhost:3000/new-folder/image.png) ![External](https://example.com/image.png) [Local](wails://localhost:5173/new-folder/page.md) [External](https://example.com/page.html)"
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("should handle URLs with spaces in folder names", func(t *testing.T) {
+		markdown := "[Link](wails://localhost:5173/Folder Rename Test 2/Second.md)"
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "New Folder Name")
+		assert.Equal(t, "[Link](wails://localhost:5173/New Folder Name/Second.md)", result)
+	})
+
+	t.Run("should handle empty markdown", func(t *testing.T) {
+		result := UpdateFolderNameOfInternalLinksAndMedia("", "new-folder")
+		assert.Equal(t, "", result)
+	})
+
+	t.Run("should handle markdown with no URLs", func(t *testing.T) {
+		markdown := "# Title\nThis is just plain text with no links or images."
+		result := UpdateFolderNameOfInternalLinksAndMedia(markdown, "new-folder")
+		assert.Equal(t, markdown, result)
 	})
 }
 
@@ -153,6 +220,12 @@ func TestIsInternalURL(t *testing.T) {
 	t.Run("should identify localhost URLs as internal", func(t *testing.T) {
 		assert.True(t, IsInternalURL("http://localhost:3000/path"))
 		assert.True(t, IsInternalURL("http://localhost/path"))
+	})
+
+	t.Run("should identify wails://localhost URLs as internal", func(t *testing.T) {
+		assert.True(t, IsInternalURL("wails://localhost:5173/path"))
+		assert.True(t, IsInternalURL("wails://localhost/path"))
+		assert.True(t, IsInternalURL("wails://localhost:5173/Folder Rename Test 2/Second.md"))
 	})
 
 	t.Run("should identify relative paths as internal", func(t *testing.T) {

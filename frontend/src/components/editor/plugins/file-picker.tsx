@@ -17,7 +17,10 @@ import { SearchFileNamesFromQuery } from '../../../../bindings/github.com/etesam
 import { mostRecentNotesWithoutQueryParamsAtom } from '../../../atoms';
 import { RenderNoteIcon } from '../../../routes/notes-sidebar/render-note-icon';
 import { FILE_SERVER_URL } from '../../../utils/general';
-import { getFileExtension } from '../../../utils/string-formatting';
+import {
+  getFileExtension,
+  convertFilePathToQueryNotation,
+} from '../../../utils/string-formatting';
 import {
   DropdownPickerOption,
   FilePickerMenuItem,
@@ -53,13 +56,11 @@ export function FilePickerMenuPlugin() {
             />
           ),
           onSelect: () => {
-            const { extension, urlWithoutExtension } =
-              getFileExtension(fileName);
+            const { extension } = getFileExtension(fileName);
             if (extension === 'md') {
-              console.log(urlWithoutExtension);
               editor.update(() => {
                 const linkNode = $createLinkNode(
-                  `wails://localhost:5173/${urlWithoutExtension}?ext=${extension}`
+                  `wails://localhost:5173/${convertFilePathToQueryNotation(fileName)}`
                 );
 
                 const linkTextNode = $createTextNode(fileName);

@@ -2,6 +2,7 @@ import { useAtom } from 'jotai';
 import { useEffect } from 'react';
 import { ValidateMostRecentNotes } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { mostRecentNotesAtom } from '../../../atoms';
+import { convertFilePathToQueryNotation } from '../../../utils/string-formatting';
 
 /** Updates the most recent notes queue */
 export function useMostRecentNotes(
@@ -12,7 +13,9 @@ export function useMostRecentNotes(
   const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);
 
   useEffect(() => {
-    const currentPath = `${folder}/${note}?ext=${fileExtension}`;
+    const currentPath = convertFilePathToQueryNotation(
+      `${folder}/${note}.${fileExtension}`
+    );
     const tempMostRecentNotes = mostRecentNotes.filter(
       (path) => path !== currentPath
     );

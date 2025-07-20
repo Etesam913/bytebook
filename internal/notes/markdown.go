@@ -10,16 +10,16 @@ import (
 // Regex patterns used throughout the package
 var (
 	// Markdown link patterns
-	linkRegex  = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
-	mediaRegex = regexp.MustCompile(`!\[([^\]]*)\]\(([^)]+)\)`)
-	imageRegex = regexp.MustCompile(`!\[.*?\]\((.*?)\)`)
-	videoRegex = regexp.MustCompile(`\[video\]\(.*?\)`)
+	LINK_REGEX  = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
+	MEDIA_REGEX = regexp.MustCompile(`!\[([^\]]*)\]\(([^)]+)\)`)
+	IMAGE_REGEX = regexp.MustCompile(`!\[.*?\]\((.*?)\)`)
+	VIDEO_REGEX = regexp.MustCompile(`\[video\]\(.*?\)`)
 
 	// Content filtering patterns
-	codeBlockRegex   = regexp.MustCompile("(?s)```.*?```|~~~.*?~~~")
-	frontmatterRegex = regexp.MustCompile(`(?s)^---.*?---\s*`)
-	htmlTagRegex     = regexp.MustCompile(`<[^>]*>`)
-	headerRegex      = regexp.MustCompile(`^#+\s+`)
+	CODE_BLOCK_REGEX  = regexp.MustCompile("(?s)```.*?```|~~~.*?~~~")
+	FRONTMATTER_REGEX = regexp.MustCompile(`(?s)^---.*?---\s*`)
+	HTML_TAG_REGEX    = regexp.MustCompile(`<[^>]*>`)
+	HEADER_REGEX      = regexp.MustCompile(`^#+\s+`)
 )
 
 // URL Management Functions
@@ -27,7 +27,7 @@ var (
 // ReplaceLocalURL updates the folder name in a localhost URL.
 // Returns the original URL if it's not a localhost URL.
 func ReplaceLocalURL(url string, newFolderName string) string {
-	if !strings.HasPrefix(url, "http://localhost") {
+	if !strings.HasPrefix(url, "http://localhost") && !strings.HasPrefix(url, "wails://localhost") {
 		return url
 	}
 
@@ -41,27 +41,45 @@ func ReplaceLocalURL(url string, newFolderName string) string {
 	return strings.Join(segments, "/")
 }
 
-// ReplaceMarkdownURLs finds and replaces local URLs in markdown content.
-// Updates both image and link URLs with the new folder name.
-func ReplaceMarkdownURLs(markdown string, newFolderName string) string {
+// UpdateFolderNameOfInternalLinksAndMedia finds and replaces folder names in internal URLs within markdown content.
+// Updates both image and link URLs that are considered internal with the new folder name.
+func UpdateFolderNameOfInternalLinksAndMedia(markdown string, newFolderName string) string {
+	// Get all internal links and media from the markdown
+	internalURLs := GetInternalLinksAndMedia(markdown)
+
+	// Create a map of old URL to new URL for efficient replacement
+	urlReplacements := make(map[string]string)
+	for _, url := range internalURLs.Elements() {
+		newURL := ReplaceLocalURL(url, newFolderName)
+		if newURL != url {
+			urlReplacements[url] = newURL
+		}
+	}
+
 	// Replace image URLs
-	markdown = mediaRegex.ReplaceAllStringFunc(markdown, func(match string) string {
-		submatches := mediaRegex.FindStringSubmatch(match)
+	markdown = MEDIA_REGEX.ReplaceAllStringFunc(markdown, func(match string) string {
+		submatches := MEDIA_REGEX.FindStringSubmatch(match)
 		if len(submatches) < 3 {
 			return match
 		}
-		url := ReplaceLocalURL(submatches[2], newFolderName)
-		return "![" + submatches[1] + "](" + url + ")"
+		url := strings.TrimSpace(submatches[2])
+		if newURL, exists := urlReplacements[url]; exists {
+			return "![" + submatches[1] + "](" + newURL + ")"
+		}
+		return match
 	})
 
 	// Replace link URLs
-	markdown = linkRegex.ReplaceAllStringFunc(markdown, func(match string) string {
-		submatches := linkRegex.FindStringSubmatch(match)
+	markdown = LINK_REGEX.ReplaceAllStringFunc(markdown, func(match string) string {
+		submatches := LINK_REGEX.FindStringSubmatch(match)
 		if len(submatches) < 3 {
 			return match
 		}
-		url := ReplaceLocalURL(submatches[2], newFolderName)
-		return "[" + submatches[1] + "](" + url + ")"
+		url := strings.TrimSpace(submatches[2])
+		if newURL, exists := urlReplacements[url]; exists {
+			return "[" + submatches[1] + "](" + newURL + ")"
+		}
+		return match
 	})
 
 	return markdown
@@ -78,7 +96,7 @@ func IsInternalURL(url string) bool {
 	}
 
 	// Localhost URLs are internal
-	if strings.HasPrefix(url, "http://localhost") {
+	if strings.HasPrefix(url, "http://localhost") || strings.HasPrefix(url, "wails://localhost") {
 		return true
 	}
 
@@ -101,7 +119,7 @@ func IsInternalURL(url string) bool {
 // GetFirstImageSrc returns the source URL of the first image found in markdown.
 // Returns an empty string if no image is found.
 func GetFirstImageSrc(markdown string) string {
-	match := imageRegex.FindStringSubmatch(markdown)
+	match := IMAGE_REGEX.FindStringSubmatch(markdown)
 	if len(match) >= 2 {
 		return match[1]
 	}
@@ -114,7 +132,7 @@ func GetInternalLinksAndMedia(markdown string) util.Set[string] {
 	urlSet := make(util.Set[string])
 
 	// Extract media URLs
-	mediaMatches := mediaRegex.FindAllStringSubmatch(markdown, -1)
+	mediaMatches := MEDIA_REGEX.FindAllStringSubmatch(markdown, -1)
 	for _, match := range mediaMatches {
 		if len(match) >= 3 {
 			url := strings.TrimSpace(match[2])
@@ -125,7 +143,7 @@ func GetInternalLinksAndMedia(markdown string) util.Set[string] {
 	}
 
 	// Extract link URLs
-	linkMatches := linkRegex.FindAllStringSubmatch(markdown, -1)
+	linkMatches := LINK_REGEX.FindAllStringSubmatch(markdown, -1)
 	for _, match := range linkMatches {
 		if len(match) >= 3 {
 			url := strings.TrimSpace(match[2])
@@ -181,16 +199,16 @@ func CalculateInternalLinksDiff(projectPath, folderOfNote, previousMarkdown, new
 // ExcludeMediaTags removes image and video markdown syntax from content.
 func ExcludeMediaTags(markdown string) string {
 	// Remove image markdown syntax
-	content := imageRegex.ReplaceAllString(markdown, "")
+	content := IMAGE_REGEX.ReplaceAllString(markdown, "")
 	// Remove video markdown syntax
-	content = videoRegex.ReplaceAllString(content, "")
+	content = VIDEO_REGEX.ReplaceAllString(content, "")
 	return content
 }
 
 // ExcludeCodeBlocks removes all code blocks (``` or ~~~ delimited) from markdown.
 func ExcludeCodeBlocks(markdown string) string {
 	// Find and replace all code blocks with empty string
-	codeBlocks := codeBlockRegex.FindAllString(markdown, -1)
+	codeBlocks := CODE_BLOCK_REGEX.FindAllString(markdown, -1)
 	for _, block := range codeBlocks {
 		markdown = strings.Replace(markdown, block, "", 1)
 	}
@@ -199,13 +217,13 @@ func ExcludeCodeBlocks(markdown string) string {
 
 // ExcludeFrontmatter removes YAML frontmatter (content between ---) from markdown.
 func ExcludeFrontmatter(markdown string) string {
-	return strings.TrimSpace(frontmatterRegex.ReplaceAllString(markdown, ""))
+	return strings.TrimSpace(FRONTMATTER_REGEX.ReplaceAllString(markdown, ""))
 }
 
 // ExtractLinkText replaces markdown links with just their text content.
 // For example: [link text](url) becomes "link text".
 func ExtractLinkText(markdown string) string {
-	return linkRegex.ReplaceAllString(markdown, "$1")
+	return LINK_REGEX.ReplaceAllString(markdown, "$1")
 }
 
 // Content Processing Functions
@@ -221,8 +239,8 @@ func GetFirstLine(markdown string) string {
 	content = ExtractLinkText(content)
 
 	// Remove HTML tags and markdown headers
-	content = htmlTagRegex.ReplaceAllString(content, "")
-	content = headerRegex.ReplaceAllString(content, "")
+	content = HTML_TAG_REGEX.ReplaceAllString(content, "")
+	content = HEADER_REGEX.ReplaceAllString(content, "")
 
 	// Find the first non-empty line
 	lines := strings.Split(content, "\n")

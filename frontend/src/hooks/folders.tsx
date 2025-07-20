@@ -16,7 +16,10 @@ import {
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import { findClosestSidebarItemToNavigateTo } from '../utils/routing';
-import { validateName } from '../utils/string-formatting';
+import {
+  validateName,
+  convertFilePathToQueryNotation,
+} from '../utils/string-formatting';
 import { useWailsEvent } from './events';
 
 /**
@@ -148,7 +151,7 @@ export function useFolderDialogSubmit() {
         );
         if (addNoteRes.success) {
           navigate(
-            `/${encodeURIComponent(newFolderNameString)}/Untitled?ext=md`
+            `/${convertFilePathToQueryNotation(`${encodeURIComponent(newFolderNameString)}/Untitled.md`)}`
           );
           return true;
         }
