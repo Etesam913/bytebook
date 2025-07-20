@@ -7,7 +7,10 @@ import {
   BYTEBOOK_DRAG_DATA_FORMAT,
   createGhostElementFromHtmlElement,
 } from '../../utils/draggable';
-import { extractInfoFromNoteName } from '../../utils/string-formatting';
+import {
+  extractInfoFromNoteName,
+  convertNoteNameToDotNotation,
+} from '../../utils/string-formatting';
 
 /** Gets the file icon for the dragged item */
 function getFileIcon(fileType: 'folder' | 'note' | 'image') {
@@ -95,17 +98,16 @@ function getSelectedFiles(
   return Array.from(tempSelectionRange).map((noteNameWithExtensionParam) => {
     const noteNameWithoutPrefixWithExtension =
       noteNameWithExtensionParam.split(':')[1];
-    const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-      noteNameWithoutPrefixWithExtension
-    );
-
     if (contentType === 'folder') {
+      const { noteNameWithoutExtension } = extractInfoFromNoteName(
+        noteNameWithoutPrefixWithExtension
+      );
       return `wails://localhost:5173/${noteNameWithoutExtension}`;
     }
     if (!folder) {
       return '';
     }
-    return `wails://localhost:5173/${folder}/${noteNameWithoutExtension}.${queryParams.ext}`;
+    return `wails://localhost:5173/${folder}/${convertNoteNameToDotNotation(noteNameWithoutPrefixWithExtension)}`;
   });
 }
 

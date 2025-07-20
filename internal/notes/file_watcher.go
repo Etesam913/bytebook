@@ -155,6 +155,12 @@ func (fw *FileWatcher) handleNoteFolderRename(oldFolderName string) {
 			continue
 		}
 	}
+
+	// Update attachment keys that reference the old folder name
+	err = UpdateFolderNameInAttachments(fw.projectPath, newFolderName, oldFolderName, newFolderName)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 // handleFileEvents processes file-related events (create, delete)

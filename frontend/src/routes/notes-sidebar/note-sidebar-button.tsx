@@ -31,6 +31,7 @@ import {
 } from '../../utils/selection';
 import {
   cn,
+  convertNoteNameToDotNotation,
   encodeNoteNameWithQueryParams,
   extractInfoFromNoteName,
 } from '../../utils/string-formatting';
@@ -93,7 +94,7 @@ export function NoteSidebarButton({
   const imgSrc =
     !notePreviewResultData || firstImageSrc === ''
       ? isImageFile
-        ? `${FILE_SERVER_URL}/notes/${sidebarNoteFolder}/${sidebarNoteNameWithoutExtension}.${sidebarNoteExtension}`
+        ? `${FILE_SERVER_URL}/notes/${sidebarNoteFolder}/${convertNoteNameToDotNotation(sidebarNoteName)}`
         : ''
       : firstImageSrc;
 
@@ -310,12 +311,12 @@ export function NoteSidebarButton({
                             const selectedNote = [...newSelectionRange][0];
                             const noteWithoutPrefix =
                               selectedNote.split(':')[1] || '';
-                            const { queryParams, noteNameWithoutExtension } =
+                            const { queryParams } =
                               extractInfoFromNoteName(noteWithoutPrefix);
                             const fileExtension = queryParams.ext;
                             const originalPath = isInTagsSidebar
-                              ? `${noteNameWithoutExtension}.${fileExtension}`
-                              : `${sidebarNoteFolder}/${noteNameWithoutExtension}.${fileExtension}`;
+                              ? convertNoteNameToDotNotation(noteWithoutPrefix)
+                              : `${sidebarNoteFolder}/${convertNoteNameToDotNotation(noteWithoutPrefix)}`;
 
                             const targetFolder = isInTagsSidebar
                               ? noteWithoutPrefix

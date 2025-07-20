@@ -173,14 +173,14 @@ export function getTagNameFromSetValue(tagSetValue: string) {
 /**
  * Extracts the base name and query parameters from a given note name string.
  *
- * @param noteName - The input string containing the note name and query parameters.
+ * @param noteNameWithQueryParams - The input string containing the note name and query parameters.
  * @returns An object with the base name and query parameters.
  */
-export function extractInfoFromNoteName(noteName: string) {
+export function extractInfoFromNoteName(noteNameWithQueryParams: string) {
   // Create a URL object to parse the noteName string.
   // The base URL ("http://example.com") is used to properly parse relative URLs.
   const url = new URL(
-    encodeNoteNameWithQueryParams(noteName),
+    encodeNoteNameWithQueryParams(noteNameWithQueryParams),
     'http://example.com'
   );
 
@@ -203,16 +203,42 @@ export function extractInfoFromNoteName(noteName: string) {
 }
 
 /**
+ * Converts a note name with query parameters to dot notation format.
+ *
+ * @param noteNameWithQueryParams - The note name with query parameters (e.g., "abc?ext=md")
+ * @returns The note name in dot notation format (e.g., "abc.md")
+ *
+ * @example
+ * convertNoteNameWithQueryParamsToDotNotation("abc?ext=md") // returns "abc.md"
+ * convertNoteNameWithQueryParamsToDotNotation("my-note?ext=txt") // returns "my-note.txt"
+ */
+export function convertNoteNameToDotNotation(
+  noteNameWithQueryParams: string
+): string {
+  const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
+    noteNameWithQueryParams
+  );
+
+  // If there's an ext query parameter, combine with dot notation
+  if (queryParams.ext) {
+    return `${noteNameWithoutExtension}.${queryParams.ext}`;
+  }
+
+  // If no extension query parameter, return just the note name
+  return noteNameWithoutExtension;
+}
+
+/**
  * Encodes the note name and query params
  * ex: "abc??ext=md" encodes the abc? part"
- * @param noteName
+ * @param noteNameWithQueryParams
  * @returns
  */
-export function encodeNoteNameWithQueryParams(noteName: string) {
-  const splitByExtension = noteName.split('?ext=');
+export function encodeNoteNameWithQueryParams(noteNameWithQueryParams: string) {
+  const splitByExtension = noteNameWithQueryParams.split('?ext=');
   // If there is no extension, return the original note name
   if (splitByExtension.length === 1) {
-    return encodeURIComponent(noteName);
+    return encodeURIComponent(noteNameWithQueryParams);
   }
   const encodedNoteName = encodeURIComponent(
     splitByExtension.slice(0, -1).join()
@@ -301,6 +327,20 @@ export function parseNoteNameFromSelectionRangeValue(
   );
 
   return { noteNameWithoutExtension, queryParams };
+}
+
+/**
+ * Converts a selection range value directly to dot notation format.
+ * This is a helper that combines prefix removal and dot notation conversion.
+ *
+ * @param selectionRangeValue - The selection range value (e.g., "note:abc?ext=md")
+ * @returns The note name in dot notation format (e.g., "abc.md")
+ */
+export function convertSelectionRangeValueToDotNotation(
+  selectionRangeValue: string
+): string {
+  const noteWithoutPrefix = selectionRangeValue.split(':')[1];
+  return convertNoteNameToDotNotation(noteWithoutPrefix);
 }
 
 /**

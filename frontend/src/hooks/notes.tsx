@@ -26,6 +26,7 @@ import { QueryError } from '../utils/query';
 import { findClosestSidebarItemToNavigateTo } from '../utils/routing';
 import { getFolderAndNoteFromSelectionRange } from '../utils/selection';
 import {
+  convertSelectionRangeValueToDotNotation,
   extractInfoFromNoteName,
   getTagNameFromSetValue,
   parseNoteNameFromSelectionRangeValue,
@@ -224,10 +225,9 @@ export function useNoteRevealInFinderMutation(isInTagsSidebar: boolean) {
       // Reveal each selected folder in Finder
       const res = await Promise.all(
         selectedNotes.map(async (note) => {
-          const { noteNameWithoutExtension, queryParams } =
-            parseNoteNameFromSelectionRangeValue(note);
-
           if (isInTagsSidebar) {
+            const { noteNameWithoutExtension, queryParams } =
+              parseNoteNameFromSelectionRangeValue(note);
             const [folderName, noteName] = noteNameWithoutExtension.split('/');
             return await RevealFolderOrFileInFinder(
               `notes/${folderName}/${noteName}.${queryParams.ext}`,
@@ -235,7 +235,7 @@ export function useNoteRevealInFinderMutation(isInTagsSidebar: boolean) {
             );
           }
           return await RevealFolderOrFileInFinder(
-            `notes/${folder}/${noteNameWithoutExtension}.${queryParams.ext}`,
+            `notes/${folder}/${convertSelectionRangeValueToDotNotation(note)}`,
             true
           );
         })

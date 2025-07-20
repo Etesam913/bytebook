@@ -198,7 +198,14 @@ func (n *NoteService) SetNoteMarkdown(
 	}
 
 	// Calculate the differences in internal links
-	newlyAddedLinks, newlyRemovedLinks := notes.CalculateInternalLinksDiff(previousMarkdown, markdown)
+	newlyAddedLinks, newlyRemovedLinks := notes.CalculateInternalLinksDiff(
+		n.ProjectPath,
+		folderName,
+		previousMarkdown,
+		markdown,
+	)
+	fmt.Println("newlyAddedLinks:", newlyAddedLinks)
+	fmt.Println("newlyRemovedLinks:", newlyRemovedLinks)
 
 	// Add newly added links to attachments
 	for _, link := range newlyAddedLinks {

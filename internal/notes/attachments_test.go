@@ -495,13 +495,7 @@ func TestUpdateAttachmentName(t *testing.T) {
 
 		expectedNotes := []string{"test-folder/note1.md", "test-folder/note2.md"}
 		for _, expected := range expectedNotes {
-			found := false
-			for _, actual := range notes {
-				if actual == expected {
-					found = true
-					break
-				}
-			}
+			found := slices.Contains(notes, expected)
 			if !found {
 				t.Errorf("Expected to find note %s in %v", expected, notes)
 			}
@@ -628,6 +622,414 @@ func TestUpdateAttachmentName(t *testing.T) {
 		err := UpdateAttachmentName("/nonexistent/path", testFolder, "old.jpg", "new.jpg")
 		if err == nil {
 			t.Error("Expected error for invalid project path, got nil")
+		}
+	})
+}
+
+func TestUpdateFolderNameInAttachments(t *testing.T) {
+	// Create a temporary directory for testing
+	tmpDir, err := os.MkdirTemp("", "bytebook_test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Setup test directory structure
+	notesDir := filepath.Join(tmpDir, "notes")
+	testFolder := "test-folder"
+	folderPath := filepath.Join(notesDir, testFolder)
+
+	err = os.MkdirAll(folderPath, 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test folder: %v", err)
+	}
+
+	t.Run("update http URL format attachments", func(t *testing.T) {
+		// Create test .attachments.json with http URLs
+		attachmentsData := AttachmentToNotesArray{
+			Attachments: map[string][]string{
+				"http://localhost:5890/notes/old-folder/file1.jpg":   {"old-folder/note1.md", "folder2/note2.md"},
+				"http://localhost:5890/notes/old-folder/file2.pdf":   {"old-folder/note3.md"},
+				"http://localhost:5890/notes/other-folder/file3.png": {"folder1/note4.md"},
+				"regular-file.txt": {"folder1/note5.md"},
+			},
+		}
+
+		attachmentsPath := filepath.Join(folderPath, ".attachments.json")
+		data, err := json.Marshal(attachmentsData)
+		if err != nil {
+			t.Fatalf("Failed to marshal test data: %v", err)
+		}
+
+		err = os.WriteFile(attachmentsPath, data, 0644)
+		if err != nil {
+			t.Fatalf("Failed to write test file: %v", err)
+		}
+
+		// Update folder name from "old-folder" to "new-folder"
+		err = UpdateFolderNameInAttachments(tmpDir, testFolder, "old-folder", "new-folder")
+		if err != nil {
+			t.Fatalf("UpdateFolderNameInAttachments failed: %v", err)
+		}
+
+		// Read and verify the updated file
+		updatedData, err := os.ReadFile(attachmentsPath)
+		if err != nil {
+			t.Fatalf("Failed to read updated file: %v", err)
+		}
+
+		var updatedAttachments AttachmentToNotesArray
+		err = json.Unmarshal(updatedData, &updatedAttachments)
+		if err != nil {
+			t.Fatalf("Failed to unmarshal updated data: %v", err)
+		}
+
+		// Check that old-folder URLs were updated
+		expectedKey1 := "http://localhost:5890/notes/new-folder/file1.jpg"
+		expectedKey2 := "http://localhost:5890/notes/new-folder/file2.pdf"
+		expectedKey3 := "http://localhost:5890/notes/other-folder/file3.png"
+		expectedKey4 := "regular-file.txt"
+
+		if notes, exists := updatedAttachments.Attachments[expectedKey1]; !exists {
+			t.Errorf("Expected key '%s' not found", expectedKey1)
+		} else {
+			expectedNotes := []string{"new-folder/note1.md", "folder2/note2.md"}
+			if !slices.Equal(notes, expectedNotes) {
+				t.Errorf("Expected notes %v, got %v", expectedNotes, notes)
+			}
+		}
+
+		if notes, exists := updatedAttachments.Attachments[expectedKey2]; !exists {
+			t.Errorf("Expected key '%s' not found", expectedKey2)
+		} else {
+			expectedNotes := []string{"new-folder/note3.md"}
+			if !slices.Equal(notes, expectedNotes) {
+				t.Errorf("Expected notes %v, got %v", expectedNotes, notes)
+			}
+		}
+
+		// Check that non-matching URLs were preserved
+		if notes, exists := updatedAttachments.Attachments[expectedKey3]; !exists {
+			t.Errorf("Expected key '%s' not found", expectedKey3)
+		} else {
+			expectedNotes := []string{"folder1/note4.md"}
+			if !slices.Equal(notes, expectedNotes) {
+				t.Errorf("Expected notes %v, got %v", expectedNotes, notes)
+			}
+		}
+
+		if notes, exists := updatedAttachments.Attachments[expectedKey4]; !exists {
+			t.Errorf("Expected key '%s' not found", expectedKey4)
+		} else {
+			expectedNotes := []string{"folder1/note5.md"}
+			if !slices.Equal(notes, expectedNotes) {
+				t.Errorf("Expected notes %v, got %v", expectedNotes, notes)
+			}
+		}
+
+		// Ensure old keys don't exist
+		oldKey1 := "http://localhost:5890/notes/old-folder/file1.jpg"
+		oldKey2 := "http://localhost:5890/notes/old-folder/file2.pdf"
+		if _, exists := updatedAttachments.Attachments[oldKey1]; exists {
+			t.Errorf("Old key '%s' should have been removed", oldKey1)
+		}
+		if _, exists := updatedAttachments.Attachments[oldKey2]; exists {
+			t.Errorf("Old key '%s' should have been removed", oldKey2)
+		}
+	})
+
+	t.Run("update wails URL format attachments", func(t *testing.T) {
+		// Create test .attachments.json with wails URLs
+		attachmentsData := AttachmentToNotesArray{
+			Attachments: map[string][]string{
+				"wails://localhost:5173/old-folder/note1?ext=md":       {"old-folder/note1.md"},
+				"wails://localhost:5173/old-folder/note2?ext=md":       {"folder2/note2.md", "old-folder/note3.md"},
+				"wails://localhost:5173/different-folder/note3?ext=md": {"folder1/note4.md"},
+			},
+		}
+
+		attachmentsPath := filepath.Join(folderPath, ".attachments.json")
+		data, err := json.Marshal(attachmentsData)
+		if err != nil {
+			t.Fatalf("Failed to marshal test data: %v", err)
+		}
+
+		err = os.WriteFile(attachmentsPath, data, 0644)
+		if err != nil {
+			t.Fatalf("Failed to write test file: %v", err)
+		}
+
+		// Update folder name from "old-folder" to "renamed-folder"
+		err = UpdateFolderNameInAttachments(tmpDir, testFolder, "old-folder", "renamed-folder")
+		if err != nil {
+			t.Fatalf("UpdateFolderNameInAttachments failed: %v", err)
+		}
+
+		// Read and verify the updated file
+		updatedData, err := os.ReadFile(attachmentsPath)
+		if err != nil {
+			t.Fatalf("Failed to read updated file: %v", err)
+		}
+
+		var updatedAttachments AttachmentToNotesArray
+		err = json.Unmarshal(updatedData, &updatedAttachments)
+		if err != nil {
+			t.Fatalf("Failed to unmarshal updated data: %v", err)
+		}
+
+		// Check that old-folder URLs were updated
+		expectedKey1 := "wails://localhost:5173/renamed-folder/note1?ext=md"
+		expectedKey2 := "wails://localhost:5173/renamed-folder/note2?ext=md"
+		expectedKey3 := "wails://localhost:5173/different-folder/note3?ext=md"
+
+		if notes, exists := updatedAttachments.Attachments[expectedKey1]; !exists {
+			t.Errorf("Expected key '%s' not found", expectedKey1)
+		} else {
+			expectedNotes := []string{"renamed-folder/note1.md"}
+			if !slices.Equal(notes, expectedNotes) {
+				t.Errorf("Expected notes %v, got %v", expectedNotes, notes)
+			}
+		}
+
+		if notes, exists := updatedAttachments.Attachments[expectedKey2]; !exists {
+			t.Errorf("Expected key '%s' not found", expectedKey2)
+		} else {
+			expectedNotes := []string{"folder2/note2.md", "renamed-folder/note3.md"}
+			if !slices.Equal(notes, expectedNotes) {
+				t.Errorf("Expected notes %v, got %v", expectedNotes, notes)
+			}
+		}
+
+		// Check that non-matching URLs were preserved
+		if notes, exists := updatedAttachments.Attachments[expectedKey3]; !exists {
+			t.Errorf("Expected key '%s' not found", expectedKey3)
+		} else {
+			expectedNotes := []string{"folder1/note4.md"}
+			if !slices.Equal(notes, expectedNotes) {
+				t.Errorf("Expected notes %v, got %v", expectedNotes, notes)
+			}
+		}
+	})
+
+	t.Run("mixed URL formats", func(t *testing.T) {
+		// Create test .attachments.json with mixed URL formats
+		attachmentsData := AttachmentToNotesArray{
+			Attachments: map[string][]string{
+				"http://localhost:5890/notes/target-folder/image.jpg": {"target-folder/note1.md"},
+				"wails://localhost:5173/target-folder/doc?ext=md":     {"target-folder/note2.md"},
+				"wails://localhost:5173/other-folder/doc2?ext=md":     {"folder1/note3.md"},
+				"local-file.txt": {"target-folder/note4.md"},
+			},
+		}
+
+		attachmentsPath := filepath.Join(folderPath, ".attachments.json")
+		data, err := json.Marshal(attachmentsData)
+		if err != nil {
+			t.Fatalf("Failed to marshal test data: %v", err)
+		}
+
+		err = os.WriteFile(attachmentsPath, data, 0644)
+		if err != nil {
+			t.Fatalf("Failed to write test file: %v", err)
+		}
+
+		// Update folder name from "target-folder" to "updated-folder"
+		err = UpdateFolderNameInAttachments(tmpDir, testFolder, "target-folder", "updated-folder")
+		if err != nil {
+			t.Fatalf("UpdateFolderNameInAttachments failed: %v", err)
+		}
+
+		// Read and verify the updated file
+		updatedData, err := os.ReadFile(attachmentsPath)
+		if err != nil {
+			t.Fatalf("Failed to read updated file: %v", err)
+		}
+
+		var updatedAttachments AttachmentToNotesArray
+		err = json.Unmarshal(updatedData, &updatedAttachments)
+		if err != nil {
+			t.Fatalf("Failed to unmarshal updated data: %v", err)
+		}
+
+		// Verify both URL formats were updated
+		expectedKeys := map[string][]string{
+			"http://localhost:5890/notes/updated-folder/image.jpg": {"updated-folder/note1.md"},
+			"wails://localhost:5173/updated-folder/doc?ext=md":     {"updated-folder/note2.md"},
+			"wails://localhost:5173/other-folder/doc2?ext=md":      {"folder1/note3.md"},
+			"local-file.txt": {"updated-folder/note4.md"},
+		}
+
+		if len(updatedAttachments.Attachments) != len(expectedKeys) {
+			t.Errorf("Expected %d attachments, got %d", len(expectedKeys), len(updatedAttachments.Attachments))
+		}
+
+		for expectedKey, expectedNotes := range expectedKeys {
+			if notes, exists := updatedAttachments.Attachments[expectedKey]; !exists {
+				t.Errorf("Expected key '%s' not found", expectedKey)
+			} else if !slices.Equal(notes, expectedNotes) {
+				t.Errorf("For key '%s', expected notes %v, got %v", expectedKey, expectedNotes, notes)
+			}
+		}
+	})
+
+	t.Run("no matching folder names", func(t *testing.T) {
+		// Create test .attachments.json with no matching folder names
+		attachmentsData := AttachmentToNotesArray{
+			Attachments: map[string][]string{
+				"http://localhost:5890/notes/different-folder/file.jpg": {"folder1/note1.md"},
+				"wails://localhost:5173/another-folder/doc?ext=md":      {"folder1/note2.md"},
+				"regular-file.txt": {"folder1/note3.md"},
+			},
+		}
+
+		attachmentsPath := filepath.Join(folderPath, ".attachments.json")
+		data, err := json.Marshal(attachmentsData)
+		if err != nil {
+			t.Fatalf("Failed to marshal test data: %v", err)
+		}
+
+		err = os.WriteFile(attachmentsPath, data, 0644)
+		if err != nil {
+			t.Fatalf("Failed to write test file: %v", err)
+		}
+
+		// Update folder name that doesn't exist
+		err = UpdateFolderNameInAttachments(tmpDir, testFolder, "nonexistent-folder", "new-folder")
+		if err != nil {
+			t.Fatalf("UpdateFolderNameInAttachments failed: %v", err)
+		}
+
+		// Read and verify nothing was changed
+		updatedData, err := os.ReadFile(attachmentsPath)
+		if err != nil {
+			t.Fatalf("Failed to read updated file: %v", err)
+		}
+
+		var updatedAttachments AttachmentToNotesArray
+		err = json.Unmarshal(updatedData, &updatedAttachments)
+		if err != nil {
+			t.Fatalf("Failed to unmarshal updated data: %v", err)
+		}
+
+		// All keys should remain unchanged
+		originalKeys := []string{
+			"http://localhost:5890/notes/different-folder/file.jpg",
+			"wails://localhost:5173/another-folder/doc?ext=md",
+			"regular-file.txt",
+		}
+
+		for _, key := range originalKeys {
+			if _, exists := updatedAttachments.Attachments[key]; !exists {
+				t.Errorf("Expected original key '%s' to remain", key)
+			}
+		}
+	})
+
+	t.Run("empty attachments file", func(t *testing.T) {
+		// Create empty .attachments.json
+		attachmentsData := AttachmentToNotesArray{
+			Attachments: map[string][]string{},
+		}
+
+		attachmentsPath := filepath.Join(folderPath, ".attachments.json")
+		data, err := json.Marshal(attachmentsData)
+		if err != nil {
+			t.Fatalf("Failed to marshal test data: %v", err)
+		}
+
+		err = os.WriteFile(attachmentsPath, data, 0644)
+		if err != nil {
+			t.Fatalf("Failed to write test file: %v", err)
+		}
+
+		// Should not error on empty file
+		err = UpdateFolderNameInAttachments(tmpDir, testFolder, "old-folder", "new-folder")
+		if err != nil {
+			t.Fatalf("UpdateFolderNameInAttachments failed on empty file: %v", err)
+		}
+
+		// File should remain empty
+		updatedData, err := os.ReadFile(attachmentsPath)
+		if err != nil {
+			t.Fatalf("Failed to read updated file: %v", err)
+		}
+
+		var updatedAttachments AttachmentToNotesArray
+		err = json.Unmarshal(updatedData, &updatedAttachments)
+		if err != nil {
+			t.Fatalf("Failed to unmarshal updated data: %v", err)
+		}
+
+		if len(updatedAttachments.Attachments) != 0 {
+			t.Errorf("Expected empty attachments, got %d", len(updatedAttachments.Attachments))
+		}
+	})
+
+	t.Run("invalid project path", func(t *testing.T) {
+		err := UpdateFolderNameInAttachments("/nonexistent/path", testFolder, "old-folder", "new-folder")
+		if err == nil {
+			t.Error("Expected error for invalid project path, got nil")
+		}
+	})
+
+	t.Run("update folder names with emoji in both keys and values", func(t *testing.T) {
+		// Create test data that mirrors the example given
+		attachmentsData := AttachmentToNotesArray{
+			Attachments: map[string][]string{
+				"http://localhost:5890/notes/Leetcode/5051_0.pkpass":   {"👨‍💻 Leetcode/noway.md"},
+				"wails://localhost:5173/Leetcode/Etesam's Note?ext=md": {"👨‍💻 Leetcode/noway.md", "other-folder/note2.md"},
+				"http://localhost:5890/notes/👨‍💻 Leetcode/file.jpg":    {"👨‍💻 Leetcode/another.md"},
+				"regular-file.txt": {"👨‍💻 Leetcode/local.md"},
+			},
+		}
+
+		attachmentsPath := filepath.Join(folderPath, ".attachments.json")
+		data, err := json.Marshal(attachmentsData)
+		if err != nil {
+			t.Fatalf("Failed to marshal test data: %v", err)
+		}
+
+		err = os.WriteFile(attachmentsPath, data, 0644)
+		if err != nil {
+			t.Fatalf("Failed to write test file: %v", err)
+		}
+
+		// Update folder name from "👨‍💻 Leetcode" to "🔥 NewLeetcode"
+		err = UpdateFolderNameInAttachments(tmpDir, testFolder, "👨‍💻 Leetcode", "🔥 NewLeetcode")
+		if err != nil {
+			t.Fatalf("UpdateFolderNameInAttachments failed: %v", err)
+		}
+
+		// Read and verify the updated file
+		updatedData, err := os.ReadFile(attachmentsPath)
+		if err != nil {
+			t.Fatalf("Failed to read updated file: %v", err)
+		}
+
+		var updatedAttachments AttachmentToNotesArray
+		err = json.Unmarshal(updatedData, &updatedAttachments)
+		if err != nil {
+			t.Fatalf("Failed to unmarshal updated data: %v", err)
+		}
+
+		// Verify expected updates
+		expectedResults := map[string][]string{
+			"http://localhost:5890/notes/Leetcode/5051_0.pkpass":   {"🔥 NewLeetcode/noway.md"},
+			"wails://localhost:5173/Leetcode/Etesam's Note?ext=md": {"🔥 NewLeetcode/noway.md", "other-folder/note2.md"},
+			"http://localhost:5890/notes/🔥 NewLeetcode/file.jpg":   {"🔥 NewLeetcode/another.md"},
+			"regular-file.txt": {"🔥 NewLeetcode/local.md"},
+		}
+
+		if len(updatedAttachments.Attachments) != len(expectedResults) {
+			t.Errorf("Expected %d attachments, got %d", len(expectedResults), len(updatedAttachments.Attachments))
+		}
+
+		for expectedKey, expectedNotes := range expectedResults {
+			if actualNotes, exists := updatedAttachments.Attachments[expectedKey]; !exists {
+				t.Errorf("Expected key '%s' not found", expectedKey)
+			} else if !slices.Equal(actualNotes, expectedNotes) {
+				t.Errorf("For key '%s', expected notes %v, got %v", expectedKey, expectedNotes, actualNotes)
+			}
 		}
 	})
 }

@@ -15,8 +15,8 @@ type AttachmentToNotesArray struct {
 
 // GetNotesForAttachment returns note names linked to an attachment from .attachments.json in the specified folder.
 // Returns an error if the attachment is not found or reading fails.
-func GetNotesForAttachment(projectPath, folderName, attachmentName string) ([]string, error) {
-	attachmentPath := filepath.Join(projectPath, "notes", folderName, ".attachments.json")
+func GetNotesForAttachment(projectPath, folderOfAttachment, attachmentName string) ([]string, error) {
+	attachmentPath := filepath.Join(projectPath, "notes", folderOfAttachment, ".attachments.json")
 	attachmentToNotesArray, err := util.ReadOrCreateJSON(
 		attachmentPath, AttachmentToNotesArray{
 			Attachments: map[string][]string{},
@@ -35,11 +35,11 @@ func GetNotesForAttachment(projectPath, folderName, attachmentName string) ([]st
 
 // AddNoteToAttachment adds a note to an attachment's note list in .attachments.json.
 // If the attachment doesn't exist, it creates a new entry. Returns an error if the operation fails.
-func AddNoteToAttachment(projectPath, folderOfAttachment, attachmentName, folderAndNoteName string) error {
+func AddNoteToAttachment(projectPath, folderOfAttachment, attachmentName, folderAndNoteNameToAdd string) error {
 	// Parse folder and note name from the combined parameter
-	parts := strings.Split(folderAndNoteName, "/")
+	parts := strings.Split(folderAndNoteNameToAdd, "/")
 	if len(parts) != 2 {
-		return fmt.Errorf("folderAndNoteName must be in format 'folder/noteName', got: %s", folderAndNoteName)
+		return fmt.Errorf("folderAndNoteName must be in format 'folder/noteName', got: %s", folderAndNoteNameToAdd)
 	}
 	attachmentPath := filepath.Join(projectPath, "notes", folderOfAttachment, ".attachments.json")
 	attachmentToNotesArray, err := util.ReadOrCreateJSON(
@@ -55,12 +55,12 @@ func AddNoteToAttachment(projectPath, folderOfAttachment, attachmentName, folder
 	notes := attachmentToNotesArray.Attachments[attachmentName]
 
 	// Check if note already exists to avoid duplicates
-	if slices.Contains(notes, folderAndNoteName) {
+	if slices.Contains(notes, folderAndNoteNameToAdd) {
 		return nil // Note already exists, no need to add
 	}
 
 	// Add the note
-	attachmentToNotesArray.Attachments[attachmentName] = append(notes, folderAndNoteName)
+	attachmentToNotesArray.Attachments[attachmentName] = append(notes, folderAndNoteNameToAdd)
 
 	return util.WriteJsonToPath(attachmentPath, attachmentToNotesArray)
 }
@@ -137,5 +137,59 @@ func UpdateAttachmentName(projectPath, folderName, oldAttachmentName, newAttachm
 	// Remove the old attachment entry
 	delete(attachmentToNotesArray.Attachments, oldAttachmentName)
 
+	return util.WriteJsonToPath(attachmentPath, attachmentToNotesArray)
+}
+
+// UpdateFolderNameInAttachments updates all attachment keys and note values that contain the old folder name with the new folder name.
+// This handles both URL formats in keys:
+// 1. http://localhost:5890/notes/oldFolder/file.ext
+// 2. wails://localhost:5173/oldFolder/file?ext=md
+// And note paths in values: oldFolder/noteName.md
+func UpdateFolderNameInAttachments(projectPath, folderName, oldFolderName, newFolderName string) error {
+	attachmentPath := filepath.Join(projectPath, "notes", folderName, ".attachments.json")
+	attachmentToNotesArray, err := util.ReadOrCreateJSON(
+		attachmentPath, AttachmentToNotesArray{
+			Attachments: map[string][]string{},
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	updatedAttachments := make(map[string][]string)
+
+	for attachmentKey, notes := range attachmentToNotesArray.Attachments {
+		newKey := attachmentKey
+
+		// Handle http://localhost:5890/notes/folderName/ format
+		httpPrefix := "http://localhost:5890/notes/"
+		if remainder, found := strings.CutPrefix(attachmentKey, httpPrefix); found {
+			if pathAfterFolder, found := strings.CutPrefix(remainder, oldFolderName+"/"); found {
+				newKey = httpPrefix + newFolderName + "/" + pathAfterFolder
+			}
+		}
+
+		// Handle wails://localhost:5173/folderName/ format
+		wailsPrefix := "wails://localhost:5173/"
+		if remainder, found := strings.CutPrefix(attachmentKey, wailsPrefix); found {
+			if pathAfterFolder, found := strings.CutPrefix(remainder, oldFolderName+"/"); found {
+				newKey = wailsPrefix + newFolderName + "/" + pathAfterFolder
+			}
+		}
+
+		// Update folder names in note paths (values)
+		updatedNotes := make([]string, len(notes))
+		for i, note := range notes {
+			if pathAfterFolder, found := strings.CutPrefix(note, oldFolderName+"/"); found {
+				updatedNotes[i] = newFolderName + "/" + pathAfterFolder
+			} else {
+				updatedNotes[i] = note
+			}
+		}
+
+		updatedAttachments[newKey] = updatedNotes
+	}
+
+	attachmentToNotesArray.Attachments = updatedAttachments
 	return util.WriteJsonToPath(attachmentPath, attachmentToNotesArray)
 }

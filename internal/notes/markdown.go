@@ -147,14 +147,20 @@ func GetInternalLinksAndMediaAsSlice(markdown string) []string {
 
 // CalculateInternalLinksDiff calculates the differences between two sets of internal links.
 // Returns newly added links and newly removed links.
-func CalculateInternalLinksDiff(previousMarkdown, newMarkdown string) ([]string, []string) {
+func CalculateInternalLinksDiff(projectPath, folderOfNote, previousMarkdown, newMarkdown string) ([]string, []string) {
 	previousLinks := GetInternalLinksAndMedia(previousMarkdown)
 	newLinks := GetInternalLinksAndMedia(newMarkdown)
 
-	// Calculate newly added links (in new but not in previous)
+	// Calculate newly added links in new but not in previous or not in .attachments.json
 	var newlyAddedLinks []string
 	for _, link := range newLinks.Elements() {
-		if !previousLinks.Has(link) {
+		isNotInPreviousMarkdown := !previousLinks.Has(link)
+		notesForAttachment, _ := GetNotesForAttachment(
+			projectPath,
+			folderOfNote,
+			link,
+		)
+		if isNotInPreviousMarkdown || notesForAttachment == nil {
 			newlyAddedLinks = append(newlyAddedLinks, link)
 		}
 	}

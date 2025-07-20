@@ -33,7 +33,6 @@ import {
 import {
   $createNodeSelection,
   $createTextNode,
-  $getEditor,
   $isParagraphNode,
   $isTextNode,
   $setSelection,
@@ -43,10 +42,12 @@ import { Languages, validLanguages, type ResizeWidth } from '../../types';
 
 import {
   addQueryParam,
+  convertNoteNameToDotNotation,
   escapeFileContentForMarkdown,
   escapeQuotes,
   flattenHtml,
   getQueryParamValue,
+  isInternalLink,
   removeQueryParam,
   unescapeFileContentFromMarkdown,
 } from '../../utils/string-formatting';
@@ -92,7 +93,7 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
     }
 
     filePathOrSrc = updateSrc(node.getSrc());
-
+    console.log({ filePathOrSrc });
     altText = addQueryParam(
       node.getAltText(),
       'width',
@@ -104,8 +105,6 @@ const FILE_TRANSFORMER: TextMatchTransformer = {
   importRegExp: /!(?:\[((?:[^\]\\]|\\.)*)\])(?:\(((?:[^()\\]|\\.)+)\))/,
   regExp: /!(?:\[((?:[^\]\\]|\\.)*)\])(?:\(((?:[^()\\]|\\.)+)\))$/,
   replace: (textNode, match) => {
-    const editor = $getEditor();
-    if (!editor) return;
     const alt = match.at(1);
     const filePathOrSrc = match.at(2);
     if (!alt || !filePathOrSrc) {
@@ -239,10 +238,20 @@ export const LINK: TextMatchTransformer = {
     if (!$isLinkNode(node)) {
       return null;
     }
+    let linkUrl = node.getURL();
+    if (isInternalLink(linkUrl)) {
+      const urlSegments = linkUrl.split('/');
+      console.log(urlSegments, urlSegments.slice(-1));
+      const noteName = urlSegments[urlSegments.length - 1];
+      linkUrl = [
+        ...urlSegments.slice(0, -1),
+        convertNoteNameToDotNotation(noteName),
+      ].join('/');
+    }
 
     const linkContent = `[${escapeFileContentForMarkdown(
       node.getTextContent()
-    )}](${escapeFileContentForMarkdown(node.getURL())})`;
+    )}](${linkUrl})`;
     const firstChild = node.getFirstChild();
     // Add text styles only if link has single text node inside. If it's more
     // than one we ignore it as markdown does not support nested styles for links
@@ -258,10 +267,15 @@ export const LINK: TextMatchTransformer = {
   regExp:
     /(?:\[([^[]+)\])(?:\((?:([^()]+?)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))$/,
   replace: (textNode, match) => {
+    const alt = match.at(1);
+    const filePathOrSrc = match.at(2);
+    if (!alt || !filePathOrSrc) {
+      textNode.replace(textNode);
+      return;
+    }
     const [, linkText, linkUrl, linkTitle] = match;
-    console.log('replace');
-    const linkNode = $createLinkNode(linkUrl, {
-      title: linkTitle,
+    const linkNode = $createLinkNode(unescapeFileContentFromMarkdown(linkUrl), {
+      title: unescapeFileContentFromMarkdown(linkTitle ?? ''),
     });
     const linkTextNode = $createTextNode(linkText);
     linkTextNode.setFormat(textNode.getFormat());

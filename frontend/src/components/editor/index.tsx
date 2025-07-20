@@ -21,7 +21,6 @@ import {
   noteContainerRefAtom,
   noteIntersectionObserverAtom,
   noteSeenFileNodeKeysAtom,
-  previousMarkdownAtom,
 } from './atoms';
 import { isNoteMaximizedAtom } from '../../atoms';
 import { projectSettingsAtom } from '../../atoms';
@@ -77,7 +76,6 @@ export function NotesEditor({
   const [noteIntersectionObserver, setNoteIntersectionObserver] = useAtom(
     noteIntersectionObserverAtom
   );
-  const setPreviousMarkdown = useSetAtom(previousMarkdownAtom);
   const { isShowing: isAlbumShowing } = useAtomValue(albumDataAtom);
   const [seenFileNodeKeys, setSeenFileNodeKeys] = useAtom(
     noteSeenFileNodeKeysAtom

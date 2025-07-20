@@ -1,6 +1,8 @@
 package notes
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -262,13 +264,33 @@ func TestGetInternalLinksAndMediaAsSlice(t *testing.T) {
 }
 
 func TestCalculateInternalLinksDiff(t *testing.T) {
+	// Create a temporary directory for testing
+	tmpDir, err := os.MkdirTemp("", "bytebook_test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Setup test directory structure
+	notesDir := filepath.Join(tmpDir, "notes")
+	testFolder := "test-folder"
+	folderPath := filepath.Join(notesDir, testFolder)
+
+	err = os.MkdirAll(folderPath, 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test folder: %v", err)
+	}
+
 	t.Run("should identify newly added links", func(t *testing.T) {
 		previousMarkdown := "![Image1](./image1.png) [Link1](./page1.md)"
 		newMarkdown := "![Image1](./image1.png) [Link1](./page1.md) ![Image2](./image2.png) [Link2](./page2.md)"
 
-		added, removed := CalculateInternalLinksDiff(previousMarkdown, newMarkdown)
+		added, removed := CalculateInternalLinksDiff(tmpDir, testFolder, previousMarkdown, newMarkdown)
 
-		assert.Len(t, added, 2)
+		// Since no .attachments.json exists, all links are considered newly added
+		assert.Len(t, added, 4)
+		assert.Contains(t, added, "./image1.png")
+		assert.Contains(t, added, "./page1.md")
 		assert.Contains(t, added, "./image2.png")
 		assert.Contains(t, added, "./page2.md")
 		assert.Len(t, removed, 0)
@@ -278,9 +300,12 @@ func TestCalculateInternalLinksDiff(t *testing.T) {
 		previousMarkdown := "![Image1](./image1.png) [Link1](./page1.md) ![Image2](./image2.png) [Link2](./page2.md)"
 		newMarkdown := "![Image1](./image1.png) [Link1](./page1.md)"
 
-		added, removed := CalculateInternalLinksDiff(previousMarkdown, newMarkdown)
+		added, removed := CalculateInternalLinksDiff(tmpDir, testFolder, previousMarkdown, newMarkdown)
 
-		assert.Len(t, added, 0)
+		// Since no .attachments.json exists, remaining links are still considered newly added
+		assert.Len(t, added, 2)
+		assert.Contains(t, added, "./image1.png")
+		assert.Contains(t, added, "./page1.md")
 		assert.Len(t, removed, 2)
 		assert.Contains(t, removed, "./image2.png")
 		assert.Contains(t, removed, "./page2.md")
@@ -290,7 +315,7 @@ func TestCalculateInternalLinksDiff(t *testing.T) {
 		previousMarkdown := "![Image1](./image1.png) [Link1](./page1.md)"
 		newMarkdown := "![Image2](./image2.png) [Link2](./page2.md)"
 
-		added, removed := CalculateInternalLinksDiff(previousMarkdown, newMarkdown)
+		added, removed := CalculateInternalLinksDiff(tmpDir, testFolder, previousMarkdown, newMarkdown)
 
 		assert.Len(t, added, 2)
 		assert.Contains(t, added, "./image2.png")
@@ -303,14 +328,17 @@ func TestCalculateInternalLinksDiff(t *testing.T) {
 	t.Run("should handle no changes", func(t *testing.T) {
 		markdown := "![Image1](./image1.png) [Link1](./page1.md)"
 
-		added, removed := CalculateInternalLinksDiff(markdown, markdown)
+		added, removed := CalculateInternalLinksDiff(tmpDir, testFolder, markdown, markdown)
 
-		assert.Len(t, added, 0)
+		// Since no .attachments.json exists, links are still considered newly added
+		assert.Len(t, added, 2)
+		assert.Contains(t, added, "./image1.png")
+		assert.Contains(t, added, "./page1.md")
 		assert.Len(t, removed, 0)
 	})
 
 	t.Run("should handle empty markdown", func(t *testing.T) {
-		added, removed := CalculateInternalLinksDiff("", "")
+		added, removed := CalculateInternalLinksDiff(tmpDir, testFolder, "", "")
 
 		assert.Len(t, added, 0)
 		assert.Len(t, removed, 0)
@@ -320,7 +348,7 @@ func TestCalculateInternalLinksDiff(t *testing.T) {
 		previousMarkdown := "![External](https://example.com/image.png) [Internal](./page.md)"
 		newMarkdown := "![External2](https://example.com/image2.png) [Internal2](./page2.md)"
 
-		added, removed := CalculateInternalLinksDiff(previousMarkdown, newMarkdown)
+		added, removed := CalculateInternalLinksDiff(tmpDir, testFolder, previousMarkdown, newMarkdown)
 
 		assert.Len(t, added, 1)
 		assert.Contains(t, added, "./page2.md")

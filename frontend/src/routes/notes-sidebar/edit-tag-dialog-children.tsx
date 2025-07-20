@@ -5,7 +5,7 @@ import {
   useTagsForNotesQuery,
   useTagsQuery,
 } from '../../hooks/tags';
-import { extractInfoFromNoteName } from '../../utils/string-formatting';
+import { convertNoteNameToDotNotation } from '../../utils/string-formatting';
 import { IconButton, MotionButton } from '../../components/buttons';
 import { getDefaultButtonVariants } from '../../animations';
 import TagPlus from '../../icons/tag-plus';
@@ -39,9 +39,7 @@ export function EditTagDialogChildren({
     .filter((noteWithQueryParam) => noteWithQueryParam.startsWith('note:'))
     .map((noteWithQueryParam) => {
       const noteWithoutPrefix = noteWithQueryParam.split(':')[1];
-      const { noteNameWithoutExtension, queryParams } =
-        extractInfoFromNoteName(noteWithoutPrefix);
-      return `${noteNameWithoutExtension}.${queryParams.ext}`;
+      return convertNoteNameToDotNotation(noteWithoutPrefix);
     });
 
   // Track the counts of each tag for the notes that were selected to open this dialog
