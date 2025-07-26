@@ -34,7 +34,7 @@ export function KernelHeartbeat({
       <span
         className={cn(
           'rounded-full',
-          isBlinking && 'kernel-heartbeat',
+          isBlinking && heartbeat !== 'idle' && 'kernel-heartbeat',
           heartbeat === 'success' && 'bg-green-500 dark:bg-green-600',
           heartbeat === 'failure' && 'bg-red-600',
           heartbeat === 'idle' && 'bg-gray-500',

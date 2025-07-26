@@ -278,29 +278,38 @@ func (c *CodeService) SendCompleteRequest(language, codeBlockId, executionId, co
 	}
 }
 
+type SendInspectRequestResponse struct {
+	MessageId *string `json:"messageId"`
+}
+
 // SendInspectRequest sends an inspect_request message to the kernel.
-func (c *CodeService) SendInspectRequest(language, codeBlockId, executionId, code string, cursorPos, detailLevel int) config.BackendResponseWithoutData {
+func (c *CodeService) SendInspectRequest(language, codeBlockId, executionId, code string, cursorPos, detailLevel int) config.BackendResponseWithData[SendInspectRequestResponse] {
 	sockets := c.getLanguageSockets(language)
 	if sockets == nil || sockets.ShellSocketDealer == nil {
-		return config.BackendResponseWithoutData{
+		return config.BackendResponseWithData[SendInspectRequestResponse]{
 			Success: false,
 			Message: "Shell socket is not initialized. Unable to send inspection request.",
+			Data:    SendInspectRequestResponse{},
 		}
 	}
 
 	isHeartBeating := sockets.HeartbeatState.GetHeartbeatStatus()
 	if !isHeartBeating {
-		return config.BackendResponseWithoutData{
+		return config.BackendResponseWithData[SendInspectRequestResponse]{
 			Success: false,
 			Message: "The kernel is not running. Cannot send inspection request.",
+			Data:    SendInspectRequestResponse{},
 		}
 	}
+
+	// Generate a unique messageId by adding a timestamp to avoid duplicate signatures
+	messageId := fmt.Sprintf("%s|%s|inspect_%d", codeBlockId, executionId, time.Now().UnixNano())
 
 	err := jupyter_protocol.SendInspectRequest(
 		sockets.ShellSocketDealer,
 		jupyter_protocol.InspectRequestParams{
 			MessageParams: jupyter_protocol.MessageParams{
-				MessageID: fmt.Sprintf("%s|%s", codeBlockId, executionId),
+				MessageID: messageId,
 				SessionID: "current-session",
 			},
 			Code:        code,
@@ -310,15 +319,19 @@ func (c *CodeService) SendInspectRequest(language, codeBlockId, executionId, cod
 	)
 
 	if err != nil {
-		return config.BackendResponseWithoutData{
+		return config.BackendResponseWithData[SendInspectRequestResponse]{
 			Success: false,
 			Message: fmt.Sprintf("Failed to send inspection request: %v", err),
+			Data:    SendInspectRequestResponse{},
 		}
 	}
 
-	return config.BackendResponseWithoutData{
+	return config.BackendResponseWithData[SendInspectRequestResponse]{
 		Success: true,
 		Message: "Inspection request sent successfully",
+		Data: SendInspectRequestResponse{
+			MessageId: &messageId,
+		},
 	}
 }
 

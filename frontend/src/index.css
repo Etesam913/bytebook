@@ -233,6 +233,10 @@ h6.dragging {
   animation: none !important;
 }
 
+.cm-tooltip-custom {
+  @apply !bg-zinc-50 dark:bg-zinc-800! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-750! py-2 px-3 shadow-lg !border font-code text-xs max-h-[30vh] max-w-[60vw] overflow-y-auto;
+}
+
 .cm-tooltip-autocomplete {
   @apply !bg-zinc-50 dark:bg-zinc-800! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-750! !rounded-lg py-1.5 px-1 shadow-lg !border;
 }

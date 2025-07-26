@@ -260,6 +260,9 @@ func (s *shellSocket) Listen(
 					}
 					if dataRaw, ok := msg.Content["data"].(map[string]any); ok {
 						data = dataRaw
+						if text, ok := dataRaw["text/plain"].(string); ok {
+							data["text/plain"] = string(ansihtml.ConvertToHTML([]byte(text)))
+						}
 					}
 					if metadataRaw, ok := msg.Content["metadata"].(map[string]any); ok {
 						metadata = metadataRaw

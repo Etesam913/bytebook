@@ -16,6 +16,7 @@ import {
   useSendInterruptRequestMutation,
   useCompletionSource,
   useTurnOnKernelMutation,
+  useInspectTooltip,
 } from '../../hooks/code';
 import { getCodemirrorKeymap } from '../../utils/code';
 import { focusEditor, languageToSettings } from '.';
@@ -30,6 +31,12 @@ import { useEffect } from 'react';
 
 // Map to store pending completion promises by messageId
 const pendingCompletions = new Map<string, (data: CompletionData) => void>();
+
+// Map to store pending inspection promises by messageId
+const pendingInspections = new Map<
+  string,
+  (data: { found: boolean; messageId: string; message: string }) => void
+>();
 
 export function CodeMirrorEditor({
   nodeKey,
@@ -78,6 +85,13 @@ export function CodeMirrorEditor({
     executionId,
     language,
     pendingCompletions
+  );
+
+  const inspectTooltip = useInspectTooltip(
+    language,
+    id,
+    executionId,
+    pendingInspections
   );
 
   const debouncedSetCode = debounce(setCode, 300);
@@ -166,6 +180,7 @@ export function CodeMirrorEditor({
             // to the language object, so we need to attach it to the autocompletion extension
             override: cmLanguageObject ? undefined : [completionSource],
           }),
+          inspectTooltip,
         ]}
         theme={isDarkModeOn ? nord : vscodeLight}
         onKeyDown={(e) => {
