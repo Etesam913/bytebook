@@ -34,6 +34,7 @@ import { useUpdateProjectSettingsMutation } from './project-settings';
 import { Dispatch, FormEvent, SetStateAction, useRef } from 'react';
 import { CompletionContext, CompletionResult } from '@codemirror/autocomplete';
 import { hoverTooltip, Tooltip } from '@uiw/react-codemirror';
+import { Browser } from '@wailsio/runtime';
 
 /**
  * Hook that listens for kernel status updates and updates the kernels data atom.
@@ -908,6 +909,18 @@ export function useInspectTooltip(
                 const dom = document.createElement('div');
                 dom.className = 'cm-tooltip-custom';
                 dom.innerHTML = tooltipData.message;
+
+                dom.addEventListener('click', (e) => {
+                  // find the nearest <a> (in case they click a child node)
+                  const a = (e.target as HTMLElement).closest('a');
+                  if (!a) return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  Browser.OpenURL(a.href).catch(() => {
+                    toast.error('Failed to open link', DEFAULT_SONNER_OPTIONS);
+                  });
+                });
+
                 return { dom };
               },
             });

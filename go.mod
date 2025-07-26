@@ -13,6 +13,7 @@ require (
 
 require (
 	github.com/robert-nix/ansihtml v1.0.1
+	github.com/yuin/goldmark v1.7.8
 	golang.org/x/text v0.23.0
 )
 

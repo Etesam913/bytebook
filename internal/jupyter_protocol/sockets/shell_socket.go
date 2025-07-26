@@ -1,6 +1,7 @@
 package sockets
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -12,6 +13,7 @@ import (
 	"github.com/pebbe/zmq4"
 	"github.com/robert-nix/ansihtml"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/yuin/goldmark"
 )
 
 type shellSocket struct {
@@ -262,6 +264,15 @@ func (s *shellSocket) Listen(
 						data = dataRaw
 						if text, ok := dataRaw["text/plain"].(string); ok {
 							data["text/plain"] = string(ansihtml.ConvertToHTML([]byte(text)))
+						}
+						if markdown, ok := dataRaw["text/markdown"].(string); ok {
+							markdownConverter := goldmark.New()
+							var buf bytes.Buffer
+							if err := markdownConverter.Convert([]byte(markdown), &buf); err != nil {
+								log.Printf("⚠️ Error converting markdown: %v", err)
+								continue
+							}
+							data["text/markdown"] = buf.String()
 						}
 					}
 					if metadataRaw, ok := msg.Content["metadata"].(map[string]any); ok {
