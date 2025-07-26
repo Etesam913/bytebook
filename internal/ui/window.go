@@ -23,8 +23,8 @@ func CreateWindow(app *application.App, url string, backgroundColor application.
 				FullscreenEnabled: u.True,
 			},
 		},
-		EnableDragAndDrop:       true,
-		BackgroundColour:        backgroundColor,
-		FullscreenButtonEnabled: true,
+		EnableDragAndDrop:  true,
+		BackgroundColour:   backgroundColor,
+		ZoomControlEnabled: false,
 	}).Show()
 }

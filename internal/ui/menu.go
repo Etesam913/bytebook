@@ -73,6 +73,7 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 		return
 	}
 	sub := item.GetSubmenu()
+
 	search := sub.Add("Search")
 	search.SetAccelerator("cmdorctrl+p")
 	search.OnClick(func(ctx *application.Context) {
@@ -84,5 +85,29 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 				"Current window could not be found: search:open-panel event could not be emitted",
 			)
 		}
+	})
+
+	// Remove the default zoom in and out as it uses magnification instead of document.style.zoom
+	zoomIn := sub.FindByLabel("Zoom In")
+	if zoomIn != nil {
+		sub.RemoveMenuItem(zoomIn)
+
+	}
+	zoomOut := sub.FindByLabel("Zoom Out")
+	if zoomOut != nil {
+		sub.RemoveMenuItem(zoomOut)
+	}
+
+	// Adds the new zoom in and out which will use document.style.zoom
+	zoomIn = sub.Add("Zoom In")
+	zoomIn.SetAccelerator("cmdorctrl+plus")
+	zoomIn.OnClick(func(ctx *application.Context) {
+		app.Event.Emit("zoom:in")
+	})
+
+	zoomOut = sub.Add("Zoom Out")
+	zoomOut.SetAccelerator("cmdorctrl+-")
+	zoomOut.OnClick(func(ctx *application.Context) {
+		app.Event.Emit("zoom:out")
 	})
 }

@@ -66,6 +66,7 @@ func main() {
 	defer goCtxCancel()
 	defer javascriptCtxCancel()
 	defer javaCtxCancel()
+
 	app := application.New(application.Options{
 		Name:        "bytebook",
 		Description: "A simple note taking app.",

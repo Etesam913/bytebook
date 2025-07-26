@@ -3,6 +3,35 @@ import { COMMAND_PRIORITY_LOW, type LexicalEditor } from 'lexical';
 import { type Dispatch, type SetStateAction, useEffect, useState } from 'react';
 import type { ResizeState } from '../types';
 import { EXPAND_CONTENT_COMMAND } from '../utils/commands';
+import { useWailsEvent } from './events';
+
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 2.0;
+const ZOOM_STEP = 0.1;
+
+/**
+ * React hook that listens for Wails "zoom:in" and "zoom:out" events
+ * and adjusts the document body's zoom level accordingly.
+ *
+ * - "zoom:in" increases zoom by ZOOM_STEP up to MAX_ZOOM.
+ * - "zoom:out" decreases zoom by ZOOM_STEP down to MIN_ZOOM.
+ *
+ * Usage: Call this hook once in your app's root component to enable
+ * menu-driven zoom in/out functionality.
+ */
+export function useZoom() {
+  useWailsEvent('zoom:in', () => {
+    const currentZoom = parseFloat(document.body.style.zoom) || 1;
+    const newZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);
+    document.body.style.zoom = newZoom.toString();
+  });
+
+  useWailsEvent('zoom:out', () => {
+    const currentZoom = parseFloat(document.body.style.zoom) || 1;
+    const newZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
+    document.body.style.zoom = newZoom.toString();
+  });
+}
 
 export function useResizeState(): ResizeState {
   const [isResizing, setIsResizing] = useState(false);
