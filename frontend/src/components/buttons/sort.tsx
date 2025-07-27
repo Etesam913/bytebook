@@ -96,7 +96,7 @@ export function SortButton({
   return (
     <div className="relative flex" ref={dropdownContainerRef}>
       <DropdownItems
-        className="w-[13rem] translate-y-[2.25rem] translate-x-[-11rem]"
+        className="w-fit translate-y-[2.25rem] right-0 "
         isOpen={isSortOptionsOpen}
         setIsOpen={setIsSortOptionsOpen}
         setFocusIndex={setFocusIndex}

@@ -6,6 +6,10 @@ import { useUpdateProjectSettingsMutation } from '../../../hooks/project-setting
 import { useSearchParamsEntries } from '../../../utils/routing';
 import { SettingsRow } from '../settings-row';
 import { SettingImage } from '.';
+import cardSidebarItemDark from '../../../assets/images/card-sidebar-item-dark-mode.webp';
+import cardSidebarItemLight from '../../../assets/images/card-sidebar-item-light-mode.webp';
+import listSidebarItemDark from '../../../assets/images/list-sidebar-item-dark-mode.webp';
+import listSidebarItemLight from '../../../assets/images/list-sidebar-item-light-mode.webp';
 
 export function NoteSidebarItemSizeRow() {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
@@ -35,11 +39,7 @@ export function NoteSidebarItemSizeRow() {
             });
           }}
           imgAlt="Card sidebar item type"
-          imgSrc={
-            isDarkModeOn
-              ? 'https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/card-sidebar-item-dark-mode.webp'
-              : 'https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/card-sidebar-item-light-mode.webp'
-          }
+          imgSrc={isDarkModeOn ? cardSidebarItemDark : cardSidebarItemLight}
           label="Card"
         />
 
@@ -58,11 +58,7 @@ export function NoteSidebarItemSizeRow() {
             });
           }}
           imgAlt="List sidebar item type"
-          imgSrc={
-            isDarkModeOn
-              ? 'https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/list-sidebar-item-dark-mode.webp'
-              : 'https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/list-sidebar-item-light-mode.webp'
-          }
+          imgSrc={isDarkModeOn ? listSidebarItemDark : listSidebarItemLight}
           label="List"
         />
       </div>

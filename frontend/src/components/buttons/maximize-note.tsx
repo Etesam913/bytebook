@@ -30,8 +30,6 @@ export function MaximizeNoteButton({
       <SidebarRightCollapse
         className="will-change-transform"
         title={isNoteMaximized ? 'Minimize' : 'Maximize'}
-        height="1.4rem"
-        width="1.4rem"
       />
     </MotionIconButton>
   );

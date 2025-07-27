@@ -198,7 +198,7 @@ export function Code({
         </Suspense>
       </span>
 
-      <div className="translate-x-7 absolute text-zinc-400 right-1">
+      <div className="translate-x-[24px] absolute text-zinc-400 right-1">
         {languageToSettings[language].icon}
       </div>
     </div>

@@ -28,7 +28,7 @@ export function RenderNoteIcon({
       return (
         <FilePen
           title="Editing Note"
-          className="min-w-5 pointer-events-none"
+          className="min-w-[20px] pointer-events-none"
           height={iconSize}
           width={iconSize}
         />
@@ -37,7 +37,7 @@ export function RenderNoteIcon({
     return (
       <Note
         title="Note"
-        className="min-w-5 pointer-events-none"
+        className="min-w-[20px] pointer-events-none"
         height={iconSize}
         width={iconSize}
       />
@@ -48,7 +48,7 @@ export function RenderNoteIcon({
     return (
       <PDFIcon
         title="PDF"
-        className="min-w-5 pointer-events-none"
+        className="min-w-[20px] pointer-events-none"
         height={iconSize}
         width={iconSize}
       />
@@ -59,7 +59,7 @@ export function RenderNoteIcon({
     return (
       <ImageIcon
         title="Image"
-        className="min-w-5 pointer-events-none"
+        className="min-w-[20px] pointer-events-none"
         height={iconSize}
         width={iconSize}
       />
@@ -70,7 +70,7 @@ export function RenderNoteIcon({
     return (
       <VideoIcon
         title="Video"
-        className="min-w-5 pointer-events-none"
+        className="min-w-[20px] pointer-events-none"
         height={iconSize}
         width={iconSize}
       />
@@ -80,7 +80,7 @@ export function RenderNoteIcon({
   return (
     <FileBan
       title="Note Not Supported"
-      className="min-w-5 pointer-events-none"
+      className="min-w-[20px] pointer-events-none"
       height={iconSize}
       width={iconSize}
     />

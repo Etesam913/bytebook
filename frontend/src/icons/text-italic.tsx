@@ -1,13 +1,13 @@
 export function TextItalic({
-  width = '1.25rem',
-  height = '1.25rem',
+  height = 16,
+  width = 16,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
   title = 'text-italic',
   className,
 }: {
-  width?: string;
-  height?: string;
+  width?: number;
+  height?: number;
   fill?: string;
   secondaryfill?: string;
   title?: string;
@@ -16,7 +16,8 @@ export function TextItalic({
   return (
     <svg
       className={className}
-      style={{ width, height }}
+      height={height}
+      width={width}
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >

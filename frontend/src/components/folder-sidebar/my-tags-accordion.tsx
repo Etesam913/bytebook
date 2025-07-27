@@ -15,6 +15,7 @@ import { TagDialogChildren } from './tag-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
 import { useQuery } from '@tanstack/react-query';
 import { GetPreviewForTag } from '../../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
+import { CURRENT_ZOOM } from '../../hooks/resize';
 
 export function MyTagsAccordion() {
   const [isOpen, setIsOpen] = useState(false);
@@ -131,8 +132,8 @@ function TagAccordionButton({
           itemName: sidebarTagName,
         });
         setContextMenuData({
-          x: e.clientX,
-          y: e.clientY,
+          x: e.clientX / CURRENT_ZOOM,
+          y: e.clientY / CURRENT_ZOOM,
           isShowing: true,
           items: [
             {

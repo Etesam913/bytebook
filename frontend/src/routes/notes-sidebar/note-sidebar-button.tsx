@@ -40,6 +40,7 @@ import { ListNoteSidebarItem } from './list-note-sidebar-item';
 import { navigate } from 'wouter/use-browser-location';
 import { EditTagDialogChildren } from './edit-tag-dialog-children';
 import { RenameFileDialogChildren } from './rename-file-dialog-children';
+import { CURRENT_ZOOM } from '../../hooks/resize';
 
 export function NoteSidebarButton({
   sidebarNoteFolder,
@@ -151,8 +152,8 @@ export function NoteSidebarButton({
         );
 
         setContextMenuData({
-          x: e.clientX,
-          y: e.clientY,
+          x: e.clientX / CURRENT_ZOOM,
+          y: e.clientY / CURRENT_ZOOM,
           isShowing: true,
           items: [
             {

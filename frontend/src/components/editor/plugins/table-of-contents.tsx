@@ -56,7 +56,7 @@ function TableOfContentsElement({
   });
 
   return (
-    <section className="border border-zinc-200 dark:border-zinc-600 rounded-md px-3 pb-2 pt-1 mb-3">
+    <section className="border border-zinc-200 dark:border-zinc-600 rounded-md px-3 pb-2 pt-1 mb-3 text-base/10">
       <h3>Table of Contents</h3>
       {contentElements.length > 0 ? (
         <ul>{contentElements}</ul>

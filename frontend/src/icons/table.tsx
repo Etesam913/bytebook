@@ -1,13 +1,13 @@
 export function Table({
   fill = 'currentColor',
-  width = '1.25rem',
-  height = '1.25rem',
+  width = 20,
+  height = 20,
   title = 'Table',
   className,
 }: {
   fill?: string;
-  width?: string;
-  height?: string;
+  width?: number;
+  height?: number;
   title?: string;
   className?: string;
 }) {

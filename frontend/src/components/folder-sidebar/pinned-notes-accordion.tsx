@@ -12,6 +12,7 @@ import { PinTack2 } from '../../icons/pin-tack-2';
 import { PinTackSlash } from '../../icons/pin-tack-slash';
 import { AccordionButton } from '../sidebar/accordion-button';
 import { AccordionItem } from '../sidebar/accordion-item';
+import { CURRENT_ZOOM } from '../../hooks/resize';
 
 const SIDEBAR_ITEM_HEIGHT = 28;
 const VIRUTALIZATION_HEIGHT = 8;
@@ -60,8 +61,8 @@ function VirtualizedPinnedNotes({
       <AccordionItem
         onContextMenu={(e) => {
           setContextMenuData({
-            x: e.clientX,
-            y: e.clientY,
+            x: e.clientX / CURRENT_ZOOM,
+            y: e.clientY / CURRENT_ZOOM,
             isShowing: true,
             items: [
               {

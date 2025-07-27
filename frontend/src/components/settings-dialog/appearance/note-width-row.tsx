@@ -3,6 +3,10 @@ import { SettingImage } from '.';
 import { isDarkModeOnAtom, projectSettingsAtom } from '../../../atoms';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
 import { SettingsRow } from '../settings-row';
+import fullWidthDark from '../../../assets/images/full-width-dark.webp';
+import fullWidthLight from '../../../assets/images/full-width-light.webp';
+import readabilityWidthDark from '../../../assets/images/readability-width-dark.webp';
+import readabilityWidthLight from '../../../assets/images/readability-width-light.webp';
 
 export function NoteWidthRow() {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
@@ -26,11 +30,7 @@ export function NoteWidthRow() {
             });
           }}
           imgAlt="Full Width Option"
-          imgSrc={
-            isDarkModeOn
-              ? 'https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/full-width-dark.webp'
-              : 'https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/full-width-light.webp'
-          }
+          imgSrc={isDarkModeOn ? fullWidthDark : fullWidthLight}
           label="Full Width"
         />
         <SettingImage
@@ -47,11 +47,7 @@ export function NoteWidthRow() {
             });
           }}
           imgAlt="Readability Width Option"
-          imgSrc={
-            isDarkModeOn
-              ? 'https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/readability-width-dark.webp'
-              : 'https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/readability-width-light.webp'
-          }
+          imgSrc={isDarkModeOn ? readabilityWidthDark : readabilityWidthLight}
           label="Readability Width"
         />
       </div>

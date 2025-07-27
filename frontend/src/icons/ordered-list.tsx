@@ -1,12 +1,12 @@
 export function OrderedList({
-  width = '1.25rem',
-  height = '1.25rem',
+  width = 16,
+  height = 16,
   fill = 'currentColor',
   title = 'list-checkbox',
   className,
 }: {
-  width?: string;
-  height?: string;
+  width?: number;
+  height?: number;
   fill?: string;
   title?: string;
   className?: string;
@@ -14,7 +14,8 @@ export function OrderedList({
   return (
     <svg
       className={className}
-      style={{ width, height }}
+      height={height}
+      width={width}
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >

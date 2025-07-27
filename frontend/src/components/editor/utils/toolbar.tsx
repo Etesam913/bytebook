@@ -308,7 +308,7 @@ export const listCommandData = [
   },
   {
     block: 'ol',
-    icon: <OrderedList className="will-change-transform" />,
+    icon: <OrderedList className="will-change-transform w-6 h-6" />,
     command: INSERT_ORDERED_LIST_COMMAND,
     title: 'Ordered List',
     customDisabled: undefined,

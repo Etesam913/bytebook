@@ -178,7 +178,7 @@ export function NotesEditor({
           className={cn(
             'h-full relative py-6 px-12  flex-1 w-full flex flex-col',
             projectSettings.appearance.noteWidth === 'readability' &&
-              'max-w-[44rem] mx-auto'
+              'max-w-[704px] mx-auto'
           )}
         >
           <NoteTitle folder={folder} note={note} />

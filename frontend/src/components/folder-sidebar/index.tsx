@@ -74,7 +74,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
             {...getDefaultButtonVariants()}
             onClick={() => window.location.reload()}
           >
-            <RefreshAnticlockwise className="min-w-4 h-4" />
+            <RefreshAnticlockwise className="h-4 w-4" />
           </MotionIconButton>
         </header>
         <section className="px-2.5 pt-[1rem]">

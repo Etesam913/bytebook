@@ -3,6 +3,9 @@ import { projectSettingsAtom } from '../../../atoms';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
 import { cn } from '../../../utils/string-formatting';
 import { SettingsRow } from '../settings-row';
+import lightMode from '../../../assets/images/light-mode.jpg';
+import darkMode from '../../../assets/images/dark-mode.jpg';
+import lightAndDarkMode from '../../../assets/images/light-and-dark-mode.jpg';
 
 function ThemeButton({
   label,
@@ -49,7 +52,7 @@ export function ThemeRow() {
       <div className="flex gap-3">
         <ThemeButton
           label="Light"
-          imgSrc="https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/light-mode.jpg"
+          imgSrc={lightMode}
           imgAlt="light mode"
           onClick={() => {
             updateProjectSettings({
@@ -66,7 +69,7 @@ export function ThemeRow() {
         />
         <ThemeButton
           label="Dark"
-          imgSrc="https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/dark-mode.jpg"
+          imgSrc={darkMode}
           imgAlt="dark mode"
           onClick={() => {
             updateProjectSettings({
@@ -83,7 +86,7 @@ export function ThemeRow() {
         />
         <ThemeButton
           label="System"
-          imgSrc="https://bytebook.nyc3.cdn.digitaloceanspaces.com/color-scheme/light-and-dark-mode.jpg"
+          imgSrc={lightAndDarkMode}
           imgAlt="light and dark mode"
           onClick={() => {
             updateProjectSettings({

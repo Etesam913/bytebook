@@ -6,6 +6,7 @@ import { EXPAND_CONTENT_COMMAND } from '../utils/commands';
 import { useWailsEvent } from './events';
 
 const MIN_ZOOM = 0.5;
+export let CURRENT_ZOOM = 1;
 const MAX_ZOOM = 2.0;
 const ZOOM_STEP = 0.1;
 
@@ -23,12 +24,14 @@ export function useZoom() {
   useWailsEvent('zoom:in', () => {
     const currentZoom = parseFloat(document.body.style.zoom) || 1;
     const newZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);
+    CURRENT_ZOOM = newZoom;
     document.body.style.zoom = newZoom.toString();
   });
 
   useWailsEvent('zoom:out', () => {
     const currentZoom = parseFloat(document.body.style.zoom) || 1;
     const newZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
+    CURRENT_ZOOM = newZoom;
     document.body.style.zoom = newZoom.toString();
   });
 }

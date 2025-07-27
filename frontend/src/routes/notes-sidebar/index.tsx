@@ -55,8 +55,8 @@ export function NotesSidebar({
           >
             <div className="flex h-full flex-col overflow-y-auto relative">
               <header className="pl-1.5 pr-2.5">
-                <section className="flex items-center min-h-[3.625rem] gap-2">
-                  <Folder className="min-w-[1.25rem]" width={20} height={20} />{' '}
+                <section className="flex items-center py-3.5 gap-2">
+                  <Folder className="min-w-[20px]" />{' '}
                   <p className="overflow-hidden text-ellipsis whitespace-nowrap">
                     {decodeURIComponent(folder)}
                   </p>
@@ -84,7 +84,7 @@ export function NotesSidebar({
                       })
                     }
                   >
-                    <Pen className="w-full" />
+                    <Pen />
                   </MotionIconButton>
                 </section>
                 <MotionButton

@@ -44,7 +44,7 @@ export function TagsSidebar({
             className="text-md flex h-screen flex-col pb-3.5"
           >
             <div className="flex h-full flex-col overflow-y-auto relative">
-              <header className="pl-1.5 pr-2.5 flex items-center min-h-[3.625rem] gap-2">
+              <header className="pl-1.5 pr-2.5 flex items-center py-3.5 gap-2">
                 <TagIcon className="min-w-[1.25rem]" width={20} height={20} />
                 {tagName}
               </header>

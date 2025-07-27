@@ -228,7 +228,7 @@ export function ToolbarButtons({
     ({ icon, onClick, key, customDisabled }, i) => {
       return (
         <div
-          className="relative flex items-center justify-center px-[0.075rem] h-fit w-fit"
+          className="relative flex items-center justify-center px-[0.075rem]"
           key={key}
         >
           <AnimatePresence>

@@ -24,6 +24,7 @@ import {
   useTurnOnKernelMutation,
 } from '../../hooks/code';
 import { isValidKernelLanguage, Languages, validLanguages } from '../../types';
+import { CURRENT_ZOOM } from '../../hooks/resize';
 
 export function MyKernelsAccordion() {
   const [isOpen, setIsOpen] = useState(false);
@@ -143,8 +144,8 @@ function KernelAccordionButton({
           onlyOne: true,
         });
         setContextMenuData({
-          x: e.clientX,
-          y: e.clientY,
+          x: e.clientX / CURRENT_ZOOM,
+          y: e.clientY / CURRENT_ZOOM,
           isShowing: true,
           items: [
             {

@@ -30,6 +30,7 @@ import { AccordionButton } from '../sidebar/accordion-button';
 import { handleDragStart } from '../sidebar/utils';
 import { FolderDialogChildren } from './folder-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
+import { CURRENT_ZOOM } from '../../hooks/resize';
 
 export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
   const [isOpen, setIsOpen] = useState(true);
@@ -227,8 +228,8 @@ function FolderAccordionButton({
           itemName: sidebarFolderName,
         });
         setContextMenuData({
-          x: e.clientX,
-          y: e.clientY,
+          x: e.clientX / CURRENT_ZOOM,
+          y: e.clientY / CURRENT_ZOOM,
           isShowing: true,
           items: [
             {

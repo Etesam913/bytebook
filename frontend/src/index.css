@@ -147,6 +147,10 @@ textarea,
   outline: 2px auto;
 }
 
+#content-editable-editor {
+  line-height: 28px;
+}
+
 #content-editable-editor > h1,
 h1.dragging {
   @apply text-3xl leading-[3.25rem];
@@ -238,7 +242,7 @@ h6.dragging {
 }
 
 .cm-tooltip-autocomplete {
-  @apply !bg-zinc-50/85 dark:bg-zinc-800! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-750! !rounded-lg py-1.5 px-1 shadow-lg !border;
+  @apply !bg-zinc-50/85 dark:bg-zinc-800/95! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-750! !rounded-lg py-1.5 px-1 shadow-lg !border;
 }
 
 .cm-tooltip-autocomplete > ul > li {
