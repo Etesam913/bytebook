@@ -11,6 +11,7 @@ import (
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol/sockets"
 	"github.com/etesam913/bytebook/internal/notes"
+	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/services"
 	"github.com/etesam913/bytebook/internal/ui"
 	"github.com/fsnotify/fsnotify"
@@ -56,6 +57,11 @@ func main() {
 	}
 	// Launches the file server for video/image files to be served to the frontend
 	go notes.LaunchFileServer(projectPath)
+	searchIndex, err := search.OpenOrCreateIndex(projectPath)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer searchIndex.Close()
 
 	// Create separate contexts for Python and Go kernels
 	pythonCtx, pythonCtxCancel := context.WithCancel(context.Background())
