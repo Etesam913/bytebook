@@ -4,10 +4,33 @@ import (
 	"path/filepath"
 
 	"github.com/blevesearch/bleve/v2"
+	"github.com/blevesearch/bleve/v2/mapping"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
 var INDEX_NAME = "index.bleve"
+var MARKDOWN_NOTE_TYPE = "markdown_note"
+var ATTACHMENT_TYPE = "attachment"
+
+type MarkdownNoteBleveDocument struct {
+	Title                 string
+	Folder                string
+	FileName              string
+	FileExtension         string
+	TextContent           string
+	CodeContent           []string
+	GoCodeContent         []string
+	JavaCodeContent       []string
+	PythonCodeContent     []string
+	JavaScriptCodeContent []string
+	HasDrawing            bool
+	HasCode               bool
+}
+
+type AttachmentBleveDocument struct {
+	FileName      string
+	FileExtension string
+}
 
 // GetPathToIndex returns the full path to the search index file for a given project.
 // It combines the project path with the notes directory and the index filename.
@@ -26,7 +49,10 @@ func doesIndexExist(projectPath string) bool {
 // It returns the created index or an error if the creation fails.
 func createIndex(projectPath string) (bleve.Index, error) {
 	pathToIndex := GetPathToIndex(projectPath)
-	index, err := bleve.New(pathToIndex, bleve.NewIndexMapping())
+	indexMapping := bleve.NewIndexMapping()
+	indexMapping.AddDocumentMapping(MARKDOWN_NOTE_TYPE, createMarkdownNoteDocumentMapping())
+	indexMapping.AddDocumentMapping(ATTACHMENT_TYPE, createAttachmentDocumentMapping())
+	index, err := bleve.New(pathToIndex, indexMapping)
 	if err != nil {
 		return nil, err
 	}
@@ -52,4 +78,44 @@ func OpenOrCreateIndex(projectPath string) (bleve.Index, error) {
 		return nil, err
 	}
 	return index, nil
+}
+
+// createMarkdownNoteDocumentMapping creates a Bleve document mapping for markdown notes.
+// It defines field mappings for all the fields in MarkdownNoteBleveDocument to enable
+// proper indexing and searching of markdown note content.
+func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
+	documentMapping := bleve.NewDocumentMapping()
+
+	proseTextFieldMapping := bleve.NewTextFieldMapping()
+	proseTextFieldMapping.Analyzer = "en"
+
+	keywordTextFieldMapping := bleve.NewTextFieldMapping()
+	keywordTextFieldMapping.Analyzer = "keyword"
+
+	documentMapping.AddFieldMappingsAt("title", proseTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("folder", keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("file_name", keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("file_extension", keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("text_content", proseTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("code_content", proseTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("go_code_content", proseTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("java_code_content", proseTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("python_code_content", proseTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("javascript_code_content", proseTextFieldMapping)
+	documentMapping.AddFieldMappingsAt("has_drawing", bleve.NewBooleanFieldMapping())
+	documentMapping.AddFieldMappingsAt("has_code", bleve.NewBooleanFieldMapping())
+
+	return documentMapping
+}
+
+// createAttachmentDocumentMapping creates a Bleve document mapping for attachments.
+// It defines field mappings for all the fields in AttachmentBleveDocument to enable
+// proper indexing and searching of attachment metadata.
+func createAttachmentDocumentMapping() *mapping.DocumentMapping {
+	documentMapping := bleve.NewDocumentMapping()
+
+	documentMapping.AddFieldMappingsAt("file_name", bleve.NewTextFieldMapping())
+	documentMapping.AddFieldMappingsAt("file_extension", bleve.NewTextFieldMapping())
+
+	return documentMapping
 }
