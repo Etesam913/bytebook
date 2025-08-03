@@ -6,13 +6,16 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/notes"
+	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
 type NoteService struct {
 	ProjectPath string
+	SearchIndex bleve.Index
 }
 
 // GetNotes returns a list of note filenames (with extension as a query param) in the specified folder,
@@ -179,11 +182,11 @@ func (n *NoteService) GetNoteMarkdown(path string) config.BackendResponseWithDat
 }
 
 // SetNoteMarkdown writes the provided markdown string to the note file specified by folderName and noteTitle.
+// It also indexes the note in the search index.
 // Returns a BackendResponseWithData indicating success or failure.
 func (n *NoteService) SetNoteMarkdown(
 	folderName string,
 	noteTitle string,
-	previousMarkdown string,
 	markdown string,
 ) config.BackendResponseWithData[string] {
 	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, fmt.Sprintf("%s.md", noteTitle))
@@ -197,28 +200,28 @@ func (n *NoteService) SetNoteMarkdown(
 		}
 	}
 
-	// Calculate the differences in internal links
-	newlyAddedLinks, newlyRemovedLinks := notes.CalculateInternalLinksDiff(
-		n.ProjectPath,
-		folderName,
-		previousMarkdown,
-		markdown,
-	)
-	fmt.Println("newlyAddedLinks:", newlyAddedLinks)
-	fmt.Println("newlyRemovedLinks:", newlyRemovedLinks)
-
-	// Add newly added links to attachments
-	for _, link := range newlyAddedLinks {
-		segments := strings.Split(filepath.Dir(link), "/")
-		folderOfAttachment := segments[len(segments)-1]
-		notes.AddNoteToAttachment(n.ProjectPath, folderOfAttachment, link, fmt.Sprintf("%s/%s.md", folderName, noteTitle))
+	noteId, ok := notes.GetIdFromFrontmatter(markdown)
+	if !ok {
+		return config.BackendResponseWithData[string]{
+			Success: false,
+			Message: "Note ID not found in frontmatter",
+			Data:    "",
+		}
 	}
 
-	// Remove newly deleted links from attachments
-	for _, link := range newlyRemovedLinks {
-		segments := strings.Split(filepath.Dir(link), "/")
-		folderOfAttachment := segments[len(segments)-1]
-		notes.RemoveNoteFromAttachment(n.ProjectPath, folderOfAttachment, link, fmt.Sprintf("%s/%s.md", folderName, noteTitle))
+	bleveMarkdownDocument := search.CreateMarkdownNoteBleveDocument(
+		markdown,
+		folderName,
+		noteTitle,
+	)
+
+	err = n.SearchIndex.Index(noteId, bleveMarkdownDocument)
+	if err != nil {
+		return config.BackendResponseWithData[string]{
+			Success: false,
+			Message: fmt.Sprintf("Error indexing note %s: %v", noteId, err),
+			Data:    "",
+		}
 	}
 
 	return config.BackendResponseWithData[string]{

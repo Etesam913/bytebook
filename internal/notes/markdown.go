@@ -3,8 +3,10 @@ package notes
 import (
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/etesam913/bytebook/internal/util"
+	"gopkg.in/yaml.v3"
 )
 
 // Regex patterns used throughout the package
@@ -20,6 +22,14 @@ var (
 	FRONTMATTER_REGEX = regexp.MustCompile(`(?s)^---.*?---\s*`)
 	HTML_TAG_REGEX    = regexp.MustCompile(`<[^>]*>`)
 	HEADER_REGEX      = regexp.MustCompile(`^#+\s+`)
+
+	// Language-specific code block patterns
+	CODE_BLOCK_WITH_LANG_REGEX  = regexp.MustCompile("(?s)```([a-zA-Z0-9_+-]*)\n(.*?)```")
+	GO_CODE_BLOCK_REGEX         = regexp.MustCompile("(?s)```go\n(.*?)```")
+	JAVA_CODE_BLOCK_REGEX       = regexp.MustCompile("(?s)```java\n(.*?)```")
+	PYTHON_CODE_BLOCK_REGEX     = regexp.MustCompile("(?s)```python\n(.*?)```")
+	JAVASCRIPT_CODE_BLOCK_REGEX = regexp.MustCompile("(?s)```(?:javascript|js)\n(.*?)```")
+	DRAWING_CODE_BLOCK_REGEX    = regexp.MustCompile("(?s)```drawing\n(.*?)```")
 )
 
 // URL Management Functions
@@ -162,10 +172,10 @@ func UpdateNoteNameOfInternalLinksAndMedia(markdown string, folderName string, n
 	return markdown
 }
 
-// IsInternalURL determines if a URL is considered internal.
+// isInternalURL determines if a URL is considered internal.
 // Internal URLs include relative paths, localhost URLs, and non-HTTP protocols.
 // External HTTP/HTTPS URLs (except localhost) are considered external.
-func IsInternalURL(url string) bool {
+func isInternalURL(url string) bool {
 	url = strings.TrimSpace(url)
 
 	if url == "" {
@@ -213,7 +223,7 @@ func GetInternalLinksAndMedia(markdown string) util.Set[string] {
 	for _, match := range mediaMatches {
 		if len(match) >= 3 {
 			url := strings.TrimSpace(match[2])
-			if IsInternalURL(url) {
+			if isInternalURL(url) {
 				urlSet.Add(url)
 			}
 		}
@@ -224,7 +234,7 @@ func GetInternalLinksAndMedia(markdown string) util.Set[string] {
 	for _, match := range linkMatches {
 		if len(match) >= 3 {
 			url := strings.TrimSpace(match[2])
-			if IsInternalURL(url) {
+			if isInternalURL(url) {
 				urlSet.Add(url)
 			}
 		}
@@ -273,8 +283,8 @@ func CalculateInternalLinksDiff(projectPath, folderOfNote, previousMarkdown, new
 
 // Content Filtering Functions
 
-// ExcludeMediaTags removes image and video markdown syntax from content.
-func ExcludeMediaTags(markdown string) string {
+// excludeMediaTags removes image and video markdown syntax from content.
+func excludeMediaTags(markdown string) string {
 	// Remove image markdown syntax
 	content := IMAGE_REGEX.ReplaceAllString(markdown, "")
 	// Remove video markdown syntax
@@ -282,8 +292,8 @@ func ExcludeMediaTags(markdown string) string {
 	return content
 }
 
-// ExcludeCodeBlocks removes all code blocks (``` or ~~~ delimited) from markdown.
-func ExcludeCodeBlocks(markdown string) string {
+// excludeCodeBlocks removes all code blocks (``` or ~~~ delimited) from markdown.
+func excludeCodeBlocks(markdown string) string {
 	// Find and replace all code blocks with empty string
 	codeBlocks := CODE_BLOCK_REGEX.FindAllString(markdown, -1)
 	for _, block := range codeBlocks {
@@ -292,14 +302,14 @@ func ExcludeCodeBlocks(markdown string) string {
 	return strings.TrimSpace(markdown)
 }
 
-// ExcludeFrontmatter removes YAML frontmatter (content between ---) from markdown.
-func ExcludeFrontmatter(markdown string) string {
+// excludeFrontmatter removes YAML frontmatter (content between ---) from markdown.
+func excludeFrontmatter(markdown string) string {
 	return strings.TrimSpace(FRONTMATTER_REGEX.ReplaceAllString(markdown, ""))
 }
 
-// ExtractLinkText replaces markdown links with just their text content.
+// extractLinkText replaces markdown links with just their text content.
 // For example: [link text](url) becomes "link text".
-func ExtractLinkText(markdown string) string {
+func extractLinkText(markdown string) string {
 	return LINK_REGEX.ReplaceAllString(markdown, "$1")
 }
 
@@ -310,10 +320,10 @@ func ExtractLinkText(markdown string) string {
 // Returns up to the first 10 words from the first non-empty line.
 func GetFirstLine(markdown string) string {
 	// Clean the content step by step
-	content := ExcludeFrontmatter(markdown)
-	content = ExcludeCodeBlocks(content)
-	content = ExcludeMediaTags(content)
-	content = ExtractLinkText(content)
+	content := excludeFrontmatter(markdown)
+	content = excludeCodeBlocks(content)
+	content = excludeMediaTags(content)
+	content = extractLinkText(content)
 
 	// Remove HTML tags and markdown headers
 	content = HTML_TAG_REGEX.ReplaceAllString(content, "")
@@ -337,4 +347,212 @@ func GetFirstLine(markdown string) string {
 	}
 
 	return strings.Join(words, " ")
+}
+
+// Frontmatter Functions
+
+// parseFrontmatter is a helper function that extracts and parses YAML frontmatter from markdown.
+// Returns the parsed frontmatter as a map and a boolean indicating success.
+func parseFrontmatter(markdown string) (map[string]interface{}, bool) {
+	frontmatterMatch := FRONTMATTER_REGEX.FindStringSubmatch(markdown)
+	if len(frontmatterMatch) < 1 {
+		return nil, false
+	}
+
+	// Extract the YAML content (remove the --- delimiters)
+	yamlContent := strings.Trim(frontmatterMatch[0], "-")
+	yamlContent = strings.TrimSpace(yamlContent)
+
+	// Parse YAML to extract frontmatter
+	var frontmatter map[string]interface{}
+	if err := yaml.Unmarshal([]byte(yamlContent), &frontmatter); err != nil {
+		return nil, false
+	}
+
+	return frontmatter, true
+}
+
+// GetIdFromFrontmatter extracts the id field from YAML frontmatter.
+// Returns the id string and a boolean indicating whether the id field was found and is a valid string.
+func GetIdFromFrontmatter(markdown string) (string, bool) {
+	frontmatter, ok := parseFrontmatter(markdown)
+	if !ok {
+		return "", false
+	}
+
+	if id, exists := frontmatter["id"]; exists {
+		if idStr, ok := id.(string); ok {
+			return idStr, true
+		}
+	}
+
+	return "", false
+}
+
+// GetLastUpdatedFromFrontmatter extracts the lastUpdated field from YAML frontmatter.
+// Returns the lastUpdated string and a boolean indicating whether the field was found and is a valid string or time.Time.
+func GetLastUpdatedFromFrontmatter(markdown string) (string, bool) {
+	frontmatter, ok := parseFrontmatter(markdown)
+	if !ok {
+		return "", false
+	}
+
+	if lastUpdated, exists := frontmatter["lastUpdated"]; exists {
+		// Handle string type
+		if lastUpdatedStr, ok := lastUpdated.(string); ok {
+			return lastUpdatedStr, true
+		}
+		// Handle time.Time type (YAML parser converts ISO 8601 dates automatically)
+		if lastUpdatedTime, ok := lastUpdated.(time.Time); ok {
+			return lastUpdatedTime.Format(time.RFC3339), true
+		}
+	}
+
+	return "", false
+}
+
+// GetCreatedDateFromFrontmatter extracts the createdDate field from YAML frontmatter.
+// Returns the createdDate string and a boolean indicating whether the field was found and is a valid string or time.Time.
+func GetCreatedDateFromFrontmatter(markdown string) (string, bool) {
+	frontmatter, ok := parseFrontmatter(markdown)
+	if !ok {
+		return "", false
+	}
+
+	if createdDate, exists := frontmatter["createdDate"]; exists {
+		// Handle string type
+		if createdDateStr, ok := createdDate.(string); ok {
+			return createdDateStr, true
+		}
+		// Handle time.Time type (YAML parser converts ISO 8601 dates automatically)
+		if createdDateTime, ok := createdDate.(time.Time); ok {
+			return createdDateTime.Format(time.RFC3339), true
+		}
+	}
+
+	return "", false
+}
+
+// Text Content Functions
+
+// GetTextContent extracts all text content excluding image/media URLs and code blocks.
+// Returns the cleaned text content as a single string.
+func GetTextContent(markdown string) string {
+	// Clean the content step by step
+	content := excludeFrontmatter(markdown)
+	content = excludeCodeBlocks(content)
+	content = excludeMediaTags(content)
+	content = extractLinkText(content)
+
+	// Remove HTML tags and markdown headers
+	content = HTML_TAG_REGEX.ReplaceAllString(content, "")
+	content = HEADER_REGEX.ReplaceAllString(content, "")
+
+	return strings.TrimSpace(content)
+}
+
+// Code Content Functions
+
+// getCodeContentWithLangRegex is a helper function that extracts code content from language-aware regex.
+func getCodeContentWithLangRegex(markdown string, regex *regexp.Regexp, contentIndex int) []string {
+	var codeContents []string
+
+	matches := regex.FindAllStringSubmatch(markdown, -1)
+	for _, match := range matches {
+		if len(match) > contentIndex {
+			codeContent := strings.TrimSpace(match[contentIndex])
+			if codeContent != "" {
+				codeContents = append(codeContents, codeContent)
+			}
+		}
+	}
+
+	return codeContents
+}
+
+// GetCodeContent extracts all code block contents regardless of language.
+// Returns a slice of strings containing the code from each block.
+func GetCodeContent(markdown string) []string {
+	return getCodeContentWithLangRegex(markdown, CODE_BLOCK_WITH_LANG_REGEX, 2)
+}
+
+// GetCodeContentForLanguage extracts code block contents for a specific language.
+// Returns a slice of strings containing the code from blocks with the specified language.
+func GetCodeContentForLanguage(markdown string, language string) []string {
+	// Create a regex pattern for the specific language
+	pattern := "(?s)```" + regexp.QuoteMeta(language) + "\\n(.*?)```"
+	langRegex := regexp.MustCompile(pattern)
+
+	return getCodeContentWithLangRegex(markdown, langRegex, 1)
+}
+
+// GetGoCodeContent extracts all Go code block contents.
+// Returns a slice of strings containing the Go code from each block.
+func GetGoCodeContent(markdown string) []string {
+	return getCodeContentWithLangRegex(markdown, GO_CODE_BLOCK_REGEX, 1)
+}
+
+// GetJavaCodeContent extracts all Java code block contents.
+// Returns a slice of strings containing the Java code from each block.
+func GetJavaCodeContent(markdown string) []string {
+	return getCodeContentWithLangRegex(markdown, JAVA_CODE_BLOCK_REGEX, 1)
+}
+
+// GetPythonCodeContent extracts all Python code block contents.
+// Returns a slice of strings containing the Python code from each block.
+func GetPythonCodeContent(markdown string) []string {
+	return getCodeContentWithLangRegex(markdown, PYTHON_CODE_BLOCK_REGEX, 1)
+}
+
+// GetJavaScriptCodeContent extracts all JavaScript code block contents.
+// Returns a slice of strings containing the JavaScript code from each block.
+func GetJavaScriptCodeContent(markdown string) []string {
+	return getCodeContentWithLangRegex(markdown, JAVASCRIPT_CODE_BLOCK_REGEX, 1)
+}
+
+// Boolean Check Functions
+
+// hasCodeByRegex is a helper function that checks if code blocks exist using a regex pattern.
+func hasCodeByRegex(markdown string, regex *regexp.Regexp) bool {
+	return regex.MatchString(markdown)
+}
+
+// HasDrawing returns true if the markdown contains a drawing code block.
+func HasDrawing(markdown string) bool {
+	return hasCodeByRegex(markdown, DRAWING_CODE_BLOCK_REGEX)
+}
+
+// HasCode returns true if the markdown contains any code blocks with language identifiers.
+func HasCode(markdown string) bool {
+	matches := CODE_BLOCK_WITH_LANG_REGEX.FindAllStringSubmatch(markdown, -1)
+	for _, match := range matches {
+		if len(match) >= 2 {
+			// Check if there's a language identifier (not empty)
+			lang := strings.TrimSpace(match[1])
+			if lang != "" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// HasGoCode returns true if the markdown contains Go code blocks.
+func HasGoCode(markdown string) bool {
+	return hasCodeByRegex(markdown, GO_CODE_BLOCK_REGEX)
+}
+
+// HasJavaCode returns true if the markdown contains Java code blocks.
+func HasJavaCode(markdown string) bool {
+	return hasCodeByRegex(markdown, JAVA_CODE_BLOCK_REGEX)
+}
+
+// HasPythonCode returns true if the markdown contains Python code blocks.
+func HasPythonCode(markdown string) bool {
+	return hasCodeByRegex(markdown, PYTHON_CODE_BLOCK_REGEX)
+}
+
+// HasJavaScriptCode returns true if the markdown contains JavaScript code blocks.
+func HasJavaScriptCode(markdown string) bool {
+	return hasCodeByRegex(markdown, JAVASCRIPT_CODE_BLOCK_REGEX)
 }

@@ -5,15 +5,15 @@ import (
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/mapping"
+	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
-var INDEX_NAME = "index.bleve"
+var INDEX_NAME = ".index.bleve"
 var MARKDOWN_NOTE_TYPE = "markdown_note"
 var ATTACHMENT_TYPE = "attachment"
 
 type MarkdownNoteBleveDocument struct {
-	Title                 string
 	Folder                string
 	FileName              string
 	FileExtension         string
@@ -25,6 +25,12 @@ type MarkdownNoteBleveDocument struct {
 	JavaScriptCodeContent []string
 	HasDrawing            bool
 	HasCode               bool
+	HasGoCode             bool
+	HasJavaCode           bool
+	HasPythonCode         bool
+	HasJavaScriptCode     bool
+	LastUpdated           string
+	CreatedDate           string
 }
 
 type AttachmentBleveDocument struct {
@@ -32,10 +38,38 @@ type AttachmentBleveDocument struct {
 	FileExtension string
 }
 
+// CreateMarkdownNoteBleveDocument constructs a MarkdownNoteBleveDocument from markdown content.
+// It extracts all relevant information using the markdown processing functions and populates
+// the document structure for search indexing.
+func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) MarkdownNoteBleveDocument {
+	lastUpdated, _ := notes.GetLastUpdatedFromFrontmatter(markdown)
+	createdDate, _ := notes.GetCreatedDateFromFrontmatter(markdown)
+
+	return MarkdownNoteBleveDocument{
+		Folder:                folder,
+		FileName:              fileName,
+		FileExtension:         ".md",
+		TextContent:           notes.GetTextContent(markdown),
+		CodeContent:           notes.GetCodeContent(markdown),
+		GoCodeContent:         notes.GetGoCodeContent(markdown),
+		JavaCodeContent:       notes.GetJavaCodeContent(markdown),
+		PythonCodeContent:     notes.GetPythonCodeContent(markdown),
+		JavaScriptCodeContent: notes.GetJavaScriptCodeContent(markdown),
+		HasDrawing:            notes.HasDrawing(markdown),
+		HasCode:               notes.HasCode(markdown),
+		HasGoCode:             notes.HasGoCode(markdown),
+		HasJavaCode:           notes.HasJavaCode(markdown),
+		HasPythonCode:         notes.HasPythonCode(markdown),
+		HasJavaScriptCode:     notes.HasJavaScriptCode(markdown),
+		LastUpdated:           lastUpdated,
+		CreatedDate:           createdDate,
+	}
+}
+
 // GetPathToIndex returns the full path to the search index file for a given project.
 // It combines the project path with the notes directory and the index filename.
 func GetPathToIndex(projectPath string) string {
-	return filepath.Join(projectPath, "notes", INDEX_NAME)
+	return filepath.Join(projectPath, INDEX_NAME)
 }
 
 // doesIndexExist checks whether a search index file exists for the given project path.
@@ -92,7 +126,6 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	keywordTextFieldMapping := bleve.NewTextFieldMapping()
 	keywordTextFieldMapping.Analyzer = "keyword"
 
-	documentMapping.AddFieldMappingsAt("title", proseTextFieldMapping)
 	documentMapping.AddFieldMappingsAt("folder", keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt("file_name", keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt("file_extension", keywordTextFieldMapping)
@@ -104,6 +137,12 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	documentMapping.AddFieldMappingsAt("javascript_code_content", proseTextFieldMapping)
 	documentMapping.AddFieldMappingsAt("has_drawing", bleve.NewBooleanFieldMapping())
 	documentMapping.AddFieldMappingsAt("has_code", bleve.NewBooleanFieldMapping())
+	documentMapping.AddFieldMappingsAt("has_go_code", bleve.NewBooleanFieldMapping())
+	documentMapping.AddFieldMappingsAt("has_java_code", bleve.NewBooleanFieldMapping())
+	documentMapping.AddFieldMappingsAt("has_python_code", bleve.NewBooleanFieldMapping())
+	documentMapping.AddFieldMappingsAt("has_javascript_code", bleve.NewBooleanFieldMapping())
+	documentMapping.AddFieldMappingsAt("last_updated", bleve.NewDateTimeFieldMapping())
+	documentMapping.AddFieldMappingsAt("created_date", bleve.NewDateTimeFieldMapping())
 
 	return documentMapping
 }

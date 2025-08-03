@@ -81,7 +81,10 @@ func main() {
 				&services.FolderService{ProjectPath: projectPath},
 			),
 			application.NewService(
-				&services.NoteService{ProjectPath: projectPath},
+				&services.NoteService{
+					ProjectPath: projectPath,
+					SearchIndex: searchIndex,
+				},
 			),
 			application.NewService(
 				&services.NodeService{ProjectPath: projectPath},

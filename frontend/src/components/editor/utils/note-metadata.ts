@@ -128,7 +128,6 @@ export function $convertFromMarkdownStringCorrect(
   setFrontmatter?: Dispatch<SetStateAction<Record<string, string>>>,
   node?: ElementNode
 ): void {
-  // const importMarkdown = createMarkdownImport(transformers);
   const importMarkdown = createMarkdownImport(transformers);
 
   let markdownString = markdown;

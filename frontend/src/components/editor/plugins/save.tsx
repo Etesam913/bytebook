@@ -83,8 +83,11 @@ export function SavePlugin({
           frontmatterCopy.folder = folder;
           frontmatterCopy.note = note;
           frontmatterCopy.lastUpdated = timeOfChange;
-          if (frontmatterCopy.createdDate === undefined) {
+          if (!frontmatterCopy.createdDate) {
             frontmatterCopy.createdDate = timeOfChange;
+          }
+          if (!frontmatterCopy.id) {
+            frontmatterCopy.id = crypto.randomUUID();
           }
           const markdownWithFrontmatter = replaceFrontMatter(
             markdown,
