@@ -63,6 +63,14 @@ func main() {
 	}
 	defer searchIndex.Close()
 
+	// Index all existing files in the background
+	go func() {
+		err := search.IndexAllFiles(projectPath, searchIndex)
+		if err != nil {
+			log.Printf("Error indexing files: %v", err)
+		}
+	}()
+
 	// Create separate contexts for Python and Go kernels
 	pythonCtx, pythonCtxCancel := context.WithCancel(context.Background())
 	goCtx, goCtxCancel := context.WithCancel(context.Background())

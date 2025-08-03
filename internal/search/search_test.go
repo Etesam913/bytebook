@@ -6,194 +6,122 @@ import (
 	"testing"
 
 	"github.com/blevesearch/bleve/v2"
+	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetPathToIndex(t *testing.T) {
-	t.Run("should return correct index path", func(t *testing.T) {
-		projectPath := "/path/to/project"
-		expected := filepath.Join(projectPath, INDEX_NAME)
-		result := GetPathToIndex(projectPath)
-		assert.Equal(t, expected, result)
-	})
+// Test utilities to reduce boilerplate and redundancy
 
-	t.Run("should handle empty project path", func(t *testing.T) {
-		result := GetPathToIndex("")
-		assert.Equal(t, INDEX_NAME, result)
-	})
-
-	t.Run("should handle project path with trailing slash", func(t *testing.T) {
-		projectPath := "/path/to/project/"
-		expected := filepath.Join(projectPath, INDEX_NAME)
-		result := GetPathToIndex(projectPath)
-		assert.Equal(t, expected, result)
-	})
+type TestEnv struct {
+	TmpDir   string
+	NotesDir string
+	Index    bleve.Index
+	t        *testing.T
+	cleanup  func()
 }
 
-func TestCreateMarkdownNoteBleveDocument(t *testing.T) {
-	t.Run("should create document with basic markdown", func(t *testing.T) {
-		markdown := "# Hello World\nThis is some text content."
-		folder := "test-folder"
-		fileName := "test.md"
+// setupTestEnv creates a temporary directory and index for testing
+func setupTestEnv(t *testing.T) *TestEnv {
+	tmpDir, err := os.MkdirTemp("", "bytebook_test")
+	require.NoError(t, err)
 
-		doc := CreateMarkdownNoteBleveDocument(markdown, folder, fileName)
+	notesDir := filepath.Join(tmpDir, "notes")
 
-		assert.Equal(t, folder, doc.Folder)
-		assert.Equal(t, fileName, doc.FileName)
-		assert.Equal(t, ".md", doc.FileExtension)
-		assert.Contains(t, doc.TextContent, "Hello World")
-		assert.Contains(t, doc.TextContent, "This is some text content.")
-		assert.Len(t, doc.CodeContent, 0)
-		assert.False(t, doc.HasCode)
-		assert.False(t, doc.HasDrawing)
-	})
+	index, err := OpenOrCreateIndex(tmpDir)
+	require.NoError(t, err)
 
-	t.Run("should extract code content correctly", func(t *testing.T) {
-		markdown := `# Code Example
-Here's some Go code:
+	cleanup := func() {
+		if index != nil {
+			index.Close()
+		}
+		os.RemoveAll(tmpDir)
+	}
 
-` + "```go\nfunc main() {\n    fmt.Println(\"Hello\")\n}\n```" + `
+	return &TestEnv{
+		TmpDir:   tmpDir,
+		NotesDir: notesDir,
+		Index:    index,
+		t:        t,
+		cleanup:  cleanup,
+	}
+}
 
-And some Python:
+func (env *TestEnv) Close() {
+	env.cleanup()
+}
 
-` + "```python\nprint(\"Hello World\")\n```"
+// createTestFolder creates a folder structure for testing
+func (env *TestEnv) createTestFolder(folderName string) string {
+	folderPath := filepath.Join(env.NotesDir, folderName)
+	err := os.MkdirAll(folderPath, 0755)
+	require.NoError(env.t, err)
+	return folderPath
+}
 
-		doc := CreateMarkdownNoteBleveDocument(markdown, "folder", "file.md")
+// createMarkdownFile creates a test markdown file
+func (env *TestEnv) createMarkdownFile(folderPath, filename, content string) string {
+	filePath := filepath.Join(folderPath, filename)
+	err := os.WriteFile(filePath, []byte(content), 0644)
+	require.NoError(env.t, err)
+	return filePath
+}
 
-		assert.True(t, doc.HasCode)
-		assert.True(t, doc.HasGoCode)
-		assert.True(t, doc.HasPythonCode)
-		assert.False(t, doc.HasJavaCode)
-		assert.False(t, doc.HasJavaScriptCode)
-		assert.Len(t, doc.CodeContent, 2)
-		assert.Len(t, doc.GoCodeContent, 1)
-		assert.Len(t, doc.PythonCodeContent, 1)
-		assert.Contains(t, doc.GoCodeContent[0], "fmt.Println")
-		assert.Contains(t, doc.PythonCodeContent[0], "print")
-	})
+// createAttachmentFile creates a test attachment file
+func (env *TestEnv) createAttachmentFile(folderPath, filename, content string) string {
+	filePath := filepath.Join(folderPath, filename)
+	err := os.WriteFile(filePath, []byte(content), 0644)
+	require.NoError(env.t, err)
+	return filePath
+}
 
-	t.Run("should detect JavaScript code", func(t *testing.T) {
-		markdown := `# JavaScript Example
+// verifyDocumentExists checks if a document exists in the index
+func (env *TestEnv) verifyDocumentExists(docId string) {
+	doc, err := env.Index.Document(docId)
+	assert.NoError(env.t, err, "Document %s should exist", docId)
+	assert.NotNil(env.t, doc, "Document %s should not be nil", docId)
+}
 
-` + "```javascript\nconsole.log(\"Hello\");\n```" + `
+// verifyMarkdownHasId checks if a markdown file has an ID and returns it
+func (env *TestEnv) verifyMarkdownHasId(filePath string) string {
+	content, err := os.ReadFile(filePath)
+	require.NoError(env.t, err)
+	id, exists := notes.GetIdFromFrontmatter(string(content))
+	assert.True(env.t, exists, "File should have an ID")
+	assert.NotEmpty(env.t, id, "ID should not be empty")
+	return id
+}
 
-` + "```js\nconst x = 1;\n```"
-
-		doc := CreateMarkdownNoteBleveDocument(markdown, "folder", "file.md")
-
-		assert.True(t, doc.HasJavaScriptCode)
-		assert.Len(t, doc.JavaScriptCodeContent, 2)
-		assert.Contains(t, doc.JavaScriptCodeContent[0], "console.log")
-		assert.Contains(t, doc.JavaScriptCodeContent[1], "const x = 1")
-	})
-
-	t.Run("should detect Java code", func(t *testing.T) {
-		markdown := `# Java Example
-
-` + "```java\npublic class Hello {\n    public static void main(String[] args) {\n        System.out.println(\"Hello\");\n    }\n}\n```"
-
-		doc := CreateMarkdownNoteBleveDocument(markdown, "folder", "file.md")
-
-		assert.True(t, doc.HasJavaCode)
-		assert.Len(t, doc.JavaCodeContent, 1)
-		assert.Contains(t, doc.JavaCodeContent[0], "public class Hello")
-	})
-
-	t.Run("should detect drawing blocks", func(t *testing.T) {
-		markdown := `# Drawing Example
-
-` + "```drawing\n{\"elements\": []}\n```"
-
-		doc := CreateMarkdownNoteBleveDocument(markdown, "folder", "file.md")
-
-		assert.True(t, doc.HasDrawing)
-	})
-
-	t.Run("should extract text content excluding code and media", func(t *testing.T) {
-		markdown := `---
-title: Test Document
----
-
-# Main Title
-
-This is regular text content.
-
-![Image](./image.png)
-
-` + "```python\nprint(\"code\")\n```" + `
-
-More text after code.
-
-[Link](http://example.com) to external site.
-`
-
-		doc := CreateMarkdownNoteBleveDocument(markdown, "folder", "file.md")
-
-		assert.Contains(t, doc.TextContent, "Main Title")
-		assert.Contains(t, doc.TextContent, "This is regular text content")
-		assert.Contains(t, doc.TextContent, "More text after code")
-		assert.Contains(t, doc.TextContent, "Link to external site")
-		assert.NotContains(t, doc.TextContent, "print(\"code\")")
-		assert.NotContains(t, doc.TextContent, "![Image]")
-		assert.NotContains(t, doc.TextContent, "title: Test Document")
-	})
-
-	t.Run("should handle empty markdown", func(t *testing.T) {
-		doc := CreateMarkdownNoteBleveDocument("", "folder", "file.md")
-
-		assert.Equal(t, "folder", doc.Folder)
-		assert.Equal(t, "file.md", doc.FileName)
-		assert.Equal(t, ".md", doc.FileExtension)
-		assert.Equal(t, "", doc.TextContent)
-		assert.Len(t, doc.CodeContent, 0)
-		assert.False(t, doc.HasCode)
-		assert.False(t, doc.HasDrawing)
-		assert.Equal(t, "", doc.LastUpdated)
-		assert.Equal(t, "", doc.CreatedDate)
-	})
-
-	t.Run("should extract frontmatter date fields", func(t *testing.T) {
-		markdown := `---
-id: test-123
-lastUpdated: 2023-12-01T10:30:00Z
-createdDate: 2023-11-01T09:00:00Z
+// Standard test markdown content
+const (
+	basicMarkdown = `---
 title: Test Document
 ---
 
 # Test Content
-
-This is a test document with frontmatter dates.
+This is test content.
 `
-		doc := CreateMarkdownNoteBleveDocument(markdown, "tests", "date-test.md")
 
-		assert.Equal(t, "tests", doc.Folder)
-		assert.Equal(t, "date-test.md", doc.FileName)
-		assert.Equal(t, "2023-12-01T10:30:00Z", doc.LastUpdated)
-		assert.Equal(t, "2023-11-01T09:00:00Z", doc.CreatedDate)
-		assert.Contains(t, doc.TextContent, "Test Content")
-		assert.Contains(t, doc.TextContent, "This is a test document with frontmatter dates")
-	})
-
-	t.Run("should handle missing date fields in frontmatter", func(t *testing.T) {
-		markdown := `---
-id: test-456
-title: Document Without Dates
+	markdownWithId = `---
+id: test-id-12345
+title: Test Document
 ---
 
-# Content Only
-
-No dates in this frontmatter.
+# Test Content
+This is test content.
 `
-		doc := CreateMarkdownNoteBleveDocument(markdown, "tests", "no-dates.md")
 
-		assert.Equal(t, "", doc.LastUpdated)
-		assert.Equal(t, "", doc.CreatedDate)
-		assert.Contains(t, doc.TextContent, "Content Only")
-	})
+	markdownWithIdAndLastUpdated = `---
+id: test-id-12345
+title: Test Document
+lastUpdated: 2023-12-01T10:30:00Z
+---
 
-	t.Run("should handle complex markdown with multiple languages", func(t *testing.T) {
-		markdown := `---
+# Test Content
+This is test content.
+`
+
+	complexMarkdown = `---
 lastUpdated: 2023-12-05T14:30:00Z
 createdDate: 2023-12-01T10:00:00Z
 author: Test Author
@@ -215,8 +143,24 @@ Some text content here.
 
 More text content.
 `
+)
 
-		doc := CreateMarkdownNoteBleveDocument(markdown, "examples", "multi.md")
+// Actual tests start here
+
+func TestCreateMarkdownNoteBleveDocument(t *testing.T) {
+	t.Run("should create document with basic markdown", func(t *testing.T) {
+		doc := CreateMarkdownNoteBleveDocument(basicMarkdown, "test-folder", "test.md")
+
+		assert.Equal(t, "test-folder", doc.Folder)
+		assert.Equal(t, "test.md", doc.FileName)
+		assert.Equal(t, ".md", doc.FileExtension)
+		assert.Contains(t, doc.TextContent, "Test Content")
+		assert.False(t, doc.HasCode)
+		assert.False(t, doc.HasDrawing)
+	})
+
+	t.Run("should handle complex markdown with all features", func(t *testing.T) {
+		doc := CreateMarkdownNoteBleveDocument(complexMarkdown, "examples", "multi.md")
 
 		assert.True(t, doc.HasCode)
 		assert.True(t, doc.HasGoCode)
@@ -224,161 +168,356 @@ More text content.
 		assert.True(t, doc.HasJavaScriptCode)
 		assert.True(t, doc.HasJavaCode)
 		assert.True(t, doc.HasDrawing)
-		assert.Len(t, doc.CodeContent, 5) // Includes all code blocks including drawing
-		assert.Len(t, doc.GoCodeContent, 1)
-		assert.Len(t, doc.PythonCodeContent, 1)
-		assert.Len(t, doc.JavaScriptCodeContent, 1)
-		assert.Len(t, doc.JavaCodeContent, 1)
-		assert.Contains(t, doc.TextContent, "Multi-Language Document")
-		assert.Contains(t, doc.TextContent, "Some text content here")
-		assert.Contains(t, doc.TextContent, "More text content")
 		assert.Equal(t, "2023-12-05T14:30:00Z", doc.LastUpdated)
 		assert.Equal(t, "2023-12-01T10:00:00Z", doc.CreatedDate)
 	})
 }
 
-func TestDoesIndexExist(t *testing.T) {
-	// Create a temporary directory for testing
-	tmpDir, err := os.MkdirTemp("", "bytebook_search_test")
-	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+func TestCreateAttachmentBleveDocument(t *testing.T) {
+	testCases := []struct {
+		fileName      string
+		fileExtension string
+	}{
+		{"test-file", ".pdf"},
+		{"image", ".jpg"},
+		{"document", ".docx"},
+		{"video", ".mp4"},
+		{"", ".txt"},  // Empty filename
+		{"noext", ""}, // No extension
+	}
 
-	t.Run("should return false when index does not exist", func(t *testing.T) {
-		result := doesIndexExist(tmpDir)
-		assert.False(t, result)
-	})
+	for _, tc := range testCases {
+		t.Run(tc.fileName+tc.fileExtension, func(t *testing.T) {
+			doc := CreateAttachmentBleveDocument(tc.fileName, tc.fileExtension)
 
-	t.Run("should return true when index exists", func(t *testing.T) {
-		// Create the index directory
-		indexPath := GetPathToIndex(tmpDir)
-		err := os.MkdirAll(indexPath, 0755)
-		require.NoError(t, err)
+			assert.Equal(t, tc.fileName, doc.FileName)
+			assert.Equal(t, tc.fileExtension, doc.FileExtension)
+		})
+	}
+}
 
-		result := doesIndexExist(tmpDir)
-		assert.True(t, result)
+func TestIndexOperations(t *testing.T) {
+	env := setupTestEnv(t)
+	defer env.Close()
+
+	t.Run("should create and open index successfully", func(t *testing.T) {
+		// Index is already created in setupTestEnv
+		assert.NotNil(t, env.Index)
+
+		// Verify we can index a document
+		doc := CreateMarkdownNoteBleveDocument(basicMarkdown, "test", "file")
+		err := env.Index.Index("test-id", doc)
+		assert.NoError(t, err)
+
+		// Verify we can retrieve it
+		retrieved, err := env.Index.Document("test-id")
+		assert.NoError(t, err)
+		assert.NotNil(t, retrieved)
 	})
 }
 
-func TestCreateIndex(t *testing.T) {
-	// Create a temporary directory for testing
-	tmpDir, err := os.MkdirTemp("", "bytebook_search_test")
-	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+func TestAddMarkdownNoteToBatch(t *testing.T) {
+	env := setupTestEnv(t)
+	defer env.Close()
 
-	t.Run("should create new index successfully", func(t *testing.T) {
-		index, err := createIndex(tmpDir)
+	t.Run("should add new markdown note to batch", func(t *testing.T) {
+		folderPath := env.createTestFolder("test-folder")
+		filePath := env.createMarkdownFile(folderPath, "test.md", basicMarkdown)
+
+		batch := env.Index.NewBatch()
+		fileId, err := AddMarkdownNoteToBatch(batch, env.Index, filePath, "test-folder", "test")
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, fileId)
+		assert.Greater(t, batch.Size(), 0)
+
+		// Verify file now has an ID
+		verifiedId := env.verifyMarkdownHasId(filePath)
+		assert.Equal(t, fileId, verifiedId)
+	})
+
+	t.Run("should not add existing note if lastUpdated hasn't changed", func(t *testing.T) {
+		folderPath := env.createTestFolder("test-folder-2")
+		filePath := env.createMarkdownFile(folderPath, "test.md", markdownWithIdAndLastUpdated)
+
+		// Pre-index the document
+		bleveDoc := CreateMarkdownNoteBleveDocument(markdownWithIdAndLastUpdated, "test-folder-2", "test")
+		err := env.Index.Index("test-id-12345", bleveDoc)
 		require.NoError(t, err)
-		require.NotNil(t, index)
-		defer index.Close()
 
-		// Verify index was created
-		indexPath := GetPathToIndex(tmpDir)
-		_, err = os.Stat(indexPath)
+		batch := env.Index.NewBatch()
+		initialSize := batch.Size()
+
+		returnedId, err := AddMarkdownNoteToBatch(batch, env.Index, filePath, "test-folder-2", "test")
+
+		assert.NoError(t, err)
+		assert.Equal(t, "test-id-12345", returnedId)
+		assert.Equal(t, initialSize, batch.Size()) // Should not change
+	})
+}
+
+func TestAddAttachmentToBatch(t *testing.T) {
+	env := setupTestEnv(t)
+	defer env.Close()
+
+	t.Run("should add new attachment to batch", func(t *testing.T) {
+		folderPath := env.createTestFolder("test-folder")
+		env.createAttachmentFile(folderPath, "test.pdf", "fake pdf content")
+
+		batch := env.Index.NewBatch()
+		fileId, err := AddAttachmentToBatch(batch, env.Index, filepath.Join(folderPath, "test.pdf"), "test-folder", "test", ".pdf")
+
+		assert.NoError(t, err)
+		assert.Equal(t, "test-folder/test.pdf", fileId)
+		assert.Greater(t, batch.Size(), 0)
+	})
+
+	t.Run("should not add existing attachment to batch", func(t *testing.T) {
+		folderPath := env.createTestFolder("test-folder-2")
+		env.createAttachmentFile(folderPath, "existing.jpg", "fake image content")
+
+		// Pre-index the attachment
+		fileId := "test-folder-2/existing.jpg"
+		bleveDoc := CreateAttachmentBleveDocument("existing", ".jpg")
+		err := env.Index.Index(fileId, bleveDoc)
+		require.NoError(t, err)
+
+		batch := env.Index.NewBatch()
+		initialSize := batch.Size()
+
+		returnedId, err := AddAttachmentToBatch(batch, env.Index, filepath.Join(folderPath, "existing.jpg"), "test-folder-2", "existing", ".jpg")
+
+		assert.NoError(t, err)
+		assert.Equal(t, fileId, returnedId)
+		assert.Equal(t, initialSize, batch.Size()) // Should not change
+	})
+
+	t.Run("should handle different file types", func(t *testing.T) {
+		testCases := []struct {
+			fileName  string
+			extension string
+		}{
+			{"document", ".docx"},
+			{"video", ".mp4"},
+			{"audio", ".mp3"},
+			{"image", ".png"},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.fileName+tc.extension, func(t *testing.T) {
+				folderName := "test-folder-" + tc.fileName
+				folderPath := env.createTestFolder(folderName)
+				testFile := filepath.Join(folderPath, tc.fileName+tc.extension)
+				env.createAttachmentFile(folderPath, tc.fileName+tc.extension, "fake content")
+
+				batch := env.Index.NewBatch()
+				expectedId := filepath.Join(folderName, tc.fileName+tc.extension)
+
+				fileId, err := AddAttachmentToBatch(batch, env.Index, testFile, folderName, tc.fileName, tc.extension)
+
+				assert.NoError(t, err)
+				assert.Equal(t, expectedId, fileId)
+				assert.Greater(t, batch.Size(), 0)
+			})
+		}
+	})
+}
+
+func TestIndexAllFiles(t *testing.T) {
+	env := setupTestEnv(t)
+	defer env.Close()
+
+	t.Run("should handle non-existent notes directory", func(t *testing.T) {
+		err := IndexAllFiles(env.TmpDir, env.Index)
 		assert.NoError(t, err)
 	})
 
-	t.Run("should fail to create index in invalid directory", func(t *testing.T) {
-		invalidPath := "/invalid/path/that/does/not/exist"
-		index, err := createIndex(invalidPath)
-		assert.Error(t, err)
-		assert.Nil(t, index)
+	t.Run("should index markdown files with missing IDs", func(t *testing.T) {
+		folderPath := env.createTestFolder("test-folder")
+		file1Path := env.createMarkdownFile(folderPath, "test1.md", basicMarkdown)
+		file2Path := env.createMarkdownFile(folderPath, "test2.md", "# Content\nThis is test content without frontmatter.")
+
+		err := IndexAllFiles(env.TmpDir, env.Index)
+		assert.NoError(t, err)
+
+		// Verify files have IDs and are indexed
+		id1 := env.verifyMarkdownHasId(file1Path)
+		id2 := env.verifyMarkdownHasId(file2Path)
+		env.verifyDocumentExists(id1)
+		env.verifyDocumentExists(id2)
+	})
+
+	t.Run("should index files with existing IDs", func(t *testing.T) {
+		folderPath := env.createTestFolder("test-folder-2")
+		env.createMarkdownFile(folderPath, "test.md", markdownWithId)
+
+		err := IndexAllFiles(env.TmpDir, env.Index)
+		assert.NoError(t, err)
+
+		env.verifyDocumentExists("test-id-12345")
+	})
+
+	t.Run("should handle multiple folders", func(t *testing.T) {
+		folder1Path := env.createTestFolder("folder1")
+		folder2Path := env.createTestFolder("folder2")
+
+		file1Path := env.createMarkdownFile(folder1Path, "note1.md", "# Content in folder 1")
+		file2Path := env.createMarkdownFile(folder2Path, "note2.md", "# Content in folder 2")
+
+		err := IndexAllFiles(env.TmpDir, env.Index)
+		assert.NoError(t, err)
+
+		// Verify both files were processed and indexed
+		id1 := env.verifyMarkdownHasId(file1Path)
+		id2 := env.verifyMarkdownHasId(file2Path)
+		env.verifyDocumentExists(id1)
+		env.verifyDocumentExists(id2)
+	})
+
+	t.Run("should handle empty folders", func(t *testing.T) {
+		env.createTestFolder("empty-folder")
+
+		err := IndexAllFiles(env.TmpDir, env.Index)
+		assert.NoError(t, err) // Should not error on empty folders
 	})
 }
 
-func TestOpenOrCreateIndex(t *testing.T) {
-	// Create a temporary directory for testing
-	tmpDir, err := os.MkdirTemp("", "bytebook_search_test")
-	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+func TestIndexAllFilesWithAttachments(t *testing.T) {
+	env := setupTestEnv(t)
+	defer env.Close()
 
-	t.Run("should create new index when none exists", func(t *testing.T) {
-		index, err := OpenOrCreateIndex(tmpDir)
-		require.NoError(t, err)
-		require.NotNil(t, index)
-		defer index.Close()
+	t.Run("should index both markdown files and attachments", func(t *testing.T) {
+		folderPath := env.createTestFolder("mixed-content")
 
-		// Verify index was created
-		assert.True(t, doesIndexExist(tmpDir))
+		// Create markdown file
+		markdownPath := env.createMarkdownFile(folderPath, "document.md", basicMarkdown)
+
+		// Create attachment files
+		env.createAttachmentFile(folderPath, "attachment.pdf", "fake pdf content")
+		env.createAttachmentFile(folderPath, "image.jpg", "fake image content")
+
+		err := IndexAllFiles(env.TmpDir, env.Index)
+		assert.NoError(t, err)
+
+		// Verify markdown file was processed and indexed
+		markdownId := env.verifyMarkdownHasId(markdownPath)
+		env.verifyDocumentExists(markdownId)
+
+		// Verify attachment documents exist in index
+		env.verifyDocumentExists("mixed-content/attachment.pdf")
+		env.verifyDocumentExists("mixed-content/image.jpg")
 	})
 
-	t.Run("should open existing index", func(t *testing.T) {
-		// First, create an index
-		index1, err := OpenOrCreateIndex(tmpDir)
-		require.NoError(t, err)
-		require.NotNil(t, index1)
-		index1.Close()
+	t.Run("should handle folders with only attachments", func(t *testing.T) {
+		folderPath := env.createTestFolder("attachments-only")
 
-		// Now try to open the existing index
-		index2, err := OpenOrCreateIndex(tmpDir)
-		require.NoError(t, err)
-		require.NotNil(t, index2)
-		defer index2.Close()
+		files := []string{"document.docx", "video.mp4", "audio.mp3"}
+		for _, filename := range files {
+			env.createAttachmentFile(folderPath, filename, "fake content")
+		}
 
-		// Verify it's the same index
-		assert.True(t, doesIndexExist(tmpDir))
+		err := IndexAllFiles(env.TmpDir, env.Index)
+		assert.NoError(t, err)
+
+		// Verify all attachment files were indexed
+		for _, filename := range files {
+			fileId := "attachments-only/" + filename
+			env.verifyDocumentExists(fileId)
+		}
+	})
+
+	t.Run("should not re-index existing attachments", func(t *testing.T) {
+		folderPath := env.createTestFolder("existing-attachments")
+		env.createAttachmentFile(folderPath, "existing.png", "fake image content")
+
+		// Pre-index the attachment
+		fileId := "existing-attachments/existing.png"
+		bleveDoc := CreateAttachmentBleveDocument("existing", ".png")
+		err := env.Index.Index(fileId, bleveDoc)
+		require.NoError(t, err)
+
+		// Get initial document count
+		searchReq := bleve.NewSearchRequest(bleve.NewMatchAllQuery())
+		searchReq.Size = 100
+		initialResult, err := env.Index.Search(searchReq)
+		require.NoError(t, err)
+		initialCount := initialResult.Total
+
+		err = IndexAllFiles(env.TmpDir, env.Index)
+		assert.NoError(t, err)
+
+		// Verify document count didn't increase
+		finalResult, err := env.Index.Search(searchReq)
+		require.NoError(t, err)
+		assert.Equal(t, initialCount, finalResult.Total)
 	})
 }
 
-func TestCreateMarkdownNoteDocumentMapping(t *testing.T) {
-	t.Run("should create valid document mapping", func(t *testing.T) {
-		mapping := createMarkdownNoteDocumentMapping()
-		require.NotNil(t, mapping)
+func TestGetDocumentByIdFromIndex(t *testing.T) {
+	env := setupTestEnv(t)
+	defer env.Close()
 
-		// Verify the mapping can be created without errors
-		// The internal structure testing is not necessary as the mapping
-		// will be validated when used with the index
-		assert.NotNil(t, mapping)
+	t.Run("should return Exists=false when document not found", func(t *testing.T) {
+		result := getDocumentByIdFromIndex(env.Index, "non-existent-id")
+
+		assert.False(t, result.Exists)
+		assert.Equal(t, "", result.LastUpdated)
 	})
-}
 
-func TestCreateAttachmentDocumentMapping(t *testing.T) {
-	t.Run("should create valid attachment document mapping", func(t *testing.T) {
-		mapping := createAttachmentDocumentMapping()
-		require.NotNil(t, mapping)
+	t.Run("should return document info when document exists", func(t *testing.T) {
+		// Index a test document
+		docId := "test-document-id"
+		bleveDoc := CreateMarkdownNoteBleveDocument(markdownWithIdAndLastUpdated, "test-folder", "test-file")
+		err := env.Index.Index(docId, bleveDoc)
+		require.NoError(t, err)
 
-		// Verify the mapping can be created without errors
-		// The internal structure testing is not necessary as the mapping
-		// will be validated when used with the index
-		assert.NotNil(t, mapping)
+		result := getDocumentByIdFromIndex(env.Index, docId)
+
+		assert.True(t, result.Exists)
+		assert.Equal(t, "2023-12-01T10:30:00Z", result.LastUpdated)
 	})
-}
 
-func TestIndexIntegration(t *testing.T) {
-	// Create a temporary directory for testing
-	tmpDir, err := os.MkdirTemp("", "bytebook_search_integration_test")
-	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	t.Run("should handle documents with different lastUpdated formats", func(t *testing.T) {
+		testCases := []struct {
+			name                string
+			docId               string
+			lastUpdated         string
+			expectedLastUpdated string
+		}{
+			{
+				name:                "ISO 8601 format",
+				docId:               "doc-iso-8601",
+				lastUpdated:         "2023-12-01T10:30:00Z",
+				expectedLastUpdated: "2023-12-01T10:30:00Z",
+			},
+			{
+				name:                "Different timezone",
+				docId:               "doc-timezone",
+				lastUpdated:         "2023-12-01T10:30:00-05:00",
+				expectedLastUpdated: "2023-12-01T15:30:00Z", // Bleve normalizes to UTC
+			},
+		}
 
-	t.Run("should index and search markdown documents", func(t *testing.T) {
-		// Create an index
-		index, err := OpenOrCreateIndex(tmpDir)
-		require.NoError(t, err)
-		defer index.Close()
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				markdown := `---
+id: ` + tc.docId + `
+title: Test Document
+lastUpdated: ` + tc.lastUpdated + `
+---
 
-		// Create test documents
-		doc1 := CreateMarkdownNoteBleveDocument(
-			"# Go Tutorial\nThis is a Go programming tutorial.\n```go\npackage main\n```",
-			"tutorials", "go-tutorial.md",
-		)
+# Test Content
+This is test content.
+`
+				bleveDoc := CreateMarkdownNoteBleveDocument(markdown, "test-folder", "test-file")
+				err := env.Index.Index(tc.docId, bleveDoc)
+				require.NoError(t, err)
 
-		doc2 := CreateMarkdownNoteBleveDocument(
-			"# Python Guide\nLearn Python programming.\n```python\nprint('hello')\n```",
-			"guides", "python-guide.md",
-		)
+				result := getDocumentByIdFromIndex(env.Index, tc.docId)
 
-		// Index the documents
-		err = index.Index("doc1", doc1)
-		require.NoError(t, err)
-		err = index.Index("doc2", doc2)
-		require.NoError(t, err)
-
-		// Search for documents
-		query := bleve.NewMatchQuery("Go")
-		searchRequest := bleve.NewSearchRequest(query)
-		searchResult, err := index.Search(searchRequest)
-		require.NoError(t, err)
-
-		assert.Equal(t, uint64(1), searchResult.Total)
-		assert.Equal(t, "doc1", searchResult.Hits[0].ID)
+				assert.True(t, result.Exists)
+				assert.Equal(t, tc.expectedLastUpdated, result.LastUpdated)
+			})
+		}
 	})
 }

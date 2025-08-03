@@ -48,12 +48,7 @@ export function SavePlugin({
   async function saveMarkdownContent(markdownWithFrontmatter: string) {
     const decodedFolder = decodeURIComponent(folder);
     const decodedNote = decodeURIComponent(note);
-    await SetNoteMarkdown(
-      decodedFolder,
-      decodedNote,
-      previousMarkdownWithFrontmatter,
-      markdownWithFrontmatter
-    );
+    await SetNoteMarkdown(decodedFolder, decodedNote, markdownWithFrontmatter);
     await queryClient.invalidateQueries({
       queryKey: ['note-preview', decodedFolder, decodedNote],
     });
@@ -86,9 +81,7 @@ export function SavePlugin({
           if (!frontmatterCopy.createdDate) {
             frontmatterCopy.createdDate = timeOfChange;
           }
-          if (!frontmatterCopy.id) {
-            frontmatterCopy.id = crypto.randomUUID();
-          }
+
           const markdownWithFrontmatter = replaceFrontMatter(
             markdown,
             frontmatterCopy

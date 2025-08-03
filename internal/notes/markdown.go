@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/etesam913/bytebook/internal/util"
+	"github.com/google/uuid"
 	"gopkg.in/yaml.v3"
 )
 
@@ -431,6 +432,49 @@ func GetCreatedDateFromFrontmatter(markdown string) (string, bool) {
 	}
 
 	return "", false
+}
+
+// createFrontmatterWithId creates a new frontmatter section with the given ID and removes any existing frontmatter.
+func createFrontmatterWithId(markdown, id string) string {
+	newFrontmatter := "---\nid: " + id + "\n---\n"
+	contentWithoutFrontmatter := FRONTMATTER_REGEX.ReplaceAllString(markdown, "")
+	return newFrontmatter + contentWithoutFrontmatter
+}
+
+// EnsureIdInFrontmatter checks if an id exists in the frontmatter, and if not, creates a new UUID and adds it.
+// Returns the updated markdown with the id and the id value that was used (existing or newly created).
+func EnsureIdInFrontmatter(markdown string) (string, string) {
+	if existingId, exists := GetIdFromFrontmatter(markdown); exists {
+		return markdown, existingId
+	}
+
+	newId := uuid.New().String()
+
+	// Check if frontmatter exists
+	frontmatterMatch := FRONTMATTER_REGEX.FindString(markdown)
+	if frontmatterMatch == "" {
+		return createFrontmatterWithId(markdown, newId), newId
+	}
+
+	// Parse existing frontmatter
+	frontmatter, ok := parseFrontmatter(markdown)
+	if !ok {
+		return createFrontmatterWithId(markdown, newId), newId
+	}
+
+	// Add id to existing frontmatter
+	frontmatter["id"] = newId
+
+	// Convert back to YAML
+	yamlBytes, err := yaml.Marshal(frontmatter)
+	if err != nil {
+		return createFrontmatterWithId(markdown, newId), newId
+	}
+
+	// Replace the old frontmatter with the new one
+	newFrontmatter := "---\n" + string(yamlBytes) + "---\n"
+	contentWithoutFrontmatter := FRONTMATTER_REGEX.ReplaceAllString(markdown, "")
+	return newFrontmatter + contentWithoutFrontmatter, newId
 }
 
 // Text Content Functions

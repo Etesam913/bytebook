@@ -189,9 +189,12 @@ func (n *NoteService) SetNoteMarkdown(
 	noteTitle string,
 	markdown string,
 ) config.BackendResponseWithData[string] {
+	// Ensure the markdown has an ID in frontmatter
+	updatedMarkdown, noteId := notes.EnsureIdInFrontmatter(markdown)
+
 	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, fmt.Sprintf("%s.md", noteTitle))
 
-	err := os.WriteFile(noteFilePath, []byte(markdown), 0644)
+	err := os.WriteFile(noteFilePath, []byte(updatedMarkdown), 0644)
 	if err != nil {
 		return config.BackendResponseWithData[string]{
 			Success: false,
@@ -200,17 +203,8 @@ func (n *NoteService) SetNoteMarkdown(
 		}
 	}
 
-	noteId, ok := notes.GetIdFromFrontmatter(markdown)
-	if !ok {
-		return config.BackendResponseWithData[string]{
-			Success: false,
-			Message: "Note ID not found in frontmatter",
-			Data:    "",
-		}
-	}
-
 	bleveMarkdownDocument := search.CreateMarkdownNoteBleveDocument(
-		markdown,
+		updatedMarkdown,
 		folderName,
 		noteTitle,
 	)
