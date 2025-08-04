@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { useMotionValue } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai/react';
 import { Toaster } from 'sonner';
-import { Route, Switch } from 'wouter';
+import { Route, Switch, useLocation } from 'wouter';
 import { contextMenuDataAtom } from './atoms';
 import { isNoteMaximizedAtom } from './atoms';
 import { ContextMenu } from './components/context-menu';
@@ -12,7 +12,7 @@ import { LoadingModal } from './components/loading-modal';
 import { SearchPanel } from './components/search-panel';
 import { useLoggedInEvent, useUserData } from './hooks/auth';
 import { useProjectSettings } from './hooks/project-settings';
-import { useSearchPanel } from './hooks/search';
+import { useSearch } from './hooks/search';
 import { useTagEvents } from './hooks/tags';
 import { useThemeSetting } from './hooks/theme';
 import { MAX_SIDEBAR_WIDTH } from './utils/general';
@@ -20,6 +20,7 @@ import { disableBackspaceNavigation } from './utils/routing';
 import { RouteFallback } from './components/route-fallback';
 import { useTrapFocus } from './hooks/general';
 import { useZoom } from './hooks/resize';
+import { SearchPage } from './components/search-page';
 
 // Lazy load route components
 const NotFound = lazy(() =>
@@ -55,13 +56,14 @@ function App() {
   const notesSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
+  const [location] = useLocation();
 
   useUserData();
   useTagEvents();
   useTrapFocus();
   useLoggedInEvent();
   useThemeSetting();
-  useSearchPanel();
+  useSearch();
   useProjectSettings();
   useZoom();
 
@@ -81,7 +83,9 @@ function App() {
       <SearchPanel />
       <LoadingModal />
       <Toaster richColors theme="system" />
-      {!isNoteMaximized && <FolderSidebar width={folderSidebarWidth} />}
+      {!isNoteMaximized && !location.startsWith('/search') && (
+        <FolderSidebar width={folderSidebarWidth} />
+      )}
       <Switch>
         <Route path="/" />
         <Route path="/tags/:tagName/:folder?/:note?">
@@ -105,6 +109,11 @@ function App() {
         <Route path="/kernels/:kernelName">
           <Suspense fallback={<RouteFallback />}>
             <KernelInfo />
+          </Suspense>
+        </Route>
+        <Route path="/search">
+          <Suspense fallback={<RouteFallback />}>
+            <SearchPage />
           </Suspense>
         </Route>
 

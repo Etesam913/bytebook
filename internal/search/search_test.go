@@ -165,7 +165,7 @@ func TestCreateMarkdownNoteBleveDocument(t *testing.T) {
 		assert.True(t, doc.HasCode)
 		assert.True(t, doc.HasGoCode)
 		assert.True(t, doc.HasPythonCode)
-		assert.True(t, doc.HasJavaScriptCode)
+		assert.True(t, doc.HasJavascriptCode)
 		assert.True(t, doc.HasJavaCode)
 		assert.True(t, doc.HasDrawing)
 		assert.Equal(t, "2023-12-05T14:30:00Z", doc.LastUpdated)

@@ -5,9 +5,9 @@ import type { ResizeState } from '../types';
 import { EXPAND_CONTENT_COMMAND } from '../utils/commands';
 import { useWailsEvent } from './events';
 
-const MIN_ZOOM = 0.5;
+const MIN_ZOOM = 0.75;
 export let CURRENT_ZOOM = 1;
-const MAX_ZOOM = 2.0;
+const MAX_ZOOM = 1.25;
 const ZOOM_STEP = 0.1;
 
 /**

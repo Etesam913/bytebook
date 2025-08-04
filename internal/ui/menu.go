@@ -87,6 +87,19 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 		}
 	})
 
+	searchPage := sub.Add("Search Page")
+	searchPage.SetAccelerator("cmdorctrl+k")
+	searchPage.OnClick(func(ctx *application.Context) {
+		win := app.Window.Current()
+		if win != nil {
+			win.EmitEvent("search:open", map[string]any{})
+		} else {
+			log.Println(
+				"Current window could not be found: search:open event could not be emitted",
+			)
+		}
+	})
+
 	// Remove the default zoom in and out as it uses magnification instead of document.style.zoom
 	zoomIn := sub.FindByLabel("Zoom In")
 	if zoomIn != nil {

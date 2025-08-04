@@ -1,58 +1,59 @@
 package services
 
 import (
+	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
 
+	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/search"
 )
 
 type SearchService struct {
-	ProjectPath      string
-	InverseSearchMap map[string]map[string]int
+	ProjectPath string
+	SearchIndex bleve.Index
 }
 
-func (s *SearchService) SearchFileNamesFromQueryTrigram(searchQuery string) []string {
+func (s *SearchService) FullTextSearch(searchQuery string) []string {
+	matchQuery := bleve.NewPrefixQuery(searchQuery)
+	// matchQuery.SetField("folder")
+	matchQuery.SetField("file_name")
+	// matchQuery.SetFuzziness(2)
+	// matchQuery.SetPrefix(2)
+	// matchQuery.SetOperator(query.MatchQueryOperatorAnd)
 
-	queryTrigrams := search.GenerateTrigrams([]rune(strings.ToLower(searchQuery)))
-	searchResults := map[string]int{}
+	request := bleve.NewSearchRequest(matchQuery)
+	request.Fields = []string{"folder", "file_name"}
 
-	// Populating the searchResults map by aggregating the frequencies from each matching trigram
-	for i := 0; i < len(queryTrigrams); i++ {
-		trigram := queryTrigrams[i]
-		fileNameMap, exists := s.InverseSearchMap[trigram]
-		if !exists {
+	res, err := s.SearchIndex.Search(request)
+	if err != nil {
+		return []string{}
+	}
+
+	searchResults := []string{}
+
+	fmt.Println("res: ", res)
+
+	for _, hit := range res.Hits {
+		fmt.Println("hit.ID: ", hit.ID)
+		folder, folderOk := hit.Fields["folder"]
+		fileName, fileNameOk := hit.Fields["file_name"]
+		if !folderOk || !fileNameOk {
 			continue
 		}
 
-		for fileName := range fileNameMap {
-			_, nameInResults := searchResults[fileName]
-			if nameInResults {
-				searchResults[fileName] += fileNameMap[fileName]
-			} else {
-				searchResults[fileName] = fileNameMap[fileName]
-			}
+		searchResults = append(searchResults, folder.(string)+"/"+fileName.(string))
+
+		for k, v := range hit.Fields {
+			fmt.Printf("  %s: %v\n", k, v)
 		}
 	}
 
-	searchResultsSortedByRankDescending := []string{}
-
-	for fileName := range searchResults {
-		searchResultsSortedByRankDescending = append(searchResultsSortedByRankDescending, fileName)
-	}
-
-	sort.Slice(searchResultsSortedByRankDescending, func(i, j int) bool {
-		return searchResults[searchResultsSortedByRankDescending[i]] > searchResults[searchResultsSortedByRankDescending[j]]
-	})
-
-	return searchResultsSortedByRankDescending
+	return searchResults
 }
 
-/*
-Uses JaroWinklerSimilarity algorithm to rank file names off of a calculated similarity
-metic.
-*/
+// Uses the JaroWinklerSimilarity algorithm to rank file names based on their similarity to the search query.
 func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []string {
 	notesPath := filepath.Join(s.ProjectPath, "notes")
 	lowerSearchQuery := strings.ToLower(searchQuery)

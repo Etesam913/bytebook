@@ -146,7 +146,7 @@ export function Dialog() {
               transition: { ease: easingFunctions['ease-out-quint'] },
             }}
             className={cn(
-              'absolute bg-zinc-50 dark:bg-zinc-800 z-[60] top-2/4 py-3 w-[min(23rem,90vw)] rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4 max-h-11/12 flex flex-col',
+              'absolute bg-zinc-50 dark:bg-zinc-800 z-[60] top-2/4 py-3 w-[min(368px,90vw)] rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4 max-h-11/12 flex flex-col',
               dialogData.dialogClassName
             )}
           >

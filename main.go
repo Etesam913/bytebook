@@ -98,7 +98,7 @@ func main() {
 				&services.NodeService{ProjectPath: projectPath},
 			),
 			application.NewService(
-				&services.SearchService{ProjectPath: projectPath},
+				&services.SearchService{ProjectPath: projectPath, SearchIndex: searchIndex},
 			),
 			application.NewService(
 				&services.SettingsService{ProjectPath: projectPath},

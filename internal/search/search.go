@@ -1,12 +1,14 @@
 package search
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
+	_ "github.com/blevesearch/bleve/v2/analysis/analyzer/simple"
 	"github.com/blevesearch/bleve/v2/mapping"
 	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/util"
@@ -17,28 +19,28 @@ var MARKDOWN_NOTE_TYPE = "markdown_note"
 var ATTACHMENT_TYPE = "attachment"
 
 type MarkdownNoteBleveDocument struct {
-	Folder                string
-	FileName              string
-	FileExtension         string
-	TextContent           string
-	CodeContent           []string
-	GoCodeContent         []string
-	JavaCodeContent       []string
-	PythonCodeContent     []string
-	JavaScriptCodeContent []string
-	HasDrawing            bool
-	HasCode               bool
-	HasGoCode             bool
-	HasJavaCode           bool
-	HasPythonCode         bool
-	HasJavaScriptCode     bool
-	LastUpdated           string
-	CreatedDate           string
+	Folder                string   `json:"folder"`
+	FileName              string   `json:"file_name"`
+	FileExtension         string   `json:"file_extension"`
+	TextContent           string   `json:"text_content"`
+	CodeContent           []string `json:"code_content"`
+	GoCodeContent         []string `json:"go_code_content"`
+	JavaCodeContent       []string `json:"java_code_content"`
+	PythonCodeContent     []string `json:"python_code_content"`
+	JavascriptCodeContent []string `json:"javascript_code_content"`
+	HasDrawing            bool     `json:"has_drawing"`
+	HasCode               bool     `json:"has_code"`
+	HasGoCode             bool     `json:"has_go_code"`
+	HasJavaCode           bool     `json:"has_java_code"`
+	HasPythonCode         bool     `json:"has_python_code"`
+	HasJavascriptCode     bool     `json:"has_javascript_code"`
+	LastUpdated           string   `json:"last_updated"`
+	CreatedDate           string   `json:"created_date"`
 }
 
 type AttachmentBleveDocument struct {
-	FileName      string
-	FileExtension string
+	FileName      string `json:"file_name"`
+	FileExtension string `json:"file_extension"`
 }
 
 // CreateMarkdownNoteBleveDocument constructs a MarkdownNoteBleveDocument from markdown content.
@@ -57,13 +59,13 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 		GoCodeContent:         notes.GetGoCodeContent(markdown),
 		JavaCodeContent:       notes.GetJavaCodeContent(markdown),
 		PythonCodeContent:     notes.GetPythonCodeContent(markdown),
-		JavaScriptCodeContent: notes.GetJavaScriptCodeContent(markdown),
+		JavascriptCodeContent: notes.GetJavaScriptCodeContent(markdown),
 		HasDrawing:            notes.HasDrawing(markdown),
 		HasCode:               notes.HasCode(markdown),
 		HasGoCode:             notes.HasGoCode(markdown),
 		HasJavaCode:           notes.HasJavaCode(markdown),
 		HasPythonCode:         notes.HasPythonCode(markdown),
-		HasJavaScriptCode:     notes.HasJavaScriptCode(markdown),
+		HasJavascriptCode:     notes.HasJavaScriptCode(markdown),
 		LastUpdated:           lastUpdated,
 		CreatedDate:           createdDate,
 	}
@@ -138,8 +140,17 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	keywordTextFieldMapping := bleve.NewTextFieldMapping()
 	keywordTextFieldMapping.Analyzer = "keyword"
 
-	documentMapping.AddFieldMappingsAt("folder", keywordTextFieldMapping)
-	documentMapping.AddFieldMappingsAt("file_name", keywordTextFieldMapping)
+	// Set store = true for folder
+	storedKeywordMapping := bleve.NewTextFieldMapping()
+	storedKeywordMapping.Analyzer = "simple"
+	storedKeywordMapping.Store = true
+
+	// Set store = true for last_updated
+	lastUpdatedFieldMapping := bleve.NewDateTimeFieldMapping()
+	lastUpdatedFieldMapping.Store = true
+
+	documentMapping.AddFieldMappingsAt("folder", storedKeywordMapping)
+	documentMapping.AddFieldMappingsAt("file_name", storedKeywordMapping)
 	documentMapping.AddFieldMappingsAt("file_extension", keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt("text_content", proseTextFieldMapping)
 	documentMapping.AddFieldMappingsAt("code_content", proseTextFieldMapping)
@@ -153,8 +164,10 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	documentMapping.AddFieldMappingsAt("has_java_code", bleve.NewBooleanFieldMapping())
 	documentMapping.AddFieldMappingsAt("has_python_code", bleve.NewBooleanFieldMapping())
 	documentMapping.AddFieldMappingsAt("has_javascript_code", bleve.NewBooleanFieldMapping())
-	documentMapping.AddFieldMappingsAt("last_updated", bleve.NewDateTimeFieldMapping())
+	documentMapping.AddFieldMappingsAt("last_updated", lastUpdatedFieldMapping)
 	documentMapping.AddFieldMappingsAt("created_date", bleve.NewDateTimeFieldMapping())
+
+	fmt.Println("created")
 
 	return documentMapping
 }
