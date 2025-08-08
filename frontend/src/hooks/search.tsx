@@ -1,8 +1,11 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Window } from '@wailsio/runtime';
 import { atom, useSetAtom } from 'jotai';
 import { navigate } from 'wouter/use-browser-location';
-import { SearchFileNamesFromQuery } from '../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
+import {
+  FullTextSearch,
+  SearchFileNamesFromQuery,
+} from '../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
 import { searchPanelDataAtom } from '../atoms';
 import { useWailsEvent } from '../hooks/events';
 
@@ -37,5 +40,12 @@ export function useSearchMutation() {
     onError: () => {
       return [];
     },
+  });
+}
+
+export function useFullTextSearchQuery(searchQuery: string) {
+  return useQuery({
+    queryKey: ['full-text-search', searchQuery],
+    queryFn: () => FullTextSearch(searchQuery),
   });
 }

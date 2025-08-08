@@ -8,19 +8,24 @@ import (
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
+	_ "github.com/blevesearch/bleve/v2/analysis/analyzer/keyword"
 	_ "github.com/blevesearch/bleve/v2/analysis/analyzer/simple"
+	_ "github.com/blevesearch/bleve/v2/analysis/lang/en"
 	"github.com/blevesearch/bleve/v2/mapping"
 	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
-var INDEX_NAME = ".index.bleve"
+// Bump index name to force reindex when mappings change
+var INDEX_NAME = ".index.v4.bleve"
 var MARKDOWN_NOTE_TYPE = "markdown_note"
 var ATTACHMENT_TYPE = "attachment"
 
 type MarkdownNoteBleveDocument struct {
+	Type                  string   `json:"type"`
 	Folder                string   `json:"folder"`
 	FileName              string   `json:"file_name"`
+	FileNameLC            string   `json:"file_name_lc"`
 	FileExtension         string   `json:"file_extension"`
 	TextContent           string   `json:"text_content"`
 	CodeContent           []string `json:"code_content"`
@@ -39,7 +44,9 @@ type MarkdownNoteBleveDocument struct {
 }
 
 type AttachmentBleveDocument struct {
+	Type          string `json:"type"`
 	FileName      string `json:"file_name"`
+	FileNameLC    string `json:"file_name_lc"`
 	FileExtension string `json:"file_extension"`
 }
 
@@ -51,8 +58,10 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 	createdDate, _ := notes.GetCreatedDateFromFrontmatter(markdown)
 
 	return MarkdownNoteBleveDocument{
+		Type:                  MARKDOWN_NOTE_TYPE,
 		Folder:                folder,
 		FileName:              fileName,
+		FileNameLC:            strings.ToLower(fileName),
 		FileExtension:         ".md",
 		TextContent:           notes.GetTextContent(markdown),
 		CodeContent:           notes.GetCodeContent(markdown),
@@ -75,7 +84,9 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 // It extracts the filename and file extension for search indexing.
 func CreateAttachmentBleveDocument(fileName, fileExtension string) AttachmentBleveDocument {
 	return AttachmentBleveDocument{
+		Type:          ATTACHMENT_TYPE,
 		FileName:      fileName,
+		FileNameLC:    strings.ToLower(fileName),
 		FileExtension: fileExtension,
 	}
 }
@@ -98,6 +109,8 @@ func doesIndexExist(projectPath string) bool {
 func createIndex(projectPath string) (bleve.Index, error) {
 	pathToIndex := GetPathToIndex(projectPath)
 	indexMapping := bleve.NewIndexMapping()
+	// Use the "type" field in documents to select the document mapping
+	indexMapping.TypeField = "type"
 	indexMapping.AddDocumentMapping(MARKDOWN_NOTE_TYPE, createMarkdownNoteDocumentMapping())
 	indexMapping.AddDocumentMapping(ATTACHMENT_TYPE, createAttachmentDocumentMapping())
 	index, err := bleve.New(pathToIndex, indexMapping)
@@ -145,12 +158,23 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	storedKeywordMapping.Analyzer = "simple"
 	storedKeywordMapping.Store = true
 
+	// file_name should use keyword analyzer to preserve punctuation and spaces
+	fileNameFieldMapping := bleve.NewTextFieldMapping()
+	fileNameFieldMapping.Analyzer = "keyword"
+	fileNameFieldMapping.Store = true
+
+	// file_name_lc stores a lowercased copy for case-insensitive prefix queries
+	fileNameLowerFieldMapping := bleve.NewTextFieldMapping()
+	fileNameLowerFieldMapping.Analyzer = "keyword"
+	fileNameLowerFieldMapping.Store = false
+
 	// Set store = true for last_updated
 	lastUpdatedFieldMapping := bleve.NewDateTimeFieldMapping()
 	lastUpdatedFieldMapping.Store = true
 
 	documentMapping.AddFieldMappingsAt("folder", storedKeywordMapping)
-	documentMapping.AddFieldMappingsAt("file_name", storedKeywordMapping)
+	documentMapping.AddFieldMappingsAt("file_name", fileNameFieldMapping)
+	documentMapping.AddFieldMappingsAt("file_name_lc", fileNameLowerFieldMapping)
 	documentMapping.AddFieldMappingsAt("file_extension", keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt("text_content", proseTextFieldMapping)
 	documentMapping.AddFieldMappingsAt("code_content", proseTextFieldMapping)

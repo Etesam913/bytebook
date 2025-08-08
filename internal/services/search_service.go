@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -15,39 +14,91 @@ type SearchService struct {
 	SearchIndex bleve.Index
 }
 
-func (s *SearchService) FullTextSearch(searchQuery string) []string {
-	matchQuery := bleve.NewPrefixQuery(searchQuery)
-	// matchQuery.SetField("folder")
-	matchQuery.SetField("file_name")
-	// matchQuery.SetFuzziness(2)
-	// matchQuery.SetPrefix(2)
-	// matchQuery.SetOperator(query.MatchQueryOperatorAnd)
+// SearchResult represents one search hit returned to the frontend
+type SearchResult struct {
+	Title       string   `json:"title"`
+	Path        string   `json:"path"`
+	LastUpdated string   `json:"lastUpdated"`
+	Highlights  []string `json:"highlights"`
+}
 
-	request := bleve.NewSearchRequest(matchQuery)
-	request.Fields = []string{"folder", "file_name"}
+func (s *SearchService) FullTextSearch(searchQuery string) []SearchResult {
+	totalQuery := bleve.NewBooleanQuery()
+	queryFields := strings.Fields(searchQuery)
+
+	for _, field := range queryFields {
+		if strings.HasPrefix(field, "f:") {
+			// Case-insensitive file name prefix: use lowercased field
+			prefix := strings.ToLower(field[2:])
+			fileQuery := bleve.NewPrefixQuery(prefix)
+			fileQuery.SetField("file_name_lc")
+			totalQuery.AddMust(fileQuery)
+		} else {
+			// For multi-word queries like "service communication", use a MatchPhraseQuery for exact phrase
+			if strings.Contains(field, " ") {
+				phraseQuery := bleve.NewMatchPhraseQuery(field)
+				phraseQuery.SetField("text_content")
+				totalQuery.AddMust(phraseQuery)
+			} else {
+				matchQuery := bleve.NewMatchQuery(field)
+				matchQuery.SetField("text_content")
+				totalQuery.AddMust(matchQuery)
+			}
+		}
+	}
+
+	request := bleve.NewSearchRequest(totalQuery)
+	request.Fields = []string{"folder", "file_name", "last_updated"}
+	// Return a reasonable number of results and enable highlighting for text content
+	request.Size = 50
+	request.Highlight = bleve.NewHighlightWithStyle("html")
+	if request.Highlight != nil {
+		request.Highlight.Fields = []string{"text_content"}
+	}
 
 	res, err := s.SearchIndex.Search(request)
 	if err != nil {
-		return []string{}
+		return []SearchResult{}
 	}
 
-	searchResults := []string{}
-
-	fmt.Println("res: ", res)
+	searchResults := []SearchResult{}
 
 	for _, hit := range res.Hits {
-		fmt.Println("hit.ID: ", hit.ID)
 		folder, folderOk := hit.Fields["folder"]
 		fileName, fileNameOk := hit.Fields["file_name"]
 		if !folderOk || !fileNameOk {
 			continue
 		}
 
-		searchResults = append(searchResults, folder.(string)+"/"+fileName.(string))
+		// title is the file name; path is folder/file_name
+		title := fileName.(string)
+		path := folder.(string) + "/" + fileName.(string)
 
-		for k, v := range hit.Fields {
-			fmt.Printf("  %s: %v\n", k, v)
+		// last_updated is stored as a datetime; retrieve as string if present
+		lastUpdated := ""
+		if lu, ok := hit.Fields["last_updated"]; ok {
+			switch t := lu.(type) {
+			case string:
+				lastUpdated = t
+			default:
+				lastUpdated = ""
+			}
 		}
+
+		// collect highlight fragments for text_content
+		highlights := []string{}
+		if hit.Fragments != nil {
+			if frags, ok := hit.Fragments["text_content"]; ok {
+				highlights = append(highlights, frags...)
+			}
+		}
+
+		searchResults = append(searchResults, SearchResult{
+			Title:       title,
+			Path:        path,
+			LastUpdated: lastUpdated,
+			Highlights:  highlights,
+		})
 	}
 
 	return searchResults

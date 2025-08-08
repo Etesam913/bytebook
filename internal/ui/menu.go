@@ -66,7 +66,7 @@ func configureToggleFullscreen(menu *application.Menu) {
 	item.SetAccelerator("shift+cmd+f")
 }
 
-// configureViewMenu sets up the "Search" submenu item and its accelerator and click handler.
+// configureViewMenu sets up the "Command Palette" submenu item and its accelerator and click handler.
 func configureViewMenu(app *application.App, menu *application.Menu) {
 	item := menu.ItemAt(3)
 	if !item.IsSubmenu() {
@@ -74,7 +74,7 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	}
 	sub := item.GetSubmenu()
 
-	search := sub.Add("Search")
+	search := sub.Add("Command Palette")
 	search.SetAccelerator("cmdorctrl+p")
 	search.OnClick(func(ctx *application.Context) {
 		win := app.Window.Current()
