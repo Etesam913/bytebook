@@ -7,6 +7,7 @@ import (
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/search"
+	"github.com/blevesearch/bleve/v2/search/query"
 	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -771,5 +772,56 @@ func TestParseTokens(t *testing.T) {
 			{Text: "user management", IsExact: true},
 		}
 		assert.Equal(t, expected, tokens)
+	})
+}
+
+func TestCreatePrefixQuery(t *testing.T) {
+	t.Run("should create prefix query with lowercase prefix", func(t *testing.T) {
+		q := CreatePrefixQuery("test_field", "PREFIX")
+
+		// Verify it's a prefix query
+		prefixQuery, ok := q.(*query.PrefixQuery)
+		assert.True(t, ok, "Query should be a PrefixQuery")
+
+		// Verify the field is set correctly
+		assert.Equal(t, "test_field", prefixQuery.FieldVal)
+
+		// Verify the prefix is lowercased
+		assert.Equal(t, "prefix", prefixQuery.Prefix)
+	})
+}
+
+func TestCreateFuzzyQuery(t *testing.T) {
+	t.Run("should create fuzzy query with lowercase term", func(t *testing.T) {
+		q := CreateFuzzyQuery("test_field", "TERM", 2)
+
+		// Verify it's a fuzzy query
+		fuzzyQuery, ok := q.(*query.FuzzyQuery)
+		assert.True(t, ok, "Query should be a FuzzyQuery")
+
+		// Verify the field is set correctly
+		assert.Equal(t, "test_field", fuzzyQuery.FieldVal)
+
+		// Verify the term is lowercased
+		assert.Equal(t, "term", fuzzyQuery.Term)
+
+		// Verify the fuzziness is set correctly
+		assert.Equal(t, 2, fuzzyQuery.Fuzziness)
+	})
+}
+
+func TestCreateExactQuery(t *testing.T) {
+	t.Run("should create match phrase query", func(t *testing.T) {
+		q := CreateExactQuery("test_field", "exact phrase")
+
+		// Verify it's a match phrase query
+		phraseQuery, ok := q.(*query.MatchPhraseQuery)
+		assert.True(t, ok, "Query should be a MatchPhraseQuery")
+
+		// Verify the field is set correctly
+		assert.Equal(t, "test_field", phraseQuery.FieldVal)
+
+		// Verify the phrase is preserved (not lowercased)
+		assert.Equal(t, "exact phrase", phraseQuery.MatchPhrase)
 	})
 }

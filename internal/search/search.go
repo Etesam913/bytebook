@@ -200,44 +200,29 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	return documentMapping
 }
 
-// CreateFilenamePrefixQuery returns a case-insensitive prefix query targeting the file_name_lc field.
+// CreatePrefixQuery returns a case-insensitive prefix query targeting the specified field.
 // The provided prefix is lowercased to ensure case-insensitive behavior.
-func CreateFilenamePrefixQuery(prefix string) query.Query {
+func CreatePrefixQuery(field, prefix string) query.Query {
 	normalizedPrefix := strings.ToLower(prefix)
 	q := bleve.NewPrefixQuery(normalizedPrefix)
-	q.SetField("file_name_lc")
+	q.SetField(field)
 	return q
 }
 
-// CreateFuzzyTextContentQuery returns a fuzzy query over the text_content field.
+// CreateFuzzyQuery returns a fuzzy query over the specified field.
 // The term is lowercased and the provided fuzziness value is applied.
-func CreateFuzzyTextContentQuery(term string, fuzziness int) query.Query {
+func CreateFuzzyQuery(field, term string, fuzziness int) query.Query {
 	normalizedTerm := strings.ToLower(term)
 	q := bleve.NewFuzzyQuery(normalizedTerm)
-	q.SetField("text_content")
+	q.SetField(field)
 	q.SetFuzziness(fuzziness)
 	return q
 }
 
-func CreateFuzzyCodeQuery(term string, fuzziness int) query.Query {
-	normalizedTerm := strings.ToLower(term)
-	q := bleve.NewFuzzyQuery(normalizedTerm)
-	q.SetField("code_content")
-	q.SetFuzziness(fuzziness)
-	return q
-}
-
-// CreateExactTextContentQuery returns a phrase query for exact matching in text_content field.
-func CreateExactTextContentQuery(phrase string) query.Query {
+// CreateExactQuery returns a phrase query for exact matching in the specified field.
+func CreateExactQuery(field, phrase string) query.Query {
 	q := bleve.NewMatchPhraseQuery(phrase)
-	q.SetField("text_content")
-	return q
-}
-
-// CreateExactCodeQuery returns a phrase query for exact matching in code_content field.
-func CreateExactCodeQuery(phrase string) query.Query {
-	q := bleve.NewMatchPhraseQuery(phrase)
-	q.SetField("code_content")
+	q.SetField(field)
 	return q
 }
 
@@ -306,18 +291,18 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 	for _, token := range tokens {
 		if strings.HasPrefix(token.Text, "f:") {
 			// Filename prefix query
-			booleanQuery.AddMust(CreateFilenamePrefixQuery(token.Text[2:]))
+			booleanQuery.AddMust(CreatePrefixQuery("file_name_lc", token.Text[2:]))
 		} else if token.IsExact {
 			// Exact phrase search in both text and code content
 			contentQuery := bleve.NewBooleanQuery()
-			contentQuery.AddShould(CreateExactTextContentQuery(token.Text))
-			contentQuery.AddShould(CreateExactCodeQuery(token.Text))
+			contentQuery.AddShould(CreateExactQuery("text_content", token.Text))
+			contentQuery.AddShould(CreateExactQuery("code_content", token.Text))
 			booleanQuery.AddMust(contentQuery)
 		} else {
 			// Fuzzy search in both text and code content
 			contentQuery := bleve.NewBooleanQuery()
-			contentQuery.AddShould(CreateFuzzyTextContentQuery(token.Text, fuzziness))
-			contentQuery.AddShould(CreateFuzzyCodeQuery(token.Text, fuzziness))
+			contentQuery.AddShould(CreateFuzzyQuery("text_content", token.Text, fuzziness))
+			contentQuery.AddShould(CreateFuzzyQuery("code_content", token.Text, fuzziness))
 			booleanQuery.AddShould(contentQuery)
 		}
 	}
