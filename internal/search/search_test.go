@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/blevesearch/bleve/v2"
+	"github.com/blevesearch/bleve/v2/search"
 	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -519,5 +520,153 @@ This is test content.
 				assert.Equal(t, tc.expectedLastUpdated, result.LastUpdated)
 			})
 		}
+	})
+}
+
+func TestProcessDocumentSearchResults(t *testing.T) {
+
+	t.Run("should return empty slice for nil search result", func(t *testing.T) {
+		results := ProcessDocumentSearchResults(nil)
+		assert.Empty(t, results)
+	})
+
+	t.Run("should return empty slice for search result with no hits", func(t *testing.T) {
+		searchResult := &bleve.SearchResult{
+			Hits: []*search.DocumentMatch{},
+		}
+		results := ProcessDocumentSearchResults(searchResult)
+		assert.Empty(t, results)
+	})
+
+	t.Run("should process multiple search results correctly", func(t *testing.T) {
+		searchResult := &bleve.SearchResult{
+			Hits: []*search.DocumentMatch{
+				{
+					Fields: map[string]interface{}{
+						"folder":    "folder1",
+						"file_name": "doc1",
+					},
+					Fragments: map[string][]string{
+						"text_content": {"This contains <mark>search term</mark>."},
+					},
+				},
+				{
+					Fields: map[string]interface{}{
+						"folder":       "folder2",
+						"file_name":    "doc2",
+						"last_updated": "2023-12-02T15:45:00Z",
+					},
+					Fragments: map[string][]string{
+						"text_content": {"This also contains <mark>search term</mark>."},
+					},
+				},
+			},
+		}
+
+		results := ProcessDocumentSearchResults(searchResult)
+
+		assert.Len(t, results, 2)
+
+		// Verify first result
+		expectedFirst := SearchResult{
+			Title:       "doc1",
+			Path:        "folder1/doc1",
+			LastUpdated: "",
+			Highlights:  []string{"This contains <mark>search term</mark>."},
+		}
+		assert.Equal(t, expectedFirst, results[0])
+
+		// Verify second result
+		expectedSecond := SearchResult{
+			Title:       "doc2",
+			Path:        "folder2/doc2",
+			LastUpdated: "2023-12-02T15:45:00Z",
+			Highlights:  []string{"This also contains <mark>search term</mark>."},
+		}
+		assert.Equal(t, expectedSecond, results[1])
+	})
+
+	t.Run("should handle missing fields gracefully", func(t *testing.T) {
+		// Create a mock search result with missing fields
+		searchResult := &bleve.SearchResult{
+			Hits: []*search.DocumentMatch{
+				{
+					Fields: map[string]interface{}{
+						"folder": "test-folder",
+						// Missing file_name field
+					},
+				},
+				{
+					Fields: map[string]interface{}{
+						// Missing folder field
+						"file_name": "test.md",
+					},
+				},
+				{
+					Fields: map[string]interface{}{
+						"folder":    "valid-folder",
+						"file_name": "valid-file.md",
+					},
+				},
+			},
+		}
+
+		results := ProcessDocumentSearchResults(searchResult)
+
+		// Should only return the valid result (third one)
+		assert.Len(t, results, 1)
+		assert.Equal(t, "valid-file.md", results[0].Title)
+		assert.Equal(t, "valid-folder/valid-file.md", results[0].Path)
+	})
+
+	t.Run("should extract highlights correctly", func(t *testing.T) {
+		searchResult := &bleve.SearchResult{
+			Hits: []*search.DocumentMatch{
+				{
+					Fields: map[string]interface{}{
+						"folder":    "highlight-test",
+						"file_name": "highlight",
+					},
+					Fragments: map[string][]string{
+						"text_content": {
+							"This document contains multiple instances of the word <mark>testing</mark>.",
+							"More <mark>testing</mark> content here for better highlighting.",
+						},
+					},
+				},
+			},
+		}
+
+		results := ProcessDocumentSearchResults(searchResult)
+
+		assert.Len(t, results, 1)
+		result := results[0]
+		assert.Len(t, result.Highlights, 2)
+
+		// Verify highlights contain expected content
+		assert.Contains(t, result.Highlights[0], "<mark>testing</mark>")
+		assert.Contains(t, result.Highlights[1], "<mark>testing</mark>")
+		assert.Contains(t, result.Highlights[0], "multiple instances")
+		assert.Contains(t, result.Highlights[1], "better highlighting")
+	})
+
+	t.Run("should handle search result with no highlights", func(t *testing.T) {
+		// Create mock search result without fragments
+		searchResult := &bleve.SearchResult{
+			Hits: []*search.DocumentMatch{
+				{
+					Fields: map[string]interface{}{
+						"folder":    "test",
+						"file_name": "file.md",
+					},
+					Fragments: nil, // No highlights
+				},
+			},
+		}
+
+		results := ProcessDocumentSearchResults(searchResult)
+
+		assert.Len(t, results, 1)
+		assert.Empty(t, results[0].Highlights)
 	})
 }
