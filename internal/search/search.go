@@ -291,7 +291,15 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 	for _, token := range tokens {
 		if strings.HasPrefix(token.Text, "f:") {
 			// Filename prefix query
-			booleanQuery.AddMust(CreatePrefixQuery("file_name_lc", token.Text[2:]))
+			prefixTerm := token.Text[2:]
+			prefixTermSplit := strings.Split(prefixTerm, "/")
+			if len(prefixTermSplit) > 1 {
+				booleanQuery.AddMust(CreatePrefixQuery("folder", prefixTermSplit[0]))
+				booleanQuery.AddMust(CreatePrefixQuery("file_name_lc", prefixTermSplit[1]))
+			} else {
+				booleanQuery.AddShould(CreatePrefixQuery("folder", prefixTerm))
+				booleanQuery.AddShould(CreatePrefixQuery("file_name_lc", prefixTerm))
+			}
 		} else if token.IsExact {
 			// Exact phrase search in both text and code content
 			contentQuery := bleve.NewBooleanQuery()
@@ -301,8 +309,8 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 		} else {
 			// Fuzzy search in both text and code content
 			contentQuery := bleve.NewBooleanQuery()
-			contentQuery.AddShould(CreateFuzzyQuery("text_content", token.Text, fuzziness))
-			contentQuery.AddShould(CreateFuzzyQuery("code_content", token.Text, fuzziness))
+			contentQuery.AddShould(CreatePrefixQuery("text_content", token.Text))
+			contentQuery.AddShould(CreatePrefixQuery("code_content", token.Text))
 			booleanQuery.AddShould(contentQuery)
 		}
 	}

@@ -114,7 +114,15 @@ export function SearchPage() {
                 <li>
                   Use{' '}
                   <b className="text-zinc-900 dark:text-zinc-100">f:apple</b> to
-                  search for files that start with apple
+                  search for files or folders that start with "apple"
+                </li>
+                <li>
+                  Use{' '}
+                  <b className="text-zinc-900 dark:text-zinc-100">
+                    f:docs/readme
+                  </b>{' '}
+                  to search for files starting with "readme" in folders starting
+                  with "docs"
                 </li>
               </ol>
             </div>
