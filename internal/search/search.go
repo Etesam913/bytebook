@@ -247,6 +247,11 @@ type SearchToken struct {
 	IsExact bool // true if the token was in quotes for exact matching
 }
 
+// parseTokens splits the input string into a slice of SearchToken,
+// handling quoted phrases as exact matches and unquoted words as fuzzy tokens.
+// Quoted phrases (enclosed in double quotes) are treated as exact matches (IsExact=true).
+// Unquoted words are split by spaces and treated as non-exact (IsExact=false).
+// Example: input `"foo bar" baz` yields tokens: [{foo bar true}, {baz false}]
 func parseTokens(input string) []SearchToken {
 	tokens := []SearchToken{}
 	curToken := strings.Builder{}

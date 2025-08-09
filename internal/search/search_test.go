@@ -670,3 +670,106 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 		assert.Empty(t, results[0].Highlights)
 	})
 }
+
+func TestParseTokens(t *testing.T) {
+	t.Run("should handle simple unquoted words", func(t *testing.T) {
+		tokens := parseTokens("hello world")
+
+		expected := []SearchToken{
+			{Text: "hello", IsExact: false},
+			{Text: "world", IsExact: false},
+		}
+		assert.Equal(t, expected, tokens)
+	})
+
+	t.Run("should handle quoted phrases", func(t *testing.T) {
+		tokens := parseTokens(`"hello world"`)
+
+		expected := []SearchToken{
+			{Text: "hello world", IsExact: true},
+		}
+		assert.Equal(t, expected, tokens)
+	})
+
+	t.Run("should handle mixed quoted and unquoted", func(t *testing.T) {
+		tokens := parseTokens(`"foo bar" baz "hello world"`)
+
+		expected := []SearchToken{
+			{Text: "foo bar", IsExact: true},
+			{Text: "baz", IsExact: false},
+			{Text: "hello world", IsExact: true},
+		}
+		assert.Equal(t, expected, tokens)
+	})
+
+	t.Run("should handle empty input", func(t *testing.T) {
+		tokens := parseTokens("")
+		assert.Empty(t, tokens)
+	})
+
+	t.Run("should handle only spaces", func(t *testing.T) {
+		tokens := parseTokens("   ")
+		assert.Empty(t, tokens)
+	})
+
+	t.Run("should handle filename prefix tokens", func(t *testing.T) {
+		tokens := parseTokens(`f:readme "exact phrase" normal`)
+
+		expected := []SearchToken{
+			{Text: "f:readme", IsExact: false},
+			{Text: "exact phrase", IsExact: true},
+			{Text: "normal", IsExact: false},
+		}
+		assert.Equal(t, expected, tokens)
+	})
+
+	t.Run("should handle single quoted word", func(t *testing.T) {
+		tokens := parseTokens(`"word"`)
+
+		expected := []SearchToken{
+			{Text: "word", IsExact: true},
+		}
+		assert.Equal(t, expected, tokens)
+	})
+
+	t.Run("should handle unclosed quotes", func(t *testing.T) {
+		tokens := parseTokens(`"unclosed quote`)
+
+		// Unclosed quotes result in empty tokens since the quote never closes
+		// and the final token is still "in quotes" so it's not appended
+		expected := []SearchToken{}
+		assert.Equal(t, expected, tokens)
+	})
+
+	t.Run("should handle empty quotes", func(t *testing.T) {
+		tokens := parseTokens(`""`)
+
+		expected := []SearchToken{
+			{Text: "", IsExact: true},
+		}
+		assert.Equal(t, expected, tokens)
+	})
+
+	t.Run("should handle multiple spaces between words", func(t *testing.T) {
+		tokens := parseTokens("hello    world")
+
+		expected := []SearchToken{
+			{Text: "hello", IsExact: false},
+			{Text: "world", IsExact: false},
+		}
+		assert.Equal(t, expected, tokens)
+	})
+
+	t.Run("should handle complex real-world example", func(t *testing.T) {
+		tokens := parseTokens(`f:config "error handling" database authentication "user management"`)
+
+		expected := []SearchToken{
+			{Text: "f:config", IsExact: false},
+			{Text: "error handling", IsExact: true},
+			{Text: "database", IsExact: false},
+			{Text: "authentication", IsExact: false},
+			{Text: "user management", IsExact: true},
+		}
+		assert.Equal(t, expected, tokens)
+	})
+}
