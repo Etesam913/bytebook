@@ -1,6 +1,7 @@
 package services
 
 import (
+	"log"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -21,6 +22,7 @@ func (s *SearchService) FullTextSearch(searchQuery string) []search.SearchResult
 
 	res, err := s.SearchIndex.Search(request)
 	if err != nil {
+		log.Println("full text search failed:", err)
 		return []search.SearchResult{}
 	}
 
