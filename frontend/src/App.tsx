@@ -111,6 +111,7 @@ function App() {
             <KernelInfo />
           </Suspense>
         </Route>
+
         <Route path="/search">
           <Suspense fallback={<RouteFallback />}>
             <SearchPage />

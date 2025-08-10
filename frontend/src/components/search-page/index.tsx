@@ -9,6 +9,8 @@ import {
 import { useAtom } from 'jotai';
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
+import { cn } from '../../utils/string-formatting';
+import { SearchCodeBlock } from './search-code-block';
 
 export function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useAtom(lastSearchQueryAtom);
@@ -23,7 +25,7 @@ export function SearchPage() {
   } = useFullTextSearchQuery(lastSearchQuery);
 
   return (
-    <section className="py-2.75 flex-1 h-screen text-base flex flex-col font-code overflow-hidden text-zinc-900 dark:text-zinc-100">
+    <section className="pt-2.75 flex-1 h-screen flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
       <header className="flex items-center gap-2 w-full pl-22 pr-4 pb-2 border-b-1 border-zinc-200 dark:border-zinc-700">
         <MotionIconButton
           {...getDefaultButtonVariants()}
@@ -34,7 +36,7 @@ export function SearchPage() {
         <Input
           inputProps={{
             placeholder: 'Search',
-            className: 'w-full text-sm',
+            className: 'w-full ',
             autoCapitalize: 'off',
             autoComplete: 'off',
             autoCorrect: 'off',
@@ -88,7 +90,7 @@ export function SearchPage() {
         )} */}
         {isError && (
           <div className="w-full flex-1 flex justify-center items-center">
-            <div className="text-sm text-red-600 dark:text-red-400">
+            <div className="text-red-600 dark:text-red-400">
               {
                 (error instanceof Error
                   ? error.message
@@ -98,29 +100,31 @@ export function SearchPage() {
           </div>
         )}
         {searchResults.length === 0 && (
-          <div className="flex justify-center items-center flex-1">
-            <div className="text-sm text-zinc-700 dark:text-zinc-300">
+          <div className="flex justify-center items-center flex-1 px-6">
+            <div className="text-zinc-700 dark:text-zinc-300">
               <h2 className="text-2xl py-3 text-center text-zinc-800 dark:text-zinc-200">
                 Search examples
               </h2>
               <ol className="list-decimal list-inside space-y-2">
                 <li>
                   Type{' '}
-                  <b className="text-zinc-900 dark:text-zinc-100">
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
                     "The red tiger"
-                  </b>{' '}
+                  </span>{' '}
                   to search for files that contain the phrase "The red tiger"
                 </li>
                 <li>
                   Use{' '}
-                  <b className="text-zinc-900 dark:text-zinc-100">f:apple</b> to
-                  search for files or folders that start with "apple"
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                    f:apple
+                  </span>{' '}
+                  to search for files or folders that start with "apple"
                 </li>
                 <li>
                   Use{' '}
-                  <b className="text-zinc-900 dark:text-zinc-100">
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
                     f:docs/readme
-                  </b>{' '}
+                  </span>{' '}
                   to search for files starting with "readme" in folders starting
                   with "docs"
                 </li>
@@ -138,28 +142,40 @@ export function SearchPage() {
               key={result.path}
               href={href}
               draggable={false}
-              className={`block py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-sky-500 ${
-                idx === selectedIndex ? 'bg-zinc-100 dark:bg-zinc-700' : ''
-              }`}
+              className={cn(
+                'block py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',
+                idx === selectedIndex && 'bg-zinc-100 dark:bg-zinc-700'
+              )}
             >
-              <div className="text-sm font-semibold">{result.title}</div>
-              <div className="text-xs text-neutral-500 dark:text-neutral-400">
+              <div className="font-semibold">{result.title}</div>
+              <div className="text-sm text-neutral-500 dark:text-neutral-400">
                 {result.path}
               </div>
               {result.lastUpdated && (
-                <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                <div className="text-sm text-neutral-500 dark:text-neutral-400">
                   Updated {result.lastUpdated}
                 </div>
               )}
               {(result.highlights?.length ?? 0) > 0 && (
                 <div className="mt-1 space-y-1">
-                  {(result.highlights ?? []).slice(0, 3).map((h, idx) => (
-                    <div
-                      key={idx}
-                      className="text-xs text-neutral-700 dark:text-neutral-300"
-                      dangerouslySetInnerHTML={{ __html: h }}
-                    />
-                  ))}
+                  {(result.highlights ?? [])
+                    .slice(0, 3)
+                    .map((highlight, idx) =>
+                      highlight.isCode ? (
+                        <SearchCodeBlock
+                          key={idx}
+                          content={highlight.content}
+                        />
+                      ) : (
+                        <div
+                          key={idx}
+                          className="text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap"
+                          dangerouslySetInnerHTML={{
+                            __html: highlight.content,
+                          }}
+                        />
+                      )
+                    )}
                 </div>
               )}
             </Link>

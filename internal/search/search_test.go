@@ -573,7 +573,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 			Title:       "doc1",
 			Path:        "folder1/doc1",
 			LastUpdated: "",
-			Highlights:  []string{"This contains <mark>search term</mark>."},
+			Highlights:  []HighlightResult{{Content: "This contains <mark>search term</mark>.", IsCode: false}},
 		}
 		assert.Equal(t, expectedFirst, results[0])
 
@@ -582,7 +582,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 			Title:       "doc2",
 			Path:        "folder2/doc2",
 			LastUpdated: "2023-12-02T15:45:00Z",
-			Highlights:  []string{"This also contains <mark>search term</mark>."},
+			Highlights:  []HighlightResult{{Content: "This also contains <mark>search term</mark>.", IsCode: false}},
 		}
 		assert.Equal(t, expectedSecond, results[1])
 	})
@@ -645,10 +645,13 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 		assert.Len(t, result.Highlights, 2)
 
 		// Verify highlights contain expected content
-		assert.Contains(t, result.Highlights[0], "<mark>testing</mark>")
-		assert.Contains(t, result.Highlights[1], "<mark>testing</mark>")
-		assert.Contains(t, result.Highlights[0], "multiple instances")
-		assert.Contains(t, result.Highlights[1], "better highlighting")
+		assert.Contains(t, result.Highlights[0].Content, "<mark>testing</mark>")
+		assert.Contains(t, result.Highlights[1].Content, "<mark>testing</mark>")
+		assert.Contains(t, result.Highlights[0].Content, "multiple instances")
+		assert.Contains(t, result.Highlights[1].Content, "better highlighting")
+		// Verify these are text highlights, not code
+		assert.False(t, result.Highlights[0].IsCode)
+		assert.False(t, result.Highlights[1].IsCode)
 	})
 
 	t.Run("should handle search result with no highlights", func(t *testing.T) {
@@ -669,6 +672,54 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 
 		assert.Len(t, results, 1)
 		assert.Empty(t, results[0].Highlights)
+	})
+
+	t.Run("should distinguish between text and code highlights", func(t *testing.T) {
+		searchResult := &bleve.SearchResult{
+			Hits: []*search.DocumentMatch{
+				{
+					Fields: map[string]interface{}{
+						"folder":    "mixed-content",
+						"file_name": "example",
+					},
+					Fragments: map[string][]string{
+						"text_content": {
+							"This is normal text with <mark>search</mark> term.",
+						},
+						"code_content": {
+							"function <mark>search</mark>() { return true; }",
+						},
+					},
+				},
+			},
+		}
+
+		results := ProcessDocumentSearchResults(searchResult)
+
+		assert.Len(t, results, 1)
+		result := results[0]
+		assert.Len(t, result.Highlights, 2)
+
+		// Find text and code highlights
+		var textHighlight, codeHighlight *HighlightResult
+		for i := range result.Highlights {
+			if result.Highlights[i].IsCode {
+				codeHighlight = &result.Highlights[i]
+			} else {
+				textHighlight = &result.Highlights[i]
+			}
+		}
+
+		// Verify we have both types
+		assert.NotNil(t, textHighlight)
+		assert.NotNil(t, codeHighlight)
+
+		// Verify content and flags
+		assert.Contains(t, textHighlight.Content, "normal text")
+		assert.False(t, textHighlight.IsCode)
+
+		assert.Contains(t, codeHighlight.Content, "function")
+		assert.True(t, codeHighlight.IsCode)
 	})
 }
 
@@ -824,4 +875,40 @@ func TestCreateExactQuery(t *testing.T) {
 		// Verify the phrase is preserved (not lowercased)
 		assert.Equal(t, "exact phrase", phraseQuery.MatchPhrase)
 	})
+}
+
+func TestHasHighlightContent(t *testing.T) {
+	testCases := []struct {
+		name     string
+		fragment string
+		expected bool
+	}{
+		{
+			name:     "should return true for fragment with mark tag",
+			fragment: "This contains <mark>highlighted</mark> content.",
+			expected: true,
+		},
+		{
+			name:     "should return true for fragment with em tag",
+			fragment: "This contains <em>emphasized</em> content.",
+			expected: true,
+		},
+		{
+			name:     "should return false for fragment without highlight tags",
+			fragment: "This is plain text without any highlighting.",
+			expected: false,
+		},
+		{
+			name:     "should return false for fragment with other HTML tags",
+			fragment: "This has <strong>bold</strong> and <span>span</span> tags.",
+			expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := hasHighlightContent(tc.fragment)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
 }

@@ -22,15 +22,16 @@ var (
 	CODE_BLOCK_REGEX  = regexp.MustCompile("(?s)```.*?```|~~~.*?~~~")
 	FRONTMATTER_REGEX = regexp.MustCompile(`(?s)^---.*?---\s*`)
 	HTML_TAG_REGEX    = regexp.MustCompile(`<[^>]*>`)
-	HEADER_REGEX      = regexp.MustCompile(`^#+\s+`)
+	HEADER_REGEX      = regexp.MustCompile(`(?m)^#+\s*`)
 
 	// Language-specific code block patterns
-	CODE_BLOCK_WITH_LANG_REGEX  = regexp.MustCompile("(?s)```([a-zA-Z0-9_+-]*)\n(.*?)```")
-	GO_CODE_BLOCK_REGEX         = regexp.MustCompile("(?s)```go\n(.*?)```")
-	JAVA_CODE_BLOCK_REGEX       = regexp.MustCompile("(?s)```java\n(.*?)```")
-	PYTHON_CODE_BLOCK_REGEX     = regexp.MustCompile("(?s)```python\n(.*?)```")
-	JAVASCRIPT_CODE_BLOCK_REGEX = regexp.MustCompile("(?s)```(?:javascript|js)\n(.*?)```")
-	DRAWING_CODE_BLOCK_REGEX    = regexp.MustCompile("(?s)```drawing\n(.*?)```")
+	// Support optional attributes after the language (CommonMark info string), e.g. ```python id="..."
+	CODE_BLOCK_WITH_LANG_REGEX  = regexp.MustCompile("(?s)```(?:([a-zA-Z0-9_+-]+)[^\n]*)?\n(.*?)```")
+	GO_CODE_BLOCK_REGEX         = regexp.MustCompile("(?s)```go[^\n]*\n(.*?)```")
+	JAVA_CODE_BLOCK_REGEX       = regexp.MustCompile("(?s)```java[^\n]*\n(.*?)```")
+	PYTHON_CODE_BLOCK_REGEX     = regexp.MustCompile("(?s)```python[^\n]*\n(.*?)```")
+	JAVASCRIPT_CODE_BLOCK_REGEX = regexp.MustCompile("(?s)```(?:javascript|js)[^\n]*\n(.*?)```")
+	DRAWING_CODE_BLOCK_REGEX    = regexp.MustCompile("(?s)```drawing[^\n]*\n(.*?)```")
 )
 
 // URL Management Functions
@@ -524,7 +525,7 @@ func GetCodeContent(markdown string) []string {
 // Returns a slice of strings containing the code from blocks with the specified language.
 func GetCodeContentForLanguage(markdown string, language string) []string {
 	// Create a regex pattern for the specific language
-	pattern := "(?s)```" + regexp.QuoteMeta(language) + "\\n(.*?)```"
+	pattern := "(?s)```" + regexp.QuoteMeta(language) + "[^\\n]*\\n(.*?)```"
 	langRegex := regexp.MustCompile(pattern)
 
 	return getCodeContentWithLangRegex(markdown, langRegex, 1)

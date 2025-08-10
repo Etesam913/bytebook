@@ -109,6 +109,10 @@ html:has(.dark) {
   outline: 2px auto var(--accent-color);
 }
 
+mark {
+  @apply bg-(--accent-color-highlight) text-zinc-900 dark:text-zinc-100;
+}
+
 input[type='text'],
 textarea,
 [contenteditable] {

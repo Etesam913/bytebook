@@ -1,7 +1,6 @@
 package search
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -195,8 +194,6 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	documentMapping.AddFieldMappingsAt("last_updated", lastUpdatedFieldMapping)
 	documentMapping.AddFieldMappingsAt("created_date", bleve.NewDateTimeFieldMapping())
 
-	fmt.Println("created")
-
 	return documentMapping
 }
 
@@ -297,8 +294,10 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 				booleanQuery.AddMust(CreatePrefixQuery("folder", prefixTermSplit[0]))
 				booleanQuery.AddMust(CreatePrefixQuery("file_name_lc", prefixTermSplit[1]))
 			} else {
-				booleanQuery.AddShould(CreatePrefixQuery("folder", prefixTerm))
-				booleanQuery.AddShould(CreatePrefixQuery("file_name_lc", prefixTerm))
+				newBooleanQuery := bleve.NewBooleanQuery()
+				newBooleanQuery.AddShould(CreatePrefixQuery("folder", prefixTerm))
+				newBooleanQuery.AddShould(CreatePrefixQuery("file_name_lc", prefixTerm))
+				booleanQuery.AddMust(newBooleanQuery)
 			}
 		} else if token.IsExact {
 			// Exact phrase search in both text and code content
@@ -311,7 +310,7 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 			contentQuery := bleve.NewBooleanQuery()
 			contentQuery.AddShould(CreatePrefixQuery("text_content", token.Text))
 			contentQuery.AddShould(CreatePrefixQuery("code_content", token.Text))
-			booleanQuery.AddShould(contentQuery)
+			booleanQuery.AddMust(contentQuery)
 		}
 	}
 	return booleanQuery
@@ -518,12 +517,23 @@ func IndexAllFiles(projectPath string, index bleve.Index) error {
 	return nil
 }
 
+// HighlightResult represents a single highlight with its type
+type HighlightResult struct {
+	Content string `json:"content"`
+	IsCode  bool   `json:"isCode"`
+}
+
 // SearchResult represents one search hit returned to the frontend
 type SearchResult struct {
-	Title       string   `json:"title"`
-	Path        string   `json:"path"`
-	LastUpdated string   `json:"lastUpdated"`
-	Highlights  []string `json:"highlights"`
+	Title       string            `json:"title"`
+	Path        string            `json:"path"`
+	LastUpdated string            `json:"lastUpdated"`
+	Highlights  []HighlightResult `json:"highlights"`
+}
+
+// hasHighlightContent checks if a fragment contains actual highlighted content
+func hasHighlightContent(fragment string) bool {
+	return strings.Contains(fragment, "<mark>") || strings.Contains(fragment, "<em>")
 }
 
 // ProcessDocumentSearchResults converts Bleve search results into SearchResult structs
@@ -559,16 +569,32 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 		}
 
 		// collect highlight fragments for text_content and code_content
-		highlights := []string{}
+		highlights := []HighlightResult{}
 		if hit.Fragments != nil {
+			// Process text_content highlights
 			if frags, ok := hit.Fragments["text_content"]; ok {
-				highlights = append(highlights, frags...)
+				for _, frag := range frags {
+					if hasHighlightContent(frag) {
+						highlights = append(highlights, HighlightResult{
+							Content: frag,
+							IsCode:  false,
+						})
+					}
+				}
 			}
+			// Process code_content highlights
 			if frags, ok := hit.Fragments["code_content"]; ok {
-				highlights = append(highlights, frags...)
+				for _, frag := range frags {
+					if hasHighlightContent(frag) {
+						highlights = append(highlights, HighlightResult{
+							Content: frag,
+							IsCode:  true,
+						})
+					}
+				}
 			}
 		}
-		fmt.Println("highlights", highlights)
+
 		results = append(results, SearchResult{
 			Title:       title,
 			Path:        path,
