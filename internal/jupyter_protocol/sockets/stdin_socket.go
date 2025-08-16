@@ -9,6 +9,7 @@ import (
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/pebbe/zmq4"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -108,7 +109,7 @@ func (s *stdinSocket) Listen(
 				}
 
 				app.Event.EmitEvent(&application.CustomEvent{
-					Name: "code:code-block:input_request",
+					Name: util.Events.CodeBlockInputRequest,
 					Data: InputRequestEvent{
 						MessageId: msgId,
 						Prompt:    prompt,

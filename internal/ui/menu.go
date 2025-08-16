@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -115,12 +116,12 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	zoomIn = sub.Add("Zoom In")
 	zoomIn.SetAccelerator("cmdorctrl+plus")
 	zoomIn.OnClick(func(ctx *application.Context) {
-		app.Event.Emit("zoom:in")
+		app.Event.Emit(util.Events.ZoomIn)
 	})
 
 	zoomOut = sub.Add("Zoom Out")
 	zoomOut.SetAccelerator("cmdorctrl+-")
 	zoomOut.OnClick(func(ctx *application.Context) {
-		app.Event.Emit("zoom:out")
+		app.Event.Emit(util.Events.ZoomOut)
 	})
 }

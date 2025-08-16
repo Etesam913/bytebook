@@ -10,6 +10,7 @@ import (
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/pebbe/zmq4"
 	"github.com/robert-nix/ansihtml"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -229,7 +230,7 @@ func (s *shellSocket) Listen(
 
 				if status != "ok" {
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: "code:kernel:shutdown_reply",
+						Name: util.Events.KernelShutdownReply,
 						Data: shutdownReplyEvent{
 							Status:   "error",
 							Language: connectionInfo.Language,

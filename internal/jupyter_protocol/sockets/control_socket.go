@@ -9,6 +9,7 @@ import (
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/pebbe/zmq4"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -69,7 +70,7 @@ func (s *controlSocket) Listen(
 			controlSocketDealer.Close()
 			log.Println("🛑 Control socket listener received context cancellation")
 			app.Event.EmitEvent(&application.CustomEvent{
-				Name: "code:kernel:shutdown_reply",
+				Name: util.Events.KernelShutdownReply,
 				Data: shutdownReplyEvent{
 					Status:   "success",
 					Language: connectionInfo.Language,
@@ -120,7 +121,7 @@ func (s *controlSocket) Listen(
 
 				if status != "ok" {
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: "code:kernel:shutdown_reply",
+						Name: util.Events.KernelShutdownReply,
 						Data: shutdownReplyEvent{
 							Status:   "error",
 							Language: connectionInfo.Language,

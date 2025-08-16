@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -197,7 +198,7 @@ func githubAuthCallback(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "https://google.com", http.StatusSeeOther)
 	app := application.Get()
 	app.Event.EmitEvent(&application.CustomEvent{
-		Name: "auth:access-token",
+		Name: util.Events.AuthAccessToken,
 		Data: accessToken,
 	})
 }

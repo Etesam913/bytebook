@@ -9,6 +9,7 @@ import (
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/pebbe/zmq4"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -117,7 +118,7 @@ func (h *heartbeatSocket) Listen(
 			h.consecutiveFailures = 0 // Reset failure count on successful heartbeat
 			h.heartbeatState.UpdateHeartbeatStatus(true)
 			app.Event.EmitEvent(&application.CustomEvent{
-				Name: "code:kernel:heartbeat",
+				Name: util.Events.KernelHeartbeat,
 				Data: heartbeatEvent{
 					Language: connectionInfo.Language,
 					Status:   "success",
@@ -130,7 +131,7 @@ func (h *heartbeatSocket) Listen(
 func (h *heartbeatSocket) handleHeartbeatFailure(language string, app *application.App) {
 	h.heartbeatState.UpdateHeartbeatStatus(false)
 	app.Event.EmitEvent(&application.CustomEvent{
-		Name: "code:kernel:heartbeat",
+		Name: util.Events.KernelHeartbeat,
 		Data: heartbeatEvent{
 			Language: language,
 			Status:   "failure",

@@ -90,7 +90,7 @@ func (fw *FileWatcher) handleFolderEvents(prefix string, event fsnotify.Event) {
 	if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
 		// Handle rename events for note folders
 		timeDiff := time.Since(fw.mostRecentFolderCreatedEvent.time)
-		if prefix == "notes-folder" && event.Has(fsnotify.Rename) && timeDiff < TIME_FOR_TWO_EVENTS_TO_BE_RELATED {
+		if prefix == util.Events.NotesFolder && event.Has(fsnotify.Rename) && timeDiff < TIME_FOR_TWO_EVENTS_TO_BE_RELATED {
 			fw.handleNoteFolderRename(folderName)
 		}
 		eventKey = fmt.Sprintf("%s:delete", prefix)
@@ -294,7 +294,7 @@ func (fw *FileWatcher) handleSettingsUpdate() {
 	err := util.ReadJsonFromPath(filepath.Join(fw.projectPath, "settings", "settings.json"), &projectSettings)
 	if err == nil {
 		fw.app.Event.EmitEvent(&application.CustomEvent{
-			Name: "settings:update",
+			Name: util.Events.SettingsUpdate,
 			Data: projectSettings,
 		})
 	}
@@ -319,7 +319,7 @@ func (fw *FileWatcher) handleTagsUpdate(event fsnotify.Event, tagName string) {
 	}
 
 	fw.app.Event.EmitEvent(&application.CustomEvent{
-		Name: "tags:update",
+		Name: util.Events.TagsUpdate,
 		Data: eventData,
 	})
 }
@@ -352,9 +352,9 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 	if isDir {
 		switch oneFolderBack {
 		case "notes":
-			fw.handleFolderEvents("notes-folder", event)
+			fw.handleFolderEvents(util.Events.NotesFolder, event)
 		case "tags":
-			fw.handleFolderEvents("tags-folder", event)
+			fw.handleFolderEvents(util.Events.TagsFolder, event)
 		}
 		return
 	}

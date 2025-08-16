@@ -141,7 +141,7 @@ func (i *ioPubSocket) Listen(
 				if isNameString && isTextString {
 					htmlStr := string(ansihtml.ConvertToHTML([]byte(text)))
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: "code:code-block:stream",
+						Name: util.Events.CodeBlockStream,
 						Data: streamEvent{
 							MessageId: msgId,
 							Name:      name,
@@ -170,7 +170,7 @@ func (i *ioPubSocket) Listen(
 
 					// Emit the event with all the data
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: "code:code-block:execute_result",
+						Name: util.Events.CodeBlockExecuteResult,
 						Data: executionResult,
 					})
 				}
@@ -195,7 +195,7 @@ func (i *ioPubSocket) Listen(
 
 					// Emit the event with all the data
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: "code:code-block:display_data",
+						Name: util.Events.CodeBlockDisplayData,
 						Data: displayData,
 					})
 				}
@@ -211,7 +211,7 @@ func (i *ioPubSocket) Listen(
 						ExecutionCount: int(executionCount),
 					}
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: "code:code-block:execute_input",
+						Name: util.Events.CodeBlockExecuteInput,
 						Data: executeInputData,
 					})
 				}
@@ -224,7 +224,7 @@ func (i *ioPubSocket) Listen(
 					}
 
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: "code:kernel:status",
+						Name: util.Events.KernelStatus,
 						Data: statusEventData,
 					})
 					parentMessageType, ok := msg.ParentHeader["msg_type"].(string)
@@ -251,7 +251,7 @@ func (i *ioPubSocket) Listen(
 							duration = util.FormatExecutionDuration(requestTime, curTime)
 						}
 						app.Event.EmitEvent(&application.CustomEvent{
-							Name: "code:code-block:status",
+							Name: util.Events.CodeBlockStatus,
 							Data: codeBlockStatusEvent{
 								MessageId: msgId,
 								Status:    status,
@@ -290,7 +290,7 @@ func (i *ioPubSocket) Listen(
 					errorValue = ""
 				}
 				app.Event.EmitEvent(&application.CustomEvent{
-					Name: "code:code-block:iopub_error",
+					Name: util.Events.CodeBlockIopubError,
 					Data: errorEvent{
 						MessageId:      msgId,
 						ErrorName:      errorName,
