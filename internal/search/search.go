@@ -387,16 +387,7 @@ func AddMarkdownNoteToBatch(batch *bleve.Batch, index bleve.Index, filePath, fol
 
 	markdown := string(content)
 
-	updatedMarkdown, fileId := notes.EnsureIdInFrontmatter(markdown)
-
-	// If the markdown was updated (ID was added), write it back to the file
-	if updatedMarkdown != markdown {
-		err = os.WriteFile(filePath, []byte(updatedMarkdown), 0644)
-		if err != nil {
-			return fileId, err
-		}
-		markdown = updatedMarkdown
-	}
+	fileId := filepath.Join(folderName, fileName+".md")
 
 	docInfo := getDocumentByIdFromIndex(index, fileId)
 	shouldIndex := false
