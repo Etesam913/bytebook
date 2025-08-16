@@ -180,16 +180,32 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 	// A RENAME gets triggered when a file is deleted on macOS
 	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
 		timeDiff := time.Since(fw.mostRecentFileCreatedEvent.time)
+
+		// timeDiff is used to be certain that the rename event is no a delete
 		if event.Has(fsnotify.Rename) && timeDiff < TIME_FOR_TWO_EVENTS_TO_BE_RELATED {
 			oldFileFolder := filepath.Base(filepath.Dir(event.Name))
 			oldFileName := filepath.Base(event.Name)
-			oldFolderAndNote := filepath.Join(oldFileFolder, oldFileName)
-			fw.handleFileRename(oldFolderAndNote)
+
+			newFilePath := fw.mostRecentFileCreatedEvent.event.Name
+			newFileFolder := filepath.Base(filepath.Dir(newFilePath))
+			newFileName := filepath.Base(newFilePath)
+
+			eventKey = util.Events.NoteRename
+			fw.debounceEvents[eventKey] = append(
+				fw.debounceEvents[eventKey],
+				map[string]string{
+					"oldFolder": oldFileFolder,
+					"oldNote":   oldFileName,
+					"newFolder": newFileFolder,
+					"newNote":   newFileName,
+				},
+			)
+		} else {
+			eventKey = util.Events.NoteDelete
 		}
 
-		eventKey = util.Events.NoteDelete
 	}
-	if eventKey != "" {
+	if eventKey == util.Events.NoteCreate || eventKey == util.Events.NoteDelete {
 		fw.debounceEvents[eventKey] = append(
 			fw.debounceEvents[eventKey],
 			map[string]string{
@@ -201,86 +217,86 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 	fw.handleDebounceReset()
 }
 
-// handleFileRename updates the tag paths associated with the old file name to the new file name
-func (fw *FileWatcher) handleFileRename(oldFolderAndNote string) {
-	newFilePath := fw.mostRecentFileCreatedEvent.event.Name
-	newFileFolder := filepath.Base(filepath.Dir(newFilePath))
-	newFile := filepath.Base(newFilePath)
-	newFileExtension := filepath.Ext(newFilePath)
+// // handleFileRename updates the tag paths associated with the old file name to the new file name
+// func (fw *FileWatcher) handleFileRename(oldFolderAndNote string) {
+// 	newFilePath := fw.mostRecentFileCreatedEvent.event.Name
+// 	newFileFolder := filepath.Base(filepath.Dir(newFilePath))
+// 	newFile := filepath.Base(newFilePath)
+// 	newFileExtension := filepath.Ext(newFilePath)
 
-	oldFileFolder := filepath.Base(filepath.Dir(oldFolderAndNote))
-	oldFile := filepath.Base(oldFolderAndNote)
-	oldFileExtension := filepath.Ext(oldFolderAndNote)
+// 	oldFileFolder := filepath.Base(filepath.Dir(oldFolderAndNote))
+// 	oldFile := filepath.Base(oldFolderAndNote)
+// 	oldFileExtension := filepath.Ext(oldFolderAndNote)
 
-	newFolderAndNote := filepath.Join(newFileFolder, newFile)
-	fmt.Println(oldFolderAndNote, "->", newFolderAndNote)
+// 	newFolderAndNote := filepath.Join(newFileFolder, newFile)
+// 	fmt.Println(oldFolderAndNote, "->", newFolderAndNote)
 
-	err := UpdateNoteNameInTags(fw.projectPath, oldFolderAndNote, newFolderAndNote)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+// 	// err := UpdateNoteNameInTags(fw.projectPath, oldFolderAndNote, newFolderAndNote)
+// 	// if err != nil {
+// 	// 	fmt.Println(err.Error())
+// 	// }
 
-	oldAttachmentName := ""
-	newAttachmentName := ""
+// 	oldAttachmentName := ""
+// 	newAttachmentName := ""
 
-	// Markdown links are internal links while others are in the file server
-	if oldFileExtension == ".md" {
-		oldAttachmentName = util.ConstructInternalLink(oldFileFolder, oldFile)
-	} else {
-		oldAttachmentName = util.ConstructFileServerPath(oldFileFolder, oldFile)
-	}
+// 	// Markdown links are internal links while others are in the file server
+// 	if oldFileExtension == ".md" {
+// 		oldAttachmentName = util.ConstructInternalLink(oldFileFolder, oldFile)
+// 	} else {
+// 		oldAttachmentName = util.ConstructFileServerPath(oldFileFolder, oldFile)
+// 	}
 
-	if newFileExtension == ".md" {
-		newAttachmentName = util.ConstructInternalLink(newFileFolder, newFile)
-	} else {
-		newAttachmentName = util.ConstructFileServerPath(newFileFolder, newFile)
-	}
+// 	if newFileExtension == ".md" {
+// 		newAttachmentName = util.ConstructInternalLink(newFileFolder, newFile)
+// 	} else {
+// 		newAttachmentName = util.ConstructFileServerPath(newFileFolder, newFile)
+// 	}
 
-	fmt.Println("oldAttachmentName:", oldAttachmentName)
-	fmt.Println("newAttachmentName:", newAttachmentName)
+// 	fmt.Println("oldAttachmentName:", oldAttachmentName)
+// 	fmt.Println("newAttachmentName:", newAttachmentName)
 
-	err = UpdateAttachmentName(fw.projectPath, oldFileFolder, oldAttachmentName, newAttachmentName)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+// 	// err := UpdateAttachmentName(fw.projectPath, oldFileFolder, oldAttachmentName, newAttachmentName)
+// 	// if err != nil {
+// 	// 	fmt.Println(err.Error())
+// 	// 	return
+// 	// }
 
-	folderAndNotesForAttachments, err := GetNotesForAttachment(
-		fw.projectPath,
-		newFileFolder,
-		newAttachmentName,
-	)
+// 	folderAndNotesForAttachments, err := GetNotesForAttachment(
+// 		fw.projectPath,
+// 		newFileFolder,
+// 		newAttachmentName,
+// 	)
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+// 	if err != nil {
+// 		fmt.Println(err.Error())
+// 		return
+// 	}
 
-	for _, folderAndNote := range folderAndNotesForAttachments {
-		segments := strings.Split(folderAndNote, "/")
-		folder := segments[0]
-		note := segments[1]
-		noteContent, err := os.ReadFile(filepath.Join(fw.projectPath, "notes", folder, note))
-		if err != nil {
-			fmt.Println(err.Error())
-			continue
-		}
+// 	for _, folderAndNote := range folderAndNotesForAttachments {
+// 		segments := strings.Split(folderAndNote, "/")
+// 		folder := segments[0]
+// 		note := segments[1]
+// 		noteContent, err := os.ReadFile(filepath.Join(fw.projectPath, "notes", folder, note))
+// 		if err != nil {
+// 			fmt.Println(err.Error())
+// 			continue
+// 		}
 
-		noteMarkdownWithNewNoteName := UpdateNoteNameOfInternalLinksAndMedia(
-			string(noteContent),
-			newFileFolder,
-			newFile,
-		)
+// 		noteMarkdownWithNewNoteName := UpdateNoteNameOfInternalLinksAndMedia(
+// 			string(noteContent),
+// 			newFileFolder,
+// 			newFile,
+// 		)
 
-		err = os.WriteFile(filepath.Join(fw.projectPath, "notes", folder, note), []byte(noteMarkdownWithNewNoteName), 0644)
-		if err != nil {
-			fmt.Println(err.Error())
-			continue
-		}
+// 		err = os.WriteFile(filepath.Join(fw.projectPath, "notes", folder, note), []byte(noteMarkdownWithNewNoteName), 0644)
+// 		if err != nil {
+// 			fmt.Println(err.Error())
+// 			continue
+// 		}
 
-	}
+// 	}
 
-}
+// }
 
 // handleSettingsUpdate processes updates to settings files
 func (fw *FileWatcher) handleSettingsUpdate() {

@@ -378,7 +378,13 @@ func getDocumentByIdFromIndex(index bleve.Index, docId string) DocumentIndexInfo
 
 // AddMarkdownNoteToBatch processes a markdown file and adds it to the batch if it needs indexing.
 // Returns the ID used for indexing and any error encountered.
-func AddMarkdownNoteToBatch(batch *bleve.Batch, index bleve.Index, filePath, folderName, fileName string) (string, error) {
+func AddMarkdownNoteToBatch(
+	batch *bleve.Batch,
+	index bleve.Index,
+	filePath,
+	folderName,
+	fileName string,
+) (string, error) {
 	// Read the file content
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -387,7 +393,7 @@ func AddMarkdownNoteToBatch(batch *bleve.Batch, index bleve.Index, filePath, fol
 
 	markdown := string(content)
 
-	fileId := filepath.Join(folderName, fileName+".md")
+	fileId := filepath.Join(folderName, fileName)
 
 	docInfo := getDocumentByIdFromIndex(index, fileId)
 	shouldIndex := false
@@ -471,8 +477,7 @@ func IndexAllFiles(projectPath string, index bleve.Index) error {
 
 			if strings.HasSuffix(file.Name(), ".md") {
 				// Handle markdown files
-				fileName := strings.TrimSuffix(file.Name(), ".md")
-				_, err := AddMarkdownNoteToBatch(batch, index, filePath, folder.Name(), fileName)
+				_, err := AddMarkdownNoteToBatch(batch, index, filePath, folder.Name(), file.Name())
 				if err != nil {
 					log.Printf("Error processing markdown file %s: %v", filePath, err)
 					continue

@@ -4,6 +4,7 @@ var Events = struct {
 	// Note events
 	NoteCreate string
 	NoteDelete string
+	NoteRename string
 
 	// UI events
 	ZoomIn  string
@@ -35,6 +36,7 @@ var Events = struct {
 	// Note events
 	NoteCreate: "note:create",
 	NoteDelete: "note:delete",
+	NoteRename: "note:rename",
 
 	// UI events
 	ZoomIn:  "zoom:in",

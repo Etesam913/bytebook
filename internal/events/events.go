@@ -16,4 +16,8 @@ func ListenToEvents(params EventParams) {
 	params.App.Event.On(util.Events.NoteCreate, func(event *application.CustomEvent) {
 		handleNoteCreateEvent(params, event)
 	})
+
+	params.App.Event.On(util.Events.NoteRename, func(event *application.CustomEvent) {
+		handleNoteRenameEvent(params, event)
+	})
 }
