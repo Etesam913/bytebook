@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/events"
 	"github.com/etesam913/bytebook/internal/git"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol/sockets"
@@ -184,6 +185,12 @@ func main() {
 	// TODO: Fix bug with ui.InitializeApplicationMenu breaking the app
 	ui.InitializeApplicationMenu(backgroundColor)
 
+	events.ListenToEvents(events.EventParams{
+		App:         app,
+		ProjectPath: projectPath,
+		Index:       searchIndex,
+	})
+
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal("failed to setup file watcher " + err.Error())
@@ -191,7 +198,6 @@ func main() {
 	defer watcher.Close()
 	go notes.LaunchFileWatcher(app, projectPath, watcher)
 	notes.AddProjectFoldersToWatcher(projectPath, watcher)
-
 	go git.LaunchAuthServer()
 	// Run the application. This blocks until the application has been exited.
 	err = app.Run()

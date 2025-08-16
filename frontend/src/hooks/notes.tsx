@@ -158,9 +158,15 @@ export function useNoteCreate() {
     const data = body.data as { folder: string; note: string }[];
 
     const folderOfLastNote = data[data.length - 1].folder;
-    await queryClient.invalidateQueries({
-      queryKey: ['notes', folderOfLastNote, noteSort],
-    });
+
+    // Refetch notes so that they are updated in the sidebar
+    try {
+      await queryClient.invalidateQueries({
+        queryKey: ['notes', folderOfLastNote, noteSort],
+      });
+    } catch (err) {
+      toast.error('Failed to update notes', DEFAULT_SONNER_OPTIONS);
+    }
   });
 }
 
@@ -169,9 +175,15 @@ export function useNoteDelete(folder: string) {
   const queryClient = useQueryClient();
   const noteSort = useAtomValue(noteSortAtom);
 
-  useWailsEvent('note:delete', () => {
+  useWailsEvent('note:delete', async () => {
     console.info('note:delete');
-    queryClient.invalidateQueries({ queryKey: ['notes', folder, noteSort] });
+    try {
+      await queryClient.invalidateQueries({
+        queryKey: ['notes', folder, noteSort],
+      });
+    } catch (err) {
+      toast.error('Failed to update notes', DEFAULT_SONNER_OPTIONS);
+    }
   });
 }
 
@@ -185,10 +197,15 @@ export function useTagNoteCreate(tagName: string) {
 
   useWailsEvent('note:create', async (body) => {
     console.info('note:create', body);
-    // Invalidate the queries related to tag notes to ensure the data is up-to-date.
-    await queryClient.invalidateQueries({
-      queryKey: ['tag-notes', tagName, noteSort],
-    });
+
+    try {
+      // Refetch notes so that they are updated in the sidebar
+      await queryClient.invalidateQueries({
+        queryKey: ['tag-notes', tagName, noteSort],
+      });
+    } catch (err) {
+      toast.error('Failed to update tag notes', DEFAULT_SONNER_OPTIONS);
+    }
   });
 }
 
@@ -200,12 +217,16 @@ export function useTagNoteDelete(tagName: string) {
   const noteSort = useAtomValue(noteSortAtom);
   const queryClient = useQueryClient();
 
-  useWailsEvent('note:delete', () => {
+  useWailsEvent('note:delete', async () => {
     console.info('note:delete');
-    // Invalidate the queries related to tag notes to ensure the data is up-to-date.
-    queryClient.invalidateQueries({
-      queryKey: ['tag-notes', tagName, noteSort],
-    });
+    try {
+      // Invalidate the queries related to tag notes to ensure the data is up-to-date.
+      await queryClient.invalidateQueries({
+        queryKey: ['tag-notes', tagName, noteSort],
+      });
+    } catch (err) {
+      toast.error('Failed to update tag notes', DEFAULT_SONNER_OPTIONS);
+    }
   });
 }
 

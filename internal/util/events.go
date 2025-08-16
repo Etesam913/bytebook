@@ -2,8 +2,8 @@ package util
 
 var Events = struct {
 	// Note events
-	NoteCreated string
-	NoteDeleted string
+	NoteCreate string
+	NoteDelete string
 
 	// UI events
 	ZoomIn  string
@@ -33,8 +33,8 @@ var Events = struct {
 	AuthAccessToken string
 }{
 	// Note events
-	NoteCreated: "note.created",
-	NoteDeleted: "note.deleted",
+	NoteCreate: "note:create",
+	NoteDelete: "note:delete",
 
 	// UI events
 	ZoomIn:  "zoom:in",

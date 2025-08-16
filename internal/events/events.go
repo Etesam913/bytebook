@@ -1,19 +1,19 @@
 package events
 
-// import (
-// 	"log"
+import (
+	"github.com/blevesearch/bleve/v2"
+	"github.com/etesam913/bytebook/internal/util"
+	"github.com/wailsapp/wails/v3/pkg/application"
+)
 
-// 	"github.com/etesam913/bytebook/internal/util"
-// 	"github.com/wailsapp/wails/v3/pkg/application"
-// )
+type EventParams struct {
+	App         *application.App
+	ProjectPath string
+	Index       bleve.Index
+}
 
-// func ListenToEvents(app *application.App) {
-// 	app.Event.On(util.Events.NoteCreated, func(event *application.CustomEvent) {
-// 		data, ok := event.Data.(map[string]string)
-// 		if !ok {
-// 			log.Println("Note created event data is not a map")
-// 			return
-// 		}
-
-// 	})
-// }
+func ListenToEvents(params EventParams) {
+	params.App.Event.On(util.Events.NoteCreate, func(event *application.CustomEvent) {
+		handleNoteCreateEvent(params, event)
+	})
+}

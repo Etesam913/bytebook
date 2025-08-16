@@ -166,17 +166,11 @@ func (fw *FileWatcher) handleNoteFolderRename(oldFolderName string) {
 // handleFileEvents processes file-related events (create, delete)
 func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event, oneFolderBack string) {
 	note := segments[len(segments)-1]
-	lastIndexOfDot := strings.LastIndex(note, ".")
-	if lastIndexOfDot == -1 {
-		return // Skip files without extensions
-	}
 
-	noteName := note[:lastIndexOfDot]
-	extension := note[lastIndexOfDot+1:]
 	eventKey := ""
 
 	if event.Has(fsnotify.Create) {
-		eventKey = "note:create"
+		eventKey = util.Events.NoteCreate
 		fw.mostRecentFileCreatedEvent = MostRecentCreatedEvent{
 			event: event,
 			time:  time.Now(),
@@ -193,14 +187,14 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 			fw.handleFileRename(oldFolderAndNote)
 		}
 
-		eventKey = "note:delete"
+		eventKey = util.Events.NoteDelete
 	}
 	if eventKey != "" {
 		fw.debounceEvents[eventKey] = append(
 			fw.debounceEvents[eventKey],
 			map[string]string{
 				"folder": oneFolderBack,
-				"note":   fmt.Sprintf("%s?ext=%s", noteName, extension),
+				"note":   note,
 			},
 		)
 	}
