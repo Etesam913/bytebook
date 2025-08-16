@@ -1,7 +1,6 @@
 package events
 
 import (
-	"fmt"
 	"log"
 	"path/filepath"
 
@@ -15,7 +14,6 @@ func handleNoteCreateEvent(params EventParams, event *application.CustomEvent) {
 		log.Println("Note created event data is not a map")
 		return
 	}
-	fmt.Println(data)
 	addCreatedNotesToIndex(params, data)
 }
 
@@ -59,7 +57,6 @@ func handleNoteRenameEvent(params EventParams, event *application.CustomEvent) {
 		log.Println("Note rename event data is not a map")
 		return
 	}
-	fmt.Println(data)
 	renameNotesInIndex(params, data)
 }
 
@@ -112,5 +109,40 @@ func renameNotesInIndex(params EventParams, data []map[string]string) {
 	err := params.Index.Batch(batch)
 	if err != nil {
 		log.Println("Error batching rename operations", err)
+	}
+}
+
+func handleNoteDeleteEvent(params EventParams, event *application.CustomEvent) {
+	data, ok := event.Data.([]map[string]string)
+	if !ok {
+		log.Println("Note delete event data is not a map")
+		return
+	}
+	deleteNotesFromIndex(params, data)
+}
+
+func deleteNotesFromIndex(params EventParams, data []map[string]string) {
+	batch := params.Index.NewBatch()
+
+	for _, note := range data {
+		folder, ok := note["folder"]
+		if !ok {
+			log.Println("Note delete event data missing folder")
+			continue
+		}
+		noteName, ok := note["note"]
+		if !ok {
+			log.Println("Note delete event data missing note")
+			continue
+		}
+
+		fileId := filepath.Join(folder, noteName)
+
+		batch.Delete(fileId)
+	}
+
+	err := params.Index.Batch(batch)
+	if err != nil {
+		log.Println("Error batching delete operations", err)
 	}
 }

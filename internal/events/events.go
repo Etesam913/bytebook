@@ -20,4 +20,8 @@ func ListenToEvents(params EventParams) {
 	params.App.Event.On(util.Events.NoteRename, func(event *application.CustomEvent) {
 		handleNoteRenameEvent(params, event)
 	})
+
+	params.App.Event.On(util.Events.NoteDelete, func(event *application.CustomEvent) {
+		handleNoteDeleteEvent(params, event)
+	})
 }
