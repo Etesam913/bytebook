@@ -1,0 +1,423 @@
+package search
+
+import (
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/blevesearch/bleve/analysis/token/lowercase"
+	"github.com/blevesearch/bleve/v2"
+	_ "github.com/blevesearch/bleve/v2/analysis/analyzer/custom"
+	_ "github.com/blevesearch/bleve/v2/analysis/analyzer/keyword"
+	_ "github.com/blevesearch/bleve/v2/analysis/analyzer/simple"
+	_ "github.com/blevesearch/bleve/v2/analysis/lang/en"
+	"github.com/blevesearch/bleve/v2/analysis/token/edgengram"
+	_ "github.com/blevesearch/bleve/v2/analysis/token/lowercase"
+	_ "github.com/blevesearch/bleve/v2/analysis/token/ngram"
+	"github.com/blevesearch/bleve/v2/mapping"
+	"github.com/etesam913/bytebook/internal/notes"
+	"github.com/etesam913/bytebook/internal/util"
+)
+
+var INDEX_NAME = ".index.bleve"
+var MARKDOWN_NOTE_TYPE = "markdown_note"
+var ATTACHMENT_TYPE = "attachment"
+
+type MarkdownNoteBleveDocument struct {
+	Type                  string   `json:"type"`
+	Folder                string   `json:"folder"`
+	FileName              string   `json:"file_name"`
+	FileNameLC            string   `json:"file_name_lc"`
+	FileExtension         string   `json:"file_extension"`
+	TextContent           string   `json:"text_content"`
+	TextContentNgram      string   `json:"text_content_ngram"`
+	CodeContent           []string `json:"code_content"`
+	GoCodeContent         []string `json:"go_code_content"`
+	JavaCodeContent       []string `json:"java_code_content"`
+	PythonCodeContent     []string `json:"python_code_content"`
+	JavascriptCodeContent []string `json:"javascript_code_content"`
+	HasDrawing            bool     `json:"has_drawing"`
+	HasCode               bool     `json:"has_code"`
+	HasGoCode             bool     `json:"has_go_code"`
+	HasJavaCode           bool     `json:"has_java_code"`
+	HasPythonCode         bool     `json:"has_python_code"`
+	HasJavascriptCode     bool     `json:"has_javascript_code"`
+	LastUpdated           string   `json:"last_updated"`
+	CreatedDate           string   `json:"created_date"`
+}
+
+type AttachmentBleveDocument struct {
+	Type          string `json:"type"`
+	FileName      string `json:"file_name"`
+	FileNameLC    string `json:"file_name_lc"`
+	FileExtension string `json:"file_extension"`
+}
+
+// DocumentIndexInfo contains information about a document's presence in the search index.
+type DocumentIndexInfo struct {
+	Exists      bool
+	LastUpdated string
+}
+
+// CreateMarkdownNoteBleveDocument constructs a MarkdownNoteBleveDocument from markdown content.
+// It extracts all relevant information using the markdown processing functions and populates
+// the document structure for search indexing.
+func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) MarkdownNoteBleveDocument {
+	lastUpdated, _ := notes.GetLastUpdatedFromFrontmatter(markdown)
+	createdDate, _ := notes.GetCreatedDateFromFrontmatter(markdown)
+
+	return MarkdownNoteBleveDocument{
+		Type:                  MARKDOWN_NOTE_TYPE,
+		Folder:                folder,
+		FileName:              fileName,
+		FileNameLC:            strings.ToLower(fileName),
+		FileExtension:         ".md",
+		TextContent:           notes.GetTextContent(markdown),
+		TextContentNgram:      notes.GetTextContent(markdown),
+		CodeContent:           notes.GetCodeContent(markdown),
+		GoCodeContent:         notes.GetGoCodeContent(markdown),
+		JavaCodeContent:       notes.GetJavaCodeContent(markdown),
+		PythonCodeContent:     notes.GetPythonCodeContent(markdown),
+		JavascriptCodeContent: notes.GetJavaScriptCodeContent(markdown),
+		HasDrawing:            notes.HasDrawing(markdown),
+		HasCode:               notes.HasCode(markdown),
+		HasGoCode:             notes.HasGoCode(markdown),
+		HasJavaCode:           notes.HasJavaCode(markdown),
+		HasPythonCode:         notes.HasPythonCode(markdown),
+		HasJavascriptCode:     notes.HasJavaScriptCode(markdown),
+		LastUpdated:           lastUpdated,
+		CreatedDate:           createdDate,
+	}
+}
+
+// CreateAttachmentBleveDocument constructs an AttachmentBleveDocument from file information.
+// It extracts the filename and file extension for search indexing.
+func CreateAttachmentBleveDocument(fileName, fileExtension string) AttachmentBleveDocument {
+	return AttachmentBleveDocument{
+		Type:          ATTACHMENT_TYPE,
+		FileName:      fileName,
+		FileNameLC:    strings.ToLower(fileName),
+		FileExtension: fileExtension,
+	}
+}
+
+// GetPathToIndex returns the full path to the search index file for a given project.
+// It combines the project path with the notes directory and the index filename.
+func GetPathToIndex(projectPath string) string {
+	return filepath.Join(projectPath, INDEX_NAME)
+}
+
+// doesIndexExist checks whether a search index file exists for the given project path.
+// It returns true if the index file exists, false otherwise.
+func doesIndexExist(projectPath string) bool {
+	exists, _ := util.FileOrFolderExists(GetPathToIndex(projectPath))
+	return exists
+}
+
+// createIndex creates a new Bleve search index at the specified project path.
+// It returns the created index or an error if the creation fails.
+func createIndex(projectPath string) (bleve.Index, error) {
+	pathToIndex := GetPathToIndex(projectPath)
+	indexMapping := bleve.NewIndexMapping()
+	err := indexMapping.AddCustomTokenFilter(
+		NGramTokenFilter,
+		map[string]interface{}{
+			"type": edgengram.Name,
+			"min":  float64(2),
+			"max":  float64(6),
+			"side": "front",
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	err = indexMapping.AddCustomAnalyzer(NGramAnalyzer,
+		map[string]interface{}{
+			"type":      "custom",
+			"tokenizer": "unicode",
+			"token_filters": []interface{}{
+				lowercase.Name,
+				NGramTokenFilter,
+			},
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Use the "type" field in documents to select the document mapping
+	indexMapping.TypeField = "type"
+	indexMapping.DefaultMapping = createMarkdownNoteDocumentMapping()
+	indexMapping.AddDocumentMapping(MARKDOWN_NOTE_TYPE, createMarkdownNoteDocumentMapping())
+	indexMapping.AddDocumentMapping(ATTACHMENT_TYPE, createAttachmentDocumentMapping())
+	index, err := bleve.New(pathToIndex, indexMapping)
+	if err != nil {
+		return nil, err
+	}
+
+	return index, nil
+}
+
+// OpenOrCreateIndex opens an existing search index or creates a new one if it doesn't exist.
+// It first checks if an index exists at the project path, and if so, opens it.
+// If no index exists, it creates a new one. Returns the index or an error if the operation fails.
+func OpenOrCreateIndex(projectPath string) (bleve.Index, error) {
+	indexExists := doesIndexExist(projectPath)
+	if indexExists {
+		openedIndex, err := bleve.Open(GetPathToIndex(projectPath))
+		if err != nil {
+			return nil, err
+		}
+		return openedIndex, nil
+	}
+
+	index, err := createIndex(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	return index, nil
+}
+
+// createMarkdownNoteDocumentMapping creates a Bleve document mapping for markdown notes.
+// It defines field mappings for all the fields in MarkdownNoteBleveDocument to enable
+// proper indexing and searching of markdown note content.
+func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
+	documentMapping := bleve.NewDocumentMapping()
+
+	textFieldMapping := bleve.NewTextFieldMapping()
+	textFieldMapping.Analyzer = "simple"
+	textFieldMapping.Store = true
+	textFieldMapping.Index = true
+	textFieldMapping.IncludeTermVectors = true
+
+	textNgramFieldMapping := bleve.NewTextFieldMapping()
+	textNgramFieldMapping.Analyzer = NGramAnalyzer
+	textNgramFieldMapping.Store = true
+	textNgramFieldMapping.Index = true
+	textNgramFieldMapping.IncludeTermVectors = true
+
+	keywordTextFieldMapping := bleve.NewTextFieldMapping()
+	keywordTextFieldMapping.Analyzer = "keyword"
+
+	// Set store = true for folder
+	storedKeywordMapping := bleve.NewTextFieldMapping()
+	storedKeywordMapping.Analyzer = "simple"
+	storedKeywordMapping.Store = true
+
+	// file_name should use keyword analyzer to preserve punctuation and spaces
+	fileNameFieldMapping := bleve.NewTextFieldMapping()
+	fileNameFieldMapping.Analyzer = "keyword"
+	fileNameFieldMapping.Store = true
+
+	// file_name_lc stores a lowercased copy for case-insensitive prefix queries
+	fileNameLowerFieldMapping := bleve.NewTextFieldMapping()
+	fileNameLowerFieldMapping.Analyzer = "keyword"
+	fileNameLowerFieldMapping.Store = false
+
+	// Set store = true for last_updated
+	lastUpdatedFieldMapping := bleve.NewDateTimeFieldMapping()
+	lastUpdatedFieldMapping.Store = true
+
+	documentMapping.AddFieldMappingsAt(FieldFolder, storedKeywordMapping)
+	documentMapping.AddFieldMappingsAt(FieldFileName, fileNameFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldFileNameLC, fileNameLowerFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldFileExtension, keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldTextContent, textFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldTextContentNgram, textNgramFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldCodeContent, keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldGoCodeContent, keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldJavaCodeContent, keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldPythonCodeContent, keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldJavascriptCodeContent, keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldHasDrawing, bleve.NewBooleanFieldMapping())
+	documentMapping.AddFieldMappingsAt(FieldHasCode, bleve.NewBooleanFieldMapping())
+	documentMapping.AddFieldMappingsAt(FieldHasGoCode, bleve.NewBooleanFieldMapping())
+	documentMapping.AddFieldMappingsAt(FieldHasJavaCode, bleve.NewBooleanFieldMapping())
+	documentMapping.AddFieldMappingsAt(FieldHasPythonCode, bleve.NewBooleanFieldMapping())
+	documentMapping.AddFieldMappingsAt(FieldHasJavascriptCode, bleve.NewBooleanFieldMapping())
+	documentMapping.AddFieldMappingsAt(FieldLastUpdated, lastUpdatedFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldCreatedDate, bleve.NewDateTimeFieldMapping())
+
+	return documentMapping
+}
+
+// createAttachmentDocumentMapping creates a Bleve document mapping for attachments.
+// It defines field mappings for all the fields in AttachmentBleveDocument to enable
+// proper indexing and searching of attachment metadata.
+func createAttachmentDocumentMapping() *mapping.DocumentMapping {
+	documentMapping := bleve.NewDocumentMapping()
+
+	documentMapping.AddFieldMappingsAt(FieldFileName, bleve.NewTextFieldMapping())
+	documentMapping.AddFieldMappingsAt(FieldFileExtension, bleve.NewTextFieldMapping())
+
+	return documentMapping
+}
+
+// getDocumentByIdFromIndex checks if a document exists in the index and returns its lastUpdated value if available.
+// Returns DocumentIndexInfo with Exists=false if the document is not found or an error occurs.
+func getDocumentByIdFromIndex(index bleve.Index, docId string) DocumentIndexInfo {
+	query := bleve.NewDocIDQuery([]string{docId})
+	searchRequest := bleve.NewSearchRequest(query)
+	searchRequest.Size = 1
+	searchRequest.Fields = []string{FieldLastUpdated} // Request specific field
+	searchResult, err := index.Search(searchRequest)
+
+	if err != nil || searchResult.Total == 0 {
+		return DocumentIndexInfo{Exists: false}
+	}
+
+	// Since Size=1, if Total > 0, there's exactly one hit at index 0
+	hit := searchResult.Hits[0]
+	lastUpdated := ""
+
+	if indexedLastUpdated, exists := hit.Fields[FieldLastUpdated]; exists {
+		if lastUpdatedStr, ok := indexedLastUpdated.(string); ok {
+			lastUpdated = lastUpdatedStr
+		}
+	}
+
+	return DocumentIndexInfo{
+		Exists:      true,
+		LastUpdated: lastUpdated,
+	}
+}
+
+// AddMarkdownNoteToBatch processes a markdown file and adds it to the batch if it needs indexing.
+// Returns the ID used for indexing and any error encountered.
+func AddMarkdownNoteToBatch(
+	batch *bleve.Batch,
+	index bleve.Index,
+	filePath,
+	folderName,
+	fileName string,
+) (string, error) {
+	// Read the file content
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", err
+	}
+
+	markdown := string(content)
+
+	fileId := filepath.Join(folderName, fileName)
+
+	docInfo := getDocumentByIdFromIndex(index, fileId)
+	shouldIndex := false
+
+	if !docInfo.Exists {
+		shouldIndex = true
+	} else {
+		// Document exists, check if lastUpdated has changed
+		currentLastUpdated, _ := notes.GetLastUpdatedFromFrontmatter(markdown)
+
+		// If there's no lastUpdated in current file or index, or they differ, re-index
+		if currentLastUpdated == "" || docInfo.LastUpdated == "" || currentLastUpdated != docInfo.LastUpdated {
+			shouldIndex = true
+		}
+	}
+
+	if shouldIndex {
+		bleveDocument := CreateMarkdownNoteBleveDocument(markdown, folderName, fileName)
+		batch.Index(fileId, bleveDocument)
+	}
+
+	return fileId, nil
+}
+
+// AddAttachmentToBatch processes an attachment file and adds it to the batch if it needs indexing.
+// Returns the ID used for indexing and any error encountered.
+func AddAttachmentToBatch(batch *bleve.Batch, index bleve.Index, filePath, folderName, fileName, fileExtension string) (string, error) {
+	// For attachments, use the file path as the unique ID
+	fileId := filepath.Join(folderName, fileName+fileExtension)
+
+	docInfo := getDocumentByIdFromIndex(index, fileId)
+
+	if !docInfo.Exists {
+		bleveDocument := CreateAttachmentBleveDocument(fileName, fileExtension)
+		batch.Index(fileId, bleveDocument)
+	}
+
+	return fileId, nil
+}
+
+// IndexAllFiles processes all files in the project's notes directory and ensures they are properly indexed.
+// For each folder in the notes directory, it:
+// 1. Creates a batch for efficient indexing
+// 2. Processes each file in the folder
+// 3. For .md files: ensures each file has an ID in frontmatter and indexes as markdown notes
+// 4. For non-.md files: indexes as attachments
+// 5. Commits the batch to the index
+// This function should be called during application startup to ensure all files are indexed.
+func IndexAllFiles(projectPath string, index bleve.Index) error {
+	notesPath := filepath.Join(projectPath, "notes")
+
+	if _, err := os.Stat(notesPath); os.IsNotExist(err) {
+		return nil
+	}
+
+	folders, err := os.ReadDir(notesPath)
+	if err != nil {
+		return err
+	}
+
+	for _, folder := range folders {
+		if !folder.IsDir() {
+			continue
+		}
+
+		folderPath := filepath.Join(notesPath, folder.Name())
+		batch := index.NewBatch()
+
+		// Process all files in the folder
+		files, err := os.ReadDir(folderPath)
+		if err != nil {
+			continue // Skip this folder if we can't read it
+		}
+
+		for _, file := range files {
+			if file.IsDir() {
+				continue
+			}
+
+			filePath := filepath.Join(folderPath, file.Name())
+
+			if strings.HasSuffix(file.Name(), ".md") {
+				// Handle markdown files
+				_, err := AddMarkdownNoteToBatch(batch, index, filePath, folder.Name(), file.Name())
+				if err != nil {
+					log.Printf("Error processing markdown file %s: %v", filePath, err)
+					continue
+				}
+			} else {
+				// Handle attachment files
+				fileExtension := filepath.Ext(file.Name())
+				fileName := strings.TrimSuffix(file.Name(), fileExtension)
+				_, err := AddAttachmentToBatch(batch, index, filePath, folder.Name(), fileName, fileExtension)
+				if err != nil {
+					log.Printf("Error processing attachment file %s: %v", filePath, err)
+					continue
+				}
+			}
+		}
+
+		// Index the batch for this folder
+		if batch.Size() > 0 {
+			err = index.Batch(batch)
+			if err != nil {
+				log.Println("Error indexing batch:", err)
+				continue
+			}
+		}
+	}
+
+	totalDocumentsIndexed, err := index.DocCount()
+	if err != nil {
+		log.Println("Error getting document count:", err)
+	}
+	log.Println("Indexing complete. Total documents indexed:", totalDocumentsIndexed)
+
+	return nil
+}
