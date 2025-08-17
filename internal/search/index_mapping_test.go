@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/blevesearch/bleve/v2"
-	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -80,15 +79,6 @@ func (env *TestEnv) verifyDocumentExists(docId string) {
 	doc, err := env.Index.Document(docId)
 	assert.NoError(env.t, err, "Document %s should exist", docId)
 	assert.NotNil(env.t, doc, "Document %s should not be nil", docId)
-}
-
-// verifyMarkdownHasId checks if a markdown file has an ID and returns it
-// If no ID exists in the frontmatter, this function will return false for exists
-func (env *TestEnv) verifyMarkdownHasId(filePath string) (string, bool) {
-	content, err := os.ReadFile(filePath)
-	require.NoError(env.t, err)
-	id, exists := notes.GetIdFromFrontmatter(string(content))
-	return id, exists
 }
 
 // Standard test markdown content
@@ -232,8 +222,6 @@ func TestAddMarkdownNoteToBatch(t *testing.T) {
 		assert.Greater(t, batch.Size(), 0)
 
 		// The file doesn't have an ID in frontmatter and none is added
-		_, hasId := env.verifyMarkdownHasId(filePath)
-		assert.False(t, hasId, "File should not have an ID added to frontmatter")
 	})
 
 	t.Run("should not add existing note if lastUpdated hasn't changed", func(t *testing.T) {
@@ -334,8 +322,8 @@ func TestIndexAllFiles(t *testing.T) {
 
 	t.Run("should index markdown files with missing IDs", func(t *testing.T) {
 		folderPath := env.createTestFolder("test-folder")
-		file1Path := env.createMarkdownFile(folderPath, "test1.md", basicMarkdown)
-		file2Path := env.createMarkdownFile(folderPath, "test2.md", "# Content\nThis is test content without frontmatter.")
+		env.createMarkdownFile(folderPath, "test1.md", basicMarkdown)
+		env.createMarkdownFile(folderPath, "test2.md", "# Content\nThis is test content without frontmatter.")
 
 		err := IndexAllFiles(env.TmpDir, env.Index)
 		assert.NoError(t, err)
@@ -345,10 +333,6 @@ func TestIndexAllFiles(t *testing.T) {
 		env.verifyDocumentExists("test-folder/test2.md")
 
 		// Files don't have IDs added to their frontmatter
-		_, hasId1 := env.verifyMarkdownHasId(file1Path)
-		_, hasId2 := env.verifyMarkdownHasId(file2Path)
-		assert.False(t, hasId1, "File 1 should not have an ID added to frontmatter")
-		assert.False(t, hasId2, "File 2 should not have an ID added to frontmatter")
 	})
 
 	t.Run("should index files with existing IDs", func(t *testing.T) {
@@ -365,8 +349,8 @@ func TestIndexAllFiles(t *testing.T) {
 		folder1Path := env.createTestFolder("folder1")
 		folder2Path := env.createTestFolder("folder2")
 
-		file1Path := env.createMarkdownFile(folder1Path, "note1.md", "# Content in folder 1")
-		file2Path := env.createMarkdownFile(folder2Path, "note2.md", "# Content in folder 2")
+		env.createMarkdownFile(folder1Path, "note1.md", "# Content in folder 1")
+		env.createMarkdownFile(folder2Path, "note2.md", "# Content in folder 2")
 
 		err := IndexAllFiles(env.TmpDir, env.Index)
 		assert.NoError(t, err)
@@ -376,10 +360,6 @@ func TestIndexAllFiles(t *testing.T) {
 		env.verifyDocumentExists("folder2/note2.md")
 
 		// Files don't have IDs added to their frontmatter
-		_, hasId1 := env.verifyMarkdownHasId(file1Path)
-		_, hasId2 := env.verifyMarkdownHasId(file2Path)
-		assert.False(t, hasId1, "File 1 should not have an ID added to frontmatter")
-		assert.False(t, hasId2, "File 2 should not have an ID added to frontmatter")
 	})
 
 	t.Run("should handle empty folders", func(t *testing.T) {
@@ -398,7 +378,7 @@ func TestIndexAllFilesWithAttachments(t *testing.T) {
 		folderPath := env.createTestFolder("mixed-content")
 
 		// Create markdown file
-		markdownPath := env.createMarkdownFile(folderPath, "document.md", basicMarkdown)
+		env.createMarkdownFile(folderPath, "document.md", basicMarkdown)
 
 		// Create attachment files
 		env.createAttachmentFile(folderPath, "attachment.pdf", "fake pdf content")
@@ -411,8 +391,6 @@ func TestIndexAllFilesWithAttachments(t *testing.T) {
 		env.verifyDocumentExists("mixed-content/document.md")
 
 		// File doesn't have an ID added to frontmatter
-		_, hasId := env.verifyMarkdownHasId(markdownPath)
-		assert.False(t, hasId, "File should not have an ID added to frontmatter")
 
 		// Verify attachment documents exist in index
 		env.verifyDocumentExists("mixed-content/attachment.pdf")

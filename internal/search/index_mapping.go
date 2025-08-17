@@ -43,6 +43,7 @@ type MarkdownNoteBleveDocument struct {
 	HasJavaCode           bool     `json:"has_java_code"`
 	HasPythonCode         bool     `json:"has_python_code"`
 	HasJavascriptCode     bool     `json:"has_javascript_code"`
+	Tags                  []string `json:"tags"`
 	LastUpdated           string   `json:"last_updated"`
 	CreatedDate           string   `json:"created_date"`
 }
@@ -66,6 +67,7 @@ type DocumentIndexInfo struct {
 func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) MarkdownNoteBleveDocument {
 	lastUpdated, _ := notes.GetLastUpdatedFromFrontmatter(markdown)
 	createdDate, _ := notes.GetCreatedDateFromFrontmatter(markdown)
+	tags, _ := notes.GetTagsFromFrontmatter(markdown)
 
 	return MarkdownNoteBleveDocument{
 		Type:                  MARKDOWN_NOTE_TYPE,
@@ -86,6 +88,7 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 		HasJavaCode:           notes.HasJavaCode(markdown),
 		HasPythonCode:         notes.HasPythonCode(markdown),
 		HasJavascriptCode:     notes.HasJavaScriptCode(markdown),
+		Tags:                  tags,
 		LastUpdated:           lastUpdated,
 		CreatedDate:           createdDate,
 	}
@@ -238,6 +241,7 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	documentMapping.AddFieldMappingsAt(FieldHasJavaCode, bleve.NewBooleanFieldMapping())
 	documentMapping.AddFieldMappingsAt(FieldHasPythonCode, bleve.NewBooleanFieldMapping())
 	documentMapping.AddFieldMappingsAt(FieldHasJavascriptCode, bleve.NewBooleanFieldMapping())
+	documentMapping.AddFieldMappingsAt(FieldTags, keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldLastUpdated, lastUpdatedFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldCreatedDate, bleve.NewDateTimeFieldMapping())
 

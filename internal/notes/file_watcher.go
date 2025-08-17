@@ -149,11 +149,11 @@ func (fw *FileWatcher) handleNoteFolderRename(oldFolderName string) {
 			continue
 		}
 
-		err = UpdateFolderNameInTags(fw.projectPath, oldFolderName, newFolderName)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
+		// err = UpdateFolderNameInTags(fw.projectPath, oldFolderName, newFolderName)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// 	continue
+		// }
 	}
 
 	// Update attachment keys that reference the old folder name
@@ -312,26 +312,26 @@ func (fw *FileWatcher) handleSettingsUpdate() {
 
 // handleTagsUpdate processes updates to tag files
 func (fw *FileWatcher) handleTagsUpdate(event fsnotify.Event, tagName string) {
-	tagNotesArray := TagsToNotesArray{}
-	err := util.ReadJsonFromPath(event.Name, &tagNotesArray)
+	// tagNotesArray := TagsToNotesArray{}
+	// err := util.ReadJsonFromPath(event.Name, &tagNotesArray)
 
-	if err != nil {
-		return
-	}
+	// if err != nil {
+	// 	return
+	// }
 
-	// Create a new object that holds everything from tagPaths plus the TagName field
-	eventData := struct {
-		TagsToNotesArray
-		TagName string `json:"tagName"`
-	}{
-		TagsToNotesArray: tagNotesArray,
-		TagName:          tagName,
-	}
+	// // Create a new object that holds everything from tagPaths plus the TagName field
+	// eventData := struct {
+	// 	TagsToNotesArray
+	// 	TagName string `json:"tagName"`
+	// }{
+	// 	TagsToNotesArray: tagNotesArray,
+	// 	TagName:          tagName,
+	// }
 
-	fw.app.Event.EmitEvent(&application.CustomEvent{
-		Name: util.Events.TagsUpdate,
-		Data: eventData,
-	})
+	// fw.app.Event.EmitEvent(&application.CustomEvent{
+	// 	Name: util.Events.TagsUpdate,
+	// 	Data: eventData,
+	// })
 }
 
 // processEvent handles a single filesystem event

@@ -105,7 +105,7 @@ func main() {
 				&services.SettingsService{ProjectPath: projectPath},
 			),
 			application.NewService(
-				&services.TagsService{ProjectPath: projectPath},
+				&services.TagsService{ProjectPath: projectPath, SearchIndex: searchIndex},
 			),
 			application.NewService(
 				&services.CodeService{

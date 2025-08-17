@@ -6,15 +6,13 @@ import {
 } from '@tanstack/react-query';
 import { useAtomValue } from 'jotai';
 import { useRoute } from 'wouter';
-import {
-  CreateTags,
-  DeleteTagsFromNotes,
-  GetTags,
-  GetTagsForNotes,
-} from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 import { noteSortAtom } from '../atoms';
 import { useWailsEvent } from './events';
 import { useSearchParamsEntries } from '../utils/routing';
+import {
+  GetTags,
+  GetTagsForNotes,
+} from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 import { QueryError } from '../utils/query';
 
 /**
@@ -123,32 +121,38 @@ export function useTagEvents() {
 export function useTagsQuery() {
   return useQuery({
     queryKey: ['get-tags'],
-    queryFn: async () => {
+    queryFn: async (): Promise<string[]> => {
       const res = await GetTags();
+      console.log('res', res);
       if (!res.success) {
-        throw new Error(res.message);
+        throw new QueryError(res.message);
       }
-      const tags = res.data;
-      return tags;
+      return res.data ?? [];
     },
   });
 }
 
 /**
  *
- * @param folder - The folder containing the note.
- * @param notesWithExtensions - An array of note paths with ext query param at the end
- * @returns
+ * @param folderAndNotesWithExtensions - An array of folder and note paths with .ext at the end
+ * @returns A result map containing a map of note paths to their tags
  */
 export function useTagsForNotesQuery(folderAndNotesWithExtensions: string[]) {
   return useQuery({
     queryKey: ['notes-tags', folderAndNotesWithExtensions],
-    queryFn: async () => {
+    queryFn: async (): Promise<Record<string, string[]>> => {
       const res = await GetTagsForNotes(folderAndNotesWithExtensions);
       if (!res.success) {
-        throw new Error(res.message);
+        throw new QueryError(res.message);
       }
-      return res.data;
+      console.log('res.data', res.data);
+      return res.data ?? {};
+      // const res = await GetTagsForNotes(folderAndNotesWithExtensions);
+      // if (!res.success) {
+      //   throw new Error(res.message);
+      // }
+      // return res.data;
+      return {};
     },
   });
 }
@@ -161,10 +165,10 @@ export function useTagsForNotesQuery(folderAndNotesWithExtensions: string[]) {
 export function useCreateTagsMutation() {
   return useMutation({
     mutationFn: async ({ tagNames }: { tagNames: string[] }) => {
-      const res = await CreateTags(tagNames);
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
+      // const res = await CreateTags(tagNames);
+      // if (!res.success) {
+      //   throw new QueryError(res.message);
+      // }
     },
   });
 }
@@ -185,13 +189,13 @@ export function useDeleteTagsMutation(
 ) {
   return useMutation({
     mutationFn: async ({ tagName }: { tagName: string }) => {
-      const res = await DeleteTagsFromNotes(
-        [tagName],
-        [`${folder}/${note}.${ext}`]
-      );
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
+      //   const res = await DeleteTagsFromNotes(
+      //     [tagName],
+      //     [`${folder}/${note}.${ext}`]
+      //   );
+      //   if (!res.success) {
+      //     throw new QueryError(res.message);
+      //   }
     },
   });
 }

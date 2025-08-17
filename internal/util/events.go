@@ -65,3 +65,6 @@ var Events = struct {
 	// Auth events
 	AuthAccessToken: "auth:access-token",
 }
+
+// A map of folderAndNoteNames to tags
+type TagsUpdateEventData map[string][]string

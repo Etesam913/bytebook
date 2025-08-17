@@ -13,6 +13,7 @@ type EventParams struct {
 }
 
 func ListenToEvents(params EventParams) {
+	// Note Events
 	params.App.Event.On(util.Events.NoteCreate, func(event *application.CustomEvent) {
 		handleNoteCreateEvent(params, event)
 	})
@@ -23,5 +24,10 @@ func ListenToEvents(params EventParams) {
 
 	params.App.Event.On(util.Events.NoteDelete, func(event *application.CustomEvent) {
 		handleNoteDeleteEvent(params, event)
+	})
+
+	// Tag Events
+	params.App.Event.On(util.Events.TagsUpdate, func(event *application.CustomEvent) {
+		handleTagsUpdateEvent(params, event)
 	})
 }

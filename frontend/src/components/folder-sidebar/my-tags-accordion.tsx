@@ -14,7 +14,6 @@ import { AccordionButton } from '../sidebar/accordion-button';
 import { TagDialogChildren } from './tag-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
 import { useQuery } from '@tanstack/react-query';
-import { GetPreviewForTag } from '../../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 import { CURRENT_ZOOM } from '../../hooks/resize';
 
 export function MyTagsAccordion() {
@@ -104,12 +103,12 @@ function TagAccordionButton({
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
 
-  const { data: tagPreview } = useQuery({
-    queryKey: ['tag-preview', sidebarTagName],
-    queryFn: () => GetPreviewForTag(sidebarTagName),
-  });
+  // const { data: tagPreview } = useQuery({
+  //   queryKey: ['tag-preview', sidebarTagName],
+  //   queryFn: () => GetPreviewForTag(sidebarTagName),
+  // });
 
-  const tagPreviewCount = tagPreview?.data?.count;
+  // const tagPreviewCount = tagPreview?.data?.count;
 
   return (
     <button
@@ -165,9 +164,9 @@ function TagAccordionButton({
       <TagIcon height={16} width={16} strokeWidth={1.75} />
       <p className="whitespace-nowrap text-ellipsis overflow-hidden">
         {sidebarTagName}{' '}
-        {tagPreviewCount !== undefined && (
+        {/* {tagPreviewCount !== undefined && (
           <span className="tracking-wider">({tagPreviewCount})</span>
-        )}
+        )} */}
       </p>
     </button>
   );

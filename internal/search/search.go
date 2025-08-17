@@ -1,6 +1,7 @@
 package search
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
@@ -245,4 +246,36 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 	}
 
 	return results
+}
+
+var TAGS_SEARCH_LIMIT = 1000
+
+// GetTags retrieves a list of all unique tags from the search index.
+// It performs a faceted search on the "tags" field and returns the tags
+// as a slice of strings in the response data. If the search fails or no
+// facet result is found, it returns an error response.
+func GetTags(searchIndex bleve.Index) ([]string, error) {
+	searchRequest := bleve.NewSearchRequest(bleve.NewMatchAllQuery())
+	searchRequest.Size = 0
+
+	// Create a terms facet on field "tags"
+	facetRequest := bleve.NewFacetRequest(FieldTags, TAGS_SEARCH_LIMIT)
+	searchRequest.AddFacet(FieldTags, facetRequest)
+
+	searchResult, err := searchIndex.Search(searchRequest)
+	if err != nil {
+		return []string{}, err
+	}
+
+	facetResult := searchResult.Facets[FieldTags]
+	if facetResult == nil {
+		return []string{}, errors.New("failed to get tags")
+	}
+
+	terms := facetResult.Terms.Terms()
+	tags := make([]string, 0, len(terms))
+	for _, t := range terms {
+		tags = append(tags, t.Term)
+	}
+	return tags, nil
 }

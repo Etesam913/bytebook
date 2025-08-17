@@ -687,50 +687,6 @@ Some more text and another local link: [Another Note](http://localhost:5890/note
 	})
 }
 
-func TestGetIdFromFrontmatter(t *testing.T) {
-	t.Run("should extract id from frontmatter", func(t *testing.T) {
-		markdown := "---\nid: test-123\ntitle: Test Document\n---\n# Content"
-		result, exists := GetIdFromFrontmatter(markdown)
-		assert.Equal(t, "test-123", result)
-		assert.True(t, exists)
-	})
-
-	t.Run("should return empty string and false when no frontmatter", func(t *testing.T) {
-		markdown := "# Content without frontmatter"
-		result, exists := GetIdFromFrontmatter(markdown)
-		assert.Equal(t, "", result)
-		assert.False(t, exists)
-	})
-
-	t.Run("should return empty string and false when no id field", func(t *testing.T) {
-		markdown := "---\ntitle: Test Document\nauthor: Test Author\n---\n# Content"
-		result, exists := GetIdFromFrontmatter(markdown)
-		assert.Equal(t, "", result)
-		assert.False(t, exists)
-	})
-
-	t.Run("should handle invalid YAML in frontmatter", func(t *testing.T) {
-		markdown := "---\ninvalid: yaml: content:\n---\n# Content"
-		result, exists := GetIdFromFrontmatter(markdown)
-		assert.Equal(t, "", result)
-		assert.False(t, exists)
-	})
-
-	t.Run("should handle non-string id field", func(t *testing.T) {
-		markdown := "---\nid: 123\ntitle: Test\n---\n# Content"
-		result, exists := GetIdFromFrontmatter(markdown)
-		assert.Equal(t, "", result)
-		assert.False(t, exists)
-	})
-
-	t.Run("should handle empty string id field", func(t *testing.T) {
-		markdown := "---\nid: \"\"\ntitle: Test\n---\n# Content"
-		result, exists := GetIdFromFrontmatter(markdown)
-		assert.Equal(t, "", result)
-		assert.True(t, exists)
-	})
-}
-
 func TestGetLastUpdatedFromFrontmatter(t *testing.T) {
 	t.Run("should extract lastUpdated from frontmatter", func(t *testing.T) {
 		markdown := "---\nlastUpdated: 2023-12-01T10:30:00Z\ntitle: Test Document\n---\n# Content"
@@ -774,13 +730,10 @@ func TestGetLastUpdatedFromFrontmatter(t *testing.T) {
 		assert.True(t, exists)
 	})
 
-	t.Run("should handle both id and lastUpdated fields", func(t *testing.T) {
-		markdown := "---\nid: test-123\nlastUpdated: 2023-12-01T10:30:00Z\ntitle: Test\n---\n# Content"
-		idResult, idExists := GetIdFromFrontmatter(markdown)
+	t.Run("should handle lastUpdated field with other fields present", func(t *testing.T) {
+		markdown := "---\nlastUpdated: 2023-12-01T10:30:00Z\ntitle: Test\n---\n# Content"
 		lastUpdatedResult, lastUpdatedExists := GetLastUpdatedFromFrontmatter(markdown)
 
-		assert.Equal(t, "test-123", idResult)
-		assert.True(t, idExists)
 		assert.Equal(t, "2023-12-01T10:30:00Z", lastUpdatedResult)
 		assert.True(t, lastUpdatedExists)
 	})
@@ -1067,5 +1020,270 @@ func TestHasJavaScriptCode(t *testing.T) {
 		markdown := "```java\nSystem.out.println(\"hello\")\n```\n```python\nprint(\"world\")\n```"
 		result := HasJavaScriptCode(markdown)
 		assert.False(t, result)
+	})
+}
+
+func TestGetTagsFromFrontmatter(t *testing.T) {
+	t.Run("should extract tags from valid frontmatter", func(t *testing.T) {
+		// Test array format
+		markdown := "---\ntags:\n  - golang\n  - testing\ntitle: Test\n---\n# Content"
+		result, exists := GetTagsFromFrontmatter(markdown)
+		assert.True(t, exists)
+		assert.Len(t, result, 2)
+		assert.Contains(t, result, "golang")
+		assert.Contains(t, result, "testing")
+
+		// Test single string format
+		markdown = "---\ntags: single-tag\n---\n# Content"
+		result, exists = GetTagsFromFrontmatter(markdown)
+		assert.True(t, exists)
+		assert.Len(t, result, 1)
+		assert.Contains(t, result, "single-tag")
+	})
+
+	t.Run("should handle missing or invalid cases", func(t *testing.T) {
+		// No frontmatter
+		result, exists := GetTagsFromFrontmatter("# Content without frontmatter")
+		assert.False(t, exists)
+		assert.Len(t, result, 0)
+
+		// No tags field
+		result, exists = GetTagsFromFrontmatter("---\ntitle: Test\n---\n# Content")
+		assert.False(t, exists)
+		assert.Len(t, result, 0)
+
+		// Invalid YAML
+		result, exists = GetTagsFromFrontmatter("---\ninvalid: yaml: content:\n---\n# Content")
+		assert.False(t, exists)
+		assert.Len(t, result, 0)
+	})
+
+	t.Run("should filter non-string tags", func(t *testing.T) {
+		markdown := "---\ntags:\n  - golang\n  - 123\n  - testing\n---\n# Content"
+		result, exists := GetTagsFromFrontmatter(markdown)
+		assert.True(t, exists)
+		assert.Len(t, result, 2)
+		assert.Contains(t, result, "golang")
+		assert.Contains(t, result, "testing")
+		assert.NotContains(t, result, "123")
+	})
+}
+
+func TestUpdateFrontmatterWithTags(t *testing.T) {
+	t.Run("should handle frontmatter updates", func(t *testing.T) {
+		// Add tags to markdown without frontmatter
+		markdown := "# Test Note\n\nContent."
+		result := updateFrontmatterWithTags(markdown, []string{"golang", "testing"})
+		assert.Contains(t, result, "---")
+		assert.Contains(t, result, "tags:")
+		assert.Contains(t, result, "- golang")
+		assert.Contains(t, result, "- testing")
+
+		// Update existing frontmatter
+		markdown = "---\ntitle: Test\n---\n# Content"
+		result = updateFrontmatterWithTags(markdown, []string{"new-tag"})
+		assert.Contains(t, result, "title: Test")
+		assert.Contains(t, result, "- new-tag")
+
+		// Replace existing tags
+		markdown = "---\ntags:\n  - old-tag\ntitle: Test\n---\n# Content"
+		result = updateFrontmatterWithTags(markdown, []string{"new-tag"})
+		assert.Contains(t, result, "- new-tag")
+		assert.NotContains(t, result, "- old-tag")
+	})
+
+	t.Run("should handle empty tags", func(t *testing.T) {
+		// Remove tags field when empty tags provided
+		markdown := "---\ntags:\n  - old-tag\ntitle: Test\n---\n# Content"
+		result := updateFrontmatterWithTags(markdown, []string{})
+		assert.Contains(t, result, "title: Test")
+		assert.NotContains(t, result, "tags:")
+
+		// No change when no tags and no existing frontmatter
+		markdown = "# Test Note"
+		result = updateFrontmatterWithTags(markdown, []string{})
+		assert.Equal(t, markdown, result)
+	})
+}
+
+func TestGetTagsFromNote(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "bytebook_get_tags_test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Setup test directory structure
+	folderPath := filepath.Join(tmpDir, "notes", "test-folder")
+	err = os.MkdirAll(folderPath, 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test folder: %v", err)
+	}
+
+	t.Run("should read tags from note files", func(t *testing.T) {
+		// Test note with tags
+		testFile1 := filepath.Join(folderPath, "with-tags.md")
+		content1 := "---\ntags:\n  - golang\n  - testing\ntitle: Test\n---\n# Content"
+		err := os.WriteFile(testFile1, []byte(content1), 0644)
+		assert.NoError(t, err)
+
+		tags, exists, err := GetTagsFromNote(tmpDir, "test-folder/with-tags.md")
+		assert.NoError(t, err)
+		assert.True(t, exists)
+		assert.Len(t, tags, 2)
+		assert.Contains(t, tags, "golang")
+		assert.Contains(t, tags, "testing")
+	})
+
+	t.Run("should handle file errors", func(t *testing.T) {
+		// Non-existent file
+		tags, exists, err := GetTagsFromNote(tmpDir, "test-folder/nonexistent.md")
+		assert.Error(t, err)
+		assert.False(t, exists)
+		assert.Len(t, tags, 0)
+
+		// Invalid folder path
+		tags, exists, err = GetTagsFromNote(tmpDir, "nonexistent-folder/test.md")
+		assert.Error(t, err)
+		assert.False(t, exists)
+		assert.Len(t, tags, 0)
+	})
+}
+
+func TestAddTagsToNote(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "bytebook_tags_test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Setup test directory structure
+	folderPath := filepath.Join(tmpDir, "notes", "test-folder")
+	err = os.MkdirAll(folderPath, 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test folder: %v", err)
+	}
+
+	t.Run("should add tags to notes", func(t *testing.T) {
+		// Test without existing frontmatter
+		testFile1 := filepath.Join(folderPath, "test1.md")
+		err := os.WriteFile(testFile1, []byte("# Test Note"), 0644)
+		assert.NoError(t, err)
+
+		err = AddTagsToNote(tmpDir, "test-folder/test1.md", []string{"golang", "testing"})
+		assert.NoError(t, err)
+
+		content, _ := os.ReadFile(testFile1)
+		assert.Contains(t, string(content), "tags:")
+		assert.Contains(t, string(content), "- golang")
+		assert.Contains(t, string(content), "- testing")
+
+		// Test with existing frontmatter and deduplication
+		testFile2 := filepath.Join(folderPath, "test2.md")
+		initialContent := "---\ntags:\n  - existing\ntitle: Test\n---\n# Content"
+		err = os.WriteFile(testFile2, []byte(initialContent), 0644)
+		assert.NoError(t, err)
+
+		err = AddTagsToNote(tmpDir, "test-folder/test2.md", []string{"existing", "new", "", "  "})
+		assert.NoError(t, err)
+
+		content, _ = os.ReadFile(testFile2)
+		tags, exists := GetTagsFromFrontmatter(string(content))
+		assert.True(t, exists)
+		assert.Len(t, tags, 2) // Should deduplicate and ignore empty tags
+		assert.Contains(t, tags, "existing")
+		assert.Contains(t, tags, "new")
+	})
+
+	t.Run("should handle errors", func(t *testing.T) {
+		// Non-existent file
+		err := AddTagsToNote(tmpDir, "test-folder/nonexistent.md", []string{"tag"})
+		assert.Error(t, err)
+
+		// Invalid folder path
+		err = AddTagsToNote(tmpDir, "nonexistent-folder/test.md", []string{"tag"})
+		assert.Error(t, err)
+	})
+}
+
+func TestDeleteTagsFromNote(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "bytebook_delete_tags_test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Setup test directory structure
+	folderPath := filepath.Join(tmpDir, "notes", "test-folder")
+	err = os.MkdirAll(folderPath, 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test folder: %v", err)
+	}
+
+	t.Run("should delete tags from notes", func(t *testing.T) {
+		// Test deleting specific tags
+		testFile1 := filepath.Join(folderPath, "test1.md")
+		content1 := "---\ntags:\n  - golang\n  - testing\n  - keep\n---\n# Test Note"
+		err := os.WriteFile(testFile1, []byte(content1), 0644)
+		assert.NoError(t, err)
+
+		err = DeleteTagsFromNote(tmpDir, "test-folder/test1.md", []string{"testing", "golang"})
+		assert.NoError(t, err)
+
+		content, _ := os.ReadFile(testFile1)
+		tags, exists := GetTagsFromFrontmatter(string(content))
+		assert.True(t, exists)
+		assert.Len(t, tags, 1)
+		assert.Contains(t, tags, "keep")
+
+		// Test removing all tags (removes tags field entirely)
+		testFile2 := filepath.Join(folderPath, "test2.md")
+		content2 := "---\ntags:\n  - tag1\n  - tag2\ntitle: Test\n---\n# Content"
+		err = os.WriteFile(testFile2, []byte(content2), 0644)
+		assert.NoError(t, err)
+
+		err = DeleteTagsFromNote(tmpDir, "test-folder/test2.md", []string{"tag1", "tag2"})
+		assert.NoError(t, err)
+
+		content, _ = os.ReadFile(testFile2)
+		assert.Contains(t, string(content), "title: Test")
+		assert.NotContains(t, string(content), "tags:")
+	})
+
+	t.Run("should handle edge cases", func(t *testing.T) {
+		// No tags to delete - should do nothing
+		testFile := filepath.Join(folderPath, "test3.md")
+		content := "---\ntitle: Test\n---\n# Content"
+		err := os.WriteFile(testFile, []byte(content), 0644)
+		assert.NoError(t, err)
+
+		err = DeleteTagsFromNote(tmpDir, "test-folder/test3.md", []string{"nonexistent"})
+		assert.NoError(t, err)
+
+		result, _ := os.ReadFile(testFile)
+		assert.Equal(t, content, string(result)) // Should be unchanged
+
+		// Non-existent tags - should do nothing
+		testFile2 := filepath.Join(folderPath, "test4.md")
+		content2 := "---\ntags:\n  - existing\n---\n# Content"
+		err = os.WriteFile(testFile2, []byte(content2), 0644)
+		assert.NoError(t, err)
+
+		err = DeleteTagsFromNote(tmpDir, "test-folder/test4.md", []string{"missing"})
+		assert.NoError(t, err)
+
+		tags, exists := GetTagsFromFrontmatter(string(content2))
+		assert.True(t, exists)
+		assert.Contains(t, tags, "existing")
+	})
+
+	t.Run("should handle errors", func(t *testing.T) {
+		// Non-existent file
+		err := DeleteTagsFromNote(tmpDir, "test-folder/nonexistent.md", []string{"tag"})
+		assert.Error(t, err)
+
+		// Invalid folder path
+		err = DeleteTagsFromNote(tmpDir, "nonexistent-folder/test.md", []string{"tag"})
+		assert.Error(t, err)
 	})
 }

@@ -12,11 +12,6 @@ import {
   RenameFile,
   RevealFolderOrFileInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import {
-  DeleteTags,
-  EditTagsForNotes,
-  GetNotesFromTag,
-} from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 import { WINDOW_ID } from '../App';
 import { noteSortAtom, projectSettingsAtom } from '../atoms';
 import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
@@ -28,11 +23,11 @@ import { getFolderAndNoteFromSelectionRange } from '../utils/selection';
 import {
   convertSelectionRangeValueToDotNotation,
   extractInfoFromNoteName,
-  getTagNameFromSetValue,
   parseNoteNameFromSelectionRangeValue,
 } from '../utils/string-formatting';
 import { useWailsEvent } from './events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
+import { SetTagsOnNotes } from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 
 export function useNotes(
   curFolder: string,
@@ -98,52 +93,53 @@ export function useNotesFromTag(
   return useQuery({
     queryKey: ['tag-notes', tagName, noteSort],
     queryFn: async () => {
-      const res = await GetNotesFromTag(tagName, noteSort);
-      if (!res.success) {
-        if (res.message === 'tag does not exist') {
-          navigate('/', { replace: true });
-          return [];
-        } else {
-          throw new QueryError(
-            `Failed in retrieving notes for tag "${tagName}"`
-          );
-        }
-      }
-      const notes = res.data ?? [];
-      const curNoteWithExtension = `${curNote}?ext=${fileExtension}`;
-      const curNoteExists = notes.some((noteAndFolder) => {
-        const [, note] = noteAndFolder.split('/');
-        return note === curNoteWithExtension;
-      });
-      // If the current note does not exist, then navigate to a safe note
-      if (!curNoteExists) {
-        if (notes.length === 0) {
-          navigate(`/tags/${tagName}`);
-        } else {
-          let noteIndexToNavigateTo = 0;
-          const oldNotesData = queryClient.getQueryData([
-            'tag-notes',
-            tagName,
-            noteSort,
-          ]) as string[] | null;
-          if (oldNotesData) {
-            noteIndexToNavigateTo = findClosestSidebarItemToNavigateTo(
-              curNoteWithExtension,
-              oldNotesData,
-              notes
-            );
-          }
-          const { noteNameWithoutExtension, queryParams } =
-            extractInfoFromNoteName(notes[noteIndexToNavigateTo]);
-          const [folder, note] = noteNameWithoutExtension.split('/');
-          if (!folder || !note) return [];
-          navigate(
-            `/tags/${tagName}/${encodeURIComponent(folder)}/${encodeURIComponent(note)}?ext=${queryParams.ext}`,
-            { replace: true }
-          );
-        }
-      }
-      return notes;
+      // const res = await GetNotesFromTag(tagName, noteSort);
+      // if (!res.success) {
+      //   if (res.message === 'tag does not exist') {
+      //     navigate('/', { replace: true });
+      //     return [];
+      //   } else {
+      //     throw new QueryError(
+      //       `Failed in retrieving notes for tag "${tagName}"`
+      //     );
+      //   }
+      // }
+      return [];
+      // const notes = res.data ?? [];
+      // const curNoteWithExtension = `${curNote}?ext=${fileExtension}`;
+      // const curNoteExists = notes.some((noteAndFolder) => {
+      //   const [, note] = noteAndFolder.split('/');
+      //   return note === curNoteWithExtension;
+      // });
+      // // If the current note does not exist, then navigate to a safe note
+      // if (!curNoteExists) {
+      //   if (notes.length === 0) {
+      //     navigate(`/tags/${tagName}`);
+      //   } else {
+      //     let noteIndexToNavigateTo = 0;
+      //     const oldNotesData = queryClient.getQueryData([
+      //       'tag-notes',
+      //       tagName,
+      //       noteSort,
+      //     ]) as string[] | null;
+      //     if (oldNotesData) {
+      //       noteIndexToNavigateTo = findClosestSidebarItemToNavigateTo(
+      //         curNoteWithExtension,
+      //         oldNotesData,
+      //         notes
+      //       );
+      //     }
+      //     const { noteNameWithoutExtension, queryParams } =
+      //       extractInfoFromNoteName(notes[noteIndexToNavigateTo]);
+      //     const [folder, note] = noteNameWithoutExtension.split('/');
+      //     if (!folder || !note) return [];
+      //     navigate(
+      //       `/tags/${tagName}/${encodeURIComponent(folder)}/${encodeURIComponent(note)}?ext=${queryParams.ext}`,
+      //       { replace: true }
+      //     );
+      //   }
+      // }
+      // return notes;
     },
   });
 }
@@ -381,13 +377,13 @@ export function useRenameFileMutation() {
 export function useDeleteTagsMutation() {
   return useMutation({
     mutationFn: async ({ tagsToDelete }: { tagsToDelete: Set<string> }) => {
-      const tagsToDeleteList = Array.from(tagsToDelete).map((tagWithPrefix) =>
-        getTagNameFromSetValue(tagWithPrefix)
-      );
-      const res = await DeleteTags(tagsToDeleteList);
-      if (!res.success) {
-        throw new Error(res.message);
-      }
+      // const tagsToDeleteList = Array.from(tagsToDelete).map((tagWithPrefix) =>
+      //   getTagNameFromSetValue(tagWithPrefix)
+      // );
+      // const res = await DeleteTags(tagsToDeleteList);
+      // if (!res.success) {
+      //   throw new Error(res.message);
+      // }
       return true;
     },
     onError: (e) => {
@@ -418,14 +414,14 @@ export function useEditTagsForNotesMutation(isInTagsSidebar: boolean) {
         isInTagsSidebar
       );
 
-      const res = await EditTagsForNotes(
-        tagNamesToAdd,
-        tagNamesToRemove,
-        folderAndNotePaths
-      );
-      if (!res.success) {
-        throw new Error(res.message);
-      }
+      // const res = await EditTagsForNotes(
+      //   tagNamesToAdd,
+      //   tagNamesToRemove,
+      //   folderAndNotePaths
+      // );
+      // if (!res.success) {
+      //   throw new Error(res.message);
+      // }
 
       // // Invalidate the queries related to tag notes to ensure the data is up-to-date.
       // await queryClient.invalidateQueries({
@@ -479,15 +475,25 @@ export function useEditTagsMutation() {
           isInTagsSidebar
         );
 
-        const res = await EditTagsForNotes(
+        const res = await SetTagsOnNotes(
+          folderAndNotePaths,
           tagNamesToAdd,
-          tagNamesToRemove,
-          folderAndNotePaths
+          tagNamesToRemove
         );
 
         if (!res.success) {
           throw new QueryError(res.message);
         }
+
+        // const res = await EditTagsForNotes(
+        //   tagNamesToAdd,
+        //   tagNamesToRemove,
+        //   folderAndNotePaths
+        // );
+
+        // if (!res.success) {
+        //   throw new QueryError(res.message);
+        // }
 
         return true;
       } catch (error) {

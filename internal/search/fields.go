@@ -21,6 +21,7 @@ const (
 	FieldHasJavaCode           = "has_java_code"
 	FieldHasPythonCode         = "has_python_code"
 	FieldHasJavascriptCode     = "has_javascript_code"
+	FieldTags                  = "tags"
 	FieldLastUpdated           = "last_updated"
 	FieldCreatedDate           = "created_date"
 )

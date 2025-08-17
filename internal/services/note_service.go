@@ -225,46 +225,6 @@ func (n *NoteService) SetNoteMarkdown(
 	}
 }
 
-// AddFolder creates a new folder for notes in the project at the specified folderName.
-// Returns a BackendResponseWithoutData indicating success or failure.
-func AddFolder(folderName string, projectPath string) config.BackendResponseWithoutData {
-	pathToFolder := filepath.Join(projectPath, "notes", folderName)
-
-	exists, err := util.FileOrFolderExists(pathToFolder)
-	if err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: err.Error(),
-		}
-	}
-
-	if exists {
-		// Check if it's a directory
-		info, err := os.Stat(pathToFolder)
-		if err == nil && info.IsDir() {
-			return config.BackendResponseWithoutData{
-				Success: false,
-				Message: fmt.Sprintf(
-					"Folder name, \"%s\", already exists, please choose a different name",
-					folderName,
-				),
-			}
-		}
-	}
-
-	// Ensure the directory exists
-	if err := os.MkdirAll(pathToFolder, os.ModePerm); err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: err.Error(),
-		}
-	}
-	return config.BackendResponseWithoutData{
-		Success: true,
-		Message: "",
-	}
-}
-
 // AddNoteToFolder creates a new empty markdown note with the given noteName in the specified folder.
 // Returns a BackendResponseWithoutData indicating success or failure.
 func (n *NoteService) AddNoteToFolder(folderName string, noteName string) config.BackendResponseWithoutData {
