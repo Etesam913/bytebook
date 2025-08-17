@@ -824,6 +824,29 @@ func TestParseTokens(t *testing.T) {
 		}
 		assert.Equal(t, expected, tokens)
 	})
+
+	t.Run("should handle special characters like parentheses", func(t *testing.T) {
+		tokens := parseTokens(`func() "error()" test(param)`)
+
+		expected := []SearchToken{
+			{Text: "func()", IsExact: false},
+			{Text: "error()", IsExact: true},
+			{Text: "test(param)", IsExact: false},
+		}
+		assert.Equal(t, expected, tokens)
+	})
+
+	t.Run("should handle other special characters", func(t *testing.T) {
+		tokens := parseTokens(`array[0] object.method() path/to/file "quoted[]brackets"`)
+
+		expected := []SearchToken{
+			{Text: "array[0]", IsExact: false},
+			{Text: "object.method()", IsExact: false},
+			{Text: "path/to/file", IsExact: false},
+			{Text: "quoted[]brackets", IsExact: true},
+		}
+		assert.Equal(t, expected, tokens)
+	})
 }
 
 func TestCreatePrefixQuery(t *testing.T) {

@@ -6,18 +6,22 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/blevesearch/bleve/analysis/token/lowercase"
 	"github.com/blevesearch/bleve/v2"
+	_ "github.com/blevesearch/bleve/v2/analysis/analyzer/custom"
 	_ "github.com/blevesearch/bleve/v2/analysis/analyzer/keyword"
 	_ "github.com/blevesearch/bleve/v2/analysis/analyzer/simple"
 	_ "github.com/blevesearch/bleve/v2/analysis/lang/en"
+	"github.com/blevesearch/bleve/v2/analysis/token/edgengram"
+	_ "github.com/blevesearch/bleve/v2/analysis/token/lowercase"
+	_ "github.com/blevesearch/bleve/v2/analysis/token/ngram"
 	"github.com/blevesearch/bleve/v2/mapping"
 	"github.com/blevesearch/bleve/v2/search/query"
 	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
-// Bump index name to force reindex when mappings change
-var INDEX_NAME = ".index.v6.bleve"
+var INDEX_NAME = ".index.bleve"
 var MARKDOWN_NOTE_TYPE = "markdown_note"
 var ATTACHMENT_TYPE = "attachment"
 
@@ -28,6 +32,7 @@ type MarkdownNoteBleveDocument struct {
 	FileNameLC            string   `json:"file_name_lc"`
 	FileExtension         string   `json:"file_extension"`
 	TextContent           string   `json:"text_content"`
+	TextContentNgram      string   `json:"text_content_ngram"`
 	CodeContent           []string `json:"code_content"`
 	GoCodeContent         []string `json:"go_code_content"`
 	JavaCodeContent       []string `json:"java_code_content"`
@@ -64,6 +69,7 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 		FileNameLC:            strings.ToLower(fileName),
 		FileExtension:         ".md",
 		TextContent:           notes.GetTextContent(markdown),
+		TextContentNgram:      notes.GetTextContent(markdown),
 		CodeContent:           notes.GetCodeContent(markdown),
 		GoCodeContent:         notes.GetGoCodeContent(markdown),
 		JavaCodeContent:       notes.GetJavaCodeContent(markdown),
@@ -109,9 +115,37 @@ func doesIndexExist(projectPath string) bool {
 func createIndex(projectPath string) (bleve.Index, error) {
 	pathToIndex := GetPathToIndex(projectPath)
 	indexMapping := bleve.NewIndexMapping()
+	err := indexMapping.AddCustomTokenFilter(
+		"n-gram",
+		map[string]interface{}{
+			"type": edgengram.Name,
+			"min":  float64(2),
+			"max":  float64(6),
+			"side": "front",
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	err = indexMapping.AddCustomAnalyzer("custom_ngram",
+		map[string]interface{}{
+			"type":      "custom",
+			"tokenizer": "unicode",
+			"token_filters": []interface{}{
+				lowercase.Name,
+				"n-gram",
+			},
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
 
 	// Use the "type" field in documents to select the document mapping
 	indexMapping.TypeField = "type"
+	indexMapping.DefaultMapping = createMarkdownNoteDocumentMapping()
 	indexMapping.AddDocumentMapping(MARKDOWN_NOTE_TYPE, createMarkdownNoteDocumentMapping())
 	indexMapping.AddDocumentMapping(ATTACHMENT_TYPE, createAttachmentDocumentMapping())
 	index, err := bleve.New(pathToIndex, indexMapping)
@@ -148,10 +182,17 @@ func OpenOrCreateIndex(projectPath string) (bleve.Index, error) {
 func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	documentMapping := bleve.NewDocumentMapping()
 
-	// Use simple analyzer for text content - it preserves word boundaries without stemming,
-	// making it suitable for both fuzzy and exact phrase matching
 	textFieldMapping := bleve.NewTextFieldMapping()
 	textFieldMapping.Analyzer = "simple"
+	textFieldMapping.Store = true
+	textFieldMapping.Index = true
+	textFieldMapping.IncludeTermVectors = true
+
+	textNgramFieldMapping := bleve.NewTextFieldMapping()
+	textNgramFieldMapping.Analyzer = "custom_ngram"
+	textNgramFieldMapping.Store = true
+	textNgramFieldMapping.Index = true
+	textNgramFieldMapping.IncludeTermVectors = true
 
 	keywordTextFieldMapping := bleve.NewTextFieldMapping()
 	keywordTextFieldMapping.Analyzer = "keyword"
@@ -180,6 +221,7 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	documentMapping.AddFieldMappingsAt("file_name_lc", fileNameLowerFieldMapping)
 	documentMapping.AddFieldMappingsAt("file_extension", keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt("text_content", textFieldMapping)
+	documentMapping.AddFieldMappingsAt("text_content_ngram", textNgramFieldMapping)
 	documentMapping.AddFieldMappingsAt("code_content", keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt("go_code_content", keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt("java_code_content", keywordTextFieldMapping)
@@ -223,6 +265,13 @@ func CreateExactQuery(field, phrase string) query.Query {
 	return q
 }
 
+// CreateMatchQuery returns a match query for the specified field and term.
+func CreateMatchQuery(field, term string) query.Query {
+	q := bleve.NewMatchQuery(term)
+	q.SetField(field)
+	return q
+}
+
 // SearchToken represents a parsed search token with metadata
 type SearchToken struct {
 	Text    string
@@ -233,7 +282,9 @@ type SearchToken struct {
 // handling quoted phrases as exact matches and unquoted words as fuzzy tokens.
 // Quoted phrases (enclosed in double quotes) are treated as exact matches (IsExact=true).
 // Unquoted words are split by spaces and treated as non-exact (IsExact=false).
+// Special characters like parentheses are preserved within tokens.
 // Example: input `"foo bar" baz` yields tokens: [{foo bar true}, {baz false}]
+// Example: input `func()` yields tokens: [{func() false}]
 func parseTokens(input string) []SearchToken {
 	tokens := []SearchToken{}
 	curToken := strings.Builder{}
@@ -308,23 +359,23 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 		} else {
 			// Fuzzy search in both text and code content
 			contentQuery := bleve.NewBooleanQuery()
-			contentQuery.AddShould(CreatePrefixQuery("text_content", token.Text))
-			contentQuery.AddShould(CreatePrefixQuery("code_content", token.Text))
+			contentQuery.AddShould(CreateMatchQuery("text_content_ngram", token.Text))
+			contentQuery.AddShould(CreateMatchQuery("code_content", token.Text))
 			booleanQuery.AddMust(contentQuery)
 		}
 	}
 	return booleanQuery
 }
 
-// CreateSearchRequestWithStandardOptions creates a search request with common options
+// CreateSearchRequest creates a search request with common options
 // used by the application (fields, size, and highlighting for text_content and code_content).
-func CreateSearchRequestWithStandardOptions(q query.Query) *bleve.SearchRequest {
+func CreateSearchRequest(q query.Query) *bleve.SearchRequest {
 	req := bleve.NewSearchRequest(q)
 	req.Fields = []string{"folder", "file_name", "last_updated"}
 	req.Size = 50
 	req.Highlight = bleve.NewHighlightWithStyle("html")
 	if req.Highlight != nil {
-		req.Highlight.Fields = []string{"text_content", "code_content"}
+		req.Highlight.Fields = []string{"text_content", "code_content", "text_content_ngram"}
 	}
 	return req
 }
@@ -569,6 +620,16 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 		if hit.Fragments != nil {
 			// Process text_content highlights
 			if frags, ok := hit.Fragments["text_content"]; ok {
+				for _, frag := range frags {
+					if hasHighlightContent(frag) {
+						highlights = append(highlights, HighlightResult{
+							Content: frag,
+							IsCode:  false,
+						})
+					}
+				}
+			}
+			if frags, ok := hit.Fragments["text_content_ngram"]; ok {
 				for _, frag := range frags {
 					if hasHighlightContent(frag) {
 						highlights = append(highlights, HighlightResult{

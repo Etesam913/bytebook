@@ -36,7 +36,7 @@ export function SearchPage() {
         <Input
           inputProps={{
             placeholder: 'Search',
-            className: 'w-full ',
+            className: 'w-full font-code',
             autoCapitalize: 'off',
             autoComplete: 'off',
             autoCorrect: 'off',
@@ -71,6 +71,9 @@ export function SearchPage() {
                   )}?ext=md`;
                   setLocation(href);
                 }
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                window.history.back();
               }
             },
           }}
@@ -108,21 +111,21 @@ export function SearchPage() {
               <ol className="list-decimal list-inside space-y-2">
                 <li>
                   Type{' '}
-                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                  <span className="font-bold font-code text-zinc-900 dark:text-zinc-100">
                     "The red tiger"
                   </span>{' '}
                   to search for files that contain the phrase "The red tiger"
                 </li>
                 <li>
                   Use{' '}
-                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                  <span className="font-bold font-code text-zinc-900 dark:text-zinc-100">
                     f:apple
                   </span>{' '}
                   to search for files or folders that start with "apple"
                 </li>
                 <li>
                   Use{' '}
-                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                  <span className="font-bold font-code text-zinc-900 dark:text-zinc-100">
                     f:docs/readme
                   </span>{' '}
                   to search for files starting with "readme" in folders starting

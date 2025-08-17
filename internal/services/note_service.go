@@ -189,8 +189,9 @@ func (n *NoteService) SetNoteMarkdown(
 	noteTitle string,
 	markdown string,
 ) config.BackendResponseWithData[string] {
-	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, fmt.Sprintf("%s.md", noteTitle))
-	noteId := filepath.Join(folderName, noteTitle+".md")
+	noteName := fmt.Sprintf("%s.md", noteTitle)
+	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, noteName)
+	noteId := filepath.Join(folderName, noteName)
 
 	err := os.WriteFile(noteFilePath, []byte(markdown), 0644)
 	if err != nil {
@@ -204,10 +205,11 @@ func (n *NoteService) SetNoteMarkdown(
 	bleveMarkdownDocument := search.CreateMarkdownNoteBleveDocument(
 		markdown,
 		folderName,
-		noteTitle,
+		noteName,
 	)
 
 	err = n.SearchIndex.Index(noteId, bleveMarkdownDocument)
+	fmt.Println(noteId, noteName)
 	if err != nil {
 		return config.BackendResponseWithData[string]{
 			Success: false,

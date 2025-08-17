@@ -12,6 +12,7 @@ require (
 )
 
 require (
+	github.com/blevesearch/bleve v1.0.14
 	github.com/blevesearch/bleve/v2 v2.5.2
 	github.com/robert-nix/ansihtml v1.0.1
 	github.com/yuin/goldmark v1.7.8

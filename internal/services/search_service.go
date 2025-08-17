@@ -18,7 +18,9 @@ type SearchService struct {
 func (s *SearchService) FullTextSearch(searchQuery string) []search.SearchResult {
 	// Build the boolean query and request using helpers for clarity
 	totalQuery := search.BuildBooleanQueryFromUserInput(searchQuery, 1)
-	request := search.CreateSearchRequestWithStandardOptions(totalQuery)
+	// totalQuery := bleve.NewMatchQuery(searchQuery)
+	// totalQuery.SetField("text_content_ngram")
+	request := search.CreateSearchRequest(totalQuery)
 
 	res, err := s.SearchIndex.Search(request)
 	if err != nil {
