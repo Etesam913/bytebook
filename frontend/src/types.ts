@@ -11,6 +11,11 @@ export const VIDEO_FILE_EXTENSIONS = ['mov', 'mp4', 'm4v', 'webm'];
 
 export type EditorBlockTypes = HeadingTagType | undefined | string;
 
+export type FolderNote = {
+  folder: string;
+  note: string;
+};
+
 export type DropdownItem = {
   value: string;
   label: ReactNode;

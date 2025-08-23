@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from 'clsx';
+import { assert } from 'console';
 import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
@@ -6,6 +7,64 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const fileNameRegex = /^[0-9a-zA-Z_\-. ]+$/;
+
+/**
+ * Utility class for converting and extracting information from note paths.
+ *
+ * @example
+ * // Example usage:
+ * const converter = new PathConverter({ folder: "docs", note: "readme.md" });
+ * console.log(converter.folder); // "docs"
+ * console.log(converter.note); // "readme.md"
+ * console.log(converter.noteWithoutExtension); // "readme"
+ * console.log(converter.noteExtension); // "md"
+ * console.log(converter.noteWithExtensionParam); // "readme?ext=md"
+ */
+export class PathConverter {
+  readonly folder: string;
+  readonly note: string;
+  readonly noteWithoutExtension: string;
+  readonly noteExtension: string;
+  readonly noteWithExtensionParam: string;
+
+  constructor({ folder, note }: { folder: string; note: string }) {
+    this.folder = folder;
+    this.note = note;
+    const noteExtension = this.getExtensionFromNote(note);
+    if (!noteExtension) {
+      throw new Error('Note must have an extension');
+    }
+    this.noteWithoutExtension = this.getNoteWithoutExtension(note);
+    this.noteExtension = noteExtension;
+    this.noteWithExtensionParam = `${this.noteWithoutExtension}?ext=${this.noteExtension}`;
+  }
+
+  /**
+   * Returns the note name without its extension.
+   * @param note - The note file name (e.g., "readme.md").
+   * @returns The note name without extension (e.g., "readme").
+   */
+  private getNoteWithoutExtension(note: string): string {
+    const lastDotIndex = note.lastIndexOf('.');
+    if (lastDotIndex === -1) {
+      return note;
+    }
+    return note.substring(0, lastDotIndex);
+  }
+
+  /**
+   * Returns the extension of the note file.
+   * @param note - The note file name (e.g., "readme.md").
+   * @returns The extension (e.g., "md"), or null if none found.
+   */
+  private getExtensionFromNote(note: string): string | null {
+    const lastDotIndex = note.lastIndexOf('.');
+    if (lastDotIndex === -1) {
+      return null;
+    }
+    return note.substring(lastDotIndex + 1);
+  }
+}
 
 /**
  * Retrieves the value of a specific query parameter from a given URL string.
