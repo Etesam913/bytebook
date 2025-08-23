@@ -31,7 +31,7 @@ export class FilePath {
     this.note = note;
     const noteExtension = this.getExtensionFromNote(note);
     if (!noteExtension) {
-      throw new Error('Note must have an extension');
+      throw new Error(`Note must have an extension: ${note}`);
     }
     this.noteWithoutExtension = this.getNoteWithoutExtension(note);
     this.noteExtension = noteExtension;

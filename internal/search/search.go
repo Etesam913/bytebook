@@ -8,18 +8,18 @@ import (
 	"github.com/blevesearch/bleve/v2/search/query"
 )
 
-// CreatePrefixQuery returns a case-insensitive prefix query targeting the specified field.
+// createPrefixQuery returns a case-insensitive prefix query targeting the specified field.
 // The provided prefix is lowercased to ensure case-insensitive behavior.
-func CreatePrefixQuery(field, prefix string) query.Query {
+func createPrefixQuery(field, prefix string) query.Query {
 	normalizedPrefix := strings.ToLower(prefix)
 	q := bleve.NewPrefixQuery(normalizedPrefix)
 	q.SetField(field)
 	return q
 }
 
-// CreateFuzzyQuery returns a fuzzy query over the specified field.
+// createFuzzyQuery returns a fuzzy query over the specified field.
 // The term is lowercased and the provided fuzziness value is applied.
-func CreateFuzzyQuery(field, term string, fuzziness int) query.Query {
+func createFuzzyQuery(field, term string, fuzziness int) query.Query {
 	normalizedTerm := strings.ToLower(term)
 	q := bleve.NewFuzzyQuery(normalizedTerm)
 	q.SetField(field)
@@ -27,15 +27,15 @@ func CreateFuzzyQuery(field, term string, fuzziness int) query.Query {
 	return q
 }
 
-// CreateExactQuery returns a phrase query for exact matching in the specified field.
-func CreateExactQuery(field, phrase string) query.Query {
+// createExactQuery returns a phrase query for exact matching in the specified field.
+func createExactQuery(field, phrase string) query.Query {
 	q := bleve.NewMatchPhraseQuery(phrase)
 	q.SetField(field)
 	return q
 }
 
-// CreateMatchQuery returns a match query for the specified field and term.
-func CreateMatchQuery(field, term string) query.Query {
+// createMatchQuery returns a match query for the specified field and term.
+func createMatchQuery(field, term string) query.Query {
 	q := bleve.NewMatchQuery(term)
 	q.SetField(field)
 	return q
@@ -111,25 +111,25 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 			prefixTerm := token.Text[2:]
 			prefixTermSplit := strings.Split(prefixTerm, "/")
 			if len(prefixTermSplit) > 1 {
-				booleanQuery.AddMust(CreatePrefixQuery(FieldFolder, prefixTermSplit[0]))
-				booleanQuery.AddMust(CreatePrefixQuery(FieldFileNameLC, prefixTermSplit[1]))
+				booleanQuery.AddMust(createPrefixQuery(FieldFolder, prefixTermSplit[0]))
+				booleanQuery.AddMust(createPrefixQuery(FieldFileNameLC, prefixTermSplit[1]))
 			} else {
 				newBooleanQuery := bleve.NewBooleanQuery()
-				newBooleanQuery.AddShould(CreatePrefixQuery(FieldFolder, prefixTerm))
-				newBooleanQuery.AddShould(CreatePrefixQuery(FieldFileNameLC, prefixTerm))
+				newBooleanQuery.AddShould(createPrefixQuery(FieldFolder, prefixTerm))
+				newBooleanQuery.AddShould(createPrefixQuery(FieldFileNameLC, prefixTerm))
 				booleanQuery.AddMust(newBooleanQuery)
 			}
 		} else if token.IsExact {
 			// Exact phrase search in both text and code content
 			contentQuery := bleve.NewBooleanQuery()
-			contentQuery.AddShould(CreateExactQuery(FieldTextContent, token.Text))
-			contentQuery.AddShould(CreateExactQuery(FieldCodeContent, token.Text))
+			contentQuery.AddShould(createExactQuery(FieldTextContent, token.Text))
+			contentQuery.AddShould(createExactQuery(FieldCodeContent, token.Text))
 			booleanQuery.AddMust(contentQuery)
 		} else {
 			// Fuzzy search in both text and code content
 			contentQuery := bleve.NewBooleanQuery()
-			contentQuery.AddShould(CreateMatchQuery(FieldTextContentNgram, token.Text))
-			contentQuery.AddShould(CreateMatchQuery(FieldCodeContent, token.Text))
+			contentQuery.AddShould(createMatchQuery(FieldTextContentNgram, token.Text))
+			contentQuery.AddShould(createMatchQuery(FieldCodeContent, token.Text))
 			booleanQuery.AddMust(contentQuery)
 		}
 	}
@@ -158,7 +158,8 @@ type HighlightResult struct {
 // SearchResult represents one search hit returned to the frontend
 type SearchResult struct {
 	Title       string            `json:"title"`
-	Path        string            `json:"path"`
+	Folder      string            `json:"folder"`
+	Note        string            `json:"note"`
 	LastUpdated string            `json:"lastUpdated"`
 	Highlights  []HighlightResult `json:"highlights"`
 }
@@ -179,15 +180,11 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 	results := []SearchResult{}
 
 	for _, hit := range searchResult.Hits {
-		folder, folderOk := hit.Fields[FieldFolder]
-		fileName, fileNameOk := hit.Fields[FieldFileName]
+		folder, folderOk := hit.Fields[FieldFolder].(string)
+		fileName, fileNameOk := hit.Fields[FieldFileName].(string)
 		if !folderOk || !fileNameOk {
 			continue
 		}
-
-		// title is the file name; path is folder/file_name
-		title := fileName.(string)
-		path := folder.(string) + "/" + fileName.(string)
 
 		// last_updated is stored as a datetime; retrieve as string if present
 		lastUpdated := ""
@@ -238,8 +235,9 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 		}
 
 		results = append(results, SearchResult{
-			Title:       title,
-			Path:        path,
+			Title:       fileName,
+			Folder:      folder,
+			Note:        fileName,
 			LastUpdated: lastUpdated,
 			Highlights:  highlights,
 		})

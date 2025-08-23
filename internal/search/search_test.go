@@ -56,7 +56,8 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 		// Verify first result
 		expectedFirst := SearchResult{
 			Title:       "doc1",
-			Path:        "folder1/doc1",
+			Folder:      "folder1",
+			Note:        "doc1",
 			LastUpdated: "",
 			Highlights:  []HighlightResult{{Content: "This contains <mark>search term</mark>.", IsCode: false}},
 		}
@@ -65,7 +66,8 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 		// Verify second result
 		expectedSecond := SearchResult{
 			Title:       "doc2",
-			Path:        "folder2/doc2",
+			Folder:      "folder2",
+			Note:        "doc2",
 			LastUpdated: "2023-12-02T15:45:00Z",
 			Highlights:  []HighlightResult{{Content: "This also contains <mark>search term</mark>.", IsCode: false}},
 		}
@@ -102,7 +104,8 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 		// Should only return the valid result (third one)
 		assert.Len(t, results, 1)
 		assert.Equal(t, "valid-file.md", results[0].Title)
-		assert.Equal(t, "valid-folder/valid-file.md", results[0].Path)
+		assert.Equal(t, "valid-folder", results[0].Folder)
+		assert.Equal(t, "valid-file.md", results[0].Note)
 	})
 
 	t.Run("should extract highlights correctly", func(t *testing.T) {
@@ -336,7 +339,7 @@ func TestParseTokens(t *testing.T) {
 
 func TestCreatePrefixQuery(t *testing.T) {
 	t.Run("should create prefix query with lowercase prefix", func(t *testing.T) {
-		q := CreatePrefixQuery("test_field", "PREFIX")
+		q := createPrefixQuery("test_field", "PREFIX")
 
 		// Verify it's a prefix query
 		prefixQuery, ok := q.(*query.PrefixQuery)
@@ -352,7 +355,7 @@ func TestCreatePrefixQuery(t *testing.T) {
 
 func TestCreateFuzzyQuery(t *testing.T) {
 	t.Run("should create fuzzy query with lowercase term", func(t *testing.T) {
-		q := CreateFuzzyQuery("test_field", "TERM", 2)
+		q := createFuzzyQuery("test_field", "TERM", 2)
 
 		// Verify it's a fuzzy query
 		fuzzyQuery, ok := q.(*query.FuzzyQuery)
@@ -371,7 +374,7 @@ func TestCreateFuzzyQuery(t *testing.T) {
 
 func TestCreateExactQuery(t *testing.T) {
 	t.Run("should create match phrase query", func(t *testing.T) {
-		q := CreateExactQuery("test_field", "exact phrase")
+		q := createExactQuery("test_field", "exact phrase")
 
 		// Verify it's a match phrase query
 		phraseQuery, ok := q.(*query.MatchPhraseQuery)

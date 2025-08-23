@@ -177,7 +177,7 @@ func TestCreateAttachmentBleveDocument(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.fileName+tc.fileExtension, func(t *testing.T) {
-			doc := CreateAttachmentBleveDocument(tc.fileName, tc.fileExtension)
+			doc := createAttachmentBleveDocument("test-folder", tc.fileName, tc.fileExtension)
 
 			assert.Equal(t, tc.fileName, doc.FileName)
 			assert.Equal(t, tc.fileExtension, doc.FileExtension)
@@ -253,7 +253,7 @@ func TestAddAttachmentToBatch(t *testing.T) {
 		env.createAttachmentFile(folderPath, "test.pdf", "fake pdf content")
 
 		batch := env.Index.NewBatch()
-		fileId, err := AddAttachmentToBatch(batch, env.Index, filepath.Join(folderPath, "test.pdf"), "test-folder", "test", ".pdf")
+		fileId, err := AddAttachmentToBatch(batch, env.Index, "test-folder", "test.pdf", ".pdf")
 
 		assert.NoError(t, err)
 		assert.Equal(t, "test-folder/test.pdf", fileId)
@@ -266,14 +266,14 @@ func TestAddAttachmentToBatch(t *testing.T) {
 
 		// Pre-index the attachment
 		fileId := "test-folder-2/existing.jpg"
-		bleveDoc := CreateAttachmentBleveDocument("existing", ".jpg")
+		bleveDoc := createAttachmentBleveDocument("test-folder-2", "existing", ".jpg")
 		err := env.Index.Index(fileId, bleveDoc)
 		require.NoError(t, err)
 
 		batch := env.Index.NewBatch()
 		initialSize := batch.Size()
 
-		returnedId, err := AddAttachmentToBatch(batch, env.Index, filepath.Join(folderPath, "existing.jpg"), "test-folder-2", "existing", ".jpg")
+		returnedId, err := AddAttachmentToBatch(batch, env.Index, "test-folder-2", "existing.jpg", ".jpg")
 
 		assert.NoError(t, err)
 		assert.Equal(t, fileId, returnedId)
@@ -285,23 +285,22 @@ func TestAddAttachmentToBatch(t *testing.T) {
 			fileName  string
 			extension string
 		}{
-			{"document", ".docx"},
-			{"video", ".mp4"},
-			{"audio", ".mp3"},
-			{"image", ".png"},
+			{"document.docx", ".docx"},
+			{"video.mp4", ".mp4"},
+			{"audio.mp3", ".mp3"},
+			{"image.png", ".png"},
 		}
 
 		for _, tc := range testCases {
-			t.Run(tc.fileName+tc.extension, func(t *testing.T) {
+			t.Run(tc.fileName, func(t *testing.T) {
 				folderName := "test-folder-" + tc.fileName
 				folderPath := env.createTestFolder(folderName)
-				testFile := filepath.Join(folderPath, tc.fileName+tc.extension)
 				env.createAttachmentFile(folderPath, tc.fileName+tc.extension, "fake content")
 
 				batch := env.Index.NewBatch()
-				expectedId := filepath.Join(folderName, tc.fileName+tc.extension)
+				expectedId := filepath.Join(folderName, tc.fileName)
 
-				fileId, err := AddAttachmentToBatch(batch, env.Index, testFile, folderName, tc.fileName, tc.extension)
+				fileId, err := AddAttachmentToBatch(batch, env.Index, folderName, tc.fileName, tc.extension)
 
 				assert.NoError(t, err)
 				assert.Equal(t, expectedId, fileId)
@@ -421,7 +420,7 @@ func TestIndexAllFilesWithAttachments(t *testing.T) {
 
 		// Pre-index the attachment
 		fileId := "existing-attachments/existing.png"
-		bleveDoc := CreateAttachmentBleveDocument("existing", ".png")
+		bleveDoc := createAttachmentBleveDocument("existing-attachments", "existing", ".png")
 		err := env.Index.Index(fileId, bleveDoc)
 		require.NoError(t, err)
 
