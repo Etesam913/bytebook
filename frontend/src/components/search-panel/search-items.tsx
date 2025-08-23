@@ -1,5 +1,5 @@
 import { useAtomValue } from 'jotai';
-import type { Ref, RefObject } from 'react';
+import type { CSSProperties, Ref, RefObject } from 'react';
 import { searchPanelDataAtom } from '../../atoms';
 import { mostRecentNotesWithoutQueryParamsAtom } from '../../atoms';
 import { SearchItem } from './search-item';
@@ -13,16 +13,21 @@ export function SearchItems({
   isShowingMostRecentNotes: boolean;
   virtualizationState: {
     onScroll: (e: React.UIEvent<HTMLDivElement>) => void;
-    listContainerHeight: string;
-    listHeight: string;
-    listTop: string;
+    outerContainerStyle: CSSProperties;
+    innerContainerStyle: CSSProperties;
     visibleItems: string[];
+    startIndex: number;
   };
   ref: RefObject<(HTMLLIElement | null)[]>;
   searchResultsContainerRef: Ref<HTMLMenuElement>;
 }) {
-  const { onScroll, listContainerHeight, listHeight, listTop, visibleItems } =
-    virtualizationState;
+  const {
+    onScroll,
+    outerContainerStyle,
+    innerContainerStyle,
+    visibleItems,
+    startIndex,
+  } = virtualizationState;
 
   const searchPanelData = useAtomValue(searchPanelDataAtom);
 
@@ -30,16 +35,19 @@ export function SearchItems({
 
   const searchResultsElements = (
     isShowingMostRecentNotes ? mostRecentNotes : visibleItems
-  ).map((filePath, i) => (
-    <SearchItem
-      key={filePath}
-      ref={(el) => {
-        ref.current[i] = el;
-      }}
-      i={i}
-      filePath={filePath}
-    />
-  ));
+  ).map((filePath, i) => {
+    const actualIndex = isShowingMostRecentNotes ? i : startIndex + i;
+    return (
+      <SearchItem
+        key={filePath}
+        ref={(el) => {
+          ref.current[actualIndex] = el;
+        }}
+        i={actualIndex}
+        filePath={filePath}
+      />
+    );
+  });
 
   return (
     <menu
@@ -62,15 +70,16 @@ export function SearchItems({
         <div>
           <div
             style={{
-              height: visibleItems.length > 0 ? listContainerHeight : 'auto',
+              ...outerContainerStyle,
+              height:
+                visibleItems.length > 0 ? outerContainerStyle.height : 'auto',
             }}
           >
             <ul
               className="flex flex-col gap-1"
               style={{
-                position: 'relative',
-                top: listTop,
-                height: visibleItems.length > 0 ? listHeight : 'auto',
+                ...innerContainerStyle,
+                height: visibleItems.length > 0 ? 'auto' : 'auto',
               }}
             >
               {searchResultsElements}

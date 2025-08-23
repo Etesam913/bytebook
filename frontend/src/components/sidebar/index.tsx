@@ -81,7 +81,7 @@ export function Sidebar<T>({
     projectSettings.appearance.noteSidebarItemSize === 'card' &&
     contentType === 'note';
 
-  const SIDEBAR_ITEM_HEIGHT = isSidebarItemCard ? 83 : 33;
+  const SIDEBAR_ITEM_HEIGHT = isSidebarItemCard ? 83 : 34;
 
   const {
     onScroll,

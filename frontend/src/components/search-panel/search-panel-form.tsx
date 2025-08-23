@@ -12,7 +12,6 @@ import { SearchItems } from './search-items';
 import { navigate } from 'wouter/use-browser-location';
 
 const SIDEBAR_ITEM_HEIGHT = 35;
-const VIRUTALIZATION_HEIGHT = 8;
 const ITEMS_THAT_FIT_ON_SCREEN = 8;
 
 export function SearchPanelForm() {
@@ -28,25 +27,25 @@ export function SearchPanelForm() {
   const { mutateAsync: search } = useSearchMutation();
   const {
     visibleItems,
-    onScroll,
-    listContainerHeight,
-    listHeight,
-    listTop,
-    setScrollTop,
-  } = useListVirtualization(
-    searchResults,
-    SIDEBAR_ITEM_HEIGHT,
-    VIRUTALIZATION_HEIGHT,
-    searchResultsContainerRef,
-    (e) => {
-      const element = e.target as HTMLElement;
-      setSearchPanelData((prev) => ({
-        ...prev,
-        scrollY: element.scrollTop,
-      }));
-    },
-    true
-  );
+    onScroll: virtualOnScroll,
+    outerContainerStyle,
+    innerContainerStyle,
+    startIndex,
+  } = useListVirtualization({
+    items: searchResults,
+    itemHeight: SIDEBAR_ITEM_HEIGHT,
+    listRef: searchResultsContainerRef,
+    overscan: 2,
+  });
+
+  const onScroll = (e: React.UIEvent<HTMLElement>) => {
+    virtualOnScroll(e);
+    const element = e.target as HTMLElement;
+    setSearchPanelData((prev) => ({
+      ...prev,
+      scrollY: element.scrollTop,
+    }));
+  };
 
   useEffect(() => {
     if (albumRef.current) {
@@ -162,7 +161,7 @@ export function SearchPanelForm() {
         if (!isShowingMostRecentNotes && searchResults.length === 0) return;
 
         const selectedResult = !isShowingMostRecentNotes
-          ? visibleItems[searchPanelData.focusedIndex]
+          ? (visibleItems[searchPanelData.focusedIndex] as string)
           : mostRecentNotes[searchPanelData.focusedIndex];
         const [folder, note] = selectedResult.split('/');
         const { extension, fileName } = getFileExtension(note);
@@ -197,7 +196,6 @@ export function SearchPanelForm() {
             query: e.target.value,
             focusedIndex: 0,
           }));
-          setScrollTop(0);
           searchResultsContainerRef.current?.scrollTo(0, 0);
           const res = await search({ searchQuery: e.target.value });
           setSearchResults(res);
@@ -219,10 +217,10 @@ export function SearchPanelForm() {
         ref={searchResultsRefs}
         virtualizationState={{
           onScroll,
-          listContainerHeight,
-          listHeight,
-          listTop,
-          visibleItems,
+          outerContainerStyle,
+          innerContainerStyle,
+          visibleItems: visibleItems as string[],
+          startIndex,
         }}
       />
     </motion.form>
