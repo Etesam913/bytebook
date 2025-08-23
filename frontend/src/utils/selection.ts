@@ -137,22 +137,3 @@ export function handleEditorEscape(
     }
   }
 }
-
-function isSelectedNoteOrFolderInViewport(
-  noteOrFolder: string,
-  visibleItems: string[]
-) {
-  return visibleItems.includes(noteOrFolder);
-}
-
-export function scrollVirtualizedListToSelectedNoteOrFolder(
-  noteOrFolder: string,
-  items: string[],
-  visibleItems: string[],
-  sidebarItemHeight: number
-) {
-  if (isSelectedNoteOrFolderInViewport(noteOrFolder, visibleItems)) return -1;
-  const indexOfSelectedItem = items.indexOf(noteOrFolder);
-  if (indexOfSelectedItem === -1) return -1;
-  return sidebarItemHeight * indexOfSelectedItem;
-}

@@ -14,7 +14,7 @@ import { Compose } from '../../icons/compose';
 import { Folder } from '../../icons/folder';
 import { Pen } from '../../icons/pen';
 import { useSearchParamsEntries } from '../../utils/routing';
-import { MyNotesAccordion } from './my-notes-accordion.tsx';
+import { MyNotesSidebar } from './my-notes-sidebar.tsx';
 import { RenderNote } from './render-note.tsx';
 import { ErrorBoundary } from 'react-error-boundary';
 import { RenderNoteFallback } from '../../components/error-boundary/render-note.tsx';
@@ -35,11 +35,10 @@ export function NotesSidebar({
   const sidebarRef = useRef<HTMLElement>(null);
   const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
   const searchParams: { ext?: string } = useSearchParamsEntries();
-  // If the fileExtension is undefined, then it is a markdown file
   const fileExtension = searchParams?.ext;
 
-  const noteQueryResult = useNotes(folder, note, fileExtension);
-  const createNoteDialog = useCreateNoteDialog();
+  const noteQueryResult = useNotes(folder, `${note}.${fileExtension}`);
+  const openCreateNoteDialog = useCreateNoteDialog();
 
   useNoteCreate();
   useNoteDelete(folder);
@@ -89,7 +88,7 @@ export function NotesSidebar({
                 </section>
                 <MotionButton
                   {...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
-                  onClick={() => createNoteDialog(folder)}
+                  onClick={() => openCreateNoteDialog(folder)}
                   className="align-center flex w-full justify-between bg-transparent mb-2"
                 >
                   Create Note <Compose className="will-change-transform" />
@@ -97,7 +96,7 @@ export function NotesSidebar({
               </header>
               <section className="flex flex-col gap-2 overflow-y-auto flex-1">
                 <div className="flex h-full flex-col overflow-y-auto">
-                  <MyNotesAccordion
+                  <MyNotesSidebar
                     layoutId="note-sidebar"
                     curFolder={folder}
                     curNote={note}

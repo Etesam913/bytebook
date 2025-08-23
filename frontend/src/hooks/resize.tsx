@@ -1,12 +1,14 @@
 import { mergeRegister } from '@lexical/utils';
+import { useAtom } from 'jotai/react';
 import { COMMAND_PRIORITY_LOW, type LexicalEditor } from 'lexical';
 import { type Dispatch, type SetStateAction, useEffect, useState } from 'react';
 import type { ResizeState } from '../types';
 import { EXPAND_CONTENT_COMMAND } from '../utils/commands';
 import { useWailsEvent } from './events';
+import { atom } from 'jotai';
 
 const MIN_ZOOM = 0.75;
-export let CURRENT_ZOOM = 1;
+export const currentZoomAtom = atom(1);
 const MAX_ZOOM = 1.25;
 const ZOOM_STEP = 0.1;
 
@@ -21,17 +23,17 @@ const ZOOM_STEP = 0.1;
  * menu-driven zoom in/out functionality.
  */
 export function useZoom() {
+  const [currentZoom, setCurrentZoom] = useAtom(currentZoomAtom);
+
   useWailsEvent('zoom:in', () => {
-    const currentZoom = parseFloat(document.body.style.zoom) || 1;
     const newZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);
-    CURRENT_ZOOM = newZoom;
+    setCurrentZoom(newZoom);
     document.body.style.zoom = newZoom.toString();
   });
 
   useWailsEvent('zoom:out', () => {
-    const currentZoom = parseFloat(document.body.style.zoom) || 1;
     const newZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
-    CURRENT_ZOOM = newZoom;
+    setCurrentZoom(newZoom);
     document.body.style.zoom = newZoom.toString();
   });
 }

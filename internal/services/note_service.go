@@ -21,24 +21,24 @@ type NoteService struct {
 // GetNotes returns a list of note filenames (with extension as a query param) in the specified folder,
 // sorted according to the provided sortOption. Only files (not directories or hidden files) are included.
 // Returns a BackendResponseWithData containing the sorted note names or an error message.
-func (n *NoteService) GetNotes(folderName string, sortOption string) config.BackendResponseWithData[[]string] {
+func (n *NoteService) GetNotes(folderName string, sortOption string) config.BackendResponseWithData[[]config.FolderAndNote] {
 	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	// Ensure the directory exists
 	exists, err := util.FileOrFolderExists(folderPath)
 	if !exists || err != nil {
-		return config.BackendResponseWithData[[]string]{
+		return config.BackendResponseWithData[[]config.FolderAndNote]{
 			Success: false,
 			Message: "Could not get notes from " + folderPath,
-			Data:    []string{},
+			Data:    []config.FolderAndNote{},
 		}
 	}
 
 	files, err := os.ReadDir(folderPath)
 	if err != nil {
-		return config.BackendResponseWithData[[]string]{
+		return config.BackendResponseWithData[[]config.FolderAndNote]{
 			Success: false,
 			Message: err.Error(),
-			Data:    []string{},
+			Data:    []config.FolderAndNote{},
 		}
 	}
 	var notes []os.DirEntry
@@ -54,17 +54,21 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) config.Back
 	// Sort notes based on the sort option
 	util.SortNotes(notes, sortOption)
 
-	var sortedNotes []string
+	var sortedNotes []config.FolderAndNote
 
 	// Using the query param syntax that the app supports
 	for _, file := range notes {
-		indexOfDot := strings.LastIndex(file.Name(), ".")
-		name := file.Name()[:indexOfDot]
-		extension := file.Name()[indexOfDot+1:]
-		sortedNotes = append(sortedNotes, fmt.Sprintf("%s?ext=%s", name, extension))
+		sortedNotes = append(sortedNotes, config.FolderAndNote{
+			Folder: folderName,
+			Note:   file.Name(),
+		})
 	}
 
-	return config.BackendResponseWithData[[]string]{Success: true, Message: "", Data: sortedNotes}
+	return config.BackendResponseWithData[[]config.FolderAndNote]{
+		Success: true,
+		Message: "",
+		Data:    sortedNotes,
+	}
 }
 
 // RenameNote renames a note file within a folder from oldNoteTitle to newNoteTitle (both without extension).

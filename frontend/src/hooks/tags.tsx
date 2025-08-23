@@ -123,7 +123,6 @@ export function useTagsQuery() {
     queryKey: ['get-tags'],
     queryFn: async (): Promise<string[]> => {
       const res = await GetTags();
-      console.log('res', res);
       if (!res.success) {
         throw new QueryError(res.message);
       }
@@ -145,7 +144,6 @@ export function useTagsForNotesQuery(folderAndNotesWithExtensions: string[]) {
       if (!res.success) {
         throw new QueryError(res.message);
       }
-      console.log('res.data', res.data);
       return res.data ?? {};
       // const res = await GetTagsForNotes(folderAndNotesWithExtensions);
       // if (!res.success) {

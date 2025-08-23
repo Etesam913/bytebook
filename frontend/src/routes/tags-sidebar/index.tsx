@@ -10,7 +10,7 @@ import {
 } from '../../hooks/notes';
 import { TagIcon } from '../../icons/tag';
 import { useSearchParamsEntries } from '../../utils/routing';
-import { MyNotesAccordion } from '../notes-sidebar/my-notes-accordion';
+import { MyNotesSidebar } from '../notes-sidebar/my-notes-sidebar';
 import { RenderNote } from '../notes-sidebar/render-note';
 
 export function TagsSidebar({
@@ -50,7 +50,7 @@ export function TagsSidebar({
               </header>
               <section className="flex flex-col gap-2 overflow-y-auto flex-1">
                 <div className="flex h-full flex-col overflow-y-auto">
-                  <MyNotesAccordion
+                  <MyNotesSidebar
                     tagState={{
                       tagName,
                     }}

@@ -1,75 +1,112 @@
 import { useAtomValue } from 'jotai/react';
-import { type RefObject, useEffect, useState } from 'react';
+import {
+  CSSProperties,
+  type RefObject,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { noteIntersectionObserverAtom } from '../components/editor/atoms';
 
 /**
  * Custom hook for implementing list virtualization.
  * This hook optimizes rendering performance for large lists by only rendering visible items.
  *
- * @param items - Array of items to be virtualized
- * @param SIDEBAR_ITEM_HEIGHT - Height of each item in pixels
- * @param VIRUTALIZATION_HEIGHT - Additional height to render above and below the visible area
- * @param listRef - React ref object for the container element
- * @returns Object containing virtualization data and functions
+ * @param items - Array of items to be virtualized. Can be any type.
+ * @param itemHeight - The fixed height of each item in pixels.
+ * @param listRef - React ref object for the scrollable container element.
+ * @param overscan - The number of extra items to render above and below the visible area. Defaults to 2.
  */
-export function useListVirtualization(
-  items: string[],
-  SIDEBAR_ITEM_HEIGHT: number,
-  VIRUTALIZATION_HEIGHT: number,
-  listRef: RefObject<HTMLElement | null>,
-  onScrollCallback?: (e: React.UIEvent<HTMLDivElement>) => void,
-  isSearchPanel?: boolean
-) {
-  // State for tracking scroll position and container height
+export function useListVirtualization<T>({
+  items,
+  itemHeight,
+  listRef,
+  overscan = 2,
+}: {
+  items: T[];
+  itemHeight: number;
+  listRef: RefObject<HTMLElement | null>;
+  overscan?: number;
+}): {
+  onScroll: (e: React.UIEvent<HTMLElement>) => void;
+  visibleItems: T[];
+  outerContainerStyle: CSSProperties;
+  innerContainerStyle: CSSProperties;
+  startIndex: number;
+} {
   const [scrollTop, setScrollTop] = useState(0);
   const [containerHeight, setContainerHeight] = useState(0);
 
-  // Calculate the range of visible items. There is a -2 so that items are above the visible area as well
-  const startIndex = Math.max(
-    0,
-    Math.floor(scrollTop / SIDEBAR_ITEM_HEIGHT - (isSearchPanel ? 0 : 2))
-  );
-  const endIndex = Math.min(
-    startIndex +
-      Math.ceil(
-        containerHeight / (SIDEBAR_ITEM_HEIGHT - VIRUTALIZATION_HEIGHT)
-      ),
-    items.length
-  );
-  const visibleItems = items.slice(startIndex, endIndex);
-
-  // Update container height when resized
+  // Observe the container's height and update state
   useEffect(() => {
+    const container = listRef.current;
+    if (!container) return;
+
+    // Makes sure that container height is up to date
+    setContainerHeight(container.clientHeight);
+
     const resizeObserver = new ResizeObserver((entries) => {
-      const container = entries[0].target;
-      setContainerHeight(container.getBoundingClientRect().height);
+      const entry = entries[0];
+      console.log('entry', entry);
+      if (entry) {
+        setContainerHeight(entry.contentRect.height);
+      }
     });
-    if (listRef.current) {
-      resizeObserver.observe(listRef.current);
-    }
-    return () => {
-      resizeObserver.disconnect();
-    };
+
+    resizeObserver.observe(container);
+
+    return () => resizeObserver.disconnect();
   }, [listRef]);
 
+  const virtualizer = useMemo(() => {
+    const totalHeight = items.length * itemHeight;
+    const visibleItemCount = Math.ceil(containerHeight / itemHeight);
+
+    // Calculate the start index, including overscan
+    const startIndex = Math.max(
+      0,
+      Math.floor(scrollTop / itemHeight) - overscan
+    );
+
+    // Calculate the end index, including overscan
+    const endIndex = Math.min(
+      items.length,
+      startIndex + visibleItemCount + overscan * 2
+    );
+
+    const visibleItems = items.slice(startIndex, endIndex);
+
+    // Style for the outer container that provides the scrollbar
+    const outerContainerStyle: CSSProperties = {
+      position: 'relative',
+      overflowX: 'hidden',
+      textOverflow: 'ellipsis',
+      height: `${totalHeight}px`,
+    };
+
+    // Style for the inner container that "moves" up and down
+    const innerContainerStyle: CSSProperties = {
+      position: 'absolute',
+      width: '100%',
+      transform: `translateY(${startIndex * itemHeight}px)`,
+    };
+
+    return {
+      startIndex,
+      visibleItems,
+      outerContainerStyle,
+      innerContainerStyle,
+    };
+  }, [scrollTop, containerHeight, items, itemHeight, overscan]);
+
   // Handle scroll events
-  function onScroll(e: React.UIEvent<HTMLDivElement>) {
-    if (visibleItems.length > 0) {
-      setScrollTop(Math.max(0, (e.target as HTMLElement).scrollTop));
-      onScrollCallback?.(e);
-    }
+  function onScroll(e: React.UIEvent<HTMLElement>) {
+    setScrollTop(e.currentTarget.scrollTop);
   }
 
-  // Return virtualization data and functions
   return {
-    listContainerHeight: `${items.length * SIDEBAR_ITEM_HEIGHT}px`,
-    listHeight: `${visibleItems.length * SIDEBAR_ITEM_HEIGHT}px`,
-    listTop: `${startIndex * SIDEBAR_ITEM_HEIGHT}px`,
+    ...virtualizer,
     onScroll,
-    visibleItems,
-    startIndex,
-    endIndex,
-    setScrollTop,
   };
 }
 

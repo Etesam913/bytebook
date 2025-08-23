@@ -1,5 +1,4 @@
 import { type ClassValue, clsx } from 'clsx';
-import { assert } from 'console';
 import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
@@ -13,14 +12,14 @@ export const fileNameRegex = /^[0-9a-zA-Z_\-. ]+$/;
  *
  * @example
  * // Example usage:
- * const converter = new PathConverter({ folder: "docs", note: "readme.md" });
- * console.log(converter.folder); // "docs"
- * console.log(converter.note); // "readme.md"
- * console.log(converter.noteWithoutExtension); // "readme"
- * console.log(converter.noteExtension); // "md"
- * console.log(converter.noteWithExtensionParam); // "readme?ext=md"
+ * const converter = new FilePath({ folder: "docs", note: "readme.md" });
+ * console.log(filePath.folder); // "docs"
+ * console.log(filePath.note); // "readme.md"
+ * console.log(filePath.noteWithoutExtension); // "readme"
+ * console.log(filePath.noteExtension); // "md"
+ * console.log(filePath.noteWithExtensionParam); // "readme?ext=md"
  */
-export class PathConverter {
+export class FilePath {
   readonly folder: string;
   readonly note: string;
   readonly noteWithoutExtension: string;
@@ -63,6 +62,19 @@ export class PathConverter {
       return null;
     }
     return note.substring(lastDotIndex + 1);
+  }
+
+  /**
+   * Checks if the current FilePath is equal to another FilePath.
+   * @param other - The other FilePath to compare with.
+   * @returns true if the two FilePaths are equal, false otherwise.
+   */
+  equals(other: FilePath) {
+    return this.folder === other.folder && this.note === other.note;
+  }
+
+  getLinkToNote() {
+    return `/${this.folder}/${encodeURIComponent(this.noteWithoutExtension)}?ext=${this.noteExtension}`;
   }
 }
 

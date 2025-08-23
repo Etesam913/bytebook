@@ -2,19 +2,18 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import { useAtom } from 'jotai/react';
 import { getDefaultButtonVariants } from '../../animations.ts';
-import { noteSortAtom } from '../../atoms';
+import { noteSortAtom } from '../../atoms.ts';
 import { MotionButton } from '../../components/buttons/index.tsx';
-import { SortButton } from '../../components/buttons/sort';
-import { Sidebar } from '../../components/sidebar';
+import { SortButton } from '../../components/buttons/sort.tsx';
+import { Sidebar } from '../../components/sidebar/index.tsx';
 import { FileRefresh } from '../../icons/file-refresh.tsx';
 import { Loader } from '../../icons/loader.tsx';
-import { Note } from '../../icons/page';
+import { Note } from '../../icons/page.tsx';
 import { NoteSidebarButton } from './note-sidebar-button.tsx';
+import { FilePath } from '../../utils/string-formatting.ts';
 
-export function MyNotesAccordion({
-  curFolder,
+export function MyNotesSidebar({
   curNote,
-  fileExtension,
   tagState,
   layoutId,
   noteQueryResult,
@@ -26,16 +25,12 @@ export function MyNotesAccordion({
     tagName: string;
   };
   layoutId: string;
-  noteQueryResult: UseQueryResult<string[], Error>;
+  noteQueryResult: UseQueryResult<FilePath[], Error>;
 }) {
   const { data: notes, refetch, isError, isLoading } = noteQueryResult;
   const noteCount = notes?.length ?? 0;
   // The sidebar note name includes the folder name if it's in a tag sidebar
   const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);
-  // If the fileExtension is undefined, then it is a markdown file
-  const activeDataItem = curNote ? `${curNote}?ext=${fileExtension}` : null;
-
-  const isInTagSidebar = tagState?.tagName !== undefined;
 
   return (
     <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
@@ -56,7 +51,7 @@ export function MyNotesAccordion({
       {isError && (
         <div className="text-center text-xs my-3 flex flex-col items-center gap-2 text-balance">
           <p className="text-red-500">
-            Something went wrong when fetching the notes
+            Something went wrong when retrieving the notes
           </p>
           <MotionButton
             {...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
@@ -82,7 +77,7 @@ export function MyNotesAccordion({
             <Loader width={20} height={20} className="mx-auto my-3" />
           </motion.div>
         ) : (
-          <Sidebar
+          <Sidebar<FilePath>
             contentType="note"
             key={layoutId}
             layoutId={layoutId}
@@ -91,28 +86,18 @@ export function MyNotesAccordion({
                 Create a note with the &quot;Create Note&quot; button above
               </li>
             }
-            activeDataItem={activeDataItem}
             data={notes ?? []}
+            accessor={(filePath) => filePath.noteWithoutExtension}
             renderLink={({
-              dataItem: sidebarNoteNameTemp,
+              dataItem: sidebarNotePath,
               i,
               selectionRange,
               setSelectionRange,
             }) => {
-              let sidebarNoteFolder = curFolder;
-              let sidebarNoteName = sidebarNoteNameTemp;
-
-              // If the sidebar is a tag sidebar, then the folder and note do not come from the url
-              if (isInTagSidebar) {
-                sidebarNoteFolder = sidebarNoteName.split('/')[0];
-                sidebarNoteName = sidebarNoteName.split('/')[1];
-              }
-
               return (
                 <NoteSidebarButton
+                  sidebarNotePath={sidebarNotePath}
                   activeNoteNameWithoutExtension={curNote}
-                  sidebarNoteFolder={sidebarNoteFolder}
-                  sidebarNoteName={sidebarNoteName}
                   sidebarNoteIndex={i}
                   selectionRange={selectionRange}
                   setSelectionRange={setSelectionRange}

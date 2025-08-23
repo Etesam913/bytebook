@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useAtomValue } from 'jotai/react';
 import type { LexicalEditor } from 'lexical';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
@@ -22,20 +27,65 @@ import { findClosestSidebarItemToNavigateTo } from '../utils/routing';
 import { getFolderAndNoteFromSelectionRange } from '../utils/selection';
 import {
   convertSelectionRangeValueToDotNotation,
-  extractInfoFromNoteName,
+  FilePath,
   parseNoteNameFromSelectionRangeValue,
 } from '../utils/string-formatting';
 import { useWailsEvent } from './events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import { SetTagsOnNotes } from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 
-export function useNotes(
-  curFolder: string,
-  curNote?: string,
-  fileExtension?: string
-) {
+export function useNotes(curFolder: string, curNote?: string) {
   const noteSort = useAtomValue(noteSortAtom);
   const queryClient = useQueryClient();
+
+  /**
+   * Handles navigation when the current note is missing from the list of notes.
+   * If there are no notes left in the folder, navigates to the folder view.
+   * Otherwise, finds the closest note to the deleted/missing note and navigates to it.
+   *
+   * @param curFolder - The current folder name.
+   * @param curFilePath - The FilePath object of the current note.
+   * @param notePaths - The list of available FilePath objects for notes in the folder.
+   * @param queryClient - The React Query client instance.
+   * @param noteSort - The current note sort option.
+   */
+  function handleMissingNoteNavigation({
+    curFolder,
+    curNotePath,
+    notePaths,
+    queryClient,
+    noteSort,
+  }: {
+    curFolder: string;
+    curNotePath: FilePath;
+    notePaths: FilePath[];
+    queryClient: QueryClient;
+    noteSort: string;
+  }) {
+    if (notePaths.length === 0) {
+      navigate(`/${curFolder}`);
+      return;
+    }
+
+    let noteIndexToNavigateTo = 0;
+    const oldNotesData = queryClient.getQueryData([
+      'notes',
+      curFolder,
+      noteSort,
+    ]) as FilePath[] | null;
+
+    if (oldNotesData) {
+      noteIndexToNavigateTo = findClosestSidebarItemToNavigateTo(
+        curNotePath.note,
+        oldNotesData.map((path) => path.note),
+        notePaths.map((path) => path.note)
+      );
+    }
+
+    const pathToNavigateTo = notePaths[noteIndexToNavigateTo];
+    console.log('pathToNavigateTo', pathToNavigateTo.getLinkToNote());
+    navigate(pathToNavigateTo.getLinkToNote(), { replace: true });
+  }
 
   return useQuery({
     queryKey: ['notes', curFolder, noteSort],
@@ -44,40 +94,32 @@ export function useNotes(
       if (!res.success) {
         throw new QueryError('Failed in retrieving notes');
       }
-      const notes = res.data ?? [];
 
-      const curNoteWithExtension = `${decodeURIComponent(curNote ?? '')}?ext=${fileExtension}`;
-      const curNoteExists = notes.some((note) => note === curNoteWithExtension);
+      const notePaths = (res.data ?? []).map((path) => new FilePath(path));
 
-      // If the current note does not exist, then navigate to a safe note
-      if (!curNoteExists) {
-        if (notes.length === 0) {
-          navigate(`/${curFolder}`);
-        } else {
-          let noteIndexToNavigateTo = 0;
-          const oldNotesData = queryClient.getQueryData([
-            'notes',
+      // Check if current note exists and handle navigation if needed
+      if (curNote) {
+        const curNotePath = new FilePath({
+          folder: decodeURIComponent(curFolder),
+          note: decodeURIComponent(curNote),
+        });
+
+        const curNoteExists = notePaths.some((notePath) =>
+          notePath.equals(curNotePath)
+        );
+
+        if (!curNoteExists) {
+          handleMissingNoteNavigation({
             curFolder,
+            curNotePath,
+            notePaths,
+            queryClient,
             noteSort,
-          ]) as string[] | null;
-          if (oldNotesData) {
-            noteIndexToNavigateTo = findClosestSidebarItemToNavigateTo(
-              curNoteWithExtension,
-              oldNotesData,
-              notes
-            );
-          }
-          const { noteNameWithoutExtension, queryParams } =
-            extractInfoFromNoteName(notes[noteIndexToNavigateTo]);
-          navigate(
-            `/${curFolder}/${encodeURIComponent(noteNameWithoutExtension)}?ext=${queryParams.ext}`,
-            {
-              replace: true,
-            }
-          );
+          });
         }
       }
-      return notes;
+
+      return notePaths;
     },
   });
 }
@@ -506,15 +548,10 @@ export function useEditTagsMutation() {
   });
 }
 
-export function useNotePreviewQuery(
-  curFolder: string,
-  sidebarNoteName: string,
-  fileExtension: string
-) {
+export function useNotePreviewQuery(filePath: FilePath) {
   return useQuery({
-    queryKey: ['note-preview', curFolder, sidebarNoteName],
-    queryFn: () =>
-      GetNotePreview(`notes/${curFolder}/${sidebarNoteName}.${fileExtension}`),
+    queryKey: ['note-preview', filePath.folder, filePath.noteWithoutExtension],
+    queryFn: () => GetNotePreview(`notes/${filePath.folder}/${filePath.note}`),
   });
 }
 

@@ -12,7 +12,20 @@ import {
   convertFilePathToQueryNotation,
 } from '../utils/string-formatting';
 
-export function useCreateNoteDialog() {
+/**
+ * Custom hook that returns a function to open a "Create Note" dialog for a given folder.
+ *
+ * When invoked with a folder name, this function opens a dialog allowing the user to enter a new note name.
+ * On submission, it validates the note name, attempts to create the note in the specified folder,
+ * and navigates to the new note if successful. If an error occurs, it displays an error message in the dialog.
+ *
+ * @returns {(folder: string) => void} Function to open the create note dialog for the specified folder.
+ *
+ * Usage:
+ *   const openCreateNoteDialog = useCreateNoteDialog();
+ *   openCreateNoteDialog('MyFolder');
+ */
+export function useCreateNoteDialog(): (folder: string) => void {
   const setDialogData = useSetAtom(dialogDataAtom);
 
   return (folder: string) => {

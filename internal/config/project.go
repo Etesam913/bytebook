@@ -24,6 +24,11 @@ type BackendResponseWithoutData struct {
 	Message string `json:"message"`
 }
 
+type FolderAndNote struct {
+	Folder string `json:"folder"`
+	Note   string `json:"note"`
+}
+
 // GetProjectPath returns the path to the project directory in the user's home directory.
 // On macOS, this is located in ~/Library/Application Support/Bytebook.
 // It creates the parent directory if it doesn't exist.

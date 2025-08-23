@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { getDefaultButtonVariants } from '../../animations';
@@ -30,7 +30,7 @@ import { AccordionButton } from '../sidebar/accordion-button';
 import { handleDragStart } from '../sidebar/utils';
 import { FolderDialogChildren } from './folder-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
-import { CURRENT_ZOOM } from '../../hooks/resize';
+import { currentZoomAtom } from '../../hooks/resize';
 
 export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
   const [isOpen, setIsOpen] = useState(true);
@@ -103,6 +103,7 @@ export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
                       above
                     </li>
                   }
+                  accessor={(folderName) => folderName}
                   renderLink={({
                     dataItem: sidebarFolderName,
                     i,
@@ -151,6 +152,7 @@ function FolderAccordionButton({
   const setDialogData = useSetAtom(dialogDataAtom);
   const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
   const { mutateAsync: moveNoteIntoFolder } = useMoveNoteIntoFolder();
+  const currentZoom = useAtomValue(currentZoomAtom);
   const isActive =
     decodeURIComponent(folderFromUrl ?? '') === sidebarFolderName;
 
@@ -228,8 +230,8 @@ function FolderAccordionButton({
           itemName: sidebarFolderName,
         });
         setContextMenuData({
-          x: e.clientX / CURRENT_ZOOM,
-          y: e.clientY / CURRENT_ZOOM,
+          x: e.clientX / currentZoom,
+          y: e.clientY / currentZoom,
           isShowing: true,
           items: [
             {

@@ -12,10 +12,9 @@ import { PinTack2 } from '../../icons/pin-tack-2';
 import { PinTackSlash } from '../../icons/pin-tack-slash';
 import { AccordionButton } from '../sidebar/accordion-button';
 import { AccordionItem } from '../sidebar/accordion-item';
-import { CURRENT_ZOOM } from '../../hooks/resize';
+import { currentZoomAtom } from '../../hooks/resize';
 
 const SIDEBAR_ITEM_HEIGHT = 28;
-const VIRUTALIZATION_HEIGHT = 8;
 
 function VirtualizedPinnedNotes({
   isPinnedNotesOpen,
@@ -33,20 +32,19 @@ function VirtualizedPinnedNotes({
     projectSettingsWithQueryParams.pinnedNotes
   );
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
+  const currentZoom = useAtomValue(currentZoomAtom);
 
   const {
     visibleItems,
     onScroll,
-    listContainerHeight,
-    listHeight,
-    listTop,
+    outerContainerStyle,
+    innerContainerStyle,
     startIndex,
-  } = useListVirtualization(
-    pinnedNotesArray,
-    SIDEBAR_ITEM_HEIGHT,
-    VIRUTALIZATION_HEIGHT,
-    listScrollContainerRef
-  );
+  } = useListVirtualization<string>({
+    items: pinnedNotesArray,
+    itemHeight: SIDEBAR_ITEM_HEIGHT,
+    listRef: listScrollContainerRef,
+  });
   const { mutate: pinOrUnpinNote } = usePinNotesMutation(false);
 
   const pinnedNotesElements = visibleItems.map((pinnedNote, i) => {
@@ -61,8 +59,8 @@ function VirtualizedPinnedNotes({
       <AccordionItem
         onContextMenu={(e) => {
           setContextMenuData({
-            x: e.clientX / CURRENT_ZOOM,
-            y: e.clientY / CURRENT_ZOOM,
+            x: e.clientX / currentZoom,
+            y: e.clientY / currentZoom,
             isShowing: true,
             items: [
               {
@@ -110,14 +108,12 @@ function VirtualizedPinnedNotes({
     >
       <div
         style={{
-          height: pinnedNotesArray.length > 0 ? listContainerHeight : 'auto',
+          ...outerContainerStyle,
         }}
       >
         <ul
           style={{
-            position: 'relative',
-            height: visibleItems.length > 0 ? listHeight : 'auto',
-            top: listTop,
+            ...innerContainerStyle,
           }}
         >
           {isPinnedNotesOpen && pinnedNotesElements.length > 0 ? (

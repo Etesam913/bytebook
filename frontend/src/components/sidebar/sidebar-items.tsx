@@ -13,9 +13,10 @@ import { keepSelectionNotesWithPrefix } from '../../utils/selection';
 import { cn } from '../../utils/string-formatting';
 import { SidebarHighlight } from './highlight';
 
-export function SidebarItems({
+export function SidebarItems<T>({
   allData,
   visibleData,
+  accessor,
   getContextMenuStyle,
   hoveredItem,
   setHoveredItem,
@@ -28,13 +29,14 @@ export function SidebarItems({
   shouldHideSidebarHighlight,
   isSidebarItemCard,
 }: {
-  allData: string[] | null;
-  visibleData: string[] | null;
-  getContextMenuStyle?: (dataItem: string) => CSSProperties;
+  allData: T[] | null;
+  visibleData: T[] | null;
+  accessor: (item: T) => string;
+  getContextMenuStyle?: (dataItem: T) => CSSProperties;
   hoveredItem: string | null;
   setHoveredItem: Dispatch<SetStateAction<string | null>>;
   renderLink: (data: {
-    dataItem: string;
+    dataItem: T;
     i: number;
     selectionRange: Set<string>;
     setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
@@ -52,12 +54,12 @@ export function SidebarItems({
    * Handles shift-click behavior for multi-selection by selecting a range of items
    * between the anchor index and the clicked index
    */
-  function handleShiftClick(i: number, allData: string[]) {
+  function handleShiftClick(i: number, allData: T[]) {
     const start = Math.min(ref.current, startIndex + i);
     const end = Math.max(ref.current, startIndex + i);
     const selectedElements: Set<string> = new Set();
     for (let j = start; j <= end; j++)
-      selectedElements.add(`${contentType}:${allData[j]}`);
+      selectedElements.add(`${contentType}:${accessor(allData[j])}`);
     setSelectionRange(selectedElements);
   }
 
@@ -83,16 +85,17 @@ export function SidebarItems({
   const dataElements =
     allData &&
     visibleData?.map((dataItem, i) => {
-      const prefixedDataItem = `${contentType}:${dataItem}`;
+      const dataItemString = accessor(dataItem);
+      const prefixedDataItem = `${contentType}:${dataItemString}`;
       return (
         <li
           onMouseEnter={() => {
-            setHoveredItem(dataItem);
+            setHoveredItem(dataItemString);
           }}
           onMouseLeave={() => {
             setHoveredItem(null);
           }}
-          key={dataItem}
+          key={dataItemString}
           className="py-[.1rem]"
           style={getContextMenuStyle?.(dataItem)}
         >
@@ -110,7 +113,7 @@ export function SidebarItems({
           >
             {!shouldHideSidebarHighlight && (
               <AnimatePresence>
-                {hoveredItem === dataItem &&
+                {hoveredItem === dataItemString &&
                   !selectionRange.has(prefixedDataItem) && (
                     <SidebarHighlight
                       layoutId={layoutId}

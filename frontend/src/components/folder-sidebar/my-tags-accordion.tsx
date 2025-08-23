@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useSetAtom } from 'jotai/react';
+import { useAtomValue, useSetAtom } from 'jotai/react';
 import { useState } from 'react';
 import { useRoute } from 'wouter';
 import { contextMenuDataAtom, dialogDataAtom } from '../../atoms';
@@ -13,8 +13,8 @@ import { Sidebar } from '../sidebar';
 import { AccordionButton } from '../sidebar/accordion-button';
 import { TagDialogChildren } from './tag-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
-import { useQuery } from '@tanstack/react-query';
-import { CURRENT_ZOOM } from '../../hooks/resize';
+
+import { currentZoomAtom } from '../../hooks/resize';
 
 export function MyTagsAccordion() {
   const [isOpen, setIsOpen] = useState(false);
@@ -56,6 +56,7 @@ export function MyTagsAccordion() {
                 </li>
               }
               contentType="tag"
+              accessor={(tagName) => tagName}
               renderLink={({
                 dataItem: sidebarTagName,
                 i,
@@ -102,6 +103,7 @@ function TagAccordionButton({
   const isSelected = tags?.at(i) && selectionRange.has(`tag:${tags[i]}`);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
+  const currentZoom = useAtomValue(currentZoomAtom);
 
   // const { data: tagPreview } = useQuery({
   //   queryKey: ['tag-preview', sidebarTagName],
@@ -131,8 +133,8 @@ function TagAccordionButton({
           itemName: sidebarTagName,
         });
         setContextMenuData({
-          x: e.clientX / CURRENT_ZOOM,
-          y: e.clientY / CURRENT_ZOOM,
+          x: e.clientX / currentZoom,
+          y: e.clientY / currentZoom,
           isShowing: true,
           items: [
             {

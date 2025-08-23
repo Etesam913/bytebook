@@ -24,7 +24,7 @@ import {
   useTurnOnKernelMutation,
 } from '../../hooks/code';
 import { isValidKernelLanguage, Languages, validLanguages } from '../../types';
-import { CURRENT_ZOOM } from '../../hooks/resize';
+import { currentZoomAtom } from '../../hooks/resize';
 
 export function MyKernelsAccordion() {
   const [isOpen, setIsOpen] = useState(false);
@@ -59,6 +59,7 @@ export function MyKernelsAccordion() {
               layoutId="kernels-sidebar"
               emptyElement={null}
               contentType="tag"
+              accessor={(kernelName) => kernelName}
               renderLink={({
                 dataItem: kernelName,
                 selectionRange,
@@ -103,6 +104,7 @@ function KernelAccordionButton({
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const { mutate: shutdownKernel } = useShutdownKernelMutation(kernelName);
   const { mutate: turnOnKernel } = useTurnOnKernelMutation();
+  const currentZoom = useAtomValue(currentZoomAtom);
 
   const isKernelRunning = heartbeat === 'success';
 
@@ -144,8 +146,8 @@ function KernelAccordionButton({
           onlyOne: true,
         });
         setContextMenuData({
-          x: e.clientX / CURRENT_ZOOM,
-          y: e.clientY / CURRENT_ZOOM,
+          x: e.clientX / currentZoom,
+          y: e.clientY / currentZoom,
           isShowing: true,
           items: [
             {
