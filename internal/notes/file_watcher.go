@@ -114,7 +114,6 @@ func (fw *FileWatcher) handleFolderEvents(prefix string, event fsnotify.Event) {
 // the most recent folder created event to determine the new folder path and name.
 func (fw *FileWatcher) handleNoteFolderRename(oldFolderName string) {
 	newFolderPath := fw.mostRecentFolderCreatedEvent.event.Name
-	newFolderName := filepath.Base(newFolderPath)
 	// When the note folder is renamed, all notes need path updates
 	files, err := os.ReadDir(newFolderPath)
 	if err != nil {
@@ -148,19 +147,8 @@ func (fw *FileWatcher) handleNoteFolderRename(oldFolderName string) {
 			fmt.Println(err)
 			continue
 		}
-
-		// err = UpdateFolderNameInTags(fw.projectPath, oldFolderName, newFolderName)
-		// if err != nil {
-		// 	fmt.Println(err)
-		// 	continue
-		// }
 	}
 
-	// Update attachment keys that reference the old folder name
-	err = UpdateFolderNameInAttachments(fw.projectPath, newFolderName, oldFolderName, newFolderName)
-	if err != nil {
-		fmt.Println(err)
-	}
 }
 
 // handleFileEvents processes file-related events (create, delete)

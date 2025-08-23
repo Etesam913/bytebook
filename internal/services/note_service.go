@@ -450,24 +450,6 @@ func (n *NoteService) DoesNoteExist(path string) bool {
 	return doesExist
 }
 
-// GetNotesForAttachment returns note names linked to an attachment from .attachments.json in the specified folder.
-func (n *NoteService) GetNotesForAttachment(folderName, attachmentName string) config.BackendResponseWithData[[]string] {
-	noteNames, err := notes.GetNotesForAttachment(n.ProjectPath, folderName, attachmentName)
-	if err != nil {
-		return config.BackendResponseWithData[[]string]{
-			Success: false,
-			Message: err.Error(),
-			Data:    []string{},
-		}
-	}
-
-	return config.BackendResponseWithData[[]string]{
-		Success: true,
-		Message: "Successfully retrieved notes for attachment",
-		Data:    noteNames,
-	}
-}
-
 // // AddNoteToAttachment adds a note to an attachment's note list in .attachments.json.
 // func (n *NoteService) AddNoteToAttachment(folderName, attachmentName, folderAndNoteName string) config.BackendResponseWithoutData {
 // 	err := notes.AddNoteToAttachment(n.ProjectPath, folderName, attachmentName, folderAndNoteName)
@@ -498,19 +480,3 @@ func (n *NoteService) GetNotesForAttachment(folderName, attachmentName string) c
 // 		Message: "Successfully removed note from attachment",
 // 	}
 // }
-
-// UpdateAttachmentName renames an attachment in .attachments.json by updating the key.
-func (n *NoteService) UpdateAttachmentName(folderName, oldAttachmentName, newAttachmentName string) config.BackendResponseWithoutData {
-	err := notes.UpdateAttachmentName(n.ProjectPath, folderName, oldAttachmentName, newAttachmentName)
-	if err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: err.Error(),
-		}
-	}
-
-	return config.BackendResponseWithoutData{
-		Success: true,
-		Message: "Successfully updated attachment name",
-	}
-}

@@ -253,37 +253,6 @@ func GetInternalLinksAndMediaAsSlice(markdown string) []string {
 	return urlSet.Elements()
 }
 
-// CalculateInternalLinksDiff calculates the differences between two sets of internal links.
-// Returns newly added links and newly removed links.
-func CalculateInternalLinksDiff(projectPath, folderOfNote, previousMarkdown, newMarkdown string) ([]string, []string) {
-	previousLinks := GetInternalLinksAndMedia(previousMarkdown)
-	newLinks := GetInternalLinksAndMedia(newMarkdown)
-
-	// Calculate newly added links in new but not in previous or not in .attachments.json
-	var newlyAddedLinks []string
-	for _, link := range newLinks.Elements() {
-		isNotInPreviousMarkdown := !previousLinks.Has(link)
-		notesForAttachment, _ := GetNotesForAttachment(
-			projectPath,
-			folderOfNote,
-			link,
-		)
-		if isNotInPreviousMarkdown || notesForAttachment == nil {
-			newlyAddedLinks = append(newlyAddedLinks, link)
-		}
-	}
-
-	// Calculate newly removed links (in previous but not in new)
-	var newlyRemovedLinks []string
-	for _, link := range previousLinks.Elements() {
-		if !newLinks.Has(link) {
-			newlyRemovedLinks = append(newlyRemovedLinks, link)
-		}
-	}
-
-	return newlyAddedLinks, newlyRemovedLinks
-}
-
 // Content Filtering Functions
 
 // excludeMediaTags removes image and video markdown syntax from content.

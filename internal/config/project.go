@@ -59,20 +59,6 @@ type NotesToTagsMap struct {
 	Notes map[string][]string `json:"notes"`
 }
 
-// CreateNoteToTagsMapIfNotExists ensures that the note-to-tags map exists.
-func CreateNoteToTagsMapIfNotExists(projectPath string) error {
-	pathToNoteToTagsMap := filepath.Join(projectPath, "tags", "notes_to_tags.json")
-
-	// Default empty map structure
-	defaultMap := NotesToTagsMap{
-		Notes: map[string][]string{},
-	}
-
-	_, err := util.ReadOrCreateJSON(pathToNoteToTagsMap, defaultMap)
-
-	return err
-}
-
 type ProjectFiles struct {
 	ProjectSettings ProjectSettingsJson
 	ConnectionInfo  LanguageToKernelConnectionInfo
@@ -84,10 +70,6 @@ type ProjectFiles struct {
 // and kernel information. Returns a ProjectFiles struct containing all loaded data or an error
 // if any operation fails.
 func CreateProjectFiles(projectPath string) (ProjectFiles, error) {
-	// Creating tags map
-	if err := CreateNoteToTagsMapIfNotExists(projectPath); err != nil {
-		return ProjectFiles{}, fmt.Errorf("failed to create note to tags map: %w", err)
-	}
 
 	projectSettings, err := GetProjectSettings(projectPath)
 	if err != nil {
