@@ -18,10 +18,19 @@ func handleTagsUpdateEvent(params EventParams, event *application.CustomEvent) {
 		return
 	}
 
+	var folderAndNoteNames []string
+	for folderAndNoteName := range data {
+		folderAndNoteNames = append(folderAndNoteNames, folderAndNoteName)
+	}
+
+	reIndexNotesWithUpdatedTags(params, folderAndNoteNames)
+}
+
+// reIndexNotesWithUpdatedTags re-indexes multiple notes with updated tags.
+func reIndexNotesWithUpdatedTags(params EventParams, folderAndNoteNames []string) {
 	batch := params.Index.NewBatch()
 
-	for folderAndNoteName := range data {
-		// Re-index the note with updated tags by reading from disk and creating new document
+	for _, folderAndNoteName := range folderAndNoteNames {
 		filePath := filepath.Join(params.ProjectPath, "notes", folderAndNoteName)
 
 		// Extract folder and filename from the path

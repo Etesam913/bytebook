@@ -50,6 +50,7 @@ type MarkdownNoteBleveDocument struct {
 
 type AttachmentBleveDocument struct {
 	Type          string `json:"type"`
+	Folder        string `json:"folder"`
 	FileName      string `json:"file_name"`
 	FileNameLC    string `json:"file_name_lc"`
 	FileExtension string `json:"file_extension"`
@@ -94,11 +95,12 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 	}
 }
 
-// CreateAttachmentBleveDocument constructs an AttachmentBleveDocument from file information.
+// createAttachmentBleveDocument constructs an AttachmentBleveDocument from file information.
 // It extracts the filename and file extension for search indexing.
-func CreateAttachmentBleveDocument(fileName, fileExtension string) AttachmentBleveDocument {
+func createAttachmentBleveDocument(folder, fileName, fileExtension string) AttachmentBleveDocument {
 	return AttachmentBleveDocument{
 		Type:          ATTACHMENT_TYPE,
+		Folder:        folder,
 		FileName:      fileName,
 		FileNameLC:    strings.ToLower(fileName),
 		FileExtension: fileExtension,
@@ -252,10 +254,24 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 // It defines field mappings for all the fields in AttachmentBleveDocument to enable
 // proper indexing and searching of attachment metadata.
 func createAttachmentDocumentMapping() *mapping.DocumentMapping {
+	// Set store = true for folder
+	storedKeywordMapping := bleve.NewTextFieldMapping()
+	storedKeywordMapping.Analyzer = "simple"
+	storedKeywordMapping.Store = true
+
+	keywordTextFieldMapping := bleve.NewTextFieldMapping()
+	keywordTextFieldMapping.Analyzer = "keyword"
+
+	fileNameFieldMapping := bleve.NewTextFieldMapping()
+	fileNameFieldMapping.Analyzer = "keyword"
+	fileNameFieldMapping.Store = true
+
 	documentMapping := bleve.NewDocumentMapping()
 
-	documentMapping.AddFieldMappingsAt(FieldFileName, bleve.NewTextFieldMapping())
-	documentMapping.AddFieldMappingsAt(FieldFileExtension, bleve.NewTextFieldMapping())
+	documentMapping.AddFieldMappingsAt(FieldFolder, storedKeywordMapping)
+	documentMapping.AddFieldMappingsAt(FieldFileName, fileNameFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldFileNameLC, keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldFileExtension, keywordTextFieldMapping)
 
 	return documentMapping
 }
@@ -333,14 +349,19 @@ func AddMarkdownNoteToBatch(
 
 // AddAttachmentToBatch processes an attachment file and adds it to the batch if it needs indexing.
 // Returns the ID used for indexing and any error encountered.
-func AddAttachmentToBatch(batch *bleve.Batch, index bleve.Index, filePath, folderName, fileName, fileExtension string) (string, error) {
+func AddAttachmentToBatch(
+	batch *bleve.Batch,
+	index bleve.Index,
+	folderName,
+	fileName,
+	fileExtension string,
+) (string, error) {
 	// For attachments, use the file path as the unique ID
-	fileId := filepath.Join(folderName, fileName+fileExtension)
-
+	fileId := filepath.Join(folderName, fileName)
 	docInfo := getDocumentByIdFromIndex(index, fileId)
 
 	if !docInfo.Exists {
-		bleveDocument := CreateAttachmentBleveDocument(fileName, fileExtension)
+		bleveDocument := createAttachmentBleveDocument(folderName, fileName, fileExtension)
 		batch.Index(fileId, bleveDocument)
 	}
 
@@ -398,8 +419,7 @@ func IndexAllFiles(projectPath string, index bleve.Index) error {
 			} else {
 				// Handle attachment files
 				fileExtension := filepath.Ext(file.Name())
-				fileName := strings.TrimSuffix(file.Name(), fileExtension)
-				_, err := AddAttachmentToBatch(batch, index, filePath, folder.Name(), fileName, fileExtension)
+				_, err := AddAttachmentToBatch(batch, index, folder.Name(), file.Name(), fileExtension)
 				if err != nil {
 					log.Printf("Error processing attachment file %s: %v", filePath, err)
 					continue

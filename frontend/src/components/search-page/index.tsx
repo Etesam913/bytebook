@@ -9,7 +9,7 @@ import {
 import { useAtom } from 'jotai';
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { cn } from '../../utils/string-formatting';
+import { cn, FilePath } from '../../utils/string-formatting';
 import { SearchCodeBlock } from './search-code-block';
 
 export function SearchPage() {
@@ -23,6 +23,8 @@ export function SearchPage() {
     isError,
     error,
   } = useFullTextSearchQuery(lastSearchQuery);
+
+  console.log({ searchResults });
 
   return (
     <section className="pt-2.75 flex-1 h-screen flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
@@ -65,7 +67,7 @@ export function SearchPage() {
                   selectedIndex < searchResults.length
                 ) {
                   const selected = searchResults[selectedIndex];
-                  const [folder, note] = selected.path.split('/');
+                  const { folder, note } = selected;
                   const href = `/${encodeURIComponent(folder ?? '')}/${encodeURIComponent(
                     note ?? ''
                   )}?ext=md`;
@@ -135,35 +137,32 @@ export function SearchPage() {
             </div>
           </div>
         )}
-        {searchResults.map((result, idx) => {
-          const [folder, note] = result.path.split('/');
-          const href = `/${encodeURIComponent(folder ?? '')}/${encodeURIComponent(
-            note ?? ''
-          )}?ext=md`;
-          return (
-            <Link
-              key={result.path}
-              href={href}
-              draggable={false}
-              className={cn(
-                'block py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',
-                idx === selectedIndex && 'bg-zinc-100 dark:bg-zinc-700'
-              )}
-            >
-              <div className="font-semibold">{result.title}</div>
-              <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                {result.path}
-              </div>
-              {result.lastUpdated && (
+        {searchResults.map(
+          ({ folder, note, title, lastUpdated, highlights }, idx) => {
+            const path = new FilePath({ folder, note });
+
+            return (
+              <Link
+                key={`${path.folder}/${path.note}`}
+                href={path.getLinkToNote()}
+                draggable={false}
+                className={cn(
+                  'block py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',
+                  idx === selectedIndex && 'bg-zinc-100 dark:bg-zinc-700'
+                )}
+              >
+                <div className="font-semibold">{title}</div>
                 <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                  Updated {result.lastUpdated}
+                  {path.getLinkToNote()}
                 </div>
-              )}
-              {(result.highlights?.length ?? 0) > 0 && (
-                <div className="mt-1 space-y-1">
-                  {(result.highlights ?? [])
-                    .slice(0, 3)
-                    .map((highlight, idx) =>
+                {lastUpdated && (
+                  <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                    Updated {lastUpdated}
+                  </div>
+                )}
+                {(highlights?.length ?? 0) > 0 && (
+                  <div className="mt-1 space-y-1">
+                    {(highlights ?? []).slice(0, 3).map((highlight, idx) =>
                       highlight.isCode ? (
                         <SearchCodeBlock
                           key={idx}
@@ -179,11 +178,12 @@ export function SearchPage() {
                         />
                       )
                     )}
-                </div>
-              )}
-            </Link>
-          );
-        })}
+                  </div>
+                )}
+              </Link>
+            );
+          }
+        )}
       </div>
     </section>
   );
