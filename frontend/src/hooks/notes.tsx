@@ -83,7 +83,6 @@ export function useNotes(curFolder: string, curNote?: string) {
     }
 
     const pathToNavigateTo = notePaths[noteIndexToNavigateTo];
-    console.log('pathToNavigateTo', pathToNavigateTo.getLinkToNote());
     navigate(pathToNavigateTo.getLinkToNote(), { replace: true });
   }
 
@@ -437,50 +436,6 @@ export function useDeleteTagsMutation() {
   });
 }
 
-export function useEditTagsForNotesMutation(isInTagsSidebar: boolean) {
-  return useMutation({
-    mutationFn: async ({
-      tagNamesToAdd,
-      tagNamesToRemove,
-      selectionRange,
-      folder,
-    }: {
-      tagNamesToAdd: string[];
-      tagNamesToRemove: string[];
-      selectionRange: Set<string>;
-      folder: string;
-    }) => {
-      const folderAndNotePaths = getFolderAndNoteFromSelectionRange(
-        folder,
-        selectionRange,
-        isInTagsSidebar
-      );
-
-      // const res = await EditTagsForNotes(
-      //   tagNamesToAdd,
-      //   tagNamesToRemove,
-      //   folderAndNotePaths
-      // );
-      // if (!res.success) {
-      //   throw new Error(res.message);
-      // }
-
-      // // Invalidate the queries related to tag notes to ensure the data is up-to-date.
-      // await queryClient.invalidateQueries({
-      //   queryKey: ['notes-tags', folder, folderAndNotePaths],
-      // });
-
-      return true;
-    },
-    onError: (e) => {
-      if (e instanceof Error) {
-        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-      }
-      return false;
-    },
-  });
-}
-
 /**
  * Custom hook to handle editing tags for notes via form submission.
  * Extracts tag data from form's fieldset data attribute and calls EditTagsForNotes.
@@ -517,6 +472,12 @@ export function useEditTagsMutation() {
           isInTagsSidebar
         );
 
+        console.log({
+          folderAndNotePaths,
+          tagNamesToAdd,
+          tagNamesToRemove,
+        });
+
         const res = await SetTagsOnNotes(
           folderAndNotePaths,
           tagNamesToAdd,
@@ -526,16 +487,6 @@ export function useEditTagsMutation() {
         if (!res.success) {
           throw new QueryError(res.message);
         }
-
-        // const res = await EditTagsForNotes(
-        //   tagNamesToAdd,
-        //   tagNamesToRemove,
-        //   folderAndNotePaths
-        // );
-
-        // if (!res.success) {
-        //   throw new QueryError(res.message);
-        // }
 
         return true;
       } catch (error) {
@@ -612,21 +563,22 @@ export function useNoteChangedEvent(
  * @param fileExtension - The file extension of the note
  * @returns Query result indicating if the note exists
  */
-export function useNoteExists(
-  folder: string,
-  note: string | undefined,
-  fileExtension: string | undefined
-) {
+export function useNoteExists(filePath: FilePath) {
   return useQuery({
-    queryKey: ['doesNoteExist', folder, note, fileExtension],
+    queryKey: [
+      'doesNoteExist',
+      filePath.folder,
+      filePath.noteWithoutExtension,
+      filePath.noteExtension,
+    ],
     queryFn: () => {
-      if (!note) {
+      if (!filePath.noteWithoutExtension) {
         return false;
       }
       return DoesNoteExist(
-        `${folder}/${decodeURIComponent(note)}.${fileExtension}`
+        `${filePath.folder}/${decodeURIComponent(filePath.noteWithoutExtension)}.${filePath.noteExtension}`
       );
     },
-    enabled: !!note,
+    enabled: !!filePath.noteWithoutExtension,
   });
 }

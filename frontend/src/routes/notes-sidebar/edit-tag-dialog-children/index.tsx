@@ -1,0 +1,193 @@
+import { useEffect, useState } from 'react';
+import { RouteFallback } from '../../../components/route-fallback';
+import { useTagsForNotesQuery, useTagsQuery } from '../../../hooks/tags';
+import { convertNoteNameToDotNotation } from '../../../utils/string-formatting';
+import { MotionButton } from '../../../components/buttons';
+import { getDefaultButtonVariants } from '../../../animations';
+import TagPlus from '../../../icons/tag-plus';
+import { DialogErrorText } from '../../../components/dialog';
+import { TagSearchInput } from './tag-search-input';
+import { SelectedTagsDisplay } from './selected-tags-display';
+import { TagSelectionList } from './tag-selection-list';
+
+export function EditTagDialogChildren({
+  selectionRange,
+  folder,
+  errorText,
+}: {
+  selectionRange: Set<string>;
+  folder: string;
+  errorText: string;
+}) {
+  const [tagsCreatedButNotSaved, setTagsCreatedButNotSaved] = useState<
+    string[]
+  >([]);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Track the counts of each tag for the notes that were selected to open this dialog
+  const [selectedTagCounts, setSelectedTagCounts] = useState<
+    Map<string, number>
+  >(new Map());
+
+  const {
+    data: existingTags,
+    isLoading: areTagsLoading,
+    isError: areTagsError,
+    error: tagsError,
+  } = useTagsQuery();
+
+  // Getting the notes that were selected to open this dialog
+  const selectedNotesWithExtensions = [...selectionRange]
+    .filter((noteWithQueryParam) => noteWithQueryParam.startsWith('note:'))
+    .map((noteWithQueryParam) => {
+      const noteWithoutPrefix = noteWithQueryParam.split(':')[1];
+      return convertNoteNameToDotNotation(noteWithoutPrefix);
+    });
+
+  const {
+    data: tagsForSelectedNotes,
+    isLoading: areTagsForSelectedNotesLoading,
+    isError: areTagsForSelectedNotesError,
+    error: tagsForSelectedNotesError,
+  } = useTagsForNotesQuery(
+    selectedNotesWithExtensions.map((note) => `${folder}/${note}`)
+  );
+
+  const tags = [...(existingTags ?? []), ...tagsCreatedButNotSaved];
+
+  useEffect(() => {
+    if (tagsForSelectedNotes) {
+      const tagCounts = new Map<string, number>();
+
+      Object.values(tagsForSelectedNotes).forEach((noteTags) => {
+        noteTags.forEach((tag) => {
+          tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+        });
+      });
+
+      setSelectedTagCounts(tagCounts);
+    }
+  }, [tagsForSelectedNotes]);
+
+  // Function to handle creating a new tag
+  const handleCreateTag = async (tagName: string) => {
+    // await createTags({ tagNames: [tagName] });
+    setTagsCreatedButNotSaved((prev) => [...new Set([...prev, tagName])]);
+    setSelectedTagCounts(
+      new Map(selectedTagCounts.set(tagName, totalSelectedNotes))
+    );
+    setSearchTerm('');
+  };
+
+  // Handler for removing tags from selected display
+  const handleRemoveTag = (tagName: string) => {
+    const newCounts = new Map(selectedTagCounts);
+    newCounts.set(tagName, 0);
+    setSelectedTagCounts(newCounts);
+    setTagsCreatedButNotSaved((prev) => prev.filter((tag) => tag !== tagName));
+  };
+
+  const totalSelectedNotes = selectedNotesWithExtensions.length;
+
+  // Filter tags based on search term and sort alphabetically
+  const filteredTags =
+    tags
+      ?.filter((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+      .sort((a, b) => a.localeCompare(b)) || [];
+
+  // Get fully selected tags from the notes that were selected to open this dialog
+  const fullySelectedTags = Array.from(selectedTagCounts.entries())
+    .filter(([, count]) => count > 0)
+    .map(([tagName, count]) => ({
+      tagName,
+      count,
+      isFullySelected: count === totalSelectedNotes && totalSelectedNotes > 0,
+    }));
+
+  // The onSubmit for the dialog needs to get data for all checkboxes that are
+  // selected and not selected.
+  const tagsToAddOrRemove = Array.from(selectedTagCounts.entries())
+    .filter(([, count]) => count === 0 || count === totalSelectedNotes)
+    .reduce(
+      (acc, [tagName, count]) => ({
+        tagNamesToRemove:
+          count === 0
+            ? [...acc.tagNamesToRemove, tagName]
+            : acc.tagNamesToRemove,
+        tagNamesToAdd:
+          count === totalSelectedNotes
+            ? [...acc.tagNamesToAdd, tagName]
+            : acc.tagNamesToAdd,
+      }),
+      {
+        tagNamesToRemove: [] as string[],
+        tagNamesToAdd: [] as string[],
+      }
+    );
+
+  // Handler for tag selection changes
+  const handleTagSelectionChange = (tagName: string, isSelected: boolean) => {
+    if (isSelected) {
+      setSelectedTagCounts(
+        new Map(selectedTagCounts.set(tagName, totalSelectedNotes))
+      );
+    } else {
+      const newCounts = new Map(selectedTagCounts);
+      newCounts.set(tagName, 0);
+      setSelectedTagCounts(newCounts);
+    }
+  };
+
+  return (
+    <fieldset
+      className="flex flex-col gap-2"
+      data-tags-to-add-or-remove={JSON.stringify(tagsToAddOrRemove)}
+    >
+      <p>Select tags to add to or remove from {totalSelectedNotes} note(s) </p>
+
+      <SelectedTagsDisplay
+        selectedTags={fullySelectedTags}
+        onRemoveTag={handleRemoveTag}
+      />
+
+      <div className="py-1.5">
+        {(areTagsLoading || areTagsForSelectedNotesLoading) && (
+          <RouteFallback className="my-1" />
+        )}
+        {tags && !areTagsLoading && !areTagsError && (
+          <>
+            <TagSearchInput
+              searchTerm={searchTerm}
+              onSearchTermChange={setSearchTerm}
+              onCreateTag={handleCreateTag}
+              isLoading={areTagsLoading}
+              hasError={areTagsError}
+            />
+            <TagSelectionList
+              filteredTags={filteredTags}
+              selectedTagCounts={selectedTagCounts}
+              totalSelectedNotes={totalSelectedNotes}
+              searchTerm={searchTerm}
+              onTagSelectionChange={handleTagSelectionChange}
+              onCreateTag={handleCreateTag}
+            />
+          </>
+        )}
+      </div>
+      {(areTagsError || areTagsForSelectedNotesError) && (
+        <p className="text-red-500">
+          {tagsError?.message || tagsForSelectedNotesError?.message}
+        </p>
+      )}
+      <DialogErrorText errorText={errorText} />
+      <MotionButton
+        className="w-[calc(100%-4rem)] mx-auto text-center justify-center"
+        type="submit"
+        {...getDefaultButtonVariants()}
+      >
+        <span>Save</span>
+        <TagPlus width={17} height={17} className="will-change-transform" />
+      </MotionButton>
+    </fieldset>
+  );
+}

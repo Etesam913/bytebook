@@ -15,7 +15,6 @@ import {
 import { FileBan } from '../../icons/file-ban';
 import { ShareRight } from '../../icons/share-right';
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../../types';
-import { FILE_SERVER_URL } from '../../utils/general';
 import { cn } from '../../utils/string-formatting';
 import { SidebarImage } from './sidebar-image';
 import { SidebarVideo } from './sidebar-video';
@@ -23,46 +22,45 @@ import { useSearchParamsEntries } from '../../utils/routing';
 import { useRoute } from 'wouter';
 import { navigate } from 'wouter/use-browser-location';
 import { RouteFallback } from '../../components/route-fallback';
+import { FilePath } from '../../utils/string-formatting';
 
-export function RenderNote({ isInTagsSidebar }: { isInTagsSidebar: boolean }) {
+export function RenderNote() {
   const animationControls = useAnimationControls();
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+  const draggedElement = useAtomValue(draggedElementAtom);
 
   // The attributes have to be retrieved from useRoute as passing in the params as props was lagging behind for some reason
-  const [, params] = useRoute(
-    isInTagsSidebar ? '/tags/:tagName/:folder/:note' : '/:folder/:note?'
-  );
+  const [, params] = useRoute('/:folder/:note?');
   const folder = params?.folder ?? '';
-  const note = params?.note ?? '';
+  const noteWithoutExtension = params?.note ?? '';
 
   const searchParams: { ext?: string } = useSearchParamsEntries();
   const fileExtension = searchParams.ext;
   const normalizedExtension = fileExtension?.toLowerCase().trim();
-  const hasCustomToolbar = normalizedExtension === 'md';
+  const filePath = new FilePath({
+    folder: decodeURIComponent(folder),
+    note: `${decodeURIComponent(noteWithoutExtension)}.${normalizedExtension}`,
+  });
 
-  const isPdf = normalizedExtension === 'pdf';
-  const isMarkdown = normalizedExtension === 'md';
+  // Type Checks
+  const hasCustomToolbar = filePath.noteExtension === 'md';
+  const isPdf = filePath.noteExtension === 'pdf';
+  const isMarkdown = filePath.noteExtension === 'md';
   const isImage =
-    normalizedExtension && IMAGE_FILE_EXTENSIONS.includes(normalizedExtension);
+    filePath.noteExtension &&
+    IMAGE_FILE_EXTENSIONS.includes(filePath.noteExtension);
   const isVideo =
-    normalizedExtension && VIDEO_FILE_EXTENSIONS.includes(normalizedExtension);
+    filePath.noteExtension &&
+    VIDEO_FILE_EXTENSIONS.includes(filePath.noteExtension);
   const isUnknownFile =
-    !isPdf && !isMarkdown && !isImage && !isVideo && normalizedExtension;
-  const draggedElement = useAtomValue(draggedElementAtom);
+    !isPdf && !isMarkdown && !isImage && !isVideo && filePath.noteExtension;
 
-  const fileUrl = `${FILE_SERVER_URL}/notes/${folder}/${note}.${normalizedExtension}`;
-  const {
-    data: noteExists,
-    isLoading,
-    error,
-  } = useNoteExists(
-    decodeURIComponent(folder),
-    decodeURIComponent(note),
-    fileExtension
-  );
-  useMostRecentNotes(folder, note, normalizedExtension);
+  const fileUrl = filePath.getFileUrl();
+
+  const { data: noteExists, isLoading, error } = useNoteExists(filePath);
+  useMostRecentNotes(filePath);
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation(false);
-  if (!note) return null;
+  if (!noteWithoutExtension) return null;
   if (isLoading) {
     return <RouteFallback height={42} width={42} className="mx-auto my-auto" />;
   }
@@ -86,7 +84,7 @@ export function RenderNote({ isInTagsSidebar }: { isInTagsSidebar: boolean }) {
         >
           <MaximizeNoteButton animationControls={animationControls} />
           <h1 className="text-sm text-ellipsis overflow-hidden">
-            {folder}/{note}.{normalizedExtension}
+            {folder}/{noteWithoutExtension}.{filePath.noteExtension}
           </h1>
           <MotionIconButton
             title="Open In Default App"
@@ -96,7 +94,7 @@ export function RenderNote({ isInTagsSidebar }: { isInTagsSidebar: boolean }) {
               revealInFinder({
                 folder,
                 selectionRange: new Set([
-                  `note:${note}?ext=${normalizedExtension}`,
+                  `note:${noteWithoutExtension}?ext=${filePath.noteExtension}`,
                 ]),
               });
             }}
@@ -107,7 +105,7 @@ export function RenderNote({ isInTagsSidebar }: { isInTagsSidebar: boolean }) {
       )}
       {isMarkdown && (
         <NotesEditor
-          params={{ folder, note }}
+          params={{ folder, note: noteWithoutExtension }}
           animationControls={animationControls}
         />
       )}
@@ -115,7 +113,7 @@ export function RenderNote({ isInTagsSidebar }: { isInTagsSidebar: boolean }) {
       {isPdf && (
         <>
           <iframe
-            title={note}
+            title={noteWithoutExtension}
             className={cn(
               'flex-1 overflow-auto mr-1',
               isNoteMaximized && 'w-full mr-0',
@@ -123,28 +121,24 @@ export function RenderNote({ isInTagsSidebar }: { isInTagsSidebar: boolean }) {
             )}
             src={fileUrl}
           />
-          <BottomBar folder={folder} note={note} ext={normalizedExtension} />
+          <BottomBar filePath={filePath} />
         </>
       )}
 
       {isImage && (
         <SidebarImage
-          key={`folder-${folder}-note-${note}-image`}
-          folder={folder}
-          note={note}
+          key={`folder-${folder}-note-${noteWithoutExtension}-image`}
+          filePath={filePath}
           fileUrl={fileUrl}
-          fileExtension={normalizedExtension}
           isNoteMaximized={isNoteMaximized}
         />
       )}
 
       {isVideo && (
         <SidebarVideo
-          key={`folder-${folder}-note-${note}-video`}
-          folder={folder}
-          note={note}
+          key={`folder-${folder}-note-${noteWithoutExtension}-video`}
+          filePath={filePath}
           fileUrl={fileUrl}
-          fileExtension={normalizedExtension}
           isNoteMaximized={isNoteMaximized}
           draggedElement={draggedElement}
         />
@@ -158,7 +152,7 @@ export function RenderNote({ isInTagsSidebar }: { isInTagsSidebar: boolean }) {
               This file type is not supported.
             </h1>
           </section>
-          <BottomBar folder={folder} note={note} ext={normalizedExtension} />
+          <BottomBar filePath={filePath} />
         </>
       )}
     </motion.div>

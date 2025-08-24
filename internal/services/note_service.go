@@ -213,7 +213,6 @@ func (n *NoteService) SetNoteMarkdown(
 	)
 
 	err = n.SearchIndex.Index(noteId, bleveMarkdownDocument)
-	fmt.Println(noteId, noteName)
 	if err != nil {
 		return config.BackendResponseWithData[string]{
 			Success: false,
@@ -449,34 +448,3 @@ func (n *NoteService) DoesNoteExist(path string) bool {
 	doesExist, _ := util.FileOrFolderExists(fullPath)
 	return doesExist
 }
-
-// // AddNoteToAttachment adds a note to an attachment's note list in .attachments.json.
-// func (n *NoteService) AddNoteToAttachment(folderName, attachmentName, folderAndNoteName string) config.BackendResponseWithoutData {
-// 	err := notes.AddNoteToAttachment(n.ProjectPath, folderName, attachmentName, folderAndNoteName)
-// 	if err != nil {
-// 		return config.BackendResponseWithoutData{
-// 			Success: false,
-// 			Message: err.Error(),
-// 		}
-// 	}
-// 	return config.BackendResponseWithoutData{
-// 		Success: true,
-// 		Message: "Successfully added note to attachment",
-// 	}
-// }
-
-// RemoveNoteFromAttachment removes a note from an attachment's note list in .attachments.json.
-// func (n *NoteService) RemoveNoteFromAttachment(folderName, attachmentName, folderAndNoteName string) config.BackendResponseWithoutData {
-// 	err := notes.RemoveNoteFromAttachment(n.ProjectPath, folderName, attachmentName, folderAndNoteName)
-// 	if err != nil {
-// 		return config.BackendResponseWithoutData{
-// 			Success: false,
-// 			Message: err.Error(),
-// 		}
-// 	}
-
-// 	return config.BackendResponseWithoutData{
-// 		Success: true,
-// 		Message: "Successfully removed note from attachment",
-// 	}
-// }

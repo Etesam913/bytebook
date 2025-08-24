@@ -67,7 +67,7 @@ export function TagsSidebar({
           <Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
         </>
       )}
-      {folder && note && <RenderNote isInTagsSidebar={true} />}
+      {folder && note && <RenderNote />}
     </>
   );
 }

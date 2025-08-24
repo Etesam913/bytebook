@@ -131,28 +131,6 @@ export function useTagsForNotesQuery(folderAndNotesWithExtensions: string[]) {
         throw new QueryError(res.message);
       }
       return res.data ?? {};
-      // const res = await GetTagsForNotes(folderAndNotesWithExtensions);
-      // if (!res.success) {
-      //   throw new Error(res.message);
-      // }
-      // return res.data;
-      return {};
-    },
-  });
-}
-
-/**
- * Creates a tag.
- *
- * @returns The mutation result.
- */
-export function useCreateTagsMutation() {
-  return useMutation({
-    mutationFn: async ({ tagNames }: { tagNames: string[] }) => {
-      // const res = await CreateTags(tagNames);
-      // if (!res.success) {
-      //   throw new QueryError(res.message);
-      // }
     },
   });
 }
