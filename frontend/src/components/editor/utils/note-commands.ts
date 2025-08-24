@@ -235,7 +235,6 @@ export function overrideControlledTextInsertion(
 
   // Creating links
   for (const linkPayload of linkPayloads) {
-    console.log(linkPayload);
     const linkNode = $createLinkNode(linkPayload.url, {
       title: linkPayload.title,
     });

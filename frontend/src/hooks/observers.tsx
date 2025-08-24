@@ -47,7 +47,6 @@ export function useListVirtualization<T>({
 
     const resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0];
-      console.log('entry', entry);
       if (entry) {
         setContainerHeight(entry.contentRect.height);
       }

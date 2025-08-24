@@ -3,18 +3,15 @@ import { BottomBar } from '../../components/editor/bottom-bar';
 import { cn } from '../../utils/string-formatting';
 import { ErrorLoading } from './error-loading';
 import { RouteFallback } from '../../components/route-fallback';
+import { FilePath } from '../../utils/string-formatting';
 
 export function SidebarImage({
-  folder,
-  note,
+  filePath,
   fileUrl,
-  fileExtension,
   isNoteMaximized,
 }: {
-  folder: string;
-  note: string;
+  filePath: FilePath;
   fileUrl: string;
-  fileExtension: string;
   isNoteMaximized: boolean;
 }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -32,8 +29,8 @@ export function SidebarImage({
             'flex-1 overflow-auto object-contain my-auto mr-1',
             isNoteMaximized && 'w-full'
           )}
-          alt={note}
-          title={note}
+          alt={filePath.noteWithoutExtension}
+          title={filePath.noteWithoutExtension}
           src={fileUrl}
           onError={() => {
             setIsError(true);
@@ -43,7 +40,7 @@ export function SidebarImage({
           style={{ display: isLoading ? 'none' : 'block' }}
         />
       )}
-      <BottomBar folder={folder} note={note} ext={fileExtension} />
+      <BottomBar filePath={filePath} />
     </>
   );
 }

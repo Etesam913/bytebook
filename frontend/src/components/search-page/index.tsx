@@ -24,8 +24,6 @@ export function SearchPage() {
     error,
   } = useFullTextSearchQuery(lastSearchQuery);
 
-  console.log({ searchResults });
-
   return (
     <section className="pt-2.75 flex-1 h-screen flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
       <header className="flex items-center gap-2 w-full pl-22 pr-4 pb-2 border-b-1 border-zinc-200 dark:border-zinc-700">
@@ -143,8 +141,8 @@ export function SearchPage() {
 
             return (
               <Link
-                key={`${path.folder}/${path.note}`}
-                href={path.getLinkToNote()}
+                key={path.getLinkToNote()}
+                to={path.getLinkToNote()}
                 draggable={false}
                 className={cn(
                   'block py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',

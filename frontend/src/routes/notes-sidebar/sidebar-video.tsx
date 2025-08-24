@@ -3,19 +3,16 @@ import { BottomBar } from '../../components/editor/bottom-bar';
 import { cn } from '../../utils/string-formatting';
 import { ErrorLoading } from './error-loading';
 import { RouteFallback } from '../../components/route-fallback';
+import { FilePath } from '../../utils/string-formatting';
 
 export function SidebarVideo({
-  folder,
-  note,
+  filePath,
   fileUrl,
-  fileExtension,
   isNoteMaximized,
   draggedElement,
 }: {
-  folder: string;
-  note: string;
+  filePath: FilePath;
   fileUrl: string;
-  fileExtension: string;
   isNoteMaximized: boolean;
   draggedElement: HTMLElement | null;
 }) {
@@ -31,7 +28,7 @@ export function SidebarVideo({
       ) : (
         <video
           controls
-          title={note}
+          title={filePath.noteWithoutExtension}
           onError={() => {
             setIsError(true);
             setIsLoading(false);
@@ -46,7 +43,7 @@ export function SidebarVideo({
           style={{ display: isLoading ? 'none' : 'block' }}
         />
       )}
-      <BottomBar folder={folder} note={note} ext={fileExtension} />
+      <BottomBar filePath={filePath} />
     </>
   );
 }

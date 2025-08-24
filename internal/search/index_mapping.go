@@ -1,6 +1,7 @@
 package search
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -313,7 +314,9 @@ func AddMarkdownNoteToBatch(
 	filePath,
 	folderName,
 	fileName string,
+	forceIndex bool,
 ) (string, error) {
+	fmt.Println("addMarkdownNoteToBatch")
 	// Read the file content
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -332,13 +335,14 @@ func AddMarkdownNoteToBatch(
 	} else {
 		// Document exists, check if lastUpdated has changed
 		currentLastUpdated, _ := notes.GetLastUpdatedFromFrontmatter(markdown)
-
+		fmt.Println("currentLastUpdated", currentLastUpdated, "docInfo", docInfo)
 		// If there's no lastUpdated in current file or index, or they differ, re-index
-		if currentLastUpdated == "" || docInfo.LastUpdated == "" || currentLastUpdated != docInfo.LastUpdated {
+		if forceIndex || (currentLastUpdated == "" || docInfo.LastUpdated == "" || currentLastUpdated != docInfo.LastUpdated) {
 			shouldIndex = true
 		}
 	}
 
+	fmt.Println("shouldIndex", shouldIndex, docInfo.Exists, fileId)
 	if shouldIndex {
 		bleveDocument := CreateMarkdownNoteBleveDocument(markdown, folderName, fileName)
 		batch.Index(fileId, bleveDocument)
@@ -398,7 +402,14 @@ func IndexAllFilesInFolder(folderPath, folderName string, index bleve.Index) err
 
 		if strings.HasSuffix(file.Name(), ".md") {
 			// Handle markdown files
-			_, err := AddMarkdownNoteToBatch(batch, index, filePath, folderName, file.Name())
+			_, err := AddMarkdownNoteToBatch(
+				batch,
+				index,
+				filePath,
+				folderName,
+				file.Name(),
+				false,
+			)
 			if err != nil {
 				log.Printf("Error processing markdown file %s: %v", filePath, err)
 				continue

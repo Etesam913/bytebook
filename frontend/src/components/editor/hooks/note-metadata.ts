@@ -1,20 +1,18 @@
-import { useAtom } from 'jotai';
 import { useEffect } from 'react';
-import { ValidateMostRecentNotes } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
+import { useAtom } from 'jotai';
 import { mostRecentNotesAtom } from '../../../atoms';
-import { convertFilePathToQueryNotation } from '../../../utils/string-formatting';
+import { ValidateMostRecentNotes } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
+import {
+  convertFilePathToQueryNotation,
+  FilePath,
+} from '../../../utils/string-formatting';
 
-/** Updates the most recent notes queue */
-export function useMostRecentNotes(
-  folder: string,
-  note: string | undefined,
-  fileExtension: string | undefined
-) {
+export function useMostRecentNotes(filePath: FilePath) {
   const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);
 
   useEffect(() => {
     const currentPath = convertFilePathToQueryNotation(
-      `${folder}/${note}.${fileExtension}`
+      `${filePath.folder}/${filePath.noteWithoutExtension}.${filePath.noteExtension}`
     );
     const tempMostRecentNotes = mostRecentNotes.filter(
       (path) => path !== currentPath
@@ -34,5 +32,10 @@ export function useMostRecentNotes(
     ValidateMostRecentNotes(mostRecentNotesForBackend).then((res) => {
       setMostRecentNotes(res ?? []);
     });
-  }, [folder, note, setMostRecentNotes]);
+  }, [
+    filePath.folder,
+    filePath.noteWithoutExtension,
+    filePath.noteExtension,
+    setMostRecentNotes,
+  ]);
 }

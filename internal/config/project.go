@@ -105,10 +105,6 @@ func CreateProjectDirectories(projectPath string) error {
 		return fmt.Errorf("failed to create project code directory: %v", err)
 	}
 
-	if err := os.MkdirAll(filepath.Join(projectPath, "tags"), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create project tags directory: %v", err)
-	}
-
 	if err := os.MkdirAll(filepath.Join(projectPath, "notes"), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create project notes directory: %v", err)
 	}

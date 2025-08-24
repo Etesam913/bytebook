@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { FILE_SERVER_URL } from './general';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -75,6 +76,10 @@ export class FilePath {
 
   getLinkToNote() {
     return `/${this.folder}/${encodeURIComponent(this.noteWithoutExtension)}?ext=${this.noteExtension}`;
+  }
+
+  getFileUrl() {
+    return `${FILE_SERVER_URL}/notes/${this.folder}/${this.note}`;
   }
 }
 

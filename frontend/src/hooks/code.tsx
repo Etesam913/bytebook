@@ -751,7 +751,6 @@ export function useCompletionSource(
   return async function completionSource(
     context: CompletionContext
   ): Promise<CompletionResult | null> {
-    console.log('completionSource', context);
     const code = context.state.doc.toString();
     const cursorPos = context.pos;
     // Send the request
@@ -853,7 +852,6 @@ export function useInspectTooltip(
         inspectData.data['text/html'] ||
         inspectData.data['text/markdown'],
     };
-    console.log({ tooltipData });
 
     // Resolve the pending promise if it exists
     const resolve = pendingInspections.get(inspectData.messageId);

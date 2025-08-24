@@ -50,6 +50,7 @@ import { CodeNode } from './nodes/code.tsx';
 import { useSendInterruptRequestMutation } from '../../hooks/code.tsx';
 import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 import type { LegacyAnimationControls } from 'motion/react';
+import { FilePath } from '../../utils/string-formatting';
 
 export function NotesEditor({
   params,
@@ -252,9 +253,7 @@ export function NotesEditor({
       </div>
       <BottomBar
         frontmatter={frontmatter}
-        folder={folder}
-        note={note}
-        ext="md"
+        filePath={new FilePath({ folder, note: `${note}.md` })}
         isNoteEditor
       />
     </LexicalComposer>
