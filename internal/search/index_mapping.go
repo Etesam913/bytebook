@@ -368,19 +368,72 @@ func AddAttachmentToBatch(
 	return fileId, nil
 }
 
-// IndexAllFiles processes all files in the project's notes directory and ensures they are properly indexed.
-// For each folder in the notes directory, it:
+// IndexAllFilesInFolder processes all files in a specific folder and ensures they are properly indexed.
+// It:
 // 1. Creates a batch for efficient indexing
-// 2. Processes each file in the folder
+// 2. Processes each file in the folder (skips subdirectories)
 // 3. For .md files: ensures each file has an ID in frontmatter and indexes as markdown notes
 // 4. For non-.md files: indexes as attachments
 // 5. Commits the batch to the index
+// This function should be called for each folder in the notes directory.
+func IndexAllFilesInFolder(folderPath, folderName string, index bleve.Index) error {
+	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
+		return err
+	}
+
+	batch := index.NewBatch()
+
+	// Process all files in the folder
+	files, err := os.ReadDir(folderPath)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue // Skip subdirectories
+		}
+
+		filePath := filepath.Join(folderPath, file.Name())
+
+		if strings.HasSuffix(file.Name(), ".md") {
+			// Handle markdown files
+			_, err := AddMarkdownNoteToBatch(batch, index, filePath, folderName, file.Name())
+			if err != nil {
+				log.Printf("Error processing markdown file %s: %v", filePath, err)
+				continue
+			}
+		} else {
+			// Handle attachment files
+			fileExtension := filepath.Ext(file.Name())
+			_, err := AddAttachmentToBatch(batch, index, folderName, file.Name(), fileExtension)
+			if err != nil {
+				log.Printf("Error processing attachment file %s: %v", filePath, err)
+				continue
+			}
+		}
+	}
+
+	// Index the batch for this folder
+	if batch.Size() > 0 {
+		err = index.Batch(batch)
+		if err != nil {
+			log.Printf("Error indexing batch for folder %s: %v", folderName, err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+// IndexAllFiles processes all folders in the project's notes directory and ensures their files are properly indexed.
+// It iterates through each folder in the notes directory and calls IndexAllFilesInFolder for each one.
 // This function should be called during application startup to ensure all files are indexed.
 func IndexAllFiles(projectPath string, index bleve.Index) error {
 	notesPath := filepath.Join(projectPath, "notes")
 
 	if _, err := os.Stat(notesPath); os.IsNotExist(err) {
-		return nil
+		return nil // Notes directory doesn't exist, which is fine
 	}
 
 	folders, err := os.ReadDir(notesPath)
@@ -394,54 +447,19 @@ func IndexAllFiles(projectPath string, index bleve.Index) error {
 		}
 
 		folderPath := filepath.Join(notesPath, folder.Name())
-		batch := index.NewBatch()
-
-		// Process all files in the folder
-		files, err := os.ReadDir(folderPath)
+		err := IndexAllFilesInFolder(folderPath, folder.Name(), index)
 		if err != nil {
-			continue // Skip this folder if we can't read it
-		}
-
-		for _, file := range files {
-			if file.IsDir() {
-				continue
-			}
-
-			filePath := filepath.Join(folderPath, file.Name())
-
-			if strings.HasSuffix(file.Name(), ".md") {
-				// Handle markdown files
-				_, err := AddMarkdownNoteToBatch(batch, index, filePath, folder.Name(), file.Name())
-				if err != nil {
-					log.Printf("Error processing markdown file %s: %v", filePath, err)
-					continue
-				}
-			} else {
-				// Handle attachment files
-				fileExtension := filepath.Ext(file.Name())
-				_, err := AddAttachmentToBatch(batch, index, folder.Name(), file.Name(), fileExtension)
-				if err != nil {
-					log.Printf("Error processing attachment file %s: %v", filePath, err)
-					continue
-				}
-			}
-		}
-
-		// Index the batch for this folder
-		if batch.Size() > 0 {
-			err = index.Batch(batch)
-			if err != nil {
-				log.Println("Error indexing batch:", err)
-				continue
-			}
+			log.Printf("Error indexing folder %s: %v", folder.Name(), err)
+			continue
 		}
 	}
 
 	totalDocumentsIndexed, err := index.DocCount()
 	if err != nil {
 		log.Println("Error getting document count:", err)
+	} else {
+		log.Println("Indexing complete. Total documents indexed:", totalDocumentsIndexed)
 	}
-	log.Println("Indexing complete. Total documents indexed:", totalDocumentsIndexed)
 
 	return nil
 }

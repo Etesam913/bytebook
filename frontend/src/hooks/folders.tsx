@@ -76,12 +76,12 @@ export function useFolders(curFolder: string | undefined) {
   };
 }
 
-/** This function is used to handle `notes-folder:create` events */
+/** This function is used to handle `folder:create` events */
 export function useFolderCreate() {
   const queryClient = useQueryClient();
 
-  useWailsEvent('notes-folder:create', async () => {
-    console.info('notes-folder:create');
+  useWailsEvent('folder:create', async () => {
+    console.info('folder:create');
     await queryClient.invalidateQueries({ queryKey: ['folders'] });
   });
 }

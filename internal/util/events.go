@@ -6,6 +6,11 @@ var Events = struct {
 	NoteDelete string
 	NoteRename string
 
+	// Folder events
+	FolderRename string
+	FolderDelete string
+	FolderCreate string
+
 	// UI events
 	ZoomIn  string
 	ZoomOut string
@@ -13,8 +18,6 @@ var Events = struct {
 	// File watcher events
 	SettingsUpdate string
 	TagsUpdate     string
-	NotesFolder    string
-	TagsFolder     string
 
 	// Kernel/Code events
 	KernelShutdownReply    string
@@ -38,6 +41,11 @@ var Events = struct {
 	NoteDelete: "note:delete",
 	NoteRename: "note:rename",
 
+	// Folder events
+	FolderRename: "folder:rename",
+	FolderDelete: "folder:delete",
+	FolderCreate: "folder:create",
+
 	// UI events
 	ZoomIn:  "zoom:in",
 	ZoomOut: "zoom:out",
@@ -45,8 +53,6 @@ var Events = struct {
 	// File watcher events
 	SettingsUpdate: "settings:update",
 	TagsUpdate:     "tags:update",
-	NotesFolder:    "notes-folder",
-	TagsFolder:     "tags-folder",
 
 	// Kernel/Code events
 	KernelShutdownReply:    "code:kernel:shutdown_reply",
@@ -68,3 +74,19 @@ var Events = struct {
 
 // A map of folderAndNoteNames to tags
 type TagsUpdateEventData map[string][]string
+
+// FolderCreateEventData represents the data structure for folder create events
+type FolderCreateEventData struct {
+	Folder string `json:"folder"`
+}
+
+// FolderDeleteEventData represents the data structure for folder delete events
+type FolderDeleteEventData struct {
+	Folder string `json:"folder"`
+}
+
+// FolderRenameEventData represents the data structure for folder rename events
+type FolderRenameEventData struct {
+	OldFolder string `json:"oldFolder"`
+	NewFolder string `json:"newFolder"`
+}
