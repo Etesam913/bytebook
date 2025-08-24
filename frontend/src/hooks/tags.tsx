@@ -78,21 +78,7 @@ export function useTagEvents() {
   }
 
   const noteSort = useAtomValue(noteSortAtom);
-  useWailsEvent('tags-folder:create', () => {
-    console.info('tags-folder:create');
-    handleTagRelatedEvent(queryClient, folderAndNotePath);
-  });
-  useWailsEvent('tags-folder:delete', (body) => {
-    console.info('tags-folder:delete', body);
-    const data = body.data as { folder: string }[][];
-    const folders = data[0].map((obj) => obj.folder);
-    folders.forEach((folder) => {
-      queryClient.invalidateQueries({
-        queryKey: ['tag-notes', folder, noteSort],
-      });
-    });
-    handleTagRelatedEvent(queryClient, folderAndNotePath);
-  });
+
   useWailsEvent('tags:update', (body) => {
     const data = body.data as { notes: string[] | null; tagName: string };
     const updatedTag = data.tagName;

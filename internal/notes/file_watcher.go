@@ -1,7 +1,6 @@
 package notes
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -9,6 +8,7 @@ import (
 	"time"
 
 	"github.com/etesam913/bytebook/internal/config"
+
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -74,81 +74,55 @@ func (fw *FileWatcher) handleDebounceReset() {
 }
 
 // handleFolderEvents processes folder-related events (create, delete, rename)
-func (fw *FileWatcher) handleFolderEvents(prefix string, event fsnotify.Event) {
+func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 	folderName := filepath.Base(event.Name)
 	eventKey := ""
 
 	if event.Has(fsnotify.Create) {
-		eventKey = fmt.Sprintf("%s:create", prefix)
+		eventKey = util.Events.FolderCreate
 		fw.mostRecentFolderCreatedEvent = MostRecentCreatedEvent{
 			event: event,
 			time:  time.Now(),
 		}
-		fw.watcher.Add(event.Name)
-	}
 
-	if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
-		// Handle rename events for note folders
-		timeDiff := time.Since(fw.mostRecentFolderCreatedEvent.time)
-		if prefix == util.Events.NotesFolder && event.Has(fsnotify.Rename) && timeDiff < TIME_FOR_TWO_EVENTS_TO_BE_RELATED {
-			fw.handleNoteFolderRename(folderName)
-		}
-		eventKey = fmt.Sprintf("%s:delete", prefix)
-		fw.watcher.Remove(event.Name)
-	}
-
-	if eventKey != "" {
 		fw.debounceEvents[eventKey] = append(
 			fw.debounceEvents[eventKey],
 			map[string]string{
 				"folder": folderName,
 			},
 		)
+
+		fw.watcher.Add(event.Name)
 	}
+
+	if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
+		timeDiff := time.Since(fw.mostRecentFolderCreatedEvent.time)
+		if event.Has(fsnotify.Rename) && timeDiff < TIME_FOR_TWO_EVENTS_TO_BE_RELATED {
+			newFolderPath := fw.mostRecentFolderCreatedEvent.event.Name
+			newFolderName := filepath.Base(newFolderPath)
+			eventKey = util.Events.FolderRename
+
+			fw.debounceEvents[eventKey] = append(
+				fw.debounceEvents[eventKey],
+				map[string]string{
+					"oldFolder": folderName,
+					"newFolder": newFolderName,
+				},
+			)
+		} else if event.Has(fsnotify.Remove) {
+			eventKey = util.Events.FolderDelete
+
+			fw.debounceEvents[eventKey] = append(
+				fw.debounceEvents[eventKey],
+				map[string]string{
+					"folder": folderName,
+				},
+			)
+		}
+		fw.watcher.Remove(event.Name)
+	}
+
 	fw.handleDebounceReset()
-}
-
-// handleNoteFolderRename processes a folder rename event by updating all markdown files within the folder
-// and their associated tags. It updates internal markdown URLs to reflect the new folder name and updates
-// any references to the folder in the tags system. The function takes the old folder name as input and uses
-// the most recent folder created event to determine the new folder path and name.
-func (fw *FileWatcher) handleNoteFolderRename(oldFolderName string) {
-	newFolderPath := fw.mostRecentFolderCreatedEvent.event.Name
-	// When the note folder is renamed, all notes need path updates
-	files, err := os.ReadDir(newFolderPath)
-	if err != nil {
-		return
-	}
-
-	for _, file := range files {
-		indexOfDot := strings.LastIndex(file.Name(), ".")
-		if indexOfDot == -1 {
-			continue
-		}
-
-		extension := file.Name()[indexOfDot+1:]
-		if extension != "md" {
-			continue
-		}
-
-		pathToFile := filepath.Join(newFolderPath, file.Name())
-		noteContent, err := os.ReadFile(pathToFile)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		// Updates the urls inside the note markdown
-		noteMarkdownWithNewFolderName := UpdateFolderNameOfInternalLinksAndMedia(
-			string(noteContent), oldFolderName, filepath.Base(newFolderPath),
-		)
-
-		err = os.WriteFile(pathToFile, []byte(noteMarkdownWithNewFolderName), 0644)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-	}
-
 }
 
 // handleFileEvents processes file-related events (create, delete)
@@ -298,30 +272,6 @@ func (fw *FileWatcher) handleSettingsUpdate() {
 	}
 }
 
-// handleTagsUpdate processes updates to tag files
-func (fw *FileWatcher) handleTagsUpdate(event fsnotify.Event, tagName string) {
-	// tagNotesArray := TagsToNotesArray{}
-	// err := util.ReadJsonFromPath(event.Name, &tagNotesArray)
-
-	// if err != nil {
-	// 	return
-	// }
-
-	// // Create a new object that holds everything from tagPaths plus the TagName field
-	// eventData := struct {
-	// 	TagsToNotesArray
-	// 	TagName string `json:"tagName"`
-	// }{
-	// 	TagsToNotesArray: tagNotesArray,
-	// 	TagName:          tagName,
-	// }
-
-	// fw.app.Event.EmitEvent(&application.CustomEvent{
-	// 	Name: util.Events.TagsUpdate,
-	// 	Data: eventData,
-	// })
-}
-
 // processEvent handles a single filesystem event
 func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 	log.Println("event:", event, filepath.Ext(event.Name))
@@ -336,10 +286,6 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 	}
 
 	oneFolderBack := segments[len(segments)-2]
-	twoFolderBack := ""
-	if len(segments) >= 4 {
-		twoFolderBack = segments[len(segments)-3]
-	}
 
 	// We can ignore chmod events unless it is a settings folder
 	if event.Has(fsnotify.Chmod) && oneFolderBack != "settings" {
@@ -348,29 +294,21 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 
 	// Handle directory events
 	if isDir {
-		switch oneFolderBack {
-		case "notes":
-			fw.handleFolderEvents(util.Events.NotesFolder, event)
-		case "tags":
-			fw.handleFolderEvents(util.Events.TagsFolder, event)
+		fw.handleFolderEvents(event)
+	} else {
+		// Handle file events
+		if oneFolderBack == "settings" {
+			fw.handleSettingsUpdate()
+		} else {
+			fw.handleFileEvents(segments, event, oneFolderBack)
 		}
-		return
 	}
 
-	// Handle file events
-	if oneFolderBack == "settings" {
-		fw.handleSettingsUpdate()
-	} else if twoFolderBack == "tags" {
-		fw.handleTagsUpdate(event, oneFolderBack)
-	} else {
-		fw.handleFileEvents(segments, event, oneFolderBack)
-	}
 }
 
 // emitDebouncedEvents sends all accumulated events to the application
 func (fw *FileWatcher) emitDebouncedEvents() {
 	for eventKey, data := range fw.debounceEvents {
-		fmt.Println(eventKey, data)
 		fw.app.Event.EmitEvent(&application.CustomEvent{
 			Name: eventKey,
 			Data: data,

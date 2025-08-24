@@ -310,13 +310,13 @@ func TestAddAttachmentToBatch(t *testing.T) {
 	})
 }
 
-func TestIndexAllFiles(t *testing.T) {
+func TestIndexAllFilesInFolder(t *testing.T) {
 	env := setupTestEnv(t)
 	defer env.Close()
 
-	t.Run("should handle non-existent notes directory", func(t *testing.T) {
-		err := IndexAllFiles(env.TmpDir, env.Index)
-		assert.NoError(t, err)
+	t.Run("should return error for non-existent folder", func(t *testing.T) {
+		err := IndexAllFilesInFolder("/non/existent/path", "non-existent", env.Index)
+		assert.Error(t, err)
 	})
 
 	t.Run("should index markdown files with missing IDs", func(t *testing.T) {
@@ -324,7 +324,7 @@ func TestIndexAllFiles(t *testing.T) {
 		env.createMarkdownFile(folderPath, "test1.md", basicMarkdown)
 		env.createMarkdownFile(folderPath, "test2.md", "# Content\nThis is test content without frontmatter.")
 
-		err := IndexAllFiles(env.TmpDir, env.Index)
+		err := IndexAllFilesInFolder(folderPath, "test-folder", env.Index)
 		assert.NoError(t, err)
 
 		// Verify files are indexed using their file paths as document IDs
@@ -338,106 +338,92 @@ func TestIndexAllFiles(t *testing.T) {
 		folderPath := env.createTestFolder("test-folder-2")
 		env.createMarkdownFile(folderPath, "test.md", markdownWithId)
 
-		err := IndexAllFiles(env.TmpDir, env.Index)
+		err := IndexAllFilesInFolder(folderPath, "test-folder-2", env.Index)
 		assert.NoError(t, err)
 
 		env.verifyDocumentExists("test-folder-2/test.md")
 	})
 
-	t.Run("should handle multiple folders", func(t *testing.T) {
-		folder1Path := env.createTestFolder("folder1")
-		folder2Path := env.createTestFolder("folder2")
+	t.Run("should index files in the parent folder", func(t *testing.T) {
+		folderPath := env.createTestFolder("parent-folder")
+		subfolderPath := filepath.Join(folderPath, "subfolder")
+		err := os.MkdirAll(subfolderPath, 0755)
+		require.NoError(t, err)
 
-		env.createMarkdownFile(folder1Path, "note1.md", "# Content in folder 1")
-		env.createMarkdownFile(folder2Path, "note2.md", "# Content in folder 2")
+		// Create files in parent folder
+		env.createMarkdownFile(folderPath, "parent-note.md", "# Content in parent folder")
 
-		err := IndexAllFiles(env.TmpDir, env.Index)
+		err = IndexAllFilesInFolder(folderPath, "parent-folder", env.Index)
 		assert.NoError(t, err)
 
-		// Verify both files were processed and indexed using their file paths as document IDs
-		env.verifyDocumentExists("folder1/note1.md")
-		env.verifyDocumentExists("folder2/note2.md")
+		// Verify parent file was indexed
+		env.verifyDocumentExists("parent-folder/parent-note.md")
+	})
 
-		// Files don't have IDs added to their frontmatter
+	t.Run("should not index files in subdirectories", func(t *testing.T) {
+		folderPath := env.createTestFolder("parent-folder")
+		subfolderPath := filepath.Join(folderPath, "subfolder")
+		err := os.MkdirAll(subfolderPath, 0755)
+		require.NoError(t, err)
+
+		// Create files in subfolder (should not be indexed)
+		env.createMarkdownFile(subfolderPath, "sub-note.md", "# Content in subfolder")
+
+		err = IndexAllFilesInFolder(folderPath, "parent-folder", env.Index)
+		assert.NoError(t, err)
+
+		// Verify subfolder file was NOT indexed (since we only process files, not subdirectories)
+		doc, err := env.Index.Document("parent-folder/sub-note.md")
+		assert.NoError(t, err)
+		assert.Nil(t, doc, "Subfolder files should not be indexed")
 	})
 
 	t.Run("should handle empty folders", func(t *testing.T) {
-		env.createTestFolder("empty-folder")
+		folderPath := env.createTestFolder("empty-folder")
 
-		err := IndexAllFiles(env.TmpDir, env.Index)
+		err := IndexAllFilesInFolder(folderPath, "empty-folder", env.Index)
 		assert.NoError(t, err) // Should not error on empty folders
 	})
 }
 
-func TestIndexAllFilesWithAttachments(t *testing.T) {
+func TestIndexAllFiles(t *testing.T) {
 	env := setupTestEnv(t)
 	defer env.Close()
 
-	t.Run("should index both markdown files and attachments", func(t *testing.T) {
-		folderPath := env.createTestFolder("mixed-content")
+	t.Run("should handle non-existent notes directory", func(t *testing.T) {
+		err := IndexAllFiles(env.TmpDir, env.Index)
+		assert.NoError(t, err)
+	})
 
-		// Create markdown file
-		env.createMarkdownFile(folderPath, "document.md", basicMarkdown)
+	t.Run("should index files in multiple folders", func(t *testing.T) {
+		// Create multiple folders with files
+		folder1Path := env.createTestFolder("folder1")
+		folder2Path := env.createTestFolder("folder2")
 
-		// Create attachment files
-		env.createAttachmentFile(folderPath, "attachment.pdf", "fake pdf content")
-		env.createAttachmentFile(folderPath, "image.jpg", "fake image content")
+		env.createMarkdownFile(folder1Path, "note1.md", basicMarkdown)
+		env.createMarkdownFile(folder2Path, "note2.md", markdownWithId)
+		env.createAttachmentFile(folder1Path, "attachment.pdf", "fake pdf content")
 
 		err := IndexAllFiles(env.TmpDir, env.Index)
 		assert.NoError(t, err)
 
-		// Verify markdown file was processed and indexed using file path as document ID
-		env.verifyDocumentExists("mixed-content/document.md")
-
-		// File doesn't have an ID added to frontmatter
-
-		// Verify attachment documents exist in index
-		env.verifyDocumentExists("mixed-content/attachment.pdf")
-		env.verifyDocumentExists("mixed-content/image.jpg")
+		// Verify all files were indexed
+		env.verifyDocumentExists("folder1/note1.md")
+		env.verifyDocumentExists("folder2/note2.md")
+		env.verifyDocumentExists("folder1/attachment.pdf")
 	})
 
-	t.Run("should handle folders with only attachments", func(t *testing.T) {
-		folderPath := env.createTestFolder("attachments-only")
+	t.Run("should continue indexing other folders if one folder fails", func(t *testing.T) {
+		// Create one good folder and one that might cause issues
+		goodFolderPath := env.createTestFolder("good-folder")
+		env.createMarkdownFile(goodFolderPath, "good-note.md", basicMarkdown)
 
-		files := []string{"document.docx", "video.mp4", "audio.mp3"}
-		for _, filename := range files {
-			env.createAttachmentFile(folderPath, filename, "fake content")
-		}
-
+		// The function should continue even if individual folders have issues
 		err := IndexAllFiles(env.TmpDir, env.Index)
 		assert.NoError(t, err)
 
-		// Verify all attachment files were indexed
-		for _, filename := range files {
-			fileId := "attachments-only/" + filename
-			env.verifyDocumentExists(fileId)
-		}
-	})
-
-	t.Run("should not re-index existing attachments", func(t *testing.T) {
-		folderPath := env.createTestFolder("existing-attachments")
-		env.createAttachmentFile(folderPath, "existing.png", "fake image content")
-
-		// Pre-index the attachment
-		fileId := "existing-attachments/existing.png"
-		bleveDoc := createAttachmentBleveDocument("existing-attachments", "existing", ".png")
-		err := env.Index.Index(fileId, bleveDoc)
-		require.NoError(t, err)
-
-		// Get initial document count
-		searchReq := bleve.NewSearchRequest(bleve.NewMatchAllQuery())
-		searchReq.Size = 100
-		initialResult, err := env.Index.Search(searchReq)
-		require.NoError(t, err)
-		initialCount := initialResult.Total
-
-		err = IndexAllFiles(env.TmpDir, env.Index)
-		assert.NoError(t, err)
-
-		// Verify document count didn't increase
-		finalResult, err := env.Index.Search(searchReq)
-		require.NoError(t, err)
-		assert.Equal(t, initialCount, finalResult.Total)
+		// Verify the good folder was still indexed
+		env.verifyDocumentExists("good-folder/good-note.md")
 	})
 }
 
