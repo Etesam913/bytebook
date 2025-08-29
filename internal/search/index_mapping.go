@@ -130,8 +130,8 @@ func createIndex(projectPath string) (bleve.Index, error) {
 		NGramTokenFilter,
 		map[string]interface{}{
 			"type": edgengram.Name,
-			"min":  float64(2),
-			"max":  float64(6),
+			"min":  float64(3),
+			"max":  float64(10),
 			"side": "front",
 		},
 	)

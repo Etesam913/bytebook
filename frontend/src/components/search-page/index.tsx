@@ -151,7 +151,7 @@ export function SearchPage() {
               >
                 <div className="font-semibold">{title}</div>
                 <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                  {path.getLinkToNote()}
+                  {path.toString()}
                 </div>
                 {lastUpdated && (
                   <div className="text-sm text-neutral-500 dark:text-neutral-400">

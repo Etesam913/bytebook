@@ -74,6 +74,10 @@ export class FilePath {
     return this.folder === other.folder && this.note === other.note;
   }
 
+  toString() {
+    return `${this.folder}/${this.note}`;
+  }
+
   getLinkToNote() {
     return `/${this.folder}/${encodeURIComponent(this.noteWithoutExtension)}?ext=${this.noteExtension}`;
   }

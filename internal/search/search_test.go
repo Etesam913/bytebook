@@ -353,25 +353,6 @@ func TestCreatePrefixQuery(t *testing.T) {
 	})
 }
 
-func TestCreateFuzzyQuery(t *testing.T) {
-	t.Run("should create fuzzy query with lowercase term", func(t *testing.T) {
-		q := createFuzzyQuery("test_field", "TERM", 2)
-
-		// Verify it's a fuzzy query
-		fuzzyQuery, ok := q.(*query.FuzzyQuery)
-		assert.True(t, ok, "Query should be a FuzzyQuery")
-
-		// Verify the field is set correctly
-		assert.Equal(t, "test_field", fuzzyQuery.FieldVal)
-
-		// Verify the term is lowercased
-		assert.Equal(t, "term", fuzzyQuery.Term)
-
-		// Verify the fuzziness is set correctly
-		assert.Equal(t, 2, fuzzyQuery.Fuzziness)
-	})
-}
-
 func TestCreateExactQuery(t *testing.T) {
 	t.Run("should create match phrase query", func(t *testing.T) {
 		q := createExactQuery("test_field", "exact phrase")

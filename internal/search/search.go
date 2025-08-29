@@ -6,6 +6,7 @@ import (
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/search/query"
+	"github.com/etesam913/bytebook/internal/util"
 )
 
 // createPrefixQuery returns a case-insensitive prefix query targeting the specified field.
@@ -17,27 +18,19 @@ func createPrefixQuery(field, prefix string) query.Query {
 	return q
 }
 
-// createFuzzyQuery returns a fuzzy query over the specified field.
-// The term is lowercased and the provided fuzziness value is applied.
-func createFuzzyQuery(field, term string, fuzziness int) query.Query {
-	normalizedTerm := strings.ToLower(term)
-	q := bleve.NewFuzzyQuery(normalizedTerm)
-	q.SetField(field)
-	q.SetFuzziness(fuzziness)
-	return q
-}
-
 // createExactQuery returns a phrase query for exact matching in the specified field.
-func createExactQuery(field, phrase string) query.Query {
+func createExactQuery(field, phrase string, boost float64) query.Query {
 	q := bleve.NewMatchPhraseQuery(phrase)
 	q.SetField(field)
+	q.SetBoost(boost)
 	return q
 }
 
 // createMatchQuery returns a match query for the specified field and term.
-func createMatchQuery(field, term string) query.Query {
+func createMatchQuery(field, term string, boost float64) query.Query {
 	q := bleve.NewMatchQuery(term)
 	q.SetField(field)
+	q.SetBoost(boost)
 	return q
 }
 
@@ -122,14 +115,28 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 		} else if token.IsExact {
 			// Exact phrase search in both text and code content
 			contentQuery := bleve.NewBooleanQuery()
-			contentQuery.AddShould(createExactQuery(FieldTextContent, token.Text))
-			contentQuery.AddShould(createExactQuery(FieldCodeContent, token.Text))
+			contentQuery.AddShould(createExactQuery(FieldTextContent, token.Text, 1.0))
+			contentQuery.AddShould(createExactQuery(FieldCodeContent, token.Text, 1.0))
 			booleanQuery.AddMust(contentQuery)
 		} else {
-			// Fuzzy search in both text and code content
 			contentQuery := bleve.NewBooleanQuery()
-			contentQuery.AddShould(createMatchQuery(FieldTextContentNgram, token.Text))
-			contentQuery.AddShould(createMatchQuery(FieldCodeContent, token.Text))
+
+			// We want exact matches to rank higher
+			exactQuery := createMatchQuery(
+				FieldTextContent,
+				token.Text,
+				2.0,
+			)
+			nGramQuery := createMatchQuery(
+				FieldTextContentNgram,
+				token.Text,
+				1.0,
+			)
+
+			contentQuery.AddShould(exactQuery)
+			contentQuery.AddShould(nGramQuery)
+
+			// contentQuery.AddShould(createMatchQuery(FieldCodeContent, token.Text))
 			booleanQuery.AddMust(contentQuery)
 		}
 	}
@@ -142,9 +149,10 @@ func CreateSearchRequest(q query.Query) *bleve.SearchRequest {
 	req := bleve.NewSearchRequest(q)
 	req.Fields = []string{FieldFolder, FieldFileName, FieldLastUpdated}
 	req.Size = 50
+	req.IncludeLocations = true
 	req.Highlight = bleve.NewHighlightWithStyle("html")
 	if req.Highlight != nil {
-		req.Highlight.Fields = []string{FieldTextContent, FieldCodeContent, FieldTextContentNgram}
+		req.Highlight.Fields = []string{FieldCodeContent, FieldTextContentNgram, FieldTextContent}
 	}
 	return req
 }
@@ -197,38 +205,49 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 			}
 		}
 
-		// collect highlight fragments for text_content and code_content
+		// collect highlight fragments for text_content and code_content with deduplication
 		highlights := []HighlightResult{}
+		seen := util.Set[string]{}
+
 		if hit.Fragments != nil {
 			// Process text_content highlights
 			if frags, ok := hit.Fragments[FieldTextContent]; ok {
 				for _, frag := range frags {
-					if hasHighlightContent(frag) {
-						highlights = append(highlights, HighlightResult{
-							Content: frag,
-							IsCode:  false,
-						})
+					if !seen.Has(frag) {
+						seen.Add(frag)
+						if hasHighlightContent(frag) {
+							highlights = append(highlights, HighlightResult{
+								Content: frag,
+								IsCode:  false,
+							})
+						}
 					}
 				}
 			}
 			if frags, ok := hit.Fragments[FieldTextContentNgram]; ok {
 				for _, frag := range frags {
-					if hasHighlightContent(frag) {
-						highlights = append(highlights, HighlightResult{
-							Content: frag,
-							IsCode:  false,
-						})
+					if !seen.Has(frag) {
+						seen.Add(frag)
+						if hasHighlightContent(frag) {
+							highlights = append(highlights, HighlightResult{
+								Content: frag,
+								IsCode:  false,
+							})
+						}
 					}
 				}
 			}
 			// Process code_content highlights
 			if frags, ok := hit.Fragments[FieldCodeContent]; ok {
 				for _, frag := range frags {
-					if hasHighlightContent(frag) {
-						highlights = append(highlights, HighlightResult{
-							Content: frag,
-							IsCode:  true,
-						})
+					if !seen.Has(frag) {
+						seen.Add(frag)
+						if hasHighlightContent(frag) {
+							highlights = append(highlights, HighlightResult{
+								Content: frag,
+								IsCode:  true,
+							})
+						}
 					}
 				}
 			}
