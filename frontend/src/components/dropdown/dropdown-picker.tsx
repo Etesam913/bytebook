@@ -1,6 +1,6 @@
 import { MenuOption } from '@lexical/react/LexicalTypeaheadMenuPlugin';
 import type { JSX } from 'react';
-import { cn } from '../../utils/string-formatting';
+import { cn, FilePath } from '../../utils/string-formatting';
 
 export class DropdownPickerOption extends MenuOption {
   // What shows up in the editor
@@ -72,14 +72,15 @@ export function FilePickerMenuItem({
   onClick,
   onMouseEnter,
   option,
+  filePath,
 }: {
   index: number;
   isSelected: boolean;
   onClick: () => void;
   onMouseEnter: () => void;
   option: DropdownPickerOption;
+  filePath: FilePath;
 }) {
-  const [folderName, noteName] = option.title.split('/');
   return (
     <li
       key={option.key}
@@ -98,10 +99,10 @@ export function FilePickerMenuItem({
       <div className="flex items-center gap-1">
         {option.icon}
         <span className="text-ellipsis overflow-hidden whitespace-nowrap text-sm">
-          {noteName}
+          {filePath.note}
         </span>
       </div>
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">{folderName}/</p>
+      <p className="text-xs text-zinc-500 dark:text-zinc-400">{filePath.folder}/</p>
     </li>
   );
 }

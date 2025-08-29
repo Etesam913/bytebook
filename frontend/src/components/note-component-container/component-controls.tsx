@@ -8,7 +8,7 @@ import { Link } from '../../icons/link';
 import { Trash } from '../../icons/trash';
 import { removeDecoratorNode } from '../../utils/commands';
 import { FILE_SERVER_URL } from '../../utils/general';
-import { getFileExtension } from '../../utils/string-formatting';
+import { FilePath } from '../../utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
 
 export function NoteComponentControls({
@@ -98,8 +98,12 @@ export function NoteComponentControls({
                 return;
               }
               const folderName = segments[segments.length - 2];
-              const { extension, fileName: noteName } = getFileExtension(src);
-              navigate(`/${folderName}/${noteName}?ext=${extension}`);
+              const fileName = segments[segments.length - 1];
+              const filePath = new FilePath({
+                folder: folderName,
+                note: fileName,
+              });
+              navigate(filePath.getLinkToNote());
             } else {
               Browser.OpenURL(src);
             }

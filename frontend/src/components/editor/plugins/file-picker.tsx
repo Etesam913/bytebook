@@ -20,6 +20,7 @@ import { FILE_SERVER_URL } from '../../../utils/general';
 import {
   getFileExtension,
   convertFilePathToQueryNotation,
+  FilePath,
 } from '../../../utils/string-formatting';
 import {
   DropdownPickerOption,
@@ -46,9 +47,12 @@ export function FilePickerMenuPlugin() {
   });
   const options = (!searchQuery ? mostRecentNotes : (searchResults ?? []))
     .slice(0, MAX_VISIBLE_SEARCH_RESULTS)
-    .map(
-      (fileName) =>
-        new DropdownPickerOption(fileName, {
+    .map((fileName) => {
+      const [folder, note] = fileName.split('/');
+      const filePath = new FilePath({ folder, note });
+      
+      return {
+        dropdownOption: new DropdownPickerOption(fileName, {
           icon: (
             <RenderNoteIcon
               size="sm"
@@ -75,8 +79,10 @@ export function FilePickerMenuPlugin() {
               editor.dispatchCommand(INSERT_FILES_COMMAND, [payload]);
             }
           },
-        })
-    );
+        }),
+        filePath,
+      };
+    });
 
   const onSelectOption = (
     selectedOption: DropdownPickerOption,
@@ -97,7 +103,7 @@ export function FilePickerMenuPlugin() {
       commandPriority={COMMAND_PRIORITY_NORMAL}
       onSelectOption={onSelectOption}
       triggerFn={checkForTriggerMatch}
-      options={options}
+      options={options.map(option => option.dropdownOption)}
       menuRenderFn={(
         anchorElementRef,
         { selectedIndex, selectOptionAndCleanUp }
@@ -110,9 +116,10 @@ export function FilePickerMenuPlugin() {
                     index={i}
                     isSelected={selectedIndex === i}
                     onMouseEnter={() => {}}
-                    onClick={() => selectOptionAndCleanUp(option)}
-                    key={option.key}
-                    option={option}
+                    onClick={() => selectOptionAndCleanUp(option.dropdownOption)}
+                    key={option.dropdownOption.key}
+                    option={option.dropdownOption}
+                    filePath={option.filePath}
                   />
                 ))}
               </ul>,

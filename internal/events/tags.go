@@ -23,11 +23,12 @@ func handleTagsUpdateEvent(params EventParams, event *application.CustomEvent) {
 		folderAndNoteNames = append(folderAndNoteNames, folderAndNoteName)
 	}
 
-	reIndexNotesWithUpdatedTags(params, folderAndNoteNames)
 	// Update .attachments_to_tags.json for non-markdown files
 	if err := updateAttachmentsToTags(params.ProjectPath, folderAndNoteNames, data); err != nil {
 		log.Printf("Error updating .attachments_to_tags.json: %v", err)
 	}
+
+	reIndexNotesWithUpdatedTags(params, folderAndNoteNames)
 }
 
 type AttachmentsToTags map[string][]string
