@@ -11,16 +11,12 @@ import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { $nodesOfType } from 'lexical';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   albumDataAtom,
   draggableBlockElementAtom,
   draggedElementAtom,
   editorAtom,
-  noteContainerRefAtom,
-  noteIntersectionObserverAtom,
-  noteSeenFileNodeKeysAtom,
 } from './atoms';
 import { isNoteMaximizedAtom } from '../../atoms';
 import { projectSettingsAtom } from '../../atoms';
@@ -46,9 +42,9 @@ import { Toolbar } from './toolbar';
 import { CUSTOM_TRANSFORMERS } from './transformers';
 import { debouncedNoteHandleChange } from './utils/note-commands.ts';
 import { Album } from './album/index.tsx';
-import { CodeNode } from './nodes/code.tsx';
-import { useSendInterruptRequestMutation } from '../../hooks/code.tsx';
 import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
+import { useCodeCleanup } from './hooks/code';
+import { useNoteIntersectionObserver } from './hooks/intersection-observer';
 import type { LegacyAnimationControls } from 'motion/react';
 import { FilePath } from '../../utils/string-formatting';
 
@@ -61,7 +57,7 @@ export function NotesEditor({
 }) {
   const { folder, note } = params;
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const [editor, setEditor] = useAtom(editorAtom);
+  const setEditor = useSetAtom(editorAtom);
   const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
   const [frontmatter, setFrontmatter] = useState<Record<string, string>>({});
   const [floatingData, setFloatingData] = useState<FloatingDataType>({
@@ -73,18 +69,10 @@ export function NotesEditor({
   const queryClient = useQueryClient();
   const overflowContainerRef = useRef<HTMLDivElement | null>(null);
   const noteContainerRef = useRef<HTMLDivElement | null>(null);
-  const setNoteContainerRef = useSetAtom(noteContainerRefAtom);
-  const [noteIntersectionObserver, setNoteIntersectionObserver] = useAtom(
-    noteIntersectionObserverAtom
-  );
   const { isShowing: isAlbumShowing } = useAtomValue(albumDataAtom);
-  const [seenFileNodeKeys, setSeenFileNodeKeys] = useAtom(
-    noteSeenFileNodeKeysAtom
-  );
   const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
   const [noteMarkdownString, setNoteMarkdownString] = useState('');
   const draggedElement = useAtomValue(draggedElementAtom);
-  const { mutate: interruptExecution } = useSendInterruptRequestMutation();
   const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(
     overflowContainerRef,
     {
@@ -93,60 +81,11 @@ export function NotesEditor({
     }
   );
 
-  useEffect(() => {
-    setNoteContainerRef(noteContainerRef);
+  // Use custom hooks for code cleanup and intersection observer
+  useCodeCleanup(noteContainerRef);
+  useNoteIntersectionObserver(folder, note, noteContainerRef);
 
-    return () => {
-      // Resets some state
-      setNoteContainerRef(null);
-      setEditor(null);
 
-      // Cancels ongoing requests for a code block when navigating away from the editor
-      if (editor) {
-        editor.read(() => {
-          const allCodeNodes = $nodesOfType(CodeNode);
-          allCodeNodes.forEach((codeNode) => {
-            interruptExecution({
-              codeBlockId: codeNode.getId(),
-              codeBlockLanguage: codeNode.getLanguage(),
-              newExecutionId: '',
-            });
-          });
-        });
-      }
-    };
-  }, [noteContainerRef]);
-
-  // Sets up intersection observer for note elements file nodes
-  useEffect(() => {
-    setSeenFileNodeKeys(new Set([]));
-    setNoteIntersectionObserver(() => {
-      return new IntersectionObserver((entries) => {
-        entries.forEach(
-          (entry) => {
-            if (entry.isIntersecting) {
-              const nodeKey = entry.target.getAttribute('data-node-key');
-              if (nodeKey && !seenFileNodeKeys.has(nodeKey)) {
-                setSeenFileNodeKeys(
-                  (prevFileNodeKeys) => new Set([...prevFileNodeKeys, nodeKey])
-                );
-              }
-            }
-          },
-          {
-            root: noteContainerRef.current,
-            rootMargin: '0px 0px 100px 0px',
-            threshold: 0.3,
-          }
-        );
-      });
-    });
-    return () => {
-      noteIntersectionObserver?.disconnect();
-      setNoteIntersectionObserver(null);
-      setSeenFileNodeKeys(new Set([]));
-    };
-  }, [folder, note, noteContainerRef]);
 
   return (
     <LexicalComposer initialConfig={editorConfig}>
