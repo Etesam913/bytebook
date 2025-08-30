@@ -39,7 +39,7 @@ type LanguageSetting = {
 export const languageToSettings: Record<Languages, LanguageSetting> = {
   python: {
     basicSetup: { tabSize: 4 },
-    extension: langs.python,
+    extension: langs.py,
     language: pythonLanguage,
     icon: <PythonLogo width={18} height={18} />,
   },
@@ -50,7 +50,7 @@ export const languageToSettings: Record<Languages, LanguageSetting> = {
   },
   javascript: {
     basicSetup: { tabSize: 2 },
-    extension: langs.javascript,
+    extension: langs.js,
     language: javascriptLanguage,
     icon: <JavascriptLogo width={18} height={18} />,
   },
