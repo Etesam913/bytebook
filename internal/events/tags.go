@@ -129,7 +129,6 @@ func reIndexNotesWithUpdatedTags(
 			// Handle non-markdown files as attachments
 			fileExtension := filepath.Ext(fileName)
 			_, err := search.AddAttachmentToBatch(
-				params.ProjectPath,
 				batch,
 				params.Index,
 				folder,

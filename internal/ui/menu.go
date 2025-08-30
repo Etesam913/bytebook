@@ -34,7 +34,7 @@ func configureSettingsMenu(app *application.App, menu *application.Menu) {
 	settings.OnClick(func(ctx *application.Context) {
 		win := app.Window.Current()
 		if win != nil {
-			win.EmitEvent("settings:open")
+			win.EmitEvent(util.Events.SettingsOpen)
 		} else {
 			log.Println(
 				"Current window could not be found: settings:open event could not be emitted",
@@ -80,7 +80,7 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	search.OnClick(func(ctx *application.Context) {
 		win := app.Window.Current()
 		if win != nil {
-			win.EmitEvent("search:open-panel", map[string]any{})
+			win.EmitEvent(util.Events.SearchOpenPanel, map[string]any{})
 		} else {
 			log.Println(
 				"Current window could not be found: search:open-panel event could not be emitted",
@@ -93,7 +93,7 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	searchPage.OnClick(func(ctx *application.Context) {
 		win := app.Window.Current()
 		if win != nil {
-			win.EmitEvent("search:open", map[string]any{})
+			win.EmitEvent(util.Events.SearchOpen, map[string]any{})
 		} else {
 			log.Println(
 				"Current window could not be found: search:open event could not be emitted",

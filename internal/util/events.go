@@ -12,8 +12,11 @@ var Events = struct {
 	FolderCreate string
 
 	// UI events
-	ZoomIn  string
-	ZoomOut string
+	ZoomIn          string
+	ZoomOut         string
+	SettingsOpen    string
+	SearchOpen      string
+	SearchOpenPanel string
 
 	// File watcher events
 	SettingsUpdate string
@@ -47,8 +50,11 @@ var Events = struct {
 	FolderCreate: "folder:create",
 
 	// UI events
-	ZoomIn:  "zoom:in",
-	ZoomOut: "zoom:out",
+	ZoomIn:          "zoom:in",
+	ZoomOut:         "zoom:out",
+	SettingsOpen:    "settings:open",
+	SearchOpen:      "search:open",
+	SearchOpenPanel: "search:open-panel",
 
 	// File watcher events
 	SettingsUpdate: "settings:update",
