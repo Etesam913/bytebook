@@ -88,7 +88,7 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 		}
 	})
 
-	searchPage := sub.Add("Search Page")
+	searchPage := sub.Add("Search Through Notes")
 	searchPage.SetAccelerator("cmdorctrl+k")
 	searchPage.OnClick(func(ctx *application.Context) {
 		win := app.Window.Current()
@@ -97,6 +97,19 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 		} else {
 			log.Println(
 				"Current window could not be found: search:open event could not be emitted",
+			)
+		}
+	})
+
+	searchNote := sub.Add("Search in Note")
+	searchNote.SetAccelerator("cmdorctrl+f")
+	searchNote.OnClick(func(ctx *application.Context) {
+		win := app.Window.Current()
+		if win != nil {
+			win.EmitEvent(util.Events.SearchNote, map[string]any{})
+		} else {
+			log.Println(
+				"Current window could not be found: search:note event could not be emitted",
 			)
 		}
 	})

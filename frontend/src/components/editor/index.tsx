@@ -85,8 +85,6 @@ export function NotesEditor({
   useCodeCleanup(noteContainerRef);
   useNoteIntersectionObserver(folder, note, noteContainerRef);
 
-
-
   return (
     <LexicalComposer initialConfig={editorConfig}>
       {isAlbumShowing && <Album />}

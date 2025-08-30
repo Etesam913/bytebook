@@ -1,7 +1,6 @@
 package search
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -316,7 +315,6 @@ func AddMarkdownNoteToBatch(
 	fileName string,
 	forceIndex bool,
 ) (string, error) {
-	fmt.Println("addMarkdownNoteToBatch")
 	// Read the file content
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -335,14 +333,12 @@ func AddMarkdownNoteToBatch(
 	} else {
 		// Document exists, check if lastUpdated has changed
 		currentLastUpdated, _ := notes.GetLastUpdatedFromFrontmatter(markdown)
-		fmt.Println("currentLastUpdated", currentLastUpdated, "docInfo", docInfo)
 		// If there's no lastUpdated in current file or index, or they differ, re-index
 		if forceIndex || (currentLastUpdated == "" || docInfo.LastUpdated == "" || currentLastUpdated != docInfo.LastUpdated) {
 			shouldIndex = true
 		}
 	}
 
-	fmt.Println("shouldIndex", shouldIndex, docInfo.Exists, fileId)
 	if shouldIndex {
 		bleveDocument := CreateMarkdownNoteBleveDocument(markdown, folderName, fileName)
 		batch.Index(fileId, bleveDocument)

@@ -1,8 +1,8 @@
-export function Magnifier({
+export function ArrowDown({
   width = 20,
   height = 20,
   fill = 'currentColor',
-  title = 'search',
+  title = 'arrow down',
   className,
 }: {
   width?: number;
@@ -15,7 +15,7 @@ export function Magnifier({
     <svg
       height={height}
       width={width}
-      viewBox="0 0 12 12"
+      viewBox="0 0 20 20"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
@@ -26,21 +26,19 @@ export function Magnifier({
           stroke={fill}
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
-          x1="7.652"
-          x2="10.75"
-          y1="7.652"
-          y2="10.75"
+          strokeWidth="2"
+          x1="10"
+          x2="10"
+          y1="3"
+          y2="17"
         />
-        <circle
-          cx="5"
-          cy="5"
+        <polyline
           fill="none"
-          r="3.75"
+          points="5 12 10 17 15 12"
           stroke={fill}
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth="2"
         />
       </g>
     </svg>

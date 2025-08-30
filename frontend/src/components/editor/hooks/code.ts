@@ -34,5 +34,5 @@ export function useCodeCleanup(
         });
       }
     };
-  }, [noteContainerRef, setNoteContainerRef, setEditor, editor, interruptExecution]);
+  }, [noteContainerRef]);
 }

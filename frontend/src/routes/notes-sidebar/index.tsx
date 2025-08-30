@@ -36,7 +36,6 @@ export function NotesSidebar({
   const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
   const searchParams: { ext?: string } = useSearchParamsEntries();
   const fileExtension = searchParams?.ext;
-  console.log(folder, note, fileExtension);
   const noteQueryResult = useNotes(folder, `${note}.${fileExtension}`);
   const openCreateNoteDialog = useCreateNoteDialog();
 

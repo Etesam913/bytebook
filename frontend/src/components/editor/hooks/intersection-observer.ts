@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { noteIntersectionObserverAtom, noteSeenFileNodeKeysAtom } from '../atoms';
+import {
+  noteIntersectionObserverAtom,
+  noteSeenFileNodeKeysAtom,
+} from '../atoms';
 
 export function useNoteIntersectionObserver(
   folder: string,
@@ -42,5 +45,5 @@ export function useNoteIntersectionObserver(
       setNoteIntersectionObserver(null);
       setSeenFileNodeKeys(new Set([]));
     };
-  }, [folder, note, noteContainerRef, noteIntersectionObserver, setNoteIntersectionObserver, setSeenFileNodeKeys, seenFileNodeKeys]);
+  }, [folder, note, noteContainerRef]);
 }

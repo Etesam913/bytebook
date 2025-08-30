@@ -1,6 +1,7 @@
 import { mergeRegister } from '@lexical/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useAtomValue, useSetAtom } from 'jotai';
+import { isEventInCurrentWindow } from '../../../utils/events';
 import {
   $getSelection,
   $isNodeSelection,
@@ -30,6 +31,7 @@ import {
   type RefObject,
   type SetStateAction,
   useEffect,
+  useState,
 } from 'react';
 import { GetNoteMarkdown } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { draggedElementAtom, previousMarkdownAtom } from '../atoms';
@@ -45,6 +47,7 @@ import {
 } from '../utils/note-commands';
 import { $convertFromMarkdownStringCorrect } from '../utils/note-metadata';
 import { updateToolbar } from '../utils/toolbar';
+import { useWailsEvent } from '../../../hooks/events';
 
 /** Gets note markdown from local system on mount */
 export function useNoteMarkdown(
@@ -269,4 +272,18 @@ export function useToolbarEvents(
     noteContainerRef,
     draggedElement,
   ]);
+}
+
+export function useSearchNoteEvent(): [
+  boolean,
+  Dispatch<SetStateAction<boolean>>,
+] {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  useWailsEvent('search:note', async (data) => {
+    if (!(await isEventInCurrentWindow(data))) return;
+    setIsSearchOpen((prev) => !prev);
+  });
+
+  return [isSearchOpen, setIsSearchOpen];
 }

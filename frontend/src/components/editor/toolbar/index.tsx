@@ -18,7 +18,11 @@ import { cn } from '../../../utils/string-formatting';
 import { MaximizeNoteButton } from '../../buttons/maximize-note';
 import { ToolbarButtons } from '../../buttons/toolbar';
 import { Dropdown } from '../../dropdown';
-import { useNoteMarkdown, useToolbarEvents } from '../hooks/toolbar';
+import {
+  useNoteMarkdown,
+  useSearchNoteEvent,
+  useToolbarEvents,
+} from '../hooks/toolbar';
 import { FloatingMenuPlugin } from '../plugins/floating-menu';
 import {
   blockTypesDropdownItems,
@@ -35,6 +39,7 @@ import {
   useCodeBlockStream,
   useKernelLaunchEvents,
 } from '../../../hooks/code';
+import { NoteSearch } from './note-search/index';
 
 export function Toolbar({
   folder,
@@ -80,6 +85,8 @@ export function Toolbar({
     editor,
   });
 
+  const [isSearchOpen, setIsSearchOpen] = useSearchNoteEvent();
+
   useNoteMarkdown(
     editor,
     folder,
@@ -111,8 +118,6 @@ export function Toolbar({
   useCodeBlockStatus(editor);
   useCodeBlockExecuteResult(editor);
   useCodeBlockExecuteInput(editor);
-
-  // useFileDropEvent(editor, folder, note);
 
   const FloatingPlugin = noteContainerRef.current ? (
     createPortal(
@@ -147,6 +152,10 @@ export function Toolbar({
           isNoteMaximized && 'pl-[5.75rem]!'
         )}
       >
+        <NoteSearch
+          isSearchOpen={isSearchOpen}
+          setIsSearchOpen={setIsSearchOpen}
+        />
         <span className="flex items-center gap-1.5">
           <MaximizeNoteButton
             animationControls={animationControls}
@@ -163,12 +172,6 @@ export function Toolbar({
             buttonClassName="w-[10rem]"
             disabled={disabled}
           />
-          {/* <FontFamilyInput
-            frontmatter={frontmatter}
-            setFrontmatter={setFrontmatter}
-            editor={editor}
-            disabled={disabled}
-          /> */}
         </span>
         <ToolbarButtons
           canUndo={canUndo}

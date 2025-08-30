@@ -1,7 +1,7 @@
 import { Events as WailsEvents } from '@wailsio/runtime';
 import { useEffect } from 'react';
 
-type WailsEvent = {
+export type WailsEvent = {
   name: string;
   sender: string;
   data: unknown;

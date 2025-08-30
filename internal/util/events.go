@@ -17,6 +17,7 @@ var Events = struct {
 	SettingsOpen    string
 	SearchOpen      string
 	SearchOpenPanel string
+	SearchNote      string
 
 	// File watcher events
 	SettingsUpdate string
@@ -55,6 +56,7 @@ var Events = struct {
 	SettingsOpen:    "settings:open",
 	SearchOpen:      "search:open",
 	SearchOpenPanel: "search:open-panel",
+	SearchNote:      "search:note",
 
 	// File watcher events
 	SettingsUpdate: "settings:update",

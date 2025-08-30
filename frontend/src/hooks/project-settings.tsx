@@ -1,5 +1,4 @@
 import { useMutation } from '@tanstack/react-query';
-import { Window } from '@wailsio/runtime';
 import { useSetAtom } from 'jotai';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
@@ -13,6 +12,7 @@ import { useWailsEvent } from '../hooks/events';
 import type { ProjectSettings } from '../types';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { validateProjectSettings } from '../utils/project-settings';
+import { isEventInCurrentWindow } from '../utils/events';
 import { parseRGB } from '../utils/string-formatting';
 import { QueryError } from '../utils/query';
 import { ProjectSettingsJson } from '../../bindings/github.com/etesam913/bytebook/internal/config/models';
@@ -91,8 +91,7 @@ export function useProjectSettings() {
 
   // Open the settings dialog on 'settings:open' event.
   useWailsEvent('settings:open', async (data) => {
-    const windowName = await Window.Name();
-    if (windowName !== data.sender) return;
+    if (!(await isEventInCurrentWindow(data))) return;
     console.info('settings:open', data);
     setDialogData({
       isOpen: true,
