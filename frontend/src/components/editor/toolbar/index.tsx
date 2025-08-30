@@ -39,7 +39,7 @@ import {
   useCodeBlockStream,
   useKernelLaunchEvents,
 } from '../../../hooks/code';
-import { NoteSearch } from './note-search/index';
+import { NoteFindPanel } from './note-find-panel/index';
 
 export function Toolbar({
   folder,
@@ -152,7 +152,7 @@ export function Toolbar({
           isNoteMaximized && 'pl-[5.75rem]!'
         )}
       >
-        <NoteSearch
+        <NoteFindPanel
           isSearchOpen={isSearchOpen}
           setIsSearchOpen={setIsSearchOpen}
         />

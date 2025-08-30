@@ -113,6 +113,15 @@ mark {
   @apply bg-(--accent-color-highlight) text-zinc-900 dark:text-zinc-100;
 }
 
+/* Search highlight styles */
+.lexical-search-highlight {
+  @apply bg-yellow-200 dark:bg-yellow-600/30;
+}
+
+.lexical-search-current {
+  @apply bg-orange-300 dark:bg-orange-500/40 ring-2 ring-orange-400 dark:ring-orange-400;
+}
+
 input[type='text'],
 textarea,
 [contenteditable] {
