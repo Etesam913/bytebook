@@ -2,6 +2,7 @@ package search
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
@@ -152,15 +153,16 @@ func CreateSearchRequest(q query.Query) *bleve.SearchRequest {
 	req.IncludeLocations = true
 	req.Highlight = bleve.NewHighlightWithStyle("html")
 	if req.Highlight != nil {
-		req.Highlight.Fields = []string{FieldCodeContent, FieldTextContentNgram, FieldTextContent}
+		req.Highlight.Fields = HIGHLIGHT_FIELDS
 	}
 	return req
 }
 
 // HighlightResult represents a single highlight with its type
 type HighlightResult struct {
-	Content string `json:"content"`
-	IsCode  bool   `json:"isCode"`
+	Content         string `json:"content"`
+	IsCode          bool   `json:"isCode"`
+	HighlightedTerm string `json:"highlightedTerm"`
 }
 
 // SearchResult represents one search hit returned to the frontend
@@ -175,6 +177,20 @@ type SearchResult struct {
 // hasHighlightContent checks if a fragment contains actual highlighted content
 func hasHighlightContent(fragment string) bool {
 	return strings.Contains(fragment, "<mark>") || strings.Contains(fragment, "<em>")
+}
+
+// extractHighlightedText extracts the text content from the first <mark> or <em> tag in a fragment.
+// Returns the text from the first highlighted portion, or empty string if none found.
+func extractHighlightedText(fragment string) string {
+	// Regex to match content inside <mark> or <em> tags
+	re := regexp.MustCompile(`<(?:mark|em)>(.*?)</(?:mark|em)>`)
+	match := re.FindStringSubmatch(fragment)
+
+	if len(match) > 1 {
+		return match[1]
+	}
+
+	return ""
 }
 
 // ProcessDocumentSearchResults converts Bleve search results into SearchResult structs
@@ -210,43 +226,19 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 		seen := util.Set[string]{}
 
 		if hit.Fragments != nil {
-			// Process text_content highlights
-			if frags, ok := hit.Fragments[FieldTextContent]; ok {
-				for _, frag := range frags {
-					if !seen.Has(frag) {
-						seen.Add(frag)
-						if hasHighlightContent(frag) {
-							highlights = append(highlights, HighlightResult{
-								Content: frag,
-								IsCode:  false,
-							})
-						}
-					}
-				}
-			}
-			if frags, ok := hit.Fragments[FieldTextContentNgram]; ok {
-				for _, frag := range frags {
-					if !seen.Has(frag) {
-						seen.Add(frag)
-						if hasHighlightContent(frag) {
-							highlights = append(highlights, HighlightResult{
-								Content: frag,
-								IsCode:  false,
-							})
-						}
-					}
-				}
-			}
-			// Process code_content highlights
-			if frags, ok := hit.Fragments[FieldCodeContent]; ok {
-				for _, frag := range frags {
-					if !seen.Has(frag) {
-						seen.Add(frag)
-						if hasHighlightContent(frag) {
-							highlights = append(highlights, HighlightResult{
-								Content: frag,
-								IsCode:  true,
-							})
+			// Process highlights for all highlight fields
+			for _, field := range HIGHLIGHT_FIELDS {
+				if frags, ok := hit.Fragments[field]; ok {
+					for _, frag := range frags {
+						if !seen.Has(frag) {
+							seen.Add(frag)
+							if hasHighlightContent(frag) {
+								highlights = append(highlights, HighlightResult{
+									Content:         frag,
+									IsCode:          field == FieldCodeContent,
+									HighlightedTerm: extractHighlightedText(frag),
+								})
+							}
 						}
 					}
 				}

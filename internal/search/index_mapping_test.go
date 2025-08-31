@@ -214,7 +214,7 @@ func TestAddMarkdownNoteToBatch(t *testing.T) {
 		filePath := env.createMarkdownFile(folderPath, "test.md", basicMarkdown)
 
 		batch := env.Index.NewBatch()
-		fileId, err := AddMarkdownNoteToBatch(batch, env.Index, filePath, "test-folder", "test.md")
+		fileId, err := AddMarkdownNoteToBatch(batch, env.Index, filePath, "test-folder", "test.md", false)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, fileId)
@@ -236,7 +236,7 @@ func TestAddMarkdownNoteToBatch(t *testing.T) {
 		batch := env.Index.NewBatch()
 		initialSize := batch.Size()
 
-		returnedId, err := AddMarkdownNoteToBatch(batch, env.Index, filePath, "test-folder-2", "test.md")
+		returnedId, err := AddMarkdownNoteToBatch(batch, env.Index, filePath, "test-folder-2", "test.md", false)
 
 		assert.NoError(t, err)
 		assert.Equal(t, "test-folder-2/test.md", returnedId)

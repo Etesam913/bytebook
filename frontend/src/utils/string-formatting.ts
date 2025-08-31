@@ -78,8 +78,19 @@ export class FilePath {
     return `${this.folder}/${this.note}`;
   }
 
-  getLinkToNote() {
-    return `/${this.folder}/${encodeURIComponent(this.noteWithoutExtension)}?ext=${this.noteExtension}`;
+  /**
+   * Returns a link to the note, with optional additional query parameters.
+   * @param extraParams - An object of additional query parameters to add to the link.
+   * @returns The link to the note with query parameters.
+   */
+  getLinkToNote(extraParams?: Record<string, string | number | boolean>) {
+    const params = new URLSearchParams({ ext: this.noteExtension });
+    if (extraParams) {
+      for (const [key, value] of Object.entries(extraParams)) {
+        params.set(key, String(value));
+      }
+    }
+    return `/${this.folder}/${encodeURIComponent(this.noteWithoutExtension)}?${params.toString()}`;
   }
 
   getFileUrl() {

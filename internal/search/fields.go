@@ -26,5 +26,8 @@ const (
 	FieldCreatedDate           = "created_date"
 )
 
+// Fields that should be highlighted in search results
+var HIGHLIGHT_FIELDS = []string{FieldCodeContent, FieldTextContentNgram, FieldTextContent}
+
 var NGramAnalyzer = "custom_ngram"
 var NGramTokenFilter = "n-gram"

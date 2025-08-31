@@ -25,29 +25,21 @@ export function NavigationControls({
           onClick={onPreviousMatch}
           title="Previous match (Shift+Enter)"
           disabled={totalMatches === 0}
-          className="rounded hover:bg-zinc-200 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="rounded text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed hover:text-zinc-900 hover:dark:text-zinc-100"
           tabIndex={0}
           aria-label="Previous match"
         >
-          <ArrowUp
-            width={16}
-            height={16}
-            className="text-zinc-600 dark:text-zinc-300"
-          />
+          <ArrowUp width={16} height={16} />
         </button>
         <button
           onClick={onNextMatch}
           title="Next match (Enter)"
           disabled={totalMatches === 0}
-          className="rounded hover:bg-zinc-200 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="rounded text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed hover:text-zinc-900 hover:dark:text-zinc-100"
           tabIndex={0}
           aria-label="Next match"
         >
-          <ArrowDown
-            width={16}
-            height={16}
-            className="text-zinc-600 dark:text-zinc-300"
-          />
+          <ArrowDown width={16} height={16} />
         </button>
       </div>
     </>

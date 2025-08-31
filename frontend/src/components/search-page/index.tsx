@@ -10,7 +10,7 @@ import { useAtom } from 'jotai';
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn, FilePath } from '../../utils/string-formatting';
-import { SearchCodeBlock } from './search-code-block';
+import { SearchHighlights } from './search-highlights';
 
 export function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useAtom(lastSearchQueryAtom);
@@ -138,11 +138,19 @@ export function SearchPage() {
         {searchResults.map(
           ({ folder, note, title, lastUpdated, highlights }, idx) => {
             const path = new FilePath({ folder, note });
+            let pathToNote = path.getLinkToNote();
+
+            // Adding query param for the highlighted term
+            if (highlights[0]?.highlightedTerm) {
+              pathToNote = path.getLinkToNote({
+                highlight: highlights[0].highlightedTerm,
+              });
+            }
 
             return (
               <Link
-                key={path.getLinkToNote()}
-                to={path.getLinkToNote()}
+                key={pathToNote}
+                to={pathToNote}
                 draggable={false}
                 className={cn(
                   'block py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',
@@ -158,26 +166,7 @@ export function SearchPage() {
                     Updated {lastUpdated}
                   </div>
                 )}
-                {(highlights?.length ?? 0) > 0 && (
-                  <div className="mt-1 space-y-1">
-                    {(highlights ?? []).slice(0, 3).map((highlight, idx) =>
-                      highlight.isCode ? (
-                        <SearchCodeBlock
-                          key={idx}
-                          content={highlight.content}
-                        />
-                      ) : (
-                        <div
-                          key={idx}
-                          className="text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap"
-                          dangerouslySetInnerHTML={{
-                            __html: highlight.content,
-                          }}
-                        />
-                      )
-                    )}
-                  </div>
-                )}
+                <SearchHighlights highlights={highlights} />
               </Link>
             );
           }

@@ -59,7 +59,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 			Folder:      "folder1",
 			Note:        "doc1",
 			LastUpdated: "",
-			Highlights:  []HighlightResult{{Content: "This contains <mark>search term</mark>.", IsCode: false}},
+			Highlights:  []HighlightResult{{Content: "This contains <mark>search term</mark>.", IsCode: false, HighlightedTerm: "search term"}},
 		}
 		assert.Equal(t, expectedFirst, results[0])
 
@@ -69,7 +69,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 			Folder:      "folder2",
 			Note:        "doc2",
 			LastUpdated: "2023-12-02T15:45:00Z",
-			Highlights:  []HighlightResult{{Content: "This also contains <mark>search term</mark>.", IsCode: false}},
+			Highlights:  []HighlightResult{{Content: "This also contains <mark>search term</mark>.", IsCode: false, HighlightedTerm: "search term"}},
 		}
 		assert.Equal(t, expectedSecond, results[1])
 	})
@@ -355,7 +355,7 @@ func TestCreatePrefixQuery(t *testing.T) {
 
 func TestCreateExactQuery(t *testing.T) {
 	t.Run("should create match phrase query", func(t *testing.T) {
-		q := createExactQuery("test_field", "exact phrase")
+		q := createExactQuery("test_field", "exact phrase", 1.0)
 
 		// Verify it's a match phrase query
 		phraseQuery, ok := q.(*query.MatchPhraseQuery)
@@ -400,6 +400,47 @@ func TestHasHighlightContent(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			result := hasHighlightContent(tc.fragment)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestExtractHighlightedText(t *testing.T) {
+	testCases := []struct {
+		name     string
+		fragment string
+		expected string
+	}{
+		{
+			name:     "extracts from single mark or em tag",
+			fragment: "Text with <mark>highlighted</mark> content and <em>emphasized</em> too.",
+			expected: "highlighted",
+		},
+		{
+			name:     "extracts first tag when multiple present",
+			fragment: "Multiple <em>first</em> and <mark>second</mark> highlights.",
+			expected: "first",
+		},
+		{
+			name:     "handles multi-word phrases and special characters",
+			fragment: "Code: <mark>array[0].method()</mark> and more.",
+			expected: "array[0].method()",
+		},
+		{
+			name:     "returns empty for no highlights or empty tags",
+			fragment: "Plain text with <strong>bold</strong> and <mark></mark>.",
+			expected: "",
+		},
+		{
+			name:     "handles empty input",
+			fragment: "",
+			expected: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := extractHighlightedText(tc.fragment)
 			assert.Equal(t, tc.expected, result)
 		})
 	}

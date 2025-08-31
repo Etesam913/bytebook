@@ -129,13 +129,4 @@ export function useShowWhenInViewport(
       noteIntersectionObserver.unobserve(loaderRef.current);
     };
   }, [loaderRef]);
-
-  // Scroll to the bottom when the image is expanded. When spamming the next image, there is a small chance that the image does not show up. This fixes that
-  // useEffect(() => {
-  //   if (isExpanded) {
-  //     loaderRef.current?.scrollIntoView({
-  //       block: 'end',
-  //     });
-  //   }
-  // }, [isExpanded]);
 }

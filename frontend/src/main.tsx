@@ -5,6 +5,7 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query';
 import { StrictMode } from 'react';
+import { scan } from 'react-scan';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
@@ -37,6 +38,10 @@ const queryClient = new QueryClient({
       }
     },
   }),
+});
+
+scan({
+  enabled: true,
 });
 
 ReactDOM.createRoot(rootElem).render(
