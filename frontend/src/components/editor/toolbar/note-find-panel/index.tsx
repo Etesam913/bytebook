@@ -8,7 +8,9 @@ import {
   $getRoot,
   $isElementNode,
   $isTextNode,
+  IS_HIGHLIGHT,
   LexicalEditor,
+  LexicalNode,
   TextNode,
 } from 'lexical';
 import { $dfs } from '@lexical/utils';
@@ -123,14 +125,25 @@ export function NoteFindPanel({
             node.toggleFormat('highlight');
 
             // Merge with adjacent text nodes since we split them during highlighting
-            const canMergeWith = (sibling: any): sibling is TextNode =>
-              sibling && $isTextNode(sibling);
+            // Merge can only happen if the two nodes have the same format
+            const canMergeWith = (
+              sibling: LexicalNode | null,
+              targetNode: TextNode
+            ): sibling is TextNode => {
+              // Only merge if both are text nodes and have the same format
+              return !!(
+                sibling &&
+                $isTextNode(sibling) &&
+                sibling.getFormat() === targetNode.getFormat()
+              );
+            };
 
             const prevSibling = parent.getChildAtIndex(
               indexOfHighlightedNode - 1
             );
-            if (canMergeWith(prevSibling)) {
-              // Merge with previous sibling
+
+            if (canMergeWith(prevSibling, node)) {
+              // Merge with previous sibling while preserving format
               const mergedText =
                 prevSibling.getTextContent() + node.getTextContent();
               prevSibling.setTextContent(mergedText);
@@ -140,7 +153,7 @@ export function NoteFindPanel({
               const nextSibling = parent.getChildAtIndex(
                 indexOfHighlightedNode
               );
-              if (canMergeWith(nextSibling)) {
+              if (canMergeWith(nextSibling, prevSibling)) {
                 const finalText =
                   prevSibling.getTextContent() + nextSibling.getTextContent();
                 prevSibling.setTextContent(finalText);
@@ -151,10 +164,12 @@ export function NoteFindPanel({
               const nextSibling = parent.getChildAtIndex(
                 indexOfHighlightedNode + 1
               );
-              if (canMergeWith(nextSibling)) {
+              if (canMergeWith(nextSibling, node)) {
                 const mergedText =
                   node.getTextContent() + nextSibling.getTextContent();
+                const preservedFormat = node.getFormat();
                 node.setTextContent(mergedText);
+                node.setFormat(preservedFormat);
                 nextSibling.remove();
               }
             }
@@ -183,17 +198,24 @@ export function NoteFindPanel({
     const match = matches[matchIndex];
 
     editor.update(() => {
+      // Prevents the editor from being selected and stealing focus from the find input
       $addUpdateTag('skip-dom-selection');
+
       const node = $getNodeByKey(match.nodeKey);
       if (!node || !$isTextNode(node)) return;
 
+      // Splits text node by match into text before match, match text, and text after match
       const newNodes =
         match.start === 0
           ? node.splitText(match.end + 1)
           : node.splitText(match.start, match.end + 1);
 
       const targetNode = match.start === 0 ? newNodes[0] : newNodes[1];
-      targetNode.setFormat('highlight');
+
+      // Add highlight format to the target node
+      const currentFormatWithHighlight = targetNode.getFormat() | IS_HIGHLIGHT;
+
+      targetNode.setFormat(currentFormatWithHighlight);
       targetNodeKey = targetNode.getKey();
     });
 
