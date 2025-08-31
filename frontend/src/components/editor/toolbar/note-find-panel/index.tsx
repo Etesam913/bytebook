@@ -3,81 +3,20 @@ import { AnimatePresence, motion } from 'motion/react';
 import { easingFunctions } from '../../../../animations';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
+  $addUpdateTag,
   $getNodeByKey,
   $getRoot,
   $isElementNode,
   $isTextNode,
-  ElementNode,
   LexicalEditor,
   TextNode,
 } from 'lexical';
-
 import { $dfs } from '@lexical/utils';
 import { XMark } from '../../../../icons/circle-xmark';
 import { Magnifier } from '../../../../icons/magnifier';
 import { NavigationControls } from './navigation-controls';
 import { Input } from '../../../input';
-import { runEditorMutationWithoutStealingFocus } from '../../../../utils/selection';
 import { useOnClickOutside } from '../../../../hooks/general';
-
-function clearHighlights(editor: LexicalEditor) {
-  runEditorMutationWithoutStealingFocus(editor, () => {
-    const dfsNodes = $dfs($getRoot());
-    const highlightedNodes: Array<{
-      node: TextNode;
-      parent: ElementNode;
-      index: number;
-    }> = [];
-
-    // Find all highlighted nodes and their positions
-    dfsNodes.forEach(({ node }) => {
-      if ($isTextNode(node) && node.hasFormat('highlight')) {
-        const parent = node.getParent();
-        if (parent && $isElementNode(parent)) {
-          const index = parent.getChildren().indexOf(node);
-          highlightedNodes.push({ node, parent, index });
-        }
-      }
-    });
-
-    // Remove highlights and merge text nodes
-    highlightedNodes.forEach(({ node, parent, index }) => {
-      node.toggleFormat('highlight');
-
-      const canMergeWith = (sibling: any): sibling is TextNode =>
-        sibling &&
-        $isTextNode(sibling) &&
-        sibling.getFormat() === node.getFormat() &&
-        sibling.getStyle() === node.getStyle();
-
-      const prevSibling = parent.getChildAtIndex(index - 1);
-      if (canMergeWith(prevSibling)) {
-        // Merge with previous sibling
-        const mergedText = prevSibling.getTextContent() + node.getTextContent();
-        prevSibling.setTextContent(mergedText);
-        node.remove();
-
-        // Check if we can also merge with next sibling
-        const nextSibling = parent.getChildAtIndex(index);
-        if (canMergeWith(nextSibling)) {
-          const finalText =
-            prevSibling.getTextContent() + nextSibling.getTextContent();
-          prevSibling.setTextContent(finalText);
-          nextSibling.remove();
-        }
-      } else {
-        // Check if we can merge with next sibling only
-        const nextSibling = parent.getChildAtIndex(index + 1);
-        if (canMergeWith(nextSibling)) {
-          const mergedText =
-            node.getTextContent() + nextSibling.getTextContent();
-          node.setTextContent(mergedText);
-          nextSibling.remove();
-        }
-      }
-    });
-  });
-}
 
 type MatchData = {
   start: number;
@@ -95,38 +34,44 @@ export function NoteFindPanel({
 }) {
   const [searchValue, setSearchValue] = useState('');
   const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
-  const [totalMatches, setTotalMatches] = useState(0);
-  const [allMatches, setAllMatches] = useState<MatchData[]>([]);
+  const [matchData, setMatchData] = useState<MatchData[]>([]);
   const [editor] = useLexicalComposerContext();
   const panelRef = useRef<HTMLDivElement>(null);
+  const highlightedNodeKeyRef = useRef<string | null>(null);
 
-  // Clear highlights when clicking outside the search panel
   useOnClickOutside(panelRef, () => {
-    clearHighlights(editor);
+    clearHighlight(editor);
   });
 
+  /**
+   * Performs a case-insensitive search for the given term in the editor content.
+   * Clears existing highlights and finds all matches, then highlights the first match.
+   * @param searchTerm - The text to search for in the editor
+   */
   function performSearch(searchTerm: string) {
-    if (!searchTerm) {
-      clearHighlights(editor);
-      setAllMatches([]);
-      setTotalMatches(0);
-      setCurrentMatchIndex(-1);
-      return;
-    }
-
     const matches: MatchData[] = [];
-    clearHighlights(editor);
 
-    runEditorMutationWithoutStealingFocus(editor, () => {
-      $dfs($getRoot()).forEach(({ node }) => {
+    // Highlights from a previous search are cleared
+    clearHighlight(editor);
+
+    editor.read(() => {
+      const nodes = $dfs($getRoot());
+
+      // Storing the matches for searchTerm in each text node
+      nodes.forEach(({ node }) => {
         if (!$isTextNode(node)) return;
 
-        const nodeText = node.getTextContent();
+        const nodeText = node.getTextContent().toLowerCase();
         let searchIndex = 0;
 
-        for (let i = 0; i < nodeText.length; i++) {
+        let i = 0;
+
+        // Simple sliding-window approach to find the matches
+        while (i < nodeText.length) {
           if (nodeText[i] === searchTerm[searchIndex]) {
             searchIndex++;
+
+            // If the entire search term is found, add the match
             if (searchIndex === searchTerm.length) {
               matches.push({
                 start: i - searchTerm.length + 1,
@@ -139,13 +84,12 @@ export function NoteFindPanel({
           } else {
             searchIndex = 0;
           }
+          i++;
         }
       });
     });
 
-    // Update state and highlight first match
-    setAllMatches(matches);
-    setTotalMatches(matches.length);
+    setMatchData(matches);
 
     if (matches.length > 0) {
       setCurrentMatchIndex(0);
@@ -155,31 +99,91 @@ export function NoteFindPanel({
     }
   }
 
-  function scrollToMatch(targetNode: TextNode) {
-    setTimeout(() => {
-      editor.read(() => {
-        if (targetNode) {
-          const editorElement = editor.getElementByKey(targetNode.getKey());
-          if (editorElement) {
-            editorElement.scrollIntoView({
-              block: 'center',
-              inline: 'nearest',
-            });
+  /**
+   * Clears the currently highlighted search match and restores its original formatting.
+   * Also merges adjacent text nodes that were split during highlighting.
+   * @param editor - The Lexical editor instance
+   */
+  function clearHighlight(editor: LexicalEditor) {
+    const highlightedNodeKey = highlightedNodeKeyRef.current;
+    if (!highlightedNodeKey) return;
+
+    editor.update(
+      () => {
+        // Prevents the editor from being selected and stealing focus from the find input
+        $addUpdateTag('skip-dom-selection');
+
+        const node = $getNodeByKey(highlightedNodeKey);
+        if (node && $isTextNode(node) && node.hasFormat('highlight')) {
+          const parent = node.getParent();
+          if (parent && $isElementNode(parent)) {
+            const indexOfHighlightedNode = parent.getChildren().indexOf(node);
+
+            // Restore the original format instead of just toggling highlight
+            node.toggleFormat('highlight');
+
+            // Merge with adjacent text nodes since we split them during highlighting
+            const canMergeWith = (sibling: any): sibling is TextNode =>
+              sibling && $isTextNode(sibling);
+
+            const prevSibling = parent.getChildAtIndex(
+              indexOfHighlightedNode - 1
+            );
+            if (canMergeWith(prevSibling)) {
+              // Merge with previous sibling
+              const mergedText =
+                prevSibling.getTextContent() + node.getTextContent();
+              prevSibling.setTextContent(mergedText);
+              node.remove();
+
+              // Check if we can also merge with next sibling
+              const nextSibling = parent.getChildAtIndex(
+                indexOfHighlightedNode
+              );
+              if (canMergeWith(nextSibling)) {
+                const finalText =
+                  prevSibling.getTextContent() + nextSibling.getTextContent();
+                prevSibling.setTextContent(finalText);
+                nextSibling.remove();
+              }
+            } else {
+              // Check if we can merge with next sibling only
+              const nextSibling = parent.getChildAtIndex(
+                indexOfHighlightedNode + 1
+              );
+              if (canMergeWith(nextSibling)) {
+                const mergedText =
+                  node.getTextContent() + nextSibling.getTextContent();
+                node.setTextContent(mergedText);
+                nextSibling.remove();
+              }
+            }
           }
+          highlightedNodeKeyRef.current = null;
         }
-      });
-    }, 50);
+      },
+      // The tag makes sure that the clearing of the highlight is not included in the history
+      { tag: 'history-merge' }
+    );
   }
 
+  /**
+   * Highlights a specific search match by splitting the text node and applying highlight formatting.
+   * Stores the highlighted node key and original format for later restoration.
+   * @param matchIndex - The index of the match to highlight
+   * @param matches - Array of match data (defaults to allMatches)
+   */
   function highlightMatch(
     matchIndex: number,
-    matches: MatchData[] = allMatches
+    matches: MatchData[] = matchData
   ) {
     if (matchIndex < 0 || matchIndex >= matches.length) return;
-    let targetNode: TextNode | null = null;
+    let targetNodeKey: string | null = null;
 
     const match = matches[matchIndex];
-    runEditorMutationWithoutStealingFocus(editor, () => {
+
+    editor.update(() => {
+      $addUpdateTag('skip-dom-selection');
       const node = $getNodeByKey(match.nodeKey);
       if (!node || !$isTextNode(node)) return;
 
@@ -188,39 +192,80 @@ export function NoteFindPanel({
           ? node.splitText(match.end + 1)
           : node.splitText(match.start, match.end + 1);
 
-      targetNode = match.start === 0 ? newNodes[0] : newNodes[1];
+      const targetNode = match.start === 0 ? newNodes[0] : newNodes[1];
       targetNode.setFormat('highlight');
+      targetNodeKey = targetNode.getKey();
     });
 
-    if (targetNode) {
-      scrollToMatch(targetNode);
+    if (targetNodeKey) {
+      highlightedNodeKeyRef.current = targetNodeKey;
+
+      // Get the node again to scroll to it
+      editor.read(() => {
+        const targetNode = $getNodeByKey(targetNodeKey!);
+        if (targetNode && $isTextNode(targetNode)) {
+          if (targetNode) {
+            const editorElement = editor.getElementByKey(targetNode.getKey());
+            if (editorElement) {
+              editorElement.scrollIntoView({
+                block: 'center',
+                inline: 'nearest',
+              });
+            }
+          }
+        }
+      });
     }
   }
 
+  /**
+   * Navigates to the next search match in a circular fashion.
+   * Clears the current highlight and highlights the next match.
+   */
   function navigateToNextMatch() {
-    if (totalMatches === 0) return;
+    if (matchData.length === 0) return;
 
-    clearHighlights(editor);
-    const nextIndex = (currentMatchIndex + 1) % totalMatches;
+    clearHighlight(editor);
+    const nextIndex = (currentMatchIndex + 1) % matchData.length;
     setCurrentMatchIndex(nextIndex);
     highlightMatch(nextIndex);
   }
 
+  /**
+   * Navigates to the previous search match in a circular fashion.
+   * Clears the current highlight and highlights the previous match.
+   */
   function navigateToPreviousMatch() {
-    if (totalMatches === 0) return;
+    if (matchData.length === 0) return;
 
-    clearHighlights(editor);
+    clearHighlight(editor);
     const prevIndex =
-      currentMatchIndex <= 0 ? totalMatches - 1 : currentMatchIndex - 1;
+      currentMatchIndex <= 0 ? matchData.length - 1 : currentMatchIndex - 1;
     setCurrentMatchIndex(prevIndex);
     highlightMatch(prevIndex);
   }
 
+  /**
+   * Handles closing the search panel by clearing highlights and focusing the editor.
+   * Optionally selects the text that was previously highlighted for user context.
+   */
   function handleClose() {
     // Clear any existing highlights before closing
-    clearHighlights(editor);
+    clearHighlight(editor);
     setIsSearchOpen(false);
-    editor.focus();
+
+    // Select the highlighted portion if there was an active match
+    if (currentMatchIndex >= 0 && currentMatchIndex < matchData.length) {
+      const match = matchData[currentMatchIndex];
+      setTimeout(() => {
+        editor.update(() => {
+          const node = $getNodeByKey(match.nodeKey);
+          if (node && $isTextNode(node)) {
+            node.select(match.start, match.end + 1);
+          }
+        });
+      }, 50);
+    }
   }
 
   return (
@@ -228,77 +273,76 @@ export function NoteFindPanel({
       {isSearchOpen && (
         <motion.div
           ref={panelRef}
-          className="absolute top-16 right-6 z-50"
+          className="absolute top-16 right-6 z-50 w-96 flex items-center shadow-md bg-zinc-100 dark:bg-zinc-700 py-0.5 px-2 rounded-md border-2 border-zinc-300 dark:border-zinc-600 focus-within:border-(--accent-color) gap-2"
           initial={{ opacity: 0, y: -10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -10, scale: 0.95 }}
           transition={{ ease: easingFunctions['ease-out-circ'] }}
         >
-          <div className="flex items-center shadow-md bg-zinc-100 dark:bg-zinc-700 py-0.5 px-2 rounded-md border-2 border-zinc-300 dark:border-zinc-600 focus-within:border-(--accent-color) w-full gap-1.5">
-            <Magnifier
-              width={16}
-              height={16}
-              className="text-zinc-500 dark:text-zinc-400"
-            />
+          <Magnifier
+            width={16}
+            height={16}
+            className="text-zinc-500 dark:text-zinc-400"
+          />
 
-            <Input
-              labelProps={{}}
-              inputProps={{
-                placeholder: 'Search in note...',
-                value: searchValue,
-                className:
-                  'text-sm w-48 dark:text-zinc-100 bg-transparent outline-none border-none px-0.5',
-                autoFocus: true,
-                autoCapitalize: 'off',
-                autoComplete: 'off',
-                autoCorrect: 'off',
-                spellCheck: false,
-                onFocus: () => {
-                  // performSearch(searchValue);
-                },
-                onChange: (e) => {
-                  const searchTerm = e.target.value;
-                  setSearchValue(searchTerm);
-                  performSearch(searchTerm);
-                },
-                onKeyDown: (e) => {
-                  if (e.key === 'Escape') {
-                    handleClose();
-                  } else if (e.key === 'Enter') {
-                    e.preventDefault();
-                    e.shiftKey
-                      ? navigateToPreviousMatch()
-                      : navigateToNextMatch();
-                  }
-                },
-              }}
-            />
+          <Input
+            labelProps={{}}
+            inputProps={{
+              placeholder: 'Search in note...',
+              value: searchValue,
+              className:
+                'text-sm flex-1 dark:text-zinc-100 bg-transparent outline-none border-none px-0.5',
+              autoFocus: true,
+              autoCapitalize: 'off',
+              autoComplete: 'off',
+              autoCorrect: 'off',
+              spellCheck: false,
+              onFocus: (e) => {
+                e.target.select();
+              },
+              onChange: (e) => {
+                const searchTerm = e.target.value;
+                setSearchValue(searchTerm);
+                performSearch(searchTerm.toLowerCase().trim());
+              },
+              onKeyDown: (e) => {
+                if (e.key === 'Escape') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleClose();
+                } else if (e.key === 'Enter') {
+                  e.preventDefault();
+                  e.shiftKey
+                    ? navigateToPreviousMatch()
+                    : navigateToNextMatch();
+                }
+              },
+            }}
+          />
 
-            <NavigationControls
-              searchValue={searchValue}
-              totalMatches={totalMatches}
-              currentMatchIndex={
-                currentMatchIndex >= 0 ? currentMatchIndex + 1 : 0
-              }
-              onPreviousMatch={navigateToPreviousMatch}
-              onNextMatch={navigateToNextMatch}
-            />
+          <NavigationControls
+            totalMatches={matchData.length}
+            currentMatchIndex={
+              currentMatchIndex >= 0 ? currentMatchIndex + 1 : 0
+            }
+            onPreviousMatch={navigateToPreviousMatch}
+            onNextMatch={navigateToNextMatch}
+          />
 
-            <button
-              onClick={handleClose}
-              title="Close (Escape)"
-              className="rounded text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 "
-              tabIndex={0}
-              aria-label="Close search"
-            >
-              <XMark
-                width={18}
-                height={18}
-                fill="currentColor"
-                title="Close search"
-              />
-            </button>
-          </div>
+          <button
+            onClick={handleClose}
+            title="Close (Escape)"
+            className="rounded text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 "
+            tabIndex={0}
+            aria-label="Close search"
+          >
+            <XMark
+              width={18}
+              height={18}
+              fill="currentColor"
+              title="Close search"
+            />
+          </button>
         </motion.div>
       )}
     </AnimatePresence>

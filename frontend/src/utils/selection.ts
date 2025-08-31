@@ -137,39 +137,3 @@ export function handleEditorEscape(
     }
   }
 }
-
-/**
- * Executes a Lexical editor mutation while preserving the current focus and caret position.
- * This prevents the editor from stealing focus during mutations, maintaining user input state.
- * @param editor - The Lexical editor instance
- * @param fn - The mutation function to execute
- */
-export function runEditorMutationWithoutStealingFocus(
-  editor: LexicalEditor,
-  fn: () => void
-) {
-  // Remember what currently has focus (e.g., your search input)
-  const active = document.activeElement as HTMLElement | null;
-
-  // Remember caret for inputs/textareas so it doesn't jump
-  const isTextField =
-    active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement;
-  const selStart = isTextField ? active.selectionStart : null;
-  const selEnd = isTextField ? active.selectionEnd : null;
-
-  // Do the Lexical mutation (NO selection calls here)
-  editor.update(fn);
-
-  // Restore focus + caret on the very next microtask
-  queueMicrotask(() => {
-    if (active && document.body.contains(active)) {
-      active.focus({ preventScroll: true });
-      if (isTextField && selStart !== null && selEnd !== null) {
-        (active as HTMLInputElement | HTMLTextAreaElement).setSelectionRange(
-          selStart,
-          selEnd
-        );
-      }
-    }
-  });
-}

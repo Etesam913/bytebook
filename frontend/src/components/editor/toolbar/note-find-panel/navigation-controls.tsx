@@ -2,13 +2,11 @@ import { ArrowUp } from '../../../../icons/arrow-up';
 import { ArrowDown } from '../../../../icons/arrow-down';
 
 export function NavigationControls({
-  searchValue,
   totalMatches,
   currentMatchIndex,
   onPreviousMatch,
   onNextMatch,
 }: {
-  searchValue: string;
   totalMatches: number;
   currentMatchIndex: number;
   onPreviousMatch: () => void;
@@ -22,8 +20,7 @@ export function NavigationControls({
           : 'No matches'}
       </div>
 
-      {/* {totalMatches > 0 && ( */}
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-1">
         <button
           onClick={onPreviousMatch}
           title="Previous match (Shift+Enter)"
@@ -33,8 +30,8 @@ export function NavigationControls({
           aria-label="Previous match"
         >
           <ArrowUp
-            width={14}
-            height={14}
+            width={16}
+            height={16}
             className="text-zinc-600 dark:text-zinc-300"
           />
         </button>
@@ -47,13 +44,12 @@ export function NavigationControls({
           aria-label="Next match"
         >
           <ArrowDown
-            width={14}
-            height={14}
+            width={16}
+            height={16}
             className="text-zinc-600 dark:text-zinc-300"
           />
         </button>
       </div>
-      {/* )} */}
     </>
   );
 }

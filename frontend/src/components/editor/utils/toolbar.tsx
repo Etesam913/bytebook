@@ -189,7 +189,6 @@ export function updateToolbar(
 ) {
   const selection = $getSelection();
   setNoteSelection(selection);
-  // setIsNodeSelection($isNodeSelection(selection));
 
   if ($isRangeSelection(selection)) {
     setDisabled(false);
