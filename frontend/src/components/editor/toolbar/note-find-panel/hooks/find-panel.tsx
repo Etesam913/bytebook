@@ -93,7 +93,7 @@ export function useMatchNavigation(
   matchData: MatchData[],
   currentMatchIndex: number,
   setCurrentMatchIndex: (index: number) => void,
-  highlightedNodeKeyRef: React.MutableRefObject<string | null>
+  highlightedNodeKeyRef: RefObject<string | null>
 ) {
   return {
     navigateToNextMatch: () =>

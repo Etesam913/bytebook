@@ -81,6 +81,10 @@
   font-style: italic;
 }
 
+::backdrop {
+  background-color: transparent;
+}
+
 * {
   scrollbar-width: thin;
   --accent-color: rgb(var(--accent-color-values));
@@ -105,9 +109,15 @@ html:has(.dark) {
   color-scheme: dark;
 }
 
-.focus-visible {
-  outline: 2px auto var(--accent-color);
+
+/* native keyboard focus */
+:focus-visible {
+  outline: 3px solid var(--accent-color);
+  border-color: var(--accent-color);
+  box-shadow: none;
 }
+
+
 
 mark {
   @apply bg-(--accent-color-highlight) text-zinc-900 dark:text-zinc-100;

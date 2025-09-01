@@ -10,7 +10,7 @@ import {
   type SortStrings,
   type UserData,
   type WindowSettings,
-} from './types.ts';
+} from './types';
 import { convertFilePathToQueryNotation } from './utils/string-formatting';
 
 // Most recent notes atoms

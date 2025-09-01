@@ -72,7 +72,7 @@ export function Sidebar<T>({
         setSelectionRange(new Set());
       }
     },
-    [dialogData.element ?? null]
+    [contextMenuRef?.current ?? null]
   );
 
   const items = data ?? [];

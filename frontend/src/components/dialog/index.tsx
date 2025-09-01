@@ -3,17 +3,15 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import useMeasure from 'react-use-measure';
 import { easingFunctions, getDefaultButtonVariants } from '../../animations';
-import {
-  dialogDataAtom,
-  selectionRangeAtom,
-  trapFocusContainerAtom,
-} from '../../atoms';
+import { dialogDataAtom, selectionRangeAtom } from '../../atoms';
 import { editorAtom } from '../editor/atoms';
 import { XMark } from '../../icons/circle-xmark';
 import { cn } from '../../utils/string-formatting';
 import { MotionIconButton } from '../buttons';
-import { Shade } from './shade';
 
+/**
+ * Animated error text that expands/collapses with its measured height.
+ */
 export function DialogErrorText({
   errorText,
   className,
@@ -35,9 +33,7 @@ export function DialogErrorText({
           exit={{
             height: 0,
             opacity: 0,
-            transition: {
-              ease: easingFunctions['ease-out-cubic'],
-            },
+            transition: { ease: easingFunctions['ease-out-cubic'] },
           }}
           className={cn('text-red-500 text-[0.85rem] text-left', className)}
         >
@@ -52,13 +48,12 @@ export function DialogErrorText({
 
 export function Dialog() {
   const [dialogData, setDialogData] = useAtom(dialogDataAtom);
-  const setTrapFocusContainer = useSetAtom(trapFocusContainerAtom);
   const editor = useAtomValue(editorAtom);
   const [errorText, setErrorText] = useState('');
-  const modalRef = useRef<HTMLFormElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const setSelectionRange = useSetAtom(selectionRangeAtom);
 
-  function resetDialogState() {
+  const closeDialog = () => {
     dialogData.onClose?.();
     setDialogData({
       isOpen: false,
@@ -69,104 +64,121 @@ export function Dialog() {
       isPending: false,
     });
     setErrorText('');
-  }
+    setSelectionRange(new Set());
+  };
 
-  function handleDialogKeyDown(e: globalThis.KeyboardEvent) {
-    e.stopPropagation();
-    if (e.key === 'Escape') {
-      resetDialogState();
-    }
-  }
-
-  // Handles escape key when dialog is open
+  // Handle dialog open/close and event listeners
   useEffect(() => {
-    const keyDownHandler = (e: globalThis.KeyboardEvent) =>
-      handleDialogKeyDown(e);
+    const dialog = dialogRef.current;
+    if (!dialog) return;
 
     if (dialogData.isOpen) {
-      // The editor should not be able to be edited when the dialog is open
       editor?.blur();
-      document.addEventListener('keydown', keyDownHandler);
-      setTrapFocusContainer(modalRef.current);
-    } else {
-      editor?.focus();
-      setTrapFocusContainer(null);
+      dialog.showModal();
     }
-    return () => {
-      document.removeEventListener('keydown', keyDownHandler);
-      setTrapFocusContainer(null);
+
+    const handleCancel = (e: Event) => {
+      e.preventDefault();
+      setDialogData((prev) =>
+        prev.isOpen ? { ...prev, isOpen: false } : prev
+      );
     };
-  }, [dialogData.isOpen]);
+
+    const handleClose = () => {
+      if (dialogData.isOpen) {
+        closeDialog();
+      }
+    };
+
+    dialog.addEventListener('cancel', handleCancel);
+    dialog.addEventListener('close', handleClose);
+
+    return () => {
+      dialog.removeEventListener('cancel', handleCancel);
+      dialog.removeEventListener('close', handleClose);
+    };
+  }, [dialogData.isOpen, editor, dialogData.onClose, setDialogData]);
 
   return (
-    <AnimatePresence>
-      {dialogData.isOpen && (
-        <>
-          <Shade />
-          <motion.form
-            onKeyDown={(e) => {
-              if (e.metaKey && e.key === 'Enter') {
-                modalRef.current?.dispatchEvent(new Event('submit'));
-              }
-            }}
-            ref={(refValue) => {
-              modalRef.current = refValue;
-              setDialogData((prev) => ({
-                ...prev,
-                element: refValue ?? undefined,
-              }));
-            }}
-            onSubmit={async (e: FormEvent<HTMLFormElement>) => {
-              e.preventDefault();
-              if (dialogData.onSubmit) {
-                setDialogData((prev) => ({
-                  ...prev,
-                  isPending: true,
-                }));
+    <dialog
+      ref={dialogRef}
+      className="bg-transparent border-none p-0 max-w-none max-h-none w-full h-full"
+      onKeyDown={(e) => {
+        if (e.metaKey && e.key === 'Enter') {
+          const form = dialogRef.current?.querySelector('form');
+          form?.dispatchEvent(new Event('submit'));
+        }
+      }}
+    >
+      <AnimatePresence
+        onExitComplete={() => {
+          dialogRef.current?.close();
+          closeDialog();
+        }}
+      >
+        {dialogData.isOpen && (
+          <>
+            <motion.div
+              key="shade"
+              className="fixed inset-0 z-50 bg-black/40"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
+
+            <motion.form
+              key="modal-form"
+              onSubmit={async (e: FormEvent<HTMLFormElement>) => {
+                e.preventDefault();
+                if (!dialogData.onSubmit) return;
+
+                setDialogData((prev) => ({ ...prev, isPending: true }));
                 const result = await dialogData.onSubmit(e, setErrorText);
-                setDialogData((prev) => ({
-                  ...prev,
-                  isPending: false,
-                }));
+                setDialogData((prev) => ({ ...prev, isPending: false }));
+
                 if (result) {
-                  resetDialogState();
-                  setSelectionRange(new Set());
+                  setDialogData((prev) => ({ ...prev, isOpen: false }));
                 }
-              }
-            }}
-            initial={{ opacity: 0, scale: 0.5, x: '-50%', y: '-50%' }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-              transition: { ease: easingFunctions['ease-out-circ'] },
-            }}
-            exit={{
-              opacity: 0,
-              scale: 0.5,
-              transition: { ease: easingFunctions['ease-out-quint'] },
-            }}
-            className={cn(
-              'absolute bg-zinc-50 dark:bg-zinc-800 z-[60] top-2/4 py-3 w-[min(368px,90vw)] rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 left-2/4 max-h-11/12 flex flex-col',
-              dialogData.dialogClassName
-            )}
-          >
-            <h2 className="px-3 text-xl pb-2 border-b-2 border-zinc-150 dark:border-zinc-750">
-              {dialogData.title}
-            </h2>
-            <div className="pt-3 pb-2 px-3 overflow-x-hidden overflow-y-auto flex flex-col gap-5 flex-1 min-h-0">
-              {dialogData.children?.(errorText, dialogData.isPending)}
-            </div>
-            <MotionIconButton
-              {...getDefaultButtonVariants()}
-              onClick={resetDialogState}
-              className="absolute top-2 right-2"
-              type="button"
+              }}
+              style={{ x: '-50%', y: '-50%' }}
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                transition: { ease: easingFunctions['ease-out-circ'] },
+              }}
+              exit={{
+                opacity: 0,
+                scale: 0.5,
+                transition: { ease: easingFunctions['ease-out-quint'] },
+              }}
+              className={cn(
+                'fixed left-1/2 top-1/2 z-[60] bg-zinc-50 dark:bg-zinc-800 py-3 w-[min(368px,90vw)] rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 max-h-11/12 flex flex-col',
+                dialogData.dialogClassName
+              )}
             >
-              <XMark />
-            </MotionIconButton>
-          </motion.form>
-        </>
-      )}
-    </AnimatePresence>
+              <h2 className="px-3 text-xl pb-2 border-b-2 border-zinc-150 dark:border-zinc-750">
+                {dialogData.title}
+              </h2>
+
+              <div className="pt-3 pb-2 px-3 overflow-x-hidden overflow-y-auto flex flex-col gap-5 flex-1 min-h-0">
+                {dialogData.children?.(errorText, dialogData.isPending)}
+              </div>
+
+              <MotionIconButton
+                {...getDefaultButtonVariants()}
+                onClick={() =>
+                  setDialogData((prev) => ({ ...prev, isOpen: false }))
+                }
+                className="absolute top-2 right-2"
+                type="button"
+              >
+                <XMark />
+              </MotionIconButton>
+            </motion.form>
+          </>
+        )}
+      </AnimatePresence>
+    </dialog>
   );
 }

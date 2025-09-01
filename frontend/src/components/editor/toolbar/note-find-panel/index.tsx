@@ -88,7 +88,7 @@ export function NoteFindPanel({
               placeholder: 'Search in note...',
               value: searchValue,
               className:
-                'text-sm flex-1 dark:text-zinc-100 bg-transparent outline-none border-none px-0.5',
+                'text-sm flex-1 dark:text-zinc-100 bg-transparent outline-none border-none px-0.5 !outline-none !border-0',
               autoFocus: true,
               autoCapitalize: 'off',
               autoComplete: 'off',

@@ -107,6 +107,27 @@ func TestSortNotes(t *testing.T) {
 		assert.Equal(t, notes[0].Name(), testNotes[0].Name())
 		assert.Equal(t, notes[1].Name(), testNotes[1].Name())
 	})
+
+	t.Run("NaturalSorting", func(t *testing.T) {
+		// Test natural sorting behavior (macOS-style)
+		naturalTestNotes := []fs.DirEntry{
+			mockDirEntry{name: "file10.txt", size: 100, modTime: now},
+			mockDirEntry{name: "file2.txt", size: 100, modTime: now},
+			mockDirEntry{name: "file1.txt", size: 100, modTime: now},
+			mockDirEntry{name: "file20.txt", size: 100, modTime: now},
+			mockDirEntry{name: "file3.txt", size: 100, modTime: now},
+		}
+
+		SortNotes(naturalTestNotes, FileNameAZ)
+
+		// With natural sorting, file1.txt should come before file2.txt, which should come before file3.txt, etc.
+		// This is different from lexicographic sorting where file10.txt would come before file2.txt
+		assert.Equal(t, "file1.txt", naturalTestNotes[0].Name())
+		assert.Equal(t, "file2.txt", naturalTestNotes[1].Name())
+		assert.Equal(t, "file3.txt", naturalTestNotes[2].Name())
+		assert.Equal(t, "file10.txt", naturalTestNotes[3].Name())
+		assert.Equal(t, "file20.txt", naturalTestNotes[4].Name())
+	})
 }
 
 func TestSortNotesWithFolders(t *testing.T) {
@@ -190,5 +211,73 @@ func TestSortNotesWithFolders(t *testing.T) {
 		// Should not change the order
 		assert.Equal(t, notes[0].Name, testNotes[0].Name)
 		assert.Equal(t, notes[1].Name, testNotes[1].Name)
+	})
+
+	t.Run("NaturalSorting", func(t *testing.T) {
+		// Test natural sorting behavior (macOS-style) for SortNotesWithFolders
+		naturalTestNotes := []NoteWithFolder{
+			{Folder: "folder1", Name: "file10.txt", Size: 100, ModTime: now, Ext: ".txt"},
+			{Folder: "folder1", Name: "file2.txt", Size: 100, ModTime: now, Ext: ".txt"},
+			{Folder: "folder1", Name: "file1.txt", Size: 100, ModTime: now, Ext: ".txt"},
+			{Folder: "folder1", Name: "file20.txt", Size: 100, ModTime: now, Ext: ".txt"},
+			{Folder: "folder1", Name: "file3.txt", Size: 100, ModTime: now, Ext: ".txt"},
+		}
+
+		SortNotesWithFolders(naturalTestNotes, FileNameAZ)
+
+		// With natural sorting, file1.txt should come before file2.txt, which should come before file3.txt, etc.
+		assert.Equal(t, "file1.txt", naturalTestNotes[0].Name)
+		assert.Equal(t, "file2.txt", naturalTestNotes[1].Name)
+		assert.Equal(t, "file3.txt", naturalTestNotes[2].Name)
+		assert.Equal(t, "file10.txt", naturalTestNotes[3].Name)
+		assert.Equal(t, "file20.txt", naturalTestNotes[4].Name)
+	})
+}
+
+func TestNaturalCompare(t *testing.T) {
+	t.Run("BasicNaturalSorting", func(t *testing.T) {
+		// Test that numbers are sorted numerically, not lexicographically
+		assert.Equal(t, -1, naturalCompare("file1.txt", "file10.txt"))
+		assert.Equal(t, 1, naturalCompare("file10.txt", "file1.txt"))
+		assert.Equal(t, 0, naturalCompare("file1.txt", "file1.txt"))
+	})
+
+	t.Run("MixedAlphanumeric", func(t *testing.T) {
+		// Test mixed alphanumeric strings
+		assert.Equal(t, -1, naturalCompare("a1b", "a10b"))
+		assert.Equal(t, 1, naturalCompare("a10b", "a1b"))
+		assert.Equal(t, -1, naturalCompare("test1", "test2"))
+		assert.Equal(t, 1, naturalCompare("test2", "test1"))
+	})
+
+	t.Run("CaseInsensitive", func(t *testing.T) {
+		// Test case insensitive comparison
+		assert.Equal(t, 0, naturalCompare("File1.txt", "file1.txt"))
+		assert.Equal(t, 0, naturalCompare("FILE1.TXT", "file1.txt"))
+		assert.Equal(t, -1, naturalCompare("a1.txt", "B1.txt"))
+		assert.Equal(t, 1, naturalCompare("B1.txt", "a1.txt"))
+	})
+
+	t.Run("DifferentLengths", func(t *testing.T) {
+		// Test strings of different lengths
+		assert.Equal(t, -1, naturalCompare("file1", "file10"))
+		assert.Equal(t, 1, naturalCompare("file10", "file1"))
+		assert.Equal(t, -1, naturalCompare("a", "b"))
+		assert.Equal(t, 1, naturalCompare("b", "a"))
+	})
+
+	t.Run("NoNumbers", func(t *testing.T) {
+		// Test strings without numbers (should behave like normal string comparison)
+		assert.Equal(t, -1, naturalCompare("apple", "banana"))
+		assert.Equal(t, 1, naturalCompare("banana", "apple"))
+		assert.Equal(t, 0, naturalCompare("apple", "apple"))
+	})
+
+	t.Run("MultipleNumbers", func(t *testing.T) {
+		// Test strings with multiple numbers
+		assert.Equal(t, -1, naturalCompare("file1part2", "file1part10"))
+		assert.Equal(t, 1, naturalCompare("file1part10", "file1part2"))
+		assert.Equal(t, -1, naturalCompare("file2part1", "file10part1"))
+		assert.Equal(t, 1, naturalCompare("file10part1", "file2part1"))
 	})
 }

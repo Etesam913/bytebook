@@ -22,7 +22,7 @@ export function useOnClickOutside<T extends HTMLElement>(
           !ref.current ||
           ref.current.contains(event.target as Node) ||
           (excludedElements ?? []).some((element) =>
-            element?.contains(event.target as Node)
+            element?.contains?.(event.target as Node)
           ) ||
           (event.target as HTMLElement).getAttribute(
             'data-exclude-from-on-click-outside'

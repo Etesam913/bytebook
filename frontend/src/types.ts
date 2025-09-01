@@ -66,8 +66,6 @@ export type DialogDataType = {
     | null;
   onClose?: () => void;
   isPending: boolean;
-  // Used to pass any additional data to the dialog
-  element?: HTMLFormElement;
 };
 
 export type SearchPanelDataType = {
