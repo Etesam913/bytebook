@@ -11,7 +11,10 @@ import {
   type UserData,
   type WindowSettings,
 } from './types';
-import { convertFilePathToQueryNotation } from './utils/string-formatting';
+import {
+  convertFilePathToQueryNotation,
+  FilePath,
+} from './utils/string-formatting';
 
 // Most recent notes atoms
 const privateMostRecentNotesAtom = atom<string[]>(
@@ -148,3 +151,5 @@ export const kernelsDataAtom = atom<KernelsData>({
     errorMessage: null,
   },
 });
+
+export const currentFilePathAtom = atom<FilePath | null>(null);

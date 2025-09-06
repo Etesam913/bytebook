@@ -7,15 +7,18 @@ import {
   useFullTextSearchQuery,
   useSearchFocus,
 } from '../../hooks/search';
-import { useAtom } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn, FilePath } from '../../utils/string-formatting';
 import { SearchHighlights } from './search-highlights';
+import { isNoteSearchOpenAtom, noteSearchValueAtom } from '../editor/atoms';
 
 export function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useAtom(lastSearchQueryAtom);
   const inputRef = useSearchFocus();
+  const setNoteSearchOpen = useSetAtom(isNoteSearchOpenAtom);
+  const setNoteSearchValue = useSetAtom(noteSearchValueAtom);
 
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [, setLocation] = useLocation();
@@ -146,14 +149,20 @@ export function SearchPage() {
             // Adding query param for the highlighted term
             if (highlights[0]?.highlightedTerm) {
               pathToNote = path.getLinkToNote({
-                highlight: highlights[0].highlightedTerm,
+                highlight: highlights[0]?.highlightedTerm ?? '',
               });
             }
+            const firstHighlightedTerm = highlights[0]?.highlightedTerm;
 
             return (
               <Link
                 key={pathToNote}
                 to={pathToNote}
+                onClick={() => {
+                  console.log('clicked');
+                  setNoteSearchOpen(true);
+                  setNoteSearchValue(firstHighlightedTerm ?? '');
+                }}
                 draggable={false}
                 className={cn(
                   'block py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',

@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { Dispatch, SetStateAction, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { easingFunctions } from '../../../../animations';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
@@ -8,12 +8,14 @@ import { NavigationControls } from './navigation-controls';
 import { Input } from '../../../input';
 import { useOnClickOutside } from '../../../../hooks/general';
 import {
-  usePanelClose,
   useSearch,
   useMatchNavigation,
-  useHighlightParam,
+  useFindPanelOpenAndClose,
 } from './hooks/find-panel';
 import { clearHighlight } from './utils/highlight';
+import { navigate } from 'wouter/use-browser-location';
+import { useAtomValue } from 'jotai/react';
+import { currentFilePathAtom } from '../../../../atoms';
 
 // Re-export MatchData for backwards compatibility
 export type { MatchData } from './utils/highlight';
@@ -23,10 +25,11 @@ export function NoteFindPanel({
   setIsSearchOpen,
 }: {
   isSearchOpen: boolean;
-  setIsSearchOpen: (isSearchOpen: boolean) => void;
+  setIsSearchOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const [editor] = useLexicalComposerContext();
   const panelRef = useRef<HTMLDivElement>(null);
+  const currentFilePath = useAtomValue(currentFilePathAtom);
 
   // Clear highlights when clicking outside
   useOnClickOutside(panelRef, () => {
@@ -35,9 +38,8 @@ export function NoteFindPanel({
 
   // Initialize search functionality
   const {
-    searchValue,
-    setSearchValue,
     matchData,
+    searchValue,
     currentMatchIndex,
     setCurrentMatchIndex,
     highlightedNodeKeyRef,
@@ -53,17 +55,15 @@ export function NoteFindPanel({
     highlightedNodeKeyRef
   );
 
-  // Handle panel close behavior
-  usePanelClose(
+  // Handle URL highlight parameter
+  useFindPanelOpenAndClose({
     isSearchOpen,
-    editor,
+    setIsSearchOpen,
     highlightedNodeKeyRef,
     currentMatchIndex,
-    matchData
-  );
-
-  // Handle URL highlight parameter
-  useHighlightParam(setIsSearchOpen, setSearchValue, handleSearch);
+    matchData,
+    handleSearch,
+  });
 
   return (
     <AnimatePresence>
@@ -98,8 +98,11 @@ export function NoteFindPanel({
                 e.target.select();
               },
               onChange: (e) => {
+                if (!currentFilePath) return;
                 const searchTerm = e.target.value;
-                setSearchValue(searchTerm);
+                navigate(
+                  currentFilePath.getLinkToNote({ highlight: searchTerm })
+                );
                 handleSearch(searchTerm);
               },
               onKeyDown: (e) => {

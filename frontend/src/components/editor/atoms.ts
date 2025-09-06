@@ -33,3 +33,7 @@ export const albumDataAtom = atom<AlbumData>({
   alt: null,
   elementType: null,
 });
+
+// Note search atoms
+export const isNoteSearchOpenAtom = atom<boolean>(false);
+export const noteSearchValueAtom = atom<string>('');

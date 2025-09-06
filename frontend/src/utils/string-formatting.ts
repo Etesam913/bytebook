@@ -8,6 +8,10 @@ export function cn(...inputs: ClassValue[]) {
 
 export const fileNameRegex = /^[0-9a-zA-Z_\-. ]+$/;
 
+export type FilePathAdditionalQueryParams = {
+  highlight: string;
+};
+
 /**
  * Utility class for converting and extracting information from note paths.
  *
@@ -83,7 +87,7 @@ export class FilePath {
    * @param extraParams - An object of additional query parameters to add to the link.
    * @returns The link to the note with query parameters.
    */
-  getLinkToNote(extraParams?: Record<string, string | number | boolean>) {
+  getLinkToNote(extraParams?: FilePathAdditionalQueryParams) {
     const params = new URLSearchParams({ ext: this.noteExtension });
     if (extraParams) {
       for (const [key, value] of Object.entries(extraParams)) {
