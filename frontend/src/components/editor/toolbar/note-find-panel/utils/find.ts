@@ -18,8 +18,10 @@ export function performSearch(
   if (!searchTerm.trim()) {
     return matches;
   }
-
-  const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+  const normalizedSearchTerm = searchTerm
+    .toLowerCase()
+    .trim()
+    .replaceAll('"', '”');
 
   editor.read(() => {
     const nodes = $dfs($getRoot());
@@ -28,28 +30,22 @@ export function performSearch(
       if (!$isTextNode(node)) return;
 
       const nodeText = node.getTextContent().toLowerCase();
-      let searchIndex = 0;
-      let i = 0;
+      let startIndex = 0;
 
-      // Simple sliding-window approach to find the matches
-      while (i < nodeText.length) {
-        if (nodeText[i] === normalizedSearchTerm[searchIndex]) {
-          searchIndex++;
+      // Use indexOf in a loop to find all occurrences
+      while (
+        (startIndex = nodeText.indexOf(normalizedSearchTerm, startIndex)) !== -1
+      ) {
+        const endIndex = startIndex + normalizedSearchTerm.length - 1;
+        matches.push({
+          start: startIndex,
+          end: endIndex,
+          nodeKey: node.getKey(),
+          format: node.getFormat(),
+        });
 
-          // If the entire search term is found, add the match
-          if (searchIndex === normalizedSearchTerm.length) {
-            matches.push({
-              start: i - normalizedSearchTerm.length + 1,
-              end: i,
-              nodeKey: node.getKey(),
-              format: node.getFormat(),
-            });
-            searchIndex = 0;
-          }
-        } else {
-          searchIndex = 0;
-        }
-        i++;
+        // Move the starting point for the next search
+        startIndex++;
       }
     });
   });
