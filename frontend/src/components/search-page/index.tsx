@@ -5,6 +5,7 @@ import { Input } from '../input';
 import {
   lastSearchQueryAtom,
   useFullTextSearchQuery,
+  useSearchFocus,
 } from '../../hooks/search';
 import { useAtom } from 'jotai';
 import { useState } from 'react';
@@ -14,6 +15,7 @@ import { SearchHighlights } from './search-highlights';
 
 export function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useAtom(lastSearchQueryAtom);
+  const inputRef = useSearchFocus();
 
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [, setLocation] = useLocation();
@@ -25,7 +27,7 @@ export function SearchPage() {
   } = useFullTextSearchQuery(lastSearchQuery);
 
   return (
-    <section className="pt-2.75 flex-1 h-screen flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
+    <section className="pt-2.5 flex-1 h-screen flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
       <header className="flex items-center gap-2 w-full pl-22 pr-4 pb-2 border-b-1 border-zinc-200 dark:border-zinc-700">
         <MotionIconButton
           {...getDefaultButtonVariants()}
@@ -34,6 +36,7 @@ export function SearchPage() {
           <CircleArrowLeft height={20} width={20} />
         </MotionIconButton>
         <Input
+          ref={inputRef}
           inputProps={{
             placeholder: 'Search',
             className: 'w-full font-code',

@@ -100,6 +100,9 @@
   /* Prevent content adjustment on iOS */
   -webkit-text-size-adjust: 100%;
 }
+::selection {
+  @apply bg-(--accent-color-highlight);
+}
 
 html {
   cursor: default;
@@ -112,25 +115,16 @@ html:has(.dark) {
 
 /* native keyboard focus */
 :focus-visible {
-  outline: 3px solid var(--accent-color);
+  outline: 2px solid var(--accent-color);
   border-color: var(--accent-color);
   box-shadow: none;
 }
-
 
 
 mark {
   @apply bg-(--accent-color-highlight) text-zinc-900 dark:text-zinc-100;
 }
 
-/* Search highlight styles */
-.lexical-search-highlight {
-  @apply bg-yellow-200 dark:bg-yellow-600/30;
-}
-
-.lexical-search-current {
-  @apply bg-orange-300 dark:bg-orange-500/40 ring-2 ring-orange-400 dark:ring-orange-400;
-}
 
 input[type='text'],
 textarea,

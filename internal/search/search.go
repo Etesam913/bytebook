@@ -2,6 +2,7 @@ package search
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -100,14 +101,19 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 	tokens := parseTokens(input)
 
 	for _, token := range tokens {
+		fmt.Println(token)
 		if strings.HasPrefix(token.Text, "f:") {
 			// Filename prefix query
 			prefixTerm := token.Text[2:]
 			prefixTermSplit := strings.Split(prefixTerm, "/")
 			if len(prefixTermSplit) > 1 {
+				// If there is a slash act like a folder/note search
+
+				// check for quotes around the term, if so use the value inside quotes
 				booleanQuery.AddMust(createPrefixQuery(FieldFolder, prefixTermSplit[0]))
 				booleanQuery.AddMust(createPrefixQuery(FieldFileNameLC, prefixTermSplit[1]))
 			} else {
+				// Otherwise just search through both folder and note
 				newBooleanQuery := bleve.NewBooleanQuery()
 				newBooleanQuery.AddShould(createPrefixQuery(FieldFolder, prefixTerm))
 				newBooleanQuery.AddShould(createPrefixQuery(FieldFileNameLC, prefixTerm))

@@ -475,18 +475,22 @@ export function flattenHtml(html: string): string {
 }
 
 /**
- * Escapes both single and double quotes in a string
+ * Escapes both single and double quotes in a string.
  * @param str The input string
  * @returns A new string with all quotes escaped
+ * @example
+ * escapeQuotes(`He said, "It's fine."`); // returns 'He said, \\"It\\'s fine.\\"'
  */
 export function escapeQuotes(str: string): string {
   return str.replace(/"/g, '\\"').replace(/'/g, "\\'");
 }
 
 /**
- * Removes escape characters from quotes in a string
+ * Removes escape characters from quotes in a string.
  * @param str The input string with escaped quotes
  * @returns A new string with escape characters removed from quotes
+ * @example
+ * unescapeQuotes('He said, \\"It\\'s fine.\\"'); // returns 'He said, "It's fine."'
  */
 export function unescapeQuotes(str: string): string {
   return str.replace(/\\"/g, '"').replace(/\\'/g, "'");
@@ -496,6 +500,8 @@ export function unescapeQuotes(str: string): string {
  * Converts escaped newline characters (\\n) back to actual newline characters (\n)
  * @param str The input string with escaped newlines
  * @returns A new string with escaped newlines converted to actual newlines
+ * @example
+ * unescapeNewlines('Line1\\nLine2'); // returns 'Line1\nLine2'
  */
 export function unescapeNewlines(str: string): string {
   return str.replace(/\\n/g, '\n');
@@ -504,6 +510,10 @@ export function unescapeNewlines(str: string): string {
 /**
  * Escape special Markdown characters in file content so it can be used
  * inside [text](url) without breaking the link.
+ * @param content The file content to escape
+ * @returns The escaped file content
+ * @example
+ * escapeFileContentForMarkdown('file[name](test)'); // returns 'file\\[name\\]\\(test\\)'
  */
 export function escapeFileContentForMarkdown(content: string): string {
   // Matches any of: \ [ ] ( )
@@ -512,6 +522,10 @@ export function escapeFileContentForMarkdown(content: string): string {
 
 /**
  * Unescape a Markdown-escaped file content back to its original form.
+ * @param escaped The escaped file content
+ * @returns The unescaped file content
+ * @example
+ * unescapeFileContentFromMarkdown('file\\[name\\]\\(test\\)'); // returns 'file[name](test)'
  */
 export function unescapeFileContentFromMarkdown(escaped: string): string {
   // Matches a backslash followed by one of: \ [ ] ( )

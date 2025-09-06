@@ -14,7 +14,9 @@ export function SidebarHighlight({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ ease: easingFunctions['ease-out-expo'] }}
+      transition={{
+        ease: easingFunctions['ease-out-circ'],
+      }}
       layoutId={layoutId}
       className={cn(
         'absolute pointer-events-none z-5 h-full w-full bg-zinc-100 dark:bg-zinc-650 rounded-md',
