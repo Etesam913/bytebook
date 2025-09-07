@@ -14,26 +14,70 @@ import {
   navigateToNextMatch,
   navigateToPreviousMatch,
 } from '../utils/find';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { currentFilePathAtom } from '../../../../../atoms';
+import { useAtomValue } from 'jotai/react';
+import { navigate } from 'wouter/use-browser-location';
 
-const PANEL_CLOSE_SELECT_DELAY = 50;
+function areMatchesEqual(
+  matches1: MatchData[],
+  matches2: MatchData[]
+): boolean {
+  if (matches1.length !== matches2.length) return false;
+  return matches1.every(
+    (match, index) =>
+      match.nodeKey === matches2[index].nodeKey &&
+      match.start === matches2[index].start &&
+      match.end === matches2[index].end &&
+      match.format === matches2[index].format
+  );
+}
 
 /**
  * Manages search state and functionality for the find panel.
  */
-export function useSearch(editor: LexicalEditor) {
+export function useFindPanelSearch({
+  editor,
+  isSearchOpen,
+  setIsSearchOpen,
+  hasFirstLoad,
+  inputRef,
+}: {
+  editor: LexicalEditor;
+  isSearchOpen: boolean;
+  setIsSearchOpen: Dispatch<SetStateAction<boolean>>;
+  hasFirstLoad: boolean;
+  inputRef: RefObject<HTMLInputElement | null>;
+}) {
   const [matchData, setMatchData] = useState<MatchData[]>([]);
   const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
   const highlightedNodeKeyRef = useRef<string | null>(null);
   const [searchParams] = useSearchParams();
-  const searchValue = searchParams.get('highlight');
+  const [searchValue, setSearchValue] = useState('');
+  const highlightParamValue = searchParams.get('highlight');
+  const currentFilePath = useAtomValue(currentFilePathAtom);
 
+  /**
+   * Performs a search for the given term in the editor, updates the match data,
+   * highlights the first match if any, and sets the current match index.
+   *
+   * @param {string} searchTerm - The term to search for in the editor content.
+   */
   const handleSearch = (searchTerm: string) => {
-    // Clear existing highlights
     clearHighlight(editor, highlightedNodeKeyRef);
 
     const matches = performSearch(editor, searchTerm);
     setMatchData(matches);
+
+    // Use the same currentMatchIndex if the matches are the same.
+    // Ex: searching for "apple", closing find panel and then opening it again.
+    if (areMatchesEqual(matches, matchData)) {
+      const highlightedNodeKey = highlightMatch(
+        editor,
+        matches[currentMatchIndex]
+      );
+      highlightedNodeKeyRef.current = highlightedNodeKey;
+      return;
+    }
 
     if (matches.length > 0) {
       setCurrentMatchIndex(0);
@@ -44,26 +88,76 @@ export function useSearch(editor: LexicalEditor) {
     }
   };
 
+  // Setting default search value if highlight param is present
+  useEffect(() => {
+    if (highlightParamValue && currentFilePath) {
+      // Remove the highlight param from the URL as we don't need it anymore
+      navigate(currentFilePath.getLinkToNote(), { replace: true });
+
+      // Update the search value state and show the find panel
+      setSearchValue(highlightParamValue);
+      setIsSearchOpen(true);
+    }
+  }, [highlightParamValue, currentFilePath]);
+
+  // Making sure search is performed when search value is changed and the note has loaded
+  useEffect(() => {
+    // When the highlight param is used to set input value, we want the input to be focused
+    if (inputRef.current !== document.activeElement) {
+      inputRef.current?.focus();
+    }
+    if (searchValue !== null && hasFirstLoad) {
+      handleSearch(searchValue);
+    }
+  }, [searchValue, isSearchOpen, hasFirstLoad]);
+
+  // Clear highlights if the find panel is closed.
+  useEffect(() => {
+    if (!isSearchOpen) {
+      clearHighlight(editor, highlightedNodeKeyRef);
+
+      // Select the highlighted portion if there was an active match
+      if (currentMatchIndex >= 0 && currentMatchIndex < matchData.length) {
+        const match = matchData[currentMatchIndex];
+
+        setTimeout(() => {
+          editor.update(() => {
+            const node = $getNodeByKey(match.nodeKey);
+            if (node && $isTextNode(node)) {
+              node.select(match.start, match.end + 1);
+            }
+          });
+        }, 200);
+      }
+    }
+  }, [isSearchOpen, setIsSearchOpen]);
+
   return {
     matchData,
-    searchValue: searchValue ?? '',
+    searchValue,
+    setSearchValue,
     currentMatchIndex,
     setCurrentMatchIndex,
     highlightedNodeKeyRef,
-    handleSearch,
   };
 }
 
 /**
  * Manages navigation between search matches.
  */
-export function useMatchNavigation(
-  editor: LexicalEditor,
-  matchData: MatchData[],
-  currentMatchIndex: number,
-  setCurrentMatchIndex: (index: number) => void,
-  highlightedNodeKeyRef: RefObject<string | null>
-) {
+export function useMatchNavigation({
+  editor,
+  matchData,
+  currentMatchIndex,
+  setCurrentMatchIndex,
+  highlightedNodeKeyRef,
+}: {
+  editor: LexicalEditor;
+  matchData: MatchData[];
+  currentMatchIndex: number;
+  setCurrentMatchIndex: (index: number) => void;
+  highlightedNodeKeyRef: RefObject<string | null>;
+}) {
   return {
     navigateToNextMatch: () =>
       navigateToNextMatch(
@@ -82,65 +176,4 @@ export function useMatchNavigation(
         highlightedNodeKeyRef
       ),
   };
-}
-
-// There is some time that has to elapse for lexical to have the nodes loaded in
-const HIGHLIGHT_QUERY_PARAM_DELAY = 200;
-
-/**
- * Handles find panel open and close behavior.
- * Also handles the highlight query param
- */
-export function useFindPanelOpenAndClose({
-  isSearchOpen,
-  setIsSearchOpen,
-  handleSearch,
-  highlightedNodeKeyRef,
-  currentMatchIndex,
-  matchData,
-}: {
-  isSearchOpen: boolean;
-  setIsSearchOpen: Dispatch<SetStateAction<boolean>>;
-  highlightedNodeKeyRef: RefObject<string | null>;
-  currentMatchIndex: number;
-  matchData: MatchData[];
-  handleSearch: (searchTerm: string) => void;
-}) {
-  const [searchParams] = useSearchParams();
-  const highlightParamValue = searchParams.get('highlight');
-  const [editor] = useLexicalComposerContext();
-
-  // If there is a highlight query param, open the find panel
-  useEffect(() => {
-    if (highlightParamValue) {
-      setIsSearchOpen(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Clear highlights if the find panel is closed
-    if (!isSearchOpen) {
-      clearHighlight(editor, highlightedNodeKeyRef);
-
-      // Select the highlighted portion if there was an active match
-      if (currentMatchIndex >= 0 && currentMatchIndex < matchData.length) {
-        const match = matchData[currentMatchIndex];
-
-        setTimeout(() => {
-          editor.update(() => {
-            const node = $getNodeByKey(match.nodeKey);
-            if (node && $isTextNode(node)) {
-              node.select(match.start, match.end + 1);
-            }
-          });
-        }, PANEL_CLOSE_SELECT_DELAY);
-      }
-    }
-    // Otherwise if search is open, make initial search with the already set search value
-    else {
-      setTimeout(() => {
-        handleSearch(highlightParamValue?.toLowerCase().trim() ?? '');
-      }, HIGHLIGHT_QUERY_PARAM_DELAY);
-    }
-  }, [isSearchOpen, setIsSearchOpen, handleSearch]);
 }

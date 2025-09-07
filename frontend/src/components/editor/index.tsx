@@ -37,7 +37,7 @@ import { LinkMatcherPlugin } from './plugins/link-matcher.tsx';
 import { LinkPlugin } from './plugins/link.tsx';
 import { SavePlugin } from './plugins/save.tsx';
 import { TableOfContentsPlugin } from './plugins/table-of-contents.tsx';
-import TreeViewPlugin from './plugins/tree-view';
+// import TreeViewPlugin from './plugins/tree-view';
 import { Toolbar } from './toolbar';
 import { CUSTOM_TRANSFORMERS } from './transformers';
 import { debouncedNoteHandleChange } from './utils/note-commands.ts';
@@ -71,7 +71,9 @@ export function NotesEditor({
   const noteContainerRef = useRef<HTMLDivElement | null>(null);
   const { isShowing: isAlbumShowing } = useAtomValue(albumDataAtom);
   const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
-  const [noteMarkdownString, setNoteMarkdownString] = useState('');
+  const [noteMarkdownString, setNoteMarkdownString] = useState<string | null>(
+    null
+  );
   const draggedElement = useAtomValue(draggedElementAtom);
   const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(
     overflowContainerRef,
@@ -98,6 +100,7 @@ export function NotesEditor({
         setFloatingData={setFloatingData}
         frontmatter={frontmatter}
         setFrontmatter={setFrontmatter}
+        noteMarkdownString={noteMarkdownString}
         setNoteMarkdownString={setNoteMarkdownString}
       />
       <div
@@ -179,12 +182,14 @@ export function NotesEditor({
           <DraggableBlockPlugin overflowContainerRef={overflowContainerRef} />
           <FocusPlugin />
           <LinkMatcherPlugin />
-          <TreeViewPlugin />
+          {/* <TreeViewPlugin /> */}
         </div>
         {frontmatter.showMarkdown === 'true' && (
           <div className="w-[50%] bg-zinc-50 dark:bg-zinc-850 h-full font-code border-l border-zinc-200 dark:border-zinc-700 px-4 pt-3 pb-2 overflow-auto">
             <h3 className="text-2xl">Note Markdown</h3>
-            <p className="text-sm whitespace-pre-wrap">{noteMarkdownString}</p>
+            <p className="text-sm whitespace-pre-wrap">
+              {noteMarkdownString ?? ''}
+            </p>
           </div>
         )}
       </div>

@@ -8,12 +8,11 @@ import { NavigationControls } from './navigation-controls';
 import { Input } from '../../../input';
 import { useOnClickOutside } from '../../../../hooks/general';
 import {
-  useSearch,
+  useFindPanelSearch,
   useMatchNavigation,
   useFindPanelOpenAndClose,
 } from './hooks/find-panel';
 import { clearHighlight } from './utils/highlight';
-import { navigate } from 'wouter/use-browser-location';
 import { useAtomValue } from 'jotai/react';
 import { currentFilePathAtom } from '../../../../atoms';
 
@@ -23,12 +22,15 @@ export type { MatchData } from './utils/highlight';
 export function NoteFindPanel({
   isSearchOpen,
   setIsSearchOpen,
+  hasFirstLoad,
 }: {
   isSearchOpen: boolean;
   setIsSearchOpen: Dispatch<SetStateAction<boolean>>;
+  hasFirstLoad: boolean;
 }) {
   const [editor] = useLexicalComposerContext();
   const panelRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const currentFilePath = useAtomValue(currentFilePathAtom);
 
   // Clear highlights when clicking outside
@@ -40,29 +42,25 @@ export function NoteFindPanel({
   const {
     matchData,
     searchValue,
+    setSearchValue,
     currentMatchIndex,
     setCurrentMatchIndex,
     highlightedNodeKeyRef,
-    handleSearch,
-  } = useSearch(editor);
+  } = useFindPanelSearch({
+    editor,
+    setIsSearchOpen,
+    isSearchOpen,
+    hasFirstLoad,
+    inputRef,
+  });
 
   // Initialize navigation functionality
-  const { navigateToNextMatch, navigateToPreviousMatch } = useMatchNavigation(
+  const { navigateToNextMatch, navigateToPreviousMatch } = useMatchNavigation({
     editor,
     matchData,
     currentMatchIndex,
     setCurrentMatchIndex,
-    highlightedNodeKeyRef
-  );
-
-  // Handle URL highlight parameter
-  useFindPanelOpenAndClose({
-    isSearchOpen,
-    setIsSearchOpen,
     highlightedNodeKeyRef,
-    currentMatchIndex,
-    matchData,
-    handleSearch,
   });
 
   return (
@@ -83,6 +81,7 @@ export function NoteFindPanel({
           />
 
           <Input
+            ref={inputRef}
             labelProps={{}}
             inputProps={{
               placeholder: 'Search in note...',
@@ -100,10 +99,7 @@ export function NoteFindPanel({
               onChange: (e) => {
                 if (!currentFilePath) return;
                 const searchTerm = e.target.value;
-                navigate(
-                  currentFilePath.getLinkToNote({ highlight: searchTerm })
-                );
-                handleSearch(searchTerm);
+                setSearchValue(searchTerm);
               },
               onKeyDown: (e) => {
                 if (e.key === 'Escape') {

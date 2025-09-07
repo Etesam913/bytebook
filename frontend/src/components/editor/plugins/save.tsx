@@ -38,7 +38,7 @@ export function SavePlugin({
   folder: string;
   note: string;
   setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
-  setNoteMarkdownString: Dispatch<SetStateAction<string>>;
+  setNoteMarkdownString: Dispatch<SetStateAction<string | null>>;
 }) {
   const [previousMarkdownWithFrontmatter, setPreviousMarkdownWithFrontmatter] =
     useAtom(previousMarkdownAtom);

@@ -472,12 +472,6 @@ export function useEditTagsMutation() {
           isInTagsSidebar
         );
 
-        console.log({
-          folderAndNotePaths,
-          tagNamesToAdd,
-          tagNamesToRemove,
-        });
-
         const res = await SetTagsOnNotes(
           folderAndNotePaths,
           tagNamesToAdd,

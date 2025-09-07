@@ -51,6 +51,7 @@ export function Toolbar({
   animationControls,
   frontmatter,
   setFrontmatter,
+  noteMarkdownString,
   setNoteMarkdownString,
 }: {
   folder: string;
@@ -62,7 +63,8 @@ export function Toolbar({
   overflowContainerRef: RefObject<HTMLDivElement | null>;
   frontmatter: Record<string, string>;
   setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
-  setNoteMarkdownString: Dispatch<SetStateAction<string>>;
+  noteMarkdownString: string | null;
+  setNoteMarkdownString: Dispatch<SetStateAction<string | null>>;
 }) {
   const [editor] = useLexicalComposerContext();
   const [disabled, setDisabled] = useAtom(isToolbarDisabledAtom);
@@ -87,7 +89,7 @@ export function Toolbar({
 
   const [isSearchOpen, setIsSearchOpen] = useSearchNoteEvent();
 
-  useNoteMarkdown(
+  const { hasFirstLoad } = useNoteMarkdown(
     editor,
     folder,
     note,
@@ -155,6 +157,7 @@ export function Toolbar({
         <NoteFindPanel
           isSearchOpen={isSearchOpen}
           setIsSearchOpen={setIsSearchOpen}
+          hasFirstLoad={hasFirstLoad}
         />
         <span className="flex items-center gap-1.5">
           <MaximizeNoteButton
