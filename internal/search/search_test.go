@@ -40,6 +40,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 						"folder":       "folder2",
 						"file_name":    "doc2",
 						"last_updated": "2023-12-02T15:45:00Z",
+						"created_date": "2023-11-02T15:45:00Z",
 					},
 					Fragments: map[string][]string{
 						"text_content": {"This also contains <mark>search term</mark>."},
@@ -68,6 +69,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 			Folder:      "folder2",
 			Note:        "doc2",
 			LastUpdated: "2023-12-02T15:45:00Z",
+			Created:     "2023-11-02T15:45:00Z",
 			Highlights:  []HighlightResult{{Content: "This also contains <mark>search term</mark>.", IsCode: false, HighlightedTerm: "search term"}},
 		}
 		assert.Equal(t, expectedSecond, results[1])
@@ -210,7 +212,6 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 	})
 }
 
-
 func TestHasHighlightContent(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -287,4 +288,3 @@ func TestExtractHighlightedText(t *testing.T) {
 		})
 	}
 }
-

@@ -11,7 +11,7 @@ export function SearchHighlights({
   }
 
   return (
-    <div className="mt-1 space-y-1">
+    <div className="space-y-1">
       {(highlights ?? []).slice(0, 3).map((highlight, idx) =>
         highlight.isCode ? (
           <SearchCodeBlock key={idx} content={highlight.content} />

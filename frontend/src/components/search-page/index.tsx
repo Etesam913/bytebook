@@ -10,7 +10,7 @@ import {
 import { useAtom } from 'jotai';
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { cn, FilePath } from '../../utils/string-formatting';
+import { cn, FilePath, formatDate } from '../../utils/string-formatting';
 import { SearchHighlights } from './search-highlights';
 
 export function SearchPage() {
@@ -139,7 +139,7 @@ export function SearchPage() {
           </div>
         )}
         {searchResults.map(
-          ({ folder, note, title, lastUpdated, highlights }, idx) => {
+          ({ folder, note, title, lastUpdated, created, highlights }, idx) => {
             const path = new FilePath({ folder, note });
             let pathToNote = path.getLinkToNote();
 
@@ -156,20 +156,27 @@ export function SearchPage() {
                 to={pathToNote}
                 draggable={false}
                 className={cn(
-                  'block py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',
+                  'flex flex-col gap-y-1 py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',
                   idx === selectedIndex && 'bg-zinc-100 dark:bg-zinc-700'
                 )}
               >
                 <div className="font-semibold">{title}</div>
-                <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                <span className="text-sm text-zinc-500 dark:text-zinc-400">
                   {path.toString()}
-                </div>
-                {lastUpdated && (
-                  <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                    Updated {lastUpdated}
-                  </div>
-                )}
+                </span>
                 <SearchHighlights highlights={highlights} />
+                <div className="flex gap-x-1 items-center justify-between">
+                  {lastUpdated && (
+                    <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Updated {formatDate(lastUpdated, 'relative')}
+                    </div>
+                  )}
+                  {created && (
+                    <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Created {formatDate(created, 'yyyy-mm-dd')}
+                    </span>
+                  )}
+                </div>
               </Link>
             );
           }

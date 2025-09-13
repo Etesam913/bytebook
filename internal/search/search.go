@@ -10,12 +10,11 @@ import (
 	"github.com/etesam913/bytebook/internal/util"
 )
 
-
 // CreateSearchRequest creates a search request with common options
 // used by the application (fields, size, and highlighting for text_content and code_content).
 func CreateSearchRequest(q query.Query) *bleve.SearchRequest {
 	req := bleve.NewSearchRequest(q)
-	req.Fields = []string{FieldFolder, FieldFileName, FieldLastUpdated}
+	req.Fields = []string{FieldFolder, FieldFileName, FieldLastUpdated, FieldCreatedDate}
 	req.Size = 50
 	req.IncludeLocations = true
 	req.Highlight = bleve.NewHighlightWithStyle("html")
@@ -38,6 +37,7 @@ type SearchResult struct {
 	Folder      string            `json:"folder"`
 	Note        string            `json:"note"`
 	LastUpdated string            `json:"lastUpdated"`
+	Created     string            `json:"created"`
 	Highlights  []HighlightResult `json:"highlights"`
 }
 
@@ -88,6 +88,17 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 			}
 		}
 
+		// created date is stored as a datetime; retrieve as string if present
+		created := ""
+		if cd, ok := hit.Fields[FieldCreatedDate]; ok {
+			switch t := cd.(type) {
+			case string:
+				created = t
+			default:
+				created = ""
+			}
+		}
+
 		// collect highlight fragments for text_content and code_content with deduplication
 		highlights := []HighlightResult{}
 		seen := util.Set[string]{}
@@ -117,6 +128,7 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 			Folder:      folder,
 			Note:        fileName,
 			LastUpdated: lastUpdated,
+			Created:     created,
 			Highlights:  highlights,
 		})
 	}

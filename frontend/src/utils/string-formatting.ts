@@ -535,3 +535,43 @@ export function unescapeFileContentFromMarkdown(escaped: string): string {
   // Matches a backslash followed by one of: \ [ ] ( )
   return escaped.replace(/\\([\\[\]()])/g, '$1');
 }
+
+export function formatDate(
+  isoString: string,
+  format: 'relative' | 'yyyy-mm-dd'
+): string {
+  const date = new Date(isoString);
+
+  if (format === 'yyyy-mm-dd') {
+    return date.toISOString().split('T')[0];
+  }
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  // Less than 1 minute ago
+  if (diffMins < 1) {
+    return 'just now';
+  }
+  // Less than 1 hour ago
+  if (diffMins < 60) {
+    return `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`;
+  }
+  // Less than 24 hours ago
+  if (diffHours < 24) {
+    return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+  }
+  // Less than 7 days ago
+  if (diffDays < 7) {
+    return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+  }
+  // More than 7 days ago - show the date
+  return date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
