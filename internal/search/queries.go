@@ -1,7 +1,6 @@
 package search
 
 import (
-	"log"
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
@@ -31,63 +30,6 @@ func createMatchQuery(field, term string, boost float64) query.Query {
 	q.SetField(field)
 	q.SetBoost(boost)
 	return q
-}
-
-// SearchToken represents a parsed search token with metadata
-type SearchToken struct {
-	Text    string
-	IsExact bool // true if the token was in quotes for exact matching
-}
-
-// parseTokens splits the input string into a slice of SearchToken,
-// handling quoted phrases as exact matches and unquoted words as fuzzy tokens.
-// Quoted phrases (enclosed in double quotes) are treated as exact matches (IsExact=true).
-// Unquoted words are split by spaces and treated as non-exact (IsExact=false).
-// Special characters like parentheses are preserved within tokens.
-// Example: input `"foo bar" baz` yields tokens: [{foo bar true}, {baz false}]
-// Example: input `func()` yields tokens: [{func() false}]
-func parseTokens(input string) []SearchToken {
-	tokens := []SearchToken{}
-	curToken := strings.Builder{}
-	inQuotes := false
-	for _, char := range input {
-		if char == '"' {
-			inQuotes = !inQuotes
-			// end of quotes
-			if !inQuotes {
-				tokens = append(tokens, SearchToken{
-					Text:    curToken.String(),
-					IsExact: true,
-				})
-				curToken.Reset()
-			}
-		} else {
-			if inQuotes {
-				curToken.WriteRune(char)
-			} else {
-				if char == ' ' {
-					// Only append non-empty tokens
-					if curToken.Len() > 0 {
-						tokens = append(tokens, SearchToken{
-							Text:    curToken.String(),
-							IsExact: false,
-						})
-						curToken.Reset()
-					}
-				} else {
-					curToken.WriteRune(char)
-				}
-			}
-		}
-	}
-	// Append the last token if not empty and not in quotes
-	if curToken.Len() > 0 && !inQuotes {
-		tokens = append(tokens, SearchToken{
-			Text:    curToken.String(),
-			IsExact: false,
-		})
-	}
-	return tokens
 }
 
 // buildMatchPhrasePrefixQuery creates a query that matches phrases with the last word as a prefix.
@@ -209,28 +151,51 @@ func createFuzzyContentQuery(text string) query.Query {
 // BuildBooleanQueryFromUserInput builds a boolean query from a user input string.
 // Tokens prefixed with "f:" are treated as filename prefixes; tokens with quotes are exact matches;
 // all others query text content and code content with fuzzy matching.
+// Supports AND/OR operators between terms:
+// - term1 AND term2 (default if no operator specified)
+// - term1 OR term2
+// - "exact phrase" AND term
+// - f:filename OR term
 func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
-	booleanQuery := bleve.NewBooleanQuery()
 	tokens := parseTokens(input)
+	if len(tokens) == 0 {
+		return bleve.NewMatchNoneQuery()
+	}
 
-	for _, token := range tokens {
-		var tokenQuery query.Query
-		log.Println("token", token)
-
+	// Helper to create a query for a token
+	createTokenQuery := func(token SearchToken) query.Query {
 		if strings.HasPrefix(token.Text, "f:") {
-			// Filename prefix query
 			prefixTerm := strings.ToLower(token.Text[2:])
-			tokenQuery = createFilenameQuery(prefixTerm)
+			return createFilenameQuery(prefixTerm)
 		} else if token.IsExact {
-			// Exact phrase search in both text and code content
-			tokenQuery = createExactContentQuery(token.Text)
-		} else {
-			// Fuzzy content search with exact and n-gram matching
-			tokenQuery = createFuzzyContentQuery(token.Text)
+			return createExactContentQuery(token.Text)
 		}
-		if tokenQuery != nil {
-			booleanQuery.AddMust(tokenQuery)
+		return createFuzzyContentQuery(token.Text)
+	}
+
+	// The first token does not have a prevOp, no OR or AND
+	currentQuery := createTokenQuery(tokens[0])
+
+	for i := 1; i < len(tokens); i++ {
+		nextQuery := createTokenQuery(tokens[i])
+		if nextQuery == nil {
+			continue
+		}
+
+		prevOp := tokens[i-1].Operator
+		switch prevOp {
+		case OpOR:
+			disjunctionQuery := bleve.NewDisjunctionQuery()
+			disjunctionQuery.AddQuery(currentQuery)
+			disjunctionQuery.AddQuery(nextQuery)
+			currentQuery = disjunctionQuery
+		default:
+			conjunctionQuery := bleve.NewConjunctionQuery()
+			conjunctionQuery.AddQuery(currentQuery)
+			conjunctionQuery.AddQuery(nextQuery)
+			currentQuery = conjunctionQuery
 		}
 	}
-	return booleanQuery
+
+	return currentQuery
 }

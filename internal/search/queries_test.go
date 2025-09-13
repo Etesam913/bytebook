@@ -7,132 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParseTokens(t *testing.T) {
-	t.Run("should handle simple unquoted words", func(t *testing.T) {
-		tokens := parseTokens("hello world")
-
-		expected := []SearchToken{
-			{Text: "hello", IsExact: false},
-			{Text: "world", IsExact: false},
-		}
-		assert.Equal(t, expected, tokens)
-	})
-
-	t.Run("should handle quoted phrases", func(t *testing.T) {
-		tokens := parseTokens(`"hello world"`)
-
-		expected := []SearchToken{
-			{Text: "hello world", IsExact: true},
-		}
-		assert.Equal(t, expected, tokens)
-	})
-
-	t.Run("should handle mixed quoted and unquoted", func(t *testing.T) {
-		tokens := parseTokens(`"foo bar" baz "hello world"`)
-
-		expected := []SearchToken{
-			{Text: "foo bar", IsExact: true},
-			{Text: "baz", IsExact: false},
-			{Text: "hello world", IsExact: true},
-		}
-		assert.Equal(t, expected, tokens)
-	})
-
-	t.Run("should handle empty input", func(t *testing.T) {
-		tokens := parseTokens("")
-		assert.Empty(t, tokens)
-	})
-
-	t.Run("should handle only spaces", func(t *testing.T) {
-		tokens := parseTokens("   ")
-		assert.Empty(t, tokens)
-	})
-
-	t.Run("should handle filename prefix tokens", func(t *testing.T) {
-		tokens := parseTokens(`f:readme "exact phrase" normal`)
-
-		expected := []SearchToken{
-			{Text: "f:readme", IsExact: false},
-			{Text: "exact phrase", IsExact: true},
-			{Text: "normal", IsExact: false},
-		}
-		assert.Equal(t, expected, tokens)
-	})
-
-	t.Run("should handle single quoted word", func(t *testing.T) {
-		tokens := parseTokens(`"word"`)
-
-		expected := []SearchToken{
-			{Text: "word", IsExact: true},
-		}
-		assert.Equal(t, expected, tokens)
-	})
-
-	t.Run("should handle unclosed quotes", func(t *testing.T) {
-		tokens := parseTokens(`"unclosed quote`)
-
-		// Unclosed quotes result in empty tokens since the quote never closes
-		// and the final token is still "in quotes" so it's not appended
-		expected := []SearchToken{}
-		assert.Equal(t, expected, tokens)
-	})
-
-	t.Run("should handle empty quotes", func(t *testing.T) {
-		tokens := parseTokens(`""`)
-
-		expected := []SearchToken{
-			{Text: "", IsExact: true},
-		}
-		assert.Equal(t, expected, tokens)
-	})
-
-	t.Run("should handle multiple spaces between words", func(t *testing.T) {
-		tokens := parseTokens("hello    world")
-
-		expected := []SearchToken{
-			{Text: "hello", IsExact: false},
-			{Text: "world", IsExact: false},
-		}
-		assert.Equal(t, expected, tokens)
-	})
-
-	t.Run("should handle complex real-world example", func(t *testing.T) {
-		tokens := parseTokens(`f:config "error handling" database authentication "user management"`)
-
-		expected := []SearchToken{
-			{Text: "f:config", IsExact: false},
-			{Text: "error handling", IsExact: true},
-			{Text: "database", IsExact: false},
-			{Text: "authentication", IsExact: false},
-			{Text: "user management", IsExact: true},
-		}
-		assert.Equal(t, expected, tokens)
-	})
-
-	t.Run("should handle special characters like parentheses", func(t *testing.T) {
-		tokens := parseTokens(`func() "error()" test(param)`)
-
-		expected := []SearchToken{
-			{Text: "func()", IsExact: false},
-			{Text: "error()", IsExact: true},
-			{Text: "test(param)", IsExact: false},
-		}
-		assert.Equal(t, expected, tokens)
-	})
-
-	t.Run("should handle other special characters", func(t *testing.T) {
-		tokens := parseTokens(`array[0] object.method() path/to/file "quoted[]brackets"`)
-
-		expected := []SearchToken{
-			{Text: "array[0]", IsExact: false},
-			{Text: "object.method()", IsExact: false},
-			{Text: "path/to/file", IsExact: false},
-			{Text: "quoted[]brackets", IsExact: true},
-		}
-		assert.Equal(t, expected, tokens)
-	})
-}
-
 func TestCreatePrefixQuery(t *testing.T) {
 	t.Run("should create prefix query with lowercase prefix", func(t *testing.T) {
 		q := createPrefixQuery("test_field", "PREFIX")
@@ -166,59 +40,150 @@ func TestCreateExactQuery(t *testing.T) {
 }
 
 func TestCreateFilenameQuery(t *testing.T) {
-	t.Run("should handle empty input and whitespace-only input", func(t *testing.T) {
-		for _, input := range []string{"", "   "} {
-			q := createFilenameQuery(input)
-			disjunctionQuery, ok := q.(*query.DisjunctionQuery)
-			assert.True(t, ok, "Query should be a DisjunctionQuery")
-			assert.Equal(t, 2, len(disjunctionQuery.Disjuncts), "Should have 2 subqueries (both MatchNoneQuery)")
+	tests := []struct {
+		name     string
+		input    string
+		wantType interface{}
+		wantLen  int
+	}{
+		{
+			name:     "empty input",
+			input:    "",
+			wantType: &query.DisjunctionQuery{},
+			wantLen:  2,
+		},
+		{
+			name:     "whitespace only",
+			input:    "   ",
+			wantType: &query.DisjunctionQuery{},
+			wantLen:  2,
+		},
+		{
+			name:     "single term",
+			input:    "test",
+			wantType: &query.DisjunctionQuery{},
+			wantLen:  2,
+		},
+		{
+			name:     "folder/file path",
+			input:    "folder/file",
+			wantType: &query.ConjunctionQuery{},
+			wantLen:  2,
+		},
+		{
+			name:     "empty after split",
+			input:    "folder/",
+			wantType: &query.ConjunctionQuery{},
+			wantLen:  2,
+		},
+		{
+			name:     "empty before split",
+			input:    "/file",
+			wantType: &query.ConjunctionQuery{},
+			wantLen:  2,
+		},
+		{
+			name:     "multiple slashes",
+			input:    "path/to/file",
+			wantType: &query.ConjunctionQuery{},
+			wantLen:  2,
+		},
+	}
 
-			// Verify both subqueries are MatchNoneQuery
-			for _, subquery := range disjunctionQuery.Disjuncts {
-				_, ok := subquery.(*query.MatchNoneQuery)
-				assert.True(t, ok, "Subquery should be a MatchNoneQuery")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			q := createFilenameQuery(tt.input)
+			assert.IsType(t, tt.wantType, q)
+
+			switch v := q.(type) {
+			case *query.DisjunctionQuery:
+				assert.Equal(t, tt.wantLen, len(v.Disjuncts))
+				if tt.input == "" || tt.input == "   " {
+					for _, subquery := range v.Disjuncts {
+						_, ok := subquery.(*query.MatchNoneQuery)
+						assert.True(t, ok, "Subquery should be a MatchNoneQuery")
+					}
+				}
+			case *query.ConjunctionQuery:
+				assert.Equal(t, tt.wantLen, len(v.Conjuncts))
 			}
-		}
-	})
+		})
+	}
+}
 
-	t.Run("should handle single term search", func(t *testing.T) {
-		q := createFilenameQuery("test")
+func TestBuildBooleanQueryFromUserInput(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		wantType interface{}
+		wantLen  int
+	}{
+		{
+			name:     "empty input",
+			input:    "",
+			wantType: &query.MatchNoneQuery{},
+		},
+		{
+			name:     "single word",
+			input:    "test",
+			wantType: &query.BooleanQuery{},
+		},
+		{
+			name:     "quoted phrase",
+			input:    `"test phrase"`,
+			wantType: &query.MatchPhraseQuery{},
+		},
+		{
+			name:     "filename prefix",
+			input:    "f:test",
+			wantType: &query.DisjunctionQuery{},
+		},
+		{
+			name:     "AND operator",
+			input:    "term1 AND term2",
+			wantType: &query.ConjunctionQuery{},
+			wantLen:  2,
+		},
+		{
+			name:     "OR operator",
+			input:    "term1 OR term2",
+			wantType: &query.DisjunctionQuery{},
+			wantLen:  2,
+		},
+		{
+			name:     "mixed operators",
+			input:    "term1 OR term2 AND term3",
+			wantType: &query.ConjunctionQuery{},
+			wantLen:  2,
+		},
+		{
+			name:     "complex query",
+			input:    `"exact phrase" AND f:test OR term`,
+			wantType: &query.DisjunctionQuery{},
+			wantLen:  2,
+		},
+	}
 
-		// Should be a disjunction query (OR) for folder and filename
-		disjunctionQuery, ok := q.(*query.DisjunctionQuery)
-		assert.True(t, ok, "Query should be a DisjunctionQuery")
-		assert.Equal(t, 2, len(disjunctionQuery.Disjuncts), "Should have 2 subqueries (folder and filename)")
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			q := BuildBooleanQueryFromUserInput(tt.input, 0)
+			assert.IsType(t, tt.wantType, q)
 
-	t.Run("should handle folder/file path search", func(t *testing.T) {
-		q := createFilenameQuery("folder/file")
-
-		// Should be a conjunction query (AND) for folder and filename
-		conjunctionQuery, ok := q.(*query.ConjunctionQuery)
-		assert.True(t, ok, "Query should be a ConjunctionQuery")
-		assert.Equal(t, 2, len(conjunctionQuery.Conjuncts), "Should have 2 subqueries (folder and filename)")
-	})
-
-	t.Run("should handle path with empty parts", func(t *testing.T) {
-		// Test empty after split (e.g. "folder/")
-		q := createFilenameQuery("folder/")
-		conjunctionQuery, ok := q.(*query.ConjunctionQuery)
-		assert.True(t, ok, "Query should be a ConjunctionQuery")
-		assert.Equal(t, 2, len(conjunctionQuery.Conjuncts), "Should have 2 subqueries even with empty filename")
-
-		// Test empty before split (e.g. "/file")
-		q = createFilenameQuery("/file")
-		conjunctionQuery, ok = q.(*query.ConjunctionQuery)
-		assert.True(t, ok, "Query should be a ConjunctionQuery")
-		assert.Equal(t, 2, len(conjunctionQuery.Conjuncts), "Should have 2 subqueries even with empty folder")
-	})
-
-	t.Run("should handle multiple slashes", func(t *testing.T) {
-		q := createFilenameQuery("path/to/file")
-
-		// Should still be treated as folder/file with first part as folder
-		conjunctionQuery, ok := q.(*query.ConjunctionQuery)
-		assert.True(t, ok, "Query should be a ConjunctionQuery")
-		assert.Equal(t, 2, len(conjunctionQuery.Conjuncts), "Should have 2 subqueries")
-	})
+			switch v := q.(type) {
+			case *query.DisjunctionQuery:
+				if tt.wantLen > 0 {
+					assert.Equal(t, tt.wantLen, len(v.Disjuncts))
+				}
+			case *query.ConjunctionQuery:
+				if tt.wantLen > 0 {
+					assert.Equal(t, tt.wantLen, len(v.Conjuncts))
+					if tt.input == "term1 OR term2 AND term3" {
+						disjunctionQuery, ok := v.Conjuncts[0].(*query.DisjunctionQuery)
+						assert.True(t, ok, "First conjunct should be a DisjunctionQuery")
+						assert.Equal(t, 2, len(disjunctionQuery.Disjuncts))
+					}
+				}
+			}
+		})
+	}
 }
