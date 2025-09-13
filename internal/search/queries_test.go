@@ -222,20 +222,3 @@ func TestCreateFilenameQuery(t *testing.T) {
 		assert.Equal(t, 2, len(conjunctionQuery.Conjuncts), "Should have 2 subqueries")
 	})
 }
-
-func TestGetTermIfSurroundedInQuotes(t *testing.T) {
-	t.Run("should remove quotes from quoted term", func(t *testing.T) {
-		result := getTermIfSurroundedInQuotes(`"quoted term"`)
-		assert.Equal(t, "quoted term", result)
-	})
-
-	t.Run("should return term unchanged if not quoted", func(t *testing.T) {
-		result := getTermIfSurroundedInQuotes("unquoted term")
-		assert.Equal(t, "unquoted term", result)
-	})
-
-	t.Run("should handle empty string", func(t *testing.T) {
-		result := getTermIfSurroundedInQuotes("")
-		assert.Equal(t, "", result)
-	})
-}

@@ -90,21 +90,6 @@ func parseTokens(input string) []SearchToken {
 	return tokens
 }
 
-// getTermIfSurroundedInQuotes returns the input string with surrounding double quotes removed,
-// if both the first and last characters are double quotes. If the string is empty or not surrounded
-// by quotes, it returns the original string unchanged.
-func getTermIfSurroundedInQuotes(term string) string {
-	if len(term) == 0 {
-		return term
-	}
-
-	if term[0] == '"' && term[len(term)-1] == '"' {
-		return term[1 : len(term)-1]
-	}
-
-	return term
-}
-
 // buildMatchPhrasePrefixQuery creates a query that matches phrases with the last word as a prefix.
 // If only one word is provided, it returns a simple prefix query.
 // For multiple words, it creates a disjunction query that matches either:
@@ -235,10 +220,6 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 		if strings.HasPrefix(token.Text, "f:") {
 			// Filename prefix query
 			prefixTerm := strings.ToLower(token.Text[2:])
-			// Remove the quotes when passing into query if present
-			if token.IsExact {
-				prefixTerm = getTermIfSurroundedInQuotes(prefixTerm)
-			}
 			tokenQuery = createFilenameQuery(prefixTerm)
 		} else if token.IsExact {
 			// Exact phrase search in both text and code content
