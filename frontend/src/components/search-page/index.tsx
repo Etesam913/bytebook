@@ -10,14 +10,14 @@ import {
 import { useAtom } from 'jotai';
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { cn, FilePath, formatDate } from '../../utils/string-formatting';
+import { cn, formatDate } from '../../utils/string-formatting';
 import { SearchHighlights } from './search-highlights';
 
 export function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useAtom(lastSearchQueryAtom);
   const inputRef = useSearchFocus();
 
-  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [, setLocation] = useLocation();
 
   const {
@@ -49,7 +49,7 @@ export function SearchPage() {
             onFocus: (e) => e.target.select(),
             onChange: async (e) => {
               setLastSearchQuery(e.target.value);
-              setSelectedIndex(-1);
+              setSelectedIndex(0);
             },
             onKeyDown: (e) => {
               if (e.key === 'ArrowDown') {
@@ -68,10 +68,13 @@ export function SearchPage() {
                   selectedIndex < searchResults.length
                 ) {
                   const selected = searchResults[selectedIndex];
-                  const { folder, note } = selected;
-                  const href = `/${encodeURIComponent(folder ?? '')}/${encodeURIComponent(
-                    note ?? ''
-                  )}?ext=md`;
+                  const highlights = selected.highlights;
+                  const firstHighlightedTerm = highlights[0]?.highlightedTerm;
+                  const href = firstHighlightedTerm
+                    ? selected.filePath.getLinkToNote({
+                        highlight: firstHighlightedTerm,
+                      })
+                    : selected.filePath.getLinkToNote();
                   setLocation(href);
                 }
               } else if (e.key === 'Escape') {
@@ -139,14 +142,15 @@ export function SearchPage() {
           </div>
         )}
         {searchResults.map(
-          ({ folder, note, title, lastUpdated, created, highlights }, idx) => {
-            const path = new FilePath({ folder, note });
+          ({ filePath, title, lastUpdated, created, highlights }, idx) => {
+            const path = filePath;
             let pathToNote = path.getLinkToNote();
+            const firstHighlightedTerm = highlights[0]?.highlightedTerm;
 
             // Adding query param for the highlighted term
-            if (highlights[0]?.highlightedTerm) {
+            if (firstHighlightedTerm) {
               pathToNote = path.getLinkToNote({
-                highlight: highlights[0]?.highlightedTerm ?? '',
+                highlight: firstHighlightedTerm,
               });
             }
 

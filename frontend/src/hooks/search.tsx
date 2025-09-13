@@ -9,6 +9,7 @@ import { searchPanelDataAtom } from '../atoms';
 import { useWailsEvent } from '../hooks/events';
 import { isEventInCurrentWindow } from '../utils/events';
 import { useEffect, useRef } from 'react';
+import { FilePath } from '../utils/string-formatting';
 
 export const lastSearchQueryAtom = atom<string>('');
 
@@ -56,12 +57,19 @@ export function useSearchMutation() {
 /**
  * Hook to perform a full-text search query using react-query.
  * @param {string} searchQuery - The search query string.
- * @returns {UseQueryResult} The query result containing search data.
+ * @returns {UseQueryResult} The query result containing search data with FilePath objects.
  */
 export function useFullTextSearchQuery(searchQuery: string) {
   return useQuery({
     queryKey: ['full-text-search', searchQuery],
     queryFn: () => FullTextSearch(searchQuery),
+    select: (data) => {
+      if (!data) return [];
+      return data.map((result) => ({
+        ...result,
+        filePath: new FilePath({ folder: result.folder, note: result.note }),
+      }));
+    },
   });
 }
 
