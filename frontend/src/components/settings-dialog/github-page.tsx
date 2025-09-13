@@ -15,6 +15,7 @@ export function GithubPage() {
   } = useGithubRepositoriesQuery();
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const projectSettings = useAtomValue(projectSettingsAtom);
+
   const dropdownItems =
     repositories?.map((repo) => ({
       value: repo.clone_url,
