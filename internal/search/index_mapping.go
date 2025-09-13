@@ -214,12 +214,12 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 
 	// file_name should use keyword analyzer to preserve punctuation and spaces
 	fileNameFieldMapping := bleve.NewTextFieldMapping()
-	fileNameFieldMapping.Analyzer = "keyword"
+	fileNameFieldMapping.Analyzer = "simple"
 	fileNameFieldMapping.Store = true
 
 	// file_name_lc stores a lowercased copy for case-insensitive prefix queries
 	fileNameLowerFieldMapping := bleve.NewTextFieldMapping()
-	fileNameLowerFieldMapping.Analyzer = "keyword"
+	fileNameLowerFieldMapping.Analyzer = "simple"
 	fileNameLowerFieldMapping.Store = false
 
 	// Set store = true for last_updated

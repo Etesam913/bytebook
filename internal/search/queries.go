@@ -39,7 +39,6 @@ func createMatchQuery(field, term string, boost float64) query.Query {
 // 2. A conjunction of the phrase (all but last word) AND the last word as a prefix
 func buildMatchPhrasePrefixQuery(q, field string) query.Query {
 	words := strings.Fields(q)
-
 	// Handle empty input
 	if len(words) == 0 {
 		return bleve.NewMatchNoneQuery()
@@ -54,6 +53,7 @@ func buildMatchPhrasePrefixQuery(q, field string) query.Query {
 
 	// Create a MatchPhraseQuery for all but the last word
 	phrasePart := strings.Join(words[:len(words)-1], " ")
+
 	phraseQuery := bleve.NewMatchPhraseQuery(phrasePart)
 	phraseQuery.SetField(field)
 
@@ -104,11 +104,6 @@ func createFilenameQuery(prefixTerm string) query.Query {
 
 		disjunctionQuery.AddQuery(fieldFolderQuery)
 		disjunctionQuery.AddQuery(fileNameQuery)
-
-		// If no valid queries were added, return nil to indicate no search should be performed
-		if len(disjunctionQuery.Disjuncts) == 0 {
-			return nil
-		}
 
 		return disjunctionQuery
 	}
