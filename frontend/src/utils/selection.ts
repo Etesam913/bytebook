@@ -66,7 +66,6 @@ export function getFilePathFromNoteSelectionRange(
 ) {
   return [...selectionRange].map((selectionRangeEntry) => {
     const note = selectionRangeEntry.split(':')[1];
-    console.log({ folder, note });
     return new FilePath({ folder, note });
   });
 }

@@ -23,75 +23,7 @@ func handleTagsUpdateEvent(params EventParams, event *application.CustomEvent) {
 		folderAndNoteNames = append(folderAndNoteNames, folderAndNoteName)
 	}
 
-	// Update .attachments_to_tags.json for non-markdown files
-	if err := updateAttachmentsToTags(params.ProjectPath, folderAndNoteNames, data); err != nil {
-		log.Printf("Error updating .attachments_to_tags.json: %v", err)
-	}
-
 	reIndexNotesWithUpdatedTags(params, folderAndNoteNames)
-}
-
-type AttachmentsToTags map[string][]string
-
-// updateAttachmentsToTags updates the .attachments_to_tags.json file with attachment files and their tags.
-// This function tracks non-markdown files and associates them with their tags for search purposes.
-func updateAttachmentsToTags(projectPath string, folderAndNoteNames []string, tagsData util.TagsUpdateEventData) error {
-	// Define the structure for .attachments_to_tags.json
-
-	// Group attachments by folder to create separate .attachments_to_tags.json files in each folder
-	folderAttachments := make(map[string]AttachmentsToTags)
-
-	// Process each file and group by folder
-	for _, folderAndNoteName := range folderAndNoteNames {
-		fileName := filepath.Base(folderAndNoteName)
-
-		// Only process non-markdown files
-		if filepath.Ext(fileName) != ".md" {
-			// Extract folder from the path
-			folder := filepath.Dir(folderAndNoteName)
-			if folder == "." {
-				folder = ""
-			}
-
-			// Get tags for this file from the event data
-			if tags, exists := tagsData[folderAndNoteName]; exists {
-				if folderAttachments[folder] == nil {
-					folderAttachments[folder] = make(AttachmentsToTags)
-				}
-				folderAttachments[folder][fileName] = tags
-			}
-		}
-	}
-
-	// Create/update .attachments_to_tags.json in each folder that has attachments
-	for folder, attachments := range folderAttachments {
-		folderPath := filepath.Join(projectPath, "notes", folder)
-		attachmentsToTagsPath := filepath.Join(folderPath, ".attachments_to_tags.json")
-
-		// Try to read existing data or create new if it doesn't exist
-		var existingAttachments AttachmentsToTags
-		_, err := util.ReadOrCreateJSON(attachmentsToTagsPath, AttachmentsToTags{})
-		if err != nil {
-			return err
-		}
-
-		// Read the existing data
-		if err := util.ReadJsonFromPath(attachmentsToTagsPath, &existingAttachments); err != nil {
-			return err
-		}
-
-		// Merge existing data with new data
-		for fileName, tags := range attachments {
-			existingAttachments[fileName] = tags
-		}
-
-		// Write the updated data back to the file
-		if err := util.WriteJsonToPath(attachmentsToTagsPath, existingAttachments); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // reIndexNotesWithUpdatedTags re-indexes multiple notes with updated tags.
@@ -147,5 +79,4 @@ func reIndexNotesWithUpdatedTags(
 	if err != nil {
 		log.Println("Error batching tags update operations", err)
 	}
-
 }

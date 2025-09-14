@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/search"
-	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -132,48 +131,6 @@ func handleNoteDeleteEvent(params EventParams, event *application.CustomEvent) {
 		return
 	}
 	deleteNotesFromIndex(params, data)
-	removeAttachmentFromAttachmentsToTags(params.ProjectPath, data)
-}
-
-// removeAttachmentFromAttachmentsToTags removes multiple attachment entries from .attachments_to_tags.json files in their respective folders.
-// This function is called when attachments are deleted to clean up their tag associations efficiently.
-func removeAttachmentFromAttachmentsToTags(projectPath string, data []map[string]string) error {
-	// Each folder has its own .attachments_to_tags.json file that has a key that has to be removed
-
-	tagsToDeleteInEachFolder := make(map[string][]string)
-
-	// Populating tagsToDeleteInEachFolder with folder -> tags
-	for _, dataObj := range data {
-		deletedNote, ok := dataObj["note"]
-		if !ok {
-			continue
-		}
-		folderOfDeletedNote, ok := dataObj["folder"]
-		if !ok {
-			continue
-		}
-		tagsToDeleteInEachFolder[folderOfDeletedNote] = append(tagsToDeleteInEachFolder[folderOfDeletedNote], deletedNote)
-	}
-
-	// Reading each folder's attachment_to_tags.json file and deleting the appropriate tags
-	for folder, tags := range tagsToDeleteInEachFolder {
-		attachmentToTags := AttachmentsToTags{}
-		util.ReadJsonFromPath(
-			filepath.Join(projectPath, "notes", folder, ".attachments_to_tags.json"),
-			&attachmentToTags,
-		)
-
-		for _, tag := range tags {
-			delete(attachmentToTags, tag)
-		}
-
-		util.WriteJsonToPath(
-			filepath.Join(projectPath, "notes", folder, ".attachments_to_tags.json"),
-			attachmentToTags,
-		)
-	}
-
-	return nil
 }
 
 // deleteNotesFromIndex removes notes from the search index in a batch operation.

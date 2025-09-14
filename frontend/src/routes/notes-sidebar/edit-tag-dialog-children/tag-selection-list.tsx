@@ -1,27 +1,41 @@
+import { Dispatch, SetStateAction } from 'react';
 import { IconButton } from '../../../components/buttons';
 import { Checkbox } from '../../../components/indeterminate-checkbox';
 import TagPlus from '../../../icons/tag-plus';
 
 export function TagSelectionList({
-  filteredTags,
+  displayedTags,
   selectedTagCounts,
   totalSelectedNotes,
   searchTerm,
-  onTagSelectionChange,
+  setSelectedTagCounts,
   onCreateTag,
 }: {
-  filteredTags: string[];
+  displayedTags: string[];
   selectedTagCounts: Map<string, number>;
   totalSelectedNotes: number;
   searchTerm: string;
-  onTagSelectionChange: (tagName: string, isSelected: boolean) => void;
+  setSelectedTagCounts: Dispatch<SetStateAction<Map<string, number>>>;
   onCreateTag: (tagName: string) => Promise<void>;
 }) {
   const showCreateButton =
     searchTerm.length > 0 &&
-    !filteredTags.includes(searchTerm.toLowerCase().trim());
+    !displayedTags.includes(searchTerm.toLowerCase().trim());
 
-  const tagElements = filteredTags.map((tag) => {
+  // Handler for tag selection changes
+  const handleTagSelectionChange = (tagName: string, isSelected: boolean) => {
+    if (isSelected) {
+      setSelectedTagCounts(
+        new Map(selectedTagCounts.set(tagName, totalSelectedNotes))
+      );
+    } else {
+      const newCounts = new Map(selectedTagCounts);
+      newCounts.set(tagName, 0);
+      setSelectedTagCounts(newCounts);
+    }
+  };
+
+  const tagElements = displayedTags.map((tag) => {
     const tagCount = selectedTagCounts.get(tag) || 0;
     const isFullySelected =
       tagCount === totalSelectedNotes && totalSelectedNotes > 0;
@@ -37,7 +51,7 @@ export function TagSelectionList({
           value={tag}
           checked={isFullySelected}
           indeterminate={isIndeterminate}
-          onChange={(e) => onTagSelectionChange(tag, e.target.checked)}
+          onChange={(e) => handleTagSelectionChange(tag, e.target.checked)}
           className="h-3.5 w-3.5 border-gray-200 dark:border-zinc-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
         />
         <span className="dark:text-zinc-200">{tag}</span>

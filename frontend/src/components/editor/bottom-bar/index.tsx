@@ -93,9 +93,7 @@ export function BottomBar({
             type="button"
             className="flex whitespace-nowrap items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600"
             onClick={() => {
-              const selectionRange = new Set([
-                `note:${filePath.noteWithoutExtension}?ext=${filePath.noteExtension}`,
-              ]);
+              const selectionRange = new Set([`note:${filePath.note}`]);
               setDialogData({
                 isOpen: true,
                 isPending: false,

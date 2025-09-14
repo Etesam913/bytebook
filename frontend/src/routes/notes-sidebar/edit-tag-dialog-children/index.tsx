@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { RouteFallback } from '../../../components/route-fallback';
 import { useTagsForNotesQuery, useTagsQuery } from '../../../hooks/tags';
-import { convertNoteNameToDotNotation } from '../../../utils/string-formatting';
+import { FilePath } from '../../../utils/string-formatting';
 import { MotionButton } from '../../../components/buttons';
 import { getDefaultButtonVariants } from '../../../animations';
 import TagPlus from '../../../icons/tag-plus';
@@ -30,19 +30,21 @@ export function EditTagDialogChildren({
   >(new Map());
 
   const {
-    data: existingTags,
+    data: allTags,
     isLoading: areTagsLoading,
     isError: areTagsError,
     error: tagsError,
   } = useTagsQuery();
 
   // Getting the notes that were selected to open this dialog
-  const selectedNotesWithExtensions = [...selectionRange]
-    .filter((noteWithQueryParam) => noteWithQueryParam.startsWith('note:'))
-    .map((noteWithQueryParam) => {
-      const noteWithoutPrefix = noteWithQueryParam.split(':')[1];
-      return convertNoteNameToDotNotation(noteWithoutPrefix);
+  const selectedFilePaths = [...selectionRange]
+    .filter((selectionRangeEntry) => selectionRangeEntry.startsWith('note:'))
+    .map((selectionRangeEntry) => {
+      const note = selectionRangeEntry.split(':')[1];
+      return new FilePath({ folder, note });
     });
+
+  const totalSelectedNotes = selectedFilePaths.length;
 
   const {
     data: tagsForSelectedNotes,
@@ -50,10 +52,8 @@ export function EditTagDialogChildren({
     isError: areTagsForSelectedNotesError,
     error: tagsForSelectedNotesError,
   } = useTagsForNotesQuery(
-    selectedNotesWithExtensions.map((note) => `${folder}/${note}`)
+    selectedFilePaths.map((filePath) => filePath.toString())
   );
-
-  const tags = [...(existingTags ?? []), ...tagsCreatedButNotSaved];
 
   useEffect(() => {
     if (tagsForSelectedNotes) {
@@ -79,30 +79,15 @@ export function EditTagDialogChildren({
     setSearchTerm('');
   };
 
-  // Handler for removing tags from selected display
-  const handleRemoveTag = (tagName: string) => {
-    const newCounts = new Map(selectedTagCounts);
-    newCounts.set(tagName, 0);
-    setSelectedTagCounts(newCounts);
-    setTagsCreatedButNotSaved((prev) => prev.filter((tag) => tag !== tagName));
-  };
-
-  const totalSelectedNotes = selectedNotesWithExtensions.length;
+  const allTagsInDialog = [...(allTags ?? []), ...tagsCreatedButNotSaved];
 
   // Filter tags based on search term and sort alphabetically
-  const filteredTags =
-    tags
+  const displayedTags =
+    allTagsInDialog
       ?.filter((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       .sort((a, b) => a.localeCompare(b)) || [];
 
   // Get fully selected tags from the notes that were selected to open this dialog
-  const fullySelectedTags = Array.from(selectedTagCounts.entries())
-    .filter(([, count]) => count > 0)
-    .map(([tagName, count]) => ({
-      tagName,
-      count,
-      isFullySelected: count === totalSelectedNotes && totalSelectedNotes > 0,
-    }));
 
   // The onSubmit for the dialog needs to get data for all checkboxes that are
   // selected and not selected.
@@ -125,19 +110,6 @@ export function EditTagDialogChildren({
       }
     );
 
-  // Handler for tag selection changes
-  const handleTagSelectionChange = (tagName: string, isSelected: boolean) => {
-    if (isSelected) {
-      setSelectedTagCounts(
-        new Map(selectedTagCounts.set(tagName, totalSelectedNotes))
-      );
-    } else {
-      const newCounts = new Map(selectedTagCounts);
-      newCounts.set(tagName, 0);
-      setSelectedTagCounts(newCounts);
-    }
-  };
-
   return (
     <fieldset
       className="flex flex-col gap-2"
@@ -146,15 +118,17 @@ export function EditTagDialogChildren({
       <p>Select tags to add to or remove from {totalSelectedNotes} note(s) </p>
 
       <SelectedTagsDisplay
-        selectedTags={fullySelectedTags}
-        onRemoveTag={handleRemoveTag}
+        selectedTagCounts={selectedTagCounts}
+        setSelectedTagCounts={setSelectedTagCounts}
+        totalSelectedNotes={totalSelectedNotes}
+        setTagsCreatedButNotSaved={setTagsCreatedButNotSaved}
       />
 
       <div className="py-1.5">
         {(areTagsLoading || areTagsForSelectedNotesLoading) && (
           <RouteFallback className="my-1" />
         )}
-        {tags && !areTagsLoading && !areTagsError && (
+        {allTagsInDialog && !areTagsLoading && !areTagsError && (
           <>
             <TagSearchInput
               searchTerm={searchTerm}
@@ -164,11 +138,11 @@ export function EditTagDialogChildren({
               hasError={areTagsError}
             />
             <TagSelectionList
-              filteredTags={filteredTags}
+              displayedTags={displayedTags}
               selectedTagCounts={selectedTagCounts}
               totalSelectedNotes={totalSelectedNotes}
               searchTerm={searchTerm}
-              onTagSelectionChange={handleTagSelectionChange}
+              setSelectedTagCounts={setSelectedTagCounts}
               onCreateTag={handleCreateTag}
             />
           </>
