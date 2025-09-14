@@ -1,6 +1,6 @@
 import { getDefaultButtonVariants } from '../../animations';
 import TagSlash from '../../icons/tag-slash';
-import { getTagNameFromSetValue } from '../../utils/string-formatting';
+import { getTagNameFromSelectionRange } from '../../utils/string-formatting';
 import { MotionButton } from '../buttons';
 
 export function TagDialogChildren({
@@ -18,7 +18,7 @@ export function TagDialogChildren({
             {tagsToDelete.size > 1
               ? `the selected
 						${tagsToDelete.size} tags`
-              : `"${getTagNameFromSetValue(Array.from(tagsToDelete.keys())[0])}"`}
+              : `"${getTagNameFromSelectionRange(Array.from(tagsToDelete.keys())[0])}"`}
             ?{' '}
           </span>{' '}
           {tagsToDelete.size > 1 ? 'These tags' : 'This tag'} will be removed

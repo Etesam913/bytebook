@@ -268,7 +268,7 @@ export function validateName(
   };
 }
 // Will be in tag:tagName format
-export function getTagNameFromSetValue(tagSetValue: string) {
+export function getTagNameFromSelectionRange(tagSetValue: string) {
   const indexOfPrefix = tagSetValue.indexOf('tag:');
   if (indexOfPrefix === -1) {
     return tagSetValue;

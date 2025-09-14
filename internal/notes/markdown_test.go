@@ -1133,8 +1133,10 @@ func TestDeleteTagsFromNote(t *testing.T) {
 		err := os.WriteFile(testFile1, []byte(content1), 0644)
 		assert.NoError(t, err)
 
-		err = DeleteTagsFromNote(tmpDir, "test-folder/test1.md", []string{"testing", "golang"})
+		updatedTags, err := DeleteTagsFromNote(tmpDir, "test-folder/test1.md", []string{"testing", "golang"})
 		assert.NoError(t, err)
+		assert.Len(t, updatedTags, 1)
+		assert.Contains(t, updatedTags, "keep")
 
 		content, _ := os.ReadFile(testFile1)
 		tags, exists := GetTagsFromFrontmatter(string(content))
@@ -1148,8 +1150,9 @@ func TestDeleteTagsFromNote(t *testing.T) {
 		err = os.WriteFile(testFile2, []byte(content2), 0644)
 		assert.NoError(t, err)
 
-		err = DeleteTagsFromNote(tmpDir, "test-folder/test2.md", []string{"tag1", "tag2"})
+		updatedTags, err = DeleteTagsFromNote(tmpDir, "test-folder/test2.md", []string{"tag1", "tag2"})
 		assert.NoError(t, err)
+		assert.Len(t, updatedTags, 0)
 
 		content, _ = os.ReadFile(testFile2)
 		assert.Contains(t, string(content), "title: Test")
@@ -1163,8 +1166,9 @@ func TestDeleteTagsFromNote(t *testing.T) {
 		err := os.WriteFile(testFile, []byte(content), 0644)
 		assert.NoError(t, err)
 
-		err = DeleteTagsFromNote(tmpDir, "test-folder/test3.md", []string{"nonexistent"})
+		updatedTags, err := DeleteTagsFromNote(tmpDir, "test-folder/test3.md", []string{"nonexistent"})
 		assert.NoError(t, err)
+		assert.Len(t, updatedTags, 0)
 
 		result, _ := os.ReadFile(testFile)
 		assert.Equal(t, content, string(result)) // Should be unchanged
@@ -1175,8 +1179,10 @@ func TestDeleteTagsFromNote(t *testing.T) {
 		err = os.WriteFile(testFile2, []byte(content2), 0644)
 		assert.NoError(t, err)
 
-		err = DeleteTagsFromNote(tmpDir, "test-folder/test4.md", []string{"missing"})
+		updatedTags, err = DeleteTagsFromNote(tmpDir, "test-folder/test4.md", []string{"missing"})
 		assert.NoError(t, err)
+		assert.Len(t, updatedTags, 1)
+		assert.Contains(t, updatedTags, "existing")
 
 		tags, exists := GetTagsFromFrontmatter(string(content2))
 		assert.True(t, exists)
@@ -1185,11 +1191,13 @@ func TestDeleteTagsFromNote(t *testing.T) {
 
 	t.Run("should handle errors", func(t *testing.T) {
 		// Non-existent file
-		err := DeleteTagsFromNote(tmpDir, "test-folder/nonexistent.md", []string{"tag"})
+		updatedTags, err := DeleteTagsFromNote(tmpDir, "test-folder/nonexistent.md", []string{"tag"})
 		assert.Error(t, err)
+		assert.Nil(t, updatedTags)
 
 		// Invalid folder path
-		err = DeleteTagsFromNote(tmpDir, "nonexistent-folder/test.md", []string{"tag"})
+		updatedTags, err = DeleteTagsFromNote(tmpDir, "nonexistent-folder/test.md", []string{"tag"})
 		assert.Error(t, err)
+		assert.Nil(t, updatedTags)
 	})
 }

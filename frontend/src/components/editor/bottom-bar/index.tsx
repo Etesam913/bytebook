@@ -10,7 +10,7 @@ import { Folder } from '../../../icons/folder';
 import { Loader } from '../../../icons/loader';
 import {
   useTagsForNotesQuery,
-  useDeleteTagsMutation,
+  // useDeleteTagsMutation,
 } from '../../../hooks/tags';
 import { useEditTagsMutation } from '../../../hooks/notes';
 import { dialogDataAtom } from '../../../atoms';
@@ -32,7 +32,7 @@ export function BottomBar({
   const { data: tagsMap, isLoading } = useTagsForNotesQuery([
     `${filePath.folder}/${filePath.note}`,
   ]);
-  const { mutate: deleteTag } = useDeleteTagsMutation();
+  // const { mutate: deleteTag } = useDeleteTagsMutation();
   const { mutateAsync: editTags } = useEditTagsMutation();
   const setDialogData = useSetAtom(dialogDataAtom);
 
@@ -56,15 +56,7 @@ export function BottomBar({
   const tagElements = (
     tagsMap?.[`${filePath.folder}/${filePath.note}`] ?? []
   ).map((tagName) => {
-    return (
-      <Tag
-        key={tagName}
-        tagName={tagName}
-        onClick={() => {
-          deleteTag();
-        }}
-      />
-    );
+    return <Tag key={tagName} tagName={tagName} onClick={() => {}} />;
   });
 
   const isMarkdownFile = filePath.noteExtension === 'md';

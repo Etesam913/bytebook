@@ -7,12 +7,14 @@ import {
   dialogDataAtom,
   selectionRangeAtom,
 } from '../../atoms';
-import { useDeleteTagsMutation } from '../../hooks/notes';
-import { useTagsQuery } from '../../hooks/tags';
+import { useDeleteTagsMutation, useTagsQuery } from '../../hooks/tags';
 import { TagIcon } from '../../icons/tag';
 import TagSlash from '../../icons/tag-slash';
 import { handleContextMenuSelection } from '../../utils/selection';
-import { cn } from '../../utils/string-formatting';
+import {
+  cn,
+  getTagNameFromSelectionRange,
+} from '../../utils/string-formatting';
 import { Sidebar } from '../sidebar';
 import { AccordionButton } from '../sidebar/accordion-button';
 import { TagDialogChildren } from './tag-dialog-children';
@@ -100,13 +102,6 @@ function TagAccordionButton({
   const setDialogData = useSetAtom(dialogDataAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
 
-  // const { data: tagPreview } = useQuery({
-  //   queryKey: ['tag-preview', sidebarTagName],
-  //   queryFn: () => GetPreviewForTag(sidebarTagName),
-  // });
-
-  // const tagPreviewCount = tagPreview?.data?.count;
-
   return (
     <button
       type="button"
@@ -141,6 +136,9 @@ function TagAccordionButton({
               ),
               value: 'delete-tag',
               onChange: () => {
+                const tagsToDelete = Array.from(newSelectionRange).map((tag) =>
+                  getTagNameFromSelectionRange(tag)
+                );
                 setDialogData({
                   isOpen: true,
                   isPending: false,
@@ -148,8 +146,8 @@ function TagAccordionButton({
                   children: () => (
                     <TagDialogChildren tagsToDelete={newSelectionRange} />
                   ),
-                  onSubmit: async () => {
-                    return deleteTags();
+                  onSubmit: async (_, setErrorText) => {
+                    return deleteTags({ tagsToDelete, setErrorText });
                   },
                 });
               },

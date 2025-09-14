@@ -14,6 +14,7 @@ require (
 require (
 	github.com/blevesearch/bleve v1.0.14
 	github.com/blevesearch/bleve/v2 v2.5.2
+	github.com/labstack/gommon v0.4.2
 	github.com/robert-nix/ansihtml v1.0.1
 	github.com/yuin/goldmark v1.7.8
 	golang.org/x/text v0.23.0
@@ -44,6 +45,8 @@ require (
 	github.com/json-iterator/go v0.0.0-20171115153421-f7279a603ede // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.etcd.io/bbolt v1.4.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 )

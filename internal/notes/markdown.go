@@ -587,21 +587,21 @@ func AddTagsToNote(projectPath string, folderAndNoteName string, newTags []strin
 // DeleteTagsFromNote removes the specified tags from a note's frontmatter.
 // It reads the existing tags from the frontmatter, removes the specified tags, and writes the file back.
 // The folderAndNoteName parameter should be in format "folderName/noteName.md".
-// Returns an error if the file cannot be read, parsed, or written.
-func DeleteTagsFromNote(projectPath string, folderAndNoteName string, tagsToDelete []string) error {
+// Returns the updated tags and an error if the file cannot be read, parsed, or written.
+func DeleteTagsFromNote(projectPath string, folderAndNoteName string, tagsToDelete []string) ([]string, error) {
 	// Construct the full file path
 	noteFilePath := filepath.Join(projectPath, "notes", folderAndNoteName)
 
 	content, err := os.ReadFile(noteFilePath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	markdown := string(content)
 
 	existingTags, hasTags := GetTagsFromFrontmatter(markdown)
 	if !hasTags {
-		return nil
+		return []string{}, nil
 	}
 
 	// Create a map of tags to delete for efficient lookup
@@ -613,7 +613,12 @@ func DeleteTagsFromNote(projectPath string, folderAndNoteName string, tagsToDele
 
 	updatedMarkdown := updateFrontmatterWithTags(markdown, finalTags)
 
-	return os.WriteFile(noteFilePath, []byte(updatedMarkdown), 0644)
+	err = os.WriteFile(noteFilePath, []byte(updatedMarkdown), 0644)
+	if err != nil {
+		return nil, err
+	}
+
+	return finalTags, nil
 }
 
 // Boolean Check Functions

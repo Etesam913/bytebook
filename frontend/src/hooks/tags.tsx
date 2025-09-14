@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useWailsEvent } from './events';
 import {
+  DeleteTags,
   GetTags,
   GetTagsForNotes,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
@@ -69,25 +70,29 @@ export function useTagsForNotesQuery(folderAndNotesWithExtensions: string[]) {
   });
 }
 
+interface DeleteTagsMutationVariables {
+  tagsToDelete: string[];
+  setErrorText: (error: string) => void;
+}
+
 /**
- * Deletes a tag from a specific note within a folder.
- *
- * @param queryClient - The react-query client for managing queries.
- * @param folder - The folder containing the note.
- * @param note - The note from which the tag is being deleted.
- * @param ext - The file extension of the note.
+ * Deletes tags from all notes
  * @returns The mutation result.
  */
 export function useDeleteTagsMutation() {
   return useMutation({
-    mutationFn: async () => {
-      //   const res = await DeleteTagsFromNotes(
-      //     [tagName],
-      //     [`${folder}/${note}.${ext}`]
-      //   );
-      //   if (!res.success) {
-      //     throw new QueryError(res.message);
-      //   }
+    mutationFn: async (variables: DeleteTagsMutationVariables) => {
+      const res = await DeleteTags(variables.tagsToDelete);
+      if (!res.success) {
+        throw new Error(res.message);
+      }
+      return true;
+    },
+    onError: (error, variables) => {
+      const { setErrorText } = variables;
+      if (error instanceof Error) {
+        setErrorText(error.message);
+      }
     },
   });
 }

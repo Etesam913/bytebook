@@ -296,33 +296,6 @@ export function useRenameFileMutation() {
 }
 
 /**
- * Custom hook to handle deleting tags.
- *
- * @param {Object} variables - The variables for the mutation.
- * @param {Set<string>} variables.tagsToDelete - The set of tags to delete. The set items start with the tag: prefix as they come from the `selectionRange` set.
- */
-export function useDeleteTagsMutation() {
-  return useMutation({
-    mutationFn: async () => {
-      // const tagsToDeleteList = Array.from(tagsToDelete).map((tagWithPrefix) =>
-      //   getTagNameFromSetValue(tagWithPrefix)
-      // );
-      // const res = await DeleteTags(tagsToDeleteList);
-      // if (!res.success) {
-      //   throw new Error(res.message);
-      // }
-      return true;
-    },
-    onError: (e) => {
-      if (e instanceof Error) {
-        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-      }
-      return false;
-    },
-  });
-}
-
-/**
  * Custom hook to handle editing tags for notes via form submission.
  * Extracts tag data from form's fieldset data attribute and calls EditTagsForNotes.
  */

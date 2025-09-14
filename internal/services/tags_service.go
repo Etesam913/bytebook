@@ -1,11 +1,14 @@
 package services
 
 import (
+	"path/filepath"
+
 	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
+	"github.com/labstack/gommon/log"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -32,7 +35,9 @@ func (t *TagsService) SetTagsOnNotes(
 				Message: "Failed to fully update tags",
 			}
 		}
-		err = notes.DeleteTagsFromNote(t.ProjectPath, folderAndNoteName, tagsToRemove)
+
+		// Get the final tags after both add and delete operations
+		tags, err := notes.DeleteTagsFromNote(t.ProjectPath, folderAndNoteName, tagsToRemove)
 		if err != nil {
 			return config.BackendResponseWithoutData{
 				Success: false,
@@ -40,19 +45,12 @@ func (t *TagsService) SetTagsOnNotes(
 			}
 		}
 
-		tags, _, err := notes.GetTagsFromNote(t.ProjectPath, folderAndNoteName)
-		if err != nil {
-			return config.BackendResponseWithoutData{
-				Success: false,
-				Message: "Failed to get tags for notes",
-			}
-		}
 		eventData[folderAndNoteName] = tags
 	}
 
 	app := application.Get()
 	if app != nil {
-		// Will handle bleve indexing
+		// Will handle bleve indexing and frontend updates
 		app.Event.EmitEvent(&application.CustomEvent{
 			Name: util.Events.TagsUpdate,
 			Data: eventData,
@@ -105,5 +103,94 @@ func (t *TagsService) GetTags() config.BackendResponseWithData[[]string] {
 		Success: true,
 		Message: "Successfully got tags",
 		Data:    tags,
+	}
+}
+
+// DeleteTags removes the specified tags from all notes that have them.
+// It queries the search index for all notes with any of the specified tags,
+// updates the search index to remove the tags, and removes the tags from
+// the frontmatter of each affected note.
+func (t *TagsService) DeleteTags(tagsToDelete []string) config.BackendResponseWithoutData {
+	if len(tagsToDelete) == 0 {
+		return config.BackendResponseWithoutData{
+			Success: true,
+			Message: "No tags to delete",
+		}
+	}
+
+	// Create a disjunction query to find all notes with any of the tags
+	disjunctionQuery := bleve.NewDisjunctionQuery()
+	for _, tag := range tagsToDelete {
+		termQuery := bleve.NewTermQuery(tag)
+		termQuery.SetField(search.FieldTags)
+		disjunctionQuery.AddQuery(termQuery)
+	}
+
+	// Search for all notes with any of the tags
+	searchRequest := bleve.NewSearchRequest(disjunctionQuery)
+	searchRequest.Size = TAGS_SEARCH_LIMIT
+	searchRequest.Fields = []string{search.FieldFolder, search.FieldFileName}
+
+	searchResult, err := t.SearchIndex.Search(searchRequest)
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "Failed to search for notes with tags",
+		}
+	}
+
+	// Process each note found
+	eventData := util.TagsUpdateEventData{}
+
+	for _, hit := range searchResult.Hits {
+		folder := ""
+		fileName := ""
+
+		if folderField, ok := hit.Fields[search.FieldFolder]; ok {
+			if folderStr, ok := folderField.(string); ok {
+				folder = folderStr
+			}
+		}
+
+		if fileNameField, ok := hit.Fields[search.FieldFileName]; ok {
+			if fileNameStr, ok := fileNameField.(string); ok {
+				fileName = fileNameStr
+			}
+		}
+
+		if fileName == "" {
+			continue
+		}
+
+		// Construct the folder/note path
+		folderAndNoteName := fileName
+		if folder != "" {
+			folderAndNoteName = filepath.Join(folder, fileName)
+		}
+
+		// Remove tags from the note's frontmatter
+		updatedTags, err := notes.DeleteTagsFromNote(t.ProjectPath, folderAndNoteName, tagsToDelete)
+		if err != nil {
+			// Log the error but continue processing other notes
+			log.Error(err)
+			continue
+		}
+
+		// Use the updated tags for the event
+		eventData[folderAndNoteName] = updatedTags
+	}
+
+	// Emit event for frontend updates & bleve indexing
+	app := application.Get()
+	if app != nil && len(eventData) > 0 {
+		app.Event.EmitEvent(&application.CustomEvent{
+			Name: util.Events.TagsUpdate,
+			Data: eventData,
+		})
+	}
+
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "Successfully deleted tags from all notes",
 	}
 }
