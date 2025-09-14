@@ -1,29 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRoute } from 'wouter';
 import { useWailsEvent } from './events';
-import { useSearchParamsEntries } from '../utils/routing';
 import {
   GetTags,
   GetTagsForNotes,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 import { QueryError } from '../utils/query';
+import { useAtomValue } from 'jotai';
+import { currentFilePathAtom } from '../atoms';
 
 /**
  * Handles the `tags-folder:create`, "tags-folder:delete", and "tags:update" events.
  */
+
 export function useTagEvents() {
   const queryClient = useQueryClient();
-  const [isInNotesSidebar, notesSidebarRouteParams] =
-    useRoute('/:folder/:note?');
-
-  const searchParams: { ext?: string } = useSearchParamsEntries();
-  let folderAndNotePath: string | null = null;
-  if (isInNotesSidebar) {
-    const { folder, note } = notesSidebarRouteParams;
-    if (note) {
-      folderAndNotePath = `${folder}/${note}.${searchParams.ext}`;
-    }
-  }
+  const filePath = useAtomValue(currentFilePathAtom);
 
   useWailsEvent('tags:index_update', () => {
     // Invalidate the tag previews for each tag
@@ -32,9 +23,9 @@ export function useTagEvents() {
     });
 
     queryClient.invalidateQueries({ queryKey: ['get-tags'] });
-    if (folderAndNotePath) {
+    if (filePath) {
       queryClient.invalidateQueries({
-        queryKey: ['notes-tags', [folderAndNotePath]],
+        queryKey: ['notes-tags', [filePath.toString()]],
       });
     }
   });
@@ -55,7 +46,6 @@ export function useTagsQuery() {
       if (!res.success) {
         throw new QueryError(res.message);
       }
-      console.log('res.data', res.data);
       return res.data ?? [];
     },
   });

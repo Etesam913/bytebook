@@ -79,7 +79,9 @@ export function EditTagDialogChildren({
     setSearchTerm('');
   };
 
-  const allTagsInDialog = [...(allTags ?? []), ...tagsCreatedButNotSaved];
+  const allTagsInDialog = [
+    ...new Set([...(allTags ?? []), ...tagsCreatedButNotSaved]),
+  ];
 
   // Filter tags based on search term and sort alphabetically
   const displayedTags =
