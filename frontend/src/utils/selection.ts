@@ -1,5 +1,5 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
-import { convertNoteNameToDotNotation, FilePath } from './string-formatting';
+import { FilePath } from './string-formatting';
 
 /**
  * Filters a selection Set to keep only items that start with the specified prefix.

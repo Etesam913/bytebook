@@ -20,8 +20,9 @@ var Events = struct {
 	SearchNote      string
 
 	// File watcher events
-	SettingsUpdate string
-	TagsUpdate     string
+	SettingsUpdate  string
+	TagsUpdate      string
+	TagsIndexUpdate string
 
 	// Kernel/Code events
 	KernelShutdownReply    string
@@ -59,8 +60,9 @@ var Events = struct {
 	SearchNote:      "search:note",
 
 	// File watcher events
-	SettingsUpdate: "settings:update",
-	TagsUpdate:     "tags:update",
+	SettingsUpdate:  "settings:update",
+	TagsUpdate:      "tags:update",
+	TagsIndexUpdate: "tags:index_update",
 
 	// Kernel/Code events
 	KernelShutdownReply:    "code:kernel:shutdown_reply",

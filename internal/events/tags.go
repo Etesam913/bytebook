@@ -79,4 +79,10 @@ func reIndexNotesWithUpdatedTags(
 	if err != nil {
 		log.Println("Error batching tags update operations", err)
 	}
+	app := application.Get()
+	if app != nil {
+		app.Event.EmitEvent(&application.CustomEvent{
+			Name: util.Events.TagsIndexUpdate,
+		})
+	}
 }

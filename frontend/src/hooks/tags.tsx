@@ -1,12 +1,5 @@
-import {
-  type QueryClient,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
-import { useAtomValue } from 'jotai';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRoute } from 'wouter';
-import { noteSortAtom } from '../atoms';
 import { useWailsEvent } from './events';
 import { useSearchParamsEntries } from '../utils/routing';
 import {
@@ -14,39 +7,6 @@ import {
   GetTagsForNotes,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 import { QueryError } from '../utils/query';
-
-/**
- * Invalidates the query for note tags if the current folder, note, and extension are available.
- *
- * @param queryClient - The TanStack Query QueryClient instance.
- * @param routeParams - Route parameters containing folder and note.
- * @param searchParams - Search parameters, possibly including an extension.
- */
-function invalidateCurrentNoteTagsQueryIfNeeded(
-  queryClient: QueryClient,
-  folderNotePath: string | null
-) {
-  if (folderNotePath) {
-    queryClient.invalidateQueries({
-      queryKey: ['notes-tags', [folderNotePath]],
-    });
-  }
-}
-
-/**
- * Handles tag related events by invalidating the 'get-tags' query and conditionally invalidating the 'note-tags' query.
- *
- * @param queryClient - The TanStack Query QueryClient instance.
- * @param routeParams - Route parameters containing folder and note.
- * @param searchParams - Search parameters, possibly including an extension.
- */
-function handleTagRelatedEvent(
-  queryClient: QueryClient,
-  folderNotePath: string | null
-) {
-  queryClient.invalidateQueries({ queryKey: ['get-tags'] });
-  invalidateCurrentNoteTagsQueryIfNeeded(queryClient, folderNotePath);
-}
 
 /**
  * Handles the `tags-folder:create`, "tags-folder:delete", and "tags:update" events.
@@ -65,23 +25,18 @@ export function useTagEvents() {
     }
   }
 
-  const noteSort = useAtomValue(noteSortAtom);
-
-  useWailsEvent('tags:update', (body) => {
-    const data = body.data as { notes: string[] | null; tagName: string };
-    const updatedTag = data.tagName;
-
-    // Update the notes present in tags-sidebar
-    queryClient.invalidateQueries({
-      queryKey: ['tag-notes', updatedTag, noteSort],
-    });
-
+  useWailsEvent('tags:index_update', () => {
     // Invalidate the tag previews for each tag
     queryClient.invalidateQueries({
       predicate: (query) => query.queryKey[0] === 'tag-preview',
     });
 
-    handleTagRelatedEvent(queryClient, folderAndNotePath);
+    queryClient.invalidateQueries({ queryKey: ['get-tags'] });
+    if (folderAndNotePath) {
+      queryClient.invalidateQueries({
+        queryKey: ['notes-tags', [folderAndNotePath]],
+      });
+    }
   });
 }
 
@@ -100,6 +55,7 @@ export function useTagsQuery() {
       if (!res.success) {
         throw new QueryError(res.message);
       }
+      console.log('res.data', res.data);
       return res.data ?? [];
     },
   });

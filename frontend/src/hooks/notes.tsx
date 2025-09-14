@@ -123,63 +123,6 @@ export function useNotes(curFolder: string, curNote?: string) {
   });
 }
 
-export function useNotesFromTag(tagName: string) {
-  const noteSort = useAtomValue(noteSortAtom);
-
-  return useQuery({
-    queryKey: ['tag-notes', tagName, noteSort],
-    queryFn: async () => {
-      // const res = await GetNotesFromTag(tagName, noteSort);
-      // if (!res.success) {
-      //   if (res.message === 'tag does not exist') {
-      //     navigate('/', { replace: true });
-      //     return [];
-      //   } else {
-      //     throw new QueryError(
-      //       `Failed in retrieving notes for tag "${tagName}"`
-      //     );
-      //   }
-      // }
-      return [];
-      // const notes = res.data ?? [];
-      // const curNoteWithExtension = `${curNote}?ext=${fileExtension}`;
-      // const curNoteExists = notes.some((noteAndFolder) => {
-      //   const [, note] = noteAndFolder.split('/');
-      //   return note === curNoteWithExtension;
-      // });
-      // // If the current note does not exist, then navigate to a safe note
-      // if (!curNoteExists) {
-      //   if (notes.length === 0) {
-      //     navigate(`/tags/${tagName}`);
-      //   } else {
-      //     let noteIndexToNavigateTo = 0;
-      //     const oldNotesData = queryClient.getQueryData([
-      //       'tag-notes',
-      //       tagName,
-      //       noteSort,
-      //     ]) as string[] | null;
-      //     if (oldNotesData) {
-      //       noteIndexToNavigateTo = findClosestSidebarItemToNavigateTo(
-      //         curNoteWithExtension,
-      //         oldNotesData,
-      //         notes
-      //       );
-      //     }
-      //     const { noteNameWithoutExtension, queryParams } =
-      //       extractInfoFromNoteName(notes[noteIndexToNavigateTo]);
-      //     const [folder, note] = noteNameWithoutExtension.split('/');
-      //     if (!folder || !note) return [];
-      //     navigate(
-      //       `/tags/${tagName}/${encodeURIComponent(folder)}/${encodeURIComponent(note)}?ext=${queryParams.ext}`,
-      //       { replace: true }
-      //     );
-      //   }
-      // }
-      // return notes;
-    },
-  });
-}
-
 /** This function is used to handle note:create events */
 export function useNoteCreate() {
   const noteSort = useAtomValue(noteSortAtom);
@@ -215,49 +158,6 @@ export function useNoteDelete(folder: string) {
       });
     } catch (err) {
       toast.error('Failed to update notes', DEFAULT_SONNER_OPTIONS);
-    }
-  });
-}
-
-/**
- * Custom hook to handle note creation events for a specific tag.
- * @param tagName - The name of the tag.
- */
-export function useTagNoteCreate(tagName: string) {
-  const noteSort = useAtomValue(noteSortAtom);
-  const queryClient = useQueryClient();
-
-  useWailsEvent('note:create', async (body) => {
-    console.info('note:create', body);
-
-    try {
-      // Refetch notes so that they are updated in the sidebar
-      await queryClient.invalidateQueries({
-        queryKey: ['tag-notes', tagName, noteSort],
-      });
-    } catch (err) {
-      toast.error('Failed to update tag notes', DEFAULT_SONNER_OPTIONS);
-    }
-  });
-}
-
-/**
- * Custom hook to handle note deletion events for a specific tag.
- * @param tagName - The name of the tag.
- */
-export function useTagNoteDelete(tagName: string) {
-  const noteSort = useAtomValue(noteSortAtom);
-  const queryClient = useQueryClient();
-
-  useWailsEvent('note:delete', async () => {
-    console.info('note:delete');
-    try {
-      // Invalidate the queries related to tag notes to ensure the data is up-to-date.
-      await queryClient.invalidateQueries({
-        queryKey: ['tag-notes', tagName, noteSort],
-      });
-    } catch (err) {
-      toast.error('Failed to update tag notes', DEFAULT_SONNER_OPTIONS);
     }
   });
 }
