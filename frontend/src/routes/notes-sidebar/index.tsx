@@ -37,6 +37,7 @@ export function NotesSidebar({
   const searchParams: { ext?: string } = useSearchParamsEntries();
   const fileExtension = searchParams?.ext;
   const noteQueryResult = useNotes(folder, `${note}.${fileExtension}`);
+  console.log({ data: noteQueryResult.data });
   const openCreateNoteDialog = useCreateNoteDialog();
 
   useNoteCreate();

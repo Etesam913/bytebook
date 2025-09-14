@@ -24,7 +24,7 @@ import { $convertFromMarkdownStringCorrect } from '../components/editor/utils/no
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import { findClosestSidebarItemToNavigateTo } from '../utils/routing';
-import { getFolderAndNoteFromSelectionRange } from '../utils/selection';
+import { getFilePathFromNoteSelectionRange } from '../utils/selection';
 import {
   convertSelectionRangeValueToDotNotation,
   FilePath,
@@ -313,11 +313,13 @@ export function useMoveNoteToTrashMutation() {
       selectionRange: Set<string>;
       folder: string;
     }) => {
-      const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
+      const filePaths = getFilePathFromNoteSelectionRange(
         folder,
         selectionRange
       );
-      const res = await MoveToTrash(folderAndNoteNames);
+      const res = await MoveToTrash(
+        filePaths.map((filePath) => filePath.toString())
+      );
       if (!res.success) throw new Error(res.message);
     },
     onError: (e) => {
@@ -342,18 +344,18 @@ export function usePinNotesMutation() {
       folder: string;
       shouldPin: boolean;
     }) => {
-      const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
+      const filePaths = getFilePathFromNoteSelectionRange(
         folder,
         selectionRange
       );
       const newProjectSettings = { ...projectSettings };
       if (shouldPin) {
-        folderAndNoteNames.forEach((folderAndNoteName) => {
-          newProjectSettings.pinnedNotes.add(folderAndNoteName);
+        filePaths.forEach((filePath) => {
+          newProjectSettings.pinnedNotes.add(filePath.toString());
         });
       } else {
-        folderAndNoteNames.forEach((folderAndNoteName) => {
-          newProjectSettings.pinnedNotes.delete(folderAndNoteName);
+        filePaths.forEach((filePath) => {
+          newProjectSettings.pinnedNotes.delete(filePath.toString());
         });
       }
       updateProjectSettings({ newProjectSettings });
@@ -448,13 +450,13 @@ export function useEditTagsMutation() {
           ? JSON.parse(tagsData)
           : { tagNamesToAdd: [], tagNamesToRemove: [] };
 
-        const folderAndNotePaths = getFolderAndNoteFromSelectionRange(
+        const filePaths = getFilePathFromNoteSelectionRange(
           folder,
           selectionRange
         );
 
         const res = await SetTagsOnNotes(
-          folderAndNotePaths,
+          filePaths.map((filePath) => filePath.toString()),
           tagNamesToAdd,
           tagNamesToRemove
         );

@@ -84,9 +84,9 @@ export function MyNotesSidebar({
             }
             data={notes ?? []}
             dataItemToString={(filePath) => filePath.noteWithoutExtension}
-            dataItemToSelectionRangeEntry={(filePath) =>
-              filePath.noteWithExtensionParam
-            }
+            dataItemToSelectionRangeEntry={(filePath) => {
+              return filePath.note;
+            }}
             renderLink={({ dataItem: sidebarNotePath, i }) => {
               return (
                 <NoteSidebarButton

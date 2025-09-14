@@ -67,6 +67,8 @@ export function BottomBar({
     );
   });
 
+  const isMarkdownFile = filePath.noteExtension === 'md';
+
   return (
     <footer className="text-xs ml-[-4.5px] border-t border-gray-200 dark:border-gray-600 py-1.5 px-3 flex items-center gap-4">
       <span className="flex items-center gap-1">
@@ -85,53 +87,55 @@ export function BottomBar({
         </BreadcrumbItem>
       </span>
       {isNoteEditor && <KernelHeartbeats />}
-      <span className="flex items-center gap-2">
-        <button
-          type="button"
-          className="flex whitespace-nowrap items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600"
-          onClick={() => {
-            const selectionRange = new Set([
-              `note:${filePath.noteWithoutExtension}?ext=${filePath.noteExtension}`,
-            ]);
-            setDialogData({
-              isOpen: true,
-              isPending: false,
-              title: 'Edit Tags',
-              dialogClassName: 'w-[min(30rem,90vw)]',
-              children: (errorText) => (
-                <EditTagDialogChildren
-                  selectionRange={selectionRange}
-                  folder={filePath.folder}
-                  errorText={errorText}
-                />
-              ),
-              onSubmit: async (e, setErrorText) => {
-                return await editTags({
-                  e,
-                  setErrorText,
-                  selectionRange,
-                  folder: filePath.folder,
-                });
-              },
-            });
-          }}
-        >
-          <TagPlus height={15} width={15} /> Edit Tags
-        </button>
-        {isLoading ? (
-          <motion.span
-            className="flex items-center gap-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
+      {isMarkdownFile && (
+        <span className="flex items-center gap-2">
+          <button
+            type="button"
+            className="flex whitespace-nowrap items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600"
+            onClick={() => {
+              const selectionRange = new Set([
+                `note:${filePath.noteWithoutExtension}?ext=${filePath.noteExtension}`,
+              ]);
+              setDialogData({
+                isOpen: true,
+                isPending: false,
+                title: 'Edit Tags',
+                dialogClassName: 'w-[min(30rem,90vw)]',
+                children: (errorText) => (
+                  <EditTagDialogChildren
+                    selectionRange={selectionRange}
+                    folder={filePath.folder}
+                    errorText={errorText}
+                  />
+                ),
+                onSubmit: async (e, setErrorText) => {
+                  return await editTags({
+                    e,
+                    setErrorText,
+                    selectionRange,
+                    folder: filePath.folder,
+                  });
+                },
+              });
+            }}
           >
-            <Loader height={14} width={14} />
-            Loading Tags
-          </motion.span>
-        ) : (
-          tagElements
-        )}
-      </span>
+            <TagPlus height={15} width={15} /> Edit Tags
+          </button>
+          {isLoading ? (
+            <motion.span
+              className="flex items-center gap-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Loader height={14} width={14} />
+              Loading Tags
+            </motion.span>
+          ) : (
+            tagElements
+          )}
+        </span>
+      )}
       {lastUpdatedText.length > 0 && (
         <p className="text-zinc-500 dark:text-zinc-300 whitespace-nowrap text-ellipsis ml-auto">
           Last Updated: {lastUpdatedText} ago

@@ -25,7 +25,7 @@ import { IMAGE_FILE_EXTENSIONS } from '../../types';
 import { FILE_SERVER_URL } from '../../utils/general';
 import { useSearchParamsEntries } from '../../utils/routing';
 import {
-  getFolderAndNoteFromSelectionRange,
+  getFilePathFromNoteSelectionRange,
   handleKeyNavigation,
   handleContextMenuSelection,
 } from '../../utils/selection';
@@ -82,8 +82,7 @@ export function NoteSidebarButton({
     sidebarNotePath.noteWithExtensionParam;
 
   const isSelected =
-    selectionRange.has(`note:${sidebarNotePath.noteWithExtensionParam}`) ??
-    false;
+    selectionRange.has(`note:${sidebarNotePath.note}`) ?? false;
 
   return (
     <button
@@ -106,19 +105,21 @@ export function NoteSidebarButton({
         const newSelectionRange = handleContextMenuSelection({
           setSelectionRange,
           itemType: 'note',
-          itemName: sidebarNotePath.noteWithExtensionParam,
+          itemName: sidebarNotePath.note,
         });
-        const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
+        const filePaths = getFilePathFromNoteSelectionRange(
           sidebarNotePath.folder,
           newSelectionRange
         );
-        const isShowingPinOption = folderAndNoteNames.some(
-          (folderAndNoteName) =>
-            !projectSettings.pinnedNotes.has(folderAndNoteName)
+        const isShowingPinOption = filePaths.some(
+          (filePath) => !projectSettings.pinnedNotes.has(filePath.toString())
         );
-        const isShowingUnpinOption = folderAndNoteNames.some(
-          (folderAndNoteName) =>
-            projectSettings.pinnedNotes.has(folderAndNoteName)
+        const isShowingUnpinOption = filePaths.some((filePath) =>
+          projectSettings.pinnedNotes.has(filePath.toString())
+        );
+
+        const isShowingEditTagsOption = filePaths.every(
+          (filePath) => filePath.noteExtension === 'md'
         );
 
         setContextMenuData({
@@ -198,42 +199,49 @@ export function NoteSidebarButton({
                   },
                 ]
               : []),
-            {
-              label: (
-                <span className="flex items-center gap-1.5">
-                  <TagPlus
-                    width={17}
-                    height={17}
-                    className="will-change-transform"
-                  />{' '}
-                  <span className="will-change-transform"> Edit Tags</span>
-                </span>
-              ),
-              value: 'edit-tags',
-              onChange: () => {
-                setDialogData({
-                  isOpen: true,
-                  isPending: false,
-                  title: 'Edit Tags',
-                  dialogClassName: 'w-[min(30rem,90vw)]',
-                  children: (errorText) => (
-                    <EditTagDialogChildren
-                      selectionRange={newSelectionRange}
-                      folder={sidebarNotePath.folder}
-                      errorText={errorText}
-                    />
-                  ),
-                  onSubmit: async (e, setErrorText) => {
-                    return await editTags({
-                      e,
-                      setErrorText,
-                      selectionRange: newSelectionRange,
-                      folder: sidebarNotePath.folder,
-                    });
+            ...(isShowingEditTagsOption
+              ? [
+                  {
+                    label: (
+                      <span className="flex items-center gap-1.5">
+                        <TagPlus
+                          width={17}
+                          height={17}
+                          className="will-change-transform"
+                        />{' '}
+                        <span className="will-change-transform">
+                          {' '}
+                          Edit Tags
+                        </span>
+                      </span>
+                    ),
+                    value: 'edit-tags',
+                    onChange: () => {
+                      setDialogData({
+                        isOpen: true,
+                        isPending: false,
+                        title: 'Edit Tags',
+                        dialogClassName: 'w-[min(30rem,90vw)]',
+                        children: (errorText) => (
+                          <EditTagDialogChildren
+                            selectionRange={newSelectionRange}
+                            folder={sidebarNotePath.folder}
+                            errorText={errorText}
+                          />
+                        ),
+                        onSubmit: async (e, setErrorText) => {
+                          return await editTags({
+                            e,
+                            setErrorText,
+                            selectionRange: newSelectionRange,
+                            folder: sidebarNotePath.folder,
+                          });
+                        },
+                      });
+                    },
                   },
-                });
-              },
-            },
+                ]
+              : []),
             ...(newSelectionRange.size === 1
               ? [
                   {

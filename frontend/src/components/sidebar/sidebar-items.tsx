@@ -1,7 +1,6 @@
 import { AnimatePresence } from 'motion/react';
 import { useAtom } from 'jotai';
 import {
-  useEffect,
   type CSSProperties,
   type Dispatch,
   type ReactNode,

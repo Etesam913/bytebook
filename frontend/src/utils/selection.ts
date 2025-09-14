@@ -1,5 +1,5 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
-import { convertNoteNameToDotNotation } from './string-formatting';
+import { convertNoteNameToDotNotation, FilePath } from './string-formatting';
 
 /**
  * Filters a selection Set to keep only items that start with the specified prefix.
@@ -56,17 +56,18 @@ export function handleContextMenuSelection({
 }
 
 /**
- * Takes a selection range like {note:Chapter 1?ext=md} or {note:folderabc/Chapter 1?ext=md}, and returns a list of folder/noteName.extension strings
+ * Takes a selection range like {note:Chapter 1.md} and returns a list of FilePath objects
  * @param folder
  * @param selectionRange
  */
-export function getFolderAndNoteFromSelectionRange(
+export function getFilePathFromNoteSelectionRange(
   folder: string,
   selectionRange: Set<string>
 ) {
-  return [...selectionRange].map((note) => {
-    const noteWithoutWithoutPrefix = note.split(':')[1];
-    return `${folder}/${convertNoteNameToDotNotation(noteWithoutWithoutPrefix)}`;
+  return [...selectionRange].map((selectionRangeEntry) => {
+    const note = selectionRangeEntry.split(':')[1];
+    console.log({ folder, note });
+    return new FilePath({ folder, note });
   });
 }
 

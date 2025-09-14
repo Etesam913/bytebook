@@ -78,6 +78,13 @@ export class FilePath {
     return this.folder === other.folder && this.note === other.note;
   }
 
+  /**
+   * Returns the string representation of the FilePath in the format "folder/note".
+   *
+   * @example
+   * const filePath = new FilePath({ folder: "docs", note: "readme.md" });
+   * filePath.toString(); // "docs/readme.md"
+   */
   toString() {
     return `${this.folder}/${this.note}`;
   }
@@ -86,6 +93,11 @@ export class FilePath {
    * Returns a link to the note, with optional additional query parameters.
    * @param extraParams - An object of additional query parameters to add to the link.
    * @returns The link to the note with query parameters.
+   *
+   * @example
+   * const filePath = new FilePath({ folder: "docs", note: "readme.md" });
+   * filePath.getLinkToNote(); // "/docs/readme?ext=md"
+   * filePath.getLinkToNote({ foo: "bar" }); // "/docs/readme?ext=md&foo=bar"
    */
   getLinkToNote(extraParams?: FilePathAdditionalQueryParams) {
     const params = new URLSearchParams({ ext: this.noteExtension });
