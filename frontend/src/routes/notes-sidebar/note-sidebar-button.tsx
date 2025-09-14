@@ -1,9 +1,9 @@
-import { useAtomValue, useSetAtom } from 'jotai/react';
-import { type Dispatch, type SetStateAction } from 'react';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
 import {
   contextMenuDataAtom,
   dialogDataAtom,
   projectSettingsAtom,
+  selectionRangeAtom,
 } from '../../atoms';
 import { draggedElementAtom } from '../../components/editor/atoms';
 import { handleDragStart } from '../../components/sidebar/utils';
@@ -41,19 +41,12 @@ export function NoteSidebarButton({
   sidebarNotePath,
   activeNoteNameWithoutExtension,
   sidebarNoteIndex,
-  selectionRange,
-  setSelectionRange,
 }: {
   sidebarNotePath: FilePath;
   activeNoteNameWithoutExtension: string | undefined;
   sidebarNoteIndex: number;
-  selectionRange: Set<string>;
-  setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
 }) {
-  const sidebarNoteFolder = sidebarNotePath.folder;
-  const sidebarNoteName = sidebarNotePath.noteWithExtensionParam;
-  const sidebarNoteNameWithoutExtension = sidebarNotePath.noteWithoutExtension;
-  const sidebarNoteExtension = sidebarNotePath.noteExtension;
+  const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
 
   const { mutate: pinOrUnpinNote } = usePinNotesMutation();
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
@@ -74,33 +67,28 @@ export function NoteSidebarButton({
 
   const notePreviewResultData = notePreviewResult?.data;
   const firstImageSrc = notePreviewResultData?.firstImageSrc ?? '';
-  const isImageFile = IMAGE_FILE_EXTENSIONS.includes(sidebarNoteExtension);
+  const isImageFile = IMAGE_FILE_EXTENSIONS.includes(
+    sidebarNotePath.noteExtension
+  );
   const imgSrc =
     !notePreviewResultData || firstImageSrc === ''
       ? isImageFile
-        ? `${FILE_SERVER_URL}/notes/${sidebarNoteFolder}/${sidebarNotePath.note}`
+        ? `${FILE_SERVER_URL}/notes/${sidebarNotePath.folder}/${sidebarNotePath.note}`
         : ''
       : firstImageSrc;
 
   const isActive =
-    decodeURIComponent(activeNoteNameWithExtension) === sidebarNoteName;
-
-  /*
-		The SidebarItems container component adds the folder name and the note name to the selection range
-		when a note is selected in the tags note sidebar. Therefore, selections via this comopnent should
-		follow this pattern for the tags note sidebar.
-	*/
-  const noteNameForSelection = sidebarNoteName;
+    decodeURIComponent(activeNoteNameWithExtension) ===
+    sidebarNotePath.noteWithExtensionParam;
 
   const isSelected =
-    selectionRange.has(`note:${noteNameForSelection}`) ?? false;
-
-  console.log('🫒 isSelected', isSelected);
+    selectionRange.has(`note:${sidebarNotePath.noteWithExtensionParam}`) ??
+    false;
 
   return (
     <button
       type="button"
-      title={sidebarNoteName}
+      title={sidebarNotePath.noteWithExtensionParam}
       draggable
       id={isActive ? 'selected-note-button' : undefined}
       onKeyDown={(e) => handleKeyNavigation(e)}
@@ -109,19 +97,19 @@ export function NoteSidebarButton({
           e,
           setSelectionRange,
           contentType: 'note',
-          draggedItem: noteNameForSelection,
+          draggedItem: sidebarNotePath.noteWithExtensionParam,
           setDraggedElement,
-          folder: sidebarNoteFolder,
+          folder: sidebarNotePath.folder,
         })
       }
       onContextMenu={(e) => {
         const newSelectionRange = handleContextMenuSelection({
           setSelectionRange,
           itemType: 'note',
-          itemName: noteNameForSelection,
+          itemName: sidebarNotePath.noteWithExtensionParam,
         });
         const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
-          sidebarNoteFolder,
+          sidebarNotePath.folder,
           newSelectionRange
         );
         const isShowingPinOption = folderAndNoteNames.some(
@@ -156,7 +144,7 @@ export function NoteSidebarButton({
               onChange: () =>
                 revealInFinder({
                   selectionRange: newSelectionRange,
-                  folder: sidebarNoteFolder,
+                  folder: sidebarNotePath.folder,
                 }),
             },
             ...(isShowingPinOption
@@ -175,7 +163,7 @@ export function NoteSidebarButton({
                     value: 'pin-note',
                     onChange: () => {
                       pinOrUnpinNote({
-                        folder: sidebarNoteFolder,
+                        folder: sidebarNotePath.folder,
                         selectionRange: newSelectionRange,
                         shouldPin: true,
                       });
@@ -202,7 +190,7 @@ export function NoteSidebarButton({
                     value: 'unpin-note',
                     onChange: () => {
                       pinOrUnpinNote({
-                        folder: sidebarNoteFolder,
+                        folder: sidebarNotePath.folder,
                         selectionRange: newSelectionRange,
                         shouldPin: false,
                       });
@@ -231,7 +219,7 @@ export function NoteSidebarButton({
                   children: (errorText) => (
                     <EditTagDialogChildren
                       selectionRange={newSelectionRange}
-                      folder={sidebarNoteFolder}
+                      folder={sidebarNotePath.folder}
                       errorText={errorText}
                     />
                   ),
@@ -240,7 +228,7 @@ export function NoteSidebarButton({
                       e,
                       setErrorText,
                       selectionRange: newSelectionRange,
-                      folder: sidebarNoteFolder,
+                      folder: sidebarNotePath.folder,
                     });
                   },
                 });
@@ -289,10 +277,10 @@ export function NoteSidebarButton({
                             }
 
                             // Use the FilePath object for cleaner path handling
-                            const originalPath = `${sidebarNoteFolder}/${sidebarNotePath.note}`;
+                            const originalPath = `${sidebarNotePath.folder}/${sidebarNotePath.note}`;
 
-                            const targetFolder = sidebarNoteFolder;
-                            const newPath = `${targetFolder}/${newFileName}.${sidebarNoteExtension}`;
+                            const targetFolder = sidebarNotePath.folder;
+                            const newPath = `${targetFolder}/${newFileName}.${sidebarNotePath.noteExtension}`;
                             await renameFile({
                               oldPath: originalPath,
                               newPath: newPath,
@@ -300,7 +288,7 @@ export function NoteSidebarButton({
 
                             const newFilePath = new FilePath({
                               folder: targetFolder,
-                              note: `${newFileName}.${sidebarNoteExtension}`,
+                              note: `${newFileName}.${sidebarNotePath.noteExtension}`,
                             });
 
                             navigate(newFilePath.getLinkToNote());
@@ -334,7 +322,7 @@ export function NoteSidebarButton({
               onChange: () =>
                 moveToTrash({
                   selectionRange: newSelectionRange,
-                  folder: sidebarNoteFolder,
+                  folder: sidebarNotePath.folder,
                 }),
             },
           ],
@@ -360,17 +348,17 @@ export function NoteSidebarButton({
     >
       {projectSettings.appearance.noteSidebarItemSize === 'list' && (
         <ListNoteSidebarItem
-          sidebarNoteName={sidebarNoteName}
-          sidebarNoteExtension={sidebarNoteExtension}
+          sidebarNoteName={sidebarNotePath.noteWithExtensionParam}
+          sidebarNoteExtension={sidebarNotePath.noteExtension}
           activeNoteNameWithExtension={activeNoteNameWithExtension}
-          sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
+          sidebarNoteNameWithoutExtension={sidebarNotePath.noteWithoutExtension}
         />
       )}
       {projectSettings.appearance.noteSidebarItemSize === 'card' && (
         <CardNoteSidebarItem
           imgSrc={imgSrc}
-          sidebarNoteExtension={sidebarNoteExtension}
-          sidebarNoteNameWithoutExtension={sidebarNoteNameWithoutExtension}
+          sidebarNoteExtension={sidebarNotePath.noteExtension}
+          sidebarNoteNameWithoutExtension={sidebarNotePath.noteWithoutExtension}
           notePreviewResult={notePreviewResult ?? null}
           isSelected={isSelected}
         />

@@ -45,7 +45,7 @@ function VirtualizedPinnedNotes({
     itemHeight: SIDEBAR_ITEM_HEIGHT,
     listRef: listScrollContainerRef,
   });
-  const { mutate: pinOrUnpinNote } = usePinNotesMutation(false);
+  const { mutate: pinOrUnpinNote } = usePinNotesMutation();
 
   const pinnedNotesElements = visibleItems.map((pinnedNote, i) => {
     const [folderName, noteName] = pinnedNote.split('/');

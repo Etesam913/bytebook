@@ -1,11 +1,12 @@
 import { AnimatePresence } from 'motion/react';
 import { useAtom } from 'jotai';
-import type {
-  CSSProperties,
-  Dispatch,
-  ReactNode,
-  RefObject,
-  SetStateAction,
+import {
+  useEffect,
+  type CSSProperties,
+  type Dispatch,
+  type ReactNode,
+  type RefObject,
+  type SetStateAction,
 } from 'react';
 import type { SidebarContentType } from '.';
 import { selectionRangeAtom } from '../../atoms';
@@ -16,7 +17,8 @@ import { SidebarHighlight } from './highlight';
 export function SidebarItems<T>({
   allData,
   visibleData,
-  accessor,
+  dataItemToString,
+  dataItemToSelectionRangeEntry,
   getContextMenuStyle,
   hoveredItem,
   setHoveredItem,
@@ -31,7 +33,8 @@ export function SidebarItems<T>({
 }: {
   allData: T[] | null;
   visibleData: T[] | null;
-  accessor: (item: T) => string;
+  dataItemToString: (item: T) => string;
+  dataItemToSelectionRangeEntry: (item: T) => string;
   getContextMenuStyle?: (dataItem: T) => CSSProperties;
   hoveredItem: string | null;
   setHoveredItem: Dispatch<SetStateAction<string | null>>;
@@ -50,6 +53,7 @@ export function SidebarItems<T>({
   isSidebarItemCard: boolean;
 }) {
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
+
   /**
    * Handles shift-click behavior for multi-selection by selecting a range of items
    * between the anchor index and the clicked index
@@ -59,7 +63,9 @@ export function SidebarItems<T>({
     const end = Math.max(ref.current, startIndex + i);
     const selectedElements: Set<string> = new Set();
     for (let j = start; j <= end; j++)
-      selectedElements.add(`${contentType}:${accessor(allData[j])}`);
+      selectedElements.add(
+        `${contentType}:${dataItemToSelectionRangeEntry(allData[j])}`
+      );
     setSelectionRange(selectedElements);
   }
 
@@ -67,19 +73,18 @@ export function SidebarItems<T>({
    * Handles command/ctrl-click behavior by toggling selection state of individual items
    * while preserving existing selections
    */
-  function handleCommandClick(i: number, prefixedDataItem: string) {
+  function handleCommandClick(i: number, selectionRangeEntry: string) {
     ref.current = startIndex + i;
     setSelectionRange((prev) => {
       // Making sure to clean the selection so a folder selection and a note selection don't mix
       const newSelection = keepSelectionNotesWithPrefix(prev, contentType);
 
       // Whether the clicked element is already selected or not
-      if (newSelection.has(prefixedDataItem)) {
-        newSelection.delete(prefixedDataItem);
+      if (newSelection.has(selectionRangeEntry)) {
+        newSelection.delete(selectionRangeEntry);
       } else {
-        newSelection.add(prefixedDataItem);
+        newSelection.add(selectionRangeEntry);
       }
-      console.log('newSelection', newSelection);
       return newSelection;
     });
   }
@@ -87,8 +92,9 @@ export function SidebarItems<T>({
   const dataElements =
     allData &&
     visibleData?.map((dataItem, i) => {
-      const dataItemString = accessor(dataItem);
-      const prefixedDataItem = `${contentType}:${dataItemString}`;
+      const dataItemString = dataItemToString(dataItem);
+      const selectionRangeEntry = `${contentType}:${dataItemToSelectionRangeEntry(dataItem)}`;
+
       return (
         <li
           onMouseEnter={() => {
@@ -105,7 +111,7 @@ export function SidebarItems<T>({
             className="flex items-center relative select-none rounded-md"
             onClick={(e) => {
               if (e.shiftKey) handleShiftClick(i, allData);
-              else if (e.metaKey) handleCommandClick(i, prefixedDataItem);
+              else if (e.metaKey) handleCommandClick(i, selectionRangeEntry);
               // Regular click
               else {
                 ref.current = startIndex + i;
@@ -116,7 +122,7 @@ export function SidebarItems<T>({
             {!shouldHideSidebarHighlight && (
               <AnimatePresence>
                 {hoveredItem === dataItemString &&
-                  !selectionRange.has(prefixedDataItem) && (
+                  !selectionRange.has(selectionRangeEntry) && (
                     <SidebarHighlight
                       layoutId={layoutId}
                       className={cn(isSidebarItemCard && 'rounded-none')}

@@ -123,13 +123,8 @@ export function useNotes(curFolder: string, curNote?: string) {
   });
 }
 
-export function useNotesFromTag(
-  tagName: string,
-  curNote?: string,
-  fileExtension?: string
-) {
+export function useNotesFromTag(tagName: string) {
   const noteSort = useAtomValue(noteSortAtom);
-  const queryClient = useQueryClient();
 
   return useQuery({
     queryKey: ['tag-notes', tagName, noteSort],
@@ -406,7 +401,7 @@ export function useRenameFileMutation() {
  */
 export function useDeleteTagsMutation() {
   return useMutation({
-    mutationFn: async ({ tagsToDelete }: { tagsToDelete: Set<string> }) => {
+    mutationFn: async () => {
       // const tagsToDeleteList = Array.from(tagsToDelete).map((tagWithPrefix) =>
       //   getTagNameFromSetValue(tagWithPrefix)
       // );

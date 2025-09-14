@@ -7,11 +7,7 @@ import { Magnifier } from '../../../../icons/magnifier';
 import { NavigationControls } from './navigation-controls';
 import { Input } from '../../../input';
 import { useOnClickOutside } from '../../../../hooks/general';
-import {
-  useFindPanelSearch,
-  useMatchNavigation,
-  useFindPanelOpenAndClose,
-} from './hooks/find-panel';
+import { useFindPanelSearch, useMatchNavigation } from './hooks/find-panel';
 import { clearHighlight } from './utils/highlight';
 import { useAtomValue } from 'jotai/react';
 import { currentFilePathAtom } from '../../../../atoms';

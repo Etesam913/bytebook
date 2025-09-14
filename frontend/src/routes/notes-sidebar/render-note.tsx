@@ -59,7 +59,7 @@ export function RenderNote() {
 
   const { data: noteExists, isLoading, error } = useNoteExists(filePath);
   useMostRecentNotes(filePath);
-  const { mutate: revealInFinder } = useNoteRevealInFinderMutation(false);
+  const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
   if (!noteWithoutExtension) return null;
   if (isLoading) {
     return <RouteFallback height={42} width={42} className="mx-auto my-auto" />;

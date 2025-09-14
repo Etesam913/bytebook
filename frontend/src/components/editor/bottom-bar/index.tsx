@@ -32,11 +32,7 @@ export function BottomBar({
   const { data: tagsMap, isLoading } = useTagsForNotesQuery([
     `${filePath.folder}/${filePath.note}`,
   ]);
-  const { mutate: deleteTag } = useDeleteTagsMutation(
-    filePath.folder,
-    filePath.noteWithoutExtension,
-    filePath.noteExtension
-  );
+  const { mutate: deleteTag } = useDeleteTagsMutation();
   const { mutateAsync: editTags } = useEditTagsMutation();
   const setDialogData = useSetAtom(dialogDataAtom);
 
@@ -65,7 +61,7 @@ export function BottomBar({
         key={tagName}
         tagName={tagName}
         onClick={() => {
-          deleteTag({ tagName });
+          deleteTag();
         }}
       />
     );

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { Dispatch, SetStateAction, useState } from 'react';
+import { useState } from 'react';
 import { useRoute } from 'wouter';
 import { SquareTerminal } from '../../icons/square-terminal';
 import { PythonLogo } from '../../icons/python-logo';
@@ -10,8 +10,12 @@ import { cn } from '../../utils/string-formatting';
 import { Sidebar } from '../sidebar';
 import { AccordionButton } from '../sidebar/accordion-button';
 import { navigate } from 'wouter/use-browser-location';
-import { useAtomValue, useSetAtom } from 'jotai';
-import { contextMenuDataAtom, kernelsDataAtom } from '../../atoms';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import {
+  contextMenuDataAtom,
+  kernelsDataAtom,
+  selectionRangeAtom,
+} from '../../atoms';
 import { handleContextMenuSelection } from '../../utils/selection';
 import { KernelHeartbeat } from '../kernel-info';
 import PowerOff from '../../icons/power-off';
@@ -55,23 +59,18 @@ export function MyKernelsAccordion() {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden hover:overflow-auto pl-1"
           >
-            <Sidebar
+            <Sidebar<Languages>
               layoutId="kernels-sidebar"
               emptyElement={null}
               contentType="tag"
-              accessor={(kernelName) => kernelName}
-              renderLink={({
-                dataItem: kernelName,
-                selectionRange,
-                setSelectionRange,
-              }) => {
+              dataItemToString={(kernelName) => kernelName}
+              dataItemToSelectionRangeEntry={(kernelName) => kernelName}
+              renderLink={({ dataItem: kernelName }) => {
                 if (!isValidKernelLanguage(kernelName)) {
                   return <></>;
                 }
                 return (
                   <KernelAccordionButton
-                    selectionRange={selectionRange}
-                    setSelectionRange={setSelectionRange}
                     kernelName={kernelName}
                     kernelNameFromUrl={kernelNameFromUrl}
                   />
@@ -87,16 +86,13 @@ export function MyKernelsAccordion() {
 }
 
 function KernelAccordionButton({
-  selectionRange,
-  setSelectionRange,
   kernelName,
   kernelNameFromUrl,
 }: {
-  selectionRange: Set<string>;
-  setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
   kernelName: Languages;
   kernelNameFromUrl: string | undefined;
 }) {
+  const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const isActive = decodeURIComponent(kernelNameFromUrl ?? '') === kernelName;
   const isSelected = selectionRange.has(`kernel:${kernelName}`);
   const kernelsData = useAtomValue(kernelsDataAtom);

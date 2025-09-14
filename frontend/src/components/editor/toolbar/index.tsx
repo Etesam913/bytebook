@@ -51,7 +51,6 @@ export function Toolbar({
   animationControls,
   frontmatter,
   setFrontmatter,
-  noteMarkdownString,
   setNoteMarkdownString,
 }: {
   folder: string;

@@ -9,7 +9,6 @@ import {
 } from 'react';
 import {
   contextMenuRefAtom,
-  dialogDataAtom,
   projectSettingsAtom,
   selectionRangeAtom,
 } from '../../atoms';
@@ -22,7 +21,8 @@ export type SidebarContentType = 'note' | 'folder' | 'tag';
 
 export function Sidebar<T>({
   data,
-  accessor,
+  dataItemToString,
+  dataItemToSelectionRangeEntry,
   getContextMenuStyle,
   renderLink,
   emptyElement,
@@ -31,7 +31,8 @@ export function Sidebar<T>({
   shouldHideSidebarHighlight,
 }: {
   data: T[] | null;
-  accessor: (item: T) => string;
+  dataItemToString: (item: T) => string;
+  dataItemToSelectionRangeEntry: (item: T) => string;
   getContextMenuStyle?: (dataItem: T) => CSSProperties;
   renderLink: (data: {
     dataItem: T;
@@ -47,7 +48,6 @@ export function Sidebar<T>({
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const anchorSelectionIndex = useRef<number>(0);
   const listScrollContainerRef = useRef<HTMLDivElement>(null);
-  const dialogData = useAtomValue(dialogDataAtom);
   /*
 	  If the activeNoteItem is set, then the note was navigated via a note link or the searchbar
 		We need to change the scroll position to the sidebar so that the active note is visible
@@ -95,30 +95,6 @@ export function Sidebar<T>({
     listRef: listScrollContainerRef,
   });
 
-  // Reset scroll position when folder changes so that the sidebar is scrolled to the top
-  // useEffect(() => {
-  //   setScrollTop(0);
-  //   listScrollContainerRef.current?.scrollTo({
-  //     top: 0,
-  //   });
-  // }, [folder]);
-
-  // // Scroll to the active item when the activeDataItem or focus changes
-  // useEffect(() => {
-  //   if (!activeDataItem || !searchParams.focus) return;
-  //   const scrollTopToActiveItem = scrollVirtualizedListToSelectedNoteOrFolder(
-  //     activeDataItem,
-  //     items,
-  //     visibleItems,
-  //     SIDEBAR_ITEM_HEIGHT
-  //   );
-  //   if (scrollTopToActiveItem === -1) return;
-  //   setScrollTop(scrollTopToActiveItem);
-  //   listScrollContainerRef.current?.scrollTo({
-  //     top: scrollTopToActiveItem,
-  //   });
-  // }, [activeDataItem, searchParams.focus, SIDEBAR_ITEM_HEIGHT]);
-
   return (
     <div
       className="overflow-y-auto"
@@ -144,7 +120,8 @@ export function Sidebar<T>({
             layoutId={layoutId}
             allData={data}
             visibleData={visibleItems}
-            accessor={accessor}
+            dataItemToString={dataItemToString}
+            dataItemToSelectionRangeEntry={dataItemToSelectionRangeEntry}
             renderLink={renderLink}
             getContextMenuStyle={getContextMenuStyle}
             hoveredItem={hoveredItem}

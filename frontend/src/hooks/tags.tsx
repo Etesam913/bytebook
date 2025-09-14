@@ -132,13 +132,9 @@ export function useTagsForNotesQuery(folderAndNotesWithExtensions: string[]) {
  * @param ext - The file extension of the note.
  * @returns The mutation result.
  */
-export function useDeleteTagsMutation(
-  folder: string,
-  note: string,
-  ext: string
-) {
+export function useDeleteTagsMutation() {
   return useMutation({
-    mutationFn: async ({ tagName }: { tagName: string }) => {
+    mutationFn: async () => {
       //   const res = await DeleteTagsFromNotes(
       //     [tagName],
       //     [`${folder}/${note}.${ext}`]

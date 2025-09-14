@@ -1,9 +1,13 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { getDefaultButtonVariants } from '../../animations';
-import { contextMenuDataAtom, dialogDataAtom } from '../../atoms';
+import {
+  contextMenuDataAtom,
+  dialogDataAtom,
+  selectionRangeAtom,
+} from '../../atoms';
 import { draggedElementAtom } from '../editor/atoms';
 import {
   useFolderDialogSubmit,
@@ -94,7 +98,7 @@ export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
                   <Loader width={20} height={20} className="mx-auto my-3" />
                 </motion.div>
               ) : (
-                <Sidebar
+                <Sidebar<string>
                   contentType="folder"
                   layoutId="folder-sidebar"
                   emptyElement={
@@ -103,20 +107,14 @@ export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
                       above
                     </li>
                   }
-                  accessor={(folderName) => folderName}
-                  renderLink={({
-                    dataItem: sidebarFolderName,
-                    i,
-                    selectionRange,
-                    setSelectionRange,
-                  }) => {
+                  dataItemToString={(folderName) => folderName}
+                  dataItemToSelectionRangeEntry={(folderName) => folderName}
+                  renderLink={({ dataItem: sidebarFolderName, i }) => {
                     return (
                       <FolderAccordionButton
                         folderFromUrl={folder}
                         sidebarFolderName={sidebarFolderName}
                         i={i}
-                        selectionRange={selectionRange}
-                        setSelectionRange={setSelectionRange}
                         alphabetizedFolders={alphabetizedFolders}
                       />
                     );
@@ -135,17 +133,14 @@ function FolderAccordionButton({
   folderFromUrl,
   sidebarFolderName,
   i,
-  selectionRange,
-  setSelectionRange,
   alphabetizedFolders,
 }: {
   folderFromUrl: string | undefined;
   sidebarFolderName: string;
   i: number;
-  selectionRange: Set<string>;
-  setSelectionRange: React.Dispatch<React.SetStateAction<Set<string>>>;
   alphabetizedFolders: string[] | null;
 }) {
+  const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const setDraggedElement = useSetAtom(draggedElementAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const { mutate: revealInFinder } = useFolderRevealInFinderMutation();
@@ -155,7 +150,6 @@ function FolderAccordionButton({
   const currentZoom = useAtomValue(currentZoomAtom);
   const isActive =
     decodeURIComponent(folderFromUrl ?? '') === sidebarFolderName;
-
   const currentFolder = alphabetizedFolders?.at(i);
   const isSelected = selectionRange.has(`folder:${currentFolder}`);
 

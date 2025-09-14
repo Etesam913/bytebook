@@ -1,8 +1,12 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useAtomValue, useSetAtom } from 'jotai/react';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
 import { useState } from 'react';
 import { useRoute } from 'wouter';
-import { contextMenuDataAtom, dialogDataAtom } from '../../atoms';
+import {
+  contextMenuDataAtom,
+  dialogDataAtom,
+  selectionRangeAtom,
+} from '../../atoms';
 import { useDeleteTagsMutation } from '../../hooks/notes';
 import { useTagsQuery } from '../../hooks/tags';
 import { TagIcon } from '../../icons/tag';
@@ -48,7 +52,7 @@ export function MyTagsAccordion() {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden hover:overflow-auto pl-1"
           >
-            <Sidebar
+            <Sidebar<string>
               layoutId="tags-sidebar"
               emptyElement={
                 <li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
@@ -56,19 +60,13 @@ export function MyTagsAccordion() {
                 </li>
               }
               contentType="tag"
-              accessor={(tagName) => tagName}
-              renderLink={({
-                dataItem: sidebarTagName,
-                i,
-                selectionRange,
-                setSelectionRange,
-              }) => {
+              dataItemToString={(tagName) => tagName}
+              dataItemToSelectionRangeEntry={(tagName) => tagName}
+              renderLink={({ dataItem: sidebarTagName, i }) => {
                 return (
                   <TagAccordionButton
                     tags={tags}
                     i={i}
-                    selectionRange={selectionRange}
-                    setSelectionRange={setSelectionRange}
                     sidebarTagName={sidebarTagName}
                     tagNameFromUrl={tagNameFromUrl}
                   />
@@ -86,18 +84,15 @@ export function MyTagsAccordion() {
 function TagAccordionButton({
   tags,
   i,
-  selectionRange,
-  setSelectionRange,
   sidebarTagName,
   tagNameFromUrl,
 }: {
   tags: string[] | undefined;
   i: number;
-  selectionRange: Set<string>;
-  setSelectionRange: React.Dispatch<React.SetStateAction<Set<string>>>;
   sidebarTagName: string;
   tagNameFromUrl: string | undefined;
 }) {
+  const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const { mutateAsync: deleteTags } = useDeleteTagsMutation();
   const isActive = decodeURIComponent(tagNameFromUrl ?? '') === sidebarTagName;
   const isSelected = tags?.at(i) && selectionRange.has(`tag:${tags[i]}`);
@@ -154,7 +149,7 @@ function TagAccordionButton({
                     <TagDialogChildren tagsToDelete={newSelectionRange} />
                   ),
                   onSubmit: async () => {
-                    return deleteTags({ tagsToDelete: newSelectionRange });
+                    return deleteTags();
                   },
                 });
               },
