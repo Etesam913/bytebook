@@ -71,12 +71,21 @@ export function useFindPanelSearch({
     // Use the same currentMatchIndex if the matches are the same.
     // Ex: searching for "apple", closing find panel and then opening it again.
     if (areMatchesEqual(matches, matchData)) {
-      const highlightedNodeKey = highlightMatch(
-        editor,
-        matches[currentMatchIndex]
-      );
-      highlightedNodeKeyRef.current = highlightedNodeKey;
-      return;
+      // Ensure currentMatchIndex is within bounds before using it
+      if (currentMatchIndex >= 0 && currentMatchIndex < matches.length) {
+        const highlightedNodeKey = highlightMatch(
+          editor,
+          matches[currentMatchIndex]
+        );
+        highlightedNodeKeyRef.current = highlightedNodeKey;
+        return;
+      } else if (matches.length > 0) {
+        // Reset to first match if currentMatchIndex is out of bounds
+        setCurrentMatchIndex(0);
+        const highlightedNodeKey = highlightMatch(editor, matches[0]);
+        highlightedNodeKeyRef.current = highlightedNodeKey;
+        return;
+      }
     }
 
     if (matches.length > 0) {

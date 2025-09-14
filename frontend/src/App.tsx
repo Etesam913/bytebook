@@ -36,12 +36,6 @@ const NotesSidebar = lazy(() =>
   }))
 );
 
-const TagsSidebar = lazy(() =>
-  import('./routes/tags-sidebar').then((module) => ({
-    default: module.TagsSidebar,
-  }))
-);
-
 const KernelInfo = lazy(() =>
   import('./components/kernel-info').then((module) => ({
     default: module.KernelInfo,
@@ -90,24 +84,6 @@ function App() {
       )}
       <Switch>
         <Route path="/" />
-        <Route path="/tags/:tagName/:folder?/:note?">
-          {(folderParams) => (
-            <Suspense fallback={<RouteFallback />}>
-              <TagsSidebar
-                params={
-                  folderParams as {
-                    tagName: string;
-                    folder?: string;
-                    note?: string;
-                  }
-                }
-                width={notesSidebarWidth}
-                leftWidth={folderSidebarWidth}
-              />
-            </Suspense>
-          )}
-        </Route>
-
         <Route path="/kernels/:kernelName">
           <Suspense fallback={<RouteFallback />}>
             <KernelInfo />

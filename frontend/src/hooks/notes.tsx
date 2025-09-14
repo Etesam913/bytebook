@@ -268,7 +268,7 @@ export function useTagNoteDelete(tagName: string) {
 }
 
 /** Custom hook to handle revealing folders in Finder */
-export function useNoteRevealInFinderMutation(isInTagsSidebar: boolean) {
+export function useNoteRevealInFinderMutation() {
   return useMutation({
     // The main function that handles revealing folders in Finder
     mutationFn: async ({
@@ -283,15 +283,6 @@ export function useNoteRevealInFinderMutation(isInTagsSidebar: boolean) {
       // Reveal each selected folder in Finder
       const res = await Promise.all(
         selectedNotes.map(async (note) => {
-          if (isInTagsSidebar) {
-            const { noteNameWithoutExtension, queryParams } =
-              parseNoteNameFromSelectionRangeValue(note);
-            const [folderName, noteName] = noteNameWithoutExtension.split('/');
-            return await RevealFolderOrFileInFinder(
-              `notes/${folderName}/${noteName}.${queryParams.ext}`,
-              true
-            );
-          }
           return await RevealFolderOrFileInFinder(
             `notes/${folder}/${convertSelectionRangeValueToDotNotation(note)}`,
             true
@@ -318,7 +309,7 @@ export function useNoteRevealInFinderMutation(isInTagsSidebar: boolean) {
   });
 }
 
-export function useMoveNoteToTrashMutation(isInTagsSidebar: boolean) {
+export function useMoveNoteToTrashMutation() {
   return useMutation({
     mutationFn: async ({
       selectionRange,
@@ -329,8 +320,7 @@ export function useMoveNoteToTrashMutation(isInTagsSidebar: boolean) {
     }) => {
       const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
         folder,
-        selectionRange,
-        isInTagsSidebar
+        selectionRange
       );
       const res = await MoveToTrash(folderAndNoteNames);
       if (!res.success) throw new Error(res.message);
@@ -343,7 +333,7 @@ export function useMoveNoteToTrashMutation(isInTagsSidebar: boolean) {
   });
 }
 
-export function usePinNotesMutation(isInTagsSidebar: boolean) {
+export function usePinNotesMutation() {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const projectSettings = useAtomValue(projectSettingsAtom);
 
@@ -359,8 +349,7 @@ export function usePinNotesMutation(isInTagsSidebar: boolean) {
     }) => {
       const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
         folder,
-        selectionRange,
-        isInTagsSidebar
+        selectionRange
       );
       const newProjectSettings = { ...projectSettings };
       if (shouldPin) {
@@ -447,13 +436,11 @@ export function useEditTagsMutation() {
       setErrorText,
       selectionRange,
       folder,
-      isInTagsSidebar,
     }: {
       e: FormEvent<HTMLFormElement>;
       setErrorText: Dispatch<SetStateAction<string>>;
       selectionRange: Set<string>;
       folder: string;
-      isInTagsSidebar: boolean;
     }) => {
       try {
         // Get the tags to add or delete from the data attribute
@@ -468,8 +455,7 @@ export function useEditTagsMutation() {
 
         const folderAndNotePaths = getFolderAndNoteFromSelectionRange(
           folder,
-          selectionRange,
-          isInTagsSidebar
+          selectionRange
         );
 
         const res = await SetTagsOnNotes(

@@ -1,8 +1,5 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
-import {
-  extractInfoFromNoteName,
-  convertNoteNameToDotNotation,
-} from './string-formatting';
+import { convertNoteNameToDotNotation } from './string-formatting';
 
 /**
  * Filters a selection Set to keep only items that start with the specified prefix.
@@ -65,18 +62,10 @@ export function handleContextMenuSelection({
  */
 export function getFolderAndNoteFromSelectionRange(
   folder: string,
-  selectionRange: Set<string>,
-  isInTagsSidebar: boolean
+  selectionRange: Set<string>
 ) {
   return [...selectionRange].map((note) => {
     const noteWithoutWithoutPrefix = note.split(':')[1];
-    if (isInTagsSidebar) {
-      const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-        noteWithoutWithoutPrefix
-      );
-      const [folderName, noteName] = noteNameWithoutExtension.split('/');
-      return `${folderName}/${noteName}.${queryParams.ext}`;
-    }
     return `${folder}/${convertNoteNameToDotNotation(noteWithoutWithoutPrefix)}`;
   });
 }

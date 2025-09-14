@@ -55,24 +55,12 @@ export function useTagEvents() {
   const queryClient = useQueryClient();
   const [isInNotesSidebar, notesSidebarRouteParams] =
     useRoute('/:folder/:note?');
-  const [isInTagsSidebar, tagsSidebarRouteParams] = useRoute(
-    '/tags/:tagName/:folder?/:note?'
-  );
 
   const searchParams: { ext?: string } = useSearchParamsEntries();
   let folderAndNotePath: string | null = null;
   if (isInNotesSidebar) {
     const { folder, note } = notesSidebarRouteParams;
     if (note) {
-      folderAndNotePath = `${folder}/${note}.${searchParams.ext}`;
-    }
-  } else if (isInTagsSidebar) {
-    const { folder, note } = tagsSidebarRouteParams as {
-      tagName: string;
-      folder?: string;
-      note?: string;
-    };
-    if (note && folder) {
       folderAndNotePath = `${folder}/${note}.${searchParams.ext}`;
     }
   }

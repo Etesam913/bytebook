@@ -87,6 +87,7 @@ export function navigateToNextMatch(
 
   clearHighlight(editor, highlightedNodeKeyRef);
   const nextIndex = getNextMatchIndex(currentMatchIndex, matchData.length);
+
   setCurrentMatchIndex(nextIndex);
   const highlightedNodeKey = highlightMatch(editor, matchData[nextIndex]);
   if (highlightedNodeKeyRef.current !== undefined) {
@@ -109,6 +110,7 @@ export function navigateToPreviousMatch(
 
   clearHighlight(editor, highlightedNodeKeyRef);
   const prevIndex = getPreviousMatchIndex(currentMatchIndex, matchData.length);
+
   setCurrentMatchIndex(prevIndex);
   const highlightedNodeKey = highlightMatch(editor, matchData[prevIndex]);
   if (highlightedNodeKeyRef.current !== undefined) {

@@ -43,27 +43,21 @@ export function NoteSidebarButton({
   sidebarNoteIndex,
   selectionRange,
   setSelectionRange,
-  tagState,
 }: {
   sidebarNotePath: FilePath;
   activeNoteNameWithoutExtension: string | undefined;
   sidebarNoteIndex: number;
   selectionRange: Set<string>;
   setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
-  tagState?: {
-    tagName: string;
-  };
 }) {
   const sidebarNoteFolder = sidebarNotePath.folder;
   const sidebarNoteName = sidebarNotePath.noteWithExtensionParam;
   const sidebarNoteNameWithoutExtension = sidebarNotePath.noteWithoutExtension;
   const sidebarNoteExtension = sidebarNotePath.noteExtension;
 
-  const isInTagsSidebar = tagState?.tagName !== undefined;
-  const { mutate: pinOrUnpinNote } = usePinNotesMutation(isInTagsSidebar);
-  const { mutate: revealInFinder } =
-    useNoteRevealInFinderMutation(isInTagsSidebar);
-  const { mutate: moveToTrash } = useMoveNoteToTrashMutation(isInTagsSidebar);
+  const { mutate: pinOrUnpinNote } = usePinNotesMutation();
+  const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
+  const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
   const { mutateAsync: editTags } = useEditTagsMutation();
   const { mutateAsync: renameFile } = useRenameFileMutation();
   const currentZoom = useAtomValue(currentZoomAtom);
@@ -96,12 +90,12 @@ export function NoteSidebarButton({
 		when a note is selected in the tags note sidebar. Therefore, selections via this comopnent should
 		follow this pattern for the tags note sidebar.
 	*/
-  const noteNameForSelection = isInTagsSidebar
-    ? `${sidebarNoteFolder}/${sidebarNoteName}`
-    : sidebarNoteName;
+  const noteNameForSelection = sidebarNoteName;
 
   const isSelected =
     selectionRange.has(`note:${noteNameForSelection}`) ?? false;
+
+  console.log('🫒 isSelected', isSelected);
 
   return (
     <button
@@ -118,7 +112,6 @@ export function NoteSidebarButton({
           draggedItem: noteNameForSelection,
           setDraggedElement,
           folder: sidebarNoteFolder,
-          isInTagsSidebar,
         })
       }
       onContextMenu={(e) => {
@@ -129,8 +122,7 @@ export function NoteSidebarButton({
         });
         const folderAndNoteNames = getFolderAndNoteFromSelectionRange(
           sidebarNoteFolder,
-          newSelectionRange,
-          isInTagsSidebar
+          newSelectionRange
         );
         const isShowingPinOption = folderAndNoteNames.some(
           (folderAndNoteName) =>
@@ -249,7 +241,6 @@ export function NoteSidebarButton({
                       setErrorText,
                       selectionRange: newSelectionRange,
                       folder: sidebarNoteFolder,
-                      isInTagsSidebar,
                     });
                   },
                 });
@@ -282,7 +273,6 @@ export function NoteSidebarButton({
                             <RenameFileDialogChildren
                               selectedNote={selectedNote}
                               errorText={errorText}
-                              isInTagsSidebar={isInTagsSidebar}
                             />
                           );
                         },
@@ -299,9 +289,7 @@ export function NoteSidebarButton({
                             }
 
                             // Use the FilePath object for cleaner path handling
-                            const originalPath = isInTagsSidebar
-                              ? `${sidebarNoteFolder}/${sidebarNotePath.note}`
-                              : `${sidebarNoteFolder}/${sidebarNotePath.note}`;
+                            const originalPath = `${sidebarNoteFolder}/${sidebarNotePath.note}`;
 
                             const targetFolder = sidebarNoteFolder;
                             const newPath = `${targetFolder}/${newFileName}.${sidebarNoteExtension}`;
@@ -314,13 +302,8 @@ export function NoteSidebarButton({
                               folder: targetFolder,
                               note: `${newFileName}.${sidebarNoteExtension}`,
                             });
-                            if (isInTagsSidebar) {
-                              navigate(
-                                `/tags/${encodeURIComponent(tagState.tagName)}${newFilePath.getLinkToNote()}`
-                              );
-                            } else {
-                              navigate(newFilePath.getLinkToNote());
-                            }
+
+                            navigate(newFilePath.getLinkToNote());
                             return true;
                           } catch (error) {
                             setErrorText(
@@ -372,11 +355,7 @@ export function NoteSidebarButton({
         if (e.metaKey || e.shiftKey) return;
         const buttonElem = e.target as HTMLButtonElement;
         buttonElem.focus();
-        navigate(
-          isInTagsSidebar
-            ? `/tags/${tagState.tagName}${sidebarNotePath.getLinkToNote()}`
-            : sidebarNotePath.getLinkToNote()
-        );
+        navigate(sidebarNotePath.getLinkToNote());
       }}
     >
       {projectSettings.appearance.noteSidebarItemSize === 'list' && (

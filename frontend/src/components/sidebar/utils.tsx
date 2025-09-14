@@ -36,7 +36,6 @@ export function handleDragStart({
   draggedItem,
   setDraggedElement,
   folder,
-  isInTagsSidebar,
 }: {
   e: DragEvent<HTMLAnchorElement> | DragEvent<HTMLButtonElement>;
   setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
@@ -44,7 +43,6 @@ export function handleDragStart({
   draggedItem: string;
   setDraggedElement: Dispatch<SetStateAction<HTMLElement | null>>;
   folder?: string;
-  isInTagsSidebar?: boolean;
 }) {
   setSelectionRange((tempSet) => {
     const tempSelectionRange = new Set(tempSet);
@@ -62,7 +60,6 @@ export function handleDragStart({
       tempSelectionRange,
       contentType,
       folder,
-      isInTagsSidebar: isInTagsSidebar ?? false,
     });
 
     const dragElement = e.target as HTMLElement;
@@ -121,14 +118,12 @@ function setDataTransfer({
   tempSelectionRange,
   contentType,
   folder,
-  isInTagsSidebar,
 }: {
   e: DragEvent<HTMLAnchorElement> | DragEvent<HTMLButtonElement>;
   selectedFiles: string[];
   tempSelectionRange: Set<string>;
   contentType: string;
   folder?: string;
-  isInTagsSidebar: boolean;
 }) {
   e.dataTransfer.setData('text/plain', selectedFiles.join(','));
 
@@ -155,10 +150,6 @@ function setDataTransfer({
     }
   );
 
-  // Dragging files from the tags note sidebar is a complex beast, so don't support it for now.
-  if (isInTagsSidebar) {
-    return;
-  }
   if (contentType === 'note') {
     e.dataTransfer.effectAllowed = 'copy';
     e.dataTransfer.setData(

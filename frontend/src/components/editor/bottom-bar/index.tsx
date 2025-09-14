@@ -115,7 +115,6 @@ export function BottomBar({
                   setErrorText,
                   selectionRange,
                   folder: filePath.folder,
-                  isInTagsSidebar: false,
                 });
               },
             });

@@ -14,16 +14,12 @@ import { FilePath } from '../../utils/string-formatting.ts';
 
 export function MyNotesSidebar({
   curNote,
-  tagState,
   layoutId,
   noteQueryResult,
 }: {
   curFolder: string;
   curNote: string | undefined;
   fileExtension: string | undefined;
-  tagState?: {
-    tagName: string;
-  };
   layoutId: string;
   noteQueryResult: UseQueryResult<FilePath[], Error>;
 }) {
@@ -101,7 +97,6 @@ export function MyNotesSidebar({
                   sidebarNoteIndex={i}
                   selectionRange={selectionRange}
                   setSelectionRange={setSelectionRange}
-                  tagState={tagState}
                 />
               );
             }}

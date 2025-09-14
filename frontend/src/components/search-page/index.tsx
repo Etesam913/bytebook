@@ -9,9 +9,8 @@ import {
 } from '../../hooks/search';
 import { useAtom } from 'jotai';
 import { useState } from 'react';
-import { Link, useLocation } from 'wouter';
-import { cn, formatDate } from '../../utils/string-formatting';
-import { SearchHighlights } from './search-highlights';
+import { useLocation } from 'wouter';
+import { SearchResultsList } from './results/search-results-list';
 
 export function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useAtom(lastSearchQueryAtom);
@@ -141,50 +140,10 @@ export function SearchPage() {
             </div>
           </div>
         )}
-        {searchResults.map(
-          ({ filePath, title, lastUpdated, created, highlights }, idx) => {
-            const path = filePath;
-            let pathToNote = path.getLinkToNote();
-            const firstHighlightedTerm = highlights[0]?.highlightedTerm;
-
-            // Adding query param for the highlighted term
-            if (firstHighlightedTerm) {
-              pathToNote = path.getLinkToNote({
-                highlight: firstHighlightedTerm,
-              });
-            }
-
-            return (
-              <Link
-                key={pathToNote}
-                to={pathToNote}
-                draggable={false}
-                className={cn(
-                  'flex flex-col gap-y-1 py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',
-                  idx === selectedIndex && 'bg-zinc-100 dark:bg-zinc-700'
-                )}
-              >
-                <div className="font-semibold">{title}</div>
-                <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                  {path.toString()}
-                </span>
-                <SearchHighlights highlights={highlights} />
-                <div className="flex gap-x-1 items-center justify-between">
-                  {lastUpdated && (
-                    <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Updated {formatDate(lastUpdated, 'relative')}
-                    </div>
-                  )}
-                  {created && (
-                    <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Created {formatDate(created, 'yyyy-mm-dd')}
-                    </span>
-                  )}
-                </div>
-              </Link>
-            );
-          }
-        )}
+        <SearchResultsList
+          searchResults={searchResults}
+          selectedIndex={selectedIndex}
+        />
       </div>
     </section>
   );

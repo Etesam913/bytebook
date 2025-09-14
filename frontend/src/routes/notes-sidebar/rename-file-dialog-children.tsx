@@ -9,18 +9,14 @@ import { extractInfoFromNoteName } from '../../utils/string-formatting';
 export function RenameFileDialogChildren({
   selectedNote,
   errorText,
-  isInTagsSidebar,
 }: {
   selectedNote: string;
   errorText: string;
-  isInTagsSidebar: boolean;
 }) {
   // selectedNote comes in as "note:folder/filename?ext=md" or "note:filename?ext=md"
   const noteWithoutPrefix = selectedNote.split(':')[1] || '';
 
-  const notePathParts = isInTagsSidebar
-    ? noteWithoutPrefix.split('/')
-    : [noteWithoutPrefix];
+  const notePathParts = [noteWithoutPrefix];
   const originalFileName = notePathParts[notePathParts.length - 1];
 
   const { noteNameWithoutExtension, queryParams } =

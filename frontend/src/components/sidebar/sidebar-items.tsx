@@ -79,9 +79,11 @@ export function SidebarItems<T>({
       } else {
         newSelection.add(prefixedDataItem);
       }
+      console.log('newSelection', newSelection);
       return newSelection;
     });
   }
+
   const dataElements =
     allData &&
     visibleData?.map((dataItem, i) => {

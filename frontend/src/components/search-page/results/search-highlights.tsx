@@ -1,5 +1,5 @@
-import { HighlightResult } from '../../../bindings/github.com/etesam913/bytebook/internal/search/models';
-import { SearchCodeBlock } from './search-code-block';
+import { HighlightResult } from '../../../../bindings/github.com/etesam913/bytebook/internal/search/models';
+import { SearchCodeBlock } from '../search-code-block';
 
 export function SearchHighlights({
   highlights,
