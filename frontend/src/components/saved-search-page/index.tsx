@@ -4,7 +4,7 @@ import { MotionButton } from '../buttons/index.tsx';
 import { FileRefresh } from '../../icons/file-refresh.tsx';
 import { Loader } from '../../icons/loader.tsx';
 import { Magnifier } from '../../icons/magnifier.tsx';
-import { NoteSidebarButton } from '../../routes/notes-sidebar/note-sidebar-button.tsx';
+import { NoteSidebarButton } from '../../routes/notes-sidebar/sidebar-button/index.tsx';
 import { Sidebar } from '../sidebar/index.tsx';
 import { useFullTextSearchQuery } from '../../hooks/search.tsx';
 import { FilePath } from '../../utils/string-formatting.ts';

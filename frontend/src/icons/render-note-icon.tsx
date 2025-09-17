@@ -1,10 +1,10 @@
-import { FileBan } from '../../icons/file-ban';
-import { FilePen } from '../../icons/file-pen';
-import { ImageIcon } from '../../icons/image';
-import { Note } from '../../icons/page';
-import { PDFIcon } from '../../icons/pdf-icon';
-import { VideoIcon } from '../../icons/video';
-import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../../types';
+import { FileBan } from './file-ban';
+import { FilePen } from './file-pen';
+import { ImageIcon } from '../icons/image';
+import { Note } from './page';
+import { PDFIcon } from './pdf-icon';
+import { VideoIcon } from './video';
+import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../types';
 
 export function RenderNoteIcon({
   noteNameWithExtension,

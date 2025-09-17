@@ -1,20 +1,18 @@
 import { useState } from 'react';
-import { BottomBar } from '../../components/editor/bottom-bar';
-import { cn } from '../../utils/string-formatting';
+import { BottomBar } from '../../../components/editor/bottom-bar';
+import { cn } from '../../../utils/string-formatting';
 import { ErrorLoading } from './error-loading';
-import { RouteFallback } from '../../components/route-fallback';
-import { FilePath } from '../../utils/string-formatting';
+import { RouteFallback } from '../../../components/route-fallback';
+import { FilePath } from '../../../utils/string-formatting';
 
-export function SidebarVideo({
+export function ImageNote({
   filePath,
   fileUrl,
   isNoteMaximized,
-  draggedElement,
 }: {
   filePath: FilePath;
   fileUrl: string;
   isNoteMaximized: boolean;
-  draggedElement: HTMLElement | null;
 }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -26,20 +24,19 @@ export function SidebarVideo({
       {isError ? (
         <ErrorLoading />
       ) : (
-        <video
-          controls
+        <img
+          className={cn(
+            'flex-1 overflow-auto object-contain my-auto mr-1',
+            isNoteMaximized && 'w-full'
+          )}
+          alt={filePath.noteWithoutExtension}
           title={filePath.noteWithoutExtension}
+          src={fileUrl}
           onError={() => {
             setIsError(true);
             setIsLoading(false);
           }}
-          onLoadedData={() => setIsLoading(false)}
-          className={cn(
-            'flex-1 overflow-auto mr-1 bg-black',
-            isNoteMaximized && 'w-full mr-0',
-            draggedElement !== null && 'pointer-events-none'
-          )}
-          src={fileUrl}
+          onLoad={() => setIsLoading(false)}
           style={{ display: isLoading ? 'none' : 'block' }}
         />
       )}

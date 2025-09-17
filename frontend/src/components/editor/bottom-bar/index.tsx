@@ -3,7 +3,6 @@ import { useSetAtom } from 'jotai';
 import { motion } from 'motion/react';
 import { Tag } from './tag';
 import { BreadcrumbItem } from './breadcrumb-item';
-import { RenderNoteIcon } from '../../../routes/notes-sidebar/render-note-icon';
 import { KernelHeartbeats } from './kernel-heartbeats';
 import TagPlus from '../../../icons/tag-plus';
 import { Folder } from '../../../icons/folder';
@@ -17,6 +16,7 @@ import { dialogDataAtom } from '../../../atoms';
 import { EditTagDialogChildren } from '../../../routes/notes-sidebar/edit-tag-dialog-children';
 import { timeSince } from '../utils/bottom-bar';
 import { FilePath } from '../../../utils/string-formatting';
+import { RenderNoteIcon } from '../../../icons/render-note-icon';
 
 export function BottomBar({
   frontmatter,

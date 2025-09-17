@@ -15,7 +15,6 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SearchFileNamesFromQuery } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
 import { mostRecentNotesWithoutQueryParamsAtom } from '../../../atoms';
-import { RenderNoteIcon } from '../../../routes/notes-sidebar/render-note-icon';
 import { FILE_SERVER_URL } from '../../../utils/general';
 import {
   getFileExtension,
@@ -29,6 +28,7 @@ import {
 import type { FilePayload } from '../nodes/file';
 import { $createLinkNode } from '../nodes/link';
 import { INSERT_FILES_COMMAND } from './file';
+import { RenderNoteIcon } from '../../../icons/render-note-icon';
 
 const MAX_VISIBLE_SEARCH_RESULTS = 20;
 
@@ -50,7 +50,7 @@ export function FilePickerMenuPlugin() {
     .map((fileName) => {
       const [folder, note] = fileName.split('/');
       const filePath = new FilePath({ folder, note });
-      
+
       return {
         dropdownOption: new DropdownPickerOption(fileName, {
           icon: (
@@ -103,7 +103,7 @@ export function FilePickerMenuPlugin() {
       commandPriority={COMMAND_PRIORITY_NORMAL}
       onSelectOption={onSelectOption}
       triggerFn={checkForTriggerMatch}
-      options={options.map(option => option.dropdownOption)}
+      options={options.map((option) => option.dropdownOption)}
       menuRenderFn={(
         anchorElementRef,
         { selectedIndex, selectOptionAndCleanUp }
@@ -116,7 +116,9 @@ export function FilePickerMenuPlugin() {
                     index={i}
                     isSelected={selectedIndex === i}
                     onMouseEnter={() => {}}
-                    onClick={() => selectOptionAndCleanUp(option.dropdownOption)}
+                    onClick={() =>
+                      selectOptionAndCleanUp(option.dropdownOption)
+                    }
                     key={option.dropdownOption.key}
                     option={option.dropdownOption}
                     filePath={option.filePath}

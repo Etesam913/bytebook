@@ -1,28 +1,28 @@
 import { motion, useAnimationControls } from 'motion/react';
 import { useAtomValue } from 'jotai';
-import { getDefaultButtonVariants } from '../../animations';
-import { draggedElementAtom } from '../../components/editor/atoms';
-import { isNoteMaximizedAtom } from '../../atoms';
-import { MotionIconButton } from '../../components/buttons';
-import { MaximizeNoteButton } from '../../components/buttons/maximize-note';
-import { NotesEditor } from '../../components/editor';
-import { BottomBar } from '../../components/editor/bottom-bar';
-import { useMostRecentNotes } from '../../components/editor/hooks/note-metadata';
+import { getDefaultButtonVariants } from '../../../animations';
+import { draggedElementAtom } from '../../../components/editor/atoms';
+import { isNoteMaximizedAtom } from '../../../atoms';
+import { MotionIconButton } from '../../../components/buttons';
+import { MaximizeNoteButton } from '../../../components/buttons/maximize-note';
+import { NotesEditor } from '../../../components/editor';
+import { BottomBar } from '../../../components/editor/bottom-bar';
+import { useMostRecentNotes } from '../../../components/editor/hooks/note-metadata';
 import {
   useNoteExists,
   useNoteRevealInFinderMutation,
-} from '../../hooks/notes';
-import { FileBan } from '../../icons/file-ban';
-import { ShareRight } from '../../icons/share-right';
-import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../../types';
-import { cn } from '../../utils/string-formatting';
-import { SidebarImage } from './sidebar-image';
-import { SidebarVideo } from './sidebar-video';
-import { useSearchParamsEntries } from '../../utils/routing';
+} from '../../../hooks/notes';
+import { FileBan } from '../../../icons/file-ban';
+import { ShareRight } from '../../../icons/share-right';
+import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../../../types';
+import { cn } from '../../../utils/string-formatting';
+import { ImageNote } from './image-note';
+import { VideoNote } from './video-note';
+import { useSearchParamsEntries } from '../../../utils/routing';
 import { useRoute } from 'wouter';
 import { navigate } from 'wouter/use-browser-location';
-import { RouteFallback } from '../../components/route-fallback';
-import { FilePath } from '../../utils/string-formatting';
+import { RouteFallback } from '../../../components/route-fallback';
+import { FilePath } from '../../../utils/string-formatting';
 
 export function RenderNote() {
   const animationControls = useAnimationControls();
@@ -126,7 +126,7 @@ export function RenderNote() {
       )}
 
       {isImage && (
-        <SidebarImage
+        <ImageNote
           key={`folder-${folder}-note-${noteWithoutExtension}-image`}
           filePath={filePath}
           fileUrl={fileUrl}
@@ -135,7 +135,7 @@ export function RenderNote() {
       )}
 
       {isVideo && (
-        <SidebarVideo
+        <VideoNote
           key={`folder-${folder}-note-${noteWithoutExtension}-video`}
           filePath={filePath}
           fileUrl={fileUrl}

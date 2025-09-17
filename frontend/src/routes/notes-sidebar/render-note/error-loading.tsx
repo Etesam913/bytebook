@@ -1,4 +1,4 @@
-import { TriangleWarning } from '../../icons/triangle-warning';
+import { TriangleWarning } from '../../../icons/triangle-warning';
 
 export function ErrorLoading() {
   return (

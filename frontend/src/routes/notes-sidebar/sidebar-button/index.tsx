@@ -4,9 +4,9 @@ import {
   dialogDataAtom,
   projectSettingsAtom,
   selectionRangeAtom,
-} from '../../atoms';
-import { draggedElementAtom } from '../../components/editor/atoms';
-import { handleDragStart } from '../../components/sidebar/utils';
+} from '../../../atoms';
+import { draggedElementAtom } from '../../../components/editor/atoms';
+import { handleDragStart } from '../../../components/sidebar/utils';
 import {
   useEditTagsMutation,
   useMoveNoteToTrashMutation,
@@ -14,28 +14,28 @@ import {
   useNoteRevealInFinderMutation,
   usePinNotesMutation,
   useRenameFileMutation,
-} from '../../hooks/notes';
-import { Finder } from '../../icons/finder';
-import { FilePen } from '../../icons/file-pen';
-import { PinTack2 } from '../../icons/pin-tack-2';
-import { PinTackSlash } from '../../icons/pin-tack-slash';
-import TagPlus from '../../icons/tag-plus';
-import { Trash } from '../../icons/trash';
-import { IMAGE_FILE_EXTENSIONS } from '../../types';
-import { FILE_SERVER_URL } from '../../utils/general';
-import { useSearchParamsEntries } from '../../utils/routing';
+} from '../../../hooks/notes';
+import { Finder } from '../../../icons/finder';
+import { FilePen } from '../../../icons/file-pen';
+import { PinTack2 } from '../../../icons/pin-tack-2';
+import { PinTackSlash } from '../../../icons/pin-tack-slash';
+import TagPlus from '../../../icons/tag-plus';
+import { Trash } from '../../../icons/trash';
+import { IMAGE_FILE_EXTENSIONS } from '../../../types';
+import { FILE_SERVER_URL } from '../../../utils/general';
+import { useSearchParamsEntries } from '../../../utils/routing';
 import {
   getFilePathFromNoteSelectionRange,
   handleKeyNavigation,
   handleContextMenuSelection,
-} from '../../utils/selection';
-import { cn, FilePath } from '../../utils/string-formatting';
+} from '../../../utils/selection';
+import { cn, FilePath } from '../../../utils/string-formatting';
 import { CardNoteSidebarItem } from './card-note-sidebar-item';
 import { ListNoteSidebarItem } from './list-note-sidebar-item';
 import { navigate } from 'wouter/use-browser-location';
-import { EditTagDialogChildren } from './edit-tag-dialog-children';
-import { RenameFileDialogChildren } from './rename-file-dialog-children';
-import { currentZoomAtom } from '../../hooks/resize';
+import { EditTagDialogChildren } from '../edit-tag-dialog-children';
+import { RenameFileDialogChildren } from '../rename-file-dialog-children';
+import { currentZoomAtom } from '../../../hooks/resize';
 
 export function NoteSidebarButton({
   sidebarNotePath,

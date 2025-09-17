@@ -15,7 +15,7 @@ import { Folder } from '../../icons/folder';
 import { Pen } from '../../icons/pen';
 import { useSearchParamsEntries } from '../../utils/routing';
 import { MyNotesSidebar } from './my-notes-sidebar.tsx';
-import { RenderNote } from './render-note.tsx';
+import { RenderNote } from './render-note/index.tsx';
 import { ErrorBoundary } from 'react-error-boundary';
 import { RenderNoteFallback } from '../../components/error-boundary/render-note.tsx';
 

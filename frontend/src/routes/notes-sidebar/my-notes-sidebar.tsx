@@ -9,7 +9,7 @@ import { Sidebar } from '../../components/sidebar/index.tsx';
 import { FileRefresh } from '../../icons/file-refresh.tsx';
 import { Loader } from '../../icons/loader.tsx';
 import { Note } from '../../icons/page.tsx';
-import { NoteSidebarButton } from './note-sidebar-button.tsx';
+import { NoteSidebarButton } from './sidebar-button/index.tsx';
 import { FilePath } from '../../utils/string-formatting.ts';
 
 export function MyNotesSidebar({

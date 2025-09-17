@@ -1,4 +1,4 @@
-import { RenderNoteIcon } from './render-note-icon';
+import { RenderNoteIcon } from '../../../icons/render-note-icon';
 
 export function ListNoteSidebarItem({
   sidebarNoteName,
