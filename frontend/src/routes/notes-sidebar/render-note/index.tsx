@@ -30,9 +30,22 @@ export function RenderNote() {
   const draggedElement = useAtomValue(draggedElementAtom);
 
   // The attributes have to be retrieved from useRoute as passing in the params as props was lagging behind for some reason
-  const [, params] = useRoute('/:folder/:note?');
-  const folder = params?.folder ?? '';
-  const noteWithoutExtension = params?.note ?? '';
+  const [isNoteRoute, params] = useRoute<{
+    folder: string;
+    note?: string;
+  }>('/:folder/:note?');
+  const [, savedSearchParams] = useRoute<{
+    searchQuery: string;
+    folder?: string;
+    note?: string;
+  }>('/saved-search/:searchQuery/:folder?/:note?');
+
+  const folder = isNoteRoute
+    ? (params.folder ?? '')
+    : (savedSearchParams?.folder ?? '');
+  const noteWithoutExtension = isNoteRoute
+    ? (params?.note ?? '')
+    : (savedSearchParams?.note ?? '');
 
   const searchParams: { ext?: string } = useSearchParamsEntries();
   const fileExtension = searchParams.ext;

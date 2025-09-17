@@ -22,7 +22,6 @@ import { RouteFallback } from './components/route-fallback';
 import { useTrapFocus } from './hooks/general';
 import { useZoom } from './hooks/resize';
 import { SearchPage } from './components/search-page';
-import { SavedSearchPage } from './components/saved-search-page';
 
 // Lazy load route components
 const NotFound = lazy(() =>
@@ -40,6 +39,12 @@ const NotesSidebar = lazy(() =>
 const KernelInfo = lazy(() =>
   import('./components/kernel-info').then((module) => ({
     default: module.KernelInfo,
+  }))
+);
+
+const SavedSearchPage = lazy(() =>
+  import('./components/saved-search-page').then((module) => ({
+    default: module.SavedSearchPage,
   }))
 );
 
@@ -97,11 +102,21 @@ function App() {
           </Suspense>
         </Route>
 
-        <Route path="/saved-search/:searchQuery">
-          {(params) => (
+        <Route path="/saved-search/:searchQuery/:folder?/:note?">
+          {(params: {
+            searchQuery: string;
+            folder?: string;
+            note?: string;
+          }) => (
             <Suspense fallback={<RouteFallback />}>
               <SavedSearchPage
                 searchQuery={decodeURIComponent(params.searchQuery)}
+                folder={
+                  params.folder ? decodeURIComponent(params.folder) : undefined
+                }
+                note={params.note ? decodeURIComponent(params.note) : undefined}
+                width={notesSidebarWidth}
+                leftWidth={folderSidebarWidth}
               />
             </Suspense>
           )}

@@ -51,7 +51,6 @@ export function SearchResultsList({
               highlight: firstHighlightedTerm,
             });
           }
-          console.log(tags);
 
           return (
             <Link

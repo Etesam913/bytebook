@@ -36,6 +36,7 @@ import { navigate } from 'wouter/use-browser-location';
 import { EditTagDialogChildren } from '../edit-tag-dialog-children';
 import { RenameFileDialogChildren } from '../rename-file-dialog-children';
 import { currentZoomAtom } from '../../../hooks/resize';
+import { useRoute } from 'wouter';
 
 export function NoteSidebarButton({
   sidebarNotePath,
@@ -47,6 +48,11 @@ export function NoteSidebarButton({
   sidebarNoteIndex: number;
 }) {
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
+  const [isSavedSearchRoute, params] = useRoute<{
+    searchQuery: string;
+    folder?: string;
+    note?: string;
+  }>('/saved-search/:searchQuery/:folder?/:note?');
 
   const { mutate: pinOrUnpinNote } = usePinNotesMutation();
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
@@ -351,7 +357,13 @@ export function NoteSidebarButton({
         if (e.metaKey || e.shiftKey) return;
         const buttonElem = e.target as HTMLButtonElement;
         buttonElem.focus();
-        navigate(sidebarNotePath.getLinkToNote());
+        if (isSavedSearchRoute) {
+          navigate(
+            `/saved-search/${params?.searchQuery}/${sidebarNotePath.folder}/${sidebarNotePath.noteWithExtensionParam}`
+          );
+        } else {
+          navigate(sidebarNotePath.getLinkToNote());
+        }
       }}
     >
       {projectSettings.appearance.noteSidebarItemSize === 'list' && (
