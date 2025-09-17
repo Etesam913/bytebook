@@ -114,7 +114,7 @@ function TagAccordionButton({
       )}
       onClick={(e) => {
         if (e.metaKey || e.shiftKey) return;
-        navigate(`/tags/${encodeURIComponent(sidebarTagName)}`);
+        navigate(`/saved-search/${encodeURIComponent('#' + sidebarTagName)}`);
       }}
       onContextMenu={(e) => {
         const newSelectionRange = handleContextMenuSelection({

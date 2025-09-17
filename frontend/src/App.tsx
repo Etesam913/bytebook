@@ -22,6 +22,7 @@ import { RouteFallback } from './components/route-fallback';
 import { useTrapFocus } from './hooks/general';
 import { useZoom } from './hooks/resize';
 import { SearchPage } from './components/search-page';
+import { SavedSearchPage } from './components/saved-search-page';
 
 // Lazy load route components
 const NotFound = lazy(() =>
@@ -94,6 +95,16 @@ function App() {
           <Suspense fallback={<RouteFallback />}>
             <SearchPage />
           </Suspense>
+        </Route>
+
+        <Route path="/saved-search/:searchQuery">
+          {(params) => (
+            <Suspense fallback={<RouteFallback />}>
+              <SavedSearchPage
+                searchQuery={decodeURIComponent(params.searchQuery)}
+              />
+            </Suspense>
+          )}
         </Route>
 
         <Route path="/:folder/:note?">
