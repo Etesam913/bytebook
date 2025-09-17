@@ -2,6 +2,7 @@ package search
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -14,7 +15,7 @@ import (
 // used by the application (fields, size, and highlighting for text_content and code_content).
 func CreateSearchRequest(q query.Query) *bleve.SearchRequest {
 	req := bleve.NewSearchRequest(q)
-	req.Fields = []string{FieldFolder, FieldFileName, FieldLastUpdated, FieldCreatedDate}
+	req.Fields = []string{FieldFolder, FieldFileName, FieldLastUpdated, FieldCreatedDate, FieldTags}
 	req.Size = 50
 	req.IncludeLocations = true
 	req.Highlight = bleve.NewHighlightWithStyle("html")
@@ -38,6 +39,7 @@ type SearchResult struct {
 	Note        string            `json:"note"`
 	LastUpdated string            `json:"lastUpdated"`
 	Created     string            `json:"created"`
+	Tags        []string          `json:"tags"`
 	Highlights  []HighlightResult `json:"highlights"`
 }
 
@@ -99,6 +101,25 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 			}
 		}
 
+		// extract tags from search result
+		tags := []string{}
+		if tagsField, ok := hit.Fields[FieldTags]; ok {
+			fmt.Println("tagsField: ", tagsField)
+			fmt.Printf("Type of Tags field: %T\n", tagsField)
+			switch t := tagsField.(type) {
+			case []interface{}:
+				for _, tag := range t {
+					if tagStr, ok := tag.(string); ok {
+						tags = append(tags, tagStr)
+					}
+				}
+			case []string:
+				tags = t
+			case string:
+				tags = []string{t}
+			}
+		}
+
 		// collect highlight fragments for text_content and code_content with deduplication
 		highlights := []HighlightResult{}
 		seen := util.Set[string]{}
@@ -129,6 +150,7 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 			Note:        fileName,
 			LastUpdated: lastUpdated,
 			Created:     created,
+			Tags:        tags,
 			Highlights:  highlights,
 		})
 	}

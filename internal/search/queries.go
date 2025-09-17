@@ -143,14 +143,23 @@ func createFuzzyContentQuery(text string) query.Query {
 	return contentQuery
 }
 
+// createTagQuery handles tag queries (tokens starting with "#")
+// Returns a query that searches for exact matches in the tags field.
+func createTagQuery(tagName string) query.Query {
+	q := bleve.NewMatchQuery(tagName)
+	q.SetField(FieldTags)
+	return q
+}
+
 // BuildBooleanQueryFromUserInput builds a boolean query from a user input string.
-// Tokens prefixed with "f:" are treated as filename prefixes; tokens with quotes are exact matches;
-// all others query text content and code content with fuzzy matching.
+// Tokens prefixed with "f:" are treated as filename prefixes; tokens prefixed with "#" are treated as tag searches;
+// tokens with quotes are exact matches; all others query text content and code content with fuzzy matching.
 // Supports AND/OR operators between terms:
 // - term1 AND term2 (default if no operator specified)
 // - term1 OR term2
 // - "exact phrase" AND term
 // - f:filename OR term
+// - #tagname AND term
 func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 	tokens := parseTokens(input)
 	if len(tokens) == 0 {
@@ -162,6 +171,9 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 		if strings.HasPrefix(token.Text, "f:") {
 			prefixTerm := strings.ToLower(token.Text[2:])
 			return createFilenameQuery(prefixTerm)
+		} else if strings.HasPrefix(token.Text, "#") {
+			tagName := token.Text[1:]
+			return createTagQuery(tagName)
 		} else if token.IsExact {
 			return createExactContentQuery(token.Text)
 		}

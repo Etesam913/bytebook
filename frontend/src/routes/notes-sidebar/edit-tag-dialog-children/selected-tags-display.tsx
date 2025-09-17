@@ -43,7 +43,7 @@ export function SelectedTagsDisplay({
             key={`tag-${tagName}`}
             className="relative text-sm"
           >
-            <Tag tagName={tagName} onClick={() => handleRemoveTag(tagName)} />
+            <Tag tagName={tagName} onDelete={() => handleRemoveTag(tagName)} />
             {!isFullySelected && (
               <span className="absolute -top-1 -right-1 bg-(--accent-color) text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
                 {count}

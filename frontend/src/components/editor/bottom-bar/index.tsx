@@ -56,7 +56,7 @@ export function BottomBar({
   const tagElements = (
     tagsMap?.[`${filePath.folder}/${filePath.note}`] ?? []
   ).map((tagName) => {
-    return <Tag key={tagName} tagName={tagName} onClick={() => {}} />;
+    return <Tag key={tagName} tagName={tagName} onDelete={() => {}} />;
   });
 
   const isMarkdownFile = filePath.noteExtension === 'md';

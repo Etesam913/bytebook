@@ -3,6 +3,7 @@ import { Link } from 'wouter';
 import { cn, formatDate, FilePath } from '../../../utils/string-formatting';
 import { SearchHighlights } from './search-highlights';
 import { SearchResult as BaseSearchResult } from '../../../../bindings/github.com/etesam913/bytebook/internal/search/models';
+import { Tag } from '../../editor/bottom-bar/tag';
 
 // Extended SearchResult type that includes the filePath property added by useFullTextSearchQuery
 interface ExtendedSearchResult extends BaseSearchResult {
@@ -39,7 +40,7 @@ export function SearchResultsList({
   return (
     <>
       {searchResults.map(
-        ({ filePath, title, lastUpdated, created, highlights }, idx) => {
+        ({ filePath, title, lastUpdated, created, tags, highlights }, idx) => {
           const path = filePath;
           let pathToNote = path.getLinkToNote();
           const firstHighlightedTerm = highlights[0]?.highlightedTerm;
@@ -50,6 +51,7 @@ export function SearchResultsList({
               highlight: firstHighlightedTerm,
             });
           }
+          console.log(tags);
 
           return (
             <Link
@@ -69,14 +71,21 @@ export function SearchResultsList({
                 {path.toString()}
               </span>
               <SearchHighlights highlights={highlights} />
-              <div className="flex gap-x-1 items-center justify-between">
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1 text-xs">
+                  {tags.map((tagName, tagIdx) => (
+                    <Tag key={`${idx}-${tagIdx}`} tagName={tagName} />
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-x-1 items-center justify-between text-xs">
                 {lastUpdated && (
-                  <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                  <div className="text-zinc-500 dark:text-zinc-400">
                     Updated {formatDate(lastUpdated, 'relative')}
                   </div>
                 )}
                 {created && (
-                  <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                  <span className="text-zinc-500 dark:text-zinc-400">
                     Created {formatDate(created, 'yyyy-mm-dd')}
                   </span>
                 )}

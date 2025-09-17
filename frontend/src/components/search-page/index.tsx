@@ -136,6 +136,13 @@ export function SearchPage() {
                   to search for files starting with "readme" in folders starting
                   with "docs"
                 </li>
+                <li>
+                  Use{' '}
+                  <span className="font-bold font-code text-zinc-900 dark:text-zinc-100">
+                    #Economics
+                  </span>{' '}
+                  to search for notes tagged with "Economics"
+                </li>
               </ol>
             </div>
           </div>
