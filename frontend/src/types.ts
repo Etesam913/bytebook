@@ -177,3 +177,14 @@ export type PythonCompletionMetadata = {
   end: number;
   signature: string;
 }[];
+
+export type Frontmatter = {
+  folder?: string;
+  note?: string;
+  lastUpdated?: string;
+  createdDate?: string;
+  tags?: string[];
+  showTableOfContents?: string;
+  showMarkdown?: string;
+  // Allow additional properties for extensibility
+} & Record<string, string | string[]>;

@@ -33,6 +33,7 @@ import {
 import { useWailsEvent } from './events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import { SetTagsOnNotes } from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
+import type { Frontmatter } from '../types';
 
 export function useNotes(curFolder: string, curNote?: string) {
   const noteSort = useAtomValue(noteSortAtom);
@@ -368,7 +369,7 @@ export function useNoteChangedEvent(
   folder: string,
   note: string,
   editor: LexicalEditor,
-  setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>
+  setFrontmatter: Dispatch<SetStateAction<Frontmatter>>
 ) {
   const queryClient = useQueryClient();
   useWailsEvent('note:changed', (e) => {

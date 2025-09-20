@@ -8,6 +8,7 @@ import type { ElementNode } from 'lexical';
 import type { Dispatch, SetStateAction } from 'react';
 import { createMarkdownExport } from '../MarkdownExport';
 import { createMarkdownImport } from '../MarkdownImport';
+import type { Frontmatter } from '../../../types';
 
 const frontMatterRegex = /^---[\s\S]+?---/;
 
@@ -25,27 +26,68 @@ export function hasFrontMatter(markdown: string): boolean {
   return frontMatterRegex.test(markdown);
 }
 
-function parseYaml(yamlString: string): Record<string, string> {
+function parseYaml(yamlString: string): Frontmatter {
   const lines = yamlString.split('\n');
-  const frontMatter: Record<string, string> = {};
+  const frontMatter: Frontmatter = {};
+  let currentKey: string | null = null;
+  let currentArray: string[] = [];
 
   lines.forEach((line) => {
-    const [key, ...rest] = line.split(':');
-    if (key && rest.length > 0) {
-      frontMatter[key.trim()] = rest.join(':').trim();
+    const trimmedLine = line.trim();
+
+    // Skip empty lines and the --- delimiters
+    if (!trimmedLine || trimmedLine === '---') {
+      return;
+    }
+
+    // Check if this is a list item (starts with dash)
+    if (trimmedLine.startsWith('- ')) {
+      if (currentKey) {
+        currentArray.push(trimmedLine.substring(2).trim());
+      }
+      return;
+    }
+
+    // If we were building an array and encounter a new key, save the array
+    if (currentKey && currentArray.length > 0) {
+      frontMatter[currentKey] = currentArray;
+      currentArray = [];
+      currentKey = null;
+    }
+
+    // Parse key-value pairs
+    const colonIndex = line.indexOf(':');
+    if (colonIndex > 0) {
+      const key = line.substring(0, colonIndex).trim();
+      const value = line.substring(colonIndex + 1).trim();
+
+      if (value) {
+        // This is a simple key-value pair
+        frontMatter[key] = value;
+        currentKey = null;
+      } else {
+        // This might be the start of an array
+        currentKey = key;
+        currentArray = [];
+      }
     }
   });
+
+  // Handle any remaining array at the end
+  if (currentKey && currentArray.length > 0) {
+    frontMatter[currentKey] = currentArray;
+  }
 
   return frontMatter;
 }
 
 export function parseFrontMatter(markdown: string): {
-  frontMatter: Record<string, string>;
+  frontMatter: Frontmatter;
   content: string;
 } {
   const match = markdown.match(frontMatterRegex);
 
-  let frontMatter: Record<string, string> = {};
+  let frontMatter: Frontmatter = {};
   let content = markdown;
 
   if (match) {
@@ -58,22 +100,30 @@ export function parseFrontMatter(markdown: string): {
 }
 
 /**
- * Creates front matter from a record of key-value pairs.
+ * Creates front matter from a frontmatter object.
  *
- * This function takes an object where the keys and values are strings,
- * and generates a front matter section formatted with triple dashes (`---`).
+ * This function takes a Frontmatter object and generates a front matter section
+ * formatted with triple dashes (`---`). String arrays are formatted as YAML lists with dashes.
  *
- * @param {Record<string, string>} data - The key-value pairs to include in the front matter.
+ * @param {Frontmatter} data - The frontmatter object to include in the front matter.
  * @returns {string} - The generated front matter string.
  */
-function createFrontMatter(data: Record<string, string>): string {
+function createFrontMatter(data: Frontmatter): string {
   // Initialize the front matter string with the opening triple dashes
   let frontMatter = '---\n';
 
   // Iterate over each key-value pair in the input object
   for (const [key, value] of Object.entries(data)) {
-    // Append each key-value pair to the front matter string in the format "key: value"
-    frontMatter += `${key}: ${value}\n`;
+    if (Array.isArray(value)) {
+      // Handle array values as YAML lists with dashes
+      frontMatter += `${key}:\n`;
+      for (const item of value) {
+        frontMatter += `  - ${item}\n`;
+      }
+    } else {
+      // Handle string values as simple key-value pairs
+      frontMatter += `${key}: ${value}\n`;
+    }
   }
 
   // Close the front matter section with the closing triple dashes
@@ -90,12 +140,12 @@ function createFrontMatter(data: Record<string, string>): string {
  * If no front matter is found, the new front matter will be prepended to the Markdown content.
  *
  * @param {string} markdown - The original Markdown string.
- * @param {Record<string, string>} newFrontMatterData - The key-value pairs for the new front matter.
+ * @param {Frontmatter} newFrontMatterData - The frontmatter object for the new front matter.
  * @returns {string} - The Markdown string with the replaced or prepended front matter.
  */
 export function replaceFrontMatter(
   markdown: string,
-  newFrontMatterData: Record<string, string>
+  newFrontMatterData: Frontmatter
 ): string {
   // Create the new front matter string from the provided data
   const newFrontMatter = createFrontMatter(newFrontMatterData);
@@ -125,7 +175,7 @@ export function $convertFromMarkdownStringCorrect(
   markdown: string,
   // @ts-expect-error Will fix later
   transformers: Array<Transformer> = TRANSFORMERS,
-  setFrontmatter?: Dispatch<SetStateAction<Record<string, string>>>,
+  setFrontmatter?: Dispatch<SetStateAction<Frontmatter>>,
   node?: ElementNode
 ): void {
   const importMarkdown = createMarkdownImport(transformers);

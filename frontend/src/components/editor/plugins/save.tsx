@@ -18,26 +18,26 @@ import {
   parseFrontMatter,
 } from '../utils/note-metadata';
 import { previousMarkdownAtom } from '../atoms';
+import { FilePath } from '../../../utils/string-formatting';
+import { Frontmatter } from '../../../types';
 
 type SaveMarkdownContentPayload =
   | undefined
   | {
       shouldSkipNoteChangedEmit: boolean;
-      newFrontmatter?: Record<string, string>;
+      newFrontmatter?: Frontmatter;
     };
 
 export const SAVE_MARKDOWN_CONTENT: LexicalCommand<SaveMarkdownContentPayload> =
   createCommand('SAVE_MARKDOWN_CONTENT');
 
 export function SavePlugin({
-  folder,
-  note,
+  filePath,
   setFrontmatter,
   setNoteMarkdownString,
 }: {
-  folder: string;
-  note: string;
-  setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
+  filePath: FilePath;
+  setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
   setNoteMarkdownString: Dispatch<SetStateAction<string | null>>;
 }) {
   const [previousMarkdownWithFrontmatter, setPreviousMarkdownWithFrontmatter] =
@@ -46,8 +46,8 @@ export function SavePlugin({
   const queryClient = useQueryClient();
 
   async function saveMarkdownContent(markdownWithFrontmatter: string) {
-    const decodedFolder = decodeURIComponent(folder);
-    const decodedNote = decodeURIComponent(note);
+    const decodedFolder = filePath.folder;
+    const decodedNote = filePath.noteWithoutExtension;
     await SetNoteMarkdown(decodedFolder, decodedNote, markdownWithFrontmatter);
     await queryClient.invalidateQueries({
       queryKey: ['note-preview', decodedFolder, decodedNote],
@@ -58,7 +58,6 @@ export function SavePlugin({
   // The command converts the editor content to markdown, updates frontmatter,
   // emits a 'note:changed' event, updates state, and saves the note to the backend
   useEffect(() => {
-    // previousMarkdownWithFrontmatter.current = frontmatter.markdown;
     return mergeRegister(
       editor.registerCommand<SaveMarkdownContentPayload>(
         SAVE_MARKDOWN_CONTENT,
@@ -74,12 +73,19 @@ export function SavePlugin({
               ...existingFrontmatter,
             };
           }
+          const tags: string[] | undefined = queryClient.getQueryData([
+            'notes-tags',
+            filePath.toString(),
+          ]);
           const timeOfChange = new Date().toISOString();
-          frontmatterCopy.folder = folder;
-          frontmatterCopy.note = note;
+          frontmatterCopy.folder = filePath.folder;
+          frontmatterCopy.note = filePath.noteWithoutExtension;
           frontmatterCopy.lastUpdated = timeOfChange;
           if (!frontmatterCopy.createdDate) {
             frontmatterCopy.createdDate = timeOfChange;
+          }
+          if (tags && tags.length > 0) {
+            frontmatterCopy.tags = tags;
           }
 
           const markdownWithFrontmatter = replaceFrontMatter(
@@ -92,8 +98,8 @@ export function SavePlugin({
             Events.Emit({
               name: 'note:changed',
               data: {
-                folder,
-                note,
+                folder: filePath.folder,
+                note: filePath.noteWithoutExtension,
                 markdown: markdownWithFrontmatter,
                 oldWindowAppId: WINDOW_ID,
               },
@@ -112,8 +118,7 @@ export function SavePlugin({
     );
   }, [
     editor,
-    folder,
-    note,
+    filePath,
     setFrontmatter,
     CUSTOM_TRANSFORMERS,
     previousMarkdownWithFrontmatter,

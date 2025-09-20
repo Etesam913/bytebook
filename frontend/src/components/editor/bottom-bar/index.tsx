@@ -17,13 +17,14 @@ import { EditTagDialogChildren } from '../../../routes/notes-sidebar/edit-tag-di
 import { timeSince } from '../utils/bottom-bar';
 import { FilePath } from '../../../utils/string-formatting';
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
+import { Frontmatter } from '../../../types';
 
 export function BottomBar({
   frontmatter,
   filePath,
   isNoteEditor,
 }: {
-  frontmatter?: Record<string, string>;
+  frontmatter?: Frontmatter;
   filePath: FilePath;
   isNoteEditor?: boolean;
 }) {
@@ -44,7 +45,7 @@ export function BottomBar({
     }
     const interval = setInterval(() => {
       setLastUpdatedText(
-        timeSince(new Date(frontmatter.lastUpdated), new Date())
+        timeSince(new Date(frontmatter.lastUpdated!), new Date())
       );
     }, 1000);
 

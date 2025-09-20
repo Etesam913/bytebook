@@ -20,7 +20,7 @@ import {
 } from './atoms';
 import { isNoteMaximizedAtom } from '../../atoms';
 import { projectSettingsAtom } from '../../atoms';
-import type { FloatingDataType } from '../../types.ts';
+import type { FloatingDataType, Frontmatter } from '../../types.ts';
 import { handleEditorEscape } from '../../utils/selection.ts';
 import { cn } from '../../utils/string-formatting';
 import { BottomBar } from './bottom-bar';
@@ -49,17 +49,16 @@ import type { LegacyAnimationControls } from 'motion/react';
 import { FilePath } from '../../utils/string-formatting';
 
 export function NotesEditor({
-  params,
+  filePath,
   animationControls,
 }: {
-  params: { folder: string; note: string };
+  filePath: FilePath;
   animationControls: LegacyAnimationControls;
 }) {
-  const { folder, note } = params;
   const projectSettings = useAtomValue(projectSettingsAtom);
   const setEditor = useSetAtom(editorAtom);
   const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
-  const [frontmatter, setFrontmatter] = useState<Record<string, string>>({});
+  const [frontmatter, setFrontmatter] = useState<Frontmatter>({});
   const [floatingData, setFloatingData] = useState<FloatingDataType>({
     isOpen: false,
     left: 0,
@@ -82,6 +81,10 @@ export function NotesEditor({
       speed: 20,
     }
   );
+
+  // Extract folder and note from filePath
+  const folder = filePath.folder;
+  const note = filePath.noteWithoutExtension;
 
   // Use custom hooks for code cleanup and intersection observer
   useCodeCleanup(noteContainerRef);
@@ -167,8 +170,7 @@ export function NotesEditor({
           <HistoryPlugin />
           <TablePlugin />
           <SavePlugin
-            folder={folder}
-            note={note}
+            filePath={filePath}
             setFrontmatter={setFrontmatter}
             setNoteMarkdownString={setNoteMarkdownString}
           />
@@ -193,11 +195,7 @@ export function NotesEditor({
           </div>
         )}
       </div>
-      <BottomBar
-        frontmatter={frontmatter}
-        filePath={new FilePath({ folder, note: `${note}.md` })}
-        isNoteEditor
-      />
+      <BottomBar frontmatter={frontmatter} filePath={filePath} isNoteEditor />
     </LexicalComposer>
   );
 }

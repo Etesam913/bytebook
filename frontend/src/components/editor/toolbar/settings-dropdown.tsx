@@ -13,6 +13,7 @@ import type { ProjectSettings } from '../../../types';
 import { MotionIconButton } from '../../buttons';
 import { DropdownItems } from '../../dropdown/dropdown-items';
 import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
+import type { Frontmatter } from '../../../types';
 
 export function SettingsDropdown({
   folder,
@@ -23,7 +24,7 @@ export function SettingsDropdown({
   folder: string;
   note: string;
   isToolbarDisabled: boolean;
-  frontmatter: Record<string, string>;
+  frontmatter: Frontmatter;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [focusIndex, setFocusIndex] = useState(0);

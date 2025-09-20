@@ -35,7 +35,11 @@ import {
 } from 'react';
 import { GetNoteMarkdown } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { draggedElementAtom, previousMarkdownAtom } from '../atoms';
-import type { EditorBlockTypes, FloatingDataType } from '../../../types';
+import type {
+  EditorBlockTypes,
+  FloatingDataType,
+  Frontmatter,
+} from '../../../types';
 import { QueryError } from '../../../utils/query';
 import { CUSTOM_TRANSFORMERS } from '../transformers';
 import {
@@ -56,7 +60,7 @@ export function useNoteMarkdown(
   note: string,
   overflowContainerRef: RefObject<HTMLDivElement | null>,
   setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
-  setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>,
+  setFrontmatter: Dispatch<SetStateAction<Frontmatter>>,
   setNoteMarkdownString: Dispatch<SetStateAction<string | null>>
 ) {
   const setPreviousMarkdown = useSetAtom(previousMarkdownAtom);

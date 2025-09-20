@@ -13,7 +13,11 @@ import { isNoteMaximizedAtom, isToolbarDisabledAtom } from '../../../atoms';
 import { noteSelectionAtom } from '../atoms';
 import { useAttachmentsMutation } from '../../../hooks/attachments';
 import { useNoteChangedEvent } from '../../../hooks/notes';
-import type { EditorBlockTypes, FloatingDataType } from '../../../types';
+import type {
+  EditorBlockTypes,
+  FloatingDataType,
+  Frontmatter,
+} from '../../../types';
 import { cn } from '../../../utils/string-formatting';
 import { MaximizeNoteButton } from '../../buttons/maximize-note';
 import { ToolbarButtons } from '../../buttons/toolbar';
@@ -60,8 +64,8 @@ export function Toolbar({
   animationControls: LegacyAnimationControls;
   noteContainerRef: RefObject<HTMLDivElement | null>;
   overflowContainerRef: RefObject<HTMLDivElement | null>;
-  frontmatter: Record<string, string>;
-  setFrontmatter: Dispatch<SetStateAction<Record<string, string>>>;
+  frontmatter: Frontmatter;
+  setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
   noteMarkdownString: string | null;
   setNoteMarkdownString: Dispatch<SetStateAction<string | null>>;
 }) {

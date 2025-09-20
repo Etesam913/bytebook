@@ -118,7 +118,7 @@ export function RenderNote() {
       )}
       {isMarkdown && (
         <NotesEditor
-          params={{ folder, note: noteWithoutExtension }}
+          filePath={filePath}
           animationControls={animationControls}
         />
       )}
