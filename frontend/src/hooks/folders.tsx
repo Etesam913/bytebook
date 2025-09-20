@@ -21,6 +21,7 @@ import {
   convertFilePathToQueryNotation,
 } from '../utils/string-formatting';
 import { useWailsEvent } from './events';
+import { routeUrls } from '../utils/routes';
 
 /**
  * Custom hook to fetch and manage folders.
@@ -62,7 +63,7 @@ export function useFolders(curFolder: string | undefined) {
             `/${encodeURIComponent(alphabetizedFolders[folderIndexToNavigateTo])}`
           );
         } else {
-          navigate('/');
+          navigate(routeUrls.root());
         }
       }
       return res.data;
@@ -163,7 +164,7 @@ export function useFolderDialogSubmit() {
         if (!folderFromSidebar) throw new Error('Something went wrong');
         const res = await RenameFolder(folderFromSidebar, newFolderNameString);
         if (!res.success) throw new Error(res.message);
-        navigate(`/${encodeURIComponent(newFolderNameString)}`);
+        navigate(routeUrls.folder(newFolderNameString));
         return true;
       }
 

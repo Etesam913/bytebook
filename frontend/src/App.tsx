@@ -18,6 +18,7 @@ import { useTagEvents } from './hooks/tags';
 import { useThemeSetting } from './hooks/theme';
 import { MAX_SIDEBAR_WIDTH } from './utils/general';
 import { disableBackspaceNavigation } from './utils/routing';
+import { routeUrls } from './utils/routes';
 import { RouteFallback } from './components/route-fallback';
 import { useTrapFocus } from './hooks/general';
 import { useZoom } from './hooks/resize';
@@ -89,20 +90,20 @@ function App() {
         <FolderSidebar width={folderSidebarWidth} />
       )}
       <Switch>
-        <Route path="/" />
-        <Route path="/kernels/:kernelName">
+        <Route path={routeUrls.patterns.ROOT} />
+        <Route path={routeUrls.patterns.KERNELS}>
           <Suspense fallback={<RouteFallback />}>
             <KernelInfo />
           </Suspense>
         </Route>
 
-        <Route path="/search">
+        <Route path={routeUrls.patterns.SEARCH}>
           <Suspense fallback={<RouteFallback />}>
             <SearchPage />
           </Suspense>
         </Route>
 
-        <Route path="/saved-search/:searchQuery/:folder?/:note?">
+        <Route path={routeUrls.patterns.SAVED_SEARCH}>
           {(params: {
             searchQuery: string;
             folder?: string;
@@ -122,7 +123,7 @@ function App() {
           )}
         </Route>
 
-        <Route path="/:folder/:note?">
+        <Route path={routeUrls.patterns.NOTES}>
           {(folderParams) => (
             <Suspense fallback={<RouteFallback />}>
               <NotesSidebar
@@ -133,7 +134,7 @@ function App() {
             </Suspense>
           )}
         </Route>
-        <Route path="*">
+        <Route path={routeUrls.patterns.CATCH_ALL}>
           <Suspense fallback={<RouteFallback />}>
             <NotFound />
           </Suspense>

@@ -29,10 +29,11 @@ import {
 } from '../../hooks/code';
 import { isValidKernelLanguage, Languages, validLanguages } from '../../types';
 import { currentZoomAtom } from '../../hooks/resize';
+import { routeUrls } from '../../utils/routes';
 
 export function MyKernelsAccordion() {
   const [isOpen, setIsOpen] = useState(false);
-  const [, params] = useRoute('/kernels/:kernelName/:folder?/:note?');
+  const [, params] = useRoute(routeUrls.patterns.KERNELS_WITH_FILES);
   const kernelNameFromUrl = (params as { kernelName: string })?.kernelName;
 
   useKernelStatus();
@@ -131,7 +132,7 @@ function KernelAccordionButton({
       )}
       onClick={(e) => {
         if (e.metaKey || e.shiftKey) return;
-        navigate(`/kernels/${encodeURIComponent(kernelName)}`);
+        navigate(routeUrls.kernel(kernelName));
       }}
       onContextMenu={(e) => {
         e.preventDefault();

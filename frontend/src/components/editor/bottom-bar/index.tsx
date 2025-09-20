@@ -8,10 +8,11 @@ import TagPlus from '../../../icons/tag-plus';
 import { Folder } from '../../../icons/folder';
 import { Loader } from '../../../icons/loader';
 import {
+  useDeleteTagFromNoteMutation,
+  useEditTagsFormMutation,
   useTagsForNotesQuery,
   // useDeleteTagsMutation,
 } from '../../../hooks/tags';
-import { useEditTagsMutation } from '../../../hooks/notes';
 import { dialogDataAtom } from '../../../atoms';
 import { EditTagDialogChildren } from '../../../routes/notes-sidebar/edit-tag-dialog-children';
 import { timeSince } from '../utils/bottom-bar';
@@ -33,8 +34,9 @@ export function BottomBar({
   const { data: tagsMap, isLoading } = useTagsForNotesQuery([
     `${filePath.folder}/${filePath.note}`,
   ]);
-  // const { mutate: deleteTag } = useDeleteTagsMutation();
-  const { mutateAsync: editTags } = useEditTagsMutation();
+  const { mutateAsync: editTags } = useEditTagsFormMutation();
+  const { mutateAsync: deleteTagFromNote } =
+    useDeleteTagFromNoteMutation(filePath);
   const setDialogData = useSetAtom(dialogDataAtom);
 
   useEffect(() => {
@@ -57,7 +59,17 @@ export function BottomBar({
   const tagElements = (
     tagsMap?.[`${filePath.folder}/${filePath.note}`] ?? []
   ).map((tagName) => {
-    return <Tag key={tagName} tagName={tagName} onDelete={() => {}} />;
+    return (
+      <Tag
+        key={tagName}
+        tagName={tagName}
+        onDelete={() => {
+          deleteTagFromNote({
+            tagToDelete: tagName,
+          });
+        }}
+      />
+    );
   });
 
   const isMarkdownFile = filePath.noteExtension === 'md';

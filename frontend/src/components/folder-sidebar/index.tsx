@@ -24,18 +24,24 @@ import { useRef } from 'react';
 import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 import { RefreshAnticlockwise } from '../../icons/refresh-anticlockwise.tsx';
 import { MyKernelsAccordion } from './my-kernels-accordion.tsx';
+import { routeUrls } from '../../utils/routes';
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
   const sidebarAccordionSectionRef = useRef<HTMLDivElement | null>(null);
-  const [isInNoteSidebar, noteSidebarParams] = useRoute('/:folder/:note?');
-  const [, tagSidebarParams] = useRoute('/tags/:tagName/:folder?/:note?') as [
-    boolean,
-    { folder?: string; note?: string; tagName?: string },
-  ];
+  const [isNoteSidebar, noteSidebarParams] = useRoute<{
+    folder?: string;
+    note?: string;
+  }>(routeUrls.patterns.NOTES);
 
-  const folder = isInNoteSidebar
+  const [_, savedSearchParams] = useRoute<{
+    searchQuery?: string;
+    folder?: string;
+    note?: string;
+  }>(routeUrls.patterns.SAVED_SEARCH);
+
+  const folder = isNoteSidebar
     ? noteSidebarParams?.folder
-    : tagSidebarParams?.folder;
+    : savedSearchParams?.folder;
 
   const setDialogData = useSetAtom(dialogDataAtom);
   useFolderCreate();

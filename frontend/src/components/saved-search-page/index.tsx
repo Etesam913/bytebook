@@ -1,5 +1,5 @@
 import { type MotionValue, motion } from 'motion/react';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { getDefaultButtonVariants } from '../../animations.ts';
 import { MotionButton } from '../buttons/index.tsx';
@@ -14,6 +14,7 @@ import { Sidebar } from '../sidebar/index.tsx';
 import { useFullTextSearchQuery } from '../../hooks/search.tsx';
 import { useSearchParamsEntries } from '../../utils/routing.ts';
 import { FilePath } from '../../utils/string-formatting.ts';
+import { navigate } from 'wouter/use-browser-location';
 
 export function SavedSearchPage({
   searchQuery,
@@ -30,6 +31,7 @@ export function SavedSearchPage({
 }) {
   const {
     data: searchResults,
+    isSuccess,
     refetch,
     isError,
     isLoading,
@@ -38,6 +40,19 @@ export function SavedSearchPage({
   const sidebarRef = useRef<HTMLElement>(null);
   const searchParams: { ext?: string } = useSearchParamsEntries();
   const fileExtension = searchParams?.ext;
+
+  // Auto navigate to the first result
+  useEffect(() => {
+    if (isSuccess && searchResults?.length > 0) {
+      const firstFilePath = searchResults[0].filePath;
+      navigate(
+        `/saved-search/${encodeURIComponent(searchQuery)}${firstFilePath.getLinkToNote()}`,
+        {
+          replace: true,
+        }
+      );
+    }
+  }, [isSuccess, searchResults]);
 
   return (
     <>

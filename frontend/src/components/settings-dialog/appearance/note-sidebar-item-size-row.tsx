@@ -10,6 +10,7 @@ import cardSidebarItemDark from '../../../assets/images/card-sidebar-item-dark-m
 import cardSidebarItemLight from '../../../assets/images/card-sidebar-item-light-mode.webp';
 import listSidebarItemDark from '../../../assets/images/list-sidebar-item-dark-mode.webp';
 import listSidebarItemLight from '../../../assets/images/list-sidebar-item-light-mode.webp';
+import { routeUrls } from '../../../utils/routes';
 
 export function NoteSidebarItemSizeRow() {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
@@ -27,7 +28,7 @@ export function NoteSidebarItemSizeRow() {
         <SettingImage
           isActive={projectSettings.appearance.noteSidebarItemSize === 'card'}
           onClick={() => {
-            navigate(`${location}?ext=${searchParams.ext}&focus=true`);
+            navigate(routeUrls.noteWithFocus(location, searchParams.ext || ''));
             updateProjectSettings({
               newProjectSettings: {
                 ...projectSettings,
@@ -46,7 +47,7 @@ export function NoteSidebarItemSizeRow() {
         <SettingImage
           isActive={projectSettings.appearance.noteSidebarItemSize === 'list'}
           onClick={() => {
-            navigate(`${location}?ext=${searchParams.ext}&focus=true`);
+            navigate(routeUrls.noteWithFocus(location, searchParams.ext || ''));
             updateProjectSettings({
               newProjectSettings: {
                 ...projectSettings,

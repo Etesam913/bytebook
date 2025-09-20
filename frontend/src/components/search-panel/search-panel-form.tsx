@@ -10,6 +10,7 @@ import { useSearchMutation } from '../../hooks/search';
 import { getFileExtension } from '../../utils/string-formatting';
 import { SearchItems } from './search-items';
 import { navigate } from 'wouter/use-browser-location';
+import { routeUrls } from '../../utils/routes';
 
 const SIDEBAR_ITEM_HEIGHT = 35;
 const ITEMS_THAT_FIT_ON_SCREEN = 8;
@@ -166,7 +167,11 @@ export function SearchPanelForm() {
         const [folder, note] = selectedResult.split('/');
         const { extension, fileName } = getFileExtension(note);
         setSearchPanelData((prev) => ({ ...prev, isOpen: false }));
-        navigate(`/${folder}/${fileName}?ext=${extension}&focus=true`);
+        if (folder && fileName && extension) {
+          navigate(
+            routeUrls.note(folder, fileName, { ext: extension, focus: true })
+          );
+        }
       }}
       ref={albumRef}
     >

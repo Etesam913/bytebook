@@ -34,6 +34,7 @@ import { AccordionButton } from '../sidebar/accordion-button';
 import { handleDragStart } from '../sidebar/utils';
 import { FolderDialogChildren } from './folder-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
+import { routeUrls } from '../../utils/routes';
 import { currentZoomAtom } from '../../hooks/resize';
 
 export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
@@ -214,7 +215,7 @@ function FolderAccordionButton({
       onClick={(e) => {
         if (e.metaKey || e.shiftKey) return;
         (e.target as HTMLButtonElement).focus();
-        navigate(`/${encodeURIComponent(sidebarFolderName)}`);
+        navigate(routeUrls.folder(sidebarFolderName));
       }}
       onContextMenu={(e) => {
         e.preventDefault();

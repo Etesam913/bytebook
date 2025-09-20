@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
 import { useState } from 'react';
-import { useRoute } from 'wouter';
 import {
   contextMenuDataAtom,
   dialogDataAtom,
@@ -19,15 +18,15 @@ import { Sidebar } from '../sidebar';
 import { AccordionButton } from '../sidebar/accordion-button';
 import { TagDialogChildren } from './tag-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
+import { ROUTE_PATTERNS, routeUrls } from '../../utils/routes';
 
 import { currentZoomAtom } from '../../hooks/resize';
+import { useRoute } from 'wouter';
 
 export function MyTagsAccordion() {
   const [isOpen, setIsOpen] = useState(false);
   const { data: tags } = useTagsQuery();
   const hasTags = tags && tags?.length > 0;
-  const [, params] = useRoute('/tags/:tagName/:folder?/:note?');
-  const tagNameFromUrl = (params as { tagName: string })?.tagName;
 
   return (
     <section className="pb-1.5">
@@ -70,7 +69,6 @@ export function MyTagsAccordion() {
                     tags={tags}
                     i={i}
                     sidebarTagName={sidebarTagName}
-                    tagNameFromUrl={tagNameFromUrl}
                   />
                 );
               }}
@@ -87,16 +85,26 @@ function TagAccordionButton({
   tags,
   i,
   sidebarTagName,
-  tagNameFromUrl,
 }: {
   tags: string[] | undefined;
   i: number;
   sidebarTagName: string;
-  tagNameFromUrl: string | undefined;
 }) {
+  const [isSavedSearchRoute, savedSearchRouteParams] = useRoute<{
+    searchQuery: string;
+    folder?: string;
+    note?: string;
+  }>(ROUTE_PATTERNS.SAVED_SEARCH);
+  const searchQuery = savedSearchRouteParams?.searchQuery;
+
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const { mutateAsync: deleteTags } = useDeleteTagsMutation();
-  const isActive = decodeURIComponent(tagNameFromUrl ?? '') === sidebarTagName;
+
+  const isActive: boolean =
+    isSavedSearchRoute &&
+    !!searchQuery &&
+    decodeURIComponent(searchQuery) === `#${sidebarTagName}`;
+
   const isSelected = tags?.at(i) && selectionRange.has(`tag:${tags[i]}`);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
@@ -114,7 +122,7 @@ function TagAccordionButton({
       )}
       onClick={(e) => {
         if (e.metaKey || e.shiftKey) return;
-        navigate(`/saved-search/${encodeURIComponent('#' + sidebarTagName)}`);
+        navigate(routeUrls.tagSearch(sidebarTagName));
       }}
       onContextMenu={(e) => {
         const newSelectionRange = handleContextMenuSelection({

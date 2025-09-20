@@ -8,7 +8,6 @@ import {
 import { draggedElementAtom } from '../../../components/editor/atoms';
 import { handleDragStart } from '../../../components/sidebar/utils';
 import {
-  useEditTagsMutation,
   useMoveNoteToTrashMutation,
   useNotePreviewQuery,
   useNoteRevealInFinderMutation,
@@ -37,6 +36,8 @@ import { EditTagDialogChildren } from '../edit-tag-dialog-children';
 import { RenameFileDialogChildren } from '../rename-file-dialog-children';
 import { currentZoomAtom } from '../../../hooks/resize';
 import { useRoute } from 'wouter';
+import { useEditTagsFormMutation } from '../../../hooks/tags';
+import { routeUrls } from '../../../utils/routes';
 
 export function NoteSidebarButton({
   sidebarNotePath,
@@ -52,12 +53,12 @@ export function NoteSidebarButton({
     searchQuery: string;
     folder?: string;
     note?: string;
-  }>('/saved-search/:searchQuery/:folder?/:note?');
+  }>(routeUrls.patterns.SAVED_SEARCH);
 
   const { mutate: pinOrUnpinNote } = usePinNotesMutation();
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
-  const { mutateAsync: editTags } = useEditTagsMutation();
+  const { mutateAsync: editTags } = useEditTagsFormMutation();
   const { mutateAsync: renameFile } = useRenameFileMutation();
   const currentZoom = useAtomValue(currentZoomAtom);
 

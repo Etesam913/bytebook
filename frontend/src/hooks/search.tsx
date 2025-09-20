@@ -10,6 +10,7 @@ import { useWailsEvent } from '../hooks/events';
 import { isEventInCurrentWindow } from '../utils/events';
 import { useEffect, useRef } from 'react';
 import { FilePath } from '../utils/string-formatting';
+import { routeUrls } from '../utils/routes';
 
 export const lastSearchQueryAtom = atom<string>('');
 
@@ -33,7 +34,7 @@ export function useSearch() {
     if (window.location.pathname.startsWith('/search')) {
       window.history.back();
     } else {
-      navigate('/search');
+      navigate(routeUrls.search());
     }
   });
 }

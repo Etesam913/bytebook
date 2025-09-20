@@ -5,6 +5,7 @@ import { useSetAtom } from 'jotai/react';
 import { currentFilePathAtom } from '../atoms';
 import { FilePath } from '../utils/string-formatting';
 import { useSearchParamsEntries } from '../utils/routing';
+import { routeUrls } from '../utils/routes';
 
 export type WailsEvent = {
   name: string;
@@ -27,16 +28,29 @@ export function useWailsEvent(
 export function useRouteFilePath() {
   const setCurrentFilePath = useSetAtom(currentFilePathAtom);
 
-  // Check for note routes: /:folder/:note? and /tags/:tagName/:folder?/:note?
-  const [isNoteRoute, params] = useRoute('/:folder/:note?');
+  // Check for regular note routes: /:folder/:note?
+  const [isNoteRoute, noteParams] = useRoute<{
+    folder?: string;
+    note?: string;
+  }>(routeUrls.patterns.NOTES);
+
+  // Check for saved-search routes: /saved-search/:searchQuery/:folder?/:note?
+  const [isSavedSearchRoute, savedSearchParams] = useRoute<{
+    searchQuery?: string;
+    folder?: string;
+    note?: string;
+  }>(routeUrls.patterns.SAVED_SEARCH);
+
   const extension = useSearchParamsEntries().ext;
 
-  const folder = params?.folder;
-  const note = params?.note;
+  // Extract folder and note from whichever route is active
+  const folder = noteParams?.folder || savedSearchParams?.folder;
+  const note = noteParams?.note || savedSearchParams?.note;
+  const isRelevantRoute = isNoteRoute || isSavedSearchRoute;
 
   useEffect(() => {
-    // If we're on a note route and have both folder and note parameters
-    if (isNoteRoute && folder && note && extension) {
+    // If we're on a relevant route and have both folder and note parameters
+    if (isRelevantRoute && folder && note && extension) {
       try {
         // Create FilePath instance
         const filePath = new FilePath({
@@ -49,8 +63,8 @@ export function useRouteFilePath() {
         setCurrentFilePath(null);
       }
     } else {
-      // Not on a note route or missing required params, set to null
+      // Not on a relevant route or missing required params, set to null
       setCurrentFilePath(null);
     }
-  }, [isNoteRoute, folder, note, extension, setCurrentFilePath]);
+  }, [isRelevantRoute, folder, note, extension, setCurrentFilePath]);
 }

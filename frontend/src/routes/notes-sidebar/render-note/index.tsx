@@ -23,6 +23,7 @@ import { useRoute } from 'wouter';
 import { navigate } from 'wouter/use-browser-location';
 import { RouteFallback } from '../../../components/route-fallback';
 import { FilePath } from '../../../utils/string-formatting';
+import { routeUrls } from '../../../utils/routes';
 
 export function RenderNote() {
   const animationControls = useAnimationControls();
@@ -33,12 +34,12 @@ export function RenderNote() {
   const [isNoteRoute, params] = useRoute<{
     folder: string;
     note?: string;
-  }>('/:folder/:note?');
+  }>(routeUrls.patterns.NOTES);
   const [, savedSearchParams] = useRoute<{
     searchQuery: string;
     folder?: string;
     note?: string;
-  }>('/saved-search/:searchQuery/:folder?/:note?');
+  }>(routeUrls.patterns.SAVED_SEARCH);
 
   const folder = isNoteRoute
     ? (params.folder ?? '')
@@ -79,7 +80,7 @@ export function RenderNote() {
   }
 
   if (!noteExists || error) {
-    navigate('/404/404/404', { replace: true });
+    navigate(routeUrls.notFoundFallback(), { replace: true });
     return null;
   }
 

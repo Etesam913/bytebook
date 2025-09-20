@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { useAtomValue } from 'jotai/react';
 import type { LexicalEditor } from 'lexical';
-import type { Dispatch, FormEvent, SetStateAction } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
 import {
@@ -32,7 +32,6 @@ import {
 } from '../utils/string-formatting';
 import { useWailsEvent } from './events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
-import { SetTagsOnNotes } from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 import type { Frontmatter } from '../types';
 
 export function useNotes(curFolder: string, curNote?: string) {
@@ -292,60 +291,6 @@ export function useRenameFileMutation() {
     },
     onSuccess: () => {
       toast.success('File renamed successfully', DEFAULT_SONNER_OPTIONS);
-    },
-  });
-}
-
-/**
- * Custom hook to handle editing tags for notes via form submission.
- * Extracts tag data from form's fieldset data attribute and calls EditTagsForNotes.
- */
-export function useEditTagsMutation() {
-  return useMutation({
-    mutationFn: async ({
-      e,
-      setErrorText,
-      selectionRange,
-      folder,
-    }: {
-      e: FormEvent<HTMLFormElement>;
-      setErrorText: Dispatch<SetStateAction<string>>;
-      selectionRange: Set<string>;
-      folder: string;
-    }) => {
-      try {
-        // Get the tags to add or delete from the data attribute
-        const fieldset = (e.target as HTMLFormElement).querySelector(
-          'fieldset[data-tags-to-add-or-remove]'
-        ) as HTMLFieldSetElement;
-
-        const tagsData = fieldset?.getAttribute('data-tags-to-add-or-remove');
-        const { tagNamesToAdd, tagNamesToRemove } = tagsData
-          ? JSON.parse(tagsData)
-          : { tagNamesToAdd: [], tagNamesToRemove: [] };
-
-        const filePaths = getFilePathFromNoteSelectionRange(
-          folder,
-          selectionRange
-        );
-
-        const res = await SetTagsOnNotes(
-          filePaths.map((filePath) => filePath.toString()),
-          tagNamesToAdd,
-          tagNamesToRemove
-        );
-
-        if (!res.success) {
-          throw new QueryError(res.message);
-        }
-
-        return true;
-      } catch (error) {
-        setErrorText(
-          error instanceof Error ? error.message : 'Failed to set tags'
-        );
-        return false;
-      }
     },
   });
 }
