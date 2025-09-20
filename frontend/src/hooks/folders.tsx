@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  QueryClient,
+} from '@tanstack/react-query';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
@@ -15,13 +21,40 @@ import {
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
-import { findClosestSidebarItemToNavigateTo } from '../utils/routing';
 import {
   validateName,
   convertFilePathToQueryNotation,
 } from '../utils/string-formatting';
-import { useWailsEvent } from './events';
 import { routeUrls } from '../utils/routes';
+import { useWailsEvent } from './events';
+
+type FoldersQueryData = {
+  alphabetizedFolders: string[];
+  previousAlphabetizedFolders: string[] | undefined;
+};
+
+export const folderQueries = {
+  getFolders: (queryClient: QueryClient) =>
+    queryOptions({
+      queryKey: ['folders'],
+      queryFn: async () => {
+        const res = await GetFolders();
+        if (!res.success) {
+          throw new QueryError(res.message);
+        }
+        const previousQueryData = queryClient.getQueryData<FoldersQueryData>([
+          'folders',
+        ]);
+        const previousFolders = previousQueryData?.alphabetizedFolders;
+        return {
+          alphabetizedFolders: (res.data ?? []).sort((a, b) =>
+            a.localeCompare(b)
+          ),
+          previousAlphabetizedFolders: previousFolders || undefined,
+        };
+      },
+    }),
+};
 
 /**
  * Custom hook to fetch and manage folders.
@@ -29,52 +62,9 @@ import { routeUrls } from '../utils/routes';
  * @param curFolder - The current folder name from the URL.
  * @returns An object containing the query data and alphabetized folders.
  */
-export function useFolders(curFolder: string | undefined) {
+export function useFolders() {
   const queryClient = useQueryClient();
-  const queryData = useQuery({
-    refetchOnWindowFocus: false,
-    queryKey: ['folders'],
-    queryFn: async () => {
-      const res = await GetFolders();
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
-      const folders = res.data ?? [];
-      // If the current folder does not exist anymore, then navigate to a safe url
-      if (!folders.some((folder) => folder === curFolder)) {
-        if (folders.length > 0) {
-          let folderIndexToNavigateTo = 0;
-          const alphabetizedFolders = folders.sort((a, b) =>
-            a.localeCompare(b)
-          );
-
-          const oldFoldersData = queryClient.getQueryData(['folders']) as
-            | string[]
-            | null;
-
-          if (oldFoldersData && curFolder) {
-            folderIndexToNavigateTo = findClosestSidebarItemToNavigateTo(
-              curFolder,
-              oldFoldersData,
-              alphabetizedFolders
-            );
-          }
-          navigate(
-            `/${encodeURIComponent(alphabetizedFolders[folderIndexToNavigateTo])}`
-          );
-        } else {
-          navigate(routeUrls.root());
-        }
-      }
-      return res.data;
-    },
-  });
-
-  return {
-    ...queryData,
-    alphabetizedFolders:
-      queryData.data?.sort((a, b) => a.localeCompare(b)) ?? null,
-  };
+  return useQuery(folderQueries.getFolders(queryClient));
 }
 
 /** This function is used to handle `folder:create` events */
@@ -83,7 +73,9 @@ export function useFolderCreate() {
 
   useWailsEvent('folder:create', async () => {
     console.info('folder:create');
-    await queryClient.invalidateQueries({ queryKey: ['folders'] });
+    await queryClient.invalidateQueries({
+      queryKey: folderQueries.getFolders(queryClient).queryKey,
+    });
   });
 }
 
@@ -91,9 +83,11 @@ export function useFolderCreate() {
 export function useFolderDelete() {
   const queryClient = useQueryClient();
 
-  useWailsEvent('notes-folder:delete', async () => {
-    console.info('notes-folder:delete');
-    await queryClient.invalidateQueries({ queryKey: ['folders'] });
+  useWailsEvent('folder:delete', async () => {
+    console.info('folder:delete');
+    await queryClient.invalidateQueries({
+      queryKey: folderQueries.getFolders(queryClient).queryKey,
+    });
   });
 }
 
@@ -116,87 +110,225 @@ export function useMoveNoteIntoFolder() {
 }
 
 /**
- * Custom hook to handle folder creation and renaming through a dialog form submission.
+ * Custom hook to handle folder creation through a dialog form submission.
+ * Optimistically updates the cache so that navigation can happen without
+ * a 404 page error
  */
-export function useFolderDialogSubmit() {
+export function useFolderCreateMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    // The main function that handles folder creation or renaming
     mutationFn: async ({
       e,
-      folderFromSidebar,
-      action,
+      setErrorText: _setErrorText,
     }: {
-      action: 'create' | 'rename' | 'delete';
       e: FormEvent<HTMLFormElement>;
-      folderFromSidebar?: string;
       setErrorText: Dispatch<SetStateAction<string>>;
     }): Promise<boolean> => {
       // Extract form data and validate the folder name
       const formData = new FormData(e.target as HTMLFormElement);
       const newFolderName = formData.get('folder-name');
       const { isValid, errorMessage } = validateName(newFolderName, 'folder');
-      if (!isValid && action !== 'delete') throw new Error(errorMessage);
-      if (!newFolderName && action !== 'delete') return false;
+      if (!isValid) throw new Error(errorMessage);
+      if (!newFolderName) return false;
 
-      const newFolderNameString = newFolderName?.toString()?.trim() ?? '';
+      const newFolderNameString = newFolderName.toString().trim();
 
       // Handle folder creation
-      if (action === 'create') {
-        const res = await AddFolder(newFolderNameString);
-        if (!res.success) throw new Error(res.message);
+      const res = await AddFolder(newFolderNameString);
+      if (!res.success) throw new Error(res.message);
 
-        // Add an untitled note to the newly created folder this will trigger a note:create event and the user will be navigated to the new note
-        const addNoteRes = await AddNoteToFolder(
-          newFolderNameString,
-          'Untitled'
-        );
-        if (addNoteRes.success) {
-          navigate(
-            `/${convertFilePathToQueryNotation(`${encodeURIComponent(newFolderNameString)}/Untitled.md`)}`
-          );
-          return true;
-        }
-        throw new Error(addNoteRes.message);
-      }
-
-      // Handle folder renaming
-      if (action === 'rename') {
-        if (!folderFromSidebar) throw new Error('Something went wrong');
-        const res = await RenameFolder(folderFromSidebar, newFolderNameString);
-        if (!res.success) throw new Error(res.message);
-        navigate(routeUrls.folder(newFolderNameString));
+      // Add an untitled note to the newly created folder
+      const addNoteRes = await AddNoteToFolder(newFolderNameString, 'Untitled');
+      if (addNoteRes.success) {
+        // Store the folder name for navigation in onSuccess
+        (e.target as any).__folderName = newFolderNameString;
         return true;
       }
-
-      // Handle folder deletion
-      if (action === 'delete') {
-        if (!folderFromSidebar) throw new Error('Something went wrong');
-        const res = await DeleteFolder(folderFromSidebar);
-        if (!res.success) throw new Error(res.message);
-
-        return true;
-      }
-      return false;
+      throw new Error(addNoteRes.message);
     },
-    // Handle errors that occur during the mutation
-    onError: (
-      error,
-      variables: {
-        action: 'create' | 'rename' | 'delete';
-        e: FormEvent<HTMLFormElement>;
-        folderFromSidebar?: string;
-        setErrorText: Dispatch<SetStateAction<string>>;
+    // Optimistically update cache
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({
+        queryKey: folderQueries.getFolders(queryClient).queryKey,
+      });
+      const previousFolders = queryClient.getQueryData(
+        folderQueries.getFolders(queryClient).queryKey
+      );
+
+      const formData = new FormData(variables.e.target as HTMLFormElement);
+      const newFolderName =
+        formData.get('folder-name')?.toString()?.trim() ?? '';
+
+      if (newFolderName && previousFolders?.alphabetizedFolders) {
+        const updatedFolders: FoldersQueryData = {
+          alphabetizedFolders: [
+            ...previousFolders.alphabetizedFolders,
+            newFolderName,
+          ].sort((a, b) => a.localeCompare(b)),
+          previousAlphabetizedFolders:
+            previousFolders.alphabetizedFolders || undefined,
+        };
+        queryClient.setQueryData(
+          folderQueries.getFolders(queryClient).queryKey,
+          updatedFolders
+        );
       }
-    ) => {
+
+      return { previousFolders };
+    },
+    onSuccess: (result, variables) => {
+      const folderName = (variables.e.target as any).__folderName;
+      if (result && folderName) {
+        navigate(
+          `/${convertFilePathToQueryNotation(`${encodeURIComponent(folderName)}/Untitled.md`)}`
+        );
+      }
+      queryClient.invalidateQueries({
+        queryKey: folderQueries.getFolders(queryClient).queryKey,
+      });
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousFolders) {
+        queryClient.setQueryData(
+          folderQueries.getFolders(queryClient).queryKey,
+          context.previousFolders
+        );
+      }
       if (error instanceof Error) variables.setErrorText(error.message);
       else
         variables.setErrorText(
           'An unknown error occurred. Please try again later.'
         );
-      return false;
     },
   });
 }
+
+/**
+ * Custom hook to handle folder renaming through a dialog form submission.
+ */
+export function useFolderRenameMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      e,
+      folderFromSidebar,
+      setErrorText: _setErrorText,
+    }: {
+      e: FormEvent<HTMLFormElement>;
+      folderFromSidebar: string;
+      setErrorText: Dispatch<SetStateAction<string>>;
+    }): Promise<boolean> => {
+      // Extract form data and validate the folder name
+      const formData = new FormData(e.target as HTMLFormElement);
+      const newFolderName = formData.get('folder-name');
+      const { isValid, errorMessage } = validateName(newFolderName, 'folder');
+      if (!isValid) throw new Error(errorMessage);
+      if (!newFolderName) return false;
+
+      const newFolderNameString = newFolderName.toString().trim();
+
+      // Handle folder renaming
+      if (!folderFromSidebar) throw new Error('Something went wrong');
+      const res = await RenameFolder(folderFromSidebar, newFolderNameString);
+      if (!res.success) throw new Error(res.message);
+
+      // Store the folder name for navigation in onSuccess
+      (e.target as any).__folderName = newFolderNameString;
+      return true;
+    },
+    // Optimistically update cache
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({
+        queryKey: folderQueries.getFolders(queryClient).queryKey,
+      });
+      const previousFolders = queryClient.getQueryData(
+        folderQueries.getFolders(queryClient).queryKey
+      );
+
+      const formData = new FormData(variables.e.target as HTMLFormElement);
+      const newFolderName =
+        formData.get('folder-name')?.toString()?.trim() ?? '';
+
+      if (newFolderName && previousFolders?.alphabetizedFolders) {
+        const updatedFolders: FoldersQueryData = {
+          alphabetizedFolders: previousFolders.alphabetizedFolders
+            .map((folder) =>
+              folder === variables.folderFromSidebar ? newFolderName : folder
+            )
+            .sort((a, b) => a.localeCompare(b)),
+          previousAlphabetizedFolders:
+            previousFolders.alphabetizedFolders || undefined,
+        };
+        queryClient.setQueryData(
+          folderQueries.getFolders(queryClient).queryKey,
+          updatedFolders
+        );
+      }
+
+      return { previousFolders };
+    },
+    onSuccess: (result, variables) => {
+      const folderName = (variables.e.target as any).__folderName;
+      if (result && folderName) {
+        navigate(routeUrls.folder(folderName));
+      }
+      queryClient.invalidateQueries({
+        queryKey: folderQueries.getFolders(queryClient).queryKey,
+      });
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousFolders) {
+        queryClient.setQueryData(
+          folderQueries.getFolders(queryClient).queryKey,
+          context.previousFolders
+        );
+      }
+      if (error instanceof Error) variables.setErrorText(error.message);
+      else
+        variables.setErrorText(
+          'An unknown error occurred. Please try again later.'
+        );
+    },
+  });
+}
+
+/**
+ * Custom hook to handle folder deletion through a dialog form submission.
+ */
+export function useFolderDeleteMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      folderFromSidebar,
+      setErrorText: _setErrorText,
+    }: {
+      folderFromSidebar: string;
+      setErrorText: Dispatch<SetStateAction<string>>;
+    }): Promise<boolean> => {
+      // Handle folder deletion
+      if (!folderFromSidebar) throw new Error('Something went wrong');
+      const res = await DeleteFolder(folderFromSidebar);
+      if (!res.success) throw new Error(res.message);
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: folderQueries.getFolders(queryClient).queryKey,
+      });
+    },
+    onError: (error, variables) => {
+      if (error instanceof Error) variables.setErrorText(error.message);
+      else
+        variables.setErrorText(
+          'An unknown error occurred. Please try again later.'
+        );
+    },
+  });
+}
+
 /** Custom hook to handle revealing folders in Finder */
 export function useFolderRevealInFinderMutation() {
   return useMutation({

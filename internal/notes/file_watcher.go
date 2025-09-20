@@ -109,7 +109,7 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 					"newFolder": newFolderName,
 				},
 			)
-		} else if event.Has(fsnotify.Remove) {
+		} else {
 			eventKey = util.Events.FolderDelete
 
 			fw.debounceEvents[eventKey] = append(

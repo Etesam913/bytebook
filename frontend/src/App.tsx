@@ -18,7 +18,11 @@ import { useTagEvents } from './hooks/tags';
 import { useThemeSetting } from './hooks/theme';
 import { MAX_SIDEBAR_WIDTH } from './utils/general';
 import { disableBackspaceNavigation } from './utils/routing';
-import { routeUrls } from './utils/routes';
+import {
+  type NotesRouteParams,
+  routeUrls,
+  type SavedSearchRouteParams,
+} from './utils/routes';
 import { RouteFallback } from './components/route-fallback';
 import { useTrapFocus } from './hooks/general';
 import { useZoom } from './hooks/resize';
@@ -91,6 +95,13 @@ function App() {
       )}
       <Switch>
         <Route path={routeUrls.patterns.ROOT} />
+
+        <Route path={routeUrls.patterns.NOT_FOUND_FALLBACK}>
+          <Suspense fallback={<RouteFallback />}>
+            <NotFound />
+          </Suspense>
+        </Route>
+
         <Route path={routeUrls.patterns.KERNELS}>
           <Suspense fallback={<RouteFallback />}>
             <KernelInfo />
@@ -104,11 +115,7 @@ function App() {
         </Route>
 
         <Route path={routeUrls.patterns.SAVED_SEARCH}>
-          {(params: {
-            searchQuery: string;
-            folder?: string;
-            note?: string;
-          }) => (
+          {(params: SavedSearchRouteParams) => (
             <Suspense fallback={<RouteFallback />}>
               <SavedSearchPage
                 searchQuery={decodeURIComponent(params.searchQuery)}
@@ -124,21 +131,26 @@ function App() {
         </Route>
 
         <Route path={routeUrls.patterns.NOTES}>
-          {(folderParams) => (
+          {(folderParams: NotesRouteParams) => (
             <Suspense fallback={<RouteFallback />}>
               <NotesSidebar
-                params={folderParams}
+                folder={decodeURIComponent(folderParams.folder)}
+                note={
+                  folderParams.note
+                    ? decodeURIComponent(folderParams.note)
+                    : undefined
+                }
                 width={notesSidebarWidth}
                 leftWidth={folderSidebarWidth}
               />
             </Suspense>
           )}
         </Route>
-        <Route path={routeUrls.patterns.CATCH_ALL}>
+        {/* <Route path={'*'}>
           <Suspense fallback={<RouteFallback />}>
             <NotFound />
           </Suspense>
-        </Route>
+        </Route> */}
       </Switch>
     </main>
   );

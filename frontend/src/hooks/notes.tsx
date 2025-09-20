@@ -1,15 +1,17 @@
 import {
   QueryClient,
+  queryOptions,
   useMutation,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 import { useAtomValue } from 'jotai/react';
 import type { LexicalEditor } from 'lexical';
-import type { Dispatch, SetStateAction } from 'react';
+import type { Dispatch, FormEvent, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
 import {
+  AddNoteToFolder,
   DoesNoteExist,
   GetNotePreview,
   GetNotes,
@@ -23,104 +25,70 @@ import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
 import { $convertFromMarkdownStringCorrect } from '../components/editor/utils/note-metadata';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
-import { findClosestSidebarItemToNavigateTo } from '../utils/routing';
 import { getFilePathFromNoteSelectionRange } from '../utils/selection';
 import {
   convertSelectionRangeValueToDotNotation,
+  convertFilePathToQueryNotation,
   FilePath,
   parseNoteNameFromSelectionRangeValue,
+  validateName,
 } from '../utils/string-formatting';
 import { useWailsEvent } from './events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter } from '../types';
 
-export function useNotes(curFolder: string, curNote?: string) {
+export type NotesQueryData = {
+  notes: FilePath[];
+  previousNotes: FilePath[] | undefined;
+};
+
+export const noteQueries = {
+  getNotes: (folder: string, noteSort: string, queryClient: QueryClient) =>
+    queryOptions({
+      queryKey: ['notes', folder, noteSort],
+      queryFn: async (): Promise<NotesQueryData> => {
+        const res = await GetNotes(decodeURIComponent(folder), noteSort);
+        if (!res.success) {
+          throw new QueryError('Failed in retrieving notes');
+        }
+        const previousQueryData = queryClient.getQueryData<NotesQueryData>([
+          'notes',
+          folder,
+          noteSort,
+        ]);
+        const previousNotes = previousQueryData?.notes;
+        const notes = (res.data ?? []).map(
+          (item) => new FilePath({ folder: item.folder, note: item.note })
+        );
+        return {
+          notes,
+          previousNotes: previousNotes || undefined,
+        };
+      },
+    }),
+  getNotePreview: (folder: string, noteWithoutExtension: string) =>
+    queryOptions({
+      queryKey: ['note-preview', folder, noteWithoutExtension],
+      queryFn: () =>
+        GetNotePreview(`notes/${folder}/${noteWithoutExtension}.md`),
+    }),
+  doesNoteExist: (folder: string, note: string, extension: string) =>
+    queryOptions({
+      queryKey: ['doesNoteExist', folder, note, extension],
+      queryFn: () => {
+        if (!note) return false;
+        return DoesNoteExist(
+          `${folder}/${decodeURIComponent(note)}.${extension}`
+        );
+      },
+    }),
+};
+
+export function useNotes(curFolder: string) {
   const noteSort = useAtomValue(noteSortAtom);
   const queryClient = useQueryClient();
 
-  /**
-   * Handles navigation when the current note is missing from the list of notes.
-   * If there are no notes left in the folder, navigates to the folder view.
-   * Otherwise, finds the closest note to the deleted/missing note and navigates to it.
-   *
-   * @param curFolder - The current folder name.
-   * @param curFilePath - The FilePath object of the current note.
-   * @param notePaths - The list of available FilePath objects for notes in the folder.
-   * @param queryClient - The React Query client instance.
-   * @param noteSort - The current note sort option.
-   */
-  function handleMissingNoteNavigation({
-    curFolder,
-    curNotePath,
-    notePaths,
-    queryClient,
-    noteSort,
-  }: {
-    curFolder: string;
-    curNotePath: FilePath;
-    notePaths: FilePath[];
-    queryClient: QueryClient;
-    noteSort: string;
-  }) {
-    if (notePaths.length === 0) {
-      navigate(`/${curFolder}`);
-      return;
-    }
-
-    let noteIndexToNavigateTo = 0;
-    const oldNotesData = queryClient.getQueryData([
-      'notes',
-      curFolder,
-      noteSort,
-    ]) as FilePath[] | null;
-
-    if (oldNotesData) {
-      noteIndexToNavigateTo = findClosestSidebarItemToNavigateTo(
-        curNotePath.note,
-        oldNotesData.map((path) => path.note),
-        notePaths.map((path) => path.note)
-      );
-    }
-
-    const pathToNavigateTo = notePaths[noteIndexToNavigateTo];
-    navigate(pathToNavigateTo.getLinkToNote(), { replace: true });
-  }
-
-  return useQuery({
-    queryKey: ['notes', curFolder, noteSort],
-    queryFn: async () => {
-      const res = await GetNotes(decodeURIComponent(curFolder), noteSort);
-      if (!res.success) {
-        throw new QueryError('Failed in retrieving notes');
-      }
-
-      const notePaths = (res.data ?? []).map((path) => new FilePath(path));
-
-      // Check if current note exists and handle navigation if needed
-      if (curNote) {
-        const curNotePath = new FilePath({
-          folder: decodeURIComponent(curFolder),
-          note: decodeURIComponent(curNote),
-        });
-
-        const curNoteExists = notePaths.some((notePath) =>
-          notePath.equals(curNotePath)
-        );
-
-        if (!curNoteExists) {
-          handleMissingNoteNavigation({
-            curFolder,
-            curNotePath,
-            notePaths,
-            queryClient,
-            noteSort,
-          });
-        }
-      }
-
-      return notePaths;
-    },
-  });
+  return useQuery(noteQueries.getNotes(curFolder, noteSort, queryClient));
 }
 
 /** This function is used to handle note:create events */
@@ -137,7 +105,8 @@ export function useNoteCreate() {
     // Refetch notes so that they are updated in the sidebar
     try {
       await queryClient.invalidateQueries({
-        queryKey: ['notes', folderOfLastNote, noteSort],
+        queryKey: noteQueries.getNotes(folderOfLastNote, noteSort, queryClient)
+          .queryKey,
       });
     } catch (err) {
       toast.error('Failed to update notes', DEFAULT_SONNER_OPTIONS);
@@ -154,11 +123,111 @@ export function useNoteDelete(folder: string) {
     console.info('note:delete');
     try {
       await queryClient.invalidateQueries({
-        queryKey: ['notes', folder, noteSort],
+        queryKey: noteQueries.getNotes(folder, noteSort, queryClient).queryKey,
       });
     } catch (err) {
       toast.error('Failed to update notes', DEFAULT_SONNER_OPTIONS);
     }
+  });
+}
+
+/**
+ * Custom hook to handle note creation through a dialog form submission.
+ * Optimistically updates the cache so that navigation can happen without
+ * a 404 page error
+ */
+export function useNoteCreateMutation() {
+  const queryClient = useQueryClient();
+  const noteSort = useAtomValue(noteSortAtom);
+
+  return useMutation({
+    mutationFn: async ({
+      e,
+      folder,
+      setErrorText: _setErrorText,
+    }: {
+      e: FormEvent<HTMLFormElement>;
+      folder: string;
+      setErrorText: Dispatch<SetStateAction<string>>;
+    }): Promise<boolean> => {
+      // Extract form data and validate the note name
+      const formData = new FormData(e.target as HTMLFormElement);
+      const newNoteName = formData.get('note-name');
+      const { isValid, errorMessage } = validateName(newNoteName, 'note');
+      if (!isValid) throw new Error(errorMessage);
+      if (!newNoteName) return false;
+
+      const newNoteNameString = newNoteName.toString().trim();
+
+      // Handle note creation
+      const res = await AddNoteToFolder(folder, newNoteNameString);
+      if (!res.success) throw new Error(res.message);
+
+      // Store the note name for navigation in onSuccess
+      (e.target as HTMLFormElement).__noteName = newNoteNameString;
+      (e.target as HTMLFormElement).__folder = folder;
+      return true;
+    },
+    // Optimistically update cache
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({
+        queryKey: noteQueries.getNotes(variables.folder, noteSort, queryClient)
+          .queryKey,
+      });
+      const previousNotesData = queryClient.getQueryData<NotesQueryData>(
+        noteQueries.getNotes(variables.folder, noteSort, queryClient).queryKey
+      );
+
+      const formData = new FormData(variables.e.target as HTMLFormElement);
+      const newNoteName = formData.get('note-name')?.toString()?.trim() ?? '';
+
+      if (newNoteName && previousNotesData?.notes) {
+        // Create the new note path
+        const updatedNotesData: NotesQueryData = {
+          notes: [
+            ...previousNotesData.notes,
+            new FilePath({
+              folder: variables.folder,
+              note: `${newNoteName}.md`,
+            }),
+          ],
+          previousNotes: previousNotesData.notes || undefined,
+        };
+        queryClient.setQueryData(
+          noteQueries.getNotes(variables.folder, noteSort, queryClient)
+            .queryKey,
+          updatedNotesData
+        );
+      }
+
+      return { previousNotesData, folder: variables.folder };
+    },
+    onSuccess: (result, variables) => {
+      const noteName = (variables.e.target as any).__noteName;
+      const folder = (variables.e.target as any).__folder;
+      if (result && noteName && folder) {
+        navigate(
+          `/${convertFilePathToQueryNotation(`${folder}/${encodeURIComponent(noteName)}.md`)}`
+        );
+      }
+      queryClient.invalidateQueries({
+        queryKey: noteQueries.getNotes(variables.folder, noteSort, queryClient)
+          .queryKey,
+      });
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousNotesData && context?.folder) {
+        queryClient.setQueryData(
+          noteQueries.getNotes(context.folder, noteSort, queryClient).queryKey,
+          context.previousNotesData
+        );
+      }
+      if (error instanceof Error) variables.setErrorText(error.message);
+      else
+        variables.setErrorText(
+          'An unknown error occurred. Please try again later.'
+        );
+    },
   });
 }
 
@@ -296,10 +365,9 @@ export function useRenameFileMutation() {
 }
 
 export function useNotePreviewQuery(filePath: FilePath) {
-  return useQuery({
-    queryKey: ['note-preview', filePath.folder, filePath.noteWithoutExtension],
-    queryFn: () => GetNotePreview(`notes/${filePath.folder}/${filePath.note}`),
-  });
+  return useQuery(
+    noteQueries.getNotePreview(filePath.folder, filePath.noteWithoutExtension)
+  );
 }
 
 /**
@@ -347,7 +415,10 @@ export function useNoteChangedEvent(
       );
     }
     // Update the appropriate note preview
-    const queryKey = ['note-preview', folderNameFromEvent, noteNameFromEvent];
+    const queryKey = noteQueries.getNotePreview(
+      folderNameFromEvent,
+      noteNameFromEvent
+    ).queryKey;
     queryClient.invalidateQueries({ queryKey });
   });
 }
@@ -361,20 +432,11 @@ export function useNoteChangedEvent(
  */
 export function useNoteExists(filePath: FilePath) {
   return useQuery({
-    queryKey: [
-      'doesNoteExist',
+    ...noteQueries.doesNoteExist(
       filePath.folder,
       filePath.noteWithoutExtension,
-      filePath.noteExtension,
-    ],
-    queryFn: () => {
-      if (!filePath.noteWithoutExtension) {
-        return false;
-      }
-      return DoesNoteExist(
-        `${filePath.folder}/${decodeURIComponent(filePath.noteWithoutExtension)}.${filePath.noteExtension}`
-      );
-    },
+      filePath.noteExtension
+    ),
     enabled: !!filePath.noteWithoutExtension,
   });
 }

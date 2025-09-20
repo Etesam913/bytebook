@@ -1,29 +1,20 @@
-import { TriangleWarning } from '../../icons/triangle-warning';
 import { RefreshAnticlockwise } from '../../icons/refresh-anticlockwise';
+import { TriangleWarning } from '../../icons/triangle-warning';
 import { MotionButton } from '../buttons';
 import { getDefaultButtonVariants } from '../../animations';
-
-interface RenderNoteFallbackProps {
-  error: Error;
-  errorInfo?: { componentStack: string };
-  resetErrorBoundary: () => void;
-  folder?: string;
-  note?: string;
-  fileExtension?: string;
-}
+import { useAtomValue } from 'jotai';
+import { currentFilePathAtom } from '../../atoms';
 
 export function RenderNoteFallback({
   error,
   errorInfo,
   resetErrorBoundary,
-  folder,
-  note,
-  fileExtension,
-}: RenderNoteFallbackProps) {
-  const filePath =
-    folder && note
-      ? `${folder}/${note}${fileExtension ? `.${fileExtension}` : ''}`
-      : 'the note';
+}: {
+  error: Error;
+  errorInfo?: { componentStack: string };
+  resetErrorBoundary: () => void;
+}) {
+  const filePath = useAtomValue(currentFilePathAtom);
 
   return (
     <div className="h-screen w-full flex flex-col items-center justify-center gap-4 text-center p-6">
@@ -32,8 +23,8 @@ export function RenderNoteFallback({
         <div className="space-y-2">
           <h2 className="text-xl font-semibold">Something went wrong</h2>
           <p className="text-balance text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
-            Failed to render note: <b>{filePath}</b>. This might be due to a
-            temporary issue or corrupted content.
+            Failed to render note: <b>{filePath?.toString()}</b>. This might be
+            due to a temporary issue or corrupted content.
           </p>
         </div>
       </div>

@@ -20,7 +20,7 @@ export type SavedSearchRouteParams = {
 };
 
 export type NotesRouteParams = {
-  folder?: string;
+  folder: string;
   note?: string;
 };
 
@@ -33,7 +33,7 @@ export const ROUTE_PATTERNS = {
   SAVED_SEARCH: '/saved-search/:searchQuery/:folder?/:note?',
   NOTES: '/:folder/:note?',
   CATCH_ALL: '*',
-  NOT_FOUND_FALLBACK: '/404/404/404',
+  NOT_FOUND_FALLBACK: '/404',
 } as const;
 
 // Route builders - functions to construct routes with parameters
@@ -101,7 +101,7 @@ export const routeBuilders = {
   /**
    * Build 404 fallback route
    */
-  notFoundFallback: () => '/404/404/404',
+  notFoundFallback: () => '/404',
 
   /**
    * Build tag search route (saved search with tag format)

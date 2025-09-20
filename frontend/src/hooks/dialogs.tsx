@@ -1,16 +1,11 @@
 import { useSetAtom } from 'jotai/react';
-import { navigate } from 'wouter/use-browser-location';
-import { AddNoteToFolder } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { getDefaultButtonVariants } from '../animations';
 import { dialogDataAtom } from '../atoms';
 import { MotionButton } from '../components/buttons';
 import { DialogErrorText } from '../components/dialog';
 import { Input } from '../components/input';
 import { Compose } from '../icons/compose';
-import {
-  validateName,
-  convertFilePathToQueryNotation,
-} from '../utils/string-formatting';
+import { useNoteCreateMutation } from './notes';
 
 /**
  * Custom hook that returns a function to open a "Create Note" dialog for a given folder.
@@ -27,6 +22,7 @@ import {
  */
 export function useCreateNoteDialog(): (folder: string) => void {
   const setDialogData = useSetAtom(dialogDataAtom);
+  const { mutateAsync: createNote } = useNoteCreateMutation();
 
   return (folder: string) => {
     setDialogData({
@@ -61,35 +57,12 @@ export function useCreateNoteDialog(): (folder: string) => void {
           </MotionButton>
         </>
       ),
-      onSubmit: async (e, setErrorText) => {
-        const formData = new FormData(e.target as HTMLFormElement);
-        try {
-          const newNoteName = formData.get('note-name');
-          const { isValid, errorMessage } = validateName(newNoteName, 'note');
-          if (!isValid) throw new Error(errorMessage);
-          if (newNoteName) {
-            const newNoteNameString = newNoteName.toString().trim();
-            const res = await AddNoteToFolder(
-              decodeURIComponent(folder),
-              newNoteNameString
-            );
-            if (!res.success) throw new Error(res.message);
-            navigate(
-              `/${convertFilePathToQueryNotation(`${folder}/${encodeURIComponent(newNoteNameString)}.md`)}`
-            );
-
-            return true;
-          }
-          return false;
-        } catch (e) {
-          if (e instanceof Error) {
-            setErrorText(e.message);
-          } else {
-            setErrorText('An unknown error occurred');
-          }
-          return false;
-        }
-      },
+      onSubmit: async (e, setErrorText) =>
+        createNote({
+          e,
+          folder,
+          setErrorText,
+        }),
     });
   };
 }

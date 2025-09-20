@@ -1,13 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import { Ufo } from '../../icons/ufo';
+import { folderQueries } from '../../hooks/folders';
 
 export function NotFound() {
   const queryClient = useQueryClient();
-  const folders = (queryClient.getQueryData(['folders']) ?? null) as
-    | string[]
-    | null;
-  const alphabetizedFolders = folders?.sort((a, b) => a.localeCompare(b));
+  const foldersData = queryClient.getQueryData(
+    folderQueries.getFolders(queryClient).queryKey
+  );
+  const alphabetizedFolders = foldersData?.alphabetizedFolders;
 
   return (
     <section className="flex flex-col items-center justify-center h-screen flex-1 gap-3 pb-16 px-3 text-center">

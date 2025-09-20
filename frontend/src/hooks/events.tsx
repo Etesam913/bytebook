@@ -28,44 +28,65 @@ export function useWailsEvent(
   }, [eventName, callback]);
 }
 
-/** Hook to track route changes and update FilePath atom when on a note route */
-export function useRouteFilePath() {
-  const setCurrentFilePath = useSetAtom(currentFilePathAtom);
-
-  // Check for regular note routes: /:folder/:note?
+/**
+ * Returns the folder parameter from the current route, whether it's a note route or a saved search route.
+ * Decodes the folder name before returning.
+ * @returns {string | undefined} The decoded folder name from the route, or undefined if not present.
+ */
+export function useFolderFromRoute(): string | undefined {
   const [isNoteRoute, noteParams] = useRoute<NotesRouteParams>(
     routeUrls.patterns.NOTES
   );
 
-  // Check for saved-search routes: /saved-search/:searchQuery/:folder?/:note?
-  const [isSavedSearchRoute, savedSearchParams] =
-    useRoute<SavedSearchRouteParams>(routeUrls.patterns.SAVED_SEARCH);
+  const [, savedSearchParams] = useRoute<SavedSearchRouteParams>(
+    routeUrls.patterns.SAVED_SEARCH
+  );
 
+  const folder = isNoteRoute ? noteParams?.folder : savedSearchParams?.folder;
+  return folder ? decodeURIComponent(folder) : undefined;
+}
+
+/**
+ * Returns the note parameter from the current route, whether it's a note route or a saved search route.
+ * Decodes the note name before returning.
+ * @returns {string | undefined} The decoded note name from the route, or undefined if not present.
+ */
+export function useNoteFromRoute(): string | undefined {
+  const [isNoteRoute, noteParams] = useRoute<NotesRouteParams>(
+    routeUrls.patterns.NOTES
+  );
+  const [, savedSearchParams] = useRoute<SavedSearchRouteParams>(
+    routeUrls.patterns.SAVED_SEARCH
+  );
+  const note = isNoteRoute ? noteParams?.note : savedSearchParams?.note;
+  return note ? decodeURIComponent(note) : undefined;
+}
+
+/**
+ * Hook to track route changes and update FilePath atom when on a note route
+ * FilePath is set to null when a note or a folder is not present in the route
+ */
+export function useRouteFilePath() {
+  const setCurrentFilePath = useSetAtom(currentFilePathAtom);
+
+  const folder = useFolderFromRoute();
+  const note = useNoteFromRoute();
   const extension = useSearchParamsEntries().ext;
 
-  // Extract folder and note from whichever route is active, and decode them
-  const rawFolder = noteParams?.folder || savedSearchParams?.folder;
-  const rawNote = noteParams?.note || savedSearchParams?.note;
-  const folder = rawFolder ? decodeURIComponent(rawFolder) : undefined;
-  const note = rawNote ? decodeURIComponent(rawNote) : undefined;
-  const isRelevantRoute = isNoteRoute || isSavedSearchRoute;
+  const isRelevantRoute = !!folder && !!note && !!extension;
 
   useEffect(() => {
-    // If we're on a relevant route and have both folder and note parameters
-    if (isRelevantRoute && folder && note && extension) {
+    if (isRelevantRoute) {
       try {
-        // Create FilePath instance
         const filePath = new FilePath({
-          folder: folder,
-          note: `${note}.${extension}`,
+          folder: folder!,
+          note: `${note!}.${extension}`,
         });
         setCurrentFilePath(filePath);
-      } catch (error) {
-        // If FilePath creation fails (e.g., no extension), set to null
+      } catch {
         setCurrentFilePath(null);
       }
     } else {
-      // Not on a relevant route or missing required params, set to null
       setCurrentFilePath(null);
     }
   }, [isRelevantRoute, folder, note, extension, setCurrentFilePath]);

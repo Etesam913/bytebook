@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { getDefaultButtonVariants } from '../../animations';
 import {
@@ -10,7 +10,8 @@ import {
 } from '../../atoms';
 import { draggedElementAtom } from '../editor/atoms';
 import {
-  useFolderDialogSubmit,
+  useFolderRenameMutation,
+  useFolderDeleteMutation,
   useFolderRevealInFinderMutation,
   useFolders,
   useMoveNoteIntoFolder,
@@ -32,8 +33,12 @@ import { MotionButton } from '../buttons';
 import { Sidebar } from '../sidebar';
 import { AccordionButton } from '../sidebar/accordion-button';
 import { handleDragStart } from '../sidebar/utils';
-import { FolderDialogChildren } from './folder-dialog-children';
+import {
+  RenameFolderDialog,
+  DeleteFolderDialog,
+} from './folder-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
+import { useLocation } from 'wouter';
 import {
   ROUTE_PATTERNS,
   routeUrls,
@@ -41,11 +46,59 @@ import {
 } from '../../utils/routes';
 import { currentZoomAtom } from '../../hooks/resize';
 import { useRoute } from 'wouter';
+import { useFolderFromRoute } from '../../hooks/events';
+import { findClosestSidebarItemToNavigateTo } from '../../utils/routing';
 
-export function MyFoldersAccordion({ folder }: { folder?: string }) {
+export function MyFoldersAccordion() {
   const [isOpen, setIsOpen] = useState(true);
-  const { alphabetizedFolders, isLoading, isError, refetch } =
-    useFolders(folder);
+  const { data, isLoading, isError, refetch, error } = useFolders();
+  const alphabetizedFolders = data?.alphabetizedFolders ?? null;
+  const previousFolders = data?.previousAlphabetizedFolders ?? null;
+  const currentFolder = useFolderFromRoute();
+  const [location] = useLocation();
+
+  if (isError) {
+    console.error(error);
+  }
+
+  useEffect(() => {
+    // Don't perform navigation logic if we're already on the 404 page
+    if (location === routeUrls.patterns.NOT_FOUND_FALLBACK) {
+      return;
+    }
+
+    if (alphabetizedFolders && alphabetizedFolders.length > 0) {
+      const isCurrentFolderInAlphabetizedFolders =
+        alphabetizedFolders.some((folder) => folder === currentFolder) ?? false;
+
+      // If on the root route, navigate to the first folder
+      if (!currentFolder) {
+        navigate(routeUrls.folder(alphabetizedFolders[0]), { replace: true });
+      }
+      // If you are on a folder that does not exist navigate to 404 page
+      else if (!isCurrentFolderInAlphabetizedFolders) {
+        if (!previousFolders || !previousFolders.includes(currentFolder)) {
+          navigate(routeUrls.patterns.NOT_FOUND_FALLBACK, { replace: true });
+        } else {
+          const closestFolder = findClosestSidebarItemToNavigateTo(
+            currentFolder,
+            previousFolders,
+            alphabetizedFolders
+          );
+          if (
+            closestFolder >= 0 &&
+            closestFolder < alphabetizedFolders.length
+          ) {
+            navigate(routeUrls.folder(alphabetizedFolders[closestFolder]), {
+              replace: true,
+            });
+          } else {
+            navigate(routeUrls.patterns.NOT_FOUND_FALLBACK, { replace: true });
+          }
+        }
+      }
+    }
+  }, [alphabetizedFolders, currentFolder, previousFolders]);
 
   return (
     <section>
@@ -118,7 +171,6 @@ export function MyFoldersAccordion({ folder }: { folder?: string }) {
                   renderLink={({ dataItem: sidebarFolderName, i }) => {
                     return (
                       <FolderAccordionButton
-                        folder={folder}
                         sidebarFolderName={sidebarFolderName}
                         i={i}
                         alphabetizedFolders={alphabetizedFolders}
@@ -136,28 +188,32 @@ export function MyFoldersAccordion({ folder }: { folder?: string }) {
 }
 
 function FolderAccordionButton({
-  folder,
   sidebarFolderName,
   i,
   alphabetizedFolders,
 }: {
-  folder: string | undefined;
   sidebarFolderName: string;
   i: number;
   alphabetizedFolders: string[] | null;
 }) {
+  const folderFromButton = alphabetizedFolders?.at(i);
+  const folder = useFolderFromRoute();
   const [isNotesRouteActive] = useRoute<NotesRouteParams>(ROUTE_PATTERNS.NOTES);
+  const isActive = isNotesRouteActive && folder === sidebarFolderName;
+
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
+  const isSelected = selectionRange.has(`folder:${folderFromButton}`);
+
   const setDraggedElement = useSetAtom(draggedElementAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
-  const { mutate: revealInFinder } = useFolderRevealInFinderMutation();
   const setDialogData = useSetAtom(dialogDataAtom);
-  const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
+
+  const { mutate: revealInFinder } = useFolderRevealInFinderMutation();
+  const { mutateAsync: renameFolder } = useFolderRenameMutation();
+  const { mutateAsync: deleteFolder } = useFolderDeleteMutation();
   const { mutateAsync: moveNoteIntoFolder } = useMoveNoteIntoFolder();
+
   const currentZoom = useAtomValue(currentZoomAtom);
-  const isActive = isNotesRouteActive && folder === sidebarFolderName;
-  const currentFolder = alphabetizedFolders?.at(i);
-  const isSelected = selectionRange.has(`folder:${currentFolder}`);
 
   const [isDraggedOver, setIsDraggedOver] = useState(false);
 
@@ -269,17 +325,15 @@ function FolderAccordionButton({
                   isPending: true,
                   title: 'Rename Folder',
                   children: (errorText) => (
-                    <FolderDialogChildren
+                    <RenameFolderDialog
                       errorText={errorText}
-                      action="rename"
                       folderName={sidebarFolderName}
                     />
                   ),
                   onSubmit: async (evt, setErrorText) =>
-                    folderDialogSubmit({
+                    renameFolder({
                       e: evt,
                       setErrorText,
-                      action: 'rename',
                       folderFromSidebar: sidebarFolderName,
                     }),
                 });
@@ -303,17 +357,14 @@ function FolderAccordionButton({
                   title: 'Move to Trash',
                   isPending: false,
                   children: (errorText) => (
-                    <FolderDialogChildren
+                    <DeleteFolderDialog
                       errorText={errorText}
-                      action="delete"
                       folderName={sidebarFolderName}
                     />
                   ),
-                  onSubmit: async (evt, setErrorText) =>
-                    folderDialogSubmit({
-                      e: evt,
+                  onSubmit: async (_, setErrorText) =>
+                    deleteFolder({
                       setErrorText,
-                      action: 'delete',
                       folderFromSidebar: sidebarFolderName,
                     }),
                 });

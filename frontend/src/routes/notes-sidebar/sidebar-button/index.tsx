@@ -91,10 +91,10 @@ export function NoteSidebarButton({
 
   return (
     <button
+      id={isActive ? 'selected-note-button' : undefined}
       type="button"
       title={sidebarNotePath.noteWithExtensionParam}
       draggable
-      id={isActive ? 'selected-note-button' : undefined}
       onKeyDown={(e) => handleKeyNavigation(e)}
       onDragStart={(e) =>
         handleDragStart({

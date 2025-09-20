@@ -1,16 +1,16 @@
 import { type MotionValue, motion } from 'motion/react';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import { getDefaultButtonVariants } from '../../animations.ts';
-import { currentFilePathAtom, dialogDataAtom } from '../../atoms';
+import { dialogDataAtom } from '../../atoms';
 import {
   useFolderCreate,
   useFolderDelete,
-  useFolderDialogSubmit,
+  useFolderCreateMutation,
 } from '../../hooks/folders.tsx';
 import { FolderPlus } from '../../icons/folder-plus';
 import { MotionButton, MotionIconButton } from '../buttons';
 import { BottomItems } from './bottom-items.tsx';
-import { FolderDialogChildren } from './folder-dialog-children.tsx';
+import { CreateFolderDialog } from './folder-dialog-children.tsx';
 import { MyFoldersAccordion } from './my-folders-accordion.tsx';
 import { MyTagsAccordion } from './my-tags-accordion.tsx';
 import { PinnedNotesAccordion } from './pinned-notes-accordion.tsx';
@@ -23,16 +23,15 @@ import { useRef } from 'react';
 import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 import { RefreshAnticlockwise } from '../../icons/refresh-anticlockwise.tsx';
 import { MyKernelsAccordion } from './my-kernels-accordion.tsx';
+import { useFolderFromRoute } from '../../hooks/events.tsx';
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
   const sidebarAccordionSectionRef = useRef<HTMLDivElement | null>(null);
-  const filePath = useAtomValue(currentFilePathAtom);
-  const folder = filePath?.folder;
-
+  const folder = useFolderFromRoute();
   const setDialogData = useSetAtom(dialogDataAtom);
   useFolderCreate();
   useFolderDelete();
-  const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
+  const { mutateAsync: createFolder } = useFolderCreateMutation();
   const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(
     sidebarAccordionSectionRef,
     {
@@ -80,13 +79,12 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
                 title: 'Create Folder',
                 isPending: false,
                 children: (errorText) => (
-                  <FolderDialogChildren errorText={errorText} action="create" />
+                  <CreateFolderDialog errorText={errorText} />
                 ),
                 onSubmit: async (e, setErrorText) =>
-                  folderDialogSubmit({
+                  createFolder({
                     e: e,
                     setErrorText: setErrorText,
-                    action: 'create',
                   }),
               })
             }
@@ -104,7 +102,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
           <div className="flex h-full flex-col gap-1 px-2.5">
             <PinnedNotesAccordion />
             <RecentNotesAccordion />
-            <MyFoldersAccordion folder={folder} />
+            <MyFoldersAccordion />
             <MyKernelsAccordion />
             <MyTagsAccordion />
           </div>

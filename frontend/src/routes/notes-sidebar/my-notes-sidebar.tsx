@@ -11,19 +11,19 @@ import { Loader } from '../../icons/loader.tsx';
 import { Note } from '../../icons/page.tsx';
 import { NoteSidebarButton } from './sidebar-button/index.tsx';
 import { FilePath } from '../../utils/string-formatting.ts';
+import { NotesQueryData } from '../../hooks/notes.tsx';
 
 export function MyNotesSidebar({
   curNote,
   layoutId,
   noteQueryResult,
 }: {
-  curFolder: string;
   curNote: string | undefined;
-  fileExtension: string | undefined;
   layoutId: string;
-  noteQueryResult: UseQueryResult<FilePath[], Error>;
+  noteQueryResult: UseQueryResult<NotesQueryData, Error>;
 }) {
-  const { data: notes, refetch, isError, isLoading } = noteQueryResult;
+  const { data, refetch, isError, isLoading } = noteQueryResult;
+  const notes = data?.notes;
   const noteCount = notes?.length ?? 0;
   // The sidebar note name includes the folder name if it's in a tag sidebar
   const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);
