@@ -34,7 +34,11 @@ import { AccordionButton } from '../sidebar/accordion-button';
 import { handleDragStart } from '../sidebar/utils';
 import { FolderDialogChildren } from './folder-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
-import { ROUTE_PATTERNS, routeUrls } from '../../utils/routes';
+import {
+  ROUTE_PATTERNS,
+  routeUrls,
+  type NotesRouteParams,
+} from '../../utils/routes';
 import { currentZoomAtom } from '../../hooks/resize';
 import { useRoute } from 'wouter';
 
@@ -142,7 +146,7 @@ function FolderAccordionButton({
   i: number;
   alphabetizedFolders: string[] | null;
 }) {
-  const [isNotesRouteActive] = useRoute(ROUTE_PATTERNS.NOTES);
+  const [isNotesRouteActive] = useRoute<NotesRouteParams>(ROUTE_PATTERNS.NOTES);
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const setDraggedElement = useSetAtom(draggedElementAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);

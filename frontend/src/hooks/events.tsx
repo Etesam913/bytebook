@@ -5,7 +5,11 @@ import { useSetAtom } from 'jotai/react';
 import { currentFilePathAtom } from '../atoms';
 import { FilePath } from '../utils/string-formatting';
 import { useSearchParamsEntries } from '../utils/routing';
-import { routeUrls } from '../utils/routes';
+import {
+  routeUrls,
+  type NotesRouteParams,
+  type SavedSearchRouteParams,
+} from '../utils/routes';
 
 export type WailsEvent = {
   name: string;
@@ -29,17 +33,13 @@ export function useRouteFilePath() {
   const setCurrentFilePath = useSetAtom(currentFilePathAtom);
 
   // Check for regular note routes: /:folder/:note?
-  const [isNoteRoute, noteParams] = useRoute<{
-    folder?: string;
-    note?: string;
-  }>(routeUrls.patterns.NOTES);
+  const [isNoteRoute, noteParams] = useRoute<NotesRouteParams>(
+    routeUrls.patterns.NOTES
+  );
 
   // Check for saved-search routes: /saved-search/:searchQuery/:folder?/:note?
-  const [isSavedSearchRoute, savedSearchParams] = useRoute<{
-    searchQuery?: string;
-    folder?: string;
-    note?: string;
-  }>(routeUrls.patterns.SAVED_SEARCH);
+  const [isSavedSearchRoute, savedSearchParams] =
+    useRoute<SavedSearchRouteParams>(routeUrls.patterns.SAVED_SEARCH);
 
   const extension = useSearchParamsEntries().ext;
 

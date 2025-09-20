@@ -18,7 +18,11 @@ import { Sidebar } from '../sidebar';
 import { AccordionButton } from '../sidebar/accordion-button';
 import { TagDialogChildren } from './tag-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
-import { ROUTE_PATTERNS, routeUrls } from '../../utils/routes';
+import {
+  ROUTE_PATTERNS,
+  routeUrls,
+  type SavedSearchRouteParams,
+} from '../../utils/routes';
 
 import { currentZoomAtom } from '../../hooks/resize';
 import { useRoute } from 'wouter';
@@ -27,6 +31,9 @@ export function MyTagsAccordion() {
   const [isOpen, setIsOpen] = useState(false);
   const { data: tags } = useTagsQuery();
   const hasTags = tags && tags?.length > 0;
+  const [isSavedSearchRoute, savedSearchRouteParams] =
+    useRoute<SavedSearchRouteParams>(ROUTE_PATTERNS.SAVED_SEARCH);
+  const searchQuery = savedSearchRouteParams?.searchQuery;
 
   return (
     <section className="pb-1.5">
@@ -69,6 +76,11 @@ export function MyTagsAccordion() {
                     tags={tags}
                     i={i}
                     sidebarTagName={sidebarTagName}
+                    isActive={
+                      isSavedSearchRoute &&
+                      !!searchQuery &&
+                      decodeURIComponent(searchQuery) === `#${sidebarTagName}`
+                    }
                   />
                 );
               }}
@@ -85,25 +97,15 @@ function TagAccordionButton({
   tags,
   i,
   sidebarTagName,
+  isActive,
 }: {
   tags: string[] | undefined;
   i: number;
   sidebarTagName: string;
+  isActive: boolean;
 }) {
-  const [isSavedSearchRoute, savedSearchRouteParams] = useRoute<{
-    searchQuery: string;
-    folder?: string;
-    note?: string;
-  }>(ROUTE_PATTERNS.SAVED_SEARCH);
-  const searchQuery = savedSearchRouteParams?.searchQuery;
-
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const { mutateAsync: deleteTags } = useDeleteTagsMutation();
-
-  const isActive: boolean =
-    isSavedSearchRoute &&
-    !!searchQuery &&
-    decodeURIComponent(searchQuery) === `#${sidebarTagName}`;
 
   const isSelected = tags?.at(i) && selectionRange.has(`tag:${tags[i]}`);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);

@@ -37,7 +37,7 @@ import { RenameFileDialogChildren } from '../rename-file-dialog-children';
 import { currentZoomAtom } from '../../../hooks/resize';
 import { useRoute } from 'wouter';
 import { useEditTagsFormMutation } from '../../../hooks/tags';
-import { routeUrls } from '../../../utils/routes';
+import { routeUrls, type SavedSearchRouteParams } from '../../../utils/routes';
 
 export function NoteSidebarButton({
   sidebarNotePath,
@@ -49,11 +49,9 @@ export function NoteSidebarButton({
   sidebarNoteIndex: number;
 }) {
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
-  const [isSavedSearchRoute, params] = useRoute<{
-    searchQuery: string;
-    folder?: string;
-    note?: string;
-  }>(routeUrls.patterns.SAVED_SEARCH);
+  const [isSavedSearchRoute, params] = useRoute<SavedSearchRouteParams>(
+    routeUrls.patterns.SAVED_SEARCH
+  );
 
   const { mutate: pinOrUnpinNote } = usePinNotesMutation();
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();

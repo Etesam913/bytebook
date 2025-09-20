@@ -23,7 +23,11 @@ import { useRoute } from 'wouter';
 import { navigate } from 'wouter/use-browser-location';
 import { RouteFallback } from '../../../components/route-fallback';
 import { FilePath } from '../../../utils/string-formatting';
-import { routeUrls } from '../../../utils/routes';
+import {
+  routeUrls,
+  type NotesRouteParams,
+  type SavedSearchRouteParams,
+} from '../../../utils/routes';
 
 export function RenderNote() {
   const animationControls = useAnimationControls();
@@ -31,18 +35,15 @@ export function RenderNote() {
   const draggedElement = useAtomValue(draggedElementAtom);
 
   // The attributes have to be retrieved from useRoute as passing in the params as props was lagging behind for some reason
-  const [isNoteRoute, params] = useRoute<{
-    folder: string;
-    note?: string;
-  }>(routeUrls.patterns.NOTES);
-  const [, savedSearchParams] = useRoute<{
-    searchQuery: string;
-    folder?: string;
-    note?: string;
-  }>(routeUrls.patterns.SAVED_SEARCH);
+  const [isNoteRoute, params] = useRoute<NotesRouteParams>(
+    routeUrls.patterns.NOTES
+  );
+  const [, savedSearchParams] = useRoute<SavedSearchRouteParams>(
+    routeUrls.patterns.SAVED_SEARCH
+  );
 
   const folder = isNoteRoute
-    ? (params.folder ?? '')
+    ? (params?.folder ?? '')
     : (savedSearchParams?.folder ?? '');
   const noteWithoutExtension = isNoteRoute
     ? (params?.note ?? '')

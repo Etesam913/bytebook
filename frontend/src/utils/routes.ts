@@ -2,6 +2,28 @@
  * Centralized route definitions and utilities for the application
  */
 
+// Route parameter types
+export type KernelRouteParams = {
+  kernelName: string;
+};
+
+export type KernelWithFilesRouteParams = {
+  kernelName: string;
+  folder?: string;
+  note?: string;
+};
+
+export type SavedSearchRouteParams = {
+  searchQuery: string;
+  folder?: string;
+  note?: string;
+};
+
+export type NotesRouteParams = {
+  folder?: string;
+  note?: string;
+};
+
 // Route patterns (used in Route components and useRoute hooks)
 export const ROUTE_PATTERNS = {
   ROOT: '/',

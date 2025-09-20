@@ -29,12 +29,14 @@ import {
 } from '../../hooks/code';
 import { isValidKernelLanguage, Languages, validLanguages } from '../../types';
 import { currentZoomAtom } from '../../hooks/resize';
-import { routeUrls } from '../../utils/routes';
+import { routeUrls, type KernelWithFilesRouteParams } from '../../utils/routes';
 
 export function MyKernelsAccordion() {
   const [isOpen, setIsOpen] = useState(false);
-  const [, params] = useRoute(routeUrls.patterns.KERNELS_WITH_FILES);
-  const kernelNameFromUrl = (params as { kernelName: string })?.kernelName;
+  const [, params] = useRoute<KernelWithFilesRouteParams>(
+    routeUrls.patterns.KERNELS_WITH_FILES
+  );
+  const kernelNameFromUrl = params?.kernelName;
 
   useKernelStatus();
   useKernelHeartbeat();
