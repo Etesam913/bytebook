@@ -1,8 +1,7 @@
 import { type MotionValue, motion } from 'motion/react';
-import { useSetAtom } from 'jotai';
-import { useRoute } from 'wouter';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { getDefaultButtonVariants } from '../../animations.ts';
-import { dialogDataAtom } from '../../atoms';
+import { currentFilePathAtom, dialogDataAtom } from '../../atoms';
 import {
   useFolderCreate,
   useFolderDelete,
@@ -24,24 +23,11 @@ import { useRef } from 'react';
 import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 import { RefreshAnticlockwise } from '../../icons/refresh-anticlockwise.tsx';
 import { MyKernelsAccordion } from './my-kernels-accordion.tsx';
-import { routeUrls } from '../../utils/routes';
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
   const sidebarAccordionSectionRef = useRef<HTMLDivElement | null>(null);
-  const [isNoteSidebar, noteSidebarParams] = useRoute<{
-    folder?: string;
-    note?: string;
-  }>(routeUrls.patterns.NOTES);
-
-  const [_, savedSearchParams] = useRoute<{
-    searchQuery?: string;
-    folder?: string;
-    note?: string;
-  }>(routeUrls.patterns.SAVED_SEARCH);
-
-  const folder = isNoteSidebar
-    ? noteSidebarParams?.folder
-    : savedSearchParams?.folder;
+  const filePath = useAtomValue(currentFilePathAtom);
+  const folder = filePath?.folder;
 
   const setDialogData = useSetAtom(dialogDataAtom);
   useFolderCreate();

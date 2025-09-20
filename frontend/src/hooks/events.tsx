@@ -43,9 +43,11 @@ export function useRouteFilePath() {
 
   const extension = useSearchParamsEntries().ext;
 
-  // Extract folder and note from whichever route is active
-  const folder = noteParams?.folder || savedSearchParams?.folder;
-  const note = noteParams?.note || savedSearchParams?.note;
+  // Extract folder and note from whichever route is active, and decode them
+  const rawFolder = noteParams?.folder || savedSearchParams?.folder;
+  const rawNote = noteParams?.note || savedSearchParams?.note;
+  const folder = rawFolder ? decodeURIComponent(rawFolder) : undefined;
+  const note = rawNote ? decodeURIComponent(rawNote) : undefined;
   const isRelevantRoute = isNoteRoute || isSavedSearchRoute;
 
   useEffect(() => {

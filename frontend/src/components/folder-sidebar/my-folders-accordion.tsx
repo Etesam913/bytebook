@@ -34,10 +34,11 @@ import { AccordionButton } from '../sidebar/accordion-button';
 import { handleDragStart } from '../sidebar/utils';
 import { FolderDialogChildren } from './folder-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
-import { routeUrls } from '../../utils/routes';
+import { ROUTE_PATTERNS, routeUrls } from '../../utils/routes';
 import { currentZoomAtom } from '../../hooks/resize';
+import { useRoute } from 'wouter';
 
-export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
+export function MyFoldersAccordion({ folder }: { folder?: string }) {
   const [isOpen, setIsOpen] = useState(true);
   const { alphabetizedFolders, isLoading, isError, refetch } =
     useFolders(folder);
@@ -113,7 +114,7 @@ export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
                   renderLink={({ dataItem: sidebarFolderName, i }) => {
                     return (
                       <FolderAccordionButton
-                        folderFromUrl={folder}
+                        folder={folder}
                         sidebarFolderName={sidebarFolderName}
                         i={i}
                         alphabetizedFolders={alphabetizedFolders}
@@ -131,16 +132,17 @@ export function MyFoldersAccordion({ folder }: { folder: string | undefined }) {
 }
 
 function FolderAccordionButton({
-  folderFromUrl,
+  folder,
   sidebarFolderName,
   i,
   alphabetizedFolders,
 }: {
-  folderFromUrl: string | undefined;
+  folder: string | undefined;
   sidebarFolderName: string;
   i: number;
   alphabetizedFolders: string[] | null;
 }) {
+  const [isNotesRouteActive] = useRoute(ROUTE_PATTERNS.NOTES);
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const setDraggedElement = useSetAtom(draggedElementAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
@@ -149,8 +151,7 @@ function FolderAccordionButton({
   const { mutateAsync: folderDialogSubmit } = useFolderDialogSubmit();
   const { mutateAsync: moveNoteIntoFolder } = useMoveNoteIntoFolder();
   const currentZoom = useAtomValue(currentZoomAtom);
-  const isActive =
-    decodeURIComponent(folderFromUrl ?? '') === sidebarFolderName;
+  const isActive = isNotesRouteActive && folder === sidebarFolderName;
   const currentFolder = alphabetizedFolders?.at(i);
   const isSelected = selectionRange.has(`folder:${currentFolder}`);
 
