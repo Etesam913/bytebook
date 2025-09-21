@@ -50,7 +50,7 @@ export function NoteComponentControls({
     >
       {buttonOptions?.trash?.enabled && (
         <motion.button
-          {...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
+          {...getDefaultButtonVariants({ disabled: false, whileHover: 1.115, whileTap: 0.95, whileFocus: 1.115 })}
           type="button"
           onClick={() => {
             if (!nodeKey) {
@@ -68,7 +68,7 @@ export function NoteComponentControls({
 
       {buttonOptions?.fullscreen?.enabled && (
         <motion.button
-          {...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
+          {...getDefaultButtonVariants({ disabled: false, whileHover: 1.115, whileTap: 0.95, whileFocus: 1.115 })}
           type="button"
           onClick={() => {
             // buttonOptions.fullscreen?.setIsExpanded(true);
@@ -87,7 +87,7 @@ export function NoteComponentControls({
       {children}
       {buttonOptions?.link?.enabled && (
         <motion.button
-          {...getDefaultButtonVariants(false, 1.115, 0.95, 1.115)}
+          {...getDefaultButtonVariants({ disabled: false, whileHover: 1.115, whileTap: 0.95, whileFocus: 1.115 })}
           type="button"
           onClick={() => {
             const src = buttonOptions.link?.src;

@@ -60,7 +60,7 @@ export function FolderDialogChildren({
         <DialogErrorText errorText={errorText} />
       </fieldset>
       <MotionButton
-        {...getDefaultButtonVariants(false, 1.05, 0.95, 1.05)}
+        {...getDefaultButtonVariants({ disabled: false, whileHover: 1.05, whileTap: 0.95, whileFocus: 1.05 })}
         className="w-[calc(100%-1.5rem)] mx-auto justify-center"
         type="submit"
       >

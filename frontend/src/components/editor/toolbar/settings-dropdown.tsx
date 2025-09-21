@@ -39,7 +39,7 @@ export function SettingsDropdown({
     <div className="ml-auto flex flex-col" ref={dropdownContainerRef}>
       <MotionIconButton
         onClick={() => setIsOpen((prev) => !prev)}
-        {...getDefaultButtonVariants(isToolbarDisabled)}
+        {...getDefaultButtonVariants({ disabled: isToolbarDisabled })}
       >
         <HorizontalDots />
       </MotionIconButton>

@@ -23,7 +23,7 @@ export function MaximizeNoteButton({
           transition: { ease: easingFunctions['ease-out-quint'] },
         });
       }}
-      {...getDefaultButtonVariants(disabled)}
+      {...getDefaultButtonVariants({ disabled })}
       type="button"
       animate={{ rotate: isNoteMaximized ? 180 : 0 }}
     >
