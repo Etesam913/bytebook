@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery } from '@tanstack/react-query';
 import { atom, useSetAtom } from 'jotai';
 import { navigate } from 'wouter/use-browser-location';
 import {
@@ -13,6 +13,21 @@ import { FilePath } from '../utils/string-formatting';
 import { routeUrls } from '../utils/routes';
 
 export const lastSearchQueryAtom = atom<string>('');
+
+export const searchQueries = {
+  fullTextSearch: (searchQuery: string) =>
+    queryOptions({
+      queryKey: ['full-text-search', searchQuery],
+      queryFn: () => FullTextSearch(searchQuery),
+      select: (data) => {
+        if (!data) return [];
+        return data.map((result) => ({
+          ...result,
+          filePath: new FilePath({ folder: result.folder, note: result.note }),
+        }));
+      },
+    }),
+};
 
 /**
  * Hook to handle search panel open/close and navigation to the search page.
@@ -61,17 +76,7 @@ export function useSearchMutation() {
  * @returns {UseQueryResult} The query result containing search data with FilePath objects.
  */
 export function useFullTextSearchQuery(searchQuery: string) {
-  return useQuery({
-    queryKey: ['full-text-search', searchQuery],
-    queryFn: () => FullTextSearch(searchQuery),
-    select: (data) => {
-      if (!data) return [];
-      return data.map((result) => ({
-        ...result,
-        filePath: new FilePath({ folder: result.folder, note: result.note }),
-      }));
-    },
-  });
+  return useQuery(searchQueries.fullTextSearch(searchQuery));
 }
 
 /**

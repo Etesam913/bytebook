@@ -11,6 +11,7 @@ import {
   useFolderRenameMutation,
   useFolderDeleteMutation,
   useMoveNoteIntoFolder,
+  useFolderRevealInFinderMutation,
 } from '../../../hooks/folders';
 import { Finder } from '../../../icons/finder';
 import { Folder } from '../../../icons/folder';
@@ -23,14 +24,12 @@ import {
   handleContextMenuSelection,
 } from '../../../utils/selection';
 import { cn } from '../../../utils/string-formatting';
-import { MotionButton } from '../../buttons';
 import { handleDragStart } from '../../sidebar/utils';
 import {
   RenameFolderDialog,
   DeleteFolderDialog,
 } from '../folder-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
-import { useLocation } from 'wouter';
 import {
   ROUTE_PATTERNS,
   routeUrls,
@@ -50,7 +49,7 @@ export function FolderAccordionButton({
   alphabetizedFolders: string[] | null;
 }) {
   const folderFromButton = alphabetizedFolders?.at(i);
-  const folder = useFolderFromRoute();
+  const { folder } = useFolderFromRoute();
   const [isNotesRouteActive] = useRoute<NotesRouteParams>(ROUTE_PATTERNS.NOTES);
   const isActive = isNotesRouteActive && folder === sidebarFolderName;
 

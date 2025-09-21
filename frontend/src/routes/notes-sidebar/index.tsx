@@ -49,7 +49,6 @@ export function NotesSidebar({
     const isCurrentNoteInNoteQueryResult = notes.some(
       (filePath) => filePath.noteWithoutExtension === note
     );
-    console.log(notes, notes);
     // If you are on a folder with no note selected, navigate to the first note
     if (!note) {
       navigate(filePathForFirstNote.getLinkToNote(), { replace: true });
@@ -123,7 +122,12 @@ export function NotesSidebar({
                   </MotionIconButton>
                 </section>
                 <MotionButton
-                  {...getDefaultButtonVariants({ disabled: false, whileHover: 1.025, whileTap: 0.975, whileFocus: 1.025 })}
+                  {...getDefaultButtonVariants({
+                    disabled: false,
+                    whileHover: 1.025,
+                    whileTap: 0.975,
+                    whileFocus: 1.025,
+                  })}
                   onClick={() => openCreateNoteDialog(folder)}
                   className="align-center flex w-full justify-between bg-transparent mb-2"
                 >

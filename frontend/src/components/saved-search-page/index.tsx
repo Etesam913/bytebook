@@ -87,7 +87,12 @@ export function SavedSearchPage({
                     Something went wrong when retrieving the search results
                   </p>
                   <MotionButton
-                    {...getDefaultButtonVariants({ disabled: false, whileHover: 1.025, whileTap: 0.975, whileFocus: 1.025 })}
+                    {...getDefaultButtonVariants({
+                      disabled: false,
+                      whileHover: 1.025,
+                      whileTap: 0.975,
+                      whileFocus: 1.025,
+                    })}
                     className="mx-2.5 flex text-center"
                     onClick={() => refetch()}
                   >
@@ -149,12 +154,7 @@ export function SavedSearchPage({
         <ErrorBoundary
           key={`${folder}-${note}-${fileExtension}`}
           FallbackComponent={(fallbackProps) => (
-            <RenderNoteFallback
-              {...fallbackProps}
-              folder={decodeURIComponent(folder)}
-              note={note}
-              fileExtension={fileExtension}
-            />
+            <RenderNoteFallback {...fallbackProps} />
           )}
         >
           <RenderNote />

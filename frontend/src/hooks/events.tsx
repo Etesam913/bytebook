@@ -33,33 +33,62 @@ export function useWailsEvent(
  * Decodes the folder name before returning.
  * @returns {string | undefined} The decoded folder name from the route, or undefined if not present.
  */
-export function useFolderFromRoute(): string | undefined {
+export function useFolderFromRoute(): {
+  folder: string | undefined;
+  isSavedSearchRoute: boolean;
+  isNoteRoute: boolean;
+} {
+  const [isSavedSearchRoute, savedSearchParams] =
+    useRoute<SavedSearchRouteParams>(routeUrls.patterns.SAVED_SEARCH);
+
   const [isNoteRoute, noteParams] = useRoute<NotesRouteParams>(
     routeUrls.patterns.NOTES
   );
+  let folder: string | undefined;
 
-  const [, savedSearchParams] = useRoute<SavedSearchRouteParams>(
-    routeUrls.patterns.SAVED_SEARCH
-  );
+  if (isSavedSearchRoute) {
+    folder = savedSearchParams?.folder;
+  } else if (isNoteRoute) {
+    folder = noteParams?.folder;
+  }
 
-  const folder = isNoteRoute ? noteParams?.folder : savedSearchParams?.folder;
-  return folder ? decodeURIComponent(folder) : undefined;
+  return {
+    folder: folder ? decodeURIComponent(folder) : undefined,
+    isSavedSearchRoute,
+    isNoteRoute,
+  };
 }
 
 /**
  * Returns the note parameter from the current route, whether it's a note route or a saved search route.
  * Decodes the note name before returning.
- * @returns {string | undefined} The decoded note name from the route, or undefined if not present.
+ * @returns {{ note: string | undefined, isSavedSearchRoute: boolean, isNoteRoute: boolean }}
+ *   An object containing the decoded note name, and flags for route type.
  */
-export function useNoteFromRoute(): string | undefined {
+export function useNoteFromRoute(): {
+  note: string | undefined;
+  isSavedSearchRoute: boolean;
+  isNoteRoute: boolean;
+} {
+  const [isSavedSearchRoute, savedSearchParams] =
+    useRoute<SavedSearchRouteParams>(routeUrls.patterns.SAVED_SEARCH);
+
   const [isNoteRoute, noteParams] = useRoute<NotesRouteParams>(
     routeUrls.patterns.NOTES
   );
-  const [, savedSearchParams] = useRoute<SavedSearchRouteParams>(
-    routeUrls.patterns.SAVED_SEARCH
-  );
-  const note = isNoteRoute ? noteParams?.note : savedSearchParams?.note;
-  return note ? decodeURIComponent(note) : undefined;
+  let note: string | undefined;
+
+  if (isSavedSearchRoute) {
+    note = savedSearchParams?.note;
+  } else if (isNoteRoute) {
+    note = noteParams?.note;
+  }
+
+  return {
+    note: note ? decodeURIComponent(note) : undefined,
+    isSavedSearchRoute,
+    isNoteRoute,
+  };
 }
 
 /**
@@ -69,8 +98,8 @@ export function useNoteFromRoute(): string | undefined {
 export function useRouteFilePath() {
   const setCurrentFilePath = useSetAtom(currentFilePathAtom);
 
-  const folder = useFolderFromRoute();
-  const note = useNoteFromRoute();
+  const { folder } = useFolderFromRoute();
+  const { note } = useNoteFromRoute();
   const extension = useSearchParamsEntries().ext;
 
   const isRelevantRoute = !!folder && !!note && !!extension;
