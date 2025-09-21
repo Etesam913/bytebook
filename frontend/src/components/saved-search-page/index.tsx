@@ -40,6 +40,7 @@ export function SavedSearchPage({
   const sidebarRef = useRef<HTMLElement>(null);
   const searchParams: { ext?: string } = useSearchParamsEntries();
   const fileExtension = searchParams?.ext;
+  console.log({ searchQuery, folder, note });
 
   // Auto navigate to the first result
   useEffect(() => {

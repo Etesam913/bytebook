@@ -54,12 +54,6 @@ export const routeBuilders = {
   kernel: (kernelName: string) => `/kernels/${encodeURIComponent(kernelName)}`,
 
   /**
-   * Build saved search route
-   */
-  savedSearch: (searchQuery: string) =>
-    `/saved-search/${encodeURIComponent(searchQuery)}`,
-
-  /**
    * Build folder route
    */
   folder: (folderName: string) => `/${encodeURIComponent(folderName)}`,

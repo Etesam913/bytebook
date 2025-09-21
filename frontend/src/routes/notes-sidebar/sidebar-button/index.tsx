@@ -358,7 +358,7 @@ export function NoteSidebarButton({
         buttonElem.focus();
         if (isSavedSearchRoute) {
           navigate(
-            `/saved-search/${params?.searchQuery}/${sidebarNotePath.folder}/${sidebarNotePath.noteWithExtensionParam}`
+            `/saved-search/${params?.searchQuery}${sidebarNotePath.getLinkToNote()}`
           );
         } else {
           navigate(sidebarNotePath.getLinkToNote());
