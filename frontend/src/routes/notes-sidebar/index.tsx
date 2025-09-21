@@ -86,7 +86,7 @@ export function NotesSidebar({
                   </MotionIconButton>
                 </section>
                 <MotionButton
-                  {...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
+                  {...getDefaultButtonVariants({ disabled: false, whileHover: 1.025, whileTap: 0.975, whileFocus: 1.025 })}
                   onClick={() => openCreateNoteDialog(folder)}
                   className="align-center flex w-full justify-between bg-transparent mb-2"
                 >

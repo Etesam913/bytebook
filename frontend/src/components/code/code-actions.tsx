@@ -41,7 +41,7 @@ export function CodeActions({
         setStatus={setStatus}
       />
       <MotionIconButton
-        {...getDefaultButtonVariants(false, 1.05, 0.975, 1.05)}
+        {...getDefaultButtonVariants({ disabled: false, whileHover: 1.05, whileTap: 0.975, whileFocus: 1.05 })}
         onClick={() => {
           setIsExpanded(!isExpanded);
         }}
@@ -49,7 +49,7 @@ export function CodeActions({
         {isExpanded ? <Minimize /> : <Maximize />}
       </MotionIconButton>
       <MotionIconButton
-        {...getDefaultButtonVariants(false, 1.05, 0.975, 1.05)}
+        {...getDefaultButtonVariants({ disabled: false, whileHover: 1.05, whileTap: 0.975, whileFocus: 1.05 })}
         onClick={() => {
           if (!codeMirrorInstance) return;
           const editorContent = codeMirrorInstance.view?.state.doc.toString();

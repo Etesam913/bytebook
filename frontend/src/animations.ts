@@ -1,11 +1,17 @@
 import type { Variants, Easing } from 'motion/react';
 
-export function getDefaultButtonVariants(
-  disabled = false,
-  whileHover = 1.075,
-  whileTap = 0.965,
-  whileFocus = 1.075
-) {
+export function getDefaultButtonVariants(params?: {
+  disabled?: boolean;
+  whileHover?: number;
+  whileTap?: number;
+  whileFocus?: number;
+}) {
+  const {
+    disabled = false,
+    whileHover = 1.075,
+    whileTap = 0.965,
+    whileFocus = 1.075,
+  } = params ?? {};
   if (disabled) {
     return {};
   }

@@ -68,7 +68,7 @@ export function SyncChangesDialog({
       <MotionButton
         type="submit"
         disabled={isPending}
-        {...getDefaultButtonVariants(isPending)}
+        {...getDefaultButtonVariants({ disabled: isPending })}
         className="ml-auto text-center flex justify-center w-48"
       >
         {isPending ? (

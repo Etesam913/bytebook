@@ -50,7 +50,7 @@ export function MyNotesSidebar({
             Something went wrong when retrieving the notes
           </p>
           <MotionButton
-            {...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
+            {...getDefaultButtonVariants({ disabled: false, whileHover: 1.025, whileTap: 0.975, whileFocus: 1.025 })}
             className="mx-2.5 flex text-center"
             onClick={() => refetch()}
           >

@@ -80,7 +80,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
         <section className="px-2.5 pt-[1rem]">
           <SearchBar />
           <MotionButton
-            {...getDefaultButtonVariants(false, 1.025, 0.975, 1.025)}
+            {...getDefaultButtonVariants({ disabled: false, whileHover: 1.025, whileTap: 0.975, whileFocus: 1.025 })}
             className="align-center mb-2 flex w-full justify-between bg-transparent"
             onClick={() =>
               setDialogData({
