@@ -45,11 +45,14 @@ export function CardNoteSidebarItem({
         <div className={cn('w-full', doesHaveImage && 'w-[calc(100%-52px)]')}>
           <p
             className={cn(
-              'whitespace-nowrap pointer-events-none text-ellipsis overflow-hidden',
+              'pointer-events-none flex min-w-0',
               isSelected && 'text-white!'
             )}
           >
-            {sidebarNoteNameWithoutExtension}.{sidebarNoteExtension}
+            <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+              {sidebarNoteNameWithoutExtension}
+            </span>
+            <span className="shrink-0">.{sidebarNoteExtension}</span>
           </p>
           <p
             className={cn(
