@@ -2,7 +2,6 @@ package search
 
 import (
 	"errors"
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -104,8 +103,6 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 		// extract tags from search result
 		tags := []string{}
 		if tagsField, ok := hit.Fields[FieldTags]; ok {
-			fmt.Println("tagsField: ", tagsField)
-			fmt.Printf("Type of Tags field: %T\n", tagsField)
 			switch t := tagsField.(type) {
 			case []interface{}:
 				for _, tag := range t {

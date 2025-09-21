@@ -27,14 +27,13 @@ import { RouteFallback } from './components/route-fallback';
 import { useTrapFocus } from './hooks/general';
 import { useZoom } from './hooks/resize';
 import { SearchPage } from './components/search-page';
-import { NotFound } from './routes/not-found';
 
 // Lazy load route components
-// const NotFound = lazy(() =>
-//   import('./routes/not-found').then((module) => ({
-//     default: module.NotFound,
-//   }))
-// );
+const NotFound = lazy(() =>
+  import('./routes/not-found').then((module) => ({
+    default: module.NotFound,
+  }))
+);
 
 const NotesSidebar = lazy(() =>
   import('./routes/notes-sidebar').then((module) => ({

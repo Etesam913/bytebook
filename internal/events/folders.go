@@ -44,7 +44,7 @@ func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
 		}
 
 		// Query for all documents with the folder attribute equal to the deleted folder
-		folderQuery := bleve.NewTermQuery(folderName)
+		folderQuery := bleve.NewMatchPhraseQuery(folderName)
 		folderQuery.SetField(search.FieldFolder)
 
 		searchRequest := bleve.NewSearchRequest(folderQuery)
@@ -56,8 +56,6 @@ func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
 			log.Printf("Error searching for documents in folder %s: %v", folderName, err)
 			continue
 		}
-
-		log.Println(len(searchResult.Hits), " hits found for folder ", folderName)
 
 		// Delete all documents in the folder
 		for _, hit := range searchResult.Hits {
@@ -131,7 +129,7 @@ func deleteRenameFolderFromIndex(params EventParams, oldFolderName string) {
 	batch := params.Index.NewBatch()
 
 	// Query for all documents with the old folder name
-	folderQuery := bleve.NewTermQuery(oldFolderName)
+	folderQuery := bleve.NewMatchPhraseQuery(oldFolderName)
 	folderQuery.SetField(search.FieldFolder)
 
 	searchRequest := bleve.NewSearchRequest(folderQuery)

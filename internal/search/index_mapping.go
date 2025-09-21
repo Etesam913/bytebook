@@ -207,15 +207,10 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	keywordTextFieldMapping := bleve.NewTextFieldMapping()
 	keywordTextFieldMapping.Analyzer = "keyword"
 
-	// Set store = true for folder
-	storedKeywordMapping := bleve.NewTextFieldMapping()
-	storedKeywordMapping.Analyzer = "keyword"
-	storedKeywordMapping.Store = true
-
-	// file_name should use keyword analyzer to preserve punctuation and spaces
-	fileNameFieldMapping := bleve.NewTextFieldMapping()
-	fileNameFieldMapping.Analyzer = "simple"
-	fileNameFieldMapping.Store = true
+	// Case insensitive word search
+	storedSimpleFieldMapping := bleve.NewTextFieldMapping()
+	storedSimpleFieldMapping.Analyzer = "simple"
+	storedSimpleFieldMapping.Store = true
 
 	// file_name_lc stores a lowercased copy for case-insensitive prefix queries
 	fileNameLowerFieldMapping := bleve.NewTextFieldMapping()
@@ -226,8 +221,8 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	lastUpdatedFieldMapping := bleve.NewDateTimeFieldMapping()
 	lastUpdatedFieldMapping.Store = true
 
-	documentMapping.AddFieldMappingsAt(FieldFolder, storedKeywordMapping)
-	documentMapping.AddFieldMappingsAt(FieldFileName, fileNameFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldFolder, storedSimpleFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldFileName, storedSimpleFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldFileNameLC, fileNameLowerFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldFileExtension, keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldTextContent, textFieldMapping)

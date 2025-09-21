@@ -1,4 +1,9 @@
-import { queryOptions, useMutation, useQuery } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  queryOptions,
+  useMutation,
+  useQuery,
+} from '@tanstack/react-query';
 import { atom, useSetAtom } from 'jotai';
 import { navigate } from 'wouter/use-browser-location';
 import {
@@ -26,6 +31,7 @@ export const searchQueries = {
           filePath: new FilePath({ folder: result.folder, note: result.note }),
         }));
       },
+      placeholderData: keepPreviousData,
     }),
 };
 
