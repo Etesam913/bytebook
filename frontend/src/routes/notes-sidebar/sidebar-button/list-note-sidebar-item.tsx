@@ -18,8 +18,11 @@ export function ListNoteSidebarItem({
         fileExtension={sidebarNoteExtension}
         noteNameWithExtension={activeNoteNameWithExtension}
       />
-      <p className="whitespace-nowrap pointer-events-none text-ellipsis overflow-hidden">
-        {sidebarNoteNameWithoutExtension}.{sidebarNoteExtension}
+      <p className="pointer-events-none flex min-w-0">
+        <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+          {sidebarNoteNameWithoutExtension}
+        </span>
+        <span className="shrink-0">.{sidebarNoteExtension}</span>
       </p>
     </>
   );
