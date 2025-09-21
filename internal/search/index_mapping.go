@@ -209,7 +209,7 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 
 	// Set store = true for folder
 	storedKeywordMapping := bleve.NewTextFieldMapping()
-	storedKeywordMapping.Analyzer = "simple"
+	storedKeywordMapping.Analyzer = "keyword"
 	storedKeywordMapping.Store = true
 
 	// file_name should use keyword analyzer to preserve punctuation and spaces
@@ -256,7 +256,7 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 func createAttachmentDocumentMapping() *mapping.DocumentMapping {
 	// Set store = true for folder
 	storedKeywordMapping := bleve.NewTextFieldMapping()
-	storedKeywordMapping.Analyzer = "simple"
+	storedKeywordMapping.Analyzer = "keyword"
 	storedKeywordMapping.Store = true
 
 	keywordTextFieldMapping := bleve.NewTextFieldMapping()

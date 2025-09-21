@@ -57,6 +57,8 @@ func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
 			continue
 		}
 
+		log.Println(len(searchResult.Hits), " hits found for folder ", folderName)
+
 		// Delete all documents in the folder
 		for _, hit := range searchResult.Hits {
 			batch.Delete(hit.ID)
