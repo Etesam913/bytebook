@@ -3,14 +3,13 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useSetAtom } from 'jotai';
 import { $getRoot } from 'lexical';
 import { useEffect, useState } from 'react';
-import { RenameNote } from '../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
+import { useRenameFileMutation } from '../../hooks/notes';
 import { isToolbarDisabledAtom } from '../../atoms';
 import {
   NAME_CHARS,
   cn,
   convertFilePathToQueryNotation,
 } from '../../utils/string-formatting';
-import { useMutation } from '@tanstack/react-query';
 import { navigate } from 'wouter/use-browser-location';
 
 export function NoteTitle({ note, folder }: { note: string; folder: string }) {
@@ -18,27 +17,7 @@ export function NoteTitle({ note, folder }: { note: string; folder: string }) {
   const [noteTitle, setNoteTitle] = useState(note);
   const [errorText, setErrorText] = useState('');
   const setIsToolbarDisabled = useSetAtom(isToolbarDisabledAtom);
-  const { mutate: renameNote } = useMutation({
-    mutationFn: async ({
-      folder,
-      oldNoteName,
-      newNoteName,
-    }: {
-      folder: string;
-      oldNoteName: string;
-      newNoteName: string;
-    }) => {
-      const res = await RenameNote(folder, oldNoteName, newNoteName);
-      if (!res.success) throw new Error(res.message);
-      navigate(
-        `/${convertFilePathToQueryNotation(`${encodeURIComponent(folder)}/${encodeURIComponent(newNoteName)}.md`)}`
-      );
-      return res;
-    },
-    onError: (error) => {
-      setErrorText(error.message);
-    },
-  });
+  const { mutate: renameFile } = useRenameFileMutation();
 
   useEffect(() => {
     setNoteTitle(decodeURIComponent(note));
@@ -71,11 +50,23 @@ export function NoteTitle({ note, folder }: { note: string; folder: string }) {
         onBlur={() => {
           setIsToolbarDisabled(false);
           if (noteTitle === note || errorText.length > 0) return;
-          renameNote({
-            folder: decodeURIComponent(folder),
-            oldNoteName: decodeURIComponent(note),
-            newNoteName: noteTitle,
-          });
+          const decodedFolder = decodeURIComponent(folder);
+          const decodedOldNote = decodeURIComponent(note);
+          const oldPath = `${decodedFolder}/${decodedOldNote}.md`;
+          const newPath = `${decodedFolder}/${noteTitle}.md`;
+
+          // Navigate optimistically to the new note path
+          navigate(
+            `/${convertFilePathToQueryNotation(`${encodeURIComponent(decodedFolder)}/${encodeURIComponent(noteTitle)}.md`)}`
+          );
+
+          // Trigger backend rename with optimistic cache update and error handling
+          renameFile(
+            { oldPath, newPath },
+            {
+              onError: (e) => setErrorText(e instanceof Error ? e.message : 'Failed to rename note'),
+            }
+          );
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {

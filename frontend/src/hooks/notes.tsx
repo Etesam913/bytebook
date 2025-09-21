@@ -270,6 +270,9 @@ export function usePinNotesMutation() {
 }
 
 export function useRenameFileMutation() {
+  const queryClient = useQueryClient();
+  const noteSort = useAtomValue(noteSortAtom);
+
   return useMutation({
     mutationFn: async ({
       oldPath,
@@ -284,13 +287,47 @@ export function useRenameFileMutation() {
       }
       return res.data;
     },
-    onError: (e) => {
+    // Optimistically update the notes list so navigating to the new note doesn't 404
+    onMutate: async ({ oldPath, newPath }) => {
+      const getFolderFromPath = (path: string) => path.split('/')[0] ?? '';
+      const getNoteFromPath = (path: string) => path.split('/').slice(1).join('/') ?? '';
+
+      const folder = getFolderFromPath(oldPath);
+      const newFolder = getFolderFromPath(newPath);
+      const newNote = getNoteFromPath(newPath);
+
+      const queryKey = ['notes', folder, noteSort] as const;
+
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousNotes = queryClient.getQueryData(queryKey) as FilePath[] | undefined;
+
+      if (previousNotes) {
+        const updatedNotes = previousNotes.map((fp) =>
+          fp.toString() === oldPath
+            ? new FilePath({ folder: newFolder, note: newNote })
+            : fp
+        );
+        queryClient.setQueryData(queryKey, updatedNotes);
+      }
+
+      return { previousNotes, folder, queryKey };
+    },
+    onError: (e, _vars, context) => {
+      if (context?.previousNotes) {
+        queryClient.setQueryData(context.queryKey, context.previousNotes);
+      }
       if (e instanceof Error) {
         toast.error(e.message, DEFAULT_SONNER_OPTIONS);
       }
     },
     onSuccess: () => {
       toast.success('File renamed successfully', DEFAULT_SONNER_OPTIONS);
+    },
+    onSettled: (_data, _error, _vars, context) => {
+      if (context?.queryKey) {
+        queryClient.invalidateQueries({ queryKey: context.queryKey });
+      }
     },
   });
 }
