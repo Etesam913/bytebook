@@ -122,7 +122,7 @@ export function NotesEditor({
               'max-w-[704px] mx-auto'
           )}
         >
-          <NoteTitle folder={folder} note={note} />
+          <NoteTitle filePath={new FilePath({ folder, note: `${note}.md` })} />
           <ComponentPickerMenuPlugin folder={folder} note={note} />
           <FilePickerMenuPlugin />
           {frontmatter.showTableOfContents === 'true' && (

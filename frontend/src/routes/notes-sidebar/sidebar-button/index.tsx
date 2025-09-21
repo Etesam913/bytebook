@@ -290,19 +290,18 @@ export function NoteSidebarButton({
                               return false;
                             }
 
-                            // Use the FilePath object for cleaner path handling
-                            const originalPath = `${sidebarNotePath.folder}/${sidebarNotePath.note}`;
-
-                            const targetFolder = sidebarNotePath.folder;
-                            const newPath = `${targetFolder}/${newFileName}.${sidebarNotePath.noteExtension}`;
-                            await renameFile({
-                              oldPath: originalPath,
-                              newPath: newPath,
+                            const originalFilePath = new FilePath({
+                              folder: sidebarNotePath.folder,
+                              note: sidebarNotePath.note,
+                            });
+                            const newFilePath = new FilePath({
+                              folder: sidebarNotePath.folder,
+                              note: `${newFileName}.${sidebarNotePath.noteExtension}`,
                             });
 
-                            const newFilePath = new FilePath({
-                              folder: targetFolder,
-                              note: `${newFileName}.${sidebarNotePath.noteExtension}`,
+                            await renameFile({
+                              oldPath: originalFilePath,
+                              newPath: newFilePath,
                             });
 
                             navigate(newFilePath.getLinkToNote());

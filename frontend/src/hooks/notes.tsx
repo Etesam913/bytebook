@@ -278,10 +278,10 @@ export function useRenameFileMutation() {
       oldPath,
       newPath,
     }: {
-      oldPath: string;
-      newPath: string;
+      oldPath: FilePath;
+      newPath: FilePath;
     }) => {
-      const res = await RenameFile(oldPath, newPath);
+      const res = await RenameFile(oldPath.toString(), newPath.toString());
       if (!res.success) {
         throw new Error(res.message);
       }
@@ -289,13 +289,7 @@ export function useRenameFileMutation() {
     },
     // Optimistically update the notes list so navigating to the new note doesn't 404
     onMutate: async ({ oldPath, newPath }) => {
-      const getFolderFromPath = (path: string) => path.split('/')[0] ?? '';
-      const getNoteFromPath = (path: string) => path.split('/').slice(1).join('/') ?? '';
-
-      const folder = getFolderFromPath(oldPath);
-      const newFolder = getFolderFromPath(newPath);
-      const newNote = getNoteFromPath(newPath);
-
+      const folder = oldPath.folder;
       const queryKey = ['notes', folder, noteSort] as const;
 
       await queryClient.cancelQueries({ queryKey });
@@ -304,14 +298,12 @@ export function useRenameFileMutation() {
 
       if (previousNotes) {
         const updatedNotes = previousNotes.map((fp) =>
-          fp.toString() === oldPath
-            ? new FilePath({ folder: newFolder, note: newNote })
-            : fp
+          fp.equals(oldPath) ? new FilePath({ folder: newPath.folder, note: newPath.note }) : fp
         );
         queryClient.setQueryData(queryKey, updatedNotes);
       }
 
-      return { previousNotes, folder, queryKey };
+      return { previousNotes, queryKey };
     },
     onError: (e, _vars, context) => {
       if (context?.previousNotes) {
