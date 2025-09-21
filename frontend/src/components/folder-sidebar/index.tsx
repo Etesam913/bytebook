@@ -11,8 +11,8 @@ import { FolderPlus } from '../../icons/folder-plus';
 import { MotionButton, MotionIconButton } from '../buttons';
 import { BottomItems } from './bottom-items.tsx';
 import { CreateFolderDialog } from './folder-dialog-children.tsx';
-import { MyFoldersAccordion } from './my-folders-accordion.tsx';
-import { MyTagsAccordion } from './my-tags-accordion.tsx';
+import { MyFoldersAccordion } from './my-folders-accordion';
+import { MyTagsAccordion } from './my-tags-accordion';
 import { PinnedNotesAccordion } from './pinned-notes-accordion.tsx';
 import { RecentNotesAccordion } from './recent-notes-accordion.tsx';
 import { SearchBar } from './searchbar.tsx';
@@ -22,7 +22,7 @@ import { CircleArrowRight } from '../../icons/circle-arrow-right.tsx';
 import { useRef } from 'react';
 import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 import { RefreshAnticlockwise } from '../../icons/refresh-anticlockwise.tsx';
-import { MyKernelsAccordion } from './my-kernels-accordion.tsx';
+import { MyKernelsAccordion } from './my-kernels-accordion';
 import { useFolderFromRoute } from '../../hooks/events.tsx';
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
