@@ -101,7 +101,7 @@ export function NoteSidebarButton({
           e,
           setSelectionRange,
           contentType: 'note',
-          draggedItem: sidebarNotePath.noteWithExtensionParam,
+          draggedItem: sidebarNotePath.note,
           setDraggedElement,
           folder: sidebarNotePath.folder,
         })

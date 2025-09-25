@@ -84,6 +84,7 @@ export function SidebarItems<T>({
       } else {
         newSelection.add(selectionRangeEntry);
       }
+      console.log({ newSelection });
       return newSelection;
     });
   }
