@@ -47,6 +47,8 @@ export function GithubPage() {
             className="w-56"
             buttonClassName="w-56"
             items={dropdownItems}
+            aria-label="Select GitHub repository"
+            id="github-repository-dropdown"
           />
         </div>
       )}

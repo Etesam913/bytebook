@@ -177,6 +177,8 @@ export function Toolbar({
             items={blockTypesDropdownItems}
             buttonClassName="w-[10rem]"
             disabled={disabled}
+            aria-label="Select block type"
+            id="block-type-dropdown"
           />
         </span>
         <ToolbarButtons

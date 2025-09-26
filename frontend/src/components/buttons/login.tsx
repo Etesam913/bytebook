@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { Browser } from '@wailsio/runtime';
 import { motion } from 'motion/react';
 import { useAtom } from 'jotai/react';
-import { useRef, useState } from 'react';
+import { useRef, useState, useId } from 'react';
 import { toast } from 'sonner';
 import { userDataAtomWithLocalStorage } from '../../atoms';
 import { useOnClickOutside } from '../../hooks/general';
@@ -19,6 +19,10 @@ export function LoginButton() {
   const [focusIndex, setFocusIndex] = useState(0);
   const dropdownContainerRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(dropdownContainerRef, () => setIsUserOptionsOpen(false));
+  
+  const uniqueId = useId();
+  const buttonId = `user-menu-button-${uniqueId}`;
+  const menuId = `user-menu-${uniqueId}`;
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
@@ -71,11 +75,19 @@ export function LoginButton() {
               ),
             },
           ]}
+          menuId={menuId}
+          buttonId={buttonId}
+          valueIndex={0}
         />
 
         <button
+          id={buttonId}
           onClick={() => setIsUserOptionsOpen((prev) => !prev)}
           type="button"
+          aria-haspopup="listbox"
+          aria-expanded={isUserOptionsOpen}
+          aria-controls={isUserOptionsOpen ? menuId : undefined}
+          aria-label={`User menu for ${userData.login}`}
           className="w-full text-left text-sm bg-transparent text-ellipsis rounded-md flex items-center gap-1.5  hover:bg-zinc-100 dark:hover:bg-zinc-650 py-1 px-1.5 transition-colors"
         >
           <img
@@ -94,6 +106,7 @@ export function LoginButton() {
             initial={{ rotate: 0 }}
             className="ml-auto"
             animate={{ rotate: isUserOptionsOpen ? 0 : 180 }}
+            aria-hidden="true"
           >
             <ChevronDown
               className="min-w-[0.65rem] min-h-[0.65rem] text-zinc-500 dark:text-zinc-300 will-change-transform"

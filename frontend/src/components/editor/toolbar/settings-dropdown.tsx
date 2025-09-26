@@ -1,6 +1,6 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useAtomValue } from 'jotai';
-import { useRef, useState } from 'react';
+import { useRef, useState, useId } from 'react';
 import { getDefaultButtonVariants } from '../../../animations';
 import { projectSettingsAtom } from '../../../atoms';
 import { useOnClickOutside } from '../../../hooks/general';
@@ -33,13 +33,22 @@ export function SettingsDropdown({
   const projectSettings = useAtomValue(projectSettingsAtom);
   const isPinned = projectSettings.pinnedNotes.has(`${folder}/${note}.md`);
   const [editor] = useLexicalComposerContext();
+  
+  const uniqueId = useId();
+  const buttonId = `settings-dropdown-button-${uniqueId}`;
+  const menuId = `settings-dropdown-menu-${uniqueId}`;
 
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
 
   return (
     <div className="ml-auto flex flex-col" ref={dropdownContainerRef}>
       <MotionIconButton
+        id={buttonId}
         onClick={() => setIsOpen((prev) => !prev)}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? menuId : undefined}
+        aria-label="Note settings menu"
         {...getDefaultButtonVariants({ disabled: isToolbarDisabled })}
       >
         <HorizontalDots />
@@ -47,6 +56,8 @@ export function SettingsDropdown({
 
       <div className="relative flex flex-col items-end">
         <DropdownItems
+          menuId={menuId}
+          buttonId={buttonId}
           onChange={async (item) => {
             switch (item.value) {
               case 'pin-note':
