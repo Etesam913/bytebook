@@ -25,6 +25,9 @@ export function DropdownItems({
   style,
   ref,
   children,
+  menuId,
+  buttonId,
+  valueIndex,
 }: {
   items: DropdownItem[];
   maxHeight?: number;
@@ -39,6 +42,9 @@ export function DropdownItems({
   style?: CSSProperties;
   ref?: RefObject<HTMLDivElement | null>;
   children?: React.ReactNode;
+  menuId?: string;
+  buttonId?: string;
+  valueIndex?: number;
 }) {
   const dropdownItemsRef = useRef<HTMLDivElement>(null);
 
@@ -58,8 +64,11 @@ export function DropdownItems({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          role="menu"
+          role="listbox"
+          id={menuId}
           ref={ref}
+          aria-labelledby={buttonId}
+          aria-activedescendant={focusIndex !== null ? `${menuId}-option-${focusIndex}` : undefined}
           className={cn(
             'absolute z-50 w-full overflow-hidden translate-y-1 rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700',
             maxHeight && 'overflow-y-auto',
@@ -86,62 +95,100 @@ export function DropdownItems({
               ref={dropdownItemsRef}
               className="flex flex-col overflow-y-auto overflow-x-hidden px-[4.5px] py-[6px] gap-0.5"
             >
-              {items.map(({ value, label }, i) => (
-                <div className="w-full inline relative" key={value}>
-                  <button
-                    className={cn(
-                      'relative z-40 outline-hidden rounded-md w-full px-1.5 py-0.5 text-left whitespace-nowrap text-nowrap text-ellipsis overflow-hidden flex'
-                    )}
-                    type="button"
-                    role="menuitem"
-                    onKeyDown={(e) => {
-                      if (e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        const nextButton = e.currentTarget.parentElement
-                          ?.nextSibling?.lastChild as HTMLElement;
-
-                        if (nextButton) {
-                          nextButton.focus();
-                          setFocusIndex(i + 1);
+              {items.map(({ value, label }, i) => {
+                const isSelected = valueIndex === i || selectedItem === value;
+                const isFocused = focusIndex === i;
+                const optionId = `${menuId}-option-${i}`;
+                
+                return (
+                  <div className="w-full inline relative" key={value}>
+                    <button
+                      id={optionId}
+                      className={cn(
+                        'relative z-40 outline-hidden rounded-md w-full px-1.5 py-0.5 text-left whitespace-nowrap text-nowrap text-ellipsis overflow-hidden flex'
+                      )}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      tabIndex={isFocused ? 0 : -1}
+                      onKeyDown={(e) => {
+                        if (e.key === 'ArrowDown') {
+                          e.preventDefault();
+                          const nextIndex = i < items.length - 1 ? i + 1 : 0;
+                          const nextButton = document.getElementById(`${menuId}-option-${nextIndex}`);
+                          if (nextButton) {
+                            nextButton.focus();
+                            setFocusIndex(nextIndex);
+                          }
+                        } else if (e.key === 'ArrowUp') {
+                          e.preventDefault();
+                          const prevIndex = i > 0 ? i - 1 : items.length - 1;
+                          const prevButton = document.getElementById(`${menuId}-option-${prevIndex}`);
+                          if (prevButton) {
+                            prevButton.focus();
+                            setFocusIndex(prevIndex);
+                          }
+                        } else if (e.key === 'Escape') {
+                          setIsOpen(false);
+                          // Return focus to the trigger button
+                          const triggerButton = document.getElementById(buttonId || '');
+                          triggerButton?.focus();
+                        } else if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setIsOpen(false);
+                          setValueIndex?.(i);
+                          onChange?.(items[i]);
+                          // Return focus to the trigger button
+                          const triggerButton = document.getElementById(buttonId || '');
+                          triggerButton?.focus();
+                        } else if (e.key === 'Home') {
+                          e.preventDefault();
+                          const firstButton = document.getElementById(`${menuId}-option-0`);
+                          if (firstButton) {
+                            firstButton.focus();
+                            setFocusIndex(0);
+                          }
+                        } else if (e.key === 'End') {
+                          e.preventDefault();
+                          const lastIndex = items.length - 1;
+                          const lastButton = document.getElementById(`${menuId}-option-${lastIndex}`);
+                          if (lastButton) {
+                            lastButton.focus();
+                            setFocusIndex(lastIndex);
+                          }
                         }
-                      } else if (e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        const previousButton = e.currentTarget.parentElement
-                          ?.previousSibling?.lastChild as HTMLElement;
-                        if (previousButton) {
-                          previousButton.focus();
-                          setFocusIndex(i - 1);
-                        }
-                      } else if (e.key === 'Escape') {
-                        setIsOpen(false);
-                      }
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.target as HTMLElement).focus();
-                      setFocusIndex(i);
-                    }}
-                    onClick={() => {
-                      setIsOpen(false);
-                      setValueIndex?.(i);
-                      onChange?.(items[i]);
-                    }}
-                  >
-                    {label}
-                  </button>
-                  {focusIndex === i && (
-                    <motion.div
-                      transition={{
-                        ease: easingFunctions['ease-out-expo'],
                       }}
-                      layoutId={'dropdown-highlight'}
-                      className="absolute z-0 inset-0 rounded-md w-full px-1.5 py-0.5 bg-zinc-150 dark:bg-zinc-600"
-                    />
-                  )}
-                  {selectedItem === value && (
-                    <div className="absolute z-20 inset-0 rounded-md w-full px-1.5 py-0.5 bg-zinc-150 dark:bg-zinc-600" />
-                  )}
-                </div>
-              ))}
+                      onMouseEnter={(e) => {
+                        (e.target as HTMLElement).focus();
+                        setFocusIndex(i);
+                      }}
+                      onClick={() => {
+                        setIsOpen(false);
+                        setValueIndex?.(i);
+                        onChange?.(items[i]);
+                      }}
+                    >
+                      {label}
+                    </button>
+                    {isFocused && (
+                      <motion.div
+                        transition={{
+                          ease: easingFunctions['ease-out-expo'],
+                        }}
+                        layoutId={'dropdown-highlight'}
+                        className="absolute z-0 inset-0 rounded-md w-full px-1.5 py-0.5 bg-zinc-150 dark:bg-zinc-600"
+                        aria-hidden="true"
+                      />
+                    )}
+                    {isSelected && (
+                      <div 
+                        className="absolute z-20 inset-0 rounded-md w-full px-1.5 py-0.5 bg-zinc-150 dark:bg-zinc-600" 
+                        aria-hidden="true"
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </motion.div>
         </motion.div>
