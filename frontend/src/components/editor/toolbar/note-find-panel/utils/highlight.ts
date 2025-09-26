@@ -17,6 +17,29 @@ export type MatchData = {
 };
 
 /**
+ * Clears all highlights in the editor by removing the highlight format from all text nodes.
+ * This is used as a fallback when the specific node reference is stale or null.
+ * @param editor - The Lexical editor instance
+ */
+function clearAllHighlights(editor: LexicalEditor): void {
+  editor.update(
+    () => {
+      // Prevents the editor from being selected and stealing focus from the find input
+      $addUpdateTag('skip-dom-selection');
+
+      const root = editor.getEditorState()._nodeMap;
+      root.forEach((node) => {
+        if ($isTextNode(node) && node.hasFormat('highlight')) {
+          node.toggleFormat('highlight');
+        }
+      });
+    },
+    // The tag makes sure that the clearing of the highlight is not included in the history
+    { tag: 'history-merge' }
+  );
+}
+
+/**
  * Clears the currently highlighted search match and restores its original formatting.
  * Also merges adjacent text nodes that were split during highlighting.
  * @param editor - The Lexical editor instance
@@ -27,7 +50,13 @@ export function clearHighlight(
   editor: LexicalEditor,
   highlightedNodeKeyRef: React.MutableRefObject<string | null>
 ): void {
-  if (!highlightedNodeKeyRef.current) return;
+  // If no specific node is tracked, clear all highlights as a fallback
+  if (!highlightedNodeKeyRef.current) {
+    clearAllHighlights(editor);
+    return;
+  }
+
+  let highlightCleared = false;
 
   editor.update(
     () => {
@@ -42,6 +71,7 @@ export function clearHighlight(
 
           // Restore the original format instead of just toggling highlight
           node.toggleFormat('highlight');
+          highlightCleared = true;
 
           // Merge with adjacent text nodes since we split them during highlighting
           // Merge can only happen if the two nodes have the same format
@@ -96,6 +126,12 @@ export function clearHighlight(
     // The tag makes sure that the clearing of the highlight is not included in the history
     { tag: 'history-merge' }
   );
+
+  // If the specific node clearing failed, clear all highlights as a fallback
+  if (!highlightCleared) {
+    clearAllHighlights(editor);
+  }
+
   highlightedNodeKeyRef.current = null;
 }
 
