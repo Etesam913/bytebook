@@ -6,7 +6,6 @@ const (
 	FieldType                  = "type"
 	FieldFolder                = "folder"
 	FieldFileName              = "file_name"
-	FieldFileNameLC            = "file_name_lc"
 	FieldFileExtension         = "file_extension"
 	FieldTextContent           = "text_content"
 	FieldTextContentNgram      = "text_content_ngram"

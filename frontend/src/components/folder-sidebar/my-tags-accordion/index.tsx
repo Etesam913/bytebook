@@ -1,30 +1,14 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
 import { useState } from 'react';
-import {
-  contextMenuDataAtom,
-  dialogDataAtom,
-  selectionRangeAtom,
-} from '../../../atoms';
-import { useDeleteTagsMutation, useTagsQuery } from '../../../hooks/tags';
+import { useTagsQuery } from '../../../hooks/tags';
 import { TagIcon } from '../../../icons/tag';
-import TagSlash from '../../../icons/tag-slash';
-import { handleContextMenuSelection } from '../../../utils/selection';
-import {
-  cn,
-  getTagNameFromSelectionRange,
-} from '../../../utils/string-formatting';
 import { Sidebar } from '../../sidebar';
 import { AccordionButton } from '../../sidebar/accordion-button';
-import { TagDialogChildren } from '../tag-dialog-children';
-import { navigate } from 'wouter/use-browser-location';
 import {
   ROUTE_PATTERNS,
-  routeUrls,
   type SavedSearchRouteParams,
 } from '../../../utils/routes';
 
-import { currentZoomAtom } from '../../../hooks/resize';
 import { useRoute } from 'wouter';
 import { TagAccordionButton } from './tag-accordion-button';
 

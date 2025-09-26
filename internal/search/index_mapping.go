@@ -23,6 +23,7 @@ import (
 var INDEX_NAME = ".index.bleve"
 var MARKDOWN_NOTE_TYPE = "markdown_note"
 var ATTACHMENT_TYPE = "attachment"
+var FilenameAnalyzer = "filename_analyzer"
 
 type MarkdownNoteBleveDocument struct {
 	Type                  string   `json:"type"`
@@ -153,6 +154,21 @@ func createIndex(projectPath string) (bleve.Index, error) {
 		return nil, err
 	}
 
+	// Create a custom analyzer for filenames that lowercases but doesn't tokenize on apostrophes
+	err = indexMapping.AddCustomAnalyzer(FilenameAnalyzer,
+		map[string]interface{}{
+			"type":      "custom",
+			"tokenizer": "single", // single tokenizer treats the entire input as one token
+			"token_filters": []interface{}{
+				lowercase.Name, // lowercase the entire filename
+			},
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
 	// Use the "type" field in documents to select the document mapping
 	indexMapping.TypeField = "type"
 	indexMapping.DefaultMapping = createMarkdownNoteDocumentMapping()
@@ -212,18 +228,25 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	storedSimpleFieldMapping.Analyzer = "simple"
 	storedSimpleFieldMapping.Store = true
 
-	// file_name_lc stores a lowercased copy for case-insensitive prefix queries
-	fileNameLowerFieldMapping := bleve.NewTextFieldMapping()
-	fileNameLowerFieldMapping.Analyzer = "simple"
-	fileNameLowerFieldMapping.Store = false
+	folderLowerFieldMapping := bleve.NewTextFieldMapping()
+	folderLowerFieldMapping.Analyzer = FilenameAnalyzer // Use custom analyzer that doesn't split on apostrophes
+	folderLowerFieldMapping.Store = true
+
+	// Use the new analyzer for filename field to handle apostrophes correctly
+	// This will store lowercase but enable proper searching
+	fileNameFieldMapping := bleve.NewTextFieldMapping()
+	fileNameFieldMapping.Analyzer = FilenameAnalyzer // Use custom analyzer that doesn't split on apostrophes
+	fileNameFieldMapping.Store = true
+
+	// No longer need file_name_lc since FieldFileName now handles both search and display
 
 	// Set store = true for last_updated
 	lastUpdatedFieldMapping := bleve.NewDateTimeFieldMapping()
 	lastUpdatedFieldMapping.Store = true
 
-	documentMapping.AddFieldMappingsAt(FieldFolder, storedSimpleFieldMapping)
-	documentMapping.AddFieldMappingsAt(FieldFileName, storedSimpleFieldMapping)
-	documentMapping.AddFieldMappingsAt(FieldFileNameLC, fileNameLowerFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldFolder, folderLowerFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldFileName, fileNameFieldMapping)
+	// FieldFileNameLC removed - using FieldFileName for both search and display
 	documentMapping.AddFieldMappingsAt(FieldFileExtension, keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldTextContent, textFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldTextContentNgram, textNgramFieldMapping)
@@ -263,9 +286,14 @@ func createAttachmentDocumentMapping() *mapping.DocumentMapping {
 
 	documentMapping := bleve.NewDocumentMapping()
 
+	// Use filename analyzer for attachments too
+	attachmentFileNameFieldMapping := bleve.NewTextFieldMapping()
+	attachmentFileNameFieldMapping.Analyzer = FilenameAnalyzer
+	attachmentFileNameFieldMapping.Store = true
+
 	documentMapping.AddFieldMappingsAt(FieldFolder, storedKeywordMapping)
-	documentMapping.AddFieldMappingsAt(FieldFileName, fileNameFieldMapping)
-	documentMapping.AddFieldMappingsAt(FieldFileNameLC, keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldFileName, attachmentFileNameFieldMapping)
+	// FieldFileNameLC removed - using FieldFileName for both search and display
 	documentMapping.AddFieldMappingsAt(FieldFileExtension, keywordTextFieldMapping)
 
 	return documentMapping

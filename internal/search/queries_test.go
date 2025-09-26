@@ -88,6 +88,18 @@ func TestCreateFilenameQuery(t *testing.T) {
 			wantType: &query.ConjunctionQuery{},
 			wantLen:  2,
 		},
+		{
+			name:     "filename with apostrophe",
+			input:    "etesam's",
+			wantType: &query.DisjunctionQuery{},
+			wantLen:  2,
+		},
+		{
+			name:     "folder and filename with apostrophe",
+			input:    "notes/etesam's",
+			wantType: &query.ConjunctionQuery{},
+			wantLen:  2,
+		},
 	}
 
 	for _, tt := range tests {
@@ -131,7 +143,7 @@ func TestBuildBooleanQueryFromUserInput(t *testing.T) {
 		{
 			name:     "quoted phrase",
 			input:    `"test phrase"`,
-			wantType: &query.MatchPhraseQuery{},
+			wantType: &query.BooleanQuery{},
 		},
 		{
 			name:     "filename prefix",
@@ -161,6 +173,16 @@ func TestBuildBooleanQueryFromUserInput(t *testing.T) {
 			input:    `"exact phrase" AND f:test OR term`,
 			wantType: &query.DisjunctionQuery{},
 			wantLen:  2,
+		},
+		{
+			name:     "filename with apostrophe",
+			input:    `f:etesam's`,
+			wantType: &query.DisjunctionQuery{},
+		},
+		{
+			name:     "quoted filename with apostrophe",
+			input:    `f:"etesam's"`,
+			wantType: &query.DisjunctionQuery{},
 		},
 	}
 

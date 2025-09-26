@@ -80,7 +80,16 @@ func buildMatchPhrasePrefixQuery(q, field string) query.Query {
 
 // createFilenameQuery handles filename prefix queries (tokens starting with "f:")
 // Returns a query that searches for folder and/or file names based on the prefix term.
+// Since filenames use a single tokenizer, we use direct prefix queries for exact matching.
 func createFilenameQuery(prefixTerm string) query.Query {
+	// Handle empty or whitespace-only input
+	if strings.TrimSpace(prefixTerm) == "" {
+		disjunctionQuery := bleve.NewDisjunctionQuery()
+		disjunctionQuery.AddQuery(bleve.NewMatchNoneQuery())
+		disjunctionQuery.AddQuery(bleve.NewMatchNoneQuery())
+		return disjunctionQuery
+	}
+
 	prefixTermSplit := strings.Split(prefixTerm, "/")
 	if len(prefixTermSplit) == 0 {
 		// Return an empty query (nil means no query)
@@ -92,15 +101,16 @@ func createFilenameQuery(prefixTerm string) query.Query {
 
 		// Create a conjunction query for both folder and filename
 		conjunctionQuery := bleve.NewConjunctionQuery()
-		conjunctionQuery.AddQuery(buildMatchPhrasePrefixQuery(folderName, FieldFolder))
-		conjunctionQuery.AddQuery(buildMatchPhrasePrefixQuery(fileName, FieldFileNameLC))
+		conjunctionQuery.AddQuery(createPrefixQuery(FieldFolder, folderName))
+		conjunctionQuery.AddQuery(createPrefixQuery(FieldFileName, fileName))
 		return conjunctionQuery
 	} else {
 		// Otherwise just search through both folder and note using an OR
 		disjunctionQuery := bleve.NewDisjunctionQuery()
 
-		fieldFolderQuery := buildMatchPhrasePrefixQuery(prefixTerm, FieldFolder)
-		fileNameQuery := buildMatchPhrasePrefixQuery(prefixTerm, FieldFileNameLC)
+		fieldFolderQuery := createPrefixQuery(FieldFolder, prefixTerm)
+		// Use direct prefix query for filename since it uses single tokenizer
+		fileNameQuery := createPrefixQuery(FieldFileName, prefixTerm)
 
 		disjunctionQuery.AddQuery(fieldFolderQuery)
 		disjunctionQuery.AddQuery(fileNameQuery)
