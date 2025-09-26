@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { useRef, useState } from 'react';
+import { useRef, useState, useId } from 'react';
 import { ChevronDown } from '../../../icons/chevron-down';
 import { DropdownItems } from '../../dropdown/dropdown-items';
 import PowerOff from '../../../icons/power-off';
@@ -58,6 +58,10 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const { mutate: turnOnKernel } = useTurnOnKernelMutation();
   const { mutateAsync: submitPythonVenv } =
     usePythonVenvSubmitMutation(projectSettings);
+  
+  const uniqueId = useId();
+  const buttonId = `kernel-${language}-button-${uniqueId}`;
+  const menuId = `kernel-${language}-menu-${uniqueId}`;
 
   const heartbeatSuccessDropdownItems = languageSpecificOptions
     .heartbeatSuccess[language]
@@ -131,6 +135,9 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
         }}
         focusIndex={focusIndex}
         items={kernelOptions}
+        menuId={menuId}
+        buttonId={buttonId}
+        valueIndex={0}
       >
         <div>
           <p className="px-2 pt-1 text-gray-500 dark:text-gray-300">
@@ -150,7 +157,12 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
       </DropdownItems>
 
       <button
+        id={buttonId}
         onClick={() => setIsOpen((prev) => !prev)}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? menuId : undefined}
+        aria-label={`${language} kernel options`}
         className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 whitespace-nowrap"
       >
         <KernelHeartbeat
@@ -166,6 +178,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
           initial={{ rotate: 0 }}
           className="ml-auto"
           animate={{ rotate: isOpen ? 0 : 180 }}
+          aria-hidden="true"
         >
           <ChevronDown
             className="text-zinc-500 dark:text-zinc-300 will-change-transform"

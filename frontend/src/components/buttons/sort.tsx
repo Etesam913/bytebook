@@ -1,4 +1,4 @@
-import { type Dispatch, type SetStateAction, useRef, useState } from 'react';
+import { type Dispatch, type SetStateAction, useRef, useState, useId } from 'react';
 import { MotionIconButton } from '.';
 import { getDefaultButtonVariants } from '../../animations';
 import { useOnClickOutside } from '../../hooks/general';
@@ -77,6 +77,10 @@ export function SortButton({
   const [focusIndex, setFocusIndex] = useState(
     sortOptions.findIndex(({ value }) => value === sortDirection)
   );
+  
+  const uniqueId = useId();
+  const buttonId = `sort-button-${uniqueId}`;
+  const menuId = `sort-menu-${uniqueId}`;
 
   const sortOptionComponents = sortOptions.map(({ name, value }) => {
     return {
@@ -104,12 +108,20 @@ export function SortButton({
         items={sortOptionComponents}
         selectedItem={sortDirection}
         onChange={({ value }) => setSortDirection(value as SortStrings)}
+        menuId={menuId}
+        buttonId={buttonId}
+        valueIndex={sortOptions.findIndex(({ value }) => value === sortDirection)}
       />
 
       <MotionIconButton
+        id={buttonId}
         onClick={() => setIsSortOptionsOpen((prev) => !prev)}
         {...getDefaultButtonVariants()}
         title={sortOptions.find(({ value }) => value === sortDirection)?.name}
+        aria-label="Sort options"
+        aria-haspopup="listbox"
+        aria-expanded={isSortOptionsOpen}
+        aria-controls={isSortOptionsOpen ? menuId : undefined}
         type="button"
         className={cn(isSortOptionsOpen && 'bg-zinc-100 dark:bg-zinc-700')}
       >

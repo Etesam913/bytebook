@@ -6,6 +6,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useId,
 } from 'react';
 import {
   contextMenuDataAtom,
@@ -52,6 +53,9 @@ export function ContextMenu() {
 
   // Local state to hold the adjusted position
   const [position, setPosition] = useState({ x, y });
+  
+  const uniqueId = useId();
+  const menuId = `context-menu-${uniqueId}`;
 
   // Set the ref atom once after mounting.
   useEffect(() => {
@@ -95,6 +99,9 @@ export function ContextMenu() {
             }
             setFocusIndex={setFocusedIndex}
             focusIndex={focusedIndex}
+            menuId={menuId}
+            buttonId={undefined}
+            valueIndex={undefined}
           />
         </div>
       )}
