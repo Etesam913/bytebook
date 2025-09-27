@@ -156,7 +156,7 @@ func createFuzzyContentQuery(text string) query.Query {
 // createTagQuery handles tag queries (tokens starting with "#")
 // Returns a query that searches for exact matches in the tags field.
 func createTagQuery(tagName string) query.Query {
-	q := bleve.NewMatchQuery(tagName)
+	q := bleve.NewPrefixQuery(tagName)
 	q.SetField(FieldTags)
 	return q
 }

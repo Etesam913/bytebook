@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
-import { useTagsQuery } from '../../../hooks/tags';
-import { TagIcon } from '../../../icons/tag';
+import { Magnifier } from '../../../icons/magnifier';
 import { Sidebar } from '../../sidebar';
 import { AccordionButton } from '../../sidebar/accordion-button';
 import {
@@ -10,26 +9,30 @@ import {
 } from '../../../utils/routes';
 
 import { useRoute } from 'wouter';
-import { TagAccordionButton } from './tag-accordion-button';
+import { SavedSearchAccordionButton } from './saved-search-accordion-button';
+import { Box2Search } from '../../../icons/box-2-search';
 
-export function MyTagsAccordion() {
+export function MySavedSearchesAccordion() {
   const [isOpen, setIsOpen] = useState(false);
-  const { data: tags } = useTagsQuery();
-  const hasTags = tags && tags?.length > 0;
+  // TODO: Replace with actual saved searches hook when implemented
+  const savedSearches = []; // Placeholder for saved searches data
+  const hasSavedSearches = savedSearches && savedSearches?.length > 0;
   const [isSavedSearchRoute, savedSearchRouteParams] =
     useRoute<SavedSearchRouteParams>(ROUTE_PATTERNS.SAVED_SEARCH);
   const searchQuery = savedSearchRouteParams?.searchQuery;
 
   return (
-    <section>
+    <section className="pb-1.5">
       <AccordionButton
         isOpen={isOpen}
         onClick={() => setIsOpen((prev) => !prev)}
-        icon={<TagIcon width={18} height={18} strokeWidth={1.75} />}
+        icon={<Box2Search height={19} width={19} />}
         title={
           <>
-            Tags{' '}
-            {hasTags && <span className="tracking-wider">({tags.length})</span>}
+            Saved Searches{' '}
+            {hasSavedSearches && (
+              <span className="tracking-wider">({savedSearches.length})</span>
+            )}
           </>
         }
       />
@@ -46,30 +49,30 @@ export function MyTagsAccordion() {
             className="overflow-hidden hover:overflow-auto pl-1"
           >
             <Sidebar<string>
-              layoutId="tags-sidebar"
+              layoutId="saved-searches-sidebar"
               emptyElement={
                 <li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
-                  Type #tagName in a note to create a tag
+                  No saved searches yet
                 </li>
               }
-              contentType="tag"
-              dataItemToString={(tagName) => tagName}
-              dataItemToSelectionRangeEntry={(tagName) => tagName}
-              renderLink={({ dataItem: sidebarTagName, i }) => {
+              contentType="saved-search"
+              dataItemToString={(searchName) => searchName}
+              dataItemToSelectionRangeEntry={(searchName) => searchName}
+              renderLink={({ dataItem: sidebarSearchName, i }) => {
                 return (
-                  <TagAccordionButton
-                    tags={tags}
+                  <SavedSearchAccordionButton
+                    savedSearches={savedSearches}
                     i={i}
-                    sidebarTagName={sidebarTagName}
+                    sidebarSearchName={sidebarSearchName}
                     isActive={
                       isSavedSearchRoute &&
                       !!searchQuery &&
-                      decodeURIComponent(searchQuery) === `#${sidebarTagName}`
+                      decodeURIComponent(searchQuery) === sidebarSearchName
                     }
                   />
                 );
               }}
-              data={tags ?? null}
+              data={savedSearches ?? null}
             />
           </motion.div>
         )}

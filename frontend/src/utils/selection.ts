@@ -9,7 +9,7 @@ import { FilePath } from './string-formatting';
  */
 export function keepSelectionNotesWithPrefix(
   selection: Set<string>,
-  prefix: 'folder' | 'note' | 'tag' | 'kernel'
+  prefix: 'folder' | 'note' | 'tag' | 'kernel' | 'saved-search'
 ) {
   return new Set(
     [...selection].filter((item) => item.startsWith(`${prefix}:`))
@@ -34,7 +34,7 @@ export function handleContextMenuSelection({
   onlyOne = false,
 }: {
   setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
-  itemType: 'folder' | 'note' | 'tag' | 'kernel';
+  itemType: 'folder' | 'note' | 'tag' | 'kernel' | 'saved-search';
   itemName: string;
   onlyOne?: boolean;
 }): Set<string> {

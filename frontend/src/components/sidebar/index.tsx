@@ -17,7 +17,7 @@ import { useListVirtualization } from '../../hooks/observers';
 import { cn } from '../../utils/string-formatting';
 import { SidebarItems } from './sidebar-items';
 
-export type SidebarContentType = 'note' | 'folder' | 'tag';
+export type SidebarContentType = 'note' | 'folder' | 'tag' | 'saved-search';
 
 export function Sidebar<T>({
   data,

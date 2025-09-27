@@ -102,6 +102,12 @@ export const routeBuilders = {
    */
   tagSearch: (tagName: string) =>
     `/saved-search/${encodeURIComponent('#' + tagName)}`,
+
+  /**
+   * Build saved search route
+   */
+  savedSearch: (searchQuery: string) =>
+    `/saved-search/${encodeURIComponent(searchQuery)}`,
 };
 
 // Main routeUrls object combining patterns and builders
