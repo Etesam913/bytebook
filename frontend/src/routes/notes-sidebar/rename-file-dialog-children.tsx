@@ -4,30 +4,22 @@ import { DialogErrorText } from '../../components/dialog';
 import { MotionButton } from '../../components/buttons';
 import { getDefaultButtonVariants } from '../../animations';
 import { FilePen } from '../../icons/file-pen';
-import { extractInfoFromNoteName } from '../../utils/string-formatting';
+import { FilePath } from '../../utils/string-formatting';
 
 export function RenameFileDialogChildren({
-  selectedNote,
+  selectedFilePath,
   errorText,
 }: {
-  selectedNote: string;
+  selectedFilePath: FilePath;
   errorText: string;
 }) {
-  // selectedNote comes in as "note:folder/filename?ext=md" or "note:filename?ext=md"
-  const noteWithoutPrefix = selectedNote.split(':')[1] || '';
-
-  const notePathParts = [noteWithoutPrefix];
-  const originalFileName = notePathParts[notePathParts.length - 1];
-
-  const { noteNameWithoutExtension, queryParams } =
-    extractInfoFromNoteName(originalFileName);
-  const fileExtension = queryParams.ext;
-
-  const [newFileName, setNewFileName] = useState(noteNameWithoutExtension);
+  const [newFileName, setNewFileName] = useState(
+    selectedFilePath.noteWithoutExtension
+  );
 
   return (
-    <fieldset className="flex flex-col gap-3">
-      <div className="flex flex-col">
+    <fieldset className="flex flex-col gap-3 w-full max-w-full">
+      <div className="flex flex-col w-full max-w-full">
         <Input
           label="Enter a new name for the file"
           labelProps={{
@@ -41,8 +33,9 @@ export function RenameFileDialogChildren({
             autoFocus: true,
             value: newFileName,
             onChange: (e) => setNewFileName(e.target.value),
+            onFocus: (e) => e.target.select(),
             placeholder: 'Enter new file name',
-            className: 'text-sm',
+            maxLength: 255,
             autoCapitalize: 'off',
             autoComplete: 'off',
             spellCheck: 'false',
@@ -50,8 +43,14 @@ export function RenameFileDialogChildren({
           }}
         />
       </div>
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        Current name: {noteNameWithoutExtension}.{fileExtension}
+      <p className="text-sm flex items-center gap-1 text-zinc-500 dark:text-zinc-400">
+        <span
+          className="inline-block max-w-full break-all"
+          style={{ wordBreak: 'break-all' }}
+          title={`${newFileName}.${selectedFilePath.noteExtension}`}
+        >
+          Current name: {newFileName}.{selectedFilePath.noteExtension}
+        </span>
       </p>
       <DialogErrorText errorText={errorText} />
       <MotionButton

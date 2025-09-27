@@ -3,14 +3,9 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useSetAtom } from 'jotai';
 import { $getRoot } from 'lexical';
 import { useEffect, useState } from 'react';
-import { RenameNote } from '../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { isToolbarDisabledAtom } from '../../atoms';
-import {
-  NAME_CHARS,
-  cn,
-  convertFilePathToQueryNotation,
-} from '../../utils/string-formatting';
-import { useMutation } from '@tanstack/react-query';
+import { NAME_CHARS, cn, FilePath } from '../../utils/string-formatting';
+import { useRenameFileMutation } from '../../hooks/notes';
 import { navigate } from 'wouter/use-browser-location';
 
 export function NoteTitle({ note, folder }: { note: string; folder: string }) {
@@ -18,27 +13,7 @@ export function NoteTitle({ note, folder }: { note: string; folder: string }) {
   const [noteTitle, setNoteTitle] = useState(note);
   const [errorText, setErrorText] = useState('');
   const setIsToolbarDisabled = useSetAtom(isToolbarDisabledAtom);
-  const { mutate: renameNote } = useMutation({
-    mutationFn: async ({
-      folder,
-      oldNoteName,
-      newNoteName,
-    }: {
-      folder: string;
-      oldNoteName: string;
-      newNoteName: string;
-    }) => {
-      const res = await RenameNote(folder, oldNoteName, newNoteName);
-      if (!res.success) throw new Error(res.message);
-      navigate(
-        `/${convertFilePathToQueryNotation(`${encodeURIComponent(folder)}/${encodeURIComponent(newNoteName)}.md`)}`
-      );
-      return res;
-    },
-    onError: (error) => {
-      setErrorText(error.message);
-    },
-  });
+  const { mutateAsync: renameFile } = useRenameFileMutation();
 
   useEffect(() => {
     setNoteTitle(decodeURIComponent(note));
@@ -68,14 +43,30 @@ export function NoteTitle({ note, folder }: { note: string; folder: string }) {
         }}
         placeholder="Untitled Note"
         onFocus={() => setIsToolbarDisabled(true)}
-        onBlur={() => {
+        onBlur={async () => {
           setIsToolbarDisabled(false);
           if (noteTitle === note || errorText.length > 0) return;
-          renameNote({
+
+          const oldFilePath = new FilePath({
             folder: decodeURIComponent(folder),
-            oldNoteName: decodeURIComponent(note),
-            newNoteName: noteTitle,
+            note: `${decodeURIComponent(note)}.md`,
           });
+
+          const newFilePath = new FilePath({
+            folder: decodeURIComponent(folder),
+            note: `${noteTitle}.md`,
+          });
+
+          try {
+            await renameFile({
+              oldPath: oldFilePath,
+              newPath: newFilePath,
+              setErrorText,
+            });
+            navigate(newFilePath.getLinkToNote());
+          } catch (error) {
+            // Error handling is done in the mutation
+          }
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {

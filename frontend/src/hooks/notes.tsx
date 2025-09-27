@@ -339,27 +339,77 @@ export function usePinNotesMutation() {
 }
 
 export function useRenameFileMutation() {
+  const queryClient = useQueryClient();
+  const noteSort = useAtomValue(noteSortAtom);
+
   return useMutation({
     mutationFn: async ({
       oldPath,
       newPath,
+      setErrorText: _setErrorText,
     }: {
-      oldPath: string;
-      newPath: string;
+      oldPath: FilePath;
+      newPath: FilePath;
+      setErrorText: Dispatch<SetStateAction<string>>;
     }) => {
-      const res = await RenameFile(oldPath, newPath);
+      const res = await RenameFile(oldPath.toString(), newPath.toString());
       if (!res.success) {
         throw new Error(res.message);
       }
       return res.data;
     },
-    onError: (e) => {
-      if (e instanceof Error) {
-        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+    // Optimistically update cache
+    onMutate: async (variables) => {
+      const folder = variables.oldPath.folder;
+
+      await queryClient.cancelQueries({
+        queryKey: noteQueries.getNotes(folder, noteSort, queryClient).queryKey,
+      });
+
+      const previousNotesData = queryClient.getQueryData<NotesQueryData>(
+        noteQueries.getNotes(folder, noteSort, queryClient).queryKey
+      );
+
+      if (previousNotesData?.notes) {
+        // Find the old note in the current notes and replace it with the new path
+        const updatedNotes = previousNotesData.notes.map((note) => {
+          if (note.equals(variables.oldPath)) {
+            return variables.newPath;
+          }
+          return note;
+        });
+
+        const updatedNotesData: NotesQueryData = {
+          notes: updatedNotes,
+          previousNotes: previousNotesData.notes || undefined,
+        };
+
+        queryClient.setQueryData(
+          noteQueries.getNotes(folder, noteSort, queryClient).queryKey,
+          updatedNotesData
+        );
       }
+
+      return { previousNotesData, folder };
     },
     onSuccess: () => {
       toast.success('File renamed successfully', DEFAULT_SONNER_OPTIONS);
+    },
+    onError: (error, variables, context) => {
+      // Roll back the cache to the previous notes data if an error occurred during renaming
+      if (context?.previousNotesData && context?.folder) {
+        queryClient.setQueryData(
+          noteQueries.getNotes(context.folder, noteSort, queryClient).queryKey,
+          context.previousNotesData
+        );
+      }
+      if (error instanceof Error) {
+        variables.setErrorText(error.message);
+      } else {
+        variables.setErrorText(
+          'An unknown error occurred. Please try again later.'
+        );
+      }
     },
   });
 }

@@ -71,38 +71,6 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) config.Back
 	}
 }
 
-// RenameNote renames a note file within a folder from oldNoteTitle to newNoteTitle (both without extension).
-// Returns a BackendResponseWithoutData indicating success or failure.
-func (n *NoteService) RenameNote(folderName string, oldNoteTitle string, newNoteTitle string) config.BackendResponseWithoutData {
-	noteBase := filepath.Join(n.ProjectPath, "notes", folderName)
-	pathToNewNote := filepath.Join(noteBase, newNoteTitle+".md")
-	doesExist, err := util.FileOrFolderExists(
-		pathToNewNote,
-	)
-
-	if err != nil {
-		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
-	}
-
-	if doesExist {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: fmt.Sprintf("%s already exists in /%s", newNoteTitle, folderName),
-		}
-	}
-
-	// Rename the markdown file to match the new note title
-	err = os.Rename(
-		filepath.Join(noteBase, fmt.Sprintf("%s.md", oldNoteTitle)),
-		filepath.Join(noteBase, fmt.Sprintf("%s.md", newNoteTitle)),
-	)
-	if err != nil {
-		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
-	}
-
-	return config.BackendResponseWithoutData{Success: true, Message: "Note renamed successfully"}
-}
-
 // RenameFile renames a file from oldFolderNotePath to newFolderNotePath.
 // Both paths should be relative to the notes directory (e.g., "folder/note.ext").
 // Returns a BackendResponseWithData containing the new path or an error message.

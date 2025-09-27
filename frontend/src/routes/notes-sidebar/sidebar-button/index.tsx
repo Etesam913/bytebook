@@ -269,51 +269,50 @@ export function NoteSidebarButton({
                         dialogClassName: 'w-[min(25rem,90vw)]',
                         children: (errorText) => {
                           const selectedNote = [...newSelectionRange][0];
+                          const noteWithoutPrefix =
+                            selectedNote.split(':')[1] || '';
+                          const selectedFilePath = new FilePath({
+                            folder: sidebarNotePath.folder,
+                            note: noteWithoutPrefix,
+                          });
 
                           return (
                             <RenameFileDialogChildren
-                              selectedNote={selectedNote}
+                              selectedFilePath={selectedFilePath}
                               errorText={errorText}
                             />
                           );
                         },
                         onSubmit: async (e, setErrorText) => {
-                          try {
-                            const form = e.target as HTMLFormElement;
-                            const formData = new FormData(form);
-                            const newFileName = formData.get(
-                              'new-file-name'
-                            ) as string;
-                            if (!newFileName) {
-                              setErrorText('Please enter a new file name');
-                              return false;
-                            }
-
-                            // Use the FilePath object for cleaner path handling
-                            const originalPath = `${sidebarNotePath.folder}/${sidebarNotePath.note}`;
-
-                            const targetFolder = sidebarNotePath.folder;
-                            const newPath = `${targetFolder}/${newFileName}.${sidebarNotePath.noteExtension}`;
-                            await renameFile({
-                              oldPath: originalPath,
-                              newPath: newPath,
-                            });
-
-                            const newFilePath = new FilePath({
-                              folder: targetFolder,
-                              note: `${newFileName}.${sidebarNotePath.noteExtension}`,
-                            });
-
-                            navigate(newFilePath.getLinkToNote());
-                            return true;
-                          } catch (error) {
-                            setErrorText(
-                              error instanceof Error
-                                ? error.message
-                                : 'Failed to rename file'
-                            );
+                          const form = e.target as HTMLFormElement;
+                          const formData = new FormData(form);
+                          const newFileName = formData.get(
+                            'new-file-name'
+                          ) as string;
+                          if (!newFileName) {
+                            setErrorText('Please enter a new file name');
                             return false;
                           }
+
+                          // Use the FilePath object for cleaner path handling
+                          const oldFilePath = sidebarNotePath;
+                          const newFilePath = new FilePath({
+                            folder: sidebarNotePath.folder,
+                            note: `${newFileName}.${sidebarNotePath.noteExtension}`,
+                          });
+
+                          const result = await renameFile({
+                            oldPath: oldFilePath,
+                            newPath: newFilePath,
+                            setErrorText,
+                          });
+
+                          if (result) {
+                            navigate(newFilePath.getLinkToNote());
+                            return true;
+                          }
+
+                          return false;
                         },
                       });
                     },
