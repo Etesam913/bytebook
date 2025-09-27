@@ -24,8 +24,9 @@ export function CreateFolderDialog({ errorText }: { errorText: string }) {
             spellCheck: 'false',
             type: 'text',
           }}
+          required
+          error={errorText}
         />
-        <DialogErrorText errorText={errorText} />
       </fieldset>
       <MotionButton
         {...getDefaultButtonVariants({
@@ -69,8 +70,9 @@ export function RenameFolderDialog({
             spellCheck: 'false',
             type: 'text',
           }}
+          required
+          error={errorText}
         />
-        <DialogErrorText errorText={errorText} />
       </fieldset>
       <MotionButton
         {...getDefaultButtonVariants({

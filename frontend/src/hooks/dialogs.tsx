@@ -45,8 +45,9 @@ export function useCreateNoteDialog(): (folder: string) => void {
                 spellCheck: 'false',
                 type: 'text',
               }}
+              required
+              error={errorText}
             />
-            <DialogErrorText errorText={errorText} />
           </fieldset>
           <MotionButton
             {...getDefaultButtonVariants({ disabled: false, whileHover: 1.05, whileTap: 0.95, whileFocus: 1.05 })}

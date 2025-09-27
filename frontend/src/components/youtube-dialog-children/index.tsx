@@ -42,8 +42,9 @@ export function YouTubeDialogChildren({
             placeholder: 'https://www.youtube.com/watch?v=TgVhTXK-q74',
           }}
           labelProps={{ htmlFor: 'youtube-url' }}
+          required
+          error={errorText}
         />
-        <DialogErrorText errorText={errorText} />
       </fieldset>
       <MotionButton
         type="submit"
