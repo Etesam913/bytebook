@@ -50,7 +50,12 @@ export function MyNotesSidebar({
             Something went wrong when retrieving the notes
           </p>
           <MotionButton
-            {...getDefaultButtonVariants({ disabled: false, whileHover: 1.025, whileTap: 0.975, whileFocus: 1.025 })}
+            {...getDefaultButtonVariants({
+              disabled: false,
+              whileHover: 1.025,
+              whileTap: 0.975,
+              whileFocus: 1.025,
+            })}
             className="mx-2.5 flex text-center"
             onClick={() => refetch()}
           >
@@ -83,7 +88,7 @@ export function MyNotesSidebar({
               </li>
             }
             data={notes ?? []}
-            dataItemToString={(filePath) => filePath.noteWithoutExtension}
+            dataItemToString={(filePath) => filePath.note}
             dataItemToSelectionRangeEntry={(filePath) => {
               return filePath.note;
             }}

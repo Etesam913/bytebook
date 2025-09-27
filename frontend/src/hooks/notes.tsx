@@ -366,9 +366,13 @@ export function useRenameFileMutation() {
         queryKey: noteQueries.getNotes(folder, noteSort, queryClient).queryKey,
       });
 
-      const previousNotesData = queryClient.getQueryData<NotesQueryData>(
-        noteQueries.getNotes(folder, noteSort, queryClient).queryKey
-      );
+      const getNotesQueryKey = noteQueries.getNotes(
+        folder,
+        noteSort,
+        queryClient
+      ).queryKey;
+
+      const previousNotesData = queryClient.getQueryData(getNotesQueryKey);
 
       if (previousNotesData?.notes) {
         // Find the old note in the current notes and replace it with the new path
@@ -378,16 +382,14 @@ export function useRenameFileMutation() {
           }
           return note;
         });
+        console.log({ previousNotes: previousNotesData.notes, updatedNotes });
 
         const updatedNotesData: NotesQueryData = {
           notes: updatedNotes,
           previousNotes: previousNotesData.notes || undefined,
         };
 
-        queryClient.setQueryData(
-          noteQueries.getNotes(folder, noteSort, queryClient).queryKey,
-          updatedNotesData
-        );
+        queryClient.setQueryData(getNotesQueryKey, updatedNotesData);
       }
 
       return { previousNotesData, folder };
