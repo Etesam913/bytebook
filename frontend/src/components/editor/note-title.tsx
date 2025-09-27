@@ -3,47 +3,22 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useSetAtom } from 'jotai';
 import { $getRoot } from 'lexical';
 import { useEffect, useState } from 'react';
-import { RenameNote } from '../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
+import { useRenameFileMutation } from '../../hooks/notes';
 import { isToolbarDisabledAtom } from '../../atoms';
-import {
-  NAME_CHARS,
-  cn,
-  convertFilePathToQueryNotation,
-} from '../../utils/string-formatting';
-import { useMutation } from '@tanstack/react-query';
+import { NAME_CHARS, cn, FilePath } from '../../utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
 
-export function NoteTitle({ note, folder }: { note: string; folder: string }) {
+export function NoteTitle({ filePath }: { filePath: FilePath }) {
   const [editor] = useLexicalComposerContext();
-  const [noteTitle, setNoteTitle] = useState(note);
+  const [noteTitle, setNoteTitle] = useState(filePath.noteWithoutExtension);
   const [errorText, setErrorText] = useState('');
   const setIsToolbarDisabled = useSetAtom(isToolbarDisabledAtom);
-  const { mutate: renameNote } = useMutation({
-    mutationFn: async ({
-      folder,
-      oldNoteName,
-      newNoteName,
-    }: {
-      folder: string;
-      oldNoteName: string;
-      newNoteName: string;
-    }) => {
-      const res = await RenameNote(folder, oldNoteName, newNoteName);
-      if (!res.success) throw new Error(res.message);
-      navigate(
-        `/${convertFilePathToQueryNotation(`${encodeURIComponent(folder)}/${encodeURIComponent(newNoteName)}.md`)}`
-      );
-      return res;
-    },
-    onError: (error) => {
-      setErrorText(error.message);
-    },
-  });
+  const { mutate: renameFile } = useRenameFileMutation();
 
   useEffect(() => {
-    setNoteTitle(decodeURIComponent(note));
+    setNoteTitle(filePath.noteWithoutExtension);
     setErrorText('');
-  }, [note]);
+  }, [filePath.folder, filePath.note]);
 
   return (
     <div className="mt-2 mb-3 flex flex-col">
@@ -68,14 +43,21 @@ export function NoteTitle({ note, folder }: { note: string; folder: string }) {
         }}
         placeholder="Untitled Note"
         onFocus={() => setIsToolbarDisabled(true)}
-        onBlur={() => {
+        onBlur={async () => {
           setIsToolbarDisabled(false);
-          if (noteTitle === note || errorText.length > 0) return;
-          renameNote({
-            folder: decodeURIComponent(folder),
-            oldNoteName: decodeURIComponent(note),
-            newNoteName: noteTitle,
+          if (noteTitle === filePath.noteWithoutExtension || errorText.length > 0)
+            return;
+          const newPath = new FilePath({
+            folder: filePath.folder,
+            note: `${noteTitle}.${filePath.noteExtension}`,
           });
+
+          try {
+            await renameFile({ oldPath: filePath, newPath });
+            navigate(newPath.getLinkToNote());
+          } catch (e) {
+            setErrorText(e instanceof Error ? e.message : 'Failed to rename note');
+          }
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
