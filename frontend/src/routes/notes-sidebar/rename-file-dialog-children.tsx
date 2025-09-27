@@ -48,6 +48,8 @@ export function RenameFileDialogChildren({
             spellCheck: 'false',
             type: 'text',
           }}
+          required
+          helperText="Enter a new name for the file without the extension"
         />
       </div>
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
