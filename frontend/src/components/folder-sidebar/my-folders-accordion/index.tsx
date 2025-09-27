@@ -9,7 +9,7 @@ import {} from '../../../utils/selection';
 import { MotionButton } from '../../buttons';
 import { Sidebar } from '../../sidebar';
 import { AccordionButton } from '../../sidebar/accordion-button';
-import {} from '../folder-dialog-children';
+import {} from './folder-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
 import { useLocation } from 'wouter';
 import { routeUrls } from '../../../utils/routes';

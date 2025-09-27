@@ -67,7 +67,7 @@ export function SavedSearchPage({
             <section className="flex items-center py-3.5 gap-2">
               <Magnifier width={16} height={16} className="min-w-[16px]" />
               <p className="overflow-hidden text-ellipsis whitespace-nowrap">
-                Search: &quot;{searchQuery}&quot;
+                Search: {searchQuery}
               </p>
             </section>
             <div className="flex items-center justify-between gap-2 mb-2">

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
+	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/search"
 )
 
@@ -80,4 +81,54 @@ func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []string {
 	}
 
 	return searchResultsWithoutSimilarity
+}
+
+// GetAllSavedSearches returns all saved searches for the project
+func (s *SearchService) GetAllSavedSearches() (config.BackendResponseWithData[[]search.SavedSearch], error) {
+	searches, err := search.GetAllSavedSearches(s.ProjectPath)
+	if err != nil {
+		return config.BackendResponseWithData[[]search.SavedSearch]{
+			Success: false,
+			Message: err.Error(),
+			Data:    nil,
+		}, nil
+	}
+
+	return config.BackendResponseWithData[[]search.SavedSearch]{
+		Success: true,
+		Message: "Successfully retrieved saved searches",
+		Data:    searches,
+	}, nil
+}
+
+// AddSavedSearch adds a new saved search to the project
+func (s *SearchService) AddSavedSearch(name, query string) config.BackendResponseWithoutData {
+	err := search.AddSavedSearch(s.ProjectPath, name, query)
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: err.Error(),
+		}
+	}
+
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "Successfully added saved search",
+	}
+}
+
+// RemoveSavedSearch removes a saved search from the project
+func (s *SearchService) RemoveSavedSearch(name string) config.BackendResponseWithoutData {
+	err := search.RemoveSavedSearch(s.ProjectPath, name)
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: err.Error(),
+		}
+	}
+
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "Successfully removed saved search",
+	}
 }

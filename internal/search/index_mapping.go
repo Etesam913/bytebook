@@ -109,9 +109,9 @@ func createAttachmentBleveDocument(folder, fileName, fileExtension string) Attac
 }
 
 // GetPathToIndex returns the full path to the search index file for a given project.
-// It combines the project path with the notes directory and the index filename.
+// It combines the project path with the search directory and the index filename.
 func GetPathToIndex(projectPath string) string {
-	return filepath.Join(projectPath, INDEX_NAME)
+	return filepath.Join(projectPath, "search", INDEX_NAME)
 }
 
 // doesIndexExist checks whether a search index file exists for the given project path.

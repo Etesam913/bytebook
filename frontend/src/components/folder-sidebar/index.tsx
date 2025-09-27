@@ -10,7 +10,7 @@ import {
 import { FolderPlus } from '../../icons/folder-plus';
 import { MotionButton, MotionIconButton } from '../buttons';
 import { BottomItems } from './bottom-items.tsx';
-import { CreateFolderDialog } from './folder-dialog-children.tsx';
+import { CreateFolderDialog } from './my-folders-accordion/folder-dialog-children.tsx';
 import { MyFoldersAccordion } from './my-folders-accordion';
 import { MyTagsAccordion } from './my-tags-accordion';
 import { PinnedNotesAccordion } from './pinned-notes-accordion.tsx';

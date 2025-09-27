@@ -94,7 +94,7 @@ func CreateProjectFiles(projectPath string) (ProjectFiles, error) {
 }
 
 // CreateProjectDirectories ensures all required directories exist in the project path.
-// It creates the settings, code, tags, and notes directories with appropriate permissions.
+// It creates the settings, code, tags, notes, and search directories with appropriate permissions.
 // Returns an error if any directory creation fails.
 func CreateProjectDirectories(projectPath string) error {
 	if err := os.MkdirAll(filepath.Join(projectPath, "settings"), os.ModePerm); err != nil {
@@ -107,6 +107,22 @@ func CreateProjectDirectories(projectPath string) error {
 
 	if err := os.MkdirAll(filepath.Join(projectPath, "notes"), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create project notes directory: %v", err)
+	}
+
+	if err := os.MkdirAll(filepath.Join(projectPath, "search"), os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create project search directory: %v", err)
+	}
+
+	return nil
+}
+
+// CreateSavedSearchesFile creates the saved-searches.json file if it doesn't exist.
+func CreateSavedSearchesFile(projectPath string) error {
+	searchDir := filepath.Join(projectPath, "search")
+	savedSearchesPath := filepath.Join(searchDir, "saved-searches.json")
+	_, err := util.CreateJSONFileIfNotExists(savedSearchesPath)
+	if err != nil {
+		return fmt.Errorf("failed to create saved searches file: %w", err)
 	}
 
 	return nil

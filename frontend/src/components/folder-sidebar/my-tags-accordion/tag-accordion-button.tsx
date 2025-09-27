@@ -15,7 +15,7 @@ import {
 import { navigate } from 'wouter/use-browser-location';
 import { routeUrls } from '../../../utils/routes';
 import { currentZoomAtom } from '../../../hooks/resize';
-import { TagDialogChildren } from '../tag-dialog-children';
+import { TagDialogChildren } from './tag-dialog-children';
 
 export function TagAccordionButton({
   tags,

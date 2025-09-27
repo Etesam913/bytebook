@@ -3,12 +3,16 @@ import {
   queryOptions,
   useMutation,
   useQuery,
+  useQueryClient,
 } from '@tanstack/react-query';
 import { atom, useSetAtom } from 'jotai';
 import { navigate } from 'wouter/use-browser-location';
 import {
   FullTextSearch,
   SearchFileNamesFromQuery,
+  GetAllSavedSearches,
+  AddSavedSearch,
+  RemoveSavedSearch,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
 import { searchPanelDataAtom } from '../atoms';
 import { useWailsEvent } from '../hooks/events';
@@ -32,6 +36,17 @@ export const searchQueries = {
         }));
       },
       placeholderData: keepPreviousData,
+    }),
+  savedSearches: () =>
+    queryOptions({
+      queryKey: ['saved-searches'],
+      queryFn: async () => {
+        const response = await GetAllSavedSearches();
+        if (!response.success) {
+          throw new Error(response.message);
+        }
+        return response.data;
+      },
     }),
 };
 
@@ -63,7 +78,6 @@ export function useSearch() {
 /**
  * Hook to perform a mutation for searching file names from a query string.
  * Uses react-query's useMutation.
- * @returns {UseMutationResult} The mutation object for triggering the search.
  */
 export function useSearchMutation() {
   return useMutation({
@@ -78,8 +92,6 @@ export function useSearchMutation() {
 
 /**
  * Hook to perform a full-text search query using react-query.
- * @param {string} searchQuery - The search query string.
- * @returns {UseQueryResult} The query result containing search data with FilePath objects.
  */
 export function useFullTextSearchQuery(searchQuery: string) {
   return useQuery(searchQueries.fullTextSearch(searchQuery));
@@ -88,7 +100,6 @@ export function useFullTextSearchQuery(searchQuery: string) {
 /**
  * Hook to provide a ref to an input element and focus it when "/" is pressed.
  * Ignores the shortcut if the event originates from an input or textarea.
- * @returns {React.RefObject<HTMLInputElement>} The input ref to attach to your input.
  */
 export function useSearchFocus() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -119,4 +130,61 @@ export function useSearchFocus() {
   }, []);
 
   return inputRef;
+}
+
+/**
+ * Hook to fetch saved searches from saved-searches.json
+ */
+export function useSavedSearchesQuery() {
+  return useQuery(searchQueries.savedSearches());
+}
+
+/**
+ * Hook to save a search query to saved-searches.json
+ */
+export function useSaveSearchMutation() {
+  return useMutation({
+    mutationFn: async ({
+      searchQuery,
+      name,
+    }: {
+      searchQuery: string;
+      name: string;
+    }) => {
+      const response = await AddSavedSearch(name, searchQuery);
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      return response;
+    },
+  });
+}
+
+/**
+ * Hook to delete a saved search from saved-searches.json
+ */
+export function useDeleteSavedSearchMutation() {
+  return useMutation({
+    mutationFn: async ({ name }: { name: string }) => {
+      const response = await RemoveSavedSearch(name);
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      return response;
+    },
+  });
+}
+
+/**
+ * Hook to listen for saved search updates and invalidate the saved searches query.
+ * Listens for 'saved-search:update' Wails events and invalidates the query cache.
+ */
+export function useSavedSearchUpdates() {
+  const queryClient = useQueryClient();
+
+  useWailsEvent('saved-search:update', () => {
+    queryClient.invalidateQueries({
+      queryKey: searchQueries.savedSearches().queryKey,
+    });
+  });
 }

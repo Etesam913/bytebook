@@ -1,10 +1,10 @@
-import { getDefaultButtonVariants } from '../../animations';
-import { FolderPlus } from '../../icons/folder-plus';
-import { FolderXMark } from '../../icons/folder-xmark';
-import { Pen } from '../../icons/pen';
-import { MotionButton } from '../buttons';
-import { DialogErrorText } from '../dialog';
-import { Input } from '../input';
+import { getDefaultButtonVariants } from '../../../animations';
+import { FolderPlus } from '../../../icons/folder-plus';
+import { FolderXMark } from '../../../icons/folder-xmark';
+import { Pen } from '../../../icons/pen';
+import { MotionButton } from '../../buttons';
+import { DialogErrorText } from '../../dialog';
+import { Input } from '../../input';
 
 export function CreateFolderDialog({ errorText }: { errorText: string }) {
   return (

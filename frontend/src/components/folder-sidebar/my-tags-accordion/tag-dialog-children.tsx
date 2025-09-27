@@ -1,7 +1,7 @@
-import { getDefaultButtonVariants } from '../../animations';
-import TagSlash from '../../icons/tag-slash';
-import { getTagNameFromSelectionRange } from '../../utils/string-formatting';
-import { MotionButton } from '../buttons';
+import { getDefaultButtonVariants } from '../../../animations';
+import TagSlash from '../../../icons/tag-slash';
+import { getTagNameFromSelectionRange } from '../../../utils/string-formatting';
+import { MotionButton } from '../../buttons';
 
 export function TagDialogChildren({
   tagsToDelete,

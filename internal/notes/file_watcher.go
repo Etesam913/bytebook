@@ -191,6 +191,19 @@ func (fw *FileWatcher) handleSettingsUpdate() {
 	}
 }
 
+// handleSavedSearchUpdate processes updates to saved searches file
+func (fw *FileWatcher) handleSavedSearchUpdate(event fsnotify.Event) {
+	if event.Has(fsnotify.Write) ||
+		event.Has(fsnotify.Create) ||
+		event.Has(fsnotify.Remove) ||
+		event.Has(fsnotify.Rename) {
+		fw.app.Event.EmitEvent(&application.CustomEvent{
+			Name: util.Events.SavedSearchUpdate,
+			Data: nil,
+		})
+	}
+}
+
 // processEvent handles a single filesystem event
 func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 	log.Println("event:", event, filepath.Ext(event.Name))
@@ -218,6 +231,8 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 		// Handle file events
 		if oneFolderBack == "settings" {
 			fw.handleSettingsUpdate()
+		} else if oneFolderBack == "search" && filepath.Base(event.Name) == "saved-searches.json" {
+			fw.handleSavedSearchUpdate(event)
 		} else {
 			fw.handleFileEvents(segments, event, oneFolderBack)
 		}
@@ -273,12 +288,12 @@ func AddProjectFoldersToWatcher(projectPath string, watcher *fsnotify.Watcher) {
 	// Set up paths
 	settingsPath := filepath.Join(projectPath, "settings")
 	notesFolderPath := filepath.Join(projectPath, "notes")
-	tagsFolderPath := filepath.Join(projectPath, "tags")
+	searchPath := filepath.Join(projectPath, "search")
 
 	// Add main folders to watcher
 	watcher.Add(settingsPath)
 	watcher.Add(notesFolderPath)
-	watcher.Add(tagsFolderPath)
+	watcher.Add(searchPath)
 
 	// Add all note subfolders
 	noteEntries, err := os.ReadDir(notesFolderPath)
@@ -288,17 +303,6 @@ func AddProjectFoldersToWatcher(projectPath string, watcher *fsnotify.Watcher) {
 	for _, entry := range noteEntries {
 		if entry.IsDir() {
 			watcher.Add(filepath.Join(notesFolderPath, entry.Name()))
-		}
-	}
-
-	// Add all tag subfolders
-	tagEntries, err := os.ReadDir(tagsFolderPath)
-	if err != nil {
-		log.Fatalf("Failed to read tags directory: %v", err)
-	}
-	for _, entry := range tagEntries {
-		if entry.IsDir() {
-			watcher.Add(filepath.Join(tagsFolderPath, entry.Name()))
 		}
 	}
 }

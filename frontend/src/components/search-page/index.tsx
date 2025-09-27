@@ -7,14 +7,17 @@ import {
   useFullTextSearchQuery,
   useSearchFocus,
 } from '../../hooks/search';
+import { useSaveSearchDialog } from '../../hooks/dialogs';
 import { useAtom } from 'jotai';
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { SearchResultsList } from './results/search-results-list';
+import { BookBookmark } from '../../icons/book-bookmark';
 
 export function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useAtom(lastSearchQueryAtom);
   const inputRef = useSearchFocus();
+  const openSaveSearchDialog = useSaveSearchDialog();
 
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [, setLocation] = useLocation();
@@ -84,6 +87,15 @@ export function SearchPage() {
           }}
           labelProps={{}}
         />
+        {lastSearchQuery && (
+          <MotionIconButton
+            {...getDefaultButtonVariants()}
+            onClick={() => openSaveSearchDialog(lastSearchQuery)}
+            title="Save Search"
+          >
+            <BookBookmark height={20} width={20} />
+          </MotionIconButton>
+        )}
       </header>
       <div className="flex-1 overflow-auto pr-1 flex flex-col">
         {/* {isLoading && (

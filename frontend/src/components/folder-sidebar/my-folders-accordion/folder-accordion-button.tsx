@@ -28,7 +28,7 @@ import { handleDragStart } from '../../sidebar/utils';
 import {
   RenameFolderDialog,
   DeleteFolderDialog,
-} from '../folder-dialog-children';
+} from './folder-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
 import {
   ROUTE_PATTERNS,

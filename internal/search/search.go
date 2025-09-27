@@ -101,7 +101,7 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 		}
 
 		// extract tags from search result
-		tags := []string{}
+		var tags []string
 		if tagsField, ok := hit.Fields[FieldTags]; ok {
 			switch t := tagsField.(type) {
 			case []interface{}:

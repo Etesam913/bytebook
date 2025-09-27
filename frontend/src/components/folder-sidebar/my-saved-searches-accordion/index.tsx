@@ -1,22 +1,26 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
-import { Magnifier } from '../../../icons/magnifier';
 import { Sidebar } from '../../sidebar';
 import { AccordionButton } from '../../sidebar/accordion-button';
 import {
   ROUTE_PATTERNS,
   type SavedSearchRouteParams,
 } from '../../../utils/routes';
+import {
+  useSavedSearchesQuery,
+  useSavedSearchUpdates,
+} from '../../../hooks/search';
 
 import { useRoute } from 'wouter';
 import { SavedSearchAccordionButton } from './saved-search-accordion-button';
 import { Box2Search } from '../../../icons/box-2-search';
+import { SavedSearch } from '../../../../bindings/github.com/etesam913/bytebook/internal/search/models';
 
 export function MySavedSearchesAccordion() {
+  useSavedSearchUpdates();
   const [isOpen, setIsOpen] = useState(false);
-  // TODO: Replace with actual saved searches hook when implemented
-  const savedSearches = []; // Placeholder for saved searches data
-  const hasSavedSearches = savedSearches && savedSearches?.length > 0;
+  const { data: savedSearches = [] } = useSavedSearchesQuery();
+  const hasSavedSearches = savedSearches.length > 0;
   const [isSavedSearchRoute, savedSearchRouteParams] =
     useRoute<SavedSearchRouteParams>(ROUTE_PATTERNS.SAVED_SEARCH);
   const searchQuery = savedSearchRouteParams?.searchQuery;
@@ -48,7 +52,7 @@ export function MySavedSearchesAccordion() {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden hover:overflow-auto pl-1"
           >
-            <Sidebar<string>
+            <Sidebar<SavedSearch>
               layoutId="saved-searches-sidebar"
               emptyElement={
                 <li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
@@ -56,23 +60,23 @@ export function MySavedSearchesAccordion() {
                 </li>
               }
               contentType="saved-search"
-              dataItemToString={(searchName) => searchName}
-              dataItemToSelectionRangeEntry={(searchName) => searchName}
-              renderLink={({ dataItem: sidebarSearchName, i }) => {
+              dataItemToString={(search) => search.name}
+              dataItemToSelectionRangeEntry={(search) => search.name}
+              renderLink={({ dataItem: search, i }) => {
                 return (
                   <SavedSearchAccordionButton
                     savedSearches={savedSearches}
                     i={i}
-                    sidebarSearchName={sidebarSearchName}
+                    sidebarSearchName={search.name}
                     isActive={
                       isSavedSearchRoute &&
                       !!searchQuery &&
-                      decodeURIComponent(searchQuery) === sidebarSearchName
+                      decodeURIComponent(searchQuery) === search.query
                     }
                   />
                 );
               }}
-              data={savedSearches ?? null}
+              data={savedSearches}
             />
           </motion.div>
         )}
