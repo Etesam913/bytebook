@@ -112,6 +112,20 @@ func renameNotesInIndex(params EventParams, data []map[string]string) {
 			if err != nil {
 				log.Println("Error adding renamed note to batch", err)
 			}
+		} else {
+			// Handle attachment files
+			fileExtension := filepath.Ext(newNoteName)
+			_, err := search.AddAttachmentToBatch(
+				batch,
+				params.Index,
+				newFolder,
+				newNoteName,
+				fileExtension,
+			)
+
+			if err != nil {
+				log.Println("Error adding renamed attachment to batch", err)
+			}
 		}
 
 	}
