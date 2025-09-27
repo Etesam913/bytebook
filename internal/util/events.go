@@ -18,6 +18,7 @@ var Events = struct {
 	SearchOpen      string
 	SearchOpenPanel string
 	SearchNote      string
+	NewNoteMenu     string
 
 	// File watcher events
 	SettingsUpdate  string
@@ -42,9 +43,10 @@ var Events = struct {
 	AuthAccessToken string
 }{
 	// Note events
-	NoteCreate: "note:create",
-	NoteDelete: "note:delete",
-	NoteRename: "note:rename",
+	NoteCreate:  "note:create",
+	NoteDelete:  "note:delete",
+	NoteRename:  "note:rename",
+	NewNoteMenu: "note:create-dialog",
 
 	// Folder events
 	FolderRename: "folder:rename",

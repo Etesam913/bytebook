@@ -52,6 +52,7 @@ import {
 import { $convertFromMarkdownStringCorrect } from '../utils/note-metadata';
 import { updateToolbar } from '../utils/toolbar';
 import { useWailsEvent } from '../../../hooks/events';
+import { useCreateNoteDialog } from '../../../hooks/dialogs';
 
 /** Gets note markdown from local system on mount */
 export function useNoteMarkdown(
@@ -281,6 +282,10 @@ export function useToolbarEvents(
   ]);
 }
 
+/**
+ * Custom hook to handle the "search:note" Wails event.
+ * Toggles the search UI open/closed when the event is received for the current window.
+ */
 export function useSearchNoteEvent(): [
   boolean,
   Dispatch<SetStateAction<boolean>>,
@@ -293,4 +298,17 @@ export function useSearchNoteEvent(): [
   });
 
   return [isSearchOpen, setIsSearchOpen];
+}
+
+/**
+ * Custom hook to handle the "note:create-dialog" Wails event.
+ * Opens the create note dialog for the specified folder when the event is received for the current window.
+ */
+export function useNewNoteEvent(folder: string): void {
+  const openCreateNoteDialog = useCreateNoteDialog();
+
+  useWailsEvent('note:create-dialog', async (data) => {
+    if (!(await isEventInCurrentWindow(data))) return;
+    openCreateNoteDialog(folder);
+  });
 }
