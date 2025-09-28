@@ -42,6 +42,7 @@ export function FontFamilyRow() {
               });
             },
           }}
+          helperText="Enter a font family name (e.g., Arial, Times New Roman)"
         />
         <MotionIconButton
           {...getDefaultButtonVariants()}

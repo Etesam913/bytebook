@@ -83,6 +83,8 @@ export function SearchPage() {
             },
           }}
           labelProps={{}}
+          clearable
+          helperText="Use arrow keys to navigate results, Enter to select, Escape to go back"
         />
       </header>
       <div className="flex-1 overflow-auto pr-1 flex flex-col">

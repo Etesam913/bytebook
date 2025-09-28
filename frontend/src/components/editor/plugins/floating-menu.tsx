@@ -111,7 +111,9 @@ export function FloatingMenuPlugin({
               defaultValue: floatingData.previousUrl ?? 'https://',
               autoFocus: true,
               className: 'text-sm w-64',
+              placeholder: 'https://example.com',
             }}
+            helperText="Enter a URL to create a link"
           />
           <MotionButton type="submit" {...getDefaultButtonVariants()}>
             <SubmitLink height={18} width={18} />

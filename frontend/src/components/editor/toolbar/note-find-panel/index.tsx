@@ -110,6 +110,8 @@ export function NoteFindPanel({
                 }
               },
             }}
+            clearable
+            helperText="Press Enter to find next, Shift+Enter for previous, Escape to close"
           />
 
           <NavigationControls
