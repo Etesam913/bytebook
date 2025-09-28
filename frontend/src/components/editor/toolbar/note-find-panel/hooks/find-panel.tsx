@@ -136,10 +136,17 @@ export function useFindPanelSearch({
               node.select(match.start, match.end + 1);
             }
           });
+          // Focus the editor after selecting the text
+          editor.focus();
+        }, 200);
+      } else {
+        // If there are no matches or no active match, just focus the editor
+        setTimeout(() => {
+          editor.focus();
         }, 200);
       }
     }
-  }, [isSearchOpen, setIsSearchOpen]);
+  }, [isSearchOpen, setIsSearchOpen, editor, currentMatchIndex, matchData]);
 
   return {
     matchData,
