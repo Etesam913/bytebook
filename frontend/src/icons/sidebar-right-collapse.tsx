@@ -2,6 +2,7 @@ export function SidebarRightCollapse({
   width = 18,
   height = 18,
   fill = 'currentColor',
+  strokeWidth = 1.5,
   title = 'WindowExpandTopLeft',
   className,
 }: {
@@ -9,6 +10,7 @@ export function SidebarRightCollapse({
   height?: number;
   fill?: string;
   secondaryfill?: string;
+  strokeWidth?: number;
   title?: string;
   className?: string;
 }) {
@@ -27,7 +29,7 @@ export function SidebarRightCollapse({
           stroke={fill}
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth={strokeWidth}
           x1="11.75"
           x2="11.75"
           y1="2.75"
@@ -39,7 +41,7 @@ export function SidebarRightCollapse({
           stroke={fill}
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth={strokeWidth}
         />
         <rect
           height="12.5"
@@ -50,7 +52,7 @@ export function SidebarRightCollapse({
           stroke={fill}
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth={strokeWidth}
           x="1.75"
           y="2.75"
         />

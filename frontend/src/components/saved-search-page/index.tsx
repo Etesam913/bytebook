@@ -15,6 +15,7 @@ import { useFullTextSearchQuery } from '../../hooks/search.tsx';
 import { useSearchParamsEntries } from '../../utils/routing.ts';
 import { FilePath } from '../../utils/string-formatting.ts';
 import { navigate } from 'wouter/use-browser-location';
+import { routeBuilders } from '../../utils/routes.ts';
 
 export function SavedSearchPage({
   searchQuery,
@@ -40,14 +41,14 @@ export function SavedSearchPage({
   const sidebarRef = useRef<HTMLElement>(null);
   const searchParams: { ext?: string } = useSearchParamsEntries();
   const fileExtension = searchParams?.ext;
-  console.log({ searchQuery, folder, note });
 
   // Auto navigate to the first result
   useEffect(() => {
     if (isSuccess && searchResults?.length > 0) {
       const firstFilePath = searchResults[0].filePath;
+
       navigate(
-        `/saved-search/${encodeURIComponent(searchQuery)}${firstFilePath.getLinkToNote()}`,
+        `${routeBuilders.savedSearch(searchQuery)}${firstFilePath.getLinkToNoteWithoutPrefix()}`,
         {
           replace: true,
         }

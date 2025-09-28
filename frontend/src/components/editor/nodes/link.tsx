@@ -146,11 +146,13 @@ export class LinkNode extends ElementNode {
       element.onclick = (e) => {
         // The segments are encoded by default
         if (isNoteLink) {
-          navigate(`/${folder}/${noteNameWithoutExtension}?ext=${extension}`);
+          navigate(
+            `/notes/${folder}/${noteNameWithoutExtension}?ext=${extension}`
+          );
           e.preventDefault();
         } else if (isFolderLink) {
           const folder = segments[segments.length - 1];
-          navigate(`/${encodeURIComponent(folder)}`);
+          navigate(`/notes/${encodeURIComponent(folder)}`);
           e.preventDefault();
         } else {
           element.href = 'about:blank';

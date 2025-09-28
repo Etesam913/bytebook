@@ -40,7 +40,6 @@ function VirtualizedPinnedNotes({
 
   const pinnedNotesElements = visibleItems.map((pinnedNotePath) => {
     const url = pinnedNotePath.getLinkToNote();
-    console.log('url', url);
     return (
       <AccordionItem
         onContextMenu={(e) => {

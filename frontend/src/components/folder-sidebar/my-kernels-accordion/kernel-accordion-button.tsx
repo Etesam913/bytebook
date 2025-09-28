@@ -16,13 +16,10 @@ import { KernelHeartbeat } from '../../kernel-info';
 import PowerOff from '../../../icons/power-off';
 import { Play } from '../../../icons/circle-play';
 import {
-  useKernelHeartbeat,
-  useKernelShutdown,
-  useKernelStatus,
   useShutdownKernelMutation,
   useTurnOnKernelMutation,
 } from '../../../hooks/code';
-import { isValidKernelLanguage, Languages, validLanguages } from '../../../types';
+import { Languages } from '../../../types';
 import { currentZoomAtom } from '../../../hooks/resize';
 import { routeUrls } from '../../../utils/routes';
 

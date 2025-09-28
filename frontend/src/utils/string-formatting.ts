@@ -89,6 +89,16 @@ export class FilePath {
     return `${this.folder}/${this.note}`;
   }
 
+  getLinkToNoteWithoutPrefix(extraParams?: FilePathAdditionalQueryParams) {
+    const params = new URLSearchParams({ ext: this.noteExtension });
+    if (extraParams) {
+      for (const [key, value] of Object.entries(extraParams)) {
+        params.set(key, String(value));
+      }
+    }
+    return `/${this.folder}/${encodeURIComponent(this.noteWithoutExtension)}?${params.toString()}`;
+  }
+
   /**
    * Returns a link to the note, with optional additional query parameters.
    * @param extraParams - An object of additional query parameters to add to the link.
@@ -100,13 +110,7 @@ export class FilePath {
    * filePath.getLinkToNote({ foo: "bar" }); // "/docs/readme?ext=md&foo=bar"
    */
   getLinkToNote(extraParams?: FilePathAdditionalQueryParams) {
-    const params = new URLSearchParams({ ext: this.noteExtension });
-    if (extraParams) {
-      for (const [key, value] of Object.entries(extraParams)) {
-        params.set(key, String(value));
-      }
-    }
-    return `/${this.folder}/${encodeURIComponent(this.noteWithoutExtension)}?${params.toString()}`;
+    return `/notes${this.getLinkToNoteWithoutPrefix(extraParams)}`;
   }
 
   getFileUrl() {

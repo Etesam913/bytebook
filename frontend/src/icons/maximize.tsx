@@ -3,6 +3,7 @@ export function Maximize({
   height = 18,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
+  strokeWidth = 1.25,
   title = 'Maximize',
   className,
 }: {
@@ -10,6 +11,7 @@ export function Maximize({
   height?: number;
   fill?: string;
   secondaryfill?: string;
+  strokeWidth?: number;
   title?: string;
   className?: string;
 }) {
@@ -29,7 +31,7 @@ export function Maximize({
           stroke={fill}
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.25"
+          strokeWidth={strokeWidth}
         />
         <polyline
           fill="none"
@@ -37,7 +39,7 @@ export function Maximize({
           stroke={secondaryfill}
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.25"
+          strokeWidth={strokeWidth}
         />
       </g>
     </svg>

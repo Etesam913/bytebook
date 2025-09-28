@@ -2,34 +2,22 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
 import { useRoute } from 'wouter';
 import { SquareTerminal } from '../../../icons/square-terminal';
-import { PythonLogo } from '../../../icons/python-logo';
-import { GolangLogo } from '../../../icons/golang-logo';
-import { JavascriptLogo } from '../../../icons/javascript-logo';
-import { JavaLogo } from '../../../icons/java-logo';
-import { cn } from '../../../utils/string-formatting';
 import { Sidebar } from '../../sidebar';
 import { AccordionButton } from '../../sidebar/accordion-button';
-import { navigate } from 'wouter/use-browser-location';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import {
-  contextMenuDataAtom,
-  kernelsDataAtom,
-  selectionRangeAtom,
-} from '../../../atoms';
-import { handleContextMenuSelection } from '../../../utils/selection';
-import { KernelHeartbeat } from '../../kernel-info';
-import PowerOff from '../../../icons/power-off';
-import { Play } from '../../../icons/circle-play';
 import {
   useKernelHeartbeat,
   useKernelShutdown,
   useKernelStatus,
-  useShutdownKernelMutation,
-  useTurnOnKernelMutation,
 } from '../../../hooks/code';
-import { isValidKernelLanguage, Languages, validLanguages } from '../../../types';
-import { currentZoomAtom } from '../../../hooks/resize';
-import { routeUrls, type KernelWithFilesRouteParams } from '../../../utils/routes';
+import {
+  isValidKernelLanguage,
+  Languages,
+  validLanguages,
+} from '../../../types';
+import {
+  routeUrls,
+  type KernelWithFilesRouteParams,
+} from '../../../utils/routes';
 import { KernelAccordionButton } from './kernel-accordion-button';
 
 export function MyKernelsAccordion() {

@@ -31,7 +31,7 @@ export const ROUTE_PATTERNS = {
   KERNELS: '/kernels/:kernelName',
   KERNELS_WITH_FILES: '/kernels/:kernelName/:folder?/:note?',
   SAVED_SEARCH: '/saved-search/:searchQuery/:folder?/:note?',
-  NOTES: '/:folder/:note?',
+  NOTES: '/notes/:folder/:note?',
   CATCH_ALL: '*',
   NOT_FOUND_FALLBACK: '/404',
 } as const;
@@ -56,7 +56,7 @@ export const routeBuilders = {
   /**
    * Build folder route
    */
-  folder: (folderName: string) => `/${encodeURIComponent(folderName)}`,
+  folder: (folderName: string) => `/notes/${encodeURIComponent(folderName)}`,
 
   /**
    * Build note route with optional query parameters
@@ -69,7 +69,7 @@ export const routeBuilders = {
       focus?: boolean;
     }
   ) => {
-    const baseRoute = `/${encodeURIComponent(folder)}/${fileName}`;
+    const baseRoute = `/notes/${encodeURIComponent(folder)}/${fileName}`;
 
     if (!options?.ext && !options?.focus) {
       return baseRoute;

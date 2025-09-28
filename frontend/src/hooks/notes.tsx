@@ -382,7 +382,6 @@ export function useRenameFileMutation() {
           }
           return note;
         });
-        console.log({ previousNotes: previousNotesData.notes, updatedNotes });
 
         const updatedNotesData: NotesQueryData = {
           notes: updatedNotes,

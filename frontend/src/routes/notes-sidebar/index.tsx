@@ -20,7 +20,6 @@ import { RenderNoteFallback } from '../../components/error-boundary/render-note.
 import { routeUrls } from '../../utils/routes.ts';
 import { navigate } from 'wouter/use-browser-location';
 import { findClosestSidebarItemToNavigateTo } from '../../utils/routing.ts';
-import { Command } from '../../icons/command.tsx';
 
 export function NotesSidebar({
   folder,
