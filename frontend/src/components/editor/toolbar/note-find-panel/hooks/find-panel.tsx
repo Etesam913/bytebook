@@ -1,4 +1,11 @@
-import { $getNodeByKey, $isTextNode, LexicalEditor } from 'lexical';
+import {
+  $getNodeByKey,
+  $getSelection,
+  $isTextNode,
+  $setSelection,
+  BaseSelection,
+  LexicalEditor,
+} from 'lexical';
 import {
   Dispatch,
   type RefObject,
@@ -120,6 +127,9 @@ export function useFindPanelSearch({
     }
   }, [searchValue, isSearchOpen, hasFirstLoad]);
 
+  // Store the previous selection to restore it when the find panel is closed with no matches
+  const previousSelectionRef = useRef<BaseSelection | null>(null);
+
   // Clear highlights if the find panel is closed.
   useEffect(() => {
     if (!isSearchOpen) {
@@ -137,7 +147,21 @@ export function useFindPanelSearch({
             }
           });
         }, 200);
+      } else {
+        // Just focus the editor if no match was found
+        setTimeout(() => {
+          if (previousSelectionRef.current) {
+            editor.update(() => {
+              $setSelection(previousSelectionRef.current);
+            });
+          }
+        }, 200);
       }
+    } else {
+      editor.read(() => {
+        const selection = $getSelection();
+        previousSelectionRef.current = selection?.clone() ?? null;
+      });
     }
   }, [isSearchOpen, setIsSearchOpen]);
 
