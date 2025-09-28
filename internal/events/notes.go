@@ -2,6 +2,7 @@ package events
 
 import (
 	"log"
+	"os"
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/search"
@@ -173,5 +174,53 @@ func deleteNotesFromIndex(params EventParams, data []map[string]string) {
 	err := params.Index.Batch(batch)
 	if err != nil {
 		log.Println("Error batching delete operations", err)
+	}
+}
+
+// handleNoteWriteEvent handles the event when a note is written/updated.
+// It extracts the note data from the event and updates the search index with the new content.
+func handleNoteWriteEvent(params EventParams, event *application.CustomEvent) {
+	data, ok := event.Data.([]map[string]string)
+	if !ok {
+		log.Println("Note write event data is not a map")
+		return
+	}
+	updateNotesInIndex(params, data)
+}
+
+// updateNotesInIndex updates the search index with the new note content for multiple notes.
+func updateNotesInIndex(params EventParams, data []map[string]string) {
+	for _, note := range data {
+		folder, ok := note["folder"]
+		if !ok {
+			log.Println("Note write event data missing folder")
+			continue
+		}
+		noteName, ok := note["note"]
+		if !ok {
+			log.Println("Note write event data missing note")
+			continue
+		}
+
+		noteId := filepath.Join(folder, noteName)
+		noteFilePath := filepath.Join(params.ProjectPath, "notes", folder, noteName)
+
+		// Read the markdown content from the file
+		markdown, err := os.ReadFile(noteFilePath)
+		if err != nil {
+			log.Printf("Error reading note file %s: %v", noteFilePath, err)
+			continue
+		}
+
+		bleveMarkdownDocument := search.CreateMarkdownNoteBleveDocument(
+			string(markdown),
+			folder,
+			noteName,
+		)
+
+		err = params.Index.Index(noteId, bleveMarkdownDocument)
+		if err != nil {
+			log.Printf("Error indexing note %s: %v", noteId, err)
+		}
 	}
 }

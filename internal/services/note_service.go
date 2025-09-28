@@ -9,7 +9,6 @@ import (
 	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/notes"
-	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
@@ -154,7 +153,6 @@ func (n *NoteService) GetNoteMarkdown(path string) config.BackendResponseWithDat
 }
 
 // SetNoteMarkdown writes the provided markdown string to the note file specified by folderName and noteTitle.
-// It also indexes the note in the search index.
 // Returns a BackendResponseWithData indicating success or failure.
 func (n *NoteService) SetNoteMarkdown(
 	folderName string,
@@ -163,28 +161,12 @@ func (n *NoteService) SetNoteMarkdown(
 ) config.BackendResponseWithData[string] {
 	noteName := fmt.Sprintf("%s.md", noteTitle)
 	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, noteName)
-	noteId := filepath.Join(folderName, noteName)
 
 	err := os.WriteFile(noteFilePath, []byte(markdown), 0644)
 	if err != nil {
 		return config.BackendResponseWithData[string]{
 			Success: false,
 			Message: err.Error(),
-			Data:    "",
-		}
-	}
-
-	bleveMarkdownDocument := search.CreateMarkdownNoteBleveDocument(
-		markdown,
-		folderName,
-		noteName,
-	)
-
-	err = n.SearchIndex.Index(noteId, bleveMarkdownDocument)
-	if err != nil {
-		return config.BackendResponseWithData[string]{
-			Success: false,
-			Message: fmt.Sprintf("Error indexing note %s: %v", noteId, err),
 			Data:    "",
 		}
 	}

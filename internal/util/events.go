@@ -5,6 +5,7 @@ var Events = struct {
 	NoteCreate string
 	NoteDelete string
 	NoteRename string
+	NoteWrite  string
 
 	// Folder events
 	FolderRename string
@@ -47,6 +48,7 @@ var Events = struct {
 	NoteCreate:  "note:create",
 	NoteDelete:  "note:delete",
 	NoteRename:  "note:rename",
+	NoteWrite:   "note:write",
 	NewNoteMenu: "note:create-dialog",
 
 	// Folder events

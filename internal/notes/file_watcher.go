@@ -125,7 +125,7 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 	fw.handleDebounceReset()
 }
 
-// handleFileEvents processes file-related events (create, delete)
+// handleFileEvents processes file-related events (create, delete, write)
 func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event, oneFolderBack string) {
 	note := segments[len(segments)-1]
 
@@ -140,7 +140,7 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 	}
 
 	// A RENAME gets triggered when a file is deleted on macOS
-	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) {
+	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) || event.Has(fsnotify.Write) {
 		timeDiff := time.Since(fw.mostRecentFileCreatedEvent.time)
 
 		// timeDiff is used to be certain that the rename event is no a delete
@@ -162,12 +162,14 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 					"newNote":   newFileName,
 				},
 			)
+		} else if event.Has(fsnotify.Write) {
+			eventKey = util.Events.NoteWrite
 		} else {
 			eventKey = util.Events.NoteDelete
 		}
 
 	}
-	if eventKey == util.Events.NoteCreate || eventKey == util.Events.NoteDelete {
+	if eventKey == util.Events.NoteCreate || eventKey == util.Events.NoteDelete || eventKey == util.Events.NoteWrite {
 		fw.debounceEvents[eventKey] = append(
 			fw.debounceEvents[eventKey],
 			map[string]string{

@@ -31,6 +31,11 @@ func ListenToEvents(params EventParams) {
 		handleNoteDeleteEvent(params, event)
 	})
 
+	params.App.Event.On(util.Events.NoteWrite, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", util.Events.NoteWrite, event.Data)
+		handleNoteWriteEvent(params, event)
+	})
+
 	// Folder Events
 	params.App.Event.On(util.Events.FolderRename, func(event *application.CustomEvent) {
 		log.Printf("%s: %+v", util.Events.FolderRename, event.Data)
