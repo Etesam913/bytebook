@@ -1,9 +1,6 @@
 import { useAtomValue } from 'jotai';
 import { useState } from 'react';
-import {
-  mostRecentNotesAtom,
-  mostRecentNotesWithoutQueryParamsAtom,
-} from '../../atoms';
+import { mostRecentNotesAtom } from '../../atoms';
 import HourglassStart from '../../icons/hourglass-start.tsx';
 import { AccordionItem } from '../sidebar/accordion-item.tsx';
 import { SidebarAccordion } from '../sidebar/accordion.tsx';
@@ -11,17 +8,14 @@ import { SidebarAccordion } from '../sidebar/accordion.tsx';
 export function RecentNotesAccordion() {
   const [isRecentNotesOpen, setIsRecentNotesOpen] = useState(false);
   const mostRecentNotes = useAtomValue(mostRecentNotesAtom);
-  const mostRecentNotesWithoutQueryParams = useAtomValue(
-    mostRecentNotesWithoutQueryParamsAtom
-  );
-  const mostRecentElements = mostRecentNotes.map((pathWithQueryParam, i) => {
-    const itemName = mostRecentNotesWithoutQueryParams.at(i)?.split('/').pop();
-    if (!itemName) return null;
+
+  const mostRecentElements = mostRecentNotes.map((recentNotePath) => {
+    const url = recentNotePath.getLinkToNote();
     return (
       <AccordionItem
-        key={pathWithQueryParam}
-        to={pathWithQueryParam}
-        itemName={itemName}
+        key={recentNotePath.toString()}
+        to={url}
+        itemName={recentNotePath.note}
       />
     );
   });

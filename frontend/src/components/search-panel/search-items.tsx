@@ -1,7 +1,7 @@
 import { useAtomValue } from 'jotai';
 import type { CSSProperties, Ref, RefObject } from 'react';
 import { searchPanelDataAtom } from '../../atoms';
-import { mostRecentNotesWithoutQueryParamsAtom } from '../../atoms';
+import { mostRecentNotesAtom } from '../../atoms';
 import { SearchItem } from './search-item';
 
 export function SearchItems({
@@ -31,20 +31,23 @@ export function SearchItems({
 
   const searchPanelData = useAtomValue(searchPanelDataAtom);
 
-  const mostRecentNotes = useAtomValue(mostRecentNotesWithoutQueryParamsAtom);
+  const mostRecentNotes = useAtomValue(mostRecentNotesAtom);
 
   const searchResultsElements = (
     isShowingMostRecentNotes ? mostRecentNotes : visibleItems
   ).map((filePath, i) => {
     const actualIndex = isShowingMostRecentNotes ? i : startIndex + i;
+    const filePathString = isShowingMostRecentNotes
+      ? `${filePath.folder}/${filePath.note}`
+      : filePath;
     return (
       <SearchItem
-        key={filePath}
+        key={filePathString}
         ref={(el) => {
           ref.current[actualIndex] = el;
         }}
         i={actualIndex}
-        filePath={filePath}
+        filePath={filePathString}
       />
     );
   });

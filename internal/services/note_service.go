@@ -214,7 +214,7 @@ func (n *NoteService) AddNoteToFolder(folderName string, noteName string) config
 }
 
 // ValidateMostRecentNotes takes a slice of note paths (in the form "folder/note.ext") and returns only those
-// that currently exist in the notes directory, formatted as "folder/note?ext=ext".
+// that currently exist in the notes directory in the same format.
 // Used to filter out recently used notes that have been deleted or moved.
 func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 	var validPaths []string
@@ -233,24 +233,8 @@ func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 
 		exists, err := util.FileOrFolderExists(notePath)
 		if exists && err == nil {
-			lastIndexOfDot := -1
-			pathAsRunes := []rune(path)
-			for i := len(pathAsRunes) - 1; i > -1; i-- {
-				if pathAsRunes[i] == '.' {
-					lastIndexOfDot = i
-					break
-				}
-			}
-			if lastIndexOfDot == -1 {
-				continue
-			}
-			folderAndNote := pathAsRunes[0:lastIndexOfDot]
-			extension := pathAsRunes[lastIndexOfDot+1:]
-
-			fullPath := string(folderAndNote) + "?ext=" + string(extension)
-			validPaths = append(validPaths, fullPath)
+			validPaths = append(validPaths, path)
 		}
-
 	}
 	return validPaths
 }

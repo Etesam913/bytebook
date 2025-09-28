@@ -17,26 +17,30 @@ import {
 } from './utils/string-formatting';
 
 // Most recent notes atoms
-const privateMostRecentNotesAtom = atom<string[]>(
-  JSON.parse(localStorage.getItem('mostRecentNotes') ?? '[]') as string[]
-);
+const initializeMostRecentNotes = (): FilePath[] => {
+  const stored = JSON.parse(
+    localStorage.getItem('mostRecentNotes') ?? '[]'
+  ) as string[];
+  return stored
+    .filter((path) => {
+      const pathWithoutQuery = path.split('?')[0];
+      return pathWithoutQuery.split('/').length === 2;
+    })
+    .map((path) => {
+      const pathWithoutQuery = path.split('?')[0];
+      const segments = pathWithoutQuery.split('/');
+      return new FilePath({ folder: segments[0], note: segments[1] });
+    });
+};
+
 export const mostRecentNotesAtom = atom(
-  (get) => get(privateMostRecentNotesAtom),
-  (_, set, payload: string[]) => {
-    localStorage.setItem('mostRecentNotes', JSON.stringify(payload));
-    set(privateMostRecentNotesAtom, payload);
+  initializeMostRecentNotes(),
+  (_, set, payload: FilePath[]) => {
+    const stringPaths = payload.map((filePath) => filePath.getLinkToNote());
+    localStorage.setItem('mostRecentNotes', JSON.stringify(stringPaths));
+    set(mostRecentNotesAtom, payload);
   }
 );
-
-export const mostRecentNotesWithoutQueryParamsAtom = atom((get) => {
-  const mostRecentNotes = get(mostRecentNotesAtom);
-  return mostRecentNotes.map((path) => {
-    const lastIndex = path.lastIndexOf('?ext=');
-    const folderAndNote = path.substring(0, lastIndex);
-    const ext = path.substring(lastIndex + 5);
-    return `${folderAndNote}.${ext}`;
-  });
-});
 
 export const windowSettingsAtom = atom<WindowSettings | null>(null);
 

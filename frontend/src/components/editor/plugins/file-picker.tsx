@@ -14,7 +14,7 @@ import {
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SearchFileNamesFromQuery } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
-import { mostRecentNotesWithoutQueryParamsAtom } from '../../../atoms';
+import { mostRecentNotesAtom } from '../../../atoms';
 import { FILE_SERVER_URL } from '../../../utils/general';
 import {
   getFileExtension,
@@ -38,14 +38,18 @@ export function FilePickerMenuPlugin() {
   const checkForTriggerMatch = useBasicTypeaheadTriggerMatch('@', {
     minLength: 0,
   });
-  const mostRecentNotes = useAtomValue(mostRecentNotesWithoutQueryParamsAtom);
+  const mostRecentNotes = useAtomValue(mostRecentNotesAtom);
   const { data: searchResults } = useQuery({
     queryKey: ['file-picker-search', searchQuery],
     queryFn: async () => {
       return await SearchFileNamesFromQuery(searchQuery ?? '');
     },
   });
-  const options = (!searchQuery ? mostRecentNotes : (searchResults ?? []))
+  const options = (
+    !searchQuery
+      ? mostRecentNotes.map((path) => path.toString())
+      : (searchResults ?? [])
+  )
     .slice(0, MAX_VISIBLE_SEARCH_RESULTS)
     .map((fileName) => {
       const [folder, note] = fileName.split('/');

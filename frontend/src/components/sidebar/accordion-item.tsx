@@ -37,7 +37,7 @@ export function AccordionItem({
             dragElement.addEventListener('dragend', handleDragEnd);
           }}
           className="flex flex-1 items-center gap-2 overflow-x-hidden rounded-md px-2 py-1"
-          to={`/${encodeURI(to)}`}
+          to={to}
         >
           <Note className="min-w-4" title="" width={16} height={16} />
           <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm">

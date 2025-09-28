@@ -1,11 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useRef, useState } from 'react';
-import {
-  contextMenuDataAtom,
-  projectSettingsAtom,
-  projectSettingsWithQueryParamsAtom,
-} from '../../atoms';
+import { contextMenuDataAtom, projectSettingsAtom } from '../../atoms';
 import { usePinNotesMutation } from '../../hooks/notes';
 import { useListVirtualization } from '../../hooks/observers';
 import { PinTack2 } from '../../icons/pin-tack-2';
@@ -13,6 +9,7 @@ import { PinTackSlash } from '../../icons/pin-tack-slash';
 import { AccordionButton } from '../sidebar/accordion-button';
 import { AccordionItem } from '../sidebar/accordion-item';
 import { currentZoomAtom } from '../../hooks/resize';
+import { FilePath } from '../../utils/string-formatting';
 
 const SIDEBAR_ITEM_HEIGHT = 28;
 
@@ -23,38 +20,27 @@ function VirtualizedPinnedNotes({
 }) {
   const projectSettings = useAtomValue(projectSettingsAtom);
   const pinnedNotes = projectSettings.pinnedNotes;
-  const projectSettingsWithQueryParams = useAtomValue(
-    projectSettingsWithQueryParamsAtom
-  );
   const listScrollContainerRef = useRef<HTMLDivElement>(null);
-  const pinnedNotesArray = Array.from(pinnedNotes);
-  const pinnedNotesWithQueryParamsArray = Array.from(
-    projectSettingsWithQueryParams.pinnedNotes
-  );
+  const pinnedNotesPaths = [...pinnedNotes]
+    .filter((folderAndNotes) => folderAndNotes.split('/').length === 2)
+    .map((folderAndNote) => {
+      const segments = folderAndNote.split('/');
+      return new FilePath({ folder: segments[0], note: segments[1] });
+    });
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
 
-  const {
-    visibleItems,
-    onScroll,
-    outerContainerStyle,
-    innerContainerStyle,
-    startIndex,
-  } = useListVirtualization<string>({
-    items: pinnedNotesArray,
-    itemHeight: SIDEBAR_ITEM_HEIGHT,
-    listRef: listScrollContainerRef,
-  });
+  const { visibleItems, onScroll, outerContainerStyle, innerContainerStyle } =
+    useListVirtualization<FilePath>({
+      items: pinnedNotesPaths,
+      itemHeight: SIDEBAR_ITEM_HEIGHT,
+      listRef: listScrollContainerRef,
+    });
   const { mutate: pinOrUnpinNote } = usePinNotesMutation();
 
-  const pinnedNotesElements = visibleItems.map((pinnedNote, i) => {
-    const [folderName, noteName] = pinnedNote.split('/');
-    if (!noteName) return null;
-    const itemsIndex = startIndex + i;
-    const url = pinnedNotesWithQueryParamsArray[itemsIndex];
-    const noteNameWithQueryParams = pinnedNotesWithQueryParamsArray[itemsIndex]
-      .split('/')
-      .pop();
+  const pinnedNotesElements = visibleItems.map((pinnedNotePath) => {
+    const url = pinnedNotePath.getLinkToNote();
+    console.log('url', url);
     return (
       <AccordionItem
         onContextMenu={(e) => {
@@ -77,19 +63,17 @@ function VirtualizedPinnedNotes({
                 value: 'unpin-note',
                 onChange: () =>
                   pinOrUnpinNote({
-                    folder: folderName,
-                    selectionRange: new Set([
-                      `note:${noteNameWithQueryParams}`,
-                    ]),
+                    folder: pinnedNotePath.folder,
+                    selectionRange: new Set([`note:${pinnedNotePath.note}`]),
                     shouldPin: false,
                   }),
               },
             ],
           });
         }}
-        key={url}
+        key={pinnedNotePath.toString()}
         to={url}
-        itemName={noteName}
+        itemName={pinnedNotePath.note}
       />
     );
   });

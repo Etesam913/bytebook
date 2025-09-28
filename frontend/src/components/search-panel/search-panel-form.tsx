@@ -3,7 +3,7 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { easingFunctions } from '../../animations';
 import { searchPanelDataAtom, trapFocusContainerAtom } from '../../atoms';
-import { mostRecentNotesWithoutQueryParamsAtom } from '../../atoms';
+import { mostRecentNotesAtom } from '../../atoms';
 
 import { useListVirtualization } from '../../hooks/observers';
 import { useSearchMutation } from '../../hooks/search';
@@ -20,7 +20,7 @@ export function SearchPanelForm() {
   const [searchPanelData, setSearchPanelData] = useAtom(searchPanelDataAtom);
   const albumRef = useRef<HTMLFormElement>(null);
   const setTrapFocusContainer = useSetAtom(trapFocusContainerAtom);
-  const mostRecentNotes = useAtomValue(mostRecentNotesWithoutQueryParamsAtom);
+  const mostRecentNotes = useAtomValue(mostRecentNotesAtom);
   const isShowingMostRecentNotes =
     searchResults.length === 0 && searchPanelData.query.trim().length === 0;
   const searchResultsContainerRef = useRef<HTMLMenuElement | null>(null);

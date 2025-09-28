@@ -56,6 +56,7 @@ export function RenderNote() {
     folder: decodeURIComponent(folder),
     note: `${decodeURIComponent(noteWithoutExtension)}.${normalizedExtension}`,
   });
+  useMostRecentNotes(filePath);
 
   // Type Checks
   const hasCustomToolbar = filePath.noteExtension === 'md';
@@ -73,7 +74,6 @@ export function RenderNote() {
   const fileUrl = filePath.getFileUrl();
 
   const { data: noteExists, isLoading, error } = useNoteExists(filePath);
-  useMostRecentNotes(filePath);
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
   if (!noteWithoutExtension) return null;
   if (isLoading) {
