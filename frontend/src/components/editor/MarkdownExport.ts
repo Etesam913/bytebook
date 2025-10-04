@@ -38,12 +38,12 @@ export function createMarkdownExport(
     const children = (node || $getRoot()).getChildren();
 
     for (const child of children) {
-      const result = exportTopLevelElements(
-        child,
-        byType.element,
-        textFormatTransformers,
-        byType.textMatch
-      );
+      const result = exportTopLevelElements({
+        node: child,
+        elementTransformers: byType.element,
+        textTransformersIndex: textFormatTransformers,
+        textMatchTransformers: byType.textMatch,
+      });
 
       if (result != null) {
         output.push(result);
@@ -53,16 +53,21 @@ export function createMarkdownExport(
   };
 }
 
-function exportTopLevelElements(
-  node: LexicalNode,
-  elementTransformers: Array<ElementTransformer>,
-  textTransformersIndex: Array<TextFormatTransformer>,
-  textMatchTransformers: Array<TextMatchTransformer>
-): string | null {
+function exportTopLevelElements({
+  node,
+  elementTransformers,
+  textTransformersIndex,
+  textMatchTransformers,
+}: {
+  node: LexicalNode;
+  elementTransformers: Array<ElementTransformer>;
+  textTransformersIndex: Array<TextFormatTransformer>;
+  textMatchTransformers: Array<TextMatchTransformer>;
+}): string | null {
   for (const transformer of elementTransformers) {
-    const result = transformer.export(node, (_node) =>
-      exportChildren(_node, textTransformersIndex, textMatchTransformers)
-    );
+      const result = transformer.export(node, (_node) =>
+        exportChildren(_node, textTransformersIndex, textMatchTransformers)
+      );
 
     if (result != null) {
       return result;

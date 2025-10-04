@@ -54,12 +54,17 @@ import { INSERT_FILES_COMMAND } from '../plugins/file';
  * @param block - The block type to be applied ('ul', 'ol', or 'check')
  * @param currentBlockType - The current block type
  */
-export function handleToolbarBlockElementClick(
-  editor: LexicalEditor,
-  block: string,
-  currentBlockType: EditorBlockTypes,
-  setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>
-) {
+export function handleToolbarBlockElementClick({
+  editor,
+  block,
+  currentBlockType,
+  setCurrentBlockType,
+}: {
+  editor: LexicalEditor;
+  block: string;
+  currentBlockType: EditorBlockTypes;
+  setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>;
+}) {
   if (currentBlockType === block) {
     editor.update(() => {
       const selection = $getSelection();
@@ -92,12 +97,17 @@ export function handleToolbarBlockElementClick(
  * @param setCurrentSelectionFormat - Function to update the current selection format
  * @param textFormat - The text format to toggle (e.g., 'bold', 'italic', etc.)
  */
-export function handleToolbarTextFormattingClick(
-  editor: LexicalEditor,
-  currentSelectionFormat: TextFormatType[],
-  setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
-  textFormat: TextFormatType
-) {
+export function handleToolbarTextFormattingClick({
+  editor,
+  currentSelectionFormat,
+  setCurrentSelectionFormat,
+  textFormat,
+}: {
+  editor: LexicalEditor;
+  currentSelectionFormat: TextFormatType[];
+  setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>;
+  textFormat: TextFormatType;
+}) {
   editor.dispatchCommand(FORMAT_TEXT_COMMAND, textFormat);
   if (currentSelectionFormat.includes(textFormat)) {
     setCurrentSelectionFormat(
@@ -111,11 +121,15 @@ export function handleToolbarTextFormattingClick(
 /**
  * Gets a selection and formats the blocks to `newBlockType`
  */
-export function changeSelectedBlocksType(
-  editor: LexicalEditor,
-  newBlockType: EditorBlockTypes,
-  insertAttachmentsMutation: UseMutationResult<void, Error, void, unknown>
-) {
+export function changeSelectedBlocksType({
+  editor,
+  newBlockType,
+  insertAttachmentsMutation,
+}: {
+  editor: LexicalEditor;
+  newBlockType: EditorBlockTypes;
+  insertAttachmentsMutation: UseMutationResult<void, Error, void, unknown>;
+}) {
   editor.update(() => {
     const selection = $getSelection();
     if ($isRangeSelection(selection)) {
@@ -363,12 +377,17 @@ export function showTableCellActionsButton({
 }
 
 /** Used to add files from local filesystem */
-export async function insertAttachmentFromFile(
-  folder: string,
-  note: string,
-  editor: LexicalEditor,
-  editorSelection: BaseSelection | null
-) {
+export async function insertAttachmentFromFile({
+  folder,
+  note,
+  editor,
+  editorSelection,
+}: {
+  folder: string;
+  note: string;
+  editor: LexicalEditor;
+  editorSelection: BaseSelection | null;
+}) {
   try {
     const { success, message, paths } = await AddAttachments(folder, note);
     if (paths.length === 0) return;

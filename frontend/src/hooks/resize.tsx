@@ -50,13 +50,19 @@ export function useResizeState(): ResizeState {
   };
 }
 
-export function useResizeCommands(
-  editor: LexicalEditor,
-  isExpanded: boolean,
-  setIsExpanded: Dispatch<SetStateAction<boolean>>,
-  nodeKey: string,
-  elementRef: React.RefObject<HTMLElement | null>
-) {
+export function useResizeCommands({
+  editor,
+  isExpanded,
+  setIsExpanded,
+  nodeKey,
+  elementRef,
+}: {
+  editor: LexicalEditor;
+  isExpanded: boolean;
+  setIsExpanded: Dispatch<SetStateAction<boolean>>;
+  nodeKey: string;
+  elementRef: React.RefObject<HTMLElement | null>;
+}) {
   useEffect(() => {
     return mergeRegister(
       // editor.registerCommand<KeyboardEvent>(

@@ -64,19 +64,19 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   }
 
   static clone(node: CodeNode): CodeNode {
-    return new CodeNode(
-      node.__id,
-      node.__language,
-      node.__code,
-      node.__isCreatedNow,
-      node.__lastExecutedResult,
-      node.__status,
-      node.__executionId,
-      node.__executionCount,
-      node.__duration,
-      node.__isWaitingForInput,
-      node.__key
-    );
+    return new CodeNode({
+      id: node.__id,
+      language: node.__language,
+      code: node.__code,
+      isCreatedNow: node.__isCreatedNow,
+      lastExecutedResult: node.__lastExecutedResult,
+      status: node.__status,
+      executionId: node.__executionId,
+      executionCount: node.__executionCount,
+      duration: node.__duration,
+      isWaitingForInput: node.__isWaitingForInput,
+      key: node.__key,
+    });
   }
 
   static importJSON(serializedNode: SerializedCodeNode): CodeNode {
@@ -96,19 +96,31 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return false;
   }
 
-  constructor(
-    id: string,
-    language: Languages,
-    code: string,
+  constructor({
+    id,
+    language,
+    code,
     isCreatedNow = false,
-    lastExecutedResult: string | null = null,
-    status: CodeBlockStatus = 'idle',
-    executionId?: string,
-    executionCount: number = 0,
-    duration: string = '',
-    isWaitingForInput: boolean = false,
-    key?: NodeKey
-  ) {
+    lastExecutedResult = null,
+    status = 'idle',
+    executionId,
+    executionCount = 0,
+    duration = '',
+    isWaitingForInput = false,
+    key,
+  }: {
+    id: string;
+    language: Languages;
+    code: string;
+    isCreatedNow?: boolean;
+    lastExecutedResult?: string | null;
+    status?: CodeBlockStatus;
+    executionId?: string;
+    executionCount?: number;
+    duration?: string;
+    isWaitingForInput?: boolean;
+    key?: NodeKey;
+  }) {
     super(key);
 
     this.__id = id;
@@ -367,7 +379,7 @@ export function $createCodeNode({
   executionId = crypto.randomUUID(),
 }: CodePayload): CodeNode {
   return $applyNodeReplacement(
-    new CodeNode(
+    new CodeNode({
       id,
       language,
       code,
@@ -375,10 +387,10 @@ export function $createCodeNode({
       lastExecutedResult,
       status,
       executionId,
-      0,
-      '',
-      false
-    )
+      executionCount: 0,
+      duration: '',
+      isWaitingForInput: false,
+    })
   );
 }
 

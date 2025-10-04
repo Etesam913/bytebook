@@ -123,10 +123,13 @@ const languageCommandData: {
  * @param insertAttachmentsMutation - Mutation hook for inserting attachments.
  * @returns Array of dropdown picker options.
  */
-function getBaseOptions(
-  editor: LexicalEditor,
-  insertAttachmentsMutation: UseMutationResult<void, Error, void, unknown>
-) {
+function getBaseOptions({
+  editor,
+  insertAttachmentsMutation,
+}: {
+  editor: LexicalEditor;
+  insertAttachmentsMutation: UseMutationResult<void, Error, void, unknown>;
+}) {
   return [
     new DropdownPickerOption('Paragraph', {
       keywords: ['normal', 'paragraph', 'p', 'text'],
@@ -336,7 +339,10 @@ export function ComponentPickerMenuPlugin({
   });
 
   const getOptions = () => {
-    const baseOptions = getBaseOptions(editor, insertAttachmentsMutation);
+    const baseOptions = getBaseOptions({
+      editor,
+      insertAttachmentsMutation,
+    });
 
     if (!queryString) {
       return baseOptions;

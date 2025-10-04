@@ -95,15 +95,15 @@ export function Toolbar({
 
   const [isSearchOpen, setIsSearchOpen] = useSearchNoteEvent();
 
-  const { hasFirstLoad } = useNoteMarkdown(
+  const { hasFirstLoad } = useNoteMarkdown({
     editor,
     folder,
     note,
     overflowContainerRef,
     setCurrentSelectionFormat,
     setFrontmatter,
-    setNoteMarkdownString
-  );
+    setNoteMarkdownString,
+  });
 
   useToolbarEvents({
     editor,
@@ -119,7 +119,7 @@ export function Toolbar({
   });
 
   useNewNoteEvent(folder);
-  useNoteChangedEvent(folder, note, editor, setFrontmatter);
+  useNoteChangedEvent({ folder, note, editor, setFrontmatter });
   useKernelLaunchEvents(editor);
   useCodeBlockStream(editor);
   useCodeBlockIOPubError(editor);

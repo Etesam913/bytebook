@@ -32,7 +32,13 @@ export function Video({
   const { isResizing, setIsResizing, isExpanded, setIsExpanded } =
     useResizeState();
 
-  useResizeCommands(editor, isExpanded, setIsExpanded, nodeKey, videoRef);
+  useResizeCommands({
+    editor,
+    isExpanded,
+    setIsExpanded,
+    nodeKey,
+    elementRef: videoRef,
+  });
 
   const isVideoInViewport = noteSeenFileNodeKeys.has(nodeKey);
 

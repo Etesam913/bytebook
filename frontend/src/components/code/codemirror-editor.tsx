@@ -80,19 +80,19 @@ export function CodeMirrorEditor({
 
   const { mutate: turnOnKernel } = useTurnOnKernelMutation();
 
-  const completionSource = useCompletionSource(
+  const completionSource = useCompletionSource({
     id,
     executionId,
     language,
-    pendingCompletions
-  );
+    pendingCompletions,
+  });
 
-  const inspectTooltip = useInspectTooltip(
+  const inspectTooltip = useInspectTooltip({
     language,
     id,
     executionId,
-    pendingInspections
-  );
+    pendingInspections,
+  });
 
   const debouncedSetCode = debounce(setCode, 300);
   const projectSettings = useAtomValue(projectSettingsAtom);

@@ -50,11 +50,11 @@ export function useDraggableBlock(
       if (isOnHandle(target) || target.id === 'target-line') return;
 
       // Stores the block element that is being hovered in state
-      const _draggableBlockElem = getBlockElement(
-        e,
+      const _draggableBlockElem = getBlockElement({
+        event: e,
         editor,
-        noteContainerValue
-      );
+        noteContainer: noteContainerValue,
+      });
       setDraggableBlockElement(_draggableBlockElem);
     }
 
@@ -83,12 +83,17 @@ export function useDraggableBlock(
 /**
  * Updates the state of the target line based on the current mouse position when dragging
  */
-export function useNodeDragEvents(
-  editor: LexicalEditor,
-  isDragging: boolean,
-  noteContainerRef: RefObject<HTMLElement | null> | null,
-  targetLineYMotionValue: MotionValue<number>
-) {
+export function useNodeDragEvents({
+  editor,
+  isDragging,
+  noteContainerRef,
+  targetLineYMotionValue,
+}: {
+  editor: LexicalEditor;
+  isDragging: boolean;
+  noteContainerRef: RefObject<HTMLElement | null> | null;
+  targetLineYMotionValue: MotionValue<number>;
+}) {
   const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
   const noteContainer = noteContainerRef?.current;
   const draggedElement = useAtomValue(draggedElementAtom);
@@ -107,20 +112,20 @@ export function useNodeDragEvents(
       if (!target || !isHTMLElement(target) || !noteContainer) {
         return false;
       }
-      const targetBlockElem = getBlockElement(
+      const targetBlockElem = getBlockElement({
         event,
         editor,
         noteContainer,
-        true
-      );
+        useEdgeAsDefault: true,
+      });
 
       if (targetBlockElem === null) return false;
-      setTargetLine(
+      setTargetLine({
         targetBlockElem,
-        pageY / calculateZoomLevel(target),
+        mouseY: pageY / calculateZoomLevel(target),
         noteContainer,
-        targetLineYMotionValue
-      );
+        yMotionValue: targetLineYMotionValue,
+      });
 
       return true;
     }, 100);
@@ -142,12 +147,12 @@ export function useNodeDragEvents(
       if (!target || !isHTMLElement(target) || !noteContainer) {
         return false;
       }
-      const targetBlockElem = getBlockElement(
+      const targetBlockElem = getBlockElement({
         event,
         editor,
         noteContainer,
-        true
-      );
+        useEdgeAsDefault: true,
+      });
 
       if (!targetBlockElem) {
         return false;

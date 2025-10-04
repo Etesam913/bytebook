@@ -711,13 +711,19 @@ export function useRevealInFinderMutation() {
  * @param COMPLETION_TIMEOUT - Timeout duration in ms before abandoning completion request (default: 3000)
  * @returns An async completion source function that handles code completion requests
  */
-export function useCompletionSource(
-  id: string,
-  executionId: string,
-  language: Languages,
-  pendingCompletions: Map<string, (data: CompletionData) => void>,
-  COMPLETION_TIMEOUT = 3000
-) {
+export function useCompletionSource({
+  id,
+  executionId,
+  language,
+  pendingCompletions,
+  COMPLETION_TIMEOUT = 3000,
+}: {
+  id: string;
+  executionId: string;
+  language: Languages;
+  pendingCompletions: Map<string, (data: CompletionData) => void>;
+  COMPLETION_TIMEOUT?: number;
+}) {
   // Store the latest messageId to match responses
   const latestMessageId = useRef<string | null>(null);
 
@@ -811,12 +817,17 @@ type HoverTooltipData = {
   message: string;
 };
 
-export function useInspectTooltip(
-  language: Languages,
-  id: string,
-  executionId: string,
-  pendingInspections: Map<string, (data: HoverTooltipData) => void>
-) {
+export function useInspectTooltip({
+  language,
+  id,
+  executionId,
+  pendingInspections,
+}: {
+  language: Languages;
+  id: string;
+  executionId: string;
+  pendingInspections: Map<string, (data: HoverTooltipData) => void>;
+}) {
   useWailsEvent('code:code-block:inspect_reply', (body) => {
     console.info('code:code-block:inspect_reply', body);
     const data = body.data as {

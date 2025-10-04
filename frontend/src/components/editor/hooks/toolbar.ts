@@ -55,15 +55,23 @@ import { useWailsEvent } from '../../../hooks/events';
 import { useCreateNoteDialog } from '../../../hooks/dialogs';
 
 /** Gets note markdown from local system on mount */
-export function useNoteMarkdown(
-  editor: LexicalEditor,
-  folder: string,
-  note: string,
-  overflowContainerRef: RefObject<HTMLDivElement | null>,
-  setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
-  setFrontmatter: Dispatch<SetStateAction<Frontmatter>>,
-  setNoteMarkdownString: Dispatch<SetStateAction<string | null>>
-) {
+export function useNoteMarkdown({
+  editor,
+  folder,
+  note,
+  overflowContainerRef,
+  setCurrentSelectionFormat,
+  setFrontmatter,
+  setNoteMarkdownString,
+}: {
+  editor: LexicalEditor;
+  folder: string;
+  note: string;
+  overflowContainerRef: RefObject<HTMLDivElement | null>;
+  setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>;
+  setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
+  setNoteMarkdownString: Dispatch<SetStateAction<string | null>>;
+}) {
   const setPreviousMarkdown = useSetAtom(previousMarkdownAtom);
   const [hasFirstLoad, setHasFirstLoad] = useState(false);
 
