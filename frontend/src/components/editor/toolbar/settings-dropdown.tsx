@@ -14,6 +14,7 @@ import { MotionIconButton } from '../../buttons';
 import { DropdownItems } from '../../dropdown/dropdown-items';
 import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
 import type { Frontmatter } from '../../../types';
+import { Tooltip } from '../../tooltip';
 
 export function SettingsDropdown({
   folder,
@@ -33,7 +34,7 @@ export function SettingsDropdown({
   const projectSettings = useAtomValue(projectSettingsAtom);
   const isPinned = projectSettings.pinnedNotes.has(`${folder}/${note}.md`);
   const [editor] = useLexicalComposerContext();
-  
+
   const uniqueId = useId();
   const buttonId = `settings-dropdown-button-${uniqueId}`;
   const menuId = `settings-dropdown-menu-${uniqueId}`;
@@ -42,18 +43,19 @@ export function SettingsDropdown({
 
   return (
     <div className="ml-auto flex flex-col" ref={dropdownContainerRef}>
-      <MotionIconButton
-        id={buttonId}
-        onClick={() => setIsOpen((prev) => !prev)}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        aria-controls={isOpen ? menuId : undefined}
-        aria-label="Note settings menu"
-        {...getDefaultButtonVariants({ disabled: isToolbarDisabled })}
-      >
-        <HorizontalDots />
-      </MotionIconButton>
-
+      <Tooltip content="Note settings" placement="bottom">
+        <MotionIconButton
+          id={buttonId}
+          onClick={() => setIsOpen((prev) => !prev)}
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+          aria-controls={isOpen ? menuId : undefined}
+          aria-label="Note settings menu"
+          {...getDefaultButtonVariants({ disabled: isToolbarDisabled })}
+        >
+          <HorizontalDots />
+        </MotionIconButton>
+      </Tooltip>
       <div className="relative flex flex-col items-end">
         <DropdownItems
           menuId={menuId}

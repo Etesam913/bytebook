@@ -2,6 +2,7 @@ import { getDefaultButtonVariants } from '../../../animations';
 import { BookBookmark } from '../../../icons/book-bookmark';
 import { MotionIconButton } from '../../buttons';
 import { useSaveSearchDialog } from '../../../hooks/dialogs';
+import { Tooltip } from '../../tooltip';
 
 interface SearchResultsHeaderProps {
   searchQuery: string;
@@ -26,13 +27,14 @@ export function SearchResultsHeader({
         {resultCount} {resultLabel} for{' '}
         <span className="font-code">{trimmedQuery}</span>
       </span>
-      <MotionIconButton
-        {...getDefaultButtonVariants()}
-        onClick={() => openSaveSearchDialog(searchQuery)}
-        title="Save Search"
-      >
-        <BookBookmark height={20} width={20} />
-      </MotionIconButton>
+      <Tooltip content="Save Search" placement="left">
+        <MotionIconButton
+          {...getDefaultButtonVariants()}
+          onClick={() => openSaveSearchDialog(searchQuery)}
+        >
+          <BookBookmark height={20} width={20} />
+        </MotionIconButton>
+      </Tooltip>
     </div>
   );
 }

@@ -1,4 +1,10 @@
-import { type Dispatch, type SetStateAction, useRef, useState, useId } from 'react';
+import {
+  type Dispatch,
+  type SetStateAction,
+  useRef,
+  useState,
+  useId,
+} from 'react';
 import { MotionIconButton } from '.';
 import { getDefaultButtonVariants } from '../../animations';
 import { useOnClickOutside } from '../../hooks/general';
@@ -12,6 +18,7 @@ import SortNumDescending from '../../icons/sort-num-descending';
 import type { SortStrings } from '../../types';
 import { cn } from '../../utils/string-formatting';
 import { DropdownItems } from '../dropdown/dropdown-items';
+import { Tooltip } from '../tooltip';
 
 const sortOptions: { name: string; value: SortStrings }[] = [
   { name: 'Date Updated (desc)', value: 'date-updated-desc' },
@@ -77,7 +84,7 @@ export function SortButton({
   const [focusIndex, setFocusIndex] = useState(
     sortOptions.findIndex(({ value }) => value === sortDirection)
   );
-  
+
   const uniqueId = useId();
   const buttonId = `sort-button-${uniqueId}`;
   const menuId = `sort-menu-${uniqueId}`;
@@ -110,23 +117,27 @@ export function SortButton({
         onChange={({ value }) => setSortDirection(value as SortStrings)}
         menuId={menuId}
         buttonId={buttonId}
-        valueIndex={sortOptions.findIndex(({ value }) => value === sortDirection)}
+        valueIndex={sortOptions.findIndex(
+          ({ value }) => value === sortDirection
+        )}
       />
 
-      <MotionIconButton
-        id={buttonId}
-        onClick={() => setIsSortOptionsOpen((prev) => !prev)}
-        {...getDefaultButtonVariants()}
-        title={sortOptions.find(({ value }) => value === sortDirection)?.name}
-        aria-label="Sort options"
-        aria-haspopup="listbox"
-        aria-expanded={isSortOptionsOpen}
-        aria-controls={isSortOptionsOpen ? menuId : undefined}
-        type="button"
-        className={cn(isSortOptionsOpen && 'bg-zinc-100 dark:bg-zinc-700')}
-      >
-        <IconForSortOption sortOption={sortDirection} />
-      </MotionIconButton>
+      <Tooltip content="Sort options" placement="bottom">
+        <MotionIconButton
+          id={buttonId}
+          onClick={() => setIsSortOptionsOpen((prev) => !prev)}
+          {...getDefaultButtonVariants()}
+          title={sortOptions.find(({ value }) => value === sortDirection)?.name}
+          aria-label="Sort options"
+          aria-haspopup="listbox"
+          aria-expanded={isSortOptionsOpen}
+          aria-controls={isSortOptionsOpen ? menuId : undefined}
+          type="button"
+          className={cn(isSortOptionsOpen && 'bg-zinc-100 dark:bg-zinc-700')}
+        >
+          <IconForSortOption sortOption={sortDirection} />
+        </MotionIconButton>
+      </Tooltip>
     </div>
   );
 }

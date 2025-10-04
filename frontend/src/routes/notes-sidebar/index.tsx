@@ -20,6 +20,8 @@ import { RenderNoteFallback } from '../../components/error-boundary/render-note.
 import { routeUrls } from '../../utils/routes.ts';
 import { navigate } from 'wouter/use-browser-location';
 import { findClosestSidebarItemToNavigateTo } from '../../utils/routing.ts';
+import { Tooltip } from '../../components/tooltip/index.tsx';
+import { Command } from '../../icons/command.tsx';
 
 export function NotesSidebar({
   folder,
@@ -96,43 +98,59 @@ export function NotesSidebar({
                   <p className="overflow-hidden text-ellipsis whitespace-nowrap">
                     {folder}
                   </p>
-                  <MotionIconButton
-                    {...getDefaultButtonVariants()}
-                    onClick={() =>
-                      setDialogData({
-                        isOpen: true,
-                        title: 'Rename Folder',
-                        isPending: false,
-                        children: (errorText) => (
-                          <RenameFolderDialog
-                            errorText={errorText}
-                            folderName={folder}
-                          />
-                        ),
-                        onSubmit: (e, setErrorText) =>
-                          renameFolder({
-                            e,
-                            setErrorText,
-                            folderFromSidebar: folder,
-                          }),
-                      })
-                    }
-                  >
-                    <Pen />
-                  </MotionIconButton>
+                  <Tooltip content="Rename folder" placement="right">
+                    <MotionIconButton
+                      {...getDefaultButtonVariants()}
+                      onClick={() =>
+                        setDialogData({
+                          isOpen: true,
+                          title: 'Rename Folder',
+                          isPending: false,
+                          children: (errorText) => (
+                            <RenameFolderDialog
+                              errorText={errorText}
+                              folderName={folder}
+                            />
+                          ),
+                          onSubmit: (e, setErrorText) =>
+                            renameFolder({
+                              e,
+                              setErrorText,
+                              folderFromSidebar: folder,
+                            }),
+                        })
+                      }
+                    >
+                      <Pen />
+                    </MotionIconButton>
+                  </Tooltip>
                 </section>
-                <MotionButton
-                  {...getDefaultButtonVariants({
-                    disabled: false,
-                    whileHover: 1.025,
-                    whileTap: 0.975,
-                    whileFocus: 1.025,
-                  })}
-                  onClick={() => openCreateNoteDialog(folder)}
-                  className="align-center flex w-full justify-between bg-transparent mb-2"
+                <Tooltip
+                  placement="right"
+                  content={
+                    <span className="flex items-center gap-0.5">
+                      <Command
+                        className="will-change-transform"
+                        width={12.8}
+                        height={12.8}
+                      />
+                      <p>N</p>
+                    </span>
+                  }
                 >
-                  Create Note <Compose className="will-change-transform" />
-                </MotionButton>
+                  <MotionButton
+                    {...getDefaultButtonVariants({
+                      disabled: false,
+                      whileHover: 1.025,
+                      whileTap: 0.975,
+                      whileFocus: 1.025,
+                    })}
+                    onClick={() => openCreateNoteDialog(folder)}
+                    className="align-center flex w-full justify-between bg-transparent mb-2"
+                  >
+                    Create Note <Compose className="will-change-transform" />
+                  </MotionButton>
+                </Tooltip>
               </header>
               <section className="flex flex-col gap-2 overflow-y-auto flex-1">
                 <div className="flex h-full flex-col overflow-y-auto">

@@ -32,11 +32,13 @@ import {
 import { SidebarHighlight } from '../../sidebar/highlight';
 import { Link } from '../../../icons/link';
 import { $isLinkNode } from '../../editor/nodes/link';
+import { Tooltip } from '../../tooltip';
 
 type ButtonData = {
   icon: ReactNode;
   onClick: () => void;
   key: string;
+  tooltip: string;
   customDisabled?: boolean;
 };
 
@@ -73,6 +75,7 @@ export function ToolbarButtons({
         editor.dispatchCommand(UNDO_COMMAND, undefined);
       },
       key: 'undo',
+      tooltip: 'Undo',
       customDisabled: canUndo || isNodeSelection,
     },
     {
@@ -81,6 +84,7 @@ export function ToolbarButtons({
         editor.dispatchCommand(REDO_COMMAND, undefined);
       },
       key: 'redo',
+      tooltip: 'Redo',
       customDisabled: canRedo || isNodeSelection,
     },
   ];
@@ -96,6 +100,7 @@ export function ToolbarButtons({
           textFormat: 'bold',
         }),
       key: 'bold',
+      tooltip: 'Bold',
     },
     {
       icon: <TextItalic className="will-change-transform" />,
@@ -107,6 +112,7 @@ export function ToolbarButtons({
           textFormat: 'italic',
         }),
       key: 'italic',
+      tooltip: 'Italic',
     },
     // {
     // 	icon: <TextUnderline className="will-change-transform" />,
@@ -129,6 +135,7 @@ export function ToolbarButtons({
           textFormat: 'strikethrough',
         }),
       key: 'strikethrough',
+      tooltip: 'Strikethrough',
     },
     {
       icon: <Subscript className="will-change-transform" />,
@@ -140,6 +147,7 @@ export function ToolbarButtons({
           textFormat: 'subscript',
         }),
       key: 'subscript',
+      tooltip: 'Subscript',
     },
     {
       icon: <Superscript className="will-change-transform" />,
@@ -151,6 +159,7 @@ export function ToolbarButtons({
           textFormat: 'superscript',
         }),
       key: 'superscript',
+      tooltip: 'Superscript',
     },
     {
       icon: <UnorderedList className="will-change-transform" />,
@@ -162,6 +171,7 @@ export function ToolbarButtons({
           setCurrentBlockType,
         }),
       key: 'ul',
+      tooltip: 'Bullet List',
     },
     {
       icon: <OrderedList className="will-change-transform" />,
@@ -173,6 +183,7 @@ export function ToolbarButtons({
           setCurrentBlockType,
         }),
       key: 'ol',
+      tooltip: 'Numbered List',
     },
     {
       icon: <ListCheckbox className="will-change-transform" />,
@@ -184,6 +195,7 @@ export function ToolbarButtons({
           setCurrentBlockType,
         }),
       key: 'check',
+      tooltip: 'Checklist',
     },
   ];
 
@@ -214,6 +226,7 @@ export function ToolbarButtons({
         });
       },
       key: 'link',
+      tooltip: 'Insert Link',
     });
   }
 
@@ -225,7 +238,7 @@ export function ToolbarButtons({
   }
 
   const toolbarButtons = getButtonsData().map(
-    ({ icon, onClick, key, customDisabled }, i) => {
+    ({ icon, onClick, key, customDisabled, tooltip }, i) => {
       return (
         <div
           className="relative flex items-center justify-center px-[0.075rem]"
@@ -236,24 +249,26 @@ export function ToolbarButtons({
               <SidebarHighlight layoutId={'toolbar-highlight'} />
             )}
           </AnimatePresence>
-          <button
-            onMouseEnter={() => setHighlightedButton(i)}
-            onMouseLeave={() => setHighlightedButton(-1)}
-            onClick={onClick}
-            type="button"
-            disabled={disabled || customDisabled}
-            className={cn(
-              'p-1.5 rounded-md transition-colors relative z-10',
-              (key === currentBlockType ||
-                currentSelectionFormat.includes(key as TextFormatType)) &&
-                !disabled &&
-                !customDisabled &&
-                'button-invert',
-              disabled && 'opacity-50 cursor-not-allowed'
-            )}
-          >
-            {icon}
-          </button>
+          <Tooltip content={tooltip} disabled={disabled || customDisabled}>
+            <button
+              onMouseEnter={() => setHighlightedButton(i)}
+              onMouseLeave={() => setHighlightedButton(-1)}
+              onClick={onClick}
+              type="button"
+              disabled={disabled || customDisabled}
+              className={cn(
+                'p-1.5 rounded-md transition-colors relative z-10',
+                (key === currentBlockType ||
+                  currentSelectionFormat.includes(key as TextFormatType)) &&
+                  !disabled &&
+                  !customDisabled &&
+                  'button-invert',
+                disabled && 'opacity-50 cursor-not-allowed'
+              )}
+            >
+              {icon}
+            </button>
+          </Tooltip>
         </div>
       );
     }

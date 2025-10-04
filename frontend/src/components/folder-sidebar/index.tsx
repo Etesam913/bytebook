@@ -25,6 +25,8 @@ import { RefreshAnticlockwise } from '../../icons/refresh-anticlockwise.tsx';
 import { MyKernelsAccordion } from './my-kernels-accordion';
 import { useFolderFromRoute } from '../../hooks/events.tsx';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion';
+import { Tooltip } from '../tooltip';
+import { Command } from '../../icons/command';
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
   const sidebarAccordionSectionRef = useRef<HTMLDivElement | null>(null);
@@ -50,24 +52,30 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
         className="text-md flex h-screen flex-col"
       >
         <header className="px-2.5 pt-[0.7rem] ml-auto flex gap-1">
-          <MotionIconButton
-            {...getDefaultButtonVariants()}
-            onClick={() => window.history.back()}
-          >
-            <CircleArrowLeft className="w-6 h-6" />
-          </MotionIconButton>
-          <MotionIconButton
-            {...getDefaultButtonVariants()}
-            onClick={() => window.history.forward()}
-          >
-            <CircleArrowRight className="w-6 h-6" />
-          </MotionIconButton>
-          <MotionIconButton
-            {...getDefaultButtonVariants()}
-            onClick={() => window.location.reload()}
-          >
-            <RefreshAnticlockwise className="h-4 w-4" />
-          </MotionIconButton>
+          <Tooltip content="Go back">
+            <MotionIconButton
+              {...getDefaultButtonVariants()}
+              onClick={() => window.history.back()}
+            >
+              <CircleArrowLeft className="w-6 h-6" />
+            </MotionIconButton>
+          </Tooltip>
+          <Tooltip content="Go forward">
+            <MotionIconButton
+              {...getDefaultButtonVariants()}
+              onClick={() => window.history.forward()}
+            >
+              <CircleArrowRight className="w-6 h-6" />
+            </MotionIconButton>
+          </Tooltip>
+          <Tooltip content="Refresh">
+            <MotionIconButton
+              {...getDefaultButtonVariants()}
+              onClick={() => window.location.reload()}
+            >
+              <RefreshAnticlockwise className="h-4 w-4" />
+            </MotionIconButton>
+          </Tooltip>
         </header>
         <section className="px-2.5 pt-[1rem]">
           <SearchBar />
