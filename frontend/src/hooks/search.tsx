@@ -157,6 +157,9 @@ export function useSaveSearchMutation() {
       }
       return response;
     },
+    onSuccess: (_, variables) => {
+      navigate(routeUrls.savedSearch(variables.searchQuery));
+    },
   });
 }
 

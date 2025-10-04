@@ -7,17 +7,15 @@ import {
   useFullTextSearchQuery,
   useSearchFocus,
 } from '../../hooks/search';
-import { useSaveSearchDialog } from '../../hooks/dialogs';
 import { useAtom } from 'jotai';
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { SearchResultsList } from './results/search-results-list';
-import { BookBookmark } from '../../icons/book-bookmark';
+import { SearchResultsHeader } from './results/search-results-header';
 
 export function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useAtom(lastSearchQueryAtom);
   const inputRef = useSearchFocus();
-  const openSaveSearchDialog = useSaveSearchDialog();
 
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [, setLocation] = useLocation();
@@ -87,17 +85,12 @@ export function SearchPage() {
           }}
           labelProps={{}}
         />
-        {lastSearchQuery && (
-          <MotionIconButton
-            {...getDefaultButtonVariants()}
-            onClick={() => openSaveSearchDialog(lastSearchQuery)}
-            title="Save Search"
-          >
-            <BookBookmark height={20} width={20} />
-          </MotionIconButton>
-        )}
       </header>
-      <div className="flex-1 overflow-auto pr-1 flex flex-col">
+      <div className="flex-1 overflow-auto pr-1">
+        <SearchResultsHeader
+          searchQuery={lastSearchQuery}
+          resultCount={searchResults.length}
+        />
         {/* {isLoading && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -119,7 +112,7 @@ export function SearchPage() {
             </div>
           </div>
         )}
-        {searchResults.length === 0 && (
+        {searchResults.length === 0 && !lastSearchQuery.trim() && (
           <div className="flex justify-center items-center flex-1 px-6">
             <div className="text-zinc-700 dark:text-zinc-300">
               <h2 className="text-2xl py-3 text-center text-zinc-800 dark:text-zinc-200">
@@ -157,6 +150,11 @@ export function SearchPage() {
                 </li>
               </ol>
             </div>
+          </div>
+        )}
+        {searchResults.length === 0 && lastSearchQuery.trim() && !isError && (
+          <div className="flex justify-center items-center flex-1 px-6 text-center text-zinc-600 dark:text-zinc-400">
+            No results found. Try adjusting your search terms.
           </div>
         )}
         <SearchResultsList
