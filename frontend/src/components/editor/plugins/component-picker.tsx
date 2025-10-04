@@ -51,6 +51,8 @@ import { INSERT_CODE_COMMAND } from './code';
 import { Languages } from '../../../types';
 import { getDefaultCodeForLanguage } from '../../../utils/code';
 import { JavascriptLogo } from '../../../icons/javascript-logo';
+import { Table } from '../../../icons/table';
+import { INSERT_TABLE_COMMAND } from '@lexical/table';
 
 const languageCommandData: {
   languageName: Languages;
@@ -170,6 +172,19 @@ function getBaseOptions(
           });
         },
       });
+    }),
+    new DropdownPickerOption('Table', {
+      icon: <Table />,
+      keywords: ['table', 'grid', 'data'],
+      onSelect: () => {
+        editor.update(() => {
+          editor.dispatchCommand(INSERT_TABLE_COMMAND, {
+            columns: '2',
+            rows: '2',
+            includeHeaders: true,
+          });
+        });
+      },
     }),
     new DropdownPickerOption('Attachments', {
       icon: attachmentCommandData.icon,

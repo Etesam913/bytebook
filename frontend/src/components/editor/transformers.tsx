@@ -65,7 +65,10 @@ import {
   InlineEquationNode,
 } from './nodes/inline-equation.tsx';
 import { $createLinkNode, $isLinkNode, LinkNode } from './nodes/link';
-import type { Transformer } from './utils/note-metadata';
+import {
+  $convertToMarkdownStringCorrect,
+  type Transformer,
+} from './utils/note-metadata';
 import { getDefaultCodeForLanguage } from '../../utils/code.ts';
 
 export const PUNCTUATION_OR_SPACE = /[!-/:-@[-`{-~\s]/;
@@ -300,17 +303,19 @@ export const TABLE: ElementTransformer = {
       return null;
     }
 
-    const output: string[] = [];
+    const rows: string[][] = [];
+    const headerRows: number[] = [];
 
+    // First pass: collect all cell contents and identify header rows
     for (const row of node.getChildren()) {
-      const rowOutput: string[] = [];
       if (!$isTableRowNode(row)) {
         continue;
       }
 
+      const rowOutput: string[] = [];
       let isHeaderRow = false;
+
       for (const cell of row.getChildren()) {
-        // It's TableCellNode so it's just to make flow happy
         if ($isTableCellNode(cell)) {
           rowOutput.push(
             $convertToMarkdownString(CUSTOM_TRANSFORMERS, cell).replace(
@@ -324,9 +329,33 @@ export const TABLE: ElementTransformer = {
         }
       }
 
-      output.push(`| ${rowOutput.join(' | ')} |`);
+      rows.push(rowOutput);
       if (isHeaderRow) {
-        output.push(`| ${rowOutput.map(() => '---').join(' | ')} |`);
+        headerRows.push(rows.length - 1);
+      }
+    }
+
+    // Calculate max width for each column (minimum width of 3 for proper markdown formatting)
+    const columnWidths: number[] = [];
+    for (const row of rows) {
+      for (let i = 0; i < row.length; i++) {
+        const cellWidth = row[i].length;
+        columnWidths[i] = Math.max(columnWidths[i] || 0, cellWidth, 3);
+      }
+    }
+
+    // Second pass: format output with padding
+    const output: string[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const paddedCells = row.map((cell, colIndex) => {
+        return cell.padEnd(columnWidths[colIndex] || 0, ' ');
+      });
+      output.push(`| ${paddedCells.join(' | ')} |`);
+
+      if (headerRows.includes(i)) {
+        const dividerCells = columnWidths.map((width) => '-'.repeat(width));
+        output.push(`| ${dividerCells.join(' | ')} |`);
       }
     }
 
@@ -442,7 +471,7 @@ const mapToTableCells = (textContent: string): Array<TableCellNode> | null => {
   if (!match || !match[1]) {
     return null;
   }
-  return match[1].split('|').map((text) => createTableCell(text));
+  return match[1].split('|').map((text) => createTableCell(text.trim()));
 };
 
 export const CUSTOM_TRANSFORMERS = [

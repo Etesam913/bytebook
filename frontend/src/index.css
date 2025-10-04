@@ -168,27 +168,27 @@ textarea,
   line-height: 28px;
 }
 
-#content-editable-editor > h1,
+#content-editable-editor  h1,
 h1.dragging {
   @apply text-3xl leading-[3.25rem];
 }
 
-#content-editable-editor > h2,
+#content-editable-editor  h2,
 h2.dragging {
   @apply text-2xl leading-[2.8rem];
 }
 
-#content-editable-editor > h3,
+#content-editable-editor  h3,
 h3.dragging {
   @apply text-xl leading-[2.5rem];
 }
 
-#content-editable-editor > h4,
+#content-editable-editor  h4,
 h4.dragging {
   @apply text-lg leading-[2.25rem] font-semibold;
 }
 
-#content-editable-editor > h5,
+#content-editable-editor  h5,
 h5.dragging {
   @apply text-base leading-[2rem] font-bold;
 }
@@ -558,7 +558,7 @@ h6:has(> span > div > :is(img, video, span[data-katex="true"])) {
   overflow-y: scroll;
   overflow-x: scroll;
   table-layout: fixed;
-  width: max-content;
+  width: 100%;
   margin: 30px 0;
 }
 .PlaygroundEditorTheme__tableSelection *::selection {
@@ -596,12 +596,13 @@ h6:has(> span > div > :is(img, video, span[data-katex="true"])) {
   z-index: 10;
   top: 0;
 }
-.PlaygroundEditorTheme__tableCellHeader {
-  background-color: #f2f3f5;
+
+/* .PlaygroundEditorTheme__tableCellHeader {
   text-align: start;
-}
+} */
+
 .PlaygroundEditorTheme__tableCellSelected {
-  background-color: #c9dbf0;
+  @apply bg-(--accent-color-highlight);
 }
 .PlaygroundEditorTheme__tableCellPrimarySelected {
   border: 2px solid rgb(60, 132, 244);
