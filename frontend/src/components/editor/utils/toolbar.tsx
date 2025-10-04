@@ -7,7 +7,15 @@ import {
 } from '@lexical/list';
 import { $createHeadingNode, $isHeadingNode } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
-import { INSERT_TABLE_COMMAND } from '@lexical/table';
+import {
+  $getTableCellNodeFromLexicalNode,
+  $getTableNodeFromLexicalNodeOrThrow,
+  $isTableCellNode,
+  $isTableSelection,
+  getTableElement,
+  getTableObserverFromTableElement,
+  INSERT_TABLE_COMMAND,
+} from '@lexical/table';
 import { $getNearestNodeOfType } from '@lexical/utils';
 import type { UseMutationResult } from '@tanstack/react-query';
 import {
@@ -178,15 +186,23 @@ export function updateToolbarOnSelectionChange(
  * Looks at the currently selected text and retrieves its block type and text format info.
  * It uses this information and sets some states
  */
-export function updateToolbar(
-  editor: LexicalEditor,
-  setDisabled: Dispatch<SetStateAction<boolean>>,
-  setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
-  setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>,
-  setNoteSelection: Dispatch<SetStateAction<BaseSelection | null>>,
-  setFloatingData: Dispatch<SetStateAction<FloatingDataType>>,
-  noteContainerRef: RefObject<HTMLDivElement | null>
-) {
+export function updateToolbar({
+  editor,
+  setDisabled,
+  setCurrentSelectionFormat,
+  setCurrentBlockType,
+  setNoteSelection,
+  setFloatingData,
+  noteContainerRef,
+}: {
+  editor: LexicalEditor;
+  setDisabled: Dispatch<SetStateAction<boolean>>;
+  setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>;
+  setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>;
+  setNoteSelection: Dispatch<SetStateAction<BaseSelection | null>>;
+  setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
+  noteContainerRef: RefObject<HTMLDivElement | null>;
+}) {
   const selection = $getSelection();
   setNoteSelection(selection);
 
@@ -204,7 +220,7 @@ export function updateToolbar(
         const topOfScrollContainerToWindow = noteContainerBounds?.top ?? 0;
         const scrollYOfScrollContainer =
           noteContainerRef.current?.scrollTop ?? 0;
-
+        console.log(left, noteContainerBounds?.left);
         setFloatingData({
           isOpen: true,
           top:
@@ -252,6 +268,98 @@ export function updateToolbar(
     setFloatingData((prev) => ({ ...prev, isOpen: false, type: null }));
     setDisabled(true);
   }
+}
+
+export function showTableCellActionsButton({
+  editor,
+  tableActionsRef,
+  noteContainerRef,
+}: {
+  editor: LexicalEditor;
+  tableActionsRef: RefObject<HTMLButtonElement | null>;
+  noteContainerRef: RefObject<HTMLDivElement | null>;
+}) {
+  const hideTableActions = () => {
+    if (tableActionsRef?.current) {
+      tableActionsRef.current.style.display = 'none';
+    }
+  };
+
+  const showTableActions = () => {
+    if (tableActionsRef?.current) {
+      tableActionsRef.current.style.display = 'block';
+    }
+  };
+
+  editor.read(() => {
+    const selection = $getSelection();
+    if (!tableActionsRef?.current) {
+      hideTableActions();
+      return;
+    }
+    if ($isRangeSelection(selection)) {
+      showTableActions();
+      const tableCellNodeFromSelection = $getTableCellNodeFromLexicalNode(
+        selection.anchor.getNode()
+      );
+      if (!tableCellNodeFromSelection) {
+        hideTableActions();
+        return;
+      }
+      const tableCellParentNodeDOM = editor.getElementByKey(
+        tableCellNodeFromSelection.getKey()
+      );
+      if (!tableCellParentNodeDOM) {
+        hideTableActions();
+        return;
+      }
+
+      const tableNode = $getTableNodeFromLexicalNodeOrThrow(
+        tableCellNodeFromSelection
+      );
+      const tableElement = getTableElement(
+        tableNode,
+        editor.getElementByKey(tableNode.getKey())
+      );
+
+      const tableCellRect = tableCellParentNodeDOM.getBoundingClientRect();
+      const noteContainerRect =
+        noteContainerRef.current?.getBoundingClientRect();
+      if (!noteContainerRect) {
+        hideTableActions();
+        return;
+      }
+
+      tableActionsRef.current.style.top = `${tableCellRect.top - noteContainerRect.top}px`;
+      tableActionsRef.current.style.right = `${noteContainerRect.right - tableCellRect.right}px`;
+    } else if ($isTableSelection(selection)) {
+      const anchorNode = $getTableCellNodeFromLexicalNode(
+        selection.anchor.getNode()
+      );
+      if (!$isTableCellNode(anchorNode)) {
+        hideTableActions();
+        return;
+      }
+      const tableNode = $getTableNodeFromLexicalNodeOrThrow(anchorNode);
+      const tableElement = getTableElement(
+        tableNode,
+        editor.getElementByKey(tableNode.getKey())
+      );
+      if (!tableElement) {
+        hideTableActions();
+        return;
+      }
+      const tableObserver = getTableObserverFromTableElement(tableElement);
+      const tableCellParentNodeDOM = editor.getElementByKey(
+        anchorNode.getKey()
+      );
+
+      if (tableCellParentNodeDOM === null) {
+        hideTableActions();
+        return;
+      }
+    }
+  });
 }
 
 /** Used to add files from local filesystem */

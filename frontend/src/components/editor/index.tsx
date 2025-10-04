@@ -47,6 +47,7 @@ import { useCodeCleanup } from './hooks/code';
 import { useNoteIntersectionObserver } from './hooks/intersection-observer';
 import type { LegacyAnimationControls } from 'motion/react';
 import { FilePath } from '../../utils/string-formatting';
+import { TableActionsPlugin } from './plugins/table-actions.tsx';
 
 export function NotesEditor({
   filePath,
@@ -67,6 +68,7 @@ export function NotesEditor({
   });
   const queryClient = useQueryClient();
   const overflowContainerRef = useRef<HTMLDivElement | null>(null);
+  const tableActionsRef = useRef<HTMLButtonElement | null>(null);
   const noteContainerRef = useRef<HTMLDivElement | null>(null);
   const { isShowing: isAlbumShowing } = useAtomValue(albumDataAtom);
   const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
@@ -105,6 +107,7 @@ export function NotesEditor({
         setFrontmatter={setFrontmatter}
         noteMarkdownString={noteMarkdownString}
         setNoteMarkdownString={setNoteMarkdownString}
+        tableActionsRef={tableActionsRef}
       />
       <div
         ref={overflowContainerRef}
@@ -114,86 +117,91 @@ export function NotesEditor({
         className="flex gap-2 overflow-y-auto h-[calc(100vh-2.18rem)]"
       >
         <div
-          ref={noteContainerRef}
           style={{
             scrollbarGutter: 'stable',
             fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
           }}
           className={cn(
-            'h-full relative py-6 px-12  flex-1 w-full flex flex-col',
+            'h-full py-6 px-12 flex-1 w-full',
             projectSettings.appearance.noteWidth === 'readability' &&
               'max-w-[704px] mx-auto'
           )}
         >
-          <NoteTitle folder={folder} note={note} />
-          <ComponentPickerMenuPlugin folder={folder} note={note} />
-          <FilePickerMenuPlugin />
-          {frontmatter.showTableOfContents === 'true' && (
-            <TableOfContentsPlugin />
-          )}
+          <div
+            ref={noteContainerRef}
+            className="relative flex flex-col w-full h-full"
+          >
+            <NoteTitle folder={folder} note={note} />
+            <ComponentPickerMenuPlugin folder={folder} note={note} />
+            <FilePickerMenuPlugin />
+            {frontmatter.showTableOfContents === 'true' && (
+              <TableOfContentsPlugin />
+            )}
 
-          <RichTextPlugin
-            placeholder={null}
-            contentEditable={
-              <ContentEditable
-                onContextMenu={(e) => e.stopPropagation()}
-                onKeyDown={(e) => {
-                  handleEditorEscape(e, isNoteMaximized, setIsNoteMaximized);
-                  setDraggableBlockElement(null);
-                }}
-                id="content-editable-editor"
-                className="flex-1"
-                spellCheck
-                autoFocus
-                autoCorrect="on"
-                onClick={(e) => {
-                  // Clicks should not propagate to the editor when something is being dragged
-                  if (draggedElement) {
-                    e.stopPropagation();
-                  }
-                }}
-              />
-            }
-            ErrorBoundary={LexicalErrorBoundary}
-          />
-          <OnChangePlugin
-            ignoreSelectionChange
-            onChange={(_, editor, tag) =>
-              debouncedNoteHandleChange(editor, tag, queryClient)
-            }
-          />
-          <CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
-          <ListPlugin />
-          <LinkPlugin />
-          <CheckListPlugin />
-          <TabIndentationPlugin />
-          <HistoryPlugin />
-          <TablePlugin />
-          <SavePlugin
-            filePath={filePath}
-            setFrontmatter={setFrontmatter}
-            setNoteMarkdownString={setNoteMarkdownString}
-          />
-          <EditorRefPlugin
-            editorRef={(editorRefValue) => {
-              setEditor(editorRefValue);
-            }}
-          />
-          <FilesPlugin />
-          <CodePlugin />
-          <DraggableBlockPlugin overflowContainerRef={overflowContainerRef} />
-          <FocusPlugin />
-          <LinkMatcherPlugin />
-          <TreeViewPlugin />
-        </div>
-        {frontmatter.showMarkdown === 'true' && (
-          <div className="w-[50%] bg-zinc-50 dark:bg-zinc-850 h-full font-code border-l border-zinc-200 dark:border-zinc-700 px-4 pt-3 pb-2 overflow-auto">
-            <h3 className="text-2xl">Note Markdown</h3>
-            <p className="text-sm whitespace-pre-wrap">
-              {noteMarkdownString ?? ''}
-            </p>
+            <RichTextPlugin
+              placeholder={null}
+              contentEditable={
+                <ContentEditable
+                  onContextMenu={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => {
+                    handleEditorEscape(e, isNoteMaximized, setIsNoteMaximized);
+                    setDraggableBlockElement(null);
+                  }}
+                  id="content-editable-editor"
+                  className="flex-1"
+                  spellCheck
+                  autoFocus
+                  autoCorrect="on"
+                  onClick={(e) => {
+                    // Clicks should not propagate to the editor when something is being dragged
+                    if (draggedElement) {
+                      e.stopPropagation();
+                    }
+                  }}
+                />
+              }
+              ErrorBoundary={LexicalErrorBoundary}
+            />
+            <OnChangePlugin
+              ignoreSelectionChange
+              onChange={(_, editor, tag) =>
+                debouncedNoteHandleChange(editor, tag, queryClient)
+              }
+            />
+            <CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
+            <ListPlugin />
+            <LinkPlugin />
+            <CheckListPlugin />
+            <TabIndentationPlugin />
+            <HistoryPlugin />
+            <TablePlugin />
+            <SavePlugin
+              filePath={filePath}
+              setFrontmatter={setFrontmatter}
+              setNoteMarkdownString={setNoteMarkdownString}
+            />
+            <EditorRefPlugin
+              editorRef={(editorRefValue) => {
+                setEditor(editorRefValue);
+              }}
+            />
+            <TableActionsPlugin ref={tableActionsRef} />
+            <FilesPlugin />
+            <CodePlugin />
+            <DraggableBlockPlugin overflowContainerRef={overflowContainerRef} />
+            <FocusPlugin />
+            <LinkMatcherPlugin />
+            <TreeViewPlugin />
           </div>
-        )}
+          {frontmatter.showMarkdown === 'true' && (
+            <div className="w-[50%] bg-zinc-50 dark:bg-zinc-850 h-full font-code border-l border-zinc-200 dark:border-zinc-700 px-4 pt-3 pb-2 overflow-auto">
+              <h3 className="text-2xl">Note Markdown</h3>
+              <p className="text-sm whitespace-pre-wrap">
+                {noteMarkdownString ?? ''}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
       <BottomBar frontmatter={frontmatter} filePath={filePath} isNoteEditor />
     </LexicalComposer>

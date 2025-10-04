@@ -57,6 +57,7 @@ export function Toolbar({
   frontmatter,
   setFrontmatter,
   setNoteMarkdownString,
+  tableActionsRef,
 }: {
   folder: string;
   note: string;
@@ -69,6 +70,7 @@ export function Toolbar({
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
   noteMarkdownString: string | null;
   setNoteMarkdownString: Dispatch<SetStateAction<string | null>>;
+  tableActionsRef: RefObject<HTMLButtonElement | null>;
 }) {
   const [editor] = useLexicalComposerContext();
   const [disabled, setDisabled] = useAtom(isToolbarDisabledAtom);
@@ -103,7 +105,7 @@ export function Toolbar({
     setNoteMarkdownString
   );
 
-  useToolbarEvents(
+  useToolbarEvents({
     editor,
     setDisabled,
     setCurrentSelectionFormat,
@@ -112,8 +114,9 @@ export function Toolbar({
     setCanRedo,
     setNoteSelection,
     setFloatingData,
-    noteContainerRef
-  );
+    noteContainerRef,
+    tableActionsRef,
+  });
 
   useNewNoteEvent(folder);
   useNoteChangedEvent(folder, note, editor, setFrontmatter);

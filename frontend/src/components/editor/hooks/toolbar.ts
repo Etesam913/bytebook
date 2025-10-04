@@ -50,7 +50,7 @@ import {
   overrideUpDownKeyCommand,
 } from '../utils/note-commands';
 import { $convertFromMarkdownStringCorrect } from '../utils/note-metadata';
-import { updateToolbar } from '../utils/toolbar';
+import { showTableCellActionsButton, updateToolbar } from '../utils/toolbar';
 import { useWailsEvent } from '../../../hooks/events';
 import { useCreateNoteDialog } from '../../../hooks/dialogs';
 
@@ -117,17 +117,29 @@ export function useNoteMarkdown(
  * It overrides up/down arrow keys to handle node selection
  * It also updates the toolbar when the selection changes
  */
-export function useToolbarEvents(
-  editor: LexicalEditor,
-  setDisabled: Dispatch<SetStateAction<boolean>>,
-  setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>,
-  setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>,
-  setCanUndo: Dispatch<SetStateAction<boolean>>,
-  setCanRedo: Dispatch<SetStateAction<boolean>>,
-  setNoteSelection: Dispatch<SetStateAction<BaseSelection | null>>,
-  setFloatingData: Dispatch<SetStateAction<FloatingDataType>>,
-  noteContainerRef: RefObject<HTMLDivElement | null>
-) {
+export function useToolbarEvents({
+  editor,
+  setDisabled,
+  setCurrentSelectionFormat,
+  setCurrentBlockType,
+  setCanUndo,
+  setCanRedo,
+  setNoteSelection,
+  setFloatingData,
+  noteContainerRef,
+  tableActionsRef,
+}: {
+  editor: LexicalEditor;
+  setDisabled: Dispatch<SetStateAction<boolean>>;
+  setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>;
+  setCurrentBlockType: Dispatch<SetStateAction<EditorBlockTypes>>;
+  setCanUndo: Dispatch<SetStateAction<boolean>>;
+  setCanRedo: Dispatch<SetStateAction<boolean>>;
+  setNoteSelection: Dispatch<SetStateAction<BaseSelection | null>>;
+  setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
+  noteContainerRef: RefObject<HTMLDivElement | null>;
+  tableActionsRef: RefObject<HTMLButtonElement | null>;
+}) {
   const draggedElement = useAtomValue(draggedElementAtom);
 
   useEffect(() => {
@@ -135,15 +147,20 @@ export function useToolbarEvents(
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         () => {
-          updateToolbar(
+          showTableCellActionsButton({
+            editor,
+            tableActionsRef,
+            noteContainerRef,
+          });
+          updateToolbar({
             editor,
             setDisabled,
             setCurrentSelectionFormat,
             setCurrentBlockType,
             setNoteSelection,
             setFloatingData,
-            noteContainerRef
-          );
+            noteContainerRef,
+          });
           return false;
         },
         COMMAND_PRIORITY_LOW
@@ -277,7 +294,10 @@ export function useToolbarEvents(
     setDisabled,
     setCanRedo,
     setCanUndo,
+    setNoteSelection,
+    setFloatingData,
     noteContainerRef,
+    tableActionsRef,
     draggedElement,
   ]);
 }

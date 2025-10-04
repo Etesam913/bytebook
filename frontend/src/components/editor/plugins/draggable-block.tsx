@@ -86,7 +86,10 @@ export function DraggableBlockPlugin({
         animate={{
           opacity: isDragHandleShowing ? 1 : 0,
         }}
-        style={{ x: isNoteMaximized ? 5 : -2, y: dragHandleYSpringMotionValue }}
+        style={{
+          x: -30,
+          y: dragHandleYSpringMotionValue,
+        }}
         className="draggable-block-menu text-zinc-500 dark:text-zinc-300"
         ref={handleRef}
       >
@@ -97,7 +100,7 @@ export function DraggableBlockPlugin({
         style={{ y: targetLineYSpringMotionValue }}
         animate={{ opacity: isDragging ? 1 : 0 }}
         id="target-line"
-        className="absolute pointer-events-none bg-(--accent-color) ml-4 w-[calc(100%-2.25rem)] h-[3px] rounded-full left-0 top-0 will-change-transform"
+        className="absolute pointer-events-none bg-(--accent-color) w-full h-[3px] rounded-full left-0 top-0 will-change-transform"
       />
     </>,
     noteContainerRef.current

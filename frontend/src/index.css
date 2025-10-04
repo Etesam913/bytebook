@@ -553,48 +553,24 @@ h6:has(> span > div > :is(img, video, span[data-katex="true"])) {
 
 /* Table Styles */
 .PlaygroundEditorTheme__table {
-  border-collapse: collapse;
+  @apply border-collapse overflow-x-scroll overflow-y-scroll w-full my-[30px];
   border-spacing: 0;
-  overflow-y: scroll;
-  overflow-x: scroll;
   table-layout: fixed;
-  width: 100%;
-  margin: 30px 0;
 }
 .PlaygroundEditorTheme__tableSelection *::selection {
-  background-color: transparent;
+  @apply bg-transparent;
 }
 .PlaygroundEditorTheme__tableSelected {
-  outline: 2px solid rgb(60, 132, 244);
+  @apply outline outline-2 outline-[rgb(60,132,244)];
 }
 .PlaygroundEditorTheme__tableCell {
-  border: 1px solid #bbb;
-  width: 75px;
-  min-width: 75px;
-  vertical-align: top;
-  text-align: start;
-  padding: 6px 8px;
-  position: relative;
-  outline: none;
+  @apply border border-zinc-300 dark:border-zinc-500 w-[75px] min-w-[75px] align-top text-start p-[6px_8px] relative outline-none;
 }
 .PlaygroundEditorTheme__tableCellSortedIndicator {
-  display: block;
-  opacity: 0.5;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background-color: #999;
+  @apply block opacity-50 absolute bottom-0 left-0 w-full h-1 bg-[#999];
 }
 .PlaygroundEditorTheme__tableCellResizer {
-  position: absolute;
-  right: -4px;
-  height: 100%;
-  width: 8px;
-  cursor: ew-resize;
-  z-index: 10;
-  top: 0;
+  @apply absolute -right-1 h-full w-2 cursor-ew-resize z-10 top-0;
 }
 
 /* .PlaygroundEditorTheme__tableCellHeader {
