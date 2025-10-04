@@ -1,4 +1,13 @@
-import React from 'react';
+import {
+  useState,
+  useRef,
+  Children,
+  cloneElement,
+  type ReactNode,
+  type ReactElement,
+  type Ref,
+  type CSSProperties,
+} from 'react';
 import {
   autoUpdate,
   offset,
@@ -16,20 +25,7 @@ import {
   type Placement,
 } from '@floating-ui/react';
 
-export type TooltipProps = {
-  content: React.ReactNode;
-  children: React.ReactElement;
-  placement?: Placement;
-  open?: boolean;
-  defaultOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  disabled?: boolean;
-  delay?: number | { open?: number; close?: number };
-  className?: string;
-  withArrow?: boolean;
-};
-
-export const Tooltip: React.FC<TooltipProps> = ({
+export const Tooltip = ({
   content,
   children,
   placement = 'top',
@@ -40,8 +36,19 @@ export const Tooltip: React.FC<TooltipProps> = ({
   delay = { open: 250, close: 100 },
   className,
   withArrow = true,
+}: {
+  content: ReactNode;
+  children: ReactElement;
+  placement?: Placement;
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  disabled?: boolean;
+  delay?: number | { open?: number; close?: number };
+  className?: string;
+  withArrow?: boolean;
 }) => {
-  const [uncontrolledOpen, setUncontrolledOpen] = React.useState<boolean>(Boolean(defaultOpen));
+  const [uncontrolledOpen, setUncontrolledOpen] = useState<boolean>(Boolean(defaultOpen));
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? Boolean(controlledOpen) : uncontrolledOpen;
   const setOpen = (next: boolean) => {
@@ -50,7 +57,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
     onOpenChange?.(next);
   };
 
-  const arrowRef = React.useRef<HTMLDivElement | null>(null);
+  const arrowRef = useRef<HTMLDivElement | null>(null);
 
   const { refs, floatingStyles, context, middlewareData, placement: currentPlacement } = useFloating({
     placement,
@@ -72,10 +79,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
   const { getReferenceProps, getFloatingProps } = useInteractions([hover, focus, dismiss, role]);
 
-  const mergedRef = useMergeRefs([refs.setReference, (children as any).ref]);
-
-  const child = React.Children.only(children);
-  const reference = React.cloneElement(child, getReferenceProps({
+  const child = Children.only(children) as ReactElement & { ref?: Ref<unknown> };
+  const mergedRef = useMergeRefs([refs.setReference, (child as any).ref]);
+  const reference = cloneElement(child, getReferenceProps({
     ref: mergedRef,
     ...child.props,
     // Allow tooltips on disabled buttons by forwarding events to a wrapper if needed.
@@ -93,37 +99,27 @@ export const Tooltip: React.FC<TooltipProps> = ({
             style={floatingStyles}
             {...getFloatingProps()}
             data-side={side}
-            className={[
-              'z-[1000] pointer-events-none select-none',
-              'max-w-xs',
-              className,
-            ]
-              .filter(Boolean)
-              .join(' ')}
+            className={`z-[1000] pointer-events-none select-none max-w-xs${className ? ` ${className}` : ''}`}
           >
             <div
-              className={[
-                'rounded-md px-2 py-1.5 text-sm leading-snug shadow-md border',
-                'bg-zinc-900 text-zinc-50 border-zinc-700',
-                'dark:bg-zinc-800 dark:text-zinc-50 dark:border-zinc-700',
-                'whitespace-pre-wrap break-words',
-              ].join(' ')}
+              className={
+                'rounded-md px-2 py-1.5 text-sm leading-snug shadow-md border ' +
+                'bg-zinc-900 text-zinc-50 border-zinc-700 ' +
+                'dark:bg-zinc-800 dark:text-zinc-50 dark:border-zinc-700 ' +
+                'whitespace-pre-wrap break-words'
+              }
               role="tooltip"
             >
               {content}
               {withArrow && (
                 <div
                   ref={arrowRef}
-                  className={[
-                    'absolute w-2.5 h-2.5 rotate-45',
-                    'bg-zinc-900 border border-zinc-700 border-t-transparent border-l-transparent',
-                    'dark:bg-zinc-800 dark:border-zinc-700',
-                  ].join(' ')}
+                  className={'absolute w-2.5 h-2.5 rotate-45 bg-zinc-900 border border-zinc-700 border-t-transparent border-l-transparent dark:bg-zinc-800 dark:border-zinc-700'}
                   style={{
                     left: middlewareData.arrow?.x != null ? `${middlewareData.arrow.x}px` : '',
                     top: middlewareData.arrow?.y != null ? `${middlewareData.arrow.y}px` : '',
                     [side]: '-5px',
-                  } as React.CSSProperties}
+                  } as CSSProperties}
                 />
               )}
             </div>
