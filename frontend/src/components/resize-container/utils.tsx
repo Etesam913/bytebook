@@ -52,12 +52,17 @@ function getNearestSiblingNode(node: LexicalNode, isRight: boolean) {
 }
 
 /** Expand the nearest sibling node for the resize-container. This is for album right/left arrow keys */
-export function expandNearestSiblingNode(
-  editor: LexicalEditor,
-  nodeKey: string,
-  setIsExpanded: Dispatch<SetStateAction<boolean>>,
-  direction: 'left' | 'right'
-) {
+export function expandNearestSiblingNode({
+  editor,
+  nodeKey,
+  setIsExpanded,
+  direction,
+}: {
+  editor: LexicalEditor;
+  nodeKey: string;
+  setIsExpanded: Dispatch<SetStateAction<boolean>>;
+  direction: 'left' | 'right';
+}) {
   let didExpandToNeighbor = false;
   editor.update(() => {
     const node = $getNodeByKey(nodeKey);

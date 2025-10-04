@@ -85,7 +85,12 @@ export class FileNode extends DecoratorNode<JSX.Element> {
   }
 
   static clone(node: FileNode): FileNode {
-    return new FileNode(node.__src, node.__alt, node.__width, node.__key);
+    return new FileNode({
+      src: node.__src,
+      alt: node.__alt,
+      width: node.__width,
+      key: node.__key,
+    });
   }
 
   static importJSON(serializedNode: SerializedFileNode): FileNode {
@@ -125,7 +130,17 @@ export class FileNode extends DecoratorNode<JSX.Element> {
     };
   }
 
-  constructor(src: string, alt: string, width?: ResizeWidth, key?: NodeKey) {
+  constructor({
+    src,
+    alt,
+    width,
+    key,
+  }: {
+    src: string;
+    alt: string;
+    width?: ResizeWidth;
+    key?: NodeKey;
+  }) {
     super(key);
     this.__src = src;
     this.__alt = alt;
@@ -212,7 +227,7 @@ export function $createFileNode({
   width,
   key,
 }: FilePayload): FileNode {
-  return $applyNodeReplacement(new FileNode(src, alt, width, key));
+  return $applyNodeReplacement(new FileNode({ src, alt, width, key }));
 }
 
 export function $isFileNode(

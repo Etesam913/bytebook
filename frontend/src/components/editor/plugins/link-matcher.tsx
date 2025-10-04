@@ -147,12 +147,17 @@ function isNextNodeValid(node: LexicalNode): boolean {
   );
 }
 
-function isContentAroundIsValid(
-  matchStart: number,
-  matchEnd: number,
-  text: string,
-  nodes: TextNode[]
-): boolean {
+function isContentAroundIsValid({
+  matchStart,
+  matchEnd,
+  text,
+  nodes,
+}: {
+  matchStart: number;
+  matchEnd: number;
+  text: string;
+  nodes: TextNode[];
+}): boolean {
   const contentBeforeIsValid =
     matchStart > 0
       ? isSeparator(text[matchStart - 1])
@@ -313,12 +318,12 @@ function $handleLinkCreation(
     const matchStart = match.index;
     const matchLength = match.length;
     const matchEnd = matchStart + matchLength;
-    const isValid = isContentAroundIsValid(
-      invalidMatchEnd + matchStart,
-      invalidMatchEnd + matchEnd,
-      initialText,
-      currentNodes
-    );
+    const isValid = isContentAroundIsValid({
+      matchStart: invalidMatchEnd + matchStart,
+      matchEnd: invalidMatchEnd + matchEnd,
+      text: initialText,
+      nodes: currentNodes,
+    });
 
     if (isValid) {
       const [matchingOffset, , matchingNodes, unmodifiedAfterNodes] =

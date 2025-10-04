@@ -193,20 +193,20 @@ export function useMatchNavigation({
 }) {
   return {
     navigateToNextMatch: () =>
-      navigateToNextMatch(
+      navigateToNextMatch({
         editor,
         matchData,
         currentMatchIndex,
         setCurrentMatchIndex,
-        highlightedNodeKeyRef
-      ),
+        highlightedNodeKeyRef,
+      }),
     navigateToPreviousMatch: () =>
-      navigateToPreviousMatch(
+      navigateToPreviousMatch({
         editor,
         matchData,
         currentMatchIndex,
         setCurrentMatchIndex,
-        highlightedNodeKeyRef
-      ),
+        highlightedNodeKeyRef,
+      }),
   };
 }

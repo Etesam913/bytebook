@@ -34,7 +34,13 @@ export function Image({
   const { isResizing, setIsResizing, isExpanded, setIsExpanded } =
     useResizeState();
 
-  useResizeCommands(editor, isExpanded, setIsExpanded, nodeKey, imgRef);
+  useResizeCommands({
+    editor,
+    isExpanded,
+    setIsExpanded,
+    nodeKey,
+    elementRef: imgRef,
+  });
 
   useShowWhenInViewport(loaderRef);
 

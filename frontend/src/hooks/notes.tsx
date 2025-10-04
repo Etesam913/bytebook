@@ -429,12 +429,17 @@ export function useNotePreviewQuery(filePath: FilePath) {
  * @param editor - The LexicalEditor instance to update the editor state.
  * @param setFrontmatter - A function to update the frontmatter state.
  */
-export function useNoteChangedEvent(
-  folder: string,
-  note: string,
-  editor: LexicalEditor,
-  setFrontmatter: Dispatch<SetStateAction<Frontmatter>>
-) {
+export function useNoteChangedEvent({
+  folder,
+  note,
+  editor,
+  setFrontmatter,
+}: {
+  folder: string;
+  note: string;
+  editor: LexicalEditor;
+  setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
+}) {
   const queryClient = useQueryClient();
   useWailsEvent('note:changed', (e) => {
     const data = e.data as {

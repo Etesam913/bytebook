@@ -76,13 +76,19 @@ function getPreviousMatchIndex(
  * Navigates to the next search match in a circular fashion.
  * Clears the current highlight and highlights the next match.
  */
-export function navigateToNextMatch(
-  editor: LexicalEditor,
-  matchData: MatchData[],
-  currentMatchIndex: number,
-  setCurrentMatchIndex: (index: number) => void,
-  highlightedNodeKeyRef: RefObject<string | null>
-): void {
+export function navigateToNextMatch({
+  editor,
+  matchData,
+  currentMatchIndex,
+  setCurrentMatchIndex,
+  highlightedNodeKeyRef,
+}: {
+  editor: LexicalEditor;
+  matchData: MatchData[];
+  currentMatchIndex: number;
+  setCurrentMatchIndex: (index: number) => void;
+  highlightedNodeKeyRef: RefObject<string | null>;
+}): void {
   if (matchData.length === 0) return;
 
   clearHighlight(editor, highlightedNodeKeyRef);
@@ -99,13 +105,19 @@ export function navigateToNextMatch(
  * Navigates to the previous search match in a circular fashion.
  * Clears the current highlight and highlights the previous match.
  */
-export function navigateToPreviousMatch(
-  editor: LexicalEditor,
-  matchData: MatchData[],
-  currentMatchIndex: number,
-  setCurrentMatchIndex: (index: number) => void,
-  highlightedNodeKeyRef: RefObject<string | null>
-): void {
+export function navigateToPreviousMatch({
+  editor,
+  matchData,
+  currentMatchIndex,
+  setCurrentMatchIndex,
+  highlightedNodeKeyRef,
+}: {
+  editor: LexicalEditor;
+  matchData: MatchData[];
+  currentMatchIndex: number;
+  setCurrentMatchIndex: (index: number) => void;
+  highlightedNodeKeyRef: RefObject<string | null>;
+}): void {
   if (matchData.length === 0) return;
 
   clearHighlight(editor, highlightedNodeKeyRef);

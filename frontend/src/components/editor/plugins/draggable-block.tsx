@@ -42,22 +42,22 @@ export function DraggableBlockPlugin({
     restSpeed: 0.5,
   });
 
-  useNodeDragEvents(
+  useNodeDragEvents({
     editor,
     isDragging,
     noteContainerRef,
-    targetLineYMotionValue
-  );
+    targetLineYMotionValue,
+  });
 
   useEffect(() => {
     if (handleRef.current && noteContainerRef?.current) {
-      setHandlePosition(
+      setHandlePosition({
         draggableBlockElement,
-        handleRef.current,
-        noteContainerRef.current,
-        setIsDragHandleShowing,
-        dragHandleYMotionValue
-      );
+        handle: handleRef.current,
+        noteContainer: noteContainerRef.current,
+        setIsHandleShowing: setIsDragHandleShowing,
+        yMotionValue: dragHandleYMotionValue,
+      });
     }
   }, [noteContainerRef, draggableBlockElement, handleRef]);
 
@@ -68,14 +68,14 @@ export function DraggableBlockPlugin({
       <motion.div
         draggable
         onDragStart={(e: DragEvent) =>
-          handleDragStart(
+          handleDragStart({
             e,
             editor,
             setIsDragging,
             draggableBlockElement,
             setDraggedElement,
-            noteContainerRef.current
-          )
+            noteContainer: noteContainerRef.current,
+          })
         }
         onDragEnd={() => {
           setIsDragging(false);

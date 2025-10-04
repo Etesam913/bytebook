@@ -26,7 +26,12 @@ export function useAttachmentsMutation({
         isLoading: true,
         message: 'Inserting Attachments',
       });
-      await insertAttachmentFromFile(folder, note, editor, editorSelection);
+      await insertAttachmentFromFile({
+        folder,
+        note,
+        editor,
+        editorSelection,
+      });
     },
     onSuccess: () => {
       setBackendQuery({

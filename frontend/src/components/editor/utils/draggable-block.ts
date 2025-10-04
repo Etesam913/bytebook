@@ -77,7 +77,17 @@ export class Rect {
   private readonly _right: number;
   private readonly _bottom: number;
 
-  constructor(left: number, top: number, right: number, bottom: number) {
+  constructor({
+    left,
+    top,
+    right,
+    bottom,
+  }: {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+  }) {
     const [physicTop, physicBottom] =
       top <= bottom ? [top, bottom] : [bottom, top];
 
@@ -177,7 +187,7 @@ export class Rect {
     right = this.right,
     bottom = this.bottom,
   }): Rect {
-    return new Rect(left, top, right, bottom);
+    return new Rect({ left, top, right, bottom });
   }
 
   static fromLTRB(
@@ -186,7 +196,7 @@ export class Rect {
     right: number,
     bottom: number
   ): Rect {
-    return new Rect(left, top, right, bottom);
+    return new Rect({ left, top, right, bottom });
   }
 
   static fromLWTH(
@@ -195,7 +205,7 @@ export class Rect {
     top: number,
     height: number
   ): Rect {
-    return new Rect(left, top, left + width, top + height);
+    return new Rect({ left, top, right: left + width, bottom: top + height });
   }
 
   static fromPoints(startPoint: Point, endPoint: Point): Rect {
@@ -298,12 +308,17 @@ export function getCollapsedMargins(elem: HTMLElement): {
  * Gets the element that is the closest to the given coordinates.
  * Used in node dragging
  */
-export function getBlockElement(
-  event: MouseEvent,
-  editor: LexicalEditor,
-  noteContainer: HTMLElement,
-  useEdgeAsDefault = false
-): HTMLElement | null {
+export function getBlockElement({
+  event,
+  editor,
+  noteContainer,
+  useEdgeAsDefault = false,
+}: {
+  event: MouseEvent;
+  editor: LexicalEditor;
+  noteContainer: HTMLElement;
+  useEdgeAsDefault?: boolean;
+}): HTMLElement | null {
   const editorState = editor.getEditorState();
   // The children of the root
 
@@ -390,12 +405,17 @@ export function getBlockElement(
 /**
  * Sets the motion value for the target line based on the target block element and the mouse position.
  */
-export function setTargetLine(
-  targetBlockElem: HTMLElement,
-  mouseY: number,
-  noteContainer: HTMLElement,
-  yMotionValue: MotionValue<number>
-) {
+export function setTargetLine({
+  targetBlockElem,
+  mouseY,
+  noteContainer,
+  yMotionValue,
+}: {
+  targetBlockElem: HTMLElement;
+  mouseY: number;
+  noteContainer: HTMLElement;
+  yMotionValue: MotionValue<number>;
+}) {
   const { top: targetBlockElemTop, height: targetBlockElemHeight } =
     targetBlockElem.getBoundingClientRect();
   const { top: noteContainerTop } = noteContainer.getBoundingClientRect();
@@ -412,13 +432,19 @@ export function setTargetLine(
 }
 
 /** Updates position and opacity values for handle based on `targetElem` */
-export function setHandlePosition(
-  draggableBlockElement: HTMLElement | null,
-  handle: HTMLElement,
-  noteContainer: HTMLElement,
-  setIsHandleShowing: Dispatch<SetStateAction<boolean>>,
-  yMotionValue: MotionValue<number>
-) {
+export function setHandlePosition({
+  draggableBlockElement,
+  handle,
+  noteContainer,
+  setIsHandleShowing,
+  yMotionValue,
+}: {
+  draggableBlockElement: HTMLElement | null;
+  handle: HTMLElement;
+  noteContainer: HTMLElement;
+  setIsHandleShowing: Dispatch<SetStateAction<boolean>>;
+  yMotionValue: MotionValue<number>;
+}) {
   if (!draggableBlockElement) {
     setIsHandleShowing(false);
     return;
@@ -448,14 +474,21 @@ export function setHandlePosition(
 /**
  * Creates the ghost element of the block being dragged and sets the data transfer properties
  */
-export function handleDragStart(
-  e: DragEvent,
-  editor: LexicalEditor,
-  setIsDragging: Dispatch<SetStateAction<boolean>>,
-  draggableBlockElement: HTMLElement | null,
-  setDraggedElement: Dispatch<SetStateAction<HTMLElement | null>>,
-  noteContainer: HTMLElement | null
-) {
+export function handleDragStart({
+  e,
+  editor,
+  setIsDragging,
+  draggableBlockElement,
+  setDraggedElement,
+  noteContainer,
+}: {
+  e: DragEvent;
+  editor: LexicalEditor;
+  setIsDragging: Dispatch<SetStateAction<boolean>>;
+  draggableBlockElement: HTMLElement | null;
+  setDraggedElement: Dispatch<SetStateAction<HTMLElement | null>>;
+  noteContainer: HTMLElement | null;
+}) {
   if (!e.dataTransfer || !draggableBlockElement) {
     return;
   }

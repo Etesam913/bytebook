@@ -89,23 +89,23 @@ export function ToolbarButtons({
     {
       icon: <TextBold className="will-change-transform" />,
       onClick: () =>
-        handleToolbarTextFormattingClick(
+        handleToolbarTextFormattingClick({
           editor,
           currentSelectionFormat,
           setCurrentSelectionFormat,
-          'bold'
-        ),
+          textFormat: 'bold',
+        }),
       key: 'bold',
     },
     {
       icon: <TextItalic className="will-change-transform" />,
       onClick: () =>
-        handleToolbarTextFormattingClick(
+        handleToolbarTextFormattingClick({
           editor,
           currentSelectionFormat,
           setCurrentSelectionFormat,
-          'italic'
-        ),
+          textFormat: 'italic',
+        }),
       key: 'italic',
     },
     // {
@@ -122,67 +122,67 @@ export function ToolbarButtons({
     {
       icon: <TextStrikethrough className="will-change-transform" />,
       onClick: () =>
-        handleToolbarTextFormattingClick(
+        handleToolbarTextFormattingClick({
           editor,
           currentSelectionFormat,
           setCurrentSelectionFormat,
-          'strikethrough'
-        ),
+          textFormat: 'strikethrough',
+        }),
       key: 'strikethrough',
     },
     {
       icon: <Subscript className="will-change-transform" />,
       onClick: () =>
-        handleToolbarTextFormattingClick(
+        handleToolbarTextFormattingClick({
           editor,
           currentSelectionFormat,
           setCurrentSelectionFormat,
-          'subscript'
-        ),
+          textFormat: 'subscript',
+        }),
       key: 'subscript',
     },
     {
       icon: <Superscript className="will-change-transform" />,
       onClick: () =>
-        handleToolbarTextFormattingClick(
+        handleToolbarTextFormattingClick({
           editor,
           currentSelectionFormat,
           setCurrentSelectionFormat,
-          'superscript'
-        ),
+          textFormat: 'superscript',
+        }),
       key: 'superscript',
     },
     {
       icon: <UnorderedList className="will-change-transform" />,
       onClick: () =>
-        handleToolbarBlockElementClick(
+        handleToolbarBlockElementClick({
           editor,
-          'ul',
+          block: 'ul',
           currentBlockType,
-          setCurrentBlockType
-        ),
+          setCurrentBlockType,
+        }),
       key: 'ul',
     },
     {
       icon: <OrderedList className="will-change-transform" />,
       onClick: () =>
-        handleToolbarBlockElementClick(
+        handleToolbarBlockElementClick({
           editor,
-          'ol',
+          block: 'ol',
           currentBlockType,
-          setCurrentBlockType
-        ),
+          setCurrentBlockType,
+        }),
       key: 'ol',
     },
     {
       icon: <ListCheckbox className="will-change-transform" />,
       onClick: () =>
-        handleToolbarBlockElementClick(
+        handleToolbarBlockElementClick({
           editor,
-          'check',
+          block: 'check',
           currentBlockType,
-          setCurrentBlockType
-        ),
+          setCurrentBlockType,
+        }),
       key: 'check',
     },
   ];

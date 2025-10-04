@@ -31,12 +31,17 @@ import {
   transformersByType,
 } from './transformers';
 
-function runElementTransformers(
-  parentNode: ElementNode,
-  anchorNode: TextNode,
-  anchorOffset: number,
-  elementTransformers: ReadonlyArray<ElementTransformer>
-): boolean {
+function runElementTransformers({
+  parentNode,
+  anchorNode,
+  anchorOffset,
+  elementTransformers,
+}: {
+  parentNode: ElementNode;
+  anchorNode: TextNode;
+  anchorOffset: number;
+  elementTransformers: ReadonlyArray<ElementTransformer>;
+}): boolean {
   const grandParentNode = parentNode.getParent();
 
   if (
@@ -76,11 +81,15 @@ function runElementTransformers(
   return false;
 }
 
-function runTextMatchTransformers(
-  anchorNode: TextNode,
-  anchorOffset: number,
-  transformersByTrigger: Readonly<Record<string, Array<TextMatchTransformer>>>
-): boolean {
+function runTextMatchTransformers({
+  anchorNode,
+  anchorOffset,
+  transformersByTrigger,
+}: {
+  anchorNode: TextNode;
+  anchorOffset: number;
+  transformersByTrigger: Readonly<Record<string, Array<TextMatchTransformer>>>;
+}): boolean {
   let textContent = anchorNode.getTextContent();
   const lastChar = textContent[anchorOffset - 1];
   const transformers = transformersByTrigger[lastChar];
@@ -122,13 +131,17 @@ function runTextMatchTransformers(
   return false;
 }
 
-function runTextFormatTransformers(
-  anchorNode: TextNode,
-  anchorOffset: number,
+function runTextFormatTransformers({
+  anchorNode,
+  anchorOffset,
+  textFormatTransformers,
+}: {
+  anchorNode: TextNode;
+  anchorOffset: number;
   textFormatTransformers: Readonly<
     Record<string, ReadonlyArray<TextFormatTransformer>>
-  >
-): boolean {
+  >;
+}): boolean {
   const textContent = anchorNode.getTextContent();
   const closeTagEndIndex = anchorOffset - 1;
   const closeChar = textContent[closeTagEndIndex];
@@ -361,31 +374,31 @@ export function registerMarkdownShortcuts(
     anchorOffset: number
   ) => {
     if (
-      runElementTransformers(
+      runElementTransformers({
         parentNode,
         anchorNode,
         anchorOffset,
-        byType.element
-      )
+        elementTransformers: byType.element,
+      })
     ) {
       return;
     }
 
     if (
-      runTextMatchTransformers(
+      runTextMatchTransformers({
         anchorNode,
         anchorOffset,
-        textMatchTransformersIndex
-      )
+        transformersByTrigger: textMatchTransformersIndex,
+      })
     ) {
       return;
     }
 
-    runTextFormatTransformers(
+    runTextFormatTransformers({
       anchorNode,
       anchorOffset,
-      textFormatTransformersIndex
-    );
+      textFormatTransformers: textFormatTransformersIndex,
+    });
   };
 
   return editor.registerUpdateListener(

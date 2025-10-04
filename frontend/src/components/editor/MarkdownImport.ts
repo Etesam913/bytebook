@@ -395,13 +395,19 @@ function importCodeBlock(
 // MAIN IMPORT FUNCTIONS
 // =============================================================================
 
-function importBlocks(
-  lineText: string,
-  rootNode: ElementNode,
-  elementTransformers: Array<ElementTransformer>,
-  textFormatTransformersIndex: TextFormatTransformersIndex,
-  textMatchTransformers: Array<TextMatchTransformer>
-) {
+function importBlocks({
+  lineText,
+  rootNode,
+  elementTransformers,
+  textFormatTransformersIndex,
+  textMatchTransformers,
+}: {
+  lineText: string;
+  rootNode: ElementNode;
+  elementTransformers: Array<ElementTransformer>;
+  textFormatTransformersIndex: TextFormatTransformersIndex;
+  textMatchTransformers: Array<TextMatchTransformer>;
+}) {
   const lineTextTrimmed = lineText.trim();
   const textNode = $createTextNode(lineTextTrimmed);
   const elementNode = $createParagraphNode();
@@ -484,13 +490,13 @@ export function createMarkdownImport(
         continue;
       }
 
-      importBlocks(
+      importBlocks({
         lineText,
-        root,
-        byType.element,
+        rootNode: root,
+        elementTransformers: byType.element,
         textFormatTransformersIndex,
-        byType.textMatch
-      );
+        textMatchTransformers: byType.textMatch,
+      });
     }
 
     // CHANGE: REMOVED THIS, I WANT TO KEEP NEW LINES
