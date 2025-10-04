@@ -24,6 +24,7 @@
     "@codemirror/lang-python": "^6.2.1",
     "@codemirror/language": "^6.11.3",
     "@excalidraw/excalidraw": "0.18.0",
+    "@floating-ui/react": "^0.27.16",
     "@lexical/list": "^0.30.0",
     "@lexical/markdown": "^0.30.0",
     "@lexical/react": "^0.30.0",

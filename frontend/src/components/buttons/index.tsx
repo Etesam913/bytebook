@@ -1,15 +1,18 @@
 import { motion } from 'motion/react';
-import { type ButtonHTMLAttributes } from 'react';
+import { forwardRef, type ReactNode, type ButtonHTMLAttributes } from 'react';
 import { cn } from '../../utils/string-formatting';
+import { Tooltip } from '../tooltip';
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  ref?: React.Ref<HTMLButtonElement>;
-};
+export const Button = forwardRef<
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement> & {
+    tooltip?: ReactNode;
+    tooltipProps?: Omit<Parameters<typeof Tooltip>[0], 'content' | 'children'>;
+  }
+>((props, ref) => {
+  const { className, children, tooltip, tooltipProps, ...restOfProps } = props;
 
-export const Button = (props: ButtonProps) => {
-  const { className, children, ref, ...restOfProps } = props;
-
-  return (
+  const buttonEl = (
     <button
       ref={ref}
       className={cn(
@@ -22,16 +25,27 @@ export const Button = (props: ButtonProps) => {
       {children}
     </button>
   );
-};
 
-type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  ref?: React.Ref<HTMLButtonElement>;
-};
+  return tooltip ? (
+    <Tooltip content={tooltip} {...tooltipProps}>
+      {buttonEl}
+    </Tooltip>
+  ) : (
+    buttonEl
+  );
+});
+Button.displayName = 'Button';
 
-export const IconButton = (props: IconButtonProps) => {
-  const { className, children, ref, ...restOfProps } = props;
+export const IconButton = forwardRef<
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement> & {
+    tooltip?: ReactNode;
+    tooltipProps?: Omit<Parameters<typeof Tooltip>[0], 'content' | 'children'>;
+  }
+>((props, ref) => {
+  const { className, children, tooltip, tooltipProps, ...restOfProps } = props;
 
-  return (
+  const buttonEl = (
     <button
       ref={ref}
       className={cn(
@@ -44,7 +58,16 @@ export const IconButton = (props: IconButtonProps) => {
       {children}
     </button>
   );
-};
+
+  return tooltip ? (
+    <Tooltip content={tooltip} {...tooltipProps}>
+      {buttonEl}
+    </Tooltip>
+  ) : (
+    buttonEl
+  );
+});
+IconButton.displayName = 'IconButton';
 
 export const MotionButton = motion(Button);
 export const MotionIconButton = motion(IconButton);
