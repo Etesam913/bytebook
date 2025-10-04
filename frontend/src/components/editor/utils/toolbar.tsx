@@ -234,7 +234,6 @@ export function updateToolbar({
         const topOfScrollContainerToWindow = noteContainerBounds?.top ?? 0;
         const scrollYOfScrollContainer =
           noteContainerRef.current?.scrollTop ?? 0;
-        console.log(left, noteContainerBounds?.left);
         setFloatingData({
           isOpen: true,
           top:
