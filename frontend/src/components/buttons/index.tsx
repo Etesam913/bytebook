@@ -1,15 +1,15 @@
 import { motion } from 'motion/react';
-import React, { forwardRef } from 'react';
-import { type ButtonHTMLAttributes } from 'react';
+import { forwardRef, type ReactNode, type ButtonHTMLAttributes } from 'react';
 import { cn } from '../../utils/string-formatting';
 import Tooltip, { type TooltipProps } from '../tooltip';
 
-export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  tooltip?: React.ReactNode;
-  tooltipProps?: Omit<Partial<TooltipProps>, 'content' | 'children'>;
-};
-
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
+export const Button = forwardRef<
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement> & {
+    tooltip?: ReactNode;
+    tooltipProps?: Omit<Partial<TooltipProps>, 'content' | 'children'>;
+  }
+>((props, ref) => {
   const { className, children, tooltip, tooltipProps, ...restOfProps } = props;
 
   const buttonEl = (
@@ -36,12 +36,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) =>
 });
 Button.displayName = 'Button';
 
-export type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  tooltip?: React.ReactNode;
-  tooltipProps?: Omit<Partial<TooltipProps>, 'content' | 'children'>;
-};
-
-export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>((props, ref) => {
+export const IconButton = forwardRef<
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement> & {
+    tooltip?: ReactNode;
+    tooltipProps?: Omit<Partial<TooltipProps>, 'content' | 'children'>;
+  }
+>((props, ref) => {
   const { className, children, tooltip, tooltipProps, ...restOfProps } = props;
 
   const buttonEl = (
