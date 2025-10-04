@@ -7,6 +7,18 @@ import (
 	"github.com/blevesearch/bleve/v2/search/query"
 )
 
+// normalizeQuotes converts typographic quotes/apostrophes to ASCII equivalents
+// to ensure consistent tokenization and matching regardless of user input source.
+func normalizeQuotes(s string) string {
+    replacer := strings.NewReplacer(
+        "’", "'", // right single quotation mark → apostrophe
+        "‘", "'", // left single quotation mark → apostrophe
+        "“", "\"", // left double quotation mark → double quote
+        "”", "\"", // right double quotation mark → double quote
+    )
+    return replacer.Replace(s)
+}
+
 // createPrefixQuery returns a case-insensitive prefix query targeting the specified field.
 // The provided prefix is lowercased to ensure case-insensitive behavior.
 func createPrefixQuery(field, prefix string) query.Query {
@@ -171,15 +183,19 @@ func createTagQuery(tagName string) query.Query {
 // - f:filename OR term
 // - #tagname AND term
 func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
-	tokens := parseTokens(input)
+    // Normalize curly/smart quotes so parsing and matching are consistent
+    input = normalizeQuotes(input)
+    tokens := parseTokens(input)
 	if len(tokens) == 0 {
 		return bleve.NewMatchNoneQuery()
 	}
 
 	// Helper to create a query for a token
-	createTokenQuery := func(token SearchToken) query.Query {
+    createTokenQuery := func(token SearchToken) query.Query {
 		if strings.HasPrefix(token.Text, "f:") {
-			prefixTerm := strings.ToLower(token.Text[2:])
+            // In case quotes are still present inside the token text (edge cases), strip them
+            prefixTerm := strings.Trim(token.Text[2:], "\"")
+            prefixTerm = strings.ToLower(prefixTerm)
 			return createFilenameQuery(prefixTerm)
 		} else if strings.HasPrefix(token.Text, "#") {
 			tagName := token.Text[1:]

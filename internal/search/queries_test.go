@@ -184,6 +184,16 @@ func TestBuildBooleanQueryFromUserInput(t *testing.T) {
 			input:    `f:"etesam's"`,
 			wantType: &query.DisjunctionQuery{},
 		},
+        {
+            name:     "quoted filename with curly apostrophe",
+            input:    "f:\"etesam’s\"",
+            wantType: &query.DisjunctionQuery{},
+        },
+        {
+            name:     "quoted filename with curly double quotes",
+            input:    "f:“etesam's”",
+            wantType: &query.DisjunctionQuery{},
+        },
 	}
 
 	for _, tt := range tests {
