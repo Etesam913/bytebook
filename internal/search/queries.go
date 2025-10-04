@@ -161,6 +161,63 @@ func createTagQuery(tagName string) query.Query {
 	return q
 }
 
+// GroupedToken represents a group of tokens that should be combined with OR logic
+type GroupedToken struct {
+	Tokens   []SearchToken
+	Operator Operator // The operator to use after this group
+}
+
+// groupConsecutiveFilenameTokens groups consecutive filename tokens (f: prefixed) to be combined with OR logic.
+// This allows multiple f: filters to be combined automatically while maintaining AND/OR behavior with other token types.
+func groupConsecutiveFilenameTokens(tokens []SearchToken) []GroupedToken {
+	if len(tokens) == 0 {
+		return []GroupedToken{}
+	}
+
+	var groups []GroupedToken
+	var currentFilenameGroup []SearchToken
+
+	// Helper to process accumulated filename tokens
+	processFilenameGroup := func(operator Operator) {
+		if len(currentFilenameGroup) == 0 {
+			return
+		}
+		
+		groups = append(groups, GroupedToken{
+			Tokens:   currentFilenameGroup,
+			Operator: operator,
+		})
+		currentFilenameGroup = []SearchToken{}
+	}
+
+	for i, token := range tokens {
+		if strings.HasPrefix(token.Text, "f:") {
+			// Add to current filename group
+			currentFilenameGroup = append(currentFilenameGroup, token)
+			
+			// If this is the last token or the next token is not a filename, process the group
+			if i == len(tokens)-1 || !strings.HasPrefix(tokens[i+1].Text, "f:") {
+				processFilenameGroup(token.Operator)
+			}
+		} else {
+			// Process any accumulated filename tokens first
+			if len(currentFilenameGroup) > 0 {
+				// Use the operator from the last filename token in the group
+				lastFilenameOp := currentFilenameGroup[len(currentFilenameGroup)-1].Operator
+				processFilenameGroup(lastFilenameOp)
+			}
+			
+			// Add non-filename token as individual group
+			groups = append(groups, GroupedToken{
+				Tokens:   []SearchToken{token},
+				Operator: token.Operator,
+			})
+		}
+	}
+
+	return groups
+}
+
 // BuildBooleanQueryFromUserInput builds a boolean query from a user input string.
 // Tokens prefixed with "f:" are treated as filename prefixes; tokens prefixed with "#" are treated as tag searches;
 // tokens with quotes are exact matches; all others query text content and code content with fuzzy matching.
@@ -170,6 +227,9 @@ func createTagQuery(tagName string) query.Query {
 // - "exact phrase" AND term
 // - f:filename OR term
 // - #tagname AND term
+// Multiple consecutive f: filters are automatically combined with OR logic:
+// - f:file1 f:file2 f:file3 (equivalent to f:file1 OR f:file2 OR f:file3)
+// - f:file1 f:file2 AND term (equivalent to (f:file1 OR f:file2) AND term)
 func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 	tokens := parseTokens(input)
 	if len(tokens) == 0 {
@@ -190,16 +250,51 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 		return createFuzzyContentQuery(token.Text)
 	}
 
-	// The first token does not have a prevOp, no OR or AND
-	currentQuery := createTokenQuery(tokens[0])
+	// Group consecutive filename tokens
+	groups := groupConsecutiveFilenameTokens(tokens)
+	if len(groups) == 0 {
+		return bleve.NewMatchNoneQuery()
+	}
 
-	for i := 1; i < len(tokens); i++ {
-		nextQuery := createTokenQuery(tokens[i])
+	// Create query for the first group
+	var currentQuery query.Query
+	firstGroup := groups[0]
+	
+	if len(firstGroup.Tokens) == 1 {
+		// Single token in group
+		currentQuery = createTokenQuery(firstGroup.Tokens[0])
+	} else {
+		// Multiple tokens in group - combine with OR (for filename tokens)
+		disjunctionQuery := bleve.NewDisjunctionQuery()
+		for _, token := range firstGroup.Tokens {
+			disjunctionQuery.AddQuery(createTokenQuery(token))
+		}
+		currentQuery = disjunctionQuery
+	}
+
+	// Process remaining groups
+	for i := 1; i < len(groups); i++ {
+		group := groups[i]
+		var nextQuery query.Query
+		
+		if len(group.Tokens) == 1 {
+			// Single token in group
+			nextQuery = createTokenQuery(group.Tokens[0])
+		} else {
+			// Multiple tokens in group - combine with OR (for filename tokens)
+			disjunctionQuery := bleve.NewDisjunctionQuery()
+			for _, token := range group.Tokens {
+				disjunctionQuery.AddQuery(createTokenQuery(token))
+			}
+			nextQuery = disjunctionQuery
+		}
+
 		if nextQuery == nil {
 			continue
 		}
 
-		prevOp := tokens[i-1].Operator
+		// Use the operator from the previous group to combine with the current query
+		prevOp := groups[i-1].Operator
 		switch prevOp {
 		case OpOR:
 			disjunctionQuery := bleve.NewDisjunctionQuery()
