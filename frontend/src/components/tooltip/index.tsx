@@ -23,6 +23,7 @@ import {
   useMergeRefs,
   arrow as arrowMiddleware,
   type Placement,
+  type Delay,
 } from '@floating-ui/react';
 
 export const Tooltip = ({
@@ -44,7 +45,7 @@ export const Tooltip = ({
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   disabled?: boolean;
-  delay?: number | { open?: number; close?: number };
+  delay?: Delay;
   className?: string;
   withArrow?: boolean;
 }) => {
@@ -131,5 +132,3 @@ export const Tooltip = ({
 };
 
 Tooltip.displayName = 'Tooltip';
-
-export default Tooltip;

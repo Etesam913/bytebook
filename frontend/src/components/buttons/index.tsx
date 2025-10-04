@@ -1,13 +1,13 @@
 import { motion } from 'motion/react';
 import { forwardRef, type ReactNode, type ButtonHTMLAttributes } from 'react';
 import { cn } from '../../utils/string-formatting';
-import Tooltip, { type TooltipProps } from '../tooltip';
+import { Tooltip } from '../tooltip';
 
 export const Button = forwardRef<
   HTMLButtonElement,
   ButtonHTMLAttributes<HTMLButtonElement> & {
     tooltip?: ReactNode;
-    tooltipProps?: Omit<Partial<TooltipProps>, 'content' | 'children'>;
+    tooltipProps?: Omit<Parameters<typeof Tooltip>[0], 'content' | 'children'>;
   }
 >((props, ref) => {
   const { className, children, tooltip, tooltipProps, ...restOfProps } = props;
@@ -40,7 +40,7 @@ export const IconButton = forwardRef<
   HTMLButtonElement,
   ButtonHTMLAttributes<HTMLButtonElement> & {
     tooltip?: ReactNode;
-    tooltipProps?: Omit<Partial<TooltipProps>, 'content' | 'children'>;
+    tooltipProps?: Omit<Parameters<typeof Tooltip>[0], 'content' | 'children'>;
   }
 >((props, ref) => {
   const { className, children, tooltip, tooltipProps, ...restOfProps } = props;
