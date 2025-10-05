@@ -6,7 +6,6 @@ import {
   type ReactNode,
   type ReactElement,
   type Ref,
-  type CSSProperties,
 } from 'react';
 import {
   autoUpdate,
@@ -28,6 +27,8 @@ import {
 import { cn } from '../../utils/string-formatting';
 import { motion, AnimatePresence } from 'motion/react';
 import { easingFunctions } from '../../animations';
+import { TooltipArrow } from './tooltip-arrow';
+import { CSSProperties } from 'react';
 
 export const Tooltip = ({
   content,
@@ -179,36 +180,11 @@ export const Tooltip = ({
               >
                 {content}
                 {withArrow && (
-                  <div
+                  <TooltipArrow
                     ref={arrowRef}
-                    className={cn(
-                      'absolute w-2.5 h-2.5 rotate-45 z-40',
-                      'bg-zinc-50 border border-zinc-300',
-                      'dark:bg-zinc-750 dark:border-zinc-600',
-                      {
-                        '!border-t-transparent !border-l-transparent':
-                          side === 'top',
-                        '!border-t-transparent !border-r-transparent':
-                          side === 'right',
-                        '!border-b-transparent !border-r-transparent':
-                          side === 'bottom',
-                        '!border-b-transparent !border-l-transparent':
-                          side === 'left',
-                      }
-                    )}
-                    style={
-                      {
-                        left:
-                          middlewareData.arrow?.x != null
-                            ? `${middlewareData.arrow.x}px`
-                            : '',
-                        top:
-                          middlewareData.arrow?.y != null
-                            ? `${middlewareData.arrow.y}px`
-                            : '',
-                        [arrowSide]: '-5px',
-                      } as CSSProperties
-                    }
+                    side={side}
+                    middlewareData={middlewareData}
+                    arrowSide={arrowSide}
                   />
                 )}
               </motion.div>

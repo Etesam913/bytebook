@@ -177,7 +177,11 @@ export function Toolbar({
               (v) => v.value === currentBlockType
             )}
             onChange={({ value }) =>
-              changeSelectedBlocksType(editor, value, insertAttachmentsMutation)
+              changeSelectedBlocksType({
+                editor,
+                newBlockType: value,
+                insertAttachmentsMutation,
+              })
             }
             items={blockTypesDropdownItems}
             buttonClassName="w-[10rem]"
