@@ -174,9 +174,13 @@ export function useNoteCreateMutation() {
         queryKey: noteQueries.getNotes(variables.folder, noteSort, queryClient)
           .queryKey,
       });
-      const previousNotesData = queryClient.getQueryData<NotesQueryData>(
-        noteQueries.getNotes(variables.folder, noteSort, queryClient).queryKey
-      );
+      const queryKey = noteQueries.getNotes(
+        variables.folder,
+        noteSort,
+        queryClient
+      ).queryKey;
+      const previousNotesData =
+        queryClient.getQueryData<NotesQueryData>(queryKey);
 
       const formData = new FormData(variables.e.target as HTMLFormElement);
       const newNoteName = formData.get('note-name')?.toString()?.trim() ?? '';
@@ -193,11 +197,7 @@ export function useNoteCreateMutation() {
           ],
           previousNotes: previousNotesData.notes || undefined,
         };
-        queryClient.setQueryData(
-          noteQueries.getNotes(variables.folder, noteSort, queryClient)
-            .queryKey,
-          updatedNotesData
-        );
+        queryClient.setQueryData(queryKey, updatedNotesData);
       }
 
       return { previousNotesData, folder: variables.folder };
@@ -206,13 +206,21 @@ export function useNoteCreateMutation() {
       const noteName = (variables.e.target as any).__noteName;
       const folder = (variables.e.target as any).__folder;
       if (result && noteName && folder) {
-        navigate(
-          `/${convertFilePathToQueryNotation(`${folder}/${encodeURIComponent(noteName)}.md`)}`
-        );
+        const filePath = new FilePath({
+          folder,
+          note: `${noteName}.md`,
+        });
+        navigate(filePath.getLinkToNote());
       }
+
+      const queryKey = noteQueries.getNotes(
+        variables.folder,
+        noteSort,
+        queryClient
+      ).queryKey;
+
       queryClient.invalidateQueries({
-        queryKey: noteQueries.getNotes(variables.folder, noteSort, queryClient)
-          .queryKey,
+        queryKey,
       });
     },
     onError: (error, variables, context) => {
