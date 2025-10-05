@@ -49,10 +49,11 @@ import {
   overrideUndoRedoCommand,
   overrideUpDownKeyCommand,
 } from '../utils/note-commands';
-import { $convertFromMarkdownStringCorrect } from '../utils/note-metadata';
+import { parseFrontMatter } from '../utils/note-metadata';
 import { showTableCellActionsButton, updateToolbar } from '../utils/toolbar';
 import { useWailsEvent } from '../../../hooks/events';
 import { useCreateNoteDialog } from '../../../hooks/dialogs';
+import { $convertFromMarkdownString } from '@lexical/markdown';
 
 /** Gets note markdown from local system on mount */
 export function useNoteMarkdown({
@@ -102,13 +103,20 @@ export function useNoteMarkdown({
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
             return [];
           });
+          const markdown = res.data ?? '';
 
-          // Apply the new markdown to the editor
-          $convertFromMarkdownStringCorrect(
-            res.data ?? '',
+          const { frontMatter, content } = parseFrontMatter(markdown);
+
+          setFrontmatter(frontMatter);
+
+          $convertFromMarkdownString(
+            content,
             CUSTOM_TRANSFORMERS,
-            setFrontmatter
+            undefined,
+            true,
+            false
           );
+
           // Scroll to top of page after note markdown has loaded in
           overflowContainerRef.current?.scrollTo(0, 0);
         },

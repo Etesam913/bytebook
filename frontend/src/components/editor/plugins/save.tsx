@@ -12,14 +12,11 @@ import { useAtom } from 'jotai';
 import { SetNoteMarkdown } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { WINDOW_ID } from '../../../App';
 import { CUSTOM_TRANSFORMERS } from '../transformers';
-import {
-  $convertToMarkdownStringCorrect,
-  replaceFrontMatter,
-  parseFrontMatter,
-} from '../utils/note-metadata';
+import { replaceFrontMatter, parseFrontMatter } from '../utils/note-metadata';
 import { previousMarkdownAtom } from '../atoms';
 import { FilePath } from '../../../utils/string-formatting';
 import { Frontmatter } from '../../../types';
+import { $convertToMarkdownString } from '@lexical/markdown';
 
 type SaveMarkdownContentPayload =
   | undefined
@@ -62,7 +59,7 @@ export function SavePlugin({
       editor.registerCommand<SaveMarkdownContentPayload>(
         SAVE_MARKDOWN_CONTENT,
         (payload) => {
-          const markdown = $convertToMarkdownStringCorrect(CUSTOM_TRANSFORMERS);
+          const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS);
 
           let frontmatterCopy = payload?.newFrontmatter;
           if (!frontmatterCopy) {

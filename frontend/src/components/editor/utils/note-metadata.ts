@@ -1,13 +1,8 @@
 import {
   type ElementTransformer,
-  TRANSFORMERS,
   type TextFormatTransformer,
   type TextMatchTransformer,
 } from '@lexical/markdown';
-import type { ElementNode } from 'lexical';
-import type { Dispatch, SetStateAction } from 'react';
-import { createMarkdownExport } from '../MarkdownExport';
-import { createMarkdownImport } from '../MarkdownImport';
 import type { Frontmatter } from '../../../types';
 
 const frontMatterRegex = /^---[\s\S]+?---/;
@@ -161,35 +156,3 @@ export type Transformer =
   | ElementTransformer
   | TextFormatTransformer
   | TextMatchTransformer;
-
-export function $convertToMarkdownStringCorrect(
-  // @ts-expect-error Will fix later
-  transformers: Array<Transformer> = TRANSFORMERS,
-  node?: ElementNode
-): string {
-  const exportMarkdown = createMarkdownExport(transformers);
-  return exportMarkdown(node);
-}
-
-export function $convertFromMarkdownStringCorrect(
-  markdown: string,
-  // @ts-expect-error Will fix later
-  transformers: Array<Transformer> = TRANSFORMERS,
-  setFrontmatter?: Dispatch<SetStateAction<Frontmatter>>,
-  node?: ElementNode
-): void {
-  const importMarkdown = createMarkdownImport(transformers);
-
-  let markdownString = markdown;
-
-  if (hasFrontMatter(markdown)) {
-    const { frontMatter, content } = parseFrontMatter(markdown);
-
-    if (setFrontmatter) {
-      setFrontmatter(frontMatter);
-    }
-
-    markdownString = content;
-  }
-  importMarkdown(markdownString, node);
-}

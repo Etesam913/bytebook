@@ -4,7 +4,6 @@ import { useAtom, useAtomValue } from 'jotai';
 import { RefObject, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { draggedElementAtom, noteContainerRefAtom } from '../atoms';
-import { isNoteMaximizedAtom } from '../../../atoms';
 import { VerticalDots } from '../../../icons/vertical-dots';
 
 import { useDraggableBlock, useNodeDragEvents } from '../hooks/draggable-block';
@@ -21,7 +20,6 @@ export function DraggableBlockPlugin({
   const [isDragHandleShowing, setIsDragHandleShowing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const handleRef = useRef<HTMLDivElement>(null);
-  const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
   const [draggedElement, setDraggedElement] = useAtom(draggedElementAtom);
 
   const dragHandleYMotionValue = useMotionValue(0);

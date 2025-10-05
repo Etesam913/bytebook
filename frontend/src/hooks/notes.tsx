@@ -22,7 +22,6 @@ import {
 import { WINDOW_ID } from '../App';
 import { noteSortAtom, projectSettingsAtom } from '../atoms';
 import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
-import { $convertFromMarkdownStringCorrect } from '../components/editor/utils/note-metadata';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import { getFilePathFromNoteSelectionRange } from '../utils/selection';
@@ -36,6 +35,7 @@ import {
 import { useWailsEvent } from './events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter } from '../types';
+import { $convertFromMarkdownString } from '@lexical/markdown';
 
 export type NotesQueryData = {
   notes: FilePath[];
@@ -461,10 +461,12 @@ export function useNoteChangedEvent({
     ) {
       editor.update(
         () => {
-          $convertFromMarkdownStringCorrect(
+          $convertFromMarkdownString(
             markdown,
             CUSTOM_TRANSFORMERS,
-            setFrontmatter
+            undefined,
+            true,
+            false
           );
         },
         { tag: 'note:changed-from-other-window' }
