@@ -1,7 +1,11 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useAtomValue, useSetAtom } from 'jotai';
-import { useRef, useState } from 'react';
-import { contextMenuDataAtom, projectSettingsAtom } from '../../atoms';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useRef } from 'react';
+import {
+  contextMenuDataAtom,
+  projectSettingsAtom,
+  folderSidebarOpenStateAtom,
+} from '../../atoms';
 import { usePinNotesMutation } from '../../hooks/notes';
 import { useListVirtualization } from '../../hooks/observers';
 import { PinTack2 } from '../../icons/pin-tack-2';
@@ -114,12 +118,18 @@ function VirtualizedPinnedNotes({
 }
 
 export function PinnedNotesAccordion() {
-  const [isPinnedNotesOpen, setIsPinnedNotesOpen] = useState(true);
+  const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
+  const isPinnedNotesOpen = openState.pinnedNotes;
 
   return (
     <section>
       <AccordionButton
-        onClick={() => setIsPinnedNotesOpen((prev) => !prev)}
+        onClick={() =>
+          setOpenState((prev) => ({
+            ...prev,
+            pinnedNotes: !prev.pinnedNotes,
+          }))
+        }
         icon={<PinTack2 className="will-change-transform" />}
         title="Pinned Notes"
         isOpen={isPinnedNotesOpen}

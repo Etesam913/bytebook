@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useAtom } from 'jotai';
 import { getDefaultButtonVariants } from '../../../animations';
 import { useFolders } from '../../../hooks/folders';
 import { Folder } from '../../../icons/folder';
@@ -16,9 +17,11 @@ import { routeUrls } from '../../../utils/routes';
 import { useFolderFromRoute } from '../../../hooks/events';
 import { findClosestSidebarItemToNavigateTo } from '../../../utils/routing';
 import { FolderAccordionButton } from './folder-accordion-button';
+import { folderSidebarOpenStateAtom } from '../../../atoms';
 
 export function MyFoldersAccordion() {
-  const [isOpen, setIsOpen] = useState(true);
+  const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
+  const isOpen = openState.folders;
   const { data, isLoading, isError, refetch } = useFolders();
   const alphabetizedFolders = data?.alphabetizedFolders ?? null;
   const previousFolders = data?.previousAlphabetizedFolders ?? null;
@@ -64,7 +67,12 @@ export function MyFoldersAccordion() {
     <section>
       <AccordionButton
         isOpen={isOpen}
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={() =>
+          setOpenState((prev) => ({
+            ...prev,
+            folders: !prev.folders,
+          }))
+        }
         icon={<Folder width={20} height={20} strokeWidth={1.75} />}
         title={
           <>

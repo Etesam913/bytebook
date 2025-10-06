@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useState } from 'react';
+import { useAtom } from 'jotai';
 import { useTagsQuery } from '../../../hooks/tags';
 import { TagIcon } from '../../../icons/tag';
 import { Sidebar } from '../../sidebar';
@@ -11,9 +11,11 @@ import {
 
 import { useRoute } from 'wouter';
 import { TagAccordionButton } from './tag-accordion-button';
+import { folderSidebarOpenStateAtom } from '../../../atoms';
 
 export function MyTagsAccordion() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
+  const isOpen = openState.tags;
   const { data: tags } = useTagsQuery();
   const hasTags = tags && tags?.length > 0;
   const [isSavedSearchRoute, savedSearchRouteParams] =
@@ -24,7 +26,12 @@ export function MyTagsAccordion() {
     <section>
       <AccordionButton
         isOpen={isOpen}
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={() =>
+          setOpenState((prev) => ({
+            ...prev,
+            tags: !prev.tags,
+          }))
+        }
         icon={<TagIcon width={18} height={18} strokeWidth={1.75} />}
         title={
           <>
