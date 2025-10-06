@@ -166,6 +166,7 @@ textarea,
 
 #content-editable-editor {
   line-height: 28px;
+  cursor: text;
 }
 
 #content-editable-editor  h1,
@@ -445,6 +446,7 @@ div[data-is-fullscreen='true'] .cm-scroller {
   position: relative;
   resize: vertical;
   z-index: -1;
+  cursor: text;
 }
 
 [contenteditable='true']:focus {

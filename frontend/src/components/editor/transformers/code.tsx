@@ -7,6 +7,7 @@ import {
   unescapeNewlines,
   unescapeQuotes,
 } from '../../../utils/string-formatting';
+import { getDefaultCodeForLanguage } from '../../../utils/code';
 import { $createCodeNode, $isCodeNode, CodeNode } from '../nodes/code';
 
 const CODE_START_REGEX = /^```(\w{1,10})?(?:\s+(.+))?\s*$/;
@@ -189,6 +190,11 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
 
         code = linesInBetween.join('\n');
       }
+    }
+
+    // Use default code if no content is provided
+    if (!code.trim()) {
+      code = getDefaultCodeForLanguage(language as Languages);
     }
 
     const newNode = $createCodeNode({
