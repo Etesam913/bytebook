@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useState } from 'react';
+import { useAtom } from 'jotai';
 import { Sidebar } from '../../sidebar';
 import { AccordionButton } from '../../sidebar/accordion-button';
 import {
@@ -15,10 +15,12 @@ import { useRoute } from 'wouter';
 import { SavedSearchAccordionButton } from './saved-search-accordion-button';
 import { Box2Search } from '../../../icons/box-2-search';
 import { SavedSearch } from '../../../../bindings/github.com/etesam913/bytebook/internal/search/models';
+import { folderSidebarOpenStateAtom } from '../../../atoms';
 
 export function MySavedSearchesAccordion() {
   useSavedSearchUpdates();
-  const [isOpen, setIsOpen] = useState(false);
+  const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
+  const isOpen = openState.savedSearches;
   const { data: savedSearches = [] } = useSavedSearchesQuery();
   const hasSavedSearches = savedSearches.length > 0;
   const [isSavedSearchRoute, savedSearchRouteParams] =
@@ -29,7 +31,12 @@ export function MySavedSearchesAccordion() {
     <section className="pb-1.5">
       <AccordionButton
         isOpen={isOpen}
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={() =>
+          setOpenState((prev) => ({
+            ...prev,
+            savedSearches: !prev.savedSearches,
+          }))
+        }
         icon={<Box2Search height={19} width={19} />}
         title={
           <>

@@ -1,13 +1,13 @@
-import { useAtomValue } from 'jotai';
-import { useState } from 'react';
-import { mostRecentNotesAtom } from '../../atoms';
+import { useAtom } from 'jotai';
+import { mostRecentNotesAtom, folderSidebarOpenStateAtom } from '../../atoms';
 import HourglassStart from '../../icons/hourglass-start.tsx';
 import { AccordionItem } from '../sidebar/accordion-item.tsx';
 import { SidebarAccordion } from '../sidebar/accordion.tsx';
 
 export function RecentNotesAccordion() {
-  const [isRecentNotesOpen, setIsRecentNotesOpen] = useState(false);
-  const mostRecentNotes = useAtomValue(mostRecentNotesAtom);
+  const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
+  const isRecentNotesOpen = openState.recentNotes;
+  const [mostRecentNotes] = useAtom(mostRecentNotesAtom);
 
   const mostRecentElements = mostRecentNotes.map((recentNotePath) => {
     const url = recentNotePath.getLinkToNote();
@@ -26,7 +26,12 @@ export function RecentNotesAccordion() {
 
   return (
     <SidebarAccordion
-      onClick={() => setIsRecentNotesOpen((prev) => !prev)}
+      onClick={() =>
+        setOpenState((prev) => ({
+          ...prev,
+          recentNotes: !prev.recentNotes,
+        }))
+      }
       title="Recent Notes"
       isOpen={isRecentNotesOpen}
       icon={
