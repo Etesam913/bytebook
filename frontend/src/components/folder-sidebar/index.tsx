@@ -26,7 +26,6 @@ import { MyKernelsAccordion } from './my-kernels-accordion';
 import { useFolderFromRoute } from '../../hooks/events.tsx';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion';
 import { Tooltip } from '../tooltip';
-import { Command } from '../../icons/command';
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
   const sidebarAccordionSectionRef = useRef<HTMLDivElement | null>(null);

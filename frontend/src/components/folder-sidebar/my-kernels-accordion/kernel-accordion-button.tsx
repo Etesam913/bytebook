@@ -1,9 +1,4 @@
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { SquareTerminal } from '../../../icons/square-terminal';
-import { PythonLogo } from '../../../icons/python-logo';
-import { GolangLogo } from '../../../icons/golang-logo';
-import { JavascriptLogo } from '../../../icons/javascript-logo';
-import { JavaLogo } from '../../../icons/java-logo';
 import { cn } from '../../../utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
 import {
@@ -22,6 +17,7 @@ import {
 import { Languages } from '../../../types';
 import { currentZoomAtom } from '../../../hooks/resize';
 import { routeUrls } from '../../../utils/routes';
+import { getKernelIcon } from './index';
 
 export function KernelAccordionButton({
   kernelName,
@@ -41,21 +37,6 @@ export function KernelAccordionButton({
   const currentZoom = useAtomValue(currentZoomAtom);
 
   const isKernelRunning = heartbeat === 'success';
-
-  const getKernelIcon = (kernel: Languages) => {
-    switch (kernel) {
-      case 'python':
-        return <PythonLogo height={18} width={18} />;
-      case 'go':
-        return <GolangLogo height={18} width={18} />;
-      case 'javascript':
-        return <JavascriptLogo height={18} width={18} />;
-      case 'java':
-        return <JavaLogo height={18} width={18} />;
-      default:
-        return <SquareTerminal height={16} width={16} />;
-    }
-  };
 
   return (
     <button
@@ -109,7 +90,7 @@ export function KernelAccordionButton({
       }}
     >
       <div className="flex items-center gap-2">
-        {getKernelIcon(kernelName)}
+        {getKernelIcon(kernelName, 18)}
         <KernelHeartbeat
           status={status}
           heartbeat={heartbeat}

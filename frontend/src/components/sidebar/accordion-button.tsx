@@ -9,12 +9,15 @@ export function AccordionButton({
   isOpen,
   onClick,
   className,
+  // This is needed for a tooltip to show on the button
+  ...props
 }: {
   icon: ReactNode;
   title: ReactNode;
   isOpen: boolean;
   className?: string;
   onClick: () => void;
+  [key: string]: any;
 }) {
   return (
     <button
@@ -24,6 +27,7 @@ export function AccordionButton({
         className
       )}
       onClick={onClick}
+      {...props}
     >
       {icon}
       <p>{title}</p>
