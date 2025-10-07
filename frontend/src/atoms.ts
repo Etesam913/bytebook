@@ -157,3 +157,75 @@ export const kernelsDataAtom = atom<KernelsData>({
 });
 
 export const currentFilePathAtom = atom<FilePath | null>(null);
+
+// Folder sidebar accordion open state
+type FolderSidebarOpenState = {
+  pinnedNotes: boolean;
+  recentNotes: boolean;
+  folders: boolean;
+  kernels: boolean;
+  tags: boolean;
+  savedSearches: boolean;
+};
+
+const defaultFolderSidebarOpenState: FolderSidebarOpenState = {
+  pinnedNotes: true,
+  recentNotes: false,
+  folders: true,
+  kernels: false,
+  tags: false,
+  savedSearches: false,
+};
+
+const initializeFolderSidebarOpenState = (): FolderSidebarOpenState => {
+  try {
+    const raw = localStorage.getItem('folderSidebarOpenState');
+    if (!raw) return { ...defaultFolderSidebarOpenState };
+    const parsed = JSON.parse(raw) as Partial<FolderSidebarOpenState>;
+    return {
+      pinnedNotes:
+        typeof parsed.pinnedNotes === 'boolean'
+          ? parsed.pinnedNotes
+          : defaultFolderSidebarOpenState.pinnedNotes,
+      recentNotes:
+        typeof parsed.recentNotes === 'boolean'
+          ? parsed.recentNotes
+          : defaultFolderSidebarOpenState.recentNotes,
+      folders:
+        typeof parsed.folders === 'boolean'
+          ? parsed.folders
+          : defaultFolderSidebarOpenState.folders,
+      kernels:
+        typeof parsed.kernels === 'boolean'
+          ? parsed.kernels
+          : defaultFolderSidebarOpenState.kernels,
+      tags:
+        typeof parsed.tags === 'boolean'
+          ? parsed.tags
+          : defaultFolderSidebarOpenState.tags,
+      savedSearches:
+        typeof parsed.savedSearches === 'boolean'
+          ? parsed.savedSearches
+          : defaultFolderSidebarOpenState.savedSearches,
+    };
+  } catch {
+    return { ...defaultFolderSidebarOpenState };
+  }
+};
+
+export const folderSidebarOpenStateAtom = atom(
+  initializeFolderSidebarOpenState(),
+  (
+    get,
+    set,
+    update:
+      | Partial<FolderSidebarOpenState>
+      | ((prev: FolderSidebarOpenState) => Partial<FolderSidebarOpenState>)
+  ) => {
+    const prev = get(folderSidebarOpenStateAtom);
+    const patch = typeof update === 'function' ? update(prev) : update;
+    const next: FolderSidebarOpenState = { ...prev, ...patch };
+    localStorage.setItem('folderSidebarOpenState', JSON.stringify(next));
+    set(folderSidebarOpenStateAtom, next);
+  }
+);

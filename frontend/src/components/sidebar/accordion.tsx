@@ -29,7 +29,7 @@ export function SidebarAccordion({
         icon={icon}
         className={buttonClassName}
       />
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isOpen && (
           <motion.ul
             initial={{ height: 0 }}

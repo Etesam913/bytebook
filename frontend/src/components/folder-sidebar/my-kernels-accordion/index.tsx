@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useState } from 'react';
+import { useAtom } from 'jotai';
 import { useRoute } from 'wouter';
 import { useAtomValue } from 'jotai';
 import { Sidebar } from '../../sidebar';
@@ -20,6 +20,7 @@ import {
 } from '../../../utils/routes';
 import { KernelAccordionButton } from './kernel-accordion-button';
 import { Tooltip } from '../../tooltip';
+import { folderSidebarOpenStateAtom } from '../../../atoms';
 import { kernelsDataAtom } from '../../../atoms';
 import { KernelHeartbeat } from '../../kernel-info';
 import { SquareTerminal } from '../../../icons/square-terminal';
@@ -73,7 +74,8 @@ function KernelTooltipContent({ kernelsData }: { kernelsData: KernelsData }) {
 }
 
 export function MyKernelsAccordion() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
+  const isOpen = openState.kernels;
   const [, params] = useRoute<KernelWithFilesRouteParams>(
     routeUrls.patterns.KERNELS_WITH_FILES
   );
@@ -92,13 +94,18 @@ export function MyKernelsAccordion() {
       >
         <AccordionButton
           isOpen={isOpen}
-          onClick={() => setIsOpen((prev) => !prev)}
+          onClick={() =>
+            setOpenState((prev) => ({
+              ...prev,
+              kernels: !prev.kernels,
+            }))
+          }
           icon={<SquareTerminal width={20} height={20} />}
           title={'Kernels'}
         />
       </Tooltip>
 
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
             initial={{ height: 0 }}

@@ -1,13 +1,6 @@
-import {
-  type Dispatch,
-  type SetStateAction,
-  useRef,
-  useState,
-  useId,
-} from 'react';
+import { type Dispatch, type SetStateAction, useState } from 'react';
 import { MotionIconButton } from '.';
 import { getDefaultButtonVariants } from '../../animations';
-import { useOnClickOutside } from '../../hooks/general';
 import { Paperclip } from '../../icons/paperclip-2';
 import SortAlphaAscending from '../../icons/sort-alpha-ascending';
 import SortAlphaDescending from '../../icons/sort-alpha-descending';
@@ -17,7 +10,7 @@ import { SortNumAscending } from '../../icons/sort-num-ascending';
 import SortNumDescending from '../../icons/sort-num-descending';
 import type { SortStrings } from '../../types';
 import { cn } from '../../utils/string-formatting';
-import { DropdownItems } from '../dropdown/dropdown-items';
+import { DropdownMenu } from '../dropdown/dropdown-menu';
 import { Tooltip } from '../tooltip';
 
 const sortOptions: { name: string; value: SortStrings }[] = [
@@ -78,16 +71,7 @@ export function SortButton({
   sortDirection: SortStrings;
   setSortDirection: Dispatch<SetStateAction<SortStrings>>;
 }) {
-  const dropdownContainerRef = useRef<HTMLDivElement>(null);
   const [isSortOptionsOpen, setIsSortOptionsOpen] = useState(false);
-  useOnClickOutside(dropdownContainerRef, () => setIsSortOptionsOpen(false));
-  const [focusIndex, setFocusIndex] = useState(
-    sortOptions.findIndex(({ value }) => value === sortDirection)
-  );
-
-  const uniqueId = useId();
-  const buttonId = `sort-button-${uniqueId}`;
-  const menuId = `sort-menu-${uniqueId}`;
 
   const sortOptionComponents = sortOptions.map(({ name, value }) => {
     return {
@@ -105,39 +89,37 @@ export function SortButton({
   });
 
   return (
-    <div className="relative flex" ref={dropdownContainerRef}>
-      <DropdownItems
-        className="w-fit translate-y-[2.25rem] right-0 "
-        isOpen={isSortOptionsOpen}
-        setIsOpen={setIsSortOptionsOpen}
-        setFocusIndex={setFocusIndex}
-        focusIndex={focusIndex}
-        items={sortOptionComponents}
-        selectedItem={sortDirection}
-        onChange={({ value }) => setSortDirection(value as SortStrings)}
-        menuId={menuId}
-        buttonId={buttonId}
-        valueIndex={sortOptions.findIndex(
-          ({ value }) => value === sortDirection
-        )}
-      />
-
-      <Tooltip content="Sort options" placement="bottom">
-        <MotionIconButton
-          id={buttonId}
-          onClick={() => setIsSortOptionsOpen((prev) => !prev)}
-          {...getDefaultButtonVariants()}
-          title={sortOptions.find(({ value }) => value === sortDirection)?.name}
-          aria-label="Sort options"
-          aria-haspopup="listbox"
-          aria-expanded={isSortOptionsOpen}
-          aria-controls={isSortOptionsOpen ? menuId : undefined}
-          type="button"
-          className={cn(isSortOptionsOpen && 'bg-zinc-100 dark:bg-zinc-700')}
-        >
-          <IconForSortOption sortOption={sortDirection} />
-        </MotionIconButton>
-      </Tooltip>
-    </div>
+    <DropdownMenu
+      items={sortOptionComponents}
+      isOpen={isSortOptionsOpen}
+      setIsOpen={setIsSortOptionsOpen}
+      className="relative flex"
+      dropdownClassName="w-fit translate-y-[2.25rem] right-0"
+      selectedItem={sortDirection}
+      valueIndex={sortOptions.findIndex(({ value }) => value === sortDirection)}
+      onChange={({ value }) => setSortDirection(value as SortStrings)}
+    >
+      {({ buttonId, menuId, isOpen, handleKeyDown, handleClick }) => (
+        <Tooltip content="Sort options" placement="bottom">
+          <MotionIconButton
+            id={buttonId}
+            onClick={handleClick}
+            onKeyDown={handleKeyDown}
+            {...getDefaultButtonVariants()}
+            title={
+              sortOptions.find(({ value }) => value === sortDirection)?.name
+            }
+            aria-label="Sort options"
+            aria-haspopup="listbox"
+            aria-expanded={isOpen}
+            aria-controls={isOpen ? menuId : undefined}
+            type="button"
+            className={cn(isOpen && 'bg-zinc-100 dark:bg-zinc-700')}
+          >
+            <IconForSortOption sortOption={sortDirection} />
+          </MotionIconButton>
+        </Tooltip>
+      )}
+    </DropdownMenu>
   );
 }

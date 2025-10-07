@@ -28,79 +28,73 @@ export function SearchPage() {
 
   return (
     <section className="pt-2.5 flex-1 h-screen flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
-      <header className="flex items-center gap-2 w-full pl-22 pr-4 pb-2 border-b-1 border-zinc-200 dark:border-zinc-700">
-        <MotionIconButton
-          {...getDefaultButtonVariants()}
-          onClick={() => window.history.back()}
-        >
-          <CircleArrowLeft height={20} width={20} />
-        </MotionIconButton>
-        <Input
-          ref={inputRef}
-          inputProps={{
-            placeholder: 'Search',
-            className: 'w-full font-code',
-            autoCapitalize: 'off',
-            autoComplete: 'off',
-            autoCorrect: 'off',
-            spellCheck: false,
-            autoFocus: true,
-            value: lastSearchQuery,
-            onFocus: (e) => e.target.select(),
-            onChange: async (e) => {
-              setLastSearchQuery(e.target.value);
-              setSelectedIndex(0);
-            },
-            onKeyDown: (e) => {
-              if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                if (searchResults.length === 0) return;
-                setSelectedIndex((prev) =>
-                  Math.min(prev < 0 ? 0 : prev + 1, searchResults.length - 1)
-                );
-              } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                if (searchResults.length === 0) return;
-                setSelectedIndex((prev) => (prev <= 0 ? 0 : prev - 1));
-              } else if (e.key === 'Enter') {
-                if (
-                  selectedIndex >= 0 &&
-                  selectedIndex < searchResults.length
-                ) {
-                  const selected = searchResults[selectedIndex];
-                  const highlights = selected.highlights;
-                  const firstHighlightedTerm = highlights[0]?.highlightedTerm;
-                  const href = firstHighlightedTerm
-                    ? selected.filePath.getLinkToNote({
-                        highlight: firstHighlightedTerm,
-                      })
-                    : selected.filePath.getLinkToNote();
-                  setLocation(href);
+      <header className="w-full pr-4 border-b-1 border-zinc-200 dark:border-zinc-700 flex flex-col gap-1">
+        <div className="pl-22 flex items-center gap-2">
+          <MotionIconButton
+            {...getDefaultButtonVariants()}
+            onClick={() => window.history.back()}
+          >
+            <CircleArrowLeft height={20} width={20} />
+          </MotionIconButton>
+          <Input
+            ref={inputRef}
+            inputProps={{
+              placeholder: 'Search',
+              className: 'w-full font-code',
+              autoCapitalize: 'off',
+              autoComplete: 'off',
+              autoCorrect: 'off',
+              spellCheck: false,
+              autoFocus: true,
+              value: lastSearchQuery,
+              onFocus: (e) => e.target.select(),
+              onChange: async (e) => {
+                setLastSearchQuery(e.target.value);
+                setSelectedIndex(0);
+              },
+              onKeyDown: (e) => {
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  if (searchResults.length === 0) return;
+                  setSelectedIndex((prev) =>
+                    Math.min(prev < 0 ? 0 : prev + 1, searchResults.length - 1)
+                  );
+                } else if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  if (searchResults.length === 0) return;
+                  setSelectedIndex((prev) => (prev <= 0 ? 0 : prev - 1));
+                } else if (e.key === 'Enter') {
+                  if (
+                    selectedIndex >= 0 &&
+                    selectedIndex < searchResults.length
+                  ) {
+                    const selected = searchResults[selectedIndex];
+                    const highlights = selected.highlights;
+                    const firstHighlightedTerm = highlights[0]?.highlightedTerm;
+                    const href = firstHighlightedTerm
+                      ? selected.filePath.getLinkToNote({
+                          highlight: firstHighlightedTerm,
+                        })
+                      : selected.filePath.getLinkToNote();
+                    setLocation(href);
+                  }
+                } else if (e.key === 'Escape') {
+                  e.preventDefault();
+                  window.history.back();
                 }
-              } else if (e.key === 'Escape') {
-                e.preventDefault();
-                window.history.back();
-              }
-            },
-          }}
-          labelProps={{}}
-        />
+              },
+            }}
+            labelProps={{}}
+          />
+        </div>
+        <div>
+          <SearchResultsHeader
+            searchQuery={lastSearchQuery}
+            resultCount={searchResults.length}
+          />
+        </div>
       </header>
       <div className="flex-1 overflow-auto pr-1">
-        <SearchResultsHeader
-          searchQuery={lastSearchQuery}
-          resultCount={searchResults.length}
-        />
-        {/* {isLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.35 }}
-            className="flex-1"
-          >
-            <LoadingSpinner height={24} width={24} />
-          </motion.div>
-        )} */}
         {isError && (
           <div className="w-full flex-1 flex justify-center items-center">
             <div className="text-red-600 dark:text-red-400">

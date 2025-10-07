@@ -149,6 +149,7 @@ export function useFindPanelSearch({
         }, 200);
       } else {
         // Just focus the editor if no match was found
+        console.log(currentMatchIndex, matchData.length);
         setTimeout(() => {
           if (previousSelectionRef.current) {
             editor.update(() => {
