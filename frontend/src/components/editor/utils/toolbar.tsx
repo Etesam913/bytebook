@@ -32,15 +32,24 @@ import {
 import type { Dispatch, ReactNode, RefObject, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { AddAttachments } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/nodeservice';
+import { Heading1 } from '../../../icons/heading-1';
+import { Heading2 } from '../../../icons/heading-2';
+import { Heading3 } from '../../../icons/heading-3';
 import { ListCheckbox } from '../../../icons/list-checkbox';
 import { OrderedList } from '../../../icons/ordered-list';
 import { Paperclip } from '../../../icons/paperclip-2.tsx';
+import { Table } from '../../../icons/table';
+import { Text } from '../../../icons/text';
 import { TextBold } from '../../../icons/text-bold';
 import { TextItalic } from '../../../icons/text-italic';
 import { TextStrikethrough } from '../../../icons/text-strikethrough';
 import { TextUnderline } from '../../../icons/text-underline';
 import { UnorderedList } from '../../../icons/unordered-list';
-import type { EditorBlockTypes, FloatingDataType } from '../../../types';
+import type {
+  DropdownItem,
+  EditorBlockTypes,
+  FloatingDataType,
+} from '../../../types';
 import { FILE_SERVER_URL } from '../../../utils/general.ts';
 import type { FilePayload } from '../nodes/file';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
@@ -411,16 +420,79 @@ export async function insertAttachmentFromFile({
 }
 
 /** Used in dropdown for block types */
-export const blockTypesDropdownItems = [
-  { label: 'Header 1', value: 'h1' },
-  { label: 'Header 2', value: 'h2' },
-  { label: 'Header 3', value: 'h3' },
-  { label: 'Paragraph', value: 'paragraph' },
-  { label: 'Unordered List', value: 'ul' },
-  { label: 'Ordered List', value: 'ol' },
-  { label: 'Checkbox List', value: 'check' },
-  { label: 'Attachment', value: 'attachment' },
-  { label: 'Table', value: 'table' },
+export const blockTypesDropdownItems: DropdownItem[] = [
+  {
+    label: (
+      <span className="flex items-center gap-1.5 will-change-transform">
+        <Heading1 /> Header 1
+      </span>
+    ),
+    value: 'h1',
+  },
+  {
+    label: (
+      <span className="flex items-center gap-1.5 will-change-transform">
+        <Heading2 /> Header 2
+      </span>
+    ),
+    value: 'h2',
+  },
+  {
+    label: (
+      <span className="flex items-center gap-1.5 will-change-transform">
+        <Heading3 /> Header 3
+      </span>
+    ),
+    value: 'h3',
+  },
+  {
+    label: (
+      <span className="flex items-center gap-1.5 will-change-transform">
+        <Text /> Paragraph
+      </span>
+    ),
+    value: 'paragraph',
+  },
+  {
+    label: (
+      <span className="flex items-center gap-1.5 will-change-transform">
+        <UnorderedList /> Unordered List
+      </span>
+    ),
+    value: 'ul',
+  },
+  {
+    label: (
+      <span className="flex items-center gap-1.5 will-change-transform">
+        <OrderedList /> Ordered List
+      </span>
+    ),
+    value: 'ol',
+  },
+  {
+    label: (
+      <span className="flex items-center gap-1.5 will-change-transform">
+        <ListCheckbox /> Checkbox List
+      </span>
+    ),
+    value: 'check',
+  },
+  {
+    label: (
+      <span className="flex items-center gap-1.5 will-change-transform">
+        <Paperclip /> Attachment
+      </span>
+    ),
+    value: 'attachment',
+  },
+  {
+    label: (
+      <span className="flex items-center gap-1.5 will-change-transform">
+        <Table /> Table
+      </span>
+    ),
+    value: 'table',
+  },
 ];
 
 export const listCommandData = [

@@ -51,6 +51,7 @@ export function SettingsDropdown({
           aria-expanded={isOpen}
           aria-controls={isOpen ? menuId : undefined}
           aria-label="Note settings menu"
+          className="rounded-tr-2xl"
           {...getDefaultButtonVariants({ disabled: isToolbarDisabled })}
         >
           <HorizontalDots />
