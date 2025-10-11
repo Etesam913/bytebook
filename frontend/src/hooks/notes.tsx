@@ -26,10 +26,8 @@ import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import { getFilePathFromNoteSelectionRange } from '../utils/selection';
 import {
-  convertSelectionRangeValueToDotNotation,
-  convertFilePathToQueryNotation,
   FilePath,
-  parseNoteNameFromSelectionRangeValue,
+  getContentTypeAndValueFromSelectionRangeValue,
   validateName,
 } from '../utils/string-formatting';
 import { useWailsEvent } from './events';
@@ -256,21 +254,21 @@ export function useNoteRevealInFinderMutation() {
       const res = await Promise.all(
         selectedNotes.map(async (note) => {
           return await RevealFolderOrFileInFinder(
-            `notes/${folder}/${convertSelectionRangeValueToDotNotation(note)}`,
+            `notes/${folder}/${note}`,
             true
           );
         })
       );
       const failedNotes: string[] = [];
-      failedNotes.push(
-        ...res
-          .filter((r) => !r.success)
-          .map(
-            (_, i) =>
-              parseNoteNameFromSelectionRangeValue(selectedNotes[i])
-                .noteNameWithoutExtension
-          )
-      );
+
+      res.forEach((r, i) => {
+        if (!r.success) {
+          const { value: note } = getContentTypeAndValueFromSelectionRangeValue(
+            selectedNotes[i]
+          );
+          failedNotes.push(note);
+        }
+      });
 
       if (failedNotes.length > 0) {
         throw new QueryError(

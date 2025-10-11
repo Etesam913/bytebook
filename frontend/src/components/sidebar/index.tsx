@@ -16,8 +16,7 @@ import { useOnClickOutside } from '../../hooks/general';
 import { useListVirtualization } from '../../hooks/observers';
 import { cn } from '../../utils/string-formatting';
 import { SidebarItems } from './sidebar-items';
-
-export type SidebarContentType = 'note' | 'folder' | 'tag' | 'saved-search';
+import { SidebarContentType } from '../../types';
 
 export function Sidebar<T>({
   data,

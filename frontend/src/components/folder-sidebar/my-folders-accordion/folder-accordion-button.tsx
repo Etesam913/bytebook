@@ -24,7 +24,7 @@ import {
   handleContextMenuSelection,
 } from '../../../utils/selection';
 import { cn } from '../../../utils/string-formatting';
-import { handleDragStart } from '../../sidebar/utils';
+import { handleFolderDragStart } from '../../sidebar/utils';
 import {
   RenameFolderDialog,
   DeleteFolderDialog,
@@ -77,6 +77,7 @@ export function FolderAccordionButton({
         setIsDraggedOver(false);
         if (!e.dataTransfer.types.includes(BYTEBOOK_DRAG_DATA_FORMAT)) return;
         const jsonString = e.dataTransfer.getData(BYTEBOOK_DRAG_DATA_FORMAT);
+        console.log(jsonString);
         try {
           const data = JSON.parse(jsonString);
           if (!data?.fileData) throw new Error();
@@ -111,11 +112,10 @@ export function FolderAccordionButton({
         }
       }}
       onDragStart={(e) =>
-        handleDragStart({
+        handleFolderDragStart({
           e,
           setSelectionRange,
-          contentType: 'folder',
-          draggedItem: alphabetizedFolders?.at(i) ?? '',
+          draggedFolder: alphabetizedFolders?.at(i) ?? '',
           setDraggedElement,
         })
       }

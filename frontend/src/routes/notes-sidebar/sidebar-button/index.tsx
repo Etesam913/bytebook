@@ -6,7 +6,7 @@ import {
   selectionRangeAtom,
 } from '../../../atoms';
 import { draggedElementAtom } from '../../../components/editor/atoms';
-import { handleDragStart } from '../../../components/sidebar/utils';
+import { handleNoteDragStart } from '../../../components/sidebar/utils';
 import {
   useMoveNoteToTrashMutation,
   useNotePreviewQuery,
@@ -97,11 +97,10 @@ export function NoteSidebarButton({
       draggable
       onKeyDown={(e) => handleKeyNavigation(e)}
       onDragStart={(e) =>
-        handleDragStart({
+        handleNoteDragStart({
           e,
           setSelectionRange,
-          contentType: 'note',
-          draggedItem: sidebarNotePath.note,
+          draggedNote: sidebarNotePath.note,
           setDraggedElement,
           folder: sidebarNotePath.folder,
         })

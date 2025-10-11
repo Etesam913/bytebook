@@ -14,10 +14,11 @@ import {
   type NodeSelection,
 } from 'lexical';
 import { isDecoratorNodeSelected } from '../../../utils/commands';
-import { FILE_SERVER_URL, debounce } from '../../../utils/general';
+import { debounce } from '../../../utils/general';
 import {
   convertFilePathToQueryNotation,
   encodeNoteNameWithQueryParams,
+  FilePath,
   getFileExtension,
 } from '../../../utils/string-formatting';
 import type { FilePayload } from '../nodes/file';
@@ -178,8 +179,83 @@ export function overrideEscapeKeyCommand(nodeKey: string) {
 }
 
 /**
- *
- * This function occurs when you drag text or a link from one note to another
+ * Parses a dragged file URL and extracts its type and metadata
+ */
+type DraggedFileResult =
+  | { type: 'folder'; url: string; title: string }
+  | { type: 'markdown'; url: string; title: string }
+  | { type: 'file'; filePath: FilePath }
+  | { type: 'unknown' };
+
+function parseDraggedFile(fileUrl: string): DraggedFileResult {
+  if (!fileUrl.startsWith('wails:')) {
+    return { type: 'unknown' };
+  }
+
+  // Folder link (no file extension)
+  if (!fileUrl.includes('.')) {
+    const segments = fileUrl.split('/');
+    return {
+      type: 'folder',
+      url: fileUrl,
+      title: segments.pop() ?? '',
+    };
+  }
+
+  // Note or file link (has extension)
+  const { urlWithoutExtension, extension, fileName } = getFileExtension(
+    encodeNoteNameWithQueryParams(fileUrl)
+  );
+
+  if (!urlWithoutExtension || !extension || !fileName) {
+    return { type: 'unknown' };
+  }
+
+  const segments = decodeURIComponent(urlWithoutExtension).split('/');
+  const title = segments.pop() ?? '';
+  const folder = segments.pop() ?? '';
+
+  if (extension === 'md') {
+    return {
+      type: 'markdown',
+      url: convertFilePathToQueryNotation(
+        `${decodeURIComponent(urlWithoutExtension)}.${extension}`
+      ),
+      title,
+    };
+  }
+
+  return {
+    type: 'file',
+    filePath: new FilePath({ folder, note: `${title}.${extension}` }),
+  };
+}
+
+/**
+ * Inserts link and file nodes into the editor
+ */
+function insertNodesIntoEditor(
+  editor: LexicalEditor,
+  linkPayloads: { url: string; title: string }[],
+  filePayloads: FilePayload[]
+) {
+  const selection = $getSelection();
+  if (!$isRangeSelection(selection)) return;
+
+  for (const { url, title } of linkPayloads) {
+    const linkNode = $createLinkNode(url, { title });
+    const linkTextNode = $createTextNode(title);
+    linkNode.append(linkTextNode);
+    selection.insertNodes([linkNode]);
+  }
+
+  if (filePayloads.length > 0) {
+    editor.dispatchCommand(INSERT_FILES_COMMAND, filePayloads);
+  }
+}
+
+/**
+ * This function handles when you drag files or links from one note to another
  */
 export function overrideControlledTextInsertion(
   e: string | InputEvent,
@@ -188,66 +264,31 @@ export function overrideControlledTextInsertion(
 ) {
   // @ts-expect-error Data Transfer does exist when dragging a link
   if (!e.dataTransfer || !draggedElement) return false;
+
   // @ts-expect-error Data Transfer does exist when dragging a link
   const fileText: string = e.dataTransfer.getData('text/plain');
-
   const files = fileText.split(',');
+
   const linkPayloads: { url: string; title: string }[] = [];
-  const filesPayload: FilePayload[] = [];
+  const filePayloads: FilePayload[] = [];
 
-  for (const fileText of files) {
-    if (fileText.startsWith('wails:')) {
-      const segments = fileText.split('/');
-      // You are dealing with a folder link
-      if (fileText.indexOf('.') === -1) {
-        linkPayloads.push({
-          url: fileText,
-          title: segments.pop() ?? '',
+  for (const fileUrl of files) {
+    const result = parseDraggedFile(fileUrl);
+
+    switch (result.type) {
+      case 'folder':
+      case 'markdown':
+        linkPayloads.push({ url: result.url, title: result.title });
+        break;
+      case 'file':
+        filePayloads.push({
+          alt: result.filePath.noteWithoutExtension,
+          src: result.filePath.getFileUrl(),
         });
-      }
-      // You are dealing with a note link or a file link
-      else {
-        const { urlWithoutExtension, extension, fileName } = getFileExtension(
-          encodeNoteNameWithQueryParams(fileText)
-        );
-        // Create a link to the markdown note
-        if (!urlWithoutExtension || !extension || !fileName) return true;
-        const segments = decodeURIComponent(urlWithoutExtension).split('/');
-        const title = segments.pop() ?? '';
-        const folder = segments.pop() ?? '';
-        // All payload contents are decoded, the components will do the encoding
-        if (extension === 'md') {
-          linkPayloads.push({
-            url: convertFilePathToQueryNotation(
-              `${decodeURIComponent(urlWithoutExtension)}.${extension}`
-            ),
-            title: title,
-          });
-        } else {
-          filesPayload.push({
-            alt: title,
-            src: `${FILE_SERVER_URL}/notes/${folder}/${title}.${extension}`,
-          });
-        }
-      }
+        break;
     }
   }
 
-  // Creating links
-  for (const linkPayload of linkPayloads) {
-    const linkNode = $createLinkNode(linkPayload.url, {
-      title: linkPayload.title,
-    });
-    const linkTextNode = $createTextNode(linkPayload.title);
-    linkNode.append(linkTextNode);
-    const selection = $getSelection();
-    if ($isRangeSelection(selection)) {
-      selection.insertNodes([linkNode]);
-    }
-  }
-  if (filesPayload.length > 0) {
-    editor.dispatchCommand(INSERT_FILES_COMMAND, filesPayload);
-  }
-
+  insertNodesIntoEditor(editor, linkPayloads, filePayloads);
   return true;
 }

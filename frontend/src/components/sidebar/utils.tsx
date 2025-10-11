@@ -8,9 +8,10 @@ import {
   createGhostElementFromHtmlElement,
 } from '../../utils/draggable';
 import {
-  extractInfoFromNoteName,
-  convertNoteNameToDotNotation,
+  FilePath,
+  getContentTypeAndValueFromSelectionRangeValue,
 } from '../../utils/string-formatting';
+import { WAILS_URL } from '../../utils/general';
 
 /** Gets the file icon for the dragged item */
 function getFileIcon(fileType: 'folder' | 'note' | 'image') {
@@ -26,52 +27,47 @@ function getFileIcon(fileType: 'folder' | 'note' | 'image') {
 const MAX_VISIBLE_DRAG_PREVIEW_NOTES = 10;
 
 /**
- * Handles the drag start event for dragging files of various types.
+ * Handles the drag start event for dragging folders.
  * Sets up the drag data and visual feedback for the drag operation.
  */
-export function handleDragStart({
+export function handleFolderDragStart({
   e,
   setSelectionRange,
-  contentType,
-  draggedItem,
+  draggedFolder,
   setDraggedElement,
-  folder,
 }: {
   e: DragEvent<HTMLAnchorElement> | DragEvent<HTMLButtonElement>;
   setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
-  contentType: 'folder' | 'note';
-  draggedItem: string;
+  draggedFolder: string;
   setDraggedElement: Dispatch<SetStateAction<HTMLElement | null>>;
-  folder?: string;
 }) {
   setSelectionRange((tempSet) => {
     const tempSelectionRange = new Set(tempSet);
-    tempSelectionRange.add(`${contentType}:${draggedItem}`);
+    tempSelectionRange.add(`folder:${draggedFolder}`);
 
-    const selectedFiles = getSelectedFiles(
-      tempSelectionRange,
-      contentType,
-      folder
+    const selectedFolders = [...tempSelectionRange].map(
+      (selectionRangeEntry) => {
+        const { value: folderFromSelectionRange } =
+          getContentTypeAndValueFromSelectionRangeValue(selectionRangeEntry);
+        return folderFromSelectionRange;
+      }
     );
 
-    setDataTransfer({
-      e,
-      selectedFiles,
-      tempSelectionRange,
-      contentType,
-      folder,
-    });
+    const selectedFiles = selectedFolders.map(
+      (folder) => `${WAILS_URL}/${folder}`
+    );
+
+    setFolderDataTransfer({ e, selectedFolders });
 
     const dragElement = e.target as HTMLElement;
     const ghostElement = createGhostElementFromHtmlElement(dragElement);
     setDraggedElement(ghostElement);
 
-    const children = createDragPreviewChildren(selectedFiles, contentType);
+    const children = createDragPreviewChildren(selectedFiles, 'folder');
     renderGhostElement(ghostElement, children, e);
 
     // Clean up the ghost element after the drag ends
     function handleDragEnd() {
-      // Update the selected range so that only 1 item is highlighted
       setSelectionRange(new Set());
       ghostElement.remove();
       setDraggedElement(null);
@@ -84,79 +80,111 @@ export function handleDragStart({
 }
 
 /**
- * Retrieves the selected files based on the current selection range.
- * Constructs file paths for the selected items.
+ * Handles the drag start event for dragging notes.
+ * Sets up the drag data and visual feedback for the drag operation.
  */
-function getSelectedFiles(
-  tempSelectionRange: Set<string>,
-  contentType: string,
-  folder?: string
-) {
-  return Array.from(tempSelectionRange).map((noteNameWithExtensionParam) => {
-    const noteNameWithoutPrefixWithExtension =
-      noteNameWithExtensionParam.split(':')[1];
-    if (contentType === 'folder') {
-      const { noteNameWithoutExtension } = extractInfoFromNoteName(
-        noteNameWithoutPrefixWithExtension
-      );
-      return `wails://localhost:5173/${noteNameWithoutExtension}`;
+export function handleNoteDragStart({
+  e,
+  setSelectionRange,
+  draggedNote,
+  setDraggedElement,
+  folder,
+}: {
+  e: DragEvent<HTMLAnchorElement> | DragEvent<HTMLButtonElement>;
+  setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
+  draggedNote: string;
+  setDraggedElement: Dispatch<SetStateAction<HTMLElement | null>>;
+  folder: string;
+}) {
+  setSelectionRange((tempSet) => {
+    const tempSelectionRange = new Set(tempSet);
+    tempSelectionRange.add(`note:${draggedNote}`);
+
+    const selectedNotes = [...tempSelectionRange].map((selectionRangeEntry) => {
+      const { value: noteFromSelectionRange } =
+        getContentTypeAndValueFromSelectionRangeValue(selectionRangeEntry);
+      return noteFromSelectionRange;
+    });
+
+    const selectedFilePaths = selectedNotes.map((note) => {
+      return new FilePath({
+        folder,
+        note,
+      });
+    });
+
+    console.log(selectedFilePaths);
+
+    const selectedFiles = selectedFilePaths.map((filePath) =>
+      filePath.toString()
+    );
+
+    setNoteDataTransfer({ e, selectedFilePaths });
+
+    const dragElement = e.target as HTMLElement;
+    const ghostElement = createGhostElementFromHtmlElement(dragElement);
+    setDraggedElement(ghostElement);
+
+    const children = createDragPreviewChildren(
+      selectedFiles.map((file) => `${WAILS_URL}/${file}`),
+      'note'
+    );
+    renderGhostElement(ghostElement, children, e);
+
+    // Clean up the ghost element after the drag ends
+    function handleDragEnd() {
+      setSelectionRange(new Set());
+      ghostElement.remove();
+      setDraggedElement(null);
+      dragElement.removeEventListener('dragEnd', handleDragEnd);
     }
-    if (!folder) {
-      return '';
-    }
-    return `wails://localhost:5173/${folder}/${convertNoteNameToDotNotation(noteNameWithoutPrefixWithExtension)}`;
+    dragElement.addEventListener('dragend', handleDragEnd);
+
+    return tempSelectionRange;
   });
 }
 
 /**
- * Sets the data transfer object for the drag event.
- * Prepares the data to be transferred during the drag operation.
+ * Sets the data transfer object for folder drag events.
  */
-function setDataTransfer({
+function setFolderDataTransfer({
   e,
-  selectedFiles,
-  tempSelectionRange,
-  contentType,
-  folder,
+  selectedFolders,
 }: {
   e: DragEvent<HTMLAnchorElement> | DragEvent<HTMLButtonElement>;
-  selectedFiles: string[];
-  tempSelectionRange: Set<string>;
-  contentType: string;
-  folder?: string;
+  selectedFolders: string[];
 }) {
-  e.dataTransfer.setData('text/plain', selectedFiles.join(','));
+  const folderUrls = selectedFolders.map((folder) => `${WAILS_URL}/${folder}`);
+  e.dataTransfer.setData('text/plain', folderUrls.join(','));
+}
 
-  const bytebookFilesData = Array.from(tempSelectionRange).map(
-    (noteNameWithExtensionParam) => {
-      const noteNameWithoutPrefixWithExtension =
-        noteNameWithExtensionParam.split(':')[1];
-      const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-        noteNameWithoutPrefixWithExtension
-      );
-      let curItemFolder: string | null = null;
-      let curItemNote: string | null = null;
-      if (contentType === 'folder') {
-        curItemFolder = noteNameWithoutPrefixWithExtension;
-      } else if (contentType === 'note') {
-        curItemFolder = folder ?? null;
-        curItemNote = noteNameWithoutExtension;
-      }
-      return {
-        folder: curItemFolder,
-        note: curItemNote,
-        extension: queryParams.ext,
-      };
-    }
+/**
+ * Sets the data transfer object for note drag events.
+ * Uses FilePath to properly handle note paths and extensions.
+ */
+function setNoteDataTransfer({
+  e,
+  selectedFilePaths,
+}: {
+  e: DragEvent<HTMLAnchorElement> | DragEvent<HTMLButtonElement>;
+  selectedFilePaths: FilePath[];
+}) {
+  const noteUrls = selectedFilePaths.map(
+    (filePath) => `${WAILS_URL}/${filePath.toString()}`
   );
+  e.dataTransfer.setData('text/plain', noteUrls.join(','));
 
-  if (contentType === 'note') {
-    e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData(
-      BYTEBOOK_DRAG_DATA_FORMAT,
-      JSON.stringify({ fileData: bytebookFilesData })
-    );
-  }
+  const bytebookFilesData = selectedFilePaths.map((filePath) => ({
+    folder: filePath.folder,
+    note: filePath.noteWithoutExtension,
+    extension: filePath.noteExtension,
+  }));
+
+  e.dataTransfer.effectAllowed = 'copy';
+  e.dataTransfer.setData(
+    BYTEBOOK_DRAG_DATA_FORMAT,
+    JSON.stringify({ fileData: bytebookFilesData })
+  );
 }
 
 /**

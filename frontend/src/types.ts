@@ -188,3 +188,15 @@ export type Frontmatter = {
   showMarkdown?: string;
   // Allow additional properties for extensibility
 } & Record<string, string | string[]>;
+
+export type SidebarContentType = 'note' | 'folder' | 'tag' | 'saved-search';
+
+export function isSidebarContentType(key: unknown): key is SidebarContentType {
+  return (
+    typeof key === 'string' &&
+    (key === 'note' ||
+      key === 'folder' ||
+      key === 'tag' ||
+      key === 'saved-search')
+  );
+}

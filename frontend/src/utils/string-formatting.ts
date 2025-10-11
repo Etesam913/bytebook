@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { FILE_SERVER_URL } from './general';
+import { SidebarContentType, isSidebarContentType } from '../types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -458,29 +459,30 @@ export function parseRGB(colorString: string): RGB | RGBA | null {
   return null;
 }
 
-export function parseNoteNameFromSelectionRangeValue(
-  selectionRangeValue: string
-) {
-  const noteWithoutWithoutPrefix = selectionRangeValue.split(':')[1];
-  const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-    noteWithoutWithoutPrefix
-  );
-
-  return { noteNameWithoutExtension, queryParams };
-}
-
 /**
- * Converts a selection range value directly to dot notation format.
- * This is a helper that combines prefix removal and dot notation conversion.
+ * Extracts the content type and value from a selection range value.
+ * The function expects a selection string in the format "type:value" or similar.
  *
- * @param selectionRangeValue - The selection range value (e.g., "note:abc?ext=md")
- * @returns The note name in dot notation format (e.g., "abc.md")
+ * @param selectionRangeValue - A string representing a selected item with a type and value separated by a colon.
+ * @returns An object with a `contentType` and `value` property extracted from the selection range value.
+ *
+ * @example
+ * // Example selection: "note:Chapter1.md"
+ * getContentTypeAndValueFromSelectionRangeValue("note:Chapter1.md")
+ * // Returns: { contentType: "note", value: "Chapter1.md" }
  */
-export function convertSelectionRangeValueToDotNotation(
+export function getContentTypeAndValueFromSelectionRangeValue(
   selectionRangeValue: string
-): string {
-  const noteWithoutPrefix = selectionRangeValue.split(':')[1];
-  return convertNoteNameToDotNotation(noteWithoutPrefix);
+): { contentType: SidebarContentType; value: string } {
+  const colonSplit = selectionRangeValue.split(':');
+  const contentType = colonSplit.slice(0, colonSplit.length - 1).join(':');
+  const value = colonSplit[colonSplit.length - 1];
+
+  if (!isSidebarContentType(contentType)) {
+    throw new Error(`Invalid sidebar content type: ${contentType}`);
+  }
+
+  return { contentType, value };
 }
 
 /**
