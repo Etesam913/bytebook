@@ -89,6 +89,7 @@ export function MyNotesSidebar({
             }
             data={notes ?? []}
             dataItemToString={(filePath) => filePath.note}
+            dataItemToKey={(filePath) => filePath.toString()}
             dataItemToSelectionRangeEntry={(filePath) => {
               return filePath.note;
             }}

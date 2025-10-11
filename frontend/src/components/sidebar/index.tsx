@@ -22,6 +22,7 @@ export type SidebarContentType = 'note' | 'folder' | 'tag' | 'saved-search';
 export function Sidebar<T>({
   data,
   dataItemToString,
+  dataItemToKey,
   dataItemToSelectionRangeEntry,
   getContextMenuStyle,
   renderLink,
@@ -32,6 +33,7 @@ export function Sidebar<T>({
 }: {
   data: T[] | null;
   dataItemToString: (item: T) => string;
+  dataItemToKey: (item: T) => string;
   dataItemToSelectionRangeEntry: (item: T) => string;
   getContextMenuStyle?: (dataItem: T) => CSSProperties;
   renderLink: (data: {
@@ -121,6 +123,7 @@ export function Sidebar<T>({
             allData={data}
             visibleData={visibleItems}
             dataItemToString={dataItemToString}
+            dataItemToKey={dataItemToKey}
             dataItemToSelectionRangeEntry={dataItemToSelectionRangeEntry}
             renderLink={renderLink}
             getContextMenuStyle={getContextMenuStyle}

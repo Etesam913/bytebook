@@ -68,6 +68,7 @@ export function MySavedSearchesAccordion() {
               }
               contentType="saved-search"
               dataItemToString={(search) => search.name}
+              dataItemToKey={(search) => search.name}
               dataItemToSelectionRangeEntry={(search) => search.name}
               renderLink={({ dataItem: search, i }) => {
                 return (

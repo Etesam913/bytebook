@@ -61,6 +61,7 @@ export function MyTagsAccordion() {
               }
               contentType="tag"
               dataItemToString={(tagName) => tagName}
+              dataItemToKey={(tagName) => tagName}
               dataItemToSelectionRangeEntry={(tagName) => tagName}
               renderLink={({ dataItem: sidebarTagName, i }) => {
                 return (

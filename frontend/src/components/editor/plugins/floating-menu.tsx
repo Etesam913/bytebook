@@ -111,6 +111,7 @@ export function FloatingMenuPlugin({
               defaultValue: floatingData.previousUrl ?? 'https://',
               autoFocus: true,
               className: 'text-sm w-64',
+              maxLength: undefined,
             }}
           />
           <MotionButton type="submit" {...getDefaultButtonVariants()}>

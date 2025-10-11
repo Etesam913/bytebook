@@ -21,10 +21,7 @@ import {
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
-import {
-  validateName,
-  convertFilePathToQueryNotation,
-} from '../utils/string-formatting';
+import { validateName } from '../utils/string-formatting';
 import { routeUrls } from '../utils/routes';
 import { useWailsEvent } from './events';
 
@@ -149,12 +146,11 @@ export function useFolderCreateMutation() {
     },
     // Optimistically update cache
     onMutate: async (variables) => {
+      const getFoldersQueryKey = folderQueries.getFolders(queryClient).queryKey;
       await queryClient.cancelQueries({
-        queryKey: folderQueries.getFolders(queryClient).queryKey,
+        queryKey: getFoldersQueryKey,
       });
-      const previousFolders = queryClient.getQueryData(
-        folderQueries.getFolders(queryClient).queryKey
-      );
+      const previousFolders = queryClient.getQueryData(getFoldersQueryKey);
 
       const formData = new FormData(variables.e.target as HTMLFormElement);
       const newFolderName =
@@ -169,10 +165,7 @@ export function useFolderCreateMutation() {
           previousAlphabetizedFolders:
             previousFolders.alphabetizedFolders || undefined,
         };
-        queryClient.setQueryData(
-          folderQueries.getFolders(queryClient).queryKey,
-          updatedFolders
-        );
+        queryClient.setQueryData(getFoldersQueryKey, updatedFolders);
       }
 
       return { previousFolders };
@@ -180,20 +173,18 @@ export function useFolderCreateMutation() {
     onSuccess: (result, variables) => {
       const folderName = (variables.e.target as any).__folderName;
       if (result && folderName) {
-        navigate(
-          `/${convertFilePathToQueryNotation(`${encodeURIComponent(folderName)}/Untitled.md`)}`
-        );
+        navigate(routeUrls.folder(folderName));
       }
+      const getFoldersQueryKey = folderQueries.getFolders(queryClient).queryKey;
       queryClient.invalidateQueries({
-        queryKey: folderQueries.getFolders(queryClient).queryKey,
+        queryKey: getFoldersQueryKey,
       });
     },
     onError: (error, variables, context) => {
       if (context?.previousFolders) {
-        queryClient.setQueryData(
-          folderQueries.getFolders(queryClient).queryKey,
-          context.previousFolders
-        );
+        const getFoldersQueryKey =
+          folderQueries.getFolders(queryClient).queryKey;
+        queryClient.setQueryData(getFoldersQueryKey, context.previousFolders);
       }
       if (error instanceof Error) variables.setErrorText(error.message);
       else
@@ -240,12 +231,11 @@ export function useFolderRenameMutation() {
     },
     // Optimistically update cache
     onMutate: async (variables) => {
+      const getFoldersQueryKey = folderQueries.getFolders(queryClient).queryKey;
       await queryClient.cancelQueries({
-        queryKey: folderQueries.getFolders(queryClient).queryKey,
+        queryKey: getFoldersQueryKey,
       });
-      const previousFolders = queryClient.getQueryData(
-        folderQueries.getFolders(queryClient).queryKey
-      );
+      const previousFolders = queryClient.getQueryData(getFoldersQueryKey);
 
       const formData = new FormData(variables.e.target as HTMLFormElement);
       const newFolderName =
@@ -261,10 +251,7 @@ export function useFolderRenameMutation() {
           previousAlphabetizedFolders:
             previousFolders.alphabetizedFolders || undefined,
         };
-        queryClient.setQueryData(
-          folderQueries.getFolders(queryClient).queryKey,
-          updatedFolders
-        );
+        queryClient.setQueryData(getFoldersQueryKey, updatedFolders);
       }
 
       return { previousFolders };
@@ -274,16 +261,16 @@ export function useFolderRenameMutation() {
       if (result && folderName) {
         navigate(routeUrls.folder(folderName));
       }
+      const getFoldersQueryKey = folderQueries.getFolders(queryClient).queryKey;
       queryClient.invalidateQueries({
-        queryKey: folderQueries.getFolders(queryClient).queryKey,
+        queryKey: getFoldersQueryKey,
       });
     },
     onError: (error, variables, context) => {
       if (context?.previousFolders) {
-        queryClient.setQueryData(
-          folderQueries.getFolders(queryClient).queryKey,
-          context.previousFolders
-        );
+        const getFoldersQueryKey =
+          folderQueries.getFolders(queryClient).queryKey;
+        queryClient.setQueryData(getFoldersQueryKey, context.previousFolders);
       }
       if (error instanceof Error) variables.setErrorText(error.message);
       else
@@ -315,8 +302,9 @@ export function useFolderDeleteMutation() {
       return true;
     },
     onSuccess: () => {
+      const getFoldersQueryKey = folderQueries.getFolders(queryClient).queryKey;
       queryClient.invalidateQueries({
-        queryKey: folderQueries.getFolders(queryClient).queryKey,
+        queryKey: getFoldersQueryKey,
       });
     },
     onError: (error, variables) => {

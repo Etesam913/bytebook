@@ -16,6 +16,7 @@ import { SidebarHighlight } from './highlight';
 export function SidebarItems<T>({
   allData,
   visibleData,
+  dataItemToKey,
   dataItemToString,
   dataItemToSelectionRangeEntry,
   getContextMenuStyle,
@@ -32,6 +33,7 @@ export function SidebarItems<T>({
 }: {
   allData: T[] | null;
   visibleData: T[] | null;
+  dataItemToKey: (item: T) => string;
   dataItemToString: (item: T) => string;
   dataItemToSelectionRangeEntry: (item: T) => string;
   getContextMenuStyle?: (dataItem: T) => CSSProperties;

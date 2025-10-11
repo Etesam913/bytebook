@@ -121,6 +121,7 @@ export function MyKernelsAccordion() {
               emptyElement={null}
               contentType="tag"
               dataItemToString={(kernelName) => kernelName}
+              dataItemToKey={(kernelName) => kernelName}
               dataItemToSelectionRangeEntry={(kernelName) => kernelName}
               renderLink={({ dataItem: kernelName }) => {
                 if (!isValidKernelLanguage(kernelName)) {

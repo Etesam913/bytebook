@@ -34,7 +34,7 @@ export function MyFoldersAccordion() {
       return;
     }
 
-    if (alphabetizedFolders && alphabetizedFolders.length > 0) {
+    if (alphabetizedFolders) {
       const isCurrentFolderInAlphabetizedFolders =
         alphabetizedFolders.some((folder) => folder === currentFolder) ?? false;
 
@@ -140,6 +140,7 @@ export function MyFoldersAccordion() {
                     </li>
                   }
                   dataItemToString={(folderName) => folderName}
+                  dataItemToKey={(folderName) => folderName}
                   dataItemToSelectionRangeEntry={(folderName) => folderName}
                   renderLink={({ dataItem: sidebarFolderName, i }) => {
                     return (

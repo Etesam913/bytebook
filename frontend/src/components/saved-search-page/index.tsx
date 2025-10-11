@@ -137,6 +137,7 @@ export function SavedSearchPage({
                       dataItemToString={(filePath) =>
                         filePath.noteWithoutExtension
                       }
+                      dataItemToKey={(filePath) => filePath.toString()}
                       dataItemToSelectionRangeEntry={(filePath) => {
                         return filePath.note;
                       }}
