@@ -85,7 +85,6 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
     if (!$isCodeNode(node)) {
       return null;
     }
-    console.log('CODE_TRANSFORMER.export', node);
     const textContent = node.getCode();
     const codeLanguage = escapeQuotes(node.getLanguage());
     const id = escapeQuotes(node.getId());
@@ -118,15 +117,6 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
     linesInBetween,
     isImport
   ) => {
-    console.log({
-      rootNode,
-      children,
-      startMatch,
-      endMatch,
-      linesInBetween,
-      isImport,
-    });
-
     const language = validLanguages.has(startMatch[1] as Languages)
       ? startMatch[1]
       : undefined;

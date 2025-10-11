@@ -72,7 +72,7 @@ export function Dropdown({
           aria-label={ariaLabel}
           aria-labelledby={ariaLabelledby}
           className={cn(
-            'flex items-center rounded-md gap-1.5 border-[1.25px] border-zinc-300 bg-zinc-50 px-2 py-0.5 text-left dark:border-zinc-600 dark:bg-zinc-700',
+            'flex items-center rounded-md gap-1.5 border-[1.25px] border-zinc-300 bg-zinc-50 px-2 py-0.5 text-left dark:border-zinc-600 dark:bg-zinc-700 whitespace-nowrap',
             buttonClassName,
             disabled && 'pointer-events-none opacity-50'
           )}

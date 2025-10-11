@@ -35,5 +35,5 @@ export function SettingsSidebar({
       </button>
     );
   });
-  return <aside className="flex flex-col gap-1">{settingElements}</aside>;
+  return <aside className="flex flex-col gap-1 pt-3">{settingElements}</aside>;
 }

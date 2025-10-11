@@ -139,7 +139,7 @@ export function useFindPanelSearch({
       if (currentMatchIndex >= 0 && currentMatchIndex < matchData.length) {
         const match = matchData[currentMatchIndex];
 
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
           editor.update(() => {
             const node = $getNodeByKey(match.nodeKey);
             if (node && $isTextNode(node)) {
@@ -147,16 +147,19 @@ export function useFindPanelSearch({
             }
           });
         }, 200);
+
+        return () => clearTimeout(timeoutId);
       } else {
-        // Just focus the editor if no match was found
-        console.log(currentMatchIndex, matchData.length);
-        setTimeout(() => {
+        // Restore previous selection if no match was found
+        const timeoutId = setTimeout(() => {
           if (previousSelectionRef.current) {
             editor.update(() => {
               $setSelection(previousSelectionRef.current);
             });
           }
         }, 200);
+
+        return () => clearTimeout(timeoutId);
       }
     } else {
       editor.read(() => {

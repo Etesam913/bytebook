@@ -19,6 +19,7 @@ export function FontFamilyRow() {
     <SettingsRow
       title="Editor Font Family"
       description="The font family for the note editor."
+      isFirst={true}
     >
       <div className="flex items-center gap-1.5">
         <Input

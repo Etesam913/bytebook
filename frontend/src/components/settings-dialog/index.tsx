@@ -13,13 +13,13 @@ export function SettingsDialog() {
   const [currentSettingsTab, setCurrentSettingsTab] =
     useState<SettingsTab>('appearance');
   return (
-    <div>
-      <div className="flex gap-4 h-[calc(100vh-13rem)]">
+    <div className="h-[calc(100vh-10rem)] flex flex-col justify-between overflow-y-hidden">
+      <div className="flex gap-4 overflow-y-auto">
         <SettingsSidebar
           currentSettingsTab={currentSettingsTab}
           setCurrentSettingsTab={setCurrentSettingsTab}
         />
-        <div className="flex-1 overflow-auto pr-5">
+        <div className="overflow-auto pr-5">
           {currentSettingsTab === 'appearance' && <AppearancePage />}
           {currentSettingsTab === 'github' && <GithubPage />}
           {currentSettingsTab === 'code-block' && <CodeBlockPage />}

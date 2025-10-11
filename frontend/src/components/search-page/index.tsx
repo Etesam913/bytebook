@@ -147,7 +147,7 @@ export function SearchPage() {
           </div>
         )}
         {searchResults.length === 0 && lastSearchQuery.trim() && !isError && (
-          <div className="flex justify-center items-center flex-1 px-6 text-center text-zinc-600 dark:text-zinc-400">
+          <div className="flex justify-center items-center flex-1 py-3 px-6 text-center text-zinc-600 dark:text-zinc-400">
             No results found. Try adjusting your search terms.
           </div>
         )}
