@@ -59,7 +59,11 @@ export function SavePlugin({
       editor.registerCommand<SaveMarkdownContentPayload>(
         SAVE_MARKDOWN_CONTENT,
         (payload) => {
-          const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS);
+          const markdown = $convertToMarkdownString(
+            CUSTOM_TRANSFORMERS,
+            undefined,
+            true
+          );
 
           let frontmatterCopy = payload?.newFrontmatter;
           if (!frontmatterCopy) {
