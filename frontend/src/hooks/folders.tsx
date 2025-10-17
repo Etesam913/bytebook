@@ -21,7 +21,10 @@ import {
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
-import { validateName } from '../utils/string-formatting';
+import {
+  validateName,
+  getContentTypeAndValueFromSelectionRangeValue,
+} from '../utils/string-formatting';
 import { routeUrls } from '../utils/routes';
 import { useWailsEvent } from './events';
 
@@ -327,12 +330,10 @@ export function useFolderRevealInFinderMutation() {
 
       // Reveal each selected folder in Finder
       const res = await Promise.all(
-        selectedFolders.map(async (folder) => {
-          const folderWithoutPrefix = folder.split(':')[1];
-          return await RevealFolderOrFileInFinder(
-            `notes/${folderWithoutPrefix}`,
-            true
-          );
+        selectedFolders.map(async (selectionRangeValue) => {
+          const { value: folder } =
+            getContentTypeAndValueFromSelectionRangeValue(selectionRangeValue);
+          return await RevealFolderOrFileInFinder(`notes/${folder}`, true);
         })
       );
 

@@ -278,7 +278,9 @@ export function useNoteRevealInFinderMutation() {
       const selectedNotes = [...selectionRange].slice(0, 5);
       // Reveal each selected folder in Finder
       const res = await Promise.all(
-        selectedNotes.map(async (note) => {
+        selectedNotes.map(async (selectionRangeValue) => {
+          const { value: note } =
+            getContentTypeAndValueFromSelectionRangeValue(selectionRangeValue);
           return await RevealFolderOrFileInFinder(
             `notes/${folder}/${note}`,
             true
