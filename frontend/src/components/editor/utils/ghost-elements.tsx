@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import { PDFIcon } from '../../../icons/pdf-icon';
 import { VideoIcon } from '../../../icons/video';
 import type { FileNode } from '../nodes/file';
-import { Paintbrush } from '../../../icons/paintbrush.tsx';
 /**
  * Constructs a ghost element for dragging based on the type of node
  * @param node - The Lexical node to create a ghost element for
@@ -22,8 +21,6 @@ export function constructGhostElementForNode(
     } else if (fileNode.getElementType() === 'pdf') {
       constructGhostElementForPdf(ghostElement);
     }
-  } else if (node.getType() === 'excalidraw') {
-    constructGhostElementForDrawing(ghostElement);
   } else if (node.getType() === 'code-block') {
     ghostElement.style.minWidth = '400px';
   }
@@ -76,23 +73,6 @@ function constructGhostElementForPdf(ghostElement: HTMLElement) {
     <div className="flex items-center gap-1">
       <PDFIcon width={24} height={24} fill="currentColor" />
       PDF
-    </div>
-  );
-  ghostElement.replaceChildren(container);
-}
-
-/**
- * Constructs a ghost element for a drawing node.
- * @param ghostElement - The HTML element that will become the ghost element.
- */
-function constructGhostElementForDrawing(ghostElement: HTMLElement) {
-  const container = document.createElement('div');
-  const root = createRoot(container);
-
-  root.render(
-    <div className="flex items-center gap-1">
-      <Paintbrush width={24} height={24} fill="currentColor" />
-      Drawing
     </div>
   );
   ghostElement.replaceChildren(container);

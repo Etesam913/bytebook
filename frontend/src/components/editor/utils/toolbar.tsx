@@ -27,6 +27,7 @@ import {
   type BaseSelection,
   FORMAT_TEXT_COMMAND,
   type LexicalEditor,
+  RangeSelection,
   type TextFormatType,
 } from 'lexical';
 import type { Dispatch, ReactNode, RefObject, SetStateAction } from 'react';
@@ -134,10 +135,14 @@ export function changeSelectedBlocksType({
   editor,
   newBlockType,
   insertAttachmentsMutation,
+  openCreateTableDialog,
 }: {
   editor: LexicalEditor;
   newBlockType: EditorBlockTypes;
   insertAttachmentsMutation: UseMutationResult<void, Error, void, unknown>;
+  openCreateTableDialog?:
+    | ((editor: LexicalEditor, editorSelection: RangeSelection | null) => void)
+    | undefined;
 }) {
   editor.update(() => {
     const selection = $getSelection();
@@ -165,11 +170,15 @@ export function changeSelectedBlocksType({
           editor.dispatchCommand(INSERT_CHECK_LIST_COMMAND, undefined);
           break;
         case 'table':
-          editor.dispatchCommand(INSERT_TABLE_COMMAND, {
-            columns: '2',
-            rows: '2',
-            includeHeaders: true,
-          });
+          if (openCreateTableDialog) {
+            openCreateTableDialog(editor, selection);
+          } else {
+            editor.dispatchCommand(INSERT_TABLE_COMMAND, {
+              columns: '2',
+              rows: '2',
+              includeHeaders: true,
+            });
+          }
           break;
         case 'attachment': {
           insertAttachmentsMutation.mutate();

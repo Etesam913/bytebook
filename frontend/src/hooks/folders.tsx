@@ -100,9 +100,7 @@ export function useMoveNoteIntoFolder() {
       backendNotePaths: string[];
       newFolder: string;
     }) => {
-      console.log('move note into folder', backendNotePaths, newFolder);
       const res = await MoveNoteToFolder(backendNotePaths, newFolder);
-      console.log('move note into folder', res);
       if (!res.success) throw new QueryError(res.message);
     },
   });

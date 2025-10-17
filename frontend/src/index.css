@@ -329,30 +329,6 @@ div[data-is-fullscreen='true'] .cm-scroller {
 }
 
 /**
- * Excalidraw styles
- */
-
-.main-menu-trigger {
-  display: none !important;
-}
-
-/* The export options do not work with wails out of the box, so I am hiding this button */
-
-/* .App-menu_top__left,
-.main-menu-trigger {
-    display: none !important;
-} */
-
-/* .excalidraw .App-menu_top {
-    grid-template-columns: 1fr !important;
-} */
-
-/* The library button is useless as well */
-.layer-ui__wrapper__top-right {
-  display: none !important;
-}
-
-/**
  * Lexical Editor Styles (Tailwind does not work too well with)
  */
 

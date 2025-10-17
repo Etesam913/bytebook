@@ -77,7 +77,6 @@ export function FolderAccordionButton({
         setIsDraggedOver(false);
         if (!e.dataTransfer.types.includes(BYTEBOOK_DRAG_DATA_FORMAT)) return;
         const jsonString = e.dataTransfer.getData(BYTEBOOK_DRAG_DATA_FORMAT);
-        console.log(jsonString);
         try {
           const data = JSON.parse(jsonString);
           if (!data?.fileData) throw new Error();

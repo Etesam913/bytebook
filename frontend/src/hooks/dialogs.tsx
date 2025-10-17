@@ -8,6 +8,10 @@ import { Compose } from '../icons/compose';
 import { useNoteCreateMutation } from './notes';
 import { useSaveSearchMutation } from './search';
 import { BookBookmark } from '../icons/book-bookmark';
+import { Table } from '../icons/table';
+import type { LexicalEditor, RangeSelection } from 'lexical';
+import { INSERT_TABLE_COMMAND } from '@lexical/table';
+import { $setSelection } from 'lexical';
 
 /**
  * Custom hook that returns a function to open a "Create Note" dialog for a given folder.
@@ -152,6 +156,131 @@ export function useSaveSearchDialog(): (searchQuery: string) => void {
         } catch (error) {
           setErrorText(
             error instanceof Error ? error.message : 'Failed to save search'
+          );
+          return false;
+        }
+      },
+    });
+  };
+}
+
+/**
+ * Custom hook that returns a function to open a "Create Table" dialog.
+ *
+ * When invoked with an editor and selection, this function opens a dialog allowing the user to specify
+ * the number of rows and columns for a new table. On submission, it creates a table with the specified
+ * dimensions at the stored selection location.
+ *
+ * @returns {(editor: LexicalEditor, editorSelection: RangeSelection | null) => void}
+ *
+ * Usage:
+ *   const openCreateTableDialog = useCreateTableDialog();
+ *   openCreateTableDialog(editor, selection);
+ */
+export function useCreateTableDialog(): (
+  editor: LexicalEditor,
+  editorSelection: RangeSelection | null
+) => void {
+  const setDialogData = useSetAtom(dialogDataAtom);
+
+  return (editor: LexicalEditor, editorSelection: RangeSelection | null) => {
+    setDialogData({
+      isOpen: true,
+      isPending: false,
+      title: 'Create Table',
+      children: (errorText) => (
+        <>
+          <fieldset className="flex flex-col gap-3">
+            <div className="flex flex-col">
+              <Input
+                label="Rows"
+                labelProps={{ htmlFor: 'table-rows' }}
+                inputProps={{
+                  id: 'table-rows',
+                  name: 'table-rows',
+                  placeholder: '3',
+                  defaultValue: '3',
+                  autoFocus: true,
+                  type: 'number',
+                  min: '1',
+                  max: '100',
+                }}
+              />
+            </div>
+            <div className="flex flex-col">
+              <Input
+                label="Columns"
+                labelProps={{ htmlFor: 'table-columns' }}
+                inputProps={{
+                  id: 'table-columns',
+                  name: 'table-columns',
+                  placeholder: '3',
+                  defaultValue: '3',
+                  type: 'number',
+                  min: '1',
+                  max: '10',
+                }}
+              />
+            </div>
+            <DialogErrorText errorText={errorText} />
+          </fieldset>
+          <MotionButton
+            {...getDefaultButtonVariants({
+              disabled: false,
+              whileHover: 1.05,
+              whileTap: 0.95,
+              whileFocus: 1.05,
+            })}
+            className="w-[calc(100%-1.5rem)] mx-auto text-center justify-center"
+            type="submit"
+          >
+            <span>Create Table</span>
+            <Table width={20} height={20} />
+          </MotionButton>
+        </>
+      ),
+      onSubmit: async (e, setErrorText) => {
+        const formData = new FormData(e.target as HTMLFormElement);
+        const rows = formData.get('table-rows') as string;
+        const columns = formData.get('table-columns') as string;
+
+        const rowsNum = Number.parseInt(rows, 10);
+        const columnsNum = Number.parseInt(columns, 10);
+
+        if (!rows || Number.isNaN(rowsNum) || rowsNum < 1 || rowsNum > 100) {
+          setErrorText('Please enter a valid number of rows (1-100)');
+          return false;
+        }
+
+        if (
+          !columns ||
+          Number.isNaN(columnsNum) ||
+          columnsNum < 1 ||
+          columnsNum > 20
+        ) {
+          setErrorText('Please enter a valid number of columns (1-10)');
+          return false;
+        }
+
+        try {
+          // Clone the selection to avoid stale selection issues
+          const clonedSelection = editorSelection?.clone();
+
+          editor.update(() => {
+            if (clonedSelection) {
+              $setSelection(clonedSelection);
+            }
+            editor.dispatchCommand(INSERT_TABLE_COMMAND, {
+              columns: columns,
+              rows: rows,
+              includeHeaders: true,
+            });
+          });
+
+          return true;
+        } catch (error) {
+          setErrorText(
+            error instanceof Error ? error.message : 'Failed to create table'
           );
           return false;
         }

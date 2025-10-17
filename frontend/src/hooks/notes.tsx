@@ -112,6 +112,32 @@ export function useNoteCreate() {
   });
 }
 
+export function useNoteRename() {
+  const queryClient = useQueryClient();
+  const noteSort = useAtomValue(noteSortAtom);
+
+  useWailsEvent('note:rename', async (body) => {
+    console.info('note:rename', body);
+    const data = body.data as {
+      newFolder: string;
+      newNote: string;
+      oldFolder: string;
+      oldNote: string;
+    }[];
+    for (const item of data) {
+      const { newFolder, oldFolder } = item;
+      await queryClient.invalidateQueries({
+        queryKey: noteQueries.getNotes(oldFolder, noteSort, queryClient)
+          .queryKey,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: noteQueries.getNotes(newFolder, noteSort, queryClient)
+          .queryKey,
+      });
+    }
+  });
+}
+
 /** This function is used to handle note:delete events */
 export function useNoteDelete(folder: string) {
   const queryClient = useQueryClient();

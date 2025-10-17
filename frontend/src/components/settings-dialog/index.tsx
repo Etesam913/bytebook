@@ -26,7 +26,7 @@ export function SettingsDialog() {
           <div className="grid grid-cols-2 px-0.5 border-b border-zinc-200 dark:border-zinc-700 " />
         </div>
       </div>
-      <footer className="border-t border-zinc-200 dark:border-zinc-700 pt-2 mt-1.5">
+      <footer className="border-t border-zinc-200 dark:border-zinc-700 pt-2 pb-3 pr-2 mt-1.5">
         <MotionButton
           type="submit"
           {...getDefaultButtonVariants()}

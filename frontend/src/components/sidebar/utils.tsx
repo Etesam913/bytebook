@@ -113,8 +113,6 @@ export function handleNoteDragStart({
       });
     });
 
-    console.log(selectedFilePaths);
-
     const selectedFiles = selectedFilePaths.map((filePath) =>
       filePath.toString()
     );

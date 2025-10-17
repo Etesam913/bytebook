@@ -161,7 +161,7 @@ export function Dialog() {
                 {dialogData.title}
               </h2>
 
-              <div className="pb-2 px-3 overflow-x-hidden flex flex-col gap-5 flex-1 min-h-0">
+              <div className="py-2 px-3 overflow-x-hidden flex flex-col gap-5 flex-1 min-h-0">
                 {dialogData.children?.(errorText, dialogData.isPending)}
               </div>
 

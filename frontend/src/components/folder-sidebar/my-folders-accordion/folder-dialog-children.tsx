@@ -9,7 +9,7 @@ import { Input } from '../../input';
 export function CreateFolderDialog({ errorText }: { errorText: string }) {
   return (
     <>
-      <fieldset className="flex flex-col py-2">
+      <fieldset className="flex flex-col">
         <Input
           label="New Folder Name"
           labelProps={{ htmlFor: 'folder-name' }}

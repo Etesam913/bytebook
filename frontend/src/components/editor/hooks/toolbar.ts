@@ -246,10 +246,7 @@ export function useToolbarEvents({
             let isInProhibitedNode = false;
             nodes.forEach((node) => {
               // Backspace in code block could mean you are deleting code instead of the whole block.
-              if (
-                node.getType() === 'code-block' ||
-                node.getType() === 'excalidraw'
-              ) {
+              if (node.getType() === 'code-block') {
                 isInProhibitedNode = true;
                 return;
               }

@@ -13,6 +13,7 @@ import { isNoteMaximizedAtom, isToolbarDisabledAtom } from '../../../atoms';
 import { noteSelectionAtom } from '../atoms';
 import { useAttachmentsMutation } from '../../../hooks/attachments';
 import { useNoteChangedEvent } from '../../../hooks/notes';
+import { useCreateTableDialog } from '../../../hooks/dialogs';
 import type {
   EditorBlockTypes,
   FloatingDataType,
@@ -92,6 +93,8 @@ export function Toolbar({
     note,
     editor,
   });
+
+  const openCreateTableDialog = useCreateTableDialog();
 
   const [isSearchOpen, setIsSearchOpen] = useSearchNoteEvent();
 
@@ -181,6 +184,7 @@ export function Toolbar({
                 editor,
                 newBlockType: value,
                 insertAttachmentsMutation,
+                openCreateTableDialog,
               })
             }
             items={blockTypesDropdownItems}

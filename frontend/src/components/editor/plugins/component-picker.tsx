@@ -6,7 +6,6 @@ import {
 import { $createHeadingNode } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
 import type { UseMutationResult } from '@tanstack/react-query';
-
 import {
   $createParagraphNode,
   $getSelection,
@@ -18,10 +17,8 @@ import {
 } from 'lexical';
 import { type JSX, useState } from 'react';
 import { createPortal } from 'react-dom';
-
 import { useAttachmentsMutation } from '../../../hooks/attachments';
-// import { AngularLogo } from '../../../icons/angular-logo';
-// import { CppLogo } from '../../../icons/cpp-logo';
+import { useCreateTableDialog } from '../../../hooks/dialogs';
 import { GolangLogo } from '../../../icons/golang-logo';
 import { Heading1 } from '../../../icons/heading-1';
 import { Heading2 } from '../../../icons/heading-2';
@@ -30,21 +27,13 @@ import { Heading4 } from '../../../icons/heading-4';
 import { Heading5 } from '../../../icons/heading-5';
 import { Heading6 } from '../../../icons/heading-6';
 import { JavaLogo } from '../../../icons/java-logo';
-// import { JavascriptLogo } from '../../../icons/javascript-logo';
-
 import { Equation } from '../../../icons/equation';
-import { Paintbrush } from '../../../icons/paintbrush';
 import { PythonLogo } from '../../../icons/python-logo';
-// import { ReactLogo } from '../../../icons/react-logo';
-// import { RustLogo } from '../../../icons/rust-logo';
-// import { SvelteLogo } from '../../../icons/svelte-logo';
 import { Text } from '../../../icons/text';
-// import { VueLogo } from '../../../icons/vue-logo';
 import {
   ComponentPickerMenuItem,
   DropdownPickerOption,
 } from '../../dropdown/dropdown-picker';
-import { $createExcalidrawNode } from '../nodes/excalidraw';
 import { $createInlineEquationNode } from '../nodes/inline-equation';
 import { attachmentCommandData, listCommandData } from '../utils/toolbar';
 import { INSERT_CODE_COMMAND } from './code';
@@ -52,7 +41,6 @@ import { Languages } from '../../../types';
 import { getDefaultCodeForLanguage } from '../../../utils/code';
 import { JavascriptLogo } from '../../../icons/javascript-logo';
 import { Table } from '../../../icons/table';
-import { INSERT_TABLE_COMMAND } from '@lexical/table';
 
 const languageCommandData: {
   languageName: Languages;
@@ -126,9 +114,11 @@ const languageCommandData: {
 function getBaseOptions({
   editor,
   insertAttachmentsMutation,
+  openCreateTableDialog,
 }: {
   editor: LexicalEditor;
   insertAttachmentsMutation: UseMutationResult<void, Error, void, unknown>;
+  openCreateTableDialog: ReturnType<typeof useCreateTableDialog>;
 }) {
   return [
     new DropdownPickerOption('Paragraph', {
@@ -180,13 +170,10 @@ function getBaseOptions({
       icon: <Table />,
       keywords: ['table', 'grid', 'data'],
       onSelect: () => {
-        editor.update(() => {
-          editor.dispatchCommand(INSERT_TABLE_COMMAND, {
-            columns: '2',
-            rows: '2',
-            includeHeaders: true,
-          });
-        });
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          openCreateTableDialog(editor, selection);
+        }
       },
     }),
     new DropdownPickerOption('Attachments', {
@@ -215,86 +202,6 @@ function getBaseOptions({
           });
           $insertNodes([equationNode]);
           // editor.dispatchCommand(FOCUS_NODE_COMMAND, equationNode);
-        });
-      },
-    }),
-    // new DropdownPickerOption("YouTube", {
-    // 	icon: <VideoIcon />,
-    // 	keywords: ["youtube", "video", "embed"],
-    // 	onSelect: async () => {
-    // 		setDialogData({
-    // 			isOpen: true,
-    // 			isPending: false,
-    // 			dialogClassName: "w-[min(30rem,90vw)]",
-    // 			title: "YouTube Embed",
-    // 			children: (dialogErrorText) => (
-    // 				<YouTubeDialogChildren
-    // 					editor={editor}
-    // 					errorText={dialogErrorText}
-    // 					editorSelection={editorSelection}
-    // 				/>
-    // 			),
-    // 			onSubmit: async (e, setDialogErrorText) => {
-    // 				try {
-    // 					if (
-    // 						!editorSelection.current ||
-    // 						!$isRangeSelection(editorSelection.current)
-    // 					)
-    // 						throw new Error("Something went wrong! Please try again.");
-
-    // 					const formData = new FormData(e.target as HTMLFormElement);
-    // 					const videoUrl = formData.get("youtube-url");
-    // 					// Doing some error checking
-    // 					if (
-    // 						!videoUrl ||
-    // 						typeof videoUrl !== "string" ||
-    // 						videoUrl.trim().length === 0
-    // 					)
-    // 						throw new Error("YouTube URL cannot be empty");
-    // 					if (extractYouTubeVideoID(videoUrl) === null)
-    // 						throw new Error("Invalid YouTube URL");
-
-    // 					// Got a warning about the old selection being stale, so cloning it fixes it
-    // 					const newSelection = editorSelection.current.clone();
-    // 					// Using the cloned selection and adding the YouTube video
-    // 					editor.update(() => {
-    // 						$setSelection(newSelection);
-    // 						const youtubeVideo = $createFileNode({
-    // 							alt: "YouTube Video",
-    // 							src: videoUrl,
-    // 							width: "100%",
-    // 						});
-    // 						const youtubeVideoNode = $createParagraphNode();
-    // 						youtubeVideoNode.append(youtubeVideo);
-    // 						newSelection.insertNodes([youtubeVideoNode]);
-    // 						editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, undefined);
-    // 					});
-    // 					return true;
-    // 				} catch (e) {
-    // 					if (e instanceof Error) setDialogErrorText(e.message);
-    // 					return false;
-    // 				}
-    // 			},
-    // 		});
-    // 	},
-    // }),
-    new DropdownPickerOption('Drawing', {
-      icon: <Paintbrush />,
-      keywords: [
-        'drawing',
-        'sketch',
-        'doodle',
-        'draw',
-        'excalidraw',
-        'painting',
-      ],
-      onSelect: () => {
-        editor.update(() => {
-          const excalidrawNode = $createExcalidrawNode({
-            elements: [],
-            isCreatedNow: true,
-          });
-          $insertNodes([excalidrawNode]);
         });
       },
     }),
@@ -338,10 +245,13 @@ export function ComponentPickerMenuPlugin({
     editor,
   });
 
+  const openCreateTableDialog = useCreateTableDialog();
+
   const getOptions = () => {
     const baseOptions = getBaseOptions({
       editor,
       insertAttachmentsMutation,
+      openCreateTableDialog,
     });
 
     if (!queryString) {

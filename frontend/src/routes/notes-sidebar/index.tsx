@@ -9,7 +9,12 @@ import { RenameFolderDialog } from '../../components/folder-sidebar/my-folders-a
 import { Spacer } from '../../components/folder-sidebar/spacer';
 import { useCreateNoteDialog } from '../../hooks/dialogs.tsx';
 import { useFolderRenameMutation } from '../../hooks/folders.tsx';
-import { useNoteCreate, useNoteDelete, useNotes } from '../../hooks/notes.tsx';
+import {
+  useNoteCreate,
+  useNoteDelete,
+  useNoteRename,
+  useNotes,
+} from '../../hooks/notes.tsx';
 import { Compose } from '../../icons/compose';
 import { Folder } from '../../icons/folder';
 import { Pen } from '../../icons/pen';
@@ -80,6 +85,7 @@ export function NotesSidebar({
   }, [notes, previousNotes, note]);
 
   useNoteCreate();
+  useNoteRename();
   useNoteDelete(folder);
 
   return (
