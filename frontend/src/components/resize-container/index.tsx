@@ -81,7 +81,7 @@ export function ResizeContainer({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0, transition: { duration: 0.25 } }}
-                  className="absolute top-2 right-2 bg-zinc-200/70 rounded-md py-1 px-1.5 text-xs dark:bg-zinc-650/70"
+                  className="absolute top-2 left-2 max-w-[calc(100%-1rem)] bg-zinc-200/70 rounded-md py-1 px-1.5 text-xs dark:bg-zinc-650/70 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
                   {decodeURIComponent(src.split('/').at(-2) ?? '')}/
                   {decodeURIComponent(src.split('/').at(-1) ?? '')}
