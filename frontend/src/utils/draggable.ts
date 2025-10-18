@@ -12,6 +12,11 @@ export function createGhostElementFromHtmlElement(
   ghostElement.classList.add(...classNames);
   // Remove the selected classes
   ghostElement.classList.remove('bg-(--accent-color)!');
+
+  const noteContainer = document.getElementById('note-container');
+  if (noteContainer) {
+    ghostElement.style.fontFamily = noteContainer.style.fontFamily;
+  }
   return ghostElement;
 }
 

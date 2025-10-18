@@ -155,10 +155,10 @@ function getBaseOptions({
             }),
         })
     ),
-    ...listCommandData.map(({ block, icon, command, title }) => {
+    ...listCommandData.map(({ block, icon, command, title, keywords }) => {
       return new DropdownPickerOption(title, {
         icon,
-        keywords: ['list', block, title],
+        keywords: [...keywords, 'list', block, title],
         onSelect: () => {
           editor.update(() => {
             editor.dispatchCommand(command, undefined);

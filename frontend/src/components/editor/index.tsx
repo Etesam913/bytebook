@@ -119,7 +119,6 @@ export function NotesEditor({
         <div
           style={{
             scrollbarGutter: 'stable',
-            fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
           }}
           className={cn(
             'h-full py-6 px-12 flex-1 w-full',
@@ -129,7 +128,11 @@ export function NotesEditor({
         >
           <div
             ref={noteContainerRef}
+            id="note-container"
             className="relative flex flex-col w-full h-full"
+            style={{
+              fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
+            }}
           >
             <NoteTitle folder={folder} note={note} />
             <ComponentPickerMenuPlugin folder={folder} note={note} />

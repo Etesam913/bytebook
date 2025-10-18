@@ -510,6 +510,7 @@ export const listCommandData = [
     icon: <UnorderedList className="will-change-transform" />,
     command: INSERT_UNORDERED_LIST_COMMAND,
     title: 'Unordered List',
+    keywords: ['bullet', 'unordered', 'ul', 'list'],
     customDisabled: undefined,
   },
   {
@@ -517,6 +518,7 @@ export const listCommandData = [
     icon: <OrderedList className="will-change-transform" />,
     command: INSERT_ORDERED_LIST_COMMAND,
     title: 'Ordered List',
+    keywords: ['numbered', 'ordered', 'ol', 'list'],
     customDisabled: undefined,
   },
   {
@@ -524,6 +526,7 @@ export const listCommandData = [
     icon: <ListCheckbox className="will-change-transform" />,
     command: INSERT_CHECK_LIST_COMMAND,
     title: 'Check List',
+    keywords: ['check', 'checkbox', 'todo', 'task', 'list'],
     customDisabled: undefined,
   },
 ];

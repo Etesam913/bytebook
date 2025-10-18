@@ -65,7 +65,9 @@ export function DraggableBlockPlugin({
     <>
       <motion.div
         draggable
-        onDragStart={(e: DragEvent) =>
+        onDragStart={(e: DragEvent) => {
+          // Initialize target line position to match drag handle position
+          targetLineYMotionValue.set(dragHandleYMotionValue.get());
           handleDragStart({
             e,
             editor,
@@ -73,8 +75,8 @@ export function DraggableBlockPlugin({
             draggableBlockElement,
             setDraggedElement,
             noteContainer: noteContainerRef.current,
-          })
-        }
+          });
+        }}
         onDragEnd={() => {
           setIsDragging(false);
           setDraggedElement(null);
