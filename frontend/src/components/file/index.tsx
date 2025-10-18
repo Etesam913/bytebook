@@ -8,7 +8,6 @@ import { FileError } from './error';
 import { Image } from './image';
 import { Pdf } from './pdf';
 import { Video } from './video';
-import { YouTube } from './youtube';
 
 export function File({
   src,
@@ -65,16 +64,6 @@ export function File({
         widthWrittenToNode={widthWrittenToNode}
         writeWidthToNode={writeWidthToNode}
         nodeKey={nodeKey}
-      />
-    );
-  } else if (fileType === 'youtube') {
-    content = (
-      <YouTube
-        src={encodedSrc}
-        alt={title}
-        nodeKey={nodeKey}
-        widthWrittenToNode={widthWrittenToNode}
-        writeWidthToNode={writeWidthToNode}
       />
     );
   } else if (fileType === 'pdf') {

@@ -68,7 +68,6 @@ export function NotesSidebar({
           (filePath) => filePath.noteWithoutExtension === note
         )
       ) {
-        navigate(routeUrls.patterns.NOT_FOUND_FALLBACK, { replace: true });
       } else {
         const closestNoteIndex = findClosestSidebarItemToNavigateTo(
           note,

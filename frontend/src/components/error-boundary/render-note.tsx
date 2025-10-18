@@ -17,7 +17,7 @@ export function RenderNoteFallback({
   const filePath = useAtomValue(currentFilePathAtom);
 
   return (
-    <div className="h-screen w-full flex flex-col items-center justify-center gap-4 text-center p-6">
+    <div className="h-screen flex flex-col items-center justify-center gap-4 text-center p-6 mx-auto">
       <div className="flex flex-col items-center gap-3">
         <TriangleWarning className="w-12 h-12 text-amber-500" />
         <div className="space-y-2">
@@ -43,7 +43,7 @@ export function RenderNoteFallback({
           <summary className="cursor-pointer text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 list-none">
             Error Details
           </summary>
-          <div className="mt-2 h-32 bg-zinc-100 dark:bg-zinc-800 rounded p-3 overflow-auto">
+          <div className="mt-2 h-96 w-full bg-zinc-100 dark:bg-zinc-800 rounded p-3 overflow-auto">
             <div className="text-xs text-left space-y-2 select-text">
               <div>
                 <strong>Error Message:</strong>
