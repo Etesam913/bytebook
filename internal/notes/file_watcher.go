@@ -143,7 +143,7 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) || event.Has(fsnotify.Write) {
 		timeDiff := time.Since(fw.mostRecentFileCreatedEvent.time)
 
-		// timeDiff is used to be certain that the rename event is no a delete
+		// timeDiff is used to be certain that the rename event is not a delete
 		if event.Has(fsnotify.Rename) && timeDiff < TIME_FOR_TWO_EVENTS_TO_BE_RELATED {
 			oldFileFolder := filepath.Base(filepath.Dir(event.Name))
 			oldFileName := filepath.Base(event.Name)

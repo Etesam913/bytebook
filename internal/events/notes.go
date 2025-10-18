@@ -4,8 +4,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/etesam913/bytebook/internal/search"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -22,6 +24,8 @@ func handleNoteCreateEvent(params EventParams, event *application.CustomEvent) {
 
 // addCreatedNotesToIndex adds newly created notes to the search index in a batch operation.
 // It expects a slice of note data, each containing folder and note name.
+// This function includes retry logic to handle race conditions where the file may not be
+// immediately available after the create event is fired.
 func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
 	batch := params.Index.NewBatch()
 
@@ -37,17 +41,27 @@ func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
 			return
 		}
 
-		_, err := search.AddMarkdownNoteToBatch(
-			batch,
-			params.Index,
-			filepath.Join(params.ProjectPath, folder, noteName),
-			folder,
-			noteName,
-			true,
+		filePath := filepath.Join(params.ProjectPath, "notes", folder, noteName)
+
+		// Retry logic to handle race condition where file might not be immediately available
+		err := util.RetryWithExponentialBackoff(
+			func() error {
+				_, err := search.AddMarkdownNoteToBatch(
+					batch,
+					params.Index,
+					filePath,
+					folder,
+					noteName,
+					true,
+				)
+				return err
+			},
+			5,                   // maxRetries
+			10*time.Millisecond, // initialDelay
 		)
 
 		if err != nil {
-			log.Println("Error adding markdown note to batch", err)
+			log.Printf("Error adding markdown note to batch: %v", err)
 		}
 	}
 
