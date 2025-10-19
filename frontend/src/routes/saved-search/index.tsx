@@ -18,6 +18,7 @@ import { routeBuilders } from '../../utils/routes.ts';
 import { isNoteMaximizedAtom } from '../../atoms.ts';
 import { useAtomValue } from 'jotai';
 import { useSearchParamsEntries } from '../../utils/routing.ts';
+import { Tooltip } from '../../components/tooltip/index.tsx';
 
 export function SavedSearchPage({
   searchQuery,
@@ -85,9 +86,14 @@ export function SavedSearchPage({
             <header className="pl-1.5 pr-2.5">
               <section className="flex items-center py-3.5 gap-2">
                 <Magnifier width={16} height={16} className="min-w-[16px]" />
-                <p className="overflow-hidden text-ellipsis whitespace-nowrap">
-                  Search: {searchQuery}
-                </p>
+                <Tooltip
+                  content={<span className="font-code">{searchQuery}</span>}
+                >
+                  <p className="overflow-hidden text-ellipsis whitespace-nowrap">
+                    Search:{' '}
+                    <span className="font-code text-sm">{searchQuery}</span>
+                  </p>
+                </Tooltip>
               </section>
               <div className="flex items-center justify-between gap-2 mb-2">
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">

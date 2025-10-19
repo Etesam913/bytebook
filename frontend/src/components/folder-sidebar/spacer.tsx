@@ -1,46 +1,60 @@
 import type { MotionValue } from 'motion/react';
-import { useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { useState } from 'react';
 import { draggedElementAtom } from '../editor/atoms';
 import { dragItem } from '../../utils/draggable';
 import { MAX_SIDEBAR_WIDTH } from '../../utils/general';
 import { cn } from '../../utils/string-formatting';
+import { currentZoomAtom } from '../../hooks/resize';
+
+const MIN_SIDEBAR_WIDTH = 375;
+const SPACER_OFFSET = 8;
 
 export function Spacer({
   width,
   leftWidth,
-  spacerConstant = 8,
+  spacerConstant = SPACER_OFFSET,
 }: {
   width: MotionValue<number>;
   leftWidth?: MotionValue<number>;
   spacerConstant?: number;
 }) {
   const setDraggedElement = useSetAtom(draggedElementAtom);
+  const currentZoom = useAtomValue(currentZoomAtom);
   const [isDragged, setIsDragged] = useState(false);
+
+  const handleDragStart = () => {
+    setIsDragged(true);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragged(false);
+    setDraggedElement(null);
+  };
+
+  const handleDrag = (e: MouseEvent) => {
+    // Account for zoom by dividing clientX by current zoom level
+    const adjustedClientX = e.clientX / currentZoom;
+    const leftOffset = leftWidth ? leftWidth.get() + spacerConstant : 0;
+    const newWidth = adjustedClientX - leftOffset;
+
+    // Clamp width between min and max values
+    const clampedWidth = Math.min(
+      Math.max(newWidth, MAX_SIDEBAR_WIDTH),
+      MIN_SIDEBAR_WIDTH
+    );
+    width.set(clampedWidth);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    handleDragStart();
+    setDraggedElement(e.target as HTMLElement);
+    dragItem(handleDrag, handleDragEnd);
+  };
 
   return (
     <div
-      onMouseDown={(e) => {
-        setIsDragged(true);
-        setDraggedElement(e.target as HTMLElement);
-        dragItem(
-          (e) => {
-            width.set(
-              Math.min(
-                Math.max(
-                  MAX_SIDEBAR_WIDTH,
-                  e.clientX - (leftWidth ? leftWidth.get() + spacerConstant : 0)
-                ),
-                325
-              )
-            );
-          },
-          () => {
-            setIsDragged(false);
-            setDraggedElement(null);
-          }
-        );
-      }}
+      onMouseDown={handleMouseDown}
       className={cn(
         'w-[6px] cursor-ew-resize border-l-[1px] transition-all duration-200 ease-in-out',
         isDragged
