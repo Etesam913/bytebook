@@ -1,21 +1,30 @@
 import type { TextMatchTransformer } from '@lexical/markdown';
 import { $createTextNode, $isTextNode } from 'lexical';
 import {
-  convertFilePathToQueryNotation,
   convertNoteNameToDotNotation,
-  escapeFileContentForMarkdown,
+  escapeParenthesis,
+  escapeSquareBrackets,
   isInternalLink,
-  unescapeFileContentFromMarkdown,
+  unescapeParenthesis,
+  unescapeSquareBrackets,
+  unescapeUnderscore,
 } from '../../../utils/string-formatting';
-import { $createLinkNode, $isLinkNode, LinkNode } from '../nodes/link';
+import {
+  $createLinkNode,
+  $isAutoLinkNode,
+  $isLinkNode,
+  LinkNode,
+} from '../nodes/link';
 
 export const LINK: TextMatchTransformer = {
   dependencies: [LinkNode],
-  export: (node, _, exportFormat) => {
-    if (!$isLinkNode(node)) {
+  export: (node, _exportChildren, exportFormat) => {
+    if (!$isLinkNode(node) || $isAutoLinkNode(node)) {
       return null;
     }
+    const title = node.getTitle();
     let linkUrl = node.getURL();
+
     if (isInternalLink(linkUrl)) {
       const urlSegments = linkUrl.split('/');
       const noteName = urlSegments[urlSegments.length - 1];
@@ -25,9 +34,21 @@ export const LINK: TextMatchTransformer = {
       ].join('/');
     }
 
-    const linkContent = `[${escapeFileContentForMarkdown(
-      node.getTextContent()
-    )}](${linkUrl})`;
+    // Escape special markdown characters in the URL
+    linkUrl = escapeParenthesis(linkUrl);
+
+    const textContent = escapeSquareBrackets(node.getTextContent());
+
+    const linkContent = title
+      ? `[${textContent}](${linkUrl} "${title}")`
+      : `[${textContent}](${linkUrl})`;
+
+    console.log({
+      originalTextContent: node.getTextContent(),
+      textContent,
+      linkUrl,
+    });
+
     const firstChild = node.getFirstChild();
     // Add text styles only if link has single text node inside. If it's more
     // than one we ignore it as markdown does not support nested styles for links
@@ -43,21 +64,30 @@ export const LINK: TextMatchTransformer = {
   regExp:
     /(?:\[([^[]+)\])(?:\((?:([^()]+?)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))$/,
   replace: (textNode, match) => {
-    const alt = match.at(1);
-    const filePathOrSrc = match.at(2);
+    let alt = match.at(1);
+    let filePathOrSrc = match.at(2);
+    let linkTitle = match.at(3);
     if (!alt || !filePathOrSrc) {
       textNode.replace(textNode);
       return;
     }
-    const [linkText, linkUrl, linkTitle] = [
-      match.at(1),
-      unescapeFileContentFromMarkdown(match.at(2) ?? ''),
-      unescapeFileContentFromMarkdown(match.at(3) ?? ''),
-    ];
-    const linkNode = $createLinkNode(convertFilePathToQueryNotation(linkUrl), {
-      title: linkTitle,
+    alt = unescapeSquareBrackets(alt);
+    // Unescape special markdown characters in the URL
+    filePathOrSrc = unescapeUnderscore(unescapeParenthesis(filePathOrSrc));
+    linkTitle = linkTitle ? unescapeSquareBrackets(linkTitle) : undefined;
+
+    // const linkNode = $createLinkNode(convertFilePathToQueryNotation(linkUrl), {
+    //   title: linkTitle,
+    // });
+
+    console.log({
+      alt,
+      filePathOrSrc,
+      linkTitle,
     });
-    const linkTextNode = $createTextNode(linkText);
+
+    const linkNode = $createLinkNode(filePathOrSrc);
+    const linkTextNode = $createTextNode(alt);
     linkTextNode.setFormat(textNode.getFormat());
     linkNode.append(linkTextNode);
     textNode.replace(linkNode);

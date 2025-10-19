@@ -556,6 +556,28 @@ export function unescapeNewlines(str: string): string {
 }
 
 /**
+ * Escapes square brackets in a string for Markdown usage.
+ * @param input The string to escape
+ * @returns The string with [ and ] escaped as \[ and \]
+ * @example
+ * escapeSquareBrackets('foo[bar]'); // returns 'foo\\[bar\\]'
+ */
+export function escapeSquareBrackets(input: string): string {
+  return input.replace(/([[\]])/g, '\\$1');
+}
+
+/**
+ * Escapes parentheses in a string for Markdown usage.
+ * @param input The string to escape
+ * @returns The string with ( and ) escaped as \( and \)
+ * @example
+ * escapeParenthesis('foo(bar)'); // returns 'foo\\(bar\\)'
+ */
+export function escapeParenthesis(input: string): string {
+  return input.replace(/([()])/g, '\\$1');
+}
+
+/**
  * Escape special Markdown characters in file content so it can be used
  * inside [text](url) without breaking the link.
  * @param content The file content to escape
@@ -564,8 +586,58 @@ export function unescapeNewlines(str: string): string {
  * escapeFileContentForMarkdown('file[name](test)'); // returns 'file\\[name\\]\\(test\\)'
  */
 export function escapeFileContentForMarkdown(content: string): string {
-  // Matches any of: \ [ ] ( )
-  return content.replace(/([\\[\]()])/g, '\\$1');
+  // Escape all special markdown characters: \ [ ] ( )
+  // Escape backslashes first
+  let escaped = content.replace(/\\/g, '\\\\');
+  // Escape square brackets
+  escaped = escapeSquareBrackets(escaped);
+  // Escape parentheses
+  escaped = escapeParenthesis(escaped);
+  return escaped;
+}
+
+/**
+ * Unescapes square brackets in a string that were escaped for Markdown usage.
+ * @param input The string to unescape
+ * @returns The string with \[ and \] replaced by [ and ]
+ * @example
+ * unescapeSquareBrackets('foo\\[bar\\]'); // returns 'foo[bar]'
+ */
+export function unescapeSquareBrackets(input: string): string {
+  return input.replace(/\\([\[\]])/g, '$1');
+}
+
+/**
+ * Unescapes parentheses in a string that were escaped for Markdown usage.
+ * @param input The string to unescape
+ * @returns The string with \( and \) replaced by ( and )
+ * @example
+ * unescapeParenthesis('foo\\(bar\\)'); // returns 'foo(bar)'
+ */
+export function unescapeParenthesis(input: string): string {
+  return input.replace(/\\([()])/g, '$1');
+}
+
+/**
+ * Escapes underscores in a string for Markdown usage.
+ * @param input The string to escape
+ * @returns The string with _ escaped as \_
+ * @example
+ * escapeUnderscore('foo_bar'); // returns 'foo\\_bar'
+ */
+export function escapeUnderscore(input: string): string {
+  return input.replace(/_/g, '\\_');
+}
+
+/**
+ * Unescapes underscores in a string that were escaped for Markdown usage.
+ * @param input The string to unescape
+ * @returns The string with \_ replaced by _
+ * @example
+ * unescapeUnderscore('foo\\_bar'); // returns 'foo_bar'
+ */
+export function unescapeUnderscore(input: string): string {
+  return input.replace(/\\_/g, '_');
 }
 
 /**
@@ -576,8 +648,13 @@ export function escapeFileContentForMarkdown(content: string): string {
  * unescapeFileContentFromMarkdown('file\\[name\\]\\(test\\)'); // returns 'file[name](test)'
  */
 export function unescapeFileContentFromMarkdown(escaped: string): string {
-  // Matches a backslash followed by one of: \ [ ] ( )
-  return escaped.replace(/\\([\\[\]()])/g, '$1');
+  // Unescape backslashes first
+  let unescaped = escaped.replace(/\\\\/g, '\\');
+  // Unescape square brackets
+  unescaped = unescapeSquareBrackets(unescaped);
+  // Unescape parentheses
+  unescaped = unescapeParenthesis(unescaped);
+  return unescaped;
 }
 
 export function formatDate(
