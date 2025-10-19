@@ -8,13 +8,17 @@ import {
 import { $createHeadingNode, $isHeadingNode } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
 import {
+  $deleteTableColumnAtSelection,
+  $deleteTableRowAtSelection,
   $getTableCellNodeFromLexicalNode,
   $getTableNodeFromLexicalNodeOrThrow,
+  $insertTableColumnAtSelection,
+  $insertTableRowAtSelection,
   $isTableCellNode,
   $isTableSelection,
   getTableElement,
-  getTableObserverFromTableElement,
   INSERT_TABLE_COMMAND,
+  TableCellNode,
 } from '@lexical/table';
 import { $getNearestNodeOfType } from '@lexical/utils';
 import type { UseMutationResult } from '@tanstack/react-query';
@@ -301,6 +305,8 @@ export function updateToolbar({
   }
 }
 
+// This function controls the visibility and positioning of the "Table Actions" button
+// based on the current lexical selection within the editor.
 export function showTableCellActionsButton({
   editor,
   tableActionsRef,
@@ -310,26 +316,36 @@ export function showTableCellActionsButton({
   tableActionsRef: RefObject<HTMLButtonElement | null>;
   noteContainerRef: RefObject<HTMLDivElement | null>;
 }) {
+  // Helper function to hide the actions button
   const hideTableActions = () => {
     if (tableActionsRef?.current) {
       tableActionsRef.current.style.display = 'none';
     }
   };
 
+  // Helper function to show the actions button
   const showTableActions = () => {
     if (tableActionsRef?.current) {
       tableActionsRef.current.style.display = 'block';
     }
   };
 
+  // Read the editor state
   editor.read(() => {
+    // Get the current selection
     const selection = $getSelection();
+
+    // If the button ref doesn't exist, just hide table actions and stop here
     if (!tableActionsRef?.current) {
       hideTableActions();
       return;
     }
+
+    // Case 1: User's selection is a text range (e.g. caret or highlight in a cell)
     if ($isRangeSelection(selection)) {
       showTableActions();
+
+      // Try to get the closest table cell node from the selection
       const tableCellNodeFromSelection = $getTableCellNodeFromLexicalNode(
         selection.anchor.getNode()
       );
@@ -337,6 +353,8 @@ export function showTableCellActionsButton({
         hideTableActions();
         return;
       }
+
+      // Get the actual DOM element for the table cell node
       const tableCellParentNodeDOM = editor.getElementByKey(
         tableCellNodeFromSelection.getKey()
       );
@@ -345,14 +363,10 @@ export function showTableCellActionsButton({
         return;
       }
 
-      const tableNode = $getTableNodeFromLexicalNodeOrThrow(
-        tableCellNodeFromSelection
-      );
-      const tableElement = getTableElement(
-        tableNode,
-        editor.getElementByKey(tableNode.getKey())
-      );
+      // Find containing table node (for validation)
+      $getTableNodeFromLexicalNodeOrThrow(tableCellNodeFromSelection);
 
+      // Get bounding rectangles for cell and container to position the button
       const tableCellRect = tableCellParentNodeDOM.getBoundingClientRect();
       const noteContainerRect =
         noteContainerRef.current?.getBoundingClientRect();
@@ -361,16 +375,23 @@ export function showTableCellActionsButton({
         return;
       }
 
+      // Position the actions button relative to the selected cell and the container
       tableActionsRef.current.style.top = `${tableCellRect.top - noteContainerRect.top}px`;
       tableActionsRef.current.style.right = `${noteContainerRect.right - tableCellRect.right}px`;
-    } else if ($isTableSelection(selection)) {
+    }
+    // Case 2: User's selection is a table selection (multiple cells selected)
+    else if ($isTableSelection(selection)) {
+      // Get anchor node (should be a table cell)
       const anchorNode = $getTableCellNodeFromLexicalNode(
         selection.anchor.getNode()
       );
+      // If not a TableCellNode, hide actions button
       if (!$isTableCellNode(anchorNode)) {
         hideTableActions();
         return;
       }
+
+      // Find table node and table element (for validation)
       const tableNode = $getTableNodeFromLexicalNodeOrThrow(anchorNode);
       const tableElement = getTableElement(
         tableNode,
@@ -380,15 +401,20 @@ export function showTableCellActionsButton({
         hideTableActions();
         return;
       }
-      const tableObserver = getTableObserverFromTableElement(tableElement);
+
+      // Get the parent DOM element of the anchor cell
       const tableCellParentNodeDOM = editor.getElementByKey(
         anchorNode.getKey()
       );
 
+      // If not found, hide actions
       if (tableCellParentNodeDOM === null) {
         hideTableActions();
         return;
       }
+      // (No explicit positioning for table selection; could be added as needed)
+    } else {
+      hideTableActions();
     }
   });
 }
