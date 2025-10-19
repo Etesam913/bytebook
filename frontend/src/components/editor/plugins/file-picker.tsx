@@ -57,12 +57,7 @@ export function FilePickerMenuPlugin() {
 
       return {
         dropdownOption: new DropdownPickerOption(fileName, {
-          icon: (
-            <RenderNoteIcon
-              size="sm"
-              fileExtension={getFileExtension(fileName).extension ?? ''}
-            />
-          ),
+          icon: <RenderNoteIcon filePath={filePath} size="sm" />,
           onSelect: () => {
             const { extension } = getFileExtension(fileName);
             if (extension === 'md') {

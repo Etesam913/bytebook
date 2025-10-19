@@ -5,26 +5,21 @@ import { Note } from './page';
 import { PDFIcon } from './pdf-icon';
 import { VideoIcon } from './video';
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../types';
+import { FilePath } from '../utils/string-formatting';
 
 export function RenderNoteIcon({
-  noteNameWithExtension,
-  sidebarNoteName,
-  fileExtension,
+  filePath,
+  activeNotePath,
   size,
 }: {
-  noteNameWithExtension?: string;
-  sidebarNoteName?: string;
-  fileExtension: string;
+  filePath: FilePath;
+  activeNotePath?: FilePath;
   size?: 'sm';
 }) {
   const iconSize = size === 'sm' ? 18 : 20;
 
-  if (fileExtension === 'md') {
-    if (
-      noteNameWithExtension &&
-      sidebarNoteName &&
-      noteNameWithExtension === sidebarNoteName
-    ) {
+  if (filePath.noteExtension === 'md') {
+    if (activeNotePath && filePath.equals(activeNotePath)) {
       return (
         <FilePen
           title="Editing Note"
@@ -44,7 +39,7 @@ export function RenderNoteIcon({
     );
   }
 
-  if (fileExtension === 'pdf') {
+  if (filePath.noteExtension === 'pdf') {
     return (
       <PDFIcon
         title="PDF"
@@ -55,7 +50,7 @@ export function RenderNoteIcon({
     );
   }
 
-  if (IMAGE_FILE_EXTENSIONS.includes(fileExtension)) {
+  if (IMAGE_FILE_EXTENSIONS.includes(filePath.noteExtension)) {
     return (
       <ImageIcon
         title="Image"
@@ -66,7 +61,7 @@ export function RenderNoteIcon({
     );
   }
 
-  if (VIDEO_FILE_EXTENSIONS.includes(fileExtension)) {
+  if (VIDEO_FILE_EXTENSIONS.includes(filePath.noteExtension)) {
     return (
       <VideoIcon
         title="Video"

@@ -78,9 +78,9 @@ export function NoteSidebarButton({
         : ''
       : firstImageSrc;
 
-  const isActive =
-    activeNotePath?.noteWithExtensionParam ===
-    sidebarNotePath.noteWithExtensionParam;
+  const isActive = activeNotePath
+    ? sidebarNotePath.equals(activeNotePath)
+    : false;
 
   const isSelected =
     selectionRange.has(`note:${sidebarNotePath.note}`) ?? false;

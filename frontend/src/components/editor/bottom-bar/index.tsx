@@ -83,11 +83,7 @@ export function BottomBar({
         </BreadcrumbItem>{' '}
         /{' '}
         <BreadcrumbItem to={filePath.getLinkToNote()}>
-          <RenderNoteIcon
-            noteNameWithExtension=""
-            sidebarNoteName={''}
-            fileExtension={filePath.noteExtension}
-          />
+          <RenderNoteIcon filePath={filePath} />
           {decodeURIComponent(filePath.noteWithoutExtension)}
         </BreadcrumbItem>
       </span>
