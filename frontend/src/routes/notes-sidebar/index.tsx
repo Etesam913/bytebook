@@ -22,7 +22,6 @@ import { MyNotesSidebar } from './my-notes-sidebar.tsx';
 import { RenderNote } from './render-note/index.tsx';
 import { ErrorBoundary } from 'react-error-boundary';
 import { RenderNoteFallback } from '../../components/error-boundary/render-note.tsx';
-import { routeUrls } from '../../utils/routes.ts';
 import { navigate } from 'wouter/use-browser-location';
 import { findClosestSidebarItemToNavigateTo } from '../../utils/routing.ts';
 import { Tooltip } from '../../components/tooltip/index.tsx';
@@ -60,7 +59,7 @@ export function NotesSidebar({
     if (!note) {
       navigate(filePathForFirstNote.getLinkToNote(), { replace: true });
     }
-    // If you are on a note that does not exist, navigate to closest note or 404 page
+    // If you are on a note that does not exist, navigate to closest note
     else if (!isCurrentNoteInNoteQueryResult) {
       if (
         !previousNotes ||
@@ -68,6 +67,7 @@ export function NotesSidebar({
           (filePath) => filePath.noteWithoutExtension === note
         )
       ) {
+        // Note was not in previous notes - do nothing, let RenderNote handle it
       } else {
         const closestNoteIndex = findClosestSidebarItemToNavigateTo(
           note,
@@ -76,8 +76,6 @@ export function NotesSidebar({
         );
         if (closestNoteIndex >= 0 && closestNoteIndex < notes.length) {
           navigate(notes[closestNoteIndex].getLinkToNote(), { replace: true });
-        } else {
-          navigate(routeUrls.patterns.NOT_FOUND_FALLBACK, { replace: true });
         }
       }
     }

@@ -49,8 +49,10 @@ export function RenderNote() {
     ? (params?.note ?? '')
     : (savedSearchParams?.note ?? '');
 
-  const searchParams: { ext?: string } = useSearchParamsEntries();
+  const searchParams: { ext?: string; notFound?: string } =
+    useSearchParamsEntries();
   const fileExtension = searchParams.ext;
+  const isNotFoundFromParam = searchParams.notFound !== undefined;
   const normalizedExtension = fileExtension?.toLowerCase().trim();
   const filePath = new FilePath({
     folder: decodeURIComponent(folder),
@@ -80,9 +82,28 @@ export function RenderNote() {
     return <RouteFallback height={42} width={42} className="mx-auto my-auto" />;
   }
 
-  if (!noteExists || error) {
-    navigate(routeUrls.notFoundFallback(), { replace: true });
-    return null;
+  if (!noteExists || error || isNotFoundFromParam) {
+    // Add notFound query param if not already present
+    if (!isNotFoundFromParam) {
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set('notFound', 'true');
+      navigate(`${currentUrl.pathname}${currentUrl.search}`, { replace: true });
+    }
+
+    return (
+      <div className="h-screen flex flex-col items-center justify-center gap-4 text-center p-6 mx-auto">
+        <div className="flex flex-col items-center gap-3">
+          <FileBan width={48} height={48} />
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold">Note not found</h2>
+            <p className="text-balance text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
+              The note <b>{filePath.toString()}</b> does not exist or could not
+              be loaded.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
