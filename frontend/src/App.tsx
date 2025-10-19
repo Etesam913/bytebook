@@ -119,10 +119,12 @@ function App() {
             <Suspense fallback={<RouteFallback />}>
               <SavedSearchPage
                 searchQuery={decodeURIComponent(params.searchQuery)}
-                folder={
+                curFolder={
                   params.folder ? decodeURIComponent(params.folder) : undefined
                 }
-                note={params.note ? decodeURIComponent(params.note) : undefined}
+                curNote={
+                  params.note ? decodeURIComponent(params.note) : undefined
+                }
                 width={notesSidebarWidth}
                 leftWidth={folderSidebarWidth}
               />
@@ -134,8 +136,8 @@ function App() {
           {(folderParams: NotesRouteParams) => (
             <Suspense fallback={<RouteFallback />}>
               <NotesSidebar
-                folder={decodeURIComponent(folderParams.folder)}
-                note={
+                curFolder={decodeURIComponent(folderParams.folder)}
+                curNote={
                   folderParams.note
                     ? decodeURIComponent(folderParams.note)
                     : undefined
@@ -146,11 +148,11 @@ function App() {
             </Suspense>
           )}
         </Route>
-        {/* <Route path={'*'}>
+        <Route path={'*'}>
           <Suspense fallback={<RouteFallback />}>
             <NotFound />
           </Suspense>
-        </Route> */}
+        </Route>
       </Switch>
     </main>
   );

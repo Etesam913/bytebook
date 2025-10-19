@@ -15,10 +15,12 @@ import { NotesQueryData } from '../../hooks/notes.tsx';
 
 export function MyNotesSidebar({
   curNote,
+  curNoteExtension,
   layoutId,
   noteQueryResult,
 }: {
   curNote: string | undefined;
+  curNoteExtension: string | undefined;
   layoutId: string;
   noteQueryResult: UseQueryResult<NotesQueryData, Error>;
 }) {
@@ -27,6 +29,14 @@ export function MyNotesSidebar({
   const noteCount = notes?.length ?? 0;
   // The sidebar note name includes the folder name if it's in a tag sidebar
   const [noteSortData, setNoteSortData] = useAtom(noteSortAtom);
+  // Convert curNote string to FilePath
+  const activeNotePath =
+    curNote && curNoteExtension && notes && notes.length > 0
+      ? new FilePath({
+          folder: notes[0].folder,
+          note: `${curNote}.${curNoteExtension}`,
+        })
+      : undefined;
 
   return (
     <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
@@ -97,7 +107,7 @@ export function MyNotesSidebar({
               return (
                 <NoteSidebarButton
                   sidebarNotePath={sidebarNotePath}
-                  activeNoteNameWithoutExtension={curNote}
+                  activeNotePath={activeNotePath}
                   sidebarNoteIndex={i}
                 />
               );

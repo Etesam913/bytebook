@@ -23,29 +23,34 @@ import { RenderNote } from './render-note/index.tsx';
 import { ErrorBoundary } from 'react-error-boundary';
 import { RenderNoteFallback } from '../../components/error-boundary/render-note.tsx';
 import { navigate } from 'wouter/use-browser-location';
-import { findClosestSidebarItemToNavigateTo } from '../../utils/routing.ts';
+import {
+  findClosestSidebarItemToNavigateTo,
+  useSearchParamsEntries,
+} from '../../utils/routing.ts';
 import { Tooltip } from '../../components/tooltip/index.tsx';
 import { Command } from '../../icons/command.tsx';
 
 export function NotesSidebar({
-  folder,
-  note,
+  curFolder,
+  curNote,
   width,
   leftWidth,
 }: {
-  folder: string;
-  note: string | undefined;
+  curFolder: string;
+  curNote: string | undefined;
   width: MotionValue<number>;
   leftWidth: MotionValue<number>;
 }) {
-  // These are encoded params
-  const setDialogData = useSetAtom(dialogDataAtom);
-  const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-  const sidebarRef = useRef<HTMLElement>(null);
-  const { mutateAsync: renameFolder } = useFolderRenameMutation();
-  const noteQueryResult = useNotes(folder);
+  const noteQueryResult = useNotes(curFolder);
   const notes = noteQueryResult.data?.notes;
   const previousNotes = noteQueryResult.data?.previousNotes;
+  const { mutateAsync: renameFolder } = useFolderRenameMutation();
+  const searchParams: { ext?: string } = useSearchParamsEntries();
+  const curNoteExtension = searchParams?.ext;
+
+  const sidebarRef = useRef<HTMLElement>(null);
+  const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+  const setDialogData = useSetAtom(dialogDataAtom);
   const openCreateNoteDialog = useCreateNoteDialog();
 
   // Auto navigate to the first note when the notes are loaded
@@ -53,10 +58,10 @@ export function NotesSidebar({
     if (!notes || notes.length === 0) return;
     const filePathForFirstNote = notes[0];
     const isCurrentNoteInNoteQueryResult = notes.some(
-      (filePath) => filePath.noteWithoutExtension === note
+      (filePath) => filePath.noteWithoutExtension === curNote
     );
     // If you are on a folder with no note selected, navigate to the first note
-    if (!note) {
+    if (!curNote) {
       navigate(filePathForFirstNote.getLinkToNote(), { replace: true });
     }
     // If you are on a note that does not exist, navigate to closest note
@@ -64,13 +69,13 @@ export function NotesSidebar({
       if (
         !previousNotes ||
         !previousNotes.some(
-          (filePath) => filePath.noteWithoutExtension === note
+          (filePath) => filePath.noteWithoutExtension === curNote
         )
       ) {
         // Note was not in previous notes - do nothing, let RenderNote handle it
       } else {
         const closestNoteIndex = findClosestSidebarItemToNavigateTo(
-          note,
+          curNote,
           previousNotes.map((fp) => fp.noteWithoutExtension),
           notes.map((fp) => fp.noteWithoutExtension)
         );
@@ -79,11 +84,11 @@ export function NotesSidebar({
         }
       }
     }
-  }, [notes, previousNotes, note]);
+  }, [notes, previousNotes, curNote]);
 
   useNoteCreate();
   useNoteRename();
-  useNoteDelete(folder);
+  useNoteDelete(curFolder);
 
   return (
     <>
@@ -99,7 +104,7 @@ export function NotesSidebar({
                 <section className="flex items-center py-3.5 gap-2">
                   <Folder className="min-w-[20px]" />{' '}
                   <p className="overflow-hidden text-ellipsis whitespace-nowrap">
-                    {folder}
+                    {curFolder}
                   </p>
                   <Tooltip content="Rename folder" placement="right">
                     <MotionIconButton
@@ -112,14 +117,14 @@ export function NotesSidebar({
                           children: (errorText) => (
                             <RenameFolderDialog
                               errorText={errorText}
-                              folderName={folder}
+                              folderName={curFolder}
                             />
                           ),
                           onSubmit: (e, setErrorText) =>
                             renameFolder({
                               e,
                               setErrorText,
-                              folderFromSidebar: folder,
+                              folderFromSidebar: curFolder,
                             }),
                         })
                       }
@@ -148,7 +153,7 @@ export function NotesSidebar({
                       whileTap: 0.975,
                       whileFocus: 1.025,
                     })}
-                    onClick={() => openCreateNoteDialog(folder)}
+                    onClick={() => openCreateNoteDialog(curFolder)}
                     className="align-center flex w-full justify-between bg-transparent mb-2"
                   >
                     Create Note <Compose className="will-change-transform" />
@@ -160,7 +165,8 @@ export function NotesSidebar({
                   {notes && (
                     <MyNotesSidebar
                       layoutId="note-sidebar"
-                      curNote={note}
+                      curNote={curNote}
+                      curNoteExtension={curNoteExtension}
                       noteQueryResult={noteQueryResult}
                     />
                   )}
@@ -172,7 +178,7 @@ export function NotesSidebar({
         </>
       )}
       <ErrorBoundary
-        key={`${folder}-${note}`}
+        key={`${curFolder}-${curNote}`}
         FallbackComponent={(fallbackProps) => (
           <RenderNoteFallback {...fallbackProps} />
         )}

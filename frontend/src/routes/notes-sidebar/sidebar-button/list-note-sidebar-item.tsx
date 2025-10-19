@@ -1,32 +1,29 @@
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
+import { FilePath } from '../../../utils/string-formatting';
 
 export function ListNoteSidebarItem({
-  sidebarNoteName,
-  sidebarNoteExtension,
-  activeNoteNameWithExtension,
-  sidebarNoteNameWithoutExtension,
+  sidebarNotePath,
+  activeNotePath,
 }: {
-  sidebarNoteName: string;
-  sidebarNoteExtension: string;
-  activeNoteNameWithExtension: string;
-  sidebarNoteNameWithoutExtension: string;
+  sidebarNotePath: FilePath;
+  activeNotePath: FilePath | undefined;
 }) {
   return (
     <>
       <RenderNoteIcon
-        sidebarNoteName={sidebarNoteName}
-        fileExtension={sidebarNoteExtension}
-        noteNameWithExtension={activeNoteNameWithExtension}
+        sidebarNoteName={sidebarNotePath.noteWithExtensionParam}
+        fileExtension={sidebarNotePath.noteExtension}
+        noteNameWithExtension={activeNotePath?.noteWithExtensionParam ?? ''}
       />
       <p className="pointer-events-none flex min-w-0 justify-between w-full">
         <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
-          {sidebarNoteNameWithoutExtension}
+          {sidebarNotePath.noteWithoutExtension}
         </span>
 
         {/* 
         // TODO: Add a setting to enable this 
         <span className="shrink-0 px-1 py-0.5 outline-2 rounded-md outline-zinc-300 dark:outline-zinc-650 bg-zinc-700 text-xs flex items-center h-fit my-auto">
-          {sidebarNoteExtension}
+          {sidebarNotePath.noteExtension}
         </span> */}
       </p>
     </>

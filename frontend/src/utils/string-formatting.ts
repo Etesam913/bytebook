@@ -90,7 +90,24 @@ export class FilePath {
     return `${this.folder}/${this.note}`;
   }
 
-  getLinkToNoteWithoutPrefix(extraParams?: FilePathAdditionalQueryParams) {
+  /**
+   * Returns a URL path (without the '/notes' prefix) to the note, including its folder and note name,
+   * and includes the note's extension as the 'ext' query parameter.
+   *
+   * This is useful for constructing custom note links or for route helpers.
+   *
+   * @param extraParams - An optional object of additional query parameters to add to the link.
+   * @returns The link to the note in the format "/{folder}/{note}?ext={ext}&key=value"
+   *
+   * @example
+   * // Given FilePath with { folder: 'docs', note: 'readme.md' }
+   * filePath.getLinkToNoteWithoutNotesPrefix();
+   * // => "/docs/readme?ext=md"
+   *
+   * filePath.getLinkToNoteWithoutNotesPrefix({ view: 'preview' });
+   * // => "/docs/readme?ext=md&view=preview"
+   */
+  getLinkToNoteWithoutNotesPrefix(extraParams?: FilePathAdditionalQueryParams) {
     const params = new URLSearchParams({ ext: this.noteExtension });
     if (extraParams) {
       for (const [key, value] of Object.entries(extraParams)) {
@@ -111,9 +128,18 @@ export class FilePath {
    * filePath.getLinkToNote({ foo: "bar" }); // "/docs/readme?ext=md&foo=bar"
    */
   getLinkToNote(extraParams?: FilePathAdditionalQueryParams) {
-    return `/notes${this.getLinkToNoteWithoutPrefix(extraParams)}`;
+    return `/notes${this.getLinkToNoteWithoutNotesPrefix(extraParams)}`;
   }
 
+  /**
+   * Returns the server URL to directly access the note file.
+   *
+   * @returns {string} The file URL in the format "${FILE_SERVER_URL}/notes/{folder}/{note}".
+   *
+   * @example
+   * const filePath = new FilePath({ folder: "docs", note: "readme.md" });
+   * filePath.getFileUrl(); // "http://localhost:5890/notes/docs/readme.md"
+   */
   getFileUrl() {
     return `${FILE_SERVER_URL}/notes/${this.folder}/${this.note}`;
   }

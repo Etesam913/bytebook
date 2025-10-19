@@ -3,7 +3,7 @@ import type { BackendResponseWithData } from '../../../../bindings/github.com/et
 import type { NotePreviewData } from '../../../../bindings/github.com/etesam913/bytebook/internal/services';
 import { VIDEO_FILE_EXTENSIONS } from '../../../types';
 import { humanFileSize } from '../../../utils/general';
-import { cn } from '../../../utils/string-formatting';
+import { cn, FilePath } from '../../../utils/string-formatting';
 
 function formatDateString(isoString: string): string {
   // Parse the ISO 8601 string into a Date object
@@ -21,14 +21,12 @@ function formatDateString(isoString: string): string {
 }
 
 export function CardNoteSidebarItem({
-  sidebarNoteExtension,
-  sidebarNoteNameWithoutExtension,
+  sidebarNotePath,
   notePreviewResult,
   imgSrc,
   isSelected,
 }: {
-  sidebarNoteExtension: string;
-  sidebarNoteNameWithoutExtension: string;
+  sidebarNotePath: FilePath;
   notePreviewResult: BackendResponseWithData<NotePreviewData> | null;
   imgSrc: string;
   isSelected: boolean;
@@ -50,9 +48,9 @@ export function CardNoteSidebarItem({
             )}
           >
             <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
-              {sidebarNoteNameWithoutExtension}
+              {sidebarNotePath.noteWithoutExtension}
             </span>
-            <span className="shrink-0">.{sidebarNoteExtension}</span>
+            <span className="shrink-0">.{sidebarNotePath.noteExtension}</span>
           </p>
           <p
             className={cn(
@@ -72,7 +70,7 @@ export function CardNoteSidebarItem({
               onLoad={() => setIsImageLoading(false)}
               onError={() => setIsImageError(true)}
               style={{ display: isImageLoading ? 'none' : 'block' }}
-              alt={`Note preview of ${sidebarNoteNameWithoutExtension}`}
+              alt={`Note preview of ${sidebarNotePath.noteWithoutExtension}`}
               className="h-[52px] w-auto rounded-md"
               src={imgSrc}
             />

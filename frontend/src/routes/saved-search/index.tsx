@@ -12,25 +12,25 @@ import { NoteSidebarButton } from '../notes-sidebar/sidebar-button/index.tsx';
 import { RenderNote } from '../notes-sidebar/render-note/index.tsx';
 import { Sidebar } from '../../components/sidebar/index.tsx';
 import { useFullTextSearchQuery } from '../../hooks/search.tsx';
-import { useSearchParamsEntries } from '../../utils/routing.ts';
 import { FilePath } from '../../utils/string-formatting.ts';
 import { navigate } from 'wouter/use-browser-location';
 import { routeBuilders } from '../../utils/routes.ts';
 import { isNoteMaximizedAtom } from '../../atoms.ts';
 import { useAtomValue } from 'jotai';
+import { useSearchParamsEntries } from '../../utils/routing.ts';
 
 export function SavedSearchPage({
   searchQuery,
   width,
   leftWidth,
-  folder,
-  note,
+  curFolder,
+  curNote,
 }: {
   searchQuery: string;
   width?: MotionValue<number>;
   leftWidth?: MotionValue<number>;
-  folder?: string;
-  note?: string;
+  curFolder?: string;
+  curNote?: string;
 }) {
   const {
     data: searchResults,
@@ -40,10 +40,24 @@ export function SavedSearchPage({
     isLoading,
   } = useFullTextSearchQuery(searchQuery);
   const resultCount = searchResults?.length ?? 0;
-  const sidebarRef = useRef<HTMLElement>(null);
+
+  // const [_, curRouteParams] = useRoute<SavedSearchRouteParams>(
+  //   routeUrls.patterns.SAVED_SEARCH
+  // );
   const searchParams: { ext?: string } = useSearchParamsEntries();
-  const fileExtension = searchParams?.ext;
+  const curNoteExtension = searchParams?.ext;
+
+  const sidebarRef = useRef<HTMLElement>(null);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+
+  // Convert folder and note strings to FilePath
+  const activeNotePath =
+    curFolder && curNote && curNoteExtension
+      ? new FilePath({
+          folder: curFolder,
+          note: `${curNote}.${curNoteExtension}`,
+        })
+      : undefined;
 
   // Auto navigate to the first result
   useEffect(() => {
@@ -51,7 +65,7 @@ export function SavedSearchPage({
       const firstFilePath = searchResults[0].filePath;
 
       navigate(
-        `${routeBuilders.savedSearch(searchQuery)}${firstFilePath.getLinkToNoteWithoutPrefix()}`,
+        `${routeBuilders.savedSearch(searchQuery)}${firstFilePath.getLinkToNoteWithoutNotesPrefix()}`,
         {
           replace: true,
         }
@@ -145,7 +159,7 @@ export function SavedSearchPage({
                         return (
                           <NoteSidebarButton
                             sidebarNotePath={sidebarNotePath}
-                            activeNoteNameWithoutExtension={note}
+                            activeNotePath={activeNotePath}
                             sidebarNoteIndex={i}
                           />
                         );
@@ -160,9 +174,9 @@ export function SavedSearchPage({
       {width && leftWidth && (
         <Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
       )}
-      {folder && note && (
+      {curFolder && curNote && curNoteExtension && (
         <ErrorBoundary
-          key={`${folder}-${note}-${fileExtension}`}
+          key={`${curFolder}-${curNote}-${curNoteExtension}`}
           FallbackComponent={(fallbackProps) => (
             <RenderNoteFallback {...fallbackProps} />
           )}

@@ -22,7 +22,6 @@ import TagPlus from '../../../icons/tag-plus';
 import { Trash } from '../../../icons/trash';
 import { IMAGE_FILE_EXTENSIONS } from '../../../types';
 import { FILE_SERVER_URL } from '../../../utils/general';
-import { useSearchParamsEntries } from '../../../utils/routing';
 import {
   getFilePathFromNoteSelectionRange,
   handleKeyNavigation,
@@ -41,11 +40,11 @@ import { routeUrls, type SavedSearchRouteParams } from '../../../utils/routes';
 
 export function NoteSidebarButton({
   sidebarNotePath,
-  activeNoteNameWithoutExtension,
+  activeNotePath,
   sidebarNoteIndex,
 }: {
   sidebarNotePath: FilePath;
-  activeNoteNameWithoutExtension: string | undefined;
+  activeNotePath: FilePath | undefined;
   sidebarNoteIndex: number;
 }) {
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
@@ -64,9 +63,6 @@ export function NoteSidebarButton({
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const setDraggedElement = useSetAtom(draggedElementAtom);
-  const searchParams: { ext?: string } = useSearchParamsEntries();
-
-  const activeNoteNameWithExtension = `${activeNoteNameWithoutExtension}?ext=${searchParams.ext}`;
 
   const { data: notePreviewResult } = useNotePreviewQuery(sidebarNotePath);
 
@@ -83,7 +79,7 @@ export function NoteSidebarButton({
       : firstImageSrc;
 
   const isActive =
-    decodeURIComponent(activeNoteNameWithExtension) ===
+    activeNotePath?.noteWithExtensionParam ===
     sidebarNotePath.noteWithExtensionParam;
 
   const isSelected =
@@ -356,7 +352,7 @@ export function NoteSidebarButton({
         buttonElem.focus();
         if (isSavedSearchRoute) {
           navigate(
-            `/saved-search/${params?.searchQuery}${sidebarNotePath.getLinkToNoteWithoutPrefix()}`
+            `/saved-search/${params?.searchQuery}${sidebarNotePath.getLinkToNoteWithoutNotesPrefix()}`
           );
         } else {
           navigate(sidebarNotePath.getLinkToNote());
@@ -365,17 +361,14 @@ export function NoteSidebarButton({
     >
       {projectSettings.appearance.noteSidebarItemSize === 'list' && (
         <ListNoteSidebarItem
-          sidebarNoteName={sidebarNotePath.noteWithExtensionParam}
-          sidebarNoteExtension={sidebarNotePath.noteExtension}
-          activeNoteNameWithExtension={activeNoteNameWithExtension}
-          sidebarNoteNameWithoutExtension={sidebarNotePath.noteWithoutExtension}
+          sidebarNotePath={sidebarNotePath}
+          activeNotePath={activeNotePath}
         />
       )}
       {projectSettings.appearance.noteSidebarItemSize === 'card' && (
         <CardNoteSidebarItem
+          sidebarNotePath={sidebarNotePath}
           imgSrc={imgSrc}
-          sidebarNoteExtension={sidebarNotePath.noteExtension}
-          sidebarNoteNameWithoutExtension={sidebarNotePath.noteWithoutExtension}
           notePreviewResult={notePreviewResult ?? null}
           isSelected={isSelected}
         />
