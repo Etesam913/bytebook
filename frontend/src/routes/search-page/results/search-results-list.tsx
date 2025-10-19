@@ -1,9 +1,9 @@
 import { useRef, useEffect } from 'react';
 import { Link } from 'wouter';
 import { cn, formatDate, FilePath } from '../../../utils/string-formatting';
-import { SearchHighlights } from './search-highlights';
 import { SearchResult as BaseSearchResult } from '../../../../bindings/github.com/etesam913/bytebook/internal/search/models';
-import { Tag } from '../../editor/bottom-bar/tag';
+import { SearchHighlights } from '../../search/results/search-highlights';
+import { Tag } from '../../../components/editor/bottom-bar/tag';
 
 // Extended SearchResult type that includes the filePath property added by useFullTextSearchQuery
 interface ExtendedSearchResult extends BaseSearchResult {

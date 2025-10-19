@@ -1,8 +1,8 @@
 import { getDefaultButtonVariants } from '../../../animations';
 import { BookBookmark } from '../../../icons/book-bookmark';
-import { MotionIconButton } from '../../buttons';
+import { MotionIconButton } from '../../../components/buttons';
 import { useSaveSearchDialog } from '../../../hooks/dialogs';
-import { Tooltip } from '../../tooltip';
+import { Tooltip } from '../../../components/tooltip';
 
 interface SearchResultsHeaderProps {
   searchQuery: string;

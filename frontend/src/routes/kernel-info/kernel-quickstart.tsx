@@ -1,11 +1,11 @@
 import { Languages } from '../../types';
-import { PlainCodeSnippet } from '../plain-code-snippet';
-import { MotionButton } from '../buttons';
+import { PlainCodeSnippet } from '../../components/plain-code-snippet';
+import { MotionButton } from '../../components/buttons';
 import { getDefaultButtonVariants } from '../../animations';
 import { FolderOpen } from '../../icons/folder-open';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { dialogDataAtom, projectSettingsAtom } from '../../atoms';
-import { PythonVenvDialog } from '../editor/python-venv-dialog';
+import { PythonVenvDialog } from '../../components/editor/python-venv-dialog';
 import {
   usePythonVenvSubmitMutation,
   useRevealInFinderMutation,

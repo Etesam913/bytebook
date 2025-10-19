@@ -26,7 +26,7 @@ import {
 import { RouteFallback } from './components/route-fallback';
 import { useTrapFocus } from './hooks/general';
 import { useZoom } from './hooks/resize';
-import { SearchPage } from './components/search-page';
+import { SearchPage } from './routes/search/';
 
 // Lazy load route components
 const NotFound = lazy(() =>
@@ -42,13 +42,13 @@ const NotesSidebar = lazy(() =>
 );
 
 const KernelInfo = lazy(() =>
-  import('./components/kernel-info').then((module) => ({
+  import('./routes/kernel-info').then((module) => ({
     default: module.KernelInfo,
   }))
 );
 
 const SavedSearchPage = lazy(() =>
-  import('./components/saved-search-page').then((module) => ({
+  import('./routes/saved-search').then((module) => ({
     default: module.SavedSearchPage,
   }))
 );

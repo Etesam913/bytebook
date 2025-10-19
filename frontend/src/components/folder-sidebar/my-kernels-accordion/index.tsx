@@ -22,7 +22,7 @@ import { KernelAccordionButton } from './kernel-accordion-button';
 import { Tooltip } from '../../tooltip';
 import { folderSidebarOpenStateAtom } from '../../../atoms';
 import { kernelsDataAtom } from '../../../atoms';
-import { KernelHeartbeat } from '../../kernel-info';
+import { KernelHeartbeat } from '../../../routes/kernel-info';
 import { SquareTerminal } from '../../../icons/square-terminal';
 import { PythonLogo } from '../../../icons/python-logo';
 import { GolangLogo } from '../../../icons/golang-logo';

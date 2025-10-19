@@ -7,7 +7,7 @@ import {
   selectionRangeAtom,
 } from '../../../atoms';
 import { handleContextMenuSelection } from '../../../utils/selection';
-import { KernelHeartbeat } from '../../kernel-info';
+import { KernelHeartbeat } from '../../../routes/kernel-info';
 import PowerOff from '../../../icons/power-off';
 import { Play } from '../../../icons/circle-play';
 import {

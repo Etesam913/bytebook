@@ -9,7 +9,7 @@ import {
   useShutdownKernelMutation,
   useTurnOnKernelMutation,
 } from '../../hooks/code';
-import { MotionButton } from '../buttons';
+import { MotionButton } from '../../components/buttons';
 import { getDefaultButtonVariants } from '../../animations';
 
 export function KernelStatusCard({

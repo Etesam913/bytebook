@@ -1,7 +1,6 @@
 import { getDefaultButtonVariants } from '../../animations';
 import { CircleArrowLeft } from '../../icons/circle-arrow-left';
-import { MotionIconButton } from '../buttons';
-import { Input } from '../input';
+import { MotionIconButton } from '../../components/buttons';
 import {
   lastSearchQueryAtom,
   useFullTextSearchQuery,
@@ -12,6 +11,7 @@ import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { SearchResultsList } from './results/search-results-list';
 import { SearchResultsHeader } from './results/search-results-header';
+import { Input } from '../../components/input';
 
 export function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useAtom(lastSearchQueryAtom);

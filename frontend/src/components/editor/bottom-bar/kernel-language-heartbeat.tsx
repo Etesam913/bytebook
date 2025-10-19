@@ -12,7 +12,7 @@ import {
 } from '../../../atoms';
 import { DropdownItem, Languages } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
-import { KernelHeartbeat } from '../../kernel-info';
+import { KernelHeartbeat } from '../../../routes/kernel-info';
 import { FolderOpen } from '../../../icons/folder-open';
 import { PythonVenvDialog } from '../python-venv-dialog';
 import {
@@ -58,7 +58,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const { mutate: turnOnKernel } = useTurnOnKernelMutation();
   const { mutateAsync: submitPythonVenv } =
     usePythonVenvSubmitMutation(projectSettings);
-  
+
   const uniqueId = useId();
   const buttonId = `kernel-${language}-button-${uniqueId}`;
   const menuId = `kernel-${language}-menu-${uniqueId}`;

@@ -3,7 +3,7 @@ import { SquareTerminal } from '../../icons/square-terminal';
 import { Languages } from '../../types';
 import { GetKernelInfoByLanguage } from '../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import { Duplicate2 } from '../../icons/duplicate-2';
-import { LoadingSpinner } from '../loading-spinner';
+import { LoadingSpinner } from '../../components/loading-spinner';
 
 export function KernelInfoCard({ language }: { language: Languages }) {
   const { data: kernelInfo, isPending } = useQuery({
