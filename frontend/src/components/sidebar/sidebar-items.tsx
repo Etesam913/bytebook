@@ -7,11 +7,11 @@ import {
   type RefObject,
   type SetStateAction,
 } from 'react';
-import type { SidebarContentType } from '.';
 import { selectionRangeAtom } from '../../atoms';
 import { keepSelectionNotesWithPrefix } from '../../utils/selection';
 import { cn } from '../../utils/string-formatting';
 import { SidebarHighlight } from './highlight';
+import { SidebarContentType } from '../../types';
 
 export function SidebarItems<T>({
   allData,
@@ -104,7 +104,7 @@ export function SidebarItems<T>({
           onMouseLeave={() => {
             setHoveredItem(null);
           }}
-          key={dataItemString}
+          key={dataItemToKey(dataItem)}
           className="py-[.1rem]"
           style={getContextMenuStyle?.(dataItem)}
         >

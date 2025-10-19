@@ -78,10 +78,11 @@ export function RenderNote() {
   const { data: noteExists, isLoading, error } = useNoteExists(filePath);
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
   if (!noteWithoutExtension) return null;
+
   if (isLoading) {
     return <RouteFallback height={42} width={42} className="mx-auto my-auto" />;
   }
-  console.log(noteExists, window.location.href);
+
   if (!noteExists || error || isNotFoundFromParam) {
     // Add notFound query param if not already present
     if (!isNotFoundFromParam) {
