@@ -1,7 +1,7 @@
 import { type MotionValue, motion } from 'motion/react';
-import { useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { getDefaultButtonVariants } from '../../animations.ts';
-import { dialogDataAtom } from '../../atoms';
+import { dialogDataAtom, isFullscreenAtom } from '../../atoms';
 import {
   useFolderCreate,
   useFolderDelete,
@@ -26,14 +26,16 @@ import { MyKernelsAccordion } from './my-kernels-accordion';
 import { useFolderFromRoute } from '../../hooks/events.tsx';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion';
 import { Tooltip } from '../tooltip';
+import { cn } from '../../utils/string-formatting.ts';
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
-  const sidebarAccordionSectionRef = useRef<HTMLDivElement | null>(null);
-  const { folder } = useFolderFromRoute();
-  const setDialogData = useSetAtom(dialogDataAtom);
   useFolderCreate();
   useFolderDelete();
+  const { folder } = useFolderFromRoute();
+  const isFullscreen = useAtomValue(isFullscreenAtom);
   const { mutateAsync: createFolder } = useFolderCreateMutation();
+
+  const sidebarAccordionSectionRef = useRef<HTMLDivElement | null>(null);
   const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(
     sidebarAccordionSectionRef,
     {
@@ -41,6 +43,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
       speed: 20,
     }
   );
+  const setDialogData = useSetAtom(dialogDataAtom);
 
   if (folder === 'settings') return null;
 
@@ -50,7 +53,12 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
         style={{ width }}
         className="text-md flex h-screen flex-col"
       >
-        <header className="px-2.5 pt-[0.7rem] ml-auto flex gap-1">
+        <header
+          className={cn(
+            'px-2.5 pt-[0.7rem] ml-auto flex gap-1',
+            isFullscreen && 'ml-0'
+          )}
+        >
           <Tooltip content="Go back">
             <MotionIconButton
               {...getDefaultButtonVariants()}

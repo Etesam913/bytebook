@@ -25,7 +25,7 @@ import {
 } from './utils/routes';
 import { RouteFallback } from './components/route-fallback';
 import { useTrapFocus } from './hooks/general';
-import { useZoom } from './hooks/resize';
+import { useZoom, useFullscreen } from './hooks/resize';
 import { SearchPage } from './routes/search/';
 
 // Lazy load route components
@@ -72,6 +72,7 @@ function App() {
   useSearch();
   useProjectSettings();
   useZoom();
+  useFullscreen();
   useRouteFilePath();
 
   return (

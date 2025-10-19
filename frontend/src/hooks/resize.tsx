@@ -1,11 +1,12 @@
 import { mergeRegister } from '@lexical/utils';
-import { useAtom } from 'jotai/react';
+import { useAtom, useSetAtom } from 'jotai/react';
 import { COMMAND_PRIORITY_LOW, type LexicalEditor } from 'lexical';
 import { type Dispatch, type SetStateAction, useEffect, useState } from 'react';
 import type { ResizeState } from '../types';
 import { EXPAND_CONTENT_COMMAND } from '../utils/commands';
-import { useWailsEvent } from './events';
+import { useWailsEvent, WailsEvent } from './events';
 import { atom } from 'jotai';
+import { isFullscreenAtom } from '../atoms';
 
 const MIN_ZOOM = 0.75;
 export const currentZoomAtom = atom(1);
@@ -35,6 +36,19 @@ export function useZoom() {
     const newZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
     setCurrentZoom(newZoom);
     document.body.style.zoom = newZoom.toString();
+  });
+}
+
+/**
+ * Hook to listen for fullscreen events from the backend and update the atom
+ */
+export function useFullscreen() {
+  const setIsFullscreen = useSetAtom(isFullscreenAtom);
+
+  useWailsEvent('window:fullscreen', (event: WailsEvent) => {
+    const isFullscreen = event.data as boolean;
+    console.info('window:fullscreen', isFullscreen);
+    setIsFullscreen(isFullscreen);
   });
 }
 

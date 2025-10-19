@@ -6,19 +6,22 @@ import {
   useFullTextSearchQuery,
   useSearchFocus,
 } from '../../hooks/search';
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { SearchResultsList } from './results/search-results-list';
 import { SearchResultsHeader } from './results/search-results-header';
 import { Input } from '../../components/input';
+import { isFullscreenAtom } from '../../atoms';
+import { cn } from '../../utils/string-formatting';
 
 export function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useAtom(lastSearchQueryAtom);
+  const isFullscreen = useAtomValue(isFullscreenAtom);
   const inputRef = useSearchFocus();
+  const [, setLocation] = useLocation();
 
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
-  const [, setLocation] = useLocation();
 
   const {
     data: searchResults = [],
@@ -29,7 +32,12 @@ export function SearchPage() {
   return (
     <section className="pt-2.5 flex-1 h-screen flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
       <header className="w-full pr-4 border-b-1 border-zinc-200 dark:border-zinc-700 flex flex-col gap-1">
-        <div className="pl-22 flex items-center gap-2">
+        <div
+          className={cn(
+            'pl-22 flex items-center gap-2',
+            isFullscreen && 'pl-2.5'
+          )}
+        >
           <MotionIconButton
             {...getDefaultButtonVariants()}
             onClick={() => window.history.back()}

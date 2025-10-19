@@ -121,7 +121,7 @@ export function NotesEditor({
             scrollbarGutter: 'stable',
           }}
           className={cn(
-            'h-full py-6 px-12 flex-1 w-full',
+            'h-full py-6 px-12 flex-1 w-full min-w-96',
             projectSettings.appearance.noteWidth === 'readability' &&
               'max-w-[704px] mx-auto'
           )}
