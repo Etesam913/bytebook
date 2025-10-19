@@ -74,6 +74,7 @@ export function CodeBlockPage() {
                 },
               });
             }}
+            aria-label="Enable Vim Mode in code blocks"
           />
         </div>
       </SettingsRow>

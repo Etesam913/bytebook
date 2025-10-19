@@ -13,5 +13,15 @@ export function Checkbox({ indeterminate = false, ...props }: CheckboxProps) {
     }
   }, [indeterminate]);
 
-  return <input ref={checkboxRef} type="checkbox" {...props} />;
+  // Determine aria-checked value based on indeterminate state
+  const ariaChecked = indeterminate ? 'mixed' : props.checked;
+
+  return (
+    <input
+      ref={checkboxRef}
+      type="checkbox"
+      {...props}
+      aria-checked={ariaChecked}
+    />
+  );
 }

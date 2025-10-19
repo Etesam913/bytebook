@@ -41,6 +41,17 @@ export function TagSelectionList({
       tagCount === totalSelectedNotes && totalSelectedNotes > 0;
     const isIndeterminate = tagCount > 0 && tagCount < totalSelectedNotes;
 
+    // Create accessible label describing the state
+    const getAriaLabel = () => {
+      if (isIndeterminate) {
+        return `${tag} tag, partially selected (${tagCount} of ${totalSelectedNotes} notes)`;
+      }
+      if (isFullySelected) {
+        return `${tag} tag, selected`;
+      }
+      return `${tag} tag, not selected`;
+    };
+
     return (
       <label
         key={tag}
@@ -53,8 +64,12 @@ export function TagSelectionList({
           indeterminate={isIndeterminate}
           onChange={(e) => handleTagSelectionChange(tag, e.target.checked)}
           className="h-3.5 w-3.5 border-gray-200 dark:border-zinc-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+          tabIndex={0}
+          aria-label={getAriaLabel()}
         />
-        <span className="dark:text-zinc-200">{tag}</span>
+        <span className="dark:text-zinc-200" aria-hidden="true">
+          {tag}
+        </span>
       </label>
     );
   });
