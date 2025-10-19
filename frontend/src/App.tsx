@@ -146,11 +146,11 @@ function App() {
             </Suspense>
           )}
         </Route>
-        <Route path={'*'}>
+        {/* <Route path={'*'}>
           <Suspense fallback={<RouteFallback />}>
             <NotFound />
           </Suspense>
-        </Route>
+        </Route> */}
       </Switch>
     </main>
   );

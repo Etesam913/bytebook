@@ -25,7 +25,7 @@ export function MyFoldersAccordion() {
   const { data, isLoading, isError, refetch } = useFolders();
   const alphabetizedFolders = data?.alphabetizedFolders ?? null;
   const previousFolders = data?.previousAlphabetizedFolders ?? null;
-  const { folder: currentFolder } = useFolderFromRoute();
+  const { folder: currentFolder, isNoteRoute } = useFolderFromRoute();
   const [location] = useLocation();
 
   useEffect(() => {
@@ -38,8 +38,12 @@ export function MyFoldersAccordion() {
       const isCurrentFolderInAlphabetizedFolders =
         alphabetizedFolders.some((folder) => folder === currentFolder) ?? false;
 
-      // If you are on a folder that does not exist navigate to 404 page
-      if (currentFolder && !isCurrentFolderInAlphabetizedFolders) {
+      // If you are on a folder that does not exist navigate to 404 page, this redirecting logic does not apply to saved search routes
+      if (
+        currentFolder &&
+        !isCurrentFolderInAlphabetizedFolders &&
+        isNoteRoute
+      ) {
         if (!previousFolders || !previousFolders.includes(currentFolder)) {
           navigate(routeUrls.patterns.NOT_FOUND_FALLBACK, { replace: true });
         } else {
@@ -48,6 +52,8 @@ export function MyFoldersAccordion() {
             previousFolders,
             alphabetizedFolders
           );
+
+          // If the closest folder is in the alphabetized folders, navigate to it
           if (
             closestFolder >= 0 &&
             closestFolder < alphabetizedFolders.length
@@ -56,7 +62,9 @@ export function MyFoldersAccordion() {
               replace: true,
             });
           } else {
-            navigate(routeUrls.patterns.NOT_FOUND_FALLBACK, { replace: true });
+            navigate(routeUrls.patterns.NOT_FOUND_FALLBACK, {
+              replace: true,
+            });
           }
         }
       }
