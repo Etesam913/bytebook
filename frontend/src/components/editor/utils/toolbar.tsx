@@ -205,8 +205,6 @@ export function updateToolbarOnSelectionChange(
       'italic',
       'underline',
       'strikethrough',
-      'subscript',
-      'superscript',
     ];
     formats.forEach((format) => {
       if (selection.hasFormat(format)) {

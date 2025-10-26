@@ -5,6 +5,8 @@ import { isEventInCurrentWindow } from '../../../utils/events';
 import {
   $getSelection,
   $isNodeSelection,
+  $isRangeSelection,
+  $isTextNode,
   BaseSelection,
   CAN_REDO_COMMAND,
   CAN_UNDO_COMMAND,
@@ -160,6 +162,17 @@ export function useToolbarEvents({
 
   useEffect(() => {
     return mergeRegister(
+      editor.registerCommand(
+        FORMAT_TEXT_COMMAND,
+        (format) => {
+          // Skip subscript and superscript formatting
+          if (format === 'subscript' || format === 'superscript') {
+            return true;
+          }
+          return false;
+        },
+        COMMAND_PRIORITY_HIGH
+      ),
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         () => {
