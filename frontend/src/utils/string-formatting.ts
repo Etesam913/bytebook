@@ -556,25 +556,49 @@ export function unescapeNewlines(str: string): string {
 }
 
 /**
- * Escapes square brackets in a string for Markdown usage.
- * @param input The string to escape
- * @returns The string with [ and ] escaped as \[ and \]
+ * Encodes a URL for use in a Markdown link, handling special characters.
+ * @param url The URL to encode
+ * @returns The encoded URL with parentheses escaped
  * @example
- * escapeSquareBrackets('foo[bar]'); // returns 'foo\\[bar\\]'
+ * encodeLinkUrl('https://example.com/path(test)'); // returns encoded URL with escaped parentheses
  */
-export function escapeSquareBrackets(input: string): string {
-  return input.replace(/([[\]])/g, '\\$1');
+export function encodeLinkUrl(url: string): string {
+  return encodeURIComponent(url).replace(/\(/g, '%28').replace(/\)/g, '%29');
 }
 
 /**
- * Escapes parentheses in a string for Markdown usage.
- * @param input The string to escape
- * @returns The string with ( and ) escaped as \( and \)
+ * Decodes a URL that was encoded with encodeLinkUrl.
+ * @param encodedUrl The encoded URL
+ * @returns The decoded URL
  * @example
- * escapeParenthesis('foo(bar)'); // returns 'foo\\(bar\\)'
+ * decodeLinkUrl('https%3A%2F%2Fexample.com%2Fpath%28test%29'); // returns decoded URL
  */
-export function escapeParenthesis(input: string): string {
-  return input.replace(/([()])/g, '\\$1');
+export function decodeLinkUrl(encodedUrl: string): string {
+  return decodeURIComponent(encodedUrl)
+    .replace(/%28/g, '(')
+    .replace(/%29/g, ')');
+}
+
+/**
+ * Encodes alt text for use in a Markdown link by escaping square brackets.
+ * @param text The alt text to encode
+ * @returns The text with [ and ] escaped as \[ and \]
+ * @example
+ * encodeLinkAltText('foo[bar]'); // returns 'foo\\[bar\\]'
+ */
+export function encodeLinkAltText(text: string): string {
+  return text.replace(/([[\]])/g, '\\$1');
+}
+
+/**
+ * Decodes alt text that was encoded with encodeLinkAltText.
+ * @param encodedText The encoded alt text
+ * @returns The text with \[ and \] replaced by [ and ]
+ * @example
+ * decodeLinkAltText('foo\\[bar\\]'); // returns 'foo[bar]'
+ */
+export function decodeLinkAltText(encodedText: string): string {
+  return encodedText.replace(/\\([\[\]])/g, '$1');
 }
 
 /**
@@ -590,32 +614,10 @@ export function escapeFileContentForMarkdown(content: string): string {
   // Escape backslashes first
   let escaped = content.replace(/\\/g, '\\\\');
   // Escape square brackets
-  escaped = escapeSquareBrackets(escaped);
+  escaped = encodeLinkAltText(escaped);
   // Escape parentheses
-  escaped = escapeParenthesis(escaped);
+  escaped = escaped.replace(/([()])/g, '\\$1');
   return escaped;
-}
-
-/**
- * Unescapes square brackets in a string that were escaped for Markdown usage.
- * @param input The string to unescape
- * @returns The string with \[ and \] replaced by [ and ]
- * @example
- * unescapeSquareBrackets('foo\\[bar\\]'); // returns 'foo[bar]'
- */
-export function unescapeSquareBrackets(input: string): string {
-  return input.replace(/\\([\[\]])/g, '$1');
-}
-
-/**
- * Unescapes parentheses in a string that were escaped for Markdown usage.
- * @param input The string to unescape
- * @returns The string with \( and \) replaced by ( and )
- * @example
- * unescapeParenthesis('foo\\(bar\\)'); // returns 'foo(bar)'
- */
-export function unescapeParenthesis(input: string): string {
-  return input.replace(/\\([()])/g, '$1');
 }
 
 /**
@@ -651,9 +653,9 @@ export function unescapeFileContentFromMarkdown(escaped: string): string {
   // Unescape backslashes first
   let unescaped = escaped.replace(/\\\\/g, '\\');
   // Unescape square brackets
-  unescaped = unescapeSquareBrackets(unescaped);
+  unescaped = decodeLinkAltText(unescaped);
   // Unescape parentheses
-  unescaped = unescapeParenthesis(unescaped);
+  unescaped = unescaped.replace(/\\([()])/g, '$1');
   return unescaped;
 }
 

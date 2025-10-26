@@ -2,11 +2,10 @@ import type { TextMatchTransformer } from '@lexical/markdown';
 import { $createTextNode, $isTextNode } from 'lexical';
 import {
   convertNoteNameToDotNotation,
-  escapeParenthesis,
-  escapeSquareBrackets,
+  encodeLinkUrl,
+  encodeLinkAltText,
+  decodeLinkAltText,
   isInternalLink,
-  unescapeParenthesis,
-  unescapeSquareBrackets,
   unescapeUnderscore,
 } from '../../../utils/string-formatting';
 import {
@@ -22,7 +21,6 @@ export const LINK: TextMatchTransformer = {
     if (!$isLinkNode(node) || $isAutoLinkNode(node)) {
       return null;
     }
-    const title = node.getTitle();
     let linkUrl = node.getURL();
 
     if (isInternalLink(linkUrl)) {
@@ -34,20 +32,11 @@ export const LINK: TextMatchTransformer = {
       ].join('/');
     }
 
+    const encodedLinkUrl = encodeLinkUrl(linkUrl);
+
     // Escape special markdown characters in the URL
-    linkUrl = escapeParenthesis(linkUrl);
-
-    const textContent = escapeSquareBrackets(node.getTextContent());
-
-    const linkContent = title
-      ? `[${textContent}](${linkUrl} "${title}")`
-      : `[${textContent}](${linkUrl})`;
-
-    console.log({
-      originalTextContent: node.getTextContent(),
-      textContent,
-      linkUrl,
-    });
+    const altText = encodeLinkAltText(node.getTextContent());
+    const linkContent = `[${altText}](${encodedLinkUrl})`;
 
     const firstChild = node.getFirstChild();
     // Add text styles only if link has single text node inside. If it's more
@@ -62,29 +51,19 @@ export const LINK: TextMatchTransformer = {
   importRegExp:
     /(?:\[([^[]+)\])(?:\((?:([^()]+?)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))/,
   regExp:
-    /(?:\[([^[]+)\])(?:\((?:([^()]+?)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))$/,
+    /(?:\[([^[]+)\])(?:\((?:((?:\\.|[^()])+?)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))$/,
   replace: (textNode, match) => {
     let alt = match.at(1);
     let filePathOrSrc = match.at(2);
-    let linkTitle = match.at(3);
+
     if (!alt || !filePathOrSrc) {
       textNode.replace(textNode);
       return;
     }
-    alt = unescapeSquareBrackets(alt);
+    alt = decodeLinkAltText(alt);
+
     // Unescape special markdown characters in the URL
-    filePathOrSrc = unescapeUnderscore(unescapeParenthesis(filePathOrSrc));
-    linkTitle = linkTitle ? unescapeSquareBrackets(linkTitle) : undefined;
-
-    // const linkNode = $createLinkNode(convertFilePathToQueryNotation(linkUrl), {
-    //   title: linkTitle,
-    // });
-
-    console.log({
-      alt,
-      filePathOrSrc,
-      linkTitle,
-    });
+    filePathOrSrc = unescapeUnderscore(decodeURIComponent(filePathOrSrc));
 
     const linkNode = $createLinkNode(filePathOrSrc);
     const linkTextNode = $createTextNode(alt);

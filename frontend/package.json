@@ -38,7 +38,7 @@
     "@uiw/codemirror-theme-nord": "^4.25.1",
     "@uiw/codemirror-theme-vscode": "^4.25.1",
     "@uiw/react-codemirror": "^4.25.1",
-    "@vitejs/plugin-react": "^4.7.0",
+    "@vitejs/plugin-react": "5",
     "jotai": "^2.13.1",
     "katex": "^0.16.22",
     "lexical": "^0.37.0",
