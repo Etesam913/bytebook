@@ -580,25 +580,25 @@ export function decodeLinkUrl(encodedUrl: string): string {
 }
 
 /**
- * Encodes alt text for use in a Markdown link by escaping square brackets.
+ * Encodes alt text for use in a Markdown link by replacing square brackets with %30 and %31.
  * @param text The alt text to encode
- * @returns The text with [ and ] escaped as \[ and \]
+ * @returns The text with [ replaced by %30 and ] replaced by %31
  * @example
- * encodeLinkAltText('foo[bar]'); // returns 'foo\\[bar\\]'
+ * encodeLinkAltText('foo[bar]'); // returns 'foo%30bar%31'
  */
 export function encodeLinkAltText(text: string): string {
-  return text.replace(/([[\]])/g, '\\$1');
+  return text.replace(/\[/g, '%30').replace(/\]/g, '%31');
 }
 
 /**
  * Decodes alt text that was encoded with encodeLinkAltText.
  * @param encodedText The encoded alt text
- * @returns The text with \[ and \] replaced by [ and ]
+ * @returns The text with %30 replaced by [ and %31 replaced by ]
  * @example
- * decodeLinkAltText('foo\\[bar\\]'); // returns 'foo[bar]'
+ * decodeLinkAltText('foo%30bar%31'); // returns 'foo[bar]'
  */
 export function decodeLinkAltText(encodedText: string): string {
-  return encodedText.replace(/\\([\[\]])/g, '$1');
+  return encodedText.replace(/%30/g, '[').replace(/%31/g, ']');
 }
 
 /**
