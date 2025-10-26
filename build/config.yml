@@ -1,17 +1,17 @@
 # This file contains the configuration for this project.
 # When you update `info` or `fileAssociations`, run `wails3 task common:update:build-assets` to update the assets.
 # Note that this will overwrite any changes you have made to the assets.
-version: '3'
+version: "3"
 
 # This information is used to generate the build assets.
 info:
-  companyName: "My Company" # The name of the company
-  productName: "My Product" # The name of the application
-  productIdentifier: "com.mycompany.myproduct" # The unique product identifier
-  description: "A program that does X" # The application description
-  copyright: "(c) 2024, My Company" # Copyright text
-  comments: "Some Product Comments" # Comments
-  version: "v0.0.1" # The application version
+  companyName: "Bytebook"
+  productName: "Bytebook"
+  productIdentifier: "com.bytebook.bytebook"
+  description: "A beautiful fast note-taking app for developers"
+  copyright: "(c) 2025, Bytebook"
+  comments: "Some Product Comments"
+  version: "v0.0.1"
 
 # Dev mode configuration
 dev_mode:

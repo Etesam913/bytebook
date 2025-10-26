@@ -25,13 +25,13 @@ go install gotest.tools/gotestsum@latest
 #### Installing react dependencies
 
 ```
-cd frontend && pnpm install
+cd frontend && bun install
 ```
 
 #### Configure husky
 
 ```
-pnpm husky:prepare
+bun run husky:prepare
 ```
 
 ## 🏃‍➡️ Run (in root bytebook/ directory)

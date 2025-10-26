@@ -16,14 +16,14 @@ tasks:
     dir: frontend
     sources:
       - package.json
-      - package-lock.json
+      - bun.lock
     generates:
       - node_modules/*
     preconditions:
-      - sh: pnpm version
-        msg: "Looks like pnpm isn't installed."
+      - sh: bun --version
+        msg: "Looks like bun isn't installed."
     cmds:
-      - pnpm install
+      - bun install
 
   build:frontend:
     summary: Build the frontend project
@@ -36,7 +36,7 @@ tasks:
       - task: install:frontend:deps
       - task: generate:bindings
     cmds:
-      - pnpm run build
+      - bun run build
 
   generate:bindings:
     summary: Generates bindings for the frontend
@@ -66,7 +66,7 @@ tasks:
     deps:
       - task: install:frontend:deps
     cmds:
-      - pnpm run dev -- --port {{.VITE_PORT}} --strictPort
+      - bun run dev -- --port {{.VITE_PORT}} --strictPort
 
   update:build-assets:
     summary: Updates the build assets

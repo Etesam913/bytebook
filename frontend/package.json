@@ -12,9 +12,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint --fix .",
-    "lint:check": "pnpm exec eslint .",
+    "lint:check": "bun run eslint .",
     "tsc": "tsc",
-    "format:lint:tsc": "pnpm format:check && pnpm lint:check && pnpm tsc",
+    "format:lint:tsc": "bun run format:check && bun run lint:check && bun run tsc",
     "husky:prepare": "cd .. && husky frontend/.husky"
   },
   "dependencies": {
@@ -48,6 +48,9 @@
     "react-use-measure": "^2.1.7",
     "sonner": "^2.0.7",
     "wouter": "^3.7.1"
+  },
+  "overrides": {
+    "vite": "npm:rolldown-vite@latest"
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
