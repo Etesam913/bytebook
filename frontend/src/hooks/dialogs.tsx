@@ -201,6 +201,7 @@ export function useCreateTableDialog(): (
                   placeholder: '3',
                   defaultValue: '3',
                   autoFocus: true,
+                  onFocus: (e) => e.target.select(),
                   type: 'number',
                   min: '1',
                   max: '100',

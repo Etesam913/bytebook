@@ -130,9 +130,7 @@ export function RenderNote() {
             onClick={() => {
               revealInFinder({
                 folder,
-                selectionRange: new Set([
-                  `note:${noteWithoutExtension}?ext=${filePath.noteExtension}`,
-                ]),
+                selectionRange: new Set([`note:${filePath.note}`]),
               });
             }}
           >
