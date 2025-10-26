@@ -3,7 +3,7 @@ import {
   LexicalTypeaheadMenuPlugin,
   useBasicTypeaheadTriggerMatch,
 } from '@lexical/react/LexicalTypeaheadMenuPlugin';
-import { $createHeadingNode } from '@lexical/rich-text';
+import { $createHeadingNode, $createQuoteNode } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
 import type { UseMutationResult } from '@tanstack/react-query';
 import {
@@ -41,6 +41,7 @@ import { Languages } from '../../../types';
 import { getDefaultCodeForLanguage } from '../../../utils/code';
 import { JavascriptLogo } from '../../../icons/javascript-logo';
 import { Table } from '../../../icons/table';
+import { QuoteIcon } from '../../../icons/quote';
 
 const languageCommandData: {
   languageName: Languages;
@@ -129,6 +130,17 @@ function getBaseOptions({
           const selection = $getSelection();
           if ($isRangeSelection(selection)) {
             $setBlocksType(selection, () => $createParagraphNode());
+          }
+        }),
+    }),
+    new DropdownPickerOption('Quote', {
+      keywords: ['quote', 'blockquote', 'quotation', 'citation'],
+      icon: <QuoteIcon width={20} height={20} />,
+      onSelect: () =>
+        editor.update(() => {
+          const selection = $getSelection();
+          if ($isRangeSelection(selection)) {
+            $setBlocksType(selection, () => $createQuoteNode());
           }
         }),
     }),

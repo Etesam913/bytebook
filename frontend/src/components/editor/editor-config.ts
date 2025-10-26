@@ -19,6 +19,7 @@ function onError(error: Error) {
 export const theme: EditorThemeClasses = {
   internalLink: 'link-internal',
   link: 'link',
+  quote: 'editor-quote',
   table: 'PlaygroundEditorTheme__table',
   tableAddColumns: 'PlaygroundEditorTheme__tableAddColumns',
   tableAddRows: 'PlaygroundEditorTheme__tableAddRows',

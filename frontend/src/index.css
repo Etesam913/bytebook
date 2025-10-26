@@ -354,6 +354,10 @@ div[data-is-fullscreen='true'] .cm-scroller {
   @apply filter brightness-90 dark:brightness-125;
 }
 
+.editor-quote {
+  @apply border-l-4 border-(--accent-color) pl-4 my-4 text-zinc-700 dark:text-zinc-300 italic;
+}
+
 .root-ol {
   padding: 0;
   margin: 0;

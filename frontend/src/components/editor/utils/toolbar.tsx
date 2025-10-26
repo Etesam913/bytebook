@@ -5,20 +5,19 @@ import {
   INSERT_UNORDERED_LIST_COMMAND,
   ListNode,
 } from '@lexical/list';
-import { $createHeadingNode, $isHeadingNode } from '@lexical/rich-text';
+import {
+  $createHeadingNode,
+  $createQuoteNode,
+  $isHeadingNode,
+} from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
 import {
-  $deleteTableColumnAtSelection,
-  $deleteTableRowAtSelection,
   $getTableCellNodeFromLexicalNode,
   $getTableNodeFromLexicalNodeOrThrow,
-  $insertTableColumnAtSelection,
-  $insertTableRowAtSelection,
   $isTableCellNode,
   $isTableSelection,
   getTableElement,
   INSERT_TABLE_COMMAND,
-  TableCellNode,
 } from '@lexical/table';
 import { $getNearestNodeOfType } from '@lexical/utils';
 import type { UseMutationResult } from '@tanstack/react-query';
@@ -58,6 +57,7 @@ import type {
 import { FILE_SERVER_URL } from '../../../utils/general.ts';
 import type { FilePayload } from '../nodes/file';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
+import { QuoteIcon } from '../../../icons/quote.tsx';
 
 /**
  * Handles the click event on toolbar block elements.
@@ -163,6 +163,9 @@ export function changeSelectedBlocksType({
           break;
         case 'h3':
           $setBlocksType(selection, () => $createHeadingNode('h3'));
+          break;
+        case 'quote':
+          $setBlocksType(selection, () => $createQuoteNode());
           break;
         case 'ol':
           editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
@@ -485,6 +488,14 @@ export const blockTypesDropdownItems: DropdownItem[] = [
       </span>
     ),
     value: 'paragraph',
+  },
+  {
+    label: (
+      <span className="flex items-center gap-1.5 will-change-transform">
+        <QuoteIcon /> Quote
+      </span>
+    ),
+    value: 'quote',
   },
   {
     label: (
