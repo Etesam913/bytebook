@@ -26,7 +26,6 @@ import {
 import { RouteFallback } from './components/route-fallback';
 import { useTrapFocus } from './hooks/general';
 import { useZoom, useFullscreen } from './hooks/resize';
-import { SearchPage } from './routes/search/';
 
 // Lazy load route components
 const NotFound = lazy(() =>
@@ -50,6 +49,12 @@ const KernelInfo = lazy(() =>
 const SavedSearchPage = lazy(() =>
   import('./routes/saved-search').then((module) => ({
     default: module.SavedSearchPage,
+  }))
+);
+
+const SearchPage = lazy(() =>
+  import('./routes/search').then((module) => ({
+    default: module.SearchPage,
   }))
 );
 

@@ -11,7 +11,6 @@ export function handleATagClick(target: HTMLElement) {
   if (parentElement.href.startsWith('wails://')) {
     return;
   }
-  console.log(parentElement.href.toString());
   Browser.OpenURL(parentElement.href).catch(() => {
     toast.error(
       `Failed to open link: ${parentElement.href}`,

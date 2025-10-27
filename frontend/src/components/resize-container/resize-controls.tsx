@@ -1,19 +1,15 @@
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { type MotionValue, motion } from 'motion/react';
-import type { MouseEvent } from 'react';
-import { getDefaultButtonVariants } from '../../animations';
-import { XResize } from '../../icons/arrows-expand-x';
+import { type MotionValue } from 'motion/react';
+import type { RefObject } from 'react';
 import type { ResizeWidth } from '../../types';
-import { NoteComponentControls } from '../note-component-container/component-controls';
-import { useSetAtom } from 'jotai';
-import { albumDataAtom } from '../editor/atoms';
+import { ResizeControlsPopover } from './resize-controls-popover';
 
 export function ResizeControls({
   nodeKey,
   motionValues,
   writeWidthToNode,
   src,
-  elementType,
+  isSelected,
+  referenceElement,
 }: {
   nodeKey: string;
   motionValues: {
@@ -23,52 +19,17 @@ export function ResizeControls({
   };
   writeWidthToNode: (width: ResizeWidth) => void;
   src: string;
-  elementType: 'image' | 'video';
+  isSelected: boolean;
+  referenceElement: RefObject<HTMLElement | null>;
 }) {
-  const [editor] = useLexicalComposerContext();
-  const setAlbumData = useSetAtom(albumDataAtom);
-  const { widthMotionValue, resizeWidthMotionValue, resizeHeightMotionValue } =
-    motionValues;
-
   return (
-    <NoteComponentControls
+    <ResizeControlsPopover
       nodeKey={nodeKey}
-      editor={editor}
-      buttonOptions={{
-        trash: {
-          enabled: true,
-        },
-        fullscreen: {
-          enabled: true,
-          callback: () => {
-            setAlbumData({
-              isShowing: true,
-              nodeKey,
-              src,
-              alt: '',
-              elementType,
-            });
-          },
-        },
-        link: {
-          enabled: true,
-          src,
-        },
-      }}
-    >
-      <motion.button
-        {...getDefaultButtonVariants({ disabled: false, whileHover: 1.115, whileTap: 0.95, whileFocus: 1.115 })}
-        type="button"
-        onClick={(e: MouseEvent<HTMLButtonElement>) => {
-          widthMotionValue.set('100%');
-          resizeWidthMotionValue.set('100%');
-          resizeHeightMotionValue.set('100%');
-          writeWidthToNode('100%');
-          e.stopPropagation();
-        }}
-      >
-        <XResize className="will-change-transform" />
-      </motion.button>
-    </NoteComponentControls>
+      motionValues={motionValues}
+      writeWidthToNode={writeWidthToNode}
+      src={src}
+      isSelected={isSelected}
+      referenceElement={referenceElement}
+    />
   );
 }

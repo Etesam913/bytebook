@@ -11,8 +11,8 @@ import {
 } from '../../../hooks/code';
 import {
   isValidKernelLanguage,
-  validLanguages,
   KernelsData,
+  languagesWithKernelsSet,
 } from '../../../types';
 import {
   routeUrls,
@@ -22,13 +22,13 @@ import { KernelAccordionButton } from './kernel-accordion-button';
 import { Tooltip } from '../../tooltip';
 import { folderSidebarOpenStateAtom } from '../../../atoms';
 import { kernelsDataAtom } from '../../../atoms';
-import { KernelHeartbeat } from '../../../routes/kernel-info';
 import { SquareTerminal } from '../../../icons/square-terminal';
 import { PythonLogo } from '../../../icons/python-logo';
 import { GolangLogo } from '../../../icons/golang-logo';
 import { JavascriptLogo } from '../../../icons/javascript-logo';
 import { JavaLogo } from '../../../icons/java-logo';
 import { Languages } from '../../../types';
+import { KernelHeartbeat } from './kernel-heartbeat';
 
 export function getKernelIcon(kernel: Languages, size: number = 18) {
   switch (kernel) {
@@ -46,7 +46,7 @@ export function getKernelIcon(kernel: Languages, size: number = 18) {
 }
 
 function KernelTooltipContent({ kernelsData }: { kernelsData: KernelsData }) {
-  const activeKernels = [...validLanguages].filter(
+  const activeKernels = [...languagesWithKernelsSet].filter(
     (kernel) => kernelsData[kernel].heartbeat === 'success'
   );
 
@@ -134,7 +134,7 @@ export function MyKernelsAccordion() {
                   />
                 );
               }}
-              data={[...validLanguages]}
+              data={[...languagesWithKernelsSet]}
             />
           </motion.div>
         )}

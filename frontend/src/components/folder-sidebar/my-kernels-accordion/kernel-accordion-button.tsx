@@ -7,7 +7,6 @@ import {
   selectionRangeAtom,
 } from '../../../atoms';
 import { handleContextMenuSelection } from '../../../utils/selection';
-import { KernelHeartbeat } from '../../../routes/kernel-info';
 import PowerOff from '../../../icons/power-off';
 import { Play } from '../../../icons/circle-play';
 import {
@@ -18,6 +17,7 @@ import { Languages } from '../../../types';
 import { currentZoomAtom } from '../../../hooks/resize';
 import { routeUrls } from '../../../utils/routes';
 import { getKernelIcon } from './index';
+import { KernelHeartbeat } from './kernel-heartbeat';
 
 export function KernelAccordionButton({
   kernelName,

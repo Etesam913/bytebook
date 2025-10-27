@@ -1,66 +1,22 @@
-import { JSX, lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { langs } from '@uiw/codemirror-extensions-langs';
-import {
-  Language,
-  LanguageSupport,
-  StreamLanguage,
-} from '@codemirror/language';
-import { BasicSetupOptions, ReactCodeMirrorRef } from '@uiw/react-codemirror';
-import { PythonLogo } from '../../icons/python-logo';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { Loader } from '../../icons/loader';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { cn } from '../../utils/string-formatting';
-import { GolangLogo } from '../../icons/golang-logo';
 import { CodeBlockStatus, Languages } from '../../types';
 import { AnimatePresence, motion } from 'motion/react';
 import { CodeActions } from './code-actions';
 import { CodeResult } from './code-result';
 import { trapFocusContainerAtom } from '../../atoms';
 import { useSetAtom } from 'jotai';
-import { JavascriptLogo } from '../../icons/javascript-logo';
-import { javaLanguage } from '@codemirror/lang-java';
-import { javascriptLanguage } from '@codemirror/lang-javascript';
-import { pythonLanguage } from '@codemirror/lang-python';
-import { JavaLogo } from '../../icons/java-logo';
+import { languageDisplayConfig } from './language-config';
 
 const CodeMirrorEditor = lazy(() =>
   import('./codemirror-editor').then((module) => ({
     default: module.CodeMirrorEditor,
   }))
 );
-
-type LanguageSetting = {
-  basicSetup?: BasicSetupOptions;
-  extension: () => LanguageSupport | StreamLanguage<unknown>;
-  language?: Language;
-  icon: JSX.Element;
-};
-export const languageToSettings: Record<Languages, LanguageSetting> = {
-  python: {
-    basicSetup: { tabSize: 4 },
-    extension: langs.py,
-    language: pythonLanguage,
-    icon: <PythonLogo width={18} height={18} />,
-  },
-  go: {
-    basicSetup: { tabSize: 4 },
-    extension: langs.go,
-    icon: <GolangLogo width={18} height={18} />,
-  },
-  javascript: {
-    basicSetup: { tabSize: 2 },
-    extension: langs.js,
-    language: javascriptLanguage,
-    icon: <JavascriptLogo width={18} height={18} />,
-  },
-  java: {
-    basicSetup: { tabSize: 2 },
-    extension: langs.java,
-    language: javaLanguage,
-    icon: <JavaLogo width={18} height={18} />,
-  },
-};
 
 export const focusEditor = (codeMirrorInstance: ReactCodeMirrorRef | null) => {
   if (codeMirrorInstance?.view) {
@@ -148,7 +104,7 @@ export function Code({
         data-interactable="true"
         data-node-key={nodeKey}
         className={cn(
-          'relative rounded-md border-[2px] overflow-hidden grow bg-white dark:bg-[#2e3440] transition-colors border-zinc-150 dark:border-zinc-700',
+          'relative rounded-md border-[2px] overflow-hidden grow cm-background transition-colors border-zinc-150 dark:border-zinc-700',
           isSelected && '!border-(--accent-color)',
           isExpanded &&
             'fixed z-[60] left-0 top-0 right-0 bottom-0 h-[calc(100vh-5rem)] m-auto w-[calc(100vw-5rem)] flex flex-col'
@@ -199,7 +155,7 @@ export function Code({
       </span>
 
       <div className="translate-x-[24px] absolute text-zinc-400 right-1">
-        {languageToSettings[language].icon}
+        {languageDisplayConfig[language].icon}
       </div>
     </div>
   );

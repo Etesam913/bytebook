@@ -4,18 +4,25 @@ function stopSelect(e: Event) {
   e.preventDefault();
 }
 
-export function createGhostElementFromHtmlElement(
-  element: HTMLElement,
-  classNames = ['dragging', 'drag-grid']
-): HTMLElement {
+export function createGhostElementFromHtmlElement({
+  element,
+  classNames = ['dragging', 'drag-grid'],
+  useNoteContainer = false,
+}: {
+  element: HTMLElement;
+  classNames?: string[];
+  useNoteContainer?: boolean;
+}): HTMLElement {
   const ghostElement = element.cloneNode(true) as HTMLElement;
   ghostElement.classList.add(...classNames);
   // Remove the selected classes
   ghostElement.classList.remove('bg-(--accent-color)!');
 
-  const noteContainer = document.getElementById('note-container');
-  if (noteContainer) {
-    ghostElement.style.fontFamily = noteContainer.style.fontFamily;
+  if (useNoteContainer) {
+    const noteContainer = document.getElementById('note-container');
+    if (noteContainer) {
+      ghostElement.style.fontFamily = noteContainer.style.fontFamily;
+    }
   }
   return ghostElement;
 }

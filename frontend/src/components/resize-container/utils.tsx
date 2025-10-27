@@ -31,7 +31,6 @@ function getNearestSiblingNode(node: LexicalNode, isRight: boolean) {
       const children = siblingNode.getChildren();
       const fileChild = children.find((n) => n.getType() === 'file');
 
-      // Image and videos are files that can be expanded for an album
       if (fileChild) {
         const fileType = (fileChild as FileNode).getElementType();
         if (fileType === 'image' || fileType === 'video') {
@@ -51,7 +50,7 @@ function getNearestSiblingNode(node: LexicalNode, isRight: boolean) {
   return siblingNode;
 }
 
-/** Expand the nearest sibling node for the resize-container. This is for album right/left arrow keys */
+/** Expand the nearest sibling node for the resize-container */
 export function expandNearestSiblingNode({
   editor,
   nodeKey,

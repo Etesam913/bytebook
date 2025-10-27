@@ -3,7 +3,7 @@ import HourglassStart from '../../icons/hourglass-start';
 import { Loader } from '../../icons/loader';
 import PowerOff from '../../icons/power-off';
 import { cn } from '../../utils/string-formatting';
-import { KernelHeartbeat } from './kernel-heartbeat';
+import { KernelHeartbeat } from '../../components/folder-sidebar/my-kernels-accordion/kernel-heartbeat';
 import { KernelStatus, KernelHeartbeatStatus, Languages } from '../../types';
 import {
   useShutdownKernelMutation,

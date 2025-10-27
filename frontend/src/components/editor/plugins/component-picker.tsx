@@ -42,6 +42,7 @@ import { getDefaultCodeForLanguage } from '../../../utils/code';
 import { JavascriptLogo } from '../../../icons/javascript-logo';
 import { Table } from '../../../icons/table';
 import { QuoteIcon } from '../../../icons/quote';
+import { SquareCode } from '../../../icons/square-code';
 
 const languageCommandData: {
   languageName: Languages;
@@ -49,6 +50,12 @@ const languageCommandData: {
   keywords: string[];
   icon?: JSX.Element;
 }[] = [
+  {
+    languageName: 'text',
+    keywords: ['text', 'plain', 'plaintext', 'txt'],
+    icon: <SquareCode />,
+    name: 'Text',
+  },
   {
     languageName: 'go',
     keywords: ['go', 'golang', 'google'],

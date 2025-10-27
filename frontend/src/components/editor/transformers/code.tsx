@@ -1,6 +1,6 @@
 import type { MultilineElementTransformer } from '@lexical/markdown';
 import { $createNodeSelection, $setSelection, type LexicalNode } from 'lexical';
-import { Languages, validLanguages } from '../../../types';
+import { Languages, allLanguagesSet } from '../../../types';
 import {
   escapeQuotes,
   flattenHtml,
@@ -117,13 +117,11 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
     linesInBetween,
     isImport
   ) => {
-    const language = validLanguages.has(startMatch[1] as Languages)
-      ? startMatch[1]
-      : undefined;
-
-    if (!language) {
-      return;
-    }
+    // If no language specified or not a valid language, default to 'text'
+    const language =
+      startMatch[1] && allLanguagesSet.has(startMatch[1] as Languages)
+        ? startMatch[1]
+        : 'text';
 
     // Parse properties from the header (everything after the language)
     const headerProperties = startMatch[2]

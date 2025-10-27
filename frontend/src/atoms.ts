@@ -155,6 +155,11 @@ export const kernelsDataAtom = atom<KernelsData>({
     heartbeat: 'idle',
     errorMessage: null,
   },
+  text: {
+    status: 'idle',
+    heartbeat: 'idle',
+    errorMessage: null,
+  },
 });
 
 export const currentFilePathAtom = atom<FilePath | null>(null);

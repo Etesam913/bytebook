@@ -1,7 +1,6 @@
 import { atom } from 'jotai';
 import type { RefObject } from 'react';
 import { BaseSelection, LexicalEditor } from 'lexical';
-import { AlbumData } from '../../types.ts';
 
 // Drag and drop atoms
 export const draggedElementAtom = atom<HTMLElement | null>(null);
@@ -24,12 +23,3 @@ export const noteSeenFileNodeKeysAtom = atom<Set<string>>(new Set([]));
 
 // Previous markdown tracking atom
 export const previousMarkdownAtom = atom<string>('');
-
-// Album/gallery view atom
-export const albumDataAtom = atom<AlbumData>({
-  isShowing: false,
-  nodeKey: null,
-  src: null,
-  alt: null,
-  elementType: null,
-});

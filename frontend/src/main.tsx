@@ -5,7 +5,6 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query';
 import { StrictMode } from 'react';
-import { scan } from 'react-scan';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
@@ -40,9 +39,15 @@ const queryClient = new QueryClient({
   }),
 });
 
-scan({
-  enabled: true,
-});
+// Only enable react-scan in development
+(async () => {
+  if (import.meta.env.DEV) {
+    const { scan } = await import('react-scan');
+    scan({
+      enabled: false,
+    });
+  }
+})();
 
 ReactDOM.createRoot(rootElem).render(
   <StrictMode>

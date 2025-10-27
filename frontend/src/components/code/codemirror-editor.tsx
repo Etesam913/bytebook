@@ -1,5 +1,4 @@
 import { vscodeLight } from '@uiw/codemirror-theme-vscode';
-import { nord } from '@uiw/codemirror-theme-nord';
 import { useAtomValue } from 'jotai/react';
 import {
   isDarkModeOnAtom,
@@ -11,6 +10,7 @@ import CodeMirror, {
   EditorView,
 } from '@uiw/react-codemirror';
 import { debounce } from '../../utils/general';
+import { atomone } from '@uiw/codemirror-theme-atomone';
 import {
   useSendExecuteRequestMutation,
   useSendInterruptRequestMutation,
@@ -18,8 +18,8 @@ import {
   useTurnOnKernelMutation,
   useInspectTooltip,
 } from '../../hooks/code';
-import { getCodemirrorKeymap } from '../../utils/code';
-import { focusEditor, languageToSettings } from '.';
+import { getCodemirrorKeymap } from '../../utils/codemirror';
+import { focusEditor } from '.';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { vim, getCM, Vim, CodeMirrorV } from '@replit/codemirror-vim';
 import { LexicalEditor } from 'lexical';
@@ -28,6 +28,49 @@ import { CodeBlockStatus, Languages, CompletionData } from '../../types';
 import { autocompletion } from '@codemirror/autocomplete';
 import { useNodeInNodeSelection } from '../../hooks/lexical';
 import { useEffect } from 'react';
+import { langs } from '@uiw/codemirror-extensions-langs';
+import type {
+  Language,
+  LanguageSupport,
+  StreamLanguage,
+} from '@codemirror/language';
+import { javaLanguage } from '@codemirror/lang-java';
+import { javascriptLanguage } from '@codemirror/lang-javascript';
+import { pythonLanguage } from '@codemirror/lang-python';
+import { languageDisplayConfig } from './language-config';
+import type { BasicSetupOptions } from '@uiw/react-codemirror';
+
+type LanguageSetting = {
+  basicSetup?: BasicSetupOptions;
+  extension: () => LanguageSupport | StreamLanguage<unknown> | [];
+  language?: Language;
+};
+
+const languageToSettings: Record<Languages, LanguageSetting> = {
+  python: {
+    basicSetup: { tabSize: languageDisplayConfig.python.tabSize },
+    extension: langs.py,
+    language: pythonLanguage,
+  },
+  go: {
+    basicSetup: { tabSize: languageDisplayConfig.go.tabSize },
+    extension: langs.go,
+  },
+  javascript: {
+    basicSetup: { tabSize: languageDisplayConfig.javascript.tabSize },
+    extension: langs.js,
+    language: javascriptLanguage,
+  },
+  java: {
+    basicSetup: { tabSize: languageDisplayConfig.java.tabSize },
+    extension: langs.java,
+    language: javaLanguage,
+  },
+  text: {
+    basicSetup: { tabSize: languageDisplayConfig.text.tabSize },
+    extension: () => [],
+  },
+};
 
 // Map to store pending completion promises by messageId
 const pendingCompletions = new Map<string, (data: CompletionData) => void>();
@@ -167,13 +210,16 @@ export function CodeMirrorEditor({
         onChange={(newCode) => {
           debouncedSetCode(newCode);
         }}
-        className="bg-white dark:bg-[#2e3440]"
+        className="cm-background"
         extensions={[
           EditorView.editable.of(isInNodeSelection),
-          projectSettings.code.codeBlockVimMode ? vim() : [],
+          ...(projectSettings.code.codeBlockVimMode ? [vim()] : []),
           runCodeKeymap,
-          extraCompletions,
-          languageToSettings[language].extension(),
+          ...(cmLanguageObject ? [extraCompletions] : []),
+          ...(() => {
+            const ext = languageToSettings[language].extension();
+            return Array.isArray(ext) && ext.length === 0 ? [] : [ext];
+          })(),
           autocompletion({
             activateOnTypingDelay: 50,
             // For languages that do not have a language object, there is now way to attach completions
@@ -182,7 +228,7 @@ export function CodeMirrorEditor({
           }),
           inspectTooltip,
         ]}
-        theme={isDarkModeOn ? nord : vscodeLight}
+        theme={isDarkModeOn ? atomone : vscodeLight}
         onKeyDown={(e) => {
           if (e.key === 'Backspace') {
             //  TODO: Think of a better fix than this, Fixes weird bug where pressing backspace at beginning of first line focuses the <body> tag

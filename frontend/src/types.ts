@@ -124,18 +124,10 @@ export type GithubRepositoryData = {
   clone_url: string;
 };
 
-export type AlbumData = {
-  isShowing: boolean;
-  nodeKey: string | null;
-  src: string | null;
-  alt: string | null;
-  elementType: string | null;
-};
-
 export type KernelStatus = 'busy' | 'idle' | 'starting';
 export type CodeBlockStatus = KernelStatus | 'queueing';
 export type KernelHeartbeatStatus = 'success' | 'failure' | 'idle';
-export type Languages = 'python' | 'go' | 'javascript' | 'java';
+export type Languages = 'python' | 'go' | 'javascript' | 'java' | 'text';
 
 type KernelData = {
   status: KernelStatus;
@@ -143,18 +135,19 @@ type KernelData = {
   errorMessage: string | null;
 };
 
-export const validLanguages = new Set<Languages>([
-  'python',
-  'go',
-  'javascript',
-  'java',
-]);
+const allLanguages = ['python', 'go', 'javascript', 'java', 'text'] as const;
+
+export const allLanguagesSet = new Set<Languages>(allLanguages);
+
+export const languagesWithKernelsSet = new Set<Languages>(
+  allLanguages.filter((language) => language !== 'text')
+);
 
 export type KernelsData = Record<Languages, KernelData>;
 
 // Function to check if a string is a valid key
 export function isValidKernelLanguage(key: unknown): key is Languages {
-  return typeof key === 'string' && validLanguages.has(key as Languages);
+  return typeof key === 'string' && allLanguagesSet.has(key as Languages);
 }
 
 export type RawCompletionData = Omit<CompletionData, 'matches'> & {

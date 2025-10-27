@@ -494,10 +494,11 @@ export function handleDragStart({
   }
 
   let nodeKey = '';
-  const ghostElement = createGhostElementFromHtmlElement(
-    draggableBlockElement,
-    ['dragging']
-  );
+  const ghostElement = createGhostElementFromHtmlElement({
+    element: draggableBlockElement,
+    classNames: ['dragging'],
+    useNoteContainer: true,
+  });
   ghostElement.id = 'block-element';
   editor.read(() => {
     const node = $getNearestNodeFromDOMNode(draggableBlockElement);

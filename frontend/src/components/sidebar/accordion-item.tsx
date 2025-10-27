@@ -21,10 +21,10 @@ export function AccordionItem({
           target="_blank"
           onDragStart={(e) => {
             const dragElement = e.target as HTMLElement;
-            const ghostElement = createGhostElementFromHtmlElement(
-              dragElement,
-              ['dragging']
-            );
+            const ghostElement = createGhostElementFromHtmlElement({
+              element: dragElement,
+              classNames: ['dragging'],
+            });
             document.body.appendChild(ghostElement);
             e.dataTransfer.setDragImage(ghostElement, -25, -25);
             // Clean up the ghost element after the drag ends

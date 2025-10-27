@@ -228,6 +228,10 @@ h6.dragging {
   padding: 12px 8px !important;
 }
 
+.cm-background {
+  @apply bg-white dark:bg-[#272c35];
+}
+
 .cm-lineNumbers {
   @apply text-xs text-zinc-500;
 }

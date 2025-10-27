@@ -60,7 +60,9 @@ export function handleFolderDragStart({
     setFolderDataTransfer({ e, selectedFolders });
 
     const dragElement = e.target as HTMLElement;
-    const ghostElement = createGhostElementFromHtmlElement(dragElement);
+    const ghostElement = createGhostElementFromHtmlElement({
+      element: dragElement,
+    });
     setDraggedElement(ghostElement);
 
     const children = createDragPreviewChildren(selectedFiles, 'folder');
@@ -120,7 +122,9 @@ export function handleNoteDragStart({
     setNoteDataTransfer({ e, selectedFilePaths });
 
     const dragElement = e.target as HTMLElement;
-    const ghostElement = createGhostElementFromHtmlElement(dragElement);
+    const ghostElement = createGhostElementFromHtmlElement({
+      element: dragElement,
+    });
     setDraggedElement(ghostElement);
 
     const children = createDragPreviewChildren(

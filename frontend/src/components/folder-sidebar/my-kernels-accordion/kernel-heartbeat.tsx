@@ -1,6 +1,6 @@
-import { Loader } from '../../icons/loader';
-import { cn } from '../../utils/string-formatting';
-import { KernelStatus, KernelHeartbeatStatus } from '../../types';
+import { Loader } from '../../../icons/loader';
+import { cn } from '../../../utils/string-formatting';
+import { KernelStatus, KernelHeartbeatStatus } from '../../../types';
 
 export function KernelHeartbeat({
   status,

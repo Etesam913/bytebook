@@ -32,7 +32,10 @@ import { toast } from 'sonner';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import { Dispatch, FormEvent, SetStateAction, useRef } from 'react';
-import { CompletionContext, CompletionResult } from '@codemirror/autocomplete';
+import type {
+  CompletionContext,
+  CompletionResult,
+} from '@codemirror/autocomplete';
 import { hoverTooltip, Tooltip } from '@uiw/react-codemirror';
 import { Browser } from '@wailsio/runtime';
 

@@ -1,13 +1,13 @@
 export function SquareCode({
-  width = '1.25rem',
-  height = '1.25rem',
+  width = 20,
+  height = 20,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
   title = 'SquareCode',
   className,
 }: {
-  width?: string;
-  height?: string;
+  width?: number;
+  height?: number;
   fill?: string;
   secondaryfill?: string;
   title?: string;
@@ -16,6 +16,8 @@ export function SquareCode({
   return (
     <svg
       className={className}
+      width={width}
+      height={height}
       style={{ width, height }}
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"

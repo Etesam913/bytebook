@@ -130,5 +130,3 @@ export function KernelInfo() {
     </div>
   );
 }
-
-export { KernelHeartbeat } from './kernel-heartbeat';

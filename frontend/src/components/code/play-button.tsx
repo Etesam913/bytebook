@@ -7,7 +7,7 @@ import {
   useSendInterruptRequestMutation,
   useTurnOnKernelMutation,
 } from '../../hooks/code';
-import { handleRunOrInterruptCode } from '../../utils/code';
+import { handleRunOrInterruptCode } from '../../utils/codemirror';
 import { CodeBlockStatus, Languages } from '../../types';
 import { MediaStop } from '../../icons/media-stop';
 import { Loader } from '../../icons/loader';
@@ -39,7 +39,12 @@ export function PlayButton({
 
   return (
     <MotionIconButton
-      {...getDefaultButtonVariants({ disabled: false, whileHover: 1.05, whileTap: 0.975, whileFocus: 1.05 })}
+      {...getDefaultButtonVariants({
+        disabled: false,
+        whileHover: 1.05,
+        whileTap: 0.975,
+        whileFocus: 1.05,
+      })}
       disabled={status === 'starting' || status === 'queueing'}
       onClick={() => {
         handleRunOrInterruptCode({

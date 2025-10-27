@@ -12,7 +12,6 @@ import {
 } from '../../../atoms';
 import { DropdownItem, Languages } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
-import { KernelHeartbeat } from '../../../routes/kernel-info';
 import { FolderOpen } from '../../../icons/folder-open';
 import { PythonVenvDialog } from '../python-venv-dialog';
 import {
@@ -20,6 +19,7 @@ import {
   useShutdownKernelMutation,
   useTurnOnKernelMutation,
 } from '../../../hooks/code';
+import { KernelHeartbeat } from '../../folder-sidebar/my-kernels-accordion/kernel-heartbeat';
 
 const languageSpecificOptions: {
   heartbeatSuccess: Partial<Record<Languages, DropdownItem[]>>;
