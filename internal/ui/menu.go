@@ -56,6 +56,19 @@ func configureFileMenu(app *application.App, menu *application.Menu, bg applicat
 		CreateWindow(app, "/", bg)
 	})
 
+	newFolder := sub.Add("New Folder")
+	newFolder.SetAccelerator("cmdorctrl+g")
+	newFolder.OnClick(func(ctx *application.Context) {
+		win := app.Window.Current()
+		if win != nil {
+			win.EmitEvent(util.Events.FolderCreateMenu, map[string]any{})
+		} else {
+			log.Println(
+				"Current window could not be found: folder:create-dialog event could not be emitted",
+			)
+		}
+	})
+
 	newNote := sub.Add("New Note")
 	newNote.SetAccelerator("cmdorctrl+n")
 	newNote.OnClick(func(ctx *application.Context) {
@@ -68,6 +81,7 @@ func configureFileMenu(app *application.App, menu *application.Menu, bg applicat
 			)
 		}
 	})
+
 }
 
 // configureToggleFullscreen updates the accelerator for the "Toggle Full Screen" menu item.

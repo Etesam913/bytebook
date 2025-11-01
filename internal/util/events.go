@@ -13,14 +13,15 @@ var Events = struct {
 	FolderCreate string
 
 	// UI events
-	ZoomIn          string
-	ZoomOut         string
-	SettingsOpen    string
-	SearchOpen      string
-	SearchOpenPanel string
-	SearchNote      string
-	NewNoteMenu     string
-	Fullscreen      string
+	ZoomIn           string
+	ZoomOut          string
+	SettingsOpen     string
+	SearchOpen       string
+	SearchOpenPanel  string
+	SearchNote       string
+	NewNoteMenu      string
+	FolderCreateMenu string
+	Fullscreen       string
 
 	// File watcher events
 	SettingsUpdate    string
@@ -46,11 +47,10 @@ var Events = struct {
 	AuthAccessToken string
 }{
 	// Note events
-	NoteCreate:  "note:create",
-	NoteDelete:  "note:delete",
-	NoteRename:  "note:rename",
-	NoteWrite:   "note:write",
-	NewNoteMenu: "note:create-dialog",
+	NoteCreate: "note:create",
+	NoteDelete: "note:delete",
+	NoteRename: "note:rename",
+	NoteWrite:  "note:write",
 
 	// Folder events
 	FolderRename: "folder:rename",
@@ -58,13 +58,15 @@ var Events = struct {
 	FolderCreate: "folder:create",
 
 	// UI events
-	ZoomIn:          "zoom:in",
-	ZoomOut:         "zoom:out",
-	SettingsOpen:    "settings:open",
-	SearchOpen:      "search:open",
-	SearchOpenPanel: "search:open-panel",
-	SearchNote:      "search:note",
-	Fullscreen:      "window:fullscreen",
+	ZoomIn:           "zoom:in",
+	ZoomOut:          "zoom:out",
+	SettingsOpen:     "settings:open",
+	SearchOpen:       "search:open",
+	SearchOpenPanel:  "search:open-panel",
+	SearchNote:       "search:note",
+	NewNoteMenu:      "note:create-dialog",
+	FolderCreateMenu: "folder:create-dialog",
+	Fullscreen:       "window:fullscreen",
 
 	// File watcher events
 	SettingsUpdate:    "settings:update",

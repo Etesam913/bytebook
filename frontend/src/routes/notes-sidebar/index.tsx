@@ -10,6 +10,7 @@ import { Spacer } from '../../components/folder-sidebar/spacer';
 import { useCreateNoteDialog } from '../../hooks/dialogs.tsx';
 import { useFolderRenameMutation } from '../../hooks/folders.tsx';
 import {
+  useNewNoteEvent,
   useNoteCreate,
   useNoteDelete,
   useNoteRename,
@@ -41,17 +42,20 @@ export function NotesSidebar({
   width: MotionValue<number>;
   leftWidth: MotionValue<number>;
 }) {
+  useNewNoteEvent(curFolder);
+  const openCreateNoteDialog = useCreateNoteDialog();
+  const { mutateAsync: renameFolder } = useFolderRenameMutation();
+
   const noteQueryResult = useNotes(curFolder);
   const notes = noteQueryResult.data?.notes;
   const previousNotes = noteQueryResult.data?.previousNotes;
-  const { mutateAsync: renameFolder } = useFolderRenameMutation();
+
   const searchParams: { ext?: string } = useSearchParamsEntries();
   const curNoteExtension = searchParams?.ext;
 
   const sidebarRef = useRef<HTMLElement>(null);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
-  const openCreateNoteDialog = useCreateNoteDialog();
 
   // Auto navigate to the first note when the notes are loaded
   useEffect(() => {

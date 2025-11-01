@@ -5,8 +5,6 @@ import { isEventInCurrentWindow } from '../../../utils/events';
 import {
   $getSelection,
   $isNodeSelection,
-  $isRangeSelection,
-  $isTextNode,
   BaseSelection,
   CAN_REDO_COMMAND,
   CAN_UNDO_COMMAND,
@@ -344,17 +342,4 @@ export function useSearchNoteEvent(): [
   });
 
   return [isSearchOpen, setIsSearchOpen];
-}
-
-/**
- * Custom hook to handle the "note:create-dialog" Wails event.
- * Opens the create note dialog for the specified folder when the event is received for the current window.
- */
-export function useNewNoteEvent(folder: string): void {
-  const openCreateNoteDialog = useCreateNoteDialog();
-
-  useWailsEvent('note:create-dialog', async (data) => {
-    if (!(await isEventInCurrentWindow(data))) return;
-    openCreateNoteDialog(folder);
-  });
 }

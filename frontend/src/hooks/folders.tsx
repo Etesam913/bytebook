@@ -27,6 +27,8 @@ import {
 } from '../utils/string-formatting';
 import { routeUrls } from '../utils/routes';
 import { useWailsEvent } from './events';
+import { isEventInCurrentWindow } from '../utils/events';
+import { useCreateFolderDialog } from './dialogs';
 
 type FoldersQueryData = {
   alphabetizedFolders: string[];
@@ -317,6 +319,19 @@ export function useFolderDeleteMutation() {
           'An unknown error occurred. Please try again later.'
         );
     },
+  });
+}
+
+/**
+ * Custom hook to handle the "folder:create-dialog" Wails event.
+ * Opens the create folder dialog when the event is received for the current window.
+ */
+export function useFolderCreateDialogEvent(): void {
+  const openCreateFolderDialog = useCreateFolderDialog();
+
+  useWailsEvent('folder:create-dialog', async (data) => {
+    if (!(await isEventInCurrentWindow(data))) return;
+    openCreateFolderDialog();
   });
 }
 

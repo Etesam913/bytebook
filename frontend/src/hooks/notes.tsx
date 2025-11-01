@@ -34,6 +34,8 @@ import { useWailsEvent } from './events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter } from '../types';
 import { $convertFromMarkdownString } from '@lexical/markdown';
+import { useCreateNoteDialog } from './dialogs';
+import { isEventInCurrentWindow } from '../utils/events';
 
 export type NotesQueryData = {
   notes: FilePath[];
@@ -530,5 +532,18 @@ export function useNoteExists(filePath: FilePath) {
       filePath.noteExtension
     ),
     enabled: !!filePath.noteWithoutExtension,
+  });
+}
+
+/**
+ * Custom hook to handle the "note:create-dialog" Wails event.
+ * Opens the create note dialog for the specified folder when the event is received for the current window.
+ */
+export function useNewNoteEvent(folder: string): void {
+  const openCreateNoteDialog = useCreateNoteDialog();
+
+  useWailsEvent('note:create-dialog', async (data) => {
+    if (!(await isEventInCurrentWindow(data))) return;
+    openCreateNoteDialog(folder);
   });
 }

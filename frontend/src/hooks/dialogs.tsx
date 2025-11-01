@@ -12,6 +12,8 @@ import { Table } from '../icons/table';
 import type { LexicalEditor, RangeSelection } from 'lexical';
 import { INSERT_TABLE_COMMAND } from '@lexical/table';
 import { $setSelection } from 'lexical';
+import { useFolderCreateMutation } from './folders';
+import { CreateFolderDialog } from '../components/folder-sidebar/my-folders-accordion/folder-dialog-children';
 
 /**
  * Custom hook that returns a function to open a "Create Note" dialog for a given folder.
@@ -286,6 +288,35 @@ export function useCreateTableDialog(): (
           return false;
         }
       },
+    });
+  };
+}
+
+/**
+ * Custom hook that returns a function to open a "Create Folder" dialog.
+ *
+ * When invoked, this function opens a dialog allowing the user to enter a new folder name.
+ * On submission, it validates the folder name, attempts to create the folder,
+ * and navigates to the new folder if successful. If an error occurs, it displays an error message in the dialog.
+ *
+ * @returns {() => void} Function to open the create folder dialog.
+ *
+ */
+export function useCreateFolderDialog(): () => void {
+  const setDialogData = useSetAtom(dialogDataAtom);
+  const { mutateAsync: createFolder } = useFolderCreateMutation();
+
+  return () => {
+    setDialogData({
+      isOpen: true,
+      title: 'Create Folder',
+      isPending: false,
+      children: (errorText) => <CreateFolderDialog errorText={errorText} />,
+      onSubmit: async (e, setErrorText) =>
+        createFolder({
+          e: e,
+          setErrorText: setErrorText,
+        }),
     });
   };
 }

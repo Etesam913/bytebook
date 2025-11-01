@@ -1,16 +1,15 @@
 import { type MotionValue, motion } from 'motion/react';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { getDefaultButtonVariants } from '../../animations.ts';
-import { dialogDataAtom, isFullscreenAtom } from '../../atoms';
+import { isFullscreenAtom } from '../../atoms';
 import {
   useFolderCreate,
   useFolderDelete,
-  useFolderCreateMutation,
+  useFolderCreateDialogEvent,
 } from '../../hooks/folders.tsx';
 import { FolderPlus } from '../../icons/folder-plus';
 import { MotionButton, MotionIconButton } from '../buttons';
 import { BottomItems } from './bottom-items.tsx';
-import { CreateFolderDialog } from './my-folders-accordion/folder-dialog-children.tsx';
 import { MyFoldersAccordion } from './my-folders-accordion';
 import { MyTagsAccordion } from './my-tags-accordion';
 import { PinnedNotesAccordion } from './pinned-notes-accordion.tsx';
@@ -27,13 +26,16 @@ import { useFolderFromRoute } from '../../hooks/events.tsx';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion';
 import { Tooltip } from '../tooltip';
 import { cn } from '../../utils/string-formatting.ts';
+import { useCreateFolderDialog } from '../../hooks/dialogs';
+import { Command } from '../../icons/command.tsx';
 
 export function FolderSidebar({ width }: { width: MotionValue<number> }) {
   useFolderCreate();
   useFolderDelete();
+  useFolderCreateDialogEvent();
+
   const { folder } = useFolderFromRoute();
   const isFullscreen = useAtomValue(isFullscreenAtom);
-  const { mutateAsync: createFolder } = useFolderCreateMutation();
 
   const sidebarAccordionSectionRef = useRef<HTMLDivElement | null>(null);
   const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(
@@ -43,7 +45,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
       speed: 20,
     }
   );
-  const setDialogData = useSetAtom(dialogDataAtom);
+  const openCreateFolderDialog = useCreateFolderDialog();
 
   if (folder === 'settings') return null;
 
@@ -84,34 +86,34 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
             </MotionIconButton>
           </Tooltip>
         </header>
-        <section className="px-2.5 pt-[1rem]">
+        <section className="px-2.5 pt-4">
           <SearchBar />
-          <MotionButton
-            {...getDefaultButtonVariants({
-              disabled: false,
-              whileHover: 1.025,
-              whileTap: 0.975,
-              whileFocus: 1.025,
-            })}
-            className="align-center mb-2 flex w-full justify-between bg-transparent"
-            onClick={() =>
-              setDialogData({
-                isOpen: true,
-                title: 'Create Folder',
-                isPending: false,
-                children: (errorText) => (
-                  <CreateFolderDialog errorText={errorText} />
-                ),
-                onSubmit: async (e, setErrorText) =>
-                  createFolder({
-                    e: e,
-                    setErrorText: setErrorText,
-                  }),
-              })
+          <Tooltip
+            placement="right"
+            content={
+              <span className="flex items-center gap-0.5">
+                <Command
+                  className="will-change-transform"
+                  width={12.8}
+                  height={12.8}
+                />
+                <p>G</p>
+              </span>
             }
           >
-            Create Folder <FolderPlus className="will-change-transform" />
-          </MotionButton>
+            <MotionButton
+              {...getDefaultButtonVariants({
+                disabled: false,
+                whileHover: 1.025,
+                whileTap: 0.975,
+                whileFocus: 1.025,
+              })}
+              className="align-center mb-2 flex w-full justify-between bg-transparent"
+              onClick={openCreateFolderDialog}
+            >
+              Create Folder <FolderPlus className="will-change-transform" />
+            </MotionButton>
+          </Tooltip>
         </section>
         <section
           className="flex flex-1 flex-col overflow-y-auto gap-2 py-1.5"

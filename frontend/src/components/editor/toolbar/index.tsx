@@ -24,7 +24,6 @@ import { MaximizeNoteButton } from '../../buttons/maximize-note';
 import { ToolbarButtons } from '../../buttons/toolbar';
 import { Dropdown } from '../../dropdown';
 import {
-  useNewNoteEvent,
   useNoteMarkdown,
   useSearchNoteEvent,
   useToolbarEvents,
@@ -121,7 +120,6 @@ export function Toolbar({
     tableActionsRef,
   });
 
-  useNewNoteEvent(folder);
   useNoteChangedEvent({ folder, note, editor, setFrontmatter });
   useKernelLaunchEvents(editor);
   useCodeBlockStream(editor);
