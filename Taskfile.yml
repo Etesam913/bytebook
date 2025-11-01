@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 includes:
   common: ./build/Taskfile.yml
@@ -7,9 +7,9 @@ includes:
   linux: ./build/linux/Taskfile.yml
 
 vars:
-  APP_NAME: "myfirstapp"
+  APP_NAME: "Bytebook"
   BIN_DIR: "bin"
-  VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
+  VITE_PORT: "{{.WAILS_VITE_PORT | default 9245}}"
 
 tasks:
   build:
@@ -31,4 +31,3 @@ tasks:
     summary: Runs the application in development mode
     cmds:
       - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
-

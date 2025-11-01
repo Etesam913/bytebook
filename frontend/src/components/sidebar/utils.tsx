@@ -14,7 +14,7 @@ import {
 import { WAILS_URL } from '../../utils/general';
 
 /** Gets the file icon for the dragged item */
-function getFileIcon(fileType: 'folder' | 'note' | 'image') {
+export function getFileIcon(fileType: 'folder' | 'note' | 'image') {
   switch (fileType) {
     case 'folder':
       return <Folder className="min-w-5" height={20} width={20} title="" />;

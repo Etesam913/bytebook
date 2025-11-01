@@ -7,7 +7,7 @@ import {
   useSearchFocus,
 } from '../../hooks/search';
 import { useAtom, useAtomValue } from 'jotai';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { SearchResultsList } from './results/search-results-list';
 import { SearchResultsHeader } from './results/search-results-header';
@@ -15,6 +15,7 @@ import { Input } from '../../components/input';
 import { isFullscreenAtom } from '../../atoms';
 import { cn } from '../../utils/string-formatting';
 import { SearchOptions } from './search-options';
+import { Tooltip } from '../../components/tooltip';
 
 export function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useAtom(lastSearchQueryAtom);
@@ -25,26 +26,53 @@ export function SearchPage() {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   const {
-    data: searchResults = [],
+    data: groupedResults = { notes: [], attachments: [], folders: [] },
     isError,
     error,
   } = useFullTextSearchQuery(lastSearchQuery);
 
+  // Flatten results for navigation and counting
+  const allResults = useMemo(() => {
+    const results = [
+      ...groupedResults.notes.map((note) => ({
+        filePath: note.filePath,
+        type: 'note' as const,
+      })),
+      ...groupedResults.attachments.map((filePath) => ({
+        filePath,
+        type: 'attachment' as const,
+      })),
+      ...groupedResults.folders.map((folder) => ({
+        folder,
+        type: 'folder' as const,
+      })),
+    ];
+
+    return results;
+  }, [groupedResults]);
+
+  const totalCount =
+    groupedResults.notes.length +
+    groupedResults.attachments.length +
+    groupedResults.folders.length;
+
   return (
-    <section className="pt-2.5 flex-1 h-screen flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
-      <header className="w-full pr-4 border-b border-zinc-200 dark:border-zinc-700 flex flex-col gap-1">
+    <section className="flex-1 h-screen flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
+      <header className="w-full pt-2.5 pb-1 pr-2 border-b border-zinc-200 dark:border-zinc-700 flex flex-col gap-1">
         <div
           className={cn(
-            'pl-22 flex items-center gap-2',
+            'pl-23 flex items-center gap-2',
             isFullscreen && 'pl-2.5'
           )}
         >
-          <MotionIconButton
-            {...getDefaultButtonVariants()}
-            onClick={() => window.history.back()}
-          >
-            <CircleArrowLeft height={20} width={20} />
-          </MotionIconButton>
+          <Tooltip content="Go back">
+            <MotionIconButton
+              {...getDefaultButtonVariants()}
+              onClick={() => window.history.back()}
+            >
+              <CircleArrowLeft height={20} width={20} />
+            </MotionIconButton>
+          </Tooltip>
           <Input
             ref={inputRef}
             inputProps={{
@@ -64,28 +92,23 @@ export function SearchPage() {
               onKeyDown: (e) => {
                 if (e.key === 'ArrowDown') {
                   e.preventDefault();
-                  if (searchResults.length === 0) return;
+                  if (allResults.length === 0) return;
                   setSelectedIndex((prev) =>
-                    Math.min(prev < 0 ? 0 : prev + 1, searchResults.length - 1)
+                    Math.min(prev < 0 ? 0 : prev + 1, allResults.length - 1)
                   );
                 } else if (e.key === 'ArrowUp') {
                   e.preventDefault();
-                  if (searchResults.length === 0) return;
+                  if (allResults.length === 0) return;
                   setSelectedIndex((prev) => (prev <= 0 ? 0 : prev - 1));
                 } else if (e.key === 'Enter') {
-                  if (
-                    selectedIndex >= 0 &&
-                    selectedIndex < searchResults.length
-                  ) {
-                    const selected = searchResults[selectedIndex];
-                    const highlights = selected.highlights;
-                    const firstHighlightedTerm = highlights[0]?.highlightedTerm;
-                    const href = firstHighlightedTerm
-                      ? selected.filePath.getLinkToNote({
-                          highlight: firstHighlightedTerm,
-                        })
-                      : selected.filePath.getLinkToNote();
-                    setLocation(href);
+                  if (selectedIndex >= 0 && selectedIndex < allResults.length) {
+                    const selected = allResults[selectedIndex];
+                    if (selected.type === 'folder') {
+                      setLocation(`/notes/${selected.folder}`);
+                    } else {
+                      const href = selected.filePath.getLinkToNote();
+                      setLocation(href);
+                    }
                   }
                 } else if (e.key === 'Escape') {
                   e.preventDefault();
@@ -100,7 +123,7 @@ export function SearchPage() {
         <div>
           <SearchResultsHeader
             searchQuery={lastSearchQuery}
-            resultCount={searchResults.length}
+            resultCount={totalCount}
           />
         </div>
       </header>
@@ -116,7 +139,7 @@ export function SearchPage() {
             </div>
           </div>
         )}
-        {searchResults.length === 0 && !lastSearchQuery.trim() && (
+        {totalCount === 0 && !lastSearchQuery.trim() && (
           <div className="flex justify-center items-center flex-1 px-6">
             <div className="text-zinc-700 dark:text-zinc-300">
               <h2 className="text-2xl py-3 text-center text-zinc-800 dark:text-zinc-200">
@@ -156,14 +179,15 @@ export function SearchPage() {
             </div>
           </div>
         )}
-        {searchResults.length === 0 && lastSearchQuery.trim() && !isError && (
+        {totalCount === 0 && lastSearchQuery.trim() && !isError && (
           <div className="flex justify-center items-center flex-1 py-3 px-6 text-center text-zinc-600 dark:text-zinc-400">
             No results found. Try adjusting your search terms.
           </div>
         )}
         <SearchResultsList
-          searchResults={searchResults}
+          groupedResults={groupedResults}
           selectedIndex={selectedIndex}
+          allResults={allResults}
         />
       </div>
     </section>

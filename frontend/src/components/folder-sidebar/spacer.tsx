@@ -7,7 +7,7 @@ import { MAX_SIDEBAR_WIDTH } from '../../utils/general';
 import { cn } from '../../utils/string-formatting';
 import { currentZoomAtom } from '../../hooks/resize';
 
-const MIN_SIDEBAR_WIDTH = 375;
+const MIN_SIDEBAR_WIDTH = 250;
 const SPACER_OFFSET = 8;
 
 export function Spacer({
@@ -39,8 +39,8 @@ export function Spacer({
     const newWidth = adjustedClientX - leftOffset;
 
     // Clamp width between min and max values
-    const clampedWidth = Math.min(
-      Math.max(newWidth, MAX_SIDEBAR_WIDTH),
+    const clampedWidth = Math.max(
+      Math.min(newWidth, MAX_SIDEBAR_WIDTH),
       MIN_SIDEBAR_WIDTH
     );
     width.set(clampedWidth);

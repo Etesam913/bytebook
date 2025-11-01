@@ -47,6 +47,11 @@ func ListenToEvents(params EventParams) {
 		handleFolderDeleteEvent(params, event)
 	})
 
+	params.App.Event.On(util.Events.FolderCreate, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", util.Events.FolderCreate, event.Data)
+		handleFolderCreateEvent(params, event)
+	})
+
 	// Tag Events
 	params.App.Event.On(util.Events.TagsUpdate, func(event *application.CustomEvent) {
 		log.Printf("%s: %+v", util.Events.TagsUpdate, event.Data)

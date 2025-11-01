@@ -23,6 +23,7 @@ import (
 var INDEX_NAME = ".index.bleve"
 var MARKDOWN_NOTE_TYPE = "markdown_note"
 var ATTACHMENT_TYPE = "attachment"
+var FOLDER_TYPE = "folder"
 var FilenameAnalyzer = "filename_analyzer"
 
 type MarkdownNoteBleveDocument struct {
@@ -55,6 +56,12 @@ type AttachmentBleveDocument struct {
 	FileName      string `json:"file_name"`
 	FileNameLC    string `json:"file_name_lc"`
 	FileExtension string `json:"file_extension"`
+}
+
+type MarkdownFolderBleveDocument struct {
+	Type     string `json:"type"`
+	Folder   string `json:"folder"`
+	FolderLC string `json:"folder_lc"`
 }
 
 // DocumentIndexInfo contains information about a document's presence in the search index.
@@ -105,6 +112,16 @@ func createAttachmentBleveDocument(folder, fileName, fileExtension string) Attac
 		FileName:      fileName,
 		FileNameLC:    strings.ToLower(fileName),
 		FileExtension: fileExtension,
+	}
+}
+
+// createFolderBleveDocument constructs a MarkdownFolderBleveDocument from folder information.
+// It extracts the folder name for search indexing.
+func createFolderBleveDocument(folderName string) MarkdownFolderBleveDocument {
+	return MarkdownFolderBleveDocument{
+		Type:     FOLDER_TYPE,
+		Folder:   folderName,
+		FolderLC: strings.ToLower(folderName),
 	}
 }
 
@@ -174,6 +191,7 @@ func createIndex(projectPath string) (bleve.Index, error) {
 	indexMapping.DefaultMapping = createMarkdownNoteDocumentMapping()
 	indexMapping.AddDocumentMapping(MARKDOWN_NOTE_TYPE, createMarkdownNoteDocumentMapping())
 	indexMapping.AddDocumentMapping(ATTACHMENT_TYPE, createAttachmentDocumentMapping())
+	indexMapping.AddDocumentMapping(FOLDER_TYPE, createFolderDocumentMapping())
 	index, err := bleve.New(pathToIndex, indexMapping)
 	if err != nil {
 		return nil, err
@@ -299,6 +317,20 @@ func createAttachmentDocumentMapping() *mapping.DocumentMapping {
 	return documentMapping
 }
 
+// createFolderDocumentMapping creates a Bleve document mapping for folders.
+// It defines field mappings for all the fields in MarkdownFolderBleveDocument to enable
+// proper indexing and searching of folder metadata.
+func createFolderDocumentMapping() *mapping.DocumentMapping {
+	folderLowerFieldMapping := bleve.NewTextFieldMapping()
+	folderLowerFieldMapping.Analyzer = FilenameAnalyzer // Use custom analyzer that doesn't split on apostrophes
+	folderLowerFieldMapping.Store = true
+
+	documentMapping := bleve.NewDocumentMapping()
+	documentMapping.AddFieldMappingsAt(FieldFolder, folderLowerFieldMapping)
+
+	return documentMapping
+}
+
 // getDocumentByIdFromIndex checks if a document exists in the index and returns its lastUpdated value if available.
 // Returns DocumentIndexInfo with Exists=false if the document is not found or an error occurs.
 func getDocumentByIdFromIndex(index bleve.Index, docId string) DocumentIndexInfo {
@@ -391,6 +423,25 @@ func AddAttachmentToBatch(
 	return fileId, nil
 }
 
+// AddFolderToBatch processes a folder and adds it to the batch if it needs indexing.
+// Returns the ID used for indexing and any error encountered.
+func AddFolderToBatch(
+	batch *bleve.Batch,
+	index bleve.Index,
+	folderName string,
+) (string, error) {
+	// For folders, use the folder name as the unique ID
+	folderId := folderName
+	docInfo := getDocumentByIdFromIndex(index, folderId)
+
+	if !docInfo.Exists {
+		bleveDocument := createFolderBleveDocument(folderName)
+		batch.Index(folderId, bleveDocument)
+	}
+
+	return folderId, nil
+}
+
 // IndexAllFilesInFolder processes all files in a specific folder and ensures they are properly indexed.
 // It:
 // 1. Creates a batch for efficient indexing
@@ -405,6 +456,13 @@ func IndexAllFilesInFolder(folderPath, folderName string, index bleve.Index) err
 	}
 
 	batch := index.NewBatch()
+
+	// Index the folder itself
+	_, err := AddFolderToBatch(batch, index, folderName)
+	if err != nil {
+		log.Printf("Error indexing folder %s: %v", folderName, err)
+		// Continue with file indexing even if folder indexing fails
+	}
 
 	// Process all files in the folder
 	files, err := os.ReadDir(folderPath)

@@ -3,7 +3,7 @@
 #
 # The lines below are called `modelines`. See `:help modeline`
 
-name: "myfirstapp"
+name: "Bytebook"
 arch: ${GOARCH}
 platform: "linux"
 version: "0.1.0"
@@ -17,17 +17,16 @@ license: "MIT"
 release: "1"
 
 contents:
-  - src: "./bin/myfirstapp"
-    dst: "/usr/local/bin/myfirstapp"
+  - src: "./bin/Bytebook"
+    dst: "/usr/local/bin/Bytebook"
   - src: "./build/appicon.png"
-    dst: "/usr/share/icons/hicolor/128x128/apps/myfirstapp.png"
-  - src: "./build/linux/myfirstapp.desktop"
-    dst: "/usr/share/applications/myfirstapp.desktop"
+    dst: "/usr/share/icons/hicolor/128x128/apps/Bytebook.png"
+  - src: "./build/linux/Bytebook.desktop"
+    dst: "/usr/share/applications/Bytebook.desktop"
 
 depends:
   - gtk3
   - libwebkit2gtk
-
 # replaces:
 #   - foobar
 # provides:

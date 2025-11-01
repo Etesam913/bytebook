@@ -7,7 +7,7 @@ export const DEFAULT_SONNER_OPTIONS = {
   closeButton: true,
 };
 
-export const MAX_SIDEBAR_WIDTH = 230;
+export const MAX_SIDEBAR_WIDTH = 300;
 
 /**
  * Format bytes as human-readable text.

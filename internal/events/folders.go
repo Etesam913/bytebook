@@ -32,6 +32,38 @@ func handleFolderDeleteEvent(params EventParams, event *application.CustomEvent)
 	deleteFoldersFromIndex(params, data)
 }
 
+func handleFolderCreateEvent(params EventParams, event *application.CustomEvent) {
+	data, ok := event.Data.([]map[string]string)
+	if !ok {
+		log.Println("Folder create event data is not of type []map[string]string")
+		return
+	}
+
+	addFoldersToIndex(params, data)
+}
+
+func addFoldersToIndex(params EventParams, data []map[string]string) {
+	batch := params.Index.NewBatch()
+
+	for _, folder := range data {
+		folderName, ok := folder["folder"]
+		if !ok {
+			log.Println("Folder create event data missing folder")
+			continue
+		}
+
+		_, err := search.AddFolderToBatch(batch, params.Index, folderName)
+		if err != nil {
+			log.Printf("Error adding folder to batch: %v", err)
+		}
+	}
+
+	err := params.Index.Batch(batch)
+	if err != nil {
+		log.Println("Error indexing batch", err)
+	}
+}
+
 func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
 	batch := params.Index.NewBatch()
 
@@ -42,6 +74,9 @@ func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
 			log.Println("Folder delete event data missing folder")
 			continue
 		}
+
+		// Delete the folder document itself
+		batch.Delete(folderName)
 
 		// Query for all documents with the folder attribute equal to the deleted folder
 		folderQuery := bleve.NewMatchPhraseQuery(folderName)
@@ -127,6 +162,9 @@ func renameFoldersInIndex(params EventParams, data []map[string]string) {
 // This is the first step in the folder rename process.
 func deleteRenameFolderFromIndex(params EventParams, oldFolderName string) {
 	batch := params.Index.NewBatch()
+
+	// Delete the folder document itself
+	batch.Delete(oldFolderName)
 
 	// Query for all documents with the old folder name
 	folderQuery := bleve.NewMatchPhraseQuery(oldFolderName)

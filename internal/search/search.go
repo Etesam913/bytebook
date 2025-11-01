@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
+	blevesearch "github.com/blevesearch/bleve/v2/search"
 	"github.com/blevesearch/bleve/v2/search/query"
 	"github.com/etesam913/bytebook/internal/util"
 )
@@ -13,7 +14,7 @@ import (
 // used by the application (fields, size, and highlighting for text_content and code_content).
 func CreateSearchRequest(q query.Query) *bleve.SearchRequest {
 	req := bleve.NewSearchRequest(q)
-	req.Fields = []string{FieldFolder, FieldFileName, FieldLastUpdated, FieldCreatedDate, FieldTags}
+	req.Fields = []string{FieldType, FieldFolder, FieldFileName, FieldLastUpdated, FieldCreatedDate, FieldTags}
 	req.Size = 50
 	req.IncludeLocations = true
 	req.Highlight = bleve.NewHighlightWithStyle("html")
@@ -32,6 +33,7 @@ type HighlightResult struct {
 
 // SearchResult represents one search hit returned to the frontend
 type SearchResult struct {
+	Type        string            `json:"type"`
 	Title       string            `json:"title"`
 	Folder      string            `json:"folder"`
 	Note        string            `json:"note"`
@@ -60,8 +62,155 @@ func extractHighlightedText(fragment string) string {
 	return ""
 }
 
+// extractMarkdownNoteFields extracts markdown note-specific fields (tags, lastUpdated, created) from a search hit
+func extractMarkdownNoteFields(hit *blevesearch.DocumentMatch) ([]string, string, string) {
+	// extract tags from search result
+	var tags []string
+	if tagsField, ok := hit.Fields[FieldTags]; ok {
+		switch t := tagsField.(type) {
+		case []interface{}:
+			for _, tag := range t {
+				if tagStr, ok := tag.(string); ok {
+					tags = append(tags, tagStr)
+				}
+			}
+		case []string:
+			tags = t
+		case string:
+			tags = []string{t}
+		}
+	}
+
+	// last_updated is stored as a datetime; retrieve as string if present
+	lastUpdated := ""
+	if lu, ok := hit.Fields[FieldLastUpdated]; ok {
+		switch t := lu.(type) {
+		case string:
+			lastUpdated = t
+		default:
+			lastUpdated = ""
+		}
+	}
+
+	// created date is stored as a datetime; retrieve as string if present
+	created := ""
+	if cd, ok := hit.Fields[FieldCreatedDate]; ok {
+		switch t := cd.(type) {
+		case string:
+			created = t
+		default:
+			created = ""
+		}
+	}
+
+	return tags, lastUpdated, created
+}
+
+// extractHighlights extracts highlight fragments from a search hit
+func extractHighlights(hit *blevesearch.DocumentMatch) []HighlightResult {
+	highlights := []HighlightResult{}
+	seen := util.Set[string]{}
+
+	if hit.Fragments != nil {
+		// Process highlights for all highlight fields
+		for _, field := range HIGHLIGHT_FIELDS {
+			if frags, ok := hit.Fragments[field]; ok {
+				for _, frag := range frags {
+					if !seen.Has(frag) {
+						seen.Add(frag)
+						if hasHighlightContent(frag) {
+							highlights = append(highlights, HighlightResult{
+								Content:         frag,
+								IsCode:          field == FieldCodeContent,
+								HighlightedTerm: extractHighlightedText(frag),
+							})
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return highlights
+}
+
+// processMarkdownNoteResult processes a markdown note search hit
+func processMarkdownNoteResult(hit *blevesearch.DocumentMatch) *SearchResult {
+	folder, folderOk := hit.Fields[FieldFolder].(string)
+	if !folderOk {
+		return nil
+	}
+
+	fileName, fileNameOk := hit.Fields[FieldFileName].(string)
+	if !fileNameOk {
+		return nil
+	}
+
+	tags, lastUpdated, created := extractMarkdownNoteFields(hit)
+	highlights := extractHighlights(hit)
+
+	return &SearchResult{
+		Type:        MARKDOWN_NOTE_TYPE,
+		Title:       fileName,
+		Folder:      folder,
+		Note:        fileName,
+		LastUpdated: lastUpdated,
+		Created:     created,
+		Tags:        tags,
+		Highlights:  highlights,
+	}
+}
+
+// processAttachmentResult processes an attachment search hit
+func processAttachmentResult(hit *blevesearch.DocumentMatch) *SearchResult {
+	folder, folderOk := hit.Fields[FieldFolder].(string)
+	if !folderOk {
+		return nil
+	}
+
+	fileName, fileNameOk := hit.Fields[FieldFileName].(string)
+	if !fileNameOk {
+		return nil
+	}
+
+	highlights := extractHighlights(hit)
+
+	return &SearchResult{
+		Type:        ATTACHMENT_TYPE,
+		Title:       fileName,
+		Folder:      folder,
+		Note:        fileName,
+		LastUpdated: "",         // Attachments don't have lastUpdated
+		Created:     "",         // Attachments don't have created date
+		Tags:        []string{}, // Attachments don't have tags
+		Highlights:  highlights,
+	}
+}
+
+// processFolderResult processes a folder search hit
+func processFolderResult(hit *blevesearch.DocumentMatch) *SearchResult {
+	folder, folderOk := hit.Fields[FieldFolder].(string)
+	if !folderOk {
+		return nil
+	}
+
+	highlights := extractHighlights(hit)
+
+	// Folders don't have file names, so use folder name as title
+	return &SearchResult{
+		Type:        FOLDER_TYPE,
+		Title:       folder,
+		Folder:      folder,
+		Note:        "",         // Folders don't have note files
+		LastUpdated: "",         // Folders don't have lastUpdated
+		Created:     "",         // Folders don't have created date
+		Tags:        []string{}, // Folders don't have tags
+		Highlights:  highlights,
+	}
+}
+
 // ProcessDocumentSearchResults converts Bleve search results into SearchResult structs
-// for frontend consumption. It extracts folder, file_name, last_updated fields
+// for frontend consumption. It extracts type, folder, file_name, last_updated fields
 // and highlight fragments from the search hits.
 func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResult {
 	if searchResult == nil {
@@ -71,84 +220,31 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 	results := []SearchResult{}
 
 	for _, hit := range searchResult.Hits {
-		folder, folderOk := hit.Fields[FieldFolder].(string)
-		fileName, fileNameOk := hit.Fields[FieldFileName].(string)
-		if !folderOk || !fileNameOk {
+		// Extract document type (markdown_note, attachment, or folder)
+		docType := ""
+		if typeField, ok := hit.Fields[FieldType]; ok {
+			if typeStr, ok := typeField.(string); ok {
+				docType = typeStr
+			}
+		}
+
+		var result *SearchResult
+
+		switch docType {
+		case MARKDOWN_NOTE_TYPE:
+			result = processMarkdownNoteResult(hit)
+		case ATTACHMENT_TYPE:
+			result = processAttachmentResult(hit)
+		case FOLDER_TYPE:
+			result = processFolderResult(hit)
+		default:
+			// Unknown type, skip
 			continue
 		}
 
-		// last_updated is stored as a datetime; retrieve as string if present
-		lastUpdated := ""
-		if lu, ok := hit.Fields[FieldLastUpdated]; ok {
-			switch t := lu.(type) {
-			case string:
-				lastUpdated = t
-			default:
-				lastUpdated = ""
-			}
+		if result != nil {
+			results = append(results, *result)
 		}
-
-		// created date is stored as a datetime; retrieve as string if present
-		created := ""
-		if cd, ok := hit.Fields[FieldCreatedDate]; ok {
-			switch t := cd.(type) {
-			case string:
-				created = t
-			default:
-				created = ""
-			}
-		}
-
-		// extract tags from search result
-		var tags []string
-		if tagsField, ok := hit.Fields[FieldTags]; ok {
-			switch t := tagsField.(type) {
-			case []interface{}:
-				for _, tag := range t {
-					if tagStr, ok := tag.(string); ok {
-						tags = append(tags, tagStr)
-					}
-				}
-			case []string:
-				tags = t
-			case string:
-				tags = []string{t}
-			}
-		}
-
-		// collect highlight fragments for text_content and code_content with deduplication
-		highlights := []HighlightResult{}
-		seen := util.Set[string]{}
-
-		if hit.Fragments != nil {
-			// Process highlights for all highlight fields
-			for _, field := range HIGHLIGHT_FIELDS {
-				if frags, ok := hit.Fragments[field]; ok {
-					for _, frag := range frags {
-						if !seen.Has(frag) {
-							seen.Add(frag)
-							if hasHighlightContent(frag) {
-								highlights = append(highlights, HighlightResult{
-									Content:         frag,
-									IsCode:          field == FieldCodeContent,
-									HighlightedTerm: extractHighlightedText(frag),
-								})
-							}
-						}
-					}
-				}
-			}
-		}
-
-		results = append(results, SearchResult{
-			Title:       fileName,
-			Folder:      folder,
-			Note:        fileName,
-			LastUpdated: lastUpdated,
-			Created:     created,
-			Tags:        tags,
-			Highlights:  highlights,
-		})
 	}
 
 	return results

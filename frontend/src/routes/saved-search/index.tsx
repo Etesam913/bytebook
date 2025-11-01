@@ -34,13 +34,16 @@ export function SavedSearchPage({
   curNote?: string;
 }) {
   const {
-    data: searchResults,
+    data: groupedResults = { notes: [], attachments: [], folders: [] },
     isSuccess,
     refetch,
     isError,
     isLoading,
   } = useFullTextSearchQuery(searchQuery);
-  const resultCount = searchResults?.length ?? 0;
+  const resultCount =
+    groupedResults.notes.length +
+    groupedResults.attachments.length +
+    groupedResults.folders.length;
 
   // const [_, curRouteParams] = useRoute<SavedSearchRouteParams>(
   //   routeUrls.patterns.SAVED_SEARCH
@@ -62,17 +65,24 @@ export function SavedSearchPage({
 
   // Auto navigate to the first result
   useEffect(() => {
-    if (isSuccess && searchResults?.length > 0) {
-      const firstFilePath = searchResults[0].filePath;
+    if (isSuccess && resultCount > 0) {
+      let firstFilePath: FilePath | undefined;
+      if (groupedResults.notes.length > 0) {
+        firstFilePath = groupedResults.notes[0].filePath;
+      } else if (groupedResults.attachments.length > 0) {
+        firstFilePath = groupedResults.attachments[0];
+      }
 
-      navigate(
-        `${routeBuilders.savedSearch(searchQuery)}${firstFilePath.getLinkToNoteWithoutNotesPrefix()}`,
-        {
-          replace: true,
-        }
-      );
+      if (firstFilePath) {
+        navigate(
+          `${routeBuilders.savedSearch(searchQuery)}${firstFilePath.getLinkToNoteWithoutNotesPrefix()}`,
+          {
+            replace: true,
+          }
+        );
+      }
     }
-  }, [isSuccess, searchResults]);
+  }, [isSuccess, resultCount, groupedResults, searchQuery]);
 
   return (
     <>
@@ -151,9 +161,10 @@ export function SavedSearchPage({
                           No results found for &quot;{searchQuery}&quot;
                         </li>
                       }
-                      data={
-                        searchResults?.map((result) => result.filePath) ?? []
-                      }
+                      data={[
+                        ...groupedResults.notes.map((note) => note.filePath),
+                        ...groupedResults.attachments,
+                      ]}
                       dataItemToString={(filePath) =>
                         filePath.noteWithoutExtension
                       }

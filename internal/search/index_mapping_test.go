@@ -327,6 +327,9 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		err := IndexAllFilesInFolder(folderPath, "test-folder", env.Index)
 		assert.NoError(t, err)
 
+		// Verify folder is indexed
+		env.verifyDocumentExists("test-folder")
+
 		// Verify files are indexed using their file paths as document IDs
 		env.verifyDocumentExists("test-folder/test1.md")
 		env.verifyDocumentExists("test-folder/test2.md")
@@ -341,6 +344,10 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		err := IndexAllFilesInFolder(folderPath, "test-folder-2", env.Index)
 		assert.NoError(t, err)
 
+		// Verify folder is indexed
+		env.verifyDocumentExists("test-folder-2")
+
+		// Verify file is indexed
 		env.verifyDocumentExists("test-folder-2/test.md")
 	})
 
@@ -355,6 +362,9 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 
 		err = IndexAllFilesInFolder(folderPath, "parent-folder", env.Index)
 		assert.NoError(t, err)
+
+		// Verify folder is indexed
+		env.verifyDocumentExists("parent-folder")
 
 		// Verify parent file was indexed
 		env.verifyDocumentExists("parent-folder/parent-note.md")
@@ -383,6 +393,9 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 
 		err := IndexAllFilesInFolder(folderPath, "empty-folder", env.Index)
 		assert.NoError(t, err) // Should not error on empty folders
+
+		// Verify folder is indexed even when empty
+		env.verifyDocumentExists("empty-folder")
 	})
 }
 

@@ -20,6 +20,7 @@ import { useWailsEvent } from '../hooks/events';
 import { isEventInCurrentWindow } from '../utils/events';
 import { useEffect, useRef } from 'react';
 import { FilePath } from '../utils/string-formatting';
+import { HighlightResult } from '../../bindings/github.com/etesam913/bytebook/internal/search/models';
 import { routeUrls } from '../utils/routes';
 import { toast } from 'sonner';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
@@ -27,17 +28,61 @@ import { QueryError } from '../utils/query';
 
 export const lastSearchQueryAtom = atom<string>('');
 
+export type GroupedSearchResults = {
+  notes: Array<{
+    filePath: FilePath;
+    tags: string[];
+    lastUpdated: string;
+    created: string;
+    highlights: HighlightResult[];
+  }>;
+  attachments: FilePath[];
+  folders: string[];
+};
+
 export const searchQueries = {
   fullTextSearch: (searchQuery: string) =>
     queryOptions({
       queryKey: ['full-text-search', searchQuery],
       queryFn: () => FullTextSearch(searchQuery),
       select: (data) => {
-        if (!data) return [];
-        return data.map((result) => ({
-          ...result,
-          filePath: new FilePath({ folder: result.folder, note: result.note }),
-        }));
+        if (!data) return { notes: [], attachments: [], folders: [] };
+
+        const notes: Array<{
+          filePath: FilePath;
+          tags: string[];
+          lastUpdated: string;
+          created: string;
+          highlights: HighlightResult[];
+        }> = [];
+        const attachments: FilePath[] = [];
+        const folders: string[] = [];
+
+        data.forEach((result) => {
+          if (result.type === 'markdown_note') {
+            const filePath = new FilePath({
+              folder: result.folder,
+              note: result.note,
+            });
+            notes.push({
+              filePath,
+              tags: result.tags || [],
+              lastUpdated: result.lastUpdated || '',
+              created: result.created || '',
+              highlights: result.highlights || [],
+            });
+          } else if (result.type === 'attachment') {
+            const filePath = new FilePath({
+              folder: result.folder,
+              note: result.note,
+            });
+            attachments.push(filePath);
+          } else if (result.type === 'folder') {
+            folders.push(result.folder);
+          }
+        });
+
+        return { notes, attachments, folders };
       },
       placeholderData: keepPreviousData,
     }),
