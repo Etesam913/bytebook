@@ -15,7 +15,7 @@ export function RouteFallback({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 0.5 }}
-      className="grow flex items-center justify-center"
+      className="grow flex flex-1 h-screen items-center justify-center"
     >
       <LoadingSpinner height={height} width={width} className={className} />
     </motion.div>

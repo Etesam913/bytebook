@@ -14,10 +14,12 @@ import { atomone } from '@uiw/codemirror-theme-atomone';
 import {
   useSendExecuteRequestMutation,
   useSendInterruptRequestMutation,
-  useCompletionSource,
   useTurnOnKernelMutation,
-  useInspectTooltip,
 } from '../../hooks/code';
+import {
+  useCompletionSource,
+  useInspectTooltip,
+} from '../../hooks/code-codemirror';
 import { getCodemirrorKeymap } from '../../utils/codemirror';
 import { focusEditor } from '.';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';

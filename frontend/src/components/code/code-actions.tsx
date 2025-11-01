@@ -1,4 +1,3 @@
-import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { MotionIconButton } from '../buttons';
 import { getDefaultButtonVariants } from '../../animations';
 import { Duplicate2 } from '../../icons/duplicate-2';
@@ -8,6 +7,7 @@ import { motion } from 'motion/react';
 import { PlayButton } from './play-button';
 import { Minimize } from '../../icons/minimize';
 import { DeleteButton } from './delete-button';
+import type { CodeMirrorRef } from './types';
 
 export function CodeActions({
   id,
@@ -20,7 +20,7 @@ export function CodeActions({
   setIsExpanded,
 }: {
   id: string;
-  codeMirrorInstance: ReactCodeMirrorRef | null;
+  codeMirrorInstance: CodeMirrorRef;
   language: Languages;
   status: CodeBlockStatus;
   setStatus: (newStatus: CodeBlockStatus) => void;

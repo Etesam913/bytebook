@@ -1,13 +1,13 @@
 import { MotionIconButton } from '../buttons';
 import { Play } from '../../icons/circle-play';
 import { getDefaultButtonVariants } from '../../animations';
-import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import {
   useSendExecuteRequestMutation,
   useSendInterruptRequestMutation,
   useTurnOnKernelMutation,
 } from '../../hooks/code';
-import { handleRunOrInterruptCode } from '../../utils/codemirror';
+import { handleRunOrInterruptCode } from '../../utils/code';
+import type { CodeMirrorRef } from './types';
 import { CodeBlockStatus, Languages } from '../../types';
 import { MediaStop } from '../../icons/media-stop';
 import { Loader } from '../../icons/loader';
@@ -22,7 +22,7 @@ export function PlayButton({
   setStatus,
 }: {
   codeBlockId: string;
-  codeMirrorInstance: ReactCodeMirrorRef | null;
+  codeMirrorInstance: CodeMirrorRef;
   language: Languages;
   status: CodeBlockStatus;
   setStatus: (status: CodeBlockStatus) => void;

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
+import type { CodeMirrorRef } from './types';
 import { Loader } from '../../icons/loader';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
@@ -18,7 +18,7 @@ const CodeMirrorEditor = lazy(() =>
   }))
 );
 
-export const focusEditor = (codeMirrorInstance: ReactCodeMirrorRef | null) => {
+export const focusEditor = (codeMirrorInstance: CodeMirrorRef) => {
   if (codeMirrorInstance?.view) {
     codeMirrorInstance.view.focus();
   }
@@ -60,7 +60,7 @@ export function Code({
   executionId: string;
 }) {
   const [codeMirrorInstance, setCodeMirrorInstance] =
-    useState<ReactCodeMirrorRef | null>(null);
+    useState<CodeMirrorRef>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [lexicalEditor] = useLexicalComposerContext();
   const [isSelected] = useLexicalNodeSelection(nodeKey);

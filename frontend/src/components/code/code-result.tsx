@@ -7,7 +7,7 @@ import { CodeBlockStatus, Languages } from '../../types';
 import { Loader } from '../../icons/loader';
 import { cn } from '../../utils/string-formatting';
 import { useSendInputReplyMutation } from '../../hooks/code';
-import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
+import type { CodeMirrorRef } from './types';
 
 export function CodeResult({
   id,
@@ -28,7 +28,7 @@ export function CodeResult({
   status: CodeBlockStatus;
   isWaitingForInput: boolean;
   setIsWaitingForInput: (isWaitingForInput: boolean) => void;
-  codeMirrorInstance: ReactCodeMirrorRef | null;
+  codeMirrorInstance: CodeMirrorRef;
 }) {
   const resultContainerRef = useRef<HTMLFormElement>(null);
   const { mutate: sendInputReply } = useSendInputReplyMutation(id, language);
