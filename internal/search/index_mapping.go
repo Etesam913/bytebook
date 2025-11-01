@@ -21,7 +21,7 @@ import (
 )
 
 var INDEX_NAME = ".index.bleve"
-var MARKDOWN_NOTE_TYPE = "markdown_note"
+var MARKDOWN_NOTE_TYPE = "note"
 var ATTACHMENT_TYPE = "attachment"
 var FOLDER_TYPE = "folder"
 var FilenameAnalyzer = "filename_analyzer"

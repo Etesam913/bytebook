@@ -1,6 +1,7 @@
 package search
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
@@ -10,13 +11,13 @@ import (
 // normalizeQuotes converts typographic quotes/apostrophes to ASCII equivalents
 // to ensure consistent tokenization and matching regardless of user input source.
 func normalizeQuotes(s string) string {
-    replacer := strings.NewReplacer(
-        "’", "'", // right single quotation mark → apostrophe
-        "‘", "'", // left single quotation mark → apostrophe
-        "“", "\"", // left double quotation mark → double quote
-        "”", "\"", // right double quotation mark → double quote
-    )
-    return replacer.Replace(s)
+	replacer := strings.NewReplacer(
+		"’", "'", // right single quotation mark → apostrophe
+		"‘", "'", // left single quotation mark → apostrophe
+		"“", "\"", // left double quotation mark → double quote
+		"”", "\"", // right double quotation mark → double quote
+	)
+	return replacer.Replace(s)
 }
 
 // createPrefixQuery returns a case-insensitive prefix query targeting the specified field.
@@ -90,23 +91,22 @@ func buildMatchPhrasePrefixQuery(q, field string) query.Query {
 	return disjunctionQuery
 }
 
-// createFilenameQuery handles filename prefix queries (tokens starting with "f:")
+// createFilenameQuery handles filename prefix queries (tokens starting with "f:" or "file:")
 // Returns a query that searches for folder and/or file names based on the prefix term.
 // Since filenames use a single tokenizer, we use direct prefix queries for exact matching.
 func createFilenameQuery(prefixTerm string) query.Query {
-	// Handle empty or whitespace-only input
+	fmt.Println("prefixTerm", prefixTerm, len(strings.Split(prefixTerm, "/")))
 	if strings.TrimSpace(prefixTerm) == "" {
-		disjunctionQuery := bleve.NewDisjunctionQuery()
-		disjunctionQuery.AddQuery(bleve.NewMatchNoneQuery())
-		disjunctionQuery.AddQuery(bleve.NewMatchNoneQuery())
-		return disjunctionQuery
+		// If the prefix is empty, return a query for all folders.
+		// This means match all documents where FieldType is FOLDER_TYPE.
+		typeQuery := bleve.NewTermQuery(FOLDER_TYPE)
+		typeQuery.SetField(FieldType)
+		fmt.Println("typeQuery")
+		return typeQuery
 	}
 
 	prefixTermSplit := strings.Split(prefixTerm, "/")
-	if len(prefixTermSplit) == 0 {
-		// Return an empty query (nil means no query)
-		return bleve.NewMatchNoneQuery()
-	} else if len(prefixTermSplit) > 1 {
+	if len(prefixTermSplit) > 1 {
 		// If there is a slash act like a folder/note search, so use an AND
 		folderName := prefixTermSplit[0]
 		fileName := prefixTermSplit[1]
@@ -165,7 +165,37 @@ func createFuzzyContentQuery(text string) query.Query {
 	return contentQuery
 }
 
-// createTagQuery handles tag queries (tokens starting with "#")
+// extractPrefix is a helper that extracts the value following one of several possible prefixes from a string.
+// It returns the matched value (with an optional character set trimmed) and true if found, otherwise "" and false.
+func extractPrefix(text string, prefixes []string, trimChars string) (string, bool) {
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(text, prefix) {
+			return strings.Trim(text[len(prefix):], trimChars), true
+		}
+	}
+	return "", false
+}
+
+// extractFilenamePrefix extracts the filename prefix from tokens starting with "f:" or "file:".
+func extractFilenamePrefix(text string) (string, bool) {
+	return extractPrefix(text, []string{"file:", "f:"}, "\"")
+}
+
+// extractTypePrefix extracts the type prefix from tokens starting with "t:" or "type:".
+func extractTypePrefix(text string) (string, bool) {
+	return extractPrefix(text, []string{"type:", "t:"}, "\"")
+}
+
+// extractTagPrefix extracts the tag prefix from tokens starting with "#" or "tag:".
+func extractTagPrefix(text string) (string, bool) {
+	// "#" is not a word prefix, so do not trim quotes from the value to maintain old behavior
+	if strings.HasPrefix(text, "#") {
+		return text[1:], true
+	}
+	return "", false
+}
+
+// createTagQuery handles tag queries (tokens starting with "#" or "tag:")
 // Returns a query that searches for exact matches in the tags field.
 func createTagQuery(tagName string) query.Query {
 	q := bleve.NewPrefixQuery(tagName)
@@ -173,36 +203,60 @@ func createTagQuery(tagName string) query.Query {
 	return q
 }
 
+// createTypeQuery handles type queries (tokens starting with "t:" or "type:")
+// Returns a query that filters by document type: "note", "attachment", or "folder".
+func createTypeQuery(typeName string) query.Query {
+	typeName = strings.ToLower(strings.TrimSpace(typeName))
+	typeQuery := bleve.NewTermQuery(typeName)
+	typeQuery.SetField(FieldType)
+
+	return typeQuery
+}
+
 // BuildBooleanQueryFromUserInput builds a boolean query from a user input string.
-// Tokens prefixed with "f:" are treated as filename prefixes; tokens prefixed with "#" are treated as tag searches;
+// Tokens prefixed with "f:" or "file:" are treated as filename prefixes;
+// tokens prefixed with "#" or "tag:" are treated as tag searches;
+// tokens prefixed with "t:" or "type:" are treated as type filters ("note", "attachment", "folder");
 // tokens with quotes are exact matches; all others query text content and code content with fuzzy matching.
 // Supports AND/OR operators between terms:
 // - term1 AND term2 (default if no operator specified)
 // - term1 OR term2
 // - "exact phrase" AND term
-// - f:filename OR term
-// - #tagname AND term
+// - f:filename OR file:filename OR term
+// - #tagname OR tag:tagname AND term
+// - t:note OR type:note AND term
 func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
-    // Normalize curly/smart quotes so parsing and matching are consistent
-    input = normalizeQuotes(input)
-    tokens := parseTokens(input)
+	// Normalize curly/smart quotes so parsing and matching are consistent
+	input = normalizeQuotes(input)
+	tokens := parseTokens(input)
 	if len(tokens) == 0 {
 		return bleve.NewMatchNoneQuery()
 	}
 
 	// Helper to create a query for a token
-    createTokenQuery := func(token SearchToken) query.Query {
-		if strings.HasPrefix(token.Text, "f:") {
-            // In case quotes are still present inside the token text (edge cases), strip them
-            prefixTerm := strings.Trim(token.Text[2:], "\"")
-            prefixTerm = strings.ToLower(prefixTerm)
+	createTokenQuery := func(token SearchToken) query.Query {
+		// Check for filename prefix (f: or file:)
+		if prefixTerm, ok := extractFilenamePrefix(token.Text); ok {
+			prefixTerm = strings.ToLower(prefixTerm)
 			return createFilenameQuery(prefixTerm)
-		} else if strings.HasPrefix(token.Text, "#") {
-			tagName := token.Text[1:]
+		}
+
+		// Check for type prefix (t: or type:)
+		if typeName, ok := extractTypePrefix(token.Text); ok {
+			return createTypeQuery(typeName)
+		}
+
+		// Check for tag prefix (# or tag:)
+		if tagName, ok := extractTagPrefix(token.Text); ok {
 			return createTagQuery(tagName)
-		} else if token.IsExact {
+		}
+
+		// Handle exact matches (quoted tokens)
+		if token.IsExact {
 			return createExactContentQuery(token.Text)
 		}
+
+		// Default: fuzzy content query
 		return createFuzzyContentQuery(token.Text)
 	}
 

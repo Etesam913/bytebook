@@ -59,7 +59,7 @@ export const searchQueries = {
         const folders: string[] = [];
 
         data.forEach((result) => {
-          if (result.type === 'markdown_note') {
+          if (result.type === 'note') {
             const filePath = new FilePath({
               folder: result.folder,
               note: result.note,

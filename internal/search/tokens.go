@@ -30,11 +30,13 @@ func appendToken(tokens []SearchToken, text string, isExact bool) []SearchToken 
 	// Only check for operators if the token is not quoted
 	if !isExact {
 		upperText := strings.ToUpper(text)
-		if upperText == "AND" || upperText == "OR" {
+		if upperText == "AND" || upperText == "&&" || upperText == "OR" || upperText == "||" {
 			// Update the operator of the previous token if it exists
 			if len(tokens) > 0 {
-				if upperText == "OR" {
+				if upperText == "OR" || upperText == "||" {
 					tokens[len(tokens)-1].Operator = OpOR
+				} else {
+					tokens[len(tokens)-1].Operator = OpAND
 				}
 			}
 			return tokens
