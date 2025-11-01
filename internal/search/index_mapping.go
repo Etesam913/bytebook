@@ -493,3 +493,46 @@ func IndexAllFiles(projectPath string, index bleve.Index) error {
 
 	return nil
 }
+
+// RegenerateSearchIndex regenerates the search index by closing the existing index,
+// deleting it, creating a new index, and re-indexing all files.
+// It returns the new index and any error encountered during the process.
+func RegenerateSearchIndex(projectPath string, index bleve.Index) (bleve.Index, error) {
+	// Close the existing index if it's open
+	if index != nil {
+		err := index.Close()
+		if err != nil {
+			log.Printf("Error closing existing index: %v", err)
+			// Continue with regeneration even if close fails
+		}
+	}
+
+	// Delete the existing index directory
+	pathToIndex := GetPathToIndex(projectPath)
+	indexExists, err := util.FileOrFolderExists(pathToIndex)
+	if err != nil {
+		return nil, err
+	}
+	if indexExists {
+		err := os.RemoveAll(pathToIndex)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Create a new index
+	newIndex, err := createIndex(projectPath)
+	if err != nil {
+		return nil, err
+	}
+
+	// Re-index all files
+	err = IndexAllFiles(projectPath, newIndex)
+	if err != nil {
+		// Close the new index if re-indexing fails
+		newIndex.Close()
+		return nil, err
+	}
+
+	return newIndex, nil
+}

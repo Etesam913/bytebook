@@ -132,3 +132,24 @@ func (s *SearchService) RemoveSavedSearch(name string) config.BackendResponseWit
 		Message: "Successfully removed saved search",
 	}
 }
+
+// RegenerateSearchIndex regenerates the search index by deleting the existing index
+// and creating a new one with all files re-indexed.
+// It updates the SearchService's SearchIndex field with the new index.
+func (s *SearchService) RegenerateSearchIndex() config.BackendResponseWithoutData {
+	newIndex, err := search.RegenerateSearchIndex(s.ProjectPath, s.SearchIndex)
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: err.Error(),
+		}
+	}
+
+	// Update the service's index reference
+	s.SearchIndex = newIndex
+
+	return config.BackendResponseWithoutData{
+		Success: true,
+		Message: "Successfully regenerated search index",
+	}
+}

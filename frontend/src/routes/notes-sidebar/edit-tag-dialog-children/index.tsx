@@ -112,6 +112,9 @@ export function EditTagDialogChildren({
       }
     );
 
+  const hasTagData = allTagsInDialog && allTagsInDialog.length > 0;
+  const anyTagDataLoading = areTagsLoading || areTagsForSelectedNotesLoading;
+
   return (
     <fieldset
       className="flex flex-col gap-2"
@@ -125,33 +128,32 @@ export function EditTagDialogChildren({
         totalSelectedNotes={totalSelectedNotes}
         setTagsCreatedButNotSaved={setTagsCreatedButNotSaved}
       />
-
-      <div className="py-1.5">
-        {(areTagsLoading || areTagsForSelectedNotesLoading) && (
-          <RouteFallback className="my-1" />
-        )}
-        {allTagsInDialog && !areTagsLoading && !areTagsError && (
-          <>
-            <TagSearchInput
-              searchTerm={searchTerm}
-              onSearchTermChange={setSearchTerm}
-              onCreateTag={handleCreateTag}
-              isLoading={areTagsLoading}
-              hasError={areTagsError}
-            />
-            <TagSelectionList
-              displayedTags={displayedTags}
-              selectedTagCounts={selectedTagCounts}
-              totalSelectedNotes={totalSelectedNotes}
-              searchTerm={searchTerm}
-              setSelectedTagCounts={setSelectedTagCounts}
-              onCreateTag={handleCreateTag}
-            />
-          </>
-        )}
-      </div>
+      {(anyTagDataLoading || hasTagData) && (
+        <div className="py-1.5">
+          {anyTagDataLoading && <RouteFallback className="my-1" />}
+          {hasTagData && (
+            <>
+              <TagSearchInput
+                searchTerm={searchTerm}
+                onSearchTermChange={setSearchTerm}
+                onCreateTag={handleCreateTag}
+                isLoading={areTagsLoading}
+                hasError={areTagsError}
+              />
+              <TagSelectionList
+                displayedTags={displayedTags}
+                selectedTagCounts={selectedTagCounts}
+                totalSelectedNotes={totalSelectedNotes}
+                searchTerm={searchTerm}
+                setSelectedTagCounts={setSelectedTagCounts}
+                onCreateTag={handleCreateTag}
+              />
+            </>
+          )}
+        </div>
+      )}
       {(areTagsError || areTagsForSelectedNotesError) && (
-        <p className="text-red-500">
+        <p className="text-red-500 text-sm">
           {tagsError?.message || tagsForSelectedNotesError?.message}
         </p>
       )}

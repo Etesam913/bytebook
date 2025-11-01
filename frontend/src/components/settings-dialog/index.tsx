@@ -6,8 +6,9 @@ import { MotionButton } from '../buttons';
 import { FloppyDisk } from '../../icons/floppy-disk';
 import { getDefaultButtonVariants } from '../../animations';
 import { CodeBlockPage } from './code-block-page';
+import { SearchPage } from './search-page';
 
-export type SettingsTab = 'appearance' | 'github' | 'code-block';
+export type SettingsTab = 'appearance' | 'github' | 'code-block' | 'search';
 
 export function SettingsDialog() {
   const [currentSettingsTab, setCurrentSettingsTab] =
@@ -23,6 +24,7 @@ export function SettingsDialog() {
           {currentSettingsTab === 'appearance' && <AppearancePage />}
           {currentSettingsTab === 'github' && <GithubPage />}
           {currentSettingsTab === 'code-block' && <CodeBlockPage />}
+          {currentSettingsTab === 'search' && <SearchPage />}
           <div className="grid grid-cols-2 px-0.5 border-b border-zinc-200 dark:border-zinc-700 " />
         </div>
       </div>

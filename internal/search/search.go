@@ -1,7 +1,6 @@
 package search
 
 import (
-	"errors"
 	"regexp"
 	"strings"
 
@@ -176,10 +175,16 @@ func GetTags(searchIndex bleve.Index) ([]string, error) {
 
 	facetResult := searchResult.Facets[FieldTags]
 	if facetResult == nil {
-		return []string{}, errors.New("failed to get tags")
+		// No tags in the index yet, return empty array
+		return []string{}, nil
 	}
 
 	terms := facetResult.Terms.Terms()
+	if terms == nil {
+		// No terms found, return empty array
+		return []string{}, nil
+	}
+
 	tags := make([]string, 0, len(terms))
 	for _, t := range terms {
 		tags = append(tags, t.Term)

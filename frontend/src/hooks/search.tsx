@@ -13,6 +13,7 @@ import {
   GetAllSavedSearches,
   AddSavedSearch,
   RemoveSavedSearch,
+  RegenerateSearchIndex,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
 import { searchPanelDataAtom } from '../atoms';
 import { useWailsEvent } from '../hooks/events';
@@ -20,6 +21,9 @@ import { isEventInCurrentWindow } from '../utils/events';
 import { useEffect, useRef } from 'react';
 import { FilePath } from '../utils/string-formatting';
 import { routeUrls } from '../utils/routes';
+import { toast } from 'sonner';
+import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
+import { QueryError } from '../utils/query';
 
 export const lastSearchQueryAtom = atom<string>('');
 
@@ -189,5 +193,24 @@ export function useSavedSearchUpdates() {
     queryClient.invalidateQueries({
       queryKey: searchQueries.savedSearches().queryKey,
     });
+  });
+}
+
+/**
+ * Hook to regenerate the search index.
+ * Shows success/error toast notifications.
+ */
+export function useRegenerateSearchIndexMutation() {
+  return useMutation({
+    mutationFn: async () => {
+      const response = await RegenerateSearchIndex();
+      if (!response.success) {
+        throw new QueryError(response.message);
+      }
+      return response;
+    },
+    onSuccess: (response) => {
+      toast.success(response.message, DEFAULT_SONNER_OPTIONS);
+    },
   });
 }

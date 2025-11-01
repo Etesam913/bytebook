@@ -495,3 +495,133 @@ This is test content.
 		}
 	})
 }
+
+func TestRegenerateSearchIndex(t *testing.T) {
+	t.Run("should regenerate index with existing files", func(t *testing.T) {
+		env := setupTestEnv(t)
+		// Don't defer env.Close() here - we'll handle cleanup manually
+
+		// Create and index some files
+		folder1Path := env.createTestFolder("folder1")
+		folder2Path := env.createTestFolder("folder2")
+
+		env.createMarkdownFile(folder1Path, "note1.md", basicMarkdown)
+		env.createMarkdownFile(folder2Path, "note2.md", markdownWithId)
+		env.createAttachmentFile(folder1Path, "attachment.pdf", "fake pdf content")
+
+		// Index all files initially
+		err := IndexAllFiles(env.TmpDir, env.Index)
+		require.NoError(t, err)
+
+		// Verify files are indexed
+		env.verifyDocumentExists("folder1/note1.md")
+		env.verifyDocumentExists("folder2/note2.md")
+		env.verifyDocumentExists("folder1/attachment.pdf")
+
+		// Store the old index reference (will be closed by RegenerateSearchIndex)
+		oldIndex := env.Index
+
+		// Regenerate the index
+		newIndex, err := RegenerateSearchIndex(env.TmpDir, oldIndex)
+		require.NoError(t, err)
+		assert.NotNil(t, newIndex)
+
+		// Update the test environment to use the new index for verification
+		env.Index = newIndex
+
+		// Verify all files are still indexed after regeneration
+		env.verifyDocumentExists("folder1/note1.md")
+		env.verifyDocumentExists("folder2/note2.md")
+		env.verifyDocumentExists("folder1/attachment.pdf")
+
+		// Verify the old index is closed (can't use it anymore)
+		_, err = oldIndex.Document("folder1/note1.md")
+		assert.Error(t, err, "Old index should be closed")
+
+		// Clean up manually: close new index and remove temp dir
+		newIndex.Close()
+		os.RemoveAll(env.TmpDir)
+	})
+
+	t.Run("should regenerate index when no index exists", func(t *testing.T) {
+		env := setupTestEnv(t)
+		// Don't defer env.Close() here - we'll handle cleanup manually
+
+		// Create some files
+		folder1Path := env.createTestFolder("folder1")
+		env.createMarkdownFile(folder1Path, "note1.md", basicMarkdown)
+
+		// Close and remove the existing index
+		env.Index.Close()
+		pathToIndex := GetPathToIndex(env.TmpDir)
+		err := os.RemoveAll(pathToIndex)
+		require.NoError(t, err)
+
+		// Regenerate with nil index (no existing index)
+		newIndex, err := RegenerateSearchIndex(env.TmpDir, nil)
+		require.NoError(t, err)
+		assert.NotNil(t, newIndex)
+
+		// Update test environment to use new index
+		env.Index = newIndex
+
+		// Verify files are indexed after regeneration
+		env.verifyDocumentExists("folder1/note1.md")
+
+		// Clean up manually: close new index and remove temp dir
+		newIndex.Close()
+		os.RemoveAll(env.TmpDir)
+	})
+
+	t.Run("should handle regeneration with multiple folders and file types", func(t *testing.T) {
+		env := setupTestEnv(t)
+		// Don't defer env.Close() here - we'll handle cleanup manually
+
+		// Create files in multiple folders with different types
+		folder1Path := env.createTestFolder("folder1")
+		folder2Path := env.createTestFolder("folder2")
+
+		env.createMarkdownFile(folder1Path, "markdown1.md", basicMarkdown)
+		env.createMarkdownFile(folder2Path, "markdown2.md", complexMarkdown)
+		env.createAttachmentFile(folder1Path, "file1.pdf", "pdf content")
+		env.createAttachmentFile(folder2Path, "file2.jpg", "jpg content")
+
+		// Index all files initially
+		err := IndexAllFiles(env.TmpDir, env.Index)
+		require.NoError(t, err)
+
+		// Verify initial indexing
+		env.verifyDocumentExists("folder1/markdown1.md")
+		env.verifyDocumentExists("folder2/markdown2.md")
+		env.verifyDocumentExists("folder1/file1.pdf")
+		env.verifyDocumentExists("folder2/file2.jpg")
+
+		// Get document count before regeneration
+		oldDocCount, err := env.Index.DocCount()
+		require.NoError(t, err)
+
+		// Regenerate the index
+		oldIndex := env.Index
+		newIndex, err := RegenerateSearchIndex(env.TmpDir, oldIndex)
+		require.NoError(t, err)
+		assert.NotNil(t, newIndex)
+
+		// Update test environment
+		env.Index = newIndex
+
+		// Verify document count matches
+		newDocCount, err := newIndex.DocCount()
+		require.NoError(t, err)
+		assert.Equal(t, oldDocCount, newDocCount, "Document count should match after regeneration")
+
+		// Verify all files are still indexed
+		env.verifyDocumentExists("folder1/markdown1.md")
+		env.verifyDocumentExists("folder2/markdown2.md")
+		env.verifyDocumentExists("folder1/file1.pdf")
+		env.verifyDocumentExists("folder2/file2.jpg")
+
+		// Clean up manually: close new index and remove temp dir
+		newIndex.Close()
+		os.RemoveAll(env.TmpDir)
+	})
+}

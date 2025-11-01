@@ -14,6 +14,7 @@ import { SearchResultsHeader } from './results/search-results-header';
 import { Input } from '../../components/input';
 import { isFullscreenAtom } from '../../atoms';
 import { cn } from '../../utils/string-formatting';
+import { SearchOptions } from './search-options';
 
 export function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useAtom(lastSearchQueryAtom);
@@ -31,7 +32,7 @@ export function SearchPage() {
 
   return (
     <section className="pt-2.5 flex-1 h-screen flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
-      <header className="w-full pr-4 border-b-1 border-zinc-200 dark:border-zinc-700 flex flex-col gap-1">
+      <header className="w-full pr-4 border-b border-zinc-200 dark:border-zinc-700 flex flex-col gap-1">
         <div
           className={cn(
             'pl-22 flex items-center gap-2',
@@ -94,6 +95,7 @@ export function SearchPage() {
             }}
             labelProps={{}}
           />
+          <SearchOptions searchQuery={lastSearchQuery} />
         </div>
         <div>
           <SearchResultsHeader
