@@ -17,7 +17,6 @@ var Events = struct {
 	ZoomOut          string
 	SettingsOpen     string
 	SearchOpen       string
-	SearchOpenPanel  string
 	SearchNote       string
 	NewNoteMenu      string
 	FolderCreateMenu string
@@ -62,7 +61,6 @@ var Events = struct {
 	ZoomOut:          "zoom:out",
 	SettingsOpen:     "settings:open",
 	SearchOpen:       "search:open",
-	SearchOpenPanel:  "search:open-panel",
 	SearchNote:       "search:note",
 	NewNoteMenu:      "note:create-dialog",
 	FolderCreateMenu: "folder:create-dialog",

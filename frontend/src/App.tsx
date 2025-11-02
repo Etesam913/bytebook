@@ -9,7 +9,6 @@ import { ContextMenu } from './components/context-menu';
 import { Dialog } from './components/dialog';
 import { FolderSidebar } from './components/folder-sidebar';
 import { LoadingModal } from './components/loading-modal';
-import { SearchPanel } from './components/search-panel';
 import { useLoggedInEvent, useUserData } from './hooks/auth';
 import { useRouteFilePath } from './hooks/events';
 import { useProjectSettings } from './hooks/project-settings';
@@ -93,7 +92,6 @@ function App() {
     >
       <ContextMenu />
       <Dialog />
-      <SearchPanel />
       <LoadingModal />
       <Toaster richColors theme="system" />
       {!isNoteMaximized && !location.startsWith('/search') && (

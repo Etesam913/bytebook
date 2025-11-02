@@ -5,7 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { atom, useSetAtom } from 'jotai';
+import { atom } from 'jotai';
 import { navigate } from 'wouter/use-browser-location';
 import {
   FullTextSearch,
@@ -15,7 +15,6 @@ import {
   RemoveSavedSearch,
   RegenerateSearchIndex,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
-import { searchPanelDataAtom } from '../atoms';
 import { useWailsEvent } from '../hooks/events';
 import { isEventInCurrentWindow } from '../utils/events';
 import { useEffect, useRef } from 'react';
@@ -100,19 +99,11 @@ export const searchQueries = {
 };
 
 /**
- * Hook to handle search panel open/close and navigation to the search page.
- * Listens for 'search:open-panel' and 'search:open' Wails events.
- * - 'search:open-panel': toggles the search panel's open state.
+ * Hook to handle navigation to the search page.
+ * Listens for 'search:open' Wails events.
  * - 'search:open': navigates to the search page or goes back if already there.
  */
 export function useSearch() {
-  const setSearchPanelData = useSetAtom(searchPanelDataAtom);
-
-  useWailsEvent('search:open-panel', async (data) => {
-    if (!(await isEventInCurrentWindow(data))) return;
-    setSearchPanelData((prev) => ({ ...prev, isOpen: !prev.isOpen }));
-  });
-
   useWailsEvent('search:open', async (data) => {
     if (!(await isEventInCurrentWindow(data))) return;
     // Check if already on /search, if so, go back

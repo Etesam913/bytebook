@@ -6,7 +6,6 @@ import {
   type DialogDataType,
   KernelsData,
   type ProjectSettings,
-  type SearchPanelDataType,
   type SortStrings,
   type UserData,
   type WindowSettings,
@@ -122,13 +121,6 @@ export const contextMenuDataAtom = atom<ContextMenuData>({
   items: [],
   x: 0,
   y: 0,
-});
-
-export const searchPanelDataAtom = atom<SearchPanelDataType>({
-  isOpen: false,
-  query: '',
-  focusedIndex: 0,
-  scrollY: 0,
 });
 
 export const loadingToastIdsAtom = atom<Map<string, string | number>>(

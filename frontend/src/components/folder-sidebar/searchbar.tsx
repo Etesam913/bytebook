@@ -22,7 +22,7 @@ export function SearchBar() {
       <p>Search</p>
       <span className="flex items-center ml-auto gap-0.5">
         <Command className="will-change-transform" width={12.8} height={12.8} />
-        <p>K</p>
+        <p>P</p>
       </span>
     </motion.button>
   );
