@@ -106,7 +106,23 @@ export function SearchPage() {
                     if (selected.type === 'folder') {
                       setLocation(`/notes/${selected.folder}`);
                     } else {
-                      const href = selected.filePath.getLinkToNote();
+                      let href = selected.filePath.getLinkToNote();
+
+                      // For notes, include highlight parameter if available (same as clicking)
+                      if (selected.type === 'note') {
+                        const noteResult = groupedResults.notes.find((note) =>
+                          note.filePath.equals(selected.filePath)
+                        );
+                        const firstHighlightedTerm =
+                          noteResult?.highlights[0]?.highlightedTerm;
+
+                        if (firstHighlightedTerm) {
+                          href = selected.filePath.getLinkToNote({
+                            highlight: firstHighlightedTerm,
+                          });
+                        }
+                      }
+
                       setLocation(href);
                     }
                   }

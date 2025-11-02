@@ -141,7 +141,5 @@ export function SidebarItems<T>({
         </li>
       );
     });
-  return (
-    <>{dataElements && dataElements.length > 0 ? dataElements : emptyElement}</>
-  );
+  return <>{allData && allData.length > 0 ? dataElements : emptyElement}</>;
 }

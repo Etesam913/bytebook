@@ -57,6 +57,7 @@ export function NoteComponentControls({
             whileFocus: 1.115,
           })}
           type="button"
+          aria-label="Delete component"
           onClick={() => {
             if (!nodeKey) {
               throw new Error('Node key is not provided for the trash button');
@@ -80,6 +81,7 @@ export function NoteComponentControls({
             whileFocus: 1.115,
           })}
           type="button"
+          aria-label="Fullscreen"
           onClick={() => {
             buttonOptions.fullscreen?.callback?.();
           }}
@@ -97,6 +99,7 @@ export function NoteComponentControls({
             whileFocus: 1.115,
           })}
           type="button"
+          aria-label="Open link"
           onClick={() => {
             const src = buttonOptions.link?.src;
             if (!src) return;

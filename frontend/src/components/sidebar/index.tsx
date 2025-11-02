@@ -96,6 +96,8 @@ export function Sidebar<T>({
     listRef: listScrollContainerRef,
   });
 
+  const isEmpty = items.length === 0;
+
   return (
     <div
       className="overflow-y-auto"
@@ -106,6 +108,7 @@ export function Sidebar<T>({
         className="mt-[2px]"
         style={{
           ...outerContainerStyle,
+          ...(isEmpty && { minHeight: 'auto', height: 'auto' }),
         }}
       >
         <ul
@@ -115,6 +118,7 @@ export function Sidebar<T>({
           )}
           style={{
             ...innerContainerStyle,
+            ...(isEmpty && { position: 'relative', transform: 'none' }),
           }}
         >
           <SidebarItems

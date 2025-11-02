@@ -3,7 +3,12 @@ import type { InitialConfigType } from '@lexical/react/LexicalComposer';
 import { HorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { TableCellNode, TableNode, TableRowNode } from '@lexical/table';
-import { $getRoot, type EditorThemeClasses, ParagraphNode } from 'lexical';
+import {
+  $getRoot,
+  type EditorThemeClasses,
+  LineBreakNode,
+  ParagraphNode,
+} from 'lexical';
 import { CodeNode } from './nodes/code';
 import { FileNode } from './nodes/file';
 import { InlineEquationNode } from './nodes/inline-equation';
@@ -68,6 +73,7 @@ export const editorConfig: InitialConfigType = {
     HeadingNode,
     QuoteNode,
     HorizontalRuleNode,
+    LineBreakNode,
     LinkNode,
     ListNode,
     ListItemNode,

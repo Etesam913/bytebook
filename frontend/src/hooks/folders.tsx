@@ -161,16 +161,23 @@ export function useFolderCreateMutation() {
       const newFolderName =
         formData.get('folder-name')?.toString()?.trim() ?? '';
 
+      // Only perform optimistic update if the new folder name doesn't already exist
       if (newFolderName && previousFolders?.alphabetizedFolders) {
-        const updatedFolders: FoldersQueryData = {
-          alphabetizedFolders: [
-            ...previousFolders.alphabetizedFolders,
-            newFolderName,
-          ].sort((a, b) => a.localeCompare(b)),
-          previousAlphabetizedFolders:
-            previousFolders.alphabetizedFolders || undefined,
-        };
-        queryClient.setQueryData(getFoldersQueryKey, updatedFolders);
+        const folderAlreadyExists =
+          previousFolders.alphabetizedFolders.includes(newFolderName);
+
+        // Skip optimistic update if folder already exists to avoid duplicate keys
+        if (!folderAlreadyExists) {
+          const updatedFolders: FoldersQueryData = {
+            alphabetizedFolders: [
+              ...previousFolders.alphabetizedFolders,
+              newFolderName,
+            ].sort((a, b) => a.localeCompare(b)),
+            previousAlphabetizedFolders:
+              previousFolders.alphabetizedFolders || undefined,
+          };
+          queryClient.setQueryData(getFoldersQueryKey, updatedFolders);
+        }
       }
 
       return { previousFolders };
@@ -246,17 +253,24 @@ export function useFolderRenameMutation() {
       const newFolderName =
         formData.get('folder-name')?.toString()?.trim() ?? '';
 
+      // Only perform optimistic update if the new folder name doesn't already exist
       if (newFolderName && previousFolders?.alphabetizedFolders) {
-        const updatedFolders: FoldersQueryData = {
-          alphabetizedFolders: previousFolders.alphabetizedFolders
-            .map((folder) =>
-              folder === variables.folderFromSidebar ? newFolderName : folder
-            )
-            .sort((a, b) => a.localeCompare(b)),
-          previousAlphabetizedFolders:
-            previousFolders.alphabetizedFolders || undefined,
-        };
-        queryClient.setQueryData(getFoldersQueryKey, updatedFolders);
+        const folderAlreadyExists =
+          previousFolders.alphabetizedFolders.includes(newFolderName);
+
+        // Skip optimistic update if folder already exists to avoid duplicate keys
+        if (!folderAlreadyExists) {
+          const updatedFolders: FoldersQueryData = {
+            alphabetizedFolders: previousFolders.alphabetizedFolders
+              .map((folder) =>
+                folder === variables.folderFromSidebar ? newFolderName : folder
+              )
+              .sort((a, b) => a.localeCompare(b)),
+            previousAlphabetizedFolders:
+              previousFolders.alphabetizedFolders || undefined,
+          };
+          queryClient.setQueryData(getFoldersQueryKey, updatedFolders);
+        }
       }
 
       return { previousFolders };

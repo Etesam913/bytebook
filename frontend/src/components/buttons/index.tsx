@@ -46,5 +46,5 @@ export const IconButton = forwardRef<
 });
 IconButton.displayName = 'IconButton';
 
-export const MotionButton = motion(Button);
-export const MotionIconButton = motion(IconButton);
+export const MotionButton = motion.create(Button);
+export const MotionIconButton = motion.create(IconButton);

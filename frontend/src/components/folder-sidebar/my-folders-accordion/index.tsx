@@ -142,8 +142,8 @@ export function MyFoldersAccordion() {
                   contentType="folder"
                   layoutId="folder-sidebar"
                   emptyElement={
-                    <li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
-                      Create a folder with the &quot;Create Folder&quot; button
+                    <li className="list-none text-zinc-500 dark:text-zinc-300 text-xs text-balance">
+                      Create a folder using the &quot;Create Folder&quot; button
                       above
                     </li>
                   }

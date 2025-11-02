@@ -102,6 +102,7 @@
 }
 
 pre {
+  user-select: text;
   -webkit-user-select: text;
   cursor: text;
 }
@@ -157,7 +158,7 @@ textarea,
 }
 
 .list-sidebar-item {
-  @apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden transition-colors duration-[125ms] will-change-transform;
+  @apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden transition-colors duration-125 will-change-transform;
 }
 .list-sidebar-item:focus {
   outline: 2px auto;
@@ -177,7 +178,7 @@ textarea,
 
 #content-editable-editor  h1,
 h1.dragging {
-  @apply text-3xl leading-[3.25rem];
+  @apply text-3xl leading-13;
 }
 
 #content-editable-editor  h2,
@@ -187,36 +188,37 @@ h2.dragging {
 
 #content-editable-editor  h3,
 h3.dragging {
-  @apply text-xl leading-[2.5rem];
+  @apply text-xl leading-10;
 }
 
 #content-editable-editor  h4,
 h4.dragging {
-  @apply text-lg leading-[2.25rem] font-semibold;
+  @apply text-lg leading-9 font-semibold;
 }
 
 #content-editable-editor  h5,
 h5.dragging {
-  @apply text-base leading-[2rem] font-bold;
+  @apply text-base leading-8 font-bold;
 }
 
 #content-editable-editor > h6,
 h6.dragging {
-  @apply text-sm leading-[1.75rem] font-bold;
+  @apply text-sm leading-7 font-bold;
 }
 
 .button-invert {
-  @apply bg-zinc-800! text-zinc-200! dark:bg-zinc-200! dark:text-zinc-900!;
+  @apply bg-(--accent-color) text-zinc-50;
+}
+
+/* inline code styles */
+code {
+  font-size: 14px;
 }
 
 /**
  * Codemirror styles
  */
 .cm-theme {
-  /* border-radius: 0.35rem; */
-  /* overflow: hidden; */
-  /* border-left: 2px solid var(--color-zinc-700);
-  border-right: 2px solid var(--color-zinc-700); */
   height: auto;
   overflow-x: auto;
   overflow-y: initial;
@@ -266,19 +268,19 @@ h6.dragging {
 }
 
 .cm-tooltip-custom {
-  @apply !bg-zinc-50 dark:bg-zinc-800! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-750! py-2 px-3 shadow-lg !border font-code text-xs max-h-[30vh] max-w-[60vw] overflow-y-auto;
+  @apply bg-zinc-50! dark:bg-zinc-800! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-750! py-2 px-3 shadow-lg border! font-code text-xs max-h-[30vh] max-w-[60vw] overflow-y-auto;
 }
 
 .cm-tooltip-autocomplete {
-  @apply !bg-zinc-50/85 dark:bg-zinc-800/95! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-750! !rounded-lg py-1.5 px-1 shadow-lg !border;
+  @apply bg-zinc-50/85! dark:bg-zinc-800/95! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-750! rounded-lg! py-1.5 px-1 shadow-lg border!;
 }
 
 .cm-tooltip-autocomplete > ul > li {
-  @apply !py-1 !px-1.5 rounded-md overflow-hidden;
+  @apply py-1! px-1.5! rounded-md overflow-hidden;
 }
 
 .cm-tooltip-autocomplete > ul > li[aria-selected='true'] {
-  @apply !bg-(--accent-color);
+  @apply bg-(--accent-color)!;
 }
 /* The signature that shows to the right of the completion label */
 .cm-completionDetail {
@@ -445,7 +447,7 @@ div[data-is-fullscreen='true'] .cm-scroller {
 
 /* Table of contents list */
 .toc-list-item {
-  @apply break-words text-sm leading-6;
+  @apply wrap-break-word text-sm leading-6;
 }
 
 .toc-list-item::before {
@@ -553,7 +555,7 @@ h6:has(> span > div > :is(img, video, span[data-katex="true"])) {
   @apply bg-transparent;
 }
 .PlaygroundEditorTheme__tableSelected {
-  @apply outline outline-2 outline-[rgb(60,132,244)];
+  @apply outline-2 outline-[rgb(60,132,244)];
 }
 .PlaygroundEditorTheme__tableCell {
   @apply border border-zinc-300 dark:border-zinc-500 w-[75px] min-w-[75px] align-top text-start p-[6px_8px] relative outline-none;

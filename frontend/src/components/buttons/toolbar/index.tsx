@@ -230,6 +230,7 @@ export function ToolbarButtons({
               onClick={onClick}
               type="button"
               disabled={disabled || customDisabled}
+              aria-label={tooltip}
               className={cn(
                 'p-1.5 rounded-md transition-colors relative z-10',
                 (key === currentBlockType ||

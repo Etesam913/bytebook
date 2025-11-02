@@ -80,6 +80,7 @@ export function ResizeControlsPopover({
             >
               <button
                 type="button"
+                aria-label="Delete component"
                 className="will-change-transform transition-transform hover:scale-[1.115] active:scale-[0.95] focus:scale-[1.115]"
                 onClick={() => {
                   if (!nodeKey) {
@@ -97,6 +98,7 @@ export function ResizeControlsPopover({
 
               <button
                 type="button"
+                aria-label="Full width"
                 className="will-change-transform transition-transform hover:scale-[1.115] active:scale-[0.95] focus:scale-[1.115]"
                 onClick={(e: MouseEvent<HTMLButtonElement>) => {
                   widthMotionValue.set('100%');
@@ -111,6 +113,7 @@ export function ResizeControlsPopover({
 
               <button
                 type="button"
+                aria-label="Open link"
                 className="will-change-transform transition-transform hover:scale-[1.115] active:scale-[0.95] focus:scale-[1.115]"
                 onClick={() => {
                   if (!src) return;

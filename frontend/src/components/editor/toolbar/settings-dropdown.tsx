@@ -3,11 +3,17 @@ import { useAtomValue } from 'jotai';
 import { useState } from 'react';
 import { getDefaultButtonVariants } from '../../../animations';
 import { projectSettingsAtom } from '../../../atoms';
+import {
+  useMoveNoteToTrashMutation,
+  useNoteRevealInFinderMutation,
+} from '../../../hooks/notes';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
+import { Finder } from '../../../icons/finder';
 import { HorizontalDots } from '../../../icons/horizontal-dots';
 import { MarkdownIcon } from '../../../icons/markdown';
 import { PinTack2 } from '../../../icons/pin-tack-2';
 import { Table } from '../../../icons/table';
+import { Trash } from '../../../icons/trash';
 import type { ProjectSettings } from '../../../types';
 import { MotionIconButton } from '../../buttons';
 import { DropdownMenu } from '../../dropdown/dropdown-menu';
@@ -32,6 +38,8 @@ export function SettingsDropdown({
   const [editor] = useLexicalComposerContext();
 
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
+  const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
+  const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
 
   const items = [
     {
@@ -66,6 +74,22 @@ export function SettingsDropdown({
           {frontmatter.showMarkdown === 'true'
             ? 'Hide Markdown'
             : 'Show Markdown'}
+        </span>
+      ),
+    },
+    {
+      value: 'reveal-in-finder',
+      label: (
+        <span className="flex items-center gap-1.5 will-change-transform">
+          <Finder className="min-w-5" height={20} width={20} /> Reveal In Finder
+        </span>
+      ),
+    },
+    {
+      value: 'move-to-trash',
+      label: (
+        <span className="flex items-center gap-1.5 will-change-transform">
+          <Trash className="min-w-5" /> Move to Trash
         </span>
       ),
     },
@@ -120,6 +144,20 @@ export function SettingsDropdown({
                 shouldSkipNoteChangedEmit: false,
                 newFrontmatter: copyOfFrontmatter,
               });
+            });
+            break;
+          }
+          case 'reveal-in-finder': {
+            revealInFinder({
+              selectionRange: new Set([`note:${note}.md`]),
+              folder,
+            });
+            break;
+          }
+          case 'move-to-trash': {
+            moveToTrash({
+              selectionRange: new Set([`note:${note}.md`]),
+              folder,
             });
             break;
           }

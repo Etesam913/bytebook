@@ -1,15 +1,18 @@
 import { AnimatePresence, motion } from 'motion/react';
 import type { SetStateAction } from 'jotai/ts3.8/esm/vanilla';
+import { useAtomValue } from 'jotai';
 import {
   type CSSProperties,
   type Dispatch,
   RefObject,
   useEffect,
   useRef,
+  useMemo,
 } from 'react';
 import { easingFunctions } from '../../animations';
 import type { DropdownItem } from '../../types';
 import { cn } from '../../utils/string-formatting';
+import { isDarkModeOnAtom } from '../../atoms';
 
 export function DropdownItems({
   items,
@@ -47,6 +50,7 @@ export function DropdownItems({
   valueIndex?: number;
 }) {
   const dropdownItemsRef = useRef<HTMLDivElement>(null);
+  const isDarkMode = useAtomValue(isDarkModeOnAtom);
 
   useEffect(() => {
     // Only update focus index when dropdown opens, but don't steal focus
@@ -67,13 +71,19 @@ export function DropdownItems({
             focusIndex !== null ? `${menuId}-option-${focusIndex}` : undefined
           }
           className={cn(
-            'absolute z-50 w-full overflow-hidden translate-y-1 rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700',
+            'absolute z-50 w-full overflow-hidden translate-y-1 rounded-md border-[1.25px] bg-zinc-50 shadow-xl dark:bg-zinc-700',
             maxHeight && 'overflow-y-auto',
             className
           )}
           style={style}
+          initial={{
+            borderColor: isDarkMode ? 'rgb(82, 82, 91)' : 'rgb(209, 213, 219)',
+          }}
+          animate={{
+            borderColor: isDarkMode ? 'rgb(82, 82, 91)' : 'rgb(209, 213, 219)',
+          }}
           exit={{
-            borderColor: 'transparent',
+            borderColor: 'rgba(0, 0, 0, 0)',
             transition: {
               borderColor: { delay: 0.25 },
             },

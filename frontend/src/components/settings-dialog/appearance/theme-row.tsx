@@ -21,7 +21,7 @@ function ThemeButton({
   isActive: boolean;
 }) {
   return (
-    <button type="button" onClick={onClick}>
+    <button type="button" onClick={onClick} aria-label={label}>
       <p
         className={cn(
           'text-sm text-zinc-500 dark:text-zinc-400',

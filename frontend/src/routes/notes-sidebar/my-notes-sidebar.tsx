@@ -93,8 +93,8 @@ export function MyNotesSidebar({
             key={layoutId}
             layoutId={layoutId}
             emptyElement={
-              <li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
-                Create a note with the &quot;Create Note&quot; button above
+              <li className="text-center px-1 list-none text-zinc-500 dark:text-zinc-300 text-xs">
+                Create a note using the &quot;Create Note&quot; button above
               </li>
             }
             data={notes ?? []}

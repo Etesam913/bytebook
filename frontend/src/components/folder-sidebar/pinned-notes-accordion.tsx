@@ -81,9 +81,11 @@ function VirtualizedPinnedNotes({
     );
   });
 
+  const isEmpty = pinnedNotesPaths.length === 0;
+
   return (
     <motion.div
-      className="overflow-hidden hover:overflow-y-auto max-h-[15rem]"
+      className="overflow-hidden hover:overflow-y-auto max-h-60"
       ref={listScrollContainerRef}
       onScroll={onScroll}
       initial={{ height: 0 }}
@@ -93,20 +95,12 @@ function VirtualizedPinnedNotes({
       }}
       exit={{ height: 0, opacity: 0 }}
     >
-      <div
-        style={{
-          ...outerContainerStyle,
-        }}
-      >
-        <ul
-          style={{
-            ...innerContainerStyle,
-          }}
-        >
+      <div style={isEmpty ? undefined : { ...outerContainerStyle }}>
+        <ul style={isEmpty ? undefined : { ...innerContainerStyle }}>
           {isPinnedNotesOpen && pinnedNotesElements.length > 0 ? (
             pinnedNotesElements
           ) : (
-            <li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
+            <li className="pl-2 text-balance list-none text-zinc-500 dark:text-zinc-300 text-xs py-2">
               No pinned notes. Right click a note to open the context menu and
               pin it.
             </li>

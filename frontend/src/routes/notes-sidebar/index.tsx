@@ -30,6 +30,7 @@ import {
 } from '../../utils/routing.ts';
 import { Tooltip } from '../../components/tooltip/index.tsx';
 import { Command } from '../../icons/command.tsx';
+import { routeBuilders, routeUrls } from '../../utils/routes.ts';
 
 export function NotesSidebar({
   curFolder,
@@ -59,11 +60,17 @@ export function NotesSidebar({
 
   // Auto navigate to the first note when the notes are loaded
   useEffect(() => {
-    if (!notes || notes.length === 0) return;
+    if (!notes || notes.length === 0) {
+      // If there are no notes, navigate to the folder
+      navigate(routeBuilders.folder(curFolder), { replace: true });
+      return;
+    }
+
     const filePathForFirstNote = notes[0];
     const isCurrentNoteInNoteQueryResult = notes.some(
       (filePath) => filePath.noteWithoutExtension === curNote
     );
+
     // If you are on a folder with no note selected, navigate to the first note
     if (!curNote) {
       navigate(filePathForFirstNote.getLinkToNote(), { replace: true });
@@ -78,11 +85,17 @@ export function NotesSidebar({
       ) {
         // Note was not in previous notes - do nothing, let RenderNote handle it
       } else {
+        const previousNoteNames = previousNotes.map(
+          (fp) => fp.noteWithoutExtension
+        );
+        const currentNoteNames = notes.map((fp) => fp.noteWithoutExtension);
+
         const closestNoteIndex = findClosestSidebarItemToNavigateTo(
           curNote,
-          previousNotes.map((fp) => fp.noteWithoutExtension),
-          notes.map((fp) => fp.noteWithoutExtension)
+          previousNoteNames,
+          currentNoteNames
         );
+
         if (closestNoteIndex >= 0 && closestNoteIndex < notes.length) {
           navigate(notes[closestNoteIndex].getLinkToNote(), { replace: true });
         }

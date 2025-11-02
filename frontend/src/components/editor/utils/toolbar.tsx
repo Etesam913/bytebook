@@ -39,6 +39,9 @@ import { AddAttachments } from '../../../../bindings/github.com/etesam913/bytebo
 import { Heading1 } from '../../../icons/heading-1';
 import { Heading2 } from '../../../icons/heading-2';
 import { Heading3 } from '../../../icons/heading-3';
+import { Heading4 } from '../../../icons/heading-4';
+import { Heading5 } from '../../../icons/heading-5';
+import { Heading6 } from '../../../icons/heading-6';
 import { ListCheckbox } from '../../../icons/list-checkbox';
 import { OrderedList } from '../../../icons/ordered-list';
 import { Paperclip } from '../../../icons/paperclip-2.tsx';
@@ -163,6 +166,15 @@ export function changeSelectedBlocksType({
           break;
         case 'h3':
           $setBlocksType(selection, () => $createHeadingNode('h3'));
+          break;
+        case 'h4':
+          $setBlocksType(selection, () => $createHeadingNode('h4'));
+          break;
+        case 'h5':
+          $setBlocksType(selection, () => $createHeadingNode('h5'));
+          break;
+        case 'h6':
+          $setBlocksType(selection, () => $createHeadingNode('h6'));
           break;
         case 'quote':
           $setBlocksType(selection, () => $createQuoteNode());
@@ -480,6 +492,30 @@ export const blockTypesDropdownItems: DropdownItem[] = [
       </span>
     ),
     value: 'h3',
+  },
+  {
+    label: (
+      <span className="flex items-center gap-1.5 will-change-transform">
+        <Heading4 /> Header 4
+      </span>
+    ),
+    value: 'h4',
+  },
+  {
+    label: (
+      <span className="flex items-center gap-1.5 will-change-transform">
+        <Heading5 /> Header 5
+      </span>
+    ),
+    value: 'h5',
+  },
+  {
+    label: (
+      <span className="flex items-center gap-1.5 will-change-transform">
+        <Heading6 /> Header 6
+      </span>
+    ),
+    value: 'h6',
   },
   {
     label: (
