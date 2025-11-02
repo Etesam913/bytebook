@@ -15,7 +15,7 @@ import {
   isHTMLElement,
 } from 'lexical';
 import { type RefObject, useEffect } from 'react';
-import { draggableBlockElementAtom, draggedElementAtom } from '../atoms';
+import { draggableBlockElementAtom, draggedGhostElementAtom } from '../atoms';
 import { throttle } from '../../../utils/draggable';
 import {
   DRAG_DATA_FORMAT,
@@ -97,7 +97,7 @@ export function useNodeDragEvents({
 }) {
   const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
   const noteContainer = noteContainerRef?.current;
-  const draggedElement = useAtomValue(draggedElementAtom);
+  const draggedGhostElement = useAtomValue(draggedGhostElementAtom);
 
   useEffect(() => {
     const handleDragOver = throttle((event: DragEvent) => {
@@ -186,8 +186,8 @@ export function useNodeDragEvents({
 					 If it is in the app, but not a block element, then let CONTROLLED_TEXT_INSERTION_COMMAND handle it
 					*/
           if (
-            !draggedElement ||
-            (draggedElement && draggedElement.id !== 'block-element')
+            !draggedGhostElement ||
+            (draggedGhostElement && draggedGhostElement.id !== 'block-element')
           ) {
             return false;
           }
@@ -202,5 +202,5 @@ export function useNodeDragEvents({
         COMMAND_PRIORITY_NORMAL
       )
     );
-  }, [editor, noteContainerRef, isDragging, draggedElement]);
+  }, [editor, noteContainerRef, isDragging, draggedGhostElement]);
 }

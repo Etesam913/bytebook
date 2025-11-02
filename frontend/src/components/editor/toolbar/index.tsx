@@ -34,6 +34,7 @@ import {
   changeSelectedBlocksType,
 } from '../utils/toolbar';
 import { SettingsDropdown } from './settings-dropdown';
+import type { PlaceholderLineData } from '../types';
 import {
   useCodeBlockDisplayData,
   useCodeBlockExecuteInput,
@@ -58,6 +59,7 @@ export function Toolbar({
   setFrontmatter,
   setNoteMarkdownString,
   tableActionsRef,
+  setPlaceholderLineData,
 }: {
   folder: string;
   note: string;
@@ -71,6 +73,7 @@ export function Toolbar({
   noteMarkdownString: string | null;
   setNoteMarkdownString: Dispatch<SetStateAction<string | null>>;
   tableActionsRef: RefObject<HTMLButtonElement | null>;
+  setPlaceholderLineData: Dispatch<SetStateAction<PlaceholderLineData>>;
 }) {
   const [editor] = useLexicalComposerContext();
   const [disabled, setDisabled] = useAtom(isToolbarDisabledAtom);
@@ -118,6 +121,7 @@ export function Toolbar({
     setFloatingData,
     noteContainerRef,
     tableActionsRef,
+    setPlaceholderLineData,
   });
 
   useNoteChangedEvent({ folder, note, editor, setFrontmatter });

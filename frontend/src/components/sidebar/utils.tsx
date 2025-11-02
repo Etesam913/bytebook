@@ -34,12 +34,12 @@ export function handleFolderDragStart({
   e,
   setSelectionRange,
   draggedFolder,
-  setDraggedElement,
+  setDraggedGhostElement,
 }: {
   e: DragEvent<HTMLAnchorElement> | DragEvent<HTMLButtonElement>;
   setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
   draggedFolder: string;
-  setDraggedElement: Dispatch<SetStateAction<HTMLElement | null>>;
+  setDraggedGhostElement: Dispatch<SetStateAction<HTMLElement | null>>;
 }) {
   setSelectionRange((tempSet) => {
     const tempSelectionRange = new Set(tempSet);
@@ -63,7 +63,7 @@ export function handleFolderDragStart({
     const ghostElement = createGhostElementFromHtmlElement({
       element: dragElement,
     });
-    setDraggedElement(ghostElement);
+    setDraggedGhostElement(ghostElement);
 
     const children = createDragPreviewChildren(selectedFiles, 'folder');
     renderGhostElement(ghostElement, children, e);
@@ -72,7 +72,7 @@ export function handleFolderDragStart({
     function handleDragEnd() {
       setSelectionRange(new Set());
       ghostElement.remove();
-      setDraggedElement(null);
+      setDraggedGhostElement(null);
       dragElement.removeEventListener('dragEnd', handleDragEnd);
     }
     dragElement.addEventListener('dragend', handleDragEnd);
@@ -89,13 +89,13 @@ export function handleNoteDragStart({
   e,
   setSelectionRange,
   draggedNote,
-  setDraggedElement,
+  setDraggedGhostElement,
   folder,
 }: {
   e: DragEvent<HTMLAnchorElement> | DragEvent<HTMLButtonElement>;
   setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
   draggedNote: string;
-  setDraggedElement: Dispatch<SetStateAction<HTMLElement | null>>;
+  setDraggedGhostElement: Dispatch<SetStateAction<HTMLElement | null>>;
   folder: string;
 }) {
   setSelectionRange((tempSet) => {
@@ -125,7 +125,7 @@ export function handleNoteDragStart({
     const ghostElement = createGhostElementFromHtmlElement({
       element: dragElement,
     });
-    setDraggedElement(ghostElement);
+    setDraggedGhostElement(ghostElement);
 
     const children = createDragPreviewChildren(
       selectedFiles.map((file) => `${WAILS_URL}/${file}`),
@@ -137,7 +137,7 @@ export function handleNoteDragStart({
     function handleDragEnd() {
       setSelectionRange(new Set());
       ghostElement.remove();
-      setDraggedElement(null);
+      setDraggedGhostElement(null);
       dragElement.removeEventListener('dragEnd', handleDragEnd);
     }
     dragElement.addEventListener('dragend', handleDragEnd);

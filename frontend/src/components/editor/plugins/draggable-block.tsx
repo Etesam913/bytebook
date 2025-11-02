@@ -3,7 +3,7 @@ import { motion, useMotionValue, useSpring } from 'motion/react';
 import { useAtom, useAtomValue } from 'jotai';
 import { RefObject, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { draggedElementAtom, noteContainerRefAtom } from '../atoms';
+import { draggedGhostElementAtom, noteContainerRefAtom } from '../atoms';
 import { VerticalDots } from '../../../icons/vertical-dots';
 
 import { useDraggableBlock, useNodeDragEvents } from '../hooks/draggable-block';
@@ -20,7 +20,7 @@ export function DraggableBlockPlugin({
   const [isDragHandleShowing, setIsDragHandleShowing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const handleRef = useRef<HTMLDivElement>(null);
-  const [draggedElement, setDraggedElement] = useAtom(draggedElementAtom);
+  const [draggedGhostElement, setDraggedGhostElement] = useAtom(draggedGhostElementAtom);
 
   const dragHandleYMotionValue = useMotionValue(0);
   const dragHandleYSpringMotionValue = useSpring(dragHandleYMotionValue, {
@@ -73,15 +73,15 @@ export function DraggableBlockPlugin({
             editor,
             setIsDragging,
             draggableBlockElement,
-            setDraggedElement,
+            setDraggedGhostElement,
             noteContainer: noteContainerRef.current,
           });
         }}
         onDragEnd={() => {
           setIsDragging(false);
-          setDraggedElement(null);
+          setDraggedGhostElement(null);
           // Remove the ghost drag element. It is not needed anymore.
-          if (draggedElement) draggedElement.remove();
+          if (draggedGhostElement) draggedGhostElement.remove();
         }}
         animate={{
           opacity: isDragHandleShowing ? 1 : 0,

@@ -6,7 +6,7 @@ import {
   dialogDataAtom,
   selectionRangeAtom,
 } from '../../../atoms';
-import { draggedElementAtom } from '../../editor/atoms';
+import { draggedGhostElementAtom } from '../../editor/atoms';
 import {
   useFolderRenameMutation,
   useFolderDeleteMutation,
@@ -56,7 +56,7 @@ export function FolderAccordionButton({
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const isSelected = selectionRange.has(`folder:${folderFromButton}`);
 
-  const setDraggedElement = useSetAtom(draggedElementAtom);
+  const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
 
@@ -115,7 +115,7 @@ export function FolderAccordionButton({
           e,
           setSelectionRange,
           draggedFolder: alphabetizedFolders?.at(i) ?? '',
-          setDraggedElement,
+          setDraggedGhostElement,
         })
       }
       onKeyDown={(e) => handleKeyNavigation(e)}

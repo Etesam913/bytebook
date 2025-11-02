@@ -1,7 +1,7 @@
 import type { MotionValue } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useState } from 'react';
-import { draggedElementAtom } from '../editor/atoms';
+import { draggedGhostElementAtom } from '../editor/atoms';
 import { dragItem } from '../../utils/draggable';
 import { MAX_SIDEBAR_WIDTH } from '../../utils/general';
 import { cn } from '../../utils/string-formatting';
@@ -19,7 +19,7 @@ export function Spacer({
   leftWidth?: MotionValue<number>;
   spacerConstant?: number;
 }) {
-  const setDraggedElement = useSetAtom(draggedElementAtom);
+  const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
   const [isDragged, setIsDragged] = useState(false);
 
@@ -29,7 +29,7 @@ export function Spacer({
 
   const handleDragEnd = () => {
     setIsDragged(false);
-    setDraggedElement(null);
+    setDraggedGhostElement(null);
   };
 
   const handleDrag = (e: MouseEvent) => {
@@ -48,7 +48,7 @@ export function Spacer({
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     handleDragStart();
-    setDraggedElement(e.target as HTMLElement);
+    setDraggedGhostElement(e.target as HTMLElement);
     dragItem(handleDrag, handleDragEnd);
   };
 

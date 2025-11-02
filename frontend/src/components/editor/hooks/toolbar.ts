@@ -34,7 +34,7 @@ import {
   useState,
 } from 'react';
 import { GetNoteMarkdown } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { draggedElementAtom, previousMarkdownAtom } from '../atoms';
+import { draggedGhostElementAtom, previousMarkdownAtom } from '../atoms';
 import type {
   EditorBlockTypes,
   FloatingDataType,
@@ -50,10 +50,12 @@ import {
   overrideUpDownKeyCommand,
 } from '../utils/note-commands';
 import { parseFrontMatter } from '../utils/note-metadata';
-import { showTableCellActionsButton, updateToolbar } from '../utils/toolbar';
+import { updateToolbar } from '../utils/toolbar';
 import { useWailsEvent } from '../../../hooks/events';
-import { useCreateNoteDialog } from '../../../hooks/dialogs';
 import { $convertFromMarkdownString } from '@lexical/markdown';
+import { showTableCellActionsButton } from '../utils/table';
+import type { PlaceholderLineData } from '../types';
+import { updatePlaceholderLineData } from '../utils/placeholder-line';
 
 /** Gets note markdown from local system on mount */
 export function useNoteMarkdown({
@@ -144,6 +146,7 @@ export function useToolbarEvents({
   setFloatingData,
   noteContainerRef,
   tableActionsRef,
+  setPlaceholderLineData,
 }: {
   editor: LexicalEditor;
   setDisabled: Dispatch<SetStateAction<boolean>>;
@@ -155,8 +158,9 @@ export function useToolbarEvents({
   setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
   noteContainerRef: RefObject<HTMLDivElement | null>;
   tableActionsRef: RefObject<HTMLButtonElement | null>;
+  setPlaceholderLineData: Dispatch<SetStateAction<PlaceholderLineData>>;
 }) {
-  const draggedElement = useAtomValue(draggedElementAtom);
+  const draggedGhostElement = useAtomValue(draggedGhostElementAtom);
 
   useEffect(() => {
     return mergeRegister(
@@ -188,6 +192,11 @@ export function useToolbarEvents({
             setFloatingData,
             noteContainerRef,
           });
+          updatePlaceholderLineData({
+            editor,
+            noteContainerRef,
+            setPlaceholderLineData,
+          });
           return false;
         },
         COMMAND_PRIORITY_LOW
@@ -195,7 +204,11 @@ export function useToolbarEvents({
       editor.registerCommand(
         CONTROLLED_TEXT_INSERTION_COMMAND,
         (e) => {
-          return overrideControlledTextInsertion(e, editor, draggedElement);
+          return overrideControlledTextInsertion(
+            e,
+            editor,
+            draggedGhostElement
+          );
         },
         COMMAND_PRIORITY_HIGH
       ),
@@ -322,7 +335,8 @@ export function useToolbarEvents({
     setFloatingData,
     noteContainerRef,
     tableActionsRef,
-    draggedElement,
+    draggedGhostElement,
+    setPlaceholderLineData,
   ]);
 }
 

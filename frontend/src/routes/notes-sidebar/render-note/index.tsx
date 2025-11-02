@@ -1,7 +1,7 @@
 import { motion, useAnimationControls } from 'motion/react';
 import { useAtomValue } from 'jotai';
 import { getDefaultButtonVariants } from '../../../animations';
-import { draggedElementAtom } from '../../../components/editor/atoms';
+import { draggedGhostElementAtom } from '../../../components/editor/atoms';
 import { isNoteMaximizedAtom } from '../../../atoms';
 import { MotionIconButton } from '../../../components/buttons';
 import { MaximizeNoteButton } from '../../../components/buttons/maximize-note';
@@ -32,7 +32,7 @@ import {
 export function RenderNote() {
   const animationControls = useAnimationControls();
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-  const draggedElement = useAtomValue(draggedElementAtom);
+  const draggedGhostElement = useAtomValue(draggedGhostElementAtom);
 
   // The attributes have to be retrieved from useRoute as passing in the params as props was lagging behind for some reason
   const [isNoteRoute, params] = useRoute<NotesRouteParams>(
@@ -152,7 +152,7 @@ export function RenderNote() {
             className={cn(
               'flex-1 overflow-auto mr-1',
               isNoteMaximized && 'w-full mr-0',
-              draggedElement !== null && 'pointer-events-none'
+              draggedGhostElement !== null && 'pointer-events-none'
             )}
             src={fileUrl}
           />
@@ -175,7 +175,7 @@ export function RenderNote() {
           filePath={filePath}
           fileUrl={fileUrl}
           isNoteMaximized={isNoteMaximized}
-          draggedElement={draggedElement}
+          draggedGhostElement={draggedGhostElement}
         />
       )}
 

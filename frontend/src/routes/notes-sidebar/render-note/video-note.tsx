@@ -9,12 +9,12 @@ export function VideoNote({
   filePath,
   fileUrl,
   isNoteMaximized,
-  draggedElement,
+  draggedGhostElement,
 }: {
   filePath: FilePath;
   fileUrl: string;
   isNoteMaximized: boolean;
-  draggedElement: HTMLElement | null;
+  draggedGhostElement: HTMLElement | null;
 }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -37,7 +37,7 @@ export function VideoNote({
           className={cn(
             'flex-1 overflow-auto mr-1 bg-black',
             isNoteMaximized && 'w-full mr-0',
-            draggedElement !== null && 'pointer-events-none'
+            draggedGhostElement !== null && 'pointer-events-none'
           )}
           src={fileUrl}
           style={{ display: isLoading ? 'none' : 'block' }}

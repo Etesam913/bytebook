@@ -260,10 +260,10 @@ function insertNodesIntoEditor(
 export function overrideControlledTextInsertion(
   e: string | InputEvent,
   editor: LexicalEditor,
-  draggedElement: HTMLElement | null
+  draggedGhostElement: HTMLElement | null
 ) {
   // @ts-expect-error Data Transfer does exist when dragging a link
-  if (!e.dataTransfer || !draggedElement) return false;
+  if (!e.dataTransfer || !draggedGhostElement) return false;
 
   // @ts-expect-error Data Transfer does exist when dragging a link
   const fileText: string = e.dataTransfer.getData('text/plain');

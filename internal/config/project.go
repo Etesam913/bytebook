@@ -129,11 +129,12 @@ func CreateSavedSearchesFile(projectPath string) error {
 }
 
 type AppearanceProjectSettingsJson struct {
-	Theme               string `json:"theme"`
-	AccentColor         string `json:"accentColor"`
-	NoteWidth           string `json:"noteWidth"`
-	EditorFontFamily    string `json:"editorFontFamily"`
-	NoteSidebarItemSize string `json:"noteSidebarItemSize"`
+	Theme                   string `json:"theme"`
+	AccentColor             string `json:"accentColor"`
+	NoteWidth               string `json:"noteWidth"`
+	EditorFontFamily        string `json:"editorFontFamily"`
+	NoteSidebarItemSize     string `json:"noteSidebarItemSize"`
+	ShowEmptyLinePlaceholder bool   `json:"showEmptyLinePlaceholder"`
 }
 
 type CodeProjectSettingsJson struct {
@@ -163,10 +164,11 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 		ProjectPath:        projectPath,
 		RepositoryToSyncTo: "",
 		Appearance: AppearanceProjectSettingsJson{
-			Theme:               "light",
-			AccentColor:         "",
-			EditorFontFamily:    "Bricolage Grotesque",
-			NoteSidebarItemSize: "card",
+			Theme:                   "light",
+			AccentColor:             "",
+			EditorFontFamily:        "Bricolage Grotesque",
+			NoteSidebarItemSize:     "card",
+			ShowEmptyLinePlaceholder: true,
 		},
 		Code: CodeProjectSettingsJson{
 			CodeBlockVimMode:      false,

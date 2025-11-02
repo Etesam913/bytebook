@@ -54,6 +54,7 @@ export const projectSettingsAtom = atom<ProjectSettings>({
     accentColor: '',
     noteWidth: 'fullWidth',
     editorFontFamily: 'Bricolage Grotesque',
+    showEmptyLinePlaceholder: true,
   },
   code: {
     codeBlockVimMode: false,

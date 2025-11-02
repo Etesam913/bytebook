@@ -5,7 +5,7 @@ import {
   projectSettingsAtom,
   selectionRangeAtom,
 } from '../../../atoms';
-import { draggedElementAtom } from '../../../components/editor/atoms';
+import { draggedGhostElementAtom } from '../../../components/editor/atoms';
 import { handleNoteDragStart } from '../../../components/sidebar/utils';
 import {
   useMoveNoteToTrashMutation,
@@ -62,7 +62,7 @@ export function NoteSidebarButton({
   const setDialogData = useSetAtom(dialogDataAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const setDraggedElement = useSetAtom(draggedElementAtom);
+  const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
 
   const { data: notePreviewResult } = useNotePreviewQuery(sidebarNotePath);
 
@@ -97,7 +97,7 @@ export function NoteSidebarButton({
           e,
           setSelectionRange,
           draggedNote: sidebarNotePath.note,
-          setDraggedElement,
+          setDraggedGhostElement,
           folder: sidebarNotePath.folder,
         })
       }

@@ -14,7 +14,7 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useRef, useState } from 'react';
 import {
   draggableBlockElementAtom,
-  draggedElementAtom,
+  draggedGhostElementAtom,
   editorAtom,
 } from './atoms';
 import { isNoteMaximizedAtom } from '../../atoms';
@@ -29,6 +29,7 @@ import { CodePlugin } from './plugins/code';
 import { ComponentPickerMenuPlugin } from './plugins/component-picker';
 import { CustomMarkdownShortcutPlugin } from './plugins/custom-markdown-shortcut.tsx';
 import { DraggableBlockPlugin } from './plugins/draggable-block.tsx';
+import { EmptyLinePlaceholderPlugin } from './plugins/empty-line-placeholder.tsx';
 import { FilesPlugin } from './plugins/file';
 import { FilePickerMenuPlugin } from './plugins/file-picker.tsx';
 import { FocusPlugin } from './plugins/focus.tsx';
@@ -46,6 +47,7 @@ import { useNoteIntersectionObserver } from './hooks/intersection-observer';
 import type { LegacyAnimationControls } from 'motion/react';
 import { FilePath } from '../../utils/string-formatting';
 import { TableActionsPlugin } from './plugins/table-actions.tsx';
+import type { PlaceholderLineData } from './types';
 
 export function NotesEditor({
   filePath,
@@ -55,24 +57,21 @@ export function NotesEditor({
   animationControls: LegacyAnimationControls;
 }) {
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const setEditor = useSetAtom(editorAtom);
-  const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
-  const [frontmatter, setFrontmatter] = useState<Frontmatter>({});
-  const [floatingData, setFloatingData] = useState<FloatingDataType>({
-    isOpen: false,
-    left: 0,
-    top: 0,
-    type: null,
-  });
   const queryClient = useQueryClient();
-  const overflowContainerRef = useRef<HTMLDivElement | null>(null);
+  const setEditor = useSetAtom(editorAtom);
+
   const tableActionsRef = useRef<HTMLButtonElement | null>(null);
+
   const noteContainerRef = useRef<HTMLDivElement | null>(null);
-  const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
   const [noteMarkdownString, setNoteMarkdownString] = useState<string | null>(
     null
   );
-  const draggedElement = useAtomValue(draggedElementAtom);
+  const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
+  const [frontmatter, setFrontmatter] = useState<Frontmatter>({});
+
+  const draggedGhostElement = useAtomValue(draggedGhostElementAtom);
+  // Overflow container ref is used to handle the auto-scroll during drag
+  const overflowContainerRef = useRef<HTMLDivElement | null>(null);
   const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(
     overflowContainerRef,
     {
@@ -80,6 +79,19 @@ export function NotesEditor({
       speed: 20,
     }
   );
+  const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
+  const [floatingData, setFloatingData] = useState<FloatingDataType>({
+    isOpen: false,
+    left: 0,
+    top: 0,
+    type: null,
+  });
+  const [placeholderLineData, setPlaceholderLineData] =
+    useState<PlaceholderLineData>({
+      show: false,
+      position: { top: 0, left: 0 },
+      parentKey: null,
+    });
 
   // Extract folder and note from filePath
   const folder = filePath.folder;
@@ -104,6 +116,7 @@ export function NotesEditor({
         noteMarkdownString={noteMarkdownString}
         setNoteMarkdownString={setNoteMarkdownString}
         tableActionsRef={tableActionsRef}
+        setPlaceholderLineData={setPlaceholderLineData}
       />
       <div
         ref={overflowContainerRef}
@@ -133,34 +146,44 @@ export function NotesEditor({
             <NoteTitle folder={folder} note={note} />
             <ComponentPickerMenuPlugin folder={folder} note={note} />
             <FilePickerMenuPlugin />
+            <EmptyLinePlaceholderPlugin
+              noteContainerRef={noteContainerRef}
+              placeholderLineData={placeholderLineData}
+              setPlaceholderLineData={setPlaceholderLineData}
+            />
             {frontmatter.showTableOfContents === 'true' && (
               <TableOfContentsPlugin />
             )}
 
-            <RichTextPlugin
-              placeholder={null}
-              contentEditable={
-                <ContentEditable
-                  onContextMenu={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => {
-                    handleEditorEscape(e, isNoteMaximized, setIsNoteMaximized);
-                    setDraggableBlockElement(null);
-                  }}
-                  id="content-editable-editor"
-                  className="flex-1"
-                  spellCheck
-                  autoFocus
-                  autoCorrect="on"
-                  onClick={(e) => {
-                    // Clicks should not propagate to the editor when something is being dragged
-                    if (draggedElement) {
-                      e.stopPropagation();
-                    }
-                  }}
-                />
-              }
-              ErrorBoundary={LexicalErrorBoundary}
-            />
+            <div className="flex-1">
+              <RichTextPlugin
+                placeholder={null}
+                contentEditable={
+                  <ContentEditable
+                    onContextMenu={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
+                      handleEditorEscape(
+                        e,
+                        isNoteMaximized,
+                        setIsNoteMaximized
+                      );
+                      setDraggableBlockElement(null);
+                    }}
+                    id="content-editable-editor"
+                    spellCheck
+                    autoFocus
+                    autoCorrect="on"
+                    onClick={(e) => {
+                      // Clicks should not propagate to the editor when something is being dragged
+                      if (draggedGhostElement) {
+                        e.stopPropagation();
+                      }
+                    }}
+                  />
+                }
+                ErrorBoundary={LexicalErrorBoundary}
+              />
+            </div>
             <OnChangePlugin
               ignoreSelectionChange
               onChange={(_, editor, tag) =>

@@ -1,7 +1,7 @@
 import { type MotionValue, motion } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import type { Dispatch, MouseEvent, RefObject, SetStateAction } from 'react';
-import { draggedElementAtom, noteContainerRefAtom } from '../editor/atoms';
+import { draggedGhostElementAtom, noteContainerRefAtom } from '../editor/atoms';
 import type { ResizeWidth } from '../../types';
 import { dragItem } from '../../utils/draggable';
 
@@ -27,7 +27,7 @@ export function ResizeHandle({
   setSelected,
 }: ResizeHandleProps) {
   const noteContainerRef = useAtomValue(noteContainerRefAtom);
-  const setDraggedElement = useSetAtom(draggedElementAtom);
+  const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
   // The component has no background-color as there is a copy of this in the parent component that follows the resize outline
   return (
     <motion.div
@@ -49,7 +49,7 @@ export function ResizeHandle({
       onMouseDown={(mouseDownEvent: MouseEvent<HTMLDivElement>) => {
         setIsResizing(true);
         mouseDownEvent.stopPropagation();
-        setDraggedElement(mouseDownEvent.target as HTMLElement);
+        setDraggedGhostElement(mouseDownEvent.target as HTMLElement);
         dragItem(
           (dragEvent) => {
             const mouseDownBox = mouseDownEvent.target as HTMLDivElement;
@@ -110,7 +110,7 @@ export function ResizeHandle({
               writeWidthToNode(widthMotionValue.get());
             }, 100);
             setTimeout(() => {
-              setDraggedElement(null);
+              setDraggedGhostElement(null);
             }, 1000);
           }
         );

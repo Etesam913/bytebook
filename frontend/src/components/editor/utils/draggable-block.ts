@@ -479,14 +479,14 @@ export function handleDragStart({
   editor,
   setIsDragging,
   draggableBlockElement,
-  setDraggedElement,
+  setDraggedGhostElement,
   noteContainer,
 }: {
   e: DragEvent;
   editor: LexicalEditor;
   setIsDragging: Dispatch<SetStateAction<boolean>>;
   draggableBlockElement: HTMLElement | null;
-  setDraggedElement: Dispatch<SetStateAction<HTMLElement | null>>;
+  setDraggedGhostElement: Dispatch<SetStateAction<HTMLElement | null>>;
   noteContainer: HTMLElement | null;
 }) {
   if (!e.dataTransfer || !draggableBlockElement) {
@@ -518,7 +518,7 @@ export function handleDragStart({
     ghostElement.style.fontFamily = noteContainer.style.fontFamily;
     ghostElement.style.maxWidth = `${noteContainer.clientWidth}px`;
   }
-  setDraggedElement(ghostElement);
+  setDraggedGhostElement(ghostElement);
 
   e.dataTransfer.setDragImage(ghostElement, 0, 0);
   document.body.appendChild(ghostElement);

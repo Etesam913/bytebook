@@ -102,6 +102,7 @@ type AppearanceSettings = Omit<
   theme: 'light' | 'dark' | 'system';
   noteSidebarItemSize: 'card' | 'list';
   noteWidth: 'fullWidth' | 'readability';
+  showEmptyLinePlaceholder: boolean;
 };
 
 export type ProjectSettings = Omit<
