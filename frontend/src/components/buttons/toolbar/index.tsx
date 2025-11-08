@@ -6,6 +6,7 @@ import {
   REDO_COMMAND,
   type TextFormatType,
   UNDO_COMMAND,
+  FORMAT_TEXT_COMMAND,
 } from 'lexical';
 import {
   type Dispatch,
@@ -166,25 +167,27 @@ export function ToolbarButtons({
     buttonData.push({
       icon: <Link className="will-change-transform" />,
       onClick: () => {
-        editor.read(() => {
+        editor.update(() => {
           const selection = $getSelection();
           if (!$isRangeSelection(selection)) {
             return;
           }
+
+          const clonedSelection = selection.clone();
+
           const selectionNodes = selection.getNodes();
-          let previousUrl: string | undefined;
-          selectionNodes.forEach((node) => {
-            const parent = node.getParent();
-            if ($isLinkNode(parent)) {
-              previousUrl = parent.getURL();
-              return;
-            }
-          });
+
+          const previousUrl = selectionNodes
+            .map((node) => node.getParent())
+            .find((parent) => $isLinkNode(parent))
+            ?.getURL();
+
           setFloatingData((prev) => ({
             ...prev,
             isOpen: true,
             type: 'link',
             previousUrl,
+            previousSelection: clonedSelection,
           }));
         });
       },

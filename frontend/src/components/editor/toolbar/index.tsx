@@ -146,6 +146,7 @@ export function Toolbar({
         <FloatingMenuPlugin
           floatingData={floatingData}
           setFloatingData={setFloatingData}
+          noteContainerRef={noteContainerRef}
         >
           <ToolbarButtons
             canUndo={canUndo}
