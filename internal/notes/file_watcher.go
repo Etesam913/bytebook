@@ -206,6 +206,19 @@ func (fw *FileWatcher) handleSavedSearchUpdate(event fsnotify.Event) {
 	}
 }
 
+// shouldIgnoreFile checks if a file should be ignored by the watcher
+func shouldIgnoreFile(fileName string) bool {
+	// Ignore macOS system files
+	if fileName == ".DS_Store" {
+		return true
+	}
+	// Ignore files starting with . (hidden files) except for markdown files
+	if strings.HasPrefix(fileName, ".") && !strings.HasSuffix(fileName, ".md") {
+		return true
+	}
+	return false
+}
+
 // processEvent handles a single filesystem event
 func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 	log.Println("event:", event, filepath.Ext(event.Name))
@@ -217,6 +230,12 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 	segments := strings.Split(event.Name, "/")
 	if len(segments) < 3 {
 		return // Skip if path is too short
+	}
+
+	// Skip system files like .DS_Store
+	fileName := filepath.Base(event.Name)
+	if shouldIgnoreFile(fileName) {
+		return
 	}
 
 	oneFolderBack := segments[len(segments)-2]

@@ -46,22 +46,35 @@ func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
 		// Retry logic to handle race condition where file might not be immediately available
 		err := util.RetryWithExponentialBackoff(
 			func() error {
-				_, err := search.AddMarkdownNoteToBatch(
-					batch,
-					params.Index,
-					filePath,
-					folder,
-					noteName,
-					true,
-				)
-				return err
+				if filepath.Ext(noteName) == ".md" {
+					_, err := search.AddMarkdownNoteToBatch(
+						batch,
+						params.Index,
+						filePath,
+						folder,
+						noteName,
+						true,
+					)
+					return err
+				} else {
+					// Handle attachment files
+					fileExtension := filepath.Ext(noteName)
+					_, err := search.AddAttachmentToBatch(
+						batch,
+						params.Index,
+						folder,
+						noteName,
+						fileExtension,
+					)
+					return err
+				}
 			},
 			5,                   // maxRetries
 			10*time.Millisecond, // initialDelay
 		)
 
 		if err != nil {
-			log.Printf("Error adding markdown note to batch: %v", err)
+			log.Printf("Error adding note to batch: %v", err)
 		}
 	}
 
