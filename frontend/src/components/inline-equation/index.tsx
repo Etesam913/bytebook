@@ -89,7 +89,12 @@ export function InlineEquation({
             editor={editor}
           >
             <motion.button
-              {...getDefaultButtonVariants({ disabled: false, whileHover: 1.115, whileTap: 0.95, whileFocus: 1.115 })}
+              {...getDefaultButtonVariants({
+                disabled: false,
+                whileHover: 1.115,
+                whileTap: 0.95,
+                whileFocus: 1.115,
+              })}
               type="button"
               onClick={() => setIsEditing(true)}
             >

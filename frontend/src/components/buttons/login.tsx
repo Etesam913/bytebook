@@ -19,7 +19,7 @@ export function LoginButton() {
   const [focusIndex, setFocusIndex] = useState(0);
   const dropdownContainerRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(dropdownContainerRef, () => setIsUserOptionsOpen(false));
-  
+
   const uniqueId = useId();
   const buttonId = `user-menu-button-${uniqueId}`;
   const menuId = `user-menu-${uniqueId}`;

@@ -67,11 +67,7 @@ export function ComponentPickerMenuItem({
         }
       }}
     >
-      {option.icon && (
-        <span aria-hidden="true">
-          {option.icon}
-        </span>
-      )}
+      {option.icon && <span aria-hidden="true">{option.icon}</span>}
       <span className="text">{option.title}</span>
     </li>
   );
@@ -116,16 +112,15 @@ export function FilePickerMenuItem({
       aria-label={`${filePath.note} in ${filePath.folder} folder`}
     >
       <div className="flex items-center gap-1">
-        {option.icon && (
-          <span aria-hidden="true">
-            {option.icon}
-          </span>
-        )}
+        {option.icon && <span aria-hidden="true">{option.icon}</span>}
         <span className="text-ellipsis overflow-hidden whitespace-nowrap text-sm">
           {filePath.note}
         </span>
       </div>
-      <p className="text-xs text-zinc-500 dark:text-zinc-400" aria-hidden="true">
+      <p
+        className="text-xs text-zinc-500 dark:text-zinc-400"
+        aria-hidden="true"
+      >
         {filePath.folder}/
       </p>
     </li>

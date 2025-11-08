@@ -28,12 +28,6 @@ go install gotest.tools/gotestsum@latest
 cd frontend && bun install
 ```
 
-#### Configure husky
-
-```
-bun run husky:prepare
-```
-
 ## 🏃‍➡️ Run (in root bytebook/ directory)
 
 ```

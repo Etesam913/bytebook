@@ -14,8 +14,7 @@
     "lint": "eslint --fix .",
     "lint:check": "bun run eslint .",
     "tsc": "tsc",
-    "format:lint:tsc": "bun run format:check && bun run lint:check && bun run tsc",
-    "husky:prepare": "cd .. && husky frontend/.husky"
+    "format:lint:tsc": "bun run format:check && bun run lint:check && bun run tsc"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.19.1",
@@ -71,7 +70,6 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "7.0.1",
     "globals": "^16.5.0",
-    "husky": "^9.1.7",
     "prettier": "^3.6.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

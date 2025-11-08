@@ -53,7 +53,7 @@ export function ContextMenu() {
 
   // Local state to hold the adjusted position
   const [position, setPosition] = useState({ x, y });
-  
+
   const uniqueId = useId();
   const menuId = `context-menu-${uniqueId}`;
 

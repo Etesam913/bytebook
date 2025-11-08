@@ -9,7 +9,12 @@ export function DeleteButton({ nodeKey }: { nodeKey: string }) {
 
   return (
     <MotionIconButton
-      {...getDefaultButtonVariants({ disabled: false, whileHover: 1.05, whileTap: 0.975, whileFocus: 1.05 })}
+      {...getDefaultButtonVariants({
+        disabled: false,
+        whileHover: 1.05,
+        whileTap: 0.975,
+        whileFocus: 1.05,
+      })}
       onClick={() => {
         lexicalEditor.update(() => {
           removeDecoratorNode(nodeKey);

@@ -119,7 +119,6 @@ html:has(.dark) {
   color-scheme: dark;
 }
 
-
 /* native keyboard focus */
 :focus-visible {
   outline: 2px solid var(--accent-color);
@@ -127,11 +126,9 @@ html:has(.dark) {
   box-shadow: none;
 }
 
-
 mark {
   @apply bg-(--accent-color-highlight) text-zinc-900 dark:text-zinc-100;
 }
-
 
 input[type='text'],
 textarea,
@@ -176,27 +173,27 @@ textarea,
   cursor: text;
 }
 
-#content-editable-editor  h1,
+#content-editable-editor h1,
 h1.dragging {
   @apply text-3xl leading-13;
 }
 
-#content-editable-editor  h2,
+#content-editable-editor h2,
 h2.dragging {
   @apply text-2xl leading-[2.8rem];
 }
 
-#content-editable-editor  h3,
+#content-editable-editor h3,
 h3.dragging {
   @apply text-xl leading-10;
 }
 
-#content-editable-editor  h4,
+#content-editable-editor h4,
 h4.dragging {
   @apply text-lg leading-9 font-semibold;
 }
 
-#content-editable-editor  h5,
+#content-editable-editor h5,
 h5.dragging {
   @apply text-base leading-8 font-bold;
 }

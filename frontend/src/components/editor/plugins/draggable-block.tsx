@@ -20,7 +20,9 @@ export function DraggableBlockPlugin({
   const [isDragHandleShowing, setIsDragHandleShowing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const handleRef = useRef<HTMLDivElement>(null);
-  const [draggedGhostElement, setDraggedGhostElement] = useAtom(draggedGhostElementAtom);
+  const [draggedGhostElement, setDraggedGhostElement] = useAtom(
+    draggedGhostElementAtom
+  );
 
   const dragHandleYMotionValue = useMotionValue(0);
   const dragHandleYSpringMotionValue = useSpring(dragHandleYMotionValue, {
