@@ -15,9 +15,8 @@ import {
 import {
   $insertTableColumnAtSelection,
   $insertTableRowAtSelection,
-  type TableCellNode,
 } from '@lexical/table';
-import { type RefObject, useState } from 'react';
+import { type RefObject, useMemo, useState } from 'react';
 import { MotionIconButton } from '../../buttons';
 import { ChevronDown } from '../../../icons/chevron-down';
 import { getDefaultButtonVariants } from '../../../animations';
@@ -142,11 +141,13 @@ export function TableActionsPlugin({
 }) {
   const [editor] = useLexicalComposerContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [tableCellNode, setTableCellNode] = useState<TableCellNode | null>(
-    null
-  );
-  const [menuItems, setMenuItems] = useState<DropdownItem[]>(
-    getTableActionMenuItems({ editor, onClose: () => {} })
+  const menuItems = useMemo(
+    () =>
+      getTableActionMenuItems({
+        editor,
+        onClose: () => setIsMenuOpen(false),
+      }),
+    [editor, setIsMenuOpen]
   );
 
   return (

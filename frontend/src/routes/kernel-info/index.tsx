@@ -9,7 +9,7 @@ import { KernelStatusCard } from './kernel-status-card';
 import { KernelInfoCard } from './kernel-info-card';
 import { KernelErrorCard } from './kernel-error-card';
 import { KernelQuickstart } from './kernel-quickstart';
-import { Languages } from '../../types';
+import { Languages, LanguagesWithKernels } from '../../types';
 import { JavascriptLogo } from '../../icons/javascript-logo';
 import { JavaLogo } from '../../icons/java-logo';
 
@@ -19,7 +19,7 @@ interface KernelConfig {
   icon: ReactNode;
 }
 
-const KERNEL_CONFIGS: Record<Languages, KernelConfig> = {
+const KERNEL_CONFIGS: Record<LanguagesWithKernels, KernelConfig> = {
   python: {
     displayName: 'Python',
     executable: 'python',

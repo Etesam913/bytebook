@@ -30,7 +30,7 @@ import {
 } from '../../utils/routing.ts';
 import { Tooltip } from '../../components/tooltip/index.tsx';
 import { Command } from '../../icons/command.tsx';
-import { routeBuilders, routeUrls } from '../../utils/routes.ts';
+import { routeBuilders } from '../../utils/routes.ts';
 
 export function NotesSidebar({
   curFolder,
@@ -120,9 +120,11 @@ export function NotesSidebar({
               <header className="pl-1.5 pr-2.5">
                 <section className="flex items-center py-3.5 gap-2">
                   <Folder className="min-w-[20px]" />{' '}
-                  <p className="overflow-hidden text-ellipsis whitespace-nowrap">
-                    {curFolder}
-                  </p>
+                  <Tooltip content={curFolder} placement="bottom">
+                    <p className="overflow-hidden text-ellipsis whitespace-nowrap">
+                      {curFolder}
+                    </p>
+                  </Tooltip>
                   <Tooltip content="Rename folder" placement="right">
                     <MotionIconButton
                       {...getDefaultButtonVariants()}

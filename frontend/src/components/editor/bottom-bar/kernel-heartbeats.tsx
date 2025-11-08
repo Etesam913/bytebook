@@ -3,7 +3,11 @@ import { KernelLanguageHeartbeat } from './kernel-language-heartbeat';
 import { useEffect, useState } from 'react';
 import { CodeNode } from '../nodes/code';
 import { $getNodeByKey, $nodesOfType } from 'lexical';
-import { Languages, languagesWithKernelsSet } from '../../../types';
+import {
+  Languages,
+  LanguagesWithKernels,
+  languagesWithKernelsSet,
+} from '../../../types';
 import { useSendInterruptRequestMutation } from '../../../hooks/code';
 
 export function KernelHeartbeats() {
@@ -24,7 +28,7 @@ export function KernelHeartbeats() {
           const allCodeNodes = $nodesOfType(CodeNode);
           allCodeNodes.forEach((node) => {
             const language = node.getLanguage();
-            if (languagesWithKernelsSet.has(language)) {
+            if (languagesWithKernelsSet.has(language as LanguagesWithKernels)) {
               tempLanguagesPresentInNote.add(language);
             }
           });

@@ -38,7 +38,6 @@ export default defineConfig([
       'react-hooks/exhaustive-deps': 'off',
       // Disable the rule that requires React to be in scope for JSX
       'react/react-in-jsx-scope': 'off',
-      'react-hooks/react-compiler': 'error',
     },
   },
 ]);

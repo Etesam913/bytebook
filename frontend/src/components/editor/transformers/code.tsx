@@ -115,7 +115,7 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
     startMatch,
     endMatch,
     linesInBetween,
-    isImport
+    _isImport
   ) => {
     // If no language specified or not a valid language, default to 'text'
     const language =

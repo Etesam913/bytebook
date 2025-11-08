@@ -96,14 +96,11 @@ export function SavePlugin({
 
           if (!payload?.shouldSkipNoteChangedEmit) {
             // To prevent infinite loops when there are multiple windows open
-            Events.Emit({
-              name: 'note:changed',
-              data: {
-                folder: filePath.folder,
-                note: filePath.noteWithoutExtension,
-                markdown: markdownWithFrontmatter,
-                oldWindowAppId: WINDOW_ID,
-              },
+            Events.Emit('note:changed', {
+              folder: filePath.folder,
+              note: filePath.noteWithoutExtension,
+              markdown: markdownWithFrontmatter,
+              oldWindowAppId: WINDOW_ID,
             });
           }
 

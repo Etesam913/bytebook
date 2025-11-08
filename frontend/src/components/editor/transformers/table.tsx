@@ -51,7 +51,7 @@ export const TABLE: ElementTransformer = {
   dependencies: [TableNode, TableRowNode, TableCellNode],
   export: (
     node: LexicalNode,
-    traverseChildren: (node: ElementNode) => string
+    _traverseChildren: (node: ElementNode) => string
   ) => {
     if (!$isTableNode(node)) {
       return null;
@@ -116,7 +116,7 @@ export const TABLE: ElementTransformer = {
     return output.join('\n');
   },
   regExp: TABLE_ROW_REG_EXP,
-  replace: (parentNode, _1, match, isImport: boolean) => {
+  replace: (parentNode, _1, match, _isImport: boolean) => {
     // Header row
     if (TABLE_ROW_DIVIDER_REG_EXP.test(match[0])) {
       const table = parentNode.getPreviousSibling();

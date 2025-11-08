@@ -28,7 +28,6 @@ import { cn } from '../../utils/string-formatting';
 import { motion, AnimatePresence } from 'motion/react';
 import { easingFunctions } from '../../animations';
 import { TooltipArrow } from './tooltip-arrow';
-import { CSSProperties } from 'react';
 
 export const Tooltip = ({
   content,
@@ -163,13 +162,13 @@ export const Tooltip = ({
               {...getFloatingProps()}
               data-side={side}
               className={cn(
-                'z-[1000] pointer-events-none select-none max-w-xs',
+                'z-1000 pointer-events-none select-none max-w-xs',
                 className
               )}
             >
               <motion.div
                 className={cn(
-                  'relative rounded-md px-2 py-1.5 text-sm leading-snug shadow-md border bg-zinc-50 dark:bg-zinc-750 border-zinc-300  dark:border-zinc-600 whitespace-pre-wrap break-words z-50'
+                  'relative rounded-md px-2 py-1.5 text-sm leading-snug shadow-md border bg-zinc-50 dark:bg-zinc-750 border-zinc-300 dark:border-zinc-600 whitespace-pre-wrap wrap-break-word z-50'
                 )}
                 style={{ overflow: 'visible' }}
                 role="tooltip"

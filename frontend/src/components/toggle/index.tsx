@@ -15,7 +15,6 @@ export function Toggle({
   checked = false,
   ...inputProps
 }: ToggleProps) {
-  // eslint-disable-next-line react-hooks/react-compiler
   'use no memo';
   const generatedId = useId();
   const inputId = `toggle-${generatedId}`;

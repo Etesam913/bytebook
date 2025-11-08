@@ -7,7 +7,6 @@ import {
   RefObject,
   useEffect,
   useRef,
-  useMemo,
 } from 'react';
 import { easingFunctions } from '../../animations';
 import type { DropdownItem } from '../../types';

@@ -13,8 +13,8 @@
     "format:check": "prettier --check .",
     "lint": "eslint --fix .",
     "lint:check": "bun run eslint .",
-    "tsc": "tsc",
-    "format:lint:tsc": "bun run format:check && bun run lint:check && bun run tsc"
+    "tsgo": "tsgo",
+    "format:lint:tsgo": "bun run format:check && bun run lint:check && bun run tsgo"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.19.1",
@@ -63,12 +63,13 @@
     "@types/node": "^24.9.2",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "@typescript/native-preview": "^7.0.0-dev.20251107.1",
     "@wailsio/runtime": "3.0.0-alpha.72",
     "babel-plugin-react-compiler": "1.0.0",
     "clsx": "^2.1.1",
     "eslint": "^9.39.0",
     "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "7.0.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^16.5.0",
     "prettier": "^3.6.2",
     "react": "^19.2.0",

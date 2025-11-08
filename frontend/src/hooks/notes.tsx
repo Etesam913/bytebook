@@ -36,6 +36,7 @@ import type { Frontmatter } from '../types';
 import { $convertFromMarkdownString } from '@lexical/markdown';
 import { useCreateNoteDialog } from './dialogs';
 import { isEventInCurrentWindow } from '../utils/events';
+import { parseFrontMatter } from '../components/editor/utils/note-metadata';
 
 export type NotesQueryData = {
   notes: FilePath[];
@@ -507,6 +508,8 @@ export function useNoteChangedEvent({
         },
         { tag: 'note:changed-from-other-window' }
       );
+      const { frontMatter } = parseFrontMatter(markdown);
+      setFrontmatter(frontMatter);
     }
     // Update the appropriate note preview
     const queryKey = noteQueries.getNotePreview(

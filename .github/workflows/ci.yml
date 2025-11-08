@@ -34,7 +34,7 @@ jobs:
 
       - name: Run TypeScript check
         working-directory: ./frontend
-        run: bun run tsc
+        run: bun run tsgo
 
   go-tests:
     name: Go Tests

@@ -1,4 +1,4 @@
-import { AnimatePresence, motion, useMotionValue } from 'motion/react';
+import { motion, useMotionValue } from 'motion/react';
 import { type ReactNode, RefObject, useRef } from 'react';
 import type { ResizeState, ResizeWidth } from '../../types';
 import { cn } from '../../utils/string-formatting';
