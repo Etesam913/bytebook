@@ -9,7 +9,11 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { isNoteMaximizedAtom, isToolbarDisabledAtom } from '../../../atoms';
+import {
+  isFullscreenAtom,
+  isNoteMaximizedAtom,
+  isToolbarDisabledAtom,
+} from '../../../atoms';
 import { noteSelectionAtom } from '../atoms';
 import { useAttachmentsMutation } from '../../../hooks/attachments';
 import { useNoteChangedEvent } from '../../../hooks/notes';
@@ -78,6 +82,7 @@ export function Toolbar({
 }) {
   const [editor] = useLexicalComposerContext();
   const [disabled, setDisabled] = useAtom(isToolbarDisabledAtom);
+  const isFullscreen = useAtomValue(isFullscreenAtom);
   const [currentBlockType, setCurrentBlockType] =
     useState<EditorBlockTypes>('paragraph');
   const [currentSelectionFormat, setCurrentSelectionFormat] = useState<
@@ -164,7 +169,7 @@ export function Toolbar({
       <nav
         className={cn(
           'ml-[-4px] flex gap-1.5 border-b border-b-zinc-200 px-2 pb-2 pt-2.5 dark:border-b-zinc-700',
-          isNoteMaximized && 'pl-23!'
+          isNoteMaximized && !isFullscreen && 'pl-23!'
         )}
       >
         <NoteFindPanel

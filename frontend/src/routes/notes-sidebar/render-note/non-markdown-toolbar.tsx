@@ -79,7 +79,7 @@ export function NonMarkdownToolbar({
     <header
       className={cn(
         'flex items-center gap-1.5 border-b px-2 pb-1 pt-2.5 h-12 border-zinc-200 dark:border-b-zinc-700 whitespace-nowrap ml-[-4.5px]',
-        isNoteMaximized && 'pl-23!'
+        isNoteMaximized && !isFullscreen && 'pl-23!'
       )}
     >
       <MaximizeNoteButton animationControls={animationControls} />
