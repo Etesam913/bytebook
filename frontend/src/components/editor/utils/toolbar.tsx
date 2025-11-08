@@ -43,7 +43,6 @@ import { Text } from '../../../icons/text';
 import { TextBold } from '../../../icons/text-bold';
 import { TextItalic } from '../../../icons/text-italic';
 import { TextStrikethrough } from '../../../icons/text-strikethrough';
-import { TextUnderline } from '../../../icons/text-underline';
 import { UnorderedList } from '../../../icons/unordered-list';
 import type {
   DropdownItem,
@@ -489,10 +488,6 @@ export const textFormats: { icon: ReactNode; format: TextFormatType }[] = [
   {
     icon: <TextItalic className="will-change-transform" />,
     format: 'italic',
-  },
-  {
-    icon: <TextUnderline className="will-change-transform" />,
-    format: 'underline',
   },
   {
     icon: <TextStrikethrough className="will-change-transform" />,
