@@ -165,31 +165,33 @@ export function SearchPage() {
                 <li>
                   Type{' '}
                   <span className="font-bold font-code text-zinc-900 dark:text-zinc-100">
-                    "The red tiger"
+                    &quot;The red tiger&quot;
                   </span>{' '}
-                  to search for files that contain the phrase "The red tiger"
+                  to search for files that contain the phrase &quot;The red
+                  tiger&quot;
                 </li>
                 <li>
                   Use{' '}
                   <span className="font-bold font-code text-zinc-900 dark:text-zinc-100">
                     f:apple
                   </span>{' '}
-                  to search for files or folders that start with "apple"
+                  to search for files or folders that start with
+                  &quot;apple&quot;
                 </li>
                 <li>
                   Use{' '}
                   <span className="font-bold font-code text-zinc-900 dark:text-zinc-100">
                     f:docs/readme
                   </span>{' '}
-                  to search for files starting with "readme" in folders starting
-                  with "docs"
+                  to search for files starting with &quot;readme&quot; in
+                  folders starting with &quot;docs&quot;
                 </li>
                 <li>
                   Use{' '}
                   <span className="font-bold font-code text-zinc-900 dark:text-zinc-100">
                     #Economics
                   </span>{' '}
-                  to search for notes tagged with "Economics"
+                  to search for notes tagged with &quot;Economics&quot;
                 </li>
               </ol>
             </div>

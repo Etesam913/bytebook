@@ -1,7 +1,6 @@
 import {
   type Dispatch,
   type SetStateAction,
-  useEffect,
   useId,
   useRef,
   useState,
@@ -63,22 +62,24 @@ export function DropdownMenu({
 
   useOnClickOutside(dropdownContainerRef, () => setIsOpen(false));
 
-  // Reset focus index to 0 when dropdown opens
-  useEffect(() => {
-    if (isOpen) {
-      setFocusIndex(0);
-    }
-  }, [isOpen]);
+  const openDropdown = () => {
+    setFocusIndex(0);
+    setIsOpen(true);
+  };
+
+  const closeDropdown = () => {
+    setIsOpen(false);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
       case 'Escape':
-        setIsOpen(false);
+        closeDropdown();
         break;
       case 'ArrowDown':
         e.preventDefault();
         if (!isOpen) {
-          setIsOpen(true);
+          openDropdown();
         }
         // Move focus into the menu
         setTimeout(() => {
@@ -90,7 +91,7 @@ export function DropdownMenu({
       case 'ArrowUp':
         e.preventDefault();
         if (!isOpen) {
-          setIsOpen(true);
+          openDropdown();
           // Move focus to last option
           setTimeout(() => {
             const lastIndex = items.length - 1;
@@ -105,14 +106,22 @@ export function DropdownMenu({
       case 'Enter':
       case ' ':
         e.preventDefault();
-        setIsOpen((prev) => !prev);
+        if (isOpen) {
+          closeDropdown();
+        } else {
+          setIsOpen(true);
+        }
         // Don't automatically move focus when opening
         break;
     }
   };
 
   const handleClick = (e: React.MouseEvent<HTMLElement>) => {
-    setIsOpen((prev) => !prev);
+    if (isOpen) {
+      closeDropdown();
+    } else {
+      openDropdown();
+    }
     // Ensure the button has focus after click
     (e.currentTarget as HTMLElement).focus();
   };

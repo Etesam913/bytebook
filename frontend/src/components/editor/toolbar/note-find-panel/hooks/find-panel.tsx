@@ -110,9 +110,11 @@ export function useFindPanelSearch({
       // Remove the highlight param from the URL as we don't need it anymore
       navigate(currentFilePath.getLinkToNote(), { replace: true });
 
-      // Update the search value state and show the find panel
-      setSearchValue(highlightParamValue);
-      setIsSearchOpen(true);
+      // Ensure the search input reflects the highlight query parameter
+      queueMicrotask(() => {
+        setSearchValue(highlightParamValue);
+        setIsSearchOpen(true);
+      });
     }
   }, [highlightParamValue, currentFilePath]);
 
@@ -123,7 +125,10 @@ export function useFindPanelSearch({
       inputRef.current?.focus();
     }
     if (searchValue !== null && hasFirstLoad) {
-      handleSearch(searchValue);
+      // Re-run the search whenever the input value changes with a loaded note
+      queueMicrotask(() => {
+        handleSearch(searchValue);
+      });
     }
   }, [searchValue, isSearchOpen, hasFirstLoad]);
 

@@ -8,6 +8,7 @@ import { VerticalDots } from '../../../icons/vertical-dots';
 
 import { useDraggableBlock, useNodeDragEvents } from '../hooks/draggable-block';
 import { handleDragStart, setHandlePosition } from '../utils/draggable-block';
+import { useRefState } from '../hooks/ref-state';
 
 export function DraggableBlockPlugin({
   overflowContainerRef,
@@ -23,6 +24,7 @@ export function DraggableBlockPlugin({
   const [draggedGhostElement, setDraggedGhostElement] = useAtom(
     draggedGhostElementAtom
   );
+  const noteContainerElement = useRefState(noteContainerRef);
 
   const dragHandleYMotionValue = useMotionValue(0);
   const dragHandleYSpringMotionValue = useSpring(dragHandleYMotionValue, {
@@ -50,18 +52,18 @@ export function DraggableBlockPlugin({
   });
 
   useEffect(() => {
-    if (handleRef.current && noteContainerRef?.current) {
+    if (handleRef.current && noteContainerElement) {
       setHandlePosition({
         draggableBlockElement,
         handle: handleRef.current,
-        noteContainer: noteContainerRef.current,
+        noteContainer: noteContainerElement,
         setIsHandleShowing: setIsDragHandleShowing,
         yMotionValue: dragHandleYMotionValue,
       });
     }
-  }, [noteContainerRef, draggableBlockElement, handleRef]);
+  }, [noteContainerElement, draggableBlockElement]);
 
-  if (!noteContainerRef?.current) return <></>;
+  if (!noteContainerElement) return null;
 
   return createPortal(
     <>
@@ -76,7 +78,7 @@ export function DraggableBlockPlugin({
             setIsDragging,
             draggableBlockElement,
             setDraggedGhostElement,
-            noteContainer: noteContainerRef.current,
+            noteContainer: noteContainerElement,
           });
         }}
         onDragEnd={() => {
@@ -105,6 +107,6 @@ export function DraggableBlockPlugin({
         className="absolute pointer-events-none bg-(--accent-color) w-full h-[3px] rounded-full left-0 top-0 will-change-transform"
       />
     </>,
-    noteContainerRef.current
+    noteContainerElement
   );
 }

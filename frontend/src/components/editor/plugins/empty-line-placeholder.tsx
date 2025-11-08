@@ -1,10 +1,11 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useAtomValue } from 'jotai/react';
-import { type RefObject, useEffect, useCallback } from 'react';
+import { type RefObject, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { projectSettingsAtom } from '../../../atoms';
 import type { Dispatch, SetStateAction } from 'react';
 import type { PlaceholderLineData } from '../types';
+import { useRefState } from '../hooks/ref-state';
 
 /**
  * Plugin that shows a placeholder hint when the user is on an empty line
@@ -21,62 +22,59 @@ export function EmptyLinePlaceholderPlugin({
 }) {
   const [editor] = useLexicalComposerContext();
   const projectSettings = useAtomValue(projectSettingsAtom);
+  const noteContainerElement = useRefState(noteContainerRef);
 
-  // Function to update the placeholder position
-  const updatePlaceholderPosition = useCallback(
-    (parentKey?: string | null) => {
-      const keyToUse = parentKey ?? placeholderLineData.parentKey;
-      if (!keyToUse || !noteContainerRef.current) {
-        return;
-      }
+  function updatePlaceholderPosition(parentKey?: string | null) {
+    const keyToUse = parentKey ?? placeholderLineData.parentKey;
+    if (!keyToUse || !noteContainerElement) {
+      return;
+    }
 
-      const parentDOM = editor.getElementByKey(keyToUse);
-      if (!parentDOM) {
-        setPlaceholderLineData((prev) => ({ ...prev, show: false }));
-        return;
-      }
+    const parentDOM = editor.getElementByKey(keyToUse);
+    if (!parentDOM) {
+      setPlaceholderLineData((prev) => ({ ...prev, show: false }));
+      return;
+    }
 
-      // Get the bounding rect of the parent element and the container
-      const rect = parentDOM.getBoundingClientRect();
-      const containerRect = noteContainerRef.current.getBoundingClientRect();
+    // Get the bounding rect of the parent element and the container
+    const rect = parentDOM.getBoundingClientRect();
+    const containerRect = noteContainerElement.getBoundingClientRect();
 
-      // Calculate position relative to the container
-      setPlaceholderLineData((prev) => ({
-        ...prev,
-        position: {
-          top: rect.top - containerRect.top,
-          left: rect.left - containerRect.left,
-        },
-      }));
-    },
-    [
-      editor,
-      noteContainerRef,
-      placeholderLineData.parentKey,
-      setPlaceholderLineData,
-    ]
-  );
+    // Calculate position relative to the container
+    setPlaceholderLineData((prev) => ({
+      ...prev,
+      position: {
+        top: rect.top - containerRect.top,
+        left: rect.left - containerRect.left,
+      },
+    }));
+  }
 
   // Watch for layout changes in the note container
   // Mainly handles the case where the table of contents being shown causes the placeholder
   // line to intersect with the table of contents.
   useEffect(() => {
-    if (!noteContainerRef.current) return;
+    if (!noteContainerElement) return;
 
     const resizeObserver = new ResizeObserver(() => {
       updatePlaceholderPosition();
     });
 
-    resizeObserver.observe(noteContainerRef.current);
+    resizeObserver.observe(noteContainerElement);
 
     return () => {
       resizeObserver.disconnect();
     };
-  }, [updatePlaceholderPosition]);
+  }, [
+    noteContainerElement,
+    placeholderLineData.parentKey,
+    editor,
+    setPlaceholderLineData,
+  ]);
 
   if (
     !placeholderLineData.show ||
-    !noteContainerRef.current ||
+    !noteContainerElement ||
     !(projectSettings.appearance.showEmptyLinePlaceholder ?? true)
   ) {
     return null;
@@ -95,8 +93,9 @@ export function EmptyLinePlaceholderPlugin({
         fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
       }}
     >
-      Type "/" to insert an element or "@" to add a linked note
+      Type &quot;/&quot; to insert an element or &quot;@&quot; to add a linked
+      note
     </div>,
-    noteContainerRef.current
+    noteContainerElement
   );
 }

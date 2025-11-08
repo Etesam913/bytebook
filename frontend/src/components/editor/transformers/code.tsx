@@ -109,14 +109,7 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
     regExp: CODE_END_REGEX,
   },
   regExpStart: CODE_START_REGEX,
-  replace: (
-    rootNode,
-    children,
-    startMatch,
-    endMatch,
-    linesInBetween,
-    _isImport
-  ) => {
+  replace: (rootNode, children, startMatch, endMatch, linesInBetween) => {
     // If no language specified or not a valid language, default to 'text'
     const language =
       startMatch[1] && allLanguagesSet.has(startMatch[1] as Languages)

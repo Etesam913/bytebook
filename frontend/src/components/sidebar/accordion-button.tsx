@@ -1,7 +1,18 @@
 import { motion } from 'motion/react';
-import type { ReactNode } from 'react';
+import type { ButtonHTMLAttributes, MouseEventHandler, ReactNode } from 'react';
 import { ChevronDown } from '../../icons/chevron-down';
 import { cn } from '../../utils/string-formatting';
+
+type AccordionButtonProps = {
+  icon: ReactNode;
+  title: ReactNode;
+  isOpen: boolean;
+  className?: string;
+  onClick: MouseEventHandler<HTMLButtonElement>;
+} & Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  'type' | 'children' | 'onClick' | 'className'
+>;
 
 export function AccordionButton({
   icon,
@@ -9,16 +20,8 @@ export function AccordionButton({
   isOpen,
   onClick,
   className,
-  // This is needed for a tooltip to show on the button
   ...props
-}: {
-  icon: ReactNode;
-  title: ReactNode;
-  isOpen: boolean;
-  className?: string;
-  onClick: () => void;
-  [key: string]: any;
-}) {
+}: AccordionButtonProps) {
   return (
     <button
       type="button"

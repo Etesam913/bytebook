@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ChevronDown } from '../../icons/chevron-down';
 import type { DropdownItem } from '../../types';
 import { cn } from '../../utils/string-formatting';
@@ -29,21 +29,22 @@ export function Dropdown({
   id?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [valueIndex, setValueIndex] = useState(0);
+  const [uncontrolledValueIndex, setUncontrolledValueIndex] = useState(0);
+  const isControlled = controlledValueIndex !== undefined;
 
-  useEffect(() => {
-    if (
-      controlledValueIndex !== undefined &&
-      controlledValueIndex !== valueIndex
-    ) {
-      setValueIndex(controlledValueIndex > -1 ? controlledValueIndex : 0);
-    }
-  }, [controlledValueIndex, valueIndex]);
+  const derivedControlledIndex =
+    controlledValueIndex !== undefined && controlledValueIndex > -1
+      ? controlledValueIndex
+      : 0;
+
+  const currentValueIndex = isControlled
+    ? derivedControlledIndex
+    : uncontrolledValueIndex;
 
   const handleChange = (item: DropdownItem) => {
     const newIndex = items.findIndex((i) => i.value === item.value);
-    if (newIndex !== -1) {
-      setValueIndex(newIndex);
+    if (newIndex !== -1 && !isControlled) {
+      setUncontrolledValueIndex(newIndex);
     }
     onChange?.(item);
   };
@@ -56,7 +57,7 @@ export function Dropdown({
       className={cn('relative w-fit', className)}
       maxHeight={maxHeight}
       onChange={handleChange}
-      valueIndex={valueIndex}
+      valueIndex={currentValueIndex}
       id={id}
     >
       {({ buttonId, menuId, isOpen, handleKeyDown, handleClick }) => (
@@ -77,7 +78,7 @@ export function Dropdown({
             disabled && 'pointer-events-none opacity-50'
           )}
         >
-          {items.at(valueIndex)?.label}
+          {items.at(currentValueIndex)?.label}
           <motion.span
             className="ml-auto"
             animate={{ rotateZ: isOpen ? 180 : 0 }}

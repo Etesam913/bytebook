@@ -1,4 +1,3 @@
-import { Dispatch, SetStateAction } from 'react';
 import { IconButton } from '../../../components/buttons';
 import { Checkbox } from '../../../components/indeterminate-checkbox';
 import TagPlus from '../../../icons/tag-plus';
@@ -15,7 +14,11 @@ export function TagSelectionList({
   selectedTagCounts: Map<string, number>;
   totalSelectedNotes: number;
   searchTerm: string;
-  setSelectedTagCounts: Dispatch<SetStateAction<Map<string, number>>>;
+  setSelectedTagCounts: (
+    action:
+      | Map<string, number>
+      | ((prev: Map<string, number>) => Map<string, number>)
+  ) => void;
   onCreateTag: (tagName: string) => Promise<void>;
 }) {
   const showCreateButton =
@@ -25,13 +28,17 @@ export function TagSelectionList({
   // Handler for tag selection changes
   const handleTagSelectionChange = (tagName: string, isSelected: boolean) => {
     if (isSelected) {
-      setSelectedTagCounts(
-        new Map(selectedTagCounts.set(tagName, totalSelectedNotes))
-      );
+      setSelectedTagCounts((prev) => {
+        const next = new Map(prev);
+        next.set(tagName, totalSelectedNotes);
+        return next;
+      });
     } else {
-      const newCounts = new Map(selectedTagCounts);
-      newCounts.set(tagName, 0);
-      setSelectedTagCounts(newCounts);
+      setSelectedTagCounts((prev) => {
+        const next = new Map(prev);
+        next.set(tagName, 0);
+        return next;
+      });
     }
   };
 

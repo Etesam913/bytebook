@@ -28,6 +28,7 @@ import {
   useSearchNoteEvent,
   useToolbarEvents,
 } from '../hooks/toolbar';
+import { useRefState } from '../hooks/ref-state';
 import { FloatingMenuPlugin } from '../plugins/floating-menu';
 import {
   blockTypesDropdownItems,
@@ -99,6 +100,7 @@ export function Toolbar({
   const openCreateTableDialog = useCreateTableDialog();
 
   const [isSearchOpen, setIsSearchOpen] = useSearchNoteEvent();
+  const noteContainerElement = useRefState(noteContainerRef);
 
   const { hasFirstLoad } = useNoteMarkdown({
     editor,
@@ -134,29 +136,27 @@ export function Toolbar({
   useCodeBlockExecuteResult(editor);
   useCodeBlockExecuteInput(editor);
 
-  const FloatingPlugin = noteContainerRef.current ? (
-    createPortal(
-      <FloatingMenuPlugin
-        floatingData={floatingData}
-        setFloatingData={setFloatingData}
-      >
-        <ToolbarButtons
-          canUndo={canUndo}
-          canRedo={canRedo}
+  const FloatingPlugin = noteContainerElement
+    ? createPortal(
+        <FloatingMenuPlugin
+          floatingData={floatingData}
           setFloatingData={setFloatingData}
-          disabled={disabled}
-          isNodeSelection={isNodeSelection}
-          currentBlockType={currentBlockType}
-          setCurrentBlockType={setCurrentBlockType}
-          currentSelectionFormat={currentSelectionFormat}
-          setCurrentSelectionFormat={setCurrentSelectionFormat}
-        />
-      </FloatingMenuPlugin>,
-      noteContainerRef.current
-    )
-  ) : (
-    <></>
-  );
+        >
+          <ToolbarButtons
+            canUndo={canUndo}
+            canRedo={canRedo}
+            setFloatingData={setFloatingData}
+            disabled={disabled}
+            isNodeSelection={isNodeSelection}
+            currentBlockType={currentBlockType}
+            setCurrentBlockType={setCurrentBlockType}
+            currentSelectionFormat={currentSelectionFormat}
+            setCurrentSelectionFormat={setCurrentSelectionFormat}
+          />
+        </FloatingMenuPlugin>,
+        noteContainerElement
+      )
+    : null;
 
   return (
     <>

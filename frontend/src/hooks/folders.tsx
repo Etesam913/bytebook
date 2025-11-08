@@ -35,6 +35,10 @@ type FoldersQueryData = {
   previousAlphabetizedFolders: string[] | undefined;
 };
 
+type FolderFormElementWithMetadata = HTMLFormElement & {
+  __folderName?: string;
+};
+
 export const folderQueries = {
   getFolders: (queryClient: QueryClient) =>
     queryOptions({
@@ -122,13 +126,13 @@ export function useFolderCreateMutation() {
   return useMutation({
     mutationFn: async ({
       e,
-      setErrorText: _setErrorText,
     }: {
       e: FormEvent<HTMLFormElement>;
       setErrorText: Dispatch<SetStateAction<string>>;
     }): Promise<boolean> => {
       // Extract form data and validate the folder name
-      const formData = new FormData(e.target as HTMLFormElement);
+      const formElement = e.target as FolderFormElementWithMetadata;
+      const formData = new FormData(formElement);
       const newFolderName = formData.get('folder-name');
       const { isValid, errorMessage } = validateName(newFolderName, 'folder');
       if (!isValid) throw new Error(errorMessage);
@@ -144,7 +148,7 @@ export function useFolderCreateMutation() {
       const addNoteRes = await AddNoteToFolder(newFolderNameString, 'Untitled');
       if (addNoteRes.success) {
         // Store the folder name for navigation in onSuccess
-        (e.target as any).__folderName = newFolderNameString;
+        formElement.__folderName = newFolderNameString;
         return true;
       }
       throw new Error(addNoteRes.message);
@@ -183,7 +187,8 @@ export function useFolderCreateMutation() {
       return { previousFolders };
     },
     onSuccess: (result, variables) => {
-      const folderName = (variables.e.target as any).__folderName;
+      const formElement = variables.e.target as FolderFormElementWithMetadata;
+      const folderName = formElement.__folderName;
       if (result && folderName) {
         navigate(routeUrls.folder(folderName));
       }
@@ -217,7 +222,6 @@ export function useFolderRenameMutation() {
     mutationFn: async ({
       e,
       folderFromSidebar,
-      setErrorText: _setErrorText,
     }: {
       e: FormEvent<HTMLFormElement>;
       folderFromSidebar: string;
@@ -238,7 +242,8 @@ export function useFolderRenameMutation() {
       if (!res.success) throw new Error(res.message);
 
       // Store the folder name for navigation in onSuccess
-      (e.target as any).__folderName = newFolderNameString;
+      (e.target as FolderFormElementWithMetadata).__folderName =
+        newFolderNameString;
       return true;
     },
     // Optimistically update cache
@@ -276,7 +281,8 @@ export function useFolderRenameMutation() {
       return { previousFolders };
     },
     onSuccess: (result, variables) => {
-      const folderName = (variables.e.target as any).__folderName;
+      const formElement = variables.e.target as FolderFormElementWithMetadata;
+      const folderName = formElement.__folderName;
       if (result && folderName) {
         navigate(routeUrls.folder(folderName));
       }
@@ -309,7 +315,6 @@ export function useFolderDeleteMutation() {
   return useMutation({
     mutationFn: async ({
       folderFromSidebar,
-      setErrorText: _setErrorText,
     }: {
       folderFromSidebar: string;
       setErrorText: Dispatch<SetStateAction<string>>;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { RouteFallback } from '../../../components/route-fallback';
 import { useTagsForNotesQuery, useTagsQuery } from '../../../hooks/tags';
 import { FilePath } from '../../../utils/string-formatting';
@@ -23,11 +23,6 @@ export function EditTagDialogChildren({
     string[]
   >([]);
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Track the counts of each tag for the notes that were selected to open this dialog
-  const [selectedTagCounts, setSelectedTagCounts] = useState<
-    Map<string, number>
-  >(new Map());
 
   const {
     data: allTags,
@@ -55,27 +50,61 @@ export function EditTagDialogChildren({
     selectedFilePaths.map((filePath) => filePath.toString())
   );
 
-  useEffect(() => {
-    if (tagsForSelectedNotes) {
-      const tagCounts = new Map<string, number>();
+  const baseTagCounts = buildBaseTagCounts(tagsForSelectedNotes);
+  const baseTagCountsKey = createTagCountsKey(baseTagCounts);
 
-      Object.values(tagsForSelectedNotes).forEach((noteTags) => {
-        noteTags.forEach((tag) => {
-          tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
-        });
+  const [tagCountState, setTagCountState] = useState<{
+    baseKey: string;
+    overrides: Map<string, number>;
+  }>(() => ({
+    baseKey: baseTagCountsKey,
+    overrides: new Map<string, number>(),
+  }));
+
+  const currentOverrides =
+    tagCountState.baseKey === baseTagCountsKey
+      ? tagCountState.overrides
+      : new Map<string, number>();
+
+  const selectedTagCounts = mergeTagCounts(baseTagCounts, currentOverrides);
+
+  function setSelectedTagCounts(
+    action:
+      | Map<string, number>
+      | ((prev: Map<string, number>) => Map<string, number>)
+  ) {
+    setTagCountState((prev) => {
+      const prevOverrides =
+        prev.baseKey === baseTagCountsKey
+          ? prev.overrides
+          : new Map<string, number>();
+      const merged = mergeTagCounts(baseTagCounts, prevOverrides);
+
+      const nextMap = typeof action === 'function' ? action(merged) : action;
+
+      const nextOverrides = new Map<string, number>();
+      nextMap.forEach((value, key) => {
+        if (baseTagCounts.get(key) !== value) {
+          nextOverrides.set(key, value);
+        }
       });
 
-      setSelectedTagCounts(tagCounts);
-    }
-  }, [tagsForSelectedNotes]);
+      return {
+        baseKey: baseTagCountsKey,
+        overrides: nextOverrides,
+      };
+    });
+  }
 
   // Function to handle creating a new tag
   const handleCreateTag = async (tagName: string) => {
     // await createTags({ tagNames: [tagName] });
     setTagsCreatedButNotSaved((prev) => [...new Set([...prev, tagName])]);
-    setSelectedTagCounts(
-      new Map(selectedTagCounts.set(tagName, totalSelectedNotes))
-    );
+    setSelectedTagCounts((prev) => {
+      const next = new Map(prev);
+      next.set(tagName, totalSelectedNotes);
+      return next;
+    });
     setSearchTerm('');
   };
 
@@ -168,4 +197,40 @@ export function EditTagDialogChildren({
       </MotionButton>
     </fieldset>
   );
+}
+
+function buildBaseTagCounts(
+  tagsForSelectedNotes: Record<string, string[] | undefined> | undefined | null
+) {
+  const tagCounts = new Map<string, number>();
+
+  if (!tagsForSelectedNotes) {
+    return tagCounts;
+  }
+
+  Object.values(tagsForSelectedNotes).forEach((noteTags) => {
+    (noteTags ?? []).forEach((tag) => {
+      tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+    });
+  });
+
+  return tagCounts;
+}
+
+function createTagCountsKey(tagCounts: Map<string, number>) {
+  const entries = Array.from(tagCounts.entries()).sort(([a], [b]) =>
+    a.localeCompare(b)
+  );
+  return JSON.stringify(entries);
+}
+
+function mergeTagCounts(
+  base: Map<string, number>,
+  overrides: Map<string, number>
+) {
+  const merged = new Map(base);
+  overrides.forEach((value, key) => {
+    merged.set(key, value);
+  });
+  return merged;
 }

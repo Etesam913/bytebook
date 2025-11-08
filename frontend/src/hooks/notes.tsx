@@ -43,6 +43,11 @@ export type NotesQueryData = {
   previousNotes: FilePath[] | undefined;
 };
 
+type NoteFormElementWithMetadata = HTMLFormElement & {
+  __noteName?: string;
+  __folder?: string;
+};
+
 export const noteQueries = {
   getNotes: (folder: string, noteSort: string, queryClient: QueryClient) =>
     queryOptions({
@@ -109,7 +114,7 @@ export function useNoteCreate() {
         queryKey: noteQueries.getNotes(folderOfLastNote, noteSort, queryClient)
           .queryKey,
       });
-    } catch (err) {
+    } catch {
       toast.error('Failed to update notes', DEFAULT_SONNER_OPTIONS);
     }
   });
@@ -152,7 +157,7 @@ export function useNoteDelete(folder: string) {
       await queryClient.invalidateQueries({
         queryKey: noteQueries.getNotes(folder, noteSort, queryClient).queryKey,
       });
-    } catch (err) {
+    } catch {
       toast.error('Failed to update notes', DEFAULT_SONNER_OPTIONS);
     }
   });
@@ -171,14 +176,14 @@ export function useNoteCreateMutation() {
     mutationFn: async ({
       e,
       folder,
-      setErrorText: _setErrorText,
     }: {
       e: FormEvent<HTMLFormElement>;
       folder: string;
       setErrorText: Dispatch<SetStateAction<string>>;
     }): Promise<boolean> => {
       // Extract form data and validate the note name
-      const formData = new FormData(e.target as HTMLFormElement);
+      const formElement = e.target as NoteFormElementWithMetadata;
+      const formData = new FormData(formElement);
       const newNoteName = formData.get('note-name');
       const { isValid, errorMessage } = validateName(newNoteName, 'note');
       if (!isValid) throw new Error(errorMessage);
@@ -191,8 +196,8 @@ export function useNoteCreateMutation() {
       if (!res.success) throw new Error(res.message);
 
       // Store the note name for navigation in onSuccess
-      (e.target as HTMLFormElement).__noteName = newNoteNameString;
-      (e.target as HTMLFormElement).__folder = folder;
+      formElement.__noteName = newNoteNameString;
+      formElement.__folder = folder;
       return true;
     },
     // Optimistically update cache
@@ -230,8 +235,9 @@ export function useNoteCreateMutation() {
       return { previousNotesData, folder: variables.folder };
     },
     onSuccess: (result, variables) => {
-      const noteName = (variables.e.target as any).__noteName;
-      const folder = (variables.e.target as any).__folder;
+      const formElement = variables.e.target as NoteFormElementWithMetadata;
+      const noteName = formElement.__noteName;
+      const folder = formElement.__folder;
       if (result && noteName && folder) {
         const filePath = new FilePath({
           folder,
@@ -383,7 +389,6 @@ export function useRenameFileMutation() {
     mutationFn: async ({
       oldPath,
       newPath,
-      setErrorText: _setErrorText,
     }: {
       oldPath: FilePath;
       newPath: FilePath;

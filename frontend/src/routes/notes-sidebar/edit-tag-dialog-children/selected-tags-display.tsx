@@ -9,7 +9,11 @@ export function SelectedTagsDisplay({
   setTagsCreatedButNotSaved,
 }: {
   selectedTagCounts: Map<string, number>;
-  setSelectedTagCounts: Dispatch<SetStateAction<Map<string, number>>>;
+  setSelectedTagCounts: (
+    action:
+      | Map<string, number>
+      | ((prev: Map<string, number>) => Map<string, number>)
+  ) => void;
   totalSelectedNotes: number;
   setTagsCreatedButNotSaved: Dispatch<SetStateAction<string[]>>;
 }) {
@@ -27,9 +31,11 @@ export function SelectedTagsDisplay({
 
   // Handler for removing tags from selected display
   const handleRemoveTag = (tagName: string) => {
-    const newCounts = new Map(selectedTagCounts);
-    newCounts.set(tagName, 0);
-    setSelectedTagCounts(newCounts);
+    setSelectedTagCounts((prev) => {
+      const next = new Map(prev);
+      next.set(tagName, 0);
+      return next;
+    });
     setTagsCreatedButNotSaved((prev) => prev.filter((tag) => tag !== tagName));
   };
 

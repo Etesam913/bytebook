@@ -62,11 +62,15 @@ export function ResizeControlsPopover({
     }
   }, [isSelected, referenceElement, refs]);
 
+  function setFloatingRef(node: HTMLElement | null) {
+    refs.setFloating(node);
+  }
+
   return (
     <FloatingPortal>
       {isSelected && (
         <div
-          ref={refs.setFloating}
+          ref={setFloatingRef}
           style={floatingStyles}
           {...getFloatingProps()}
           className="z-1000 pointer-events-auto"

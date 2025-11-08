@@ -143,7 +143,7 @@ export function NotesEditor({
               fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
             }}
           >
-            <NoteTitle folder={folder} note={note} />
+            <NoteTitle key={note} folder={folder} note={note} />
             <ComponentPickerMenuPlugin folder={folder} note={note} />
             <FilePickerMenuPlugin />
             <EmptyLinePlaceholderPlugin

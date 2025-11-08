@@ -45,16 +45,22 @@ export function ComponentPickerMenuItem({
   onMouseEnter: () => void;
   option: DropdownPickerOption;
 }) {
+  const iconElement = option.icon;
+  const optionTitle = option.title;
+
+  function setOptionRef(element: HTMLLIElement | null) {
+    option.setRefElement(element);
+  }
+
   return (
     <li
-      key={option.key}
       tabIndex={isSelected ? 0 : -1}
       className={cn(
         'flex items-center gap-2 text-left cursor-pointer rounded-md px-[7px] py-[2px] hover:bg-zinc-100 dark:hover:bg-zinc-650 ',
         isSelected &&
           'bg-zinc-150 dark:bg-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600'
       )}
-      ref={option.setRefElement}
+      ref={setOptionRef}
       role="option"
       aria-selected={isSelected}
       id={`typeahead-item-${index}`}
@@ -67,8 +73,8 @@ export function ComponentPickerMenuItem({
         }
       }}
     >
-      {option.icon && <span aria-hidden="true">{option.icon}</span>}
-      <span className="text">{option.title}</span>
+      {iconElement && <span aria-hidden="true">{iconElement}</span>}
+      <span className="text">{optionTitle}</span>
     </li>
   );
 }
@@ -88,16 +94,21 @@ export function FilePickerMenuItem({
   option: DropdownPickerOption;
   filePath: FilePath;
 }) {
+  const iconElement = option.icon;
+
+  function setOptionRef(element: HTMLLIElement | null) {
+    option.setRefElement(element);
+  }
+
   return (
     <li
-      key={option.key}
       tabIndex={isSelected ? 0 : -1}
       className={cn(
         'text-left cursor-pointer rounded-md px-[7px] py-1 hover:bg-zinc-100 dark:hover:bg-zinc-650 ',
         isSelected &&
           'bg-zinc-150 dark:bg-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600'
       )}
-      ref={option.setRefElement}
+      ref={setOptionRef}
       role="option"
       aria-selected={isSelected}
       id={`typeahead-item-${index}`}
@@ -112,7 +123,7 @@ export function FilePickerMenuItem({
       aria-label={`${filePath.note} in ${filePath.folder} folder`}
     >
       <div className="flex items-center gap-1">
-        {option.icon && <span aria-hidden="true">{option.icon}</span>}
+        {iconElement && <span aria-hidden="true">{iconElement}</span>}
         <span className="text-ellipsis overflow-hidden whitespace-nowrap text-sm">
           {filePath.note}
         </span>

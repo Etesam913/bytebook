@@ -29,11 +29,6 @@ export function NoteFindPanel({
   const inputRef = useRef<HTMLInputElement>(null);
   const currentFilePath = useAtomValue(currentFilePathAtom);
 
-  // Clear highlights when clicking outside
-  useOnClickOutside(panelRef, () => {
-    clearHighlight(editor, highlightedNodeKeyRef);
-  });
-
   // Initialize search functionality
   const {
     matchData,
@@ -48,6 +43,11 @@ export function NoteFindPanel({
     isSearchOpen,
     hasFirstLoad,
     inputRef,
+  });
+
+  // Clear highlights when clicking outside
+  useOnClickOutside(panelRef, () => {
+    clearHighlight(editor, highlightedNodeKeyRef);
   });
 
   // Initialize navigation functionality
@@ -104,9 +104,11 @@ export function NoteFindPanel({
                   setIsSearchOpen(false);
                 } else if (e.key === 'Enter') {
                   e.preventDefault();
-                  e.shiftKey
-                    ? navigateToPreviousMatch()
-                    : navigateToNextMatch();
+                  if (e.shiftKey) {
+                    navigateToPreviousMatch();
+                  } else {
+                    navigateToNextMatch();
+                  }
                 }
               },
             }}

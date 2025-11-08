@@ -107,5 +107,5 @@ export function useResizeCommands({
         COMMAND_PRIORITY_LOW
       )
     );
-  }, [editor, nodeKey, isExpanded, setIsExpanded, elementRef.current]);
+  }, [editor, nodeKey, isExpanded, setIsExpanded, elementRef]);
 }

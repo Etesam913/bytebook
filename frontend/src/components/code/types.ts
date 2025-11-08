@@ -2,6 +2,6 @@
 // This mirrors the ReactCodeMirrorRef type from @uiw/react-codemirror
 export type CodeMirrorRef = {
   editor?: HTMLDivElement | null;
-  state?: any;
-  view?: any;
+  state?: unknown;
+  view?: unknown;
 } | null;

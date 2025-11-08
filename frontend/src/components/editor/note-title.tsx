@@ -2,7 +2,7 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { AnimatePresence, motion } from 'motion/react';
 import { useSetAtom } from 'jotai';
 import { $getRoot } from 'lexical';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { isToolbarDisabledAtom } from '../../atoms';
 import { NAME_CHARS, cn, FilePath } from '../../utils/string-formatting';
 import { useRenameFileMutation } from '../../hooks/notes';
@@ -10,15 +10,11 @@ import { navigate } from 'wouter/use-browser-location';
 
 export function NoteTitle({ note, folder }: { note: string; folder: string }) {
   const [editor] = useLexicalComposerContext();
-  const [noteTitle, setNoteTitle] = useState(note);
+  const decodedNote = decodeURIComponent(note);
+  const [noteTitle, setNoteTitle] = useState(decodedNote);
   const [errorText, setErrorText] = useState('');
   const setIsToolbarDisabled = useSetAtom(isToolbarDisabledAtom);
   const { mutateAsync: renameFile } = useRenameFileMutation();
-
-  useEffect(() => {
-    setNoteTitle(decodeURIComponent(note));
-    setErrorText('');
-  }, [note]);
 
   return (
     <div className="mt-2 mb-3 flex flex-col">
@@ -45,11 +41,11 @@ export function NoteTitle({ note, folder }: { note: string; folder: string }) {
         onFocus={() => setIsToolbarDisabled(true)}
         onBlur={async () => {
           setIsToolbarDisabled(false);
-          if (noteTitle === note || errorText.length > 0) return;
+          if (noteTitle === decodedNote || errorText.length > 0) return;
 
           const oldFilePath = new FilePath({
             folder: decodeURIComponent(folder),
-            note: `${decodeURIComponent(note)}.md`,
+            note: `${decodedNote}.md`,
           });
 
           const newFilePath = new FilePath({
@@ -64,7 +60,7 @@ export function NoteTitle({ note, folder }: { note: string; folder: string }) {
               setErrorText,
             });
             navigate(newFilePath.getLinkToNote());
-          } catch (error) {
+          } catch {
             // Error handling is done in the mutation
           }
         }}

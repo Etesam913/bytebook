@@ -15,12 +15,7 @@ import {
   TableNode,
   TableRowNode,
 } from '@lexical/table';
-import {
-  $isParagraphNode,
-  $isTextNode,
-  type ElementNode,
-  type LexicalNode,
-} from 'lexical';
+import { $isParagraphNode, $isTextNode, type LexicalNode } from 'lexical';
 import { CUSTOM_TRANSFORMERS } from './index';
 
 // Very primitive table setup
@@ -49,10 +44,7 @@ const mapToTableCells = (textContent: string): Array<TableCellNode> | null => {
 
 export const TABLE: ElementTransformer = {
   dependencies: [TableNode, TableRowNode, TableCellNode],
-  export: (
-    node: LexicalNode,
-    _traverseChildren: (node: ElementNode) => string
-  ) => {
+  export: (node: LexicalNode) => {
     if (!$isTableNode(node)) {
       return null;
     }
@@ -116,7 +108,8 @@ export const TABLE: ElementTransformer = {
     return output.join('\n');
   },
   regExp: TABLE_ROW_REG_EXP,
-  replace: (parentNode, _1, match, _isImport: boolean) => {
+  replace: (parentNode, _children, match) => {
+    void _children;
     // Header row
     if (TABLE_ROW_DIVIDER_REG_EXP.test(match[0])) {
       const table = parentNode.getPreviousSibling();

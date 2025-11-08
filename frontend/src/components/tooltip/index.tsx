@@ -1,6 +1,5 @@
 import {
   useState,
-  useRef,
   Children,
   cloneElement,
   type ReactNode,
@@ -63,7 +62,7 @@ export const Tooltip = ({
     onOpenChange?.(next);
   };
 
-  const arrowRef = useRef<HTMLDivElement | null>(null);
+  const [arrowElement, setArrowElement] = useState<HTMLDivElement | null>(null);
 
   const {
     refs,
@@ -80,7 +79,7 @@ export const Tooltip = ({
       offset(8),
       flip({ padding: 8 }),
       shift({ padding: 8 }),
-      withArrow ? arrowMiddleware({ element: arrowRef }) : undefined,
+      withArrow ? arrowMiddleware({ element: arrowElement }) : undefined,
     ].filter(Boolean),
   });
 
@@ -96,15 +95,24 @@ export const Tooltip = ({
     role,
   ]);
 
-  const child = Children.only(children) as ReactElement & {
+  const childWithRef = Children.only(children) as ReactElement & {
     ref?: Ref<unknown>;
   };
-  const mergedRef = useMergeRefs([refs.setReference, (child as any).ref]);
+  const mergedRef = useMergeRefs([refs.setReference, childWithRef.ref]);
+  function setFloatingRef(node: HTMLElement | null) {
+    refs.setFloating(node);
+  }
+
+  function handleArrowRef(node: HTMLDivElement | null) {
+    if (arrowElement !== node) {
+      setArrowElement(node);
+    }
+  }
   const reference = cloneElement(
-    child,
+    childWithRef,
     getReferenceProps({
       ref: mergedRef,
-      ...(child.props || {}),
+      ...(childWithRef.props || {}),
       // Allow tooltips on disabled buttons by forwarding events to a wrapper if needed.
     })
   );
@@ -157,7 +165,7 @@ export const Tooltip = ({
         <AnimatePresence>
           {open && !disabled && (
             <div
-              ref={refs.setFloating}
+              ref={setFloatingRef}
               style={floatingStyles}
               {...getFloatingProps()}
               data-side={side}
@@ -180,7 +188,7 @@ export const Tooltip = ({
                 {content}
                 {withArrow && (
                   <TooltipArrow
-                    ref={arrowRef}
+                    ref={handleArrowRef}
                     side={side}
                     middlewareData={middlewareData}
                     arrowSide={arrowSide}
