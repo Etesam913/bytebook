@@ -228,18 +228,6 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 			}
 		}
 
-		if docType == "" {
-			_, folderOk := hit.Fields[FieldFolder].(string)
-			_, fileNameOk := hit.Fields[FieldFileName].(string)
-
-			switch {
-			case folderOk && fileNameOk:
-				docType = MARKDOWN_NOTE_TYPE
-			case folderOk:
-				docType = FOLDER_TYPE
-			}
-		}
-
 		var result *SearchResult
 
 		switch docType {
