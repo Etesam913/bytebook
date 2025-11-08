@@ -4,6 +4,7 @@ import {
   AppearanceProjectSettingsJson,
   ProjectSettingsJson,
 } from '../bindings/github.com/etesam913/bytebook/internal/config/models';
+import { RangeSelection } from 'lexical';
 
 export const IMAGE_FILE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
 
@@ -36,13 +37,19 @@ export type MostRecentNoteType = {
   path: string;
 };
 
-export type FloatingDataType = {
+type FloatingDataTypeBase<T extends null | 'link' | 'text-format'> = {
   isOpen: boolean;
   top: number;
   left: number;
-  type: null | 'link' | 'text-format';
+  type: T;
   previousUrl?: string;
+  previousSelection: T extends 'link' ? RangeSelection : null;
 };
+
+export type FloatingDataType =
+  | FloatingDataTypeBase<'link'>
+  | FloatingDataTypeBase<'text-format'>
+  | FloatingDataTypeBase<null>;
 
 export type ResizeWidth = number | '100%';
 
