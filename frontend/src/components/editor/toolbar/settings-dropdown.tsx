@@ -2,7 +2,7 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { useAtomValue } from 'jotai';
 import { useState } from 'react';
 import { getDefaultButtonVariants } from '../../../animations';
-import { projectSettingsAtom } from '../../../atoms';
+import { isFullscreenAtom, projectSettingsAtom } from '../../../atoms';
 import {
   useMoveNoteToTrashMutation,
   useNoteRevealInFinderMutation,
@@ -20,6 +20,7 @@ import { DropdownMenu } from '../../dropdown/dropdown-menu';
 import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
 import type { Frontmatter } from '../../../types';
 import { Tooltip } from '../../tooltip';
+import { cn } from '../../../utils/string-formatting';
 
 export function SettingsDropdown({
   folder,
@@ -33,6 +34,7 @@ export function SettingsDropdown({
   frontmatter: Frontmatter;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const isFullscreen = useAtomValue(isFullscreenAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const isPinned = projectSettings.pinnedNotes.has(`${folder}/${note}.md`);
   const [editor] = useLexicalComposerContext();
@@ -174,7 +176,7 @@ export function SettingsDropdown({
             aria-expanded={isOpen}
             aria-controls={isOpen ? menuId : undefined}
             aria-label="Note settings menu"
-            className="rounded-tr-2xl"
+            className={cn(!isFullscreen && 'rounded-tr-2xl')}
             {...getDefaultButtonVariants({ disabled: isToolbarDisabled })}
           >
             <HorizontalDots />
