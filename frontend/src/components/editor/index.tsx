@@ -85,6 +85,7 @@ export function NotesEditor({
     left: 0,
     top: 0,
     type: null,
+    previousSelection: null,
   });
   const [placeholderLineData, setPlaceholderLineData] =
     useState<PlaceholderLineData>({

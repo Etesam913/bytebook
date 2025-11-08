@@ -44,89 +44,29 @@ func createMatchQuery(field, term string, boost float64) query.Query {
 	return q
 }
 
-// buildMatchPhrasePrefixQuery creates a query that matches phrases with the last word as a prefix.
-// If only one word is provided, it returns a simple prefix query.
-// For multiple words, it creates a disjunction query that matches either:
-// 1. The entire phrase exactly, or
-// 2. A conjunction of the phrase (all but last word) AND the last word as a prefix
-func buildMatchPhrasePrefixQuery(q, field string) query.Query {
-	words := strings.Fields(q)
-	// Handle empty input
-	if len(words) == 0 {
-		return bleve.NewMatchNoneQuery()
-	}
-
-	// If only one word, use a prefix query
-	if len(words) == 1 {
-		prefixQuery := bleve.NewPrefixQuery(q)
-		prefixQuery.SetField(field)
-		return prefixQuery
-	}
-
-	// Create a MatchPhraseQuery for all but the last word
-	phrasePart := strings.Join(words[:len(words)-1], " ")
-
-	phraseQuery := bleve.NewMatchPhraseQuery(phrasePart)
-	phraseQuery.SetField(field)
-
-	// Create a PrefixQuery for the last word
-	prefixPart := words[len(words)-1]
-	prefixQuery := bleve.NewPrefixQuery(prefixPart)
-	prefixQuery.SetField(field)
-
-	// Combine the phrase and prefix queries with a conjunction (AND)
-	conjunctionQuery := bleve.NewConjunctionQuery()
-	conjunctionQuery.AddQuery(phraseQuery)
-	conjunctionQuery.AddQuery(prefixQuery)
-
-	// Return a DisjunctionQuery that matches either the full phrase
-	// or the phrase + prefix combo. This provides more comprehensive results.
-	fullPhraseQuery := bleve.NewMatchPhraseQuery(q)
-	fullPhraseQuery.SetField(field)
-
-	disjunctionQuery := bleve.NewDisjunctionQuery()
-	disjunctionQuery.AddQuery(fullPhraseQuery)  // Match the entire phrase exactly
-	disjunctionQuery.AddQuery(conjunctionQuery) // Match the phrase + prefix
-	return disjunctionQuery
-}
-
 // createFilenameQuery handles filename prefix queries (tokens starting with "f:" or "file:")
 // Returns a query that searches for folder and/or file names based on the prefix term.
 // Since filenames use a single tokenizer, we use direct prefix queries for exact matching.
 func createFilenameQuery(prefixTerm string) query.Query {
 	normalized := strings.TrimSpace(prefixTerm)
 	if normalized == "" {
-		// Empty search should not match any folders or files to avoid returning everything.
-		disjunctionQuery := bleve.NewDisjunctionQuery()
-		disjunctionQuery.AddQuery(bleve.NewMatchNoneQuery())
-		disjunctionQuery.AddQuery(bleve.NewMatchNoneQuery())
-		return disjunctionQuery
+		// If the prefix is empty, return a query for all folders.
+		// This means match all documents where FieldType is FOLDER_TYPE.
+		typeQuery := bleve.NewTermQuery(FOLDER_TYPE)
+		typeQuery.SetField(FieldType)
+		return typeQuery
 	}
 
-	prefixTermSplit := strings.Split(normalized, "/")
-	if len(prefixTermSplit) > 1 {
-		// If there is a slash act like a folder/note search, so use an AND
-		folderName := strings.TrimSpace(prefixTermSplit[0])
-		fileName := strings.TrimSpace(strings.Join(prefixTermSplit[1:], "/"))
+	disjunctionQuery := bleve.NewDisjunctionQuery()
 
-		// Create a conjunction query for both folder and filename
-		conjunctionQuery := bleve.NewConjunctionQuery()
-		conjunctionQuery.AddQuery(createPrefixQuery(FieldFolder, folderName))
-		conjunctionQuery.AddQuery(createPrefixQuery(FieldFileName, fileName))
-		return conjunctionQuery
-	} else {
-		// Otherwise just search through both folder and note using an OR
-		disjunctionQuery := bleve.NewDisjunctionQuery()
+	fieldFolderQuery := createPrefixQuery(FieldFolder, normalized)
+	// Use direct prefix query for filename since it uses single tokenizer
+	fileNameQuery := createPrefixQuery(FieldFileName, normalized)
 
-		fieldFolderQuery := createPrefixQuery(FieldFolder, normalized)
-		// Use direct prefix query for filename since it uses single tokenizer
-		fileNameQuery := createPrefixQuery(FieldFileName, normalized)
+	disjunctionQuery.AddQuery(fieldFolderQuery)
+	disjunctionQuery.AddQuery(fileNameQuery)
 
-		disjunctionQuery.AddQuery(fieldFolderQuery)
-		disjunctionQuery.AddQuery(fileNameQuery)
-
-		return disjunctionQuery
-	}
+	return disjunctionQuery
 }
 
 // createExactContentQuery handles exact phrase queries (quoted tokens)

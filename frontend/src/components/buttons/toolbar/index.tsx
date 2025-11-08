@@ -6,7 +6,6 @@ import {
   REDO_COMMAND,
   type TextFormatType,
   UNDO_COMMAND,
-  FORMAT_TEXT_COMMAND,
 } from 'lexical';
 import {
   type Dispatch,

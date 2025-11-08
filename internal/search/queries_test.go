@@ -49,14 +49,12 @@ func TestCreateFilenameQuery(t *testing.T) {
 		{
 			name:     "empty input",
 			input:    "",
-			wantType: &query.DisjunctionQuery{},
-			wantLen:  2,
+			wantType: &query.TermQuery{},
 		},
 		{
 			name:     "whitespace only",
 			input:    "   ",
-			wantType: &query.DisjunctionQuery{},
-			wantLen:  2,
+			wantType: &query.TermQuery{},
 		},
 		{
 			name:     "single term",
@@ -67,25 +65,25 @@ func TestCreateFilenameQuery(t *testing.T) {
 		{
 			name:     "folder/file path",
 			input:    "folder/file",
-			wantType: &query.ConjunctionQuery{},
+			wantType: &query.DisjunctionQuery{},
 			wantLen:  2,
 		},
 		{
 			name:     "empty after split",
 			input:    "folder/",
-			wantType: &query.ConjunctionQuery{},
+			wantType: &query.DisjunctionQuery{},
 			wantLen:  2,
 		},
 		{
 			name:     "empty before split",
 			input:    "/file",
-			wantType: &query.ConjunctionQuery{},
+			wantType: &query.DisjunctionQuery{},
 			wantLen:  2,
 		},
 		{
 			name:     "multiple slashes",
 			input:    "path/to/file",
-			wantType: &query.ConjunctionQuery{},
+			wantType: &query.DisjunctionQuery{},
 			wantLen:  2,
 		},
 		{
@@ -97,7 +95,7 @@ func TestCreateFilenameQuery(t *testing.T) {
 		{
 			name:     "folder and filename with apostrophe",
 			input:    "notes/etesam's",
-			wantType: &query.ConjunctionQuery{},
+			wantType: &query.DisjunctionQuery{},
 			wantLen:  2,
 		},
 	}
@@ -108,14 +106,12 @@ func TestCreateFilenameQuery(t *testing.T) {
 			assert.IsType(t, tt.wantType, q)
 
 			switch v := q.(type) {
+			case *query.TermQuery:
+				// For empty/whitespace input, verify it's a TermQuery for folder type
+				assert.Equal(t, FieldType, v.FieldVal)
+				assert.Equal(t, FOLDER_TYPE, v.Term)
 			case *query.DisjunctionQuery:
 				assert.Equal(t, tt.wantLen, len(v.Disjuncts))
-				if tt.input == "" || tt.input == "   " {
-					for _, subquery := range v.Disjuncts {
-						_, ok := subquery.(*query.MatchNoneQuery)
-						assert.True(t, ok, "Subquery should be a MatchNoneQuery")
-					}
-				}
 			case *query.ConjunctionQuery:
 				assert.Equal(t, tt.wantLen, len(v.Conjuncts))
 			}
@@ -184,16 +180,16 @@ func TestBuildBooleanQueryFromUserInput(t *testing.T) {
 			input:    `f:"etesam's"`,
 			wantType: &query.DisjunctionQuery{},
 		},
-        {
-            name:     "quoted filename with curly apostrophe",
-            input:    "f:\"etesam’s\"",
-            wantType: &query.DisjunctionQuery{},
-        },
-        {
-            name:     "quoted filename with curly double quotes",
-            input:    "f:“etesam's”",
-            wantType: &query.DisjunctionQuery{},
-        },
+		{
+			name:     "quoted filename with curly apostrophe",
+			input:    "f:\"etesam’s\"",
+			wantType: &query.DisjunctionQuery{},
+		},
+		{
+			name:     "quoted filename with curly double quotes",
+			input:    "f:“etesam's”",
+			wantType: &query.DisjunctionQuery{},
+		},
 	}
 
 	for _, tt := range tests {

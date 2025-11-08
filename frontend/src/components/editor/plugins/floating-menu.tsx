@@ -22,7 +22,6 @@ import { easingFunctions, getDefaultButtonVariants } from '../../../animations';
 import { SubmitLink } from '../../../icons/submit-link';
 import type { FloatingDataType } from '../../../types';
 import { MotionButton } from '../../buttons';
-import { FORMAT_TEXT_COMMAND } from 'lexical';
 import { TOGGLE_LINK_COMMAND } from '../nodes/link';
 import { Input } from '../../input';
 import { $setSelection } from 'lexical';

@@ -261,6 +261,7 @@ export function updateToolbar({
         const topOfScrollContainerToWindow = noteContainerBounds?.top ?? 0;
         const scrollYOfScrollContainer =
           noteContainerRef.current?.scrollTop ?? 0;
+
         setFloatingData({
           isOpen: true,
           top:
@@ -270,10 +271,16 @@ export function updateToolbar({
             80,
           left: left - (noteContainerBounds?.left ?? 0),
           type: 'text-format',
+          previousSelection: null,
         });
       }
     } else {
-      setFloatingData((prev) => ({ ...prev, isOpen: false, type: null }));
+      setFloatingData((prev) => ({
+        ...prev,
+        isOpen: false,
+        type: null,
+        previousSelection: null,
+      }));
     }
     const anchorNode = selection.anchor.getNode();
     const element =
@@ -305,7 +312,12 @@ export function updateToolbar({
       setCurrentBlockType(element.getType());
     }
   } else if ($isNodeSelection(selection)) {
-    setFloatingData((prev) => ({ ...prev, isOpen: false, type: null }));
+    setFloatingData((prev) => ({
+      ...prev,
+      isOpen: false,
+      type: null,
+      previousSelection: null,
+    }));
     setDisabled(true);
   }
 }
