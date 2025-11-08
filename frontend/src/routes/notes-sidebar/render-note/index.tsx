@@ -1,22 +1,16 @@
 import { motion, useAnimationControls } from 'motion/react';
 import { useAtomValue } from 'jotai';
-import { getDefaultButtonVariants } from '../../../animations';
 import { draggedGhostElementAtom } from '../../../components/editor/atoms';
 import { isNoteMaximizedAtom } from '../../../atoms';
-import { MotionIconButton } from '../../../components/buttons';
-import { MaximizeNoteButton } from '../../../components/buttons/maximize-note';
 import { NotesEditor } from '../../../components/editor';
 import { BottomBar } from '../../../components/editor/bottom-bar';
 import { useMostRecentNotes } from '../../../components/editor/hooks/note-metadata';
-import {
-  useNoteExists,
-  useNoteRevealInFinderMutation,
-} from '../../../hooks/notes';
+import { useNoteExists } from '../../../hooks/notes';
 import { FileBan } from '../../../icons/file-ban';
-import { ShareRight } from '../../../icons/share-right';
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
 import { ImageNote } from './image-note';
+import { NonMarkdownToolbar } from './non-markdown-toolbar';
 import { VideoNote } from './video-note';
 import { useSearchParamsEntries } from '../../../utils/routing';
 import { useRoute } from 'wouter';
@@ -28,6 +22,23 @@ import {
   type NotesRouteParams,
   type SavedSearchRouteParams,
 } from '../../../utils/routes';
+
+function getFileTypeChecks(extension: string | undefined) {
+  const isPdf = extension === 'pdf';
+  const isMarkdown = extension === 'md';
+  const isImage = extension && IMAGE_FILE_EXTENSIONS.includes(extension);
+  const isVideo = extension && VIDEO_FILE_EXTENSIONS.includes(extension);
+  const isUnknownFile =
+    !isPdf && !isMarkdown && !isImage && !isVideo && extension;
+
+  return {
+    isPdf,
+    isMarkdown,
+    isImage,
+    isVideo,
+    isUnknownFile,
+  };
+}
 
 export function RenderNote() {
   const animationControls = useAnimationControls();
@@ -60,23 +71,12 @@ export function RenderNote() {
   });
   useMostRecentNotes(filePath);
 
-  // Type Checks
-  const hasCustomToolbar = filePath.noteExtension === 'md';
-  const isPdf = filePath.noteExtension === 'pdf';
-  const isMarkdown = filePath.noteExtension === 'md';
-  const isImage =
-    filePath.noteExtension &&
-    IMAGE_FILE_EXTENSIONS.includes(filePath.noteExtension);
-  const isVideo =
-    filePath.noteExtension &&
-    VIDEO_FILE_EXTENSIONS.includes(filePath.noteExtension);
-  const isUnknownFile =
-    !isPdf && !isMarkdown && !isImage && !isVideo && filePath.noteExtension;
+  const { isPdf, isMarkdown, isImage, isVideo, isUnknownFile } =
+    getFileTypeChecks(filePath.noteExtension);
 
   const fileUrl = filePath.getFileUrl();
 
   const { data: noteExists, isLoading, error } = useNoteExists(filePath);
-  const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
   if (!noteWithoutExtension) return null;
 
   if (isLoading) {
@@ -112,31 +112,13 @@ export function RenderNote() {
       className="flex min-w-0 flex-1 flex-col leading-7 h-screen"
       animate={animationControls}
     >
-      {!hasCustomToolbar && (
-        <header
-          className={cn(
-            'flex items-center gap-1.5 border-b px-2 pb-1 pt-2.5 h-12 border-zinc-200 dark:border-b-zinc-700 whitespace-nowrap ml-[-4.5px]',
-            isNoteMaximized && 'pl-[5.75rem]!'
-          )}
-        >
-          <MaximizeNoteButton animationControls={animationControls} />
-          <h1 className="text-sm text-ellipsis overflow-hidden">
-            {folder}/{noteWithoutExtension}.{filePath.noteExtension}
-          </h1>
-          <MotionIconButton
-            title="Open In Default App"
-            {...getDefaultButtonVariants()}
-            className="ml-auto"
-            onClick={() => {
-              revealInFinder({
-                folder,
-                selectionRange: new Set([`note:${filePath.note}`]),
-              });
-            }}
-          >
-            <ShareRight title="Open In Default App" />
-          </MotionIconButton>
-        </header>
+      {!isMarkdown && (
+        <NonMarkdownToolbar
+          animationControls={animationControls}
+          folder={folder}
+          noteWithoutExtension={noteWithoutExtension}
+          filePath={filePath}
+        />
       )}
       {isMarkdown && (
         <NotesEditor
