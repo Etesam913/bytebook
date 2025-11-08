@@ -15,7 +15,9 @@ import {
   useNoteRevealInFinderMutation,
 } from '../../../hooks/notes';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
+import { useRenameFileDialog } from '../../../hooks/dialogs';
 import { Finder } from '../../../icons/finder';
+import { FilePen } from '../../../icons/file-pen';
 import { HorizontalDots } from '../../../icons/horizontal-dots';
 import { PinTack2 } from '../../../icons/pin-tack-2';
 import { Trash } from '../../../icons/trash';
@@ -46,6 +48,7 @@ export function NonMarkdownToolbar({
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
+  const openRenameFileDialog = useRenameFileDialog();
 
   const items = [
     {
@@ -62,6 +65,14 @@ export function NonMarkdownToolbar({
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <Finder className="min-w-5" height={20} width={20} /> Reveal In Finder
+        </span>
+      ),
+    },
+    {
+      value: 'rename-file',
+      label: (
+        <span className="flex items-center gap-1.5 will-change-transform">
+          <FilePen className="min-w-5" height={17} width={17} /> Rename
         </span>
       ),
     },
@@ -114,6 +125,10 @@ export function NonMarkdownToolbar({
                 folder,
                 selectionRange: new Set([`note:${filePath.note}`]),
               });
+              break;
+            }
+            case 'rename-file': {
+              openRenameFileDialog(filePath);
               break;
             }
             case 'move-to-trash': {

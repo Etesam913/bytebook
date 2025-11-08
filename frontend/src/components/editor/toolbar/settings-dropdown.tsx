@@ -8,7 +8,9 @@ import {
   useNoteRevealInFinderMutation,
 } from '../../../hooks/notes';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
+import { useRenameFileDialog } from '../../../hooks/dialogs';
 import { Finder } from '../../../icons/finder';
+import { FilePen } from '../../../icons/file-pen';
 import { HorizontalDots } from '../../../icons/horizontal-dots';
 import { MarkdownIcon } from '../../../icons/markdown';
 import { PinTack2 } from '../../../icons/pin-tack-2';
@@ -20,7 +22,7 @@ import { DropdownMenu } from '../../dropdown/dropdown-menu';
 import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
 import type { Frontmatter } from '../../../types';
 import { Tooltip } from '../../tooltip';
-import { cn } from '../../../utils/string-formatting';
+import { cn, FilePath } from '../../../utils/string-formatting';
 
 export function SettingsDropdown({
   folder,
@@ -42,14 +44,25 @@ export function SettingsDropdown({
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
+  const openRenameFileDialog = useRenameFileDialog();
 
   const items = [
+    // Pin/Unpin at the top
     {
       value: isPinned ? 'unpin-note' : 'pin-note',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <PinTack2 className="min-w-5" />{' '}
           {isPinned ? 'Unpin Note' : 'Pin Note'}
+        </span>
+      ),
+    },
+    // Reveal in Finder, Rename, then Move to Trash as the logical file actions
+    {
+      value: 'reveal-in-finder',
+      label: (
+        <span className="flex items-center gap-1.5 will-change-transform">
+          <Finder className="min-w-5" height={20} width={20} /> Reveal In Finder
         </span>
       ),
     },
@@ -80,10 +93,10 @@ export function SettingsDropdown({
       ),
     },
     {
-      value: 'reveal-in-finder',
+      value: 'rename-file',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <Finder className="min-w-5" height={20} width={20} /> Reveal In Finder
+          <FilePen className="min-w-5" height={17} width={17} /> Rename
         </span>
       ),
     },
@@ -147,6 +160,14 @@ export function SettingsDropdown({
                 newFrontmatter: copyOfFrontmatter,
               });
             });
+            break;
+          }
+          case 'rename-file': {
+            const filePath = new FilePath({
+              folder,
+              note: note.endsWith('.md') ? note : `${note}.md`,
+            });
+            openRenameFileDialog(filePath);
             break;
           }
           case 'reveal-in-finder': {

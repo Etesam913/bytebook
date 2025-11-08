@@ -14,6 +14,10 @@ import { INSERT_TABLE_COMMAND } from '@lexical/table';
 import { $setSelection } from 'lexical';
 import { useFolderCreateMutation } from './folders';
 import { CreateFolderDialog } from '../components/folder-sidebar/my-folders-accordion/folder-dialog-children';
+import { useRenameFileMutation } from './notes';
+import { RenameFileDialogChildren } from '../routes/notes-sidebar/rename-file-dialog-children';
+import { FilePath } from '../utils/string-formatting';
+import { navigate } from 'wouter/use-browser-location';
 
 /**
  * Custom hook that returns a function to open a "Create Note" dialog for a given folder.
@@ -317,6 +321,66 @@ export function useCreateFolderDialog(): () => void {
           e: e,
           setErrorText: setErrorText,
         }),
+    });
+  };
+}
+
+/**
+ * Custom hook that returns a function to open a "Rename File" dialog.
+ *
+ * When invoked with a file path, this function opens a dialog allowing the user to enter a new file name.
+ * On submission, it validates the new file name, attempts to rename the file,
+ * and navigates to the renamed file if successful. If an error occurs, it displays an error message in the dialog.
+ *
+ * @returns {(filePath: FilePath) => void} Function to open the rename file dialog for the specified file path.
+ *
+ * Usage:
+ *   const openRenameFileDialog = useRenameFileDialog();
+ *   openRenameFileDialog(filePath);
+ */
+export function useRenameFileDialog(): (filePath: FilePath) => void {
+  const setDialogData = useSetAtom(dialogDataAtom);
+  const { mutateAsync: renameFile } = useRenameFileMutation();
+
+  return (filePath: FilePath) => {
+    setDialogData({
+      isOpen: true,
+      isPending: false,
+      title: 'Rename File',
+      dialogClassName: 'w-[min(25rem,90vw)]',
+      children: (errorText) => (
+        <RenameFileDialogChildren
+          selectedFilePath={filePath}
+          errorText={errorText}
+        />
+      ),
+      onSubmit: async (e, setErrorText) => {
+        const form = e.target as HTMLFormElement;
+        const formData = new FormData(form);
+        const newFileName = formData.get('new-file-name') as string;
+        if (!newFileName) {
+          setErrorText('Please enter a new file name');
+          return false;
+        }
+
+        const newFilePath = new FilePath({
+          folder: filePath.folder,
+          note: `${newFileName}.${filePath.noteExtension}`,
+        });
+
+        const result = await renameFile({
+          oldPath: filePath,
+          newPath: newFilePath,
+          setErrorText,
+        });
+
+        if (result) {
+          navigate(newFilePath.getLinkToNote());
+          return true;
+        }
+
+        return false;
+      },
     });
   };
 }

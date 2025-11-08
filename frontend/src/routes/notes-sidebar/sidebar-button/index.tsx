@@ -12,7 +12,6 @@ import {
   useNotePreviewQuery,
   useNoteRevealInFinderMutation,
   usePinNotesMutation,
-  useRenameFileMutation,
 } from '../../../hooks/notes';
 import { Finder } from '../../../icons/finder';
 import { FilePen } from '../../../icons/file-pen';
@@ -32,8 +31,8 @@ import { CardNoteSidebarItem } from './card-note-sidebar-item';
 import { ListNoteSidebarItem } from './list-note-sidebar-item';
 import { navigate } from 'wouter/use-browser-location';
 import { EditTagDialogChildren } from '../edit-tag-dialog-children';
-import { RenameFileDialogChildren } from '../rename-file-dialog-children';
 import { currentZoomAtom } from '../../../hooks/resize';
+import { useRenameFileDialog } from '../../../hooks/dialogs';
 import { useRoute } from 'wouter';
 import { useEditTagsFormMutation } from '../../../hooks/tags';
 import { routeUrls, type SavedSearchRouteParams } from '../../../utils/routes';
@@ -56,7 +55,7 @@ export function NoteSidebarButton({
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
   const { mutateAsync: editTags } = useEditTagsFormMutation();
-  const { mutateAsync: renameFile } = useRenameFileMutation();
+  const openRenameFileDialog = useRenameFileDialog();
   const currentZoom = useAtomValue(currentZoomAtom);
 
   const setDialogData = useSetAtom(dialogDataAtom);
@@ -257,59 +256,14 @@ export function NoteSidebarButton({
                     ),
                     value: 'rename-file',
                     onChange: () => {
-                      setDialogData({
-                        isOpen: true,
-                        isPending: false,
-                        title: 'Rename File',
-                        dialogClassName: 'w-[min(25rem,90vw)]',
-                        children: (errorText) => {
-                          const selectedNote = [...newSelectionRange][0];
-                          const noteWithoutPrefix =
-                            selectedNote.split(':')[1] || '';
-                          const selectedFilePath = new FilePath({
-                            folder: sidebarNotePath.folder,
-                            note: noteWithoutPrefix,
-                          });
-
-                          return (
-                            <RenameFileDialogChildren
-                              selectedFilePath={selectedFilePath}
-                              errorText={errorText}
-                            />
-                          );
-                        },
-                        onSubmit: async (e, setErrorText) => {
-                          const form = e.target as HTMLFormElement;
-                          const formData = new FormData(form);
-                          const newFileName = formData.get(
-                            'new-file-name'
-                          ) as string;
-                          if (!newFileName) {
-                            setErrorText('Please enter a new file name');
-                            return false;
-                          }
-
-                          // Use the FilePath object for cleaner path handling
-                          const oldFilePath = sidebarNotePath;
-                          const newFilePath = new FilePath({
-                            folder: sidebarNotePath.folder,
-                            note: `${newFileName}.${sidebarNotePath.noteExtension}`,
-                          });
-
-                          const result = await renameFile({
-                            oldPath: oldFilePath,
-                            newPath: newFilePath,
-                            setErrorText,
-                          });
-
-                          if (result) {
-                            navigate(newFilePath.getLinkToNote());
-                            return true;
-                          }
-
-                          return false;
-                        },
+                      const selectedNote = [...newSelectionRange][0];
+                      const noteWithoutPrefix =
+                        selectedNote.split(':')[1] || '';
+                      const selectedFilePath = new FilePath({
+                        folder: sidebarNotePath.folder,
+                        note: noteWithoutPrefix,
                       });
+                      openRenameFileDialog(selectedFilePath);
                     },
                   },
                 ]
