@@ -95,7 +95,6 @@ export function useNoteMarkdown({
       editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
       setNoteMarkdownString(res.data ?? null);
       setPreviousMarkdown(res.data ?? '');
-      setHasFirstLoad(true);
 
       editor.update(
         () => {
@@ -124,6 +123,8 @@ export function useNoteMarkdown({
         },
         { tag: 'note:initial-load' }
       );
+
+      setHasFirstLoad(true);
       return res.data;
     },
   });

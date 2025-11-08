@@ -64,7 +64,7 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@typescript/native-preview": "^7.0.0-dev.20251107.1",
-    "@wailsio/runtime": "3.0.0-alpha.72",
+    "@wailsio/runtime": "3.0.0-alpha.66",
     "babel-plugin-react-compiler": "1.0.0",
     "clsx": "^2.1.1",
     "eslint": "^9.39.0",

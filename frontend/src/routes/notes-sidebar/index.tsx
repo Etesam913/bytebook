@@ -60,6 +60,7 @@ export function NotesSidebar({
 
   // Auto navigate to the first note when the notes are loaded
   useEffect(() => {
+    if (noteQueryResult.isLoading) return;
     if (!notes || notes.length === 0) {
       // If there are no notes, navigate to the folder
       navigate(routeBuilders.folder(curFolder), { replace: true });

@@ -6,7 +6,7 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
   $getNearestNodeFromDOMNode,
   $getNodeByKey,
-  COMMAND_PRIORITY_LOW,
+  COMMAND_PRIORITY_HIGH,
   COMMAND_PRIORITY_NORMAL,
   DRAGOVER_COMMAND,
   DROP_COMMAND,
@@ -193,7 +193,7 @@ export function useNodeDragEvents({
           e.preventDefault();
           return handleDragOver(e);
         },
-        COMMAND_PRIORITY_LOW
+        COMMAND_PRIORITY_HIGH
       ),
       editor.registerCommand(
         DROP_COMMAND,

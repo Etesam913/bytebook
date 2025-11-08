@@ -1,5 +1,21 @@
 {
   "css.lint.unknownAtRules": "ignore",
+  // "typescript.experimental.useTsgo": true,
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.useLabelDetailsInCompletionEntries": true,
+  "typescript.suggest.completeFunctionCalls": true,
+  "typescript.suggest.completeJSDocs": true,
+  "typescript.preferences.quoteStyle": "single",
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/.hg/store/**": true,
+    "**/.git/**": true,
+    "**/node_modules/**": true,
+    "**/.vscode/**": true
+  },
   "typescript.experimental.useTsgo": true
 }
 

@@ -9,8 +9,6 @@ import { Input } from '../../../input';
 import { useOnClickOutside } from '../../../../hooks/general';
 import { useFindPanelSearch, useMatchNavigation } from './hooks/find-panel';
 import { clearHighlight } from './utils/highlight';
-import { useAtomValue } from 'jotai/react';
-import { currentFilePathAtom } from '../../../../atoms';
 
 // Re-export MatchData for backwards compatibility
 export type { MatchData } from './utils/highlight';
@@ -27,22 +25,21 @@ export function NoteFindPanel({
   const [editor] = useLexicalComposerContext();
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const currentFilePath = useAtomValue(currentFilePathAtom);
 
   // Initialize search functionality
   const {
     matchData,
-    searchValue,
-    setSearchValue,
+    highlightParam,
+    setHighlightParam,
     currentMatchIndex,
     setCurrentMatchIndex,
     highlightedNodeKeyRef,
   } = useFindPanelSearch({
     editor,
-    setIsSearchOpen,
     isSearchOpen,
-    hasFirstLoad,
     inputRef,
+    setIsSearchOpen,
+    hasFirstLoad,
   });
 
   // Clear highlights when clicking outside
@@ -64,7 +61,7 @@ export function NoteFindPanel({
       {isSearchOpen && (
         <motion.div
           ref={panelRef}
-          className="absolute top-16 right-6 z-50 w-96 flex items-center shadow-md bg-zinc-100 dark:bg-zinc-700 py-0.5 px-2 rounded-md border-2 border-zinc-300 dark:border-zinc-600 focus-within:!border-(--accent-color) gap-2"
+          className="absolute top-16 right-6 z-50 w-96 flex items-center shadow-md bg-zinc-100 dark:bg-zinc-700 py-0.5 px-2 rounded-md border-2 border-zinc-300 dark:border-zinc-600 focus-within:border-(--accent-color)! gap-2"
           initial={{ opacity: 0, y: -10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -81,7 +78,7 @@ export function NoteFindPanel({
             labelProps={{}}
             inputProps={{
               placeholder: 'Search in note...',
-              value: searchValue,
+              value: highlightParam,
               className:
                 'text-sm flex-1 dark:text-zinc-100 bg-transparent outline-none border-none px-0.5 !outline-none !border-0 font-code',
               autoFocus: true,
@@ -89,14 +86,8 @@ export function NoteFindPanel({
               autoComplete: 'off',
               autoCorrect: 'off',
               spellCheck: false,
-              onFocus: (e) => {
-                e.target.select();
-              },
-              onChange: (e) => {
-                if (!currentFilePath) return;
-                const searchTerm = e.target.value;
-                setSearchValue(searchTerm);
-              },
+              onFocus: (e) => e.target.select(),
+              onChange: (e) => setHighlightParam(e.target.value),
               onKeyDown: (e) => {
                 if (e.key === 'Escape') {
                   e.preventDefault();

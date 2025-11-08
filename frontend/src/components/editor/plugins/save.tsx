@@ -96,12 +96,13 @@ export function SavePlugin({
 
           if (!payload?.shouldSkipNoteChangedEmit) {
             // To prevent infinite loops when there are multiple windows open
-            Events.Emit('note:changed', {
+            const event = new Events.WailsEvent('note:changed', {
               folder: filePath.folder,
               note: filePath.noteWithoutExtension,
               markdown: markdownWithFrontmatter,
               oldWindowAppId: WINDOW_ID,
             });
+            Events.Emit(event);
           }
 
           setFrontmatter(frontmatterCopy);
