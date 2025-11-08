@@ -1,10 +1,5 @@
 package util
 
-/*
-#cgo darwin LDFLAGS: -framework CoreServices
-#include <CoreServices/CoreServices.h>
-*/
-import "C"
 import (
 	"encoding/json"
 	"fmt"
@@ -18,7 +13,6 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
-	"unsafe"
 
 	"golang.org/x/text/unicode/norm"
 )
@@ -172,11 +166,7 @@ func MoveToTrash(src string) error {
 
 	if runtime.GOOS == "darwin" {
 		// Try CoreServices API for full Finder compatibility
-		cpath := C.CString(src)
-		defer C.free(unsafe.Pointer(cpath))
-		var ctarget *C.char
-		status := C.FSPathMoveObjectToTrashSync(cpath, &ctarget, C.kFSFileOperationDefaultOptions)
-		if status == 0 {
+		if moveToTrashDarwin(src) {
 			return nil
 		}
 		// Fallback to manual rename
