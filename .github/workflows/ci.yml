@@ -7,9 +7,53 @@ on:
     branches: [main, master]
 
 jobs:
+  setup:
+    name: Setup Environment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Setup Wails v3
+        run: |
+          git clone https://github.com/wailsapp/wails.git
+          cd wails
+          git checkout v3-alpha
+          cd v3/cmd/wails3
+          go install
+
+      - name: Verify Wails v3 installation
+        run: wails3 doctor
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: bun install
+
+      - name: Generate Wails bindings
+        run: wails3 generate bindings
+
+      - name: Cache bindings
+        uses: actions/cache/save@v4
+        with:
+          path: frontend/bindings
+          key: bindings-${{ github.sha }}
+
   frontend-checks:
     name: Frontend Checks
     runs-on: ubuntu-latest
+    needs: setup
 
     steps:
       - name: Checkout code
@@ -23,6 +67,12 @@ jobs:
       - name: Install frontend dependencies
         working-directory: ./frontend
         run: bun install
+
+      - name: Restore bindings
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/bindings
+          key: bindings-${{ github.sha }}
 
       - name: Run Prettier check
         working-directory: ./frontend
@@ -39,6 +89,7 @@ jobs:
   go-tests:
     name: Go Tests
     runs-on: ubuntu-latest
+    needs: setup
 
     steps:
       - name: Checkout code
@@ -49,6 +100,12 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+
+      - name: Restore bindings
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/bindings
+          key: bindings-${{ github.sha }}
 
       - name: Install gotestsum
         run: go install gotest.tools/gotestsum@latest
