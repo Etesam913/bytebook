@@ -1,7 +1,6 @@
 package search
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
@@ -95,21 +94,20 @@ func buildMatchPhrasePrefixQuery(q, field string) query.Query {
 // Returns a query that searches for folder and/or file names based on the prefix term.
 // Since filenames use a single tokenizer, we use direct prefix queries for exact matching.
 func createFilenameQuery(prefixTerm string) query.Query {
-	fmt.Println("prefixTerm", prefixTerm, len(strings.Split(prefixTerm, "/")))
-	if strings.TrimSpace(prefixTerm) == "" {
-		// If the prefix is empty, return a query for all folders.
-		// This means match all documents where FieldType is FOLDER_TYPE.
-		typeQuery := bleve.NewTermQuery(FOLDER_TYPE)
-		typeQuery.SetField(FieldType)
-		fmt.Println("typeQuery")
-		return typeQuery
+	normalized := strings.TrimSpace(prefixTerm)
+	if normalized == "" {
+		// Empty search should not match any folders or files to avoid returning everything.
+		disjunctionQuery := bleve.NewDisjunctionQuery()
+		disjunctionQuery.AddQuery(bleve.NewMatchNoneQuery())
+		disjunctionQuery.AddQuery(bleve.NewMatchNoneQuery())
+		return disjunctionQuery
 	}
 
-	prefixTermSplit := strings.Split(prefixTerm, "/")
+	prefixTermSplit := strings.Split(normalized, "/")
 	if len(prefixTermSplit) > 1 {
 		// If there is a slash act like a folder/note search, so use an AND
-		folderName := prefixTermSplit[0]
-		fileName := prefixTermSplit[1]
+		folderName := strings.TrimSpace(prefixTermSplit[0])
+		fileName := strings.TrimSpace(strings.Join(prefixTermSplit[1:], "/"))
 
 		// Create a conjunction query for both folder and filename
 		conjunctionQuery := bleve.NewConjunctionQuery()
@@ -120,9 +118,9 @@ func createFilenameQuery(prefixTerm string) query.Query {
 		// Otherwise just search through both folder and note using an OR
 		disjunctionQuery := bleve.NewDisjunctionQuery()
 
-		fieldFolderQuery := createPrefixQuery(FieldFolder, prefixTerm)
+		fieldFolderQuery := createPrefixQuery(FieldFolder, normalized)
 		// Use direct prefix query for filename since it uses single tokenizer
-		fileNameQuery := createPrefixQuery(FieldFileName, prefixTerm)
+		fileNameQuery := createPrefixQuery(FieldFileName, normalized)
 
 		disjunctionQuery.AddQuery(fieldFolderQuery)
 		disjunctionQuery.AddQuery(fileNameQuery)

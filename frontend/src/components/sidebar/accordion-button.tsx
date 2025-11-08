@@ -11,7 +11,7 @@ type AccordionButtonProps = {
   onClick: MouseEventHandler<HTMLButtonElement>;
 } & Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
-  'type' | 'children' | 'onClick' | 'className'
+  'type' | 'children' | 'onClick' | 'className' | 'title'
 >;
 
 export function AccordionButton({

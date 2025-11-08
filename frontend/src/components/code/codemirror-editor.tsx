@@ -22,6 +22,7 @@ import {
 } from '../../hooks/code-codemirror';
 import { getCodemirrorKeymap } from '../../utils/codemirror';
 import { focusEditor } from '.';
+import type { CodeMirrorRef } from './types';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { vim, getCM, Vim, CodeMirrorV } from '@replit/codemirror-vim';
 import { LexicalEditor } from 'lexical';
@@ -100,8 +101,8 @@ export function CodeMirrorEditor({
 }: {
   nodeKey: string;
   lexicalEditor: LexicalEditor;
-  codeMirrorInstance: ReactCodeMirrorRef | null;
-  setCodeMirrorInstance: (instance: ReactCodeMirrorRef | null) => void;
+  codeMirrorInstance: CodeMirrorRef;
+  setCodeMirrorInstance: (instance: CodeMirrorRef) => void;
   code: string;
   setCode: (code: string) => void;
   id: string;
