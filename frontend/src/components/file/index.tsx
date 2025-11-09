@@ -8,6 +8,7 @@ import { FileError } from './error';
 import { Image } from './image';
 import { Pdf } from './pdf';
 import { Video } from './video';
+import { FilePath } from '../../utils/string-formatting';
 
 export function File({
   src,
@@ -30,26 +31,22 @@ export function File({
   });
 
   useEffect(() => {
-    if (!fileType) return;
+    if (!fileType || isLoading) return;
     setElementType(fileType);
-  }, [fileType]);
+  }, [fileType, isLoading]);
 
   if (isLoading) return <Loader width={28} height={28} />;
 
-  let content: JSX.Element; // Explicitly define the type of content
+  let content: JSX.Element;
   const segments = src.split('/');
   const fileName = segments[segments.length - 1];
   const folder = segments[segments.length - 2];
-
-  const encodedSrc = segments
-    .slice(0, -2)
-    .join('/')
-    .concat(`/${encodeURIComponent(folder)}/${encodeURIComponent(fileName)}`);
+  const filePath = new FilePath({ folder, note: fileName });
 
   if (fileType === 'video') {
     content = (
       <Video
-        src={encodedSrc}
+        src={filePath.getFileUrl()}
         widthWrittenToNode={widthWrittenToNode}
         writeWidthToNode={writeWidthToNode}
         title={title}
@@ -59,7 +56,7 @@ export function File({
   } else if (fileType === 'image') {
     content = (
       <Image
-        src={encodedSrc}
+        src={filePath.getFileUrl()}
         alt={title}
         widthWrittenToNode={widthWrittenToNode}
         writeWidthToNode={writeWidthToNode}

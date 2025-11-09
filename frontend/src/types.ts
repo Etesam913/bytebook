@@ -56,8 +56,6 @@ export type ResizeWidth = number | '100%';
 export type ResizeState = {
   isResizing: boolean;
   setIsResizing: Dispatch<SetStateAction<boolean>>;
-  isExpanded: boolean;
-  setIsExpanded: Dispatch<SetStateAction<boolean>>;
 };
 
 export type DialogDataType = {

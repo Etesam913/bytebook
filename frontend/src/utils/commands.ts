@@ -3,13 +3,7 @@ import {
   $getNodeByKey,
   $getSelection,
   $isNodeSelection,
-  type LexicalCommand,
-  createCommand,
 } from 'lexical';
-
-export const EXPAND_CONTENT_COMMAND: LexicalCommand<string> = createCommand(
-  'EXPAND_CONTENT_COMMAND'
-);
 
 export function isDecoratorNodeSelected(nodeKey: string) {
   const selection = $getSelection();

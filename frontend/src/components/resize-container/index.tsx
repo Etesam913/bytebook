@@ -33,85 +33,79 @@ export function ResizeContainer({
   );
   const resizeHeightMotionValue = useMotionValue<number | '100%'>('100%');
   const [isSelected, setSelected] = useLexicalNodeSelection(nodeKey);
-  const { isExpanded, isResizing, setIsResizing } = resizeState;
+  const { isResizing, setIsResizing } = resizeState;
   const containerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <>
-      <motion.div
-        ref={containerRef}
-        tabIndex={isExpanded ? 0 : -1}
-        className={cn(
-          'relative rounded-xs outline-hidden max-w-full',
-          isExpanded &&
-            'max-h-screen fixed top-0 left-0 right-0 bottom-0 z-45 m-auto flex justify-start overflow-auto'
-        )}
-        style={{
-          width: !isExpanded ? widthMotionValue : '100%',
-          height: shouldHeightMatchWidth ? widthMotionValue : 'auto',
-          transition: 'outline 0.2s ease-in-out, opacity 0.2s ease-in-out',
-        }}
-      >
-        {isSelected && !isExpanded && (
-          <>
-            <motion.span
-              className={cn(
-                'absolute z-20 h-full w-full border-4 border-(--accent-color) rounded-xs pointer-events-none',
-                !isResizing && 'max-w-full'
-              )}
+    <motion.div
+      ref={containerRef}
+      tabIndex={-1}
+      className={cn('relative rounded-xs outline-hidden max-w-full')}
+      style={{
+        width: widthMotionValue,
+        height: shouldHeightMatchWidth ? widthMotionValue : 'auto',
+        transition: 'outline 0.2s ease-in-out, opacity 0.2s ease-in-out',
+      }}
+    >
+      {isSelected && (
+        <>
+          <motion.span
+            className={cn(
+              'absolute z-20 h-full w-full border-4 border-(--accent-color) rounded-xs pointer-events-none',
+              !isResizing && 'max-w-full'
+            )}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              width: resizeWidthMotionValue,
+              height: resizeHeightMotionValue,
+            }}
+          >
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{
-                width: resizeWidthMotionValue,
-                height: resizeHeightMotionValue,
-              }}
+              exit={{ opacity: 0, transition: { duration: 0.25 } }}
+              className={
+                'w-4 h-4 bg-(--accent-color) bottom-[-10px] right-[-9px] absolute cursor-nwse-resize rounded-xs pointer-events-none'
+              }
+            />
+          </motion.span>
+          {src.startsWith(FILE_SERVER_URL) && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.25 } }}
+              className="absolute top-2 left-2 max-w-[calc(100%-1rem)] bg-zinc-200/70 rounded-md py-1 px-1.5 text-xs dark:bg-zinc-650/70 whitespace-nowrap overflow-hidden text-ellipsis"
             >
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0, transition: { duration: 0.25 } }}
-                className={
-                  'w-4 h-4 bg-(--accent-color) bottom-[-10px] right-[-9px] absolute cursor-nwse-resize rounded-xs pointer-events-none'
-                }
-              />
-            </motion.span>
-            {src.startsWith(FILE_SERVER_URL) && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0, transition: { duration: 0.25 } }}
-                className="absolute top-2 left-2 max-w-[calc(100%-1rem)] bg-zinc-200/70 rounded-md py-1 px-1.5 text-xs dark:bg-zinc-650/70 whitespace-nowrap overflow-hidden text-ellipsis"
-              >
-                {decodeURIComponent(src.split('/').at(-2) ?? '')}/
-                {decodeURIComponent(src.split('/').at(-1) ?? '')}
-              </motion.div>
-            )}
-            <ResizeControls
-              src={src}
-              nodeKey={nodeKey}
-              motionValues={{
-                widthMotionValue,
-                resizeWidthMotionValue,
-                resizeHeightMotionValue,
-              }}
-              writeWidthToNode={writeWidthToNode}
-              isSelected={isSelected}
-              referenceElement={containerRef}
-            />
-            <ResizeHandle
-              ref={ref}
-              resizeWidthMotionValue={resizeWidthMotionValue}
-              resizeHeightMotionValue={resizeHeightMotionValue}
-              widthMotionValue={widthMotionValue}
-              writeWidthToNode={writeWidthToNode}
-              setIsResizing={setIsResizing}
-              setSelected={setSelected}
-            />
-          </>
-        )}
-        {children}
-      </motion.div>
-    </>
+              {decodeURIComponent(src.split('/').at(-2) ?? '')}/
+              {decodeURIComponent(src.split('/').at(-1) ?? '')}
+            </motion.div>
+          )}
+          <ResizeControls
+            src={src}
+            nodeKey={nodeKey}
+            motionValues={{
+              widthMotionValue,
+              resizeWidthMotionValue,
+              resizeHeightMotionValue,
+            }}
+            writeWidthToNode={writeWidthToNode}
+            isSelected={isSelected}
+            referenceElement={containerRef}
+          />
+          <ResizeHandle
+            ref={ref}
+            resizeWidthMotionValue={resizeWidthMotionValue}
+            resizeHeightMotionValue={resizeHeightMotionValue}
+            widthMotionValue={widthMotionValue}
+            writeWidthToNode={writeWidthToNode}
+            setIsResizing={setIsResizing}
+            setSelected={setSelected}
+          />
+        </>
+      )}
+      {children}
+    </motion.div>
   );
 }

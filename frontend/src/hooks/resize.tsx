@@ -1,9 +1,6 @@
-import { mergeRegister } from '@lexical/utils';
 import { useAtom, useSetAtom } from 'jotai/react';
-import { COMMAND_PRIORITY_LOW, type LexicalEditor } from 'lexical';
-import { type Dispatch, type SetStateAction, useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { ResizeState } from '../types';
-import { EXPAND_CONTENT_COMMAND } from '../utils/commands';
 import { useWailsEvent, WailsEvent } from './events';
 import { atom } from 'jotai';
 import { isFullscreenAtom } from '../atoms';
@@ -54,58 +51,9 @@ export function useFullscreen() {
 
 export function useResizeState(): ResizeState {
   const [isResizing, setIsResizing] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
 
   return {
     isResizing,
     setIsResizing,
-    isExpanded,
-    setIsExpanded,
   };
-}
-
-export function useResizeCommands({
-  editor,
-  isExpanded,
-  setIsExpanded,
-  nodeKey,
-  elementRef,
-}: {
-  editor: LexicalEditor;
-  isExpanded: boolean;
-  setIsExpanded: Dispatch<SetStateAction<boolean>>;
-  nodeKey: string;
-  elementRef: React.RefObject<HTMLElement | null>;
-}) {
-  useEffect(() => {
-    return mergeRegister(
-      // editor.registerCommand<KeyboardEvent>(
-      // 	KEY_ENTER_COMMAND,
-      // 	(e) => {
-      // 		if (disabledEvents?.enter) return false;
-      // 		if (!isExpanded) {
-      // 			return enterKeyDecoratorNodeCommand(e, nodeKey);
-      // 		}
-      // 		e.preventDefault();
-      // 		e.stopPropagation();
-      // 		return true;
-      // 	},
-      // 	isExpanded || isSelected ? COMMAND_PRIORITY_HIGH : COMMAND_PRIORITY_LOW,
-      // ),
-      editor.registerCommand<string>(
-        EXPAND_CONTENT_COMMAND,
-        (keyToExpand) => {
-          if (keyToExpand === nodeKey) {
-            setIsExpanded(true);
-            elementRef.current?.scrollIntoView({
-              block: 'end',
-            });
-            return true;
-          }
-          return false;
-        },
-        COMMAND_PRIORITY_LOW
-      )
-    );
-  }, [editor, nodeKey, isExpanded, setIsExpanded, elementRef]);
 }

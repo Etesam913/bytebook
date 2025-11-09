@@ -1,9 +1,8 @@
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useAtomValue } from 'jotai/react';
 import { useRef, useState } from 'react';
 import { noteSeenFileNodeKeysAtom } from '../editor/atoms';
 import { useShowWhenInViewport } from '../../hooks/observers';
-import { useResizeCommands, useResizeState } from '../../hooks/resize';
+import { useResizeState } from '../../hooks/resize';
 import type { ResizeWidth } from '../../types';
 import { cn } from '../../utils/string-formatting';
 import { ResizeContainer } from '../resize-container';
@@ -22,8 +21,8 @@ export function Image({
   writeWidthToNode: (width: ResizeWidth) => void;
   nodeKey: string;
 }) {
+  console.log('[Image] src:', src);
   const imgRef = useRef<HTMLImageElement>(null);
-  const [editor] = useLexicalComposerContext();
   const loaderRef = useRef<HTMLDivElement>(null); // Reference for loader
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -31,16 +30,7 @@ export function Image({
 
   const isImageInViewport = noteSeenFileNodeKeys.has(nodeKey);
 
-  const { isResizing, setIsResizing, isExpanded, setIsExpanded } =
-    useResizeState();
-
-  useResizeCommands({
-    editor,
-    isExpanded,
-    setIsExpanded,
-    nodeKey,
-    elementRef: imgRef,
-  });
+  const { isResizing, setIsResizing } = useResizeState();
 
   useShowWhenInViewport(loaderRef);
 
@@ -55,7 +45,7 @@ export function Image({
           ref={loaderRef}
           data-node-key={nodeKey}
           className={cn(
-            'my-3 w-full h-[36rem] bg-gray-200 dark:bg-zinc-600 animate-pulse pointer-events-none'
+            'my-3 w-full h-144 bg-gray-200 dark:bg-zinc-600 animate-pulse pointer-events-none'
           )}
         />
       ) : (
@@ -63,7 +53,7 @@ export function Image({
           {isLoading && (
             <div
               className={cn(
-                'my-3 w-full h-[36rem] bg-gray-200 dark:bg-zinc-600 animate-pulse pointer-events-none'
+                'my-3 w-full h-144 bg-gray-200 dark:bg-zinc-600 animate-pulse pointer-events-none'
               )}
             />
           )}
@@ -72,8 +62,6 @@ export function Image({
             resizeState={{
               isResizing,
               setIsResizing,
-              isExpanded,
-              setIsExpanded,
             }}
             ref={imgRef}
             nodeKey={nodeKey}
