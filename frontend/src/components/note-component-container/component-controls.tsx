@@ -43,7 +43,7 @@ export function NoteComponentControls({
 }) {
   return (
     <motion.div
-      className="absolute left-1/2 text-black dark:text-white top-0 bg-zinc-50 dark:bg-zinc-700 p-2 rounded-md shadow-lg border-[1px] border-zinc-300 dark:border-zinc-600 flex items-center justify-center gap-3 z-20"
+      className="absolute left-1/2 text-black dark:text-white top-0 bg-zinc-50 dark:bg-zinc-700 p-2 rounded-md shadow-lg border border-zinc-300 dark:border-zinc-600 flex items-center justify-center gap-3 z-20"
       initial={initial}
       animate={animate}
       exit={exit}

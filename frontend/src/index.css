@@ -89,6 +89,7 @@
   scrollbar-width: thin;
   --accent-color: rgb(var(--accent-color-values));
   --accent-color-highlight: rgba(var(--accent-color-values), 0.45);
+  --accent-color-highlight-low: rgba(var(--accent-color-values), 0.15);
   caret-color: var(--accent-color);
   /* Prevent text selection */
   user-select: none;

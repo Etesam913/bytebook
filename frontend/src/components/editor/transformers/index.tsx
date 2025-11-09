@@ -24,9 +24,9 @@ import { TABLE } from './table';
 // Export all transformers
 export const CUSTOM_TRANSFORMERS = [
   HEADING,
+  CHECK_LIST,
   UNORDERED_LIST,
   ORDERED_LIST,
-  CHECK_LIST,
   EQUATION,
   QUOTE,
   BOLD_ITALIC_STAR,

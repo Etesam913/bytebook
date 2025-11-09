@@ -15,7 +15,6 @@ import {
   shift,
   useFloating,
   useInteractions,
-  FloatingPortal,
   useDismiss,
 } from '@floating-ui/react';
 import { easingFunctions, getDefaultButtonVariants } from '../../../animations';
@@ -159,38 +158,47 @@ export function FloatingMenuPlugin({
   }, [isMenuOpen, floatingData.left, floatingData.top]);
 
   return (
-    <FloatingPortal>
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.form
-            ref={(node) => {
-              floating.refs.setFloating(node);
-              formRef.current = node;
-            }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={floating.floatingStyles}
-            transition={{ ease: easingFunctions['ease-out-circ'] }}
-            className={
-              isTextFormatMenuOpen
-                ? 'bg-white dark:bg-zinc-750 p-1 rounded-md shadow-lg flex items-center gap-2 z-10 border border-zinc-300 dark:border-zinc-600'
-                : 'bg-zinc-50 dark:bg-zinc-800 p-1 rounded-md bg-opacity-95 shadow-lg flex items-center gap-3 z-50 border-[1.25px] border-zinc-300 dark:border-zinc-700'
+    <AnimatePresence>
+      {isMenuOpen && (
+        <motion.form
+          ref={(node) => {
+            floating.refs.setFloating(node);
+            formRef.current = node;
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          style={floating.floatingStyles}
+          transition={{ ease: easingFunctions['ease-out-circ'] }}
+          className={
+            isTextFormatMenuOpen
+              ? 'bg-white dark:bg-zinc-750 p-1 rounded-md shadow-lg flex items-center gap-2 z-10 border border-zinc-300 dark:border-zinc-600'
+              : 'bg-zinc-50 dark:bg-zinc-800 p-1 rounded-md bg-opacity-95 shadow-lg flex items-center gap-3 z-50 border-[1.25px] border-zinc-300 dark:border-zinc-700'
+          }
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!isLinkMenuOpen) {
+              return;
             }
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!isLinkMenuOpen) {
-                return;
-              }
 
-              let newUrl: string | null =
-                inputRef.current?.value.trim() ?? null;
-              if (newUrl === '' || newUrl === null) {
-                newUrl = null;
-              }
-              editor.dispatchCommand(TOGGLE_LINK_COMMAND, {
-                url: newUrl,
-              });
+            let newUrl: string | null = inputRef.current?.value.trim() ?? null;
+            if (newUrl === '' || newUrl === null) {
+              newUrl = null;
+            }
+            editor.dispatchCommand(TOGGLE_LINK_COMMAND, {
+              url: newUrl,
+            });
+            setFloatingData({
+              isOpen: false,
+              type: null,
+              top: 0,
+              left: 0,
+              previousSelection: null,
+            });
+          }}
+          onKeyDown={(e) => {
+            if (!isLinkMenuOpen) return;
+            if (e.key === 'Escape') {
               setFloatingData({
                 isOpen: false,
                 type: null,
@@ -198,48 +206,36 @@ export function FloatingMenuPlugin({
                 left: 0,
                 previousSelection: null,
               });
-            }}
-            onKeyDown={(e) => {
-              if (!isLinkMenuOpen) return;
-              if (e.key === 'Escape') {
-                setFloatingData({
-                  isOpen: false,
-                  type: null,
-                  top: 0,
-                  left: 0,
-                  previousSelection: null,
-                });
 
-                setTimeout(() => {
-                  editor.update(() => {
-                    $setSelection(floatingData.previousSelection);
-                  });
-                }, 200);
-              }
-            }}
-            {...getFloatingProps()}
-          >
-            {isTextFormatMenuOpen && children}
-            {isLinkMenuOpen && (
-              <>
-                <Input
-                  ref={inputRef}
-                  labelProps={{}}
-                  inputProps={{
-                    defaultValue: floatingData.previousUrl ?? 'https://',
-                    // autoFocus: true,
-                    className: 'text-sm w-64',
-                    maxLength: undefined,
-                  }}
-                />
-                <MotionButton type="submit" {...getDefaultButtonVariants()}>
-                  <SubmitLink height={18} width={18} />
-                </MotionButton>
-              </>
-            )}
-          </motion.form>
-        )}
-      </AnimatePresence>
-    </FloatingPortal>
+              setTimeout(() => {
+                editor.update(() => {
+                  $setSelection(floatingData.previousSelection);
+                });
+              }, 200);
+            }
+          }}
+          {...getFloatingProps()}
+        >
+          {isTextFormatMenuOpen && children}
+          {isLinkMenuOpen && (
+            <>
+              <Input
+                ref={inputRef}
+                labelProps={{}}
+                inputProps={{
+                  defaultValue: floatingData.previousUrl ?? 'https://',
+                  // autoFocus: true,
+                  className: 'text-sm w-64',
+                  maxLength: undefined,
+                }}
+              />
+              <MotionButton type="submit" {...getDefaultButtonVariants()}>
+                <SubmitLink height={18} width={18} />
+              </MotionButton>
+            </>
+          )}
+        </motion.form>
+      )}
+    </AnimatePresence>
   );
 }

@@ -1,6 +1,5 @@
 import type { TextMatchTransformer } from '@lexical/markdown';
 import { $createFileNode, $isFileNode, FileNode } from '../nodes/file';
-import { type ResizeWidth } from '../../../types';
 import {
   addQueryParam,
   escapeFileContentForMarkdown,
@@ -33,11 +32,11 @@ export const FILE_TRANSFORMER: TextMatchTransformer = {
     }
 
     filePathOrSrc = updateSrc(node.getSrc());
-    altText = addQueryParam(
-      node.getAltText(),
-      'width',
-      String(node.getWidth())
-    );
+    const { width, height } = node.getDimensions();
+    altText = addQueryParam(node.getAltText(), 'width', String(width));
+    if (height) {
+      altText = addQueryParam(altText, 'height', String(height));
+    }
 
     return `![${escapeFileContentForMarkdown(altText)}](${escapeFileContentForMarkdown(filePathOrSrc)}) `;
   },
@@ -52,16 +51,32 @@ export const FILE_TRANSFORMER: TextMatchTransformer = {
     }
 
     const widthQueryValue = getQueryParamValue(alt, 'width');
-    const width: ResizeWidth = widthQueryValue
-      ? widthQueryValue.charAt(widthQueryValue.length - 1) === '%'
-        ? '100%'
-        : Number.parseInt(widthQueryValue)
-      : '100%';
+    const heightQueryValue = getQueryParamValue(alt, 'height');
+
+    const width = widthQueryValue ? Number(widthQueryValue) : undefined;
+
+    if (width === undefined) {
+      textNode.replace(textNode);
+      return;
+    }
+
+    const height = heightQueryValue ? Number(heightQueryValue) : undefined;
+
+    // Remove query params from alt text to get the actual alt text
+    let cleanAlt = removeQueryParam(alt, 'width');
+    if (heightQueryValue) {
+      cleanAlt = removeQueryParam(cleanAlt, 'height');
+    }
+    // Remove any remaining query string markers if alt only contained query params
+    cleanAlt = cleanAlt.replace(/^\?+$/, '').trim();
+    // Ensure we have a valid alt text (use empty string if it was only query params)
+    // Also ensure it's a string (not undefined or null)
+    const finalAlt = (cleanAlt || '').toString();
 
     const nodeToCreate = $createFileNode({
-      alt: unescapeFileContentFromMarkdown(removeQueryParam(alt, 'width')),
+      alt: unescapeFileContentFromMarkdown(finalAlt),
       src: unescapeFileContentFromMarkdown(filePathOrSrc),
-      width,
+      dimensions: { width, height },
     });
     textNode.replace(nodeToCreate);
   },

@@ -1,81 +1,134 @@
-import { useAtomValue } from 'jotai/react';
+import { useAtomValue, useSetAtom } from 'jotai/react';
 import { useRef, useState } from 'react';
-import { noteSeenFileNodeKeysAtom } from '../editor/atoms';
+import {
+  noteContainerRefAtom,
+  noteSeenFileNodeKeysAtom,
+} from '../editor/atoms';
 import { useShowWhenInViewport } from '../../hooks/observers';
-import { useResizeState } from '../../hooks/resize';
-import type { ResizeWidth } from '../../types';
-import { cn } from '../../utils/string-formatting';
-import { ResizeContainer } from '../resize-container';
+import { motion, useMotionValue } from 'motion/react';
+import { draggedGhostElementAtom } from '../editor/atoms';
 import { FileError } from './error';
+import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
+import { ResizeControlsPopover } from '../resize-container/resize-controls-popover';
+import { FileDimensions } from '../editor/nodes/types';
+import { onResize, writeMediaDimensionsOnLoad } from './utils/resize';
+import { FilePlaceholder } from './placeholder';
 
 export function Video({
   src,
-  widthWrittenToNode,
-  writeWidthToNode,
+  dimensionsWrittenToNode,
+  writeDimensionsToNode,
   title,
   nodeKey,
 }: {
   src: string;
-  widthWrittenToNode: ResizeWidth;
-  writeWidthToNode: (width: ResizeWidth) => void;
+  dimensionsWrittenToNode: FileDimensions;
+  writeDimensionsToNode: (dimensions: FileDimensions) => void;
   title: string;
   nodeKey: string;
 }) {
+  const videoContainer = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const loaderRef = useRef<HTMLDivElement>(null); // Reference for loader
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const noteSeenFileNodeKeys = useAtomValue(noteSeenFileNodeKeysAtom);
-
-  const { isResizing, setIsResizing } = useResizeState();
-
+  const [isSelected] = useLexicalNodeSelection(nodeKey);
   const isVideoInViewport = noteSeenFileNodeKeys.has(nodeKey);
+  const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
+  const noteContainerRef = useAtomValue(noteContainerRefAtom);
 
   useShowWhenInViewport(loaderRef);
+
+  const videoWidthMotionValue = useMotionValue<number>(
+    dimensionsWrittenToNode.width
+  );
 
   if (isError) {
     return <FileError src={src} nodeKey={nodeKey} type="loading-fail" />;
   }
 
+  const placeholderHeight =
+    dimensionsWrittenToNode.height ??
+    Math.round((dimensionsWrittenToNode.width * 9) / 16);
+
   return (
     <>
       {!isVideoInViewport ? (
-        <div
-          ref={loaderRef}
-          data-node-key={nodeKey}
-          className="my-3 w-full h-144 bg-gray-200 dark:bg-zinc-600 animate-pulse pointer-events-none"
+        <FilePlaceholder
+          loaderRef={loaderRef}
+          nodeKey={nodeKey}
+          width={dimensionsWrittenToNode.width}
+          height={placeholderHeight}
         />
       ) : (
         <>
           {isLoading && (
-            <div className="my-3 w-full h-144 bg-gray-200 dark:bg-zinc-600 animate-pulse pointer-events-none" />
+            <FilePlaceholder
+              loaderRef={loaderRef}
+              nodeKey={nodeKey}
+              width={dimensionsWrittenToNode.width}
+              height={placeholderHeight}
+            />
           )}
-          <ResizeContainer
-            resizeState={{
-              isResizing,
-              setIsResizing,
-            }}
-            ref={videoRef}
-            nodeKey={nodeKey}
-            defaultWidth={widthWrittenToNode}
-            writeWidthToNode={writeWidthToNode}
-            src={src}
-            elementType="video"
+
+          <div
+            ref={videoContainer}
+            className="inline-block relative cursor-auto mx-1"
           >
-            <video
+            {isSelected && !isLoading && (
+              <>
+                <div className="pointer-events-none outline-4 outline-(--accent-color) absolute z-10 top-0 left-0 w-full h-full bg-(--accent-color-highlight-low)" />
+                <div
+                  className="cursor-sw-resize absolute bottom-[-8px] right-[-8px] w-5 h-5 z-20 bg-(--accent-color) rounded-sm"
+                  onMouseDown={(e) =>
+                    onResize(e, {
+                      elementRef: videoRef,
+                      noteContainerRef,
+                      widthMotionValue: videoWidthMotionValue,
+                      writeDimensionsToNode,
+                      setDraggedGhostElement,
+                    })
+                  }
+                />
+              </>
+            )}
+            <motion.video
               ref={videoRef}
-              style={{ display: isLoading ? 'none' : 'inline' }}
-              className={cn('w-full h-auto bg-black my-auto scroll-m-10')}
-              title={title}
               src={src}
-              controls
-              onLoadedData={() => setIsLoading(false)}
+              onLoadedData={() => {
+                setIsLoading(false);
+                const video = videoRef.current;
+                if (!video) return;
+
+                writeMediaDimensionsOnLoad(
+                  video,
+                  dimensionsWrittenToNode,
+                  writeDimensionsToNode
+                );
+              }}
               onError={() => setIsError(true)}
+              title={title}
+              controls
               preload="auto"
+              draggable={false}
+              style={{
+                width: videoWidthMotionValue,
+                display: isLoading ? 'none' : 'block',
+              }}
+              className="bg-black my-auto scroll-m-10"
               data-node-key={nodeKey}
               data-interactable="true"
             />
-          </ResizeContainer>
+          </div>
+          {!isLoading && (
+            <ResizeControlsPopover
+              nodeKey={nodeKey}
+              src={src}
+              isSelected={isSelected}
+              referenceElement={videoContainer}
+            />
+          )}
         </>
       )}
     </>

@@ -24,7 +24,7 @@ export function FileError({
       data-interactable="true"
       className={cn(
         'max-w-80 relative bg-zinc-50 text-zinc-600 dark:text-zinc-300 dark:bg-zinc-700 rounded-md px-2.5 py-1.5 mx-1.5 border-4 border-solid border-zinc-200 dark:border-zinc-650 transition-colors',
-        isSelected && '!border-(--accent-color)'
+        isSelected && 'border-(--accent-color)!'
       )}
     >
       <AnimatePresence>

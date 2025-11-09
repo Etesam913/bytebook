@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { type JSX, useEffect } from 'react';
 import { Loader } from '../../icons/loader';
-import type { ResizeWidth } from '../../types';
 import type { FileType } from '../editor/nodes/file';
 import { getFileElementTypeFromExtensionAndHead } from '../editor/utils/file-node';
 import { FileError } from './error';
@@ -9,18 +8,19 @@ import { Image } from './image';
 import { Pdf } from './pdf';
 import { Video } from './video';
 import { FilePath } from '../../utils/string-formatting';
+import { FileDimensions } from '../editor/nodes/types';
 
 export function File({
   src,
-  widthWrittenToNode,
-  writeWidthToNode,
+  dimensionsWrittenToNode,
+  writeDimensionsToNode,
   title,
   nodeKey,
   setElementType,
 }: {
   src: string;
-  widthWrittenToNode: ResizeWidth;
-  writeWidthToNode: (width: ResizeWidth) => void;
+  dimensionsWrittenToNode: FileDimensions;
+  writeDimensionsToNode: (dimensions: FileDimensions) => void;
   title: string;
   nodeKey: string;
   setElementType: (elementType: FileType) => void;
@@ -47,8 +47,8 @@ export function File({
     content = (
       <Video
         src={filePath.getFileUrl()}
-        widthWrittenToNode={widthWrittenToNode}
-        writeWidthToNode={writeWidthToNode}
+        dimensionsWrittenToNode={dimensionsWrittenToNode}
+        writeDimensionsToNode={writeDimensionsToNode}
         title={title}
         nodeKey={nodeKey}
       />
@@ -58,8 +58,8 @@ export function File({
       <Image
         src={filePath.getFileUrl()}
         alt={title}
-        widthWrittenToNode={widthWrittenToNode}
-        writeWidthToNode={writeWidthToNode}
+        dimensionsWrittenToNode={dimensionsWrittenToNode}
+        writeDimensionsToNode={writeDimensionsToNode}
         nodeKey={nodeKey}
       />
     );

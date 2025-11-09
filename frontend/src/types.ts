@@ -51,8 +51,6 @@ export type FloatingDataType =
   | FloatingDataTypeBase<'text-format'>
   | FloatingDataTypeBase<null>;
 
-export type ResizeWidth = number | '100%';
-
 export type ResizeState = {
   isResizing: boolean;
   setIsResizing: Dispatch<SetStateAction<boolean>>;

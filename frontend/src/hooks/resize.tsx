@@ -1,6 +1,4 @@
 import { useAtom, useSetAtom } from 'jotai/react';
-import { useState } from 'react';
-import type { ResizeState } from '../types';
 import { useWailsEvent, WailsEvent } from './events';
 import { atom } from 'jotai';
 import { isFullscreenAtom } from '../atoms';
@@ -49,11 +47,11 @@ export function useFullscreen() {
   });
 }
 
-export function useResizeState(): ResizeState {
-  const [isResizing, setIsResizing] = useState(false);
+// export function useResizeState(): ResizeState {
+//   const [isResizing, setIsResizing] = useState(false);
 
-  return {
-    isResizing,
-    setIsResizing,
-  };
-}
+//   return {
+//     isResizing,
+//     setIsResizing,
+//   };
+// }

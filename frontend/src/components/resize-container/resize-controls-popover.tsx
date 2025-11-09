@@ -1,5 +1,4 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { type MotionValue } from 'motion/react';
 import type { MouseEvent, RefObject } from 'react';
 import { useEffect } from 'react';
 import {
@@ -12,10 +11,8 @@ import {
   FloatingPortal,
   type Placement,
 } from '@floating-ui/react';
-import { XResize } from '../../icons/arrows-expand-x';
 import { Link } from '../../icons/link';
 import { Trash } from '../../icons/trash';
-import type { ResizeWidth } from '../../types';
 import { removeDecoratorNode } from '../../utils/commands';
 import { FILE_SERVER_URL } from '../../utils/general';
 import { FilePath } from '../../utils/string-formatting';
@@ -25,26 +22,16 @@ import { cn } from '../../utils/string-formatting';
 
 export function ResizeControlsPopover({
   nodeKey,
-  motionValues,
-  writeWidthToNode,
   src,
   isSelected,
   referenceElement,
 }: {
   nodeKey: string;
-  motionValues: {
-    widthMotionValue: MotionValue<number | '100%'>;
-    resizeHeightMotionValue: MotionValue<number | '100%'>;
-    resizeWidthMotionValue: MotionValue<number | '100%'>;
-  };
-  writeWidthToNode: (width: ResizeWidth) => void;
   src: string;
   isSelected: boolean;
   referenceElement: RefObject<HTMLElement | null>;
 }) {
   const [editor] = useLexicalComposerContext();
-  const { widthMotionValue, resizeWidthMotionValue, resizeHeightMotionValue } =
-    motionValues;
 
   const { refs, floatingStyles } = useFloating({
     open: isSelected,
@@ -98,21 +85,6 @@ export function ResizeControlsPopover({
                 }}
               >
                 <Trash className="will-change-transform" />
-              </button>
-
-              <button
-                type="button"
-                aria-label="Full width"
-                className="will-change-transform transition-transform hover:scale-[1.115] active:scale-[0.95] focus:scale-[1.115]"
-                onClick={(e: MouseEvent<HTMLButtonElement>) => {
-                  widthMotionValue.set('100%');
-                  resizeWidthMotionValue.set('100%');
-                  resizeHeightMotionValue.set('100%');
-                  writeWidthToNode('100%');
-                  e.stopPropagation();
-                }}
-              >
-                <XResize className="will-change-transform" />
               </button>
 
               <button

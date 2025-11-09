@@ -1,6 +1,8 @@
+import { $dfs } from '@lexical/utils';
 import {
   $addUpdateTag,
   $getNodeByKey,
+  $getRoot,
   $isElementNode,
   $isTextNode,
   IS_HIGHLIGHT,
@@ -27,8 +29,8 @@ function clearAllHighlights(editor: LexicalEditor): void {
       // Prevents the editor from being selected and stealing focus from the find input
       $addUpdateTag('skip-dom-selection');
 
-      const root = editor.getEditorState()._nodeMap;
-      root.forEach((node) => {
+      const nodes = $dfs($getRoot());
+      nodes.forEach(({ node }) => {
         if ($isTextNode(node) && node.hasFormat('highlight')) {
           node.toggleFormat('highlight');
         }

@@ -14,14 +14,15 @@ import {
   DecoratorNode,
 } from 'lexical';
 import type { JSX } from 'react/jsx-runtime';
-import type { ResizeWidth } from '../../../types';
+import type { FileDimensions } from './types';
 import { File } from '../../file';
 
 export type FileType = 'image' | 'video' | 'pdf' | 'youtube' | 'unknown';
+const DEFAULT_DIMENSIONS = { width: 312 };
 
 export interface FilePayload {
   alt: string;
-  width?: ResizeWidth;
+  dimensions?: FileDimensions;
   key?: NodeKey;
   src: string;
 }
@@ -38,7 +39,7 @@ function convertFileElement(domNode: HTMLElement): null | DOMConversionOutput {
     const node = $createFileNode({
       alt,
       src,
-      width: '100%',
+      dimensions: DEFAULT_DIMENSIONS,
     });
     parentNode.append(node);
     return { node: node };
@@ -49,7 +50,7 @@ function convertFileElement(domNode: HTMLElement): null | DOMConversionOutput {
     const node = $createFileNode({
       alt: title,
       src,
-      width: '100%',
+      dimensions: { width: 256 },
     });
     parentNode.append(node);
     return { node: node };
@@ -58,7 +59,7 @@ function convertFileElement(domNode: HTMLElement): null | DOMConversionOutput {
   const unknown = $createFileNode({
     alt: 'Unknown',
     src: '',
-    width: '100%',
+    dimensions: DEFAULT_DIMENSIONS,
   });
   parentNode.append(unknown);
 
@@ -68,7 +69,7 @@ function convertFileElement(domNode: HTMLElement): null | DOMConversionOutput {
 export type SerializedFileNode = Spread<
   {
     alt: string;
-    width?: ResizeWidth;
+    dimensions?: FileDimensions;
     src: string;
   },
   SerializedLexicalNode
@@ -77,7 +78,7 @@ export type SerializedFileNode = Spread<
 export class FileNode extends DecoratorNode<JSX.Element> {
   __src: string;
   __alt: string;
-  __width: ResizeWidth;
+  __dimensions: FileDimensions;
   __elementType: FileType;
 
   static getType(): string {
@@ -88,35 +89,40 @@ export class FileNode extends DecoratorNode<JSX.Element> {
     return new FileNode({
       src: node.__src,
       alt: node.__alt,
-      width: node.__width,
+      dimensions: node.__dimensions,
       key: node.__key,
     });
   }
 
   static importJSON(serializedNode: SerializedFileNode): FileNode {
-    const { alt, width, src } = serializedNode;
+    const { alt, dimensions, src } = serializedNode;
     const node = $createFileNode({
       alt,
-      width,
+      dimensions,
       src,
     });
     return node;
   }
 
   exportDOM(): DOMExportOutput {
-    let element: HTMLImageElement | null = null;
+    let element: HTMLImageElement | HTMLVideoElement | null = null;
     // if (this.__elementType === "image") {
     element = document.createElement('img');
     element.setAttribute('src', this.__src);
     element.setAttribute('alt', this.__alt);
-    element.setAttribute('width', this.__width.toString());
-    // }
-    // if (this.__elementType === "video") {
-    // 	element = document.createElement("video");
-    // 	element.setAttribute("src", this.__src);
-    // 	element.setAttribute("title", this.__alt);
-    // 	element.setAttribute("width", this.__width.toString());
-    // }
+    element.setAttribute('width', this.__dimensions.width.toString());
+    if (this.__dimensions.height) {
+      element.setAttribute('height', this.__dimensions.height.toString());
+    }
+    if (this.__elementType === 'video') {
+      element = document.createElement('video') as HTMLVideoElement;
+      element.setAttribute('src', this.__src);
+      element.setAttribute('title', this.__alt);
+      element.setAttribute('width', this.__dimensions.width.toString());
+      if (this.__dimensions.height) {
+        element.setAttribute('height', this.__dimensions.height.toString());
+      }
+    }
 
     return { element };
   }
@@ -133,25 +139,29 @@ export class FileNode extends DecoratorNode<JSX.Element> {
   constructor({
     src,
     alt,
-    width,
+    dimensions,
     key,
   }: {
     src: string;
     alt: string;
-    width?: ResizeWidth;
+    dimensions?: FileDimensions;
     key?: NodeKey;
   }) {
     super(key);
     this.__src = src;
     this.__alt = alt;
-    this.__width = width ?? '100%';
+    if (dimensions) {
+      this.__dimensions = dimensions;
+    } else {
+      this.__dimensions = DEFAULT_DIMENSIONS;
+    }
     this.__elementType = 'unknown';
   }
 
   exportJSON(): SerializedFileNode {
     return {
       alt: this.getAltText(),
-      width: this.getWidth(),
+      dimensions: this.getDimensions(),
       src: this.getSrc(),
       type: 'file',
       version: 1,
@@ -176,14 +186,14 @@ export class FileNode extends DecoratorNode<JSX.Element> {
     return this.__alt;
   }
 
-  getWidth(): ResizeWidth {
-    return this.__width;
+  getDimensions(): FileDimensions {
+    return this.__dimensions;
   }
 
-  setWidth(width: ResizeWidth, editor: LexicalEditor): void {
+  setDimensions(dimensions: FileDimensions, editor: LexicalEditor): void {
     editor.update(() => {
       const writable = this.getWritable();
-      writable.__width = width;
+      writable.__dimensions = dimensions;
     });
   }
 
@@ -209,8 +219,10 @@ export class FileNode extends DecoratorNode<JSX.Element> {
     return (
       <File
         src={this.__src}
-        widthWrittenToNode={this.getWidth()}
-        writeWidthToNode={(width) => this.setWidth(width, _editor)}
+        dimensionsWrittenToNode={this.getDimensions()}
+        writeDimensionsToNode={(dimensions) =>
+          this.setDimensions(dimensions, _editor)
+        }
         title={this.getAltText()}
         nodeKey={this.getKey()}
         setElementType={(elementType: FileType) =>
@@ -224,10 +236,10 @@ export class FileNode extends DecoratorNode<JSX.Element> {
 export function $createFileNode({
   alt,
   src,
-  width,
+  dimensions,
   key,
 }: FilePayload): FileNode {
-  return $applyNodeReplacement(new FileNode({ src, alt, width, key }));
+  return $applyNodeReplacement(new FileNode({ src, alt, dimensions, key }));
 }
 
 export function $isFileNode(

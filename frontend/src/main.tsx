@@ -11,6 +11,7 @@ import './index.css';
 import { toast } from 'sonner';
 import { DEFAULT_SONNER_OPTIONS } from './utils/general.ts';
 import { QueryError } from './utils/query.ts';
+import { scan } from 'react-scan';
 
 const rootElem = document.getElementById('root');
 if (!rootElem) {
@@ -40,15 +41,15 @@ const queryClient = new QueryClient({
 });
 
 // Only enable react-scan in development
-(async () => {
-  if (import.meta.env.DEV) {
-    const { scan } = await import('react-scan');
-    scan({
-      enabled: false,
-    });
-  }
-})();
+// (async () => {
+//   if (import.meta.env.DEV) {
+//   }
+// })();
 
+//     const { scan } = await import('react-scan');
+scan({
+  enabled: true,
+});
 ReactDOM.createRoot(rootElem).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
