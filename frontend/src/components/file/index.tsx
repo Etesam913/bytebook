@@ -37,16 +37,19 @@ export function File({
 
   if (isLoading) return <Loader width={28} height={28} />;
 
-  let content: JSX.Element;
+  // Convert src to FilePath
   const segments = src.split('/');
+  // TODO: Handle cases where the url is not a local file
   const fileName = segments[segments.length - 1];
   const folder = segments[segments.length - 2];
   const filePath = new FilePath({ folder, note: fileName });
 
+  let content: JSX.Element;
+
   if (fileType === 'video') {
     content = (
       <Video
-        src={filePath.getFileUrl()}
+        filePath={filePath}
         dimensionsWrittenToNode={dimensionsWrittenToNode}
         writeDimensionsToNode={writeDimensionsToNode}
         title={title}
@@ -56,7 +59,7 @@ export function File({
   } else if (fileType === 'image') {
     content = (
       <Image
-        src={filePath.getFileUrl()}
+        filePath={filePath}
         alt={title}
         dimensionsWrittenToNode={dimensionsWrittenToNode}
         writeDimensionsToNode={writeDimensionsToNode}
@@ -64,11 +67,15 @@ export function File({
       />
     );
   } else if (fileType === 'pdf') {
-    content = <Pdf src={src} alt={title} nodeKey={nodeKey} />;
+    content = <Pdf filePath={filePath} alt={title} nodeKey={nodeKey} />;
   } else {
     // Replace with unknown attachment
     content = (
-      <FileError src={src} nodeKey={nodeKey} type="unknown-attachment" />
+      <FileError
+        filePath={filePath}
+        nodeKey={nodeKey}
+        type="unknown-attachment"
+      />
     );
   }
 

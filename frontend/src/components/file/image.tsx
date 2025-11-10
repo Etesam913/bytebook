@@ -13,20 +13,22 @@ import { ResizeControlsPopover } from '../resize-container/resize-controls-popov
 import { FileDimensions } from '../editor/nodes/types';
 import { onResize, writeMediaDimensionsOnLoad } from './utils/resize';
 import { FilePlaceholder } from './placeholder';
+import { FilePath } from '../../utils/string-formatting';
 
 export function Image({
-  src,
+  filePath,
   alt,
   dimensionsWrittenToNode,
   writeDimensionsToNode,
   nodeKey,
 }: {
-  src: string;
+  filePath: FilePath;
   alt: string;
   dimensionsWrittenToNode: FileDimensions;
   writeDimensionsToNode: (dimensions: FileDimensions) => void;
   nodeKey: string;
 }) {
+  const src = filePath.getFileUrl();
   const imageContainer = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const loaderRef = useRef<HTMLDivElement>(null); // Reference for loader
@@ -45,7 +47,9 @@ export function Image({
   );
 
   if (isError) {
-    return <FileError src={src} nodeKey={nodeKey} type="loading-fail" />;
+    return (
+      <FileError filePath={filePath} nodeKey={nodeKey} type="loading-fail" />
+    );
   }
 
   const placeholderHeight =
@@ -122,7 +126,7 @@ export function Image({
           {!isLoading && (
             <ResizeControlsPopover
               nodeKey={nodeKey}
-              src={src}
+              filePath={filePath}
               isSelected={isSelected}
               referenceElement={imageContainer}
             />

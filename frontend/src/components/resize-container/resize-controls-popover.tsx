@@ -14,20 +14,18 @@ import {
 import { Link } from '../../icons/link';
 import { Trash } from '../../icons/trash';
 import { removeDecoratorNode } from '../../utils/commands';
-import { FILE_SERVER_URL } from '../../utils/general';
 import { FilePath } from '../../utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
-import { Browser } from '@wailsio/runtime';
 import { cn } from '../../utils/string-formatting';
 
 export function ResizeControlsPopover({
   nodeKey,
-  src,
+  filePath,
   isSelected,
   referenceElement,
 }: {
   nodeKey: string;
-  src: string;
+  filePath: FilePath;
   isSelected: boolean;
   referenceElement: RefObject<HTMLElement | null>;
 }) {
@@ -92,22 +90,7 @@ export function ResizeControlsPopover({
                 aria-label="Open link"
                 className="will-change-transform transition-transform hover:scale-[1.115] active:scale-[0.95] focus:scale-[1.115]"
                 onClick={() => {
-                  if (!src) return;
-                  if (src.startsWith(FILE_SERVER_URL)) {
-                    const segments = src.split('/');
-                    if (segments.length < 2) {
-                      return;
-                    }
-                    const folderName = segments[segments.length - 2];
-                    const fileName = segments[segments.length - 1];
-                    const filePath = new FilePath({
-                      folder: folderName,
-                      note: fileName,
-                    });
-                    navigate(filePath.getLinkToNote());
-                  } else {
-                    Browser.OpenURL(src);
-                  }
+                  navigate(filePath.getLinkToNote());
                 }}
               >
                 <Link title="Open Link" className="will-change-transform" />
