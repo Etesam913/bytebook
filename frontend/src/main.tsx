@@ -40,16 +40,10 @@ const queryClient = new QueryClient({
   }),
 });
 
-// Only enable react-scan in development
-// (async () => {
-//   if (import.meta.env.DEV) {
-//   }
-// })();
-
-//     const { scan } = await import('react-scan');
-scan({
-  enabled: true,
-});
+// Be careful with this, it makes hmr significantly slower
+// scan({
+//   enabled: true,
+// });
 ReactDOM.createRoot(rootElem).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>

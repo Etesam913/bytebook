@@ -84,7 +84,7 @@ func (env *TestEnv) verifyDocumentExists(docId string) {
 func indexFolderAndFlush(t *testing.T, idx bleve.Index, folderPath, folderName string) error {
 	batch := idx.NewBatch()
 	// No flush callback needed for tests (small batches)
-	err := IndexAllFilesInFolderWithBatch(folderPath, folderName, idx, batch, nil)
+	err := IndexAllFilesInFolderWithBatch(folderPath, folderName, idx, batch)
 	if err != nil {
 		return err
 	}
