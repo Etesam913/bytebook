@@ -88,7 +88,7 @@ function App() {
           setContextMenuData((prev) => ({ ...prev, isShowing: false }));
         }
       }}
-      onContextMenu={(e) => e.preventDefault()}
+      // onContextMenu={(e) => e.preventDefault()}
     >
       <ContextMenu />
       <Dialog />

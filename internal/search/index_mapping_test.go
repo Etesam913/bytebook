@@ -81,6 +81,21 @@ func (env *TestEnv) verifyDocumentExists(docId string) {
 	assert.NotNil(env.t, doc, "Document %s should not be nil", docId)
 }
 
+func indexFolderAndFlush(t *testing.T, idx bleve.Index, folderPath, folderName string) error {
+	batch := idx.NewBatch()
+	// No flush callback needed for tests (small batches)
+	err := IndexAllFilesInFolderWithBatch(folderPath, folderName, idx, batch, nil)
+	if err != nil {
+		return err
+	}
+
+	if batch.Size() == 0 {
+		return nil
+	}
+
+	return idx.Batch(batch)
+}
+
 // Standard test markdown content
 const (
 	basicMarkdown = `---
@@ -315,7 +330,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 	defer env.Close()
 
 	t.Run("should return error for non-existent folder", func(t *testing.T) {
-		err := IndexAllFilesInFolder("/non/existent/path", "non-existent", env.Index)
+		err := indexFolderAndFlush(t, env.Index, "/non/existent/path", "non-existent")
 		assert.Error(t, err)
 	})
 
@@ -324,7 +339,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		env.createMarkdownFile(folderPath, "test1.md", basicMarkdown)
 		env.createMarkdownFile(folderPath, "test2.md", "# Content\nThis is test content without frontmatter.")
 
-		err := IndexAllFilesInFolder(folderPath, "test-folder", env.Index)
+		err := indexFolderAndFlush(t, env.Index, folderPath, "test-folder")
 		assert.NoError(t, err)
 
 		// Verify folder is indexed
@@ -341,7 +356,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		folderPath := env.createTestFolder("test-folder-2")
 		env.createMarkdownFile(folderPath, "test.md", markdownWithId)
 
-		err := IndexAllFilesInFolder(folderPath, "test-folder-2", env.Index)
+		err := indexFolderAndFlush(t, env.Index, folderPath, "test-folder-2")
 		assert.NoError(t, err)
 
 		// Verify folder is indexed
@@ -360,7 +375,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		// Create files in parent folder
 		env.createMarkdownFile(folderPath, "parent-note.md", "# Content in parent folder")
 
-		err = IndexAllFilesInFolder(folderPath, "parent-folder", env.Index)
+		err = indexFolderAndFlush(t, env.Index, folderPath, "parent-folder")
 		assert.NoError(t, err)
 
 		// Verify folder is indexed
@@ -379,7 +394,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		// Create files in subfolder (should not be indexed)
 		env.createMarkdownFile(subfolderPath, "sub-note.md", "# Content in subfolder")
 
-		err = IndexAllFilesInFolder(folderPath, "parent-folder", env.Index)
+		err = indexFolderAndFlush(t, env.Index, folderPath, "parent-folder")
 		assert.NoError(t, err)
 
 		// Verify subfolder file was NOT indexed (since we only process files, not subdirectories)
@@ -391,7 +406,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 	t.Run("should handle empty folders", func(t *testing.T) {
 		folderPath := env.createTestFolder("empty-folder")
 
-		err := IndexAllFilesInFolder(folderPath, "empty-folder", env.Index)
+		err := indexFolderAndFlush(t, env.Index, folderPath, "empty-folder")
 		assert.NoError(t, err) // Should not error on empty folders
 
 		// Verify folder is indexed even when empty

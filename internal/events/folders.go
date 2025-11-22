@@ -151,9 +151,17 @@ func renameFoldersInIndex(params EventParams, data []map[string]string) {
 
 		// Step 2: Re-index all files in the new folder
 		newFolderPath := filepath.Join(params.ProjectPath, "notes", newFolderName)
-		err := search.IndexAllFilesInFolder(newFolderPath, newFolderName, params.Index)
+		batch := params.Index.NewBatch()
+		err := search.IndexAllFilesInFolderWithBatch(newFolderPath, newFolderName, params.Index, batch)
 		if err != nil {
 			log.Printf("Error re-indexing folder %s: %v", newFolderName, err)
+			continue
+		}
+
+		if batch.Size() > 0 {
+			if err := params.Index.Batch(batch); err != nil {
+				log.Printf("Error committing re-index batch for folder %s: %v", newFolderName, err)
+			}
 		}
 	}
 }

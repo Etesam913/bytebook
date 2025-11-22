@@ -100,6 +100,7 @@ func handleNoteRenameEvent(params EventParams, event *application.CustomEvent) {
 func renameNotesInIndex(params EventParams, data []map[string]string) {
 	batch := params.Index.NewBatch()
 
+	// TODO: Add flush logic in the loop
 	for _, note := range data {
 		oldFolder, ok := note["oldFolder"]
 		if !ok {
@@ -180,6 +181,7 @@ func handleNoteDeleteEvent(params EventParams, event *application.CustomEvent) {
 func deleteNotesFromIndex(params EventParams, data []map[string]string) {
 	batch := params.Index.NewBatch()
 
+	// TODO: Add flush logic in the loop
 	for _, note := range data {
 		folder, ok := note["folder"]
 		if !ok {
@@ -217,6 +219,8 @@ func handleNoteWriteEvent(params EventParams, event *application.CustomEvent) {
 
 // updateNotesInIndex updates the search index with the new note content for multiple notes.
 func updateNotesInIndex(params EventParams, data []map[string]string) {
+
+	// TODO: Add flush logic in the loop
 	for _, note := range data {
 		folder, ok := note["folder"]
 		if !ok {

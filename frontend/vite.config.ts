@@ -24,6 +24,9 @@ export default defineConfig(({ mode }) => {
     : [];
 
   return {
+    experimental: {
+      enableNativePlugin: true,
+    },
     plugins: [
       react({
         babel: {

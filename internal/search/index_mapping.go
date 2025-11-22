@@ -26,6 +26,22 @@ var ATTACHMENT_TYPE = "attachment"
 var FOLDER_TYPE = "folder"
 var FilenameAnalyzer = "filename_analyzer"
 
+const defaultIndexBatchSize = 750
+
+// FlushBatch commits the batch to the index
+// and creates a new batch. The batchPtr parameter should be a pointer to the batch variable
+// so it can be updated after flushing.
+// Example usage:
+//
+//	batch := index.NewBatch()
+//	FlushBatch(index, &batch)
+func FlushBatch(index bleve.Index, batch *bleve.Batch) error {
+	if batch == nil || batch.Size() == 0 {
+		return nil
+	}
+	return index.Batch(batch)
+}
+
 type MarkdownNoteBleveDocument struct {
 	Type                  string   `json:"type"`
 	Folder                string   `json:"folder"`
@@ -442,20 +458,22 @@ func AddFolderToBatch(
 	return folderId, nil
 }
 
-// IndexAllFilesInFolder processes all files in a specific folder and ensures they are properly indexed.
-// It:
-// 1. Creates a batch for efficient indexing
-// 2. Processes each file in the folder (skips subdirectories)
-// 3. For .md files: ensures each file has an ID in frontmatter and indexes as markdown notes
-// 4. For non-.md files: indexes as attachments
-// 5. Commits the batch to the index
-// This function should be called for each folder in the notes directory.
-func IndexAllFilesInFolder(folderPath, folderName string, index bleve.Index) error {
+// IndexAllFilesInFolderWithBatch processes all files in a specific folder and adds them to the provided batch.
+// It flushes the batch to the index when it reaches the default batch size.
+// The flushCallback function is used to execute the flush operation and update the batch reference.
+func IndexAllFilesInFolderWithBatch(
+	folderPath,
+	folderName string,
+	index bleve.Index,
+	batch *bleve.Batch,
+) error {
+	if batch == nil {
+		return nil
+	}
+
 	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
 		return err
 	}
-
-	batch := index.NewBatch()
 
 	// Index the folder itself
 	_, err := AddFolderToBatch(batch, index, folderName)
@@ -500,22 +518,19 @@ func IndexAllFilesInFolder(folderPath, folderName string, index bleve.Index) err
 				continue
 			}
 		}
-	}
 
-	// Index the batch for this folder
-	if batch.Size() > 0 {
-		err = index.Batch(batch)
-		if err != nil {
-			log.Printf("Error indexing batch for folder %s: %v", folderName, err)
-			return err
+		if batch.Size() >= defaultIndexBatchSize {
+			if err := FlushBatch(index, batch); err != nil {
+				log.Printf("Error flushing batch: %v", err)
+				return err
+			}
 		}
 	}
-
 	return nil
 }
 
 // IndexAllFiles processes all folders in the project's notes directory and ensures their files are properly indexed.
-// It iterates through each folder in the notes directory and calls IndexAllFilesInFolder for each one.
+// It iterates through each folder in the notes directory and calls IndexAllFilesInFolderWithBatch for each one.
 // This function should be called during application startup to ensure all files are indexed.
 func IndexAllFiles(projectPath string, index bleve.Index) error {
 	notesPath := filepath.Join(projectPath, "notes")
@@ -529,17 +544,28 @@ func IndexAllFiles(projectPath string, index bleve.Index) error {
 		return err
 	}
 
+	batch := index.NewBatch()
+
 	for _, folder := range folders {
 		if !folder.IsDir() {
 			continue
 		}
 
 		folderPath := filepath.Join(notesPath, folder.Name())
-		err := IndexAllFilesInFolder(folderPath, folder.Name(), index)
+		err := IndexAllFilesInFolderWithBatch(
+			folderPath,
+			folder.Name(),
+			index,
+			batch,
+		)
 		if err != nil {
 			log.Printf("Error indexing folder %s: %v", folder.Name(), err)
 			continue
 		}
+	}
+
+	if err := FlushBatch(index, batch); err != nil {
+		return err
 	}
 
 	totalDocumentsIndexed, err := index.DocCount()

@@ -28,6 +28,13 @@ type MostRecentCreatedEvent struct {
 	time  time.Time
 }
 
+// fileState is used to determine if a file has actually changed. Fsnotify events can be noisy
+// saying that there is a write, when nothing was actually modified about the file.
+type fileState struct {
+	modTime time.Time
+	size    int64
+}
+
 // FileWatcher manages file system monitoring and event handling
 type FileWatcher struct {
 	app                          *application.App
@@ -37,6 +44,7 @@ type FileWatcher struct {
 	debounceEvents               map[string][]map[string]string
 	mostRecentFolderCreatedEvent MostRecentCreatedEvent
 	mostRecentFileCreatedEvent   MostRecentCreatedEvent
+	lastFileState                map[string]fileState
 }
 
 // newFileWatcher creates and initializes a new FileWatcher
@@ -47,6 +55,7 @@ func newFileWatcher(app *application.App, projectPath string, watcher *fsnotify.
 		watcher:        watcher,
 		debounceTimer:  time.NewTimer(0),
 		debounceEvents: make(map[string][]map[string]string),
+		lastFileState:  make(map[string]fileState),
 		mostRecentFolderCreatedEvent: MostRecentCreatedEvent{
 			event: fsnotify.Event{},
 			time:  time.Now(),
@@ -128,6 +137,7 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 // handleFileEvents processes file-related events (create, delete, write)
 func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event, oneFolderBack string) {
 	note := segments[len(segments)-1]
+	notePath := filepath.Join(fw.projectPath, "notes", oneFolderBack, note)
 
 	eventKey := ""
 
@@ -153,6 +163,9 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 			newFileName := filepath.Base(newFilePath)
 
 			eventKey = util.Events.NoteRename
+			oldPath := filepath.Join(fw.projectPath, "notes", oldFileFolder, oldFileName)
+			newPath := filepath.Join(fw.projectPath, "notes", newFileFolder, newFileName)
+			fw.renameFileState(oldPath, newPath)
 			fw.debounceEvents[eventKey] = append(
 				fw.debounceEvents[eventKey],
 				map[string]string{
@@ -170,6 +183,16 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 
 	}
 	if eventKey == util.Events.NoteCreate || eventKey == util.Events.NoteDelete || eventKey == util.Events.NoteWrite {
+		if eventKey == util.Events.NoteWrite && !fw.hasFileChanged(notePath) {
+			return
+		}
+		if eventKey == util.Events.NoteDelete {
+			fw.clearFileState(notePath)
+		}
+		if eventKey == util.Events.NoteCreate {
+			// Record the initial state so we can detect future write noise.
+			fw.hasFileChanged(notePath)
+		}
 		fw.debounceEvents[eventKey] = append(
 			fw.debounceEvents[eventKey],
 			map[string]string{
@@ -219,9 +242,41 @@ func shouldIgnoreFile(fileName string) bool {
 	return false
 }
 
+func (fw *FileWatcher) hasFileChanged(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		fw.clearFileState(path)
+		return true
+	}
+
+	current := fileState{
+		modTime: info.ModTime(),
+		size:    info.Size(),
+	}
+
+	previous, ok := fw.lastFileState[path]
+	fw.lastFileState[path] = current
+	if !ok {
+		return true
+	}
+
+	return previous.modTime != current.modTime || previous.size != current.size
+}
+
+func (fw *FileWatcher) clearFileState(path string) {
+	delete(fw.lastFileState, path)
+}
+
+func (fw *FileWatcher) renameFileState(oldPath, newPath string) {
+	if state, ok := fw.lastFileState[oldPath]; ok {
+		fw.lastFileState[newPath] = state
+		fw.clearFileState(oldPath)
+	}
+}
+
 // processEvent handles a single filesystem event
 func (fw *FileWatcher) processEvent(event fsnotify.Event) {
-	log.Println("event:", event, filepath.Ext(event.Name))
+	// log.Println("event:", event, filepath.Ext(event.Name))
 
 	// Might need a better way of determining if something is a folder in the future
 	isDir := filepath.Ext(event.Name) == ""
