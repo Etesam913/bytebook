@@ -9,7 +9,7 @@ export function TagSearchInput({
 }: {
   searchTerm: string;
   onSearchTermChange: (value: string) => void;
-  onCreateTag: (tagName: string) => Promise<void>;
+  onCreateTag: (tagName: string) => void;
   isLoading: boolean;
   hasError: boolean;
 }) {
@@ -31,11 +31,11 @@ export function TagSearchInput({
           autoComplete: 'off',
           spellCheck: 'false',
           type: 'text',
-          onKeyDown: async (e) => {
+          onKeyDown: (e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
               if (searchTerm.length > 0) {
-                await onCreateTag(searchTerm);
+                onCreateTag(searchTerm);
               }
             }
           },

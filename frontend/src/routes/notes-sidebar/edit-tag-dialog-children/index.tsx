@@ -97,8 +97,7 @@ export function EditTagDialogChildren({
   }
 
   // Function to handle creating a new tag
-  const handleCreateTag = async (tagName: string) => {
-    // await createTags({ tagNames: [tagName] });
+  const handleCreateTag = (tagName: string) => {
     setTagsCreatedButNotSaved((prev) => [...new Set([...prev, tagName])]);
     setSelectedTagCounts((prev) => {
       const next = new Map(prev);

@@ -19,7 +19,7 @@ export function TagSelectionList({
       | Map<string, number>
       | ((prev: Map<string, number>) => Map<string, number>)
   ) => void;
-  onCreateTag: (tagName: string) => Promise<void>;
+  onCreateTag: (tagName: string) => void;
 }) {
   const showCreateButton =
     searchTerm.length > 0 &&
@@ -86,9 +86,10 @@ export function TagSelectionList({
       {showCreateButton && (
         <IconButton
           className="text-sm w-full flex items-center gap-2"
-          onClick={async () => {
-            await onCreateTag(searchTerm);
+          onClick={() => {
+            onCreateTag(searchTerm);
           }}
+          tabIndex={0}
         >
           <TagPlus height={18} width={18} /> Create tag &quot;
           {searchTerm}&quot;
