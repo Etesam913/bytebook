@@ -1,11 +1,10 @@
 import { useRef, useEffect, useState } from 'react';
-import { Link } from 'wouter';
-import { cn, FilePath, formatDate } from '../../../utils/string-formatting';
-import { getFileIcon } from '../../../components/sidebar/utils';
+import { FilePath, formatDate } from '../../../utils/string-formatting';
 import { GroupedSearchResults } from '../../../hooks/search';
 import { Tag } from '../../../components/editor/bottom-bar/tag';
 import { SearchHighlights } from './search-highlights';
 import { SearchResultsAccordion } from './search-results-accordion';
+import { SearchResultItem } from './search-result-item';
 
 type FlatResult =
   | { filePath: FilePath; type: 'note' | 'attachment' }
@@ -61,7 +60,6 @@ export function SearchResultsList({
 
   return (
     <>
-      {/* Notes Section */}
       {groupedResults.notes.length > 0 && (
         <SearchResultsAccordion
           title="Notes"
@@ -85,27 +83,20 @@ export function SearchResultsList({
             }
 
             return (
-              <Link
+              <SearchResultItem
                 key={pathToNote}
                 to={pathToNote}
-                draggable={false}
-                ref={(el) => {
+                title={filePath.note}
+                iconType="note"
+                resultIndex={resultIndex}
+                selectedIndex={selectedIndex}
+                onRef={(el) => {
                   if (resultIndex >= 0) {
                     itemRefs.current[resultIndex] = el;
                   }
                 }}
-                className={cn(
-                  'flex flex-col gap-y-1 py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-650 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',
-                  resultIndex === selectedIndex &&
-                    'bg-zinc-100 dark:bg-zinc-700'
-                )}
+                pathDisplay={filePath.toString()}
               >
-                <h3 className="font-semibold flex items-center gap-x-1.5">
-                  {getFileIcon('note')} {filePath.note}
-                </h3>
-                <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                  {filePath.toString()}
-                </span>
                 <SearchHighlights highlights={highlights} />
                 {tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-1 text-xs">
@@ -126,7 +117,7 @@ export function SearchResultsList({
                     </span>
                   )}
                 </div>
-              </Link>
+              </SearchResultItem>
             );
           })}
         </SearchResultsAccordion>
@@ -147,28 +138,20 @@ export function SearchResultsList({
             const pathToNote = filePath.getLinkToNote();
 
             return (
-              <Link
+              <SearchResultItem
                 key={pathToNote}
                 to={pathToNote}
-                draggable={false}
-                ref={(el) => {
+                title={filePath.note}
+                iconType="attachment"
+                resultIndex={resultIndex}
+                selectedIndex={selectedIndex}
+                onRef={(el) => {
                   if (resultIndex >= 0) {
                     itemRefs.current[resultIndex] = el;
                   }
                 }}
-                className={cn(
-                  'flex flex-col gap-y-1 py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-650 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',
-                  resultIndex === selectedIndex &&
-                    'bg-zinc-100 dark:bg-zinc-700'
-                )}
-              >
-                <h3 className="font-semibold flex items-center gap-x-1.5">
-                  {getFileIcon('image')} {filePath.note}
-                </h3>
-                <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                  {filePath.toString()}
-                </span>
-              </Link>
+                pathDisplay={filePath.toString()}
+              />
             );
           })}
         </SearchResultsAccordion>
@@ -189,25 +172,19 @@ export function SearchResultsList({
             const pathToFolder = `/notes/${folder}`;
 
             return (
-              <Link
+              <SearchResultItem
                 key={pathToFolder}
                 to={pathToFolder}
-                draggable={false}
-                ref={(el) => {
+                title={folder}
+                iconType="folder"
+                resultIndex={resultIndex}
+                selectedIndex={selectedIndex}
+                onRef={(el) => {
                   if (resultIndex >= 0) {
                     itemRefs.current[resultIndex] = el;
                   }
                 }}
-                className={cn(
-                  'flex flex-col gap-y-1 py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-650 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',
-                  resultIndex === selectedIndex &&
-                    'bg-zinc-100 dark:bg-zinc-700'
-                )}
-              >
-                <h3 className="font-semibold flex items-center gap-x-1.5">
-                  {getFileIcon('folder')} {folder}
-                </h3>
-              </Link>
+              />
             );
           })}
         </SearchResultsAccordion>

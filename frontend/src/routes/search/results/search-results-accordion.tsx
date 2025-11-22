@@ -16,7 +16,7 @@ export function SearchResultsAccordion({
   children: ReactNode;
 }) {
   return (
-    <div>
+    <>
       <button
         type="button"
         className={cn(
@@ -37,7 +37,7 @@ export function SearchResultsAccordion({
         </motion.span>
         {title} ({count})
       </button>
-      {isOpen && <div>{children}</div>}
-    </div>
+      {isOpen && <>{children}</>}
+    </>
   );
 }

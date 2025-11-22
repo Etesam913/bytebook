@@ -11,7 +11,6 @@ import './index.css';
 import { toast } from 'sonner';
 import { DEFAULT_SONNER_OPTIONS } from './utils/general.ts';
 import { QueryError } from './utils/query.ts';
-import { scan } from 'react-scan';
 
 const rootElem = document.getElementById('root');
 if (!rootElem) {

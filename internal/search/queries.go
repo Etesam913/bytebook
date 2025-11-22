@@ -81,6 +81,7 @@ func createExactContentQuery(text string) query.Query {
 // createFuzzyContentQuery handles fuzzy content queries (unquoted tokens)
 // Returns a query that searches text content with both exact and n-gram matching,
 // prioritizing exact matches with higher boost scores.
+// Also includes filename search to match files by name.
 func createFuzzyContentQuery(text string) query.Query {
 	contentQuery := bleve.NewBooleanQuery()
 
@@ -98,6 +99,10 @@ func createFuzzyContentQuery(text string) query.Query {
 
 	contentQuery.AddShould(exactQuery)
 	contentQuery.AddShould(nGramQuery)
+
+	// Also search file names
+	filenameQuery := createFilenameQuery(text)
+	contentQuery.AddShould(filenameQuery)
 
 	// contentQuery.AddShould(createMatchQuery(FieldCodeContent, text))
 	return contentQuery
