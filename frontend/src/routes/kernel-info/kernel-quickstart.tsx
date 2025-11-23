@@ -1,4 +1,6 @@
 import { Languages } from '../../types';
+import { DEFAULT_SONNER_OPTIONS } from '../../utils/general';
+import { toast } from 'sonner';
 import { PlainCodeSnippet } from '../../components/plain-code-snippet';
 import { MotionButton } from '../../components/buttons';
 import { getDefaultButtonVariants } from '../../animations';
@@ -11,6 +13,7 @@ import {
   useRevealInFinderMutation,
 } from '../../hooks/code';
 import { ReactNode } from 'react';
+import { Browser } from '@wailsio/runtime';
 
 function QuickstartHeading({ children }: { children: ReactNode }) {
   return <h4 className="text-zinc-700 dark:text-zinc-300">{children}</h4>;
@@ -227,9 +230,18 @@ export function KernelQuickstart({ language }: { language: Languages }) {
         </h4>
         <QuickstartDescription>
           Download the zip file that ends with kernelspec.zip from the{' '}
-          <a className="link" href="https://github.com/dflib/jjava/releases">
+          <button
+            className="link"
+            onClick={() => {
+              Browser.OpenURL('https://github.com/dflib/jjava/releases').catch(
+                () => {
+                  toast.error('Failed to open link', DEFAULT_SONNER_OPTIONS);
+                }
+              );
+            }}
+          >
             GitHub releases page
-          </a>{' '}
+          </button>{' '}
           and unzip it.
         </QuickstartDescription>
       </div>
