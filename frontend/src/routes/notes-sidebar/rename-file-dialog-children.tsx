@@ -4,13 +4,13 @@ import { DialogErrorText } from '../../components/dialog';
 import { MotionButton } from '../../components/buttons';
 import { getDefaultButtonVariants } from '../../animations';
 import { FilePen } from '../../icons/file-pen';
-import { FilePath } from '../../utils/string-formatting';
+import { LocalFilePath } from '../../utils/string-formatting';
 
 export function RenameFileDialogChildren({
   selectedFilePath,
   errorText,
 }: {
-  selectedFilePath: FilePath;
+  selectedFilePath: LocalFilePath;
   errorText: string;
 }) {
   const [newFileName, setNewFileName] = useState(

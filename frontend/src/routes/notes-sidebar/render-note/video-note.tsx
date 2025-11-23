@@ -3,7 +3,7 @@ import { BottomBar } from '../../../components/editor/bottom-bar';
 import { cn } from '../../../utils/string-formatting';
 import { ErrorLoading } from './error-loading';
 import { RouteFallback } from '../../../components/route-fallback';
-import { FilePath } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/string-formatting';
 
 export function VideoNote({
   filePath,
@@ -11,7 +11,7 @@ export function VideoNote({
   isNoteMaximized,
   draggedGhostElement,
 }: {
-  filePath: FilePath;
+  filePath: LocalFilePath;
   fileUrl: string;
   isNoteMaximized: boolean;
   draggedGhostElement: HTMLElement | null;

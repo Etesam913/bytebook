@@ -8,7 +8,7 @@ import {
   createGhostElementFromHtmlElement,
 } from '../../utils/draggable';
 import {
-  FilePath,
+  LocalFilePath,
   getContentTypeAndValueFromSelectionRangeValue,
 } from '../../utils/string-formatting';
 import { WAILS_URL } from '../../utils/general';
@@ -109,7 +109,7 @@ export function handleNoteDragStart({
     });
 
     const selectedFilePaths = selectedNotes.map((note) => {
-      return new FilePath({
+      return new LocalFilePath({
         folder,
         note,
       });
@@ -169,7 +169,7 @@ function setNoteDataTransfer({
   selectedFilePaths,
 }: {
   e: DragEvent<HTMLAnchorElement> | DragEvent<HTMLButtonElement>;
-  selectedFilePaths: FilePath[];
+  selectedFilePaths: LocalFilePath[];
 }) {
   const noteUrls = selectedFilePaths.map(
     (filePath) => `${WAILS_URL}/${filePath.toString()}`

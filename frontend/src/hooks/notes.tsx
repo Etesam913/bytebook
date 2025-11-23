@@ -26,7 +26,7 @@ import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import { getFilePathFromNoteSelectionRange } from '../utils/selection';
 import {
-  FilePath,
+  LocalFilePath,
   getContentTypeAndValueFromSelectionRangeValue,
   validateName,
 } from '../utils/string-formatting';
@@ -39,8 +39,8 @@ import { isEventInCurrentWindow } from '../utils/events';
 import { parseFrontMatter } from '../components/editor/utils/note-metadata';
 
 export type NotesQueryData = {
-  notes: FilePath[];
-  previousNotes: FilePath[] | undefined;
+  notes: LocalFilePath[];
+  previousNotes: LocalFilePath[] | undefined;
 };
 
 type NoteFormElementWithMetadata = HTMLFormElement & {
@@ -64,7 +64,7 @@ export const noteQueries = {
         ]);
         const previousNotes = previousQueryData?.notes;
         const notes = (res.data ?? []).map(
-          (item) => new FilePath({ folder: item.folder, note: item.note })
+          (item) => new LocalFilePath({ folder: item.folder, note: item.note })
         );
         return {
           notes,
@@ -222,7 +222,7 @@ export function useNoteCreateMutation() {
         const updatedNotesData: NotesQueryData = {
           notes: [
             ...previousNotesData.notes,
-            new FilePath({
+            new LocalFilePath({
               folder: variables.folder,
               note: `${newNoteName}.md`,
             }),
@@ -239,7 +239,7 @@ export function useNoteCreateMutation() {
       const noteName = formElement.__noteName;
       const folder = formElement.__folder;
       if (result && noteName && folder) {
-        const filePath = new FilePath({
+        const filePath = new LocalFilePath({
           folder,
           note: `${noteName}.md`,
         });
@@ -390,8 +390,8 @@ export function useRenameFileMutation() {
       oldPath,
       newPath,
     }: {
-      oldPath: FilePath;
-      newPath: FilePath;
+      oldPath: LocalFilePath;
+      newPath: LocalFilePath;
       setErrorText: Dispatch<SetStateAction<string>>;
     }) => {
       const res = await RenameFile(oldPath.toString(), newPath.toString());
@@ -457,7 +457,7 @@ export function useRenameFileMutation() {
   });
 }
 
-export function useNotePreviewQuery(filePath: FilePath) {
+export function useNotePreviewQuery(filePath: LocalFilePath) {
   return useQuery(
     noteQueries.getNotePreview(filePath.folder, filePath.noteWithoutExtension)
   );
@@ -532,7 +532,7 @@ export function useNoteChangedEvent({
  * @param fileExtension - The file extension of the note
  * @returns Query result indicating if the note exists
  */
-export function useNoteExists(filePath: FilePath) {
+export function useNoteExists(filePath: LocalFilePath) {
   return useQuery({
     ...noteQueries.doesNoteExist(
       filePath.folder,

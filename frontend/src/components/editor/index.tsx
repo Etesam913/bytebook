@@ -45,7 +45,7 @@ import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 import { useCodeCleanup } from './hooks/code';
 import { useNoteIntersectionObserver } from './hooks/intersection-observer';
 import type { LegacyAnimationControls } from 'motion/react';
-import { FilePath } from '../../utils/string-formatting';
+import { LocalFilePath } from '../../utils/string-formatting';
 import { TableActionsPlugin } from './plugins/table-actions.tsx';
 import type { PlaceholderLineData } from './types';
 
@@ -53,7 +53,7 @@ export function NotesEditor({
   filePath,
   animationControls,
 }: {
-  filePath: FilePath;
+  filePath: LocalFilePath;
   animationControls: LegacyAnimationControls;
 }) {
   const projectSettings = useAtomValue(projectSettingsAtom);

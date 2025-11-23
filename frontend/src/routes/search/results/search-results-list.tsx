@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { FilePath, formatDate } from '../../../utils/string-formatting';
+import { LocalFilePath, formatDate } from '../../../utils/string-formatting';
 import { GroupedSearchResults } from '../../../hooks/search';
 import { Tag } from '../../../components/editor/bottom-bar/tag';
 import { SearchHighlights } from './search-highlights';
@@ -7,7 +7,7 @@ import { SearchResultsAccordion } from './search-results-accordion';
 import { SearchResultItem } from './search-result-item';
 
 type FlatResult =
-  | { filePath: FilePath; type: 'note' | 'attachment' }
+  | { filePath: LocalFilePath; type: 'note' | 'attachment' }
   | { folder: string; type: 'folder' };
 
 function useCollapsibleSections(defaultOpen: Record<string, boolean>) {

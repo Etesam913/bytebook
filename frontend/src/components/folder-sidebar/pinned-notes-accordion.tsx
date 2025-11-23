@@ -13,7 +13,7 @@ import { PinTackSlash } from '../../icons/pin-tack-slash';
 import { AccordionButton } from '../sidebar/accordion-button';
 import { AccordionItem } from '../sidebar/accordion-item';
 import { currentZoomAtom } from '../../hooks/resize';
-import { FilePath } from '../../utils/string-formatting';
+import { LocalFilePath } from '../../utils/string-formatting';
 
 const SIDEBAR_ITEM_HEIGHT = 28;
 
@@ -29,13 +29,13 @@ function VirtualizedPinnedNotes({
     .filter((folderAndNotes) => folderAndNotes.split('/').length === 2)
     .map((folderAndNote) => {
       const segments = folderAndNote.split('/');
-      return new FilePath({ folder: segments[0], note: segments[1] });
+      return new LocalFilePath({ folder: segments[0], note: segments[1] });
     });
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
 
   const { visibleItems, onScroll, outerContainerStyle, innerContainerStyle } =
-    useListVirtualization<FilePath>({
+    useListVirtualization<LocalFilePath>({
       items: pinnedNotesPaths,
       itemHeight: SIDEBAR_ITEM_HEIGHT,
       listRef: listScrollContainerRef,

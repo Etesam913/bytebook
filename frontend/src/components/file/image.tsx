@@ -13,25 +13,25 @@ import { ResizeControlsPopover } from '../resize-container/resize-controls-popov
 import { FileDimensions } from '../editor/nodes/types';
 import { onResize, writeMediaDimensionsOnLoad } from './utils/resize';
 import { FilePlaceholder } from './placeholder';
-import { FilePath } from '../../utils/string-formatting';
+import { Path } from '../../utils/string-formatting';
 
 export function Image({
-  filePath,
+  path,
   alt,
   dimensionsWrittenToNode,
   writeDimensionsToNode,
   nodeKey,
 }: {
-  filePath: FilePath;
+  path: Path;
   alt: string;
   dimensionsWrittenToNode: FileDimensions;
   writeDimensionsToNode: (dimensions: FileDimensions) => void;
   nodeKey: string;
 }) {
-  const src = filePath.getFileUrl();
+  const src = path.getFileUrl();
   const imageContainer = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-  const loaderRef = useRef<HTMLDivElement>(null); // Reference for loader
+  const loaderRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const noteSeenFileNodeKeys = useAtomValue(noteSeenFileNodeKeysAtom);
@@ -47,9 +47,7 @@ export function Image({
   );
 
   if (isError) {
-    return (
-      <FileError filePath={filePath} nodeKey={nodeKey} type="loading-fail" />
-    );
+    return <FileError path={path} nodeKey={nodeKey} type="loading-fail" />;
   }
 
   const placeholderHeight =
@@ -126,7 +124,7 @@ export function Image({
           {!isLoading && (
             <ResizeControlsPopover
               nodeKey={nodeKey}
-              filePath={filePath}
+              path={path}
               isSelected={isSelected}
               referenceElement={imageContainer}
             />

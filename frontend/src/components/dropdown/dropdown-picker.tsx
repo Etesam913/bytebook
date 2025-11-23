@@ -1,6 +1,6 @@
 import { MenuOption } from '@lexical/react/LexicalTypeaheadMenuPlugin';
 import type { JSX } from 'react';
-import { cn, FilePath } from '../../utils/string-formatting';
+import { cn, LocalFilePath } from '../../utils/string-formatting';
 
 export class DropdownPickerOption extends MenuOption {
   // What shows up in the editor
@@ -92,7 +92,7 @@ export function FilePickerMenuItem({
   onClick: () => void;
   onMouseEnter: () => void;
   option: DropdownPickerOption;
-  filePath: FilePath;
+  filePath: LocalFilePath;
 }) {
   const iconElement = option.icon;
 

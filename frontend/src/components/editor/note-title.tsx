@@ -4,7 +4,7 @@ import { useSetAtom } from 'jotai';
 import { $getRoot } from 'lexical';
 import { useState } from 'react';
 import { isToolbarDisabledAtom } from '../../atoms';
-import { NAME_CHARS, cn, FilePath } from '../../utils/string-formatting';
+import { NAME_CHARS, cn, LocalFilePath } from '../../utils/string-formatting';
 import { useRenameFileMutation } from '../../hooks/notes';
 import { navigate } from 'wouter/use-browser-location';
 
@@ -43,12 +43,12 @@ export function NoteTitle({ note, folder }: { note: string; folder: string }) {
           setIsToolbarDisabled(false);
           if (noteTitle === decodedNote || errorText.length > 0) return;
 
-          const oldFilePath = new FilePath({
+          const oldFilePath = new LocalFilePath({
             folder: decodeURIComponent(folder),
             note: `${decodedNote}.md`,
           });
 
-          const newFilePath = new FilePath({
+          const newFilePath = new LocalFilePath({
             folder: decodeURIComponent(folder),
             note: `${noteTitle}.md`,
           });

@@ -18,7 +18,7 @@ import {
 import { useWailsEvent } from '../hooks/events';
 import { isEventInCurrentWindow } from '../utils/events';
 import { useEffect, useRef } from 'react';
-import { FilePath } from '../utils/string-formatting';
+import { LocalFilePath } from '../utils/string-formatting';
 import { HighlightResult } from '../../bindings/github.com/etesam913/bytebook/internal/search/models';
 import { routeUrls } from '../utils/routes';
 import { toast } from 'sonner';
@@ -29,13 +29,13 @@ export const lastSearchQueryAtom = atom<string>('');
 
 export type GroupedSearchResults = {
   notes: Array<{
-    filePath: FilePath;
+    filePath: LocalFilePath;
     tags: string[];
     lastUpdated: string;
     created: string;
     highlights: HighlightResult[];
   }>;
-  attachments: FilePath[];
+  attachments: LocalFilePath[];
   folders: string[];
 };
 
@@ -48,18 +48,18 @@ export const searchQueries = {
         if (!data) return { notes: [], attachments: [], folders: [] };
 
         const notes: Array<{
-          filePath: FilePath;
+          filePath: LocalFilePath;
           tags: string[];
           lastUpdated: string;
           created: string;
           highlights: HighlightResult[];
         }> = [];
-        const attachments: FilePath[] = [];
+        const attachments: LocalFilePath[] = [];
         const folders: string[] = [];
 
         data.forEach((result) => {
           if (result.type === 'note') {
-            const filePath = new FilePath({
+            const filePath = new LocalFilePath({
               folder: result.folder,
               note: result.note,
             });
@@ -71,7 +71,7 @@ export const searchQueries = {
               highlights: result.highlights || [],
             });
           } else if (result.type === 'attachment') {
-            const filePath = new FilePath({
+            const filePath = new LocalFilePath({
               folder: result.folder,
               note: result.note,
             });

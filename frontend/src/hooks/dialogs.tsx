@@ -16,7 +16,7 @@ import { useFolderCreateMutation } from './folders';
 import { CreateFolderDialog } from '../components/folder-sidebar/my-folders-accordion/folder-dialog-children';
 import { useRenameFileMutation } from './notes';
 import { RenameFileDialogChildren } from '../routes/notes-sidebar/rename-file-dialog-children';
-import { FilePath } from '../utils/string-formatting';
+import { LocalFilePath } from '../utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
 
 /**
@@ -332,17 +332,17 @@ export function useCreateFolderDialog(): () => void {
  * On submission, it validates the new file name, attempts to rename the file,
  * and navigates to the renamed file if successful. If an error occurs, it displays an error message in the dialog.
  *
- * @returns {(filePath: FilePath) => void} Function to open the rename file dialog for the specified file path.
+ * @returns {(filePath: LocalFilePath) => void} Function to open the rename file dialog for the specified file path.
  *
  * Usage:
  *   const openRenameFileDialog = useRenameFileDialog();
  *   openRenameFileDialog(filePath);
  */
-export function useRenameFileDialog(): (filePath: FilePath) => void {
+export function useRenameFileDialog(): (filePath: LocalFilePath) => void {
   const setDialogData = useSetAtom(dialogDataAtom);
   const { mutateAsync: renameFile } = useRenameFileMutation();
 
-  return (filePath: FilePath) => {
+  return (filePath: LocalFilePath) => {
     setDialogData({
       isOpen: true,
       isPending: false,
@@ -363,7 +363,7 @@ export function useRenameFileDialog(): (filePath: FilePath) => void {
           return false;
         }
 
-        const newFilePath = new FilePath({
+        const newFilePath = new LocalFilePath({
           folder: filePath.folder,
           note: `${newFileName}.${filePath.noteExtension}`,
         });

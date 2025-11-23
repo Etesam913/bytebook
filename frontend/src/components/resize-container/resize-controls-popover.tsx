@@ -13,19 +13,20 @@ import {
 } from '@floating-ui/react';
 import { Link } from '../../icons/link';
 import { Trash } from '../../icons/trash';
+import { Browser } from '@wailsio/runtime';
 import { removeDecoratorNode } from '../../utils/commands';
-import { FilePath } from '../../utils/string-formatting';
+import { Path } from '../../utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
 import { cn } from '../../utils/string-formatting';
 
 export function ResizeControlsPopover({
   nodeKey,
-  filePath,
+  path,
   isSelected,
   referenceElement,
 }: {
   nodeKey: string;
-  filePath: FilePath;
+  path: Path;
   isSelected: boolean;
   referenceElement: RefObject<HTMLElement | null>;
 }) {
@@ -90,7 +91,11 @@ export function ResizeControlsPopover({
                 aria-label="Open link"
                 className="will-change-transform transition-transform hover:scale-[1.115] active:scale-[0.95] focus:scale-[1.115]"
                 onClick={() => {
-                  navigate(filePath.getLinkToNote());
+                  if (Path.isLocalFilePath(path)) {
+                    navigate(path.getLinkToNote());
+                  } else {
+                    Browser.OpenURL(path.getFileUrl());
+                  }
                 }}
               >
                 <Link title="Open Link" className="will-change-transform" />

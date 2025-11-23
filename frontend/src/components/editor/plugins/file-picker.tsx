@@ -19,7 +19,7 @@ import { FILE_SERVER_URL } from '../../../utils/general';
 import {
   getFileExtension,
   convertFilePathToQueryNotation,
-  FilePath,
+  LocalFilePath,
 } from '../../../utils/string-formatting';
 import {
   DropdownPickerOption,
@@ -53,7 +53,7 @@ export function FilePickerMenuPlugin() {
     .slice(0, MAX_VISIBLE_SEARCH_RESULTS)
     .map((fileName) => {
       const [folder, note] = fileName.split('/');
-      const filePath = new FilePath({ folder, note });
+      const filePath = new LocalFilePath({ folder, note });
 
       return {
         dropdownOption: new DropdownPickerOption(fileName, {

@@ -13,22 +13,22 @@ import { ResizeControlsPopover } from '../resize-container/resize-controls-popov
 import { FileDimensions } from '../editor/nodes/types';
 import { onResize, writeMediaDimensionsOnLoad } from './utils/resize';
 import { FilePlaceholder } from './placeholder';
-import { FilePath } from '../../utils/string-formatting';
+import { Path } from '../../utils/string-formatting';
 
 export function Video({
-  filePath,
+  path,
   dimensionsWrittenToNode,
   writeDimensionsToNode,
   title,
   nodeKey,
 }: {
-  filePath: FilePath;
+  path: Path;
   dimensionsWrittenToNode: FileDimensions;
   writeDimensionsToNode: (dimensions: FileDimensions) => void;
   title: string;
   nodeKey: string;
 }) {
-  const src = filePath.getFileUrl();
+  const src = path.getFileUrl();
   const videoContainer = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const loaderRef = useRef<HTMLDivElement>(null); // Reference for loader
@@ -47,9 +47,7 @@ export function Video({
   );
 
   if (isError) {
-    return (
-      <FileError filePath={filePath} nodeKey={nodeKey} type="loading-fail" />
-    );
+    return <FileError path={path} nodeKey={nodeKey} type="loading-fail" />;
   }
 
   const placeholderHeight =
@@ -128,7 +126,7 @@ export function Video({
           {!isLoading && (
             <ResizeControlsPopover
               nodeKey={nodeKey}
-              filePath={filePath}
+              path={path}
               isSelected={isSelected}
               referenceElement={videoContainer}
             />

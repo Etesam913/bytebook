@@ -23,7 +23,7 @@ import { PinTack2 } from '../../../icons/pin-tack-2';
 import { Trash } from '../../../icons/trash';
 import type { ProjectSettings } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
-import { FilePath } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/string-formatting';
 import type { LegacyAnimationControls } from 'motion/react';
 
 export function NonMarkdownToolbar({
@@ -35,7 +35,7 @@ export function NonMarkdownToolbar({
   animationControls: LegacyAnimationControls;
   folder: string;
   noteWithoutExtension: string;
-  filePath: FilePath;
+  filePath: LocalFilePath;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const isFullscreen = useAtomValue(isFullscreenAtom);

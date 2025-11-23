@@ -12,11 +12,11 @@ import {
 } from './types';
 import {
   convertFilePathToQueryNotation,
-  FilePath,
+  LocalFilePath,
 } from './utils/string-formatting';
 
 // Most recent notes atoms
-const initializeMostRecentNotes = (): FilePath[] => {
+const initializeMostRecentNotes = (): LocalFilePath[] => {
   const stored = JSON.parse(
     localStorage.getItem('mostRecentNotes') ?? '[]'
   ) as string[];
@@ -28,13 +28,13 @@ const initializeMostRecentNotes = (): FilePath[] => {
     .map((path) => {
       const pathWithoutQuery = path.split('?')[0];
       const segments = pathWithoutQuery.split('/');
-      return new FilePath({ folder: segments[0], note: segments[1] });
+      return new LocalFilePath({ folder: segments[0], note: segments[1] });
     });
 };
 
 export const mostRecentNotesAtom = atom(
   initializeMostRecentNotes(),
-  (_, set, payload: FilePath[]) => {
+  (_, set, payload: LocalFilePath[]) => {
     const stringPaths = payload.map((filePath) => filePath.getLinkToNote());
     localStorage.setItem('mostRecentNotes', JSON.stringify(stringPaths));
     set(mostRecentNotesAtom, payload);
@@ -150,7 +150,7 @@ export const kernelsDataAtom = atom<KernelsData>({
   },
 });
 
-export const currentFilePathAtom = atom<FilePath | null>(null);
+export const currentFilePathAtom = atom<LocalFilePath | null>(null);
 
 // Folder sidebar accordion open state
 type FolderSidebarOpenState = {

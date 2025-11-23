@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { mostRecentNotesAtom } from '../../../atoms';
 import { ValidateMostRecentNotes } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { FilePath } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/string-formatting';
 
-export function useMostRecentNotes(filePath: FilePath) {
+export function useMostRecentNotes(filePath: LocalFilePath) {
   const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);
 
   useEffect(() => {
@@ -35,7 +35,10 @@ export function useMostRecentNotes(filePath: FilePath) {
           })
           .map((path) => {
             const segments = path.split('/');
-            return new FilePath({ folder: segments[0], note: segments[1] });
+            return new LocalFilePath({
+              folder: segments[0],
+              note: segments[1],
+            });
           });
         setMostRecentNotes(validFilePaths);
       }

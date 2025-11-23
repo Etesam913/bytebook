@@ -11,7 +11,7 @@ import { useAtomValue } from 'jotai';
 import { currentFilePathAtom } from '../atoms';
 import { Dispatch, FormEvent, SetStateAction } from 'react';
 import { getFilePathFromNoteSelectionRange } from '../utils/selection';
-import { FilePath } from '../utils/string-formatting';
+import { LocalFilePath } from '../utils/string-formatting';
 
 /**
  * Handles the `tags-folder:create`, "tags-folder:delete", and "tags:update" events.
@@ -133,7 +133,7 @@ export function useEditTagsFormMutation() {
  * Deletes a tag from a note. Used for onDelete button in tag in bottom bar
  * @returns The mutation result.
  */
-export function useDeleteTagFromNoteMutation(filePath: FilePath) {
+export function useDeleteTagFromNoteMutation(filePath: LocalFilePath) {
   return useMutation({
     mutationFn: async ({ tagToDelete }: { tagToDelete: string }) => {
       const res = await SetTagsOnNotes(

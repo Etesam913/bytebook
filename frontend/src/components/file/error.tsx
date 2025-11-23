@@ -3,19 +3,19 @@ import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection'
 import { AnimatePresence } from 'motion/react';
 import { Paperclip } from '../../icons/paperclip-2';
 import { TriangleWarning } from '../../icons/triangle-warning';
-import { cn, FilePath } from '../../utils/string-formatting';
+import { cn, Path } from '../../utils/string-formatting';
 import { NoteComponentControls } from '../note-component-container/component-controls';
 
 export function FileError({
-  filePath,
+  path,
   nodeKey,
   type,
 }: {
-  filePath: FilePath;
+  path: Path;
   nodeKey: string;
   type: 'loading-fail' | 'unknown-attachment';
 }) {
-  const src = filePath.getFileUrl();
+  const src = path.getFileUrl();
   const [editor] = useLexicalComposerContext();
   const [isSelected] = useLexicalNodeSelection(nodeKey);
 

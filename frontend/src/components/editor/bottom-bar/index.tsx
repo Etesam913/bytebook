@@ -16,7 +16,7 @@ import {
 import { dialogDataAtom } from '../../../atoms';
 import { EditTagDialogChildren } from '../../../routes/notes-sidebar/edit-tag-dialog-children';
 import { timeSince } from '../utils/bottom-bar';
-import { FilePath } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/string-formatting';
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
 import { Frontmatter } from '../../../types';
 
@@ -26,7 +26,7 @@ export function BottomBar({
   isNoteEditor,
 }: {
   frontmatter?: Frontmatter;
-  filePath: FilePath;
+  filePath: LocalFilePath;
   isNoteEditor?: boolean;
 }) {
   const [lastUpdatedText, setLastUpdatedText] = useState('');

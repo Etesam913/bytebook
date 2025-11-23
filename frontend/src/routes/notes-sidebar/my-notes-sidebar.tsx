@@ -10,7 +10,7 @@ import { FileRefresh } from '../../icons/file-refresh.tsx';
 import { Loader } from '../../icons/loader.tsx';
 import { Note } from '../../icons/page.tsx';
 import { NoteSidebarButton } from './sidebar-button/index.tsx';
-import { FilePath } from '../../utils/string-formatting.ts';
+import { LocalFilePath } from '../../utils/string-formatting.ts';
 import { NotesQueryData } from '../../hooks/notes.tsx';
 
 export function MyNotesSidebar({
@@ -32,7 +32,7 @@ export function MyNotesSidebar({
   // Convert curNote string to FilePath
   const activeNotePath =
     curNote && curNoteExtension && notes && notes.length > 0
-      ? new FilePath({
+      ? new LocalFilePath({
           folder: notes[0].folder,
           note: `${curNote}.${curNoteExtension}`,
         })
@@ -88,7 +88,7 @@ export function MyNotesSidebar({
             <Loader width={20} height={20} className="mx-auto my-3" />
           </motion.div>
         ) : (
-          <Sidebar<FilePath>
+          <Sidebar<LocalFilePath>
             contentType="note"
             key={layoutId}
             layoutId={layoutId}

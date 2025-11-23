@@ -22,7 +22,7 @@ import { DropdownMenu } from '../../dropdown/dropdown-menu';
 import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
 import type { Frontmatter } from '../../../types';
 import { Tooltip } from '../../tooltip';
-import { cn, FilePath } from '../../../utils/string-formatting';
+import { cn, LocalFilePath } from '../../../utils/string-formatting';
 
 export function SettingsDropdown({
   folder,
@@ -163,7 +163,7 @@ export function SettingsDropdown({
             break;
           }
           case 'rename-file': {
-            const filePath = new FilePath({
+            const filePath = new LocalFilePath({
               folder,
               note: note.endsWith('.md') ? note : `${note}.md`,
             });

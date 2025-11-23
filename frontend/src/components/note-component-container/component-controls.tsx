@@ -8,7 +8,7 @@ import { Link } from '../../icons/link';
 import { Trash } from '../../icons/trash';
 import { removeDecoratorNode } from '../../utils/commands';
 import { FILE_SERVER_URL } from '../../utils/general';
-import { FilePath } from '../../utils/string-formatting';
+import { LocalFilePath } from '../../utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
 
 export function NoteComponentControls({
@@ -110,7 +110,7 @@ export function NoteComponentControls({
               }
               const folderName = segments[segments.length - 2];
               const fileName = segments[segments.length - 1];
-              const filePath = new FilePath({
+              const filePath = new LocalFilePath({
                 folder: folderName,
                 note: fileName,
               });

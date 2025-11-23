@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useRoute } from 'wouter';
 import { useSetAtom } from 'jotai/react';
 import { currentFilePathAtom } from '../atoms';
-import { FilePath } from '../utils/string-formatting';
+import { LocalFilePath } from '../utils/string-formatting';
 import { useSearchParamsEntries } from '../utils/routing';
 import {
   routeUrls,
@@ -107,7 +107,7 @@ export function useRouteFilePath() {
   useEffect(() => {
     if (isRelevantRoute) {
       try {
-        const filePath = new FilePath({
+        const filePath = new LocalFilePath({
           folder: folder!,
           note: `${note!}.${extension}`,
         });

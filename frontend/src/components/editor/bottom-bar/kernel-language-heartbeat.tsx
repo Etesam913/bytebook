@@ -103,7 +103,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   return (
     <div className="relative flex flex-col-reverse" ref={dropdownContainerRef}>
       <DropdownItems
-        className="translate-y-[-2.25rem] w-60"
+        className="-translate-y-9 w-60"
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         setFocusIndex={setFocusIndex}

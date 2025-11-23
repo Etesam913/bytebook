@@ -1,12 +1,12 @@
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
-import { FilePath } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/string-formatting';
 
 export function ListNoteSidebarItem({
   sidebarNotePath,
   activeNotePath,
 }: {
-  sidebarNotePath: FilePath;
-  activeNotePath: FilePath | undefined;
+  sidebarNotePath: LocalFilePath;
+  activeNotePath: LocalFilePath | undefined;
 }) {
   return (
     <>

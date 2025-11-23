@@ -1,5 +1,5 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
-import { FilePath } from './string-formatting';
+import { LocalFilePath } from './string-formatting';
 
 /**
  * Filters a selection Set to keep only items that start with the specified prefix.
@@ -67,7 +67,7 @@ export function getFilePathFromNoteSelectionRange(
   return [...selectionRange].map((selectionRangeEntry) => {
     const colonSplit = selectionRangeEntry.split(':');
     const note = colonSplit[colonSplit.length - 1];
-    return new FilePath({ folder, note });
+    return new LocalFilePath({ folder, note });
   });
 }
 

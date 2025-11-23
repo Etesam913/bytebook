@@ -3,19 +3,19 @@ import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection'
 import { AnimatePresence } from 'motion/react';
 import { useAtomValue } from 'jotai';
 import { draggedGhostElementAtom } from '../editor/atoms';
-import { cn, FilePath } from '../../utils/string-formatting';
+import { cn, Path } from '../../utils/string-formatting';
 import { NoteComponentControls } from '../note-component-container/component-controls';
 
 export function Pdf({
-  filePath,
+  path,
   alt,
   nodeKey,
 }: {
-  filePath: FilePath;
+  path: Path;
   alt: string;
   nodeKey: string;
 }) {
-  const src = filePath.getFileUrl();
+  const src = path.getFileUrl();
   const [editor] = useLexicalComposerContext();
   const draggedGhostElement = useAtomValue(draggedGhostElementAtom);
   const [isSelected] = useLexicalNodeSelection(nodeKey);

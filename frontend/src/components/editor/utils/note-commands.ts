@@ -18,7 +18,7 @@ import { debounce } from '../../../utils/general';
 import {
   convertFilePathToQueryNotation,
   encodeNoteNameWithQueryParams,
-  FilePath,
+  LocalFilePath,
   getFileExtension,
 } from '../../../utils/string-formatting';
 import type { FilePayload } from '../nodes/file';
@@ -184,7 +184,7 @@ export function overrideEscapeKeyCommand(nodeKey: string) {
 type DraggedFileResult =
   | { type: 'folder'; url: string; title: string }
   | { type: 'markdown'; url: string; title: string }
-  | { type: 'file'; filePath: FilePath }
+  | { type: 'file'; filePath: LocalFilePath }
   | { type: 'unknown' };
 
 function parseDraggedFile(fileUrl: string): DraggedFileResult {
@@ -227,7 +227,7 @@ function parseDraggedFile(fileUrl: string): DraggedFileResult {
 
   return {
     type: 'file',
-    filePath: new FilePath({ folder, note: `${title}.${extension}` }),
+    filePath: new LocalFilePath({ folder, note: `${title}.${extension}` }),
   };
 }
 

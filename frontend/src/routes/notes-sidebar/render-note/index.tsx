@@ -16,7 +16,7 @@ import { useSearchParamsEntries } from '../../../utils/routing';
 import { useRoute } from 'wouter';
 import { navigate } from 'wouter/use-browser-location';
 import { RouteFallback } from '../../../components/route-fallback';
-import { FilePath } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/string-formatting';
 import {
   routeUrls,
   type NotesRouteParams,
@@ -65,7 +65,7 @@ export function RenderNote() {
   const fileExtension = searchParams.ext;
   const isNotFoundFromParam = searchParams.notFound !== undefined;
   const normalizedExtension = fileExtension?.toLowerCase().trim();
-  const filePath = new FilePath({
+  const filePath = new LocalFilePath({
     folder: decodeURIComponent(folder),
     note: `${decodeURIComponent(noteWithoutExtension)}.${normalizedExtension}`,
   });

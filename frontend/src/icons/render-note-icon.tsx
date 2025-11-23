@@ -5,15 +5,15 @@ import { Note } from './page';
 import { PDFIcon } from './pdf-icon';
 import { VideoIcon } from './video';
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../types';
-import { FilePath } from '../utils/string-formatting';
+import { LocalFilePath } from '../utils/string-formatting';
 
 export function RenderNoteIcon({
   filePath,
   activeNotePath,
   size,
 }: {
-  filePath: FilePath;
-  activeNotePath?: FilePath;
+  filePath: LocalFilePath;
+  activeNotePath?: LocalFilePath;
   size?: 'sm';
 }) {
   const iconSize = size === 'sm' ? 18 : 20;

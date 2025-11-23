@@ -12,7 +12,7 @@ import { NoteSidebarButton } from '../notes-sidebar/sidebar-button/index.tsx';
 import { RenderNote } from '../notes-sidebar/render-note/index.tsx';
 import { Sidebar } from '../../components/sidebar/index.tsx';
 import { useFullTextSearchQuery } from '../../hooks/search.tsx';
-import { FilePath } from '../../utils/string-formatting.ts';
+import { LocalFilePath } from '../../utils/string-formatting.ts';
 import { navigate } from 'wouter/use-browser-location';
 import { routeBuilders } from '../../utils/routes.ts';
 import { isNoteMaximizedAtom } from '../../atoms.ts';
@@ -57,7 +57,7 @@ export function SavedSearchPage({
   // Convert folder and note strings to FilePath
   const activeNotePath =
     curFolder && curNote && curNoteExtension
-      ? new FilePath({
+      ? new LocalFilePath({
           folder: curFolder,
           note: `${curNote}.${curNoteExtension}`,
         })
@@ -66,7 +66,7 @@ export function SavedSearchPage({
   // Auto navigate to the first result
   useEffect(() => {
     if (isSuccess && resultCount > 0) {
-      let firstFilePath: FilePath | undefined;
+      let firstFilePath: LocalFilePath | undefined;
       if (groupedResults.notes.length > 0) {
         firstFilePath = groupedResults.notes[0].filePath;
       } else if (groupedResults.attachments.length > 0) {
@@ -152,7 +152,7 @@ export function SavedSearchPage({
                       <Loader width={20} height={20} className="mx-auto my-3" />
                     </motion.div>
                   ) : (
-                    <Sidebar<FilePath>
+                    <Sidebar<LocalFilePath>
                       contentType="note"
                       key="saved-search-sidebar"
                       layoutId="saved-search-sidebar"

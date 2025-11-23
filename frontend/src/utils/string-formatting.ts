@@ -14,7 +14,49 @@ export type FilePathAdditionalQueryParams = {
 };
 
 /**
- * Utility class for converting and extracting information from note paths.
+ * Abstract class representing a generic path interface. Use subclass GlobalFilePath or LocalFilePath.
+ */
+export abstract class Path {
+  abstract equals(other: this): boolean;
+  abstract toString(): string;
+  abstract getFileUrl(): string;
+
+  static isLocalFilePath(path: Path): path is LocalFilePath {
+    return path instanceof LocalFilePath;
+  }
+
+  static isGlobalFilePath(path: Path): path is GlobalFilePath {
+    return path instanceof GlobalFilePath;
+  }
+}
+
+/**
+ * Utility class that represents a file path to a global file like an image or video hosted
+ * on a website.
+ */
+export class GlobalFilePath extends Path {
+  readonly url: string;
+
+  constructor({ url }: { url: string }) {
+    super();
+    this.url = url;
+  }
+
+  equals(other: GlobalFilePath) {
+    return this.url === other.url;
+  }
+
+  toString() {
+    return this.url;
+  }
+
+  getFileUrl() {
+    return this.url;
+  }
+}
+
+/**
+ * Utility class that represents a file path to a local file like a markdown note or an attachment.
  *
  * @example
  * // Example usage:
@@ -25,7 +67,7 @@ export type FilePathAdditionalQueryParams = {
  * console.log(filePath.noteExtension); // "md"
  * console.log(filePath.noteWithExtensionParam); // "readme?ext=md"
  */
-export class FilePath {
+export class LocalFilePath extends Path {
   readonly folder: string;
   readonly note: string;
   readonly noteWithoutExtension: string;
@@ -33,6 +75,7 @@ export class FilePath {
   readonly noteWithExtensionParam: string;
 
   constructor({ folder, note }: { folder: string; note: string }) {
+    super();
     this.folder = folder;
     this.note = note;
     const noteExtension = this.getExtensionFromNote(note);
@@ -75,7 +118,7 @@ export class FilePath {
    * @param other - The other FilePath to compare with.
    * @returns true if the two FilePaths are equal, false otherwise.
    */
-  equals(other: FilePath) {
+  equals(other: LocalFilePath) {
     return this.folder === other.folder && this.note === other.note;
   }
 

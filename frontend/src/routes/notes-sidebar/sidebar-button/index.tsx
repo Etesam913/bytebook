@@ -26,7 +26,7 @@ import {
   handleKeyNavigation,
   handleContextMenuSelection,
 } from '../../../utils/selection';
-import { cn, FilePath } from '../../../utils/string-formatting';
+import { cn, LocalFilePath } from '../../../utils/string-formatting';
 import { CardNoteSidebarItem } from './card-note-sidebar-item';
 import { ListNoteSidebarItem } from './list-note-sidebar-item';
 import { navigate } from 'wouter/use-browser-location';
@@ -42,8 +42,8 @@ export function NoteSidebarButton({
   activeNotePath,
   sidebarNoteIndex,
 }: {
-  sidebarNotePath: FilePath;
-  activeNotePath: FilePath | undefined;
+  sidebarNotePath: LocalFilePath;
+  activeNotePath: LocalFilePath | undefined;
   sidebarNoteIndex: number;
 }) {
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
@@ -259,7 +259,7 @@ export function NoteSidebarButton({
                       const selectedNote = [...newSelectionRange][0];
                       const noteWithoutPrefix =
                         selectedNote.split(':')[1] || '';
-                      const selectedFilePath = new FilePath({
+                      const selectedFilePath = new LocalFilePath({
                         folder: sidebarNotePath.folder,
                         note: noteWithoutPrefix,
                       });
