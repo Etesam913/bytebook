@@ -1,5 +1,5 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
-import { LocalFilePath } from './string-formatting';
+import { LocalFilePath } from './path';
 
 /**
  * Filters a selection Set to keep only items that start with the specified prefix.

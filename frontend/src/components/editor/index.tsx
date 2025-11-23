@@ -45,7 +45,7 @@ import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 import { useCodeCleanup } from './hooks/code';
 import { useNoteIntersectionObserver } from './hooks/intersection-observer';
 import type { LegacyAnimationControls } from 'motion/react';
-import { LocalFilePath } from '../../utils/string-formatting';
+import { LocalFilePath } from '../../utils/path';
 import { TableActionsPlugin } from './plugins/table-actions.tsx';
 import type { PlaceholderLineData } from './types';
 

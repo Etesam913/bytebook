@@ -22,7 +22,8 @@ import { DropdownMenu } from '../../dropdown/dropdown-menu';
 import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
 import type { Frontmatter } from '../../../types';
 import { Tooltip } from '../../tooltip';
-import { cn, LocalFilePath } from '../../../utils/string-formatting';
+import { cn } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/path';
 
 export function SettingsDropdown({
   folder,

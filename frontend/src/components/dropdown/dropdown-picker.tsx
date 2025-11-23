@@ -1,6 +1,7 @@
 import { MenuOption } from '@lexical/react/LexicalTypeaheadMenuPlugin';
 import type { JSX } from 'react';
-import { cn, LocalFilePath } from '../../utils/string-formatting';
+import { cn } from '../../utils/string-formatting';
+import { LocalFilePath } from '../../utils/path';
 
 export class DropdownPickerOption extends MenuOption {
   // What shows up in the editor

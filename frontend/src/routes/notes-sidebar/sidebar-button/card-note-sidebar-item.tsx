@@ -3,7 +3,8 @@ import type { BackendResponseWithData } from '../../../../bindings/github.com/et
 import type { NotePreviewData } from '../../../../bindings/github.com/etesam913/bytebook/internal/services';
 import { VIDEO_FILE_EXTENSIONS } from '../../../types';
 import { humanFileSize } from '../../../utils/general';
-import { cn, LocalFilePath } from '../../../utils/string-formatting';
+import { cn } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/path';
 
 function formatDateString(isoString: string): string {
   // Parse the ISO 8601 string into a Date object

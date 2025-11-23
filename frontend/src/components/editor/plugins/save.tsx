@@ -14,7 +14,7 @@ import { WINDOW_ID } from '../../../App';
 import { CUSTOM_TRANSFORMERS } from '../transformers';
 import { replaceFrontMatter, parseFrontMatter } from '../utils/note-metadata';
 import { previousMarkdownAtom } from '../atoms';
-import { LocalFilePath } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/path';
 import { Frontmatter } from '../../../types';
 import { $convertToMarkdownString } from '@lexical/markdown';
 

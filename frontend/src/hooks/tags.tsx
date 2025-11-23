@@ -11,7 +11,7 @@ import { useAtomValue } from 'jotai';
 import { currentFilePathAtom } from '../atoms';
 import { Dispatch, FormEvent, SetStateAction } from 'react';
 import { getFilePathFromNoteSelectionRange } from '../utils/selection';
-import { LocalFilePath } from '../utils/string-formatting';
+import { LocalFilePath } from '../utils/path';
 
 /**
  * Handles the `tags-folder:create`, "tags-folder:delete", and "tags:update" events.

@@ -23,7 +23,7 @@ import { PinTack2 } from '../../../icons/pin-tack-2';
 import { Trash } from '../../../icons/trash';
 import type { ProjectSettings } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
-import { LocalFilePath } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/path';
 import type { LegacyAnimationControls } from 'motion/react';
 
 export function NonMarkdownToolbar({

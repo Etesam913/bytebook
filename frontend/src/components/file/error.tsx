@@ -3,7 +3,8 @@ import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection'
 import { AnimatePresence } from 'motion/react';
 import { Paperclip } from '../../icons/paperclip-2';
 import { TriangleWarning } from '../../icons/triangle-warning';
-import { cn, Path } from '../../utils/string-formatting';
+import { cn } from '../../utils/string-formatting';
+import { Path } from '../../utils/path';
 import { NoteComponentControls } from '../note-component-container/component-controls';
 
 export function FileError({

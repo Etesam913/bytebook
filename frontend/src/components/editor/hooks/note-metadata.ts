@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { mostRecentNotesAtom } from '../../../atoms';
 import { ValidateMostRecentNotes } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { LocalFilePath } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/path';
 
 export function useMostRecentNotes(filePath: LocalFilePath) {
   const [mostRecentNotes, setMostRecentNotes] = useAtom(mostRecentNotesAtom);

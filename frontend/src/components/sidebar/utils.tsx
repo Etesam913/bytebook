@@ -8,9 +8,9 @@ import {
   createGhostElementFromHtmlElement,
 } from '../../utils/draggable';
 import {
-  LocalFilePath,
   getContentTypeAndValueFromSelectionRangeValue,
 } from '../../utils/string-formatting';
+import { LocalFilePath } from '../../utils/path';
 import { WAILS_URL } from '../../utils/general';
 
 /** Gets the file icon for the dragged item */

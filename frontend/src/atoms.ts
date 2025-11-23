@@ -10,10 +10,8 @@ import {
   type UserData,
   type WindowSettings,
 } from './types';
-import {
-  convertFilePathToQueryNotation,
-  LocalFilePath,
-} from './utils/string-formatting';
+import { convertFilePathToQueryNotation } from './utils/string-formatting';
+import { LocalFilePath } from './utils/path';
 
 // Most recent notes atoms
 const initializeMostRecentNotes = (): LocalFilePath[] => {

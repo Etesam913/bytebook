@@ -5,7 +5,7 @@ import { Note } from './page';
 import { PDFIcon } from './pdf-icon';
 import { VideoIcon } from './video';
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../types';
-import { LocalFilePath } from '../utils/string-formatting';
+import { LocalFilePath } from '../utils/path';
 
 export function RenderNoteIcon({
   filePath,

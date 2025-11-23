@@ -26,10 +26,10 @@ import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import { getFilePathFromNoteSelectionRange } from '../utils/selection';
 import {
-  LocalFilePath,
   getContentTypeAndValueFromSelectionRangeValue,
   validateName,
 } from '../utils/string-formatting';
+import { LocalFilePath } from '../utils/path';
 import { useWailsEvent } from './events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter } from '../types';

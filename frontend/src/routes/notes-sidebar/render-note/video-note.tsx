@@ -3,7 +3,7 @@ import { BottomBar } from '../../../components/editor/bottom-bar';
 import { cn } from '../../../utils/string-formatting';
 import { ErrorLoading } from './error-loading';
 import { RouteFallback } from '../../../components/route-fallback';
-import { LocalFilePath } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/path';
 
 export function VideoNote({
   filePath,
