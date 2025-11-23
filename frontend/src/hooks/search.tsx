@@ -95,6 +95,7 @@ export const searchQueries = {
         }
         return response.data;
       },
+      retry: false,
     }),
 };
 

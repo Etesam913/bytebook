@@ -1,8 +1,6 @@
 import { type MotionValue, motion } from 'motion/react';
 import { useEffect, useRef } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { getDefaultButtonVariants } from '../../animations.ts';
-import { MotionButton } from '../../components/buttons/index.tsx';
 import { Spacer } from '../../components/folder-sidebar/spacer.tsx';
 import { RenderNoteFallback } from '../../components/error-boundary/render-note.tsx';
 import { FileRefresh } from '../../icons/file-refresh.tsx';
@@ -19,6 +17,7 @@ import { isNoteMaximizedAtom } from '../../atoms.ts';
 import { useAtomValue } from 'jotai';
 import { useSearchParamsEntries } from '../../utils/routing.ts';
 import { Tooltip } from '../../components/tooltip/index.tsx';
+import { ErrorText } from '../../components/error-text/index.tsx';
 
 export function SavedSearchPage({
   searchQuery,
@@ -118,28 +117,18 @@ export function SavedSearchPage({
             <section className="flex flex-col gap-2 overflow-y-auto flex-1">
               <div className="flex h-full flex-col overflow-y-auto">
                 {isError && (
-                  <div className="text-center text-xs my-3 flex flex-col items-center gap-2 text-balance px-4">
-                    <p className="text-red-500">
-                      Something went wrong when retrieving the search results
-                    </p>
-                    <MotionButton
-                      {...getDefaultButtonVariants({
-                        disabled: false,
-                        whileHover: 1.025,
-                        whileTap: 0.975,
-                        whileFocus: 1.025,
-                      })}
-                      className="mx-2.5 flex text-center"
-                      onClick={() => refetch()}
-                    >
-                      <span>Retry</span>{' '}
+                  <ErrorText
+                    message="Something went wrong when retrieving the search results"
+                    onRetry={() => refetch()}
+                    icon={
                       <FileRefresh
                         className="will-change-transform"
                         width={16}
                         height={16}
                       />
-                    </MotionButton>
-                  </div>
+                    }
+                    className="text-center px-4"
+                  />
                 )}
 
                 {!isError &&

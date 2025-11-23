@@ -16,12 +16,20 @@ import { SavedSearchAccordionButton } from './saved-search-accordion-button';
 import { Box2Search } from '../../../icons/box-2-search';
 import { SavedSearch } from '../../../../bindings/github.com/etesam913/bytebook/internal/search/models';
 import { folderSidebarOpenStateAtom } from '../../../atoms';
+import { ErrorText } from '../../error-text';
+import { RefreshAnticlockwise } from '../../../icons/refresh-anticlockwise';
+import { Loader } from '../../../icons/loader';
 
 export function MySavedSearchesAccordion() {
   useSavedSearchUpdates();
   const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
   const isOpen = openState.savedSearches;
-  const { data: savedSearches = [] } = useSavedSearchesQuery();
+  const {
+    data: savedSearches = [],
+    isError,
+    isLoading,
+    refetch,
+  } = useSavedSearchesQuery();
   const hasSavedSearches = savedSearches.length > 0;
   const [isSavedSearchRoute, savedSearchRouteParams] =
     useRoute<SavedSearchRouteParams>(ROUTE_PATTERNS.SAVED_SEARCH);
@@ -60,33 +68,56 @@ export function MySavedSearchesAccordion() {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden hover:overflow-auto pl-1"
           >
-            <Sidebar<SavedSearch>
-              layoutId="saved-searches-sidebar"
-              emptyElement={
-                <li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
-                  No saved searches yet
-                </li>
-              }
-              contentType="saved-search"
-              dataItemToString={(search) => search.name}
-              dataItemToKey={(search) => search.name}
-              dataItemToSelectionRangeEntry={(search) => search.name}
-              renderLink={({ dataItem: search, i }) => {
-                return (
-                  <SavedSearchAccordionButton
-                    savedSearches={savedSearches}
-                    i={i}
-                    sidebarSearchName={search.name}
-                    isActive={
-                      isSavedSearchRoute &&
-                      !!searchQuery &&
-                      decodeURIComponent(searchQuery) === search.query
-                    }
+            {isError && (
+              <ErrorText
+                message="Something went wrong when fetching your saved searches"
+                onRetry={() => refetch()}
+                icon={
+                  <RefreshAnticlockwise
+                    className="will-change-transform"
+                    width={12}
+                    height={12}
                   />
-                );
-              }}
-              data={savedSearches}
-            />
+                }
+              />
+            )}
+            {isLoading ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.35 }}
+              >
+                <Loader width={20} height={20} className="mx-auto my-3" />
+              </motion.div>
+            ) : (
+              <Sidebar<SavedSearch>
+                layoutId="saved-searches-sidebar"
+                emptyElement={
+                  <li className="text-left list-none text-zinc-500 dark:text-zinc-300 text-xs">
+                    No saved searches yet
+                  </li>
+                }
+                contentType="saved-search"
+                dataItemToString={(search) => search.name}
+                dataItemToKey={(search) => search.name}
+                dataItemToSelectionRangeEntry={(search) => search.name}
+                renderLink={({ dataItem: search, i }) => {
+                  return (
+                    <SavedSearchAccordionButton
+                      savedSearches={savedSearches}
+                      i={i}
+                      sidebarSearchName={search.name}
+                      isActive={
+                        isSavedSearchRoute &&
+                        !!searchQuery &&
+                        decodeURIComponent(searchQuery) === search.query
+                      }
+                    />
+                  );
+                }}
+                data={savedSearches}
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>

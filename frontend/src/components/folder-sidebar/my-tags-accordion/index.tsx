@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useAtom } from 'jotai';
 import { useTagsQuery } from '../../../hooks/tags';
 import { TagIcon } from '../../../icons/tag';
+import { Loader } from '../../../icons/loader';
 import { Sidebar } from '../../sidebar';
 import { AccordionButton } from '../../sidebar/accordion-button';
 import {
@@ -12,11 +13,13 @@ import {
 import { useRoute } from 'wouter';
 import { TagAccordionButton } from './tag-accordion-button';
 import { folderSidebarOpenStateAtom } from '../../../atoms';
+import { ErrorText } from '../../error-text';
+import { RefreshAnticlockwise } from '../../../icons/refresh-anticlockwise';
 
 export function MyTagsAccordion() {
   const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
   const isOpen = openState.tags;
-  const { data: tags } = useTagsQuery();
+  const { data: tags, isError, isLoading, refetch } = useTagsQuery();
   const hasTags = tags && tags?.length > 0;
   const [isSavedSearchRoute, savedSearchRouteParams] =
     useRoute<SavedSearchRouteParams>(ROUTE_PATTERNS.SAVED_SEARCH);
@@ -53,33 +56,56 @@ export function MyTagsAccordion() {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden hover:overflow-auto pl-1"
           >
-            <Sidebar<string>
-              layoutId="tags-sidebar"
-              emptyElement={
-                <li className="text-center list-none text-zinc-500 dark:text-zinc-300 text-xs">
-                  Type #tagName in a note to create a tag
-                </li>
-              }
-              contentType="tag"
-              dataItemToString={(tagName) => tagName}
-              dataItemToKey={(tagName) => tagName}
-              dataItemToSelectionRangeEntry={(tagName) => tagName}
-              renderLink={({ dataItem: sidebarTagName, i }) => {
-                return (
-                  <TagAccordionButton
-                    tags={tags}
-                    i={i}
-                    sidebarTagName={sidebarTagName}
-                    isActive={
-                      isSavedSearchRoute &&
-                      !!searchQuery &&
-                      decodeURIComponent(searchQuery) === `#${sidebarTagName}`
-                    }
+            {isError && (
+              <ErrorText
+                message="Something went wrong when fetching your tags"
+                onRetry={() => refetch()}
+                icon={
+                  <RefreshAnticlockwise
+                    className="will-change-transform"
+                    width={12}
+                    height={12}
                   />
-                );
-              }}
-              data={tags ?? null}
-            />
+                }
+              />
+            )}
+            {isLoading ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.35 }}
+              >
+                <Loader width={20} height={20} className="mx-auto my-3" />
+              </motion.div>
+            ) : (
+              <Sidebar<string>
+                layoutId="tags-sidebar"
+                emptyElement={
+                  <li className="text-left list-none text-zinc-500 dark:text-zinc-300 text-xs">
+                    Type #tagName in a note to create a tag
+                  </li>
+                }
+                contentType="tag"
+                dataItemToString={(tagName) => tagName}
+                dataItemToKey={(tagName) => tagName}
+                dataItemToSelectionRangeEntry={(tagName) => tagName}
+                renderLink={({ dataItem: sidebarTagName, i }) => {
+                  return (
+                    <TagAccordionButton
+                      tags={tags}
+                      i={i}
+                      sidebarTagName={sidebarTagName}
+                      isActive={
+                        isSavedSearchRoute &&
+                        !!searchQuery &&
+                        decodeURIComponent(searchQuery) === `#${sidebarTagName}`
+                      }
+                    />
+                  );
+                }}
+                data={tags ?? null}
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { mockBinding } from '../utils/mockBinding';
+import { SERVICE_FILES } from '../utils/serviceFiles';
 
 const MOCK_FOLDER_RESPONSE = {
   success: true,
@@ -27,7 +28,7 @@ test.describe('Folder Sidebar', () => {
     await mockBinding(
       context,
       {
-        file: 'github.com/etesam913/bytebook/internal/services/folderservice.js',
+        file: SERVICE_FILES.FOLDER_SERVICE,
         method: 'GetFolders',
       },
       MOCK_FOLDER_RESPONSE
@@ -36,7 +37,7 @@ test.describe('Folder Sidebar', () => {
     await mockBinding(
       context,
       {
-        file: 'github.com/etesam913/bytebook/internal/services/tagsservice.js',
+        file: SERVICE_FILES.TAGS_SERVICE,
         method: 'GetTags',
       },
       MOCK_TAGS_RESPONSE
@@ -45,7 +46,7 @@ test.describe('Folder Sidebar', () => {
     await mockBinding(
       context,
       {
-        file: 'github.com/etesam913/bytebook/internal/services/searchservice.js',
+        file: SERVICE_FILES.SEARCH_SERVICE,
         method: 'GetAllSavedSearches',
       },
       MOCK_SAVED_SEARCHES_RESPONSE
@@ -104,5 +105,118 @@ test.describe('Folder Sidebar', () => {
     savedSearchesAccordion.click();
     await expect(sidebar).toContainText('My Research');
     await expect(sidebar).toContainText('Economics');
+  });
+
+  test.describe('Failure responses', () => {
+    test('shows error message when folders fetch fails', async ({
+      page,
+      context,
+    }) => {
+      const FAILURE_RESPONSE = {
+        success: false,
+        message: 'Failed to fetch folders',
+        data: null,
+      };
+
+      await mockBinding(
+        context,
+        {
+          file: SERVICE_FILES.FOLDER_SERVICE,
+          method: 'GetFolders',
+        },
+        FAILURE_RESPONSE
+      );
+
+      await page.goto('/');
+
+      const sidebar = page.getByTestId('folder-sidebar');
+      await expect(sidebar).toContainText('Folders');
+
+      // Verify error message is displayed
+      await expect(
+        sidebar.getByText('Something went wrong when fetching your folders')
+      ).toBeVisible();
+
+      // Verify retry button is present
+      await expect(sidebar.getByText('Retry')).toBeVisible();
+    });
+
+    test('shows error message when tags fetch fails', async ({
+      page,
+      context,
+    }) => {
+      const FAILURE_RESPONSE = {
+        success: false,
+        message: 'Failed to fetch tags',
+        data: null,
+      };
+
+      await mockBinding(
+        context,
+        {
+          file: SERVICE_FILES.TAGS_SERVICE,
+          method: 'GetTags',
+        },
+        FAILURE_RESPONSE
+      );
+
+      await page.goto('/');
+
+      const sidebar = page.getByTestId('folder-sidebar');
+      await expect(sidebar).toContainText('Tags');
+
+      // Click to open the tags accordion
+      const tagsAccordion = page.getByTestId('tags-accordion');
+      await tagsAccordion.click();
+
+      // Verify error message is displayed
+      await expect(
+        sidebar.getByText('Something went wrong when fetching your tags')
+      ).toBeVisible();
+
+      // Verify retry button is present
+      await expect(sidebar.getByText('Retry')).toBeVisible();
+    });
+
+    test('shows error message when saved searches fetch fails', async ({
+      page,
+      context,
+    }) => {
+      const FAILURE_RESPONSE = {
+        success: false,
+        message: 'Failed to fetch saved searches',
+        data: null,
+      };
+
+      await mockBinding(
+        context,
+        {
+          file: SERVICE_FILES.SEARCH_SERVICE,
+          method: 'GetAllSavedSearches',
+        },
+        FAILURE_RESPONSE
+      );
+
+      await page.goto('/');
+
+      const sidebar = page.getByTestId('folder-sidebar');
+      await expect(sidebar).toContainText('Saved Searches');
+
+      // Click to open the saved searches accordion
+      const savedSearchesAccordion = page.getByTestId(
+        'saved-searches-accordion'
+      );
+      await savedSearchesAccordion.click();
+
+      // Verify error message is displayed
+      await expect(
+        sidebar.getByText(
+          'Something went wrong when fetching your saved searches'
+        )
+      ).toBeVisible();
+
+      // Verify retry button is present
+      await expect(sidebar.getByText('Retry')).toBeVisible();
+    });
   });
 });

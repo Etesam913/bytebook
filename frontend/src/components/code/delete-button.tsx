@@ -11,9 +11,9 @@ export function DeleteButton({ nodeKey }: { nodeKey: string }) {
     <motion.button
       {...getDefaultButtonVariants({
         disabled: false,
-        whileHover: 1.05,
-        whileTap: 0.975,
-        whileFocus: 1.05,
+        whileHover: 1.1,
+        whileTap: 0.95,
+        whileFocus: 1.1,
       })}
       onClick={() => {
         lexicalEditor.update(() => {
@@ -21,7 +21,7 @@ export function DeleteButton({ nodeKey }: { nodeKey: string }) {
         });
       }}
     >
-      <Trash height={18} width={18} />
+      <Trash className="will-change-transform" height={19} width={19} />
     </motion.button>
   );
 }

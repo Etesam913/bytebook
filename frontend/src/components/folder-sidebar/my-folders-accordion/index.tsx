@@ -1,13 +1,11 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { getDefaultButtonVariants } from '../../../animations';
 import { useFolders } from '../../../hooks/folders';
 import { Folder } from '../../../icons/folder';
 import { FolderRefresh } from '../../../icons/folder-refresh';
 import { Loader } from '../../../icons/loader';
 import {} from '../../../utils/selection';
-import { MotionButton } from '../../buttons';
 import { Sidebar } from '../../sidebar';
 import { AccordionButton } from '../../sidebar/accordion-button';
 import {} from './folder-dialog-children';
@@ -18,6 +16,7 @@ import { useFolderFromRoute } from '../../../hooks/events';
 import { findClosestSidebarItemToNavigateTo } from '../../../utils/routing';
 import { FolderAccordionButton } from './folder-accordion-button';
 import { folderSidebarOpenStateAtom } from '../../../atoms';
+import { ErrorText } from '../../error-text';
 
 export function MyFoldersAccordion() {
   const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
@@ -105,28 +104,17 @@ export function MyFoldersAccordion() {
             className="overflow-hidden hover:overflow-auto pl-1"
           >
             {isError && (
-              <div className="text-center text-xs my-3 flex flex-col items-center gap-2 text-balance">
-                <p className="text-red-500">
-                  Something went wrong when fetching the folders
-                </p>
-                <MotionButton
-                  {...getDefaultButtonVariants({
-                    disabled: false,
-                    whileHover: 1.025,
-                    whileTap: 0.975,
-                    whileFocus: 1.025,
-                  })}
-                  className="mx-2.5 flex text-center"
-                  onClick={() => refetch()}
-                >
-                  <span>Retry</span>{' '}
+              <ErrorText
+                message="Something went wrong when fetching your folders"
+                onRetry={() => refetch()}
+                icon={
                   <FolderRefresh
                     className="will-change-transform"
                     width={16}
                     height={16}
                   />
-                </MotionButton>
-              </div>
+                }
+              />
             )}
             {!isError &&
               (isLoading ? (
