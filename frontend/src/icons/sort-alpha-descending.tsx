@@ -2,13 +2,11 @@ function SortAlphaDescending({
   width = 18,
   height = 18,
   fill = 'currentColor',
-  title = 'sort alpha descending',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -19,7 +17,6 @@ function SortAlphaDescending({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <polyline
           fill="none"

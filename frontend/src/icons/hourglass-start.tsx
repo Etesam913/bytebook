@@ -2,14 +2,12 @@ function HourglassStart({
   width = 20,
   height = 20,
   fill = 'currentColor',
-  title = 'Hourglass',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -20,7 +18,6 @@ function HourglassStart({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="M4.75,15.75c0-3.86,.557-5.456,2.46-6.75-1.903-1.294-2.46-2.89-2.46-6.75"

@@ -1,13 +1,11 @@
 export function MarkdownIcon({
   width = 20,
   height = 20,
-  title = 'markdown',
   fill = 'currentColor',
   className,
 }: {
   width?: number;
   height?: number;
-  title?: string;
   fill?: string;
   className?: string;
 }) {
@@ -19,7 +17,6 @@ export function MarkdownIcon({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <rect
           height="10.5"

@@ -7,9 +7,7 @@ import {
   BYTEBOOK_DRAG_DATA_FORMAT,
   createGhostElementFromHtmlElement,
 } from '../../utils/draggable';
-import {
-  getContentTypeAndValueFromSelectionRangeValue,
-} from '../../utils/string-formatting';
+import { getContentTypeAndValueFromSelectionRangeValue } from '../../utils/string-formatting';
 import { LocalFilePath } from '../../utils/path';
 import { WAILS_URL } from '../../utils/general';
 
@@ -17,11 +15,11 @@ import { WAILS_URL } from '../../utils/general';
 export function getFileIcon(fileType: 'folder' | 'note' | 'image') {
   switch (fileType) {
     case 'folder':
-      return <Folder className="min-w-5" height={20} width={20} title="" />;
+      return <Folder className="min-w-5" height={20} width={20} />;
     case 'note':
-      return <Note className="min-w-5 w-5" title="" />;
+      return <Note className="min-w-5 w-5" />;
     case 'image':
-      return <ImageIcon className="min-w-5 w-5" title="" />;
+      return <ImageIcon className="min-w-5 w-5" />;
   }
 }
 const MAX_VISIBLE_DRAG_PREVIEW_NOTES = 10;

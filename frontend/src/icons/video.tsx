@@ -2,13 +2,11 @@ export function VideoIcon({
   width = 20,
   height = 20,
   fill = 'currentColor',
-  title = 'image',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -19,7 +17,6 @@ export function VideoIcon({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="M10.798,8.47l-2.375-1.386c-.409-.239-.922,.056-.922,.53v2.771c0,.473,.514,.768,.922,.53l2.375-1.386c.406-.237,.406-.823,0-1.06Z"

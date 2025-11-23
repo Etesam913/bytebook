@@ -2,14 +2,12 @@ export function ArrowDoorOut({
   width = 20,
   height = 20,
   fill = 'currentColor',
-  title = 'Log Out',
   className,
   strokeWidth = '1.5',
 }: {
   width?: number;
   height?: number;
   fill?: string;
-  title?: string;
   className?: string;
   strokeWidth?: string;
 }) {
@@ -21,7 +19,6 @@ export function ArrowDoorOut({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="M6.25,5.75V3.25c0-.552,.448-1,1-1h6.5c.552,0,1,.448,1,1V14.75c0,.552-.448,1-1,1H7.25c-.552,0-1-.448-1-1v-2.5"

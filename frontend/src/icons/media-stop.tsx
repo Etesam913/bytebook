@@ -2,14 +2,12 @@ export function MediaStop({
   width = 20,
   height = 20,
   fill = 'currentColor',
-  title = 'media stop',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -20,7 +18,6 @@ export function MediaStop({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <title>{title}</title>
       <g fill={fill}>
         <rect
           height="12.5"

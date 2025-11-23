@@ -3,7 +3,6 @@ export function FolderOpen({
   height = 16,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
-  title = 'folder-open',
   className,
   strokeWidth = 1.5,
 }: {
@@ -11,7 +10,6 @@ export function FolderOpen({
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
   strokeWidth?: number;
 }) {
@@ -22,7 +20,6 @@ export function FolderOpen({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="M5,14.75h-.75c-1.105,0-2-.895-2-2V4.75c0-1.105,.895-2,2-2h1.825c.587,0,1.144,.258,1.524,.705l1.524,1.795h4.626c1.105,0,2,.895,2,2v1"

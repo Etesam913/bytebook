@@ -3,14 +3,12 @@ export function Equation({
   strokewidth = 1.5,
   width = 20,
   height = 20,
-  title = 'equation',
 }: {
   fill?: string;
   secondaryfill?: string;
   strokewidth?: number;
   width?: number;
   height?: number;
-  title?: string;
 }) {
   return (
     <svg
@@ -19,7 +17,6 @@ export function Equation({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="M10.667,9.75c2.75,0,2.2,5.5,4.95,5.5"

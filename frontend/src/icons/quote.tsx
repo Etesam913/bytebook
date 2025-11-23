@@ -1,14 +1,12 @@
 export function QuoteIcon({
   width = 20,
   height = 20,
-  title = 'quote',
   fill = 'currentColor',
   className,
   secondaryfill,
 }: {
   width?: number;
   height?: number;
-  title?: string;
   fill?: string;
   className?: string;
   secondaryfill?: string;
@@ -22,7 +20,6 @@ export function QuoteIcon({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <line
           fill="none"

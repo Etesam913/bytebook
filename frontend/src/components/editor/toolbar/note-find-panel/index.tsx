@@ -121,12 +121,7 @@ export function NoteFindPanel({
             tabIndex={0}
             aria-label="Close search"
           >
-            <XMark
-              width={18}
-              height={18}
-              fill="currentColor"
-              title="Close search"
-            />
+            <XMark width={18} height={18} fill="currentColor" />
           </button>
         </motion.div>
       )}

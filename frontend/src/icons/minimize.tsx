@@ -3,14 +3,12 @@ export function Minimize({
   height = 18,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
-  title = 'badge 13',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -21,7 +19,6 @@ export function Minimize({
       viewBox="0 0 12 12"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <polyline
           fill="none"

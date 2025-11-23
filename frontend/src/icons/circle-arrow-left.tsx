@@ -3,14 +3,12 @@ export function CircleArrowLeft({
   height = 20,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
-  title = 'Previous',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -20,7 +18,6 @@ export function CircleArrowLeft({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <polyline
           fill="none"

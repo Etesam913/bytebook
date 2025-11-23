@@ -3,14 +3,12 @@ export function ColorPalette2({
   height = 18,
   fill = 'currentColor',
   strokeWidth = 1.5,
-  title = 'Appearance',
   className = '',
 }: {
   width?: number;
   height?: number;
   fill?: string;
   strokeWidth?: number;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -20,7 +18,6 @@ export function ColorPalette2({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="M6.591,14.591l6.541-6.541c.391-.391,.391-1.024,0-1.414l-1.768-1.768c-.391-.391-1.024-.391-1.414,0l-.2,.2"

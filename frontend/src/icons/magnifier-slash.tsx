@@ -3,13 +3,11 @@ export function MagnifierSlash({
   height = 20,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
-  title = 'magnifier-slash',
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
 }) {
   return (
     <svg
@@ -17,7 +15,6 @@ export function MagnifierSlash({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="M15.75 15.75L11.6386 11.6386"

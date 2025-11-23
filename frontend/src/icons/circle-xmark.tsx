@@ -3,13 +3,11 @@ export function XMark({
   height = 20,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
-  title = 'x-icon',
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
 }) {
   return (
     <svg
@@ -17,7 +15,6 @@ export function XMark({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={secondaryfill} stroke={secondaryfill}>
         <circle
           cx="9"

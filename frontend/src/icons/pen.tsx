@@ -3,14 +3,12 @@ export function Pen({
   height = 18,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
-  title = 'pen',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -21,7 +19,6 @@ export function Pen({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={secondaryfill} stroke={secondaryfill}>
         <line
           fill="none"

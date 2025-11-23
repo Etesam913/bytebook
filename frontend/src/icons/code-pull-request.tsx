@@ -3,13 +3,11 @@ export function CodePullRequest({
   height = 20,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
-  title = 'code-merge',
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
 }) {
   return (
     <svg
@@ -17,7 +15,6 @@ export function CodePullRequest({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={secondaryfill} stroke={secondaryfill}>
         <path
           d="M14.25,12.25V5.75c0-1.105-.895-2-2-2h-3.5"

@@ -4,14 +4,12 @@ function WindowCode({
   strokewidth = 1.5,
   width = 18,
   height = 18,
-  title = 'badge 13',
 }: {
   fill?: string;
   secondaryfill?: string;
   strokewidth?: number;
   width?: number;
   height?: number;
-  title?: string;
 }) {
   secondaryfill = secondaryfill || fill;
 
@@ -22,7 +20,6 @@ function WindowCode({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <rect
           height="12.5"

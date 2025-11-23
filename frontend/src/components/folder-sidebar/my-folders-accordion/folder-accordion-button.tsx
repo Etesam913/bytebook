@@ -227,7 +227,6 @@ export function FolderAccordionButton({
     >
       {isActive ? (
         <FolderOpen
-          title=""
           className="min-w-[18px] pointer-events-none"
           width={18}
           height={18}
@@ -235,7 +234,6 @@ export function FolderAccordionButton({
         />
       ) : (
         <Folder
-          title=""
           className="min-w-[18px] pointer-events-none"
           width={18}
           height={18}

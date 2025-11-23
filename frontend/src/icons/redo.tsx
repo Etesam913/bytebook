@@ -2,13 +2,11 @@ export function Redo({
   width = 16,
   height = 16,
   fill = 'currentColor',
-  title = 'Redo',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -19,7 +17,6 @@ export function Redo({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="M3,10.75c-.209,0-.417-.087-.565-.256-.273-.312-.241-.786,.071-1.058,.838-.733,3.148-2.437,6.494-2.437,3.324,0,5.629,1.687,6.466,2.412,.313,.271,.347,.745,.076,1.058-.271,.312-.744,.348-1.058,.076-.709-.615-2.665-2.046-5.483-2.046-2.837,0-4.796,1.444-5.506,2.065-.142,.125-.318,.186-.493,.186Z"

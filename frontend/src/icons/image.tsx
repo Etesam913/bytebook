@@ -2,13 +2,11 @@ export function ImageIcon({
   width = 20,
   height = 20,
   fill = 'currentColor',
-  title = 'image',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -18,7 +16,6 @@ export function ImageIcon({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="M3.762,14.989l6.074-6.075c.781-.781,2.047-.781,2.828,0l2.586,2.586"

@@ -3,14 +3,12 @@ export function CodeMerge({
   height = 18,
   fill = 'currentColor',
   strokeWidth = 1.5,
-  title = 'code merge',
   className = '',
 }: {
   width?: number;
   height?: number;
   fill?: string;
   strokeWidth?: number;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -20,7 +18,6 @@ export function CodeMerge({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <line
           fill="none"

@@ -3,14 +3,12 @@ export function Duplicate2({
   height = 20,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
-  title = 'duplicate',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -21,7 +19,6 @@ export function Duplicate2({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <title>{title}</title>
       <g fill={fill}>
         <rect
           height="11"

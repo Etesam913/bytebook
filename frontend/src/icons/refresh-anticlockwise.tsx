@@ -2,13 +2,11 @@ export function RefreshAnticlockwise({
   height = 20,
   width = 20,
   fill = 'currentColor',
-  title = 'Refresh',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -19,7 +17,6 @@ export function RefreshAnticlockwise({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <title>{title}</title>
       <g fill={fill}>
         <polyline
           fill="none"

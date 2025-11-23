@@ -2,14 +2,12 @@ export function ChevronDown({
   width = 12.8,
   height = 12.8,
   fill = 'currentColor',
-  title = 'Down',
   className,
   strokeWidth = '1.5',
 }: {
   width?: number;
   height?: number;
   fill?: string;
-  title?: string;
   className?: string;
   strokeWidth?: string;
 }) {
@@ -21,7 +19,6 @@ export function ChevronDown({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <polyline
           fill="none"

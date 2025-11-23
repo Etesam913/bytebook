@@ -3,14 +3,12 @@ export function TextBold({
   height = 16,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
-  title = 'text-bold',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -21,7 +19,6 @@ export function TextBold({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={secondaryfill} stroke={secondaryfill}>
         <path
           d="M6.25,2.25h3.75c1.795,0,3.25,1.455,3.25,3.25h0c0,1.795-1.455,3.25-3.25,3.25h-3.75"

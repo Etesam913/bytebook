@@ -3,14 +3,12 @@ export function TextStrikethrough({
   height = 16,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
-  title = 'text-strikethrough',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -21,7 +19,6 @@ export function TextStrikethrough({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={secondaryfill} stroke={secondaryfill}>
         <path
           d="M13,11.336c.091,.274,.145,.579,.153,.919,.051,2.076-1.817,3.495-4.074,3.495-2.157,0-3.655-.839-4.234-2.736"

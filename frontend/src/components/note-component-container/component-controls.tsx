@@ -120,7 +120,7 @@ export function NoteComponentControls({
             }
           }}
         >
-          <Link title="Open Link" className="will-change-transform" />
+          <Link className="will-change-transform" />
         </motion.button>
       )}
     </motion.div>

@@ -2,13 +2,11 @@ export function ArrowDown({
   width = 20,
   height = 20,
   fill = 'currentColor',
-  title = 'arrow down',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -19,7 +17,6 @@ export function ArrowDown({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <title>{title}</title>
       <g fill={fill}>
         <line
           fill="none"

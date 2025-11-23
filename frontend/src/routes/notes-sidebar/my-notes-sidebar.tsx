@@ -42,7 +42,7 @@ export function MyNotesSidebar({
     <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
       <div className="flex items-center justify-between gap-2 pr-1">
         <p className="flex items-center gap-1.5 py-1 rounded-md pl-[6px] pr-[10px] transition-colors">
-          <Note title="Note" className="min-w-5" />
+          <Note className="min-w-5" />
           My Notes{' '}
           {noteCount > 0 && (
             <span className="tracking-wider">({noteCount})</span>

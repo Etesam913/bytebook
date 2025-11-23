@@ -4,7 +4,6 @@ export function Maximize({
   fill = 'currentColor',
   secondaryfill = 'currentColor',
   strokeWidth = 1.25,
-  title = 'Maximize',
   className,
 }: {
   width?: number;
@@ -12,7 +11,6 @@ export function Maximize({
   fill?: string;
   secondaryfill?: string;
   strokeWidth?: number;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -23,7 +21,6 @@ export function Maximize({
       viewBox="0 0 12 12"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <polyline
           fill="none"

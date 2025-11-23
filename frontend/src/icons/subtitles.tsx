@@ -3,13 +3,11 @@ export function Subtitles({
   height = '1.25rem',
   fill = 'currentColor',
   secondaryfill = 'currentColor',
-  title = 'Subtitles',
 }: {
   width?: string;
   height?: string;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
 }) {
   return (
     <svg
@@ -17,8 +15,6 @@ export function Subtitles({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
-
       <g fill={fill}>
         <rect
           height="12.5"

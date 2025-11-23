@@ -131,7 +131,7 @@ function getBaseOptions({
   return [
     new DropdownPickerOption('Paragraph', {
       keywords: ['normal', 'paragraph', 'p', 'text'],
-      icon: <Text width="1.25rem" title="Paragraph" />,
+      icon: <Text width="1.25rem" />,
       onSelect: () =>
         editor.update(() => {
           const selection = $getSelection();

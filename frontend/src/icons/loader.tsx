@@ -1,14 +1,12 @@
 export function Loader({
   width = 20,
   height = 20,
-  title = 'Loading',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -20,7 +18,6 @@ export function Loader({
       style={{ width, height }}
       className={className}
     >
-      <title>{title}</title>
       <g
         strokeWidth="240"
         strokeLinecap="round"

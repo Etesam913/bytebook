@@ -2,13 +2,11 @@ export function Table({
   fill = 'currentColor',
   width = 20,
   height = 20,
-  title = 'Table',
   className,
 }: {
   fill?: string;
   width?: number;
   height?: number;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -19,7 +17,6 @@ export function Table({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <line
           fill="none"
