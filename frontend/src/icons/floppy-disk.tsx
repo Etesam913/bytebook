@@ -3,13 +3,11 @@ export function FloppyDisk({
   height = 20,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
-  title = 'floppy-disk',
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
 }) {
   return (
     <svg
@@ -17,7 +15,6 @@ export function FloppyDisk({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={secondaryfill} stroke={secondaryfill}>
         <path
           d="M10.75,2.25v3c0,.552-.448,1-1,1h-3.5c-.552,0-1-.448-1-1V2.25"

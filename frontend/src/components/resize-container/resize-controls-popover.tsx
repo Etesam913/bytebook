@@ -98,7 +98,7 @@ export function ResizeControlsPopover({
                   }
                 }}
               >
-                <Link title="Open Link" className="will-change-transform" />
+                <Link className="will-change-transform" />
               </button>
             </div>
           </div>

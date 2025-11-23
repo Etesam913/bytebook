@@ -1,11 +1,9 @@
 export function VueLogo({
   width = '1.25rem',
   height = '1.25rem',
-  title = 'vue',
 }: {
   width?: string;
   height?: string;
-  title?: string;
 }) {
   return (
     <svg
@@ -19,7 +17,6 @@ export function VueLogo({
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <title>{title}</title>
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M16.5 4l-4.5 8l-4.5 -8" />
       <path d="M3 4l9 16l9 -16" />

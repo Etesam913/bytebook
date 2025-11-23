@@ -1,12 +1,10 @@
 export function SearchContent2({
   height = 20,
   width = 20,
-  title = 'search content',
   ...props
 }: {
   height?: number;
   width?: number;
-  title?: string;
 } & React.SVGProps<SVGSVGElement>) {
   return (
     <svg
@@ -21,7 +19,6 @@ export function SearchContent2({
       strokeLinejoin="round"
       {...props}
     >
-      <title>{title}</title>
       <line x1="1.75" y1="11.25" x2="3.8217" y2="11.25" />
       <line x1="1.75" y1="7.25" x2="4.4266" y2="7.25" />
       <line x1="1.75" y1="3.25" x2="12.25" y2="3.25" />

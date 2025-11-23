@@ -2,13 +2,11 @@ export function Ufo({
   width = 20,
   height = 20,
   fill = 'currentColor',
-  title = 'Ufo',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -18,7 +16,6 @@ export function Ufo({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <circle cx="14.75" cy="1.75" fill={fill} r=".75" stroke="none" />
         <path

@@ -3,7 +3,6 @@ export function PinTackSlash({
   height = 20,
   fill = 'currentColor',
   strokeWidth = 1.5,
-  title = 'pin tack slash',
   className,
 }: {
   className?: string;
@@ -11,7 +10,6 @@ export function PinTackSlash({
   height?: number;
   fill?: string;
   strokeWidth?: number;
-  title?: string;
 }) {
   return (
     <svg
@@ -20,7 +18,6 @@ export function PinTackSlash({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <line
           fill="none"

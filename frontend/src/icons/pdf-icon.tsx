@@ -2,14 +2,12 @@ export function PDFIcon({
   width = 20,
   height = 20,
   fill = 'currentColor',
-  title = 'pdf-icon',
   className,
 }: {
   className?: string;
   width?: number;
   height?: number;
   fill?: string;
-  title?: string;
 }) {
   return (
     <svg
@@ -18,7 +16,6 @@ export function PDFIcon({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <path
         d="M15.16 6.24999H11.75C11.198 6.24999 10.75 5.80199 10.75 5.24999V1.85199"
         stroke={fill}

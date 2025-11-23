@@ -3,14 +3,12 @@ export function BookBookmark({
   height = 20,
   fill = 'currentColor',
   secondaryfill,
-  title = 'Book Bookmark',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
 }) {
   const secondary = secondaryfill || fill;
@@ -21,7 +19,6 @@ export function BookBookmark({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="M2.75,14V4.25c0-1.105,.895-2,2-2H15.25V12.25"

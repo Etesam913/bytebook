@@ -1,11 +1,9 @@
 export function CppLogo({
   width = 20,
   height = 20,
-  title = 'cpp logo',
 }: {
   width?: number;
   height?: number;
-  title?: string;
 }) {
   return (
     <svg
@@ -19,7 +17,6 @@ export function CppLogo({
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <title>{title}</title>
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M18 12h4" />
       <path d="M20 10v4" />

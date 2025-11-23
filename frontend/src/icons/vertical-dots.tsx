@@ -2,14 +2,12 @@ export function VerticalDots({
   width = '1.25rem',
   height = '1.25rem',
   fill = 'currentColor',
-  title = 'Dots',
   className,
 }: {
   width?: string;
   height?: string;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -20,7 +18,6 @@ export function VerticalDots({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="M6.75 9.5C7.02614 9.5 7.25 9.27614 7.25 9C7.25 8.72386 7.02614 8.5 6.75 8.5C6.47386 8.5 6.25 8.72386 6.25 9C6.25 9.27614 6.47386 9.5 6.75 9.5Z"

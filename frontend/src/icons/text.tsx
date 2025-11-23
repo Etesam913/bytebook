@@ -2,12 +2,10 @@ export function Text({
   fill = 'currentColor',
   width = '0.9rem',
   height = '0.9rem',
-  title = 'Text',
 }: {
   fill?: string;
   width?: string;
   height?: string;
-  title?: string;
 }) {
   return (
     <svg
@@ -16,7 +14,6 @@ export function Text({
       viewBox="0 0 12 12"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <line
           fill="none"

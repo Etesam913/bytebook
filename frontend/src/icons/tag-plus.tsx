@@ -3,14 +3,12 @@ export function TagPlus({
   height = 20,
   fill = 'currentColor',
   strokeWidth = 1.5,
-  title = 'tag plus',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   strokeWidth?: number;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -21,7 +19,6 @@ export function TagPlus({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <circle cx="6.25" cy="6.25" fill={fill} r="1.25" stroke="none" />
         <line

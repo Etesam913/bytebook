@@ -22,7 +22,6 @@ export function RenderNoteIcon({
     if (activeNotePath && filePath.equals(activeNotePath)) {
       return (
         <FilePen
-          title="Editing Note"
           className="min-w-[20px] pointer-events-none"
           height={iconSize}
           width={iconSize}
@@ -31,7 +30,6 @@ export function RenderNoteIcon({
     }
     return (
       <Note
-        title="Note"
         className="min-w-[20px] pointer-events-none"
         height={iconSize}
         width={iconSize}
@@ -42,7 +40,6 @@ export function RenderNoteIcon({
   if (filePath.noteExtension === 'pdf') {
     return (
       <PDFIcon
-        title="PDF"
         className="min-w-[20px] pointer-events-none"
         height={iconSize}
         width={iconSize}
@@ -53,7 +50,6 @@ export function RenderNoteIcon({
   if (IMAGE_FILE_EXTENSIONS.includes(filePath.noteExtension)) {
     return (
       <ImageIcon
-        title="Image"
         className="min-w-[20px] pointer-events-none"
         height={iconSize}
         width={iconSize}
@@ -64,7 +60,6 @@ export function RenderNoteIcon({
   if (VIDEO_FILE_EXTENSIONS.includes(filePath.noteExtension)) {
     return (
       <VideoIcon
-        title="Video"
         className="min-w-[20px] pointer-events-none"
         height={iconSize}
         width={iconSize}
@@ -74,7 +69,6 @@ export function RenderNoteIcon({
 
   return (
     <FileBan
-      title="Note Not Supported"
       className="min-w-[20px] pointer-events-none"
       height={iconSize}
       width={iconSize}

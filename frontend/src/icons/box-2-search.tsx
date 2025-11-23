@@ -3,14 +3,12 @@ export function Box2Search({
   height = 20,
   fill = 'currentColor',
   secondaryfill,
-  title = 'box-2-search',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
 }) {
   const stroke2 = secondaryfill || fill;
@@ -22,7 +20,6 @@ export function Box2Search({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="M4.75 9.25001V6.08301L11.5 3.08301"

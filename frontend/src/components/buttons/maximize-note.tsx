@@ -35,7 +35,6 @@ export function MaximizeNoteButton({
         <SidebarRightCollapse
           strokeWidth={1.75}
           className="will-change-transform"
-          title={isNoteMaximized ? 'Minimize' : 'Maximize'}
         />
       </MotionIconButton>
     </Tooltip>

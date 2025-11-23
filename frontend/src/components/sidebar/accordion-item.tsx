@@ -39,7 +39,7 @@ export function AccordionItem({
           className="flex flex-1 items-center gap-2 overflow-x-hidden rounded-md px-2 py-1"
           to={to}
         >
-          <Note className="min-w-4" title="" width={16} height={16} />
+          <Note className="min-w-4" width={16} height={16} />
           <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm">
             {itemName}
           </p>

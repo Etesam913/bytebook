@@ -3,14 +3,12 @@ export function FileRefresh({
   height = 20,
   fill = 'currentColor',
   secondaryfill = 'currentColor',
-  title = 'File Refresh',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -20,7 +18,6 @@ export function FileRefresh({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={secondaryfill} stroke={secondaryfill}>
         <line
           fill="none"

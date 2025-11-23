@@ -3,13 +3,11 @@ export function ReturnKey({
   strokewidth = '1.5',
   width = 16,
   height = 16,
-  title = 'Enter Key',
 }: {
   fill?: string;
   strokewidth?: string;
   width?: number;
   height?: number;
-  title?: string;
 }) {
   return (
     <svg
@@ -18,7 +16,6 @@ export function ReturnKey({
       viewBox="0 0 12 12"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="m1.25,6.75h8.5c.5523,0,1-.4477,1-1v-2.5c0-.5523-.4477-1-1-1h-1.75"

@@ -2,14 +2,12 @@ export function HorizontalDots({
   width = 20,
   height = 20,
   fill = 'currentColor',
-  title = 'Dots',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -19,7 +17,6 @@ export function HorizontalDots({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill="fill">
         <circle
           cx="9"

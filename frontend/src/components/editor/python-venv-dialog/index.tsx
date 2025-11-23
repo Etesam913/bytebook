@@ -128,11 +128,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                   {...getDefaultButtonVariants()}
                   onClick={() => revealInFinder({ path: venvPath })}
                 >
-                  <ShareRight
-                    height={16}
-                    width={16}
-                    title="Open In Default App"
-                  />
+                  <ShareRight height={16} width={16} />
                 </MotionIconButton>
               </span>
             ))}

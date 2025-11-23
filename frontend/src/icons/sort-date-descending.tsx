@@ -2,13 +2,11 @@ export function SortDateDescending({
   width = 18,
   height = 18,
   fill = 'currentColor',
-  title = 'sort date descending',
   className,
 }: {
   width?: number;
   height?: number;
   fill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -19,7 +17,6 @@ export function SortDateDescending({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="M8.25,15.25H4.25c-1.105,0-2-.895-2-2V4.75c0-1.105,.895-2,2-2H13.75c1.105,0,2,.895,2,2v4.5"

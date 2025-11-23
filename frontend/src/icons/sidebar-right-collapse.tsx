@@ -3,7 +3,6 @@ export function SidebarRightCollapse({
   height = 18,
   fill = 'currentColor',
   strokeWidth = 1.5,
-  title = 'WindowExpandTopLeft',
   className,
 }: {
   width?: number;
@@ -11,7 +10,6 @@ export function SidebarRightCollapse({
   fill?: string;
   secondaryfill?: string;
   strokeWidth?: number;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -22,7 +20,6 @@ export function SidebarRightCollapse({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <line
           fill="none"

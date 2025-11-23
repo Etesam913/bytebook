@@ -8,11 +8,11 @@ import { Note } from '../../../icons/page';
 function getFileIcon(iconType: 'note' | 'attachment' | 'folder') {
   switch (iconType) {
     case 'note':
-      return <Note className="min-w-5 w-5" title="" />;
+      return <Note className="min-w-5 w-5" />;
     case 'attachment':
-      return <ImageIcon className="min-w-5 w-5" title="" />;
+      return <ImageIcon className="min-w-5 w-5" />;
     case 'folder':
-      return <Folder className="min-w-5" height={20} width={20} title="" />;
+      return <Folder className="min-w-5" height={20} width={20} />;
   }
 }
 

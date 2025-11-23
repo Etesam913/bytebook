@@ -2,13 +2,11 @@ export function Finder({
   width = 16,
   height = 16,
   fill = 'currentColor',
-  title = 'finder',
   className = '',
 }: {
   width?: number;
   height?: number;
   fill?: string;
-  title?: string;
   className?: string;
 }) {
   return (
@@ -18,7 +16,6 @@ export function Finder({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <path
           d="M9.792,2.75c-1.854,3.5-1.792,7-1.792,7h2.021"

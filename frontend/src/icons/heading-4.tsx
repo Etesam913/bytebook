@@ -2,12 +2,10 @@ export function Heading4({
   fill = 'currentColor',
   width = 20,
   height = 20,
-  title = 'heading 4',
 }: {
   fill?: string;
   width?: number;
   height?: number;
-  title?: string;
 }) {
   return (
     <svg
@@ -16,7 +14,6 @@ export function Heading4({
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{title}</title>
       <g fill={fill}>
         <line
           fill="none"
