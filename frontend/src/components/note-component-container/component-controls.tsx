@@ -8,7 +8,7 @@ import { Link } from '../../icons/link';
 import { Trash } from '../../icons/trash';
 import { removeDecoratorNode } from '../../utils/commands';
 import { FILE_SERVER_URL } from '../../utils/general';
-import { LocalFilePath } from '../../utils/string-formatting';
+import { LocalFilePath } from '../../utils/path';
 import { navigate } from 'wouter/use-browser-location';
 
 export function NoteComponentControls({

@@ -13,7 +13,7 @@ import { PinTackSlash } from '../../icons/pin-tack-slash';
 import { AccordionButton } from '../sidebar/accordion-button';
 import { AccordionItem } from '../sidebar/accordion-item';
 import { currentZoomAtom } from '../../hooks/resize';
-import { LocalFilePath } from '../../utils/string-formatting';
+import { LocalFilePath } from '../../utils/path';
 
 const SIDEBAR_ITEM_HEIGHT = 28;
 

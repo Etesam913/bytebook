@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useRoute } from 'wouter';
 import { useSetAtom } from 'jotai/react';
 import { currentFilePathAtom } from '../atoms';
-import { LocalFilePath } from '../utils/string-formatting';
+import { LocalFilePath } from '../utils/path';
 import { useSearchParamsEntries } from '../utils/routing';
 import {
   routeUrls,

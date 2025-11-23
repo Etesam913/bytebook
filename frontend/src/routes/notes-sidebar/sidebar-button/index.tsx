@@ -26,7 +26,8 @@ import {
   handleKeyNavigation,
   handleContextMenuSelection,
 } from '../../../utils/selection';
-import { cn, LocalFilePath } from '../../../utils/string-formatting';
+import { cn } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/path';
 import { CardNoteSidebarItem } from './card-note-sidebar-item';
 import { ListNoteSidebarItem } from './list-note-sidebar-item';
 import { navigate } from 'wouter/use-browser-location';

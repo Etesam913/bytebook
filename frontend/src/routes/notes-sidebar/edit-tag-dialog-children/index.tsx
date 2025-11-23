@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { RouteFallback } from '../../../components/route-fallback';
 import { useTagsForNotesQuery, useTagsQuery } from '../../../hooks/tags';
-import { LocalFilePath } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/path';
 import { MotionButton } from '../../../components/buttons';
 import { getDefaultButtonVariants } from '../../../animations';
 import TagPlus from '../../../icons/tag-plus';

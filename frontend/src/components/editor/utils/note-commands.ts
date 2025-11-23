@@ -18,9 +18,9 @@ import { debounce } from '../../../utils/general';
 import {
   convertFilePathToQueryNotation,
   encodeNoteNameWithQueryParams,
-  LocalFilePath,
   getFileExtension,
 } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/path';
 import type { FilePayload } from '../nodes/file';
 import { $createLinkNode } from '../nodes/link';
 import { INSERT_FILES_COMMAND } from '../plugins/file';

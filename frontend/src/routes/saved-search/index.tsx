@@ -12,7 +12,7 @@ import { NoteSidebarButton } from '../notes-sidebar/sidebar-button/index.tsx';
 import { RenderNote } from '../notes-sidebar/render-note/index.tsx';
 import { Sidebar } from '../../components/sidebar/index.tsx';
 import { useFullTextSearchQuery } from '../../hooks/search.tsx';
-import { LocalFilePath } from '../../utils/string-formatting.ts';
+import { LocalFilePath } from '../../utils/path.ts';
 import { navigate } from 'wouter/use-browser-location';
 import { routeBuilders } from '../../utils/routes.ts';
 import { isNoteMaximizedAtom } from '../../atoms.ts';

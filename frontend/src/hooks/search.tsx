@@ -18,7 +18,7 @@ import {
 import { useWailsEvent } from '../hooks/events';
 import { isEventInCurrentWindow } from '../utils/events';
 import { useEffect, useRef } from 'react';
-import { LocalFilePath } from '../utils/string-formatting';
+import { LocalFilePath } from '../utils/path';
 import { HighlightResult } from '../../bindings/github.com/etesam913/bytebook/internal/search/models';
 import { routeUrls } from '../utils/routes';
 import { toast } from 'sonner';

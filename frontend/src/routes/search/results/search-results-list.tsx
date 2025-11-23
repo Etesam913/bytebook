@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
-import { LocalFilePath, formatDate } from '../../../utils/string-formatting';
+import { formatDate } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/path';
 import { GroupedSearchResults } from '../../../hooks/search';
 import { Tag } from '../../../components/editor/bottom-bar/tag';
 import { SearchHighlights } from './search-highlights';

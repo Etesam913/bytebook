@@ -19,8 +19,8 @@ import { FILE_SERVER_URL } from '../../../utils/general';
 import {
   getFileExtension,
   convertFilePathToQueryNotation,
-  LocalFilePath,
 } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/path';
 import {
   DropdownPickerOption,
   FilePickerMenuItem,

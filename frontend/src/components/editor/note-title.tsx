@@ -4,7 +4,8 @@ import { useSetAtom } from 'jotai';
 import { $getRoot } from 'lexical';
 import { useState } from 'react';
 import { isToolbarDisabledAtom } from '../../atoms';
-import { NAME_CHARS, cn, LocalFilePath } from '../../utils/string-formatting';
+import { NAME_CHARS, cn } from '../../utils/string-formatting';
+import { LocalFilePath } from '../../utils/path';
 import { useRenameFileMutation } from '../../hooks/notes';
 import { navigate } from 'wouter/use-browser-location';
 

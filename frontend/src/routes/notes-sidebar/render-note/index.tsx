@@ -16,7 +16,7 @@ import { useSearchParamsEntries } from '../../../utils/routing';
 import { useRoute } from 'wouter';
 import { navigate } from 'wouter/use-browser-location';
 import { RouteFallback } from '../../../components/route-fallback';
-import { LocalFilePath } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/path';
 import {
   routeUrls,
   type NotesRouteParams,

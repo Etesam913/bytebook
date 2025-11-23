@@ -15,7 +15,7 @@ import { Link } from '../../icons/link';
 import { Trash } from '../../icons/trash';
 import { Browser } from '@wailsio/runtime';
 import { removeDecoratorNode } from '../../utils/commands';
-import { Path } from '../../utils/string-formatting';
+import { Path } from '../../utils/path';
 import { navigate } from 'wouter/use-browser-location';
 import { cn } from '../../utils/string-formatting';
 

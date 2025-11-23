@@ -13,7 +13,7 @@ import { ResizeControlsPopover } from '../resize-container/resize-controls-popov
 import { FileDimensions } from '../editor/nodes/types';
 import { onResize, writeMediaDimensionsOnLoad } from './utils/resize';
 import { FilePlaceholder } from './placeholder';
-import { Path } from '../../utils/string-formatting';
+import { Path } from '../../utils/path';
 
 export function Image({
   path,

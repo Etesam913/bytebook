@@ -7,11 +7,7 @@ import { FileError } from './error';
 import { Image } from './image';
 import { Pdf } from './pdf';
 import { Video } from './video';
-import {
-  GlobalFilePath,
-  LocalFilePath,
-  Path,
-} from '../../utils/string-formatting';
+import { GlobalFilePath, LocalFilePath, Path } from '../../utils/path';
 import { FileDimensions } from '../editor/nodes/types';
 
 function constructPathFromSrc(src: string): Path {

@@ -10,7 +10,7 @@ import { FileRefresh } from '../../icons/file-refresh.tsx';
 import { Loader } from '../../icons/loader.tsx';
 import { Note } from '../../icons/page.tsx';
 import { NoteSidebarButton } from './sidebar-button/index.tsx';
-import { LocalFilePath } from '../../utils/string-formatting.ts';
+import { LocalFilePath } from '../../utils/path.ts';
 import { NotesQueryData } from '../../hooks/notes.tsx';
 
 export function MyNotesSidebar({
