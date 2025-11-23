@@ -79,6 +79,81 @@ function parseOutCodeBlockHeaderProperties(propertiesString: string) {
   return propertyMap;
 }
 
+function parseLanguageAndProperties(startMatch: RegExpMatchArray | string[]): {
+  language: Languages;
+  id: string;
+  lastExecutedResult: string | null;
+} {
+  // If no language specified or not a valid language, default to 'text'
+  const language =
+    startMatch[1] && allLanguagesSet.has(startMatch[1] as Languages)
+      ? startMatch[1]
+      : 'text';
+
+  // Parse properties from the header (everything after the language)
+  const headerProperties = startMatch[2]
+    ? parseOutCodeBlockHeaderProperties(startMatch[2])
+    : new Map<string, string>();
+
+  // Extract id and lastExecutedResult from properties
+  const id = headerProperties.has('id')
+    ? headerProperties.get('id')!
+    : crypto.randomUUID();
+
+  const lastExecutedResult = headerProperties.has('lastExecutedResult')
+    ? unescapeQuotes(
+        unescapeNewlines(headerProperties.get('lastExecutedResult')!)
+      )
+    : null;
+
+  return {
+    language: language as Languages,
+    id,
+    lastExecutedResult,
+  };
+}
+
+function extractCodeContent(
+  startMatch: RegExpMatchArray | string[],
+  endMatch: RegExpMatchArray | string[] | null,
+  linesInBetween: string[] | null
+): string {
+  if (!linesInBetween) {
+    // No lines in between, code will be empty
+    return '';
+  }
+
+  if (linesInBetween.length === 1) {
+    // Single-line code blocks
+    if (endMatch) {
+      // End match on same line. Example: ```markdown hello```. markdown should not be considered the language here.
+      return (startMatch[1] ?? '') + linesInBetween[0];
+    } else {
+      // No end match. We should assume the language is next to the backticks and that code will be typed on the next line in the future
+      return linesInBetween[0].startsWith(' ')
+        ? linesInBetween[0].slice(1)
+        : linesInBetween[0];
+    }
+  }
+
+  // Treat multi-line code blocks as if they always have an end match
+  const processedLines = [...linesInBetween];
+
+  if (processedLines[0].trim().length === 0) {
+    // Filter out all start and end lines that are length 0 until we find the first line with content
+    while (processedLines.length > 0 && !processedLines[0].length) {
+      processedLines.shift();
+    }
+  } else {
+    // The first line already has content => Remove the first space of the line if it exists
+    processedLines[0] = processedLines[0].startsWith(' ')
+      ? processedLines[0].slice(1)
+      : processedLines[0];
+  }
+
+  return processedLines.join('\n');
+}
+
 export const CODE_TRANSFORMER: MultilineElementTransformer = {
   dependencies: [CodeNode],
   export: (node: LexicalNode) => {
@@ -110,77 +185,23 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
   },
   regExpStart: CODE_START_REGEX,
   replace: (rootNode, children, startMatch, endMatch, linesInBetween) => {
-    // If no language specified or not a valid language, default to 'text'
-    const language =
-      startMatch[1] && allLanguagesSet.has(startMatch[1] as Languages)
-        ? startMatch[1]
-        : 'text';
+    const { language, id, lastExecutedResult } =
+      parseLanguageAndProperties(startMatch);
 
-    // Parse properties from the header (everything after the language)
-    const headerProperties = startMatch[2]
-      ? parseOutCodeBlockHeaderProperties(startMatch[2])
-      : new Map<string, string>();
-
-    // Extract id and lastExecutedResult from properties
-    const id = headerProperties.has('id')
-      ? headerProperties.get('id')!
-      : crypto.randomUUID();
-
-    const lastExecutedResult = headerProperties.has('lastExecutedResult')
-      ? unescapeQuotes(
-          unescapeNewlines(headerProperties.get('lastExecutedResult')!)
-        )
-      : null;
-
-    let code = '';
-
-    if (!children && linesInBetween) {
-      if (linesInBetween.length === 1) {
-        // Single-line code blocks
-        if (endMatch) {
-          // End match on same line. Example: ```markdown hello```. markdown should not be considered the language here.
-          code = startMatch[1] + linesInBetween[0];
-        } else {
-          // No end match. We should assume the language is next to the backticks and that code will be typed on the next line in the future
-          code = linesInBetween[0].startsWith(' ')
-            ? linesInBetween[0].slice(1)
-            : linesInBetween[0];
-        }
-      } else {
-        // Treat multi-line code blocks as if they always have an end match
-
-        if (linesInBetween[0].trim().length === 0) {
-          // Filter out all start and end lines that are length 0 until we find the first line with content
-          while (linesInBetween.length > 0 && !linesInBetween[0].length) {
-            linesInBetween.shift();
-          }
-        } else {
-          // The first line already has content => Remove the first space of the line if it exists
-          linesInBetween[0] = linesInBetween[0].startsWith(' ')
-            ? linesInBetween[0].slice(1)
-            : linesInBetween[0];
-        }
-
-        // Filter out all end lines that are length 0 until we find the last line with content
-        while (
-          linesInBetween.length > 0 &&
-          !linesInBetween[linesInBetween.length - 1].length
-        ) {
-          linesInBetween.pop();
-        }
-
-        code = linesInBetween.join('\n');
-      }
-    }
+    let code = extractCodeContent(
+      startMatch,
+      endMatch,
+      !children ? linesInBetween : null
+    );
 
     // Use default code if no content is provided
     if (!code.trim()) {
-      code = getDefaultCodeForLanguage(language as Languages);
+      code = getDefaultCodeForLanguage(language);
     }
 
     const newNode = $createCodeNode({
       id,
-      language: language as Languages,
+      language,
       code,
       lastExecutedResult,
     });

@@ -11,6 +11,8 @@ import { CodeResult } from './code-result';
 import { trapFocusContainerAtom } from '../../atoms';
 import { useSetAtom } from 'jotai';
 import { languageDisplayConfig } from './language-config';
+import { useNodeInNodeSelection } from '../../hooks/lexical';
+import { SelectionHighlight } from '../selection-highlight';
 
 const CodeMirrorEditor = lazy(() =>
   import('./codemirror-editor').then((module) => ({
@@ -64,6 +66,7 @@ export function Code({
   const [isExpanded, setIsExpanded] = useState(false);
   const [lexicalEditor] = useLexicalComposerContext();
   const [isSelected] = useLexicalNodeSelection(nodeKey);
+  const isInNodeSelection = useNodeInNodeSelection(lexicalEditor, nodeKey);
   const setTrapFocusContainer = useSetAtom(trapFocusContainerAtom);
   const codeBlockRef = useRef<HTMLDivElement>(null);
 
@@ -100,28 +103,32 @@ export function Code({
         </div>
         <div>{durationText}</div>
       </div>
+      <AnimatePresence>
+        {isSelected && !isInNodeSelection && (
+          <SelectionHighlight
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.15 } }}
+            exit={{ opacity: 0, transition: { duration: 0.15 } }}
+          />
+        )}
+      </AnimatePresence>
       <span
         data-interactable="true"
         data-node-key={nodeKey}
         className={cn(
-          'relative rounded-md border-[2px] overflow-hidden grow cm-background transition-colors border-zinc-150 dark:border-zinc-700',
-          isSelected && '!border-(--accent-color)',
+          'relative rounded-md border-2 grow cm-background transition-colors border-zinc-150 dark:border-zinc-750',
+          isSelected && 'border-(--accent-color)!',
           isExpanded &&
-            'fixed z-[60] left-0 top-0 right-0 bottom-0 h-[calc(100vh-5rem)] m-auto w-[calc(100vw-5rem)] flex flex-col'
+            'fixed z-60 left-0 top-0 right-0 bottom-0 h-[calc(100vh-5rem)] m-auto w-[calc(100vw-5rem)] flex flex-col'
         )}
       >
         <Suspense
           fallback={<Loader className="mx-auto my-3" height={18} width={18} />}
         >
           <CodeActions
-            id={id}
             codeMirrorInstance={codeMirrorInstance}
-            language={language}
-            status={status}
-            setStatus={setStatus}
             isExpanded={isExpanded}
             setIsExpanded={setIsExpanded}
-            nodeKey={nodeKey}
           />
           <CodeMirrorEditor
             nodeKey={nodeKey}

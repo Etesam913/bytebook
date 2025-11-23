@@ -64,7 +64,6 @@ export function SavePlugin({
             undefined,
             true
           );
-          console.log('markdown', markdown);
 
           let frontmatterCopy = payload?.newFrontmatter;
           if (!frontmatterCopy) {

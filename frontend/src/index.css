@@ -229,7 +229,7 @@ code {
 }
 
 .cm-background {
-  @apply bg-white dark:bg-[#272c35];
+  @apply bg-white dark:bg-[#1e1e1e];
 }
 
 .cm-lineNumbers {
@@ -245,11 +245,11 @@ code {
 }
 
 /* Styling the vim cursor */
-.ͼ37:not(.cm-focused) .cm-fat-cursor {
+.cm-editor:not(.cm-focused) .cm-fat-cursor {
   outline-color: var(--accent-color) !important;
 }
 
-.ͼ37.cm-focused .cm-fat-cursor {
+.cm-editor.cm-focused .cm-fat-cursor {
   background: var(--accent-color) !important;
 }
 

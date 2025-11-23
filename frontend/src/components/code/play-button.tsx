@@ -1,6 +1,6 @@
-import { MotionIconButton } from '../buttons';
 import { Play } from '../../icons/circle-play';
 import { getDefaultButtonVariants } from '../../animations';
+import { motion } from 'motion/react';
 import {
   useSendExecuteRequestMutation,
   useSendInterruptRequestMutation,
@@ -13,6 +13,7 @@ import { MediaStop } from '../../icons/media-stop';
 import { Loader } from '../../icons/loader';
 import { useAtomValue } from 'jotai/react';
 import { kernelsDataAtom } from '../../atoms';
+import { Tooltip } from '../tooltip';
 
 export function PlayButton({
   codeBlockId,
@@ -38,30 +39,43 @@ export function PlayButton({
   const { mutate: turnOnKernel } = useTurnOnKernelMutation();
 
   return (
-    <MotionIconButton
-      {...getDefaultButtonVariants({
-        disabled: false,
-        whileHover: 1.05,
-        whileTap: 0.975,
-        whileFocus: 1.05,
-      })}
-      disabled={status === 'starting' || status === 'queueing'}
-      onClick={() => {
-        handleRunOrInterruptCode({
-          status,
-          codeBlockId,
-          codeBlockLanguage: language,
-          interruptExecution,
-          codeMirrorInstance,
-          executeCode,
-          kernelsData,
-          turnOnKernel,
-        });
-      }}
+    <Tooltip
+      delay={{ open: 1200, close: 0 }}
+      placement="bottom"
+      content={
+        status === 'starting'
+          ? 'Starting kernel...'
+          : status === 'queueing'
+            ? 'Loading ...'
+            : 'Run code'
+      }
     >
-      {status === 'busy' && <MediaStop />}
-      {status === 'queueing' && <Loader />}
-      {status === 'starting' || (status === 'idle' && <Play />)}
-    </MotionIconButton>
+      <motion.button
+        {...getDefaultButtonVariants({
+          disabled: false,
+          whileHover: 1.1,
+          whileTap: 0.95,
+          whileFocus: 1.1,
+        })}
+        disabled={status === 'starting' || status === 'queueing'}
+        onClick={() => {
+          handleRunOrInterruptCode({
+            status,
+            codeBlockId,
+            codeBlockLanguage: language,
+            interruptExecution,
+            codeMirrorInstance,
+            executeCode,
+            kernelsData,
+            turnOnKernel,
+          });
+        }}
+      >
+        {status === 'busy' && <MediaStop width={20} height={20} />}
+        {status === 'queueing' && <Loader width={20} height={20} />}
+        {status === 'starting' ||
+          (status === 'idle' && <Play width={20} height={20} />)}
+      </motion.button>
+    </Tooltip>
   );
 }

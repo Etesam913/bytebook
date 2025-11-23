@@ -11,13 +11,13 @@ import { CodeBlockStatus, KernelsData, Languages } from '../types';
 export function getDefaultCodeForLanguage(language: Languages) {
   switch (language) {
     case 'python':
-      return 'print("Hello, World!")';
+      return 'print("Hello, World!")\n\n\n\n';
     case 'go':
-      return '%% \nfmt.Println("Hello, World!")';
+      return '%% \nfmt.Println("Hello, World!")\n\n\n\n';
     case 'javascript':
-      return 'console.log("Hello, World!");';
+      return 'console.log("Hello, World!");\n\n\n\n';
     case 'java':
-      return 'System.out.println("Hello, World!");';
+      return 'System.out.println("Hello, World!");\n\n\n\n';
     case 'text':
       return '';
     default:

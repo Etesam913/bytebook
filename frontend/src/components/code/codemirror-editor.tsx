@@ -1,4 +1,4 @@
-import { vscodeLight } from '@uiw/codemirror-theme-vscode';
+import { vscodeLight, vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { useAtomValue } from 'jotai/react';
 import {
   isDarkModeOnAtom,
@@ -10,7 +10,6 @@ import CodeMirror, {
   EditorView,
 } from '@uiw/react-codemirror';
 import { debounce } from '../../utils/general';
-import { atomone } from '@uiw/codemirror-theme-atomone';
 import {
   useSendExecuteRequestMutation,
   useSendInterruptRequestMutation,
@@ -32,6 +31,8 @@ import { autocompletion } from '@codemirror/autocomplete';
 import { useNodeInNodeSelection } from '../../hooks/lexical';
 import { useEffect } from 'react';
 import { langs } from '@uiw/codemirror-extensions-langs';
+import { PlayButton } from './play-button';
+import { DeleteButton } from './delete-button';
 import type {
   Language,
   LanguageSupport,
@@ -182,80 +183,95 @@ export function CodeMirrorEditor({
     : [];
 
   return (
-    <div
-      onClick={() => {
-        // Refocuses the editor when clicks happen outside of it but still inside the overall component
-        if (codeMirrorInstance?.view) {
-          codeMirrorInstance.view.focus();
-          setSelected(true);
-        }
-      }}
-      className={cn('min-h-12', isExpanded && 'flex-1 overflow-y-auto')}
-      onKeyDownCapture={(e) => {
-        if (
-          projectSettings.code.codeBlockVimMode &&
-          e.key === 'Escape' &&
-          codeMirrorInstance?.view
-        ) {
-          // Ensures that the editor goes into normal mode when escape is pressed
-          // Previously, the editor would remain in insert mode after pressing escape
-          // when autocomplete suggestions were showing.
-          const codeMirrorVim = getCM(codeMirrorInstance.view);
-          if (codeMirrorVim) {
-            Vim.exitInsertMode(codeMirrorVim as CodeMirrorV);
+    <div className="flex flex-1 gap-2 min-h-0 h-full">
+      <div className="flex flex-col self-stretch justify-between pt-3 pb-4 pl-3 pr-1.5 dark:px-3 gap-8 items-center dark:border-r-2 dark:border-zinc-800">
+        {language !== 'text' && (
+          <PlayButton
+            codeBlockId={id}
+            codeMirrorInstance={codeMirrorInstance}
+            language={language}
+            status={status}
+            setStatus={setStatus}
+          />
+        )}
+        <DeleteButton nodeKey={nodeKey} />
+      </div>
+      <div
+        onClick={() => {
+          // Refocuses the editor when clicks happen outside of it but still inside the overall component
+          if (codeMirrorInstance?.view) {
+            codeMirrorInstance.view.focus();
+            setSelected(true);
           }
-        }
-      }}
-    >
-      <CodeMirror
-        ref={handleEditorRef}
-        value={code}
-        onChange={(newCode) => {
-          debouncedSetCode(newCode);
         }}
-        className="cm-background"
-        extensions={[
-          EditorView.editable.of(isInNodeSelection),
-          ...(projectSettings.code.codeBlockVimMode ? [vim()] : []),
-          runCodeKeymap,
-          ...(cmLanguageObject ? [extraCompletions] : []),
-          ...(() => {
-            const ext = languageToSettings[language].extension();
-            return Array.isArray(ext) && ext.length === 0 ? [] : [ext];
-          })(),
-          autocompletion({
-            activateOnTypingDelay: 50,
-            // For languages that do not have a language object, there is now way to attach completions
-            // to the language object, so we need to attach it to the autocompletion extension
-            override: cmLanguageObject ? undefined : [completionSource],
-          }),
-          inspectTooltip,
-        ]}
-        theme={isDarkModeOn ? atomone : vscodeLight}
-        onKeyDown={(e) => {
-          if (e.key === 'Backspace') {
-            //  TODO: Think of a better fix than this, Fixes weird bug where pressing backspace at beginning of first line focuses the <body> tag
-            setTimeout(() => {
-              focusEditor(codeMirrorInstance);
-            }, 5);
-          } else {
-            // ArrowDown and ArrowUp are handled in the keybinding extension
-            if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
-              setSelected(true);
+        className={cn('min-h-12 flex-1 overflow-auto')}
+        onKeyDownCapture={(e) => {
+          if (
+            projectSettings.code.codeBlockVimMode &&
+            e.key === 'Escape' &&
+            codeMirrorInstance?.view
+          ) {
+            // Ensures that the editor goes into normal mode when escape is pressed
+            // Previously, the editor would remain in insert mode after pressing escape
+            // when autocomplete suggestions were showing.
+            const codeMirrorVim = getCM(codeMirrorInstance.view);
+            if (codeMirrorVim) {
+              Vim.exitInsertMode(codeMirrorVim as CodeMirrorV);
             }
-            e.stopPropagation();
           }
         }}
-        onClick={(e) => {
-          clearSelection();
-          setSelected(true);
-          e.stopPropagation();
-        }}
-        basicSetup={{
-          lineNumbers: true,
-          ...languageToSettings[language].basicSetup,
-        }}
-      />
+      >
+        <CodeMirror
+          ref={handleEditorRef}
+          value={code}
+          onChange={(newCode) => {
+            debouncedSetCode(newCode);
+          }}
+          className="cm-background"
+          extensions={[
+            EditorView.editable.of(isInNodeSelection),
+            ...(projectSettings.code.codeBlockVimMode ? [vim()] : []),
+            runCodeKeymap,
+            ...(cmLanguageObject ? [extraCompletions] : []),
+            ...(() => {
+              const ext = languageToSettings[language].extension();
+              return Array.isArray(ext) && ext.length === 0 ? [] : [ext];
+            })(),
+            autocompletion({
+              activateOnTypingDelay: 50,
+              // For languages that do not have a language object, there is now way to attach completions
+              // to the language object, so we need to attach it to the autocompletion extension
+              override: cmLanguageObject ? undefined : [completionSource],
+            }),
+            inspectTooltip,
+          ]}
+          theme={isDarkModeOn ? vscodeDark : vscodeLight}
+          onKeyDown={(e) => {
+            if (e.key === 'Backspace') {
+              //  TODO: Think of a better fix than this, Fixes weird bug where pressing backspace at beginning of first line focuses the <body> tag
+              setTimeout(() => {
+                focusEditor(codeMirrorInstance);
+              }, 5);
+            } else {
+              // ArrowDown and ArrowUp are handled in the keybinding extension
+              if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
+                setSelected(true);
+              }
+              e.stopPropagation();
+            }
+          }}
+          onClick={(e) => {
+            clearSelection();
+            setSelected(true);
+            e.stopPropagation();
+          }}
+          basicSetup={{
+            lineNumbers: true,
+            foldGutter: false,
+            ...languageToSettings[language].basicSetup,
+          }}
+        />
+      </div>
     </div>
   );
 }
