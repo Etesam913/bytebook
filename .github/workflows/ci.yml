@@ -78,6 +78,9 @@ jobs:
     needs: backend-and-bindings
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       # Uses the custom action from File 1
       - name: Setup Frontend Environment
         uses: ./.github/actions/setup-frontend
@@ -109,6 +112,9 @@ jobs:
     needs: backend-and-bindings
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       # Uses the custom action from File 1
       - name: Setup Frontend Environment
         uses: ./.github/actions/setup-frontend
