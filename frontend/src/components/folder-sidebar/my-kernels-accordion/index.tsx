@@ -93,6 +93,7 @@ export function MyKernelsAccordion() {
         placement="right"
       >
         <AccordionButton
+          data-testid="kernels-accordion"
           isOpen={isOpen}
           onClick={() =>
             setOpenState((prev) => ({

@@ -25,6 +25,7 @@ export function MyTagsAccordion() {
   return (
     <section>
       <AccordionButton
+        data-testid="tags-accordion"
         isOpen={isOpen}
         onClick={() =>
           setOpenState((prev) => ({

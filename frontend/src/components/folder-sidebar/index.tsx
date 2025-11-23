@@ -54,6 +54,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
       <motion.aside
         style={{ width }}
         className="text-md flex h-screen flex-col"
+        data-testid="folder-sidebar"
       >
         <header
           className={cn(

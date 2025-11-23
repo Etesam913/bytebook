@@ -30,6 +30,7 @@ export function MySavedSearchesAccordion() {
   return (
     <section className="pb-1.5">
       <AccordionButton
+        data-testid="saved-searches-accordion"
         isOpen={isOpen}
         onClick={() =>
           setOpenState((prev) => ({
