@@ -23,6 +23,32 @@ const MOCK_SAVED_SEARCHES_RESPONSE = {
   ],
 };
 
+const MOCK_PROJECT_SETTINGS_RESPONSE = {
+  success: true,
+  message: '',
+  data: {
+    pinnedNotes: [
+      'Economics Notes/Supply and Demand.md',
+      'Research Notes/Quantum Physics.md',
+    ],
+    repositoryToSyncTo: '',
+    projectPath: '',
+    appearance: {
+      theme: 'light',
+      noteSidebarItemSize: 'card',
+      accentColor: '',
+      noteWidth: 'fullWidth',
+      editorFontFamily: 'Bricolage Grotesque',
+      showEmptyLinePlaceholder: true,
+    },
+    code: {
+      codeBlockVimMode: false,
+      pythonVenvPath: '',
+      customPythonVenvPaths: [],
+    },
+  },
+};
+
 test.describe('Folder Sidebar', () => {
   test.beforeEach(async ({ context }) => {
     await mockBinding(
@@ -32,6 +58,15 @@ test.describe('Folder Sidebar', () => {
         method: 'GetFolders',
       },
       MOCK_FOLDER_RESPONSE
+    );
+
+    await mockBinding(
+      context,
+      {
+        file: SERVICE_FILES.SETTINGS_SERVICE,
+        method: 'GetProjectSettings',
+      },
+      MOCK_PROJECT_SETTINGS_RESPONSE
     );
 
     await mockBinding(
@@ -105,6 +140,40 @@ test.describe('Folder Sidebar', () => {
     savedSearchesAccordion.click();
     await expect(sidebar).toContainText('My Research');
     await expect(sidebar).toContainText('Economics');
+  });
+
+  test('renders pinned notes accordion', async ({ page }) => {
+    await page.goto('/');
+
+    const sidebar = page.getByTestId('folder-sidebar');
+    await expect(sidebar).toContainText('Pinned Notes');
+
+    // Pinned notes are open by default
+    await expect(sidebar).toContainText('Supply and Demand');
+    await expect(sidebar).toContainText('Quantum Physics');
+  });
+
+  test('renders recent notes accordion', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        'mostRecentNotes',
+        JSON.stringify([
+          'Economics Notes/Inflation.md',
+          'Research Notes/Black Holes.md',
+        ])
+      );
+    });
+
+    await page.goto('/');
+
+    const sidebar = page.getByTestId('folder-sidebar');
+    await expect(sidebar).toContainText('Recent Notes');
+
+    const recentNotesAccordion = page.getByTestId('recent-notes-accordion');
+    await recentNotesAccordion.click();
+
+    await expect(sidebar).toContainText('Inflation');
+    await expect(sidebar).toContainText('Black Holes');
   });
 
   test.describe('Failure responses', () => {

@@ -10,7 +10,6 @@ import {
   type UserData,
   type WindowSettings,
 } from './types';
-import { convertFilePathToQueryNotation } from './utils/string-formatting';
 import { LocalFilePath } from './utils/path';
 
 // Most recent notes atoms
@@ -58,19 +57,6 @@ export const projectSettingsAtom = atom<ProjectSettings>({
     pythonVenvPath: '',
     customPythonVenvPaths: [],
   },
-});
-
-export const projectSettingsWithQueryParamsAtom = atom((get) => {
-  const projectSettings = get(projectSettingsAtom);
-  const pinnedNotes = projectSettings.pinnedNotes;
-  return {
-    ...projectSettings,
-    pinnedNotes: new Set(
-      [...pinnedNotes].map((path) => {
-        return convertFilePathToQueryNotation(path);
-      })
-    ),
-  };
 });
 
 const userDataAtom = atom<UserData | null>(null);

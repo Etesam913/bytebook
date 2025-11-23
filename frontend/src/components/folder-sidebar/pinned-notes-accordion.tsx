@@ -118,6 +118,7 @@ export function PinnedNotesAccordion() {
   return (
     <section>
       <AccordionButton
+        data-testid="pinned-notes-accordion"
         onClick={() =>
           setOpenState((prev) => ({
             ...prev,

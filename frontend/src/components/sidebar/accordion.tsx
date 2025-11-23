@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import type { JSX, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, JSX, ReactNode } from 'react';
 import { AccordionButton } from './accordion-button';
 import { cn } from '../../utils/string-formatting';
 
@@ -11,6 +11,7 @@ export function SidebarAccordion({
   icon,
   buttonClassName,
   listClassName,
+  ...props
 }: {
   onClick: () => void;
   isOpen: boolean;
@@ -19,7 +20,10 @@ export function SidebarAccordion({
   icon?: JSX.Element;
   buttonClassName?: string;
   listClassName?: string;
-}) {
+} & Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  'onClick' | 'title' | 'className'
+>) {
   return (
     <section>
       <AccordionButton
@@ -28,6 +32,7 @@ export function SidebarAccordion({
         title={title}
         icon={icon}
         className={buttonClassName}
+        {...props}
       />
       <AnimatePresence initial={false}>
         {isOpen && (

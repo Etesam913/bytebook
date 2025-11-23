@@ -16,7 +16,7 @@ import (
 
 // Constants for file types
 const (
-	debounceTimeout = 75 * time.Millisecond
+	debounceTimeout = 350 * time.Millisecond
 )
 
 var IMAGE_FILE_EXTENSIONS = []string{"png", "jpg", "jpeg", "webp", "gif"}
@@ -364,12 +364,14 @@ func AddProjectFoldersToWatcher(projectPath string, watcher *fsnotify.Watcher) {
 	// Set up paths
 	settingsPath := filepath.Join(projectPath, "settings")
 	notesFolderPath := filepath.Join(projectPath, "notes")
-	searchPath := filepath.Join(projectPath, "search")
+
+	// The search path contains the index which we don't want to watch
+	savedSearchesPath := filepath.Join(projectPath, "search", "saved-searches.json")
 
 	// Add main folders to watcher
 	watcher.Add(settingsPath)
 	watcher.Add(notesFolderPath)
-	watcher.Add(searchPath)
+	watcher.Add(savedSearchesPath)
 
 	// Add all note subfolders
 	noteEntries, err := os.ReadDir(notesFolderPath)

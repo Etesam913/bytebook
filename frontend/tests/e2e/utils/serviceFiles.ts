@@ -9,4 +9,6 @@ export const SERVICE_FILES = {
     'github.com/etesam913/bytebook/internal/services/tagsservice.js',
   SEARCH_SERVICE:
     'github.com/etesam913/bytebook/internal/services/searchservice.js',
+  SETTINGS_SERVICE:
+    'github.com/etesam913/bytebook/internal/services/settingsservice.js',
 } as const;

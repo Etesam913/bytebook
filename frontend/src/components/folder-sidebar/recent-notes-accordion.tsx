@@ -26,6 +26,7 @@ export function RecentNotesAccordion() {
 
   return (
     <SidebarAccordion
+      data-testid="recent-notes-accordion"
       onClick={() =>
         setOpenState((prev) => ({
           ...prev,
