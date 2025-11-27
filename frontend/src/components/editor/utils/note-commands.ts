@@ -74,22 +74,24 @@ export function overrideUndoRedoCommand() {
  */
 export function overrideClickCommand(e: MouseEvent) {
   const element = e.target as HTMLElement;
-  const isInteractable = element.getAttribute('data-interactable');
-  if (isInteractable) {
-    const nodeKey = element.getAttribute('data-node-key');
-    if (!nodeKey) return true;
+  const interactableTarget = element.closest<HTMLElement>(
+    '[data-interactable="true"]'
+  );
+  if (!interactableTarget) return true;
 
-    let selection = $getSelection();
-    const isRegularClick = !e.ctrlKey && !e.shiftKey && !e.metaKey;
-    if (isRegularClick || !$isNodeSelection(selection)) {
-      selection = $createNodeSelection();
-    }
+  const nodeKey = interactableTarget.getAttribute('data-node-key');
+  if (!nodeKey) return true;
 
-    (selection as NodeSelection).add(nodeKey);
-    // Focuses the content-editable as opposed to the div container that surrounds the image. Left and right arrow keys do not work correctly when the div container is selected.
-    // document.getElementById("content-editable-editor")?.focus();
-    $setSelection(selection);
+  let selection = $getSelection();
+  const isRegularClick = !e.ctrlKey && !e.shiftKey && !e.metaKey;
+  if (isRegularClick || !$isNodeSelection(selection)) {
+    selection = $createNodeSelection();
   }
+
+  (selection as NodeSelection).add(nodeKey);
+  // Focuses the content-editable as opposed to the div container that surrounds the image. Left and right arrow keys do not work correctly when the div container is selected.
+  // document.getElementById("content-editable-editor")?.focus();
+  $setSelection(selection);
   return true;
 }
 
