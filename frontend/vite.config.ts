@@ -2,6 +2,7 @@ import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import { visualizer } from 'rollup-plugin-visualizer';
+import { configDefaults } from 'vitest/config';
 
 const ReactCompilerConfig = {
   // Your react-compiler options here
@@ -44,6 +45,12 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       'process.env.IS_PREACT': JSON.stringify('false'),
+    },
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: './src/test/setup.ts',
+      exclude: [...configDefaults.exclude, 'tests/e2e/**'],
     },
   };
 });

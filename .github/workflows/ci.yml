@@ -70,7 +70,7 @@ jobs:
           retention-days: 1
 
   # ------------------------------------------------------------------
-  # JOB 2: Frontend Checks (Lint/Typecheck)
+  # JOB 2: Frontend Checks (Lint/Typecheck/Unit Tests)
   # ------------------------------------------------------------------
   frontend-checks:
     name: Frontend Checks
@@ -102,6 +102,10 @@ jobs:
       - name: Run TypeScript check
         working-directory: ./frontend
         run: bun run tsgo
+
+      - name: Run Vitest tests
+        working-directory: ./frontend
+        run: bun run test:run
 
   # ------------------------------------------------------------------
   # JOB 3: Playwright Tests

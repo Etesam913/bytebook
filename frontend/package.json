@@ -9,6 +9,9 @@
     "build:prod": "VITE_ANALYZE=true vite build --mode production",
     "build:analyze": "VITE_ANALYZE=true vite build",
     "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
     "test:e2e": "playwright test -c tests/e2e/playwright.config.ts",
     "test:e2e:ui": "playwright test --ui -c tests/e2e/playwright.config.ts",
     "format": "prettier --write .",
@@ -61,11 +64,14 @@
     "@eslint/js": "^9.39.1",
     "@playwright/test": "^1.56.1",
     "@tailwindcss/vite": "^4.1.17",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
     "@types/katex": "^0.16.7",
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@typescript/native-preview": "^7.0.0-dev.20251109.1",
+    "@vitest/ui": "^4.0.14",
     "@wailsio/runtime": "3.0.0-alpha.66",
     "babel-plugin-react-compiler": "1.0.0",
     "clsx": "^2.1.1",
@@ -73,6 +79,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^16.5.0",
+    "jsdom": "^27.2.0",
     "prettier": "^3.6.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -81,6 +88,7 @@
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.3",
-    "vite": "npm:rolldown-vite@latest"
+    "vite": "npm:rolldown-vite@latest",
+    "vitest": "^4.0.14"
   }
 }
