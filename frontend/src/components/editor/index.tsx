@@ -37,7 +37,7 @@ import { LinkMatcherPlugin } from './plugins/link-matcher.tsx';
 import { LinkPlugin } from './plugins/link.tsx';
 import { SavePlugin } from './plugins/save.tsx';
 import { TableOfContentsPlugin } from './plugins/table-of-contents.tsx';
-// import TreeViewPlugin from './plugins/tree-view';
+import TreeViewPlugin from './plugins/tree-view';
 import { Toolbar } from './toolbar';
 import { CUSTOM_TRANSFORMERS } from './transformers';
 import { debouncedNoteHandleChange } from './utils/note-commands.ts';
@@ -133,7 +133,7 @@ export function NotesEditor({
           className={cn(
             'h-full py-6 px-12 flex-1 w-full min-w-96',
             projectSettings.appearance.noteWidth === 'readability' &&
-              'max-w-[704px] mx-auto'
+              'max-w-[900px] mx-auto'
           )}
         >
           <div
@@ -209,7 +209,7 @@ export function NotesEditor({
             <DraggableBlockPlugin overflowContainerRef={overflowContainerRef} />
             <FocusPlugin />
             <LinkMatcherPlugin />
-            {/* <TreeViewPlugin /> */}
+            <TreeViewPlugin />
           </div>
           {frontmatter.showMarkdown === 'true' && (
             <div className="w-[50%] bg-zinc-50 dark:bg-zinc-850 h-full font-code border-l border-zinc-200 dark:border-zinc-700 px-4 pt-3 pb-2 overflow-auto">

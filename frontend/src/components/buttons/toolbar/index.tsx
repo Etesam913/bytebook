@@ -173,7 +173,6 @@ export function ToolbarButtons({
           }
 
           const clonedSelection = selection.clone();
-
           const selectionNodes = selection.getNodes();
 
           const previousUrl = selectionNodes

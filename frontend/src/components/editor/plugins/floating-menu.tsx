@@ -9,6 +9,13 @@ import {
   useRef,
 } from 'react';
 import {
+  $isRangeSelection,
+  $addUpdateTag,
+  $isTextNode,
+  IS_HIGHLIGHT,
+} from 'lexical';
+import { clearHighlight } from '../toolbar/note-find-panel/utils/highlight';
+import {
   autoUpdate,
   offset,
   flip,
@@ -106,6 +113,49 @@ export function FloatingMenuPlugin({
   const { getFloatingProps } = useInteractions([dismiss]);
 
   useEffect(() => {
+    let didHighlight = false;
+
+    // Highlight the selection when the link menu opens
+    if (isLinkMenuOpen && floatingData.previousSelection) {
+      editor.update(
+        () => {
+          $addUpdateTag('skip-dom-selection');
+          const selection = floatingData.previousSelection;
+          if (!$isRangeSelection(selection)) return;
+
+          const isBackward = selection.isBackward();
+          const [startPoint, endPoint] = isBackward
+            ? [selection.focus, selection.anchor]
+            : [selection.anchor, selection.focus];
+
+          selection.getNodes().forEach((node) => {
+            if (!$isTextNode(node)) return;
+
+            const textLength = node.getTextContent().length;
+            const start = node.is(startPoint.getNode()) ? startPoint.offset : 0;
+            const end = node.is(endPoint.getNode())
+              ? endPoint.offset
+              : textLength;
+
+            if (start === end) return; // Empty selection on this node
+
+            if (start === 0 && end === textLength) {
+              node.setFormat(node.getFormat() | IS_HIGHLIGHT);
+            } else {
+              const splitNodes =
+                start === 0 ? node.splitText(end) : node.splitText(start, end);
+              const target = splitNodes[start === 0 ? 0 : 1];
+              if (target && $isTextNode(target)) {
+                target.setFormat(target.getFormat() | IS_HIGHLIGHT);
+              }
+            }
+            didHighlight = true;
+          });
+        },
+        { tag: 'history-merge' }
+      );
+    }
+
     function handleBlur(e: FocusEvent) {
       if (!isLinkMenuOpen) return;
 
@@ -120,6 +170,9 @@ export function FloatingMenuPlugin({
         relatedTarget &&
         !floatingElement.contains(relatedTarget)
       ) {
+        // Clear highlight before closing the menu
+        clearHighlight(editor, { current: null });
+
         setFloatingData({
           isOpen: false,
           type: null,
@@ -140,20 +193,23 @@ export function FloatingMenuPlugin({
       if (floatingNode) {
         floatingNode.removeEventListener('blur', handleBlur, true);
       }
+      // Clear highlights when the effect cleans up (menu closing)
+      if (didHighlight) {
+        clearHighlight(editor, { current: null });
+      }
     };
-  }, [isLinkMenuOpen, floating.refs.floating, setFloatingData]);
+  }, [
+    isLinkMenuOpen,
+    floating.refs.floating,
+    setFloatingData,
+    floatingData.previousSelection,
+    editor,
+  ]);
 
   // Set reference element when menu opens
   useEffect(() => {
     if (isMenuOpen) {
       floating.refs.setReference(virtualElement);
-
-      if (isLinkMenuOpen && floatingData.previousSelection) {
-        editor.update(() => {
-          $setSelection(floatingData.previousSelection);
-          // editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'highlight');
-        });
-      }
     }
   }, [isMenuOpen, floatingData.left, floatingData.top]);
 
@@ -196,24 +252,6 @@ export function FloatingMenuPlugin({
               previousSelection: null,
             });
           }}
-          onKeyDown={(e) => {
-            if (!isLinkMenuOpen) return;
-            if (e.key === 'Escape') {
-              setFloatingData({
-                isOpen: false,
-                type: null,
-                top: 0,
-                left: 0,
-                previousSelection: null,
-              });
-
-              setTimeout(() => {
-                editor.update(() => {
-                  $setSelection(floatingData.previousSelection);
-                });
-              }, 200);
-            }
-          }}
           {...getFloatingProps()}
         >
           {isTextFormatMenuOpen && children}
@@ -224,9 +262,27 @@ export function FloatingMenuPlugin({
                 labelProps={{}}
                 inputProps={{
                   defaultValue: floatingData.previousUrl ?? 'https://',
-                  // autoFocus: true,
+                  autoFocus: true,
                   className: 'text-sm w-64',
                   maxLength: undefined,
+                  onKeyDown: (e) => {
+                    if (e.key === 'Escape') {
+                      e.preventDefault();
+                      setFloatingData({
+                        isOpen: false,
+                        type: null,
+                        top: 0,
+                        left: 0,
+                        previousSelection: null,
+                      });
+
+                      setTimeout(() => {
+                        editor.update(() => {
+                          $setSelection(floatingData.previousSelection);
+                        });
+                      }, 200);
+                    }
+                  },
                 }}
               />
               <MotionButton type="submit" {...getDefaultButtonVariants()}>
