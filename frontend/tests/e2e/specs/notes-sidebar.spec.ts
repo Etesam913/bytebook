@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { mockBinding } from '../utils/mockBinding';
+import { mockBinding, updateMockBindingResponse } from '../utils/mockBinding';
 import {
   MOCK_FOLDER_RESPONSE,
   MOCK_NOTES_RESPONSE,
@@ -21,9 +21,6 @@ const formattedPreviewSize = humanFileSize(
   MOCK_NOTE_PREVIEW_RESPONSE.data.size,
   true
 );
-
-const escapeRegExp = (input: string) =>
-  input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 test.describe('Notes Sidebar', () => {
   test.beforeEach(async ({ context }) => {
@@ -123,6 +120,60 @@ test.describe('Notes Sidebar', () => {
 
     const sidebar = page.getByTestId('notes-sidebar');
     await expect(sidebar).toContainText('Create Note');
+  });
+
+  test('creates a note via the sidebar button', async ({ page, context }) => {
+    const NEW_NOTE_NAME = 'Product Strategy';
+    const UPDATED_NOTES_RESPONSE = {
+      success: true,
+      message: '',
+      data: [
+        ...MOCK_NOTES_RESPONSE.data,
+        { folder: 'Economics Notes', note: `${NEW_NOTE_NAME}.md` },
+      ],
+    };
+
+    await mockBinding(
+      context,
+      {
+        file: SERVICE_FILES.NOTE_SERVICE,
+        method: 'AddNoteToFolder',
+      },
+      {
+        success: true,
+        message: '',
+        data: null,
+      }
+    );
+
+    await page.goto('/notes/Economics%20Notes');
+
+    await updateMockBindingResponse(
+      page,
+      {
+        file: SERVICE_FILES.NOTE_SERVICE,
+        method: 'GetNotes',
+      },
+      UPDATED_NOTES_RESPONSE
+    );
+
+    const sidebar = page.getByTestId('notes-sidebar');
+    await sidebar.getByRole('button', { name: 'Create Note' }).click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(
+      dialog.getByRole('heading', { name: 'Create Note' })
+    ).toBeVisible();
+
+    await dialog.getByLabel('New Note Name').fill(NEW_NOTE_NAME);
+    await dialog.getByRole('button', { name: 'Create Note' }).click();
+
+    await expect(page).toHaveURL(
+      new RegExp(
+        `/notes/Economics%20Notes/${encodeURIComponent(NEW_NOTE_NAME)}`
+      )
+    );
+    await expect(sidebar).toContainText(NEW_NOTE_NAME);
   });
 
   test('auto-navigates to the first note when visiting folder without a note selected', async ({

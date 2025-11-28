@@ -1,7 +1,9 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import type { BrowserContext } from '@playwright/test';
+/// <reference types="node" />
+
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import type { BrowserContext, Page } from '@playwright/test';
 
 // Minimal Playwright-side shim that lets us fake any generated Wails binding
 // by intercepting the runtime RPC call and short-circuiting it with data.
@@ -35,6 +37,33 @@ export async function mockBinding(
 
   // Register the mock payload on the window before any app code runs.
   await context.addInitScript(
+    ({ methodId, response }) => {
+      (
+        window as typeof window & {
+          __BYTEBOOK_REGISTER_WAILS_MOCK__?: (
+            methodId: number,
+            payload: unknown
+          ) => void;
+        }
+      ).__BYTEBOOK_REGISTER_WAILS_MOCK__?.(methodId, response);
+    },
+    { methodId, response }
+  );
+}
+
+/**
+ * Updates an existing mock binding response for the current page without requiring a navigation.
+ * Useful when a test needs to change the mocked payload after the app has already loaded.
+ */
+export async function updateMockBindingResponse(
+  page: Page,
+  identifier: BindingIdentifier,
+  response: unknown
+) {
+  await ensureFetchIsPatched(page.context());
+  const methodId = getMethodId(identifier);
+
+  await page.evaluate(
     ({ methodId, response }) => {
       (
         window as typeof window & {

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { mockBinding } from '../utils/mockBinding';
+import { mockBinding, updateMockBindingResponse } from '../utils/mockBinding';
 import {
   MOCK_FOLDER_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
@@ -111,6 +111,64 @@ test.describe('Folder Sidebar', () => {
     savedSearchesAccordion.click();
     await expect(sidebar).toContainText('My Research');
     await expect(sidebar).toContainText('Economics');
+  });
+
+  test('creates a folder via the sidebar button', async ({ page, context }) => {
+    const NEW_FOLDER_NAME = 'My Todos';
+    const UPDATED_FOLDER_RESPONSE = {
+      success: true,
+      message: '',
+      data: ['Economics Notes', 'Research Notes', NEW_FOLDER_NAME],
+    };
+
+    await mockBinding(
+      context,
+      {
+        file: SERVICE_FILES.FOLDER_SERVICE,
+        method: 'AddFolder',
+      },
+      UPDATED_FOLDER_RESPONSE
+    );
+
+    await mockBinding(
+      context,
+      {
+        file: SERVICE_FILES.NOTE_SERVICE,
+        method: 'AddNoteToFolder',
+      },
+      {
+        success: true,
+        message: '',
+        data: null,
+      }
+    );
+
+    await page.goto('/');
+
+    await updateMockBindingResponse(
+      page,
+      {
+        file: SERVICE_FILES.FOLDER_SERVICE,
+        method: 'GetFolders',
+      },
+      UPDATED_FOLDER_RESPONSE
+    );
+
+    const sidebar = page.getByTestId('folder-sidebar');
+    await sidebar.getByRole('button', { name: 'Create Folder' }).click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(
+      dialog.getByRole('heading', { name: 'Create Folder' })
+    ).toBeVisible();
+
+    await dialog.getByLabel('New Folder Name').fill(NEW_FOLDER_NAME);
+    await dialog.getByRole('button', { name: 'Create Folder' }).click();
+
+    await expect(page).toHaveURL(
+      new RegExp(`/notes/${encodeURIComponent(NEW_FOLDER_NAME)}$`)
+    );
+    await expect(sidebar).toContainText(NEW_FOLDER_NAME);
   });
 
   test('renders pinned notes accordion', async ({ page }) => {
