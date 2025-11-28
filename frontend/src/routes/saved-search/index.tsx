@@ -39,14 +39,12 @@ export function SavedSearchPage({
     isError,
     isLoading,
   } = useFullTextSearchQuery(searchQuery);
+
   const resultCount =
     groupedResults.notes.length +
     groupedResults.attachments.length +
     groupedResults.folders.length;
 
-  // const [_, curRouteParams] = useRoute<SavedSearchRouteParams>(
-  //   routeUrls.patterns.SAVED_SEARCH
-  // );
   const searchParams: { ext?: string } = useSearchParamsEntries();
   const curNoteExtension = searchParams?.ext;
 
