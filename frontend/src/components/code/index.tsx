@@ -39,6 +39,8 @@ export function Code({
   isCreatedNow,
   lastExecutedResult,
   setLastExecutedResult,
+  hideResults,
+  setHideResults,
   isWaitingForInput,
   setIsWaitingForInput,
   executionCount,
@@ -55,6 +57,8 @@ export function Code({
   isCreatedNow: boolean;
   lastExecutedResult: string | null;
   setLastExecutedResult: (lastExecutedResult: string) => void;
+  hideResults: boolean;
+  setHideResults: (hideResults: boolean) => void;
   isWaitingForInput: boolean;
   setIsWaitingForInput: (isWaitingForInput: boolean) => void;
   executionCount: number;
@@ -126,9 +130,14 @@ export function Code({
           fallback={<Loader className="mx-auto my-3" height={18} width={18} />}
         >
           <CodeActions
+            editor={lexicalEditor}
             codeMirrorInstance={codeMirrorInstance}
             isExpanded={isExpanded}
             setIsExpanded={setIsExpanded}
+            hideResults={hideResults}
+            setHideResults={setHideResults}
+            language={language}
+            nodeKey={nodeKey}
           />
           <CodeMirrorEditor
             nodeKey={nodeKey}
@@ -144,8 +153,9 @@ export function Code({
             status={status}
             setStatus={setStatus}
             executionId={executionId}
+            hideResults={hideResults}
           />
-          {lastExecutedResult !== null && (
+          {lastExecutedResult !== null && !hideResults && (
             <CodeResult
               id={id}
               language={language}

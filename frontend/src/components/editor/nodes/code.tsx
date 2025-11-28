@@ -20,6 +20,7 @@ export interface CodePayload {
   lastExecutedResult?: string | null;
   status?: CodeBlockStatus;
   executionId?: string;
+  hideResults?: boolean;
 }
 
 export type SerializedCodeNode = Spread<
@@ -28,6 +29,7 @@ export type SerializedCodeNode = Spread<
     language: Languages;
     code: string;
     lastExecutedResult: string | null;
+    hideResults?: boolean;
   },
   SerializedLexicalNode
 >;
@@ -55,6 +57,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   __isCreatedNow: boolean;
   __lastExecutedResult: string | null;
   __status: CodeBlockStatus;
+  __hideResults: boolean;
   __isWaitingForInput: boolean;
   __executionCount: number;
   __duration: string;
@@ -74,18 +77,21 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       executionId: node.__executionId,
       executionCount: node.__executionCount,
       duration: node.__duration,
+      hideResults: node.__hideResults,
       isWaitingForInput: node.__isWaitingForInput,
       key: node.__key,
     });
   }
 
   static importJSON(serializedNode: SerializedCodeNode): CodeNode {
-    const { id, language, code, lastExecutedResult } = serializedNode;
+    const { id, language, code, lastExecutedResult, hideResults } =
+      serializedNode;
     const node = $createCodeNode({
       id,
       language,
       code,
       lastExecutedResult,
+      hideResults,
       // Hardcoding status:idle ensures that that when cmd+z recreates a code block, it is not in the loading state
       status: 'idle',
     });
@@ -107,6 +113,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     executionCount = 0,
     duration = '',
     isWaitingForInput = false,
+    hideResults = false,
     key,
   }: {
     id: string;
@@ -119,6 +126,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     executionCount?: number;
     duration?: string;
     isWaitingForInput?: boolean;
+    hideResults?: boolean;
     key?: NodeKey;
   }) {
     super(key);
@@ -133,6 +141,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     this.__isWaitingForInput = isWaitingForInput;
     this.__executionCount = executionCount;
     this.__duration = duration;
+    this.__hideResults = hideResults;
   }
 
   exportJSON(): SerializedCodeNode {
@@ -141,6 +150,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       language: this.getLanguage(),
       code: this.getCode(),
       lastExecutedResult: this.getLastExecutedResult(),
+      hideResults: this.getHideResults(),
       type: 'code-block',
       version: 1,
     };
@@ -179,6 +189,10 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 
   getLastExecutedResult(): string | null {
     return this.__lastExecutedResult;
+  }
+
+  getHideResults(): boolean {
+    return this.__hideResults;
   }
 
   getIsWaitingForInput(): boolean {
@@ -306,6 +320,13 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     });
   }
 
+  setHideResults(hideResults: boolean, editor: LexicalEditor): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      writable.__hideResults = hideResults;
+    });
+  }
+
   setCode(code: string, editor: LexicalEditor): void {
     editor.update(() => {
       const writable = this.getWritable();
@@ -334,6 +355,10 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
         lastExecutedResult={this.getLastExecutedResult()}
         setLastExecutedResult={(lastExecutedResult: string) =>
           this.setLastExecutedResult(lastExecutedResult, _editor)
+        }
+        hideResults={this.getHideResults()}
+        setHideResults={(hideResults: boolean) =>
+          this.setHideResults(hideResults, _editor)
         }
         isWaitingForInput={this.getIsWaitingForInput()}
         setIsWaitingForInput={(isWaitingForInput: boolean) =>
@@ -377,6 +402,7 @@ export function $createCodeNode({
   lastExecutedResult,
   status = 'idle',
   executionId = crypto.randomUUID(),
+  hideResults = false,
 }: CodePayload): CodeNode {
   return $applyNodeReplacement(
     new CodeNode({
@@ -390,6 +416,7 @@ export function $createCodeNode({
       executionCount: 0,
       duration: '',
       isWaitingForInput: false,
+      hideResults,
     })
   );
 }

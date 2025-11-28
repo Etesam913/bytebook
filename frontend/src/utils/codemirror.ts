@@ -24,6 +24,7 @@ import { handleRunOrInterruptCode } from './code';
  * @param options.codeMirrorInstance - Reference to the CodeMirror editor instance
  * @param options.setSelected - Function to set the selection state of the node
  * @param options.kernelsData - Data about the kernels for the code block
+ * @param options.isExecutionEnabled - Whether execution keyboard shortcuts should be enabled
  * @returns A CodeMirror keymap extension with custom key bindings
  */
 export function getCodemirrorKeymap({
@@ -38,6 +39,7 @@ export function getCodemirrorKeymap({
   codeMirrorInstance,
   setSelected,
   kernelsData,
+  isExecutionEnabled = true,
 }: {
   isExpanded: boolean;
   lexicalEditor: LexicalEditor;
@@ -66,6 +68,7 @@ export function getCodemirrorKeymap({
   >;
   setSelected: (selected: boolean) => void;
   kernelsData: KernelsData;
+  isExecutionEnabled?: boolean;
 }) {
   return Prec.highest(
     keymap.of([
@@ -130,8 +133,11 @@ export function getCodemirrorKeymap({
       },
       {
         key: 'Shift-Enter',
-        run: () =>
-          handleRunOrInterruptCode({
+        run: () => {
+          if (!isExecutionEnabled) {
+            return false;
+          }
+          return handleRunOrInterruptCode({
             status,
             codeBlockId: id,
             codeBlockLanguage: language,
@@ -140,12 +146,16 @@ export function getCodemirrorKeymap({
             executeCode,
             kernelsData,
             turnOnKernel,
-          }),
+          });
+        },
       },
       {
         key: 'Ctrl-Enter',
-        run: () =>
-          handleRunOrInterruptCode({
+        run: () => {
+          if (!isExecutionEnabled) {
+            return false;
+          }
+          return handleRunOrInterruptCode({
             status,
             codeBlockId: id,
             codeBlockLanguage: language,
@@ -154,12 +164,16 @@ export function getCodemirrorKeymap({
             executeCode,
             kernelsData,
             turnOnKernel,
-          }),
+          });
+        },
       },
       {
         key: 'Mod-Enter',
-        run: () =>
-          handleRunOrInterruptCode({
+        run: () => {
+          if (!isExecutionEnabled) {
+            return false;
+          }
+          return handleRunOrInterruptCode({
             status,
             codeBlockId: id,
             codeBlockLanguage: language,
@@ -168,11 +182,15 @@ export function getCodemirrorKeymap({
             executeCode,
             kernelsData,
             turnOnKernel,
-          }),
+          });
+        },
       },
       {
         key: 'Ctrl-c',
         run: () => {
+          if (!isExecutionEnabled) {
+            return false;
+          }
           if (status === 'busy') {
             interruptExecution({
               codeBlockId: id,

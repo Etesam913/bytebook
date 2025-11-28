@@ -99,6 +99,7 @@ export function CodeMirrorEditor({
   status,
   setStatus,
   executionId,
+  hideResults,
 }: {
   nodeKey: string;
   lexicalEditor: LexicalEditor;
@@ -113,6 +114,7 @@ export function CodeMirrorEditor({
   status: CodeBlockStatus;
   setStatus: (status: CodeBlockStatus) => void;
   executionId: string;
+  hideResults: boolean;
 }) {
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const kernelsData = useAtomValue(kernelsDataAtom);
@@ -171,6 +173,7 @@ export function CodeMirrorEditor({
     codeMirrorInstance,
     setSelected,
     kernelsData,
+    isExecutionEnabled: !hideResults && language !== 'text',
   });
 
   // gives syntax highlighting
@@ -184,18 +187,20 @@ export function CodeMirrorEditor({
 
   return (
     <div className="flex flex-1 gap-2 min-h-0 h-full">
-      <div className="flex flex-col self-stretch justify-between pt-3 pb-4 pl-3 pr-1.5 dark:px-3 gap-8 items-center dark:border-r-2 dark:border-zinc-800">
-        {language !== 'text' && (
-          <PlayButton
-            codeBlockId={id}
-            codeMirrorInstance={codeMirrorInstance}
-            language={language}
-            status={status}
-            setStatus={setStatus}
-          />
-        )}
-        <DeleteButton nodeKey={nodeKey} />
-      </div>
+      {!hideResults && (
+        <div className="flex flex-col self-stretch justify-between pt-3 pb-4 pl-3 pr-1.5 dark:px-3 gap-8 items-center dark:border-r-2 dark:border-zinc-800">
+          {language !== 'text' && (
+            <PlayButton
+              codeBlockId={id}
+              codeMirrorInstance={codeMirrorInstance}
+              language={language}
+              status={status}
+              setStatus={setStatus}
+            />
+          )}
+          <DeleteButton nodeKey={nodeKey} />
+        </div>
+      )}
       <div
         onClick={() => {
           // Refocuses the editor when clicks happen outside of it but still inside the overall component

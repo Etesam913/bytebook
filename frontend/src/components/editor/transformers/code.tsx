@@ -26,7 +26,12 @@ function isCharAtIndexEscaped(str: string, index: number): boolean {
 
 function parseOutCodeBlockHeaderProperties(propertiesString: string) {
   const propertyMap = new Map<string, string>();
-  const properties = ['id', 'lastExecutedResult', 'executionCount'];
+  const properties = [
+    'id',
+    'lastExecutedResult',
+    'executionCount',
+    'hideResults',
+  ];
   for (let i = 0; i < propertiesString.length; i += 1) {
     // If a quote is found without a known property value, then loop until the end of the property value
     if (
@@ -83,6 +88,7 @@ function parseLanguageAndProperties(startMatch: RegExpMatchArray | string[]): {
   language: Languages;
   id: string;
   lastExecutedResult: string | null;
+  hideResults: boolean;
 } {
   // If no language specified or not a valid language, default to 'text'
   const language =
@@ -106,10 +112,15 @@ function parseLanguageAndProperties(startMatch: RegExpMatchArray | string[]): {
       )
     : null;
 
+  const hideResults = headerProperties.has('hideResults')
+    ? headerProperties.get('hideResults') === 'true'
+    : false;
+
   return {
     language: language as Languages,
     id,
     lastExecutedResult,
+    hideResults,
   };
 }
 
@@ -164,6 +175,7 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
     const codeLanguage = escapeQuotes(node.getLanguage());
     const id = escapeQuotes(node.getId());
     const lastExecutedResult = node.getLastExecutedResult();
+    const hideResults = node.getHideResults();
     const formattedLastExecutedResult = lastExecutedResult
       ? escapeQuotes(flattenHtml(lastExecutedResult))
       : null;
@@ -174,6 +186,7 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
       (formattedLastExecutedResult
         ? ` lastExecutedResult="${formattedLastExecutedResult}"`
         : '') +
+      (hideResults ? ' hideResults="true"' : '') +
       (textContent ? '\n' + textContent : '') +
       '\n' +
       '```'
@@ -185,7 +198,7 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
   },
   regExpStart: CODE_START_REGEX,
   replace: (rootNode, children, startMatch, endMatch, linesInBetween) => {
-    const { language, id, lastExecutedResult } =
+    const { language, id, lastExecutedResult, hideResults } =
       parseLanguageAndProperties(startMatch);
 
     let code = extractCodeContent(
@@ -204,6 +217,7 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
       language,
       code,
       lastExecutedResult,
+      hideResults,
     });
 
     const nodeSelection = $createNodeSelection();
