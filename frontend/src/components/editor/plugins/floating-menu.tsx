@@ -221,6 +221,7 @@ export function FloatingMenuPlugin({
             floating.refs.setFloating(node);
             formRef.current = node;
           }}
+          data-testid="floating-toolbar"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
