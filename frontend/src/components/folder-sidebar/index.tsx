@@ -66,6 +66,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
             <MotionIconButton
               {...getDefaultButtonVariants()}
               onClick={() => window.history.back()}
+              data-testid="go-back-button"
             >
               <CircleArrowLeft className="w-6 h-6" />
             </MotionIconButton>
@@ -74,6 +75,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
             <MotionIconButton
               {...getDefaultButtonVariants()}
               onClick={() => window.history.forward()}
+              data-testid="go-forward-button"
             >
               <CircleArrowRight className="w-6 h-6" />
             </MotionIconButton>

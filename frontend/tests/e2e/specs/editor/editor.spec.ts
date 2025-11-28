@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { mockBinding } from '../utils/mockBinding';
+import { mockBinding } from '../../utils/mockBinding';
 import {
   MOCK_FOLDER_RESPONSE,
   MOCK_NOTES_RESPONSE,
@@ -7,8 +7,8 @@ import {
   MOCK_NOTE_PREVIEW_RESPONSE,
   MOCK_NOTE_MARKDOWN_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
-} from '../utils/mockResponses';
-import { SERVICE_FILES } from '../utils/serviceFiles';
+} from '../../utils/mockResponses';
+import { SERVICE_FILES } from '../../utils/serviceFiles';
 
 test.describe('Editor', () => {
   test.beforeEach(async ({ context }) => {
