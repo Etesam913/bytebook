@@ -88,29 +88,39 @@ test.describe('Folder Sidebar', () => {
     await expect(sidebar).toContainText('java');
   });
 
-  test('renders tags accordion', async ({ page }) => {
+  test('renders tags accordion and navigates on click', async ({ page }) => {
     await page.goto('/');
 
     const sidebar = page.getByTestId('folder-sidebar');
     await expect(sidebar).toContainText('Tags');
 
     const tagsAccordion = page.getByTestId('tags-accordion');
-    tagsAccordion.click();
+    await tagsAccordion.click();
     await expect(sidebar).toContainText('economics');
     await expect(sidebar).toContainText('research');
     await expect(sidebar).toContainText('dev');
+
+    // Click on a tag and verify navigation to saved-search route with # prefix
+    await sidebar.getByText('economics', { exact: true }).click();
+    await expect(page).toHaveURL(/\/saved-search\/%23economics/);
   });
 
-  test('renders saved searches accordion', async ({ page }) => {
+  test('renders saved searches accordion and navigates on click', async ({
+    page,
+  }) => {
     await page.goto('/');
 
     const sidebar = page.getByTestId('folder-sidebar');
     await expect(sidebar).toContainText('Saved Searches');
 
     const savedSearchesAccordion = page.getByTestId('saved-searches-accordion');
-    savedSearchesAccordion.click();
+    await savedSearchesAccordion.click();
     await expect(sidebar).toContainText('My Research');
     await expect(sidebar).toContainText('Economics');
+
+    // Click on a saved search and verify navigation to saved-search route
+    await sidebar.getByText('My Research').click();
+    await expect(page).toHaveURL(/\/saved-search\/research/);
   });
 
   test('creates a folder via the sidebar button', async ({ page, context }) => {
