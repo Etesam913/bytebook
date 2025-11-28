@@ -116,6 +116,7 @@ export function NotesSidebar({
             ref={sidebarRef}
             style={{ width }}
             className="text-md flex h-screen flex-col pb-3.5"
+            data-testid="notes-sidebar"
           >
             <div className="flex h-full flex-col overflow-y-auto relative">
               <header className="pl-1.5 pr-2.5">
@@ -182,14 +183,12 @@ export function NotesSidebar({
               </header>
               <section className="flex flex-col gap-2 overflow-y-auto flex-1">
                 <div className="flex h-full flex-col overflow-y-auto">
-                  {notes && (
-                    <MyNotesSidebar
-                      layoutId="note-sidebar"
-                      curNote={curNote}
-                      curNoteExtension={curNoteExtension}
-                      noteQueryResult={noteQueryResult}
-                    />
-                  )}
+                  <MyNotesSidebar
+                    layoutId="note-sidebar"
+                    curNote={curNote}
+                    curNoteExtension={curNoteExtension}
+                    noteQueryResult={noteQueryResult}
+                  />
                 </div>
               </section>
             </div>

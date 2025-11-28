@@ -5,6 +5,8 @@
 export const SERVICE_FILES = {
   FOLDER_SERVICE:
     'github.com/etesam913/bytebook/internal/services/folderservice.js',
+  NOTE_SERVICE:
+    'github.com/etesam913/bytebook/internal/services/noteservice.js',
   TAGS_SERVICE:
     'github.com/etesam913/bytebook/internal/services/tagsservice.js',
   SEARCH_SERVICE:

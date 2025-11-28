@@ -1,53 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { mockBinding } from '../utils/mockBinding';
+import {
+  MOCK_FOLDER_RESPONSE,
+  MOCK_PROJECT_SETTINGS_RESPONSE,
+  MOCK_SAVED_SEARCHES_RESPONSE,
+  MOCK_TAGS_RESPONSE,
+} from '../utils/mockResponses';
 import { SERVICE_FILES } from '../utils/serviceFiles';
-
-const MOCK_FOLDER_RESPONSE = {
-  success: true,
-  message: '',
-  data: ['Economics Notes', 'Research Notes'],
-};
-
-const MOCK_TAGS_RESPONSE = {
-  success: true,
-  message: '',
-  data: ['economics', 'research', 'dev'],
-};
-
-const MOCK_SAVED_SEARCHES_RESPONSE = {
-  success: true,
-  message: '',
-  data: [
-    { name: 'My Research', query: 'research' },
-    { name: 'Economics', query: 'economics' },
-  ],
-};
-
-const MOCK_PROJECT_SETTINGS_RESPONSE = {
-  success: true,
-  message: '',
-  data: {
-    pinnedNotes: [
-      'Economics Notes/Supply and Demand.md',
-      'Research Notes/Quantum Physics.md',
-    ],
-    repositoryToSyncTo: '',
-    projectPath: '',
-    appearance: {
-      theme: 'light',
-      noteSidebarItemSize: 'card',
-      accentColor: '',
-      noteWidth: 'fullWidth',
-      editorFontFamily: 'Bricolage Grotesque',
-      showEmptyLinePlaceholder: true,
-    },
-    code: {
-      codeBlockVimMode: false,
-      pythonVenvPath: '',
-      customPythonVenvPaths: [],
-    },
-  },
-};
 
 test.describe('Folder Sidebar', () => {
   test.beforeEach(async ({ context }) => {
@@ -101,6 +60,18 @@ test.describe('Folder Sidebar', () => {
     const sidebar = page.getByTestId('folder-sidebar');
     await expect(sidebar).toContainText('Economics Notes');
     await expect(sidebar).toContainText('Research Notes');
+  });
+
+  test('clicking on folder navigates to the correct location', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    const sidebar = page.getByTestId('folder-sidebar');
+    await expect(sidebar).toContainText('Economics Notes');
+    const economicsFolder = sidebar.getByText('Economics Notes');
+    await economicsFolder.click();
+    await expect(page).toHaveURL(/\/notes\/Economics%20Notes/i);
   });
 
   test('renders kernel accordion', async ({ page }) => {
