@@ -1,0 +1,106 @@
+---
+title: Go
+description: Setup and create Go code blocks
+---
+
+## Configuring Go code blocks
+
+### Prerequisites
+
+- The Go programming language has to be installed on your computer.
+- Follow the instructions on the [Go website](https://go.dev/doc/install).
+
+### Setting up the kernel
+
+- [gonb](https://github.com/janpfeifer/gonb) is the kernel used by Bytebook to execute Go code blocks.
+
+- Install `gonb`, `goimports`, and `gopls`:
+```bash
+go install github.com/janpfeifer/gonb@latest && \
+go install golang.org/x/tools/cmd/goimports@latest && \
+go install golang.org/x/tools/gopls@latest
+```
+
+- Register `gonb` as a kernel:
+```bash
+gonb --install
+```
+
+## Features
+
+In Bytebook a go code block can be created in a note by typing `/go` or by typing "```go".
+
+### Execution Model
+
+Code that is to be executed has to be placed in a `main` function.
+
+```go
+func main() {
+    fmt.Println("Hello, World!")
+}
+```
+
+Alternatively, `%%` can be used to auto-wrap code in `main()`.
+
+```go
+%%
+fmt.Println("Hello, World!")
+```
+
+### Shell Commands
+
+Shell commands can be executed by prefixing the command with `!`.
+
+```go
+!ls -la
+```
+
+### Installing Dependencies
+
+There shouldn't be a need to install dependencies as gonb will automatically install the dependencies for the code block. For example, gonb automatically installs the `uuid` package when running the below code.
+
+```go
+import (
+    "fmt"
+    "github.com/google/uuid"
+)
+
+%%
+s := uuid.New()
+
+fmt.Println(s)
+```
+
+### Plotting
+
+gonb supports plotting using the `plotly` package.
+
+```go
+import (
+    "github.com/janpfeifer/gonb/gonbui/plotly"
+	grob "github.com/MetalBlueberry/go-plotly/generated/v2.34.0/graph_objects"
+	ptypes "github.com/MetalBlueberry/go-plotly/pkg/types"
+)
+
+%%
+fig := &grob.Fig{
+    Data: []ptypes.Trace{
+        &grob.Bar{
+            X: ptypes.DataArray([]float64{1, 2, 3}),
+            Y: ptypes.DataArray([]float64{1, 2, 3}),
+        },
+    },
+    Layout: &grob.Layout{
+        Title: &grob.LayoutTitle{
+            Text: "A Figure Specified By Go Struct",
+        },
+        Template: plotly.PlotlyDarkTheme,
+    },
+}
+plotly.DisplayFig(fig)
+```
+
+## Next Steps
+Gonb supports many more features, such as rich text output, environment variables, widgets, and more.
+
+For a full breakdown of everything that is supported, see the [gonb tutorial](https://github.com/janpfeifer/gonb/blob/main/examples/tutorial.ipynb)

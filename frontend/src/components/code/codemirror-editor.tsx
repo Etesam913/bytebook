@@ -244,7 +244,7 @@ export function CodeMirrorEditor({
             })(),
             autocompletion({
               activateOnTypingDelay: 50,
-              // For languages that do not have a language object, there is now way to attach completions
+              // For languages that do not have a language object, there is no way to attach completions
               // to the language object, so we need to attach it to the autocompletion extension
               override: cmLanguageObject ? undefined : [completionSource],
             }),

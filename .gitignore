@@ -9,3 +9,5 @@ venv/
 bundle-analysis.html
 .idea
 ../.idea
+node_modules/
+.next/
