@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
     ],
     build: {
-      rollupOptions: {
+      rolldownOptions: {
         output: {
           // This will help identify entry chunks vs lazy-loaded chunks
           entryFileNames: 'entry-[name].[hash].js',

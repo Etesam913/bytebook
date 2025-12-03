@@ -574,14 +574,21 @@ export function useTurnOnKernelMutation() {
   const setLoadingToastIds = useSetAtom(loadingToastIdsAtom);
   return useMutation({
     mutationFn: async (language: Languages) => {
+      const toastKey = `starting-${language}`;
+
       const res = await CreateSocketsAndListen(language);
       if (!res.success) {
         throw new QueryError(res.message);
       } else {
-        const loadingToastId = toast.loading(`Starting ${language} kernel`);
+        // Check atomically if a toast already exists before creating a new one
+        // This prevents duplicate toasts when spam clicking
         setLoadingToastIds((prev) => {
           const newMap = new Map(prev);
-          newMap.set(`starting-${language}`, loadingToastId);
+          // Only create toast if one doesn't already exist
+          if (!newMap.has(toastKey)) {
+            const loadingToastId = toast.loading(`Starting ${language} kernel`);
+            newMap.set(toastKey, loadingToastId);
+          }
           return newMap;
         });
       }

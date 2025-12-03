@@ -120,7 +120,7 @@ export function Code({
         data-interactable="true"
         data-node-key={nodeKey}
         className={cn(
-          'relative rounded-md border-2 grow cm-background transition-colors border-zinc-150 dark:border-zinc-750',
+          'relative w-full rounded-md border-2 grow cm-background transition-colors border-zinc-150 dark:border-zinc-750',
           isSelected && 'border-(--accent-color)!',
           isExpanded &&
             'fixed z-60 left-0 top-0 right-0 bottom-0 h-[calc(100vh-5rem)] m-auto w-[calc(100vw-5rem)] flex flex-col'

@@ -14,6 +14,8 @@ import (
 func CreateWindow(app *application.App, url string, backgroundColor application.RGBA) application.Window {
 	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:     "Bytebook",
+		Width:     1400,
+		Height:    900,
 		MinWidth:  800,
 		MinHeight: 600,
 		X:         rand.Intn(1000),
