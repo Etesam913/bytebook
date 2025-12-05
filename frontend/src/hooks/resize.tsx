@@ -47,6 +47,16 @@ export function useFullscreen() {
   });
 }
 
+/**
+ * Hook to listen for window reload events from the backend menu
+ * and trigger a page reload.
+ */
+export function useWindowReload() {
+  useWailsEvent('window:reload', () => {
+    window.location.reload();
+  });
+}
+
 // export function useResizeState(): ResizeState {
 //   const [isResizing, setIsResizing] = useState(false);
 

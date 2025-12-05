@@ -24,7 +24,7 @@ import {
 } from './utils/routes';
 import { RouteFallback } from './components/route-fallback';
 import { useTrapFocus } from './hooks/general';
-import { useZoom, useFullscreen } from './hooks/resize';
+import { useZoom, useFullscreen, useWindowReload } from './hooks/resize';
 
 // Lazy load route components
 const NotFound = lazy(() =>
@@ -77,6 +77,7 @@ function App() {
   useProjectSettings();
   useZoom();
   useFullscreen();
+  useWindowReload();
   useRouteFilePath();
 
   return (

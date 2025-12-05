@@ -21,6 +21,7 @@ var Events = struct {
 	NewNoteMenu      string
 	FolderCreateMenu string
 	Fullscreen       string
+	WindowReload     string
 
 	// File watcher events
 	SettingsUpdate    string
@@ -65,6 +66,7 @@ var Events = struct {
 	NewNoteMenu:      "note:create-dialog",
 	FolderCreateMenu: "folder:create-dialog",
 	Fullscreen:       "window:fullscreen",
+	WindowReload:     "window:reload",
 
 	// File watcher events
 	SettingsUpdate:    "settings:update",
