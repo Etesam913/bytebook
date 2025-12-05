@@ -29,10 +29,11 @@ import { cn } from '../../utils/string-formatting';
 import { CodeBlockStatus, Languages, CompletionData } from '../../types';
 import { autocompletion } from '@codemirror/autocomplete';
 import { useNodeInNodeSelection } from '../../hooks/lexical';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { langs } from '@uiw/codemirror-extensions-langs';
 import { PlayButton } from './play-button';
 import { DeleteButton } from './delete-button';
+import type { RefObject } from 'react';
 import type {
   Language,
   LanguageSupport,
@@ -100,6 +101,7 @@ export function CodeMirrorEditor({
   setStatus,
   executionId,
   hideResults,
+  dialogRef,
 }: {
   nodeKey: string;
   lexicalEditor: LexicalEditor;
@@ -115,6 +117,7 @@ export function CodeMirrorEditor({
   setStatus: (status: CodeBlockStatus) => void;
   executionId: string;
   hideResults: boolean;
+  dialogRef?: RefObject<HTMLDialogElement | null>;
 }) {
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const kernelsData = useAtomValue(kernelsDataAtom);
@@ -147,13 +150,26 @@ export function CodeMirrorEditor({
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
   const isInNodeSelection = useNodeInNodeSelection(lexicalEditor, nodeKey);
+  const internalCodeMirrorRef = useRef<ReactCodeMirrorRef | null>(null);
 
   function handleEditorRef(instance: ReactCodeMirrorRef | null) {
+    internalCodeMirrorRef.current = instance;
     setCodeMirrorInstance(instance);
     if (instance?.view && isCreatedNow) {
       instance.view.focus();
     }
   }
+
+  // Re-sync codeMirrorInstance when isExpanded changes.
+  // This fixes an issue where, when not expanded, both the dialog and the main span
+  // render their own CodeMirrorEditor instances that share the same codeMirrorInstance state.
+  // When the span unmounts (on expand), it sets codeMirrorInstance to null, breaking the dialog's play button.
+  // This effect ensures the dialog's instance re-registers itself after the span unmounts.
+  useEffect(() => {
+    if (isExpanded && internalCodeMirrorRef.current) {
+      setCodeMirrorInstance(internalCodeMirrorRef.current);
+    }
+  }, [isExpanded, setCodeMirrorInstance]);
 
   useEffect(() => {
     if (codeMirrorInstance?.view && isInNodeSelection) {
@@ -196,9 +212,15 @@ export function CodeMirrorEditor({
               language={language}
               status={status}
               setStatus={setStatus}
+              isExpanded={isExpanded}
+              dialogRef={dialogRef}
             />
           )}
-          <DeleteButton nodeKey={nodeKey} />
+          <DeleteButton
+            nodeKey={nodeKey}
+            isExpanded={isExpanded}
+            dialogRef={dialogRef}
+          />
         </div>
       )}
       <div

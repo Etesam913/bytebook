@@ -14,6 +14,7 @@ import { Loader } from '../../icons/loader';
 import { useAtomValue } from 'jotai/react';
 import { kernelsDataAtom } from '../../atoms';
 import { Tooltip } from '../tooltip';
+import type { RefObject } from 'react';
 
 export function PlayButton({
   codeBlockId,
@@ -21,12 +22,16 @@ export function PlayButton({
   language,
   status,
   setStatus,
+  isExpanded,
+  dialogRef,
 }: {
   codeBlockId: string;
   codeMirrorInstance: CodeMirrorRef;
   language: Languages;
   status: CodeBlockStatus;
   setStatus: (status: CodeBlockStatus) => void;
+  isExpanded?: boolean;
+  dialogRef?: RefObject<HTMLDialogElement | null>;
 }) {
   const kernelsData = useAtomValue(kernelsDataAtom);
 
@@ -38,10 +43,12 @@ export function PlayButton({
   const { mutate: interruptExecution } = useSendInterruptRequestMutation();
   const { mutate: turnOnKernel } = useTurnOnKernelMutation();
 
+  const tooltipRoot = isExpanded && dialogRef ? dialogRef : undefined;
+
   return (
     <Tooltip
       delay={{ open: 1200, close: 0 }}
-      placement="bottom"
+      placement={isExpanded ? 'bottom' : 'top'}
       content={
         status === 'starting'
           ? 'Starting kernel...'
@@ -49,6 +56,7 @@ export function PlayButton({
             ? 'Loading ...'
             : 'Run code'
       }
+      root={tooltipRoot}
     >
       <motion.button
         {...getDefaultButtonVariants({

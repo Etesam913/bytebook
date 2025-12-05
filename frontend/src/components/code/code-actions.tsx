@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { RefObject, useState } from 'react';
 import { MotionIconButton } from '../buttons';
 import { getDefaultButtonVariants } from '../../animations';
 import { Duplicate2 } from '../../icons/duplicate-2';
@@ -16,6 +16,7 @@ import { navigate } from 'wouter/use-browser-location';
 import { Trash } from '../../icons/trash';
 import { removeDecoratorNode } from '../../utils/commands';
 import type { LexicalEditor } from 'lexical';
+import { cn } from '../../utils/string-formatting';
 
 export function CodeActions({
   editor,
@@ -26,6 +27,7 @@ export function CodeActions({
   setHideResults,
   language,
   nodeKey,
+  dialogRef,
 }: {
   editor: LexicalEditor;
   codeMirrorInstance: CodeMirrorRef;
@@ -35,16 +37,24 @@ export function CodeActions({
   setHideResults: (value: boolean) => void;
   language: Languages;
   nodeKey: string;
+  dialogRef?: RefObject<HTMLDialogElement | null>;
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const canShowKernelInfo =
     language !== 'text' &&
     languagesWithKernelsSet.has(language as Exclude<Languages, 'text'>);
 
+  const tooltipRoot = isExpanded && dialogRef ? dialogRef : undefined;
+
   return (
-    <div className="absolute flex gap-1 -top-5 right-2.5 z-10 p-1 border border-zinc-200 dark:border-zinc-600 rounded-md shadow-lg cm-background">
+    <div
+      className={cn(
+        'absolute flex gap-1 -top-5 right-2.5 z-10 p-1 border border-zinc-200 dark:border-zinc-600 rounded-md shadow-lg cm-background',
+        isExpanded && 'top-2 right-4'
+      )}
+    >
       {hideResults && (
-        <Tooltip content="Delete" placement="top">
+        <Tooltip content="Delete" placement="bottom" root={tooltipRoot}>
           <MotionIconButton
             onClick={() => {
               editor.update(() => {
@@ -56,7 +66,11 @@ export function CodeActions({
           </MotionIconButton>
         </Tooltip>
       )}
-      <Tooltip content={isExpanded ? 'Minimize' : 'Maximize'} placement="top">
+      <Tooltip
+        content={isExpanded ? 'Minimize' : 'Maximize'}
+        placement="top"
+        root={tooltipRoot}
+      >
         <MotionIconButton
           {...getDefaultButtonVariants({
             disabled: false,
@@ -134,7 +148,11 @@ export function CodeActions({
         }}
       >
         {({ buttonId, menuId, isOpen, handleKeyDown, handleClick }) => (
-          <Tooltip content="Code settings" placement="top">
+          <Tooltip
+            content="Code settings"
+            placement={isExpanded ? 'bottom' : 'top'}
+            root={tooltipRoot}
+          >
             <MotionIconButton
               id={buttonId}
               onClick={handleClick}

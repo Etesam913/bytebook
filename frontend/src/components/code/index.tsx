@@ -5,11 +5,9 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { cn } from '../../utils/string-formatting';
 import { CodeBlockStatus, Languages } from '../../types';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
 import { CodeActions } from './code-actions';
 import { CodeResult } from './code-result';
-import { trapFocusContainerAtom } from '../../atoms';
-import { useSetAtom } from 'jotai';
 import { languageDisplayConfig } from './language-config';
 import { useNodeInNodeSelection } from '../../hooks/lexical';
 import { SelectionHighlight } from '../selection-highlight';
@@ -71,31 +69,92 @@ export function Code({
   const [lexicalEditor] = useLexicalComposerContext();
   const [isSelected] = useLexicalNodeSelection(nodeKey);
   const isInNodeSelection = useNodeInNodeSelection(lexicalEditor, nodeKey);
-  const setTrapFocusContainer = useSetAtom(trapFocusContainerAtom);
-  const codeBlockRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
     if (isExpanded) {
-      if (isSelected) {
-        setTrapFocusContainer(codeBlockRef.current);
-      } else {
-        setTrapFocusContainer(null);
-      }
+      dialog.showModal();
+    } else {
+      dialog.close();
     }
-  }, [isSelected, isExpanded]);
+  }, [isExpanded]);
+
+  const codeContent = (
+    <Suspense
+      fallback={<Loader className="mx-auto my-3" height={18} width={18} />}
+    >
+      <CodeActions
+        editor={lexicalEditor}
+        codeMirrorInstance={codeMirrorInstance}
+        isExpanded={isExpanded}
+        setIsExpanded={setIsExpanded}
+        hideResults={hideResults}
+        setHideResults={setHideResults}
+        language={language}
+        nodeKey={nodeKey}
+        dialogRef={dialogRef}
+      />
+      <CodeMirrorEditor
+        nodeKey={nodeKey}
+        lexicalEditor={lexicalEditor}
+        codeMirrorInstance={codeMirrorInstance}
+        setCodeMirrorInstance={setCodeMirrorInstance}
+        code={code}
+        setCode={setCode}
+        id={id}
+        language={language}
+        isCreatedNow={isCreatedNow}
+        isExpanded={isExpanded}
+        status={status}
+        setStatus={setStatus}
+        executionId={executionId}
+        hideResults={hideResults}
+        dialogRef={dialogRef}
+      />
+      {lastExecutedResult !== null && !hideResults && (
+        <CodeResult
+          id={id}
+          language={language}
+          lastExecutedResult={lastExecutedResult}
+          setLastExecutedResult={setLastExecutedResult}
+          isExpanded={isExpanded}
+          status={status}
+          isWaitingForInput={isWaitingForInput}
+          setIsWaitingForInput={setIsWaitingForInput}
+          codeMirrorInstance={codeMirrorInstance}
+        />
+      )}
+    </Suspense>
+  );
 
   return (
-    <div className="flex gap-2 items-center relative" ref={codeBlockRef}>
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed z-50 left-0 top-0 right-0 bottom-0 h-screen w-screen bg-zinc-200/65 dark:bg-zinc-800/65"
-          />
-        )}
-      </AnimatePresence>
+    <div className="flex gap-2 items-center relative">
+      <dialog
+        ref={dialogRef}
+        className="backdrop:bg-zinc-200/65 dark:backdrop:bg-zinc-800/65 bg-transparent p-0 m-auto h-[calc(100vh-5rem)] w-[calc(100vw-5rem)] max-h-none max-w-none"
+        onClose={() => {
+          setIsExpanded(false);
+          focusEditor(codeMirrorInstance);
+        }}
+        onCancel={() => {
+          setIsExpanded(false);
+          focusEditor(codeMirrorInstance);
+        }}
+      >
+        <span
+          data-interactable="true"
+          data-node-key={nodeKey}
+          className={cn(
+            'relative w-full h-full rounded-md border-2 cm-background transition-colors border-zinc-150 dark:border-zinc-750 flex flex-col',
+            isSelected && 'border-(--accent-color)!'
+          )}
+        >
+          {codeContent}
+        </span>
+      </dialog>
       <div className="absolute -translate-x-10 font-code text-xs text-zinc-400">
         <div>
           {executionCount > 0 &&
@@ -116,60 +175,18 @@ export function Code({
           />
         )}
       </AnimatePresence>
-      <span
-        data-interactable="true"
-        data-node-key={nodeKey}
-        className={cn(
-          'relative w-full rounded-md border-2 grow cm-background transition-colors border-zinc-150 dark:border-zinc-750',
-          isSelected && 'border-(--accent-color)!',
-          isExpanded &&
-            'fixed z-60 left-0 top-0 right-0 bottom-0 h-[calc(100vh-5rem)] m-auto w-[calc(100vw-5rem)] flex flex-col'
-        )}
-      >
-        <Suspense
-          fallback={<Loader className="mx-auto my-3" height={18} width={18} />}
-        >
-          <CodeActions
-            editor={lexicalEditor}
-            codeMirrorInstance={codeMirrorInstance}
-            isExpanded={isExpanded}
-            setIsExpanded={setIsExpanded}
-            hideResults={hideResults}
-            setHideResults={setHideResults}
-            language={language}
-            nodeKey={nodeKey}
-          />
-          <CodeMirrorEditor
-            nodeKey={nodeKey}
-            lexicalEditor={lexicalEditor}
-            codeMirrorInstance={codeMirrorInstance}
-            setCodeMirrorInstance={setCodeMirrorInstance}
-            code={code}
-            setCode={setCode}
-            id={id}
-            language={language}
-            isCreatedNow={isCreatedNow}
-            isExpanded={isExpanded}
-            status={status}
-            setStatus={setStatus}
-            executionId={executionId}
-            hideResults={hideResults}
-          />
-          {lastExecutedResult !== null && !hideResults && (
-            <CodeResult
-              id={id}
-              language={language}
-              lastExecutedResult={lastExecutedResult}
-              setLastExecutedResult={setLastExecutedResult}
-              isExpanded={isExpanded}
-              status={status}
-              isWaitingForInput={isWaitingForInput}
-              setIsWaitingForInput={setIsWaitingForInput}
-              codeMirrorInstance={codeMirrorInstance}
-            />
+      {!isExpanded && (
+        <span
+          data-interactable="true"
+          data-node-key={nodeKey}
+          className={cn(
+            'relative w-full rounded-md border-2 grow cm-background transition-colors border-zinc-150 dark:border-zinc-750',
+            isSelected && 'border-(--accent-color)!'
           )}
-        </Suspense>
-      </span>
+        >
+          {codeContent}
+        </span>
+      )}
 
       <div className="translate-x-[24px] absolute text-zinc-400 right-1">
         {languageDisplayConfig[language].icon}

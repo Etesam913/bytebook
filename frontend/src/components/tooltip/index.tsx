@@ -5,6 +5,7 @@ import {
   type ReactNode,
   type ReactElement,
   type Ref,
+  type RefObject,
 } from 'react';
 import {
   autoUpdate,
@@ -39,6 +40,7 @@ export const Tooltip = ({
   delay = { open: 250, close: 100 },
   className,
   withArrow = true,
+  root,
 }: {
   content: ReactNode;
   children: ReactElement;
@@ -50,6 +52,7 @@ export const Tooltip = ({
   delay?: Delay;
   className?: string;
   withArrow?: boolean;
+  root?: HTMLElement | RefObject<HTMLElement | null> | null;
 }) => {
   const [uncontrolledOpen, setUncontrolledOpen] = useState<boolean>(
     Boolean(defaultOpen)
@@ -161,7 +164,7 @@ export const Tooltip = ({
   return (
     <>
       {reference}
-      <FloatingPortal>
+      <FloatingPortal root={root}>
         <AnimatePresence>
           {open && !disabled && (
             <div
