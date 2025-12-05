@@ -1,6 +1,10 @@
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useEffect } from 'react';
-import { isDarkModeOnAtom, projectSettingsAtom } from '../atoms';
+import {
+  isDarkModeOnAtom,
+  projectSettingsAtom,
+  projectSettingsLoadedAtom,
+} from '../atoms';
 import { addColorSchemeClassToBody } from '../utils/color-scheme';
 
 /**
@@ -9,13 +13,26 @@ import { addColorSchemeClassToBody } from '../utils/color-scheme';
  */
 export function useThemeSetting() {
   const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettingsLoaded = useAtomValue(projectSettingsLoadedAtom);
   const setIsDarkModeOn = useSetAtom(isDarkModeOnAtom);
   // Memoize the handler to ensure the same reference is used
   const handleColorSchemeChange = (event: MediaQueryListEvent) =>
     addColorSchemeClassToBody(event.matches, setIsDarkModeOn);
 
   useEffect(() => {
+    if (!projectSettingsLoaded) return;
+
     const isDarkModeEvent = window.matchMedia('(prefers-color-scheme: dark)');
+
+    // Cache the theme preference in localStorage to prevent white flash on reload
+    try {
+      localStorage.setItem(
+        'bytebook-theme-preference',
+        projectSettings.appearance.theme
+      );
+    } catch {
+      // Ignore localStorage errors
+    }
 
     // Check the current dark mode setting and apply the appropriate color scheme
     if (projectSettings.appearance.theme === 'system') {
@@ -34,5 +51,5 @@ export function useThemeSetting() {
     return () => {
       isDarkModeEvent.removeEventListener('change', handleColorSchemeChange);
     };
-  }, [projectSettings.appearance.theme]);
+  }, [projectSettingsLoaded, projectSettings.appearance.theme]);
 }

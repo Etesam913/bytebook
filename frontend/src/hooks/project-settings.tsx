@@ -6,7 +6,11 @@ import {
   GetProjectSettings,
   UpdateProjectSettings,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/settingsservice';
-import { dialogDataAtom, projectSettingsAtom } from '../atoms';
+import {
+  dialogDataAtom,
+  projectSettingsAtom,
+  projectSettingsLoadedAtom,
+} from '../atoms';
 import { SettingsDialog } from '../components/settings-dialog';
 import { useWailsEvent } from '../hooks/events';
 import type { ProjectSettings } from '../types';
@@ -68,6 +72,7 @@ function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
  */
 export function useProjectSettings() {
   const setProjectSettings = useSetAtom(projectSettingsAtom);
+  const setProjectSettingsLoaded = useSetAtom(projectSettingsLoadedAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
 
   // Create a mutation using react-query's useMutation hook.
@@ -81,10 +86,10 @@ export function useProjectSettings() {
     },
     onSuccess: (updatedSettings) => {
       setProjectSettings(updatedSettings);
+      setProjectSettingsLoaded(true);
     },
   });
 
-  // Run the mutation on component initialization.
   useEffect(() => {
     fetchAndValidateProjectSettings();
   }, []);
@@ -107,6 +112,7 @@ export function useProjectSettings() {
   useWailsEvent('settings:update', (body) => {
     const projectSettings = body.data as ProjectSettingsJson;
     setProjectSettings(validateProjectSettingsWrapper(projectSettings));
+    setProjectSettingsLoaded(true);
   });
 }
 

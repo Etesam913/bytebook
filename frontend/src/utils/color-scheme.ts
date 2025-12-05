@@ -9,16 +9,14 @@ export function addColorSchemeClassToBody(
 ) {
   setIsDarkModeOn(isDarkMode);
 
-  // Get the body element from the document
-  const bodyElement = document.querySelector('body');
-  if (!bodyElement) return;
+  const rootElement = document.documentElement;
 
-  // Add or remove the 'dark' class based on the isDarkMode flag
+  // Add or remove the 'dark' class only on the html element
   if (isDarkMode) {
-    bodyElement.classList.add('dark');
-    bodyElement.style.colorScheme = 'dark';
+    rootElement.classList.add('dark');
+    rootElement.style.colorScheme = 'dark';
   } else {
-    bodyElement.classList.remove('dark');
-    bodyElement.style.colorScheme = 'light';
+    rootElement.classList.remove('dark');
+    rootElement.style.colorScheme = 'light';
   }
 }

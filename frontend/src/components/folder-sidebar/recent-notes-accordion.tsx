@@ -20,10 +20,6 @@ export function RecentNotesAccordion() {
     );
   });
 
-  if (mostRecentNotes.length === 0) {
-    return <></>;
-  }
-
   return (
     <SidebarAccordion
       data-testid="recent-notes-accordion"

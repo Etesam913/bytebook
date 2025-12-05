@@ -59,6 +59,9 @@ export const projectSettingsAtom = atom<ProjectSettings>({
   },
 });
 
+// Tracks whether project settings have been loaded from the backend at least once.
+export const projectSettingsLoadedAtom = atom<boolean>(false);
+
 const userDataAtom = atom<UserData | null>(null);
 export const userDataAtomWithLocalStorage = atom(
   (get) => get(userDataAtom),
