@@ -180,7 +180,12 @@ export type Frontmatter = {
   // Allow additional properties for extensibility
 } & Record<string, string | string[]>;
 
-export type SidebarContentType = 'note' | 'folder' | 'tag' | 'saved-search';
+export type SidebarContentType =
+  | 'note'
+  | 'folder'
+  | 'tag'
+  | 'saved-search'
+  | 'kernel';
 
 export function isSidebarContentType(key: unknown): key is SidebarContentType {
   return (
@@ -188,6 +193,7 @@ export function isSidebarContentType(key: unknown): key is SidebarContentType {
     (key === 'note' ||
       key === 'folder' ||
       key === 'tag' ||
-      key === 'saved-search')
+      key === 'saved-search' ||
+      key === 'kernel')
   );
 }

@@ -114,7 +114,8 @@ export function Sidebar<T>({
         <ul
           className={cn(
             contentType === 'note' && 'pl-1 pr-2',
-            contentType === 'folder' && 'pl-[3px] pr-[3px]'
+            contentType === 'folder' && 'pl-[3px] pr-[3px]',
+            contentType === 'kernel' && 'pl-[3px] pr-[3px]'
           )}
           style={{
             ...innerContainerStyle,

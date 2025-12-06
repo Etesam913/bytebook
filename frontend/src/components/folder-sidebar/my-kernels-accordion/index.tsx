@@ -120,7 +120,7 @@ export function MyKernelsAccordion() {
             <Sidebar<Languages>
               layoutId="kernels-sidebar"
               emptyElement={null}
-              contentType="tag"
+              contentType="kernel"
               dataItemToString={(kernelName) => kernelName}
               dataItemToKey={(kernelName) => kernelName}
               dataItemToSelectionRangeEntry={(kernelName) => kernelName}
