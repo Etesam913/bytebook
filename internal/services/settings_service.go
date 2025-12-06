@@ -1,11 +1,9 @@
 package services
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/config"
-	"github.com/etesam913/bytebook/internal/git"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
@@ -42,15 +40,6 @@ func (s *SettingsService) UpdateProjectSettings(
 		return config.BackendResponseWithData[config.ProjectSettingsJson]{
 			Success: false,
 			Message: "Failed to read project settings",
-		}
-	}
-	if newProjectSettings.RepositoryToSyncTo != projectSettings.RepositoryToSyncTo {
-		error := git.SetRepoOrigin(newProjectSettings.RepositoryToSyncTo)
-		if error != nil {
-			return config.BackendResponseWithData[config.ProjectSettingsJson]{
-				Success: false,
-				Message: fmt.Sprintf("Failed to set %s as origin", newProjectSettings.RepositoryToSyncTo),
-			}
 		}
 	}
 	validPinnedNotes := config.GetValidPinnedNotes(s.ProjectPath, newProjectSettings)

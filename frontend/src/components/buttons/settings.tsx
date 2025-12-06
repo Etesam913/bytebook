@@ -22,7 +22,7 @@ export function SettingsButton() {
           },
         });
       }}
-      className="flex gap-1 items-center hover:bg-zinc-100 dark:hover:bg-zinc-650 p-1 rounded-md transition-colors"
+      className="flex gap-1 items-center hover:bg-zinc-100 dark:hover:bg-zinc-650 p-1 rounded-md rounded-bl-xl transition-colors"
     >
       <Gear /> Settings
     </button>

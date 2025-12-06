@@ -129,11 +129,11 @@ func CreateSavedSearchesFile(projectPath string) error {
 }
 
 type AppearanceProjectSettingsJson struct {
-	Theme                   string `json:"theme"`
-	AccentColor             string `json:"accentColor"`
-	NoteWidth               string `json:"noteWidth"`
-	EditorFontFamily        string `json:"editorFontFamily"`
-	NoteSidebarItemSize     string `json:"noteSidebarItemSize"`
+	Theme                    string `json:"theme"`
+	AccentColor              string `json:"accentColor"`
+	NoteWidth                string `json:"noteWidth"`
+	EditorFontFamily         string `json:"editorFontFamily"`
+	NoteSidebarItemSize      string `json:"noteSidebarItemSize"`
 	ShowEmptyLinePlaceholder bool   `json:"showEmptyLinePlaceholder"`
 }
 
@@ -144,11 +144,10 @@ type CodeProjectSettingsJson struct {
 }
 
 type ProjectSettingsJson struct {
-	PinnedNotes        []string                      `json:"pinnedNotes"`
-	ProjectPath        string                        `json:"projectPath"`
-	RepositoryToSyncTo string                        `json:"repositoryToSyncTo"`
-	Appearance         AppearanceProjectSettingsJson `json:"appearance"`
-	Code               CodeProjectSettingsJson       `json:"code"`
+	PinnedNotes []string                      `json:"pinnedNotes"`
+	ProjectPath string                        `json:"projectPath"`
+	Appearance  AppearanceProjectSettingsJson `json:"appearance"`
+	Code        CodeProjectSettingsJson       `json:"code"`
 }
 
 // GetProjectSettings retrieves the project settings from the settings.json file.
@@ -160,14 +159,13 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 
 	// Default settings
 	defaultSettings := ProjectSettingsJson{
-		PinnedNotes:        []string{},
-		ProjectPath:        projectPath,
-		RepositoryToSyncTo: "",
+		PinnedNotes: []string{},
+		ProjectPath: projectPath,
 		Appearance: AppearanceProjectSettingsJson{
-			Theme:                   "light",
-			AccentColor:             "",
-			EditorFontFamily:        "Bricolage Grotesque",
-			NoteSidebarItemSize:     "card",
+			Theme:                    "light",
+			AccentColor:              "",
+			EditorFontFamily:         "Bricolage Grotesque",
+			NoteSidebarItemSize:      "card",
 			ShowEmptyLinePlaceholder: true,
 		},
 		Code: CodeProjectSettingsJson{

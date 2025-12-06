@@ -42,9 +42,6 @@ var Events = struct {
 	CodeBlockIopubError    string
 	CodeBlockInputRequest  string
 	KernelHeartbeat        string
-
-	// Auth events
-	AuthAccessToken string
 }{
 	// Note events
 	NoteCreate: "note:create",
@@ -87,9 +84,6 @@ var Events = struct {
 	CodeBlockIopubError:    "code:code-block:iopub_error",
 	CodeBlockInputRequest:  "code:code-block:input_request",
 	KernelHeartbeat:        "code:kernel:heartbeat",
-
-	// Auth events
-	AuthAccessToken: "auth:access-token",
 }
 
 // A map of folderAndNoteNames to tags

@@ -7,7 +7,6 @@ import {
   KernelsData,
   type ProjectSettings,
   type SortStrings,
-  type UserData,
   type WindowSettings,
 } from './types';
 import { LocalFilePath } from './utils/path';
@@ -42,7 +41,6 @@ export const windowSettingsAtom = atom<WindowSettings | null>(null);
 
 export const projectSettingsAtom = atom<ProjectSettings>({
   pinnedNotes: new Set<string>([]),
-  repositoryToSyncTo: '',
   projectPath: '',
   appearance: {
     theme: 'light',
@@ -61,17 +59,6 @@ export const projectSettingsAtom = atom<ProjectSettings>({
 
 // Tracks whether project settings have been loaded from the backend at least once.
 export const projectSettingsLoadedAtom = atom<boolean>(false);
-
-const userDataAtom = atom<UserData | null>(null);
-export const userDataAtomWithLocalStorage = atom(
-  (get) => get(userDataAtom),
-  (_, set, newUserData: UserData) => {
-    const accessToken = newUserData.accessToken;
-
-    localStorage.setItem('accessToken', accessToken ?? 'null');
-    set(userDataAtom, newUserData);
-  }
-);
 
 export const folderSortAtom = atom<SortStrings>('date-updated-desc');
 export const noteSortAtom = atom<SortStrings>('date-updated-desc');

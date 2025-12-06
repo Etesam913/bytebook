@@ -23,13 +23,6 @@ export type DropdownItem = {
   onChange?: () => void;
 };
 
-export type UserData = {
-  login: string;
-  accessToken: string | null;
-  avatarUrl: string;
-  email: string;
-};
-
 export type FolderDialogAction = 'create' | 'rename' | 'delete';
 
 export type MostRecentNoteType = {
@@ -114,11 +107,6 @@ export type ContextMenuData = {
   items: DropdownItem[];
   x: number;
   y: number;
-};
-
-export type GithubRepositoryData = {
-  name: string;
-  clone_url: string;
 };
 
 export type KernelStatus = 'busy' | 'idle' | 'starting';

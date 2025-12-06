@@ -8,7 +8,6 @@ import (
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/events"
-	"github.com/etesam913/bytebook/internal/git"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol/sockets"
 	"github.com/etesam913/bytebook/internal/notes"
@@ -46,16 +45,6 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	// Creating git repo if it does not already exist
-	err = git.InitializeGitRepo(projectPath)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	err = git.SetRepoOrigin(projectFiles.ProjectSettings.RepositoryToSyncTo)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 	// Launches the file server for video/image files to be served to the frontend
 	go notes.LaunchFileServer(projectPath)
 	searchIndex, err := search.OpenOrCreateIndex(projectPath)
@@ -198,7 +187,6 @@ func main() {
 	defer watcher.Close()
 	go notes.LaunchFileWatcher(app, projectPath, watcher)
 	notes.AddProjectFoldersToWatcher(projectPath, watcher)
-	go git.LaunchAuthServer()
 	// Run the application. This blocks until the application has been exited.
 	err = app.Run()
 

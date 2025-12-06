@@ -1,13 +1,9 @@
-import { LoginButton } from '../buttons/login';
 import { SettingsButton } from '../buttons/settings';
-import { SyncChangesButton } from '../buttons/sync-changes';
 
 export function BottomItems() {
   return (
-    <section className="pb-3 pt-1 flex flex-col gap-1 px-[10px] border-t border-zinc-200 dark:border-zinc-700">
+    <section className="pt-1.5 pb-2.5 flex flex-col gap-1 pl-2 pr-1 border-t border-zinc-200 dark:border-zinc-700">
       <SettingsButton />
-      <SyncChangesButton />
-      <LoginButton />
     </section>
   );
 }

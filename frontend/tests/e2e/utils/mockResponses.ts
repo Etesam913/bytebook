@@ -32,7 +32,6 @@ export const MOCK_PROJECT_SETTINGS_RESPONSE = {
       'Economics Notes/Supply and Demand.md',
       'Research Notes/Quantum Physics.md',
     ],
-    repositoryToSyncTo: '',
     projectPath: '',
     appearance: {
       theme: 'light',
