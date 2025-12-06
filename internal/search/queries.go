@@ -1,6 +1,7 @@
 package search
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
@@ -59,9 +60,15 @@ func createFilenameQuery(prefixTerm string) query.Query {
 
 	disjunctionQuery := bleve.NewDisjunctionQuery()
 
-	fieldFolderQuery := createPrefixQuery(FieldFolder, normalized)
-	// Use direct prefix query for filename since it uses single tokenizer
-	fileNameQuery := createPrefixQuery(FieldFileName, normalized)
+	fieldFolderQuery := bleve.NewWildcardQuery(fmt.Sprintf("*%s*", normalized))
+	fieldFolderQuery.SetField(FieldFolder)
+
+	fileNameQuery := bleve.NewWildcardQuery(fmt.Sprintf("*%s*", normalized))
+	fileNameQuery.SetField(FieldFileName)
+
+	// fieldFolderQuery := createPrefixQuery(FieldFolder, normalized)
+	// // Use direct prefix query for filename since it uses single tokenizer
+	// fileNameQuery := createPrefixQuery(FieldFileName, normalized)
 
 	disjunctionQuery.AddQuery(fieldFolderQuery)
 	disjunctionQuery.AddQuery(fileNameQuery)

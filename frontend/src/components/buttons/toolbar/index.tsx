@@ -98,7 +98,7 @@ export function ToolbarButtons({
           textFormat: 'bold',
         }),
       key: 'bold',
-      tooltip: 'Bold',
+      tooltip: 'Bold (⌘B)',
     },
     {
       icon: <TextItalic className="will-change-transform" />,
@@ -110,7 +110,7 @@ export function ToolbarButtons({
           textFormat: 'italic',
         }),
       key: 'italic',
-      tooltip: 'Italic',
+      tooltip: 'Italic (⌘I)',
     },
     {
       icon: <TextStrikethrough className="will-change-transform" />,
@@ -122,7 +122,7 @@ export function ToolbarButtons({
           textFormat: 'strikethrough',
         }),
       key: 'strikethrough',
-      tooltip: 'Strikethrough',
+      tooltip: 'Strikethrough (⌘⇧X)',
     },
     {
       icon: <UnorderedList className="will-change-transform" />,
