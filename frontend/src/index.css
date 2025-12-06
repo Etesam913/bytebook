@@ -73,35 +73,35 @@
 
 @font-face {
   font-family: 'Bricolage Grotesque';
-  src: url('./assets/fonts/BricolageGrotesque_24pt-Regular.ttf');
+  src: url('./assets/fonts/BricolageGrotesque-Regular.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'Bricolage Grotesque';
-  src: url('./assets/fonts/BricolageGrotesque_24pt-SemiBold.ttf');
+  src: url('./assets/fonts/BricolageGrotesque-SemiBold.woff2') format('woff2');
   font-weight: 600;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'Jetbrains Mono';
-  src: url('./assets/fonts/JetBrainsMono-Regular.ttf');
+  src: url('./assets/fonts/JetBrainsMono-Regular.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'Jetbrains Mono';
-  src: url('./assets/fonts/JetBrainsMono-Bold.ttf');
+  src: url('./assets/fonts/JetBrainsMono-Bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'Jetbrains Mono';
-  src: url('./assets/fonts/JetBrainsMono-Italic.ttf');
+  src: url('./assets/fonts/JetBrainsMono-Italic.woff2') format('woff2');
   font-style: italic;
 }
 
