@@ -1,22 +1,26 @@
 import { renderHook } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import { useSearch } from 'wouter';
-import {
+import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
+type UseSearch = () => string;
+const useSearchMock = mock<UseSearch>(() => '');
+
+mock.module('wouter', () => ({
+  useSearch: useSearchMock,
+}));
+
+const {
   useSearchParamsEntries,
   findClosestSidebarItemToNavigateTo,
   disableBackspaceNavigation,
-} from './routing';
+} = await import('./routing');
 
-vi.mock('wouter', () => ({
-  useSearch: vi.fn(),
-}));
-
-// Bun's test runner does not provide `vi.mocked`, so cast manually
-const mockedUseSearch = useSearch as unknown as ReturnType<typeof vi.fn>;
+beforeEach(() => {
+  useSearchMock.mockReset();
+});
 
 describe('useSearchParamsEntries', () => {
   it('returns URL params as a record', () => {
-    mockedUseSearch.mockReturnValue('?note=123&view=grid');
+    useSearchMock.mockReturnValue('?note=123&view=grid');
 
     const { result } = renderHook(() => useSearchParamsEntries());
 
@@ -40,7 +44,7 @@ describe('disableBackspaceNavigation', () => {
     disableBackspaceNavigation();
 
     const event = new KeyboardEvent('keydown', { key: 'Backspace' });
-    const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
+    const preventDefaultSpy = spyOn(event, 'preventDefault');
 
     document.dispatchEvent(event);
 
@@ -55,7 +59,7 @@ describe('disableBackspaceNavigation', () => {
     input.focus();
 
     const event = new KeyboardEvent('keydown', { key: 'Backspace' });
-    const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
+    const preventDefaultSpy = spyOn(event, 'preventDefault');
 
     document.dispatchEvent(event);
 

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { ROUTE_PATTERNS, routeBuilders } from './routes';
 
 describe('ROUTE_PATTERNS', () => {

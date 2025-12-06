@@ -16,6 +16,17 @@
     "**/node_modules/**": true,
     "**/.vscode/**": true
   },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/bindings": true,
+    "**/src/assets": true,
+    "**/src/test": true,
+    "**/src/test-results": true,
+    "**/src/test-report": true,
+    "**/src/test-trace": true,
+  },
   "typescript.experimental.useTsgo": false
 }
 

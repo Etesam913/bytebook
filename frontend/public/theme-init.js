@@ -4,7 +4,7 @@ function initTheme() {
     // Check localStorage for cached theme preference
     const cachedTheme = localStorage.getItem('bytebook-theme-preference');
     let shouldBeDark = false;
-    
+
     if (cachedTheme === 'dark') {
       shouldBeDark = true;
     } else if (cachedTheme === 'light') {
@@ -13,7 +13,7 @@ function initTheme() {
       // Fall back to system preference if no cache or system preference
       shouldBeDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
-    
+
     if (shouldBeDark) {
       document.documentElement.classList.add('dark');
       document.documentElement.style.colorScheme = 'dark';

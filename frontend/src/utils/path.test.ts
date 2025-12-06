@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 
 import { FILE_SERVER_URL } from './general';
 import { GlobalFilePath, LocalFilePath, Path } from './path';
