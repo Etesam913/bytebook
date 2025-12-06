@@ -1,10 +1,6 @@
 import { vscodeLight, vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { useAtomValue } from 'jotai/react';
-import {
-  isDarkModeOnAtom,
-  projectSettingsAtom,
-  kernelsDataAtom,
-} from '../../atoms';
+import { isDarkModeOnAtom, projectSettingsAtom } from '../../atoms';
 import CodeMirror, {
   type ReactCodeMirrorRef,
   EditorView,
@@ -120,17 +116,20 @@ export function CodeMirrorEditor({
   dialogRef?: RefObject<HTMLDialogElement | null>;
 }) {
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
-  const kernelsData = useAtomValue(kernelsDataAtom);
 
-  const { mutate: executeCode } = useSendExecuteRequestMutation(
-    id,
+  const { mutate: executeCode } = useSendExecuteRequestMutation({
+    codeBlockId: id,
     language,
-    setStatus
-  );
+    setStatus,
+  });
 
   const { mutate: interruptExecution } = useSendInterruptRequestMutation();
 
-  const { mutate: turnOnKernel } = useTurnOnKernelMutation();
+  const { mutate: turnOnKernel } = useTurnOnKernelMutation({
+    language,
+    codeBlockId: id,
+    setStatus,
+  });
 
   const completionSource = useCompletionSource({
     id,
@@ -188,7 +187,6 @@ export function CodeMirrorEditor({
     turnOnKernel,
     codeMirrorInstance,
     setSelected,
-    kernelsData,
     isExecutionEnabled: !hideResults && language !== 'text',
   });
 

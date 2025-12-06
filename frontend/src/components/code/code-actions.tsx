@@ -49,7 +49,7 @@ export function CodeActions({
   return (
     <div
       className={cn(
-        'absolute flex gap-1 -top-5 right-2.5 z-10 p-1 border border-zinc-200 dark:border-zinc-600 rounded-md shadow-lg cm-background',
+        'absolute flex gap-1 -top-5 right-2.5 z-10 p-1 border border-zinc-200 dark:border-zinc-600 rounded-md shadow-lg bg-white dark:bg-zinc-750',
         isExpanded && 'top-2 right-4'
       )}
     >
@@ -86,6 +86,7 @@ export function CodeActions({
         </MotionIconButton>
       </Tooltip>
       <DropdownMenu
+        className="font-display"
         items={[
           {
             value: 'copy-code',
@@ -116,6 +117,14 @@ export function CodeActions({
               </span>
             ),
           },
+          {
+            value: 'delete',
+            label: (
+              <span className="flex items-center gap-1.5 will-change-transform">
+                <Trash height={18} width={18} /> Delete
+              </span>
+            ),
+          },
         ]}
         isOpen={isDropdownOpen}
         setIsOpen={setIsDropdownOpen}
@@ -142,6 +151,12 @@ export function CodeActions({
             }
             case 'show-results': {
               setHideResults(false);
+              break;
+            }
+            case 'delete': {
+              editor.update(() => {
+                removeDecoratorNode(nodeKey);
+              });
               break;
             }
           }

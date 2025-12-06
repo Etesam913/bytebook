@@ -134,7 +134,7 @@ export function Code({
     <div className="flex gap-2 items-center relative">
       <dialog
         ref={dialogRef}
-        className="backdrop:bg-zinc-200/65 dark:backdrop:bg-zinc-800/65 bg-transparent p-0 m-auto h-[calc(100vh-5rem)] w-[calc(100vw-5rem)] max-h-none max-w-none"
+        className="backdrop:bg-zinc-500/65 dark:backdrop:bg-zinc-800/70 p-0 bg-transparent m-auto h-[calc(100vh-5rem)] w-[calc(100vw-5rem)] max-h-none max-w-none font-display"
         onClose={() => {
           setIsExpanded(false);
           focusEditor(codeMirrorInstance);

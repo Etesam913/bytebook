@@ -45,6 +45,30 @@
   .kernel-heartbeat {
     animation: customPulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes dialog-pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .dialog-animation {
+    animation: dialog-pop-in 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
 }
 
 @font-face {
@@ -79,10 +103,6 @@
   font-family: 'Jetbrains Mono';
   src: url('./assets/fonts/JetBrainsMono-Italic.ttf');
   font-style: italic;
-}
-
-::backdrop {
-  background-color: transparent;
 }
 
 * {

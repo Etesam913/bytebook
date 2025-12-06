@@ -22,7 +22,7 @@ export function KernelStatusCard({
   language: Languages;
 }) {
   const { mutate: shutdownKernel } = useShutdownKernelMutation(language);
-  const { mutate: turnOnKernel } = useTurnOnKernelMutation();
+  const { mutate: turnOnKernel } = useTurnOnKernelMutation({ language });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -51,7 +51,7 @@ export function KernelStatusCard({
     if (heartbeat === 'success') {
       shutdownKernel(false);
     } else {
-      turnOnKernel(language);
+      turnOnKernel({});
     }
   };
 

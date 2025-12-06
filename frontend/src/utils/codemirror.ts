@@ -1,13 +1,15 @@
 import { UseMutateFunction } from '@tanstack/react-query';
 import { keymap, Prec } from '@uiw/react-codemirror';
 import type { CodeMirrorRef } from '../components/code/types';
-import { CodeBlockStatus, KernelsData, Languages } from '../types';
+import { CodeBlockStatus, Languages } from '../types';
 import {
   KEY_ARROW_DOWN_COMMAND,
   KEY_ARROW_UP_COMMAND,
   LexicalEditor,
 } from 'lexical';
-import { handleRunOrInterruptCode } from './code';
+import { handleRunOrInterruptCode, type TurnOnKernelFunction } from './code';
+import { getDefaultStore } from 'jotai';
+import { kernelsDataAtom } from '../atoms';
 
 /**
  * Creates a keymap for CodeMirror with custom key bindings for code execution and navigation.
@@ -23,7 +25,6 @@ import { handleRunOrInterruptCode } from './code';
  * @param options.turnOnKernel - Function to turn on the kernel for the code block
  * @param options.codeMirrorInstance - Reference to the CodeMirror editor instance
  * @param options.setSelected - Function to set the selection state of the node
- * @param options.kernelsData - Data about the kernels for the code block
  * @param options.isExecutionEnabled - Whether execution keyboard shortcuts should be enabled
  * @returns A CodeMirror keymap extension with custom key bindings
  */
@@ -38,7 +39,6 @@ export function getCodemirrorKeymap({
   turnOnKernel,
   codeMirrorInstance,
   setSelected,
-  kernelsData,
   isExecutionEnabled = true,
 }: {
   isExpanded: boolean;
@@ -55,7 +55,7 @@ export function getCodemirrorKeymap({
     codeBlockId: string;
     codeBlockLanguage: Languages;
   }) => void;
-  turnOnKernel: UseMutateFunction<void, Error, Languages, unknown>;
+  turnOnKernel: TurnOnKernelFunction;
   codeMirrorInstance: CodeMirrorRef;
   executeCode: UseMutateFunction<
     void,
@@ -67,7 +67,6 @@ export function getCodemirrorKeymap({
     unknown
   >;
   setSelected: (selected: boolean) => void;
-  kernelsData: KernelsData;
   isExecutionEnabled?: boolean;
 }) {
   return Prec.highest(
@@ -144,7 +143,7 @@ export function getCodemirrorKeymap({
             interruptExecution,
             codeMirrorInstance,
             executeCode,
-            kernelsData,
+            getKernelsData: () => getDefaultStore().get(kernelsDataAtom),
             turnOnKernel,
           });
         },
@@ -162,7 +161,7 @@ export function getCodemirrorKeymap({
             interruptExecution,
             codeMirrorInstance,
             executeCode,
-            kernelsData,
+            getKernelsData: () => getDefaultStore().get(kernelsDataAtom),
             turnOnKernel,
           });
         },
@@ -180,7 +179,7 @@ export function getCodemirrorKeymap({
             interruptExecution,
             codeMirrorInstance,
             executeCode,
-            kernelsData,
+            getKernelsData: () => getDefaultStore().get(kernelsDataAtom),
             turnOnKernel,
           });
         },

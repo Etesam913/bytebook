@@ -33,7 +33,9 @@ export function KernelAccordionButton({
   const { status, heartbeat } = kernelsData[kernelName];
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const { mutate: shutdownKernel } = useShutdownKernelMutation(kernelName);
-  const { mutate: turnOnKernel } = useTurnOnKernelMutation();
+  const { mutate: turnOnKernel } = useTurnOnKernelMutation({
+    language: kernelName,
+  });
   const currentZoom = useAtomValue(currentZoomAtom);
 
   const isKernelRunning = heartbeat === 'success';
@@ -81,7 +83,7 @@ export function KernelAccordionButton({
                 if (isKernelRunning) {
                   shutdownKernel(false);
                 } else {
-                  turnOnKernel(kernelName);
+                  turnOnKernel({});
                 }
               },
             },

@@ -11,7 +11,7 @@ import type { CodeMirrorRef } from './types';
 import { CodeBlockStatus, Languages } from '../../types';
 import { MediaStop } from '../../icons/media-stop';
 import { Loader } from '../../icons/loader';
-import { useAtomValue } from 'jotai/react';
+import { getDefaultStore } from 'jotai';
 import { kernelsDataAtom } from '../../atoms';
 import { Tooltip } from '../tooltip';
 import type { RefObject } from 'react';
@@ -33,15 +33,17 @@ export function PlayButton({
   isExpanded?: boolean;
   dialogRef?: RefObject<HTMLDialogElement | null>;
 }) {
-  const kernelsData = useAtomValue(kernelsDataAtom);
-
-  const { mutate: executeCode } = useSendExecuteRequestMutation(
+  const { mutate: executeCode } = useSendExecuteRequestMutation({
     codeBlockId,
     language,
-    setStatus
-  );
+    setStatus,
+  });
   const { mutate: interruptExecution } = useSendInterruptRequestMutation();
-  const { mutate: turnOnKernel } = useTurnOnKernelMutation();
+  const { mutate: turnOnKernel } = useTurnOnKernelMutation({
+    language,
+    codeBlockId,
+    setStatus,
+  });
 
   const tooltipRoot = isExpanded && dialogRef ? dialogRef : undefined;
 
@@ -74,7 +76,7 @@ export function PlayButton({
             interruptExecution,
             codeMirrorInstance,
             executeCode,
-            kernelsData,
+            getKernelsData: () => getDefaultStore().get(kernelsDataAtom),
             turnOnKernel,
           });
         }}

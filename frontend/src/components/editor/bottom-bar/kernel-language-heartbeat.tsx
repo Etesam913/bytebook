@@ -55,7 +55,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const kernelsData = useAtomValue(kernelsDataAtom);
   const { status, heartbeat, errorMessage } = kernelsData[language];
   const { mutate: shutdownKernel } = useShutdownKernelMutation(language);
-  const { mutate: turnOnKernel } = useTurnOnKernelMutation();
+  const { mutate: turnOnKernel } = useTurnOnKernelMutation({ language });
   const { mutateAsync: submitPythonVenv } =
     usePythonVenvSubmitMutation(projectSettings);
 
@@ -113,7 +113,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
               shutdownKernel(false);
               break;
             case 'turn-on':
-              turnOnKernel(language);
+              turnOnKernel({});
               break;
             case 'change-venv':
               setDialogData({

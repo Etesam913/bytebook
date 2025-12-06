@@ -1,4 +1,4 @@
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { CodeNode } from '../components/editor/nodes/code';
 import { useWailsEvent } from './events';
 import { loadingToastIdsAtom, kernelsDataAtom } from '../atoms';
@@ -27,6 +27,8 @@ import { toast } from 'sonner';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import { Dispatch, FormEvent, SetStateAction } from 'react';
+import { runCode } from '../utils/code';
+import { CodeMirrorRef } from '../components/code/types';
 
 /**
  * Hook that listens for kernel status updates and updates the kernels data atom.
@@ -477,11 +479,15 @@ export function useSendInputReplyMutation(
  * @param setStatus - Function to update the code block's status
  * @returns A mutation object for executing code
  */
-export function useSendExecuteRequestMutation(
-  codeBlockId: string,
-  language: Languages,
-  setStatus: (status: CodeBlockStatus) => void
-) {
+export function useSendExecuteRequestMutation({
+  codeBlockId,
+  language,
+  setStatus,
+}: {
+  codeBlockId: string;
+  language: Languages;
+  setStatus: (status: CodeBlockStatus) => void;
+}) {
   return useMutation({
     mutationFn: async ({
       code,
@@ -570,10 +576,28 @@ export function useShutdownKernelMutation(language: Languages) {
  *
  * @returns A mutation object for starting up the kernel
  */
-export function useTurnOnKernelMutation() {
-  const setLoadingToastIds = useSetAtom(loadingToastIdsAtom);
+export function useTurnOnKernelMutation({
+  language,
+  codeBlockId,
+  setStatus,
+}: {
+  language: Languages;
+  codeBlockId?: string;
+  setStatus?: (status: CodeBlockStatus) => void;
+}) {
+  const [loadingToastIds, setLoadingToastIds] = useAtom(loadingToastIdsAtom);
+  const { mutate: executeCode } = useSendExecuteRequestMutation({
+    codeBlockId: codeBlockId ?? '',
+    language,
+    setStatus: setStatus ?? (() => {}),
+  });
+
   return useMutation({
-    mutationFn: async (language: Languages) => {
+    mutationFn: async ({
+      codeMirrorInstance,
+    }: {
+      codeMirrorInstance?: CodeMirrorRef;
+    }) => {
       const toastKey = `starting-${language}`;
 
       const res = await CreateSocketsAndListen(language);
@@ -582,15 +606,32 @@ export function useTurnOnKernelMutation() {
       } else {
         // Check atomically if a toast already exists before creating a new one
         // This prevents duplicate toasts when spam clicking
+        if (loadingToastIds.has(toastKey)) {
+          return;
+        }
+
         setLoadingToastIds((prev) => {
           const newMap = new Map(prev);
-          // Only create toast if one doesn't already exist
-          if (!newMap.has(toastKey)) {
-            const loadingToastId = toast.loading(`Starting ${language} kernel`);
-            newMap.set(toastKey, loadingToastId);
-          }
+          const loadingToastId = toast.loading(`Starting ${language} kernel`);
+          newMap.set(toastKey, loadingToastId);
           return newMap;
         });
+
+        // If there is a code mirror instance, then wait until the kernel is available
+        // to do the initial execution of the code
+        if (!codeMirrorInstance) {
+          return;
+        }
+
+        const interval = setInterval(() => {
+          const loadingToastId = loadingToastIds.get(toastKey);
+          if (!loadingToastId) {
+            clearInterval(interval);
+            setTimeout(() => {
+              runCode(codeMirrorInstance, executeCode);
+            }, 300);
+          }
+        }, 100);
       }
     },
   });
@@ -615,7 +656,7 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
   const { mutateAsync: updateProjectSettings } =
     useUpdateProjectSettingsMutation();
   const { mutateAsync: shutdownKernel } = useShutdownKernelMutation(language);
-  const { mutateAsync: turnOnKernel } = useTurnOnKernelMutation();
+  const { mutateAsync: turnOnKernel } = useTurnOnKernelMutation({ language });
 
   return useMutation({
     mutationFn: async (variables: pythonVenvMutationParams) => {
@@ -666,10 +707,10 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
         await shutdownKernel(false);
         // Switch the kernel on after 2 seconds, hopefully after the shutdown kernel message has been processed
         setTimeout(() => {
-          turnOnKernel(language);
+          turnOnKernel({});
         }, 2000);
       } else {
-        turnOnKernel(language);
+        turnOnKernel({});
       }
 
       return true;
