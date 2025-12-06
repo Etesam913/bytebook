@@ -135,7 +135,7 @@ func (i *ioPubSocket) Listen(
 			log.Println("io 🍺 socket content:", msg.Content)
 
 			switch msg.Header.MsgType {
-			case "stream":
+			case IOPubSocket.Stream:
 				name, isNameString := msg.Content["name"].(string)
 				text, isTextString := msg.Content["text"].(string)
 				if isNameString && isTextString {
@@ -149,7 +149,7 @@ func (i *ioPubSocket) Listen(
 						},
 					})
 				}
-			case "execute_result":
+			case IOPubSocket.ExecuteResult:
 				log.Printf("✅ Execution result: %v\n", msg.Content["data"])
 				dataMap, exists := msg.Content["data"].(map[string]any)
 
@@ -174,7 +174,7 @@ func (i *ioPubSocket) Listen(
 						Data: executionResult,
 					})
 				}
-			case "display_data":
+			case IOPubSocket.DisplayData:
 				log.Printf("🖼️ Display data: %v\n", msg.Content["data"])
 				dataMap, exists := msg.Content["data"].(map[string]any)
 
@@ -199,7 +199,7 @@ func (i *ioPubSocket) Listen(
 						Data: displayData,
 					})
 				}
-			case "execute_input":
+			case IOPubSocket.ExecuteInput:
 				log.Printf("🎯 Execute input: %v\n", msg.Content)
 				code, isCodeString := msg.Content["code"].(string)
 				executionCount, isExecutionCountFloat := msg.Content["execution_count"].(float64)
@@ -215,7 +215,7 @@ func (i *ioPubSocket) Listen(
 						Data: executeInputData,
 					})
 				}
-			case "status":
+			case IOPubSocket.Status:
 				status, isString := msg.Content["execution_state"].(string)
 				if isString {
 					statusEventData := kernelStatusEvent{
@@ -263,7 +263,7 @@ func (i *ioPubSocket) Listen(
 						i.cancelFunc()
 					}
 				}
-			case "error":
+			case IOPubSocket.Error:
 				log.Printf("❌ Execution error: %v\n", msg.Content["traceback"])
 				errorName := ""
 				errorValue := ""

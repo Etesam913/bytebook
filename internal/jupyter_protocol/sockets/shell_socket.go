@@ -115,7 +115,7 @@ func (s *shellSocket) Listen(
 			log.Println("🐚 shell socket content:", msg.Content)
 
 			switch msg.Header.MsgType {
-			case "execute_reply":
+			case ShellSocket.ExecuteReply:
 				status, ok := msg.Content["status"].(string)
 				if !ok {
 					log.Printf("⚠️ Invalid status type: %v (type: %T)", msg.Content["status"], msg.Content["status"])
@@ -170,7 +170,7 @@ func (s *shellSocket) Listen(
 				fmt.Println("---")
 				time.Sleep(100 * time.Millisecond)
 
-			case "complete_reply":
+			case ShellSocket.CompleteReply:
 				status, ok := msg.Content["status"].(string)
 				if !ok {
 					log.Printf("⚠️ Invalid status type in complete_reply: %v (type: %T)", msg.Content["status"], msg.Content["status"])
@@ -220,7 +220,7 @@ func (s *shellSocket) Listen(
 						},
 					)
 				}
-			case "shutdown_reply":
+			case ShellSocket.ShutdownReply:
 				// TODO: Handle restart functionality later
 
 				status, ok := msg.Content["status"].(string)
@@ -241,7 +241,7 @@ func (s *shellSocket) Listen(
 					// It does not use a control socket
 					s.cancelFunc()
 				}
-			case "inspect_reply":
+			case ShellSocket.InspectReply:
 				status, ok := msg.Content["status"].(string)
 				if !ok {
 					log.Printf("⚠️ Invalid status type in inspect_reply: %v (type: %T)", msg.Content["status"], msg.Content["status"])

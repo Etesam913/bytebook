@@ -90,7 +90,7 @@ func (s *stdinSocket) Listen(
 			log.Println("📥 stdin socket content:", msg.Content)
 
 			switch msg.Header.MsgType {
-			case "input_request":
+			case StdinSocket.InputRequest:
 				msgId, ok := msg.ParentHeader["msg_id"].(string)
 				if !ok {
 					log.Printf("⚠️ Invalid message ID type: %v (type: %T)", msg.ParentHeader["msg_id"], msg.ParentHeader["msg_id"])
