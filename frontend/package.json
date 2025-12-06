@@ -8,6 +8,7 @@
     "build": "vite build --minify false --mode development",
     "build:prod": "VITE_ANALYZE=true vite build --mode production",
     "build:analyze": "VITE_ANALYZE=true vite build",
+    "build:ci": "vite build --mode production",
     "preview": "vite preview",
     "test": "bun test",
     "test:ui": "bun test --watch",
@@ -19,7 +20,8 @@
     "lint": "eslint --fix .",
     "lint:check": "bun run eslint .",
     "tsgo": "tsgo",
-    "format:lint:tsgo": "bun run format:check && bun run lint:check && bun run tsgo"
+    "format:lint:tsgo": "bun run format:check && bun run lint:check && bun run tsgo",
+    "size": "size-limit"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.19.1",
@@ -63,6 +65,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@playwright/test": "^1.56.1",
+    "@size-limit/preset-app": "^12.0.0",
     "@tailwindcss/vite": "^4.1.17",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
@@ -85,6 +88,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "rollup-plugin-visualizer": "^6.0.5",
+    "size-limit": "^12.0.0",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
