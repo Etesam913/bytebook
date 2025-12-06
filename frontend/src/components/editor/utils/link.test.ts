@@ -2,10 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SONNER_OPTIONS } from '../../../utils/general';
 import { handleATagClick, sanitizeUrl } from './link';
 
-const { openUrl, toastError } = vi.hoisted(() => ({
-  openUrl: vi.fn(),
-  toastError: vi.fn(),
-}));
+const openUrl = vi.fn();
+const toastError = vi.fn();
 
 vi.mock('@wailsio/runtime', () => ({
   Browser: {

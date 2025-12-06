@@ -11,7 +11,8 @@ vi.mock('wouter', () => ({
   useSearch: vi.fn(),
 }));
 
-const mockedUseSearch = vi.mocked(useSearch);
+// Bun's test runner does not provide `vi.mocked`, so cast manually
+const mockedUseSearch = useSearch as unknown as ReturnType<typeof vi.fn>;
 
 describe('useSearchParamsEntries', () => {
   it('returns URL params as a record', () => {

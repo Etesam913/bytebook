@@ -18,6 +18,7 @@ import {
   KEY_ARROW_DOWN_COMMAND,
   KEY_ARROW_UP_COMMAND,
   KEY_BACKSPACE_COMMAND,
+  KEY_DOWN_COMMAND,
   KEY_ESCAPE_COMMAND,
   type LexicalEditor,
   PASTE_COMMAND,
@@ -49,6 +50,7 @@ import {
   overrideUndoRedoCommand,
   overrideUpDownKeyCommand,
 } from '../utils/note-commands';
+import { handleKeyboardShortcuts } from '../utils/hotkeys';
 import { parseFrontMatter } from '../utils/note-metadata';
 import { updateToolbar } from '../utils/toolbar';
 import { useWailsEvent } from '../../../hooks/events';
@@ -307,6 +309,13 @@ export function useToolbarEvents({
       editor.registerCommand(
         CLICK_COMMAND,
         overrideClickCommand,
+        COMMAND_PRIORITY_LOW
+      ),
+      editor.registerCommand(
+        KEY_DOWN_COMMAND,
+        (event: KeyboardEvent) => {
+          return handleKeyboardShortcuts(event, editor);
+        },
         COMMAND_PRIORITY_LOW
       ),
       editor.registerCommand(
