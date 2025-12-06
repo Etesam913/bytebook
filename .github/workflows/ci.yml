@@ -153,3 +153,32 @@ jobs:
           name: playwright-report
           path: frontend/playwright-report/
           retention-days: 30
+
+  # ------------------------------------------------------------------
+  # JOB 4: Bundle Size Check
+  # ------------------------------------------------------------------
+  bundle-size-check:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+    needs: backend-and-bindings
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Frontend Environment
+        uses: ./.github/actions/setup-frontend
+
+      - name: Download Bindings
+        uses: actions/download-artifact@v4
+        with:
+          name: wails-bindings
+          path: frontend/bindings
+
+      - name: Build for production
+        working-directory: ./frontend
+        run: bun run build:ci
+
+      - name: Check bundle size
+        working-directory: ./frontend
+        run: bun run size

@@ -10,6 +10,10 @@ import {
 } from '../../utils/mockResponses';
 import { SERVICE_FILES } from '../../utils/serviceFiles';
 
+const BOLD_TOOLTIP = 'Bold (⌘B)';
+const ITALIC_TOOLTIP = 'Italic (⌘I)';
+const STRIKETHROUGH_TOOLTIP = 'Strikethrough (⌘⇧X)';
+
 test.describe('Editor', () => {
   test.beforeEach(async ({ context }) => {
     // Mock folder sidebar dependencies
@@ -190,9 +194,9 @@ test.describe('Editor', () => {
 
       // Verify toolbar buttons are present
       for (const label of [
-        'Bold',
-        'Italic',
-        'Strikethrough',
+        BOLD_TOOLTIP,
+        ITALIC_TOOLTIP,
+        STRIKETHROUGH_TOOLTIP,
         'Bullet List',
         'Numbered List',
         'Checklist',
@@ -205,9 +209,9 @@ test.describe('Editor', () => {
     });
 
     const formattingTests = [
-      { button: 'Bold', selector: 'strong' },
-      { button: 'Italic', selector: 'em' },
-      { button: 'Strikethrough', selector: 'span.text-strikethrough' },
+      { button: BOLD_TOOLTIP, selector: 'strong' },
+      { button: ITALIC_TOOLTIP, selector: 'em' },
+      { button: STRIKETHROUGH_TOOLTIP, selector: 'span.text-strikethrough' },
     ];
 
     for (const { button, selector } of formattingTests) {

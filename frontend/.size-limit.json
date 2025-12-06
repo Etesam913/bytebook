@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Entry bundle",
+    "path": "dist/entry-*.js",
+    "limit": "300 KB"
+  },
+  {
+    "name": "CodeMirror editor chunk",
+    "path": "dist/chunk-codemirror-editor.*.js",
+    "limit": "500 KB"
+  },
+  {
+    "name": "Inline equation chunk",
+    "path": "dist/chunk-inline-equation.*.js",
+    "limit": "100 KB"
+  },
+  {
+    "name": "Render note chunk",
+    "path": "dist/chunk-render-note.*.js",
+    "limit": "75 KB"
+  },
+  {
+    "name": "Total bundle size",
+    "path": "dist/**/*.js",
+    "limit": "1 MB"
+  }
+]
