@@ -1,22 +1,22 @@
-import { FORMAT_TEXT_COMMAND } from 'lexical';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { FORMAT_TEXT_COMMAND, type LexicalEditor } from 'lexical';
+import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import { handleKeyboardShortcuts } from './hotkeys';
 
 describe('handleKeyboardShortcuts', () => {
-  const mockDispatchCommand = vi.fn();
+  const mockDispatchCommand = mock<LexicalEditor['dispatchCommand']>();
   const mockEditor = {
     dispatchCommand: mockDispatchCommand,
   } as unknown as Parameters<typeof handleKeyboardShortcuts>[1];
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockDispatchCommand.mockReset();
   });
 
   function createKeyboardEvent(
     options: Partial<KeyboardEvent> & { key: string }
   ): KeyboardEvent {
     const event = new KeyboardEvent('keydown', options);
-    vi.spyOn(event, 'preventDefault');
+    spyOn(event, 'preventDefault').mockImplementation(() => {});
     return event;
   }
 

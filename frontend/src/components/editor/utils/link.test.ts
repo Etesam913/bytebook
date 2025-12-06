@@ -1,29 +1,30 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { DEFAULT_SONNER_OPTIONS } from '../../../utils/general';
-import { handleATagClick, sanitizeUrl } from './link';
+const openUrl = mock<(url: string) => Promise<void>>(() => Promise.resolve());
+const toastError = mock<(message: string, options?: unknown) => void>(() => {});
 
-const openUrl = vi.fn();
-const toastError = vi.fn();
-
-vi.mock('@wailsio/runtime', () => ({
+mock.module('@wailsio/runtime', () => ({
   Browser: {
     OpenURL: openUrl,
   },
 }));
 
-vi.mock('sonner', () => ({
+mock.module('sonner', () => ({
   toast: {
     error: toastError,
   },
 }));
 
+const { handleATagClick, sanitizeUrl } = await import('./link');
+
 describe('editor link utils', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    openUrl.mockReset();
+    toastError.mockReset();
   });
 
   it('opens regular links via the runtime browser', () => {
-    openUrl.mockResolvedValue(undefined);
+    openUrl.mockImplementation(async () => undefined);
     const anchor = document.createElement('a');
     anchor.href = 'https://example.com/docs';
     const child = document.createElement('span');
@@ -36,7 +37,9 @@ describe('editor link utils', () => {
   });
 
   it('reports a toast when the runtime refuses to open the link', async () => {
-    openUrl.mockRejectedValue(new Error('network'));
+    openUrl.mockImplementation(async () => {
+      throw new Error('network');
+    });
     const anchor = document.createElement('a');
     anchor.href = 'https://example.com/fail';
     const child = document.createElement('span');
