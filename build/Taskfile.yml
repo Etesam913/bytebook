@@ -36,7 +36,7 @@ tasks:
       - task: install:frontend:deps
       - task: generate:bindings
     cmds:
-      - bun run build
+      - bun run build:prod
 
   generate:bindings:
     summary: Generates bindings for the frontend

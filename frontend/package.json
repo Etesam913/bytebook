@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build --minify false --mode development",
-    "build:prod": "VITE_ANALYZE=true vite build --mode production",
-    "build:analyze": "VITE_ANALYZE=true vite build",
+    "build:prod": "vite build --mode production",
+    "build:analyze": "VITE_ANALYZE=true vite build --mode production",
     "build:ci": "vite build --mode production",
     "preview": "vite preview",
     "test": "bun test",
