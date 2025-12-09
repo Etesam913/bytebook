@@ -53,7 +53,9 @@ export const noteQueries = {
     queryOptions({
       queryKey: ['notes', folder, noteSort],
       queryFn: async (): Promise<NotesQueryData> => {
+        console.time('getNotes');
         const res = await GetNotes(decodeURIComponent(folder), noteSort);
+        console.timeEnd('getNotes');
         if (!res.success) {
           throw new QueryError('Failed in retrieving notes');
         }

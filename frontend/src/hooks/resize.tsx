@@ -53,7 +53,10 @@ export function useFullscreen() {
  */
 export function useWindowReload() {
   useWailsEvent('window:reload', () => {
-    window.location.reload();
+    // Only refresh the window that currently has focus
+    if (document.hasFocus()) {
+      window.location.reload();
+    }
   });
 }
 

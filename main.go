@@ -17,6 +17,7 @@ import (
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	wailsEvents "github.com/wailsapp/wails/v3/pkg/events"
 )
 
 // Wails uses Go's `embed` package to embed the frontend files into the binary.
@@ -53,14 +54,6 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	defer searchIndex.Close()
-
-	// Index all existing files in the background
-	go func() {
-		err := search.IndexAllFiles(projectPath, searchIndex)
-		if err != nil {
-			log.Printf("Error indexing files: %v", err)
-		}
-	}()
 
 	// Create separate contexts for Python and Go kernels
 	pythonCtx, pythonCtxCancel := context.WithCancel(context.Background())
@@ -173,8 +166,14 @@ func main() {
 	if app.Env.IsDarkMode() {
 		backgroundColor = application.NewRGB(39, 39, 43)
 	}
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal("failed to setup file watcher " + err.Error())
+	}
+	defer watcher.Close()
+
 	// Creates the default window
-	ui.CreateWindow(app, "/", backgroundColor)
+	window := ui.CreateWindow(app, "/", backgroundColor)
 	// TODO: Fix bug with ui.InitializeApplicationMenu breaking the app
 	ui.InitializeApplicationMenu(backgroundColor)
 
@@ -184,13 +183,22 @@ func main() {
 		Index:       searchIndex,
 	})
 
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		log.Fatal("failed to setup file watcher " + err.Error())
-	}
-	defer watcher.Close()
-	go notes.LaunchFileWatcher(app, projectPath, watcher)
-	notes.AddProjectFoldersToWatcher(projectPath, watcher)
+	// Start file watcher and search indexing once the window runtime is ready,
+	// preventing "too many open files" errors from concurrent file descriptor usage
+	// by bleve index, fsnotify watchers, and Metal/WebView during initialization
+	var runtimeReadyOnce sync.Once
+	window.OnWindowEvent(wailsEvents.Common.WindowRuntimeReady, func(e *application.WindowEvent) {
+		runtimeReadyOnce.Do(func() {
+			notes.AddProjectFoldersToWatcher(projectPath, watcher)
+			go notes.LaunchFileWatcher(app, projectPath, watcher)
+			go func() {
+				if err := search.IndexFilesNew(projectPath); err != nil {
+					log.Printf("Error indexing files: %v", err)
+				}
+			}()
+		})
+	})
+
 	// Run the application. This blocks until the application has been exited.
 	err = app.Run()
 

@@ -193,7 +193,7 @@ textarea,
   line-height: 28px;
   cursor: text;
   /* Contain:layout style paint makes the editor handle larger content more efficiently */
-  contain:layout style paint;
+  contain: layout style paint;
   isolation: isolate;
 }
 

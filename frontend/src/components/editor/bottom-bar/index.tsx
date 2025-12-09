@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { motion } from 'motion/react';
 import { Tag } from './tag';
 import { BreadcrumbItem } from './breadcrumb-item';
@@ -13,12 +13,13 @@ import {
   useTagsForNotesQuery,
   // useDeleteTagsMutation,
 } from '../../../hooks/tags';
-import { dialogDataAtom } from '../../../atoms';
+import { dialogDataAtom, isNoteMaximizedAtom } from '../../../atoms';
 import { EditTagDialogChildren } from '../../../routes/notes-sidebar/edit-tag-dialog-children';
 import { timeSince } from '../utils/bottom-bar';
 import { LocalFilePath } from '../../../utils/path';
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
 import { Frontmatter } from '../../../types';
+import { cn } from '../../../utils/string-formatting';
 
 export function BottomBar({
   frontmatter,
@@ -30,6 +31,7 @@ export function BottomBar({
   isNoteEditor?: boolean;
 }) {
   const [lastUpdatedText, setLastUpdatedText] = useState('');
+  const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 
   const { data: tagsMap, isLoading } = useTagsForNotesQuery([
     `${filePath.folder}/${filePath.note}`,
@@ -75,7 +77,12 @@ export function BottomBar({
   const isMarkdownFile = filePath.noteExtension === 'md';
 
   return (
-    <footer className="text-xs ml-[-4.5px] border-t border-gray-200 dark:border-gray-600 py-1.5 px-3 flex items-center gap-4">
+    <footer
+      className={cn(
+        'text-xs ml-[-4.5px] border-t border-gray-200 dark:border-gray-600 py-1.5 pl-2 pr-5 flex items-center gap-4',
+        isNoteMaximized && 'px-5'
+      )}
+    >
       <span className="flex items-center gap-1">
         <BreadcrumbItem to={`/${filePath.folder}`}>
           <Folder width={20} height={20} />{' '}
