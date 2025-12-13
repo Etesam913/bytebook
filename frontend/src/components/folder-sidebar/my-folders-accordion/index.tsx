@@ -6,7 +6,7 @@ import { Folder } from '../../../icons/folder';
 import { FolderRefresh } from '../../../icons/folder-refresh';
 import { Loader } from '../../../icons/loader';
 import {} from '../../../utils/selection';
-import { Sidebar } from '../../sidebar';
+import { VirtualizedList } from '../../sidebar';
 import { AccordionButton } from '../../sidebar/accordion-button';
 import {} from './folder-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
@@ -126,7 +126,7 @@ export function MyFoldersAccordion() {
                   <Loader width={20} height={20} className="mx-auto my-3" />
                 </motion.div>
               ) : (
-                <Sidebar<string>
+                <VirtualizedList<string>
                   contentType="folder"
                   layoutId="folder-sidebar"
                   emptyElement={
@@ -138,15 +138,13 @@ export function MyFoldersAccordion() {
                   dataItemToString={(folderName) => folderName}
                   dataItemToKey={(folderName) => folderName}
                   dataItemToSelectionRangeEntry={(folderName) => folderName}
-                  renderLink={({ dataItem: sidebarFolderName, i }) => {
-                    return (
-                      <FolderAccordionButton
-                        sidebarFolderName={sidebarFolderName}
-                        i={i}
-                        alphabetizedFolders={alphabetizedFolders}
-                      />
-                    );
-                  }}
+                  renderItem={({ dataItem: sidebarFolderName, i }) => (
+                    <FolderAccordionButton
+                      sidebarFolderName={sidebarFolderName}
+                      i={i}
+                      alphabetizedFolders={alphabetizedFolders}
+                    />
+                  )}
                   data={alphabetizedFolders}
                 />
               ))}

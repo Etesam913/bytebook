@@ -1,6 +1,7 @@
 package search
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -83,10 +84,22 @@ func IndexAllFiles(projectPath string, bleveIndex bleve.Index) error {
 }
 
 func addResultsToIndex(bleveIndex bleve.Index, bleveBatch *bleve.Batch, results chan DocumentResult) (*bleve.Batch, error) {
+	indexCount := 0
 	for docResult := range results {
 		if docResult.isError {
 			continue
 		}
+		document, err := bleveIndex.Document(docResult.fileId)
+		if err != nil {
+			log.Printf("Error when trying to fetch document in adding results: %v", err)
+			continue
+		}
+
+		// The file is already indexed, so we can skip here
+		if document != nil {
+			continue
+		}
+
 		markdownBleveDocument, ok := docResult.document.(MarkdownNoteBleveDocument)
 		if ok {
 			bleveBatch.Index(docResult.fileId, markdownBleveDocument)
@@ -97,6 +110,8 @@ func addResultsToIndex(bleveIndex bleve.Index, bleveBatch *bleve.Batch, results 
 			bleveBatch.Index(docResult.fileId, attachmentBleveDocument)
 		}
 
+		indexCount += 1
+
 		if bleveBatch.Size() >= defaultIndexBatchSize {
 			if err := bleveIndex.Batch(bleveBatch); err != nil {
 				log.Printf("Error flushing batch: %v", err)
@@ -105,6 +120,8 @@ func addResultsToIndex(bleveIndex bleve.Index, bleveBatch *bleve.Batch, results 
 			bleveBatch = bleveIndex.NewBatch()
 		}
 	}
+
+	fmt.Printf("Indexed %d documents", indexCount)
 
 	return bleveBatch, nil
 }

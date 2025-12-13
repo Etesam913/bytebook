@@ -9,7 +9,6 @@ import { draggedGhostElementAtom } from '../../../components/editor/atoms';
 import { handleNoteDragStart } from '../../../components/sidebar/utils';
 import {
   useMoveNoteToTrashMutation,
-  useNotePreviewQuery,
   useNoteRevealInFinderMutation,
   usePinNotesMutation,
 } from '../../../hooks/notes';
@@ -19,8 +18,6 @@ import { PinTack2 } from '../../../icons/pin-tack-2';
 import { PinTackSlash } from '../../../icons/pin-tack-slash';
 import TagPlus from '../../../icons/tag-plus';
 import { Trash } from '../../../icons/trash';
-import { IMAGE_FILE_EXTENSIONS } from '../../../types';
-import { FILE_SERVER_URL } from '../../../utils/general';
 import {
   getFilePathFromNoteSelectionRange,
   handleKeyNavigation,
@@ -63,20 +60,6 @@ export function NoteSidebarButton({
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
-
-  const { data: notePreviewResult } = useNotePreviewQuery(sidebarNotePath);
-
-  const notePreviewResultData = notePreviewResult?.data;
-  const firstImageSrc = notePreviewResultData?.firstImageSrc ?? '';
-  const isImageFile = IMAGE_FILE_EXTENSIONS.includes(
-    sidebarNotePath.noteExtension
-  );
-  const imgSrc =
-    !notePreviewResultData || firstImageSrc === ''
-      ? isImageFile
-        ? `${FILE_SERVER_URL}/notes/${sidebarNotePath.folder}/${sidebarNotePath.note}`
-        : ''
-      : firstImageSrc;
 
   const isActive = activeNotePath
     ? sidebarNotePath.equals(activeNotePath)
@@ -323,8 +306,6 @@ export function NoteSidebarButton({
       {projectSettings.appearance.noteSidebarItemSize === 'card' && (
         <CardNoteSidebarItem
           sidebarNotePath={sidebarNotePath}
-          imgSrc={imgSrc}
-          notePreviewResult={notePreviewResult ?? null}
           isSelected={isSelected}
         />
       )}

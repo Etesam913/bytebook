@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useAtom } from 'jotai';
-import { Sidebar } from '../../sidebar';
+import { VirtualizedList } from '../../sidebar';
 import { AccordionButton } from '../../sidebar/accordion-button';
 import {
   ROUTE_PATTERNS,
@@ -90,7 +90,7 @@ export function MySavedSearchesAccordion() {
                 <Loader width={20} height={20} className="mx-auto my-3" />
               </motion.div>
             ) : (
-              <Sidebar<SavedSearch>
+              <VirtualizedList<SavedSearch>
                 layoutId="saved-searches-sidebar"
                 emptyElement={
                   <li className="text-left list-none text-zinc-500 dark:text-zinc-300 text-xs">
@@ -101,20 +101,18 @@ export function MySavedSearchesAccordion() {
                 dataItemToString={(search) => search.name}
                 dataItemToKey={(search) => search.name}
                 dataItemToSelectionRangeEntry={(search) => search.name}
-                renderLink={({ dataItem: search, i }) => {
-                  return (
-                    <SavedSearchAccordionButton
-                      savedSearches={savedSearches}
-                      i={i}
-                      sidebarSearchName={search.name}
-                      isActive={
-                        isSavedSearchRoute &&
-                        !!searchQuery &&
-                        decodeURIComponent(searchQuery) === search.query
-                      }
-                    />
-                  );
-                }}
+                renderItem={({ dataItem: search, i }) => (
+                  <SavedSearchAccordionButton
+                    savedSearches={savedSearches}
+                    i={i}
+                    sidebarSearchName={search.name}
+                    isActive={
+                      isSavedSearchRoute &&
+                      !!searchQuery &&
+                      decodeURIComponent(searchQuery) === search.query
+                    }
+                  />
+                )}
                 data={savedSearches}
               />
             )}

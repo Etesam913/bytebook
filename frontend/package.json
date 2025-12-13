@@ -55,6 +55,7 @@
     "react-error-boundary": "^6.0.0",
     "react-scan": "^0.4.3",
     "react-use-measure": "^2.1.7",
+    "react-virtuoso": "^4.17.0",
     "sonner": "^2.0.7",
     "wouter": "^3.7.1"
   },

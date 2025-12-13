@@ -5,7 +5,7 @@ import { getDefaultButtonVariants } from '../../animations.ts';
 import { noteSortAtom } from '../../atoms.ts';
 import { MotionButton } from '../../components/buttons/index.tsx';
 import { SortButton } from '../../components/buttons/sort.tsx';
-import { Sidebar } from '../../components/sidebar/index.tsx';
+import { VirtualizedList } from '../../components/sidebar/index.tsx';
 import { FileRefresh } from '../../icons/file-refresh.tsx';
 import { Loader } from '../../icons/loader.tsx';
 import { Note } from '../../icons/page.tsx';
@@ -88,7 +88,7 @@ export function MyNotesSidebar({
             <Loader width={20} height={20} className="mx-auto my-3" />
           </motion.div>
         ) : (
-          <Sidebar<LocalFilePath>
+          <VirtualizedList<LocalFilePath>
             contentType="note"
             key={layoutId}
             layoutId={layoutId}
@@ -103,15 +103,13 @@ export function MyNotesSidebar({
             dataItemToSelectionRangeEntry={(filePath) => {
               return filePath.note;
             }}
-            renderLink={({ dataItem: sidebarNotePath, i }) => {
-              return (
-                <NoteSidebarButton
-                  sidebarNotePath={sidebarNotePath}
-                  activeNotePath={activeNotePath}
-                  sidebarNoteIndex={i}
-                />
-              );
-            }}
+            renderItem={({ dataItem: sidebarNotePath, i }) => (
+              <NoteSidebarButton
+                sidebarNotePath={sidebarNotePath}
+                activeNotePath={activeNotePath}
+                sidebarNoteIndex={i}
+              />
+            )}
           />
         ))}
     </div>

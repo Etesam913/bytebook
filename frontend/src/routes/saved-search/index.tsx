@@ -8,7 +8,7 @@ import { Loader } from '../../icons/loader.tsx';
 import { Magnifier } from '../../icons/magnifier.tsx';
 import { NoteSidebarButton } from '../notes-sidebar/sidebar-button/index.tsx';
 import { RenderNote } from '../notes-sidebar/render-note/index.tsx';
-import { Sidebar } from '../../components/sidebar/index.tsx';
+import { VirtualizedList } from '../../components/sidebar/index.tsx';
 import { useFullTextSearchQuery } from '../../hooks/search.tsx';
 import { LocalFilePath } from '../../utils/path.ts';
 import { navigate } from 'wouter/use-browser-location';
@@ -139,7 +139,7 @@ export function SavedSearchPage({
                       <Loader width={20} height={20} className="mx-auto my-3" />
                     </motion.div>
                   ) : (
-                    <Sidebar<LocalFilePath>
+                    <VirtualizedList<LocalFilePath>
                       contentType="note"
                       key="saved-search-sidebar"
                       layoutId="saved-search-sidebar"
@@ -159,15 +159,13 @@ export function SavedSearchPage({
                       dataItemToSelectionRangeEntry={(filePath) => {
                         return filePath.note;
                       }}
-                      renderLink={({ dataItem: sidebarNotePath, i }) => {
-                        return (
-                          <NoteSidebarButton
-                            sidebarNotePath={sidebarNotePath}
-                            activeNotePath={activeNotePath}
-                            sidebarNoteIndex={i}
-                          />
-                        );
-                      }}
+                      renderItem={({ dataItem: sidebarNotePath, i }) => (
+                        <NoteSidebarButton
+                          sidebarNotePath={sidebarNotePath}
+                          activeNotePath={activeNotePath}
+                          sidebarNoteIndex={i}
+                        />
+                      )}
                     />
                   ))}
               </div>

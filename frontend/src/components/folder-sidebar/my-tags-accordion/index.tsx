@@ -3,7 +3,7 @@ import { useAtom } from 'jotai';
 import { useTagsQuery } from '../../../hooks/tags';
 import { TagIcon } from '../../../icons/tag';
 import { Loader } from '../../../icons/loader';
-import { Sidebar } from '../../sidebar';
+import { VirtualizedList } from '../../sidebar';
 import { AccordionButton } from '../../sidebar/accordion-button';
 import {
   ROUTE_PATTERNS,
@@ -78,7 +78,7 @@ export function MyTagsAccordion() {
                 <Loader width={20} height={20} className="mx-auto my-3" />
               </motion.div>
             ) : (
-              <Sidebar<string>
+              <VirtualizedList<string>
                 layoutId="tags-sidebar"
                 emptyElement={
                   <li className="text-left list-none text-zinc-500 dark:text-zinc-300 text-xs">
@@ -89,20 +89,18 @@ export function MyTagsAccordion() {
                 dataItemToString={(tagName) => tagName}
                 dataItemToKey={(tagName) => tagName}
                 dataItemToSelectionRangeEntry={(tagName) => tagName}
-                renderLink={({ dataItem: sidebarTagName, i }) => {
-                  return (
-                    <TagAccordionButton
-                      tags={tags}
-                      i={i}
-                      sidebarTagName={sidebarTagName}
-                      isActive={
-                        isSavedSearchRoute &&
-                        !!searchQuery &&
-                        decodeURIComponent(searchQuery) === `#${sidebarTagName}`
-                      }
-                    />
-                  );
-                }}
+                renderItem={({ dataItem: sidebarTagName, i }) => (
+                  <TagAccordionButton
+                    tags={tags}
+                    i={i}
+                    sidebarTagName={sidebarTagName}
+                    isActive={
+                      isSavedSearchRoute &&
+                      !!searchQuery &&
+                      decodeURIComponent(searchQuery) === `#${sidebarTagName}`
+                    }
+                  />
+                )}
                 data={tags ?? null}
               />
             )}

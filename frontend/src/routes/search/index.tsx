@@ -7,9 +7,9 @@ import {
   useSearchFocus,
 } from '../../hooks/search';
 import { useAtom, useAtomValue } from 'jotai';
-import { useState, useMemo } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
-import { SearchResultsList } from './results/search-results-list';
+import { SearchResultsListVirtualized } from './results/search-results-list-virtualized';
 import { SearchResultsHeader } from './results/search-results-header';
 import { Input } from '../../components/input';
 import { isFullscreenAtom } from '../../atoms';
@@ -25,11 +25,13 @@ export function SearchPage() {
 
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
+  const deferredQuery = useDeferredValue(lastSearchQuery);
+
   const {
     data: groupedResults = { notes: [], attachments: [], folders: [] },
     isError,
     error,
-  } = useFullTextSearchQuery(lastSearchQuery);
+  } = useFullTextSearchQuery(deferredQuery);
 
   // Flatten results for navigation and counting
   const allResults = useMemo(() => {
@@ -86,8 +88,8 @@ export function SearchPage() {
               value: lastSearchQuery,
               onFocus: (e) => e.target.select(),
               onChange: async (e) => {
-                setLastSearchQuery(e.target.value);
                 setSelectedIndex(0);
+                setLastSearchQuery(e.target.value);
               },
               onKeyDown: (e) => {
                 if (e.key === 'ArrowDown') {
@@ -202,7 +204,7 @@ export function SearchPage() {
             No results found. Try adjusting your search terms.
           </div>
         )}
-        <SearchResultsList
+        <SearchResultsListVirtualized
           groupedResults={groupedResults}
           selectedIndex={selectedIndex}
           allResults={allResults}

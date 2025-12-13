@@ -1,0 +1,149 @@
+import { useRef, useEffect } from 'react';
+import { formatDate } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/path';
+import { GroupedSearchResults } from '../../../hooks/search';
+import { Tag } from '../../../components/editor/bottom-bar/tag';
+import { SearchHighlights } from './search-highlights';
+import { SearchResultItem } from './search-result-item';
+
+type FlatResult =
+  | { filePath: LocalFilePath; type: 'note' | 'attachment' }
+  | { folder: string; type: 'folder' };
+
+export function SearchResultsListVirtualized({
+  groupedResults,
+  selectedIndex,
+  allResults,
+}: {
+  groupedResults: GroupedSearchResults;
+  selectedIndex: number;
+  allResults: FlatResult[];
+}) {
+  // Refs to track search result items for scrolling
+  const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+
+  // Update refs array when allResults length changes
+  useEffect(() => {
+    itemRefs.current = itemRefs.current.slice(0, allResults.length);
+  }, [allResults.length]);
+
+  // Scroll selected item into view when selectedIndex changes
+  useEffect(() => {
+    if (selectedIndex >= 0 && selectedIndex < allResults.length) {
+      const selectedElement = itemRefs.current[selectedIndex];
+      if (selectedElement) {
+        selectedElement.scrollIntoView({
+          block: 'nearest',
+        });
+      }
+    }
+  }, [selectedIndex, allResults.length]);
+
+  return (
+    <>
+      {/* Notes */}
+      {groupedResults.notes.map((note, idx) => {
+        const { filePath, tags, lastUpdated, created, highlights } = note;
+        const resultIndex = allResults.findIndex(
+          (r) => r.type === 'note' && r.filePath.equals(filePath)
+        );
+        let pathToNote = filePath.getLinkToNote();
+        const firstHighlightedTerm = highlights[0]?.highlightedTerm;
+
+        // Adding query param for the highlighted term
+        if (firstHighlightedTerm) {
+          pathToNote = filePath.getLinkToNote({
+            highlight: firstHighlightedTerm,
+          });
+        }
+
+        return (
+          <SearchResultItem
+            key={pathToNote}
+            to={pathToNote}
+            title={filePath.note}
+            iconType="note"
+            resultIndex={resultIndex}
+            selectedIndex={selectedIndex}
+            onRef={(el) => {
+              if (resultIndex >= 0) {
+                itemRefs.current[resultIndex] = el;
+              }
+            }}
+            pathDisplay={filePath.toString()}
+          >
+            <SearchHighlights highlights={highlights} />
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1 text-xs">
+                {tags.map((tagName, tagIdx) => (
+                  <Tag key={`${idx}-${tagIdx}`} tagName={tagName} />
+                ))}
+              </div>
+            )}
+            <div className="flex gap-x-1 items-center justify-between text-xs">
+              {lastUpdated && (
+                <div className="text-zinc-500 dark:text-zinc-400">
+                  Updated {formatDate(lastUpdated, 'relative')}
+                </div>
+              )}
+              {created && (
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  Created {formatDate(created, 'yyyy-mm-dd')}
+                </span>
+              )}
+            </div>
+          </SearchResultItem>
+        );
+      })}
+
+      {/* Attachments */}
+      {groupedResults.attachments.map((filePath) => {
+        const resultIndex = allResults.findIndex(
+          (r) => r.type === 'attachment' && r.filePath.equals(filePath)
+        );
+        const pathToNote = filePath.getLinkToNote();
+
+        return (
+          <SearchResultItem
+            key={pathToNote}
+            to={pathToNote}
+            title={filePath.note}
+            iconType="attachment"
+            resultIndex={resultIndex}
+            selectedIndex={selectedIndex}
+            onRef={(el) => {
+              if (resultIndex >= 0) {
+                itemRefs.current[resultIndex] = el;
+              }
+            }}
+            pathDisplay={filePath.toString()}
+          />
+        );
+      })}
+
+      {/* Folders */}
+      {groupedResults.folders.map((folder) => {
+        const resultIndex = allResults.findIndex(
+          (r) => r.type === 'folder' && r.folder === folder
+        );
+        const pathToFolder = `/notes/${folder}`;
+
+        return (
+          <SearchResultItem
+            key={pathToFolder}
+            to={pathToFolder}
+            title={folder}
+            iconType="folder"
+            resultIndex={resultIndex}
+            selectedIndex={selectedIndex}
+            onRef={(el) => {
+              if (resultIndex >= 0) {
+                itemRefs.current[resultIndex] = el;
+              }
+            }}
+          />
+        );
+      })}
+    </>
+  );
+}

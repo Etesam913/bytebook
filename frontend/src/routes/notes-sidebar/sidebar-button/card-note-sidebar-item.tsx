@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import type { BackendResponseWithData } from '../../../../bindings/github.com/etesam913/bytebook/internal/config/models';
-import type { NotePreviewData } from '../../../../bindings/github.com/etesam913/bytebook/internal/services';
-import { VIDEO_FILE_EXTENSIONS } from '../../../types';
-import { humanFileSize } from '../../../utils/general';
+import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../../../types';
+import { FILE_SERVER_URL, humanFileSize } from '../../../utils/general';
 import { cn } from '../../../utils/string-formatting';
 import { LocalFilePath } from '../../../utils/path';
+import { useNotePreviewQuery } from '../../../hooks/notes';
 
 function formatDateString(isoString: string): string {
   // Parse the ISO 8601 string into a Date object
@@ -23,17 +22,26 @@ function formatDateString(isoString: string): string {
 
 export function CardNoteSidebarItem({
   sidebarNotePath,
-  notePreviewResult,
-  imgSrc,
   isSelected,
 }: {
   sidebarNotePath: LocalFilePath;
-  notePreviewResult: BackendResponseWithData<NotePreviewData> | null;
-  imgSrc: string;
   isSelected: boolean;
 }) {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [isImageError, setIsImageError] = useState(false);
+  const { data: notePreviewResult } = useNotePreviewQuery(sidebarNotePath);
+
+  const notePreviewResultData = notePreviewResult?.data;
+  const firstImageSrc = notePreviewResultData?.firstImageSrc ?? '';
+  const isImageFile = IMAGE_FILE_EXTENSIONS.includes(
+    sidebarNotePath.noteExtension
+  );
+  const imgSrc =
+    !notePreviewResultData || firstImageSrc === ''
+      ? isImageFile
+        ? `${FILE_SERVER_URL}/notes/${sidebarNotePath.folder}/${sidebarNotePath.note}`
+        : ''
+      : firstImageSrc;
 
   const fileExtension = (imgSrc.split('.').pop() ?? '').toLowerCase();
   const doesHaveImage =

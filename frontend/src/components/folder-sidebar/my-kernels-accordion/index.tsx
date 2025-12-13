@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useAtom } from 'jotai';
 import { useRoute } from 'wouter';
 import { useAtomValue } from 'jotai';
-import { Sidebar } from '../../sidebar';
+import { VirtualizedList } from '../../sidebar';
 import { AccordionButton } from '../../sidebar/accordion-button';
 import {
   useKernelHeartbeat,
@@ -117,14 +117,14 @@ export function MyKernelsAccordion() {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden hover:overflow-auto pl-1"
           >
-            <Sidebar<Languages>
+            <VirtualizedList<Languages>
               layoutId="kernels-sidebar"
               emptyElement={null}
               contentType="kernel"
               dataItemToString={(kernelName) => kernelName}
               dataItemToKey={(kernelName) => kernelName}
               dataItemToSelectionRangeEntry={(kernelName) => kernelName}
-              renderLink={({ dataItem: kernelName }) => {
+              renderItem={({ dataItem: kernelName }) => {
                 if (!isValidKernelLanguage(kernelName)) {
                   return <></>;
                 }

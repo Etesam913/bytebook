@@ -1,41 +1,62 @@
 import { useAtom, useAtomValue } from 'jotai/react';
 import {
-  type CSSProperties,
   type Dispatch,
+  type CSSProperties,
+  type HTMLAttributes,
   type ReactNode,
+  type RefObject,
   type SetStateAction,
+  forwardRef,
   useRef,
   useState,
 } from 'react';
-import {
-  contextMenuRefAtom,
-  projectSettingsAtom,
-  selectionRangeAtom,
-} from '../../atoms';
+import { Components, Virtuoso } from 'react-virtuoso';
+import { contextMenuRefAtom, selectionRangeAtom } from '../../atoms';
 import { useOnClickOutside } from '../../hooks/general';
-import { useListVirtualization } from '../../hooks/observers';
 import { cn } from '../../utils/string-formatting';
-import { SidebarItems } from './sidebar-items';
+import { SidebarListItem } from './sidebar-items';
 import { SidebarContentType } from '../../types';
 
-export function Sidebar<T>({
+function createListComponent(contentType: SidebarContentType) {
+  const listPaddingClass = cn(
+    contentType === 'note' && 'pl-1 pr-2',
+    contentType === 'folder' && 'pl-[3px] pr-[3px]',
+    contentType === 'kernel' && 'pl-[3px] pr-[3px]'
+  );
+
+  const ListComponent = forwardRef<
+    HTMLDivElement,
+    HTMLAttributes<HTMLDivElement>
+  >(({ className, ...rest }, ref) => (
+    <div
+      {...rest}
+      ref={ref}
+      className={cn('mt-[2px]', listPaddingClass, className)}
+    />
+  ));
+  ListComponent.displayName = 'SidebarVirtuosoList';
+  return ListComponent;
+}
+
+export function VirtualizedList<T>({
   data,
   dataItemToString,
   dataItemToKey,
   dataItemToSelectionRangeEntry,
   getContextMenuStyle,
-  renderLink,
+  renderItem,
   emptyElement,
   layoutId,
   contentType,
   shouldHideSidebarHighlight,
+  listRef,
 }: {
   data: T[] | null;
   dataItemToString: (item: T) => string;
   dataItemToKey: (item: T) => string;
   dataItemToSelectionRangeEntry: (item: T) => string;
   getContextMenuStyle?: (dataItem: T) => CSSProperties;
-  renderLink: (data: {
+  renderItem: (data: {
     dataItem: T;
     i: number;
     selectionRange: Set<string>;
@@ -45,23 +66,37 @@ export function Sidebar<T>({
   layoutId: string;
   contentType: SidebarContentType;
   shouldHideSidebarHighlight?: boolean;
+  listRef?: RefObject<HTMLElement | null>;
 }) {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-  const anchorSelectionIndex = useRef<number>(0);
-  const listScrollContainerRef = useRef<HTMLDivElement>(null);
+  const anchorSelectionIndexRef = useRef<number>(0);
+  const internalListRef = useRef<HTMLElement | null>(null);
+  const listScrollContainerRef = listRef ?? internalListRef;
   /*
 	  If the activeNoteItem is set, then the note was navigated via a note link or the searchbar
 		We need to change the scroll position to the sidebar so that the active note is visible
 	*/
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const contextMenuRef = useAtomValue(contextMenuRefAtom);
-  const projectSettings = useAtomValue(projectSettingsAtom);
 
   useOnClickOutside(
     listScrollContainerRef,
     (e) => {
       // We need to use the selectionRange for the context menu so early return for this case
       if (contextMenuRef?.current?.contains(e.target as Node)) return;
+
+      // Check if the click is on a sidebar item button (including nested children like SVGs)
+      // Sidebar item buttons have 'list-sidebar-item' or 'card-sidebar-item' class
+      const target = e.target as HTMLElement;
+      const clickedButton = target.closest('button');
+      const isSidebarItemClick =
+        clickedButton?.classList.contains('list-sidebar-item') ||
+        clickedButton?.classList.contains('card-sidebar-item');
+
+      if (isSidebarItemClick) {
+        return;
+      }
+
       if (selectionRange.size === 0 || contentType === undefined) return;
       const selectionSetAsArray = Array.from(selectionRange);
       /*
@@ -77,71 +112,69 @@ export function Sidebar<T>({
   );
 
   const items = data ?? [];
+  const virtuosoHeight = (() => {
+    if (listRef || contentType === 'note') return '100%';
+    const estimatedItemHeight = 36;
+    const minHeight = emptyElement ? 120 : 160;
+    const contentHeight =
+      items.length > 0 ? items.length * estimatedItemHeight : minHeight;
+    const clampedHeight = Math.max(minHeight, Math.min(contentHeight, 480));
+    return `${clampedHeight}px`;
+  })();
 
-  const isSidebarItemCard =
-    projectSettings.appearance.noteSidebarItemSize === 'card' &&
-    contentType === 'note';
+  const ListComponent = createListComponent(contentType);
 
-  const SIDEBAR_ITEM_HEIGHT = isSidebarItemCard ? 83 : 34;
+  const components: Components<T, HTMLDivElement> = {
+    List: ListComponent,
+    EmptyPlaceholder: emptyElement ? () => <>{emptyElement}</> : undefined,
+  };
 
-  const {
-    onScroll,
-    visibleItems,
-    outerContainerStyle,
-    innerContainerStyle,
-    startIndex,
-  } = useListVirtualization({
-    items,
-    itemHeight: SIDEBAR_ITEM_HEIGHT,
-    listRef: listScrollContainerRef,
-  });
+  const handleScrollerRef = (node: HTMLElement | Window | null) => {
+    const element = node instanceof HTMLElement ? node : null;
+    if (listRef) {
+      listRef.current = element;
+    }
+    internalListRef.current = element;
+  };
 
-  const isEmpty = items.length === 0;
+  const renderSidebarItem = (index: number, dataItem: T) => {
+    const node = renderItem({
+      dataItem,
+      i: index,
+      selectionRange,
+      setSelectionRange,
+    });
+
+    return (
+      <SidebarListItem
+        key={dataItemToKey(dataItem)}
+        dataItem={dataItem}
+        allData={items}
+        index={index}
+        dataItemToString={dataItemToString}
+        dataItemToSelectionRangeEntry={dataItemToSelectionRangeEntry}
+        getContextMenuStyle={getContextMenuStyle}
+        hoveredItem={hoveredItem}
+        setHoveredItem={setHoveredItem}
+        anchorSelectionIndexRef={anchorSelectionIndexRef}
+        layoutId={layoutId}
+        contentType={contentType}
+        shouldHideSidebarHighlight={shouldHideSidebarHighlight}
+      >
+        {node}
+      </SidebarListItem>
+    );
+  };
 
   return (
-    <div
-      className="overflow-y-auto"
-      ref={listScrollContainerRef}
-      onScroll={onScroll}
-    >
-      <div
-        className="mt-[2px]"
-        style={{
-          ...outerContainerStyle,
-          ...(isEmpty && { minHeight: 'auto', height: 'auto' }),
-        }}
-      >
-        <ul
-          className={cn(
-            contentType === 'note' && 'pl-1 pr-2',
-            contentType === 'folder' && 'pl-[3px] pr-[3px]',
-            contentType === 'kernel' && 'pl-[3px] pr-[3px]'
-          )}
-          style={{
-            ...innerContainerStyle,
-            ...(isEmpty && { position: 'relative', transform: 'none' }),
-          }}
-        >
-          <SidebarItems
-            layoutId={layoutId}
-            allData={data}
-            visibleData={visibleItems}
-            dataItemToString={dataItemToString}
-            dataItemToKey={dataItemToKey}
-            dataItemToSelectionRangeEntry={dataItemToSelectionRangeEntry}
-            renderLink={renderLink}
-            getContextMenuStyle={getContextMenuStyle}
-            hoveredItem={hoveredItem}
-            setHoveredItem={setHoveredItem}
-            ref={anchorSelectionIndex}
-            emptyElement={emptyElement}
-            startIndex={startIndex}
-            contentType={contentType}
-            isSidebarItemCard={isSidebarItemCard}
-            shouldHideSidebarHighlight={shouldHideSidebarHighlight}
-          />
-        </ul>
-      </div>
-    </div>
+    <Virtuoso
+      data={items}
+      style={{ height: virtuosoHeight, maxHeight: '100%' }}
+      className="overflow-hidden"
+      scrollerRef={handleScrollerRef}
+      components={components}
+      computeItemKey={(_, dataItem) => dataItemToKey(dataItem)}
+      itemContent={(index, dataItem) => renderSidebarItem(index, dataItem)}
+    />
   );
 }
