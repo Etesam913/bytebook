@@ -1,11 +1,13 @@
 package search
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 	"sync"
+
+	"github.com/blevesearch/bleve/v2"
 )
 
 var MAX_JOBS = 100
@@ -15,6 +17,7 @@ var WORKER_COUNT = runtime.NumCPU() * 2 // 2x for I/O-bound work
 
 type DocumentJob struct {
 	filePath      string
+	fileId        string
 	folder        string
 	fileName      string
 	fileExtension string
@@ -22,6 +25,8 @@ type DocumentJob struct {
 
 type DocumentResult struct {
 	isError  bool
+	filePath string
+	fileId   string
 	document interface{}
 }
 
@@ -29,7 +34,7 @@ type DocumentResult struct {
 // It dispatches indexing jobs for each Markdown file using a pool of worker goroutines.
 // Results are collected and basic information about each indexed document is printed to stdout.
 // Returns an error if any directory or file access fails.
-func IndexFilesNew(projectPath string) error {
+func IndexAllFiles(projectPath string, bleveIndex bleve.Index) error {
 	notesPath := filepath.Join(projectPath, "notes")
 	folders, err := os.ReadDir(notesPath)
 
@@ -47,31 +52,61 @@ func IndexFilesNew(projectPath string) error {
 		go startWorker(jobs, results, &workerWaitGroup)
 	}
 
-	go populateJobs(folders, notesPath, jobs)
+	go func() {
+		defer close(jobs)
+		if err := populateJobs(folders, notesPath, jobs); err != nil {
+			log.Printf("Error populating jobs (some files may not be indexed): %v", err)
+		}
+	}()
 
 	go func() {
 		workerWaitGroup.Wait()
 		close(results)
 	}()
 
-	for docResult := range results {
-		if docResult.isError {
-			fmt.Println("Document error")
-			continue
-		}
-		markdownNote, ok := docResult.document.(MarkdownNoteBleveDocument)
-		if ok {
-			fmt.Println("Markdown note: ", markdownNote.FileName)
-		}
+	bleveBatch, err := addResultsToIndex(bleveIndex, bleveIndex.NewBatch(), results)
+	if err != nil {
+		log.Printf("Error when adding results to index: %v", err)
+		return err
+	}
+	for _, folder := range folders {
+		AddFolderToBatch(bleveBatch, bleveIndex, folder.Name())
+	}
 
-		attachmentNote, ok := docResult.document.(AttachmentBleveDocument)
-		if ok {
-			fmt.Println("Attachment: ", attachmentNote.FileName)
-		}
-
+	// Flush any remaining documents in the batch
+	if err := bleveIndex.Batch(bleveBatch); err != nil {
+		log.Printf("Error flushing final batch: %v", err)
+		return err
 	}
 
 	return nil
+}
+
+func addResultsToIndex(bleveIndex bleve.Index, bleveBatch *bleve.Batch, results chan DocumentResult) (*bleve.Batch, error) {
+	for docResult := range results {
+		if docResult.isError {
+			continue
+		}
+		markdownBleveDocument, ok := docResult.document.(MarkdownNoteBleveDocument)
+		if ok {
+			bleveBatch.Index(docResult.fileId, markdownBleveDocument)
+		}
+
+		attachmentBleveDocument, ok := docResult.document.(AttachmentBleveDocument)
+		if ok {
+			bleveBatch.Index(docResult.fileId, attachmentBleveDocument)
+		}
+
+		if bleveBatch.Size() >= defaultIndexBatchSize {
+			if err := bleveIndex.Batch(bleveBatch); err != nil {
+				log.Printf("Error flushing batch: %v", err)
+				return nil, err
+			}
+			bleveBatch = bleveIndex.NewBatch()
+		}
+	}
+
+	return bleveBatch, nil
 }
 
 // populateJobs creates DocumentJob tasks for each markdown file (.md) found in the subdirectories
@@ -84,6 +119,7 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 			continue
 		}
 		folderPath := filepath.Join(notesPath, folder.Name())
+
 		files, err := os.ReadDir(folderPath)
 		if err != nil {
 			return err
@@ -91,9 +127,10 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 
 		for _, file := range files {
 			filePath := filepath.Join(folderPath, file.Name())
-			fmt.Println("adding job for ", filePath)
+			fileId := filepath.Join(folder.Name(), file.Name())
 			jobs <- DocumentJob{
 				filePath:      filePath,
+				fileId:        fileId,
 				folder:        folder.Name(),
 				fileName:      file.Name(),
 				fileExtension: filepath.Ext(file.Name()),
@@ -101,7 +138,6 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 
 		}
 	}
-	close(jobs)
 	return nil
 }
 
@@ -116,18 +152,27 @@ func startWorker(jobs <-chan DocumentJob, results chan<- DocumentResult, workerW
 		if job.fileExtension == ".md" {
 			content, err := os.ReadFile(job.filePath)
 			if err != nil {
-				results <- DocumentResult{isError: true, document: nil}
+				results <- DocumentResult{
+					isError:  true,
+					filePath: job.filePath,
+					fileId:   job.fileId,
+					document: nil,
+				}
 				continue
 			}
 			markdown := string(content)
 			results <- DocumentResult{
 				isError:  false,
+				filePath: job.filePath,
+				fileId:   job.fileId,
 				document: CreateMarkdownNoteBleveDocument(markdown, job.folder, job.fileName),
 			}
 		} else {
 			// Is an attachment
 			results <- DocumentResult{
 				isError:  false,
+				filePath: job.filePath,
+				fileId:   job.fileId,
 				document: createAttachmentBleveDocument(job.folder, job.fileName, job.fileExtension),
 			}
 		}

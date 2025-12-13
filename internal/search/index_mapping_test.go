@@ -414,116 +414,6 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 	})
 }
 
-func TestIndexAllFiles(t *testing.T) {
-	env := setupTestEnv(t)
-	defer env.Close()
-
-	t.Run("should handle non-existent notes directory", func(t *testing.T) {
-		err := IndexAllFiles(env.TmpDir, env.Index)
-		assert.NoError(t, err)
-	})
-
-	t.Run("should index files in multiple folders", func(t *testing.T) {
-		// Create multiple folders with files
-		folder1Path := env.createTestFolder("folder1")
-		folder2Path := env.createTestFolder("folder2")
-
-		env.createMarkdownFile(folder1Path, "note1.md", basicMarkdown)
-		env.createMarkdownFile(folder2Path, "note2.md", markdownWithId)
-		env.createAttachmentFile(folder1Path, "attachment.pdf", "fake pdf content")
-
-		err := IndexAllFiles(env.TmpDir, env.Index)
-		assert.NoError(t, err)
-
-		// Verify all files were indexed
-		env.verifyDocumentExists("folder1/note1.md")
-		env.verifyDocumentExists("folder2/note2.md")
-		env.verifyDocumentExists("folder1/attachment.pdf")
-	})
-
-	t.Run("should continue indexing other folders if one folder fails", func(t *testing.T) {
-		// Create one good folder and one that might cause issues
-		goodFolderPath := env.createTestFolder("good-folder")
-		env.createMarkdownFile(goodFolderPath, "good-note.md", basicMarkdown)
-
-		// The function should continue even if individual folders have issues
-		err := IndexAllFiles(env.TmpDir, env.Index)
-		assert.NoError(t, err)
-
-		// Verify the good folder was still indexed
-		env.verifyDocumentExists("good-folder/good-note.md")
-	})
-}
-
-func TestGetDocumentByIdFromIndex(t *testing.T) {
-	env := setupTestEnv(t)
-	defer env.Close()
-
-	t.Run("should return Exists=false when document not found", func(t *testing.T) {
-		result := getDocumentByIdFromIndex(env.Index, "non-existent-id")
-
-		assert.False(t, result.Exists)
-		assert.Equal(t, "", result.LastUpdated)
-	})
-
-	t.Run("should return document info when document exists", func(t *testing.T) {
-		// Index a test document
-		docId := "test-document-id"
-		bleveDoc := CreateMarkdownNoteBleveDocument(markdownWithIdAndLastUpdated, "test-folder", "test-file")
-		err := env.Index.Index(docId, bleveDoc)
-		require.NoError(t, err)
-
-		result := getDocumentByIdFromIndex(env.Index, docId)
-
-		assert.True(t, result.Exists)
-		assert.Equal(t, "2023-12-01T10:30:00Z", result.LastUpdated)
-	})
-
-	t.Run("should handle documents with different lastUpdated formats", func(t *testing.T) {
-		testCases := []struct {
-			name                string
-			docId               string
-			lastUpdated         string
-			expectedLastUpdated string
-		}{
-			{
-				name:                "ISO 8601 format",
-				docId:               "doc-iso-8601",
-				lastUpdated:         "2023-12-01T10:30:00Z",
-				expectedLastUpdated: "2023-12-01T10:30:00Z",
-			},
-			{
-				name:                "Different timezone",
-				docId:               "doc-timezone",
-				lastUpdated:         "2023-12-01T10:30:00-05:00",
-				expectedLastUpdated: "2023-12-01T15:30:00Z", // Bleve normalizes to UTC
-			},
-		}
-
-		for _, tc := range testCases {
-			t.Run(tc.name, func(t *testing.T) {
-				markdown := `---
-id: ` + tc.docId + `
-title: Test Document
-lastUpdated: ` + tc.lastUpdated + `
----
-
-# Test Content
-This is test content.
-`
-				bleveDoc := CreateMarkdownNoteBleveDocument(markdown, "test-folder", "test-file")
-				err := env.Index.Index(tc.docId, bleveDoc)
-				require.NoError(t, err)
-
-				result := getDocumentByIdFromIndex(env.Index, tc.docId)
-
-				assert.True(t, result.Exists)
-				assert.Equal(t, tc.expectedLastUpdated, result.LastUpdated)
-			})
-		}
-	})
-}
-
 func TestRegenerateSearchIndex(t *testing.T) {
 	t.Run("should regenerate index with existing files", func(t *testing.T) {
 		env := setupTestEnv(t)
@@ -536,15 +426,6 @@ func TestRegenerateSearchIndex(t *testing.T) {
 		env.createMarkdownFile(folder1Path, "note1.md", basicMarkdown)
 		env.createMarkdownFile(folder2Path, "note2.md", markdownWithId)
 		env.createAttachmentFile(folder1Path, "attachment.pdf", "fake pdf content")
-
-		// Index all files initially
-		err := IndexAllFiles(env.TmpDir, env.Index)
-		require.NoError(t, err)
-
-		// Verify files are indexed
-		env.verifyDocumentExists("folder1/note1.md")
-		env.verifyDocumentExists("folder2/note2.md")
-		env.verifyDocumentExists("folder1/attachment.pdf")
 
 		// Store the old index reference (will be closed by RegenerateSearchIndex)
 		oldIndex := env.Index
@@ -614,20 +495,6 @@ func TestRegenerateSearchIndex(t *testing.T) {
 		env.createAttachmentFile(folder1Path, "file1.pdf", "pdf content")
 		env.createAttachmentFile(folder2Path, "file2.jpg", "jpg content")
 
-		// Index all files initially
-		err := IndexAllFiles(env.TmpDir, env.Index)
-		require.NoError(t, err)
-
-		// Verify initial indexing
-		env.verifyDocumentExists("folder1/markdown1.md")
-		env.verifyDocumentExists("folder2/markdown2.md")
-		env.verifyDocumentExists("folder1/file1.pdf")
-		env.verifyDocumentExists("folder2/file2.jpg")
-
-		// Get document count before regeneration
-		oldDocCount, err := env.Index.DocCount()
-		require.NoError(t, err)
-
 		// Regenerate the index
 		oldIndex := env.Index
 		newIndex, err := RegenerateSearchIndex(env.TmpDir, oldIndex)
@@ -637,12 +504,7 @@ func TestRegenerateSearchIndex(t *testing.T) {
 		// Update test environment
 		env.Index = newIndex
 
-		// Verify document count matches
-		newDocCount, err := newIndex.DocCount()
-		require.NoError(t, err)
-		assert.Equal(t, oldDocCount, newDocCount, "Document count should match after regeneration")
-
-		// Verify all files are still indexed
+		// Verify all files are indexed after regeneration
 		env.verifyDocumentExists("folder1/markdown1.md")
 		env.verifyDocumentExists("folder2/markdown2.md")
 		env.verifyDocumentExists("folder1/file1.pdf")

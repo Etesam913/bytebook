@@ -6,6 +6,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/blevesearch/bleve/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -51,8 +52,12 @@ func TestPopulateJobs(t *testing.T) {
 		require.NoError(t, err)
 
 		jobs := make(chan DocumentJob, MAX_JOBS)
+		var wg sync.WaitGroup
 
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
+			defer close(jobs)
 			err := populateJobs(folders, notesDir, jobs)
 			assert.NoError(t, err)
 		}()
@@ -61,6 +66,7 @@ func TestPopulateJobs(t *testing.T) {
 		for job := range jobs {
 			receivedJobs = append(receivedJobs, job)
 		}
+		wg.Wait()
 
 		// Should have 4 jobs total
 		assert.Len(t, receivedJobs, 4)
@@ -95,8 +101,12 @@ func TestPopulateJobs(t *testing.T) {
 		require.NoError(t, err)
 
 		jobs := make(chan DocumentJob, MAX_JOBS)
+		var wg sync.WaitGroup
 
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
+			defer close(jobs)
 			err := populateJobs(folders, notesDir, jobs)
 			assert.NoError(t, err)
 		}()
@@ -105,6 +115,7 @@ func TestPopulateJobs(t *testing.T) {
 		for job := range jobs {
 			receivedJobs = append(receivedJobs, job)
 		}
+		wg.Wait()
 
 		assert.Empty(t, receivedJobs)
 	})
@@ -209,14 +220,27 @@ func TestStartWorker(t *testing.T) {
 	})
 }
 
-func TestIndexFilesNew(t *testing.T) {
+func TestIndexAllFiles(t *testing.T) {
 	t.Run("should return error for non-existent notes directory", func(t *testing.T) {
-		err := IndexFilesNew("/non/existent/path")
+		// Create a temporary index for this test
+		tmpDir := t.TempDir()
+		var index bleve.Index
+		index, err := OpenOrCreateIndex(tmpDir)
+		require.NoError(t, err)
+		defer index.Close()
+
+		err = IndexAllFiles("/non/existent/path", index)
 		assert.Error(t, err)
 	})
 
 	t.Run("should index all file types successfully", func(t *testing.T) {
 		projectDir, notesDir := setupTempNotesDir(t)
+
+		// Create an index for this test
+		var index bleve.Index
+		index, err := OpenOrCreateIndex(projectDir)
+		require.NoError(t, err)
+		defer index.Close()
 
 		createFolderWithFiles(t, notesDir, "folder1", map[string]string{
 			"note1.md":  "# Note 1",
@@ -227,7 +251,7 @@ func TestIndexFilesNew(t *testing.T) {
 			"doc.pdf":  "pdf content",
 		})
 
-		err := IndexFilesNew(projectDir)
+		err = IndexAllFiles(projectDir, index)
 		assert.NoError(t, err)
 	})
 }

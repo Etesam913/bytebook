@@ -15,7 +15,7 @@ import (
 func CreateSearchRequest(q query.Query) *bleve.SearchRequest {
 	req := bleve.NewSearchRequest(q)
 	req.Fields = []string{FieldType, FieldFolder, FieldFileName, FieldLastUpdated, FieldCreatedDate, FieldTags}
-	req.Size = 50
+	req.Size = 10000
 	req.IncludeLocations = true
 	req.Highlight = bleve.NewHighlightWithStyle("html")
 	if req.Highlight != nil {

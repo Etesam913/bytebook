@@ -347,35 +347,6 @@ func createFolderDocumentMapping() *mapping.DocumentMapping {
 	return documentMapping
 }
 
-// getDocumentByIdFromIndex checks if a document exists in the index and returns its lastUpdated value if available.
-// Returns DocumentIndexInfo with Exists=false if the document is not found or an error occurs.
-func getDocumentByIdFromIndex(index bleve.Index, docId string) DocumentIndexInfo {
-	query := bleve.NewDocIDQuery([]string{docId})
-	searchRequest := bleve.NewSearchRequest(query)
-	searchRequest.Size = 1
-	searchRequest.Fields = []string{FieldLastUpdated} // Request specific field
-	searchResult, err := index.Search(searchRequest)
-
-	if err != nil || searchResult.Total == 0 {
-		return DocumentIndexInfo{Exists: false}
-	}
-
-	// Since Size=1, if Total > 0, there's exactly one hit at index 0
-	hit := searchResult.Hits[0]
-	lastUpdated := ""
-
-	if indexedLastUpdated, exists := hit.Fields[FieldLastUpdated]; exists {
-		if lastUpdatedStr, ok := indexedLastUpdated.(string); ok {
-			lastUpdated = lastUpdatedStr
-		}
-	}
-
-	return DocumentIndexInfo{
-		Exists:      true,
-		LastUpdated: lastUpdated,
-	}
-}
-
 // AddMarkdownNoteToBatch processes a markdown file and adds it to the batch if it needs indexing.
 // Returns the ID used for indexing and any error encountered.
 func AddMarkdownNoteToBatch(
@@ -396,25 +367,16 @@ func AddMarkdownNoteToBatch(
 
 	fileId := filepath.Join(folderName, fileName)
 
-	docInfo := getDocumentByIdFromIndex(index, fileId)
-	shouldIndex := false
-
-	if !docInfo.Exists {
-		shouldIndex = true
-	} else {
-		// Document exists, check if lastUpdated has changed
-		currentLastUpdated, _ := notes.GetLastUpdatedFromFrontmatter(markdown)
-		// If there's no lastUpdated in current file or index, or they differ, re-index
-		if forceIndex || (currentLastUpdated == "" || docInfo.LastUpdated == "" || currentLastUpdated != docInfo.LastUpdated) {
-			shouldIndex = true
-		}
+	docInfo, err := index.Document(fileId)
+	if err != nil {
+		return "", err
 	}
 
-	if shouldIndex {
+	if docInfo == nil {
+
 		bleveDocument := CreateMarkdownNoteBleveDocument(markdown, folderName, fileName)
 		batch.Index(fileId, bleveDocument)
 	}
-
 	return fileId, nil
 }
 
@@ -429,9 +391,12 @@ func AddAttachmentToBatch(
 ) (string, error) {
 	// For attachments, use the file path as the unique ID
 	fileId := filepath.Join(folderName, fileName)
-	docInfo := getDocumentByIdFromIndex(index, fileId)
+	docInfo, err := index.Document(fileId)
+	if err != nil {
+		return "", err
+	}
 
-	if !docInfo.Exists {
+	if docInfo == nil {
 		bleveDocument := createAttachmentBleveDocument(folderName, fileName, fileExtension)
 		batch.Index(fileId, bleveDocument)
 	}
@@ -448,9 +413,12 @@ func AddFolderToBatch(
 ) (string, error) {
 	// For folders, use the folder name as the unique ID
 	folderId := folderName
-	docInfo := getDocumentByIdFromIndex(index, folderId)
+	docInfo, err := index.Document(folderId)
+	if err != nil {
+		return "", err
+	}
 
-	if !docInfo.Exists {
+	if docInfo == nil {
 		bleveDocument := createFolderBleveDocument(folderName)
 		batch.Index(folderId, bleveDocument)
 	}
@@ -526,55 +494,6 @@ func IndexAllFilesInFolderWithBatch(
 			}
 		}
 	}
-	return nil
-}
-
-// IndexAllFiles processes all folders in the project's notes directory and ensures their files are properly indexed.
-// It iterates through each folder in the notes directory and calls IndexAllFilesInFolderWithBatch for each one.
-// This function should be called during application startup to ensure all files are indexed.
-func IndexAllFiles(projectPath string, index bleve.Index) error {
-	notesPath := filepath.Join(projectPath, "notes")
-
-	if _, err := os.Stat(notesPath); os.IsNotExist(err) {
-		return nil // Notes directory doesn't exist, which is fine
-	}
-
-	folders, err := os.ReadDir(notesPath)
-	if err != nil {
-		return err
-	}
-
-	batch := index.NewBatch()
-
-	for _, folder := range folders {
-		if !folder.IsDir() {
-			continue
-		}
-
-		folderPath := filepath.Join(notesPath, folder.Name())
-		err := IndexAllFilesInFolderWithBatch(
-			folderPath,
-			folder.Name(),
-			index,
-			batch,
-		)
-		if err != nil {
-			log.Printf("Error indexing folder %s: %v", folder.Name(), err)
-			continue
-		}
-	}
-
-	if err := FlushBatch(index, batch); err != nil {
-		return err
-	}
-
-	totalDocumentsIndexed, err := index.DocCount()
-	if err != nil {
-		log.Println("Error getting document count:", err)
-	} else {
-		log.Println("Indexing complete. Total documents indexed:", totalDocumentsIndexed)
-	}
-
 	return nil
 }
 

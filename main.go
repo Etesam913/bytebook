@@ -192,7 +192,7 @@ func main() {
 			notes.AddProjectFoldersToWatcher(projectPath, watcher)
 			go notes.LaunchFileWatcher(app, projectPath, watcher)
 			go func() {
-				if err := search.IndexFilesNew(projectPath); err != nil {
+				if err := search.IndexAllFiles(projectPath, searchIndex); err != nil {
 					log.Printf("Error indexing files: %v", err)
 				}
 			}()
