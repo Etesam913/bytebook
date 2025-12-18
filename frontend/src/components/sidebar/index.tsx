@@ -4,7 +4,6 @@ import {
   type CSSProperties,
   type HTMLAttributes,
   type ReactNode,
-  type RefObject,
   type SetStateAction,
   forwardRef,
   useRef,
@@ -16,6 +15,13 @@ import { useOnClickOutside } from '../../hooks/general';
 import { cn } from '../../utils/string-formatting';
 import { SidebarListItem } from './sidebar-items';
 import { SidebarContentType } from '../../types';
+
+export type SelectionOptions<T> =
+  | { disableSelection: true }
+  | {
+      disableSelection?: false;
+      dataItemToSelectionRangeEntry: (item: T) => string;
+    };
 
 function createListComponent(contentType: SidebarContentType) {
   const listPaddingClass = cn(
@@ -42,19 +48,19 @@ export function VirtualizedList<T>({
   data,
   dataItemToString,
   dataItemToKey,
-  dataItemToSelectionRangeEntry,
+  selectionOptions,
   getContextMenuStyle,
   renderItem,
   emptyElement,
   layoutId,
   contentType,
   shouldHideSidebarHighlight,
-  listRef,
+  maxHeight,
 }: {
   data: T[] | null;
   dataItemToString: (item: T) => string;
   dataItemToKey: (item: T) => string;
-  dataItemToSelectionRangeEntry: (item: T) => string;
+  selectionOptions: SelectionOptions<T>;
   getContextMenuStyle?: (dataItem: T) => CSSProperties;
   renderItem: (data: {
     dataItem: T;
@@ -66,12 +72,12 @@ export function VirtualizedList<T>({
   layoutId: string;
   contentType: SidebarContentType;
   shouldHideSidebarHighlight?: boolean;
-  listRef?: RefObject<HTMLElement | null>;
+  maxHeight?: number;
 }) {
+  const [listHeight, setListHeight] = useState(0);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const anchorSelectionIndexRef = useRef<number>(0);
   const internalListRef = useRef<HTMLElement | null>(null);
-  const listScrollContainerRef = listRef ?? internalListRef;
   /*
 	  If the activeNoteItem is set, then the note was navigated via a note link or the searchbar
 		We need to change the scroll position to the sidebar so that the active note is visible
@@ -80,7 +86,7 @@ export function VirtualizedList<T>({
   const contextMenuRef = useAtomValue(contextMenuRefAtom);
 
   useOnClickOutside(
-    listScrollContainerRef,
+    internalListRef,
     (e) => {
       // We need to use the selectionRange for the context menu so early return for this case
       if (contextMenuRef?.current?.contains(e.target as Node)) return;
@@ -112,16 +118,6 @@ export function VirtualizedList<T>({
   );
 
   const items = data ?? [];
-  const virtuosoHeight = (() => {
-    if (listRef || contentType === 'note') return '100%';
-    const estimatedItemHeight = 36;
-    const minHeight = emptyElement ? 120 : 160;
-    const contentHeight =
-      items.length > 0 ? items.length * estimatedItemHeight : minHeight;
-    const clampedHeight = Math.max(minHeight, Math.min(contentHeight, 480));
-    return `${clampedHeight}px`;
-  })();
-
   const ListComponent = createListComponent(contentType);
 
   const components: Components<T, HTMLDivElement> = {
@@ -131,9 +127,6 @@ export function VirtualizedList<T>({
 
   const handleScrollerRef = (node: HTMLElement | Window | null) => {
     const element = node instanceof HTMLElement ? node : null;
-    if (listRef) {
-      listRef.current = element;
-    }
     internalListRef.current = element;
   };
 
@@ -152,7 +145,7 @@ export function VirtualizedList<T>({
         allData={items}
         index={index}
         dataItemToString={dataItemToString}
-        dataItemToSelectionRangeEntry={dataItemToSelectionRangeEntry}
+        selectionOptions={selectionOptions}
         getContextMenuStyle={getContextMenuStyle}
         hoveredItem={hoveredItem}
         setHoveredItem={setHoveredItem}
@@ -169,10 +162,12 @@ export function VirtualizedList<T>({
   return (
     <Virtuoso
       data={items}
-      style={{ height: virtuosoHeight, maxHeight: '100%' }}
+      style={{ height: !maxHeight ? '100%' : Math.min(maxHeight, listHeight) }}
       className="overflow-hidden"
       scrollerRef={handleScrollerRef}
+      increaseViewportBy={{ top: 400, bottom: 400 }}
       components={components}
+      totalListHeightChanged={setListHeight}
       computeItemKey={(_, dataItem) => dataItemToKey(dataItem)}
       itemContent={(index, dataItem) => renderSidebarItem(index, dataItem)}
     />

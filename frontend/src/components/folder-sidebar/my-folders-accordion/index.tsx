@@ -137,7 +137,10 @@ export function MyFoldersAccordion() {
                   }
                   dataItemToString={(folderName) => folderName}
                   dataItemToKey={(folderName) => folderName}
-                  dataItemToSelectionRangeEntry={(folderName) => folderName}
+                  selectionOptions={{
+                    dataItemToSelectionRangeEntry: (folderName) => folderName,
+                  }}
+                  maxHeight={480}
                   renderItem={({ dataItem: sidebarFolderName, i }) => (
                     <FolderAccordionButton
                       sidebarFolderName={sidebarFolderName}

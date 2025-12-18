@@ -156,8 +156,9 @@ export function SavedSearchPage({
                         filePath.noteWithoutExtension
                       }
                       dataItemToKey={(filePath) => filePath.toString()}
-                      dataItemToSelectionRangeEntry={(filePath) => {
-                        return filePath.note;
+                      selectionOptions={{
+                        dataItemToSelectionRangeEntry: (filePath) =>
+                          filePath.note,
                       }}
                       renderItem={({ dataItem: sidebarNotePath, i }) => (
                         <NoteSidebarButton

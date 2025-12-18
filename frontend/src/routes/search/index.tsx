@@ -9,13 +9,13 @@ import {
 import { useAtom, useAtomValue } from 'jotai';
 import { useDeferredValue, useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
-import { SearchResultsListVirtualized } from './results/search-results-list-virtualized';
 import { SearchResultsHeader } from './results/search-results-header';
 import { Input } from '../../components/input';
 import { isFullscreenAtom } from '../../atoms';
 import { cn } from '../../utils/string-formatting';
 import { SearchOptions } from './search-options';
 import { Tooltip } from '../../components/tooltip';
+import { SearchResultsList } from './results/search-results-list';
 
 export function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useAtom(lastSearchQueryAtom);
@@ -204,7 +204,7 @@ export function SearchPage() {
             No results found. Try adjusting your search terms.
           </div>
         )}
-        <SearchResultsListVirtualized
+        <SearchResultsList
           groupedResults={groupedResults}
           selectedIndex={selectedIndex}
           allResults={allResults}

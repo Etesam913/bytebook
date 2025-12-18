@@ -88,7 +88,10 @@ export function MyTagsAccordion() {
                 contentType="tag"
                 dataItemToString={(tagName) => tagName}
                 dataItemToKey={(tagName) => tagName}
-                dataItemToSelectionRangeEntry={(tagName) => tagName}
+                selectionOptions={{
+                  dataItemToSelectionRangeEntry: (tagName) => tagName,
+                }}
+                maxHeight={480}
                 renderItem={({ dataItem: sidebarTagName, i }) => (
                   <TagAccordionButton
                     tags={tags}

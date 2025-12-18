@@ -123,7 +123,10 @@ export function MyKernelsAccordion() {
               contentType="kernel"
               dataItemToString={(kernelName) => kernelName}
               dataItemToKey={(kernelName) => kernelName}
-              dataItemToSelectionRangeEntry={(kernelName) => kernelName}
+              selectionOptions={{
+                dataItemToSelectionRangeEntry: (kernelName) => kernelName,
+              }}
+              maxHeight={480}
               renderItem={({ dataItem: kernelName }) => {
                 if (!isValidKernelLanguage(kernelName)) {
                   return <></>;

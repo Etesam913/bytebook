@@ -100,7 +100,10 @@ export function MySavedSearchesAccordion() {
                 contentType="saved-search"
                 dataItemToString={(search) => search.name}
                 dataItemToKey={(search) => search.name}
-                dataItemToSelectionRangeEntry={(search) => search.name}
+                selectionOptions={{
+                  dataItemToSelectionRangeEntry: (search) => search.name,
+                }}
+                maxHeight={480}
                 renderItem={({ dataItem: search, i }) => (
                   <SavedSearchAccordionButton
                     savedSearches={savedSearches}

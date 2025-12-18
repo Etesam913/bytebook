@@ -11,13 +11,14 @@ import { selectionRangeAtom } from '../../atoms';
 import { keepSelectionNotesWithPrefix } from '../../utils/selection';
 import { SidebarHighlight } from './highlight';
 import { SidebarContentType } from '../../types';
+import type { SelectionOptions } from './index';
 
 type SidebarListItemProps<T> = {
   dataItem: T;
   allData: T[];
   index: number;
   dataItemToString: (item: T) => string;
-  dataItemToSelectionRangeEntry: (item: T) => string;
+  selectionOptions: SelectionOptions<T>;
   getContextMenuStyle?: (dataItem: T) => CSSProperties;
   hoveredItem: string | null;
   setHoveredItem: Dispatch<SetStateAction<string | null>>;
@@ -33,7 +34,7 @@ export function SidebarListItem<T>({
   allData,
   index,
   dataItemToString,
-  dataItemToSelectionRangeEntry,
+  selectionOptions,
   getContextMenuStyle,
   hoveredItem,
   setHoveredItem,
@@ -45,13 +46,21 @@ export function SidebarListItem<T>({
 }: SidebarListItemProps<T>) {
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const dataItemString = dataItemToString(dataItem);
-  const selectionRangeEntry = `${contentType}:${dataItemToSelectionRangeEntry(dataItem)}`;
+  const disableSelection = selectionOptions.disableSelection === true;
+  const dataItemToSelectionRangeEntry =
+    selectionOptions.disableSelection === true
+      ? undefined
+      : selectionOptions.dataItemToSelectionRangeEntry;
+  const selectionRangeEntry = disableSelection
+    ? ''
+    : `${contentType}:${dataItemToSelectionRangeEntry!(dataItem)}`;
 
   /**
    * Handles shift-click behavior for multi-selection by selecting a range of items
    * between the anchor index and the clicked index
    */
   function handleShiftClick(targetIndex: number) {
+    if (disableSelection || !dataItemToSelectionRangeEntry) return;
     if (!allData.length) return;
     const anchorIndex = anchorSelectionIndexRef.current ?? 0;
     const start = Math.min(anchorIndex, targetIndex);
@@ -72,6 +81,7 @@ export function SidebarListItem<T>({
    * while preserving existing selections
    */
   function handleCommandClick(targetIndex: number) {
+    if (disableSelection || !dataItemToSelectionRangeEntry) return;
     anchorSelectionIndexRef.current = targetIndex;
     setSelectionRange((prev) => {
       const newSelection = keepSelectionNotesWithPrefix(prev, contentType);
@@ -91,6 +101,7 @@ export function SidebarListItem<T>({
       style={getContextMenuStyle?.(dataItem)}
       className="flex items-center relative select-none rounded-md py-[.1rem]"
       onClick={(e) => {
+        if (disableSelection) return;
         if (e.shiftKey) handleShiftClick(index);
         else if (e.metaKey || e.ctrlKey) handleCommandClick(index);
         else {
@@ -99,7 +110,7 @@ export function SidebarListItem<T>({
         }
       }}
     >
-      {!shouldHideSidebarHighlight && (
+      {!shouldHideSidebarHighlight && !disableSelection && (
         <AnimatePresence>
           {hoveredItem === dataItemString &&
             !selectionRange.has(selectionRangeEntry) && (

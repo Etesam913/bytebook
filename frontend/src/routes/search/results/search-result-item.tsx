@@ -41,7 +41,7 @@ export function SearchResultItem({
       draggable={false}
       ref={onRef}
       className={cn(
-        'flex flex-col gap-y-1 py-2 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-650 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-650 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',
+        'flex flex-col gap-y-1 py-2 px-2 w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-650 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',
         resultIndex === selectedIndex && 'bg-zinc-150 dark:bg-zinc-700'
       )}
     >

@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { useRef } from 'react';
 import {
   contextMenuDataAtom,
   projectSettingsAtom,
@@ -18,7 +17,6 @@ import { LocalFilePath } from '../../utils/path';
 function VirtualizedPinnedNotes() {
   const projectSettings = useAtomValue(projectSettingsAtom);
   const pinnedNotes = projectSettings.pinnedNotes;
-  const listScrollContainerRef = useRef<HTMLDivElement>(null);
   const pinnedNotesPaths = [...pinnedNotes]
     .filter((folderAndNotes) => folderAndNotes.split('/').length === 2)
     .map((folderAndNote) => {
@@ -32,7 +30,6 @@ function VirtualizedPinnedNotes() {
   return (
     <motion.div
       className="overflow-hidden hover:overflow-y-auto max-h-60"
-      ref={listScrollContainerRef}
       initial={{ height: 0 }}
       animate={{
         height: 'auto',
@@ -46,9 +43,11 @@ function VirtualizedPinnedNotes() {
         data={pinnedNotesPaths}
         dataItemToString={(filePath) => filePath.note}
         dataItemToKey={(filePath) => filePath.toString()}
-        dataItemToSelectionRangeEntry={(filePath) => filePath.note}
+        selectionOptions={{
+          dataItemToSelectionRangeEntry: (filePath) => filePath.note,
+        }}
         shouldHideSidebarHighlight
-        listRef={listScrollContainerRef}
+        maxHeight={240}
         emptyElement={
           <li className="pl-2 text-balance list-none text-zinc-500 dark:text-zinc-300 text-xs py-2">
             No pinned notes. Right click a note to open the context menu and pin
