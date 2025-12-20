@@ -1,5 +1,10 @@
 name: "Setup Frontend"
 description: "Checkouts code, sets up Bun, and installs dependencies"
+inputs:
+  run-knip:
+    description: "Run knip dead-code scan after installing dependencies"
+    required: false
+    default: "false"
 
 runs:
   using: "composite"
@@ -21,3 +26,9 @@ runs:
       shell: bash
       working-directory: ./frontend
       run: bun install
+
+    - name: Run Knip dead-code scan
+      if: ${{ inputs.run-knip == 'true' }}
+      shell: bash
+      working-directory: ./frontend
+      run: bun run knip:ci

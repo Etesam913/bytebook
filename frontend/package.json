@@ -21,7 +21,9 @@
     "lint:check": "bun run eslint .",
     "tsgo": "tsgo",
     "format:lint:tsgo": "bun run format:check && bun run lint:check && bun run tsgo",
-    "size": "size-limit"
+    "size": "size-limit",
+    "knip": "knip",
+    "knip:ci": "knip --reporter github-actions --reporter compact"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.19.1",
@@ -85,6 +87,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^16.5.0",
     "jsdom": "^27.2.0",
+    "knip": "^5.75.2",
     "prettier": "^3.6.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
