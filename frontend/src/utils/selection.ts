@@ -1,5 +1,6 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
 import { LocalFilePath } from './path';
+import { SidebarContentType } from '../types';
 
 /**
  * Filters a selection Set to keep only items that start with the specified prefix.
@@ -9,7 +10,7 @@ import { LocalFilePath } from './path';
  */
 export function keepSelectionNotesWithPrefix(
   selection: Set<string>,
-  prefix: 'folder' | 'note' | 'tag' | 'kernel' | 'saved-search'
+  prefix: SidebarContentType
 ) {
   return new Set(
     [...selection].filter((item) => item.startsWith(`${prefix}:`))
@@ -34,7 +35,7 @@ export function handleContextMenuSelection({
   onlyOne = false,
 }: {
   setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
-  itemType: 'folder' | 'note' | 'tag' | 'kernel' | 'saved-search';
+  itemType: SidebarContentType;
   itemName: string;
   onlyOne?: boolean;
 }): Set<string> {

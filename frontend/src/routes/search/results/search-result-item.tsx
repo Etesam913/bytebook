@@ -4,10 +4,10 @@ import { cn, formatDate } from '../../../utils/string-formatting';
 import { Folder } from '../../../icons/folder';
 import { ImageIcon } from '../../../icons/image';
 import { Note } from '../../../icons/page';
-import { motion } from 'motion/react';
 import { GroupedSearchResults } from '../../../hooks/search';
 import { SearchHighlights } from './search-highlights';
 import { Tag } from '../../../components/editor/bottom-bar/tag';
+import { Section } from '../utils';
 
 function getFileIcon(iconType: 'note' | 'attachment' | 'folder') {
   switch (iconType) {
@@ -68,31 +68,33 @@ export function SearchResultHeader({
   isOpen,
   onToggle,
 }: {
-  title: string;
+  title: Section;
   count: number;
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  const titleText = title.charAt(0).toUpperCase() + title.slice(1);
   return (
     <button
       type="button"
       className={cn(
-        'px-2 py-1 w-full flex items-center gap-2 text-xs font-semibold text-zinc-600 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-700 bg-transparent select-none',
-        'transition-colors duration-100 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+        'pl-1 py-1 w-full flex items-center gap-2 text-xs font-semibold text-zinc-600 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-700 bg-transparent select-none',
+        'hover:bg-zinc-100 dark:hover:bg-zinc-700'
       )}
       onClick={onToggle}
       aria-expanded={isOpen}
       tabIndex={0}
     >
-      <motion.span
-        initial={{ rotate: 0 }}
-        animate={{ rotate: isOpen ? 90 : 0 }}
-        className={'inline-block'}
+      <span
+        className={cn(
+          'inline-block',
+          isOpen ? 'rotate-90 -translate-0.25' : 'rotate-0 '
+        )}
         aria-hidden="true"
       >
         ▶
-      </motion.span>
-      {title} ({count})
+      </span>
+      {titleText} ({count})
     </button>
   );
 }

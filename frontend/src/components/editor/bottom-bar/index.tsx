@@ -144,7 +144,7 @@ export function BottomBar({
       )}
       {lastUpdatedText.length > 0 && (
         <p className="text-zinc-500 dark:text-zinc-300 whitespace-nowrap text-ellipsis ml-auto">
-          Last Updated: {lastUpdatedText} ago
+          Last Updated: {' ' + lastUpdatedText} ago
         </p>
       )}
     </footer>

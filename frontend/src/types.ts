@@ -152,6 +152,7 @@ export type SidebarContentType =
   | 'folder'
   | 'tag'
   | 'saved-search'
+  | 'search-result'
   | 'kernel';
 
 export function isSidebarContentType(key: unknown): key is SidebarContentType {
@@ -161,6 +162,7 @@ export function isSidebarContentType(key: unknown): key is SidebarContentType {
       key === 'folder' ||
       key === 'tag' ||
       key === 'saved-search' ||
-      key === 'kernel')
+      key === 'kernel' ||
+      key === 'search-result')
   );
 }

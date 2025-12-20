@@ -1,9 +1,14 @@
 import { GroupedSearchResults } from '../../hooks/search';
 
+/**
+ * Search results have sections for each type of result
+ */
+export type Section = 'notes' | 'attachments' | 'folders';
+
 export type SearchRow =
   | {
       kind: 'header';
-      title: string;
+      title: Section;
       count: number;
       toggle: () => void;
     }
