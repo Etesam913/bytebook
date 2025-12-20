@@ -1,6 +1,6 @@
 import { FILE_SERVER_URL } from './general';
 
-export type FilePathAdditionalQueryParams = {
+type FilePathAdditionalQueryParams = {
   highlight: string;
 };
 

@@ -42,10 +42,3 @@ export const CUSTOM_TRANSFORMERS = [
   TABLE,
   INLINE_CODE,
 ];
-
-// Export individual transformers
-export { CODE_TRANSFORMER } from './code';
-export { EQUATION } from './equation';
-export { FILE_TRANSFORMER } from './file';
-export { LINK } from './link';
-export { TABLE } from './table';

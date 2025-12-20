@@ -4,7 +4,7 @@ import { getDefaultButtonVariants } from '../../animations';
 import { Paperclip } from '../../icons/paperclip-2';
 import SortAlphaAscending from '../../icons/sort-alpha-ascending';
 import SortAlphaDescending from '../../icons/sort-alpha-descending';
-import SortDateAscending from '../../icons/sort-date-ascending';
+import { SortDateAscending } from '../../icons/sort-date-ascending';
 import { SortDateDescending } from '../../icons/sort-date-descending';
 import { SortNumAscending } from '../../icons/sort-num-ascending';
 import SortNumDescending from '../../icons/sort-num-descending';

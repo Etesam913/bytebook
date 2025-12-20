@@ -54,7 +54,7 @@ export class Point {
   }
 }
 
-export function isPoint(x: unknown): x is Point {
+function isPoint(x: unknown): x is Point {
   return x instanceof Point;
 }
 
@@ -253,7 +253,7 @@ export const DRAG_DATA_FORMAT = 'application/x-lexical-drag-block';
  * @property {number} marginTop - The collapsed top margin.
  * @property {number} marginBottom - The collapsed bottom margin.
  */
-export function getCollapsedMargins(elem: HTMLElement): {
+function getCollapsedMargins(elem: HTMLElement): {
   marginTop: number;
   marginBottom: number;
 } {

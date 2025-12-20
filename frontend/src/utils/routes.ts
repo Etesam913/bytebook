@@ -2,11 +2,6 @@
  * Centralized route definitions and utilities for the application
  */
 
-// Route parameter types
-export type KernelRouteParams = {
-  kernelName: string;
-};
-
 export type KernelWithFilesRouteParams = {
   kernelName: string;
   folder?: string;
@@ -118,7 +113,3 @@ export const routeUrls = {
   // Route builders for navigation
   ...routeBuilders,
 } as const;
-
-// Type exports for better TypeScript support
-export type RoutePatterns = typeof ROUTE_PATTERNS;
-export type RouteBuilders = typeof routeBuilders;

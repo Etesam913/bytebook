@@ -1,3 +1,4 @@
+import '../../../test/setup';
 import { FORMAT_TEXT_COMMAND, type LexicalEditor } from 'lexical';
 import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import { handleKeyboardShortcuts } from './hotkeys';

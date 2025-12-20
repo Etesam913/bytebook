@@ -10,7 +10,7 @@ import { isFullscreenAtom } from '../../atoms';
 import { cn } from '../../utils/string-formatting';
 import { SearchOptions } from './search-options';
 import { Tooltip } from '../../components/tooltip';
-import { GroupedSearchResults } from '../../hooks/search';
+import { GroupedSearchResults, useSearchFocus } from '../../hooks/search';
 
 export function SearchHeader({
   lastSearchQuery,
@@ -27,6 +27,7 @@ export function SearchHeader({
   groupedResults: GroupedSearchResults;
   totalCount: number;
 }) {
+  const inputRef = useSearchFocus();
   const isFullscreen = useAtomValue(isFullscreenAtom);
   const [, setLocation] = useLocation();
 
@@ -118,6 +119,7 @@ export function SearchHeader({
           </MotionIconButton>
         </Tooltip>
         <Input
+          ref={inputRef}
           inputProps={{
             placeholder: 'Search',
             className: 'w-full font-code',

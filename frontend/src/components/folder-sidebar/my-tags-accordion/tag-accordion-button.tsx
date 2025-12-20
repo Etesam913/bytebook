@@ -6,7 +6,7 @@ import {
 } from '../../../atoms';
 import { useDeleteTagsMutation } from '../../../hooks/tags';
 import { TagIcon } from '../../../icons/tag';
-import TagSlash from '../../../icons/tag-slash';
+import { TagSlash } from '../../../icons/tag-slash';
 import { handleContextMenuSelection } from '../../../utils/selection';
 import {
   cn,

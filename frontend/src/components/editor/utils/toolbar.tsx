@@ -40,9 +40,6 @@ import { OrderedList } from '../../../icons/ordered-list';
 import { Paperclip } from '../../../icons/paperclip-2.tsx';
 import { Table } from '../../../icons/table';
 import { Text } from '../../../icons/text';
-import { TextBold } from '../../../icons/text-bold';
-import { TextItalic } from '../../../icons/text-italic';
-import { TextStrikethrough } from '../../../icons/text-strikethrough';
 import { UnorderedList } from '../../../icons/unordered-list';
 import type {
   DropdownItem,
@@ -200,7 +197,7 @@ export function changeSelectedBlocksType({
   });
 }
 
-export function updateToolbarOnSelectionChange(
+function updateToolbarOnSelectionChange(
   setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>
 ) {
   const selection = $getSelection();
@@ -465,21 +462,6 @@ export const listCommandData = [
     title: 'Check List',
     keywords: ['check', 'checkbox', 'todo', 'task', 'list'],
     customDisabled: undefined,
-  },
-];
-
-export const textFormats: { icon: ReactNode; format: TextFormatType }[] = [
-  {
-    icon: <TextBold className="will-change-transform" />,
-    format: 'bold',
-  },
-  {
-    icon: <TextItalic className="will-change-transform" />,
-    format: 'italic',
-  },
-  {
-    icon: <TextStrikethrough className="will-change-transform" />,
-    format: 'strikethrough',
   },
 ];
 

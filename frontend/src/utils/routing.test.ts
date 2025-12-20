@@ -1,3 +1,4 @@
+import '../test/setup';
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 

@@ -1,4 +1,4 @@
-import type { Variants, Easing } from 'motion/react';
+import type { Easing } from 'motion/react';
 
 export function getDefaultButtonVariants(params?: {
   disabled?: boolean;
@@ -27,23 +27,6 @@ export function getDefaultButtonVariants(params?: {
     },
   };
 }
-
-export const resizeVariants: Variants = {
-  expanded: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: 50,
-    display: 'flex',
-    justifyContent: 'flex-start',
-    overflow: 'auto',
-  },
-  normal: {
-    position: 'relative',
-  },
-};
 
 export const easingFunctions: Record<string, Easing> = {
   'ease-in-quad': [0.55, 0.085, 0.68, 0.53],

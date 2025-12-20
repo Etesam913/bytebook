@@ -16,7 +16,7 @@ import { Finder } from '../../../icons/finder';
 import { FilePen } from '../../../icons/file-pen';
 import { PinTack2 } from '../../../icons/pin-tack-2';
 import { PinTackSlash } from '../../../icons/pin-tack-slash';
-import TagPlus from '../../../icons/tag-plus';
+import { TagPlus } from '../../../icons/tag-plus';
 import { Trash } from '../../../icons/trash';
 import {
   getFilePathFromNoteSelectionRange,
