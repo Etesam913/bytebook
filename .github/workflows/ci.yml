@@ -84,6 +84,8 @@ jobs:
       # Uses the custom action from File 1
       - name: Setup Frontend Environment
         uses: ./.github/actions/setup-frontend
+        with:
+          run-knip: 'true'
 
       - name: Download Bindings
         uses: actions/download-artifact@v4
