@@ -59,6 +59,14 @@ export function SavedSearchPage({
           note: `${curNote}.${curNoteExtension}`,
         })
       : undefined;
+  const sidebarItems: LocalFilePath[] = [
+    ...groupedResults.notes.map((note) => note.filePath),
+    ...groupedResults.attachments,
+  ];
+  const activeNoteIndex =
+    activeNotePath && sidebarItems.length > 0
+      ? sidebarItems.findIndex((fp) => fp.equals(activeNotePath))
+      : undefined;
 
   // Auto navigate to the first result
   useEffect(() => {
@@ -148,14 +156,12 @@ export function SavedSearchPage({
                           No results found for &quot;{searchQuery}&quot;
                         </li>
                       }
-                      data={[
-                        ...groupedResults.notes.map((note) => note.filePath),
-                        ...groupedResults.attachments,
-                      ]}
+                      data={sidebarItems}
                       dataItemToString={(filePath) =>
                         filePath.noteWithoutExtension
                       }
                       dataItemToKey={(filePath) => filePath.toString()}
+                      scrollToIndex={activeNoteIndex}
                       selectionOptions={{
                         dataItemToSelectionRangeEntry: (filePath) =>
                           filePath.note,

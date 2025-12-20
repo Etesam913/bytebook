@@ -6,10 +6,11 @@ import {
   type ReactNode,
   type SetStateAction,
   forwardRef,
+  useEffect,
   useRef,
   useState,
 } from 'react';
-import { Components, Virtuoso } from 'react-virtuoso';
+import { Components, Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { contextMenuRefAtom, selectionRangeAtom } from '../../atoms';
 import { useOnClickOutside } from '../../hooks/general';
 import { cn } from '../../utils/string-formatting';
@@ -56,6 +57,7 @@ export function VirtualizedList<T>({
   contentType,
   shouldHideSidebarHighlight,
   maxHeight,
+  scrollToIndex,
 }: {
   data: T[] | null;
   dataItemToString: (item: T) => string;
@@ -73,11 +75,13 @@ export function VirtualizedList<T>({
   contentType: SidebarContentType;
   shouldHideSidebarHighlight?: boolean;
   maxHeight?: number;
+  scrollToIndex?: number;
 }) {
   const [listHeight, setListHeight] = useState(0);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const anchorSelectionIndexRef = useRef<number>(0);
   const internalListRef = useRef<HTMLElement | null>(null);
+  const virtuosoRef = useRef<VirtuosoHandle | null>(null);
   /*
 	  If the activeNoteItem is set, then the note was navigated via a note link or the searchbar
 		We need to change the scroll position to the sidebar so that the active note is visible
@@ -120,6 +124,17 @@ export function VirtualizedList<T>({
   const items = data ?? [];
   const ListComponent = createListComponent(contentType);
 
+  useEffect(() => {
+    if (scrollToIndex === undefined) return;
+    if (scrollToIndex < 0) return;
+    if (scrollToIndex >= items.length) return;
+    virtuosoRef.current?.scrollToIndex({
+      index: scrollToIndex,
+      align: 'center',
+      behavior: 'auto',
+    });
+  }, [scrollToIndex, items.length]);
+
   const components: Components<T, HTMLDivElement> = {
     List: ListComponent,
     EmptyPlaceholder: emptyElement ? () => <>{emptyElement}</> : undefined,
@@ -161,6 +176,7 @@ export function VirtualizedList<T>({
 
   return (
     <Virtuoso
+      ref={virtuosoRef}
       data={items}
       style={{ height: !maxHeight ? '100%' : Math.min(maxHeight, listHeight) }}
       className="overflow-hidden"

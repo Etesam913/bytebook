@@ -37,6 +37,10 @@ export function MyNotesSidebar({
           note: `${curNote}.${curNoteExtension}`,
         })
       : undefined;
+  const activeNoteIndex =
+    activeNotePath && notes && notes.length > 0
+      ? notes.findIndex((fp) => fp.equals(activeNotePath))
+      : undefined;
 
   return (
     <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
@@ -100,6 +104,7 @@ export function MyNotesSidebar({
             data={notes ?? []}
             dataItemToString={(filePath) => filePath.note}
             dataItemToKey={(filePath) => filePath.toString()}
+            scrollToIndex={activeNoteIndex}
             selectionOptions={{
               dataItemToSelectionRangeEntry: (filePath) => filePath.note,
             }}
