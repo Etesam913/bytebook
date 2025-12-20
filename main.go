@@ -4,6 +4,8 @@ import (
 	"context"
 	"embed"
 	"log"
+	"log/slog"
+	"os"
 	"sync"
 
 	"github.com/etesam913/bytebook/internal/config"
@@ -64,6 +66,11 @@ func main() {
 	defer goCtxCancel()
 	defer javascriptCtxCancel()
 	defer javaCtxCancel()
+
+	logLevel := slog.LevelError
+	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: logLevel,
+	})
 
 	app := application.New(application.Options{
 		Name:        "bytebook",
@@ -159,6 +166,7 @@ func main() {
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
+		Logger: slog.New(handler),
 	})
 
 	backgroundColor := application.NewRGB(27, 38, 54)

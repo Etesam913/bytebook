@@ -1,6 +1,7 @@
 package util
 
 import (
+	"cmp"
 	"io/fs"
 	"path/filepath"
 	"slices"
@@ -86,54 +87,67 @@ func extractNumber(s string) (int, int) {
 
 // SortNotes sorts a slice of fs.DirEntry objects based on the specified sort option.
 func SortNotes(notes []fs.DirEntry, sortOption string) {
-	slices.SortFunc(notes, func(a, b fs.DirEntry) int {
-		infoA, _ := a.Info()
-		infoB, _ := b.Info()
+	// Pre-cache all file info to avoid repeated syscalls during sorting
+	type noteInfo struct {
+		modTime time.Time
+		size    int64
+		ext     string
+	}
+
+	infoCache := make([]noteInfo, len(notes))
+	for i, note := range notes {
+		info, err := note.Info()
+		if err != nil {
+			// Keep zero values on error
+			infoCache[i].ext = filepath.Ext(note.Name())
+			continue
+		}
+		infoCache[i] = noteInfo{
+			modTime: info.ModTime(),
+			size:    info.Size(),
+			ext:     filepath.Ext(note.Name()),
+		}
+	}
+
+	// Sort using indices to access cached data
+	indices := make([]int, len(notes))
+	for i := range indices {
+		indices[i] = i
+	}
+
+	slices.SortFunc(indices, func(i, j int) int {
+		a, b := notes[i], notes[j]
+		infoA, infoB := infoCache[i], infoCache[j]
 
 		switch sortOption {
 		case DateUpdatedDesc:
-			if infoA.ModTime().After(infoB.ModTime()) {
-				return -1
-			} else if infoA.ModTime().Before(infoB.ModTime()) {
-				return 1
-			}
-			return 0
+			return -cmp.Compare(infoA.modTime.Unix(), infoB.modTime.Unix())
 		case DateUpdatedAsc:
-			if infoA.ModTime().Before(infoB.ModTime()) {
-				return -1
-			} else if infoA.ModTime().After(infoB.ModTime()) {
-				return 1
-			}
-			return 0
+			return cmp.Compare(infoA.modTime.Unix(), infoB.modTime.Unix())
 		case FileNameAZ:
 			return naturalCompare(a.Name(), b.Name())
 		case FileNameZA:
 			return -naturalCompare(a.Name(), b.Name())
 		case SizeDesc:
-			if infoA.Size() > infoB.Size() {
-				return -1
-			} else if infoA.Size() < infoB.Size() {
-				return 1
-			}
-			return 0
+			return -cmp.Compare(infoA.size, infoB.size)
 		case SizeAsc:
-			if infoA.Size() < infoB.Size() {
-				return -1
-			} else if infoA.Size() > infoB.Size() {
-				return 1
-			}
-			return 0
+			return cmp.Compare(infoA.size, infoB.size)
 		case FileType:
-			extA := filepath.Ext(a.Name())
-			extB := filepath.Ext(b.Name())
-			if extA == extB {
+			if infoA.ext == infoB.ext {
 				return naturalCompare(a.Name(), b.Name())
 			}
-			return naturalCompare(extA, extB)
+			return naturalCompare(infoA.ext, infoB.ext)
 		default:
 			return 0
 		}
 	})
+
+	// Rearrange notes based on sorted indices
+	sorted := make([]fs.DirEntry, len(notes))
+	for i, idx := range indices {
+		sorted[i] = notes[idx]
+	}
+	copy(notes, sorted)
 }
 
 // NoteWithFolder holds the folder name and file information
