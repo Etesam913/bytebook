@@ -34,9 +34,6 @@
     font-display: swap;
 }
 
-:root{
-    --color-fd-background: rgb(28, 28, 28);
-}
 #nd-docs-layout {
     --fd-layout-offset: 0px;
 }

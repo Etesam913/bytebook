@@ -1,0 +1,120 @@
+---
+title: Search
+description: Query notes, filenames, folders, types, and tags.
+---
+
+Bytebook search supports a small query language to help you find notes, folders, and attachments quickly.
+
+## Basic search
+
+Type one or more terms separated by spaces. Multiple terms are combined with **AND** by default.
+
+### Examples:
+
+Fuzzily search for all notes that contain the term "docker":
+
+```txt
+docker
+```
+
+Search for only exact matches by wrapping the term in double quotes:
+
+```txt
+"docker"
+```
+
+Search for notes that contain exactly the terms "docker" and "compose":
+
+```txt
+"docker compose"
+```
+
+## Boolean operators
+
+You can join terms with:
+
+- `AND` / `&&`
+- `OR` / `||`
+
+Operators are evaluated **left-to-right** (there's no parenthesis/grouping support).
+
+### Examples:
+
+Search for notes containing both "auth" and "middleware":
+
+```txt
+auth AND middleware
+```
+
+Search for notes containing either "auth" or "middleware":
+
+```txt
+auth OR middleware
+```
+
+Search for notes containing either "auth" or "middleware" using the `||` operator:
+
+```txt
+auth || middleware
+```
+
+## Filename & folder search
+
+Use `f:` or `file:` to search **folder names and file names**.
+
+### Examples:
+
+Search for files or folders named "readme":
+
+```txt
+f:readme
+```
+
+Search for files or folders with "project notes" in the name:
+
+```txt
+f:"project notes"
+```
+
+Tip: `f:` with nothing after it lists folders (it filters results to folder documents).
+
+## Tags
+
+Prefix a search with `#` to search notes that contain a tag.
+
+### Examples:
+
+Find all notes that contain the tag "todo":
+
+```txt
+#todo
+```
+
+## Type filters
+
+Use `t:` or `type:` to filter by document type:
+
+- `note`
+- `attachment`
+- `folder`
+
+### Examples: 
+
+Find "auth" notes only:
+
+```txt
+t:note auth
+```
+
+Find attachments with "invoice" in the filename:
+
+```txt
+type:attachment f:invoice
+```
+
+Find folders named "docs":
+
+```txt
+t:folder f:docs
+```
+
