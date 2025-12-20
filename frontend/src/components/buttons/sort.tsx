@@ -100,7 +100,7 @@ export function SortButton({
       onChange={({ value }) => setSortDirection(value as SortStrings)}
     >
       {({ buttonId, menuId, isOpen, handleKeyDown, handleClick }) => (
-        <Tooltip content="Sort options" placement="bottom">
+        <Tooltip content="Sort options" placement="right">
           <MotionIconButton
             id={buttonId}
             onClick={handleClick}

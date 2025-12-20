@@ -92,6 +92,7 @@ export function MySavedSearchesAccordion() {
             ) : (
               <VirtualizedList<SavedSearch>
                 layoutId="saved-searches-sidebar"
+                className="scrollbar-hidden"
                 emptyElement={
                   <li className="text-left list-none text-zinc-500 dark:text-zinc-300 text-xs">
                     No saved searches yet
@@ -103,7 +104,7 @@ export function MySavedSearchesAccordion() {
                 selectionOptions={{
                   dataItemToSelectionRangeEntry: (search) => search.name,
                 }}
-                maxHeight={480}
+                maxHeight="480px"
                 renderItem={({ dataItem: search, i }) => (
                   <SavedSearchAccordionButton
                     savedSearches={savedSearches}

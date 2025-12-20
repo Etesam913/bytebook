@@ -82,14 +82,10 @@ export function EmptyLinePlaceholderPlugin({
 
   return createPortal(
     <div
-      className="pointer-events-none select-none text-zinc-400 dark:text-zinc-500"
+      className="pointer-events-none select-none text-zinc-400 dark:text-zinc-500 absolute whitespace-nowrap text-md "
       style={{
         position: 'absolute',
-        top: `${placeholderLineData.position.top + 2}px`,
-        left: `${placeholderLineData.position.left + 3.5}px`,
-        whiteSpace: 'nowrap',
-        fontSize: '1rem',
-        lineHeight: '1.5rem',
+        transform: `translate(calc(${placeholderLineData.position.left + 3}px), calc(${placeholderLineData.position.top + 2}px))`,
         fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
       }}
     >

@@ -67,7 +67,7 @@ export function SavedSearchPage({
       if (groupedResults.notes.length > 0) {
         firstFilePath = groupedResults.notes[0].filePath;
       } else if (groupedResults.attachments.length > 0) {
-        firstFilePath = groupedResults.attachments[0];
+        firstFilePath = groupedResults.attachments[0].filePath;
       }
 
       if (firstFilePath) {
@@ -150,7 +150,9 @@ export function SavedSearchPage({
                       }
                       data={[
                         ...groupedResults.notes.map((note) => note.filePath),
-                        ...groupedResults.attachments,
+                        ...groupedResults.attachments.map(
+                          (attachment) => attachment.filePath
+                        ),
                       ]}
                       dataItemToString={(filePath) =>
                         filePath.noteWithoutExtension

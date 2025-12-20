@@ -56,6 +56,7 @@ export function VirtualizedList<T>({
   contentType,
   shouldHideSidebarHighlight,
   maxHeight,
+  className,
 }: {
   data: T[] | null;
   dataItemToString: (item: T) => string;
@@ -72,7 +73,8 @@ export function VirtualizedList<T>({
   layoutId: string;
   contentType: SidebarContentType;
   shouldHideSidebarHighlight?: boolean;
-  maxHeight?: number;
+  maxHeight?: string;
+  className?: string;
 }) {
   const [listHeight, setListHeight] = useState(0);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -162,8 +164,10 @@ export function VirtualizedList<T>({
   return (
     <Virtuoso
       data={items}
-      style={{ height: !maxHeight ? '100%' : Math.min(maxHeight, listHeight) }}
-      className="overflow-hidden"
+      className={className}
+      style={{
+        height: !maxHeight ? '100%' : `min(${maxHeight}, ${listHeight}px)`,
+      }}
       scrollerRef={handleScrollerRef}
       increaseViewportBy={{ top: 400, bottom: 400 }}
       components={components}

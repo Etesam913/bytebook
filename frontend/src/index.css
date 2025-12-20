@@ -134,6 +134,7 @@ pre {
 
 html {
   cursor: default;
+  line-height: 1.7;
 }
 
 html:has(.dark) {
@@ -190,7 +191,7 @@ textarea,
 }
 
 #content-editable-editor {
-  line-height: 28px;
+  line-height: 2;
   cursor: text;
   /* Contain:layout style paint makes the editor handle larger content more efficiently */
   contain: layout style paint;
@@ -204,7 +205,7 @@ h1.dragging {
 
 #content-editable-editor h2,
 h2.dragging {
-  @apply text-2xl leading-[2.8rem];
+  @apply text-2xl leading-11.5;
 }
 
 #content-editable-editor h3,
@@ -471,7 +472,7 @@ div[data-is-fullscreen='true'] .cm-scroller {
 
 /* Table of contents list */
 .toc-list-item {
-  @apply wrap-break-word text-sm leading-6;
+  @apply wrap-break-word text-sm;
 }
 
 .toc-list-item::before {
@@ -709,4 +710,8 @@ th {
 }
 .PlaygroundEditorTheme__tableCellActionButton:hover {
   background-color: #ddd;
+}
+
+.scrollbar-hidden {
+  scrollbar-width: none;
 }

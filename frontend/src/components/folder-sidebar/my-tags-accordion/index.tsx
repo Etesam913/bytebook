@@ -50,7 +50,7 @@ export function MyTagsAccordion() {
           <motion.div
             initial={{ height: 0 }}
             animate={{
-              height: 480,
+              height: 'auto',
               transition: { type: 'spring', damping: 16 },
             }}
             exit={{ height: 0, opacity: 0 }}
@@ -80,6 +80,7 @@ export function MyTagsAccordion() {
             ) : (
               <VirtualizedList<string>
                 layoutId="tags-sidebar"
+                className="scrollbar-hidden"
                 emptyElement={
                   <li className="text-left list-none text-zinc-500 dark:text-zinc-300 text-xs">
                     Type #tagName in a note to create a tag
@@ -91,7 +92,7 @@ export function MyTagsAccordion() {
                 selectionOptions={{
                   dataItemToSelectionRangeEntry: (tagName) => tagName,
                 }}
-                maxHeight={480}
+                maxHeight="480px"
                 renderItem={({ dataItem: sidebarTagName, i }) => (
                   <TagAccordionButton
                     tags={tags}

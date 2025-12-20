@@ -357,110 +357,86 @@ export async function insertAttachmentFromFile({
   }
 }
 
+function BlockTypeDropdownItemLabel({
+  icon,
+  text,
+}: {
+  icon: ReactNode;
+  text: string;
+}) {
+  return (
+    <span className="flex items-center gap-1.5 will-change-transform">
+      {icon} <span className="">{text}</span>
+    </span>
+  );
+}
+
 /** Used in dropdown for block types */
 export const blockTypesDropdownItems: DropdownItem[] = [
   {
-    label: (
-      <span className="flex items-center gap-1.5 will-change-transform">
-        <Heading1 /> Header 1
-      </span>
-    ),
+    label: <BlockTypeDropdownItemLabel icon={<Heading1 />} text="Header 1" />,
     value: 'h1',
   },
   {
-    label: (
-      <span className="flex items-center gap-1.5 will-change-transform">
-        <Heading2 /> Header 2
-      </span>
-    ),
+    label: <BlockTypeDropdownItemLabel icon={<Heading2 />} text="Header 2" />,
     value: 'h2',
   },
   {
-    label: (
-      <span className="flex items-center gap-1.5 will-change-transform">
-        <Heading3 /> Header 3
-      </span>
-    ),
+    label: <BlockTypeDropdownItemLabel icon={<Heading3 />} text="Header 3" />,
     value: 'h3',
   },
   {
-    label: (
-      <span className="flex items-center gap-1.5 will-change-transform">
-        <Heading4 /> Header 4
-      </span>
-    ),
+    label: <BlockTypeDropdownItemLabel icon={<Heading4 />} text="Header 4" />,
     value: 'h4',
   },
   {
-    label: (
-      <span className="flex items-center gap-1.5 will-change-transform">
-        <Heading5 /> Header 5
-      </span>
-    ),
+    label: <BlockTypeDropdownItemLabel icon={<Heading5 />} text="Header 5" />,
     value: 'h5',
   },
   {
-    label: (
-      <span className="flex items-center gap-1.5 will-change-transform">
-        <Heading6 /> Header 6
-      </span>
-    ),
+    label: <BlockTypeDropdownItemLabel icon={<Heading6 />} text="Header 6" />,
     value: 'h6',
   },
   {
-    label: (
-      <span className="flex items-center gap-1.5 will-change-transform">
-        <Text /> Paragraph
-      </span>
-    ),
+    label: <BlockTypeDropdownItemLabel icon={<Text />} text="Paragraph" />,
     value: 'paragraph',
   },
   {
-    label: (
-      <span className="flex items-center gap-1.5 will-change-transform">
-        <QuoteIcon /> Quote
-      </span>
-    ),
+    label: <BlockTypeDropdownItemLabel icon={<QuoteIcon />} text="Quote" />,
     value: 'quote',
   },
   {
     label: (
-      <span className="flex items-center gap-1.5 will-change-transform">
-        <UnorderedList /> Unordered List
-      </span>
+      <BlockTypeDropdownItemLabel
+        icon={<UnorderedList />}
+        text="Unordered List"
+      />
     ),
     value: 'ul',
   },
   {
     label: (
-      <span className="flex items-center gap-1.5 will-change-transform">
-        <OrderedList /> Ordered List
-      </span>
+      <BlockTypeDropdownItemLabel icon={<OrderedList />} text="Ordered List" />
     ),
     value: 'ol',
   },
   {
     label: (
-      <span className="flex items-center gap-1.5 will-change-transform">
-        <ListCheckbox /> Checkbox List
-      </span>
+      <BlockTypeDropdownItemLabel
+        icon={<ListCheckbox />}
+        text="Checkbox List"
+      />
     ),
     value: 'check',
   },
   {
     label: (
-      <span className="flex items-center gap-1.5 will-change-transform">
-        <Paperclip /> Attachment
-      </span>
+      <BlockTypeDropdownItemLabel icon={<Paperclip />} text="Attachment" />
     ),
     value: 'attachment',
   },
   {
-    label: (
-      <span className="flex items-center gap-1.5 will-change-transform">
-        <Table /> Table
-      </span>
-    ),
+    label: <BlockTypeDropdownItemLabel icon={<Table />} text="Table" />,
     value: 'table',
   },
 ];

@@ -135,12 +135,13 @@ export function MyFoldersAccordion() {
                       above
                     </li>
                   }
+                  className="scrollbar-hidden"
                   dataItemToString={(folderName) => folderName}
                   dataItemToKey={(folderName) => folderName}
                   selectionOptions={{
                     dataItemToSelectionRangeEntry: (folderName) => folderName,
                   }}
-                  maxHeight={480}
+                  maxHeight="65vh"
                   renderItem={({ dataItem: sidebarFolderName, i }) => (
                     <FolderAccordionButton
                       sidebarFolderName={sidebarFolderName}

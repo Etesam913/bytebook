@@ -120,13 +120,14 @@ export function MyKernelsAccordion() {
             <VirtualizedList<Languages>
               layoutId="kernels-sidebar"
               emptyElement={null}
+              className="scrollbar-hidden"
               contentType="kernel"
               dataItemToString={(kernelName) => kernelName}
               dataItemToKey={(kernelName) => kernelName}
               selectionOptions={{
                 dataItemToSelectionRangeEntry: (kernelName) => kernelName,
               }}
-              maxHeight={480}
+              maxHeight="480px"
               renderItem={({ dataItem: kernelName }) => {
                 if (!isValidKernelLanguage(kernelName)) {
                   return <></>;
