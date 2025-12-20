@@ -66,7 +66,7 @@ function convertFileElement(domNode: HTMLElement): null | DOMConversionOutput {
   return { node: unknown };
 }
 
-export type SerializedFileNode = Spread<
+type SerializedFileNode = Spread<
   {
     alt: string;
     dimensions?: FileDimensions;

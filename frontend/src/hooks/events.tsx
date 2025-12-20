@@ -65,7 +65,7 @@ export function useFolderFromRoute(): {
  * @returns {{ note: string | undefined, isSavedSearchRoute: boolean, isNoteRoute: boolean }}
  *   An object containing the decoded note name, and flags for route type.
  */
-export function useNoteFromRoute(): {
+function useNoteFromRoute(): {
   note: string | undefined;
   isSavedSearchRoute: boolean;
   isNoteRoute: boolean;

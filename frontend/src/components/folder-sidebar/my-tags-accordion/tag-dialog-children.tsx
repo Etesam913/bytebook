@@ -1,5 +1,5 @@
 import { getDefaultButtonVariants } from '../../../animations';
-import TagSlash from '../../../icons/tag-slash';
+import { TagSlash } from '../../../icons/tag-slash';
 import { getTagNameFromSelectionRange } from '../../../utils/string-formatting';
 import { MotionButton } from '../../buttons';
 

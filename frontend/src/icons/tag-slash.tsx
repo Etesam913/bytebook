@@ -57,5 +57,3 @@ export function TagSlash({
     </svg>
   );
 }
-
-export default TagSlash;

@@ -14,13 +14,13 @@ const InlineEquationLazy = lazy(() =>
   }))
 );
 
-export interface InlineEquationPayload {
+interface InlineEquationPayload {
   key?: NodeKey;
   equation: string;
   defaultIsEditing?: boolean;
 }
 
-export type SerializedInlineEquationNode = Spread<
+type SerializedInlineEquationNode = Spread<
   {
     equation: string;
     defaultIsEditing: boolean;

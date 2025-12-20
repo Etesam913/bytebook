@@ -42,13 +42,13 @@ import {
 import type { AutoLinkAttributes } from '../plugins/link-matcher';
 import { handleATagClick, sanitizeUrl } from '../utils/link';
 
-export type LinkAttributes = {
+type LinkAttributes = {
   rel?: null | string;
   target?: null | string;
   title?: null | string;
 };
 
-export type SerializedLinkNode = Spread<
+type SerializedLinkNode = Spread<
   {
     url: string;
   },
@@ -370,7 +370,7 @@ export function $isLinkNode(
   return node instanceof LinkNode;
 }
 
-export type SerializedAutoLinkNode = SerializedLinkNode;
+type SerializedAutoLinkNode = SerializedLinkNode;
 
 // Custom node type to override `canInsertTextAfter` that will
 // allow typing within the link

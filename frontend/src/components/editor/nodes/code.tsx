@@ -23,7 +23,7 @@ export interface CodePayload {
   hideResults?: boolean;
 }
 
-export type SerializedCodeNode = Spread<
+type SerializedCodeNode = Spread<
   {
     id: string;
     language: Languages;

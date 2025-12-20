@@ -7,7 +7,6 @@ import {
   KernelsData,
   type ProjectSettings,
   type SortStrings,
-  type WindowSettings,
 } from './types';
 import { LocalFilePath } from './utils/path';
 
@@ -37,8 +36,6 @@ export const mostRecentNotesAtom = atom(
   }
 );
 
-export const windowSettingsAtom = atom<WindowSettings | null>(null);
-
 export const projectSettingsAtom = atom<ProjectSettings>({
   pinnedNotes: new Set<string>([]),
   projectPath: '',
@@ -60,7 +57,6 @@ export const projectSettingsAtom = atom<ProjectSettings>({
 // Tracks whether project settings have been loaded from the backend at least once.
 export const projectSettingsLoadedAtom = atom<boolean>(false);
 
-export const folderSortAtom = atom<SortStrings>('date-updated-desc');
 export const noteSortAtom = atom<SortStrings>('date-updated-desc');
 
 export const selectionRangeAtom = atom<Set<string>>(new Set([]));

@@ -48,7 +48,7 @@ type NoteFormElementWithMetadata = HTMLFormElement & {
   __folder?: string;
 };
 
-export const noteQueries = {
+const noteQueries = {
   getNotes: (folder: string, noteSort: string, queryClient: QueryClient) =>
     queryOptions({
       queryKey: ['notes', folder, noteSort],

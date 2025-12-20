@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { Tag } from './tag';
 import { BreadcrumbItem } from './breadcrumb-item';
 import { KernelHeartbeats } from './kernel-heartbeats';
-import TagPlus from '../../../icons/tag-plus';
+import { TagPlus } from '../../../icons/tag-plus';
 import { Folder } from '../../../icons/folder';
 import { Loader } from '../../../icons/loader';
 import {

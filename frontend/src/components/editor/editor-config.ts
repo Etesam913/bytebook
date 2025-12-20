@@ -21,7 +21,7 @@ function onError(error: Error) {
   console.error(error);
 }
 
-export const theme: EditorThemeClasses = {
+const theme: EditorThemeClasses = {
   internalLink: 'link-internal',
   link: 'link',
   quote: 'editor-quote',

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/webpro/knip/main/website/static/knip.schema.json",
+  "entry": [
+    "src/main.tsx",
+    "src/test/setup.ts",
+    "src/index.css",
+    "vite.config.ts",
+    "bunfig.toml",
+    "eslint.config.js",
+    "public/theme-init.js"
+  ]
+}

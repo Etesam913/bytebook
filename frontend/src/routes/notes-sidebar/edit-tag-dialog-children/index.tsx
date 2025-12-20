@@ -4,7 +4,7 @@ import { useTagsForNotesQuery, useTagsQuery } from '../../../hooks/tags';
 import { LocalFilePath } from '../../../utils/path';
 import { MotionButton } from '../../../components/buttons';
 import { getDefaultButtonVariants } from '../../../animations';
-import TagPlus from '../../../icons/tag-plus';
+import { TagPlus } from '../../../icons/tag-plus';
 import { DialogErrorText } from '../../../components/dialog';
 import { TagSearchInput } from './tag-search-input';
 import { SelectedTagsDisplay } from './selected-tags-display';

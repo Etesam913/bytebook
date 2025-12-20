@@ -12,22 +12,10 @@ export const VIDEO_FILE_EXTENSIONS = ['mov', 'mp4', 'm4v', 'webm'];
 
 export type EditorBlockTypes = HeadingTagType | undefined | string;
 
-export type FolderNote = {
-  folder: string;
-  note: string;
-};
-
 export type DropdownItem = {
   value: string;
   label: ReactNode;
   onChange?: () => void;
-};
-
-export type FolderDialogAction = 'create' | 'rename' | 'delete';
-
-export type MostRecentNoteType = {
-  name: string;
-  path: string;
 };
 
 type FloatingDataTypeBase<T extends null | 'link' | 'text-format'> = {
@@ -43,11 +31,6 @@ export type FloatingDataType =
   | FloatingDataTypeBase<'link'>
   | FloatingDataTypeBase<'text-format'>
   | FloatingDataTypeBase<null>;
-
-export type ResizeState = {
-  isResizing: boolean;
-  setIsResizing: Dispatch<SetStateAction<boolean>>;
-};
 
 export type DialogDataType = {
   isOpen: boolean;
@@ -79,10 +62,6 @@ export type SortStrings =
   | 'size-desc'
   | 'size-asc'
   | 'file-type';
-
-export type WindowSettings = {
-  windowId: string;
-};
 
 type AppearanceSettings = Omit<
   AppearanceProjectSettingsJson,

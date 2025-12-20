@@ -10,9 +10,6 @@ import { useOnClickOutside } from '../../../../hooks/general';
 import { useFindPanelSearch, useMatchNavigation } from './hooks/find-panel';
 import { clearHighlight } from './utils/highlight';
 
-// Re-export MatchData for backwards compatibility
-export type { MatchData } from './utils/highlight';
-
 export function NoteFindPanel({
   isSearchOpen,
   setIsSearchOpen,

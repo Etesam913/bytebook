@@ -6,8 +6,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const fileNameRegex = /^[0-9a-zA-Z_\-. ]+$/;
-
 /**
  * Retrieves the value of a specific query parameter from a given URL string.
  *
@@ -430,19 +428,6 @@ export function encodeLinkUrl(url: string): string {
 }
 
 /**
- * Decodes a URL that was encoded with encodeLinkUrl.
- * @param encodedUrl The encoded URL
- * @returns The decoded URL
- * @example
- * decodeLinkUrl('https%3A%2F%2Fexample.com%2Fpath%28test%29'); // returns decoded URL
- */
-export function decodeLinkUrl(encodedUrl: string): string {
-  return decodeURIComponent(encodedUrl)
-    .replace(/%28/g, '(')
-    .replace(/%29/g, ')');
-}
-
-/**
  * Encodes alt text for use in a Markdown link by replacing square brackets with %30 and %31.
  * @param text The alt text to encode
  * @returns The text with [ replaced by %30 and ] replaced by %31
@@ -481,17 +466,6 @@ export function escapeFileContentForMarkdown(content: string): string {
   // Escape parentheses
   escaped = escaped.replace(/([()])/g, '\\$1');
   return escaped;
-}
-
-/**
- * Escapes underscores in a string for Markdown usage.
- * @param input The string to escape
- * @returns The string with _ escaped as \_
- * @example
- * escapeUnderscore('foo_bar'); // returns 'foo\\_bar'
- */
-export function escapeUnderscore(input: string): string {
-  return input.replace(/_/g, '\\_');
 }
 
 /**

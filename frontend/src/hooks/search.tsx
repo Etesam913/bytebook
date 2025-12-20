@@ -9,7 +9,6 @@ import { atom } from 'jotai';
 import { navigate } from 'wouter/use-browser-location';
 import {
   FullTextSearch,
-  SearchFileNamesFromQuery,
   GetAllSavedSearches,
   AddSavedSearch,
   RemoveSavedSearch,
@@ -42,7 +41,7 @@ export type GroupedSearchResults = {
 /**
  * Represents a search result for a note.
  */
-export type NoteSearchResult = {
+type NoteSearchResult = {
   /** The path of the note file */
   filePath: LocalFilePath;
   /** List of tags associated with the note */
@@ -58,7 +57,7 @@ export type NoteSearchResult = {
 /**
  * Represents a search result for an attachment.
  */
-export type AttachmentSearchResult = {
+type AttachmentSearchResult = {
   /** The path of the attachment file */
   filePath: LocalFilePath;
 };
@@ -66,12 +65,12 @@ export type AttachmentSearchResult = {
 /**
  * Represents a search result for a folder.
  */
-export type FolderSearchResult = {
+type FolderSearchResult = {
   /** The folder name or path */
   folder: string;
 };
 
-export const searchQueries = {
+const searchQueries = {
   fullTextSearch: (searchQuery: string) =>
     queryOptions({
       queryKey: ['full-text-search', searchQuery],
@@ -139,21 +138,6 @@ export function useSearch() {
     } else {
       navigate(routeUrls.search());
     }
-  });
-}
-
-/**
- * Hook to perform a mutation for searching file names from a query string.
- * Uses react-query's useMutation.
- */
-export function useSearchMutation() {
-  return useMutation({
-    mutationFn: async ({ searchQuery }: { searchQuery: string }) => {
-      return await SearchFileNamesFromQuery(searchQuery);
-    },
-    onError: () => {
-      return [];
-    },
   });
 }
 

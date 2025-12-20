@@ -82,5 +82,3 @@ export function SortDateAscending({
     </svg>
   );
 }
-
-export default SortDateAscending;

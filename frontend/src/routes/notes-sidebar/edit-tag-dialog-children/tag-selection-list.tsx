@@ -1,6 +1,6 @@
 import { IconButton } from '../../../components/buttons';
 import { Checkbox } from '../../../components/indeterminate-checkbox';
-import TagPlus from '../../../icons/tag-plus';
+import { TagPlus } from '../../../icons/tag-plus';
 
 export function TagSelectionList({
   displayedTags,

@@ -2,8 +2,10 @@ import { InputHTMLAttributes, useId } from 'react';
 import { cn } from '../../utils/string-formatting';
 import { motion } from 'motion/react';
 
-interface ToggleProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+interface ToggleProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'type'
+> {
   label?: string;
   showStatus?: boolean;
 }

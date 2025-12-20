@@ -1,3 +1,4 @@
+import '../../../test/setup';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { DEFAULT_SONNER_OPTIONS } from '../../../utils/general';
 const openUrl = mock<(url: string) => Promise<void>>(() => Promise.resolve());

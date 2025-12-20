@@ -1,8 +1,3 @@
-import {
-  type ElementTransformer,
-  type TextFormatTransformer,
-  type TextMatchTransformer,
-} from '@lexical/markdown';
 import type { Frontmatter } from '../../../types';
 
 const frontMatterRegex = /^---[\s\S]+?---/;
@@ -17,7 +12,7 @@ const frontMatterRegex = /^---[\s\S]+?---/;
  * @param {string} markdown - The Markdown string to check.
  * @returns {boolean} - Returns `true` if the Markdown string contains front matter, `false` otherwise.
  */
-export function hasFrontMatter(markdown: string): boolean {
+function hasFrontMatter(markdown: string): boolean {
   return frontMatterRegex.test(markdown);
 }
 
@@ -144,15 +139,10 @@ export function replaceFrontMatter(
 ): string {
   // Create the new front matter string from the provided data
   const newFrontMatter = createFrontMatter(newFrontMatterData);
-  if (frontMatterRegex.test(markdown)) {
+  if (hasFrontMatter(markdown)) {
     // If existing front matter is found, replace it with the new front matter
     return markdown.replace(frontMatterRegex, newFrontMatter);
   }
   // If no front matter is found, prepend the new front matter to the markdown content
   return newFrontMatter + markdown;
 }
-
-export type Transformer =
-  | ElementTransformer
-  | TextFormatTransformer
-  | TextMatchTransformer;

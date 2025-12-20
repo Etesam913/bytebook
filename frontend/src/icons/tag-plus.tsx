@@ -55,5 +55,3 @@ export function TagPlus({
     </svg>
   );
 }
-
-export default TagPlus;
