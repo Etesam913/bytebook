@@ -48,8 +48,14 @@ func addFilePathsToProject(projectPath string, filePaths []string, folderPath st
 }
 
 func (n *NodeService) AddAttachments(folder string, note string) AttachmentResponse {
-	localFilePaths, err := application.OpenFileDialog().
+	app := application.Get()
+	if app == nil || app.Dialog == nil {
+		return AttachmentResponse{Success: false, Message: "Application not initialized", Paths: []string{}}
+	}
+
+	localFilePaths, err := app.Dialog.OpenFile().
 		CanChooseFiles(true).
+		CanChooseDirectories(false).
 		PromptForMultipleSelection()
 	if err != nil {
 		return AttachmentResponse{Success: false, Message: err.Error(), Paths: []string{}}

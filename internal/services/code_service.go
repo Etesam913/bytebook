@@ -549,7 +549,19 @@ func (c *CodeService) IsPathAValidVirtualEnvironment(path string) config.Backend
 
 // ChooseCustomVirtualEnvironmentPath opens a file dialog for the user to select a custom Python virtual environment path.
 func (c *CodeService) ChooseCustomVirtualEnvironmentPath() config.BackendResponseWithData[string] {
-	localFilePath, err := application.OpenFileDialog().CanChooseDirectories(true).CanChooseFiles(false).PromptForSingleSelection()
+	app := application.Get()
+	if app == nil || app.Dialog == nil {
+		return config.BackendResponseWithData[string]{
+			Success: false,
+			Data:    "",
+			Message: "Application not initialized",
+		}
+	}
+
+	localFilePath, err := app.Dialog.OpenFile().
+		CanChooseDirectories(true).
+		CanChooseFiles(false).
+		PromptForSingleSelection()
 
 	if err != nil {
 		return config.BackendResponseWithData[string]{
