@@ -15,6 +15,7 @@ var Events = struct {
 	// UI events
 	ZoomIn           string
 	ZoomOut          string
+	ZoomReset        string
 	SettingsOpen     string
 	SearchOpen       string
 	SearchNote       string
@@ -57,6 +58,7 @@ var Events = struct {
 	// UI events
 	ZoomIn:           "zoom:in",
 	ZoomOut:          "zoom:out",
+	ZoomReset:        "zoom:reset",
 	SettingsOpen:     "settings:open",
 	SearchOpen:       "search:open",
 	SearchNote:       "search:note",

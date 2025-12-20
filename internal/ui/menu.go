@@ -160,6 +160,10 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	if zoomOut != nil {
 		sub.RemoveMenuItem(zoomOut)
 	}
+	actualSize := sub.FindByLabel("Actual Size")
+	if actualSize != nil {
+		sub.RemoveMenuItem(actualSize)
+	}
 
 	// Adds the new zoom in and out which will use document.style.zoom
 	zoomIn = sub.Add("Zoom In")
@@ -172,5 +176,11 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	zoomOut.SetAccelerator("cmdorctrl+-")
 	zoomOut.OnClick(func(ctx *application.Context) {
 		app.Event.Emit(util.Events.ZoomOut)
+	})
+
+	actualSize = sub.Add("Actual Size")
+	actualSize.SetAccelerator("cmdorctrl+0")
+	actualSize.OnClick(func(ctx *application.Context) {
+		app.Event.Emit(util.Events.ZoomReset)
 	})
 }
