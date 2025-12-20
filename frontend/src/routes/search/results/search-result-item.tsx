@@ -78,7 +78,7 @@ export function SearchResultHeader({
     <button
       type="button"
       className={cn(
-        'pl-1 py-1 w-full flex items-center gap-2 text-xs font-semibold text-zinc-600 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-700 bg-transparent select-none',
+        'pl-2 py-1 w-full flex items-center gap-2 text-xs font-semibold text-zinc-600 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-700 bg-transparent select-none',
         'hover:bg-zinc-100 dark:hover:bg-zinc-700'
       )}
       onClick={onToggle}
@@ -146,7 +146,7 @@ export function SearchResultNote({
         )}
         {created && (
           <span className="text-zinc-500 dark:text-zinc-400">
-            Created {formatDate(created, 'yyyy-mm-dd')}
+            Created {' ' + formatDate(created, 'yyyy-mm-dd')}
           </span>
         )}
       </div>

@@ -93,13 +93,16 @@ export function MyNotesSidebar({
             key={layoutId}
             layoutId={layoutId}
             emptyElement={
-              <li className="text-center px-1 list-none text-zinc-500 dark:text-zinc-300 text-xs">
+              <li className="text-center px-2 list-none text-zinc-500 dark:text-zinc-300 text-xs">
                 Create a note using the &quot;Create Note&quot; button above
               </li>
             }
             data={notes ?? []}
             dataItemToString={(filePath) => filePath.note}
             dataItemToKey={(filePath) => filePath.toString()}
+            isItemActive={(filePath) =>
+              activeNotePath ? filePath.equals(activeNotePath) : false
+            }
             selectionOptions={{
               dataItemToSelectionRangeEntry: (filePath) => filePath.note,
             }}

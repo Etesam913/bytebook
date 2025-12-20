@@ -115,6 +115,7 @@ export function MyKernelsAccordion() {
         selectionOptions={{
           dataItemToSelectionRangeEntry: (kernelName) => kernelName,
         }}
+        isItemActive={(kernelName) => kernelName === kernelNameFromUrl}
         maxHeight="480px"
         renderItem={({ dataItem: kernelName }) => {
           if (!isValidKernelLanguage(kernelName)) {

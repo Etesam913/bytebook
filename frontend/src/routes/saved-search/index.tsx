@@ -158,6 +158,9 @@ export function SavedSearchPage({
                         filePath.noteWithoutExtension
                       }
                       dataItemToKey={(filePath) => filePath.toString()}
+                      isItemActive={(filePath) =>
+                        activeNotePath ? filePath.equals(activeNotePath) : false
+                      }
                       selectionOptions={{
                         dataItemToSelectionRangeEntry: (filePath) =>
                           filePath.note,

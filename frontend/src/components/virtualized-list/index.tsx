@@ -6,6 +6,7 @@ import {
   type ReactNode,
   type SetStateAction,
   forwardRef,
+  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -15,6 +16,7 @@ import { useOnClickOutside } from '../../hooks/general';
 import { cn } from '../../utils/string-formatting';
 import { VirtualizedListItem } from './virtualized-list-item';
 import { SidebarContentType } from '../../types';
+import { useSmartScroll } from './hooks';
 
 export type SelectionOptions<T> =
   | { disableSelection: true }
@@ -59,6 +61,7 @@ export type VirtualizedListProps<T> = {
   emptyElement?: ReactNode;
   layoutId: string;
   contentType: SidebarContentType;
+  isItemActive?: (item: T, index: number) => boolean;
   shouldHideSidebarHighlight?: boolean;
   maxHeight?: string;
   className?: string;
@@ -75,6 +78,7 @@ export function VirtualizedList<T>({
   emptyElement,
   layoutId,
   contentType,
+  isItemActive,
   shouldHideSidebarHighlight,
   maxHeight,
   className,
@@ -90,6 +94,17 @@ export function VirtualizedList<T>({
 	*/
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const contextMenuRef = useAtomValue(contextMenuRefAtom);
+  const { virtuosoRef, onRangeChanged, scrollToIndexIfHidden } =
+    useSmartScroll();
+
+  useEffect(() => {
+    if (!isItemActive || !data) return;
+    const activeIndex = data.findIndex((item, i) => isItemActive(item, i));
+
+    if (activeIndex !== -1) {
+      scrollToIndexIfHidden(activeIndex);
+    }
+  }, [data, isItemActive, scrollToIndexIfHidden]);
 
   useOnClickOutside(
     internalListRef,
@@ -167,6 +182,8 @@ export function VirtualizedList<T>({
 
   return (
     <Virtuoso
+      ref={virtuosoRef}
+      rangeChanged={onRangeChanged}
       data={items}
       className={className}
       style={{
