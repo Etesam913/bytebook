@@ -21,10 +21,10 @@ export function TooltipArrow({
         'bg-zinc-50 border border-zinc-300',
         'dark:bg-zinc-750 dark:border-zinc-600',
         {
-          '!border-t-transparent !border-l-transparent': side === 'top',
-          '!border-t-transparent !border-r-transparent': side === 'right',
-          '!border-b-transparent !border-r-transparent': side === 'bottom',
-          '!border-b-transparent !border-l-transparent': side === 'left',
+          'border-t-transparent! border-l-transparent!': side === 'top',
+          'border-t-transparent! border-r-transparent!': side === 'right',
+          'border-b-transparent! border-r-transparent!': side === 'bottom',
+          'border-b-transparent! border-l-transparent!': side === 'left',
         }
       )}
       style={

@@ -1,8 +1,6 @@
-import { AnimatePresence, motion } from 'motion/react';
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { useRoute } from 'wouter';
-import { useAtomValue } from 'jotai';
-import { VirtualizedList } from '../../virtualized-list';
+import { VirtualizedListAccordion } from '../../virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
 import {
   useKernelHeartbeat,
@@ -106,44 +104,31 @@ export function MyKernelsAccordion() {
         />
       </Tooltip>
 
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0 }}
-            animate={{
-              height: 'auto',
-              transition: { type: 'spring', damping: 16 },
-            }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden hover:overflow-auto pl-1"
-          >
-            <VirtualizedList<Languages>
-              layoutId="kernels-sidebar"
-              emptyElement={null}
-              className="scrollbar-hidden"
-              contentType="kernel"
-              dataItemToString={(kernelName) => kernelName}
-              dataItemToKey={(kernelName) => kernelName}
-              selectionOptions={{
-                dataItemToSelectionRangeEntry: (kernelName) => kernelName,
-              }}
-              maxHeight="480px"
-              renderItem={({ dataItem: kernelName }) => {
-                if (!isValidKernelLanguage(kernelName)) {
-                  return <></>;
-                }
-                return (
-                  <KernelAccordionButton
-                    kernelName={kernelName}
-                    kernelNameFromUrl={kernelNameFromUrl}
-                  />
-                );
-              }}
-              data={[...languagesWithKernelsSet]}
+      <VirtualizedListAccordion<Languages>
+        isOpen={isOpen}
+        layoutId="kernels-sidebar"
+        emptyElement={null}
+        className="scrollbar-hidden"
+        contentType="kernel"
+        dataItemToString={(kernelName) => kernelName}
+        dataItemToKey={(kernelName) => kernelName}
+        selectionOptions={{
+          dataItemToSelectionRangeEntry: (kernelName) => kernelName,
+        }}
+        maxHeight="480px"
+        renderItem={({ dataItem: kernelName }) => {
+          if (!isValidKernelLanguage(kernelName)) {
+            return <></>;
+          }
+          return (
+            <KernelAccordionButton
+              kernelName={kernelName}
+              kernelNameFromUrl={kernelNameFromUrl}
             />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          );
+        }}
+        data={[...languagesWithKernelsSet]}
+      />
     </section>
   );
 }

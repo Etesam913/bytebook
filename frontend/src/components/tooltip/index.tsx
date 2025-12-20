@@ -178,9 +178,7 @@ export const Tooltip = ({
               )}
             >
               <motion.div
-                className={cn(
-                  'relative rounded-md px-2 py-1.5 text-sm leading-6 shadow-md border bg-zinc-50 dark:bg-zinc-750 border-zinc-300 dark:border-zinc-600 whitespace-pre-wrap wrap-break-word z-50'
-                )}
+                className="relative rounded-md px-2 py-1.5 text-sm shadow-md border bg-zinc-50 dark:bg-zinc-750 border-zinc-300 dark:border-zinc-600 whitespace-pre-wrap wrap-break-word z-50"
                 style={{ overflow: 'visible' }}
                 role="tooltip"
                 initial={animationVariants.initial}

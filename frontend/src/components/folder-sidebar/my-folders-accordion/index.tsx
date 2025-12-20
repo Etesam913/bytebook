@@ -1,14 +1,12 @@
-import { AnimatePresence, motion } from 'motion/react';
+import { motion } from 'motion/react';
 import { useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { useFolders } from '../../../hooks/folders';
 import { Folder } from '../../../icons/folder';
 import { FolderRefresh } from '../../../icons/folder-refresh';
 import { Loader } from '../../../icons/loader';
-import {} from '../../../utils/selection';
-import { VirtualizedList } from '../../virtualized-list';
+import { VirtualizedListAccordion } from '../../virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
-import {} from './folder-dialog-children';
 import { navigate } from 'wouter/use-browser-location';
 import { useLocation } from 'wouter';
 import { routeUrls } from '../../../utils/routes';
@@ -80,7 +78,7 @@ export function MyFoldersAccordion() {
             folders: !prev.folders,
           }))
         }
-        icon={<Folder width={20} height={20} strokeWidth={1.75} />}
+        icon={<Folder width={18} height={18} strokeWidth={1.75} />}
         title={
           <>
             Folders{' '}
@@ -92,69 +90,56 @@ export function MyFoldersAccordion() {
           </>
         }
       />
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0 }}
-            animate={{
-              height: 'auto',
-              transition: { type: 'spring', damping: 16 },
-            }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden hover:overflow-auto pl-1"
-          >
-            {isError && (
-              <ErrorText
-                message="Something went wrong when fetching your folders"
-                onRetry={() => refetch()}
-                icon={
-                  <FolderRefresh
-                    className="will-change-transform"
-                    width={16}
-                    height={16}
-                  />
-                }
+
+      <VirtualizedListAccordion<string>
+        isOpen={isOpen}
+        isError={isError}
+        errorElement={
+          <ErrorText
+            message="Something went wrong when fetching your folders"
+            onRetry={() => refetch()}
+            icon={
+              <FolderRefresh
+                className="will-change-transform"
+                width={16}
+                height={16}
               />
-            )}
-            {!isError &&
-              (isLoading ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.35 }}
-                >
-                  <Loader width={20} height={20} className="mx-auto my-3" />
-                </motion.div>
-              ) : (
-                <VirtualizedList<string>
-                  contentType="folder"
-                  layoutId="folder-sidebar"
-                  emptyElement={
-                    <li className="list-none text-zinc-500 dark:text-zinc-300 text-xs text-balance">
-                      Create a folder using the &quot;Create Folder&quot; button
-                      above
-                    </li>
-                  }
-                  className="scrollbar-hidden"
-                  dataItemToString={(folderName) => folderName}
-                  dataItemToKey={(folderName) => folderName}
-                  selectionOptions={{
-                    dataItemToSelectionRangeEntry: (folderName) => folderName,
-                  }}
-                  maxHeight="65vh"
-                  renderItem={({ dataItem: sidebarFolderName, i }) => (
-                    <FolderAccordionButton
-                      sidebarFolderName={sidebarFolderName}
-                      i={i}
-                      alphabetizedFolders={alphabetizedFolders}
-                    />
-                  )}
-                  data={alphabetizedFolders}
-                />
-              ))}
+            }
+          />
+        }
+        isLoading={isLoading}
+        loadingElement={
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35 }}
+          >
+            <Loader width={20} height={20} className="mx-auto my-3" />
           </motion.div>
+        }
+        contentType="folder"
+        layoutId="folder-sidebar"
+        emptyElement={
+          <li className="list-none text-zinc-500 dark:text-zinc-300 text-xs text-balance">
+            Create a folder using the &quot;Create Folder&quot; button above
+          </li>
+        }
+        className="scrollbar-hidden"
+        dataItemToString={(folderName) => folderName}
+        dataItemToKey={(folderName) => folderName}
+        selectionOptions={{
+          dataItemToSelectionRangeEntry: (folderName) => folderName,
+        }}
+        maxHeight="65vh"
+        renderItem={({ dataItem: sidebarFolderName, i }) => (
+          <FolderAccordionButton
+            sidebarFolderName={sidebarFolderName}
+            i={i}
+            alphabetizedFolders={alphabetizedFolders}
+          />
         )}
-      </AnimatePresence>
+        data={alphabetizedFolders}
+      />
     </section>
   );
 }

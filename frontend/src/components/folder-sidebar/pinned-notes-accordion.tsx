@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from 'motion/react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
   contextMenuDataAtom,
@@ -10,11 +9,14 @@ import { PinTack2 } from '../../icons/pin-tack-2';
 import { PinTackSlash } from '../../icons/pin-tack-slash';
 import { AccordionButton } from '../accordion/accordion-button';
 import { AccordionItem } from '../accordion/accordion-item';
-import { VirtualizedList } from '../virtualized-list';
+import { VirtualizedListAccordion } from '../virtualized-list/accordion';
 import { currentZoomAtom } from '../../hooks/resize';
 import { LocalFilePath } from '../../utils/path';
 
-function VirtualizedPinnedNotes() {
+export function PinnedNotesAccordion() {
+  const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
+  const isPinnedNotesOpen = openState.pinnedNotes;
+
   const projectSettings = useAtomValue(projectSettingsAtom);
   const pinnedNotes = projectSettings.pinnedNotes;
   const pinnedNotesPaths = [...pinnedNotes]
@@ -28,16 +30,21 @@ function VirtualizedPinnedNotes() {
   const { mutate: pinOrUnpinNote } = usePinNotesMutation();
 
   return (
-    <motion.div
-      className="overflow-hidden hover:overflow-y-auto max-h-60"
-      initial={{ height: 0 }}
-      animate={{
-        height: 'auto',
-        transition: { type: 'spring', damping: 16 },
-      }}
-      exit={{ height: 0, opacity: 0 }}
-    >
-      <VirtualizedList<LocalFilePath>
+    <section>
+      <AccordionButton
+        data-testid="pinned-notes-accordion"
+        onClick={() =>
+          setOpenState((prev) => ({
+            ...prev,
+            pinnedNotes: !prev.pinnedNotes,
+          }))
+        }
+        icon={<PinTack2 className="will-change-transform" />}
+        title="Pinned Notes"
+        isOpen={isPinnedNotesOpen}
+      />
+      <VirtualizedListAccordion<LocalFilePath>
+        isOpen={isPinnedNotesOpen}
         contentType="note"
         layoutId="pinned-notes"
         data={pinnedNotesPaths}
@@ -95,31 +102,6 @@ function VirtualizedPinnedNotes() {
           );
         }}
       />
-    </motion.div>
-  );
-}
-
-export function PinnedNotesAccordion() {
-  const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
-  const isPinnedNotesOpen = openState.pinnedNotes;
-
-  return (
-    <section>
-      <AccordionButton
-        data-testid="pinned-notes-accordion"
-        onClick={() =>
-          setOpenState((prev) => ({
-            ...prev,
-            pinnedNotes: !prev.pinnedNotes,
-          }))
-        }
-        icon={<PinTack2 className="will-change-transform" />}
-        title="Pinned Notes"
-        isOpen={isPinnedNotesOpen}
-      />
-      <AnimatePresence initial={false}>
-        {isPinnedNotesOpen && <VirtualizedPinnedNotes />}
-      </AnimatePresence>
     </section>
   );
 }

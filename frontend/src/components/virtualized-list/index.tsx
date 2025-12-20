@@ -44,20 +44,7 @@ function createListComponent(contentType: SidebarContentType) {
   return ListComponent;
 }
 
-export function VirtualizedList<T>({
-  data,
-  dataItemToString,
-  dataItemToKey,
-  selectionOptions,
-  getContextMenuStyle,
-  renderItem,
-  emptyElement,
-  layoutId,
-  contentType,
-  shouldHideSidebarHighlight,
-  maxHeight,
-  className,
-}: {
+export type VirtualizedListProps<T> = {
   data: T[] | null;
   dataItemToString: (item: T) => string;
   dataItemToKey: (item: T) => string;
@@ -75,7 +62,24 @@ export function VirtualizedList<T>({
   shouldHideSidebarHighlight?: boolean;
   maxHeight?: string;
   className?: string;
-}) {
+  onTotalListHeightChanged?: (height: number) => void;
+};
+
+export function VirtualizedList<T>({
+  data,
+  dataItemToString,
+  dataItemToKey,
+  selectionOptions,
+  getContextMenuStyle,
+  renderItem,
+  emptyElement,
+  layoutId,
+  contentType,
+  shouldHideSidebarHighlight,
+  maxHeight,
+  className,
+  onTotalListHeightChanged,
+}: VirtualizedListProps<T>) {
   const [listHeight, setListHeight] = useState(0);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const anchorSelectionIndexRef = useRef<number>(0);
@@ -171,7 +175,10 @@ export function VirtualizedList<T>({
       scrollerRef={handleScrollerRef}
       increaseViewportBy={{ top: 400, bottom: 400 }}
       components={components}
-      totalListHeightChanged={setListHeight}
+      totalListHeightChanged={(height) => {
+        setListHeight(height);
+        onTotalListHeightChanged?.(height);
+      }}
       computeItemKey={(_, dataItem) => dataItemToKey(dataItem)}
       itemContent={(index, dataItem) => renderSidebarItem(index, dataItem)}
     />

@@ -1,6 +1,6 @@
-import { AnimatePresence, motion } from 'motion/react';
+import { motion } from 'motion/react';
 import { useAtom } from 'jotai';
-import { VirtualizedList } from '../../virtualized-list';
+import { VirtualizedListAccordion } from '../../virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
 import {
   ROUTE_PATTERNS,
@@ -17,7 +17,7 @@ import { Box2Search } from '../../../icons/box-2-search';
 import { SavedSearch } from '../../../../bindings/github.com/etesam913/bytebook/internal/search/models';
 import { folderSidebarOpenStateAtom } from '../../../atoms';
 import { ErrorText } from '../../error-text';
-import { RefreshAnticlockwise } from '../../../icons/refresh-anticlockwise';
+import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
 import { Loader } from '../../../icons/loader';
 
 export function MySavedSearchesAccordion() {
@@ -57,72 +57,60 @@ export function MySavedSearchesAccordion() {
         }
       />
 
-      <AnimatePresence initial={false}>
-        {isOpen && (
+      <VirtualizedListAccordion<SavedSearch>
+        isOpen={isOpen}
+        isError={isError}
+        errorElement={
+          <ErrorText
+            message="Something went wrong when fetching your saved searches"
+            onRetry={() => refetch()}
+            icon={
+              <ArrowRotateAnticlockwise
+                className="will-change-transform"
+                width={12}
+                height={12}
+              />
+            }
+          />
+        }
+        isLoading={isLoading}
+        loadingElement={
           <motion.div
-            initial={{ height: 0 }}
-            animate={{
-              height: 'auto',
-              transition: { type: 'spring', damping: 16 },
-            }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden hover:overflow-auto pl-1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35 }}
           >
-            {isError && (
-              <ErrorText
-                message="Something went wrong when fetching your saved searches"
-                onRetry={() => refetch()}
-                icon={
-                  <RefreshAnticlockwise
-                    className="will-change-transform"
-                    width={12}
-                    height={12}
-                  />
-                }
-              />
-            )}
-            {isLoading ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.35 }}
-              >
-                <Loader width={20} height={20} className="mx-auto my-3" />
-              </motion.div>
-            ) : (
-              <VirtualizedList<SavedSearch>
-                layoutId="saved-searches-sidebar"
-                className="scrollbar-hidden"
-                emptyElement={
-                  <li className="text-left list-none text-zinc-500 dark:text-zinc-300 text-xs">
-                    No saved searches yet
-                  </li>
-                }
-                contentType="saved-search"
-                dataItemToString={(search) => search.name}
-                dataItemToKey={(search) => search.name}
-                selectionOptions={{
-                  dataItemToSelectionRangeEntry: (search) => search.name,
-                }}
-                maxHeight="480px"
-                renderItem={({ dataItem: search, i }) => (
-                  <SavedSearchAccordionButton
-                    savedSearches={savedSearches}
-                    i={i}
-                    sidebarSearchName={search.name}
-                    isActive={
-                      isSavedSearchRoute &&
-                      !!searchQuery &&
-                      decodeURIComponent(searchQuery) === search.query
-                    }
-                  />
-                )}
-                data={savedSearches}
-              />
-            )}
+            <Loader width={20} height={20} className="mx-auto my-3" />
           </motion.div>
+        }
+        layoutId="saved-searches-sidebar"
+        className="scrollbar-hidden"
+        emptyElement={
+          <li className="text-left list-none text-zinc-500 dark:text-zinc-300 text-xs">
+            No saved searches yet
+          </li>
+        }
+        contentType="saved-search"
+        dataItemToString={(search) => search.name}
+        dataItemToKey={(search) => search.name}
+        selectionOptions={{
+          dataItemToSelectionRangeEntry: (search) => search.name,
+        }}
+        maxHeight="480px"
+        renderItem={({ dataItem: search, i }) => (
+          <SavedSearchAccordionButton
+            savedSearches={savedSearches}
+            i={i}
+            sidebarSearchName={search.name}
+            isActive={
+              isSavedSearchRoute &&
+              !!searchQuery &&
+              decodeURIComponent(searchQuery) === search.query
+            }
+          />
         )}
-      </AnimatePresence>
+        data={savedSearches}
+      />
     </section>
   );
 }

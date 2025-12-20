@@ -20,7 +20,7 @@ import { CircleArrowLeft } from '../../icons/circle-arrow-left.tsx';
 import { CircleArrowRight } from '../../icons/circle-arrow-right.tsx';
 import { useRef } from 'react';
 import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
-import { RefreshAnticlockwise } from '../../icons/refresh-anticlockwise.tsx';
+import { ArrowRotateAnticlockwise } from '../../icons/arrow-rotate-anticlockwise.tsx';
 import { MyKernelsAccordion } from './my-kernels-accordion';
 import { useFolderFromRoute } from '../../hooks/events.tsx';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion';
@@ -58,7 +58,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
       >
         <header
           className={cn(
-            'px-2.5 pt-[0.7rem] ml-auto flex gap-1',
+            'px-2.5 ml-auto flex gap-1 pt-3',
             isFullscreen && 'ml-0'
           )}
         >
@@ -68,7 +68,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
               onClick={() => window.history.back()}
               data-testid="go-back-button"
             >
-              <CircleArrowLeft className="w-6 h-6" />
+              <CircleArrowLeft width={18} height={18} />
             </MotionIconButton>
           </Tooltip>
           <Tooltip content="Go forward">
@@ -77,7 +77,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
               onClick={() => window.history.forward()}
               data-testid="go-forward-button"
             >
-              <CircleArrowRight className="w-6 h-6" />
+              <CircleArrowRight width={19} height={18} />
             </MotionIconButton>
           </Tooltip>
           <Tooltip content="Refresh">
@@ -85,7 +85,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
               {...getDefaultButtonVariants()}
               onClick={() => window.location.reload()}
             >
-              <RefreshAnticlockwise className="h-6 w-6" />
+              <ArrowRotateAnticlockwise width={16} height={16} />
             </MotionIconButton>
           </Tooltip>
         </header>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RefreshAnticlockwise } from '../../../icons/refresh-anticlockwise';
+import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
 import { MotionIconButton } from '../../buttons';
 import { Input } from '../../input';
 import { SettingsRow } from '../settings-row';
@@ -60,7 +60,7 @@ export function FontFamilyRow() {
             });
           }}
         >
-          <RefreshAnticlockwise width={12} height={12} />
+          <ArrowRotateAnticlockwise width={12} height={12} />
         </MotionIconButton>
       </div>
     </SettingsRow>

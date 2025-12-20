@@ -1,4 +1,4 @@
-import { RefreshAnticlockwise } from '../../icons/refresh-anticlockwise';
+import { ArrowRotateAnticlockwise } from '../../icons/arrow-rotate-anticlockwise';
 import { TriangleWarning } from '../../icons/triangle-warning';
 import { MotionButton } from '../buttons';
 import { getDefaultButtonVariants } from '../../animations';
@@ -35,7 +35,7 @@ export function RenderNoteFallback({
           onClick={resetErrorBoundary}
           className="flex items-center gap-2 px-4 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded-md max-w-xs mx-auto justify-center"
         >
-          <RefreshAnticlockwise className="w-4 h-4" />
+          <ArrowRotateAnticlockwise className="w-4 h-4" />
           Try Again
         </MotionButton>
 
