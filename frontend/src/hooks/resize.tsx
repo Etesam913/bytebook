@@ -4,16 +4,18 @@ import { atom } from 'jotai';
 import { isFullscreenAtom } from '../atoms';
 
 const MIN_ZOOM = 0.75;
+const DEFAULT_ZOOM = 1;
 export const currentZoomAtom = atom(1);
 const MAX_ZOOM = 1.25;
 const ZOOM_STEP = 0.1;
 
 /**
- * React hook that listens for Wails "zoom:in" and "zoom:out" events
+ * React hook that listens for Wails "zoom:in", "zoom:out", and "zoom:reset" events
  * and adjusts the document body's zoom level accordingly.
  *
  * - "zoom:in" increases zoom by ZOOM_STEP up to MAX_ZOOM.
  * - "zoom:out" decreases zoom by ZOOM_STEP down to MIN_ZOOM.
+ * - "zoom:reset" resets zoom to DEFAULT_ZOOM.
  *
  * Usage: Call this hook once in your app's root component to enable
  * menu-driven zoom in/out functionality.
@@ -31,6 +33,11 @@ export function useZoom() {
     const newZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
     setCurrentZoom(newZoom);
     document.body.style.zoom = newZoom.toString();
+  });
+
+  useWailsEvent('zoom:reset', () => {
+    setCurrentZoom(DEFAULT_ZOOM);
+    document.body.style.zoom = DEFAULT_ZOOM.toString();
   });
 }
 
