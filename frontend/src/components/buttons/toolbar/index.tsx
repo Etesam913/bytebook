@@ -27,7 +27,7 @@ import {
   handleToolbarBlockElementClick,
   handleToolbarTextFormattingClick,
 } from '../../editor/utils/toolbar';
-import { SidebarHighlight } from '../../sidebar/highlight';
+import { SidebarHighlight } from '../../virtualized-list/highlight';
 import { Link } from '../../../icons/link';
 import { $isLinkNode } from '../../editor/nodes/link';
 import { Tooltip } from '../../tooltip';

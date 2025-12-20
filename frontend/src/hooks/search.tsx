@@ -27,16 +27,48 @@ import { QueryError } from '../utils/query';
 
 export const lastSearchQueryAtom = atom<string>('');
 
+/**
+ * Represents the grouped search results.
+ * - notes: Array of note search results.
+ * - attachments: Array of attachment search results.
+ * - folders: Array of folder search results.
+ */
 export type GroupedSearchResults = {
-  notes: Array<{
-    filePath: LocalFilePath;
-    tags: string[];
-    lastUpdated: string;
-    created: string;
-    highlights: HighlightResult[];
-  }>;
-  attachments: LocalFilePath[];
-  folders: string[];
+  notes: Array<NoteSearchResult>;
+  attachments: Array<AttachmentSearchResult>;
+  folders: Array<FolderSearchResult>;
+};
+
+/**
+ * Represents a search result for a note.
+ */
+export type NoteSearchResult = {
+  /** The path of the note file */
+  filePath: LocalFilePath;
+  /** List of tags associated with the note */
+  tags: string[];
+  /** Last updated timestamp (ISO string) */
+  lastUpdated: string;
+  /** Creation timestamp (ISO string) */
+  created: string;
+  /** Array of highlight results for this note */
+  highlights: HighlightResult[];
+};
+
+/**
+ * Represents a search result for an attachment.
+ */
+export type AttachmentSearchResult = {
+  /** The path of the attachment file */
+  filePath: LocalFilePath;
+};
+
+/**
+ * Represents a search result for a folder.
+ */
+export type FolderSearchResult = {
+  /** The folder name or path */
+  folder: string;
 };
 
 export const searchQueries = {
@@ -47,15 +79,9 @@ export const searchQueries = {
       select: (data) => {
         if (!data) return { notes: [], attachments: [], folders: [] };
 
-        const notes: Array<{
-          filePath: LocalFilePath;
-          tags: string[];
-          lastUpdated: string;
-          created: string;
-          highlights: HighlightResult[];
-        }> = [];
-        const attachments: LocalFilePath[] = [];
-        const folders: string[] = [];
+        const notes: Array<NoteSearchResult> = [];
+        const attachments: Array<AttachmentSearchResult> = [];
+        const folders: Array<FolderSearchResult> = [];
 
         data.forEach((result) => {
           if (result.type === 'note') {
@@ -75,9 +101,9 @@ export const searchQueries = {
               folder: result.folder,
               note: result.note,
             });
-            attachments.push(filePath);
+            attachments.push({ filePath });
           } else if (result.type === 'folder') {
-            folders.push(result.folder);
+            folders.push({ folder: result.folder });
           }
         });
 

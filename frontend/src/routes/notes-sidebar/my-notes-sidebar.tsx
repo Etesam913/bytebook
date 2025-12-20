@@ -5,7 +5,7 @@ import { getDefaultButtonVariants } from '../../animations.ts';
 import { noteSortAtom } from '../../atoms.ts';
 import { MotionButton } from '../../components/buttons/index.tsx';
 import { SortButton } from '../../components/buttons/sort.tsx';
-import { VirtualizedList } from '../../components/sidebar/index.tsx';
+import { VirtualizedList } from '../../components/virtualized-list/index.tsx';
 import { FileRefresh } from '../../icons/file-refresh.tsx';
 import { Loader } from '../../icons/loader.tsx';
 import { Note } from '../../icons/page.tsx';

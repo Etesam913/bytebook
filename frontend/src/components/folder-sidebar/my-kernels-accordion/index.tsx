@@ -2,8 +2,8 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useAtom } from 'jotai';
 import { useRoute } from 'wouter';
 import { useAtomValue } from 'jotai';
-import { VirtualizedList } from '../../sidebar';
-import { AccordionButton } from '../../sidebar/accordion-button';
+import { VirtualizedList } from '../../virtualized-list';
+import { AccordionButton } from '../../accordion/accordion-button';
 import {
   useKernelHeartbeat,
   useKernelShutdown,

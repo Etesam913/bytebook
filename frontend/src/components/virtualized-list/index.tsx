@@ -13,7 +13,7 @@ import { Components, Virtuoso } from 'react-virtuoso';
 import { contextMenuRefAtom, selectionRangeAtom } from '../../atoms';
 import { useOnClickOutside } from '../../hooks/general';
 import { cn } from '../../utils/string-formatting';
-import { SidebarListItem } from './sidebar-items';
+import { VirtualizedListItem } from './virtualized-list-item';
 import { SidebarContentType } from '../../types';
 
 export type SelectionOptions<T> =
@@ -139,7 +139,7 @@ export function VirtualizedList<T>({
     });
 
     return (
-      <SidebarListItem
+      <VirtualizedListItem
         key={dataItemToKey(dataItem)}
         dataItem={dataItem}
         allData={items}
@@ -155,7 +155,7 @@ export function VirtualizedList<T>({
         shouldHideSidebarHighlight={shouldHideSidebarHighlight}
       >
         {node}
-      </SidebarListItem>
+      </VirtualizedListItem>
     );
   };
 

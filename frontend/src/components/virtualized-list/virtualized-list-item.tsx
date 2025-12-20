@@ -29,7 +29,7 @@ type SidebarListItemProps<T> = {
   children: ReactNode;
 };
 
-export function SidebarListItem<T>({
+export function VirtualizedListItem<T>({
   dataItem,
   allData,
   index,

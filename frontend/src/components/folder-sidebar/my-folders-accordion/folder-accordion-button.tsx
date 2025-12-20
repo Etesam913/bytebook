@@ -24,7 +24,7 @@ import {
   handleContextMenuSelection,
 } from '../../../utils/selection';
 import { cn } from '../../../utils/string-formatting';
-import { handleFolderDragStart } from '../../sidebar/utils';
+import { handleFolderDragStart } from '../../virtualized-list/utils';
 import {
   RenameFolderDialog,
   DeleteFolderDialog,

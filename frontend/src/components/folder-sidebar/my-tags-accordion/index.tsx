@@ -3,8 +3,8 @@ import { useAtom } from 'jotai';
 import { useTagsQuery } from '../../../hooks/tags';
 import { TagIcon } from '../../../icons/tag';
 import { Loader } from '../../../icons/loader';
-import { VirtualizedList } from '../../sidebar';
-import { AccordionButton } from '../../sidebar/accordion-button';
+import { VirtualizedList } from '../../virtualized-list';
+import { AccordionButton } from '../../accordion/accordion-button';
 import {
   ROUTE_PATTERNS,
   type SavedSearchRouteParams,
@@ -50,7 +50,7 @@ export function MyTagsAccordion() {
           <motion.div
             initial={{ height: 0 }}
             animate={{
-              height: 'auto',
+              height: 480,
               transition: { type: 'spring', damping: 16 },
             }}
             exit={{ height: 0, opacity: 0 }}

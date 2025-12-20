@@ -8,9 +8,9 @@ import {
 import { usePinNotesMutation } from '../../hooks/notes';
 import { PinTack2 } from '../../icons/pin-tack-2';
 import { PinTackSlash } from '../../icons/pin-tack-slash';
-import { AccordionButton } from '../sidebar/accordion-button';
-import { AccordionItem } from '../sidebar/accordion-item';
-import { VirtualizedList } from '../sidebar';
+import { AccordionButton } from '../accordion/accordion-button';
+import { AccordionItem } from '../accordion/accordion-item';
+import { VirtualizedList } from '../virtualized-list';
 import { currentZoomAtom } from '../../hooks/resize';
 import { LocalFilePath } from '../../utils/path';
 

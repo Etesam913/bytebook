@@ -15,7 +15,7 @@ import { PlainCodeSnippet } from '../../plain-code-snippet';
 import { FloppyDisk } from '../../../icons/floppy-disk';
 import { DialogErrorText } from '../../dialog';
 import { useState } from 'react';
-import { SidebarAccordion } from '../../sidebar/accordion';
+import { SidebarAccordion } from '../../accordion';
 import { DesktopArrowDown } from '../../../icons/desktop-arrow-down';
 import { cn } from '../../../utils/string-formatting';
 import { useRevealInFinderMutation } from '../../../hooks/code';

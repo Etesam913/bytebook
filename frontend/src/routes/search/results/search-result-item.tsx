@@ -1,9 +1,13 @@
 import { ReactNode } from 'react';
 import { Link } from 'wouter';
-import { cn } from '../../../utils/string-formatting';
+import { cn, formatDate } from '../../../utils/string-formatting';
 import { Folder } from '../../../icons/folder';
 import { ImageIcon } from '../../../icons/image';
 import { Note } from '../../../icons/page';
+import { motion } from 'motion/react';
+import { GroupedSearchResults } from '../../../hooks/search';
+import { SearchHighlights } from './search-highlights';
+import { Tag } from '../../../components/editor/bottom-bar/tag';
 
 function getFileIcon(iconType: 'note' | 'attachment' | 'folder') {
   switch (iconType) {
@@ -16,7 +20,7 @@ function getFileIcon(iconType: 'note' | 'attachment' | 'folder') {
   }
 }
 
-export function SearchResultItem({
+function SearchResultItem({
   to,
   title,
   iconType,
@@ -55,5 +59,148 @@ export function SearchResultItem({
       )}
       {children}
     </Link>
+  );
+}
+
+export function SearchResultHeader({
+  title,
+  count,
+  isOpen,
+  onToggle,
+}: {
+  title: string;
+  count: number;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        'px-2 py-1 w-full flex items-center gap-2 text-xs font-semibold text-zinc-600 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-700 bg-transparent select-none',
+        'transition-colors duration-100 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+      )}
+      onClick={onToggle}
+      aria-expanded={isOpen}
+      tabIndex={0}
+    >
+      <motion.span
+        initial={{ rotate: 0 }}
+        animate={{ rotate: isOpen ? 90 : 0 }}
+        className={'inline-block'}
+        aria-hidden="true"
+      >
+        ▶
+      </motion.span>
+      {title} ({count})
+    </button>
+  );
+}
+
+export function SearchResultNote({
+  data,
+  resultIndex,
+  selectedIndex,
+  onRef,
+}: {
+  data: GroupedSearchResults['notes'][number];
+  resultIndex: number;
+  selectedIndex: number;
+  onRef: (el: HTMLAnchorElement | null) => void;
+}) {
+  const { filePath, tags, lastUpdated, created, highlights } = data;
+  let pathToNote = filePath.getLinkToNote();
+  const firstHighlightedTerm = highlights[0]?.highlightedTerm;
+
+  if (firstHighlightedTerm) {
+    pathToNote = filePath.getLinkToNote({
+      highlight: firstHighlightedTerm,
+    });
+  }
+
+  return (
+    <SearchResultItem
+      to={pathToNote}
+      title={filePath.note}
+      iconType="note"
+      resultIndex={resultIndex}
+      selectedIndex={selectedIndex}
+      onRef={onRef}
+      pathDisplay={filePath.toString()}
+    >
+      <SearchHighlights highlights={highlights} />
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1 text-xs">
+          {tags.map((tagName, tagIdx) => (
+            <Tag key={`${filePath.toString()}-${tagIdx}`} tagName={tagName} />
+          ))}
+        </div>
+      )}
+      <div className="flex gap-x-1 items-center justify-between text-xs">
+        {lastUpdated && (
+          <div className="text-zinc-500 dark:text-zinc-400">
+            Updated {formatDate(lastUpdated, 'relative')}
+          </div>
+        )}
+        {created && (
+          <span className="text-zinc-500 dark:text-zinc-400">
+            Created {formatDate(created, 'yyyy-mm-dd')}
+          </span>
+        )}
+      </div>
+    </SearchResultItem>
+  );
+}
+
+export function SearchResultAttachment({
+  data,
+  resultIndex,
+  selectedIndex,
+  onRef,
+}: {
+  data: GroupedSearchResults['attachments'][number];
+  resultIndex: number;
+  selectedIndex: number;
+  onRef: (el: HTMLAnchorElement | null) => void;
+}) {
+  const { filePath } = data;
+  const pathToNote = filePath.getLinkToNote();
+
+  return (
+    <SearchResultItem
+      to={pathToNote}
+      title={filePath.note}
+      iconType="attachment"
+      resultIndex={resultIndex}
+      selectedIndex={selectedIndex}
+      onRef={onRef}
+      pathDisplay={filePath.toString()}
+    />
+  );
+}
+
+export function SearchResultFolder({
+  data,
+  resultIndex,
+  selectedIndex,
+  onRef,
+}: {
+  data: GroupedSearchResults['folders'][number];
+  resultIndex: number;
+  selectedIndex: number;
+  onRef: (el: HTMLAnchorElement | null) => void;
+}) {
+  const { folder } = data;
+  const pathToFolder = `/notes/${folder}`;
+
+  return (
+    <SearchResultItem
+      to={pathToFolder}
+      title={folder}
+      iconType="folder"
+      resultIndex={resultIndex}
+      selectedIndex={selectedIndex}
+      onRef={onRef}
+    />
   );
 }
