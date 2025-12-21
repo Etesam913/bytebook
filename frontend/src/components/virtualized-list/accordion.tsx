@@ -34,7 +34,7 @@ export function VirtualizedListAccordion<T>({
             transition: { type: 'spring', damping: 16 },
           }}
           exit={{ height: 0, opacity: 0 }}
-          className="overflow-hidden hover:overflow-auto pl-1"
+          className="overflow-hidden pl-1 scrollbar-hidden"
         >
           {isError && errorElement}
           {!isError && isLoading && loadingElement}

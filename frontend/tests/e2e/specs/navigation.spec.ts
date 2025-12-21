@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { mockBinding } from '../utils/mockBinding';
-import { MOCK_FOLDER_RESPONSE } from '../utils/mockResponses';
-import { SERVICE_FILES } from '../utils/serviceFiles';
+import { mockBinding } from '../utils/mock-binding';
+import { MOCK_FOLDER_RESPONSE } from '../utils/mock-responses';
+import { SERVICE_FILES } from '../utils/service-files';
 
 test.describe('Navigation', () => {
   test.beforeEach(async ({ context }) => {

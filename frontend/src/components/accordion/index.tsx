@@ -44,7 +44,7 @@ export function SidebarAccordion({
             }}
             exit={{ height: 0, opacity: 0 }}
             className={cn(
-              'overflow-hidden hover:overflow-auto pl-1',
+              'pl-1 overflow-hidden scrollbar-hidden',
               listClassName
             )}
           >

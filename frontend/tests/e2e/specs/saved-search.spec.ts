@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { mockBinding } from '../utils/mockBinding';
+import { mockBinding } from '../utils/mock-binding';
 import {
   MOCK_FOLDER_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
@@ -7,8 +7,8 @@ import {
   MOCK_SAVED_SEARCHES_RESPONSE,
   MOCK_NOTE_EXISTS_RESPONSE,
   MOCK_NOTE_MARKDOWN_RESPONSE,
-} from '../utils/mockResponses';
-import { SERVICE_FILES } from '../utils/serviceFiles';
+} from '../utils/mock-responses';
+import { SERVICE_FILES } from '../utils/service-files';
 
 // Mock search results for the saved search page
 const MOCK_FULL_TEXT_SEARCH_RESPONSE = [

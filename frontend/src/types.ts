@@ -144,11 +144,13 @@ export type Frontmatter = {
   tags?: string[];
   showTableOfContents?: string;
   showMarkdown?: string;
+  pinnedNote?: string;
   // Allow additional properties for extensibility
 } & Record<string, string | string[]>;
 
 export type SidebarContentType =
   | 'note'
+  | 'pinned-note'
   | 'folder'
   | 'tag'
   | 'saved-search'
@@ -159,6 +161,7 @@ export function isSidebarContentType(key: unknown): key is SidebarContentType {
   return (
     typeof key === 'string' &&
     (key === 'note' ||
+      key === 'pinned-note' ||
       key === 'folder' ||
       key === 'tag' ||
       key === 'saved-search' ||

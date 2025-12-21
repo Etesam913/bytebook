@@ -1,13 +1,15 @@
 import { test, expect } from '@playwright/test';
-import { mockBinding, updateMockBindingResponse } from '../utils/mockBinding';
+import { mockBinding, updateMockBindingResponse } from '../utils/mock-binding';
 import {
   MOCK_FOLDER_RESPONSE,
   MOCK_NOTES_RESPONSE,
   MOCK_NOTE_EXISTS_RESPONSE,
   MOCK_NOTE_PREVIEW_RESPONSE,
-} from '../utils/mockResponses';
-import { SERVICE_FILES } from '../utils/serviceFiles';
+  MOCK_PROJECT_SETTINGS_RESPONSE,
+} from '../utils/mock-responses';
+import { SERVICE_FILES } from '../utils/service-files';
 import { humanFileSize } from '../../../src/utils/general';
+import { setupWailsEvents, emitWailsEvent } from '../utils/wails-events';
 
 const formattedPreviewDate = new Date(
   MOCK_NOTE_PREVIEW_RESPONSE.data.lastUpdated
@@ -32,6 +34,16 @@ test.describe('Notes Sidebar', () => {
         method: 'GetFolders',
       },
       MOCK_FOLDER_RESPONSE
+    );
+
+    // Mock project settings
+    await mockBinding(
+      context,
+      {
+        file: SERVICE_FILES.SETTINGS_SERVICE,
+        method: 'GetProjectSettings',
+      },
+      MOCK_PROJECT_SETTINGS_RESPONSE
     );
 
     // Mock notes sidebar dependencies
@@ -245,6 +257,120 @@ test.describe('Notes Sidebar', () => {
 
       // Verify retry button is present
       await expect(sidebar.getByText('Retry')).toBeVisible();
+    });
+  });
+
+  test.describe('Context menu', () => {
+    test('reveal in finder option is visible', async ({ page }) => {
+      await page.goto('/notes/Economics%20Notes');
+
+      const sidebar = page.getByTestId('notes-sidebar');
+      // Right-click on a note
+      await sidebar.getByText('Inflation').click({ button: 'right' });
+
+      const contextMenu = page.getByRole('listbox');
+      await expect(contextMenu).toBeVisible();
+      await expect(contextMenu).toContainText('Reveal In Finder');
+    });
+
+    test('pins a note via context menu', async ({ page, context }) => {
+      // Set up wails events for this test
+      await setupWailsEvents(context);
+
+      const updatedSettings = {
+        ...MOCK_PROJECT_SETTINGS_RESPONSE.data,
+        pinnedNotes: [
+          ...Array.from(MOCK_PROJECT_SETTINGS_RESPONSE.data.pinnedNotes),
+          'Economics Notes/Inflation.md',
+        ],
+      };
+
+      // Mock UpdateProjectSettings to succeed using utility
+      await mockBinding(
+        context,
+        {
+          file: SERVICE_FILES.SETTINGS_SERVICE,
+          method: 'UpdateProjectSettings',
+        },
+        { success: true, message: '', data: null }
+      );
+
+      await page.goto('/notes/Economics%20Notes');
+
+      const sidebar = page.getByTestId('notes-sidebar');
+      // Right-click on a note
+      await sidebar.getByText('Inflation').click({ button: 'right' });
+
+      const contextMenu = page.getByRole('listbox');
+      await expect(contextMenu).toBeVisible();
+
+      const pinOption = contextMenu.getByText('Pin Notes');
+      await expect(pinOption).toBeVisible();
+
+      await pinOption.click();
+
+      // Simulate the backend emitting a settings:update event
+      await emitWailsEvent(page, 'settings:update', updatedSettings);
+
+      // Verify the note is pinned in the folder sidebar
+      const folderSidebar = page.getByTestId('folder-sidebar');
+      await expect(folderSidebar).toContainText('Inflation');
+    });
+
+    test('moves a note to trash', async ({ page, context }) => {
+      await setupWailsEvents(context);
+
+      await mockBinding(
+        context,
+        {
+          file: SERVICE_FILES.NOTE_SERVICE,
+          method: 'MoveToTrash',
+        },
+        { success: true, message: '', data: null }
+      );
+
+      await page.goto('/notes/Economics%20Notes');
+
+      const sidebar = page.getByTestId('notes-sidebar');
+
+      await expect(sidebar).toContainText('Supply and Demand');
+      await expect(sidebar).toContainText('Inflation');
+      await expect(sidebar).toContainText('Market Equilibrium');
+
+      // Right-click on a note to open context menu
+      await sidebar.getByText('Inflation').click({ button: 'right' });
+
+      const contextMenu = page.getByRole('listbox');
+      await expect(contextMenu).toBeVisible();
+      await expect(contextMenu).toContainText('Move to Trash');
+
+      // Update the GetNotes mock to return notes without the deleted one
+      const updatedNotesResponse = {
+        success: true,
+        message: '',
+        data: MOCK_NOTES_RESPONSE.data.filter(
+          (note) => note.note !== 'Inflation.md'
+        ),
+      };
+
+      await updateMockBindingResponse(
+        page,
+        {
+          file: SERVICE_FILES.NOTE_SERVICE,
+          method: 'GetNotes',
+        },
+        updatedNotesResponse
+      );
+
+      await contextMenu.getByText('Move to Trash').click();
+
+      // Simulate the backend emitting a note:delete event
+      await emitWailsEvent(page, 'note:delete', {});
+
+      await expect(sidebar.getByText('Inflation')).not.toBeVisible();
+      // Verify other notes are still visible
+      await expect(sidebar).toContainText('Supply and Demand');
+      await expect(sidebar).toContainText('Market Equilibrium');
     });
   });
 });

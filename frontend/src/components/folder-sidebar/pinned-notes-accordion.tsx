@@ -45,7 +45,7 @@ export function PinnedNotesAccordion() {
       />
       <VirtualizedListAccordion<LocalFilePath>
         isOpen={isPinnedNotesOpen}
-        contentType="note"
+        contentType="pinned-note"
         layoutId="pinned-notes"
         data={pinnedNotesPaths}
         dataItemToString={(filePath) => filePath.note}
