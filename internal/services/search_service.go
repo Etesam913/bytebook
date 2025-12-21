@@ -2,13 +2,12 @@ package services
 
 import (
 	"log"
-	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/search"
+	"github.com/etesam913/bytebook/internal/util"
 )
 
 type SearchService struct {
@@ -16,10 +15,17 @@ type SearchService struct {
 	SearchIndex bleve.Index
 }
 
+// FilePickerSearchResult represents a search hit returned to the editor's @ mention picker.
+type FilePickerSearchResult struct {
+	Type   string `json:"type"`
+	Folder string `json:"folder"`
+	Note   string `json:"note,omitempty"`
+}
+
 func (s *SearchService) FullTextSearch(searchQuery string) []search.SearchResult {
 	// Build the boolean query and request using helpers for clarity
 	totalQuery := search.BuildBooleanQueryFromUserInput(searchQuery, 1)
-	request := search.CreateSearchRequest(totalQuery)
+	request := search.CreateSearchRequest(totalQuery, 10000)
 
 	res, err := s.SearchIndex.Search(request)
 	if err != nil {
@@ -30,57 +36,62 @@ func (s *SearchService) FullTextSearch(searchQuery string) []search.SearchResult
 	return search.ProcessDocumentSearchResults(res)
 }
 
-// Uses the JaroWinklerSimilarity algorithm to rank file names based on their similarity to the search query.
-func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []string {
-	notesPath := filepath.Join(s.ProjectPath, "notes")
-	lowerSearchQuery := strings.ToLower(searchQuery)
+// SearchFileNamesFromQuery performs a fuzzy filename search using the Bleve index.
+// It reuses the filename query logic from the search package to align editor @ mentions
+// with the backend search experience and now returns both files and folders.
+func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []FilePickerSearchResult {
+	normalizedQuery := strings.ToLower(strings.TrimSpace(searchQuery))
+	filenameQuery := search.CreateFilenameQuery(normalizedQuery)
+	searchRequest := search.CreateSearchRequest(filenameQuery, 20)
 
-	filePathsChannel := search.GetNoteNamesStream(notesPath)
-
-	// Ignore results less than similarity threshold
-	similarityThreshold := 0.7
-
-	type searchResult struct {
-		shortenedNotePath string
-		similarity        float64
+	results, err := s.SearchIndex.Search(searchRequest)
+	if err != nil {
+		log.Println("filename search failed:", err)
+		return []FilePickerSearchResult{}
 	}
-	// TODO: Convert this to a heap of max size 7 to limit excess space
-	searchResults := []searchResult{}
 
-	// Collecting all the search results
-	for filePath := range filePathsChannel {
-		segments := strings.Split(filePath, "/")
-		folder := segments[len(segments)-2]
-		note := segments[len(segments)-1]
-		noteSimilarity := search.JaroWinklerSimilarity(lowerSearchQuery, strings.ToLower(note))
-		folderSimilarity := search.JaroWinklerSimilarity(lowerSearchQuery, strings.ToLower(folder))
+	searchResults := []FilePickerSearchResult{}
+	seen := make(util.Set[string])
 
-		if len(segments) < 2 {
-			continue
-		}
+	for _, hit := range results.Hits {
+		docType, _ := hit.Fields[search.FieldType].(string)
+		folder, _ := hit.Fields[search.FieldFolder].(string)
+		fileName, _ := hit.Fields[search.FieldFileName].(string)
 
-		// Only keep results that are similar enough
-		if noteSimilarity >= similarityThreshold || folderSimilarity >= similarityThreshold {
-			searchResults = append(searchResults, searchResult{
-				shortenedNotePath: folder + "/" + note,
-				similarity:        noteSimilarity,
+		switch docType {
+		case search.FOLDER_TYPE:
+			if folder == "" {
+				continue
+			}
+			key := docType + ":" + folder
+			if exists := seen.Has(key); exists {
+				continue
+			}
+			seen.Add(key)
+			searchResults = append(searchResults, FilePickerSearchResult{
+				Type:   docType,
+				Folder: folder,
+			})
+		default:
+			if folder == "" || fileName == "" {
+				continue
+			}
+
+			key := docType + ":" + folder + "/" + fileName
+			if exists := seen.Has(key); exists {
+				continue
+			}
+			seen[key] = struct{}{}
+
+			searchResults = append(searchResults, FilePickerSearchResult{
+				Type:   docType,
+				Folder: folder,
+				Note:   fileName,
 			})
 		}
-
 	}
 
-	// Sort the results descending via similarity so that most relevant results show first
-	sort.Slice(searchResults, func(i, j int) bool {
-		return searchResults[i].similarity > searchResults[j].similarity
-	})
-
-	searchResultsWithoutSimilarity := []string{}
-
-	for _, result := range searchResults {
-		searchResultsWithoutSimilarity = append(searchResultsWithoutSimilarity, result.shortenedNotePath)
-	}
-
-	return searchResultsWithoutSimilarity
+	return searchResults
 }
 
 // GetAllSavedSearches returns all saved searches for the project

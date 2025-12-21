@@ -80,22 +80,37 @@ export function ComponentPickerMenuItem({
   );
 }
 
+export type FilePickerMenuItemData =
+  | {
+      kind: 'file';
+      filePath: LocalFilePath;
+    }
+  | {
+      kind: 'folder';
+      folder: string;
+    };
+
 export function FilePickerMenuItem({
   index,
   isSelected,
   onClick,
-  onMouseEnter,
   option,
-  filePath,
+  item,
 }: {
   index: number;
   isSelected: boolean;
   onClick: () => void;
-  onMouseEnter: () => void;
   option: DropdownPickerOption;
-  filePath: LocalFilePath;
+  item: FilePickerMenuItemData;
 }) {
   const iconElement = option.icon;
+  const ariaLabel =
+    item.kind === 'file'
+      ? `${item.filePath.note} in ${item.filePath.folder} folder`
+      : `${item.folder} folder`;
+  const primaryText = item.kind === 'file' ? item.filePath.note : item.folder;
+  const secondaryText =
+    item.kind === 'file' ? `${item.filePath.folder}/` : 'Folder';
 
   function setOptionRef(element: HTMLLIElement | null) {
     option.setRefElement(element);
@@ -113,7 +128,6 @@ export function FilePickerMenuItem({
       role="option"
       aria-selected={isSelected}
       id={`typeahead-item-${index}`}
-      onMouseEnter={onMouseEnter}
       onClick={onClick}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -121,19 +135,19 @@ export function FilePickerMenuItem({
           onClick();
         }
       }}
-      aria-label={`${filePath.note} in ${filePath.folder} folder`}
+      aria-label={ariaLabel}
     >
       <div className="flex items-center gap-1">
         {iconElement && <span aria-hidden="true">{iconElement}</span>}
         <span className="text-ellipsis overflow-hidden whitespace-nowrap text-sm">
-          {filePath.note}
+          {primaryText}
         </span>
       </div>
       <p
         className="text-xs text-zinc-500 dark:text-zinc-400"
         aria-hidden="true"
       >
-        {filePath.folder}/
+        {secondaryText}
       </p>
     </li>
   );
