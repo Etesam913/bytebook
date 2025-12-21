@@ -15,73 +15,108 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SearchFileNamesFromQuery } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
 import { mostRecentNotesAtom } from '../../../atoms';
-import { FILE_SERVER_URL } from '../../../utils/general';
-import {
-  getFileExtension,
-  convertFilePathToQueryNotation,
-} from '../../../utils/string-formatting';
+import { FILE_SERVER_URL, WAILS_URL } from '../../../utils/general';
+import { convertFilePathToQueryNotation } from '../../../utils/string-formatting';
 import { LocalFilePath } from '../../../utils/path';
 import {
   DropdownPickerOption,
   FilePickerMenuItem,
+  type FilePickerMenuItemData,
 } from '../../dropdown/dropdown-picker';
-import type { FilePayload } from '../nodes/file';
 import { $createLinkNode } from '../nodes/link';
 import { INSERT_FILES_COMMAND } from './file';
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
+import { Folder } from '../../../icons/folder';
 
-const MAX_VISIBLE_SEARCH_RESULTS = 20;
+type FilePickerOption = FilePickerMenuItemData & {
+  dropdownOption: DropdownPickerOption;
+};
 
 export function FilePickerMenuPlugin() {
   const [editor] = useLexicalComposerContext();
   const [searchQuery, setSearchQuery] = useState<string | null>(null);
   const checkForTriggerMatch = useBasicTypeaheadTriggerMatch('@', {
     minLength: 0,
+    punctuation: '',
   });
   const mostRecentNotes = useAtomValue(mostRecentNotesAtom);
   const { data: searchResults } = useQuery({
     queryKey: ['file-picker-search', searchQuery],
-    queryFn: async () => {
-      return await SearchFileNamesFromQuery(searchQuery ?? '');
-    },
+    queryFn: () => SearchFileNamesFromQuery(searchQuery ?? ''),
   });
-  const options = (
-    !searchQuery
-      ? mostRecentNotes.map((path) => path.toString())
-      : (searchResults ?? [])
-  )
-    .slice(0, MAX_VISIBLE_SEARCH_RESULTS)
-    .map((fileName) => {
-      const [folder, note] = fileName.split('/');
-      const filePath = new LocalFilePath({ folder, note });
 
-      return {
-        dropdownOption: new DropdownPickerOption(fileName, {
-          icon: <RenderNoteIcon filePath={filePath} size="sm" />,
-          onSelect: () => {
-            const { extension } = getFileExtension(fileName);
-            if (extension === 'md') {
-              editor.update(() => {
-                const linkNode = $createLinkNode(
-                  `wails://localhost:5173/${convertFilePathToQueryNotation(fileName)}`
-                );
-
-                const linkTextNode = $createTextNode(fileName);
-                linkNode.append(linkTextNode);
-                $insertNodes([linkNode]);
-              });
-            } else {
-              const payload: FilePayload = {
-                src: `${FILE_SERVER_URL}/notes/${fileName}`,
-                alt: fileName,
-              };
-              editor.dispatchCommand(INSERT_FILES_COMMAND, [payload]);
-            }
-          },
-        }),
-        filePath,
-      };
+  const insertLink = (text: string, url: string) => {
+    editor.update(() => {
+      const linkNode = $createLinkNode(url);
+      linkNode.append($createTextNode(text));
+      $insertNodes([linkNode]);
     });
+  };
+
+  // Getting data into the FilePickerMenuItemData format
+  const optionSources: FilePickerMenuItemData[] = !searchQuery
+    ? mostRecentNotes.map((filePath) => ({ kind: 'file', filePath }))
+    : (searchResults ?? []).flatMap((result): FilePickerMenuItemData[] => {
+        if (result.type === 'folder') {
+          return result.folder
+            ? [{ kind: 'folder', folder: result.folder }]
+            : [];
+        }
+        if (!result.note) return [];
+        try {
+          return [
+            {
+              kind: 'file',
+              filePath: new LocalFilePath({
+                folder: result.folder,
+                note: result.note,
+              }),
+            },
+          ];
+        } catch {
+          return [];
+        }
+      });
+
+  const options: FilePickerOption[] = optionSources.map((item) => {
+    const isFile = item.kind === 'file';
+    const label = isFile ? item.filePath.toString() : item.folder;
+
+    return {
+      ...item,
+      dropdownOption: new DropdownPickerOption(label, {
+        icon: isFile ? (
+          <RenderNoteIcon filePath={item.filePath} size="sm" />
+        ) : (
+          <Folder
+            className="min-w-[20px] pointer-events-none"
+            width={18}
+            height={18}
+          />
+        ),
+        onSelect: () => {
+          if (isFile) {
+            const fullPath = item.filePath.toString();
+            if (item.filePath.noteExtension === 'md') {
+              insertLink(
+                fullPath,
+                `${WAILS_URL}/${convertFilePathToQueryNotation(fullPath)}`
+              );
+            } else {
+              editor.dispatchCommand(INSERT_FILES_COMMAND, [
+                {
+                  src: `${FILE_SERVER_URL}/notes/${fullPath}`,
+                  alt: fullPath,
+                },
+              ]);
+            }
+          } else {
+            insertLink(item.folder, `${WAILS_URL}/${item.folder}`);
+          }
+        },
+      }),
+    };
+  });
 
   const onSelectOption = (
     selectedOption: DropdownPickerOption,
@@ -106,28 +141,27 @@ export function FilePickerMenuPlugin() {
       menuRenderFn={(
         anchorElementRef,
         { selectedIndex, selectOptionAndCleanUp }
-      ) =>
-        anchorElementRef.current && options.length
-          ? createPortal(
-              <ul className="fixed z-10 flex overflow-y-auto overflow-x-hidden text-nowrap flex-col max-h-64 gap-0.5 w-64 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1 text-zinc-950 dark:text-zinc-100">
-                {options.map((option, i: number) => (
-                  <FilePickerMenuItem
-                    index={i}
-                    isSelected={selectedIndex === i}
-                    onMouseEnter={() => {}}
-                    onClick={() =>
-                      selectOptionAndCleanUp(option.dropdownOption)
-                    }
-                    key={option.dropdownOption.key}
-                    option={option.dropdownOption}
-                    filePath={option.filePath}
-                  />
-                ))}
-              </ul>,
-              anchorElementRef.current
-            )
-          : null
-      }
+      ) => {
+        if (!anchorElementRef.current || options.length === 0) {
+          return null;
+        }
+
+        return createPortal(
+          <ul className="fixed z-10 flex overflow-y-auto overflow-x-hidden text-nowrap flex-col max-h-64 gap-0.5 w-64 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1 text-zinc-950 dark:text-zinc-100">
+            {options.map((option, i) => (
+              <FilePickerMenuItem
+                key={option.dropdownOption.key}
+                index={i}
+                isSelected={selectedIndex === i}
+                onClick={() => selectOptionAndCleanUp(option.dropdownOption)}
+                option={option.dropdownOption}
+                item={option}
+              />
+            ))}
+          </ul>,
+          anchorElementRef.current
+        );
+      }}
     />
   );
 }

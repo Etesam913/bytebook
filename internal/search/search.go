@@ -12,10 +12,10 @@ import (
 
 // CreateSearchRequest creates a search request with common options
 // used by the application (fields, size, and highlighting for text_content and code_content).
-func CreateSearchRequest(q query.Query) *bleve.SearchRequest {
+func CreateSearchRequest(q query.Query, limit int) *bleve.SearchRequest {
 	req := bleve.NewSearchRequest(q)
 	req.Fields = []string{FieldType, FieldFolder, FieldFileName, FieldLastUpdated, FieldCreatedDate, FieldTags}
-	req.Size = 10000
+	req.Size = limit
 	req.IncludeLocations = true
 	req.Highlight = bleve.NewHighlightWithStyle("html")
 	if req.Highlight != nil {

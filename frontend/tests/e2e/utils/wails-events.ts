@@ -3,7 +3,7 @@ import type { BrowserContext, Page } from '@playwright/test';
 /**
  * Represents a Wails event structure matching the app's WailsEvent type.
  */
-export type WailsEvent = {
+type WailsEvent = {
   name: string;
   sender: string;
   data: unknown;
@@ -301,10 +301,7 @@ export async function emitWailsEvent(
  * const events = await getCapturedEvents(page, 'note:saved');
  * ```
  */
-export async function captureWailsEvent(
-  page: Page,
-  eventName: string
-): Promise<void> {
+async function captureWailsEvent(page: Page, eventName: string): Promise<void> {
   await page.evaluate(
     ({ eventName }) => {
       const globalWindow = window as typeof window & {
@@ -324,7 +321,7 @@ export async function captureWailsEvent(
  * @param eventName - The event name to filter by (optional, returns all if not provided)
  * @returns Array of captured events with their data and timestamps
  */
-export async function getCapturedEvents(
+async function getCapturedEvents(
   page: Page,
   eventName?: string
 ): Promise<
@@ -356,7 +353,7 @@ export async function getCapturedEvents(
  *
  * @param page - The Playwright page instance
  */
-export async function clearCapturedEvents(page: Page): Promise<void> {
+async function clearCapturedEvents(page: Page): Promise<void> {
   await page.evaluate(() => {
     const globalWindow = window as typeof window & {
       __BYTEBOOK_CAPTURED_EVENTS__?: Array<unknown>;
@@ -384,7 +381,7 @@ export async function clearCapturedEvents(page: Page): Promise<void> {
  * expect(settingsData.appearance.theme).toBe('dark');
  * ```
  */
-export async function waitForWailsEvent(
+async function waitForWailsEvent(
   page: Page,
   eventName: string,
   options: { timeout?: number } = {}
@@ -437,7 +434,8 @@ export async function waitForWailsEvent(
  * const captured = await events.getCaptured('folder:created');
  * ```
  */
-export function createWailsEventHelper(page: Page) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function createWailsEventHelper(page: Page) {
   return {
     /**
      * Emits a Wails event to all registered listeners.
