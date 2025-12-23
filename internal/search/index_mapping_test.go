@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/blevesearch/bleve/v2"
+	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -178,24 +179,38 @@ func TestCreateMarkdownNoteBleveDocument(t *testing.T) {
 }
 
 func TestCreateAttachmentBleveDocument(t *testing.T) {
+	env := setupTestEnv(t)
+	defer env.Close()
+
+	t.Run("should include tags from sidecar", func(t *testing.T) {
+		folderName := "test-folder-tags"
+		env.createAttachmentFile(env.createTestFolder(folderName), "image.jpg", "fake")
+		err := notes.WriteAttachmentTags(env.TmpDir, folderName, "image.jpg", []string{"foo", "bar"})
+		require.NoError(t, err)
+
+		doc := createAttachmentBleveDocument(env.TmpDir, folderName, "image.jpg", ".jpg")
+		assert.ElementsMatch(t, []string{"foo", "bar"}, doc.Tags)
+	})
+
 	testCases := []struct {
 		fileName      string
 		fileExtension string
 	}{
-		{"test-file", ".pdf"},
-		{"image", ".jpg"},
-		{"document", ".docx"},
-		{"video", ".mp4"},
-		{"", ".txt"},  // Empty filename
-		{"noext", ""}, // No extension
+		{"test-file.pdf", ".pdf"},
+		{"image.jpg", ".jpg"},
+		{"document.docx", ".docx"},
+		{"video.mp4", ".mp4"},
+		{"file.txt", ".txt"}, // With extension
+		{"noext", ""},        // No extension
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.fileName+tc.fileExtension, func(t *testing.T) {
-			doc := createAttachmentBleveDocument("test-folder", tc.fileName, tc.fileExtension)
+			doc := createAttachmentBleveDocument(env.TmpDir, "test-folder", tc.fileName, tc.fileExtension)
 
 			assert.Equal(t, tc.fileName, doc.FileName)
 			assert.Equal(t, tc.fileExtension, doc.FileExtension)
+			assert.Empty(t, doc.Tags)
 		})
 	}
 }
@@ -268,7 +283,7 @@ func TestAddAttachmentToBatch(t *testing.T) {
 		env.createAttachmentFile(folderPath, "test.pdf", "fake pdf content")
 
 		batch := env.Index.NewBatch()
-		fileId, err := AddAttachmentToBatch(batch, env.Index, "test-folder", "test.pdf", ".pdf")
+		fileId, err := AddAttachmentToBatch(batch, env.Index, env.TmpDir, "test-folder", "test.pdf", ".pdf", false)
 
 		assert.NoError(t, err)
 		assert.Equal(t, "test-folder/test.pdf", fileId)
@@ -281,14 +296,14 @@ func TestAddAttachmentToBatch(t *testing.T) {
 
 		// Pre-index the attachment
 		fileId := "test-folder-2/existing.jpg"
-		bleveDoc := createAttachmentBleveDocument("test-folder-2", "existing", ".jpg")
+		bleveDoc := createAttachmentBleveDocument(env.TmpDir, "test-folder-2", "existing.jpg", ".jpg")
 		err := env.Index.Index(fileId, bleveDoc)
 		require.NoError(t, err)
 
 		batch := env.Index.NewBatch()
 		initialSize := batch.Size()
 
-		returnedId, err := AddAttachmentToBatch(batch, env.Index, "test-folder-2", "existing.jpg", ".jpg")
+		returnedId, err := AddAttachmentToBatch(batch, env.Index, env.TmpDir, "test-folder-2", "existing.jpg", ".jpg", false)
 
 		assert.NoError(t, err)
 		assert.Equal(t, fileId, returnedId)
@@ -315,13 +330,34 @@ func TestAddAttachmentToBatch(t *testing.T) {
 				batch := env.Index.NewBatch()
 				expectedId := filepath.Join(folderName, tc.fileName)
 
-				fileId, err := AddAttachmentToBatch(batch, env.Index, folderName, tc.fileName, tc.extension)
+				fileId, err := AddAttachmentToBatch(batch, env.Index, env.TmpDir, folderName, tc.fileName, tc.extension, false)
 
 				assert.NoError(t, err)
 				assert.Equal(t, expectedId, fileId)
 				assert.Greater(t, batch.Size(), 0)
 			})
 		}
+	})
+
+	t.Run("should index attachment tags from sidecar", func(t *testing.T) {
+		folderName := "tagged-folder"
+		folderPath := env.createTestFolder(folderName)
+		env.createAttachmentFile(folderPath, "tagged.pdf", "fake content")
+		require.NoError(t, notes.WriteAttachmentTags(env.TmpDir, folderName, "tagged.pdf", []string{"a", "b"}))
+
+		batch := env.Index.NewBatch()
+		fileId, err := AddAttachmentToBatch(batch, env.Index, env.TmpDir, folderName, "tagged.pdf", ".pdf", true)
+		require.NoError(t, err)
+		require.Equal(t, filepath.Join(folderName, "tagged.pdf"), fileId)
+		require.NoError(t, env.Index.Batch(batch))
+
+		termQuery := bleve.NewTermQuery("a")
+		termQuery.SetField(FieldTags)
+		searchRequest := bleve.NewSearchRequest(termQuery)
+		searchRequest.Fields = []string{FieldFileName, FieldTags}
+		result, err := env.Index.Search(searchRequest)
+		require.NoError(t, err)
+		assert.EqualValues(t, 1, result.Total)
 	})
 }
 

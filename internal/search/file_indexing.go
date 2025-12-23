@@ -186,11 +186,12 @@ func startWorker(jobs <-chan DocumentJob, results chan<- DocumentResult, workerW
 			}
 		} else {
 			// Is an attachment
+			projectPath := filepath.Dir(filepath.Dir(filepath.Dir(job.filePath)))
 			results <- DocumentResult{
 				isError:  false,
 				filePath: job.filePath,
 				fileId:   job.fileId,
-				document: createAttachmentBleveDocument(job.folder, job.fileName, job.fileExtension),
+				document: createAttachmentBleveDocument(projectPath, job.folder, job.fileName, job.fileExtension),
 			}
 		}
 	}

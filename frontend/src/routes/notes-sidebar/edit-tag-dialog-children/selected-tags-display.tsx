@@ -1,4 +1,3 @@
-import { motion } from 'motion/react';
 import { Tag } from '../../../components/editor/bottom-bar/tag';
 import { Dispatch, SetStateAction } from 'react';
 
@@ -42,22 +41,18 @@ export function SelectedTagsDisplay({
   return (
     <div className="space-y-2">
       <p className="text-sm text-zinc-500 dark:text-zinc-400">Selected tags:</p>
-      <motion.div layout className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-1.5">
         {fullySelectedTags.map(({ tagName, count, isFullySelected }) => (
-          <motion.span
-            layout
-            key={`tag-${tagName}`}
-            className="relative text-sm"
-          >
+          <span key={`tag-${tagName}`} className="relative text-sm">
             <Tag tagName={tagName} onDelete={() => handleRemoveTag(tagName)} />
             {!isFullySelected && (
               <span className="absolute -top-1 -right-1 bg-(--accent-color) text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
                 {count}
               </span>
             )}
-          </motion.span>
+          </span>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 }

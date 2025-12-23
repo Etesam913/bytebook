@@ -28,24 +28,43 @@ func (t *TagsService) SetTagsOnNotes(
 	eventData := util.TagsUpdateEventData{}
 
 	for _, folderAndNoteName := range folderAndNoteNames {
-		err := notes.AddTagsToNote(t.ProjectPath, folderAndNoteName, tagsToAdd)
-		if err != nil {
-			return config.BackendResponseWithoutData{
-				Success: false,
-				Message: "Failed to fully update tags",
+		extension := filepath.Ext(folderAndNoteName)
+		if extension == ".md" {
+			err := notes.AddTagsToNote(t.ProjectPath, folderAndNoteName, tagsToAdd)
+			if err != nil {
+				return config.BackendResponseWithoutData{
+					Success: false,
+					Message: "Failed to fully update tags",
+				}
 			}
-		}
 
-		// Get the final tags after both add and delete operations
-		tags, err := notes.DeleteTagsFromNote(t.ProjectPath, folderAndNoteName, tagsToRemove)
-		if err != nil {
-			return config.BackendResponseWithoutData{
-				Success: false,
-				Message: "Failed to fully update tags",
+			// Get the final tags after both add and delete operations
+			tags, err := notes.DeleteTagsFromNote(t.ProjectPath, folderAndNoteName, tagsToRemove)
+			if err != nil {
+				return config.BackendResponseWithoutData{
+					Success: false,
+					Message: "Failed to fully update tags",
+				}
 			}
-		}
+			eventData[folderAndNoteName] = tags
+		} else {
+			_, err := notes.AddTagsToAttachment(t.ProjectPath, folderAndNoteName, tagsToAdd)
+			if err != nil {
+				return config.BackendResponseWithoutData{
+					Success: false,
+					Message: "Failed to fully update tags",
+				}
+			}
 
-		eventData[folderAndNoteName] = tags
+			tags, err := notes.DeleteTagsFromAttachment(t.ProjectPath, folderAndNoteName, tagsToRemove)
+			if err != nil {
+				return config.BackendResponseWithoutData{
+					Success: false,
+					Message: "Failed to fully update tags",
+				}
+			}
+			eventData[folderAndNoteName] = tags
+		}
 	}
 
 	app := application.Get()
@@ -70,15 +89,28 @@ func (t *TagsService) GetTagsForNotes(
 	tagsMap := make(map[string][]string)
 
 	for _, folderAndNoteName := range folderAndNoteNames {
-		tags, _, err := notes.GetTagsFromNote(t.ProjectPath, folderAndNoteName)
-		if err != nil {
-			return config.BackendResponseWithData[map[string][]string]{
-				Success: false,
-				Message: "Failed to get tags for notes",
-				Data:    nil,
+		extension := filepath.Ext(folderAndNoteName)
+		if extension == ".md" {
+			tags, _, err := notes.GetTagsFromNote(t.ProjectPath, folderAndNoteName)
+			if err != nil {
+				return config.BackendResponseWithData[map[string][]string]{
+					Success: false,
+					Message: "Failed to get tags for notes",
+					Data:    nil,
+				}
 			}
+			tagsMap[folderAndNoteName] = tags
+		} else {
+			tags, _, err := notes.GetTagsFromAttachment(t.ProjectPath, folderAndNoteName)
+			if err != nil {
+				return config.BackendResponseWithData[map[string][]string]{
+					Success: false,
+					Message: "Failed to get tags for notes",
+					Data:    nil,
+				}
+			}
+			tagsMap[folderAndNoteName] = tags
 		}
-		tagsMap[folderAndNoteName] = tags
 	}
 
 	return config.BackendResponseWithData[map[string][]string]{
@@ -169,15 +201,22 @@ func (t *TagsService) DeleteTags(tagsToDelete []string) config.BackendResponseWi
 		}
 
 		// Remove tags from the note's frontmatter
-		updatedTags, err := notes.DeleteTagsFromNote(t.ProjectPath, folderAndNoteName, tagsToDelete)
-		if err != nil {
-			// Log the error but continue processing other notes
-			log.Error(err)
-			continue
+		if filepath.Ext(folderAndNoteName) == ".md" {
+			updatedTags, err := notes.DeleteTagsFromNote(t.ProjectPath, folderAndNoteName, tagsToDelete)
+			if err != nil {
+				// Log the error but continue processing other notes
+				log.Error(err)
+				continue
+			}
+			eventData[folderAndNoteName] = updatedTags
+		} else {
+			updatedTags, err := notes.DeleteTagsFromAttachment(t.ProjectPath, folderAndNoteName, tagsToDelete)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+			eventData[folderAndNoteName] = updatedTags
 		}
-
-		// Use the updated tags for the event
-		eventData[folderAndNoteName] = updatedTags
 	}
 
 	// Emit event for frontend updates & bleve indexing

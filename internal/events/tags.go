@@ -63,9 +63,11 @@ func reIndexNotesWithUpdatedTags(
 			_, err := search.AddAttachmentToBatch(
 				batch,
 				params.Index,
+				params.ProjectPath,
 				folder,
 				fileName,
 				fileExtension,
+				true,
 			)
 
 			if err != nil {

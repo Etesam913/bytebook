@@ -25,16 +25,18 @@ export function BottomBar({
   frontmatter,
   filePath,
   isNoteEditor,
+  showTagEditor,
 }: {
   frontmatter?: Frontmatter;
   filePath: LocalFilePath;
   isNoteEditor?: boolean;
+  showTagEditor?: boolean;
 }) {
   const [lastUpdatedText, setLastUpdatedText] = useState('');
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 
   const { data: tagsMap, isLoading } = useTagsForNotesQuery([
-    `${filePath.folder}/${filePath.note}`,
+    filePath.toString(),
   ]);
   const { mutateAsync: editTags } = useEditTagsFormMutation();
   const { mutateAsync: deleteTagFromNote } =
@@ -75,6 +77,7 @@ export function BottomBar({
   });
 
   const isMarkdownFile = filePath.noteExtension === 'md';
+  const shouldShowTagEditor = showTagEditor ?? isMarkdownFile;
 
   return (
     <footer
@@ -95,7 +98,7 @@ export function BottomBar({
         </BreadcrumbItem>
       </span>
       {isNoteEditor && <KernelHeartbeats />}
-      {isMarkdownFile && (
+      {shouldShowTagEditor && (
         <span className="flex items-center gap-2">
           <button
             type="button"

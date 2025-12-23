@@ -60,6 +60,8 @@ type NoteSearchResult = {
 type AttachmentSearchResult = {
   /** The path of the attachment file */
   filePath: LocalFilePath;
+  /** List of tags associated with the attachment */
+  tags: string[];
 };
 
 /**
@@ -100,7 +102,10 @@ const searchQueries = {
               folder: result.folder,
               note: result.note,
             });
-            attachments.push({ filePath });
+            attachments.push({
+              filePath,
+              tags: result.tags || [],
+            });
           } else if (result.type === 'folder') {
             folders.push({ folder: result.folder });
           }

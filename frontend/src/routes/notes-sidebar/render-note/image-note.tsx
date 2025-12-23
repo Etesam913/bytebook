@@ -40,7 +40,7 @@ export function ImageNote({
           style={{ display: isLoading ? 'none' : 'block' }}
         />
       )}
-      <BottomBar filePath={filePath} />
+      <BottomBar filePath={filePath} showTagEditor />
     </>
   );
 }

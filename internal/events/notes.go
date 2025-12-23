@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -59,12 +60,17 @@ func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
 				} else {
 					// Handle attachment files
 					fileExtension := filepath.Ext(noteName)
+					if err := notes.EnsureAttachmentSidecar(params.ProjectPath, folder, noteName); err != nil {
+						log.Printf("Error ensuring attachment sidecar for %s: %v", noteName, err)
+					}
 					_, err := search.AddAttachmentToBatch(
 						batch,
 						params.Index,
+						params.ProjectPath,
 						folder,
 						noteName,
 						fileExtension,
+						true,
 					)
 					return err
 				}
@@ -144,12 +150,17 @@ func renameNotesInIndex(params EventParams, data []map[string]string) {
 		} else {
 			// Handle attachment files
 			fileExtension := filepath.Ext(newNoteName)
+			if err := notes.RenameAttachmentSidecar(params.ProjectPath, oldFolder, oldNoteName, newFolder, newNoteName); err != nil {
+				log.Println("Error renaming attachment sidecar", err)
+			}
 			_, err := search.AddAttachmentToBatch(
 				batch,
 				params.Index,
+				params.ProjectPath,
 				newFolder,
 				newNoteName,
 				fileExtension,
+				true,
 			)
 
 			if err != nil {
@@ -197,6 +208,12 @@ func deleteNotesFromIndex(params EventParams, data []map[string]string) {
 		fileId := filepath.Join(folder, noteName)
 
 		batch.Delete(fileId)
+
+		if filepath.Ext(noteName) != ".md" {
+			if err := notes.DeleteAttachmentSidecar(params.ProjectPath, folder, noteName); err != nil {
+				log.Println("Error deleting attachment sidecar", err)
+			}
+		}
 	}
 
 	// Execute the batch

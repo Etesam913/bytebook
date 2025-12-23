@@ -62,9 +62,8 @@ func extractHighlightedText(fragment string) string {
 	return ""
 }
 
-// extractMarkdownNoteFields extracts markdown note-specific fields (tags, lastUpdated, created) from a search hit
-func extractMarkdownNoteFields(hit *blevesearch.DocumentMatch) ([]string, string, string) {
-	// extract tags from search result
+// extractTags extracts tags from a search hit
+func extractTags(hit *blevesearch.DocumentMatch) []string {
 	var tags []string
 	if tagsField, ok := hit.Fields[FieldTags]; ok {
 		switch t := tagsField.(type) {
@@ -80,6 +79,12 @@ func extractMarkdownNoteFields(hit *blevesearch.DocumentMatch) ([]string, string
 			tags = []string{t}
 		}
 	}
+	return tags
+}
+
+// extractMarkdownNoteFields extracts markdown note-specific fields (tags, lastUpdated, created) from a search hit
+func extractMarkdownNoteFields(hit *blevesearch.DocumentMatch) ([]string, string, string) {
+	tags := extractTags(hit)
 
 	// last_updated is stored as a datetime; retrieve as string if present
 	lastUpdated := ""
@@ -173,6 +178,7 @@ func processAttachmentResult(hit *blevesearch.DocumentMatch) *SearchResult {
 		return nil
 	}
 
+	tags := extractTags(hit)
 	highlights := extractHighlights(hit)
 
 	return &SearchResult{
@@ -180,9 +186,9 @@ func processAttachmentResult(hit *blevesearch.DocumentMatch) *SearchResult {
 		Title:       fileName,
 		Folder:      folder,
 		Note:        fileName,
-		LastUpdated: "",         // Attachments don't have lastUpdated
-		Created:     "",         // Attachments don't have created date
-		Tags:        []string{}, // Attachments don't have tags
+		LastUpdated: "", // Attachments don't have lastUpdated
+		Created:     "", // Attachments don't have created date
+		Tags:        tags,
 		Highlights:  highlights,
 	}
 }

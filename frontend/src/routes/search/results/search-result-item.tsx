@@ -165,7 +165,7 @@ export function SearchResultAttachment({
   selectedIndex: number;
   onRef: (el: HTMLAnchorElement | null) => void;
 }) {
-  const { filePath } = data;
+  const { filePath, tags } = data;
   const pathToNote = filePath.getLinkToNote();
 
   return (
@@ -177,7 +177,15 @@ export function SearchResultAttachment({
       selectedIndex={selectedIndex}
       onRef={onRef}
       pathDisplay={filePath.toString()}
-    />
+    >
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1 text-xs">
+          {tags.map((tagName, tagIdx) => (
+            <Tag key={`${filePath.toString()}-${tagIdx}`} tagName={tagName} />
+          ))}
+        </div>
+      )}
+    </SearchResultItem>
   );
 }
 

@@ -67,11 +67,12 @@ type MarkdownNoteBleveDocument struct {
 }
 
 type AttachmentBleveDocument struct {
-	Type          string `json:"type"`
-	Folder        string `json:"folder"`
-	FileName      string `json:"file_name"`
-	FileNameLC    string `json:"file_name_lc"`
-	FileExtension string `json:"file_extension"`
+	Type          string   `json:"type"`
+	Folder        string   `json:"folder"`
+	FileName      string   `json:"file_name"`
+	FileNameLC    string   `json:"file_name_lc"`
+	FileExtension string   `json:"file_extension"`
+	Tags          []string `json:"tags"`
 }
 
 type MarkdownFolderBleveDocument struct {
@@ -120,14 +121,20 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 }
 
 // createAttachmentBleveDocument constructs an AttachmentBleveDocument from file information.
-// It extracts the filename and file extension for search indexing.
-func createAttachmentBleveDocument(folder, fileName, fileExtension string) AttachmentBleveDocument {
+// It extracts the filename, file extension, and attachment tags for search indexing.
+func createAttachmentBleveDocument(projectPath, folder, fileName, fileExtension string) AttachmentBleveDocument {
+	tags, err := notes.ReadAttachmentTags(projectPath, folder, fileName)
+	if err != nil {
+		tags = []string{}
+	}
+
 	return AttachmentBleveDocument{
 		Type:          ATTACHMENT_TYPE,
 		Folder:        folder,
 		FileName:      fileName,
 		FileNameLC:    strings.ToLower(fileName),
 		FileExtension: fileExtension,
+		Tags:          tags,
 	}
 }
 
@@ -329,6 +336,7 @@ func createAttachmentDocumentMapping() *mapping.DocumentMapping {
 	documentMapping.AddFieldMappingsAt(FieldFileName, attachmentFileNameFieldMapping)
 	// FieldFileNameLC removed - using FieldFileName for both search and display
 	documentMapping.AddFieldMappingsAt(FieldFileExtension, keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldTags, keywordTextFieldMapping)
 
 	return documentMapping
 }
@@ -372,8 +380,7 @@ func AddMarkdownNoteToBatch(
 		return "", err
 	}
 
-	if docInfo == nil {
-
+	if docInfo == nil || forceIndex {
 		bleveDocument := CreateMarkdownNoteBleveDocument(markdown, folderName, fileName)
 		batch.Index(fileId, bleveDocument)
 	}
@@ -385,9 +392,11 @@ func AddMarkdownNoteToBatch(
 func AddAttachmentToBatch(
 	batch *bleve.Batch,
 	index bleve.Index,
+	projectPath,
 	folderName,
 	fileName,
 	fileExtension string,
+	forceIndex bool,
 ) (string, error) {
 	// For attachments, use the file path as the unique ID
 	fileId := filepath.Join(folderName, fileName)
@@ -396,8 +405,8 @@ func AddAttachmentToBatch(
 		return "", err
 	}
 
-	if docInfo == nil {
-		bleveDocument := createAttachmentBleveDocument(folderName, fileName, fileExtension)
+	if docInfo == nil || forceIndex {
+		bleveDocument := createAttachmentBleveDocument(projectPath, folderName, fileName, fileExtension)
 		batch.Index(fileId, bleveDocument)
 	}
 
@@ -443,6 +452,9 @@ func IndexAllFilesInFolderWithBatch(
 		return err
 	}
 
+	// Compute project path from folder path (../.. from notes/<folder>)
+	projectPath := filepath.Dir(filepath.Dir(folderPath))
+
 	// Index the folder itself
 	_, err := AddFolderToBatch(batch, index, folderName)
 	if err != nil {
@@ -480,7 +492,7 @@ func IndexAllFilesInFolderWithBatch(
 		} else {
 			// Handle attachment files
 			fileExtension := filepath.Ext(file.Name())
-			_, err := AddAttachmentToBatch(batch, index, folderName, file.Name(), fileExtension)
+			_, err := AddAttachmentToBatch(batch, index, projectPath, folderName, file.Name(), fileExtension, false)
 			if err != nil {
 				log.Printf("Error processing attachment file %s: %v", filePath, err)
 				continue
