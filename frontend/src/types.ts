@@ -143,7 +143,6 @@ export type Frontmatter = {
   createdDate?: string;
   tags?: string[];
   showTableOfContents?: string;
-  showMarkdown?: string;
   pinnedNote?: string;
   // Allow additional properties for extensibility
 } & Record<string, string | string[]>;

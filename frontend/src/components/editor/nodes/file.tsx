@@ -211,7 +211,7 @@ export class FileNode extends DecoratorNode<JSX.Element> {
         const writable = this.getWritable();
         writable.__elementType = elementType;
       },
-      { tag: 'note:changed-from-other-window' }
+      { tag: 'note:write-from-external' }
     );
   }
 

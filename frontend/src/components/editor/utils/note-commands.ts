@@ -33,24 +33,21 @@ export const debouncedNoteHandleChange = debounce(noteHandleChange, 275);
  *
  * @param editor - The LexicalEditor instance that is being updated.
  * @param tags - A set of tags indicating the context of the change, such as
- * "note:changed-from-other-window" or "note:initial-load"
+ * "note:write-from-external" or "note:initial-load"
  */
 async function noteHandleChange(editor: LexicalEditor, tags: Set<string>) {
   /*
     If the note was changed from another window, don't update it again
     If a new note is loaded for the first time, we don't need this func to run
   */
-  if (
-    tags.has('note:changed-from-other-window') ||
-    tags.has('note:initial-load')
-  ) {
+  if (tags.has('note:write-from-external') || tags.has('note:initial-load')) {
     return;
   }
   editor.update(
     () => {
       editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, undefined);
     },
-    { tag: 'note:changed-from-other-window' }
+    { tag: 'note:write-from-external' }
   );
 }
 /**

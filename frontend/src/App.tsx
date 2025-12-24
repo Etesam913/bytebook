@@ -92,7 +92,13 @@ function App() {
       <Dialog />
       <LoadingModal />
       <Toaster richColors theme="system" />
-      <Activity mode={isNoteMaximized ? 'hidden' : 'visible'}>
+      <Activity
+        mode={
+          isNoteMaximized || location.startsWith('/search')
+            ? 'hidden'
+            : 'visible'
+        }
+      >
         <FolderSidebar width={folderSidebarWidth} />
       </Activity>
       <Switch>

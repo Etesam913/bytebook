@@ -19,9 +19,9 @@ import {
   RenameFile,
   RevealFolderOrFileInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { WINDOW_ID } from '../App';
 import { noteSortAtom, projectSettingsAtom } from '../atoms';
 import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
+import { previousMarkdownAtom } from '../components/editor/atoms';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import { getFilePathFromNoteSelectionRange } from '../utils/selection';
@@ -464,14 +464,15 @@ export function useNotePreviewQuery(filePath: LocalFilePath) {
 }
 
 /**
- * Hook to handle the "note:changed" event.
+ * Hook to handle the "note:write" event from the file watcher.
+ * Updates the note content in the editor when the note is changed from another window or from the file system.
  *
  * @param folder - The current folder name.
- * @param note - The current note name.
+ * @param note - The current note name (without extension).
  * @param editor - The LexicalEditor instance to update the editor state.
  * @param setFrontmatter - A function to update the frontmatter state.
  */
-export function useNoteChangedEvent({
+export function useNoteWriteEvent({
   folder,
   note,
   editor,
@@ -483,45 +484,51 @@ export function useNoteChangedEvent({
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
 }) {
   const queryClient = useQueryClient();
-  useWailsEvent('note:changed', (e) => {
+  const previousMarkdown = useAtomValue(previousMarkdownAtom);
+
+  useWailsEvent('note:write', (e) => {
     const data = e.data as {
       folder: string;
       note: string;
-      markdown: string;
-      oldWindowAppId: string;
-    };
-    const {
-      folder: folderNameFromEvent,
-      note: noteNameFromEvent,
-      markdown,
-      oldWindowAppId,
-    } = data;
-    if (
-      folderNameFromEvent === folder &&
-      noteNameFromEvent === note &&
-      oldWindowAppId !== WINDOW_ID
-    ) {
-      editor.update(
-        () => {
-          $convertFromMarkdownString(
-            markdown,
-            CUSTOM_TRANSFORMERS,
-            undefined,
-            true,
-            false
-          );
-        },
-        { tag: 'note:changed-from-other-window' }
-      );
-      const { frontMatter } = parseFrontMatter(markdown);
-      setFrontmatter(frontMatter);
+      markdown?: string;
+    }[];
+
+    for (const item of data) {
+      const { folder: folderFromEvent, note: noteFromEvent, markdown } = item;
+
+      // Remove .md extension for comparison
+      const noteWithoutExtension = noteFromEvent.replace(/\.md$/, '');
+
+      // Check if this is the current note and content is different
+      if (
+        folderFromEvent === folder &&
+        noteWithoutExtension === note &&
+        markdown !== undefined &&
+        markdown !== previousMarkdown
+      ) {
+        const { frontMatter, content } = parseFrontMatter(markdown);
+        editor.update(
+          () => {
+            $convertFromMarkdownString(
+              content,
+              CUSTOM_TRANSFORMERS,
+              undefined,
+              true,
+              false
+            );
+          },
+          { tag: 'note:write-from-external' }
+        );
+        setFrontmatter(frontMatter);
+      }
+
+      // Update the appropriate note preview
+      const queryKey = noteQueries.getNotePreview(
+        folderFromEvent,
+        noteWithoutExtension
+      ).queryKey;
+      queryClient.invalidateQueries({ queryKey });
     }
-    // Update the appropriate note preview
-    const queryKey = noteQueries.getNotePreview(
-      folderNameFromEvent,
-      noteNameFromEvent
-    ).queryKey;
-    queryClient.invalidateQueries({ queryKey });
   });
 }
 

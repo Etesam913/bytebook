@@ -62,9 +62,6 @@ export function NotesEditor({
   const tableActionsRef = useRef<HTMLButtonElement | null>(null);
 
   const noteContainerRef = useRef<HTMLDivElement | null>(null);
-  const [noteMarkdownString, setNoteMarkdownString] = useState<string | null>(
-    null
-  );
   const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
   const [frontmatter, setFrontmatter] = useState<Frontmatter>({});
 
@@ -113,8 +110,6 @@ export function NotesEditor({
         setFloatingData={setFloatingData}
         frontmatter={frontmatter}
         setFrontmatter={setFrontmatter}
-        noteMarkdownString={noteMarkdownString}
-        setNoteMarkdownString={setNoteMarkdownString}
         tableActionsRef={tableActionsRef}
         setPlaceholderLineData={setPlaceholderLineData}
       />
@@ -195,7 +190,6 @@ export function NotesEditor({
             <SavePlugin
               filePath={filePath}
               setFrontmatter={setFrontmatter}
-              setNoteMarkdownString={setNoteMarkdownString}
             />
             <EditorRefPlugin
               editorRef={(editorRefValue) => {
@@ -209,14 +203,6 @@ export function NotesEditor({
             <FocusPlugin />
             <LinkMatcherPlugin />
           </div>
-          {frontmatter.showMarkdown === 'true' && (
-            <div className="w-[50%] bg-zinc-50 dark:bg-zinc-850 h-full font-code border-l border-zinc-200 dark:border-zinc-700 px-4 pt-3 pb-2 overflow-auto">
-              <h3 className="text-2xl">Note Markdown</h3>
-              <p className="text-sm whitespace-pre-wrap">
-                {noteMarkdownString ?? ''}
-              </p>
-            </div>
-          )}
         </div>
       </div>
       <BottomBar frontmatter={frontmatter} filePath={filePath} isNoteEditor />

@@ -12,7 +12,6 @@ import { useRenameFileDialog } from '../../../hooks/dialogs';
 import { Finder } from '../../../icons/finder';
 import { FilePen } from '../../../icons/file-pen';
 import { HorizontalDots } from '../../../icons/horizontal-dots';
-import { MarkdownIcon } from '../../../icons/markdown';
 import { PinTack2 } from '../../../icons/pin-tack-2';
 import { Table } from '../../../icons/table';
 import { Trash } from '../../../icons/trash';
@@ -82,18 +81,6 @@ export function SettingsDropdown({
       ),
     },
     {
-      value:
-        frontmatter.showMarkdown === 'true' ? 'hide-markdown' : 'show-markdown',
-      label: (
-        <span className="flex items-center gap-1.5 will-change-transform">
-          <MarkdownIcon className="min-w-5" />{' '}
-          {frontmatter.showMarkdown === 'true'
-            ? 'Hide Markdown'
-            : 'Show Markdown'}
-        </span>
-      ),
-    },
-    {
       value: 'rename-file',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
@@ -144,20 +131,6 @@ export function SettingsDropdown({
 
             editor.update(() => {
               editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, {
-                shouldSkipNoteChangedEmit: false,
-                newFrontmatter: copyOfFrontmatter,
-              });
-            });
-            break;
-          }
-          case 'show-markdown':
-          case 'hide-markdown': {
-            const copyOfFrontmatter = { ...frontmatter };
-            copyOfFrontmatter.showMarkdown =
-              item.value === 'show-markdown' ? 'true' : 'false';
-            editor.update(() => {
-              editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, {
-                shouldSkipNoteChangedEmit: false,
                 newFrontmatter: copyOfFrontmatter,
               });
             });

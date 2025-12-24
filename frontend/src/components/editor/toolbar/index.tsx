@@ -16,7 +16,7 @@ import {
 } from '../../../atoms';
 import { noteSelectionAtom } from '../atoms';
 import { useAttachmentsMutation } from '../../../hooks/attachments';
-import { useNoteChangedEvent } from '../../../hooks/notes';
+import { useNoteWriteEvent } from '../../../hooks/notes';
 import { useCreateTableDialog } from '../../../hooks/dialogs';
 import type {
   EditorBlockTypes,
@@ -63,7 +63,6 @@ export function Toolbar({
   animationControls,
   frontmatter,
   setFrontmatter,
-  setNoteMarkdownString,
   tableActionsRef,
   setPlaceholderLineData,
 }: {
@@ -76,8 +75,6 @@ export function Toolbar({
   overflowContainerRef: RefObject<HTMLDivElement | null>;
   frontmatter: Frontmatter;
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
-  noteMarkdownString: string | null;
-  setNoteMarkdownString: Dispatch<SetStateAction<string | null>>;
   tableActionsRef: RefObject<HTMLButtonElement | null>;
   setPlaceholderLineData: Dispatch<SetStateAction<PlaceholderLineData>>;
 }) {
@@ -115,7 +112,6 @@ export function Toolbar({
     overflowContainerRef,
     setCurrentSelectionFormat,
     setFrontmatter,
-    setNoteMarkdownString,
   });
 
   useToolbarEvents({
@@ -132,7 +128,7 @@ export function Toolbar({
     setPlaceholderLineData,
   });
 
-  useNoteChangedEvent({ folder, note, editor, setFrontmatter });
+  useNoteWriteEvent({ folder, note, editor, setFrontmatter });
   useKernelLaunchEvents(editor);
   useCodeBlockStream(editor);
   useCodeBlockIOPubError(editor);

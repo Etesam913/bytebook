@@ -67,7 +67,6 @@ export function useNoteMarkdown({
   overflowContainerRef,
   setCurrentSelectionFormat,
   setFrontmatter,
-  setNoteMarkdownString,
 }: {
   editor: LexicalEditor;
   folder: string;
@@ -75,7 +74,6 @@ export function useNoteMarkdown({
   overflowContainerRef: RefObject<HTMLDivElement | null>;
   setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>;
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
-  setNoteMarkdownString: Dispatch<SetStateAction<string | null>>;
 }) {
   const setPreviousMarkdown = useSetAtom(previousMarkdownAtom);
   const [hasFirstLoad, setHasFirstLoad] = useState(false);
@@ -95,7 +93,6 @@ export function useNoteMarkdown({
       editor.setEditable(true);
       // You don't want a different note to access the same history when you switch notes
       editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
-      setNoteMarkdownString(res.data ?? null);
       setPreviousMarkdown(res.data ?? '');
 
       editor.update(

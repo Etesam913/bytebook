@@ -1,7 +1,6 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
 import { useQueryClient } from '@tanstack/react-query';
-import { Events } from '@wailsio/runtime';
 import {
   COMMAND_PRIORITY_EDITOR,
   type LexicalCommand,
@@ -10,7 +9,6 @@ import {
 import { type Dispatch, type SetStateAction, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { SetNoteMarkdown } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { WINDOW_ID } from '../../../App';
 import { CUSTOM_TRANSFORMERS } from '../transformers';
 import { replaceFrontMatter, parseFrontMatter } from '../utils/note-metadata';
 import { previousMarkdownAtom } from '../atoms';
@@ -21,7 +19,6 @@ import { $convertToMarkdownString } from '@lexical/markdown';
 type SaveMarkdownContentPayload =
   | undefined
   | {
-      shouldSkipNoteChangedEmit: boolean;
       newFrontmatter?: Frontmatter;
     };
 
@@ -31,11 +28,9 @@ export const SAVE_MARKDOWN_CONTENT: LexicalCommand<SaveMarkdownContentPayload> =
 export function SavePlugin({
   filePath,
   setFrontmatter,
-  setNoteMarkdownString,
 }: {
   filePath: LocalFilePath;
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
-  setNoteMarkdownString: Dispatch<SetStateAction<string | null>>;
 }) {
   const [previousMarkdownWithFrontmatter, setPreviousMarkdownWithFrontmatter] =
     useAtom(previousMarkdownAtom);
@@ -53,7 +48,7 @@ export function SavePlugin({
   // Register a command to save markdown content
   // This effect runs once when the component mounts and sets up the command
   // The command converts the editor content to markdown, updates frontmatter,
-  // emits a 'note:changed' event, updates state, and saves the note to the backend
+  // updates state, and saves the note to the backend
   useEffect(() => {
     return mergeRegister(
       editor.registerCommand<SaveMarkdownContentPayload>(
@@ -94,19 +89,7 @@ export function SavePlugin({
             frontmatterCopy
           );
 
-          if (!payload?.shouldSkipNoteChangedEmit) {
-            // To prevent infinite loops when there are multiple windows open
-            const event = new Events.WailsEvent('note:changed', {
-              folder: filePath.folder,
-              note: filePath.noteWithoutExtension,
-              markdown: markdownWithFrontmatter,
-              oldWindowAppId: WINDOW_ID,
-            });
-            Events.Emit(event);
-          }
-
           setFrontmatter(frontmatterCopy);
-          setNoteMarkdownString(markdownWithFrontmatter);
           saveMarkdownContent(markdownWithFrontmatter);
           setPreviousMarkdownWithFrontmatter(markdownWithFrontmatter);
 
@@ -121,6 +104,7 @@ export function SavePlugin({
     setFrontmatter,
     CUSTOM_TRANSFORMERS,
     previousMarkdownWithFrontmatter,
+    queryClient,
   ]);
 
   return null;

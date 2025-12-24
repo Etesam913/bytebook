@@ -193,12 +193,23 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 			// Record the initial state so we can detect future write noise.
 			fw.hasFileChanged(notePath)
 		}
+
+		eventData := map[string]string{
+			"folder": oneFolderBack,
+			"note":   note,
+		}
+
+		// For markdown file writes, include the content so frontend can compare and update if different
+		if eventKey == util.Events.NoteWrite && filepath.Ext(note) == ".md" {
+			content, err := os.ReadFile(notePath)
+			if err == nil {
+				eventData["markdown"] = string(content)
+			}
+		}
+
 		fw.debounceEvents[eventKey] = append(
 			fw.debounceEvents[eventKey],
-			map[string]string{
-				"folder": oneFolderBack,
-				"note":   note,
-			},
+			eventData,
 		)
 	}
 	fw.handleDebounceReset()
