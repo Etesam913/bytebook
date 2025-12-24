@@ -165,14 +165,14 @@ textarea,
   @apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden transition-colors duration-125 will-change-transform;
 }
 .list-sidebar-item:focus {
-  @apply outline-2 outline-auto;
+  outline: 2px auto;
 }
 
 .card-sidebar-item {
   @apply flex flex-1 gap-2 items-center border-b border-zinc-300 dark:border-zinc-600 px-2 py-[0.2rem] relative z-10 overflow-x-hidden transition-colors will-change-transform;
 }
 .card-sidebar-item:focus {
-  @apply outline-2 outline-auto;
+  outline: 2px auto;
 }
 
 #content-editable-editor {

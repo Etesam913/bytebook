@@ -233,7 +233,7 @@ test.describe('Folder Sidebar', () => {
       await expect(sidebar).toContainText('Kernels');
 
       const kernelAccordion = page.getByTestId('kernels-accordion');
-      kernelAccordion.click();
+      await kernelAccordion.click();
       await expect(sidebar).toContainText('python');
       await expect(sidebar).toContainText('go');
       await expect(sidebar).toContainText('javascript');

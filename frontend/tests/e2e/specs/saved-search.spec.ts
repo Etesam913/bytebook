@@ -105,7 +105,10 @@ test.describe('Saved Search Page', () => {
 
     // Verify the search query is displayed in the header
     await expect(page.getByText('Search:')).toBeVisible();
-    await expect(page.getByText('research', { exact: true })).toBeVisible();
+    // Use a more specific locator to target the header span (has font-code class)
+    await expect(
+      page.locator('header span.font-code', { hasText: 'research' })
+    ).toBeVisible();
   });
 
   test('displays result count when results exist', async ({ page }) => {

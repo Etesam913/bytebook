@@ -60,23 +60,25 @@ export function VirtualizedListAccordion<T>({
   }, [totalHeight, isOpen, maxHeight, animate]);
 
   return (
-    <div
-      ref={scope}
-      style={{ visibility: isReady ? 'visible' : 'hidden' }}
-      className="overflow-hidden pl-1 scrollbar-hidden"
-    >
+    <>
       {isError && errorElement}
       {!isError && isLoading && loadingElement}
-      {!isError && !isLoading && (
-        <VirtualizedList
-          {...props}
-          maxHeight={maxHeight}
-          onTotalListHeightChanged={(height) => {
-            setTotalHeight(height);
-            onTotalListHeightChanged?.(height);
-          }}
-        />
-      )}
-    </div>
+      <div
+        ref={scope}
+        style={{ visibility: isReady ? 'visible' : 'hidden' }}
+        className="overflow-hidden pl-1 scrollbar-hidden"
+      >
+        {!isError && !isLoading && (
+          <VirtualizedList
+            {...props}
+            maxHeight={maxHeight}
+            onTotalListHeightChanged={(height) => {
+              setTotalHeight(height);
+              onTotalListHeightChanged?.(height);
+            }}
+          />
+        )}
+      </div>
+    </>
   );
 }

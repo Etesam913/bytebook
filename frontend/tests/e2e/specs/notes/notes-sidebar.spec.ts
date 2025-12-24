@@ -1,15 +1,18 @@
 import { test, expect } from '@playwright/test';
-import { mockBinding, updateMockBindingResponse } from '../utils/mock-binding';
+import {
+  mockBinding,
+  updateMockBindingResponse,
+} from '../../utils/mock-binding';
 import {
   MOCK_FOLDER_RESPONSE,
   MOCK_NOTES_RESPONSE,
   MOCK_NOTE_EXISTS_RESPONSE,
   MOCK_NOTE_PREVIEW_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
-} from '../utils/mock-responses';
-import { SERVICE_FILES } from '../utils/service-files';
-import { humanFileSize } from '../../../src/utils/general';
-import { setupWailsEvents, emitWailsEvent } from '../utils/wails-events';
+} from '../../utils/mock-responses';
+import { SERVICE_FILES } from '../../utils/service-files';
+import { humanFileSize } from '../../../../src/utils/general';
+import { setupWailsEvents, emitWailsEvent } from '../../utils/wails-events';
 
 const formattedPreviewDate = new Date(
   MOCK_NOTE_PREVIEW_RESPONSE.data.lastUpdated

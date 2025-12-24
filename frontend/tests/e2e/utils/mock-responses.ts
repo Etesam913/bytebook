@@ -77,3 +77,26 @@ export const MOCK_NOTE_MARKDOWN_RESPONSE = {
   message: '',
   data: '# Sample Note\n\nThis is sample markdown content.',
 };
+
+/**
+ * Mock response for GetTagsForNotes - maps note paths to their associated tags.
+ * Used for testing the BottomBar tag display and edit dialog.
+ */
+export const MOCK_TAGS_FOR_NOTES_RESPONSE = {
+  success: true,
+  message: '',
+  data: {
+    'Economics Notes/Supply and Demand.md': ['economics', 'research'],
+    'Economics Notes/Inflation.md': ['economics'],
+    'Economics Notes/Market Equilibrium.md': [],
+  },
+};
+
+/**
+ * Mock response for SetTagsOnNotes - successful tag update.
+ */
+export const MOCK_SET_TAGS_ON_NOTES_RESPONSE = {
+  success: true,
+  message: '',
+  data: null,
+};
