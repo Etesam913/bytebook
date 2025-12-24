@@ -104,7 +104,7 @@ const searchQueries = {
             });
             attachments.push({
               filePath,
-              tags: result.tags || [],
+              tags: result.tags ?? [],
             });
           } else if (result.type === 'folder') {
             folders.push({ folder: result.folder });

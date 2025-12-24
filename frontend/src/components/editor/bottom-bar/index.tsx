@@ -25,12 +25,10 @@ export function BottomBar({
   frontmatter,
   filePath,
   isNoteEditor,
-  showTagEditor,
 }: {
   frontmatter?: Frontmatter;
   filePath: LocalFilePath;
   isNoteEditor?: boolean;
-  showTagEditor?: boolean;
 }) {
   const [lastUpdatedText, setLastUpdatedText] = useState('');
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
@@ -60,24 +58,21 @@ export function BottomBar({
     };
   }, [frontmatter]);
 
-  const tagElements = (
-    tagsMap?.[`${filePath.folder}/${filePath.note}`] ?? []
-  ).map((tagName) => {
-    return (
-      <Tag
-        key={tagName}
-        tagName={tagName}
-        onDelete={() => {
-          deleteTagFromNote({
-            tagToDelete: tagName,
-          });
-        }}
-      />
-    );
-  });
-
-  const isMarkdownFile = filePath.noteExtension === 'md';
-  const shouldShowTagEditor = showTagEditor ?? isMarkdownFile;
+  const tagElements = (tagsMap?.[`${filePath.folder}/${filePath.note}`] ?? [])
+    .sort()
+    .map((tagName) => {
+      return (
+        <Tag
+          key={tagName}
+          tagName={tagName}
+          onDelete={() => {
+            deleteTagFromNote({
+              tagToDelete: tagName,
+            });
+          }}
+        />
+      );
+    });
 
   return (
     <footer
@@ -98,53 +93,51 @@ export function BottomBar({
         </BreadcrumbItem>
       </span>
       {isNoteEditor && <KernelHeartbeats />}
-      {shouldShowTagEditor && (
-        <span className="flex items-center gap-2">
-          <button
-            type="button"
-            className="flex whitespace-nowrap items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600"
-            onClick={() => {
-              const selectionRange = new Set([`note:${filePath.note}`]);
-              setDialogData({
-                isOpen: true,
-                isPending: false,
-                title: 'Edit Tags',
-                dialogClassName: 'w-[min(30rem,90vw)]',
-                children: (errorText) => (
-                  <EditTagDialogChildren
-                    selectionRange={selectionRange}
-                    folder={filePath.folder}
-                    errorText={errorText}
-                  />
-                ),
-                onSubmit: async (e, setErrorText) => {
-                  return await editTags({
-                    e,
-                    setErrorText,
-                    selectionRange,
-                    folder: filePath.folder,
-                  });
-                },
-              });
-            }}
+      <span className="flex items-center gap-2 overflow-auto scrollbar-hidden">
+        <button
+          type="button"
+          className="flex whitespace-nowrap items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600"
+          onClick={() => {
+            const selectionRange = new Set([`note:${filePath.note}`]);
+            setDialogData({
+              isOpen: true,
+              isPending: false,
+              title: 'Edit Tags',
+              dialogClassName: 'w-[min(30rem,90vw)]',
+              children: (errorText) => (
+                <EditTagDialogChildren
+                  selectionRange={selectionRange}
+                  folder={filePath.folder}
+                  errorText={errorText}
+                />
+              ),
+              onSubmit: async (e, setErrorText) => {
+                return await editTags({
+                  e,
+                  setErrorText,
+                  selectionRange,
+                  folder: filePath.folder,
+                });
+              },
+            });
+          }}
+        >
+          <TagPlus height={15} width={15} /> Edit Tags
+        </button>
+        {isLoading ? (
+          <motion.span
+            className="flex items-center gap-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
           >
-            <TagPlus height={15} width={15} /> Edit Tags
-          </button>
-          {isLoading ? (
-            <motion.span
-              className="flex items-center gap-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Loader height={14} width={14} />
-              Loading Tags
-            </motion.span>
-          ) : (
-            tagElements
-          )}
-        </span>
-      )}
+            <Loader height={14} width={14} />
+            Loading Tags
+          </motion.span>
+        ) : (
+          tagElements
+        )}
+      </span>
       {lastUpdatedText.length > 0 && (
         <p className="text-zinc-500 dark:text-zinc-300 whitespace-nowrap text-ellipsis ml-auto">
           Last Updated: {' ' + lastUpdatedText} ago

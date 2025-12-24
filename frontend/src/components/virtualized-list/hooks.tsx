@@ -31,9 +31,8 @@ export function useSmartScroll() {
         if (!virtuosoRef.current) return;
         virtuosoRef.current.scrollToIndex({
           index,
-          align: 'center',
         });
-      }, 150);
+      }, 100);
     }
   };
 

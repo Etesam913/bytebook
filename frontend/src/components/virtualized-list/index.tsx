@@ -84,7 +84,8 @@ export function VirtualizedList<T>({
   className,
   onTotalListHeightChanged,
 }: VirtualizedListProps<T>) {
-  const [listHeight, setListHeight] = useState(0);
+  // Start with null to indicate height hasn't been measured yet
+  const [listHeight, setListHeight] = useState<number | null>(null);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const anchorSelectionIndexRef = useRef<number>(0);
   const internalListRef = useRef<HTMLElement | null>(null);
@@ -187,7 +188,12 @@ export function VirtualizedList<T>({
       data={items}
       className={className}
       style={{
-        height: !maxHeight ? '100%' : `min(${maxHeight}, ${listHeight}px)`,
+        // Use maxHeight until first measurement to prevent 0-height flicker
+        height: !maxHeight
+          ? '100%'
+          : listHeight === null
+            ? maxHeight
+            : `min(${maxHeight}, ${listHeight}px)`,
       }}
       scrollerRef={handleScrollerRef}
       increaseViewportBy={{ top: 400, bottom: 400 }}

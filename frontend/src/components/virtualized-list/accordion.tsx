@@ -1,5 +1,5 @@
-import { AnimatePresence, motion } from 'motion/react';
-import { useState, type ReactNode } from 'react';
+import { useAnimate } from 'motion/react';
+import { useState, type ReactNode, useEffect, useRef } from 'react';
 import { VirtualizedList, type VirtualizedListProps } from './index';
 
 interface VirtualizedListAccordionProps<T> extends VirtualizedListProps<T> {
@@ -20,36 +20,63 @@ export function VirtualizedListAccordion<T>({
   onTotalListHeightChanged,
   ...props
 }: VirtualizedListAccordionProps<T>) {
-  const [totalHeight, setTotalHeight] = useState(0);
+  // null = not yet measured, number = measured (including 0 for empty lists)
+  const [totalHeight, setTotalHeight] = useState<number | null>(null);
+  const [scope, animate] = useAnimate();
+  const hasMeasured = useRef(false);
+
+  // Compute whether we've completed the initial measurement
+  const isReady = totalHeight !== null;
+
+  useEffect(() => {
+    // If the list hasn't calculated a height yet, do nothing (wait).
+    if (totalHeight === null) return;
+
+    const targetHeight = maxHeight
+      ? `min(${totalHeight}px, ${maxHeight})`
+      : totalHeight;
+
+    // Logic: Instant snap vs Smooth animation
+    if (!hasMeasured.current) {
+      // FIRST LOAD: The height just arrived.
+      // If we are open, snap to height instantly (duration: 0).
+      // If we are closed, snap to 0 instantly.
+      if (isOpen) {
+        animate(scope.current, { height: targetHeight }, { duration: 0 });
+      } else {
+        animate(scope.current, { height: 0 }, { duration: 0 });
+      }
+      hasMeasured.current = true;
+    } else {
+      // SUBSEQUENT UPDATES: User toggled 'isOpen', or list grew.
+      // Animate smoothly.
+      const height = isOpen ? targetHeight : 0;
+      animate(
+        scope.current,
+        { height },
+        { type: 'spring', damping: 17, stiffness: 115 }
+      );
+    }
+  }, [totalHeight, isOpen, maxHeight, animate]);
 
   return (
-    <AnimatePresence initial={false}>
-      {isOpen && (
-        <motion.div
-          initial={{ height: 0 }}
-          animate={{
-            height: maxHeight
-              ? `min(${totalHeight}px, ${maxHeight})`
-              : totalHeight,
-            transition: { type: 'spring', damping: 16 },
+    <div
+      ref={scope}
+      style={{ visibility: isReady ? 'visible' : 'hidden' }}
+      className="overflow-hidden pl-1 scrollbar-hidden"
+    >
+      {isError && errorElement}
+      {!isError && isLoading && loadingElement}
+      {!isError && !isLoading && (
+        <VirtualizedList
+          {...props}
+          maxHeight={maxHeight}
+          onTotalListHeightChanged={(height) => {
+            setTotalHeight(height);
+            onTotalListHeightChanged?.(height);
           }}
-          exit={{ height: 0, opacity: 0 }}
-          className="overflow-hidden pl-1 scrollbar-hidden"
-        >
-          {isError && errorElement}
-          {!isError && isLoading && loadingElement}
-          {!isError && !isLoading && (
-            <VirtualizedList
-              {...props}
-              maxHeight={maxHeight}
-              onTotalListHeightChanged={(height) => {
-                setTotalHeight(height);
-                onTotalListHeightChanged?.(height);
-              }}
-            />
-          )}
-        </motion.div>
+        />
       )}
-    </AnimatePresence>
+    </div>
   );
 }

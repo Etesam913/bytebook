@@ -101,10 +101,6 @@ export function NoteSidebarButton({
           projectSettings.pinnedNotes.has(filePath.toString())
         );
 
-        const isShowingEditTagsOption = filePaths.every(
-          (filePath) => filePath.noteExtension === 'md'
-        );
-
         setContextMenuData({
           x: e.clientX / currentZoom,
           y: e.clientY / currentZoom,
@@ -182,49 +178,43 @@ export function NoteSidebarButton({
                   },
                 ]
               : []),
-            ...(isShowingEditTagsOption
-              ? [
-                  {
-                    label: (
-                      <span className="flex items-center gap-1.5">
-                        <TagPlus
-                          width={17}
-                          height={17}
-                          className="will-change-transform"
-                        />{' '}
-                        <span className="will-change-transform">
-                          {' '}
-                          Edit Tags
-                        </span>
-                      </span>
-                    ),
-                    value: 'edit-tags',
-                    onChange: () => {
-                      setDialogData({
-                        isOpen: true,
-                        isPending: false,
-                        title: 'Edit Tags',
-                        dialogClassName: 'w-[min(30rem,90vw)]',
-                        children: (errorText) => (
-                          <EditTagDialogChildren
-                            selectionRange={newSelectionRange}
-                            folder={sidebarNotePath.folder}
-                            errorText={errorText}
-                          />
-                        ),
-                        onSubmit: async (e, setErrorText) => {
-                          return await editTags({
-                            e,
-                            setErrorText,
-                            selectionRange: newSelectionRange,
-                            folder: sidebarNotePath.folder,
-                          });
-                        },
-                      });
-                    },
+
+            {
+              label: (
+                <span className="flex items-center gap-1.5">
+                  <TagPlus
+                    width={17}
+                    height={17}
+                    className="will-change-transform"
+                  />{' '}
+                  <span className="will-change-transform"> Edit Tags</span>
+                </span>
+              ),
+              value: 'edit-tags',
+              onChange: () => {
+                setDialogData({
+                  isOpen: true,
+                  isPending: false,
+                  title: 'Edit Tags',
+                  dialogClassName: 'w-[min(30rem,90vw)]',
+                  children: (errorText) => (
+                    <EditTagDialogChildren
+                      selectionRange={newSelectionRange}
+                      folder={sidebarNotePath.folder}
+                      errorText={errorText}
+                    />
+                  ),
+                  onSubmit: async (e, setErrorText) => {
+                    return await editTags({
+                      e,
+                      setErrorText,
+                      selectionRange: newSelectionRange,
+                      folder: sidebarNotePath.folder,
+                    });
                   },
-                ]
-              : []),
+                });
+              },
+            },
             ...(newSelectionRange.size === 1
               ? [
                   {

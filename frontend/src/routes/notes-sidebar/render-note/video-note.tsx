@@ -43,7 +43,7 @@ export function VideoNote({
           style={{ display: isLoading ? 'none' : 'block' }}
         />
       )}
-      <BottomBar filePath={filePath} showTagEditor />
+      <BottomBar filePath={filePath} />
     </>
   );
 }
