@@ -73,19 +73,34 @@ jobs:
   # JOB 2: Frontend Checks (Lint/Typecheck/Unit Tests)
   # ------------------------------------------------------------------
   frontend-checks:
-    name: Frontend Checks
+    name: Frontend ${{ matrix.name }}
     runs-on: ubuntu-latest
     needs: backend-and-bindings
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Format
+            command: bun run format:check
+            run-knip: false
+          - name: Lint
+            command: bun run lint:check
+            run-knip: true
+          - name: Typecheck
+            command: bun run tsgo
+            run-knip: false
+          - name: Unit Tests
+            command: bun run test:unit
+            run-knip: false
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Uses the custom action from File 1
       - name: Setup Frontend Environment
         uses: ./.github/actions/setup-frontend
         with:
-          run-knip: 'true'
+          run-knip: ${{ matrix.run-knip }}
 
       - name: Download Bindings
         uses: actions/download-artifact@v4
@@ -93,21 +108,9 @@ jobs:
           name: wails-bindings
           path: frontend/bindings
 
-      - name: Run Prettier check
+      - name: Run ${{ matrix.name }}
         working-directory: ./frontend
-        run: bun run format:check
-
-      - name: Run ESLint check
-        working-directory: ./frontend
-        run: bun run lint:check
-
-      - name: Run TypeScript check
-        working-directory: ./frontend
-        run: bun run tsgo
-
-      - name: Run Vitest tests
-        working-directory: ./frontend
-        run: bun run test
+        run: ${{ matrix.command }}
 
   # ------------------------------------------------------------------
   # JOB 3: Playwright Tests

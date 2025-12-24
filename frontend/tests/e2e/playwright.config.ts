@@ -6,7 +6,7 @@ export default defineConfig({
   testDir: './specs',
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
-  reporter: [['list'], ['html', { open: 'never' }]],
+  reporter: 'list',
   use: {
     baseURL,
     trace: 'retain-on-failure',
