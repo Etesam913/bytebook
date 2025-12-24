@@ -104,19 +104,9 @@ func RenameAttachmentSidecar(projectPath, oldFolder, oldFileName, newFolder, new
 	return nil
 }
 
-// splitFolderAndFile normalizes a folderAndFileName into folder and filename parts.
-func splitFolderAndFile(folderAndFileName string) (string, string) {
-	folder := filepath.Dir(folderAndFileName)
-	if folder == "." {
-		folder = ""
-	}
-	fileName := filepath.Base(folderAndFileName)
-	return folder, fileName
-}
-
 // GetTagsFromAttachment reads tags from the attachment sidecar.
 func GetTagsFromAttachment(projectPath, folderAndFileName string) ([]string, bool, error) {
-	folder, fileName := splitFolderAndFile(folderAndFileName)
+	folder, fileName := util.SplitFolderAndFile(folderAndFileName)
 	tags, err := ReadAttachmentTags(projectPath, folder, fileName)
 	if err != nil {
 		return []string{}, false, err
@@ -126,7 +116,7 @@ func GetTagsFromAttachment(projectPath, folderAndFileName string) ([]string, boo
 
 // AddTagsToAttachment merges new tags into the attachment sidecar and returns the updated list.
 func AddTagsToAttachment(projectPath, folderAndFileName string, newTags []string) ([]string, error) {
-	folder, fileName := splitFolderAndFile(folderAndFileName)
+	folder, fileName := util.SplitFolderAndFile(folderAndFileName)
 	existing, err := ReadAttachmentTags(projectPath, folder, fileName)
 	if err != nil {
 		return nil, err
@@ -149,7 +139,7 @@ func AddTagsToAttachment(projectPath, folderAndFileName string, newTags []string
 
 // DeleteTagsFromAttachment removes tags from the attachment sidecar and returns the updated list.
 func DeleteTagsFromAttachment(projectPath, folderAndFileName string, tagsToDelete []string) ([]string, error) {
-	folder, fileName := splitFolderAndFile(folderAndFileName)
+	folder, fileName := util.SplitFolderAndFile(folderAndFileName)
 	existing, err := ReadAttachmentTags(projectPath, folder, fileName)
 	if err != nil {
 		return nil, err
