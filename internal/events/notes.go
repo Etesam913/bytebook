@@ -236,7 +236,6 @@ func handleNoteWriteEvent(params EventParams, event *application.CustomEvent) {
 
 // updateNotesInIndex updates the search index with the new note content for multiple notes.
 func updateNotesInIndex(params EventParams, data []map[string]string) {
-
 	// TODO: Add flush logic in the loop
 	for _, note := range data {
 		folder, ok := note["folder"]
