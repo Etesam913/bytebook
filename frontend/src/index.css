@@ -123,9 +123,7 @@
 }
 
 pre {
-  user-select: text;
-  -webkit-user-select: text;
-  cursor: text;
+  @apply select-text cursor-text;
 }
 
 ::selection {
@@ -133,8 +131,7 @@ pre {
 }
 
 html {
-  cursor: default;
-  line-height: 1.7;
+  @apply cursor-default leading-[1.7];
 }
 
 html:has(.dark) {
@@ -143,9 +140,7 @@ html:has(.dark) {
 
 /* native keyboard focus */
 :focus-visible {
-  outline: 2px solid var(--accent-color);
-  border-color: var(--accent-color);
-  box-shadow: none;
+  @apply outline-2 outline-(--accent-color) border-(--accent-color) shadow-none;
 }
 
 mark {
@@ -155,21 +150,11 @@ mark {
 input[type='text'],
 textarea,
 [contenteditable] {
-  user-select: text;
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
+  @apply select-text;
 }
 
 .draggable-block-menu {
-  border-radius: 4px;
-  padding: 2px 1px;
-  cursor: grab;
-  opacity: 0;
-  position: absolute;
-  left: 0;
-  top: 0;
-  will-change: transform;
+  @apply rounded px-px py-[2px] cursor-grab opacity-0 absolute left-0 top-0 will-change-transform;
 }
 
 ::spelling-error {
@@ -180,22 +165,20 @@ textarea,
   @apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden transition-colors duration-125 will-change-transform;
 }
 .list-sidebar-item:focus {
-  outline: 2px auto;
+  @apply outline-2 outline-auto;
 }
 
 .card-sidebar-item {
   @apply flex flex-1 gap-2 items-center border-b border-zinc-300 dark:border-zinc-600 px-2 py-[0.2rem] relative z-10 overflow-x-hidden transition-colors will-change-transform;
 }
 .card-sidebar-item:focus {
-  outline: 2px auto;
+  @apply outline-2 outline-auto;
 }
 
 #content-editable-editor {
-  line-height: 2;
-  cursor: text;
+  @apply leading-loose cursor-text isolate py-1;
   /* Contain:layout style paint makes the editor handle larger content more efficiently */
   contain: layout style paint;
-  isolation: isolate;
 }
 
 #content-editable-editor h1,
@@ -234,22 +217,18 @@ h6.dragging {
 
 /* inline code styles */
 code {
-  font-size: 14px;
+  @apply text-sm;
 }
 
 /**
  * Codemirror styles
  */
 .cm-theme {
-  height: auto;
-  overflow-x: auto;
-  overflow-y: initial;
+  @apply h-auto overflow-x-auto overflow-y-visible;
 }
 
 .cm-content {
-  font-family: 'Jetbrains Mono', monospace;
-  font-size: 13px;
-  padding: 12px 8px !important;
+  @apply font-code text-[13px] py-3 px-2!;
 }
 
 .cm-background {
@@ -261,35 +240,34 @@ code {
 }
 
 .cm-gutter-element {
-  padding: 0 3px 0 0 !important;
+  @apply py-0 pr-[3px] pl-0!;
 }
 
 .cm-editor .cm-cursor {
-  border-left: 2.5px var(--accent-color) solid !important;
+  @apply border-l-[2.5px] border-l-(--accent-color) border-solid!;
 }
 
 /* Styling the vim cursor */
 .cm-editor:not(.cm-focused) .cm-fat-cursor {
-  outline-color: var(--accent-color) !important;
+  @apply outline-(--accent-color)!;
 }
 
 .cm-editor.cm-focused .cm-fat-cursor {
-  background: var(--accent-color) !important;
+  @apply bg-(--accent-color)!;
 }
 
 .cm-theme .cm-selectionLayer .cm-selectionBackground {
-  background: var(--accent-color-highlight) !important;
-  opacity: 0.8;
+  @apply bg-(--accent-color-highlight)! opacity-80;
 }
 
 .cm-focused {
-  outline: none !important;
+  @apply outline-none!;
 }
 .cm-cursorLayer {
-  animation: none !important;
+  @apply animate-none!;
 }
 .cm-gutters {
-  border: 0 !important;
+  @apply border-0!;
 }
 
 .cm-tooltip-custom {
@@ -338,12 +316,12 @@ code {
 
 /* Makes sure that the code block does not overlap with the traffic lights when in fullscreen mode */
 div[data-is-fullscreen='true'] .cm-scroller {
-  padding-top: 3rem !important;
+  @apply pt-12!;
 }
 
 /* Makes sure that the tabs are not overlapping with the icons in the code block */
 .sp-tabs {
-  padding-right: 106px;
+  @apply pr-[106px];
 }
 .sp-tab-button {
   @apply font-code;
@@ -354,15 +332,11 @@ div[data-is-fullscreen='true'] .cm-scroller {
 }
 
 .drag-grid {
-  display: grid;
-  grid-template-columns: 1.5rem 1fr;
-  row-gap: 0.35rem;
+  @apply grid grid-cols-[1.5rem_1fr] gap-y-[0.35rem];
 }
 
 .settings-row-grid {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 1rem;
+  @apply grid grid-cols-[1fr_2fr] gap-4;
 }
 
 /**
@@ -390,57 +364,53 @@ div[data-is-fullscreen='true'] .cm-scroller {
 }
 
 .root-ol {
-  padding: 0;
-  margin: 0;
-  list-style: decimal;
+  @apply p-0 m-0 list-decimal;
 }
 
 .ol-1 {
-  list-style-type: lower-alpha;
+  @apply list-[lower-alpha];
 }
 
 .check-list {
-  list-style-type: none;
+  @apply list-none;
 }
 
 .root-ul {
-  padding: 0;
-  margin: 0;
-  list-style: disc;
+  @apply p-0 m-0 list-disc;
 }
 
 .ul-1 {
-  list-style: circle;
+  @apply list-[circle];
 }
 
 .root-li {
-  margin: 0 32px;
+  @apply mx-8;
 }
 
 .nested-li {
-  list-style-type: none;
+  @apply list-none;
 }
 
 .nested-li:before,
 .nested-li:after {
-  display: none !important;
+  @apply hidden!;
 }
 
 .nested:before,
 .nested:after {
-  display: none;
+  @apply hidden;
 }
 
 .text-italic {
-  font-style: italic;
+  @apply italic;
 }
 
 .text-bold {
-  font-weight: bold;
+  @apply font-bold;
 }
 
 .text-underline {
-  text-decoration: unset;
+  @apply no-underline;
 }
 
 .text-strikethrough {
@@ -448,26 +418,15 @@ div[data-is-fullscreen='true'] .cm-scroller {
 }
 
 .editor-scroller {
-  min-height: 150px;
-  border: 0;
-  display: flex;
-  position: relative;
-  outline: 0;
-  z-index: 0;
-  overflow: auto;
-  resize: vertical;
+  @apply min-h-[150px] border-0 flex relative outline-0 z-0 overflow-auto resize-y;
 }
 
 .editor {
-  flex: auto;
-  position: relative;
-  resize: vertical;
-  z-index: -1;
-  cursor: text;
+  @apply flex-auto relative resize-y -z-10 cursor-text;
 }
 
 [contenteditable='true']:focus {
-  outline: 0;
+  @apply outline-0;
 }
 
 /* Table of contents list */
@@ -477,9 +436,7 @@ div[data-is-fullscreen='true'] .cm-scroller {
 
 .toc-list-item::before {
   content: '•';
-  font-size: 1.2em;
-  vertical-align: top;
-  margin-right: 0.5rem;
+  @apply text-[1.2em] align-top mr-2;
 }
 /* Image & Video Component */
 /* p:has(> span > div > :is(img, video, span[data-katex="true"])),
@@ -495,86 +452,52 @@ h6:has(> span > div > :is(img, video, span[data-katex="true"])) {
 /* Checkbox Styles */
 .PlaygroundEditorTheme__listItemChecked,
 .PlaygroundEditorTheme__listItemUnchecked {
-  position: relative;
-  margin-left: 8px;
-  margin-right: 8px;
-  padding-left: 24px;
-  padding-right: 24px;
-  list-style-type: none;
-  outline: none;
-  cursor: pointer;
-  margin-block: 0.315rem;
-  width: fit-content;
+  @apply relative mx-2 pl-6 pr-6 list-none outline-none cursor-pointer my-[0.315rem] w-fit;
 }
 
 .PlaygroundEditorTheme__listItemChecked > span,
 .PlaygroundEditorTheme__listItemUnchecked > span {
-  cursor: text;
-  text-decoration-thickness: 0.13rem;
-  padding-left: 0.2rem;
+  @apply cursor-text decoration-[0.13rem] pl-[0.2rem];
 }
 
 .PlaygroundEditorTheme__listItemChecked {
-  text-decoration-line: line-through;
-  text-decoration-color: var(--accent-color);
+  @apply line-through decoration-(--accent-color);
 }
 
 .PlaygroundEditorTheme__listItemUnchecked:before,
 .PlaygroundEditorTheme__listItemChecked:before,
 .PlaygroundEditorTheme__listItemUnchecked:after,
 .PlaygroundEditorTheme__listItemChecked:after {
-  border-radius: 999px;
+  @apply rounded-full;
 }
 
 .PlaygroundEditorTheme__listItemUnchecked:before,
 .PlaygroundEditorTheme__listItemChecked:before {
   content: '';
-  width: 19px;
-  height: 19px;
-  top: 4px;
-  left: 0;
-  display: block;
-  background-size: cover;
-  position: absolute;
+  @apply w-[19px] h-[19px] top-1 left-0 block bg-cover absolute;
 }
 
 .PlaygroundEditorTheme__listItemUnchecked[dir='rtl']:before,
 .PlaygroundEditorTheme__listItemChecked[dir='rtl']:before {
-  left: auto;
-  right: 0;
+  @apply left-auto right-0;
 }
 
 .PlaygroundEditorTheme__listItemUnchecked:before {
-  border: 1px solid #999;
+  @apply border border-[#999];
 }
 
 .PlaygroundEditorTheme__listItemChecked:before {
-  border: 1px solid var(--accent-color);
-  background-color: var(--accent-color);
-  background-repeat: no-repeat;
+  @apply border border-(--accent-color) bg-(--accent-color) bg-no-repeat;
 }
 
 .PlaygroundEditorTheme__listItemChecked:after {
   content: '';
-  border-color: #fff;
-  border-style: solid;
-  position: absolute;
-  display: block;
-  top: 8.5px;
-  width: 5.25px;
-  left: 7.25px;
-  right: 7px;
-  height: 9.5px;
-  transform: rotate(45deg);
-  border-width: 0 2.3px 2.3px 0;
-  cursor: pointer;
+  @apply border-white border-solid absolute block top-[8.5px] w-[5.25px] left-[7.25px] right-[7px] h-[9.5px] rotate-45 border-y-[2.3px] border-x-0 cursor-pointer;
 }
 
 /* Table Styles */
 .PlaygroundEditorTheme__table {
-  @apply border-collapse overflow-x-scroll overflow-y-scroll w-full my-[30px];
-  border-spacing: 0;
-  table-layout: fixed;
+  @apply border-collapse overflow-x-scroll overflow-y-scroll w-full my-[30px] border-spacing-0 table-fixed;
 }
 .PlaygroundEditorTheme__tableSelection *::selection {
   @apply bg-transparent;
@@ -604,74 +527,34 @@ th {
   @apply bg-(--accent-color-highlight);
 }
 .PlaygroundEditorTheme__tableCellPrimarySelected {
-  border: 2px solid rgb(60, 132, 244);
-  display: block;
-  height: calc(100% - 2px);
-  position: absolute;
-  width: calc(100% - 2px);
-  left: -1px;
-  top: -1px;
-  z-index: 2;
+  @apply border-2 border-[rgb(60,132,244)] block h-[calc(100%-2px)] absolute w-[calc(100%-2px)] -left-px -top-px z-2;
 }
 .PlaygroundEditorTheme__tableCellEditing {
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
-  border-radius: 3px;
+  @apply shadow-[0_0_5px_rgba(0,0,0,0.4)] rounded-[3px];
 }
 .PlaygroundEditorTheme__tableAddColumns {
-  position: absolute;
-  top: 0;
-  width: 20px;
-  background-color: #eee;
-  height: 100%;
-  right: -25px;
+  @apply absolute top-0 w-5 bg-[#eee] h-full -right-[25px] border-0 cursor-pointer;
   animation: table-controls 0.2s ease;
-  border: 0;
-  cursor: pointer;
 }
 .PlaygroundEditorTheme__tableAddColumns:after {
   background-image: url(../images/icons/plus.svg);
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  display: block;
+  @apply bg-contain bg-center bg-no-repeat block absolute top-0 left-0 w-full h-full opacity-40;
   content: ' ';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.4;
 }
 .PlaygroundEditorTheme__tableAddColumns:hover {
-  background-color: #c9dbf0;
+  @apply bg-[#c9dbf0];
 }
 .PlaygroundEditorTheme__tableAddRows {
-  position: absolute;
-  bottom: -25px;
-  width: calc(100% - 25px);
-  background-color: #eee;
-  height: 20px;
-  left: 0;
+  @apply absolute -bottom-[25px] w-[calc(100%-25px)] bg-[#eee] h-5 left-0 border-0 cursor-pointer;
   animation: table-controls 0.2s ease;
-  border: 0;
-  cursor: pointer;
 }
 .PlaygroundEditorTheme__tableAddRows:after {
   background-image: url(../images/icons/plus.svg);
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  display: block;
+  @apply bg-contain bg-center bg-no-repeat block absolute top-0 left-0 w-full h-full opacity-40;
   content: ' ';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.4;
 }
 .PlaygroundEditorTheme__tableAddRows:hover {
-  background-color: #c9dbf0;
+  @apply bg-[#c9dbf0];
 }
 @keyframes table-controls {
   0% {
@@ -682,34 +565,16 @@ th {
   }
 }
 .PlaygroundEditorTheme__tableCellResizeRuler {
-  display: block;
-  position: absolute;
-  width: 1px;
-  background-color: rgb(60, 132, 244);
-  height: 100%;
-  top: 0;
+  @apply block absolute w-px bg-[rgb(60,132,244)] h-full top-0;
 }
 .PlaygroundEditorTheme__tableCellActionButtonContainer {
-  display: block;
-  right: 5px;
-  top: 6px;
-  position: absolute;
-  z-index: 4;
-  width: 20px;
-  height: 20px;
+  @apply block right-[5px] top-[6px] absolute z-4 w-5 h-5;
 }
 .PlaygroundEditorTheme__tableCellActionButton {
-  background-color: #eee;
-  display: block;
-  border: 0;
-  border-radius: 20px;
-  width: 20px;
-  height: 20px;
-  color: #222;
-  cursor: pointer;
+  @apply bg-[#eee] block border-0 rounded-[20px] w-5 h-5 text-[#222] cursor-pointer;
 }
 .PlaygroundEditorTheme__tableCellActionButton:hover {
-  background-color: #ddd;
+  @apply bg-[#ddd];
 }
 
 .scrollbar-hidden {
