@@ -116,18 +116,6 @@ func CreateProjectDirectories(projectPath string) error {
 	return nil
 }
 
-// CreateSavedSearchesFile creates the saved-searches.json file if it doesn't exist.
-func CreateSavedSearchesFile(projectPath string) error {
-	searchDir := filepath.Join(projectPath, "search")
-	savedSearchesPath := filepath.Join(searchDir, "saved-searches.json")
-	_, err := util.CreateJSONFileIfNotExists(savedSearchesPath)
-	if err != nil {
-		return fmt.Errorf("failed to create saved searches file: %w", err)
-	}
-
-	return nil
-}
-
 type AppearanceProjectSettingsJson struct {
 	Theme                    string `json:"theme"`
 	AccentColor              string `json:"accentColor"`
