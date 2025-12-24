@@ -61,18 +61,14 @@ export function onResize(
   if (!elementBox || !noteContainer) return;
 
   const aspectRatio = elementBox.clientHeight / elementBox.clientWidth;
-
+  const initialElementWidth = elementBox.clientWidth;
+  const initialMouseX = mouseDownEvent.clientX;
   mouseDownEvent.stopPropagation();
   setDraggedGhostElement(mouseDownEvent.target as HTMLElement);
   dragItem(
     (dragEvent) => {
-      const mouseDownBox = mouseDownEvent.target as HTMLDivElement;
-      const mouseDownBoxRect = mouseDownBox.getBoundingClientRect();
-
-      const widthDiff = dragEvent.clientX - mouseDownBoxRect.right;
-
-      const outlineBoxWidth = elementBox.clientWidth + widthDiff;
-
+      const widthDiff = dragEvent.clientX - initialMouseX;
+      const outlineBoxWidth = initialElementWidth + widthDiff;
       widthMotionValue.set(
         Math.max(
           MIN_WIDTH,

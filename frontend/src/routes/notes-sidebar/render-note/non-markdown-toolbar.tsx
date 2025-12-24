@@ -49,7 +49,7 @@ export function NonMarkdownToolbar({
   const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
   const openRenameFileDialog = useRenameFileDialog();
-  useToggleSidebarEvent();
+  useToggleSidebarEvent(animationControls);
 
   const items = [
     {

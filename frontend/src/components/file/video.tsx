@@ -78,7 +78,7 @@ export function Video({
 
           <div
             ref={videoContainer}
-            className="inline-block relative cursor-auto mx-1"
+            className="inline-block relative cursor-auto mx-1 mr-2"
           >
             <AnimatePresence>
               {isSelected && !isLoading && (

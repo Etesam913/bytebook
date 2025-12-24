@@ -77,13 +77,16 @@ export function Image({
 
           <div
             ref={imageContainer}
-            className="inline-block relative cursor-auto mx-1"
+            className="inline-block relative cursor-auto mx-1 mr-2"
           >
             <AnimatePresence>
               {isSelected && !isLoading && (
                 <>
                   <SelectionHighlight className="outline-4 outline-(--accent-color)" />
-                  <div
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1, transition: { duration: 0.15 } }}
+                    exit={{ opacity: 0, transition: { duration: 0.15 } }}
                     className="cursor-sw-resize absolute bottom-[-8px] right-[-8px] w-5 h-5 z-20 bg-(--accent-color) rounded-sm"
                     onMouseDown={(e) =>
                       onResize(e, {
