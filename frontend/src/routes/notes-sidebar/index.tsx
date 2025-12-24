@@ -1,6 +1,6 @@
 import { type MotionValue, motion } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { useEffect, useRef } from 'react';
+import { Activity, useEffect, useRef } from 'react';
 import { getDefaultButtonVariants } from '../../animations.ts';
 import { dialogDataAtom } from '../../atoms';
 import { isNoteMaximizedAtom } from '../../atoms';
@@ -110,92 +110,90 @@ export function NotesSidebar({
 
   return (
     <>
-      {!isNoteMaximized && (
-        <>
-          <motion.aside
-            ref={sidebarRef}
-            style={{ width }}
-            className="text-md flex h-screen flex-col pb-3.5"
-            data-testid="notes-sidebar"
-          >
-            <div className="flex h-full flex-col overflow-y-auto relative">
-              <header className="pl-1.5 pr-2.5">
-                <section className="flex items-center py-3.5 gap-2">
-                  <Folder className="min-w-[20px]" />{' '}
-                  <Tooltip content={curFolder} placement="bottom">
-                    <p className="overflow-hidden text-ellipsis whitespace-nowrap">
-                      {curFolder}
-                    </p>
-                  </Tooltip>
-                  <Tooltip content="Rename folder" placement="right">
-                    <MotionIconButton
-                      {...getDefaultButtonVariants()}
-                      onClick={() =>
-                        setDialogData({
-                          isOpen: true,
-                          title: 'Rename Folder',
-                          isPending: false,
-                          children: (errorText) => (
-                            <RenameFolderDialog
-                              errorText={errorText}
-                              folderName={curFolder}
-                            />
-                          ),
-                          onSubmit: (e, setErrorText) =>
-                            renameFolder({
-                              e,
-                              setErrorText,
-                              folderFromSidebar: curFolder,
-                            }),
-                        })
-                      }
-                    >
-                      <Pen />
-                    </MotionIconButton>
-                  </Tooltip>
-                </section>
-                <Tooltip
-                  placement="right"
-                  content={
-                    <span className="flex items-center gap-0.5">
-                      <Command
-                        className="will-change-transform"
-                        width={12.8}
-                        height={12.8}
-                      />
-                      <p>N</p>
-                    </span>
-                  }
-                >
-                  <MotionButton
-                    {...getDefaultButtonVariants({
-                      disabled: false,
-                      whileHover: 1.025,
-                      whileTap: 0.975,
-                      whileFocus: 1.025,
-                    })}
-                    onClick={() => openCreateNoteDialog(curFolder)}
-                    className="align-center flex w-full justify-between bg-transparent mb-2"
-                  >
-                    Create Note <Compose className="will-change-transform" />
-                  </MotionButton>
+      <Activity mode={isNoteMaximized ? 'hidden' : 'visible'}>
+        <motion.aside
+          ref={sidebarRef}
+          style={{ width }}
+          className="text-md flex h-screen flex-col pb-3.5"
+          data-testid="notes-sidebar"
+        >
+          <div className="flex h-full flex-col overflow-y-auto relative">
+            <header className="pl-1.5 pr-2.5">
+              <section className="flex items-center py-3.5 gap-2">
+                <Folder className="min-w-[20px]" />{' '}
+                <Tooltip content={curFolder} placement="bottom">
+                  <p className="overflow-hidden text-ellipsis whitespace-nowrap">
+                    {curFolder}
+                  </p>
                 </Tooltip>
-              </header>
-              <section className="flex flex-col gap-2 overflow-y-auto flex-1">
-                <div className="flex h-full flex-col overflow-y-auto">
-                  <MyNotesSidebar
-                    layoutId="note-sidebar"
-                    curNote={curNote}
-                    curNoteExtension={curNoteExtension}
-                    noteQueryResult={noteQueryResult}
-                  />
-                </div>
+                <Tooltip content="Rename folder" placement="right">
+                  <MotionIconButton
+                    {...getDefaultButtonVariants()}
+                    onClick={() =>
+                      setDialogData({
+                        isOpen: true,
+                        title: 'Rename Folder',
+                        isPending: false,
+                        children: (errorText) => (
+                          <RenameFolderDialog
+                            errorText={errorText}
+                            folderName={curFolder}
+                          />
+                        ),
+                        onSubmit: (e, setErrorText) =>
+                          renameFolder({
+                            e,
+                            setErrorText,
+                            folderFromSidebar: curFolder,
+                          }),
+                      })
+                    }
+                  >
+                    <Pen />
+                  </MotionIconButton>
+                </Tooltip>
               </section>
-            </div>
-          </motion.aside>
-          <Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
-        </>
-      )}
+              <Tooltip
+                placement="right"
+                content={
+                  <span className="flex items-center gap-0.5">
+                    <Command
+                      className="will-change-transform"
+                      width={12.8}
+                      height={12.8}
+                    />
+                    <p>N</p>
+                  </span>
+                }
+              >
+                <MotionButton
+                  {...getDefaultButtonVariants({
+                    disabled: false,
+                    whileHover: 1.025,
+                    whileTap: 0.975,
+                    whileFocus: 1.025,
+                  })}
+                  onClick={() => openCreateNoteDialog(curFolder)}
+                  className="align-center flex w-full justify-between bg-transparent mb-2"
+                >
+                  Create Note <Compose className="will-change-transform" />
+                </MotionButton>
+              </Tooltip>
+            </header>
+            <section className="flex flex-col gap-2 overflow-y-auto flex-1">
+              <div className="flex h-full flex-col overflow-y-auto">
+                <MyNotesSidebar
+                  layoutId="note-sidebar"
+                  curNote={curNote}
+                  curNoteExtension={curNoteExtension}
+                  noteQueryResult={noteQueryResult}
+                />
+              </div>
+            </section>
+          </div>
+        </motion.aside>
+        <Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
+      </Activity>
       <ErrorBoundary
         key={`${curFolder}-${curNote}`}
         FallbackComponent={(fallbackProps) => (

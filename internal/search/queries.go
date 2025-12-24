@@ -48,13 +48,14 @@ func createMatchQuery(field, term string, boost float64) query.Query {
 // CreateFilenameQuery handles filename prefix queries (tokens starting with "f:" or "file:")
 // Returns a query that searches for folder and/or file names based on the prefix term.
 // Since filenames use a single tokenizer, we use direct prefix queries for exact matching.
-func CreateFilenameQuery(prefixTerm string) query.Query {
+func CreateFilenameQuery(prefixTerm string, boost float64) query.Query {
 	normalized := strings.TrimSpace(prefixTerm)
 	if normalized == "" {
 		// If the prefix is empty, return a query for all folders.
 		// This means match all documents where FieldType is FOLDER_TYPE.
 		typeQuery := bleve.NewTermQuery(FOLDER_TYPE)
 		typeQuery.SetField(FieldType)
+		typeQuery.SetBoost(boost)
 		return typeQuery
 	}
 
@@ -72,6 +73,7 @@ func CreateFilenameQuery(prefixTerm string) query.Query {
 
 	disjunctionQuery.AddQuery(fieldFolderQuery)
 	disjunctionQuery.AddQuery(fileNameQuery)
+	disjunctionQuery.SetBoost(boost)
 
 	return disjunctionQuery
 }
@@ -108,7 +110,7 @@ func createFuzzyContentQuery(text string) query.Query {
 	contentQuery.AddShould(nGramQuery)
 
 	// Also search file names
-	filenameQuery := CreateFilenameQuery(text)
+	filenameQuery := CreateFilenameQuery(text, 1)
 	contentQuery.AddShould(filenameQuery)
 
 	// contentQuery.AddShould(createMatchQuery(FieldCodeContent, text))
@@ -188,7 +190,7 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 		// Check for filename prefix (f: or file:)
 		if prefixTerm, ok := extractFilenamePrefix(token.Text); ok {
 			prefixTerm = strings.ToLower(prefixTerm)
-			return CreateFilenameQuery(prefixTerm)
+			return CreateFilenameQuery(prefixTerm, 1.0)
 		}
 
 		// Check for type prefix (t: or type:)

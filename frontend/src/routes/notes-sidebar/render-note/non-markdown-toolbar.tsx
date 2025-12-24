@@ -25,6 +25,7 @@ import type { ProjectSettings } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
 import { LocalFilePath } from '../../../utils/path';
 import type { LegacyAnimationControls } from 'motion/react';
+import { useToggleSidebarEvent } from './hooks';
 
 export function NonMarkdownToolbar({
   animationControls,
@@ -41,7 +42,6 @@ export function NonMarkdownToolbar({
   const isFullscreen = useAtomValue(isFullscreenAtom);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-
   const notePath = `${folder}/${filePath.note}`;
   const isPinned = projectSettings.pinnedNotes.has(notePath);
 
@@ -49,6 +49,7 @@ export function NonMarkdownToolbar({
   const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
   const openRenameFileDialog = useRenameFileDialog();
+  useToggleSidebarEvent();
 
   const items = [
     {

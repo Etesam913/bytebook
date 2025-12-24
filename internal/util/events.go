@@ -23,6 +23,7 @@ var Events = struct {
 	FolderCreateMenu string
 	Fullscreen       string
 	WindowReload     string
+	ToggleSidebar    string
 
 	// File watcher events
 	SettingsUpdate    string
@@ -66,6 +67,7 @@ var Events = struct {
 	FolderCreateMenu: "folder:create-dialog",
 	Fullscreen:       "window:fullscreen",
 	WindowReload:     "window:reload",
+	ToggleSidebar:    "sidebar:toggle",
 
 	// File watcher events
 	SettingsUpdate:    "settings:update",

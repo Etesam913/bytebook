@@ -124,6 +124,19 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	}
 	sub := item.GetSubmenu()
 
+	toggleSidebar := sub.Add("Toggle Sidebar")
+	toggleSidebar.SetAccelerator("cmdorctrl+s")
+	toggleSidebar.OnClick(func(ctx *application.Context) {
+		win := app.Window.Current()
+		if win != nil {
+			win.EmitEvent(util.Events.ToggleSidebar, map[string]any{})
+		} else {
+			log.Println(
+				"Current window could not be found: sidebar:toggle event could not be emitted",
+			)
+		}
+	})
+
 	searchPage := sub.Add("Search Through Notes")
 	searchPage.SetAccelerator("cmdorctrl+p")
 	searchPage.OnClick(func(ctx *application.Context) {
@@ -165,6 +178,12 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 		sub.RemoveMenuItem(actualSize)
 	}
 
+	actualSize = sub.Add("Actual Size")
+	actualSize.SetAccelerator("cmdorctrl+0")
+	actualSize.OnClick(func(ctx *application.Context) {
+		app.Event.Emit(util.Events.ZoomReset)
+	})
+
 	// Adds the new zoom in and out which will use document.style.zoom
 	zoomIn = sub.Add("Zoom In")
 	zoomIn.SetAccelerator("cmdorctrl+plus")
@@ -178,9 +197,4 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 		app.Event.Emit(util.Events.ZoomOut)
 	})
 
-	actualSize = sub.Add("Actual Size")
-	actualSize.SetAccelerator("cmdorctrl+0")
-	actualSize.OnClick(func(ctx *application.Context) {
-		app.Event.Emit(util.Events.ZoomReset)
-	})
 }

@@ -41,7 +41,7 @@ func (s *SearchService) FullTextSearch(searchQuery string) []search.SearchResult
 // with the backend search experience and now returns both files and folders.
 func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []FilePickerSearchResult {
 	normalizedQuery := strings.ToLower(strings.TrimSpace(searchQuery))
-	filenameQuery := search.CreateFilenameQuery(normalizedQuery)
+	filenameQuery := search.CreateFilenameQuery(normalizedQuery, 1.0)
 	searchRequest := search.CreateSearchRequest(filenameQuery, 20)
 
 	results, err := s.SearchIndex.Search(searchRequest)

@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { Activity, lazy, Suspense } from 'react';
 import { useMotionValue } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai/react';
 import { Toaster } from 'sonner';
@@ -92,9 +92,9 @@ function App() {
       <Dialog />
       <LoadingModal />
       <Toaster richColors theme="system" />
-      {!isNoteMaximized && !location.startsWith('/search') && (
+      <Activity mode={isNoteMaximized ? 'hidden' : 'visible'}>
         <FolderSidebar width={folderSidebarWidth} />
-      )}
+      </Activity>
       <Switch>
         <Route path={routeUrls.patterns.ROOT} />
 

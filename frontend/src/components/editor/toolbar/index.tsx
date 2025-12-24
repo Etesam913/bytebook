@@ -51,6 +51,7 @@ import {
   useKernelLaunchEvents,
 } from '../../../hooks/code';
 import { NoteFindPanel } from './note-find-panel/index';
+import { useToggleSidebarEvent } from '../../../routes/notes-sidebar/render-note/hooks';
 
 export function Toolbar({
   folder,
@@ -140,6 +141,7 @@ export function Toolbar({
   useCodeBlockStatus(editor);
   useCodeBlockExecuteResult(editor);
   useCodeBlockExecuteInput(editor);
+  useToggleSidebarEvent(animationControls);
 
   const FloatingPlugin = noteContainerElement
     ? createPortal(
