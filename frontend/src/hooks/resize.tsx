@@ -2,12 +2,39 @@ import { useAtom, useSetAtom } from 'jotai/react';
 import { useWailsEvent, WailsEvent } from './events';
 import { atom } from 'jotai';
 import { isFullscreenAtom } from '../atoms';
+import { useEffect } from 'react';
 
 const MIN_ZOOM = 0.75;
 const DEFAULT_ZOOM = 1;
-export const currentZoomAtom = atom(1);
 const MAX_ZOOM = 1.25;
 const ZOOM_STEP = 0.1;
+
+const ZOOM_STORAGE_KEY = 'currentZoom';
+
+const initializeZoom = (): number => {
+  try {
+    const stored = localStorage.getItem(ZOOM_STORAGE_KEY);
+    if (stored) {
+      const parsed = parseFloat(stored);
+      if (!isNaN(parsed) && parsed >= MIN_ZOOM && parsed <= MAX_ZOOM) {
+        return parsed;
+      }
+    }
+  } catch {
+    // Ignore localStorage errors
+  }
+  return DEFAULT_ZOOM;
+};
+
+export const currentZoomAtom = atom(
+  initializeZoom(),
+  (_, set, newZoom: number) => {
+    // Clamp the value to valid range
+    const clampedZoom = Math.min(Math.max(newZoom, MIN_ZOOM), MAX_ZOOM);
+    localStorage.setItem(ZOOM_STORAGE_KEY, clampedZoom.toString());
+    set(currentZoomAtom, clampedZoom);
+  }
+);
 
 /**
  * React hook that listens for Wails "zoom:in", "zoom:out", and "zoom:reset" events
@@ -22,6 +49,11 @@ const ZOOM_STEP = 0.1;
  */
 export function useZoom() {
   const [currentZoom, setCurrentZoom] = useAtom(currentZoomAtom);
+
+  // Apply the stored zoom level on initial mount
+  useEffect(() => {
+    document.body.style.zoom = currentZoom.toString();
+  }, []);
 
   useWailsEvent('zoom:in', () => {
     const newZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);

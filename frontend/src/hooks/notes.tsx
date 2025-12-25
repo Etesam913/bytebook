@@ -507,6 +507,12 @@ export function useNoteWriteEvent({
         markdown !== previousMarkdown
       ) {
         const { frontMatter, content } = parseFrontMatter(markdown);
+        console.log(
+          'update',
+          { folderFromEvent, folder },
+          { noteWithoutExtension, note },
+          { markdown, previousMarkdown }
+        );
         editor.update(
           () => {
             $addUpdateTag('skip-dom-selection');

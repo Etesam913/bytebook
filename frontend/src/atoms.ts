@@ -65,8 +65,56 @@ export const isDarkModeOnAtom = atom<boolean>(false);
 
 // Editor UI state atoms
 export const isToolbarDisabledAtom = atom<boolean>(false);
-export const isNoteMaximizedAtom = atom<boolean>(false);
-export const isFullscreenAtom = atom<boolean>(false);
+
+// isNoteMaximizedAtom with localStorage persistence
+const NOTE_MAXIMIZED_STORAGE_KEY = 'isNoteMaximized';
+
+const initializeNoteMaximized = (): boolean => {
+  try {
+    const stored = localStorage.getItem(NOTE_MAXIMIZED_STORAGE_KEY);
+    if (stored !== null) {
+      return stored === 'true';
+    }
+  } catch {
+    // Ignore localStorage errors
+  }
+  return false;
+};
+
+export const isNoteMaximizedAtom = atom(
+  initializeNoteMaximized(),
+  (get, set, update: boolean | ((prev: boolean) => boolean)) => {
+    const prev = get(isNoteMaximizedAtom);
+    const newValue = typeof update === 'function' ? update(prev) : update;
+    localStorage.setItem(NOTE_MAXIMIZED_STORAGE_KEY, String(newValue));
+    set(isNoteMaximizedAtom, newValue);
+  }
+);
+
+// isFullscreenAtom with localStorage persistence
+const FULLSCREEN_STORAGE_KEY = 'isFullscreen';
+
+const initializeFullscreen = (): boolean => {
+  try {
+    const stored = localStorage.getItem(FULLSCREEN_STORAGE_KEY);
+    if (stored !== null) {
+      return stored === 'true';
+    }
+  } catch {
+    // Ignore localStorage errors
+  }
+  return false;
+};
+
+export const isFullscreenAtom = atom(
+  initializeFullscreen(),
+  (get, set, update: boolean | ((prev: boolean) => boolean)) => {
+    const prev = get(isFullscreenAtom);
+    const newValue = typeof update === 'function' ? update(prev) : update;
+    localStorage.setItem(FULLSCREEN_STORAGE_KEY, String(newValue));
+    set(isFullscreenAtom, newValue);
+  }
+);
 
 export const dialogDataAtom = atom<DialogDataType>({
   isOpen: false,
