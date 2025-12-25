@@ -279,7 +279,7 @@ code {
 }
 
 .cm-tooltip-autocomplete > ul > li {
-  @apply py-1! px-1.5! rounded-md ;
+  @apply py-1! px-1.5! rounded-md;
 }
 
 .cm-tooltip-autocomplete > ul > li[aria-selected='true'] {

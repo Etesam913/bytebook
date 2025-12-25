@@ -14,6 +14,7 @@ require (
 require (
 	github.com/blevesearch/bleve v1.0.14
 	github.com/blevesearch/bleve/v2 v2.5.5
+	github.com/gorilla/websocket v1.5.3
 	github.com/labstack/gommon v0.4.2
 	github.com/robert-nix/ansihtml v1.0.1
 	github.com/yuin/goldmark v1.7.13

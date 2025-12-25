@@ -200,10 +200,6 @@ export function CodeMirrorEditor({
       })
     : [];
 
-  const codeDialogOpen = (
-    document.getElementById('code-dialog') as HTMLDialogElement | null
-  )?.open;
-
   return (
     <div className="flex flex-1 gap-2 min-h-0 h-full">
       {!hideResults && (

@@ -175,13 +175,14 @@ func main() {
 	// Creates the default window
 	window := ui.CreateWindow(app, "/", backgroundColor)
 	// TODO: Fix bug with ui.InitializeApplicationMenu breaking the app
-	ui.InitializeApplicationMenu(backgroundColor)
-
+	// lsp.CreateLanguageServerProtocol()
 	events.ListenToEvents(events.EventParams{
 		App:         app,
 		ProjectPath: projectPath,
 		Index:       searchIndex,
 	})
+
+	go ui.InitializeApplicationMenu(backgroundColor)
 
 	// Start file watcher and search indexing once the window runtime is ready,
 	// preventing "too many open files" errors from concurrent file descriptor usage
