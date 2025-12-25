@@ -50,7 +50,7 @@ export function CodeActions({
     <div
       className={cn(
         'absolute flex gap-1 -top-5 right-2.5 z-10 p-1 border border-zinc-200 dark:border-zinc-600 rounded-md shadow-lg bg-white dark:bg-zinc-750',
-        isExpanded && 'top-2 right-4'
+        isExpanded && 'top-2 right-2'
       )}
     >
       {hideResults && (

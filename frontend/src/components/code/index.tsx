@@ -134,6 +134,7 @@ export function Code({
     <div className="flex gap-2 items-center relative">
       <dialog
         ref={dialogRef}
+        id="code-dialog"
         className="backdrop:bg-zinc-500/65 dark:backdrop:bg-zinc-800/70 p-0 bg-transparent m-auto h-[calc(100vh-5rem)] w-[calc(100vw-5rem)] max-h-none max-w-none font-display"
         onClose={() => {
           setIsExpanded(false);

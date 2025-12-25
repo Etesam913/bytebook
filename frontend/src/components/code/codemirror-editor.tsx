@@ -4,6 +4,7 @@ import { isDarkModeOnAtom, projectSettingsAtom } from '../../atoms';
 import CodeMirror, {
   type ReactCodeMirrorRef,
   EditorView,
+  tooltips,
 } from '@uiw/react-codemirror';
 import { debounce } from '../../utils/general';
 import {
@@ -199,6 +200,10 @@ export function CodeMirrorEditor({
       })
     : [];
 
+  const codeDialogOpen = (
+    document.getElementById('code-dialog') as HTMLDialogElement | null
+  )?.open;
+
   return (
     <div className="flex flex-1 gap-2 min-h-0 h-full">
       {!hideResults && (
@@ -254,6 +259,12 @@ export function CodeMirrorEditor({
           }}
           className="cm-background"
           extensions={[
+            tooltips({
+              parent: document.body,
+            }),
+            // tooltips({
+            //   parent: document.getElementById('code-dialog') ?? document.body,
+            // }),
             EditorView.editable.of(isInNodeSelection),
             ...(projectSettings.code.codeBlockVimMode ? [vim()] : []),
             runCodeKeymap,

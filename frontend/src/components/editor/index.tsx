@@ -187,10 +187,7 @@ export function NotesEditor({
             <TabIndentationPlugin />
             <HistoryPlugin />
             <TablePlugin />
-            <SavePlugin
-              filePath={filePath}
-              setFrontmatter={setFrontmatter}
-            />
+            <SavePlugin filePath={filePath} setFrontmatter={setFrontmatter} />
             <EditorRefPlugin
               editorRef={(editorRefValue) => {
                 setEditor(editorRefValue);
