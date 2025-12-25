@@ -46,7 +46,7 @@ import type {
   EditorBlockTypes,
   FloatingDataType,
 } from '../../../types';
-import { FILE_SERVER_URL } from '../../../utils/general.ts';
+
 import type { FilePayload } from '../nodes/file';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
 import { QuoteIcon } from '../../../icons/quote.tsx';
@@ -338,7 +338,7 @@ export async function insertAttachmentFromFile({
     // Goes through all the files and add them to the editor
     editor.update(() => {
       const payloads: FilePayload[] = paths.map((filePath) => ({
-        src: `${FILE_SERVER_URL}/${filePath}`,
+        src: `/${filePath}`,
         alt: filePath.split('/').at(-1) ?? 'Untitled',
       }));
       if (editorSelection) {

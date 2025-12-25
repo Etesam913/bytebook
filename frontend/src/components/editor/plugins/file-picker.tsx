@@ -15,7 +15,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SearchFileNamesFromQuery } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
 import { mostRecentNotesAtom } from '../../../atoms';
-import { FILE_SERVER_URL, WAILS_URL } from '../../../utils/general';
+import { WAILS_URL } from '../../../utils/general';
 import { convertFilePathToQueryNotation } from '../../../utils/string-formatting';
 import { LocalFilePath } from '../../../utils/path';
 import {
@@ -105,7 +105,7 @@ export function FilePickerMenuPlugin() {
             } else {
               editor.dispatchCommand(INSERT_FILES_COMMAND, [
                 {
-                  src: `${FILE_SERVER_URL}/notes/${fullPath}`,
+                  src: `/notes/${fullPath}`,
                   alt: fullPath,
                 },
               ]);

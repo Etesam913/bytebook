@@ -6,7 +6,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useAtomValue } from 'jotai/react';
-import type { LexicalEditor } from 'lexical';
+import { $addUpdateTag, type LexicalEditor } from 'lexical';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
@@ -509,6 +509,7 @@ export function useNoteWriteEvent({
         const { frontMatter, content } = parseFrontMatter(markdown);
         editor.update(
           () => {
+            $addUpdateTag('skip-dom-selection');
             $convertFromMarkdownString(
               content,
               CUSTOM_TRANSFORMERS,

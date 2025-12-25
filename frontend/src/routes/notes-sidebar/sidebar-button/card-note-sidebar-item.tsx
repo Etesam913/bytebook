@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../../../types';
-import { FILE_SERVER_URL, humanFileSize } from '../../../utils/general';
+import { humanFileSize } from '../../../utils/general';
 import { cn } from '../../../utils/string-formatting';
 import { LocalFilePath } from '../../../utils/path';
 import { useNotePreviewQuery } from '../../../hooks/notes';
@@ -39,7 +39,7 @@ export function CardNoteSidebarItem({
   const imgSrc =
     !notePreviewResultData || firstImageSrc === ''
       ? isImageFile
-        ? `${FILE_SERVER_URL}/notes/${sidebarNotePath.folder}/${sidebarNotePath.note}`
+        ? `/notes/${sidebarNotePath.folder}/${sidebarNotePath.note}`
         : ''
       : firstImageSrc;
 

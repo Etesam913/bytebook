@@ -1,5 +1,4 @@
 export const WAILS_URL = 'wails://localhost:5173';
-export const FILE_SERVER_URL = 'http://localhost:5890';
 
 export const DEFAULT_SONNER_OPTIONS = {
   dismissible: true,

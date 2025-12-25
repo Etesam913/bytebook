@@ -7,7 +7,7 @@ import { Maximize } from '../../icons/maximize';
 import { Link } from '../../icons/link';
 import { Trash } from '../../icons/trash';
 import { removeDecoratorNode } from '../../utils/commands';
-import { FILE_SERVER_URL } from '../../utils/general';
+
 import { LocalFilePath } from '../../utils/path';
 import { navigate } from 'wouter/use-browser-location';
 
@@ -103,7 +103,7 @@ export function NoteComponentControls({
           onClick={() => {
             const src = buttonOptions.link?.src;
             if (!src) return;
-            if (src.startsWith(FILE_SERVER_URL)) {
+            if (src.startsWith('/notes')) {
               const segments = src.split('/');
               if (segments.length < 2) {
                 return;

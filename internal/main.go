@@ -41,9 +41,8 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	// Launches the file server for video/image files to be served to the frontend
-	go notes.LaunchFileServer(projectPath)
 	searchIndex, err := search.OpenOrCreateIndex(projectPath)
+
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -153,6 +152,7 @@ func main() {
 			Handler: application.AssetFileServerFS(bytebook.Frontend),
 			Middleware: application.ChainMiddleware(
 				util.SPAFallbackMiddleware(),
+				notes.LocalFileMiddleware(projectPath),
 			),
 		},
 		Mac: application.MacOptions{

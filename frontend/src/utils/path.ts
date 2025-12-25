@@ -1,5 +1,3 @@
-import { FILE_SERVER_URL } from './general';
-
 type FilePathAdditionalQueryParams = {
   highlight: string;
 };
@@ -166,15 +164,15 @@ export class LocalFilePath extends Path {
   }
 
   /**
-   * Returns the server URL to directly access the note file.
+   * Returns the URL path to directly access the note file.
    *
-   * @returns {string} The file URL in the format "${FILE_SERVER_URL}/notes/{folder}/{note}".
+   * @returns {string} The file URL in the format "/notes/{folder}/{note}".
    *
    * @example
    * const filePath = new FilePath({ folder: "docs", note: "readme.md" });
-   * filePath.getFileUrl(); // "http://localhost:5890/notes/docs/readme.md"
+   * filePath.getFileUrl(); // "/notes/docs/readme.md"
    */
   getFileUrl() {
-    return `${FILE_SERVER_URL}/notes/${this.folder}/${this.note}`;
+    return `/notes/${this.folder}/${this.note}`;
   }
 }

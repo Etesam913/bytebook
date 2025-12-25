@@ -1,7 +1,6 @@
 import '../test/setup';
 import { describe, it, expect } from 'bun:test';
 
-import { FILE_SERVER_URL } from './general';
 import { GlobalFilePath, LocalFilePath, Path } from './path';
 
 describe('LocalFilePath', () => {
@@ -39,9 +38,9 @@ describe('LocalFilePath', () => {
     );
   });
 
-  it('returns file server urls for the backing note', () => {
+  it('returns url paths for the backing note', () => {
     const path = new LocalFilePath({ folder: 'docs', note: 'report.md' });
-    expect(path.getFileUrl()).toBe(`${FILE_SERVER_URL}/notes/docs/report.md`);
+    expect(path.getFileUrl()).toBe('/notes/docs/report.md');
   });
 });
 
