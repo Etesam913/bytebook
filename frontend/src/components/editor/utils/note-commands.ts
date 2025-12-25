@@ -26,7 +26,7 @@ import { $createLinkNode } from '../nodes/link';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
 import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
 
-export const debouncedNoteHandleChange = debounce(noteHandleChange, 275);
+export const debouncedNoteHandleChange = debounce(noteHandleChange, 150);
 
 /**
  * Handles changes to the note editor.

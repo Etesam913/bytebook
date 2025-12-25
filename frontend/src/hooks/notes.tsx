@@ -6,7 +6,8 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useAtomValue } from 'jotai/react';
-import { $addUpdateTag, type LexicalEditor } from 'lexical';
+import { Window } from '@wailsio/runtime';
+import { type LexicalEditor } from 'lexical';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
@@ -21,7 +22,6 @@ import {
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { noteSortAtom, projectSettingsAtom } from '../atoms';
 import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
-import { previousMarkdownAtom } from '../components/editor/atoms';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import { getFilePathFromNoteSelectionRange } from '../utils/selection';
@@ -484,14 +484,18 @@ export function useNoteWriteEvent({
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
 }) {
   const queryClient = useQueryClient();
-  const previousMarkdown = useAtomValue(previousMarkdownAtom);
 
-  useWailsEvent('note:write', (e) => {
+  useWailsEvent('note:write', async (e) => {
     const data = e.data as {
       folder: string;
       note: string;
       markdown?: string;
     }[];
+
+    const isWindowFocused = await Window.IsFocused();
+
+    // Focused windows get their updates by the user typing, so we don't need to update the editor
+    if (isWindowFocused) return;
 
     for (const item of data) {
       const { folder: folderFromEvent, note: noteFromEvent, markdown } = item;
@@ -499,23 +503,13 @@ export function useNoteWriteEvent({
       // Remove .md extension for comparison
       const noteWithoutExtension = noteFromEvent.replace(/\.md$/, '');
 
-      // Check if this is the current note and content is different
-      if (
-        folderFromEvent === folder &&
-        noteWithoutExtension === note &&
-        markdown !== undefined &&
-        markdown !== previousMarkdown
-      ) {
-        const { frontMatter, content } = parseFrontMatter(markdown);
-        console.log(
-          'update',
-          { folderFromEvent, folder },
-          { noteWithoutExtension, note },
-          { markdown, previousMarkdown }
-        );
+      if (!markdown) return;
+      const { content, frontMatter } = parseFrontMatter(markdown);
+
+      // Only update the editor if the current note is the one that was changed
+      if (folderFromEvent === folder && noteWithoutExtension === note) {
         editor.update(
           () => {
-            $addUpdateTag('skip-dom-selection');
             $convertFromMarkdownString(
               content,
               CUSTOM_TRANSFORMERS,

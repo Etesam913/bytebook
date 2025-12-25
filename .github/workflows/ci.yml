@@ -42,6 +42,12 @@ jobs:
           sed -i 's|replace github.com/wailsapp/wails/v3 => ../wails/v3|replace github.com/wailsapp/wails/v3 => ./wails/v3|g' go.mod
           go mod tidy
 
+      # Create placeholder for go:embed directive (actual build happens in bundle-size-check job)
+      - name: Create frontend dist placeholder
+        run: |
+          mkdir -p frontend/dist
+          echo "placeholder" > frontend/dist/.gitkeep
+
       - name: Run Go Tests
         # Runs tests while the wails source and modified go.mod are present
         run: |
