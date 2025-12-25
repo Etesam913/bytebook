@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"embed"
 	"log"
 	"log/slog"
 	"os"
 	"sync"
 
+	bytebook "github.com/etesam913/bytebook"
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/events"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
@@ -21,14 +21,6 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 	wailsEvents "github.com/wailsapp/wails/v3/pkg/events"
 )
-
-// Wails uses Go's `embed` package to embed the frontend files into the binary.
-// Any files in the frontend/dist folder will be embedded into the binary and
-// made available to the frontend.
-// See https://pkg.go.dev/embed for more information.
-
-//go:embed frontend/dist
-var assets embed.FS
 
 // main function serves as the application's entry point. It initializes the application, creates a window,
 // and starts a goroutine that emits a time-based event every second. It subsequently runs the application and
@@ -158,7 +150,7 @@ func main() {
 			),
 		},
 		Assets: application.AssetOptions{
-			Handler: application.AssetFileServerFS(assets),
+			Handler: application.AssetFileServerFS(bytebook.Frontend),
 			Middleware: application.ChainMiddleware(
 				util.SPAFallbackMiddleware(),
 			),
