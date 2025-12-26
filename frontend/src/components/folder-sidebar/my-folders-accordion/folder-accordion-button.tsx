@@ -6,7 +6,6 @@ import {
   dialogDataAtom,
   selectionRangeAtom,
 } from '../../../atoms';
-import { draggedGhostElementAtom } from '../../editor/atoms';
 import {
   useFolderRenameMutation,
   useFolderDeleteMutation,
@@ -24,7 +23,6 @@ import {
   handleContextMenuSelection,
 } from '../../../utils/selection';
 import { cn } from '../../../utils/string-formatting';
-import { handleFolderDragStart } from '../../virtualized-list/utils';
 import {
   RenameFolderDialog,
   DeleteFolderDialog,
@@ -38,7 +36,6 @@ import {
 import { currentZoomAtom } from '../../../hooks/resize';
 import { useRoute } from 'wouter';
 import { useFolderFromRoute } from '../../../hooks/events';
-
 export function FolderAccordionButton({
   sidebarFolderName,
   i,
@@ -56,7 +53,6 @@ export function FolderAccordionButton({
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const isSelected = selectionRange.has(`folder:${folderFromButton}`);
 
-  const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
 
@@ -72,7 +68,6 @@ export function FolderAccordionButton({
   return (
     <button
       type="button"
-      draggable
       onDrop={(e) => {
         setIsDraggedOver(false);
         if (!e.dataTransfer.types.includes(BYTEBOOK_DRAG_DATA_FORMAT)) return;
@@ -110,14 +105,6 @@ export function FolderAccordionButton({
           e.dataTransfer.dropEffect = 'copy';
         }
       }}
-      onDragStart={(e) =>
-        handleFolderDragStart({
-          e,
-          setSelectionRange,
-          draggedFolder: alphabetizedFolders?.at(i) ?? '',
-          setDraggedGhostElement,
-        })
-      }
       onKeyDown={(e) => handleKeyNavigation(e)}
       className={cn(
         'list-sidebar-item',

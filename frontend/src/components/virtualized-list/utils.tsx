@@ -25,61 +25,6 @@ function getFileIcon(fileType: 'folder' | 'note' | 'image') {
 const MAX_VISIBLE_DRAG_PREVIEW_NOTES = 10;
 
 /**
- * Handles the drag start event for dragging folders.
- * Sets up the drag data and visual feedback for the drag operation.
- */
-export function handleFolderDragStart({
-  e,
-  setSelectionRange,
-  draggedFolder,
-  setDraggedGhostElement,
-}: {
-  e: DragEvent<HTMLAnchorElement> | DragEvent<HTMLButtonElement>;
-  setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
-  draggedFolder: string;
-  setDraggedGhostElement: Dispatch<SetStateAction<HTMLElement | null>>;
-}) {
-  setSelectionRange((tempSet) => {
-    const tempSelectionRange = new Set(tempSet);
-    tempSelectionRange.add(`folder:${draggedFolder}`);
-
-    const selectedFolders = [...tempSelectionRange].map(
-      (selectionRangeEntry) => {
-        const { value: folderFromSelectionRange } =
-          getContentTypeAndValueFromSelectionRangeValue(selectionRangeEntry);
-        return folderFromSelectionRange;
-      }
-    );
-
-    const selectedFiles = selectedFolders.map(
-      (folder) => `${WAILS_URL}/${folder}`
-    );
-
-    setFolderDataTransfer({ e, selectedFolders });
-
-    const dragElement = e.target as HTMLElement;
-    const ghostElement = createGhostElementFromHtmlElement({
-      element: dragElement,
-    });
-    setDraggedGhostElement(ghostElement);
-
-    const children = createDragPreviewChildren(selectedFiles, 'folder');
-    renderGhostElement(ghostElement, children, e);
-
-    // Clean up the ghost element after the drag ends
-    function handleDragEnd() {
-      setSelectionRange(new Set());
-      ghostElement.remove();
-      setDraggedGhostElement(null);
-      dragElement.removeEventListener('dragEnd', handleDragEnd);
-    }
-    dragElement.addEventListener('dragend', handleDragEnd);
-
-    return tempSelectionRange;
-  });
-}
-
-/**
  * Handles the drag start event for dragging notes.
  * Sets up the drag data and visual feedback for the drag operation.
  */
@@ -142,20 +87,6 @@ export function handleNoteDragStart({
 
     return tempSelectionRange;
   });
-}
-
-/**
- * Sets the data transfer object for folder drag events.
- */
-function setFolderDataTransfer({
-  e,
-  selectedFolders,
-}: {
-  e: DragEvent<HTMLAnchorElement> | DragEvent<HTMLButtonElement>;
-  selectedFolders: string[];
-}) {
-  const folderUrls = selectedFolders.map((folder) => `${WAILS_URL}/${folder}`);
-  e.dataTransfer.setData('text/plain', folderUrls.join(','));
 }
 
 /**
