@@ -215,3 +215,90 @@ func TestBuildBooleanQueryFromUserInput(t *testing.T) {
 		})
 	}
 }
+
+func TestExtractLangPrefix(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		want      string
+		wantFound bool
+	}{
+		{"lang prefix", "lang:go", "go", true},
+		{"l prefix", "l:python", "python", true},
+		{"quoted lang", `lang:"java"`, "java", true},
+		{"no prefix", "go", "", false},
+		{"other prefix", "f:go", "", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, found := extractLangPrefix(tt.input)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.wantFound, found)
+		})
+	}
+}
+
+func TestCreateLangQuery(t *testing.T) {
+	tests := []struct {
+		name      string
+		lang      string
+		wantField string
+	}{
+		{"go", "go", FieldHasGoCode},
+		{"golang", "golang", FieldHasGoCode},
+		{"java", "java", FieldHasJavaCode},
+		{"python", "python", FieldHasPythonCode},
+		{"py", "py", FieldHasPythonCode},
+		{"javascript", "javascript", FieldHasJavascriptCode},
+		{"js", "js", FieldHasJavascriptCode},
+		{"code", "code", FieldHasCode},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			q := createLangQuery(tt.lang)
+			termQuery, ok := q.(*query.TermQuery)
+			assert.True(t, ok, "Query should be a TermQuery")
+			assert.Equal(t, "T", termQuery.Term)
+			assert.Equal(t, tt.wantField, termQuery.FieldVal)
+		})
+	}
+
+	t.Run("unknown language", func(t *testing.T) {
+		q := createLangQuery("unknown")
+		_, ok := q.(*query.MatchNoneQuery)
+		assert.True(t, ok, "Query should be a MatchNoneQuery")
+	})
+}
+
+func TestBuildBooleanQueryWithLang(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		wantType interface{}
+	}{
+		{
+			name:     "lang query",
+			input:    "lang:go",
+			wantType: &query.TermQuery{},
+		},
+		{
+			name:     "lang and text",
+			input:    "lang:go AND search",
+			wantType: &query.ConjunctionQuery{},
+		},
+		{
+			name:     "lang or text",
+			input:    "lang:python OR search",
+			wantType: &query.DisjunctionQuery{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			q := BuildBooleanQueryFromUserInput(tt.input, 0)
+			assert.IsType(t, tt.wantType, q)
+		})
+	}
+}

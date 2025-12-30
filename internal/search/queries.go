@@ -165,6 +165,42 @@ func createTypeQuery(typeName string) query.Query {
 	return typeQuery
 }
 
+// extractLangPrefix extracts the lang prefix from tokens starting with "l:" or "lang:".
+func extractLangPrefix(text string) (string, bool) {
+	return extractPrefix(text, []string{"lang:", "l:"}, "\"")
+}
+
+// createLangQuery handles lang queries (tokens starting with "l:" or "lang:")
+// Returns a query that filters results by the presence of code in a specific language.
+func createLangQuery(langName string) query.Query {
+	langName = strings.ToLower(strings.TrimSpace(langName))
+	var field string
+
+	switch langName {
+	case "go", "golang":
+		field = FieldHasGoCode
+	case "java":
+		field = FieldHasJavaCode
+	case "python", "py":
+		field = FieldHasPythonCode
+	case "javascript", "js":
+		field = FieldHasJavascriptCode
+	case "code":
+		field = FieldHasCode
+	default:
+		// For unknown languages, return a none query as we don't have a field for it
+		return bleve.NewMatchNoneQuery()
+	}
+
+	// We use a TermQuery for "T" because boolean fields in Bleve stored as "T" or "F" strings
+	// when derived from boolean values using the default mapping or boolean field mapping.
+	// Actually, standard bleve boolean field mapping indexes `T` and `F`.
+	langQuery := bleve.NewTermQuery("T")
+	langQuery.SetField(field)
+
+	return langQuery
+}
+
 // BuildBooleanQueryFromUserInput builds a boolean query from a user input string.
 // Tokens prefixed with "f:" or "file:" are treated as filename prefixes;
 // tokens prefixed with "#" or "tag:" are treated as tag searches;
@@ -201,6 +237,11 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 		// Check for tag prefix (# or tag:)
 		if tagName, ok := extractTagPrefix(token.Text); ok {
 			return createTagQuery(tagName)
+		}
+
+		// Check for lang prefix (l: or lang:)
+		if langName, ok := extractLangPrefix(token.Text); ok {
+			return createLangQuery(langName)
 		}
 
 		// Handle exact matches (quoted tokens)

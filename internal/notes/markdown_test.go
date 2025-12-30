@@ -778,6 +778,11 @@ func TestGetJavaCodeContent(t *testing.T) {
 		result := GetJavaCodeContent(markdown)
 		assert.Len(t, result, 0)
 	})
+	t.Run("should not extract JavaScript code blocks as Java", func(t *testing.T) {
+		markdown := "```javascript\nconsole.log(\"hello\")\n```"
+		result := GetJavaCodeContent(markdown)
+		assert.Len(t, result, 0)
+	})
 }
 
 func TestGetPythonCodeContent(t *testing.T) {

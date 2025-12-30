@@ -29,7 +29,7 @@ var (
 	// Support optional attributes after the language (CommonMark info string), e.g. ```python id="..."
 	CODE_BLOCK_WITH_LANG_REGEX  = regexp.MustCompile("(?s)```(?:([a-zA-Z0-9_+-]+)[^\n]*)?\n(.*?)```")
 	GO_CODE_BLOCK_REGEX         = regexp.MustCompile("(?s)```go[^\n]*\n(.*?)```")
-	JAVA_CODE_BLOCK_REGEX       = regexp.MustCompile("(?s)```java[^\n]*\n(.*?)```")
+	JAVA_CODE_BLOCK_REGEX       = regexp.MustCompile("(?s)```java\\b[^\n]*\n(.*?)```")
 	PYTHON_CODE_BLOCK_REGEX     = regexp.MustCompile("(?s)```python[^\n]*\n(.*?)```")
 	JAVASCRIPT_CODE_BLOCK_REGEX = regexp.MustCompile("(?s)```(?:javascript|js)[^\n]*\n(.*?)```")
 	DRAWING_CODE_BLOCK_REGEX    = regexp.MustCompile("(?s)```drawing[^\n]*\n(.*?)```")
