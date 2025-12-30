@@ -30,10 +30,10 @@ tags: [tag3]
 		reIndexNotesWithUpdatedTags(params, folderAndNoteNames)
 
 		// Verify notes were indexed
-		doc1, _ := params.Index.Document("folder1/note1.md")
+		doc1, _ := (*params.Index).Document("folder1/note1.md")
 		assert.NotNil(t, doc1)
 
-		doc2, _ := params.Index.Document("folder1/note2.md")
+		doc2, _ := (*params.Index).Document("folder1/note2.md")
 		assert.NotNil(t, doc2)
 	})
 

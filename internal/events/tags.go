@@ -31,7 +31,7 @@ func reIndexNotesWithUpdatedTags(
 	params EventParams,
 	folderAndNoteNames []string,
 ) {
-	batch := params.Index.NewBatch()
+	batch := (*params.Index).NewBatch()
 
 	for _, folderAndNoteName := range folderAndNoteNames {
 		filePath := filepath.Join(params.ProjectPath, "notes", folderAndNoteName)
@@ -47,7 +47,7 @@ func reIndexNotesWithUpdatedTags(
 		if filepath.Ext(fileName) == ".md" {
 			_, err := search.AddMarkdownNoteToBatch(
 				batch,
-				params.Index,
+				*params.Index,
 				filePath,
 				folder,
 				fileName,
@@ -62,7 +62,7 @@ func reIndexNotesWithUpdatedTags(
 			fileExtension := filepath.Ext(fileName)
 			_, err := search.AddAttachmentToBatch(
 				batch,
-				params.Index,
+				*params.Index,
 				params.ProjectPath,
 				folder,
 				fileName,
@@ -77,7 +77,7 @@ func reIndexNotesWithUpdatedTags(
 	}
 
 	// Execute the batch
-	err := params.Index.Batch(batch)
+	err := (*params.Index).Batch(batch)
 	if err != nil {
 		log.Println("Error batching tags update operations", err)
 	}

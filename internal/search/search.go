@@ -1,6 +1,7 @@
 package search
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -14,7 +15,7 @@ import (
 // used by the application (fields, size, and highlighting for text_content and code_content).
 func CreateSearchRequest(q query.Query, limit int) *bleve.SearchRequest {
 	req := bleve.NewSearchRequest(q)
-	req.Fields = []string{FieldType, FieldFolder, FieldFileName, FieldLastUpdated, FieldCreatedDate, FieldTags}
+	req.Fields = []string{FieldType, FieldFolder, FieldFileName, FieldLastUpdated, FieldCreatedDate, FieldTags, FieldCodeContent}
 	req.Size = limit
 	req.IncludeLocations = true
 	req.Highlight = bleve.NewHighlightWithStyle("html")
@@ -31,6 +32,14 @@ type HighlightResult struct {
 	HighlightedTerm string `json:"highlightedTerm"`
 }
 
+// MarkdownNoteFields contains extracted fields from a markdown note search hit
+type MarkdownNoteFields struct {
+	Tags        []string
+	LastUpdated string
+	Created     string
+	CodeContent []string
+}
+
 // SearchResult represents one search hit returned to the frontend
 type SearchResult struct {
 	Type        string            `json:"type"`
@@ -41,6 +50,7 @@ type SearchResult struct {
 	Created     string            `json:"created"`
 	Tags        []string          `json:"tags"`
 	Highlights  []HighlightResult `json:"highlights"`
+	CodeContent []string          `json:"codeContent"`
 }
 
 // hasHighlightContent checks if a fragment contains actual highlighted content
@@ -82,8 +92,8 @@ func extractTags(hit *blevesearch.DocumentMatch) []string {
 	return tags
 }
 
-// extractMarkdownNoteFields extracts markdown note-specific fields (tags, lastUpdated, created) from a search hit
-func extractMarkdownNoteFields(hit *blevesearch.DocumentMatch) ([]string, string, string) {
+// extractMarkdownNoteFields extracts markdown note-specific fields (tags, lastUpdated, created, codeContent) from a search hit
+func extractMarkdownNoteFields(hit *blevesearch.DocumentMatch) MarkdownNoteFields {
 	tags := extractTags(hit)
 
 	// last_updated is stored as a datetime; retrieve as string if present
@@ -107,8 +117,29 @@ func extractMarkdownNoteFields(hit *blevesearch.DocumentMatch) ([]string, string
 			created = ""
 		}
 	}
+	fmt.Println(hit.Fields)
 
-	return tags, lastUpdated, created
+	// code_content is stored as []string; retrieve if present
+	codeContent := []string{}
+	if cc, ok := hit.Fields[FieldCodeContent]; ok {
+		switch t := cc.(type) {
+		// case []interface{}:
+		// 	for _, code := range t {
+		// 		if codeStr, ok := code.(string); ok {
+		// 			codeContent = append(codeContent, codeStr)
+		// 		}
+		// 	}
+		case []string:
+			codeContent = t
+		}
+	}
+
+	return MarkdownNoteFields{
+		Tags:        tags,
+		LastUpdated: lastUpdated,
+		Created:     created,
+		CodeContent: codeContent,
+	}
 }
 
 // extractHighlights extracts highlight fragments from a search hit
@@ -151,7 +182,7 @@ func processMarkdownNoteResult(hit *blevesearch.DocumentMatch) *SearchResult {
 		return nil
 	}
 
-	tags, lastUpdated, created := extractMarkdownNoteFields(hit)
+	fields := extractMarkdownNoteFields(hit)
 	highlights := extractHighlights(hit)
 
 	return &SearchResult{
@@ -159,9 +190,9 @@ func processMarkdownNoteResult(hit *blevesearch.DocumentMatch) *SearchResult {
 		Title:       fileName,
 		Folder:      folder,
 		Note:        fileName,
-		LastUpdated: lastUpdated,
-		Created:     created,
-		Tags:        tags,
+		LastUpdated: fields.LastUpdated,
+		Created:     fields.Created,
+		Tags:        fields.Tags,
 		Highlights:  highlights,
 	}
 }

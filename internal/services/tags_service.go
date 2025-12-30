@@ -14,7 +14,7 @@ import (
 
 type TagsService struct {
 	ProjectPath string
-	SearchIndex bleve.Index
+	SearchIndex *bleve.Index
 }
 
 var TAGS_SEARCH_LIMIT = 1000
@@ -122,7 +122,7 @@ func (t *TagsService) GetTagsForNotes(
 
 // Calls search.GetTags() to get all tags from the search index.
 func (t *TagsService) GetTags() config.BackendResponseWithData[[]string] {
-	tags, err := search.GetTags(t.SearchIndex)
+	tags, err := search.GetTags(*t.SearchIndex)
 	if err != nil {
 		return config.BackendResponseWithData[[]string]{
 			Success: false,
@@ -163,7 +163,7 @@ func (t *TagsService) DeleteTags(tagsToDelete []string) config.BackendResponseWi
 	searchRequest.Size = TAGS_SEARCH_LIMIT
 	searchRequest.Fields = []string{search.FieldFolder, search.FieldFileName}
 
-	searchResult, err := t.SearchIndex.Search(searchRequest)
+	searchResult, err := (*t.SearchIndex).Search(searchRequest)
 	if err != nil {
 		return config.BackendResponseWithoutData{
 			Success: false,

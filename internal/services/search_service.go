@@ -12,7 +12,7 @@ import (
 
 type SearchService struct {
 	ProjectPath string
-	SearchIndex bleve.Index
+	SearchIndex *bleve.Index
 }
 
 // FilePickerSearchResult represents a search hit returned to the editor's @ mention picker.
@@ -27,7 +27,7 @@ func (s *SearchService) FullTextSearch(searchQuery string) []search.SearchResult
 	totalQuery := search.BuildBooleanQueryFromUserInput(searchQuery, 1)
 	request := search.CreateSearchRequest(totalQuery, 10000)
 
-	res, err := s.SearchIndex.Search(request)
+	res, err := (*s.SearchIndex).Search(request)
 	if err != nil {
 		log.Println("full text search failed:", err)
 		return []search.SearchResult{}
@@ -44,7 +44,7 @@ func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []FilePicke
 	filenameQuery := search.CreateFilenameQuery(normalizedQuery, 1.0)
 	searchRequest := search.CreateSearchRequest(filenameQuery, 20)
 
-	results, err := s.SearchIndex.Search(searchRequest)
+	results, err := (*s.SearchIndex).Search(searchRequest)
 	if err != nil {
 		log.Println("filename search failed:", err)
 		return []FilePickerSearchResult{}
@@ -148,7 +148,7 @@ func (s *SearchService) RemoveSavedSearch(name string) config.BackendResponseWit
 // and creating a new one with all files re-indexed.
 // It updates the SearchService's SearchIndex field with the new index.
 func (s *SearchService) RegenerateSearchIndex() config.BackendResponseWithoutData {
-	newIndex, err := search.RegenerateSearchIndex(s.ProjectPath, s.SearchIndex)
+	newIndex, err := search.RegenerateSearchIndex(s.ProjectPath, *s.SearchIndex)
 	if err != nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
@@ -157,7 +157,7 @@ func (s *SearchService) RegenerateSearchIndex() config.BackendResponseWithoutDat
 	}
 
 	// Update the service's index reference
-	s.SearchIndex = newIndex
+	*s.SearchIndex = newIndex
 
 	return config.BackendResponseWithoutData{
 		Success: true,

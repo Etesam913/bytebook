@@ -45,10 +45,10 @@ func TestAddCreatedNotesToIndex(t *testing.T) {
 		addCreatedNotesToIndex(params, data)
 
 		// Verify notes were indexed
-		doc1, _ := params.Index.Document("folder1/note1.md")
+		doc1, _ := (*params.Index).Document("folder1/note1.md")
 		assert.NotNil(t, doc1)
 
-		doc2, _ := params.Index.Document("folder1/note2.md")
+		doc2, _ := (*params.Index).Document("folder1/note2.md")
 		assert.NotNil(t, doc2)
 	})
 
@@ -92,11 +92,11 @@ func TestRenameNotesInIndex(t *testing.T) {
 		renameNotesInIndex(params, renameData)
 
 		// Old note should be gone
-		oldDoc, _ := params.Index.Document("folder1/old-note.md")
+		oldDoc, _ := (*params.Index).Document("folder1/old-note.md")
 		assert.Nil(t, oldDoc)
 
 		// New note should exist
-		newDoc, _ := params.Index.Document("folder1/new-note.md")
+		newDoc, _ := (*params.Index).Document("folder1/new-note.md")
 		assert.NotNil(t, newDoc)
 	})
 
@@ -133,10 +133,10 @@ func TestDeleteNotesFromIndex(t *testing.T) {
 		deleteNotesFromIndex(params, deleteData)
 
 		// note1 should be gone, note2 should remain
-		doc1, _ := params.Index.Document("folder1/note1.md")
+		doc1, _ := (*params.Index).Document("folder1/note1.md")
 		assert.Nil(t, doc1)
 
-		doc2, _ := params.Index.Document("folder1/note2.md")
+		doc2, _ := (*params.Index).Document("folder1/note2.md")
 		assert.NotNil(t, doc2)
 	})
 }
@@ -162,7 +162,7 @@ func TestUpdateNotesInIndex(t *testing.T) {
 		updateNotesInIndex(params, updateData)
 
 		// Verify note is still indexed
-		doc, _ := params.Index.Document("folder1/note.md")
+		doc, _ := (*params.Index).Document("folder1/note.md")
 		assert.NotNil(t, doc)
 	})
 

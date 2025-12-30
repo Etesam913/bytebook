@@ -28,7 +28,7 @@ func handleNoteCreateEvent(params EventParams, event *application.CustomEvent) {
 // This function includes retry logic to handle race conditions where the file may not be
 // immediately available after the create event is fired.
 func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
-	batch := params.Index.NewBatch()
+	batch := (*params.Index).NewBatch()
 
 	for _, note := range data {
 		folder, ok := note["folder"]
@@ -50,7 +50,7 @@ func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
 				if filepath.Ext(noteName) == ".md" {
 					_, err := search.AddMarkdownNoteToBatch(
 						batch,
-						params.Index,
+						*params.Index,
 						filePath,
 						folder,
 						noteName,
@@ -65,7 +65,7 @@ func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
 					}
 					_, err := search.AddAttachmentToBatch(
 						batch,
-						params.Index,
+						*params.Index,
 						params.ProjectPath,
 						folder,
 						noteName,
@@ -84,7 +84,7 @@ func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
 		}
 	}
 
-	err := params.Index.Batch(batch)
+	err := (*params.Index).Batch(batch)
 	if err != nil {
 		log.Println("Error indexing batch", err)
 	}
@@ -104,7 +104,7 @@ func handleNoteRenameEvent(params EventParams, event *application.CustomEvent) {
 // renameNotesInIndex updates the search index to reflect renamed notes.
 // It deletes the old note entry and adds the new note entry if it is a markdown file.
 func renameNotesInIndex(params EventParams, data []map[string]string) {
-	batch := params.Index.NewBatch()
+	batch := (*params.Index).NewBatch()
 
 	// TODO: Add flush logic in the loop
 	for _, note := range data {
@@ -137,7 +137,7 @@ func renameNotesInIndex(params EventParams, data []map[string]string) {
 		if filepath.Ext(newNoteName) == ".md" {
 			_, err := search.AddMarkdownNoteToBatch(
 				batch,
-				params.Index,
+				*params.Index,
 				newFilePath,
 				newFolder,
 				newNoteName,
@@ -155,7 +155,7 @@ func renameNotesInIndex(params EventParams, data []map[string]string) {
 			}
 			_, err := search.AddAttachmentToBatch(
 				batch,
-				params.Index,
+				*params.Index,
 				params.ProjectPath,
 				newFolder,
 				newNoteName,
@@ -170,7 +170,7 @@ func renameNotesInIndex(params EventParams, data []map[string]string) {
 
 	}
 
-	err := params.Index.Batch(batch)
+	err := (*params.Index).Batch(batch)
 	if err != nil {
 		log.Println("Error batching rename operations", err)
 	}
@@ -190,7 +190,7 @@ func handleNoteDeleteEvent(params EventParams, event *application.CustomEvent) {
 // deleteNotesFromIndex removes notes from the search index in a batch operation.
 // It expects a slice of note data, each containing folder and note name.
 func deleteNotesFromIndex(params EventParams, data []map[string]string) {
-	batch := params.Index.NewBatch()
+	batch := (*params.Index).NewBatch()
 
 	// TODO: Add flush logic in the loop
 	for _, note := range data {
@@ -217,7 +217,7 @@ func deleteNotesFromIndex(params EventParams, data []map[string]string) {
 	}
 
 	// Execute the batch
-	err := params.Index.Batch(batch)
+	err := (*params.Index).Batch(batch)
 	if err != nil {
 		log.Println("Error batching delete operations", err)
 	}
@@ -265,7 +265,7 @@ func updateNotesInIndex(params EventParams, data []map[string]string) {
 			noteName,
 		)
 
-		err = params.Index.Index(noteId, bleveMarkdownDocument)
+		err = (*params.Index).Index(noteId, bleveMarkdownDocument)
 		if err != nil {
 			log.Printf("Error indexing note %s: %v", noteId, err)
 		}

@@ -22,10 +22,11 @@ func createTestIndex(t *testing.T) bleve.Index {
 
 // createTestParams creates an EventParams struct with a test index
 func createTestParams(t *testing.T) EventParams {
+	index := createTestIndex(t)
 	return EventParams{
 		App:         nil, // Not needed for these tests
 		ProjectPath: t.TempDir(),
-		Index:       createTestIndex(t),
+		Index:       &index,
 	}
 }
 
@@ -42,7 +43,7 @@ func TestAddFoldersToIndex(t *testing.T) {
 
 		// Verify all folders were indexed
 		for _, folderData := range data {
-			doc, err := params.Index.Document(folderData["folder"])
+			doc, err := (*params.Index).Document(folderData["folder"])
 			assert.NoError(t, err)
 			assert.NotNil(t, doc, "folder %s should be indexed", folderData["folder"])
 		}
@@ -53,10 +54,10 @@ func TestAddFoldersToIndex(t *testing.T) {
 		data := []map[string]string{{"folder": "f.1"}, {"bad": "v"}}
 		addFoldersToIndex(params, data)
 
-		doc, _ := params.Index.Document("f.1")
+		doc, _ := (*params.Index).Document("f.1")
 		assert.NotNil(t, doc)
 
-		doc, _ = params.Index.Document("v")
+		doc, _ = (*params.Index).Document("v")
 		assert.Nil(t, doc)
 	})
 }
@@ -81,16 +82,16 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 		deleteFoldersFromIndex(params, deleteData)
 
 		// Verify folder1 and folder3 were deleted
-		doc1, err := params.Index.Document("folder1")
+		doc1, err := (*params.Index).Document("folder1")
 		assert.NoError(t, err)
 		assert.Nil(t, doc1)
 
-		doc3, err := params.Index.Document("folder3")
+		doc3, err := (*params.Index).Document("folder3")
 		assert.NoError(t, err)
 		assert.Nil(t, doc3)
 
 		// folder2 should still exist
-		doc2, err := params.Index.Document("folder2")
+		doc2, err := (*params.Index).Document("folder2")
 		assert.NoError(t, err)
 		assert.NotNil(t, doc2)
 	})
@@ -115,12 +116,12 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 		deleteFoldersFromIndex(params, deleteData)
 
 		// folder1 should be deleted
-		doc1, err := params.Index.Document("folder1")
+		doc1, err := (*params.Index).Document("folder1")
 		assert.NoError(t, err)
 		assert.Nil(t, doc1)
 
 		// folder2 should still exist
-		doc2, err := params.Index.Document("folder2")
+		doc2, err := (*params.Index).Document("folder2")
 		assert.NoError(t, err)
 		assert.NotNil(t, doc2)
 	})

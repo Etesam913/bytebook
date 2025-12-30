@@ -14,7 +14,7 @@ import (
 
 type NoteService struct {
 	ProjectPath string
-	SearchIndex bleve.Index
+	SearchIndex *bleve.Index
 }
 
 // GetNotes returns a list of note filenames (with extension as a query param) in the specified folder,

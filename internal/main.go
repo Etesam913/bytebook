@@ -73,20 +73,20 @@ func main() {
 			application.NewService(
 				&services.NoteService{
 					ProjectPath: projectPath,
-					SearchIndex: searchIndex,
+					SearchIndex: &searchIndex,
 				},
 			),
 			application.NewService(
 				&services.NodeService{ProjectPath: projectPath},
 			),
 			application.NewService(
-				&services.SearchService{ProjectPath: projectPath, SearchIndex: searchIndex},
+				&services.SearchService{ProjectPath: projectPath, SearchIndex: &searchIndex},
 			),
 			application.NewService(
 				&services.SettingsService{ProjectPath: projectPath},
 			),
 			application.NewService(
-				&services.TagsService{ProjectPath: projectPath, SearchIndex: searchIndex},
+				&services.TagsService{ProjectPath: projectPath, SearchIndex: &searchIndex},
 			),
 			application.NewService(
 				&services.CodeService{
@@ -179,7 +179,7 @@ func main() {
 	events.ListenToEvents(events.EventParams{
 		App:         app,
 		ProjectPath: projectPath,
-		Index:       searchIndex,
+		Index:       &searchIndex,
 	})
 
 	go ui.InitializeApplicationMenu(backgroundColor)

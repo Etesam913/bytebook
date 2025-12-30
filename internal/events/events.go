@@ -11,7 +11,7 @@ import (
 type EventParams struct {
 	App         *application.App
 	ProjectPath string
-	Index       bleve.Index
+	Index       *bleve.Index
 }
 
 func ListenToEvents(params EventParams) {

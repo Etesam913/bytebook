@@ -1,6 +1,7 @@
 package search
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -94,6 +95,10 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 	lastUpdated, _ := notes.GetLastUpdatedFromFrontmatter(markdown)
 	createdDate, _ := notes.GetCreatedDateFromFrontmatter(markdown)
 	tags, _ := notes.GetTagsFromFrontmatter(markdown)
+
+	if fileName == "Code Block.md" {
+		fmt.Println(fileName, markdown, notes.GetCodeContent(markdown))
+	}
 
 	return MarkdownNoteBleveDocument{
 		Type:                  MARKDOWN_NOTE_TYPE,

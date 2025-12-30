@@ -43,7 +43,7 @@ func handleFolderCreateEvent(params EventParams, event *application.CustomEvent)
 }
 
 func addFoldersToIndex(params EventParams, data []map[string]string) {
-	batch := params.Index.NewBatch()
+	batch := (*params.Index).NewBatch()
 
 	for _, folder := range data {
 		folderName, ok := folder["folder"]
@@ -52,20 +52,20 @@ func addFoldersToIndex(params EventParams, data []map[string]string) {
 			continue
 		}
 
-		_, err := search.AddFolderToBatch(batch, params.Index, folderName)
+		_, err := search.AddFolderToBatch(batch, *params.Index, folderName)
 		if err != nil {
 			log.Printf("Error adding folder to batch: %v", err)
 		}
 	}
 
-	err := params.Index.Batch(batch)
+	err := (*params.Index).Batch(batch)
 	if err != nil {
 		log.Println("Error indexing batch", err)
 	}
 }
 
 func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
-	batch := params.Index.NewBatch()
+	batch := (*params.Index).NewBatch()
 
 	// Process each folder delete event in the batch
 	for _, eventData := range data {
@@ -86,7 +86,7 @@ func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
 		searchRequest.Size = 1000 // Set a reasonable limit
 		searchRequest.Fields = []string{search.FieldFolder}
 
-		searchResult, err := params.Index.Search(searchRequest)
+		searchResult, err := (*params.Index).Search(searchRequest)
 		if err != nil {
 			log.Printf("Error searching for documents in folder %s: %v", folderName, err)
 			continue
@@ -98,7 +98,7 @@ func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
 		}
 	}
 
-	err := params.Index.Batch(batch)
+	err := (*params.Index).Batch(batch)
 	if err != nil {
 		log.Printf("Error batching delete operations: %v", err)
 	}
@@ -151,15 +151,15 @@ func renameFoldersInIndex(params EventParams, data []map[string]string) {
 
 		// Step 2: Re-index all files in the new folder
 		newFolderPath := filepath.Join(params.ProjectPath, "notes", newFolderName)
-		batch := params.Index.NewBatch()
-		err := search.IndexAllFilesInFolderWithBatch(newFolderPath, newFolderName, params.Index, batch)
+		batch := (*params.Index).NewBatch()
+		err := search.IndexAllFilesInFolderWithBatch(newFolderPath, newFolderName, *params.Index, batch)
 		if err != nil {
 			log.Printf("Error re-indexing folder %s: %v", newFolderName, err)
 			continue
 		}
 
 		if batch.Size() > 0 {
-			if err := params.Index.Batch(batch); err != nil {
+			if err := (*params.Index).Batch(batch); err != nil {
 				log.Printf("Error committing re-index batch for folder %s: %v", newFolderName, err)
 			}
 		}
@@ -169,7 +169,7 @@ func renameFoldersInIndex(params EventParams, data []map[string]string) {
 // deleteRenameFolderFromIndex deletes all documents associated with the old folder name during a rename operation.
 // This is the first step in the folder rename process.
 func deleteRenameFolderFromIndex(params EventParams, oldFolderName string) {
-	batch := params.Index.NewBatch()
+	batch := (*params.Index).NewBatch()
 
 	// Delete the folder document itself
 	batch.Delete(oldFolderName)
@@ -182,7 +182,7 @@ func deleteRenameFolderFromIndex(params EventParams, oldFolderName string) {
 	searchRequest.Size = 1000 // Set a reasonable limit
 	searchRequest.Fields = []string{search.FieldFolder}
 
-	searchResult, err := params.Index.Search(searchRequest)
+	searchResult, err := (*params.Index).Search(searchRequest)
 	if err != nil {
 		log.Printf("Error searching for documents in folder %s: %v", oldFolderName, err)
 		return
@@ -193,7 +193,7 @@ func deleteRenameFolderFromIndex(params EventParams, oldFolderName string) {
 		batch.Delete(hit.ID)
 	}
 
-	err = params.Index.Batch(batch)
+	err = (*params.Index).Batch(batch)
 	if err != nil {
 		log.Printf("Error batching delete operations for folder %s: %v", oldFolderName, err)
 	}

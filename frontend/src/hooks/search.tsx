@@ -52,6 +52,8 @@ type NoteSearchResult = {
   created: string;
   /** Array of highlight results for this note */
   highlights: HighlightResult[];
+  /** Array of code content results for this note */
+  codeContent: string[];
 };
 
 /**
@@ -92,10 +94,11 @@ const searchQueries = {
             });
             notes.push({
               filePath,
-              tags: result.tags || [],
-              lastUpdated: result.lastUpdated || '',
-              created: result.created || '',
-              highlights: result.highlights || [],
+              tags: result.tags ?? [],
+              lastUpdated: result.lastUpdated ?? '',
+              created: result.created ?? '',
+              highlights: result.highlights ?? [],
+              codeContent: result.codeContent ?? [],
             });
           } else if (result.type === 'attachment') {
             const filePath = new LocalFilePath({
@@ -110,6 +113,7 @@ const searchQueries = {
             folders.push({ folder: result.folder });
           }
         });
+        console.log(notes);
 
         return { notes, attachments, folders };
       },
