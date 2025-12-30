@@ -88,7 +88,7 @@ export function SearchResultHeader({
       <span
         className={cn(
           'inline-block',
-          isOpen ? 'rotate-90 -translate-0.25' : 'rotate-0 '
+          isOpen ? 'rotate-90 -translate-px' : 'rotate-0 '
         )}
         aria-hidden="true"
       >
@@ -133,7 +133,7 @@ export function SearchResultNote({
     >
       <SearchHighlights highlights={highlights} />
       {codeContent.length > 0 && (
-        <pre className="font-code text-xs py-1 px-1.5 bg-zinc-100 dark:bg-zinc-700 border-2 border-zinc-200 dark:border-zinc-650 w-fit max-w-full rounded-md overflow-hidden text-ellipsis dark:group-hover:border-zinc-600 dark:group-hover:bg-zinc-600">
+        <pre className="font-code text-xs py-1 px-1.5 bg-zinc-100 dark:bg-zinc-700 max-h-48 border-2 border-zinc-200 dark:border-zinc-650 w-fit max-w-full rounded-md overflow-hidden text-ellipsis dark:group-hover:border-zinc-600 dark:group-hover:bg-zinc-600">
           {codeContent.join('\n')}
         </pre>
       )}

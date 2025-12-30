@@ -1,7 +1,6 @@
 package search
 
 import (
-	"fmt"
 	"log"
 	"regexp"
 	"strings"
@@ -118,7 +117,6 @@ func extractMarkdownNoteFields(hit *blevesearch.DocumentMatch) MarkdownNoteField
 			created = ""
 		}
 	}
-	fmt.Println(hit.Fields)
 
 	// code_content is stored as []string; retrieve if present
 	codeContent := []string{}

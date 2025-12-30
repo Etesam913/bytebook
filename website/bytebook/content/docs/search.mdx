@@ -1,6 +1,6 @@
 ---
 title: Search
-description: Query notes, filenames, folders, types, and tags.
+description: Query notes, filenames, folders, types, tags, and languages.
 ---
 
 Bytebook search supports a small query language to help you find notes, folders, and attachments quickly.
@@ -116,5 +116,36 @@ Find folders named "docs":
 
 ```txt
 t:folder f:docs
+```
+
+## Language filters
+
+Use `l:` or `lang:` to filter notes by the programming language of code blocks they contain:
+
+- `go` / `golang`
+- `java`
+- `python` / `py`
+- `javascript` / `js`
+
+You can also use `l:code` to filter for any note containing at least one code block.
+
+### Examples:
+
+Find notes containing Go code and the term "middleware":
+
+```txt
+l:go middleware
+```
+
+Find notes containing Python code and the exact phrase "data science":
+
+```txt
+lang:python "data science"
+```
+
+Find all notes that contain code:
+
+```txt
+l:code
 ```
 
