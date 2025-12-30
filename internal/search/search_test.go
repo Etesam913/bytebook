@@ -63,6 +63,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 			Note:        "doc1",
 			LastUpdated: "",
 			Highlights:  []HighlightResult{{Content: "This contains <mark>search term</mark>.", IsCode: false, HighlightedTerm: "search term"}},
+			CodeContent: []string{},
 		}
 		assert.Equal(t, expectedFirst, results[0])
 
@@ -75,6 +76,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 			LastUpdated: "2023-12-02T15:45:00Z",
 			Created:     "2023-11-02T15:45:00Z",
 			Highlights:  []HighlightResult{{Content: "This also contains <mark>search term</mark>.", IsCode: false, HighlightedTerm: "search term"}},
+			CodeContent: []string{},
 		}
 		assert.Equal(t, expectedSecond, results[1])
 	})

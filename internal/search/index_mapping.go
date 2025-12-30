@@ -96,7 +96,7 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 	createdDate, _ := notes.GetCreatedDateFromFrontmatter(markdown)
 	tags, _ := notes.GetTagsFromFrontmatter(markdown)
 
-	if fileName == "Code Block.md" {
+	if fileName == "etesam-1.md" {
 		fmt.Println(fileName, markdown, notes.GetCodeContent(markdown))
 	}
 
@@ -269,6 +269,10 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	keywordTextFieldMapping := bleve.NewTextFieldMapping()
 	keywordTextFieldMapping.Analyzer = "keyword"
 
+	storedKeywordTextFieldMapping := bleve.NewTextFieldMapping()
+	storedKeywordTextFieldMapping.Analyzer = "keyword"
+	storedKeywordTextFieldMapping.Store = true
+
 	// Case insensitive word search
 	storedSimpleFieldMapping := bleve.NewTextFieldMapping()
 	storedSimpleFieldMapping.Analyzer = "simple"
@@ -296,11 +300,11 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	documentMapping.AddFieldMappingsAt(FieldFileExtension, keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldTextContent, textFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldTextContentNgram, textNgramFieldMapping)
-	documentMapping.AddFieldMappingsAt(FieldCodeContent, keywordTextFieldMapping)
-	documentMapping.AddFieldMappingsAt(FieldGoCodeContent, keywordTextFieldMapping)
-	documentMapping.AddFieldMappingsAt(FieldJavaCodeContent, keywordTextFieldMapping)
-	documentMapping.AddFieldMappingsAt(FieldPythonCodeContent, keywordTextFieldMapping)
-	documentMapping.AddFieldMappingsAt(FieldJavascriptCodeContent, keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldCodeContent, storedKeywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldGoCodeContent, storedKeywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldJavaCodeContent, storedKeywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldPythonCodeContent, storedKeywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldJavascriptCodeContent, storedKeywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldHasDrawing, bleve.NewBooleanFieldMapping())
 	documentMapping.AddFieldMappingsAt(FieldHasCode, bleve.NewBooleanFieldMapping())
 	documentMapping.AddFieldMappingsAt(FieldHasGoCode, bleve.NewBooleanFieldMapping())

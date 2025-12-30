@@ -45,7 +45,7 @@ function SearchResultItem({
       draggable={false}
       ref={onRef}
       className={cn(
-        'flex flex-col gap-y-1 py-2 px-2 w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-650 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',
+        'group flex flex-col gap-y-1 py-2 px-2 w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-650 focus-visible:outline-2 focus-visible:outline-sky-500 break-all',
         resultIndex === selectedIndex && 'bg-zinc-150 dark:bg-zinc-700'
       )}
     >
@@ -110,7 +110,8 @@ export function SearchResultNote({
   selectedIndex: number;
   onRef: (el: HTMLAnchorElement | null) => void;
 }) {
-  const { filePath, tags, lastUpdated, created, highlights } = data;
+  const { filePath, tags, lastUpdated, created, highlights, codeContent } =
+    data;
   let pathToNote = filePath.getLinkToNote();
   const firstHighlightedTerm = highlights[0]?.highlightedTerm;
 
@@ -131,17 +132,26 @@ export function SearchResultNote({
       pathDisplay={filePath.toString()}
     >
       <SearchHighlights highlights={highlights} />
+      {codeContent.length > 0 && (
+        <pre className="font-code text-xs py-1 px-1.5 bg-zinc-100 dark:bg-zinc-700 border-2 border-zinc-200 dark:border-zinc-650 w-fit max-w-full rounded-md overflow-hidden text-ellipsis dark:group-hover:border-zinc-600 dark:group-hover:bg-zinc-600">
+          {codeContent.join('\n')}
+        </pre>
+      )}
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-1 text-xs">
           {tags.map((tagName, tagIdx) => (
-            <Tag key={`${filePath.toString()}-${tagIdx}`} tagName={tagName} />
+            <Tag
+              key={`${filePath.toString()}-${tagIdx}`}
+              tagName={tagName}
+              className="group-hover:bg-zinc-150 dark:group-hover:bg-zinc-600"
+            />
           ))}
         </div>
       )}
       <div className="flex gap-x-1 items-center justify-between text-xs">
         {lastUpdated && (
           <div className="text-zinc-500 dark:text-zinc-400">
-            Updated {formatDate(lastUpdated, 'relative')}
+            Updated {' ' + formatDate(lastUpdated, 'relative')}
           </div>
         )}
         {created && (
@@ -181,7 +191,11 @@ export function SearchResultAttachment({
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-1 text-xs">
           {tags.map((tagName, tagIdx) => (
-            <Tag key={`${filePath.toString()}-${tagIdx}`} tagName={tagName} />
+            <Tag
+              key={`${filePath.toString()}-${tagIdx}`}
+              tagName={tagName}
+              className="group-hover:bg-zinc-200 dark:group-hover:bg-zinc-600"
+            />
           ))}
         </div>
       )}

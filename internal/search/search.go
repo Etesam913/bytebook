@@ -2,6 +2,7 @@ package search
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
@@ -122,15 +123,18 @@ func extractMarkdownNoteFields(hit *blevesearch.DocumentMatch) MarkdownNoteField
 	// code_content is stored as []string; retrieve if present
 	codeContent := []string{}
 	if cc, ok := hit.Fields[FieldCodeContent]; ok {
+		log.Printf("type: %T", cc)
 		switch t := cc.(type) {
-		// case []interface{}:
-		// 	for _, code := range t {
-		// 		if codeStr, ok := code.(string); ok {
-		// 			codeContent = append(codeContent, codeStr)
-		// 		}
-		// 	}
+		case []any:
+			for _, code := range t {
+				if codeStr, ok := code.(string); ok {
+					codeContent = append(codeContent, codeStr)
+				}
+			}
 		case []string:
 			codeContent = t
+		case string:
+			codeContent = []string{t}
 		}
 	}
 
@@ -194,6 +198,7 @@ func processMarkdownNoteResult(hit *blevesearch.DocumentMatch) *SearchResult {
 		Created:     fields.Created,
 		Tags:        fields.Tags,
 		Highlights:  highlights,
+		CodeContent: fields.CodeContent,
 	}
 }
 
