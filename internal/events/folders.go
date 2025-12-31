@@ -1,7 +1,6 @@
 package events
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -9,8 +8,10 @@ import (
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/etesam913/bytebook/internal/search"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -203,16 +204,24 @@ func deleteRenameFolderFromIndex(params EventParams, oldFolderName string) {
 // and their associated tags. It updates internal markdown URLs to reflect the new folder name and updates
 // any references to the folder in the tags system. The function takes the old and new folder names as input.
 func updateMarkdownFilesForFolderRename(projectPath, oldFolderName, newFolderName string) {
+	workerGroup := new(errgroup.Group)
+	workerGroup.SetLimit(util.WORKER_COUNT)
+
 	newFolderPath := filepath.Join(projectPath, "notes", newFolderName)
 
 	// When the note folder is renamed, all notes need path updates
 	files, err := os.ReadDir(newFolderPath)
+
 	if err != nil {
 		log.Printf("Error reading directory %s: %v", newFolderPath, err)
 		return
 	}
 
 	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
 		indexOfDot := strings.LastIndex(file.Name(), ".")
 		if indexOfDot == -1 {
 			continue
@@ -224,29 +233,44 @@ func updateMarkdownFilesForFolderRename(projectPath, oldFolderName, newFolderNam
 		}
 
 		pathToFile := filepath.Join(newFolderPath, file.Name())
-		noteContent, err := os.ReadFile(pathToFile)
-		if err != nil {
-			log.Printf("Error reading file %s: %v", pathToFile, err)
-			continue
-		}
 
-		// Updates the urls inside the note markdown
-		noteMarkdownWithNewFolderName := updateFolderNameInMarkdown(
-			string(noteContent), oldFolderName, newFolderName,
-		)
+		workerGroup.Go(func() error {
+			noteContent, err := os.ReadFile(pathToFile)
+			if err != nil {
+				log.Printf("Error reading file %s: %v", pathToFile, err)
+				return err
+			}
 
-		err = os.WriteFile(pathToFile, []byte(noteMarkdownWithNewFolderName), 0644)
-		if err != nil {
-			fmt.Printf("Error writing file %s: %v", pathToFile, err)
-			continue
-		}
+			// Updates the urls inside the note markdown
+			noteMarkdownWithNewFolderName, wasUpdated := updateFolderNameInMarkdown(
+				string(noteContent), oldFolderName, newFolderName,
+			)
+
+			// Only write to the file if the markdown was actually updated
+			if wasUpdated {
+				err = os.WriteFile(pathToFile, []byte(noteMarkdownWithNewFolderName), 0644)
+				if err != nil {
+					log.Printf("Error writing file %s: %v", pathToFile, err)
+					return err
+				}
+			}
+
+			return nil
+		})
+	}
+
+	if err := workerGroup.Wait(); err != nil {
+		log.Printf("Error during renaming files: %v", err)
 	}
 }
 
 // updateFolderNameInMarkdown updates folder names in internal markdown links and images
 // This is a simplified version to avoid import cycles with the notes package
-func updateFolderNameInMarkdown(markdown, oldFolderName, newFolderName string) string {
-	// Replace folder names in image URLs
+// Returns the updated markdown and a boolean indicating if any changes were made
+func updateFolderNameInMarkdown(markdown, oldFolderName, newFolderName string) (string, bool) {
+	updated := false
+
+	// Replace folder names in image/video URLs
 	markdown = imageRegex.ReplaceAllStringFunc(markdown, func(match string) string {
 		submatches := imageRegex.FindStringSubmatch(match)
 		if len(submatches) < 3 {
@@ -257,6 +281,7 @@ func updateFolderNameInMarkdown(markdown, oldFolderName, newFolderName string) s
 
 		// Check if this is an internal URL that contains the old folder name
 		if strings.Contains(url, oldFolderName+"/") {
+			updated = true
 			newURL := strings.ReplaceAll(url, oldFolderName+"/", newFolderName+"/")
 			return "![" + altText + "](" + newURL + ")"
 		}
@@ -274,11 +299,12 @@ func updateFolderNameInMarkdown(markdown, oldFolderName, newFolderName string) s
 
 		// Check if this is an internal URL that contains the old folder name
 		if strings.Contains(url, oldFolderName+"/") {
+			updated = true
 			newURL := strings.ReplaceAll(url, oldFolderName+"/", newFolderName+"/")
 			return "[" + linkText + "](" + newURL + ")"
 		}
 		return match
 	})
 
-	return markdown
+	return markdown, updated
 }

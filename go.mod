@@ -18,6 +18,7 @@ require (
 	github.com/labstack/gommon v0.4.2
 	github.com/robert-nix/ansihtml v1.0.1
 	github.com/yuin/goldmark v1.7.13
+	golang.org/x/sync v0.18.0
 	golang.org/x/text v0.31.0
 )
 

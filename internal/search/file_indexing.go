@@ -5,16 +5,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sync"
 
 	"github.com/blevesearch/bleve/v2"
+	"github.com/etesam913/bytebook/internal/util"
 )
-
-var MAX_JOBS = 100
-
-// Based on CPU cores (good starting point)
-var WORKER_COUNT = runtime.NumCPU() * 2 // 2x for I/O-bound work
 
 type DocumentJob struct {
 	filePath      string
@@ -39,16 +34,16 @@ func IndexAllFiles(projectPath string, bleveIndex bleve.Index) error {
 	notesPath := filepath.Join(projectPath, "notes")
 	folders, err := os.ReadDir(notesPath)
 
-	jobs := make(chan DocumentJob, MAX_JOBS)
+	jobs := make(chan DocumentJob, util.MAX_JOBS)
 	var workerWaitGroup sync.WaitGroup
 
-	results := make(chan DocumentResult, MAX_JOBS)
+	results := make(chan DocumentResult, util.MAX_JOBS)
 
 	if err != nil {
 		return err
 	}
 
-	for w := 0; w < WORKER_COUNT; w++ {
+	for w := 0; w < util.WORKER_COUNT; w++ {
 		workerWaitGroup.Add(1)
 		go startWorker(jobs, results, &workerWaitGroup)
 	}
@@ -143,6 +138,9 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 		}
 
 		for _, file := range files {
+			if file.IsDir() {
+				continue
+			}
 			filePath := filepath.Join(folderPath, file.Name())
 			fileId := filepath.Join(folder.Name(), file.Name())
 			jobs <- DocumentJob{

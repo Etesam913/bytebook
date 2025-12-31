@@ -126,3 +126,79 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 		assert.NotNil(t, doc2)
 	})
 }
+
+func TestUpdateFolderNameInMarkdown(t *testing.T) {
+	tests := []struct {
+		name          string
+		markdown      string
+		oldFolderName string
+		newFolderName string
+		expectedMD    string
+		expectedFlag  bool
+	}{
+		{
+			name:          "replaces folder name in image URL",
+			markdown:      "![alt text](/notes/old-folder/image.png)",
+			oldFolderName: "old-folder",
+			newFolderName: "new-folder",
+			expectedMD:    "![alt text](/notes/new-folder/image.png)",
+			expectedFlag:  true,
+		},
+		{
+			name:          "replaces folder name in link URL",
+			markdown:      "[link text](/notes/old-folder/note.md)",
+			oldFolderName: "old-folder",
+			newFolderName: "new-folder",
+			expectedMD:    "[link text](/notes/new-folder/note.md)",
+			expectedFlag:  true,
+		},
+		{
+			name:          "replaces multiple occurrences",
+			markdown:      "![img1](/notes/folder/a.png)\n[link](/notes/folder/b.md)\n![img2](/notes/folder/c.jpg)",
+			oldFolderName: "folder",
+			newFolderName: "renamed",
+			expectedMD:    "![img1](/notes/renamed/a.png)\n[link](/notes/renamed/b.md)\n![img2](/notes/renamed/c.jpg)",
+			expectedFlag:  true,
+		},
+		{
+			name:          "returns false when no folder matches",
+			markdown:      "![img](/notes/other-folder/image.png)",
+			oldFolderName: "old-folder",
+			newFolderName: "new-folder",
+			expectedMD:    "![img](/notes/other-folder/image.png)",
+			expectedFlag:  false,
+		},
+		{
+			name:          "does not match partial folder names",
+			markdown:      "![img](/notes/my-old-folder-extra/image.png)",
+			oldFolderName: "old-folder",
+			newFolderName: "new-folder",
+			expectedMD:    "![img](/notes/my-old-folder-extra/image.png)",
+			expectedFlag:  false,
+		},
+		{
+			name:          "handles empty markdown",
+			markdown:      "",
+			oldFolderName: "old-folder",
+			newFolderName: "new-folder",
+			expectedMD:    "",
+			expectedFlag:  false,
+		},
+		{
+			name:          "handles markdown with no links or images",
+			markdown:      "# Heading\n\nSome plain text content.",
+			oldFolderName: "old-folder",
+			newFolderName: "new-folder",
+			expectedMD:    "# Heading\n\nSome plain text content.",
+			expectedFlag:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, updated := updateFolderNameInMarkdown(tt.markdown, tt.oldFolderName, tt.newFolderName)
+			assert.Equal(t, tt.expectedMD, result)
+			assert.Equal(t, tt.expectedFlag, updated)
+		})
+	}
+}
