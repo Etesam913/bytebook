@@ -216,6 +216,61 @@ func TestBuildBooleanQueryFromUserInput(t *testing.T) {
 	}
 }
 
+func TestExtractTagPrefix(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		want      string
+		wantFound bool
+	}{
+		{"hash prefix", "#mytag", "mytag", true},
+		{"tag prefix", "tag:mytag", "mytag", true},
+		{"quoted tag prefix", `tag:"my tag"`, "my tag", true},
+		{"no prefix", "mytag", "", false},
+		{"other prefix", "f:mytag", "", false},
+		{"empty hash", "#", "", true},
+		{"empty tag prefix", "tag:", "", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, found := extractTagPrefix(tt.input)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.wantFound, found)
+		})
+	}
+}
+
+func TestCreateTagQuery(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		wantPattern string
+	}{
+		{"lowercase tag", "mytag", "(?i)mytag.*"},
+		{"uppercase tag", "MYTAG", "(?i)MYTAG.*"},
+		{"mixed case tag", "MyTag", "(?i)MyTag.*"},
+		{"tag with spaces", "  mytag  ", "(?i)mytag.*"},
+		{"uppercase with spaces", "  MYTAG  ", "(?i)MYTAG.*"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			q := createTagQuery(tt.input)
+
+			// Verify it's a regexp query
+			regexpQuery, ok := q.(*query.RegexpQuery)
+			assert.True(t, ok, "Query should be a RegexpQuery")
+
+			// Verify the field is set correctly
+			assert.Equal(t, FieldTags, regexpQuery.FieldVal)
+
+			// Verify the pattern has case-insensitive flag and prefix matching
+			assert.Equal(t, tt.wantPattern, regexpQuery.Regexp)
+		})
+	}
+}
+
 func TestExtractLangPrefix(t *testing.T) {
 	tests := []struct {
 		name      string

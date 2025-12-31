@@ -2,6 +2,7 @@ package search
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
@@ -140,6 +141,10 @@ func extractTypePrefix(text string) (string, bool) {
 
 // extractTagPrefix extracts the tag prefix from tokens starting with "#" or "tag:".
 func extractTagPrefix(text string) (string, bool) {
+	// Check for "tag:" prefix first (trim quotes like other prefixes)
+	if value, ok := extractPrefix(text, []string{"tag:"}, "\""); ok {
+		return value, true
+	}
 	// "#" is not a word prefix, so do not trim quotes from the value to maintain old behavior
 	if strings.HasPrefix(text, "#") {
 		return text[1:], true
@@ -148,9 +153,13 @@ func extractTagPrefix(text string) (string, bool) {
 }
 
 // createTagQuery handles tag queries (tokens starting with "#" or "tag:")
-// Returns a query that searches for exact matches in the tags field.
+// Returns a query that searches for case-insensitive prefix matches in the tags field.
+// Uses regexp with (?i) flag since tags are indexed with the keyword analyzer (no lowercasing).
 func createTagQuery(tagName string) query.Query {
-	q := bleve.NewPrefixQuery(tagName)
+	normalizedTag := strings.TrimSpace(tagName)
+	// Use (?i) for case-insensitive matching, .* for prefix behavior
+	pattern := "(?i)" + regexp.QuoteMeta(normalizedTag) + ".*"
+	q := bleve.NewRegexpQuery(pattern)
 	q.SetField(FieldTags)
 	return q
 }

@@ -109,14 +109,14 @@ export function useNoteCreate() {
     const folderOfLastNote = data[data.length - 1].folder;
 
     // Refetch notes so that they are updated in the sidebar
-    try {
-      await queryClient.invalidateQueries({
-        queryKey: noteQueries.getNotes(folderOfLastNote, noteSort, queryClient)
-          .queryKey,
-      });
-    } catch {
-      toast.error('Failed to update notes', DEFAULT_SONNER_OPTIONS);
-    }
+    // try {
+    //   await queryClient.invalidateQueries({
+    //     queryKey: noteQueries.getNotes(folderOfLastNote, noteSort, queryClient)
+    //       .queryKey,
+    //   });
+    // } catch {
+    //   toast.error('Failed to update notes', DEFAULT_SONNER_OPTIONS);
+    // }
   });
 }
 
@@ -246,15 +246,15 @@ export function useNoteCreateMutation() {
         navigate(filePath.getLinkToNote());
       }
 
-      const queryKey = noteQueries.getNotes(
-        variables.folder,
-        noteSort,
-        queryClient
-      ).queryKey;
+      // const queryKey = noteQueries.getNotes(
+      //   variables.folder,
+      //   noteSort,
+      //   queryClient
+      // ).queryKey;
 
-      queryClient.invalidateQueries({
-        queryKey,
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey,
+      // });
     },
     onError: (error, variables, context) => {
       if (context?.previousNotesData && context?.folder) {
