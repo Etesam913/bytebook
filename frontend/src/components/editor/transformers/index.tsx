@@ -20,10 +20,12 @@ import { EQUATION } from './equation';
 import { FILE_TRANSFORMER } from './file';
 import { LINK } from './link';
 import { TABLE } from './table';
+import { HR } from './horizontal-rule';
 
 // Export all transformers
 export const CUSTOM_TRANSFORMERS = [
   HEADING,
+  HR,
   CHECK_LIST,
   UNORDERED_LIST,
   ORDERED_LIST,

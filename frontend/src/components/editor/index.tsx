@@ -27,6 +27,7 @@ import { editorConfig } from './editor-config';
 import { NoteTitle } from './note-title';
 import { CodePlugin } from './plugins/code';
 import { ComponentPickerMenuPlugin } from './plugins/component-picker';
+import { HorizontalRulePlugin } from '@lexical/react/LexicalHorizontalRulePlugin';
 import { CustomMarkdownShortcutPlugin } from './plugins/custom-markdown-shortcut.tsx';
 import { DraggableBlockPlugin } from './plugins/draggable-block.tsx';
 import { EmptyLinePlaceholderPlugin } from './plugins/empty-line-placeholder.tsx';
@@ -146,6 +147,7 @@ export function NotesEditor({
               placeholderLineData={placeholderLineData}
               setPlaceholderLineData={setPlaceholderLineData}
             />
+            <HorizontalRulePlugin />
             {frontmatter.showTableOfContents === 'true' && (
               <TableOfContentsPlugin />
             )}

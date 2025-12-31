@@ -340,7 +340,7 @@ div[data-is-fullscreen='true'] .cm-scroller {
 }
 
 /**
- * Lexical Editor Styles (Tailwind does not work too well with)
+ * Lexical Editor Styles
  */
 
 .link {
@@ -427,6 +427,10 @@ div[data-is-fullscreen='true'] .cm-scroller {
 
 [contenteditable='true']:focus {
   @apply outline-0;
+}
+
+hr {
+  @apply text-zinc-300 dark:text-zinc-500;
 }
 
 /* Table of contents list */

@@ -43,6 +43,8 @@ import { JavascriptLogo } from '../../../icons/javascript-logo';
 import { Table } from '../../../icons/table';
 import { QuoteIcon } from '../../../icons/quote';
 import { SquareCode } from '../../../icons/square-code';
+import { INSERT_HORIZONTAL_RULE_COMMAND } from '@lexical/react/LexicalHorizontalRuleNode';
+import { DividerYDotted } from '../../../icons/divider-y-dotted';
 
 const languageCommandData: {
   languageName: Languages;
@@ -193,6 +195,15 @@ function getBaseOptions({
         if ($isRangeSelection(selection)) {
           openCreateTableDialog(editor, selection);
         }
+      },
+    }),
+    new DropdownPickerOption('Line Break', {
+      icon: <DividerYDotted />,
+      keywords: ['break', 'line', 'divider'],
+      onSelect: () => {
+        editor.update(() => {
+          editor.dispatchCommand(INSERT_HORIZONTAL_RULE_COMMAND, undefined);
+        });
       },
     }),
     new DropdownPickerOption('Attachments', {
