@@ -199,7 +199,7 @@ function getBaseOptions({
     }),
     new DropdownPickerOption('Line Break', {
       icon: <DividerYDotted />,
-      keywords: ['break', 'line', 'divider'],
+      keywords: ['break', 'line', 'divider', 'horizontal'],
       onSelect: () => {
         editor.update(() => {
           editor.dispatchCommand(INSERT_HORIZONTAL_RULE_COMMAND, undefined);

@@ -6,7 +6,6 @@ import {
   type ReactNode,
   type SetStateAction,
   forwardRef,
-  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -66,6 +65,18 @@ export type VirtualizedListProps<T> = {
   maxHeight?: string;
   className?: string;
   onTotalListHeightChanged?: (height: number) => void;
+  totalCount?: number;
+  /** Callback when bottom of list is reached (for pagination) */
+  endReached?: () => void;
+  /** Callback when top of list is reached (for reverse pagination) */
+  startReached?: () => void;
+  /** Initial item index to scroll to */
+  initialTopMostItemIndex?: number;
+  /**
+   * Used for prepending items. Set to the number of items before the first rendered item.
+   * When prepending, decrease this value by the number of prepended items.
+   */
+  firstItemIndex?: number;
 };
 
 export function VirtualizedList<T>({
@@ -83,6 +94,11 @@ export function VirtualizedList<T>({
   maxHeight,
   className,
   onTotalListHeightChanged,
+  totalCount,
+  endReached,
+  startReached,
+  initialTopMostItemIndex,
+  firstItemIndex,
 }: VirtualizedListProps<T>) {
   // Start with null to indicate height hasn't been measured yet
   const [listHeight, setListHeight] = useState<number | null>(null);
@@ -98,14 +114,14 @@ export function VirtualizedList<T>({
   const { virtuosoRef, onRangeChanged, scrollToIndexIfHidden } =
     useSmartScroll();
 
-  useEffect(() => {
-    if (!isItemActive || !data) return;
-    const activeIndex = data.findIndex((item, i) => isItemActive(item, i));
+  // useEffect(() => {
+  //   if (!isItemActive || !data) return;
+  //   const activeIndex = data.findIndex((item, i) => isItemActive(item, i));
 
-    if (activeIndex !== -1) {
-      scrollToIndexIfHidden(activeIndex);
-    }
-  }, [data, isItemActive, scrollToIndexIfHidden]);
+  //   if (activeIndex !== -1) {
+  //     scrollToIndexIfHidden(activeIndex);
+  //   }
+  // }, [data, isItemActive, scrollToIndexIfHidden]);
 
   useOnClickOutside(
     internalListRef,
@@ -188,6 +204,7 @@ export function VirtualizedList<T>({
       data={items}
       className={className}
       style={{
+        overscrollBehavior: 'none',
         // Use maxHeight until first measurement to prevent 0-height flicker
         height: !maxHeight
           ? '100%'
@@ -196,14 +213,19 @@ export function VirtualizedList<T>({
             : `min(${maxHeight}, ${listHeight}px)`,
       }}
       scrollerRef={handleScrollerRef}
-      increaseViewportBy={{ top: 400, bottom: 400 }}
       components={components}
       totalListHeightChanged={(height) => {
         setListHeight(height);
         onTotalListHeightChanged?.(height);
       }}
+      overscan={500}
+      totalCount={totalCount}
       computeItemKey={(_, dataItem) => dataItemToKey(dataItem)}
       itemContent={(index, dataItem) => renderSidebarItem(index, dataItem)}
+      endReached={endReached}
+      startReached={startReached}
+      initialTopMostItemIndex={initialTopMostItemIndex ?? 0}
+      firstItemIndex={firstItemIndex ?? 0}
     />
   );
 }

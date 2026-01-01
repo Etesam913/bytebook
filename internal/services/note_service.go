@@ -17,27 +17,35 @@ type NoteService struct {
 	SearchIndex *bleve.Index
 }
 
-// GetNotes returns a list of note filenames (with extension as a query param) in the specified folder,
+const PageSize = 200
+
+type NotesPageResponseData struct {
+	Notes            []config.FolderAndNote `json:"notes"`
+	TotalCount       int                    `json:"totalCount"`
+	InitialItemIndex int                    `json:"initialItemIndex"`
+}
+
+// GetNotesInPage returns a paginated list of note filenames (with extension) in the specified folder,
 // sorted according to the provided sortOption. Only files (not directories or hidden files) are included.
-// Returns a BackendResponseWithData containing the sorted note names or an error message.
-func (n *NoteService) GetNotes(folderName string, sortOption string) config.BackendResponseWithData[[]config.FolderAndNote] {
+// Returns a BackendResponseWithData containing the notes for the page, total count, and initial item index.
+func (n *NoteService) GetNotesInPage(folderName string, sortOption string, pageIndex int) config.BackendResponseWithData[NotesPageResponseData] {
 	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
 	// Ensure the directory exists
 	exists, err := util.FileOrFolderExists(folderPath)
 	if !exists || err != nil {
-		return config.BackendResponseWithData[[]config.FolderAndNote]{
+		return config.BackendResponseWithData[NotesPageResponseData]{
 			Success: false,
 			Message: "Could not get notes from " + folderPath,
-			Data:    []config.FolderAndNote{},
+			Data:    NotesPageResponseData{Notes: []config.FolderAndNote{}, TotalCount: 0, InitialItemIndex: 0},
 		}
 	}
 
 	files, err := os.ReadDir(folderPath)
 	if err != nil {
-		return config.BackendResponseWithData[[]config.FolderAndNote]{
+		return config.BackendResponseWithData[NotesPageResponseData]{
 			Success: false,
 			Message: err.Error(),
-			Data:    []config.FolderAndNote{},
+			Data:    NotesPageResponseData{Notes: []config.FolderAndNote{}, TotalCount: 0, InitialItemIndex: 0},
 		}
 	}
 	var notes []os.DirEntry
@@ -53,20 +61,91 @@ func (n *NoteService) GetNotes(folderName string, sortOption string) config.Back
 	// Sort notes based on the sort option
 	util.SortNotes(notes, sortOption)
 
-	var sortedNotes []config.FolderAndNote
+	totalCount := len(notes)
+	startIndex := pageIndex * PageSize
+	endIndex := startIndex + PageSize
+
+	if startIndex > totalCount {
+		startIndex = totalCount
+	}
+	if endIndex > totalCount {
+		endIndex = totalCount
+	}
+
+	var paginatedNotes []config.FolderAndNote
 
 	// Using the query param syntax that the app supports
-	for _, file := range notes {
-		sortedNotes = append(sortedNotes, config.FolderAndNote{
+	for i := startIndex; i < endIndex; i++ {
+		paginatedNotes = append(paginatedNotes, config.FolderAndNote{
 			Folder: folderName,
-			Note:   file.Name(),
+			Note:   notes[i].Name(),
 		})
 	}
 
-	return config.BackendResponseWithData[[]config.FolderAndNote]{
+	return config.BackendResponseWithData[NotesPageResponseData]{
 		Success: true,
 		Message: "",
-		Data:    sortedNotes,
+		Data: NotesPageResponseData{
+			Notes:            paginatedNotes,
+			TotalCount:       totalCount,
+			InitialItemIndex: startIndex,
+		},
+	}
+}
+
+// GetPageForNote returns the page index where a specific note is located.
+// It finds the note's position in the sorted list and calculates the page.
+func (n *NoteService) GetPageForNote(folderName string, sortOption string, noteName string) config.BackendResponseWithData[int] {
+	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
+	// Ensure the directory exists
+	exists, err := util.FileOrFolderExists(folderPath)
+	if !exists || err != nil {
+		return config.BackendResponseWithData[int]{
+			Success: false,
+			Message: "Could not get notes from " + folderPath,
+			Data:    0,
+		}
+	}
+
+	files, err := os.ReadDir(folderPath)
+	if err != nil {
+		return config.BackendResponseWithData[int]{
+			Success: false,
+			Message: err.Error(),
+			Data:    0,
+		}
+	}
+
+	var notes []os.DirEntry
+	for _, file := range files {
+		// Ignore any folders inside a note folder and hidden files
+		if file.IsDir() || strings.HasPrefix(file.Name(), ".") {
+			continue
+		} else {
+			notes = append(notes, file)
+		}
+	}
+
+	// Sort notes based on the sort option
+	util.SortNotes(notes, sortOption)
+
+	// Find the note's index
+	for i, file := range notes {
+		if file.Name() == noteName {
+			pageIndex := i / PageSize
+			return config.BackendResponseWithData[int]{
+				Success: true,
+				Message: "",
+				Data:    pageIndex,
+			}
+		}
+	}
+
+	// Note not found, return page 0
+	return config.BackendResponseWithData[int]{
+		Success: true,
+		Message: "",
+		Data:    0,
 	}
 }
 
