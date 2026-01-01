@@ -113,7 +113,6 @@ const searchQueries = {
             folders.push({ folder: result.folder });
           }
         });
-        console.log(notes);
 
         return { notes, attachments, folders };
       },

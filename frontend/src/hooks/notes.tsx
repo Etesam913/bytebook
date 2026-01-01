@@ -1,26 +1,37 @@
 import {
-  QueryClient,
+  InfiniteData,
   queryOptions,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { useAtomValue } from 'jotai/react';
+import { useAtomValue, useSetAtom } from 'jotai/react';
 import { Window } from '@wailsio/runtime';
 import { type LexicalEditor } from 'lexical';
-import type { Dispatch, FormEvent, SetStateAction } from 'react';
+import {
+  useEffect,
+  type Dispatch,
+  type FormEvent,
+  type SetStateAction,
+} from 'react';
 import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
 import {
   AddNoteToFolder,
   DoesNoteExist,
   GetNotePreview,
-  GetNotes,
+  GetNotesInPage,
+  GetPageForNote,
   MoveToTrash,
   RenameFile,
   RevealFolderOrFileInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { noteSortAtom, projectSettingsAtom } from '../atoms';
+import {
+  noteSortAtom,
+  projectSettingsAtom,
+  selectionRangeAtom,
+} from '../atoms';
 import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
@@ -38,10 +49,16 @@ import { useCreateNoteDialog } from './dialogs';
 import { isEventInCurrentWindow } from '../utils/events';
 import { parseFrontMatter } from '../components/editor/utils/note-metadata';
 
-export type NotesQueryData = {
+/** Data for a single page of notes */
+export type NotesPageData = {
   notes: LocalFilePath[];
-  previousNotes: LocalFilePath[] | undefined;
+  totalCount: number;
+  initialItemIndex: number;
+  pageIndex: number;
 };
+
+/** Combined data from all pages for infinite query */
+export type NotesInfiniteData = InfiniteData<NotesPageData>;
 
 type NoteFormElementWithMetadata = HTMLFormElement & {
   __noteName?: string;
@@ -49,29 +66,6 @@ type NoteFormElementWithMetadata = HTMLFormElement & {
 };
 
 const noteQueries = {
-  getNotes: (folder: string, noteSort: string, queryClient: QueryClient) =>
-    queryOptions({
-      queryKey: ['notes', folder, noteSort],
-      queryFn: async (): Promise<NotesQueryData> => {
-        const res = await GetNotes(decodeURIComponent(folder), noteSort);
-        if (!res.success) {
-          throw new QueryError('Failed in retrieving notes');
-        }
-        const previousQueryData = queryClient.getQueryData<NotesQueryData>([
-          'notes',
-          folder,
-          noteSort,
-        ]);
-        const previousNotes = previousQueryData?.notes;
-        const notes = (res.data ?? []).map(
-          (item) => new LocalFilePath({ folder: item.folder, note: item.note })
-        );
-        return {
-          notes,
-          previousNotes: previousNotes || undefined,
-        };
-      },
-    }),
   getNotePreview: (folder: string, noteWithoutExtension: string) =>
     queryOptions({
       queryKey: ['note-preview', folder, noteWithoutExtension],
@@ -88,13 +82,137 @@ const noteQueries = {
         );
       },
     }),
+  getPageForNote: ({
+    folder,
+    noteSort,
+    note,
+  }: {
+    folder: string;
+    noteSort: string;
+    note: string | undefined;
+  }) =>
+    queryOptions({
+      queryKey: ['notePageIndex', folder, noteSort, note],
+      queryFn: async () => {
+        if (!note) return 0;
+        const res = await GetPageForNote(
+          decodeURIComponent(folder),
+          noteSort,
+          note
+        );
+        console.info({
+          queryKey: ['notePageIndex', folder, noteSort, note],
+          res,
+        });
+        return res.success ? res.data : 0;
+      },
+    }),
 };
 
-export function useNotes(curFolder: string) {
+/** Hook to get the page index for a specific note */
+export function useNotePageIndex(folder: string, note: string | undefined) {
+  const noteSort = useAtomValue(noteSortAtom);
+
+  return useQuery({
+    ...noteQueries.getPageForNote({ folder, noteSort, note }),
+  });
+}
+
+/**
+ * Once the page index for a note is determined, then the notes in that page have to be displayed.
+ * useInfiniteQuery is used to enable fetching previous and next pages easily.
+ *
+ * totalCount & initialItemIndex are used to let the virtualized-list know where the current
+ * item is in the grand-scheme of the list.
+ */
+export function useNotesInPage(
+  curFolder: string,
+  anchorPageIndex: number,
+  anchorPageLoading: boolean
+) {
   const noteSort = useAtomValue(noteSortAtom);
   const queryClient = useQueryClient();
+  const queryKey = ['notes', curFolder, noteSort];
 
-  return useQuery(noteQueries.getNotes(curFolder, noteSort, queryClient));
+  const query = useInfiniteQuery({
+    // When getting the anchor page is done loading, this query is automatically re-ran
+    enabled: !anchorPageLoading,
+    queryKey,
+    // When a user clicks a search result, the anchorPageIndex will be the page index of
+    // the note associated with the search result. If a user clicks a folder the
+    // anchorPageIndex will just be 0
+    initialPageParam: anchorPageIndex,
+    queryFn: async ({ pageParam }) => {
+      const res = await GetNotesInPage(
+        decodeURIComponent(curFolder),
+        noteSort,
+        pageParam
+      );
+
+      console.info({
+        queryKey,
+        res,
+      });
+
+      if (!res.success || !res.data) {
+        throw new QueryError('Failed in retrieving notes');
+      }
+      return {
+        notes: (res.data.notes ?? []).map(
+          (item) => new LocalFilePath({ folder: item.folder, note: item.note })
+        ),
+        totalCount: res.data.totalCount,
+        initialItemIndex: res.data.initialItemIndex,
+        pageIndex: pageParam,
+      };
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      const loadedCount = allPages.reduce((acc, p) => acc + p.notes.length, 0);
+      if (loadedCount >= lastPage.totalCount) return undefined;
+
+      const maxPageIndex = Math.max(...allPages.map((p) => p.pageIndex));
+      return maxPageIndex + 1;
+    },
+    getPreviousPageParam: (_, allPages) => {
+      const minPageIndex = Math.min(...allPages.map((p) => p.pageIndex));
+      return minPageIndex > 0 ? minPageIndex - 1 : undefined;
+    },
+  });
+
+  // When a user clicks a link in a note a navigate will occur. This will update the
+  // curNote in the route. This will trigger the getPageForNote query to return the
+  // page index for the note. Once that query is done loading the useNotesInPage
+  // query will be enabled and will run. The problem is that the initialPageParam
+  // is out of date and therefore the query won't have the correct data.
+  //
+  // The solution for this is to reset the query so that it automatically uses
+  // the appropriate pageParam
+  useEffect(() => {
+    if (anchorPageLoading || query.isLoading || !query.data) {
+      return;
+    }
+
+    // Check if the requested anchor page actually exists in the current cache data
+    const pageExists = query.data.pages.some(
+      (page) => page.pageIndex === anchorPageIndex
+    );
+
+    // If the cache exists but misses our target page, we declare "bankruptcy" on this cache.
+    // Resetting it clears the data and forces `useInfiniteQuery` to restart
+    // using the `initialPageParam` (which is our desired anchorPageIndex).
+    if (!pageExists) {
+      queryClient.resetQueries({ queryKey });
+    }
+  }, [
+    anchorPageIndex,
+    anchorPageLoading,
+    query.data,
+    query.isLoading,
+    queryKey,
+    queryClient,
+  ]);
+
+  return query;
 }
 
 /** This function is used to handle note:create events */
@@ -106,59 +224,50 @@ export function useNoteCreate() {
     console.info('note:create', body);
     const data = body.data as { folder: string; note: string }[];
 
-    const folderOfLastNote = data[data.length - 1].folder;
-
-    // Refetch notes so that they are updated in the sidebar
-    // try {
-    //   await queryClient.invalidateQueries({
-    //     queryKey: noteQueries.getNotes(folderOfLastNote, noteSort, queryClient)
-    //       .queryKey,
-    //   });
-    // } catch {
-    //   toast.error('Failed to update notes', DEFAULT_SONNER_OPTIONS);
-    // }
-  });
-}
-
-export function useNoteRename() {
-  const queryClient = useQueryClient();
-  const noteSort = useAtomValue(noteSortAtom);
-
-  useWailsEvent('note:rename', async (body) => {
-    console.info('note:rename', body);
-    const data = body.data as {
-      newFolder: string;
-      newNote: string;
-      oldFolder: string;
-      oldNote: string;
-    }[];
+    // Group created notes by folder
+    const notesByFolder = new Map<string, LocalFilePath[]>();
     for (const item of data) {
-      const { newFolder, oldFolder } = item;
-      await queryClient.invalidateQueries({
-        queryKey: noteQueries.getNotes(oldFolder, noteSort, queryClient)
-          .queryKey,
-      });
-      await queryClient.invalidateQueries({
-        queryKey: noteQueries.getNotes(newFolder, noteSort, queryClient)
-          .queryKey,
-      });
+      const { folder, note } = item;
+      const notePath = new LocalFilePath({ folder, note });
+      const existing = notesByFolder.get(folder) ?? [];
+      notesByFolder.set(folder, [...existing, notePath]);
     }
-  });
-}
 
-/** This function is used to handle note:delete events */
-export function useNoteDelete(folder: string) {
-  const queryClient = useQueryClient();
-  const noteSort = useAtomValue(noteSortAtom);
+    // Update the cache once per folder
+    for (const [folder, notePaths] of notesByFolder) {
+      const queryKey = ['notes', folder, noteSort];
 
-  useWailsEvent('note:delete', async () => {
-    console.info('note:delete');
-    try {
-      await queryClient.invalidateQueries({
-        queryKey: noteQueries.getNotes(folder, noteSort, queryClient).queryKey,
+      queryClient.setQueryData<NotesInfiniteData>(queryKey, (oldData) => {
+        if (!oldData) return oldData;
+
+        // Filter out notes that already exist in the cache
+        const newNotesToAdd = notePaths.filter((newNotePath) => {
+          const doesNoteAlreadyExist = oldData.pages.some((page) =>
+            page.notes.some((localFilePath) =>
+              localFilePath.equals(newNotePath)
+            )
+          );
+          return !doesNoteAlreadyExist;
+        });
+
+        if (newNotesToAdd.length === 0) return oldData;
+
+        // Create new pages with the new notes prepended to the first page
+        const newPages = oldData.pages.map((page, index) => {
+          if (index === 0) {
+            return {
+              ...page,
+              notes: [...newNotesToAdd, ...page.notes],
+              totalCount: page.totalCount + newNotesToAdd.length,
+            };
+          }
+          return {
+            ...page,
+            totalCount: page.totalCount + newNotesToAdd.length,
+          };
+        });
+        return { ...oldData, pages: newPages };
       });
-    } catch {
-      toast.error('Failed to update notes', DEFAULT_SONNER_OPTIONS);
     }
   });
 }
@@ -200,40 +309,45 @@ export function useNoteCreateMutation() {
       formElement.__folder = folder;
       return true;
     },
-    // Optimistically update cache
-    onMutate: async (variables) => {
-      await queryClient.cancelQueries({
-        queryKey: noteQueries.getNotes(variables.folder, noteSort, queryClient)
-          .queryKey,
-      });
-      const queryKey = noteQueries.getNotes(
-        variables.folder,
-        noteSort,
-        queryClient
-      ).queryKey;
-      const previousNotesData =
-        queryClient.getQueryData<NotesQueryData>(queryKey);
+    // onMutate: async (variables) => {
+    //   const queryKey = ['notes', variables.folder, noteSort];
 
-      const formData = new FormData(variables.e.target as HTMLFormElement);
-      const newNoteName = formData.get('note-name')?.toString()?.trim() ?? '';
+    //   await queryClient.cancelQueries({ queryKey });
+    //   const previousNotesData =
+    //     queryClient.getQueryData<NotesInfiniteData>(queryKey);
 
-      if (newNoteName && previousNotesData?.notes) {
-        // Create the new note path
-        const updatedNotesData: NotesQueryData = {
-          notes: [
-            ...previousNotesData.notes,
-            new LocalFilePath({
-              folder: variables.folder,
-              note: `${newNoteName}.md`,
-            }),
-          ],
-          previousNotes: previousNotesData.notes || undefined,
-        };
-        queryClient.setQueryData(queryKey, updatedNotesData);
-      }
+    //   const formData = new FormData(variables.e.target as HTMLFormElement);
+    //   const newNoteName = formData.get('note-name')?.toString()?.trim() ?? '';
 
-      return { previousNotesData, folder: variables.folder };
-    },
+    //   if (newNoteName && previousNotesData?.pages) {
+    //     const newNotePath = new LocalFilePath({
+    //       folder: variables.folder,
+    //       note: `${newNoteName}.md`,
+    //     });
+
+    //     // Add the new note to the first page
+    //     const newPages = previousNotesData.pages.map((page, index) => {
+    //       if (index === 0) {
+    //         return {
+    //           ...page,
+    //           notes: [newNotePath, ...page.notes],
+    //           totalCount: page.totalCount + 1,
+    //         };
+    //       }
+    //       return {
+    //         ...page,
+    //         totalCount: page.totalCount + 1,
+    //       };
+    //     });
+
+    //     queryClient.setQueryData<NotesInfiniteData>(queryKey, {
+    //       ...previousNotesData,
+    //       pages: newPages,
+    //     });
+    //   }
+
+    //   return { previousNotesData, folder: variables.folder };
+    // },
     onSuccess: (result, variables) => {
       const formElement = variables.e.target as NoteFormElementWithMetadata;
       const noteName = formElement.__noteName;
@@ -245,30 +359,148 @@ export function useNoteCreateMutation() {
         });
         navigate(filePath.getLinkToNote());
       }
-
-      // const queryKey = noteQueries.getNotes(
-      //   variables.folder,
-      //   noteSort,
-      //   queryClient
-      // ).queryKey;
-
-      // queryClient.invalidateQueries({
-      //   queryKey,
-      // });
     },
-    onError: (error, variables, context) => {
-      if (context?.previousNotesData && context?.folder) {
-        queryClient.setQueryData(
-          noteQueries.getNotes(context.folder, noteSort, queryClient).queryKey,
-          context.previousNotesData
-        );
-      }
+    onError: (error, variables) => {
+      // if (context?.previousNotesData && context?.folder) {
+      //   queryClient.setQueryData<NotesInfiniteData>(
+      //     ['notes', context.folder, noteSort],
+      //     context.previousNotesData
+      //   );
+      // }
       if (error instanceof Error) variables.setErrorText(error.message);
       else
         variables.setErrorText(
           'An unknown error occurred. Please try again later.'
         );
     },
+  });
+}
+
+export function useNoteRename() {
+  const queryClient = useQueryClient();
+  const noteSort = useAtomValue(noteSortAtom);
+
+  useWailsEvent('note:rename', async (body) => {
+    console.info('note:rename', body);
+    const data = body.data as {
+      newFolder: string;
+      newNote: string;
+      oldFolder: string;
+      oldNote: string;
+    }[];
+    for (const item of data) {
+      const { newFolder, newNote, oldFolder, oldNote } = item;
+      const oldNotePath = new LocalFilePath({
+        folder: oldFolder,
+        note: oldNote,
+      });
+      const newNotePath = new LocalFilePath({
+        folder: newFolder,
+        note: newNote,
+      });
+
+      // If folder is the same, update the note in place
+      if (oldFolder === newFolder) {
+        const queryKey = ['notes', oldFolder, noteSort];
+        queryClient.setQueryData<NotesInfiniteData>(queryKey, (oldData) => {
+          if (!oldData) return oldData;
+          const newPages = oldData.pages.map((page) => ({
+            ...page,
+            notes: page.notes.map((note) =>
+              note.equals(oldNotePath) ? newNotePath : note
+            ),
+          }));
+          return { ...oldData, pages: newPages };
+        });
+      } else {
+        // Cross-folder rename: remove from old folder and add to new folder
+        const oldQueryKey = ['notes', oldFolder, noteSort];
+        queryClient.setQueryData<NotesInfiniteData>(oldQueryKey, (oldData) => {
+          if (!oldData) return oldData;
+          const newPages = oldData.pages.map((page) => ({
+            ...page,
+            notes: page.notes.filter((note) => !note.equals(oldNotePath)),
+            totalCount: page.totalCount - 1,
+          }));
+          return { ...oldData, pages: newPages };
+        });
+
+        const newQueryKey = ['notes', newFolder, noteSort];
+        queryClient.setQueryData<NotesInfiniteData>(newQueryKey, (oldData) => {
+          if (!oldData) return oldData;
+          const newPages = oldData.pages.map((page, index) => {
+            if (index === 0) {
+              return {
+                ...page,
+                notes: [newNotePath, ...page.notes],
+                totalCount: page.totalCount + 1,
+              };
+            }
+            return {
+              ...page,
+              totalCount: page.totalCount + 1,
+            };
+          });
+          return { ...oldData, pages: newPages };
+        });
+      }
+    }
+  });
+}
+
+/** This function is used to handle note:delete events */
+export function useNoteDelete() {
+  const queryClient = useQueryClient();
+  const noteSort = useAtomValue(noteSortAtom);
+
+  useWailsEvent('note:delete', async (body) => {
+    console.info('note:delete', body);
+    const data = body.data as { folder: string; note: string }[];
+
+    // Group deleted notes by folder
+    const notesByFolder = new Map<string, LocalFilePath[]>();
+    for (const item of data) {
+      const { folder, note } = item;
+      const notePath = new LocalFilePath({ folder, note });
+      const existing = notesByFolder.get(folder) ?? [];
+      notesByFolder.set(folder, [...existing, notePath]);
+    }
+
+    // Update the cache once per folder
+    for (const [folder, notePaths] of notesByFolder) {
+      const queryKey = ['notes', folder, noteSort];
+
+      queryClient.setQueryData<NotesInfiniteData>(queryKey, (oldData) => {
+        if (!oldData) return oldData;
+
+        // Count how many notes will be removed
+        let removedCount = 0;
+
+        // Filter out deleted notes from all pages
+        const newPages = oldData.pages.map((page) => {
+          const filteredNotes = page.notes.filter((localFilePath) => {
+            const shouldRemove = notePaths.some((deletedPath) =>
+              localFilePath.equals(deletedPath)
+            );
+            if (shouldRemove) removedCount++;
+            return !shouldRemove;
+          });
+
+          return {
+            ...page,
+            notes: filteredNotes,
+          };
+        });
+
+        // Update totalCount on all pages
+        const pagesWithUpdatedCount = newPages.map((page) => ({
+          ...page,
+          totalCount: page.totalCount - removedCount,
+        }));
+
+        return { ...oldData, pages: pagesWithUpdatedCount };
+      });
+    }
   });
 }
 
@@ -317,6 +549,7 @@ export function useNoteRevealInFinderMutation() {
 }
 
 export function useMoveNoteToTrashMutation() {
+  const setSelectionRange = useSetAtom(selectionRangeAtom);
   return useMutation({
     mutationFn: async ({
       selectionRange,
@@ -329,6 +562,8 @@ export function useMoveNoteToTrashMutation() {
         folder,
         selectionRange
       );
+      // The deleted elements should be removed from selection
+      setSelectionRange(new Set());
       const res = await MoveToTrash(
         filePaths.map((filePath) => filePath.toString())
       );
@@ -403,34 +638,26 @@ export function useRenameFileMutation() {
     // Optimistically update cache
     onMutate: async (variables) => {
       const folder = variables.oldPath.folder;
+      const queryKey = ['notes', folder, noteSort];
 
-      await queryClient.cancelQueries({
-        queryKey: noteQueries.getNotes(folder, noteSort, queryClient).queryKey,
-      });
+      await queryClient.cancelQueries({ queryKey });
 
-      const getNotesQueryKey = noteQueries.getNotes(
-        folder,
-        noteSort,
-        queryClient
-      ).queryKey;
+      const previousNotesData =
+        queryClient.getQueryData<NotesInfiniteData>(queryKey);
 
-      const previousNotesData = queryClient.getQueryData(getNotesQueryKey);
+      if (previousNotesData?.pages) {
+        // Find the old note in pages and replace it with the new path
+        const newPages = previousNotesData.pages.map((page) => ({
+          ...page,
+          notes: page.notes.map((note) =>
+            note.equals(variables.oldPath) ? variables.newPath : note
+          ),
+        }));
 
-      if (previousNotesData?.notes) {
-        // Find the old note in the current notes and replace it with the new path
-        const updatedNotes = previousNotesData.notes.map((note) => {
-          if (note.equals(variables.oldPath)) {
-            return variables.newPath;
-          }
-          return note;
+        queryClient.setQueryData<NotesInfiniteData>(queryKey, {
+          ...previousNotesData,
+          pages: newPages,
         });
-
-        const updatedNotesData: NotesQueryData = {
-          notes: updatedNotes,
-          previousNotes: previousNotesData.notes || undefined,
-        };
-
-        queryClient.setQueryData(getNotesQueryKey, updatedNotesData);
       }
 
       return { previousNotesData, folder };
@@ -441,8 +668,8 @@ export function useRenameFileMutation() {
     onError: (error, variables, context) => {
       // Roll back the cache to the previous notes data if an error occurred during renaming
       if (context?.previousNotesData && context?.folder) {
-        queryClient.setQueryData(
-          noteQueries.getNotes(context.folder, noteSort, queryClient).queryKey,
+        queryClient.setQueryData<NotesInfiniteData>(
+          ['notes', context.folder, noteSort],
           context.previousNotesData
         );
       }
