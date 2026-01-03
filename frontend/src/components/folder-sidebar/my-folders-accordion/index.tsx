@@ -15,6 +15,7 @@ import { findClosestSidebarItemToNavigateTo } from '../../../utils/routing';
 import { FolderAccordionButton } from './folder-accordion-button';
 import { folderSidebarOpenStateAtom } from '../../../atoms';
 import { ErrorText } from '../../error-text';
+import { FileTree } from './file-tree';
 
 export function MyFoldersAccordion() {
   const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
@@ -91,7 +92,7 @@ export function MyFoldersAccordion() {
         }
       />
 
-      <VirtualizedListAccordion<string>
+      {/*<VirtualizedListAccordion<string>
         isOpen={isOpen}
         isError={isError}
         errorElement={
@@ -140,7 +141,8 @@ export function MyFoldersAccordion() {
           />
         )}
         data={alphabetizedFolders}
-      />
+      />*/}
+      <FileTree />
     </section>
   );
 }
