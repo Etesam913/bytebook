@@ -7,10 +7,10 @@ import {
   type RefObject,
   type SetStateAction,
 } from 'react';
-import { selectionRangeAtom } from '../../atoms';
-import { keepSelectionNotesWithPrefix } from '../../utils/selection';
+import { selectionRangeAtom } from '../../../atoms';
+import { keepSelectionNotesWithPrefix } from '../../../utils/selection';
 import { SidebarHighlight } from './highlight';
-import { SidebarContentType } from '../../types';
+import { SidebarContentType } from '../../../types';
 import type { SelectionOptions } from './index';
 
 type SidebarListItemProps<T> = {

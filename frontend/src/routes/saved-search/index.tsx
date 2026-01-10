@@ -8,7 +8,7 @@ import { Loader } from '../../icons/loader.tsx';
 import { Magnifier } from '../../icons/magnifier.tsx';
 import { NoteSidebarButton } from '../notes-sidebar/sidebar-button/index.tsx';
 import { RenderNote } from '../notes-sidebar/render-note/index.tsx';
-import { VirtualizedList } from '../../components/virtualized-list/index.tsx';
+import { VirtualizedList } from '../../components/virtualized/virtualized-list/index.tsx';
 import { useFullTextSearchQuery } from '../../hooks/search.tsx';
 import { LocalFilePath } from '../../utils/path.ts';
 import { navigate } from 'wouter/use-browser-location';

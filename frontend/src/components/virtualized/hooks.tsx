@@ -1,25 +1,17 @@
 import { useAnimate } from 'motion/react';
-import { useState, type ReactNode, useEffect, useRef } from 'react';
-import { VirtualizedList, type VirtualizedListProps } from './index';
+import { useState, useEffect, useRef } from 'react';
 
-interface VirtualizedListAccordionProps<T> extends VirtualizedListProps<T> {
+interface UseAnimatedHeightOptions {
   isOpen: boolean;
-  isLoading?: boolean;
-  loadingElement?: ReactNode;
-  isError?: boolean;
-  errorElement?: ReactNode;
+  maxHeight?: string;
+  onTotalListHeightChanged?: (height: number) => void;
 }
 
-export function VirtualizedListAccordion<T>({
+export function useAnimatedHeight({
   isOpen,
-  isLoading,
-  loadingElement,
-  isError,
-  errorElement,
   maxHeight,
   onTotalListHeightChanged,
-  ...props
-}: VirtualizedListAccordionProps<T>) {
+}: UseAnimatedHeightOptions) {
   // null = not yet measured, number = measured (including 0 for empty lists)
   const [totalHeight, setTotalHeight] = useState<number | null>(null);
   const [scope, animate] = useAnimate();
@@ -29,8 +21,21 @@ export function VirtualizedListAccordion<T>({
   const isReady = totalHeight !== null;
 
   useEffect(() => {
-    // If the list hasn't calculated a height yet, do nothing (wait).
-    if (totalHeight === null) return;
+    // If the list hasn't calculated a height yet and we're open, set a temporary height so Virtuoso can measure
+    if (totalHeight === null) {
+      if (isOpen && scope.current) {
+        // Set a temporary height so Virtuoso can measure
+        animate(
+          scope.current,
+          { height: maxHeight || '100%' },
+          { duration: 0 }
+        );
+      } else {
+        animate(scope.current, { height: 0 }, { duration: 0 });
+        hasMeasured.current = true;
+      }
+      return;
+    }
 
     const targetHeight = maxHeight
       ? `min(${totalHeight}px, ${maxHeight})`
@@ -57,28 +62,17 @@ export function VirtualizedListAccordion<T>({
         { type: 'spring', damping: 17, stiffness: 115 }
       );
     }
-  }, [totalHeight, isOpen, maxHeight, animate]);
+  }, [totalHeight, isOpen, maxHeight, animate, scope]);
 
-  return (
-    <>
-      {isError && errorElement}
-      {!isError && isLoading && loadingElement}
-      <div
-        ref={scope}
-        style={{ visibility: isReady ? 'visible' : 'hidden' }}
-        className="overflow-hidden pl-1 scrollbar-hidden"
-      >
-        {!isError && !isLoading && (
-          <VirtualizedList
-            {...props}
-            maxHeight={maxHeight}
-            onTotalListHeightChanged={(height) => {
-              setTotalHeight(height);
-              onTotalListHeightChanged?.(height);
-            }}
-          />
-        )}
-      </div>
-    </>
-  );
+  const handleHeightChange = (height: number) => {
+    setTotalHeight(height);
+    onTotalListHeightChanged?.(height);
+  };
+
+  return {
+    scope,
+    isReady,
+    handleHeightChange,
+    totalHeight,
+  };
 }

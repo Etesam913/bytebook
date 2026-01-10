@@ -4,12 +4,14 @@ export function Note({
   fill = 'currentColor',
   secondaryfill = 'currentColor',
   className,
+  strokeWidth = 1.5,
 }: {
   width?: number;
   height?: number;
   fill?: string;
   secondaryfill?: string;
   className?: string;
+  strokeWidth?: number;
 }) {
   return (
     <svg
@@ -23,7 +25,7 @@ export function Note({
           fill="none"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth={strokeWidth}
           x1="5.75"
           x2="9"
           y1="11.25"
@@ -33,7 +35,7 @@ export function Note({
           fill="none"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth={strokeWidth}
           x1="5.75"
           x2="12.25"
           y1="8.25"
@@ -43,7 +45,7 @@ export function Note({
           fill="none"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth={strokeWidth}
           x1="5.75"
           x2="12.25"
           y1="5.25"
@@ -58,7 +60,7 @@ export function Note({
           stroke={fill}
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth={strokeWidth}
           x="2.75"
           y="1.75"
         />

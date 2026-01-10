@@ -3,7 +3,7 @@ import { useAtom } from 'jotai';
 import { useTagsQuery } from '../../../hooks/tags';
 import { TagIcon } from '../../../icons/tag';
 import { Loader } from '../../../icons/loader';
-import { VirtualizedListAccordion } from '../../virtualized-list/accordion';
+import { VirtualizedListAccordion } from '../../virtualized/virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
 import {
   ROUTE_PATTERNS,

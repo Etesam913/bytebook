@@ -6,7 +6,7 @@ import {
   SearchResultAttachment,
   SearchResultFolder,
 } from './search-result-item';
-import { VirtualizedList } from '../../../components/virtualized-list';
+import { VirtualizedList } from '../../../components/virtualized/virtualized-list';
 import { SearchRow, Section, dataItemToKey, dataItemToString } from '../utils';
 import { useCollapsibleSections } from './useCollapsibleSections';
 
