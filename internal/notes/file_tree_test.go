@@ -5,102 +5,144 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
+// findChildByName is a test helper that finds a child by name from a slice of FileOrFolder
+func findChildByName(children []FileOrFolder, name string) *FileOrFolder {
+	for _, child := range children {
+		if child.Name == name {
+			return &child
+		}
+	}
+	return nil
+}
+
 func TestGetChildrenOfFolder(t *testing.T) {
-	// Create a temporary directory for testing
 	tempDir, err := os.MkdirTemp("", "file_tree_test")
 	assert.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
-	// Create test directory structure
-	testFolder := "test_folder"
-	fullTestFolderPath := filepath.Join(tempDir, testFolder)
-	err = os.Mkdir(fullTestFolderPath, 0755)
+	notesDir := filepath.Join(tempDir, "notes")
+	err = os.Mkdir(notesDir, 0755)
 	assert.NoError(t, err)
 
-	// Create some test files and subdirectories
-	testFiles := []string{"file1.txt", "file2.md", "file3.json"}
-	for _, f := range testFiles {
-		filePath := filepath.Join(fullTestFolderPath, f)
-		err = os.WriteFile(filePath, []byte("test content"), 0644)
+	testFolder := filepath.Join(notesDir, "test_folder")
+	err = os.Mkdir(testFolder, 0755)
+	assert.NoError(t, err)
+
+	// Create test files
+	err = os.WriteFile(filepath.Join(testFolder, "file1.txt"), []byte("content"), 0644)
+	assert.NoError(t, err)
+	err = os.WriteFile(filepath.Join(testFolder, "file2.md"), []byte("content"), 0644)
+	assert.NoError(t, err)
+
+	// Create subdirectory
+	err = os.Mkdir(filepath.Join(testFolder, "subdir"), 0755)
+	assert.NoError(t, err)
+
+	t.Run("returns three children for test_folder", func(t *testing.T) {
+		children, err := GetChildrenOfFolder(tempDir, "test_folder")
 		assert.NoError(t, err)
-	}
+		assert.Len(t, children, 3)
+	})
 
-	// Create a subdirectory
-	subDir := filepath.Join(fullTestFolderPath, "subdir")
-	err = os.Mkdir(subDir, 0755)
+	t.Run("file1.txt has correct properties", func(t *testing.T) {
+		children, err := GetChildrenOfFolder(tempDir, "test_folder")
+		assert.NoError(t, err)
+
+		file1 := findChildByName(children, "file1.txt")
+		assert.NotNil(t, file1, "file1.txt should exist in children")
+
+		_, err = uuid.Parse(file1.Id)
+		assert.NoError(t, err, "Id should be a valid UUID")
+		assert.Equal(t, "file1.txt", file1.Name)
+		assert.Equal(t, filepath.Join("test_folder", "file1.txt"), file1.Path)
+		assert.Equal(t, "file", file1.Type)
+		assert.Equal(t, []string{}, file1.ChildrenIds)
+	})
+
+	t.Run("file2.md has correct properties", func(t *testing.T) {
+		children, err := GetChildrenOfFolder(tempDir, "test_folder")
+		assert.NoError(t, err)
+
+		file2 := findChildByName(children, "file2.md")
+		assert.NotNil(t, file2, "file2.md should exist in children")
+
+		_, err = uuid.Parse(file2.Id)
+		assert.NoError(t, err, "Id should be a valid UUID")
+		assert.Equal(t, "file2.md", file2.Name)
+		assert.Equal(t, filepath.Join("test_folder", "file2.md"), file2.Path)
+		assert.Equal(t, "file", file2.Type)
+		assert.Equal(t, []string{}, file2.ChildrenIds)
+	})
+
+	t.Run("subdir has correct properties", func(t *testing.T) {
+		children, err := GetChildrenOfFolder(tempDir, "test_folder")
+		assert.NoError(t, err)
+
+		subdir := findChildByName(children, "subdir")
+		assert.NotNil(t, subdir, "subdir should exist in children")
+
+		_, err = uuid.Parse(subdir.Id)
+		assert.NoError(t, err, "Id should be a valid UUID")
+		assert.Equal(t, "subdir", subdir.Name)
+		assert.Equal(t, filepath.Join("test_folder", "subdir"), subdir.Path)
+		assert.Equal(t, "folder", subdir.Type)
+		assert.Equal(t, []string{}, subdir.ChildrenIds)
+	})
+
+	t.Run("non-existent folder returns error", func(t *testing.T) {
+		children, err := GetChildrenOfFolder(tempDir, "missing")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "does not exist")
+		assert.Empty(t, children)
+	})
+
+	t.Run("path is a file returns error", func(t *testing.T) {
+		children, err := GetChildrenOfFolder(tempDir, "test_folder/file1.txt")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "is not a folder")
+		assert.Empty(t, children)
+	})
+}
+
+func TestGetTopLevelItems(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "file_tree_test")
+	assert.NoError(t, err)
+	defer os.RemoveAll(tempDir)
+
+	notesDir := filepath.Join(tempDir, "notes")
+	err = os.Mkdir(notesDir, 0755)
 	assert.NoError(t, err)
 
-	tests := []struct {
-		name          string
-		projectPath   string
-		folderId      string
-		pathToFolder  string
-		parentId      string
-		expectedCount int
-		expectError   bool
-		errorContains string
-	}{
-		{
-			name:          "Valid folder with children",
-			projectPath:   tempDir,
-			folderId:      "folder-123",
-			pathToFolder:  testFolder,
-			parentId:      "parent-123",
-			expectedCount: 4, // 3 files + 1 subdirectory
-			expectError:   false,
-		},
-		{
-			name:          "Empty folder",
-			projectPath:   tempDir,
-			folderId:      "folder-456",
-			pathToFolder:  filepath.Join(testFolder, "subdir"),
-			parentId:      "folder-123",
-			expectedCount: 0,
-			expectError:   false,
-		},
-		{
-			name:          "Non-existent path",
-			projectPath:   tempDir,
-			folderId:      "folder-789",
-			pathToFolder:  "non_existent_folder",
-			parentId:      "parent-456",
-			expectedCount: 0,
-			expectError:   true,
-			errorContains: "does not exist",
-		},
-		{
-			name:          "Path is a file, not a folder",
-			projectPath:   tempDir,
-			folderId:      "folder-101",
-			pathToFolder:  filepath.Join(testFolder, "file1.txt"),
-			parentId:      "folder-123",
-			expectedCount: 0,
-			expectError:   true,
-			errorContains: "is not a folder",
-		},
-	}
+	// Create top-level items
+	err = os.WriteFile(filepath.Join(notesDir, "file1.md"), []byte("content"), 0644)
+	assert.NoError(t, err)
+	err = os.Mkdir(filepath.Join(notesDir, "folder1"), 0755)
+	assert.NoError(t, err)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			childIds, err := GetChildrenOfFolder(tt.projectPath, tt.folderId, tt.pathToFolder, tt.parentId)
+	t.Run("valid notes directory", func(t *testing.T) {
+		items, err := GetTopLevelItems(tempDir)
+		assert.NoError(t, err)
+		assert.Len(t, items, 2)
+		for _, item := range items {
+			assert.NotEmpty(t, item.Id)
+			_, err := uuid.Parse(item.Id)
+			assert.NoError(t, err)
+			assert.True(t, len(item.Path) > 0 && item.Path[0] == '/')
+			assert.Contains(t, []string{"file", "folder"}, item.Type)
+		}
+	})
 
-			if tt.expectError {
-				assert.Error(t, err)
-				if tt.errorContains != "" {
-					assert.Contains(t, err.Error(), tt.errorContains)
-				}
-				assert.Empty(t, childIds)
-			} else {
-				assert.NoError(t, err)
-				assert.Len(t, childIds, tt.expectedCount)
-				// Verify that all returned IDs are valid UUIDs
-				for _, id := range childIds {
-					assert.NotEmpty(t, id)
-				}
-			}
-		})
-	}
+	t.Run("missing notes directory", func(t *testing.T) {
+		emptyDir, err := os.MkdirTemp("", "file_tree_test_empty")
+		assert.NoError(t, err)
+		defer os.RemoveAll(emptyDir)
+
+		items, err := GetTopLevelItems(emptyDir)
+		assert.Error(t, err)
+		assert.Empty(t, items)
+	})
 }

@@ -4,7 +4,7 @@ import { getDefaultButtonVariants } from '../../animations.ts';
 import { noteSortAtom } from '../../atoms.ts';
 import { MotionButton } from '../../components/buttons/index.tsx';
 import { SortButton } from '../../components/buttons/sort.tsx';
-import { PaginatedVirtualizedList } from '../../components/virtualized-list/paginated-virtualized-list.tsx';
+import { PaginatedVirtualizedList } from '../../components/virtualized/virtualized-list/paginated-virtualized-list.tsx';
 import { FileRefresh } from '../../icons/file-refresh.tsx';
 import { Loader } from '../../icons/loader.tsx';
 import { Note } from '../../icons/page.tsx';

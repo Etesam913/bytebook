@@ -1,15 +1,15 @@
 import type { Dispatch, DragEvent, JSX, SetStateAction } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Folder } from '../../icons/folder';
-import { ImageIcon } from '../../icons/image';
-import { Note } from '../../icons/page';
+import { Folder } from '../../../icons/folder';
+import { ImageIcon } from '../../../icons/image';
+import { Note } from '../../../icons/page';
 import {
   BYTEBOOK_DRAG_DATA_FORMAT,
   createGhostElementFromHtmlElement,
-} from '../../utils/draggable';
-import { getContentTypeAndValueFromSelectionRangeValue } from '../../utils/string-formatting';
-import { LocalFilePath } from '../../utils/path';
-import { WAILS_URL } from '../../utils/general';
+} from '../../../utils/draggable';
+import { getContentTypeAndValueFromSelectionRangeValue } from '../../../utils/string-formatting';
+import { LocalFilePath } from '../../../utils/path';
+import { WAILS_URL } from '../../../utils/general';
 
 /** Gets the file icon for the dragged item */
 function getFileIcon(fileType: 'folder' | 'note' | 'image') {

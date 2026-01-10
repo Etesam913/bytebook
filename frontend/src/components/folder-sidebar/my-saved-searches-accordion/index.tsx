@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { useAtom } from 'jotai';
-import { VirtualizedListAccordion } from '../../virtualized-list/accordion';
+import { VirtualizedListAccordion } from '../../virtualized/virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
 import {
   ROUTE_PATTERNS,

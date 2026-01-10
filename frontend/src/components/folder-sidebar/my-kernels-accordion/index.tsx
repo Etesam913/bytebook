@@ -1,6 +1,6 @@
 import { useAtom, useAtomValue } from 'jotai';
 import { useRoute } from 'wouter';
-import { VirtualizedListAccordion } from '../../virtualized-list/accordion';
+import { VirtualizedListAccordion } from '../../virtualized/virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
 import {
   useKernelHeartbeat,

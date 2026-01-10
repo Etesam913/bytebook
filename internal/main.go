@@ -79,8 +79,8 @@ func main() {
 			application.NewService(
 				&services.FileTreeService{
 					ProjectPath: projectPath,
-				}
-			)
+				},
+			),
 			application.NewService(
 				&services.NodeService{ProjectPath: projectPath},
 			),

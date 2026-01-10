@@ -1,26 +1,20 @@
-import { motion } from 'motion/react';
 import { useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { useFolders } from '../../../hooks/folders';
 import { Folder } from '../../../icons/folder';
-import { FolderRefresh } from '../../../icons/folder-refresh';
-import { Loader } from '../../../icons/loader';
-import { VirtualizedListAccordion } from '../../virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
 import { navigate } from 'wouter/use-browser-location';
 import { useLocation } from 'wouter';
 import { routeUrls } from '../../../utils/routes';
 import { useFolderFromRoute } from '../../../hooks/events';
 import { findClosestSidebarItemToNavigateTo } from '../../../utils/routing';
-import { FolderAccordionButton } from './folder-accordion-button';
 import { folderSidebarOpenStateAtom } from '../../../atoms';
-import { ErrorText } from '../../error-text';
-import { FileTree } from './file-tree';
+import { VirtualizedFileTree } from '../../virtualized/virtualized-file-tree';
 
 export function MyFoldersAccordion() {
   const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
   const isOpen = openState.folders;
-  const { data, isLoading, isError, refetch } = useFolders();
+  const { data } = useFolders();
   const alphabetizedFolders = data?.alphabetizedFolders ?? null;
   const previousFolders = data?.previousAlphabetizedFolders ?? null;
   const { folder: currentFolder, isNoteRoute } = useFolderFromRoute();
@@ -142,7 +136,7 @@ export function MyFoldersAccordion() {
         )}
         data={alphabetizedFolders}
       />*/}
-      <FileTree />
+      <VirtualizedFileTree isOpen={isOpen} />
     </section>
   );
 }

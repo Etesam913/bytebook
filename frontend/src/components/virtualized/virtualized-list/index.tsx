@@ -10,11 +10,11 @@ import {
   useState,
 } from 'react';
 import { Components, Virtuoso } from 'react-virtuoso';
-import { contextMenuRefAtom, selectionRangeAtom } from '../../atoms';
-import { useOnClickOutside } from '../../hooks/general';
-import { cn } from '../../utils/string-formatting';
+import { contextMenuRefAtom, selectionRangeAtom } from '../../../atoms';
+import { useOnClickOutside } from '../../../hooks/general';
+import { cn } from '../../../utils/string-formatting';
 import { VirtualizedListItem } from './virtualized-list-item';
-import { SidebarContentType } from '../../types';
+import { SidebarContentType } from '../../../types';
 import { useSmartScroll } from './hooks';
 
 export type SelectionOptions<T> =

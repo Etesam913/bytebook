@@ -6,7 +6,7 @@ import {
   selectionRangeAtom,
 } from '../../../atoms';
 import { draggedGhostElementAtom } from '../../../components/editor/atoms';
-import { handleNoteDragStart } from '../../../components/virtualized-list/utils';
+import { handleNoteDragStart } from '../../../components/virtualized/virtualized-list/utils';
 import {
   useMoveNoteToTrashMutation,
   useNoteRevealInFinderMutation,

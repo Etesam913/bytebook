@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
-import { easingFunctions } from '../../animations';
-import { cn } from '../../utils/string-formatting';
+import { easingFunctions } from '../../../animations';
+import { cn } from '../../../utils/string-formatting';
 
 export function SidebarHighlight({
   layoutId,

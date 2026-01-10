@@ -9,7 +9,7 @@ import { PinTack2 } from '../../icons/pin-tack-2';
 import { PinTackSlash } from '../../icons/pin-tack-slash';
 import { AccordionButton } from '../accordion/accordion-button';
 import { AccordionItem } from '../accordion/accordion-item';
-import { VirtualizedListAccordion } from '../virtualized-list/accordion';
+import { VirtualizedListAccordion } from '../virtualized/virtualized-list/accordion';
 import { currentZoomAtom } from '../../hooks/resize';
 import { LocalFilePath } from '../../utils/path';
 
