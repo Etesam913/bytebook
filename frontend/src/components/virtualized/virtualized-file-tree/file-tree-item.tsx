@@ -8,6 +8,8 @@ import { fileOrFolderMapAtom } from '.';
 import { cn } from '../../../utils/string-formatting';
 import { Dispatch } from 'react';
 import { navigate } from 'wouter/use-browser-location';
+import { LoadingSpinner } from '../../loading-spinner';
+import { motion } from 'motion/react';
 
 function FileItemIcon({ dataItem }: { dataItem: FlattenedFileOrFolder }) {
   if (dataItem.type === 'file') {
@@ -102,51 +104,60 @@ export function FileTreeItem({
   hoveredItemRailPath: string;
   dataItem: FlattenedFileOrFolder;
 }) {
-  const { mutate: openFolder } = useOpenFolderMutation();
+  const { mutate: openFolder, isPending } = useOpenFolderMutation();
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
   const isFolder = dataItem.type === 'folder';
   const isRoot = dataItem.level === 0;
 
   return (
-    <span
-      className="flex gap-2 text-sm w-full relative"
+    <div
       style={{
         paddingLeft: `${dataItem.level * INDENT_WIDTH}px`,
       }}
     >
-      {!isRoot && (
-        <ItemRail
-          setHoveredItemRailPath={setHoveredItemRailPath}
-          hoveredItemRailPath={hoveredItemRailPath}
-          dataItem={dataItem}
-          // railPath={dataItem.path.split('/').slice(0, -1).join('/')}
-        />
-      )}
-      <button
-        onClick={() => {
-          navigate('/abc/def.md');
-          if (isFolder) {
-            if (!dataItem.isOpen) {
-              openFolder({
-                pathToFolder: dataItem.path,
-                folderId: dataItem.id,
-              });
-            } else {
-              setFileOrFolderMap((prev) => {
-                const newMap = new Map(prev);
-                newMap.set(dataItem.id, { ...dataItem, isOpen: false });
-                return newMap;
-              });
-            }
-          }
-        }}
-        className={cn(
-          'flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-650 rounded-md w-full py-1 px-2 ml-3.75'
+      <span className="flex gap-2 text-sm w-full relative">
+        {!isRoot && (
+          <ItemRail
+            setHoveredItemRailPath={setHoveredItemRailPath}
+            hoveredItemRailPath={hoveredItemRailPath}
+            dataItem={dataItem}
+          />
         )}
-      >
-        <FileItemIcon dataItem={dataItem} />{' '}
-        <span className="truncate">{dataItem.name}</span>
-      </button>
-    </span>
+        <button
+          onClick={() => {
+            navigate('/abc/def.md');
+            if (isFolder) {
+              if (!dataItem.isOpen) {
+                openFolder({
+                  pathToFolder: dataItem.path,
+                  folderId: dataItem.id,
+                });
+              } else {
+                setFileOrFolderMap((prev) => {
+                  const newMap = new Map(prev);
+                  newMap.set(dataItem.id, { ...dataItem, isOpen: false });
+                  return newMap;
+                });
+              }
+            }
+          }}
+          className={cn(
+            'flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-650 rounded-md w-full py-1 px-2 ml-3.75'
+          )}
+        >
+          <FileItemIcon dataItem={dataItem} />{' '}
+          <span className="truncate">{dataItem.name}</span>
+        </button>
+      </span>
+      {isPending && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+        >
+          <LoadingSpinner className="ml-11 my-1.25" height={16} width={16} />
+        </motion.div>
+      )}
+    </div>
   );
 }
