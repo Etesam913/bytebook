@@ -1,16 +1,12 @@
-import { useRoute } from 'wouter';
-import { createFilePath } from '../../../utils/path';
 import { NoteRenderer } from '../../note-renderer';
+import { useFilePathFromRoute } from '../../../hooks/routes';
+import { NotFound } from '../../../routes/not-found';
 
 export function EditorWrapper() {
-  const [isNoteRoute, noteParams] = useRoute('/notes/*');
-  const filePath = noteParams?.['*']
-    ? createFilePath(decodeURIComponent(noteParams?.['*']))
-    : null;
-
-  if (!isNoteRoute || !filePath) {
+  const filePath = useFilePathFromRoute();
+  if (!filePath) {
     // Replace with 404 page
-    return null;
+    return <NotFound />;
   }
 
   return (

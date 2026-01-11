@@ -8,7 +8,6 @@ import { TagPlus } from '../../../icons/tag-plus';
 import { Folder } from '../../../icons/folder';
 import { Loader } from '../../../icons/loader';
 import {
-  useDeleteTagFromNoteMutation,
   useEditTagsFormMutation,
   useTagsForNotesQuery,
   // useDeleteTagsMutation,
@@ -19,7 +18,7 @@ import { timeSince } from '../utils/bottom-bar';
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
 import { Frontmatter } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
-import { FilePath } from '../../../utils/path';
+import { FilePath, safeDecodeURIComponent } from '../../../utils/path';
 
 export function BottomBar({
   frontmatter,
@@ -83,12 +82,12 @@ export function BottomBar({
       <span className="flex items-center gap-1">
         <BreadcrumbItem to={`/${filePath.folder}`}>
           <Folder width={20} height={20} />{' '}
-          {decodeURIComponent(filePath.folder)}
+          {safeDecodeURIComponent(filePath.folder)}
         </BreadcrumbItem>{' '}
         /{' '}
         <BreadcrumbItem to={filePath.fileUrl}>
           <RenderNoteIcon filePath={filePath} />
-          {decodeURIComponent(filePath.noteWithoutExtension)}
+          {safeDecodeURIComponent(filePath.noteWithoutExtension)}
         </BreadcrumbItem>
       </span>
       {isNoteEditor && <KernelHeartbeats />}

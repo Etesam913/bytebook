@@ -2,6 +2,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@layer base {
+  .bb-force-grabbing,
+  .bb-force-grabbing * {
+    cursor: grabbing !important;
+  }
+}
+
 @theme {
   --font-display: Bricolage Grotesque;
   --font-code: Jetbrains Mono;

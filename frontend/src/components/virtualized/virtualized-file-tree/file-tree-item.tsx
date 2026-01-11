@@ -6,10 +6,13 @@ import { useOpenFolderMutation } from './hooks';
 import { FlattenedFileOrFolder } from './types';
 import { fileOrFolderMapAtom } from '.';
 import { cn } from '../../../utils/string-formatting';
-import { Dispatch } from 'react';
+import { Dispatch, useState } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { LoadingSpinner } from '../../loading-spinner';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useFilePathFromRoute } from '../../../hooks/routes';
+import { createFilePath } from '../../../utils/path';
+import { SidebarHighlight } from '../virtualized-list/highlight';
 
 function FileItemIcon({ dataItem }: { dataItem: FlattenedFileOrFolder }) {
   if (dataItem.type === 'file') {
@@ -105,9 +108,16 @@ export function FileTreeItem({
   dataItem: FlattenedFileOrFolder;
 }) {
   const { mutate: openFolder, isPending } = useOpenFolderMutation();
+  const [isHovered, setIsHovered] = useState(false);
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
   const isFolder = dataItem.type === 'folder';
   const isRoot = dataItem.level === 0;
+
+  const filePathFromRoute = useFilePathFromRoute();
+  const filePath = createFilePath(dataItem.path);
+
+  const isSelected =
+    filePathFromRoute && filePath && filePathFromRoute.equals(filePath);
 
   return (
     <div
@@ -124,8 +134,9 @@ export function FileTreeItem({
           />
         )}
         <button
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
           onClick={() => {
-            navigate(`/notes/${encodeURIComponent(dataItem.path)}`);
             if (isFolder) {
               if (!dataItem.isOpen) {
                 openFolder({
@@ -139,14 +150,31 @@ export function FileTreeItem({
                   return newMap;
                 });
               }
+            } else {
+              if (filePath) {
+                navigate(filePath.encodedFileUrl);
+              }
             }
           }}
-          className={cn(
-            'flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-650 rounded-md w-full py-1 px-2 ml-3.75'
-          )}
+          className={cn('flex items-center w-full relative rounded-md')}
         >
-          <FileItemIcon dataItem={dataItem} />{' '}
-          <span className="truncate">{dataItem.name}</span>
+          <AnimatePresence>
+            {isHovered && (
+              <SidebarHighlight
+                layoutId={'file-tree-item-highlight'}
+                className="w-[calc(100%-15px)] ml-3.75"
+              />
+            )}
+          </AnimatePresence>
+          <span
+            className={cn(
+              'rounded-md flex items-center gap-2 z-10 py-1 px-2 ml-3.75 overflow-hidden w-full',
+              isSelected && 'bg-zinc-150 dark:bg-zinc-650'
+            )}
+          >
+            <FileItemIcon dataItem={dataItem} />
+            <span className="truncate">{dataItem.name}</span>
+          </span>
         </button>
       </span>
       {isPending && (

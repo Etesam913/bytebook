@@ -179,9 +179,7 @@ export function SavedSearchPage({
           </div>
         </motion.aside>
       )}
-      {width && leftWidth && (
-        <Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
-      )}
+      {width && <Spacer width={width} />}
       {curFolder && curNote && curNoteExtension && (
         <ErrorBoundary
           key={`${curFolder}-${curNote}-${curNoteExtension}`}
