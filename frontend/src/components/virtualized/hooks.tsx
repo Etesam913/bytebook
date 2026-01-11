@@ -16,6 +16,7 @@ export function useAnimatedHeight({
   const [totalHeight, setTotalHeight] = useState<number | null>(null);
   const [scope, animate] = useAnimate();
   const hasMeasured = useRef(false);
+  const prevIsOpen = useRef(isOpen);
 
   // Compute whether we've completed the initial measurement
   const isReady = totalHeight !== null;
@@ -53,15 +54,23 @@ export function useAnimatedHeight({
       }
       hasMeasured.current = true;
     } else {
-      // SUBSEQUENT UPDATES: User toggled 'isOpen', or list grew.
-      // Animate smoothly.
+      // SUBSEQUENT UPDATES: User toggled 'isOpen', or list grew/shrank.
       const height = isOpen ? targetHeight : 0;
-      animate(
-        scope.current,
-        { height },
-        { type: 'spring', damping: 17, stiffness: 115 }
-      );
+      const isOpenChanged = prevIsOpen.current !== isOpen;
+
+      if (isOpenChanged) {
+        // Animate smoothly only when accordion opens/closes
+        animate(
+          scope.current,
+          { height },
+          { type: 'spring', damping: 17, stiffness: 115 }
+        );
+      } else {
+        // Snap instantly for data-driven height changes (folder expand/collapse within the tree)
+        animate(scope.current, { height }, { duration: 0 });
+      }
     }
+    prevIsOpen.current = isOpen;
   }, [totalHeight, isOpen, maxHeight, animate, scope]);
 
   const handleHeightChange = (height: number) => {

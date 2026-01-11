@@ -11,3 +11,4 @@ bundle-analysis.html
 ../.idea
 node_modules/
 .next/
+.cursor/

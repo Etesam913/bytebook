@@ -7,7 +7,7 @@ import { QueryError } from '../../../utils/query';
 import { fileOrFolderMapAtom } from '.';
 import { FILE_TYPE, FOLDER_TYPE, type FileOrFolder } from './types';
 import { useEffect } from 'react';
-import { useSetAtom } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
 
 /**
  * Fetches the top-level folders from on mount
@@ -119,7 +119,7 @@ export function useTopLevelFileOrFolders() {
  * @returns A mutation object for opening (expanding) a folder.
  */
 export function useOpenFolderMutation() {
-  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
+  const [fileOrFolderMap, setFileOrFolderMap] = useAtom(fileOrFolderMapAtom);
 
   return useMutation({
     /**
@@ -137,6 +137,26 @@ export function useOpenFolderMutation() {
       pathToFolder: string;
       folderId: string;
     }) => {
+      const folderData = fileOrFolderMap.get(folderId);
+      if (!folderData || folderData.type !== FOLDER_TYPE) {
+        throw new QueryError('Folder not found');
+      }
+
+      const hasChildren = folderData.childrenIds.length > 0;
+      if (hasChildren) {
+        // There are already children, so we don't need to fetch them again.
+        // The folder does have to be set as open though
+        setFileOrFolderMap((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(folderId, {
+            ...folderData,
+            isOpen: true,
+          });
+          return newMap;
+        });
+        return;
+      }
+
       const res = await GetChildrenOfFolder(pathToFolder);
       if (!res.success || (!res.data && res.message)) {
         throw new QueryError(res.message);
