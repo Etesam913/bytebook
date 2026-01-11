@@ -125,7 +125,7 @@ export function FileTreeItem({
         )}
         <button
           onClick={() => {
-            navigate('/abc/def.md');
+            navigate(`/notes/${encodeURIComponent(dataItem.path)}`);
             if (isFolder) {
               if (!dataItem.isOpen) {
                 openFolder({

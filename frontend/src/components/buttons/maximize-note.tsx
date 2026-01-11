@@ -7,10 +7,10 @@ import { SidebarRightCollapse } from '../../icons/sidebar-right-collapse';
 import { Tooltip } from '../tooltip';
 
 export function MaximizeNoteButton({
-  animationControls,
+  // animationControls,
   disabled,
 }: {
-  animationControls: LegacyAnimationControls;
+  // animationControls: LegacyAnimationControls;
   disabled?: boolean;
 }) {
   const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
@@ -23,10 +23,10 @@ export function MaximizeNoteButton({
       <MotionIconButton
         onClick={() => {
           setIsNoteMaximized((prev) => !prev);
-          animationControls.start({
-            x: isNoteMaximized ? [-40, 0] : [50, 0],
-            transition: { ease: easingFunctions['ease-out-quint'] },
-          });
+          // animationControls.start({
+          //   x: isNoteMaximized ? [-40, 0] : [50, 0],
+          //   transition: { ease: easingFunctions['ease-out-quint'] },
+          // });
         }}
         {...getDefaultButtonVariants({ disabled })}
         type="button"
