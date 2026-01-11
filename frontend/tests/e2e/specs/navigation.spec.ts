@@ -17,7 +17,7 @@ test.describe('Navigation', () => {
     await page.goto('/');
 
     // Navigate to a folder
-    const sidebar = page.getByTestId('folder-sidebar');
+    const sidebar = page.getByTestId('file-sidebar');
     await sidebar.getByText('Economics Notes').click();
     await expect(page).toHaveURL(/\/notes\/Economics%20Notes/);
 
@@ -35,7 +35,7 @@ test.describe('Navigation', () => {
     await page.goto('/');
 
     // Navigate to a folder
-    const sidebar = page.getByTestId('folder-sidebar');
+    const sidebar = page.getByTestId('file-sidebar');
     await sidebar.getByText('Economics Notes').click();
     await expect(page).toHaveURL(/\/notes\/Economics%20Notes/);
 

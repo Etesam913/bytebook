@@ -13,7 +13,7 @@ import type { LexicalEditor, RangeSelection } from 'lexical';
 import { INSERT_TABLE_COMMAND } from '@lexical/table';
 import { $setSelection } from 'lexical';
 import { useFolderCreateMutation } from './folders';
-import { CreateFolderDialog } from '../components/folder-sidebar/my-folders-accordion/folder-dialog-children';
+import { CreateFolderDialog } from '../components/file-sidebar/my-files-accordion/folder-dialog-children';
 import { useRenameFileMutation } from './notes';
 import { RenameFileDialogChildren } from '../routes/notes-sidebar/rename-file-dialog-children';
 import { LocalFilePath } from '../utils/path';

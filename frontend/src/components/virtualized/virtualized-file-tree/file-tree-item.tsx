@@ -3,10 +3,11 @@ import { Folder } from '../../../icons/folder';
 import { FolderOpen } from '../../../icons/folder-open';
 import { Note } from '../../../icons/page';
 import { useOpenFolderMutation } from './hooks';
-import { FOLDER_TYPE, FlattenedFileOrFolder } from './types';
+import { FlattenedFileOrFolder } from './types';
 import { fileOrFolderMapAtom } from '.';
 import { cn } from '../../../utils/string-formatting';
 import { Dispatch } from 'react';
+import { navigate } from 'wouter/use-browser-location';
 
 function FileItemIcon({ dataItem }: { dataItem: FlattenedFileOrFolder }) {
   if (dataItem.type === 'file') {
@@ -123,6 +124,7 @@ export function FileTreeItem({
       )}
       <button
         onClick={() => {
+          navigate('/abc/def.md');
           if (isFolder) {
             if (!dataItem.isOpen) {
               openFolder({

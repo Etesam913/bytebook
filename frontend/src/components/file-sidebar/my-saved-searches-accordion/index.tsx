@@ -15,14 +15,14 @@ import { useRoute } from 'wouter';
 import { SavedSearchAccordionButton } from './saved-search-accordion-button';
 import { Box2Search } from '../../../icons/box-2-search';
 import { SavedSearch } from '../../../../bindings/github.com/etesam913/bytebook/internal/search/models';
-import { folderSidebarOpenStateAtom } from '../../../atoms';
+import { fileSidebarOpenStateAtom } from '../../../atoms';
 import { ErrorText } from '../../error-text';
 import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
 import { Loader } from '../../../icons/loader';
 
 export function MySavedSearchesAccordion() {
   useSavedSearchUpdates();
-  const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
+  const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isOpen = openState.savedSearches;
   const {
     data: savedSearches = [],

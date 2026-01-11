@@ -2,7 +2,7 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
   contextMenuDataAtom,
   projectSettingsAtom,
-  folderSidebarOpenStateAtom,
+  fileSidebarOpenStateAtom,
 } from '../../atoms';
 import { usePinNotesMutation } from '../../hooks/notes';
 import { PinTack2 } from '../../icons/pin-tack-2';
@@ -14,7 +14,7 @@ import { currentZoomAtom } from '../../hooks/resize';
 import { LocalFilePath } from '../../utils/path';
 
 export function PinnedNotesAccordion() {
-  const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
+  const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isPinnedNotesOpen = openState.pinnedNotes;
 
   const projectSettings = useAtomValue(projectSettingsAtom);

@@ -5,8 +5,8 @@ import { getDefaultButtonVariants } from '../../animations.ts';
 import { dialogDataAtom } from '../../atoms';
 import { isNoteMaximizedAtom } from '../../atoms';
 import { MotionButton, MotionIconButton } from '../../components/buttons';
-import { RenameFolderDialog } from '../../components/folder-sidebar/my-folders-accordion/folder-dialog-children.tsx';
-import { Spacer } from '../../components/folder-sidebar/spacer';
+import { RenameFolderDialog } from '../../components/file-sidebar/my-files-accordion/folder-dialog-children.tsx';
+import { Spacer } from '../../components/file-sidebar/spacer.tsx';
 import { useCreateNoteDialog } from '../../hooks/dialogs.tsx';
 import { useFolderRenameMutation } from '../../hooks/folders.tsx';
 import {

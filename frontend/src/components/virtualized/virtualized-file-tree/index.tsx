@@ -29,10 +29,6 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
     }
   );
 
-  console.log({
-    flattenedData: flattenedTopLevelData,
-  });
-
   return (
     <div
       ref={scope}
@@ -43,7 +39,7 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
         data={flattenedTopLevelData}
         className="scrollbar-hidden"
         style={{
-          overscrollBehavior: 'none',
+          overscrollBehavior: 'auto',
           height: !FILE_TREE_MAX_HEIGHT
             ? '100%'
             : totalHeight === null

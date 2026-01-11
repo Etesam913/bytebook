@@ -50,7 +50,7 @@ const MOCK_EMPTY_SEARCH_RESPONSE: [] = [];
 
 test.describe('Saved Search Page', () => {
   test.beforeEach(async ({ context }) => {
-    // Mock folder sidebar dependencies
+    // Mock file sidebar dependencies
     await mockBinding(
       context,
       {
@@ -178,7 +178,7 @@ test.describe('Saved Search Page', () => {
     test('navigates to saved search from tag click', async ({ page }) => {
       await page.goto('/');
 
-      const sidebar = page.getByTestId('folder-sidebar');
+      const sidebar = page.getByTestId('file-sidebar');
 
       // Open the tags accordion
       const tagsAccordion = page.getByTestId('tags-accordion');
@@ -294,7 +294,7 @@ test.describe('Saved Search Page', () => {
     test('navigates to saved search from sidebar', async ({ page }) => {
       await page.goto('/');
 
-      const sidebar = page.getByTestId('folder-sidebar');
+      const sidebar = page.getByTestId('file-sidebar');
 
       // Open saved searches accordion
       const savedSearchesAccordion = page.getByTestId(

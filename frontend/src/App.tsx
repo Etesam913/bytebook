@@ -7,7 +7,7 @@ import { contextMenuDataAtom } from './atoms';
 import { isNoteMaximizedAtom } from './atoms';
 import { ContextMenu } from './components/context-menu';
 import { Dialog } from './components/dialog';
-import { FolderSidebar } from './components/folder-sidebar';
+import { FileSidebar } from './components/file-sidebar';
 import { LoadingModal } from './components/loading-modal';
 import { useRouteFilePath } from './hooks/events';
 import { useProjectSettings } from './hooks/project-settings';
@@ -61,7 +61,7 @@ export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
 disableBackspaceNavigation();
 
 function App() {
-  const folderSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
+  const fileSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
   const notesSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
@@ -99,16 +99,19 @@ function App() {
             : 'visible'
         }
       >
-        <FolderSidebar width={folderSidebarWidth} />
+        <FileSidebar width={fileSidebarWidth} />
       </Activity>
       <Switch>
         <Route path={routeUrls.patterns.ROOT} />
+        <Route path="/abc/def.md">
+          <div>yolo dudes</div>
+        </Route>
 
-        <Route path={routeUrls.patterns.NOT_FOUND_FALLBACK}>
+        {/* <Route path={routeUrls.patterns.NOT_FOUND_FALLBACK}>
           <Suspense fallback={<RouteFallback />}>
             <NotFound />
           </Suspense>
-        </Route>
+        </Route> */}
 
         <Route path={routeUrls.patterns.KERNELS}>
           <Suspense fallback={<RouteFallback />}>
@@ -134,13 +137,13 @@ function App() {
                   params.note ? decodeURIComponent(params.note) : undefined
                 }
                 width={notesSidebarWidth}
-                leftWidth={folderSidebarWidth}
+                leftWidth={fileSidebarWidth}
               />
             </Suspense>
           )}
         </Route>
 
-        <Route path={routeUrls.patterns.NOTES}>
+        {/* <Route path={routeUrls.patterns.NOTES}>
           {(folderParams: NotesRouteParams) => (
             <Suspense fallback={<RouteFallback />}>
               <NotesSidebar
@@ -151,16 +154,15 @@ function App() {
                     : undefined
                 }
                 width={notesSidebarWidth}
-                leftWidth={folderSidebarWidth}
+                leftWidth={fileSidebarWidth}
               />
             </Suspense>
           )}
-        </Route>
-        <Route path={'*'}>
-          <Suspense fallback={<RouteFallback />}>
+        </Route> */}
+        {/* <Route path={'*'}> <Suspense fallback={<RouteFallback />}>
             <NotFound />
           </Suspense>
-        </Route>
+        </Route> */}
       </Switch>
     </main>
   );

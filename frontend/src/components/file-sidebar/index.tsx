@@ -1,35 +1,35 @@
 import { type MotionValue, motion } from 'motion/react';
 import { useAtomValue } from 'jotai';
 import { getDefaultButtonVariants } from '../../animations.ts';
-import { isFullscreenAtom } from '../../atoms';
+import { isFullscreenAtom } from '../../atoms.ts';
 import {
   useFolderCreate,
   useFolderDelete,
   useFolderCreateDialogEvent,
 } from '../../hooks/folders.tsx';
-import { FolderPlus } from '../../icons/folder-plus';
-import { MotionButton, MotionIconButton } from '../buttons';
+import { FolderPlus } from '../../icons/folder-plus.tsx';
+import { MotionButton, MotionIconButton } from '../buttons/index.tsx';
 import { BottomItems } from './bottom-items.tsx';
-import { MyFoldersAccordion } from './my-folders-accordion';
-import { MyTagsAccordion } from './my-tags-accordion';
+import { MyFilesAccordion } from './my-files-accordion/index.tsx';
+import { MyTagsAccordion } from './my-tags-accordion/index.tsx';
 import { PinnedNotesAccordion } from './pinned-notes-accordion.tsx';
 import { RecentNotesAccordion } from './recent-notes-accordion.tsx';
 import { SearchBar } from './searchbar.tsx';
-import { Spacer } from './spacer';
+import { Spacer } from './spacer.tsx';
 import { CircleArrowLeft } from '../../icons/circle-arrow-left.tsx';
 import { CircleArrowRight } from '../../icons/circle-arrow-right.tsx';
 import { useRef } from 'react';
 import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 import { ArrowRotateAnticlockwise } from '../../icons/arrow-rotate-anticlockwise.tsx';
-import { MyKernelsAccordion } from './my-kernels-accordion';
+import { MyKernelsAccordion } from './my-kernels-accordion/index.tsx';
 import { useFolderFromRoute } from '../../hooks/events.tsx';
-import { MySavedSearchesAccordion } from './my-saved-searches-accordion';
-import { Tooltip } from '../tooltip';
+import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index.tsx';
+import { Tooltip } from '../tooltip/index.tsx';
 import { cn } from '../../utils/string-formatting.ts';
-import { useCreateFolderDialog } from '../../hooks/dialogs';
+import { useCreateFolderDialog } from '../../hooks/dialogs.tsx';
 import { Command } from '../../icons/command.tsx';
 
-export function FolderSidebar({ width }: { width: MotionValue<number> }) {
+export function FileSidebar({ width }: { width: MotionValue<number> }) {
   useFolderCreate();
   useFolderDelete();
   useFolderCreateDialogEvent();
@@ -54,7 +54,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
       <motion.aside
         style={{ width }}
         className="text-md flex h-screen flex-col"
-        data-testid="folder-sidebar"
+        data-testid="file-sidebar"
       >
         <header
           className={cn(
@@ -91,7 +91,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
         </header>
         <section className="px-2.5 pt-4">
           <SearchBar />
-          <Tooltip
+          {/* <Tooltip
             placement="right"
             content={
               <span className="flex items-center gap-0.5">
@@ -116,7 +116,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
             >
               Create Folder <FolderPlus className="will-change-transform" />
             </MotionButton>
-          </Tooltip>
+          </Tooltip> */}
         </section>
         <section
           className="flex flex-1 flex-col overflow-y-auto gap-2 py-1.5"
@@ -128,7 +128,7 @@ export function FolderSidebar({ width }: { width: MotionValue<number> }) {
           <div className="flex h-full flex-col gap-1 px-2.5">
             <PinnedNotesAccordion />
             <RecentNotesAccordion />
-            <MyFoldersAccordion />
+            <MyFilesAccordion />
             <MyKernelsAccordion />
             <MyTagsAccordion />
             <MySavedSearchesAccordion />

@@ -12,7 +12,7 @@ import { SERVICE_FILES } from '../../utils/service-files';
 
 test.describe('Markdown rendering', () => {
   test.beforeEach(async ({ context }) => {
-    // Mock folder sidebar dependencies
+    // Mock file sidebar dependencies
     await mockBinding(
       context,
       {

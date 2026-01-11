@@ -1,11 +1,11 @@
 import { useAtom } from 'jotai';
-import { mostRecentNotesAtom, folderSidebarOpenStateAtom } from '../../atoms';
+import { mostRecentNotesAtom, fileSidebarOpenStateAtom } from '../../atoms.ts';
 import HourglassStart from '../../icons/hourglass-start.tsx';
 import { AccordionItem } from '../accordion/accordion-item.tsx';
 import { SidebarAccordion } from '../accordion/index.tsx';
 
 export function RecentNotesAccordion() {
-  const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
+  const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isRecentNotesOpen = openState.recentNotes;
   const [mostRecentNotes] = useAtom(mostRecentNotesAtom);
 

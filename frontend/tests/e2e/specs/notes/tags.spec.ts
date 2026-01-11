@@ -19,7 +19,7 @@ import { setupWailsEvents, emitWailsEvent } from '../../utils/wails-events';
 
 test.describe('Tags Workflow', () => {
   test.beforeEach(async ({ context }) => {
-    // Mock folder sidebar dependencies
+    // Mock file sidebar dependencies
     await mockBinding(
       context,
       {

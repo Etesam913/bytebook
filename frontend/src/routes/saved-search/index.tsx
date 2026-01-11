@@ -1,7 +1,7 @@
 import { type MotionValue, motion } from 'motion/react';
 import { useEffect, useRef } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { Spacer } from '../../components/folder-sidebar/spacer.tsx';
+import { Spacer } from '../../components/file-sidebar/spacer.tsx';
 import { RenderNoteFallback } from '../../components/error-boundary/render-note.tsx';
 import { FileRefresh } from '../../icons/file-refresh.tsx';
 import { Loader } from '../../icons/loader.tsx';
