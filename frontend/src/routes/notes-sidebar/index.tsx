@@ -31,12 +31,10 @@ export function NotesSidebar({
   curFolder,
   curNote,
   width,
-  leftWidth,
 }: {
   curFolder: string;
   curNote: string | undefined;
   width: MotionValue<number>;
-  leftWidth: MotionValue<number>;
 }) {
   useNewNoteEvent(curFolder);
   const openCreateNoteDialog = useCreateNoteDialog();
@@ -146,7 +144,7 @@ export function NotesSidebar({
             </section>
           </div>
         </motion.aside>
-        <Spacer width={width} leftWidth={leftWidth} spacerConstant={8} />
+        <Spacer width={width} />
       </Activity>
       <ErrorBoundary
         key={`${curFolder}-${curNote}`}

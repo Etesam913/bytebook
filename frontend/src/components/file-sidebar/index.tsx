@@ -26,8 +26,6 @@ import { useFolderFromRoute } from '../../hooks/events.tsx';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index.tsx';
 import { Tooltip } from '../tooltip/index.tsx';
 import { cn } from '../../utils/string-formatting.ts';
-import { useCreateFolderDialog } from '../../hooks/dialogs.tsx';
-import { Command } from '../../icons/command.tsx';
 
 export function FileSidebar({ width }: { width: MotionValue<number> }) {
   useFolderCreate();
@@ -45,7 +43,6 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
       speed: 20,
     }
   );
-  const openCreateFolderDialog = useCreateFolderDialog();
 
   if (folder === 'settings') return null;
 
@@ -83,7 +80,10 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
           <Tooltip content="Refresh">
             <MotionIconButton
               {...getDefaultButtonVariants()}
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                window.location.reload();
+                console.log('refresh');
+              }}
             >
               <ArrowRotateAnticlockwise width={16} height={16} />
             </MotionIconButton>

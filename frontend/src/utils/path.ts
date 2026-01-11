@@ -1,3 +1,21 @@
+/**
+ * Safely decodes a URI component, handling cases where:
+ * - The string is already decoded
+ * - The string contains invalid percent sequences (e.g., "%%", "%?" from filenames)
+ *
+ * This is necessary because filenames can contain literal "%" characters, which when
+ * partially decoded can cause URIError when decodeURIComponent encounters invalid sequences.
+ */
+export function safeDecodeURIComponent(str: string): string {
+  try {
+    return decodeURIComponent(str);
+  } catch {
+    // If decoding fails, the string is likely already decoded
+    // or contains characters that look like percent-encoding but aren't
+    return str;
+  }
+}
+
 export interface FilePath {
   fullPath: string;
   folder: string;
@@ -32,7 +50,7 @@ export function createFilePath(filePath: string): FilePath | null {
   return {
     fullPath: filePath,
     fileUrl: `/notes/${filePath}`,
-    encodedFileUrl: encodeURIComponent(`/notes/${filePath}`),
+    encodedFileUrl: `/notes/${filePath.split('/').map(encodeURIComponent).join('/')}`,
     folder,
     note,
     extension,

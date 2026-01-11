@@ -5,13 +5,14 @@ import { $getRoot } from 'lexical';
 import { useState } from 'react';
 import { isToolbarDisabledAtom } from '../../atoms';
 import { NAME_CHARS, cn } from '../../utils/string-formatting';
-import { LocalFilePath } from '../../utils/path';
+import { LocalFilePath, safeDecodeURIComponent } from '../../utils/path';
 import { useRenameFileMutation } from '../../hooks/notes';
 import { navigate } from 'wouter/use-browser-location';
 
 export function NoteTitle({ note, folder }: { note: string; folder: string }) {
   const [editor] = useLexicalComposerContext();
-  const decodedNote = decodeURIComponent(note);
+  // const decodedNote = decodeURIComponent(note);
+  const decodedNote = safeDecodeURIComponent(note);
   const [noteTitle, setNoteTitle] = useState(decodedNote);
   const [errorText, setErrorText] = useState('');
   const setIsToolbarDisabled = useSetAtom(isToolbarDisabledAtom);

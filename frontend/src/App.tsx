@@ -134,7 +134,6 @@ function App() {
                   params.note ? decodeURIComponent(params.note) : undefined
                 }
                 width={notesSidebarWidth}
-                leftWidth={fileSidebarWidth}
               />
             </Suspense>
           )}
@@ -151,7 +150,6 @@ function App() {
                     : undefined
                 }
                 width={notesSidebarWidth}
-                leftWidth={fileSidebarWidth}
               />
             </Suspense>
           )}

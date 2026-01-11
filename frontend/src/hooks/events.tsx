@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useRoute } from 'wouter';
 import { useSetAtom } from 'jotai/react';
 import { currentFilePathAtom } from '../atoms';
-import { LocalFilePath } from '../utils/path';
+import { LocalFilePath, safeDecodeURIComponent } from '../utils/path';
 import { useSearchParamsEntries } from '../utils/routing';
 import {
   routeUrls,
@@ -53,7 +53,7 @@ export function useFolderFromRoute(): {
   }
 
   return {
-    folder: folder ? decodeURIComponent(folder) : undefined,
+    folder: folder ? safeDecodeURIComponent(folder) : undefined,
     isSavedSearchRoute,
     isNoteRoute,
   };
@@ -85,7 +85,7 @@ function useNoteFromRoute(): {
   }
 
   return {
-    note: note ? decodeURIComponent(note) : undefined,
+    note: note ? safeDecodeURIComponent(note) : undefined,
     isSavedSearchRoute,
     isNoteRoute,
   };
