@@ -1,8 +1,12 @@
+import { SetStateAction, useSetAtom } from 'jotai';
 import { Folder } from '../../../icons/folder';
 import { FolderOpen } from '../../../icons/folder-open';
 import { Note } from '../../../icons/page';
 import { useOpenFolderMutation } from './hooks';
-import { FlattenedFileOrFolder } from './types';
+import { FOLDER_TYPE, FlattenedFileOrFolder } from './types';
+import { fileOrFolderMapAtom } from '.';
+import { cn } from '../../../utils/string-formatting';
+import { Dispatch } from 'react';
 
 function FileItemIcon({ dataItem }: { dataItem: FlattenedFileOrFolder }) {
   if (dataItem.type === 'file') {
@@ -37,34 +41,110 @@ function FileItemIcon({ dataItem }: { dataItem: FlattenedFileOrFolder }) {
   );
 }
 
-const INDENT_WIDTH = 12;
+function ItemRail({
+  setHoveredItemRailPath,
+  hoveredItemRailPath,
+  dataItem,
+}: {
+  setHoveredItemRailPath: Dispatch<SetStateAction<string>>;
+  hoveredItemRailPath: string;
+  dataItem: FlattenedFileOrFolder;
+}) {
+  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
+  const parentId = dataItem.parentId;
+  if (!parentId) return null;
+
+  // Elements with a rail should have a parentId
+  const railPath = dataItem.path.split('/').slice(0, -1).join('/');
+
+  return (
+    <div className="absolute">
+      <button
+        className="px-2 cursor-pointer"
+        onMouseEnter={() => setHoveredItemRailPath(railPath)}
+        onMouseLeave={() => setHoveredItemRailPath('')}
+        onClick={() => {
+          setFileOrFolderMap((prev) => {
+            const newMap = new Map(prev);
+            const parentData = newMap.get(parentId);
+
+            // A parent should only be a folder, but !== folder is needed for type narrowing
+            if (!parentData || parentData.type !== 'folder') return prev;
+
+            newMap.set(parentId, {
+              ...parentData,
+              isOpen: false,
+            });
+            return newMap;
+          });
+        }}
+      >
+        <span
+          className={cn(
+            'block h-7 w-[1.5px] dark:bg-zinc-650 bg-zinc-200 rounded-md transition-colors duration-150',
+            hoveredItemRailPath === railPath && 'dark:bg-zinc-500 bg-zinc-400'
+          )}
+        />
+      </button>
+    </div>
+  );
+}
+
+const INDENT_WIDTH = 22;
 
 export function FileTreeItem({
   dataItem,
+  setHoveredItemRailPath,
+  hoveredItemRailPath,
 }: {
+  setHoveredItemRailPath: Dispatch<SetStateAction<string>>;
+  hoveredItemRailPath: string;
   dataItem: FlattenedFileOrFolder;
 }) {
   const { mutate: openFolder } = useOpenFolderMutation();
-
+  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
   const isFolder = dataItem.type === 'folder';
+  const isRoot = dataItem.level === 0;
 
   return (
-    <button
-      className="flex items-center gap-2 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-650 pr-1 rounded-md w-full"
+    <span
+      className="flex gap-2 text-sm w-full relative"
       style={{
-        paddingLeft: `${(dataItem.level + 1) * INDENT_WIDTH}px`,
-      }}
-      onClick={() => {
-        if (isFolder) {
-          openFolder({
-            pathToFolder: dataItem.path,
-            folderId: dataItem.id,
-          });
-        }
+        paddingLeft: `${dataItem.level * INDENT_WIDTH}px`,
       }}
     >
-      <FileItemIcon dataItem={dataItem} />{' '}
-      <span className="truncate">{dataItem.name}</span>
-    </button>
+      {!isRoot && (
+        <ItemRail
+          setHoveredItemRailPath={setHoveredItemRailPath}
+          hoveredItemRailPath={hoveredItemRailPath}
+          dataItem={dataItem}
+          // railPath={dataItem.path.split('/').slice(0, -1).join('/')}
+        />
+      )}
+      <button
+        onClick={() => {
+          if (isFolder) {
+            if (!dataItem.isOpen) {
+              openFolder({
+                pathToFolder: dataItem.path,
+                folderId: dataItem.id,
+              });
+            } else {
+              setFileOrFolderMap((prev) => {
+                const newMap = new Map(prev);
+                newMap.set(dataItem.id, { ...dataItem, isOpen: false });
+                return newMap;
+              });
+            }
+          }
+        }}
+        className={cn(
+          'flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-650 rounded-md w-full py-1 px-2 ml-3.75'
+        )}
+      >
+        <FileItemIcon dataItem={dataItem} />{' '}
+        <span className="truncate">{dataItem.name}</span>
+      </button>
+    </span>
   );
 }
