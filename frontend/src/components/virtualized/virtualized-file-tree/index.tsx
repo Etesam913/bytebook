@@ -5,6 +5,7 @@ import { FileTreeItem } from './file-tree-item';
 import { useAnimatedHeight } from '../hooks';
 import { transformFileTreeForVirtualizedList } from './utils';
 import { FileOrFolder } from './types';
+import { useState } from 'react';
 
 export const fileOrFolderMapAtom = atom(new Map<string, FileOrFolder>());
 
@@ -12,6 +13,7 @@ const FILE_TREE_MAX_HEIGHT = '65vh';
 
 export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
   const fileOrFolderMap = useAtomValue(fileOrFolderMapAtom);
+  const [hoveredItemRailPath, setHoveredItemRailPath] = useState<string>('');
 
   // This only runs once on component mount
   const { data: topLevelFileOrFolders } = useTopLevelFileOrFolders();
@@ -49,7 +51,13 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
               : `min(${FILE_TREE_MAX_HEIGHT}, ${totalHeight}px)`,
         }}
         totalListHeightChanged={handleHeightChange}
-        itemContent={(_, dataItem) => <FileTreeItem dataItem={dataItem} />}
+        itemContent={(_, dataItem) => (
+          <FileTreeItem
+            dataItem={dataItem}
+            setHoveredItemRailPath={setHoveredItemRailPath}
+            hoveredItemRailPath={hoveredItemRailPath}
+          />
+        )}
       />
     </div>
   );

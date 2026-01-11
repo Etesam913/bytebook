@@ -32,6 +32,7 @@ export function useTopLevelFileOrFolders() {
           folderOrFiles.push({
             ...commonAttributes,
             type: FILE_TYPE,
+            parentId: null,
           });
         } else if (entry.type === FOLDER_TYPE) {
           folderOrFiles.push({
@@ -40,6 +41,7 @@ export function useTopLevelFileOrFolders() {
             childrenIds: [],
             isOpen: false,
             isDataStale: false,
+            parentId: null,
           });
         }
       }
@@ -153,10 +155,14 @@ export function useOpenFolderMutation() {
             id: entry.id,
             name: entry.name,
             path: entry.path,
+            parentId: folderId,
           };
           switch (entry.type) {
             case FILE_TYPE:
-              tempMap.set(entry.id, { ...commonAttributes, type: 'file' });
+              tempMap.set(entry.id, {
+                ...commonAttributes,
+                type: 'file',
+              });
               break;
             case FOLDER_TYPE:
               tempMap.set(entry.id, {
@@ -178,7 +184,7 @@ export function useOpenFolderMutation() {
           tempMap.set(folderId, {
             ...folder,
             childrenIds,
-            isOpen: !folder.isOpen,
+            isOpen: true,
           });
         }
 

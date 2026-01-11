@@ -1,19 +1,20 @@
 export type FileOrFolderType = 'file' | 'folder';
 
-type Folder = {
+type BaseFileOrFolder = {
   id: string;
   name: string;
   path: string;
+  parentId: string | null;
+};
+
+type Folder = BaseFileOrFolder & {
   type: typeof FOLDER_TYPE;
   childrenIds: string[];
   isOpen: boolean;
   isDataStale: boolean;
 };
 
-type File = {
-  id: string;
-  name: string;
-  path: string;
+type File = BaseFileOrFolder & {
   type: typeof FILE_TYPE;
 };
 
