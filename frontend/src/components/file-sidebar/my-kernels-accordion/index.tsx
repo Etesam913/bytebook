@@ -18,7 +18,7 @@ import {
 } from '../../../utils/routes';
 import { KernelAccordionButton } from './kernel-accordion-button';
 import { Tooltip } from '../../tooltip';
-import { folderSidebarOpenStateAtom } from '../../../atoms';
+import { fileSidebarOpenStateAtom } from '../../../atoms';
 import { kernelsDataAtom } from '../../../atoms';
 import { SquareTerminal } from '../../../icons/square-terminal';
 import { PythonLogo } from '../../../icons/python-logo';
@@ -72,7 +72,7 @@ function KernelTooltipContent({ kernelsData }: { kernelsData: KernelsData }) {
 }
 
 export function MyKernelsAccordion() {
-  const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
+  const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isOpen = openState.kernels;
   const [, params] = useRoute<KernelWithFilesRouteParams>(
     routeUrls.patterns.KERNELS_WITH_FILES

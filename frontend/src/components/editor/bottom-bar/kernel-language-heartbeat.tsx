@@ -19,7 +19,7 @@ import {
   useShutdownKernelMutation,
   useTurnOnKernelMutation,
 } from '../../../hooks/code';
-import { KernelHeartbeat } from '../../folder-sidebar/my-kernels-accordion/kernel-heartbeat';
+import { KernelHeartbeat } from '../../file-sidebar/my-kernels-accordion/kernel-heartbeat';
 
 const languageSpecificOptions: {
   heartbeatSuccess: Partial<Record<Languages, DropdownItem[]>>;

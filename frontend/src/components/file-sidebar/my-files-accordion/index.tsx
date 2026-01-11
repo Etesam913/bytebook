@@ -1,18 +1,18 @@
 import { useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { useFolders } from '../../../hooks/folders';
-import { Folder } from '../../../icons/folder';
 import { AccordionButton } from '../../accordion/accordion-button';
 import { navigate } from 'wouter/use-browser-location';
 import { useLocation } from 'wouter';
 import { routeUrls } from '../../../utils/routes';
 import { useFolderFromRoute } from '../../../hooks/events';
 import { findClosestSidebarItemToNavigateTo } from '../../../utils/routing';
-import { folderSidebarOpenStateAtom } from '../../../atoms';
+import { fileSidebarOpenStateAtom } from '../../../atoms';
 import { VirtualizedFileTree } from '../../virtualized/virtualized-file-tree';
+import { Note } from '../../../icons/page';
 
-export function MyFoldersAccordion() {
-  const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
+export function MyFilesAccordion() {
+  const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isOpen = openState.folders;
   const { data } = useFolders();
   const alphabetizedFolders = data?.alphabetizedFolders ?? null;
@@ -73,10 +73,10 @@ export function MyFoldersAccordion() {
             folders: !prev.folders,
           }))
         }
-        icon={<Folder width={18} height={18} strokeWidth={1.75} />}
+        icon={<Note width={18} height={18} strokeWidth={1.75} />}
         title={
           <>
-            Folders{' '}
+            Files{' '}
             {alphabetizedFolders && alphabetizedFolders.length > 0 && (
               <span className="tracking-wider">
                 ({alphabetizedFolders.length})
@@ -113,7 +113,7 @@ export function MyFoldersAccordion() {
           </motion.div>
         }
         contentType="folder"
-        layoutId="folder-sidebar"
+        layoutId="file-sidebar"
         emptyElement={
           <li className="list-none text-zinc-500 dark:text-zinc-300 text-xs text-balance">
             Create a folder using the &quot;Create Folder&quot; button above

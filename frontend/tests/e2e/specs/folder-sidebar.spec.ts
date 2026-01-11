@@ -9,7 +9,7 @@ import {
 import { SERVICE_FILES } from '../utils/service-files';
 import { setupWailsEvents, emitWailsEvent } from '../utils/wails-events';
 
-test.describe('Folder Sidebar', () => {
+test.describe('File Sidebar', () => {
   test.beforeEach(async ({ context }) => {
     await mockBinding(
       context,
@@ -51,7 +51,7 @@ test.describe('Folder Sidebar', () => {
   test('renders on the landing page', async ({ page }) => {
     await page.goto('/');
 
-    const sidebar = page.getByTestId('folder-sidebar');
+    const sidebar = page.getByTestId('file-sidebar');
     await expect(sidebar).toBeVisible();
   });
 
@@ -59,7 +59,7 @@ test.describe('Folder Sidebar', () => {
     test('renders folders', async ({ page }) => {
       await page.goto('/');
 
-      const sidebar = page.getByTestId('folder-sidebar');
+      const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Economics Notes');
       await expect(sidebar).toContainText('Research Notes');
     });
@@ -69,7 +69,7 @@ test.describe('Folder Sidebar', () => {
     }) => {
       await page.goto('/');
 
-      const sidebar = page.getByTestId('folder-sidebar');
+      const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Economics Notes');
       const economicsFolder = sidebar.getByText('Economics Notes');
       await economicsFolder.click();
@@ -80,7 +80,7 @@ test.describe('Folder Sidebar', () => {
       test('reveal in finder option is visible', async ({ page }) => {
         await page.goto('/');
 
-        const sidebar = page.getByTestId('folder-sidebar');
+        const sidebar = page.getByTestId('file-sidebar');
         await sidebar.getByText('Economics Notes').click({ button: 'right' });
 
         const contextMenu = page.getByRole('listbox');
@@ -105,7 +105,7 @@ test.describe('Folder Sidebar', () => {
 
         await page.goto('/');
 
-        const sidebar = page.getByTestId('folder-sidebar');
+        const sidebar = page.getByTestId('file-sidebar');
         await sidebar.getByText('Economics Notes').click({ button: 'right' });
 
         const contextMenu = page.getByRole('listbox');
@@ -169,7 +169,7 @@ test.describe('Folder Sidebar', () => {
 
         await page.goto('/');
 
-        const sidebar = page.getByTestId('folder-sidebar');
+        const sidebar = page.getByTestId('file-sidebar');
 
         // Verify folders are visible
         await expect(sidebar).toContainText('Economics Notes');
@@ -229,7 +229,7 @@ test.describe('Folder Sidebar', () => {
     test('renders kernel accordion', async ({ page }) => {
       await page.goto('/');
 
-      const sidebar = page.getByTestId('folder-sidebar');
+      const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Kernels');
 
       const kernelAccordion = page.getByTestId('kernels-accordion');
@@ -245,7 +245,7 @@ test.describe('Folder Sidebar', () => {
     test('renders tags accordion and navigates on click', async ({ page }) => {
       await page.goto('/');
 
-      const sidebar = page.getByTestId('folder-sidebar');
+      const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Tags');
 
       const tagsAccordion = page.getByTestId('tags-accordion');
@@ -276,7 +276,7 @@ test.describe('Folder Sidebar', () => {
 
         await page.goto('/');
 
-        const sidebar = page.getByTestId('folder-sidebar');
+        const sidebar = page.getByTestId('file-sidebar');
         const tagsAccordion = page.getByTestId('tags-accordion');
         await tagsAccordion.click();
 
@@ -333,7 +333,7 @@ test.describe('Folder Sidebar', () => {
     }) => {
       await page.goto('/');
 
-      const sidebar = page.getByTestId('folder-sidebar');
+      const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Saved Searches');
 
       const savedSearchesAccordion = page.getByTestId(
@@ -368,7 +368,7 @@ test.describe('Folder Sidebar', () => {
 
         await page.goto('/');
 
-        const sidebar = page.getByTestId('folder-sidebar');
+        const sidebar = page.getByTestId('file-sidebar');
         const savedSearchesAccordion = page.getByTestId(
           'saved-searches-accordion'
         );
@@ -460,7 +460,7 @@ test.describe('Folder Sidebar', () => {
       UPDATED_FOLDER_RESPONSE
     );
 
-    const sidebar = page.getByTestId('folder-sidebar');
+    const sidebar = page.getByTestId('file-sidebar');
     await sidebar.getByRole('button', { name: 'Create Folder' }).click();
 
     const dialog = page.getByRole('dialog');
@@ -481,7 +481,7 @@ test.describe('Folder Sidebar', () => {
     test('renders correctly', async ({ page }) => {
       await page.goto('/');
 
-      const sidebar = page.getByTestId('folder-sidebar');
+      const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Pinned Notes');
 
       // Pinned notes are open by default
@@ -492,7 +492,7 @@ test.describe('Folder Sidebar', () => {
     test('navigates to pinned note', async ({ page }) => {
       await page.goto('/');
 
-      const sidebar = page.getByTestId('folder-sidebar');
+      const sidebar = page.getByTestId('file-sidebar');
       await sidebar.getByText('Supply and Demand').click();
       await expect(page).toHaveURL(
         /\/notes\/Economics%20Notes\/Supply%20and%20Demand/
@@ -525,7 +525,7 @@ test.describe('Folder Sidebar', () => {
 
       await page.goto('/');
 
-      const sidebar = page.getByTestId('folder-sidebar');
+      const sidebar = page.getByTestId('file-sidebar');
 
       // Verify both pinned notes are visible before unpinning
       await expect(sidebar).toContainText('Supply and Demand');
@@ -577,7 +577,7 @@ test.describe('Folder Sidebar', () => {
 
       await page.goto('/');
 
-      const sidebar = page.getByTestId('folder-sidebar');
+      const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Recent Notes');
 
       const recentNotesAccordion = page.getByTestId('recent-notes-accordion');
@@ -610,7 +610,7 @@ test.describe('Folder Sidebar', () => {
 
       await page.goto('/');
 
-      const sidebar = page.getByTestId('folder-sidebar');
+      const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Folders');
 
       // Verify error message is displayed
@@ -643,7 +643,7 @@ test.describe('Folder Sidebar', () => {
 
       await page.goto('/');
 
-      const sidebar = page.getByTestId('folder-sidebar');
+      const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Tags');
 
       // Click to open the tags accordion
@@ -680,7 +680,7 @@ test.describe('Folder Sidebar', () => {
 
       await page.goto('/');
 
-      const sidebar = page.getByTestId('folder-sidebar');
+      const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Saved Searches');
 
       // Click to open the saved searches accordion

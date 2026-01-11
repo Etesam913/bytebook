@@ -12,12 +12,12 @@ import {
 
 import { useRoute } from 'wouter';
 import { TagAccordionButton } from './tag-accordion-button';
-import { folderSidebarOpenStateAtom } from '../../../atoms';
+import { fileSidebarOpenStateAtom } from '../../../atoms';
 import { ErrorText } from '../../error-text';
 import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
 
 export function MyTagsAccordion() {
-  const [openState, setOpenState] = useAtom(folderSidebarOpenStateAtom);
+  const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isOpen = openState.tags;
   const { data: tags, isError, isLoading, refetch } = useTagsQuery();
   const hasTags = tags && tags?.length > 0;

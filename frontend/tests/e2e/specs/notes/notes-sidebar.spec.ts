@@ -29,7 +29,7 @@ const formattedPreviewSize = humanFileSize(
 
 test.describe('Notes Sidebar', () => {
   test.beforeEach(async ({ context }) => {
-    // Mock folder sidebar dependencies
+    // Mock file sidebar dependencies
     await mockBinding(
       context,
       {
@@ -315,9 +315,9 @@ test.describe('Notes Sidebar', () => {
       // Simulate the backend emitting a settings:update event
       await emitWailsEvent(page, 'settings:update', updatedSettings);
 
-      // Verify the note is pinned in the folder sidebar
-      const folderSidebar = page.getByTestId('folder-sidebar');
-      await expect(folderSidebar).toContainText('Inflation');
+      // Verify the note is pinned in the file sidebar
+      const fileSidebar = page.getByTestId('file-sidebar');
+      await expect(fileSidebar).toContainText('Inflation');
     });
 
     test('moves a note to trash', async ({ page, context }) => {

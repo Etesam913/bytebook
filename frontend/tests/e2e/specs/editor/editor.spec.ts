@@ -16,7 +16,7 @@ const STRIKETHROUGH_TOOLTIP = 'Strikethrough (⌘⇧X)';
 
 test.describe('Editor', () => {
   test.beforeEach(async ({ context }) => {
-    // Mock folder sidebar dependencies
+    // Mock file sidebar dependencies
     await mockBinding(
       context,
       {
