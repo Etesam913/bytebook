@@ -16,10 +16,10 @@ import {
 import { dialogDataAtom, isNoteMaximizedAtom } from '../../../atoms';
 import { EditTagDialogChildren } from '../../../routes/notes-sidebar/edit-tag-dialog-children';
 import { timeSince } from '../utils/bottom-bar';
-import { LocalFilePath } from '../../../utils/path';
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
 import { Frontmatter } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
+import { FilePath } from '../../../utils/path';
 
 export function BottomBar({
   frontmatter,
@@ -27,7 +27,7 @@ export function BottomBar({
   isNoteEditor,
 }: {
   frontmatter?: Frontmatter;
-  filePath: LocalFilePath;
+  filePath: FilePath;
   isNoteEditor?: boolean;
 }) {
   const [lastUpdatedText, setLastUpdatedText] = useState('');
@@ -37,8 +37,7 @@ export function BottomBar({
     filePath.toString(),
   ]);
   const { mutateAsync: editTags } = useEditTagsFormMutation();
-  const { mutateAsync: deleteTagFromNote } =
-    useDeleteTagFromNoteMutation(filePath);
+  // const { mutateAsync: deleteTagFromNote } = useDeleteTagFromNoteMutation(filePath);
   const setDialogData = useSetAtom(dialogDataAtom);
 
   useEffect(() => {
@@ -65,11 +64,11 @@ export function BottomBar({
         <Tag
           key={tagName}
           tagName={tagName}
-          onDelete={() => {
-            deleteTagFromNote({
-              tagToDelete: tagName,
-            });
-          }}
+          // onDelete={() => {
+          //   deleteTagFromNote({
+          //     tagToDelete: tagName,
+          //   });
+          // }}
         />
       );
     });
@@ -87,7 +86,7 @@ export function BottomBar({
           {decodeURIComponent(filePath.folder)}
         </BreadcrumbItem>{' '}
         /{' '}
-        <BreadcrumbItem to={filePath.getLinkToNote()}>
+        <BreadcrumbItem to={filePath.fileUrl}>
           <RenderNoteIcon filePath={filePath} />
           {decodeURIComponent(filePath.noteWithoutExtension)}
         </BreadcrumbItem>

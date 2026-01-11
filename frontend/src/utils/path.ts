@@ -1,3 +1,49 @@
+export interface FilePath {
+  fullPath: string;
+  folder: string;
+  note: string;
+  extension: string;
+  noteWithoutExtension: string;
+  fileUrl: string;
+  encodedFileUrl: string;
+  equals(other: FilePath): boolean;
+}
+
+export function createFilePath(filePath: string): FilePath | null {
+  const lastSegment = filePath.split('/').pop();
+
+  // The filePath has to point to a file, not a folder
+  if (!lastSegment || !lastSegment.includes('.')) {
+    return null;
+  }
+
+  const folder = filePath.split('/').slice(0, -1).join('/');
+  const note = filePath.split('/').pop();
+  const extension = lastSegment.split('.').pop();
+  if (!folder || !note || !extension) {
+    return null;
+  }
+
+  // Compute noteWithoutExtension by finding the last dot and taking everything before it
+  const lastDotIndex = note.lastIndexOf('.');
+  const noteWithoutExtension =
+    lastDotIndex === -1 ? note : note.substring(0, lastDotIndex);
+
+  return {
+    fullPath: filePath,
+    fileUrl: `/notes/${filePath}`,
+    encodedFileUrl: encodeURIComponent(`/notes/${filePath}`),
+    folder,
+    note,
+    extension,
+    noteWithoutExtension,
+    equals(other: FilePath) {
+      return this.fullPath === other.fullPath;
+    },
+  };
+}
+
+// EVERYTHING BELOW THIS IS DEPRECATED
 type FilePathAdditionalQueryParams = {
   highlight: string;
 };

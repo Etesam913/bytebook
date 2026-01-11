@@ -20,25 +20,31 @@ type FileOrFolder struct {
 // readDirectoryEntries reads entries from a directory and converts them to FileOrFolder objects.
 // fullPath is the absolute path to the directory to read.
 // pathFormatter is a function that formats the path for each entry (e.g., relative path or absolute path).
+// Hidden files and folders (those starting with '.') are skipped.
 func readDirectoryEntries(fullPath string, pathFormatter func(string) string) ([]FileOrFolder, error) {
 	entries, err := os.ReadDir(fullPath)
 	if err != nil {
 		return []FileOrFolder{}, err
 	}
 
-	items := make([]FileOrFolder, len(entries))
-	for i, entry := range entries {
+	var items []FileOrFolder
+	for _, entry := range entries {
+		// Skip hidden files and folders (those starting with '.')
+		if len(entry.Name()) > 0 && entry.Name()[0] == '.' {
+			continue
+		}
+
 		entryType := "file"
 		if entry.IsDir() {
 			entryType = "folder"
 		}
-		items[i] = FileOrFolder{
+		items = append(items, FileOrFolder{
 			Id:          uuid.NewString(),
 			Name:        entry.Name(),
 			Path:        pathFormatter(entry.Name()),
 			Type:        entryType,
 			ChildrenIds: []string{},
-		}
+		})
 	}
 
 	return items, nil
@@ -67,8 +73,8 @@ func GetChildrenOfFolder(projectPath, pathToFolder string) ([]FileOrFolder, erro
 		},
 	)
 
-	for _, child := range children {
-		child.ParentId = filepath.Base(pathToFolder)
+	for i := range children {
+		children[i].ParentId = filepath.Base(pathToFolder)
 	}
 
 	if err != nil {

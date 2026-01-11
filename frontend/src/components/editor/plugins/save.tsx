@@ -12,7 +12,7 @@ import { SetNoteMarkdown } from '../../../../bindings/github.com/etesam913/byteb
 import { CUSTOM_TRANSFORMERS } from '../transformers';
 import { replaceFrontMatter, parseFrontMatter } from '../utils/note-metadata';
 import { previousMarkdownAtom } from '../atoms';
-import { LocalFilePath } from '../../../utils/path';
+import { FilePath } from '../../../utils/path';
 import { Frontmatter } from '../../../types';
 import { $convertToMarkdownString } from '@lexical/markdown';
 
@@ -29,7 +29,7 @@ export function SavePlugin({
   filePath,
   setFrontmatter,
 }: {
-  filePath: LocalFilePath;
+  filePath: FilePath;
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
 }) {
   const [previousMarkdownWithFrontmatter, setPreviousMarkdownWithFrontmatter] =

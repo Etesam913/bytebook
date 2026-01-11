@@ -16,14 +16,11 @@ import { useTagEvents } from './hooks/tags';
 import { useThemeSetting } from './hooks/theme';
 import { MAX_SIDEBAR_WIDTH } from './utils/general';
 import { disableBackspaceNavigation } from './utils/routing';
-import {
-  type NotesRouteParams,
-  routeUrls,
-  type SavedSearchRouteParams,
-} from './utils/routes';
+import { routeUrls, type SavedSearchRouteParams } from './utils/routes';
 import { RouteFallback } from './components/route-fallback';
 import { useTrapFocus } from './hooks/general';
 import { useZoom, useFullscreen, useWindowReload } from './hooks/resize';
+import { EditorWrapper } from './components/virtualized/virtualized-file-tree/editor-wrapper';
 
 // Lazy load route components
 const NotFound = lazy(() =>
@@ -103,8 +100,8 @@ function App() {
       </Activity>
       <Switch>
         <Route path={routeUrls.patterns.ROOT} />
-        <Route path="/abc/def.md">
-          <div>yolo dudes</div>
+        <Route path="/notes/*">
+          <EditorWrapper />
         </Route>
 
         {/* <Route path={routeUrls.patterns.NOT_FOUND_FALLBACK}>

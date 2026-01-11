@@ -42,6 +42,14 @@ func TestGetChildrenOfFolder(t *testing.T) {
 	err = os.Mkdir(filepath.Join(testFolder, "subdir"), 0755)
 	assert.NoError(t, err)
 
+	// Create hidden files and folders (should be skipped)
+	err = os.WriteFile(filepath.Join(testFolder, ".hidden_file"), []byte("content"), 0644)
+	assert.NoError(t, err)
+	err = os.WriteFile(filepath.Join(testFolder, ".DS_Store"), []byte("content"), 0644)
+	assert.NoError(t, err)
+	err = os.Mkdir(filepath.Join(testFolder, ".hidden_dir"), 0755)
+	assert.NoError(t, err)
+
 	t.Run("returns three children for test_folder", func(t *testing.T) {
 		children, err := GetChildrenOfFolder(tempDir, "test_folder")
 		assert.NoError(t, err)
@@ -106,6 +114,18 @@ func TestGetChildrenOfFolder(t *testing.T) {
 		assert.Contains(t, err.Error(), "is not a folder")
 		assert.Empty(t, children)
 	})
+
+	t.Run("hidden files and folders are skipped", func(t *testing.T) {
+		children, err := GetChildrenOfFolder(tempDir, "test_folder")
+		assert.NoError(t, err)
+		// Should only have 3 items (file1.txt, file2.md, subdir), not the hidden ones
+		assert.Len(t, children, 3)
+
+		// Verify hidden files are not present
+		assert.Nil(t, findChildByName(children, ".hidden_file"), ".hidden_file should not be in children")
+		assert.Nil(t, findChildByName(children, ".DS_Store"), ".DS_Store should not be in children")
+		assert.Nil(t, findChildByName(children, ".hidden_dir"), ".hidden_dir should not be in children")
+	})
 }
 
 func TestGetTopLevelItems(t *testing.T) {
@@ -121,6 +141,12 @@ func TestGetTopLevelItems(t *testing.T) {
 	err = os.WriteFile(filepath.Join(notesDir, "file1.md"), []byte("content"), 0644)
 	assert.NoError(t, err)
 	err = os.Mkdir(filepath.Join(notesDir, "folder1"), 0755)
+	assert.NoError(t, err)
+
+	// Create hidden files and folders (should be skipped)
+	err = os.WriteFile(filepath.Join(notesDir, ".hidden_file"), []byte("content"), 0644)
+	assert.NoError(t, err)
+	err = os.Mkdir(filepath.Join(notesDir, ".hidden_folder"), 0755)
 	assert.NoError(t, err)
 
 	t.Run("valid notes directory", func(t *testing.T) {
@@ -144,5 +170,18 @@ func TestGetTopLevelItems(t *testing.T) {
 		items, err := GetTopLevelItems(emptyDir)
 		assert.Error(t, err)
 		assert.Empty(t, items)
+	})
+
+	t.Run("hidden files and folders are skipped", func(t *testing.T) {
+		items, err := GetTopLevelItems(tempDir)
+		assert.NoError(t, err)
+		// Should only have 2 items (file1.md, folder1), not the hidden ones
+		assert.Len(t, items, 2)
+
+		// Verify hidden files are not present
+		hiddenFile := findChildByName(items, ".hidden_file")
+		assert.Nil(t, hiddenFile, ".hidden_file should not be in items")
+		hiddenFolder := findChildByName(items, ".hidden_folder")
+		assert.Nil(t, hiddenFolder, ".hidden_folder should not be in items")
 	})
 }

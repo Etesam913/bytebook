@@ -5,20 +5,20 @@ import { Note } from './page';
 import { PDFIcon } from './pdf-icon';
 import { VideoIcon } from './video';
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../types';
-import { LocalFilePath } from '../utils/path';
+import { FilePath } from '../utils/path';
 
 export function RenderNoteIcon({
   filePath,
   activeNotePath,
   size,
 }: {
-  filePath: LocalFilePath;
-  activeNotePath?: LocalFilePath;
+  filePath: FilePath;
+  activeNotePath?: FilePath;
   size?: 'sm';
 }) {
   const iconSize = size === 'sm' ? 18 : 20;
 
-  if (filePath.noteExtension === 'md') {
+  if (filePath.extension === 'md') {
     if (activeNotePath && filePath.equals(activeNotePath)) {
       return (
         <FilePen
@@ -37,7 +37,7 @@ export function RenderNoteIcon({
     );
   }
 
-  if (filePath.noteExtension === 'pdf') {
+  if (filePath.extension === 'pdf') {
     return (
       <PDFIcon
         className="min-w-[20px] pointer-events-none"
@@ -47,7 +47,7 @@ export function RenderNoteIcon({
     );
   }
 
-  if (IMAGE_FILE_EXTENSIONS.includes(filePath.noteExtension)) {
+  if (IMAGE_FILE_EXTENSIONS.includes(filePath.extension)) {
     return (
       <ImageIcon
         className="min-w-[20px] pointer-events-none"
@@ -57,7 +57,7 @@ export function RenderNoteIcon({
     );
   }
 
-  if (VIDEO_FILE_EXTENSIONS.includes(filePath.noteExtension)) {
+  if (VIDEO_FILE_EXTENSIONS.includes(filePath.extension)) {
     return (
       <VideoIcon
         className="min-w-[20px] pointer-events-none"

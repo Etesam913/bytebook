@@ -20,48 +20,48 @@ export function MyFilesAccordion() {
   const { folder: currentFolder, isNoteRoute } = useFolderFromRoute();
   const [location] = useLocation();
 
-  useEffect(() => {
-    // Don't perform navigation logic if we're already on the 404 page
-    if (location === routeUrls.patterns.NOT_FOUND_FALLBACK) {
-      return;
-    }
+  // useEffect(() => {
+  //   // Don't perform navigation logic if we're already on the 404 page
+  //   if (location === routeUrls.patterns.NOT_FOUND_FALLBACK) {
+  //     return;
+  //   }
 
-    if (alphabetizedFolders) {
-      const isCurrentFolderInAlphabetizedFolders =
-        alphabetizedFolders.some((folder) => folder === currentFolder) ?? false;
+  //   if (alphabetizedFolders) {
+  //     const isCurrentFolderInAlphabetizedFolders =
+  //       alphabetizedFolders.some((folder) => folder === currentFolder) ?? false;
 
-      // If you are on a folder that does not exist navigate to 404 page, this redirecting logic does not apply to saved search routes
-      if (
-        currentFolder &&
-        !isCurrentFolderInAlphabetizedFolders &&
-        isNoteRoute
-      ) {
-        if (!previousFolders || !previousFolders.includes(currentFolder)) {
-          navigate(routeUrls.patterns.NOT_FOUND_FALLBACK, { replace: true });
-        } else {
-          const closestFolder = findClosestSidebarItemToNavigateTo(
-            currentFolder,
-            previousFolders,
-            alphabetizedFolders
-          );
+  //     // If you are on a folder that does not exist navigate to 404 page, this redirecting logic does not apply to saved search routes
+  //     if (
+  //       currentFolder &&
+  //       !isCurrentFolderInAlphabetizedFolders &&
+  //       isNoteRoute
+  //     ) {
+  //       if (!previousFolders || !previousFolders.includes(currentFolder)) {
+  //         navigate(routeUrls.patterns.NOT_FOUND_FALLBACK, { replace: true });
+  //       } else {
+  //         const closestFolder = findClosestSidebarItemToNavigateTo(
+  //           currentFolder,
+  //           previousFolders,
+  //           alphabetizedFolders
+  //         );
 
-          // If the closest folder is in the alphabetized folders, navigate to it
-          if (
-            closestFolder >= 0 &&
-            closestFolder < alphabetizedFolders.length
-          ) {
-            navigate(routeUrls.folder(alphabetizedFolders[closestFolder]), {
-              replace: true,
-            });
-          } else {
-            navigate(routeUrls.patterns.NOT_FOUND_FALLBACK, {
-              replace: true,
-            });
-          }
-        }
-      }
-    }
-  }, [alphabetizedFolders, currentFolder, previousFolders]);
+  //         // If the closest folder is in the alphabetized folders, navigate to it
+  //         if (
+  //           closestFolder >= 0 &&
+  //           closestFolder < alphabetizedFolders.length
+  //         ) {
+  //           navigate(routeUrls.folder(alphabetizedFolders[closestFolder]), {
+  //             replace: true,
+  //           });
+  //         } else {
+  //           navigate(routeUrls.patterns.NOT_FOUND_FALLBACK, {
+  //             replace: true,
+  //           });
+  //         }
+  //       }
+  //     }
+  //   }
+  // }, [alphabetizedFolders, currentFolder, previousFolders]);
 
   return (
     <section>

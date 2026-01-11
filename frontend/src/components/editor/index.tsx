@@ -44,18 +44,11 @@ import { debouncedNoteHandleChange } from './utils/note-commands.ts';
 import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 import { useCodeCleanup } from './hooks/code';
 import { useNoteIntersectionObserver } from './hooks/intersection-observer';
-import type { LegacyAnimationControls } from 'motion/react';
-import { LocalFilePath } from '../../utils/path';
+import { FilePath } from '../../utils/path';
 import { TableActionsPlugin } from './plugins/table-actions.tsx';
 import type { PlaceholderLineData } from './types';
 
-export function NotesEditor({
-  filePath,
-  animationControls,
-}: {
-  filePath: LocalFilePath;
-  animationControls: LegacyAnimationControls;
-}) {
+export function NotesEditor({ filePath }: { filePath: FilePath }) {
   const projectSettings = useAtomValue(projectSettingsAtom);
   const queryClient = useQueryClient();
   const setEditor = useSetAtom(editorAtom);
@@ -104,7 +97,7 @@ export function NotesEditor({
       <Toolbar
         overflowContainerRef={overflowContainerRef}
         noteContainerRef={noteContainerRef}
-        animationControls={animationControls}
+        // animationControls={animationControls}
         folder={folder}
         note={note}
         floatingData={floatingData}

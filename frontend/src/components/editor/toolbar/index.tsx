@@ -60,7 +60,7 @@ export function Toolbar({
   setFloatingData,
   noteContainerRef,
   overflowContainerRef,
-  animationControls,
+  // animationControls,
   frontmatter,
   setFrontmatter,
   tableActionsRef,
@@ -70,7 +70,7 @@ export function Toolbar({
   note: string;
   floatingData: FloatingDataType;
   setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
-  animationControls: LegacyAnimationControls;
+  // animationControls: LegacyAnimationControls;
   noteContainerRef: RefObject<HTMLDivElement | null>;
   overflowContainerRef: RefObject<HTMLDivElement | null>;
   frontmatter: Frontmatter;
@@ -137,7 +137,7 @@ export function Toolbar({
   useCodeBlockStatus(editor);
   useCodeBlockExecuteResult(editor);
   useCodeBlockExecuteInput(editor);
-  useToggleSidebarEvent(animationControls);
+  // useToggleSidebarEvent(animationControls);
 
   const FloatingPlugin = noteContainerElement
     ? createPortal(
@@ -178,7 +178,7 @@ export function Toolbar({
         />
         <span className="flex items-center gap-1.5">
           <MaximizeNoteButton
-            animationControls={animationControls}
+            // animationControls={animationControls}
             disabled={disabled}
           />
           <Dropdown
