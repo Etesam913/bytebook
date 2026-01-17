@@ -1,4 +1,9 @@
-import type { FileOrFolder, FlattenedFileOrFolder } from './types';
+import type {
+  FileOrFolder,
+  FlattenedFileOrFolder,
+  VirtualizedFileTreeItem,
+} from './types';
+import { LOAD_MORE_TYPE } from './types';
 
 /**
  * Transforms a hierarchical file tree structure into a flattened array suitable for
@@ -36,11 +41,11 @@ import type { FileOrFolder, FlattenedFileOrFolder } from './types';
 export function transformFileTreeForVirtualizedList(
   data: FileOrFolder[],
   fileOrFolderMap: Map<string, FileOrFolder>
-): FlattenedFileOrFolder[] {
+): VirtualizedFileTreeItem[] {
   function transformAFileOrFolder(
     fileOrFolder: FileOrFolder,
     level: number
-  ): FlattenedFileOrFolder[] {
+  ): VirtualizedFileTreeItem[] {
     const updatedFileOrFolderData = fileOrFolderMap.get(fileOrFolder.id);
     if (!updatedFileOrFolderData) return [];
 
@@ -51,7 +56,9 @@ export function transformFileTreeForVirtualizedList(
 
     switch (updatedFileOrFolderData.type) {
       case 'folder': {
-        const allEntriesForFolder = [flattenedEntryForFileOrFolder];
+        const allEntriesForFolder: VirtualizedFileTreeItem[] = [
+          flattenedEntryForFileOrFolder,
+        ];
 
         if (updatedFileOrFolderData.isOpen) {
           // If the folder is open, the flattened representation for the virtualized list
@@ -67,6 +74,20 @@ export function transformFileTreeForVirtualizedList(
               allEntriesForFolder.push(child);
             }
           }
+        }
+
+        if (
+          updatedFileOrFolderData.isOpen &&
+          updatedFileOrFolderData.hasMoreChildren
+        ) {
+          allEntriesForFolder.push({
+            id: `load-more-${updatedFileOrFolderData.id}`,
+            type: LOAD_MORE_TYPE,
+            parentId: updatedFileOrFolderData.id,
+            path: updatedFileOrFolderData.path,
+            name: 'Load more...',
+            level: level + 1,
+          });
         }
 
         return allEntriesForFolder;
