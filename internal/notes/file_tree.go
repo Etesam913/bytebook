@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/google/uuid"
 )
@@ -15,6 +16,12 @@ type FileOrFolder struct {
 	ParentId    string   `json:"parentId"`
 	Type        string   `json:"type"`
 	ChildrenIds []string `json:"childrenIds"`
+}
+
+type FileOrFolderPage struct {
+	Items      []FileOrFolder `json:"items"`
+	NextCursor string         `json:"nextCursor"`
+	HasMore    bool           `json:"hasMore"`
 }
 
 // readDirectoryEntries reads entries from a directory and converts them to FileOrFolder objects.
@@ -50,20 +57,20 @@ func readDirectoryEntries(fullPath string, pathFormatter func(string) string) ([
 	return items, nil
 }
 
-func GetChildrenOfFolder(projectPath, pathToFolder string) ([]FileOrFolder, error) {
+func GetChildrenOfFolder(projectPath, pathToFolder, cursor string, limit int) (FileOrFolderPage, error) {
 	fullPathToFolder := filepath.Join(projectPath, "notes", pathToFolder)
 	fileInfo, err := os.Stat(fullPathToFolder)
 
 	if os.IsNotExist(err) {
-		return []FileOrFolder{}, fmt.Errorf("%s does not exist", pathToFolder)
+		return FileOrFolderPage{}, fmt.Errorf("%s does not exist", pathToFolder)
 	}
 
 	if err != nil {
-		return []FileOrFolder{}, err
+		return FileOrFolderPage{}, err
 	}
 
 	if !fileInfo.IsDir() {
-		return []FileOrFolder{}, fmt.Errorf("%s is not a folder, so it does not have children", pathToFolder)
+		return FileOrFolderPage{}, fmt.Errorf("%s is not a folder, so it does not have children", pathToFolder)
 	}
 
 	children, err := readDirectoryEntries(
@@ -73,15 +80,45 @@ func GetChildrenOfFolder(projectPath, pathToFolder string) ([]FileOrFolder, erro
 		},
 	)
 
-	for i := range children {
-		children[i].ParentId = filepath.Base(pathToFolder)
-	}
-
 	if err != nil {
-		return []FileOrFolder{}, fmt.Errorf("Could not read entries in %s", pathToFolder)
+		return FileOrFolderPage{}, fmt.Errorf("Could not read entries in %s", pathToFolder)
 	}
 
-	return children, nil
+	sort.Slice(children, func(i, j int) bool {
+		return children[i].Name < children[j].Name
+	})
+
+	if limit <= 0 {
+		limit = 100
+	}
+
+	startIndex := 0
+	if cursor != "" {
+		// Get first element in the folder that has a larger name than the cursor
+		startIndex = min(sort.Search(len(children), func(i int) bool {
+			return children[i].Name > cursor
+		}), len(children))
+	}
+
+	endIndex := min(startIndex+limit, len(children))
+
+	pageItems := children[startIndex:endIndex]
+	for i := range pageItems {
+		pageItems[i].ParentId = filepath.Base(pathToFolder)
+	}
+
+	hasMore := endIndex < len(children)
+	// is nextCursor calculated correcrlt?
+	nextCursor := ""
+	if hasMore && len(pageItems) > 0 {
+		nextCursor = pageItems[len(pageItems)-1].Name
+	}
+
+	return FileOrFolderPage{
+		Items:      pageItems,
+		NextCursor: nextCursor,
+		HasMore:    hasMore,
+	}, nil
 }
 
 func GetTopLevelItems(projectPath string) ([]FileOrFolder, error) {

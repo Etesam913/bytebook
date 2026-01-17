@@ -51,16 +51,16 @@ func TestGetChildrenOfFolder(t *testing.T) {
 	assert.NoError(t, err)
 
 	t.Run("returns three children for test_folder", func(t *testing.T) {
-		children, err := GetChildrenOfFolder(tempDir, "test_folder")
+		page, err := GetChildrenOfFolder(tempDir, "test_folder", "", 100)
 		assert.NoError(t, err)
-		assert.Len(t, children, 3)
+		assert.Len(t, page.Items, 3)
 	})
 
 	t.Run("file1.txt has correct properties", func(t *testing.T) {
-		children, err := GetChildrenOfFolder(tempDir, "test_folder")
+		page, err := GetChildrenOfFolder(tempDir, "test_folder", "", 100)
 		assert.NoError(t, err)
 
-		file1 := findChildByName(children, "file1.txt")
+		file1 := findChildByName(page.Items, "file1.txt")
 		assert.NotNil(t, file1, "file1.txt should exist in children")
 
 		_, err = uuid.Parse(file1.Id)
@@ -72,10 +72,10 @@ func TestGetChildrenOfFolder(t *testing.T) {
 	})
 
 	t.Run("file2.md has correct properties", func(t *testing.T) {
-		children, err := GetChildrenOfFolder(tempDir, "test_folder")
+		page, err := GetChildrenOfFolder(tempDir, "test_folder", "", 100)
 		assert.NoError(t, err)
 
-		file2 := findChildByName(children, "file2.md")
+		file2 := findChildByName(page.Items, "file2.md")
 		assert.NotNil(t, file2, "file2.md should exist in children")
 
 		_, err = uuid.Parse(file2.Id)
@@ -87,10 +87,10 @@ func TestGetChildrenOfFolder(t *testing.T) {
 	})
 
 	t.Run("subdir has correct properties", func(t *testing.T) {
-		children, err := GetChildrenOfFolder(tempDir, "test_folder")
+		page, err := GetChildrenOfFolder(tempDir, "test_folder", "", 100)
 		assert.NoError(t, err)
 
-		subdir := findChildByName(children, "subdir")
+		subdir := findChildByName(page.Items, "subdir")
 		assert.NotNil(t, subdir, "subdir should exist in children")
 
 		_, err = uuid.Parse(subdir.Id)
@@ -102,29 +102,43 @@ func TestGetChildrenOfFolder(t *testing.T) {
 	})
 
 	t.Run("non-existent folder returns error", func(t *testing.T) {
-		children, err := GetChildrenOfFolder(tempDir, "missing")
+		page, err := GetChildrenOfFolder(tempDir, "missing", "", 100)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "does not exist")
-		assert.Empty(t, children)
+		assert.Empty(t, page.Items)
 	})
 
 	t.Run("path is a file returns error", func(t *testing.T) {
-		children, err := GetChildrenOfFolder(tempDir, "test_folder/file1.txt")
+		page, err := GetChildrenOfFolder(tempDir, "test_folder/file1.txt", "", 100)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "is not a folder")
-		assert.Empty(t, children)
+		assert.Empty(t, page.Items)
 	})
 
 	t.Run("hidden files and folders are skipped", func(t *testing.T) {
-		children, err := GetChildrenOfFolder(tempDir, "test_folder")
+		page, err := GetChildrenOfFolder(tempDir, "test_folder", "", 100)
 		assert.NoError(t, err)
 		// Should only have 3 items (file1.txt, file2.md, subdir), not the hidden ones
-		assert.Len(t, children, 3)
+		assert.Len(t, page.Items, 3)
 
 		// Verify hidden files are not present
-		assert.Nil(t, findChildByName(children, ".hidden_file"), ".hidden_file should not be in children")
-		assert.Nil(t, findChildByName(children, ".DS_Store"), ".DS_Store should not be in children")
-		assert.Nil(t, findChildByName(children, ".hidden_dir"), ".hidden_dir should not be in children")
+		assert.Nil(t, findChildByName(page.Items, ".hidden_file"), ".hidden_file should not be in children")
+		assert.Nil(t, findChildByName(page.Items, ".DS_Store"), ".DS_Store should not be in children")
+		assert.Nil(t, findChildByName(page.Items, ".hidden_dir"), ".hidden_dir should not be in children")
+	})
+
+	t.Run("supports cursor pagination", func(t *testing.T) {
+		page1, err := GetChildrenOfFolder(tempDir, "test_folder", "", 2)
+		assert.NoError(t, err)
+		assert.Len(t, page1.Items, 2)
+		assert.True(t, page1.HasMore)
+		assert.NotEmpty(t, page1.NextCursor)
+
+		page2, err := GetChildrenOfFolder(tempDir, "test_folder", page1.NextCursor, 2)
+		assert.NoError(t, err)
+		assert.Len(t, page2.Items, 1)
+		assert.False(t, page2.HasMore)
+		assert.Empty(t, page2.NextCursor)
 	})
 }
 

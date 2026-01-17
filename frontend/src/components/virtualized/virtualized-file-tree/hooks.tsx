@@ -39,6 +39,8 @@ export function useTopLevelFileOrFolders() {
             ...commonAttributes,
             type: FOLDER_TYPE,
             childrenIds: [],
+            childrenCursor: null,
+            hasMoreChildren: false,
             isOpen: false,
             isDataStale: false,
             parentId: null,
@@ -79,14 +81,20 @@ export function useTopLevelFileOrFolders() {
               break;
             case FOLDER_TYPE: {
               let existingIsOpen: null | boolean = null;
+              let existingHasMoreChildren: null | boolean = null;
+              let existingChildrenCursor: null | string = null;
               const prevFileOrFolder = prev.get(fileOrFolder.id);
               if (prevFileOrFolder && prevFileOrFolder.type === FOLDER_TYPE) {
                 existingIsOpen = prevFileOrFolder.isOpen;
+                existingHasMoreChildren = prevFileOrFolder.hasMoreChildren;
+                existingChildrenCursor = prevFileOrFolder.childrenCursor;
               }
 
               tempMap.set(fileOrFolder.id, {
                 ...fileOrFolder,
                 isOpen: existingIsOpen ?? false,
+                hasMoreChildren: existingHasMoreChildren ?? false,
+                childrenCursor: existingChildrenCursor ?? null,
               });
               break;
             }
@@ -120,22 +128,18 @@ export function useTopLevelFileOrFolders() {
  */
 export function useOpenFolderMutation() {
   const [fileOrFolderMap, setFileOrFolderMap] = useAtom(fileOrFolderMapAtom);
+  const PAGE_SIZE = 50;
 
+  // Opens a folder by its path and updates the file/folder map atom with its children.
   return useMutation({
-    /**
-     * Opens a folder by its path and updates the file/folder map atom with its children.
-     *
-     * @param params
-     * @param params.pathToFolder - Relative path to the folder to open.
-     * @param params.folderId - The `id` of the folder in the map to update `childrenIds` for.
-     * @throws {QueryError} When backend response is not successful.
-     */
     mutationFn: async ({
       pathToFolder,
       folderId,
+      isLoadMore,
     }: {
       pathToFolder: string;
       folderId: string;
+      isLoadMore?: boolean;
     }) => {
       const folderData = fileOrFolderMap.get(folderId);
       if (!folderData || folderData.type !== FOLDER_TYPE) {
@@ -143,7 +147,7 @@ export function useOpenFolderMutation() {
       }
 
       const hasChildren = folderData.childrenIds.length > 0;
-      if (hasChildren) {
+      if (hasChildren && !isLoadMore) {
         // There are already children, so we don't need to fetch them again.
         // The folder does have to be set as open though
         setFileOrFolderMap((prev) => {
@@ -157,7 +161,12 @@ export function useOpenFolderMutation() {
         return;
       }
 
-      const res = await GetChildrenOfFolder(pathToFolder);
+      const cursorToUse = isLoadMore ? (folderData.childrenCursor ?? '') : '';
+      const res = await GetChildrenOfFolder(
+        pathToFolder,
+        cursorToUse,
+        PAGE_SIZE
+      );
       if (!res.success || (!res.data && res.message)) {
         throw new QueryError(res.message);
       }
@@ -166,10 +175,14 @@ export function useOpenFolderMutation() {
         if (!res.data) return prev;
 
         const tempMap = new Map(prev);
-        const childrenIds: string[] = [];
+        const existingFolder = tempMap.get(folderId);
+        const childrenIds: string[] =
+          isLoadMore && existingFolder && existingFolder.type === FOLDER_TYPE
+            ? [...existingFolder.childrenIds]
+            : [];
 
         // Adding the children to the map
-        for (const entry of res.data) {
+        for (const entry of res.data.items ?? []) {
           childrenIds.push(entry.id);
           const commonAttributes = {
             id: entry.id,
@@ -189,6 +202,8 @@ export function useOpenFolderMutation() {
                 ...commonAttributes,
                 type: 'folder',
                 childrenIds: entry.childrenIds,
+                childrenCursor: null,
+                hasMoreChildren: false,
                 isOpen: false,
                 isDataStale: false,
               });
@@ -205,6 +220,8 @@ export function useOpenFolderMutation() {
             ...folder,
             childrenIds,
             isOpen: true,
+            hasMoreChildren: res.data.hasMore,
+            childrenCursor: res.data.hasMore ? res.data.nextCursor : null,
           });
         }
 
