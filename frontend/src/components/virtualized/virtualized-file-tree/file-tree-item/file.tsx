@@ -1,0 +1,269 @@
+import { useAtom, useAtomValue } from 'jotai';
+import { useState } from 'react';
+import { navigate } from 'wouter/use-browser-location';
+import { AnimatePresence } from 'motion/react';
+import { Note } from '../../../../icons/page';
+import { fileOrFolderMapAtom } from '..';
+import { useFilePathFromRoute } from '../../../../hooks/routes';
+import { createFilePath } from '../../../../utils/path';
+import { SidebarHighlight } from '../../virtualized-list/highlight';
+import {
+  sidebarSelectionAtom,
+  useAddToSidebarSelection,
+} from '../../../../hooks/selection';
+import {
+  SelectableItems,
+  getFileSelectionKey,
+  getKeyForSidebarSelection,
+} from '../../../../utils/selection';
+import { cn } from '../../../../utils/string-formatting';
+import type { FlattenedFileOrFolder } from '../types';
+
+type FileTreeFileItemProps = {
+  dataItem: FlattenedFileOrFolder;
+};
+
+export function FileTreeFileItem({ dataItem }: FileTreeFileItemProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  const fileOrFolderMap = useAtomValue(fileOrFolderMapAtom);
+  const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
+  const addToSidebarSelection = useAddToSidebarSelection();
+  const filePathFromRoute = useFilePathFromRoute();
+
+  // File path should be defined for files
+  const filePath = createFilePath(dataItem.path);
+  if (!filePath) {
+    return null;
+  }
+
+  const resolvedFilePath = filePath;
+
+  // When the file is selected using cmd+click or shift+click, the selectionKey is added to the sidebarSelection atom set.
+  const selectionKey = getKeyForSidebarSelection({
+    ...resolvedFilePath,
+    id: dataItem.id,
+  });
+
+  const isSelectedFromRoute =
+    filePathFromRoute && filePathFromRoute.equals(filePath);
+  const isSelectedFromSidebarClick =
+    sidebarSelection.selections.has(selectionKey);
+
+  function getAnchorAfterRemoval(updatedSelections: Set<string>) {
+    if (!dataItem.parentId) {
+      return null;
+    }
+
+    const parentFolder = fileOrFolderMap.get(dataItem.parentId);
+    if (!parentFolder || parentFolder.type !== 'folder') {
+      return null;
+    }
+
+    const orderedSelectionKeys: string[] = [];
+    for (const childId of parentFolder.childrenIds) {
+      const childItem = fileOrFolderMap.get(childId);
+      if (!childItem || childItem.type !== 'file') continue;
+      const childFilePath = createFilePath(childItem.path);
+      if (!childFilePath) continue;
+      orderedSelectionKeys.push(
+        getKeyForSidebarSelection({
+          ...childFilePath,
+          id: childItem.id,
+        })
+      );
+    }
+
+    const currentIndex = orderedSelectionKeys.indexOf(selectionKey);
+    if (currentIndex === -1) {
+      return null;
+    }
+
+    // Get the first selection key after the one that was un-selected
+    for (
+      let index = currentIndex + 1;
+      index < orderedSelectionKeys.length;
+      index += 1
+    ) {
+      const candidateKey = orderedSelectionKeys[index];
+      if (updatedSelections.has(candidateKey)) {
+        return candidateKey;
+      }
+    }
+
+    // Get the first selection key before the one that was un-selected if there is no selection key after the one that was un-selected
+    for (let index = currentIndex - 1; index >= 0; index -= 1) {
+      const candidateKey = orderedSelectionKeys[index];
+      if (updatedSelections.has(candidateKey)) {
+        return candidateKey;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Handles shift-click behavior for multi-selection by selecting a range of items
+   * between the anchor index and the clicked index
+   */
+  function handleShiftClick() {
+    const anchorSelectionKey = sidebarSelection.anchorSelection;
+    if (!anchorSelectionKey) {
+      setSidebarSelection({
+        selections: new Set([selectionKey]),
+        anchorSelection: selectionKey,
+      });
+      return;
+    }
+
+    const anchorSelectionId = getFileSelectionKey(anchorSelectionKey);
+    if (!anchorSelectionId) {
+      return;
+    }
+    const anchorSelectionItem = fileOrFolderMap.get(anchorSelectionId);
+
+    // You cannot select across parents using shift click
+    if (
+      !anchorSelectionItem ||
+      !dataItem.parentId ||
+      anchorSelectionItem.parentId !== dataItem.parentId
+    ) {
+      return;
+    }
+
+    const parentFolder = fileOrFolderMap.get(dataItem.parentId);
+    if (!parentFolder || parentFolder.type !== 'folder') {
+      return;
+    }
+
+    const startIndex = parentFolder.childrenIds.indexOf(anchorSelectionItem.id);
+    const endIndex = parentFolder.childrenIds.indexOf(dataItem.id);
+    if (startIndex === -1 || endIndex === -1) {
+      return;
+    }
+
+    const [rangeStart, rangeEnd] =
+      startIndex <= endIndex ? [startIndex, endIndex] : [endIndex, startIndex];
+
+    const updatedSelections = new Set<string>();
+
+    // Go through the range and select each file in the range
+    for (let index = rangeStart; index <= rangeEnd; index += 1) {
+      const childId = parentFolder.childrenIds[index];
+      const childItem = fileOrFolderMap.get(childId);
+
+      // Skips folders
+      if (!childItem || childItem.type !== 'file') continue;
+
+      const childFilePath = createFilePath(childItem.path);
+      if (!childFilePath) continue;
+
+      updatedSelections.add(
+        getKeyForSidebarSelection({
+          ...childFilePath,
+          id: childItem.id,
+        })
+      );
+    }
+
+    setSidebarSelection((prev) => ({
+      selections: updatedSelections,
+      anchorSelection: prev.anchorSelection,
+    }));
+  }
+
+  /**
+   * Handles cmd+clidk for toggling selection of a file
+   * It will un-select the file and update the anchor if it is already selected
+   * It will select the file if it is not already selected
+   */
+  function handleMetaClick() {
+    const selectableItem: SelectableItems = {
+      ...resolvedFilePath,
+      id: dataItem.id,
+    };
+    if (
+      sidebarSelection.selections.has(getKeyForSidebarSelection(selectableItem))
+    ) {
+      // cmd+click on a selected file will un-select it
+      // It also updates the anchor selection to the next item in the selection set
+      // or the previous item if the next item is not selected
+      setSidebarSelection((prev) => {
+        const newSelections = new Set(prev.selections);
+        newSelections.delete(selectionKey);
+
+        const nextAnchor =
+          getAnchorAfterRemoval(newSelections) ??
+          (newSelections.values().next().value as string | undefined) ??
+          null;
+
+        return {
+          selections: newSelections,
+          anchorSelection: nextAnchor,
+        };
+      });
+    } else {
+      addToSidebarSelection(selectableItem);
+    }
+  }
+
+  /**
+   * Default clicks clears out selection and navigates to the file
+   */
+  function handleDefaultClick() {
+    setSidebarSelection({
+      selections: new Set([]),
+      anchorSelection: selectionKey,
+    });
+    navigate(resolvedFilePath.encodedFileUrl);
+  }
+
+  return (
+    <button
+      draggable
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={(e) => {
+        if (e.shiftKey) {
+          handleShiftClick();
+        } else if (e.metaKey || e.ctrlKey) {
+          handleMetaClick();
+        } else {
+          handleDefaultClick();
+        }
+      }}
+      className={'flex items-center w-full relative rounded-md py-0.25'}
+    >
+      <AnimatePresence>
+        {isHovered && (
+          <SidebarHighlight
+            layoutId={'file-tree-item-highlight'}
+            className="w-[calc(100%-15px)] ml-3.75"
+          />
+        )}
+      </AnimatePresence>
+      <span
+        className={cn(
+          'rounded-md flex items-center gap-2 z-10 py-1 px-2 ml-3.75 overflow-hidden w-full transition-colors duration-150',
+          isSelectedFromRoute && 'bg-zinc-150 dark:bg-zinc-600',
+          isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
+        )}
+      >
+        <Note
+          className="min-w-4 min-h-4 will-change-transform"
+          height={16}
+          width={16}
+          strokeWidth={1.75}
+        />
+        <span className="truncate">{dataItem.name}</span>
+      </span>
+    </button>
+  );
+}

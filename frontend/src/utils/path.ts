@@ -16,6 +16,7 @@ export function safeDecodeURIComponent(str: string): string {
   }
 }
 
+/** Represents a path to a file in the bytebook app */
 export interface FilePath {
   fullPath: string;
   folder: string;
@@ -27,6 +28,10 @@ export interface FilePath {
   equals(other: FilePath): boolean;
 }
 
+/**
+ * Creates a FilePath object from a string
+ * Returns null if the filePath is not a file
+ */
 export function createFilePath(filePath: string): FilePath | null {
   const lastSegment = filePath.split('/').pop();
 
