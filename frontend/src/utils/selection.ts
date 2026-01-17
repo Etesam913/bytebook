@@ -1,5 +1,5 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
-import { LocalFilePath } from './path';
+import { FilePath, LocalFilePath } from './path';
 import { SidebarContentType } from '../types';
 
 /**
@@ -127,4 +127,38 @@ export function handleEditorEscape(
       selectedNoteButton.focus();
     }
   }
+}
+
+/**
+ * Gets the selection prefix from a selectable item key that comes from the selection set
+ */
+export function getFileSelectionPrefix(
+  selectableItemKey: string
+): string | null {
+  if (selectableItemKey.indexOf(':') === -1) {
+    return null;
+  }
+  return selectableItemKey.split(':')[0];
+}
+
+/**
+ * Gets the selection key from a selectable item key that comes from the selection set
+ */
+export function getFileSelectionKey(selectableItemKey: string): string | null {
+  if (selectableItemKey.indexOf(':') === -1) {
+    return null;
+  }
+  return selectableItemKey.split(':')[1];
+}
+
+export type SelectableItems = FilePath & { id: string };
+
+/**
+ * Each element in the sidebar selection set is a string as that allows for easy lookup and removal
+ * This function creates a key for the selection set from a SelectableItems object
+ */
+export function getKeyForSidebarSelection(
+  selectableItem: SelectableItems
+): string {
+  return `file:${selectableItem.id}`;
 }
