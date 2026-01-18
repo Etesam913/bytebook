@@ -1,4 +1,4 @@
-package ui
+package menus
 
 import (
 	"log"
@@ -8,17 +8,26 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-// InitializeApplicationMenu initializes the application menu with hotkeys
-func InitializeApplicationMenu(backgroundColor application.RGBA) {
+// WindowCreator is a function type for creating windows
+type WindowCreator func(app *application.App, url string, backgroundColor application.RGBA) application.Window
+
+// CreateApplicationMenus initializes the application menu with hotkeys
+func CreateApplicationMenus(backgroundColor application.RGBA, createWindow WindowCreator) {
 	app := config.GetApp()
+	if app == nil {
+		log.Fatalf("GetApp() Error: could not get application")
+		return
+	}
 	menu := application.DefaultApplicationMenu()
 
 	configureSettingsMenu(app, menu)
-	configureFileMenu(app, menu, backgroundColor)
+	configureFileMenu(app, menu, backgroundColor, createWindow)
 	configureToggleFullscreen(menu)
 	configureViewMenu(app, menu)
 	configureWindowMenu(app, menu)
 	app.Menu.SetApplicationMenu(menu)
+	// app.ContextMenu.Add("folder-menu", CreateFolderContextMenu())
+	// app.ContextMenu.Add("file-menu", CreateFileContextMenu())
 }
 
 // configureSettingsMenu sets up the "Settings" submenu item and its accelerator and click handler.
@@ -44,7 +53,7 @@ func configureSettingsMenu(app *application.App, menu *application.Menu) {
 }
 
 // configureFileMenu sets up the "New Window" submenu item and its accelerator and click handler.
-func configureFileMenu(app *application.App, menu *application.Menu, bg application.RGBA) {
+func configureFileMenu(app *application.App, menu *application.Menu, bg application.RGBA, createWindow WindowCreator) {
 	item := menu.ItemAt(1)
 	if !item.IsSubmenu() {
 		return
@@ -53,7 +62,7 @@ func configureFileMenu(app *application.App, menu *application.Menu, bg applicat
 	newWin := sub.Add("New Window")
 	newWin.SetAccelerator("shift+cmdorctrl+n")
 	newWin.OnClick(func(ctx *application.Context) {
-		CreateWindow(app, "/", bg)
+		createWindow(app, "/", bg)
 	})
 
 	newFolder := sub.Add("New Folder")
@@ -81,7 +90,6 @@ func configureFileMenu(app *application.App, menu *application.Menu, bg applicat
 			)
 		}
 	})
-
 }
 
 // configureToggleFullscreen updates the accelerator for the "Toggle Full Screen" menu item.
@@ -167,7 +175,6 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	zoomIn := sub.FindByLabel("Zoom In")
 	if zoomIn != nil {
 		sub.RemoveMenuItem(zoomIn)
-
 	}
 	zoomOut := sub.FindByLabel("Zoom Out")
 	if zoomOut != nil {
@@ -196,5 +203,4 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	zoomOut.OnClick(func(ctx *application.Context) {
 		app.Event.Emit(util.Events.ZoomOut)
 	})
-
 }

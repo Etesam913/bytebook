@@ -6,6 +6,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const QUOTE_ENCODING = '%27';
+
 /**
  * Retrieves the value of a specific query parameter from a given URL string.
  *
