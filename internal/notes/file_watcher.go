@@ -96,7 +96,7 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 		fw.debounceEvents[eventKey] = append(
 			fw.debounceEvents[eventKey],
 			map[string]string{
-				"folderPath": fw.folderPathFromNotes(event.Name),
+				"folderPath": fw.pathFromNotes(event.Name),
 			},
 		)
 
@@ -112,8 +112,8 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 			fw.debounceEvents[eventKey] = append(
 				fw.debounceEvents[eventKey],
 				map[string]string{
-					"oldFolderPath": fw.folderPathFromNotes(event.Name),
-					"newFolderPath": fw.folderPathFromNotes(newFolderPath),
+					"oldFolderPath": fw.pathFromNotes(event.Name),
+					"newFolderPath": fw.pathFromNotes(newFolderPath),
 				},
 			)
 		} else {
@@ -122,7 +122,7 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 			fw.debounceEvents[eventKey] = append(
 				fw.debounceEvents[eventKey],
 				map[string]string{
-					"folderPath": fw.folderPathFromNotes(event.Name),
+					"folderPath": fw.pathFromNotes(event.Name),
 				},
 			)
 		}
@@ -132,7 +132,10 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 	fw.handleDebounceReset()
 }
 
-func (fw *FileWatcher) folderPathFromNotes(path string) string {
+// pathFromNotes returns the relative path from the notes root directory.
+// For example, if the full path is /project/notes/folder/note.md, it returns "folder/note.md".
+// Returns empty string if the path is the notes root itself.
+func (fw *FileWatcher) pathFromNotes(path string) string {
 	notesRoot := filepath.Join(fw.projectPath, "notes")
 	relPath, err := filepath.Rel(notesRoot, path)
 	if err != nil || strings.HasPrefix(relPath, "..") {
@@ -144,21 +147,10 @@ func (fw *FileWatcher) folderPathFromNotes(path string) string {
 	return relPath
 }
 
-// notePathFromNotes returns the relative path of a note from the notes root directory.
-// For example, if the full path is /project/notes/folder/note.md, it returns "folder/note.md".
-func (fw *FileWatcher) notePathFromNotes(path string) string {
-	notesRoot := filepath.Join(fw.projectPath, "notes")
-	relPath, err := filepath.Rel(notesRoot, path)
-	if err != nil || strings.HasPrefix(relPath, "..") {
-		return filepath.Base(path)
-	}
-	return relPath
-}
-
 // handleFileEvents processes file-related events (create, delete, write)
 func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event, oneFolderBack string) {
 	note := segments[len(segments)-1]
-	notePath := filepath.Join(fw.projectPath, "notes", oneFolderBack, note)
+	notePath := event.Name
 
 	eventKey := ""
 
@@ -183,8 +175,8 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 			fw.debounceEvents[eventKey] = append(
 				fw.debounceEvents[eventKey],
 				map[string]string{
-					"oldNotePath": fw.notePathFromNotes(event.Name),
-					"newNotePath": fw.notePathFromNotes(newFilePath),
+					"oldNotePath": fw.pathFromNotes(event.Name),
+					"newNotePath": fw.pathFromNotes(newFilePath),
 				},
 			)
 		} else if event.Has(fsnotify.Write) {
@@ -207,7 +199,7 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 		}
 
 		eventData := map[string]string{
-			"notePath": fw.notePathFromNotes(notePath),
+			"notePath": fw.pathFromNotes(notePath),
 		}
 
 		// For markdown file writes, include the content so frontend can compare and update if different

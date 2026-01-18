@@ -248,3 +248,76 @@ export function removeFolderFromFileTreeMap({
 
   return newMap;
 }
+
+/**
+ * Helper function to add a file to the map and update its parent's childrenIds.
+ * Returns the updated map, or the original map if the parent doesn't exist or isn't a folder.
+ */
+export function addFileToFileTreeMap({
+  map,
+  fileId,
+  fileName,
+  parentId,
+}: {
+  map: Map<string, FileOrFolder>;
+  fileId: string;
+  fileName: string;
+  parentId: string;
+}): Map<string, FileOrFolder> {
+  const parent = map.get(parentId);
+  if (!parent || parent.type !== 'folder') {
+    return map;
+  }
+
+  const newMap = new Map(map);
+
+  // Add the new file
+  newMap.set(fileId, {
+    id: fileId,
+    name: fileName,
+    type: 'file',
+    parentId,
+  });
+
+  // Update parent's childrenIds (sorted alphabetically and remove duplicates)
+  const updatedChildren = [...parent.childrenIds, fileId]
+    .filter((id, index, arr) => arr.indexOf(id) === index)
+    .sort((a, b) => {
+      const aName = a.split('/').pop() ?? a;
+      const bName = b.split('/').pop() ?? b;
+      return aName.localeCompare(bName);
+    });
+  newMap.set(parentId, { ...parent, childrenIds: updatedChildren });
+
+  return newMap;
+}
+
+/**
+ * Helper function to remove a file from the map and update its parent's childrenIds.
+ * Returns the updated map, or the original map if the parent doesn't exist or isn't a folder.
+ */
+export function removeFileFromFileTreeMap({
+  map,
+  fileId,
+  parentId,
+}: {
+  map: Map<string, FileOrFolder>;
+  fileId: string;
+  parentId: string;
+}): Map<string, FileOrFolder> {
+  const parent = map.get(parentId);
+  if (!parent || parent.type !== 'folder') {
+    return map;
+  }
+
+  const newMap = new Map(map);
+
+  // Remove the file
+  newMap.delete(fileId);
+
+  // Update parent's childrenIds to remove the deleted file
+  const updatedChildren = parent.childrenIds.filter((id) => id !== fileId);
+  newMap.set(parentId, { ...parent, childrenIds: updatedChildren });
+
+  return newMap;
+}
