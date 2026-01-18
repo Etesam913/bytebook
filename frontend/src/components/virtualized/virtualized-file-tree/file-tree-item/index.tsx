@@ -77,7 +77,7 @@ export function FileTreeItem({
         onLoadMore={() => {
           if (parentFolder && parentFolder.type === 'folder') {
             openFolder({
-              pathToFolder: parentFolder.path,
+              pathToFolder: parentFolder.id,
               folderId: parentFolder.id,
               isLoadMore: true,
             });

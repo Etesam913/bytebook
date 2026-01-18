@@ -5,6 +5,7 @@ import {
 } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { QueryError } from '../../../utils/query';
 import { fileOrFolderMapAtom } from '.';
+import { reconcileTopLevelFileTreeMap } from './utils';
 import { FILE_TYPE, FOLDER_TYPE, type FileOrFolder } from './types';
 import { useEffect } from 'react';
 import { useAtom, useSetAtom } from 'jotai';
@@ -26,7 +27,6 @@ export function useTopLevelFileOrFolders() {
         const commonAttributes = {
           id: entry.id,
           name: entry.name,
-          path: entry.path,
         };
         if (entry.type === FILE_TYPE) {
           folderOrFiles.push({
@@ -42,7 +42,6 @@ export function useTopLevelFileOrFolders() {
             childrenCursor: null,
             hasMoreChildren: false,
             isOpen: false,
-            isDataStale: false,
             parentId: null,
           });
         }
@@ -72,42 +71,7 @@ export function useTopLevelFileOrFolders() {
     const isLoading = topLevelFolderOrFilesQuery.isLoading;
     const data = topLevelFolderOrFilesQuery.data;
     if (!isLoading && data) {
-      setFileMap((prev) => {
-        const tempMap = new Map(prev);
-        for (const fileOrFolder of data) {
-          switch (fileOrFolder.type) {
-            case FILE_TYPE:
-              tempMap.set(fileOrFolder.id, fileOrFolder);
-              break;
-            case FOLDER_TYPE: {
-              let existingIsOpen: null | boolean = null;
-              let existingHasMoreChildren: null | boolean = null;
-              let existingChildrenCursor: null | string = null;
-              const prevFileOrFolder = prev.get(fileOrFolder.id);
-              if (prevFileOrFolder && prevFileOrFolder.type === FOLDER_TYPE) {
-                existingIsOpen = prevFileOrFolder.isOpen;
-                existingHasMoreChildren = prevFileOrFolder.hasMoreChildren;
-                existingChildrenCursor = prevFileOrFolder.childrenCursor;
-              }
-
-              tempMap.set(fileOrFolder.id, {
-                ...fileOrFolder,
-                isOpen: existingIsOpen ?? false,
-                hasMoreChildren: existingHasMoreChildren ?? false,
-                childrenCursor: existingChildrenCursor ?? null,
-              });
-              break;
-            }
-            default:
-              break;
-          }
-        }
-
-        console.info({
-          fileMapUpdate: tempMap,
-        });
-        return tempMap;
-      });
+      setFileMap((prev) => reconcileTopLevelFileTreeMap(prev, data));
     }
   }, [topLevelFolderOrFilesQuery.isLoading, topLevelFolderOrFilesQuery.data]);
 
@@ -187,7 +151,6 @@ export function useOpenFolderMutation() {
           const commonAttributes = {
             id: entry.id,
             name: entry.name,
-            path: entry.path,
             parentId: folderId,
           };
           switch (entry.type) {
@@ -205,7 +168,6 @@ export function useOpenFolderMutation() {
                 childrenCursor: null,
                 hasMoreChildren: false,
                 isOpen: false,
-                isDataStale: false,
               });
               break;
             default:

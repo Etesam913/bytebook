@@ -3,7 +3,7 @@ import type {
   FlattenedFileOrFolder,
   VirtualizedFileTreeItem,
 } from './types';
-import { LOAD_MORE_TYPE } from './types';
+import { FOLDER_TYPE, LOAD_MORE_TYPE } from './types';
 
 /**
  * Transforms a hierarchical file tree structure into a flattened array suitable for
@@ -84,7 +84,6 @@ export function transformFileTreeForVirtualizedList(
             id: `load-more-${updatedFileOrFolderData.id}`,
             type: LOAD_MORE_TYPE,
             parentId: updatedFileOrFolderData.id,
-            path: updatedFileOrFolderData.path,
             name: 'Load more...',
             level: level + 1,
           });
@@ -100,4 +99,152 @@ export function transformFileTreeForVirtualizedList(
   return data.flatMap((fileOrFolder) =>
     transformAFileOrFolder(fileOrFolder, 0)
   );
+}
+
+/**
+ * Recursively removes a file or folder and all its descendants from the file tree map.
+ *
+ * This function performs a depth-first traversal starting from the given root ID,
+ * deleting each node it encounters. For folders, it first removes all children
+ * before removing the folder itself.
+ */
+export function removeSubtree(
+  map: Map<string, FileOrFolder>,
+  rootId: string
+): void {
+  const root = map.get(rootId);
+  if (!root) return;
+  if (root.type === FOLDER_TYPE) {
+    for (const childId of root.childrenIds) {
+      removeSubtree(map, childId);
+    }
+  }
+  map.delete(rootId);
+}
+
+/**
+ * Reconciles the file tree map with new top-level data while preserving folder state.
+ *
+ * This function updates the map by removing top-level items that no longer exist
+ * in the new data (including their subtrees), and merging new data while preserving
+ * existing folder state such as `isOpen`, `childrenIds`, `childrenCursor`,
+ * and `hasMoreChildren` for folders that already exist in the map.
+ */
+export function reconcileTopLevelFileTreeMap(
+  previousMapData: Map<string, FileOrFolder>,
+  newData: FileOrFolder[]
+): Map<string, FileOrFolder> {
+  const newIds = new Set(newData.map((item) => item.id));
+  const updatedMap = new Map(previousMapData);
+
+  for (const [id, node] of previousMapData) {
+    // Remove top level folders that are not in the updated data
+    if (node.parentId === null && !newIds.has(id)) {
+      removeSubtree(updatedMap, id);
+    }
+  }
+
+  for (const node of newData) {
+    if (node.type === FOLDER_TYPE) {
+      const prevNode = previousMapData.get(node.id);
+      updatedMap.set(node.id, {
+        ...node,
+        isOpen: prevNode?.type === FOLDER_TYPE ? prevNode.isOpen : false,
+        childrenIds: prevNode?.type === FOLDER_TYPE ? prevNode.childrenIds : [],
+        childrenCursor:
+          prevNode?.type === FOLDER_TYPE ? prevNode.childrenCursor : null,
+        hasMoreChildren:
+          prevNode?.type === FOLDER_TYPE ? prevNode.hasMoreChildren : false,
+      });
+    } else {
+      updatedMap.set(node.id, node);
+    }
+  }
+
+  return updatedMap;
+}
+
+/**
+ * Helper function to add a folder to the map and update its parent's childrenIds.
+ * Returns the updated map, or the original map if the parent doesn't exist or isn't a folder.
+ */
+export function addFolderToFileTreeMap({
+  map,
+  folderId,
+  folderName,
+  parentId,
+  childrenIds = [],
+  childrenCursor = null,
+  hasMoreChildren = false,
+  isOpen = false,
+}: {
+  map: Map<string, FileOrFolder>;
+  folderId: string;
+  folderName: string;
+  parentId: string;
+  childrenIds?: string[];
+  childrenCursor?: string | null;
+  hasMoreChildren?: boolean;
+  isOpen?: boolean;
+}): Map<string, FileOrFolder> {
+  const parent = map.get(parentId);
+  if (!parent || parent.type !== 'folder') {
+    return map;
+  }
+
+  const newMap = new Map(map);
+
+  // Add the new folder
+  newMap.set(folderId, {
+    id: folderId,
+    name: folderName,
+    type: 'folder',
+    parentId,
+    childrenIds,
+    childrenCursor,
+    hasMoreChildren,
+    isOpen,
+  });
+
+  // Update parent's childrenIds (sorted alphabetically and remove duplicates)
+  const updatedChildren = [...parent.childrenIds, folderId]
+    .filter((id, index, arr) => arr.indexOf(id) === index)
+    .sort((a, b) => {
+      const aName = a.split('/').pop() ?? a;
+      const bName = b.split('/').pop() ?? b;
+      return aName.localeCompare(bName);
+    });
+  newMap.set(parentId, { ...parent, childrenIds: updatedChildren });
+
+  return newMap;
+}
+
+/**
+ * Helper function to remove a folder from the map and update its parent's childrenIds.
+ * Returns the updated map, or the original map if the parent doesn't exist or isn't a folder.
+ */
+export function removeFolderFromFileTreeMap({
+  map,
+  folderId,
+  parentId,
+}: {
+  map: Map<string, FileOrFolder>;
+  folderId: string;
+  parentId: string;
+}): Map<string, FileOrFolder> {
+  const parent = map.get(parentId);
+  if (!parent || parent.type !== 'folder') {
+    return map;
+  }
+
+  const newMap = new Map(map);
+
+  // Remove the folder and all its descendants
+  removeSubtree(newMap, folderId);
+
+  // Update parent's childrenIds to remove the deleted folder
+  const updatedChildren = parent.childrenIds.filter((id) => id !== folderId);
+  newMap.set(parentId, { ...parent, childrenIds: updatedChildren });
+
+  return newMap;
 }

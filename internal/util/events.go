@@ -95,16 +95,38 @@ type TagsUpdateEventData map[string][]string
 
 // FolderCreateEventData represents the data structure for folder create events
 type FolderCreateEventData struct {
-	Folder string `json:"folder"`
+	FolderPath string `json:"folderPath"`
 }
 
 // FolderDeleteEventData represents the data structure for folder delete events
 type FolderDeleteEventData struct {
-	Folder string `json:"folder"`
+	FolderPath string `json:"folderPath"`
 }
 
 // FolderRenameEventData represents the data structure for folder rename events
 type FolderRenameEventData struct {
-	OldFolder string `json:"oldFolder"`
-	NewFolder string `json:"newFolder"`
+	OldFolderPath string `json:"oldFolderPath"`
+	NewFolderPath string `json:"newFolderPath"`
+}
+
+// NoteCreateEventData represents the data structure for note create events
+type NoteCreateEventData struct {
+	NotePath string `json:"notePath"`
+}
+
+// NoteDeleteEventData represents the data structure for note delete events
+type NoteDeleteEventData struct {
+	NotePath string `json:"notePath"`
+}
+
+// NoteRenameEventData represents the data structure for note rename events
+type NoteRenameEventData struct {
+	OldNotePath string `json:"oldNotePath"`
+	NewNotePath string `json:"newNotePath"`
+}
+
+// NoteWriteEventData represents the data structure for note write events
+type NoteWriteEventData struct {
+	NotePath string `json:"notePath"`
+	Markdown string `json:"markdown,omitempty"`
 }

@@ -34,24 +34,24 @@ func TestAddFoldersToIndex(t *testing.T) {
 	t.Run("should add multiple folders to the index", func(t *testing.T) {
 		params := createTestParams(t)
 		data := []map[string]string{
-			{"folder": "folder1"},
-			{"folder": "folder2"},
-			{"folder": "folder3"},
+			{"folderPath": "folder1"},
+			{"folderPath": "folder2"},
+			{"folderPath": "folder3"},
 		}
 
 		addFoldersToIndex(params, data)
 
 		// Verify all folders were indexed
 		for _, folderData := range data {
-			doc, err := (*params.Index).Document(folderData["folder"])
+			doc, err := (*params.Index).Document(folderData["folderPath"])
 			assert.NoError(t, err)
-			assert.NotNil(t, doc, "folder %s should be indexed", folderData["folder"])
+			assert.NotNil(t, doc, "folder %s should be indexed", folderData["folderPath"])
 		}
 	})
 
 	t.Run("should skip invalid entries and handle special characters", func(t *testing.T) {
 		params := createTestParams(t)
-		data := []map[string]string{{"folder": "f.1"}, {"bad": "v"}}
+		data := []map[string]string{{"folderPath": "f.1"}, {"bad": "v"}}
 		addFoldersToIndex(params, data)
 
 		doc, _ := (*params.Index).Document("f.1")
@@ -68,16 +68,16 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 
 		// Add multiple folders
 		addData := []map[string]string{
-			{"folder": "folder1"},
-			{"folder": "folder2"},
-			{"folder": "folder3"},
+			{"folderPath": "folder1"},
+			{"folderPath": "folder2"},
+			{"folderPath": "folder3"},
 		}
 		addFoldersToIndex(params, addData)
 
 		// Delete folder1 and folder3
 		deleteData := []map[string]string{
-			{"folder": "folder1"},
-			{"folder": "folder3"},
+			{"folderPath": "folder1"},
+			{"folderPath": "folder3"},
 		}
 		deleteFoldersFromIndex(params, deleteData)
 
@@ -101,17 +101,17 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 
 		// Add folders
 		addData := []map[string]string{
-			{"folder": "folder1"},
-			{"folder": "folder2"},
+			{"folderPath": "folder1"},
+			{"folderPath": "folder2"},
 		}
 		addFoldersToIndex(params, addData)
 
 		// Try to delete with invalid entries: missing key, empty value, non-existent folder
 		deleteData := []map[string]string{
-			{"folder": "folder1"},
-			{"other_key": "some_value"}, // Missing "folder" key
-			{"folder": ""},              // Empty folder value
-			{"folder": "non-existent"},  // Non-existent folder
+			{"folderPath": "folder1"},
+			{"other_key": "some_value"},    // Missing "folderPath" key
+			{"folderPath": ""},             // Empty folder value
+			{"folderPath": "non-existent"}, // Non-existent folder
 		}
 		deleteFoldersFromIndex(params, deleteData)
 
@@ -131,64 +131,64 @@ func TestUpdateFolderNameInMarkdown(t *testing.T) {
 	tests := []struct {
 		name          string
 		markdown      string
-		oldFolderName string
-		newFolderName string
+		oldFolderPath string
+		newFolderPath string
 		expectedMD    string
 		expectedFlag  bool
 	}{
 		{
 			name:          "replaces folder name in image URL",
 			markdown:      "![alt text](/notes/old-folder/image.png)",
-			oldFolderName: "old-folder",
-			newFolderName: "new-folder",
+			oldFolderPath: "old-folder",
+			newFolderPath: "new-folder",
 			expectedMD:    "![alt text](/notes/new-folder/image.png)",
 			expectedFlag:  true,
 		},
 		{
 			name:          "replaces folder name in link URL",
 			markdown:      "[link text](/notes/old-folder/note.md)",
-			oldFolderName: "old-folder",
-			newFolderName: "new-folder",
+			oldFolderPath: "old-folder",
+			newFolderPath: "new-folder",
 			expectedMD:    "[link text](/notes/new-folder/note.md)",
 			expectedFlag:  true,
 		},
 		{
 			name:          "replaces multiple occurrences",
 			markdown:      "![img1](/notes/folder/a.png)\n[link](/notes/folder/b.md)\n![img2](/notes/folder/c.jpg)",
-			oldFolderName: "folder",
-			newFolderName: "renamed",
+			oldFolderPath: "folder",
+			newFolderPath: "renamed",
 			expectedMD:    "![img1](/notes/renamed/a.png)\n[link](/notes/renamed/b.md)\n![img2](/notes/renamed/c.jpg)",
 			expectedFlag:  true,
 		},
 		{
 			name:          "returns false when no folder matches",
 			markdown:      "![img](/notes/other-folder/image.png)",
-			oldFolderName: "old-folder",
-			newFolderName: "new-folder",
+			oldFolderPath: "old-folder",
+			newFolderPath: "new-folder",
 			expectedMD:    "![img](/notes/other-folder/image.png)",
 			expectedFlag:  false,
 		},
 		{
 			name:          "does not match partial folder names",
 			markdown:      "![img](/notes/my-old-folder-extra/image.png)",
-			oldFolderName: "old-folder",
-			newFolderName: "new-folder",
+			oldFolderPath: "old-folder",
+			newFolderPath: "new-folder",
 			expectedMD:    "![img](/notes/my-old-folder-extra/image.png)",
 			expectedFlag:  false,
 		},
 		{
 			name:          "handles empty markdown",
 			markdown:      "",
-			oldFolderName: "old-folder",
-			newFolderName: "new-folder",
+			oldFolderPath: "old-folder",
+			newFolderPath: "new-folder",
 			expectedMD:    "",
 			expectedFlag:  false,
 		},
 		{
 			name:          "handles markdown with no links or images",
 			markdown:      "# Heading\n\nSome plain text content.",
-			oldFolderName: "old-folder",
-			newFolderName: "new-folder",
+			oldFolderPath: "old-folder",
+			newFolderPath: "new-folder",
 			expectedMD:    "# Heading\n\nSome plain text content.",
 			expectedFlag:  false,
 		},
@@ -196,7 +196,7 @@ func TestUpdateFolderNameInMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, updated := updateFolderNameInMarkdown(tt.markdown, tt.oldFolderName, tt.newFolderName)
+			result, updated := updateFolderNameInMarkdown(tt.markdown, tt.oldFolderPath, tt.newFolderPath)
 			assert.Equal(t, tt.expectedMD, result)
 			assert.Equal(t, tt.expectedFlag, updated)
 		})

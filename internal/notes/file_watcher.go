@@ -84,7 +84,6 @@ func (fw *FileWatcher) handleDebounceReset() {
 
 // handleFolderEvents processes folder-related events (create, delete, rename)
 func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
-	folderName := filepath.Base(event.Name)
 	eventKey := ""
 
 	if event.Has(fsnotify.Create) {
@@ -97,7 +96,7 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 		fw.debounceEvents[eventKey] = append(
 			fw.debounceEvents[eventKey],
 			map[string]string{
-				"folder": folderName,
+				"folderPath": fw.folderPathFromNotes(event.Name),
 			},
 		)
 
@@ -108,14 +107,13 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 		timeDiff := time.Since(fw.mostRecentFolderCreatedEvent.time)
 		if event.Has(fsnotify.Rename) && timeDiff < TIME_FOR_TWO_EVENTS_TO_BE_RELATED {
 			newFolderPath := fw.mostRecentFolderCreatedEvent.event.Name
-			newFolderName := filepath.Base(newFolderPath)
 			eventKey = util.Events.FolderRename
 
 			fw.debounceEvents[eventKey] = append(
 				fw.debounceEvents[eventKey],
 				map[string]string{
-					"oldFolder": folderName,
-					"newFolder": newFolderName,
+					"oldFolderPath": fw.folderPathFromNotes(event.Name),
+					"newFolderPath": fw.folderPathFromNotes(newFolderPath),
 				},
 			)
 		} else {
@@ -124,7 +122,7 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 			fw.debounceEvents[eventKey] = append(
 				fw.debounceEvents[eventKey],
 				map[string]string{
-					"folder": folderName,
+					"folderPath": fw.folderPathFromNotes(event.Name),
 				},
 			)
 		}
@@ -132,6 +130,29 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 	}
 
 	fw.handleDebounceReset()
+}
+
+func (fw *FileWatcher) folderPathFromNotes(path string) string {
+	notesRoot := filepath.Join(fw.projectPath, "notes")
+	relPath, err := filepath.Rel(notesRoot, path)
+	if err != nil || strings.HasPrefix(relPath, "..") {
+		return filepath.Base(path)
+	}
+	if relPath == "." {
+		return ""
+	}
+	return relPath
+}
+
+// notePathFromNotes returns the relative path of a note from the notes root directory.
+// For example, if the full path is /project/notes/folder/note.md, it returns "folder/note.md".
+func (fw *FileWatcher) notePathFromNotes(path string) string {
+	notesRoot := filepath.Join(fw.projectPath, "notes")
+	relPath, err := filepath.Rel(notesRoot, path)
+	if err != nil || strings.HasPrefix(relPath, "..") {
+		return filepath.Base(path)
+	}
+	return relPath
 }
 
 // handleFileEvents processes file-related events (create, delete, write)
@@ -155,24 +176,15 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 
 		// timeDiff is used to be certain that the rename event is not a delete
 		if event.Has(fsnotify.Rename) && timeDiff < TIME_FOR_TWO_EVENTS_TO_BE_RELATED {
-			oldFileFolder := filepath.Base(filepath.Dir(event.Name))
-			oldFileName := filepath.Base(event.Name)
-
 			newFilePath := fw.mostRecentFileCreatedEvent.event.Name
-			newFileFolder := filepath.Base(filepath.Dir(newFilePath))
-			newFileName := filepath.Base(newFilePath)
 
 			eventKey = util.Events.NoteRename
-			oldPath := filepath.Join(fw.projectPath, "notes", oldFileFolder, oldFileName)
-			newPath := filepath.Join(fw.projectPath, "notes", newFileFolder, newFileName)
-			fw.renameFileState(oldPath, newPath)
+			fw.renameFileState(event.Name, newFilePath)
 			fw.debounceEvents[eventKey] = append(
 				fw.debounceEvents[eventKey],
 				map[string]string{
-					"oldFolder": oldFileFolder,
-					"oldNote":   oldFileName,
-					"newFolder": newFileFolder,
-					"newNote":   newFileName,
+					"oldNotePath": fw.notePathFromNotes(event.Name),
+					"newNotePath": fw.notePathFromNotes(newFilePath),
 				},
 			)
 		} else if event.Has(fsnotify.Write) {
@@ -195,8 +207,7 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 		}
 
 		eventData := map[string]string{
-			"folder": oneFolderBack,
-			"note":   note,
+			"notePath": fw.notePathFromNotes(notePath),
 		}
 
 		// For markdown file writes, include the content so frontend can compare and update if different
@@ -384,14 +395,28 @@ func AddProjectFoldersToWatcher(projectPath string, watcher *fsnotify.Watcher) {
 	watcher.Add(notesFolderPath)
 	watcher.Add(savedSearchesPath)
 
-	// Add all note subfolders
-	noteEntries, err := os.ReadDir(notesFolderPath)
-	if err != nil {
-		log.Fatalf("Failed to read notes directory: %v", err)
-	}
-	for _, entry := range noteEntries {
-		if entry.IsDir() {
-			watcher.Add(filepath.Join(notesFolderPath, entry.Name()))
+	// Add all note folders and files (including nested)
+	err := filepath.WalkDir(notesFolderPath, func(path string, info os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
 		}
+
+		if path == notesFolderPath {
+			return nil
+		}
+
+		name := info.Name()
+		if shouldIgnoreFile(name) {
+			if info.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		watcher.Add(path)
+		return nil
+	})
+	if err != nil {
+		log.Fatalf("Failed to walk notes directory: %v", err)
 	}
 }

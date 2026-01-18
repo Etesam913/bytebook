@@ -5,10 +5,10 @@ import { isFullscreenAtom } from '../../atoms.ts';
 import {
   useFolderCreate,
   useFolderDelete,
+  useFolderRename,
   useFolderCreateDialogEvent,
 } from '../../hooks/folders.tsx';
-import { FolderPlus } from '../../icons/folder-plus.tsx';
-import { MotionButton, MotionIconButton } from '../buttons/index.tsx';
+import { MotionIconButton } from '../buttons/index.tsx';
 import { BottomItems } from './bottom-items.tsx';
 import { MyFilesAccordion } from './my-files-accordion/index.tsx';
 import { MyTagsAccordion } from './my-tags-accordion/index.tsx';
@@ -30,6 +30,7 @@ import { cn } from '../../utils/string-formatting.ts';
 export function FileSidebar({ width }: { width: MotionValue<number> }) {
   useFolderCreate();
   useFolderDelete();
+  useFolderRename();
   useFolderCreateDialogEvent();
 
   const { folder } = useFolderFromRoute();

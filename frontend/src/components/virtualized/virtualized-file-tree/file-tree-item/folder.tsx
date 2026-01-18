@@ -15,15 +15,13 @@ type OpenFolderArgs = {
   isLoadMore?: boolean;
 };
 
-type FileTreeFolderItemProps = {
-  dataItem: FlattenedFileOrFolder;
-  openFolder: (args: OpenFolderArgs) => void;
-};
-
 export function FileTreeFolderItem({
   dataItem,
   openFolder,
-}: FileTreeFolderItemProps) {
+}: {
+  dataItem: FlattenedFileOrFolder;
+  openFolder: (args: OpenFolderArgs) => void;
+}) {
   const [isHovered, setIsHovered] = useState(false);
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
 
@@ -48,7 +46,7 @@ export function FileTreeFolderItem({
 
         if (!dataItem.isOpen) {
           openFolder({
-            pathToFolder: dataItem.path,
+            pathToFolder: dataItem.id,
             folderId: dataItem.id,
           });
         } else {
