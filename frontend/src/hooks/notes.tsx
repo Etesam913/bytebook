@@ -48,6 +48,11 @@ import { $convertFromMarkdownString } from '@lexical/markdown';
 import { useCreateNoteDialog } from './dialogs';
 import { isEventInCurrentWindow } from '../utils/events';
 import { parseFrontMatter } from '../components/editor/utils/note-metadata';
+import { fileOrFolderMapAtom } from '../components/virtualized/virtualized-file-tree';
+import {
+  addFileToFileTreeMap,
+  removeFileFromFileTreeMap,
+} from '../components/virtualized/virtualized-file-tree/utils';
 
 /** Data for a single page of notes */
 export type NotesPageData = {
@@ -217,57 +222,39 @@ export function useNotesInPage(
 
 /** This function is used to handle note:create events */
 export function useNoteCreate() {
-  const noteSort = useAtomValue(noteSortAtom);
   const queryClient = useQueryClient();
+  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
 
   useWailsEvent('note:create', async (body) => {
     console.info('note:create', body);
-    const data = body.data as { folder: string; note: string }[];
+    const data = body.data as { notePath: string }[];
 
-    // Group created notes by folder
-    const notesByFolder = new Map<string, LocalFilePath[]>();
-    for (const item of data) {
-      const { folder, note } = item;
-      const notePath = new LocalFilePath({ folder, note });
-      const existing = notesByFolder.get(folder) ?? [];
-      notesByFolder.set(folder, [...existing, notePath]);
-    }
+    for (const { notePath } of data) {
+      const segments = notePath.split('/').filter(Boolean);
 
-    // Update the cache once per folder
-    for (const [folder, notePaths] of notesByFolder) {
-      const queryKey = ['notes', folder, noteSort];
+      if (segments.length === 1) {
+        // Top-level file - just invalidate the query
+        queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+      } else {
+        // Nested file - add it directly to the map
+        const fileName = segments[segments.length - 1];
+        const parentId = segments.slice(0, -1).join('/');
 
-      queryClient.setQueryData<NotesInfiniteData>(queryKey, (oldData) => {
-        if (!oldData) return oldData;
-
-        // Filter out notes that already exist in the cache
-        const newNotesToAdd = notePaths.filter((newNotePath) => {
-          const doesNoteAlreadyExist = oldData.pages.some((page) =>
-            page.notes.some((localFilePath) =>
-              localFilePath.equals(newNotePath)
-            )
-          );
-          return !doesNoteAlreadyExist;
-        });
-
-        if (newNotesToAdd.length === 0) return oldData;
-
-        // Create new pages with the new notes prepended to the first page
-        const newPages = oldData.pages.map((page, index) => {
-          if (index === 0) {
-            return {
-              ...page,
-              notes: [...newNotesToAdd, ...page.notes],
-              totalCount: page.totalCount + newNotesToAdd.length,
-            };
+        setFileOrFolderMap((prev) => {
+          const parent = prev.get(parentId);
+          if (!parent || parent.type !== 'folder' || !parent.isOpen) {
+            // Parent doesn't exist or isn't open - nothing to update
+            return prev;
           }
-          return {
-            ...page,
-            totalCount: page.totalCount + newNotesToAdd.length,
-          };
+
+          return addFileToFileTreeMap({
+            map: prev,
+            fileId: notePath,
+            fileName,
+            parentId,
+          });
         });
-        return { ...oldData, pages: newPages };
-      });
+      }
     }
   });
 }
@@ -278,9 +265,6 @@ export function useNoteCreate() {
  * a 404 page error
  */
 export function useNoteCreateMutation() {
-  const queryClient = useQueryClient();
-  const noteSort = useAtomValue(noteSortAtom);
-
   return useMutation({
     mutationFn: async ({
       e,
@@ -378,70 +362,48 @@ export function useNoteCreateMutation() {
 
 export function useNoteRename() {
   const queryClient = useQueryClient();
-  const noteSort = useAtomValue(noteSortAtom);
+  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
 
   useWailsEvent('note:rename', async (body) => {
     console.info('note:rename', body);
     const data = body.data as {
-      newFolder: string;
-      newNote: string;
-      oldFolder: string;
-      oldNote: string;
+      oldNotePath: string;
+      newNotePath: string;
     }[];
-    for (const item of data) {
-      const { newFolder, newNote, oldFolder, oldNote } = item;
-      const oldNotePath = new LocalFilePath({
-        folder: oldFolder,
-        note: oldNote,
-      });
-      const newNotePath = new LocalFilePath({
-        folder: newFolder,
-        note: newNote,
-      });
 
-      // If folder is the same, update the note in place
-      if (oldFolder === newFolder) {
-        const queryKey = ['notes', oldFolder, noteSort];
-        queryClient.setQueryData<NotesInfiniteData>(queryKey, (oldData) => {
-          if (!oldData) return oldData;
-          const newPages = oldData.pages.map((page) => ({
-            ...page,
-            notes: page.notes.map((note) =>
-              note.equals(oldNotePath) ? newNotePath : note
-            ),
-          }));
-          return { ...oldData, pages: newPages };
-        });
+    for (const { oldNotePath, newNotePath } of data) {
+      const oldSegments = oldNotePath.split('/').filter(Boolean);
+      const newSegments = newNotePath.split('/').filter(Boolean);
+
+      if (oldSegments.length === 1 || newSegments.length === 1) {
+        // Top-level file - just invalidate the query
+        queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
       } else {
-        // Cross-folder rename: remove from old folder and add to new folder
-        const oldQueryKey = ['notes', oldFolder, noteSort];
-        queryClient.setQueryData<NotesInfiniteData>(oldQueryKey, (oldData) => {
-          if (!oldData) return oldData;
-          const newPages = oldData.pages.map((page) => ({
-            ...page,
-            notes: page.notes.filter((note) => !note.equals(oldNotePath)),
-            totalCount: page.totalCount - 1,
-          }));
-          return { ...oldData, pages: newPages };
-        });
+        // Nested file - update the map
+        const oldParentId = oldSegments.slice(0, -1).join('/');
+        const newParentId = newSegments.slice(0, -1).join('/');
+        const newFileName = newSegments[newSegments.length - 1];
 
-        const newQueryKey = ['notes', newFolder, noteSort];
-        queryClient.setQueryData<NotesInfiniteData>(newQueryKey, (oldData) => {
-          if (!oldData) return oldData;
-          const newPages = oldData.pages.map((page, index) => {
-            if (index === 0) {
-              return {
-                ...page,
-                notes: [newNotePath, ...page.notes],
-                totalCount: page.totalCount + 1,
-              };
-            }
-            return {
-              ...page,
-              totalCount: page.totalCount + 1,
-            };
+        setFileOrFolderMap((prev) => {
+          // First, remove the old file
+          let updatedMap = removeFileFromFileTreeMap({
+            map: prev,
+            fileId: oldNotePath,
+            parentId: oldParentId,
           });
-          return { ...oldData, pages: newPages };
+
+          // Then, add the new file if the parent is open
+          const newParent = updatedMap.get(newParentId);
+          if (newParent && newParent.type === 'folder' && newParent.isOpen) {
+            updatedMap = addFileToFileTreeMap({
+              map: updatedMap,
+              fileId: newNotePath,
+              fileName: newFileName,
+              parentId: newParentId,
+            });
+          }
+
+          return updatedMap;
         });
       }
     }
@@ -451,55 +413,30 @@ export function useNoteRename() {
 /** This function is used to handle note:delete events */
 export function useNoteDelete() {
   const queryClient = useQueryClient();
-  const noteSort = useAtomValue(noteSortAtom);
+  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
 
   useWailsEvent('note:delete', async (body) => {
     console.info('note:delete', body);
-    const data = body.data as { folder: string; note: string }[];
+    const data = body.data as { notePath: string }[];
 
-    // Group deleted notes by folder
-    const notesByFolder = new Map<string, LocalFilePath[]>();
-    for (const item of data) {
-      const { folder, note } = item;
-      const notePath = new LocalFilePath({ folder, note });
-      const existing = notesByFolder.get(folder) ?? [];
-      notesByFolder.set(folder, [...existing, notePath]);
-    }
+    for (const { notePath } of data) {
+      const segments = notePath.split('/').filter(Boolean);
 
-    // Update the cache once per folder
-    for (const [folder, notePaths] of notesByFolder) {
-      const queryKey = ['notes', folder, noteSort];
+      if (segments.length === 1) {
+        // Top-level file - just invalidate the query
+        queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+      } else {
+        // Nested file - remove it from the map
+        const parentId = segments.slice(0, -1).join('/');
 
-      queryClient.setQueryData<NotesInfiniteData>(queryKey, (oldData) => {
-        if (!oldData) return oldData;
-
-        // Count how many notes will be removed
-        let removedCount = 0;
-
-        // Filter out deleted notes from all pages
-        const newPages = oldData.pages.map((page) => {
-          const filteredNotes = page.notes.filter((localFilePath) => {
-            const shouldRemove = notePaths.some((deletedPath) =>
-              localFilePath.equals(deletedPath)
-            );
-            if (shouldRemove) removedCount++;
-            return !shouldRemove;
+        setFileOrFolderMap((prev) => {
+          return removeFileFromFileTreeMap({
+            map: prev,
+            fileId: notePath,
+            parentId,
           });
-
-          return {
-            ...page,
-            notes: filteredNotes,
-          };
         });
-
-        // Update totalCount on all pages
-        const pagesWithUpdatedCount = newPages.map((page) => ({
-          ...page,
-          totalCount: page.totalCount - removedCount,
-        }));
-
-        return { ...oldData, pages: pagesWithUpdatedCount };
-      });
+      }
     }
   });
 }
