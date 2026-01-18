@@ -26,8 +26,6 @@ func CreateApplicationMenus(backgroundColor application.RGBA, createWindow Windo
 	configureViewMenu(app, menu)
 	configureWindowMenu(app, menu)
 	app.Menu.SetApplicationMenu(menu)
-	// app.ContextMenu.Add("folder-menu", CreateFolderContextMenu())
-	// app.ContextMenu.Add("file-menu", CreateFileContextMenu())
 }
 
 // configureSettingsMenu sets up the "Settings" submenu item and its accelerator and click handler.
