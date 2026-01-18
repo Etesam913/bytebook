@@ -7,12 +7,10 @@ export type FileOrFolderType = 'file' | 'folder';
  * Base properties shared by both files and folders.
  */
 type BaseFileOrFolder = {
-  /** Unique identifier for the file or folder. */
+  /** Path to the file or folder (serves as the unique identifier). */
   id: string;
   /** Display name of the file or folder. */
   name: string;
-  /** Full path to the file or folder. */
-  path: string;
   /** Identifier for the parent folder. Null for top-level items. */
   parentId: string | null;
 };
@@ -31,8 +29,6 @@ type Folder = BaseFileOrFolder & {
   hasMoreChildren: boolean;
   /** Whether the folder is currently open/expanded in the UI. */
   isOpen: boolean;
-  /** True if the children data is stale and needs to be refreshed. */
-  isDataStale: boolean;
 };
 
 /**
@@ -73,14 +69,12 @@ export type FlattenedFileOrFolder = FileOrFolder & {
  * Represents a special item shown in the file tree to allow loading more children of a folder.
  */
 export type LoadMoreItem = {
-  /** Unique identifier for the "load more" marker (usually related to the parent folder). */
+  /** Path identifier for the "load more" marker (usually related to the parent folder). */
   id: string;
   /** Type indicating this is a load more marker. */
   type: 'load-more';
-  /** The parent folder's id this relates to. */
+  /** The parent folder's id (path) this relates to. */
   parentId: string;
-  /** Path of the parent folder. */
-  path: string;
   /** Display name for the placeholder item (e.g., "Load more..."). */
   name: string;
   /** Level in the file tree where this item resides. */

@@ -24,25 +24,22 @@ func handleNoteCreateEvent(params EventParams, event *application.CustomEvent) {
 }
 
 // addCreatedNotesToIndex adds newly created notes to the search index in a batch operation.
-// It expects a slice of note data, each containing folder and note name.
+// It expects a slice of note data, each containing notePath (relative path from notes folder).
 // This function includes retry logic to handle race conditions where the file may not be
 // immediately available after the create event is fired.
 func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
 	batch := (*params.Index).NewBatch()
 
 	for _, note := range data {
-		folder, ok := note["folder"]
+		notePath, ok := note["notePath"]
 		if !ok {
-			log.Println("Note created event data is not a map")
-			return
-		}
-		noteName, ok := note["note"]
-		if !ok {
-			log.Println("Note created event data is not a map")
+			log.Println("Note created event data missing notePath")
 			return
 		}
 
-		filePath := filepath.Join(params.ProjectPath, "notes", folder, noteName)
+		folder := filepath.Dir(notePath)
+		noteName := filepath.Base(notePath)
+		filePath := filepath.Join(params.ProjectPath, "notes", notePath)
 
 		// Retry logic to handle race condition where file might not be immediately available
 		err := util.RetryWithExponentialBackoff(
@@ -108,32 +105,25 @@ func renameNotesInIndex(params EventParams, data []map[string]string) {
 
 	// TODO: Add flush logic in the loop
 	for _, note := range data {
-		oldFolder, ok := note["oldFolder"]
+		oldNotePath, ok := note["oldNotePath"]
 		if !ok {
-			log.Println("Note rename event data missing oldFolder")
+			log.Println("Note rename event data missing oldNotePath")
 			continue
 		}
-		oldNoteName, ok := note["oldNote"]
+		newNotePath, ok := note["newNotePath"]
 		if !ok {
-			log.Println("Note rename event data missing oldNote")
-			continue
-		}
-		newFolder, ok := note["newFolder"]
-		if !ok {
-			log.Println("Note rename event data missing newFolder")
-			continue
-		}
-		newNoteName, ok := note["newNote"]
-		if !ok {
-			log.Println("Note rename event data missing newNote")
+			log.Println("Note rename event data missing newNotePath")
 			continue
 		}
 
-		oldFileId := filepath.Join(oldFolder, oldNoteName)
+		oldFolder := filepath.Dir(oldNotePath)
+		oldNoteName := filepath.Base(oldNotePath)
+		newFolder := filepath.Dir(newNotePath)
+		newNoteName := filepath.Base(newNotePath)
 
-		batch.Delete(oldFileId)
+		batch.Delete(oldNotePath)
 
-		newFilePath := filepath.Join(params.ProjectPath, "notes", newFolder, newNoteName)
+		newFilePath := filepath.Join(params.ProjectPath, "notes", newNotePath)
 		if filepath.Ext(newNoteName) == ".md" {
 			_, err := search.AddMarkdownNoteToBatch(
 				batch,
@@ -188,26 +178,22 @@ func handleNoteDeleteEvent(params EventParams, event *application.CustomEvent) {
 }
 
 // deleteNotesFromIndex removes notes from the search index in a batch operation.
-// It expects a slice of note data, each containing folder and note name.
+// It expects a slice of note data, each containing notePath (relative path from notes folder).
 func deleteNotesFromIndex(params EventParams, data []map[string]string) {
 	batch := (*params.Index).NewBatch()
 
 	// TODO: Add flush logic in the loop
 	for _, note := range data {
-		folder, ok := note["folder"]
+		notePath, ok := note["notePath"]
 		if !ok {
-			log.Println("Note delete event data missing folder")
-			continue
-		}
-		noteName, ok := note["note"]
-		if !ok {
-			log.Println("Note delete event data missing note")
+			log.Println("Note delete event data missing notePath")
 			continue
 		}
 
-		fileId := filepath.Join(folder, noteName)
+		folder := filepath.Dir(notePath)
+		noteName := filepath.Base(notePath)
 
-		batch.Delete(fileId)
+		batch.Delete(notePath)
 
 		if filepath.Ext(noteName) != ".md" {
 			if err := notes.DeleteAttachmentSidecar(params.ProjectPath, folder, noteName); err != nil {
@@ -238,19 +224,16 @@ func handleNoteWriteEvent(params EventParams, event *application.CustomEvent) {
 func updateNotesInIndex(params EventParams, data []map[string]string) {
 	// TODO: Add flush logic in the loop
 	for _, note := range data {
-		folder, ok := note["folder"]
+		notePath, ok := note["notePath"]
 		if !ok {
-			log.Println("Note write event data missing folder")
-			continue
-		}
-		noteName, ok := note["note"]
-		if !ok {
-			log.Println("Note write event data missing note")
+			log.Println("Note write event data missing notePath")
 			continue
 		}
 
-		noteId := filepath.Join(folder, noteName)
-		noteFilePath := filepath.Join(params.ProjectPath, "notes", folder, noteName)
+		folder := filepath.Dir(notePath)
+		noteName := filepath.Base(notePath)
+
+		noteFilePath := filepath.Join(params.ProjectPath, "notes", notePath)
 
 		// Read the markdown content from the file
 		markdown, err := os.ReadFile(noteFilePath)
@@ -265,9 +248,9 @@ func updateNotesInIndex(params EventParams, data []map[string]string) {
 			noteName,
 		)
 
-		err = (*params.Index).Index(noteId, bleveMarkdownDocument)
+		err = (*params.Index).Index(notePath, bleveMarkdownDocument)
 		if err != nil {
-			log.Printf("Error indexing note %s: %v", noteId, err)
+			log.Printf("Error indexing note %s: %v", notePath, err)
 		}
 	}
 }

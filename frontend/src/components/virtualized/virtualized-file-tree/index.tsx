@@ -13,14 +13,16 @@ const FILE_TREE_MAX_HEIGHT = '65vh';
 
 export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
   const fileOrFolderMap = useAtomValue(fileOrFolderMapAtom);
+
   useEffect(() => {
     console.info({
       fileOrFolderMap,
     });
   }, [fileOrFolderMap]);
+
   const [hoveredItemRailPath, setHoveredItemRailPath] = useState<string>('');
 
-  // This only runs once on component mount
+  // This only runs on component mount and when folder/note events are received
   const { data: topLevelFileOrFolders } = useTopLevelFileOrFolders();
   const flattenedTopLevelData = transformFileTreeForVirtualizedList(
     topLevelFileOrFolders ?? [],

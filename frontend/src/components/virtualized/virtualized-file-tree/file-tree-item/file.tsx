@@ -31,7 +31,7 @@ export function FileTreeFileItem({ dataItem }: FileTreeFileItemProps) {
   const filePathFromRoute = useFilePathFromRoute();
 
   // File path should be defined for files
-  const filePath = createFilePath(dataItem.path);
+  const filePath = createFilePath(dataItem.id);
   if (!filePath) {
     return null;
   }
@@ -49,6 +49,14 @@ export function FileTreeFileItem({ dataItem }: FileTreeFileItemProps) {
   const isSelectedFromSidebarClick =
     sidebarSelection.selections.has(selectionKey);
 
+  /**
+   * Finds the next anchor selection key after removing the current file from the selection.
+   * It searches through sibling files in the parent folder, first looking forward from the
+   * current position, then backward if no selection is found after.
+   *
+   * updatedSelections - The updated set of selection keys after removal
+   * returns The selection key to use as the new anchor, or null if none found
+   */
   function getAnchorAfterRemoval(updatedSelections: Set<string>) {
     if (!dataItem.parentId) {
       return null;
@@ -63,7 +71,7 @@ export function FileTreeFileItem({ dataItem }: FileTreeFileItemProps) {
     for (const childId of parentFolder.childrenIds) {
       const childItem = fileOrFolderMap.get(childId);
       if (!childItem || childItem.type !== 'file') continue;
-      const childFilePath = createFilePath(childItem.path);
+      const childFilePath = createFilePath(childItem.id);
       if (!childFilePath) continue;
       orderedSelectionKeys.push(
         getKeyForSidebarSelection({
@@ -154,7 +162,7 @@ export function FileTreeFileItem({ dataItem }: FileTreeFileItemProps) {
       // Skips folders
       if (!childItem || childItem.type !== 'file') continue;
 
-      const childFilePath = createFilePath(childItem.path);
+      const childFilePath = createFilePath(childItem.id);
       if (!childFilePath) continue;
 
       updatedSelections.add(
@@ -172,7 +180,7 @@ export function FileTreeFileItem({ dataItem }: FileTreeFileItemProps) {
   }
 
   /**
-   * Handles cmd+clidk for toggling selection of a file
+   * Handles cmd+click for toggling selection of a file
    * It will un-select the file and update the anchor if it is already selected
    * It will select the file if it is not already selected
    */

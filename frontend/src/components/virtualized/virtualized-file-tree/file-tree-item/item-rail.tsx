@@ -18,7 +18,7 @@ export function ItemRail({
   if (!parentId) return null;
 
   // Elements with a rail should have a parentId
-  const railPath = dataItem.path.split('/').slice(0, -1).join('/');
+  const railPath = dataItem.id.split('/').slice(0, -1).join('/');
 
   return (
     <div className="absolute z-50">

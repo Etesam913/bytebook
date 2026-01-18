@@ -38,12 +38,25 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 		testDir := t.TempDir()
 		settingsDir := filepath.Join(testDir, "settings")
 		notesDir := filepath.Join(testDir, "notes")
+		alphaDir := filepath.Join(notesDir, "alpha")
+		betaDir := filepath.Join(alphaDir, "beta")
+		gammaDir := filepath.Join(notesDir, "gamma")
+		rootNotePath := filepath.Join(notesDir, "root.md")
+		betaNotePath := filepath.Join(betaDir, "note1.md")
+		gammaNotePath := filepath.Join(gammaDir, "note2.md")
 
 		// Create the directories
 		err := os.MkdirAll(settingsDir, 0755)
 		assert.NoError(t, err)
-		err = os.MkdirAll(notesDir, 0755)
+		err = os.MkdirAll(betaDir, 0755)
 		assert.NoError(t, err)
+		err = os.MkdirAll(gammaDir, 0755)
+		assert.NoError(t, err)
+		err = os.WriteFile(rootNotePath, []byte("root"), 0644)
+		assert.NoError(t, err)
+		err = os.WriteFile(betaNotePath, []byte("beta"), 0644)
+		assert.NoError(t, err)
+		err = os.WriteFile(gammaNotePath, []byte("gamma"), 0644)
 		assert.NoError(t, err)
 
 		// No need for manual cleanup with t.TempDir()
@@ -54,8 +67,14 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 
 		AddProjectFoldersToWatcher(testDir, watcher)
 
-		assert.Equal(t, 2, len(watcher.WatchList()))
+		assert.Equal(t, 8, len(watcher.WatchList()))
 		assert.Contains(t, watcher.WatchList(), notesDir)
 		assert.Contains(t, watcher.WatchList(), settingsDir)
+		assert.Contains(t, watcher.WatchList(), alphaDir)
+		assert.Contains(t, watcher.WatchList(), betaDir)
+		assert.Contains(t, watcher.WatchList(), gammaDir)
+		assert.Contains(t, watcher.WatchList(), rootNotePath)
+		assert.Contains(t, watcher.WatchList(), betaNotePath)
+		assert.Contains(t, watcher.WatchList(), gammaNotePath)
 	})
 }

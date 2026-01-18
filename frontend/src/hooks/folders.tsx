@@ -6,6 +6,7 @@ import {
   QueryClient,
 } from '@tanstack/react-query';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
+import { useSetAtom } from 'jotai';
 import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
 import {
@@ -19,6 +20,11 @@ import {
   MoveNoteToFolder,
   RevealFolderOrFileInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
+import { fileOrFolderMapAtom } from '../components/virtualized/virtualized-file-tree';
+import {
+  addFolderToFileTreeMap,
+  removeFolderFromFileTreeMap,
+} from '../components/virtualized/virtualized-file-tree/utils';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import {
@@ -76,24 +82,127 @@ export function useFolders() {
 /** This function is used to handle `folder:create` events */
 export function useFolderCreate() {
   const queryClient = useQueryClient();
+  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
 
-  useWailsEvent('folder:create', async () => {
-    console.info('folder:create');
-    await queryClient.invalidateQueries({
-      queryKey: folderQueries.getFolders(queryClient).queryKey,
-    });
+  useWailsEvent('folder:create', async (body) => {
+    console.info('folder:create', body);
+    const data = body.data as { folderPath: string }[];
+
+    for (const { folderPath } of data) {
+      const segments = folderPath.split('/').filter(Boolean);
+
+      if (segments.length === 1) {
+        // Top-level folder - just invalidate the query
+        queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+      } else {
+        // Nested folder - add it directly to the map
+        const folderName = segments[segments.length - 1];
+        const parentId = segments.slice(0, -1).join('/');
+
+        setFileOrFolderMap((prev) => {
+          const parent = prev.get(parentId);
+          if (!parent || parent.type !== 'folder' || !parent.isOpen) {
+            // Parent doesn't exist or isn't open - nothing to update
+            return prev;
+          }
+
+          return addFolderToFileTreeMap({
+            map: prev,
+            folderId: folderPath,
+            folderName,
+            parentId,
+          });
+        });
+      }
+    }
   });
 }
 
-/** This function is used to handle `notes-folder:delete` events. This gets triggered when renaming a folder using the file system*/
+/** This function is used to handle `folder:delete` events. This gets triggered when deleting a folder using the file system */
 export function useFolderDelete() {
   const queryClient = useQueryClient();
+  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
 
-  useWailsEvent('folder:delete', async () => {
-    console.info('folder:delete');
-    await queryClient.invalidateQueries({
-      queryKey: folderQueries.getFolders(queryClient).queryKey,
-    });
+  useWailsEvent('folder:delete', async (body) => {
+    console.info('folder:delete', body);
+    const data = body.data as { folderPath: string }[];
+
+    for (const { folderPath } of data) {
+      const segments = folderPath.split('/').filter(Boolean);
+
+      if (segments.length === 1) {
+        // Top-level folder - just invalidate the query
+        queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+      } else {
+        // Nested folder - remove it from the map
+        const parentId = segments.slice(0, -1).join('/');
+
+        setFileOrFolderMap((prev) => {
+          return removeFolderFromFileTreeMap({
+            map: prev,
+            folderId: folderPath,
+            parentId,
+          });
+        });
+      }
+    }
+  });
+}
+
+/** This function is used to handle `folder:rename` events. This gets triggered when renaming a folder using the file system */
+export function useFolderRename() {
+  const queryClient = useQueryClient();
+  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
+
+  useWailsEvent('folder:rename', async (body) => {
+    console.info('folder:rename', body);
+    const data = body.data as {
+      oldFolderPath: string;
+      newFolderPath: string;
+    }[];
+
+    for (const { oldFolderPath, newFolderPath } of data) {
+      const oldSegments = oldFolderPath.split('/').filter(Boolean);
+      const newSegments = newFolderPath.split('/').filter(Boolean);
+
+      if (oldSegments.length === 1 || newSegments.length === 1) {
+        // Top-level folder - just invalidate the query
+        queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+      } else {
+        // Nested folder - update the map
+        const oldParentFolderId = oldSegments.slice(0, -1).join('/');
+        const newParentFolderId = newSegments.slice(0, -1).join('/');
+        const newFolderName = newSegments[newSegments.length - 1];
+
+        setFileOrFolderMap((prev) => {
+          const oldFolder = prev.get(oldFolderPath);
+
+          // First, remove the old folder
+          let updatedMap = removeFolderFromFileTreeMap({
+            map: prev,
+            folderId: oldFolderPath,
+            parentId: oldParentFolderId,
+          });
+
+          // Then, add the new folder with preserved state
+          updatedMap = addFolderToFileTreeMap({
+            map: updatedMap,
+            folderId: newFolderPath,
+            folderName: newFolderName,
+            parentId: newParentFolderId,
+            childrenIds:
+              oldFolder?.type === 'folder' ? oldFolder.childrenIds : [],
+            childrenCursor:
+              oldFolder?.type === 'folder' ? oldFolder.childrenCursor : null,
+            hasMoreChildren:
+              oldFolder?.type === 'folder' ? oldFolder.hasMoreChildren : false,
+            isOpen: oldFolder?.type === 'folder' ? oldFolder.isOpen : false,
+          });
+
+          return updatedMap;
+        });
+      }
+    }
   });
 }
 

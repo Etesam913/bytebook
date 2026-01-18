@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -63,10 +62,8 @@ func TestGetChildrenOfFolder(t *testing.T) {
 		file1 := findChildByName(page.Items, "file1.txt")
 		assert.NotNil(t, file1, "file1.txt should exist in children")
 
-		_, err = uuid.Parse(file1.Id)
-		assert.NoError(t, err, "Id should be a valid UUID")
+		assert.Equal(t, filepath.Join("test_folder", "file1.txt"), file1.Id)
 		assert.Equal(t, "file1.txt", file1.Name)
-		assert.Equal(t, filepath.Join("test_folder", "file1.txt"), file1.Path)
 		assert.Equal(t, "file", file1.Type)
 		assert.Equal(t, []string{}, file1.ChildrenIds)
 	})
@@ -78,10 +75,8 @@ func TestGetChildrenOfFolder(t *testing.T) {
 		file2 := findChildByName(page.Items, "file2.md")
 		assert.NotNil(t, file2, "file2.md should exist in children")
 
-		_, err = uuid.Parse(file2.Id)
-		assert.NoError(t, err, "Id should be a valid UUID")
+		assert.Equal(t, filepath.Join("test_folder", "file2.md"), file2.Id)
 		assert.Equal(t, "file2.md", file2.Name)
-		assert.Equal(t, filepath.Join("test_folder", "file2.md"), file2.Path)
 		assert.Equal(t, "file", file2.Type)
 		assert.Equal(t, []string{}, file2.ChildrenIds)
 	})
@@ -93,10 +88,8 @@ func TestGetChildrenOfFolder(t *testing.T) {
 		subdir := findChildByName(page.Items, "subdir")
 		assert.NotNil(t, subdir, "subdir should exist in children")
 
-		_, err = uuid.Parse(subdir.Id)
-		assert.NoError(t, err, "Id should be a valid UUID")
+		assert.Equal(t, filepath.Join("test_folder", "subdir"), subdir.Id)
 		assert.Equal(t, "subdir", subdir.Name)
-		assert.Equal(t, filepath.Join("test_folder", "subdir"), subdir.Path)
 		assert.Equal(t, "folder", subdir.Type)
 		assert.Equal(t, []string{}, subdir.ChildrenIds)
 	})
@@ -169,9 +162,8 @@ func TestGetTopLevelItems(t *testing.T) {
 		assert.Len(t, items, 2)
 		for _, item := range items {
 			assert.NotEmpty(t, item.Id)
-			_, err := uuid.Parse(item.Id)
-			assert.NoError(t, err)
-			assert.True(t, len(item.Path) > 0 && item.Path[0] == '/')
+			// Id should be a path starting with /
+			assert.True(t, len(item.Id) > 0 && item.Id[0] == '/')
 			assert.Contains(t, []string{"file", "folder"}, item.Type)
 		}
 	})

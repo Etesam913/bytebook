@@ -5,14 +5,11 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-
-	"github.com/google/uuid"
 )
 
 type FileOrFolder struct {
 	Id          string   `json:"id"`
 	Name        string   `json:"name"`
-	Path        string   `json:"path"`
 	ParentId    string   `json:"parentId"`
 	Type        string   `json:"type"`
 	ChildrenIds []string `json:"childrenIds"`
@@ -26,9 +23,9 @@ type FileOrFolderPage struct {
 
 // readDirectoryEntries reads entries from a directory and converts them to FileOrFolder objects.
 // fullPath is the absolute path to the directory to read.
-// pathFormatter is a function that formats the path for each entry (e.g., relative path or absolute path).
+// pathPrefix is the prefix to use for constructing the Id (path) of each entry.
 // Hidden files and folders (those starting with '.') are skipped.
-func readDirectoryEntries(fullPath string, pathFormatter func(string) string) ([]FileOrFolder, error) {
+func readDirectoryEntries(fullPath string, pathPrefix string) ([]FileOrFolder, error) {
 	entries, err := os.ReadDir(fullPath)
 	if err != nil {
 		return []FileOrFolder{}, err
@@ -46,9 +43,8 @@ func readDirectoryEntries(fullPath string, pathFormatter func(string) string) ([
 			entryType = "folder"
 		}
 		items = append(items, FileOrFolder{
-			Id:          uuid.NewString(),
+			Id:          filepath.Join(pathPrefix, entry.Name()),
 			Name:        entry.Name(),
-			Path:        pathFormatter(entry.Name()),
 			Type:        entryType,
 			ChildrenIds: []string{},
 		})
@@ -75,9 +71,7 @@ func GetChildrenOfFolder(projectPath, pathToFolder, cursor string, limit int) (F
 
 	children, err := readDirectoryEntries(
 		fullPathToFolder,
-		func(entryName string) string {
-			return filepath.Join(pathToFolder, entryName)
-		},
+		pathToFolder,
 	)
 
 	if err != nil {
@@ -134,9 +128,7 @@ func GetTopLevelItems(projectPath string) ([]FileOrFolder, error) {
 
 	topLevelItems, err := readDirectoryEntries(
 		pathToRoot,
-		func(entryName string) string {
-			return "/" + entryName
-		},
+		"",
 	)
 	if err != nil {
 		return []FileOrFolder{}, fmt.Errorf("failed to read %s", pathToRoot)
