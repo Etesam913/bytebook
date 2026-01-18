@@ -5,7 +5,7 @@ import { Folder } from '../../../../icons/folder';
 import { FolderOpen } from '../../../../icons/folder-open';
 import { SidebarHighlight } from '../../virtualized-list/highlight';
 import { BYTEBOOK_DRAG_DATA_FORMAT } from '../../../../utils/draggable';
-import { cn } from '../../../../utils/string-formatting';
+import { QUOTE_ENCODING, cn } from '../../../../utils/string-formatting';
 import type { FlattenedFileOrFolder } from '../types';
 import { fileOrFolderMapAtom } from '..';
 
@@ -24,6 +24,10 @@ export function FileTreeFolderItem({
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
+  const contextMenuData = encodeURIComponent(dataItem.id).replaceAll(
+    "'",
+    QUOTE_ENCODING
+  );
 
   return (
     <button
@@ -57,6 +61,12 @@ export function FileTreeFolderItem({
           });
         }
       }}
+      style={
+        {
+          '--custom-contextmenu': 'folder-menu',
+          '--custom-contextmenu-data': contextMenuData,
+        } as React.CSSProperties
+      }
       className={cn('flex items-center w-full relative rounded-md py-0.25')}
     >
       <AnimatePresence>

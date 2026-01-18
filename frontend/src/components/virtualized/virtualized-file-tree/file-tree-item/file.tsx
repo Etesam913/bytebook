@@ -16,7 +16,7 @@ import {
   getFileSelectionKey,
   getKeyForSidebarSelection,
 } from '../../../../utils/selection';
-import { cn } from '../../../../utils/string-formatting';
+import { QUOTE_ENCODING, cn } from '../../../../utils/string-formatting';
 import type { FlattenedFileOrFolder } from '../types';
 
 type FileTreeFileItemProps = {
@@ -29,6 +29,10 @@ export function FileTreeFileItem({ dataItem }: FileTreeFileItemProps) {
   const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
   const addToSidebarSelection = useAddToSidebarSelection();
   const filePathFromRoute = useFilePathFromRoute();
+  const contextMenuData = encodeURIComponent(dataItem.id).replaceAll(
+    "'",
+    QUOTE_ENCODING
+  );
 
   // File path should be defined for files
   const filePath = createFilePath(dataItem.id);
@@ -227,6 +231,12 @@ export function FileTreeFileItem({ dataItem }: FileTreeFileItemProps) {
 
   return (
     <button
+      style={
+        {
+          '--custom-contextmenu': 'file-menu',
+          '--custom-contextmenu-data': contextMenuData,
+        } as React.CSSProperties
+      }
       draggable
       onDragOver={(e) => {
         e.preventDefault();

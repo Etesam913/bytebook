@@ -16,6 +16,7 @@ import (
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/services"
 	"github.com/etesam913/bytebook/internal/ui"
+	"github.com/etesam913/bytebook/internal/ui/menus"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -179,7 +180,7 @@ func main() {
 
 	// Creates the default window
 	window := ui.CreateWindow(app, "/", backgroundColor)
-	// TODO: Fix bug with ui.InitializeApplicationMenu breaking the app
+	// TODO: Fix bug with menus.InitializeApplicationMenu breaking the app
 	// lsp.CreateLanguageServerProtocol()
 	events.ListenToEvents(events.EventParams{
 		App:         app,
@@ -187,7 +188,8 @@ func main() {
 		Index:       &searchIndex,
 	})
 
-	go ui.InitializeApplicationMenu(backgroundColor)
+	go menus.CreateApplicationMenus(backgroundColor, ui.CreateWindow)
+	go menus.CreateContextMenus()
 
 	// Start file watcher and search indexing once the window runtime is ready,
 	// preventing "too many open files" errors from concurrent file descriptor usage
