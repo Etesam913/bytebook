@@ -157,7 +157,6 @@ export function NotesEditor({ filePath }: { filePath: FilePath }) {
                   id="content-editable-editor"
                   className="flex-1"
                   spellCheck
-                  autoFocus
                   autoCorrect="on"
                   onClick={(e) => {
                     // Clicks should not propagate to the editor when something is being dragged

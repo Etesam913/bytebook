@@ -25,6 +25,9 @@ var Events = struct {
 	WindowReload     string
 	ToggleSidebar    string
 
+	// Context Menu events
+	ContextMenuRename string
+
 	// File watcher events
 	SettingsUpdate    string
 	TagsUpdate        string
@@ -68,6 +71,9 @@ var Events = struct {
 	Fullscreen:       "window:fullscreen",
 	WindowReload:     "window:reload",
 	ToggleSidebar:    "sidebar:toggle",
+
+	// Context Menu events
+	ContextMenuRename: "context-menu:rename",
 
 	// File watcher events
 	SettingsUpdate:    "settings:update",

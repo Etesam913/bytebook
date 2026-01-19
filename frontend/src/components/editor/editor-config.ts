@@ -3,12 +3,7 @@ import type { InitialConfigType } from '@lexical/react/LexicalComposer';
 import { HorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { TableCellNode, TableNode, TableRowNode } from '@lexical/table';
-import {
-  $getRoot,
-  type EditorThemeClasses,
-  LineBreakNode,
-  ParagraphNode,
-} from 'lexical';
+import { type EditorThemeClasses, LineBreakNode, ParagraphNode } from 'lexical';
 import { CodeNode } from './nodes/code';
 import { FileNode } from './nodes/file';
 import { InlineEquationNode } from './nodes/inline-equation';
@@ -63,10 +58,6 @@ const theme: EditorThemeClasses = {
 export const editorConfig: InitialConfigType = {
   namespace: 'note-editor',
   theme: theme,
-  editorState: () => {
-    // This is a good place to set the initial state of the editor.
-    $getRoot().selectStart();
-  },
   // editable: false,
   onError,
   nodes: [

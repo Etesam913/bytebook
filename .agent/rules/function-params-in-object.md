@@ -1,6 +1,6 @@
 ---
 trigger: glob
-globs: *.ts
+globs: *.tsx
 ---
 
 When there are >=3 function params put the params in an object so that calling the function is more readable.

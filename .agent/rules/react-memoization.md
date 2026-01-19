@@ -1,6 +1,6 @@
 ---
 trigger: glob
-globs: *.ts
+globs: *.tsx
 ---
 
 When writing typescript code do not use useMemo or useCallback as this project has react-compiler configured.

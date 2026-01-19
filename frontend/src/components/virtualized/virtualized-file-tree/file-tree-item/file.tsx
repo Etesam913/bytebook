@@ -1,10 +1,11 @@
 import { useAtom, useAtomValue } from 'jotai';
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { AnimatePresence } from 'motion/react';
 import { Note } from '../../../../icons/page';
 import { fileOrFolderMapAtom } from '..';
 import { useFilePathFromRoute } from '../../../../hooks/routes';
+import { useRenameFileMutation } from '../../../../hooks/notes';
 import { createFilePath } from '../../../../utils/path';
 import { SidebarHighlight } from '../../virtualized-list/highlight';
 import {
@@ -18,21 +19,69 @@ import {
 } from '../../../../utils/selection';
 import { QUOTE_ENCODING, cn } from '../../../../utils/string-formatting';
 import type { FlattenedFileOrFolder } from '../types';
+import {
+  FileItemEditContainer,
+  useFileItemEdit,
+} from './file-item-edit-container';
 
-type FileTreeFileItemProps = {
+export function FileTreeFileItem({
+  dataItem,
+}: {
   dataItem: FlattenedFileOrFolder;
-};
-
-export function FileTreeFileItem({ dataItem }: FileTreeFileItemProps) {
+}) {
   const [isHovered, setIsHovered] = useState(false);
   const fileOrFolderMap = useAtomValue(fileOrFolderMapAtom);
   const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
   const addToSidebarSelection = useAddToSidebarSelection();
   const filePathFromRoute = useFilePathFromRoute();
+  const { mutateAsync: renameFile } = useRenameFileMutation();
   const contextMenuData = encodeURIComponent(dataItem.id).replaceAll(
     "'",
     QUOTE_ENCODING
   );
+  const lastDotIndex = dataItem.name.lastIndexOf('.');
+  const nameWithoutExtension = lastDotIndex === -1 ? dataItem.name : dataItem.name.slice(0, lastDotIndex);
+  const extension = lastDotIndex === -1 ? undefined : dataItem.name.slice(lastDotIndex + 1);
+
+  async function onRename({
+    newName,
+    setErrorText,
+    exitEditMode,
+  }: {
+    newName: string;
+    setErrorText: Dispatch<SetStateAction<string>>;
+    exitEditMode: () => void;
+  }) {
+    const filePath = createFilePath(dataItem.id);
+    if (!filePath) {
+      exitEditMode();
+      return;
+    }
+
+    const newFilePathString = `${filePath.folder}/${newName}.md`;
+    const newFilePath = createFilePath(newFilePathString);
+    if (!newFilePath) {
+      setErrorText('Invalid file path');
+      return;
+    }
+
+    try {
+      await renameFile({
+        oldPath: filePath,
+        newPath: newFilePath,
+        setErrorText,
+      });
+      exitEditMode();
+    } catch {
+      // Error handling is done in the mutation
+    }
+  }
+
+  const { isEditing, errorText, exitEditMode, handleRename } = useFileItemEdit({
+    itemId: dataItem.id,
+    defaultValue: nameWithoutExtension,
+    onRename,
+  });
 
   // File path should be defined for files
   const filePath = createFilePath(dataItem.id);
@@ -229,6 +278,50 @@ export function FileTreeFileItem({ dataItem }: FileTreeFileItemProps) {
     navigate(resolvedFilePath.encodedFileUrl);
   }
 
+  const innerContent = (
+    <>
+      <AnimatePresence>
+        {isHovered && (
+          <SidebarHighlight
+            layoutId={'file-tree-item-highlight'}
+            className="w-[calc(100%-15px)] ml-3.75"
+          />
+        )}
+      </AnimatePresence>
+      <span
+        className={cn(
+          'rounded-md flex items-center gap-2 z-10 py-1 px-2 ml-3.75 overflow-hidden w-full transition-colors duration-150',
+          isSelectedFromRoute && 'bg-zinc-150 dark:bg-zinc-600',
+          isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
+        )}
+      >
+        <Note
+          className="min-w-4 min-h-4 will-change-transform"
+          height={16}
+          width={16}
+          strokeWidth={1.75}
+        />
+        <FileItemEditContainer
+          dataItem={dataItem}
+          defaultValue={nameWithoutExtension}
+          isEditing={isEditing}
+          errorText={errorText}
+          exitEditMode={exitEditMode}
+          handleRename={handleRename}
+          extension={extension}
+        />
+      </span>
+    </>
+  );
+
+  if (isEditing) {
+    return (
+      <div className="flex items-center w-full relative rounded-md py-0.25">
+        {innerContent}
+      </div>
+    );
+  }
+
   return (
     <button
       style={
@@ -257,31 +350,9 @@ export function FileTreeFileItem({ dataItem }: FileTreeFileItemProps) {
           handleDefaultClick();
         }
       }}
-      className={'flex items-center w-full relative rounded-md py-0.25'}
+      className="flex items-center w-full relative rounded-md py-0.25"
     >
-      <AnimatePresence>
-        {isHovered && (
-          <SidebarHighlight
-            layoutId={'file-tree-item-highlight'}
-            className="w-[calc(100%-15px)] ml-3.75"
-          />
-        )}
-      </AnimatePresence>
-      <span
-        className={cn(
-          'rounded-md flex items-center gap-2 z-10 py-1 px-2 ml-3.75 overflow-hidden w-full transition-colors duration-150',
-          isSelectedFromRoute && 'bg-zinc-150 dark:bg-zinc-600',
-          isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
-        )}
-      >
-        <Note
-          className="min-w-4 min-h-4 will-change-transform"
-          height={16}
-          width={16}
-          strokeWidth={1.75}
-        />
-        <span className="truncate">{dataItem.name}</span>
-      </span>
+      {innerContent}
     </button>
   );
 }
