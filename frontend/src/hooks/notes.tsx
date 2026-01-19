@@ -40,7 +40,7 @@ import {
   getContentTypeAndValueFromSelectionRangeValue,
   validateName,
 } from '../utils/string-formatting';
-import { LocalFilePath } from '../utils/path';
+import { FilePath, LocalFilePath } from '../utils/path';
 import { useWailsEvent } from './events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter } from '../types';
@@ -554,62 +554,26 @@ export function usePinNotesMutation() {
 }
 
 export function useRenameFileMutation() {
-  const queryClient = useQueryClient();
-  const noteSort = useAtomValue(noteSortAtom);
-
   return useMutation({
     mutationFn: async ({
       oldPath,
       newPath,
     }: {
-      oldPath: LocalFilePath;
-      newPath: LocalFilePath;
+      oldPath: FilePath;
+      newPath: FilePath;
       setErrorText: Dispatch<SetStateAction<string>>;
     }) => {
-      const res = await RenameFile(oldPath.toString(), newPath.toString());
+      const res = await RenameFile(oldPath.fullPath, newPath.fullPath);
       if (!res.success) {
         throw new Error(res.message);
       }
       return res.data;
     },
     // Optimistically update cache
-    onMutate: async (variables) => {
-      const folder = variables.oldPath.folder;
-      const queryKey = ['notes', folder, noteSort];
-
-      await queryClient.cancelQueries({ queryKey });
-
-      const previousNotesData =
-        queryClient.getQueryData<NotesInfiniteData>(queryKey);
-
-      if (previousNotesData?.pages) {
-        // Find the old note in pages and replace it with the new path
-        const newPages = previousNotesData.pages.map((page) => ({
-          ...page,
-          notes: page.notes.map((note) =>
-            note.equals(variables.oldPath) ? variables.newPath : note
-          ),
-        }));
-
-        queryClient.setQueryData<NotesInfiniteData>(queryKey, {
-          ...previousNotesData,
-          pages: newPages,
-        });
-      }
-
-      return { previousNotesData, folder };
-    },
     onSuccess: () => {
       toast.success('File renamed successfully', DEFAULT_SONNER_OPTIONS);
     },
-    onError: (error, variables, context) => {
-      // Roll back the cache to the previous notes data if an error occurred during renaming
-      if (context?.previousNotesData && context?.folder) {
-        queryClient.setQueryData<NotesInfiniteData>(
-          ['notes', context.folder, noteSort],
-          context.previousNotesData
-        );
-      }
+    onError: (error, variables) => {
       if (error instanceof Error) {
         variables.setErrorText(error.message);
       } else {
