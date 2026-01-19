@@ -132,7 +132,7 @@ export function NotesEditor({ filePath }: { filePath: FilePath }) {
               fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
             }}
           >
-            <NoteTitle key={note} folder={folder} note={note} />
+            <NoteTitle key={note} filePath={filePath} />
             <ComponentPickerMenuPlugin folder={folder} note={note} />
             <FilePickerMenuPlugin />
             <EmptyLinePlaceholderPlugin

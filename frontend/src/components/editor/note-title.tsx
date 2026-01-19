@@ -5,15 +5,13 @@ import { $getRoot } from 'lexical';
 import { useState } from 'react';
 import { isToolbarDisabledAtom } from '../../atoms';
 import { NAME_CHARS, cn } from '../../utils/string-formatting';
-import { LocalFilePath, safeDecodeURIComponent } from '../../utils/path';
+import { FilePath, createFilePath } from '../../utils/path';
 import { useRenameFileMutation } from '../../hooks/notes';
 import { navigate } from 'wouter/use-browser-location';
 
-export function NoteTitle({ note, folder }: { note: string; folder: string }) {
+export function NoteTitle({ filePath }: { filePath: FilePath }) {
   const [editor] = useLexicalComposerContext();
-  // const decodedNote = decodeURIComponent(note);
-  const decodedNote = safeDecodeURIComponent(note);
-  const [noteTitle, setNoteTitle] = useState(decodedNote);
+  const [noteTitle, setNoteTitle] = useState(filePath.noteWithoutExtension);
   const [errorText, setErrorText] = useState('');
   const setIsToolbarDisabled = useSetAtom(isToolbarDisabledAtom);
   const { mutateAsync: renameFile } = useRenameFileMutation();
@@ -43,25 +41,24 @@ export function NoteTitle({ note, folder }: { note: string; folder: string }) {
         onFocus={() => setIsToolbarDisabled(true)}
         onBlur={async () => {
           setIsToolbarDisabled(false);
-          if (noteTitle === decodedNote || errorText.length > 0) return;
+          if (noteTitle === filePath.note || errorText.length > 0) return;
 
-          const oldFilePath = new LocalFilePath({
-            folder: decodeURIComponent(folder),
-            note: `${decodedNote}.md`,
-          });
-
-          const newFilePath = new LocalFilePath({
-            folder: decodeURIComponent(folder),
-            note: `${noteTitle}.md`,
-          });
+          const newFilePathString = `${filePath.folder}/${noteTitle}.md`;
+          const newFilePath = createFilePath(newFilePathString);
+          if (!newFilePath) {
+            setErrorText('Invalid file path');
+            return;
+          }
 
           try {
             await renameFile({
-              oldPath: oldFilePath,
+              oldPath: filePath,
               newPath: newFilePath,
               setErrorText,
             });
-            navigate(newFilePath.getLinkToNote());
+            setTimeout(() => {
+              navigate(newFilePath.encodedFileUrl);
+            }, 300);
           } catch {
             // Error handling is done in the mutation
           }
