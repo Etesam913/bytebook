@@ -70,9 +70,30 @@ func handleMoveToTrash(data *application.Context) {
 	}
 }
 
+func handleRename(app *application.App, pathToFileOrFolder string) {
+	currentWindow := app.Window.Current()
+	if currentWindow == nil {
+		log.Fatalf("GetCurrentWindow() Error: could not get current window")
+		return
+	}
+
+	// URL-decode the path since it may contain encoded special characters
+	decodedPath, err := url.PathUnescape(pathToFileOrFolder)
+	if err != nil {
+		log.Printf("Failed to decode context menu data: %v", err)
+		return
+	}
+
+	currentWindow.EmitEvent(util.Events.ContextMenuRename, decodedPath)
+}
+
 // createFolderContextMenu creates the context menu for folders
 func createFolderContextMenu() *application.ContextMenu {
 	app := config.GetApp()
+	if app == nil {
+		log.Fatalf("GetApp() Error: could not get application")
+		return nil
+	}
 
 	contextMenu := app.ContextMenu.New()
 
@@ -91,7 +112,7 @@ func createFolderContextMenu() *application.ContextMenu {
 
 	renameFolder := contextMenu.Add("Rename")
 	renameFolder.OnClick(func(data *application.Context) {
-		// TODO: Implement rename folder
+		handleRename(app, data.ContextMenuData())
 	})
 
 	moveToTrash := contextMenu.Add("Move to trash")
@@ -103,6 +124,10 @@ func createFolderContextMenu() *application.ContextMenu {
 // createFileContextMenu creates the context menu for files/notes
 func createFileContextMenu() *application.ContextMenu {
 	app := config.GetApp()
+	if app == nil {
+		log.Fatalf("GetApp() Error: could not get application")
+		return nil
+	}
 
 	contextMenu := app.ContextMenu.New()
 
@@ -111,7 +136,6 @@ func createFileContextMenu() *application.ContextMenu {
 
 	pinNotes := contextMenu.Add("Pin note")
 	pinNotes.OnClick(func(data *application.Context) {
-		// TODO: Implement pin notes
 	})
 
 	// unpinNotes := contextMenu.Add("Unpin note")
@@ -124,9 +148,9 @@ func createFileContextMenu() *application.ContextMenu {
 		// TODO: Implement edit tags
 	})
 
-	rename := contextMenu.Add("Rename note")
+	rename := contextMenu.Add("Rename")
 	rename.OnClick(func(data *application.Context) {
-		// TODO: Implement rename
+		handleRename(app, data.ContextMenuData())
 	})
 
 	moveToTrash := contextMenu.Add("Move to trash")

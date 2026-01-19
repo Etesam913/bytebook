@@ -416,6 +416,41 @@ export function useFolderRenameMutation() {
 }
 
 /**
+ * Custom hook to handle inline folder renaming (without form submission).
+ * Designed for use in file tree components.
+ */
+export function useFolderRenameInlineMutation() {
+  return useMutation({
+    mutationFn: async ({
+      oldFolderPath,
+      newFolderName,
+    }: {
+      oldFolderPath: string;
+      newFolderName: string;
+      setErrorText: Dispatch<SetStateAction<string>>;
+    }) => {
+      const res = await RenameFolder(oldFolderPath, newFolderName);
+      if (!res.success) {
+        throw new Error(res.message);
+      }
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success('Folder renamed successfully', DEFAULT_SONNER_OPTIONS);
+    },
+    onError: (error, variables) => {
+      if (error instanceof Error) {
+        variables.setErrorText(error.message);
+      } else {
+        variables.setErrorText(
+          'An unknown error occurred. Please try again later.'
+        );
+      }
+    },
+  });
+}
+
+/**
  * Custom hook to handle folder deletion through a dialog form submission.
  */
 export function useFolderDeleteMutation() {
