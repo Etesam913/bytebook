@@ -18,7 +18,7 @@ type BaseFileOrFolder = {
 /**
  * Represents a folder in the file tree.
  */
-type Folder = BaseFileOrFolder & {
+export type Folder = BaseFileOrFolder & {
   /** The type for this object: always "folder". */
   type: typeof FOLDER_TYPE;
   /** IDs of immediate children (files or folders) inside this folder. */
@@ -34,7 +34,7 @@ type Folder = BaseFileOrFolder & {
 /**
  * Represents a file in the file tree.
  */
-type File = BaseFileOrFolder & {
+export type File = BaseFileOrFolder & {
   /** The type for this object: always "file". */
   type: typeof FILE_TYPE;
 };

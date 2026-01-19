@@ -14,15 +14,15 @@ import {
 } from '../../../../hooks/selection';
 import {
   SelectableItems,
-  getFileSelectionKey,
   getKeyForSidebarSelection,
 } from '../../../../utils/selection';
-import { QUOTE_ENCODING, cn } from '../../../../utils/string-formatting';
+import { cn, encodeContextMenuData } from '../../../../utils/string-formatting';
 import type { FlattenedFileOrFolder } from '../types';
 import {
-  FileItemEditContainer,
-  useFileItemEdit,
-} from './file-item-edit-container';
+  InlineTreeItemInput,
+  useInlineTreeItemInput,
+} from './inline-tree-item-input';
+import { computeMetaClickState, computeShiftClickSelections } from '../utils';
 
 export function FileTreeFileItem({
   dataItem,
@@ -35,13 +35,12 @@ export function FileTreeFileItem({
   const addToSidebarSelection = useAddToSidebarSelection();
   const filePathFromRoute = useFilePathFromRoute();
   const { mutateAsync: renameFile } = useRenameFileMutation();
-  const contextMenuData = encodeURIComponent(dataItem.id).replaceAll(
-    "'",
-    QUOTE_ENCODING
-  );
+  const contextMenuData = encodeContextMenuData(dataItem.id);
   const lastDotIndex = dataItem.name.lastIndexOf('.');
-  const nameWithoutExtension = lastDotIndex === -1 ? dataItem.name : dataItem.name.slice(0, lastDotIndex);
-  const extension = lastDotIndex === -1 ? undefined : dataItem.name.slice(lastDotIndex + 1);
+  const nameWithoutExtension =
+    lastDotIndex === -1 ? dataItem.name : dataItem.name.slice(0, lastDotIndex);
+  const extension =
+    lastDotIndex === -1 ? undefined : dataItem.name.slice(lastDotIndex + 1);
 
   async function onRename({
     newName,
@@ -77,11 +76,12 @@ export function FileTreeFileItem({
     }
   }
 
-  const { isEditing, errorText, exitEditMode, handleRename } = useFileItemEdit({
-    itemId: dataItem.id,
-    defaultValue: nameWithoutExtension,
-    onRename,
-  });
+  const { isEditing, errorText, exitEditMode, onSaveHandler } =
+    useInlineTreeItemInput({
+      itemId: dataItem.id,
+      defaultValue: nameWithoutExtension,
+      onSave: onRename,
+    });
 
   // File path should be defined for files
   const filePath = createFilePath(dataItem.id);
@@ -103,66 +103,6 @@ export function FileTreeFileItem({
     sidebarSelection.selections.has(selectionKey);
 
   /**
-   * Finds the next anchor selection key after removing the current file from the selection.
-   * It searches through sibling files in the parent folder, first looking forward from the
-   * current position, then backward if no selection is found after.
-   *
-   * updatedSelections - The updated set of selection keys after removal
-   * returns The selection key to use as the new anchor, or null if none found
-   */
-  function getAnchorAfterRemoval(updatedSelections: Set<string>) {
-    if (!dataItem.parentId) {
-      return null;
-    }
-
-    const parentFolder = fileOrFolderMap.get(dataItem.parentId);
-    if (!parentFolder || parentFolder.type !== 'folder') {
-      return null;
-    }
-
-    const orderedSelectionKeys: string[] = [];
-    for (const childId of parentFolder.childrenIds) {
-      const childItem = fileOrFolderMap.get(childId);
-      if (!childItem || childItem.type !== 'file') continue;
-      const childFilePath = createFilePath(childItem.id);
-      if (!childFilePath) continue;
-      orderedSelectionKeys.push(
-        getKeyForSidebarSelection({
-          ...childFilePath,
-          id: childItem.id,
-        })
-      );
-    }
-
-    const currentIndex = orderedSelectionKeys.indexOf(selectionKey);
-    if (currentIndex === -1) {
-      return null;
-    }
-
-    // Get the first selection key after the one that was un-selected
-    for (
-      let index = currentIndex + 1;
-      index < orderedSelectionKeys.length;
-      index += 1
-    ) {
-      const candidateKey = orderedSelectionKeys[index];
-      if (updatedSelections.has(candidateKey)) {
-        return candidateKey;
-      }
-    }
-
-    // Get the first selection key before the one that was un-selected if there is no selection key after the one that was un-selected
-    for (let index = currentIndex - 1; index >= 0; index -= 1) {
-      const candidateKey = orderedSelectionKeys[index];
-      if (updatedSelections.has(candidateKey)) {
-        return candidateKey;
-      }
-    }
-
-    return null;
-  }
-
-  /**
    * Handles shift-click behavior for multi-selection by selecting a range of items
    * between the anchor index and the clicked index
    */
@@ -176,58 +116,18 @@ export function FileTreeFileItem({
       return;
     }
 
-    const anchorSelectionId = getFileSelectionKey(anchorSelectionKey);
-    if (!anchorSelectionId) {
+    const result = computeShiftClickSelections({
+      fileOrFolderMap,
+      dataItem,
+      anchorSelectionKey,
+    });
+
+    if (!result) {
       return;
-    }
-    const anchorSelectionItem = fileOrFolderMap.get(anchorSelectionId);
-
-    // You cannot select across parents using shift click
-    if (
-      !anchorSelectionItem ||
-      !dataItem.parentId ||
-      anchorSelectionItem.parentId !== dataItem.parentId
-    ) {
-      return;
-    }
-
-    const parentFolder = fileOrFolderMap.get(dataItem.parentId);
-    if (!parentFolder || parentFolder.type !== 'folder') {
-      return;
-    }
-
-    const startIndex = parentFolder.childrenIds.indexOf(anchorSelectionItem.id);
-    const endIndex = parentFolder.childrenIds.indexOf(dataItem.id);
-    if (startIndex === -1 || endIndex === -1) {
-      return;
-    }
-
-    const [rangeStart, rangeEnd] =
-      startIndex <= endIndex ? [startIndex, endIndex] : [endIndex, startIndex];
-
-    const updatedSelections = new Set<string>();
-
-    // Go through the range and select each file in the range
-    for (let index = rangeStart; index <= rangeEnd; index += 1) {
-      const childId = parentFolder.childrenIds[index];
-      const childItem = fileOrFolderMap.get(childId);
-
-      // Skips folders
-      if (!childItem || childItem.type !== 'file') continue;
-
-      const childFilePath = createFilePath(childItem.id);
-      if (!childFilePath) continue;
-
-      updatedSelections.add(
-        getKeyForSidebarSelection({
-          ...childFilePath,
-          id: childItem.id,
-        })
-      );
     }
 
     setSidebarSelection((prev) => ({
-      selections: updatedSelections,
+      selections: result.selections,
       anchorSelection: prev.anchorSelection,
     }));
   }
@@ -242,27 +142,18 @@ export function FileTreeFileItem({
       ...resolvedFilePath,
       id: dataItem.id,
     };
-    if (
-      sidebarSelection.selections.has(getKeyForSidebarSelection(selectableItem))
-    ) {
-      // cmd+click on a selected file will un-select it
-      // It also updates the anchor selection to the next item in the selection set
-      // or the previous item if the next item is not selected
-      setSidebarSelection((prev) => {
-        const newSelections = new Set(prev.selections);
-        newSelections.delete(selectionKey);
+    const result = computeMetaClickState({
+      fileOrFolderMap,
+      dataItem,
+      selectionKey,
+      currentSelections: sidebarSelection.selections,
+    });
 
-        const nextAnchor =
-          getAnchorAfterRemoval(newSelections) ??
-          (newSelections.values().next().value as string | undefined) ??
-          null;
-
-        return {
-          selections: newSelections,
-          anchorSelection: nextAnchor,
-        };
-      });
+    if (result) {
+      // File was already selected, un-select it
+      setSidebarSelection(result);
     } else {
+      // File is not selected, add it to selection
       addToSidebarSelection(selectableItem);
     }
   }
@@ -301,13 +192,13 @@ export function FileTreeFileItem({
           width={16}
           strokeWidth={1.75}
         />
-        <FileItemEditContainer
+        <InlineTreeItemInput
           dataItem={dataItem}
           defaultValue={nameWithoutExtension}
           isEditing={isEditing}
           errorText={errorText}
           exitEditMode={exitEditMode}
-          handleRename={handleRename}
+          onSave={onSaveHandler}
           extension={extension}
         />
       </span>

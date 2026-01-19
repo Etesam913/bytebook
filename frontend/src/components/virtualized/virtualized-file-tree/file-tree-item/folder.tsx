@@ -5,14 +5,16 @@ import { Folder } from '../../../../icons/folder';
 import { FolderOpen } from '../../../../icons/folder-open';
 import { SidebarHighlight } from '../../virtualized-list/highlight';
 import { BYTEBOOK_DRAG_DATA_FORMAT } from '../../../../utils/draggable';
-import { QUOTE_ENCODING } from '../../../../utils/string-formatting';
+import { encodeContextMenuData } from '../../../../utils/string-formatting';
 import type { FlattenedFileOrFolder } from '../types';
 import { fileOrFolderMapAtom } from '..';
 import { useFolderRenameInlineMutation } from '../../../../hooks/folders';
+import { useWailsEvent } from '../../../../hooks/events';
 import {
-  FileItemEditContainer,
-  useFileItemEdit,
-} from './file-item-edit-container';
+  InlineTreeItemInput,
+  useInlineTreeItemInput,
+} from './inline-tree-item-input';
+import { AddNewInlineInput } from './add-new-inline-input';
 
 type OpenFolderArgs = {
   pathToFolder: string;
@@ -28,12 +30,42 @@ export function FileTreeFolderItem({
   openFolder: (args: OpenFolderArgs) => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [addingType, setAddingType] = useState<'folder' | 'note' | null>(null);
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
   const { mutateAsync: renameFolder } = useFolderRenameInlineMutation();
-  const contextMenuData = encodeURIComponent(dataItem.id).replaceAll(
-    "'",
-    QUOTE_ENCODING
-  );
+  const contextMenuData = encodeContextMenuData(dataItem.id);
+
+  // Listen to context menu add folder events
+  useWailsEvent('context-menu:add-folder', (event) => {
+    const eventData = event.data as string | string[];
+    const eventPath = Array.isArray(eventData) ? eventData[0] : eventData;
+    if (eventPath === dataItem.id && dataItem.type === 'folder') {
+      // If folder is not open, open it first
+      if (!dataItem.isOpen) {
+        openFolder({
+          pathToFolder: dataItem.id,
+          folderId: dataItem.id,
+        });
+      }
+      setAddingType('folder');
+    }
+  });
+
+  // Listen to context menu add note events
+  useWailsEvent('context-menu:add-note', (event) => {
+    const eventData = event.data as string | string[];
+    const eventPath = Array.isArray(eventData) ? eventData[0] : eventData;
+    if (eventPath === dataItem.id && dataItem.type === 'folder') {
+      // If folder is not open, open it first
+      if (!dataItem.isOpen) {
+        openFolder({
+          pathToFolder: dataItem.id,
+          folderId: dataItem.id,
+        });
+      }
+      setAddingType('note');
+    }
+  });
 
   async function onRename({
     newName,
@@ -61,11 +93,12 @@ export function FileTreeFolderItem({
     }
   }
 
-  const { isEditing, errorText, exitEditMode, handleRename } = useFileItemEdit({
-    itemId: dataItem.id,
-    defaultValue: dataItem.name,
-    onRename,
-  });
+  const { isEditing, errorText, exitEditMode, onSaveHandler } =
+    useInlineTreeItemInput({
+      itemId: dataItem.id,
+      defaultValue: dataItem.name,
+      onSave: onRename,
+    });
 
   function handleClick() {
     if (dataItem.type !== 'folder') {
@@ -112,50 +145,65 @@ export function FileTreeFolderItem({
             strokeWidth={1.75}
           />
         )}
-        <FileItemEditContainer
+        <InlineTreeItemInput
           dataItem={dataItem}
           defaultValue={dataItem.name}
           isEditing={isEditing}
           errorText={errorText}
           exitEditMode={exitEditMode}
-          handleRename={handleRename}
+          onSave={onSaveHandler}
         />
       </span>
     </>
   );
 
+  const inlineInput = addingType &&
+    dataItem.type === 'folder' &&
+    dataItem.isOpen && (
+      <AddNewInlineInput
+        dataItem={dataItem}
+        addType={addingType}
+        onClose={() => setAddingType(null)}
+      />
+    );
+
   if (isEditing) {
     return (
-      <div className="flex items-center w-full relative rounded-md py-0.25">
-        {innerContent}
-      </div>
+      <>
+        <div className="flex items-center w-full relative rounded-md py-0.25">
+          {innerContent}
+        </div>
+      </>
     );
   }
 
   return (
-    <button
-      style={
-        {
-          '--custom-contextmenu': 'folder-menu',
-          '--custom-contextmenu-data': contextMenuData,
-        } as React.CSSProperties
-      }
-      draggable
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log(e.dataTransfer.getData(BYTEBOOK_DRAG_DATA_FORMAT));
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleClick}
-      className="flex items-center w-full relative rounded-md py-0.25"
-    >
-      {innerContent}
-    </button>
+    <div className="w-full">
+      <button
+        style={
+          {
+            '--custom-contextmenu': 'folder-menu',
+            '--custom-contextmenu-data': contextMenuData,
+          } as React.CSSProperties
+        }
+        draggable
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log(e.dataTransfer.getData(BYTEBOOK_DRAG_DATA_FORMAT));
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={handleClick}
+        className="flex items-center w-full relative rounded-md py-0.25"
+      >
+        {innerContent}
+      </button>
+      {inlineInput}
+    </div>
   );
 }
