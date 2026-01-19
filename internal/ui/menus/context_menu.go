@@ -73,12 +73,15 @@ func handleMoveToTrash(data *application.Context) {
 func handleRename(app *application.App, pathToFileOrFolder string) {
 	currentWindow := app.Window.Current()
 	if currentWindow == nil {
-		log.Fatalf("GetCurrentWindow() Error: could not get current window")
+		log.Println("GetCurrentWindow() Error: could not get current window")
 		return
 	}
 
+	log.Println("handleRename() pathToFileOrFolder:", pathToFileOrFolder)
+
 	// URL-decode the path since it may contain encoded special characters
 	decodedPath, err := url.PathUnescape(pathToFileOrFolder)
+	log.Println("handleRename() decodedPath:", decodedPath)
 	if err != nil {
 		log.Printf("Failed to decode context menu data: %v", err)
 		return
@@ -102,12 +105,32 @@ func createFolderContextMenu() *application.ContextMenu {
 
 	addFolder := contextMenu.Add("Add folder")
 	addFolder.OnClick(func(data *application.Context) {
-		// TODO: Implement add folder
+		currentWindow := app.Window.Current()
+		if currentWindow == nil {
+			log.Println("GetCurrentWindow() Error: could not get current window")
+			return
+		}
+		decodedPath, err := url.PathUnescape(data.ContextMenuData())
+		if err != nil {
+			log.Printf("Failed to decode context menu data: %v", err)
+			return
+		}
+		currentWindow.EmitEvent(util.Events.ContextMenuAddFolder, decodedPath)
 	})
 
 	addNote := contextMenu.Add("Add note")
 	addNote.OnClick(func(data *application.Context) {
-		// TODO: Implement add note
+		currentWindow := app.Window.Current()
+		if currentWindow == nil {
+			log.Println("GetCurrentWindow() Error: could not get current window")
+			return
+		}
+		decodedPath, err := url.PathUnescape(data.ContextMenuData())
+		if err != nil {
+			log.Printf("Failed to decode context menu data: %v", err)
+			return
+		}
+		currentWindow.EmitEvent(util.Events.ContextMenuAddNote, decodedPath)
 	})
 
 	renameFolder := contextMenu.Add("Rename")

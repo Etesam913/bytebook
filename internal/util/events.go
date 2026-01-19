@@ -26,7 +26,9 @@ var Events = struct {
 	ToggleSidebar    string
 
 	// Context Menu events
-	ContextMenuRename string
+	ContextMenuRename    string
+	ContextMenuAddFolder string
+	ContextMenuAddNote   string
 
 	// File watcher events
 	SettingsUpdate    string
@@ -73,7 +75,9 @@ var Events = struct {
 	ToggleSidebar:    "sidebar:toggle",
 
 	// Context Menu events
-	ContextMenuRename: "context-menu:rename",
+	ContextMenuRename:    "context-menu:rename",
+	ContextMenuAddFolder: "context-menu:add-folder",
+	ContextMenuAddNote:   "context-menu:add-note",
 
 	// File watcher events
 	SettingsUpdate:    "settings:update",

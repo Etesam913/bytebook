@@ -7,14 +7,14 @@ import { FlattenedFileOrFolder } from '../types';
  * Hook to manage file/folder editing state and rename logic.
  * Returns editing state, error text, and handlers for use in parent components.
  */
-export function useFileItemEdit({
+export function useInlineTreeItemInput({
   itemId,
   defaultValue,
-  onRename,
+  onSave,
 }: {
   itemId: string;
   defaultValue: string;
-  onRename: (args: {
+  onSave: (args: {
     newName: string;
     setErrorText: Dispatch<SetStateAction<string>>;
     exitEditMode: () => void;
@@ -39,7 +39,7 @@ export function useFileItemEdit({
     setErrorText('');
   }
 
-  function handleRename(newName: string) {
+  function onSaveHandler(newName: string) {
     const trimmedName = newName.trim();
 
     // Validate the name
@@ -56,24 +56,24 @@ export function useFileItemEdit({
       return;
     }
 
-    onRename({ newName: trimmedName, setErrorText, exitEditMode });
+    onSave({ newName: trimmedName, setErrorText, exitEditMode });
   }
 
   return {
     isEditing,
     errorText,
     exitEditMode,
-    handleRename,
+    onSaveHandler,
   };
 }
 
-export function FileItemEditContainer({
+export function InlineTreeItemInput({
   dataItem,
   defaultValue,
   isEditing,
   errorText,
   exitEditMode,
-  handleRename,
+  onSave,
   extension,
 }: {
   dataItem: FlattenedFileOrFolder;
@@ -81,7 +81,7 @@ export function FileItemEditContainer({
   isEditing: boolean;
   errorText: string;
   exitEditMode: () => void;
-  handleRename: (newName: string) => void;
+  onSave: (newName: string) => void;
   extension?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -113,11 +113,11 @@ export function FileItemEditContainer({
                   exitEditMode();
                 } else if (e.key === 'Enter') {
                   e.preventDefault();
-                  handleRename(e.currentTarget.value);
+                  onSave(e.currentTarget.value);
                 }
               }}
               onBlur={(e) => {
-                handleRename(e.currentTarget.value);
+                onSave(e.currentTarget.value);
               }}
             />
             {extension && (
