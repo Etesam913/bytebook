@@ -5,7 +5,7 @@ import {
   OpenFolderAndAddToFileWatcher,
 } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { QueryError } from '../../../utils/query';
-import { fileOrFolderMapAtom } from '.';
+import { fileOrFolderMapAtom, filePathToIdAtom } from '.';
 import { reconcileTopLevelFileTreeMap } from './utils';
 import { FILE_TYPE, FOLDER_TYPE, type FileOrFolder } from './types';
 import { useEffect } from 'react';
@@ -24,18 +24,21 @@ export function useTopLevelFileOrFolders() {
       }
 
       const folderOrFiles: FileOrFolder[] = [];
-      for (const entry of res.data) {
+      for (const { id, name, path, type: itemType } of res.data) {
+        // Cast to include path since bindings are excluded from TS checking
         const commonAttributes = {
-          id: entry.id,
-          name: entry.name,
+          id,
+          path,
+          name,
         };
-        if (entry.type === FILE_TYPE) {
+
+        if (itemType === FILE_TYPE) {
           folderOrFiles.push({
             ...commonAttributes,
             type: FILE_TYPE,
             parentId: null,
           });
-        } else if (entry.type === FOLDER_TYPE) {
+        } else if (itemType === FOLDER_TYPE) {
           folderOrFiles.push({
             ...commonAttributes,
             type: FOLDER_TYPE,
@@ -53,6 +56,7 @@ export function useTopLevelFileOrFolders() {
   });
 
   const setFileMap = useSetAtom(fileOrFolderMapAtom);
+  const setFilePathToId = useSetAtom(filePathToIdAtom);
 
   /**
    * Synchronizes the file/folder map atom with the top-level items query data.
@@ -73,6 +77,15 @@ export function useTopLevelFileOrFolders() {
     const data = topLevelFolderOrFilesQuery.data;
     if (!isLoading && data) {
       setFileMap((prev) => reconcileTopLevelFileTreeMap(prev, data));
+
+      // Populate filePathToId map for top-level items
+      setFilePathToId((prev) => {
+        const newMap = new Map(prev);
+        for (const item of data) {
+          newMap.set(item.path, item.id);
+        }
+        return newMap;
+      });
     }
   }, [topLevelFolderOrFilesQuery.isLoading, topLevelFolderOrFilesQuery.data]);
 
@@ -93,6 +106,7 @@ export function useTopLevelFileOrFolders() {
  */
 export function useOpenFolderMutation() {
   const [fileOrFolderMap, setFileOrFolderMap] = useAtom(fileOrFolderMapAtom);
+  const setFilePathToId = useSetAtom(filePathToIdAtom);
   const PAGE_SIZE = 50;
 
   // Opens a folder by its path and updates the file/folder map atom with its children.
@@ -131,6 +145,7 @@ export function useOpenFolderMutation() {
       const cursorToUse = isLoadMore ? (folderData.childrenCursor ?? '') : '';
       const res = await GetChildrenOfFolder(
         pathToFolder,
+        folderId,
         cursorToUse,
         PAGE_SIZE
       );
@@ -153,6 +168,7 @@ export function useOpenFolderMutation() {
           childrenIds.push(entry.id);
           const commonAttributes = {
             id: entry.id,
+            path: entry.path,
             name: entry.name,
             parentId: folderId,
           };
@@ -191,6 +207,16 @@ export function useOpenFolderMutation() {
         }
 
         return tempMap;
+      });
+
+      // Populate filePathToId map for children
+      setFilePathToId((prev) => {
+        if (!res.data) return prev;
+        const newMap = new Map(prev);
+        for (const entry of res.data.items ?? []) {
+          newMap.set(entry.path, entry.id);
+        }
+        return newMap;
       });
 
       // Add folder to file watcher after successfully opening

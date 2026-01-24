@@ -57,7 +57,7 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
     <>
       <motion.aside
         style={{ width }}
-        className="text-md flex h-screen flex-col"
+        className="text-md flex h-screen flex-col shrink-0"
         data-testid="file-sidebar"
       >
         <header

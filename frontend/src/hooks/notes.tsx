@@ -48,11 +48,14 @@ import { $convertFromMarkdownString } from '@lexical/markdown';
 import { useCreateNoteDialog } from './dialogs';
 import { isEventInCurrentWindow } from '../utils/events';
 import { parseFrontMatter } from '../components/editor/utils/note-metadata';
-import { fileOrFolderMapAtom } from '../components/virtualized/virtualized-file-tree';
 import {
   addFileToFileTreeMap,
   removeFileFromFileTreeMap,
 } from '../components/virtualized/virtualized-file-tree/utils';
+import {
+  fileOrFolderMapAtom,
+  filePathToIdAtom,
+} from '../components/virtualized/virtualized-file-tree';
 
 /** Data for a single page of notes */
 export type NotesPageData = {
@@ -224,6 +227,7 @@ export function useNotesInPage(
 export function useNoteCreate() {
   const queryClient = useQueryClient();
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
+  const filePathToId = useAtomValue(filePathToIdAtom);
 
   useWailsEvent('note:create', async (body) => {
     console.info('note:create', body);
@@ -238,7 +242,17 @@ export function useNoteCreate() {
       } else {
         // Nested file - add it directly to the map
         const fileName = segments[segments.length - 1];
-        const parentId = segments.slice(0, -1).join('/');
+        const parentPath = segments.slice(0, -1).join('/');
+        const parentId = filePathToId.get(parentPath);
+
+        if (!parentId) {
+          // Parent not found in path map - invalidate queries
+          queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+          continue;
+        }
+
+        // Generate a new UUID for this file
+        const newFileId = crypto.randomUUID();
 
         setFileOrFolderMap((prev) => {
           const parent = prev.get(parentId);
@@ -249,7 +263,8 @@ export function useNoteCreate() {
 
           return addFileToFileTreeMap({
             map: prev,
-            fileId: notePath,
+            fileId: newFileId,
+            filePath: notePath,
             fileName,
             parentId,
           });
@@ -363,6 +378,7 @@ export function useNoteCreateMutation() {
 export function useNoteRename() {
   const queryClient = useQueryClient();
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
+  const filePathToId = useAtomValue(filePathToIdAtom);
 
   useWailsEvent('note:rename', async (body) => {
     console.info('note:rename', body);
@@ -380,27 +396,43 @@ export function useNoteRename() {
         queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
       } else {
         // Nested file - update the map
-        const oldParentId = oldSegments.slice(0, -1).join('/');
-        const newParentId = newSegments.slice(0, -1).join('/');
+        const oldParentPath = oldSegments.slice(0, -1).join('/');
+        const newParentPath = newSegments.slice(0, -1).join('/');
         const newFileName = newSegments[newSegments.length - 1];
+
+        // Look up UUIDs from paths
+        const oldFileId = filePathToId.get(oldNotePath);
+        const oldParentId = filePathToId.get(oldParentPath);
+        const newParentId = filePathToId.get(newParentPath);
+
+        if (!oldFileId || !oldParentId) {
+          // Can't find old file in path map - invalidate queries
+          queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+          continue;
+        }
 
         setFileOrFolderMap((prev) => {
           // First, remove the old file
           let updatedMap = removeFileFromFileTreeMap({
             map: prev,
-            fileId: oldNotePath,
+            fileId: oldFileId,
             parentId: oldParentId,
           });
 
           // Then, add the new file if the parent is open
-          const newParent = updatedMap.get(newParentId);
-          if (newParent && newParent.type === 'folder' && newParent.isOpen) {
-            updatedMap = addFileToFileTreeMap({
-              map: updatedMap,
-              fileId: newNotePath,
-              fileName: newFileName,
-              parentId: newParentId,
-            });
+          if (newParentId) {
+            const newParent = updatedMap.get(newParentId);
+            if (newParent && newParent.type === 'folder' && newParent.isOpen) {
+              // Generate a new UUID for the renamed file
+              const newFileId = crypto.randomUUID();
+              updatedMap = addFileToFileTreeMap({
+                map: updatedMap,
+                fileId: newFileId,
+                filePath: newNotePath,
+                fileName: newFileName,
+                parentId: newParentId,
+              });
+            }
           }
 
           return updatedMap;
@@ -414,6 +446,7 @@ export function useNoteRename() {
 export function useNoteDelete() {
   const queryClient = useQueryClient();
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
+  const filePathToId = useAtomValue(filePathToIdAtom);
 
   useWailsEvent('note:delete', async (body) => {
     console.info('note:delete', body);
@@ -427,12 +460,22 @@ export function useNoteDelete() {
         queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
       } else {
         // Nested file - remove it from the map
-        const parentId = segments.slice(0, -1).join('/');
+        const parentPath = segments.slice(0, -1).join('/');
+
+        // Look up UUIDs from paths
+        const fileId = filePathToId.get(notePath);
+        const parentId = filePathToId.get(parentPath);
+
+        if (!fileId || !parentId) {
+          // Can't find file in path map - invalidate queries
+          queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+          continue;
+        }
 
         setFileOrFolderMap((prev) => {
           return removeFileFromFileTreeMap({
             map: prev,
-            fileId: notePath,
+            fileId,
             parentId,
           });
         });

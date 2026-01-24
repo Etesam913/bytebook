@@ -5,22 +5,15 @@ import { FileTreeItem } from './file-tree-item';
 import { useAnimatedHeight } from '../hooks';
 import { transformFileTreeForVirtualizedList } from './utils';
 import { FileOrFolder } from './types';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export const fileOrFolderMapAtom = atom(new Map<string, FileOrFolder>());
+export const filePathToIdAtom = atom(new Map<string, string>());
 
 const FILE_TREE_MAX_HEIGHT = '65vh';
 
 export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
   const fileOrFolderMap = useAtomValue(fileOrFolderMapAtom);
-
-  useEffect(() => {
-    console.info({
-      fileOrFolderMap,
-    });
-  }, [fileOrFolderMap]);
-
-  const [hoveredItemRailPath, setHoveredItemRailPath] = useState<string>('');
 
   // This only runs on component mount and when folder/note events are received
   const { data: topLevelFileOrFolders } = useTopLevelFileOrFolders();
@@ -28,6 +21,14 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
     topLevelFileOrFolders ?? [],
     fileOrFolderMap
   );
+
+  useEffect(() => {
+    console.info({
+      fileOrFolderMap,
+      topLevelFileOrFolders,
+      flattenedTopLevelData,
+    });
+  }, [fileOrFolderMap]);
 
   const { scope, isReady, handleHeightChange, totalHeight } = useAnimatedHeight(
     {
@@ -40,7 +41,7 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
     <div
       ref={scope}
       style={{ visibility: isReady ? 'visible' : 'hidden' }}
-      className="overflow-hidden scrollbar-hidden"
+      className="overflow-hidden scrollbar-hidden pl-2"
     >
       <Virtuoso
         data={flattenedTopLevelData}
@@ -54,13 +55,7 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
               : `min(${FILE_TREE_MAX_HEIGHT}, ${totalHeight}px)`,
         }}
         totalListHeightChanged={handleHeightChange}
-        itemContent={(_, dataItem) => (
-          <FileTreeItem
-            dataItem={dataItem}
-            setHoveredItemRailPath={setHoveredItemRailPath}
-            hoveredItemRailPath={hoveredItemRailPath}
-          />
-        )}
+        itemContent={(_, dataItem) => <FileTreeItem dataItem={dataItem} />}
       />
     </div>
   );
