@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   GetChildrenOfFolder,
   GetTopLevelItems,
+  OpenFolderAndAddToFileWatcher,
 } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { QueryError } from '../../../utils/query';
 import { fileOrFolderMapAtom } from '.';
@@ -122,6 +123,8 @@ export function useOpenFolderMutation() {
           });
           return newMap;
         });
+        // Add folder to file watcher
+        await OpenFolderAndAddToFileWatcher(pathToFolder);
         return;
       }
 
@@ -189,6 +192,9 @@ export function useOpenFolderMutation() {
 
         return tempMap;
       });
+
+      // Add folder to file watcher after successfully opening
+      await OpenFolderAndAddToFileWatcher(pathToFolder);
     },
   });
 }

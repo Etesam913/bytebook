@@ -99,8 +99,6 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 				"folderPath": fw.pathFromNotes(event.Name),
 			},
 		)
-
-		fw.watcher.Add(event.Name)
 	}
 
 	if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
@@ -126,7 +124,6 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 				},
 			)
 		}
-		fw.watcher.Remove(event.Name)
 	}
 
 	fw.handleDebounceReset()
@@ -243,7 +240,7 @@ func (fw *FileWatcher) handleSavedSearchUpdate(event fsnotify.Event) {
 	}
 }
 
-// shouldIgnoreFile checks if a file should be ignored by the watcher
+// shouldIgnoreFile checks if a file name should be ignored by the watcher
 func shouldIgnoreFile(fileName string) bool {
 	// Ignore macOS system files
 	if fileName == ".DS_Store" {
@@ -373,7 +370,8 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 	fw.start()
 }
 
-// AddProjectFoldersToWatcher sets up watchers for all relevant project folders
+// AddProjectFoldersToWatcher sets up watchers for the essential project folders.
+// Individual note folders are added lazily when the user expands them in the UI.
 func AddProjectFoldersToWatcher(projectPath string, watcher *fsnotify.Watcher) {
 	// Set up paths
 	settingsPath := filepath.Join(projectPath, "settings")
@@ -386,29 +384,4 @@ func AddProjectFoldersToWatcher(projectPath string, watcher *fsnotify.Watcher) {
 	watcher.Add(settingsPath)
 	watcher.Add(notesFolderPath)
 	watcher.Add(savedSearchesPath)
-
-	// Add all note folders and files (including nested)
-	err := filepath.WalkDir(notesFolderPath, func(path string, info os.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
-		}
-
-		if path == notesFolderPath {
-			return nil
-		}
-
-		name := info.Name()
-		if shouldIgnoreFile(name) {
-			if info.IsDir() {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-
-		watcher.Add(path)
-		return nil
-	})
-	if err != nil {
-		log.Fatalf("Failed to walk notes directory: %v", err)
-	}
 }
