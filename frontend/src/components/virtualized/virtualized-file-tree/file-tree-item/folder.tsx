@@ -15,6 +15,10 @@ import {
   useInlineTreeItemInput,
 } from './inline-tree-item-input';
 import { AddNewInlineInput } from './add-new-inline-input';
+import {
+  OpenFolderAndAddToFileWatcher,
+  CloseFolderAndRemoveFromFileWatcher,
+} from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 
 type OpenFolderArgs = {
   pathToFolder: string;
@@ -100,7 +104,7 @@ export function FileTreeFolderItem({
       onSave: onRename,
     });
 
-  function handleClick() {
+  async function handleClick() {
     if (dataItem.type !== 'folder') {
       return;
     }
@@ -110,12 +114,15 @@ export function FileTreeFolderItem({
         pathToFolder: dataItem.id,
         folderId: dataItem.id,
       });
+      await OpenFolderAndAddToFileWatcher(dataItem.id);
     } else {
       setFileOrFolderMap((prev) => {
         const newMap = new Map(prev);
         newMap.set(dataItem.id, { ...dataItem, isOpen: false });
         return newMap;
       });
+      // Remove folder from file watcher when closing
+      await CloseFolderAndRemoveFromFileWatcher(dataItem.id);
     }
   }
 

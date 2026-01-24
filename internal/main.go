@@ -59,6 +59,12 @@ func main() {
 	defer javascriptCtxCancel()
 	defer javaCtxCancel()
 
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal("failed to setup file watcher " + err.Error())
+	}
+	defer watcher.Close()
+
 	logLevel := slog.LevelError
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: logLevel,
@@ -80,6 +86,7 @@ func main() {
 			application.NewService(
 				&services.FileTreeService{
 					ProjectPath: projectPath,
+					FileWatcher: watcher,
 				},
 			),
 			application.NewService(
@@ -172,11 +179,6 @@ func main() {
 	if app.Env.IsDarkMode() {
 		backgroundColor = application.NewRGB(39, 39, 43)
 	}
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		log.Fatal("failed to setup file watcher " + err.Error())
-	}
-	defer watcher.Close()
 
 	// Creates the default window
 	window := ui.CreateWindow(app, "/", backgroundColor)
