@@ -6,7 +6,7 @@ import {
   QueryClient,
 } from '@tanstack/react-query';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
-import { useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
 import {
@@ -20,7 +20,10 @@ import {
   MoveNoteToFolder,
   RevealFolderOrFileInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { fileOrFolderMapAtom } from '../components/virtualized/virtualized-file-tree';
+import {
+  fileOrFolderMapAtom,
+  filePathToIdAtom,
+} from '../components/virtualized/virtualized-file-tree';
 import {
   addFolderToFileTreeMap,
   removeFolderFromFileTreeMap,
@@ -83,6 +86,7 @@ export function useFolders() {
 export function useFolderCreate() {
   const queryClient = useQueryClient();
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
+  const filePathToId = useAtomValue(filePathToIdAtom);
 
   useWailsEvent('folder:create', async (body) => {
     console.info('folder:create', body);
@@ -97,7 +101,17 @@ export function useFolderCreate() {
       } else {
         // Nested folder - add it directly to the map
         const folderName = segments[segments.length - 1];
-        const parentId = segments.slice(0, -1).join('/');
+        const parentPath = segments.slice(0, -1).join('/');
+        const parentId = filePathToId.get(parentPath);
+
+        if (!parentId) {
+          // Parent not found in path map - invalidate queries
+          queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+          continue;
+        }
+
+        // Generate a new UUID for this folder
+        const newFolderId = crypto.randomUUID();
 
         setFileOrFolderMap((prev) => {
           const parent = prev.get(parentId);
@@ -108,7 +122,8 @@ export function useFolderCreate() {
 
           return addFolderToFileTreeMap({
             map: prev,
-            folderId: folderPath,
+            folderId: newFolderId,
+            folderPath,
             folderName,
             parentId,
           });
@@ -122,6 +137,7 @@ export function useFolderCreate() {
 export function useFolderDelete() {
   const queryClient = useQueryClient();
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
+  const filePathToId = useAtomValue(filePathToIdAtom);
 
   useWailsEvent('folder:delete', async (body) => {
     console.info('folder:delete', body);
@@ -135,12 +151,22 @@ export function useFolderDelete() {
         queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
       } else {
         // Nested folder - remove it from the map
-        const parentId = segments.slice(0, -1).join('/');
+        const parentPath = segments.slice(0, -1).join('/');
+
+        // Look up UUIDs from paths
+        const folderId = filePathToId.get(folderPath);
+        const parentId = filePathToId.get(parentPath);
+
+        if (!folderId || !parentId) {
+          // Can't find folder in path map - invalidate queries
+          queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+          continue;
+        }
 
         setFileOrFolderMap((prev) => {
           return removeFolderFromFileTreeMap({
             map: prev,
-            folderId: folderPath,
+            folderId,
             parentId,
           });
         });
@@ -153,6 +179,7 @@ export function useFolderDelete() {
 export function useFolderRename() {
   const queryClient = useQueryClient();
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
+  const filePathToId = useAtomValue(filePathToIdAtom);
 
   useWailsEvent('folder:rename', async (body) => {
     console.info('folder:rename', body);
@@ -170,34 +197,49 @@ export function useFolderRename() {
         queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
       } else {
         // Nested folder - update the map
-        const oldParentFolderId = oldSegments.slice(0, -1).join('/');
-        const newParentFolderId = newSegments.slice(0, -1).join('/');
+        const oldParentPath = oldSegments.slice(0, -1).join('/');
+        const newParentPath = newSegments.slice(0, -1).join('/');
         const newFolderName = newSegments[newSegments.length - 1];
 
+        // Look up UUIDs from paths
+        const oldFolderId = filePathToId.get(oldFolderPath);
+        const oldParentId = filePathToId.get(oldParentPath);
+        const newParentId = filePathToId.get(newParentPath);
+
+        if (!oldFolderId || !oldParentId) {
+          // Can't find old folder in path map - invalidate queries
+          queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+          continue;
+        }
+
         setFileOrFolderMap((prev) => {
-          const oldFolder = prev.get(oldFolderPath);
+          const oldFolder = prev.get(oldFolderId);
 
           // First, remove the old folder
           let updatedMap = removeFolderFromFileTreeMap({
             map: prev,
-            folderId: oldFolderPath,
-            parentId: oldParentFolderId,
+            folderId: oldFolderId,
+            parentId: oldParentId,
           });
 
           // Then, add the new folder with preserved state
-          updatedMap = addFolderToFileTreeMap({
-            map: updatedMap,
-            folderId: newFolderPath,
-            folderName: newFolderName,
-            parentId: newParentFolderId,
-            childrenIds:
-              oldFolder?.type === 'folder' ? oldFolder.childrenIds : [],
-            childrenCursor:
-              oldFolder?.type === 'folder' ? oldFolder.childrenCursor : null,
-            hasMoreChildren:
-              oldFolder?.type === 'folder' ? oldFolder.hasMoreChildren : false,
-            isOpen: oldFolder?.type === 'folder' ? oldFolder.isOpen : false,
-          });
+          if (newParentId) {
+            // Generate a new UUID for the renamed folder
+            const newFolderId = crypto.randomUUID();
+            const isFolder = oldFolder?.type === 'folder';
+
+            updatedMap = addFolderToFileTreeMap({
+              map: updatedMap,
+              folderId: newFolderId,
+              folderPath: newFolderPath,
+              folderName: newFolderName,
+              parentId: newParentId,
+              childrenIds: isFolder ? oldFolder.childrenIds : [],
+              childrenCursor: isFolder ? oldFolder.childrenCursor : null,
+              hasMoreChildren: isFolder ? oldFolder.hasMoreChildren : false,
+              isOpen: isFolder ? oldFolder.isOpen : false,
+            });
+          }
 
           return updatedMap;
         });

@@ -176,6 +176,7 @@ export function reconcileTopLevelFileTreeMap(
 export function addFolderToFileTreeMap({
   map,
   folderId,
+  folderPath,
   folderName,
   parentId,
   childrenIds = [],
@@ -185,6 +186,7 @@ export function addFolderToFileTreeMap({
 }: {
   map: Map<string, FileOrFolder>;
   folderId: string;
+  folderPath: string;
   folderName: string;
   parentId: string;
   childrenIds?: string[];
@@ -202,6 +204,7 @@ export function addFolderToFileTreeMap({
   // Add the new folder
   newMap.set(folderId, {
     id: folderId,
+    path: folderPath,
     name: folderName,
     type: 'folder',
     parentId,
@@ -215,8 +218,10 @@ export function addFolderToFileTreeMap({
   const updatedChildren = [...parent.childrenIds, folderId]
     .filter((id, index, arr) => arr.indexOf(id) === index)
     .sort((a, b) => {
-      const aName = a.split('/').pop() ?? a;
-      const bName = b.split('/').pop() ?? b;
+      const aItem = newMap.get(a);
+      const bItem = newMap.get(b);
+      const aName = aItem?.name ?? a;
+      const bName = bItem?.name ?? b;
       return aName.localeCompare(bName);
     });
   newMap.set(parentId, { ...parent, childrenIds: updatedChildren });
@@ -261,11 +266,13 @@ export function removeFolderFromFileTreeMap({
 export function addFileToFileTreeMap({
   map,
   fileId,
+  filePath,
   fileName,
   parentId,
 }: {
   map: Map<string, FileOrFolder>;
   fileId: string;
+  filePath: string;
   fileName: string;
   parentId: string;
 }): Map<string, FileOrFolder> {
@@ -279,6 +286,7 @@ export function addFileToFileTreeMap({
   // Add the new file
   newMap.set(fileId, {
     id: fileId,
+    path: filePath,
     name: fileName,
     type: 'file',
     parentId,
@@ -288,8 +296,10 @@ export function addFileToFileTreeMap({
   const updatedChildren = [...parent.childrenIds, fileId]
     .filter((id, index, arr) => arr.indexOf(id) === index)
     .sort((a, b) => {
-      const aName = a.split('/').pop() ?? a;
-      const bName = b.split('/').pop() ?? b;
+      const aItem = newMap.get(a);
+      const bItem = newMap.get(b);
+      const aName = aItem?.name ?? a;
+      const bName = bItem?.name ?? b;
       return aName.localeCompare(bName);
     });
   newMap.set(parentId, { ...parent, childrenIds: updatedChildren });

@@ -5,10 +5,13 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+
+	"github.com/google/uuid"
 )
 
 type FileOrFolder struct {
 	Id          string   `json:"id"`
+	Path        string   `json:"path"`
 	Name        string   `json:"name"`
 	ParentId    string   `json:"parentId"`
 	Type        string   `json:"type"`
@@ -23,7 +26,7 @@ type FileOrFolderPage struct {
 
 // readDirectoryEntries reads entries from a directory and converts them to FileOrFolder objects.
 // fullPath is the absolute path to the directory to read.
-// pathPrefix is the prefix to use for constructing the Id (path) of each entry.
+// pathPrefix is the prefix to use for constructing the Path of each entry.
 // Hidden files and folders (those starting with '.') are skipped.
 func readDirectoryEntries(fullPath string, pathPrefix string) ([]FileOrFolder, error) {
 	entries, err := os.ReadDir(fullPath)
@@ -43,7 +46,8 @@ func readDirectoryEntries(fullPath string, pathPrefix string) ([]FileOrFolder, e
 			entryType = "folder"
 		}
 		items = append(items, FileOrFolder{
-			Id:          filepath.Join(pathPrefix, entry.Name()),
+			Id:          uuid.New().String(),
+			Path:        filepath.Join(pathPrefix, entry.Name()),
 			Name:        entry.Name(),
 			Type:        entryType,
 			ChildrenIds: []string{},
@@ -53,7 +57,7 @@ func readDirectoryEntries(fullPath string, pathPrefix string) ([]FileOrFolder, e
 	return items, nil
 }
 
-func GetChildrenOfFolder(projectPath, pathToFolder, cursor string, limit int) (FileOrFolderPage, error) {
+func GetChildrenOfFolder(projectPath, pathToFolder, parentId, cursor string, limit int) (FileOrFolderPage, error) {
 	fullPathToFolder := filepath.Join(projectPath, "notes", pathToFolder)
 	fileInfo, err := os.Stat(fullPathToFolder)
 
@@ -98,7 +102,7 @@ func GetChildrenOfFolder(projectPath, pathToFolder, cursor string, limit int) (F
 
 	pageItems := children[startIndex:endIndex]
 	for i := range pageItems {
-		pageItems[i].ParentId = filepath.Base(pathToFolder)
+		pageItems[i].ParentId = parentId
 	}
 
 	hasMore := endIndex < len(children)

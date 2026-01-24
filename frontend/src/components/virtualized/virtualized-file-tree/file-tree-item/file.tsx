@@ -1,13 +1,11 @@
 import { useAtom, useAtomValue } from 'jotai';
-import { Dispatch, SetStateAction, useState } from 'react';
+import { Dispatch, SetStateAction } from 'react';
 import { navigate } from 'wouter/use-browser-location';
-import { AnimatePresence } from 'motion/react';
 import { Note } from '../../../../icons/page';
 import { fileOrFolderMapAtom } from '..';
 import { useFilePathFromRoute } from '../../../../hooks/routes';
 import { useRenameFileMutation } from '../../../../hooks/notes';
 import { createFilePath } from '../../../../utils/path';
-import { SidebarHighlight } from '../../virtualized-list/highlight';
 import {
   sidebarSelectionAtom,
   useAddToSidebarSelection,
@@ -29,7 +27,6 @@ export function FileTreeFileItem({
 }: {
   dataItem: FlattenedFileOrFolder;
 }) {
-  const [isHovered, setIsHovered] = useState(false);
   const fileOrFolderMap = useAtomValue(fileOrFolderMapAtom);
   const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
   const addToSidebarSelection = useAddToSidebarSelection();
@@ -51,7 +48,7 @@ export function FileTreeFileItem({
     setErrorText: Dispatch<SetStateAction<string>>;
     exitEditMode: () => void;
   }) {
-    const filePath = createFilePath(dataItem.id);
+    const filePath = createFilePath(dataItem.path);
     if (!filePath) {
       exitEditMode();
       return;
@@ -84,7 +81,7 @@ export function FileTreeFileItem({
     });
 
   // File path should be defined for files
-  const filePath = createFilePath(dataItem.id);
+  const filePath = createFilePath(dataItem.path);
   if (!filePath) {
     return null;
   }
@@ -171,18 +168,11 @@ export function FileTreeFileItem({
 
   const innerContent = (
     <>
-      <AnimatePresence>
-        {isHovered && (
-          <SidebarHighlight
-            layoutId={'file-tree-item-highlight'}
-            className="w-[calc(100%-15px)] ml-3.75"
-          />
-        )}
-      </AnimatePresence>
       <span
         className={cn(
-          'rounded-md flex items-center gap-2 z-10 py-1 px-2 ml-3.75 overflow-hidden w-full transition-colors duration-150',
-          isSelectedFromRoute && 'bg-zinc-150 dark:bg-zinc-600',
+          'rounded-md flex items-center gap-2 z-10 py-1 px-2 overflow-hidden w-full hover:bg-zinc-150 dark:hover:bg-zinc-600',
+          isSelectedFromRoute &&
+            'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
           isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
         )}
       >
@@ -230,8 +220,6 @@ export function FileTreeFileItem({
         e.preventDefault();
         e.stopPropagation();
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       onClick={(e) => {
         if (e.shiftKey) {
           handleShiftClick();

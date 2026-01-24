@@ -7,11 +7,13 @@ export type FileOrFolderType = 'file' | 'folder';
  * Base properties shared by both files and folders.
  */
 type BaseFileOrFolder = {
-  /** Path to the file or folder (serves as the unique identifier). */
+  /** UUID identifier for the file or folder. */
   id: string;
+  /** Relative file path. */
+  path: string;
   /** Display name of the file or folder. */
   name: string;
-  /** Identifier for the parent folder. Null for top-level items. */
+  /** UUID for the parent folder. Null for top-level items. */
   parentId: string | null;
 };
 

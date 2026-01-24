@@ -13,8 +13,8 @@ type FileTreeService struct {
 	FileWatcher *fsnotify.Watcher
 }
 
-func (f *FileTreeService) GetChildrenOfFolder(pathToFolder string, cursor string, limit int) config.BackendResponseWithData[notes.FileOrFolderPage] {
-	childrenFileOrFolders, err := notes.GetChildrenOfFolder(f.ProjectPath, pathToFolder, cursor, limit)
+func (f *FileTreeService) GetChildrenOfFolder(pathToFolder string, parentId string, cursor string, limit int) config.BackendResponseWithData[notes.FileOrFolderPage] {
+	childrenFileOrFolders, err := notes.GetChildrenOfFolder(f.ProjectPath, pathToFolder, parentId, cursor, limit)
 
 	if err != nil {
 		return config.BackendResponseWithData[notes.FileOrFolderPage]{

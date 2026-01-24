@@ -1,9 +1,7 @@
 import { useSetAtom } from 'jotai';
 import { Dispatch, SetStateAction, useState } from 'react';
-import { AnimatePresence } from 'motion/react';
 import { Folder } from '../../../../icons/folder';
 import { FolderOpen } from '../../../../icons/folder-open';
-import { SidebarHighlight } from '../../virtualized-list/highlight';
 import { BYTEBOOK_DRAG_DATA_FORMAT } from '../../../../utils/draggable';
 import { encodeContextMenuData } from '../../../../utils/string-formatting';
 import type { FlattenedFileOrFolder } from '../types';
@@ -33,7 +31,6 @@ export function FileTreeFolderItem({
   dataItem: FlattenedFileOrFolder;
   openFolder: (args: OpenFolderArgs) => void;
 }) {
-  const [isHovered, setIsHovered] = useState(false);
   const [addingType, setAddingType] = useState<'folder' | 'note' | null>(null);
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
   const { mutateAsync: renameFolder } = useFolderRenameInlineMutation();
@@ -42,12 +39,12 @@ export function FileTreeFolderItem({
   // Listen to context menu add folder events
   useWailsEvent('context-menu:add-folder', (event) => {
     const eventData = event.data as string | string[];
-    const eventPath = Array.isArray(eventData) ? eventData[0] : eventData;
-    if (eventPath === dataItem.id && dataItem.type === 'folder') {
+    const eventId = Array.isArray(eventData) ? eventData[0] : eventData;
+    if (eventId === dataItem.id && dataItem.type === 'folder') {
       // If folder is not open, open it first
       if (!dataItem.isOpen) {
         openFolder({
-          pathToFolder: dataItem.id,
+          pathToFolder: dataItem.path,
           folderId: dataItem.id,
         });
       }
@@ -58,12 +55,12 @@ export function FileTreeFolderItem({
   // Listen to context menu add note events
   useWailsEvent('context-menu:add-note', (event) => {
     const eventData = event.data as string | string[];
-    const eventPath = Array.isArray(eventData) ? eventData[0] : eventData;
-    if (eventPath === dataItem.id && dataItem.type === 'folder') {
+    const eventId = Array.isArray(eventData) ? eventData[0] : eventData;
+    if (eventId === dataItem.id && dataItem.type === 'folder') {
       // If folder is not open, open it first
       if (!dataItem.isOpen) {
         openFolder({
-          pathToFolder: dataItem.id,
+          pathToFolder: dataItem.path,
           folderId: dataItem.id,
         });
       }
@@ -81,13 +78,13 @@ export function FileTreeFolderItem({
     exitEditMode: () => void;
   }) {
     // Construct the new folder path
-    const pathSegments = dataItem.id.split('/');
+    const pathSegments = dataItem.path.split('/');
     pathSegments[pathSegments.length - 1] = newName;
     const newFolderPath = pathSegments.join('/');
 
     try {
       await renameFolder({
-        oldFolderPath: dataItem.id,
+        oldFolderPath: dataItem.path,
         newFolderName: newFolderPath,
         setErrorText,
       });
@@ -111,10 +108,10 @@ export function FileTreeFolderItem({
 
     if (!dataItem.isOpen) {
       openFolder({
-        pathToFolder: dataItem.id,
+        pathToFolder: dataItem.path,
         folderId: dataItem.id,
       });
-      await OpenFolderAndAddToFileWatcher(dataItem.id);
+      await OpenFolderAndAddToFileWatcher(dataItem.path);
     } else {
       setFileOrFolderMap((prev) => {
         const newMap = new Map(prev);
@@ -122,21 +119,13 @@ export function FileTreeFolderItem({
         return newMap;
       });
       // Remove folder from file watcher when closing
-      await CloseFolderAndRemoveFromFileWatcher(dataItem.id);
+      await CloseFolderAndRemoveFromFileWatcher(dataItem.path);
     }
   }
 
   const innerContent = (
     <>
-      <AnimatePresence>
-        {isHovered && (
-          <SidebarHighlight
-            layoutId={'file-tree-item-highlight'}
-            className="w-[calc(100%-15px)] ml-3.75"
-          />
-        )}
-      </AnimatePresence>
-      <span className="rounded-md flex items-center gap-2 z-10 py-1 px-2 ml-3.75 overflow-hidden w-full">
+      <span className="rounded-md flex items-center gap-2 z-10 py-1 px-2 overflow-hidden w-full hover:bg-zinc-150 dark:hover:bg-zinc-600">
         {dataItem.type === 'folder' && dataItem.isOpen ? (
           <FolderOpen
             className="min-w-4 min-h-4 will-change-transform"
@@ -203,8 +192,6 @@ export function FileTreeFolderItem({
           e.stopPropagation();
           console.log(e.dataTransfer.getData(BYTEBOOK_DRAG_DATA_FORMAT));
         }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         onClick={handleClick}
         className="flex items-center w-full relative rounded-md py-0.25"
       >
