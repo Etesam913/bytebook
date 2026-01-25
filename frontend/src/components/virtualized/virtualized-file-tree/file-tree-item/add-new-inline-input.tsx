@@ -49,7 +49,7 @@ export function AddNewInlineInput({
     try {
       if (isAddingFolder) {
         // Create folder: path is parentFolderId/newFolderName
-        const newFolderPath = `${dataItem.id}/${trimmedName}`;
+        const newFolderPath = `${dataItem.path}/${trimmedName}`;
         const res = await AddFolder(newFolderPath);
         console.log({ res, newFolderPath });
         if (!res.success) {
@@ -57,9 +57,9 @@ export function AddNewInlineInput({
           return;
         }
       } else {
-        const newNotePath = `${dataItem.id}/${trimmedName}.md`;
+        const newNotePath = `${dataItem.path}/${trimmedName}.md`;
         // Create note: folder is dataItem.id, note name is trimmedName
-        const res = await AddNoteToFolder(dataItem.id, trimmedName);
+        const res = await AddNoteToFolder(dataItem.path, trimmedName);
         if (!res.success) {
           setErrorText(res.message);
           return;
@@ -81,17 +81,17 @@ export function AddNewInlineInput({
 
   return (
     <div className="flex items-center w-full relative rounded-md py-0.25">
-      <span className="rounded-md flex items-center gap-2 z-10 py-1 pl-[1.725rem] pr-2 ml-3.75 overflow-hidden w-full text-sm">
+      <span className="rounded-md flex items-center gap-2 z-10 py-1 pl-[1.725rem] pr-2 overflow-hidden w-full">
         {isAddingFolder ? (
           <FolderIcon
-            className="min-w-4 min-h-4 will-change-transform"
+            className="min-w-4 min-h-4"
             height={16}
             width={16}
             strokeWidth={1.75}
           />
         ) : (
           <Note
-            className="min-w-4 min-h-4 will-change-transform"
+            className="min-w-4 min-h-4"
             height={16}
             width={16}
             strokeWidth={1.75}

@@ -6,14 +6,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const QUOTE_ENCODING = '%27';
-
-export function encodeContextMenuData(value: string) {
-  return encodeURIComponent(value)
-    .replaceAll("'", QUOTE_ENCODING)
-    .replaceAll('-', '%2D');
-}
-
 /**
  * Retrieves the value of a specific query parameter from a given URL string.
  *

@@ -1,13 +1,15 @@
-import { useSetAtom } from 'jotai';
+import { useSetAtom, useAtomValue } from 'jotai';
 import { Dispatch, SetStateAction, useState } from 'react';
 import { Folder } from '../../../../icons/folder';
 import { FolderOpen } from '../../../../icons/folder-open';
+import { FolderPlus } from '../../../../icons/folder-plus';
+import { Note } from '../../../../icons/page';
 import { BYTEBOOK_DRAG_DATA_FORMAT } from '../../../../utils/draggable';
-import { encodeContextMenuData } from '../../../../utils/string-formatting';
 import type { FlattenedFileOrFolder } from '../types';
 import { fileOrFolderMapAtom } from '..';
+import { contextMenuDataAtom } from '../../../../atoms';
 import { useFolderRenameInlineMutation } from '../../../../hooks/folders';
-import { useWailsEvent } from '../../../../hooks/events';
+import { currentZoomAtom } from '../../../../hooks/resize';
 import {
   InlineTreeItemInput,
   useInlineTreeItemInput,
@@ -17,6 +19,8 @@ import {
   OpenFolderAndAddToFileWatcher,
   CloseFolderAndRemoveFromFileWatcher,
 } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
+import { Finder } from '../../../../icons/finder';
+import { useRevealInFinderMutation } from '../../../../hooks/code';
 
 type OpenFolderArgs = {
   pathToFolder: string;
@@ -33,40 +37,10 @@ export function FileTreeFolderItem({
 }) {
   const [addingType, setAddingType] = useState<'folder' | 'note' | null>(null);
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
+  const setContextMenuData = useSetAtom(contextMenuDataAtom);
+  const currentZoom = useAtomValue(currentZoomAtom);
   const { mutateAsync: renameFolder } = useFolderRenameInlineMutation();
-  const contextMenuData = encodeContextMenuData(dataItem.id);
-
-  // Listen to context menu add folder events
-  useWailsEvent('context-menu:add-folder', (event) => {
-    const eventData = event.data as string | string[];
-    const eventId = Array.isArray(eventData) ? eventData[0] : eventData;
-    if (eventId === dataItem.id && dataItem.type === 'folder') {
-      // If folder is not open, open it first
-      if (!dataItem.isOpen) {
-        openFolder({
-          pathToFolder: dataItem.path,
-          folderId: dataItem.id,
-        });
-      }
-      setAddingType('folder');
-    }
-  });
-
-  // Listen to context menu add note events
-  useWailsEvent('context-menu:add-note', (event) => {
-    const eventData = event.data as string | string[];
-    const eventId = Array.isArray(eventData) ? eventData[0] : eventData;
-    if (eventId === dataItem.id && dataItem.type === 'folder') {
-      // If folder is not open, open it first
-      if (!dataItem.isOpen) {
-        openFolder({
-          pathToFolder: dataItem.path,
-          folderId: dataItem.id,
-        });
-      }
-      setAddingType('note');
-    }
-  });
+  const { mutate: revealInFinder } = useRevealInFinderMutation();
 
   async function onRename({
     newName,
@@ -176,12 +150,6 @@ export function FileTreeFolderItem({
   return (
     <div className="w-full">
       <button
-        style={
-          {
-            '--custom-contextmenu': 'folder-menu',
-            '--custom-contextmenu-data': contextMenuData,
-          } as React.CSSProperties
-        }
         draggable
         onDragOver={(e) => {
           e.preventDefault();
@@ -193,6 +161,67 @@ export function FileTreeFolderItem({
           console.log(e.dataTransfer.getData(BYTEBOOK_DRAG_DATA_FORMAT));
         }}
         onClick={handleClick}
+        onContextMenu={(e) => {
+          if (dataItem.type !== 'folder') return;
+          e.preventDefault();
+          setContextMenuData({
+            x: e.clientX / currentZoom,
+            y: e.clientY / currentZoom,
+            isShowing: true,
+            items: [
+              {
+                label: (
+                  <span className="flex items-center gap-1.5">
+                    <Finder height={17} width={17} />{' '}
+                    <span>Reveal In Finder</span>
+                  </span>
+                ),
+                value: 'reveal-in-finder',
+                onChange: () => {
+                  revealInFinder({
+                    path: `notes/${dataItem.path}`,
+                    shouldPrefixWithProjectPath: true,
+                  });
+                },
+              },
+              {
+                label: (
+                  <span className="flex items-center gap-1.5">
+                    <FolderPlus width={17} height={17} />{' '}
+                    <span>Add Folder</span>
+                  </span>
+                ),
+                value: 'add-folder',
+                onChange: () => {
+                  if (!dataItem.isOpen) {
+                    openFolder({
+                      pathToFolder: dataItem.path,
+                      folderId: dataItem.id,
+                    });
+                  }
+                  setAddingType('folder');
+                },
+              },
+              {
+                label: (
+                  <span className="flex items-center gap-1.5">
+                    <Note width={17} height={17} /> <span>Add Note</span>
+                  </span>
+                ),
+                value: 'add-note',
+                onChange: () => {
+                  if (!dataItem.isOpen) {
+                    openFolder({
+                      pathToFolder: dataItem.path,
+                      folderId: dataItem.id,
+                    });
+                  }
+                  setAddingType('note');
+                },
+              },
+            ],
+          });
+        }}
         className="flex items-center w-full relative rounded-md py-0.25"
       >
         {innerContent}

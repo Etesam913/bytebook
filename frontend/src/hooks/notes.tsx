@@ -228,6 +228,7 @@ export function useNoteCreate() {
   const queryClient = useQueryClient();
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
   const filePathToId = useAtomValue(filePathToIdAtom);
+  const setFilePathToId = useSetAtom(filePathToIdAtom);
 
   useWailsEvent('note:create', async (body) => {
     console.info('note:create', body);
@@ -244,6 +245,7 @@ export function useNoteCreate() {
         const fileName = segments[segments.length - 1];
         const parentPath = segments.slice(0, -1).join('/');
         const parentId = filePathToId.get(parentPath);
+        console.log({ parentId, parentPath, fileName });
 
         if (!parentId) {
           // Parent not found in path map - invalidate queries
@@ -253,6 +255,12 @@ export function useNoteCreate() {
 
         // Generate a new UUID for this file
         const newFileId = crypto.randomUUID();
+
+        setFilePathToId((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(notePath, newFileId);
+          return newMap;
+        });
 
         setFileOrFolderMap((prev) => {
           const parent = prev.get(parentId);
@@ -379,6 +387,7 @@ export function useNoteRename() {
   const queryClient = useQueryClient();
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
   const filePathToId = useAtomValue(filePathToIdAtom);
+  const setFilePathToId = useSetAtom(filePathToIdAtom);
 
   useWailsEvent('note:rename', async (body) => {
     console.info('note:rename', body);
@@ -410,6 +419,13 @@ export function useNoteRename() {
           queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
           continue;
         }
+
+        setFilePathToId((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(oldNotePath);
+          newMap.set(newNotePath, oldFileId);
+          return newMap;
+        });
 
         setFileOrFolderMap((prev) => {
           // First, remove the old file
@@ -447,6 +463,7 @@ export function useNoteDelete() {
   const queryClient = useQueryClient();
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
   const filePathToId = useAtomValue(filePathToIdAtom);
+  const setFilePathToId = useSetAtom(filePathToIdAtom);
 
   useWailsEvent('note:delete', async (body) => {
     console.info('note:delete', body);
@@ -471,6 +488,12 @@ export function useNoteDelete() {
           queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
           continue;
         }
+
+        setFilePathToId((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(notePath);
+          return newMap;
+        });
 
         setFileOrFolderMap((prev) => {
           return removeFileFromFileTreeMap({

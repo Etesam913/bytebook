@@ -28,39 +28,23 @@ const sortOptions: { name: string; value: SortStrings }[] = [
 function IconForSortOption({ sortOption }: { sortOption: SortStrings }) {
   switch (sortOption) {
     case 'date-updated-desc':
-      return (
-        <SortDateDescending className="pointer-events-none will-change-transform" />
-      );
+      return <SortDateDescending className="pointer-events-none" />;
     case 'date-updated-asc':
-      return (
-        <SortDateAscending className="pointer-events-none will-change-transform" />
-      );
+      return <SortDateAscending className="pointer-events-none" />;
     case 'date-created-desc':
-      return (
-        <SortDateDescending className="pointer-events-none will-change-transform" />
-      );
+      return <SortDateDescending className="pointer-events-none" />;
     case 'date-created-asc':
-      return (
-        <SortDateAscending className="pointer-events-none will-change-transform" />
-      );
+      return <SortDateAscending className="pointer-events-none" />;
     case 'file-name-a-z':
-      return (
-        <SortAlphaAscending className="pointer-events-none will-change-transform" />
-      );
+      return <SortAlphaAscending className="pointer-events-none" />;
     case 'file-name-z-a':
-      return (
-        <SortAlphaDescending className="pointer-events-none will-change-transform" />
-      );
+      return <SortAlphaDescending className="pointer-events-none" />;
     case 'size-desc':
-      return (
-        <SortNumDescending className="pointer-events-none will-change-transform" />
-      );
+      return <SortNumDescending className="pointer-events-none" />;
     case 'size-asc':
       return <SortNumAscending className="pointer-events-none" />;
     case 'file-type':
-      return (
-        <Paperclip className="pointer-events-none will-change-transform" />
-      );
+      return <Paperclip className="pointer-events-none" />;
   }
 }
 
@@ -77,10 +61,7 @@ export function SortButton({
     return {
       value,
       label: (
-        <div
-          key={value}
-          className="flex items-center gap-1.5 will-change-transform"
-        >
+        <div key={value} className="flex items-center gap-1.5">
           <IconForSortOption sortOption={value} />
           {name}
         </div>

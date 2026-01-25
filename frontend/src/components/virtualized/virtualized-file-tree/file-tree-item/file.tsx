@@ -14,7 +14,7 @@ import {
   SelectableItems,
   getKeyForSidebarSelection,
 } from '../../../../utils/selection';
-import { cn, encodeContextMenuData } from '../../../../utils/string-formatting';
+import { cn } from '../../../../utils/string-formatting';
 import type { FlattenedFileOrFolder } from '../types';
 import {
   InlineTreeItemInput,
@@ -32,7 +32,6 @@ export function FileTreeFileItem({
   const addToSidebarSelection = useAddToSidebarSelection();
   const filePathFromRoute = useFilePathFromRoute();
   const { mutateAsync: renameFile } = useRenameFileMutation();
-  const contextMenuData = encodeContextMenuData(dataItem.id);
   const lastDotIndex = dataItem.name.lastIndexOf('.');
   const nameWithoutExtension =
     lastDotIndex === -1 ? dataItem.name : dataItem.name.slice(0, lastDotIndex);
@@ -205,12 +204,6 @@ export function FileTreeFileItem({
 
   return (
     <button
-      style={
-        {
-          '--custom-contextmenu': 'file-menu',
-          '--custom-contextmenu-data': contextMenuData,
-        } as React.CSSProperties
-      }
       draggable
       onDragOver={(e) => {
         e.preventDefault();
