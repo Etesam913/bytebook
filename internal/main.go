@@ -191,7 +191,6 @@ func main() {
 	})
 
 	go menus.CreateApplicationMenus(backgroundColor, ui.CreateWindow)
-	go menus.CreateContextMenus()
 
 	// Start file watcher and search indexing once the window runtime is ready,
 	// preventing "too many open files" errors from concurrent file descriptor usage

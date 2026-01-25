@@ -60,7 +60,7 @@ export function ToolbarButtons({
 
   const undoRedoData: ButtonData[] = [
     {
-      icon: <Undo className="will-change-transform" />,
+      icon: <Undo />,
       onClick: () => {
         editor.dispatchCommand(UNDO_COMMAND, undefined);
       },
@@ -69,7 +69,7 @@ export function ToolbarButtons({
       customDisabled: canUndo || isNodeSelection,
     },
     {
-      icon: <Redo className="will-change-transform" />,
+      icon: <Redo />,
       onClick: () => {
         editor.dispatchCommand(REDO_COMMAND, undefined);
       },
@@ -81,7 +81,7 @@ export function ToolbarButtons({
 
   const buttonData: ButtonData[] = [
     {
-      icon: <TextBold className="will-change-transform" />,
+      icon: <TextBold />,
       onClick: () =>
         handleToolbarTextFormattingClick({
           editor,
@@ -93,7 +93,7 @@ export function ToolbarButtons({
       tooltip: 'Bold (⌘B)',
     },
     {
-      icon: <TextItalic className="will-change-transform" />,
+      icon: <TextItalic />,
       onClick: () =>
         handleToolbarTextFormattingClick({
           editor,
@@ -105,7 +105,7 @@ export function ToolbarButtons({
       tooltip: 'Italic (⌘I)',
     },
     {
-      icon: <TextStrikethrough className="will-change-transform" />,
+      icon: <TextStrikethrough />,
       onClick: () =>
         handleToolbarTextFormattingClick({
           editor,
@@ -117,7 +117,7 @@ export function ToolbarButtons({
       tooltip: 'Strikethrough (⌘⇧X)',
     },
     {
-      icon: <UnorderedList className="will-change-transform" />,
+      icon: <UnorderedList />,
       onClick: () =>
         handleToolbarBlockElementClick({
           editor,
@@ -129,7 +129,7 @@ export function ToolbarButtons({
       tooltip: 'Bullet List',
     },
     {
-      icon: <OrderedList className="will-change-transform" />,
+      icon: <OrderedList />,
       onClick: () =>
         handleToolbarBlockElementClick({
           editor,
@@ -141,7 +141,7 @@ export function ToolbarButtons({
       tooltip: 'Numbered List',
     },
     {
-      icon: <ListCheckbox className="will-change-transform" />,
+      icon: <ListCheckbox />,
       onClick: () =>
         handleToolbarBlockElementClick({
           editor,
@@ -156,7 +156,7 @@ export function ToolbarButtons({
 
   if (setFloatingData) {
     buttonData.push({
-      icon: <Link className="will-change-transform" />,
+      icon: <Link />,
       onClick: () => {
         editor.update(() => {
           const selection = $getSelection();

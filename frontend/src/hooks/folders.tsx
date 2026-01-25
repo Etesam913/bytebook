@@ -87,6 +87,7 @@ export function useFolderCreate() {
   const queryClient = useQueryClient();
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
   const filePathToId = useAtomValue(filePathToIdAtom);
+  const setFilePathToId = useSetAtom(filePathToIdAtom);
 
   useWailsEvent('folder:create', async (body) => {
     console.info('folder:create', body);
@@ -113,6 +114,12 @@ export function useFolderCreate() {
         // Generate a new UUID for this folder
         const newFolderId = crypto.randomUUID();
 
+        setFilePathToId((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(folderPath, newFolderId);
+          return newMap;
+        });
+
         setFileOrFolderMap((prev) => {
           const parent = prev.get(parentId);
           if (!parent || parent.type !== 'folder' || !parent.isOpen) {
@@ -138,6 +145,7 @@ export function useFolderDelete() {
   const queryClient = useQueryClient();
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
   const filePathToId = useAtomValue(filePathToIdAtom);
+  const setFilePathToId = useSetAtom(filePathToIdAtom);
 
   useWailsEvent('folder:delete', async (body) => {
     console.info('folder:delete', body);
@@ -163,6 +171,12 @@ export function useFolderDelete() {
           continue;
         }
 
+        setFilePathToId((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(folderPath);
+          return newMap;
+        });
+
         setFileOrFolderMap((prev) => {
           return removeFolderFromFileTreeMap({
             map: prev,
@@ -180,6 +194,7 @@ export function useFolderRename() {
   const queryClient = useQueryClient();
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
   const filePathToId = useAtomValue(filePathToIdAtom);
+  const setFilePathToId = useSetAtom(filePathToIdAtom);
 
   useWailsEvent('folder:rename', async (body) => {
     console.info('folder:rename', body);
@@ -211,6 +226,13 @@ export function useFolderRename() {
           queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
           continue;
         }
+
+        setFilePathToId((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(oldFolderPath);
+          newMap.set(newFolderPath, oldFolderId);
+          return newMap;
+        });
 
         setFileOrFolderMap((prev) => {
           const oldFolder = prev.get(oldFolderId);

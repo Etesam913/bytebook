@@ -28,7 +28,6 @@ export function useInlineTreeItemInput({
     const eventData = event.data as string | string[];
     // Handle both string and string[] formats for backwards compatibility
     const eventPath = Array.isArray(eventData) ? eventData[0] : eventData;
-    console.log({ eventPath, itemId });
     if (eventPath === itemId) {
       setIsEditing(true);
     }

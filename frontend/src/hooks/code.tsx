@@ -733,8 +733,17 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
  */
 export function useRevealInFinderMutation() {
   return useMutation({
-    mutationFn: async ({ path }: { path: string }) => {
-      const res = await RevealFolderOrFileInFinder(path, false);
+    mutationFn: async ({
+      path,
+      shouldPrefixWithProjectPath,
+    }: {
+      path: string;
+      shouldPrefixWithProjectPath: boolean;
+    }) => {
+      const res = await RevealFolderOrFileInFinder(
+        path,
+        shouldPrefixWithProjectPath
+      );
       if (!res.success) {
         throw new QueryError(res.message);
       }
