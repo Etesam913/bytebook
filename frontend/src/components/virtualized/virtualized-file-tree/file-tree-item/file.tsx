@@ -170,9 +170,9 @@ export function FileTreeFileItem({
     <>
       <span
         className={cn(
-          'rounded-md flex items-center gap-2 z-10 py-1 px-2 overflow-hidden w-full hover:bg-zinc-150 dark:hover:bg-zinc-600',
+          'rounded-md flex items-center gap-2 z-10 py-1 px-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
           isSelectedFromRoute &&
-            'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
+            'bg-zinc-150! dark:bg-zinc-600! text-(--accent-color)',
           isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
         )}
       >

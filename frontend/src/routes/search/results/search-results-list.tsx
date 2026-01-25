@@ -107,7 +107,6 @@ export function SearchResultsList({
       contentType="search-result"
       layoutId="search-results"
       data={getRowsWithHeaders(groupedResults, toggleSection, openSections)}
-      shouldHideSidebarHighlight
       selectionOptions={{ disableSelection: true }}
       dataItemToKey={dataItemToKey}
       dataItemToString={dataItemToString}

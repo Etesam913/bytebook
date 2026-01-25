@@ -125,7 +125,7 @@ export function FileTreeFolderItem({
 
   const innerContent = (
     <>
-      <span className="rounded-md flex items-center gap-2 z-10 py-1 px-2 overflow-hidden w-full hover:bg-zinc-150 dark:hover:bg-zinc-600">
+      <span className="rounded-md flex items-center gap-2 z-10 py-1 px-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650">
         {dataItem.type === 'folder' && dataItem.isOpen ? (
           <FolderOpen
             className="min-w-4 min-h-4 will-change-transform"

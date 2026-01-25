@@ -1,5 +1,4 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { AnimatePresence } from 'motion/react';
 import {
   $getSelection,
   $isRangeSelection,
@@ -7,12 +6,7 @@ import {
   type TextFormatType,
   UNDO_COMMAND,
 } from 'lexical';
-import {
-  type Dispatch,
-  type ReactNode,
-  type SetStateAction,
-  useState,
-} from 'react';
+import { type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import { ListCheckbox } from '../../../icons/list-checkbox';
 import { OrderedList } from '../../../icons/ordered-list';
 import { Redo } from '../../../icons/redo';
@@ -27,7 +21,6 @@ import {
   handleToolbarBlockElementClick,
   handleToolbarTextFormattingClick,
 } from '../../editor/utils/toolbar';
-import { SidebarHighlight } from '../../virtualized/virtualized-list/highlight';
 import { Link } from '../../../icons/link';
 import { $isLinkNode } from '../../editor/nodes/link';
 import { Tooltip } from '../../tooltip';
@@ -63,7 +56,6 @@ export function ToolbarButtons({
   shouldShowUndoRedo?: boolean;
   setFloatingData?: Dispatch<SetStateAction<FloatingDataType>>;
 }) {
-  const [highlightedButton, setHighlightedButton] = useState(-1);
   const [editor] = useLexicalComposerContext();
 
   const undoRedoData: ButtonData[] = [
@@ -202,27 +194,24 @@ export function ToolbarButtons({
   }
 
   const toolbarButtons = getButtonsData().map(
-    ({ icon, onClick, key, customDisabled, tooltip }, i) => {
+    ({ icon, onClick, key, customDisabled, tooltip }) => {
       return (
         <div
           className="relative flex items-center justify-center px-[0.075rem]"
           key={key}
         >
-          <AnimatePresence>
-            {highlightedButton === i && (
-              <SidebarHighlight layoutId={'toolbar-highlight'} />
-            )}
-          </AnimatePresence>
-          <Tooltip content={tooltip} disabled={disabled || customDisabled}>
+          <Tooltip
+            content={tooltip}
+            disabled={disabled || customDisabled}
+            delay={{ open: 1000 }}
+          >
             <button
-              onMouseEnter={() => setHighlightedButton(i)}
-              onMouseLeave={() => setHighlightedButton(-1)}
               onClick={onClick}
               type="button"
               disabled={disabled || customDisabled}
               aria-label={tooltip}
               className={cn(
-                'p-1.5 rounded-md transition-colors relative z-10',
+                'p-1.5 rounded-md relative z-10 hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
                 (key === currentBlockType ||
                   currentSelectionFormat.includes(key as TextFormatType)) &&
                   !disabled &&
