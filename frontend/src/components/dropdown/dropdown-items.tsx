@@ -8,7 +8,6 @@ import {
   useEffect,
   useRef,
 } from 'react';
-import { easingFunctions } from '../../animations';
 import type { DropdownItem } from '../../types';
 import { cn } from '../../utils/string-formatting';
 import { isDarkModeOnAtom } from '../../atoms';
@@ -111,7 +110,8 @@ export function DropdownItems({
                     <button
                       id={optionId}
                       className={cn(
-                        'relative z-40 outline-hidden rounded-md w-full px-1.5 py-0.5 text-left whitespace-nowrap text-nowrap text-ellipsis overflow-hidden flex'
+                        'relative z-40 outline-hidden rounded-md w-full px-1.5 py-0.5 text-left whitespace-nowrap text-nowrap text-ellipsis overflow-hidden flex hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
+                        isSelected && 'bg-zinc-150! dark:bg-zinc-600!'
                       )}
                       type="button"
                       role="option"
@@ -195,22 +195,6 @@ export function DropdownItems({
                     >
                       {label}
                     </button>
-                    {isFocused && (
-                      <motion.div
-                        transition={{
-                          ease: easingFunctions['ease-out-expo'],
-                        }}
-                        layoutId={'dropdown-highlight'}
-                        className="absolute z-0 inset-0 rounded-md w-full px-1.5 py-0.5 bg-zinc-150 dark:bg-zinc-600"
-                        aria-hidden="true"
-                      />
-                    )}
-                    {isSelected && (
-                      <div
-                        className="absolute z-20 inset-0 rounded-md w-full px-1.5 py-0.5 bg-zinc-150 dark:bg-zinc-600"
-                        aria-hidden="true"
-                      />
-                    )}
                   </div>
                 );
               })}

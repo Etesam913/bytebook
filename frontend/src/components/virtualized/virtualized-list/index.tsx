@@ -61,7 +61,6 @@ export type VirtualizedListProps<T> = {
   layoutId: string;
   contentType: SidebarContentType;
   isItemActive?: (item: T, index: number) => boolean;
-  shouldHideSidebarHighlight?: boolean;
   maxHeight?: string;
   className?: string;
   onTotalListHeightChanged?: (height: number) => void;
@@ -89,8 +88,6 @@ export function VirtualizedList<T>({
   emptyElement,
   layoutId,
   contentType,
-  isItemActive,
-  shouldHideSidebarHighlight,
   maxHeight,
   className,
   onTotalListHeightChanged,
@@ -111,8 +108,7 @@ export function VirtualizedList<T>({
 	*/
   const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
   const contextMenuRef = useAtomValue(contextMenuRefAtom);
-  const { virtuosoRef, onRangeChanged, scrollToIndexIfHidden } =
-    useSmartScroll();
+  const { virtuosoRef, onRangeChanged } = useSmartScroll();
 
   // useEffect(() => {
   //   if (!isItemActive || !data) return;
@@ -190,7 +186,6 @@ export function VirtualizedList<T>({
         anchorSelectionIndexRef={anchorSelectionIndexRef}
         layoutId={layoutId}
         contentType={contentType}
-        shouldHideSidebarHighlight={shouldHideSidebarHighlight}
       >
         {node}
       </VirtualizedListItem>

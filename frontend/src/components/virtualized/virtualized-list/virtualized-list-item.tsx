@@ -1,5 +1,4 @@
-import { AnimatePresence } from 'motion/react';
-import { useAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import {
   type CSSProperties,
   type Dispatch,
@@ -9,7 +8,6 @@ import {
 } from 'react';
 import { selectionRangeAtom } from '../../../atoms';
 import { keepSelectionNotesWithPrefix } from '../../../utils/selection';
-import { SidebarHighlight } from './highlight';
 import { SidebarContentType } from '../../../types';
 import type { SelectionOptions } from './index';
 
@@ -25,7 +23,6 @@ type SidebarListItemProps<T> = {
   anchorSelectionIndexRef: RefObject<number>;
   layoutId: string;
   contentType: SidebarContentType;
-  shouldHideSidebarHighlight?: boolean;
   children: ReactNode;
 };
 
@@ -36,15 +33,12 @@ export function VirtualizedListItem<T>({
   dataItemToString,
   selectionOptions,
   getContextMenuStyle,
-  hoveredItem,
   setHoveredItem,
   anchorSelectionIndexRef,
-  layoutId,
   contentType,
-  shouldHideSidebarHighlight,
   children,
 }: SidebarListItemProps<T>) {
-  const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
+  const setSelectionRange = useSetAtom(selectionRangeAtom);
   const dataItemString = dataItemToString(dataItem);
   const disableSelection = selectionOptions.disableSelection === true;
   const dataItemToSelectionRangeEntry =
@@ -110,14 +104,6 @@ export function VirtualizedListItem<T>({
         }
       }}
     >
-      {!shouldHideSidebarHighlight && !disableSelection && (
-        <AnimatePresence>
-          {hoveredItem === dataItemString &&
-            !selectionRange.has(selectionRangeEntry) && (
-              <SidebarHighlight layoutId={layoutId} />
-            )}
-        </AnimatePresence>
-      )}
       {children}
     </div>
   );

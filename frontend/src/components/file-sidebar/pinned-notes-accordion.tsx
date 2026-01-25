@@ -53,7 +53,6 @@ export function PinnedNotesAccordion() {
         selectionOptions={{
           dataItemToSelectionRangeEntry: (filePath) => filePath.note,
         }}
-        shouldHideSidebarHighlight
         maxHeight="240px"
         emptyElement={
           <li className="pl-2 text-balance list-none text-zinc-500 dark:text-zinc-300 text-xs py-2">
