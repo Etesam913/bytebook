@@ -1,11 +1,11 @@
 import { useSetAtom, useAtomValue } from 'jotai';
-import { Dispatch, SetStateAction, useState } from 'react';
-import { Folder } from '../../../../icons/folder';
+import { Dispatch, MouseEvent, SetStateAction, useState } from 'react';
+import { Folder as FolderIcon } from '../../../../icons/folder';
 import { FolderOpen } from '../../../../icons/folder-open';
 import { FolderPlus } from '../../../../icons/folder-plus';
 import { Note } from '../../../../icons/page';
 import { BYTEBOOK_DRAG_DATA_FORMAT } from '../../../../utils/draggable';
-import type { FlattenedFileOrFolder } from '../types';
+import type { Folder } from '../types';
 import { fileOrFolderMapAtom } from '..';
 import { contextMenuDataAtom } from '../../../../atoms';
 import { useFolderRenameInlineMutation } from '../../../../hooks/folders';
@@ -21,6 +21,7 @@ import {
 } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { Finder } from '../../../../icons/finder';
 import { useRevealInFinderMutation } from '../../../../hooks/code';
+import { cn } from '../../../../utils/string-formatting';
 
 type OpenFolderArgs = {
   pathToFolder: string;
@@ -31,9 +32,15 @@ type OpenFolderArgs = {
 export function FileTreeFolderItem({
   dataItem,
   openFolder,
+  onSelectionClick,
+  onContextMenuSelection,
+  isSelectedFromSidebarClick,
 }: {
-  dataItem: FlattenedFileOrFolder;
+  dataItem: Folder;
   openFolder: (args: OpenFolderArgs) => void;
+  onSelectionClick: (e: MouseEvent) => void;
+  onContextMenuSelection: () => void;
+  isSelectedFromSidebarClick: boolean;
 }) {
   const [addingType, setAddingType] = useState<'folder' | 'note' | null>(null);
   const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
@@ -75,31 +82,42 @@ export function FileTreeFolderItem({
       onSave: onRename,
     });
 
-  async function handleClick() {
+  async function handleClick(e: MouseEvent) {
     if (dataItem.type !== 'folder') {
       return;
     }
 
-    if (!dataItem.isOpen) {
-      openFolder({
-        pathToFolder: dataItem.path,
-        folderId: dataItem.id,
-      });
-      await OpenFolderAndAddToFileWatcher(dataItem.path);
-    } else {
-      setFileOrFolderMap((prev) => {
-        const newMap = new Map(prev);
-        newMap.set(dataItem.id, { ...dataItem, isOpen: false });
-        return newMap;
-      });
-      // Remove folder from file watcher when closing
-      await CloseFolderAndRemoveFromFileWatcher(dataItem.path);
+    // Handle selection logic first
+    onSelectionClick(e);
+
+    // Then handle folder open/close (only on default click, not modifier clicks)
+    if (!e.shiftKey && !e.metaKey && !e.ctrlKey) {
+      if (!dataItem.isOpen) {
+        openFolder({
+          pathToFolder: dataItem.path,
+          folderId: dataItem.id,
+        });
+        await OpenFolderAndAddToFileWatcher(dataItem.path);
+      } else {
+        setFileOrFolderMap((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(dataItem.id, { ...dataItem, isOpen: false });
+          return newMap;
+        });
+        // Remove folder from file watcher when closing
+        await CloseFolderAndRemoveFromFileWatcher(dataItem.path);
+      }
     }
   }
 
   const innerContent = (
     <>
-      <span className="rounded-md flex items-center gap-2 z-10 py-1 px-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650">
+      <span
+        className={cn(
+          'rounded-md flex items-center gap-2 z-10 py-1 px-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
+          isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
+        )}
+      >
         {dataItem.type === 'folder' && dataItem.isOpen ? (
           <FolderOpen
             className="min-w-4 min-h-4 will-change-transform"
@@ -108,7 +126,7 @@ export function FileTreeFolderItem({
             strokeWidth={1.75}
           />
         ) : (
-          <Folder
+          <FolderIcon
             className="min-w-4 min-h-4 will-change-transform"
             height={16}
             width={16}
@@ -163,7 +181,9 @@ export function FileTreeFolderItem({
         onClick={handleClick}
         onContextMenu={(e) => {
           if (dataItem.type !== 'folder') return;
+
           e.preventDefault();
+          onContextMenuSelection();
           setContextMenuData({
             x: e.clientX / currentZoom,
             y: e.clientY / currentZoom,

@@ -16,7 +16,7 @@ import (
 
 // Constants for file types
 const (
-	debounceTimeout = 350 * time.Millisecond
+	debounceTimeout = 100 * time.Millisecond
 )
 
 var IMAGE_FILE_EXTENSIONS = []string{"png", "jpg", "jpeg", "webp", "gif"}

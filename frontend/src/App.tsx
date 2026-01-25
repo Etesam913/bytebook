@@ -53,8 +53,6 @@ const SearchPage = lazy(() =>
   }))
 );
 
-export const WINDOW_ID = `id-${Math.random().toString(16).slice(2)}`;
-
 disableBackspaceNavigation();
 
 function App() {

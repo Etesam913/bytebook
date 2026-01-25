@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useSetAtom } from 'jotai';
+import { logger } from '../utils/logging';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import {
@@ -43,9 +44,8 @@ function updateAccentColorVariable(accentColor: string) {
  * @throws  If the fetch operation fails or returns invalid data.
  */
 function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
-  const { theme, noteSidebarItemSize, noteWidth } = validateProjectSettings({
+  const { theme, noteWidth } = validateProjectSettings({
     theme: data.appearance.theme,
-    noteSidebarItemSize: data.appearance.noteSidebarItemSize,
     noteWidth: data.appearance.noteWidth,
   });
 
@@ -58,7 +58,6 @@ function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
       ...data.appearance,
       accentColor: data.appearance.accentColor,
       theme,
-      noteSidebarItemSize,
       noteWidth,
     },
   };
@@ -97,7 +96,7 @@ export function useProjectSettings() {
   // Open the settings dialog on 'settings:open' event.
   useWailsEvent('settings:open', async (data) => {
     if (!(await isEventInCurrentWindow(data))) return;
-    console.info('settings:open', data);
+    logger.event('settings:open', data);
     setDialogData({
       isOpen: true,
       isPending: false,

@@ -24,6 +24,8 @@ export function useAddToSidebarSelection() {
       const items = Array.isArray(itemsToSelect)
         ? itemsToSelect
         : [itemsToSelect];
+
+      console.log(items);
       if (items.length === 0) {
         return prev;
       }

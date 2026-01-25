@@ -126,12 +126,10 @@ export function VirtualizedList<T>({
       if (contextMenuRef?.current?.contains(e.target as Node)) return;
 
       // Check if the click is on a sidebar item button (including nested children like SVGs)
-      // Sidebar item buttons have 'list-sidebar-item' or 'card-sidebar-item' class
       const target = e.target as HTMLElement;
       const clickedButton = target.closest('button');
       const isSidebarItemClick =
-        clickedButton?.classList.contains('list-sidebar-item') ||
-        clickedButton?.classList.contains('card-sidebar-item');
+        clickedButton?.classList.contains('list-sidebar-item');
 
       if (isSidebarItemClick) {
         return;

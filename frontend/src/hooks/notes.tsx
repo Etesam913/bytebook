@@ -6,6 +6,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+import { logger } from '../utils/logging';
 import { useAtomValue, useSetAtom } from 'jotai/react';
 import { Window } from '@wailsio/runtime';
 import { type LexicalEditor } from 'lexical';
@@ -108,7 +109,7 @@ const noteQueries = {
           noteSort,
           note
         );
-        console.info({
+        logger.event('notePageIndex query', {
           queryKey: ['notePageIndex', folder, noteSort, note],
           res,
         });
@@ -157,7 +158,7 @@ export function useNotesInPage(
         pageParam
       );
 
-      console.info({
+      logger.event('notes query', {
         queryKey,
         res,
       });
@@ -231,7 +232,7 @@ export function useNoteCreate() {
   const setFilePathToId = useSetAtom(filePathToIdAtom);
 
   useWailsEvent('note:create', async (body) => {
-    console.info('note:create', body);
+    logger.event('note:create', body);
     const data = body.data as { notePath: string }[];
 
     for (const { notePath } of data) {
@@ -265,6 +266,7 @@ export function useNoteCreate() {
         setFileOrFolderMap((prev) => {
           const parent = prev.get(parentId);
           if (!parent || parent.type !== 'folder' || !parent.isOpen) {
+            console.log({ parent });
             // Parent doesn't exist or isn't open - nothing to update
             return prev;
           }
@@ -390,7 +392,7 @@ export function useNoteRename() {
   const setFilePathToId = useSetAtom(filePathToIdAtom);
 
   useWailsEvent('note:rename', async (body) => {
-    console.info('note:rename', body);
+    logger.event('note:rename', body);
     const data = body.data as {
       oldNotePath: string;
       newNotePath: string;
@@ -466,7 +468,7 @@ export function useNoteDelete() {
   const setFilePathToId = useSetAtom(filePathToIdAtom);
 
   useWailsEvent('note:delete', async (body) => {
-    console.info('note:delete', body);
+    logger.event('note:delete', body);
     const data = body.data as { notePath: string }[];
 
     for (const { notePath } of data) {
@@ -546,6 +548,20 @@ export function useNoteRevealInFinderMutation() {
         throw new QueryError(
           `Failed to reveal ${failedNotes.join(', ')} in finder`
         );
+      }
+    },
+  });
+}
+
+export function useMoveToTrashMutationNew() {
+  return useMutation({
+    mutationFn: async ({ path }: { path: string }) => {
+      const res = await MoveToTrash([path]);
+      if (!res.success) throw new Error(res.message);
+    },
+    onError: (e) => {
+      if (e instanceof Error) {
+        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
       }
     },
   });

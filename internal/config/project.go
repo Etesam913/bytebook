@@ -121,7 +121,6 @@ type AppearanceProjectSettingsJson struct {
 	AccentColor              string `json:"accentColor"`
 	NoteWidth                string `json:"noteWidth"`
 	EditorFontFamily         string `json:"editorFontFamily"`
-	NoteSidebarItemSize      string `json:"noteSidebarItemSize"`
 	ShowEmptyLinePlaceholder bool   `json:"showEmptyLinePlaceholder"`
 }
 
@@ -153,7 +152,6 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 			Theme:                    "light",
 			AccentColor:              "",
 			EditorFontFamily:         "Bricolage Grotesque",
-			NoteSidebarItemSize:      "card",
 			ShowEmptyLinePlaceholder: true,
 		},
 		Code: CodeProjectSettingsJson{

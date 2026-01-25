@@ -1,4 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { logger } from '../utils/logging';
 import { CodeNode } from '../components/editor/nodes/code';
 import { useWailsEvent } from './events';
 import { loadingToastIdsAtom, kernelsDataAtom } from '../atoms';
@@ -38,7 +39,7 @@ export function useKernelStatus() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
 
   useWailsEvent('code:kernel:status', (body) => {
-    console.info('code:kernel:status');
+    logger.event('code:kernel:status');
     const data = body.data as {
       status: KernelStatus;
       language: Languages;
@@ -62,7 +63,7 @@ export function useKernelStatus() {
  */
 export function useCodeBlockStatus(editor: LexicalEditor) {
   useWailsEvent('code:code-block:status', (body) => {
-    console.info('code:code-block:status');
+    logger.event('code:code-block:status');
 
     const data = body.data as {
       status: KernelStatus;
@@ -86,7 +87,7 @@ export function useCodeBlockStatus(editor: LexicalEditor) {
  */
 export function useCodeBlockExecuteResult(editor: LexicalEditor) {
   useWailsEvent('code:code-block:execute_result', (body) => {
-    console.info('code:code-block:execute_result');
+    logger.event('code:code-block:execute_result');
 
     const data = body.data as {
       messageId: string;
@@ -118,7 +119,7 @@ export function useCodeBlockExecuteResult(editor: LexicalEditor) {
  */
 export function useCodeBlockExecuteInput(editor: LexicalEditor) {
   useWailsEvent('code:code-block:execute_input', (body) => {
-    console.info('code:code-block:execute_input');
+    logger.event('code:code-block:execute_input');
 
     const data = body.data as {
       messageId: string;
@@ -148,7 +149,7 @@ export function useKernelShutdown() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
 
   useWailsEvent('code:kernel:shutdown_reply', (body) => {
-    console.info('code:kernel:shutdown_reply');
+    logger.event('code:kernel:shutdown_reply');
     const data = body.data as {
       status: string;
       language: Languages;
@@ -179,7 +180,7 @@ export function useKernelHeartbeat() {
   const setLoadingToastIds = useSetAtom(loadingToastIdsAtom);
 
   useWailsEvent('code:kernel:heartbeat', (body) => {
-    console.info('code:kernel:heartbeat', body);
+    logger.event('code:kernel:heartbeat', body);
     const data = body.data as {
       status: KernelHeartbeatStatus;
       language: Languages;
@@ -207,7 +208,7 @@ export function useKernelHeartbeat() {
 export function useKernelLaunchEvents(editor: LexicalEditor) {
   const setKernelsData = useSetAtom(kernelsDataAtom);
   useWailsEvent('kernel:launch-error', (body) => {
-    console.info('kernel:launch-error');
+    logger.event('kernel:launch-error');
     const data = body.data as {
       language: Languages;
       data: string;
@@ -233,7 +234,7 @@ export function useKernelLaunchEvents(editor: LexicalEditor) {
   });
 
   useWailsEvent('kernel:launch-success', (body) => {
-    console.info('kernel:launch-success');
+    logger.event('kernel:launch-success');
     const data = body.data as {
       language: Languages;
       data: string;
@@ -323,7 +324,7 @@ function updateCodeBlock(
  */
 export function useCodeBlockStream(editor: LexicalEditor) {
   useWailsEvent('code:code-block:stream', (body) => {
-    console.info('code:code-block:stream');
+    logger.event('code:code-block:stream');
     const data = body.data as {
       messageId: string;
       name: 'stdout' | 'stderr';
@@ -349,7 +350,7 @@ export function useCodeBlockStream(editor: LexicalEditor) {
  */
 export function useCodeBlockIOPubError(editor: LexicalEditor) {
   useWailsEvent('code:code-block:iopub_error', (body) => {
-    console.info('code:code-block:iopub_error', body);
+    logger.event('code:code-block:iopub_error', body);
     const data = body.data as {
       messageId: string;
       errorName: string;
@@ -412,7 +413,7 @@ export function useCodeBlockDisplayData(editor: LexicalEditor) {
  */
 export function useCodeBlockInputRequest(editor: LexicalEditor) {
   useWailsEvent('code:code-block:input_request', (body) => {
-    console.info('code:code-block:input_request', body);
+    logger.event('code:code-block:input_request', body);
     const data = body.data as {
       messageId: string;
       prompt: string | null;

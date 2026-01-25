@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import { useWailsEvent } from '../../../../hooks/events';
 import { NAME_CHARS } from '../../../../utils/string-formatting';
-import { FlattenedFileOrFolder } from '../types';
+import { File, Folder } from '../types';
 
 /**
  * Hook to manage file/folder editing state and rename logic.
@@ -75,7 +75,7 @@ export function InlineTreeItemInput({
   onSave,
   extension,
 }: {
-  dataItem: FlattenedFileOrFolder;
+  dataItem: File | Folder;
   defaultValue: string;
   isEditing: boolean;
   errorText: string;

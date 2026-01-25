@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useWailsEvent } from './events';
+import { logger } from '../utils/logging';
 import {
   DeleteTags,
   GetTags,
@@ -22,7 +23,7 @@ export function useTagEvents() {
   const filePath = useAtomValue(currentFilePathAtom);
 
   useWailsEvent('tags:index_update', () => {
-    console.info('tags:index_update');
+    logger.event('tags:index_update');
     // Invalidate the tag previews for each tag
     queryClient.invalidateQueries({
       predicate: (query) => query.queryKey[0] === 'tag-preview',

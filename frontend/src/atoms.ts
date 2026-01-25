@@ -9,7 +9,28 @@ import {
   type SortStrings,
 } from './types';
 import { LocalFilePath } from './utils/path';
+import { logger } from './utils/logging';
 
+/**
+ * Creates a jotai atom with automatic STATE logging when values are set.
+ * Logs the atom name and new value using the logger.state() method.
+ */
+export function atomWithLogging<T>(name: string, initialValue: T) {
+  const baseAtom = atom(initialValue);
+
+  return atom(
+    (get) => get(baseAtom),
+    (get, set, update: T | ((prev: T) => T)) => {
+      const prev = get(baseAtom);
+      const newValue =
+        typeof update === 'function'
+          ? (update as (prev: T) => T)(prev)
+          : update;
+      logger.state(name, { prev, next: newValue });
+      set(baseAtom, newValue);
+    }
+  );
+}
 // Most recent notes atoms
 const initializeMostRecentNotes = (): LocalFilePath[] => {
   const stored = JSON.parse(
@@ -41,7 +62,6 @@ export const projectSettingsAtom = atom<ProjectSettings>({
   projectPath: '',
   appearance: {
     theme: 'light',
-    noteSidebarItemSize: 'card',
     accentColor: '',
     noteWidth: 'fullWidth',
     editorFontFamily: 'Bricolage Grotesque',
