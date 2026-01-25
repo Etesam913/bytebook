@@ -41,7 +41,11 @@ export function NoteTitle({ filePath }: { filePath: FilePath }) {
         onFocus={() => setIsToolbarDisabled(true)}
         onBlur={async () => {
           setIsToolbarDisabled(false);
-          if (noteTitle === filePath.note || errorText.length > 0) return;
+          if (
+            noteTitle === filePath.noteWithoutExtension ||
+            errorText.length > 0
+          )
+            return;
 
           const newFilePathString = `${filePath.folder}/${noteTitle}.md`;
           const newFilePath = createFilePath(newFilePathString);

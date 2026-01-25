@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { logger } from '../utils/logging';
 import type {
   CompletionContext,
   CompletionResult,
@@ -146,7 +147,7 @@ export function useInspectTooltip({
   pendingInspections: Map<string, (data: HoverTooltipData) => void>;
 }) {
   useWailsEvent('code:code-block:inspect_reply', (body) => {
-    console.info('code:code-block:inspect_reply', body);
+    logger.event('code:code-block:inspect_reply', body);
     const data = body.data as {
       found: boolean;
       messageId: string;

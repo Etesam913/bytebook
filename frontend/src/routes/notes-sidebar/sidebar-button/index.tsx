@@ -25,7 +25,6 @@ import {
 } from '../../../utils/selection';
 import { cn } from '../../../utils/string-formatting';
 import { LocalFilePath } from '../../../utils/path';
-import { CardNoteSidebarItem } from './card-note-sidebar-item';
 import { ListNoteSidebarItem } from './list-note-sidebar-item';
 import { navigate } from 'wouter/use-browser-location';
 import { EditTagDialogChildren } from '../edit-tag-dialog-children';
@@ -264,13 +263,8 @@ export function NoteSidebarButton({
         });
       }}
       className={cn(
-        projectSettings.appearance.noteSidebarItemSize === 'list' &&
-          'list-sidebar-item',
-        projectSettings.appearance.noteSidebarItemSize === 'card' &&
-          'card-sidebar-item',
-        projectSettings.appearance.noteSidebarItemSize === 'card' &&
-          sidebarNoteIndex === 0 &&
-          'border-t',
+        'list-sidebar-item',
+        sidebarNoteIndex === 0 && 'border-t',
         isActive && 'bg-zinc-150 dark:bg-zinc-700',
         isSelected && 'bg-(--accent-color)! text-white'
       )}
@@ -287,18 +281,10 @@ export function NoteSidebarButton({
         }
       }}
     >
-      {projectSettings.appearance.noteSidebarItemSize === 'list' && (
-        <ListNoteSidebarItem
-          sidebarNotePath={sidebarNotePath}
-          activeNotePath={activeNotePath}
-        />
-      )}
-      {projectSettings.appearance.noteSidebarItemSize === 'card' && (
-        <CardNoteSidebarItem
-          sidebarNotePath={sidebarNotePath}
-          isSelected={isSelected}
-        />
-      )}
+      <ListNoteSidebarItem
+        sidebarNotePath={sidebarNotePath}
+        activeNotePath={activeNotePath}
+      />
     </button>
   );
 }

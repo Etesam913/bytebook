@@ -110,8 +110,9 @@ export function DropdownItems({
                     <button
                       id={optionId}
                       className={cn(
-                        'relative z-40 outline-hidden rounded-md w-full px-1.5 py-0.5 text-left whitespace-nowrap text-nowrap text-ellipsis overflow-hidden flex hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
-                        isSelected && 'bg-zinc-150! dark:bg-zinc-600!'
+                        'relative z-40 outline-hidden rounded-md w-full px-1.5 py-0.5 text-left whitespace-nowrap text-nowrap text-ellipsis overflow-hidden flex hover:bg-zinc-100 dark:hover:bg-zinc-650 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-650',
+                        isSelected &&
+                          'bg-zinc-150! dark:bg-zinc-600! focus-visible:bg-zinc-150! dark:focus-visible:bg-zinc-600!'
                       )}
                       type="button"
                       role="option"

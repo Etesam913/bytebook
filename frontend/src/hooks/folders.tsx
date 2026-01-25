@@ -5,6 +5,7 @@ import {
   useQueryClient,
   QueryClient,
 } from '@tanstack/react-query';
+import { logger } from '../utils/logging';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { toast } from 'sonner';
@@ -90,7 +91,7 @@ export function useFolderCreate() {
   const setFilePathToId = useSetAtom(filePathToIdAtom);
 
   useWailsEvent('folder:create', async (body) => {
-    console.info('folder:create', body);
+    logger.event('folder:create', body);
     const data = body.data as { folderPath: string }[];
 
     for (const { folderPath } of data) {
@@ -148,7 +149,7 @@ export function useFolderDelete() {
   const setFilePathToId = useSetAtom(filePathToIdAtom);
 
   useWailsEvent('folder:delete', async (body) => {
-    console.info('folder:delete', body);
+    logger.event('folder:delete', body);
     const data = body.data as { folderPath: string }[];
 
     for (const { folderPath } of data) {
@@ -197,7 +198,7 @@ export function useFolderRename() {
   const setFilePathToId = useSetAtom(filePathToIdAtom);
 
   useWailsEvent('folder:rename', async (body) => {
-    console.info('folder:rename', body);
+    logger.event('folder:rename', body);
     const data = body.data as {
       oldFolderPath: string;
       newFolderPath: string;

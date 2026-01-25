@@ -54,6 +54,7 @@
     "react-use-measure": "^2.1.7",
     "react-virtuoso": "^4.17.0",
     "sonner": "^2.0.7",
+    "tslog": "^4.10.2",
     "wouter": "^3.7.1"
   },
   "overrides": {

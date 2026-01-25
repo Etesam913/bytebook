@@ -5,6 +5,7 @@ import { getDefaultButtonVariants } from '../../../animations';
 import { isFullscreenAtom, projectSettingsAtom } from '../../../atoms';
 import {
   useMoveNoteToTrashMutation,
+  useMoveToTrashMutationNew,
   useNoteRevealInFinderMutation,
 } from '../../../hooks/notes';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
@@ -42,7 +43,7 @@ export function SettingsDropdown({
   const [editor] = useLexicalComposerContext();
 
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
-  const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
+  const { mutate: moveToTrash } = useMoveToTrashMutationNew();
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
   const openRenameFileDialog = useRenameFileDialog();
 
@@ -152,10 +153,7 @@ export function SettingsDropdown({
             break;
           }
           case 'move-to-trash': {
-            moveToTrash({
-              selectionRange: new Set([`note:${note}.md`]),
-              folder,
-            });
+            moveToTrash({ path: `notes/${folder}/${note}.md` });
             break;
           }
         }

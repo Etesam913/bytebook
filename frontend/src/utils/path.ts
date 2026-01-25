@@ -16,8 +16,18 @@ export function safeDecodeURIComponent(str: string): string {
   }
 }
 
+export interface FolderPath {
+  type: 'folder';
+  fullPath: string;
+  folder: string;
+  folderUrl: string;
+  encodedFolderUrl: string;
+  equals(other: FolderPath): boolean;
+}
+
 /** Represents a path to a file in the bytebook app */
 export interface FilePath {
+  type: 'file';
   fullPath: string;
   folder: string;
   note: string;
@@ -31,19 +41,23 @@ export interface FilePath {
 /**
  * Creates a FilePath object from a string
  * Returns null if the filePath is not a file
+ * Normalizes the input filePath by removing extra slashes.
  */
 export function createFilePath(filePath: string): FilePath | null {
-  const lastSegment = filePath.split('/').pop();
+  // Normalize the path: remove repeated slashes, trim, remove trailing slash
+  const normalizedPath = filePath.split('/').filter(Boolean).join('/');
+
+  const lastSegment = normalizedPath.split('/').pop();
 
   // The filePath has to point to a file, not a folder
   if (!lastSegment || !lastSegment.includes('.')) {
     return null;
   }
 
-  const folder = filePath.split('/').slice(0, -1).join('/');
-  const note = filePath.split('/').pop();
+  const folder = normalizedPath.split('/').slice(0, -1).join('/');
+  const note = lastSegment;
   const extension = lastSegment.split('.').pop();
-  if (!folder || !note || !extension) {
+  if (!note || !extension) {
     return null;
   }
 
@@ -53,14 +67,48 @@ export function createFilePath(filePath: string): FilePath | null {
     lastDotIndex === -1 ? note : note.substring(0, lastDotIndex);
 
   return {
-    fullPath: filePath,
-    fileUrl: `/notes/${filePath}`,
-    encodedFileUrl: `/notes/${filePath.split('/').map(encodeURIComponent).join('/')}`,
+    type: 'file',
+    fullPath: normalizedPath,
+    fileUrl: `/notes/${normalizedPath}`,
+    encodedFileUrl: `/notes/${normalizedPath.split('/').map(encodeURIComponent).join('/')}`,
     folder,
     note,
     extension,
     noteWithoutExtension,
     equals(other: FilePath) {
+      return this.fullPath === other.fullPath;
+    },
+  };
+}
+
+/**
+ * Creates a FolderPath object from a string
+ * Returns null if the folderPath is not a valid folder path
+ */
+export function createFolderPath(folderPath: string): FolderPath | null {
+  // Remove any trailing slashes for normalizing
+  const normalizedPath = folderPath.replace(/\/+$/, '');
+
+  // If the normalized path is empty, this is not a valid folder
+  if (!normalizedPath) {
+    return null;
+  }
+
+  const parts = normalizedPath.split('/');
+  const folder = parts[parts.length - 1];
+
+  // If the folder path points to a file (contains a dot in the last segment), it's not a folder
+  if (folder.includes('.')) {
+    return null;
+  }
+
+  return {
+    type: 'folder',
+    fullPath: normalizedPath,
+    folder,
+    folderUrl: `/notes/${normalizedPath}`,
+    encodedFolderUrl: `/notes/${normalizedPath.split('/').map(encodeURIComponent).join('/')}`,
+    equals(other: FolderPath) {
       return this.fullPath === other.fullPath;
     },
   };

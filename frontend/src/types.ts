@@ -65,10 +65,9 @@ export type SortStrings =
 
 type AppearanceSettings = Omit<
   AppearanceProjectSettingsJson,
-  'theme' | 'noteSidebarItemSize' | 'noteWidth'
+  'theme' | 'noteWidth'
 > & {
   theme: 'light' | 'dark' | 'system';
-  noteSidebarItemSize: 'card' | 'list';
   noteWidth: 'fullWidth' | 'readability';
   showEmptyLinePlaceholder: boolean;
 };

@@ -175,13 +175,6 @@ textarea,
   outline: 2px auto;
 }
 
-.card-sidebar-item {
-  @apply flex flex-1 gap-2 items-center border-b border-zinc-300 dark:border-zinc-600 px-2 py-[0.2rem] relative z-10 overflow-x-hidden transition-colors will-change-transform;
-}
-.card-sidebar-item:focus {
-  outline: 2px auto;
-}
-
 #content-editable-editor {
   @apply leading-loose cursor-text isolate py-1;
   /* Contain:layout style paint makes the editor handle larger content more efficiently */

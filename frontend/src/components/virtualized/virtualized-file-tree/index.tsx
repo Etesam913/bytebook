@@ -1,14 +1,20 @@
-import { atom, useAtomValue } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { Virtuoso } from 'react-virtuoso';
 import { useTopLevelFileOrFolders } from './hooks';
 import { FileTreeItem } from './file-tree-item';
 import { useAnimatedHeight } from '../hooks';
 import { transformFileTreeForVirtualizedList } from './utils';
 import { FileOrFolder } from './types';
-import { useEffect } from 'react';
+import { atomWithLogging } from '../../../atoms';
 
-export const fileOrFolderMapAtom = atom(new Map<string, FileOrFolder>());
-export const filePathToIdAtom = atom(new Map<string, string>());
+export const fileOrFolderMapAtom = atomWithLogging(
+  'fileOrFolderMapAtom',
+  new Map<string, FileOrFolder>()
+);
+export const filePathToIdAtom = atomWithLogging(
+  'filePathToIdAtom',
+  new Map<string, string>()
+);
 
 const FILE_TREE_MAX_HEIGHT = '65vh';
 
@@ -21,14 +27,6 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
     topLevelFileOrFolders ?? [],
     fileOrFolderMap
   );
-
-  useEffect(() => {
-    console.info({
-      fileOrFolderMap,
-      topLevelFileOrFolders,
-      flattenedTopLevelData,
-    });
-  }, [fileOrFolderMap]);
 
   const { scope, isReady, handleHeightChange, totalHeight } = useAnimatedHeight(
     {

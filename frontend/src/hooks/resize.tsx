@@ -1,5 +1,6 @@
 import { useAtom, useSetAtom } from 'jotai/react';
 import { useWailsEvent, WailsEvent } from './events';
+import { logger } from '../utils/logging';
 import { atom } from 'jotai';
 import { isFullscreenAtom } from '../atoms';
 import { useEffect } from 'react';
@@ -81,7 +82,7 @@ export function useFullscreen() {
 
   useWailsEvent('window:fullscreen', (event: WailsEvent) => {
     const isFullscreen = event.data as boolean;
-    console.info('window:fullscreen', isFullscreen);
+    logger.event('window:fullscreen', isFullscreen);
     setIsFullscreen(isFullscreen);
   });
 }

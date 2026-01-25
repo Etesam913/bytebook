@@ -371,7 +371,7 @@ export function getAnchorAfterRemoval({
   const orderedSelectionKeys: string[] = [];
   for (const childId of parentFolder.childrenIds) {
     const childItem = fileOrFolderMap.get(childId);
-    if (!childItem || childItem.type !== 'file') continue;
+    if (!childItem) continue;
     const childFilePath = createFilePath(childItem.id);
     if (!childFilePath) continue;
     orderedSelectionKeys.push(
@@ -459,13 +459,12 @@ export function computeShiftClickSelections({
 
   const updatedSelections = new Set<string>();
 
-  // Go through the range and select each file in the range
+  // Go through the range and select each file or folder in the range
   for (let index = rangeStart; index <= rangeEnd; index += 1) {
     const childId = parentFolder.childrenIds[index];
     const childItem = fileOrFolderMap.get(childId);
 
-    // Skips folders
-    if (!childItem || childItem.type !== 'file') continue;
+    if (!childItem) continue;
 
     const childFilePath = createFilePath(childItem.id);
     if (!childFilePath) continue;

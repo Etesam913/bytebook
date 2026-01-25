@@ -1,5 +1,5 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
-import { FilePath, LocalFilePath } from './path';
+import { FilePath, FolderPath, LocalFilePath } from './path';
 import { SidebarContentType } from '../types';
 
 /**
@@ -151,7 +151,7 @@ export function getFileSelectionKey(selectableItemKey: string): string | null {
   return selectableItemKey.split(':')[1];
 }
 
-export type SelectableItems = FilePath & { id: string };
+export type SelectableItems = (FilePath | FolderPath) & { id: string };
 
 /**
  * Each element in the sidebar selection set is a string as that allows for easy lookup and removal

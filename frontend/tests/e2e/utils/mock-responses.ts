@@ -35,7 +35,6 @@ export const MOCK_PROJECT_SETTINGS_RESPONSE = {
     projectPath: '',
     appearance: {
       theme: 'light',
-      noteSidebarItemSize: 'card',
       accentColor: '',
       noteWidth: 'fullWidth',
       editorFontFamily: 'Bricolage Grotesque',

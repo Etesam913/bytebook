@@ -1,37 +1,44 @@
-import { useAtom, useAtomValue } from 'jotai';
-import { Dispatch, SetStateAction } from 'react';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { Dispatch, MouseEvent, SetStateAction } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { Note } from '../../../../icons/page';
-import { fileOrFolderMapAtom } from '..';
+import { Finder } from '../../../../icons/finder';
+import { contextMenuDataAtom } from '../../../../atoms';
 import { useFilePathFromRoute } from '../../../../hooks/routes';
-import { useRenameFileMutation } from '../../../../hooks/notes';
+import {
+  useMoveToTrashMutationNew,
+  useRenameFileMutation,
+} from '../../../../hooks/notes';
+import { useRevealInFinderMutation } from '../../../../hooks/code';
+import { currentZoomAtom } from '../../../../hooks/resize';
 import { createFilePath } from '../../../../utils/path';
-import {
-  sidebarSelectionAtom,
-  useAddToSidebarSelection,
-} from '../../../../hooks/selection';
-import {
-  SelectableItems,
-  getKeyForSidebarSelection,
-} from '../../../../utils/selection';
 import { cn } from '../../../../utils/string-formatting';
 import type { FlattenedFileOrFolder } from '../types';
 import {
   InlineTreeItemInput,
   useInlineTreeItemInput,
 } from './inline-tree-item-input';
-import { computeMetaClickState, computeShiftClickSelections } from '../utils';
+import { Trash } from '../../../../icons/trash';
 
 export function FileTreeFileItem({
   dataItem,
+  onSelectionClick,
+  onContextMenuSelection,
+  isSelectedFromSidebarClick,
 }: {
   dataItem: FlattenedFileOrFolder;
+  onSelectionClick: (e: MouseEvent) => void;
+  onContextMenuSelection: () => void;
+  isSelectedFromSidebarClick: boolean;
 }) {
-  const fileOrFolderMap = useAtomValue(fileOrFolderMapAtom);
-  const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
-  const addToSidebarSelection = useAddToSidebarSelection();
   const filePathFromRoute = useFilePathFromRoute();
+  const setContextMenuData = useSetAtom(contextMenuDataAtom);
+  const currentZoom = useAtomValue(currentZoomAtom);
+
   const { mutateAsync: renameFile } = useRenameFileMutation();
+  const { mutate: revealInFinder } = useRevealInFinderMutation();
+  const { mutate: moveToTrash } = useMoveToTrashMutationNew();
+
   const lastDotIndex = dataItem.name.lastIndexOf('.');
   const nameWithoutExtension =
     lastDotIndex === -1 ? dataItem.name : dataItem.name.slice(0, lastDotIndex);
@@ -87,82 +94,15 @@ export function FileTreeFileItem({
 
   const resolvedFilePath = filePath;
 
-  // When the file is selected using cmd+click or shift+click, the selectionKey is added to the sidebarSelection atom set.
-  const selectionKey = getKeyForSidebarSelection({
-    ...resolvedFilePath,
-    id: dataItem.id,
-  });
-
   const isSelectedFromRoute =
     filePathFromRoute && filePathFromRoute.equals(filePath);
-  const isSelectedFromSidebarClick =
-    sidebarSelection.selections.has(selectionKey);
 
-  /**
-   * Handles shift-click behavior for multi-selection by selecting a range of items
-   * between the anchor index and the clicked index
-   */
-  function handleShiftClick() {
-    const anchorSelectionKey = sidebarSelection.anchorSelection;
-    if (!anchorSelectionKey) {
-      setSidebarSelection({
-        selections: new Set([selectionKey]),
-        anchorSelection: selectionKey,
-      });
-      return;
+  function handleClick(e: MouseEvent) {
+    // For default click (no modifier keys), also navigate to the file
+    if (!e.shiftKey && !e.metaKey && !e.ctrlKey) {
+      navigate(resolvedFilePath.encodedFileUrl);
     }
-
-    const result = computeShiftClickSelections({
-      fileOrFolderMap,
-      dataItem,
-      anchorSelectionKey,
-    });
-
-    if (!result) {
-      return;
-    }
-
-    setSidebarSelection((prev) => ({
-      selections: result.selections,
-      anchorSelection: prev.anchorSelection,
-    }));
-  }
-
-  /**
-   * Handles cmd+click for toggling selection of a file
-   * It will un-select the file and update the anchor if it is already selected
-   * It will select the file if it is not already selected
-   */
-  function handleMetaClick() {
-    const selectableItem: SelectableItems = {
-      ...resolvedFilePath,
-      id: dataItem.id,
-    };
-    const result = computeMetaClickState({
-      fileOrFolderMap,
-      dataItem,
-      selectionKey,
-      currentSelections: sidebarSelection.selections,
-    });
-
-    if (result) {
-      // File was already selected, un-select it
-      setSidebarSelection(result);
-    } else {
-      // File is not selected, add it to selection
-      addToSidebarSelection(selectableItem);
-    }
-  }
-
-  /**
-   * Default clicks clears out selection and navigates to the file
-   */
-  function handleDefaultClick() {
-    setSidebarSelection({
-      selections: new Set([]),
-      anchorSelection: selectionKey,
-    });
-    navigate(resolvedFilePath.encodedFileUrl);
+    onSelectionClick(e);
   }
 
   const innerContent = (
@@ -213,14 +153,44 @@ export function FileTreeFileItem({
         e.preventDefault();
         e.stopPropagation();
       }}
-      onClick={(e) => {
-        if (e.shiftKey) {
-          handleShiftClick();
-        } else if (e.metaKey || e.ctrlKey) {
-          handleMetaClick();
-        } else {
-          handleDefaultClick();
-        }
+      onClick={handleClick}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        onContextMenuSelection();
+
+        setContextMenuData({
+          x: e.clientX / currentZoom,
+          y: e.clientY / currentZoom,
+          isShowing: true,
+          items: [
+            {
+              label: (
+                <span className="flex items-center gap-1.5">
+                  <Finder height={17} width={17} />{' '}
+                  <span>Reveal in Finder</span>
+                </span>
+              ),
+              value: 'reveal-in-finder',
+              onChange: () => {
+                revealInFinder({
+                  path: `notes/${dataItem.path}`,
+                  shouldPrefixWithProjectPath: true,
+                });
+              },
+            },
+            {
+              value: 'move-to-trash',
+              label: (
+                <span className="flex items-center gap-1.5">
+                  <Trash height={17} width={17} /> <span>Move to Trash</span>
+                </span>
+              ),
+              onChange: () => {
+                moveToTrash({ path: dataItem.path });
+              },
+            },
+          ],
+        });
       }}
       className="flex items-center w-full relative rounded-md py-0.25"
     >
