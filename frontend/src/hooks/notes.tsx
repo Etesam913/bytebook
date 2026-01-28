@@ -7,7 +7,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { logger } from '../utils/logging';
-import { useAtomValue, useSetAtom } from 'jotai/react';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
 import { Window } from '@wailsio/runtime';
 import { type LexicalEditor } from 'lexical';
 import {
@@ -53,10 +53,7 @@ import {
   addFileToFileTreeMap,
   removeFileFromFileTreeMap,
 } from '../components/virtualized/virtualized-file-tree/utils';
-import {
-  fileOrFolderMapAtom,
-  filePathToIdAtom,
-} from '../components/virtualized/virtualized-file-tree';
+import { fileTreeDataAtom } from '../components/virtualized/virtualized-file-tree';
 
 /** Data for a single page of notes */
 export type NotesPageData = {
@@ -227,9 +224,7 @@ export function useNotesInPage(
 /** This function is used to handle note:create events */
 export function useNoteCreate() {
   const queryClient = useQueryClient();
-  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
-  const filePathToId = useAtomValue(filePathToIdAtom);
-  const setFilePathToId = useSetAtom(filePathToIdAtom);
+  const [{ filePathToTreeDataId }, setFileTreeData] = useAtom(fileTreeDataAtom);
 
   useWailsEvent('note:create', async (body) => {
     logger.event('note:create', body);
@@ -245,7 +240,7 @@ export function useNoteCreate() {
         // Nested file - add it directly to the map
         const fileName = segments[segments.length - 1];
         const parentPath = segments.slice(0, -1).join('/');
-        const parentId = filePathToId.get(parentPath);
+        const parentId = filePathToTreeDataId.get(parentPath);
         console.log({ parentId, parentPath, fileName });
 
         if (!parentId) {
@@ -257,27 +252,27 @@ export function useNoteCreate() {
         // Generate a new UUID for this file
         const newFileId = crypto.randomUUID();
 
-        setFilePathToId((prev) => {
-          const newMap = new Map(prev);
-          newMap.set(notePath, newFileId);
-          return newMap;
-        });
-
-        setFileOrFolderMap((prev) => {
-          const parent = prev.get(parentId);
+        setFileTreeData((prev) => {
+          const parent = prev.treeData.get(parentId);
           if (!parent || parent.type !== 'folder' || !parent.isOpen) {
             console.log({ parent });
             // Parent doesn't exist or isn't open - nothing to update
             return prev;
           }
 
-          return addFileToFileTreeMap({
-            map: prev,
-            fileId: newFileId,
-            filePath: notePath,
-            fileName,
-            parentId,
-          });
+          const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
+          newFilePathToTreeDataId.set(notePath, newFileId);
+
+          return {
+            treeData: addFileToFileTreeMap({
+              map: prev.treeData,
+              fileId: newFileId,
+              filePath: notePath,
+              fileName,
+              parentId,
+            }),
+            filePathToTreeDataId: newFilePathToTreeDataId,
+          };
         });
       }
     }
@@ -387,9 +382,7 @@ export function useNoteCreateMutation() {
 
 export function useNoteRename() {
   const queryClient = useQueryClient();
-  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
-  const filePathToId = useAtomValue(filePathToIdAtom);
-  const setFilePathToId = useSetAtom(filePathToIdAtom);
+  const [{ filePathToTreeDataId }, setFileTreeData] = useAtom(fileTreeDataAtom);
 
   useWailsEvent('note:rename', async (body) => {
     logger.event('note:rename', body);
@@ -412,9 +405,9 @@ export function useNoteRename() {
         const newFileName = newSegments[newSegments.length - 1];
 
         // Look up UUIDs from paths
-        const oldFileId = filePathToId.get(oldNotePath);
-        const oldParentId = filePathToId.get(oldParentPath);
-        const newParentId = filePathToId.get(newParentPath);
+        const oldFileId = filePathToTreeDataId.get(oldNotePath);
+        const oldParentId = filePathToTreeDataId.get(oldParentPath);
+        const newParentId = filePathToTreeDataId.get(newParentPath);
 
         if (!oldFileId || !oldParentId) {
           // Can't find old file in path map - invalidate queries
@@ -422,29 +415,26 @@ export function useNoteRename() {
           continue;
         }
 
-        setFilePathToId((prev) => {
-          const newMap = new Map(prev);
-          newMap.delete(oldNotePath);
-          newMap.set(newNotePath, oldFileId);
-          return newMap;
-        });
+        setFileTreeData((prev) => {
+          const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
+          newFilePathToTreeDataId.delete(oldNotePath);
 
-        setFileOrFolderMap((prev) => {
           // First, remove the old file
-          let updatedMap = removeFileFromFileTreeMap({
-            map: prev,
+          let updatedTreeData = removeFileFromFileTreeMap({
+            map: prev.treeData,
             fileId: oldFileId,
             parentId: oldParentId,
           });
 
           // Then, add the new file if the parent is open
           if (newParentId) {
-            const newParent = updatedMap.get(newParentId);
+            const newParent = updatedTreeData.get(newParentId);
             if (newParent && newParent.type === 'folder' && newParent.isOpen) {
               // Generate a new UUID for the renamed file
               const newFileId = crypto.randomUUID();
-              updatedMap = addFileToFileTreeMap({
-                map: updatedMap,
+              newFilePathToTreeDataId.set(newNotePath, newFileId);
+              updatedTreeData = addFileToFileTreeMap({
+                map: updatedTreeData,
                 fileId: newFileId,
                 filePath: newNotePath,
                 fileName: newFileName,
@@ -453,7 +443,10 @@ export function useNoteRename() {
             }
           }
 
-          return updatedMap;
+          return {
+            treeData: updatedTreeData,
+            filePathToTreeDataId: newFilePathToTreeDataId,
+          };
         });
       }
     }
@@ -463,9 +456,7 @@ export function useNoteRename() {
 /** This function is used to handle note:delete events */
 export function useNoteDelete() {
   const queryClient = useQueryClient();
-  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
-  const filePathToId = useAtomValue(filePathToIdAtom);
-  const setFilePathToId = useSetAtom(filePathToIdAtom);
+  const [{ filePathToTreeDataId }, setFileTreeData] = useAtom(fileTreeDataAtom);
 
   useWailsEvent('note:delete', async (body) => {
     logger.event('note:delete', body);
@@ -482,8 +473,8 @@ export function useNoteDelete() {
         const parentPath = segments.slice(0, -1).join('/');
 
         // Look up UUIDs from paths
-        const fileId = filePathToId.get(notePath);
-        const parentId = filePathToId.get(parentPath);
+        const fileId = filePathToTreeDataId.get(notePath);
+        const parentId = filePathToTreeDataId.get(parentPath);
 
         if (!fileId || !parentId) {
           // Can't find file in path map - invalidate queries
@@ -491,18 +482,18 @@ export function useNoteDelete() {
           continue;
         }
 
-        setFilePathToId((prev) => {
-          const newMap = new Map(prev);
-          newMap.delete(notePath);
-          return newMap;
-        });
+        setFileTreeData((prev) => {
+          const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
+          newFilePathToTreeDataId.delete(notePath);
 
-        setFileOrFolderMap((prev) => {
-          return removeFileFromFileTreeMap({
-            map: prev,
-            fileId,
-            parentId,
-          });
+          return {
+            treeData: removeFileFromFileTreeMap({
+              map: prev.treeData,
+              fileId,
+              parentId,
+            }),
+            filePathToTreeDataId: newFilePathToTreeDataId,
+          };
         });
       }
     }

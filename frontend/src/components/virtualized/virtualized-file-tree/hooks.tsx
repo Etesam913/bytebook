@@ -5,7 +5,7 @@ import {
   OpenFolderAndAddToFileWatcher,
 } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { QueryError } from '../../../utils/query';
-import { fileOrFolderMapAtom, filePathToIdAtom } from '.';
+import { fileTreeDataAtom } from '.';
 import { reconcileTopLevelFileTreeMap } from './utils';
 import { FILE_TYPE, FOLDER_TYPE, type FileOrFolder } from './types';
 import { useEffect } from 'react';
@@ -55,8 +55,7 @@ export function useTopLevelFileOrFolders() {
     },
   });
 
-  const setFileMap = useSetAtom(fileOrFolderMapAtom);
-  const setFilePathToId = useSetAtom(filePathToIdAtom);
+  const setFileTreeData = useSetAtom(fileTreeDataAtom);
 
   /**
    * Synchronizes the file/folder map atom with the top-level items query data.
@@ -76,15 +75,22 @@ export function useTopLevelFileOrFolders() {
     const isLoading = topLevelFolderOrFilesQuery.isLoading;
     const data = topLevelFolderOrFilesQuery.data;
     if (!isLoading && data) {
-      setFileMap((prev) => reconcileTopLevelFileTreeMap(prev, data));
+      setFileTreeData((prev) => {
+        const reconciledTreeData = reconcileTopLevelFileTreeMap(
+          prev.treeData,
+          data
+        );
+        const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
 
-      // Populate filePathToId map for top-level items
-      setFilePathToId((prev) => {
-        const newMap = new Map(prev);
+        // Populate filePathToTreeDataId map for top-level items
         for (const item of data) {
-          newMap.set(item.path, item.id);
+          newFilePathToTreeDataId.set(item.path, item.id);
         }
-        return newMap;
+
+        return {
+          treeData: reconciledTreeData,
+          filePathToTreeDataId: newFilePathToTreeDataId,
+        };
       });
     }
   }, [topLevelFolderOrFilesQuery.isLoading, topLevelFolderOrFilesQuery.data]);
@@ -105,8 +111,7 @@ export function useTopLevelFileOrFolders() {
  * @returns A mutation object for opening (expanding) a folder.
  */
 export function useOpenFolderMutation() {
-  const [fileOrFolderMap, setFileOrFolderMap] = useAtom(fileOrFolderMapAtom);
-  const setFilePathToId = useSetAtom(filePathToIdAtom);
+  const [{ treeData }, setFileTreeData] = useAtom(fileTreeDataAtom);
   const PAGE_SIZE = 50;
 
   // Opens a folder by its path and updates the file/folder map atom with its children.
@@ -120,7 +125,7 @@ export function useOpenFolderMutation() {
       folderId: string;
       isLoadMore?: boolean;
     }) => {
-      const folderData = fileOrFolderMap.get(folderId);
+      const folderData = treeData.get(folderId);
       if (!folderData || folderData.type !== FOLDER_TYPE) {
         throw new QueryError('Folder not found');
       }
@@ -129,13 +134,16 @@ export function useOpenFolderMutation() {
       if (hasChildren && !isLoadMore) {
         // There are already children, so we don't need to fetch them again.
         // The folder does have to be set as open though
-        setFileOrFolderMap((prev) => {
-          const newMap = new Map(prev);
-          newMap.set(folderId, {
+        setFileTreeData((prev) => {
+          const newTreeData = new Map(prev.treeData);
+          newTreeData.set(folderId, {
             ...folderData,
             isOpen: true,
           });
-          return newMap;
+          return {
+            ...prev,
+            treeData: newTreeData,
+          };
         });
         // Add folder to file watcher
         await OpenFolderAndAddToFileWatcher(pathToFolder);
@@ -153,11 +161,12 @@ export function useOpenFolderMutation() {
         throw new QueryError(res.message);
       }
 
-      setFileOrFolderMap((prev) => {
+      setFileTreeData((prev) => {
         if (!res.data) return prev;
 
-        const tempMap = new Map(prev);
-        const existingFolder = tempMap.get(folderId);
+        const tempTreeData = new Map(prev.treeData);
+        const tempFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
+        const existingFolder = tempTreeData.get(folderId);
         const childrenIds: string[] =
           isLoadMore && existingFolder && existingFolder.type === FOLDER_TYPE
             ? [...existingFolder.childrenIds]
@@ -172,15 +181,19 @@ export function useOpenFolderMutation() {
             name: entry.name,
             parentId: folderId,
           };
+
+          // Populate filePathToTreeDataId map for children
+          tempFilePathToTreeDataId.set(entry.path, entry.id);
+
           switch (entry.type) {
             case FILE_TYPE:
-              tempMap.set(entry.id, {
+              tempTreeData.set(entry.id, {
                 ...commonAttributes,
                 type: 'file',
               });
               break;
             case FOLDER_TYPE:
-              tempMap.set(entry.id, {
+              tempTreeData.set(entry.id, {
                 ...commonAttributes,
                 type: 'folder',
                 childrenIds: entry.childrenIds,
@@ -195,9 +208,9 @@ export function useOpenFolderMutation() {
         }
 
         // Updating the childrenIds of the parent folder
-        const folder = tempMap.get(folderId);
+        const folder = tempTreeData.get(folderId);
         if (folder && folder.type === FOLDER_TYPE) {
-          tempMap.set(folderId, {
+          tempTreeData.set(folderId, {
             ...folder,
             childrenIds,
             isOpen: true,
@@ -206,17 +219,10 @@ export function useOpenFolderMutation() {
           });
         }
 
-        return tempMap;
-      });
-
-      // Populate filePathToId map for children
-      setFilePathToId((prev) => {
-        if (!res.data) return prev;
-        const newMap = new Map(prev);
-        for (const entry of res.data.items ?? []) {
-          newMap.set(entry.path, entry.id);
-        }
-        return newMap;
+        return {
+          treeData: tempTreeData,
+          filePathToTreeDataId: tempFilePathToTreeDataId,
+        };
       });
 
       // Add folder to file watcher after successfully opening

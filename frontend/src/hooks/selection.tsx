@@ -5,10 +5,12 @@ import {
   getKeyForSidebarSelection,
 } from '../utils/selection';
 
-export const sidebarSelectionAtom = atom<{
+export type SidebarSelection = {
   selections: Set<string>;
   anchorSelection: string | null;
-}>({
+};
+
+export const sidebarSelectionAtom = atom<SidebarSelection>({
   selections: new Set([]),
   anchorSelection: null,
 });
