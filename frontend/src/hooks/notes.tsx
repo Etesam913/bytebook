@@ -231,6 +231,11 @@ export function useNoteCreate() {
     const data = body.data as { notePath: string }[];
 
     for (const { notePath } of data) {
+      // Skip if note path already exists in the filepath-to-id mapping
+      if (filePathToTreeDataId.has(notePath)) {
+        continue;
+      }
+
       const segments = notePath.split('/').filter(Boolean);
 
       if (segments.length === 1) {
