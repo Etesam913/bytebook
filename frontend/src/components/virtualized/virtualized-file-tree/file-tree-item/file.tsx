@@ -25,11 +25,13 @@ export function FileTreeFileItem({
   onSelectionClick,
   onContextMenuSelection,
   isSelectedFromSidebarClick,
+  paddingLeft,
 }: {
   dataItem: FlattenedFileOrFolder;
   onSelectionClick: (e: MouseEvent) => void;
   onContextMenuSelection: () => void;
   isSelectedFromSidebarClick: boolean;
+  paddingLeft: number;
 }) {
   const filePathFromRoute = useFilePathFromRoute();
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
@@ -98,6 +100,11 @@ export function FileTreeFileItem({
     filePathFromRoute && filePathFromRoute.equals(filePath);
 
   function handleClick(e: MouseEvent) {
+    // Stop propagation for modifier clicks to prevent parent handlers from clearing selection
+    if (e.shiftKey || e.metaKey || e.ctrlKey) {
+      e.stopPropagation();
+    }
+
     // For default click (no modifier keys), also navigate to the file
     if (!e.shiftKey && !e.metaKey && !e.ctrlKey) {
       navigate(resolvedFilePath.encodedFileUrl);
@@ -108,10 +115,11 @@ export function FileTreeFileItem({
   const innerContent = (
     <>
       <span
+        style={{ paddingLeft: `${paddingLeft}px` }}
         className={cn(
           'rounded-md flex items-center gap-2 z-10 py-1 px-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
           isSelectedFromRoute &&
-            'bg-zinc-150! dark:bg-zinc-600! text-(--accent-color)',
+            'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
           isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
         )}
       >
@@ -136,7 +144,10 @@ export function FileTreeFileItem({
 
   if (isEditing) {
     return (
-      <div className="flex items-center w-full relative rounded-md py-0.25">
+      <div
+        style={{ paddingLeft: `${paddingLeft}px` }}
+        className="flex items-center w-full relative rounded-md py-0.25"
+      >
         {innerContent}
       </div>
     );

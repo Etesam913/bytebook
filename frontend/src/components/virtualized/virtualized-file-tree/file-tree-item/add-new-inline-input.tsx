@@ -9,10 +9,12 @@ import { NAME_CHARS } from '../../../../utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
 
 export function AddNewInlineInput({
+  paddingLeft,
   dataItem,
   addType,
   onClose,
 }: {
+  paddingLeft: number;
   dataItem: Folder;
   addType: 'folder' | 'note';
   onClose: () => void;
@@ -80,7 +82,10 @@ export function AddNewInlineInput({
   }
 
   return (
-    <div className="flex items-center w-full relative rounded-md py-0.25">
+    <div
+      className="flex items-center w-full relative rounded-md py-0.25"
+      style={{ paddingLeft: `${paddingLeft}px` }}
+    >
       <span className="rounded-md flex items-center gap-2 z-10 py-1 pl-[1.725rem] pr-2 overflow-hidden w-full">
         {isAddingFolder ? (
           <FolderIcon

@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-query';
 import { logger } from '../utils/logging';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtom } from 'jotai';
 import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
 import {
@@ -21,10 +21,7 @@ import {
   MoveNoteToFolder,
   RevealFolderOrFileInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import {
-  fileOrFolderMapAtom,
-  filePathToIdAtom,
-} from '../components/virtualized/virtualized-file-tree';
+import { fileTreeDataAtom } from '../components/virtualized/virtualized-file-tree';
 import {
   addFolderToFileTreeMap,
   removeFolderFromFileTreeMap,
@@ -86,9 +83,7 @@ export function useFolders() {
 /** This function is used to handle `folder:create` events */
 export function useFolderCreate() {
   const queryClient = useQueryClient();
-  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
-  const filePathToId = useAtomValue(filePathToIdAtom);
-  const setFilePathToId = useSetAtom(filePathToIdAtom);
+  const [{ filePathToTreeDataId }, setFileTreeData] = useAtom(fileTreeDataAtom);
 
   useWailsEvent('folder:create', async (body) => {
     logger.event('folder:create', body);
@@ -104,7 +99,7 @@ export function useFolderCreate() {
         // Nested folder - add it directly to the map
         const folderName = segments[segments.length - 1];
         const parentPath = segments.slice(0, -1).join('/');
-        const parentId = filePathToId.get(parentPath);
+        const parentId = filePathToTreeDataId.get(parentPath);
 
         if (!parentId) {
           // Parent not found in path map - invalidate queries
@@ -115,26 +110,26 @@ export function useFolderCreate() {
         // Generate a new UUID for this folder
         const newFolderId = crypto.randomUUID();
 
-        setFilePathToId((prev) => {
-          const newMap = new Map(prev);
-          newMap.set(folderPath, newFolderId);
-          return newMap;
-        });
-
-        setFileOrFolderMap((prev) => {
-          const parent = prev.get(parentId);
+        setFileTreeData((prev) => {
+          const parent = prev.treeData.get(parentId);
           if (!parent || parent.type !== 'folder' || !parent.isOpen) {
             // Parent doesn't exist or isn't open - nothing to update
             return prev;
           }
 
-          return addFolderToFileTreeMap({
-            map: prev,
-            folderId: newFolderId,
-            folderPath,
-            folderName,
-            parentId,
-          });
+          const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
+          newFilePathToTreeDataId.set(folderPath, newFolderId);
+
+          return {
+            treeData: addFolderToFileTreeMap({
+              map: prev.treeData,
+              folderId: newFolderId,
+              folderPath,
+              folderName,
+              parentId,
+            }),
+            filePathToTreeDataId: newFilePathToTreeDataId,
+          };
         });
       }
     }
@@ -144,9 +139,7 @@ export function useFolderCreate() {
 /** This function is used to handle `folder:delete` events. This gets triggered when deleting a folder using the file system */
 export function useFolderDelete() {
   const queryClient = useQueryClient();
-  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
-  const filePathToId = useAtomValue(filePathToIdAtom);
-  const setFilePathToId = useSetAtom(filePathToIdAtom);
+  const [{ filePathToTreeDataId }, setFileTreeData] = useAtom(fileTreeDataAtom);
 
   useWailsEvent('folder:delete', async (body) => {
     logger.event('folder:delete', body);
@@ -163,8 +156,8 @@ export function useFolderDelete() {
         const parentPath = segments.slice(0, -1).join('/');
 
         // Look up UUIDs from paths
-        const folderId = filePathToId.get(folderPath);
-        const parentId = filePathToId.get(parentPath);
+        const folderId = filePathToTreeDataId.get(folderPath);
+        const parentId = filePathToTreeDataId.get(parentPath);
 
         if (!folderId || !parentId) {
           // Can't find folder in path map - invalidate queries
@@ -172,18 +165,25 @@ export function useFolderDelete() {
           continue;
         }
 
-        setFilePathToId((prev) => {
-          const newMap = new Map(prev);
-          newMap.delete(folderPath);
-          return newMap;
-        });
+        setFileTreeData((prev) => {
+          const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
 
-        setFileOrFolderMap((prev) => {
-          return removeFolderFromFileTreeMap({
-            map: prev,
-            folderId,
-            parentId,
-          });
+          // Remove the folder path and all children paths from the map
+          // Delete all paths that start with this folder path
+          for (const path of newFilePathToTreeDataId.keys()) {
+            if (path === folderPath || path.startsWith(folderPath + '/')) {
+              newFilePathToTreeDataId.delete(path);
+            }
+          }
+
+          return {
+            treeData: removeFolderFromFileTreeMap({
+              fileTreeMap: prev.treeData,
+              folderId,
+              parentId,
+            }),
+            filePathToTreeDataId: newFilePathToTreeDataId,
+          };
         });
       }
     }
@@ -193,9 +193,7 @@ export function useFolderDelete() {
 /** This function is used to handle `folder:rename` events. This gets triggered when renaming a folder using the file system */
 export function useFolderRename() {
   const queryClient = useQueryClient();
-  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
-  const filePathToId = useAtomValue(filePathToIdAtom);
-  const setFilePathToId = useSetAtom(filePathToIdAtom);
+  const [{ filePathToTreeDataId }, setFileTreeData] = useAtom(fileTreeDataAtom);
 
   useWailsEvent('folder:rename', async (body) => {
     logger.event('folder:rename', body);
@@ -218,9 +216,9 @@ export function useFolderRename() {
         const newFolderName = newSegments[newSegments.length - 1];
 
         // Look up UUIDs from paths
-        const oldFolderId = filePathToId.get(oldFolderPath);
-        const oldParentId = filePathToId.get(oldParentPath);
-        const newParentId = filePathToId.get(newParentPath);
+        const oldFolderId = filePathToTreeDataId.get(oldFolderPath);
+        const oldParentId = filePathToTreeDataId.get(oldParentPath);
+        const newParentId = filePathToTreeDataId.get(newParentPath);
 
         if (!oldFolderId || !oldParentId) {
           // Can't find old folder in path map - invalidate queries
@@ -228,19 +226,36 @@ export function useFolderRename() {
           continue;
         }
 
-        setFilePathToId((prev) => {
-          const newMap = new Map(prev);
-          newMap.delete(oldFolderPath);
-          newMap.set(newFolderPath, oldFolderId);
-          return newMap;
-        });
+        setFileTreeData((prev) => {
+          const oldFolder = prev.treeData.get(oldFolderId);
+          const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
 
-        setFileOrFolderMap((prev) => {
-          const oldFolder = prev.get(oldFolderId);
+          // Update all children paths: remove old prefix, add new prefix
+          // Collect entries to update to avoid modifying map while iterating
+          const entriesToUpdate: [string, string][] = [];
+          for (const [path, id] of newFilePathToTreeDataId.entries()) {
+            if (path === oldFolderPath) {
+              entriesToUpdate.push([path, id]);
+            } else if (path.startsWith(oldFolderPath + '/')) {
+              entriesToUpdate.push([path, id]);
+            }
+          }
+
+          // Remove old paths and add new paths
+          for (const [oldPath, id] of entriesToUpdate) {
+            newFilePathToTreeDataId.delete(oldPath);
+            if (oldPath === oldFolderPath) {
+              // This is the renamed folder itself - will get new ID
+              continue;
+            }
+            // Update child path with new prefix
+            const newPath = newFolderPath + oldPath.slice(oldFolderPath.length);
+            newFilePathToTreeDataId.set(newPath, id);
+          }
 
           // First, remove the old folder
-          let updatedMap = removeFolderFromFileTreeMap({
-            map: prev,
+          let updatedTreeData = removeFolderFromFileTreeMap({
+            fileTreeMap: prev.treeData,
             folderId: oldFolderId,
             parentId: oldParentId,
           });
@@ -251,8 +266,10 @@ export function useFolderRename() {
             const newFolderId = crypto.randomUUID();
             const isFolder = oldFolder?.type === 'folder';
 
-            updatedMap = addFolderToFileTreeMap({
-              map: updatedMap,
+            newFilePathToTreeDataId.set(newFolderPath, newFolderId);
+
+            updatedTreeData = addFolderToFileTreeMap({
+              map: updatedTreeData,
               folderId: newFolderId,
               folderPath: newFolderPath,
               folderName: newFolderName,
@@ -264,7 +281,10 @@ export function useFolderRename() {
             });
           }
 
-          return updatedMap;
+          return {
+            treeData: updatedTreeData,
+            filePathToTreeDataId: newFilePathToTreeDataId,
+          };
         });
       }
     }

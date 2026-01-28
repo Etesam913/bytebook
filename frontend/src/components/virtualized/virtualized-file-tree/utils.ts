@@ -234,29 +234,29 @@ export function addFolderToFileTreeMap({
  * Returns the updated map, or the original map if the parent doesn't exist or isn't a folder.
  */
 export function removeFolderFromFileTreeMap({
-  map,
+  fileTreeMap,
   folderId,
   parentId,
 }: {
-  map: Map<string, FileOrFolder>;
+  fileTreeMap: Map<string, FileOrFolder>;
   folderId: string;
   parentId: string;
 }): Map<string, FileOrFolder> {
-  const parent = map.get(parentId);
+  const parent = fileTreeMap.get(parentId);
   if (!parent || parent.type !== 'folder') {
-    return map;
+    return fileTreeMap;
   }
 
-  const newMap = new Map(map);
+  const newFileTreeMap = new Map(fileTreeMap);
 
   // Remove the folder and all its descendants
-  removeSubtree(newMap, folderId);
+  removeSubtree(newFileTreeMap, folderId);
 
   // Update parent's childrenIds to remove the deleted folder
   const updatedChildren = parent.childrenIds.filter((id) => id !== folderId);
-  newMap.set(parentId, { ...parent, childrenIds: updatedChildren });
+  newFileTreeMap.set(parentId, { ...parent, childrenIds: updatedChildren });
 
-  return newMap;
+  return newFileTreeMap;
 }
 
 /**

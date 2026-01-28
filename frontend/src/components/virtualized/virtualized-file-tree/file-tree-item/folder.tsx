@@ -4,9 +4,7 @@ import { Folder as FolderIcon } from '../../../../icons/folder';
 import { FolderOpen } from '../../../../icons/folder-open';
 import { FolderPlus } from '../../../../icons/folder-plus';
 import { Note } from '../../../../icons/page';
-import { BYTEBOOK_DRAG_DATA_FORMAT } from '../../../../utils/draggable';
 import type { Folder } from '../types';
-import { fileOrFolderMapAtom } from '..';
 import { contextMenuDataAtom } from '../../../../atoms';
 import { useFolderRenameInlineMutation } from '../../../../hooks/folders';
 import { currentZoomAtom } from '../../../../hooks/resize';
@@ -22,6 +20,7 @@ import {
 import { Finder } from '../../../../icons/finder';
 import { useRevealInFinderMutation } from '../../../../hooks/code';
 import { cn } from '../../../../utils/string-formatting';
+import { fileTreeDataAtom } from '..';
 
 type OpenFolderArgs = {
   pathToFolder: string;
@@ -35,15 +34,17 @@ export function FileTreeFolderItem({
   onSelectionClick,
   onContextMenuSelection,
   isSelectedFromSidebarClick,
+  paddingLeft,
 }: {
   dataItem: Folder;
   openFolder: (args: OpenFolderArgs) => void;
   onSelectionClick: (e: MouseEvent) => void;
   onContextMenuSelection: () => void;
   isSelectedFromSidebarClick: boolean;
+  paddingLeft: number;
 }) {
   const [addingType, setAddingType] = useState<'folder' | 'note' | null>(null);
-  const setFileOrFolderMap = useSetAtom(fileOrFolderMapAtom);
+  const setFileTreeData = useSetAtom(fileTreeDataAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
   const { mutateAsync: renameFolder } = useFolderRenameInlineMutation();
@@ -87,6 +88,11 @@ export function FileTreeFolderItem({
       return;
     }
 
+    // Stop propagation for modifier clicks to prevent parent handlers from clearing selection
+    if (e.shiftKey || e.metaKey || e.ctrlKey) {
+      e.stopPropagation();
+    }
+
     // Handle selection logic first
     onSelectionClick(e);
 
@@ -99,10 +105,13 @@ export function FileTreeFolderItem({
         });
         await OpenFolderAndAddToFileWatcher(dataItem.path);
       } else {
-        setFileOrFolderMap((prev) => {
-          const newMap = new Map(prev);
-          newMap.set(dataItem.id, { ...dataItem, isOpen: false });
-          return newMap;
+        setFileTreeData((prev) => {
+          const newTreeData = new Map(prev.treeData);
+          newTreeData.set(dataItem.id, { ...dataItem, isOpen: false });
+          return {
+            ...prev,
+            treeData: newTreeData,
+          };
         });
         // Remove folder from file watcher when closing
         await CloseFolderAndRemoveFromFileWatcher(dataItem.path);
@@ -113,6 +122,7 @@ export function FileTreeFolderItem({
   const innerContent = (
     <>
       <span
+        style={{ paddingLeft: `${paddingLeft}px` }}
         className={cn(
           'rounded-md flex items-center gap-2 z-10 py-1 px-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
           isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
@@ -149,6 +159,7 @@ export function FileTreeFolderItem({
     dataItem.type === 'folder' &&
     dataItem.isOpen && (
       <AddNewInlineInput
+        paddingLeft={paddingLeft}
         dataItem={dataItem}
         addType={addingType}
         onClose={() => setAddingType(null)}
@@ -176,7 +187,6 @@ export function FileTreeFolderItem({
         onDrop={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          console.log(e.dataTransfer.getData(BYTEBOOK_DRAG_DATA_FORMAT));
         }}
         onClick={handleClick}
         onContextMenu={(e) => {
