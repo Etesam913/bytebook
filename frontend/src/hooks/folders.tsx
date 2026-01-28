@@ -90,6 +90,11 @@ export function useFolderCreate() {
     const data = body.data as { folderPath: string }[];
 
     for (const { folderPath } of data) {
+      // Skip if folder path already exists in the filepath-to-id mapping
+      if (filePathToTreeDataId.has(folderPath)) {
+        continue;
+      }
+
       const segments = folderPath.split('/').filter(Boolean);
 
       if (segments.length === 1) {

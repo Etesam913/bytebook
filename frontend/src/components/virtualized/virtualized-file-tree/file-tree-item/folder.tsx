@@ -18,7 +18,9 @@ import {
   CloseFolderAndRemoveFromFileWatcher,
 } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { Finder } from '../../../../icons/finder';
+import { Trash } from '../../../../icons/trash';
 import { useRevealInFinderMutation } from '../../../../hooks/code';
+import { useMoveToTrashMutationNew } from '../../../../hooks/notes';
 import { cn } from '../../../../utils/string-formatting';
 import { fileTreeDataAtom } from '..';
 
@@ -47,8 +49,9 @@ export function FileTreeFolderItem({
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
-  const { mutateAsync: renameFolder } = useFolderRenameInlineMutation();
+  const { mutate: renameFolder } = useFolderRenameInlineMutation();
   const { mutate: revealInFinder } = useRevealInFinderMutation();
+  const { mutate: moveToTrash } = useMoveToTrashMutationNew();
 
   async function onRename({
     newName,
@@ -65,7 +68,7 @@ export function FileTreeFolderItem({
     const newFolderPath = pathSegments.join('/');
 
     try {
-      await renameFolder({
+      renameFolder({
         oldFolderPath: dataItem.path,
         newFolderName: newFolderPath,
         setErrorText,
@@ -247,6 +250,17 @@ export function FileTreeFolderItem({
                     });
                   }
                   setAddingType('note');
+                },
+              },
+              {
+                value: 'move-to-trash',
+                label: (
+                  <span className="flex items-center gap-1.5">
+                    <Trash height={17} width={17} /> <span>Move to Trash</span>
+                  </span>
+                ),
+                onChange: () => {
+                  moveToTrash({ path: dataItem.path });
                 },
               },
             ],

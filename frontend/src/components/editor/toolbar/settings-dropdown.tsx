@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { getDefaultButtonVariants } from '../../../animations';
 import { isFullscreenAtom, projectSettingsAtom } from '../../../atoms';
 import {
-  useMoveNoteToTrashMutation,
   useMoveToTrashMutationNew,
   useNoteRevealInFinderMutation,
 } from '../../../hooks/notes';
