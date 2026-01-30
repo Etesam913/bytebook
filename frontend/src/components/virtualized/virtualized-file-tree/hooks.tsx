@@ -78,6 +78,7 @@ export function useTopLevelFileOrFolders() {
       setFileTreeData((prev) => {
         const reconciledTreeData = reconcileTopLevelFileTreeMap(
           prev.treeData,
+          prev.filePathToTreeDataId,
           data
         );
         const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
