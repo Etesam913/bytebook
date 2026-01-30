@@ -133,25 +133,35 @@ export function removeSubtree(
  * This function updates the map by removing top-level items that no longer exist
  * in the new data (including their subtrees), and merging new data while preserving
  * existing folder state such as `isOpen`, `childrenIds`, `childrenCursor`,
- * and `hasMoreChildren` for folders that already exist in the map.
+ * and `hasMoreChildren` for folders that already exist in the map. Paths are
+ * used to match prior nodes when IDs change between fetches.
  */
 export function reconcileTopLevelFileTreeMap(
   previousMapData: Map<string, FileOrFolder>,
+  previousFilePathToTreeDataId: Map<string, string>,
   newData: FileOrFolder[]
 ): Map<string, FileOrFolder> {
-  const newIds = new Set(newData.map((item) => item.id));
+  const newPaths = new Set(newData.map((item) => item.path));
   const updatedMap = new Map(previousMapData);
 
   for (const [id, node] of previousMapData) {
     // Remove top level folders that are not in the updated data
-    if (node.parentId === null && !newIds.has(id)) {
+    if (node.parentId === null && !newPaths.has(node.path)) {
       removeSubtree(updatedMap, id);
     }
   }
 
   for (const node of newData) {
+    const prevIdByPath = previousFilePathToTreeDataId.get(node.path);
+    const prevNode = prevIdByPath
+      ? previousMapData.get(prevIdByPath)
+      : previousMapData.get(node.id);
+
+    if (prevIdByPath && prevIdByPath !== node.id) {
+      updatedMap.delete(prevIdByPath);
+    }
+
     if (node.type === FOLDER_TYPE) {
-      const prevNode = previousMapData.get(node.id);
       updatedMap.set(node.id, {
         ...node,
         isOpen: prevNode?.type === FOLDER_TYPE ? prevNode.isOpen : false,
