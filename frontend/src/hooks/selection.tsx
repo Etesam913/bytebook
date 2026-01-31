@@ -27,7 +27,6 @@ export function useAddToSidebarSelection() {
         ? itemsToSelect
         : [itemsToSelect];
 
-      console.log(items);
       if (items.length === 0) {
         return prev;
       }

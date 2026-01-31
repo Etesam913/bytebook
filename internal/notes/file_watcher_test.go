@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/fsnotify/fsnotify"
 	"github.com/stretchr/testify/assert"
 )
@@ -150,5 +151,51 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 		assert.Contains(t, watchList, notesDir)
 		assert.Contains(t, watchList, settingsDir)
 		assert.Contains(t, watchList, savedSearchesPath)
+	})
+}
+
+func TestFilterUnneededDebouncedEvents(t *testing.T) {
+	t.Run("filters note:create when rename targets same path", func(t *testing.T) {
+		events := map[string][]map[string]string{
+			util.Events.NoteCreate: {
+				{"notePath": "alpha/new.md"},
+				{"notePath": "alpha/keep.md"},
+			},
+			util.Events.NoteRename: {
+				{"oldNotePath": "alpha/old.md", "newNotePath": "alpha/new.md"},
+			},
+			util.Events.NoteWrite: {
+				{"notePath": "alpha/keep.md"},
+			},
+		}
+
+		filtered := filterUnneededDebouncedEvents(events)
+
+		if assert.Contains(t, filtered, util.Events.NoteCreate) {
+			assert.Len(t, filtered[util.Events.NoteCreate], 1)
+			assert.Equal(t, "alpha/keep.md", filtered[util.Events.NoteCreate][0]["notePath"])
+		}
+		assert.Equal(t, events[util.Events.NoteRename], filtered[util.Events.NoteRename])
+		assert.Equal(t, events[util.Events.NoteWrite], filtered[util.Events.NoteWrite])
+	})
+
+	t.Run("filters folder:create when rename targets same path", func(t *testing.T) {
+		events := map[string][]map[string]string{
+			util.Events.FolderCreate: {
+				{"folderPath": "alpha/new-folder"},
+				{"folderPath": "alpha/keep-folder"},
+			},
+			util.Events.FolderRename: {
+				{"oldFolderPath": "alpha/old-folder", "newFolderPath": "alpha/new-folder"},
+			},
+		}
+
+		filtered := filterUnneededDebouncedEvents(events)
+
+		if assert.Contains(t, filtered, util.Events.FolderCreate) {
+			assert.Len(t, filtered[util.Events.FolderCreate], 1)
+			assert.Equal(t, "alpha/keep-folder", filtered[util.Events.FolderCreate][0]["folderPath"])
+		}
+		assert.Equal(t, events[util.Events.FolderRename], filtered[util.Events.FolderRename])
 	})
 }

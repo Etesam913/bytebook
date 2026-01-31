@@ -150,11 +150,7 @@ export function FileTreeItemContainer({
   }
 
   return (
-    <
-      // style={{
-      //   paddingLeft: `${paddingLeft}px`,
-      // }}
-    >
+    <>
       {dataItem.type === 'folder' ? (
         <FileTreeFolderItem
           paddingLeft={paddingLeft}

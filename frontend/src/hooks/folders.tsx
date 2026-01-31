@@ -221,69 +221,95 @@ export function useFolderRename() {
         const newFolderName = newSegments[newSegments.length - 1];
 
         // Look up UUIDs from paths
-        const oldFolderId = filePathToTreeDataId.get(oldFolderPath);
+        const folderId = filePathToTreeDataId.get(oldFolderPath);
         const oldParentId = filePathToTreeDataId.get(oldParentPath);
         const newParentId = filePathToTreeDataId.get(newParentPath);
 
-        if (!oldFolderId || !oldParentId) {
+        if (!folderId || !oldParentId) {
           // Can't find old folder in path map - invalidate queries
           queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
           continue;
         }
 
         setFileTreeData((prev) => {
-          const oldFolder = prev.treeData.get(oldFolderId);
           const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
 
-          // Update all children paths: remove old prefix, add new prefix
           // Collect entries to update to avoid modifying map while iterating
           const entriesToUpdate: [string, string][] = [];
           for (const [path, id] of newFilePathToTreeDataId.entries()) {
-            if (path === oldFolderPath) {
-              entriesToUpdate.push([path, id]);
-            } else if (path.startsWith(oldFolderPath + '/')) {
+            if (
+              path === oldFolderPath ||
+              path.startsWith(oldFolderPath + '/')
+            ) {
               entriesToUpdate.push([path, id]);
             }
           }
 
-          // Remove old paths and add new paths
+          // Remove old paths and add new paths (including the folder itself)
           for (const [oldPath, id] of entriesToUpdate) {
             newFilePathToTreeDataId.delete(oldPath);
-            if (oldPath === oldFolderPath) {
-              // This is the renamed folder itself - will get new ID
-              continue;
-            }
-            // Update child path with new prefix
-            const newPath = newFolderPath + oldPath.slice(oldFolderPath.length);
+            const newPath =
+              oldPath === oldFolderPath
+                ? newFolderPath
+                : newFolderPath + oldPath.slice(oldFolderPath.length);
             newFilePathToTreeDataId.set(newPath, id);
           }
 
-          // First, remove the old folder
-          let updatedTreeData = removeFolderFromFileTreeMap({
-            fileTreeMap: prev.treeData,
-            folderId: oldFolderId,
-            parentId: oldParentId,
-          });
-
-          // Then, add the new folder with preserved state
-          if (newParentId) {
-            // Generate a new UUID for the renamed folder
-            const newFolderId = crypto.randomUUID();
-            const isFolder = oldFolder?.type === 'folder';
-
-            newFilePathToTreeDataId.set(newFolderPath, newFolderId);
-
-            updatedTreeData = addFolderToFileTreeMap({
-              map: updatedTreeData,
-              folderId: newFolderId,
-              folderPath: newFolderPath,
-              folderName: newFolderName,
-              parentId: newParentId,
-              childrenIds: isFolder ? oldFolder.childrenIds : [],
-              childrenCursor: isFolder ? oldFolder.childrenCursor : null,
-              hasMoreChildren: isFolder ? oldFolder.hasMoreChildren : false,
-              isOpen: isFolder ? oldFolder.isOpen : false,
+          const updatedTreeData = new Map(prev.treeData);
+          const renamedFolder = updatedTreeData.get(folderId);
+          if (renamedFolder && renamedFolder.type === 'folder') {
+            updatedTreeData.set(folderId, {
+              ...renamedFolder,
+              path: newFolderPath,
+              name: newFolderName,
+              parentId: newParentId ?? renamedFolder.parentId,
             });
+          }
+
+          // Update descendant paths in tree data
+          for (const [oldPath, id] of entriesToUpdate) {
+            const newPath =
+              oldPath === oldFolderPath
+                ? newFolderPath
+                : newFolderPath + oldPath.slice(oldFolderPath.length);
+            if (id === folderId) continue;
+            const node = updatedTreeData.get(id);
+            if (!node) continue;
+            updatedTreeData.set(id, {
+              ...node,
+              path: newPath,
+            });
+          }
+
+          if (oldParentId && oldParentId !== newParentId) {
+            const oldParent = updatedTreeData.get(oldParentId);
+            if (oldParent && oldParent.type === 'folder') {
+              updatedTreeData.set(oldParentId, {
+                ...oldParent,
+                childrenIds: oldParent.childrenIds.filter(
+                  (id) => id !== folderId
+                ),
+              });
+            }
+          }
+
+          if (newParentId) {
+            const newParent = updatedTreeData.get(newParentId);
+            if (newParent && newParent.type === 'folder') {
+              const updatedChildren = [...newParent.childrenIds, folderId]
+                .filter((id, index, arr) => arr.indexOf(id) === index)
+                .sort((a, b) => {
+                  const aItem = updatedTreeData.get(a);
+                  const bItem = updatedTreeData.get(b);
+                  const aName = aItem?.name ?? a;
+                  const bName = bItem?.name ?? b;
+                  return aName.localeCompare(bName);
+                });
+              updatedTreeData.set(newParentId, {
+                ...newParent,
+                childrenIds: updatedChildren,
+              });
+            }
           }
 
           return {
