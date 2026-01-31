@@ -1,70 +1,5 @@
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
-import { useWailsEvent } from '../../../../hooks/events';
-import { NAME_CHARS } from '../../../../utils/string-formatting';
+import { useRef } from 'react';
 import { File, Folder } from '../types';
-
-/**
- * Hook to manage file/folder editing state and rename logic.
- * Returns editing state, error text, and handlers for use in parent components.
- */
-export function useInlineTreeItemInput({
-  itemId,
-  defaultValue,
-  onSave,
-}: {
-  itemId: string;
-  defaultValue: string;
-  onSave: (args: {
-    newName: string;
-    setErrorText: Dispatch<SetStateAction<string>>;
-    exitEditMode: () => void;
-  }) => void;
-}) {
-  const [errorText, setErrorText] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-
-  // Listen to context menu rename events
-  useWailsEvent('context-menu:rename', (event) => {
-    const eventData = event.data as string | string[];
-    // Handle both string and string[] formats for backwards compatibility
-    const eventPath = Array.isArray(eventData) ? eventData[0] : eventData;
-    if (eventPath === itemId) {
-      setIsEditing(true);
-    }
-  });
-
-  function exitEditMode() {
-    setIsEditing(false);
-    setErrorText('');
-  }
-
-  function onSaveHandler(newName: string) {
-    const trimmedName = newName.trim();
-
-    // Validate the name
-    if (!NAME_CHARS.test(trimmedName)) {
-      setErrorText(
-        'Names can only contain letters, numbers, spaces, hyphens, and underscores.'
-      );
-      return;
-    }
-
-    // If name hasn't changed, just exit edit mode
-    if (trimmedName === defaultValue) {
-      exitEditMode();
-      return;
-    }
-
-    onSave({ newName: trimmedName, setErrorText, exitEditMode });
-  }
-
-  return {
-    isEditing,
-    errorText,
-    exitEditMode,
-    onSaveHandler,
-  };
-}
 
 export function InlineTreeItemInput({
   dataItem,
@@ -74,6 +9,8 @@ export function InlineTreeItemInput({
   exitEditMode,
   onSave,
   extension,
+  placeholder,
+  autoFocus = true,
 }: {
   dataItem: File | Folder;
   defaultValue: string;
@@ -82,15 +19,10 @@ export function InlineTreeItemInput({
   exitEditMode: () => void;
   onSave: (newName: string) => void;
   extension?: string;
+  placeholder?: string;
+  autoFocus?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Select all text when editing starts
-  useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.select();
-    }
-  }, [isEditing]);
 
   return (
     <>
@@ -99,14 +31,15 @@ export function InlineTreeItemInput({
           <div className="flex items-center gap-1 justify-between w-full">
             <input
               ref={inputRef}
-              className={'bg-transparent outline-none w-full truncate'}
+              className="bg-transparent outline-none w-full truncate text-zinc-900 dark:text-zinc-100"
               autoCapitalize="off"
               autoComplete="off"
               autoCorrect="off"
               spellCheck={false}
               defaultValue={defaultValue}
+              placeholder={placeholder}
               title={errorText}
-              autoFocus={true}
+              autoFocus={autoFocus}
               onKeyDown={(e) => {
                 if (e.key === 'Escape') {
                   exitEditMode();

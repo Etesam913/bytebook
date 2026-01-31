@@ -1,28 +1,25 @@
 import { useSetAtom, useAtomValue } from 'jotai';
-import { Dispatch, MouseEvent, SetStateAction, useState } from 'react';
+import { MouseEvent, useState } from 'react';
 import { Folder as FolderIcon } from '../../../../icons/folder';
 import { FolderOpen } from '../../../../icons/folder-open';
 import { FolderPlus } from '../../../../icons/folder-plus';
 import { Note } from '../../../../icons/page';
 import type { Folder } from '../types';
 import { contextMenuDataAtom } from '../../../../atoms';
-import { useFolderRenameInlineMutation } from '../../../../hooks/folders';
 import { currentZoomAtom } from '../../../../hooks/resize';
-import {
-  InlineTreeItemInput,
-  useInlineTreeItemInput,
-} from './inline-tree-item-input';
-import { AddNewInlineInput } from './add-new-inline-input';
+import { InlineTreeItemInput } from './inline-tree-item-input';
 import {
   OpenFolderAndAddToFileWatcher,
   CloseFolderAndRemoveFromFileWatcher,
 } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { Finder } from '../../../../icons/finder';
 import { Trash } from '../../../../icons/trash';
+import { FilePen } from '../../../../icons/file-pen';
 import { useRevealInFinderMutation } from '../../../../hooks/code';
 import { useMoveToTrashMutationNew } from '../../../../hooks/notes';
 import { cn } from '../../../../utils/string-formatting';
 import { fileTreeDataAtom } from '..';
+import { useAddTreeItemMutation, useRenameTreeItemMutation } from '../hooks';
 
 type OpenFolderArgs = {
   pathToFolder: string;
@@ -49,42 +46,82 @@ export function FileTreeFolderItem({
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
-  const { mutate: renameFolder } = useFolderRenameInlineMutation();
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutationNew();
+  const {
+    mutate: addTreeItem,
+    error: addTreeItemError,
+    reset: resetAddTreeItem,
+  } = useAddTreeItemMutation();
+  const {
+    mutate: renameTreeItem,
+    error: renameTreeItemError,
+    reset: resetRenameTreeItem,
+  } = useRenameTreeItemMutation();
 
-  async function onRename({
-    newName,
-    setErrorText,
-    exitEditMode,
-  }: {
-    newName: string;
-    setErrorText: Dispatch<SetStateAction<string>>;
-    exitEditMode: () => void;
-  }) {
-    // Construct the new folder path
-    const pathSegments = dataItem.path.split('/');
-    pathSegments[pathSegments.length - 1] = newName;
-    const newFolderPath = pathSegments.join('/');
+  const [isEditing, setIsEditing] = useState(false);
 
-    try {
-      renameFolder({
-        oldFolderPath: dataItem.path,
-        newFolderName: newFolderPath,
-        setErrorText,
-      });
-      exitEditMode();
-    } catch {
-      // Error handling is done in the mutation
-    }
+  function exitEditMode() {
+    setIsEditing(false);
+    resetRenameTreeItem();
   }
 
-  const { isEditing, errorText, exitEditMode, onSaveHandler } =
-    useInlineTreeItemInput({
-      itemId: dataItem.id,
-      defaultValue: dataItem.name,
-      onSave: onRename,
+  function onRenameSave(newName: string) {
+    const trimmedName = newName.trim();
+
+    if (trimmedName === dataItem.name) {
+      exitEditMode();
+      return;
+    }
+
+    renameTreeItem({
+      itemType: 'folder',
+      folderPath: dataItem.path,
+      newName: trimmedName,
+      onSuccess: exitEditMode,
     });
+  }
+
+  const renameErrorText =
+    renameTreeItemError instanceof Error
+      ? renameTreeItemError.message
+      : renameTreeItemError
+        ? 'An error occurred'
+        : '';
+
+  function closeAddInput() {
+    resetAddTreeItem();
+    setAddingType(null);
+  }
+
+  function onAddSave(newName: string) {
+    const trimmedName = newName.trim();
+
+    // If name is empty, just exit
+    if (!trimmedName) {
+      closeAddInput();
+      return;
+    }
+
+    if (!addingType || dataItem.type !== 'folder') {
+      closeAddInput();
+      return;
+    }
+
+    addTreeItem({
+      parentFolder: dataItem,
+      addType: addingType,
+      newName: trimmedName,
+      onSuccess: closeAddInput,
+    });
+  }
+
+  const addErrorText =
+    addTreeItemError instanceof Error
+      ? addTreeItemError.message
+      : addTreeItemError
+        ? 'An error occurred'
+        : '';
 
   async function handleClick(e: MouseEvent) {
     if (dataItem.type !== 'folder') {
@@ -150,9 +187,9 @@ export function FileTreeFolderItem({
           dataItem={dataItem}
           defaultValue={dataItem.name}
           isEditing={isEditing}
-          errorText={errorText}
+          errorText={renameErrorText}
           exitEditMode={exitEditMode}
-          onSave={onSaveHandler}
+          onSave={onRenameSave}
         />
       </span>
     </>
@@ -161,12 +198,35 @@ export function FileTreeFolderItem({
   const inlineInput = addingType &&
     dataItem.type === 'folder' &&
     dataItem.isOpen && (
-      <AddNewInlineInput
-        paddingLeft={paddingLeft}
-        dataItem={dataItem}
-        addType={addingType}
-        onClose={() => setAddingType(null)}
-      />
+      <div className="flex items-center w-full relative rounded-md py-0.25">
+        <span className="rounded-md flex items-center gap-2 z-10 py-1 pl-[1.725rem] pr-2 overflow-hidden w-full">
+          {addingType === 'folder' ? (
+            <FolderIcon
+              className="min-w-4 min-h-4"
+              height={16}
+              width={16}
+              strokeWidth={1.75}
+            />
+          ) : (
+            <Note
+              className="min-w-4 min-h-4"
+              height={16}
+              width={16}
+              strokeWidth={1.75}
+            />
+          )}
+          <InlineTreeItemInput
+            dataItem={dataItem}
+            defaultValue=""
+            isEditing={true}
+            errorText={addErrorText}
+            exitEditMode={closeAddInput}
+            onSave={onAddSave}
+            placeholder={addingType === 'folder' ? 'New folder' : 'New note'}
+            extension={addingType === 'note' ? 'md' : undefined}
+          />
+        </span>
+      </div>
     );
 
   if (isEditing) {
@@ -232,6 +292,7 @@ export function FileTreeFolderItem({
                       folderId: dataItem.id,
                     });
                   }
+                  resetAddTreeItem();
                   setAddingType('folder');
                 },
               },
@@ -249,7 +310,21 @@ export function FileTreeFolderItem({
                       folderId: dataItem.id,
                     });
                   }
+                  resetAddTreeItem();
                   setAddingType('note');
+                },
+              },
+              {
+                label: (
+                  <span className="flex items-center gap-1.5">
+                    <FilePen height={17} width={17} /> <span>Rename</span>
+                  </span>
+                ),
+                value: 'rename',
+                onChange: () => {
+                  setAddingType(null);
+                  resetRenameTreeItem();
+                  setIsEditing(true);
                 },
               },
               {

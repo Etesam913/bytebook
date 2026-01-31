@@ -1,24 +1,20 @@
 import { useAtomValue, useSetAtom } from 'jotai';
-import { Dispatch, MouseEvent, SetStateAction } from 'react';
+import { MouseEvent, useState } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { Note } from '../../../../icons/page';
 import { Finder } from '../../../../icons/finder';
 import { contextMenuDataAtom } from '../../../../atoms';
 import { useFilePathFromRoute } from '../../../../hooks/routes';
-import {
-  useMoveToTrashMutationNew,
-  useRenameFileMutation,
-} from '../../../../hooks/notes';
+import { useMoveToTrashMutationNew } from '../../../../hooks/notes';
 import { useRevealInFinderMutation } from '../../../../hooks/code';
 import { currentZoomAtom } from '../../../../hooks/resize';
 import { createFilePath } from '../../../../utils/path';
 import { cn } from '../../../../utils/string-formatting';
 import type { FlattenedFileOrFolder } from '../types';
-import {
-  InlineTreeItemInput,
-  useInlineTreeItemInput,
-} from './inline-tree-item-input';
+import { InlineTreeItemInput } from './inline-tree-item-input';
 import { Trash } from '../../../../icons/trash';
+import { FilePen } from '../../../../icons/file-pen';
+import { useRenameTreeItemMutation } from '../hooks';
 
 export function FileTreeFileItem({
   dataItem,
@@ -37,9 +33,14 @@ export function FileTreeFileItem({
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
 
-  const { mutateAsync: renameFile } = useRenameFileMutation();
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutationNew();
+  const {
+    mutate: renameTreeItem,
+    error: renameTreeItemError,
+    reset: resetRenameTreeItem,
+  } = useRenameTreeItemMutation();
+  const [isEditing, setIsEditing] = useState(false);
 
   const lastDotIndex = dataItem.name.lastIndexOf('.');
   const nameWithoutExtension =
@@ -47,46 +48,36 @@ export function FileTreeFileItem({
   const extension =
     lastDotIndex === -1 ? undefined : dataItem.name.slice(lastDotIndex + 1);
 
-  async function onRename({
-    newName,
-    setErrorText,
-    exitEditMode,
-  }: {
-    newName: string;
-    setErrorText: Dispatch<SetStateAction<string>>;
-    exitEditMode: () => void;
-  }) {
-    const filePath = createFilePath(dataItem.path);
+  function exitEditMode() {
+    setIsEditing(false);
+    resetRenameTreeItem();
+  }
+
+  function enterEditMode() {
+    setIsEditing(true);
+    resetRenameTreeItem();
+  }
+
+  function onRenameSave(newName: string) {
+    const trimmedName = newName.trim();
+
+    if (trimmedName === nameWithoutExtension) {
+      exitEditMode();
+      return;
+    }
+
     if (!filePath) {
       exitEditMode();
       return;
     }
 
-    const newFilePathString = `${filePath.folder}/${newName}.md`;
-    const newFilePath = createFilePath(newFilePathString);
-    if (!newFilePath) {
-      setErrorText('Invalid file path');
-      return;
-    }
-
-    try {
-      await renameFile({
-        oldPath: filePath,
-        newPath: newFilePath,
-        setErrorText,
-      });
-      exitEditMode();
-    } catch {
-      // Error handling is done in the mutation
-    }
-  }
-
-  const { isEditing, errorText, exitEditMode, onSaveHandler } =
-    useInlineTreeItemInput({
-      itemId: dataItem.id,
-      defaultValue: nameWithoutExtension,
-      onSave: onRename,
+    renameTreeItem({
+      itemType: 'file',
+      filePath,
+      newName: trimmedName,
+      onSuccess: exitEditMode,
     });
+  }
 
   // File path should be defined for files
   const filePath = createFilePath(dataItem.path);
@@ -133,9 +124,15 @@ export function FileTreeFileItem({
           dataItem={dataItem}
           defaultValue={nameWithoutExtension}
           isEditing={isEditing}
-          errorText={errorText}
+          errorText={
+            renameTreeItemError instanceof Error
+              ? renameTreeItemError.message
+              : renameTreeItemError
+                ? 'An error occurred'
+                : ''
+          }
           exitEditMode={exitEditMode}
-          onSave={onSaveHandler}
+          onSave={onRenameSave}
           extension={extension}
         />
       </span>
@@ -144,10 +141,7 @@ export function FileTreeFileItem({
 
   if (isEditing) {
     return (
-      <div
-        style={{ paddingLeft: `${paddingLeft}px` }}
-        className="flex items-center w-full relative rounded-md py-0.25"
-      >
+      <div className="flex items-center w-full relative rounded-md py-0.25">
         {innerContent}
       </div>
     );
@@ -187,6 +181,17 @@ export function FileTreeFileItem({
                   path: `notes/${dataItem.path}`,
                   shouldPrefixWithProjectPath: true,
                 });
+              },
+            },
+            {
+              label: (
+                <span className="flex items-center gap-1.5">
+                  <FilePen height={17} width={17} /> <span>Rename</span>
+                </span>
+              ),
+              value: 'rename',
+              onChange: () => {
+                enterEditMode();
               },
             },
             {

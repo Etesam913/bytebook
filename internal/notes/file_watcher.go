@@ -240,6 +240,70 @@ func (fw *FileWatcher) handleSavedSearchUpdate(event fsnotify.Event) {
 	}
 }
 
+// filterUnneededDebouncedEvents removes create events for items that were also the
+// "new*Path" target of a rename event within the same debounce cycle.
+// This prevents redundant creation events for items that were simply renamed/moved.
+func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[string][]map[string]string {
+	noteRenameEvents := events[util.Events.NoteRename]
+	folderRenameEvents := events[util.Events.FolderRename]
+	if len(noteRenameEvents) == 0 && len(folderRenameEvents) == 0 {
+		return events
+	}
+
+	renamedNotePathsSet := util.Set[string]{}
+	for _, data := range noteRenameEvents {
+		if newNotePath, ok := data["newNotePath"]; ok && newNotePath != "" {
+			renamedNotePathsSet.Add(newNotePath)
+		}
+	}
+
+	renamedFolderPathsSet := util.Set[string]{}
+	for _, data := range folderRenameEvents {
+		if newFolderPath, ok := data["newFolderPath"]; ok && newFolderPath != "" {
+			renamedFolderPathsSet.Add(newFolderPath)
+		}
+	}
+	if len(renamedNotePathsSet) == 0 && len(renamedFolderPathsSet) == 0 {
+		return events
+	}
+
+	filteredEvents := make(map[string][]map[string]string, len(events))
+	for eventKey, data := range events {
+		if eventKey != util.Events.NoteCreate && eventKey != util.Events.FolderCreate {
+			filteredEvents[eventKey] = data
+			continue
+		}
+
+		if len(data) == 0 {
+			continue
+		}
+
+		kept := make([]map[string]string, 0, len(data))
+		for _, payload := range data {
+			if eventKey == util.Events.NoteCreate {
+				notePath := payload["notePath"]
+				if renamedNotePathsSet.Has(notePath) {
+					// Filters out note:create events that are already captured by note:rename
+					continue
+				}
+			} else {
+				folderPath := payload["folderPath"]
+				if renamedFolderPathsSet.Has(folderPath) {
+					// Filters out folder:create events that are already captured by folder:rename
+					continue
+				}
+			}
+			kept = append(kept, payload)
+		}
+
+		if len(kept) > 0 {
+			filteredEvents[eventKey] = kept
+		}
+	}
+
+	return filteredEvents
+}
+
 // shouldIgnoreFile checks if a file name should be ignored by the watcher
 func shouldIgnoreFile(fileName string) bool {
 	// Ignore macOS system files
@@ -329,7 +393,8 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 
 // emitDebouncedEvents sends all accumulated events to the application
 func (fw *FileWatcher) emitDebouncedEvents() {
-	for eventKey, data := range fw.debounceEvents {
+	filteredEvents := filterUnneededDebouncedEvents(fw.debounceEvents)
+	for eventKey, data := range filteredEvents {
 		fw.app.Event.EmitEvent(&application.CustomEvent{
 			Name: eventKey,
 			Data: data,

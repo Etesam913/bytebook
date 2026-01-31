@@ -9,6 +9,7 @@ import {
   getFileSelectionKey,
   getKeyForSidebarSelection,
 } from '../../../utils/selection';
+import { FileTreeData } from '.';
 
 /**
  * Transforms a hierarchical file tree structure into a flattened array suitable for
@@ -152,24 +153,33 @@ export function reconcileTopLevelFileTreeMap(
   }
 
   for (const node of newData) {
+    // For each top level item in the new data check if it exists in the previous version of the file-tree
+    // If it does we use the previous version of the file-tree to keep the same UI state
+
     const prevIdByPath = previousFilePathToTreeDataId.get(node.path);
     const prevNode = prevIdByPath
       ? previousMapData.get(prevIdByPath)
-      : previousMapData.get(node.id);
+      : undefined;
 
     if (prevIdByPath && prevIdByPath !== node.id) {
       updatedMap.delete(prevIdByPath);
     }
 
     if (node.type === FOLDER_TYPE) {
+      const isPreviousNodeFolder = prevNode?.type === FOLDER_TYPE;
+
       updatedMap.set(node.id, {
         ...node,
-        isOpen: prevNode?.type === FOLDER_TYPE ? prevNode.isOpen : false,
-        childrenIds: prevNode?.type === FOLDER_TYPE ? prevNode.childrenIds : [],
-        childrenCursor:
-          prevNode?.type === FOLDER_TYPE ? prevNode.childrenCursor : null,
-        hasMoreChildren:
-          prevNode?.type === FOLDER_TYPE ? prevNode.hasMoreChildren : false,
+        isOpen: isPreviousNodeFolder ? prevNode.isOpen : node.isOpen,
+        childrenIds: isPreviousNodeFolder
+          ? prevNode.childrenIds
+          : node.childrenIds,
+        childrenCursor: isPreviousNodeFolder
+          ? prevNode.childrenCursor
+          : node.childrenCursor,
+        hasMoreChildren: isPreviousNodeFolder
+          ? prevNode.hasMoreChildren
+          : node.hasMoreChildren,
       });
     } else {
       updatedMap.set(node.id, node);
@@ -537,4 +547,16 @@ export function computeMetaClickState({
     selections: newSelections,
     anchorSelection: nextAnchor,
   };
+}
+
+export function getTreeNodeFromPath(
+  fileTreeData: FileTreeData,
+  path: string
+): FileOrFolder | null {
+  const { treeData, filePathToTreeDataId } = fileTreeData;
+  const treeDataId = filePathToTreeDataId.get(path);
+  if (!treeDataId) {
+    return null;
+  }
+  return treeData.get(treeDataId) ?? null;
 }

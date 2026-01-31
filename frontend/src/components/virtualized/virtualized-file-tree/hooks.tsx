@@ -1,21 +1,35 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { navigate } from 'wouter/use-browser-location';
 import {
   GetChildrenOfFolder,
   GetTopLevelItems,
   OpenFolderAndAddToFileWatcher,
 } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
+import {
+  AddFolder,
+  RenameFolder,
+} from '../../../../bindings/github.com/etesam913/bytebook/internal/services/folderservice';
+import {
+  AddNoteToFolder,
+  RenameFile,
+} from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { QueryError } from '../../../utils/query';
 import { fileTreeDataAtom } from '.';
 import { reconcileTopLevelFileTreeMap } from './utils';
-import { FILE_TYPE, FOLDER_TYPE, type FileOrFolder } from './types';
-import { useEffect } from 'react';
+import { FILE_TYPE, FOLDER_TYPE, type FileOrFolder, Folder } from './types';
 import { useAtom, useSetAtom } from 'jotai';
+import { createFilePath, type FilePath } from '../../../utils/path';
+import { NAME_CHARS } from '../../../utils/string-formatting';
+import { toast } from 'sonner';
+import { DEFAULT_SONNER_OPTIONS } from '../../../utils/general';
 
 /**
- * Fetches the top-level folders from on mount
+ * Hook that fetches top-level files and folders from the backend
+ * and transforms them into an array of `FileOrFolder` objects
  */
-export function useTopLevelFileOrFolders() {
-  const topLevelFolderOrFilesQuery = useQuery({
+function useTopLevelFileOrFoldersQuery() {
+  return useQuery({
     queryKey: ['top-level-files'],
     queryFn: async (): Promise<FileOrFolder[]> => {
       const res = await GetTopLevelItems();
@@ -54,7 +68,14 @@ export function useTopLevelFileOrFolders() {
       return folderOrFiles;
     },
   });
+}
 
+/**
+ * Fetches the top-level folders from on mount
+ * and populates the fileTreeDataAtom atom with a map of id to FileOrFolder object
+ */
+export function useTopLevelFileOrFolders() {
+  const topLevelFolderOrFilesQuery = useTopLevelFileOrFoldersQuery();
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
 
   /**
@@ -68,8 +89,6 @@ export function useTopLevelFileOrFolders() {
    * Files are simply added/updated in the map, while folders merge their state to
    * maintain UI continuity.
    *
-   * @dependencies Runs when `topLevelFolderOrFilesQuery.isLoading` or
-   *   `topLevelFolderOrFilesQuery.data` changes
    */
   useEffect(() => {
     const isLoading = topLevelFolderOrFilesQuery.isLoading;
@@ -228,6 +247,120 @@ export function useOpenFolderMutation() {
 
       // Add folder to file watcher after successfully opening
       await OpenFolderAndAddToFileWatcher(pathToFolder);
+    },
+  });
+}
+
+export function useAddTreeItemMutation() {
+  return useMutation({
+    mutationFn: async ({
+      parentFolder,
+      addType,
+      newName,
+    }: {
+      parentFolder: Folder;
+      addType: 'folder' | 'note';
+      newName: string;
+      onSuccess?: () => void;
+    }) => {
+      if (!NAME_CHARS.test(newName)) {
+        throw new Error(
+          'Names can only contain letters, numbers, spaces, hyphens, and underscores.'
+        );
+      }
+
+      if (addType === 'folder') {
+        // Create folder: path is parentFolderId/newFolderName
+        const newFolderPath = `${parentFolder.path}/${newName}`;
+        const res = await AddFolder(newFolderPath);
+        if (!res.success) {
+          throw new Error(res.message);
+        }
+        return { addType, parentPath: parentFolder.path, newName };
+      }
+
+      const newNotePath = `${parentFolder.path}/${newName}.md`;
+      // Create note: folder is parentFolder.id, note name is newName
+      const res = await AddNoteToFolder(parentFolder.path, newName);
+      if (!res.success) {
+        throw new Error(res.message);
+      }
+
+      return { addType, parentPath: parentFolder.path, newName, newNotePath };
+    },
+    onSuccess: (result, variables) => {
+      if (result.addType === 'note') {
+        const filePath = createFilePath(result.newNotePath);
+        setTimeout(() => {
+          if (filePath) {
+            navigate(filePath.encodedFileUrl);
+          }
+        }, 300);
+      }
+
+      variables.onSuccess?.();
+    },
+  });
+}
+
+type RenameTreeItemPayload = (RenameFolderPayload | RenameFilePayload) & {
+  onSuccess?: () => void;
+  newName: string;
+};
+
+type RenameFolderPayload = {
+  itemType: 'folder';
+  folderPath: string;
+};
+type RenameFilePayload = {
+  itemType: 'file';
+  filePath: FilePath;
+};
+
+export function useRenameTreeItemMutation() {
+  return useMutation({
+    mutationFn: async (args: RenameTreeItemPayload) => {
+      const trimmedName = args.newName.trim();
+      if (!NAME_CHARS.test(trimmedName)) {
+        throw new Error(
+          'Names can only contain letters, numbers, spaces, hyphens, and underscores.'
+        );
+      }
+
+      if (args.itemType === 'folder') {
+        const pathSegments = args.folderPath.split('/');
+        pathSegments[pathSegments.length - 1] = trimmedName;
+        const newFolderPath = pathSegments.join('/');
+        const res = await RenameFolder(args.folderPath, newFolderPath);
+        if (!res.success) {
+          throw new Error(res.message);
+        }
+        return { itemType: 'folder' as const };
+      }
+
+      // Renaming a file
+      const newFilePathString = `${args.filePath.folder}/${trimmedName}.${args.filePath.extension}`;
+      const newFilePath = createFilePath(newFilePathString);
+      if (!newFilePath) {
+        throw new Error('Invalid file path');
+      }
+      const res = await RenameFile(
+        args.filePath.fullPath,
+        newFilePath.fullPath
+      );
+      if (!res.success) {
+        throw new Error(res.message);
+      }
+      return { itemType: 'file' as const };
+    },
+    onSuccess: (result, variables) => {
+      if (result.itemType === 'folder') {
+        toast.success('Folder renamed successfully', DEFAULT_SONNER_OPTIONS);
+      } else {
+        toast.success('File renamed successfully', DEFAULT_SONNER_OPTIONS);
+      }
+
+      variables.onSuccess?.();
     },
   });
 }
