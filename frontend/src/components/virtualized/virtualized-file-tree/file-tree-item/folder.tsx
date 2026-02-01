@@ -8,10 +8,6 @@ import type { Folder } from '../types';
 import { contextMenuDataAtom } from '../../../../atoms';
 import { currentZoomAtom } from '../../../../hooks/resize';
 import { InlineTreeItemInput } from './inline-tree-item-input';
-import {
-  OpenFolderAndAddToFileWatcher,
-  CloseFolderAndRemoveFromFileWatcher,
-} from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { Finder } from '../../../../icons/finder';
 import { Trash } from '../../../../icons/trash';
 import { FilePen } from '../../../../icons/file-pen';
@@ -143,7 +139,6 @@ export function FileTreeFolderItem({
           pathToFolder: dataItem.path,
           folderId: dataItem.id,
         });
-        await OpenFolderAndAddToFileWatcher(dataItem.path);
       } else {
         setFileTreeData((prev) => {
           const newTreeData = new Map(prev.treeData);
@@ -153,8 +148,6 @@ export function FileTreeFolderItem({
             treeData: newTreeData,
           };
         });
-        // Remove folder from file watcher when closing
-        await CloseFolderAndRemoveFromFileWatcher(dataItem.path);
       }
     }
   }

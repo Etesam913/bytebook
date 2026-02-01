@@ -198,4 +198,44 @@ func TestFilterUnneededDebouncedEvents(t *testing.T) {
 		}
 		assert.Equal(t, events[util.Events.FolderRename], filtered[util.Events.FolderRename])
 	})
+
+	t.Run("filters note:delete when rename targets same old path", func(t *testing.T) {
+		events := map[string][]map[string]string{
+			util.Events.NoteDelete: {
+				{"notePath": "alpha/old.md"},
+				{"notePath": "alpha/keep.md"},
+			},
+			util.Events.NoteRename: {
+				{"oldNotePath": "alpha/old.md", "newNotePath": "alpha/new.md"},
+			},
+		}
+
+		filtered := filterUnneededDebouncedEvents(events)
+
+		if assert.Contains(t, filtered, util.Events.NoteDelete) {
+			assert.Len(t, filtered[util.Events.NoteDelete], 1)
+			assert.Equal(t, "alpha/keep.md", filtered[util.Events.NoteDelete][0]["notePath"])
+		}
+		assert.Equal(t, events[util.Events.NoteRename], filtered[util.Events.NoteRename])
+	})
+
+	t.Run("filters folder:delete when rename targets same old path", func(t *testing.T) {
+		events := map[string][]map[string]string{
+			util.Events.FolderDelete: {
+				{"folderPath": "alpha/old-folder"},
+				{"folderPath": "alpha/keep-folder"},
+			},
+			util.Events.FolderRename: {
+				{"oldFolderPath": "alpha/old-folder", "newFolderPath": "alpha/new-folder"},
+			},
+		}
+
+		filtered := filterUnneededDebouncedEvents(events)
+
+		if assert.Contains(t, filtered, util.Events.FolderDelete) {
+			assert.Len(t, filtered[util.Events.FolderDelete], 1)
+			assert.Equal(t, "alpha/keep-folder", filtered[util.Events.FolderDelete][0]["folderPath"])
+		}
+		assert.Equal(t, events[util.Events.FolderRename], filtered[util.Events.FolderRename])
+	})
 }
