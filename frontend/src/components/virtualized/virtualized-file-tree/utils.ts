@@ -115,17 +115,19 @@ export function transformFileTreeForVirtualizedList(
  * before removing the folder itself.
  */
 export function removeSubtree(
-  map: Map<string, FileOrFolder>,
+  fileTreeData: FileTreeData,
   rootId: string
 ): void {
-  const root = map.get(rootId);
+  const { treeData, filePathToTreeDataId } = fileTreeData;
+  const root = treeData.get(rootId);
   if (!root) return;
   if (root.type === FOLDER_TYPE) {
     for (const childId of root.childrenIds) {
-      removeSubtree(map, childId);
+      removeSubtree(fileTreeData, childId);
     }
   }
-  map.delete(rootId);
+  filePathToTreeDataId.delete(root.path);
+  treeData.delete(rootId);
 }
 
 /**
@@ -138,17 +140,23 @@ export function removeSubtree(
  * used to match prior nodes when IDs change between fetches.
  */
 export function reconcileTopLevelFileTreeMap(
-  previousMapData: Map<string, FileOrFolder>,
-  previousFilePathToTreeDataId: Map<string, string>,
+  previousFileTreeData: FileTreeData,
   newData: FileOrFolder[]
 ): Map<string, FileOrFolder> {
   const newPaths = new Set(newData.map((item) => item.path));
-  const updatedMap = new Map(previousMapData);
+  const updatedTreeData = new Map(previousFileTreeData.treeData);
+  const updatedFilePathToTreeDataId = new Map(
+    previousFileTreeData.filePathToTreeDataId
+  );
+  const updatedFileTreeData = {
+    treeData: updatedTreeData,
+    filePathToTreeDataId: updatedFilePathToTreeDataId,
+  };
 
-  for (const [id, node] of previousMapData) {
+  for (const [id, node] of previousFileTreeData.treeData) {
     // Remove top level folders that are not in the updated data
     if (node.parentId === null && !newPaths.has(node.path)) {
-      removeSubtree(updatedMap, id);
+      removeSubtree(updatedFileTreeData, id);
     }
   }
 
@@ -156,19 +164,21 @@ export function reconcileTopLevelFileTreeMap(
     // For each top level item in the new data check if it exists in the previous version of the file-tree
     // If it does we use the previous version of the file-tree to keep the same UI state
 
-    const prevIdByPath = previousFilePathToTreeDataId.get(node.path);
+    const prevIdByPath =
+      previousFileTreeData.filePathToTreeDataId.get(node.path);
     const prevNode = prevIdByPath
-      ? previousMapData.get(prevIdByPath)
+      ? previousFileTreeData.treeData.get(prevIdByPath)
       : undefined;
 
     if (prevIdByPath && prevIdByPath !== node.id) {
-      updatedMap.delete(prevIdByPath);
+      updatedTreeData.delete(prevIdByPath);
+      updatedFilePathToTreeDataId.delete(node.path);
     }
 
     if (node.type === FOLDER_TYPE) {
       const isPreviousNodeFolder = prevNode?.type === FOLDER_TYPE;
 
-      updatedMap.set(node.id, {
+      updatedTreeData.set(node.id, {
         ...node,
         isOpen: isPreviousNodeFolder ? prevNode.isOpen : node.isOpen,
         childrenIds: isPreviousNodeFolder
@@ -182,11 +192,11 @@ export function reconcileTopLevelFileTreeMap(
           : node.hasMoreChildren,
       });
     } else {
-      updatedMap.set(node.id, node);
+      updatedTreeData.set(node.id, node);
     }
   }
 
-  return updatedMap;
+  return updatedTreeData;
 }
 
 /**
@@ -254,29 +264,35 @@ export function addFolderToFileTreeMap({
  * Returns the updated map, or the original map if the parent doesn't exist or isn't a folder.
  */
 export function removeFolderFromFileTreeMap({
-  fileTreeMap,
+  fileTreeData,
   folderId,
   parentId,
 }: {
-  fileTreeMap: Map<string, FileOrFolder>;
+  fileTreeData: FileTreeData;
   folderId: string;
   parentId: string;
-}): Map<string, FileOrFolder> {
-  const parent = fileTreeMap.get(parentId);
+}): FileTreeData {
+  const parent = fileTreeData.treeData.get(parentId);
   if (!parent || parent.type !== 'folder') {
-    return fileTreeMap;
+    return fileTreeData;
   }
 
-  const newFileTreeMap = new Map(fileTreeMap);
+  const updatedFileTreeData: FileTreeData = {
+    treeData: new Map(fileTreeData.treeData),
+    filePathToTreeDataId: new Map(fileTreeData.filePathToTreeDataId),
+  };
 
   // Remove the folder and all its descendants
-  removeSubtree(newFileTreeMap, folderId);
+  removeSubtree(updatedFileTreeData, folderId);
 
   // Update parent's childrenIds to remove the deleted folder
   const updatedChildren = parent.childrenIds.filter((id) => id !== folderId);
-  newFileTreeMap.set(parentId, { ...parent, childrenIds: updatedChildren });
+  updatedFileTreeData.treeData.set(parentId, {
+    ...parent,
+    childrenIds: updatedChildren,
+  });
 
-  return newFileTreeMap;
+  return updatedFileTreeData;
 }
 
 /**

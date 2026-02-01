@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-query';
 import { logger } from '../utils/logging';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
-import { useAtom } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
 import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
 import {
@@ -24,6 +24,7 @@ import {
 import { fileTreeDataAtom } from '../components/virtualized/virtualized-file-tree';
 import {
   addFolderToFileTreeMap,
+  getTreeNodeFromPath,
   removeFolderFromFileTreeMap,
 } from '../components/virtualized/virtualized-file-tree/utils';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
@@ -36,6 +37,7 @@ import { routeUrls } from '../utils/routes';
 import { useWailsEvent } from './events';
 import { isEventInCurrentWindow } from '../utils/events';
 import { useCreateFolderDialog } from './dialogs';
+import { OpenFolderAndAddToFileWatcher } from '../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 
 type FoldersQueryData = {
   alphabetizedFolders: string[];
@@ -83,60 +85,68 @@ export function useFolders() {
 /** This function is used to handle `folder:create` events */
 export function useFolderCreate() {
   const queryClient = useQueryClient();
-  const [{ filePathToTreeDataId }, setFileTreeData] = useAtom(fileTreeDataAtom);
+  const setFileTreeData = useSetAtom(fileTreeDataAtom);
 
   useWailsEvent('folder:create', async (body) => {
     logger.event('folder:create', body);
     const data = body.data as { folderPath: string }[];
+    let needsTopLevelInvalidation = false;
 
-    for (const { folderPath } of data) {
-      // Skip if folder path already exists in the filepath-to-id mapping
-      if (filePathToTreeDataId.has(folderPath)) {
-        continue;
-      }
+    setFileTreeData((prev) => {
+      let updatedTreeData = new Map(prev.treeData);
+      const updatedFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
 
-      const segments = folderPath.split('/').filter(Boolean);
+      for (const { folderPath } of data) {
+        // Skip if folder path already exists in the filepath-to-id mapping
+        if (updatedFilePathToTreeDataId.has(folderPath)) {
+          continue;
+        }
 
-      if (segments.length === 1) {
-        // Top-level folder - just invalidate the query
-        queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-      } else {
-        // Nested folder - add it directly to the map
+        const segments = folderPath.split('/').filter(Boolean);
+
+        if (segments.length === 1) {
+          // Top-level folder - just invalidate the query
+          needsTopLevelInvalidation = true;
+          continue;
+        }
+
         const folderName = segments[segments.length - 1];
         const parentPath = segments.slice(0, -1).join('/');
-        const parentId = filePathToTreeDataId.get(parentPath);
+        const parentId = updatedFilePathToTreeDataId.get(parentPath);
 
         if (!parentId) {
-          // Parent not found in path map - invalidate queries
-          queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+          // The folder is top level as it does not have a parent
+          needsTopLevelInvalidation = true;
+          continue;
+        }
+
+        const parent = updatedTreeData.get(parentId);
+
+        if (!parent || parent.type !== 'folder' || !parent.isOpen) {
+          // Parent can't be closed
           continue;
         }
 
         // Generate a new UUID for this folder
         const newFolderId = crypto.randomUUID();
-
-        setFileTreeData((prev) => {
-          const parent = prev.treeData.get(parentId);
-          if (!parent || parent.type !== 'folder' || !parent.isOpen) {
-            // Parent doesn't exist or isn't open - nothing to update
-            return prev;
-          }
-
-          const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
-          newFilePathToTreeDataId.set(folderPath, newFolderId);
-
-          return {
-            treeData: addFolderToFileTreeMap({
-              map: prev.treeData,
-              folderId: newFolderId,
-              folderPath,
-              folderName,
-              parentId,
-            }),
-            filePathToTreeDataId: newFilePathToTreeDataId,
-          };
+        updatedFilePathToTreeDataId.set(folderPath, newFolderId);
+        updatedTreeData = addFolderToFileTreeMap({
+          map: updatedTreeData,
+          folderId: newFolderId,
+          folderPath,
+          folderName,
+          parentId,
         });
       }
+
+      return {
+        treeData: updatedTreeData,
+        filePathToTreeDataId: updatedFilePathToTreeDataId,
+      };
+    });
+
+    if (needsTopLevelInvalidation) {
+      queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
     }
   });
 }
@@ -144,53 +154,54 @@ export function useFolderCreate() {
 /** This function is used to handle `folder:delete` events. This gets triggered when deleting a folder using the file system */
 export function useFolderDelete() {
   const queryClient = useQueryClient();
-  const [{ filePathToTreeDataId }, setFileTreeData] = useAtom(fileTreeDataAtom);
+  const setFileTreeData = useSetAtom(fileTreeDataAtom);
 
   useWailsEvent('folder:delete', async (body) => {
     logger.event('folder:delete', body);
     const data = body.data as { folderPath: string }[];
+    let needsTopLevelInvalidation = false;
 
-    for (const { folderPath } of data) {
-      const segments = folderPath.split('/').filter(Boolean);
+    setFileTreeData((prev) => {
+      let updatedFileTreeData = prev;
+      let didUpdate = false;
 
-      if (segments.length === 1) {
-        // Top-level folder - just invalidate the query
-        queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-      } else {
-        // Nested folder - remove it from the map
-        const parentPath = segments.slice(0, -1).join('/');
+      for (const { folderPath } of data) {
+        const segments = folderPath.split('/').filter(Boolean);
 
-        // Look up UUIDs from paths
-        const folderId = filePathToTreeDataId.get(folderPath);
-        const parentId = filePathToTreeDataId.get(parentPath);
-
-        if (!folderId || !parentId) {
-          // Can't find folder in path map - invalidate queries
-          queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+        if (segments.length === 1) {
+          // Top-level folder - just invalidate the query
+          needsTopLevelInvalidation = true;
           continue;
         }
 
-        setFileTreeData((prev) => {
-          const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
+        // Nested folder - remove it from the map
+        const parentPath = segments.slice(0, -1).join('/');
 
-          // Remove the folder path and all children paths from the map
-          // Delete all paths that start with this folder path
-          for (const path of newFilePathToTreeDataId.keys()) {
-            if (path === folderPath || path.startsWith(folderPath + '/')) {
-              newFilePathToTreeDataId.delete(path);
-            }
-          }
+        // Look up ids from paths
+        const folderId =
+          updatedFileTreeData.filePathToTreeDataId.get(folderPath);
+        const parentId =
+          updatedFileTreeData.filePathToTreeDataId.get(parentPath);
 
-          return {
-            treeData: removeFolderFromFileTreeMap({
-              fileTreeMap: prev.treeData,
-              folderId,
-              parentId,
-            }),
-            filePathToTreeDataId: newFilePathToTreeDataId,
-          };
+        if (!folderId || !parentId) {
+          // Can't find folder in path map - invalidate queries
+          needsTopLevelInvalidation = true;
+          continue;
+        }
+
+        updatedFileTreeData = removeFolderFromFileTreeMap({
+          fileTreeData: updatedFileTreeData,
+          folderId,
+          parentId,
         });
+        didUpdate = true;
       }
+
+      return didUpdate ? updatedFileTreeData : prev;
+    });
+
+    if (needsTopLevelInvalidation) {
+      queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
     }
   });
 }
@@ -198,7 +209,8 @@ export function useFolderDelete() {
 /** This function is used to handle `folder:rename` events. This gets triggered when renaming a folder using the file system */
 export function useFolderRename() {
   const queryClient = useQueryClient();
-  const [{ filePathToTreeDataId }, setFileTreeData] = useAtom(fileTreeDataAtom);
+  const [{ filePathToTreeDataId, treeData }, setFileTreeData] =
+    useAtom(fileTreeDataAtom);
 
   useWailsEvent('folder:rename', async (body) => {
     logger.event('folder:rename', body);
@@ -207,36 +219,112 @@ export function useFolderRename() {
       newFolderPath: string;
     }[];
 
+    // needsTopLevelInvalidation is to track if the top level needs to be invalidated
+    let needsTopLevelInvalidation = false;
+
+    // pathRemappings is to track changes from an old path to a new path
+    const pathRemappings = new Map<string, string>(); // oldPath -> newPath
+
+    // folderUpdates is to track changes to a folder's properties based off of id
+    const folderUpdates = new Map<
+      string,
+      { path: string; name: string; parentId: string | null }
+    >(); // folderId -> { path, name, parentId }
+
+    // parentFolderUpdates is to track changes to a parent folder's children based off of id
+    const parentFolderUpdates = new Map<
+      string,
+      { removeChildIds: Set<string>; addChildIds: Set<string> }
+    >(); // parentId -> { removeChildIds, addChildIds }
+
     for (const { oldFolderPath, newFolderPath } of data) {
+      const treeDataNode = getTreeNodeFromPath(
+        { filePathToTreeDataId, treeData },
+        oldFolderPath
+      );
+
+      if (!treeDataNode || treeDataNode.type !== 'folder') {
+        logger.error('folder:rename', 'id for old folder path not found', {
+          oldFolderPath,
+        });
+        continue;
+      }
+
+      if (treeDataNode.isOpen) {
+        // If the folder is open, and going to be renamed to a different path, we need to ensure that the file watcher is listening
+        // to the new path
+        await OpenFolderAndAddToFileWatcher(newFolderPath);
+      }
+
+      // Adds to path remapping map
       const oldSegments = oldFolderPath.split('/').filter(Boolean);
       const newSegments = newFolderPath.split('/').filter(Boolean);
+      pathRemappings.set(oldFolderPath, newFolderPath);
 
-      if (oldSegments.length === 1 || newSegments.length === 1) {
-        // Top-level folder - just invalidate the query
-        queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-      } else {
-        // Nested folder - update the map
-        const oldParentPath = oldSegments.slice(0, -1).join('/');
-        const newParentPath = newSegments.slice(0, -1).join('/');
-        const newFolderName = newSegments[newSegments.length - 1];
+      // Determine if the folder is being moved to or from the top level
+      const isUpdatingtopLevel =
+        oldSegments.length === 1 || newSegments.length === 1;
+      if (isUpdatingtopLevel) {
+        needsTopLevelInvalidation = true;
+      }
 
-        // Look up UUIDs from paths
-        const folderId = filePathToTreeDataId.get(oldFolderPath);
-        const oldParentId = filePathToTreeDataId.get(oldParentPath);
-        const newParentId = filePathToTreeDataId.get(newParentPath);
+      // Update the required properties for the folder based off of id
+      const newFolderName = newSegments[newSegments.length - 1];
+      const oldParentId = treeDataNode.parentId;
+      const newParentPath = newSegments.slice(0, -1).join('/');
+      const newParentId =
+        getTreeNodeFromPath({ filePathToTreeDataId, treeData }, newParentPath)
+          ?.id ?? null;
+      folderUpdates.set(treeDataNode.id, {
+        path: newFolderPath,
+        name: newFolderName,
+        parentId: newParentId,
+      });
 
-        if (!folderId || !oldParentId) {
-          // Can't find old folder in path map - invalidate queries
-          queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-          continue;
+      // If the folder did not used to be a top level folder, remove it from the old parent folder's children
+      if (oldParentId && oldParentId !== newParentId) {
+        if (!parentFolderUpdates.has(oldParentId)) {
+          // Providing a a default empty value for the updates
+          parentFolderUpdates.set(oldParentId, {
+            removeChildIds: new Set(),
+            addChildIds: new Set(),
+          });
         }
+        parentFolderUpdates
+          .get(oldParentId)!
+          .removeChildIds.add(treeDataNode.id);
+      }
 
-        setFileTreeData((prev) => {
-          const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
+      // If the folder is moving to a new parent folder, add it to the new parent folder's children
+      if (newParentId && newParentId !== oldParentId) {
+        if (!parentFolderUpdates.has(newParentId)) {
+          parentFolderUpdates.set(newParentId, {
+            removeChildIds: new Set(),
+            addChildIds: new Set(),
+          });
+        }
+        parentFolderUpdates.get(newParentId)!.addChildIds.add(treeDataNode.id);
+      }
+    }
 
-          // Collect entries to update to avoid modifying map while iterating
+    if (needsTopLevelInvalidation) {
+      queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+    }
+
+    // Apply all changes in a single setFileTreeData call
+    if (pathRemappings.size > 0) {
+      setFileTreeData((prev) => {
+        const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
+        const updatedTreeData = new Map(prev.treeData);
+
+        // Update the filePathToTreeDataId map with the remappings
+        for (const [oldFolderPath, newFolderPath] of pathRemappings) {
           const entriesToUpdate: [string, string][] = [];
+
           for (const [path, id] of newFilePathToTreeDataId.entries()) {
+            // Finds all files and folders that start with the old folder path
+            // This gets the children of the old folder path
+            // These need to be updated to the new folder path
             if (
               path === oldFolderPath ||
               path.startsWith(oldFolderPath + '/')
@@ -245,34 +333,16 @@ export function useFolderRename() {
             }
           }
 
-          // Remove old paths and add new paths (including the folder itself)
           for (const [oldPath, id] of entriesToUpdate) {
+            // Updating the paths in the filePathToTreeDataId map
+            // and the tree data map for the folder and each of its children
             newFilePathToTreeDataId.delete(oldPath);
             const newPath =
               oldPath === oldFolderPath
                 ? newFolderPath
                 : newFolderPath + oldPath.slice(oldFolderPath.length);
             newFilePathToTreeDataId.set(newPath, id);
-          }
 
-          const updatedTreeData = new Map(prev.treeData);
-          const renamedFolder = updatedTreeData.get(folderId);
-          if (renamedFolder && renamedFolder.type === 'folder') {
-            updatedTreeData.set(folderId, {
-              ...renamedFolder,
-              path: newFolderPath,
-              name: newFolderName,
-              parentId: newParentId ?? renamedFolder.parentId,
-            });
-          }
-
-          // Update descendant paths in tree data
-          for (const [oldPath, id] of entriesToUpdate) {
-            const newPath =
-              oldPath === oldFolderPath
-                ? newFolderPath
-                : newFolderPath + oldPath.slice(oldFolderPath.length);
-            if (id === folderId) continue;
             const node = updatedTreeData.get(id);
             if (!node) continue;
             updatedTreeData.set(id, {
@@ -280,44 +350,62 @@ export function useFolderRename() {
               path: newPath,
             });
           }
+        }
 
-          if (oldParentId && oldParentId !== newParentId) {
-            const oldParent = updatedTreeData.get(oldParentId);
-            if (oldParent && oldParent.type === 'folder') {
-              updatedTreeData.set(oldParentId, {
-                ...oldParent,
-                childrenIds: oldParent.childrenIds.filter(
-                  (id) => id !== folderId
-                ),
-              });
+        // Apply folder updates
+        for (const [folderId, updates] of folderUpdates) {
+          const existingFolder = updatedTreeData.get(folderId);
+          if (existingFolder && existingFolder.type === 'folder') {
+            updatedTreeData.set(folderId, {
+              ...existingFolder,
+              path: updates.path,
+              name: updates.name,
+              parentId: updates.parentId,
+            });
+          }
+        }
+
+        // Apply parent folder updates
+        for (const [parentId, updates] of parentFolderUpdates) {
+          const parent = updatedTreeData.get(parentId);
+          if (!parent || parent.type !== 'folder') {
+            continue;
+          }
+
+          let updatedChildrenIds = [...parent.childrenIds];
+          for (const childId of updates.removeChildIds) {
+            updatedChildrenIds = updatedChildrenIds.filter(
+              (id) => id !== childId
+            );
+          }
+
+          // Add children to new parent
+          for (const childId of updates.addChildIds) {
+            if (!updatedChildrenIds.includes(childId)) {
+              updatedChildrenIds.push(childId);
             }
           }
 
-          if (newParentId) {
-            const newParent = updatedTreeData.get(newParentId);
-            if (newParent && newParent.type === 'folder') {
-              const updatedChildren = [...newParent.childrenIds, folderId]
-                .filter((id, index, arr) => arr.indexOf(id) === index)
-                .sort((a, b) => {
-                  const aItem = updatedTreeData.get(a);
-                  const bItem = updatedTreeData.get(b);
-                  const aName = aItem?.name ?? a;
-                  const bName = bItem?.name ?? b;
-                  return aName.localeCompare(bName);
-                });
-              updatedTreeData.set(newParentId, {
-                ...newParent,
-                childrenIds: updatedChildren,
-              });
-            }
-          }
+          // Sort alphabetically by name
+          updatedChildrenIds.sort((a, b) => {
+            const aItem = updatedTreeData.get(a);
+            const bItem = updatedTreeData.get(b);
+            const aName = aItem?.name ?? a;
+            const bName = bItem?.name ?? b;
+            return aName.localeCompare(bName);
+          });
 
-          return {
-            treeData: updatedTreeData,
-            filePathToTreeDataId: newFilePathToTreeDataId,
-          };
-        });
-      }
+          updatedTreeData.set(parentId, {
+            ...parent,
+            childrenIds: updatedChildrenIds,
+          });
+        }
+
+        return {
+          treeData: updatedTreeData,
+          filePathToTreeDataId: newFilePathToTreeDataId,
+        };
+      });
     }
   });
 }

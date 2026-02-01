@@ -104,16 +104,33 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 	if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
 		timeDiff := time.Since(fw.mostRecentFolderCreatedEvent.time)
 		if event.Has(fsnotify.Rename) && timeDiff < TIME_FOR_TWO_EVENTS_TO_BE_RELATED {
-			newFolderPath := fw.mostRecentFolderCreatedEvent.event.Name
-			eventKey = util.Events.FolderRename
+			newFolderPath := fw.pathFromNotes(fw.mostRecentFolderCreatedEvent.event.Name)
+			oldFolderPath := fw.pathFromNotes(event.Name)
 
-			fw.debounceEvents[eventKey] = append(
-				fw.debounceEvents[eventKey],
-				map[string]string{
-					"oldFolderPath": fw.pathFromNotes(event.Name),
-					"newFolderPath": fw.pathFromNotes(newFolderPath),
-				},
-			)
+			if oldFolderPath == newFolderPath {
+				// A rename event with the exact same two paths is an indication that
+				// it is actually a bugged out folder:delete
+				eventKey = util.Events.FolderDelete
+			} else {
+				eventKey = util.Events.FolderRename
+			}
+
+			if eventKey == util.Events.FolderRename {
+				fw.debounceEvents[eventKey] = append(
+					fw.debounceEvents[eventKey],
+					map[string]string{
+						"oldFolderPath": oldFolderPath,
+						"newFolderPath": newFolderPath,
+					},
+				)
+			} else {
+				fw.debounceEvents[eventKey] = append(
+					fw.debounceEvents[eventKey],
+					map[string]string{
+						"folderPath": oldFolderPath,
+					},
+				)
+			}
 		} else {
 			eventKey = util.Events.FolderDelete
 
@@ -240,9 +257,9 @@ func (fw *FileWatcher) handleSavedSearchUpdate(event fsnotify.Event) {
 	}
 }
 
-// filterUnneededDebouncedEvents removes create events for items that were also the
-// "new*Path" target of a rename event within the same debounce cycle.
-// This prevents redundant creation events for items that were simply renamed/moved.
+// filterUnneededDebouncedEvents removes redundant create and delete events for items
+// that were also the "new*Path" (for create) or "old*Path" (for delete) target of a rename event within the same debounce cycle.
+// This prevents redundant creation/deletion events for items that were simply renamed/moved.
 func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[string][]map[string]string {
 	noteRenameEvents := events[util.Events.NoteRename]
 	folderRenameEvents := events[util.Events.FolderRename]
@@ -251,53 +268,86 @@ func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[st
 	}
 
 	renamedNotePathsSet := util.Set[string]{}
+	originalNotePathsSet := util.Set[string]{}
 	for _, data := range noteRenameEvents {
 		if newNotePath, ok := data["newNotePath"]; ok && newNotePath != "" {
 			renamedNotePathsSet.Add(newNotePath)
 		}
+		if oldNotePath, ok := data["oldNotePath"]; ok && oldNotePath != "" {
+			originalNotePathsSet.Add(oldNotePath)
+		}
 	}
 
 	renamedFolderPathsSet := util.Set[string]{}
+	originalFolderPathsSet := util.Set[string]{}
 	for _, data := range folderRenameEvents {
 		if newFolderPath, ok := data["newFolderPath"]; ok && newFolderPath != "" {
 			renamedFolderPathsSet.Add(newFolderPath)
 		}
+		if oldFolderPath, ok := data["oldFolderPath"]; ok && oldFolderPath != "" {
+			originalFolderPathsSet.Add(oldFolderPath)
+		}
 	}
-	if len(renamedNotePathsSet) == 0 && len(renamedFolderPathsSet) == 0 {
+	if (len(renamedNotePathsSet) == 0 && len(renamedFolderPathsSet) == 0) &&
+		(len(originalNotePathsSet) == 0 && len(originalFolderPathsSet) == 0) {
 		return events
 	}
 
 	filteredEvents := make(map[string][]map[string]string, len(events))
 	for eventKey, data := range events {
-		if eventKey != util.Events.NoteCreate && eventKey != util.Events.FolderCreate {
-			filteredEvents[eventKey] = data
-			continue
-		}
-
-		if len(data) == 0 {
-			continue
-		}
-
-		kept := make([]map[string]string, 0, len(data))
-		for _, payload := range data {
-			if eventKey == util.Events.NoteCreate {
+		switch eventKey {
+		case util.Events.NoteCreate:
+			kept := make([]map[string]string, 0, len(data))
+			for _, payload := range data {
 				notePath := payload["notePath"]
+				// Filters out note:create events that are the result of a rename (already captured by note:rename)
 				if renamedNotePathsSet.Has(notePath) {
-					// Filters out note:create events that are already captured by note:rename
 					continue
 				}
-			} else {
+				kept = append(kept, payload)
+			}
+			if len(kept) > 0 {
+				filteredEvents[eventKey] = kept
+			}
+		case util.Events.FolderCreate:
+			kept := make([]map[string]string, 0, len(data))
+			for _, payload := range data {
 				folderPath := payload["folderPath"]
 				if renamedFolderPathsSet.Has(folderPath) {
-					// Filters out folder:create events that are already captured by folder:rename
 					continue
 				}
+				kept = append(kept, payload)
 			}
-			kept = append(kept, payload)
-		}
-
-		if len(kept) > 0 {
-			filteredEvents[eventKey] = kept
+			if len(kept) > 0 {
+				filteredEvents[eventKey] = kept
+			}
+		case util.Events.NoteDelete:
+			kept := make([]map[string]string, 0, len(data))
+			for _, payload := range data {
+				notePath := payload["notePath"]
+				// Filters out note:delete events that are the result of a rename (already captured by note:rename)
+				if originalNotePathsSet.Has(notePath) {
+					continue
+				}
+				kept = append(kept, payload)
+			}
+			if len(kept) > 0 {
+				filteredEvents[eventKey] = kept
+			}
+		case util.Events.FolderDelete:
+			kept := make([]map[string]string, 0, len(data))
+			for _, payload := range data {
+				folderPath := payload["folderPath"]
+				if originalFolderPathsSet.Has(folderPath) {
+					continue
+				}
+				kept = append(kept, payload)
+			}
+			if len(kept) > 0 {
+				filteredEvents[eventKey] = kept
+			}
+		default:
+			filteredEvents[eventKey] = data
 		}
 	}
 

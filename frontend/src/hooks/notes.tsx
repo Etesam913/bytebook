@@ -225,60 +225,69 @@ export function useNotesInPage(
 /** This function is used to handle note:create events */
 export function useNoteCreate() {
   const queryClient = useQueryClient();
-  const [{ filePathToTreeDataId }, setFileTreeData] = useAtom(fileTreeDataAtom);
+  const setFileTreeData = useSetAtom(fileTreeDataAtom);
 
   useWailsEvent('note:create', async (body) => {
     logger.event('note:create', body);
     const data = body.data as { notePath: string }[];
-    for (const { notePath } of data) {
-      // Skip if note path already exists in the filepath-to-id mapping
-      if (filePathToTreeDataId.has(notePath)) {
-        continue;
-      }
+    let needsTopLevelInvalidation = false;
 
-      const segments = notePath.split('/').filter(Boolean);
+    setFileTreeData((prev) => {
+      let updatedTreeData = new Map(prev.treeData);
+      const updatedFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
 
-      if (segments.length === 1) {
-        // Top-level file - just invalidate the query
-        queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-      } else {
+      for (const { notePath } of data) {
+        // Skip if note path already exists in the filepath-to-id mapping
+        if (updatedFilePathToTreeDataId.has(notePath)) {
+          continue;
+        }
+
+        const segments = notePath.split('/').filter(Boolean);
+
+        if (segments.length === 1) {
+          // Top-level file - just invalidate the query
+          needsTopLevelInvalidation = true;
+          continue;
+        }
+
         // Nested file - add it directly to the map
         const fileName = segments[segments.length - 1];
         const parentPath = segments.slice(0, -1).join('/');
-        const parentId = filePathToTreeDataId.get(parentPath);
-        console.log({ parentId, parentPath, fileName });
+        const parentId = updatedFilePathToTreeDataId.get(parentPath);
 
+        console.log({ parentId, parentPath, fileName });
         if (!parentId) {
           // Parent not found in path map - invalidate queries
-          queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+          needsTopLevelInvalidation = true;
+          continue;
+        }
+
+        const parent = updatedTreeData.get(parentId);
+        if (!parent || parent.type !== 'folder' || !parent.isOpen) {
+          // Parent doesn't exist or isn't open - nothing to update
           continue;
         }
 
         // Generate a new UUID for this file
         const newFileId = crypto.randomUUID();
-
-        setFileTreeData((prev) => {
-          const parent = prev.treeData.get(parentId);
-          if (!parent || parent.type !== 'folder' || !parent.isOpen) {
-            console.log({ parent });
-            // Parent doesn't exist or isn't open - nothing to update
-            return prev;
-          }
-          const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
-          newFilePathToTreeDataId.set(notePath, newFileId);
-
-          return {
-            treeData: addFileToFileTreeMap({
-              map: prev.treeData,
-              fileId: newFileId,
-              filePath: notePath,
-              fileName,
-              parentId,
-            }),
-            filePathToTreeDataId: newFilePathToTreeDataId,
-          };
+        updatedFilePathToTreeDataId.set(notePath, newFileId);
+        updatedTreeData = addFileToFileTreeMap({
+          map: updatedTreeData,
+          fileId: newFileId,
+          filePath: notePath,
+          fileName,
+          parentId,
         });
       }
+
+      return {
+        treeData: updatedTreeData,
+        filePathToTreeDataId: updatedFilePathToTreeDataId,
+      };
+    });
+
+    if (needsTopLevelInvalidation) {
+      queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
     }
   });
 }
@@ -395,9 +404,7 @@ export function useNoteRename() {
       oldNotePath: string;
       newNotePath: string;
     }[];
-    // Track changes to be applied in a single setFileTreeData call
-
-    // needsTopLevelInvalidation is to track if the top level needs to be invalidated
+    // If the top level is being updated, we need to invalidate the query so that the correct entries show
     let needsTopLevelInvalidation = false;
 
     // pathRemappings is to track changes from an old path to a new path to an id
@@ -577,46 +584,55 @@ export function useNoteRename() {
 /** This function is used to handle note:delete events */
 export function useNoteDelete() {
   const queryClient = useQueryClient();
-  const [{ filePathToTreeDataId }, setFileTreeData] = useAtom(fileTreeDataAtom);
+  const setFileTreeData = useSetAtom(fileTreeDataAtom);
 
   useWailsEvent('note:delete', async (body) => {
     logger.event('note:delete', body);
     const data = body.data as { notePath: string }[];
+    let needsTopLevelInvalidation = false;
 
-    for (const { notePath } of data) {
-      const segments = notePath.split('/').filter(Boolean);
+    setFileTreeData((prev) => {
+      let updatedTreeData = new Map(prev.treeData);
+      const updatedFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
 
-      if (segments.length === 1) {
-        // Top-level file - just invalidate the query
-        queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-      } else {
-        // Nested file - remove it from the map
-        const parentPath = segments.slice(0, -1).join('/');
+      for (const { notePath } of data) {
+        const segments = notePath.split('/').filter(Boolean);
 
-        // Look up UUIDs from paths
-        const fileId = filePathToTreeDataId.get(notePath);
-        const parentId = filePathToTreeDataId.get(parentPath);
-
-        if (!fileId || !parentId) {
-          // Can't find file in path map - invalidate queries
-          queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+        if (segments.length === 1) {
+          // Top-level file - just invalidate the query
+          needsTopLevelInvalidation = true;
           continue;
         }
 
-        setFileTreeData((prev) => {
-          const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
-          newFilePathToTreeDataId.delete(notePath);
+        // Nested file - remove it from the map
+        const parentPath = segments.slice(0, -1).join('/');
 
-          return {
-            treeData: removeFileFromFileTreeMap({
-              map: prev.treeData,
-              fileId,
-              parentId,
-            }),
-            filePathToTreeDataId: newFilePathToTreeDataId,
-          };
+        // Look up ids from paths
+        const fileId = updatedFilePathToTreeDataId.get(notePath);
+        const parentId = updatedFilePathToTreeDataId.get(parentPath);
+
+        if (!fileId || !parentId) {
+          // Can't find file in path map - invalidate queries
+          needsTopLevelInvalidation = true;
+          continue;
+        }
+
+        updatedFilePathToTreeDataId.delete(notePath);
+        updatedTreeData = removeFileFromFileTreeMap({
+          map: updatedTreeData,
+          fileId,
+          parentId,
         });
       }
+
+      return {
+        treeData: updatedTreeData,
+        filePathToTreeDataId: updatedFilePathToTreeDataId,
+      };
+    });
+
+    if (needsTopLevelInvalidation) {
+      queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
     }
   });
 }
