@@ -4,8 +4,12 @@ import { Virtuoso } from 'react-virtuoso';
 import { useTopLevelFileOrFolders } from './hooks';
 import { FileTreeItem } from './file-tree-item';
 import { useAnimatedHeight } from '../hooks';
-import { transformFileTreeForVirtualizedList } from './utils';
-import { FileOrFolder } from './types';
+import { transformFileTreeForVirtualizedList } from './utils/file-tree-utils';
+import {
+  CREATE_FOLDER_TYPE,
+  type CreateFolderItem,
+  FileOrFolder,
+} from './types';
 import { atomWithLogging } from '../../../atoms';
 import { useOnClickOutside } from '../../../hooks/general';
 import { sidebarSelectionAtom } from '../../../hooks/selection';
@@ -36,6 +40,12 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
     topLevelFileOrFolders ?? [],
     fileOrFolderMap
   );
+  const createFolderItem: CreateFolderItem = {
+    id: 'create-folder',
+    type: CREATE_FOLDER_TYPE,
+    level: 0,
+  };
+  const virtualizedData = [createFolderItem, ...flattenedTopLevelData];
 
   const { scope, isReady, handleHeightChange, totalHeight } = useAnimatedHeight(
     {
@@ -57,6 +67,7 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
     internalListRef.current = element;
   };
 
+  console.log({ totalHeight });
   return (
     <div
       ref={scope}
@@ -64,14 +75,13 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
       className="overflow-hidden scrollbar-hidden pl-2 text-sm"
     >
       <Virtuoso
-        data={flattenedTopLevelData}
+        data={virtualizedData}
         className="scrollbar-hidden"
         scrollerRef={handleScrollerRef}
         style={{
           overscrollBehavior: 'auto',
-          height: !FILE_TREE_MAX_HEIGHT
-            ? '100%'
-            : totalHeight === null
+          height:
+            totalHeight === null
               ? FILE_TREE_MAX_HEIGHT
               : `min(${FILE_TREE_MAX_HEIGHT}, ${totalHeight}px)`,
         }}

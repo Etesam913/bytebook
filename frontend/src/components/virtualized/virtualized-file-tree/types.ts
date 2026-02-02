@@ -84,10 +84,25 @@ export type LoadMoreItem = {
 };
 
 /**
+ * Represents the create-folder row shown at the top of the virtualized list.
+ */
+export type CreateFolderItem = {
+  /** Stable identifier for the create-folder row. */
+  id: string;
+  /** Type indicating this is the create-folder row. */
+  type: 'create-folder';
+  /** Level in the file tree where this item resides. */
+  level: number;
+};
+
+/**
  * Represents any possible item in the virtualized file tree list:
  * either a file/folder (with level info) or a special "load more" item.
  */
-export type VirtualizedFileTreeItem = FlattenedFileOrFolder | LoadMoreItem;
+export type VirtualizedFileTreeItem =
+  | FlattenedFileOrFolder
+  | LoadMoreItem
+  | CreateFolderItem;
 
 /** String literal identifying a folder type. */
 export const FOLDER_TYPE = 'folder';
@@ -95,3 +110,5 @@ export const FOLDER_TYPE = 'folder';
 export const FILE_TYPE = 'file';
 /** String literal identifying a load more type. */
 export const LOAD_MORE_TYPE = 'load-more';
+/** String literal identifying the create-folder row type. */
+export const CREATE_FOLDER_TYPE = 'create-folder';

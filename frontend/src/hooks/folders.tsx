@@ -24,9 +24,14 @@ import {
 import { fileTreeDataAtom } from '../components/virtualized/virtualized-file-tree';
 import {
   addFolderToFileTreeMap,
-  getTreeNodeFromPath,
   removeFolderFromFileTreeMap,
-} from '../components/virtualized/virtualized-file-tree/utils';
+} from '../components/virtualized/virtualized-file-tree/utils/file-tree-utils';
+import {
+  applyNodeUpdates,
+  applyParentFolderUpdates,
+  applyPathRemappings,
+  buildRenameUpdates,
+} from '../components/virtualized/virtualized-file-tree/utils/rename-item';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import {
@@ -219,93 +224,30 @@ export function useFolderRename() {
       newFolderPath: string;
     }[];
 
-    // needsTopLevelInvalidation is to track if the top level needs to be invalidated
-    let needsTopLevelInvalidation = false;
-
-    // pathRemappings is to track changes from an old path to a new path
-    const pathRemappings = new Map<string, string>(); // oldPath -> newPath
-
-    // folderUpdates is to track changes to a folder's properties based off of id
-    const folderUpdates = new Map<
-      string,
-      { path: string; name: string; parentId: string | null }
-    >(); // folderId -> { path, name, parentId }
-
-    // parentFolderUpdates is to track changes to a parent folder's children based off of id
-    const parentFolderUpdates = new Map<
-      string,
-      { removeChildIds: Set<string>; addChildIds: Set<string> }
-    >(); // parentId -> { removeChildIds, addChildIds }
-
-    for (const { oldFolderPath, newFolderPath } of data) {
-      const treeDataNode = getTreeNodeFromPath(
-        { filePathToTreeDataId, treeData },
-        oldFolderPath
-      );
-
-      if (!treeDataNode || treeDataNode.type !== 'folder') {
+    const {
+      needsTopLevelInvalidation,
+      pathRemappings,
+      nodeUpdates,
+      parentFolderUpdates,
+    } = await buildRenameUpdates({
+      entries: data.map(({ oldFolderPath, newFolderPath }) => ({
+        oldPath: oldFolderPath,
+        newPath: newFolderPath,
+      })),
+      fileTreeData: { filePathToTreeDataId, treeData },
+      isValidNode: (node) => node.type === 'folder',
+      onMissingNode: (oldPath) => {
         logger.error('folder:rename', 'id for old folder path not found', {
-          oldFolderPath,
+          oldFolderPath: oldPath,
         });
-        continue;
-      }
-
-      if (treeDataNode.isOpen) {
-        // If the folder is open, and going to be renamed to a different path, we need to ensure that the file watcher is listening
-        // to the new path
-        await OpenFolderAndAddToFileWatcher(newFolderPath);
-      }
-
-      // Adds to path remapping map
-      const oldSegments = oldFolderPath.split('/').filter(Boolean);
-      const newSegments = newFolderPath.split('/').filter(Boolean);
-      pathRemappings.set(oldFolderPath, newFolderPath);
-
-      // Determine if the folder is being moved to or from the top level
-      const isUpdatingtopLevel =
-        oldSegments.length === 1 || newSegments.length === 1;
-      if (isUpdatingtopLevel) {
-        needsTopLevelInvalidation = true;
-      }
-
-      // Update the required properties for the folder based off of id
-      const newFolderName = newSegments[newSegments.length - 1];
-      const oldParentId = treeDataNode.parentId;
-      const newParentPath = newSegments.slice(0, -1).join('/');
-      const newParentId =
-        getTreeNodeFromPath({ filePathToTreeDataId, treeData }, newParentPath)
-          ?.id ?? null;
-      folderUpdates.set(treeDataNode.id, {
-        path: newFolderPath,
-        name: newFolderName,
-        parentId: newParentId,
-      });
-
-      // If the folder did not used to be a top level folder, remove it from the old parent folder's children
-      if (oldParentId && oldParentId !== newParentId) {
-        if (!parentFolderUpdates.has(oldParentId)) {
-          // Providing a a default empty value for the updates
-          parentFolderUpdates.set(oldParentId, {
-            removeChildIds: new Set(),
-            addChildIds: new Set(),
-          });
+      },
+      onBeforeUpdate: async (node, newPath) => {
+        if (node.type === 'folder' && node.isOpen) {
+          // Ensure watcher listens to the new path when the folder is open.
+          await OpenFolderAndAddToFileWatcher(newPath);
         }
-        parentFolderUpdates
-          .get(oldParentId)!
-          .removeChildIds.add(treeDataNode.id);
-      }
-
-      // If the folder is moving to a new parent folder, add it to the new parent folder's children
-      if (newParentId && newParentId !== oldParentId) {
-        if (!parentFolderUpdates.has(newParentId)) {
-          parentFolderUpdates.set(newParentId, {
-            removeChildIds: new Set(),
-            addChildIds: new Set(),
-          });
-        }
-        parentFolderUpdates.get(newParentId)!.addChildIds.add(treeDataNode.id);
-      }
-    }
+      },
+    });
 
     if (needsTopLevelInvalidation) {
       queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
@@ -314,96 +256,24 @@ export function useFolderRename() {
     // Apply all changes in a single setFileTreeData call
     if (pathRemappings.size > 0) {
       setFileTreeData((prev) => {
-        const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
-        const updatedTreeData = new Map(prev.treeData);
-
-        // Update the filePathToTreeDataId map with the remappings
-        for (const [oldFolderPath, newFolderPath] of pathRemappings) {
-          const entriesToUpdate: [string, string][] = [];
-
-          for (const [path, id] of newFilePathToTreeDataId.entries()) {
-            // Finds all files and folders that start with the old folder path
-            // This gets the children of the old folder path
-            // These need to be updated to the new folder path
-            if (
-              path === oldFolderPath ||
-              path.startsWith(oldFolderPath + '/')
-            ) {
-              entriesToUpdate.push([path, id]);
-            }
-          }
-
-          for (const [oldPath, id] of entriesToUpdate) {
-            // Updating the paths in the filePathToTreeDataId map
-            // and the tree data map for the folder and each of its children
-            newFilePathToTreeDataId.delete(oldPath);
-            const newPath =
-              oldPath === oldFolderPath
-                ? newFolderPath
-                : newFolderPath + oldPath.slice(oldFolderPath.length);
-            newFilePathToTreeDataId.set(newPath, id);
-
-            const node = updatedTreeData.get(id);
-            if (!node) continue;
-            updatedTreeData.set(id, {
-              ...node,
-              path: newPath,
-            });
-          }
-        }
-
-        // Apply folder updates
-        for (const [folderId, updates] of folderUpdates) {
-          const existingFolder = updatedTreeData.get(folderId);
-          if (existingFolder && existingFolder.type === 'folder') {
-            updatedTreeData.set(folderId, {
-              ...existingFolder,
-              path: updates.path,
-              name: updates.name,
-              parentId: updates.parentId,
-            });
-          }
-        }
-
-        // Apply parent folder updates
-        for (const [parentId, updates] of parentFolderUpdates) {
-          const parent = updatedTreeData.get(parentId);
-          if (!parent || parent.type !== 'folder') {
-            continue;
-          }
-
-          let updatedChildrenIds = [...parent.childrenIds];
-          for (const childId of updates.removeChildIds) {
-            updatedChildrenIds = updatedChildrenIds.filter(
-              (id) => id !== childId
-            );
-          }
-
-          // Add children to new parent
-          for (const childId of updates.addChildIds) {
-            if (!updatedChildrenIds.includes(childId)) {
-              updatedChildrenIds.push(childId);
-            }
-          }
-
-          // Sort alphabetically by name
-          updatedChildrenIds.sort((a, b) => {
-            const aItem = updatedTreeData.get(a);
-            const bItem = updatedTreeData.get(b);
-            const aName = aItem?.name ?? a;
-            const bName = bItem?.name ?? b;
-            return aName.localeCompare(bName);
-          });
-
-          updatedTreeData.set(parentId, {
-            ...parent,
-            childrenIds: updatedChildrenIds,
-          });
-        }
+        const remappedTreeData = applyPathRemappings({
+          fileTreeData: prev,
+          pathRemappings,
+          mode: 'folder',
+        });
+        let updatedTreeData = applyNodeUpdates({
+          treeData: remappedTreeData.treeData,
+          nodeUpdates,
+          expectedType: 'folder',
+        });
+        updatedTreeData = applyParentFolderUpdates({
+          treeData: updatedTreeData,
+          parentFolderUpdates,
+        });
 
         return {
           treeData: updatedTreeData,
-          filePathToTreeDataId: newFilePathToTreeDataId,
+          filePathToTreeDataId: remappedTreeData.filePathToTreeDataId,
         };
       });
     }

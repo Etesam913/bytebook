@@ -1,14 +1,20 @@
 import { motion } from 'motion/react';
 import { useEffect } from 'react';
 import { LoadingSpinner } from '../../../loading-spinner';
+import { useAtomValue } from 'jotai';
+import { currentZoomAtom } from '../../../../hooks/resize';
+import { getFileTreeItemIndent } from '../utils/file-tree-utils';
 
 export function LoadMoreRow({
-  paddingLeft,
+  level,
   onLoadMore,
 }: {
-  paddingLeft: number;
+  level: number;
   onLoadMore: () => void;
 }) {
+  const currentZoom = useAtomValue(currentZoomAtom);
+  const paddingLeft = getFileTreeItemIndent(level, currentZoom);
+
   useEffect(() => {
     onLoadMore();
   }, [onLoadMore]);
