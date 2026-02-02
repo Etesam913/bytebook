@@ -51,9 +51,14 @@ import { isEventInCurrentWindow } from '../utils/events';
 import { parseFrontMatter } from '../components/editor/utils/note-metadata';
 import {
   addFileToFileTreeMap,
-  getTreeNodeFromPath,
   removeFileFromFileTreeMap,
-} from '../components/virtualized/virtualized-file-tree/utils';
+} from '../components/virtualized/virtualized-file-tree/utils/file-tree-utils';
+import {
+  applyNodeUpdates,
+  applyParentFolderUpdates,
+  applyPathRemappings,
+  buildRenameUpdates,
+} from '../components/virtualized/virtualized-file-tree/utils/rename-item';
 import { fileTreeDataAtom } from '../components/virtualized/virtualized-file-tree';
 
 /** Data for a single page of notes */
@@ -404,86 +409,23 @@ export function useNoteRename() {
       oldNotePath: string;
       newNotePath: string;
     }[];
-    // If the top level is being updated, we need to invalidate the query so that the correct entries show
-    let needsTopLevelInvalidation = false;
-
-    // pathRemappings is to track changes from an old path to a new path to an id
-    const pathRemappings = new Map<string, string>(); // oldPath -> newPath (both map to same ID)
-
-    // fileUpdates is to track changes to a file's properties based off of id
-    const fileUpdates = new Map<
-      string,
-      { path: string; name: string; parentId: string | null }
-    >(); // fileId -> { path, name, parentId }
-
-    // parentFolderUpdates is to track changes to a parent folder's children based off of id
-    const parentFolderUpdates = new Map<
-      string,
-      { removeChildIds: Set<string>; addChildIds: Set<string> }
-    >(); // parentId -> { removeChildIds, addChildIds }
-
-    for (const { oldNotePath, newNotePath } of data) {
-      const treeDataNode = getTreeNodeFromPath(
-        { filePathToTreeDataId, treeData },
-        oldNotePath
-      );
-      if (!treeDataNode) {
+    const {
+      needsTopLevelInvalidation,
+      pathRemappings,
+      nodeUpdates,
+      parentFolderUpdates,
+    } = await buildRenameUpdates({
+      entries: data.map(({ oldNotePath, newNotePath }) => ({
+        oldPath: oldNotePath,
+        newPath: newNotePath,
+      })),
+      fileTreeData: { filePathToTreeDataId, treeData },
+      onMissingNode: (oldPath) => {
         logger.error('note:rename', 'id for old note path not found', {
-          oldNotePath,
+          oldNotePath: oldPath,
         });
-        continue;
-      }
-
-      // Adds to path remapping map
-      const oldPathSegments = oldNotePath.split('/').filter(Boolean);
-      const newPathSegments = newNotePath.split('/').filter(Boolean);
-      pathRemappings.set(oldNotePath, newNotePath);
-
-      // Determine if the note is being moved to or from the top level (which means that the top level will be stale)
-      const isUpdatingtopLevel =
-        oldPathSegments.length === 1 || newPathSegments.length === 1;
-      if (isUpdatingtopLevel) {
-        needsTopLevelInvalidation = true;
-      }
-
-      // Update the required properties for the file based off of id
-      const newFileName = newPathSegments[newPathSegments.length - 1];
-      const oldParentId = treeDataNode.parentId;
-      const newParentPath = newPathSegments.slice(0, -1).join('/');
-      const newParentId =
-        getTreeNodeFromPath({ filePathToTreeDataId, treeData }, newParentPath)
-          ?.id ?? null;
-      fileUpdates.set(treeDataNode.id, {
-        path: newNotePath,
-        name: newFileName,
-        parentId: newParentId,
-      });
-
-      // If the file did not used to be a top level file, remove it from the old parent folder's children
-      if (oldParentId && oldParentId !== newParentId) {
-        if (!parentFolderUpdates.has(oldParentId)) {
-          // Providing a a default empty value for the updates
-          parentFolderUpdates.set(oldParentId, {
-            removeChildIds: new Set(),
-            addChildIds: new Set(),
-          });
-        }
-        parentFolderUpdates
-          .get(oldParentId)!
-          .removeChildIds.add(treeDataNode.id);
-      }
-
-      // If the file is moving to a new parent folder, add it to the new parent folder's children
-      if (newParentId && newParentId !== oldParentId) {
-        if (!parentFolderUpdates.has(newParentId)) {
-          parentFolderUpdates.set(newParentId, {
-            removeChildIds: new Set(),
-            addChildIds: new Set(),
-          });
-        }
-        parentFolderUpdates.get(newParentId)!.addChildIds.add(treeDataNode.id);
-      }
-    }
+      },
+    });
 
     if (needsTopLevelInvalidation) {
       queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
@@ -492,89 +434,24 @@ export function useNoteRename() {
     // Apply all changes in a single setFileTreeData call
     if (pathRemappings.size > 0) {
       setFileTreeData((prev) => {
-        const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
-        let updatedTreeData = new Map(prev.treeData);
-        // Update the filePathToTreeDataId map with the remappings
-        for (const [oldPath, newPath] of pathRemappings) {
-          const fileId = prev.filePathToTreeDataId.get(oldPath);
-          if (!fileId) {
-            continue;
-          }
-
-          const existingIdForNewPath = prev.filePathToTreeDataId.get(newPath);
-          if (existingIdForNewPath && existingIdForNewPath !== fileId) {
-            // This prevents situations with duplicate file names in same path
-            const duplicateNode = updatedTreeData.get(existingIdForNewPath);
-            if (duplicateNode && duplicateNode.type === 'file') {
-              if (duplicateNode.parentId) {
-                updatedTreeData = removeFileFromFileTreeMap({
-                  map: updatedTreeData,
-                  fileId: existingIdForNewPath,
-                  parentId: duplicateNode.parentId,
-                });
-              } else {
-                updatedTreeData.delete(existingIdForNewPath);
-              }
-            }
-            newFilePathToTreeDataId.delete(newPath);
-          }
-
-          newFilePathToTreeDataId.delete(oldPath);
-          newFilePathToTreeDataId.set(newPath, fileId);
-        }
-
-        // Apply file updates
-        for (const [fileId, updates] of fileUpdates) {
-          const existingFile = updatedTreeData.get(fileId);
-          if (existingFile && existingFile.type === 'file') {
-            updatedTreeData.set(fileId, {
-              ...existingFile,
-              path: updates.path,
-              name: updates.name,
-              parentId: updates.parentId,
-            });
-          }
-        }
-
-        // Apply parent folder updates
-        for (const [parentId, updates] of parentFolderUpdates) {
-          const parent = updatedTreeData.get(parentId);
-          if (!parent || parent.type !== 'folder') {
-            continue;
-          }
-
-          let updatedChildrenIds = [...parent.childrenIds];
-          for (const childId of updates.removeChildIds) {
-            updatedChildrenIds = updatedChildrenIds.filter(
-              (id) => id !== childId
-            );
-          }
-
-          // Add children to new parent
-          for (const childId of updates.addChildIds) {
-            if (!updatedChildrenIds.includes(childId)) {
-              updatedChildrenIds.push(childId);
-            }
-          }
-
-          // Sort alphabetically by name
-          updatedChildrenIds.sort((a, b) => {
-            const aItem = updatedTreeData.get(a);
-            const bItem = updatedTreeData.get(b);
-            const aName = aItem?.name ?? a;
-            const bName = bItem?.name ?? b;
-            return aName.localeCompare(bName);
-          });
-
-          updatedTreeData.set(parentId, {
-            ...parent,
-            childrenIds: updatedChildrenIds,
-          });
-        }
+        const remappedTreeData = applyPathRemappings({
+          fileTreeData: prev,
+          pathRemappings,
+          mode: 'file',
+        });
+        let updatedTreeData = applyNodeUpdates({
+          treeData: remappedTreeData.treeData,
+          nodeUpdates,
+          expectedType: 'file',
+        });
+        updatedTreeData = applyParentFolderUpdates({
+          treeData: updatedTreeData,
+          parentFolderUpdates,
+        });
 
         return {
           treeData: updatedTreeData,
-          filePathToTreeDataId: newFilePathToTreeDataId,
+          filePathToTreeDataId: remappedTreeData.filePathToTreeDataId,
         };
       });
     }

@@ -1,27 +1,26 @@
 import { useSetAtom, useAtomValue } from 'jotai';
-import { MouseEvent, useState } from 'react';
-import { Folder as FolderIcon } from '../../../../icons/folder';
-import { FolderOpen } from '../../../../icons/folder-open';
-import { FolderPlus } from '../../../../icons/folder-plus';
-import { Note } from '../../../../icons/page';
-import type { Folder } from '../types';
-import { contextMenuDataAtom } from '../../../../atoms';
-import { currentZoomAtom } from '../../../../hooks/resize';
-import { InlineTreeItemInput } from './inline-tree-item-input';
-import { Finder } from '../../../../icons/finder';
-import { Trash } from '../../../../icons/trash';
-import { FilePen } from '../../../../icons/file-pen';
-import { useRevealInFinderMutation } from '../../../../hooks/code';
-import { useMoveToTrashMutationNew } from '../../../../hooks/notes';
-import { cn } from '../../../../utils/string-formatting';
-import { fileTreeDataAtom } from '..';
-import { useAddTreeItemMutation, useRenameTreeItemMutation } from '../hooks';
-
-type OpenFolderArgs = {
-  pathToFolder: string;
-  folderId: string;
-  isLoadMore?: boolean;
-};
+import { MouseEvent } from 'react';
+import { Folder as FolderIcon } from '../../../../../icons/folder';
+import { FolderOpen } from '../../../../../icons/folder-open';
+import { FolderPlus } from '../../../../../icons/folder-plus';
+import { Note } from '../../../../../icons/page';
+import type { Folder } from '../../types';
+import { contextMenuDataAtom } from '../../../../../atoms';
+import { currentZoomAtom } from '../../../../../hooks/resize';
+import { InlineTreeItemInput } from '../inline-tree-item-input';
+import { Finder } from '../../../../../icons/finder';
+import { Trash } from '../../../../../icons/trash';
+import { FilePen } from '../../../../../icons/file-pen';
+import { useRevealInFinderMutation } from '../../../../../hooks/code';
+import { useMoveToTrashMutationNew } from '../../../../../hooks/notes';
+import { cn } from '../../../../../utils/string-formatting';
+import { fileTreeDataAtom } from '../..';
+import {
+  useFileTreeFolderAddActions,
+  useFileTreeFolderRenameActions,
+  type OpenFolderArgs,
+} from './hooks';
+import { getFileTreeItemIndent } from '../../utils/file-tree-utils';
 
 export function FileTreeFolderItem({
   dataItem,
@@ -29,95 +28,37 @@ export function FileTreeFolderItem({
   onSelectionClick,
   onContextMenuSelection,
   isSelectedFromSidebarClick,
-  paddingLeft,
 }: {
-  dataItem: Folder;
+  dataItem: Folder & { level: number };
   openFolder: (args: OpenFolderArgs) => void;
   onSelectionClick: (e: MouseEvent) => void;
   onContextMenuSelection: () => void;
   isSelectedFromSidebarClick: boolean;
-  paddingLeft: number;
 }) {
-  const [addingType, setAddingType] = useState<'folder' | 'note' | null>(null);
-  const setFileTreeData = useSetAtom(fileTreeDataAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
+  const setFileTreeData = useSetAtom(fileTreeDataAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
+  const paddingLeft = getFileTreeItemIndent(dataItem.level, currentZoom);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutationNew();
   const {
-    mutate: addTreeItem,
-    error: addTreeItemError,
-    reset: resetAddTreeItem,
-  } = useAddTreeItemMutation();
+    isEditing,
+    setIsEditing,
+    renameErrorText,
+    exitEditMode,
+    onRenameSave,
+    resetRenameTreeItem,
+  } = useFileTreeFolderRenameActions({
+    dataItem,
+  });
   const {
-    mutate: renameTreeItem,
-    error: renameTreeItemError,
-    reset: resetRenameTreeItem,
-  } = useRenameTreeItemMutation();
-
-  const [isEditing, setIsEditing] = useState(false);
-
-  function exitEditMode() {
-    setIsEditing(false);
-    resetRenameTreeItem();
-  }
-
-  function onRenameSave(newName: string) {
-    const trimmedName = newName.trim();
-
-    if (trimmedName === dataItem.name) {
-      exitEditMode();
-      return;
-    }
-
-    renameTreeItem({
-      itemType: 'folder',
-      folderPath: dataItem.path,
-      newName: trimmedName,
-      onSuccess: exitEditMode,
-    });
-  }
-
-  const renameErrorText =
-    renameTreeItemError instanceof Error
-      ? renameTreeItemError.message
-      : renameTreeItemError
-        ? 'An error occurred'
-        : '';
-
-  function closeAddInput() {
-    resetAddTreeItem();
-    setAddingType(null);
-  }
-
-  function onAddSave(newName: string) {
-    const trimmedName = newName.trim();
-
-    // If name is empty, just exit
-    if (!trimmedName) {
-      closeAddInput();
-      return;
-    }
-
-    if (!addingType || dataItem.type !== 'folder') {
-      closeAddInput();
-      return;
-    }
-
-    addTreeItem({
-      parentFolder: dataItem,
-      addType: addingType,
-      newName: trimmedName,
-      onSuccess: closeAddInput,
-    });
-  }
-
-  const addErrorText =
-    addTreeItemError instanceof Error
-      ? addTreeItemError.message
-      : addTreeItemError
-        ? 'An error occurred'
-        : '';
+    addingType,
+    setAddingType,
+    addErrorText,
+    closeAddInput,
+    onAddSave,
+    resetAddTreeItem,
+  } = useFileTreeFolderAddActions({ dataItem });
 
   async function handleClick(e: MouseEvent) {
     if (dataItem.type !== 'folder') {
@@ -157,7 +98,7 @@ export function FileTreeFolderItem({
       <span
         style={{ paddingLeft: `${paddingLeft}px` }}
         className={cn(
-          'rounded-md flex items-center gap-2 z-10 py-1 px-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
+          'rounded-md flex items-center gap-2 z-10 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
           isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
         )}
       >
@@ -188,11 +129,18 @@ export function FileTreeFolderItem({
     </>
   );
 
+  const paddingForItemToAdd = getFileTreeItemIndent(
+    dataItem.level + 1,
+    currentZoom
+  );
   const inlineInput = addingType &&
     dataItem.type === 'folder' &&
     dataItem.isOpen && (
-      <div className="flex items-center w-full relative rounded-md py-0.25">
-        <span className="rounded-md flex items-center gap-2 z-10 py-1 pl-[1.725rem] pr-2 overflow-hidden w-full">
+      <div
+        style={{ paddingLeft: `${paddingForItemToAdd}px` }}
+        className="flex items-center w-full relative rounded-md py-0.25"
+      >
+        <span className="rounded-md flex items-center gap-2 z-10 py-1 pr-2 overflow-hidden w-full">
           {addingType === 'folder' ? (
             <FolderIcon
               className="min-w-4 min-h-4"

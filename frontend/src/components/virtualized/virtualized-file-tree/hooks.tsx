@@ -16,7 +16,7 @@ import {
 } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { QueryError } from '../../../utils/query';
 import { fileTreeDataAtom } from '.';
-import { reconcileTopLevelFileTreeMap } from './utils';
+import { reconcileTopLevelFileTreeMap } from './utils/file-tree-utils';
 import { FILE_TYPE, FOLDER_TYPE, type FileOrFolder, Folder } from './types';
 import { useAtom, useSetAtom } from 'jotai';
 import { createFilePath, type FilePath } from '../../../utils/path';
@@ -309,7 +309,7 @@ export function useAddTreeItemMutation() {
       addType,
       newName,
     }: {
-      parentFolder: Folder;
+      parentFolder: Folder | null;
       addType: 'folder' | 'note';
       newName: string;
       onSuccess?: () => void;
@@ -321,13 +321,19 @@ export function useAddTreeItemMutation() {
       }
 
       if (addType === 'folder') {
-        // Create folder: path is parentFolderId/newFolderName
-        const newFolderPath = `${parentFolder.path}/${newName}`;
+        // Create folder: path is parentFolder/newFolderName (or top-level if null)
+        const newFolderPath = parentFolder
+          ? `${parentFolder.path}/${newName}`
+          : newName;
         const res = await AddFolder(newFolderPath);
         if (!res.success) {
           throw new Error(res.message);
         }
-        return { addType, parentPath: parentFolder.path, newName };
+        return { addType, parentPath: parentFolder?.path ?? '', newName };
+      }
+
+      if (!parentFolder) {
+        throw new Error('Parent folder is required to add a note');
       }
 
       const newNotePath = `${parentFolder.path}/${newName}.md`;

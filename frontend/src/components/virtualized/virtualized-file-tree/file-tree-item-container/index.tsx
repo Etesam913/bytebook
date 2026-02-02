@@ -1,6 +1,6 @@
 import { useAtom, useAtomValue } from 'jotai';
 import { useOpenFolderMutation } from '../hooks';
-import { FlattenedFileOrFolder, Folder } from '../types';
+import { FlattenedFileOrFolder } from '../types';
 import { fileTreeDataAtom } from '..';
 import { MouseEvent } from 'react';
 import { FileTreeFileItem } from '../file-tree-item/file';
@@ -14,7 +14,10 @@ import {
   SelectableItems,
   getKeyForSidebarSelection,
 } from '../../../../utils/selection';
-import { computeMetaClickState, computeShiftClickSelections } from '../utils';
+import {
+  computeMetaClickState,
+  computeShiftClickSelections,
+} from '../utils/item-selection';
 import { LoadingSpinner } from '../../../loading-spinner';
 import { motion } from 'motion/react';
 
@@ -23,11 +26,9 @@ import { motion } from 'motion/react';
  * and renders either a file or folder item
  */
 export function FileTreeItemContainer({
-  paddingLeft,
   isLoadMorePending,
   dataItem,
 }: {
-  paddingLeft: number;
   isLoadMorePending?: boolean;
   dataItem: FlattenedFileOrFolder;
 }) {
@@ -153,8 +154,7 @@ export function FileTreeItemContainer({
     <>
       {dataItem.type === 'folder' ? (
         <FileTreeFolderItem
-          paddingLeft={paddingLeft}
-          dataItem={dataItem as Folder & { level: number }}
+          dataItem={dataItem}
           openFolder={openFolder}
           onSelectionClick={handleSelectionClick}
           onContextMenuSelection={handleContextMenuSelection}
@@ -162,7 +162,6 @@ export function FileTreeItemContainer({
         />
       ) : (
         <FileTreeFileItem
-          paddingLeft={paddingLeft}
           dataItem={dataItem}
           onSelectionClick={handleSelectionClick}
           onContextMenuSelection={handleContextMenuSelection}

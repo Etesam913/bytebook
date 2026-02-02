@@ -15,23 +15,23 @@ import { InlineTreeItemInput } from './inline-tree-item-input';
 import { Trash } from '../../../../icons/trash';
 import { FilePen } from '../../../../icons/file-pen';
 import { useRenameTreeItemMutation } from '../hooks';
+import { getFileTreeItemIndent } from '../utils/file-tree-utils';
 
 export function FileTreeFileItem({
   dataItem,
   onSelectionClick,
   onContextMenuSelection,
   isSelectedFromSidebarClick,
-  paddingLeft,
 }: {
   dataItem: FlattenedFileOrFolder;
   onSelectionClick: (e: MouseEvent) => void;
   onContextMenuSelection: () => void;
   isSelectedFromSidebarClick: boolean;
-  paddingLeft: number;
 }) {
   const filePathFromRoute = useFilePathFromRoute();
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
+  const paddingLeft = getFileTreeItemIndent(dataItem.level, currentZoom);
 
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutationNew();

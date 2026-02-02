@@ -1,10 +1,14 @@
 import { useAtomValue } from 'jotai';
 import { useOpenFolderMutation } from '../hooks';
-import { LOAD_MORE_TYPE, VirtualizedFileTreeItem } from '../types';
+import {
+  CREATE_FOLDER_TYPE,
+  LOAD_MORE_TYPE,
+  VirtualizedFileTreeItem,
+} from '../types';
 import { fileTreeDataAtom } from '..';
 import { LoadMoreRow } from './load-more-row';
-import { currentZoomAtom } from '../../../../hooks/resize';
 import { FileTreeItemContainer } from '../file-tree-item-container';
+import { CreateFolder } from '../create-folder';
 
 export function FileTreeItem({
   dataItem,
@@ -13,15 +17,16 @@ export function FileTreeItem({
 }) {
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const { mutate: openFolder, isPending } = useOpenFolderMutation();
-  const currentZoom = useAtomValue(currentZoomAtom);
-  const INDENT_WIDTH = 18;
-  const paddingLeft = ((dataItem.level + 1) * INDENT_WIDTH) / currentZoom;
+
+  if (dataItem.type === CREATE_FOLDER_TYPE) {
+    return <CreateFolder />;
+  }
 
   if (dataItem.type === LOAD_MORE_TYPE) {
     const parentFolder = fileOrFolderMap.get(dataItem.parentId);
     return (
       <LoadMoreRow
-        paddingLeft={paddingLeft}
+        level={dataItem.level}
         onLoadMore={() => {
           if (parentFolder && parentFolder.type === 'folder') {
             openFolder({
@@ -40,7 +45,6 @@ export function FileTreeItem({
 
   return (
     <FileTreeItemContainer
-      paddingLeft={paddingLeft}
       dataItem={flattenedDataItem}
       isLoadMorePending={isPending}
     />

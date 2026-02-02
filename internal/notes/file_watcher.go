@@ -16,7 +16,7 @@ import (
 
 // Constants for file types
 const (
-	debounceTimeout = 100 * time.Millisecond
+	debounceTimeout = 50 * time.Millisecond
 )
 
 var IMAGE_FILE_EXTENSIONS = []string{"png", "jpg", "jpeg", "webp", "gif"}
@@ -162,7 +162,7 @@ func (fw *FileWatcher) pathFromNotes(path string) string {
 }
 
 // handleFileEvents processes file-related events (create, delete, write)
-func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event, oneFolderBack string) {
+func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event) {
 	note := segments[len(segments)-1]
 	notePath := event.Name
 
@@ -182,15 +182,23 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event,
 
 		// timeDiff is used to be certain that the rename event is not a delete
 		if event.Has(fsnotify.Rename) && timeDiff < TIME_FOR_TWO_EVENTS_TO_BE_RELATED {
-			newFilePath := fw.mostRecentFileCreatedEvent.event.Name
+			oldFilePath := fw.pathFromNotes(event.Name)
+			newFilePath := fw.pathFromNotes(fw.mostRecentFileCreatedEvent.event.Name)
 
-			eventKey = util.Events.NoteRename
+			if oldFilePath == newFilePath {
+				// A rename event with the exact same two paths is an indication that
+				// it is actually a bugged out note:delete
+				eventKey = util.Events.NoteDelete
+			} else {
+				eventKey = util.Events.NoteRename
+			}
+
 			fw.renameFileState(event.Name, newFilePath)
 			fw.debounceEvents[eventKey] = append(
 				fw.debounceEvents[eventKey],
 				map[string]string{
-					"oldNotePath": fw.pathFromNotes(event.Name),
-					"newNotePath": fw.pathFromNotes(newFilePath),
+					"oldNotePath": oldFilePath,
+					"newNotePath": newFilePath,
 				},
 			)
 		} else if event.Has(fsnotify.Write) {
@@ -280,6 +288,7 @@ func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[st
 
 	renamedFolderPathsSet := util.Set[string]{}
 	originalFolderPathsSet := util.Set[string]{}
+
 	for _, data := range folderRenameEvents {
 		if newFolderPath, ok := data["newFolderPath"]; ok && newFolderPath != "" {
 			renamedFolderPathsSet.Add(newFolderPath)
@@ -435,7 +444,7 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 		} else if oneFolderBack == "search" && filepath.Base(event.Name) == "saved-searches.json" {
 			fw.handleSavedSearchUpdate(event)
 		} else {
-			fw.handleFileEvents(segments, event, oneFolderBack)
+			fw.handleFileEvents(segments, event)
 		}
 	}
 
