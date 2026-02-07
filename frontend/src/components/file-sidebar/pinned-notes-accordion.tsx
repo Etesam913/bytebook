@@ -4,14 +4,15 @@ import {
   projectSettingsAtom,
   fileSidebarOpenStateAtom,
 } from '../../atoms';
-import { usePinNotesMutation } from '../../hooks/notes';
+import { usePinPathMutation } from '../../hooks/notes';
 import { PinTack2 } from '../../icons/pin-tack-2';
 import { PinTackSlash } from '../../icons/pin-tack-slash';
 import { AccordionButton } from '../accordion/accordion-button';
 import { AccordionItem } from '../accordion/accordion-item';
 import { VirtualizedListAccordion } from '../virtualized/virtualized-list/accordion';
 import { currentZoomAtom } from '../../hooks/resize';
-import { LocalFilePath } from '../../utils/path';
+import { createFilePath, type FilePath } from '../../utils/path';
+import { Tooltip } from '../tooltip';
 
 export function PinnedNotesAccordion() {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
@@ -20,14 +21,11 @@ export function PinnedNotesAccordion() {
   const projectSettings = useAtomValue(projectSettingsAtom);
   const pinnedNotes = projectSettings.pinnedNotes;
   const pinnedNotesPaths = [...pinnedNotes]
-    .filter((folderAndNotes) => folderAndNotes.split('/').length === 2)
-    .map((folderAndNote) => {
-      const segments = folderAndNote.split('/');
-      return new LocalFilePath({ folder: segments[0], note: segments[1] });
-    });
+    .map((path) => createFilePath(path))
+    .filter((pinnedPath): pinnedPath is FilePath => pinnedPath !== null);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
-  const { mutate: pinOrUnpinNote } = usePinNotesMutation();
+  const { mutate: pinOrUnpinPath } = usePinPathMutation();
 
   return (
     <section>
@@ -43,15 +41,15 @@ export function PinnedNotesAccordion() {
         title="Pinned Notes"
         isOpen={isPinnedNotesOpen}
       />
-      <VirtualizedListAccordion<LocalFilePath>
+      <VirtualizedListAccordion<FilePath>
         isOpen={isPinnedNotesOpen}
         contentType="pinned-note"
         layoutId="pinned-notes"
         data={pinnedNotesPaths}
-        dataItemToString={(filePath) => filePath.note}
-        dataItemToKey={(filePath) => filePath.toString()}
+        dataItemToString={(pinnedPath) => pinnedPath.note}
+        dataItemToKey={(pinnedPath) => pinnedPath.fullPath}
         selectionOptions={{
-          dataItemToSelectionRangeEntry: (filePath) => filePath.note,
+          dataItemToSelectionRangeEntry: (pinnedPath) => pinnedPath.note,
         }}
         maxHeight="240px"
         emptyElement={
@@ -61,43 +59,43 @@ export function PinnedNotesAccordion() {
           </li>
         }
         renderItem={({ dataItem: pinnedNotePath }) => {
-          const url = pinnedNotePath.getLinkToNote();
           return (
-            <AccordionItem
-              onContextMenu={(e) => {
-                setContextMenuData({
-                  x: e.clientX / currentZoom,
-                  y: e.clientY / currentZoom,
-                  isShowing: true,
-                  items: [
-                    {
-                      label: (
-                        <span className="flex items-center gap-1.5">
-                          <PinTackSlash
-                            width={17}
-                            height={17}
-                            className="will-change-transform"
-                          />{' '}
-                          Unpin Note
-                        </span>
-                      ),
-                      value: 'unpin-note',
-                      onChange: () =>
-                        pinOrUnpinNote({
-                          folder: pinnedNotePath.folder,
-                          selectionRange: new Set([
-                            `note:${pinnedNotePath.note}`,
-                          ]),
-                          shouldPin: false,
-                        }),
-                    },
-                  ],
-                });
-              }}
-              key={pinnedNotePath.toString()}
-              to={url}
-              itemName={pinnedNotePath.note}
-            />
+            <Tooltip placement="right" content={pinnedNotePath.fullPath}>
+              <div>
+                <AccordionItem
+                  onContextMenu={(e) => {
+                    setContextMenuData({
+                      x: e.clientX / currentZoom,
+                      y: e.clientY / currentZoom,
+                      isShowing: true,
+                      items: [
+                        {
+                          label: (
+                            <span className="flex items-center gap-1.5">
+                              <PinTackSlash
+                                width={17}
+                                height={17}
+                                className="will-change-transform"
+                              />{' '}
+                              Unpin Note
+                            </span>
+                          ),
+                          value: 'unpin-note',
+                          onChange: () =>
+                            pinOrUnpinPath({
+                              path: pinnedNotePath.fullPath,
+                              shouldPin: false,
+                            }),
+                        },
+                      ],
+                    });
+                  }}
+                  key={pinnedNotePath.fullPath}
+                  to={pinnedNotePath.encodedFileUrl}
+                  itemName={pinnedNotePath.note}
+                />
+              </div>
+            </Tooltip>
           );
         }}
       />

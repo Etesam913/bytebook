@@ -1,3 +1,4 @@
+import type { LegacyAnimationControls } from 'motion/react';
 import { CheckListPlugin } from '@lexical/react/LexicalCheckListPlugin';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -48,7 +49,13 @@ import { FilePath } from '../../utils/path';
 import { TableActionsPlugin } from './plugins/table-actions.tsx';
 import type { PlaceholderLineData } from './types';
 
-export function NotesEditor({ filePath }: { filePath: FilePath }) {
+export function NotesEditor({
+  filePath,
+  animationControls,
+}: {
+  filePath: FilePath;
+  animationControls: LegacyAnimationControls;
+}) {
   const projectSettings = useAtomValue(projectSettingsAtom);
   const queryClient = useQueryClient();
   const setEditor = useSetAtom(editorAtom);
@@ -97,7 +104,7 @@ export function NotesEditor({ filePath }: { filePath: FilePath }) {
       <Toolbar
         overflowContainerRef={overflowContainerRef}
         noteContainerRef={noteContainerRef}
-        // animationControls={animationControls}
+        animationControls={animationControls}
         folder={folder}
         note={note}
         floatingData={floatingData}

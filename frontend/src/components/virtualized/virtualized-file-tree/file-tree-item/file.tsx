@@ -3,9 +3,13 @@ import { MouseEvent, useState, DragEvent } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { Note } from '../../../../icons/page';
 import { Finder } from '../../../../icons/finder';
+import { PinTack2 } from '../../../../icons/pin-tack-2';
 import { contextMenuDataAtom } from '../../../../atoms';
 import { useFilePathFromRoute } from '../../../../hooks/routes';
-import { useMoveToTrashMutationNew } from '../../../../hooks/notes';
+import {
+  useMoveToTrashMutationNew,
+  usePinPathMutation,
+} from '../../../../hooks/notes';
 import { useRevealInFinderMutation } from '../../../../hooks/code';
 import { currentZoomAtom } from '../../../../hooks/resize';
 import { createFilePath } from '../../../../utils/path';
@@ -40,6 +44,7 @@ export function FileTreeFileItem({
 
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutationNew();
+  const { mutate: pinPath } = usePinPathMutation();
   const {
     mutate: renameTreeItem,
     error: renameTreeItemError,
@@ -205,6 +210,20 @@ export function FileTreeFileItem({
                 revealInFinder({
                   path: `notes/${dataItem.path}`,
                   shouldPrefixWithProjectPath: true,
+                });
+              },
+            },
+            {
+              label: (
+                <span className="flex items-center gap-1.5">
+                  <PinTack2 height={17} width={17} /> <span>Pin Note</span>
+                </span>
+              ),
+              value: 'pin-note',
+              onChange: () => {
+                pinPath({
+                  path: dataItem.path,
+                  shouldPin: true,
                 });
               },
             },

@@ -18,12 +18,17 @@ export function VirtualizedListAccordion<T>({
   errorElement,
   maxHeight,
   onTotalListHeightChanged,
+  data,
+  emptyElement,
   ...props
 }: VirtualizedListAccordionProps<T>) {
+  const isEmpty = !data || data.length === 0;
   const { scope, isReady, handleHeightChange } = useAnimatedHeight({
     isOpen,
     maxHeight,
     onTotalListHeightChanged,
+    emptyHeight: '50px',
+    isEmpty,
   });
 
   return (
@@ -35,9 +40,11 @@ export function VirtualizedListAccordion<T>({
         style={{ visibility: isReady ? 'visible' : 'hidden' }}
         className="overflow-hidden pl-1 scrollbar-hidden"
       >
-        {!isError && !isLoading && (
+        {!isError && !isLoading && isEmpty && emptyElement}
+        {!isError && !isLoading && !isEmpty && (
           <VirtualizedList
             {...props}
+            data={data}
             maxHeight={maxHeight}
             onTotalListHeightChanged={handleHeightChange}
           />
