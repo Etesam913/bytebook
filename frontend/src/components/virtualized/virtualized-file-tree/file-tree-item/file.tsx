@@ -109,39 +109,37 @@ export function FileTreeFileItem({
   }
 
   const innerContent = (
-    <>
-      <span
-        style={{ paddingLeft: `${paddingLeft}px` }}
-        className={cn(
-          'rounded-md flex items-center gap-2 z-10 py-1 px-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
-          isSelectedFromRoute &&
-            'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
-          isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
-        )}
-      >
-        <Note
-          className="min-w-4 min-h-4 will-change-transform"
-          height={16}
-          width={16}
-          strokeWidth={1.75}
-        />
-        <InlineTreeItemInput
-          dataItem={dataItem}
-          defaultValue={nameWithoutExtension}
-          isEditing={isEditing}
-          errorText={
-            renameTreeItemError instanceof Error
-              ? renameTreeItemError.message
-              : renameTreeItemError
-                ? 'An error occurred'
-                : ''
-          }
-          exitEditMode={exitEditMode}
-          onSave={onRenameSave}
-          extension={extension}
-        />
-      </span>
-    </>
+    <span
+      style={{ paddingLeft: `${paddingLeft}px` }}
+      className={cn(
+        'rounded-md flex items-center gap-2 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
+        isSelectedFromRoute &&
+          'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
+        isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
+      )}
+    >
+      <Note
+        className="min-w-4 min-h-4 will-change-transform"
+        height={16}
+        width={16}
+        strokeWidth={1.75}
+      />
+      <InlineTreeItemInput
+        dataItem={dataItem}
+        defaultValue={nameWithoutExtension}
+        isEditing={isEditing}
+        errorText={
+          renameTreeItemError instanceof Error
+            ? renameTreeItemError.message
+            : renameTreeItemError
+              ? 'An error occurred'
+              : ''
+        }
+        exitEditMode={exitEditMode}
+        onSave={onRenameSave}
+        extension={extension}
+      />
+    </span>
   );
 
   if (isEditing) {
@@ -235,7 +233,7 @@ export function FileTreeFileItem({
           ],
         });
       }}
-      className="flex items-center w-full relative rounded-md py-0.25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--accent-color)] focus-visible:outline-offset-2"
+      className="flex items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2"
     >
       {innerContent}
     </button>

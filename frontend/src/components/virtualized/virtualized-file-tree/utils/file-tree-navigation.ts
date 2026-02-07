@@ -12,12 +12,18 @@ type FileTreeNavigationContext = {
   virtuosoRef: RefObject<VirtuosoHandle | null>;
 };
 
+/**
+ * Checks if the event target is an editable element like an input, textarea, or contenteditable element.
+ */
 function isEditableTarget(target: EventTarget | null) {
   const element = target instanceof HTMLElement ? target : null;
   if (!element) return false;
   return Boolean(element.closest('input, textarea, [contenteditable="true"]'));
 }
 
+/**
+ * Extracts and parses the file tree index from an HTML element's data attribute.
+ */
 function getIndexFromElement(element: HTMLElement | null) {
   if (!element) return null;
   const rawIndex = element.dataset.fileTreeIndex;
@@ -26,6 +32,9 @@ function getIndexFromElement(element: HTMLElement | null) {
   return Number.isNaN(index) ? null : index;
 }
 
+/**
+ * Finds and returns the DOM wrapper element for a file tree item at the specified index.
+ */
 function getItemWrapper(context: FileTreeNavigationContext, index: number) {
   if (!context.internalListRef.current) return null;
   return context.internalListRef.current.querySelector<HTMLElement>(
@@ -33,10 +42,17 @@ function getItemWrapper(context: FileTreeNavigationContext, index: number) {
   );
 }
 
+/**
+ * Scrolls the virtualized list to bring the item at the specified index into view.
+ */
 function scrollToIndex(context: FileTreeNavigationContext, index: number) {
   context.virtuosoRef.current?.scrollToIndex({ index });
 }
 
+/**
+ * Focuses the button element within a file tree item at the specified index.
+ * If the item is not currently rendered, it will scroll to it first and then focus after a brief delay.
+ */
 function focusItemAtIndex(
   context: FileTreeNavigationContext,
   index: number,
@@ -48,6 +64,7 @@ function focusItemAtIndex(
   if (existingWrapper) {
     const focusTarget = existingWrapper.querySelector<HTMLElement>('button');
     focusTarget?.focus();
+    console.log('focusing: ', focusTarget);
     return;
   }
 
@@ -62,6 +79,9 @@ function focusItemAtIndex(
   }, 0);
 }
 
+/**
+ * Finds the next focusable item index in the specified direction, skipping over non-focusable items like "load more" rows.
+ */
 function findNextFocusableIndex(
   virtualizedData: VirtualizedFileTreeItem[],
   startIndex: number,
@@ -77,6 +97,10 @@ function findNextFocusableIndex(
   return null;
 }
 
+/**
+ * Handles keyboard navigation within the file tree, supporting arrow keys for navigation and space for activation.
+ * Prevents default behavior for navigation keys and ignores events from editable elements.
+ */
 export function handleFileTreeKeyDown(
   context: FileTreeNavigationContext,
   event: KeyboardEvent<HTMLDivElement>
@@ -127,9 +151,9 @@ export function handleFileTreeKeyDown(
  */
 export function handleFileTreeItemClickCapture(
   context: FileTreeNavigationContext,
-  event: MouseEvent<HTMLDivElement>
+  event?: MouseEvent<HTMLDivElement>
 ) {
-  if (isEditableTarget(event.target)) return;
+  if (!event || isEditableTarget(event.target)) return;
   const index = getIndexFromElement(event.currentTarget);
   if (index === null) return;
   const dataItem = context.virtualizedData[index];

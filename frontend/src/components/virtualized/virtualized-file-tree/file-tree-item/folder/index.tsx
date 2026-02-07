@@ -102,7 +102,7 @@ export function FileTreeFolderItem({
       <span
         style={{ paddingLeft: `${paddingLeft}px` }}
         className={cn(
-          'rounded-md flex items-center gap-2 z-10 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
+          'rounded-md flex items-center gap-2 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
           isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
         )}
       >
@@ -308,7 +308,7 @@ export function FileTreeFolderItem({
             ],
           });
         }}
-        className="flex items-center w-full relative rounded-md py-0.25 justify-between focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--accent-color)] focus-visible:outline-offset-2"
+        className="flex items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2"
       >
         {innerContent}
       </button>

@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom } from 'jotai';
-import { useRef, type KeyboardEvent, type MouseEvent } from 'react';
+import { useRef } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { useTopLevelFileOrFolders } from './hooks';
 import { FileTreeItem } from './file-tree-item';
@@ -78,14 +78,14 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
       <div
         className="contents"
         data-file-tree-index={index}
-        onClickCapture={() => {
+        onClickCapture={(e) => {
           handleFileTreeItemClickCapture(
             {
               virtualizedData,
               internalListRef,
               virtuosoRef,
             },
-            event
+            e
           );
         }}
       >

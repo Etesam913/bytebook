@@ -26,6 +26,7 @@ import {
   SELECTION_CHANGE_COMMAND,
   type TextFormatType,
   UNDO_COMMAND,
+  SKIP_DOM_SELECTION_TAG,
 } from 'lexical';
 import {
   type Dispatch,
@@ -120,7 +121,7 @@ export function useNoteMarkdown({
           // Scroll to top of page after note markdown has loaded in
           overflowContainerRef.current?.scrollTo(0, 0);
         },
-        { tag: 'note:initial-load' }
+        { tag: ['note:initial-load', SKIP_DOM_SELECTION_TAG] }
       );
 
       setHasFirstLoad(true);
