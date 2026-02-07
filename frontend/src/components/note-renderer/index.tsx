@@ -1,3 +1,4 @@
+import { motion, useAnimationControls } from 'motion/react';
 import { FileBan } from '../../icons/file-ban';
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../../types';
 import { FilePath } from '../../utils/path';
@@ -7,6 +8,7 @@ import { VideoRenderer } from './video-renderer';
 
 export function NoteRenderer({ filePath }: { filePath: FilePath }) {
   const { extension } = filePath;
+  const animationControls = useAnimationControls();
 
   const isPdf = extension === 'pdf';
   const isMarkdown = extension === 'md';
@@ -33,9 +35,12 @@ export function NoteRenderer({ filePath }: { filePath: FilePath }) {
 
   if (isMarkdown) {
     return (
-      <div className="w-full h-full flex-1">
-        <NotesEditor filePath={filePath} />;
-      </div>
+      <motion.div className="w-full h-full flex-1" animate={animationControls}>
+        <NotesEditor
+          filePath={filePath}
+          animationControls={animationControls}
+        />
+      </motion.div>
     );
   }
 

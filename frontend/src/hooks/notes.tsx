@@ -639,6 +639,38 @@ export function usePinNotesMutation() {
   });
 }
 
+/**
+ * A simpler pin mutation that works directly with full paths.
+ * This supports nested paths like `folder/subfolder/note.md` and folders.
+ */
+export function usePinPathMutation() {
+  const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
+  const projectSettings = useAtomValue(projectSettingsAtom);
+
+  return useMutation({
+    mutationFn: async ({
+      path,
+      shouldPin,
+    }: {
+      path: string;
+      shouldPin: boolean;
+    }) => {
+      const newProjectSettings = { ...projectSettings };
+      if (shouldPin) {
+        newProjectSettings.pinnedNotes.add(path);
+      } else {
+        newProjectSettings.pinnedNotes.delete(path);
+      }
+      updateProjectSettings({ newProjectSettings });
+    },
+    onError: (e) => {
+      if (e instanceof Error) {
+        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+      }
+    },
+  });
+}
+
 export function useRenameFileMutation() {
   return useMutation({
     mutationFn: async ({
