@@ -1,5 +1,5 @@
 import { useSetAtom, useAtomValue } from 'jotai';
-import { MouseEvent } from 'react';
+import { MouseEvent, DragEvent } from 'react';
 import { Folder as FolderIcon } from '../../../../../icons/folder';
 import { FolderOpen } from '../../../../../icons/folder-open';
 import { FolderPlus } from '../../../../../icons/folder-plus';
@@ -21,6 +21,8 @@ import {
   type OpenFolderArgs,
 } from './hooks';
 import { getFileTreeItemIndent } from '../../utils/file-tree-utils';
+import { createDragGhostElement } from '../../utils/item-selection';
+import { sidebarSelectionAtom } from '../../../../../hooks/selection';
 
 export function FileTreeFolderItem({
   dataItem,
@@ -37,6 +39,8 @@ export function FileTreeFolderItem({
 }) {
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
+  const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
+  const sidebarSelection = useAtomValue(sidebarSelectionAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
   const paddingLeft = getFileTreeItemIndent(dataItem.level, currentZoom);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
@@ -180,10 +184,32 @@ export function FileTreeFolderItem({
     );
   }
 
+  function handleDragStart(e: DragEvent) {
+    if (sidebarSelection.selections.size === 0) {
+      e.preventDefault();
+      return;
+    }
+    const ghost = createDragGhostElement({
+      sidebarSelection,
+      fileOrFolderMap,
+    });
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 0, 0);
+  }
+
+  function handleDragEnd() {
+    const ghost = document.getElementById('drag-ghost');
+    if (ghost) {
+      ghost.remove();
+    }
+  }
+
   return (
     <div className="w-full">
       <button
         draggable
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
         onDragOver={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -282,7 +308,7 @@ export function FileTreeFolderItem({
             ],
           });
         }}
-        className="flex items-center w-full relative rounded-md py-0.25"
+        className="flex items-center w-full relative rounded-md py-0.25 justify-between focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--accent-color)] focus-visible:outline-offset-2"
       >
         {innerContent}
       </button>

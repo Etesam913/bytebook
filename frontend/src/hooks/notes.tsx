@@ -260,7 +260,6 @@ export function useNoteCreate() {
         const parentPath = segments.slice(0, -1).join('/');
         const parentId = updatedFilePathToTreeDataId.get(parentPath);
 
-        console.log({ parentId, parentPath, fileName });
         if (!parentId) {
           // Parent not found in path map - invalidate queries
           needsTopLevelInvalidation = true;

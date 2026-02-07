@@ -1,19 +1,23 @@
-import { atom, useSetAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import {
   SelectableItems,
   getFileSelectionPrefix,
   getKeyForSidebarSelection,
 } from '../utils/selection';
+import { atomWithLogging } from '../atoms';
 
 export type SidebarSelection = {
   selections: Set<string>;
   anchorSelection: string | null;
 };
 
-export const sidebarSelectionAtom = atom<SidebarSelection>({
-  selections: new Set([]),
-  anchorSelection: null,
-});
+export const sidebarSelectionAtom = atomWithLogging<SidebarSelection>(
+  'sidebarSelectionAtom',
+  {
+    selections: new Set([]),
+    anchorSelection: null,
+  }
+);
 
 /**
  * A hook to add items to the sidebar selection

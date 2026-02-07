@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom } from 'jotai';
-import { MouseEvent, useState } from 'react';
+import { MouseEvent, useState, DragEvent } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { Note } from '../../../../icons/page';
 import { Finder } from '../../../../icons/finder';
@@ -16,6 +16,9 @@ import { Trash } from '../../../../icons/trash';
 import { FilePen } from '../../../../icons/file-pen';
 import { useRenameTreeItemMutation } from '../hooks';
 import { getFileTreeItemIndent } from '../utils/file-tree-utils';
+import { createDragGhostElement } from '../utils/item-selection';
+import { sidebarSelectionAtom } from '../../../../hooks/selection';
+import { fileTreeDataAtom } from '..';
 
 export function FileTreeFileItem({
   dataItem,
@@ -31,6 +34,8 @@ export function FileTreeFileItem({
   const filePathFromRoute = useFilePathFromRoute();
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
+  const sidebarSelection = useAtomValue(sidebarSelectionAtom);
+  const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const paddingLeft = getFileTreeItemIndent(dataItem.level, currentZoom);
 
   const { mutate: revealInFinder } = useRevealInFinderMutation();
@@ -147,9 +152,31 @@ export function FileTreeFileItem({
     );
   }
 
+  function handleDragStart(e: DragEvent) {
+    if (sidebarSelection.selections.size === 0) {
+      e.preventDefault();
+      return;
+    }
+    const ghost = createDragGhostElement({
+      sidebarSelection,
+      fileOrFolderMap,
+    });
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 0, 0);
+  }
+
+  function handleDragEnd() {
+    const ghost = document.getElementById('drag-ghost');
+    if (ghost) {
+      ghost.remove();
+    }
+  }
+
   return (
     <button
       draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       onDragOver={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -208,7 +235,7 @@ export function FileTreeFileItem({
           ],
         });
       }}
-      className="flex items-center w-full relative rounded-md py-0.25"
+      className="flex items-center w-full relative rounded-md py-0.25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--accent-color)] focus-visible:outline-offset-2"
     >
       {innerContent}
     </button>

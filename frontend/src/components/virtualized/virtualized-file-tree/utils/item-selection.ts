@@ -1,9 +1,10 @@
 import type { FileOrFolder, FlattenedFileOrFolder } from '../types';
-import { createFilePath } from '../../../../utils/path';
+import { createFilePath, createFolderPath } from '../../../../utils/path';
 import {
   getFileSelectionKey,
   getKeyForSidebarSelection,
 } from '../../../../utils/selection';
+import type { SidebarSelection } from '../../../../hooks/selection';
 
 /**
  * Finds the next anchor selection key after removing the current file from the selection.
@@ -40,11 +41,14 @@ export function getAnchorAfterRemoval({
   for (const childId of parentFolder.childrenIds) {
     const childItem = fileOrFolderMap.get(childId);
     if (!childItem) continue;
-    const childFilePath = createFilePath(childItem.id);
-    if (!childFilePath) continue;
+    const childPath =
+      childItem.type === 'file'
+        ? createFilePath(childItem.path)
+        : createFolderPath(childItem.path);
+    if (!childPath) continue;
     orderedSelectionKeys.push(
       getKeyForSidebarSelection({
-        ...childFilePath,
+        ...childPath,
         id: childItem.id,
       })
     );
@@ -131,15 +135,17 @@ export function computeShiftClickSelections({
   for (let index = rangeStart; index <= rangeEnd; index += 1) {
     const childId = parentFolder.childrenIds[index];
     const childItem = fileOrFolderMap.get(childId);
-
     if (!childItem) continue;
 
-    const childFilePath = createFilePath(childItem.id);
-    if (!childFilePath) continue;
+    const childPath =
+      childItem.type === 'file'
+        ? createFilePath(childItem.path)
+        : createFolderPath(childItem.path);
+    if (!childPath) continue;
 
     updatedSelections.add(
       getKeyForSidebarSelection({
-        ...childFilePath,
+        ...childPath,
         id: childItem.id,
       })
     );
@@ -195,4 +201,98 @@ export function computeMetaClickState({
     selections: newSelections,
     anchorSelection: nextAnchor,
   };
+}
+
+/**
+ * Creates a ghost element for drag operations that displays a list of all selected items.
+ * The element is appended to the document body during drag and should be removed after drag ends.
+ */
+export function createDragGhostElement({
+  sidebarSelection,
+  fileOrFolderMap,
+}: {
+  sidebarSelection: SidebarSelection;
+  fileOrFolderMap: Map<string, FileOrFolder>;
+}): HTMLElement {
+  const ghostContainer = document.createElement('div');
+  ghostContainer.id = 'drag-ghost';
+  ghostContainer.style.cssText = `
+    position: fixed;
+    top: -1000px;
+    left: -1000px;
+    background: var(--ghost-bg, #27272a);
+    color: var(--ghost-text, #fff);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: system-ui, -apple-system, sans-serif;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    pointer-events: none;
+    z-index: 9999;
+    max-width: 250px;
+    max-height: 200px;
+    overflow: hidden;
+  `;
+
+  const selections = sidebarSelection.selections;
+
+  const list = document.createElement('ul');
+  list.style.cssText = `
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  `;
+
+  let count = 0;
+  const maxVisibleItems = 5;
+
+  for (const selectionKey of selections) {
+    if (count >= maxVisibleItems) {
+      const moreItem = document.createElement('li');
+      moreItem.style.cssText = `
+        padding: 2px 0;
+        opacity: 0.7;
+        font-style: italic;
+      `;
+      moreItem.textContent = `... and ${selections.size - maxVisibleItems} more`;
+      list.appendChild(moreItem);
+      break;
+    }
+
+    const itemId = getFileSelectionKey(selectionKey);
+    if (!itemId) continue;
+
+    const item = fileOrFolderMap.get(itemId);
+    if (!item) continue;
+
+    const listItem = document.createElement('li');
+    listItem.style.cssText = `
+      padding: 2px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    `;
+
+    const icon = document.createElement('span');
+    icon.textContent = item.type === 'folder' ? '📁' : '📄';
+    icon.style.cssText = `flex-shrink: 0;`;
+
+    const name = document.createElement('span');
+    name.textContent = item.name;
+    name.style.cssText = `
+      overflow: hidden;
+      text-overflow: ellipsis;
+    `;
+
+    listItem.appendChild(icon);
+    listItem.appendChild(name);
+    list.appendChild(listItem);
+    count++;
+  }
+
+  ghostContainer.appendChild(list);
+  return ghostContainer;
 }
