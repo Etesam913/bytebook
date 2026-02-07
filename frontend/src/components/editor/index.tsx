@@ -137,6 +137,7 @@ export function NotesEditor({ filePath }: { filePath: FilePath }) {
             <FilePickerMenuPlugin />
             <EmptyLinePlaceholderPlugin
               noteContainerRef={noteContainerRef}
+              note={note}
               placeholderLineData={placeholderLineData}
               setPlaceholderLineData={setPlaceholderLineData}
             />

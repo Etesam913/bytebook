@@ -13,16 +13,27 @@ import { useRefState } from '../hooks/ref-state';
  */
 export function EmptyLinePlaceholderPlugin({
   noteContainerRef,
+  note,
   placeholderLineData,
   setPlaceholderLineData,
 }: {
   noteContainerRef: RefObject<HTMLDivElement | null>;
+  note: string;
   placeholderLineData: PlaceholderLineData;
   setPlaceholderLineData: Dispatch<SetStateAction<PlaceholderLineData>>;
 }) {
   const [editor] = useLexicalComposerContext();
   const projectSettings = useAtomValue(projectSettingsAtom);
   const noteContainerElement = useRefState(noteContainerRef);
+
+  // Clear placeholder when the accessed note changes
+  useEffect(() => {
+    setPlaceholderLineData({
+      show: false,
+      position: { top: 0, left: 0 },
+      parentKey: null,
+    });
+  }, [note, setPlaceholderLineData]);
 
   function updatePlaceholderPosition(parentKey?: string | null) {
     const keyToUse = parentKey ?? placeholderLineData.parentKey;
