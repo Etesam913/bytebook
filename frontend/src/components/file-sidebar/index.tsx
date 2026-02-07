@@ -89,7 +89,6 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
               {...getDefaultButtonVariants()}
               onClick={() => {
                 window.location.reload();
-                console.log('refresh');
               }}
             >
               <ArrowRotateAnticlockwise width={16} height={16} />
