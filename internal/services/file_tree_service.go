@@ -1,10 +1,12 @@
 package services
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/notes"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -81,4 +83,32 @@ func (f *FileTreeService) CloseFolderAndRemoveFromFileWatcher(folderPath string)
 		Success: true,
 		Message: "Successfully closed folder",
 	}
+}
+
+// MoveItemsToFolder moves one or more items to a new folder within the notes directory.
+// It takes a slice of item paths relative to the notes directory and the name of the destination folder.
+// If any items fail to move, their names will be included in an error message.
+// Returns a BackendResponseWithoutData indicating success or failure of the operation.
+func (f *FileTreeService) MoveItemsToFolder(itemPaths []string, newFolder string) config.BackendResponseWithoutData {
+	failedItemNames := []string{}
+	for _, pathToItem := range itemPaths {
+		fullPathToItem := filepath.Join(f.ProjectPath, "notes", pathToItem)
+		fullPathWithNewFolder := filepath.Join(f.ProjectPath, "notes", newFolder, filepath.Base(pathToItem))
+		err := util.MoveFile(fullPathToItem, fullPathWithNewFolder)
+
+		if err != nil {
+			failedItemNames = append(failedItemNames, pathToItem)
+		}
+	}
+
+	if len(failedItemNames) > 0 {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: fmt.Sprintf(
+				"Failed to move %s into %s", util.FormatStringListForErrorMessage(failedItemNames, 3), newFolder,
+			),
+		}
+	}
+
+	return config.BackendResponseWithoutData{Success: true, Message: ""}
 }

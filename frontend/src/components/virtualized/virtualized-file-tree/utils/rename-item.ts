@@ -5,25 +5,25 @@ import {
   removeFileFromFileTreeMap,
 } from './file-tree-utils';
 
-export type NodeUpdate = {
+type NodeUpdate = {
   path: string;
   name: string;
   parentId: string | null;
 };
 
-export type ParentFolderUpdate = {
+type ParentFolderUpdate = {
   removeChildIds: Set<string>;
   addChildIds: Set<string>;
 };
 
-export type RenameUpdates = {
+type RenameUpdates = {
   pathRemappings: Map<string, string>;
   nodeUpdates: Map<string, NodeUpdate>;
   parentFolderUpdates: Map<string, ParentFolderUpdate>;
   needsTopLevelInvalidation: boolean;
 };
 
-export type RenameEntry = {
+type RenameEntry = {
   oldPath: string;
   newPath: string;
 };
@@ -108,6 +108,13 @@ export async function buildRenameUpdates({
       parentFolderUpdates.set(newParentId, parentUpdate);
     }
   }
+
+  console.log({
+    pathRemappings,
+    nodeUpdates,
+    parentFolderUpdates,
+    needsTopLevelInvalidation,
+  });
 
   return {
     pathRemappings,
