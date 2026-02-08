@@ -4,7 +4,8 @@ import { navigate } from 'wouter/use-browser-location';
 import { Note } from '../../../../icons/page';
 import { Finder } from '../../../../icons/finder';
 import { PinTack2 } from '../../../../icons/pin-tack-2';
-import { contextMenuDataAtom } from '../../../../atoms';
+import { PinTackSlash } from '../../../../icons/pin-tack-slash';
+import { contextMenuDataAtom, projectSettingsAtom } from '../../../../atoms';
 import { useFilePathFromRoute } from '../../../../hooks/routes';
 import {
   useMoveToTrashMutationNew,
@@ -18,11 +19,12 @@ import type { FlattenedFileOrFolder } from '../types';
 import { InlineTreeItemInput } from './inline-tree-item-input';
 import { Trash } from '../../../../icons/trash';
 import { FilePen } from '../../../../icons/file-pen';
-import { useRenameTreeItemMutation } from '../hooks';
+import { useRenameTreeItemMutation } from '../hooks/tree-item-mutations';
 import { getFileTreeItemIndent } from '../utils/file-tree-utils';
 import { createDragGhostElement } from '../utils/item-selection';
 import { sidebarSelectionAtom } from '../../../../hooks/selection';
 import { fileTreeDataAtom } from '..';
+import { FILE_SELECTION_PREFIX } from '../../../../utils/selection';
 
 export function FileTreeFileItem({
   dataItem,
@@ -40,6 +42,7 @@ export function FileTreeFileItem({
   const currentZoom = useAtomValue(currentZoomAtom);
   const sidebarSelection = useAtomValue(sidebarSelectionAtom);
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
+  const projectSettings = useAtomValue(projectSettingsAtom);
   const paddingLeft = getFileTreeItemIndent(dataItem.level, currentZoom);
 
   const { mutate: revealInFinder } = useRevealInFinderMutation();
@@ -99,6 +102,7 @@ export function FileTreeFileItem({
 
   const isSelectedFromRoute =
     filePathFromRoute && filePathFromRoute.equals(filePath);
+  const isPinned = projectSettings.pinnedNotes.has(dataItem.path);
 
   function handleClick(e: MouseEvent) {
     // Stop propagation for modifier clicks to prevent parent handlers from clearing selection
@@ -156,10 +160,15 @@ export function FileTreeFileItem({
   }
 
   function handleDragStart(e: DragEvent) {
-    if (sidebarSelection.selections.size === 0) {
-      e.preventDefault();
-      return;
-    }
+    // const selections = sidebarSelection.selections;
+    // const isCurrentFileSelected = selections.has(
+    //   `${FILE_SELECTION_PREFIX}:${dataItem.id}`
+    // );
+
+    // if (!isCurrentFileSelected) {
+    //   return;
+    // }
+
     const ghost = createDragGhostElement({
       sidebarSelection,
       fileOrFolderMap,
@@ -177,17 +186,11 @@ export function FileTreeFileItem({
 
   return (
     <button
-      draggable
+      draggable={sidebarSelection.selections.has(
+        `${FILE_SELECTION_PREFIX}:${dataItem.id}`
+      )}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
       onClick={handleClick}
       onContextMenu={(e) => {
         e.preventDefault();
@@ -216,14 +219,19 @@ export function FileTreeFileItem({
             {
               label: (
                 <span className="flex items-center gap-1.5">
-                  <PinTack2 height={17} width={17} /> <span>Pin Note</span>
+                  {isPinned ? (
+                    <PinTackSlash height={17} width={17} />
+                  ) : (
+                    <PinTack2 height={17} width={17} />
+                  )}{' '}
+                  <span>{isPinned ? 'Unpin Note' : 'Pin Note'}</span>
                 </span>
               ),
-              value: 'pin-note',
+              value: isPinned ? 'unpin-note' : 'pin-note',
               onChange: () => {
                 pinPath({
                   path: dataItem.path,
-                  shouldPin: true,
+                  shouldPin: !isPinned,
                 });
               },
             },

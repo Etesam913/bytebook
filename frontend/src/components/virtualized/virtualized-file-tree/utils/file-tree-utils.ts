@@ -383,6 +383,10 @@ export function removeFileFromFileTreeMap({
   return newMap;
 }
 
+/**
+ * Helper function to get a node from the map using its path.
+ * Returns the node, or null if the path doesn't exist.
+ */
 export function getTreeNodeFromPath(
   fileTreeData: FileTreeData,
   path: string

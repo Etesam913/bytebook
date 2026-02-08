@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import type { FlattenedFileOrFolder, Folder } from '../../types';
-import { useAddTreeItemMutation, useRenameTreeItemMutation } from '../../hooks';
+import {
+  useAddTreeItemMutation,
+  useRenameTreeItemMutation,
+} from '../../hooks/tree-item-mutations';
 
 export type OpenFolderArgs = {
   pathToFolder: string;

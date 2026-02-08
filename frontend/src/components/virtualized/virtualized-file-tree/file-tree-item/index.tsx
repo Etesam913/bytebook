@@ -1,5 +1,5 @@
 import { useAtomValue } from 'jotai';
-import { useOpenFolderMutation } from '../hooks';
+import { useOpenFolderMutation } from '../hooks/open-folder';
 import {
   CREATE_FOLDER_TYPE,
   LOAD_MORE_TYPE,

@@ -64,7 +64,6 @@ function focusItemAtIndex(
   if (existingWrapper) {
     const focusTarget = existingWrapper.querySelector<HTMLElement>('button');
     focusTarget?.focus();
-    console.log('focusing: ', focusTarget);
     return;
   }
 

@@ -1,5 +1,5 @@
 import { useSetAtom, useAtomValue } from 'jotai';
-import { MouseEvent, DragEvent } from 'react';
+import { MouseEvent, DragEvent, useState } from 'react';
 import { Folder as FolderIcon } from '../../../../../icons/folder';
 import { FolderOpen } from '../../../../../icons/folder-open';
 import { FolderPlus } from '../../../../../icons/folder-plus';
@@ -23,6 +23,8 @@ import {
 import { getFileTreeItemIndent } from '../../utils/file-tree-utils';
 import { createDragGhostElement } from '../../utils/item-selection';
 import { sidebarSelectionAtom } from '../../../../../hooks/selection';
+import { useMoveTreeItemsMutation } from '../../hooks/tree-item-mutations';
+import { FILE_SELECTION_PREFIX } from '../../../../../utils/selection';
 
 export function FileTreeFolderItem({
   dataItem,
@@ -37,6 +39,8 @@ export function FileTreeFolderItem({
   onContextMenuSelection: () => void;
   isSelectedFromSidebarClick: boolean;
 }) {
+  const [isDraggedOver, setIsDraggedOver] = useState(false);
+
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
@@ -45,6 +49,7 @@ export function FileTreeFolderItem({
   const paddingLeft = getFileTreeItemIndent(dataItem.level, currentZoom);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutationNew();
+  const { mutateAsync: moveItemsToFolder } = useMoveTreeItemsMutation();
   const {
     isEditing,
     setIsEditing,
@@ -103,7 +108,8 @@ export function FileTreeFolderItem({
         style={{ paddingLeft: `${paddingLeft}px` }}
         className={cn(
           'rounded-md flex items-center gap-2 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
-          isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
+          (isSelectedFromSidebarClick || isDraggedOver) &&
+            'bg-(--accent-color)! text-white!'
         )}
       >
         {dataItem.type === 'folder' && dataItem.isOpen ? (
@@ -185,10 +191,6 @@ export function FileTreeFolderItem({
   }
 
   function handleDragStart(e: DragEvent) {
-    if (sidebarSelection.selections.size === 0) {
-      e.preventDefault();
-      return;
-    }
     const ghost = createDragGhostElement({
       sidebarSelection,
       fileOrFolderMap,
@@ -207,16 +209,26 @@ export function FileTreeFolderItem({
   return (
     <div className="w-full">
       <button
-        draggable
+        draggable={sidebarSelection.selections.has(
+          `${FILE_SELECTION_PREFIX}:${dataItem.id}`
+        )}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragOver={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          setIsDraggedOver(true);
         }}
-        onDrop={(e) => {
+        onDragLeave={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          setIsDraggedOver(false);
+        }}
+        onDrop={async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDraggedOver(false);
+          await moveItemsToFolder(dataItem.path);
         }}
         onClick={handleClick}
         onContextMenu={(e) => {

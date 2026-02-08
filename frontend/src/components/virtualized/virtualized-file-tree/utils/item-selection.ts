@@ -203,6 +203,24 @@ export function computeMetaClickState({
   };
 }
 
+/** SVG markup for folder icon used in drag ghost */
+const FOLDER_SVG = `<svg style="width: 16px; height: 16px;" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+  <g fill="currentColor" stroke="currentColor">
+    <path d="M1.75,7.75V3.75c0-.552,.448-1,1-1h3.797c.288,0,.563,.125,.753,.342l2.325,2.658" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+    <rect height="9.5" width="14.5" fill="none" rx="2" ry="2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" x="1.75" y="5.75"/>
+  </g>
+</svg>`;
+
+/** SVG markup for page/note icon used in drag ghost */
+const PAGE_SVG = `<svg style="width: 16px; height: 16px;" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+  <g fill="currentColor" stroke="currentColor">
+    <line fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" x1="5.75" x2="9" y1="11.25" y2="11.25"/>
+    <line fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" x1="5.75" x2="12.25" y1="8.25" y2="8.25"/>
+    <line fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" x1="5.75" x2="12.25" y1="5.25" y2="5.25"/>
+    <rect height="14.5" width="12.5" fill="none" rx="2" ry="2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" x="2.75" y="1.75"/>
+  </g>
+</svg>`;
+
 /**
  * Creates a ghost element for drag operations that displays a list of all selected items.
  * The element is appended to the document body during drag and should be removed after drag ends.
@@ -216,45 +234,22 @@ export function createDragGhostElement({
 }): HTMLElement {
   const ghostContainer = document.createElement('div');
   ghostContainer.id = 'drag-ghost';
-  ghostContainer.style.cssText = `
-    position: fixed;
-    top: -1000px;
-    left: -1000px;
-    background: var(--ghost-bg, #27272a);
-    color: var(--ghost-text, #fff);
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-family: system-ui, -apple-system, sans-serif;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    pointer-events: none;
-    z-index: 9999;
-    max-width: 250px;
-    max-height: 200px;
-    overflow: hidden;
-  `;
+  ghostContainer.className =
+    'fixed top-[-1000px] left-[-1000px] bg-zinc-100 dark:bg-zinc-700 border-2 border-zinc-200 dark:border-zinc-650 px-3 py-2 rounded-md text-[13px] font-sans shadow-sm pointer-events-none z-[9999] max-w-[250px] max-h-[300px] overflow-hidden';
 
   const selections = sidebarSelection.selections;
 
   const list = document.createElement('ul');
-  list.style.cssText = `
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  `;
+  list.className = 'list-none m-0 p-0';
 
   let count = 0;
-  const maxVisibleItems = 5;
+  const maxVisibleItems = 10;
 
   for (const selectionKey of selections) {
     if (count >= maxVisibleItems) {
       const moreItem = document.createElement('li');
-      moreItem.style.cssText = `
-        padding: 2px 0;
-        opacity: 0.7;
-        font-style: italic;
-      `;
-      moreItem.textContent = `... and ${selections.size - maxVisibleItems} more`;
+      moreItem.className = 'py-0.5 opacity-70 italic';
+      moreItem.textContent = `and ${selections.size - maxVisibleItems} more items`;
       list.appendChild(moreItem);
       break;
     }
@@ -266,26 +261,16 @@ export function createDragGhostElement({
     if (!item) continue;
 
     const listItem = document.createElement('li');
-    listItem.style.cssText = `
-      padding: 2px 0;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    `;
+    listItem.className =
+      'py-0.5 flex items-center gap-1.5 whitespace-nowrap overflow-hidden text-ellipsis';
 
     const icon = document.createElement('span');
-    icon.textContent = item.type === 'folder' ? '📁' : '📄';
-    icon.style.cssText = `flex-shrink: 0;`;
+    icon.innerHTML = item.type === 'folder' ? FOLDER_SVG : PAGE_SVG;
+    icon.className = 'flex-shrink-0 flex items-center';
 
     const name = document.createElement('span');
     name.textContent = item.name;
-    name.style.cssText = `
-      overflow: hidden;
-      text-overflow: ellipsis;
-    `;
+    name.className = 'overflow-hidden text-ellipsis';
 
     listItem.appendChild(icon);
     listItem.appendChild(name);

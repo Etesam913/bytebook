@@ -128,7 +128,7 @@ export function handleEditorEscape(
     }
   }
 }
-
+export const FILE_SELECTION_PREFIX = 'file';
 /**
  * Gets the selection prefix from a selectable item key that comes from the selection set
  */
@@ -160,5 +160,5 @@ export type SelectableItems = (FilePath | FolderPath) & { id: string };
 export function getKeyForSidebarSelection(
   selectableItem: SelectableItems
 ): string {
-  return `file:${selectableItem.id}`;
+  return `${FILE_SELECTION_PREFIX}:${selectableItem.id}`;
 }

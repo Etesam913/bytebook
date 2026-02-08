@@ -23,9 +23,12 @@ var IMAGE_FILE_EXTENSIONS = []string{"png", "jpg", "jpeg", "webp", "gif"}
 var VIDEO_FILE_EXTENSIONS = []string{"mov", "mp4", "m4v"}
 var TIME_FOR_TWO_EVENTS_TO_BE_RELATED = time.Second * 2
 
+// MostRecentCreatedEvent holds a create event with timestamp and optional file state for rename matching.
 type MostRecentCreatedEvent struct {
-	event fsnotify.Event
-	time  time.Time
+	event    fsnotify.Event // The filesystem create event (path in event.Name)
+	time     time.Time      // When the event was recorded; used to pair with renames within a time window
+	state    fileState      // modTime/size at create time; used to match rename with create when available
+	hasState bool           // True if state was obtained (e.g. from Stat); when false, only time-window fallback is used
 }
 
 // fileState is used to determine if a file has actually changed. Fsnotify events can be noisy
@@ -37,34 +40,132 @@ type fileState struct {
 
 // FileWatcher manages file system monitoring and event handling
 type FileWatcher struct {
-	app                          *application.App
-	projectPath                  string
-	watcher                      *fsnotify.Watcher
-	debounceTimer                *time.Timer
-	debounceEvents               map[string][]map[string]string
-	mostRecentFolderCreatedEvent MostRecentCreatedEvent
-	mostRecentFileCreatedEvent   MostRecentCreatedEvent
-	lastFileState                map[string]fileState
+	app                           *application.App
+	projectPath                   string
+	watcher                       *fsnotify.Watcher
+	debounceTimer                 *time.Timer                    // Timer that fires after inactivity to flush accumulated events
+	debounceEvents                map[string][]map[string]string // Events keyed by type, accumulated until debounce fires
+	mostRecentFolderCreatedEvents []MostRecentCreatedEvent       // Recent folder creates used to match renames (emit FolderRename)
+	mostRecentFileCreatedEvents   []MostRecentCreatedEvent       // Recent file creates used to match renames (emit NoteRename)
+	pendingFolderRenameEvents     []MostRecentCreatedEvent       // Folder renames waiting to be paired with a create
+	pendingFileRenameEvents       []MostRecentCreatedEvent       // File renames waiting to be paired with a create
+	fileStateCache                map[string]fileState           // Cached modTime/size per path to detect real changes and match renames
 }
 
 // newFileWatcher creates and initializes a new FileWatcher
 func newFileWatcher(app *application.App, projectPath string, watcher *fsnotify.Watcher) *FileWatcher {
 	return &FileWatcher{
-		app:            app,
-		projectPath:    projectPath,
-		watcher:        watcher,
-		debounceTimer:  time.NewTimer(0),
-		debounceEvents: make(map[string][]map[string]string),
-		lastFileState:  make(map[string]fileState),
-		mostRecentFolderCreatedEvent: MostRecentCreatedEvent{
-			event: fsnotify.Event{},
-			time:  time.Now(),
-		},
-		mostRecentFileCreatedEvent: MostRecentCreatedEvent{
-			event: fsnotify.Event{},
-			time:  time.Now(),
-		},
+		app:                           app,
+		projectPath:                   projectPath,
+		watcher:                       watcher,
+		debounceTimer:                 time.NewTimer(0),
+		debounceEvents:                make(map[string][]map[string]string),
+		fileStateCache:                make(map[string]fileState),
+		mostRecentFolderCreatedEvents: []MostRecentCreatedEvent{},
+		mostRecentFileCreatedEvents:   []MostRecentCreatedEvent{},
 	}
+}
+
+// removeRecentEvent removes an event at index from the given event slice when index is valid.
+func removeRecentEvent(events []MostRecentCreatedEvent, index int) []MostRecentCreatedEvent {
+	if index < 0 || index >= len(events) {
+		return events
+	}
+	return append(events[:index], events[index+1:]...)
+}
+
+// findRelatedRecentEvent finds a matching recent event by state and time, with a unique time-window fallback.
+func findRelatedRecentEvent(target fileState, targetOk bool, eventTime time.Time, eventData []MostRecentCreatedEvent) (MostRecentCreatedEvent, int, bool) {
+	if len(eventData) == 0 {
+		return MostRecentCreatedEvent{}, -1, false
+	}
+
+	fileStateMatches := func(a, b fileState) bool {
+		return a.size == b.size && a.modTime.Equal(b.modTime)
+	}
+
+	// withinRelatedWindow returns true when two timestamps are within the rename-match window.
+	withinRelatedWindow := func(a, b time.Time) bool {
+		diff := a.Sub(b)
+		if diff < 0 {
+			diff = -diff
+		}
+		return diff <= TIME_FOR_TWO_EVENTS_TO_BE_RELATED
+	}
+
+	if targetOk {
+		for i := len(eventData) - 1; i >= 0; i-- {
+			data := eventData[i]
+			if !data.hasState {
+				continue
+			}
+			if !withinRelatedWindow(eventTime, data.time) {
+				continue
+			}
+			if fileStateMatches(target, data.state) {
+				return data, i, true
+			}
+		}
+	}
+
+	// Fallback: if exactly one candidate is within the window, pair it.
+	fallbackIndex := -1
+	for i := len(eventData) - 1; i >= 0; i-- {
+		if !withinRelatedWindow(eventTime, eventData[i].time) {
+			continue
+		}
+		if fallbackIndex != -1 {
+			return MostRecentCreatedEvent{}, -1, false
+		}
+		fallbackIndex = i
+	}
+
+	if fallbackIndex != -1 {
+		return eventData[fallbackIndex], fallbackIndex, true
+	}
+
+	return MostRecentCreatedEvent{}, -1, false
+}
+
+// getFileState stats a path and returns its mod time and size when available.
+func (fw *FileWatcher) getFileState(path string) (fileState, bool) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return fileState{}, false
+	}
+	return fileState{
+		modTime: info.ModTime(),
+		size:    info.Size(),
+	}, true
+}
+
+// getRecordedOrStatFileState returns cached state when present, otherwise stats the path.
+func (fw *FileWatcher) getRecordedOrStatFileState(path string) (fileState, bool) {
+	if state, ok := fw.fileStateCache[path]; ok {
+		return state, true
+	}
+	return fw.getFileState(path)
+}
+
+// addRecentCreateEvent records a create event with timestamp and best-effort file state.
+func (fw *FileWatcher) addRecentCreateEvent(events []MostRecentCreatedEvent, event fsnotify.Event) []MostRecentCreatedEvent {
+	state, ok := fw.getFileState(event.Name)
+	return append(events, MostRecentCreatedEvent{
+		event:    event,
+		time:     time.Now(),
+		state:    state,
+		hasState: ok,
+	})
+}
+
+// addPendingRenameEvent records a rename event that is waiting for its related create event.
+func (fw *FileWatcher) addPendingRenameEvent(events []MostRecentCreatedEvent, event fsnotify.Event, state fileState, ok bool) []MostRecentCreatedEvent {
+	return append(events, MostRecentCreatedEvent{
+		event:    event,
+		time:     time.Now(),
+		state:    state,
+		hasState: ok,
+	})
 }
 
 // handleDebounceReset stops the given debounce timer, drains its channel if necessary, and resets it.
@@ -87,11 +188,16 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 	eventKey := ""
 
 	if event.Has(fsnotify.Create) {
-		eventKey = util.Events.FolderCreate
-		fw.mostRecentFolderCreatedEvent = MostRecentCreatedEvent{
-			event: event,
-			time:  time.Now(),
-		}
+		fw.mostRecentFolderCreatedEvents = fw.addRecentCreateEvent(fw.mostRecentFolderCreatedEvents, event)
+	} else if event.Has(fsnotify.Rename) {
+		oldState, oldOk := fw.getRecordedOrStatFileState(event.Name)
+		fw.pendingFolderRenameEvents = fw.addPendingRenameEvent(fw.pendingFolderRenameEvents, event, oldState, oldOk)
+		// We do not emit a rename event here. The path and its state are stored in pendingFolderRenameEvents.
+		// When the debounce timer fires, resolvePendingRenames matches this pending rename with a recent
+		// folder create (same state, within the time window). If matched we emit FolderRename(oldPath, newPath);
+		// otherwise we emit FolderDelete for the old path.
+	} else if event.Has(fsnotify.Remove) {
+		eventKey = util.Events.FolderDelete
 
 		fw.debounceEvents[eventKey] = append(
 			fw.debounceEvents[eventKey],
@@ -99,48 +205,6 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 				"folderPath": fw.pathFromNotes(event.Name),
 			},
 		)
-	}
-
-	if event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
-		timeDiff := time.Since(fw.mostRecentFolderCreatedEvent.time)
-		if event.Has(fsnotify.Rename) && timeDiff < TIME_FOR_TWO_EVENTS_TO_BE_RELATED {
-			newFolderPath := fw.pathFromNotes(fw.mostRecentFolderCreatedEvent.event.Name)
-			oldFolderPath := fw.pathFromNotes(event.Name)
-
-			if oldFolderPath == newFolderPath {
-				// A rename event with the exact same two paths is an indication that
-				// it is actually a bugged out folder:delete
-				eventKey = util.Events.FolderDelete
-			} else {
-				eventKey = util.Events.FolderRename
-			}
-
-			if eventKey == util.Events.FolderRename {
-				fw.debounceEvents[eventKey] = append(
-					fw.debounceEvents[eventKey],
-					map[string]string{
-						"oldFolderPath": oldFolderPath,
-						"newFolderPath": newFolderPath,
-					},
-				)
-			} else {
-				fw.debounceEvents[eventKey] = append(
-					fw.debounceEvents[eventKey],
-					map[string]string{
-						"folderPath": oldFolderPath,
-					},
-				)
-			}
-		} else {
-			eventKey = util.Events.FolderDelete
-
-			fw.debounceEvents[eventKey] = append(
-				fw.debounceEvents[eventKey],
-				map[string]string{
-					"folderPath": fw.pathFromNotes(event.Name),
-				},
-			)
-		}
 	}
 
 	fw.handleDebounceReset()
@@ -169,55 +233,31 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event)
 	eventKey := ""
 
 	if event.Has(fsnotify.Create) {
-		eventKey = util.Events.NoteCreate
-		fw.mostRecentFileCreatedEvent = MostRecentCreatedEvent{
-			event: event,
-			time:  time.Now(),
-		}
+		fw.mostRecentFileCreatedEvents = fw.addRecentCreateEvent(fw.mostRecentFileCreatedEvents, event)
 	}
 
 	// A RENAME gets triggered when a file is deleted on macOS
 	if event.Has(fsnotify.Rename) || event.Has(fsnotify.Remove) || event.Has(fsnotify.Write) {
-		timeDiff := time.Since(fw.mostRecentFileCreatedEvent.time)
-
-		// timeDiff is used to be certain that the rename event is not a delete
-		if event.Has(fsnotify.Rename) && timeDiff < TIME_FOR_TWO_EVENTS_TO_BE_RELATED {
-			oldFilePath := fw.pathFromNotes(event.Name)
-			newFilePath := fw.pathFromNotes(fw.mostRecentFileCreatedEvent.event.Name)
-
-			if oldFilePath == newFilePath {
-				// A rename event with the exact same two paths is an indication that
-				// it is actually a bugged out note:delete
-				eventKey = util.Events.NoteDelete
-			} else {
-				eventKey = util.Events.NoteRename
-			}
-
-			fw.renameFileState(event.Name, newFilePath)
-			fw.debounceEvents[eventKey] = append(
-				fw.debounceEvents[eventKey],
-				map[string]string{
-					"oldNotePath": oldFilePath,
-					"newNotePath": newFilePath,
-				},
-			)
+		if event.Has(fsnotify.Rename) {
+			oldState, oldOk := fw.getRecordedOrStatFileState(notePath)
+			fw.pendingFileRenameEvents = fw.addPendingRenameEvent(fw.pendingFileRenameEvents, event, oldState, oldOk)
+			// We do not emit a rename event here. The path and its state are stored in pendingFileRenameEvents.
+			// When the debounce timer fires, resolvePendingRenames matches this pending rename with a recent
+			// file create (same state, within the time window). If matched we emit NoteRename(oldPath, newPath);
+			// otherwise we emit NoteDelete for the old path.
 		} else if event.Has(fsnotify.Write) {
 			eventKey = util.Events.NoteWrite
 		} else {
 			eventKey = util.Events.NoteDelete
 		}
-
 	}
-	if eventKey == util.Events.NoteCreate || eventKey == util.Events.NoteDelete || eventKey == util.Events.NoteWrite {
+
+	if eventKey == util.Events.NoteDelete || eventKey == util.Events.NoteWrite {
 		if eventKey == util.Events.NoteWrite && !fw.hasFileChanged(notePath) {
 			return
 		}
 		if eventKey == util.Events.NoteDelete {
 			fw.clearFileState(notePath)
-		}
-		if eventKey == util.Events.NoteCreate {
-			// Record the initial state so we can detect future write noise.
-			fw.hasFileChanged(notePath)
 		}
 
 		eventData := map[string]string{
@@ -297,6 +337,8 @@ func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[st
 			originalFolderPathsSet.Add(oldFolderPath)
 		}
 	}
+
+	// Nothing changed
 	if (len(renamedNotePathsSet) == 0 && len(renamedFolderPathsSet) == 0) &&
 		(len(originalNotePathsSet) == 0 && len(originalFolderPathsSet) == 0) {
 		return events
@@ -376,6 +418,8 @@ func shouldIgnoreFile(fileName string) bool {
 	return false
 }
 
+// hasFileChanged checks if a file has actually changed by comparing its modification time and size
+// to the last recorded state. This helps filter out noisy fsnotify write events.
 func (fw *FileWatcher) hasFileChanged(path string) bool {
 	info, err := os.Stat(path)
 	if err != nil {
@@ -388,8 +432,8 @@ func (fw *FileWatcher) hasFileChanged(path string) bool {
 		size:    info.Size(),
 	}
 
-	previous, ok := fw.lastFileState[path]
-	fw.lastFileState[path] = current
+	previous, ok := fw.fileStateCache[path]
+	fw.fileStateCache[path] = current
 	if !ok {
 		return true
 	}
@@ -397,13 +441,15 @@ func (fw *FileWatcher) hasFileChanged(path string) bool {
 	return previous.modTime != current.modTime || previous.size != current.size
 }
 
+// clearFileState removes the cached file state for the given path.
 func (fw *FileWatcher) clearFileState(path string) {
-	delete(fw.lastFileState, path)
+	delete(fw.fileStateCache, path)
 }
 
+// renameFileState transfers the cached file state from the old path to the new path.
 func (fw *FileWatcher) renameFileState(oldPath, newPath string) {
-	if state, ok := fw.lastFileState[oldPath]; ok {
-		fw.lastFileState[newPath] = state
+	if state, ok := fw.fileStateCache[oldPath]; ok {
+		fw.fileStateCache[newPath] = state
 		fw.clearFileState(oldPath)
 	}
 }
@@ -450,8 +496,111 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 
 }
 
+// resolvePendingRenames pairs pending renames with queued create events for either files or folders.
+func (fw *FileWatcher) resolvePendingRenames(isFolder bool) {
+	var pendingRenames, recentCreates []MostRecentCreatedEvent
+	var deleteEventKey, renameEventKey, deletePathPayload, renameOldPathPayload, renameNewPathPayload string
+
+	if isFolder {
+		pendingRenames, recentCreates = fw.pendingFolderRenameEvents, fw.mostRecentFolderCreatedEvents
+		deleteEventKey, renameEventKey = util.Events.FolderDelete, util.Events.FolderRename
+		deletePathPayload, renameOldPathPayload, renameNewPathPayload = "folderPath", "oldFolderPath", "newFolderPath"
+	} else {
+		pendingRenames, recentCreates = fw.pendingFileRenameEvents, fw.mostRecentFileCreatedEvents
+		deleteEventKey, renameEventKey = util.Events.NoteDelete, util.Events.NoteRename
+		deletePathPayload, renameOldPathPayload, renameNewPathPayload = "notePath", "oldNotePath", "newNotePath"
+	}
+
+	for _, pending := range pendingRenames {
+		matched, index, found := findRelatedRecentEvent(
+			pending.state,
+			pending.hasState,
+			pending.time,
+			recentCreates,
+		)
+		if !found {
+			fw.debounceEvents[deleteEventKey] = append(
+				fw.debounceEvents[deleteEventKey],
+				map[string]string{
+					deletePathPayload: fw.pathFromNotes(pending.event.Name),
+				},
+			)
+			if !isFolder {
+				fw.clearFileState(pending.event.Name)
+			}
+			continue
+		}
+
+		recentCreates = removeRecentEvent(recentCreates, index)
+
+		oldPath := fw.pathFromNotes(pending.event.Name)
+		newPath := fw.pathFromNotes(matched.event.Name)
+		if oldPath == newPath {
+			fw.debounceEvents[deleteEventKey] = append(
+				fw.debounceEvents[deleteEventKey],
+				map[string]string{
+					deletePathPayload: oldPath,
+				},
+			)
+			if !isFolder {
+				fw.clearFileState(pending.event.Name)
+			}
+			continue
+		}
+
+		fw.renameFileState(pending.event.Name, matched.event.Name)
+		if !isFolder {
+			fw.hasFileChanged(matched.event.Name)
+		}
+		fw.debounceEvents[renameEventKey] = append(
+			fw.debounceEvents[renameEventKey],
+			map[string]string{
+				renameOldPathPayload: oldPath,
+				renameNewPathPayload: newPath,
+			},
+		)
+	}
+
+	if isFolder {
+		fw.mostRecentFolderCreatedEvents = recentCreates
+	} else {
+		fw.mostRecentFileCreatedEvents = recentCreates
+	}
+}
+
+// emitRemainingCreates emits create events for queued creates not consumed by rename matching.
+func (fw *FileWatcher) emitRemainingCreates() {
+	for _, pending := range fw.mostRecentFileCreatedEvents {
+		notePath := pending.event.Name
+		fw.hasFileChanged(notePath)
+		fw.debounceEvents[util.Events.NoteCreate] = append(
+			fw.debounceEvents[util.Events.NoteCreate],
+			map[string]string{
+				"notePath": fw.pathFromNotes(notePath),
+			},
+		)
+	}
+	for _, pending := range fw.mostRecentFolderCreatedEvents {
+		fw.debounceEvents[util.Events.FolderCreate] = append(
+			fw.debounceEvents[util.Events.FolderCreate],
+			map[string]string{
+				"folderPath": fw.pathFromNotes(pending.event.Name),
+			},
+		)
+	}
+}
+
 // emitDebouncedEvents sends all accumulated events to the application
 func (fw *FileWatcher) emitDebouncedEvents() {
+	fw.resolvePendingRenames(false) // files first
+	fw.resolvePendingRenames(true)  // then folders
+	fw.emitRemainingCreates()
+
+	fw.mostRecentFileCreatedEvents = []MostRecentCreatedEvent{}
+	fw.mostRecentFolderCreatedEvents = []MostRecentCreatedEvent{}
+	fw.pendingFileRenameEvents = []MostRecentCreatedEvent{}
+	fw.pendingFolderRenameEvents = []MostRecentCreatedEvent{}
+
 	filteredEvents := filterUnneededDebouncedEvents(fw.debounceEvents)
 	for eventKey, data := range filteredEvents {
 		fw.app.Event.EmitEvent(&application.CustomEvent{

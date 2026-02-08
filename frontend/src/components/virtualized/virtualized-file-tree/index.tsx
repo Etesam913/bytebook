@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useRef } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
-import { useTopLevelFileOrFolders } from './hooks';
+import { useTopLevelFileOrFolders } from './hooks/top-level';
 import { FileTreeItem } from './file-tree-item';
 import { useAnimatedHeight } from '../hooks';
 import { transformFileTreeForVirtualizedList } from './utils/file-tree-utils';
@@ -115,6 +115,7 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
         data={virtualizedData}
         className="scrollbar-hidden"
         scrollerRef={handleScrollerRef}
+        computeItemKey={(_, item) => item.id}
         style={{
           overscrollBehavior: 'auto',
           height:
