@@ -69,34 +69,3 @@ export function useAddToSidebarSelection() {
     });
   };
 }
-
-/**
- * A hook to remove items from the sidebar selection
- */
-export function useRemoveFromSidebarSelection() {
-  const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
-
-  return (itemsToRemove: SelectableItems | SelectableItems[]) => {
-    setSidebarSelection((prev) => {
-      const items = Array.isArray(itemsToRemove)
-        ? itemsToRemove
-        : [itemsToRemove];
-      if (items.length === 0) {
-        return prev;
-      }
-
-      const selectionKeysToRemove = items.map(getKeyForSidebarSelection);
-      const newSelection = new Set(prev.selections);
-      for (const selectionKey of selectionKeysToRemove) {
-        newSelection.delete(selectionKey);
-      }
-
-      const lastRemovedSelectionKey =
-        selectionKeysToRemove[selectionKeysToRemove.length - 1] ?? null;
-      const anchorSelection =
-        newSelection.values().next().value ?? lastRemovedSelectionKey;
-
-      return { selections: newSelection, anchorSelection };
-    });
-  };
-}

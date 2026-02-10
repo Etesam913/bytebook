@@ -8,7 +8,6 @@ import {
   MOCK_NOTES_RESPONSE,
   MOCK_NOTE_EXISTS_RESPONSE,
   MOCK_NOTE_MARKDOWN_RESPONSE,
-  MOCK_NOTE_PREVIEW_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
   MOCK_SET_TAGS_ON_NOTES_RESPONSE,
   MOCK_TAGS_FOR_NOTES_RESPONSE,
@@ -56,15 +55,6 @@ test.describe('Tags Workflow', () => {
         method: 'DoesNoteExist',
       },
       MOCK_NOTE_EXISTS_RESPONSE
-    );
-
-    await mockBinding(
-      context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNotePreview',
-      },
-      MOCK_NOTE_PREVIEW_RESPONSE
     );
 
     // Mock note markdown

@@ -130,25 +130,6 @@ export function useEditTagsFormMutation() {
   });
 }
 
-/**
- * Deletes a tag from a note. Used for onDelete button in tag in bottom bar
- * @returns The mutation result.
- */
-export function useDeleteTagFromNoteMutation(filePath: LocalFilePath) {
-  return useMutation({
-    mutationFn: async ({ tagToDelete }: { tagToDelete: string }) => {
-      const res = await SetTagsOnNotes(
-        [filePath.toString()],
-        [],
-        [tagToDelete]
-      );
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
-    },
-  });
-}
-
 interface DeleteTagsMutationVariables {
   tagsToDelete: string[];
   setErrorText: (error: string) => void;

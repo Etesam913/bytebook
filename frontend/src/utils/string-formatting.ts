@@ -128,7 +128,7 @@ export const NAME_CHARS = /^[^<>:"/\\|?*]+$/;
  * @param nameType
  * @returns
  */
-export function validateName(
+function validateName(
   name: FormDataEntryValue | null,
   nameType: 'folder' | 'note'
 ): ValidationResult {

@@ -8,145 +8,12 @@ import (
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/config"
-	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
 type NoteService struct {
 	ProjectPath string
 	SearchIndex *bleve.Index
-}
-
-const PageSize = 200
-
-type NotesPageResponseData struct {
-	Notes            []config.FolderAndNote `json:"notes"`
-	TotalCount       int                    `json:"totalCount"`
-	InitialItemIndex int                    `json:"initialItemIndex"`
-}
-
-// GetNotesInPage returns a paginated list of note filenames (with extension) in the specified folder,
-// sorted according to the provided sortOption. Only files (not directories or hidden files) are included.
-// Returns a BackendResponseWithData containing the notes for the page, total count, and initial item index.
-func (n *NoteService) GetNotesInPage(folderName string, sortOption string, pageIndex int) config.BackendResponseWithData[NotesPageResponseData] {
-	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
-	// Ensure the directory exists
-	exists, err := util.FileOrFolderExists(folderPath)
-	if !exists || err != nil {
-		return config.BackendResponseWithData[NotesPageResponseData]{
-			Success: false,
-			Message: "Could not get notes from " + folderPath,
-			Data:    NotesPageResponseData{Notes: []config.FolderAndNote{}, TotalCount: 0, InitialItemIndex: 0},
-		}
-	}
-
-	files, err := os.ReadDir(folderPath)
-	if err != nil {
-		return config.BackendResponseWithData[NotesPageResponseData]{
-			Success: false,
-			Message: err.Error(),
-			Data:    NotesPageResponseData{Notes: []config.FolderAndNote{}, TotalCount: 0, InitialItemIndex: 0},
-		}
-	}
-	var notes []os.DirEntry
-	for _, file := range files {
-		// Ignore any folders inside a note folder and hidden files
-		if file.IsDir() || strings.HasPrefix(file.Name(), ".") {
-			continue
-		} else {
-			notes = append(notes, file)
-		}
-	}
-
-	// Sort notes based on the sort option
-	util.SortNotes(notes, sortOption)
-
-	totalCount := len(notes)
-	startIndex := pageIndex * PageSize
-	endIndex := startIndex + PageSize
-
-	if startIndex > totalCount {
-		startIndex = totalCount
-	}
-	if endIndex > totalCount {
-		endIndex = totalCount
-	}
-
-	var paginatedNotes []config.FolderAndNote
-
-	// Using the query param syntax that the app supports
-	for i := startIndex; i < endIndex; i++ {
-		paginatedNotes = append(paginatedNotes, config.FolderAndNote{
-			Folder: folderName,
-			Note:   notes[i].Name(),
-		})
-	}
-
-	return config.BackendResponseWithData[NotesPageResponseData]{
-		Success: true,
-		Message: "",
-		Data: NotesPageResponseData{
-			Notes:            paginatedNotes,
-			TotalCount:       totalCount,
-			InitialItemIndex: startIndex,
-		},
-	}
-}
-
-// GetPageForNote returns the page index where a specific note is located.
-// It finds the note's position in the sorted list and calculates the page.
-func (n *NoteService) GetPageForNote(folderName string, sortOption string, noteName string) config.BackendResponseWithData[int] {
-	folderPath := filepath.Join(n.ProjectPath, "notes", folderName)
-	// Ensure the directory exists
-	exists, err := util.FileOrFolderExists(folderPath)
-	if !exists || err != nil {
-		return config.BackendResponseWithData[int]{
-			Success: false,
-			Message: "Could not get notes from " + folderPath,
-			Data:    0,
-		}
-	}
-
-	files, err := os.ReadDir(folderPath)
-	if err != nil {
-		return config.BackendResponseWithData[int]{
-			Success: false,
-			Message: err.Error(),
-			Data:    0,
-		}
-	}
-
-	var notes []os.DirEntry
-	for _, file := range files {
-		// Ignore any folders inside a note folder and hidden files
-		if file.IsDir() || strings.HasPrefix(file.Name(), ".") {
-			continue
-		} else {
-			notes = append(notes, file)
-		}
-	}
-
-	// Sort notes based on the sort option
-	util.SortNotes(notes, sortOption)
-
-	// Find the note's index
-	for i, file := range notes {
-		if file.Name() == noteName {
-			pageIndex := i / PageSize
-			return config.BackendResponseWithData[int]{
-				Success: true,
-				Message: "",
-				Data:    pageIndex,
-			}
-		}
-	}
-
-	// Note not found, return page 0
-	return config.BackendResponseWithData[int]{
-		Success: true,
-		Message: "",
-		Data:    0,
-	}
 }
 
 // RenameFile renames a file or folder from oldFolderNotePath to newFolderNotePath.
@@ -439,41 +306,6 @@ type NotePreviewData struct {
 	FirstImageSrc string `json:"firstImageSrc"`
 	Size          int64  `json:"size"`
 	LastUpdated   string `json:"lastUpdated"`
-}
-
-// GetNotePreview retrieves preview data for a note at the given path, including the first line,
-// first image source, file size, and last updated timestamp. If there is an error reading the note,
-// it will still return any metadata that could be retrieved, with Success=false.
-func (n *NoteService) GetNotePreview(path string) config.BackendResponseWithData[NotePreviewData] {
-	noteFilePath := filepath.Join(n.ProjectPath, path)
-
-	processedData, err := notes.ProcessNoteContent(noteFilePath)
-
-	if err != nil {
-		// This error comes from notes.ProcessNoteContent if reading a .md file failed.
-		// We still return any data that might have been populated (e.g., Size, LastUpdated if os.Stat succeeded).
-		return config.BackendResponseWithData[NotePreviewData]{
-			Success: false,
-			Message: err.Error(),
-			Data: NotePreviewData{
-				FirstLine:     processedData.FirstLine,     // Will be empty if .md read failed
-				FirstImageSrc: processedData.FirstImageSrc, // Will be empty if .md read failed
-				Size:          processedData.Size,
-				LastUpdated:   processedData.LastUpdated,
-			},
-		}
-	}
-
-	return config.BackendResponseWithData[NotePreviewData]{
-		Success: true,
-		Message: "Successfully retrieved note preview",
-		Data: NotePreviewData{
-			FirstLine:     processedData.FirstLine,
-			FirstImageSrc: processedData.FirstImageSrc,
-			Size:          processedData.Size,
-			LastUpdated:   processedData.LastUpdated,
-		},
-	}
 }
 
 // DoesNoteExist checks if a note exists at the given path relative to the project's notes directory.

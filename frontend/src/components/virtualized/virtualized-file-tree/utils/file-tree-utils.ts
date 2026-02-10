@@ -123,7 +123,7 @@ export function transformFileTreeForVirtualizedList(
  * deleting each node it encounters. For folders, it first removes all children
  * before removing the folder itself.
  */
-export function removeSubtree(
+function removeSubtree(
   fileTreeData: FileTreeData,
   rootId: string
 ): void {

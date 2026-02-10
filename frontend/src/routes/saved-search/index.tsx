@@ -22,13 +22,11 @@ import { ErrorText } from '../../components/error-text/index.tsx';
 export function SavedSearchPage({
   searchQuery,
   width,
-  leftWidth,
   curFolder,
   curNote,
 }: {
   searchQuery: string;
   width?: MotionValue<number>;
-  leftWidth?: MotionValue<number>;
   curFolder?: string;
   curNote?: string;
 }) {

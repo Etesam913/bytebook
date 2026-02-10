@@ -17,7 +17,7 @@ import type { SidebarSelection } from '../../../../hooks/selection';
  * @param params.updatedSelections - The updated set of selection keys after removal
  * @returns The selection key to use as the new anchor, or null if none found
  */
-export function getAnchorAfterRemoval({
+function getAnchorAfterRemoval({
   fileOrFolderMap,
   dataItem,
   selectionKey,
@@ -235,9 +235,17 @@ export function createDragGhostElement({
   const ghostContainer = document.createElement('div');
   ghostContainer.id = 'drag-ghost';
   ghostContainer.className =
-    'fixed top-[-1000px] left-[-1000px] bg-zinc-100 dark:bg-zinc-700 border-2 border-zinc-200 dark:border-zinc-650 px-3 py-2 rounded-md text-[13px] font-sans shadow-sm pointer-events-none z-[9999] max-w-[250px] max-h-[300px] overflow-hidden';
+    'fixed top-[-1000px] left-[-1000px] bg-zinc-100 dark:bg-zinc-700 border-2 border-zinc-200 dark:border-zinc-650 px-3 py-2 rounded-md text-[13px] font-sans shadow-sm pointer-events-none z-[9999] max-w-[250px] max-h-[300px] overflow-visible';
 
   const selections = sidebarSelection.selections;
+  const draggedCount = selections.size;
+
+  const countBadge = document.createElement('div');
+  countBadge.className =
+    'absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full text-white text-[11px] font-semibold flex items-center justify-center shadow';
+  countBadge.style.backgroundColor = 'var(--accent-color)';
+  countBadge.textContent = String(draggedCount);
+  ghostContainer.appendChild(countBadge);
 
   const list = document.createElement('ul');
   list.className = 'list-none m-0 p-0';

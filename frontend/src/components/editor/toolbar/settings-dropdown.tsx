@@ -8,9 +8,7 @@ import {
   useNoteRevealInFinderMutation,
 } from '../../../hooks/notes';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
-import { useRenameFileDialog } from '../../../hooks/dialogs';
 import { Finder } from '../../../icons/finder';
-import { FilePen } from '../../../icons/file-pen';
 import { HorizontalDots } from '../../../icons/horizontal-dots';
 import { PinTack2 } from '../../../icons/pin-tack-2';
 import { Table } from '../../../icons/table';
@@ -22,7 +20,6 @@ import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
 import type { Frontmatter } from '../../../types';
 import { Tooltip } from '../../tooltip';
 import { cn } from '../../../utils/string-formatting';
-import { LocalFilePath } from '../../../utils/path';
 
 export function SettingsDropdown({
   folder,
@@ -44,7 +41,6 @@ export function SettingsDropdown({
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutationNew();
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
-  const openRenameFileDialog = useRenameFileDialog();
 
   const items = [
     // Pin/Unpin at the top
@@ -77,14 +73,6 @@ export function SettingsDropdown({
           {frontmatter.showTableOfContents === 'true'
             ? 'Hide Table of Contents'
             : 'Show Table of Contents'}
-        </span>
-      ),
-    },
-    {
-      value: 'rename-file',
-      label: (
-        <span className="flex items-center gap-1.5 will-change-transform">
-          <FilePen className="min-w-5" height={17} width={17} /> Rename
         </span>
       ),
     },
@@ -134,14 +122,6 @@ export function SettingsDropdown({
                 newFrontmatter: copyOfFrontmatter,
               });
             });
-            break;
-          }
-          case 'rename-file': {
-            const filePath = new LocalFilePath({
-              folder,
-              note: note.endsWith('.md') ? note : `${note}.md`,
-            });
-            openRenameFileDialog(filePath);
             break;
           }
           case 'reveal-in-finder': {
