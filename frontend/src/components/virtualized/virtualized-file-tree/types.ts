@@ -1,7 +1,7 @@
 /**
  * The type of an item in the file tree: either a file or a folder.
  */
-export type FileOrFolderType = 'file' | 'folder';
+type FileOrFolderType = 'file' | 'folder';
 
 /**
  * Base properties shared by both files and folders.
@@ -49,7 +49,7 @@ export type FileOrFolder = File | Folder;
 /**
  * Describes a page of file or folder results, including pagination info.
  */
-export type FileOrFolderPage = {
+type FileOrFolderPage = {
   /** The files or folders in this page. */
   items: FileOrFolder[];
   /** Cursor string for the next page (empty string if no more pages). */
@@ -70,7 +70,7 @@ export type FlattenedFileOrFolder = FileOrFolder & {
 /**
  * Represents a special item shown in the file tree to allow loading more children of a folder.
  */
-export type LoadMoreItem = {
+type LoadMoreItem = {
   /** Path identifier for the "load more" marker (usually related to the parent folder). */
   id: string;
   /** Type indicating this is a load more marker. */

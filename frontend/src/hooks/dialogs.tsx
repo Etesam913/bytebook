@@ -4,85 +4,12 @@ import { dialogDataAtom } from '../atoms';
 import { MotionButton } from '../components/buttons';
 import { DialogErrorText } from '../components/dialog';
 import { Input } from '../components/input';
-import { Compose } from '../icons/compose';
-import { useNoteCreateMutation } from './notes';
 import { useSaveSearchMutation } from './search';
 import { BookBookmark } from '../icons/book-bookmark';
 import { Table } from '../icons/table';
 import type { LexicalEditor, RangeSelection } from 'lexical';
 import { INSERT_TABLE_COMMAND } from '@lexical/table';
 import { $setSelection } from 'lexical';
-import { useFolderCreateMutation } from './folders';
-import { CreateFolderDialog } from '../components/file-sidebar/my-files-accordion/folder-dialog-children';
-import { useRenameFileMutation } from './notes';
-import { RenameFileDialogChildren } from '../routes/notes-sidebar/rename-file-dialog-children';
-import { LocalFilePath } from '../utils/path';
-import { navigate } from 'wouter/use-browser-location';
-
-/**
- * Custom hook that returns a function to open a "Create Note" dialog for a given folder.
- *
- * When invoked with a folder name, this function opens a dialog allowing the user to enter a new note name.
- * On submission, it validates the note name, attempts to create the note in the specified folder,
- * and navigates to the new note if successful. If an error occurs, it displays an error message in the dialog.
- *
- * @returns {(folder: string) => void} Function to open the create note dialog for the specified folder.
- *
- * Usage:
- *   const openCreateNoteDialog = useCreateNoteDialog();
- *   openCreateNoteDialog('MyFolder');
- */
-export function useCreateNoteDialog(): (folder: string) => void {
-  const setDialogData = useSetAtom(dialogDataAtom);
-  const { mutateAsync: createNote } = useNoteCreateMutation();
-
-  return (folder: string) => {
-    setDialogData({
-      isOpen: true,
-      isPending: false,
-      title: 'Create Note',
-      children: (errorText) => (
-        <>
-          <fieldset className="flex flex-col">
-            <Input
-              label="New Note Name"
-              labelProps={{ htmlFor: 'note-name' }}
-              inputProps={{
-                id: 'note-name',
-                name: 'note-name',
-                placeholder: "Today's Tasks",
-                autoFocus: true,
-                autoCapitalize: 'off',
-                autoComplete: 'off',
-                spellCheck: 'false',
-                type: 'text',
-              }}
-            />
-            <DialogErrorText errorText={errorText} />
-          </fieldset>
-          <MotionButton
-            {...getDefaultButtonVariants({
-              disabled: false,
-              whileHover: 1.05,
-              whileTap: 0.95,
-              whileFocus: 1.05,
-            })}
-            className="w-[calc(100%-1.5rem)] mx-auto text-center justify-center"
-            type="submit"
-          >
-            <span>Create Note</span> <Compose />
-          </MotionButton>
-        </>
-      ),
-      onSubmit: async (e, setErrorText) =>
-        createNote({
-          e,
-          folder,
-          setErrorText,
-        }),
-    });
-  };
-}
 
 /**
  * Custom hook that returns a function to open a "Save Search" dialog.
@@ -291,95 +218,6 @@ export function useCreateTableDialog(): (
           );
           return false;
         }
-      },
-    });
-  };
-}
-
-/**
- * Custom hook that returns a function to open a "Create Folder" dialog.
- *
- * When invoked, this function opens a dialog allowing the user to enter a new folder name.
- * On submission, it validates the folder name, attempts to create the folder,
- * and navigates to the new folder if successful. If an error occurs, it displays an error message in the dialog.
- *
- * @returns {() => void} Function to open the create folder dialog.
- *
- */
-export function useCreateFolderDialog(): () => void {
-  const setDialogData = useSetAtom(dialogDataAtom);
-  const { mutateAsync: createFolder } = useFolderCreateMutation();
-
-  return () => {
-    setDialogData({
-      isOpen: true,
-      title: 'Create Folder',
-      isPending: false,
-      children: (errorText) => <CreateFolderDialog errorText={errorText} />,
-      onSubmit: async (e, setErrorText) =>
-        createFolder({
-          e: e,
-          setErrorText: setErrorText,
-        }),
-    });
-  };
-}
-
-/**
- * Custom hook that returns a function to open a "Rename File" dialog.
- *
- * When invoked with a file path, this function opens a dialog allowing the user to enter a new file name.
- * On submission, it validates the new file name, attempts to rename the file,
- * and navigates to the renamed file if successful. If an error occurs, it displays an error message in the dialog.
- *
- * @returns {(filePath: LocalFilePath) => void} Function to open the rename file dialog for the specified file path.
- *
- * Usage:
- *   const openRenameFileDialog = useRenameFileDialog();
- *   openRenameFileDialog(filePath);
- */
-export function useRenameFileDialog(): (filePath: LocalFilePath) => void {
-  const setDialogData = useSetAtom(dialogDataAtom);
-  const { mutateAsync: renameFile } = useRenameFileMutation();
-
-  return (filePath: LocalFilePath) => {
-    setDialogData({
-      isOpen: true,
-      isPending: false,
-      title: 'Rename File',
-      dialogClassName: 'w-[min(25rem,90vw)]',
-      children: (errorText) => (
-        <RenameFileDialogChildren
-          selectedFilePath={filePath}
-          errorText={errorText}
-        />
-      ),
-      onSubmit: async (e, setErrorText) => {
-        const form = e.target as HTMLFormElement;
-        const formData = new FormData(form);
-        const newFileName = formData.get('new-file-name') as string;
-        if (!newFileName) {
-          setErrorText('Please enter a new file name');
-          return false;
-        }
-
-        const newFilePath = new LocalFilePath({
-          folder: filePath.folder,
-          note: `${newFileName}.${filePath.noteExtension}`,
-        });
-
-        const result = await renameFile({
-          oldPath: filePath,
-          newPath: newFilePath,
-          setErrorText,
-        });
-
-        if (result) {
-          navigate(newFilePath.getLinkToNote());
-          return true;
-        }
-
-        return false;
       },
     });
   };

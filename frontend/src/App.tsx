@@ -18,7 +18,6 @@ import { MAX_SIDEBAR_WIDTH } from './utils/general';
 import { disableBackspaceNavigation } from './utils/routing';
 import { routeUrls, type SavedSearchRouteParams } from './utils/routes';
 import { RouteFallback } from './components/route-fallback';
-import { useTrapFocus } from './hooks/general';
 import { useZoom, useFullscreen, useWindowReload } from './hooks/resize';
 import { EditorWrapper } from './components/virtualized/virtualized-file-tree/editor-wrapper';
 
@@ -26,12 +25,6 @@ import { EditorWrapper } from './components/virtualized/virtualized-file-tree/ed
 const NotFound = lazy(() =>
   import('./routes/not-found').then((module) => ({
     default: module.NotFound,
-  }))
-);
-
-const NotesSidebar = lazy(() =>
-  import('./routes/notes-sidebar').then((module) => ({
-    default: module.NotesSidebar,
   }))
 );
 
@@ -63,7 +56,6 @@ function App() {
   const [location] = useLocation();
 
   useTagEvents();
-  useTrapFocus();
   useThemeSetting();
   useSearch();
   useProjectSettings();
@@ -102,11 +94,11 @@ function App() {
           <EditorWrapper />
         </Route>
 
-        {/* <Route path={routeUrls.patterns.NOT_FOUND_FALLBACK}>
+        <Route path={routeUrls.patterns.NOT_FOUND_FALLBACK}>
           <Suspense fallback={<RouteFallback />}>
             <NotFound />
           </Suspense>
-        </Route> */}
+        </Route>
 
         <Route path={routeUrls.patterns.KERNELS}>
           <Suspense fallback={<RouteFallback />}>
@@ -137,25 +129,11 @@ function App() {
           )}
         </Route>
 
-        {/* <Route path={routeUrls.patterns.NOTES}>
-          {(folderParams: NotesRouteParams) => (
-            <Suspense fallback={<RouteFallback />}>
-              <NotesSidebar
-                curFolder={decodeURIComponent(folderParams.folder)}
-                curNote={
-                  folderParams.note
-                    ? decodeURIComponent(folderParams.note)
-                    : undefined
-                }
-                width={notesSidebarWidth}
-              />
-            </Suspense>
-          )}
-        </Route> */}
-        {/* <Route path={'*'}> <Suspense fallback={<RouteFallback />}>
+        <Route path={'*'}>
+          <Suspense fallback={<RouteFallback />}>
             <NotFound />
           </Suspense>
-        </Route> */}
+        </Route>
       </Switch>
     </main>
   );

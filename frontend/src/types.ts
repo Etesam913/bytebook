@@ -52,7 +52,7 @@ export type BackendQueryDataType = {
   message: string;
 };
 
-export type SortStrings =
+type SortStrings =
   | 'date-updated-desc'
   | 'date-updated-asc'
   | 'date-created-desc'

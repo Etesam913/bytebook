@@ -6,7 +6,6 @@ import {
   type DialogDataType,
   KernelsData,
   type ProjectSettings,
-  type SortStrings,
 } from './types';
 import { LocalFilePath } from './utils/path';
 import { logger } from './utils/logging';
@@ -77,8 +76,6 @@ export const projectSettingsAtom = atom<ProjectSettings>({
 // Tracks whether project settings have been loaded from the backend at least once.
 export const projectSettingsLoadedAtom = atom<boolean>(false);
 
-export const noteSortAtom = atom<SortStrings>('date-updated-desc');
-
 export const selectionRangeAtom = atom<Set<string>>(new Set([]));
 
 export const isDarkModeOnAtom = atom<boolean>(false);
@@ -144,7 +141,6 @@ export const dialogDataAtom = atom<DialogDataType>({
   dialogClassName: '',
   isPending: false,
 });
-export const trapFocusContainerAtom = atom<HTMLElement | null>(null);
 
 export const backendQueryAtom = atom<BackendQueryDataType>({
   isLoading: false,

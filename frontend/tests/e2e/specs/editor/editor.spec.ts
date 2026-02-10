@@ -45,15 +45,6 @@ test.describe('Editor', () => {
       MOCK_NOTE_EXISTS_RESPONSE
     );
 
-    await mockBinding(
-      context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNotePreview',
-      },
-      MOCK_NOTE_PREVIEW_RESPONSE
-    );
-
     // Mock project settings
     await mockBinding(
       context,

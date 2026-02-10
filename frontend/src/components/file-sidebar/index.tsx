@@ -97,32 +97,6 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
         </header>
         <section className="px-2.5 pt-4">
           <SearchBar />
-          {/* <Tooltip
-            placement="right"
-            content={
-              <span className="flex items-center gap-0.5">
-                <Command
-                  className="will-change-transform"
-                  width={12.8}
-                  height={12.8}
-                />
-                <p>G</p>
-              </span>
-            }
-          >
-            <MotionButton
-              {...getDefaultButtonVariants({
-                disabled: false,
-                whileHover: 1.025,
-                whileTap: 0.975,
-                whileFocus: 1.025,
-              })}
-              className="align-center mb-2 flex w-full justify-between bg-transparent"
-              onClick={openCreateFolderDialog}
-            >
-              Create Folder <FolderPlus className="will-change-transform" />
-            </MotionButton>
-          </Tooltip> */}
         </section>
         <section
           className="flex flex-1 flex-col overflow-y-auto gap-2 py-1.5"

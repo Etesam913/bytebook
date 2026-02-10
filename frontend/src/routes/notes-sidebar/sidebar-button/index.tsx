@@ -1,37 +1,13 @@
-import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
-import {
-  contextMenuDataAtom,
-  dialogDataAtom,
-  projectSettingsAtom,
-  selectionRangeAtom,
-} from '../../../atoms';
+import { useAtom, useSetAtom } from 'jotai/react';
+import { selectionRangeAtom } from '../../../atoms';
 import { draggedGhostElementAtom } from '../../../components/editor/atoms';
 import { handleNoteDragStart } from '../../../components/virtualized/virtualized-list/utils';
-import {
-  useMoveNoteToTrashMutation,
-  useNoteRevealInFinderMutation,
-  usePinNotesMutation,
-} from '../../../hooks/notes';
-import { Finder } from '../../../icons/finder';
-import { FilePen } from '../../../icons/file-pen';
-import { PinTack2 } from '../../../icons/pin-tack-2';
-import { PinTackSlash } from '../../../icons/pin-tack-slash';
-import { TagPlus } from '../../../icons/tag-plus';
-import { Trash } from '../../../icons/trash';
-import {
-  getFilePathFromNoteSelectionRange,
-  handleKeyNavigation,
-  handleContextMenuSelection,
-} from '../../../utils/selection';
+import { handleKeyNavigation } from '../../../utils/selection';
 import { cn } from '../../../utils/string-formatting';
 import { LocalFilePath } from '../../../utils/path';
 import { ListNoteSidebarItem } from './list-note-sidebar-item';
 import { navigate } from 'wouter/use-browser-location';
-import { EditTagDialogChildren } from '../edit-tag-dialog-children';
-import { currentZoomAtom } from '../../../hooks/resize';
-import { useRenameFileDialog } from '../../../hooks/dialogs';
 import { useRoute } from 'wouter';
-import { useEditTagsFormMutation } from '../../../hooks/tags';
 import { routeUrls, type SavedSearchRouteParams } from '../../../utils/routes';
 
 export function NoteSidebarButton({
@@ -48,16 +24,6 @@ export function NoteSidebarButton({
     routeUrls.patterns.SAVED_SEARCH
   );
 
-  const { mutate: pinOrUnpinNote } = usePinNotesMutation();
-  const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
-  const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
-  const { mutateAsync: editTags } = useEditTagsFormMutation();
-  const openRenameFileDialog = useRenameFileDialog();
-  const currentZoom = useAtomValue(currentZoomAtom);
-
-  const setDialogData = useSetAtom(dialogDataAtom);
-  const setContextMenuData = useSetAtom(contextMenuDataAtom);
-  const projectSettings = useAtomValue(projectSettingsAtom);
   const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
 
   const isActive = activeNotePath
@@ -83,185 +49,6 @@ export function NoteSidebarButton({
           folder: sidebarNotePath.folder,
         })
       }
-      onContextMenu={(e) => {
-        const newSelectionRange = handleContextMenuSelection({
-          setSelectionRange,
-          itemType: 'note',
-          itemName: sidebarNotePath.note,
-        });
-        const filePaths = getFilePathFromNoteSelectionRange(
-          sidebarNotePath.folder,
-          newSelectionRange
-        );
-        const isShowingPinOption = filePaths.some(
-          (filePath) => !projectSettings.pinnedNotes.has(filePath.toString())
-        );
-        const isShowingUnpinOption = filePaths.some((filePath) =>
-          projectSettings.pinnedNotes.has(filePath.toString())
-        );
-
-        setContextMenuData({
-          x: e.clientX / currentZoom,
-          y: e.clientY / currentZoom,
-          isShowing: true,
-          items: [
-            {
-              label: (
-                <span className="flex items-center gap-1.5">
-                  <Finder
-                    width={17}
-                    height={17}
-                    className="will-change-transform"
-                  />{' '}
-                  <span className="will-change-transform">
-                    {' '}
-                    Reveal In Finder
-                  </span>
-                </span>
-              ),
-              value: 'reveal-in-finder',
-              onChange: () =>
-                revealInFinder({
-                  selectionRange: newSelectionRange,
-                  folder: sidebarNotePath.folder,
-                }),
-            },
-            ...(isShowingPinOption
-              ? [
-                  {
-                    label: (
-                      <span className="flex items-center gap-1.5">
-                        <PinTack2
-                          width={17}
-                          height={17}
-                          className="will-change-transform"
-                        />{' '}
-                        <span className="will-change-transform">Pin Notes</span>
-                      </span>
-                    ),
-                    value: 'pin-note',
-                    onChange: () => {
-                      pinOrUnpinNote({
-                        folder: sidebarNotePath.folder,
-                        selectionRange: newSelectionRange,
-                        shouldPin: true,
-                      });
-                    },
-                  },
-                ]
-              : []),
-            ...(isShowingUnpinOption
-              ? [
-                  {
-                    label: (
-                      <span className="flex items-center gap-1.5">
-                        <PinTackSlash
-                          width={17}
-                          height={17}
-                          className="will-change-transform"
-                        />{' '}
-                        <span className="will-change-transform">
-                          {' '}
-                          Unpin Notes
-                        </span>
-                      </span>
-                    ),
-                    value: 'unpin-note',
-                    onChange: () => {
-                      pinOrUnpinNote({
-                        folder: sidebarNotePath.folder,
-                        selectionRange: newSelectionRange,
-                        shouldPin: false,
-                      });
-                    },
-                  },
-                ]
-              : []),
-
-            {
-              label: (
-                <span className="flex items-center gap-1.5">
-                  <TagPlus
-                    width={17}
-                    height={17}
-                    className="will-change-transform"
-                  />{' '}
-                  <span className="will-change-transform"> Edit Tags</span>
-                </span>
-              ),
-              value: 'edit-tags',
-              onChange: () => {
-                setDialogData({
-                  isOpen: true,
-                  isPending: false,
-                  title: 'Edit Tags',
-                  dialogClassName: 'w-[min(30rem,90vw)]',
-                  children: (errorText) => (
-                    <EditTagDialogChildren
-                      selectionRange={newSelectionRange}
-                      folder={sidebarNotePath.folder}
-                      errorText={errorText}
-                    />
-                  ),
-                  onSubmit: async (e, setErrorText) => {
-                    return await editTags({
-                      e,
-                      setErrorText,
-                      selectionRange: newSelectionRange,
-                      folder: sidebarNotePath.folder,
-                    });
-                  },
-                });
-              },
-            },
-            ...(newSelectionRange.size === 1
-              ? [
-                  {
-                    label: (
-                      <span className="flex items-center gap-1.5">
-                        <FilePen
-                          width={17}
-                          height={17}
-                          className="will-change-transform"
-                        />{' '}
-                        <span className="will-change-transform"> Rename</span>
-                      </span>
-                    ),
-                    value: 'rename-file',
-                    onChange: () => {
-                      const selectedNote = [...newSelectionRange][0];
-                      const noteWithoutPrefix =
-                        selectedNote.split(':')[1] || '';
-                      const selectedFilePath = new LocalFilePath({
-                        folder: sidebarNotePath.folder,
-                        note: noteWithoutPrefix,
-                      });
-                      openRenameFileDialog(selectedFilePath);
-                    },
-                  },
-                ]
-              : []),
-            {
-              label: (
-                <span className="flex items-center gap-1.5">
-                  <Trash
-                    width={17}
-                    height={17}
-                    className="will-change-transform"
-                  />{' '}
-                  <span className="will-change-transform"> Move to Trash</span>
-                </span>
-              ),
-              value: 'move-to-trash',
-              onChange: () =>
-                moveToTrash({
-                  selectionRange: newSelectionRange,
-                  folder: sidebarNotePath.folder,
-                }),
-            },
-          ],
-        });
-      }}
       className={cn(
         'list-sidebar-item',
         sidebarNoteIndex === 0 && 'border-t',
