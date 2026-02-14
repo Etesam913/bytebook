@@ -10,6 +10,7 @@ import { Window } from '@wailsio/runtime';
 import { type LexicalEditor } from 'lexical';
 import { type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
+import { navigate } from 'wouter/use-browser-location';
 import {
   DoesNoteExist,
   MoveToTrash,
@@ -22,7 +23,7 @@ import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import { getFilePathFromNoteSelectionRange } from '../utils/selection';
 import { getContentTypeAndValueFromSelectionRangeValue } from '../utils/string-formatting';
-import { FilePath, LocalFilePath } from '../utils/path';
+import { FilePath, LocalFilePath, createFilePath } from '../utils/path';
 import { useWailsEvent } from './events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter } from '../types';
@@ -39,6 +40,8 @@ import {
   buildRenameUpdates,
 } from '../components/virtualized/virtualized-file-tree/utils/rename-item';
 import { fileTreeDataAtom } from '../components/virtualized/virtualized-file-tree';
+import { useFilePathFromRoute } from './routes';
+import { routeUrls } from '../utils/routes';
 
 const noteQueries = {
   doesNoteExist: (folder: string, note: string, extension: string) =>
@@ -126,6 +129,7 @@ export function useNoteRename() {
   const queryClient = useQueryClient();
   const [{ filePathToTreeDataId, treeData }, setFileTreeData] =
     useAtom(fileTreeDataAtom);
+  const currentRouteFilePath = useFilePathFromRoute();
 
   useWailsEvent('note:rename', async (body) => {
     logger.event('note:rename', body);
@@ -179,6 +183,22 @@ export function useNoteRename() {
         };
       });
     }
+
+    const matchedRename = currentRouteFilePath
+      ? data.find(
+          ({ oldNotePath }) => oldNotePath === currentRouteFilePath.fullPath
+        )
+      : undefined;
+
+    // If the current note is being renamed, redirect to the new note path
+    if (matchedRename) {
+      const newRouteFilePath = createFilePath(matchedRename.newNotePath);
+      if (!newRouteFilePath) {
+        navigate(routeUrls.notFoundFallback());
+        return;
+      }
+      navigate(newRouteFilePath.encodedFileUrl);
+    }
   });
 }
 
@@ -186,6 +206,7 @@ export function useNoteRename() {
 export function useNoteDelete() {
   const queryClient = useQueryClient();
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
+  const currentRouteFilePath = useFilePathFromRoute();
 
   useWailsEvent('note:delete', async (body) => {
     logger.event('note:delete', body);
@@ -234,6 +255,14 @@ export function useNoteDelete() {
 
     if (needsTopLevelInvalidation) {
       queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+    }
+
+    const didDeleteCurrentRouteFile = currentRouteFilePath
+      ? data.some(({ notePath }) => notePath === currentRouteFilePath.fullPath)
+      : false;
+
+    if (didDeleteCurrentRouteFile) {
+      navigate(routeUrls.notFoundFallback());
     }
   });
 }
