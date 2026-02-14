@@ -3,10 +3,10 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
 import {
   type RefObject,
   useEffect,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
-  useId,
 } from 'react';
 import {
   contextMenuDataAtom,
@@ -50,6 +50,7 @@ export function ContextMenu() {
   const { selections } = useAtomValue(sidebarSelectionAtom);
   const setContextMenuRef = useSetAtom(contextMenuRefAtom);
   const contextMenuRefLocal = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   // Local state to hold the adjusted position
   const [position, setPosition] = useState({ x, y });
@@ -68,43 +69,96 @@ export function ContextMenu() {
     setPosition(newPosition);
   }, [x, y]); // recalc whenever x or y change
 
+  // Ensuring the dialog is open or closed based on the isShowing state
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    if (isShowing) {
+      if (!dialog.open) {
+        dialog.showModal();
+      }
+    } else if (dialog.open) {
+      dialog.close();
+    }
+  }, [isShowing]);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const closeMenu = () =>
+      setContextMenuData((prev) =>
+        prev.isShowing ? { ...prev, isShowing: false } : prev
+      );
+
+    const handleCancel = (event: Event) => {
+      event.preventDefault();
+      closeMenu();
+    };
+
+    const handleClose = () => {
+      closeMenu();
+    };
+
+    dialog.addEventListener('cancel', handleCancel);
+    dialog.addEventListener('close', handleClose);
+
+    return () => {
+      dialog.removeEventListener('cancel', handleCancel);
+      dialog.removeEventListener('close', handleClose);
+    };
+  }, [setContextMenuData]);
+
   return (
-    <>
+    <dialog
+      ref={dialogRef}
+      className="bg-transparent border-none p-0 max-w-none max-h-none w-full h-full"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          setContextMenuData((prev) =>
+            prev.isShowing ? { ...prev, isShowing: false } : prev
+          );
+        }
+      }}
+    >
       {isShowing && (
-        <div
-          className="absolute z-50"
-          style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
-        >
-          {selections.size > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { delay: 0.075 } }}
-              className="absolute rounded-full font-bold w-5 h-5 text-xs pointer-events-none text-white flex justify-center items-center p-0.5 -left-2 bg-red-500 z-60"
-            >
-              {selections.size}
-            </motion.div>
-          )}
-          <DropdownItems
-            onChange={async (item) => {
-              if (item.onChange) {
-                item.onChange();
+        <div className="fixed inset-0 z-50">
+          <div
+            className="absolute"
+            style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+          >
+            {selections.size > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, transition: { delay: 0.075 } }}
+                className="absolute rounded-full font-bold w-5 h-5 text-xs pointer-events-none text-white flex justify-center items-center p-0.5 -left-2 bg-red-500 z-60"
+              >
+                {selections.size}
+              </motion.div>
+            )}
+            <DropdownItems
+              onChange={async (item) => {
+                if (item.onChange) {
+                  item.onChange();
+                }
+              }}
+              ref={contextMenuRefLocal}
+              className="w-fit text-sm overflow-hidden"
+              items={items}
+              isOpen={isShowing}
+              setIsOpen={(value: boolean) =>
+                setContextMenuData((prev) => ({ ...prev, isShowing: value }))
               }
-            }}
-            ref={contextMenuRefLocal}
-            className="w-fit text-sm overflow-hidden"
-            items={items}
-            isOpen={isShowing}
-            setIsOpen={(value: boolean) =>
-              setContextMenuData((prev) => ({ ...prev, isShowing: value }))
-            }
-            setFocusIndex={setFocusedIndex}
-            focusIndex={focusedIndex}
-            menuId={menuId}
-            buttonId={undefined}
-            valueIndex={undefined}
-          />
+              setFocusIndex={setFocusedIndex}
+              focusIndex={focusedIndex}
+              menuId={menuId}
+              buttonId={undefined}
+              valueIndex={undefined}
+            />
+          </div>
         </div>
       )}
-    </>
+    </dialog>
   );
 }
