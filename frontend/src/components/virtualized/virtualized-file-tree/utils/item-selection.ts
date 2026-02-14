@@ -4,7 +4,7 @@ import {
   getFileSelectionKey,
   getKeyForSidebarSelection,
 } from '../../../../utils/selection';
-import type { SidebarSelection } from '../../../../hooks/selection';
+import type { SidebarSelectionState } from '../../../../atoms';
 
 /**
  * Finds the next anchor selection key after removing the current file from the selection.
@@ -229,7 +229,7 @@ export function createDragGhostElement({
   sidebarSelection,
   fileOrFolderMap,
 }: {
-  sidebarSelection: SidebarSelection;
+  sidebarSelection: SidebarSelectionState;
   fileOrFolderMap: Map<string, FileOrFolder>;
 }): HTMLElement {
   const ghostContainer = document.createElement('div');

@@ -13,11 +13,11 @@ import {
 } from './types';
 import { atomWithLogging } from '../../../atoms';
 import { useOnClickOutside } from '../../../hooks/general';
-import { sidebarSelectionAtom } from '../../../hooks/selection';
 import {
   handleFileTreeItemClickCapture,
   handleFileTreeKeyDown,
 } from './utils/file-tree-navigation';
+import { sidebarSelectionAtom } from '../../../atoms';
 
 export type FileTreeData = {
   treeData: Map<string, FileOrFolder>;
@@ -62,10 +62,11 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
 
   // Clear selection when clicking outside the file tree (unless it's a context menu click)
   useOnClickOutside(internalListRef, () => {
-    setSidebarSelection({
+    setSidebarSelection((prev) => ({
+      ...prev,
       selections: new Set([]),
       anchorSelection: null,
-    });
+    }));
   }, []);
 
   function handleScrollerRef(node: HTMLElement | Window | null) {

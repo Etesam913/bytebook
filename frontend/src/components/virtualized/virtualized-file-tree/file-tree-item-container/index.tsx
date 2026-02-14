@@ -7,7 +7,6 @@ import { FileTreeFileItem } from '../file-tree-item/file';
 import { FileTreeFolderItem } from '../file-tree-item/folder';
 import { createFilePath, createFolderPath } from '../../../../utils/path';
 import {
-  sidebarSelectionAtom,
   useAddToSidebarSelection,
 } from '../../../../hooks/selection';
 import {
@@ -18,6 +17,7 @@ import {
   computeMetaClickState,
   computeShiftClickSelections,
 } from '../utils/item-selection';
+import { sidebarSelectionAtom } from '../../../../atoms';
 
 /**
  * Container component for file tree items that handles selection logic
@@ -61,10 +61,11 @@ export function FileTreeItemContainer({
 
     const anchorSelectionKey = sidebarSelection.anchorSelection;
     if (!anchorSelectionKey) {
-      setSidebarSelection({
+      setSidebarSelection((prev) => ({
+        ...prev,
         selections: new Set([selectionKey]),
         anchorSelection: selectionKey,
-      });
+      }));
       return;
     }
 
@@ -79,6 +80,7 @@ export function FileTreeItemContainer({
     }
 
     setSidebarSelection((prev) => ({
+      ...prev,
       selections: result.selections,
       anchorSelection: prev.anchorSelection,
     }));
@@ -107,7 +109,11 @@ export function FileTreeItemContainer({
 
     if (result) {
       // Item was already selected, un-select it
-      setSidebarSelection(result);
+      setSidebarSelection((prev) => ({
+        ...prev,
+        selections: result.selections,
+        anchorSelection: result.anchorSelection,
+      }));
     } else {
       // Item is not selected, add it to selection
       addToSidebarSelection(selectableItem);
@@ -119,10 +125,11 @@ export function FileTreeItemContainer({
    */
   function handleDefaultClick() {
     if (!selectionKey) return;
-    setSidebarSelection({
+    setSidebarSelection((prev) => ({
+      ...prev,
       selections: new Set([]),
       anchorSelection: selectionKey,
-    });
+    }));
   }
 
   function handleSelectionClick(e: MouseEvent) {

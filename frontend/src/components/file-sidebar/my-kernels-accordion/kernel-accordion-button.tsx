@@ -4,9 +4,12 @@ import { navigate } from 'wouter/use-browser-location';
 import {
   contextMenuDataAtom,
   kernelsDataAtom,
-  selectionRangeAtom,
+  sidebarSelectionAtom,
 } from '../../../atoms';
-import { handleContextMenuSelection } from '../../../utils/selection';
+import {
+  handleContextMenuSelection,
+  type SetSelectionUpdater,
+} from '../../../utils/selection';
 import PowerOff from '../../../icons/power-off';
 import { Play } from '../../../icons/circle-play';
 import {
@@ -26,7 +29,14 @@ export function KernelAccordionButton({
   kernelName: Languages;
   kernelNameFromUrl: string | undefined;
 }) {
-  const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
+  const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
+  const selectionRange = sidebarSelection.selections;
+  const setSelectionRange: SetSelectionUpdater = (updater) => {
+    setSidebarSelection((prev) => ({
+      ...prev,
+      selections: updater(prev.selections),
+    }));
+  };
   const isActive = decodeURIComponent(kernelNameFromUrl ?? '') === kernelName;
   const isSelected = selectionRange.has(`kernel:${kernelName}`);
   const kernelsData = useAtomValue(kernelsDataAtom);
@@ -46,7 +56,7 @@ export function KernelAccordionButton({
       draggable
       onDragStart={(e) => e.preventDefault()}
       className={cn(
-        'list-sidebar-item',
+        'list-sidebar-item transition-none',
         isActive && 'bg-zinc-150 dark:bg-zinc-700',
         isSelected && 'bg-(--accent-color)! text-white'
       )}

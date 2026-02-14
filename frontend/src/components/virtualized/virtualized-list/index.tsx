@@ -1,18 +1,17 @@
 import { useAtom, useAtomValue } from 'jotai/react';
 import {
-  type Dispatch,
   type CSSProperties,
   type HTMLAttributes,
   type ReactNode,
-  type SetStateAction,
   forwardRef,
   useRef,
   useState,
 } from 'react';
 import { Components, Virtuoso } from 'react-virtuoso';
-import { contextMenuRefAtom, selectionRangeAtom } from '../../../atoms';
+import { contextMenuRefAtom, sidebarSelectionAtom } from '../../../atoms';
 import { useOnClickOutside } from '../../../hooks/general';
 import { cn } from '../../../utils/string-formatting';
+import type { SetSelectionUpdater } from '../../../utils/selection';
 import { VirtualizedListItem } from './virtualized-list-item';
 import { SidebarContentType } from '../../../types';
 import { useSmartScroll } from './hooks';
@@ -55,7 +54,7 @@ export type VirtualizedListProps<T> = {
     dataItem: T;
     i: number;
     selectionRange: Set<string>;
-    setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
+    setSelectionRange: SetSelectionUpdater;
   }) => ReactNode;
   emptyElement?: ReactNode;
   layoutId: string;
@@ -100,13 +99,19 @@ export function VirtualizedList<T>({
   // Start with null to indicate height hasn't been measured yet
   const [listHeight, setListHeight] = useState<number | null>(null);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-  const anchorSelectionIndexRef = useRef<number>(0);
   const internalListRef = useRef<HTMLElement | null>(null);
   /*
 	  If the activeNoteItem is set, then the note was navigated via a note link or the searchbar
 		We need to change the scroll position to the sidebar so that the active note is visible
 	*/
-  const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
+  const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
+  const selectionRange = sidebarSelection.selections;
+  const setSelectionRange: SetSelectionUpdater = (updater) => {
+    setSidebarSelection((prev) => ({
+      ...prev,
+      selections: updater(prev.selections),
+    }));
+  };
   const contextMenuRef = useAtomValue(contextMenuRefAtom);
   const { virtuosoRef, onRangeChanged } = useSmartScroll();
 
@@ -143,7 +148,7 @@ export function VirtualizedList<T>({
 			file sidebar onClickOutside to clear the selection for a note valid click
 		*/
       if (selectionSetAsArray[0].startsWith(contentType)) {
-        setSelectionRange(new Set());
+        setSelectionRange(() => new Set());
       }
     },
     []
@@ -181,7 +186,6 @@ export function VirtualizedList<T>({
         getContextMenuStyle={getContextMenuStyle}
         hoveredItem={hoveredItem}
         setHoveredItem={setHoveredItem}
-        anchorSelectionIndexRef={anchorSelectionIndexRef}
         layoutId={layoutId}
         contentType={contentType}
       >

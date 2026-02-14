@@ -1,6 +1,105 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
 import { FilePath, FolderPath, LocalFilePath } from './path';
 import { SidebarContentType } from '../types';
+import type { SidebarSelectionState } from '../atoms';
+
+/** Selects are represent as strings with a separator between the prefix and value.
+ *
+ * @example
+ * "file:123"
+ * "note:Chapter 1.md"
+ * "tag:Python"
+ * "kernel:python"
+ * "search-result:Python"
+ * "saved-search:Python"
+ * "folder:docs"
+ * "tag:Python"
+ */
+const SIDEBAR_SELECTION_SEPARATOR = ':';
+
+export type SetSelectionUpdater = (updater: (prev: Set<string>) => Set<string>) => void;
+
+/**
+ * Creates a selection key by joining the prefix and value with a separator.
+ */
+export function createSelectionKey(prefix: string, value: string): string {
+  return `${prefix}${SIDEBAR_SELECTION_SEPARATOR}${value}`;
+}
+
+/**
+ * Extracts the prefix part from a selection key.
+ */
+export function getSelectionPrefix(selectionKey: string): string | null {
+  const separatorIndex = selectionKey.indexOf(SIDEBAR_SELECTION_SEPARATOR);
+  if (separatorIndex === -1) {
+    return null;
+  }
+  return selectionKey.slice(0, separatorIndex);
+}
+
+/**
+ * Extracts the value part from a selection key.
+ */
+export function getSelectionValue(selectionKey: string): string | null {
+  const separatorIndex = selectionKey.indexOf(SIDEBAR_SELECTION_SEPARATOR);
+  if (separatorIndex === -1 || separatorIndex + 1 >= selectionKey.length) {
+    return null;
+  }
+  return selectionKey.slice(separatorIndex + 1);
+}
+
+/**
+ * Filters a selection set to keep only items with the specified prefix.
+ */
+export function keepSelectionWithPrefix(
+  selection: Set<string>,
+  prefix: string
+) {
+  return new Set(
+    [...selection].filter((item) =>
+      item.startsWith(`${prefix}${SIDEBAR_SELECTION_SEPARATOR}`)
+    )
+  );
+}
+
+/**
+ * Adds selection keys to the state, ensuring only one prefix type is present.
+ * If the new keys have a different prefix, replaces the current selection.
+ */
+export function addSelectionKeysWithSinglePrefix({
+  prevState,
+  selectionKeysToAdd,
+  anchorSelectionKey,
+}: {
+  prevState: SidebarSelectionState;
+  selectionKeysToAdd: string[];
+  anchorSelectionKey?: string | null;
+}): SidebarSelectionState {
+  if (selectionKeysToAdd.length === 0) {
+    return prevState;
+  }
+
+  const firstPrefix = getSelectionPrefix(selectionKeysToAdd[0]);
+  const firstExistingSelectionKey: string | undefined = prevState.selections
+    .values()
+    .next().value;
+  const existingPrefix = firstExistingSelectionKey
+    ? getSelectionPrefix(firstExistingSelectionKey)
+    : null;
+
+  const nextSelections =
+    firstPrefix !== existingPrefix
+      ? new Set(selectionKeysToAdd)
+      : new Set([...prevState.selections, ...selectionKeysToAdd]);
+
+  return {
+    selections: nextSelections,
+    anchorSelection:
+      anchorSelectionKey === undefined
+        ? prevState.anchorSelection
+        : anchorSelectionKey,
+  };
+}
 
 /**
  * Filters a selection Set to keep only items that start with the specified prefix.
@@ -12,9 +111,7 @@ export function keepSelectionNotesWithPrefix(
   selection: Set<string>,
   prefix: SidebarContentType
 ) {
-  return new Set(
-    [...selection].filter((item) => item.startsWith(`${prefix}:`))
-  );
+  return keepSelectionWithPrefix(selection, prefix);
 }
 
 /**
@@ -34,21 +131,21 @@ export function handleContextMenuSelection({
   itemName,
   onlyOne = false,
 }: {
-  setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
+  setSelectionRange: SetSelectionUpdater;
   itemType: SidebarContentType;
   itemName: string;
   onlyOne?: boolean;
 }): Set<string> {
-  let newSelectionRange = new Set([`${itemType}:${itemName}`]);
+  let newSelectionRange = new Set([createSelectionKey(itemType, itemName)]);
 
   setSelectionRange((prev) => {
     if (onlyOne || prev.size === 0) {
       // Only allow one item in the selection set
-      newSelectionRange = new Set([`${itemType}:${itemName}`]);
+      newSelectionRange = new Set([createSelectionKey(itemType, itemName)]);
       return newSelectionRange;
     }
     const setWithoutItems = keepSelectionNotesWithPrefix(prev, itemType);
-    setWithoutItems.add(`${itemType}:${itemName}`);
+    setWithoutItems.add(createSelectionKey(itemType, itemName));
     newSelectionRange = setWithoutItems;
     return setWithoutItems;
   });
@@ -135,20 +232,14 @@ export const FILE_SELECTION_PREFIX = 'file';
 export function getFileSelectionPrefix(
   selectableItemKey: string
 ): string | null {
-  if (selectableItemKey.indexOf(':') === -1) {
-    return null;
-  }
-  return selectableItemKey.split(':')[0];
+  return getSelectionPrefix(selectableItemKey);
 }
 
 /**
  * Gets the selection key from a selectable item key that comes from the selection set
  */
 export function getFileSelectionKey(selectableItemKey: string): string | null {
-  if (selectableItemKey.indexOf(':') === -1) {
-    return null;
-  }
-  return selectableItemKey.split(':')[1];
+  return getSelectionValue(selectableItemKey);
 }
 
 export type SelectableItems = (FilePath | FolderPath) & { id: string };
@@ -160,5 +251,5 @@ export type SelectableItems = (FilePath | FolderPath) & { id: string };
 export function getKeyForSidebarSelection(
   selectableItem: SelectableItems
 ): string {
-  return `${FILE_SELECTION_PREFIX}:${selectableItem.id}`;
+  return createSelectionKey(FILE_SELECTION_PREFIX, selectableItem.id);
 }

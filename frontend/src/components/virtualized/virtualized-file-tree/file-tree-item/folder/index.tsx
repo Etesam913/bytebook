@@ -5,7 +5,7 @@ import { FolderOpen } from '../../../../../icons/folder-open';
 import { FolderPlus } from '../../../../../icons/folder-plus';
 import { Note } from '../../../../../icons/page';
 import type { Folder } from '../../types';
-import { contextMenuDataAtom } from '../../../../../atoms';
+import { contextMenuDataAtom, sidebarSelectionAtom } from '../../../../../atoms';
 import { currentZoomAtom } from '../../../../../hooks/resize';
 import { InlineTreeItemInput } from '../inline-tree-item-input';
 import { Finder } from '../../../../../icons/finder';
@@ -22,7 +22,6 @@ import {
 } from './hooks';
 import { getFileTreeItemIndent } from '../../utils/file-tree-utils';
 import { createDragGhostElement } from '../../utils/item-selection';
-import { sidebarSelectionAtom } from '../../../../../hooks/selection';
 import { useMoveTreeItemsMutation } from '../../hooks/tree-item-mutations';
 import { FILE_SELECTION_PREFIX } from '../../../../../utils/selection';
 import { LoadingSpinner } from '../../../../loading-spinner';

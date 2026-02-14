@@ -1,8 +1,11 @@
 import { useAtom, useSetAtom } from 'jotai/react';
-import { selectionRangeAtom } from '../../../atoms';
+import { sidebarSelectionAtom } from '../../../atoms';
 import { draggedGhostElementAtom } from '../../../components/editor/atoms';
 import { handleNoteDragStart } from '../../../components/virtualized/virtualized-list/utils';
-import { handleKeyNavigation } from '../../../utils/selection';
+import {
+  handleKeyNavigation,
+  type SetSelectionUpdater,
+} from '../../../utils/selection';
 import { cn } from '../../../utils/string-formatting';
 import { LocalFilePath } from '../../../utils/path';
 import { ListNoteSidebarItem } from './list-note-sidebar-item';
@@ -19,7 +22,14 @@ export function NoteSidebarButton({
   activeNotePath: LocalFilePath | undefined;
   sidebarNoteIndex: number;
 }) {
-  const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
+  const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
+  const selectionRange = sidebarSelection.selections;
+  const setSelectionRange: SetSelectionUpdater = (updater) => {
+    setSidebarSelection((prev) => ({
+      ...prev,
+      selections: updater(prev.selections),
+    }));
+  };
   const [isSavedSearchRoute, params] = useRoute<SavedSearchRouteParams>(
     routeUrls.patterns.SAVED_SEARCH
   );

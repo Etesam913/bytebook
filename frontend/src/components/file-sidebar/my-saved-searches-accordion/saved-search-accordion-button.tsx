@@ -2,10 +2,13 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
 import {
   contextMenuDataAtom,
   dialogDataAtom,
-  selectionRangeAtom,
+  sidebarSelectionAtom,
 } from '../../../atoms';
 import { Magnifier } from '../../../icons/magnifier';
-import { handleContextMenuSelection } from '../../../utils/selection';
+import {
+  handleContextMenuSelection,
+  type SetSelectionUpdater,
+} from '../../../utils/selection';
 import { cn } from '../../../utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
 import { routeUrls } from '../../../utils/routes';
@@ -27,7 +30,14 @@ export function SavedSearchAccordionButton({
   sidebarSearchName: string;
   isActive: boolean;
 }) {
-  const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
+  const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
+  const selectionRange = sidebarSelection.selections;
+  const setSelectionRange: SetSelectionUpdater = (updater) => {
+    setSidebarSelection((prev) => ({
+      ...prev,
+      selections: updater(prev.selections),
+    }));
+  };
   const { mutateAsync: deleteSavedSearch } = useDeleteSavedSearchMutation();
 
   const isSelected =
@@ -44,7 +54,7 @@ export function SavedSearchAccordionButton({
         draggable
         onDragStart={(e) => e.preventDefault()}
         className={cn(
-          'list-sidebar-item',
+          'list-sidebar-item transition-none',
           isActive && 'bg-zinc-150 dark:bg-zinc-700',
           isSelected && 'bg-(--accent-color)! text-white'
         )}

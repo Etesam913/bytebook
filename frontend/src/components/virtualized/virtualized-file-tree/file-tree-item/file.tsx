@@ -5,7 +5,11 @@ import { Note } from '../../../../icons/page';
 import { Finder } from '../../../../icons/finder';
 import { PinTack2 } from '../../../../icons/pin-tack-2';
 import { PinTackSlash } from '../../../../icons/pin-tack-slash';
-import { contextMenuDataAtom, projectSettingsAtom } from '../../../../atoms';
+import {
+  contextMenuDataAtom,
+  projectSettingsAtom,
+  sidebarSelectionAtom,
+} from '../../../../atoms';
 import { useFilePathFromRoute } from '../../../../hooks/routes';
 import {
   useMoveToTrashMutationNew,
@@ -22,7 +26,6 @@ import { FilePen } from '../../../../icons/file-pen';
 import { useRenameTreeItemMutation } from '../hooks/tree-item-mutations';
 import { getFileTreeItemIndent } from '../utils/file-tree-utils';
 import { createDragGhostElement } from '../utils/item-selection';
-import { sidebarSelectionAtom } from '../../../../hooks/selection';
 import { fileTreeDataAtom } from '..';
 import { FILE_SELECTION_PREFIX } from '../../../../utils/selection';
 
@@ -160,7 +163,7 @@ export function FileTreeFileItem({
   }
 
   function handleDragStart(e: DragEvent) {
-    // const selections = sidebarSelection.selections;
+    // const selections = fileTreeSelection.selections;
     // const isCurrentFileSelected = selections.has(
     //   `${FILE_SELECTION_PREFIX}:${dataItem.id}`
     // );

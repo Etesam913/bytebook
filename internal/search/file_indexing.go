@@ -2,9 +2,11 @@ package search
 
 import (
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/blevesearch/bleve/v2"
@@ -23,7 +25,7 @@ type DocumentResult struct {
 	isError  bool
 	filePath string
 	fileId   string
-	document interface{}
+	document any
 }
 
 // IndexFiles scans the "notes" directory within the given projectPath for folders containing Markdown files (.md).
@@ -45,7 +47,7 @@ func IndexAllFiles(projectPath string, bleveIndex bleve.Index) error {
 
 	for w := 0; w < util.WORKER_COUNT; w++ {
 		workerWaitGroup.Add(1)
-		go startWorker(jobs, results, &workerWaitGroup)
+		go startWorker(projectPath, jobs, results, &workerWaitGroup)
 	}
 
 	go func() {
@@ -121,38 +123,46 @@ func addResultsToIndex(bleveIndex bleve.Index, bleveBatch *bleve.Batch, results 
 	return bleveBatch, nil
 }
 
-// populateJobs creates DocumentJob tasks for each markdown file (.md) found in the subdirectories
-// of the notesPath directory. It iterates through each folder in folders, and for every markdown file
-// in each folder, it submits a DocumentJob to the provided jobs channel. Returns an error if reading
-// a directory fails, otherwise nil.
+// populateJobs creates DocumentJob tasks for files found recursively inside each
+// top-level folder under notesPath.
 func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJob) error {
 	for _, folder := range folders {
 		if !folder.IsDir() {
 			continue
 		}
-		folderPath := filepath.Join(notesPath, folder.Name())
 
-		files, err := os.ReadDir(folderPath)
-		if err != nil {
+		rootFolderName := folder.Name()
+		rootFolderPath := filepath.Join(notesPath, rootFolderName)
+		if err := filepath.WalkDir(rootFolderPath, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if d.IsDir() {
+				return nil
+			}
+
+			fileId, err := filepath.Rel(notesPath, path)
+			if err != nil {
+				return err
+			}
+
+			folderPath, fileName := filepath.Split(fileId)
+			folderPath = strings.TrimSuffix(folderPath, string(filepath.Separator))
+
+			jobs <- DocumentJob{
+				filePath:      path,
+				fileId:        fileId,
+				folder:        folderPath,
+				fileName:      fileName,
+				fileExtension: filepath.Ext(fileName),
+			}
+			return nil
+		}); err != nil {
 			return err
 		}
-
-		for _, file := range files {
-			if file.IsDir() {
-				continue
-			}
-			filePath := filepath.Join(folderPath, file.Name())
-			fileId := filepath.Join(folder.Name(), file.Name())
-			jobs <- DocumentJob{
-				filePath:      filePath,
-				fileId:        fileId,
-				folder:        folder.Name(),
-				fileName:      file.Name(),
-				fileExtension: filepath.Ext(file.Name()),
-			}
-
-		}
 	}
+
 	return nil
 }
 
@@ -160,7 +170,7 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 // creates a MarkdownNoteBleveDocument for each markdown file, and sends the result
 // to the results channel. It signals completion on the provided WaitGroup
 // when all jobs have been processed.
-func startWorker(jobs <-chan DocumentJob, results chan<- DocumentResult, workerWaitGroup *sync.WaitGroup) {
+func startWorker(projectPath string, jobs <-chan DocumentJob, results chan<- DocumentResult, workerWaitGroup *sync.WaitGroup) {
 	defer workerWaitGroup.Done()
 	for job := range jobs {
 		// Is a markdown note
@@ -183,8 +193,6 @@ func startWorker(jobs <-chan DocumentJob, results chan<- DocumentResult, workerW
 				document: CreateMarkdownNoteBleveDocument(markdown, job.folder, job.fileName),
 			}
 		} else {
-			// Is an attachment
-			projectPath := filepath.Dir(filepath.Dir(filepath.Dir(job.filePath)))
 			results <- DocumentResult{
 				isError:  false,
 				filePath: job.filePath,
