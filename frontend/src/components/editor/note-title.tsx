@@ -60,9 +60,6 @@ export function NoteTitle({ filePath }: { filePath: FilePath }) {
               newPath: newFilePath,
               setErrorText,
             });
-            setTimeout(() => {
-              navigate(newFilePath.encodedFileUrl);
-            }, 300);
           } catch {
             // Error handling is done in the mutation
           }

@@ -21,11 +21,23 @@ import {
 import { QueryError } from '../utils/query';
 import { useWailsEvent } from './events';
 import { OpenFolderAndAddToFileWatcher } from '../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
+import { navigate } from 'wouter/use-browser-location';
+import { createFilePath, createFolderPath } from '../utils/path';
+import { routeUrls } from '../utils/routes';
+import { useFilePathFromRoute, useCurrentNotesRouteFolderPath } from './routes';
 
 type FoldersQueryData = {
   alphabetizedFolders: string[];
   previousAlphabetizedFolders: string[] | undefined;
 };
+
+function normalizeFolderPath(path: string): string | null {
+  return createFolderPath(path)?.fullPath ?? null;
+}
+
+function isPrefixOrSamePath(path: string, maybePrefix: string): boolean {
+  return path === maybePrefix || path.startsWith(`${maybePrefix}/`);
+}
 
 export const folderQueries = {
   getFolders: (queryClient: QueryClient) =>
@@ -134,10 +146,12 @@ export function useFolderCreate() {
 export function useFolderDelete() {
   const queryClient = useQueryClient();
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
+  const currentRouteFolderPath = useCurrentNotesRouteFolderPath();
 
   useWailsEvent('folder:delete', async (body) => {
     logger.event('folder:delete', body);
     const data = body.data as { folderPath: string }[];
+
     let needsTopLevelInvalidation = false;
 
     setFileTreeData((prev) => {
@@ -182,6 +196,24 @@ export function useFolderDelete() {
     if (needsTopLevelInvalidation) {
       queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
     }
+
+    // If one of the deleted folders is a parent of the current route folder, navigate to the not found page
+    const shouldNavigateToNotFound = currentRouteFolderPath
+      ? data.some(({ folderPath }) => {
+          const normalizedDeletedFolderPath = normalizeFolderPath(folderPath);
+          if (!normalizedDeletedFolderPath) {
+            return false;
+          }
+          return isPrefixOrSamePath(
+            currentRouteFolderPath.fullPath,
+            normalizedDeletedFolderPath
+          );
+        })
+      : false;
+
+    if (shouldNavigateToNotFound) {
+      navigate(routeUrls.notFoundFallback());
+    }
   });
 }
 
@@ -190,6 +222,8 @@ export function useFolderRename() {
   const queryClient = useQueryClient();
   const [{ filePathToTreeDataId, treeData }, setFileTreeData] =
     useAtom(fileTreeDataAtom);
+  const currentRouteFolderPath = useCurrentNotesRouteFolderPath();
+  const currentRouteFilePath = useFilePathFromRoute();
 
   useWailsEvent('folder:rename', async (body) => {
     logger.event('folder:rename', body);
@@ -250,6 +284,53 @@ export function useFolderRename() {
           filePathToTreeDataId: remappedTreeData.filePathToTreeDataId,
         };
       });
+    }
+
+    // If the current note's parent folder is getting renamed, we want to redirect to the new folder path
+    const matchedRename = currentRouteFolderPath
+      ? data.find(({ oldFolderPath }) => {
+          const normalizedOldFolderPath = normalizeFolderPath(oldFolderPath);
+          if (!normalizedOldFolderPath) {
+            return false;
+          }
+          return isPrefixOrSamePath(
+            currentRouteFolderPath.fullPath,
+            normalizedOldFolderPath
+          );
+        })
+      : undefined;
+
+    // Example: If a user is viewing "/notes/old-folder/sub/NoteA" and "old-folder" is renamed to "new-folder",
+    // this will redirect to "/notes/new-folder/sub/NoteA" to maintain correct navigation.
+    if (matchedRename && currentRouteFolderPath) {
+      const normalizedOldFolderPath = normalizeFolderPath(
+        matchedRename.oldFolderPath
+      );
+      const normalizedNewFolderPath = normalizeFolderPath(
+        matchedRename.newFolderPath
+      );
+      if (!normalizedOldFolderPath || !normalizedNewFolderPath) {
+        navigate(routeUrls.notFoundFallback());
+        return;
+      }
+
+      // Suffix preserves the subfolder/note route after the renamed folder
+      const suffix = currentRouteFolderPath.fullPath.slice(
+        normalizedOldFolderPath.length
+      );
+      const nextFolderPath = `${normalizedNewFolderPath}${suffix}`;
+
+      if (currentRouteFilePath) {
+        const newFilePath = createFilePath(
+          `${nextFolderPath}/${currentRouteFilePath.note}`
+        );
+        navigate(
+          newFilePath
+            ? newFilePath.encodedFileUrl
+            : routeUrls.notFoundFallback()
+        );
+        return;
+      }
     }
   });
 }
