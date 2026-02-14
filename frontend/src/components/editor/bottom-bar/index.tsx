@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
+import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { motion } from 'motion/react';
 import { Tag } from './tag';
-import { BreadcrumbItem } from './breadcrumb-item';
 import { KernelHeartbeats } from './kernel-heartbeats';
 import { TagPlus } from '../../../icons/tag-plus';
 import { Folder } from '../../../icons/folder';
@@ -19,6 +18,13 @@ import { RenderNoteIcon } from '../../../icons/render-note-icon';
 import { Frontmatter } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
 import { FilePath, safeDecodeURIComponent } from '../../../utils/path';
+
+function BreadcrumbItem({ children }: { children: ReactNode }) {
+  const className =
+    'flex items-center gap-1 whitespace-nowrap text-ellipsis overflow-hidden text-zinc-500 dark:text-zinc-300';
+
+  return <span className={className}>{children}</span>;
+}
 
 export function BottomBar({
   frontmatter,
@@ -71,6 +77,10 @@ export function BottomBar({
         />
       );
     });
+  const folderSegments = filePath.folder
+    .split('/')
+    .filter(Boolean)
+    .map((segment) => safeDecodeURIComponent(segment));
 
   return (
     <footer
@@ -80,12 +90,16 @@ export function BottomBar({
       )}
     >
       <span className="flex items-center gap-1">
-        <BreadcrumbItem to={`/${filePath.folder}`}>
-          <Folder width={20} height={20} />{' '}
-          {safeDecodeURIComponent(filePath.folder)}
-        </BreadcrumbItem>{' '}
-        /{' '}
-        <BreadcrumbItem to={filePath.fileUrl}>
+        {folderSegments.map((segment, index) => (
+          <Fragment key={`folder-segment-${index}`}>
+            <BreadcrumbItem>
+              {index === 0 && <Folder width={20} height={20} />}
+              {segment}
+            </BreadcrumbItem>
+            <span>/</span>
+          </Fragment>
+        ))}
+        <BreadcrumbItem>
           <RenderNoteIcon filePath={filePath} />
           {safeDecodeURIComponent(filePath.noteWithoutExtension)}
         </BreadcrumbItem>

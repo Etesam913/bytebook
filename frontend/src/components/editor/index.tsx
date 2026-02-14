@@ -101,110 +101,122 @@ export function NotesEditor({
 
   return (
     <LexicalComposer initialConfig={editorConfig}>
-      <Toolbar
-        overflowContainerRef={overflowContainerRef}
-        noteContainerRef={noteContainerRef}
-        animationControls={animationControls}
-        folder={folder}
-        note={note}
-        floatingData={floatingData}
-        setFloatingData={setFloatingData}
-        frontmatter={frontmatter}
-        setFrontmatter={setFrontmatter}
-        tableActionsRef={tableActionsRef}
-        setPlaceholderLineData={setPlaceholderLineData}
-      />
-      <div
-        ref={overflowContainerRef}
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
-        className="flex gap-2 overflow-y-auto h-[calc(100vh-2.18rem)]"
-      >
+      <div className="flex h-full min-h-0 flex-col">
+        <Toolbar
+          overflowContainerRef={overflowContainerRef}
+          noteContainerRef={noteContainerRef}
+          animationControls={animationControls}
+          folder={folder}
+          note={note}
+          floatingData={floatingData}
+          setFloatingData={setFloatingData}
+          frontmatter={frontmatter}
+          setFrontmatter={setFrontmatter}
+          tableActionsRef={tableActionsRef}
+          setPlaceholderLineData={setPlaceholderLineData}
+        />
         <div
-          style={{
-            scrollbarGutter: 'stable',
-          }}
-          className={cn(
-            'h-full py-6 px-12 flex-1 w-full min-w-96',
-            projectSettings.appearance.noteWidth === 'readability' &&
-              'max-w-[900px] mx-auto'
-          )}
+          ref={overflowContainerRef}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+          className="flex-1 min-h-0 overflow-y-auto flex flex-col"
         >
           <div
-            ref={noteContainerRef}
-            id="note-container"
-            className="relative flex flex-col w-full h-full"
             style={{
-              fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
+              scrollbarGutter: 'stable',
             }}
-          >
-            <NoteTitle key={note} filePath={filePath} />
-            <ComponentPickerMenuPlugin folder={folder} note={note} />
-            <FilePickerMenuPlugin />
-            <EmptyLinePlaceholderPlugin
-              noteContainerRef={noteContainerRef}
-              note={note}
-              placeholderLineData={placeholderLineData}
-              setPlaceholderLineData={setPlaceholderLineData}
-            />
-            <HorizontalRulePlugin />
-            {frontmatter.showTableOfContents === 'true' && (
-              <TableOfContentsPlugin />
+            className={cn(
+              'py-6 px-12 flex flex-col w-full min-w-96 flex-1',
+              projectSettings.appearance.noteWidth === 'readability' &&
+                'max-w-[900px] mx-auto'
             )}
-
-            <RichTextPlugin
-              placeholder={null}
-              contentEditable={
-                <ContentEditable
-                  onContextMenu={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => {
-                    handleEditorEscape(e, isNoteMaximized, setIsNoteMaximized);
-                    setDraggableBlockElement(null);
-                  }}
-                  id="content-editable-editor"
-                  className="flex-1"
-                  spellCheck
-                  autoCorrect="on"
-                  onClick={(e) => {
-                    // Clicks should not propagate to the editor when something is being dragged
-                    if (draggedGhostElement) {
-                      e.stopPropagation();
-                    }
-                  }}
-                />
-              }
-              ErrorBoundary={LexicalErrorBoundary}
-            />
-            <OnChangePlugin
-              ignoreSelectionChange
-              onChange={(_, editor, tag) =>
-                debouncedNoteHandleChange(editor, tag, queryClient)
-              }
-            />
-            <CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
-            <ListPlugin />
-            <LinkPlugin />
-            <CheckListPlugin />
-            <TabIndentationPlugin />
-            <HistoryPlugin />
-            <TablePlugin />
-            <SavePlugin filePath={filePath} setFrontmatter={setFrontmatter} />
-            <EditorRefPlugin
-              editorRef={(editorRefValue) => {
-                setEditor(editorRefValue);
+          >
+            <div
+              ref={noteContainerRef}
+              id="note-container"
+              className="relative flex flex-col w-full flex-1"
+              style={{
+                fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
               }}
-            />
-            <TableActionsPlugin ref={tableActionsRef} />
-            <FilesPlugin />
-            <CodePlugin />
-            <DraggableBlockPlugin overflowContainerRef={overflowContainerRef} />
-            <FocusPlugin />
-            <LinkMatcherPlugin />
+            >
+              <NoteTitle key={note} filePath={filePath} />
+              <ComponentPickerMenuPlugin folder={folder} note={note} />
+              <FilePickerMenuPlugin />
+              <EmptyLinePlaceholderPlugin
+                noteContainerRef={noteContainerRef}
+                note={note}
+                placeholderLineData={placeholderLineData}
+                setPlaceholderLineData={setPlaceholderLineData}
+              />
+              <HorizontalRulePlugin />
+              {frontmatter.showTableOfContents === 'true' && (
+                <TableOfContentsPlugin />
+              )}
+
+              <RichTextPlugin
+                placeholder={null}
+                contentEditable={
+                  <ContentEditable
+                    onContextMenu={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
+                      handleEditorEscape(
+                        e,
+                        isNoteMaximized,
+                        setIsNoteMaximized
+                      );
+                      setDraggableBlockElement(null);
+                    }}
+                    id="content-editable-editor"
+                    className="flex-1"
+                    spellCheck
+                    autoCorrect="on"
+                    onClick={(e) => {
+                      // Clicks should not propagate to the editor when something is being dragged
+                      if (draggedGhostElement) {
+                        e.stopPropagation();
+                      }
+                    }}
+                  />
+                }
+                ErrorBoundary={LexicalErrorBoundary}
+              />
+              <OnChangePlugin
+                ignoreSelectionChange
+                onChange={(_, editor, tag) =>
+                  debouncedNoteHandleChange(editor, tag, queryClient)
+                }
+              />
+              <CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
+              <ListPlugin />
+              <LinkPlugin />
+              <CheckListPlugin />
+              <TabIndentationPlugin />
+              <HistoryPlugin />
+              <TablePlugin />
+              <SavePlugin filePath={filePath} setFrontmatter={setFrontmatter} />
+              <EditorRefPlugin
+                editorRef={(editorRefValue) => {
+                  setEditor(editorRefValue);
+                }}
+              />
+              <TableActionsPlugin ref={tableActionsRef} />
+              <FilesPlugin />
+              <CodePlugin />
+              <DraggableBlockPlugin
+                overflowContainerRef={overflowContainerRef}
+              />
+              <FocusPlugin />
+              <LinkMatcherPlugin />
+            </div>
           </div>
+          <BottomBar
+            frontmatter={frontmatter}
+            filePath={filePath}
+            isNoteEditor
+          />
         </div>
       </div>
-      <BottomBar frontmatter={frontmatter} filePath={filePath} isNoteEditor />
     </LexicalComposer>
   );
 }
