@@ -11,7 +11,7 @@ import {
 import {
   contextMenuDataAtom,
   contextMenuRefAtom,
-  selectionRangeAtom,
+  sidebarSelectionAtom,
 } from '../../atoms';
 import { DropdownItems } from '../dropdown/dropdown-items';
 
@@ -47,7 +47,7 @@ export function ContextMenu() {
     useAtom(contextMenuDataAtom);
 
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const selectionRange = useAtomValue(selectionRangeAtom);
+  const { selections } = useAtomValue(sidebarSelectionAtom);
   const setContextMenuRef = useSetAtom(contextMenuRefAtom);
   const contextMenuRefLocal = useRef<HTMLDivElement>(null);
 
@@ -75,13 +75,13 @@ export function ContextMenu() {
           className="absolute z-50"
           style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
         >
-          {selectionRange.size > 0 && (
+          {selections.size > 0 && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, transition: { delay: 0.075 } }}
               className="absolute rounded-full font-bold w-5 h-5 text-xs pointer-events-none text-white flex justify-center items-center p-0.5 -left-2 bg-red-500 z-60"
             >
-              {selectionRange.size}
+              {selections.size}
             </motion.div>
           )}
           <DropdownItems

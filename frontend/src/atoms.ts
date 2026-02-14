@@ -76,7 +76,18 @@ export const projectSettingsAtom = atom<ProjectSettings>({
 // Tracks whether project settings have been loaded from the backend at least once.
 export const projectSettingsLoadedAtom = atom<boolean>(false);
 
-export const selectionRangeAtom = atom<Set<string>>(new Set([]));
+export type SidebarSelectionState = {
+  selections: Set<string>;
+  anchorSelection: string | null;
+};
+
+export const sidebarSelectionAtom = atomWithLogging<SidebarSelectionState>(
+  'sidebarSelectionAtom',
+  {
+    selections: new Set([]),
+    anchorSelection: null,
+  }
+);
 
 export const isDarkModeOnAtom = atom<boolean>(false);
 

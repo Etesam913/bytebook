@@ -2,12 +2,15 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
 import {
   contextMenuDataAtom,
   dialogDataAtom,
-  selectionRangeAtom,
+  sidebarSelectionAtom,
 } from '../../../atoms';
 import { useDeleteTagsMutation } from '../../../hooks/tags';
 import { TagIcon } from '../../../icons/tag';
 import { TagSlash } from '../../../icons/tag-slash';
-import { handleContextMenuSelection } from '../../../utils/selection';
+import {
+  handleContextMenuSelection,
+  type SetSelectionUpdater,
+} from '../../../utils/selection';
 import {
   cn,
   getTagNameFromSelectionRange,
@@ -28,7 +31,14 @@ export function TagAccordionButton({
   sidebarTagName: string;
   isActive: boolean;
 }) {
-  const [selectionRange, setSelectionRange] = useAtom(selectionRangeAtom);
+  const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
+  const selectionRange = sidebarSelection.selections;
+  const setSelectionRange: SetSelectionUpdater = (updater) => {
+    setSidebarSelection((prev) => ({
+      ...prev,
+      selections: updater(prev.selections),
+    }));
+  };
   const { mutateAsync: deleteTags } = useDeleteTagsMutation();
 
   const isSelected = tags?.at(i) && selectionRange.has(`tag:${tags[i]}`);
@@ -42,7 +52,7 @@ export function TagAccordionButton({
       draggable
       onDragStart={(e) => e.preventDefault()}
       className={cn(
-        'list-sidebar-item',
+        'list-sidebar-item transition-none',
         isActive && 'bg-zinc-150 dark:bg-zinc-700',
         isSelected && 'bg-(--accent-color)! text-white'
       )}

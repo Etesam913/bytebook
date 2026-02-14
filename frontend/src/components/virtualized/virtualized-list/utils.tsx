@@ -10,6 +10,7 @@ import {
 import { getContentTypeAndValueFromSelectionRangeValue } from '../../../utils/string-formatting';
 import { LocalFilePath } from '../../../utils/path';
 import { WAILS_URL } from '../../../utils/general';
+import type { SetSelectionUpdater } from '../../../utils/selection';
 
 /** Gets the file icon for the dragged item */
 function getFileIcon(fileType: 'folder' | 'note' | 'image') {
@@ -36,7 +37,7 @@ export function handleNoteDragStart({
   folder,
 }: {
   e: DragEvent<HTMLAnchorElement> | DragEvent<HTMLButtonElement>;
-  setSelectionRange: Dispatch<SetStateAction<Set<string>>>;
+  setSelectionRange: SetSelectionUpdater;
   draggedNote: string;
   setDraggedGhostElement: Dispatch<SetStateAction<HTMLElement | null>>;
   folder: string;
@@ -78,7 +79,7 @@ export function handleNoteDragStart({
 
     // Clean up the ghost element after the drag ends
     function handleDragEnd() {
-      setSelectionRange(new Set());
+      setSelectionRange(() => new Set());
       ghostElement.remove();
       setDraggedGhostElement(null);
       dragElement.removeEventListener('dragEnd', handleDragEnd);

@@ -3,7 +3,7 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import useMeasure from 'react-use-measure';
 import { easingFunctions, getDefaultButtonVariants } from '../../animations';
-import { dialogDataAtom, selectionRangeAtom } from '../../atoms';
+import { dialogDataAtom, sidebarSelectionAtom } from '../../atoms';
 import { editorAtom } from '../editor/atoms';
 import { XMark } from '../../icons/circle-xmark';
 import { cn } from '../../utils/string-formatting';
@@ -51,7 +51,7 @@ export function Dialog() {
   const editor = useAtomValue(editorAtom);
   const [errorText, setErrorText] = useState('');
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const setSelectionRange = useSetAtom(selectionRangeAtom);
+  const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
 
   const closeDialog = () => {
     dialogData.onClose?.();
@@ -64,7 +64,7 @@ export function Dialog() {
       isPending: false,
     });
     setErrorText('');
-    setSelectionRange(new Set());
+    setSidebarSelection((prev) => ({ ...prev, selections: new Set() }));
   };
 
   // Handle dialog open/close and event listeners

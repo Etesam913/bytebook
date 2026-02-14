@@ -17,7 +17,7 @@ import {
   RenameFile,
   RevealFolderOrFileInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { projectSettingsAtom, selectionRangeAtom } from '../atoms';
+import { projectSettingsAtom, sidebarSelectionAtom } from '../atoms';
 import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
@@ -326,7 +326,7 @@ export function useMoveToTrashMutationNew() {
 }
 
 export function useMoveNoteToTrashMutation() {
-  const setSelectionRange = useSetAtom(selectionRangeAtom);
+  const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
   return useMutation({
     mutationFn: async ({
       selectionRange,
@@ -340,7 +340,7 @@ export function useMoveNoteToTrashMutation() {
         selectionRange
       );
       // The deleted elements should be removed from selection
-      setSelectionRange(new Set());
+      setSidebarSelection((prev) => ({ ...prev, selections: new Set() }));
       const res = await MoveToTrash(
         filePaths.map((filePath) => filePath.toString())
       );

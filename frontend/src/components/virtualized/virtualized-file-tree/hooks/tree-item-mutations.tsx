@@ -17,7 +17,7 @@ import { MoveItemsToFolder } from '../../../../../bindings/github.com/etesam913/
 import { getFileSelectionKey } from '../../../../utils/selection';
 import { useAtomValue } from 'jotai';
 import { fileTreeDataAtom } from '..';
-import { sidebarSelectionAtom } from '../../../../hooks/selection';
+import { sidebarSelectionAtom } from '../../../../atoms';
 import { QueryError } from '../../../../utils/query';
 
 /**
