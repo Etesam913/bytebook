@@ -132,7 +132,7 @@ export function SettingsDropdown({
             break;
           }
           case 'move-to-trash': {
-            moveToTrash({ path: `notes/${folder}/${note}.md` });
+            moveToTrash({ path: `${folder}/${note}.md` });
             break;
           }
         }

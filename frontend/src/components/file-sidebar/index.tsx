@@ -106,9 +106,9 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
           onDrop={onDrop}
         >
           <div className="flex h-full flex-col gap-1 px-2.5">
+            <MyFilesAccordion />
             <PinnedNotesAccordion />
             <RecentNotesAccordion />
-            <MyFilesAccordion />
             <MyKernelsAccordion />
             <MyTagsAccordion />
             <MySavedSearchesAccordion />

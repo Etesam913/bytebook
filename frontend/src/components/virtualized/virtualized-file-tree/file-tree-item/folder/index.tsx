@@ -25,6 +25,8 @@ import { createDragGhostElement } from '../../utils/item-selection';
 import { sidebarSelectionAtom } from '../../../../../hooks/selection';
 import { useMoveTreeItemsMutation } from '../../hooks/tree-item-mutations';
 import { FILE_SELECTION_PREFIX } from '../../../../../utils/selection';
+import { LoadingSpinner } from '../../../../loading-spinner';
+import { motion } from 'motion/react';
 
 export function FileTreeFolderItem({
   dataItem,
@@ -32,12 +34,14 @@ export function FileTreeFolderItem({
   onSelectionClick,
   onContextMenuSelection,
   isSelectedFromSidebarClick,
+  isOpenFolderPending,
 }: {
   dataItem: Folder & { level: number };
   openFolder: (args: OpenFolderArgs) => void;
   onSelectionClick: (e: MouseEvent) => void;
   onContextMenuSelection: () => void;
   isSelectedFromSidebarClick: boolean;
+  isOpenFolderPending: boolean;
 }) {
   const [isDraggedOver, setIsDraggedOver] = useState(false);
 
@@ -135,6 +139,16 @@ export function FileTreeFolderItem({
           exitEditMode={exitEditMode}
           onSave={onRenameSave}
         />
+        {isOpenFolderPending && (
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.15, duration: 0.25 }}
+            className="ml-auto inline-flex h-4 w-4 items-center justify-center"
+          >
+            <LoadingSpinner className="h-4 w-4" height={16} width={16} />
+          </motion.span>
+        )}
       </span>
     </>
   );

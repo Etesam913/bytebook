@@ -7,7 +7,6 @@ import { isToolbarDisabledAtom } from '../../atoms';
 import { NAME_CHARS, cn } from '../../utils/string-formatting';
 import { FilePath, createFilePath } from '../../utils/path';
 import { useRenameFileMutation } from '../../hooks/notes';
-import { navigate } from 'wouter/use-browser-location';
 
 export function NoteTitle({ filePath }: { filePath: FilePath }) {
   const [editor] = useLexicalComposerContext();

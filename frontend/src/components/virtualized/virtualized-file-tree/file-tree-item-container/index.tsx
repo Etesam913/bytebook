@@ -18,18 +18,14 @@ import {
   computeMetaClickState,
   computeShiftClickSelections,
 } from '../utils/item-selection';
-import { LoadingSpinner } from '../../../loading-spinner';
-import { motion } from 'motion/react';
 
 /**
  * Container component for file tree items that handles selection logic
  * and renders either a file or folder item
  */
 export function FileTreeItemContainer({
-  isLoadMorePending,
   dataItem,
 }: {
-  isLoadMorePending?: boolean;
   dataItem: FlattenedFileOrFolder;
 }) {
   const { mutate: openFolder, isPending: isOpenFolderPending } =
@@ -159,6 +155,7 @@ export function FileTreeItemContainer({
           onSelectionClick={handleSelectionClick}
           onContextMenuSelection={handleContextMenuSelection}
           isSelectedFromSidebarClick={isSelectedFromSidebarClick}
+          isOpenFolderPending={isOpenFolderPending}
         />
       ) : (
         <FileTreeFileItem
@@ -167,15 +164,6 @@ export function FileTreeItemContainer({
           onContextMenuSelection={handleContextMenuSelection}
           isSelectedFromSidebarClick={isSelectedFromSidebarClick}
         />
-      )}
-      {(isLoadMorePending || isOpenFolderPending) && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-        >
-          <LoadingSpinner className="ml-11 my-1.25" height={16} width={16} />
-        </motion.div>
       )}
     </>
   );
