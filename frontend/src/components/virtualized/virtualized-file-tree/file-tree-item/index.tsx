@@ -16,7 +16,7 @@ export function FileTreeItem({
   dataItem: VirtualizedFileTreeItem;
 }) {
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
-  const { mutate: openFolder, isPending } = useOpenFolderMutation();
+  const { mutate: openFolder } = useOpenFolderMutation();
 
   if (dataItem.type === CREATE_FOLDER_TYPE) {
     return <CreateFolder />;
@@ -44,9 +44,6 @@ export function FileTreeItem({
   const flattenedDataItem = dataItem;
 
   return (
-    <FileTreeItemContainer
-      dataItem={flattenedDataItem}
-      isLoadMorePending={isPending}
-    />
+    <FileTreeItemContainer dataItem={flattenedDataItem} />
   );
 }
