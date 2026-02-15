@@ -48,15 +48,20 @@ func addFoldersToIndex(params EventParams, data []map[string]string) {
 
 	for _, folder := range data {
 		folderPath, ok := folder["folderPath"]
-		if !ok {
+		if !ok || folderPath == "" {
 			log.Println("Folder create event data missing folderPath")
 			continue
 		}
 
-		_, err := search.AddFolderToBatch(batch, *params.Index, folderPath)
+		pathOnDisk := filepath.Join(params.ProjectPath, "notes", folderPath)
+		err := search.IndexFilesInFolderWithBatch(pathOnDisk, folderPath, *params.Index, batch)
 		if err != nil {
-			log.Printf("Error adding folder to batch: %v", err)
+			log.Printf("Error indexing files for folder %s: %v", folderPath, err)
 		}
+	}
+
+	if batch.Size() == 0 {
+		return
 	}
 
 	err := (*params.Index).Batch(batch)
@@ -75,9 +80,6 @@ func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
 			log.Println("Folder delete event data missing folderPath")
 			continue
 		}
-
-		// Delete the folder document itself
-		batch.Delete(folderPath)
 
 		// Query for all documents with the folder attribute equal to the deleted folder
 		folderQuery := bleve.NewMatchPhraseQuery(folderPath)
@@ -153,7 +155,7 @@ func renameFoldersInIndex(params EventParams, data []map[string]string) {
 		// Step 2: Re-index all files in the new folder
 		newFolderPathOnDisk := filepath.Join(params.ProjectPath, "notes", newFolderPath)
 		batch := (*params.Index).NewBatch()
-		err := search.IndexAllFilesInFolderWithBatch(newFolderPathOnDisk, newFolderPath, *params.Index, batch)
+		err := search.IndexFilesInFolderWithBatch(newFolderPathOnDisk, newFolderPath, *params.Index, batch)
 		if err != nil {
 			log.Printf("Error re-indexing folder %s: %v", newFolderPath, err)
 			continue
@@ -171,9 +173,6 @@ func renameFoldersInIndex(params EventParams, data []map[string]string) {
 // This is the first step in the folder rename process.
 func deleteRenameFolderFromIndex(params EventParams, oldFolderPath string) {
 	batch := (*params.Index).NewBatch()
-
-	// Delete the folder document itself
-	batch.Delete(oldFolderPath)
 
 	// Query for all documents with the old folder name
 	folderQuery := bleve.NewMatchPhraseQuery(oldFolderPath)

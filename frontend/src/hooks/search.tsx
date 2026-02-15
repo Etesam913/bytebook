@@ -30,12 +30,10 @@ export const lastSearchQueryAtom = atom<string>('');
  * Represents the grouped search results.
  * - notes: Array of note search results.
  * - attachments: Array of attachment search results.
- * - folders: Array of folder search results.
  */
 export type GroupedSearchResults = {
   notes: Array<NoteSearchResult>;
   attachments: Array<AttachmentSearchResult>;
-  folders: Array<FolderSearchResult>;
 };
 
 /**
@@ -66,25 +64,16 @@ type AttachmentSearchResult = {
   tags: string[];
 };
 
-/**
- * Represents a search result for a folder.
- */
-type FolderSearchResult = {
-  /** The folder name or path */
-  folder: string;
-};
-
 const searchQueries = {
   fullTextSearch: (searchQuery: string) =>
     queryOptions({
       queryKey: ['full-text-search', searchQuery],
       queryFn: () => FullTextSearch(searchQuery),
       select: (data) => {
-        if (!data) return { notes: [], attachments: [], folders: [] };
+        if (!data) return { notes: [], attachments: [] };
 
         const notes: Array<NoteSearchResult> = [];
         const attachments: Array<AttachmentSearchResult> = [];
-        const folders: Array<FolderSearchResult> = [];
 
         data.forEach((result) => {
           if (result.type === 'note') {
@@ -109,12 +98,10 @@ const searchQueries = {
               filePath,
               tags: result.tags ?? [],
             });
-          } else if (result.type === 'folder') {
-            folders.push({ folder: result.folder });
           }
         });
 
-        return { notes, attachments, folders };
+        return { notes, attachments };
       },
       placeholderData: keepPreviousData,
     }),

@@ -13,15 +13,12 @@ export function SearchPage() {
   const deferredQuery = useDeferredValue(lastSearchQuery);
 
   const {
-    data: groupedResults = { notes: [], attachments: [], folders: [] },
+    data: groupedResults = { notes: [], attachments: [] },
     isError,
     error,
   } = useFullTextSearchQuery(deferredQuery);
 
-  const totalCount =
-    groupedResults.notes.length +
-    groupedResults.attachments.length +
-    groupedResults.folders.length;
+  const totalCount = groupedResults.notes.length + groupedResults.attachments.length;
 
   return (
     <section className="flex-1 h-screen flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
@@ -65,16 +62,16 @@ export function SearchPage() {
                   <span className="font-bold font-code text-zinc-900 dark:text-zinc-100">
                     f:apple
                   </span>{' '}
-                  to search for files or folders that start with
-                  &quot;apple&quot;
+                  to search for files that include &quot;apple&quot; in the
+                  file name or folder path
                 </li>
                 <li>
                   Use{' '}
                   <span className="font-bold font-code text-zinc-900 dark:text-zinc-100">
                     f:docs/readme
                   </span>{' '}
-                  to search for files starting with &quot;readme&quot; in
-                  folders starting with &quot;docs&quot;
+                  to search for files in folders matching
+                  &quot;docs&quot; with names matching &quot;readme&quot;
                 </li>
                 <li>
                   Use{' '}

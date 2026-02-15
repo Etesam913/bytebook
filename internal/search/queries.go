@@ -51,21 +51,17 @@ func createMatchQuery(field, term string, boost float64) query.Query {
 // Since filenames use a single tokenizer, we use direct prefix queries for exact matching.
 func CreateFilenameQuery(prefixTerm string, boost float64) query.Query {
 	normalized := strings.TrimSpace(prefixTerm)
-	if normalized == "" {
-		// If the prefix is empty, return a query for all folders.
-		// This means match all documents where FieldType is FOLDER_TYPE.
-		typeQuery := bleve.NewTermQuery(FOLDER_TYPE)
-		typeQuery.SetField(FieldType)
-		typeQuery.SetBoost(boost)
-		return typeQuery
-	}
-
 	disjunctionQuery := bleve.NewDisjunctionQuery()
 
-	fieldFolderQuery := bleve.NewWildcardQuery(fmt.Sprintf("*%s*", normalized))
+	pattern := "*"
+	if normalized != "" {
+		pattern = fmt.Sprintf("*%s*", normalized)
+	}
+
+	fieldFolderQuery := bleve.NewWildcardQuery(pattern)
 	fieldFolderQuery.SetField(FieldFolder)
 
-	fileNameQuery := bleve.NewWildcardQuery(fmt.Sprintf("*%s*", normalized))
+	fileNameQuery := bleve.NewWildcardQuery(pattern)
 	fileNameQuery.SetField(FieldFileName)
 
 	// fieldFolderQuery := createPrefixQuery(FieldFolder, normalized)
@@ -165,9 +161,16 @@ func createTagQuery(tagName string) query.Query {
 }
 
 // createTypeQuery handles type queries (tokens starting with "t:" or "type:")
-// Returns a query that filters by document type: "note", "attachment", or "folder".
+// Returns a query that filters by document type (for example "note" or "attachment").
 func createTypeQuery(typeName string) query.Query {
 	typeName = strings.ToLower(strings.TrimSpace(typeName))
+	switch typeName {
+	case MARKDOWN_NOTE_TYPE, ATTACHMENT_TYPE:
+		// supported search types
+	default:
+		return bleve.NewMatchNoneQuery()
+	}
+
 	typeQuery := bleve.NewTermQuery(typeName)
 	typeQuery.SetField(FieldType)
 
@@ -213,7 +216,7 @@ func createLangQuery(langName string) query.Query {
 // BuildBooleanQueryFromUserInput builds a boolean query from a user input string.
 // Tokens prefixed with "f:" or "file:" are treated as filename prefixes;
 // tokens prefixed with "#" or "tag:" are treated as tag searches;
-// tokens prefixed with "t:" or "type:" are treated as type filters ("note", "attachment", "folder");
+// tokens prefixed with "t:" or "type:" are treated as type filters ("note", "attachment");
 // tokens with quotes are exact matches; all others query text content and code content with fuzzy matching.
 // Supports AND/OR operators between terms:
 // - term1 AND term2 (default if no operator specified)

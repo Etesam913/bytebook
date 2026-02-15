@@ -17,7 +17,9 @@ import type { SidebarSelectionState } from '../atoms';
  */
 const SIDEBAR_SELECTION_SEPARATOR = ':';
 
-export type SetSelectionUpdater = (updater: (prev: Set<string>) => Set<string>) => void;
+export type SetSelectionUpdater = (
+  updater: (prev: Set<string>) => Set<string>
+) => void;
 
 /**
  * Creates a selection key by joining the prefix and value with a separator.
@@ -29,7 +31,7 @@ export function createSelectionKey(prefix: string, value: string): string {
 /**
  * Extracts the prefix part from a selection key.
  */
-export function getSelectionPrefix(selectionKey: string): string | null {
+function getSelectionPrefix(selectionKey: string): string | null {
   const separatorIndex = selectionKey.indexOf(SIDEBAR_SELECTION_SEPARATOR);
   if (separatorIndex === -1) {
     return null;
@@ -40,7 +42,7 @@ export function getSelectionPrefix(selectionKey: string): string | null {
 /**
  * Extracts the value part from a selection key.
  */
-export function getSelectionValue(selectionKey: string): string | null {
+function getSelectionValue(selectionKey: string): string | null {
   const separatorIndex = selectionKey.indexOf(SIDEBAR_SELECTION_SEPARATOR);
   if (separatorIndex === -1 || separatorIndex + 1 >= selectionKey.length) {
     return null;
@@ -107,7 +109,7 @@ export function addSelectionKeysWithSinglePrefix({
  * @param prefix - The prefix string to match against
  * @returns A new Set containing only the items that start with the prefix
  */
-export function keepSelectionNotesWithPrefix(
+function keepSelectionNotesWithPrefix(
   selection: Set<string>,
   prefix: SidebarContentType
 ) {
@@ -226,14 +228,6 @@ export function handleEditorEscape(
   }
 }
 export const FILE_SELECTION_PREFIX = 'file';
-/**
- * Gets the selection prefix from a selectable item key that comes from the selection set
- */
-export function getFileSelectionPrefix(
-  selectableItemKey: string
-): string | null {
-  return getSelectionPrefix(selectableItemKey);
-}
 
 /**
  * Gets the selection key from a selectable item key that comes from the selection set

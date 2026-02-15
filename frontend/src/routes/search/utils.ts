@@ -1,9 +1,10 @@
 import { GroupedSearchResults } from '../../hooks/search';
+import { FilePath, createFilePath } from '../../utils/path';
 
 /**
  * Search results have sections for each type of result
  */
-export type Section = 'notes' | 'attachments' | 'folders';
+export type Section = 'notes' | 'attachments';
 
 export type SearchRow =
   | {
@@ -21,11 +22,6 @@ export type SearchRow =
       kind: 'attachment';
       data: GroupedSearchResults['attachments'][number];
       resultIndex: number;
-    }
-  | {
-      kind: 'folder';
-      data: GroupedSearchResults['folders'][number];
-      resultIndex: number;
     };
 
 /**
@@ -42,8 +38,6 @@ export function dataItemToKey(row: SearchRow): string {
       return `note-${row.data.filePath.toString()}`;
     case 'attachment':
       return `attachment-${row.data.filePath.toString()}`;
-    case 'folder':
-      return `folder-${row.data.folder}`;
   }
 }
 
@@ -60,7 +54,33 @@ export function dataItemToString(row: SearchRow): string {
       return row.data.filePath.note;
     case 'attachment':
       return row.data.filePath.note;
-    case 'folder':
-      return row.data.folder;
   }
+}
+
+/**
+ * Builds a note/attachment href for the search page without using legacy `ext` query params.
+ */
+function buildSearchFileHref(
+  filePath: FilePath,
+  options?: { highlight?: string }
+): string {
+  if (!options?.highlight) {
+    return filePath.encodedFileUrl;
+  }
+  const params = new URLSearchParams({ highlight: options.highlight });
+  return `${filePath.encodedFileUrl}?${params.toString()}`;
+}
+
+/**
+ * Parses a path string into FilePath and builds the corresponding search href.
+ */
+export function buildSearchFileHrefFromPath(
+  filePath: string,
+  options?: { highlight?: string }
+): string {
+  const parsedFilePath = createFilePath(filePath);
+  if (!parsedFilePath) {
+    return '/404';
+  }
+  return buildSearchFileHref(parsedFilePath, options);
 }

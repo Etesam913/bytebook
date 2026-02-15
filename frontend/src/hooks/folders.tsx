@@ -39,7 +39,7 @@ function isPrefixOrSamePath(path: string, maybePrefix: string): boolean {
   return path === maybePrefix || path.startsWith(`${maybePrefix}/`);
 }
 
-export const folderQueries = {
+const folderQueries = {
   getFolders: (queryClient: QueryClient) =>
     queryOptions({
       queryKey: ['folders'],

@@ -4,7 +4,6 @@ import {
   SearchResultHeader,
   SearchResultNote,
   SearchResultAttachment,
-  SearchResultFolder,
 } from './search-result-item';
 import { VirtualizedList } from '../../../components/virtualized/virtualized-list';
 import { SearchRow, Section, dataItemToKey, dataItemToString } from '../utils';
@@ -46,23 +45,6 @@ function getRowsWithHeaders(
     }
   }
 
-  if (groupedResults.folders.length > 0) {
-    rows.push({
-      kind: 'header',
-      title: 'folders',
-      count: groupedResults.folders.length,
-      toggle: () => toggleSection('folders'),
-    });
-    if (openSections.folders) {
-      groupedResults.folders.forEach((folderItem, index) => {
-        const resultIndex =
-          groupedResults.notes.length +
-          groupedResults.attachments.length +
-          index;
-        rows.push({ kind: 'folder', data: folderItem, resultIndex });
-      });
-    }
-  }
   return rows;
 }
 
@@ -82,7 +64,6 @@ export function SearchResultsList({
   const { openSections, toggleSection } = useCollapsibleSections({
     notes: true,
     attachments: true,
-    folders: true,
   });
 
   // Update refs array when total count changes
@@ -135,22 +116,9 @@ export function SearchResultsList({
               />
             );
           case 'attachment':
-            return (
-              <SearchResultAttachment
-                data={row.data}
-                resultIndex={row.resultIndex}
-                selectedIndex={selectedIndex}
-                onRef={(el) => {
-                  if (row.resultIndex >= 0) {
-                    itemRefs.current[row.resultIndex] = el;
-                  }
-                }}
-              />
-            );
-          case 'folder':
           default:
             return (
-              <SearchResultFolder
+              <SearchResultAttachment
                 data={row.data}
                 resultIndex={row.resultIndex}
                 selectedIndex={selectedIndex}

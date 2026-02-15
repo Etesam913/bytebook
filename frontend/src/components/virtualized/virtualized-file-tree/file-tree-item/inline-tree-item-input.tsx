@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { File, Folder } from '../types';
 
 export function InlineTreeItemInput({
@@ -10,7 +10,6 @@ export function InlineTreeItemInput({
   onSave,
   extension,
   placeholder,
-  autoFocus = true,
 }: {
   dataItem: File | Folder;
   defaultValue: string;
@@ -20,9 +19,18 @@ export function InlineTreeItemInput({
   onSave: (newName: string) => void;
   extension?: string;
   placeholder?: string;
-  autoFocus?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+
+      if (isEditing) {
+        inputRef.current.select();
+      }
+    }
+  }, [inputRef, isEditing]);
 
   return (
     <>
@@ -39,7 +47,7 @@ export function InlineTreeItemInput({
               defaultValue={defaultValue}
               placeholder={placeholder}
               title={errorText}
-              autoFocus={autoFocus}
+              autoFocus={true}
               onKeyDown={(e) => {
                 if (e.key === 'Escape') {
                   exitEditMode();

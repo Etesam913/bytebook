@@ -38,7 +38,7 @@ func (s *SearchService) FullTextSearch(searchQuery string) []search.SearchResult
 
 // SearchFileNamesFromQuery performs a fuzzy filename search using the Bleve index.
 // It reuses the filename query logic from the search package to align editor @ mentions
-// with the backend search experience and now returns both files and folders.
+// with the backend search experience.
 func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []FilePickerSearchResult {
 	normalizedQuery := strings.ToLower(strings.TrimSpace(searchQuery))
 	filenameQuery := search.CreateFilenameQuery(normalizedQuery, 1.0)
@@ -58,37 +58,21 @@ func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []FilePicke
 		folder, _ := hit.Fields[search.FieldFolder].(string)
 		fileName, _ := hit.Fields[search.FieldFileName].(string)
 
-		switch docType {
-		case search.FOLDER_TYPE:
-			if folder == "" {
-				continue
-			}
-			key := docType + ":" + folder
-			if exists := seen.Has(key); exists {
-				continue
-			}
-			seen.Add(key)
-			searchResults = append(searchResults, FilePickerSearchResult{
-				Type:   docType,
-				Folder: folder,
-			})
-		default:
-			if folder == "" || fileName == "" {
-				continue
-			}
-
-			key := docType + ":" + folder + "/" + fileName
-			if exists := seen.Has(key); exists {
-				continue
-			}
-			seen[key] = struct{}{}
-
-			searchResults = append(searchResults, FilePickerSearchResult{
-				Type:   docType,
-				Folder: folder,
-				Note:   fileName,
-			})
+		if folder == "" || fileName == "" {
+			continue
 		}
+
+		key := docType + ":" + folder + "/" + fileName
+		if exists := seen.Has(key); exists {
+			continue
+		}
+		seen[key] = struct{}{}
+
+		searchResults = append(searchResults, FilePickerSearchResult{
+			Type:   docType,
+			Folder: folder,
+			Note:   fileName,
+		})
 	}
 
 	return searchResults

@@ -118,7 +118,7 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
         scrollerRef={handleScrollerRef}
         computeItemKey={(_, item) => item.id}
         style={{
-          overscrollBehavior: 'auto',
+          overscrollBehavior: 'none',
           height:
             totalHeight === null
               ? FILE_TREE_MAX_HEIGHT

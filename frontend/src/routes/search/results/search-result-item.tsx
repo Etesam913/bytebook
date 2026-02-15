@@ -1,22 +1,19 @@
 import { ReactNode } from 'react';
 import { Link } from 'wouter';
 import { cn, formatDate } from '../../../utils/string-formatting';
-import { Folder } from '../../../icons/folder';
 import { ImageIcon } from '../../../icons/image';
 import { Note } from '../../../icons/page';
 import { GroupedSearchResults } from '../../../hooks/search';
 import { SearchHighlights } from './search-highlights';
 import { Tag } from '../../../components/editor/bottom-bar/tag';
-import { Section } from '../utils';
+import { Section, buildSearchFileHrefFromPath } from '../utils';
 
-function getFileIcon(iconType: 'note' | 'attachment' | 'folder') {
+function getFileIcon(iconType: 'note' | 'attachment') {
   switch (iconType) {
     case 'note':
       return <Note className="min-w-5 w-5" />;
     case 'attachment':
       return <ImageIcon className="min-w-5 w-5" />;
-    case 'folder':
-      return <Folder className="min-w-5" height={20} width={20} />;
   }
 }
 
@@ -32,7 +29,7 @@ function SearchResultItem({
 }: {
   to: string;
   title: string;
-  iconType: 'note' | 'attachment' | 'folder';
+  iconType: 'note' | 'attachment';
   resultIndex: number;
   selectedIndex: number;
   onRef: (el: HTMLAnchorElement | null) => void;
@@ -112,11 +109,11 @@ export function SearchResultNote({
 }) {
   const { filePath, tags, lastUpdated, created, highlights, codeContent } =
     data;
-  let pathToNote = filePath.getLinkToNote();
+  let pathToNote = buildSearchFileHrefFromPath(filePath.toString());
   const firstHighlightedTerm = highlights[0]?.highlightedTerm;
 
   if (firstHighlightedTerm) {
-    pathToNote = filePath.getLinkToNote({
+    pathToNote = buildSearchFileHrefFromPath(filePath.toString(), {
       highlight: firstHighlightedTerm,
     });
   }
@@ -176,7 +173,7 @@ export function SearchResultAttachment({
   onRef: (el: HTMLAnchorElement | null) => void;
 }) {
   const { filePath, tags } = data;
-  const pathToNote = filePath.getLinkToNote();
+  const pathToNote = buildSearchFileHrefFromPath(filePath.toString());
 
   return (
     <SearchResultItem
@@ -200,31 +197,5 @@ export function SearchResultAttachment({
         </div>
       )}
     </SearchResultItem>
-  );
-}
-
-export function SearchResultFolder({
-  data,
-  resultIndex,
-  selectedIndex,
-  onRef,
-}: {
-  data: GroupedSearchResults['folders'][number];
-  resultIndex: number;
-  selectedIndex: number;
-  onRef: (el: HTMLAnchorElement | null) => void;
-}) {
-  const { folder } = data;
-  const pathToFolder = `/notes/${folder}`;
-
-  return (
-    <SearchResultItem
-      to={pathToFolder}
-      title={folder}
-      iconType="folder"
-      resultIndex={resultIndex}
-      selectedIndex={selectedIndex}
-      onRef={onRef}
-    />
   );
 }

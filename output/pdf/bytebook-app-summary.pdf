@@ -1,0 +1,61 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 3125 >>
+stream
+BT /F2 18 Tf 1 0 0 1 42.00 758.00 Tm (Bytebook - One-Page App Summary) Tj ET
+BT /F2 12 Tf 1 0 0 1 42.00 738.00 Tm (What it is) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 724.00 Tm (Bytebook is a local-first, open-source note-taking desktop app for developers.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 711.00 Tm (It combines markdown notes, attachments, search, and executable code blocks in one app.) Tj ET
+BT /F2 12 Tf 1 0 0 1 42.00 695.00 Tm (Who it is for) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 681.00 Tm (Primary persona: developers who keep technical notes with code and want local file ownership.) Tj ET
+BT /F2 12 Tf 1 0 0 1 42.00 665.00 Tm (What it does) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 651.00 Tm (- Creates, renames, moves, and trashes notes/folders under a local notes workspace.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 638.00 Tm (- Supports tags on notes and attachment files, including bulk tag updates.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 625.00 Tm (- Provides full-text search with filters \(file/folder, tag, type, language\) and saved searches.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 612.00 Tm (- Renders attachments in notes \(image, video, pdf\) and serves them from local /notes paths.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 599.00 Tm (- Executes code blocks through kernels \(python, go, javascript, java\) with run/interrupt/shutdown.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 586.00 Tm (- Stores project settings for theme, note width, editor font, and code execution options.) Tj ET
+BT /F2 12 Tf 1 0 0 1 42.00 570.00 Tm (How it works \(repo-evidenced architecture\)) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 556.00 Tm (- UI: React + TypeScript app \(`frontend/src/App.tsx`\) with routes for notes, search, saved searches, kernels.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 543.00 Tm (- Bridge: Wails v3 bindings \(`frontend/bindings/...`\) call Go backend services registered in `internal/main.go`.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 530.00 Tm (- Services: folder, note, file-tree, node/attachments, search, tags, settings, and code execution services.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 517.00 Tm (- Data: local project directory at ~/Library/Application Support/Bytebook with notes/, settings/, code/, search/.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 504.00 Tm (- Search: Bleve index over notes and attachments with extracted text/tags/code-language metadata.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 491.00 Tm (- Sync flow: fsnotify watcher emits Wails events for note/folder/tag/settings updates to refresh UI/index.) Tj ET
+BT /F2 12 Tf 1 0 0 1 42.00 475.00 Tm (How to run \(minimal\)) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 461.00 Tm (1. Clone repo: `git clone https://github.com/etesam913/bytebook.git`) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 448.00 Tm (2. Install Go deps: `go mod tidy`) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 435.00 Tm (3. Install frontend deps: `cd frontend && bun install`) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 422.00 Tm (4. Start app from repo root: `wails3 dev --port 5173` \(or `task dev`\)) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 42.00 409.00 Tm (5. Not found in repo: explicit install instructions for `wails3` CLI and kernel runtimes.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000003427 00000 n 
+0000003497 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+3572
+%%EOF

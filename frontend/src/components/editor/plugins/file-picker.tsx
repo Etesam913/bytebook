@@ -26,11 +26,12 @@ import {
 import { $createLinkNode } from '../nodes/link';
 import { INSERT_FILES_COMMAND } from './file';
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
-import { Folder } from '../../../icons/folder';
 
 type FilePickerOption = FilePickerMenuItemData & {
   dropdownOption: DropdownPickerOption;
 };
+
+type FileResultOption = Extract<FilePickerMenuItemData, { kind: 'file' }>;
 
 export function FilePickerMenuPlugin() {
   const [editor] = useLexicalComposerContext();
@@ -54,14 +55,9 @@ export function FilePickerMenuPlugin() {
   };
 
   // Getting data into the FilePickerMenuItemData format
-  const optionSources: FilePickerMenuItemData[] = !searchQuery
+  const optionSources: FileResultOption[] = !searchQuery
     ? mostRecentNotes.map((filePath) => ({ kind: 'file', filePath }))
-    : (searchResults ?? []).flatMap((result): FilePickerMenuItemData[] => {
-        if (result.type === 'folder') {
-          return result.folder
-            ? [{ kind: 'folder', folder: result.folder }]
-            : [];
-        }
+    : (searchResults ?? []).flatMap((result): FileResultOption[] => {
         if (!result.note) return [];
         try {
           return [
@@ -79,39 +75,26 @@ export function FilePickerMenuPlugin() {
       });
 
   const options: FilePickerOption[] = optionSources.map((item) => {
-    const isFile = item.kind === 'file';
-    const label = isFile ? item.filePath.toString() : item.folder;
+    const label = item.filePath.toString();
 
     return {
       ...item,
       dropdownOption: new DropdownPickerOption(label, {
-        icon: isFile ? (
-          <RenderNoteIcon filePath={item.filePath} size="sm" />
-        ) : (
-          <Folder
-            className="min-w-[20px] pointer-events-none"
-            width={18}
-            height={18}
-          />
-        ),
+        icon: <RenderNoteIcon filePath={item.filePath} size="sm" />,
         onSelect: () => {
-          if (isFile) {
-            const fullPath = item.filePath.toString();
-            if (item.filePath.noteExtension === 'md') {
-              insertLink(
-                fullPath,
-                `${WAILS_URL}/${convertFilePathToQueryNotation(fullPath)}`
-              );
-            } else {
-              editor.dispatchCommand(INSERT_FILES_COMMAND, [
-                {
-                  src: `/notes/${fullPath}`,
-                  alt: fullPath,
-                },
-              ]);
-            }
+          const fullPath = item.filePath.toString();
+          if (item.filePath.noteExtension === 'md') {
+            insertLink(
+              fullPath,
+              `${WAILS_URL}/${convertFilePathToQueryNotation(fullPath)}`
+            );
           } else {
-            insertLink(item.folder, `${WAILS_URL}/${item.folder}`);
+            editor.dispatchCommand(INSERT_FILES_COMMAND, [
+              {
+                src: `/notes/${fullPath}`,
+                alt: fullPath,
+              },
+            ]);
           }
         },
       }),

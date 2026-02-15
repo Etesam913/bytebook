@@ -31,17 +31,14 @@ export function SavedSearchPage({
   curNote?: string;
 }) {
   const {
-    data: groupedResults = { notes: [], attachments: [], folders: [] },
+    data: groupedResults = { notes: [], attachments: [] },
     isSuccess,
     refetch,
     isError,
     isLoading,
   } = useFullTextSearchQuery(searchQuery);
 
-  const resultCount =
-    groupedResults.notes.length +
-    groupedResults.attachments.length +
-    groupedResults.folders.length;
+  const resultCount = groupedResults.notes.length + groupedResults.attachments.length;
 
   const searchParams: { ext?: string } = useSearchParamsEntries();
   const curNoteExtension = searchParams?.ext;
