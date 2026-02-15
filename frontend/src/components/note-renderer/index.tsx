@@ -5,6 +5,7 @@ import { FilePath } from '../../utils/path';
 import { NotesEditor } from '../editor';
 import { ImageRenderer } from './image-renderer';
 import { VideoRenderer } from './video-renderer';
+import { NonMarkdownToolbar } from '../../routes/notes-sidebar/render-note/non-markdown-toolbar';
 
 export function NoteRenderer({ filePath }: { filePath: FilePath }) {
   const { extension } = filePath;
@@ -18,19 +19,35 @@ export function NoteRenderer({ filePath }: { filePath: FilePath }) {
     !isPdf && !isMarkdown && !isImage && !isVideo && extension;
 
   if (isPdf) {
-    return <iframe src={filePath.fileUrl} className="w-full h-full flex-1" />;
+    return (
+      <motion.div className="w-full h-full flex-1" animate={animationControls}>
+        <iframe src={filePath.fileUrl} className="w-full h-full flex-1" />
+      </motion.div>
+    );
   }
 
   if (isImage) {
     return (
-      <div className="w-full h-full flex-1">
+      <motion.div className="w-full h-full flex-1" animate={animationControls}>
+        <NonMarkdownToolbar
+          animationControls={animationControls}
+          filePath={filePath}
+        />
         <ImageRenderer filePath={filePath} />
-      </div>
+      </motion.div>
     );
   }
 
   if (isVideo) {
-    return <VideoRenderer filePath={filePath} />;
+    return (
+      <motion.div className="w-full h-full flex-1" animate={animationControls}>
+        <NonMarkdownToolbar
+          animationControls={animationControls}
+          filePath={filePath}
+        />
+        <VideoRenderer filePath={filePath} />
+      </motion.div>
+    );
   }
 
   if (isMarkdown) {
@@ -46,14 +63,21 @@ export function NoteRenderer({ filePath }: { filePath: FilePath }) {
 
   if (isUnknownFile) {
     return (
-      <div className="w-full h-full flex-1 flex items-center justify-center">
+      <motion.div
+        className="w-full h-full flex-1 flex items-center justify-center"
+        animate={animationControls}
+      >
+        <NonMarkdownToolbar
+          animationControls={animationControls}
+          filePath={filePath}
+        />
         <div className="flex flex-col items-center justify-center gap-2">
           <FileBan width={48} height={48} />
           <h1 className="text-2xl font-bold">
             This file type is not supported.
           </h1>
         </div>
-      </div>
+      </motion.div>
     );
   }
 }

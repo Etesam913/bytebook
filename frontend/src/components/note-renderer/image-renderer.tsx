@@ -18,7 +18,7 @@ export function ImageRenderer({ filePath }: { filePath: FilePath }) {
         </span>
       ) : (
         <img
-          className="w-full h-full object-contain"
+          className="w-full h-full object-contain "
           alt={filePath.noteWithoutExtension}
           title={filePath.noteWithoutExtension}
           src={filePath.fileUrl}
