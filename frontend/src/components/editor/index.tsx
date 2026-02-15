@@ -188,7 +188,9 @@ export function NotesEditor({
                   debouncedNoteHandleChange(editor, tag, queryClient)
                 }
               />
-              <CustomMarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
+              <CustomMarkdownShortcutPlugin
+                transformers={CUSTOM_TRANSFORMERS}
+              />
               <ListPlugin />
               <LinkPlugin />
               <CheckListPlugin />

@@ -8,6 +8,7 @@ import {
 import type { DropdownItem } from '../../types';
 import { useOnClickOutside } from '../../hooks/general';
 import { DropdownItems } from './dropdown-items';
+import { cn } from '../../utils/string-formatting';
 
 /**
  * DropdownMenu - A headless dropdown component that provides keyboard navigation
@@ -127,7 +128,7 @@ export function DropdownMenu({
   };
 
   return (
-    <div className={className} ref={dropdownContainerRef}>
+    <div className={cn(className, 'text-sm')} ref={dropdownContainerRef}>
       {children({ buttonId, menuId, isOpen, handleKeyDown, handleClick })}
       <DropdownItems
         menuId={menuId}

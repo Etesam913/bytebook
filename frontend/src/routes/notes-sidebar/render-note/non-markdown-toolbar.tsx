@@ -6,6 +6,7 @@ import {
   isNoteMaximizedAtom,
   projectSettingsAtom,
 } from '../../../atoms';
+import { currentZoomAtom } from '../../../hooks/resize';
 import { MotionIconButton } from '../../../components/buttons';
 import { MaximizeNoteButton } from '../../../components/buttons/maximize-note';
 import { DropdownMenu } from '../../../components/dropdown/dropdown-menu';
@@ -21,27 +22,23 @@ import { PinTack2 } from '../../../icons/pin-tack-2';
 import { Trash } from '../../../icons/trash';
 import type { ProjectSettings } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
-import { LocalFilePath } from '../../../utils/path';
+import { FilePath } from '../../../utils/path';
 import type { LegacyAnimationControls } from 'motion/react';
 import { useToggleSidebarEvent } from './hooks';
 
 export function NonMarkdownToolbar({
   animationControls,
-  folder,
-  noteWithoutExtension,
   filePath,
 }: {
   animationControls: LegacyAnimationControls;
-  folder: string;
-  noteWithoutExtension: string;
-  filePath: LocalFilePath;
+  filePath: FilePath;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const isFullscreen = useAtomValue(isFullscreenAtom);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const notePath = `${folder}/${filePath.note}`;
-  const isPinned = projectSettings.pinnedNotes.has(notePath);
+  const currentZoom = useAtomValue(currentZoomAtom);
+  const isPinned = projectSettings.pinnedNotes.has(filePath.fullPath);
 
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
@@ -53,7 +50,7 @@ export function NonMarkdownToolbar({
       value: isPinned ? 'unpin-note' : 'pin-note',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <PinTack2 className="min-w-5" />{' '}
+          <PinTack2 className="min-w-4" height={16} width={16} />{' '}
           {isPinned ? 'Unpin Note' : 'Pin Note'}
         </span>
       ),
@@ -62,7 +59,7 @@ export function NonMarkdownToolbar({
       value: 'reveal-in-finder',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <Finder className="min-w-5" height={20} width={20} /> Reveal In Finder
+          <Finder className="min-w-4" height={16} width={16} /> Reveal In Finder
         </span>
       ),
     },
@@ -70,7 +67,7 @@ export function NonMarkdownToolbar({
       value: 'move-to-trash',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <Trash className="min-w-5" /> Move to Trash
+          <Trash className="min-w-4" height={16} width={16} /> Move to Trash
         </span>
       ),
     },
@@ -79,20 +76,25 @@ export function NonMarkdownToolbar({
   return (
     <header
       className={cn(
-        'flex items-center gap-1.5 border-b px-2 pb-1 pt-2.5 h-12 border-zinc-200 dark:border-b-zinc-700 whitespace-nowrap ml-[-4.5px]',
-        isNoteMaximized && !isFullscreen && 'pl-23!'
+        'flex items-center gap-1.5 border-b pr-2 pb-1 pt-2.5 h-12 border-zinc-200 dark:border-b-zinc-700 whitespace-nowrap pl-3 text-sm',
+        isNoteMaximized && !isFullscreen && 'pl-23! w-full'
       )}
+      style={
+        !(isNoteMaximized && !isFullscreen)
+          ? { width: `calc(100vw - (${currentZoom} * 22rem))` }
+          : undefined
+      }
     >
       <MaximizeNoteButton animationControls={animationControls} />
-      <h1 className="text-sm text-ellipsis overflow-hidden">
-        {folder}/{noteWithoutExtension}.{filePath.noteExtension}
-      </h1>
+      <Tooltip content={filePath.fullPath} placement="bottom">
+        <h1 className="truncate">{filePath.fullPath}</h1>
+      </Tooltip>
       <DropdownMenu
         items={items}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        className="ml-auto flex flex-col"
-        dropdownClassName="w-60 right-4 top-12"
+        className="flex flex-col ml-auto"
+        dropdownClassName="w-40 right-4 top-12"
         onChange={(item) => {
           switch (item.value) {
             case 'pin-note':
@@ -101,9 +103,9 @@ export function NonMarkdownToolbar({
                 ...projectSettings,
               };
               if (item.value === 'pin-note') {
-                newProjectSettings.pinnedNotes.add(notePath);
+                newProjectSettings.pinnedNotes.add(filePath.fullPath);
               } else {
-                newProjectSettings.pinnedNotes.delete(notePath);
+                newProjectSettings.pinnedNotes.delete(filePath.fullPath);
               }
               updateProjectSettings({
                 newProjectSettings,
@@ -112,14 +114,14 @@ export function NonMarkdownToolbar({
             }
             case 'reveal-in-finder': {
               revealInFinder({
-                folder,
+                folder: filePath.folder,
                 selectionRange: new Set([`note:${filePath.note}`]),
               });
               break;
             }
             case 'move-to-trash': {
               moveToTrash({
-                folder,
+                folder: filePath.folder,
                 selectionRange: new Set([`note:${filePath.note}`]),
               });
               break;
