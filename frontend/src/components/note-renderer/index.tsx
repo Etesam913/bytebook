@@ -40,12 +40,17 @@ export function NoteRenderer({ filePath }: { filePath: FilePath }) {
 
   if (isVideo) {
     return (
-      <motion.div className="w-full h-full flex-1" animate={animationControls}>
+      <motion.div
+        className="w-full h-full flex-1 flex flex-col"
+        animate={animationControls}
+      >
         <NonMarkdownToolbar
           animationControls={animationControls}
           filePath={filePath}
         />
-        <VideoRenderer filePath={filePath} />
+        <div className="w-full h-full flex-1 flex flex-col items-center justify-center my-auto bg-black">
+          <VideoRenderer filePath={filePath} />
+        </div>
       </motion.div>
     );
   }

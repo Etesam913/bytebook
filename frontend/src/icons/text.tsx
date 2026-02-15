@@ -1,11 +1,11 @@
 export function Text({
   fill = 'currentColor',
-  width = '0.9rem',
-  height = '0.9rem',
+  width = 18,
+  height = 18,
 }: {
   fill?: string;
-  width?: string;
-  height?: string;
+  width?: number;
+  height?: number;
 }) {
   return (
     <svg

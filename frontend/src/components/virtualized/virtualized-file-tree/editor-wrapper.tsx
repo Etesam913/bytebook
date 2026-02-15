@@ -10,7 +10,7 @@ export function EditorWrapper() {
   }
 
   return (
-    <div className="flex w-full">
+    <div className="flex w-full h-screen">
       <NoteRenderer filePath={filePath} />
     </div>
   );

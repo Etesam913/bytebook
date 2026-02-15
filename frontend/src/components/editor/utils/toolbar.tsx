@@ -371,41 +371,81 @@ function BlockTypeDropdownItemLabel({
 /** Used in dropdown for block types */
 export const blockTypesDropdownItems: DropdownItem[] = [
   {
-    label: <BlockTypeDropdownItemLabel icon={<Heading1 />} text="Header 1" />,
+    label: (
+      <BlockTypeDropdownItemLabel
+        icon={<Heading1 height={18} width={18} />}
+        text="Header 1"
+      />
+    ),
     value: 'h1',
   },
   {
-    label: <BlockTypeDropdownItemLabel icon={<Heading2 />} text="Header 2" />,
+    label: (
+      <BlockTypeDropdownItemLabel
+        icon={<Heading2 height={18} width={18} />}
+        text="Header 2"
+      />
+    ),
     value: 'h2',
   },
   {
-    label: <BlockTypeDropdownItemLabel icon={<Heading3 />} text="Header 3" />,
+    label: (
+      <BlockTypeDropdownItemLabel
+        icon={<Heading3 height={18} width={18} />}
+        text="Header 3"
+      />
+    ),
     value: 'h3',
   },
   {
-    label: <BlockTypeDropdownItemLabel icon={<Heading4 />} text="Header 4" />,
+    label: (
+      <BlockTypeDropdownItemLabel
+        icon={<Heading4 height={18} width={18} />}
+        text="Header 4"
+      />
+    ),
     value: 'h4',
   },
   {
-    label: <BlockTypeDropdownItemLabel icon={<Heading5 />} text="Header 5" />,
+    label: (
+      <BlockTypeDropdownItemLabel
+        icon={<Heading5 height={18} width={18} />}
+        text="Header 5"
+      />
+    ),
     value: 'h5',
   },
   {
-    label: <BlockTypeDropdownItemLabel icon={<Heading6 />} text="Header 6" />,
+    label: (
+      <BlockTypeDropdownItemLabel
+        icon={<Heading6 height={18} width={18} />}
+        text="Header 6"
+      />
+    ),
     value: 'h6',
   },
   {
-    label: <BlockTypeDropdownItemLabel icon={<Text />} text="Paragraph" />,
+    label: (
+      <BlockTypeDropdownItemLabel
+        icon={<Text height={14} width={14} />}
+        text="Paragraph"
+      />
+    ),
     value: 'paragraph',
   },
   {
-    label: <BlockTypeDropdownItemLabel icon={<QuoteIcon />} text="Quote" />,
+    label: (
+      <BlockTypeDropdownItemLabel
+        icon={<QuoteIcon height={18} width={18} />}
+        text="Quote"
+      />
+    ),
     value: 'quote',
   },
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<UnorderedList />}
+        icon={<UnorderedList height={18} width={18} />}
         text="Unordered List"
       />
     ),
@@ -413,14 +453,17 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   },
   {
     label: (
-      <BlockTypeDropdownItemLabel icon={<OrderedList />} text="Ordered List" />
+      <BlockTypeDropdownItemLabel
+        icon={<OrderedList height={18} width={18} />}
+        text="Ordered List"
+      />
     ),
     value: 'ol',
   },
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<ListCheckbox />}
+        icon={<ListCheckbox height={18} width={18} />}
         text="Checkbox List"
       />
     ),
@@ -428,12 +471,20 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   },
   {
     label: (
-      <BlockTypeDropdownItemLabel icon={<Paperclip />} text="Attachment" />
+      <BlockTypeDropdownItemLabel
+        icon={<Paperclip height={18} width={18} />}
+        text="Attachment"
+      />
     ),
     value: 'attachment',
   },
   {
-    label: <BlockTypeDropdownItemLabel icon={<Table />} text="Table" />,
+    label: (
+      <BlockTypeDropdownItemLabel
+        icon={<Table height={18} width={18} />}
+        text="Table"
+      />
+    ),
     value: 'table',
   },
 ];
@@ -441,7 +492,9 @@ export const blockTypesDropdownItems: DropdownItem[] = [
 export const listCommandData = [
   {
     block: 'ul',
-    icon: <UnorderedList className="will-change-transform" />,
+    icon: (
+      <UnorderedList height={18} width={18} className="will-change-transform" />
+    ),
     command: INSERT_UNORDERED_LIST_COMMAND,
     title: 'Unordered List',
     keywords: ['bullet', 'unordered', 'ul', 'list'],
@@ -449,7 +502,9 @@ export const listCommandData = [
   },
   {
     block: 'ol',
-    icon: <OrderedList className="will-change-transform" />,
+    icon: (
+      <OrderedList height={18} width={18} className="will-change-transform" />
+    ),
     command: INSERT_ORDERED_LIST_COMMAND,
     title: 'Ordered List',
     keywords: ['numbered', 'ordered', 'ol', 'list'],
@@ -457,7 +512,9 @@ export const listCommandData = [
   },
   {
     block: 'check',
-    icon: <ListCheckbox className="will-change-transform" />,
+    icon: (
+      <ListCheckbox height={18} width={18} className="will-change-transform" />
+    ),
     command: INSERT_CHECK_LIST_COMMAND,
     title: 'Check List',
     keywords: ['check', 'checkbox', 'todo', 'task', 'list'],
@@ -467,6 +524,6 @@ export const listCommandData = [
 
 export const attachmentCommandData = {
   block: 'attachment',
-  icon: <Paperclip />,
+  icon: <Paperclip height={18} width={18} />,
   command: INSERT_FILES_COMMAND,
 };
