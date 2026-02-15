@@ -159,6 +159,22 @@ func TestPopulateJobs(t *testing.T) {
 		receivedJobs := collectPopulateJobs(t, notesDir)
 		assert.Empty(t, receivedJobs)
 	})
+
+	t.Run("should skip hidden files and hidden folders", func(t *testing.T) {
+		_, notesDir := setupTempNotesDir(t)
+
+		writeFilesRelative(t, notesDir, map[string]string{
+			filepath.Join("folder1", "visible.md"):             "# Visible",
+			filepath.Join("folder1", ".hidden-file.md"):        "# Hidden file",
+			filepath.Join("folder1", ".hidden-dir", "deep.md"): "# In hidden dir",
+			filepath.Join(".hidden-top", "note.md"):            "# In hidden top-level folder",
+		})
+
+		receivedJobs := collectPopulateJobs(t, notesDir)
+
+		assert.Len(t, receivedJobs, 1)
+		assert.Equal(t, "visible.md", receivedJobs[0].fileName)
+	})
 }
 
 func TestStartWorker(t *testing.T) {

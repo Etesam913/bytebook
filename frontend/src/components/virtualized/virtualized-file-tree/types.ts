@@ -47,18 +47,6 @@ export type File = BaseFileOrFolder & {
 export type FileOrFolder = File | Folder;
 
 /**
- * Describes a page of file or folder results, including pagination info.
- */
-type FileOrFolderPage = {
-  /** The files or folders in this page. */
-  items: FileOrFolder[];
-  /** Cursor string for the next page (empty string if no more pages). */
-  nextCursor: string;
-  /** Whether more items are available after this page. */
-  hasMore: boolean;
-};
-
-/**
  * A flattened representation of a file or folder,
  * including its nesting level for use in virtualized rendering.
  */

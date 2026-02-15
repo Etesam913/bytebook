@@ -6,7 +6,7 @@ import {
 import { QueryError } from '../../../../utils/query';
 import { fileTreeDataAtom } from '..';
 import { FILE_TYPE, FOLDER_TYPE } from '../types';
-import { useAtom } from 'jotai';
+import { useSetAtom, useStore } from 'jotai';
 
 /**
  * Custom hook to manage opening a folder in the file tree.
@@ -18,11 +18,13 @@ import { useAtom } from 'jotai';
  * It sets folders as open (`isOpen: true`) upon retrieval and ensures their immediate children
  * are mapped in the atom. This keeps the file tree state consistent with user navigation.
  *
+ * @param options.pageSize - Number of children to fetch per request (default: 50).
  * @returns A mutation object for opening (expanding) a folder.
  */
-export function useOpenFolderMutation() {
-  const [{ treeData }, setFileTreeData] = useAtom(fileTreeDataAtom);
-  const PAGE_SIZE = 50;
+export function useOpenFolderMutation(options?: { pageSize?: number }) {
+  const store = useStore();
+  const setFileTreeData = useSetAtom(fileTreeDataAtom);
+  const pageSize = options?.pageSize ?? 300;
 
   // Opens a folder by its path and updates the file/folder map atom with its children.
   return useMutation({
@@ -35,6 +37,7 @@ export function useOpenFolderMutation() {
       folderId: string;
       isLoadMore?: boolean;
     }) => {
+      const { treeData } = store.get(fileTreeDataAtom);
       const folderData = treeData.get(folderId);
       if (!folderData || folderData.type !== FOLDER_TYPE) {
         throw new QueryError('Folder not found');
@@ -45,7 +48,7 @@ export function useOpenFolderMutation() {
         pathToFolder,
         folderId,
         cursorToUse,
-        PAGE_SIZE
+        pageSize
       );
       if (!res.success || (!res.data && res.message)) {
         throw new QueryError(res.message);
