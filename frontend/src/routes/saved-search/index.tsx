@@ -1,23 +1,122 @@
 import { type MotionValue, motion } from 'motion/react';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Spacer } from '../../components/file-sidebar/spacer.tsx';
-import { RenderNoteFallback } from '../../components/error-boundary/render-note.tsx';
+import { ArrowRotateAnticlockwise } from '../../icons/arrow-rotate-anticlockwise';
+import { FileBan } from '../../icons/file-ban';
 import { FileRefresh } from '../../icons/file-refresh.tsx';
 import { Loader } from '../../icons/loader.tsx';
 import { Magnifier } from '../../icons/magnifier.tsx';
+import { TriangleWarning } from '../../icons/triangle-warning';
 import { NoteSidebarButton } from '../notes-sidebar/sidebar-button/index.tsx';
-import { RenderNote } from '../notes-sidebar/render-note/index.tsx';
+import { NoteRenderer } from '../../components/note-renderer';
 import { VirtualizedList } from '../../components/virtualized/virtualized-list/index.tsx';
 import { useFullTextSearchQuery } from '../../hooks/search.tsx';
-import { LocalFilePath } from '../../utils/path.ts';
-import { navigate } from 'wouter/use-browser-location';
-import { routeBuilders } from '../../utils/routes.ts';
+import { useNoteExists } from '../../hooks/notes';
+import { createFilePath, type FilePath } from '../../utils/path.ts';
 import { isNoteMaximizedAtom } from '../../atoms.ts';
 import { useAtomValue } from 'jotai';
 import { useSearchParamsEntries } from '../../utils/routing.ts';
 import { Tooltip } from '../../components/tooltip/index.tsx';
 import { ErrorText } from '../../components/error-text/index.tsx';
+import { RouteFallback } from '../../components/route-fallback';
+import { MotionButton } from '../../components/buttons';
+import { getDefaultButtonVariants } from '../../animations';
+
+function NoteRenderErrorFallback({
+  error,
+  errorInfo,
+  resetErrorBoundary,
+  filePath,
+}: {
+  error: Error;
+  errorInfo?: { componentStack: string };
+  resetErrorBoundary: () => void;
+  filePath: FilePath;
+}) {
+  return (
+    <div className="h-screen flex flex-col items-center justify-center gap-4 text-center p-6 mx-auto">
+      <div className="flex flex-col items-center gap-3">
+        <TriangleWarning className="w-12 h-12 text-amber-500" />
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold">Something went wrong</h2>
+          <p className="text-balance text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
+            Failed to render note: <b>{filePath.fullPath}</b>. This might be due
+            to a temporary issue or corrupted content.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <MotionButton
+          {...getDefaultButtonVariants()}
+          onClick={resetErrorBoundary}
+          className="flex items-center gap-2 px-4 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded-md max-w-xs mx-auto justify-center"
+        >
+          <ArrowRotateAnticlockwise className="w-4 h-4" />
+          Try Again
+        </MotionButton>
+
+        <details className="text-center max-w-md mx-auto">
+          <summary className="cursor-pointer text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 list-none">
+            Error Details
+          </summary>
+          <div className="mt-2 h-96 w-full bg-zinc-100 dark:bg-zinc-800 rounded p-3 overflow-auto">
+            <div className="text-xs text-left space-y-2 select-text">
+              <div>
+                <strong>Error Message:</strong>
+                <pre className="whitespace-pre-wrap mt-1">{error.message}</pre>
+              </div>
+              {error.stack && (
+                <div>
+                  <strong>Stack Trace:</strong>
+                  <pre className="whitespace-pre-wrap mt-1 text-xs opacity-75">
+                    {error.stack}
+                  </pre>
+                </div>
+              )}
+              {errorInfo?.componentStack && (
+                <div>
+                  <strong>Component Stack:</strong>
+                  <pre className="whitespace-pre-wrap mt-1 text-xs opacity-75">
+                    {errorInfo.componentStack}
+                  </pre>
+                </div>
+              )}
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  );
+}
+
+function SavedSearchNoteContent({ filePath }: { filePath: FilePath }) {
+  const { data: noteExists, isLoading, error } = useNoteExists(filePath);
+
+  if (isLoading) {
+    return <RouteFallback height={42} width={42} className="mx-auto my-auto" />;
+  }
+
+  if (!noteExists || error) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center gap-4 text-center p-6 mx-auto">
+        <div className="flex flex-col items-center gap-3">
+          <FileBan width={48} height={48} />
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold">Note not found</h2>
+            <p className="text-balance text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
+              The note <b>{filePath.fullPath}</b> does not exist or could not be
+              loaded.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <NoteRenderer filePath={filePath} />;
+}
 
 export function SavedSearchPage({
   searchQuery,
@@ -38,7 +137,8 @@ export function SavedSearchPage({
     isLoading,
   } = useFullTextSearchQuery(searchQuery);
 
-  const resultCount = groupedResults.notes.length + groupedResults.attachments.length;
+  const resultCount =
+    groupedResults.notes.length + groupedResults.attachments.length;
 
   const searchParams: { ext?: string } = useSearchParamsEntries();
   const curNoteExtension = searchParams?.ext;
@@ -49,32 +149,9 @@ export function SavedSearchPage({
   // Convert folder and note strings to FilePath
   const activeNotePath =
     curFolder && curNote && curNoteExtension
-      ? new LocalFilePath({
-          folder: curFolder,
-          note: `${curNote}.${curNoteExtension}`,
-        })
+      ? (createFilePath(`${curFolder}/${curNote}.${curNoteExtension}`) ??
+        undefined)
       : undefined;
-
-  // Auto navigate to the first result
-  useEffect(() => {
-    if (isSuccess && resultCount > 0) {
-      let firstFilePath: LocalFilePath | undefined;
-      if (groupedResults.notes.length > 0) {
-        firstFilePath = groupedResults.notes[0].filePath;
-      } else if (groupedResults.attachments.length > 0) {
-        firstFilePath = groupedResults.attachments[0].filePath;
-      }
-
-      if (firstFilePath) {
-        navigate(
-          `${routeBuilders.savedSearch(searchQuery)}${firstFilePath.getLinkToNoteWithoutNotesPrefix()}`,
-          {
-            replace: true,
-          }
-        );
-      }
-    }
-  }, [isSuccess, resultCount, groupedResults, searchQuery]);
 
   return (
     <>
@@ -134,7 +211,7 @@ export function SavedSearchPage({
                       <Loader width={20} height={20} className="mx-auto my-3" />
                     </motion.div>
                   ) : (
-                    <VirtualizedList<LocalFilePath>
+                    <VirtualizedList<FilePath>
                       contentType="note"
                       key="saved-search-sidebar"
                       layoutId="saved-search-sidebar"
@@ -152,7 +229,7 @@ export function SavedSearchPage({
                       dataItemToString={(filePath) =>
                         filePath.noteWithoutExtension
                       }
-                      dataItemToKey={(filePath) => filePath.toString()}
+                      dataItemToKey={(filePath) => filePath.fullPath}
                       isItemActive={(filePath) =>
                         activeNotePath ? filePath.equals(activeNotePath) : false
                       }
@@ -175,14 +252,17 @@ export function SavedSearchPage({
         </motion.aside>
       )}
       {width && <Spacer width={width} />}
-      {curFolder && curNote && curNoteExtension && (
+      {curFolder && curNote && curNoteExtension && activeNotePath && (
         <ErrorBoundary
           key={`${curFolder}-${curNote}-${curNoteExtension}`}
           FallbackComponent={(fallbackProps) => (
-            <RenderNoteFallback {...fallbackProps} />
+            <NoteRenderErrorFallback
+              {...fallbackProps}
+              filePath={activeNotePath}
+            />
           )}
         >
-          <RenderNote />
+          <SavedSearchNoteContent filePath={activeNotePath} />
         </ErrorBoundary>
       )}
     </>

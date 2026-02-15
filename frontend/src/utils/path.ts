@@ -34,6 +34,7 @@ export interface FilePath {
   extension: string;
   noteWithoutExtension: string;
   fileUrl: string;
+  encodedPath: string;
   encodedFileUrl: string;
   equals(other: FilePath): boolean;
 }
@@ -65,12 +66,17 @@ export function createFilePath(filePath: string): FilePath | null {
   const lastDotIndex = note.lastIndexOf('.');
   const noteWithoutExtension =
     lastDotIndex === -1 ? note : note.substring(0, lastDotIndex);
+  const encodedPath = normalizedPath
+    .split('/')
+    .map(encodeURIComponent)
+    .join('/');
 
   return {
     type: 'file',
     fullPath: normalizedPath,
     fileUrl: `/notes/${normalizedPath}`,
-    encodedFileUrl: `/notes/${normalizedPath.split('/').map(encodeURIComponent).join('/')}`,
+    encodedPath,
+    encodedFileUrl: `/notes/${encodedPath}`,
     folder,
     note,
     extension,

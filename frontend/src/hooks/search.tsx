@@ -17,7 +17,7 @@ import {
 import { useWailsEvent } from '../hooks/events';
 import { isEventInCurrentWindow } from '../utils/events';
 import { useEffect, useRef } from 'react';
-import { LocalFilePath } from '../utils/path';
+import { createFilePath, type FilePath } from '../utils/path';
 import { HighlightResult } from '../../bindings/github.com/etesam913/bytebook/internal/search/models';
 import { routeUrls } from '../utils/routes';
 import { toast } from 'sonner';
@@ -41,7 +41,7 @@ export type GroupedSearchResults = {
  */
 type NoteSearchResult = {
   /** The path of the note file */
-  filePath: LocalFilePath;
+  filePath: FilePath;
   /** List of tags associated with the note */
   tags: string[];
   /** Last updated timestamp (ISO string) */
@@ -59,7 +59,7 @@ type NoteSearchResult = {
  */
 type AttachmentSearchResult = {
   /** The path of the attachment file */
-  filePath: LocalFilePath;
+  filePath: FilePath;
   /** List of tags associated with the attachment */
   tags: string[];
 };
@@ -76,11 +76,10 @@ const searchQueries = {
         const attachments: Array<AttachmentSearchResult> = [];
 
         data.forEach((result) => {
+          const filePath = createFilePath(`${result.folder}/${result.note}`);
+          if (!filePath) return;
+
           if (result.type === 'note') {
-            const filePath = new LocalFilePath({
-              folder: result.folder,
-              note: result.note,
-            });
             notes.push({
               filePath,
               tags: result.tags ?? [],
@@ -90,10 +89,6 @@ const searchQueries = {
               codeContent: result.codeContent ?? [],
             });
           } else if (result.type === 'attachment') {
-            const filePath = new LocalFilePath({
-              folder: result.folder,
-              note: result.note,
-            });
             attachments.push({
               filePath,
               tags: result.tags ?? [],

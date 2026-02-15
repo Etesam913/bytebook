@@ -35,9 +35,9 @@ export function dataItemToKey(row: SearchRow): string {
     case 'header':
       return `header-${row.title}`;
     case 'note':
-      return `note-${row.data.filePath.toString()}`;
+      return `note-${row.data.filePath.fullPath}`;
     case 'attachment':
-      return `attachment-${row.data.filePath.toString()}`;
+      return `attachment-${row.data.filePath.fullPath}`;
   }
 }
 

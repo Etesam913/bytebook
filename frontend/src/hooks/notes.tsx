@@ -482,12 +482,16 @@ export function useNoteWriteEvent({
  * @param fileExtension - The file extension of the note
  * @returns Query result indicating if the note exists
  */
-export function useNoteExists(filePath: LocalFilePath) {
+export function useNoteExists(
+  filePath: FilePath | LocalFilePath
+) {
+  const extension =
+    'extension' in filePath ? filePath.extension : filePath.noteExtension;
   return useQuery({
     ...noteQueries.doesNoteExist(
       filePath.folder,
       filePath.noteWithoutExtension,
-      filePath.noteExtension
+      extension
     ),
     enabled: !!filePath.noteWithoutExtension,
   });

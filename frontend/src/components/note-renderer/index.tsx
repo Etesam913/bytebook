@@ -41,7 +41,7 @@ export function NoteRenderer({ filePath }: { filePath: FilePath }) {
   if (isVideo) {
     return (
       <motion.div
-        className="w-full h-full flex-1 flex flex-col"
+        className="w-full h-auto flex flex-col"
         animate={animationControls}
       >
         <NonMarkdownToolbar

@@ -1,12 +1,12 @@
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
-import { LocalFilePath } from '../../../utils/path';
+import { type FilePath } from '../../../utils/path';
 
 export function ListNoteSidebarItem({
   sidebarNotePath,
   activeNotePath,
 }: {
-  sidebarNotePath: LocalFilePath;
-  activeNotePath: LocalFilePath | undefined;
+  sidebarNotePath: FilePath;
+  activeNotePath: FilePath | undefined;
 }) {
   return (
     <>
@@ -18,12 +18,6 @@ export function ListNoteSidebarItem({
         <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
           {sidebarNotePath.noteWithoutExtension}
         </span>
-
-        {/* 
-        // TODO: Add a setting to enable this 
-        <span className="shrink-0 px-1 py-0.5 outline-2 rounded-md outline-zinc-300 dark:outline-zinc-650 bg-zinc-700 text-xs flex items-center h-fit my-auto">
-          {sidebarNotePath.noteExtension}
-        </span> */}
       </p>
     </>
   );

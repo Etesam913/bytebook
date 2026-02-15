@@ -169,7 +169,7 @@ textarea,
 }
 
 .list-sidebar-item {
-  @apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden ;
+  @apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden hover:bg-zinc-100 dark:hover:bg-zinc-600;
 }
 .list-sidebar-item:focus {
   outline: 2px auto;
