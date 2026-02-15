@@ -8,10 +8,9 @@ import {
   SetTagsOnNotes,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 import { QueryError } from '../utils/query';
-import { useAtomValue } from 'jotai';
-import { currentFilePathAtom } from '../atoms';
 import { Dispatch, FormEvent, SetStateAction } from 'react';
 import { getFilePathFromNoteSelectionRange } from '../utils/selection';
+import { useFilePathFromRoute } from './routes';
 
 /**
  * Handles the `tags-folder:create`, "tags-folder:delete", and "tags:update" events.
@@ -19,19 +18,15 @@ import { getFilePathFromNoteSelectionRange } from '../utils/selection';
 
 export function useTagEvents() {
   const queryClient = useQueryClient();
-  const filePath = useAtomValue(currentFilePathAtom);
+  const filePath = useFilePathFromRoute();
 
   useWailsEvent('tags:index_update', () => {
     logger.event('tags:index_update');
-    // Invalidate the tag previews for each tag
-    queryClient.invalidateQueries({
-      predicate: (query) => query.queryKey[0] === 'tag-preview',
-    });
 
     queryClient.invalidateQueries({ queryKey: ['get-tags'] });
     if (filePath) {
       queryClient.invalidateQueries({
-        queryKey: ['notes-tags', [filePath.toString()]],
+        queryKey: ['notes-tags', [filePath.fullPath]],
       });
     }
   });
@@ -59,14 +54,14 @@ export function useTagsQuery() {
 
 /**
  *
- * @param folderAndNotesWithExtensions - An array of folder and note paths with .ext at the end
+ * @param paths - An array of folder and note paths with .ext at the end
  * @returns A result map containing a map of note paths to their tags
  */
-export function useTagsForNotesQuery(folderAndNotesWithExtensions: string[]) {
+export function useTagsForNotesQuery(paths: string[]) {
   return useQuery({
-    queryKey: ['notes-tags', folderAndNotesWithExtensions],
+    queryKey: ['notes-tags', paths],
     queryFn: async (): Promise<Record<string, string[]>> => {
-      const res = await GetTagsForNotes(folderAndNotesWithExtensions);
+      const res = await GetTagsForNotes(paths);
       if (!res.success) {
         throw new QueryError(res.message);
       }

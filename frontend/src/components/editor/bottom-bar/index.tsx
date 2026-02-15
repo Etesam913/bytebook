@@ -39,7 +39,7 @@ export function BottomBar({
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 
   const { data: tagsMap, isLoading } = useTagsForNotesQuery([
-    filePath.toString(),
+    filePath.fullPath,
   ]);
   const { mutateAsync: editTags } = useEditTagsFormMutation();
   // const { mutateAsync: deleteTagFromNote } = useDeleteTagFromNoteMutation(filePath);

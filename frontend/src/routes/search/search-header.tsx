@@ -57,11 +57,11 @@ export function SearchHeader({
       if (selectedIndex < notesCount) {
         // Selected item is a note
         const note = groupedResults.notes[selectedIndex];
-        let href = buildSearchFileHrefFromPath(note.filePath.toString());
+        let href = buildSearchFileHrefFromPath(note.filePath.fullPath);
         const firstHighlightedTerm = note.highlights[0]?.highlightedTerm;
 
         if (firstHighlightedTerm) {
-          href = buildSearchFileHrefFromPath(note.filePath.toString(), {
+          href = buildSearchFileHrefFromPath(note.filePath.fullPath, {
             highlight: firstHighlightedTerm,
           });
         }
@@ -71,9 +71,7 @@ export function SearchHeader({
         // Selected item is an attachment
         const attachment =
           groupedResults.attachments[selectedIndex - notesCount];
-        const href = buildSearchFileHrefFromPath(
-          attachment.filePath.toString()
-        );
+        const href = buildSearchFileHrefFromPath(attachment.filePath.fullPath);
         setLocation(href);
       }
     }

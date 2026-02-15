@@ -109,11 +109,11 @@ export function SearchResultNote({
 }) {
   const { filePath, tags, lastUpdated, created, highlights, codeContent } =
     data;
-  let pathToNote = buildSearchFileHrefFromPath(filePath.toString());
+  let pathToNote = buildSearchFileHrefFromPath(filePath.fullPath);
   const firstHighlightedTerm = highlights[0]?.highlightedTerm;
 
   if (firstHighlightedTerm) {
-    pathToNote = buildSearchFileHrefFromPath(filePath.toString(), {
+    pathToNote = buildSearchFileHrefFromPath(filePath.fullPath, {
       highlight: firstHighlightedTerm,
     });
   }
@@ -126,7 +126,7 @@ export function SearchResultNote({
       resultIndex={resultIndex}
       selectedIndex={selectedIndex}
       onRef={onRef}
-      pathDisplay={filePath.toString()}
+      pathDisplay={filePath.fullPath}
     >
       <SearchHighlights highlights={highlights} />
       {codeContent.length > 0 && (
@@ -138,7 +138,7 @@ export function SearchResultNote({
         <div className="flex flex-wrap gap-1 mt-1 text-xs">
           {tags.map((tagName, tagIdx) => (
             <Tag
-              key={`${filePath.toString()}-${tagIdx}`}
+              key={`${filePath.fullPath}-${tagIdx}`}
               tagName={tagName}
               className="group-hover:bg-zinc-150 dark:group-hover:bg-zinc-600"
             />
@@ -173,7 +173,7 @@ export function SearchResultAttachment({
   onRef: (el: HTMLAnchorElement | null) => void;
 }) {
   const { filePath, tags } = data;
-  const pathToNote = buildSearchFileHrefFromPath(filePath.toString());
+  const pathToNote = buildSearchFileHrefFromPath(filePath.fullPath);
 
   return (
     <SearchResultItem
@@ -183,13 +183,13 @@ export function SearchResultAttachment({
       resultIndex={resultIndex}
       selectedIndex={selectedIndex}
       onRef={onRef}
-      pathDisplay={filePath.toString()}
+      pathDisplay={filePath.fullPath}
     >
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-1 text-xs">
           {tags.map((tagName, tagIdx) => (
             <Tag
-              key={`${filePath.toString()}-${tagIdx}`}
+              key={`${filePath.fullPath}-${tagIdx}`}
               tagName={tagName}
               className="group-hover:bg-zinc-200 dark:group-hover:bg-zinc-600"
             />

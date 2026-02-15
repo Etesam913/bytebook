@@ -90,6 +90,23 @@ function App() {
       </Activity>
       <Switch>
         <Route path={routeUrls.patterns.ROOT} />
+        <Route path={routeUrls.patterns.SAVED_SEARCH}>
+          {(params: SavedSearchRouteParams) => (
+            <Suspense fallback={<RouteFallback />}>
+              <SavedSearchPage
+                searchQuery={decodeURIComponent(params.searchQuery)}
+                curFolder={
+                  params.folder ? decodeURIComponent(params.folder) : undefined
+                }
+                curNote={
+                  params.note ? decodeURIComponent(params.note) : undefined
+                }
+                width={notesSidebarWidth}
+              />
+            </Suspense>
+          )}
+        </Route>
+
         <Route path="/notes/*">
           <EditorWrapper />
         </Route>
@@ -110,23 +127,6 @@ function App() {
           <Suspense fallback={<RouteFallback />}>
             <SearchPage />
           </Suspense>
-        </Route>
-
-        <Route path={routeUrls.patterns.SAVED_SEARCH}>
-          {(params: SavedSearchRouteParams) => (
-            <Suspense fallback={<RouteFallback />}>
-              <SavedSearchPage
-                searchQuery={decodeURIComponent(params.searchQuery)}
-                curFolder={
-                  params.folder ? decodeURIComponent(params.folder) : undefined
-                }
-                curNote={
-                  params.note ? decodeURIComponent(params.note) : undefined
-                }
-                width={notesSidebarWidth}
-              />
-            </Suspense>
-          )}
         </Route>
 
         <Route path={'*'}>

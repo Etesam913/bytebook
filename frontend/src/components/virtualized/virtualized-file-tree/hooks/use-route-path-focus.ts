@@ -1,9 +1,9 @@
-import { RefObject, useEffect, useRef, useState } from 'react';
+import { RefObject, useEffect } from 'react';
 import type { ListRange, VirtuosoHandle } from 'react-virtuoso';
 import { FILE_TYPE, FOLDER_TYPE, type VirtualizedFileTreeItem } from '../types';
 import { fileTreeDataAtom } from '..';
 import { useRevealRoutePath } from './use-reveal-route-path';
-import { useAtomValue, useStore } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { useFilePathFromRoute } from '../../../../hooks/routes';
 
 /**
