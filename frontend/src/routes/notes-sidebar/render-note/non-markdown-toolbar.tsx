@@ -50,7 +50,7 @@ export function NonMarkdownToolbar({
       value: isPinned ? 'unpin-note' : 'pin-note',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <PinTack2 className="min-w-4" height={16} width={16} />{' '}
+          <PinTack2 className="min-w-4.5" height={18} width={18} />{' '}
           {isPinned ? 'Unpin Note' : 'Pin Note'}
         </span>
       ),
@@ -59,7 +59,8 @@ export function NonMarkdownToolbar({
       value: 'reveal-in-finder',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <Finder className="min-w-4" height={16} width={16} /> Reveal In Finder
+          <Finder className="min-w-4.5" height={18} width={18} /> Reveal In
+          Finder
         </span>
       ),
     },
@@ -67,7 +68,7 @@ export function NonMarkdownToolbar({
       value: 'move-to-trash',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <Trash className="min-w-4" height={16} width={16} /> Move to Trash
+          <Trash className="min-w-4.5" height={18} width={18} /> Move to Trash
         </span>
       ),
     },
@@ -76,7 +77,7 @@ export function NonMarkdownToolbar({
   return (
     <header
       className={cn(
-        'flex items-center gap-1.5 border-b pr-2 pb-1 pt-2.5 h-12 border-zinc-200 dark:border-b-zinc-700 whitespace-nowrap pl-3 text-sm',
+        'flex items-center gap-1.5 border-b pr-2 pb-2 pt-3.75 h-12 border-zinc-200 dark:border-b-zinc-700 whitespace-nowrap pl-3 text-sm',
         isNoteMaximized && !isFullscreen && 'pl-23! w-full'
       )}
       style={

@@ -127,7 +127,7 @@ export function NotesEditor({
               scrollbarGutter: 'stable',
             }}
             className={cn(
-              'py-6 px-12 flex flex-col w-full min-w-96 flex-1',
+              'py-6 px-12 flex flex-col w-full min-w-72 flex-1',
               projectSettings.appearance.noteWidth === 'readability' &&
                 !isNoteMaximized &&
                 'max-w-[900px] mx-auto'
@@ -213,12 +213,8 @@ export function NotesEditor({
               <LinkMatcherPlugin />
             </div>
           </div>
-          <BottomBar
-            frontmatter={frontmatter}
-            filePath={filePath}
-            isNoteEditor
-          />
         </div>
+        <BottomBar frontmatter={frontmatter} filePath={filePath} isNoteEditor />
       </div>
     </LexicalComposer>
   );

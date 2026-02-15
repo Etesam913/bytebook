@@ -48,7 +48,7 @@ export function SettingsDropdown({
       value: isPinned ? 'unpin-note' : 'pin-note',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <PinTack2 className="min-w-5" />{' '}
+          <PinTack2 className="min-w-5" height={18} width={18} />{' '}
           {isPinned ? 'Unpin Note' : 'Pin Note'}
         </span>
       ),
@@ -58,7 +58,7 @@ export function SettingsDropdown({
       value: 'reveal-in-finder',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <Finder className="min-w-5" height={20} width={20} /> Reveal In Finder
+          <Finder className="min-w-5" height={18} width={18} /> Reveal In Finder
         </span>
       ),
     },
@@ -69,7 +69,7 @@ export function SettingsDropdown({
           : 'show-table-of-contents',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <Table className="min-w-5" />{' '}
+          <Table className="min-w-5" height={18} width={18} />{' '}
           {frontmatter.showTableOfContents === 'true'
             ? 'Hide Table of Contents'
             : 'Show Table of Contents'}
@@ -80,7 +80,7 @@ export function SettingsDropdown({
       value: 'move-to-trash',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <Trash className="min-w-5" /> Move to Trash
+          <Trash className="min-w-5" height={18} width={18} /> Move to Trash
         </span>
       ),
     },
@@ -92,7 +92,7 @@ export function SettingsDropdown({
       isOpen={isOpen}
       setIsOpen={setIsOpen}
       className="ml-auto flex flex-col"
-      dropdownClassName="w-60 right-4 top-12"
+      dropdownClassName="w-52 right-4 top-12"
       onChange={async (item) => {
         switch (item.value) {
           case 'pin-note':
