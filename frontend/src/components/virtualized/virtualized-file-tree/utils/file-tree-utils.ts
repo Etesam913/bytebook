@@ -398,3 +398,29 @@ export function getTreeNodeFromPath(
   }
   return treeData.get(treeDataId) ?? null;
 }
+
+/**
+ * Returns folder paths from shallowest to deepest for a file path.
+ * Example: "a/b/c.md" -> ["a", "a/b"]
+ */
+export function getAncestorFolderPathsFromFilePath(filePath: string): string[] {
+  const normalized = filePath.split('/').filter(Boolean);
+  if (normalized.length <= 1) {
+    return [];
+  }
+
+  const folderSegments = normalized.slice(0, -1);
+  return folderSegments.map((_, index) =>
+    folderSegments.slice(0, index + 1).join('/')
+  );
+}
+
+/**
+ * Returns true when a path exists in the path->id index.
+ */
+export function pathExistsInFileTree(
+  fileTreeData: FileTreeData,
+  path: string
+): boolean {
+  return fileTreeData.filePathToTreeDataId.has(path);
+}

@@ -128,11 +128,24 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 			continue
 		}
 
+		// Skip hidden top-level folders
+		if strings.HasPrefix(folder.Name(), ".") {
+			continue
+		}
+
 		rootFolderName := folder.Name()
 		rootFolderPath := filepath.Join(notesPath, rootFolderName)
 		if err := filepath.WalkDir(rootFolderPath, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
+			}
+
+			// Skip hidden files and directories (names starting with '.')
+			if strings.HasPrefix(d.Name(), ".") {
+				if d.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
 			}
 
 			if d.IsDir() {

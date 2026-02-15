@@ -1,12 +1,11 @@
 import {
+  QueryClient,
   queryOptions,
   useQuery,
   useQueryClient,
-  QueryClient,
 } from '@tanstack/react-query';
 import { logger } from '../utils/logging';
 import { useAtom, useSetAtom } from 'jotai';
-import { GetFolders } from '../../bindings/github.com/etesam913/bytebook/internal/services/folderservice';
 import { fileTreeDataAtom } from '../components/virtualized/virtualized-file-tree';
 import {
   addFolderToFileTreeMap,
@@ -18,13 +17,14 @@ import {
   applyPathRemappings,
   buildRenameUpdates,
 } from '../components/virtualized/virtualized-file-tree/utils/rename-item';
-import { QueryError } from '../utils/query';
 import { useWailsEvent } from './events';
 import { OpenFolderAndAddToFileWatcher } from '../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { navigate } from 'wouter/use-browser-location';
 import { createFilePath, createFolderPath } from '../utils/path';
 import { routeUrls } from '../utils/routes';
 import { useFilePathFromRoute, useCurrentNotesRouteFolderPath } from './routes';
+import { GetFolders } from '../../bindings/github.com/etesam913/bytebook/internal/services/folderservice';
+import { QueryError } from '../utils/query';
 
 type FoldersQueryData = {
   alphabetizedFolders: string[];

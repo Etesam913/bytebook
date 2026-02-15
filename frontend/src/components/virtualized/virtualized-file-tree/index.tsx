@@ -11,13 +11,13 @@ import {
   FileOrFolder,
   type VirtualizedFileTreeItem,
 } from './types';
-import { atomWithLogging } from '../../../atoms';
+import { atomWithLogging, sidebarSelectionAtom } from '../../../atoms';
 import { useOnClickOutside } from '../../../hooks/general';
 import {
   handleFileTreeItemClickCapture,
   handleFileTreeKeyDown,
 } from './utils/file-tree-navigation';
-import { sidebarSelectionAtom } from '../../../atoms';
+import { useRoutePathFocus } from './hooks/use-route-path-focus';
 
 export type FileTreeData = {
   treeData: Map<string, FileOrFolder>;
@@ -33,11 +33,19 @@ export const fileTreeDataAtom = atomWithLogging<FileTreeData>(
 );
 
 const FILE_TREE_MAX_HEIGHT = '65vh';
+const INITIAL_VISIBLE_RANGE = { startIndex: 0, endIndex: -1 };
+const CREATE_FOLDER_ITEM: CreateFolderItem = {
+  id: 'create-folder',
+  type: CREATE_FOLDER_TYPE,
+  level: 0,
+};
 
 export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
-  const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
+  const fileTreeData = useAtomValue(fileTreeDataAtom);
+  const { treeData: fileOrFolderMap } = fileTreeData;
   const internalListRef = useRef<HTMLElement | null>(null);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const visibleElementsRef = useRef(INITIAL_VISIBLE_RANGE);
   const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
 
   // This only runs on component mount and when folder/note events are received
@@ -46,12 +54,7 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
     topLevelFileOrFolders ?? [],
     fileOrFolderMap
   );
-  const createFolderItem: CreateFolderItem = {
-    id: 'create-folder',
-    type: CREATE_FOLDER_TYPE,
-    level: 0,
-  };
-  const virtualizedData = [createFolderItem, ...flattenedTopLevelData];
+  const virtualizedData = [CREATE_FOLDER_ITEM, ...flattenedTopLevelData];
 
   const { scope, isReady, handleHeightChange, totalHeight } = useAnimatedHeight(
     {
@@ -74,6 +77,11 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
     internalListRef.current = element;
   }
 
+  useRoutePathFocus({ visibleElementsRef, virtualizedData, virtuosoRef });
+
+  /**
+   * Renders a row wrapper used by tree navigation and delegates row content.
+   */
   function renderItem(index: number, dataItem: VirtualizedFileTreeItem) {
     return (
       <div
@@ -114,8 +122,10 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
       <Virtuoso
         ref={virtuosoRef}
         data={virtualizedData}
+        rangeChanged={(range) => (visibleElementsRef.current = range)}
         className="scrollbar-hidden"
         scrollerRef={handleScrollerRef}
+        overscan={1000}
         computeItemKey={(_, item) => item.id}
         style={{
           overscrollBehavior: 'none',
