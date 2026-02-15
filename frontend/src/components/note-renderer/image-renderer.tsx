@@ -13,7 +13,9 @@ export function ImageRenderer({ filePath }: { filePath: FilePath }) {
         <RouteFallback height={42} width={42} className="mx-auto my-auto" />
       )}
       {isError ? (
-        <ErrorLoading />
+        <span className="w-full text-center">
+          <ErrorLoading />
+        </span>
       ) : (
         <img
           className="w-full h-full object-contain"

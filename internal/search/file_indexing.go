@@ -67,9 +67,6 @@ func IndexAllFiles(projectPath string, bleveIndex bleve.Index) error {
 		log.Printf("Error when adding results to index: %v", err)
 		return err
 	}
-	for _, folder := range folders {
-		AddFolderToBatch(bleveBatch, bleveIndex, folder.Name())
-	}
 
 	// Flush any remaining documents in the batch
 	if err := bleveIndex.Batch(bleveBatch); err != nil {

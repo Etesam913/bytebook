@@ -49,12 +49,14 @@ func TestCreateFilenameQuery(t *testing.T) {
 		{
 			name:     "empty input",
 			input:    "",
-			wantType: &query.TermQuery{},
+			wantType: &query.DisjunctionQuery{},
+			wantLen:  2,
 		},
 		{
 			name:     "whitespace only",
 			input:    "   ",
-			wantType: &query.TermQuery{},
+			wantType: &query.DisjunctionQuery{},
+			wantLen:  2,
 		},
 		{
 			name:     "single term",
@@ -106,10 +108,6 @@ func TestCreateFilenameQuery(t *testing.T) {
 			assert.IsType(t, tt.wantType, q)
 
 			switch v := q.(type) {
-			case *query.TermQuery:
-				// For empty/whitespace input, verify it's a TermQuery for folder type
-				assert.Equal(t, FieldType, v.FieldVal)
-				assert.Equal(t, FOLDER_TYPE, v.Term)
 			case *query.DisjunctionQuery:
 				assert.Equal(t, tt.wantLen, len(v.Disjuncts))
 			case *query.ConjunctionQuery:

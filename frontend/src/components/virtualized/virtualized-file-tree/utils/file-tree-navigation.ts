@@ -4,6 +4,7 @@ import { LOAD_MORE_TYPE, type VirtualizedFileTreeItem } from '../types';
 
 type FocusOptions = {
   shouldScroll?: boolean;
+  direction?: 1 | -1;
 };
 
 type FileTreeNavigationContext = {
@@ -43,20 +44,13 @@ function getItemWrapper(context: FileTreeNavigationContext, index: number) {
 }
 
 /**
- * Scrolls the virtualized list to bring the item at the specified index into view.
- */
-function scrollToIndex(context: FileTreeNavigationContext, index: number) {
-  context.virtuosoRef.current?.scrollToIndex({ index });
-}
-
-/**
  * Focuses the button element within a file tree item at the specified index.
  * If the item is not currently rendered, it will scroll to it first and then focus after a brief delay.
  */
 function focusItemAtIndex(
   context: FileTreeNavigationContext,
   index: number,
-  { shouldScroll = true }: FocusOptions = {}
+  { shouldScroll = true, direction }: FocusOptions = {}
 ) {
   if (index < 0 || index >= context.virtualizedData.length) return;
 
@@ -68,14 +62,28 @@ function focusItemAtIndex(
   }
 
   if (shouldScroll) {
-    scrollToIndex(context, index);
+    context.virtuosoRef.current?.scrollIntoView({
+      index,
+      // Keep down-arrow progression near the bottom edge and up-arrow near top,
+      // instead of snapping every newly rendered row to the viewport top.
+      align: direction === 1 ? 'end' : direction === -1 ? 'start' : 'start',
+    });
   }
 
-  setTimeout(() => {
+  const attemptFocusAfterRender = (attempt: number) => {
     const wrapper = getItemWrapper(context, index);
     const focusTarget = wrapper?.querySelector<HTMLElement>('button');
-    focusTarget?.focus();
-  }, 0);
+    if (focusTarget) {
+      focusTarget.focus();
+    }
+
+    // Retry only while virtualization is still rendering the target row.
+    if (!focusTarget && attempt < 6) {
+      requestAnimationFrame(() => attemptFocusAfterRender(attempt + 1));
+    }
+  };
+
+  requestAnimationFrame(() => attemptFocusAfterRender(1));
 }
 
 /**
@@ -132,7 +140,7 @@ export function handleFileTreeKeyDown(
       direction
     );
     if (nextIndex === null) return;
-    focusItemAtIndex(context, nextIndex);
+    focusItemAtIndex(context, nextIndex, { direction });
     return;
   }
 

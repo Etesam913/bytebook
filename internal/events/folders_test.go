@@ -1,6 +1,8 @@
 package events
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/blevesearch/bleve/v2"
@@ -30,98 +32,89 @@ func createTestParams(t *testing.T) EventParams {
 	}
 }
 
+func createMarkdownNoteInFolder(t *testing.T, projectPath, folderPath, fileName, content string) {
+	fullFolderPath := filepath.Join(projectPath, "notes", folderPath)
+	require.NoError(t, os.MkdirAll(fullFolderPath, 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(fullFolderPath, fileName), []byte(content), 0644))
+}
+
 func TestAddFoldersToIndex(t *testing.T) {
-	t.Run("should add multiple folders to the index", func(t *testing.T) {
+	t.Run("should index files from created folders", func(t *testing.T) {
 		params := createTestParams(t)
+		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
+		createMarkdownNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
+
 		data := []map[string]string{
 			{"folderPath": "folder1"},
 			{"folderPath": "folder2"},
-			{"folderPath": "folder3"},
 		}
 
 		addFoldersToIndex(params, data)
 
-		// Verify all folders were indexed
-		for _, folderData := range data {
-			doc, err := (*params.Index).Document(folderData["folderPath"])
-			assert.NoError(t, err)
-			assert.NotNil(t, doc, "folder %s should be indexed", folderData["folderPath"])
-		}
-	})
-
-	t.Run("should skip invalid entries and handle special characters", func(t *testing.T) {
-		params := createTestParams(t)
-		data := []map[string]string{{"folderPath": "f.1"}, {"bad": "v"}}
-		addFoldersToIndex(params, data)
-
-		doc, _ := (*params.Index).Document("f.1")
+		doc, err := (*params.Index).Document(filepath.Join("folder1", "one.md"))
+		assert.NoError(t, err)
 		assert.NotNil(t, doc)
 
-		doc, _ = (*params.Index).Document("v")
-		assert.Nil(t, doc)
+		doc, err = (*params.Index).Document(filepath.Join("folder2", "two.md"))
+		assert.NoError(t, err)
+		assert.NotNil(t, doc)
+	})
+
+	t.Run("should skip invalid entries", func(t *testing.T) {
+		params := createTestParams(t)
+		createMarkdownNoteInFolder(t, params.ProjectPath, "f.1", "note.md", "# note")
+		data := []map[string]string{
+			{"folderPath": "f.1"},
+			{"bad": "v"},
+			{"folderPath": ""},
+		}
+		addFoldersToIndex(params, data)
+
+		doc, _ := (*params.Index).Document(filepath.Join("f.1", "note.md"))
+		assert.NotNil(t, doc)
 	})
 }
 
 func TestDeleteFoldersFromIndex(t *testing.T) {
-	t.Run("should delete folderes from index", func(t *testing.T) {
+	t.Run("should delete documents from indexed folder", func(t *testing.T) {
 		params := createTestParams(t)
+		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
+		createMarkdownNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
+		require.NoError(t, search.IndexAllFiles(params.ProjectPath, *params.Index))
 
-		// Add multiple folders
-		addData := []map[string]string{
-			{"folderPath": "folder1"},
-			{"folderPath": "folder2"},
-			{"folderPath": "folder3"},
-		}
-		addFoldersToIndex(params, addData)
-
-		// Delete folder1 and folder3
 		deleteData := []map[string]string{
 			{"folderPath": "folder1"},
-			{"folderPath": "folder3"},
 		}
 		deleteFoldersFromIndex(params, deleteData)
 
-		// Verify folder1 and folder3 were deleted
-		doc1, err := (*params.Index).Document("folder1")
+		doc1, err := (*params.Index).Document(filepath.Join("folder1", "one.md"))
 		assert.NoError(t, err)
 		assert.Nil(t, doc1)
 
-		doc3, err := (*params.Index).Document("folder3")
-		assert.NoError(t, err)
-		assert.Nil(t, doc3)
-
-		// folder2 should still exist
-		doc2, err := (*params.Index).Document("folder2")
+		doc2, err := (*params.Index).Document(filepath.Join("folder2", "two.md"))
 		assert.NoError(t, err)
 		assert.NotNil(t, doc2)
 	})
 
-	t.Run("should skip invalid entries and handle edge cases", func(t *testing.T) {
+	t.Run("should skip invalid entries and keep other folders intact", func(t *testing.T) {
 		params := createTestParams(t)
+		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
+		createMarkdownNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
+		require.NoError(t, search.IndexAllFiles(params.ProjectPath, *params.Index))
 
-		// Add folders
-		addData := []map[string]string{
-			{"folderPath": "folder1"},
-			{"folderPath": "folder2"},
-		}
-		addFoldersToIndex(params, addData)
-
-		// Try to delete with invalid entries: missing key, empty value, non-existent folder
 		deleteData := []map[string]string{
 			{"folderPath": "folder1"},
-			{"other_key": "some_value"},    // Missing "folderPath" key
-			{"folderPath": ""},             // Empty folder value
-			{"folderPath": "non-existent"}, // Non-existent folder
+			{"other_key": "some_value"},
+			{"folderPath": ""},
+			{"folderPath": "non-existent"},
 		}
 		deleteFoldersFromIndex(params, deleteData)
 
-		// folder1 should be deleted
-		doc1, err := (*params.Index).Document("folder1")
+		doc1, err := (*params.Index).Document(filepath.Join("folder1", "one.md"))
 		assert.NoError(t, err)
 		assert.Nil(t, doc1)
 
-		// folder2 should still exist
-		doc2, err := (*params.Index).Document("folder2")
+		doc2, err := (*params.Index).Document(filepath.Join("folder2", "two.md"))
 		assert.NoError(t, err)
 		assert.NotNil(t, doc2)
 	})

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path"
+	"strings"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -13,17 +14,16 @@ import (
 // inside the packaged build.
 //
 // Flow:
-//   - Only handles GET/HEAD; all other methods pass through unchanged.
-//   - Runs the underlying asset handler in a recorder first.
-//   - If the handler returned 404 AND the URL has no file extension
-//     (indicating an SPA route, not a real asset like ".css" or ".js"),
-//     it replays the request with path set to "/" so index.html is served.
-//   - Otherwise, it forwards the original recorded response.
+//   - Only handles likely SPA navigation requests (GET/HEAD, extension-less
+//     path, and an Accept header that wants HTML).
+//   - Runs the underlying asset handler in a recorder first for those requests.
+//   - If the handler returned 404, it replays the request with path set to "/"
+//     so index.html is served.
+//   - All non-SPA-like requests are passed through directly (no buffering).
 func SPAFallbackMiddleware() application.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Only rewrite normal page requests
-			if r.Method != http.MethodGet && r.Method != http.MethodHead {
+			if !shouldAttemptSPAFallback(r) {
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -32,9 +32,8 @@ func SPAFallbackMiddleware() application.Middleware {
 			next.ServeHTTP(recorder, r)
 
 			isNotFound := recorder.Code == http.StatusNotFound
-			isLikelyRoute := path.Ext(r.URL.Path) == ""
 
-			if isNotFound && isLikelyRoute {
+			if isNotFound {
 				// Retry against root to serve index.html
 				clone := r.Clone(r.Context())
 				clone.URL.Path = "/"
@@ -52,4 +51,18 @@ func SPAFallbackMiddleware() application.Middleware {
 			_, _ = w.Write(recorder.Body.Bytes())
 		})
 	}
+}
+
+func shouldAttemptSPAFallback(r *http.Request) bool {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		return false
+	}
+
+	// Route-like URLs don't have an asset extension.
+	if path.Ext(r.URL.Path) != "" {
+		return false
+	}
+
+	accept := r.Header.Get("Accept")
+	return strings.Contains(accept, "text/html")
 }

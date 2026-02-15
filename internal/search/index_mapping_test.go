@@ -85,7 +85,7 @@ func (env *TestEnv) verifyDocumentExists(docId string) {
 func indexFolderAndFlush(t *testing.T, idx bleve.Index, folderPath, folderName string) error {
 	batch := idx.NewBatch()
 	// No flush callback needed for tests (small batches)
-	err := IndexAllFilesInFolderWithBatch(folderPath, folderName, idx, batch)
+	err := IndexFilesInFolderWithBatch(folderPath, folderName, idx, batch)
 	if err != nil {
 		return err
 	}
@@ -378,9 +378,6 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		err := indexFolderAndFlush(t, env.Index, folderPath, "test-folder")
 		assert.NoError(t, err)
 
-		// Verify folder is indexed
-		env.verifyDocumentExists("test-folder")
-
 		// Verify files are indexed using their file paths as document IDs
 		env.verifyDocumentExists("test-folder/test1.md")
 		env.verifyDocumentExists("test-folder/test2.md")
@@ -394,9 +391,6 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 
 		err := indexFolderAndFlush(t, env.Index, folderPath, "test-folder-2")
 		assert.NoError(t, err)
-
-		// Verify folder is indexed
-		env.verifyDocumentExists("test-folder-2")
 
 		// Verify file is indexed
 		env.verifyDocumentExists("test-folder-2/test.md")
@@ -413,9 +407,6 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 
 		err = indexFolderAndFlush(t, env.Index, folderPath, "parent-folder")
 		assert.NoError(t, err)
-
-		// Verify folder is indexed
-		env.verifyDocumentExists("parent-folder")
 
 		// Verify parent file was indexed
 		env.verifyDocumentExists("parent-folder/parent-note.md")
@@ -445,8 +436,10 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		err := indexFolderAndFlush(t, env.Index, folderPath, "empty-folder")
 		assert.NoError(t, err) // Should not error on empty folders
 
-		// Verify folder is indexed even when empty
-		env.verifyDocumentExists("empty-folder")
+		// Verify empty folders do not create standalone folder documents
+		doc, err := env.Index.Document("empty-folder")
+		assert.NoError(t, err)
+		assert.Nil(t, doc)
 	})
 }
 

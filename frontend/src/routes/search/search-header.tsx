@@ -11,6 +11,7 @@ import { cn } from '../../utils/string-formatting';
 import { SearchOptions } from './search-options';
 import { Tooltip } from '../../components/tooltip';
 import { GroupedSearchResults, useSearchFocus } from '../../hooks/search';
+import { buildSearchFileHrefFromPath } from './utils';
 
 export function SearchHeader({
   lastSearchQuery,
@@ -56,11 +57,11 @@ export function SearchHeader({
       if (selectedIndex < notesCount) {
         // Selected item is a note
         const note = groupedResults.notes[selectedIndex];
-        let href = note.filePath.getLinkToNote();
+        let href = buildSearchFileHrefFromPath(note.filePath.toString());
         const firstHighlightedTerm = note.highlights[0]?.highlightedTerm;
 
         if (firstHighlightedTerm) {
-          href = note.filePath.getLinkToNote({
+          href = buildSearchFileHrefFromPath(note.filePath.toString(), {
             highlight: firstHighlightedTerm,
           });
         }
@@ -70,13 +71,10 @@ export function SearchHeader({
         // Selected item is an attachment
         const attachment =
           groupedResults.attachments[selectedIndex - notesCount];
-        const href = attachment.filePath.getLinkToNote();
+        const href = buildSearchFileHrefFromPath(
+          attachment.filePath.toString()
+        );
         setLocation(href);
-      } else {
-        // Selected item is a folder
-        const folder =
-          groupedResults.folders[selectedIndex - notesCount - attachmentsCount];
-        setLocation(`/notes/${folder.folder}`);
       }
     }
   };

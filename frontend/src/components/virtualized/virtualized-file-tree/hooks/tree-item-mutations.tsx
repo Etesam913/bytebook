@@ -10,8 +10,6 @@ import {
 } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { createFilePath, type FilePath } from '../../../../utils/path';
 import { NAME_CHARS } from '../../../../utils/string-formatting';
-import { toast } from 'sonner';
-import { DEFAULT_SONNER_OPTIONS } from '../../../../utils/general';
 import { FileOrFolder, type Folder } from '../types';
 import { MoveItemsToFolder } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { getFileSelectionKey } from '../../../../utils/selection';
@@ -138,13 +136,7 @@ export function useRenameTreeItemMutation() {
       }
       return { itemType: 'file' as const };
     },
-    onSuccess: (result, variables) => {
-      if (result.itemType === 'folder') {
-        toast.success('Folder renamed successfully', DEFAULT_SONNER_OPTIONS);
-      } else {
-        toast.success('File renamed successfully', DEFAULT_SONNER_OPTIONS);
-      }
-
+    onSuccess: (_, variables) => {
       variables.onSuccess?.();
     },
   });

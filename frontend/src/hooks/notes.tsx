@@ -402,10 +402,6 @@ export function useRenameFileMutation() {
       }
       return res.data;
     },
-    // Optimistically update cache
-    onSuccess: () => {
-      toast.success('File renamed successfully', DEFAULT_SONNER_OPTIONS);
-    },
     onError: (error, variables) => {
       if (error instanceof Error) {
         variables.setErrorText(error.message);
