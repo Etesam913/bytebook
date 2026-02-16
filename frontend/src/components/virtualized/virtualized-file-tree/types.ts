@@ -1,9 +1,4 @@
 /**
- * The type of an item in the file tree: either a file or a folder.
- */
-type FileOrFolderType = 'file' | 'folder';
-
-/**
  * Base properties shared by both files and folders.
  */
 type BaseFileOrFolder = {

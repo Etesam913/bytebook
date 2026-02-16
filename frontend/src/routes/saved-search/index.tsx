@@ -131,7 +131,6 @@ export function SavedSearchPage({
 }) {
   const {
     data: groupedResults = { notes: [], attachments: [] },
-    isSuccess,
     refetch,
     isError,
     isLoading,
@@ -237,11 +236,10 @@ export function SavedSearchPage({
                         dataItemToSelectionRangeEntry: (filePath) =>
                           filePath.note,
                       }}
-                      renderItem={({ dataItem: sidebarNotePath, i }) => (
+                      renderItem={({ dataItem: sidebarNotePath }) => (
                         <NoteSidebarButton
                           sidebarNotePath={sidebarNotePath}
                           activeNotePath={activeNotePath}
-                          sidebarNoteIndex={i}
                         />
                       )}
                     />

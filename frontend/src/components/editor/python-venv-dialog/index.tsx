@@ -126,7 +126,12 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                 <MotionIconButton
                   className="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity"
                   {...getDefaultButtonVariants()}
-                  onClick={() => revealInFinder({ path: venvPath })}
+                  onClick={() =>
+                    revealInFinder({
+                      path: venvPath,
+                      shouldPrefixWithProjectPath: false,
+                    })
+                  }
                 >
                   <ShareRight height={16} width={16} />
                 </MotionIconButton>

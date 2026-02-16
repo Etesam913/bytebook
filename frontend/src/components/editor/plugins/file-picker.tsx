@@ -17,7 +17,7 @@ import { SearchFileNamesFromQuery } from '../../../../bindings/github.com/etesam
 import { mostRecentNotesAtom } from '../../../atoms';
 import { WAILS_URL } from '../../../utils/general';
 import { convertFilePathToQueryNotation } from '../../../utils/string-formatting';
-import { LocalFilePath } from '../../../utils/path';
+import { createFilePath, LocalFilePath } from '../../../utils/path';
 import {
   DropdownPickerOption,
   FilePickerMenuItem,
@@ -76,11 +76,14 @@ export function FilePickerMenuPlugin() {
 
   const options: FilePickerOption[] = optionSources.map((item) => {
     const label = item.filePath.toString();
+    const filePathForIcon = createFilePath(label);
 
     return {
       ...item,
       dropdownOption: new DropdownPickerOption(label, {
-        icon: <RenderNoteIcon filePath={item.filePath} size="sm" />,
+        icon: filePathForIcon ? (
+          <RenderNoteIcon filePath={filePathForIcon} size="sm" />
+        ) : undefined,
         onSelect: () => {
           const fullPath = item.filePath.toString();
           if (item.filePath.noteExtension === 'md') {

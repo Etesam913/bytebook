@@ -26,7 +26,6 @@ export type SelectionOptions<T> =
 function createListComponent(contentType: SidebarContentType) {
   const listPaddingClass = cn(
     contentType === 'note' && 'pl-1 pr-2',
-    contentType === 'folder' && 'pl-[3px] pr-[3px]',
     contentType === 'kernel' && 'pl-[3px] pr-[3px]'
   );
 

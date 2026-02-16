@@ -121,7 +121,9 @@ export function handleFileTreeKeyDown(
   if (!isArrowDown && !isArrowUp && !isSpace) return;
 
   const target = event.target as HTMLElement | null;
-  const currentWrapper = target?.closest<HTMLElement>('[data-file-tree-index]');
+  const currentWrapper = target
+    ? target.closest<HTMLElement>('[data-file-tree-index]')
+    : null;
   const currentIndex = getIndexFromElement(currentWrapper);
 
   if (isArrowDown || isArrowUp) {

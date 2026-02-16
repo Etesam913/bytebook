@@ -6,9 +6,7 @@ import { MouseEvent } from 'react';
 import { FileTreeFileItem } from '../file-tree-item/file';
 import { FileTreeFolderItem } from '../file-tree-item/folder';
 import { createFilePath, createFolderPath } from '../../../../utils/path';
-import {
-  useAddToSidebarSelection,
-} from '../../../../hooks/selection';
+import { useAddToSidebarSelection } from '../../../../hooks/selection';
 import {
   SelectableItems,
   getKeyForSidebarSelection,
@@ -144,13 +142,13 @@ export function FileTreeItemContainer({
     }
   }
 
-  function handleContextMenuSelection() {
-    if (!selectionKey || !path) return;
+  function addItemToSidebarSelection(): Set<string> | null {
+    if (!selectionKey || !path) return null;
     const selectableItem: SelectableItems = {
       ...path,
       id: dataItem.id,
     };
-    addToSidebarSelection(selectableItem);
+    return addToSidebarSelection(selectableItem);
   }
 
   return (
@@ -160,7 +158,7 @@ export function FileTreeItemContainer({
           dataItem={dataItem}
           openFolder={openFolder}
           onSelectionClick={handleSelectionClick}
-          onContextMenuSelection={handleContextMenuSelection}
+          addItemToSidebarSelection={addItemToSidebarSelection}
           isSelectedFromSidebarClick={isSelectedFromSidebarClick}
           isOpenFolderPending={isOpenFolderPending}
         />
@@ -168,7 +166,7 @@ export function FileTreeItemContainer({
         <FileTreeFileItem
           dataItem={dataItem}
           onSelectionClick={handleSelectionClick}
-          onContextMenuSelection={handleContextMenuSelection}
+          addItemToSidebarSelection={addItemToSidebarSelection}
           isSelectedFromSidebarClick={isSelectedFromSidebarClick}
         />
       )}

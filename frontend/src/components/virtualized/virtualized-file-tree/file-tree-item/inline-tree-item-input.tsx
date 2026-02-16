@@ -51,6 +51,8 @@ export function InlineTreeItemInput({
               onKeyDown={(e) => {
                 if (e.key === 'Escape') {
                   exitEditMode();
+                  // Prevents exiting fullscreen mode
+                  e.preventDefault();
                 } else if (e.key === 'Enter') {
                   e.preventDefault();
                   onSave(e.currentTarget.value);

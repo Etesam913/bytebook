@@ -265,6 +265,7 @@ export function KernelQuickstart({ language }: { language: Languages }) {
             onClick={() =>
               revealInFinder({
                 path: `${projectSettings.projectPath}/code/java-resource`,
+                shouldPrefixWithProjectPath: false,
               })
             }
           >
