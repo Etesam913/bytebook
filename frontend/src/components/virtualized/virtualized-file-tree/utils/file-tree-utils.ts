@@ -57,63 +57,43 @@ export function transformFileTreeForVirtualizedList(
   data: FileOrFolder[],
   fileOrFolderMap: Map<string, FileOrFolder>
 ): VirtualizedFileTreeItem[] {
-  function transformAFileOrFolder(
-    fileOrFolder: FileOrFolder,
-    level: number
-  ): VirtualizedFileTreeItem[] {
-    const updatedFileOrFolderData = fileOrFolderMap.get(fileOrFolder.id);
-    if (!updatedFileOrFolderData) return [];
+  const flattenedData: VirtualizedFileTreeItem[] = [];
+
+  function flattenFileOrFolder(fileOrFolderId: string, level: number): void {
+    const updatedFileOrFolderData = fileOrFolderMap.get(fileOrFolderId);
+    if (!updatedFileOrFolderData) return;
 
     const flattenedEntryForFileOrFolder: FlattenedFileOrFolder = {
       ...updatedFileOrFolderData,
       level,
     };
+    flattenedData.push(flattenedEntryForFileOrFolder);
 
-    switch (updatedFileOrFolderData.type) {
-      case 'folder': {
-        const allEntriesForFolder: VirtualizedFileTreeItem[] = [
-          flattenedEntryForFileOrFolder,
-        ];
+    if (updatedFileOrFolderData.type !== 'folder') return;
+    if (!updatedFileOrFolderData.isOpen) return;
 
-        if (updatedFileOrFolderData.isOpen) {
-          // If the folder is open, the flattened representation for the virtualized list
-          // has to include the next level of children. That is why dfs is happening
-          for (const childId of updatedFileOrFolderData.childrenIds) {
-            const childFileOrFolder = fileOrFolderMap.get(childId);
-            if (!childFileOrFolder) continue;
-            const children = transformAFileOrFolder(
-              childFileOrFolder,
-              level + 1
-            );
-            for (const child of children) {
-              allEntriesForFolder.push(child);
-            }
-          }
-        }
+    // If the folder is open, the flattened representation for the virtualized list
+    // has to include the next level of children. That is why dfs is happening
+    for (const childId of updatedFileOrFolderData.childrenIds) {
+      flattenFileOrFolder(childId, level + 1);
+    }
 
-        if (
-          updatedFileOrFolderData.isOpen &&
-          updatedFileOrFolderData.hasMoreChildren
-        ) {
-          allEntriesForFolder.push({
-            id: `load-more-${updatedFileOrFolderData.id}`,
-            type: LOAD_MORE_TYPE,
-            parentId: updatedFileOrFolderData.id,
-            name: 'Load more...',
-            level: level + 1,
-          });
-        }
-
-        return allEntriesForFolder;
-      }
-      case 'file':
-      default:
-        return [flattenedEntryForFileOrFolder];
+    if (updatedFileOrFolderData.hasMoreChildren) {
+      flattenedData.push({
+        id: `load-more-${updatedFileOrFolderData.id}`,
+        type: LOAD_MORE_TYPE,
+        parentId: updatedFileOrFolderData.id,
+        name: 'Load more...',
+        level: level + 1,
+      });
     }
   }
-  return data.flatMap((fileOrFolder) =>
-    transformAFileOrFolder(fileOrFolder, 0)
-  );
+
+  for (const fileOrFolder of data) {
+    flattenFileOrFolder(fileOrFolder.id, 0);
+  }
+
+  return flattenedData;
 }
 
 /**
@@ -123,10 +103,7 @@ export function transformFileTreeForVirtualizedList(
  * deleting each node it encounters. For folders, it first removes all children
  * before removing the folder itself.
  */
-function removeSubtree(
-  fileTreeData: FileTreeData,
-  rootId: string
-): void {
+function removeSubtree(fileTreeData: FileTreeData, rootId: string): void {
   const { treeData, filePathToTreeDataId } = fileTreeData;
   const root = treeData.get(rootId);
   if (!root) return;

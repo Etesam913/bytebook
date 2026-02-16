@@ -48,6 +48,8 @@ export function ContextMenu() {
 
   const [focusedIndex, setFocusedIndex] = useState(0);
   const { selections } = useAtomValue(sidebarSelectionAtom);
+  const selectionCountLabel =
+    selections.size > 99 ? '99+' : selections.size.toString();
   const setContextMenuRef = useSetAtom(contextMenuRefAtom);
   const contextMenuRefLocal = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -132,9 +134,9 @@ export function ContextMenu() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1, transition: { delay: 0.075 } }}
-                className="absolute rounded-full font-bold w-5 h-5 text-xs pointer-events-none text-white flex justify-center items-center p-0.5 -left-2 bg-(--accent-color) z-60"
+                className="absolute rounded-full font-bold min-w-6 h-6 px-1 text-xs leading-none pointer-events-none text-white flex justify-center items-center -left-2 bg-(--accent-color) z-60"
               >
-                {selections.size}
+                {selectionCountLabel}
               </motion.div>
             )}
             <DropdownItems

@@ -21,9 +21,9 @@ func TestShouldIgnoreFile(t *testing.T) {
 		assert.True(t, shouldIgnoreFile(".hidden"))
 	})
 
-	t.Run("should not ignore hidden markdown files", func(t *testing.T) {
-		assert.False(t, shouldIgnoreFile(".hidden.md"))
-		assert.False(t, shouldIgnoreFile(".note.md"))
+	t.Run("should ignore hidden markdown files", func(t *testing.T) {
+		assert.True(t, shouldIgnoreFile(".hidden.md"))
+		assert.True(t, shouldIgnoreFile(".note.md"))
 	})
 
 	t.Run("should not ignore regular files", func(t *testing.T) {

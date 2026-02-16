@@ -24,8 +24,8 @@ type FilePickerSearchResult struct {
 
 func (s *SearchService) FullTextSearch(searchQuery string) []search.SearchResult {
 	// Build the boolean query and request using helpers for clarity
-	totalQuery := search.BuildBooleanQueryFromUserInput(searchQuery, 1)
-	request := search.CreateSearchRequest(totalQuery, 10000)
+	totalQuery, sortOption := search.BuildBooleanQueryFromUserInput(searchQuery, 1)
+	request := search.CreateSearchRequest(totalQuery, 10000, sortOption)
 
 	res, err := (*s.SearchIndex).Search(request)
 	if err != nil {
@@ -42,7 +42,7 @@ func (s *SearchService) FullTextSearch(searchQuery string) []search.SearchResult
 func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []FilePickerSearchResult {
 	normalizedQuery := strings.ToLower(strings.TrimSpace(searchQuery))
 	filenameQuery := search.CreateFilenameQuery(normalizedQuery, 1.0)
-	searchRequest := search.CreateSearchRequest(filenameQuery, 20)
+	searchRequest := search.CreateSearchRequest(filenameQuery, 20, nil)
 
 	results, err := (*s.SearchIndex).Search(searchRequest)
 	if err != nil {

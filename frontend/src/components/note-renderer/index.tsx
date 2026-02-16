@@ -20,15 +20,21 @@ export function NoteRenderer({ filePath }: { filePath: FilePath }) {
 
   if (isPdf) {
     return (
-      <motion.div className="w-full h-full flex-1" animate={animationControls}>
-        <iframe src={filePath.fileUrl} className="w-full h-full flex-1" />
+      <motion.div
+        className="w-full h-full min-w-0 flex-1"
+        animate={animationControls}
+      >
+        <iframe src={filePath.fileUrl} className="w-full h-full min-w-0 flex-1" />
       </motion.div>
     );
   }
 
   if (isImage) {
     return (
-      <motion.div className="w-full h-full flex-1" animate={animationControls}>
+      <motion.div
+        className="w-full h-full min-w-0 flex flex-col flex-1"
+        animate={animationControls}
+      >
         <NonMarkdownToolbar
           animationControls={animationControls}
           filePath={filePath}
@@ -41,14 +47,14 @@ export function NoteRenderer({ filePath }: { filePath: FilePath }) {
   if (isVideo) {
     return (
       <motion.div
-        className="w-full h-auto flex flex-col"
+        className="w-full h-full min-h-0 min-w-0 flex flex-col flex-1"
         animate={animationControls}
       >
         <NonMarkdownToolbar
           animationControls={animationControls}
           filePath={filePath}
         />
-        <div className="w-full h-full flex-1 flex flex-col items-center justify-center my-auto bg-black">
+        <div className="w-full min-h-0 min-w-0 flex-1 flex flex-col items-center justify-center bg-black">
           <VideoRenderer filePath={filePath} />
         </div>
       </motion.div>
@@ -57,7 +63,10 @@ export function NoteRenderer({ filePath }: { filePath: FilePath }) {
 
   if (isMarkdown) {
     return (
-      <motion.div className="w-full h-full flex-1" animate={animationControls}>
+      <motion.div
+        className="w-full h-full min-w-0 flex-1"
+        animate={animationControls}
+      >
         <NotesEditor
           filePath={filePath}
           animationControls={animationControls}
@@ -69,14 +78,14 @@ export function NoteRenderer({ filePath }: { filePath: FilePath }) {
   if (isUnknownFile) {
     return (
       <motion.div
-        className="w-full h-full flex-1 flex items-center justify-center"
+        className="w-full h-full min-w-0 flex-1 flex flex-col"
         animate={animationControls}
       >
         <NonMarkdownToolbar
           animationControls={animationControls}
           filePath={filePath}
         />
-        <div className="flex flex-col items-center justify-center gap-2">
+        <div className="flex flex-1 flex-col items-center justify-center gap-2">
           <FileBan width={48} height={48} />
           <h1 className="text-2xl font-bold">
             This file type is not supported.

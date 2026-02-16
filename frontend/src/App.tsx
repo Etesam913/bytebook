@@ -20,6 +20,7 @@ import { routeUrls, type SavedSearchRouteParams } from './utils/routes';
 import { RouteFallback } from './components/route-fallback';
 import { useZoom, useFullscreen, useWindowReload } from './hooks/resize';
 import { EditorWrapper } from './components/virtualized/virtualized-file-tree/editor-wrapper';
+import { safeDecodeURIComponent } from './utils/path';
 
 // Lazy load route components
 const NotFound = lazy(() =>
@@ -67,7 +68,7 @@ function App() {
   return (
     <main
       id="App"
-      className="flex max-h-screen font-display overflow-hidden"
+      className="flex h-screen w-screen min-w-0 font-display overflow-hidden"
       onClick={(e) => {
         if (!e.ctrlKey) {
           setContextMenuData((prev) => ({ ...prev, isShowing: false }));
@@ -88,53 +89,57 @@ function App() {
       >
         <FileSidebar width={fileSidebarWidth} />
       </Activity>
-      <Switch>
-        <Route path={routeUrls.patterns.ROOT} />
-        <Route path={routeUrls.patterns.SAVED_SEARCH}>
-          {(params: SavedSearchRouteParams) => (
+      <div className="flex-1 min-w-0 h-full">
+        <Switch>
+          <Route path={routeUrls.patterns.ROOT} />
+          <Route path={routeUrls.patterns.SAVED_SEARCH}>
+            {(params: SavedSearchRouteParams) => (
+              <Suspense fallback={<RouteFallback />}>
+                <SavedSearchPage
+                  searchQuery={safeDecodeURIComponent(params.searchQuery)}
+                  curPath={
+                    params['*']
+                      ? safeDecodeURIComponent(params['*'])
+                          .split('/')
+                          .filter(Boolean)
+                          .join('/')
+                      : undefined
+                  }
+                  width={notesSidebarWidth}
+                />
+              </Suspense>
+            )}
+          </Route>
+
+          <Route path="/notes/*">
+            <EditorWrapper />
+          </Route>
+
+          <Route path={routeUrls.patterns.NOT_FOUND_FALLBACK}>
             <Suspense fallback={<RouteFallback />}>
-              <SavedSearchPage
-                searchQuery={decodeURIComponent(params.searchQuery)}
-                curFolder={
-                  params.folder ? decodeURIComponent(params.folder) : undefined
-                }
-                curNote={
-                  params.note ? decodeURIComponent(params.note) : undefined
-                }
-                width={notesSidebarWidth}
-              />
+              <NotFound />
             </Suspense>
-          )}
-        </Route>
+          </Route>
 
-        <Route path="/notes/*">
-          <EditorWrapper />
-        </Route>
+          <Route path={routeUrls.patterns.KERNELS}>
+            <Suspense fallback={<RouteFallback />}>
+              <KernelInfo />
+            </Suspense>
+          </Route>
 
-        <Route path={routeUrls.patterns.NOT_FOUND_FALLBACK}>
-          <Suspense fallback={<RouteFallback />}>
-            <NotFound />
-          </Suspense>
-        </Route>
+          <Route path={routeUrls.patterns.SEARCH}>
+            <Suspense fallback={<RouteFallback />}>
+              <SearchPage />
+            </Suspense>
+          </Route>
 
-        <Route path={routeUrls.patterns.KERNELS}>
-          <Suspense fallback={<RouteFallback />}>
-            <KernelInfo />
-          </Suspense>
-        </Route>
-
-        <Route path={routeUrls.patterns.SEARCH}>
-          <Suspense fallback={<RouteFallback />}>
-            <SearchPage />
-          </Suspense>
-        </Route>
-
-        <Route path={'*'}>
-          <Suspense fallback={<RouteFallback />}>
-            <NotFound />
-          </Suspense>
-        </Route>
-      </Switch>
+          <Route path={'*'}>
+            <Suspense fallback={<RouteFallback />}>
+              <NotFound />
+            </Suspense>
+          </Route>
+        </Switch>
+      </div>
     </main>
   );
 }

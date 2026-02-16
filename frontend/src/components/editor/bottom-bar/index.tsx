@@ -21,7 +21,7 @@ import { FilePath, safeDecodeURIComponent } from '../../../utils/path';
 
 function BreadcrumbItem({ children }: { children: ReactNode }) {
   const className =
-    'flex items-center gap-1 whitespace-nowrap text-ellipsis overflow-hidden text-zinc-500 dark:text-zinc-300';
+    'flex items-center gap-1 whitespace-nowrap text-ellipsis overflow-hidden ';
 
   return <span className={className}>{children}</span>;
 }
@@ -89,7 +89,7 @@ export function BottomBar({
         isNoteMaximized && 'px-5'
       )}
     >
-      <span className="flex items-center gap-1">
+      <span className="flex items-center gap-1 text-zinc-500 dark:text-zinc-300">
         {folderSegments.map((segment, index) => (
           <Fragment key={`folder-segment-${index}`}>
             <BreadcrumbItem>

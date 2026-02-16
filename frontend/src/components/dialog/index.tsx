@@ -104,6 +104,16 @@ export function Dialog() {
       ref={dialogRef}
       className="bg-transparent border-none p-0 max-w-none max-h-none w-full h-full"
       onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+
+          // We cannot rely on the dialog default on escape as it will also exit fullscreen mode
+          setDialogData((prev) =>
+            prev.isOpen ? { ...prev, isOpen: false } : prev
+          );
+          return;
+        }
+
         if (e.metaKey && e.key === 'Enter') {
           const form = dialogRef.current?.querySelector('form');
           form?.dispatchEvent(new Event('submit'));

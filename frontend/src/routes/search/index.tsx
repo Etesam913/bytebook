@@ -2,10 +2,38 @@ import {
   lastSearchQueryAtom,
   useFullTextSearchQuery,
 } from '../../hooks/search';
+import { DEFAULT_SONNER_OPTIONS } from '../../utils/general';
 import { useAtom } from 'jotai';
 import { useDeferredValue, useState } from 'react';
 import { SearchHeader } from './search-header';
 import { SearchResultsList } from './results/search-results-list';
+import { Browser } from '@wailsio/runtime';
+import { toast } from 'sonner';
+
+const SEARCH_DOCS_URL = 'https://example.com/docs/search';
+
+const SEARCH_EXAMPLES = [
+  {
+    query: '"The red tiger"',
+    helperText: 'Find exact phrase matches in notes and file names.',
+  },
+  {
+    query: 'f:apple',
+    helperText: 'Find files or folders with "apple" in the name.',
+  },
+  {
+    query: 'f:docs/readme',
+    helperText: 'Match files named "readme" inside folders like "docs".',
+  },
+  {
+    query: '#Economics',
+    helperText: 'Find notes tagged with "Economics".',
+  },
+  {
+    query: 'sort:updated auth',
+    helperText: 'Sort results by last update time while searching for "auth".',
+  },
+] as const;
 
 export function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useAtom(lastSearchQueryAtom);
@@ -45,43 +73,44 @@ export function SearchPage() {
         )}
         {totalCount === 0 && !lastSearchQuery.trim() && (
           <div className="flex justify-center items-center flex-1 px-6 py-3">
-            <div className="text-zinc-700 dark:text-zinc-300">
-              <h2 className="text-2xl py-3 text-center text-zinc-800 dark:text-zinc-200">
+            <div className="w-full max-w-4xl text-zinc-700 dark:text-zinc-300">
+              <h2 className="text-2xl py-3 text-zinc-800 dark:text-zinc-200">
                 Search examples
               </h2>
-              <ol className="list-decimal list-inside space-y-2">
-                <li>
-                  Type{' '}
-                  <span className="font-bold font-code text-zinc-900 dark:text-zinc-100">
-                    &quot;The red tiger&quot;
-                  </span>{' '}
-                  to search for files that contain the phrase &quot;The red
-                  tiger&quot;
-                </li>
-                <li>
-                  Use{' '}
-                  <span className="font-bold font-code text-zinc-900 dark:text-zinc-100">
-                    f:apple
-                  </span>{' '}
-                  to search for files that include &quot;apple&quot; in the file
-                  name or folder path
-                </li>
-                <li>
-                  Use{' '}
-                  <span className="font-bold font-code text-zinc-900 dark:text-zinc-100">
-                    f:docs/readme
-                  </span>{' '}
-                  to search for files in folders matching &quot;docs&quot; with
-                  names matching &quot;readme&quot;
-                </li>
-                <li>
-                  Use{' '}
-                  <span className="font-bold font-code text-zinc-900 dark:text-zinc-100">
-                    #Economics
-                  </span>{' '}
-                  to search for notes tagged with &quot;Economics&quot;
-                </li>
-              </ol>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Use these sample queries to get started quickly.
+              </p>
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {SEARCH_EXAMPLES.map((example) => (
+                  <div
+                    key={example.query}
+                    className="rounded-lg border border-zinc-200 bg-zinc-50/70 dark:bg-zinc-850 dark:border-zinc-700 p-3"
+                  >
+                    <p className="font-code text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      {example.query}
+                    </p>
+                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                      {example.helperText}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 text-sm">
+                <button
+                  type="button"
+                  className="link"
+                  onClick={() => {
+                    Browser.OpenURL(SEARCH_DOCS_URL).catch(() => {
+                      toast.error(
+                        `Failed to open link: ${SEARCH_DOCS_URL}`,
+                        DEFAULT_SONNER_OPTIONS
+                      );
+                    });
+                  }}
+                >
+                  Read the full search docs
+                </button>
+              </div>
             </div>
           </div>
         )}

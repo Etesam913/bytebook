@@ -52,17 +52,6 @@ export type BackendQueryDataType = {
   message: string;
 };
 
-export type SortStrings =
-  | 'date-updated-desc'
-  | 'date-updated-asc'
-  | 'date-created-desc'
-  | 'date-created-asc'
-  | 'file-name-a-z'
-  | 'file-name-z-a'
-  | 'size-desc'
-  | 'size-asc'
-  | 'file-type';
-
 type AppearanceSettings = Omit<
   AppearanceProjectSettingsJson,
   'theme' | 'noteWidth'

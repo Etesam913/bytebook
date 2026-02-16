@@ -10,10 +10,8 @@ describe('ROUTE_PATTERNS', () => {
     expect(ROUTE_PATTERNS.KERNELS_WITH_FILES).toBe(
       '/kernels/:kernelName/:folder?/:note?'
     );
-    expect(ROUTE_PATTERNS.SAVED_SEARCH).toBe(
-      '/saved-search/:searchQuery/:folder?/:note?'
-    );
-    expect(ROUTE_PATTERNS.NOTES).toBe('/notes/:folder/:note?');
+    expect(ROUTE_PATTERNS.SAVED_SEARCH).toBe('/saved-search/:searchQuery/*');
+    expect(ROUTE_PATTERNS.NOTES).toBe('/notes/*');
     expect(ROUTE_PATTERNS.CATCH_ALL).toBe('*');
     expect(ROUTE_PATTERNS.NOT_FOUND_FALLBACK).toBe('/404');
   });
@@ -166,43 +164,43 @@ describe('routeBuilders', () => {
   describe('tagSearch', () => {
     it('should build tag search route with # prefix', () => {
       expect(routeBuilders.tagSearch('economics')).toBe(
-        '/saved-search/%23economics'
+        '/saved-search/%23economics/'
       );
       expect(routeBuilders.tagSearch('research')).toBe(
-        '/saved-search/%23research'
+        '/saved-search/%23research/'
       );
     });
 
     it('should encode special characters in tag name', () => {
       expect(routeBuilders.tagSearch('tag name')).toBe(
-        '/saved-search/%23tag%20name'
+        '/saved-search/%23tag%20name/'
       );
       expect(routeBuilders.tagSearch('tag&more')).toBe(
-        '/saved-search/%23tag%26more'
+        '/saved-search/%23tag%26more/'
       );
     });
 
     it('should handle empty tag name', () => {
-      expect(routeBuilders.tagSearch('')).toBe('/saved-search/%23');
+      expect(routeBuilders.tagSearch('')).toBe('/saved-search/%23/');
     });
   });
 
   describe('savedSearch', () => {
     it('should build saved search route with encoded query', () => {
       expect(routeBuilders.savedSearch('research')).toBe(
-        '/saved-search/research'
+        '/saved-search/research/'
       );
       expect(routeBuilders.savedSearch('economics notes')).toBe(
-        '/saved-search/economics%20notes'
+        '/saved-search/economics%20notes/'
       );
     });
 
     it('should encode special characters in search query', () => {
       expect(routeBuilders.savedSearch('query & more')).toBe(
-        '/saved-search/query%20%26%20more'
+        '/saved-search/query%20%26%20more/'
       );
       expect(routeBuilders.savedSearch('tag:research')).toBe(
-        '/saved-search/tag%3Aresearch'
+        '/saved-search/tag%3Aresearch/'
       );
     });
 
@@ -212,8 +210,20 @@ describe('routeBuilders', () => {
 
     it('should handle queries with # prefix (tags)', () => {
       expect(routeBuilders.savedSearch('#economics')).toBe(
-        '/saved-search/%23economics'
+        '/saved-search/%23economics/'
       );
+    });
+
+    it('should build saved search route with an encoded file path', () => {
+      expect(routeBuilders.savedSearch('economics', 'notes/file.md')).toBe(
+        '/saved-search/economics/notes/file.md'
+      );
+      expect(
+        routeBuilders.savedSearch(
+          '#tagged',
+          'My%20Folder/diagrams/image%20(1).png'
+        )
+      ).toBe('/saved-search/%23tagged/My%20Folder/diagrams/image%20(1).png');
     });
   });
 });

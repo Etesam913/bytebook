@@ -144,8 +144,6 @@ Some text content here.
 
 ` + "```java\nclass Test {}\n```" + `
 
-` + "```drawing\n{\"elements\":[]}\n```" + `
-
 More text content.
 `
 )
@@ -161,7 +159,7 @@ func TestCreateMarkdownNoteBleveDocument(t *testing.T) {
 		assert.Equal(t, ".md", doc.FileExtension)
 		assert.Contains(t, doc.TextContent, "Test Content")
 		assert.False(t, doc.HasCode)
-		assert.False(t, doc.HasDrawing)
+		assert.Greater(t, doc.Size, int64(0))
 	})
 
 	t.Run("should handle complex markdown with all features", func(t *testing.T) {
@@ -172,7 +170,6 @@ func TestCreateMarkdownNoteBleveDocument(t *testing.T) {
 		assert.True(t, doc.HasPythonCode)
 		assert.True(t, doc.HasJavascriptCode)
 		assert.True(t, doc.HasJavaCode)
-		assert.True(t, doc.HasDrawing)
 		assert.Equal(t, "2023-12-05T14:30:00Z", doc.LastUpdated)
 		assert.Equal(t, "2023-12-01T10:00:00Z", doc.CreatedDate)
 	})
@@ -190,6 +187,8 @@ func TestCreateAttachmentBleveDocument(t *testing.T) {
 
 		doc := createAttachmentBleveDocument(env.TmpDir, folderName, "image.jpg", ".jpg")
 		assert.ElementsMatch(t, []string{"foo", "bar"}, doc.Tags)
+		assert.NotEmpty(t, doc.CreatedDate)
+		assert.Greater(t, doc.Size, int64(0))
 	})
 
 	testCases := []struct {
@@ -206,11 +205,14 @@ func TestCreateAttachmentBleveDocument(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.fileName+tc.fileExtension, func(t *testing.T) {
+			env.createAttachmentFile(env.createTestFolder("test-folder"), tc.fileName, "fake")
 			doc := createAttachmentBleveDocument(env.TmpDir, "test-folder", tc.fileName, tc.fileExtension)
 
 			assert.Equal(t, tc.fileName, doc.FileName)
 			assert.Equal(t, tc.fileExtension, doc.FileExtension)
 			assert.Empty(t, doc.Tags)
+			assert.NotEmpty(t, doc.CreatedDate)
+			assert.GreaterOrEqual(t, doc.Size, int64(0))
 		})
 	}
 }
@@ -440,6 +442,26 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		doc, err := env.Index.Document("empty-folder")
 		assert.NoError(t, err)
 		assert.Nil(t, doc)
+	})
+
+	t.Run("should skip hidden files in folder indexing", func(t *testing.T) {
+		folderPath := env.createTestFolder("hidden-skip-folder")
+		env.createMarkdownFile(folderPath, "visible.md", "# visible")
+		env.createMarkdownFile(folderPath, ".hidden.md", "# hidden")
+		env.createAttachmentFile(folderPath, ".hidden.png", "fake image content")
+
+		err := indexFolderAndFlush(t, env.Index, folderPath, "hidden-skip-folder")
+		require.NoError(t, err)
+
+		env.verifyDocumentExists("hidden-skip-folder/visible.md")
+
+		hiddenMarkdownDoc, err := env.Index.Document("hidden-skip-folder/.hidden.md")
+		require.NoError(t, err)
+		assert.Nil(t, hiddenMarkdownDoc)
+
+		hiddenAttachmentDoc, err := env.Index.Document("hidden-skip-folder/.hidden.png")
+		require.NoError(t, err)
+		assert.Nil(t, hiddenAttachmentDoc)
 	})
 }
 

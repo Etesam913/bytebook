@@ -411,8 +411,8 @@ func shouldIgnoreFile(fileName string) bool {
 	if fileName == ".DS_Store" {
 		return true
 	}
-	// Ignore files starting with . (hidden files) except for markdown files
-	if strings.HasPrefix(fileName, ".") && !strings.HasSuffix(fileName, ".md") {
+	// Ignore hidden files and folders (names starting with '.')
+	if strings.HasPrefix(fileName, ".") {
 		return true
 	}
 	return false
