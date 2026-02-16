@@ -12,7 +12,7 @@ import { createFilePath, type FilePath } from '../../../../utils/path';
 import { NAME_CHARS } from '../../../../utils/string-formatting';
 import { FileOrFolder, type Folder } from '../types';
 import { MoveItemsToFolder } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
-import { getFileSelectionKey } from '../../../../utils/selection';
+import { getSelectionValue } from '../../../../utils/selection';
 import { useAtomValue } from 'jotai';
 import { fileTreeDataAtom } from '..';
 import { sidebarSelectionAtom } from '../../../../atoms';
@@ -159,7 +159,7 @@ export function useMoveTreeItemsMutation() {
       // Get the selected items from the sidebar selection
       const selectedItems: FileOrFolder[] = [];
       for (const selectionKey of selections) {
-        const itemId = getFileSelectionKey(selectionKey);
+        const itemId = getSelectionValue(selectionKey);
         if (!itemId) continue;
         const item = fileOrFolderMap.get(itemId);
         if (!item) continue;

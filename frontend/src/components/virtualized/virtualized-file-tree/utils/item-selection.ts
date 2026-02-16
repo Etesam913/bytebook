@@ -1,10 +1,58 @@
 import type { FileOrFolder, FlattenedFileOrFolder } from '../types';
 import { createFilePath, createFolderPath } from '../../../../utils/path';
 import {
-  getFileSelectionKey,
+  createSelectionKey,
+  getSelectionValue,
   getKeyForSidebarSelection,
+  FILE_SELECTION_PREFIX,
 } from '../../../../utils/selection';
 import type { SidebarSelectionState } from '../../../../atoms';
+
+/**
+ * Resolves file tree items that context menu actions should target.
+ * If the current item is selected, all selected items are targeted.
+ * Otherwise, only the current item is targeted.
+ */
+export function getContextMenuSelectionItems({
+  currentItem,
+  sidebarSelections,
+  fileOrFolderMap,
+}: {
+  currentItem: FileOrFolder;
+  sidebarSelections: Set<string>;
+  fileOrFolderMap: Map<string, FileOrFolder>;
+}): {
+  selectedItems: FileOrFolder[];
+  isCurrentItemSelected: boolean;
+} {
+  const currentSelectionKey = createSelectionKey(
+    FILE_SELECTION_PREFIX,
+    currentItem.id
+  );
+  const isCurrentItemSelected = sidebarSelections.has(currentSelectionKey);
+
+  const activeSelectionKeys = isCurrentItemSelected
+    ? sidebarSelections
+    : new Set([currentSelectionKey]);
+
+  const selectionItems = new Map<string, FileOrFolder>();
+  for (const selectionKey of activeSelectionKeys) {
+    const selectionId = getSelectionValue(selectionKey);
+    if (!selectionId) continue;
+    const item = fileOrFolderMap.get(selectionId);
+    if (!item) continue;
+    selectionItems.set(selectionId, item);
+  }
+
+  if (!selectionItems.has(currentItem.id)) {
+    selectionItems.set(currentItem.id, currentItem);
+  }
+
+  return {
+    selectedItems: [...selectionItems.values()],
+    isCurrentItemSelected,
+  };
+}
 
 /**
  * Finds the next anchor selection key after removing the current file from the selection.
@@ -100,7 +148,7 @@ export function computeShiftClickSelections({
   dataItem: FlattenedFileOrFolder;
   anchorSelectionKey: string;
 }): { selections: Set<string> } | null {
-  const anchorSelectionId = getFileSelectionKey(anchorSelectionKey);
+  const anchorSelectionId = getSelectionValue(anchorSelectionKey);
   if (!anchorSelectionId) {
     return null;
   }
@@ -262,7 +310,7 @@ export function createDragGhostElement({
       break;
     }
 
-    const itemId = getFileSelectionKey(selectionKey);
+    const itemId = getSelectionValue(selectionKey);
     if (!itemId) continue;
 
     const item = fileOrFolderMap.get(itemId);

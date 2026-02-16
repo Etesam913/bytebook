@@ -5,7 +5,10 @@ import { FolderOpen } from '../../../../../icons/folder-open';
 import { FolderPlus } from '../../../../../icons/folder-plus';
 import { Note } from '../../../../../icons/page';
 import type { Folder } from '../../types';
-import { contextMenuDataAtom, sidebarSelectionAtom } from '../../../../../atoms';
+import {
+  contextMenuDataAtom,
+  sidebarSelectionAtom,
+} from '../../../../../atoms';
 import { currentZoomAtom } from '../../../../../hooks/resize';
 import { InlineTreeItemInput } from '../inline-tree-item-input';
 import { Finder } from '../../../../../icons/finder';
@@ -21,9 +24,11 @@ import {
   type OpenFolderArgs,
 } from './hooks';
 import { getFileTreeItemIndent } from '../../utils/file-tree-utils';
-import { createDragGhostElement } from '../../utils/item-selection';
+import {
+  createDragGhostElement,
+  getContextMenuSelectionItems,
+} from '../../utils/item-selection';
 import { useMoveTreeItemsMutation } from '../../hooks/tree-item-mutations';
-import { FILE_SELECTION_PREFIX } from '../../../../../utils/selection';
 import { LoadingSpinner } from '../../../../loading-spinner';
 import { motion } from 'motion/react';
 
@@ -31,14 +36,14 @@ export function FileTreeFolderItem({
   dataItem,
   openFolder,
   onSelectionClick,
-  onContextMenuSelection,
+  addItemToSidebarSelection,
   isSelectedFromSidebarClick,
   isOpenFolderPending,
 }: {
   dataItem: Folder & { level: number };
   openFolder: (args: OpenFolderArgs) => void;
   onSelectionClick: (e: MouseEvent) => void;
-  onContextMenuSelection: () => void;
+  addItemToSidebarSelection: () => Set<string> | null;
   isSelectedFromSidebarClick: boolean;
   isOpenFolderPending: boolean;
 }) {
@@ -222,9 +227,7 @@ export function FileTreeFolderItem({
   return (
     <div className="w-full">
       <button
-        draggable={sidebarSelection.selections.has(
-          `${FILE_SELECTION_PREFIX}:${dataItem.id}`
-        )}
+        // draggable={isCurrentItemSelected}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragOver={(e) => {
@@ -248,7 +251,82 @@ export function FileTreeFolderItem({
           if (dataItem.type !== 'folder') return;
 
           e.preventDefault();
-          onContextMenuSelection();
+          const newSelections = addItemToSidebarSelection();
+          if (!newSelections) return;
+
+          const { selectedItems } = getContextMenuSelectionItems({
+            currentItem: dataItem,
+            sidebarSelections: newSelections,
+            fileOrFolderMap,
+          });
+          const isMultiSelection = selectedItems.length > 1;
+
+          // Only show "Add Folder" and "Add Note" if not multiselect
+          const addFolderOption = !isMultiSelection
+            ? [
+                {
+                  label: (
+                    <span className="flex items-center gap-1.5">
+                      <FolderPlus width={17} height={17} />{' '}
+                      <span>Add Folder</span>
+                    </span>
+                  ),
+                  value: 'add-folder',
+                  onChange: () => {
+                    if (!dataItem.isOpen) {
+                      openFolder({
+                        pathToFolder: dataItem.path,
+                        folderId: dataItem.id,
+                      });
+                    }
+                    resetAddTreeItem();
+                    setAddingType('folder');
+                  },
+                },
+              ]
+            : [];
+
+          const addNoteOption = !isMultiSelection
+            ? [
+                {
+                  label: (
+                    <span className="flex items-center gap-1.5">
+                      <Note width={17} height={17} /> <span>Add Note</span>
+                    </span>
+                  ),
+                  value: 'add-note',
+                  onChange: () => {
+                    if (!dataItem.isOpen) {
+                      openFolder({
+                        pathToFolder: dataItem.path,
+                        folderId: dataItem.id,
+                      });
+                    }
+                    resetAddTreeItem();
+                    setAddingType('note');
+                  },
+                },
+              ]
+            : [];
+
+          const renameOption = !isMultiSelection
+            ? [
+                {
+                  label: (
+                    <span className="flex items-center gap-1.5">
+                      <FilePen height={17} width={17} /> <span>Rename</span>
+                    </span>
+                  ),
+                  value: 'rename',
+                  onChange: () => {
+                    setAddingType(null);
+                    resetRenameTreeItem();
+                    setIsEditing(true);
+                  },
+                },
+              ]
+            : [];
+
           setContextMenuData({
             x: e.clientX / currentZoom,
             y: e.clientY / currentZoom,
@@ -263,62 +341,28 @@ export function FileTreeFolderItem({
                 ),
                 value: 'reveal-in-finder',
                 onChange: () => {
-                  revealInFinder({
-                    path: `notes/${dataItem.path}`,
-                    shouldPrefixWithProjectPath: true,
+                  selectedItems.forEach((item, index) => {
+                    console.log(item, index);
+                    if (index === 0) {
+                      revealInFinder({
+                        path: `notes/${item.path}`,
+                        shouldPrefixWithProjectPath: true,
+                      });
+                    } else {
+                      // Put a delay to give the user time to see each item revealed
+                      setTimeout(() => {
+                        revealInFinder({
+                          path: `notes/${item.path}`,
+                          shouldPrefixWithProjectPath: true,
+                        });
+                      }, 300);
+                    }
                   });
                 },
               },
-              {
-                label: (
-                  <span className="flex items-center gap-1.5">
-                    <FolderPlus width={17} height={17} />{' '}
-                    <span>Add Folder</span>
-                  </span>
-                ),
-                value: 'add-folder',
-                onChange: () => {
-                  if (!dataItem.isOpen) {
-                    openFolder({
-                      pathToFolder: dataItem.path,
-                      folderId: dataItem.id,
-                    });
-                  }
-                  resetAddTreeItem();
-                  setAddingType('folder');
-                },
-              },
-              {
-                label: (
-                  <span className="flex items-center gap-1.5">
-                    <Note width={17} height={17} /> <span>Add Note</span>
-                  </span>
-                ),
-                value: 'add-note',
-                onChange: () => {
-                  if (!dataItem.isOpen) {
-                    openFolder({
-                      pathToFolder: dataItem.path,
-                      folderId: dataItem.id,
-                    });
-                  }
-                  resetAddTreeItem();
-                  setAddingType('note');
-                },
-              },
-              {
-                label: (
-                  <span className="flex items-center gap-1.5">
-                    <FilePen height={17} width={17} /> <span>Rename</span>
-                  </span>
-                ),
-                value: 'rename',
-                onChange: () => {
-                  setAddingType(null);
-                  resetRenameTreeItem();
-                  setIsEditing(true);
-                },
-              },
+              ...addFolderOption,
+              ...addNoteOption,
+              ...renameOption,
               {
                 value: 'move-to-trash',
                 label: (
@@ -327,7 +371,9 @@ export function FileTreeFolderItem({
                   </span>
                 ),
                 onChange: () => {
-                  moveToTrash({ path: dataItem.path });
+                  selectedItems.forEach((item) => {
+                    moveToTrash({ path: item.path });
+                  });
                 },
               },
             ],

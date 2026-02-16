@@ -7,7 +7,6 @@ import type { SidebarSelectionState } from '../atoms';
  *
  * @example
  * "file:123"
- * "note:Chapter 1.md"
  * "tag:Python"
  * "kernel:python"
  * "search-result:Python"
@@ -42,7 +41,7 @@ function getSelectionPrefix(selectionKey: string): string | null {
 /**
  * Extracts the value part from a selection key.
  */
-function getSelectionValue(selectionKey: string): string | null {
+export function getSelectionValue(selectionKey: string): string | null {
   const separatorIndex = selectionKey.indexOf(SIDEBAR_SELECTION_SEPARATOR);
   if (separatorIndex === -1 || separatorIndex + 1 >= selectionKey.length) {
     return null;
@@ -228,13 +227,6 @@ export function handleEditorEscape(
   }
 }
 export const FILE_SELECTION_PREFIX = 'file';
-
-/**
- * Gets the selection key from a selectable item key that comes from the selection set
- */
-export function getFileSelectionKey(selectableItemKey: string): string | null {
-  return getSelectionValue(selectableItemKey);
-}
 
 export type SelectableItems = (FilePath | FolderPath) & { id: string };
 

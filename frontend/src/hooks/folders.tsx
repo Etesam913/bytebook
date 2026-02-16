@@ -1,7 +1,4 @@
 import {
-  QueryClient,
-  queryOptions,
-  useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 import { logger } from '../utils/logging';
@@ -23,13 +20,6 @@ import { navigate } from 'wouter/use-browser-location';
 import { createFilePath, createFolderPath } from '../utils/path';
 import { routeUrls } from '../utils/routes';
 import { useFilePathFromRoute, useCurrentNotesRouteFolderPath } from './routes';
-import { GetFolders } from '../../bindings/github.com/etesam913/bytebook/internal/services/folderservice';
-import { QueryError } from '../utils/query';
-
-type FoldersQueryData = {
-  alphabetizedFolders: string[];
-  previousAlphabetizedFolders: string[] | undefined;
-};
 
 function normalizeFolderPath(path: string): string | null {
   return createFolderPath(path)?.fullPath ?? null;
@@ -37,40 +27,6 @@ function normalizeFolderPath(path: string): string | null {
 
 function isPrefixOrSamePath(path: string, maybePrefix: string): boolean {
   return path === maybePrefix || path.startsWith(`${maybePrefix}/`);
-}
-
-const folderQueries = {
-  getFolders: (queryClient: QueryClient) =>
-    queryOptions({
-      queryKey: ['folders'],
-      queryFn: async () => {
-        const res = await GetFolders();
-        if (!res.success) {
-          throw new QueryError(res.message);
-        }
-        const previousQueryData = queryClient.getQueryData<FoldersQueryData>([
-          'folders',
-        ]);
-        const previousFolders = previousQueryData?.alphabetizedFolders;
-        return {
-          alphabetizedFolders: (res.data ?? []).sort((a, b) =>
-            a.localeCompare(b)
-          ),
-          previousAlphabetizedFolders: previousFolders || undefined,
-        };
-      },
-    }),
-};
-
-/**
- * Custom hook to fetch and manage folders.
- *
- * @param curFolder - The current folder name from the URL.
- * @returns An object containing the query data and alphabetized folders.
- */
-export function useFolders() {
-  const queryClient = useQueryClient();
-  return useQuery(folderQueries.getFolders(queryClient));
 }
 
 /** This function is used to handle `folder:create` events */

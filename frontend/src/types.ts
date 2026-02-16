@@ -52,7 +52,7 @@ export type BackendQueryDataType = {
   message: string;
 };
 
-type SortStrings =
+export type SortStrings =
   | 'date-updated-desc'
   | 'date-updated-asc'
   | 'date-created-desc'
@@ -149,7 +149,6 @@ export type Frontmatter = {
 export type SidebarContentType =
   | 'note'
   | 'pinned-note'
-  | 'folder'
   | 'tag'
   | 'saved-search'
   | 'search-result'
@@ -160,7 +159,6 @@ export function isSidebarContentType(key: unknown): key is SidebarContentType {
     typeof key === 'string' &&
     (key === 'note' ||
       key === 'pinned-note' ||
-      key === 'folder' ||
       key === 'tag' ||
       key === 'saved-search' ||
       key === 'kernel' ||
