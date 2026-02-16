@@ -3,8 +3,11 @@ import { useEffect } from 'react';
 import { useRoute } from 'wouter';
 import { useSetAtom } from 'jotai/react';
 import { currentFilePathAtom } from '../atoms';
-import { LocalFilePath, safeDecodeURIComponent } from '../utils/path';
-import { useSearchParamsEntries } from '../utils/routing';
+import {
+  createFilePath,
+  LocalFilePath,
+  safeDecodeURIComponent,
+} from '../utils/path';
 import {
   routeUrls,
   type NotesRouteParams,
@@ -29,9 +32,7 @@ export function useWailsEvent(
 }
 
 /**
- * Returns the folder parameter from the current route, whether it's a note route or a saved search route.
- * Decodes the folder name before returning.
- * @returns {string | undefined} The decoded folder name from the route, or undefined if not present.
+ * Returns the current folder from wildcard note routes (`/notes/*` and `/saved-search/:query/*`).
  */
 export function useFolderFromRoute(): {
   folder: string | undefined;
@@ -45,78 +46,72 @@ export function useFolderFromRoute(): {
     routeUrls.patterns.NOTES
   );
   let folder: string | undefined;
+  let routePath: string | undefined;
 
   if (isSavedSearchRoute) {
-    folder = savedSearchParams?.folder;
+    routePath = savedSearchParams?.['*'];
   } else if (isNoteRoute) {
-    folder = noteParams?.folder;
+    routePath = noteParams?.['*'];
+  }
+
+  const normalizedPath = routePath
+    ? safeDecodeURIComponent(routePath).split('/').filter(Boolean).join('/')
+    : undefined;
+
+  if (normalizedPath) {
+    folder =
+      createFilePath(normalizedPath)?.folder ??
+      normalizedPath.split('/').filter(Boolean)[0];
   }
 
   return {
-    folder: folder ? safeDecodeURIComponent(folder) : undefined,
+    folder,
     isSavedSearchRoute,
     isNoteRoute,
   };
 }
 
 /**
- * Returns the note parameter from the current route, whether it's a note route or a saved search route.
- * Decodes the note name before returning.
- * @returns {{ note: string | undefined, isSavedSearchRoute: boolean, isNoteRoute: boolean }}
- *   An object containing the decoded note name, and flags for route type.
- */
-function useNoteFromRoute(): {
-  note: string | undefined;
-  isSavedSearchRoute: boolean;
-  isNoteRoute: boolean;
-} {
-  const [isSavedSearchRoute, savedSearchParams] =
-    useRoute<SavedSearchRouteParams>(routeUrls.patterns.SAVED_SEARCH);
-
-  const [isNoteRoute, noteParams] = useRoute<NotesRouteParams>(
-    routeUrls.patterns.NOTES
-  );
-  let note: string | undefined;
-
-  if (isSavedSearchRoute) {
-    note = savedSearchParams?.note;
-  } else if (isNoteRoute) {
-    note = noteParams?.note;
-  }
-
-  return {
-    note: note ? safeDecodeURIComponent(note) : undefined,
-    isSavedSearchRoute,
-    isNoteRoute,
-  };
-}
-
-/**
- * Hook to track route changes and update FilePath atom when on a note route
- * FilePath is set to null when a note or a folder is not present in the route
+ * Hook to track route changes and update FilePath atom from wildcard note routes.
+ * FilePath is set to null when the wildcard segment is missing or not a file.
  */
 export function useRouteFilePath() {
   const setCurrentFilePath = useSetAtom(currentFilePathAtom);
+  const [isSavedSearchRoute, savedSearchParams] =
+    useRoute<SavedSearchRouteParams>(routeUrls.patterns.SAVED_SEARCH);
+  const [isNoteRoute, noteParams] = useRoute<NotesRouteParams>(
+    routeUrls.patterns.NOTES
+  );
 
-  const { folder } = useFolderFromRoute();
-  const { note } = useNoteFromRoute();
-  const extension = useSearchParamsEntries().ext;
-
-  const isRelevantRoute = !!folder && !!note && !!extension;
+  const routePath = isNoteRoute
+    ? noteParams?.['*']
+    : isSavedSearchRoute
+      ? savedSearchParams?.['*']
+      : undefined;
+  const normalizedPath = routePath
+    ? safeDecodeURIComponent(routePath).split('/').filter(Boolean).join('/')
+    : undefined;
 
   useEffect(() => {
-    if (isRelevantRoute) {
-      try {
-        const filePath = new LocalFilePath({
-          folder: folder!,
-          note: `${note!}.${extension}`,
-        });
-        setCurrentFilePath(filePath);
-      } catch {
-        setCurrentFilePath(null);
-      }
-    } else {
+    if (!normalizedPath) {
+      setCurrentFilePath(null);
+      return;
+    }
+
+    const parsedFilePath = createFilePath(normalizedPath);
+    if (!parsedFilePath) {
+      setCurrentFilePath(null);
+      return;
+    }
+
+    try {
+      const filePath = new LocalFilePath({
+        folder: parsedFilePath.folder,
+        note: parsedFilePath.note,
+      });
+      setCurrentFilePath(filePath);
+    } catch {
       setCurrentFilePath(null);
     }
-  }, [isRelevantRoute, folder, note, extension, setCurrentFilePath]);
+  }, [normalizedPath, setCurrentFilePath]);
 }

@@ -182,6 +182,43 @@ func extractLangPrefix(text string) (string, bool) {
 	return extractPrefix(text, []string{"lang:", "l:"}, "\"")
 }
 
+// extractSortPrefix extracts sort options from tokens starting with "s:" or "sort:".
+// Supports fields: created, updated, size. Supports optional _asc / _desc suffix.
+// If no direction suffix exists, descending is used by default.
+func extractSortPrefix(text string) (SearchSortOption, bool) {
+	normalizedText := strings.ToLower(strings.TrimSpace(text))
+	value, ok := extractPrefix(normalizedText, []string{"sort:", "s:"}, "\"")
+	if !ok {
+		return SearchSortOption{}, false
+	}
+
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return SearchSortOption{}, false
+	}
+
+	field := value
+	direction := SortDirectionDesc
+
+	lastUnderscore := strings.LastIndex(value, "_")
+	if lastUnderscore > 0 && lastUnderscore < len(value)-1 {
+		suffix := value[lastUnderscore+1:]
+		if suffix == SortDirectionAsc || suffix == SortDirectionDesc {
+			field = value[:lastUnderscore]
+			direction = suffix
+		}
+	}
+
+	if !isValidUserSortField(field) {
+		return SearchSortOption{}, false
+	}
+
+	return SearchSortOption{
+		Field:     field,
+		Direction: direction,
+	}, true
+}
+
 // createLangQuery handles lang queries (tokens starting with "l:" or "lang:")
 // Returns a query that filters results by the presence of code in a specific language.
 func createLangQuery(langName string) query.Query {
@@ -225,12 +262,31 @@ func createLangQuery(langName string) query.Query {
 // - f:filename OR file:filename OR term
 // - #tagname OR tag:tagname AND term
 // - t:note OR type:note AND term
-func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
+func BuildBooleanQueryFromUserInput(input string, fuzziness int) (query.Query, *SearchSortOption) {
 	// Normalize curly/smart quotes so parsing and matching are consistent
 	input = normalizeQuotes(input)
 	tokens := parseTokens(input)
 	if len(tokens) == 0 {
-		return bleve.NewMatchNoneQuery()
+		return bleve.NewMatchNoneQuery(), nil
+	}
+
+	// The sort tokens have to be filtered out as the sort value is used in a different location compared to the other properties
+	filteredTokens := make([]SearchToken, 0, len(tokens))
+	var sortOption *SearchSortOption
+	for _, token := range tokens {
+		if extractedSort, ok := extractSortPrefix(token.Text); ok {
+			sortCopy := extractedSort
+			sortOption = &sortCopy
+			continue
+		}
+		filteredTokens = append(filteredTokens, token)
+	}
+
+	if len(filteredTokens) == 0 {
+		if sortOption != nil {
+			return bleve.NewMatchAllQuery(), sortOption
+		}
+		return bleve.NewMatchNoneQuery(), nil
 	}
 
 	// Helper to create a query for a token
@@ -266,15 +322,15 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 	}
 
 	// The first token does not have a prevOp, no OR or AND
-	currentQuery := createTokenQuery(tokens[0])
+	currentQuery := createTokenQuery(filteredTokens[0])
 
-	for i := 1; i < len(tokens); i++ {
-		nextQuery := createTokenQuery(tokens[i])
+	for i := 1; i < len(filteredTokens); i++ {
+		nextQuery := createTokenQuery(filteredTokens[i])
 		if nextQuery == nil {
 			continue
 		}
 
-		prevOp := tokens[i-1].Operator
+		prevOp := filteredTokens[i-1].Operator
 		switch prevOp {
 		case OpOR:
 			disjunctionQuery := bleve.NewDisjunctionQuery()
@@ -289,5 +345,5 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) query.Query {
 		}
 	}
 
-	return currentQuery
+	return currentQuery, sortOption
 }

@@ -23,6 +23,7 @@ const (
 	FieldTags                  = "tags"
 	FieldLastUpdated           = "last_updated"
 	FieldCreatedDate           = "created_date"
+	FieldSize                  = "size"
 )
 
 // Fields that should be highlighted in search results

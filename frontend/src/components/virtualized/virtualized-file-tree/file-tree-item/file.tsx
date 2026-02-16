@@ -1,7 +1,6 @@
 import { useAtomValue, useSetAtom } from 'jotai';
 import { MouseEvent, useState, DragEvent } from 'react';
 import { navigate } from 'wouter/use-browser-location';
-import { Note } from '../../../../icons/page';
 import { Finder } from '../../../../icons/finder';
 import { PinTack2 } from '../../../../icons/pin-tack-2';
 import { PinTackSlash } from '../../../../icons/pin-tack-slash';
@@ -34,6 +33,7 @@ import {
 import { fileTreeDataAtom } from '..';
 import { TagPlus } from '../../../../icons/tag-plus';
 import { EditTagDialogChildren } from '../../../../routes/notes-sidebar/edit-tag-dialog-children';
+import { RenderNoteIcon } from '../../../../icons/render-note-icon';
 
 export function FileTreeFileItem({
   dataItem,
@@ -137,12 +137,13 @@ export function FileTreeFileItem({
         isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
       )}
     >
-      <Note
+      <RenderNoteIcon filePath={filePath} size="sm" />
+      {/* <Note
         className="min-w-4 min-h-4 will-change-transform"
         height={16}
         width={16}
         strokeWidth={1.75}
-      />
+      /> */}
       <InlineTreeItemInput
         dataItem={dataItem}
         defaultValue={nameWithoutExtension}

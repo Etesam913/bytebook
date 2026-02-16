@@ -10,13 +10,11 @@ export type KernelWithFilesRouteParams = {
 
 export type SavedSearchRouteParams = {
   searchQuery: string;
-  folder?: string;
-  note?: string;
+  '*'?: string;
 };
 
 export type NotesRouteParams = {
-  folder: string;
-  note?: string;
+  '*'?: string;
 };
 
 // Route patterns (used in Route components and useRoute hooks)
@@ -25,8 +23,8 @@ export const ROUTE_PATTERNS = {
   SEARCH: '/search',
   KERNELS: '/kernels/:kernelName',
   KERNELS_WITH_FILES: '/kernels/:kernelName/:folder?/:note?',
-  SAVED_SEARCH: '/saved-search/:searchQuery/:folder?/:note?',
-  NOTES: '/notes/:folder/:note?',
+  SAVED_SEARCH: '/saved-search/:searchQuery/*',
+  NOTES: '/notes/*',
   CATCH_ALL: '*',
   NOT_FOUND_FALLBACK: '/404',
 } as const;
@@ -96,13 +94,18 @@ export const routeBuilders = {
    * Build tag search route (saved search with tag format)
    */
   tagSearch: (tagName: string) =>
-    `/saved-search/${encodeURIComponent('#' + tagName)}`,
+    routeBuilders.savedSearch('#' + tagName),
 
   /**
    * Build saved search route
    */
-  savedSearch: (searchQuery: string) =>
-    `/saved-search/${encodeURIComponent(searchQuery)}`,
+  savedSearch: (searchQuery: string, encodedFilePath?: string) => {
+    const baseRoute = `/saved-search/${encodeURIComponent(searchQuery)}`;
+    if (encodedFilePath) {
+      return `${baseRoute}/${encodedFilePath}`;
+    }
+    return searchQuery ? `${baseRoute}/` : '/saved-search/';
+  },
 };
 
 // Main routeUrls object combining patterns and builders

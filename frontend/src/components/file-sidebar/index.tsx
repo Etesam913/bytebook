@@ -51,7 +51,7 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
     }
   );
 
-  if (folder === 'settings') return null;
+  if (folder?.split('/')[0] === 'settings') return null;
 
   return (
     <>

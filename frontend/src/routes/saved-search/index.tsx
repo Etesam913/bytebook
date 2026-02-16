@@ -1,5 +1,5 @@
 import { type MotionValue, motion } from 'motion/react';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Spacer } from '../../components/file-sidebar/spacer.tsx';
 import { ArrowRotateAnticlockwise } from '../../icons/arrow-rotate-anticlockwise';
@@ -16,12 +16,13 @@ import { useNoteExists } from '../../hooks/notes';
 import { createFilePath, type FilePath } from '../../utils/path.ts';
 import { isNoteMaximizedAtom } from '../../atoms.ts';
 import { useAtomValue } from 'jotai';
-import { useSearchParamsEntries } from '../../utils/routing.ts';
 import { Tooltip } from '../../components/tooltip/index.tsx';
 import { ErrorText } from '../../components/error-text/index.tsx';
 import { RouteFallback } from '../../components/route-fallback';
 import { MotionButton } from '../../components/buttons';
 import { getDefaultButtonVariants } from '../../animations';
+import { routeUrls } from '../../utils/routes';
+import { navigate } from 'wouter/use-browser-location';
 
 function NoteRenderErrorFallback({
   error,
@@ -95,39 +96,47 @@ function SavedSearchNoteContent({ filePath }: { filePath: FilePath }) {
   const { data: noteExists, isLoading, error } = useNoteExists(filePath);
 
   if (isLoading) {
-    return <RouteFallback height={42} width={42} className="mx-auto my-auto" />;
+    return (
+      <div className="flex h-full min-w-0 flex-1">
+        <RouteFallback height={42} width={42} className="mx-auto my-auto" />
+      </div>
+    );
   }
 
   if (!noteExists || error) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center gap-4 text-center p-6 mx-auto">
-        <div className="flex flex-col items-center gap-3">
-          <FileBan width={48} height={48} />
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold">Note not found</h2>
-            <p className="text-balance text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
-              The note <b>{filePath.fullPath}</b> does not exist or could not be
-              loaded.
-            </p>
+      <div className="flex h-full min-w-0 flex-1">
+        <div className="h-full w-full flex flex-col items-center justify-center gap-4 text-center p-6 mx-auto">
+          <div className="flex flex-col items-center gap-3">
+            <FileBan width={48} height={48} />
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold">Note not found</h2>
+              <p className="text-balance text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
+                The note <b>{filePath.fullPath}</b> does not exist or could not
+                be loaded.
+              </p>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  return <NoteRenderer filePath={filePath} />;
+  return (
+    <div className="flex h-full min-w-0 flex-1">
+      <NoteRenderer filePath={filePath} />
+    </div>
+  );
 }
 
 export function SavedSearchPage({
   searchQuery,
   width,
-  curFolder,
-  curNote,
+  curPath,
 }: {
   searchQuery: string;
   width?: MotionValue<number>;
-  curFolder?: string;
-  curNote?: string;
+  curPath?: string;
 }) {
   const {
     data: groupedResults = { notes: [], attachments: [] },
@@ -138,27 +147,37 @@ export function SavedSearchPage({
 
   const resultCount =
     groupedResults.notes.length + groupedResults.attachments.length;
-
-  const searchParams: { ext?: string } = useSearchParamsEntries();
-  const curNoteExtension = searchParams?.ext;
+  const searchResultPaths = [
+    ...groupedResults.notes.map((note) => note.filePath),
+    ...groupedResults.attachments.map((attachment) => attachment.filePath),
+  ];
 
   const sidebarRef = useRef<HTMLElement>(null);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
 
-  // Convert folder and note strings to FilePath
-  const activeNotePath =
-    curFolder && curNote && curNoteExtension
-      ? (createFilePath(`${curFolder}/${curNote}.${curNoteExtension}`) ??
-        undefined)
-      : undefined;
+  // Convert wildcard route path to a FilePath.
+  const activeNotePath = curPath
+    ? (createFilePath(curPath) ?? undefined)
+    : undefined;
+
+  useEffect(() => {
+    if (searchResultPaths.length === 0) {
+      return;
+    }
+
+    const firstSearchResultPath = searchResultPaths[0];
+    navigate(
+      routeUrls.savedSearch(searchQuery, firstSearchResultPath.encodedPath)
+    );
+  }, [searchResultPaths]);
 
   return (
-    <>
+    <div className="flex h-full min-w-0">
       {!isNoteMaximized && (
         <motion.aside
           ref={sidebarRef}
           style={width ? { width } : undefined}
-          className="text-md flex h-screen flex-col pb-3.5"
+          className="text-md flex h-screen flex-col pb-3.5 shrink-0"
         >
           <div className="flex h-full flex-col overflow-y-auto relative">
             <header className="pl-1.5 pr-2.5">
@@ -219,12 +238,7 @@ export function SavedSearchPage({
                           No results found for &quot;{searchQuery}&quot;
                         </li>
                       }
-                      data={[
-                        ...groupedResults.notes.map((note) => note.filePath),
-                        ...groupedResults.attachments.map(
-                          (attachment) => attachment.filePath
-                        ),
-                      ]}
+                      data={searchResultPaths}
                       dataItemToString={(filePath) =>
                         filePath.noteWithoutExtension
                       }
@@ -238,6 +252,7 @@ export function SavedSearchPage({
                       }}
                       renderItem={({ dataItem: sidebarNotePath }) => (
                         <NoteSidebarButton
+                          searchQuery={searchQuery}
                           sidebarNotePath={sidebarNotePath}
                           activeNotePath={activeNotePath}
                         />
@@ -250,9 +265,9 @@ export function SavedSearchPage({
         </motion.aside>
       )}
       {width && <Spacer width={width} />}
-      {curFolder && curNote && curNoteExtension && activeNotePath && (
+      {activeNotePath && (
         <ErrorBoundary
-          key={`${curFolder}-${curNote}-${curNoteExtension}`}
+          key={activeNotePath.fullPath}
           FallbackComponent={(fallbackProps) => (
             <NoteRenderErrorFallback
               {...fallbackProps}
@@ -263,6 +278,6 @@ export function SavedSearchPage({
           <SavedSearchNoteContent filePath={activeNotePath} />
         </ErrorBoundary>
       )}
-    </>
+    </div>
   );
 }

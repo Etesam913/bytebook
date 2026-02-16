@@ -13,10 +13,15 @@ import (
 
 // CreateSearchRequest creates a search request with common options
 // used by the application (fields, size, and highlighting for text_content and code_content).
-func CreateSearchRequest(q query.Query, limit int) *bleve.SearchRequest {
+func CreateSearchRequest(q query.Query, limit int, sortOption *SearchSortOption) *bleve.SearchRequest {
 	req := bleve.NewSearchRequest(q)
-	req.Fields = []string{FieldType, FieldFolder, FieldFileName, FieldLastUpdated, FieldCreatedDate, FieldTags, FieldCodeContent}
+	req.Fields = []string{FieldType, FieldFolder, FieldFileName, FieldLastUpdated, FieldCreatedDate, FieldSize, FieldTags, FieldCodeContent}
 	req.Size = limit
+	if sortOption != nil {
+		if sortField, ok := sortOption.ToBleveSort(); ok {
+			req.SortBy([]string{sortField})
+		}
+	}
 	req.IncludeLocations = true
 	req.Highlight = bleve.NewHighlightWithStyle("html")
 	if req.Highlight != nil {
@@ -214,6 +219,12 @@ func processAttachmentResult(hit *blevesearch.DocumentMatch) *SearchResult {
 
 	tags := extractTags(hit)
 	highlights := extractHighlights(hit)
+	created := ""
+	if cd, ok := hit.Fields[FieldCreatedDate]; ok {
+		if createdDate, ok := cd.(string); ok {
+			created = createdDate
+		}
+	}
 
 	return &SearchResult{
 		Type:        ATTACHMENT_TYPE,
@@ -221,7 +232,7 @@ func processAttachmentResult(hit *blevesearch.DocumentMatch) *SearchResult {
 		Folder:      folder,
 		Note:        fileName,
 		LastUpdated: "", // Attachments don't have lastUpdated
-		Created:     "", // Attachments don't have created date
+		Created:     created,
 		Tags:        tags,
 		Highlights:  highlights,
 	}

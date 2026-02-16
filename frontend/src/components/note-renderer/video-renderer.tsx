@@ -18,7 +18,7 @@ export function VideoRenderer({ filePath }: { filePath: FilePath }) {
         </span>
       ) : (
         <video
-          controls
+          controls={true}
           title={filePath.noteWithoutExtension}
           onError={() => {
             setIsError(true);

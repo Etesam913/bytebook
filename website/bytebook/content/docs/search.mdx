@@ -118,6 +118,41 @@ Find folders named "docs":
 t:folder f:docs
 ```
 
+## Sorting results
+
+Use `s:` or `sort:` to sort query results by:
+
+- `created`
+- `updated`
+- `size`
+
+You can control sort direction by appending:
+
+- `_asc` for ascending order
+- `_desc` for descending order
+
+Descending order is the default if no direction is specified.
+
+### Examples:
+
+Sort results by creation time:
+
+```txt
+s:created
+```
+
+Sort results by creation time in ascending order:
+
+```txt
+sort:created_asc
+```
+
+Sort results by last update time while searching for "auth":
+
+```txt
+sort:updated auth
+```
+
 ## Language filters
 
 Use `l:` or `lang:` to filter notes by the programming language of code blocks they contain:
@@ -148,4 +183,3 @@ Find all notes that contain code:
 ```txt
 l:code
 ```
-

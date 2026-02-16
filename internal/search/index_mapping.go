@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/blevesearch/bleve/analysis/token/lowercase"
 	"github.com/blevesearch/bleve/v2"
@@ -54,7 +55,6 @@ type MarkdownNoteBleveDocument struct {
 	JavaCodeContent       []string `json:"java_code_content"`
 	PythonCodeContent     []string `json:"python_code_content"`
 	JavascriptCodeContent []string `json:"javascript_code_content"`
-	HasDrawing            bool     `json:"has_drawing"`
 	HasCode               bool     `json:"has_code"`
 	HasGoCode             bool     `json:"has_go_code"`
 	HasJavaCode           bool     `json:"has_java_code"`
@@ -63,6 +63,7 @@ type MarkdownNoteBleveDocument struct {
 	Tags                  []string `json:"tags"`
 	LastUpdated           string   `json:"last_updated"`
 	CreatedDate           string   `json:"created_date"`
+	Size                  int64    `json:"size"`
 }
 
 type AttachmentBleveDocument struct {
@@ -72,6 +73,8 @@ type AttachmentBleveDocument struct {
 	FileNameLC    string   `json:"file_name_lc"`
 	FileExtension string   `json:"file_extension"`
 	Tags          []string `json:"tags"`
+	CreatedDate   string   `json:"created_date"`
+	Size          int64    `json:"size"`
 }
 
 // DocumentIndexInfo contains information about a document's presence in the search index.
@@ -100,7 +103,6 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 		JavaCodeContent:       notes.GetJavaCodeContent(markdown),
 		PythonCodeContent:     notes.GetPythonCodeContent(markdown),
 		JavascriptCodeContent: notes.GetJavaScriptCodeContent(markdown),
-		HasDrawing:            notes.HasDrawing(markdown),
 		HasCode:               notes.HasCode(markdown),
 		HasGoCode:             notes.HasGoCode(markdown),
 		HasJavaCode:           notes.HasJavaCode(markdown),
@@ -109,6 +111,7 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 		Tags:                  tags,
 		LastUpdated:           lastUpdated,
 		CreatedDate:           createdDate,
+		Size:                  int64(len([]byte(markdown))),
 	}
 }
 
@@ -120,6 +123,15 @@ func createAttachmentBleveDocument(projectPath, folder, fileName, fileExtension 
 		tags = []string{}
 	}
 
+	size := int64(0)
+	createdDate := ""
+	attachmentPath := filepath.Join(projectPath, "notes", folder, fileName)
+	fileInfo, statErr := os.Stat(attachmentPath)
+	if statErr == nil {
+		size = fileInfo.Size()
+		createdDate = fileInfo.ModTime().UTC().Format(time.RFC3339)
+	}
+
 	return AttachmentBleveDocument{
 		Type:          ATTACHMENT_TYPE,
 		Folder:        folder,
@@ -127,6 +139,8 @@ func createAttachmentBleveDocument(projectPath, folder, fileName, fileExtension 
 		FileNameLC:    strings.ToLower(fileName),
 		FileExtension: fileExtension,
 		Tags:          tags,
+		CreatedDate:   createdDate,
+		Size:          size,
 	}
 }
 
@@ -249,11 +263,6 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	storedKeywordTextFieldMapping.Analyzer = "keyword"
 	storedKeywordTextFieldMapping.Store = true
 
-	// Case insensitive word search
-	storedSimpleFieldMapping := bleve.NewTextFieldMapping()
-	storedSimpleFieldMapping.Analyzer = "simple"
-	storedSimpleFieldMapping.Store = true
-
 	folderLowerFieldMapping := bleve.NewTextFieldMapping()
 	folderLowerFieldMapping.Analyzer = FilenameAnalyzer // Use custom analyzer that doesn't split on apostrophes
 	folderLowerFieldMapping.Store = true
@@ -269,6 +278,10 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	// Set store = true for last_updated
 	lastUpdatedFieldMapping := bleve.NewDateTimeFieldMapping()
 	lastUpdatedFieldMapping.Store = true
+	createdDateFieldMapping := bleve.NewDateTimeFieldMapping()
+	createdDateFieldMapping.Store = true
+	sizeFieldMapping := bleve.NewNumericFieldMapping()
+	sizeFieldMapping.Store = true
 
 	documentMapping.AddFieldMappingsAt(FieldFolder, folderLowerFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldFileName, fileNameFieldMapping)
@@ -281,7 +294,6 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	documentMapping.AddFieldMappingsAt(FieldJavaCodeContent, storedKeywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldPythonCodeContent, storedKeywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldJavascriptCodeContent, storedKeywordTextFieldMapping)
-	documentMapping.AddFieldMappingsAt(FieldHasDrawing, bleve.NewBooleanFieldMapping())
 	documentMapping.AddFieldMappingsAt(FieldHasCode, bleve.NewBooleanFieldMapping())
 	documentMapping.AddFieldMappingsAt(FieldHasGoCode, bleve.NewBooleanFieldMapping())
 	documentMapping.AddFieldMappingsAt(FieldHasJavaCode, bleve.NewBooleanFieldMapping())
@@ -289,7 +301,8 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	documentMapping.AddFieldMappingsAt(FieldHasJavascriptCode, bleve.NewBooleanFieldMapping())
 	documentMapping.AddFieldMappingsAt(FieldTags, keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldLastUpdated, lastUpdatedFieldMapping)
-	documentMapping.AddFieldMappingsAt(FieldCreatedDate, bleve.NewDateTimeFieldMapping())
+	documentMapping.AddFieldMappingsAt(FieldCreatedDate, createdDateFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldSize, sizeFieldMapping)
 
 	return documentMapping
 }
@@ -306,9 +319,10 @@ func createAttachmentDocumentMapping() *mapping.DocumentMapping {
 	keywordTextFieldMapping := bleve.NewTextFieldMapping()
 	keywordTextFieldMapping.Analyzer = "keyword"
 
-	fileNameFieldMapping := bleve.NewTextFieldMapping()
-	fileNameFieldMapping.Analyzer = "keyword"
-	fileNameFieldMapping.Store = true
+	createdDateFieldMapping := bleve.NewDateTimeFieldMapping()
+	createdDateFieldMapping.Store = true
+	sizeFieldMapping := bleve.NewNumericFieldMapping()
+	sizeFieldMapping.Store = true
 
 	documentMapping := bleve.NewDocumentMapping()
 
@@ -322,6 +336,8 @@ func createAttachmentDocumentMapping() *mapping.DocumentMapping {
 	// FieldFileNameLC removed - using FieldFileName for both search and display
 	documentMapping.AddFieldMappingsAt(FieldFileExtension, keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldTags, keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldCreatedDate, createdDateFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldSize, sizeFieldMapping)
 
 	return documentMapping
 }
@@ -411,6 +427,11 @@ func IndexFilesInFolderWithBatch(
 	}
 
 	for _, file := range files {
+		// Ignore hidden files and folders.
+		if strings.HasPrefix(file.Name(), ".") {
+			continue
+		}
+
 		if file.IsDir() {
 			continue // Skip subdirectories
 		}

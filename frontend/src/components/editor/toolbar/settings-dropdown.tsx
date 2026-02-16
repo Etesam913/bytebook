@@ -1,16 +1,23 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { useState } from 'react';
 import { getDefaultButtonVariants } from '../../../animations';
-import { isFullscreenAtom, projectSettingsAtom } from '../../../atoms';
+import {
+  dialogDataAtom,
+  isFullscreenAtom,
+  projectSettingsAtom,
+} from '../../../atoms';
 import {
   useMoveToTrashMutationNew,
   useNoteRevealInFinderMutation,
 } from '../../../hooks/notes';
+import { useEditTagsFormMutation } from '../../../hooks/tags';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
+import { EditTagDialogChildren } from '../../../routes/notes-sidebar/edit-tag-dialog-children';
 import { Finder } from '../../../icons/finder';
 import { HorizontalDots } from '../../../icons/horizontal-dots';
 import { PinTack2 } from '../../../icons/pin-tack-2';
+import { TagPlus } from '../../../icons/tag-plus';
 import { Table } from '../../../icons/table';
 import { Trash } from '../../../icons/trash';
 import type { ProjectSettings } from '../../../types';
@@ -36,11 +43,13 @@ export function SettingsDropdown({
   const isFullscreen = useAtomValue(isFullscreenAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const isPinned = projectSettings.pinnedNotes.has(`${folder}/${note}.md`);
+  const setDialogData = useSetAtom(dialogDataAtom);
   const [editor] = useLexicalComposerContext();
 
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutationNew();
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
+  const { mutateAsync: editTags } = useEditTagsFormMutation();
 
   const items = [
     // Pin/Unpin at the top
@@ -59,6 +68,14 @@ export function SettingsDropdown({
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <Finder className="min-w-5" height={18} width={18} /> Reveal In Finder
+        </span>
+      ),
+    },
+    {
+      value: 'edit-tags',
+      label: (
+        <span className="flex items-center gap-1.5 will-change-transform">
+          <TagPlus className="min-w-5" height={18} width={18} /> Edit Tags
         </span>
       ),
     },
@@ -128,6 +145,31 @@ export function SettingsDropdown({
             revealInFinder({
               selectionRange: new Set([`note:${note}.md`]),
               folder,
+            });
+            break;
+          }
+          case 'edit-tags': {
+            const selectionRange = new Set([`note:${note}.md`]);
+            setDialogData({
+              isOpen: true,
+              isPending: false,
+              title: 'Edit Tags',
+              dialogClassName: 'w-[min(30rem,90vw)]',
+              children: (errorText) => (
+                <EditTagDialogChildren
+                  selectionRange={selectionRange}
+                  folder={folder}
+                  errorText={errorText}
+                />
+              ),
+              onSubmit: async (e, setErrorText) => {
+                return await editTags({
+                  e,
+                  setErrorText,
+                  selectionRange,
+                  folder,
+                });
+              },
             });
             break;
           }

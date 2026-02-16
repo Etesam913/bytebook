@@ -192,7 +192,7 @@ func TestBuildBooleanQueryFromUserInput(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			q := BuildBooleanQueryFromUserInput(tt.input, 0)
+			q, _ := BuildBooleanQueryFromUserInput(tt.input, 0)
 			assert.IsType(t, tt.wantType, q)
 
 			switch v := q.(type) {
@@ -350,8 +350,74 @@ func TestBuildBooleanQueryWithLang(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			q := BuildBooleanQueryFromUserInput(tt.input, 0)
+			q, _ := BuildBooleanQueryFromUserInput(tt.input, 0)
 			assert.IsType(t, tt.wantType, q)
 		})
 	}
+}
+
+func TestExtractSortPrefix(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		want      SearchSortOption
+		wantFound bool
+	}{
+		{
+			name:      "short prefix default desc",
+			input:     "s:created",
+			want:      SearchSortOption{Field: UserSortFieldCreated, Direction: SortDirectionDesc},
+			wantFound: true,
+		},
+		{
+			name:      "long prefix explicit desc",
+			input:     "sort:created_desc",
+			want:      SearchSortOption{Field: UserSortFieldCreated, Direction: SortDirectionDesc},
+			wantFound: true,
+		},
+		{
+			name:      "long prefix explicit asc",
+			input:     "sort:size_asc",
+			want:      SearchSortOption{Field: UserSortFieldSize, Direction: SortDirectionAsc},
+			wantFound: true,
+		},
+		{
+			name:      "invalid field",
+			input:     "sort:name_asc",
+			want:      SearchSortOption{},
+			wantFound: false,
+		},
+		{
+			name:      "no sort prefix",
+			input:     "created_desc",
+			want:      SearchSortOption{},
+			wantFound: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, found := extractSortPrefix(tt.input)
+			assert.Equal(t, tt.wantFound, found)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestBuildBooleanQueryWithSort(t *testing.T) {
+	t.Run("extracts sort and keeps content query", func(t *testing.T) {
+		q, sortOption := BuildBooleanQueryFromUserInput("sort:updated auth", 0)
+		assert.NotNil(t, sortOption)
+		assert.Equal(t, UserSortFieldUpdated, sortOption.Field)
+		assert.Equal(t, SortDirectionDesc, sortOption.Direction)
+		assert.IsType(t, &query.BooleanQuery{}, q)
+	})
+
+	t.Run("supports sort-only query as match all", func(t *testing.T) {
+		q, sortOption := BuildBooleanQueryFromUserInput("s:created", 0)
+		assert.NotNil(t, sortOption)
+		assert.Equal(t, UserSortFieldCreated, sortOption.Field)
+		assert.Equal(t, SortDirectionDesc, sortOption.Direction)
+		assert.IsType(t, &query.MatchAllQuery{}, q)
+	})
 }
