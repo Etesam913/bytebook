@@ -56,7 +56,7 @@ export function KernelAccordionButton({
       draggable
       onDragStart={(e) => e.preventDefault()}
       className={cn(
-        'list-sidebar-item transition-none',
+        'list-sidebar-item text-sm transition-none',
         isActive && 'bg-zinc-150 dark:bg-zinc-700',
         isSelected && 'bg-(--accent-color)! text-white'
       )}
