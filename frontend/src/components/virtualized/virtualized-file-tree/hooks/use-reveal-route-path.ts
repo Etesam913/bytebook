@@ -45,7 +45,6 @@ export function useRevealRoutePath() {
       if (!ancestorNode || ancestorNode.type !== FOLDER_TYPE) {
         return false;
       }
-      console.log('ancestorPath', ancestorPath, ancestorNode);
 
       if (!ancestorNode.isOpen) {
         await openFolderAsync({
@@ -64,15 +63,16 @@ export function useRevealRoutePath() {
         if (pathExistsInFileTree(getFileTreeData(), nextPathToReveal)) {
           break;
         }
-        if (!ancestorNode.hasMoreChildren) {
-          return false;
-        }
 
         await openFolderAsync({
           pathToFolder: ancestorNode.path,
           folderId: ancestorNode.id,
-          isLoadMore: true,
+          isLoadMore: attempts > 0,
         });
+
+        if (!ancestorNode.hasMoreChildren) {
+          return false;
+        }
         attempts += 1;
       }
 

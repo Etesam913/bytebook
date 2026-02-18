@@ -29,10 +29,7 @@ import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter } from '../types';
 import { $convertFromMarkdownString } from '@lexical/markdown';
 import { parseFrontMatter } from '../components/editor/utils/note-metadata';
-import {
-  addFileToFileTreeMap,
-  removeFileFromFileTreeMap,
-} from '../components/virtualized/virtualized-file-tree/utils/file-tree-utils';
+import { removeFileFromFileTreeMap } from '../components/virtualized/virtualized-file-tree/utils/file-tree-utils';
 import {
   applyNodeUpdates,
   applyParentFolderUpdates,
@@ -40,6 +37,9 @@ import {
   buildRenameUpdates,
 } from '../components/virtualized/virtualized-file-tree/utils/rename-item';
 import { fileTreeDataAtom } from '../components/virtualized/virtualized-file-tree';
+import { FOLDER_TYPE } from '../components/virtualized/virtualized-file-tree/types';
+import { useRevealRoutePath } from '../components/virtualized/virtualized-file-tree/hooks/use-reveal-route-path';
+import { useStore } from 'jotai';
 import { useFilePathFromRoute } from './routes';
 import { routeUrls } from '../utils/routes';
 
@@ -59,68 +59,49 @@ const noteQueries = {
 /** This function is used to handle note:create events */
 export function useNoteCreate() {
   const queryClient = useQueryClient();
-  const setFileTreeData = useSetAtom(fileTreeDataAtom);
+  const store = useStore();
+  const { mutateAsync: revealRoutePathAsync } = useRevealRoutePath();
 
   useWailsEvent('note:create', async (body) => {
     logger.event('note:create', body);
     const data = body.data as { notePath: string }[];
     let needsTopLevelInvalidation = false;
+    const pathsToReveal: string[] = [];
 
-    setFileTreeData((prev) => {
-      let updatedTreeData = new Map(prev.treeData);
-      const updatedFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
-
-      for (const { notePath } of data) {
-        // Skip if note path already exists in the filepath-to-id mapping
-        if (updatedFilePathToTreeDataId.has(notePath)) {
-          continue;
-        }
-
-        const segments = notePath.split('/').filter(Boolean);
-
-        if (segments.length === 1) {
-          // Top-level file - just invalidate the query
-          needsTopLevelInvalidation = true;
-          continue;
-        }
-
-        // Nested file - add it directly to the map
-        const fileName = segments[segments.length - 1];
-        const parentPath = segments.slice(0, -1).join('/');
-        const parentId = updatedFilePathToTreeDataId.get(parentPath);
-
-        if (!parentId) {
-          // Parent not found in path map - invalidate queries
-          needsTopLevelInvalidation = true;
-          continue;
-        }
-
-        const parent = updatedTreeData.get(parentId);
-        if (!parent || parent.type !== 'folder' || !parent.isOpen) {
-          // Parent doesn't exist or isn't open - nothing to update
-          continue;
-        }
-
-        // Generate a new UUID for this file
-        const newFileId = crypto.randomUUID();
-        updatedFilePathToTreeDataId.set(notePath, newFileId);
-        updatedTreeData = addFileToFileTreeMap({
-          map: updatedTreeData,
-          fileId: newFileId,
-          filePath: notePath,
-          fileName,
-          parentId,
-        });
+    for (const { notePath } of data) {
+      const fileTreeData = store.get(fileTreeDataAtom);
+      if (fileTreeData.filePathToTreeDataId.has(notePath)) {
+        continue;
       }
 
-      return {
-        treeData: updatedTreeData,
-        filePathToTreeDataId: updatedFilePathToTreeDataId,
-      };
-    });
+      const segments = notePath.split('/').filter(Boolean);
+      if (segments.length === 1) {
+        needsTopLevelInvalidation = true;
+        continue;
+      }
+      const parentPath = segments.slice(0, -1).join('/');
+      const parentId = fileTreeData.filePathToTreeDataId.get(parentPath);
+      if (!parentId) {
+        needsTopLevelInvalidation = true;
+        continue;
+      }
+
+      const parent = fileTreeData.treeData.get(parentId);
+
+      // Only need to reveal if the parent is a folder and is open
+      if (!parent || parent.type !== FOLDER_TYPE || !parent.isOpen) {
+        continue;
+      }
+
+      pathsToReveal.push(notePath);
+    }
 
     if (needsTopLevelInvalidation) {
       queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+    }
+
+    for (const notePath of pathsToReveal) {
+      await revealRoutePathAsync(notePath);
     }
   });
 }
@@ -482,9 +463,7 @@ export function useNoteWriteEvent({
  * @param fileExtension - The file extension of the note
  * @returns Query result indicating if the note exists
  */
-export function useNoteExists(
-  filePath: FilePath | LocalFilePath
-) {
+export function useNoteExists(filePath: FilePath | LocalFilePath) {
   const extension =
     'extension' in filePath ? filePath.extension : filePath.noteExtension;
   return useQuery({

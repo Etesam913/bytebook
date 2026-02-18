@@ -1,13 +1,8 @@
-import {
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { logger } from '../utils/logging';
-import { useAtom, useSetAtom } from 'jotai';
+import { useAtom, useSetAtom, useStore } from 'jotai';
 import { fileTreeDataAtom } from '../components/virtualized/virtualized-file-tree';
-import {
-  addFolderToFileTreeMap,
-  removeFolderFromFileTreeMap,
-} from '../components/virtualized/virtualized-file-tree/utils/file-tree-utils';
+import { removeFolderFromFileTreeMap } from '../components/virtualized/virtualized-file-tree/utils/file-tree-utils';
 import {
   applyNodeUpdates,
   applyParentFolderUpdates,
@@ -20,6 +15,8 @@ import { navigate } from 'wouter/use-browser-location';
 import { createFilePath, createFolderPath } from '../utils/path';
 import { routeUrls } from '../utils/routes';
 import { useFilePathFromRoute, useCurrentNotesRouteFolderPath } from './routes';
+import { FOLDER_TYPE } from '../components/virtualized/virtualized-file-tree/types';
+import { useRevealRoutePath } from '../components/virtualized/virtualized-file-tree/hooks/use-reveal-route-path';
 
 function normalizeFolderPath(path: string): string | null {
   return createFolderPath(path)?.fullPath ?? null;
@@ -32,68 +29,50 @@ function isPrefixOrSamePath(path: string, maybePrefix: string): boolean {
 /** This function is used to handle `folder:create` events */
 export function useFolderCreate() {
   const queryClient = useQueryClient();
-  const setFileTreeData = useSetAtom(fileTreeDataAtom);
+  const store = useStore();
+  const { mutateAsync: revealRoutePathAsync } = useRevealRoutePath();
 
   useWailsEvent('folder:create', async (body) => {
     logger.event('folder:create', body);
     const data = body.data as { folderPath: string }[];
     let needsTopLevelInvalidation = false;
+    const pathsToReveal: string[] = [];
 
-    setFileTreeData((prev) => {
-      let updatedTreeData = new Map(prev.treeData);
-      const updatedFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
-
-      for (const { folderPath } of data) {
-        // Skip if folder path already exists in the filepath-to-id mapping
-        if (updatedFilePathToTreeDataId.has(folderPath)) {
-          continue;
-        }
-
-        const segments = folderPath.split('/').filter(Boolean);
-
-        if (segments.length === 1) {
-          // Top-level folder - just invalidate the query
-          needsTopLevelInvalidation = true;
-          continue;
-        }
-
-        const folderName = segments[segments.length - 1];
-        const parentPath = segments.slice(0, -1).join('/');
-        const parentId = updatedFilePathToTreeDataId.get(parentPath);
-
-        if (!parentId) {
-          // The folder is top level as it does not have a parent
-          needsTopLevelInvalidation = true;
-          continue;
-        }
-
-        const parent = updatedTreeData.get(parentId);
-
-        if (!parent || parent.type !== 'folder' || !parent.isOpen) {
-          // Parent can't be closed
-          continue;
-        }
-
-        // Generate a new UUID for this folder
-        const newFolderId = crypto.randomUUID();
-        updatedFilePathToTreeDataId.set(folderPath, newFolderId);
-        updatedTreeData = addFolderToFileTreeMap({
-          map: updatedTreeData,
-          folderId: newFolderId,
-          folderPath,
-          folderName,
-          parentId,
-        });
+    for (const { folderPath } of data) {
+      const fileTreeData = store.get(fileTreeDataAtom);
+      if (fileTreeData.filePathToTreeDataId.has(folderPath)) {
+        continue;
       }
 
-      return {
-        treeData: updatedTreeData,
-        filePathToTreeDataId: updatedFilePathToTreeDataId,
-      };
-    });
+      const segments = folderPath.split('/').filter(Boolean);
+      if (segments.length === 1) {
+        needsTopLevelInvalidation = true;
+        continue;
+      }
+
+      const parentPath = segments.slice(0, -1).join('/');
+      const parentId = fileTreeData.filePathToTreeDataId.get(parentPath);
+      if (!parentId) {
+        needsTopLevelInvalidation = true;
+        continue;
+      }
+
+      const parent = fileTreeData.treeData.get(parentId);
+
+      // Only need to reveal if the parent is a folder and is open
+      if (!parent || parent.type !== FOLDER_TYPE || !parent.isOpen) {
+        continue;
+      }
+
+      pathsToReveal.push(folderPath);
+    }
 
     if (needsTopLevelInvalidation) {
       queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+    }
+
+    for (const folderPath of pathsToReveal) {
+      await revealRoutePathAsync(folderPath);
     }
   });
 }

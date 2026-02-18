@@ -187,66 +187,6 @@ export function reconcileTopLevelFileTreeMap(
 }
 
 /**
- * Helper function to add a folder to the map and update its parent's childrenIds.
- * Returns the updated map, or the original map if the parent doesn't exist or isn't a folder.
- */
-export function addFolderToFileTreeMap({
-  map,
-  folderId,
-  folderPath,
-  folderName,
-  parentId,
-  childrenIds = [],
-  childrenCursor = null,
-  hasMoreChildren = false,
-  isOpen = false,
-}: {
-  map: Map<string, FileOrFolder>;
-  folderId: string;
-  folderPath: string;
-  folderName: string;
-  parentId: string;
-  childrenIds?: string[];
-  childrenCursor?: string | null;
-  hasMoreChildren?: boolean;
-  isOpen?: boolean;
-}): Map<string, FileOrFolder> {
-  const parent = map.get(parentId);
-  if (!parent || parent.type !== 'folder') {
-    return map;
-  }
-
-  const newMap = new Map(map);
-
-  // Add the new folder
-  newMap.set(folderId, {
-    id: folderId,
-    path: folderPath,
-    name: folderName,
-    type: 'folder',
-    parentId,
-    childrenIds,
-    childrenCursor,
-    hasMoreChildren,
-    isOpen,
-  });
-
-  // Update parent's childrenIds (sorted alphabetically and remove duplicates)
-  const updatedChildren = [...parent.childrenIds, folderId]
-    .filter((id, index, arr) => arr.indexOf(id) === index)
-    .sort((a, b) => {
-      const aItem = newMap.get(a);
-      const bItem = newMap.get(b);
-      const aName = aItem?.name ?? a;
-      const bName = bItem?.name ?? b;
-      return aName.localeCompare(bName);
-    });
-  newMap.set(parentId, { ...parent, childrenIds: updatedChildren });
-
-  return newMap;
-}
-
-/**
  * Helper function to remove a folder from the map and update its parent's childrenIds.
  * Returns the updated map, or the original map if the parent doesn't exist or isn't a folder.
  */
@@ -280,54 +220,6 @@ export function removeFolderFromFileTreeMap({
   });
 
   return updatedFileTreeData;
-}
-
-/**
- * Helper function to add a file to the map and update its parent's childrenIds.
- * Returns the updated map, or the original map if the parent doesn't exist or isn't a folder.
- */
-export function addFileToFileTreeMap({
-  map,
-  fileId,
-  filePath,
-  fileName,
-  parentId,
-}: {
-  map: Map<string, FileOrFolder>;
-  fileId: string;
-  filePath: string;
-  fileName: string;
-  parentId: string;
-}): Map<string, FileOrFolder> {
-  const parent = map.get(parentId);
-  if (!parent || parent.type !== 'folder') {
-    return map;
-  }
-
-  const newMap = new Map(map);
-
-  // Add the new file
-  newMap.set(fileId, {
-    id: fileId,
-    path: filePath,
-    name: fileName,
-    type: 'file',
-    parentId,
-  });
-
-  // Update parent's childrenIds (sorted alphabetically and remove duplicates)
-  const updatedChildren = [...parent.childrenIds, fileId]
-    .filter((id, index, arr) => arr.indexOf(id) === index)
-    .sort((a, b) => {
-      const aItem = newMap.get(a);
-      const bItem = newMap.get(b);
-      const aName = aItem?.name ?? a;
-      const bName = bItem?.name ?? b;
-      return aName.localeCompare(bName);
-    });
-  newMap.set(parentId, { ...parent, childrenIds: updatedChildren });
-
-  return newMap;
 }
 
 /**

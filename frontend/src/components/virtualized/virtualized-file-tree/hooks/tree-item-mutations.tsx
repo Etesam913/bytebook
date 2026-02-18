@@ -17,6 +17,9 @@ import { useAtomValue } from 'jotai';
 import { fileTreeDataAtom } from '..';
 import { sidebarSelectionAtom } from '../../../../atoms';
 import { QueryError } from '../../../../utils/query';
+import { setSkipRevealForPath } from '../utils/route-focus-intent';
+
+const CREATE_NAVIGATION_DELAY_MS = 300;
 
 /**
  * A mutation hook for adding new tree items (folders or notes) to the file tree.
@@ -69,11 +72,12 @@ export function useAddTreeItemMutation() {
     onSuccess: (result, variables) => {
       if (result.addType === 'note') {
         const filePath = createFilePath(result.newNotePath);
+        setSkipRevealForPath(result.newNotePath);
         setTimeout(() => {
           if (filePath) {
             navigate(filePath.encodedFileUrl);
           }
-        }, 300);
+        }, CREATE_NAVIGATION_DELAY_MS);
       }
 
       variables.onSuccess?.();
