@@ -10,7 +10,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import { createGhostElementFromHtmlElement } from '../../../utils/draggable';
 import { constructGhostElementForNode } from './ghost-elements';
 
-export class Point {
+class Point {
   private readonly _x: number;
   private readonly _y: number;
 
@@ -71,7 +71,7 @@ type ContainsPointReturn = {
 /**
  * Used in getting info for the draggable element
  */
-export class Rect {
+class Rect {
   private readonly _left: number;
   private readonly _top: number;
   private readonly _right: number;

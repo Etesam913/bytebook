@@ -30,11 +30,14 @@ function NoteRenderErrorFallback({
   resetErrorBoundary,
   filePath,
 }: {
-  error: Error;
+  error: unknown;
   errorInfo?: { componentStack: string };
-  resetErrorBoundary: () => void;
+  resetErrorBoundary: (...args: unknown[]) => void;
   filePath: FilePath;
 }) {
+  const normalizedError =
+    error instanceof Error ? error : new Error(String(error));
+
   return (
     <div className="h-screen flex flex-col items-center justify-center gap-4 text-center p-6 mx-auto">
       <div className="flex flex-col items-center gap-3">
@@ -66,13 +69,15 @@ function NoteRenderErrorFallback({
             <div className="text-xs text-left space-y-2 select-text">
               <div>
                 <strong>Error Message:</strong>
-                <pre className="whitespace-pre-wrap mt-1">{error.message}</pre>
+                <pre className="whitespace-pre-wrap mt-1">
+                  {normalizedError.message}
+                </pre>
               </div>
-              {error.stack && (
+              {normalizedError.stack && (
                 <div>
                   <strong>Stack Trace:</strong>
                   <pre className="whitespace-pre-wrap mt-1 text-xs opacity-75">
-                    {error.stack}
+                    {normalizedError.stack}
                   </pre>
                 </div>
               )}

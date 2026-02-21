@@ -17,7 +17,7 @@ import { SearchFileNamesFromQuery } from '../../../../bindings/github.com/etesam
 import { mostRecentNotesAtom } from '../../../atoms';
 import { WAILS_URL } from '../../../utils/general';
 import { convertFilePathToQueryNotation } from '../../../utils/string-formatting';
-import { createFilePath, LocalFilePath } from '../../../utils/path';
+import { createFilePath } from '../../../utils/path';
 import {
   DropdownPickerOption,
   FilePickerMenuItem,
@@ -59,24 +59,13 @@ export function FilePickerMenuPlugin() {
     ? mostRecentNotes.map((filePath) => ({ kind: 'file', filePath }))
     : (searchResults ?? []).flatMap((result): FileResultOption[] => {
         if (!result.note) return [];
-        try {
-          return [
-            {
-              kind: 'file',
-              filePath: new LocalFilePath({
-                folder: result.folder,
-                note: result.note,
-              }),
-            },
-          ];
-        } catch {
-          return [];
-        }
+        const filePath = createFilePath(`${result.folder}/${result.note}`);
+        return filePath ? [{ kind: 'file', filePath }] : [];
       });
 
   const options: FilePickerOption[] = optionSources.map((item) => {
-    const label = item.filePath.toString();
-    const filePathForIcon = createFilePath(label);
+    const label = item.filePath.fullPath;
+    const filePathForIcon = item.filePath;
 
     return {
       ...item,
@@ -85,8 +74,8 @@ export function FilePickerMenuPlugin() {
           <RenderNoteIcon filePath={filePathForIcon} size="sm" />
         ) : undefined,
         onSelect: () => {
-          const fullPath = item.filePath.toString();
-          if (item.filePath.noteExtension === 'md') {
+          const fullPath = item.filePath.fullPath;
+          if (item.filePath.extension === 'md') {
             insertLink(
               fullPath,
               `${WAILS_URL}/${convertFilePathToQueryNotation(fullPath)}`

@@ -1,7 +1,7 @@
 import { MenuOption } from '@lexical/react/LexicalTypeaheadMenuPlugin';
 import type { JSX } from 'react';
 import { cn } from '../../utils/string-formatting';
-import { LocalFilePath } from '../../utils/path';
+import type { FilePath } from '../../utils/path';
 
 export class DropdownPickerOption extends MenuOption {
   // What shows up in the editor
@@ -83,7 +83,7 @@ export function ComponentPickerMenuItem({
 export type FilePickerMenuItemData =
   | {
       kind: 'file';
-      filePath: LocalFilePath;
+      filePath: FilePath;
     }
   | {
       kind: 'folder';

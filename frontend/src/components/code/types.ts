@@ -1,10 +1,3 @@
-// Local type definition to avoid importing from @uiw/react-codemirror in the main bundle
-// This mirrors the ReactCodeMirrorRef type from @uiw/react-codemirror while keeping the fields typed.
-import type { EditorState } from '@codemirror/state';
-import type { EditorView } from '@codemirror/view';
+import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 
-export type CodeMirrorRef = {
-  editor?: HTMLDivElement | null;
-  state?: EditorState | null;
-  view?: EditorView | null;
-} | null;
+export type CodeMirrorRef = ReactCodeMirrorRef | null;
