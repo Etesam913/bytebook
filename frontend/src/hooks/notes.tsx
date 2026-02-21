@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { logger } from '../utils/logging';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
+import { useAtom, useAtomValue } from 'jotai/react';
 import { Window } from '@wailsio/runtime';
 import { type LexicalEditor } from 'lexical';
 import { type Dispatch, type SetStateAction } from 'react';
@@ -28,7 +28,10 @@ import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter } from '../types';
 import { $convertFromMarkdownString } from '@lexical/markdown';
 import { parseFrontMatter } from '../components/editor/utils/note-metadata';
-import { removeFileFromFileTreeMap } from '../components/virtualized/virtualized-file-tree/utils/file-tree-utils';
+import {
+  getClosestSiblingFileForDeletedPath,
+  removeFileFromFileTreeMap,
+} from '../components/virtualized/virtualized-file-tree/utils/file-tree-utils';
 import {
   applyNodeUpdates,
   applyParentFolderUpdates,
@@ -185,7 +188,7 @@ export function useNoteRename() {
 /** This function is used to handle note:delete events */
 export function useNoteDelete() {
   const queryClient = useQueryClient();
-  const setFileTreeData = useSetAtom(fileTreeDataAtom);
+  const [fileTreeData, setFileTreeData] = useAtom(fileTreeDataAtom);
   const currentRouteFilePath = useFilePathFromRoute();
 
   useWailsEvent('note:delete', async (body) => {
@@ -241,8 +244,23 @@ export function useNoteDelete() {
       ? data.some(({ notePath }) => notePath === currentRouteFilePath.fullPath)
       : false;
 
-    if (didDeleteCurrentRouteFile) {
-      navigate(routeUrls.notFoundFallback());
+    // If the current route file is deleted, then navigate to the closest file to the deleted file.
+    if (didDeleteCurrentRouteFile && currentRouteFilePath) {
+      const closestFileToDeleted = getClosestSiblingFileForDeletedPath({
+        fileTreeData,
+        deletedFilePath: currentRouteFilePath.fullPath,
+      });
+
+      if (closestFileToDeleted) {
+        const closestFileToDeletedFilePath = createFilePath(
+          closestFileToDeleted.path
+        );
+        if (closestFileToDeletedFilePath) {
+          navigate(closestFileToDeletedFilePath.encodedFileUrl);
+        }
+      } else {
+        navigate(routeUrls.notFoundFallback());
+      }
     }
   });
 }
