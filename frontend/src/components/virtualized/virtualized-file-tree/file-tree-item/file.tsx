@@ -138,12 +138,6 @@ export function FileTreeFileItem({
       )}
     >
       <RenderNoteIcon filePath={filePath} size="sm" />
-      {/* <Note
-        className="min-w-4 min-h-4 will-change-transform"
-        height={16}
-        width={16}
-        strokeWidth={1.75}
-      /> */}
       <InlineTreeItemInput
         dataItem={dataItem}
         defaultValue={nameWithoutExtension}

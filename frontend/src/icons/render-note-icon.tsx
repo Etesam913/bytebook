@@ -16,7 +16,7 @@ export function RenderNoteIcon({
   activeNotePath?: FilePath;
   size?: 'sm';
 }) {
-  const iconSize = size === 'sm' ? 18 : 20;
+  const iconSize = size === 'sm' ? 16 : 20;
   const minWClass = `min-w-[${iconSize}px]`;
 
   if (filePath.extension === 'md') {

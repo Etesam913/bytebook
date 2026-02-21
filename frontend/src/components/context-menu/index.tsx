@@ -13,6 +13,7 @@ import {
   contextMenuRefAtom,
   sidebarSelectionAtom,
 } from '../../atoms';
+import { isRegularMouseClick } from '../../utils/mouse';
 import { DropdownItems } from '../dropdown/dropdown-items';
 
 function adjustedPosition(
@@ -117,7 +118,10 @@ export function ContextMenu() {
       ref={dialogRef}
       className="bg-transparent border-none p-0 max-w-none max-h-none w-full h-full"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
+        if (
+          event.target === event.currentTarget &&
+          isRegularMouseClick(event.nativeEvent)
+        ) {
           setContextMenuData((prev) =>
             prev.isShowing ? { ...prev, isShowing: false } : prev
           );

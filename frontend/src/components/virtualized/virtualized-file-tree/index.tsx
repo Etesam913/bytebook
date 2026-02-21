@@ -1,6 +1,6 @@
 import { useAtomValue, useSetAtom } from 'jotai';
-import { useRef } from 'react';
-import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
+import { useEffect, useRef, useState } from 'react';
+import { Virtuoso, type ListRange, type VirtuosoHandle } from 'react-virtuoso';
 import { useTopLevelFileOrFolders } from './hooks/top-level';
 import { FileTreeItem } from './file-tree-item';
 import { useAnimatedHeight } from '../hooks';
@@ -18,6 +18,8 @@ import {
   handleFileTreeKeyDown,
 } from './utils/file-tree-navigation';
 import { useRoutePathFocus } from './hooks/use-route-path-focus';
+import { StickyHeader } from './sticky-header';
+import { shouldHandleOutsideSelectionInteraction } from '../../../utils/mouse';
 
 export type FileTreeData = {
   treeData: Map<string, FileOrFolder>;
@@ -33,7 +35,7 @@ export const fileTreeDataAtom = atomWithLogging<FileTreeData>(
 );
 
 const FILE_TREE_MAX_HEIGHT = '65vh';
-const INITIAL_VISIBLE_RANGE = { startIndex: 0, endIndex: -1 };
+const INITIAL_VISIBLE_RANGE: ListRange = { startIndex: 0, endIndex: -1 };
 const CREATE_FOLDER_ITEM: CreateFolderItem = {
   id: 'create-folder',
   type: CREATE_FOLDER_TYPE,
@@ -45,7 +47,9 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
   const { treeData: fileOrFolderMap } = fileTreeData;
   const internalListRef = useRef<HTMLElement | null>(null);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
-  const visibleElementsRef = useRef(INITIAL_VISIBLE_RANGE);
+  const [visibleRange, setVisibleRange] = useState(INITIAL_VISIBLE_RANGE);
+  const [stickyContentHeight, setStickyContentHeight] = useState(0);
+  const [listHeight, setListHeight] = useState<number | null>(null);
   const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
 
   // This only runs on component mount and when folder/note events are received
@@ -56,28 +60,37 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
   );
   const virtualizedData = [CREATE_FOLDER_ITEM, ...flattenedTopLevelData];
 
-  const { scope, isReady, handleHeightChange, totalHeight } = useAnimatedHeight(
-    {
-      isOpen,
-      maxHeight: FILE_TREE_MAX_HEIGHT,
-    }
-  );
+  const { scope, isReady, handleHeightChange } = useAnimatedHeight({
+    isOpen,
+    maxHeight: FILE_TREE_MAX_HEIGHT,
+  });
+
+  useEffect(() => {
+    if (listHeight === null) return;
+    handleHeightChange(listHeight + stickyContentHeight);
+  }, [listHeight, stickyContentHeight, handleHeightChange]);
 
   // Clear selection when clicking outside the file tree (unless it's a context menu click)
-  useOnClickOutside(internalListRef, () => {
-    setSidebarSelection((prev) => ({
-      ...prev,
-      selections: new Set([]),
-      anchorSelection: null,
-    }));
-  }, []);
+  useOnClickOutside(
+    internalListRef,
+    (event) => {
+      if (!shouldHandleOutsideSelectionInteraction(event)) return;
+
+      setSidebarSelection((prev) => ({
+        ...prev,
+        selections: new Set([]),
+        anchorSelection: null,
+      }));
+    },
+    []
+  );
 
   function handleScrollerRef(node: HTMLElement | Window | null) {
     const element = node instanceof HTMLElement ? node : null;
     internalListRef.current = element;
   }
 
-  useRoutePathFocus({ visibleElementsRef, virtualizedData, virtuosoRef });
+  useRoutePathFocus({ visibleRange, virtualizedData, virtuosoRef });
 
   /**
    * Renders a row wrapper used by tree navigation and delegates row content.
@@ -119,22 +132,40 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
         );
       }}
     >
+      <StickyHeader
+        flattenedTopLevelData={flattenedTopLevelData}
+        fileOrFolderMap={fileOrFolderMap}
+        visibleRange={visibleRange}
+        onStickyContentHeightChange={setStickyContentHeight}
+      />
       <Virtuoso
         ref={virtuosoRef}
         data={virtualizedData}
-        rangeChanged={(range) => (visibleElementsRef.current = range)}
+        rangeChanged={(range) => {
+          setVisibleRange((previousRange) =>
+            previousRange.startIndex === range.startIndex &&
+            previousRange.endIndex === range.endIndex
+              ? previousRange
+              : range
+          );
+        }}
         className="scrollbar-hidden"
         scrollerRef={handleScrollerRef}
-        overscan={1000}
+        overscan={20}
         computeItemKey={(_, item) => item.id}
         style={{
           overscrollBehavior: 'none',
+          // Reserve space for sticky content above the list.
+          maxHeight: `max(0px, calc(${FILE_TREE_MAX_HEIGHT} - ${stickyContentHeight}px))`,
           height:
-            totalHeight === null
-              ? FILE_TREE_MAX_HEIGHT
-              : `min(${FILE_TREE_MAX_HEIGHT}, ${totalHeight}px)`,
+            listHeight === null
+              ? `max(0px, calc(${FILE_TREE_MAX_HEIGHT} - ${stickyContentHeight}px))`
+              : `min(max(0px, calc(${FILE_TREE_MAX_HEIGHT} - ${stickyContentHeight}px)), ${listHeight}px)`,
         }}
-        totalListHeightChanged={handleHeightChange}
+        totalListHeightChanged={(height) => {
+          setListHeight(height);
+          handleHeightChange(height + stickyContentHeight);
+        }}
         itemContent={renderItem}
       />
     </div>
