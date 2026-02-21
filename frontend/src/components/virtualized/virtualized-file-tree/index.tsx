@@ -134,7 +134,6 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
     >
       <StickyHeader
         flattenedTopLevelData={flattenedTopLevelData}
-        fileOrFolderMap={fileOrFolderMap}
         visibleRange={visibleRange}
         onStickyContentHeightChange={setStickyContentHeight}
       />

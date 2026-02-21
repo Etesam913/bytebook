@@ -21,7 +21,6 @@ import { useRef } from 'react';
 import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 import { ArrowRotateAnticlockwise } from '../../icons/arrow-rotate-anticlockwise.tsx';
 import { MyKernelsAccordion } from './my-kernels-accordion/index.tsx';
-import { useFolderFromRoute } from '../../hooks/events.tsx';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index.tsx';
 import { Tooltip } from '../tooltip/index.tsx';
 import { cn } from '../../utils/string-formatting.ts';
@@ -39,7 +38,6 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
   useNoteDelete();
   useNoteRename();
 
-  const { folder } = useFolderFromRoute();
   const isFullscreen = useAtomValue(isFullscreenAtom);
 
   const sidebarAccordionSectionRef = useRef<HTMLDivElement | null>(null);
@@ -50,8 +48,6 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
       speed: 20,
     }
   );
-
-  if (folder?.split('/')[0] === 'settings') return null;
 
   return (
     <>

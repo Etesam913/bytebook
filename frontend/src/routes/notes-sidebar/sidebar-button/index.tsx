@@ -22,11 +22,11 @@ export function NoteSidebarButton({
     <button
       type="button"
       title={sidebarNotePath.fullPath}
-      draggable
+      draggable={false}
       onKeyDown={(e) => handleKeyNavigation(e)}
       className={cn(
         'list-sidebar-item',
-        isActive && 'bg-zinc-150 dark:bg-zinc-700'
+        isActive && 'bg-zinc-150! dark:bg-zinc-700!'
       )}
       onClick={() => {
         navigate(

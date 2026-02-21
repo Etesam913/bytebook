@@ -52,6 +52,8 @@ import {
 } from '../../../hooks/code';
 import { NoteFindPanel } from './note-find-panel/index';
 import { useToggleSidebarEvent } from '../../../routes/notes-sidebar/render-note/hooks';
+import { routeUrls } from '../../../utils/routes';
+import { navigate } from 'wouter/use-browser-location';
 
 export function Toolbar({
   folder,
@@ -104,7 +106,7 @@ export function Toolbar({
   const [isSearchOpen, setIsSearchOpen] = useSearchNoteEvent();
   const noteContainerElement = useRefState(noteContainerRef);
 
-  const { hasFirstLoad } = useNoteMarkdown({
+  const { hasFirstLoad, getNoteMarkdownQuery } = useNoteMarkdown({
     editor,
     folder,
     note,
@@ -160,6 +162,10 @@ export function Toolbar({
         noteContainerElement
       )
     : null;
+
+  if (getNoteMarkdownQuery.isError) {
+    navigate(routeUrls.notFoundFallback());
+  }
 
   return (
     <>

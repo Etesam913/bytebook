@@ -52,22 +52,20 @@ export function SettingsDropdown({
   const { mutateAsync: editTags } = useEditTagsFormMutation();
 
   const items = [
-    // Pin/Unpin at the top
+    {
+      value: 'reveal-in-finder',
+      label: (
+        <span className="flex items-center gap-1.5 will-change-transform">
+          <Finder className="min-w-5" height={18} width={18} /> Reveal In Finder
+        </span>
+      ),
+    },
     {
       value: isPinned ? 'unpin-note' : 'pin-note',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <PinTack2 className="min-w-5" height={18} width={18} />{' '}
           {isPinned ? 'Unpin Note' : 'Pin Note'}
-        </span>
-      ),
-    },
-    // Reveal in Finder, Rename, then Move to Trash as the logical file actions
-    {
-      value: 'reveal-in-finder',
-      label: (
-        <span className="flex items-center gap-1.5 will-change-transform">
-          <Finder className="min-w-5" height={18} width={18} /> Reveal In Finder
         </span>
       ),
     },

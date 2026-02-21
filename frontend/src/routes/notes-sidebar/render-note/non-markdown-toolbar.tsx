@@ -53,20 +53,20 @@ export function NonMarkdownToolbar({
 
   const items = [
     {
-      value: isPinned ? 'unpin-note' : 'pin-note',
-      label: (
-        <span className="flex items-center gap-1.5 will-change-transform">
-          <PinTack2 className="min-w-4.5" height={18} width={18} />{' '}
-          {isPinned ? 'Unpin Note' : 'Pin Note'}
-        </span>
-      ),
-    },
-    {
       value: 'reveal-in-finder',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <Finder className="min-w-4.5" height={18} width={18} /> Reveal In
           Finder
+        </span>
+      ),
+    },
+    {
+      value: isPinned ? 'unpin-note' : 'pin-note',
+      label: (
+        <span className="flex items-center gap-1.5 will-change-transform">
+          <PinTack2 className="min-w-4.5" height={18} width={18} />{' '}
+          {isPinned ? 'Unpin Note' : 'Pin Note'}
         </span>
       ),
     },

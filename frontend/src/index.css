@@ -352,7 +352,7 @@ div[data-is-fullscreen='true'] .cm-scroller {
 }
 
 .link-internal {
-  @apply text-(--accent-color) underline decoration-2 underline-offset-2 transition-colors inline-flex items-baseline gap-0.5 w-fit cursor-pointer;
+  @apply text-(--accent-color) underline decoration-2 underline-offset-2 inline-flex items-baseline gap-0.5 w-fit cursor-pointer;
 }
 
 .link-internal:hover {
