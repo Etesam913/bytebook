@@ -149,7 +149,7 @@ export function Code({
           data-interactable="true"
           data-node-key={nodeKey}
           className={cn(
-            'relative w-full h-full rounded-md border-2 cm-background transition-colors border-zinc-150 dark:border-zinc-750 flex flex-col',
+            'relative w-full h-full rounded-md border-2 cm-background border-zinc-150 dark:border-zinc-750 flex flex-col',
             isSelected && 'border-(--accent-color)!'
           )}
         >
@@ -181,7 +181,7 @@ export function Code({
           data-interactable="true"
           data-node-key={nodeKey}
           className={cn(
-            'relative w-full rounded-md border-2 grow cm-background transition-colors border-zinc-150 dark:border-zinc-750',
+            'relative w-full rounded-md border-2 grow cm-background border-zinc-150 dark:border-zinc-750',
             isSelected && 'border-(--accent-color)!'
           )}
         >

@@ -47,7 +47,7 @@ export function Toggle({
           aria-hidden="true"
           style={{ justifyContent: checked ? 'flex-end' : 'flex-start' }}
           className={cn(
-            'flex items-center w-11 h-6 rounded-full transition-colors duration-200 ease-in-out px-1 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-(--accent-color)',
+            'flex items-center w-11 h-6 rounded-full px-1 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-(--accent-color)',
             checked ? 'bg-(--accent-color)' : 'bg-gray-200 dark:bg-gray-600',
             disabled && 'opacity-50 cursor-not-allowed'
           )}

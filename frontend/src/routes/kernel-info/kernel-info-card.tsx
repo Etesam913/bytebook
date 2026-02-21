@@ -49,7 +49,7 @@ export function KernelInfoCard({ language }: { language: Languages }) {
                   const command = kernelInfo?.argv?.join(' ') ?? 'Unknown';
                   navigator.clipboard.writeText(command);
                 }}
-                className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded transition-colors"
+                className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded"
                 title="Copy command"
               >
                 <Duplicate2 height={16} width={16} />

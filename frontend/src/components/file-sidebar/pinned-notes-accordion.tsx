@@ -61,7 +61,7 @@ export function PinnedNotesAccordion() {
         renderItem={({ dataItem: pinnedNotePath }) => {
           return (
             <Tooltip placement="right" content={pinnedNotePath.fullPath}>
-              <div>
+              <div className="w-full min-w-0">
                 <AccordionItem
                   onContextMenu={(e) => {
                     setContextMenuData({

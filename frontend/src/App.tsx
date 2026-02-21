@@ -9,7 +9,6 @@ import { ContextMenu } from './components/context-menu';
 import { Dialog } from './components/dialog';
 import { FileSidebar } from './components/file-sidebar';
 import { LoadingModal } from './components/loading-modal';
-import { useRouteFilePath } from './hooks/events';
 import { useProjectSettings } from './hooks/project-settings';
 import { useSearch } from './hooks/search';
 import { useTagEvents } from './hooks/tags';
@@ -64,7 +63,6 @@ function App() {
   useZoom();
   useFullscreen();
   useWindowReload();
-  useRouteFilePath();
 
   return (
     <main

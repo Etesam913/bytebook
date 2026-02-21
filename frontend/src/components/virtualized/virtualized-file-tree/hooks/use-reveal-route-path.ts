@@ -21,7 +21,7 @@ const MAX_FOCUS_PAGINATION_ATTEMPTS = 200;
 export function useRevealRoutePath() {
   const store = useStore();
   const { mutateAsync: openFolderAsync } = useOpenFolderMutation({
-    pageSize: 100000,
+    pageSize: 20000,
   });
 
   async function revealPathInFileTree(targetPath: string): Promise<boolean> {

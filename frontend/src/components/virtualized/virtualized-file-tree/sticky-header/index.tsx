@@ -5,23 +5,23 @@ import {
   CREATE_FOLDER_TYPE,
   FOLDER_TYPE,
   LOAD_MORE_TYPE,
-  type FileOrFolder,
   type VirtualizedFileTreeItem,
 } from '../types';
+import { fileTreeDataAtom } from '..';
+import { useAtomValue } from 'jotai';
 
 const STICKY_ELEMENT_HEIGHT = 28;
 
 export function StickyHeader({
   flattenedTopLevelData,
-  fileOrFolderMap,
   visibleRange,
   onStickyContentHeightChange,
 }: {
   flattenedTopLevelData: VirtualizedFileTreeItem[];
-  fileOrFolderMap: Map<string, FileOrFolder>;
   visibleRange: ListRange;
   onStickyContentHeightChange: (height: number) => void;
 }) {
+  const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const visibleFlatStartIndex = Math.max(0, visibleRange.startIndex - 1);
   const visibleFlatEndIndex = Math.min(
     flattenedTopLevelData.length - 1,

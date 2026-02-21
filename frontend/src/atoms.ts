@@ -7,7 +7,7 @@ import {
   KernelsData,
   type ProjectSettings,
 } from './types';
-import { LocalFilePath } from './utils/path';
+import { type FilePath, createFilePath } from './utils/path';
 import { logger } from './utils/logging';
 
 /**
@@ -31,26 +31,19 @@ export function atomWithLogging<T>(name: string, initialValue: T) {
   );
 }
 // Most recent notes atoms
-const initializeMostRecentNotes = (): LocalFilePath[] => {
+const initializeMostRecentNotes = (): FilePath[] => {
   const stored = JSON.parse(
     localStorage.getItem('mostRecentNotes') ?? '[]'
   ) as string[];
   return stored
-    .filter((path) => {
-      const pathWithoutQuery = path.split('?')[0];
-      return pathWithoutQuery.split('/').length === 2;
-    })
-    .map((path) => {
-      const pathWithoutQuery = path.split('?')[0];
-      const segments = pathWithoutQuery.split('/');
-      return new LocalFilePath({ folder: segments[0], note: segments[1] });
-    });
+    .map((path) => createFilePath(path))
+    .filter((path): path is FilePath => path !== null);
 };
 
 export const mostRecentNotesAtom = atom(
   initializeMostRecentNotes(),
-  (_, set, payload: LocalFilePath[]) => {
-    const stringPaths = payload.map((filePath) => filePath.getLinkToNote());
+  (_, set, payload: FilePath[]) => {
+    const stringPaths = payload.map((filePath) => filePath.fullPath);
     localStorage.setItem('mostRecentNotes', JSON.stringify(stringPaths));
     set(mostRecentNotesAtom, payload);
   }
@@ -148,8 +141,6 @@ export const kernelsDataAtom = atom<KernelsData>({
     errorMessage: null,
   },
 });
-
-export const currentFilePathAtom = atom<LocalFilePath | null>(null);
 
 // File sidebar accordion open state
 type FileSidebarOpenState = {

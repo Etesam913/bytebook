@@ -59,7 +59,7 @@ export function Spacer({ width }: { width: MotionValue<number> }) {
     <div
       onMouseDown={handleMouseDown}
       className={cn(
-        'w-[6px] border-l transition-all duration-200 ease-in-out',
+        'w-[6px] border-l',
         isDragged
           ? 'border-(--accent-color) border-l-3'
           : 'border-l-zinc-200 dark:border-l-zinc-700 hover:border-l-(--accent-color)! hover:border-l-2 hover:cursor-grab'

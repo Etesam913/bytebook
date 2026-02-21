@@ -79,17 +79,18 @@ export function useNoteMarkdown({
   const setPreviousMarkdown = useSetAtom(previousMarkdownAtom);
   const [hasFirstLoad, setHasFirstLoad] = useState(false);
 
-  useQuery({
+  const getNoteMarkdownQuery = useQuery({
     queryKey: ['note-markdown', `${folder}/${note}.md`],
     queryFn: async () => {
       // Reset previous markdown when loading a new note
       setPreviousMarkdown('');
       const folderAndNote = `${decodeURIComponent(folder)}/${decodeURIComponent(note)}.md`;
       const res = await GetNoteMarkdown(`notes/${folderAndNote}`);
-      if (!res.success)
+      if (!res.success) {
         throw new QueryError(
           `Failed to get note markdown for ${folderAndNote}`
         );
+      }
 
       editor.setEditable(true);
       // You don't want a different note to access the same history when you switch notes
@@ -128,7 +129,7 @@ export function useNoteMarkdown({
       return res.data;
     },
   });
-  return { hasFirstLoad };
+  return { hasFirstLoad, getNoteMarkdownQuery };
 }
 
 /**

@@ -15,7 +15,7 @@ export function AccordionItem({
   icon?: ReactNode;
 }) {
   return (
-    <div className="flex select-none items-center gap-2 overflow-hidden pr-1 text-zinc-600 dark:text-zinc-300">
+    <div className="flex min-w-0 select-none items-center gap-2 overflow-hidden pr-1 text-zinc-600 dark:text-zinc-300">
       <Link
         onContextMenu={onContextMenu}
         draggable
@@ -37,11 +37,11 @@ export function AccordionItem({
 
           dragElement.addEventListener('dragend', handleDragEnd);
         }}
-        className="flex flex-1 items-center gap-2 overflow-x-hidden rounded-md px-2 py-1"
+        className="flex min-w-0 flex-1 items-center gap-2 overflow-x-hidden rounded-md px-2 py-1"
         to={to}
       >
         {icon ?? <Note className="min-w-4" width={16} height={16} />}
-        <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm">
+        <p className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm">
           {itemName}
         </p>
       </Link>
