@@ -27,45 +27,46 @@ import { CodeBlockStatus, Languages, CompletionData } from '../../types';
 import { autocompletion } from '@codemirror/autocomplete';
 import { useNodeInNodeSelection } from '../../hooks/lexical';
 import { useEffect, useRef } from 'react';
-import { langs } from '@uiw/codemirror-extensions-langs';
 import { PlayButton } from './play-button';
 import { DeleteButton } from './delete-button';
 import type { RefObject } from 'react';
-import type {
-  Language,
-  LanguageSupport,
-  StreamLanguage,
-} from '@codemirror/language';
-import { javaLanguage } from '@codemirror/lang-java';
-import { javascriptLanguage } from '@codemirror/lang-javascript';
-import { pythonLanguage } from '@codemirror/lang-python';
+import { java, javaLanguage } from '@codemirror/lang-java';
+import { javascript, javascriptLanguage } from '@codemirror/lang-javascript';
+import { python, pythonLanguage } from '@codemirror/lang-python';
+import { go } from '@codemirror/lang-go';
 import { languageDisplayConfig } from './language-config';
 import type { BasicSetupOptions } from '@uiw/react-codemirror';
 
+type LanguageDataSource = {
+  data: {
+    of: (value: { autocomplete: unknown }) => unknown;
+  };
+};
+
 type LanguageSetting = {
   basicSetup?: BasicSetupOptions;
-  extension: () => LanguageSupport | StreamLanguage<unknown> | [];
-  language?: Language;
+  extension: () => unknown;
+  language?: LanguageDataSource;
 };
 
 const languageToSettings: Record<Languages, LanguageSetting> = {
   python: {
     basicSetup: { tabSize: languageDisplayConfig.python.tabSize },
-    extension: langs.py,
+    extension: python,
     language: pythonLanguage,
   },
   go: {
     basicSetup: { tabSize: languageDisplayConfig.go.tabSize },
-    extension: langs.go,
+    extension: go,
   },
   javascript: {
     basicSetup: { tabSize: languageDisplayConfig.javascript.tabSize },
-    extension: langs.js,
+    extension: javascript,
     language: javascriptLanguage,
   },
   java: {
     basicSetup: { tabSize: languageDisplayConfig.java.tabSize },
-    extension: langs.java,
+    extension: java,
     language: javaLanguage,
   },
   text: {
@@ -264,10 +265,12 @@ export function CodeMirrorEditor({
             EditorView.editable.of(isInNodeSelection),
             ...(projectSettings.code.codeBlockVimMode ? [vim()] : []),
             runCodeKeymap,
-            ...(cmLanguageObject ? [extraCompletions] : []),
+            ...(cmLanguageObject ? [extraCompletions as never] : []),
             ...(() => {
               const ext = languageToSettings[language].extension();
-              return Array.isArray(ext) && ext.length === 0 ? [] : [ext];
+              return Array.isArray(ext) && ext.length === 0
+                ? []
+                : [ext as never];
             })(),
             autocompletion({
               activateOnTypingDelay: 50,
