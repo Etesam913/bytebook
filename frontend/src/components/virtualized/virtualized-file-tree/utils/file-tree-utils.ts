@@ -223,6 +223,109 @@ export function removeFolderFromFileTreeMap({
 }
 
 /**
+ *
+ * Finds the closest file to the deleted file in the parent.
+ * @param treeData - The tree data map.
+ * @param deletedFileId - The id of the file that was deleted.
+ * @param parentId - The id of the parent of the deleted file.
+ * @returns
+ */
+function getClosestFileToDeletedInParent({
+  treeData,
+  deletedFileId,
+  parentId,
+}: {
+  treeData: Map<string, FileOrFolder>;
+  deletedFileId: string;
+  parentId: string;
+}) {
+  const parent = treeData.get(parentId);
+  if (!parent || parent.type !== 'folder') {
+    return null;
+  }
+
+  const indexOfDeletedFileId = parent.childrenIds.indexOf(deletedFileId);
+
+  if (indexOfDeletedFileId === -1) {
+    return null;
+  }
+
+  const { childrenIds } = parent;
+
+  // Returns the node only when the child at the given index is a file.
+  const getFileAtIndex = (index: number) => {
+    const childId = childrenIds[index];
+    const childData = treeData.get(childId);
+    if (!childData || childData.type !== 'file') {
+      return null;
+    }
+    return childData;
+  };
+
+  // Expand outward from the deleted index to find the nearest sibling file.
+  let leftPointer = indexOfDeletedFileId - 1;
+  let rightPointer = indexOfDeletedFileId + 1;
+  while (leftPointer > -1 || rightPointer < childrenIds.length) {
+    // Keep right-side preference on ties to match previous behavior.
+    if (rightPointer < childrenIds.length) {
+      const rightFile = getFileAtIndex(rightPointer);
+      if (rightFile) {
+        return rightFile;
+      }
+      rightPointer += 1;
+    }
+
+    if (leftPointer > -1) {
+      const leftFile = getFileAtIndex(leftPointer);
+      if (leftFile) {
+        return leftFile;
+      }
+      leftPointer -= 1;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Finds the nearest sibling file for a deleted file path.
+ * Returns null when the deleted node or its parent cannot be resolved.
+ */
+export function getClosestSiblingFileForDeletedPath({
+  fileTreeData,
+  deletedFilePath,
+}: {
+  fileTreeData: FileTreeData;
+  deletedFilePath: string;
+}): FileOrFolder | null {
+  const deletedFileId = fileTreeData.filePathToTreeDataId.get(deletedFilePath);
+  if (!deletedFileId) {
+    return null;
+  }
+
+  const deletedFileData = fileTreeData.treeData.get(deletedFileId);
+  if (!deletedFileData) {
+    return null;
+  }
+
+  const parentId = deletedFileData.parentId;
+  if (!parentId) {
+    return null;
+  }
+
+  const parentData = fileTreeData.treeData.get(parentId);
+  if (!parentData || parentData.type !== FOLDER_TYPE) {
+    return null;
+  }
+
+  return getClosestFileToDeletedInParent({
+    treeData: fileTreeData.treeData,
+    deletedFileId,
+    parentId,
+  });
+}
+
+/**
  * Helper function to remove a file from the map and update its parent's childrenIds.
  * Returns the updated map, or the original map if the parent doesn't exist or isn't a folder.
  */
