@@ -17,11 +17,11 @@ import { consumeSkipRevealForPath } from '../utils/route-focus-intent';
  * // 3) scroll until it is visible
  */
 export function useRoutePathFocus({
-  visibleElementsRef,
+  visibleRange,
   virtualizedData,
   virtuosoRef,
 }: {
-  visibleElementsRef: RefObject<ListRange>;
+  visibleRange: ListRange;
   virtualizedData: VirtualizedFileTreeItem[];
   virtuosoRef: RefObject<VirtuosoHandle | null>;
 }) {
@@ -45,8 +45,8 @@ export function useRoutePathFocus({
     }
 
     const visibleItems = virtualizedData.slice(
-      visibleElementsRef.current.startIndex,
-      visibleElementsRef.current.endIndex
+      visibleRange.startIndex,
+      visibleRange.endIndex
     );
 
     const isCurrentRouteVisible = visibleItems.some(

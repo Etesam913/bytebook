@@ -9,12 +9,12 @@ import { type RefObject, useEffect } from 'react';
  */
 export function useOnClickOutside<T extends HTMLElement>(
   ref: RefObject<T | null>,
-  handler: (event: MouseEvent | TouchEvent | KeyboardEvent) => void,
+  handler: (event: MouseEvent | KeyboardEvent) => void,
   excludedElements?: (HTMLElement | null)[]
 ): void {
   useEffect(
     () => {
-      const listener = (event: MouseEvent | TouchEvent): void => {
+      const listener = (event: MouseEvent): void => {
         // Do nothing if clicking ref's element or descendent elements
         if (
           !ref.current ||
@@ -39,13 +39,11 @@ export function useOnClickOutside<T extends HTMLElement>(
 
       // Add event listeners
       document.addEventListener('mousedown', listener);
-      document.addEventListener('touchstart', listener);
       document.addEventListener('keydown', keyListener);
 
       // Remove event listeners on cleanup
       return () => {
         document.removeEventListener('mousedown', listener);
-        document.removeEventListener('touchstart', listener);
         document.removeEventListener('keydown', keyListener);
       };
     },

@@ -15,6 +15,7 @@ import type { SetSelectionUpdater } from '../../../utils/selection';
 import { VirtualizedListItem } from './virtualized-list-item';
 import { SidebarContentType } from '../../../types';
 import { useSmartScroll } from './hooks';
+import { shouldHandleOutsideSelectionInteraction } from '../../../utils/mouse';
 
 export type SelectionOptions<T> =
   | { disableSelection: true }
@@ -126,6 +127,8 @@ export function VirtualizedList<T>({
   useOnClickOutside(
     internalListRef,
     (e) => {
+      if (!shouldHandleOutsideSelectionInteraction(e)) return;
+
       // We need to use the selectionRange for the context menu so early return for this case
       if (contextMenuRef?.current?.contains(e.target as Node)) return;
 

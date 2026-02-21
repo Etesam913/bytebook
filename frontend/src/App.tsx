@@ -21,6 +21,7 @@ import { RouteFallback } from './components/route-fallback';
 import { useZoom, useFullscreen, useWindowReload } from './hooks/resize';
 import { EditorWrapper } from './components/virtualized/virtualized-file-tree/editor-wrapper';
 import { safeDecodeURIComponent } from './utils/path';
+import { isRegularMouseClick } from './utils/mouse';
 
 // Lazy load route components
 const NotFound = lazy(() =>
@@ -70,7 +71,7 @@ function App() {
       id="App"
       className="flex h-screen w-screen min-w-0 font-display overflow-hidden"
       onClick={(e) => {
-        if (!e.ctrlKey) {
+        if (isRegularMouseClick(e.nativeEvent)) {
           setContextMenuData((prev) => ({ ...prev, isShowing: false }));
         }
       }}
