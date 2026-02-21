@@ -12,7 +12,7 @@ import {
 } from '../../../../atoms';
 import { useFilePathFromRoute } from '../../../../hooks/routes';
 import {
-  useMoveToTrashMutationNew,
+  useMoveToTrashMutation,
   usePinPathMutation,
 } from '../../../../hooks/notes';
 import { useEditTagsFormMutation } from '../../../../hooks/tags';
@@ -56,7 +56,7 @@ export function FileTreeFileItem({
   const paddingLeft = getFileTreeItemIndent(dataItem.level, currentZoom);
 
   const { mutate: revealInFinder } = useRevealInFinderMutation();
-  const { mutate: moveToTrash } = useMoveToTrashMutationNew();
+  const { mutate: moveToTrash } = useMoveToTrashMutation();
   const { mutate: pinPath } = usePinPathMutation();
   const { mutateAsync: editTags } = useEditTagsFormMutation();
   const {
@@ -342,9 +342,7 @@ export function FileTreeFileItem({
                 </span>
               ),
               onChange: () => {
-                selectedItems.forEach((item) => {
-                  moveToTrash({ path: item.path });
-                });
+                moveToTrash({ paths: selectedItems.map((item) => item.path) });
               },
             },
           ],

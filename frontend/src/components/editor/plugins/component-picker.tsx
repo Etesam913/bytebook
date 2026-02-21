@@ -257,10 +257,8 @@ function getBaseOptions({
 
 export function ComponentPickerMenuPlugin({
   folder,
-  note,
 }: {
   folder: string;
-  note: string;
 }): JSX.Element {
   const [editor] = useLexicalComposerContext();
   const [queryString, setQueryString] = useState<string | null>(null);
@@ -271,7 +269,6 @@ export function ComponentPickerMenuPlugin({
 
   const { insertAttachmentsMutation } = useAttachmentsMutation({
     folder,
-    note,
     editor,
   });
 

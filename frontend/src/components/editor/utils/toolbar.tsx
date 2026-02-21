@@ -322,17 +322,15 @@ export function updateToolbar({
 /** Used to add files from local filesystem */
 export async function insertAttachmentFromFile({
   folder,
-  note,
   editor,
   editorSelection,
 }: {
   folder: string;
-  note: string;
   editor: LexicalEditor;
   editorSelection: BaseSelection | null;
 }) {
   try {
-    const { success, message, paths } = await AddAttachments(folder, note);
+    const { success, message, paths } = await AddAttachments(folder);
     if (paths.length === 0) return;
 
     // Goes through all the files and add them to the editor

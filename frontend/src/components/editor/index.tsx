@@ -142,7 +142,7 @@ export function NotesEditor({
               }}
             >
               <NoteTitle key={note} filePath={filePath} />
-              <ComponentPickerMenuPlugin folder={folder} note={note} />
+              <ComponentPickerMenuPlugin folder={folder} />
               <FilePickerMenuPlugin />
               <EmptyLinePlaceholderPlugin
                 noteContainerRef={noteContainerRef}

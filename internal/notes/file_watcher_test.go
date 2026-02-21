@@ -239,3 +239,73 @@ func TestFilterUnneededDebouncedEvents(t *testing.T) {
 		assert.Equal(t, events[util.Events.FolderRename], filtered[util.Events.FolderRename])
 	})
 }
+
+func TestDedupeDebouncedEventsByPathPayload(t *testing.T) {
+	t.Run("dedupes note writes by notePath and keeps latest payload", func(t *testing.T) {
+		events := map[string][]map[string]string{
+			util.Events.NoteWrite: {
+				{"notePath": "alpha/a.md", "markdown": "v1"},
+				{"notePath": "alpha/b.md", "markdown": "b1"},
+				{"notePath": "alpha/a.md", "markdown": "v2"},
+			},
+		}
+
+		deduped := dedupeDebouncedEventsByPathPayload(events)
+
+		if assert.Contains(t, deduped, util.Events.NoteWrite) {
+			assert.Len(t, deduped[util.Events.NoteWrite], 2)
+			assert.Equal(
+				t,
+				map[string]string{"notePath": "alpha/a.md", "markdown": "v2"},
+				deduped[util.Events.NoteWrite][0],
+			)
+			assert.Equal(
+				t,
+				map[string]string{"notePath": "alpha/b.md", "markdown": "b1"},
+				deduped[util.Events.NoteWrite][1],
+			)
+		}
+	})
+
+	t.Run("dedupes rename payloads by combined old and new paths", func(t *testing.T) {
+		events := map[string][]map[string]string{
+			util.Events.NoteRename: {
+				{"oldNotePath": "alpha/old.md", "newNotePath": "alpha/new.md", "markdown": "v1"},
+				{"oldNotePath": "alpha/old.md", "newNotePath": "alpha/new.md", "markdown": "v2"},
+				{"oldNotePath": "alpha/other-old.md", "newNotePath": "alpha/other-new.md"},
+			},
+		}
+
+		deduped := dedupeDebouncedEventsByPathPayload(events)
+
+		if assert.Contains(t, deduped, util.Events.NoteRename) {
+			assert.Len(t, deduped[util.Events.NoteRename], 2)
+			assert.Equal(
+				t,
+				map[string]string{"oldNotePath": "alpha/old.md", "newNotePath": "alpha/new.md", "markdown": "v2"},
+				deduped[util.Events.NoteRename][0],
+			)
+			assert.Equal(
+				t,
+				map[string]string{"oldNotePath": "alpha/other-old.md", "newNotePath": "alpha/other-new.md"},
+				deduped[util.Events.NoteRename][1],
+			)
+		}
+	})
+
+	t.Run("does not dedupe payloads without path-like keys", func(t *testing.T) {
+		events := map[string][]map[string]string{
+			"custom:event": {
+				{"status": "ok"},
+				{"status": "ok"},
+			},
+		}
+
+		deduped := dedupeDebouncedEventsByPathPayload(events)
+
+		if assert.Contains(t, deduped, "custom:event") {
+			assert.Len(t, deduped["custom:event"], 2)
+			assert.Equal(t, events["custom:event"], deduped["custom:event"])
+		}
+	})
+}

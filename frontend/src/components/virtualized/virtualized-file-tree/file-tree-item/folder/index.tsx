@@ -14,8 +14,9 @@ import { InlineTreeItemInput } from '../inline-tree-item-input';
 import { Finder } from '../../../../../icons/finder';
 import { Trash } from '../../../../../icons/trash';
 import { FilePen } from '../../../../../icons/file-pen';
+import { PaperclipPlus } from '../../../../../icons/paperclip-plus';
 import { useRevealInFinderMutation } from '../../../../../hooks/code';
-import { useMoveToTrashMutationNew } from '../../../../../hooks/notes';
+import { useMoveToTrashMutation } from '../../../../../hooks/notes';
 import { cn } from '../../../../../utils/string-formatting';
 import { fileTreeDataAtom } from '../..';
 import {
@@ -28,7 +29,10 @@ import {
   createDragGhostElement,
   getContextMenuSelectionItems,
 } from '../../utils/item-selection';
-import { useMoveTreeItemsMutation } from '../../hooks/tree-item-mutations';
+import {
+  useAddFolderAttachmentsMutation,
+  useMoveTreeItemsMutation,
+} from '../../hooks/tree-item-mutations';
 import { LoadingSpinner } from '../../../../loading-spinner';
 import { motion } from 'motion/react';
 
@@ -56,7 +60,8 @@ export function FileTreeFolderItem({
   const currentZoom = useAtomValue(currentZoomAtom);
   const paddingLeft = getFileTreeItemIndent(dataItem.level, currentZoom);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
-  const { mutate: moveToTrash } = useMoveToTrashMutationNew();
+  const { mutate: moveToTrash } = useMoveToTrashMutation();
+  const { mutate: addFolderAttachments } = useAddFolderAttachmentsMutation();
   const { mutateAsync: moveItemsToFolder } = useMoveTreeItemsMutation();
   const {
     isEditing,
@@ -309,6 +314,23 @@ export function FileTreeFolderItem({
               ]
             : [];
 
+          const addAttachmentsOption = !isMultiSelection
+            ? [
+                {
+                  label: (
+                    <span className="flex items-center gap-1.5">
+                      <PaperclipPlus width={17} height={17} />
+                      <span>Add attachments</span>
+                    </span>
+                  ),
+                  value: 'add-attachments',
+                  onChange: () => {
+                    addFolderAttachments(dataItem.path);
+                  },
+                },
+              ]
+            : [];
+
           const renameOption = !isMultiSelection
             ? [
                 {
@@ -362,6 +384,7 @@ export function FileTreeFolderItem({
               },
               ...addFolderOption,
               ...addNoteOption,
+              ...addAttachmentsOption,
               ...renameOption,
               {
                 value: 'move-to-trash',
@@ -371,9 +394,7 @@ export function FileTreeFolderItem({
                   </span>
                 ),
                 onChange: () => {
-                  selectedItems.forEach((item) => {
-                    moveToTrash({ path: item.path });
-                  });
+                  moveToTrash({ paths: selectedItems.map((item) => item.path) });
                 },
               },
             ],

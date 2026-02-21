@@ -8,7 +8,7 @@ import {
   projectSettingsAtom,
 } from '../../../atoms';
 import {
-  useMoveToTrashMutationNew,
+  useMoveToTrashMutation,
   useNoteRevealInFinderMutation,
 } from '../../../hooks/notes';
 import { useEditTagsFormMutation } from '../../../hooks/tags';
@@ -47,7 +47,7 @@ export function SettingsDropdown({
   const [editor] = useLexicalComposerContext();
 
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
-  const { mutate: moveToTrash } = useMoveToTrashMutationNew();
+  const { mutate: moveToTrash } = useMoveToTrashMutation();
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
   const { mutateAsync: editTags } = useEditTagsFormMutation();
 
@@ -174,7 +174,7 @@ export function SettingsDropdown({
             break;
           }
           case 'move-to-trash': {
-            moveToTrash({ path: `${folder}/${note}.md` });
+            moveToTrash({ paths: [`${folder}/${note}.md`] });
             break;
           }
         }
