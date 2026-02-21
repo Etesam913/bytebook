@@ -17,11 +17,10 @@ import {
   RenameFile,
   RevealFolderOrFileInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { projectSettingsAtom, sidebarSelectionAtom } from '../atoms';
+import { projectSettingsAtom } from '../atoms';
 import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
-import { getFilePathFromNoteSelectionRange } from '../utils/selection';
 import { getContentTypeAndValueFromSelectionRangeValue } from '../utils/string-formatting';
 import { FilePath, LocalFilePath, createFilePath } from '../utils/path';
 import { useWailsEvent } from './events';
@@ -292,39 +291,14 @@ export function useNoteRevealInFinderMutation() {
   });
 }
 
-export function useMoveToTrashMutationNew() {
+/**
+ * Moves one or more note/file-tree paths to trash.
+ * Accepts project-relative paths (for example, `folder/note.md` or `folder`).
+ */
+export function useMoveToTrashMutation() {
   return useMutation({
-    mutationFn: async ({ path }: { path: string }) => {
-      const res = await MoveToTrash([path]);
-      if (!res.success) throw new Error(res.message);
-    },
-    onError: (e) => {
-      if (e instanceof Error) {
-        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-      }
-    },
-  });
-}
-
-export function useMoveNoteToTrashMutation() {
-  const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
-  return useMutation({
-    mutationFn: async ({
-      selectionRange,
-      folder,
-    }: {
-      selectionRange: Set<string>;
-      folder: string;
-    }) => {
-      const filePaths = getFilePathFromNoteSelectionRange(
-        folder,
-        selectionRange
-      );
-      // The deleted elements should be removed from selection
-      setSidebarSelection((prev) => ({ ...prev, selections: new Set() }));
-      const res = await MoveToTrash(
-        filePaths.map((filePath) => filePath.toString())
-      );
+    mutationFn: async ({ paths }: { paths: string[] }) => {
+      const res = await MoveToTrash(paths);
       if (!res.success) throw new Error(res.message);
     },
     onError: (e) => {

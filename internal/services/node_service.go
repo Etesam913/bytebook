@@ -47,7 +47,7 @@ func addFilePathsToProject(projectPath string, filePaths []string, folderPath st
 	return newFilePaths, nil
 }
 
-func (n *NodeService) AddAttachments(folder string, note string) AttachmentResponse {
+func (n *NodeService) AddAttachments(folder string) AttachmentResponse {
 	app := application.Get()
 	if app == nil || app.Dialog == nil {
 		return AttachmentResponse{Success: false, Message: "Application not initialized", Paths: []string{}}

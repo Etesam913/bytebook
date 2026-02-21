@@ -12,7 +12,7 @@ import { MaximizeNoteButton } from '../../../components/buttons/maximize-note';
 import { DropdownMenu } from '../../../components/dropdown/dropdown-menu';
 import { Tooltip } from '../../../components/tooltip';
 import {
-  useMoveNoteToTrashMutation,
+  useMoveToTrashMutation,
   useNoteRevealInFinderMutation,
 } from '../../../hooks/notes';
 import { useEditTagsFormMutation } from '../../../hooks/tags';
@@ -46,7 +46,7 @@ export function NonMarkdownToolbar({
   const isPinned = projectSettings.pinnedNotes.has(filePath.fullPath);
 
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
-  const { mutate: moveToTrash } = useMoveNoteToTrashMutation();
+  const { mutate: moveToTrash } = useMoveToTrashMutation();
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
   const { mutateAsync: editTags } = useEditTagsFormMutation();
   useToggleSidebarEvent(animationControls);
@@ -153,10 +153,7 @@ export function NonMarkdownToolbar({
               break;
             }
             case 'move-to-trash': {
-              moveToTrash({
-                folder: filePath.folder,
-                selectionRange: new Set([`note:${filePath.note}`]),
-              });
+              moveToTrash({ paths: [filePath.fullPath] });
               break;
             }
           }

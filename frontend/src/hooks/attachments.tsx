@@ -8,11 +8,9 @@ import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 
 export function useAttachmentsMutation({
   folder,
-  note,
   editor,
 }: {
   folder: string;
-  note: string;
   editor: LexicalEditor;
 }) {
   const setBackendQuery = useSetAtom(backendQueryAtom);
@@ -28,7 +26,6 @@ export function useAttachmentsMutation({
       });
       await insertAttachmentFromFile({
         folder,
-        note,
         editor,
         editorSelection,
       });

@@ -96,7 +96,6 @@ export function Toolbar({
   const isNodeSelection = $isNodeSelection(noteSelection);
   const { insertAttachmentsMutation } = useAttachmentsMutation({
     folder,
-    note,
     editor,
   });
 

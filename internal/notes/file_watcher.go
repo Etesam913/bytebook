@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -405,6 +406,76 @@ func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[st
 	return filteredEvents
 }
 
+// dedupeDebouncedEventsByPathPayload dedupes event payloads when they contain one or more path-like fields.
+// A path-like field is any key ending in "Path" (e.g. notePath, folderPath, oldNotePath, newNotePath).
+// For duplicate path signatures within the same event key, the latest payload is kept.
+func dedupeDebouncedEventsByPathPayload(events map[string][]map[string]string) map[string][]map[string]string {
+	deduped := make(map[string][]map[string]string, len(events))
+
+	for eventKey, data := range events {
+		if len(data) == 0 {
+			continue
+		}
+
+		kept := make([]map[string]string, 0, len(data))
+		signatureIndex := make(map[string]int, len(data))
+
+		for _, payload := range data {
+			pathKeys := []string{}
+			for key := range payload {
+				if strings.HasSuffix(key, "Path") {
+					pathKeys = append(pathKeys, key)
+				}
+			}
+
+			// If this payload doesn't represent a path, keep it as-is.
+			if len(pathKeys) == 0 {
+				kept = append(kept, payload)
+				continue
+			}
+
+			sort.Strings(pathKeys)
+
+			// Build a stable "path signature" for this payload.
+			// Example:
+			//   oldNotePath=a.md, newNotePath=b.md
+			// becomes:
+			//   oldNotePath=a.md|newNotePath=b.md|
+			//
+			// We only include *Path keys so non-path fields (like markdown body)
+			// do not affect deduping identity. strings.Builder avoids repeated
+			// intermediate string allocations while concatenating parts.
+			var builder strings.Builder
+			for _, key := range pathKeys {
+				builder.WriteString(key)
+				builder.WriteString("=")
+				builder.WriteString(payload[key])
+				builder.WriteString("|")
+			}
+			signature := builder.String()
+
+			// If we already saw this signature for this event type, replace
+			// the older payload with the latest one at the same position.
+			// This preserves output order while still collapsing duplicates.
+			if existingIndex, ok := signatureIndex[signature]; ok {
+				kept[existingIndex] = payload
+				continue
+			}
+
+			// First time we see this signature: record where it lives in `kept`
+			// so a later duplicate can overwrite in-place.
+			signatureIndex[signature] = len(kept)
+			kept = append(kept, payload)
+		}
+
+		if len(kept) > 0 {
+			deduped[eventKey] = kept
+		}
+	}
+
+	return deduped
+}
+
 // shouldIgnoreFile checks if a file name should be ignored by the watcher
 func shouldIgnoreFile(fileName string) bool {
 	// Ignore macOS system files
@@ -601,7 +672,8 @@ func (fw *FileWatcher) emitDebouncedEvents() {
 	fw.pendingFileRenameEvents = []MostRecentCreatedEvent{}
 	fw.pendingFolderRenameEvents = []MostRecentCreatedEvent{}
 
-	filteredEvents := filterUnneededDebouncedEvents(fw.debounceEvents)
+	dedupedEvents := dedupeDebouncedEventsByPathPayload(fw.debounceEvents)
+	filteredEvents := filterUnneededDebouncedEvents(dedupedEvents)
 	for eventKey, data := range filteredEvents {
 		fw.app.Event.EmitEvent(&application.CustomEvent{
 			Name: eventKey,

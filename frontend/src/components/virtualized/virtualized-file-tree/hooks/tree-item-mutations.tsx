@@ -4,6 +4,7 @@ import {
   AddFolder,
   RenameFolder,
 } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/folderservice';
+import { AddAttachments } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/nodeservice';
 import {
   AddNoteToFolder,
   RenameFile,
@@ -13,9 +14,9 @@ import { NAME_CHARS } from '../../../../utils/string-formatting';
 import { FileOrFolder, type Folder } from '../types';
 import { MoveItemsToFolder } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { getSelectionValue } from '../../../../utils/selection';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { fileTreeDataAtom } from '..';
-import { sidebarSelectionAtom } from '../../../../atoms';
+import { backendQueryAtom, sidebarSelectionAtom } from '../../../../atoms';
 import { QueryError } from '../../../../utils/query';
 import { setSkipRevealForPath } from '../utils/route-focus-intent';
 
@@ -178,6 +179,36 @@ export function useMoveTreeItemsMutation() {
       if (!res.success) {
         throw new QueryError(res.message);
       }
+    },
+  });
+}
+
+/**
+ * A mutation hook for adding attachments to a folder.
+ * Uses setBackendQuery to show a loading dialog.
+ */
+export function useAddFolderAttachmentsMutation() {
+  const setBackendQuery = useSetAtom(backendQueryAtom);
+
+  return useMutation({
+    mutationFn: async (folderPath: string) => {
+      const res = await AddAttachments(folderPath);
+      if (!res.success) {
+        throw new QueryError(res.message);
+      }
+      return res;
+    },
+    onMutate: () => {
+      setBackendQuery({
+        isLoading: true,
+        message: `Adding attachments ...`,
+      });
+    },
+    onSettled: () => {
+      setBackendQuery({
+        isLoading: false,
+        message: '',
+      });
     },
   });
 }
