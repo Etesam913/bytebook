@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { AppearancePage } from './appearance/index';
-import { SettingsSidebar } from './sidebar';
+import { getSettingsTabId, SettingsSidebar } from './sidebar';
 import { MotionButton } from '../buttons';
 import { FloppyDisk } from '../../icons/floppy-disk';
 import { getDefaultButtonVariants } from '../../animations';
@@ -12,23 +12,36 @@ export type SettingsTab = 'appearance' | 'code-block' | 'search';
 export function SettingsDialog() {
   const [currentSettingsTab, setCurrentSettingsTab] =
     useState<SettingsTab>('appearance');
+  const settingsPanelId = useId();
+
   return (
     <div className="h-[calc(100vh-10rem)] flex flex-col justify-between overflow-y-hidden">
       <div className="flex gap-4 overflow-y-auto">
         <SettingsSidebar
           currentSettingsTab={currentSettingsTab}
           setCurrentSettingsTab={setCurrentSettingsTab}
+          settingsPanelId={settingsPanelId}
         />
-        <div className="overflow-auto pr-5">
+        <section
+          id={settingsPanelId}
+          role="tabpanel"
+          aria-labelledby={getSettingsTabId(currentSettingsTab)}
+          className="overflow-auto pr-5"
+        >
           {currentSettingsTab === 'appearance' && <AppearancePage />}
           {currentSettingsTab === 'code-block' && <CodeBlockPage />}
           {currentSettingsTab === 'search' && <SearchPage />}
-          <div className="grid grid-cols-2 px-0.5 border-b border-zinc-200 dark:border-zinc-700 " />
-        </div>
+          <div
+            aria-hidden="true"
+            className="grid grid-cols-2 px-0.5 border-b border-zinc-200 dark:border-zinc-700 "
+          />
+        </section>
       </div>
       <footer className="border-t border-zinc-200 dark:border-zinc-700 pt-2 pb-3 pr-2 mt-1.5">
         <MotionButton
           type="submit"
+          aria-label="Save settings"
+          aria-keyshortcuts="Meta+Enter"
           {...getDefaultButtonVariants()}
           className="ml-auto w-36 flex justify-center"
         >

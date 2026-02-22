@@ -193,7 +193,9 @@ export function useNoteDelete() {
 
   useWailsEvent('note:delete', async (body) => {
     logger.event('note:delete', body);
+    console.log('[useNoteDelete] event body:', body);
     const data = body.data as { notePath: string }[];
+    console.log('[useNoteDelete] data:', data);
     let needsTopLevelInvalidation = false;
 
     setFileTreeData((prev) => {
@@ -203,9 +205,17 @@ export function useNoteDelete() {
       for (const { notePath } of data) {
         const segments = notePath.split('/').filter(Boolean);
 
+        console.log(
+          `[useNoteDelete] notePath: ${notePath}, segments:`,
+          segments
+        );
+
         if (segments.length === 1) {
           // Top-level file - just invalidate the query
           needsTopLevelInvalidation = true;
+          console.log(
+            `[useNoteDelete] Top-level file detected (needsTopLevelInvalidation set to true): ${notePath}`
+          );
           continue;
         }
 
@@ -216,19 +226,42 @@ export function useNoteDelete() {
         const fileId = updatedFilePathToTreeDataId.get(notePath);
         const parentId = updatedFilePathToTreeDataId.get(parentPath);
 
+        console.log(
+          `[useNoteDelete] fileId: ${fileId}, parentId: ${parentId}, parentPath: ${parentPath}`
+        );
+
         if (!fileId || !parentId) {
           // Can't find file in path map - invalidate queries
           needsTopLevelInvalidation = true;
+          console.log(
+            `[useNoteDelete] Could not find fileId or parentId, invalidating queries for: ${notePath}`
+          );
           continue;
         }
 
         updatedFilePathToTreeDataId.delete(notePath);
+        console.log(
+          `[useNoteDelete] Deleted notePath from filePathToTreeDataId: ${notePath}`
+        );
+
         updatedTreeData = removeFileFromFileTreeMap({
           map: updatedTreeData,
           fileId,
           parentId,
         });
+        console.log(
+          `[useNoteDelete] Removed file from fileTreeData map: notePath=${notePath}, fileId=${fileId}, parentId=${parentId}`
+        );
       }
+
+      console.log(
+        '[useNoteDelete] setFileTreeData - updatedTreeData:',
+        updatedTreeData
+      );
+      console.log(
+        '[useNoteDelete] setFileTreeData - updatedFilePathToTreeDataId:',
+        updatedFilePathToTreeDataId
+      );
 
       return {
         treeData: updatedTreeData,
@@ -237,12 +270,21 @@ export function useNoteDelete() {
     });
 
     if (needsTopLevelInvalidation) {
+      console.log(
+        "[useNoteDelete] needsTopLevelInvalidation is true, invalidating ['top-level-files']"
+      );
       queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
     }
 
     const didDeleteCurrentRouteFile = currentRouteFilePath
       ? data.some(({ notePath }) => notePath === currentRouteFilePath.fullPath)
       : false;
+    console.log(
+      '[useNoteDelete] currentRouteFilePath:',
+      currentRouteFilePath,
+      'didDeleteCurrentRouteFile:',
+      didDeleteCurrentRouteFile
+    );
 
     // If the current route file is deleted, then navigate to the closest file to the deleted file.
     if (didDeleteCurrentRouteFile && currentRouteFilePath) {
@@ -251,15 +293,31 @@ export function useNoteDelete() {
         deletedFilePath: currentRouteFilePath.fullPath,
       });
 
+      console.log(
+        '[useNoteDelete] closestFileToDeleted:',
+        closestFileToDeleted
+      );
+
       if (closestFileToDeleted) {
         const closestFileToDeletedFilePath = createFilePath(
           closestFileToDeleted.path
         );
+        console.log(
+          '[useNoteDelete] closestFileToDeletedFilePath:',
+          closestFileToDeletedFilePath
+        );
         if (closestFileToDeletedFilePath) {
           navigate(closestFileToDeletedFilePath.encodedFileUrl);
+          console.log(
+            '[useNoteDelete] Navigating to closestFileToDeletedFilePath:',
+            closestFileToDeletedFilePath.encodedFileUrl
+          );
         }
       } else {
         navigate(routeUrls.notFoundFallback());
+        console.log(
+          '[useNoteDelete] No closest file, navigating to notFoundFallback'
+        );
       }
     }
   });

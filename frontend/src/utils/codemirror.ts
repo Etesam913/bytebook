@@ -1,5 +1,6 @@
 import { UseMutateFunction } from '@tanstack/react-query';
-import { keymap, Prec } from '@uiw/react-codemirror';
+import { Prec } from '@codemirror/state';
+import { keymap } from '@codemirror/view';
 import type { CodeMirrorRef } from '../components/code/types';
 import { CodeBlockStatus, Languages } from '../types';
 import {

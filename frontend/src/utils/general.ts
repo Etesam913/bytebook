@@ -1,4 +1,4 @@
-export const WAILS_URL = 'wails://localhost:5173';
+export const WAILS_URL = 'wails:';
 
 export const DEFAULT_SONNER_OPTIONS = {
   dismissible: true,

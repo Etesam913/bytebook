@@ -31,16 +31,11 @@ import {
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { navigate } from 'wouter/use-browser-location';
-import { Folder } from '../../../icons/folder';
 import { Note } from '../../../icons/page';
-import {
-  encodeNoteNameWithQueryParams,
-  extractInfoFromNoteName,
-  getInternalLinkType,
-  isInternalLink,
-} from '../../../utils/string-formatting';
+import { isInternalLink } from '../../../utils/string-formatting';
 import type { AutoLinkAttributes } from '../plugins/link-matcher';
 import { handleATagClick, sanitizeUrl } from '../utils/link';
+import { WAILS_URL } from '../../../utils/general';
 
 type LinkAttributes = {
   rel?: null | string;
@@ -104,59 +99,25 @@ export class LinkNode extends ElementNode {
 
     // This is an internal link so we want it to look different
     if (isInternalLink(element.href)) {
-      classNames.pop();
-      classNames.push(config.theme.internalLink);
-      const segments = element.href.split('/');
-      if (segments.length < 2) {
-        throw new Error('Invalid link');
-      }
-      // Makes sure that the content before ?ext= is encoded
-      const noteName = encodeNoteNameWithQueryParams(
-        segments[segments.length - 1]
-      );
-      const { noteNameWithoutExtension, queryParams } =
-        extractInfoFromNoteName(noteName);
-      const extension = queryParams.ext;
-      const folder = encodeURIComponent(segments[segments.length - 2]);
-
-      const { isNoteLink, isFolderLink } = getInternalLinkType(element.href);
+      const internalLinkPath = element.href.split(WAILS_URL)[1];
+      element.style.display = 'inline-flex';
+      element.style.gap = '0.15rem';
       const tempContainer = document.createElement('div');
 
-      const folderSvg = (
-        <Folder strokeWidth={2} className="mr-0.5 translate-y-1" />
-      );
       const noteSvg = <Note className="translate-y-1" />;
-
-      // Choose which icon to render
-      const content = isFolderLink ? folderSvg : noteSvg;
-
-      // Create a React root for the temporary container.
       const root = createRoot(tempContainer);
       // Use flushSync to force the update to complete synchronously.
       flushSync(() => {
-        root.render(content);
+        root.render(noteSvg);
       });
 
-      // Now that the content is rendered, move it into the anchor element.
       while (tempContainer.firstChild) {
         element.appendChild(tempContainer.firstChild);
       }
 
-      // Attach the click handler for internal navigation.
       element.onclick = (e) => {
-        // The segments are encoded by default
-        if (isNoteLink) {
-          navigate(
-            `/notes/${folder}/${noteNameWithoutExtension}?ext=${extension}`
-          );
-          e.preventDefault();
-        } else if (isFolderLink) {
-          const folder = segments[segments.length - 1];
-          navigate(`/notes/${encodeURIComponent(folder)}`);
-          e.preventDefault();
-        } else {
-          element.href = 'about:blank';
-        }
+        e.preventDefault();
+        navigate(internalLinkPath);
       };
     }
     // For a regular link, let the browser handle it.

@@ -4,7 +4,7 @@ import type {
   CompletionContext,
   CompletionResult,
 } from '@codemirror/autocomplete';
-import { hoverTooltip, Tooltip } from '@uiw/react-codemirror';
+import { hoverTooltip, type Tooltip } from '@codemirror/view';
 import { Browser } from '@wailsio/runtime';
 import { toast } from 'sonner';
 import {

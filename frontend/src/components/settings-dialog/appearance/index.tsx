@@ -21,7 +21,7 @@ export function SettingImage({
     <button
       type="button"
       onClick={onClick}
-      className="h-full text-center flex flex-col items-center"
+      className="h-full text-center flex flex-col items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color)"
     >
       <p
         className={cn(

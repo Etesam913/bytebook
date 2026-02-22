@@ -25,6 +25,15 @@ export default defineConfig(({ mode }) => {
     : [];
 
   return {
+    resolve: {
+      // Ensure all wrappers/plugins share one CodeMirror module instance.
+      dedupe: [
+        '@codemirror/state',
+        '@codemirror/view',
+        '@codemirror/language',
+        '@codemirror/autocomplete',
+      ],
+    },
     plugins: [
       react({
         babel: {

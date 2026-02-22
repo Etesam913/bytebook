@@ -1,11 +1,9 @@
 import type { TextMatchTransformer } from '@lexical/markdown';
 import { $createTextNode, $isTextNode } from 'lexical';
 import {
-  convertNoteNameToDotNotation,
   encodeLinkUrl,
   encodeLinkAltText,
   decodeLinkAltText,
-  isInternalLink,
   unescapeUnderscore,
 } from '../../../utils/string-formatting';
 import {
@@ -21,16 +19,7 @@ export const LINK: TextMatchTransformer = {
     if (!$isLinkNode(node) || $isAutoLinkNode(node)) {
       return null;
     }
-    let linkUrl = node.getURL();
-
-    if (isInternalLink(linkUrl)) {
-      const urlSegments = linkUrl.split('/');
-      const noteName = urlSegments[urlSegments.length - 1];
-      linkUrl = [
-        ...urlSegments.slice(0, -1),
-        convertNoteNameToDotNotation(noteName),
-      ].join('/');
-    }
+    const linkUrl = node.getURL();
 
     const encodedLinkUrl = encodeLinkUrl(linkUrl);
 
