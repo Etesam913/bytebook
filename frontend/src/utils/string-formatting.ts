@@ -91,30 +91,6 @@ export function isInternalLink(url: string) {
   return url.startsWith('wails:');
 }
 
-/**
- * Determines the type of internal link based on the URL.
- * Decodes the URL, parses it, and checks the segments of the pathname.
- *
- * @param url - The URL to analyze.
- * @returns An object with two properties:
- *          isNoteLink - true if the URL points to a note, determined by having 2 segments in the pathname.
- *          isFolderLink - true if the URL points to a folder, determined by having 1 segment in the pathname.
- */
-export function getInternalLinkType(url: string) {
-  const urlObj = new URL(url);
-
-  // Split the pathname into segments.
-  const segments = urlObj.pathname.split('/');
-  // Remove the first segment as it's always empty (due to leading slash).
-  segments.shift();
-
-  // Determine the type of link based on the number of segments.
-  return {
-    isNoteLink: segments.length === 2,
-    isFolderLink: segments.length === 1,
-  };
-}
-
 export const NAME_CHARS = /^[^<>:"/\\|?*]+$/;
 
 // Will be in tag:tagName format
@@ -125,64 +101,6 @@ export function getTagNameFromSelectionRange(tagSetValue: string) {
   }
   const prefixLength = 'tag:'.length;
   return tagSetValue.substring(indexOfPrefix + prefixLength);
-}
-
-/**
- * Extracts the base name and query parameters from a given note name string.
- *
- * @param noteNameWithQueryParams - The input string containing the note name and query parameters.
- * @returns An object with the base name and query parameters.
- */
-export function extractInfoFromNoteName(noteNameWithQueryParams: string) {
-  // Create a URL object to parse the noteName string.
-  // The base URL ("http://example.com") is used to properly parse relative URLs.
-  const url = new URL(
-    encodeNoteNameWithQueryParams(noteNameWithQueryParams),
-    'http://example.com'
-  );
-
-  // Extract the pathname and remove the leading "/" to get the base name.
-  const base = url.pathname.substring(1);
-
-  // Initialize an empty object to store the query parameters.
-  const queryParams: { [key: string]: string } = {};
-
-  // Iterate over each search parameter and add it to the queryParams object.
-  url.searchParams.forEach((value, key) => {
-    queryParams[key] = value;
-  });
-
-  // Return an object containing the decoded base name and query parameters.
-  return {
-    noteNameWithoutExtension: decodeURIComponent(base),
-    queryParams: queryParams,
-  };
-}
-
-/**
- * Converts a note name with query parameters to dot notation format.
- *
- * @param noteNameWithQueryParams - The note name with query parameters (e.g., "abc?ext=md")
- * @returns The note name in dot notation format (e.g., "abc.md")
- *
- * @example
- * convertNoteNameWithQueryParamsToDotNotation("abc?ext=md") // returns "abc.md"
- * convertNoteNameWithQueryParamsToDotNotation("my-note?ext=txt") // returns "my-note.txt"
- */
-export function convertNoteNameToDotNotation(
-  noteNameWithQueryParams: string
-): string {
-  const { noteNameWithoutExtension, queryParams } = extractInfoFromNoteName(
-    noteNameWithQueryParams
-  );
-
-  // If there's an ext query parameter, combine with dot notation
-  if (queryParams.ext) {
-    return `${noteNameWithoutExtension}.${queryParams.ext}`;
-  }
-
-  // If no extension query parameter, return just the note name
-  return noteNameWithoutExtension;
 }
 
 /**

@@ -21,7 +21,12 @@ function ThemeButton({
   isActive: boolean;
 }) {
   return (
-    <button type="button" onClick={onClick} aria-label={label}>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color)"
+    >
       <p
         className={cn(
           'text-sm text-zinc-500 dark:text-zinc-400',

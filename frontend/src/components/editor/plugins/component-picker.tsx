@@ -265,6 +265,7 @@ export function ComponentPickerMenuPlugin({
 
   const checkForTriggerMatch = useBasicTypeaheadTriggerMatch('/', {
     minLength: 0,
+    allowWhitespace: true,
   });
 
   const { insertAttachmentsMutation } = useAttachmentsMutation({

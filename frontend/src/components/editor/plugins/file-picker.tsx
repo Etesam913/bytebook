@@ -16,7 +16,6 @@ import { createPortal } from 'react-dom';
 import { SearchFileNamesFromQuery } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
 import { mostRecentNotesAtom } from '../../../atoms';
 import { WAILS_URL } from '../../../utils/general';
-import { convertFilePathToQueryNotation } from '../../../utils/string-formatting';
 import { createFilePath } from '../../../utils/path';
 import {
   DropdownPickerOption,
@@ -38,7 +37,7 @@ export function FilePickerMenuPlugin() {
   const [searchQuery, setSearchQuery] = useState<string | null>(null);
   const checkForTriggerMatch = useBasicTypeaheadTriggerMatch('@', {
     minLength: 0,
-    punctuation: '',
+    allowWhitespace: true,
   });
   const mostRecentNotes = useAtomValue(mostRecentNotesAtom);
   const { data: searchResults } = useQuery({
@@ -48,6 +47,7 @@ export function FilePickerMenuPlugin() {
 
   const insertLink = (text: string, url: string) => {
     editor.update(() => {
+      console.log({ url });
       const linkNode = $createLinkNode(url);
       linkNode.append($createTextNode(text));
       $insertNodes([linkNode]);
@@ -77,8 +77,8 @@ export function FilePickerMenuPlugin() {
           const fullPath = item.filePath.fullPath;
           if (item.filePath.extension === 'md') {
             insertLink(
-              fullPath,
-              `${WAILS_URL}/${convertFilePathToQueryNotation(fullPath)}`
+              item.filePath.fullPath,
+              `${WAILS_URL}${item.filePath.encodedFileUrl}`
             );
           } else {
             editor.dispatchCommand(INSERT_FILES_COMMAND, [
