@@ -46,8 +46,10 @@ import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 import { useCodeCleanup } from './hooks/code';
 import { useNoteIntersectionObserver } from './hooks/intersection-observer';
 import { FilePath } from '../../utils/path';
-import { TableActionsPlugin } from './plugins/table-actions.tsx';
+// import { TableActionsPlugin } from './plugins/table-actions.tsx';
 import type { PlaceholderLineData } from './types';
+import TableHoverActionsV2Plugin from './plugins/table/table-hover-actions.tsx';
+import TableActionMenuPlugin from './plugins/table/table-actions-menu.tsx';
 
 export function NotesEditor({
   filePath,
@@ -63,6 +65,9 @@ export function NotesEditor({
   const tableActionsRef = useRef<HTMLButtonElement | null>(null);
 
   const noteContainerRef = useRef<HTMLDivElement | null>(null);
+  const [editorAnchorElem, setEditorAnchorElem] = useState<HTMLElement | null>(
+    null
+  );
   const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
   const [frontmatter, setFrontmatter] = useState<Frontmatter>({});
 
@@ -133,7 +138,10 @@ export function NotesEditor({
             )}
           >
             <div
-              ref={noteContainerRef}
+              ref={(node) => {
+                noteContainerRef.current = node;
+                setEditorAnchorElem(node);
+              }}
               id="note-container"
               className="relative flex flex-col w-full flex-1"
               style={{
@@ -196,13 +204,18 @@ export function NotesEditor({
               <TabIndentationPlugin />
               <HistoryPlugin />
               <TablePlugin />
+              <TableActionMenuPlugin
+                anchorElem={editorAnchorElem ?? document.body}
+              />
+              <TableHoverActionsV2Plugin
+                anchorElem={editorAnchorElem ?? document.body}
+              />
               <SavePlugin filePath={filePath} setFrontmatter={setFrontmatter} />
               <EditorRefPlugin
                 editorRef={(editorRefValue) => {
                   setEditor(editorRefValue);
                 }}
               />
-              <TableActionsPlugin ref={tableActionsRef} />
               <FilesPlugin />
               <CodePlugin />
               <DraggableBlockPlugin

@@ -29,6 +29,7 @@ export function DropdownItems({
   menuId,
   buttonId,
   valueIndex,
+  skipAnimation,
 }: {
   items: DropdownItem[];
   maxHeight?: number;
@@ -46,9 +47,11 @@ export function DropdownItems({
   menuId?: string;
   buttonId?: string;
   valueIndex?: number;
+  skipAnimation?: boolean;
 }) {
   const dropdownItemsRef = useRef<HTMLDivElement>(null);
   const isDarkMode = useAtomValue(isDarkModeOnAtom);
+  const instantTransition = skipAnimation ? { duration: 0 } : undefined;
 
   useEffect(() => {
     // Only update focus index when dropdown opens, but don't steal focus
@@ -79,10 +82,11 @@ export function DropdownItems({
           }}
           animate={{
             borderColor: isDarkMode ? 'rgb(82, 82, 91)' : 'rgb(209, 213, 219)',
+            transition: instantTransition,
           }}
           exit={{
             borderColor: 'rgba(0, 0, 0, 0)',
-            transition: {
+            transition: instantTransition ?? {
               borderColor: { delay: 0.25 },
             },
           }}
@@ -91,9 +95,14 @@ export function DropdownItems({
             initial={{ height: 0 }}
             animate={{
               height: maxHeight ? maxHeight : 'auto',
-              transition: { type: 'spring', damping: 22, stiffness: 200 },
+              transition:
+                instantTransition ?? { type: 'spring', damping: 22, stiffness: 200 },
             }}
-            exit={{ height: 0, opacity: 0 }}
+            exit={{
+              height: 0,
+              opacity: 0,
+              transition: instantTransition,
+            }}
           >
             {children}
             <div
