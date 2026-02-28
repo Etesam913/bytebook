@@ -38,6 +38,8 @@ export function FilePickerMenuPlugin() {
   const checkForTriggerMatch = useBasicTypeaheadTriggerMatch('@', {
     minLength: 0,
     allowWhitespace: true,
+    // Allow punctuation in note names (e.g. "ete!sam", "my_note").
+    punctuation: '',
   });
   const mostRecentNotes = useAtomValue(mostRecentNotesAtom);
   const { data: searchResults } = useQuery({

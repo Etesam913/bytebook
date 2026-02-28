@@ -33,6 +33,7 @@ export function DropdownMenu({
   dropdownClassName,
   style,
   id,
+  skipAnimation,
 }: {
   items: DropdownItem[];
   isOpen: boolean;
@@ -52,6 +53,7 @@ export function DropdownMenu({
   dropdownClassName?: string;
   style?: React.CSSProperties;
   id?: string;
+  skipAnimation?: boolean;
 }) {
   const dropdownContainerRef = useRef<HTMLDivElement>(null);
   const [focusIndex, setFocusIndex] = useState(0);
@@ -144,6 +146,7 @@ export function DropdownMenu({
         className={dropdownClassName}
         maxHeight={maxHeight}
         style={style}
+        skipAnimation={skipAnimation}
       />
     </div>
   );

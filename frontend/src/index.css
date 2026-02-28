@@ -501,7 +501,7 @@ h6:has(> span > div > :is(img, video, span[data-katex="true"])) {
 
 /* Table Styles */
 .PlaygroundEditorTheme__table {
-  @apply border-collapse overflow-x-scroll overflow-y-scroll w-full my-[30px] border-spacing-0 table-fixed;
+  @apply border-collapse overflow-x-scroll overflow-y-scroll w-full border-spacing-0 table-fixed;
 }
 .PlaygroundEditorTheme__tableSelection *::selection {
   @apply bg-transparent;
@@ -510,7 +510,7 @@ h6:has(> span > div > :is(img, video, span[data-katex="true"])) {
   @apply outline-2 outline-[rgb(60,132,244)];
 }
 .PlaygroundEditorTheme__tableCell {
-  @apply border border-zinc-300 dark:border-zinc-500 w-[75px] min-w-[75px] align-top text-start p-[6px_8px] relative outline-none;
+  @apply border border-zinc-300 dark:border-zinc-500 w-[75px] min-w-[75px] align-top text-start px-2 py-2.5 relative outline-none;
 }
 .PlaygroundEditorTheme__tableCellSortedIndicator {
   @apply block opacity-50 absolute bottom-0 left-0 w-full h-1 bg-[#999];
@@ -583,4 +583,24 @@ th {
 
 .scrollbar-hidden {
   scrollbar-width: none;
+}
+
+.floating-add-indicator {
+  @apply bg-white bg-center bg-no-repeat bg-size-[12px_12px] border border-[#d0d0d0] rounded-[2px] shadow-[0_1px_3px_rgba(0,0,0,0.12)] box-border h-[18px] w-[18px] pointer-events-auto ease-in z-10 cursor-pointer;
+  background-image: url(../../images/icons/plus.svg);
+}
+.floating-add-indicator:hover {
+  @apply bg-[#f3f3f3];
+}
+.table-cell-action-button-container {
+  @apply absolute z-3 top-0 left-0 will-change-transform;
+}
+.table-cell-action-button-container.table-cell-action-button-container--active {
+  @apply pointer-events-auto opacity-100;
+}
+.table-cell-action-button-container.table-cell-action-button-container--inactive {
+  @apply pointer-events-none opacity-0;
+}
+.table-cell-action-button {
+  @apply flex justify-center items-center border-0 absolute top-1 right-1 rounded-full text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700;
 }
