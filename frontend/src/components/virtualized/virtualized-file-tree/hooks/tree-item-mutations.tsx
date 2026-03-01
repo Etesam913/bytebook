@@ -11,7 +11,7 @@ import {
 } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { createFilePath, type FilePath } from '../../../../utils/path';
 import { NAME_CHARS } from '../../../../utils/string-formatting';
-import { FileOrFolder, type Folder } from '../types';
+import { FILE_TYPE, FOLDER_TYPE, FileOrFolder, type Folder } from '../types';
 import { MoveItemsToFolder } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { getSelectionValue } from '../../../../utils/selection';
 import { useAtomValue, useSetAtom } from 'jotai';
@@ -168,9 +168,27 @@ export function useMoveTreeItemsMutation() {
         if (!itemId) continue;
         const item = fileOrFolderMap.get(itemId);
         if (!item) continue;
+
         if (item.path === newFolder) {
           return;
         }
+
+        if (item.type === FILE_TYPE) {
+          const parentFolder = item.parentId
+            ? fileOrFolderMap.get(item.parentId)
+            : undefined;
+
+          // If the item's parent is the same as the new folder, it does not need to be moved
+          // so we can skip it
+          if (
+            parentFolder &&
+            parentFolder.type === FOLDER_TYPE &&
+            parentFolder.path === newFolder
+          ) {
+            continue;
+          }
+        }
+
         selectedItems.push(item);
       }
 

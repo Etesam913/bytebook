@@ -9,6 +9,7 @@ import {
   dialogDataAtom,
   projectSettingsAtom,
   sidebarSelectionAtom,
+  type SidebarSelectionState,
 } from '../../../../atoms';
 import { useFilePathFromRoute } from '../../../../hooks/routes';
 import {
@@ -43,7 +44,7 @@ export function FileTreeFileItem({
 }: {
   dataItem: FlattenedFileOrFolder;
   onSelectionClick: (e: MouseEvent) => void;
-  addItemToSidebarSelection: () => Set<string> | null;
+  addItemToSidebarSelection: () => SidebarSelectionState | null;
   isSelectedFromSidebarClick: boolean;
 }) {
   const filePathFromRoute = useFilePathFromRoute();
@@ -53,7 +54,7 @@ export function FileTreeFileItem({
   const sidebarSelection = useAtomValue(sidebarSelectionAtom);
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const paddingLeft = getFileTreeItemIndent(dataItem.level, currentZoom);
+  const [isEditing, setIsEditing] = useState(false);
 
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();
@@ -64,7 +65,6 @@ export function FileTreeFileItem({
     error: renameTreeItemError,
     reset: resetRenameTreeItem,
   } = useRenameTreeItemMutation();
-  const [isEditing, setIsEditing] = useState(false);
 
   const lastDotIndex = dataItem.name.lastIndexOf('.');
   const nameWithoutExtension =
@@ -127,9 +127,10 @@ export function FileTreeFileItem({
     onSelectionClick(e);
   }
 
+  const paddingLeft = `${getFileTreeItemIndent(dataItem.level, currentZoom)}px`;
   const innerContent = (
     <span
-      style={{ paddingLeft: `${paddingLeft}px` }}
+      style={{ paddingLeft }}
       className={cn(
         'rounded-md flex items-center gap-2 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
         isSelectedFromRoute &&
@@ -165,8 +166,11 @@ export function FileTreeFileItem({
   }
 
   function handleDragStart(e: DragEvent) {
+    const newSelectionState = addItemToSidebarSelection();
+    if (!newSelectionState) return;
+
     const ghost = createDragGhostElement({
-      sidebarSelection,
+      sidebarSelection: newSelectionState,
       fileOrFolderMap,
     });
     document.body.appendChild(ghost);
@@ -182,15 +186,15 @@ export function FileTreeFileItem({
 
   return (
     <button
-      // draggable={isCurrentItemSelected}
+      draggable={true}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onClick={handleClick}
       onContextMenu={(e) => {
         e.preventDefault();
-        const newSelections = addItemToSidebarSelection();
+        const newSelectionState = addItemToSidebarSelection();
         const contextMenuSelections =
-          newSelections ?? sidebarSelection.selections;
+          newSelectionState?.selections ?? sidebarSelection.selections;
         const { selectedItems } = getContextMenuSelectionItems({
           currentItem: dataItem,
           sidebarSelections: contextMenuSelections,

@@ -74,6 +74,15 @@ export function DropdownMenu({
     setIsOpen(false);
   };
 
+  const focusMenuItem = (index: number) => {
+    if (index < 0 || index >= items.length) return;
+    setTimeout(() => {
+      const option = document.getElementById(`${menuId}-option-${index}`);
+      option?.focus();
+      setFocusIndex(index);
+    }, 0);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
       case 'Escape':
@@ -85,26 +94,15 @@ export function DropdownMenu({
           openDropdown();
         }
         // Move focus into the menu
-        setTimeout(() => {
-          const firstOption = document.getElementById(`${menuId}-option-0`);
-          firstOption?.focus();
-          setFocusIndex(0);
-        }, 0);
+        focusMenuItem(0);
         break;
       case 'ArrowUp':
         e.preventDefault();
         if (!isOpen) {
           openDropdown();
-          // Move focus to last option
-          setTimeout(() => {
-            const lastIndex = items.length - 1;
-            const lastOption = document.getElementById(
-              `${menuId}-option-${lastIndex}`
-            );
-            lastOption?.focus();
-            setFocusIndex(lastIndex);
-          }, 0);
         }
+        // Move focus to last option
+        focusMenuItem(items.length - 1);
         break;
       case 'Enter':
       case ' ':
@@ -112,7 +110,7 @@ export function DropdownMenu({
         if (isOpen) {
           closeDropdown();
         } else {
-          setIsOpen(true);
+          openDropdown();
         }
         // Don't automatically move focus when opening
         break;

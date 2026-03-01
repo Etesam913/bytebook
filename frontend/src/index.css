@@ -341,7 +341,7 @@ textarea,
   }
 
   .PlaygroundEditorTheme__tableCell {
-    @apply border border-zinc-300 dark:border-zinc-500 w-[75px] min-w-[75px] align-top text-start px-2 py-2.5 relative outline-none;
+    @apply border border-zinc-300 dark:border-zinc-500 w-[75px] min-w-[75px] align-top text-start px-2 py-1.5 relative outline-none;
   }
 
   .PlaygroundEditorTheme__tableCellSortedIndicator {

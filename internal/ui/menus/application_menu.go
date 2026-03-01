@@ -24,7 +24,6 @@ func CreateApplicationMenus(backgroundColor application.RGBA, createWindow Windo
 	configureFileMenu(app, menu, backgroundColor, createWindow)
 	configureToggleFullscreen(menu)
 	configureViewMenu(app, menu)
-	configureWindowMenu(app, menu)
 	app.Menu.SetApplicationMenu(menu)
 }
 
@@ -72,28 +71,6 @@ func configureToggleFullscreen(menu *application.Menu) {
 	}
 	item.RemoveAccelerator()
 	item.SetAccelerator("shift+cmd+f")
-}
-
-// configureWindowMenu sets up the Window menu with a Reload item.
-func configureWindowMenu(app *application.App, menu *application.Menu) {
-	item := menu.ItemAt(4)
-	if !item.IsSubmenu() {
-		return
-	}
-	sub := item.GetSubmenu()
-
-	reload := sub.Add("Reload")
-	reload.SetAccelerator("cmdorctrl+r")
-	reload.OnClick(func(ctx *application.Context) {
-		win := app.Window.Current()
-		if win != nil {
-			win.EmitEvent(util.Events.WindowReload)
-		} else {
-			log.Println(
-				"Current window could not be found: window:reload event could not be emitted",
-			)
-		}
-	})
 }
 
 // configureViewMenu sets up the "Search Through Notes" submenu item and its accelerator and click handler.

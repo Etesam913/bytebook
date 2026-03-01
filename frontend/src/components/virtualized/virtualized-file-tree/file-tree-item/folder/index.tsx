@@ -7,7 +7,7 @@ import { Note } from '../../../../../icons/page';
 import type { Folder } from '../../types';
 import {
   contextMenuDataAtom,
-  sidebarSelectionAtom,
+  type SidebarSelectionState,
 } from '../../../../../atoms';
 import { currentZoomAtom } from '../../../../../hooks/resize';
 import { InlineTreeItemInput } from '../inline-tree-item-input';
@@ -47,7 +47,7 @@ export function FileTreeFolderItem({
   dataItem: Folder & { level: number };
   openFolder: (args: OpenFolderArgs) => void;
   onSelectionClick: (e: MouseEvent) => void;
-  addItemToSidebarSelection: () => Set<string> | null;
+  addItemToSidebarSelection: () => SidebarSelectionState | null;
   isSelectedFromSidebarClick: boolean;
   isOpenFolderPending: boolean;
 }) {
@@ -56,7 +56,6 @@ export function FileTreeFolderItem({
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
-  const sidebarSelection = useAtomValue(sidebarSelectionAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
   const paddingLeft = getFileTreeItemIndent(dataItem.level, currentZoom);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
@@ -214,8 +213,11 @@ export function FileTreeFolderItem({
   }
 
   function handleDragStart(e: DragEvent) {
+    const newSelectionState = addItemToSidebarSelection();
+    if (!newSelectionState) return;
+
     const ghost = createDragGhostElement({
-      sidebarSelection,
+      sidebarSelection: newSelectionState,
       fileOrFolderMap,
     });
     document.body.appendChild(ghost);
@@ -232,7 +234,7 @@ export function FileTreeFolderItem({
   return (
     <div className="w-full">
       <button
-        // draggable={isCurrentItemSelected}
+        draggable={true}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragOver={(e) => {
@@ -256,12 +258,12 @@ export function FileTreeFolderItem({
           if (dataItem.type !== 'folder') return;
 
           e.preventDefault();
-          const newSelections = addItemToSidebarSelection();
-          if (!newSelections) return;
+          const newSelectionState = addItemToSidebarSelection();
+          if (!newSelectionState) return;
 
           const { selectedItems } = getContextMenuSelectionItems({
             currentItem: dataItem,
-            sidebarSelections: newSelections,
+            sidebarSelections: newSelectionState.selections,
             fileOrFolderMap,
           });
           const isMultiSelection = selectedItems.length > 1;
