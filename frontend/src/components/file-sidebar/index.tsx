@@ -19,7 +19,6 @@ import { CircleArrowLeft } from '../../icons/circle-arrow-left.tsx';
 import { CircleArrowRight } from '../../icons/circle-arrow-right.tsx';
 import { useRef } from 'react';
 import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
-import { ArrowRotateAnticlockwise } from '../../icons/arrow-rotate-anticlockwise.tsx';
 import { MyKernelsAccordion } from './my-kernels-accordion/index.tsx';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index.tsx';
 import { Tooltip } from '../tooltip/index.tsx';
@@ -78,16 +77,6 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
               data-testid="go-forward-button"
             >
               <CircleArrowRight width={19} height={18} />
-            </MotionIconButton>
-          </Tooltip>
-          <Tooltip content="Refresh">
-            <MotionIconButton
-              {...getDefaultButtonVariants()}
-              onClick={() => {
-                window.location.reload();
-              }}
-            >
-              <ArrowRotateAnticlockwise width={16} height={16} />
             </MotionIconButton>
           </Tooltip>
         </header>

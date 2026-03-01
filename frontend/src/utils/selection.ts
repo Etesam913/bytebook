@@ -228,14 +228,14 @@ export function handleEditorEscape(
 }
 export const FILE_SELECTION_PREFIX = 'file';
 
-export type SelectableItems = (FilePath | FolderPath) & { id: string };
+export type SelectableItem = (FilePath | FolderPath) & { id: string };
 
 /**
  * Each element in the sidebar selection set is a string as that allows for easy lookup and removal
  * This function creates a key for the selection set from a SelectableItems object
  */
 export function getKeyForSidebarSelection(
-  selectableItem: SelectableItems
+  selectableItem: SelectableItem
 ): string {
   return createSelectionKey(FILE_SELECTION_PREFIX, selectableItem.id);
 }

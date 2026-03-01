@@ -8,14 +8,17 @@ import { FileTreeFolderItem } from '../file-tree-item/folder';
 import { createFilePath, createFolderPath } from '../../../../utils/path';
 import { useAddToSidebarSelection } from '../../../../hooks/selection';
 import {
-  SelectableItems,
+  SelectableItem,
   getKeyForSidebarSelection,
 } from '../../../../utils/selection';
 import {
   computeMetaClickState,
   computeShiftClickSelections,
 } from '../utils/item-selection';
-import { sidebarSelectionAtom } from '../../../../atoms';
+import {
+  sidebarSelectionAtom,
+  type SidebarSelectionState,
+} from '../../../../atoms';
 
 /**
  * Container component for file tree items that handles selection logic
@@ -94,7 +97,7 @@ export function FileTreeItemContainer({
     e.stopPropagation();
     if (!selectionKey || !path) return;
 
-    const selectableItem: SelectableItems = {
+    const selectableItem: SelectableItem = {
       ...path,
       id: dataItem.id,
     };
@@ -142,9 +145,9 @@ export function FileTreeItemContainer({
     }
   }
 
-  function addItemToSidebarSelection(): Set<string> | null {
+  function addItemToSidebarSelection(): SidebarSelectionState | null {
     if (!selectionKey || !path) return null;
-    const selectableItem: SelectableItems = {
+    const selectableItem: SelectableItem = {
       ...path,
       id: dataItem.id,
     };
