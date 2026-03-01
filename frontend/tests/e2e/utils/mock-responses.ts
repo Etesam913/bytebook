@@ -37,6 +37,7 @@ export const MOCK_PROJECT_SETTINGS_RESPONSE = {
       theme: 'light',
       accentColor: '',
       noteWidth: 'fullWidth',
+      editorFontSize: 14,
       editorFontFamily: 'Bricolage Grotesque',
       showEmptyLinePlaceholder: true,
     },

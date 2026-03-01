@@ -3,6 +3,10 @@ type ValidatedProjectSettings = {
   noteWidth: 'fullWidth' | 'readability';
 };
 
+export const DEFAULT_EDITOR_FONT_SIZE = 14;
+export const MIN_EDITOR_FONT_SIZE = 8;
+export const MAX_EDITOR_FONT_SIZE = 24;
+
 /**
  * Validates the project settings and ensures they conform to the expected types.
  * If the provided settings are not valid, default values are used.
@@ -35,4 +39,15 @@ export function validateProjectSettings(settings: {
     theme,
     noteWidth,
   };
+}
+
+export function validateEditorFontSize(fontSize: unknown): number {
+  if (typeof fontSize === 'number' && Number.isFinite(fontSize)) {
+    return Math.min(
+      MAX_EDITOR_FONT_SIZE,
+      Math.max(MIN_EDITOR_FONT_SIZE, Math.round(fontSize))
+    );
+  }
+
+  return DEFAULT_EDITOR_FONT_SIZE;
 }

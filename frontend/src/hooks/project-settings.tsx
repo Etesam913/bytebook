@@ -16,7 +16,10 @@ import { SettingsDialog } from '../components/settings-dialog';
 import { useWailsEvent } from '../hooks/events';
 import type { ProjectSettings } from '../types';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
-import { validateProjectSettings } from '../utils/project-settings';
+import {
+  validateEditorFontSize,
+  validateProjectSettings,
+} from '../utils/project-settings';
 import { isEventInCurrentWindow } from '../utils/events';
 import { parseRGB } from '../utils/string-formatting';
 import { QueryError } from '../utils/query';
@@ -37,6 +40,14 @@ function updateAccentColorVariable(accentColor: string) {
     `${rgbValues.r},${rgbValues.g},${rgbValues.b}`
   );
 }
+
+function updateEditorFontSizeVariable(fontSize: unknown) {
+  const validatedFontSize = validateEditorFontSize(fontSize);
+  document.documentElement.style.setProperty(
+    '--editor-font-size',
+    `${validatedFontSize}px`
+  );
+}
 /**
  * Validates project settings from the server.
  *
@@ -48,8 +59,10 @@ function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
     theme: data.appearance.theme,
     noteWidth: data.appearance.noteWidth,
   });
+  const editorFontSize = validateEditorFontSize(data.appearance.editorFontSize);
 
   updateAccentColorVariable(data.appearance.accentColor);
+  updateEditorFontSizeVariable(editorFontSize);
 
   return {
     ...data,
@@ -57,6 +70,7 @@ function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
     appearance: {
       ...data.appearance,
       accentColor: data.appearance.accentColor,
+      editorFontSize,
       theme,
       noteWidth,
     },
@@ -126,6 +140,11 @@ export function useProjectSettings() {
  */
 export function useUpdateProjectSettingsMutation() {
   return useMutation({
+    onMutate: ({ newProjectSettings }) => {
+      updateEditorFontSizeVariable(
+        newProjectSettings.appearance.editorFontSize
+      );
+    },
     mutationFn: async ({
       newProjectSettings,
     }: {

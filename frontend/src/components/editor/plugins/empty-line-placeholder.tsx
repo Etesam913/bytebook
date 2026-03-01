@@ -93,11 +93,12 @@ export function EmptyLinePlaceholderPlugin({
 
   return createPortal(
     <div
-      className="pointer-events-none select-none text-zinc-400 dark:text-zinc-500 absolute whitespace-nowrap text-md "
+      className="pointer-events-none select-none text-zinc-400 dark:text-zinc-500 absolute whitespace-nowrap"
       style={{
         position: 'absolute',
         transform: `translate(calc(${placeholderLineData.position.left + 3}px), calc(${placeholderLineData.position.top + 2}px))`,
         fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
+        fontSize: 'var(--editor-font-size)',
       }}
     >
       Type &quot;/&quot; to insert an element or &quot;@&quot; to add a linked

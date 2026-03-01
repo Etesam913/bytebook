@@ -9,6 +9,7 @@ import {
 } from './types';
 import { type FilePath, createFilePath } from './utils/path';
 import { logger } from './utils/logging';
+import { DEFAULT_EDITOR_FONT_SIZE } from './utils/project-settings';
 
 /**
  * Creates a jotai atom with automatic STATE logging when values are set.
@@ -56,6 +57,7 @@ export const projectSettingsAtom = atom<ProjectSettings>({
     theme: 'light',
     accentColor: '',
     noteWidth: 'fullWidth',
+    editorFontSize: DEFAULT_EDITOR_FONT_SIZE,
     editorFontFamily: 'Bricolage Grotesque',
     showEmptyLinePlaceholder: true,
   },

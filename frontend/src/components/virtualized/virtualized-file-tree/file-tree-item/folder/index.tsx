@@ -394,7 +394,9 @@ export function FileTreeFolderItem({
                   </span>
                 ),
                 onChange: () => {
-                  moveToTrash({ paths: selectedItems.map((item) => item.path) });
+                  moveToTrash({
+                    paths: selectedItems.map((item) => item.path),
+                  });
                 },
               },
             ],

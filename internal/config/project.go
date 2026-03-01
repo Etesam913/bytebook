@@ -10,6 +10,9 @@ import (
 )
 
 const PROJECT_NAME = "Bytebook"
+const DefaultEditorFontSize = 14
+const MinEditorFontSize = 8
+const MaxEditorFontSize = 24
 
 var UserHomeDir = os.UserHomeDir
 
@@ -121,6 +124,7 @@ type AppearanceProjectSettingsJson struct {
 	AccentColor              string `json:"accentColor"`
 	NoteWidth                string `json:"noteWidth"`
 	EditorFontFamily         string `json:"editorFontFamily"`
+	EditorFontSize           int    `json:"editorFontSize"`
 	ShowEmptyLinePlaceholder bool   `json:"showEmptyLinePlaceholder"`
 }
 
@@ -152,6 +156,7 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 			Theme:                    "light",
 			AccentColor:              "",
 			EditorFontFamily:         "Bricolage Grotesque",
+			EditorFontSize:           DefaultEditorFontSize,
 			ShowEmptyLinePlaceholder: true,
 		},
 		Code: CodeProjectSettingsJson{
@@ -169,6 +174,16 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 
 	if err != nil {
 		return projectSettings, err
+	}
+
+	if projectSettings.Appearance.EditorFontSize <= 0 {
+		projectSettings.Appearance.EditorFontSize = DefaultEditorFontSize
+	}
+	if projectSettings.Appearance.EditorFontSize < MinEditorFontSize {
+		projectSettings.Appearance.EditorFontSize = MinEditorFontSize
+	}
+	if projectSettings.Appearance.EditorFontSize > MaxEditorFontSize {
+		projectSettings.Appearance.EditorFontSize = MaxEditorFontSize
 	}
 
 	projectSettings, err = UpdatePinnedNotesAndAccentColorFromProjectSettings(
