@@ -216,6 +216,227 @@ textarea,
     font-size: calc(var(--editor-font-size) * 0.875);
     line-height: calc(var(--editor-font-size) * 1.75);
   }
+
+  &:focus {
+    @apply outline-0;
+  }
+
+  hr {
+    @apply text-zinc-300 dark:text-zinc-500;
+  }
+
+  .link {
+    @apply cursor-pointer text-(--accent-color) underline decoration-2 underline-offset-2 w-fit;
+  }
+
+  .link:hover {
+    @apply filter brightness-90 dark:brightness-125;
+  }
+
+  .link-internal {
+    @apply text-(--accent-color) underline decoration-2 underline-offset-2 inline-flex items-baseline gap-0.5 w-fit cursor-pointer;
+  }
+
+  .link-internal:hover {
+    @apply filter brightness-90 dark:brightness-125;
+  }
+
+  .editor-quote {
+    @apply border-l-4 border-(--accent-color) pl-4 my-4 text-zinc-700 dark:text-zinc-300 italic;
+  }
+
+  .root-ol {
+    @apply p-0 m-0 list-decimal;
+  }
+
+  .ol-1 {
+    @apply list-[lower-alpha];
+  }
+
+  .check-list {
+    @apply list-none;
+  }
+
+  .root-ul {
+    @apply p-0 m-0 list-disc;
+  }
+
+  .ul-1 {
+    @apply list-[circle];
+  }
+
+  .root-li {
+    @apply mx-8;
+  }
+
+  .nested-li {
+    @apply list-none;
+  }
+
+  .nested-li:before,
+  .nested-li:after {
+    @apply hidden!;
+  }
+
+  .nested:before,
+  .nested:after {
+    @apply hidden;
+  }
+
+  .text-italic {
+    @apply italic;
+  }
+
+  .text-bold {
+    @apply font-bold;
+  }
+
+  .text-underline {
+    @apply no-underline;
+  }
+
+  .text-strikethrough {
+    @apply line-through decoration-[0.1rem];
+  }
+
+  .PlaygroundEditorTheme__listItemChecked,
+  .PlaygroundEditorTheme__listItemUnchecked {
+    @apply relative mx-2 pl-6 pr-6 list-none outline-none cursor-pointer my-[0.315rem] w-fit;
+  }
+
+  .PlaygroundEditorTheme__listItemChecked > span,
+  .PlaygroundEditorTheme__listItemUnchecked > span {
+    @apply cursor-text decoration-[0.13rem] pl-[0.2rem];
+  }
+
+  .PlaygroundEditorTheme__listItemChecked {
+    @apply line-through decoration-(--accent-color);
+  }
+
+  .PlaygroundEditorTheme__listItemUnchecked:before,
+  .PlaygroundEditorTheme__listItemChecked:before,
+  .PlaygroundEditorTheme__listItemUnchecked:after,
+  .PlaygroundEditorTheme__listItemChecked:after {
+    @apply rounded-full;
+  }
+
+  .PlaygroundEditorTheme__listItemUnchecked:before,
+  .PlaygroundEditorTheme__listItemChecked:before {
+    content: '';
+    @apply w-[19px] h-[19px] top-1 left-0 block bg-cover absolute;
+  }
+
+  .PlaygroundEditorTheme__listItemUnchecked[dir='rtl']:before,
+  .PlaygroundEditorTheme__listItemChecked[dir='rtl']:before {
+    @apply left-auto right-0;
+  }
+
+  .PlaygroundEditorTheme__listItemUnchecked:before {
+    @apply border border-[#999];
+  }
+
+  .PlaygroundEditorTheme__listItemChecked:before {
+    @apply border border-(--accent-color) bg-(--accent-color) bg-no-repeat;
+  }
+
+  .PlaygroundEditorTheme__listItemChecked:after {
+    content: '';
+    @apply border-white border-solid absolute block top-[8.5px] w-[5.25px] left-[7.25px] right-[7px] h-[9.5px] rotate-45 border-y-[2.3px] border-x-0 cursor-pointer;
+  }
+
+  .PlaygroundEditorTheme__table {
+    @apply border-collapse overflow-x-scroll overflow-y-scroll w-full border-spacing-0 table-fixed;
+  }
+
+  .PlaygroundEditorTheme__tableSelection *::selection {
+    @apply bg-transparent;
+  }
+
+  .PlaygroundEditorTheme__tableSelected {
+    @apply outline-2 outline-[rgb(60,132,244)];
+  }
+
+  .PlaygroundEditorTheme__tableCell {
+    @apply border border-zinc-300 dark:border-zinc-500 w-[75px] min-w-[75px] align-top text-start px-2 py-2.5 relative outline-none;
+  }
+
+  .PlaygroundEditorTheme__tableCellSortedIndicator {
+    @apply block opacity-50 absolute bottom-0 left-0 w-full h-1 bg-[#999];
+  }
+
+  .PlaygroundEditorTheme__tableCellResizer {
+    @apply absolute -right-1 h-full w-2 cursor-ew-resize z-10 top-0;
+  }
+
+  th {
+    @apply font-normal;
+  }
+
+  .PlaygroundEditorTheme__tableCellSelected {
+    @apply bg-(--accent-color-highlight);
+  }
+
+  .PlaygroundEditorTheme__tableCellPrimarySelected {
+    @apply border-2 border-[rgb(60,132,244)] block h-[calc(100%-2px)] absolute w-[calc(100%-2px)] -left-px -top-px z-2;
+  }
+
+  .PlaygroundEditorTheme__tableCellEditing {
+    @apply shadow-[0_0_5px_rgba(0,0,0,0.4)] rounded-[3px];
+  }
+
+  .PlaygroundEditorTheme__tableAddColumns {
+    @apply absolute top-0 w-5 bg-[#eee] h-full -right-[25px] border-0 cursor-pointer;
+    animation: table-controls 0.2s ease;
+  }
+
+  .PlaygroundEditorTheme__tableAddColumns:after {
+    background-image: url(../images/icons/plus.svg);
+    @apply bg-contain bg-center bg-no-repeat block absolute top-0 left-0 w-full h-full opacity-40;
+    content: ' ';
+  }
+
+  .PlaygroundEditorTheme__tableAddColumns:hover {
+    @apply bg-[#c9dbf0];
+  }
+
+  .PlaygroundEditorTheme__tableAddRows {
+    @apply absolute -bottom-[25px] w-[calc(100%-25px)] bg-[#eee] h-5 left-0 border-0 cursor-pointer;
+    animation: table-controls 0.2s ease;
+  }
+
+  .PlaygroundEditorTheme__tableAddRows:after {
+    background-image: url(../images/icons/plus.svg);
+    @apply bg-contain bg-center bg-no-repeat block absolute top-0 left-0 w-full h-full opacity-40;
+    content: ' ';
+  }
+
+  .PlaygroundEditorTheme__tableAddRows:hover {
+    @apply bg-[#c9dbf0];
+  }
+
+  .PlaygroundEditorTheme__tableCellResizeRuler {
+    @apply block absolute w-px bg-[rgb(60,132,244)] h-full top-0;
+  }
+
+  .PlaygroundEditorTheme__tableCellActionButtonContainer {
+    @apply block right-[5px] top-[6px] absolute z-4 w-5 h-5;
+  }
+
+  .PlaygroundEditorTheme__tableCellActionButton {
+    @apply bg-[#eee] block border-0 rounded-[20px] w-5 h-5 text-[#222] cursor-pointer;
+  }
+
+  .PlaygroundEditorTheme__tableCellActionButton:hover {
+    @apply bg-[#ddd];
+  }
+}
+
+.app-link {
+  @apply cursor-pointer text-(--accent-color) underline decoration-2 underline-offset-2 w-fit;
+}
+
+.app-link:hover {
+  @apply filter brightness-90 dark:brightness-125;
 }
 
 .button-invert {
@@ -345,96 +566,12 @@ div[data-is-fullscreen='true'] .cm-scroller {
  * Lexical Editor Styles
  */
 
-.link {
-  @apply cursor-pointer text-(--accent-color) underline decoration-2 underline-offset-2 w-fit;
-}
-
-.link:hover {
-  @apply filter brightness-90 dark:brightness-125;
-}
-
-.link-internal {
-  @apply text-(--accent-color) underline decoration-2 underline-offset-2 inline-flex items-baseline gap-0.5 w-fit cursor-pointer;
-}
-
-.link-internal:hover {
-  @apply filter brightness-90 dark:brightness-125;
-}
-
-.editor-quote {
-  @apply border-l-4 border-(--accent-color) pl-4 my-4 text-zinc-700 dark:text-zinc-300 italic;
-}
-
-.root-ol {
-  @apply p-0 m-0 list-decimal;
-}
-
-.ol-1 {
-  @apply list-[lower-alpha];
-}
-
-.check-list {
-  @apply list-none;
-}
-
-.root-ul {
-  @apply p-0 m-0 list-disc;
-}
-
-.ul-1 {
-  @apply list-[circle];
-}
-
-.root-li {
-  @apply mx-8;
-}
-
-.nested-li {
-  @apply list-none;
-}
-
-.nested-li:before,
-.nested-li:after {
-  @apply hidden!;
-}
-
-.nested:before,
-.nested:after {
-  @apply hidden;
-}
-
-.text-italic {
-  @apply italic;
-}
-
-.text-bold {
-  @apply font-bold;
-}
-
-.text-underline {
-  @apply no-underline;
-}
-
-.text-strikethrough {
-  @apply line-through decoration-[0.1rem];
-}
-
 .editor-scroller {
   @apply min-h-[150px] border-0 flex relative outline-0 z-0 overflow-auto resize-y;
 }
 
 .editor {
   @apply flex-auto relative resize-y -z-10 cursor-text;
-}
-
-[contenteditable='true']:focus {
-  @apply outline-0;
-}
-
-#note-container {
-  hr {
-    @apply text-zinc-300 dark:text-zinc-500;
-  }
 }
 
 /* Table of contents list */
@@ -457,113 +594,6 @@ h6:has(> span > div > :is(img, video, span[data-katex="true"])) {
 	This makes the image and video work correctly with inline content
 	@apply block;
 } */
-/* Checkbox Styles */
-.PlaygroundEditorTheme__listItemChecked,
-.PlaygroundEditorTheme__listItemUnchecked {
-  @apply relative mx-2 pl-6 pr-6 list-none outline-none cursor-pointer my-[0.315rem] w-fit;
-}
-
-.PlaygroundEditorTheme__listItemChecked > span,
-.PlaygroundEditorTheme__listItemUnchecked > span {
-  @apply cursor-text decoration-[0.13rem] pl-[0.2rem];
-}
-
-.PlaygroundEditorTheme__listItemChecked {
-  @apply line-through decoration-(--accent-color);
-}
-
-.PlaygroundEditorTheme__listItemUnchecked:before,
-.PlaygroundEditorTheme__listItemChecked:before,
-.PlaygroundEditorTheme__listItemUnchecked:after,
-.PlaygroundEditorTheme__listItemChecked:after {
-  @apply rounded-full;
-}
-
-.PlaygroundEditorTheme__listItemUnchecked:before,
-.PlaygroundEditorTheme__listItemChecked:before {
-  content: '';
-  @apply w-[19px] h-[19px] top-1 left-0 block bg-cover absolute;
-}
-
-.PlaygroundEditorTheme__listItemUnchecked[dir='rtl']:before,
-.PlaygroundEditorTheme__listItemChecked[dir='rtl']:before {
-  @apply left-auto right-0;
-}
-
-.PlaygroundEditorTheme__listItemUnchecked:before {
-  @apply border border-[#999];
-}
-
-.PlaygroundEditorTheme__listItemChecked:before {
-  @apply border border-(--accent-color) bg-(--accent-color) bg-no-repeat;
-}
-
-.PlaygroundEditorTheme__listItemChecked:after {
-  content: '';
-  @apply border-white border-solid absolute block top-[8.5px] w-[5.25px] left-[7.25px] right-[7px] h-[9.5px] rotate-45 border-y-[2.3px] border-x-0 cursor-pointer;
-}
-
-/* Table Styles */
-.PlaygroundEditorTheme__table {
-  @apply border-collapse overflow-x-scroll overflow-y-scroll w-full border-spacing-0 table-fixed;
-}
-.PlaygroundEditorTheme__tableSelection *::selection {
-  @apply bg-transparent;
-}
-.PlaygroundEditorTheme__tableSelected {
-  @apply outline-2 outline-[rgb(60,132,244)];
-}
-.PlaygroundEditorTheme__tableCell {
-  @apply border border-zinc-300 dark:border-zinc-500 w-[75px] min-w-[75px] align-top text-start px-2 py-2.5 relative outline-none;
-}
-.PlaygroundEditorTheme__tableCellSortedIndicator {
-  @apply block opacity-50 absolute bottom-0 left-0 w-full h-1 bg-[#999];
-}
-.PlaygroundEditorTheme__tableCellResizer {
-  @apply absolute -right-1 h-full w-2 cursor-ew-resize z-10 top-0;
-}
-
-th {
-  @apply font-normal;
-}
-
-/* .PlaygroundEditorTheme__tableCellHeader {
-  text-align: start;
-} */
-
-.PlaygroundEditorTheme__tableCellSelected {
-  @apply bg-(--accent-color-highlight);
-}
-.PlaygroundEditorTheme__tableCellPrimarySelected {
-  @apply border-2 border-[rgb(60,132,244)] block h-[calc(100%-2px)] absolute w-[calc(100%-2px)] -left-px -top-px z-2;
-}
-.PlaygroundEditorTheme__tableCellEditing {
-  @apply shadow-[0_0_5px_rgba(0,0,0,0.4)] rounded-[3px];
-}
-.PlaygroundEditorTheme__tableAddColumns {
-  @apply absolute top-0 w-5 bg-[#eee] h-full -right-[25px] border-0 cursor-pointer;
-  animation: table-controls 0.2s ease;
-}
-.PlaygroundEditorTheme__tableAddColumns:after {
-  background-image: url(../images/icons/plus.svg);
-  @apply bg-contain bg-center bg-no-repeat block absolute top-0 left-0 w-full h-full opacity-40;
-  content: ' ';
-}
-.PlaygroundEditorTheme__tableAddColumns:hover {
-  @apply bg-[#c9dbf0];
-}
-.PlaygroundEditorTheme__tableAddRows {
-  @apply absolute -bottom-[25px] w-[calc(100%-25px)] bg-[#eee] h-5 left-0 border-0 cursor-pointer;
-  animation: table-controls 0.2s ease;
-}
-.PlaygroundEditorTheme__tableAddRows:after {
-  background-image: url(../images/icons/plus.svg);
-  @apply bg-contain bg-center bg-no-repeat block absolute top-0 left-0 w-full h-full opacity-40;
-  content: ' ';
-}
-.PlaygroundEditorTheme__tableAddRows:hover {
-  @apply bg-[#c9dbf0];
-}
 @keyframes table-controls {
   0% {
     opacity: 0;
@@ -571,18 +601,6 @@ th {
   100% {
     opacity: 1;
   }
-}
-.PlaygroundEditorTheme__tableCellResizeRuler {
-  @apply block absolute w-px bg-[rgb(60,132,244)] h-full top-0;
-}
-.PlaygroundEditorTheme__tableCellActionButtonContainer {
-  @apply block right-[5px] top-[6px] absolute z-4 w-5 h-5;
-}
-.PlaygroundEditorTheme__tableCellActionButton {
-  @apply bg-[#eee] block border-0 rounded-[20px] w-5 h-5 text-[#222] cursor-pointer;
-}
-.PlaygroundEditorTheme__tableCellActionButton:hover {
-  @apply bg-[#ddd];
 }
 
 .scrollbar-hidden {
