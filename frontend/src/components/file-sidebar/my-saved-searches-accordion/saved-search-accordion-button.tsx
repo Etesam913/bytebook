@@ -124,7 +124,7 @@ export function SavedSearchAccordionButton({
           });
         }}
       >
-        <Magnifier height={16} width={16} />
+        <Magnifier height={14} width={14} className="will-change-transform" />
         <p className="whitespace-nowrap text-ellipsis overflow-hidden">
           {sidebarSearchName}
         </p>

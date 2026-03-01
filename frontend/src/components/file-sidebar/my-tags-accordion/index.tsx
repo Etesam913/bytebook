@@ -5,6 +5,7 @@ import { TagIcon } from '../../../icons/tag';
 import { Loader } from '../../../icons/loader';
 import { VirtualizedListAccordion } from '../../virtualized/virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
+import { AccordionButtonDivider } from '../accordion-button-divider';
 import {
   ROUTE_PATTERNS,
   type SavedSearchRouteParams,
@@ -36,7 +37,14 @@ export function MyTagsAccordion() {
             tags: !prev.tags,
           }))
         }
-        icon={<TagIcon width={18} height={18} strokeWidth={1.75} />}
+        icon={
+          <TagIcon
+            width={18}
+            height={18}
+            strokeWidth={1.75}
+            className="will-change-transform"
+          />
+        }
         title={
           <>
             Tags{' '}
@@ -44,7 +52,7 @@ export function MyTagsAccordion() {
           </>
         }
       />
-
+      <AccordionButtonDivider isOpen={isOpen} />
       <VirtualizedListAccordion<string>
         isOpen={isOpen}
         isError={isError}

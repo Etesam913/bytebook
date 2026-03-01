@@ -17,6 +17,7 @@ import {
   type KernelWithFilesRouteParams,
 } from '../../../utils/routes';
 import { KernelAccordionButton } from './kernel-accordion-button';
+import { AccordionButtonDivider } from '../accordion-button-divider';
 import { Tooltip } from '../../tooltip';
 import { fileSidebarOpenStateAtom } from '../../../atoms';
 import { kernelsDataAtom } from '../../../atoms';
@@ -29,17 +30,26 @@ import { Languages } from '../../../types';
 import { KernelHeartbeat } from './kernel-heartbeat';
 
 export function getKernelIcon(kernel: Languages, size: number = 18) {
+  const className = 'will-change-transform';
   switch (kernel) {
     case 'python':
-      return <PythonLogo height={size} width={size} />;
+      return <PythonLogo height={size} width={size} className={className} />;
     case 'go':
-      return <GolangLogo height={size} width={size} />;
+      return <GolangLogo height={size} width={size} className={className} />;
     case 'javascript':
-      return <JavascriptLogo height={size} width={size} />;
+      return (
+        <JavascriptLogo height={size} width={size} className={className} />
+      );
     case 'java':
-      return <JavaLogo height={size} width={size} />;
+      return <JavaLogo height={size} width={size} className={className} />;
     default:
-      return <SquareTerminal height={size - 2} width={size - 2} />;
+      return (
+        <SquareTerminal
+          height={size - 2}
+          width={size - 2}
+          className={className}
+        />
+      );
   }
 }
 
@@ -99,11 +109,17 @@ export function MyKernelsAccordion() {
               kernels: !prev.kernels,
             }))
           }
-          icon={<SquareTerminal width={20} height={20} />}
+          icon={
+            <SquareTerminal
+              width={20}
+              height={20}
+              className="will-change-transform"
+            />
+          }
           title={'Kernels'}
         />
       </Tooltip>
-
+      <AccordionButtonDivider isOpen={isOpen} />
       <VirtualizedListAccordion<Languages>
         isOpen={isOpen}
         layoutId="kernels-sidebar"

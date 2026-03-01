@@ -30,15 +30,17 @@ function applyAnimation({
   scope,
   animate,
   height,
+  opacity,
   shouldAnimate,
 }: {
   scope: AnimationScope<HTMLDivElement>;
   animate: ReturnType<typeof useAnimate>[1];
   height: HeightValue;
+  opacity: number;
   shouldAnimate: boolean;
 }) {
   const animationConfig = shouldAnimate ? SPRING_ANIMATION : INSTANT_ANIMATION;
-  animate(scope.current, { height }, animationConfig);
+  animate(scope.current, { height, opacity }, animationConfig);
 }
 
 export function useAnimatedHeight({
@@ -69,6 +71,7 @@ export function useAnimatedHeight({
     // Handle empty state: use 'auto' height to size naturally to the empty element
     if (isEmpty) {
       const targetHeight = isOpen ? (emptyHeight ?? 'auto') : 0;
+      const targetOpacity = isOpen ? 1 : 0;
       const isOpenChanged = prevIsOpen.current !== isOpen;
 
       if (!hasMeasured.current) {
@@ -76,6 +79,7 @@ export function useAnimatedHeight({
           scope,
           animate,
           height: targetHeight,
+          opacity: targetOpacity,
           shouldAnimate: false,
         });
         hasMeasured.current = true;
@@ -84,6 +88,7 @@ export function useAnimatedHeight({
           scope,
           animate,
           height: targetHeight,
+          opacity: targetOpacity,
           shouldAnimate: isOpenChanged,
         });
       }
@@ -98,11 +103,11 @@ export function useAnimatedHeight({
         // Set a temporary height so Virtuoso can measure
         animate(
           scope.current,
-          { height: maxHeight || '100%' },
+          { height: maxHeight || '100%', opacity: 1 },
           INSTANT_ANIMATION
         );
       } else {
-        animate(scope.current, { height: 0 }, INSTANT_ANIMATION);
+        animate(scope.current, { height: 0, opacity: 0 }, INSTANT_ANIMATION);
         hasMeasured.current = true;
       }
       return;
@@ -112,17 +117,30 @@ export function useAnimatedHeight({
       totalHeight,
       maxHeight,
     });
+    const targetOpacity = isOpen ? 1 : 0;
     const isOpenChanged = prevIsOpen.current !== isOpen;
 
     if (!hasMeasured.current) {
       // FIRST LOAD: snap instantly without animation
       const height = isOpen ? targetHeight : 0;
-      applyAnimation({ scope, animate, height, shouldAnimate: false });
+      applyAnimation({
+        scope,
+        animate,
+        height,
+        opacity: targetOpacity,
+        shouldAnimate: false,
+      });
       hasMeasured.current = true;
     } else {
       // SUBSEQUENT UPDATES: animate only when accordion opens/closes
       const height = isOpen ? targetHeight : 0;
-      applyAnimation({ scope, animate, height, shouldAnimate: isOpenChanged });
+      applyAnimation({
+        scope,
+        animate,
+        height,
+        opacity: targetOpacity,
+        shouldAnimate: isOpenChanged,
+      });
     }
 
     prevIsOpen.current = isOpen;
