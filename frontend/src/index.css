@@ -112,6 +112,10 @@
   font-style: italic;
 }
 
+:root {
+  --editor-font-size: 14px;
+}
+
 * {
   scrollbar-width: thin;
   --accent-color: rgb(var(--accent-color-values));
@@ -176,48 +180,46 @@ textarea,
 }
 
 #content-editable-editor {
-  @apply leading-loose cursor-text isolate py-1;
+  @apply cursor-text isolate py-1;
+  font-size: var(--editor-font-size);
+  line-height: calc(var(--editor-font-size) * 2);
   /* Contain:layout style paint makes the editor handle larger content more efficiently */
   contain: layout style paint;
-}
 
-#content-editable-editor h1,
-h1.dragging {
-  @apply text-3xl leading-13;
-}
-
-#content-editable-editor h2,
-h2.dragging {
-  @apply text-2xl leading-11.5;
-}
-
-#content-editable-editor h3,
-h3.dragging {
-  @apply text-xl leading-10;
-}
-
-#content-editable-editor h4,
-h4.dragging {
-  @apply text-lg leading-9 font-semibold;
-}
-
-#content-editable-editor h5,
-h5.dragging {
-  @apply text-base leading-8 font-bold;
-}
-
-#content-editable-editor > h6,
-h6.dragging {
-  @apply text-sm leading-7 font-bold;
+  h1,
+  h1.dragging {
+    font-size: calc(var(--editor-font-size) * 1.875);
+    line-height: calc(var(--editor-font-size) * 3.25);
+  }
+  h2,
+  h2.dragging {
+    font-size: calc(var(--editor-font-size) * 1.5);
+    line-height: calc(var(--editor-font-size) * 2.875);
+  }
+  h3,
+  h3.dragging {
+    font-size: calc(var(--editor-font-size) * 1.25);
+    line-height: calc(var(--editor-font-size) * 2.5);
+  }
+  h4,
+  h4.dragging {
+    font-size: calc(var(--editor-font-size) * 1.125);
+    line-height: calc(var(--editor-font-size) * 2.25);
+  }
+  h5,
+  h5.dragging {
+    font-size: var(--editor-font-size);
+    line-height: calc(var(--editor-font-size) * 2);
+  }
+  h6,
+  h6.dragging {
+    font-size: calc(var(--editor-font-size) * 0.875);
+    line-height: calc(var(--editor-font-size) * 1.75);
+  }
 }
 
 .button-invert {
   @apply bg-(--accent-color) text-zinc-50;
-}
-
-/* inline code styles */
-code {
-  @apply text-sm;
 }
 
 /**

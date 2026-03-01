@@ -93,8 +93,7 @@ export const routeBuilders = {
   /**
    * Build tag search route (saved search with tag format)
    */
-  tagSearch: (tagName: string) =>
-    routeBuilders.savedSearch('#' + tagName),
+  tagSearch: (tagName: string) => routeBuilders.savedSearch('#' + tagName),
 
   /**
    * Build saved search route

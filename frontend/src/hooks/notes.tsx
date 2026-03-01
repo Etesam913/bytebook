@@ -259,9 +259,8 @@ export function useNoteDelete() {
 
     // If the current route file is deleted, then navigate to the closest file to the deleted file.
     if (didDeleteCurrentRouteFile && currentRouteFilePath) {
-      const closestFileToDeleted = closestFileToDeletedFromPrev as
-        | FileOrFolder
-        | null;
+      const closestFileToDeleted =
+        closestFileToDeletedFromPrev as FileOrFolder | null;
 
       if (closestFileToDeleted) {
         const closestFileToDeletedFilePath = createFilePath(

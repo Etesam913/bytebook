@@ -24,7 +24,10 @@ export function NoteRenderer({ filePath }: { filePath: FilePath }) {
         className="w-full h-full min-w-0 flex-1"
         animate={animationControls}
       >
-        <iframe src={filePath.fileUrl} className="w-full h-full min-w-0 flex-1" />
+        <iframe
+          src={filePath.fileUrl}
+          className="w-full h-full min-w-0 flex-1"
+        />
       </motion.div>
     );
   }

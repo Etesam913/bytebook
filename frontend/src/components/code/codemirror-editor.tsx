@@ -1,9 +1,7 @@
 import { vscodeLight, vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { useAtomValue } from 'jotai/react';
 import { isDarkModeOnAtom, projectSettingsAtom } from '../../atoms';
-import CodeMirror, {
-  type ReactCodeMirrorRef,
-} from '@uiw/react-codemirror';
+import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { EditorView, tooltips } from '@codemirror/view';
 import { debounce } from '../../utils/general';
 import {

@@ -1,10 +1,5 @@
 import { useRef } from 'react';
-import type {
-  Dispatch,
-  KeyboardEvent,
-  ReactNode,
-  SetStateAction,
-} from 'react';
+import type { Dispatch, KeyboardEvent, ReactNode, SetStateAction } from 'react';
 import type { SettingsTab } from '.';
 import { ColorPalette2 } from '../../icons/color-palette-2';
 import { cn } from '../../utils/string-formatting';
@@ -50,7 +45,8 @@ export function SettingsSidebar({
       nextTabIndex = (safeSelectedTabIndex + 1) % settingsItems.length;
     } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
       nextTabIndex =
-        (safeSelectedTabIndex - 1 + settingsItems.length) % settingsItems.length;
+        (safeSelectedTabIndex - 1 + settingsItems.length) %
+        settingsItems.length;
     } else if (e.key === 'Home') {
       nextTabIndex = 0;
     } else if (e.key === 'End') {

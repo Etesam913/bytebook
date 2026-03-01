@@ -58,6 +58,7 @@ type AppearanceSettings = Omit<
 > & {
   theme: 'light' | 'dark' | 'system';
   noteWidth: 'fullWidth' | 'readability';
+  editorFontSize: number;
   showEmptyLinePlaceholder: boolean;
 };
 

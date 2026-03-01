@@ -95,8 +95,11 @@ export function DropdownItems({
             initial={{ height: 0 }}
             animate={{
               height: maxHeight ? maxHeight : 'auto',
-              transition:
-                instantTransition ?? { type: 'spring', damping: 22, stiffness: 200 },
+              transition: instantTransition ?? {
+                type: 'spring',
+                damping: 22,
+                stiffness: 200,
+              },
             }}
             exit={{
               height: 0,

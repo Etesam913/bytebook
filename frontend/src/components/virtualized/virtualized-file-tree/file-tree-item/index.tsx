@@ -43,7 +43,5 @@ export function FileTreeItem({
   // After the LOAD_MORE_TYPE check, dataItem is guaranteed to be FlattenedFileOrFolder
   const flattenedDataItem = dataItem;
 
-  return (
-    <FileTreeItemContainer dataItem={flattenedDataItem} />
-  );
+  return <FileTreeItemContainer dataItem={flattenedDataItem} />;
 }

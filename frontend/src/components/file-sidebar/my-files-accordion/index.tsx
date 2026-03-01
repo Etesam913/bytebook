@@ -19,13 +19,13 @@ export function MyFilesAccordion() {
           }))
         }
         icon={
-        <Note
-          width={18}
-          height={18}
-          strokeWidth={1.75}
-          className="will-change-transform"
-        />
-      }
+          <Note
+            width={18}
+            height={18}
+            strokeWidth={1.75}
+            className="will-change-transform"
+          />
+        }
         title="Files"
       />
 

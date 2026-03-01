@@ -60,10 +60,13 @@ export function VirtualizedListItem<T>({
       const anchorSelectionEntry = prev.anchorSelection ?? selectionRangeEntry;
       const anchorIndex = allData.findIndex(
         (item) =>
-          createSelectionKey(contentType, dataItemToSelectionRangeEntry(item)) ===
-          anchorSelectionEntry
+          createSelectionKey(
+            contentType,
+            dataItemToSelectionRangeEntry(item)
+          ) === anchorSelectionEntry
       );
-      const resolvedAnchorIndex = anchorIndex === -1 ? targetIndex : anchorIndex;
+      const resolvedAnchorIndex =
+        anchorIndex === -1 ? targetIndex : anchorIndex;
       const start = Math.min(resolvedAnchorIndex, targetIndex);
       const end = Math.max(resolvedAnchorIndex, targetIndex);
       const selectedElements: Set<string> = new Set();
@@ -90,7 +93,10 @@ export function VirtualizedListItem<T>({
   function handleCommandClick() {
     if (disableSelection || !dataItemToSelectionRangeEntry) return;
     setSidebarSelection((prev) => {
-      const newSelection = keepSelectionWithPrefix(prev.selections, contentType);
+      const newSelection = keepSelectionWithPrefix(
+        prev.selections,
+        contentType
+      );
       if (newSelection.has(selectionRangeEntry)) {
         newSelection.delete(selectionRangeEntry);
       } else {

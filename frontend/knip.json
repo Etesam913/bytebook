@@ -1,8 +1,4 @@
 {
   "$schema": "https://raw.githubusercontent.com/webpro/knip/main/website/static/knip.schema.json",
-  "entry": [
-    "src/index.css",
-    "bunfig.toml",
-    "public/theme-init.js"
-  ]
+  "entry": ["src/index.css", "bunfig.toml", "public/theme-init.js"]
 }
