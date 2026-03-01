@@ -37,7 +37,7 @@ function TableOfContentsElement({
       <li className={cn(getPadding(level), 'toc-list-item flex')} key={key}>
         <button
           type="button"
-          className="link text-left "
+          className="app-link text-left"
           onClick={() => {
             editor.read(() => {
               const element = editor.getElementByKey(key);

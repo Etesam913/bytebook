@@ -98,7 +98,7 @@ export function SearchPage() {
               <div className="mt-4 text-sm">
                 <button
                   type="button"
-                  className="link"
+                  className="app-link"
                   onClick={() => {
                     Browser.OpenURL(SEARCH_DOCS_URL).catch(() => {
                       toast.error(

@@ -231,7 +231,7 @@ export function KernelQuickstart({ language }: { language: Languages }) {
         <QuickstartDescription>
           Download the zip file that ends with kernelspec.zip from the{' '}
           <button
-            className="link"
+            className="app-link"
             onClick={() => {
               Browser.OpenURL('https://github.com/dflib/jjava/releases').catch(
                 () => {
@@ -261,7 +261,7 @@ export function KernelQuickstart({ language }: { language: Languages }) {
           Move the <span className="font-code">jjava-launcher.jar</span> file
           and the <span className="font-code">jjava.jar</span> file to the{' '}
           <button
-            className="link"
+            className="app-link"
             onClick={() =>
               revealInFinder({
                 path: `${projectSettings.projectPath}/code/java-resource`,
