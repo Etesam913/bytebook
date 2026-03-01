@@ -59,22 +59,24 @@ export function KernelInfo() {
 
   if (!isValidKernel) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <SquareTerminal
-            width={48}
-            height={48}
-            className="mx-auto mb-4 text-zinc-400"
-          />
-          <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
-            Kernel Not Found
-          </h2>
-          <p className="text-zinc-500 dark:text-zinc-400">
-            The requested kernel &quot;{kernelName}&quot; is not available.
-          </p>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-2 text-sm">
-            Supported kernels: {supportedKernels.join(', ')}
-          </p>
+      <div className="h-full overflow-y-auto overflow-x-hidden">
+        <div className="flex items-center justify-center min-h-full">
+          <div className="text-center">
+            <SquareTerminal
+              width={48}
+              height={48}
+              className="mx-auto mb-4 text-zinc-400"
+            />
+            <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+              Kernel Not Found
+            </h2>
+            <p className="text-zinc-500 dark:text-zinc-400">
+              The requested kernel &quot;{kernelName}&quot; is not available.
+            </p>
+            <p className="text-zinc-500 dark:text-zinc-400 mt-2 text-sm">
+              Supported kernels: {supportedKernels.join(', ')}
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -90,8 +92,8 @@ export function KernelInfo() {
   };
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto">
-      <div className="max-w-4xl mx-auto">
+    <div className="h-full overflow-y-auto overflow-x-hidden">
+      <div className="flex flex-col p-6 w-full max-w-220 mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           {getKernelIcon(kernelName)}
