@@ -301,47 +301,31 @@ textarea,
 
   .PlaygroundEditorTheme__listItemChecked,
   .PlaygroundEditorTheme__listItemUnchecked {
-    @apply relative mx-2 pl-6 pr-6 list-none outline-none cursor-pointer my-[0.315rem] w-fit;
+    @apply relative mx-2 pl-7 pr-3 list-none outline-none block min-h-6;
   }
-
-  .PlaygroundEditorTheme__listItemChecked > span,
-  .PlaygroundEditorTheme__listItemUnchecked > span {
-    @apply cursor-text decoration-[0.13rem] pl-[0.2rem];
+  .PlaygroundEditorTheme__listItemChecked > *,
+  .PlaygroundEditorTheme__listItemUnchecked > * {
+    @apply ml-0.25;
   }
-
+  .PlaygroundEditorTheme__listItemUnchecked:before,
+  .PlaygroundEditorTheme__listItemChecked:before {
+    @apply content-['\200B'] w-5 h-5 top-1/2 left-0 cursor-pointer block bg-cover absolute -translate-y-1/2;
+  }
   .PlaygroundEditorTheme__listItemChecked {
     @apply line-through decoration-(--accent-color);
   }
-
-  .PlaygroundEditorTheme__listItemUnchecked:before,
-  .PlaygroundEditorTheme__listItemChecked:before,
-  .PlaygroundEditorTheme__listItemUnchecked:after,
-  .PlaygroundEditorTheme__listItemChecked:after {
-    @apply rounded-full;
+  .PlaygroundEditorTheme__listItemUnchecked:focus:before,
+  .PlaygroundEditorTheme__listItemChecked:focus:before {
+    @apply shadow-none;
   }
-
-  .PlaygroundEditorTheme__listItemUnchecked:before,
-  .PlaygroundEditorTheme__listItemChecked:before {
-    content: '';
-    @apply w-[19px] h-[19px] top-1 left-0 block bg-cover absolute;
-  }
-
-  .PlaygroundEditorTheme__listItemUnchecked[dir='rtl']:before,
-  .PlaygroundEditorTheme__listItemChecked[dir='rtl']:before {
-    @apply left-auto right-0;
-  }
-
   .PlaygroundEditorTheme__listItemUnchecked:before {
-    @apply border border-[#999];
+    @apply border-[0.0625rem] border-solid rounded-full border-zinc-200 dark:border-zinc-600;
   }
-
   .PlaygroundEditorTheme__listItemChecked:before {
-    @apply border border-(--accent-color) bg-(--accent-color) bg-no-repeat;
+    @apply rounded-full bg-(--accent-color) bg-no-repeat border-[0.0625rem] border-solid border-(--accent-color);
   }
-
   .PlaygroundEditorTheme__listItemChecked:after {
-    content: '';
-    @apply border-white border-solid absolute block top-[8.5px] w-[5.25px] left-[7.25px] right-[7px] h-[9.5px] rotate-45 border-y-[2.3px] border-x-0 cursor-pointer;
+    @apply content-[''] cursor-pointer border-white border-solid absolute block top-1/2 left-2.5 w-1 h-2 -translate-x-1/2 -translate-y-1/2 rotate-45 border-t-0 border-l-0 border-r-[0.15rem] border-b-[0.15rem];
   }
 
   .PlaygroundEditorTheme__table {
