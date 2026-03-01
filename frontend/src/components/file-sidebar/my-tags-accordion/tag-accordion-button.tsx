@@ -100,7 +100,12 @@ export function TagAccordionButton({
         });
       }}
     >
-      <TagIcon height={16} width={16} strokeWidth={1.75} />
+      <TagIcon
+        height={16}
+        width={16}
+        strokeWidth={1.75}
+        className="will-change-transform"
+      />
       <p className="whitespace-nowrap text-ellipsis overflow-hidden">
         {sidebarTagName}{' '}
         {/* {tagPreviewCount !== undefined && (

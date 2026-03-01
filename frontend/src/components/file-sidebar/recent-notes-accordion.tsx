@@ -2,10 +2,11 @@ import { useAtom } from 'jotai';
 import { mostRecentNotesAtom, fileSidebarOpenStateAtom } from '../../atoms.ts';
 import HourglassStart from '../../icons/hourglass-start.tsx';
 import { AccordionItem } from '../accordion/accordion-item.tsx';
-import { SidebarAccordion } from '../accordion/index.tsx';
+import { AccordionButton } from '../accordion/accordion-button';
+import { AccordionButtonDivider } from './accordion-button-divider';
 import { useEffect } from 'react';
 import { useFilePathFromRoute } from '../../hooks/routes.tsx';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 
 export function RecentNotesAccordion() {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
@@ -44,32 +45,47 @@ export function RecentNotesAccordion() {
   });
 
   return (
-    <SidebarAccordion
-      listClassName="overflow-hidden"
-      data-testid="recent-notes-accordion"
-      onClick={() =>
-        setOpenState((prev) => ({
-          ...prev,
-          recentNotes: !prev.recentNotes,
-        }))
-      }
-      title="Recent Notes"
-      isOpen={isRecentNotesOpen}
-      icon={
-        <HourglassStart
-          height={19}
-          width={19}
-          className="will-change-transform"
-        />
-      }
-    >
-      {mostRecentElements.length > 0 ? (
-        mostRecentElements
-      ) : (
-        <p className="pl-2 py-2 text-left list-none text-zinc-500 dark:text-zinc-300 text-xs">
-          Visit a note to see it here
-        </p>
-      )}
-    </SidebarAccordion>
+    <section>
+      <AccordionButton
+        data-testid="recent-notes-accordion"
+        isOpen={isRecentNotesOpen}
+        onClick={() =>
+          setOpenState((prev) => ({
+            ...prev,
+            recentNotes: !prev.recentNotes,
+          }))
+        }
+        icon={
+          <HourglassStart
+            height={19}
+            width={19}
+            className="will-change-transform"
+          />
+        }
+        title="Recent Notes"
+      />
+      <AccordionButtonDivider isOpen={isRecentNotesOpen} />
+      <AnimatePresence initial={false}>
+        {isRecentNotesOpen && (
+          <motion.ul
+            initial={{ height: 0 }}
+            animate={{
+              height: 'auto',
+              transition: { type: 'spring', damping: 16 },
+            }}
+            exit={{ height: 0, opacity: 0 }}
+            className="pl-1 overflow-hidden scrollbar-hidden"
+          >
+            {mostRecentElements.length > 0 ? (
+              mostRecentElements
+            ) : (
+              <p className="pl-2 py-2 text-left list-none text-zinc-500 dark:text-zinc-300 text-xs">
+                Visit a note to see it here
+              </p>
+            )}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </section>
   );
 }

@@ -1,12 +1,15 @@
 export function JavaLogo({
   width = 20,
   height = 20,
+  className,
 }: {
   width?: number;
   height?: number;
+  className?: string;
 }) {
   return (
     <svg
+      className={className}
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
       fill="currentColor"

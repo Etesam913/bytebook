@@ -40,7 +40,13 @@ export function AccordionItem({
         className="flex min-w-0 flex-1 items-center gap-2 overflow-x-hidden rounded-md px-2 py-1"
         to={to}
       >
-        {icon ?? <Note className="min-w-4" width={16} height={16} />}
+        {icon ?? (
+          <Note
+            className="min-w-4 will-change-transform"
+            width={16}
+            height={16}
+          />
+        )}
         <p className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm">
           {itemName}
         </p>

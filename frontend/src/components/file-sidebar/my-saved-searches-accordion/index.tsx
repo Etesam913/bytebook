@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { useAtom } from 'jotai';
 import { VirtualizedListAccordion } from '../../virtualized/virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
+import { AccordionButtonDivider } from '../accordion-button-divider';
 import {
   ROUTE_PATTERNS,
   type SavedSearchRouteParams,
@@ -46,7 +47,13 @@ export function MySavedSearchesAccordion() {
             savedSearches: !prev.savedSearches,
           }))
         }
-        icon={<Box2Search height={19} width={19} />}
+        icon={
+          <Box2Search
+            height={19}
+            width={19}
+            className="will-change-transform"
+          />
+        }
         title={
           <>
             Saved Searches{' '}
@@ -56,7 +63,7 @@ export function MySavedSearchesAccordion() {
           </>
         }
       />
-
+      <AccordionButtonDivider isOpen={isOpen} />
       <VirtualizedListAccordion<SavedSearch>
         isOpen={isOpen}
         isError={isError}

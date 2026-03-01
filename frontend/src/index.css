@@ -429,8 +429,10 @@ div[data-is-fullscreen='true'] .cm-scroller {
   @apply outline-0;
 }
 
-hr {
-  @apply text-zinc-300 dark:text-zinc-500;
+#note-container {
+  hr {
+    @apply text-zinc-300 dark:text-zinc-500;
+  }
 }
 
 /* Table of contents list */

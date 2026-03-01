@@ -18,7 +18,14 @@ export function MyFilesAccordion() {
             folders: !prev.folders,
           }))
         }
-        icon={<Note width={18} height={18} strokeWidth={1.75} />}
+        icon={
+        <Note
+          width={18}
+          height={18}
+          strokeWidth={1.75}
+          className="will-change-transform"
+        />
+      }
         title="Files"
       />
 
