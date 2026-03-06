@@ -13,17 +13,18 @@ var Events = struct {
 	FolderCreate string
 
 	// UI events
-	ZoomIn           string
-	ZoomOut          string
-	ZoomReset        string
-	SettingsOpen     string
-	SearchOpen       string
-	SearchNote       string
-	NewNoteMenu      string
-	FolderCreateMenu string
-	Fullscreen       string
-	WindowReload     string
-	ToggleSidebar    string
+	ZoomIn              string
+	ZoomOut             string
+	ZoomReset           string
+	SettingsOpen        string
+	SearchOpen          string
+	SearchNote          string
+	NewNoteMenu         string
+	FolderCreateMenu    string
+	Fullscreen          string
+	WindowReload        string
+	ToggleSidebar       string
+	FileTreeContentDrop string
 
 	// Context Menu events
 	ContextMenuRename    string
@@ -62,17 +63,18 @@ var Events = struct {
 	FolderCreate: "folder:create",
 
 	// UI events
-	ZoomIn:           "zoom:in",
-	ZoomOut:          "zoom:out",
-	ZoomReset:        "zoom:reset",
-	SettingsOpen:     "settings:open",
-	SearchOpen:       "search:open",
-	SearchNote:       "search:note",
-	NewNoteMenu:      "note:create-dialog",
-	FolderCreateMenu: "folder:create-dialog",
-	Fullscreen:       "window:fullscreen",
-	WindowReload:     "window:reload",
-	ToggleSidebar:    "sidebar:toggle",
+	ZoomIn:              "zoom:in",
+	ZoomOut:             "zoom:out",
+	ZoomReset:           "zoom:reset",
+	SettingsOpen:        "settings:open",
+	SearchOpen:          "search:open",
+	SearchNote:          "search:note",
+	NewNoteMenu:         "note:create-dialog",
+	FolderCreateMenu:    "folder:create-dialog",
+	Fullscreen:          "window:fullscreen",
+	WindowReload:        "window:reload",
+	ToggleSidebar:       "sidebar:toggle",
+	FileTreeContentDrop: "file-tree:content-drop",
 
 	// Context Menu events
 	ContextMenuRename:    "context-menu:rename",
@@ -139,4 +141,10 @@ type NoteRenameEventData struct {
 type NoteWriteEventData struct {
 	NotePath string `json:"notePath"`
 	Markdown string `json:"markdown,omitempty"`
+}
+
+// FileTreeContentDropEventData represents dropped OS files over file-tree targets.
+type FileTreeContentDropEventData struct {
+	DroppedFiles    []string `json:"droppedFiles"`
+	TargetElementID string   `json:"targetElementId,omitempty"`
 }

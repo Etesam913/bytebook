@@ -5,7 +5,7 @@ import {
   LOAD_MORE_TYPE,
   VirtualizedFileTreeItem,
 } from '../types';
-import { fileTreeDataAtom } from '..';
+import { fileTreeDataAtom } from '../../../../atoms';
 import { LoadMoreRow } from './load-more-row';
 import { FileTreeItemContainer } from '../file-tree-item-container';
 import { CreateFolder } from '../create-folder';

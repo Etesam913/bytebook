@@ -4,7 +4,7 @@ import type {
   VirtualizedFileTreeItem,
 } from '../types';
 import { FOLDER_TYPE, LOAD_MORE_TYPE } from '../types';
-import { FileTreeData } from '..';
+import type { FileTreeData } from '../../../../atoms';
 
 /**
  * Calculates the padding-left (indent) value for a file tree item based on its level.

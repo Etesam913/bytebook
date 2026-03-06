@@ -28,9 +28,9 @@ func CreateWindow(app *application.App, url string, backgroundColor application.
 				FullscreenEnabled: u.True,
 			},
 		},
-		EnableDragAndDrop:  true,
 		BackgroundColour:   backgroundColor,
 		ZoomControlEnabled: false,
+		EnableFileDrop:     true,
 	})
 
 	// Listen for fullscreen events

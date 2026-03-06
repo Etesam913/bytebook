@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { GetTopLevelItems } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { QueryError } from '../../../../utils/query';
-import { fileTreeDataAtom } from '..';
+import { fileTreeDataAtom } from '../../../../atoms';
 import { reconcileTopLevelFileTreeMap } from '../utils/file-tree-utils';
 import { FILE_TYPE, FOLDER_TYPE, type FileOrFolder } from '../types';
 import { useSetAtom } from 'jotai';

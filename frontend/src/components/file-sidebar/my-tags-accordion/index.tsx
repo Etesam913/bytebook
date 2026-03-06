@@ -10,7 +10,6 @@ import {
   ROUTE_PATTERNS,
   type SavedSearchRouteParams,
 } from '../../../utils/routes';
-
 import { useRoute } from 'wouter';
 import { TagAccordionButton } from './tag-accordion-button';
 import { fileSidebarOpenStateAtom } from '../../../atoms';

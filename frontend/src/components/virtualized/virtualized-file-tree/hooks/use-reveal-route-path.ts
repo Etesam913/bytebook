@@ -5,7 +5,7 @@ import {
   pathExistsInFileTree,
 } from '../utils/file-tree-utils';
 import { FOLDER_TYPE } from '../types';
-import { fileTreeDataAtom } from '..';
+import { fileTreeDataAtom } from '../../../../atoms';
 import { logger } from '../../../../utils/logging';
 import { useStore } from 'jotai';
 import { useOpenFolderMutation } from './open-folder';

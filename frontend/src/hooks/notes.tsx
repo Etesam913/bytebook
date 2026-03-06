@@ -38,7 +38,7 @@ import {
   applyPathRemappings,
   buildRenameUpdates,
 } from '../components/virtualized/virtualized-file-tree/utils/rename-item';
-import { fileTreeDataAtom } from '../components/virtualized/virtualized-file-tree';
+import { fileTreeDataAtom } from '../atoms';
 import {
   FOLDER_TYPE,
   type FileOrFolder,

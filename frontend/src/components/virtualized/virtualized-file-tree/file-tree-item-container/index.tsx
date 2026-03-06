@@ -1,7 +1,7 @@
 import { useAtom, useAtomValue } from 'jotai';
 import { useOpenFolderMutation } from '../hooks/open-folder';
 import { FlattenedFileOrFolder } from '../types';
-import { fileTreeDataAtom } from '..';
+import { fileTreeDataAtom } from '../../../../atoms';
 import { MouseEvent } from 'react';
 import { FileTreeFileItem } from '../file-tree-item/file';
 import { FileTreeFolderItem } from '../file-tree-item/folder';

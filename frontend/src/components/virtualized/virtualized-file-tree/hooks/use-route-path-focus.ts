@@ -1,9 +1,10 @@
 import { RefObject, useEffect, useState } from 'react';
 import type { ListRange, VirtuosoHandle } from 'react-virtuoso';
 import { FILE_TYPE, FOLDER_TYPE, type VirtualizedFileTreeItem } from '../types';
-import { fileTreeDataAtom } from '..';
+import { fileTreeDataAtom } from '../../../../atoms';
 import { useRevealRoutePath } from './use-reveal-route-path';
 import { useAtomValue } from 'jotai';
+import { useQueryClient } from '@tanstack/react-query';
 import { useFilePathFromRoute } from '../../../../hooks/routes';
 import { consumeSkipRevealForPath } from '../utils/route-focus-intent';
 
@@ -29,6 +30,7 @@ export function useRoutePathFocus({
   const hasFileTreeData = fileTreeData.treeData.size > 0;
   const routeFilePath = useFilePathFromRoute();
   const { mutateAsync: revealRoutePathAsync } = useRevealRoutePath();
+  const queryClient = useQueryClient();
   const [pendingScrollPath, setPendingScrollPath] = useState<string | null>(
     null
   );
@@ -43,6 +45,7 @@ export function useRoutePathFocus({
     if (!routeFilePath || !hasFileTreeData) {
       return;
     }
+    const routePath = routeFilePath.fullPath;
 
     const visibleItems = virtualizedData.slice(
       visibleRange.startIndex,
@@ -52,7 +55,7 @@ export function useRoutePathFocus({
     const isCurrentRouteVisible = visibleItems.some(
       (item) =>
         (item.type === FILE_TYPE || item.type === FOLDER_TYPE) &&
-        item.path === routeFilePath.fullPath
+        item.path === routePath
     );
 
     // No folder needs to be expanded or revealed if the current route is already visible
@@ -61,9 +64,7 @@ export function useRoutePathFocus({
     }
 
     // If the current route is already in virtualizedData, scroll it into view immediately
-    const targetId = fileTreeData.filePathToTreeDataId.get(
-      routeFilePath.fullPath
-    );
+    const targetId = fileTreeData.filePathToTreeDataId.get(routePath);
     if (targetId) {
       const targetItemIndex = virtualizedData.findIndex(
         (item) => item.id === targetId
@@ -77,14 +78,24 @@ export function useRoutePathFocus({
       }
     }
 
-    if (consumeSkipRevealForPath(routeFilePath.fullPath)) {
+    const shouldSkipReveal = consumeSkipRevealForPath(routePath);
+    if (shouldSkipReveal) {
       // note:create event already revealed the path so we don't have to do it again below
       return;
     }
 
     // Clicking a link to a note or clicking a search result will not reveal the path themselves, so we need to reveal it below
-    revealRoutePathAsync(routeFilePath.fullPath).then((success) => {
-      if (success) setPendingScrollPath(routeFilePath.fullPath);
+    revealRoutePathAsync(routePath).then(async (success) => {
+      if (success) {
+        setPendingScrollPath(routePath);
+        return;
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+      const retrySuccess = await revealRoutePathAsync(routePath);
+      if (retrySuccess) {
+        setPendingScrollPath(routePath);
+      }
     });
   }, [routeFilePath, hasFileTreeData]);
 
