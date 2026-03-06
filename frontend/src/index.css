@@ -18,24 +18,6 @@
   --color-zinc-850: rgb(30, 30, 36);
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-/* @layer base {
-	*,
-	::after,
-	::before,
-	::backdrop,
-	::file-selector-button {
-		border-color: var(--color-gray-200, currentColor);
-	}
-} */
-
 @layer utilities {
   @keyframes customPulse {
     0%,
@@ -131,6 +113,12 @@
   -webkit-touch-callout: none;
   /* Prevent content adjustment on iOS */
   -webkit-text-size-adjust: 100%;
+}
+
+#file-tree {
+  .file-tree-drop-target.file-drop-target-active {
+    @apply bg-(--accent-color);
+  }
 }
 
 pre {
@@ -313,13 +301,17 @@ textarea,
   }
   .PlaygroundEditorTheme__listItemChecked {
     @apply line-through decoration-(--accent-color);
+
+    * {
+      text-decoration-thickness: 0.125rem;
+    }
   }
   .PlaygroundEditorTheme__listItemUnchecked:focus:before,
   .PlaygroundEditorTheme__listItemChecked:focus:before {
     @apply shadow-none;
   }
   .PlaygroundEditorTheme__listItemUnchecked:before {
-    @apply border-[0.0625rem] border-solid rounded-full border-zinc-200 dark:border-zinc-600;
+    @apply border-[0.0625rem] border-solid rounded-full border-zinc-200 dark:border-zinc-700;
   }
   .PlaygroundEditorTheme__listItemChecked:before {
     @apply rounded-full bg-(--accent-color) bg-no-repeat border-[0.0625rem] border-solid border-(--accent-color);

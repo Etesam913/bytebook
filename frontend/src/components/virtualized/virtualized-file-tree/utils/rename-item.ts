@@ -1,5 +1,5 @@
 import type { FileOrFolder } from '../types';
-import type { FileTreeData } from '..';
+import type { FileTreeData } from '../../../../atoms';
 import {
   getTreeNodeFromPath,
   removeFileFromFileTreeMap,

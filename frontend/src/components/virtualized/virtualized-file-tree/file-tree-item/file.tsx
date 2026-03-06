@@ -31,7 +31,7 @@ import {
   createDragGhostElement,
   getContextMenuSelectionItems,
 } from '../utils/item-selection';
-import { fileTreeDataAtom } from '..';
+import { fileTreeDataAtom } from '../../../../atoms';
 import { TagPlus } from '../../../../icons/tag-plus';
 import { EditTagDialogChildren } from '../../../../routes/notes-sidebar/edit-tag-dialog-children';
 import { RenderNoteIcon } from '../../../../icons/render-note-icon';
@@ -190,6 +190,8 @@ export function FileTreeFileItem({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onClick={handleClick}
+      data-file-drop-target
+      id={dataItem.id}
       onContextMenu={(e) => {
         e.preventDefault();
         const newSelectionState = addItemToSidebarSelection();

@@ -7,6 +7,7 @@ import {
   KernelsData,
   type ProjectSettings,
 } from './types';
+import type { FileOrFolder } from './components/virtualized/virtualized-file-tree/types';
 import { type FilePath, createFilePath } from './utils/path';
 import { logger } from './utils/logging';
 import { DEFAULT_EDITOR_FONT_SIZE } from './utils/project-settings';
@@ -81,6 +82,19 @@ export const sidebarSelectionAtom = atomWithLogging<SidebarSelectionState>(
   {
     selections: new Set([]),
     anchorSelection: null,
+  }
+);
+
+export type FileTreeData = {
+  treeData: Map<string, FileOrFolder>;
+  filePathToTreeDataId: Map<string, string>;
+};
+
+export const fileTreeDataAtom = atomWithLogging<FileTreeData>(
+  'fileTreeDataAtom',
+  {
+    treeData: new Map<string, FileOrFolder>(),
+    filePathToTreeDataId: new Map<string, string>(),
   }
 );
 

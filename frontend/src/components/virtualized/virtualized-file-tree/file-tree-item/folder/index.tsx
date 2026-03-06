@@ -18,7 +18,7 @@ import { PaperclipPlus } from '../../../../../icons/paperclip-plus';
 import { useRevealInFinderMutation } from '../../../../../hooks/code';
 import { useMoveToTrashMutation } from '../../../../../hooks/notes';
 import { cn } from '../../../../../utils/string-formatting';
-import { fileTreeDataAtom } from '../..';
+import { fileTreeDataAtom } from '../../../../../atoms';
 import {
   useFileTreeFolderAddActions,
   useFileTreeFolderRenameActions,
@@ -234,7 +234,13 @@ export function FileTreeFolderItem({
   return (
     <div className="w-full">
       <button
+        data-file-drop-target
+        id={dataItem.id}
         draggable={true}
+        className="flex items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2 file-tree-drop-target"
+        onDragEnter={() => {
+          console.log('drag enter');
+        }}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragOver={(e) => {
@@ -404,7 +410,6 @@ export function FileTreeFolderItem({
             ],
           });
         }}
-        className="flex items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2"
       >
         {innerContent}
       </button>

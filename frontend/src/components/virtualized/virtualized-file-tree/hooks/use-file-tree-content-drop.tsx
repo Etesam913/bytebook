@@ -1,0 +1,74 @@
+import { useAtomValue } from 'jotai';
+import { type FileTreeData, fileTreeDataAtom } from '../../../../atoms';
+import { useWailsEvent } from '../../../../hooks/events';
+import { FILE_TYPE, FOLDER_TYPE } from '../types';
+import { useAddDroppedFilesToFolderMutation } from './tree-item-mutations';
+
+type FileTreeContentDropEventData = {
+  droppedFiles?: string[];
+  targetElementId?: string;
+};
+
+function resolveTargetFolderPath(
+  fileTreeData: FileTreeData,
+  targetElementId: string | undefined
+): string | null {
+  if (!targetElementId) {
+    return null;
+  }
+
+  const targetNode = fileTreeData.treeData.get(targetElementId);
+  if (!targetNode) {
+    return null;
+  }
+
+  if (targetNode.type === FOLDER_TYPE) {
+    return targetNode.path;
+  }
+
+  if (targetNode.type !== FILE_TYPE) {
+    return null;
+  }
+
+  if (!targetNode.parentId) {
+    // Top-level files are dropped into the root notes directory.
+    return '';
+  }
+
+  const parentNode = fileTreeData.treeData.get(targetNode.parentId);
+  if (!parentNode || parentNode.type !== FOLDER_TYPE) {
+    return null;
+  }
+
+  return parentNode.path;
+}
+
+/**
+ * Listens for external file drops over file-tree targets and copies dropped files
+ * into the resolved destination folder.
+ */
+export function useFileTreeContentDrop() {
+  const fileTreeData = useAtomValue(fileTreeDataAtom);
+  const { mutate: addDroppedFilesToFolder } = useAddDroppedFilesToFolderMutation();
+
+  useWailsEvent('file-tree:content-drop', (event) => {
+    const data = event.data as FileTreeContentDropEventData;
+    const droppedFiles = data.droppedFiles ?? [];
+    if (droppedFiles.length === 0) {
+      return;
+    }
+
+    const targetFolderPath = resolveTargetFolderPath(
+      fileTreeData,
+      data.targetElementId
+    );
+    if (targetFolderPath === null) {
+      return;
+    }
+
+    addDroppedFilesToFolder({
+      folderPath: targetFolderPath,
+      filePaths: droppedFiles,
+    });
+  });
+}

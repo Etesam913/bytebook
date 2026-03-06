@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { logger } from '../utils/logging';
 import { useAtom, useSetAtom, useStore } from 'jotai';
-import { fileTreeDataAtom } from '../components/virtualized/virtualized-file-tree';
+import { fileTreeDataAtom } from '../atoms';
 import { removeFolderFromFileTreeMap } from '../components/virtualized/virtualized-file-tree/utils/file-tree-utils';
 import {
   applyNodeUpdates,

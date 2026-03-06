@@ -7,7 +7,7 @@ import {
   LOAD_MORE_TYPE,
   type VirtualizedFileTreeItem,
 } from '../types';
-import { fileTreeDataAtom } from '..';
+import { fileTreeDataAtom } from '../../../../atoms';
 import { useAtomValue } from 'jotai';
 
 const STICKY_ELEMENT_HEIGHT = 28;

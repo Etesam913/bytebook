@@ -4,7 +4,7 @@ import {
   OpenFolderAndAddToFileWatcher,
 } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { QueryError } from '../../../../utils/query';
-import { fileTreeDataAtom } from '..';
+import { fileTreeDataAtom } from '../../../../atoms';
 import { FILE_TYPE, FOLDER_TYPE } from '../types';
 import { useSetAtom, useStore } from 'jotai';
 

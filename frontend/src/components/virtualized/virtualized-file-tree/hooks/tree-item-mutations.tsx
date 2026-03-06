@@ -4,7 +4,10 @@ import {
   AddFolder,
   RenameFolder,
 } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/folderservice';
-import { AddAttachments } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/nodeservice';
+import {
+  AddAttachments,
+  AddAttachmentsFromPaths,
+} from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/nodeservice';
 import {
   AddNoteToFolder,
   RenameFile,
@@ -15,7 +18,7 @@ import { FILE_TYPE, FOLDER_TYPE, FileOrFolder, type Folder } from '../types';
 import { MoveItemsToFolder } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { getSelectionValue } from '../../../../utils/selection';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { fileTreeDataAtom } from '..';
+import { fileTreeDataAtom } from '../../../../atoms';
 import { backendQueryAtom, sidebarSelectionAtom } from '../../../../atoms';
 import { QueryError } from '../../../../utils/query';
 import { setSkipRevealForPath } from '../utils/route-focus-intent';
@@ -227,6 +230,30 @@ export function useAddFolderAttachmentsMutation() {
         isLoading: false,
         message: '',
       });
+    },
+  });
+}
+
+/**
+ * A mutation hook for adding dropped local files to a folder path in the tree.
+ */
+export function useAddDroppedFilesToFolderMutation() {
+  return useMutation({
+    mutationFn: async ({
+      folderPath,
+      filePaths,
+    }: {
+      folderPath: string;
+      filePaths: string[];
+    }) => {
+      if (filePaths.length === 0) {
+        return;
+      }
+
+      const res = await AddAttachmentsFromPaths(folderPath, filePaths);
+      if (!res.success) {
+        throw new QueryError(res.message);
+      }
     },
   });
 }

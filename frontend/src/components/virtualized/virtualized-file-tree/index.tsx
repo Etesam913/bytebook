@@ -8,10 +8,10 @@ import { transformFileTreeForVirtualizedList } from './utils/file-tree-utils';
 import {
   CREATE_FOLDER_TYPE,
   type CreateFolderItem,
-  FileOrFolder,
   type VirtualizedFileTreeItem,
 } from './types';
-import { atomWithLogging, sidebarSelectionAtom } from '../../../atoms';
+import { sidebarSelectionAtom } from '../../../atoms';
+import { fileTreeDataAtom } from '../../../atoms';
 import { useOnClickOutside } from '../../../hooks/general';
 import {
   handleFileTreeItemClickCapture,
@@ -20,19 +20,7 @@ import {
 import { useRoutePathFocus } from './hooks/use-route-path-focus';
 import { StickyHeader } from './sticky-header';
 import { shouldHandleOutsideSelectionInteraction } from '../../../utils/mouse';
-
-export type FileTreeData = {
-  treeData: Map<string, FileOrFolder>;
-  filePathToTreeDataId: Map<string, string>;
-};
-
-export const fileTreeDataAtom = atomWithLogging<FileTreeData>(
-  'fileTreeDataAtom',
-  {
-    treeData: new Map<string, FileOrFolder>(),
-    filePathToTreeDataId: new Map<string, string>(),
-  }
-);
+import { useFileTreeContentDrop } from './hooks/use-file-tree-content-drop';
 
 const FILE_TREE_MAX_HEIGHT = '65vh';
 const INITIAL_VISIBLE_RANGE: ListRange = { startIndex: 0, endIndex: -1 };
@@ -51,6 +39,7 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
   const [stickyContentHeight, setStickyContentHeight] = useState(0);
   const [listHeight, setListHeight] = useState<number | null>(null);
   const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
+  useFileTreeContentDrop();
 
   // This only runs on component mount and when folder/note events are received
   const { data: topLevelFileOrFolders } = useTopLevelFileOrFolders();
@@ -118,6 +107,7 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
 
   return (
     <div
+      id="file-tree"
       ref={scope}
       style={{ visibility: isReady ? 'visible' : 'hidden' }}
       className="overflow-hidden scrollbar-hidden pl-2 text-sm"
