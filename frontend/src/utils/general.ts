@@ -2,7 +2,7 @@ export const WAILS_URL = 'wails:';
 
 export const DEFAULT_SONNER_OPTIONS = {
   dismissible: true,
-  duration: 3500,
+  duration: 4000,
   closeButton: true,
 };
 

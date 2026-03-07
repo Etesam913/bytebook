@@ -208,24 +208,36 @@ func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 }
 
 // MoveToTrash moves the specified folders and notes to the trash directory.
-// Parameters:
-//
-//	folderAndNotes: A slice of strings representing the paths of the folders and notes to be moved.
-//
-// Returns:
-//
-//	A MostRecentNoteResponse indicating the success or failure of the operation.
-func (n *NoteService) MoveToTrash(folderAndNotes []string) config.BackendResponseWithoutData {
-	err := util.MoveNotesToTrash(n.ProjectPath, folderAndNotes)
+// It returns restore metadata for app-level undo support.
+func (n *NoteService) MoveToTrash(folderAndNotes []string) config.BackendResponseWithData[[]util.TrashRestoreInfo] {
+	restoreItems, err := util.MoveNotesToTrash(n.ProjectPath, folderAndNotes)
+	if err != nil {
+		return config.BackendResponseWithData[[]util.TrashRestoreInfo]{
+			Success: false,
+			Message: err.Error(),
+			Data:    nil,
+		}
+	}
+	return config.BackendResponseWithData[[]util.TrashRestoreInfo]{
+		Success: true,
+		Message: "Successfully moved notes to trash",
+		Data:    restoreItems,
+	}
+}
+
+// RestoreFromTrash restores previously trashed notes and folders back to their original paths.
+func (n *NoteService) RestoreFromTrash(restoreItems []util.TrashRestoreInfo) config.BackendResponseWithoutData {
+	err := util.RestoreNotesFromTrash(n.ProjectPath, restoreItems)
 	if err != nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: err.Error(),
 		}
 	}
+
 	return config.BackendResponseWithoutData{
 		Success: true,
-		Message: "Successfully moved notes to trash",
+		Message: "Successfully restored notes from trash",
 	}
 }
 

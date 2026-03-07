@@ -109,7 +109,7 @@ func (f *FolderService) DeleteFolder(folderName string) config.BackendResponseWi
 		}
 	}
 
-	err := util.MoveToTrash(folderPath)
+	_, err := util.MoveToTrash(folderPath)
 	if err != nil {
 		return config.BackendResponseWithData[[]string]{
 			Success: false,

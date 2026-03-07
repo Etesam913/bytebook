@@ -687,7 +687,7 @@ func TestMoveToTrash(t *testing.T) {
 		if runtime.GOOS == "darwin" {
 			// macOS: Just test that the function works without error
 			// We can't easily test the actual trash without permissions issues
-			err = MoveToTrash(testFile)
+			_, err = MoveToTrash(testFile)
 			assert.NoError(t, err)
 
 			// Verify: Original file should no longer exist
@@ -706,7 +706,7 @@ func TestMoveToTrash(t *testing.T) {
 			os.Setenv("XDG_DATA_HOME", xdgDataHome)
 
 			// Test: Move file to trash
-			err = MoveToTrash(testFile)
+			_, err = MoveToTrash(testFile)
 			assert.NoError(t, err)
 
 			// Verify: Original file should no longer exist
@@ -765,7 +765,7 @@ func TestMoveToTrash(t *testing.T) {
 
 		if runtime.GOOS == "darwin" {
 			// macOS: Just test that the function works without error
-			err = MoveToTrash(testDir)
+			_, err = MoveToTrash(testDir)
 			assert.NoError(t, err)
 
 			// Verify: Original directory should no longer exist
@@ -784,7 +784,7 @@ func TestMoveToTrash(t *testing.T) {
 			os.Setenv("XDG_DATA_HOME", xdgDataHome)
 
 			// Test: Move directory to trash
-			err = MoveToTrash(testDir)
+			_, err = MoveToTrash(testDir)
 			assert.NoError(t, err)
 
 			// Verify: Original directory should no longer exist
@@ -815,15 +815,10 @@ func TestMoveToTrash(t *testing.T) {
 	t.Run("Handles non-existent file", func(t *testing.T) {
 		nonExistentFile := "/path/that/does/not/exist/file.txt"
 
-		err := MoveToTrash(nonExistentFile)
+		_, err := MoveToTrash(nonExistentFile)
 		assert.Error(t, err, "Should return error for non-existent file")
 
-		// Check for platform-specific error messages
-		if runtime.GOOS == "darwin" {
-			assert.Contains(t, err.Error(), "could not move file to macOS trash")
-		} else {
-			assert.Contains(t, err.Error(), "could not move file to trash")
-		}
+		assert.Contains(t, err.Error(), "could not stat source before moving to trash")
 	})
 
 	t.Run("Creates trash directories if they don't exist", func(t *testing.T) {
@@ -837,7 +832,7 @@ func TestMoveToTrash(t *testing.T) {
 			// macOS: Test that .Trash directory gets created if it doesn't exist
 			// We can't easily test this without affecting the real user directory,
 			// so we'll just verify the function works without error
-			err = MoveToTrash(testFile)
+			_, err = MoveToTrash(testFile)
 			assert.NoError(t, err)
 
 			// Verify: Original file should no longer exist
@@ -872,7 +867,7 @@ func TestMoveToTrash(t *testing.T) {
 			assert.False(t, exists, "Trash directory should not exist initially")
 
 			// Test: Move file to trash (should create directories)
-			err = MoveToTrash(testFile)
+			_, err = MoveToTrash(testFile)
 			assert.NoError(t, err)
 
 			// Verify: Trash directories were created

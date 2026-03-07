@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -140,22 +141,54 @@ func FileOrFolderExists(path string) (bool, error) {
 	return false, err
 }
 
-// MoveToTrash moves a file or directory to the system trash following the FreeDesktop.org trash specification.
-// It creates the necessary trash directories if they don't exist, moves the file/directory to the trash files
-// directory with a timestamped name to avoid collisions, and creates a corresponding .trashinfo metadata file.
-// Parameters:
-//   - src: The path to the file or directory to be moved to trash
-//
-// Returns:
-//   - error: An error if any step fails, nil on success
-//
+func normalizeTrashSelections(paths []string) []string {
+	sortedPaths := append([]string(nil), paths...)
+	slices.SortFunc(sortedPaths, func(a, b string) int {
+		aDepth := strings.Count(a, "/")
+		bDepth := strings.Count(b, "/")
+		if aDepth != bDepth {
+			return aDepth - bDepth
+		}
+		return strings.Compare(a, b)
+	})
+
+	normalized := make([]string, 0, len(sortedPaths))
+	for _, path := range sortedPaths {
+		shouldSkip := false
+		for _, keptPath := range normalized {
+			if path == keptPath || strings.HasPrefix(path, keptPath+"/") {
+				shouldSkip = true
+				break
+			}
+		}
+		if shouldSkip {
+			continue
+		}
+		normalized = append(normalized, path)
+	}
+
+	return normalized
+}
+
+type TrashRestoreInfo struct {
+	OriginalPath string `json:"originalPath"`
+	TrashedPath  string `json:"trashedPath"`
+	IsFolder     bool   `json:"isFolder"`
+}
+
 // MoveToTrash moves the file or directory at src to the user's home trash directory.
 // On macOS it first tries FSPathMoveObjectToTrashSync to preserve Finder metadata;
 // on failure or Linux it falls back to the FreeDesktop spec or ~/.Trash rename.
-func MoveToTrash(src string) error {
+// The returned metadata is used to support app-level undo.
+func MoveToTrash(src string) (TrashRestoreInfo, error) {
+	fileInfo, err := os.Stat(src)
+	if err != nil {
+		return TrashRestoreInfo{}, fmt.Errorf("could not stat source before moving to trash: %w", err)
+	}
+
 	usr, err := user.Current()
 	if err != nil {
-		return fmt.Errorf("could not get current user: %w", err)
+		return TrashRestoreInfo{}, fmt.Errorf("could not get current user: %w", err)
 	}
 
 	// Ensure absolute path for metadata accuracy
@@ -164,24 +197,32 @@ func MoveToTrash(src string) error {
 		src = srcAbs
 	}
 
+	restoreInfo := TrashRestoreInfo{
+		OriginalPath: src,
+		IsFolder:     fileInfo.IsDir(),
+	}
+
 	if runtime.GOOS == "darwin" {
 		// Try CoreServices API for full Finder compatibility
-		if moveToTrashDarwin(src) {
-			return nil
+		if trashedPath, ok := moveToTrashDarwin(src); ok {
+			restoreInfo.TrashedPath = trashedPath
+			return restoreInfo, nil
 		}
 		// Fallback to manual rename
 		trashDir := filepath.Join(usr.HomeDir, ".Trash")
 		if err := os.MkdirAll(trashDir, 0755); err != nil {
-			return fmt.Errorf("could not create macOS trash directory: %w", err)
+			return TrashRestoreInfo{}, fmt.Errorf("could not create macOS trash directory: %w", err)
 		}
 		name := filepath.Base(src)
 		timestamp := time.Now().Format("20060102T150405")
 		trashedName := fmt.Sprintf("%s_%s", timestamp, name)
 		dest := filepath.Join(trashDir, trashedName)
+
 		if err := os.Rename(src, dest); err != nil {
-			return fmt.Errorf("could not move file to macOS trash fallback: %w", err)
+			return TrashRestoreInfo{}, fmt.Errorf("could not move file to macOS trash fallback: %w", err)
 		}
-		return nil
+		restoreInfo.TrashedPath = dest
+		return restoreInfo, nil
 	}
 
 	// Linux & others: use XDG Trash spec
@@ -195,7 +236,7 @@ func MoveToTrash(src string) error {
 
 	for _, d := range []string{filesDir, infoDir} {
 		if err := os.MkdirAll(d, 0755); err != nil {
-			return fmt.Errorf("could not create trash directory %s: %w", d, err)
+			return TrashRestoreInfo{}, fmt.Errorf("could not create trash directory %s: %w", d, err)
 		}
 	}
 
@@ -205,16 +246,17 @@ func MoveToTrash(src string) error {
 	dest := filepath.Join(filesDir, trashedName)
 
 	if err := os.Rename(src, dest); err != nil {
-		return fmt.Errorf("could not move file to trash: %w", err)
+		return TrashRestoreInfo{}, fmt.Errorf("could not move file to trash: %w", err)
 	}
 
 	infoPath := filepath.Join(infoDir, trashedName+".trashinfo")
 	info := fmt.Sprintf("[Trash Info]\nPath=%s\nDeletionDate=%s\n", src, time.Now().Format(time.RFC3339))
 	if err := os.WriteFile(infoPath, []byte(info), 0644); err != nil {
-		return fmt.Errorf("could not write trashinfo file: %w", err)
+		return TrashRestoreInfo{}, fmt.Errorf("could not write trashinfo file: %w", err)
 	}
 
-	return nil
+	restoreInfo.TrashedPath = dest
+	return restoreInfo, nil
 }
 
 // CleanFileNamePreserveUnicode provides a less restrictive alternative that preserves
@@ -332,19 +374,24 @@ func CreateFileIfNotExist(pathname string) (bool, error) {
 }
 
 // MoveNotesToTrash moves the given notes (and folders) into the system trash.
-// Returns an error if any individual move fails, or nil on full success.
-func MoveNotesToTrash(projectPath string, folderAndNotes []string) error {
+// It returns restore metadata for app-level undo when all moves succeed.
+func MoveNotesToTrash(projectPath string, folderAndNotes []string) ([]TrashRestoreInfo, error) {
 	var failed []string
+	normalizedPaths := normalizeTrashSelections(folderAndNotes)
+	restoreItems := make([]TrashRestoreInfo, 0, len(normalizedPaths))
 
 	// Attempt to move each note/folder to trash
-	for _, relPath := range folderAndNotes {
+	for _, relPath := range normalizedPaths {
 		parts := strings.Split(relPath, "/")
 		_, fileName, _ := Pop(parts)
 		fullPath := filepath.Join(projectPath, "notes", relPath)
 
-		if err := MoveToTrash(fullPath); err != nil {
+		restoreInfo, err := MoveToTrash(fullPath)
+		if err != nil {
 			failed = append(failed, fileName)
+			continue
 		}
+		restoreItems = append(restoreItems, restoreInfo)
 	}
 
 	// // Update pinned-notes in settings.json if present (ignore errors here)
@@ -357,10 +404,37 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) error {
 
 	// Return a combined error if any moves failed
 	if len(failed) > 0 {
-		return fmt.Errorf(
+		return nil, fmt.Errorf(
 			"could not move %s to trash",
 			strings.Join(failed, ", "),
 		)
+	}
+
+	return restoreItems, nil
+}
+
+// RestoreNotesFromTrash restores trashed note and folder paths back into the current project's notes directory.
+func RestoreNotesFromTrash(projectPath string, restoreItems []TrashRestoreInfo) error {
+	if runtime.GOOS != "darwin" {
+		return fmt.Errorf("trash restore is only supported on macOS")
+	}
+
+	notesPath := filepath.Join(projectPath, "notes")
+	for _, restoreItem := range restoreItems {
+		relativePath, err := filepath.Rel(notesPath, restoreItem.OriginalPath)
+		if err != nil {
+			return fmt.Errorf("could not validate restore path: %w", err)
+		}
+		if relativePath == ".." || strings.HasPrefix(relativePath, ".."+string(filepath.Separator)) {
+			return fmt.Errorf("restore path must stay inside the notes directory")
+		}
+		if filepath.IsAbs(relativePath) {
+			return fmt.Errorf("restore path must stay inside the notes directory")
+		}
+
+		if err := restoreToTrashDarwin(restoreItem.TrashedPath, restoreItem.OriginalPath); err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -15,9 +15,10 @@ import {
   DoesNoteExist,
   MoveToTrash,
   RenameFile,
+  RestoreFromTrash,
   RevealFolderOrFileInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { projectSettingsAtom } from '../atoms';
+import { projectSettingsAtom, type TrashRestoreInfo } from '../atoms';
 import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
@@ -325,10 +326,51 @@ export function useNoteRevealInFinderMutation() {
  * Accepts project-relative paths (for example, `folder/note.md` or `folder`).
  */
 export function useMoveToTrashMutation() {
+  const { mutate: restoreFromTrash } = useRestoreFromTrashMutation();
+
   return useMutation({
     mutationFn: async ({ paths }: { paths: string[] }) => {
       const res = await MoveToTrash(paths);
       if (!res.success) throw new Error(res.message);
+      return res.data ?? [];
+    },
+    onSuccess: (restoreItems) => {
+      if (restoreItems.length === 0) {
+        return;
+      }
+
+      const label =
+        restoreItems.length === 1
+          ? `Moved ${restoreItems[0].originalPath.split('/').slice(-1)[0]} to Trash`
+          : `Moved ${restoreItems.length} items to Trash`;
+
+      toast.message(label, {
+        ...DEFAULT_SONNER_OPTIONS,
+        action: {
+          label: 'Undo',
+          onClick: () => restoreFromTrash({ restoreItems }),
+        },
+      });
+    },
+    onError: (e) => {
+      if (e instanceof Error) {
+        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+      }
+    },
+  });
+}
+
+export function useRestoreFromTrashMutation() {
+  return useMutation({
+    mutationFn: async ({
+      restoreItems,
+    }: {
+      restoreItems: TrashRestoreInfo[];
+    }) => {
+      const res = await RestoreFromTrash(restoreItems);
+      if (!res.success) {
+        throw new Error(res.message);
+      }
     },
     onError: (e) => {
       if (e instanceof Error) {
