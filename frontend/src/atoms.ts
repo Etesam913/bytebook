@@ -135,6 +135,12 @@ export const loadingToastIdsAtom = atom<Map<string, string | number>>(
   new Map()
 );
 
+export type TrashRestoreInfo = {
+  originalPath: string;
+  trashedPath: string;
+  isFolder: boolean;
+};
+
 export const kernelsDataAtom = atom<KernelsData>({
   python: {
     status: 'idle',

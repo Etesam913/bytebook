@@ -21,7 +21,6 @@ import { createFilePath, type FilePath } from '../utils/path';
 import { HighlightResult } from '../../bindings/github.com/etesam913/bytebook/internal/search/models';
 import { routeUrls } from '../utils/routes';
 import { toast } from 'sonner';
-import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 
 export const lastSearchQueryAtom = atom<string>('');
@@ -235,19 +234,27 @@ export function useSavedSearchUpdates() {
 
 /**
  * Hook to regenerate the search index.
- * Shows success/error toast notifications.
+ * Shows success/error toast notifications with a loading spinner.
  */
 export function useRegenerateSearchIndexMutation() {
   return useMutation({
-    mutationFn: async () => {
-      const response = await RegenerateSearchIndex();
-      if (!response.success) {
-        throw new QueryError(response.message);
-      }
-      return response;
-    },
-    onSuccess: (response) => {
-      toast.success(response.message, DEFAULT_SONNER_OPTIONS);
-    },
+    mutationFn: async () =>
+      toast.promise(
+        async () => {
+          const response = await RegenerateSearchIndex();
+          if (!response.success) {
+            throw new QueryError(response.message);
+          }
+          return response;
+        },
+        {
+          loading: 'Regenerating search index...',
+          success: (data) => data.message,
+          error: (err) =>
+            err instanceof QueryError
+              ? err.message
+              : 'Failed to regenerate search index',
+        }
+      ),
   });
 }

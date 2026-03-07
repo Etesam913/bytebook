@@ -334,6 +334,7 @@ function TableHoverActionsV2({
           floatingElemRef.current = node;
           refs.setFloating(node);
         }}
+        initial={{ opacity: 0 }}
         animate={{
           opacity: isVisible ? 1 : 0,
           transition: {
@@ -343,6 +344,7 @@ function TableHoverActionsV2({
         }}
         style={{
           ...floatingStyles,
+          visibility: isVisible ? 'visible' : 'hidden',
           pointerEvents: isVisible ? 'auto' : 'none',
         }}
         className="flex items-center gap-1 relative"
@@ -369,6 +371,7 @@ function TableHoverActionsV2({
           leftFloatingElemRef.current = node;
           leftRefs.setFloating(node);
         }}
+        initial={{ opacity: 0 }}
         animate={{
           opacity: isLeftVisible ? 1 : 0,
           transition: {
@@ -378,6 +381,7 @@ function TableHoverActionsV2({
         }}
         style={{
           ...leftFloatingStyles,
+          visibility: isLeftVisible ? 'visible' : 'hidden',
           pointerEvents: isLeftVisible ? 'auto' : 'none',
         }}
       >
