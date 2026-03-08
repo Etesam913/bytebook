@@ -3,6 +3,7 @@ package services
 import (
 	"log"
 	"strings"
+	"sync"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/config"
@@ -11,8 +12,9 @@ import (
 )
 
 type SearchService struct {
-	ProjectPath string
-	SearchIndex *bleve.Index
+	ProjectPath       string
+	SearchIndex       *bleve.Index
+	regenerateIndexMu sync.Mutex
 }
 
 // FilePickerSearchResult represents a search hit returned to the editor's @ mention picker.
@@ -131,7 +133,16 @@ func (s *SearchService) RemoveSavedSearch(name string) config.BackendResponseWit
 // RegenerateSearchIndex regenerates the search index by deleting the existing index
 // and creating a new one with all files re-indexed.
 // It updates the SearchService's SearchIndex field with the new index.
+// Additional calls while one is running are ignored.
 func (s *SearchService) RegenerateSearchIndex() config.BackendResponseWithoutData {
+	if !s.regenerateIndexMu.TryLock() {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: "Regeneration already in progress",
+		}
+	}
+	defer s.regenerateIndexMu.Unlock()
+
 	newIndex, err := search.RegenerateSearchIndex(s.ProjectPath, *s.SearchIndex)
 	if err != nil {
 		return config.BackendResponseWithoutData{

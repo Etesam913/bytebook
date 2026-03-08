@@ -74,7 +74,7 @@ export function Dialog() {
 
     if (dialogData.isOpen) {
       editor?.blur();
-      dialog.showModal();
+      dialog.show();
     }
 
     const handleCancel = (e: Event) => {
@@ -102,7 +102,7 @@ export function Dialog() {
   return (
     <dialog
       ref={dialogRef}
-      className="bg-transparent border-none p-0 max-w-none max-h-none w-full h-full"
+      className="fixed inset-0 z-40 bg-transparent border-none p-0 max-w-none max-h-none w-full h-full"
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           e.preventDefault();
@@ -134,6 +134,10 @@ export function Dialog() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              onClick={() =>
+                dialogData.isOpen &&
+                setDialogData((prev) => ({ ...prev, isOpen: false }))
+              }
             />
 
             <motion.form

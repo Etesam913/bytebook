@@ -1,5 +1,6 @@
 import { useSetAtom, useAtomValue } from 'jotai';
 import { MouseEvent, DragEvent, useState } from 'react';
+import { navigate } from 'wouter/use-browser-location';
 import { Folder as FolderIcon } from '../../../../../icons/folder';
 import { FolderOpen } from '../../../../../icons/folder-open';
 import { FolderPlus } from '../../../../../icons/folder-plus';
@@ -35,6 +36,8 @@ import {
 } from '../../hooks/tree-item-mutations';
 import { LoadingSpinner } from '../../../../loading-spinner';
 import { motion } from 'motion/react';
+import { createFolderPath } from '../../../../../utils/path';
+import { useFolderPathFromRoute } from '../../../../../hooks/routes';
 
 export function FileTreeFolderItem({
   dataItem,
@@ -56,6 +59,7 @@ export function FileTreeFolderItem({
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
+  const folderPathFromRoute = useFolderPathFromRoute();
   const currentZoom = useAtomValue(currentZoomAtom);
   const paddingLeft = getFileTreeItemIndent(dataItem.level, currentZoom);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
@@ -80,6 +84,11 @@ export function FileTreeFolderItem({
     onAddSave,
     resetAddTreeItem,
   } = useFileTreeFolderAddActions({ dataItem });
+  const resolvedFolderPath = createFolderPath(dataItem.path);
+  const isSelectedFromRoute =
+    folderPathFromRoute && resolvedFolderPath
+      ? folderPathFromRoute.equals(resolvedFolderPath)
+      : false;
 
   async function handleClick(e: MouseEvent) {
     if (dataItem.type !== 'folder') {
@@ -96,6 +105,9 @@ export function FileTreeFolderItem({
 
     // Then handle folder open/close (only on default click, not modifier clicks)
     if (!e.shiftKey && !e.metaKey && !e.ctrlKey) {
+      if (resolvedFolderPath) {
+        navigate(resolvedFolderPath.encodedFolderUrl);
+      }
       if (!dataItem.isOpen) {
         openFolder({
           pathToFolder: dataItem.path,
@@ -120,6 +132,8 @@ export function FileTreeFolderItem({
         style={{ paddingLeft: `${paddingLeft}px` }}
         className={cn(
           'rounded-md flex items-center gap-2 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
+          isSelectedFromRoute &&
+            'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
           (isSelectedFromSidebarClick || isDraggedOver) &&
             'bg-(--accent-color)! text-white!'
         )}

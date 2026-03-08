@@ -65,7 +65,7 @@ export function RecentNotesAccordion() {
         title="Recent Notes"
       />
       <AccordionButtonDivider isOpen={isRecentNotesOpen} />
-      <AnimatePresence initial={false}>
+      <AnimatePresence>
         {isRecentNotesOpen && (
           <motion.ul
             initial={{ height: 0 }}

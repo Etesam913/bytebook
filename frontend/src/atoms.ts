@@ -16,7 +16,7 @@ import { DEFAULT_EDITOR_FONT_SIZE } from './utils/project-settings';
  * Creates a jotai atom with automatic STATE logging when values are set.
  * Logs the atom name and new value using the logger.state() method.
  */
-export function atomWithLogging<T>(name: string, initialValue: T) {
+function atomWithLogging<T>(name: string, initialValue: T) {
   const baseAtom = atom(initialValue);
 
   return atom(

@@ -179,7 +179,7 @@ export function SettingsDropdown({
       }}
     >
       {({ buttonId, menuId, isOpen, handleKeyDown, handleClick }) => (
-        <Tooltip content="Note settings" placement="left">
+        <Tooltip content="Note settings" placement="left" delay={{ open: 50 }}>
           <MotionIconButton
             id={buttonId}
             onClick={handleClick}
