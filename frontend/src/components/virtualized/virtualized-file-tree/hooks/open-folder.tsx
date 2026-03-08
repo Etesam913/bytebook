@@ -1,8 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import {
-  GetChildrenOfFolder,
-  OpenFolderAndAddToFileWatcher,
-} from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
+import { GetChildrenOfFolder } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { QueryError } from '../../../../utils/query';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { FILE_TYPE, FOLDER_TYPE } from '../types';
@@ -191,9 +188,6 @@ export function useOpenFolderMutation(options?: { pageSize?: number }) {
           filePathToTreeDataId: tempFilePathToTreeDataId,
         };
       });
-
-      // Add folder to file watcher after successfully opening
-      await OpenFolderAndAddToFileWatcher(pathToFolder);
     },
   });
 }

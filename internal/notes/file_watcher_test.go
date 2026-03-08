@@ -55,7 +55,7 @@ func setupProjectFolders(t *testing.T) (string, string, string, string, string) 
 }
 
 func TestAddProjectFoldersToWatcher(t *testing.T) {
-	t.Run("should only watch settings, notes root, and saved-searches.json", func(t *testing.T) {
+	t.Run("should watch settings, saved-searches.json, and all note folders recursively", func(t *testing.T) {
 		testDir, settingsDir, notesDir, _, savedSearchesPath := setupProjectFolders(t)
 		alphaDir := filepath.Join(notesDir, "alpha")
 		betaDir := filepath.Join(alphaDir, "beta")
@@ -83,17 +83,19 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 		AddProjectFoldersToWatcher(testDir, watcher)
 
 		watchList := watcher.WatchList()
-		// Should only watch the essential folders (lazy loading approach)
-		assert.Equal(t, 3, len(watchList))
+		// Should watch settings, all note folders (including nested), and saved-searches.json
+		assert.Len(t, watchList, 6)
 		assert.Contains(t, watchList, notesDir)
 		assert.Contains(t, watchList, settingsDir)
 		assert.Contains(t, watchList, savedSearchesPath)
 
-		// Should NOT include any top-level folders or files - they are added lazily
-		assert.NotContains(t, watchList, alphaDir)
-		assert.NotContains(t, watchList, gammaDir)
+		// Should include all note folders
+		assert.Contains(t, watchList, alphaDir)
+		assert.Contains(t, watchList, betaDir)
+		assert.Contains(t, watchList, gammaDir)
+
+		// Should NOT include any files
 		assert.NotContains(t, watchList, rootNotePath)
-		assert.NotContains(t, watchList, betaDir)
 		assert.NotContains(t, watchList, betaNotePath)
 		assert.NotContains(t, watchList, gammaNotePath)
 	})
@@ -123,8 +125,8 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 		AddProjectFoldersToWatcher(testDir, watcher)
 
 		watchList := watcher.WatchList()
-		// Should only include essential folders, no files from notes/
-		assert.Equal(t, 3, len(watchList))
+		// Should include settings, notes root (no subfolders here), and saved-searches.json
+		assert.Len(t, watchList, 3)
 		assert.Contains(t, watchList, notesDir)
 		assert.Contains(t, watchList, settingsDir)
 		assert.Contains(t, watchList, savedSearchesPath)

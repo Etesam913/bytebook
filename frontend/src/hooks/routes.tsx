@@ -36,6 +36,16 @@ export function useFilePathFromRoute(): FilePath | null {
 }
 
 /**
+ * Hook to get a FolderPath object representing the current `/notes/*` route.
+ *
+ * @returns FolderPath object if on a folder route, null if not or if invalid.
+ */
+export function useFolderPathFromRoute(): FolderPath | null {
+  const decodedPath = useDecodedNotesWildcardPath();
+  return decodedPath ? createFolderPath(decodedPath) : null;
+}
+
+/**
  * Hook to get a FolderPath object for the current `/notes/*` route.
  * If the route points to a file, returns the parent folder.
  * If it points to a folder path, returns that folder.

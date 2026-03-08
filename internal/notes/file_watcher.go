@@ -1,6 +1,7 @@
 package notes
 
 import (
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -189,6 +190,11 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 	eventKey := ""
 
 	if event.Has(fsnotify.Create) {
+		// Ensure newly created folders are watched so that file events within
+		// them (and their descendants) are observed by the watcher.
+		if err := fw.watcher.Add(event.Name); err != nil {
+			log.Printf("Error adding watcher for new folder %s: %v", event.Name, err)
+		}
 		fw.mostRecentFolderCreatedEvents = fw.addRecentCreateEvent(fw.mostRecentFolderCreatedEvents, event)
 	} else if event.Has(fsnotify.Rename) {
 		oldState, oldOk := fw.getRecordedOrStatFileState(event.Name)
@@ -716,17 +722,45 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 }
 
 // AddProjectFoldersToWatcher sets up watchers for the essential project folders.
-// Individual note folders are added lazily when the user expands them in the UI.
 func AddProjectFoldersToWatcher(projectPath string, watcher *fsnotify.Watcher) {
-	// Set up paths
+	// Always watch the settings folder and saved searches file.
 	settingsPath := filepath.Join(projectPath, "settings")
-	notesFolderPath := filepath.Join(projectPath, "notes")
-
-	// The search path contains the index which we don't want to watch
 	savedSearchesPath := filepath.Join(projectPath, "search", "saved-searches.json")
 
-	// Add main folders to watcher
-	watcher.Add(settingsPath)
-	watcher.Add(notesFolderPath)
-	watcher.Add(savedSearchesPath)
+	pathsToWatch := []string{settingsPath, savedSearchesPath}
+
+	// Recursively watch all non-hidden folders under notes.
+	notesFolderPath := filepath.Join(projectPath, "notes")
+
+	if info, err := os.Stat(notesFolderPath); err == nil && info.IsDir() {
+		err := filepath.WalkDir(notesFolderPath, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				log.Printf("Error walking notes directory %s: %v", path, err)
+				return nil
+			}
+
+			if !d.IsDir() {
+				return nil
+			}
+
+			// Skip hidden directories (names starting with '.')
+			if strings.HasPrefix(d.Name(), ".") {
+				return filepath.SkipDir
+			}
+
+			pathsToWatch = append(pathsToWatch, path)
+			return nil
+		})
+		if err != nil {
+			log.Printf("Error walking notes root %s: %v", notesFolderPath, err)
+		}
+	}
+
+	log.Println(pathsToWatch)
+
+	for _, path := range pathsToWatch {
+		if err := watcher.Add(path); err != nil {
+			log.Printf("Error adding watcher for %s: %v", path, err)
+		}
+	}
 }

@@ -10,7 +10,6 @@ import {
   buildRenameUpdates,
 } from '../components/virtualized/virtualized-file-tree/utils/rename-item';
 import { useWailsEvent } from './events';
-import { OpenFolderAndAddToFileWatcher } from '../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { navigate } from 'wouter/use-browser-location';
 import { createFilePath, createFolderPath } from '../utils/path';
 import { routeUrls } from '../utils/routes';
@@ -183,12 +182,6 @@ export function useFolderRename() {
         logger.error('folder:rename', 'id for old folder path not found', {
           oldFolderPath: oldPath,
         });
-      },
-      onBeforeUpdate: async (node, newPath) => {
-        if (node.type === 'folder' && node.isOpen) {
-          // Ensure watcher listens to the new path when the folder is open.
-          await OpenFolderAndAddToFileWatcher(newPath);
-        }
       },
     });
 

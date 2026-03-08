@@ -1,7 +1,6 @@
 package search
 
 import (
-	"log"
 	"regexp"
 	"strings"
 
@@ -126,7 +125,6 @@ func extractMarkdownNoteFields(hit *blevesearch.DocumentMatch) MarkdownNoteField
 	// code_content is stored as []string; retrieve if present
 	codeContent := []string{}
 	if cc, ok := hit.Fields[FieldCodeContent]; ok {
-		log.Printf("type: %T", cc)
 		switch t := cc.(type) {
 		case []any:
 			for _, code := range t {

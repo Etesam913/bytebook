@@ -21,7 +21,6 @@ import { useRoutePathFocus } from './hooks/use-route-path-focus';
 import { StickyHeader } from './sticky-header';
 import { shouldHandleOutsideSelectionInteraction } from '../../../utils/mouse';
 import { useFileTreeContentDrop } from './hooks/use-file-tree-content-drop';
-import { usePreventOverscroll } from './hooks/use-prevent-overscroll';
 
 const FILE_TREE_MAX_HEIGHT = '65vh';
 const INITIAL_VISIBLE_RANGE: ListRange = { startIndex: 0, endIndex: -1 };
@@ -81,11 +80,6 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
   }
 
   useRoutePathFocus({ visibleRange, virtualizedData, virtuosoRef });
-  usePreventOverscroll({
-    internalListRef,
-    listHeight: listHeight ?? 0,
-    stickyContentHeight,
-  });
 
   /**
    * Renders a row wrapper used by tree navigation and delegates row content.

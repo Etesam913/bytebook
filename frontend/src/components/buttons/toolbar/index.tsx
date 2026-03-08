@@ -203,7 +203,7 @@ export function ToolbarButtons({
           <Tooltip
             content={tooltip}
             disabled={disabled || customDisabled}
-            delay={{ open: 1000 }}
+            delay={{ open: 450 }}
           >
             <button
               onClick={onClick}

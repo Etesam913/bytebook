@@ -22,7 +22,7 @@ export function NavigationControls({
       </div>
 
       <div className="flex items-center gap-1">
-        <Tooltip content="Previous match (Shift+Enter)">
+        <Tooltip content="Previous match (Shift+Enter)" delay={{ open: 50 }}>
           <button
             onClick={onPreviousMatch}
             disabled={totalMatches === 0}
@@ -33,7 +33,7 @@ export function NavigationControls({
             <ArrowUp width={16} height={16} />
           </button>
         </Tooltip>
-        <Tooltip content="Next match (Enter)">
+        <Tooltip content="Next match (Enter)" delay={{ open: 50 }}>
           <button
             onClick={onNextMatch}
             disabled={totalMatches === 0}
