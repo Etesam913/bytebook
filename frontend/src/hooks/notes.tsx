@@ -360,7 +360,7 @@ export function useMoveToTrashMutation() {
   });
 }
 
-export function useRestoreFromTrashMutation() {
+function useRestoreFromTrashMutation() {
   return useMutation({
     mutationFn: async ({
       restoreItems,

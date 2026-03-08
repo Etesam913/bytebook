@@ -10,7 +10,7 @@ import { isFullscreenAtom } from '../../atoms';
 import { cn } from '../../utils/string-formatting';
 import { SearchOptions } from './search-options';
 import { Tooltip } from '../../components/tooltip';
-import { GroupedSearchResults, useSearchFocus } from '../../hooks/search';
+import { SearchResult, useSearchFocus } from '../../hooks/search';
 import { buildSearchFileHrefFromPath } from './utils';
 
 export function SearchHeader({
@@ -18,14 +18,14 @@ export function SearchHeader({
   setLastSearchQuery,
   selectedIndex,
   setSelectedIndex,
-  groupedResults,
+  results,
   totalCount,
 }: {
   lastSearchQuery: string;
   setLastSearchQuery: (query: string) => void;
   selectedIndex: number;
   setSelectedIndex: (index: number | ((prev: number) => number)) => void;
-  groupedResults: GroupedSearchResults;
+  results: SearchResult[];
   totalCount: number;
 }) {
   const inputRef = useSearchFocus();
@@ -51,28 +51,18 @@ export function SearchHeader({
   const handleEnter = () => {
     // Navigate to the selected result and open the note or folder with the highlight if available
     if (selectedIndex >= 0 && selectedIndex < totalCount) {
-      const notesCount = groupedResults.notes.length;
-      const attachmentsCount = groupedResults.attachments.length;
+      const result = results[selectedIndex];
 
-      if (selectedIndex < notesCount) {
-        // Selected item is a note
-        const note = groupedResults.notes[selectedIndex];
-        let href = buildSearchFileHrefFromPath(note.filePath.fullPath);
-        const firstHighlightedTerm = note.highlights[0]?.highlightedTerm;
-
-        if (firstHighlightedTerm) {
-          href = buildSearchFileHrefFromPath(note.filePath.fullPath, {
-            highlight: firstHighlightedTerm,
-          });
-        }
-
+      if (result.type === 'note') {
+        const firstHighlightedTerm = result.highlights[0]?.highlightedTerm;
+        const href = firstHighlightedTerm
+          ? buildSearchFileHrefFromPath(result.filePath.fullPath, {
+              highlight: firstHighlightedTerm,
+            })
+          : buildSearchFileHrefFromPath(result.filePath.fullPath);
         setLocation(href);
-      } else if (selectedIndex < notesCount + attachmentsCount) {
-        // Selected item is an attachment
-        const attachment =
-          groupedResults.attachments[selectedIndex - notesCount];
-        const href = buildSearchFileHrefFromPath(attachment.filePath.fullPath);
-        setLocation(href);
+      } else if (result.type === 'attachment') {
+        setLocation(buildSearchFileHrefFromPath(result.filePath.fullPath));
       }
     }
   };

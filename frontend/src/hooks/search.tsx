@@ -25,20 +25,8 @@ import { QueryError } from '../utils/query';
 
 export const lastSearchQueryAtom = atom<string>('');
 
-/**
- * Represents the grouped search results.
- * - notes: Array of note search results.
- * - attachments: Array of attachment search results.
- */
-export type GroupedSearchResults = {
-  notes: Array<NoteSearchResult>;
-  attachments: Array<AttachmentSearchResult>;
-};
-
-/**
- * Represents a search result for a note.
- */
-type NoteSearchResult = {
+export type NoteSearchResult = {
+  type: 'note';
   /** The path of the note file */
   filePath: FilePath;
   /** List of tags associated with the note */
@@ -53,15 +41,15 @@ type NoteSearchResult = {
   codeContent: string[];
 };
 
-/**
- * Represents a search result for an attachment.
- */
-type AttachmentSearchResult = {
+export type AttachmentSearchResult = {
+  type: 'attachment';
   /** The path of the attachment file */
   filePath: FilePath;
   /** List of tags associated with the attachment */
   tags: string[];
 };
+
+export type SearchResult = NoteSearchResult | AttachmentSearchResult;
 
 const searchQueries = {
   fullTextSearch: (searchQuery: string) =>
@@ -69,17 +57,17 @@ const searchQueries = {
       queryKey: ['full-text-search', searchQuery],
       queryFn: () => FullTextSearch(searchQuery),
       select: (data) => {
-        if (!data) return { notes: [], attachments: [] };
+        if (!data) return [];
 
-        const notes: Array<NoteSearchResult> = [];
-        const attachments: Array<AttachmentSearchResult> = [];
+        const results: Array<SearchResult> = [];
 
         data.forEach((result) => {
           const filePath = createFilePath(`${result.folder}/${result.note}`);
           if (!filePath) return;
 
           if (result.type === 'note') {
-            notes.push({
+            results.push({
+              type: 'note',
               filePath,
               tags: result.tags ?? [],
               lastUpdated: result.lastUpdated ?? '',
@@ -88,14 +76,15 @@ const searchQueries = {
               codeContent: result.codeContent ?? [],
             });
           } else if (result.type === 'attachment') {
-            attachments.push({
+            results.push({
+              type: 'attachment',
               filePath,
               tags: result.tags ?? [],
             });
           }
         });
 
-        return { notes, attachments };
+        return results;
       },
       placeholderData: keepPreviousData,
     }),

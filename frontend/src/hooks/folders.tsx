@@ -259,6 +259,13 @@ export function useFolderRename() {
         );
         return;
       }
+
+      const newFolderPath = createFolderPath(nextFolderPath);
+      navigate(
+        newFolderPath
+          ? newFolderPath.encodedFolderUrl
+          : routeUrls.notFoundFallback()
+      );
     }
   });
 }

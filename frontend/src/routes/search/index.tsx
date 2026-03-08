@@ -41,13 +41,12 @@ export function SearchPage() {
   const deferredQuery = useDeferredValue(lastSearchQuery);
 
   const {
-    data: groupedResults = { notes: [], attachments: [] },
+    data: results = [],
     isError,
     error,
   } = useFullTextSearchQuery(deferredQuery);
 
-  const totalCount =
-    groupedResults.notes.length + groupedResults.attachments.length;
+  const totalCount = results.length;
 
   return (
     <section className="flex-1 h-screen flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
@@ -56,7 +55,7 @@ export function SearchPage() {
         setLastSearchQuery={setLastSearchQuery}
         selectedIndex={selectedIndex}
         setSelectedIndex={setSelectedIndex}
-        groupedResults={groupedResults}
+        results={results}
         totalCount={totalCount}
       />
       <div className="flex-1 overflow-auto">
@@ -122,11 +121,7 @@ export function SearchPage() {
         )}
 
         {totalCount > 0 && (
-          <SearchResultsList
-            groupedResults={groupedResults}
-            selectedIndex={selectedIndex}
-            totalCount={totalCount}
-          />
+          <SearchResultsList results={results} selectedIndex={selectedIndex} />
         )}
       </div>
     </section>

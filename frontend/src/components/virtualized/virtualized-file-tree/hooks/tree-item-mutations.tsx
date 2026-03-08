@@ -12,7 +12,11 @@ import {
   AddNoteToFolder,
   RenameFile,
 } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { createFilePath, type FilePath } from '../../../../utils/path';
+import {
+  createFilePath,
+  createFolderPath,
+  type FilePath,
+} from '../../../../utils/path';
 import { NAME_CHARS } from '../../../../utils/string-formatting';
 import { FILE_TYPE, FOLDER_TYPE, FileOrFolder, type Folder } from '../types';
 import { MoveItemsToFolder } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
@@ -28,7 +32,7 @@ const CREATE_NAVIGATION_DELAY_MS = 300;
 /**
  * A mutation hook for adding new tree items (folders or notes) to the file tree.
  * Validates the name, creates the item via the backend service, and navigates
- * to the new note if one was created.
+ * to the newly created item.
  */
 export function useAddTreeItemMutation() {
   return useMutation({
@@ -57,7 +61,13 @@ export function useAddTreeItemMutation() {
         if (!res.success) {
           throw new Error(res.message);
         }
-        return { addType, parentPath: parentFolder?.path ?? '', newName };
+        return {
+          addType,
+          parentPath: parentFolder?.path ?? '',
+          newName,
+          newFolderPath,
+          shouldSkipReveal: Boolean(parentFolder?.isOpen),
+        };
       }
 
       if (!parentFolder) {
@@ -74,6 +84,18 @@ export function useAddTreeItemMutation() {
       return { addType, parentPath: parentFolder.path, newName, newNotePath };
     },
     onSuccess: (result, variables) => {
+      if (result.addType === 'folder') {
+        const folderPath = createFolderPath(result.newFolderPath);
+        if (result.shouldSkipReveal) {
+          setSkipRevealForPath(result.newFolderPath);
+        }
+        setTimeout(() => {
+          if (folderPath) {
+            navigate(folderPath.encodedFolderUrl);
+          }
+        }, CREATE_NAVIGATION_DELAY_MS);
+      }
+
       if (result.addType === 'note') {
         const filePath = createFilePath(result.newNotePath);
         setSkipRevealForPath(result.newNotePath);
