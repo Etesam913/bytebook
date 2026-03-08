@@ -3,10 +3,13 @@ import { Link } from 'wouter';
 import { cn, formatDate } from '../../../utils/string-formatting';
 import { ImageIcon } from '../../../icons/image';
 import { Note } from '../../../icons/page';
-import { GroupedSearchResults } from '../../../hooks/search';
+import {
+  AttachmentSearchResult,
+  NoteSearchResult,
+} from '../../../hooks/search';
 import { SearchHighlights } from './search-highlights';
 import { Tag } from '../../../components/editor/bottom-bar/tag';
-import { Section, buildSearchFileHrefFromPath } from '../utils';
+import { buildSearchFileHrefFromPath } from '../utils';
 
 function getFileIcon(iconType: 'note' | 'attachment') {
   switch (iconType) {
@@ -59,50 +62,13 @@ function SearchResultItem({
   );
 }
 
-export function SearchResultHeader({
-  title,
-  count,
-  isOpen,
-  onToggle,
-}: {
-  title: Section;
-  count: number;
-  isOpen: boolean;
-  onToggle: () => void;
-}) {
-  const titleText = title.charAt(0).toUpperCase() + title.slice(1);
-  return (
-    <button
-      type="button"
-      className={cn(
-        'pl-2 py-1 w-full flex items-center gap-2 text-xs font-semibold text-zinc-600 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-700 bg-transparent select-none',
-        'hover:bg-zinc-100 dark:hover:bg-zinc-700'
-      )}
-      onClick={onToggle}
-      aria-expanded={isOpen}
-      tabIndex={0}
-    >
-      <span
-        className={cn(
-          'inline-block',
-          isOpen ? 'rotate-90 -translate-px' : 'rotate-0 '
-        )}
-        aria-hidden="true"
-      >
-        ▶
-      </span>
-      {titleText} ({count})
-    </button>
-  );
-}
-
 export function SearchResultNote({
   data,
   resultIndex,
   selectedIndex,
   onRef,
 }: {
-  data: GroupedSearchResults['notes'][number];
+  data: NoteSearchResult;
   resultIndex: number;
   selectedIndex: number;
   onRef: (el: HTMLAnchorElement | null) => void;
@@ -167,7 +133,7 @@ export function SearchResultAttachment({
   selectedIndex,
   onRef,
 }: {
-  data: GroupedSearchResults['attachments'][number];
+  data: AttachmentSearchResult;
   resultIndex: number;
   selectedIndex: number;
   onRef: (el: HTMLAnchorElement | null) => void;

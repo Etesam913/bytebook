@@ -1,70 +1,20 @@
 import { useRef, useEffect } from 'react';
-import { GroupedSearchResults } from '../../../hooks/search';
-import {
-  SearchResultHeader,
-  SearchResultNote,
-  SearchResultAttachment,
-} from './search-result-item';
+import { SearchResult } from '../../../hooks/search';
+import { SearchResultNote, SearchResultAttachment } from './search-result-item';
 import { VirtualizedList } from '../../../components/virtualized/virtualized-list';
-import { SearchRow, Section, dataItemToKey, dataItemToString } from '../utils';
-import { useCollapsibleSections } from './useCollapsibleSections';
-
-function getRowsWithHeaders(
-  groupedResults: GroupedSearchResults,
-  toggleSection: (section: Section) => void,
-  openSections: Record<Section, boolean>
-) {
-  const rows: SearchRow[] = [];
-
-  if (groupedResults.notes.length > 0) {
-    rows.push({
-      kind: 'header',
-      title: 'notes',
-      count: groupedResults.notes.length,
-      toggle: () => toggleSection('notes'),
-    });
-    if (openSections.notes) {
-      groupedResults.notes.forEach((note, index) => {
-        rows.push({ kind: 'note', data: note, resultIndex: index });
-      });
-    }
-  }
-
-  if (groupedResults.attachments.length > 0) {
-    rows.push({
-      kind: 'header',
-      title: 'attachments',
-      count: groupedResults.attachments.length,
-      toggle: () => toggleSection('attachments'),
-    });
-    if (openSections.attachments) {
-      groupedResults.attachments.forEach((attachment, index) => {
-        const resultIndex = groupedResults.notes.length + index;
-        rows.push({ kind: 'attachment', data: attachment, resultIndex });
-      });
-    }
-  }
-
-  return rows;
-}
+import { dataItemToKey, dataItemToString } from '../utils';
 
 export function SearchResultsList({
-  groupedResults,
+  results,
   selectedIndex,
-  totalCount,
 }: {
-  groupedResults: GroupedSearchResults;
+  results: SearchResult[];
   selectedIndex: number;
-  totalCount: number;
 }) {
+  const totalCount = results.length;
+
   // Refs to track search result items for scrolling
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
-
-  // Section open/closed state
-  const { openSections, toggleSection } = useCollapsibleSections({
-    notes: true,
-    attachments: true,
-  });
 
   // Update refs array when total count changes
   useEffect(() => {
@@ -84,47 +34,37 @@ export function SearchResultsList({
   }, [selectedIndex, totalCount]);
 
   return (
-    <VirtualizedList<SearchRow>
+    <VirtualizedList<SearchResult>
       contentType="search-result"
       layoutId="search-results"
-      data={getRowsWithHeaders(groupedResults, toggleSection, openSections)}
+      data={results}
       selectionOptions={{ disableSelection: true }}
       dataItemToKey={dataItemToKey}
       dataItemToString={dataItemToString}
-      renderItem={({ dataItem: row }) => {
-        switch (row.kind) {
-          case 'header':
-            return (
-              <SearchResultHeader
-                title={row.title}
-                count={row.count}
-                isOpen={openSections[row.title]}
-                onToggle={row.toggle}
-              />
-            );
+      renderItem={({ dataItem: result, i }) => {
+        switch (result.type) {
           case 'note':
             return (
               <SearchResultNote
-                data={row.data}
-                resultIndex={row.resultIndex}
+                data={result}
+                resultIndex={i}
                 selectedIndex={selectedIndex}
                 onRef={(el) => {
-                  if (row.resultIndex >= 0) {
-                    itemRefs.current[row.resultIndex] = el;
+                  if (i >= 0) {
+                    itemRefs.current[i] = el;
                   }
                 }}
               />
             );
-          case 'attachment':
           default:
             return (
               <SearchResultAttachment
-                data={row.data}
-                resultIndex={row.resultIndex}
+                data={result}
+                resultIndex={i}
                 selectedIndex={selectedIndex}
                 onRef={(el) => {
-                  if (row.resultIndex >= 0) {
-                    itemRefs.current[row.resultIndex] = el;
+                  if (i >= 0) {
+                    itemRefs.current[i] = el;
                   }
                 }}
               />

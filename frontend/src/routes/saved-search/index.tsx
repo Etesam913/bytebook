@@ -144,18 +144,14 @@ export function SavedSearchPage({
   curPath?: string;
 }) {
   const {
-    data: groupedResults = { notes: [], attachments: [] },
+    data: results = [],
     refetch,
     isError,
     isLoading,
   } = useFullTextSearchQuery(searchQuery);
 
-  const resultCount =
-    groupedResults.notes.length + groupedResults.attachments.length;
-  const searchResultPaths = [
-    ...groupedResults.notes.map((note) => note.filePath),
-    ...groupedResults.attachments.map((attachment) => attachment.filePath),
-  ];
+  const resultCount = results.length;
+  const searchResultPaths = results.map((result) => result.filePath);
 
   const sidebarRef = useRef<HTMLElement>(null);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);

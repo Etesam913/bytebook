@@ -5,7 +5,10 @@ import { fileTreeDataAtom } from '../../../../atoms';
 import { useRevealRoutePath } from './use-reveal-route-path';
 import { useAtomValue } from 'jotai';
 import { useQueryClient } from '@tanstack/react-query';
-import { useFilePathFromRoute } from '../../../../hooks/routes';
+import {
+  useFilePathFromRoute,
+  useFolderPathFromRoute,
+} from '../../../../hooks/routes';
 import { consumeSkipRevealForPath } from '../utils/route-focus-intent';
 
 /**
@@ -29,6 +32,8 @@ export function useRoutePathFocus({
   const fileTreeData = useAtomValue(fileTreeDataAtom);
   const hasFileTreeData = fileTreeData.treeData.size > 0;
   const routeFilePath = useFilePathFromRoute();
+  const routeFolderPath = useFolderPathFromRoute();
+  const routeTargetPath = routeFilePath?.fullPath ?? routeFolderPath?.fullPath;
   const { mutateAsync: revealRoutePathAsync } = useRevealRoutePath();
   const queryClient = useQueryClient();
   const [pendingScrollPath, setPendingScrollPath] = useState<string | null>(
@@ -37,15 +42,15 @@ export function useRoutePathFocus({
 
   useEffect(() => {
     queueMicrotask(() => setPendingScrollPath(null));
-  }, [routeFilePath?.fullPath]);
+  }, [routeTargetPath]);
 
   // Phase 1: When the route changes, either scroll immediately or
   // reveal the path and set pending scroll for the follow-up effect
   useEffect(() => {
-    if (!routeFilePath || !hasFileTreeData) {
+    if (!routeTargetPath || !hasFileTreeData) {
       return;
     }
-    const routePath = routeFilePath.fullPath;
+    const routePath = routeTargetPath;
 
     const visibleItems = virtualizedData.slice(
       visibleRange.startIndex,
@@ -97,13 +102,13 @@ export function useRoutePathFocus({
         setPendingScrollPath(routePath);
       }
     });
-  }, [routeFilePath, hasFileTreeData]);
+  }, [routeTargetPath, hasFileTreeData]);
 
   // Phase 2: Scroll to the revealed path when pendingScrollPath is set.
   // Runs only after a successful reveal, not on every virtualizedData change
   // (e.g. when user closes a folder), so we avoid reopening folders.
   useEffect(() => {
-    if (!pendingScrollPath || !routeFilePath) return;
+    if (!pendingScrollPath || !routeTargetPath) return;
 
     const targetId = fileTreeData.filePathToTreeDataId.get(pendingScrollPath);
     if (!targetId) return;
@@ -118,5 +123,5 @@ export function useRoutePathFocus({
       align: 'center',
     });
     queueMicrotask(() => setPendingScrollPath(null));
-  }, [pendingScrollPath, routeFilePath, virtualizedData]);
+  }, [pendingScrollPath, routeTargetPath, virtualizedData]);
 }
