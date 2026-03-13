@@ -10,16 +10,23 @@ import (
 	"github.com/etesam913/bytebook/internal/util"
 )
 
+const FullTextSearchPageSize = 100
+
 // CreateSearchRequest creates a search request with common options
 // used by the application (fields, size, and highlighting for text_content and code_content).
-func CreateSearchRequest(q query.Query, limit int, sortOption *SearchSortOption) *bleve.SearchRequest {
+func CreateSearchRequest(q query.Query, limit int, sortOption *SearchSortOption, searchAfter []string) *bleve.SearchRequest {
 	req := bleve.NewSearchRequest(q)
 	req.Fields = []string{FieldType, FieldFolder, FieldFileName, FieldLastUpdated, FieldCreatedDate, FieldSize, FieldTags, FieldCodeContent}
 	req.Size = limit
 	if sortOption != nil {
-		if sortField, ok := sortOption.ToBleveSort(); ok {
-			req.SortBy([]string{sortField})
+		if sortFields, ok := sortOption.ToBleveSortFields(); ok {
+			req.SortBy(sortFields)
 		}
+	} else {
+		req.SortBy([]string{"-_score", "_id"})
+	}
+	if len(searchAfter) > 0 {
+		req.SetSearchAfter(searchAfter)
 	}
 	req.IncludeLocations = true
 	req.Highlight = bleve.NewHighlightWithStyle("html")
@@ -55,6 +62,13 @@ type SearchResult struct {
 	Tags        []string          `json:"tags"`
 	Highlights  []HighlightResult `json:"highlights"`
 	CodeContent []string          `json:"codeContent"`
+}
+
+type FullTextSearchPage struct {
+	Results         []SearchResult `json:"results"`
+	NextSearchAfter []string       `json:"nextSearchAfter"`
+	HasMore         bool           `json:"hasMore"`
+	Total           uint64         `json:"total"`
 }
 
 // hasHighlightContent checks if a fragment contains actual highlighted content

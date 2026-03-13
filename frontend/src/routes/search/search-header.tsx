@@ -19,6 +19,7 @@ export function SearchHeader({
   selectedIndex,
   setSelectedIndex,
   results,
+  loadedCount,
   totalCount,
 }: {
   lastSearchQuery: string;
@@ -26,6 +27,7 @@ export function SearchHeader({
   selectedIndex: number;
   setSelectedIndex: (index: number | ((prev: number) => number)) => void;
   results: SearchResult[];
+  loadedCount: number;
   totalCount: number;
 }) {
   const inputRef = useSearchFocus();
@@ -35,22 +37,22 @@ export function SearchHeader({
   const handleArrowDown = (e: KeyboardEvent<HTMLInputElement>) => {
     // Move selected index down
     e.preventDefault();
-    if (totalCount === 0) return;
+    if (loadedCount === 0) return;
     setSelectedIndex((prev) =>
-      Math.min(prev < 0 ? 0 : prev + 1, totalCount - 1)
+      Math.min(prev < 0 ? 0 : prev + 1, loadedCount - 1)
     );
   };
 
   const handleArrowUp = (e: KeyboardEvent<HTMLInputElement>) => {
     // Move selected index up
     e.preventDefault();
-    if (totalCount === 0) return;
+    if (loadedCount === 0) return;
     setSelectedIndex((prev) => (prev <= 0 ? 0 : prev - 1));
   };
 
   const handleEnter = () => {
     // Navigate to the selected result and open the note or folder with the highlight if available
-    if (selectedIndex >= 0 && selectedIndex < totalCount) {
+    if (selectedIndex >= 0 && selectedIndex < loadedCount) {
       const result = results[selectedIndex];
 
       if (result.type === 'note') {

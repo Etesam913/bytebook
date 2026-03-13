@@ -289,48 +289,68 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) (query.Query, *
 		return bleve.NewMatchNoneQuery(), nil
 	}
 
-	// Helper to create a query for a token
-	createTokenQuery := func(token SearchToken) query.Query {
-		// Check for filename prefix (f: or file:)
+	// Helper to create a query for a token. The second return value is true when the token
+	// should be skipped (e.g. empty f: prefix) and must not be added to the combined query.
+	createTokenQuery := func(token SearchToken) (query.Query, bool) {
+		// Check for filename prefix (f: or file:) — skip when prefix is empty to avoid full index scan
 		if prefixTerm, ok := extractFilenamePrefix(token.Text); ok {
-			prefixTerm = strings.ToLower(prefixTerm)
-			return CreateFilenameQuery(prefixTerm, 1.0)
+			prefixTerm = strings.TrimSpace(strings.ToLower(prefixTerm))
+			if prefixTerm == "" {
+				return nil, true
+			}
+			return CreateFilenameQuery(prefixTerm, 1.0), false
 		}
 
 		// Check for type prefix (t: or type:)
 		if typeName, ok := extractTypePrefix(token.Text); ok {
-			return createTypeQuery(typeName)
+			return createTypeQuery(typeName), false
 		}
 
 		// Check for tag prefix (# or tag:)
 		if tagName, ok := extractTagPrefix(token.Text); ok {
-			return createTagQuery(tagName)
+			return createTagQuery(tagName), false
 		}
 
 		// Check for lang prefix (l: or lang:)
 		if langName, ok := extractLangPrefix(token.Text); ok {
-			return createLangQuery(langName)
+			return createLangQuery(langName), false
 		}
 
 		// Handle exact matches (quoted tokens)
 		if token.IsExact {
-			return createExactContentQuery(token.Text)
+			return createExactContentQuery(token.Text), false
 		}
 
 		// Default: fuzzy content query
-		return createFuzzyContentQuery(token.Text)
+		return createFuzzyContentQuery(token.Text), false
 	}
 
-	// The first token does not have a prevOp, no OR or AND
-	currentQuery := createTokenQuery(filteredTokens[0])
-
-	for i := 1; i < len(filteredTokens); i++ {
-		nextQuery := createTokenQuery(filteredTokens[i])
-		if nextQuery == nil {
+	// Collect non-skip token queries and the operator after each (to combine with next token)
+	var queries []query.Query
+	var operators []Operator
+	for i, token := range filteredTokens {
+		q, skip := createTokenQuery(token)
+		if skip {
 			continue
 		}
+		queries = append(queries, q)
+		// Operator that connects this token to the next (only needed when there is a next)
+		if i+1 < len(filteredTokens) {
+			operators = append(operators, token.Operator)
+		}
+	}
 
-		prevOp := filteredTokens[i-1].Operator
+	if len(queries) == 0 {
+		if sortOption != nil {
+			return bleve.NewMatchAllQuery(), sortOption
+		}
+		return bleve.NewMatchNoneQuery(), nil
+	}
+
+	currentQuery := queries[0]
+	for i := 1; i < len(queries); i++ {
+		nextQuery := queries[i]
+		prevOp := operators[i-1]
 		switch prevOp {
 		case OpOR:
 			disjunctionQuery := bleve.NewDisjunctionQuery()

@@ -1,6 +1,6 @@
 import {
-  keepPreviousData,
   queryOptions,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -51,43 +51,44 @@ export type AttachmentSearchResult = {
 
 export type SearchResult = NoteSearchResult | AttachmentSearchResult;
 
+type FullTextSearchPageResponse = Awaited<ReturnType<typeof FullTextSearch>>;
+
+function mapFullTextSearchResults(
+  data: FullTextSearchPageResponse['results'] | undefined
+) {
+  if (!data) return [];
+
+  const results: Array<SearchResult> = [];
+
+  data.forEach((result) => {
+    const filePath = createFilePath(`${result.folder}/${result.note}`);
+    if (!filePath) return;
+
+    if (result.type === 'note') {
+      results.push({
+        type: 'note',
+        filePath,
+        tags: result.tags ?? [],
+        lastUpdated: result.lastUpdated ?? '',
+        created: result.created ?? '',
+        highlights: result.highlights ?? [],
+        codeContent: result.codeContent ?? [],
+      });
+    } else if (result.type === 'attachment') {
+      results.push({
+        type: 'attachment',
+        filePath,
+        tags: result.tags ?? [],
+      });
+    }
+  });
+
+  return results;
+}
+
 const searchQueries = {
-  fullTextSearch: (searchQuery: string) =>
-    queryOptions({
-      queryKey: ['full-text-search', searchQuery],
-      queryFn: () => FullTextSearch(searchQuery),
-      select: (data) => {
-        if (!data) return [];
-
-        const results: Array<SearchResult> = [];
-
-        data.forEach((result) => {
-          const filePath = createFilePath(`${result.folder}/${result.note}`);
-          if (!filePath) return;
-
-          if (result.type === 'note') {
-            results.push({
-              type: 'note',
-              filePath,
-              tags: result.tags ?? [],
-              lastUpdated: result.lastUpdated ?? '',
-              created: result.created ?? '',
-              highlights: result.highlights ?? [],
-              codeContent: result.codeContent ?? [],
-            });
-          } else if (result.type === 'attachment') {
-            results.push({
-              type: 'attachment',
-              filePath,
-              tags: result.tags ?? [],
-            });
-          }
-        });
-
-        return results;
-      },
-      placeholderData: keepPreviousData,
-    }),
+  fullTextSearchKey: (searchQuery: string) =>
+    ['full-text-search', searchQuery] as const,
   savedSearches: () =>
     queryOptions({
       queryKey: ['saved-searches'],
@@ -123,7 +124,26 @@ export function useSearch() {
  * Hook to perform a full-text search query using react-query.
  */
 export function useFullTextSearchQuery(searchQuery: string) {
-  return useQuery(searchQueries.fullTextSearch(searchQuery));
+  const query = useInfiniteQuery({
+    queryKey: searchQueries.fullTextSearchKey(searchQuery),
+    initialPageParam: undefined as string[] | undefined,
+    queryFn: ({ pageParam }) => FullTextSearch(searchQuery, pageParam ?? []),
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.nextSearchAfter : undefined,
+  });
+
+  const data = (query.data?.pages ?? []).flatMap((page) =>
+    mapFullTextSearchResults(page.results)
+  );
+
+  // total count is stored in each page, so we just use the first page for it
+  const totalCount = query.data?.pages[0]?.total ?? 0;
+
+  return {
+    ...query,
+    data,
+    totalCount,
+  };
 }
 
 /**

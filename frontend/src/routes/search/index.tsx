@@ -42,11 +42,15 @@ export function SearchPage() {
 
   const {
     data: results = [],
+    totalCount,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     isError,
     error,
   } = useFullTextSearchQuery(deferredQuery);
 
-  const totalCount = results.length;
+  const loadedCount = results.length;
 
   return (
     <section className="flex-1 h-screen flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
@@ -56,6 +60,7 @@ export function SearchPage() {
         selectedIndex={selectedIndex}
         setSelectedIndex={setSelectedIndex}
         results={results}
+        loadedCount={loadedCount}
         totalCount={totalCount}
       />
       <div className="flex-1 overflow-auto">
@@ -70,7 +75,7 @@ export function SearchPage() {
             </div>
           </div>
         )}
-        {totalCount === 0 && !lastSearchQuery.trim() && (
+        {loadedCount === 0 && !lastSearchQuery.trim() && (
           <div className="flex justify-center items-center flex-1 px-6 py-3">
             <div className="w-full max-w-4xl text-zinc-700 dark:text-zinc-300">
               <h2 className="text-2xl py-3 text-zinc-800 dark:text-zinc-200">
@@ -120,8 +125,15 @@ export function SearchPage() {
           </div>
         )}
 
-        {totalCount > 0 && (
-          <SearchResultsList results={results} selectedIndex={selectedIndex} />
+        {loadedCount > 0 && (
+          <SearchResultsList
+            results={results}
+            selectedIndex={selectedIndex}
+            endReached={() => {
+              if (!hasNextPage || isFetchingNextPage) return;
+              fetchNextPage();
+            }}
+          />
         )}
       </div>
     </section>

@@ -301,32 +301,39 @@ func TestExtractHighlightedText(t *testing.T) {
 
 func TestCreateSearchRequestSort(t *testing.T) {
 	t.Run("defaults with no sort option", func(t *testing.T) {
-		req := CreateSearchRequest(bleve.NewMatchAllQuery(), 25, nil)
+		req := CreateSearchRequest(bleve.NewMatchAllQuery(), 25, nil, nil)
 		assert.Equal(t, 25, req.Size)
-		assert.NotEmpty(t, req.Sort)
+		assert.Equal(t, search.ParseSortOrderStrings([]string{"-_score", "_id"}), req.Sort)
 	})
 
 	t.Run("sort created desc", func(t *testing.T) {
 		req := CreateSearchRequest(bleve.NewMatchAllQuery(), 10, &SearchSortOption{
 			Field:     UserSortFieldCreated,
 			Direction: SortDirectionDesc,
-		})
-		assert.Equal(t, search.ParseSortOrderStrings([]string{"-" + FieldCreatedDate}), req.Sort)
+		}, nil)
+		assert.Equal(t, search.ParseSortOrderStrings([]string{"-" + FieldCreatedDate, "_id"}), req.Sort)
 	})
 
 	t.Run("sort updated asc", func(t *testing.T) {
 		req := CreateSearchRequest(bleve.NewMatchAllQuery(), 10, &SearchSortOption{
 			Field:     UserSortFieldUpdated,
 			Direction: SortDirectionAsc,
-		})
-		assert.Equal(t, search.ParseSortOrderStrings([]string{"+" + FieldLastUpdated}), req.Sort)
+		}, nil)
+		assert.Equal(t, search.ParseSortOrderStrings([]string{"+" + FieldLastUpdated, "_id"}), req.Sort)
 	})
 
 	t.Run("sort size asc", func(t *testing.T) {
 		req := CreateSearchRequest(bleve.NewMatchAllQuery(), 10, &SearchSortOption{
 			Field:     UserSortFieldSize,
 			Direction: SortDirectionAsc,
-		})
-		assert.Equal(t, search.ParseSortOrderStrings([]string{"+" + FieldSize}), req.Sort)
+		}, nil)
+		assert.Equal(t, search.ParseSortOrderStrings([]string{"+" + FieldSize, "_id"}), req.Sort)
+	})
+
+	t.Run("sets search after values", func(t *testing.T) {
+		searchAfter := []string{"0.75", "doc-2"}
+		req := CreateSearchRequest(bleve.NewMatchAllQuery(), 10, nil, searchAfter)
+
+		assert.Equal(t, searchAfter, req.SearchAfter)
 	})
 }

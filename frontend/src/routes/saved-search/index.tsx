@@ -145,12 +145,15 @@ export function SavedSearchPage({
 }) {
   const {
     data: results = [],
+    totalCount,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     refetch,
     isError,
     isLoading,
   } = useFullTextSearchQuery(searchQuery);
 
-  const resultCount = results.length;
   const searchResultPaths = results.map((result) => result.filePath);
 
   const sidebarRef = useRef<HTMLElement>(null);
@@ -195,8 +198,8 @@ export function SavedSearchPage({
               </section>
               <div className="flex items-center justify-between gap-2 mb-2">
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {resultCount > 0 && <span>{resultCount} results</span>}
-                  {resultCount === 0 && !isLoading && !isError && (
+                  {totalCount > 0 && <span>{totalCount} results</span>}
+                  {totalCount === 0 && !isLoading && !isError && (
                     <span>No results found</span>
                   )}
                 </p>
@@ -258,6 +261,10 @@ export function SavedSearchPage({
                           activeNotePath={activeNotePath}
                         />
                       )}
+                      endReached={() => {
+                        if (!hasNextPage || isFetchingNextPage) return;
+                        fetchNextPage();
+                      }}
                     />
                   ))}
               </div>

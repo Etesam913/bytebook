@@ -145,6 +145,16 @@ func TestBuildBooleanQueryFromUserInput(t *testing.T) {
 			wantType: &query.DisjunctionQuery{},
 		},
 		{
+			name:     "empty filename prefix f: is skipped to avoid full index scan",
+			input:    "f:",
+			wantType: &query.MatchNoneQuery{},
+		},
+		{
+			name:     "empty filename prefix file: is skipped to avoid full index scan",
+			input:    "file:",
+			wantType: &query.MatchNoneQuery{},
+		},
+		{
 			name:     "AND operator",
 			input:    "term1 AND term2",
 			wantType: &query.ConjunctionQuery{},

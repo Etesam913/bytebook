@@ -7,9 +7,11 @@ import { dataItemToKey, dataItemToString } from '../utils';
 export function SearchResultsList({
   results,
   selectedIndex,
+  endReached,
 }: {
   results: SearchResult[];
   selectedIndex: number;
+  endReached?: () => void;
 }) {
   const totalCount = results.length;
 
@@ -41,6 +43,7 @@ export function SearchResultsList({
       selectionOptions={{ disableSelection: true }}
       dataItemToKey={dataItemToKey}
       dataItemToString={dataItemToString}
+      endReached={endReached}
       renderItem={({ dataItem: result, i }) => {
         switch (result.type) {
           case 'note':
