@@ -17,13 +17,42 @@ import { timeSince } from '../utils/bottom-bar';
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
 import { Frontmatter } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
-import { FilePath, safeDecodeURIComponent } from '../../../utils/path';
+import { navigate } from 'wouter/use-browser-location';
+import {
+  FilePath,
+  createFolderPath,
+  safeDecodeURIComponent,
+} from '../../../utils/path';
 
-function BreadcrumbItem({ children }: { children: ReactNode }) {
-  const className =
-    'flex items-center gap-1 whitespace-nowrap text-ellipsis overflow-hidden ';
+function BreadcrumbItem({
+  path,
+  children,
+}: {
+  path?: string;
+  children: ReactNode;
+}) {
+  const handleClick = () => {
+    if (!path) return;
+    navigate(path);
+  };
 
-  return <span className={className}>{children}</span>;
+  if (!path) {
+    return (
+      <span className="flex items-center gap-1 whitespace-nowrap text-ellipsis overflow-hidden text-zinc-500 dark:text-zinc-300">
+        {children}
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className="flex items-end gap-1.5 whitespace-nowrap text-ellipsis overflow-hidden hover:underline text-left"
+    >
+      {children}
+    </button>
+  );
 }
 
 export function BottomBar({
@@ -90,17 +119,21 @@ export function BottomBar({
       )}
     >
       <span className="flex items-center gap-1 text-zinc-500 dark:text-zinc-300">
-        {folderSegments.map((segment, index) => (
-          <Fragment key={`folder-segment-${index}`}>
-            <BreadcrumbItem>
-              {index === 0 && <Folder width={20} height={20} />}
-              {segment}
-            </BreadcrumbItem>
-            <span>/</span>
-          </Fragment>
-        ))}
+        {folderSegments.map((segment, index) => {
+          const path = folderSegments.slice(0, index + 1).join('/');
+          const folderPath = createFolderPath(path);
+          return (
+            <Fragment key={`folder-segment-${index}`}>
+              <BreadcrumbItem path={folderPath?.encodedFolderUrl}>
+                {index === 0 && <Folder width={16} height={16} />}
+                {segment}
+              </BreadcrumbItem>
+              <span>/</span>
+            </Fragment>
+          );
+        })}
         <BreadcrumbItem>
-          <RenderNoteIcon filePath={filePath} />
+          <RenderNoteIcon filePath={filePath} size="sm" />
           {safeDecodeURIComponent(filePath.noteWithoutExtension)}
         </BreadcrumbItem>
       </span>
