@@ -25,7 +25,7 @@ func isValidUserSortField(field string) bool {
 	}
 }
 
-func (s SearchSortOption) ToBleveSort() (string, bool) {
+func (s SearchSortOption) ToBleveSortFields() ([]string, bool) {
 	var indexField string
 	switch s.Field {
 	case UserSortFieldCreated:
@@ -35,7 +35,7 @@ func (s SearchSortOption) ToBleveSort() (string, bool) {
 	case UserSortFieldSize:
 		indexField = FieldSize
 	default:
-		return "", false
+		return nil, false
 	}
 
 	prefix := "-"
@@ -43,5 +43,5 @@ func (s SearchSortOption) ToBleveSort() (string, bool) {
 		prefix = "+"
 	}
 
-	return prefix + indexField, true
+	return []string{prefix + indexField, "_id"}, true
 }

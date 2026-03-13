@@ -4,6 +4,7 @@ import { useWailsEvent, type WailsEvent } from '../../../hooks/events';
 import { isEventInCurrentWindow } from '../../../utils/events';
 import { LegacyAnimationControls } from 'motion';
 import { easingFunctions } from '../../../animations';
+import { logger } from '../../../utils/logging';
 
 /**
  * Hook that listens for the "sidebar:toggle" event and toggles the isNoteMaximizedAtom.
@@ -16,6 +17,7 @@ export function useToggleSidebarEvent(
 
   useWailsEvent('sidebar:toggle', async (data: WailsEvent) => {
     if (!(await isEventInCurrentWindow(data))) return;
+    logger.event('sidebar:toggle');
     setIsNoteMaximized((prev) => {
       animationControls.start({
         x: prev ? [-40, 0] : [50, 0],

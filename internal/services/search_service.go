@@ -2,6 +2,7 @@ package services
 
 import (
 	"log"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -17,6 +18,15 @@ type SearchService struct {
 	regenerateIndexMu sync.Mutex
 }
 
+func buildSearchAfterFromHit(sortValues []string, score float64, docID string) []string {
+	if len(sortValues) >= 2 && sortValues[0] == "_score" {
+		// Bleve returns "_score" as a sentinel in hit.Sort for score sorting.
+		// SearchAfter needs the concrete score value for stable cursor pagination.
+		return []string{strconv.FormatFloat(score, 'g', -1, 64), docID}
+	}
+	return append([]string{}, sortValues...)
+}
+
 // FilePickerSearchResult represents a search hit returned to the editor's @ mention picker.
 type FilePickerSearchResult struct {
 	Type   string `json:"type"`
@@ -24,18 +34,37 @@ type FilePickerSearchResult struct {
 	Note   string `json:"note,omitempty"`
 }
 
-func (s *SearchService) FullTextSearch(searchQuery string) []search.SearchResult {
+func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string) search.FullTextSearchPage {
 	// Build the boolean query and request using helpers for clarity
 	totalQuery, sortOption := search.BuildBooleanQueryFromUserInput(searchQuery, 1)
-	request := search.CreateSearchRequest(totalQuery, 10000, sortOption)
+	request := search.CreateSearchRequest(totalQuery, search.FullTextSearchPageSize+1, sortOption, searchAfter)
 
 	res, err := (*s.SearchIndex).Search(request)
 	if err != nil {
 		log.Println("full text search failed:", err)
-		return []search.SearchResult{}
+		return search.FullTextSearchPage{
+			Results: []search.SearchResult{},
+		}
 	}
 
-	return search.ProcessDocumentSearchResults(res)
+	hasMore := len(res.Hits) > search.FullTextSearchPageSize
+	if hasMore {
+		res.Hits = res.Hits[:search.FullTextSearchPageSize]
+	}
+
+	nextSearchAfter := []string{}
+	if hasMore && len(res.Hits) > 0 {
+		lastHit := res.Hits[len(res.Hits)-1]
+		nextSearchAfter = buildSearchAfterFromHit(lastHit.Sort, lastHit.Score, lastHit.ID)
+	}
+	processedResults := search.ProcessDocumentSearchResults(res)
+
+	return search.FullTextSearchPage{
+		Results:         processedResults,
+		NextSearchAfter: nextSearchAfter,
+		HasMore:         hasMore,
+		Total:           res.Total,
+	}
 }
 
 // SearchFileNamesFromQuery performs a fuzzy filename search using the Bleve index.
@@ -44,7 +73,7 @@ func (s *SearchService) FullTextSearch(searchQuery string) []search.SearchResult
 func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []FilePickerSearchResult {
 	normalizedQuery := strings.ToLower(strings.TrimSpace(searchQuery))
 	filenameQuery := search.CreateFilenameQuery(normalizedQuery, 1.0)
-	searchRequest := search.CreateSearchRequest(filenameQuery, 20, nil)
+	searchRequest := search.CreateSearchRequest(filenameQuery, 20, nil, nil)
 
 	results, err := (*s.SearchIndex).Search(searchRequest)
 	if err != nil {
