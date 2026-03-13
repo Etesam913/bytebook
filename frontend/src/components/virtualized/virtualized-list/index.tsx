@@ -63,7 +63,6 @@ export type VirtualizedListProps<T> = {
   maxHeight?: string;
   className?: string;
   onTotalListHeightChanged?: (height: number) => void;
-  totalCount?: number;
   /** Callback when bottom of list is reached (for pagination) */
   endReached?: () => void;
   /** Callback when top of list is reached (for reverse pagination) */
@@ -90,7 +89,6 @@ export function VirtualizedList<T>({
   maxHeight,
   className,
   onTotalListHeightChanged,
-  totalCount,
   endReached,
   startReached,
   initialTopMostItemIndex,
@@ -218,7 +216,7 @@ export function VirtualizedList<T>({
         onTotalListHeightChanged?.(height);
       }}
       overscan={500}
-      totalCount={totalCount}
+      totalCount={items.length}
       computeItemKey={(_, dataItem) => dataItemToKey(dataItem)}
       itemContent={(index, dataItem) => renderSidebarItem(index, dataItem)}
       endReached={endReached}

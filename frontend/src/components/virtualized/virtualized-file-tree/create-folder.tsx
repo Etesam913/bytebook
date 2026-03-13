@@ -1,5 +1,5 @@
 import { MotionButton } from '../../buttons';
-import { FolderPlus } from '../../../icons/folder-plus';
+import { FolderPen } from '../../../icons/folder-pen';
 import { getDefaultButtonVariants } from '../../../animations';
 import { InlineTreeItemInput } from './file-tree-item/inline-tree-item-input';
 import { Folder as FolderIcon } from '../../../icons/folder';
@@ -23,6 +23,7 @@ export function CreateFolder() {
     parentId: null,
     type: 'folder',
     childrenIds: [],
+    hasLoadedChildren: false,
     childrenCursor: null,
     hasMoreChildren: false,
     isOpen: false,
@@ -44,7 +45,7 @@ export function CreateFolder() {
             setAddingType('folder');
           }}
         >
-          <FolderPlus
+          <FolderPen
             className="will-change-transform"
             width={16}
             height={16}

@@ -1,4 +1,3 @@
-import { motion } from 'motion/react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
 import {
   type RefObject,
@@ -135,13 +134,11 @@ export function ContextMenu() {
             style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
           >
             {selections.size > 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, transition: { delay: 0.075 } }}
+              <div
                 className="absolute rounded-full font-bold min-w-6 h-6 px-1 text-xs leading-none pointer-events-none text-white flex justify-center items-center -left-2 bg-(--accent-color) z-60"
               >
                 {selectionCountLabel}
-              </motion.div>
+              </div>
             )}
             <DropdownItems
               onChange={async (item) => {

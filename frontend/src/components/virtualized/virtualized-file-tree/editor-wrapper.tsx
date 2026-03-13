@@ -1,3 +1,4 @@
+import { useAnimationControls } from 'motion/react';
 import { NoteRenderer } from '../../note-renderer';
 import { FolderRenderer } from '../../folder-renderer';
 import {
@@ -9,6 +10,7 @@ import { NotFound } from '../../../routes/not-found';
 export function EditorWrapper() {
   const filePath = useFilePathFromRoute();
   const folderPath = useFolderPathFromRoute();
+  const animationControls = useAnimationControls();
 
   if (filePath) {
     return (
@@ -19,7 +21,12 @@ export function EditorWrapper() {
   }
 
   if (folderPath) {
-    return <FolderRenderer folderPath={folderPath} />;
+    return (
+      <FolderRenderer
+        folderPath={folderPath}
+        animationControls={animationControls}
+      />
+    );
   }
 
   return <NotFound />;

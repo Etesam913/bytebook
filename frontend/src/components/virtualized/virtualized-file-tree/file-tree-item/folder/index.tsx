@@ -3,8 +3,8 @@ import { MouseEvent, DragEvent, useState } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { Folder as FolderIcon } from '../../../../../icons/folder';
 import { FolderOpen } from '../../../../../icons/folder-open';
-import { FolderPlus } from '../../../../../icons/folder-plus';
-import { Note } from '../../../../../icons/page';
+import { FolderPen } from '../../../../../icons/folder-pen';
+import { Blog } from '../../../../../icons/blog';
 import type { Folder } from '../../types';
 import {
   contextMenuDataAtom,
@@ -195,7 +195,7 @@ export function FileTreeFolderItem({
               strokeWidth={1.75}
             />
           ) : (
-            <Note
+            <Blog
               className="min-w-4 min-h-4"
               height={16}
               width={16}
@@ -294,11 +294,11 @@ export function FileTreeFolderItem({
                 {
                   label: (
                     <span className="flex items-center gap-1.5">
-                      <FolderPlus width={17} height={17} />{' '}
-                      <span>Add Folder</span>
+                      <FolderPen width={17} height={17} />{' '}
+                      <span>Create Folder</span>
                     </span>
                   ),
-                  value: 'add-folder',
+                  value: 'create-folder',
                   onChange: () => {
                     if (!dataItem.isOpen) {
                       openFolder({
@@ -318,10 +318,10 @@ export function FileTreeFolderItem({
                 {
                   label: (
                     <span className="flex items-center gap-1.5">
-                      <Note width={17} height={17} /> <span>Add Note</span>
+                      <Blog width={17} height={17} /> <span>Create Note</span>
                     </span>
                   ),
-                  value: 'add-note',
+                  value: 'create-note',
                   onChange: () => {
                     if (!dataItem.isOpen) {
                       openFolder({
