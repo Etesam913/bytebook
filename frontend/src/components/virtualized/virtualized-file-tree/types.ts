@@ -26,6 +26,8 @@ export type Folder = BaseFileOrFolder & {
   hasMoreChildren: boolean;
   /** Whether the folder is currently open/expanded in the UI. */
   isOpen: boolean;
+  /** Whether this folder is stale (children need to be reloaded). */
+  isStale: boolean;
 };
 
 /**

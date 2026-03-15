@@ -134,9 +134,7 @@ export function ContextMenu() {
             style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
           >
             {selections.size > 0 && (
-              <div
-                className="absolute rounded-full font-bold min-w-6 h-6 px-1 text-xs leading-none pointer-events-none text-white flex justify-center items-center -left-2 bg-(--accent-color) z-60"
-              >
+              <div className="absolute rounded-full font-bold min-w-6 h-6 px-1 text-xs leading-none pointer-events-none text-white flex justify-center items-center -left-2 bg-(--accent-color) z-60">
                 {selectionCountLabel}
               </div>
             )}
