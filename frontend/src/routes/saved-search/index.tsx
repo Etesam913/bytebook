@@ -39,7 +39,7 @@ function NoteRenderErrorFallback({
     error instanceof Error ? error : new Error(String(error));
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center gap-4 text-center p-6 mx-auto">
+    <div className="h-full flex flex-col items-center justify-center gap-4 text-center p-6 mx-auto">
       <div className="flex flex-col items-center gap-3">
         <TriangleWarning className="w-12 h-12 text-amber-500" />
         <div className="space-y-2">
@@ -181,7 +181,7 @@ export function SavedSearchPage({
         <motion.aside
           ref={sidebarRef}
           style={width ? { width } : undefined}
-          className="text-md flex h-screen flex-col pb-3.5 shrink-0"
+          className="text-md flex h-full flex-col pb-3.5 shrink-0"
         >
           <div className="flex h-full flex-col overflow-y-auto relative">
             <header className="pl-1.5 pr-2.5">
