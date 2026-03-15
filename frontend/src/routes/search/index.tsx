@@ -53,7 +53,7 @@ export function SearchPage() {
   const loadedCount = results.length;
 
   return (
-    <section className="flex-1 h-screen flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
+    <section className="flex-1 h-full flex flex-col overflow-hidden text-zinc-900 dark:text-zinc-100">
       <SearchHeader
         lastSearchQuery={lastSearchQuery}
         setLastSearchQuery={setLastSearchQuery}

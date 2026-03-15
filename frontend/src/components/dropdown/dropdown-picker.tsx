@@ -57,7 +57,7 @@ export function ComponentPickerMenuItem({
     <li
       tabIndex={isSelected ? 0 : -1}
       className={cn(
-        'flex items-center gap-2 text-left cursor-pointer rounded-md px-[7px] py-[2px] hover:bg-zinc-100 dark:hover:bg-zinc-650 ',
+        'flex items-center gap-2 text-left cursor-pointer rounded-md px-1.75 py-0.5 hover:bg-zinc-100 dark:hover:bg-zinc-650 text-sm',
         isSelected &&
           'bg-zinc-150 dark:bg-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600'
       )}

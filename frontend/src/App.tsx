@@ -67,7 +67,7 @@ function App() {
   return (
     <main
       id="App"
-      className="flex h-screen w-screen min-w-0 font-display overflow-hidden"
+      className="flex h-full w-full min-w-0 font-display overflow-hidden"
       onClick={(e) => {
         if (isRegularMouseClick(e.nativeEvent)) {
           setContextMenuData((prev) => ({ ...prev, isShowing: false }));

@@ -59,17 +59,20 @@ export function useZoom() {
   useWailsEvent('zoom:in', () => {
     const newZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);
     setCurrentZoom(newZoom);
+
     document.body.style.zoom = newZoom.toString();
   });
 
   useWailsEvent('zoom:out', () => {
     const newZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
     setCurrentZoom(newZoom);
+
     document.body.style.zoom = newZoom.toString();
   });
 
   useWailsEvent('zoom:reset', () => {
     setCurrentZoom(DEFAULT_ZOOM);
+
     document.body.style.zoom = DEFAULT_ZOOM.toString();
   });
 }
