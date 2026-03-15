@@ -49,7 +49,7 @@
     "jotai": "^2.18.0",
     "katex": "^0.16.28",
     "lexical": "^0.41.0",
-    "motion": "^12.34.3",
+    "motion": "^12.36.0",
     "react-error-boundary": "^6.1.1",
     "react-use-measure": "^2.1.7",
     "react-virtuoso": "^4.18.1",

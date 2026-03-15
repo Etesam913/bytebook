@@ -24,6 +24,8 @@ import { useFileTreeContentDrop } from './hooks/use-file-tree-content-drop';
 
 const FILE_TREE_MAX_HEIGHT = '65vh';
 const INITIAL_VISIBLE_RANGE: ListRange = { startIndex: 0, endIndex: -1 };
+
+// Represents the button to create a folder at the top of the file tree
 const CREATE_FOLDER_ITEM: CreateFolderItem = {
   id: 'create-folder',
   type: CREATE_FOLDER_TYPE,
@@ -39,26 +41,21 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
   const [stickyContentHeight, setStickyContentHeight] = useState(0);
   const [listHeight, setListHeight] = useState<number | null>(null);
   const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
-  useFileTreeContentDrop();
 
-  // This only runs on component mount and when folder/note events are received
+  // This only runs on component mount and when a top level folder or note is received in the folder:create or note:create events
   const { data: topLevelFileOrFolders } = useTopLevelFileOrFolders();
-  const flattenedTopLevelData = transformFileTreeForVirtualizedList(
-    topLevelFileOrFolders ?? [],
-    fileOrFolderMap
-  );
-  const virtualizedData = [CREATE_FOLDER_ITEM, ...flattenedTopLevelData];
 
-  const { scope, isReady, handleHeightChange } = useAnimatedHeight({
-    isOpen,
-    maxHeight: FILE_TREE_MAX_HEIGHT,
-  });
+  // Flattening the top level data so that it can be virtualized and put in react-virutoso
+  const virtualizedData = [
+    CREATE_FOLDER_ITEM,
+    ...transformFileTreeForVirtualizedList(
+      topLevelFileOrFolders ?? [],
+      fileOrFolderMap
+    ),
+  ];
 
-  useEffect(() => {
-    if (listHeight === null) return;
-    handleHeightChange(listHeight + stickyContentHeight);
-  }, [listHeight, stickyContentHeight, handleHeightChange]);
-
+  useRoutePathFocus({ visibleRange, virtualizedData, virtuosoRef });
+  useFileTreeContentDrop();
   // Clear selection when clicking outside the file tree (unless it's a context menu click)
   useOnClickOutside(
     internalListRef,
@@ -74,12 +71,15 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
     []
   );
 
-  function handleScrollerRef(node: HTMLElement | Window | null) {
-    const element = node instanceof HTMLElement ? node : null;
-    internalListRef.current = element;
-  }
-
-  useRoutePathFocus({ visibleRange, virtualizedData, virtuosoRef });
+  // Animated height related hooks
+  const { scope, isReady, handleHeightChange } = useAnimatedHeight({
+    isOpen,
+    maxHeight: FILE_TREE_MAX_HEIGHT,
+  });
+  useEffect(() => {
+    if (listHeight === null) return;
+    handleHeightChange(listHeight + stickyContentHeight);
+  }, [listHeight, stickyContentHeight, handleHeightChange]);
 
   /**
    * Renders a row wrapper used by tree navigation and delegates row content.
@@ -123,7 +123,7 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
       }}
     >
       <StickyHeader
-        flattenedTopLevelData={flattenedTopLevelData}
+        flattenedTopLevelData={virtualizedData}
         visibleRange={visibleRange}
         onStickyContentHeightChange={setStickyContentHeight}
       />
@@ -139,7 +139,10 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
           );
         }}
         className="scrollbar-hidden"
-        scrollerRef={handleScrollerRef}
+        scrollerRef={(node) => {
+          const element = node instanceof HTMLElement ? node : null;
+          internalListRef.current = element;
+        }}
         overscan={20}
         computeItemKey={(_, item) => item.id}
         style={{

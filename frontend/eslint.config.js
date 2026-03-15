@@ -38,6 +38,7 @@ export default defineConfig([
       'react-hooks/exhaustive-deps': 'off',
       // Disable the rule that requires React to be in scope for JSX
       'react/react-in-jsx-scope': 'off',
+      '@typescript-eslint/switch-exhaustiveness-check': 'error',
     },
   },
 ]);

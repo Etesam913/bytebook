@@ -50,7 +50,6 @@ export function useRoutePathFocus({
     if (!routeTargetPath || !hasFileTreeData) {
       return;
     }
-    const routePath = routeTargetPath;
 
     const visibleItems = virtualizedData.slice(
       visibleRange.startIndex,
@@ -60,7 +59,7 @@ export function useRoutePathFocus({
     const isCurrentRouteVisible = visibleItems.some(
       (item) =>
         (item.type === FILE_TYPE || item.type === FOLDER_TYPE) &&
-        item.path === routePath
+        item.path === routeTargetPath
     );
 
     // No folder needs to be expanded or revealed if the current route is already visible
@@ -68,8 +67,8 @@ export function useRoutePathFocus({
       return;
     }
 
-    // If the current route is already in virtualizedData, scroll it into view immediately
-    const targetId = fileTreeData.filePathToTreeDataId.get(routePath);
+    // If the current route is already in virtualizedData, then scroll it into view immediately
+    const targetId = fileTreeData.filePathToTreeDataId.get(routeTargetPath);
     if (targetId) {
       const targetItemIndex = virtualizedData.findIndex(
         (item) => item.id === targetId
@@ -83,23 +82,23 @@ export function useRoutePathFocus({
       }
     }
 
-    const shouldSkipReveal = consumeSkipRevealForPath(routePath);
+    const shouldSkipReveal = consumeSkipRevealForPath(routeTargetPath);
     if (shouldSkipReveal) {
       // note:create event already revealed the path so we don't have to do it again below
       return;
     }
 
     // Clicking a link to a note or clicking a search result will not reveal the path themselves, so we need to reveal it below
-    revealRoutePathAsync(routePath).then(async (success) => {
+    revealRoutePathAsync(routeTargetPath).then(async (success) => {
       if (success) {
-        setPendingScrollPath(routePath);
+        setPendingScrollPath(routeTargetPath);
         return;
       }
 
       await queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-      const retrySuccess = await revealRoutePathAsync(routePath);
+      const retrySuccess = await revealRoutePathAsync(routeTargetPath);
       if (retrySuccess) {
-        setPendingScrollPath(routePath);
+        setPendingScrollPath(routeTargetPath);
       }
     });
   }, [routeTargetPath, hasFileTreeData]);
@@ -123,5 +122,5 @@ export function useRoutePathFocus({
       align: 'center',
     });
     queueMicrotask(() => setPendingScrollPath(null));
-  }, [pendingScrollPath, routeTargetPath, virtualizedData]);
+  }, [pendingScrollPath, routeTargetPath]);
 }

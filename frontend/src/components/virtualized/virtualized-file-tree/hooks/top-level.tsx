@@ -29,22 +29,26 @@ function useTopLevelFileOrFoldersQuery() {
           name,
         };
 
-        if (itemType === FILE_TYPE) {
-          folderOrFiles.push({
-            ...commonAttributes,
-            type: FILE_TYPE,
-            parentId: null,
-          });
-        } else if (itemType === FOLDER_TYPE) {
-          folderOrFiles.push({
-            ...commonAttributes,
-            type: FOLDER_TYPE,
-            childrenIds: [],
-            childrenCursor: null,
-            hasMoreChildren: false,
-            isOpen: false,
-            parentId: null,
-          });
+        switch (itemType) {
+          case FILE_TYPE:
+            folderOrFiles.push({
+              ...commonAttributes,
+              type: FILE_TYPE,
+              parentId: null,
+            });
+            break;
+          case FOLDER_TYPE:
+            folderOrFiles.push({
+              ...commonAttributes,
+              type: FOLDER_TYPE,
+              childrenIds: [],
+              childrenCursor: null,
+              hasMoreChildren: false,
+              isOpen: false,
+              parentId: null,
+              isStale: false,
+            });
+            break;
         }
       }
 

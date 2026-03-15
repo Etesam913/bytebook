@@ -162,11 +162,6 @@ export function VirtualizedList<T>({
     EmptyPlaceholder: emptyElement ? () => <>{emptyElement}</> : undefined,
   };
 
-  const handleScrollerRef = (node: HTMLElement | Window | null) => {
-    const element = node instanceof HTMLElement ? node : null;
-    internalListRef.current = element;
-  };
-
   const renderSidebarItem = (index: number, dataItem: T) => {
     const node = renderItem({
       dataItem,
@@ -209,7 +204,10 @@ export function VirtualizedList<T>({
             ? maxHeight
             : `min(${maxHeight}, ${listHeight}px)`,
       }}
-      scrollerRef={handleScrollerRef}
+      scrollerRef={(node) => {
+        const element = node instanceof HTMLElement ? node : null;
+        internalListRef.current = element;
+      }}
       components={components}
       totalListHeightChanged={(height) => {
         setListHeight(height);

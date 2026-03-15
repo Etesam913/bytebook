@@ -43,6 +43,10 @@ function applyAnimation({
   animate(scope.current, { height, opacity }, animationConfig);
 }
 
+/**
+ * A hook that manages the animated height of a list, typically used with virtualized lists
+ * or accordions to provide smooth opening and closing transitions.
+ */
 export function useAnimatedHeight({
   isOpen,
   maxHeight,
