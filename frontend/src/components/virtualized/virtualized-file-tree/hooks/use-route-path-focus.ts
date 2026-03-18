@@ -9,8 +9,6 @@ import {
   useFilePathFromRoute,
   useFolderPathFromRoute,
 } from '../../../../hooks/routes';
-import { consumeSkipRevealForPath } from '../utils/route-focus-intent';
-
 /**
  * Coordinates route-driven reveal and scrolling behavior for the virtualized tree.
  *
@@ -48,8 +46,11 @@ export function useRoutePathFocus({
   // reveal the path and set pending scroll for the follow-up effect
   useEffect(() => {
     if (!routeTargetPath || !hasFileTreeData) {
+      console.log('[useRoutePathFocus] phase1: skipping — no routeTargetPath or fileTreeData not loaded', { routeTargetPath, hasFileTreeData });
       return;
     }
+
+    console.log('[useRoutePathFocus] phase1: route changed to', routeTargetPath);
 
     const visibleItems = virtualizedData.slice(
       visibleRange.startIndex,
@@ -64,6 +65,7 @@ export function useRoutePathFocus({
 
     // No folder needs to be expanded or revealed if the current route is already visible
     if (isCurrentRouteVisible) {
+      console.log('[useRoutePathFocus] phase1: target already visible, no action needed');
       return;
     }
 
@@ -74,6 +76,7 @@ export function useRoutePathFocus({
         (item) => item.id === targetId
       );
       if (targetItemIndex !== -1) {
+        console.log('[useRoutePathFocus] phase1: target in virtualizedData, scrolling to index', targetItemIndex);
         virtuosoRef.current?.scrollIntoView({
           index: targetItemIndex,
           align: 'center',
@@ -82,23 +85,23 @@ export function useRoutePathFocus({
       }
     }
 
-    const shouldSkipReveal = consumeSkipRevealForPath(routeTargetPath);
-    if (shouldSkipReveal) {
-      // note:create event already revealed the path so we don't have to do it again below
-      return;
-    }
-
     // Clicking a link to a note or clicking a search result will not reveal the path themselves, so we need to reveal it below
+    console.log('[useRoutePathFocus] phase1: revealing path', routeTargetPath);
     revealRoutePathAsync(routeTargetPath).then(async (success) => {
       if (success) {
+        console.log('[useRoutePathFocus] phase1: reveal succeeded, setting pendingScrollPath');
         setPendingScrollPath(routeTargetPath);
         return;
       }
 
+      console.log('[useRoutePathFocus] phase1: reveal failed, invalidating top-level-files and retrying');
       await queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
       const retrySuccess = await revealRoutePathAsync(routeTargetPath);
       if (retrySuccess) {
+        console.log('[useRoutePathFocus] phase1: retry reveal succeeded, setting pendingScrollPath');
         setPendingScrollPath(routeTargetPath);
+      } else {
+        console.log('[useRoutePathFocus] phase1: retry reveal failed');
       }
     });
   }, [routeTargetPath, hasFileTreeData]);
@@ -109,14 +112,23 @@ export function useRoutePathFocus({
   useEffect(() => {
     if (!pendingScrollPath || !routeTargetPath) return;
 
+    console.log('[useRoutePathFocus] phase2: attempting scroll for pendingScrollPath', pendingScrollPath);
+
     const targetId = fileTreeData.filePathToTreeDataId.get(pendingScrollPath);
-    if (!targetId) return;
+    if (!targetId) {
+      console.log('[useRoutePathFocus] phase2: no targetId found for path, waiting for next render');
+      return;
+    }
 
     const targetItemIndex = virtualizedData.findIndex(
       (item) => item.id === targetId
     );
-    if (targetItemIndex === -1) return;
+    if (targetItemIndex === -1) {
+      console.log('[useRoutePathFocus] phase2: targetId not in virtualizedData yet, waiting for next render');
+      return;
+    }
 
+    console.log('[useRoutePathFocus] phase2: scrolling to index', targetItemIndex);
     virtuosoRef.current?.scrollIntoView({
       index: targetItemIndex,
       align: 'center',

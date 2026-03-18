@@ -35,6 +35,7 @@ import { fileTreeDataAtom } from '../../../../atoms';
 import { TagPlus } from '../../../../icons/tag-plus';
 import { EditTagDialogChildren } from '../../../../routes/notes-sidebar/edit-tag-dialog-children';
 import { RenderNoteIcon } from '../../../../icons/render-note-icon';
+import { FileBan } from '../../../../icons/file-ban';
 
 export function FileTreeFileItem({
   dataItem,
@@ -105,14 +106,14 @@ export function FileTreeFileItem({
 
   // File path should be defined for files
   const filePath = createFilePath(dataItem.path);
-  if (!filePath) {
-    return null;
-  }
+  // Some project files can be extensionless. Render those rows without note navigation.
 
   const resolvedFilePath = filePath;
 
   const isSelectedFromRoute =
-    filePathFromRoute && filePathFromRoute.equals(filePath);
+    filePath !== null &&
+    filePathFromRoute !== null &&
+    filePathFromRoute.equals(filePath);
 
   function handleClick(e: MouseEvent) {
     // Stop propagation for modifier clicks to prevent parent handlers from clearing selection
@@ -121,7 +122,7 @@ export function FileTreeFileItem({
     }
 
     // For default click (no modifier keys), also navigate to the file
-    if (!e.shiftKey && !e.metaKey && !e.ctrlKey) {
+    if (!e.shiftKey && !e.metaKey && !e.ctrlKey && resolvedFilePath) {
       navigate(resolvedFilePath.encodedFileUrl);
     }
     onSelectionClick(e);
@@ -138,7 +139,11 @@ export function FileTreeFileItem({
         isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
       )}
     >
-      <RenderNoteIcon filePath={filePath} size="sm" />
+      {filePath ? (
+        <RenderNoteIcon filePath={filePath} size="sm" />
+      ) : (
+        <FileBan className="min-w-4 min-h-4" height={16} width={16} />
+      )}
       <InlineTreeItemInput
         dataItem={dataItem}
         defaultValue={nameWithoutExtension}

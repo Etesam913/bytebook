@@ -40,12 +40,7 @@ import {
   buildRenameUpdates,
 } from '../components/virtualized/virtualized-file-tree/utils/rename-item';
 import { fileTreeDataAtom } from '../atoms';
-import {
-  FOLDER_TYPE,
-  type FileOrFolder,
-} from '../components/virtualized/virtualized-file-tree/types';
-import { useRevealRoutePath } from '../components/virtualized/virtualized-file-tree/hooks/use-reveal-route-path';
-import { useStore } from 'jotai';
+import { type FileOrFolder } from '../components/virtualized/virtualized-file-tree/types';
 import { useFilePathFromRoute } from './routes';
 import { routeUrls } from '../utils/routes';
 
@@ -61,56 +56,6 @@ const noteQueries = {
       },
     }),
 };
-
-/** This function is used to handle note:create events */
-export function useNoteCreate() {
-  const queryClient = useQueryClient();
-  const store = useStore();
-  const { mutateAsync: revealRoutePathAsync } = useRevealRoutePath();
-
-  useWailsEvent('note:create', async (body) => {
-    logger.event('note:create', body);
-    const data = body.data as { notePath: string }[];
-    let needsTopLevelInvalidation = false;
-    const pathsToReveal: string[] = [];
-
-    for (const { notePath } of data) {
-      const fileTreeData = store.get(fileTreeDataAtom);
-      if (fileTreeData.filePathToTreeDataId.has(notePath)) {
-        continue;
-      }
-
-      const segments = notePath.split('/').filter(Boolean);
-      if (segments.length === 1) {
-        needsTopLevelInvalidation = true;
-        continue;
-      }
-      const parentPath = segments.slice(0, -1).join('/');
-      const parentId = fileTreeData.filePathToTreeDataId.get(parentPath);
-      if (!parentId) {
-        needsTopLevelInvalidation = true;
-        continue;
-      }
-
-      const parent = fileTreeData.treeData.get(parentId);
-
-      // Only need to reveal if the parent is a folder and is open
-      if (!parent || parent.type !== FOLDER_TYPE || !parent.isOpen) {
-        continue;
-      }
-
-      pathsToReveal.push(notePath);
-    }
-
-    if (needsTopLevelInvalidation) {
-      queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-    }
-
-    for (const notePath of pathsToReveal) {
-      await revealRoutePathAsync(notePath);
-    }
-  });
-}
 
 export function useNoteRename() {
   const queryClient = useQueryClient();

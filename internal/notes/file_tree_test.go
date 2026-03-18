@@ -19,7 +19,7 @@ func findChildByName(children []FileOrFolder, name string) *FileOrFolder {
 	return nil
 }
 
-func TestGetChildrenOfFolder(t *testing.T) {
+func TestGetChildrenOfFolderBasedOnLimit(t *testing.T) {
 	tempDir, err := os.MkdirTemp("", "file_tree_test")
 	assert.NoError(t, err)
 	defer os.RemoveAll(tempDir)
@@ -54,13 +54,13 @@ func TestGetChildrenOfFolder(t *testing.T) {
 	testParentId := "test-parent-uuid"
 
 	t.Run("returns three children for test_folder", func(t *testing.T) {
-		page, err := GetChildrenOfFolder(tempDir, "test_folder", testParentId, "", 100)
+		page, err := GetChildrenOfFolderBasedOnLimit(tempDir, "test_folder", testParentId, "", 100)
 		assert.NoError(t, err)
 		assert.Len(t, page.Items, 3)
 	})
 
 	t.Run("file1.txt has correct properties", func(t *testing.T) {
-		page, err := GetChildrenOfFolder(tempDir, "test_folder", testParentId, "", 100)
+		page, err := GetChildrenOfFolderBasedOnLimit(tempDir, "test_folder", testParentId, "", 100)
 		assert.NoError(t, err)
 
 		file1 := findChildByName(page.Items, "file1.txt")
@@ -74,7 +74,7 @@ func TestGetChildrenOfFolder(t *testing.T) {
 	})
 
 	t.Run("file2.md has correct properties", func(t *testing.T) {
-		page, err := GetChildrenOfFolder(tempDir, "test_folder", testParentId, "", 100)
+		page, err := GetChildrenOfFolderBasedOnLimit(tempDir, "test_folder", testParentId, "", 100)
 		assert.NoError(t, err)
 
 		file2 := findChildByName(page.Items, "file2.md")
@@ -92,7 +92,7 @@ func TestGetChildrenOfFolder(t *testing.T) {
 	})
 
 	t.Run("subdir has correct properties", func(t *testing.T) {
-		page, err := GetChildrenOfFolder(tempDir, "test_folder", testParentId, "", 100)
+		page, err := GetChildrenOfFolderBasedOnLimit(tempDir, "test_folder", testParentId, "", 100)
 		assert.NoError(t, err)
 
 		subdir := findChildByName(page.Items, "subdir")
@@ -110,21 +110,21 @@ func TestGetChildrenOfFolder(t *testing.T) {
 	})
 
 	t.Run("non-existent folder returns error", func(t *testing.T) {
-		page, err := GetChildrenOfFolder(tempDir, "missing", testParentId, "", 100)
+		page, err := GetChildrenOfFolderBasedOnLimit(tempDir, "missing", testParentId, "", 100)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "does not exist")
 		assert.Empty(t, page.Items)
 	})
 
 	t.Run("path is a file returns error", func(t *testing.T) {
-		page, err := GetChildrenOfFolder(tempDir, "test_folder/file1.txt", testParentId, "", 100)
+		page, err := GetChildrenOfFolderBasedOnLimit(tempDir, "test_folder/file1.txt", testParentId, "", 100)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "is not a folder")
 		assert.Empty(t, page.Items)
 	})
 
 	t.Run("hidden files and folders are skipped", func(t *testing.T) {
-		page, err := GetChildrenOfFolder(tempDir, "test_folder", testParentId, "", 100)
+		page, err := GetChildrenOfFolderBasedOnLimit(tempDir, "test_folder", testParentId, "", 100)
 		assert.NoError(t, err)
 		// Should only have 3 items (file1.txt, file2.md, subdir), not the hidden ones
 		assert.Len(t, page.Items, 3)
@@ -136,17 +136,110 @@ func TestGetChildrenOfFolder(t *testing.T) {
 	})
 
 	t.Run("supports cursor pagination", func(t *testing.T) {
-		page1, err := GetChildrenOfFolder(tempDir, "test_folder", testParentId, "", 2)
+		page1, err := GetChildrenOfFolderBasedOnLimit(tempDir, "test_folder", testParentId, "", 2)
 		assert.NoError(t, err)
 		assert.Len(t, page1.Items, 2)
 		assert.True(t, page1.HasMore)
 		assert.NotEmpty(t, page1.NextCursor)
 
-		page2, err := GetChildrenOfFolder(tempDir, "test_folder", testParentId, page1.NextCursor, 2)
+		page2, err := GetChildrenOfFolderBasedOnLimit(tempDir, "test_folder", testParentId, page1.NextCursor, 2)
 		assert.NoError(t, err)
 		assert.Len(t, page2.Items, 1)
 		assert.False(t, page2.HasMore)
 		assert.Empty(t, page2.NextCursor)
+	})
+}
+
+func TestGetChildrenOfFolderBasedOnPath(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "file_tree_path_test")
+	assert.NoError(t, err)
+	defer os.RemoveAll(tempDir)
+
+	notesDir := filepath.Join(tempDir, "notes")
+	err = os.Mkdir(notesDir, 0755)
+	assert.NoError(t, err)
+
+	testFolder := filepath.Join(notesDir, "test_folder")
+	err = os.Mkdir(testFolder, 0755)
+	assert.NoError(t, err)
+
+	// Create test files (sorted: file1.txt, file2.md, file3.txt, subdir)
+	err = os.WriteFile(filepath.Join(testFolder, "file1.txt"), []byte("content"), 0644)
+	assert.NoError(t, err)
+	err = os.WriteFile(filepath.Join(testFolder, "file2.md"), []byte("content"), 0644)
+	assert.NoError(t, err)
+	err = os.WriteFile(filepath.Join(testFolder, "file3.txt"), []byte("content"), 0644)
+	assert.NoError(t, err)
+	err = os.Mkdir(filepath.Join(testFolder, "subdir"), 0755)
+	assert.NoError(t, err)
+
+	testParentId := "test-parent-uuid"
+
+	t.Run("basic range from start to file2.md", func(t *testing.T) {
+		page, err := GetChildrenOfFolderBasedOnPath(tempDir, "test_folder", testParentId, "", "file2.md")
+		assert.NoError(t, err)
+		assert.Len(t, page.Items, 2)
+		assert.Equal(t, "file1.txt", page.Items[0].Name)
+		assert.Equal(t, "file2.md", page.Items[1].Name)
+		assert.True(t, page.HasMore)
+	})
+
+	t.Run("mid-range cursor=file1.txt endCursor=subdir", func(t *testing.T) {
+		page, err := GetChildrenOfFolderBasedOnPath(tempDir, "test_folder", testParentId, "file1.txt", "subdir")
+		assert.NoError(t, err)
+		assert.Len(t, page.Items, 3)
+		assert.Equal(t, "file2.md", page.Items[0].Name)
+		assert.Equal(t, "file3.txt", page.Items[1].Name)
+		assert.Equal(t, "subdir", page.Items[2].Name)
+		assert.False(t, page.HasMore)
+	})
+
+	t.Run("endCursor is last item", func(t *testing.T) {
+		page, err := GetChildrenOfFolderBasedOnPath(tempDir, "test_folder", testParentId, "", "subdir")
+		assert.NoError(t, err)
+		assert.Len(t, page.Items, 4)
+		assert.False(t, page.HasMore)
+	})
+
+	t.Run("endCursor beyond all items returns error", func(t *testing.T) {
+		_, err := GetChildrenOfFolderBasedOnPath(tempDir, "test_folder", testParentId, "file1.txt", "zzz")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("endCursor not in directory returns error", func(t *testing.T) {
+		_, err := GetChildrenOfFolderBasedOnPath(tempDir, "test_folder", testParentId, "", "nonexistent.txt")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("endCursor before cursor returns empty page", func(t *testing.T) {
+		page, err := GetChildrenOfFolderBasedOnPath(tempDir, "test_folder", testParentId, "file2.md", "file1.txt")
+		assert.NoError(t, err)
+		assert.Empty(t, page.Items)
+		assert.False(t, page.HasMore)
+	})
+
+	t.Run("non-existent folder returns error", func(t *testing.T) {
+		page, err := GetChildrenOfFolderBasedOnPath(tempDir, "missing", testParentId, "", "file1.txt")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "does not exist")
+		assert.Empty(t, page.Items)
+	})
+
+	t.Run("path is a file returns error", func(t *testing.T) {
+		page, err := GetChildrenOfFolderBasedOnPath(tempDir, "test_folder/file1.txt", testParentId, "", "file1.txt")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "is not a folder")
+		assert.Empty(t, page.Items)
+	})
+
+	t.Run("parentId is assigned to all items", func(t *testing.T) {
+		page, err := GetChildrenOfFolderBasedOnPath(tempDir, "test_folder", testParentId, "", "subdir")
+		assert.NoError(t, err)
+		for _, item := range page.Items {
+			assert.Equal(t, testParentId, item.ParentId)
+		}
 	})
 }
 

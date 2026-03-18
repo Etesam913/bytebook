@@ -87,7 +87,7 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
   function renderItem(index: number, dataItem: VirtualizedFileTreeItem) {
     return (
       <div
-        className="contents"
+        className="w-full"
         data-file-tree-index={index}
         onClickCapture={(e) => {
           handleFileTreeItemClickCapture(

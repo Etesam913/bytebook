@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { GetChildrenOfFolder } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
+import { GetChildrenOfFolderBasedOnLimit } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { QueryError } from '../../../../utils/query';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { FILE_TYPE, FOLDER_TYPE } from '../types';
@@ -41,7 +41,7 @@ export function useOpenFolderMutation(options?: { pageSize?: number }) {
       }
 
       const cursorToUse = isLoadMore ? (folderData.childrenCursor ?? '') : '';
-      const res = await GetChildrenOfFolder(
+      const res = await GetChildrenOfFolderBasedOnLimit(
         pathToFolder,
         folderId,
         cursorToUse,

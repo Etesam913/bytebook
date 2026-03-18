@@ -1,9 +1,10 @@
 import type {
   FileOrFolder,
   FlattenedFileOrFolder,
+  Folder,
   VirtualizedFileTreeItem,
 } from '../types';
-import { FOLDER_TYPE, LOAD_MORE_TYPE } from '../types';
+import { FILE_TYPE, FOLDER_TYPE, LOAD_MORE_TYPE } from '../types';
 import type { FileTreeData } from '../../../../atoms';
 
 /**
@@ -119,17 +120,16 @@ export function transformFileTreeForVirtualizedList(
  * @param fileTreeData - The file tree state object containing the maps to update.
  * @param folderIdToRemove - The unique ID of the file or folder to start removal from.
  */
-function removeSubtree(
+export function removeSubtree(
   fileTreeData: FileTreeData,
   folderIdToRemove: string
 ): void {
   const { treeData, filePathToTreeDataId } = fileTreeData;
   const root = treeData.get(folderIdToRemove);
-  if (!root) return;
-  if (root.type === FOLDER_TYPE) {
-    for (const childId of root.childrenIds) {
-      removeSubtree(fileTreeData, childId);
-    }
+  if (!root || root.type !== FOLDER_TYPE) return;
+
+  for (const childId of root.childrenIds) {
+    removeSubtree(fileTreeData, childId);
   }
 
   // Remove from both maps to keep in sync
@@ -411,6 +411,27 @@ export function getTreeNodeFromPath(
 }
 
 /**
+ * Helper function to get a node's parent from the map using the node path.
+ * Returns the parent node, or null when the path is top-level or the parent doesn't exist.
+ */
+export function getParentNodeFromPath(
+  fileTreeData: FileTreeData,
+  path: string
+): Folder | null {
+  const segments = path.split('/').filter(Boolean);
+  if (segments.length <= 1) {
+    return null;
+  }
+
+  const parentPath = segments.slice(0, -1).join('/');
+  const parentNode = getTreeNodeFromPath(fileTreeData, parentPath);
+  if (!parentNode || parentNode.type !== FOLDER_TYPE) {
+    return null;
+  }
+  return parentNode;
+}
+
+/**
  * Returns folder paths from shallowest to deepest for a file path.
  * Example: "a/b/c.md" -> ["a", "a/b"]
  */
@@ -441,4 +462,151 @@ export function pathExistsInFileTree(
  */
 export function isFileTreeNodeTopLevel(node: FileOrFolder): boolean {
   return node.parentId === null;
+}
+
+/**
+ * Extracts the file/folder name from the last segment of a path.
+ */
+export function getNewlyCreatedNodeNameFromPath(
+  newlyCreatedNodePath: string
+): string {
+  const segments = newlyCreatedNodePath.split('/').filter(Boolean);
+  return segments[segments.length - 1];
+}
+
+/**
+ * Returns true if the newly created node's name would be inserted somewhere
+ * before the last loaded child of its parent (i.e. it belongs within the
+ * already-visible range). Returns false when the name sorts after all loaded
+ * children, meaning it would land at the end (possibly beyond a pagination
+ * boundary).
+ */
+export function isCreatedNodeInParentLoadedChildren(
+  fileTreeData: FileTreeData,
+  newlyCreatedNodePath: string
+): boolean {
+  const newlyCreatedNodeName =
+    getNewlyCreatedNodeNameFromPath(newlyCreatedNodePath);
+
+  const parent = getParentNodeFromPath(fileTreeData, newlyCreatedNodePath);
+  if (!parent || parent.type !== FOLDER_TYPE) return false;
+
+  const childrenNames = parent.childrenIds
+    .map((id) => fileTreeData.treeData.get(id)?.name)
+    .filter((name): name is string => name !== undefined);
+
+  if (childrenNames.length === 0) return false;
+
+  const lastChildName = childrenNames[childrenNames.length - 1];
+  return newlyCreatedNodeName.localeCompare(lastChildName) < 0;
+}
+
+/**
+ * Places the newly created node in the parent's loaded children, maintaining sorted order.
+ * Returns the updated list of child IDs for the parent node and the created node id.
+ */
+export function placeCreatedNodeInParentLoadedChildren(
+  fileTreeData: FileTreeData,
+  newlyCreatedNodePath: string
+): {
+  newChildrenIds: string[];
+  newlyCreatedNodeId: string;
+} {
+  const newlyCreatedNodeName =
+    getNewlyCreatedNodeNameFromPath(newlyCreatedNodePath);
+  const newlyCreatedNodeId = globalThis.crypto.randomUUID();
+
+  const parent = getParentNodeFromPath(fileTreeData, newlyCreatedNodePath);
+  if (!parent || parent.type !== FOLDER_TYPE) {
+    return { newChildrenIds: [], newlyCreatedNodeId };
+  }
+
+  const parentChildrenNames = parent.childrenIds
+    .map((id) => fileTreeData.treeData.get(id)?.name)
+    .filter((name): name is string => name !== undefined);
+
+  const sortedNewChildrenNames = [...parentChildrenNames, newlyCreatedNodeName];
+  sortedNewChildrenNames.sort();
+
+  const sortedNewChildrenIds = sortedNewChildrenNames.map((name) => {
+    const id = parent.childrenIds.find(
+      (id) => fileTreeData.treeData.get(id)?.name === name
+    );
+    return id ?? newlyCreatedNodeId;
+  });
+
+  return {
+    newChildrenIds: sortedNewChildrenIds,
+    newlyCreatedNodeId,
+  };
+}
+
+/**
+ * Optimistically inserts a newly created node into the file tree data.
+ * Returns updated FileTreeData if insertion succeeded, or null if skipped
+ * (path already exists, no parent found, or node sorts beyond loaded children).
+ */
+export function insertCreatedNodeIntoFileTree(
+  prev: FileTreeData,
+  path: string,
+  nodeType: 'folder' | 'file'
+): FileTreeData | null {
+  // Skip if already in tree
+  if (prev.filePathToTreeDataId.has(path)) {
+    return null;
+  }
+
+  const parent = getParentNodeFromPath(prev, path);
+  if (!parent) {
+    return null;
+  }
+
+  // Check if node fits within loaded children range
+  // If it does not, then useRevealRoutePath will reveal the node on navigation to the path
+  if (!isCreatedNodeInParentLoadedChildren(prev, path)) {
+    return null;
+  }
+
+  const { newChildrenIds, newlyCreatedNodeId } =
+    placeCreatedNodeInParentLoadedChildren(prev, path);
+
+  const newTreeData = new Map(prev.treeData);
+  const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
+
+  // Update parent's children
+  newTreeData.set(parent.id, {
+    ...parent,
+    childrenIds: newChildrenIds,
+  });
+
+  // Add the new node
+  const nodeName = getNewlyCreatedNodeNameFromPath(path);
+  if (nodeType === 'folder') {
+    newTreeData.set(newlyCreatedNodeId, {
+      type: FOLDER_TYPE,
+      name: nodeName,
+      path,
+      childrenIds: [],
+      id: newlyCreatedNodeId,
+      parentId: parent.id,
+      hasMoreChildren: false,
+      isOpen: false,
+      childrenCursor: '',
+    });
+  } else {
+    newTreeData.set(newlyCreatedNodeId, {
+      type: FILE_TYPE,
+      name: nodeName,
+      path,
+      id: newlyCreatedNodeId,
+      parentId: parent.id,
+    });
+  }
+
+  newFilePathToTreeDataId.set(path, newlyCreatedNodeId);
+
+  return {
+    treeData: newTreeData,
+    filePathToTreeDataId: newFilePathToTreeDataId,
+  };
 }

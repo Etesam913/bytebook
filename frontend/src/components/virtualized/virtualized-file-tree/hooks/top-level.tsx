@@ -46,7 +46,6 @@ function useTopLevelFileOrFoldersQuery() {
               hasMoreChildren: false,
               isOpen: false,
               parentId: null,
-              isStale: false,
             });
             break;
         }
