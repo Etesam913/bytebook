@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { logger } from '../utils/logging';
-import { useAtom, useSetAtom, useStore } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
 import { fileTreeDataAtom } from '../atoms';
 import { removeFolderFromFileTreeMap } from '../components/virtualized/virtualized-file-tree/utils/file-tree-utils';
 import {
@@ -14,66 +14,12 @@ import { navigate } from 'wouter/use-browser-location';
 import { createFilePath, createFolderPath } from '../utils/path';
 import { routeUrls } from '../utils/routes';
 import { useFilePathFromRoute, useCurrentNotesRouteFolderPath } from './routes';
-import { FOLDER_TYPE } from '../components/virtualized/virtualized-file-tree/types';
-import { useRevealRoutePath } from '../components/virtualized/virtualized-file-tree/hooks/use-reveal-route-path';
-
 function normalizeFolderPath(path: string): string | null {
   return createFolderPath(path)?.fullPath ?? null;
 }
 
 function isPrefixOrSamePath(path: string, maybePrefix: string): boolean {
   return path === maybePrefix || path.startsWith(`${maybePrefix}/`);
-}
-
-/** This function is used to handle `folder:create` events */
-export function useFolderCreate() {
-  const queryClient = useQueryClient();
-  const store = useStore();
-  const { mutateAsync: revealRoutePathAsync } = useRevealRoutePath();
-
-  useWailsEvent('folder:create', async (body) => {
-    logger.event('folder:create', body);
-    const data = body.data as { folderPath: string }[];
-    let needsTopLevelInvalidation = false;
-    const pathsToReveal: string[] = [];
-
-    for (const { folderPath } of data) {
-      const fileTreeData = store.get(fileTreeDataAtom);
-      if (fileTreeData.filePathToTreeDataId.has(folderPath)) {
-        continue;
-      }
-
-      const segments = folderPath.split('/').filter(Boolean);
-      if (segments.length === 1) {
-        needsTopLevelInvalidation = true;
-        continue;
-      }
-
-      const parentPath = segments.slice(0, -1).join('/');
-      const parentId = fileTreeData.filePathToTreeDataId.get(parentPath);
-      if (!parentId) {
-        needsTopLevelInvalidation = true;
-        continue;
-      }
-
-      const parent = fileTreeData.treeData.get(parentId);
-
-      // Only need to reveal if the parent is a folder and is open
-      if (!parent || parent.type !== FOLDER_TYPE || !parent.isOpen) {
-        continue;
-      }
-
-      pathsToReveal.push(folderPath);
-    }
-
-    if (needsTopLevelInvalidation) {
-      queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-    }
-
-    for (const folderPath of pathsToReveal) {
-      await revealRoutePathAsync(folderPath);
-    }
-  });
 }
 
 /** This function is used to handle `folder:delete` events. This gets triggered when deleting a folder using the file system */

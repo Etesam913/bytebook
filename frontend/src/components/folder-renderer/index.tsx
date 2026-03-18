@@ -222,6 +222,7 @@ export function FolderRenderer({
             components={gridComponents}
             itemContent={(_, item) => <FolderRendererCard item={item} />}
             endReached={() => {
+              if (!currentFolderNode.hasMoreChildren) return;
               openFolder({
                 pathToFolder: folderNode.path,
                 folderId: folderNode.id,

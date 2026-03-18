@@ -25,9 +25,7 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { backendQueryAtom, sidebarSelectionAtom } from '../../../../atoms';
 import { QueryError } from '../../../../utils/query';
-import { setSkipRevealForPath } from '../utils/route-focus-intent';
-
-const CREATE_NAVIGATION_DELAY_MS = 300;
+import { insertCreatedNodeIntoFileTree } from '../utils/file-tree-utils';
 
 /**
  * A mutation hook for adding new tree items (folders or notes) to the file tree.
@@ -35,6 +33,8 @@ const CREATE_NAVIGATION_DELAY_MS = 300;
  * to the newly created item.
  */
 export function useAddTreeItemMutation() {
+  const setFileTreeData = useSetAtom(fileTreeDataAtom);
+
   return useMutation({
     mutationFn: async ({
       parentFolder,
@@ -66,7 +66,6 @@ export function useAddTreeItemMutation() {
           parentPath: parentFolder?.path ?? '',
           newName,
           newFolderPath,
-          shouldSkipReveal: Boolean(parentFolder?.isOpen),
         };
       }
 
@@ -85,25 +84,38 @@ export function useAddTreeItemMutation() {
     },
     onSuccess: (result, variables) => {
       if (result.addType === 'folder') {
+        // Optimistically insert the node into tree data
+        setFileTreeData(
+          (prev) =>
+            insertCreatedNodeIntoFileTree(
+              prev,
+              result.newFolderPath,
+              FOLDER_TYPE
+            ) ?? prev
+        );
+
         const folderPath = createFolderPath(result.newFolderPath);
-        if (result.shouldSkipReveal) {
-          setSkipRevealForPath(result.newFolderPath);
+        if (folderPath) {
+          navigate(folderPath.encodedFolderUrl);
         }
-        setTimeout(() => {
-          if (folderPath) {
-            navigate(folderPath.encodedFolderUrl);
-          }
-        }, CREATE_NAVIGATION_DELAY_MS);
       }
 
       if (result.addType === 'note') {
+        // Optimistically insert the node into tree data
+        setFileTreeData((prev) => {
+          return (
+            insertCreatedNodeIntoFileTree(
+              prev,
+              result.newNotePath,
+              FILE_TYPE
+            ) ?? prev
+          );
+        });
+
         const filePath = createFilePath(result.newNotePath);
-        setSkipRevealForPath(result.newNotePath);
-        setTimeout(() => {
-          if (filePath) {
-            navigate(filePath.encodedFileUrl);
-          }
-        }, CREATE_NAVIGATION_DELAY_MS);
+        if (filePath) {
+          navigate(filePath.encodedFileUrl);
+        }
       }
 
       variables.onSuccess?.();

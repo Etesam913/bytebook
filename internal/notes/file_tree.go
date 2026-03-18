@@ -57,7 +57,7 @@ func readDirectoryEntries(fullPath string, pathPrefix string) ([]FileOrFolder, e
 	return items, nil
 }
 
-func GetChildrenOfFolder(projectPath, pathToFolder, parentId, cursor string, limit int) (FileOrFolderPage, error) {
+func GetChildrenOfFolderBasedOnLimit(projectPath, pathToFolder, parentId, cursor string, limit int) (FileOrFolderPage, error) {
 	fullPathToFolder := filepath.Join(projectPath, "notes", pathToFolder)
 	fileInfo, err := os.Stat(fullPathToFolder)
 
@@ -107,6 +107,79 @@ func GetChildrenOfFolder(projectPath, pathToFolder, parentId, cursor string, lim
 
 	hasMore := endIndex < len(children)
 	// is nextCursor calculated correcrlt?
+	nextCursor := ""
+	if hasMore && len(pageItems) > 0 {
+		nextCursor = pageItems[len(pageItems)-1].Name
+	}
+
+	return FileOrFolderPage{
+		Items:      pageItems,
+		NextCursor: nextCursor,
+		HasMore:    hasMore,
+	}, nil
+}
+
+func GetChildrenOfFolderBasedOnPath(projectPath, pathToFolder, parentId, cursor, endCursor string) (FileOrFolderPage, error) {
+	fullPathToFolder := filepath.Join(projectPath, "notes", pathToFolder)
+	fileInfo, err := os.Stat(fullPathToFolder)
+
+	if os.IsNotExist(err) {
+		return FileOrFolderPage{}, fmt.Errorf("%s does not exist", pathToFolder)
+	}
+
+	if err != nil {
+		return FileOrFolderPage{}, err
+	}
+
+	if !fileInfo.IsDir() {
+		return FileOrFolderPage{}, fmt.Errorf("%s is not a folder, so it does not have children", pathToFolder)
+	}
+
+	children, err := readDirectoryEntries(
+		fullPathToFolder,
+		pathToFolder,
+	)
+
+	if err != nil {
+		return FileOrFolderPage{}, fmt.Errorf("Could not read entries in %s", pathToFolder)
+	}
+
+	sort.Slice(children, func(i, j int) bool {
+		return children[i].Name < children[j].Name
+	})
+
+	// Verify endCursor exists in the directory entries
+	endCursorIdx := sort.Search(len(children), func(i int) bool {
+		return children[i].Name >= endCursor
+	})
+	if endCursorIdx >= len(children) || children[endCursorIdx].Name != endCursor {
+		return FileOrFolderPage{}, fmt.Errorf("endCursor %q not found in %s", endCursor, pathToFolder)
+	}
+
+	startIndex := 0
+	if cursor != "" {
+		startIndex = sort.Search(len(children), func(i int) bool {
+			return children[i].Name > cursor
+		})
+	}
+
+	// endIndex: first item with Name > endCursor (i.e., include endCursor itself)
+	endIndex := endCursorIdx + 1
+
+	if startIndex >= endIndex {
+		return FileOrFolderPage{
+			Items:      []FileOrFolder{},
+			NextCursor: "",
+			HasMore:    false,
+		}, nil
+	}
+
+	pageItems := children[startIndex:endIndex]
+	for i := range pageItems {
+		pageItems[i].ParentId = parentId
+	}
+
+	hasMore := endIndex < len(children)
 	nextCursor := ""
 	if hasMore && len(pageItems) > 0 {
 		nextCursor = pageItems[len(pageItems)-1].Name

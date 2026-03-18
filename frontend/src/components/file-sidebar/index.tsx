@@ -2,11 +2,8 @@ import { type MotionValue, motion } from 'motion/react';
 import { useAtomValue } from 'jotai';
 import { getDefaultButtonVariants } from '../../animations.ts';
 import { isFullscreenAtom } from '../../atoms.ts';
-import {
-  useFolderCreate,
-  useFolderDelete,
-  useFolderRename,
-} from '../../hooks/folders.tsx';
+import { useFolderRename } from '../../hooks/folders.tsx';
+import { useDeleteEvents } from '../virtualized/virtualized-file-tree/hooks/use-delete-events';
 import { MotionIconButton } from '../buttons/index.tsx';
 import { BottomItems } from './bottom-items.tsx';
 import { MyFilesAccordion } from './my-files-accordion/index.tsx';
@@ -23,18 +20,13 @@ import { MyKernelsAccordion } from './my-kernels-accordion/index.tsx';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index.tsx';
 import { Tooltip } from '../tooltip/index.tsx';
 import { cn } from '../../utils/string-formatting.ts';
-import {
-  useNoteCreate,
-  useNoteDelete,
-  useNoteRename,
-} from '../../hooks/notes.tsx';
+import { useNoteRename } from '../../hooks/notes.tsx';
+import { useCreateEvents } from '../virtualized/virtualized-file-tree/hooks/use-create-events.ts';
 
 export function FileSidebar({ width }: { width: MotionValue<number> }) {
-  useFolderCreate();
-  useFolderDelete();
+  useCreateEvents();
+  useDeleteEvents();
   useFolderRename();
-  useNoteCreate();
-  useNoteDelete();
   useNoteRename();
 
   const isFullscreen = useAtomValue(isFullscreenAtom);

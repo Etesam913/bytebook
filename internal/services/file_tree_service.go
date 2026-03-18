@@ -15,8 +15,27 @@ type FileTreeService struct {
 	FileWatcher *fsnotify.Watcher
 }
 
-func (f *FileTreeService) GetChildrenOfFolder(pathToFolder string, parentId string, cursor string, limit int) config.BackendResponseWithData[notes.FileOrFolderPage] {
-	childrenFileOrFolders, err := notes.GetChildrenOfFolder(f.ProjectPath, pathToFolder, parentId, cursor, limit)
+func (f *FileTreeService) GetChildrenOfFolderBasedOnLimit(pathToFolder string, parentId string, cursor string, limit int) config.BackendResponseWithData[notes.FileOrFolderPage] {
+	childrenFileOrFolders, err := notes.GetChildrenOfFolderBasedOnLimit(f.ProjectPath, pathToFolder, parentId, cursor, limit)
+
+	if err != nil {
+		return config.BackendResponseWithData[notes.FileOrFolderPage]{
+			Success: false,
+			Message: err.Error(),
+		}
+	}
+
+	return config.BackendResponseWithData[notes.FileOrFolderPage]{
+		Success: true,
+		Message: "Successfully retrieved children",
+		Data:    childrenFileOrFolders,
+	}
+}
+
+func (f *FileTreeService) GetChildrenOfFolderBasedOnPath(
+	pathToFolder, parentId, cursor, endCursor string,
+) config.BackendResponseWithData[notes.FileOrFolderPage] {
+	childrenFileOrFolders, err := notes.GetChildrenOfFolderBasedOnPath(f.ProjectPath, pathToFolder, parentId, cursor, endCursor)
 
 	if err != nil {
 		return config.BackendResponseWithData[notes.FileOrFolderPage]{

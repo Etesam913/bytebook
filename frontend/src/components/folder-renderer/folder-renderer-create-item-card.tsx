@@ -6,14 +6,10 @@ import { Folder as FolderIcon } from '../../icons/folder';
 import { useAddTreeItemMutation } from '../virtualized/virtualized-file-tree/hooks/tree-item-mutations';
 import { type Folder } from '../virtualized/virtualized-file-tree/types';
 
-export function FolderRendererCreateItemCard({
-  folder,
-}: {
-  folder: Folder;
-}) {
-  const [creatingItemType, setCreatingItemType] = useState<'folder' | 'note' | null>(
-    null
-  );
+export function FolderRendererCreateItemCard({ folder }: { folder: Folder }) {
+  const [creatingItemType, setCreatingItemType] = useState<
+    'folder' | 'note' | null
+  >(null);
   const {
     mutate: addTreeItem,
     isPending: isCreatingItem,
@@ -68,7 +64,8 @@ export function FolderRendererCreateItemCard({
   }
 
   const isCreatingFolder = creatingItemType === 'folder';
-  const previewName = value.trim() || (isCreatingFolder ? 'New folder' : 'New note');
+  const previewName =
+    value.trim() || (isCreatingFolder ? 'New folder' : 'New note');
   const previewPath = isCreatingFolder
     ? `${folder.path}/${previewName}`
     : `${folder.path}/${previewName}.md`;
