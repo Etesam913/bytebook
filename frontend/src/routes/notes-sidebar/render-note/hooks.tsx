@@ -1,7 +1,7 @@
 import { useSetAtom } from 'jotai';
 import { isNoteMaximizedAtom } from '../../../atoms';
 import { useWailsEvent, type WailsEvent } from '../../../hooks/events';
-import { isEventInCurrentWindow } from '../../../utils/events';
+import { isEventInCurrentWindow, TOGGLE_SIDEBAR } from '../../../utils/events';
 import { LegacyAnimationControls } from 'motion';
 import { easingFunctions } from '../../../animations';
 import { logger } from '../../../utils/logging';
@@ -15,7 +15,7 @@ export function useToggleSidebarEvent(
 ): void {
   const setIsNoteMaximized = useSetAtom(isNoteMaximizedAtom);
 
-  useWailsEvent('sidebar:toggle', async (data: WailsEvent) => {
+  useWailsEvent(TOGGLE_SIDEBAR, async (data: WailsEvent) => {
     if (!(await isEventInCurrentWindow(data))) return;
     logger.event('sidebar:toggle');
     setIsNoteMaximized((prev) => {

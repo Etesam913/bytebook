@@ -5,7 +5,7 @@ import { Folder as FolderIcon } from '../../../../../icons/folder';
 import { FolderOpen } from '../../../../../icons/folder-open';
 import { FolderPen } from '../../../../../icons/folder-pen';
 import { Blog } from '../../../../../icons/blog';
-import type { Folder } from '../../types';
+import { FILE_TYPE, FOLDER_TYPE, type Folder } from '../../types';
 import {
   contextMenuDataAtom,
   type SidebarSelectionState,
@@ -23,9 +23,10 @@ import { fileTreeDataAtom } from '../../../../../atoms';
 import {
   useFileTreeFolderAddActions,
   useFileTreeFolderRenameActions,
-  type OpenFolderArgs,
+  type FetchFolderChildrenArgs,
 } from './hooks';
-import { getFileTreeItemIndent } from '../../utils/file-tree-utils';
+import { getFileTreeItemIndent, hasLoadedChildren } from '../../utils/file-tree-utils';
+import { setFolderOpen } from '../../hooks/open-folder';
 import {
   createDragGhostElement,
   getContextMenuSelectionItems,
@@ -41,18 +42,18 @@ import { useFolderPathFromRoute } from '../../../../../hooks/routes';
 
 export function FileTreeFolderItem({
   dataItem,
-  openFolder,
+  fetchFolderChildren,
   onSelectionClick,
   addItemToSidebarSelection,
   isSelectedFromSidebarClick,
-  isOpenFolderPending,
+  isFetchPending,
 }: {
   dataItem: Folder & { level: number };
-  openFolder: (args: OpenFolderArgs) => void;
+  fetchFolderChildren: (args: FetchFolderChildrenArgs) => void;
   onSelectionClick: (e: MouseEvent) => void;
   addItemToSidebarSelection: () => SidebarSelectionState | null;
   isSelectedFromSidebarClick: boolean;
-  isOpenFolderPending: boolean;
+  isFetchPending: boolean;
 }) {
   const [isDraggedOver, setIsDraggedOver] = useState(false);
 
@@ -90,8 +91,8 @@ export function FileTreeFolderItem({
       ? folderPathFromRoute.equals(resolvedFolderPath)
       : false;
 
-  async function handleClick(e: MouseEvent) {
-    if (dataItem.type !== 'folder') {
+  function handleClick(e: MouseEvent) {
+    if (dataItem.type !== FOLDER_TYPE) {
       return;
     }
 
@@ -108,19 +109,12 @@ export function FileTreeFolderItem({
       if (resolvedFolderPath) {
         navigate(resolvedFolderPath.encodedFolderUrl);
       }
-      if (!dataItem.isOpen) {
-        openFolder({
+      const willOpen = !dataItem.isOpen;
+      setFolderOpen({ setFileTreeData, folderId: dataItem.id, isOpen: willOpen });
+      if (willOpen && !hasLoadedChildren(dataItem)) {
+        fetchFolderChildren({
           pathToFolder: dataItem.path,
           folderId: dataItem.id,
-        });
-      } else {
-        setFileTreeData((prev) => {
-          const newTreeData = new Map(prev.treeData);
-          newTreeData.set(dataItem.id, { ...dataItem, isOpen: false });
-          return {
-            ...prev,
-            treeData: newTreeData,
-          };
         });
       }
     }
@@ -138,7 +132,7 @@ export function FileTreeFolderItem({
             'bg-(--accent-color)! text-white!'
         )}
       >
-        {dataItem.type === 'folder' && dataItem.isOpen ? (
+        {dataItem.type === FOLDER_TYPE && dataItem.isOpen ? (
           <FolderOpen
             className="min-w-4 min-h-4 will-change-transform"
             height={16}
@@ -161,7 +155,7 @@ export function FileTreeFolderItem({
           exitEditMode={exitEditMode}
           onSave={onRenameSave}
         />
-        {isOpenFolderPending && (
+        {isFetchPending && (
           <motion.span
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -180,14 +174,14 @@ export function FileTreeFolderItem({
     currentZoom
   );
   const inlineInput = addingType &&
-    dataItem.type === 'folder' &&
+    dataItem.type === FOLDER_TYPE &&
     dataItem.isOpen && (
       <div
         style={{ paddingLeft: `${paddingForItemToAdd}px` }}
         className="flex items-center w-full relative rounded-md py-0.25"
       >
         <span className="rounded-md flex items-center gap-2 z-10 py-1 pr-2 overflow-hidden w-full">
-          {addingType === 'folder' ? (
+          {addingType === FOLDER_TYPE ? (
             <FolderIcon
               className="min-w-4 min-h-4"
               height={16}
@@ -209,8 +203,8 @@ export function FileTreeFolderItem({
             errorText={addErrorText}
             exitEditMode={closeAddInput}
             onSave={onAddSave}
-            placeholder={addingType === 'folder' ? 'New folder' : 'New note'}
-            extension={addingType === 'note' ? 'md' : undefined}
+            placeholder={addingType === FOLDER_TYPE ? 'New folder' : 'New note'}
+            extension={addingType === FILE_TYPE ? 'md' : undefined}
           />
         </span>
       </div>
@@ -275,7 +269,7 @@ export function FileTreeFolderItem({
         }}
         onClick={handleClick}
         onContextMenu={(e) => {
-          if (dataItem.type !== 'folder') return;
+          if (dataItem.type !== FOLDER_TYPE) return;
 
           e.preventDefault();
           const newSelectionState = addItemToSidebarSelection();
@@ -301,13 +295,16 @@ export function FileTreeFolderItem({
                   value: 'create-folder',
                   onChange: () => {
                     if (!dataItem.isOpen) {
-                      openFolder({
-                        pathToFolder: dataItem.path,
-                        folderId: dataItem.id,
-                      });
+                      setFolderOpen({ setFileTreeData, folderId: dataItem.id, isOpen: true });
+                      if (!hasLoadedChildren(dataItem)) {
+                        fetchFolderChildren({
+                          pathToFolder: dataItem.path,
+                          folderId: dataItem.id,
+                        });
+                      }
                     }
                     resetAddTreeItem();
-                    setAddingType('folder');
+                    setAddingType(FOLDER_TYPE);
                   },
                 },
               ]
@@ -324,13 +321,16 @@ export function FileTreeFolderItem({
                   value: 'create-note',
                   onChange: () => {
                     if (!dataItem.isOpen) {
-                      openFolder({
-                        pathToFolder: dataItem.path,
-                        folderId: dataItem.id,
-                      });
+                      setFolderOpen({ setFileTreeData, folderId: dataItem.id, isOpen: true });
+                      if (!hasLoadedChildren(dataItem)) {
+                        fetchFolderChildren({
+                          pathToFolder: dataItem.path,
+                          folderId: dataItem.id,
+                        });
+                      }
                     }
                     resetAddTreeItem();
-                    setAddingType('note');
+                    setAddingType(FILE_TYPE);
                   },
                 },
               ]

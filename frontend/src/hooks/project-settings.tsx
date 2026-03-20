@@ -20,7 +20,11 @@ import {
   validateEditorFontSize,
   validateProjectSettings,
 } from '../utils/project-settings';
-import { isEventInCurrentWindow } from '../utils/events';
+import {
+  isEventInCurrentWindow,
+  SETTINGS_OPEN,
+  SETTINGS_UPDATE,
+} from '../utils/events';
 import { parseRGB } from '../utils/string-formatting';
 import { QueryError } from '../utils/query';
 import { ProjectSettingsJson } from '../../bindings/github.com/etesam913/bytebook/internal/config/models';
@@ -108,9 +112,9 @@ export function useProjectSettings() {
   }, []);
 
   // Open the settings dialog on 'settings:open' event.
-  useWailsEvent('settings:open', async (data) => {
+  useWailsEvent(SETTINGS_OPEN, async (data) => {
     if (!(await isEventInCurrentWindow(data))) return;
-    logger.event('settings:open', data);
+    logger.event(SETTINGS_OPEN, data);
     setDialogData({
       isOpen: true,
       isPending: false,
@@ -122,7 +126,7 @@ export function useProjectSettings() {
   });
 
   // Re-run the mutation when a 'settings:update' event is received.
-  useWailsEvent('settings:update', (body) => {
+  useWailsEvent(SETTINGS_UPDATE, (body) => {
     const projectSettings = body.data as ProjectSettingsJson;
     setProjectSettings(validateProjectSettingsWrapper(projectSettings));
     setProjectSettingsLoaded(true);

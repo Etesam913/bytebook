@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useWailsEvent } from './events';
+import { TAGS_INDEX_UPDATE } from '../utils/events';
 import { logger } from '../utils/logging';
 import {
   DeleteTags,
@@ -20,8 +21,8 @@ export function useTagEvents() {
   const queryClient = useQueryClient();
   const filePath = useFilePathFromRoute();
 
-  useWailsEvent('tags:index_update', () => {
-    logger.event('tags:index_update');
+  useWailsEvent(TAGS_INDEX_UPDATE, () => {
+    logger.event(TAGS_INDEX_UPDATE);
 
     queryClient.invalidateQueries({ queryKey: ['get-tags'] });
     if (filePath) {

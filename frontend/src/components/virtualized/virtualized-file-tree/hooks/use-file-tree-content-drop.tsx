@@ -1,6 +1,7 @@
 import { useAtomValue } from 'jotai';
 import { type FileTreeData, fileTreeDataAtom } from '../../../../atoms';
 import { useWailsEvent } from '../../../../hooks/events';
+import { FILE_TREE_CONTENT_DROP } from '../../../../utils/events';
 import { FILE_TYPE, FOLDER_TYPE } from '../types';
 import { useAddDroppedFilesToFolderMutation } from './tree-item-mutations';
 
@@ -51,7 +52,7 @@ export function useFileTreeContentDrop() {
   const fileTreeData = useAtomValue(fileTreeDataAtom);
   const { mutate: addDroppedFilesToFolder } = useAddDroppedFilesToFolderMutation();
 
-  useWailsEvent('file-tree:content-drop', (event) => {
+  useWailsEvent(FILE_TREE_CONTENT_DROP, (event) => {
     const data = event.data as FileTreeContentDropEventData;
     const droppedFiles = data.droppedFiles ?? [];
     if (droppedFiles.length === 0) {

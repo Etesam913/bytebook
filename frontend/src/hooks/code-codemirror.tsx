@@ -17,6 +17,10 @@ import {
   PythonCompletionMetadata,
   RawCompletionData,
 } from '../types';
+import {
+  CODE_BLOCK_COMPLETE_REPLY,
+  CODE_BLOCK_INSPECT_REPLY,
+} from '../utils/events';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { useWailsEvent } from './events';
 
@@ -46,7 +50,7 @@ export function useCompletionSource({
   const latestMessageId = useRef<string | null>(null);
 
   // Listen for completion replies
-  useWailsEvent('code:code-block:complete_reply', (body) => {
+  useWailsEvent(CODE_BLOCK_COMPLETE_REPLY, (body) => {
     const data = body.data as RawCompletionData[];
     if (data.length === 0) return;
     const rawCompletionData = data[0];
@@ -146,7 +150,7 @@ export function useInspectTooltip({
   executionId: string;
   pendingInspections: Map<string, (data: HoverTooltipData) => void>;
 }) {
-  useWailsEvent('code:code-block:inspect_reply', (body) => {
+  useWailsEvent(CODE_BLOCK_INSPECT_REPLY, (body) => {
     logger.event('code:code-block:inspect_reply', body);
     const data = body.data as {
       found: boolean;

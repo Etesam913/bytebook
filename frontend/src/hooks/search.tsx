@@ -15,7 +15,7 @@ import {
   RegenerateSearchIndex,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
 import { useWailsEvent } from '../hooks/events';
-import { isEventInCurrentWindow } from '../utils/events';
+import { isEventInCurrentWindow, SEARCH_OPEN, SAVED_SEARCH_UPDATE } from '../utils/events';
 import { useEffect, useRef } from 'react';
 import { createFilePath, type FilePath } from '../utils/path';
 import { HighlightResult } from '../../bindings/github.com/etesam913/bytebook/internal/search/models';
@@ -109,7 +109,7 @@ const searchQueries = {
  * - 'search:open': navigates to the search page or goes back if already there.
  */
 export function useSearch() {
-  useWailsEvent('search:open', async (data) => {
+  useWailsEvent(SEARCH_OPEN, async (data) => {
     if (!(await isEventInCurrentWindow(data))) return;
     // Check if already on /search, if so, go back
     if (window.location.pathname.startsWith('/search')) {
@@ -234,7 +234,7 @@ export function useDeleteSavedSearchMutation() {
 export function useSavedSearchUpdates() {
   const queryClient = useQueryClient();
 
-  useWailsEvent('saved-search:update', () => {
+  useWailsEvent(SAVED_SEARCH_UPDATE, () => {
     queryClient.invalidateQueries({
       queryKey: searchQueries.savedSearches().queryKey,
     });

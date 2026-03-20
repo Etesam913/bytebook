@@ -1,11 +1,16 @@
 import { useState } from 'react';
-import type { FlattenedFileOrFolder, Folder } from '../../types';
+import {
+  FILE_TYPE,
+  FOLDER_TYPE,
+  type FlattenedFileOrFolder,
+  type Folder,
+} from '../../types';
 import {
   useAddTreeItemMutation,
   useRenameTreeItemMutation,
 } from '../../hooks/tree-item-mutations';
 
-export type OpenFolderArgs = {
+export type FetchFolderChildrenArgs = {
   pathToFolder: string;
   folderId: string;
   isLoadMore?: boolean;
@@ -66,7 +71,9 @@ export function useFileTreeFolderAddActions({
 }: {
   dataItem: FlattenedFileOrFolder | null;
 }) {
-  const [addingType, setAddingType] = useState<'folder' | 'note' | null>(null);
+  const [addingType, setAddingType] = useState<
+    typeof FOLDER_TYPE | typeof FILE_TYPE | null
+  >(null);
   const {
     mutate: addTreeItem,
     error: addTreeItemError,
@@ -92,7 +99,7 @@ export function useFileTreeFolderAddActions({
       return;
     }
 
-    if (dataItem && dataItem.type !== 'folder') {
+    if (dataItem && dataItem.type !== FOLDER_TYPE) {
       closeAddInput();
       return;
     }

@@ -17,7 +17,7 @@ export function MaximizeNoteButton({
 
   return (
     <Tooltip
-      content={(isNoteMaximized ? 'Minimize note' : 'Maximize note') + ' (⌘S)'}
+      content={(isNoteMaximized ? 'Minimize' : 'Maximize') + ' (⌘S)'}
       placement="bottom"
     >
       <MotionIconButton

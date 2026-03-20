@@ -1,5 +1,6 @@
 import { useAtom, useSetAtom } from 'jotai/react';
 import { useWailsEvent, WailsEvent } from './events';
+import { ZOOM_IN, ZOOM_OUT, ZOOM_RESET, FULLSCREEN, WINDOW_RELOAD } from '../utils/events';
 import { logger } from '../utils/logging';
 import { atom } from 'jotai';
 import { isFullscreenAtom } from '../atoms';
@@ -56,21 +57,21 @@ export function useZoom() {
     document.body.style.zoom = currentZoom.toString();
   }, []);
 
-  useWailsEvent('zoom:in', () => {
+  useWailsEvent(ZOOM_IN, () => {
     const newZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);
     setCurrentZoom(newZoom);
 
     document.body.style.zoom = newZoom.toString();
   });
 
-  useWailsEvent('zoom:out', () => {
+  useWailsEvent(ZOOM_OUT, () => {
     const newZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
     setCurrentZoom(newZoom);
 
     document.body.style.zoom = newZoom.toString();
   });
 
-  useWailsEvent('zoom:reset', () => {
+  useWailsEvent(ZOOM_RESET, () => {
     setCurrentZoom(DEFAULT_ZOOM);
 
     document.body.style.zoom = DEFAULT_ZOOM.toString();
@@ -83,9 +84,9 @@ export function useZoom() {
 export function useFullscreen() {
   const setIsFullscreen = useSetAtom(isFullscreenAtom);
 
-  useWailsEvent('window:fullscreen', (event: WailsEvent) => {
+  useWailsEvent(FULLSCREEN, (event: WailsEvent) => {
     const isFullscreen = event.data as boolean;
-    logger.event('window:fullscreen', isFullscreen);
+    logger.event(FULLSCREEN, isFullscreen);
     setIsFullscreen(isFullscreen);
   });
 }
@@ -95,7 +96,7 @@ export function useFullscreen() {
  * and trigger a page reload.
  */
 export function useWindowReload() {
-  useWailsEvent('window:reload', () => {
+  useWailsEvent(WINDOW_RELOAD, () => {
     // Only refresh the window that currently has focus
     if (document.hasFocus()) {
       window.location.reload();

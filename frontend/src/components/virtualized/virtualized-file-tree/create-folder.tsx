@@ -4,7 +4,7 @@ import { getDefaultButtonVariants } from '../../../animations';
 import { InlineTreeItemInput } from './file-tree-item/inline-tree-item-input';
 import { Folder as FolderIcon } from '../../../icons/folder';
 import { useFileTreeFolderAddActions } from './file-tree-item/folder/hooks';
-import { Folder } from './types';
+import { FOLDER_TYPE, type Folder } from './types';
 
 export function CreateFolder() {
   const {
@@ -21,9 +21,8 @@ export function CreateFolder() {
     path: '',
     name: '',
     parentId: null,
-    type: 'folder',
+    type: FOLDER_TYPE,
     childrenIds: [],
-    hasLoadedChildren: false,
     childrenCursor: null,
     hasMoreChildren: false,
     isOpen: false,
@@ -42,18 +41,14 @@ export function CreateFolder() {
           onClick={() => {
             closeAddInput();
             resetAddTreeItem();
-            setAddingType('folder');
+            setAddingType(FOLDER_TYPE);
           }}
         >
-          <FolderPen
-            className="will-change-transform"
-            width={16}
-            height={16}
-          />
+          <FolderPen className="will-change-transform" width={16} height={16} />
           <span>Create Folder</span>
         </MotionButton>
       </div>
-      {addingType === 'folder' && (
+      {addingType === FOLDER_TYPE && (
         <div className="flex items-center w-full relative rounded-md py-0.25 pl-4.5">
           <span className="rounded-md flex items-center gap-2 z-10 py-1 overflow-hidden w-full">
             <FolderIcon

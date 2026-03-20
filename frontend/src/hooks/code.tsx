@@ -26,6 +26,20 @@ import { QueryError } from '../utils/query';
 import { $nodesOfType, LexicalEditor } from 'lexical';
 import { toast } from 'sonner';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
+import {
+  KERNEL_STATUS,
+  CODE_BLOCK_STATUS,
+  CODE_BLOCK_EXECUTE_RESULT,
+  CODE_BLOCK_EXECUTE_INPUT,
+  KERNEL_SHUTDOWN_REPLY,
+  KERNEL_HEARTBEAT,
+  KERNEL_LAUNCH_ERROR,
+  KERNEL_LAUNCH_SUCCESS,
+  CODE_BLOCK_STREAM,
+  CODE_BLOCK_IOPUB_ERROR,
+  CODE_BLOCK_DISPLAY_DATA,
+  CODE_BLOCK_INPUT_REQUEST,
+} from '../utils/events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import { Dispatch, FormEvent, SetStateAction } from 'react';
 import { runCode } from '../utils/code';
@@ -38,7 +52,7 @@ import { CodeMirrorRef } from '../components/code/types';
 export function useKernelStatus() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
 
-  useWailsEvent('code:kernel:status', (body) => {
+  useWailsEvent(KERNEL_STATUS, (body) => {
     logger.event('code:kernel:status');
     const data = body.data as {
       status: KernelStatus;
@@ -62,7 +76,7 @@ export function useKernelStatus() {
  * @param editor - The Lexical editor instance to update code blocks in
  */
 export function useCodeBlockStatus(editor: LexicalEditor) {
-  useWailsEvent('code:code-block:status', (body) => {
+  useWailsEvent(CODE_BLOCK_STATUS, (body) => {
     logger.event('code:code-block:status');
 
     const data = body.data as {
@@ -86,7 +100,7 @@ export function useCodeBlockStatus(editor: LexicalEditor) {
  * @param editor - The Lexical editor instance to update code blocks in
  */
 export function useCodeBlockExecuteResult(editor: LexicalEditor) {
-  useWailsEvent('code:code-block:execute_result', (body) => {
+  useWailsEvent(CODE_BLOCK_EXECUTE_RESULT, (body) => {
     logger.event('code:code-block:execute_result');
 
     const data = body.data as {
@@ -118,7 +132,7 @@ export function useCodeBlockExecuteResult(editor: LexicalEditor) {
  * @param editor - The Lexical editor instance to update code blocks in
  */
 export function useCodeBlockExecuteInput(editor: LexicalEditor) {
-  useWailsEvent('code:code-block:execute_input', (body) => {
+  useWailsEvent(CODE_BLOCK_EXECUTE_INPUT, (body) => {
     logger.event('code:code-block:execute_input');
 
     const data = body.data as {
@@ -148,7 +162,7 @@ export function useCodeBlockExecuteInput(editor: LexicalEditor) {
 export function useKernelShutdown() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
 
-  useWailsEvent('code:kernel:shutdown_reply', (body) => {
+  useWailsEvent(KERNEL_SHUTDOWN_REPLY, (body) => {
     logger.event('code:kernel:shutdown_reply');
     const data = body.data as {
       status: string;
@@ -179,7 +193,7 @@ export function useKernelHeartbeat() {
   const setKernelsData = useSetAtom(kernelsDataAtom);
   const setLoadingToastIds = useSetAtom(loadingToastIdsAtom);
 
-  useWailsEvent('code:kernel:heartbeat', (body) => {
+  useWailsEvent(KERNEL_HEARTBEAT, (body) => {
     logger.event('code:kernel:heartbeat', body);
     const data = body.data as {
       status: KernelHeartbeatStatus;
@@ -207,7 +221,7 @@ export function useKernelHeartbeat() {
 
 export function useKernelLaunchEvents(editor: LexicalEditor) {
   const setKernelsData = useSetAtom(kernelsDataAtom);
-  useWailsEvent('kernel:launch-error', (body) => {
+  useWailsEvent(KERNEL_LAUNCH_ERROR, (body) => {
     logger.event('kernel:launch-error');
     const data = body.data as {
       language: Languages;
@@ -233,7 +247,7 @@ export function useKernelLaunchEvents(editor: LexicalEditor) {
     });
   });
 
-  useWailsEvent('kernel:launch-success', (body) => {
+  useWailsEvent(KERNEL_LAUNCH_SUCCESS, (body) => {
     logger.event('kernel:launch-success');
     const data = body.data as {
       language: Languages;
@@ -323,7 +337,7 @@ function updateCodeBlock(
  * @param editor - The Lexical editor instance to update code blocks in
  */
 export function useCodeBlockStream(editor: LexicalEditor) {
-  useWailsEvent('code:code-block:stream', (body) => {
+  useWailsEvent(CODE_BLOCK_STREAM, (body) => {
     logger.event('code:code-block:stream');
     const data = body.data as {
       messageId: string;
@@ -349,7 +363,7 @@ export function useCodeBlockStream(editor: LexicalEditor) {
  * @param editor - The Lexical editor instance to update code blocks in
  */
 export function useCodeBlockIOPubError(editor: LexicalEditor) {
-  useWailsEvent('code:code-block:iopub_error', (body) => {
+  useWailsEvent(CODE_BLOCK_IOPUB_ERROR, (body) => {
     logger.event('code:code-block:iopub_error', body);
     const data = body.data as {
       messageId: string;
@@ -388,7 +402,7 @@ export function useCodeBlockIOPubError(editor: LexicalEditor) {
  * @param editor - The Lexical editor instance to update code blocks in
  */
 export function useCodeBlockDisplayData(editor: LexicalEditor) {
-  useWailsEvent('code:code-block:display_data', (body) => {
+  useWailsEvent(CODE_BLOCK_DISPLAY_DATA, (body) => {
     const data = body.data as {
       messageId: string;
       data: Record<string, string>;
@@ -412,7 +426,7 @@ export function useCodeBlockDisplayData(editor: LexicalEditor) {
  * @param editor - The Lexical editor instance to update code blocks in
  */
 export function useCodeBlockInputRequest(editor: LexicalEditor) {
-  useWailsEvent('code:code-block:input_request', (body) => {
+  useWailsEvent(CODE_BLOCK_INPUT_REQUEST, (body) => {
     logger.event('code:code-block:input_request', body);
     const data = body.data as {
       messageId: string;

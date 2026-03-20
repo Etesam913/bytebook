@@ -25,7 +25,7 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { backendQueryAtom, sidebarSelectionAtom } from '../../../../atoms';
 import { QueryError } from '../../../../utils/query';
-import { insertCreatedNodeIntoFileTree } from '../utils/file-tree-utils';
+import { insertCreatedNodeIntoFileTree } from '../utils/create-node';
 
 /**
  * A mutation hook for adding new tree items (folders or notes) to the file tree.
@@ -42,7 +42,7 @@ export function useAddTreeItemMutation() {
       newName,
     }: {
       parentFolder: Folder | null;
-      addType: 'folder' | 'note';
+      addType: typeof FOLDER_TYPE | typeof FILE_TYPE;
       newName: string;
       onSuccess?: () => void;
     }) => {
@@ -52,7 +52,7 @@ export function useAddTreeItemMutation() {
         );
       }
 
-      if (addType === 'folder') {
+      if (addType === FOLDER_TYPE) {
         // Create folder: path is parentFolder/newFolderName (or top-level if null)
         const newFolderPath = parentFolder
           ? `${parentFolder.path}/${newName}`
@@ -83,7 +83,7 @@ export function useAddTreeItemMutation() {
       return { addType, parentPath: parentFolder.path, newName, newNotePath };
     },
     onSuccess: (result, variables) => {
-      if (result.addType === 'folder') {
+      if (result.addType === FOLDER_TYPE) {
         // Optimistically insert the node into tree data
         setFileTreeData(
           (prev) =>
@@ -100,7 +100,7 @@ export function useAddTreeItemMutation() {
         }
       }
 
-      if (result.addType === 'note') {
+      if (result.addType === FILE_TYPE) {
         // Optimistically insert the node into tree data
         setFileTreeData((prev) => {
           return (
