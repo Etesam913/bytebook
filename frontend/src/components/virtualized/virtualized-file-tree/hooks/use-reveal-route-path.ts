@@ -7,8 +7,9 @@ import {
 import { FOLDER_TYPE } from '../types';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { logger } from '../../../../utils/logging';
-import { useStore } from 'jotai';
-import { useOpenFolderMutation } from './open-folder';
+import { useSetAtom, useStore } from 'jotai';
+import { setFolderOpen, useFetchFolderChildrenMutation } from './open-folder';
+import { hasLoadedChildren } from '../utils/file-tree-utils';
 
 const MAX_FOCUS_PAGINATION_ATTEMPTS = 200;
 
@@ -20,9 +21,11 @@ const MAX_FOCUS_PAGINATION_ATTEMPTS = 200;
  */
 export function useRevealRoutePath() {
   const store = useStore();
-  const { mutateAsync: openFolderAsync } = useOpenFolderMutation({
-    pageSize: 20000,
-  });
+  const setFileTreeData = useSetAtom(fileTreeDataAtom);
+  const { mutateAsync: fetchFolderChildrenAsync } =
+    useFetchFolderChildrenMutation({
+      pageSize: 20000,
+    });
 
   async function revealPathInFileTree(targetPath: string): Promise<boolean> {
     const getFileTreeData = () => store.get(fileTreeDataAtom);
@@ -46,12 +49,14 @@ export function useRevealRoutePath() {
         return false;
       }
 
-      if (!ancestorNode.isOpen) {
-        await openFolderAsync({
+      if (!hasLoadedChildren(ancestorNode)) {
+        await fetchFolderChildrenAsync({
           pathToFolder: ancestorNode.path,
           folderId: ancestorNode.id,
         });
       }
+      // Explicitly open the folder in the sidebar
+      setFolderOpen({ setFileTreeData, folderId: ancestorNode.id, isOpen: true });
 
       let attempts = 0;
       while (attempts < MAX_FOCUS_PAGINATION_ATTEMPTS) {
@@ -64,7 +69,7 @@ export function useRevealRoutePath() {
           break;
         }
 
-        await openFolderAsync({
+        await fetchFolderChildrenAsync({
           pathToFolder: ancestorNode.path,
           folderId: ancestorNode.id,
           isLoadMore: attempts > 0,

@@ -1,5 +1,5 @@
 import { useAtomValue } from 'jotai';
-import { useOpenFolderMutation } from '../hooks/open-folder';
+import { useFetchFolderChildrenMutation } from '../hooks/open-folder';
 import {
   CREATE_FOLDER_TYPE,
   LOAD_MORE_TYPE,
@@ -16,7 +16,7 @@ export function FileTreeItem({
   dataItem: VirtualizedFileTreeItem;
 }) {
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
-  const { mutate: openFolder } = useOpenFolderMutation();
+  const { mutate: fetchFolderChildren } = useFetchFolderChildrenMutation();
 
   if (dataItem.type === CREATE_FOLDER_TYPE) {
     return <CreateFolder />;
@@ -29,7 +29,7 @@ export function FileTreeItem({
         level={dataItem.level}
         onLoadMore={() => {
           if (parentFolder && parentFolder.type === 'folder') {
-            openFolder({
+            fetchFolderChildren({
               pathToFolder: parentFolder.path,
               folderId: parentFolder.id,
               isLoadMore: true,

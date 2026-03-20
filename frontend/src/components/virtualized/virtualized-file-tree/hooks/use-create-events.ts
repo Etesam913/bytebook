@@ -3,10 +3,9 @@ import { useSetAtom } from 'jotai';
 import { logger } from '../../../../utils/logging';
 import { FileTreeData, fileTreeDataAtom } from '../../../../atoms';
 import { useWailsEvent, type WailsEvent } from '../../../../hooks/events';
-import {
-  getParentNodeFromPath,
-  insertCreatedNodeIntoFileTree,
-} from '../utils/file-tree-utils';
+import { FOLDER_CREATE, NOTE_CREATE } from '../../../../utils/events';
+import { getParentNodeFromPath } from '../utils/file-tree-utils';
+import { insertCreatedNodeIntoFileTree } from '../utils/create-node';
 
 /**
  * Handles `folder:create` and `note:create` Wails events with shared logic:
@@ -19,7 +18,7 @@ export function useCreateEvents() {
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
 
   function handleCreate(
-    eventName: 'folder:create' | 'note:create',
+    eventName: typeof FOLDER_CREATE | typeof NOTE_CREATE,
     body: WailsEvent
   ) {
     logger.event(eventName, body);
@@ -31,7 +30,7 @@ export function useCreateEvents() {
 
       for (const item of rawData) {
         const path =
-          eventName === 'folder:create'
+          eventName === FOLDER_CREATE
             ? (item as { folderPath: string }).folderPath
             : (item as { notePath: string }).notePath;
 
@@ -45,7 +44,7 @@ export function useCreateEvents() {
           continue;
         }
 
-        const nodeType = eventName === 'folder:create' ? 'folder' : 'file';
+        const nodeType = eventName === FOLDER_CREATE ? 'folder' : 'file';
         const result = insertCreatedNodeIntoFileTree(current, path, nodeType);
 
         if (!result) {
@@ -66,6 +65,6 @@ export function useCreateEvents() {
     }
   }
 
-  useWailsEvent('folder:create', (body) => handleCreate('folder:create', body));
-  useWailsEvent('note:create', (body) => handleCreate('note:create', body));
+  useWailsEvent(FOLDER_CREATE, (body) => handleCreate(FOLDER_CREATE, body));
+  useWailsEvent(NOTE_CREATE, (body) => handleCreate(NOTE_CREATE, body));
 }

@@ -7,7 +7,6 @@ import { Maximize } from '../../icons/maximize';
 import { Link } from '../../icons/link';
 import { Trash } from '../../icons/trash';
 import { removeDecoratorNode } from '../../utils/commands';
-
 import { LocalFilePath } from '../../utils/path';
 import { navigate } from 'wouter/use-browser-location';
 

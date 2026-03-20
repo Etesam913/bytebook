@@ -4,7 +4,6 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { logger } from '../utils/logging';
 import { useAtom, useAtomValue } from 'jotai/react';
 import { Window } from '@wailsio/runtime';
 import { type LexicalEditor } from 'lexical';
@@ -23,13 +22,9 @@ import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import { getContentTypeAndValueFromSelectionRangeValue } from '../utils/string-formatting';
-import {
-  FilePath,
-  LocalFilePath,
-  createFilePath,
-  createFolderPath,
-} from '../utils/path';
+import { FilePath, LocalFilePath } from '../utils/path';
 import { useWailsEvent } from './events';
+import { NOTE_WRITE } from '../utils/events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter } from '../types';
 import { $convertFromMarkdownString } from '@lexical/markdown';
@@ -37,16 +32,9 @@ import { parseFrontMatter } from '../components/editor/utils/note-metadata';
 import {
   getNavigationTargetForDeletedPaths,
   removePathsFromFileTree,
-} from '../components/virtualized/virtualized-file-tree/utils/file-tree-utils';
-import {
-  applyNodeUpdates,
-  applyParentFolderUpdates,
-  applyPathRemappings,
-  buildRenameUpdates,
-} from '../components/virtualized/virtualized-file-tree/utils/rename-item';
+} from '../components/virtualized/virtualized-file-tree/utils/delete-node';
 import { fileTreeDataAtom } from '../atoms';
 import { useFilePathFromRoute, useFolderPathFromRoute } from './routes';
-import { routeUrls } from '../utils/routes';
 
 const noteQueries = {
   doesNoteExist: (folder: string, note: string, extension: string) =>
@@ -60,83 +48,6 @@ const noteQueries = {
       },
     }),
 };
-
-export function useNoteRename() {
-  const queryClient = useQueryClient();
-  const [{ filePathToTreeDataId, treeData }, setFileTreeData] =
-    useAtom(fileTreeDataAtom);
-  const currentRouteFilePath = useFilePathFromRoute();
-
-  useWailsEvent('note:rename', async (body) => {
-    logger.event('note:rename', body);
-    const data = body.data as {
-      oldNotePath: string;
-      newNotePath: string;
-    }[];
-    const {
-      needsTopLevelInvalidation,
-      pathRemappings,
-      nodeUpdates,
-      parentFolderUpdates,
-    } = await buildRenameUpdates({
-      entries: data.map(({ oldNotePath, newNotePath }) => ({
-        oldPath: oldNotePath,
-        newPath: newNotePath,
-      })),
-      fileTreeData: { filePathToTreeDataId, treeData },
-      onMissingNode: (oldPath) => {
-        logger.error('note:rename', 'id for old note path not found', {
-          oldNotePath: oldPath,
-        });
-      },
-    });
-
-    if (needsTopLevelInvalidation) {
-      queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-    }
-
-    // Apply all changes in a single setFileTreeData call
-    if (pathRemappings.size > 0) {
-      setFileTreeData((prev) => {
-        const remappedTreeData = applyPathRemappings({
-          fileTreeData: prev,
-          pathRemappings,
-          mode: 'file',
-        });
-        let updatedTreeData = applyNodeUpdates({
-          treeData: remappedTreeData.treeData,
-          nodeUpdates,
-          expectedType: 'file',
-        });
-        updatedTreeData = applyParentFolderUpdates({
-          treeData: updatedTreeData,
-          parentFolderUpdates,
-        });
-
-        return {
-          treeData: updatedTreeData,
-          filePathToTreeDataId: remappedTreeData.filePathToTreeDataId,
-        };
-      });
-    }
-
-    const matchedRename = currentRouteFilePath
-      ? data.find(
-          ({ oldNotePath }) => oldNotePath === currentRouteFilePath.fullPath
-        )
-      : undefined;
-
-    // If the current note is being renamed, redirect to the new note path
-    if (matchedRename) {
-      const newRouteFilePath = createFilePath(matchedRename.newNotePath);
-      if (!newRouteFilePath) {
-        navigate(routeUrls.notFoundFallback());
-        return;
-      }
-      navigate(newRouteFilePath.encodedFileUrl);
-    }
-  });
-}
 
 /** Custom hook to handle revealing folders in Finder */
 export function useNoteRevealInFinderMutation() {
@@ -359,7 +270,7 @@ export function useNoteWriteEvent({
   editor: LexicalEditor;
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
 }) {
-  useWailsEvent('note:write', async (e) => {
+  useWailsEvent(NOTE_WRITE, async (e) => {
     const data = e.data as {
       folder: string;
       note: string;

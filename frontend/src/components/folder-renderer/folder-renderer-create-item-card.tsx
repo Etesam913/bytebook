@@ -4,11 +4,15 @@ import { MotionButton } from '../buttons';
 import { Blog } from '../../icons/blog';
 import { Folder as FolderIcon } from '../../icons/folder';
 import { useAddTreeItemMutation } from '../virtualized/virtualized-file-tree/hooks/tree-item-mutations';
-import { type Folder } from '../virtualized/virtualized-file-tree/types';
+import {
+  FILE_TYPE,
+  FOLDER_TYPE,
+  type Folder,
+} from '../virtualized/virtualized-file-tree/types';
 
 export function FolderRendererCreateItemCard({ folder }: { folder: Folder }) {
   const [creatingItemType, setCreatingItemType] = useState<
-    'folder' | 'note' | null
+    typeof FOLDER_TYPE | typeof FILE_TYPE | null
   >(null);
   const {
     mutate: addTreeItem,
@@ -63,7 +67,7 @@ export function FolderRendererCreateItemCard({ folder }: { folder: Folder }) {
     });
   }
 
-  const isCreatingFolder = creatingItemType === 'folder';
+  const isCreatingFolder = creatingItemType === FOLDER_TYPE;
   const previewName =
     value.trim() || (isCreatingFolder ? 'New folder' : 'New note');
   const previewPath = isCreatingFolder
@@ -71,7 +75,7 @@ export function FolderRendererCreateItemCard({ folder }: { folder: Folder }) {
     : `${folder.path}/${previewName}.md`;
 
   return (
-    <>
+    <div>
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-8 pt-1 pb-3">
         <MotionButton
           {...getDefaultButtonVariants({ disabled: isCreatingItem })}
@@ -80,7 +84,7 @@ export function FolderRendererCreateItemCard({ folder }: { folder: Folder }) {
           onClick={() => {
             resetCreateItemMutation();
             setValue('');
-            setCreatingItemType('folder');
+            setCreatingItemType(FOLDER_TYPE);
           }}
         >
           <FolderIcon width={16} height={16} />
@@ -93,7 +97,7 @@ export function FolderRendererCreateItemCard({ folder }: { folder: Folder }) {
           onClick={() => {
             resetCreateItemMutation();
             setValue('');
-            setCreatingItemType('note');
+            setCreatingItemType(FILE_TYPE);
           }}
         >
           <Blog width={16} height={16} />
@@ -101,8 +105,8 @@ export function FolderRendererCreateItemCard({ folder }: { folder: Folder }) {
         </MotionButton>
       </div>
       {creatingItemType && (
-        <div className="mx-auto flex max-w-6xl flex-wrap gap-3 px-8">
-          <div className="flex w-full flex-none sm:w-[calc(50%-0.375rem)] xl:w-[calc(33.333%-0.5rem)]">
+        <div className="mx-auto grid max-w-6xl gap-3 px-8 grid-cols-[repeat(auto-fill,minmax(280px,1fr))] my-3">
+          <div>
             <div className="flex w-full items-start gap-2.5 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-left dark:border-zinc-650 dark:bg-zinc-700">
               <span className="mt-0.75">
                 {isCreatingFolder ? (
@@ -169,6 +173,6 @@ export function FolderRendererCreateItemCard({ folder }: { folder: Folder }) {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

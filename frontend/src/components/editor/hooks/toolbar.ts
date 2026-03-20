@@ -1,7 +1,7 @@
 import { mergeRegister } from '@lexical/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { isEventInCurrentWindow } from '../../../utils/events';
+import { isEventInCurrentWindow, SEARCH_NOTE } from '../../../utils/events';
 import {
   $getSelection,
   $isNodeSelection,
@@ -359,7 +359,7 @@ export function useSearchNoteEvent(): [
 ] {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  useWailsEvent('search:note', async (data) => {
+  useWailsEvent(SEARCH_NOTE, async (data) => {
     if (!(await isEventInCurrentWindow(data))) return;
     setIsSearchOpen((prev) => !prev);
   });

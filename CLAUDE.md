@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-The codebase uses jj instead of git.
+The codebase uses jj instead of git. Do not use useCallback or useMemo when writing react.js code as react-compiler is being used.
 
 ## What is Bytebook
 

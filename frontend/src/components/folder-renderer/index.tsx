@@ -1,14 +1,21 @@
 import { useAtomValue, useSetAtom } from 'jotai';
-import { type ComponentPropsWithoutRef, forwardRef, useEffect } from 'react';
+import { forwardRef } from 'react';
 import { navigate } from 'wouter/use-browser-location';
-import { VirtuosoGrid } from 'react-virtuoso';
+import {
+  VirtuosoGrid,
+  type GridItemProps,
+  type GridListProps,
+  type ScrollerProps,
+} from 'react-virtuoso';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { getDefaultButtonVariants } from '../../animations';
 import { fileTreeDataAtom, isNoteMaximizedAtom } from '../../atoms';
 import { MotionIconButton } from '../buttons';
 import { MaximizeNoteButton } from '../buttons/maximize-note';
 import { Loader } from '../../icons/loader';
 import { Magnifier } from '../../icons/magnifier';
-import { useOpenFolderMutation } from '../virtualized/virtualized-file-tree/hooks/open-folder';
+import { GetChildrenOfFolderBasedOnLimit } from '../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
+import { getTreeNodeFromPath } from '../virtualized/virtualized-file-tree/utils/file-tree-utils';
 import { useToggleSidebarEvent } from '../../routes/notes-sidebar/render-note/hooks';
 import { lastSearchQueryAtom } from '../../hooks/search';
 import {
@@ -16,10 +23,7 @@ import {
   createFilePath,
   createFolderPath,
 } from '../../utils/path';
-import {
-  FOLDER_TYPE,
-  type Folder,
-} from '../virtualized/virtualized-file-tree/types';
+import { FOLDER_TYPE } from '../virtualized/virtualized-file-tree/types';
 import { NotFound } from '../../routes/not-found';
 import { motion, type LegacyAnimationControls } from 'motion/react';
 import { routeUrls } from '../../utils/routes';
@@ -31,46 +35,57 @@ import {
 } from './folder-renderer-card';
 import { FolderRendererCreateItemCard } from './folder-renderer-create-item-card';
 
-const folderGridListClassName = 'mx-auto flex max-w-6xl flex-wrap gap-3 px-8';
-const folderGridItemClassName =
-  'flex w-full flex-none sm:w-[calc(50%-0.375rem)] xl:w-[calc(33.333%-0.5rem)]';
-
 const folderGridComponents = {
-  Scroller: forwardRef<HTMLDivElement, ComponentPropsWithoutRef<'div'>>(
-    ({ style, children, ...props }, ref) => (
+  Scroller: forwardRef<HTMLDivElement, Omit<ScrollerProps, 'ref'>>(
+    (
+      {
+        style,
+        children,
+        tabIndex,
+        'data-testid': dataTestId,
+        'data-virtuoso-scroller': dataVirtuosoScroller,
+      },
+      ref
+    ) => (
       <div
         ref={ref}
-        {...props}
         style={style}
-        className="h-full w-full overflow-y-auto [scrollbar-gutter:stable_both-edges]"
+        tabIndex={tabIndex}
+        data-testid={dataTestId}
+        data-virtuoso-scroller={dataVirtuosoScroller}
+        className="h-full w-full overflow-y-auto"
       >
         {children}
       </div>
     )
   ),
-  List: forwardRef<HTMLDivElement, ComponentPropsWithoutRef<'div'>>(
-    ({ style, children, ...props }, ref) => {
-      return (
-        <div
-          ref={ref}
-          {...props}
-          style={style}
-          className={folderGridListClassName}
-        >
-          {children}
-        </div>
-      );
-    }
+  List: forwardRef<HTMLDivElement, Omit<GridListProps, 'ref'>>(
+    ({ style, children, className, 'data-testid': dataTestId }, ref) => (
+      <div
+        ref={ref}
+        style={style}
+        data-testid={dataTestId}
+        className={cn(
+          'mx-auto grid max-w-6xl gap-3 px-8 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]',
+          className
+        )}
+      >
+        {children}
+      </div>
+    )
   ),
-  Item: ({ children, ...props }: ComponentPropsWithoutRef<'div'>) => (
-    <div {...props} className={folderGridItemClassName}>
-      {children}
-    </div>
+  Item: forwardRef<HTMLDivElement, Omit<GridItemProps, 'ref'>>(
+    ({ children, className, style, 'data-index': dataIndex }, ref) => (
+      <div ref={ref} className={className} style={style} data-index={dataIndex}>
+        {children}
+      </div>
+    )
   ),
 };
 
 folderGridComponents.Scroller.displayName = 'FolderRendererGridScroller';
 folderGridComponents.List.displayName = 'FolderRendererGridList';
+folderGridComponents.Item.displayName = 'FolderRendererGridItem';
 
 export function FolderRenderer({
   folderPath,
@@ -79,131 +94,111 @@ export function FolderRenderer({
   folderPath: FolderPath;
   animationControls: LegacyAnimationControls;
 }) {
-  const { treeData, filePathToTreeDataId } = useAtomValue(fileTreeDataAtom);
+  const fileTreeData = useAtomValue(fileTreeDataAtom);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
   const setLastSearchQuery = useSetAtom(lastSearchQueryAtom);
-  const routeFolderId = filePathToTreeDataId.get(folderPath.fullPath);
-  const folderNode = routeFolderId ? treeData.get(routeFolderId) : null;
-  const { mutate: openFolder, isPending: isOpeningFolder } =
-    useOpenFolderMutation();
+  const folderTreeNode = getTreeNodeFromPath(fileTreeData, folderPath.fullPath);
   useToggleSidebarEvent(animationControls);
 
-  const hasResolvedTreeData = filePathToTreeDataId.size > 0;
-  const hasLoadedChildren =
-    folderNode?.type === FOLDER_TYPE &&
-    (folderNode.isOpen ||
-      folderNode.childrenIds.length > 0 ||
-      folderNode.hasMoreChildren ||
-      folderNode.childrenCursor !== null);
-  const isLoadingChildren = Boolean(
-    folderNode?.type === FOLDER_TYPE && !hasLoadedChildren
-  );
+  const folderId =
+    folderTreeNode?.type === FOLDER_TYPE ? folderTreeNode.id : '';
+  const { data, fetchNextPage, hasNextPage, isLoading } = useInfiniteQuery({
+    queryKey: ['folder-children', folderPath.fullPath],
+    enabled: !!folderTreeNode && folderTreeNode.type === FOLDER_TYPE,
+    initialPageParam: '',
+    queryFn: ({ pageParam }) =>
+      GetChildrenOfFolderBasedOnLimit(
+        folderPath.fullPath,
+        folderId,
+        pageParam,
+        300
+      ),
+    getNextPageParam: (lastPage) =>
+      lastPage.data?.hasMore ? lastPage.data.nextCursor : undefined,
+  });
 
-  useEffect(() => {
-    if (!folderNode || folderNode.type !== FOLDER_TYPE || hasLoadedChildren) {
-      return;
-    }
-
-    openFolder({
-      pathToFolder: folderNode.path,
-      folderId: folderNode.id,
-    });
-  }, [folderNode, hasLoadedChildren, openFolder]);
-
-  if (!hasResolvedTreeData) {
-    return null;
-  }
-
-  if (!folderNode || folderNode.type !== FOLDER_TYPE) {
+  if (!folderTreeNode || folderTreeNode.type !== FOLDER_TYPE) {
     return <NotFound />;
   }
 
-  const currentFolderNode: Folder = folderNode;
-
-  const items: FolderRendererItem[] = currentFolderNode.childrenIds.reduce<
-    FolderRendererItem[]
-  >((acc, childId) => {
-    const child = treeData.get(childId);
-    if (!child) {
-      return acc;
-    }
-
-    if (child.type === 'folder') {
-      const childFolderPath = createFolderPath(child.path);
-      if (!childFolderPath) {
-        return acc;
+  const items: FolderRendererItem[] = (data?.pages ?? []).flatMap((page) => {
+    const entries = page.data?.items ?? [];
+    return entries.reduce<FolderRendererItem[]>((acc, entry) => {
+      if (entry.type === 'folder') {
+        const entryFolderPath = createFolderPath(entry.path);
+        if (entryFolderPath) {
+          acc.push({
+            id: entry.id,
+            type: 'folder',
+            name: entry.name,
+            path: entryFolderPath,
+          });
+        }
+      } else {
+        const entryFilePath = createFilePath(entry.path);
+        if (entryFilePath) {
+          acc.push({
+            id: entry.id,
+            type: 'file',
+            name: entry.name,
+            path: entryFilePath,
+          });
+        }
       }
-
-      acc.push({
-        id: child.id,
-        type: 'folder',
-        name: child.name,
-        path: childFolderPath,
-      });
       return acc;
-    }
-
-    const childFilePath = createFilePath(child.path);
-    if (!childFilePath) {
-      return acc;
-    }
-
-    acc.push({
-      id: child.id,
-      type: 'file',
-      name: child.name,
-      path: childFilePath,
-    });
-    return acc;
-  }, []);
+    }, []);
+  });
 
   const gridComponents = {
     ...folderGridComponents,
-    Header: () => <FolderRendererCreateItemCard folder={currentFolderNode} />,
+    Header: () => (
+      <div className="space-y-3">
+        <header
+          className={cn(
+            'flex w-full flex-col gap-1 pt-3 col-span-full',
+            isNoteMaximized && 'pl-32'
+          )}
+        >
+          <div className="flex gap-3 items-start">
+            <MaximizeNoteButton animationControls={animationControls} />
+            <div className="mt-1.5">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Folder</p>
+              <span className="flex items-center gap-2.5 mt-1">
+                <h1 className="truncate text-2xl font-semibold dark:text-zinc-50">
+                  {folderTreeNode.name}
+                </h1>
+                <Tooltip content="Search this folder">
+                  <MotionIconButton
+                    {...getDefaultButtonVariants()}
+                    aria-label="Search this folder"
+                    className="shrink-0"
+                    onClick={() => {
+                      setLastSearchQuery(`f:"${folderPath.fullPath}"`);
+                      navigate(routeUrls.search());
+                    }}
+                  >
+                    <Magnifier width={14} height={14} />
+                  </MotionIconButton>
+                </Tooltip>
+              </span>
+              <p className="truncate text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                {folderTreeNode.path + '/'}
+              </p>
+            </div>
+          </div>
+        </header>
+        <hr className="mx-4 text-zinc-200 dark:text-zinc-700 col-span-full" />
+        <FolderRendererCreateItemCard folder={folderTreeNode} />
+      </div>
+    ),
   };
 
   return (
     <motion.section
-      className="flex h-full flex-1 flex-col gap-5 w-full"
+      className="flex h-full flex-1 flex-col w-full"
       animate={animationControls}
     >
-      <header
-        className={cn(
-          'flex w-full flex-col gap-1 pt-3',
-          isNoteMaximized && 'pl-22'
-        )}
-      >
-        <div className="flex gap-3 items-start min-w-6xl mx-auto">
-          <MaximizeNoteButton animationControls={animationControls} />
-          <div className="mt-1.5">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">Folder</p>
-            <span className="flex items-center gap-2.5 mt-1">
-              <h1 className="truncate text-2xl font-semibold dark:text-zinc/hover-50">
-                {folderNode.name}
-              </h1>
-              <Tooltip content="Search this folder">
-                <MotionIconButton
-                  {...getDefaultButtonVariants()}
-                  aria-label="Search this folder"
-                  className="shrink-0"
-                  onClick={() => {
-                    setLastSearchQuery(`f:"${folderPath.fullPath}"`);
-                    navigate(routeUrls.search());
-                  }}
-                >
-                  <Magnifier width={14} height={14} />
-                </MotionIconButton>
-              </Tooltip>
-            </span>
-            <p className="truncate text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-              {folderNode.path + '/'}
-            </p>
-          </div>
-        </div>
-      </header>
-      <hr className="mx-4 text-zinc-200 dark:text-zinc-700" />
-
-      {isLoadingChildren || isOpeningFolder ? (
+      {isLoading ? (
         <motion.section
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -213,21 +208,15 @@ export function FolderRenderer({
           <Loader width={20} height={20} />
         </motion.section>
       ) : (
-        <section className="flex-1 pb-4">
+        <section className="min-w-0 flex-1">
           <VirtuosoGrid
             style={{ height: '100%' }}
-            totalCount={items.length}
             data={items}
-            overscan={500}
+            computeItemKey={(_, item) => item.id}
             components={gridComponents}
             itemContent={(_, item) => <FolderRendererCard item={item} />}
             endReached={() => {
-              if (!currentFolderNode.hasMoreChildren) return;
-              openFolder({
-                pathToFolder: folderNode.path,
-                folderId: folderNode.id,
-                isLoadMore: true,
-              });
+              if (hasNextPage) fetchNextPage();
             }}
           />
         </section>

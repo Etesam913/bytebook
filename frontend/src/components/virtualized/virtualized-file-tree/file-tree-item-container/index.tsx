@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue } from 'jotai';
-import { useOpenFolderMutation } from '../hooks/open-folder';
+import { useFetchFolderChildrenMutation } from '../hooks/open-folder';
 import { FlattenedFileOrFolder } from '../types';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { MouseEvent } from 'react';
@@ -29,8 +29,8 @@ export function FileTreeItemContainer({
 }: {
   dataItem: FlattenedFileOrFolder;
 }) {
-  const { mutate: openFolder, isPending: isOpenFolderPending } =
-    useOpenFolderMutation();
+  const { mutate: fetchFolderChildren, isPending: isFetchPending } =
+    useFetchFolderChildrenMutation();
   const addToSidebarSelection = useAddToSidebarSelection();
 
   // Compute selection key and path for the data item
@@ -159,11 +159,11 @@ export function FileTreeItemContainer({
       {dataItem.type === 'folder' ? (
         <FileTreeFolderItem
           dataItem={dataItem}
-          openFolder={openFolder}
+          fetchFolderChildren={fetchFolderChildren}
           onSelectionClick={handleSelectionClick}
           addItemToSidebarSelection={addItemToSidebarSelection}
           isSelectedFromSidebarClick={isSelectedFromSidebarClick}
-          isOpenFolderPending={isOpenFolderPending}
+          isFetchPending={isFetchPending}
         />
       ) : (
         <FileTreeFileItem
