@@ -24,7 +24,6 @@ export function useCreateEvents() {
   ) {
     logger.event(eventName, body);
     const rawData = body.data as Array<Record<string, string>>;
-    console.log(`[${eventName}] received`, rawData);
     let needsTopLevelInvalidation = false;
     setFileTreeData((prev) => {
       let current: FileTreeData = prev;
@@ -36,17 +35,12 @@ export function useCreateEvents() {
             ? (item as { folderPath: string }).folderPath
             : (item as { notePath: string }).notePath;
 
-        console.log(`[${eventName}] processing path:`, path);
-
         if (current.filePathToTreeDataId.has(path)) {
-          console.log(`[${eventName}] path already in tree, skipping:`, path);
           continue;
         }
 
         const parentNode = getParentNodeFromPath(current, path);
-        console.log(`[${eventName}] parentNode:`, parentNode);
         if (!parentNode) {
-          console.log(`[${eventName}] no parent found, flagging top-level invalidation`);
           needsTopLevelInvalidation = true;
           continue;
         }
@@ -55,23 +49,19 @@ export function useCreateEvents() {
         const result = insertCreatedNodeIntoFileTree(current, path, nodeType);
 
         if (!result) {
-          console.log(`[${eventName}] node sorts after loaded children, skipping (lazy update)`);
           continue;
         }
 
-        console.log(`[${eventName}] inserted node for path:`, path);
         current = result;
         didChange = true;
       }
 
-      console.log(`[${eventName}] didChange:`, didChange, '| needsTopLevelInvalidation:', needsTopLevelInvalidation);
       if (!didChange) return prev;
 
       return current;
     });
 
     if (needsTopLevelInvalidation) {
-      console.log(`[${eventName}] invalidating top-level-files query`);
       queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
     }
   }

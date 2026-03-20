@@ -23,15 +23,20 @@ import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import { getContentTypeAndValueFromSelectionRangeValue } from '../utils/string-formatting';
-import { FilePath, LocalFilePath, createFilePath } from '../utils/path';
+import {
+  FilePath,
+  LocalFilePath,
+  createFilePath,
+  createFolderPath,
+} from '../utils/path';
 import { useWailsEvent } from './events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter } from '../types';
 import { $convertFromMarkdownString } from '@lexical/markdown';
 import { parseFrontMatter } from '../components/editor/utils/note-metadata';
 import {
-  getClosestSiblingFileForDeletedPath,
-  removeFileFromFileTreeMap,
+  getNavigationTargetForDeletedPaths,
+  removePathsFromFileTree,
 } from '../components/virtualized/virtualized-file-tree/utils/file-tree-utils';
 import {
   applyNodeUpdates,
@@ -40,8 +45,7 @@ import {
   buildRenameUpdates,
 } from '../components/virtualized/virtualized-file-tree/utils/rename-item';
 import { fileTreeDataAtom } from '../atoms';
-import { type FileOrFolder } from '../components/virtualized/virtualized-file-tree/types';
-import { useFilePathFromRoute } from './routes';
+import { useFilePathFromRoute, useFolderPathFromRoute } from './routes';
 import { routeUrls } from '../utils/routes';
 
 const noteQueries = {
@@ -134,94 +138,6 @@ export function useNoteRename() {
   });
 }
 
-/** This function is used to handle note:delete events */
-export function useNoteDelete() {
-  const queryClient = useQueryClient();
-  const [, setFileTreeData] = useAtom(fileTreeDataAtom);
-  const currentRouteFilePath = useFilePathFromRoute();
-
-  useWailsEvent('note:delete', async (body) => {
-    logger.event('note:delete', body);
-    const data = body.data as { notePath: string }[];
-    let needsTopLevelInvalidation = false;
-    const didDeleteCurrentRouteFile = currentRouteFilePath
-      ? data.some(({ notePath }) => notePath === currentRouteFilePath.fullPath)
-      : false;
-    let closestFileToDeletedFromPrev: FileOrFolder | null = null;
-
-    setFileTreeData((prev) => {
-      if (didDeleteCurrentRouteFile && currentRouteFilePath) {
-        closestFileToDeletedFromPrev = getClosestSiblingFileForDeletedPath({
-          fileTreeData: prev,
-          deletedFilePath: currentRouteFilePath.fullPath,
-        });
-      }
-
-      let updatedTreeData = new Map(prev.treeData);
-      const updatedFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
-
-      for (const { notePath } of data) {
-        const segments = notePath.split('/').filter(Boolean);
-
-        if (segments.length === 1) {
-          // Top-level file - just invalidate the query
-          needsTopLevelInvalidation = true;
-          continue;
-        }
-
-        // Nested file - remove it from the map
-        const parentPath = segments.slice(0, -1).join('/');
-
-        // Look up ids from paths
-        const fileId = updatedFilePathToTreeDataId.get(notePath);
-        const parentId = updatedFilePathToTreeDataId.get(parentPath);
-
-        if (!fileId || !parentId) {
-          // Can't find file in path map - invalidate queries
-          needsTopLevelInvalidation = true;
-          continue;
-        }
-
-        updatedFilePathToTreeDataId.delete(notePath);
-
-        updatedTreeData = removeFileFromFileTreeMap({
-          map: updatedTreeData,
-          fileId,
-          parentId,
-        });
-      }
-
-      const nextData = {
-        treeData: updatedTreeData,
-        filePathToTreeDataId: updatedFilePathToTreeDataId,
-      };
-
-      return nextData;
-    });
-
-    if (needsTopLevelInvalidation) {
-      queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-    }
-
-    // If the current route file is deleted, then navigate to the closest file to the deleted file.
-    if (didDeleteCurrentRouteFile && currentRouteFilePath) {
-      const closestFileToDeleted =
-        closestFileToDeletedFromPrev as FileOrFolder | null;
-
-      if (closestFileToDeleted) {
-        const closestFileToDeletedFilePath = createFilePath(
-          closestFileToDeleted.path
-        );
-        if (closestFileToDeletedFilePath) {
-          navigate(closestFileToDeletedFilePath.encodedFileUrl);
-        }
-      } else {
-        navigate(routeUrls.notFoundFallback());
-      }
-    }
-  });
-}
-
 /** Custom hook to handle revealing folders in Finder */
 export function useNoteRevealInFinderMutation() {
   return useMutation({
@@ -269,15 +185,61 @@ export function useNoteRevealInFinderMutation() {
 /**
  * Moves one or more note/file-tree paths to trash.
  * Accepts project-relative paths (for example, `folder/note.md` or `folder`).
+ * Optimistically removes items from the file tree and navigates away if the
+ * current route is among the deleted paths.
  */
 export function useMoveToTrashMutation() {
   const { mutate: restoreFromTrash } = useRestoreFromTrashMutation();
+  const [fileTreeData, setFileTreeData] = useAtom(fileTreeDataAtom);
+  const queryClient = useQueryClient();
+  const currentRouteFilePath = useFilePathFromRoute();
+  const currentRouteFolderPath = useFolderPathFromRoute();
+
+  /** The currently-viewed path (file or folder), if any. */
+  const currentRoutePath =
+    currentRouteFilePath?.fullPath ?? currentRouteFolderPath?.fullPath ?? null;
 
   return useMutation({
     mutationFn: async ({ paths }: { paths: string[] }) => {
       const res = await MoveToTrash(paths);
       if (!res.success) throw new Error(res.message);
       return res.data ?? [];
+    },
+    onMutate: ({ paths }) => {
+      const previousFileTreeData = fileTreeData;
+
+      let needsTopLevelInvalidation = false;
+      setFileTreeData((prev) => {
+        const result = removePathsFromFileTree(prev, paths);
+        needsTopLevelInvalidation = result.needsTopLevelInvalidation;
+        if (!result.didChange) return prev;
+        return result.next;
+      });
+
+      if (needsTopLevelInvalidation) {
+        void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+      }
+
+      // Navigate immediately if the current route was among the deleted paths
+      const navigationTarget = getNavigationTargetForDeletedPaths({
+        currentRoutePath,
+        fileTreeData: previousFileTreeData,
+        paths,
+      });
+      if (navigationTarget) {
+        navigate(navigationTarget);
+      }
+
+      return { previousFileTreeData };
+    },
+    onError: (e, _variables, context) => {
+      // Roll back optimistic update
+      if (context?.previousFileTreeData) {
+        setFileTreeData(context.previousFileTreeData);
+      }
+      if (e instanceof Error) {
+        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
+      }
     },
     onSuccess: (restoreItems) => {
       if (restoreItems.length === 0) {
@@ -293,14 +255,11 @@ export function useMoveToTrashMutation() {
         ...DEFAULT_SONNER_OPTIONS,
         action: {
           label: 'Undo',
-          onClick: () => restoreFromTrash({ restoreItems }),
+          onClick: () => {
+            restoreFromTrash({ restoreItems });
+          },
         },
       });
-    },
-    onError: (e) => {
-      if (e instanceof Error) {
-        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-      }
     },
   });
 }
@@ -315,11 +274,6 @@ function useRestoreFromTrashMutation() {
       const res = await RestoreFromTrash(restoreItems);
       if (!res.success) {
         throw new Error(res.message);
-      }
-    },
-    onError: (e) => {
-      if (e instanceof Error) {
-        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
       }
     },
   });
