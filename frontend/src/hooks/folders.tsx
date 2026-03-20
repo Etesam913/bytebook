@@ -1,8 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { logger } from '../utils/logging';
-import { useAtom, useSetAtom } from 'jotai';
+import { useAtom } from 'jotai';
 import { fileTreeDataAtom } from '../atoms';
-import { removeFolderFromFileTreeMap } from '../components/virtualized/virtualized-file-tree/utils/file-tree-utils';
 import {
   applyNodeUpdates,
   applyParentFolderUpdates,
@@ -20,81 +19,6 @@ function normalizeFolderPath(path: string): string | null {
 
 function isPrefixOrSamePath(path: string, maybePrefix: string): boolean {
   return path === maybePrefix || path.startsWith(`${maybePrefix}/`);
-}
-
-/** This function is used to handle `folder:delete` events. This gets triggered when deleting a folder using the file system */
-export function useFolderDelete() {
-  const queryClient = useQueryClient();
-  const setFileTreeData = useSetAtom(fileTreeDataAtom);
-  const currentRouteFolderPath = useCurrentNotesRouteFolderPath();
-
-  useWailsEvent('folder:delete', async (body) => {
-    logger.event('folder:delete', body);
-    const data = body.data as { folderPath: string }[];
-
-    let needsTopLevelInvalidation = false;
-
-    setFileTreeData((prev) => {
-      let updatedFileTreeData = prev;
-      let didUpdate = false;
-
-      for (const { folderPath } of data) {
-        const segments = folderPath.split('/').filter(Boolean);
-
-        if (segments.length === 1) {
-          // Top-level folder - just invalidate the query
-          needsTopLevelInvalidation = true;
-          continue;
-        }
-
-        // Nested folder - remove it from the map
-        const parentPath = segments.slice(0, -1).join('/');
-
-        // Look up ids from paths
-        const folderId =
-          updatedFileTreeData.filePathToTreeDataId.get(folderPath);
-        const parentId =
-          updatedFileTreeData.filePathToTreeDataId.get(parentPath);
-
-        if (!folderId || !parentId) {
-          // Can't find folder in path map - invalidate queries
-          needsTopLevelInvalidation = true;
-          continue;
-        }
-
-        updatedFileTreeData = removeFolderFromFileTreeMap({
-          fileTreeData: updatedFileTreeData,
-          folderId,
-          parentId,
-        });
-        didUpdate = true;
-      }
-
-      return didUpdate ? updatedFileTreeData : prev;
-    });
-
-    if (needsTopLevelInvalidation) {
-      queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-    }
-
-    // If one of the deleted folders is a parent of the current route folder, navigate to the not found page
-    const shouldNavigateToNotFound = currentRouteFolderPath
-      ? data.some(({ folderPath }) => {
-          const normalizedDeletedFolderPath = normalizeFolderPath(folderPath);
-          if (!normalizedDeletedFolderPath) {
-            return false;
-          }
-          return isPrefixOrSamePath(
-            currentRouteFolderPath.fullPath,
-            normalizedDeletedFolderPath
-          );
-        })
-      : false;
-
-    if (shouldNavigateToNotFound) {
-      navigate(routeUrls.notFoundFallback());
-    }
-  });
 }
 
 /** This function is used to handle `folder:rename` events. This gets triggered when renaming a folder using the file system */

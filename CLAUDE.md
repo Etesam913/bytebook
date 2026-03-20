@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+The codebase uses jj instead of git.
+
 ## What is Bytebook
 
 Bytebook is a desktop note-taking app for developers built with [Wails v3](https://github.com/wailsapp/wails) (Go backend + React frontend). Notes are stored as Markdown files on disk. The app supports code execution via Jupyter kernels (Python, Go, JavaScript, Java), full-text search via Bleve, and a rich editor built on Lexical.

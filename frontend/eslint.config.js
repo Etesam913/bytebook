@@ -24,13 +24,17 @@ export default defineConfig([
     },
     languageOptions: {
       globals: globals.browser,
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     plugins: {
       'react-hooks': reactHooks,
     },
     extends: [
       pluginJs.configs.recommended,
-      ...tseslint.configs.recommended,
+      ...tseslint.configs.recommendedTypeChecked,
       pluginReact.configs.flat.recommended,
     ],
     rules: {
@@ -40,5 +44,9 @@ export default defineConfig([
       'react/react-in-jsx-scope': 'off',
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
     },
+  },
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    extends: [tseslint.configs.disableTypeChecked],
   },
 ]);
