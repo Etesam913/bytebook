@@ -14,10 +14,11 @@ export function LoadMoreRow({
 }) {
   const currentZoom = useAtomValue(currentZoomAtom);
   const paddingLeft = getFileTreeItemIndent(level, currentZoom);
+  // const hasFiredRef = useRef(false);
 
   useEffect(() => {
     onLoadMore();
-  }, [onLoadMore]);
+  }, []);
 
   return (
     <div style={{ paddingLeft: `${paddingLeft}px` }}>

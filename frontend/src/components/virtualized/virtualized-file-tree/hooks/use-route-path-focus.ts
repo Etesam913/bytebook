@@ -22,13 +22,14 @@ export function useRoutePathFocus({
   visibleRange,
   virtualizedData,
   virtuosoRef,
+  isSuccess,
 }: {
   visibleRange: ListRange;
   virtualizedData: VirtualizedFileTreeItem[];
   virtuosoRef: RefObject<VirtuosoHandle | null>;
+  isSuccess: boolean;
 }) {
   const fileTreeData = useAtomValue(fileTreeDataAtom);
-  const hasFileTreeData = fileTreeData.treeData.size > 0;
   const routeFilePath = useFilePathFromRoute();
   const routeFolderPath = useFolderPathFromRoute();
   const routeTargetPath = routeFilePath?.fullPath ?? routeFolderPath?.fullPath;
@@ -45,8 +46,8 @@ export function useRoutePathFocus({
   // Phase 1: When the route changes, either scroll immediately or
   // reveal the path and set pending scroll for the follow-up effect
   useEffect(() => {
-    if (!routeTargetPath || !hasFileTreeData) {
-        return;
+    if (!routeTargetPath || !isSuccess) {
+      return;
     }
 
     const visibleItems = virtualizedData.slice(
@@ -86,14 +87,13 @@ export function useRoutePathFocus({
         setPendingScrollPath(routeTargetPath);
         return;
       }
-
-      await queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-      const retrySuccess = await revealRoutePathAsync(routeTargetPath);
-      if (retrySuccess) {
-        setPendingScrollPath(routeTargetPath);
-      }
+      // await queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+      // const retrySuccess = await revealRoutePathAsync(routeTargetPath);
+      // if (retrySuccess) {
+      //   setPendingScrollPath(routeTargetPath);
+      // }
     });
-  }, [routeTargetPath, hasFileTreeData]);
+  }, [routeTargetPath, isSuccess]);
 
   // Phase 2: Scroll to the revealed path when pendingScrollPath is set.
   // Runs only after a successful reveal, not on every virtualizedData change

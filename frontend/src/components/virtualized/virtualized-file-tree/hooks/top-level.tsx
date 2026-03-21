@@ -3,9 +3,18 @@ import { useEffect } from 'react';
 import { GetTopLevelItems } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { QueryError } from '../../../../utils/query';
 import { fileTreeDataAtom } from '../../../../atoms';
-import { reconcileTopLevelFileTreeMap } from '../utils/file-tree-utils';
-import { FILE_TYPE, FOLDER_TYPE, type FileOrFolder } from '../types';
-import { useSetAtom } from 'jotai';
+import {
+  reconcileTopLevelFileTreeMap,
+  transformFileTreeForVirtualizedList,
+} from '../utils/file-tree-utils';
+import {
+  CREATE_FOLDER_TYPE,
+  CreateFolderItem,
+  FILE_TYPE,
+  FOLDER_TYPE,
+  type FileOrFolder,
+} from '../types';
+import { useAtom } from 'jotai';
 
 /**
  * Hook that fetches top-level files and folders from the backend
@@ -56,13 +65,21 @@ function useTopLevelFileOrFoldersQuery() {
   });
 }
 
+// Represents the button to create a folder at the top of the file tree
+const CREATE_FOLDER_ITEM: CreateFolderItem = {
+  id: 'create-folder',
+  type: CREATE_FOLDER_TYPE,
+  level: 0,
+};
+
 /**
  * Fetches the top-level folders from on mount
  * and populates the fileTreeDataAtom atom with a map of id to FileOrFolder object
  */
 export function useTopLevelFileOrFolders() {
   const topLevelFolderOrFilesQuery = useTopLevelFileOrFoldersQuery();
-  const setFileTreeData = useSetAtom(fileTreeDataAtom);
+  const { data, isSuccess } = topLevelFolderOrFilesQuery;
+  const [fileTreeData, setFileTreeData] = useAtom(fileTreeDataAtom);
 
   /**
    * Synchronizes the file/folder map atom with the top-level items query data.
@@ -77,26 +94,15 @@ export function useTopLevelFileOrFolders() {
    *
    */
   useEffect(() => {
-    const isLoading = topLevelFolderOrFilesQuery.isLoading;
-    const data = topLevelFolderOrFilesQuery.data;
-    if (!isLoading && data) {
-      setFileTreeData((prev) => {
-        const reconciledTreeData = reconcileTopLevelFileTreeMap(prev, data);
-        const newFilePathToTreeDataId = new Map<string, string>();
+    if (!isSuccess || !data) return;
 
-        // Rebuild filePathToTreeDataId from reconciled tree data
-        // to drop stale paths that were removed during reconciliation.
-        for (const [id, node] of reconciledTreeData.entries()) {
-          newFilePathToTreeDataId.set(node.path, id);
-        }
+    setFileTreeData((prev) => reconcileTopLevelFileTreeMap(prev, data));
+  }, [isSuccess, data]);
 
-        return {
-          treeData: reconciledTreeData,
-          filePathToTreeDataId: newFilePathToTreeDataId,
-        };
-      });
-    }
-  }, [topLevelFolderOrFilesQuery.isLoading, topLevelFolderOrFilesQuery.data]);
+  const virtualizedData = [
+    CREATE_FOLDER_ITEM,
+    ...transformFileTreeForVirtualizedList(fileTreeData.treeData),
+  ];
 
-  return topLevelFolderOrFilesQuery;
+  return { topLevelFolderOrFilesQuery, virtualizedData };
 }

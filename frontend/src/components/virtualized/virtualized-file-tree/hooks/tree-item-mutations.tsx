@@ -26,6 +26,7 @@ import { fileTreeDataAtom } from '../../../../atoms';
 import { backendQueryAtom, sidebarSelectionAtom } from '../../../../atoms';
 import { QueryError } from '../../../../utils/query';
 import { insertCreatedNodeIntoFileTree } from '../utils/create-node';
+import { getParentNodeFromPath } from '../utils/file-tree-utils';
 
 /**
  * A mutation hook for adding new tree items (folders or notes) to the file tree.
@@ -190,7 +191,7 @@ export function useRenameTreeItemMutation() {
  * looks them up in the file tree data, and calls the backend to move them.
  */
 export function useMoveTreeItemsMutation() {
-  const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
+  const fileTreeData = useAtomValue(fileTreeDataAtom);
   const { selections } = useAtomValue(sidebarSelectionAtom);
 
   return useMutation({
@@ -203,27 +204,24 @@ export function useMoveTreeItemsMutation() {
       for (const selectionKey of selections) {
         const itemId = getSelectionValue(selectionKey);
         if (!itemId) continue;
-        const item = fileOrFolderMap.get(itemId);
+        const item = fileTreeData.treeData.get(itemId);
         if (!item) continue;
 
         if (item.path === newFolder) {
           return;
         }
 
-        if (item.type === FILE_TYPE) {
-          const parentFolder = item.parentId
-            ? fileOrFolderMap.get(item.parentId)
-            : undefined;
+        const parentFolder = getParentNodeFromPath(fileTreeData, item.path);
 
-          // If the item's parent is the same as the new folder, it does not need to be moved
-          // so we can skip it
-          if (
-            parentFolder &&
-            parentFolder.type === FOLDER_TYPE &&
-            parentFolder.path === newFolder
-          ) {
-            continue;
-          }
+        // If the item's parent is the same as the new folder, it does not need to be moved
+        // so we can skip it
+        if (parentFolder && parentFolder.path === newFolder) {
+          continue;
+        }
+
+        // Top-level items dropped on root don't need to move
+        if (!parentFolder && newFolder === '') {
+          continue;
         }
 
         selectedItems.push(item);

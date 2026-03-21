@@ -64,7 +64,7 @@ export function useTagsForNotesQuery(paths: string[]) {
     queryFn: async (): Promise<Record<string, string[]>> => {
       const res = await GetTagsForNotes(paths);
       if (!res.success) {
-        throw new QueryError(res.message);
+        throw new Error(res.message);
       }
       return res.data ?? {};
     },

@@ -90,6 +90,11 @@ export type FileTreeData = {
   filePathToTreeDataId: Map<string, string>;
 };
 
+export type ReadonlyFileTreeData = {
+  readonly treeData: ReadonlyMap<string, FileOrFolder>;
+  readonly filePathToTreeDataId: ReadonlyMap<string, string>;
+};
+
 export const fileTreeDataAtom = atomWithLogging<FileTreeData>(
   'fileTreeDataAtom',
   {

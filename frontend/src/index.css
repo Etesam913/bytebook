@@ -559,17 +559,6 @@ div[data-is-fullscreen='true'] .cm-scroller {
   content: '•';
   @apply text-[1.2em] align-top mr-2;
 }
-/* Image & Video Component */
-/* p:has(> span > div > :is(img, video, span[data-katex="true"])),
-h1:has(> span > div > :is(img, video, span[data-katex="true"])),
-h2:has(> span > div > :is(img, video, span[data-katex="true"])),
-h3:has(> span > div > :is(img, video, span[data-katex="true"])),
-h4:has(> span > div > :is(img, video, span[data-katex="true"])),
-h5:has(> span > div > :is(img, video, span[data-katex="true"])),
-h6:has(> span > div > :is(img, video, span[data-katex="true"])) {
-	This makes the image and video work correctly with inline content
-	@apply block;
-} */
 @keyframes table-controls {
   0% {
     opacity: 0;
