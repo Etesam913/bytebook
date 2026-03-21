@@ -16,7 +16,6 @@ import {
 
 // Import custom transformers
 import { CODE_TRANSFORMER } from './code';
-import { EQUATION } from './equation';
 import { FILE_TRANSFORMER } from './file';
 import { LINK } from './link';
 import { TABLE } from './table';
@@ -29,7 +28,6 @@ export const CUSTOM_TRANSFORMERS = [
   CHECK_LIST,
   UNORDERED_LIST,
   ORDERED_LIST,
-  EQUATION,
   QUOTE,
   BOLD_ITALIC_STAR,
   BOLD_ITALIC_UNDERSCORE,

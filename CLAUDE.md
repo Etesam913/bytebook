@@ -24,9 +24,6 @@ task dev
 ### Go backend
 
 ```bash
-# Run all tests (with caching)
-gotestsum --format=pkgname --format-icons=hivis ./internal/...
-
 # Run all tests (no cache)
 gotestsum --format=pkgname --format-icons=hivis -- -count=1 ./internal/...
 
@@ -45,14 +42,16 @@ bun install
 # Type-check (uses tsgo / TypeScript native preview)
 bun run tsgo
 
-# Lint
-bun run lint:check
-
 # Format check
 bun run format:check
+```
 
-# Run all three in sequence
-bun run format:lint:tsgo
+- Use object parameters when there are 3 or more parameters in a typescript function.
+
+For example,
+
+```ts
+function abc({ a, b, c }: { a: string; b: number; c: boolean });
 ```
 
 ## Architecture

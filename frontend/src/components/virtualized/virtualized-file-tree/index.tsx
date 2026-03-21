@@ -1,17 +1,11 @@
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtom } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
 import { Virtuoso, type ListRange, type VirtuosoHandle } from 'react-virtuoso';
 import { useTopLevelFileOrFolders } from './hooks/top-level';
 import { FileTreeItem } from './file-tree-item';
 import { useAnimatedHeight } from '../hooks';
-import { transformFileTreeForVirtualizedList } from './utils/file-tree-utils';
-import {
-  CREATE_FOLDER_TYPE,
-  type CreateFolderItem,
-  type VirtualizedFileTreeItem,
-} from './types';
+import { type VirtualizedFileTreeItem } from './types';
 import { sidebarSelectionAtom } from '../../../atoms';
-import { fileTreeDataAtom } from '../../../atoms';
 import { useOnClickOutside } from '../../../hooks/general';
 import {
   handleFileTreeItemClickCapture,
@@ -25,42 +19,30 @@ import { useFileTreeContentDrop } from './hooks/use-file-tree-content-drop';
 const FILE_TREE_MAX_HEIGHT = '65vh';
 const INITIAL_VISIBLE_RANGE: ListRange = { startIndex: 0, endIndex: -1 };
 
-// Represents the button to create a folder at the top of the file tree
-const CREATE_FOLDER_ITEM: CreateFolderItem = {
-  id: 'create-folder',
-  type: CREATE_FOLDER_TYPE,
-  level: 0,
-};
-
 export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
-  const fileTreeData = useAtomValue(fileTreeDataAtom);
-  const { treeData: fileOrFolderMap } = fileTreeData;
   const internalListRef = useRef<HTMLElement | null>(null);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [visibleRange, setVisibleRange] = useState(INITIAL_VISIBLE_RANGE);
   const [stickyContentHeight, setStickyContentHeight] = useState(0);
   const [listHeight, setListHeight] = useState<number | null>(null);
-  const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
+  const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
 
   // This only runs on component mount and when a top level folder or note is received in the folder:create or note:create events
-  const { data: topLevelFileOrFolders } = useTopLevelFileOrFolders();
+  const { topLevelFolderOrFilesQuery, virtualizedData } =
+    useTopLevelFileOrFolders();
+  const { isSuccess } = topLevelFolderOrFilesQuery;
 
-  // Flattening the top level data so that it can be virtualized and put in react-virutoso
-  const virtualizedData = [
-    CREATE_FOLDER_ITEM,
-    ...transformFileTreeForVirtualizedList(
-      topLevelFileOrFolders ?? [],
-      fileOrFolderMap
-    ),
-  ];
-
-  useRoutePathFocus({ visibleRange, virtualizedData, virtuosoRef });
+  useRoutePathFocus({ visibleRange, virtualizedData, virtuosoRef, isSuccess });
   useFileTreeContentDrop();
   // Clear selection when clicking outside the file tree (unless it's a context menu click)
   useOnClickOutside(
     internalListRef,
     (event) => {
-      if (!shouldHandleOutsideSelectionInteraction(event)) return;
+      if (
+        !shouldHandleOutsideSelectionInteraction(event) ||
+        sidebarSelection.selections.size === 0
+      )
+        return;
 
       setSidebarSelection((prev) => ({
         ...prev,

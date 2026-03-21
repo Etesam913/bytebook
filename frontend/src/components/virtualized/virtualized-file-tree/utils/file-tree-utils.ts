@@ -5,7 +5,7 @@ import type {
   VirtualizedFileTreeItem,
 } from '../types';
 import { FOLDER_TYPE, LOAD_MORE_TYPE } from '../types';
-import type { FileTreeData } from '../../../../atoms';
+import type { FileTreeData, ReadonlyFileTreeData } from '../../../../atoms';
 
 /**
  * Calculates the padding-left (indent) value for a file tree item based on its level.
@@ -22,40 +22,32 @@ export function getFileTreeItemIndent(
 }
 
 /**
- * Transforms a hierarchical file tree structure into a flattened array suitable for
- * rendering in a virtualized list.
+ * Flattens the file tree map into a linear list for virtualization.
  *
- * This function performs a depth-first traversal of the file tree, converting nested
- * folders and files into a linear array. Each item in the resulting array includes a
- * `level` property indicating its nesting depth (0 for top-level items).
+ * Traversal starts only from **top-level** nodes (`parentId === null`); every other
+ * entry is reached via `childrenIds` while walking open folders. Each row gets a
+ * `level` (0 for roots). Closed folders produce a single row without descending.
  *
- * Only children of open folders are included in the flattened output. Closed folders
- * appear as single entries without their children.
+ * For open folders with `hasMoreChildren`, a synthetic load-more row (`LOAD_MORE_TYPE`)
+ * is appended after the currently loaded children.
  *
- * @param data - Array of top-level FileOrFolder items to transform
- * @param fileOrFolderMap - Map of file/folder IDs to their corresponding FileOrFolder
- *   objects, used to look up children by ID during traversal
- * @returns A flattened array of FileOrFolder items with `level` properties, ready
- *   for virtualization
+ * @param fileOrFolderMap - Map of IDs to `FileOrFolder` values (lookups by `childrenIds`)
+ * @returns Flattened items: files, folders, and optional load-more rows, each with `level`
  *
  * @example
  * ```ts
- * const tree = [
- *   { id: '1', name: 'Folder', type: 'folder', isOpen: true, childrenIds: ['2', '3'], ... },
- * ];
- * const map = new Map([
- *   ['1', tree[0]],
- *   ['2', { id: '2', name: 'File', type: 'file', ... }],
+ * const map = new Map<string, FileOrFolder>([
+ *   ['1', { id: '1', parentId: null, type: 'folder', isOpen: true, childrenIds: ['2'], ... }],
+ *   ['2', { id: '2', parentId: '1', type: 'file', ... }],
  * ]);
- * const flattened = transformFileTreeForVirtualizedList(tree, map);
- * // Result: [
- * //   { id: '1', name: 'Folder', type: 'folder', level: 0, ... },
- * //   { id: '2', name: 'File', type: 'file', level: 1, ... },
+ * const flattened = transformFileTreeForVirtualizedList(map);
+ * // [
+ * //   { id: '1', type: 'folder', level: 0, ... },
+ * //   { id: '2', type: 'file', level: 1, ... },
  * // ]
  * ```
  */
 export function transformFileTreeForVirtualizedList(
-  data: FileOrFolder[],
   fileOrFolderMap: Map<string, FileOrFolder>
 ): VirtualizedFileTreeItem[] {
   const flattenedData: VirtualizedFileTreeItem[] = [];
@@ -70,8 +62,11 @@ export function transformFileTreeForVirtualizedList(
     };
     flattenedData.push(flattenedEntryForFileOrFolder);
 
-    if (updatedFileOrFolderData.type !== 'folder') return;
-    if (!updatedFileOrFolderData.isOpen) return;
+    if (
+      updatedFileOrFolderData.type !== 'folder' ||
+      !updatedFileOrFolderData.isOpen
+    )
+      return;
 
     // If the folder is open, the flattened representation for the virtualized list
     // has to include the next level of children. That is why dfs is happening
@@ -90,16 +85,19 @@ export function transformFileTreeForVirtualizedList(
     }
   }
 
-  for (const fileOrFolder of data) {
-    flattenFileOrFolder(fileOrFolder.id, 0);
-  }
-
-  return flattenedData;
+  return Array.from(fileOrFolderMap.values()).reduce(
+    (acc: VirtualizedFileTreeItem[], fileOrFolder) => {
+      if (!isFileTreeNodeTopLevel(fileOrFolder)) {
+        return acc;
+      }
+      flattenFileOrFolder(fileOrFolder.id, 0);
+      return acc;
+    },
+    flattenedData
+  );
 }
 
 /**
- * Recursively removes a file or folder and all its descendants from the file tree map.
- *
  * This function performs a depth-first traversal starting from the given root ID,
  * deleting each node it encounters. For folders, it first removes all children
  * before removing the folder itself.
@@ -170,23 +168,23 @@ export function removeSubtree(
  * @returns A new Map representing the updated treeData.
  */
 export function reconcileTopLevelFileTreeMap(
-  previousFileTreeData: FileTreeData,
+  previousFileTreeData: ReadonlyFileTreeData,
   newData: FileOrFolder[]
-): Map<string, FileOrFolder> {
+): FileTreeData {
   const newPaths = new Set(newData.map((item) => item.path));
-  const updatedTreeData = new Map(previousFileTreeData.treeData);
-  const updatedFilePathToTreeDataId = new Map(
+  const newTreeDataMap = new Map(previousFileTreeData.treeData);
+  const newFilePathToTreeDataMap = new Map(
     previousFileTreeData.filePathToTreeDataId
   );
-  const updatedFileTreeData: FileTreeData = {
-    treeData: updatedTreeData,
-    filePathToTreeDataId: updatedFilePathToTreeDataId,
+  const newFileTreeData: FileTreeData = {
+    treeData: newTreeDataMap,
+    filePathToTreeDataId: newFilePathToTreeDataMap,
   };
 
   for (const [id, node] of previousFileTreeData.treeData) {
     // Remove top level folders and all of their children (subtrees) that are not in the updated data
     if (isFileTreeNodeTopLevel(node) && !newPaths.has(node.path)) {
-      removeSubtree(updatedFileTreeData, id);
+      removeSubtree(newFileTreeData, id);
     }
   }
 
@@ -198,8 +196,8 @@ export function reconcileTopLevelFileTreeMap(
 
     if (nodeInPreviousData) {
       // If the node exists in the previous data, delete it from the updated tree to replace it with the new node
-      updatedTreeData.delete(nodeInPreviousData.path);
-      updatedFilePathToTreeDataId.delete(node.path);
+      newTreeDataMap.delete(nodeInPreviousData.id);
+      newFilePathToTreeDataMap.delete(node.path);
     }
 
     if (node.type === FOLDER_TYPE) {
@@ -210,7 +208,7 @@ export function reconcileTopLevelFileTreeMap(
       const { isOpen, childrenIds, childrenCursor, hasMoreChildren } =
         nodeInPreviousData && isPreviousNodeFolder ? nodeInPreviousData : node;
 
-      updatedTreeData.set(node.id, {
+      newTreeDataMap.set(node.id, {
         ...node,
         isOpen,
         childrenIds,
@@ -218,11 +216,13 @@ export function reconcileTopLevelFileTreeMap(
         hasMoreChildren,
       });
     } else {
-      updatedTreeData.set(node.id, node);
+      newTreeDataMap.set(node.id, node);
     }
+
+    newFilePathToTreeDataMap.set(node.path, node.id);
   }
 
-  return updatedTreeData;
+  return newFileTreeData;
 }
 
 /**
@@ -296,7 +296,7 @@ export function removeFileFromFileTreeMap({
  * Returns the node, or null if the path doesn't exist.
  */
 export function getTreeNodeFromPath(
-  fileTreeData: FileTreeData,
+  fileTreeData: ReadonlyFileTreeData,
   path: string
 ): FileOrFolder | null {
   const { treeData, filePathToTreeDataId } = fileTreeData;
@@ -369,4 +369,3 @@ export function hasLoadedChildren(folder: Folder): boolean {
     folder.hasMoreChildren
   );
 }
-

@@ -3,101 +3,142 @@ import {
   getAncestorFolderPathsFromFilePath,
   getTreeNodeFromPath,
   pathExistsInFileTree,
+  hasLoadedChildren,
 } from '../utils/file-tree-utils';
 import { FOLDER_TYPE } from '../types';
+import type { FileTreeData } from '../../../../atoms';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { logger } from '../../../../utils/logging';
 import { useSetAtom, useStore } from 'jotai';
-import { setFolderOpen, useFetchFolderChildrenMutation } from './open-folder';
-import { hasLoadedChildren } from '../utils/file-tree-utils';
+import { applyInitialLoad, applyLoadMore } from './open-folder';
+import { GetChildrenOfFolderBasedOnPath } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 
-const MAX_FOCUS_PAGINATION_ATTEMPTS = 200;
+/**
+ * Extracts the last segment (file or folder name) from a path.
+ * e.g. "docs/a/b.md" → "b.md", "docs/a" → "a"
+ */
+function getNameFromPath(path: string): string {
+  const segments = path.split('/').filter(Boolean);
+  return segments[segments.length - 1];
+}
 
 /**
  * Creates a mutation that reveals a route path in the file tree.
  *
  * revealRoutePathAsync('/docs/a/b.md')
- * opens parent folders and paginates until target path is present.
+ * opens parent folders and fetches children up to the target path.
  */
 export function useRevealRoutePath() {
   const store = useStore();
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
-  const { mutateAsync: fetchFolderChildrenAsync } =
-    useFetchFolderChildrenMutation({
-      pageSize: 20000,
-    });
 
-  async function revealPathInFileTree(targetPath: string): Promise<boolean> {
-    const getFileTreeData = () => store.get(fileTreeDataAtom);
+  return useMutation({
+    mutationFn: async (targetPath: string): Promise<boolean> => {
+      const ancestorFolderPaths =
+        getAncestorFolderPathsFromFilePath(targetPath);
 
-    const ancestorFolderPaths = getAncestorFolderPathsFromFilePath(targetPath);
-    if (ancestorFolderPaths.length === 0) {
-      return pathExistsInFileTree(getFileTreeData(), targetPath);
-    }
+      // Build a local working copy so all mutations are batched into one setFileTreeData call
+      const currentData = store.get(fileTreeDataAtom);
+      const newData: FileTreeData = {
+        treeData: new Map(currentData.treeData),
+        filePathToTreeDataId: new Map(currentData.filePathToTreeDataId),
+      };
 
-    for (
-      let folderIndex = 0;
-      folderIndex < ancestorFolderPaths.length;
-      folderIndex += 1
-    ) {
-      const ancestorPath = ancestorFolderPaths[folderIndex];
-      const nextPathToReveal =
-        ancestorFolderPaths[folderIndex + 1] ?? targetPath;
-
-      let ancestorNode = getTreeNodeFromPath(getFileTreeData(), ancestorPath);
-      if (!ancestorNode || ancestorNode.type !== FOLDER_TYPE) {
-        return false;
+      if (ancestorFolderPaths.length === 0) {
+        return pathExistsInFileTree(newData, targetPath);
       }
 
-      if (!hasLoadedChildren(ancestorNode)) {
-        await fetchFolderChildrenAsync({
-          pathToFolder: ancestorNode.path,
-          folderId: ancestorNode.id,
-        });
-      }
-      // Explicitly open the folder in the sidebar
-      setFolderOpen({ setFileTreeData, folderId: ancestorNode.id, isOpen: true });
+      for (
+        let folderIndex = 0;
+        folderIndex < ancestorFolderPaths.length;
+        folderIndex += 1
+      ) {
+        const ancestorPath = ancestorFolderPaths[folderIndex];
+        const nextPathToReveal =
+          ancestorFolderPaths[folderIndex + 1] ?? targetPath;
 
-      let attempts = 0;
-      while (attempts < MAX_FOCUS_PAGINATION_ATTEMPTS) {
-        ancestorNode = getTreeNodeFromPath(getFileTreeData(), ancestorPath);
+        const ancestorNode = getTreeNodeFromPath(newData, ancestorPath);
         if (!ancestorNode || ancestorNode.type !== FOLDER_TYPE) {
           return false;
         }
 
-        if (pathExistsInFileTree(getFileTreeData(), nextPathToReveal)) {
-          break;
+        // If the next path is already visible, just open the folder and continue
+        if (
+          hasLoadedChildren(ancestorNode) &&
+          pathExistsInFileTree(newData, nextPathToReveal)
+        ) {
+          newData.treeData.set(ancestorNode.id, {
+            ...ancestorNode,
+            isOpen: true,
+          });
+          continue;
         }
 
-        await fetchFolderChildrenAsync({
-          pathToFolder: ancestorNode.path,
-          folderId: ancestorNode.id,
-          isLoadMore: attempts > 0,
-        });
+        // If not visible yet use GetChildrenOfFolderBasedOnPath to fetch children up to the target child
+        const endCursor = getNameFromPath(nextPathToReveal);
+        const cursor = ancestorNode.childrenCursor ?? '';
+        const res = await GetChildrenOfFolderBasedOnPath(
+          ancestorNode.path,
+          ancestorNode.id,
+          cursor,
+          endCursor
+        );
 
-        if (!ancestorNode.hasMoreChildren) {
+        if (!res.success || !res.data) {
+          logger.debug(
+            'file-tree reveal: GetChildrenOfFolderBasedOnPath failed',
+            {
+              targetPath,
+              ancestorPath,
+              endCursor,
+              message: res.message,
+            }
+          );
           return false;
         }
-        attempts += 1;
+
+        const { items, hasMore, nextCursor } = res.data;
+        const isLoadMore = cursor !== '';
+
+        const applyArgs = {
+          folderId: ancestorNode.id,
+          items,
+          hasMore,
+          nextCursor,
+          maps: newData,
+        };
+
+        if (isLoadMore) {
+          applyLoadMore(applyArgs);
+        } else {
+          applyInitialLoad(applyArgs);
+        }
+
+        // Mark the folder as open in the working copy
+        const updatedNode = newData.treeData.get(ancestorNode.id);
+        if (updatedNode && updatedNode.type === FOLDER_TYPE) {
+          newData.treeData.set(ancestorNode.id, {
+            ...updatedNode,
+            isOpen: true,
+          });
+        }
+
+        if (!pathExistsInFileTree(newData, nextPathToReveal)) {
+          logger.debug(
+            'file-tree reveal: path not visible after fetching children',
+            {
+              targetPath,
+              ancestorPath,
+              endCursor,
+            }
+          );
+          return false;
+        }
       }
 
-      if (!pathExistsInFileTree(getFileTreeData(), nextPathToReveal)) {
-        logger.debug(
-          'file-tree focus: pagination limit reached before path became visible',
-          {
-            targetPath,
-            ancestorPath,
-            attempts: MAX_FOCUS_PAGINATION_ATTEMPTS,
-          }
-        );
-        return false;
-      }
-    }
-
-    return pathExistsInFileTree(getFileTreeData(), targetPath);
-  }
-
-  return useMutation({
-    mutationFn: revealPathInFileTree,
+      // Single batched state update
+      setFileTreeData(newData);
+      return pathExistsInFileTree(newData, targetPath);
+    },
   });
 }

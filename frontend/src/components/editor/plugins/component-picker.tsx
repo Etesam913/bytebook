@@ -9,7 +9,6 @@ import type { UseMutationResult } from '@tanstack/react-query';
 import {
   $createParagraphNode,
   $getSelection,
-  $insertNodes,
   $isRangeSelection,
   COMMAND_PRIORITY_NORMAL,
   type LexicalEditor,
@@ -27,14 +26,12 @@ import { Heading4 } from '../../../icons/heading-4';
 import { Heading5 } from '../../../icons/heading-5';
 import { Heading6 } from '../../../icons/heading-6';
 import { JavaLogo } from '../../../icons/java-logo';
-import { Equation } from '../../../icons/equation';
 import { PythonLogo } from '../../../icons/python-logo';
 import { Text } from '../../../icons/text';
 import {
   ComponentPickerMenuItem,
   DropdownPickerOption,
 } from '../../dropdown/dropdown-picker';
-import { $createInlineEquationNode } from '../nodes/inline-equation';
 import { attachmentCommandData, listCommandData } from '../utils/toolbar';
 import { INSERT_CODE_COMMAND } from './code';
 import { Languages } from '../../../types';
@@ -219,20 +216,6 @@ function getBaseOptions({
       ],
       onSelect: async () => {
         insertAttachmentsMutation.mutate();
-      },
-    }),
-    new DropdownPickerOption('Inline Equation', {
-      icon: <Equation />,
-      keywords: ['inline', 'equation', 'math', 'latex'],
-      onSelect: () => {
-        editor.update(() => {
-          const equationNode = $createInlineEquationNode({
-            equation: 'x^2 + y^2 = z^2',
-            defaultIsEditing: true,
-          });
-          $insertNodes([equationNode]);
-          // editor.dispatchCommand(FOCUS_NODE_COMMAND, equationNode);
-        });
       },
     }),
     ...languageCommandData.map(

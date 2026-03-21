@@ -8,7 +8,7 @@ import type { FileOrFolder } from '../types';
 import { FILE_TYPE, FOLDER_TYPE } from '../types';
 import type { SetStateAction } from 'jotai';
 import { useSetAtom, useStore } from 'jotai';
-import { Dispatch } from 'react';
+import { Dispatch, useRef } from 'react';
 
 type TreeMaps = {
   treeData: Map<string, FileOrFolder>;
@@ -67,13 +67,19 @@ function updateParentFolder(
 }
 
 /** Handles the "load more" case: appends new children to existing childrenIds. */
-function applyLoadMore(
-  folderId: string,
-  items: BackendFileOrFolder[],
-  hasMore: boolean,
-  nextCursor: string,
-  maps: TreeMaps
-) {
+export function applyLoadMore({
+  folderId,
+  items,
+  hasMore,
+  nextCursor,
+  maps,
+}: {
+  folderId: string;
+  items: BackendFileOrFolder[];
+  hasMore: boolean;
+  nextCursor: string;
+  maps: TreeMaps;
+}) {
   const existingFolder = maps.treeData.get(folderId);
   const childrenIds: string[] =
     existingFolder && existingFolder.type === FOLDER_TYPE
@@ -81,8 +87,16 @@ function applyLoadMore(
       : [];
 
   for (const entry of items) {
-    childrenIds.push(entry.id);
-    insertEntry(entry, folderId, maps);
+    // Deduplicate by path: if an item with this path already exists, use the existing ID
+    const existingId = maps.filePathToTreeDataId.get(entry.path);
+    if (existingId) {
+      if (!childrenIds.includes(existingId)) {
+        childrenIds.push(existingId);
+      }
+    } else {
+      childrenIds.push(entry.id);
+      insertEntry(entry, folderId, maps);
+    }
   }
 
   updateParentFolder(folderId, childrenIds, hasMore, nextCursor, maps);
@@ -111,14 +125,22 @@ function removeStaleChildren(
 }
 
 /** Handles the initial load: reconciles existing children with newly fetched ones. */
-function applyInitialLoad(
-  folderId: string,
-  items: BackendFileOrFolder[],
-  hasMore: boolean,
-  nextCursor: string,
-  maps: TreeMaps
-) {
+export function applyInitialLoad({
+  folderId,
+  items,
+  hasMore,
+  nextCursor,
+  maps,
+}: {
+  folderId: string;
+  items: BackendFileOrFolder[];
+  hasMore: boolean;
+  nextCursor: string;
+  maps: TreeMaps;
+}) {
   const returnedPaths = new Set(items.map((entry) => entry.path));
+
+  // Remove children from parent that are no longer in the response
   removeStaleChildren(folderId, returnedPaths, maps);
 
   const reconciledChildrenIds: string[] = [];
@@ -176,6 +198,7 @@ export function useFetchFolderChildrenMutation(options?: {
   const store = useStore();
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
   const pageSize = options?.pageSize ?? 300;
+  const inFlightFolders = useRef(new Set<string>());
 
   return useMutation({
     mutationFn: async ({
@@ -187,52 +210,62 @@ export function useFetchFolderChildrenMutation(options?: {
       folderId: string;
       isLoadMore?: boolean;
     }) => {
-      const { treeData } = store.get(fileTreeDataAtom);
-      const folderData = treeData.get(folderId);
-      if (!folderData || folderData.type !== FOLDER_TYPE) {
-        throw new QueryError('Folder not found');
-      }
+      // Skip if a fetch for this folder is already in flight
+      if (inFlightFolders.current.has(folderId)) return;
+      inFlightFolders.current.add(folderId);
 
-      const cursorToUse = isLoadMore ? (folderData.childrenCursor ?? '') : '';
-      const res = await GetChildrenOfFolderBasedOnLimit(
-        pathToFolder,
-        folderId,
-        cursorToUse,
-        pageSize
-      );
-      if (!res.success || (!res.data && res.message)) {
-        throw new QueryError(res.message);
-      }
-
-      setFileTreeData((prev: FileTreeData) => {
-        if (!res.data) return prev;
-
-        const maps: TreeMaps = {
-          treeData: new Map(prev.treeData),
-          filePathToTreeDataId: new Map(prev.filePathToTreeDataId),
-        };
-        const items = res.data.items ?? [];
-
-        if (isLoadMore) {
-          applyLoadMore(
-            folderId,
-            items,
-            res.data.hasMore,
-            res.data.nextCursor,
-            maps
-          );
-        } else {
-          applyInitialLoad(
-            folderId,
-            items,
-            res.data.hasMore,
-            res.data.nextCursor,
-            maps
-          );
+      try {
+        const { treeData } = store.get(fileTreeDataAtom);
+        const folderData = treeData.get(folderId);
+        if (!folderData || folderData.type !== FOLDER_TYPE) {
+          throw new QueryError('Folder not found');
         }
 
-        return maps;
-      });
+        const cursorToUse = isLoadMore
+          ? (folderData.childrenCursor ?? '')
+          : '';
+        const res = await GetChildrenOfFolderBasedOnLimit(
+          pathToFolder,
+          folderId,
+          cursorToUse,
+          pageSize
+        );
+        if (!res.success || (!res.data && res.message)) {
+          throw new QueryError(res.message);
+        }
+
+        setFileTreeData((prev: FileTreeData) => {
+          if (!res.data) return prev;
+
+          const maps: TreeMaps = {
+            treeData: new Map(prev.treeData),
+            filePathToTreeDataId: new Map(prev.filePathToTreeDataId),
+          };
+          const items = res.data.items ?? [];
+
+          if (isLoadMore) {
+            applyLoadMore({
+              folderId,
+              items,
+              hasMore: res.data.hasMore,
+              nextCursor: res.data.nextCursor,
+              maps,
+            });
+          } else {
+            applyInitialLoad({
+              folderId,
+              items,
+              hasMore: res.data.hasMore,
+              nextCursor: res.data.nextCursor,
+              maps,
+            });
+          }
+
+          return maps;
+        });
+      } finally {
+        inFlightFolders.current.delete(folderId);
+      }
     },
   });
 }

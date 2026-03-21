@@ -2,6 +2,7 @@ import { useAtomValue } from 'jotai';
 import { useFetchFolderChildrenMutation } from '../hooks/open-folder';
 import {
   CREATE_FOLDER_TYPE,
+  FOLDER_TYPE,
   LOAD_MORE_TYPE,
   VirtualizedFileTreeItem,
 } from '../types';
@@ -28,7 +29,7 @@ export function FileTreeItem({
       <LoadMoreRow
         level={dataItem.level}
         onLoadMore={() => {
-          if (parentFolder && parentFolder.type === 'folder') {
+          if (parentFolder && parentFolder.type === FOLDER_TYPE) {
             fetchFolderChildren({
               pathToFolder: parentFolder.path,
               folderId: parentFolder.id,
