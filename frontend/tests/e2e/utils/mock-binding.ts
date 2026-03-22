@@ -166,9 +166,15 @@ async function ensureFetchIsPatched(context: BrowserContext) {
           const url = new URL(requestUrl, window.location.origin);
 
           // Wails v3 uses POST /wails/runtime with JSON body
-          if (url.pathname === '/wails/runtime' && init?.method === 'POST' && init?.body) {
+          if (
+            url.pathname === '/wails/runtime' &&
+            init?.method === 'POST' &&
+            init?.body
+          ) {
             const body = JSON.parse(
-              typeof init.body === 'string' ? init.body : new TextDecoder().decode(init.body as ArrayBuffer)
+              typeof init.body === 'string'
+                ? init.body
+                : new TextDecoder().decode(init.body as ArrayBuffer)
             );
 
             // Call binding: object=0 (Call), method=0 (CallBinding)

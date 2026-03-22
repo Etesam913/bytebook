@@ -195,24 +195,28 @@ function useRestoreFromTrashMutation() {
  * This supports nested paths like `folder/subfolder/note.md` and folders.
  */
 export function usePinPathMutation() {
-  const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
+  const { mutateAsync: updateProjectSettings } =
+    useUpdateProjectSettingsMutation();
   const projectSettings = useAtomValue(projectSettingsAtom);
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       path,
       shouldPin,
     }: {
       path: string;
       shouldPin: boolean;
     }) => {
-      const newProjectSettings = { ...projectSettings };
+      const newProjectSettings = {
+        ...projectSettings,
+        pinnedNotes: new Set(projectSettings.pinnedNotes),
+      };
       if (shouldPin) {
         newProjectSettings.pinnedNotes.add(path);
       } else {
         newProjectSettings.pinnedNotes.delete(path);
       }
-      updateProjectSettings({ newProjectSettings });
+      return updateProjectSettings({ newProjectSettings });
     },
     onError: (e) => {
       if (e instanceof Error) {

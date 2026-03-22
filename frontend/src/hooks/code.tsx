@@ -555,8 +555,7 @@ export function useSendInterruptRequestMutation(onSuccess?: () => void) {
       newExecutionId: string;
     }) => {
       // Nothing to interrupt if the kernel is not running
-      const kernelData =
-        kernelsData[codeBlockLanguage as LanguagesWithKernels];
+      const kernelData = kernelsData[codeBlockLanguage as LanguagesWithKernels];
       if (
         kernelData.heartbeat === 'idle' ||
         kernelData.heartbeat === 'failure'

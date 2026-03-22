@@ -51,7 +51,9 @@ test.describe('File Sidebar', () => {
       await expect(sidebar).toContainText('Research Notes');
     });
 
-    test('clicking on folder navigates to the correct location', async ({ page }) => {
+    test('clicking on folder navigates to the correct location', async ({
+      page,
+    }) => {
       await page.goto('/');
       const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Economics Notes');
@@ -65,7 +67,10 @@ test.describe('File Sidebar', () => {
         // Mock RevealFolderOrFileInFinder
         await mockBinding(
           context,
-          { file: SERVICE_FILES.NOTE_SERVICE, method: 'RevealFolderOrFileInFinder' },
+          {
+            file: SERVICE_FILES.NOTE_SERVICE,
+            method: 'RevealFolderOrFileInFinder',
+          },
           MOCK_SUCCESS_RESPONSE
         );
 
@@ -84,7 +89,11 @@ test.describe('File Sidebar', () => {
         await mockBinding(
           context,
           { file: SERVICE_FILES.FOLDER_SERVICE, method: 'RenameFolder' },
-          { success: true, message: '', data: ['Research Notes', 'Macroeconomics'] }
+          {
+            success: true,
+            message: '',
+            data: ['Research Notes', 'Macroeconomics'],
+          }
         );
 
         await page.goto('/');
@@ -101,7 +110,10 @@ test.describe('File Sidebar', () => {
         await expect(input).toHaveValue('Economics Notes');
       });
 
-      test('moves a folder to trash via context menu', async ({ page, context }) => {
+      test('moves a folder to trash via context menu', async ({
+        page,
+        context,
+      }) => {
         // Mock MoveToTrash to succeed
         await mockBinding(
           context,
@@ -124,7 +136,14 @@ test.describe('File Sidebar', () => {
             success: true,
             message: '',
             data: [
-              { id: 'folder-2', path: 'Research Notes', name: 'Research Notes', parentId: '', type: 'folder', childrenIds: [] },
+              {
+                id: 'folder-2',
+                path: 'Research Notes',
+                name: 'Research Notes',
+                parentId: '',
+                type: 'folder',
+                childrenIds: [],
+              },
             ],
           }
         );
@@ -195,13 +214,17 @@ test.describe('File Sidebar', () => {
 
         await expect(sidebar).toContainText('economics');
 
-        await sidebar.getByText('economics', { exact: true }).click({ button: 'right' });
+        await sidebar
+          .getByText('economics', { exact: true })
+          .click({ button: 'right' });
 
         const contextMenu = page.getByRole('listbox');
         await contextMenu.getByText('Delete Tag').click();
 
         const dialog = page.getByRole('dialog');
-        await expect(dialog.getByRole('heading', { name: 'Delete Tag' })).toBeVisible();
+        await expect(
+          dialog.getByRole('heading', { name: 'Delete Tag' })
+        ).toBeVisible();
 
         const updatedTagsResponse = {
           success: true,
@@ -218,18 +241,24 @@ test.describe('File Sidebar', () => {
         await dialog.getByRole('button', { name: 'Delete' }).click();
         await emitWailsEvent(page, 'tags:index_update', {});
 
-        await expect(sidebar.getByText('economics', { exact: true })).not.toBeVisible();
+        await expect(
+          sidebar.getByText('economics', { exact: true })
+        ).not.toBeVisible();
       });
     });
   });
 
   test.describe('Saved Searches Accordion', () => {
-    test('renders saved searches accordion and navigates on click', async ({ page }) => {
+    test('renders saved searches accordion and navigates on click', async ({
+      page,
+    }) => {
       await page.goto('/');
       const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Saved Searches');
 
-      const savedSearchesAccordion = page.getByTestId('saved-searches-accordion');
+      const savedSearchesAccordion = page.getByTestId(
+        'saved-searches-accordion'
+      );
       await savedSearchesAccordion.click();
       await expect(sidebar).toContainText('My Research');
       await expect(sidebar).toContainText('Economics');
@@ -239,7 +268,10 @@ test.describe('File Sidebar', () => {
     });
 
     test.describe('Context menu', () => {
-      test('deletes a saved search via context menu', async ({ page, context }) => {
+      test('deletes a saved search via context menu', async ({
+        page,
+        context,
+      }) => {
         await setupWailsEvents(context);
 
         await mockBinding(
@@ -250,7 +282,9 @@ test.describe('File Sidebar', () => {
 
         await page.goto('/');
         const sidebar = page.getByTestId('file-sidebar');
-        const savedSearchesAccordion = page.getByTestId('saved-searches-accordion');
+        const savedSearchesAccordion = page.getByTestId(
+          'saved-searches-accordion'
+        );
         await savedSearchesAccordion.click();
 
         await expect(sidebar).toContainText('My Research');
@@ -261,12 +295,16 @@ test.describe('File Sidebar', () => {
         await contextMenu.getByText('Delete Search').click();
 
         const dialog = page.getByRole('dialog');
-        await expect(dialog.getByRole('heading', { name: 'Delete Saved Search' })).toBeVisible();
+        await expect(
+          dialog.getByRole('heading', { name: 'Delete Saved Search' })
+        ).toBeVisible();
 
         const updatedSavedSearchesResponse = {
           success: true,
           message: '',
-          data: MOCK_SAVED_SEARCHES_RESPONSE.data.filter((s) => s.name !== 'My Research'),
+          data: MOCK_SAVED_SEARCHES_RESPONSE.data.filter(
+            (s) => s.name !== 'My Research'
+          ),
         };
 
         await updateMockBindingResponse(
@@ -289,7 +327,11 @@ test.describe('File Sidebar', () => {
     await mockBinding(
       context,
       { file: SERVICE_FILES.FOLDER_SERVICE, method: 'AddFolder' },
-      { success: true, message: '', data: ['Economics Notes', 'Research Notes', NEW_FOLDER_NAME] }
+      {
+        success: true,
+        message: '',
+        data: ['Economics Notes', 'Research Notes', NEW_FOLDER_NAME],
+      }
     );
 
     await page.goto('/');
@@ -338,12 +380,22 @@ test.describe('File Sidebar', () => {
       );
       await mockBinding(
         context,
-        { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetChildrenOfFolderBasedOnPath' },
-        { success: true, message: '', data: { items: [], nextCursor: '', hasMore: false } }
+        {
+          file: SERVICE_FILES.FILE_TREE_SERVICE,
+          method: 'GetChildrenOfFolderBasedOnPath',
+        },
+        {
+          success: true,
+          message: '',
+          data: { items: [], nextCursor: '', hasMore: false },
+        }
       );
       await mockBinding(
         context,
-        { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'OpenFolderAndAddToFileWatcher' },
+        {
+          file: SERVICE_FILES.FILE_TREE_SERVICE,
+          method: 'OpenFolderAndAddToFileWatcher',
+        },
         { success: true, message: '' }
       );
 
@@ -369,7 +421,10 @@ test.describe('File Sidebar', () => {
 
       await mockBinding(
         context,
-        { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'UpdateProjectSettings' },
+        {
+          file: SERVICE_FILES.SETTINGS_SERVICE,
+          method: 'UpdateProjectSettings',
+        },
         { success: true, message: '', data: null }
       );
 
@@ -424,7 +479,10 @@ test.describe('File Sidebar', () => {
   });
 
   test.describe('Failure responses', () => {
-    test('shows error message when tags fetch fails', async ({ page, context }) => {
+    test('shows error message when tags fetch fails', async ({
+      page,
+      context,
+    }) => {
       const FAILURE_RESPONSE = {
         success: false,
         message: 'Failed to fetch tags',
@@ -450,7 +508,10 @@ test.describe('File Sidebar', () => {
       await expect(sidebar.getByText('Retry')).toBeVisible();
     });
 
-    test('shows error message when saved searches fetch fails', async ({ page, context }) => {
+    test('shows error message when saved searches fetch fails', async ({
+      page,
+      context,
+    }) => {
       const FAILURE_RESPONSE = {
         success: false,
         message: 'Failed to fetch saved searches',
@@ -467,11 +528,15 @@ test.describe('File Sidebar', () => {
       const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Saved Searches');
 
-      const savedSearchesAccordion = page.getByTestId('saved-searches-accordion');
+      const savedSearchesAccordion = page.getByTestId(
+        'saved-searches-accordion'
+      );
       await savedSearchesAccordion.click();
 
       await expect(
-        sidebar.getByText('Something went wrong when fetching your saved searches')
+        sidebar.getByText(
+          'Something went wrong when fetching your saved searches'
+        )
       ).toBeVisible();
       await expect(sidebar.getByText('Retry')).toBeVisible();
     });

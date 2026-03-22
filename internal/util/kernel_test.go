@@ -1,10 +1,10 @@
 package util
 
 import (
-	"fmt"
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -39,18 +39,30 @@ func TestIsVirtualEnv(t *testing.T) {
 
 func TestIsPortInUse(t *testing.T) {
 	t.Run("Unused port should return false", func(t *testing.T) {
-		// Choose a port likely to be unused
-		unusedPort := 54321
+		listener, err := net.Listen("tcp", "127.0.0.1:0")
+		if err != nil {
+			if strings.Contains(err.Error(), "operation not permitted") {
+				t.Skip("sandbox does not allow binding test sockets")
+			}
+			assert.NoError(t, err, "Failed to reserve test port")
+		}
+		unusedPort := listener.Addr().(*net.TCPAddr).Port
+		listener.Close()
+
 		result := IsPortInUse(unusedPort)
 		assert.False(t, result, "Port %d should not be in use", unusedPort)
 	})
 
 	t.Run("Used port should return true", func(t *testing.T) {
-		// Start a server on a port and verify it's detected as in use
-		usedPort := 54322
-		listener, err := net.Listen("tcp", fmt.Sprintf(":%d", usedPort))
-		assert.NoError(t, err, "Failed to start test server")
+		listener, err := net.Listen("tcp", "127.0.0.1:0")
+		if err != nil {
+			if strings.Contains(err.Error(), "operation not permitted") {
+				t.Skip("sandbox does not allow binding test sockets")
+			}
+			assert.NoError(t, err, "Failed to start test server")
+		}
 		defer listener.Close()
+		usedPort := listener.Addr().(*net.TCPAddr).Port
 
 		// Run the test server in a goroutine
 		go func() {

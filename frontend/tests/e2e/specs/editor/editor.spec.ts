@@ -25,13 +25,19 @@ test.describe('Editor', () => {
 
     await mockBinding(
       context,
-      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetChildrenOfFolderBasedOnPath' },
+      {
+        file: SERVICE_FILES.FILE_TREE_SERVICE,
+        method: 'GetChildrenOfFolderBasedOnPath',
+      },
       MOCK_ECONOMICS_FOLDER_CHILDREN_RESPONSE
     );
 
     await mockBinding(
       context,
-      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'OpenFolderAndAddToFileWatcher' },
+      {
+        file: SERVICE_FILES.FILE_TREE_SERVICE,
+        method: 'OpenFolderAndAddToFileWatcher',
+      },
       MOCK_SUCCESS_RESPONSE
     );
 
@@ -72,7 +78,9 @@ test.describe('Editor', () => {
     const noteContainer = page.locator('#note-container');
     await expect(noteContainer).toBeVisible();
 
-    const noteTitleInput = noteContainer.locator('input[placeholder="Untitled Note"]');
+    const noteTitleInput = noteContainer.locator(
+      'input[placeholder="Untitled Note"]'
+    );
     await expect(noteTitleInput).toHaveValue('Supply and Demand');
   });
 
@@ -90,7 +98,9 @@ test.describe('Editor', () => {
     const toolbar = page.locator('nav').first();
     await expect(toolbar).toBeVisible();
 
-    const maximizeBtn = toolbar.locator('span.flex.items-center button').first();
+    const maximizeBtn = toolbar
+      .locator('span.flex.items-center button')
+      .first();
     await maximizeBtn.click();
 
     // Verify the file sidebar is now hidden
@@ -102,7 +112,10 @@ test.describe('Editor', () => {
   });
 
   test.describe('Error handling', () => {
-    test('handles failed markdown fetch gracefully', async ({ page, context }) => {
+    test('handles failed markdown fetch gracefully', async ({
+      page,
+      context,
+    }) => {
       const FAILURE_RESPONSE = {
         success: false,
         message: 'Failed to fetch note markdown',
@@ -141,7 +154,9 @@ test.describe('Editor', () => {
       await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
 
       const editor = page.locator('#content-editable-editor');
-      await editor.getByText('This is some selectable text').click({ clickCount: 3 });
+      await editor
+        .getByText('This is some selectable text')
+        .click({ clickCount: 3 });
 
       const floatingToolbar = page.getByTestId('floating-toolbar');
       await expect(floatingToolbar).toBeVisible({ timeout: 3000 });
@@ -168,11 +183,15 @@ test.describe('Editor', () => {
     ];
 
     for (const { button, selector } of formattingTests) {
-      test(`applies ${button.toLowerCase()} formatting when ${button} button is clicked`, async ({ page }) => {
+      test(`applies ${button.toLowerCase()} formatting when ${button} button is clicked`, async ({
+        page,
+      }) => {
         await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
 
         const editor = page.locator('#content-editable-editor');
-        await editor.getByText('This is some selectable text').click({ clickCount: 3 });
+        await editor
+          .getByText('This is some selectable text')
+          .click({ clickCount: 3 });
 
         const floatingToolbar = page.getByTestId('floating-toolbar');
         await expect(floatingToolbar).toBeVisible({ timeout: 3000 });

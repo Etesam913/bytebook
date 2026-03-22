@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/fsnotify/fsnotify"
@@ -153,6 +154,199 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 		assert.Contains(t, watchList, notesDir)
 		assert.Contains(t, watchList, settingsDir)
 		assert.Contains(t, watchList, savedSearchesPath)
+	})
+}
+
+func newTestFileWatcher(t *testing.T, projectPath string) *FileWatcher {
+	t.Helper()
+
+	watcher, err := fsnotify.NewWatcher()
+	assert.NoError(t, err)
+	t.Cleanup(func() {
+		_ = watcher.Close()
+	})
+
+	fw := newFileWatcher(nil, projectPath, watcher)
+	if !fw.debounceTimer.Stop() {
+		select {
+		case <-fw.debounceTimer.C:
+		default:
+		}
+	}
+
+	return fw
+}
+
+func TestCollectWatchableFolderPaths(t *testing.T) {
+	testDir, _, notesDir, _, _ := setupProjectFolders(t)
+	alphaDir := filepath.Join(notesDir, "alpha")
+	betaDir := filepath.Join(alphaDir, "beta")
+	hiddenDir := filepath.Join(notesDir, ".hidden")
+	hiddenChild := filepath.Join(hiddenDir, "child")
+
+	err := os.MkdirAll(betaDir, 0755)
+	assert.NoError(t, err)
+	err = os.MkdirAll(hiddenChild, 0755)
+	assert.NoError(t, err)
+	err = os.WriteFile(filepath.Join(notesDir, "root.md"), []byte("root"), 0644)
+	assert.NoError(t, err)
+
+	paths := collectWatchableFolderPaths(filepath.Join(testDir, "notes"))
+
+	assert.Contains(t, paths, notesDir)
+	assert.Contains(t, paths, alphaDir)
+	assert.Contains(t, paths, betaDir)
+	assert.NotContains(t, paths, hiddenDir)
+	assert.NotContains(t, paths, hiddenChild)
+}
+
+func TestResolvePendingRenames(t *testing.T) {
+	t.Run("emits note rename for an unambiguous file pair", func(t *testing.T) {
+		testDir, _, notesDir, _, _ := setupProjectFolders(t)
+		oldPath := filepath.Join(notesDir, "old.md")
+		newPath := filepath.Join(notesDir, "new.md")
+
+		err := os.WriteFile(newPath, []byte("new"), 0644)
+		assert.NoError(t, err)
+
+		fw := newTestFileWatcher(t, testDir)
+		fw.fileStateCache[oldPath] = fileState{modTime: time.Now(), size: 3}
+		fw.pendingFileRenameEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: oldPath, Op: fsnotify.Rename}}}
+		fw.mostRecentFileCreatedEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: newPath, Op: fsnotify.Create}}}
+
+		fw.resolvePendingRenames(false)
+
+		assert.Equal(t, []map[string]string{
+			{"oldNotePath": "old.md", "newNotePath": "new.md"},
+		}, fw.debounceEvents[util.Events.NoteRename])
+		assert.NotContains(t, fw.fileStateCache, oldPath)
+		assert.Contains(t, fw.fileStateCache, newPath)
+		assert.Empty(t, fw.mostRecentFileCreatedEvents)
+	})
+
+	t.Run("unmatched file rename becomes delete", func(t *testing.T) {
+		testDir, _, notesDir, _, _ := setupProjectFolders(t)
+		oldPath := filepath.Join(notesDir, "old.md")
+
+		fw := newTestFileWatcher(t, testDir)
+		fw.pendingFileRenameEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: oldPath, Op: fsnotify.Rename}}}
+
+		fw.resolvePendingRenames(false)
+
+		assert.Equal(t, []map[string]string{
+			{"notePath": "old.md"},
+		}, fw.debounceEvents[util.Events.NoteDelete])
+	})
+
+	t.Run("unmatched file create becomes create", func(t *testing.T) {
+		testDir, _, notesDir, _, _ := setupProjectFolders(t)
+		newPath := filepath.Join(notesDir, "new.md")
+
+		err := os.WriteFile(newPath, []byte("new"), 0644)
+		assert.NoError(t, err)
+
+		fw := newTestFileWatcher(t, testDir)
+		fw.mostRecentFileCreatedEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: newPath, Op: fsnotify.Create}}}
+
+		fw.resolvePendingRenames(false)
+
+		assert.Equal(t, []map[string]string{
+			{"notePath": "new.md"},
+		}, fw.debounceEvents[util.Events.NoteCreate])
+	})
+
+	t.Run("ambiguous file batch degrades to delete and create", func(t *testing.T) {
+		testDir, _, notesDir, _, _ := setupProjectFolders(t)
+		oldPath := filepath.Join(notesDir, "old.md")
+		newPathA := filepath.Join(notesDir, "new-a.md")
+		newPathB := filepath.Join(notesDir, "new-b.md")
+
+		err := os.WriteFile(newPathA, []byte("a"), 0644)
+		assert.NoError(t, err)
+		err = os.WriteFile(newPathB, []byte("b"), 0644)
+		assert.NoError(t, err)
+
+		fw := newTestFileWatcher(t, testDir)
+		fw.pendingFileRenameEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: oldPath, Op: fsnotify.Rename}}}
+		fw.mostRecentFileCreatedEvents = []pendingWatcherEvent{
+			{event: fsnotify.Event{Name: newPathA, Op: fsnotify.Create}},
+			{event: fsnotify.Event{Name: newPathB, Op: fsnotify.Create}},
+		}
+
+		fw.resolvePendingRenames(false)
+
+		assert.Equal(t, []map[string]string{
+			{"notePath": "old.md"},
+		}, fw.debounceEvents[util.Events.NoteDelete])
+		assert.Equal(t, []map[string]string{
+			{"notePath": "new-a.md"},
+			{"notePath": "new-b.md"},
+		}, fw.debounceEvents[util.Events.NoteCreate])
+		assert.Empty(t, fw.debounceEvents[util.Events.NoteRename])
+	})
+
+	t.Run("same-path file pair emits note write", func(t *testing.T) {
+		testDir, _, notesDir, _, _ := setupProjectFolders(t)
+		path := filepath.Join(notesDir, "same.md")
+
+		err := os.WriteFile(path, []byte("# title"), 0644)
+		assert.NoError(t, err)
+
+		fw := newTestFileWatcher(t, testDir)
+		fw.fileStateCache[path] = fileState{modTime: time.Unix(0, 0), size: 0}
+		fw.pendingFileRenameEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: path, Op: fsnotify.Rename}}}
+		fw.mostRecentFileCreatedEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: path, Op: fsnotify.Create}}}
+
+		fw.resolvePendingRenames(false)
+
+		assert.Equal(t, []map[string]string{
+			{"notePath": "same.md", "markdown": "# title"},
+		}, fw.debounceEvents[util.Events.NoteWrite])
+		assert.Empty(t, fw.debounceEvents[util.Events.NoteRename])
+		assert.Empty(t, fw.debounceEvents[util.Events.NoteDelete])
+		assert.Empty(t, fw.debounceEvents[util.Events.NoteCreate])
+	})
+
+	t.Run("matched folder rename re-registers descendant watches", func(t *testing.T) {
+		testDir, _, notesDir, _, _ := setupProjectFolders(t)
+		oldDir := filepath.Join(notesDir, "old-folder")
+		oldChild := filepath.Join(oldDir, "child")
+		newDir := filepath.Join(notesDir, "new-folder")
+		newChild := filepath.Join(newDir, "child")
+
+		err := os.MkdirAll(oldChild, 0755)
+		assert.NoError(t, err)
+
+		watcher, err := fsnotify.NewWatcher()
+		assert.NoError(t, err)
+		defer watcher.Close()
+
+		AddProjectFoldersToWatcher(testDir, watcher)
+		fw := newFileWatcher(nil, testDir, watcher)
+		if !fw.debounceTimer.Stop() {
+			select {
+			case <-fw.debounceTimer.C:
+			default:
+			}
+		}
+
+		err = os.Rename(oldDir, newDir)
+		assert.NoError(t, err)
+
+		fw.pendingFolderRenameEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: oldDir, Op: fsnotify.Rename}}}
+		fw.mostRecentFolderCreatedEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: newDir, Op: fsnotify.Create}}}
+
+		fw.resolvePendingRenames(true)
+
+		assert.Equal(t, []map[string]string{
+			{"oldFolderPath": "old-folder", "newFolderPath": "new-folder"},
+		}, fw.debounceEvents[util.Events.FolderRename])
+
+		watchList := watcher.WatchList()
+		assert.Contains(t, watchList, newDir)
+		assert.Contains(t, watchList, newChild)
+		assert.NotContains(t, watchList, oldDir)
+		assert.NotContains(t, watchList, oldChild)
 	})
 }
 
@@ -310,4 +504,20 @@ func TestDedupeDebouncedEventsByPathPayload(t *testing.T) {
 			assert.Equal(t, events["custom:event"], deduped["custom:event"])
 		}
 	})
+}
+
+func TestOrderedDebouncedEventKeys(t *testing.T) {
+	events := map[string][]map[string]string{
+		util.Events.NoteCreate:   {{"notePath": "a.md"}},
+		util.Events.NoteRename:   {{"oldNotePath": "a.md", "newNotePath": "b.md"}},
+		util.Events.FolderDelete: {{"folderPath": "folder"}},
+		"custom:event":           {{"status": "ok"}},
+	}
+
+	assert.Equal(t, []string{
+		util.Events.NoteRename,
+		util.Events.FolderDelete,
+		util.Events.NoteCreate,
+		"custom:event",
+	}, orderedDebouncedEventKeys(events))
 }

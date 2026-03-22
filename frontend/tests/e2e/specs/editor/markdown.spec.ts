@@ -21,13 +21,19 @@ test.describe('Markdown rendering', () => {
 
     await mockBinding(
       context,
-      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetChildrenOfFolderBasedOnPath' },
+      {
+        file: SERVICE_FILES.FILE_TREE_SERVICE,
+        method: 'GetChildrenOfFolderBasedOnPath',
+      },
       MOCK_ECONOMICS_FOLDER_CHILDREN_RESPONSE
     );
 
     await mockBinding(
       context,
-      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'OpenFolderAndAddToFileWatcher' },
+      {
+        file: SERVICE_FILES.FILE_TREE_SERVICE,
+        method: 'OpenFolderAndAddToFileWatcher',
+      },
       MOCK_SUCCESS_RESPONSE
     );
 
@@ -164,7 +170,9 @@ test.describe('Markdown rendering', () => {
     await expect(editor).toBeVisible();
 
     await expect(editor).toContainText('strikethrough text');
-    await expect(editor.locator('span.text-strikethrough')).toContainText('strikethrough text');
+    await expect(editor.locator('span.text-strikethrough')).toContainText(
+      'strikethrough text'
+    );
   });
 
   test('renders blockquotes correctly', async ({ page, context }) => {

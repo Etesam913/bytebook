@@ -141,6 +141,16 @@ func FileOrFolderExists(path string) (bool, error) {
 	return false, err
 }
 
+// IsDirectory reports whether path exists and is a directory.
+func IsDirectory(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+
+	return info.IsDir()
+}
+
 func normalizeTrashSelections(paths []string) []string {
 	sortedPaths := append([]string(nil), paths...)
 	slices.SortFunc(sortedPaths, func(a, b string) int {
@@ -176,6 +186,13 @@ type TrashRestoreInfo struct {
 	IsFolder     bool   `json:"isFolder"`
 }
 
+func resolveTrashDir(homeDir string) string {
+	if override := os.Getenv("BYTEBOOK_TRASH_DIR"); override != "" {
+		return override
+	}
+	return filepath.Join(homeDir, ".Trash")
+}
+
 // MoveToTrash moves the file or directory at src to the user's home trash directory.
 // On macOS it first tries FSPathMoveObjectToTrashSync to preserve Finder metadata;
 // on failure or Linux it falls back to the FreeDesktop spec or ~/.Trash rename.
@@ -203,13 +220,15 @@ func MoveToTrash(src string) (TrashRestoreInfo, error) {
 	}
 
 	if runtime.GOOS == "darwin" {
-		// Try CoreServices API for full Finder compatibility
-		if trashedPath, ok := moveToTrashDarwin(src); ok {
-			restoreInfo.TrashedPath = trashedPath
-			return restoreInfo, nil
+		if os.Getenv("BYTEBOOK_TRASH_DIR") == "" {
+			// Try CoreServices API for full Finder compatibility when no test override is set.
+			if trashedPath, ok := moveToTrashDarwin(src); ok {
+				restoreInfo.TrashedPath = trashedPath
+				return restoreInfo, nil
+			}
 		}
 		// Fallback to manual rename
-		trashDir := filepath.Join(usr.HomeDir, ".Trash")
+		trashDir := resolveTrashDir(usr.HomeDir)
 		if err := os.MkdirAll(trashDir, 0755); err != nil {
 			return TrashRestoreInfo{}, fmt.Errorf("could not create macOS trash directory: %w", err)
 		}
