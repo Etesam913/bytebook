@@ -31,7 +31,14 @@ cd frontend && bun install
 ## 🏃‍➡️ Run (in root bytebook/ directory)
 
 ```
-wails3 dev --port 5173
+task dev
+```
+
+Or from the frontend directory:
+
+```bash
+cd frontend
+bun dev
 ```
 
 ## 🧪 Tests

@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "cd .. && wails3 dev --port 5173",
+    "dev:internal": "vite",
     "build": "vite build --minify false --mode development",
     "build:prod": "vite build --mode production",
     "build:analyze": "VITE_ANALYZE=true vite build --mode production",
