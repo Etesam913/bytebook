@@ -211,7 +211,7 @@ export function SavedSearchPage({
                 {isError && (
                   <ErrorText
                     message="Something went wrong when retrieving the search results"
-                    onRetry={() => refetch()}
+                    onRetry={() => void refetch()}
                     icon={
                       <FileRefresh
                         className="will-change-transform"
@@ -263,7 +263,7 @@ export function SavedSearchPage({
                       )}
                       endReached={() => {
                         if (!hasNextPage || isFetchingNextPage) return;
-                        fetchNextPage();
+                        void fetchNextPage();
                       }}
                     />
                   ))}

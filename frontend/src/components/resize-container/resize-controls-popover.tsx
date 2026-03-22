@@ -94,7 +94,7 @@ export function ResizeControlsPopover({
                   if (Path.isLocalFilePath(path)) {
                     navigate(path.getLinkToNote());
                   } else {
-                    Browser.OpenURL(path.getFileUrl());
+                    void Browser.OpenURL(path.getFileUrl());
                   }
                 }}
               >

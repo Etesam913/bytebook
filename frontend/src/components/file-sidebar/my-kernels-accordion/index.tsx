@@ -42,7 +42,7 @@ export function getKernelIcon(kernel: Languages, size: number = 18) {
       );
     case 'java':
       return <JavaLogo height={size} width={size} className={className} />;
-    default:
+    case 'text':
       return (
         <SquareTerminal
           height={size - 2}

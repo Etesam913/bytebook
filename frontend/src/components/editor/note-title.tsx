@@ -38,7 +38,7 @@ export function NoteTitle({ filePath }: { filePath: FilePath }) {
         }}
         placeholder="Untitled Note"
         onFocus={() => setIsToolbarDisabled(true)}
-        onBlur={async () => {
+        onBlur={() => {
           setIsToolbarDisabled(false);
           if (
             noteTitle === filePath.noteWithoutExtension ||
@@ -53,15 +53,11 @@ export function NoteTitle({ filePath }: { filePath: FilePath }) {
             return;
           }
 
-          try {
-            await renameFile({
+          void renameFile({
               oldPath: filePath,
               newPath: newFilePath,
               setErrorText,
             });
-          } catch {
-            // Error handling is done in the mutation
-          }
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {

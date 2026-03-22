@@ -173,7 +173,7 @@ export function useCreateTableDialog(): (
           </MotionButton>
         </>
       ),
-      onSubmit: async (e, setErrorText) => {
+      onSubmit: (e, setErrorText) => {
         const formData = new FormData(e.target as HTMLFormElement);
         const rows = formData.get('table-rows') as string;
         const columns = formData.get('table-columns') as string;
@@ -183,7 +183,7 @@ export function useCreateTableDialog(): (
 
         if (!rows || Number.isNaN(rowsNum) || rowsNum < 1 || rowsNum > 100) {
           setErrorText('Please enter a valid number of rows (1-100)');
-          return false;
+          return Promise.resolve(false);
         }
 
         if (
@@ -193,7 +193,7 @@ export function useCreateTableDialog(): (
           columnsNum > 20
         ) {
           setErrorText('Please enter a valid number of columns (1-10)');
-          return false;
+          return Promise.resolve(false);
         }
 
         try {
@@ -211,12 +211,12 @@ export function useCreateTableDialog(): (
             });
           });
 
-          return true;
+          return Promise.resolve(true);
         } catch (error) {
           setErrorText(
             error instanceof Error ? error.message : 'Failed to create table'
           );
-          return false;
+          return Promise.resolve(false);
         }
       },
     });

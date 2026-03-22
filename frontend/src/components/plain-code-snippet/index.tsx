@@ -5,7 +5,7 @@ import { MotionButton } from '../buttons';
 // using a MotionButton leads to layout shift for some reason...
 export function PlainCodeSnippet({ code }: { code: string }) {
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(code);
+    void navigator.clipboard.writeText(code);
   };
 
   return (

@@ -35,7 +35,7 @@ export const debouncedNoteHandleChange = debounce(noteHandleChange, 150);
  * @param tags - A set of tags indicating the context of the change, such as
  * "note:write-from-external" or "note:initial-load"
  */
-async function noteHandleChange(editor: LexicalEditor, tags: Set<string>) {
+function noteHandleChange(editor: LexicalEditor, tags: Set<string>) {
   /*
     If the note was changed from another window, don't update it again
     If a new note is loaded for the first time, we don't need this func to run
@@ -261,11 +261,10 @@ export function overrideControlledTextInsertion(
   editor: LexicalEditor,
   draggedGhostElement: HTMLElement | null
 ) {
-  // @ts-expect-error Data Transfer does exist when dragging a link
-  if (!e.dataTransfer || !draggedGhostElement) return false;
+  const inputEvent = e as InputEvent & { dataTransfer?: DataTransfer };
+  if (!inputEvent.dataTransfer || !draggedGhostElement) return false;
 
-  // @ts-expect-error Data Transfer does exist when dragging a link
-  const fileText: string = e.dataTransfer.getData('text/plain');
+  const fileText: string = inputEvent.dataTransfer.getData('text/plain');
   const files = fileText.split(',');
 
   const linkPayloads: { url: string; title: string }[] = [];
@@ -284,6 +283,8 @@ export function overrideControlledTextInsertion(
           alt: result.filePath.noteWithoutExtension,
           src: result.filePath.getFileUrl(),
         });
+        break;
+      case 'unknown':
         break;
     }
   }

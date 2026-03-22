@@ -118,7 +118,7 @@ export function SearchHeader({
             autoFocus: true,
             value: lastSearchQuery,
             onFocus: (e) => e.target.select(),
-            onChange: async (e) => {
+            onChange: (e) => {
               setSelectedIndex(0);
               setLastSearchQuery(e.target.value);
             },

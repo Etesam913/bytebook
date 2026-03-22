@@ -139,7 +139,7 @@ export function ContextMenu() {
               </div>
             )}
             <DropdownItems
-              onChange={async (item) => {
+              onChange={(item) => {
                 if (item.onChange) {
                   item.onChange();
                 }

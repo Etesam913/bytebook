@@ -10,7 +10,7 @@ import {
   projectSettingsAtom,
   kernelsDataAtom,
 } from '../../../atoms';
-import { DropdownItem, Languages } from '../../../types';
+import type { DropdownItem, Languages, LanguagesWithKernels } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
 import { FolderOpen } from '../../../icons/folder-open';
 import { PythonVenvDialog } from '../python-venv-dialog';
@@ -53,7 +53,10 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   useOnClickOutside(dropdownContainerRef, () => setIsOpen(false));
   const projectSettings = useAtomValue(projectSettingsAtom);
   const kernelsData = useAtomValue(kernelsDataAtom);
-  const { status, heartbeat, errorMessage } = kernelsData[language];
+  const kernelData = kernelsData[language as LanguagesWithKernels];
+  const status = kernelData.status;
+  const heartbeat = kernelData.heartbeat;
+  const errorMessage = kernelData.errorMessage;
   const { mutate: shutdownKernel } = useShutdownKernelMutation(language);
   const { mutate: turnOnKernel } = useTurnOnKernelMutation({ language });
   const { mutateAsync: submitPythonVenv } =

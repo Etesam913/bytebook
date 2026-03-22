@@ -58,7 +58,7 @@ export function MyTagsAccordion() {
         errorElement={
           <ErrorText
             message="Something went wrong when fetching your tags"
-            onRetry={() => refetch()}
+            onRetry={() => void refetch()}
             icon={
               <ArrowRotateAnticlockwise
                 className="will-change-transform"

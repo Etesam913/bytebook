@@ -71,7 +71,7 @@ export function SavePlugin({
           }
           const tags: string[] | undefined = queryClient.getQueryData([
             'notes-tags',
-            filePath.toString(),
+            filePath.fullPath,
           ]);
           const timeOfChange = new Date().toISOString();
           frontmatterCopy.folder = filePath.folder;
@@ -90,7 +90,7 @@ export function SavePlugin({
           );
 
           setFrontmatter(frontmatterCopy);
-          saveMarkdownContent(markdownWithFrontmatter);
+          void saveMarkdownContent(markdownWithFrontmatter);
           setPreviousMarkdownWithFrontmatter(markdownWithFrontmatter);
 
           return true;

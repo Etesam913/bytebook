@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 type UseSearch = () => string;
 const useSearchMock = mock<UseSearch>(() => '');
 
-mock.module('wouter', () => ({
+void mock.module('wouter', () => ({
   useSearch: useSearchMock,
 }));
 

@@ -115,7 +115,7 @@ export function NoteComponentControls({
               });
               navigate(filePath.getLinkToNote());
             } else {
-              Browser.OpenURL(src);
+              void Browser.OpenURL(src);
             }
           }}
         >

@@ -214,7 +214,7 @@ function getBaseOptions({
         attachmentCommandData.block,
         'picture',
       ],
-      onSelect: async () => {
+      onSelect: () => {
         insertAttachmentsMutation.mutate();
       },
     }),

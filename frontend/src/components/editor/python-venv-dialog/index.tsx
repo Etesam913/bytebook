@@ -152,16 +152,18 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                   <MotionButton
                     {...getDefaultButtonVariants()}
                     className="w-fit text-nowrap"
-                    onClick={async () => {
-                      setBackendQuery({
-                        isLoading: true,
-                        message: 'Select a virtual environment folder',
-                      });
+                    onClick={() => {
+                      void (async () => {
+                        setBackendQuery({
+                          isLoading: true,
+                          message: 'Select a virtual environment folder',
+                        });
 
-                      const res = await chooseCustomVirtualEnvironmentPath();
-                      if (res.success) {
-                        setCustomVenvPath(res.data ?? null);
-                      }
+                        const res = await chooseCustomVirtualEnvironmentPath();
+                        if (res.success) {
+                          setCustomVenvPath(res.data ?? null);
+                        }
+                      })();
                     }}
                   >
                     Select a custom path

@@ -70,7 +70,7 @@ export function MySavedSearchesAccordion() {
         errorElement={
           <ErrorText
             message="Something went wrong when fetching your saved searches"
-            onRetry={() => refetch()}
+            onRetry={() => void refetch()}
             icon={
               <ArrowRotateAnticlockwise
                 className="will-change-transform"

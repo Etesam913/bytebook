@@ -24,9 +24,9 @@ export function useTagEvents() {
   useWailsEvent(TAGS_INDEX_UPDATE, () => {
     logger.event(TAGS_INDEX_UPDATE);
 
-    queryClient.invalidateQueries({ queryKey: ['get-tags'] });
+    void queryClient.invalidateQueries({ queryKey: ['get-tags'] });
     if (filePath) {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ['notes-tags', [filePath.fullPath]],
       });
     }
@@ -95,9 +95,13 @@ export function useEditTagsFormMutation() {
         ) as HTMLFieldSetElement;
 
         const tagsData = fieldset?.getAttribute('data-tags-to-add-or-remove');
-        const { tagNamesToAdd, tagNamesToRemove } = tagsData
-          ? JSON.parse(tagsData)
-          : { tagNamesToAdd: [], tagNamesToRemove: [] };
+        const parsedTagsData = tagsData
+          ? (JSON.parse(tagsData) as {
+              tagNamesToAdd: string[];
+              tagNamesToRemove: string[];
+            })
+          : { tagNamesToAdd: [] as string[], tagNamesToRemove: [] as string[] };
+        const { tagNamesToAdd, tagNamesToRemove } = parsedTagsData;
 
         const filePaths = getFilePathFromNoteSelectionRange(
           folder,

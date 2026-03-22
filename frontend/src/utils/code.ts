@@ -1,6 +1,11 @@
 import { UseMutateFunction } from '@tanstack/react-query';
 import type { CodeMirrorRef } from '../components/code/types';
-import { CodeBlockStatus, KernelsData, Languages } from '../types';
+import {
+  CodeBlockStatus,
+  KernelsData,
+  Languages,
+  LanguagesWithKernels,
+} from '../types';
 
 /**
  * Type for the turnOnKernel mutation function.
@@ -117,7 +122,8 @@ export function handleRunOrInterruptCode({
   turnOnKernel: TurnOnKernelFunction;
 }) {
   const kernelsData = getKernelsData();
-  const languageHearbeat = kernelsData[codeBlockLanguage].heartbeat;
+  const kernelData = kernelsData[codeBlockLanguage as LanguagesWithKernels];
+  const languageHearbeat = kernelData.heartbeat;
   if (languageHearbeat === 'failure' || languageHearbeat === 'idle') {
     turnOnKernel({ codeMirrorInstance });
     return true;

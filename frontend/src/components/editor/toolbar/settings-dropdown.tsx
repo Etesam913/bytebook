@@ -108,7 +108,7 @@ export function SettingsDropdown({
       setIsOpen={setIsOpen}
       className="ml-auto flex flex-col"
       dropdownClassName="w-52 right-4 top-12"
-      onChange={async (item) => {
+      onChange={(item) => {
         switch (item.value) {
           case 'pin-note':
           case 'unpin-note': {

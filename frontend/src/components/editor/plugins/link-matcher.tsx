@@ -291,8 +291,7 @@ function $handleLinkCreation(
     .map((node) => node.getTextContent())
     .join('');
   let text = initialText;
-  // biome-ignore lint/suspicious/noImplicitAnyLet: This declaration is okay as this is copied from Meta, so I trust them
-  let match;
+  let match: LinkMatcherResult | null;
   let invalidMatchEnd = 0;
 
   // biome-ignore lint/suspicious/noAssignInExpressions: <explanation>

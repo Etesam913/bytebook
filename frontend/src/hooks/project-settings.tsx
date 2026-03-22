@@ -112,17 +112,19 @@ export function useProjectSettings() {
   }, []);
 
   // Open the settings dialog on 'settings:open' event.
-  useWailsEvent(SETTINGS_OPEN, async (data) => {
-    if (!(await isEventInCurrentWindow(data))) return;
-    logger.event(SETTINGS_OPEN, data);
-    setDialogData({
-      isOpen: true,
-      isPending: false,
-      title: 'Settings',
-      dialogClassName: 'w-[min(55rem,90vw)]',
-      children: () => <SettingsDialog />,
-      onSubmit: async () => Promise.resolve(true),
-    });
+  useWailsEvent(SETTINGS_OPEN, (data) => {
+    void (async () => {
+      if (!(await isEventInCurrentWindow(data))) return;
+      logger.event(SETTINGS_OPEN, data);
+      setDialogData({
+        isOpen: true,
+        isPending: false,
+        title: 'Settings',
+        dialogClassName: 'w-[min(55rem,90vw)]',
+        children: () => <SettingsDialog />,
+        onSubmit: async () => Promise.resolve(true),
+      });
+    })();
   });
 
   // Re-run the mutation when a 'settings:update' event is received.
