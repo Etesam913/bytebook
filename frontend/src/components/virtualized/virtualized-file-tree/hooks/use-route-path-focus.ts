@@ -4,7 +4,6 @@ import { FILE_TYPE, FOLDER_TYPE, type VirtualizedFileTreeItem } from '../types';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { useRevealRoutePath } from './use-reveal-route-path';
 import { useAtomValue } from 'jotai';
-import { useQueryClient } from '@tanstack/react-query';
 import {
   useFilePathFromRoute,
   useFolderPathFromRoute,
@@ -34,7 +33,6 @@ export function useRoutePathFocus({
   const routeFolderPath = useFolderPathFromRoute();
   const routeTargetPath = routeFilePath?.fullPath ?? routeFolderPath?.fullPath;
   const { mutateAsync: revealRoutePathAsync } = useRevealRoutePath();
-  const queryClient = useQueryClient();
   const [pendingScrollPath, setPendingScrollPath] = useState<string | null>(
     null
   );

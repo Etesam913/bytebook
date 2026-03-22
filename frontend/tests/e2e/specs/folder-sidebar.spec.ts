@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { mockBinding, updateMockBindingResponse } from '../utils/mock-binding';
 import {
-  MOCK_FOLDER_RESPONSE,
+  MOCK_TOP_LEVEL_ITEMS_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
   MOCK_SAVED_SEARCHES_RESPONSE,
   MOCK_TAGS_RESPONSE,
+  MOCK_SUCCESS_RESPONSE,
 } from '../utils/mock-responses';
 import { SERVICE_FILES } from '../utils/service-files';
 import { setupWailsEvents, emitWailsEvent } from '../utils/wails-events';
@@ -13,62 +14,45 @@ test.describe('File Sidebar', () => {
   test.beforeEach(async ({ context }) => {
     await mockBinding(
       context,
-      {
-        file: SERVICE_FILES.FOLDER_SERVICE,
-        method: 'GetFolders',
-      },
-      MOCK_FOLDER_RESPONSE
+      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetTopLevelItems' },
+      MOCK_TOP_LEVEL_ITEMS_RESPONSE
     );
 
     await mockBinding(
       context,
-      {
-        file: SERVICE_FILES.SETTINGS_SERVICE,
-        method: 'GetProjectSettings',
-      },
+      { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
       MOCK_PROJECT_SETTINGS_RESPONSE
     );
 
     await mockBinding(
       context,
-      {
-        file: SERVICE_FILES.TAGS_SERVICE,
-        method: 'GetTags',
-      },
+      { file: SERVICE_FILES.TAGS_SERVICE, method: 'GetTags' },
       MOCK_TAGS_RESPONSE
     );
 
     await mockBinding(
       context,
-      {
-        file: SERVICE_FILES.SEARCH_SERVICE,
-        method: 'GetAllSavedSearches',
-      },
+      { file: SERVICE_FILES.SEARCH_SERVICE, method: 'GetAllSavedSearches' },
       MOCK_SAVED_SEARCHES_RESPONSE
     );
   });
 
   test('renders on the landing page', async ({ page }) => {
     await page.goto('/');
-
     const sidebar = page.getByTestId('file-sidebar');
     await expect(sidebar).toBeVisible();
   });
 
-  test.describe('Folders Accordion', () => {
+  test.describe('File Tree', () => {
     test('renders folders', async ({ page }) => {
       await page.goto('/');
-
       const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Economics Notes');
       await expect(sidebar).toContainText('Research Notes');
     });
 
-    test('clicking on folder navigates to the correct location', async ({
-      page,
-    }) => {
+    test('clicking on folder navigates to the correct location', async ({ page }) => {
       await page.goto('/');
-
       const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Economics Notes');
       const economicsFolder = sidebar.getByText('Economics Notes');
@@ -77,144 +61,81 @@ test.describe('File Sidebar', () => {
     });
 
     test.describe('Context menu', () => {
-      test('reveal in finder option is visible', async ({ page }) => {
-        await page.goto('/');
+      test('reveal in finder option is visible', async ({ page, context }) => {
+        // Mock RevealFolderOrFileInFinder
+        await mockBinding(
+          context,
+          { file: SERVICE_FILES.NOTE_SERVICE, method: 'RevealFolderOrFileInFinder' },
+          MOCK_SUCCESS_RESPONSE
+        );
 
+        await page.goto('/');
         const sidebar = page.getByTestId('file-sidebar');
         await sidebar.getByText('Economics Notes').click({ button: 'right' });
 
         const contextMenu = page.getByRole('listbox');
         await expect(contextMenu).toBeVisible();
-
         const revealOption = contextMenu.getByText('Reveal In Finder');
         await expect(revealOption).toBeVisible();
       });
 
       test('renames a folder via context menu', async ({ page, context }) => {
-        const NEW_FOLDER_NAME = 'Macroeconomics';
-
         // Mock RenameFolder to succeed
         await mockBinding(
           context,
-          {
-            file: SERVICE_FILES.FOLDER_SERVICE,
-            method: 'RenameFolder',
-          },
-          { success: true, message: '', data: null }
+          { file: SERVICE_FILES.FOLDER_SERVICE, method: 'RenameFolder' },
+          { success: true, message: '', data: ['Research Notes', 'Macroeconomics'] }
         );
 
         await page.goto('/');
-
         const sidebar = page.getByTestId('file-sidebar');
         await sidebar.getByText('Economics Notes').click({ button: 'right' });
 
         const contextMenu = page.getByRole('listbox');
-        await contextMenu.getByText('Rename Folder').click();
+        await contextMenu.getByText('Rename').click();
 
-        // Verify the dialog appears
-        const dialog = page.getByRole('dialog');
-        await expect(
-          dialog.getByRole('heading', { name: 'Rename Folder' })
-        ).toBeVisible();
-
-        const input = dialog.getByLabel('New Folder Name');
+        // An inline input should appear with the current folder name
+        const fileTree = page.locator('#file-tree');
+        const input = fileTree.locator('input');
+        await expect(input).toBeVisible();
         await expect(input).toHaveValue('Economics Notes');
-        await input.fill(NEW_FOLDER_NAME);
-
-        // Update the GetFolders mock to return folders with the renamed one
-        const updatedFolderResponse = {
-          success: true,
-          message: '',
-          data: ['Research Notes', NEW_FOLDER_NAME],
-        };
-
-        await updateMockBindingResponse(
-          page,
-          {
-            file: SERVICE_FILES.FOLDER_SERVICE,
-            method: 'GetFolders',
-          },
-          updatedFolderResponse
-        );
-
-        // Click on "Rename Folder" button in the dialog
-        await dialog.getByRole('button', { name: 'Rename Folder' }).click();
-
-        // Verify navigation to the new folder URL
-        await expect(page).toHaveURL(
-          new RegExp(`/notes/${encodeURIComponent(NEW_FOLDER_NAME)}`)
-        );
-
-        // Verify the folder name updated in the sidebar
-        await expect(sidebar).toContainText(NEW_FOLDER_NAME);
-        await expect(sidebar.getByText('Economics Notes')).not.toBeVisible();
       });
 
-      test('moves a folder to trash via context menu', async ({
-        page,
-        context,
-      }) => {
-        // Set up wails events for this test
-        await setupWailsEvents(context);
-
-        // Mock DeleteFolder to succeed
+      test('moves a folder to trash via context menu', async ({ page, context }) => {
+        // Mock MoveToTrash to succeed
         await mockBinding(
           context,
-          {
-            file: SERVICE_FILES.FOLDER_SERVICE,
-            method: 'DeleteFolder',
-          },
-          { success: true, message: '', data: null }
+          { file: SERVICE_FILES.NOTE_SERVICE, method: 'MoveToTrash' },
+          { success: true, message: '', data: [] }
         );
 
         await page.goto('/');
-
         const sidebar = page.getByTestId('file-sidebar');
 
         // Verify folders are visible
         await expect(sidebar).toContainText('Economics Notes');
         await expect(sidebar).toContainText('Research Notes');
 
+        // Update GetTopLevelItems mock so refetch returns only remaining folders
+        await updateMockBindingResponse(
+          page,
+          { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetTopLevelItems' },
+          {
+            success: true,
+            message: '',
+            data: [
+              { id: 'folder-2', path: 'Research Notes', name: 'Research Notes', parentId: '', type: 'folder', childrenIds: [] },
+            ],
+          }
+        );
+
         // Right-click on a folder to open context menu
         await sidebar.getByText('Economics Notes').click({ button: 'right' });
 
-        // Verify the context menu appears with the Move to Trash option
+        // Click "Move to Trash" - no confirmation dialog, items removed optimistically
         const contextMenu = page.getByRole('listbox');
         await expect(contextMenu).toBeVisible();
-        await expect(contextMenu).toContainText('Move to Trash');
-
-        // Click on "Move to Trash" option in context menu
         await contextMenu.getByText('Move to Trash').click();
-
-        // Verify the dialog appears
-        const dialog = page.getByRole('dialog');
-        await expect(
-          dialog.getByRole('heading', { name: 'Move to Trash' })
-        ).toBeVisible();
-
-        // Update the GetFolders mock to return folders without the deleted one
-        const updatedFolderResponse = {
-          success: true,
-          message: '',
-          data: MOCK_FOLDER_RESPONSE.data.filter(
-            (folder) => folder !== 'Economics Notes'
-          ),
-        };
-
-        await updateMockBindingResponse(
-          page,
-          {
-            file: SERVICE_FILES.FOLDER_SERVICE,
-            method: 'GetFolders',
-          },
-          updatedFolderResponse
-        );
-
-        // Click on "Move to Trash" button in the dialog
-        await dialog.getByRole('button', { name: 'Move to Trash' }).click();
-
-        // Simulate the backend emitting a folder:delete event
-        await emitWailsEvent(page, 'folder:delete', {});
 
         // Verify the folder is no longer in the sidebar
         await expect(sidebar.getByText('Economics Notes')).not.toBeVisible();
@@ -228,7 +149,6 @@ test.describe('File Sidebar', () => {
   test.describe('Kernels Accordion', () => {
     test('renders kernel accordion', async ({ page }) => {
       await page.goto('/');
-
       const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Kernels');
 
@@ -244,7 +164,6 @@ test.describe('File Sidebar', () => {
   test.describe('Tags Accordion', () => {
     test('renders tags accordion and navigates on click', async ({ page }) => {
       await page.goto('/');
-
       const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Tags');
 
@@ -261,43 +180,29 @@ test.describe('File Sidebar', () => {
 
     test.describe('Context menu', () => {
       test('deletes a tag via context menu', async ({ page, context }) => {
-        // Set up wails events for this test
         await setupWailsEvents(context);
 
-        // Mock DeleteTags to succeed
         await mockBinding(
           context,
-          {
-            file: SERVICE_FILES.TAGS_SERVICE,
-            method: 'DeleteTags',
-          },
+          { file: SERVICE_FILES.TAGS_SERVICE, method: 'DeleteTags' },
           { success: true, message: '', data: null }
         );
 
         await page.goto('/');
-
         const sidebar = page.getByTestId('file-sidebar');
         const tagsAccordion = page.getByTestId('tags-accordion');
         await tagsAccordion.click();
 
-        // Verify tags are visible
         await expect(sidebar).toContainText('economics');
 
-        // Right-click on a tag
-        await sidebar.getByText('economics', { exact: true }).click({
-          button: 'right',
-        });
+        await sidebar.getByText('economics', { exact: true }).click({ button: 'right' });
 
         const contextMenu = page.getByRole('listbox');
         await contextMenu.getByText('Delete Tag').click();
 
-        // Verify the dialog appears
         const dialog = page.getByRole('dialog');
-        await expect(
-          dialog.getByRole('heading', { name: 'Delete Tag' })
-        ).toBeVisible();
+        await expect(dialog.getByRole('heading', { name: 'Delete Tag' })).toBeVisible();
 
-        // Update the GetTags mock to return tags without the deleted one
         const updatedTagsResponse = {
           success: true,
           message: '',
@@ -306,181 +211,111 @@ test.describe('File Sidebar', () => {
 
         await updateMockBindingResponse(
           page,
-          {
-            file: SERVICE_FILES.TAGS_SERVICE,
-            method: 'GetTags',
-          },
+          { file: SERVICE_FILES.TAGS_SERVICE, method: 'GetTags' },
           updatedTagsResponse
         );
 
-        // Click on "Delete" button in the dialog
         await dialog.getByRole('button', { name: 'Delete' }).click();
-
-        // Simulate the backend emitting a tags:index_update event
         await emitWailsEvent(page, 'tags:index_update', {});
 
-        // Verify the tag is no longer in the sidebar
-        await expect(
-          sidebar.getByText('economics', { exact: true })
-        ).not.toBeVisible();
+        await expect(sidebar.getByText('economics', { exact: true })).not.toBeVisible();
       });
     });
   });
 
   test.describe('Saved Searches Accordion', () => {
-    test('renders saved searches accordion and navigates on click', async ({
-      page,
-    }) => {
+    test('renders saved searches accordion and navigates on click', async ({ page }) => {
       await page.goto('/');
-
       const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Saved Searches');
 
-      const savedSearchesAccordion = page.getByTestId(
-        'saved-searches-accordion'
-      );
+      const savedSearchesAccordion = page.getByTestId('saved-searches-accordion');
       await savedSearchesAccordion.click();
       await expect(sidebar).toContainText('My Research');
       await expect(sidebar).toContainText('Economics');
 
-      // Click on a saved search and verify navigation to saved-search route
       await sidebar.getByText('My Research').click();
       await expect(page).toHaveURL(/\/saved-search\/research/);
     });
 
     test.describe('Context menu', () => {
-      test('deletes a saved search via context menu', async ({
-        page,
-        context,
-      }) => {
-        // Set up wails events for this test
+      test('deletes a saved search via context menu', async ({ page, context }) => {
         await setupWailsEvents(context);
 
-        // Mock RemoveSavedSearch to succeed
         await mockBinding(
           context,
-          {
-            file: SERVICE_FILES.SEARCH_SERVICE,
-            method: 'RemoveSavedSearch',
-          },
+          { file: SERVICE_FILES.SEARCH_SERVICE, method: 'RemoveSavedSearch' },
           { success: true, message: '', data: null }
         );
 
         await page.goto('/');
-
         const sidebar = page.getByTestId('file-sidebar');
-        const savedSearchesAccordion = page.getByTestId(
-          'saved-searches-accordion'
-        );
+        const savedSearchesAccordion = page.getByTestId('saved-searches-accordion');
         await savedSearchesAccordion.click();
 
-        // Verify saved searches are visible
         await expect(sidebar).toContainText('My Research');
 
-        // Right-click on a saved search
         await sidebar.getByText('My Research').click({ button: 'right' });
 
         const contextMenu = page.getByRole('listbox');
         await contextMenu.getByText('Delete Search').click();
 
-        // Verify the dialog appears
         const dialog = page.getByRole('dialog');
-        await expect(
-          dialog.getByRole('heading', { name: 'Delete Saved Search' })
-        ).toBeVisible();
+        await expect(dialog.getByRole('heading', { name: 'Delete Saved Search' })).toBeVisible();
 
-        // Update the GetAllSavedSearches mock to return searches without the deleted one
         const updatedSavedSearchesResponse = {
           success: true,
           message: '',
-          data: MOCK_SAVED_SEARCHES_RESPONSE.data.filter(
-            (s) => s.name !== 'My Research'
-          ),
+          data: MOCK_SAVED_SEARCHES_RESPONSE.data.filter((s) => s.name !== 'My Research'),
         };
 
         await updateMockBindingResponse(
           page,
-          {
-            file: SERVICE_FILES.SEARCH_SERVICE,
-            method: 'GetAllSavedSearches',
-          },
+          { file: SERVICE_FILES.SEARCH_SERVICE, method: 'GetAllSavedSearches' },
           updatedSavedSearchesResponse
         );
 
-        // Click on "Delete" button in the dialog
         await dialog.getByRole('button', { name: 'Delete' }).click();
-
-        // Simulate the backend emitting a saved-search:update event
         await emitWailsEvent(page, 'saved-search:update', {});
 
-        // Verify the saved search is no longer in the sidebar
         await expect(sidebar.getByText('My Research')).not.toBeVisible();
       });
     });
   });
 
-  test('creates a folder via the sidebar button', async ({ page, context }) => {
+  test('creates a folder via inline input', async ({ page, context }) => {
     const NEW_FOLDER_NAME = 'My Todos';
-    const UPDATED_FOLDER_RESPONSE = {
-      success: true,
-      message: '',
-      data: ['Economics Notes', 'Research Notes', NEW_FOLDER_NAME],
-    };
 
     await mockBinding(
       context,
-      {
-        file: SERVICE_FILES.FOLDER_SERVICE,
-        method: 'AddFolder',
-      },
-      UPDATED_FOLDER_RESPONSE
-    );
-
-    await mockBinding(
-      context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'AddNoteToFolder',
-      },
-      {
-        success: true,
-        message: '',
-        data: null,
-      }
+      { file: SERVICE_FILES.FOLDER_SERVICE, method: 'AddFolder' },
+      { success: true, message: '', data: ['Economics Notes', 'Research Notes', NEW_FOLDER_NAME] }
     );
 
     await page.goto('/');
 
-    await updateMockBindingResponse(
-      page,
-      {
-        file: SERVICE_FILES.FOLDER_SERVICE,
-        method: 'GetFolders',
-      },
-      UPDATED_FOLDER_RESPONSE
-    );
-
     const sidebar = page.getByTestId('file-sidebar');
-    await sidebar.getByRole('button', { name: 'Create Folder' }).click();
+    const fileTree = page.locator('#file-tree');
 
-    const dialog = page.getByRole('dialog');
-    await expect(
-      dialog.getByRole('heading', { name: 'Create Folder' })
-    ).toBeVisible();
+    // Click the Create Folder button in the file tree
+    await fileTree.getByText('Create Folder').click();
 
-    await dialog.getByLabel('New Folder Name').fill(NEW_FOLDER_NAME);
-    await dialog.getByRole('button', { name: 'Create Folder' }).click();
+    // An inline input should appear with placeholder "New folder"
+    const input = fileTree.locator('input[placeholder="New folder"]');
+    await expect(input).toBeVisible();
 
+    await input.fill(NEW_FOLDER_NAME);
+    await input.press('Enter');
+
+    // Verify navigation to the new folder
     await expect(page).toHaveURL(
-      new RegExp(`/notes/${encodeURIComponent(NEW_FOLDER_NAME)}$`)
+      new RegExp(`/notes/${encodeURIComponent(NEW_FOLDER_NAME)}`)
     );
-    await expect(sidebar).toContainText(NEW_FOLDER_NAME);
   });
 
   test.describe('Pinned Notes Accordion', () => {
     test('renders correctly', async ({ page }) => {
       await page.goto('/');
-
       const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Pinned Notes');
 
@@ -489,9 +324,30 @@ test.describe('File Sidebar', () => {
       await expect(sidebar).toContainText('Quantum Physics');
     });
 
-    test('navigates to pinned note', async ({ page }) => {
-      await page.goto('/');
+    test('navigates to pinned note', async ({ page, context }) => {
+      // Mock note dependencies to prevent /404 redirect
+      await mockBinding(
+        context,
+        { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
+        true
+      );
+      await mockBinding(
+        context,
+        { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
+        { success: true, message: '', data: '# Supply and Demand' }
+      );
+      await mockBinding(
+        context,
+        { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetChildrenOfFolderBasedOnPath' },
+        { success: true, message: '', data: { items: [], nextCursor: '', hasMore: false } }
+      );
+      await mockBinding(
+        context,
+        { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'OpenFolderAndAddToFileWatcher' },
+        { success: true, message: '' }
+      );
 
+      await page.goto('/');
       const sidebar = page.getByTestId('file-sidebar');
       await sidebar.getByText('Supply and Demand').click();
       await expect(page).toHaveURL(
@@ -500,10 +356,8 @@ test.describe('File Sidebar', () => {
     });
 
     test('unpins a note via context menu', async ({ page, context }) => {
-      // Set up wails events for this test
       await setupWailsEvents(context);
 
-      // Updated settings without the unpinned note
       const updatedSettings = {
         success: true,
         message: '',
@@ -513,52 +367,34 @@ test.describe('File Sidebar', () => {
         },
       };
 
-      // Mock UpdateProjectSettings to succeed
       await mockBinding(
         context,
-        {
-          file: SERVICE_FILES.SETTINGS_SERVICE,
-          method: 'UpdateProjectSettings',
-        },
+        { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'UpdateProjectSettings' },
         { success: true, message: '', data: null }
       );
 
       await page.goto('/');
-
       const sidebar = page.getByTestId('file-sidebar');
 
-      // Verify both pinned notes are visible before unpinning
       await expect(sidebar).toContainText('Supply and Demand');
       await expect(sidebar).toContainText('Quantum Physics');
 
-      // Right-click on the pinned note to open context menu
       await sidebar.getByText('Supply and Demand').click({ button: 'right' });
 
-      // Verify the context menu appears with the Unpin option
       const contextMenu = page.getByRole('listbox');
       await expect(contextMenu).toBeVisible();
       await expect(contextMenu).toContainText('Unpin Note');
 
-      // Update the GetProjectSettings mock to return the new settings (without the unpinned note)
       await updateMockBindingResponse(
         page,
-        {
-          file: SERVICE_FILES.SETTINGS_SERVICE,
-          method: 'GetProjectSettings',
-        },
+        { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
         updatedSettings
       );
 
-      // Click on "Unpin Note" option - this triggers UpdateProjectSettings
       await contextMenu.getByText('Unpin Note').click();
-
-      // Simulate the backend emitting a settings:update event with the unpinned note removed
       await emitWailsEvent(page, 'settings:update', updatedSettings.data);
 
-      // Verify the note is no longer in the pinned notes section
       await expect(sidebar.getByText('Supply and Demand')).not.toBeVisible();
-
-      // Verify the other pinned note is still visible
       await expect(sidebar).toContainText('Quantum Physics');
     });
   });
@@ -576,7 +412,6 @@ test.describe('File Sidebar', () => {
       });
 
       await page.goto('/');
-
       const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Recent Notes');
 
@@ -589,43 +424,7 @@ test.describe('File Sidebar', () => {
   });
 
   test.describe('Failure responses', () => {
-    test('shows error message when folders fetch fails', async ({
-      page,
-      context,
-    }) => {
-      const FAILURE_RESPONSE = {
-        success: false,
-        message: 'Failed to fetch folders',
-        data: null,
-      };
-
-      await mockBinding(
-        context,
-        {
-          file: SERVICE_FILES.FOLDER_SERVICE,
-          method: 'GetFolders',
-        },
-        FAILURE_RESPONSE
-      );
-
-      await page.goto('/');
-
-      const sidebar = page.getByTestId('file-sidebar');
-      await expect(sidebar).toContainText('Folders');
-
-      // Verify error message is displayed
-      await expect(
-        sidebar.getByText('Something went wrong when fetching your folders')
-      ).toBeVisible();
-
-      // Verify retry button is present
-      await expect(sidebar.getByText('Retry')).toBeVisible();
-    });
-
-    test('shows error message when tags fetch fails', async ({
-      page,
-      context,
-    }) => {
+    test('shows error message when tags fetch fails', async ({ page, context }) => {
       const FAILURE_RESPONSE = {
         success: false,
         message: 'Failed to fetch tags',
@@ -634,35 +433,24 @@ test.describe('File Sidebar', () => {
 
       await mockBinding(
         context,
-        {
-          file: SERVICE_FILES.TAGS_SERVICE,
-          method: 'GetTags',
-        },
+        { file: SERVICE_FILES.TAGS_SERVICE, method: 'GetTags' },
         FAILURE_RESPONSE
       );
 
       await page.goto('/');
-
       const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Tags');
 
-      // Click to open the tags accordion
       const tagsAccordion = page.getByTestId('tags-accordion');
       await tagsAccordion.click();
 
-      // Verify error message is displayed
       await expect(
         sidebar.getByText('Something went wrong when fetching your tags')
       ).toBeVisible();
-
-      // Verify retry button is present
       await expect(sidebar.getByText('Retry')).toBeVisible();
     });
 
-    test('shows error message when saved searches fetch fails', async ({
-      page,
-      context,
-    }) => {
+    test('shows error message when saved searches fetch fails', async ({ page, context }) => {
       const FAILURE_RESPONSE = {
         success: false,
         message: 'Failed to fetch saved searches',
@@ -671,32 +459,20 @@ test.describe('File Sidebar', () => {
 
       await mockBinding(
         context,
-        {
-          file: SERVICE_FILES.SEARCH_SERVICE,
-          method: 'GetAllSavedSearches',
-        },
+        { file: SERVICE_FILES.SEARCH_SERVICE, method: 'GetAllSavedSearches' },
         FAILURE_RESPONSE
       );
 
       await page.goto('/');
-
       const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Saved Searches');
 
-      // Click to open the saved searches accordion
-      const savedSearchesAccordion = page.getByTestId(
-        'saved-searches-accordion'
-      );
+      const savedSearchesAccordion = page.getByTestId('saved-searches-accordion');
       await savedSearchesAccordion.click();
 
-      // Verify error message is displayed
       await expect(
-        sidebar.getByText(
-          'Something went wrong when fetching your saved searches'
-        )
+        sidebar.getByText('Something went wrong when fetching your saved searches')
       ).toBeVisible();
-
-      // Verify retry button is present
       await expect(sidebar.getByText('Retry')).toBeVisible();
     });
   });
