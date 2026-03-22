@@ -31,6 +31,10 @@ function isCreatedNodeInParentLoadedChildren(
     .map((id) => fileTreeData.treeData.get(id)?.name)
     .filter((name): name is string => name !== undefined);
 
+  // When the folder is fully loaded, any newly created item should be visible,
+  // including items that sort to the end of the list.
+  if (!parent.hasMoreChildren) return true;
+
   if (childrenNames.length === 0) return false;
 
   const lastChildName = childrenNames[childrenNames.length - 1];

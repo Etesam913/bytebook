@@ -28,13 +28,19 @@ test.describe('Tags Workflow', () => {
 
     await mockBinding(
       context,
-      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetChildrenOfFolderBasedOnPath' },
+      {
+        file: SERVICE_FILES.FILE_TREE_SERVICE,
+        method: 'GetChildrenOfFolderBasedOnPath',
+      },
       MOCK_ECONOMICS_FOLDER_CHILDREN_RESPONSE
     );
 
     await mockBinding(
       context,
-      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'OpenFolderAndAddToFileWatcher' },
+      {
+        file: SERVICE_FILES.FILE_TREE_SERVICE,
+        method: 'OpenFolderAndAddToFileWatcher',
+      },
       MOCK_SUCCESS_RESPONSE
     );
 
@@ -97,13 +103,17 @@ test.describe('Tags Workflow', () => {
       const bottomBar = page.locator('footer').first();
       await expect(bottomBar).toBeVisible();
 
-      const editTagsButton = bottomBar.getByRole('button', { name: /Edit Tags/i });
+      const editTagsButton = bottomBar.getByRole('button', {
+        name: /Edit Tags/i,
+      });
       await expect(editTagsButton).toBeVisible();
       await editTagsButton.click();
 
       // The Edit Tags dialog should open
       const dialog = page.getByRole('dialog');
-      await expect(dialog.getByRole('heading', { name: 'Edit Tags' })).toBeVisible();
+      await expect(
+        dialog.getByRole('heading', { name: 'Edit Tags' })
+      ).toBeVisible();
 
       // Select a tag from the available tags (e.g., 'dev')
       const devTagCheckbox = dialog.getByRole('checkbox', { name: 'dev' });
@@ -142,7 +152,9 @@ test.describe('Tags Workflow', () => {
   });
 
   test.describe('Existing Tags Display', () => {
-    test('existing tags for a note are displayed in the BottomBar', async ({ page }) => {
+    test('existing tags for a note are displayed in the BottomBar', async ({
+      page,
+    }) => {
       // Navigate to a note that has existing tags
       await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
 
@@ -185,15 +197,23 @@ test.describe('Tags Workflow', () => {
 
       // Open the Edit Tags dialog
       const bottomBar = page.locator('footer').first();
-      const editTagsButton = bottomBar.getByRole('button', { name: /Edit Tags/i });
+      const editTagsButton = bottomBar.getByRole('button', {
+        name: /Edit Tags/i,
+      });
       await editTagsButton.click();
 
       const dialog = page.getByRole('dialog');
-      await expect(dialog.getByRole('heading', { name: 'Edit Tags' })).toBeVisible();
+      await expect(
+        dialog.getByRole('heading', { name: 'Edit Tags' })
+      ).toBeVisible();
 
       // Verify existing tags are shown as checked
-      const economicsCheckbox = dialog.getByRole('checkbox', { name: 'economics' });
-      const researchCheckbox = dialog.getByRole('checkbox', { name: 'research' });
+      const economicsCheckbox = dialog.getByRole('checkbox', {
+        name: 'economics',
+      });
+      const researchCheckbox = dialog.getByRole('checkbox', {
+        name: 'research',
+      });
 
       await expect(economicsCheckbox).toBeVisible();
       await expect(researchCheckbox).toBeVisible();

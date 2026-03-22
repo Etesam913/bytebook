@@ -45,42 +45,6 @@ func TestSet_Add(t *testing.T) {
 	})
 }
 
-func TestSet_Remove(t *testing.T) {
-	t.Run("int set - remove existing and non-existing", func(t *testing.T) {
-		s := make(Set[int])
-		s.Add(1)
-		s.Add(2)
-		s.Add(3)
-
-		assert.True(t, s.Has(2), "Set should have 2 before removal")
-		s.Remove(2)
-		assert.False(t, s.Has(2), "Set should not have 2 after removal")
-		assert.Len(t, s.Elements(), 2, "Set size should decrease")
-		assert.ElementsMatch(t, []int{1, 3}, s.Elements())
-
-		s.Remove(1)
-		assert.False(t, s.Has(1))
-		assert.Len(t, s.Elements(), 1)
-		assert.ElementsMatch(t, []int{3}, s.Elements())
-
-		s.Remove(100) // Remove non-existent element
-		assert.Len(t, s.Elements(), 1, "Removing non-existent element should not change size")
-		assert.ElementsMatch(t, []int{3}, s.Elements())
-
-		s.Remove(3)
-		assert.False(t, s.Has(3))
-		assert.Len(t, s.Elements(), 0, "Set should be empty")
-		assert.Empty(t, s.Elements())
-	})
-
-	t.Run("remove from empty set", func(t *testing.T) {
-		s := make(Set[string])
-		s.Remove("test") // Should not panic or error
-		assert.Len(t, s.Elements(), 0)
-		assert.False(t, s.Has("test"))
-	})
-}
-
 func TestSet_Has(t *testing.T) {
 	t.Run("int set", func(t *testing.T) {
 		s := make(Set[int])

@@ -47,7 +47,9 @@ test.describe('Saved Search Page', () => {
     );
   });
 
-  test('renders saved search page with search query in header', async ({ page }) => {
+  test('renders saved search page with search query in header', async ({
+    page,
+  }) => {
     await page.goto('/saved-search/research/');
 
     await expect(page.getByText('Search:')).toBeVisible();
@@ -79,7 +81,10 @@ test.describe('Saved Search Page', () => {
     );
   });
 
-  test('renders the note editor when a result is selected', async ({ page, context }) => {
+  test('renders the note editor when a result is selected', async ({
+    page,
+    context,
+  }) => {
     await mockBinding(
       context,
       { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
@@ -99,7 +104,9 @@ test.describe('Saved Search Page', () => {
     const noteContainer = page.locator('#note-container');
     await expect(noteContainer).toBeVisible();
 
-    const noteTitleInput = noteContainer.locator('input[placeholder="Untitled Note"]');
+    const noteTitleInput = noteContainer.locator(
+      'input[placeholder="Untitled Note"]'
+    );
     await expect(noteTitleInput).toHaveValue('Supply and Demand');
   });
 
@@ -123,7 +130,10 @@ test.describe('Saved Search Page', () => {
   });
 
   test.describe('Empty state', () => {
-    test('shows no results message when search returns empty', async ({ page, context }) => {
+    test('shows no results message when search returns empty', async ({
+      page,
+      context,
+    }) => {
       await mockBinding(
         context,
         { file: SERVICE_FILES.SEARCH_SERVICE, method: 'FullTextSearch' },
@@ -137,7 +147,10 @@ test.describe('Saved Search Page', () => {
       ).toBeVisible();
     });
 
-    test('shows empty list message with search query', async ({ page, context }) => {
+    test('shows empty list message with search query', async ({
+      page,
+      context,
+    }) => {
       await mockBinding(
         context,
         { file: SERVICE_FILES.SEARCH_SERVICE, method: 'FullTextSearch' },
@@ -165,7 +178,9 @@ test.describe('Saved Search Page', () => {
       await page.goto('/saved-search/test/');
 
       await expect(
-        page.getByText('Something went wrong when retrieving the search results')
+        page.getByText(
+          'Something went wrong when retrieving the search results'
+        )
       ).toBeVisible();
       await expect(page.getByText('Retry')).toBeVisible();
     });
@@ -190,7 +205,9 @@ test.describe('Saved Search Page', () => {
       await page.goto('/');
 
       const sidebar = page.getByTestId('file-sidebar');
-      const savedSearchesAccordion = page.getByTestId('saved-searches-accordion');
+      const savedSearchesAccordion = page.getByTestId(
+        'saved-searches-accordion'
+      );
       await savedSearchesAccordion.click();
 
       await sidebar.getByText('My Research').click();

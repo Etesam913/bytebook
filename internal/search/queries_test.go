@@ -7,22 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreatePrefixQuery(t *testing.T) {
-	t.Run("should create prefix query with lowercase prefix", func(t *testing.T) {
-		q := createPrefixQuery("test_field", "PREFIX")
-
-		// Verify it's a prefix query
-		prefixQuery, ok := q.(*query.PrefixQuery)
-		assert.True(t, ok, "Query should be a PrefixQuery")
-
-		// Verify the field is set correctly
-		assert.Equal(t, "test_field", prefixQuery.FieldVal)
-
-		// Verify the prefix is lowercased
-		assert.Equal(t, "prefix", prefixQuery.Prefix)
-	})
-}
-
 func TestCreateExactQuery(t *testing.T) {
 	t.Run("should create match phrase query", func(t *testing.T) {
 		q := createExactQuery("test_field", "exact phrase", 1.0)

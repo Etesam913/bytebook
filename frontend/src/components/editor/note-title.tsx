@@ -54,10 +54,10 @@ export function NoteTitle({ filePath }: { filePath: FilePath }) {
           }
 
           void renameFile({
-              oldPath: filePath,
-              newPath: newFilePath,
-              setErrorText,
-            });
+            oldPath: filePath,
+            newPath: newFilePath,
+            setErrorText,
+          });
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {

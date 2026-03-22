@@ -32,4 +32,3 @@ func FormatStringListForErrorMessage(stringList []string, capacity int) string {
 	}
 	return joinedString
 }
-
