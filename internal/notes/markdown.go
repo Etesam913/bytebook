@@ -15,7 +15,6 @@ import (
 var (
 	// Markdown link patterns
 	LINK_REGEX  = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
-	MEDIA_REGEX = regexp.MustCompile(`!\[([^\]]*)\]\(([^)]+)\)`)
 	IMAGE_REGEX = regexp.MustCompile(`!\[.*?\]\((.*?)\)`)
 	VIDEO_REGEX = regexp.MustCompile(`\[video\]\(.*?\)`)
 
@@ -32,226 +31,7 @@ var (
 	JAVA_CODE_BLOCK_REGEX       = regexp.MustCompile("(?s)```java\\b[^\n]*\n(.*?)```")
 	PYTHON_CODE_BLOCK_REGEX     = regexp.MustCompile("(?s)```python[^\n]*\n(.*?)```")
 	JAVASCRIPT_CODE_BLOCK_REGEX = regexp.MustCompile("(?s)```(?:javascript|js)[^\n]*\n(.*?)```")
-	DRAWING_CODE_BLOCK_REGEX    = regexp.MustCompile("(?s)```drawing[^\n]*\n(.*?)```")
 )
-
-// URL Management Functions
-
-// replaceFolderOfLocalURL updates the folder name in a localhost URL.
-// Returns the original URL if it's not a localhost URL.
-func replaceFolderOfLocalURL(url string, oldFolderName string, newFolderName string) string {
-	if !strings.HasPrefix(url, util.FILE_SERVER_URL) && !strings.HasPrefix(url, util.INTERNAL_LINK_PREFIX) {
-		return url
-	}
-
-	segments := strings.Split(url, "/")
-	// An empty localhost url will have 3 segments: http:, '', and localhost
-	if len(segments) <= 3 {
-		return url
-	}
-
-	// Only replace if the URL contains the old folder name
-	if segments[len(segments)-2] != oldFolderName {
-		return url
-	}
-
-	segments[len(segments)-2] = newFolderName
-	return strings.Join(segments, "/")
-}
-
-// replaceNoteNameOfLocalURL updates the note name (filename) in a localhost URL for a specific folder.
-// Returns the original URL if it's not a localhost URL or not in the specified folder.
-func replaceNoteNameOfLocalURL(url string, folderName string, newNoteName string) string {
-	// Check if it's a localhost URL (either http://localhost or wails://localhost)
-	if !strings.Contains(url, "localhost") {
-		return url
-	}
-
-	segments := strings.Split(url, "/")
-	// An empty localhost url will have 3 segments: http:, '', and localhost
-	if len(segments) <= 3 {
-		return url
-	}
-
-	// Check if the second-to-last segment matches the specified folder name
-	// This works for both patterns:
-	// - http://localhost:3000/folderName/fileName (5 segments)
-	// - http://localhost:5890/notes/folderName/fileName (6 segments)
-	folderIndex := len(segments) - 2
-	if segments[folderIndex] != folderName {
-		return url
-	}
-
-	// Replace the note name (last segment)
-	segments[len(segments)-1] = newNoteName
-	return strings.Join(segments, "/")
-}
-
-// UpdateFolderNameOfInternalLinksAndMedia finds and replaces folder names in internal URLs within markdown content.
-// Updates both image and link URLs that are considered internal with the new folder name.
-func UpdateFolderNameOfInternalLinksAndMedia(markdown string, oldFolderName string, newFolderName string) string {
-	// Get all internal links and media from the markdown
-	internalURLs := GetInternalLinksAndMedia(markdown)
-
-	// Create a map of old URL to new URL for efficient replacement
-	urlReplacements := make(map[string]string)
-	for _, url := range internalURLs.Elements() {
-		newURL := replaceFolderOfLocalURL(url, oldFolderName, newFolderName)
-		if newURL != url {
-			urlReplacements[url] = newURL
-		}
-	}
-
-	// Replace image URLs
-	markdown = MEDIA_REGEX.ReplaceAllStringFunc(markdown, func(match string) string {
-		submatches := MEDIA_REGEX.FindStringSubmatch(match)
-		if len(submatches) < 3 {
-			return match
-		}
-		url := strings.TrimSpace(submatches[2])
-		if newURL, exists := urlReplacements[url]; exists {
-			return "![" + submatches[1] + "](" + newURL + ")"
-		}
-		return match
-	})
-
-	// Replace link URLs
-	markdown = LINK_REGEX.ReplaceAllStringFunc(markdown, func(match string) string {
-		submatches := LINK_REGEX.FindStringSubmatch(match)
-		if len(submatches) < 3 {
-			return match
-		}
-		url := strings.TrimSpace(submatches[2])
-		if newURL, exists := urlReplacements[url]; exists {
-			return "[" + submatches[1] + "](" + newURL + ")"
-		}
-		return match
-	})
-
-	return markdown
-}
-
-// UpdateNoteNameOfInternalLinksAndMedia finds and replaces note names in internal URLs within markdown content
-// for a specific folder. Updates both image and link URLs that are in the specified folder with the new note name.
-func UpdateNoteNameOfInternalLinksAndMedia(markdown string, folderName string, newNoteName string) string {
-	// Get all internal links and media from the markdown
-	internalURLs := GetInternalLinksAndMedia(markdown)
-
-	// Create a map of old URL to new URL for efficient replacement
-	urlReplacements := make(map[string]string)
-	for _, url := range internalURLs.Elements() {
-		newURL := replaceNoteNameOfLocalURL(url, folderName, newNoteName)
-		if newURL != url {
-			urlReplacements[url] = newURL
-		}
-	}
-
-	// Replace image URLs
-	markdown = MEDIA_REGEX.ReplaceAllStringFunc(markdown, func(match string) string {
-		submatches := MEDIA_REGEX.FindStringSubmatch(match)
-		if len(submatches) < 3 {
-			return match
-		}
-		url := strings.TrimSpace(submatches[2])
-		if newURL, exists := urlReplacements[url]; exists {
-			return "![" + submatches[1] + "](" + newURL + ")"
-		}
-		return match
-	})
-
-	// Replace link URLs
-	markdown = LINK_REGEX.ReplaceAllStringFunc(markdown, func(match string) string {
-		submatches := LINK_REGEX.FindStringSubmatch(match)
-		if len(submatches) < 3 {
-			return match
-		}
-		url := strings.TrimSpace(submatches[2])
-		if newURL, exists := urlReplacements[url]; exists {
-			return "[" + submatches[1] + "](" + newURL + ")"
-		}
-		return match
-	})
-
-	return markdown
-}
-
-// isInternalURL determines if a URL is considered internal.
-// Internal URLs include relative paths, localhost URLs, and non-HTTP protocols.
-// External HTTP/HTTPS URLs (except localhost) are considered external.
-func isInternalURL(url string) bool {
-	url = strings.TrimSpace(url)
-
-	if url == "" {
-		return false
-	}
-
-	// Localhost URLs are internal
-	if strings.HasPrefix(url, "http://localhost") || strings.HasPrefix(url, "wails://localhost") {
-		return true
-	}
-
-	// External HTTP/HTTPS URLs are not internal
-	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
-		return false
-	}
-
-	// Everything else is considered internal:
-	// - Relative paths (./file.png, ../folder/file.md, file.txt)
-	// - Absolute local paths (/path/to/file)
-	// - File protocols (file://)
-	// - Anchor links (#section)
-	// - Email links (mailto:)
-	return true
-}
-
-// Content Extraction Functions
-
-// GetFirstImageSrc returns the source URL of the first image found in markdown.
-// Returns an empty string if no image is found.
-func GetFirstImageSrc(markdown string) string {
-	match := IMAGE_REGEX.FindStringSubmatch(markdown)
-	if len(match) >= 2 {
-		return match[1]
-	}
-	return ""
-}
-
-// GetInternalLinksAndMedia extracts all internal links and media URLs from markdown.
-// Returns a set of URL strings that are considered internal for efficient lookup.
-func GetInternalLinksAndMedia(markdown string) util.Set[string] {
-	urlSet := make(util.Set[string])
-
-	// Extract media URLs
-	mediaMatches := MEDIA_REGEX.FindAllStringSubmatch(markdown, -1)
-	for _, match := range mediaMatches {
-		if len(match) >= 3 {
-			url := strings.TrimSpace(match[2])
-			if isInternalURL(url) {
-				urlSet.Add(url)
-			}
-		}
-	}
-
-	// Extract link URLs
-	linkMatches := LINK_REGEX.FindAllStringSubmatch(markdown, -1)
-	for _, match := range linkMatches {
-		if len(match) >= 3 {
-			url := strings.TrimSpace(match[2])
-			if isInternalURL(url) {
-				urlSet.Add(url)
-			}
-		}
-	}
-
-	return urlSet
-}
-
-// GetInternalLinksAndMediaAsSlice extracts all internal links and media URLs from markdown.
-// Returns an array of URL strings that are considered internal.
-func GetInternalLinksAndMediaAsSlice(markdown string) []string {
-	urlSet := GetInternalLinksAndMedia(markdown)
-	return urlSet.Elements()
-}
 
 // Content Filtering Functions
 
@@ -283,42 +63,6 @@ func excludeFrontmatter(markdown string) string {
 // For example: [link text](url) becomes "link text".
 func extractLinkText(markdown string) string {
 	return LINK_REGEX.ReplaceAllString(markdown, "$1")
-}
-
-// Content Processing Functions
-
-// GetFirstLine returns the first meaningful line from markdown content.
-// It excludes frontmatter, code blocks, media elements, and HTML tags.
-// Returns up to the first 10 words from the first non-empty line.
-func GetFirstLine(markdown string) string {
-	// Clean the content step by step
-	content := excludeFrontmatter(markdown)
-	content = excludeCodeBlocks(content)
-	content = excludeMediaTags(content)
-	content = extractLinkText(content)
-
-	// Remove HTML tags and markdown headers
-	content = HTML_TAG_REGEX.ReplaceAllString(content, "")
-	content = HEADER_REGEX.ReplaceAllString(content, "")
-
-	// Find the first non-empty line
-	lines := strings.Split(content, "\n")
-	var firstLine string
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if trimmed != "" {
-			firstLine = trimmed
-			break
-		}
-	}
-
-	// Limit to first 10 words
-	words := strings.Fields(firstLine)
-	if len(words) > 10 {
-		words = words[:10]
-	}
-
-	return strings.Join(words, " ")
 }
 
 // Frontmatter Functions
@@ -493,16 +237,6 @@ func GetCodeContent(markdown string) []string {
 	return getCodeContentWithLangRegex(markdown, CODE_BLOCK_WITH_LANG_REGEX, 2)
 }
 
-// GetCodeContentForLanguage extracts code block contents for a specific language.
-// Returns a slice of strings containing the code from blocks with the specified language.
-func GetCodeContentForLanguage(markdown string, language string) []string {
-	// Create a regex pattern for the specific language
-	pattern := "(?s)```" + regexp.QuoteMeta(language) + "[^\\n]*\\n(.*?)```"
-	langRegex := regexp.MustCompile(pattern)
-
-	return getCodeContentWithLangRegex(markdown, langRegex, 1)
-}
-
 // GetGoCodeContent extracts all Go code block contents.
 // Returns a slice of strings containing the Go code from each block.
 func GetGoCodeContent(markdown string) []string {
@@ -626,11 +360,6 @@ func DeleteTagsFromNote(projectPath string, folderAndNoteName string, tagsToDele
 // hasCodeByRegex is a helper function that checks if code blocks exist using a regex pattern.
 func hasCodeByRegex(markdown string, regex *regexp.Regexp) bool {
 	return regex.MatchString(markdown)
-}
-
-// HasDrawing returns true if the markdown contains a drawing code block.
-func HasDrawing(markdown string) bool {
-	return hasCodeByRegex(markdown, DRAWING_CODE_BLOCK_REGEX)
 }
 
 // HasCode returns true if the markdown contains any code blocks with language identifiers.

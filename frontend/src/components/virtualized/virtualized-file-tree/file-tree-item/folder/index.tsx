@@ -25,7 +25,10 @@ import {
   useFileTreeFolderRenameActions,
   type FetchFolderChildrenArgs,
 } from './hooks';
-import { getFileTreeItemIndent, hasLoadedChildren } from '../../utils/file-tree-utils';
+import {
+  getFileTreeItemIndent,
+  hasLoadedChildren,
+} from '../../utils/file-tree-utils';
 import { setFolderOpen } from '../../hooks/open-folder';
 import {
   createDragGhostElement,
@@ -110,7 +113,11 @@ export function FileTreeFolderItem({
         navigate(resolvedFolderPath.encodedFolderUrl);
       }
       const willOpen = !dataItem.isOpen;
-      setFolderOpen({ setFileTreeData, folderId: dataItem.id, isOpen: willOpen });
+      setFolderOpen({
+        setFileTreeData,
+        folderId: dataItem.id,
+        isOpen: willOpen,
+      });
       if (willOpen && !hasLoadedChildren(dataItem)) {
         fetchFolderChildren({
           pathToFolder: dataItem.path,
@@ -295,7 +302,11 @@ export function FileTreeFolderItem({
                   value: 'create-folder',
                   onChange: () => {
                     if (!dataItem.isOpen) {
-                      setFolderOpen({ setFileTreeData, folderId: dataItem.id, isOpen: true });
+                      setFolderOpen({
+                        setFileTreeData,
+                        folderId: dataItem.id,
+                        isOpen: true,
+                      });
                       if (!hasLoadedChildren(dataItem)) {
                         fetchFolderChildren({
                           pathToFolder: dataItem.path,
@@ -321,7 +332,11 @@ export function FileTreeFolderItem({
                   value: 'create-note',
                   onChange: () => {
                     if (!dataItem.isOpen) {
-                      setFolderOpen({ setFileTreeData, folderId: dataItem.id, isOpen: true });
+                      setFolderOpen({
+                        setFileTreeData,
+                        folderId: dataItem.id,
+                        isOpen: true,
+                      });
                       if (!hasLoadedChildren(dataItem)) {
                         fetchFolderChildren({
                           pathToFolder: dataItem.path,

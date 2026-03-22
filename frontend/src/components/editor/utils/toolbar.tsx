@@ -216,7 +216,7 @@ function updateToolbarOnSelectionChange(
       }
     });
 
-    setCurrentSelectionFormat(selectionTextFormats as TextFormatType[]);
+    setCurrentSelectionFormat(selectionTextFormats);
   }
 }
 

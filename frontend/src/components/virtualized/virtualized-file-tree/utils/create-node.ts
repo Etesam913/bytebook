@@ -5,9 +5,7 @@ import { getParentNodeFromPath } from './file-tree-utils';
 /**
  * Extracts the file/folder name from the last segment of a path.
  */
-export function getNewlyCreatedNodeNameFromPath(
-  newlyCreatedNodePath: string
-): string {
+function getNewlyCreatedNodeNameFromPath(newlyCreatedNodePath: string): string {
   const segments = newlyCreatedNodePath.split('/').filter(Boolean);
   return segments[segments.length - 1];
 }
@@ -19,7 +17,7 @@ export function getNewlyCreatedNodeNameFromPath(
  * children, meaning it would land at the end (possibly beyond a pagination
  * boundary).
  */
-export function isCreatedNodeInParentLoadedChildren(
+function isCreatedNodeInParentLoadedChildren(
   fileTreeData: FileTreeData,
   newlyCreatedNodePath: string
 ): boolean {
@@ -43,7 +41,7 @@ export function isCreatedNodeInParentLoadedChildren(
  * Places the newly created node in the parent's loaded children, maintaining sorted order.
  * Returns the updated list of child IDs for the parent node and the created node id.
  */
-export function placeCreatedNodeInParentLoadedChildren(
+function placeCreatedNodeInParentLoadedChildren(
   fileTreeData: FileTreeData,
   newlyCreatedNodePath: string
 ): {

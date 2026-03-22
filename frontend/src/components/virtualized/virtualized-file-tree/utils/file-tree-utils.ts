@@ -118,7 +118,7 @@ export function transformFileTreeForVirtualizedList(
  * @param fileTreeData - The file tree state object containing the maps to update.
  * @param folderIdToRemove - The unique ID of the file or folder to start removal from.
  */
-export function removeSubtree(
+function removeSubtree(
   fileTreeData: FileTreeData,
   folderIdToRemove: string
 ): void {
@@ -223,42 +223,6 @@ export function reconcileTopLevelFileTreeMap(
   }
 
   return newFileTreeData;
-}
-
-/**
- * Helper function to remove a folder from the map and update its parent's childrenIds.
- * Returns the updated map, or the original map if the parent doesn't exist or isn't a folder.
- */
-export function removeFolderFromFileTreeMap({
-  fileTreeData,
-  folderId,
-  parentId,
-}: {
-  fileTreeData: FileTreeData;
-  folderId: string;
-  parentId: string;
-}): FileTreeData {
-  const parent = fileTreeData.treeData.get(parentId);
-  if (!parent || parent.type !== 'folder') {
-    return fileTreeData;
-  }
-
-  const updatedFileTreeData: FileTreeData = {
-    treeData: new Map(fileTreeData.treeData),
-    filePathToTreeDataId: new Map(fileTreeData.filePathToTreeDataId),
-  };
-
-  // Remove the folder and all its descendants
-  removeSubtree(updatedFileTreeData, folderId);
-
-  // Update parent's childrenIds to remove the deleted folder
-  const updatedChildren = parent.childrenIds.filter((id) => id !== folderId);
-  updatedFileTreeData.treeData.set(parentId, {
-    ...parent,
-    childrenIds: updatedChildren,
-  });
-
-  return updatedFileTreeData;
 }
 
 /**

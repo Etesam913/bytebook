@@ -46,9 +46,17 @@ func readDirectoryEntries(fullPath string, pathPrefix string) ([]FileOrFolder, e
 		if entry.IsDir() {
 			entryType = "folder"
 		}
+
+		entryPath := filepath.Join(pathPrefix, entry.Name())
+		entryId := entryPath
+		// Markdown files and folders get UUID ids
+		if entry.IsDir() || filepath.Ext(entry.Name()) == ".md" {
+			entryId = uuid.New().String()
+		}
+
 		items = append(items, FileOrFolder{
-			Id:          uuid.New().String(),
-			Path:        filepath.Join(pathPrefix, entry.Name()),
+			Id:          entryId,
+			Path:        entryPath,
 			Name:        entry.Name(),
 			Type:        entryType,
 			ChildrenIds: []string{},
