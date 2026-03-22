@@ -59,7 +59,7 @@ export function SearchResultsList({
                 }}
               />
             );
-          default:
+          case 'attachment':
             return (
               <SearchResultAttachment
                 data={result}

@@ -199,7 +199,7 @@ export function usePinPathMutation() {
   const projectSettings = useAtomValue(projectSettingsAtom);
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       path,
       shouldPin,
     }: {
@@ -270,44 +270,46 @@ export function useNoteWriteEvent({
   editor: LexicalEditor;
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
 }) {
-  useWailsEvent(NOTE_WRITE, async (e) => {
-    const data = e.data as {
-      folder: string;
-      note: string;
-      markdown?: string;
-    }[];
+  useWailsEvent(NOTE_WRITE, (e) => {
+    void (async () => {
+      const data = e.data as {
+        folder: string;
+        note: string;
+        markdown?: string;
+      }[];
 
-    const isWindowFocused = await Window.IsFocused();
+      const isWindowFocused = await Window.IsFocused();
 
-    // Focused windows get their updates by the user typing, so we don't need to update the editor
-    if (isWindowFocused) return;
+      // Focused windows get their updates by the user typing, so we don't need to update the editor
+      if (isWindowFocused) return;
 
-    for (const item of data) {
-      const { folder: folderFromEvent, note: noteFromEvent, markdown } = item;
+      for (const item of data) {
+        const { folder: folderFromEvent, note: noteFromEvent, markdown } = item;
 
-      // Remove .md extension for comparison
-      const noteWithoutExtension = noteFromEvent.replace(/\.md$/, '');
+        // Remove .md extension for comparison
+        const noteWithoutExtension = noteFromEvent.replace(/\.md$/, '');
 
-      if (!markdown) return;
-      const { content, frontMatter } = parseFrontMatter(markdown);
+        if (!markdown) return;
+        const { content, frontMatter } = parseFrontMatter(markdown);
 
-      // Only update the editor if the current note is the one that was changed
-      if (folderFromEvent === folder && noteWithoutExtension === note) {
-        editor.update(
-          () => {
-            $convertFromMarkdownString(
-              content,
-              CUSTOM_TRANSFORMERS,
-              undefined,
-              true,
-              false
-            );
-          },
-          { tag: 'note:write-from-external' }
-        );
-        setFrontmatter(frontMatter);
+        // Only update the editor if the current note is the one that was changed
+        if (folderFromEvent === folder && noteWithoutExtension === note) {
+          editor.update(
+            () => {
+              $convertFromMarkdownString(
+                content,
+                CUSTOM_TRANSFORMERS,
+                undefined,
+                true,
+                false
+              );
+            },
+            { tag: 'note:write-from-external' }
+          );
+          setFrontmatter(frontMatter);
+        }
       }
-    }
+    })();
   });
 }
 

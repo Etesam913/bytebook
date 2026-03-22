@@ -142,17 +142,19 @@ export function Dialog() {
 
             <motion.form
               key="modal-form"
-              onSubmit={async (e: FormEvent<HTMLFormElement>) => {
+              onSubmit={(e: FormEvent<HTMLFormElement>) => {
                 e.preventDefault();
                 if (!dialogData.onSubmit) return;
 
-                setDialogData((prev) => ({ ...prev, isPending: true }));
-                const result = await dialogData.onSubmit(e, setErrorText);
-                setDialogData((prev) => ({ ...prev, isPending: false }));
+                void (async () => {
+                  setDialogData((prev) => ({ ...prev, isPending: true }));
+                  const result = await dialogData.onSubmit!(e, setErrorText);
+                  setDialogData((prev) => ({ ...prev, isPending: false }));
 
-                if (result) {
-                  setDialogData((prev) => ({ ...prev, isOpen: false }));
-                }
+                  if (result) {
+                    setDialogData((prev) => ({ ...prev, isOpen: false }));
+                  }
+                })();
               }}
               style={{ x: '-50%', y: '-50%' }}
               initial={{ opacity: 0, scale: 0.5 }}

@@ -9,7 +9,7 @@ const SPRING_ANIMATION = {
 
 const INSTANT_ANIMATION = { duration: 0 } as const;
 
-type HeightValue = string | number | 'auto';
+type HeightValue = string | number;
 
 /** Calculates the target height based on list state */
 function getTargetHeight({

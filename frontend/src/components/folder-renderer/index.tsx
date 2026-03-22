@@ -216,7 +216,7 @@ export function FolderRenderer({
             components={gridComponents}
             itemContent={(_, item) => <FolderRendererCard item={item} />}
             endReached={() => {
-              if (hasNextPage) fetchNextPage();
+              if (hasNextPage) void fetchNextPage();
             }}
           />
         </section>

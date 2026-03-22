@@ -1,4 +1,3 @@
-import type { HeadingTagType } from '@lexical/rich-text';
 import type { Dispatch, FormEvent, ReactNode, SetStateAction } from 'react';
 import {
   AppearanceProjectSettingsJson,
@@ -10,7 +9,7 @@ export const IMAGE_FILE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
 
 export const VIDEO_FILE_EXTENSIONS = ['mov', 'mp4', 'm4v', 'webm'];
 
-export type EditorBlockTypes = HeadingTagType | undefined | string;
+export type EditorBlockTypes = string | undefined;
 
 export type DropdownItem = {
   value: string;

@@ -107,7 +107,7 @@ export function CodeResult({
         {...getDefaultButtonVariants()}
         onClick={() => {
           if (resultContainerRef.current) {
-            navigator.clipboard.writeText(resultContainerRef.current.innerText);
+            void navigator.clipboard.writeText(resultContainerRef.current.innerText);
           }
         }}
       >

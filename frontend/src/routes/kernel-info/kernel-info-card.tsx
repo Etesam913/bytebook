@@ -47,7 +47,7 @@ export function KernelInfoCard({ language }: { language: Languages }) {
               <button
                 onClick={() => {
                   const command = kernelInfo?.argv?.join(' ') ?? 'Unknown';
-                  navigator.clipboard.writeText(command);
+                  void navigator.clipboard.writeText(command);
                 }}
                 className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded"
                 title="Copy command"

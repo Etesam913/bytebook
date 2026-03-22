@@ -302,7 +302,7 @@ export function KernelQuickstart({ language }: { language: Languages }) {
         return renderJavaScriptQuickstart();
       case 'java':
         return renderJavaQuickstart();
-      default:
+      case 'text':
         return (
           <div className="text-center py-8">
             <p className="text-zinc-500 dark:text-zinc-300">

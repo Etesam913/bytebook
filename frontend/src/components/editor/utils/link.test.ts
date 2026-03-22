@@ -4,13 +4,13 @@ import { DEFAULT_SONNER_OPTIONS } from '../../../utils/general';
 const openUrl = mock<(url: string) => Promise<void>>(() => Promise.resolve());
 const toastError = mock<(message: string, options?: unknown) => void>(() => {});
 
-mock.module('@wailsio/runtime', () => ({
+void mock.module('@wailsio/runtime', () => ({
   Browser: {
     OpenURL: openUrl,
   },
 }));
 
-mock.module('sonner', () => ({
+void mock.module('sonner', () => ({
   toast: {
     error: toastError,
   },
@@ -25,7 +25,7 @@ describe('editor link utils', () => {
   });
 
   it('opens regular links via the runtime browser', () => {
-    openUrl.mockImplementation(async () => undefined);
+    openUrl.mockImplementation(() => Promise.resolve(undefined));
     const anchor = document.createElement('a');
     anchor.href = 'https://example.com/docs';
     const child = document.createElement('span');
@@ -38,8 +38,8 @@ describe('editor link utils', () => {
   });
 
   it('reports a toast when the runtime refuses to open the link', async () => {
-    openUrl.mockImplementation(async () => {
-      throw new Error('network');
+    openUrl.mockImplementation(() => {
+      return Promise.reject(new Error('network'));
     });
     const anchor = document.createElement('a');
     anchor.href = 'https://example.com/fail';

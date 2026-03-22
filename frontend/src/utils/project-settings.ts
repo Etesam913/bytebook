@@ -23,14 +23,12 @@ export function validateProjectSettings(settings: {
   const themeOptions = ['light', 'dark', 'system'] as const;
   const noteWidthOptions = ['fullWidth', 'readability'] as const;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const theme = themeOptions.includes(settings.theme as any)
+  const theme = (themeOptions as readonly string[]).includes(settings.theme)
     ? (settings.theme as 'light' | 'dark' | 'system')
     : 'system';
 
-  const noteWidth = noteWidthOptions.includes(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    settings.noteWidth as any
+  const noteWidth = (noteWidthOptions as readonly string[]).includes(
+    settings.noteWidth
   )
     ? (settings.noteWidth as 'fullWidth' | 'readability')
     : 'readability';

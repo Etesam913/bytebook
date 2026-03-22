@@ -113,14 +113,16 @@ const searchQueries = {
  * - 'search:open': navigates to the search page or goes back if already there.
  */
 export function useSearch() {
-  useWailsEvent(SEARCH_OPEN, async (data) => {
-    if (!(await isEventInCurrentWindow(data))) return;
-    // Check if already on /search, if so, go back
-    if (window.location.pathname.startsWith('/search')) {
-      window.history.back();
-    } else {
-      navigate(routeUrls.search());
-    }
+  useWailsEvent(SEARCH_OPEN, (data) => {
+    void (async () => {
+      if (!(await isEventInCurrentWindow(data))) return;
+      // Check if already on /search, if so, go back
+      if (window.location.pathname.startsWith('/search')) {
+        window.history.back();
+      } else {
+        navigate(routeUrls.search());
+      }
+    })();
   });
 }
 
@@ -239,7 +241,7 @@ export function useSavedSearchUpdates() {
   const queryClient = useQueryClient();
 
   useWailsEvent(SAVED_SEARCH_UPDATE, () => {
-    queryClient.invalidateQueries({
+    void queryClient.invalidateQueries({
       queryKey: searchQueries.savedSearches().queryKey,
     });
   });
@@ -251,23 +253,23 @@ export function useSavedSearchUpdates() {
  */
 export function useRegenerateSearchIndexMutation() {
   return useMutation({
-    mutationFn: async () =>
-      toast.promise(
-        async () => {
-          const response = await RegenerateSearchIndex();
-          if (!response.success) {
-            throw new QueryError(response.message);
-          }
-          return response;
-        },
-        {
-          loading: 'Regenerating search index...',
-          success: (data) => data.message,
-          error: (err) =>
-            err instanceof QueryError
-              ? err.message
-              : 'Failed to regenerate search index',
+    mutationFn: async () => {
+      const resultPromise = (async () => {
+        const response = await RegenerateSearchIndex();
+        if (!response.success) {
+          throw new QueryError(response.message);
         }
-      ),
+        return response;
+      })();
+      toast.promise(resultPromise, {
+        loading: 'Regenerating search index...',
+        success: (data) => data.message,
+        error: (err) =>
+          err instanceof QueryError
+            ? err.message
+            : 'Failed to regenerate search index',
+      });
+      return await resultPromise;
+    },
   });
 }

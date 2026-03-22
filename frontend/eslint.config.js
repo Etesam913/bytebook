@@ -10,9 +10,12 @@ export default defineConfig([
   globalIgnores([
     'node_modules/',
     'bindings/',
+    'frontend/',
     'dist/',
     'build/',
     'src/assets/',
+    'tests/',
+    'vite.config.ts',
   ]),
   {
     files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'],

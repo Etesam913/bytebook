@@ -16,7 +16,7 @@ import {
   useShutdownKernelMutation,
   useTurnOnKernelMutation,
 } from '../../../hooks/code';
-import { Languages } from '../../../types';
+import type { Languages, LanguagesWithKernels } from '../../../types';
 import { currentZoomAtom } from '../../../hooks/resize';
 import { routeUrls } from '../../../utils/routes';
 import { getKernelIcon } from './index';
@@ -40,7 +40,8 @@ export function KernelAccordionButton({
   const isActive = decodeURIComponent(kernelNameFromUrl ?? '') === kernelName;
   const isSelected = selectionRange.has(`kernel:${kernelName}`);
   const kernelsData = useAtomValue(kernelsDataAtom);
-  const { status, heartbeat } = kernelsData[kernelName];
+  const kernelData = kernelsData[kernelName as LanguagesWithKernels];
+  const { status, heartbeat } = kernelData;
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const { mutate: shutdownKernel } = useShutdownKernelMutation(kernelName);
   const { mutate: turnOnKernel } = useTurnOnKernelMutation({

@@ -23,7 +23,7 @@ export function MaximizeNoteButton({
       <MotionIconButton
         onClick={() => {
           setIsNoteMaximized((prev) => !prev);
-          animationControls.start({
+          void animationControls.start({
             x: isNoteMaximized ? [-40, 0] : [50, 0],
             transition: { ease: easingFunctions['ease-out-quint'] },
           });

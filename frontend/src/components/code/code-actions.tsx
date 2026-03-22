@@ -128,7 +128,7 @@ export function CodeActions({
         isOpen={isDropdownOpen}
         setIsOpen={setIsDropdownOpen}
         dropdownClassName="w-48 right-0 top-10"
-        onChange={async (item) => {
+        onChange={(item) => {
           setIsDropdownOpen(false);
           switch (item.value) {
             case 'copy-code': {
@@ -136,7 +136,7 @@ export function CodeActions({
               const editorContent =
                 codeMirrorInstance.view.state.doc.toString();
               if (!editorContent) break;
-              await navigator.clipboard.writeText(editorContent);
+              void navigator.clipboard.writeText(editorContent);
               break;
             }
             case 'kernel-info': {

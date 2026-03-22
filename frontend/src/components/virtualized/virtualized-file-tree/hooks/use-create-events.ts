@@ -61,7 +61,7 @@ export function useCreateEvents() {
     });
 
     if (needsTopLevelInvalidation) {
-      queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+      void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
     }
   }
 

@@ -268,11 +268,11 @@ export function FileTreeFolderItem({
           e.stopPropagation();
           setIsDraggedOver(false);
         }}
-        onDrop={async (e) => {
+        onDrop={(e) => {
           e.preventDefault();
           e.stopPropagation();
           setIsDraggedOver(false);
-          await moveItemsToFolder(dataItem.path);
+          void moveItemsToFolder(dataItem.path);
         }}
         onClick={handleClick}
         onContextMenu={(e) => {

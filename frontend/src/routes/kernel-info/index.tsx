@@ -9,7 +9,7 @@ import { KernelStatusCard } from './kernel-status-card';
 import { KernelInfoCard } from './kernel-info-card';
 import { KernelErrorCard } from './kernel-error-card';
 import { KernelQuickstart } from './kernel-quickstart';
-import { Languages, LanguagesWithKernels } from '../../types';
+import type { Languages, LanguagesWithKernels } from '../../types';
 import { JavascriptLogo } from '../../icons/javascript-logo';
 import { JavaLogo } from '../../icons/java-logo';
 
@@ -82,12 +82,14 @@ export function KernelInfo() {
     );
   }
 
-  const kernelData = kernelsData[kernelName];
-  const kernelConfig = KERNEL_CONFIGS[kernelName];
+  const kernelData = kernelsData[kernelName as LanguagesWithKernels];
+  const kernelConfig = KERNEL_CONFIGS[kernelName as LanguagesWithKernels];
 
   const getKernelIcon = (kernel: string) => {
     return (
-      KERNEL_CONFIGS[kernel]?.icon || <SquareTerminal height={32} width={32} />
+      KERNEL_CONFIGS[kernel as LanguagesWithKernels]?.icon || (
+        <SquareTerminal height={32} width={32} />
+      )
     );
   };
 

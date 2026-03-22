@@ -31,6 +31,7 @@ describe('handleKeyboardShortcuts', () => {
     const result = handleKeyboardShortcuts(event, mockEditor);
 
     expect(result).toBe(true);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(event.preventDefault).toHaveBeenCalled();
     expect(mockDispatchCommand).toHaveBeenCalledWith(
       FORMAT_TEXT_COMMAND,
@@ -48,6 +49,7 @@ describe('handleKeyboardShortcuts', () => {
     const result = handleKeyboardShortcuts(event, mockEditor);
 
     expect(result).toBe(false);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(event.preventDefault).not.toHaveBeenCalled();
     expect(mockDispatchCommand).not.toHaveBeenCalled();
   });

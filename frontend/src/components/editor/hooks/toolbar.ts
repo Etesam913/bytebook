@@ -359,9 +359,11 @@ export function useSearchNoteEvent(): [
 ] {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  useWailsEvent(SEARCH_NOTE, async (data) => {
-    if (!(await isEventInCurrentWindow(data))) return;
-    setIsSearchOpen((prev) => !prev);
+  useWailsEvent(SEARCH_NOTE, (data) => {
+    void (async () => {
+      if (!(await isEventInCurrentWindow(data))) return;
+      setIsSearchOpen((prev) => !prev);
+    })();
   });
 
   return [isSearchOpen, setIsSearchOpen];

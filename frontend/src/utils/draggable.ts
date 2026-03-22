@@ -56,23 +56,22 @@ export const throttle = <T extends (...args: any[]) => any>(
   let lastTime: number;
 
   return function (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this: any,
+    this: unknown,
     ...args: Parameters<T>
   ): ReturnType<T> | undefined {
     if (!inThrottle) {
-      const result = fn.apply(this, args);
+      const result: ReturnType<T> = fn.apply(this, args) as ReturnType<T>;
       lastTime = Date.now();
       inThrottle = true;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return result;
     }
     clearTimeout(lastFn);
     lastFn = setTimeout(
       () => {
         if (Date.now() - lastTime >= wait) {
-          const result = fn.apply(this, args);
+          fn.apply(this, args);
           lastTime = Date.now();
-          return result;
         }
       },
       Math.max(wait - (Date.now() - lastTime), 0)

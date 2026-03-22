@@ -127,7 +127,7 @@ export function SearchPage() {
             selectedIndex={selectedIndex}
             endReached={() => {
               if (!hasNextPage || isFetchingNextPage) return;
-              fetchNextPage();
+              void fetchNextPage();
             }}
           />
         )}

@@ -192,6 +192,9 @@ export function changeSelectedBlocksType({
           insertAttachmentsMutation.mutate();
           break;
         }
+        case undefined:
+        default:
+          break;
       }
     }
   });

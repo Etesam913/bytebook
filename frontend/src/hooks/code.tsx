@@ -9,6 +9,7 @@ import {
   KernelHeartbeatStatus,
   KernelStatus,
   Languages,
+  LanguagesWithKernels,
   ProjectSettings,
 } from '../types';
 import { useMutation } from '@tanstack/react-query';
@@ -61,9 +62,13 @@ export function useKernelStatus() {
     const language = data.language;
     const status = data.status;
     if (isValidKernelLanguage(language)) {
+      const kernelLanguage = language as LanguagesWithKernels;
       setKernelsData((prev) => ({
         ...prev,
-        [language]: { ...prev[language], status: status },
+        [kernelLanguage]: {
+          ...prev[kernelLanguage],
+          status: status,
+        },
       }));
     }
   });
@@ -212,9 +217,13 @@ export function useKernelHeartbeat() {
       return newMap;
     });
 
+    const kernelLanguage = language as LanguagesWithKernels;
     setKernelsData((prev) => ({
       ...prev,
-      [language]: { ...prev[language], heartbeat: kernelHeartbeatStatus },
+      [kernelLanguage]: {
+        ...prev[kernelLanguage],
+        heartbeat: kernelHeartbeatStatus,
+      },
     }));
   });
 }
@@ -227,7 +236,7 @@ export function useKernelLaunchEvents(editor: LexicalEditor) {
       language: Languages;
       data: string;
     };
-    const language = data.language;
+    const language = data.language as LanguagesWithKernels;
     toast.error(data.data, DEFAULT_SONNER_OPTIONS);
     setKernelsData((prev) => ({
       ...prev,
@@ -253,7 +262,7 @@ export function useKernelLaunchEvents(editor: LexicalEditor) {
       language: Languages;
       data: string;
     };
-    const language = data.language;
+    const language = data.language as LanguagesWithKernels;
     setKernelsData((prev) => ({
       ...prev,
       [language]: { ...prev[language], errorMessage: null },
@@ -546,9 +555,11 @@ export function useSendInterruptRequestMutation(onSuccess?: () => void) {
       newExecutionId: string;
     }) => {
       // Nothing to interrupt if the kernel is not running
+      const kernelData =
+        kernelsData[codeBlockLanguage as LanguagesWithKernels];
       if (
-        kernelsData[codeBlockLanguage].heartbeat === 'idle' ||
-        kernelsData[codeBlockLanguage].heartbeat === 'failure'
+        kernelData.heartbeat === 'idle' ||
+        kernelData.heartbeat === 'failure'
       ) {
         return;
       }
@@ -722,10 +733,10 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
         await shutdownKernel(false);
         // Switch the kernel on after 2 seconds, hopefully after the shutdown kernel message has been processed
         setTimeout(() => {
-          turnOnKernel({});
+          void turnOnKernel({});
         }, 2000);
       } else {
-        turnOnKernel({});
+        void turnOnKernel({});
       }
 
       return true;

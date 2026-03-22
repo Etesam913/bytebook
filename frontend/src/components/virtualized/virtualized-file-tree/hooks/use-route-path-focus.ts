@@ -80,7 +80,7 @@ export function useRoutePathFocus({
     }
 
     // Clicking a link to a note or clicking a search result will not reveal the path themselves, so we need to reveal it below
-    revealRoutePathAsync(routeTargetPath).then(async (success) => {
+    void revealRoutePathAsync(routeTargetPath).then((success) => {
       if (success) {
         setPendingScrollPath(routeTargetPath);
         return;

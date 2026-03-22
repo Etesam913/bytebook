@@ -16,7 +16,7 @@ export function useSmartScroll() {
   const rangeRef = useRef({ startIndex: 0, endIndex: 0 });
 
   // We use a callback for rangeChanged to avoid unnecessary re-renders
-  const onRangeChanged = (range) => {
+  const onRangeChanged = (range: { startIndex: number; endIndex: number }) => {
     rangeRef.current = range;
   };
 

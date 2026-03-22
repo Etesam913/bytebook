@@ -15,16 +15,18 @@ export function useToggleSidebarEvent(
 ): void {
   const setIsNoteMaximized = useSetAtom(isNoteMaximizedAtom);
 
-  useWailsEvent(TOGGLE_SIDEBAR, async (data: WailsEvent) => {
-    if (!(await isEventInCurrentWindow(data))) return;
-    logger.event('sidebar:toggle');
-    setIsNoteMaximized((prev) => {
-      animationControls.start({
-        x: prev ? [-40, 0] : [50, 0],
-        transition: { ease: easingFunctions['ease-out-quint'] },
-      });
+  useWailsEvent(TOGGLE_SIDEBAR, (data: WailsEvent) => {
+    void (async () => {
+      if (!(await isEventInCurrentWindow(data))) return;
+      logger.event('sidebar:toggle');
+      setIsNoteMaximized((prev) => {
+        void animationControls.start({
+          x: prev ? [-40, 0] : [50, 0],
+          transition: { ease: easingFunctions['ease-out-quint'] },
+        });
 
-      return !prev;
-    });
+        return !prev;
+      });
+    })();
   });
 }
