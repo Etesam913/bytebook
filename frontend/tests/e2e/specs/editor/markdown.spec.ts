@@ -1,63 +1,53 @@
 import { test, expect } from '@playwright/test';
 import { mockBinding } from '../../utils/mock-binding';
 import {
-  MOCK_FOLDER_RESPONSE,
-  MOCK_NOTES_RESPONSE,
+  MOCK_TOP_LEVEL_ITEMS_RESPONSE,
+  MOCK_ECONOMICS_FOLDER_CHILDREN_RESPONSE,
   MOCK_NOTE_EXISTS_RESPONSE,
-  MOCK_NOTE_PREVIEW_RESPONSE,
   MOCK_NOTE_MARKDOWN_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
+  MOCK_SUCCESS_RESPONSE,
 } from '../../utils/mock-responses';
 import { SERVICE_FILES } from '../../utils/service-files';
 
 test.describe('Markdown rendering', () => {
   test.beforeEach(async ({ context }) => {
-    // Mock file sidebar dependencies
+    // Mock file tree dependencies
     await mockBinding(
       context,
-      {
-        file: SERVICE_FILES.FOLDER_SERVICE,
-        method: 'GetFolders',
-      },
-      MOCK_FOLDER_RESPONSE
-    );
-
-    // Mock notes sidebar dependencies
-    await mockBinding(
-      context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNotes',
-      },
-      MOCK_NOTES_RESPONSE
+      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetTopLevelItems' },
+      MOCK_TOP_LEVEL_ITEMS_RESPONSE
     );
 
     await mockBinding(
       context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'DoesNoteExist',
-      },
+      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetChildrenOfFolderBasedOnPath' },
+      MOCK_ECONOMICS_FOLDER_CHILDREN_RESPONSE
+    );
+
+    await mockBinding(
+      context,
+      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'OpenFolderAndAddToFileWatcher' },
+      MOCK_SUCCESS_RESPONSE
+    );
+
+    await mockBinding(
+      context,
+      { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
       MOCK_NOTE_EXISTS_RESPONSE
     );
 
     // Mock project settings
     await mockBinding(
       context,
-      {
-        file: SERVICE_FILES.SETTINGS_SERVICE,
-        method: 'GetProjectSettings',
-      },
+      { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
       MOCK_PROJECT_SETTINGS_RESPONSE
     );
 
     // Mock note markdown
     await mockBinding(
       context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdown',
-      },
+      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
       MOCK_NOTE_MARKDOWN_RESPONSE
     );
   });
@@ -71,19 +61,15 @@ test.describe('Markdown rendering', () => {
 
     await mockBinding(
       context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdown',
-      },
+      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
       HEADING_MARKDOWN_RESPONSE
     );
 
-    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand?ext=md');
+    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
 
     const editor = page.locator('#content-editable-editor');
     await expect(editor).toBeVisible();
 
-    // Verify all headings are rendered
     await expect(editor.locator('h1')).toContainText('Heading 1');
     await expect(editor.locator('h2')).toContainText('Heading 2');
     await expect(editor.locator('h3')).toContainText('Heading 3');
@@ -110,36 +96,25 @@ test.describe('Markdown rendering', () => {
 
     await mockBinding(
       context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdown',
-      },
+      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
       LIST_MARKDOWN_RESPONSE
     );
 
-    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand?ext=md');
+    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
 
     const editor = page.locator('#content-editable-editor');
     await expect(editor).toBeVisible();
 
-    // Verify unordered list items
     await expect(editor).toContainText('Item 1');
     await expect(editor).toContainText('Item 2');
-
-    // Verify ordered list items
     await expect(editor).toContainText('First');
     await expect(editor).toContainText('Second');
-
-    // Verify checklist items text is present
     await expect(editor).toContainText('Unchecked item');
     await expect(editor).toContainText('Checked item');
 
-    // Expect at least two checkbox items
     const checkboxes = editor.locator('li[role="checkbox"]');
     await expect(checkboxes).toHaveCount(2);
 
-    // Check states: typically unchecked is not checked, checked is checked
-    // First: unchecked
     await expect(checkboxes.nth(0)).not.toBeChecked();
     await expect(checkboxes.nth(1)).toBeChecked();
   });
@@ -153,27 +128,20 @@ test.describe('Markdown rendering', () => {
 
     await mockBinding(
       context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdown',
-      },
+      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
       FORMATTED_MARKDOWN_RESPONSE
     );
 
-    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand?ext=md');
+    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
 
     const editor = page.locator('#content-editable-editor');
     await expect(editor).toBeVisible();
 
-    // Verify the formatted text is present
     await expect(editor).toContainText('bold text');
     await expect(editor).toContainText('italic text');
     await expect(editor).toContainText('bold italic');
 
-    // Verify bold formatting is applied
     await expect(editor.locator('strong').first()).toContainText('bold text');
-
-    // Verify italic formatting is applied
     await expect(editor.locator('em').first()).toContainText('italic text');
   });
 
@@ -186,25 +154,17 @@ test.describe('Markdown rendering', () => {
 
     await mockBinding(
       context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdown',
-      },
+      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
       STRIKETHROUGH_MARKDOWN_RESPONSE
     );
 
-    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand?ext=md');
+    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
 
     const editor = page.locator('#content-editable-editor');
     await expect(editor).toBeVisible();
 
-    // Verify strikethrough text is present
     await expect(editor).toContainText('strikethrough text');
-
-    // Verify strikethrough formatting is applied (Lexical uses text-strikethrough class)
-    await expect(editor.locator('span.text-strikethrough')).toContainText(
-      'strikethrough text'
-    );
+    await expect(editor.locator('span.text-strikethrough')).toContainText('strikethrough text');
   });
 
   test('renders blockquotes correctly', async ({ page, context }) => {
@@ -216,19 +176,15 @@ test.describe('Markdown rendering', () => {
 
     await mockBinding(
       context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdown',
-      },
+      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
       BLOCKQUOTE_MARKDOWN_RESPONSE
     );
 
-    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand?ext=md');
+    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
 
     const editor = page.locator('#content-editable-editor');
     await expect(editor).toBeVisible();
 
-    // Verify blockquote content is rendered
     await expect(editor).toContainText('This is a blockquote');
   });
 });

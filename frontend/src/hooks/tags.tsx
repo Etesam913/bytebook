@@ -66,7 +66,7 @@ export function useTagsForNotesQuery(paths: string[]) {
       if (!res.success) {
         throw new Error(res.message);
       }
-      return res.data ?? {};
+      return (res.data ?? {}) as Record<string, string[]>;
     },
   });
 }

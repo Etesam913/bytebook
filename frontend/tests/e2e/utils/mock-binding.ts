@@ -123,6 +123,10 @@ function getMethodId({ file, method }: BindingIdentifier): number {
  * which intercepts Wails backend calls and responds with mocked payloads
  * registered by the test runner. This allows for fast, deterministic
  * end-to-end tests with stubbed backend responses.
+ *
+ * Wails v3 runtime uses POST requests to `/wails/runtime` with a JSON body:
+ *   { object: 0, method: 0, args: { "call-id": "<id>", methodID: <number>, args: [...] } }
+ * The response is returned directly as a JSON Response.
  */
 async function ensureFetchIsPatched(context: BrowserContext) {
   if (patchedContexts.has(context)) return;
@@ -135,9 +139,6 @@ async function ensureFetchIsPatched(context: BrowserContext) {
         payload: unknown
       ) => void;
       __BYTEBOOK_WAILS_MOCKS__?: Map<number, unknown>;
-      _wails?: {
-        callResultHandler?: (id: string, data: string, isJSON: boolean) => void;
-      };
     };
 
     if (globalWindow.__BYTEBOOK_REGISTER_WAILS_MOCK__) {
@@ -164,31 +165,22 @@ async function ensureFetchIsPatched(context: BrowserContext) {
         try {
           const url = new URL(requestUrl, window.location.origin);
 
-          const isRuntimeCall =
-            url.pathname === '/wails/runtime' &&
-            url.searchParams.get('object') === '0' &&
-            url.searchParams.get('method') === '0';
+          // Wails v3 uses POST /wails/runtime with JSON body
+          if (url.pathname === '/wails/runtime' && init?.method === 'POST' && init?.body) {
+            const body = JSON.parse(
+              typeof init.body === 'string' ? init.body : new TextDecoder().decode(init.body as ArrayBuffer)
+            );
 
-          if (isRuntimeCall) {
-            const encodedArgs = url.searchParams.get('args');
-
-            if (encodedArgs) {
-              const callArgs = JSON.parse(encodedArgs);
-              const methodId = callArgs['methodID'];
+            // Call binding: object=0 (Call), method=0 (CallBinding)
+            if (body.object === 0 && body.method === 0 && body.args) {
+              const methodId = body.args['methodID'];
               const mockResponse = mockStore.get(methodId);
 
-              if (mockResponse) {
-                // Wails resolves calls through `window._wails.callResultHandler`,
-                // so we trigger it manually with our payload and skip the network.
-                queueMicrotask(() => {
-                  globalWindow._wails?.callResultHandler?.(
-                    callArgs['call-id'],
-                    JSON.stringify(mockResponse ?? {}),
-                    true
-                  );
+              if (mockResponse !== undefined) {
+                return new Response(JSON.stringify(mockResponse), {
+                  status: 200,
+                  headers: { 'Content-Type': 'application/json' },
                 });
-
-                return new Response('', { status: 200 });
               }
             }
           }
