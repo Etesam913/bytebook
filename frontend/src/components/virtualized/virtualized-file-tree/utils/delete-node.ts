@@ -30,7 +30,7 @@ function removeSubtreeFromMaps(
  * Immutably removes a deleted node (and its subtree) from the file tree.
  * Returns updated FileTreeData, or null if the node is already absent.
  */
-export function removeDeletedNodeFromFileTree(
+function removeDeletedNodeFromFileTree(
   prev: FileTreeData,
   path: string
 ): FileTreeData | null {
@@ -61,105 +61,11 @@ export function removeDeletedNodeFromFileTree(
 /**
  * Converts a FileOrFolder node to an encoded route URL.
  */
-export function nodeToEncodedUrl(node: FileOrFolder): string | null {
+function nodeToEncodedUrl(node: FileOrFolder): string | null {
   if (node.type === FILE_TYPE) {
     return createFilePath(node.path)?.encodedFileUrl ?? null;
   }
   return createFolderPath(node.path)?.encodedFolderUrl ?? null;
-}
-
-/**
- *
- * Finds the closest sibling node (file or folder) to the deleted node in the parent.
- * @param treeData - The tree data map.
- * @param deletedNodeId - The id of the node that was deleted.
- * @param parentId - The id of the parent of the deleted node.
- * @returns The closest sibling node, or null if none found.
- */
-function getClosestNodeToDeletedInParent({
-  treeData,
-  deletedNodeId,
-  parentId,
-}: {
-  treeData: Map<string, FileOrFolder>;
-  deletedNodeId: string;
-  parentId: string;
-}) {
-  const parent = treeData.get(parentId);
-  if (!parent || parent.type !== 'folder') {
-    return null;
-  }
-
-  const indexOfDeletedNodeId = parent.childrenIds.indexOf(deletedNodeId);
-
-  if (indexOfDeletedNodeId === -1) {
-    return null;
-  }
-
-  const { childrenIds } = parent;
-
-  const getNodeAtIndex = (index: number) => {
-    const childId = childrenIds[index];
-    const childData = treeData.get(childId);
-    if (!childData) {
-      return null;
-    }
-    return childData;
-  };
-
-  // Expand outward from the deleted index to find the nearest sibling.
-  let leftPointer = indexOfDeletedNodeId - 1;
-  let rightPointer = indexOfDeletedNodeId + 1;
-  while (leftPointer > -1 || rightPointer < childrenIds.length) {
-    // Keep right-side preference on ties to match previous behavior.
-    if (rightPointer < childrenIds.length) {
-      const rightNode = getNodeAtIndex(rightPointer);
-      if (rightNode) {
-        return rightNode;
-      }
-      rightPointer += 1;
-    }
-
-    if (leftPointer > -1) {
-      const leftNode = getNodeAtIndex(leftPointer);
-      if (leftNode) {
-        return leftNode;
-      }
-      leftPointer -= 1;
-    }
-  }
-
-  return null;
-}
-
-/**
- * Finds the nearest sibling node (file or folder) for a deleted path.
- * Returns null when the deleted node or its parent cannot be resolved.
- */
-export function getClosestSiblingForDeletedPath({
-  fileTreeData,
-  deletedPath,
-}: {
-  fileTreeData: FileTreeData;
-  deletedPath: string;
-}): FileOrFolder | null {
-  // Use the helper to get the node from the path
-  const deletedNodeData = getTreeNodeFromPath(fileTreeData, deletedPath);
-  if (!deletedNodeData) {
-    return null;
-  }
-
-  // Use the helper to get the parent node from the path
-  const parentNode = getParentNodeFromPath(fileTreeData, deletedPath);
-  if (!parentNode) {
-    return null;
-  }
-
-  return getClosestNodeToDeletedInParent({
-    treeData: fileTreeData.treeData,
-    deletedNodeId: deletedNodeData.id,
-    parentId: parentNode.id,
-  });
 }
 
 /**
@@ -243,7 +149,11 @@ export function getNavigationTargetForDeletedPaths({
 export function removePathsFromFileTree(
   prev: FileTreeData,
   paths: string[]
-): { next: FileTreeData; didChange: boolean; needsTopLevelInvalidation: boolean } {
+): {
+  next: FileTreeData;
+  didChange: boolean;
+  needsTopLevelInvalidation: boolean;
+} {
   let current: FileTreeData = prev;
   let didChange = false;
   let needsTopLevelInvalidation = false;

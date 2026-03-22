@@ -12,3 +12,4 @@ bundle-analysis.html
 node_modules/
 .next/
 .cursor/
+.claude/.debug/debug.log

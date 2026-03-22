@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import { cn } from '../../utils/string-formatting';
 
-export const Button = forwardRef<
+const Button = forwardRef<
   HTMLButtonElement,
   ButtonHTMLAttributes<HTMLButtonElement>
 >((props, ref) => {

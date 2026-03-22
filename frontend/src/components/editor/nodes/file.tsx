@@ -115,7 +115,7 @@ export class FileNode extends DecoratorNode<JSX.Element> {
       element.setAttribute('height', this.__dimensions.height.toString());
     }
     if (this.__elementType === 'video') {
-      element = document.createElement('video') as HTMLVideoElement;
+      element = document.createElement('video');
       element.setAttribute('src', this.__src);
       element.setAttribute('title', this.__alt);
       element.setAttribute('width', this.__dimensions.width.toString());

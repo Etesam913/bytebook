@@ -242,7 +242,7 @@ export function computeMetaClickState({
       selectionKey,
       updatedSelections: newSelections,
     }) ??
-    (newSelections.values().next().value as string | undefined) ??
+    newSelections.values().next().value ??
     null;
 
   return {

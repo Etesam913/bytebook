@@ -175,9 +175,7 @@ export class LinkNode extends ElementNode {
     };
   }
 
-  static importJSON(
-    serializedNode: SerializedLinkNode | SerializedAutoLinkNode
-  ): LinkNode {
+  static importJSON(serializedNode: SerializedLinkNode): LinkNode {
     const node = $createLinkNode(serializedNode.url, {
       rel: serializedNode.rel,
       target: serializedNode.target,
@@ -189,7 +187,7 @@ export class LinkNode extends ElementNode {
     return node;
   }
 
-  exportJSON(): SerializedLinkNode | SerializedAutoLinkNode {
+  exportJSON(): SerializedLinkNode {
     return {
       ...super.exportJSON(),
       rel: this.getRel(),

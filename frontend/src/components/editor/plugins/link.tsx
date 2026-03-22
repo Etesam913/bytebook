@@ -54,7 +54,7 @@ export function LinkPlugin({ validateUrl }: Props): null {
               ) {
                 return false;
               }
-              const clipboardEvent = event as ClipboardEvent;
+              const clipboardEvent = event;
               if (clipboardEvent.clipboardData === null) {
                 return false;
               }

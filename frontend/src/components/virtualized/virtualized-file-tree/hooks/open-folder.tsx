@@ -221,9 +221,7 @@ export function useFetchFolderChildrenMutation(options?: {
           throw new QueryError('Folder not found');
         }
 
-        const cursorToUse = isLoadMore
-          ? (folderData.childrenCursor ?? '')
-          : '';
+        const cursorToUse = isLoadMore ? (folderData.childrenCursor ?? '') : '';
         const res = await GetChildrenOfFolderBasedOnLimit(
           pathToFolder,
           folderId,

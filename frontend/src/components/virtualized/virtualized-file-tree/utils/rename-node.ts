@@ -120,7 +120,10 @@ export function buildRenameUpdates({
       const oldParentUpdate = parentFolderUpdates.get(oldParentId) ?? {
         removeChildIds: new Set<string>(),
         addChildIds: new Set<string>(),
-        originalLastChildName: getOriginalLastChildName(fileTreeData, oldParentId),
+        originalLastChildName: getOriginalLastChildName(
+          fileTreeData,
+          oldParentId
+        ),
       };
       oldParentUpdate.removeChildIds.add(treeDataNode.id);
       parentFolderUpdates.set(oldParentId, oldParentUpdate);
@@ -130,7 +133,10 @@ export function buildRenameUpdates({
       const newParentUpdate = parentFolderUpdates.get(newParentId) ?? {
         removeChildIds: new Set<string>(),
         addChildIds: new Set<string>(),
-        originalLastChildName: getOriginalLastChildName(fileTreeData, newParentId),
+        originalLastChildName: getOriginalLastChildName(
+          fileTreeData,
+          newParentId
+        ),
       };
       if (newParentId !== oldParentId) {
         // Moving to a different parent — add to new parent

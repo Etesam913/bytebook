@@ -67,11 +67,7 @@ export function SearchPage() {
         {isError && (
           <div className="w-full flex-1 flex justify-center items-center">
             <div className="text-red-600 dark:text-red-400">
-              {
-                (error instanceof Error
-                  ? error.message
-                  : 'Something went wrong') as string
-              }
+              {error instanceof Error ? error.message : 'Something went wrong'}
             </div>
           </div>
         )}

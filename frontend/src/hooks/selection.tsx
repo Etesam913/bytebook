@@ -12,7 +12,9 @@ import { sidebarSelectionAtom, type SidebarSelectionState } from '../atoms';
 export function useAddToSidebarSelection() {
   const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
 
-  return (itemsToSelect: SelectableItem | SelectableItem[]): SidebarSelectionState => {
+  return (
+    itemsToSelect: SelectableItem | SelectableItem[]
+  ): SidebarSelectionState => {
     let newState: SidebarSelectionState = {
       selections: new Set(),
       anchorSelection: null,

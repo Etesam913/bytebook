@@ -36,7 +36,7 @@ function constructGhostElementForImage(
   ghostElement: HTMLElement
 ) {
   const ghostElementChild = document.createElement('img');
-  (ghostElementChild as HTMLImageElement).src = fileNode.getSrc();
+  ghostElementChild.src = fileNode.getSrc();
   ghostElementChild.style.width = '15rem';
   ghostElementChild.style.height = 'auto';
   ghostElementChild.style.borderRadius = '0.25rem';

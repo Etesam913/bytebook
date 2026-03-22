@@ -41,8 +41,7 @@ export function CodeActions({
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const canShowKernelInfo =
-    language !== 'text' &&
-    languagesWithKernelsSet.has(language as Exclude<Languages, 'text'>);
+    language !== 'text' && languagesWithKernelsSet.has(language);
 
   const tooltipRoot = isExpanded && dialogRef ? dialogRef : undefined;
 

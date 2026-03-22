@@ -21,15 +21,6 @@ func normalizeQuotes(s string) string {
 	return replacer.Replace(s)
 }
 
-// createPrefixQuery returns a case-insensitive prefix query targeting the specified field.
-// The provided prefix is lowercased to ensure case-insensitive behavior.
-func createPrefixQuery(field, prefix string) query.Query {
-	normalizedPrefix := strings.ToLower(prefix)
-	q := bleve.NewPrefixQuery(normalizedPrefix)
-	q.SetField(field)
-	return q
-}
-
 // createExactQuery returns a phrase query for exact matching in the specified field.
 func createExactQuery(field, phrase string, boost float64) query.Query {
 	q := bleve.NewMatchPhraseQuery(phrase)

@@ -57,7 +57,7 @@ jobs:
       - name: Check for dead code
         run: |
           go install golang.org/x/tools/cmd/deadcode@latest
-          deadcode -test ./...
+          deadcode ./...
 
       # We need Bun here just to run the 'wails3 generate bindings' command
       - name: Setup Bun (for bindings)

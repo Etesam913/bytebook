@@ -15,7 +15,11 @@ import {
   RegenerateSearchIndex,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
 import { useWailsEvent } from '../hooks/events';
-import { isEventInCurrentWindow, SEARCH_OPEN, SAVED_SEARCH_UPDATE } from '../utils/events';
+import {
+  isEventInCurrentWindow,
+  SEARCH_OPEN,
+  SAVED_SEARCH_UPDATE,
+} from '../utils/events';
 import { useEffect, useRef } from 'react';
 import { createFilePath, type FilePath } from '../utils/path';
 import { HighlightResult } from '../../bindings/github.com/etesam913/bytebook/internal/search/models';

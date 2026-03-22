@@ -69,7 +69,7 @@ export function CodeResult({
           ref={resultContainerRef}
           onSubmit={(e) => {
             e.preventDefault();
-            const submitter = (e.nativeEvent as SubmitEvent)
+            const submitter = e.nativeEvent
               .submitter as HTMLButtonElement | null;
 
             const parentDiv = submitter?.parentElement;

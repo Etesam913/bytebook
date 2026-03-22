@@ -50,7 +50,8 @@ function resolveTargetFolderPath(
  */
 export function useFileTreeContentDrop() {
   const fileTreeData = useAtomValue(fileTreeDataAtom);
-  const { mutate: addDroppedFilesToFolder } = useAddDroppedFilesToFolderMutation();
+  const { mutate: addDroppedFilesToFolder } =
+    useAddDroppedFilesToFolderMutation();
 
   useWailsEvent(FILE_TREE_CONTENT_DROP, (event) => {
     const data = event.data as FileTreeContentDropEventData;

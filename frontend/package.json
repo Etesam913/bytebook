@@ -9,7 +9,6 @@
     "build:prod": "vite build --mode production",
     "build:analyze": "VITE_ANALYZE=true vite build --mode production",
     "build:ci": "vite build --mode production",
-    "preview": "vite preview",
     "test:unit": "bun test",
     "test:unit:ui": "bun test --watch",
     "test:e2e": "playwright test -c tests/e2e/playwright.config.ts",
