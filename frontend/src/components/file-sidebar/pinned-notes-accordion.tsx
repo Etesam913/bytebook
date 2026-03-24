@@ -8,12 +8,12 @@ import { usePinPathMutation } from '../../hooks/notes';
 import { PinTack2 } from '../../icons/pin-tack-2';
 import { PinTackSlash } from '../../icons/pin-tack-slash';
 import { AccordionButton } from '../accordion/accordion-button';
-import { AccordionButtonDivider } from './accordion-button-divider';
 import { AccordionItem } from '../accordion/accordion-item';
 import { VirtualizedListAccordion } from '../virtualized/virtualized-list/accordion';
 import { currentZoomAtom } from '../../hooks/resize';
 import { createFilePath, type FilePath } from '../../utils/path';
 import { Tooltip } from '../tooltip';
+import { SidebarAccordionPanel } from './sidebar-accordion-panel';
 
 export function PinnedNotesAccordion() {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
@@ -29,7 +29,7 @@ export function PinnedNotesAccordion() {
   const { mutate: pinOrUnpinPath } = usePinPathMutation();
 
   return (
-    <section>
+    <SidebarAccordionPanel isOpen={isPinnedNotesOpen}>
       <AccordionButton
         data-testid="pinned-notes-accordion"
         onClick={() =>
@@ -42,9 +42,7 @@ export function PinnedNotesAccordion() {
         title="Pinned Notes"
         isOpen={isPinnedNotesOpen}
       />
-      <AccordionButtonDivider isOpen={isPinnedNotesOpen} />
       <VirtualizedListAccordion<FilePath>
-        isOpen={isPinnedNotesOpen}
         contentType="pinned-note"
         layoutId="pinned-notes"
         data={pinnedNotesPaths}
@@ -53,7 +51,6 @@ export function PinnedNotesAccordion() {
         selectionOptions={{
           dataItemToSelectionRangeEntry: (pinnedPath) => pinnedPath.note,
         }}
-        maxHeight="240px"
         emptyElement={
           <li className="pl-2 text-balance list-none text-zinc-500 dark:text-zinc-300 text-xs py-2">
             No pinned notes. Right click a note to open the context menu and pin
@@ -101,6 +98,6 @@ export function PinnedNotesAccordion() {
           );
         }}
       />
-    </section>
+    </SidebarAccordionPanel>
   );
 }

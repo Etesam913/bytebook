@@ -2,6 +2,7 @@ import { useAtom, useAtomValue } from 'jotai/react';
 import {
   type CSSProperties,
   type HTMLAttributes,
+  type RefObject,
   type ReactNode,
   forwardRef,
   useRef,
@@ -24,21 +25,12 @@ export type SelectionOptions<T> =
       dataItemToSelectionRangeEntry: (item: T) => string;
     };
 
-function createListComponent(contentType: SidebarContentType) {
-  const listPaddingClass = cn(
-    contentType === 'note' && 'pl-1 pr-2',
-    contentType === 'kernel' && 'pl-[3px] pr-[3px]'
-  );
-
+function createListComponent() {
   const ListComponent = forwardRef<
     HTMLDivElement,
     HTMLAttributes<HTMLDivElement>
   >(({ className, ...rest }, ref) => (
-    <div
-      {...rest}
-      ref={ref}
-      className={cn('mt-[2px]', listPaddingClass, className)}
-    />
+    <div {...rest} ref={ref} className={cn('mt-[2px]', className)} />
   ));
   ListComponent.displayName = 'SidebarVirtuosoList';
   return ListComponent;
@@ -74,6 +66,7 @@ export type VirtualizedListProps<T> = {
    * When prepending, decrease this value by the number of prepended items.
    */
   firstItemIndex?: number;
+  scrollContainerRef?: RefObject<HTMLElement | null>;
 };
 
 export function VirtualizedList<T>({
@@ -93,6 +86,7 @@ export function VirtualizedList<T>({
   startReached,
   initialTopMostItemIndex,
   firstItemIndex,
+  scrollContainerRef,
 }: VirtualizedListProps<T>) {
   // Start with null to indicate height hasn't been measured yet
   const [listHeight, setListHeight] = useState<number | null>(null);
@@ -112,15 +106,6 @@ export function VirtualizedList<T>({
   };
   const contextMenuRef = useAtomValue(contextMenuRefAtom);
   const { virtuosoRef, onRangeChanged } = useSmartScroll();
-
-  // useEffect(() => {
-  //   if (!isItemActive || !data) return;
-  //   const activeIndex = data.findIndex((item, i) => isItemActive(item, i));
-
-  //   if (activeIndex !== -1) {
-  //     scrollToIndexIfHidden(activeIndex);
-  //   }
-  // }, [data, isItemActive, scrollToIndexIfHidden]);
 
   useOnClickOutside(
     internalListRef,
@@ -155,7 +140,7 @@ export function VirtualizedList<T>({
   );
 
   const items = data ?? [];
-  const ListComponent = createListComponent(contentType);
+  const ListComponent = createListComponent();
 
   const components: Components<T, HTMLDivElement> = {
     List: ListComponent,
@@ -197,16 +182,23 @@ export function VirtualizedList<T>({
       className={className}
       style={{
         overscrollBehavior: 'none',
-        // Use maxHeight until first measurement to prevent 0-height flicker
-        height: !maxHeight
-          ? '100%'
-          : listHeight === null
-            ? maxHeight
-            : `min(${maxHeight}, ${listHeight}px)`,
+        // When no maxHeight (flex mode), use height:0 + flexGrow:1 to fill parent.
+        // Otherwise use maxHeight until first measurement to prevent 0-height flicker.
+        ...(maxHeight
+          ? {
+              height:
+                listHeight === null
+                  ? maxHeight
+                  : `min(${maxHeight}, ${listHeight}px)`,
+            }
+          : { height: 0, flexGrow: 1 }),
       }}
       scrollerRef={(node) => {
         const element = node instanceof HTMLElement ? node : null;
         internalListRef.current = element;
+        if (scrollContainerRef) {
+          scrollContainerRef.current = element;
+        }
       }}
       components={components}
       totalListHeightChanged={(height) => {

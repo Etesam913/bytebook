@@ -6,26 +6,13 @@ import {
   type SetStateAction,
 } from 'react';
 import { sidebarSelectionAtom } from '../../../atoms';
+import { cn } from '../../../utils/string-formatting';
 import {
   createSelectionKey,
   keepSelectionWithPrefix,
 } from '../../../utils/selection';
 import { SidebarContentType } from '../../../types';
 import type { SelectionOptions } from './index';
-
-type SidebarListItemProps<T> = {
-  dataItem: T;
-  allData: T[];
-  index: number;
-  dataItemToString: (item: T) => string;
-  selectionOptions: SelectionOptions<T>;
-  getContextMenuStyle?: (dataItem: T) => CSSProperties;
-  hoveredItem: string | null;
-  setHoveredItem: Dispatch<SetStateAction<string | null>>;
-  layoutId: string;
-  contentType: SidebarContentType;
-  children: ReactNode;
-};
 
 export function VirtualizedListItem<T>({
   dataItem,
@@ -37,7 +24,19 @@ export function VirtualizedListItem<T>({
   setHoveredItem,
   contentType,
   children,
-}: SidebarListItemProps<T>) {
+}: {
+  dataItem: T;
+  allData: T[];
+  index: number;
+  dataItemToString: (item: T) => string;
+  selectionOptions: SelectionOptions<T>;
+  getContextMenuStyle?: (dataItem: T) => CSSProperties;
+  hoveredItem: string | null;
+  setHoveredItem: Dispatch<SetStateAction<string | null>>;
+  layoutId: string;
+  contentType: SidebarContentType;
+  children: ReactNode;
+}) {
   const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
   const dataItemString = dataItemToString(dataItem);
   const disableSelection = selectionOptions.disableSelection === true;
@@ -116,7 +115,9 @@ export function VirtualizedListItem<T>({
       onMouseEnter={() => setHoveredItem(dataItemString)}
       onMouseLeave={() => setHoveredItem(null)}
       style={getContextMenuStyle?.(dataItem)}
-      className="flex items-center relative select-none rounded-md py-[.1rem]"
+      className={cn(
+        'relative flex items-center rounded-md py-[.1rem] select-none px-1'
+      )}
       onClick={(e) => {
         if (disableSelection) return;
         if (e.shiftKey) handleShiftClick(index);

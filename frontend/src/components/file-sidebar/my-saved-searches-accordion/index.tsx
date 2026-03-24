@@ -2,7 +2,6 @@ import { motion } from 'motion/react';
 import { useAtom } from 'jotai';
 import { VirtualizedListAccordion } from '../../virtualized/virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
-import { AccordionButtonDivider } from '../accordion-button-divider';
 import {
   ROUTE_PATTERNS,
   type SavedSearchRouteParams,
@@ -20,6 +19,7 @@ import { fileSidebarOpenStateAtom } from '../../../atoms';
 import { ErrorText } from '../../error-text';
 import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
 import { Loader } from '../../../icons/loader';
+import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
 
 export function MySavedSearchesAccordion() {
   useSavedSearchUpdates();
@@ -37,7 +37,7 @@ export function MySavedSearchesAccordion() {
   const searchQuery = savedSearchRouteParams?.searchQuery;
 
   return (
-    <section className="pb-1.5">
+    <SidebarAccordionPanel isOpen={isOpen}>
       <AccordionButton
         data-testid="saved-searches-accordion"
         isOpen={isOpen}
@@ -63,9 +63,7 @@ export function MySavedSearchesAccordion() {
           </>
         }
       />
-      <AccordionButtonDivider isOpen={isOpen} />
       <VirtualizedListAccordion<SavedSearch>
-        isOpen={isOpen}
         isError={isError}
         errorElement={
           <ErrorText
@@ -91,7 +89,6 @@ export function MySavedSearchesAccordion() {
           </motion.div>
         }
         layoutId="saved-searches-sidebar"
-        className="scrollbar-hidden"
         emptyElement={
           <li className="text-left list-none text-zinc-500 dark:text-zinc-300 text-xs">
             No saved searches yet
@@ -103,7 +100,6 @@ export function MySavedSearchesAccordion() {
         selectionOptions={{
           dataItemToSelectionRangeEntry: (search) => search.name,
         }}
-        maxHeight="480px"
         renderItem={({ dataItem: search, i }) => (
           <SavedSearchAccordionButton
             savedSearches={savedSearches}
@@ -118,6 +114,6 @@ export function MySavedSearchesAccordion() {
         )}
         data={savedSearches}
       />
-    </section>
+    </SidebarAccordionPanel>
   );
 }

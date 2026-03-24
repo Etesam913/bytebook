@@ -26,7 +26,7 @@ export function AccordionButton({
     <button
       type="button"
       className={cn(
-        'flex items-center w-full gap-1.5 rounded-md px-1.5 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-700',
+        'relative flex items-center w-full gap-1.5 rounded-md px-1.5 py-1 bg-zinc-50 border-zinc-200 dark:border-zinc-600 border-[1.25px] dark:bg-zinc-750 hover:bg-zinc-100 dark:hover:bg-zinc-700',
         className
       )}
       onClick={onClick}

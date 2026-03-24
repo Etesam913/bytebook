@@ -5,7 +5,6 @@ import { TagIcon } from '../../../icons/tag';
 import { Loader } from '../../../icons/loader';
 import { VirtualizedListAccordion } from '../../virtualized/virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
-import { AccordionButtonDivider } from '../accordion-button-divider';
 import {
   ROUTE_PATTERNS,
   type SavedSearchRouteParams,
@@ -15,6 +14,7 @@ import { TagAccordionButton } from './tag-accordion-button';
 import { fileSidebarOpenStateAtom } from '../../../atoms';
 import { ErrorText } from '../../error-text';
 import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
+import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
 
 export function MyTagsAccordion() {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
@@ -26,7 +26,7 @@ export function MyTagsAccordion() {
   const searchQuery = savedSearchRouteParams?.searchQuery;
 
   return (
-    <section>
+    <SidebarAccordionPanel isOpen={isOpen}>
       <AccordionButton
         data-testid="tags-accordion"
         isOpen={isOpen}
@@ -51,9 +51,7 @@ export function MyTagsAccordion() {
           </>
         }
       />
-      <AccordionButtonDivider isOpen={isOpen} />
       <VirtualizedListAccordion<string>
-        isOpen={isOpen}
         isError={isError}
         errorElement={
           <ErrorText
@@ -79,7 +77,6 @@ export function MyTagsAccordion() {
           </motion.div>
         }
         layoutId="tags-sidebar"
-        className="scrollbar-hidden"
         emptyElement={
           <li className="text-left list-none text-zinc-500 dark:text-zinc-300 text-xs">
             Type #tagName in a note to create a tag
@@ -91,7 +88,6 @@ export function MyTagsAccordion() {
         selectionOptions={{
           dataItemToSelectionRangeEntry: (tagName) => tagName,
         }}
-        maxHeight="480px"
         renderItem={({ dataItem: sidebarTagName, i }) => (
           <TagAccordionButton
             tags={tags}
@@ -106,6 +102,6 @@ export function MyTagsAccordion() {
         )}
         data={tags ?? null}
       />
-    </section>
+    </SidebarAccordionPanel>
   );
 }

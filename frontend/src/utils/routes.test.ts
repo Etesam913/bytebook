@@ -1,6 +1,6 @@
 import '../test/setup';
 import { describe, it, expect } from 'bun:test';
-import { ROUTE_PATTERNS, routeBuilders } from './routes';
+import { ROUTE_PATTERNS, routeUrls } from './routes';
 
 describe('ROUTE_PATTERNS', () => {
   it('should have correct route pattern constants', () => {
@@ -17,212 +17,175 @@ describe('ROUTE_PATTERNS', () => {
   });
 });
 
-describe('routeBuilders', () => {
+describe('routeUrls', () => {
   describe('root', () => {
     it('should return root route', () => {
-      expect(routeBuilders.root()).toBe('/');
+      expect(routeUrls.root()).toBe('/');
     });
   });
 
   describe('search', () => {
     it('should return search route', () => {
-      expect(routeBuilders.search()).toBe('/search');
+      expect(routeUrls.search()).toBe('/search');
     });
   });
 
   describe('kernel', () => {
     it('should build kernel route with encoded name', () => {
-      expect(routeBuilders.kernel('python')).toBe('/kernels/python');
-      expect(routeBuilders.kernel('javascript')).toBe('/kernels/javascript');
+      expect(routeUrls.kernel('python')).toBe('/kernels/python');
+      expect(routeUrls.kernel('javascript')).toBe('/kernels/javascript');
     });
 
     it('should encode special characters in kernel name', () => {
-      expect(routeBuilders.kernel('python 3')).toBe('/kernels/python%203');
-      expect(routeBuilders.kernel('node.js')).toBe('/kernels/node.js');
-      expect(routeBuilders.kernel('c++')).toBe('/kernels/c%2B%2B');
+      expect(routeUrls.kernel('python 3')).toBe('/kernels/python%203');
+      expect(routeUrls.kernel('node.js')).toBe('/kernels/node.js');
+      expect(routeUrls.kernel('c++')).toBe('/kernels/c%2B%2B');
     });
 
     it('should handle empty kernel name', () => {
-      expect(routeBuilders.kernel('')).toBe('/kernels/');
+      expect(routeUrls.kernel('')).toBe('/kernels/');
     });
   });
 
   describe('folder', () => {
     it('should build folder route with encoded name', () => {
-      expect(routeBuilders.folder('Economics Notes')).toBe(
+      expect(routeUrls.folder('Economics Notes')).toBe(
         '/notes/Economics%20Notes'
       );
-      expect(routeBuilders.folder('Research Notes')).toBe(
+      expect(routeUrls.folder('Research Notes')).toBe(
         '/notes/Research%20Notes'
       );
     });
 
     it('should encode special characters in folder name', () => {
-      expect(routeBuilders.folder('My Folder/Subfolder')).toBe(
+      expect(routeUrls.folder('My Folder/Subfolder')).toBe(
         '/notes/My%20Folder%2FSubfolder'
       );
-      expect(routeBuilders.folder('Folder & More')).toBe(
+      expect(routeUrls.folder('Folder & More')).toBe(
         '/notes/Folder%20%26%20More'
       );
     });
 
     it('should handle empty folder name', () => {
-      expect(routeBuilders.folder('')).toBe('/notes/');
+      expect(routeUrls.folder('')).toBe('/notes/');
     });
   });
 
   describe('note', () => {
     it('should build basic note route without options', () => {
-      expect(
-        routeBuilders.note('Economics Notes', 'Supply and Demand.md')
-      ).toBe('/notes/Economics%20Notes/Supply and Demand.md');
+      expect(routeUrls.note('Economics Notes', 'Supply and Demand.md')).toBe(
+        '/notes/Economics%20Notes/Supply and Demand.md'
+      );
     });
 
     it('should encode folder name but not file name', () => {
-      expect(routeBuilders.note('My Folder', 'file name.md')).toBe(
+      expect(routeUrls.note('My Folder', 'file name.md')).toBe(
         '/notes/My%20Folder/file name.md'
       );
     });
 
-    it('should add ext query parameter when provided', () => {
-      const result = routeBuilders.note('folder', 'file.md', { ext: '.py' });
-      expect(result).toContain('/notes/folder/file.md');
-      expect(result).toContain('ext=.py');
-    });
-
     it('should add focus query parameter when true', () => {
-      const result = routeBuilders.note('folder', 'file.md', { focus: true });
+      const result = routeUrls.note('folder', 'file.md', { focus: true });
       expect(result).toContain('/notes/folder/file.md');
-      expect(result).toContain('focus=true');
-    });
-
-    it('should add both ext and focus parameters when provided', () => {
-      const result = routeBuilders.note('folder', 'file.md', {
-        ext: '.py',
-        focus: true,
-      });
-      expect(result).toContain('/notes/folder/file.md');
-      expect(result).toContain('ext=.py');
       expect(result).toContain('focus=true');
     });
 
     it('should not add query string when focus is false', () => {
-      const result = routeBuilders.note('folder', 'file.md', { focus: false });
+      const result = routeUrls.note('folder', 'file.md', { focus: false });
       expect(result).toBe('/notes/folder/file.md');
     });
 
     it('should handle empty folder and file names', () => {
-      expect(routeBuilders.note('', '')).toBe('/notes//');
+      expect(routeUrls.note('', '')).toBe('/notes//');
     });
   });
 
   describe('noteWithFocus', () => {
-    it('should preserve pathname and add ext and focus params', () => {
-      const result = routeBuilders.noteWithFocus(
-        '/notes/folder/file.md',
-        '.py'
-      );
+    it('should preserve pathname and add focus param', () => {
+      const result = routeUrls.noteWithFocus('/notes/folder/file.md');
       expect(result).toContain('/notes/folder/file.md');
-      expect(result).toContain('ext=.py');
       expect(result).toContain('focus=true');
     });
 
     it('should preserve existing query parameters', () => {
-      const result = routeBuilders.noteWithFocus(
-        '/notes/folder/file.md?existing=param',
-        '.py'
+      const result = routeUrls.noteWithFocus(
+        '/notes/folder/file.md?existing=param'
       );
       expect(result).toContain('/notes/folder/file.md');
       expect(result).toContain('existing=param');
-      expect(result).toContain('ext=.py');
       expect(result).toContain('focus=true');
     });
 
-    it('should override existing ext parameter', () => {
-      const result = routeBuilders.noteWithFocus(
-        '/notes/folder/file.md?ext=.js',
-        '.py'
-      );
-      expect(result).toContain('ext=.py');
-      expect(result).not.toContain('ext=.js');
-    });
-
     it('should handle root path', () => {
-      const result = routeBuilders.noteWithFocus('/', '.py');
+      const result = routeUrls.noteWithFocus('/');
       expect(result).toContain('/');
-      expect(result).toContain('ext=.py');
       expect(result).toContain('focus=true');
     });
   });
 
   describe('notFoundFallback', () => {
     it('should return 404 route', () => {
-      expect(routeBuilders.notFoundFallback()).toBe('/404');
+      expect(routeUrls.notFoundFallback()).toBe('/404');
     });
   });
 
   describe('tagSearch', () => {
     it('should build tag search route with # prefix', () => {
-      expect(routeBuilders.tagSearch('economics')).toBe(
+      expect(routeUrls.tagSearch('economics')).toBe(
         '/saved-search/%23economics/'
       );
-      expect(routeBuilders.tagSearch('research')).toBe(
+      expect(routeUrls.tagSearch('research')).toBe(
         '/saved-search/%23research/'
       );
     });
 
     it('should encode special characters in tag name', () => {
-      expect(routeBuilders.tagSearch('tag name')).toBe(
+      expect(routeUrls.tagSearch('tag name')).toBe(
         '/saved-search/%23tag%20name/'
       );
-      expect(routeBuilders.tagSearch('tag&more')).toBe(
+      expect(routeUrls.tagSearch('tag&more')).toBe(
         '/saved-search/%23tag%26more/'
       );
     });
 
     it('should handle empty tag name', () => {
-      expect(routeBuilders.tagSearch('')).toBe('/saved-search/%23/');
+      expect(routeUrls.tagSearch('')).toBe('/saved-search/%23/');
     });
   });
 
   describe('savedSearch', () => {
     it('should build saved search route with encoded query', () => {
-      expect(routeBuilders.savedSearch('research')).toBe(
-        '/saved-search/research/'
-      );
-      expect(routeBuilders.savedSearch('economics notes')).toBe(
+      expect(routeUrls.savedSearch('research')).toBe('/saved-search/research/');
+      expect(routeUrls.savedSearch('economics notes')).toBe(
         '/saved-search/economics%20notes/'
       );
     });
 
     it('should encode special characters in search query', () => {
-      expect(routeBuilders.savedSearch('query & more')).toBe(
+      expect(routeUrls.savedSearch('query & more')).toBe(
         '/saved-search/query%20%26%20more/'
       );
-      expect(routeBuilders.savedSearch('tag:research')).toBe(
+      expect(routeUrls.savedSearch('tag:research')).toBe(
         '/saved-search/tag%3Aresearch/'
       );
     });
 
     it('should handle empty search query', () => {
-      expect(routeBuilders.savedSearch('')).toBe('/saved-search/');
+      expect(routeUrls.savedSearch('')).toBe('/saved-search/');
     });
 
     it('should handle queries with # prefix (tags)', () => {
-      expect(routeBuilders.savedSearch('#economics')).toBe(
+      expect(routeUrls.savedSearch('#economics')).toBe(
         '/saved-search/%23economics/'
       );
     });
 
     it('should build saved search route with an encoded file path', () => {
-      expect(routeBuilders.savedSearch('economics', 'notes/file.md')).toBe(
+      expect(routeUrls.savedSearch('economics', 'notes/file.md')).toBe(
         '/saved-search/economics/notes/file.md'
       );
       expect(
-        routeBuilders.savedSearch(
-          '#tagged',
-          'My%20Folder/diagrams/image%20(1).png'
-        )
+        routeUrls.savedSearch('#tagged', 'My%20Folder/diagrams/image%20(1).png')
       ).toBe('/saved-search/%23tagged/My%20Folder/diagrams/image%20(1).png');
     });
   });

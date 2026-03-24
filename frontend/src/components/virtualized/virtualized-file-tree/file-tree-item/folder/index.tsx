@@ -253,9 +253,6 @@ export function FileTreeFolderItem({
         id={dataItem.id}
         draggable={true}
         className="flex items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2 file-tree-drop-target"
-        onDragEnter={() => {
-          console.log('drag enter');
-        }}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragOver={(e) => {

@@ -1,44 +1,7 @@
 import '../test/setup';
-import { renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { describe, expect, it, spyOn } from 'bun:test';
 
-type UseSearch = () => string;
-const useSearchMock = mock<UseSearch>(() => '');
-
-void mock.module('wouter', () => ({
-  useSearch: useSearchMock,
-}));
-
-const {
-  useSearchParamsEntries,
-  findClosestSidebarItemToNavigateTo,
-  disableBackspaceNavigation,
-} = await import('./routing');
-
-beforeEach(() => {
-  useSearchMock.mockReset();
-});
-
-describe('useSearchParamsEntries', () => {
-  it('returns URL params as a record', () => {
-    useSearchMock.mockReturnValue('?note=123&view=grid');
-
-    const { result } = renderHook(() => useSearchParamsEntries());
-
-    expect(result.current).toEqual({ note: '123', view: 'grid' });
-  });
-});
-
-describe('findClosestSidebarItemToNavigateTo', () => {
-  it('prefers the left neighbor when available and falls back to index 0', () => {
-    const oldItems = ['a', 'b', 'c', 'd'];
-    const newItems = ['a', 'c', 'd'];
-
-    expect(findClosestSidebarItemToNavigateTo('b', oldItems, newItems)).toBe(0);
-
-    expect(findClosestSidebarItemToNavigateTo('z', oldItems, newItems)).toBe(0);
-  });
-});
+const { disableBackspaceNavigation } = await import('./routing');
 
 describe('disableBackspaceNavigation', () => {
   it('prevents navigating back when focus is outside editable fields', () => {
