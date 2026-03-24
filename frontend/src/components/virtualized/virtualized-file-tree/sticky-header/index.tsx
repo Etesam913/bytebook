@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import type { ListRange } from 'react-virtuoso';
 import { FileTreeItem } from '../file-tree-item';
 import {
@@ -15,11 +14,9 @@ const STICKY_ELEMENT_HEIGHT = 28;
 export function StickyHeader({
   flattenedTopLevelData,
   visibleRange,
-  onStickyContentHeightChange,
 }: {
   flattenedTopLevelData: VirtualizedFileTreeItem[];
   visibleRange: ListRange;
-  onStickyContentHeightChange: (height: number) => void;
 }) {
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const visibleFlatStartIndex = Math.max(0, visibleRange.startIndex - 1);
@@ -75,17 +72,13 @@ export function StickyHeader({
     })
     .filter((item): item is VirtualizedFileTreeItem => item !== null);
 
-  useEffect(() => {
-    onStickyContentHeightChange(stickyItems.length * STICKY_ELEMENT_HEIGHT);
-  }, [onStickyContentHeightChange, stickyItems.length]);
-
   return (
-    <header className="border-b border-zinc-200 dark:border-zinc-700">
+    <header>
       {stickyItems.map((stickyItem) => (
         <div
           key={stickyItem.id}
           style={{ height: `${STICKY_ELEMENT_HEIGHT}px` }}
-          className="overflow-hidden"
+          className="overflow-hidden px-2"
         >
           <FileTreeItem dataItem={stickyItem} />
         </div>

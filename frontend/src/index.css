@@ -117,7 +117,7 @@
 
 #file-tree {
   .file-tree-drop-target.file-drop-target-active {
-    @apply bg-(--accent-color);
+    @apply bg-(--accent-color) text-white!;
   }
 }
 

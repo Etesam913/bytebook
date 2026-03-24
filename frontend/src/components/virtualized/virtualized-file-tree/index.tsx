@@ -1,9 +1,8 @@
 import { useAtom } from 'jotai';
-import { useEffect, useRef, useState } from 'react';
+import { type RefObject, useRef, useState } from 'react';
 import { Virtuoso, type ListRange, type VirtuosoHandle } from 'react-virtuoso';
 import { useTopLevelFileOrFolders } from './hooks/top-level';
 import { FileTreeItem } from './file-tree-item';
-import { useAnimatedHeight } from '../hooks';
 import { type VirtualizedFileTreeItem } from './types';
 import { sidebarSelectionAtom } from '../../../atoms';
 import { useOnClickOutside } from '../../../hooks/general';
@@ -16,15 +15,16 @@ import { StickyHeader } from './sticky-header';
 import { shouldHandleOutsideSelectionInteraction } from '../../../utils/mouse';
 import { useFileTreeContentDrop } from './hooks/use-file-tree-content-drop';
 
-const FILE_TREE_MAX_HEIGHT = '65vh';
 const INITIAL_VISIBLE_RANGE: ListRange = { startIndex: 0, endIndex: -1 };
 
-export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
+export function VirtualizedFileTree({
+  scrollContainerRef,
+}: {
+  scrollContainerRef?: RefObject<HTMLElement | null>;
+}) {
   const internalListRef = useRef<HTMLElement | null>(null);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [visibleRange, setVisibleRange] = useState(INITIAL_VISIBLE_RANGE);
-  const [stickyContentHeight, setStickyContentHeight] = useState(0);
-  const [listHeight, setListHeight] = useState<number | null>(null);
   const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
 
   // This only runs on component mount and when a top level folder or note is received in the folder:create or note:create events
@@ -53,23 +53,13 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
     []
   );
 
-  // Animated height related hooks
-  const { scope, isReady, handleHeightChange } = useAnimatedHeight({
-    isOpen,
-    maxHeight: FILE_TREE_MAX_HEIGHT,
-  });
-  useEffect(() => {
-    if (listHeight === null) return;
-    handleHeightChange(listHeight + stickyContentHeight);
-  }, [listHeight, stickyContentHeight, handleHeightChange]);
-
   /**
    * Renders a row wrapper used by tree navigation and delegates row content.
    */
   function renderItem(index: number, dataItem: VirtualizedFileTreeItem) {
     return (
       <div
-        className="w-full"
+        className="w-full px-2"
         data-file-tree-index={index}
         onClickCapture={(e) => {
           handleFileTreeItemClickCapture(
@@ -90,9 +80,7 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
   return (
     <div
       id="file-tree"
-      ref={scope}
-      style={{ visibility: isReady ? 'visible' : 'hidden' }}
-      className="overflow-hidden scrollbar-hidden pl-2 text-sm"
+      className="flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
       onKeyDown={(event) => {
         handleFileTreeKeyDown(
           {
@@ -107,7 +95,6 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
       <StickyHeader
         flattenedTopLevelData={virtualizedData}
         visibleRange={visibleRange}
-        onStickyContentHeightChange={setStickyContentHeight}
       />
       <Virtuoso
         ref={virtuosoRef}
@@ -120,26 +107,21 @@ export function VirtualizedFileTree({ isOpen }: { isOpen: boolean }) {
               : range
           );
         }}
-        className="scrollbar-hidden"
         scrollerRef={(node) => {
           const element = node instanceof HTMLElement ? node : null;
           internalListRef.current = element;
+          if (scrollContainerRef) {
+            scrollContainerRef.current = element;
+          }
         }}
         overscan={20}
         computeItemKey={(_, item) => item.id}
         style={{
           overscrollBehavior: 'none',
-          // Reserve space for sticky content above the list.
-          maxHeight: `max(0px, calc(${FILE_TREE_MAX_HEIGHT} - ${stickyContentHeight}px))`,
-          height:
-            listHeight === null
-              ? `max(0px, calc(${FILE_TREE_MAX_HEIGHT} - ${stickyContentHeight}px))`
-              : `min(max(0px, calc(${FILE_TREE_MAX_HEIGHT} - ${stickyContentHeight}px)), ${listHeight}px)`,
+          height: 0,
+          flexGrow: 1,
         }}
-        totalListHeightChanged={(height) => {
-          setListHeight(height);
-          handleHeightChange(height + stickyContentHeight);
-        }}
+        totalListHeightChanged={() => {}}
         itemContent={renderItem}
       />
     </div>

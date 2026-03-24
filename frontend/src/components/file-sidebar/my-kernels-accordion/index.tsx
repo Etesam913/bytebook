@@ -17,7 +17,6 @@ import {
   type KernelWithFilesRouteParams,
 } from '../../../utils/routes';
 import { KernelAccordionButton } from './kernel-accordion-button';
-import { AccordionButtonDivider } from '../accordion-button-divider';
 import { Tooltip } from '../../tooltip';
 import { fileSidebarOpenStateAtom } from '../../../atoms';
 import { kernelsDataAtom } from '../../../atoms';
@@ -28,6 +27,7 @@ import { JavascriptLogo } from '../../../icons/javascript-logo';
 import { JavaLogo } from '../../../icons/java-logo';
 import { Languages } from '../../../types';
 import { KernelHeartbeat } from './kernel-heartbeat';
+import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
 
 export function getKernelIcon(kernel: Languages, size: number = 18) {
   const className = 'will-change-transform';
@@ -95,7 +95,7 @@ export function MyKernelsAccordion() {
   useKernelShutdown();
 
   return (
-    <section>
+    <SidebarAccordionPanel isOpen={isOpen}>
       <Tooltip
         content={<KernelTooltipContent kernelsData={kernelsData} />}
         placement="right"
@@ -119,12 +119,9 @@ export function MyKernelsAccordion() {
           title={'Kernels'}
         />
       </Tooltip>
-      <AccordionButtonDivider isOpen={isOpen} />
       <VirtualizedListAccordion<Languages>
-        isOpen={isOpen}
         layoutId="kernels-sidebar"
         emptyElement={null}
-        className="scrollbar-hidden"
         contentType="kernel"
         dataItemToString={(kernelName) => kernelName}
         dataItemToKey={(kernelName) => kernelName}
@@ -132,7 +129,6 @@ export function MyKernelsAccordion() {
           dataItemToSelectionRangeEntry: (kernelName) => kernelName,
         }}
         isItemActive={(kernelName) => kernelName === kernelNameFromUrl}
-        maxHeight="480px"
         renderItem={({ dataItem: kernelName }) => {
           if (!isValidKernelLanguage(kernelName)) {
             return <></>;
@@ -146,6 +142,6 @@ export function MyKernelsAccordion() {
         }}
         data={[...languagesWithKernelsSet]}
       />
-    </section>
+    </SidebarAccordionPanel>
   );
 }

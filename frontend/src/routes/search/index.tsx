@@ -63,7 +63,7 @@ export function SearchPage() {
         loadedCount={loadedCount}
         totalCount={totalCount}
       />
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto flex flex-col">
         {isError && (
           <div className="w-full flex-1 flex justify-center items-center">
             <div className="text-red-600 dark:text-red-400">

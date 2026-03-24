@@ -30,7 +30,7 @@ export const ROUTE_PATTERNS = {
 } as const;
 
 // Route builders - functions to construct routes with parameters
-export const routeBuilders = {
+const routeBuilders = {
   /**
    * Build root route
    */
@@ -58,18 +58,16 @@ export const routeBuilders = {
     folder: string,
     fileName: string,
     options?: {
-      ext?: string;
       focus?: boolean;
     }
   ) => {
     const baseRoute = `/notes/${encodeURIComponent(folder)}/${fileName}`;
 
-    if (!options?.ext && !options?.focus) {
+    if (!options?.focus) {
       return baseRoute;
     }
 
     const params = new URLSearchParams();
-    if (options.ext) params.set('ext', options.ext);
     if (options.focus) params.set('focus', 'true');
 
     return `${baseRoute}?${params.toString()}`;
@@ -78,9 +76,8 @@ export const routeBuilders = {
   /**
    * Build note route with current location preserved for focus
    */
-  noteWithFocus: (location: string, ext: string) => {
+  noteWithFocus: (location: string) => {
     const url = new URL(location, 'http://localhost');
-    url.searchParams.set('ext', ext);
     url.searchParams.set('focus', 'true');
     return `${url.pathname}${url.search}`;
   },

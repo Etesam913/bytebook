@@ -1,9 +1,8 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useRef } from 'react';
 import { VirtualizedList, type VirtualizedListProps } from './index';
-import { useAnimatedHeight } from '../hooks';
+import { useAutoScrollDuringDrag } from '../../../hooks/draggable';
 
 interface VirtualizedListAccordionProps<T> extends VirtualizedListProps<T> {
-  isOpen: boolean;
   isLoading?: boolean;
   loadingElement?: ReactNode;
   isError?: boolean;
@@ -11,45 +10,42 @@ interface VirtualizedListAccordionProps<T> extends VirtualizedListProps<T> {
 }
 
 export function VirtualizedListAccordion<T>({
-  isOpen,
   isLoading,
   loadingElement,
   isError,
   errorElement,
-  maxHeight,
   onTotalListHeightChanged,
   data,
   emptyElement,
   ...props
 }: VirtualizedListAccordionProps<T>) {
   const isEmpty = !data || data.length === 0;
-  const { scope, isReady, handleHeightChange } = useAnimatedHeight({
-    isOpen,
-    maxHeight,
-    onTotalListHeightChanged,
-    emptyHeight: '50px',
-    isEmpty,
-  });
+  const scrollContainerRef = useRef<HTMLElement | null>(null);
+  const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(
+    scrollContainerRef,
+    { threshold: 60, speed: 20 }
+  );
 
   return (
     <>
       {isError && errorElement}
       {!isError && isLoading && loadingElement}
-      <div
-        ref={scope}
-        style={{ visibility: isReady ? 'visible' : 'hidden' }}
-        className="overflow-hidden pl-1 scrollbar-hidden"
-      >
-        {!isError && !isLoading && isEmpty && emptyElement}
-        {!isError && !isLoading && !isEmpty && (
+      {!isError && !isLoading && isEmpty && <div>{emptyElement}</div>}
+      {!isError && !isLoading && !isEmpty && (
+        <div
+          className="flex flex-1 flex-col min-h-0 overflow-hidden scrollbar-hidden"
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+        >
           <VirtualizedList
             {...props}
             data={data}
-            maxHeight={maxHeight}
-            onTotalListHeightChanged={handleHeightChange}
+            onTotalListHeightChanged={onTotalListHeightChanged}
+            scrollContainerRef={scrollContainerRef}
           />
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 }

@@ -21,8 +21,8 @@
     "tsgo": "tsgo",
     "format:lint:tsgo": "bun run format:check && bun run lint:check && bun run tsgo",
     "size": "size-limit",
-    "knip": "bunx knip",
-    "knip:ci": "bunx knip --reporter github-actions --reporter compact"
+    "knip": "bunx knip --production",
+    "knip:ci": "bunx knip --reporter github-actions --reporter compact --production"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.0",
@@ -45,7 +45,6 @@
     "@tanstack/react-query": "^5.90.21",
     "@uiw/codemirror-theme-vscode": "^4.25.4",
     "@uiw/react-codemirror": "^4.25.4",
-    "@vitejs/plugin-react": "^5.1.4",
     "jotai": "^2.18.0",
     "lexical": "^0.41.0",
     "motion": "^12.36.0",
@@ -71,6 +70,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@typescript/native-preview": "^7.0.0-dev.20260221.1",
+    "@vitejs/plugin-react": "^5.1.4",
     "@wailsio/runtime": "3.0.0-alpha.79",
     "babel-plugin-react-compiler": "1.0.0",
     "bun-types": "latest",
