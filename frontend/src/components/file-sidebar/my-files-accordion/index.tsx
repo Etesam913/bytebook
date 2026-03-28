@@ -17,25 +17,30 @@ export function MyFilesAccordion() {
   );
 
   return (
-    <SidebarAccordionPanel isOpen={isOpen} flexWeight={1.5}>
-      <AccordionButton
-        isOpen={isOpen}
-        onClick={() =>
-          setOpenState((prev) => ({
-            ...prev,
-            folders: !prev.folders,
-          }))
-        }
-        icon={
-          <Note
-            width={18}
-            height={18}
-            strokeWidth={1.75}
-            className="will-change-transform"
-          />
-        }
-        title="Files"
-      />
+    <SidebarAccordionPanel
+      isOpen={isOpen}
+      flexWeight={1.5}
+      trigger={
+        <AccordionButton
+          isOpen={isOpen}
+          onClick={() =>
+            setOpenState((prev) => ({
+              ...prev,
+              folders: !prev.folders,
+            }))
+          }
+          icon={
+            <Note
+              width={18}
+              height={18}
+              strokeWidth={1.75}
+              className="will-change-transform"
+            />
+          }
+          title="Files"
+        />
+      }
+    >
       <div
         className="flex flex-1 flex-col min-h-0 overflow-hidden scrollbar-hidden"
         onDragOver={onDragOver}

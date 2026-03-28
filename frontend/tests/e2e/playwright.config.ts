@@ -13,7 +13,10 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'bun run dev',
+    // The e2e suite mocks Wails RPC in the browser, so it only needs Vite plus
+    // pre-generated bindings. Starting `wails3 dev` races background Vite boot
+    // against a second binding generation pass on fresh CI runners.
+    command: 'bun run dev:internal -- --port 5173 --strictPort',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
   },

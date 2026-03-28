@@ -37,32 +37,36 @@ export function MySavedSearchesAccordion() {
   const searchQuery = savedSearchRouteParams?.searchQuery;
 
   return (
-    <SidebarAccordionPanel isOpen={isOpen}>
-      <AccordionButton
-        data-testid="saved-searches-accordion"
-        isOpen={isOpen}
-        onClick={() =>
-          setOpenState((prev) => ({
-            ...prev,
-            savedSearches: !prev.savedSearches,
-          }))
-        }
-        icon={
-          <Box2Search
-            height={19}
-            width={19}
-            className="will-change-transform"
-          />
-        }
-        title={
-          <>
-            Saved Searches{' '}
-            {hasSavedSearches && (
-              <span className="tracking-wider">({savedSearches.length})</span>
-            )}
-          </>
-        }
-      />
+    <SidebarAccordionPanel
+      isOpen={isOpen}
+      trigger={
+        <AccordionButton
+          data-testid="saved-searches-accordion"
+          isOpen={isOpen}
+          onClick={() =>
+            setOpenState((prev) => ({
+              ...prev,
+              savedSearches: !prev.savedSearches,
+            }))
+          }
+          icon={
+            <Box2Search
+              height={19}
+              width={19}
+              className="will-change-transform"
+            />
+          }
+          title={
+            <>
+              Saved Searches{' '}
+              {hasSavedSearches && (
+                <span className="tracking-wider">({savedSearches.length})</span>
+              )}
+            </>
+          }
+        />
+      }
+    >
       <VirtualizedListAccordion<SavedSearch>
         isError={isError}
         errorElement={

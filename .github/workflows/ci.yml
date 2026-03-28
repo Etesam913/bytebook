@@ -161,7 +161,7 @@ jobs:
 
       - name: Run Playwright tests
         working-directory: ./frontend
-        run: bun run test:e2e
+        run: bun run test:e2e:ci
 
       - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}

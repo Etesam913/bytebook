@@ -6,6 +6,7 @@
     "tests/e2e/utils/mock-binding.ts",
     "tests/e2e/utils/mock-responses.ts",
     "tests/e2e/utils/service-files.ts",
-    "tests/e2e/utils/wails-events.ts"
+    "tests/e2e/utils/wails-events.ts",
+    "src/test/setup.ts"
   ]
 }

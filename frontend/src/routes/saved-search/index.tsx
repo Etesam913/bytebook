@@ -117,7 +117,7 @@ function SavedSearchNoteContent({ filePath }: { filePath: FilePath }) {
             <div className="space-y-2">
               <h2 className="text-xl font-semibold">Note not found</h2>
               <p className="text-balance text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
-                The note <b>{filePath.fullPath}</b> does not exist or could not
+                The note <b> {filePath.fullPath}</b> does not exist or could not
                 be loaded.
               </p>
             </div>

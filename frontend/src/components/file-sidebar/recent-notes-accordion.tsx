@@ -25,26 +25,30 @@ export function RecentNotesAccordion() {
   }, [routeFilePath, setMostRecentNotes]);
 
   return (
-    <SidebarAccordionPanel isOpen={isRecentNotesOpen}>
-      <AccordionButton
-        data-testid="recent-notes-accordion"
-        isOpen={isRecentNotesOpen}
-        onClick={() =>
-          setOpenState((prev) => ({
-            ...prev,
-            recentNotes: !prev.recentNotes,
-          }))
-        }
-        icon={
-          <HourglassStart
-            height={19}
-            width={19}
-            className="will-change-transform"
-          />
-        }
-        title="Recent Notes"
-      />
-      <ul className="pl-1 overflow-y-auto scrollbar-hidden grow basis-0 min-h-0">
+    <SidebarAccordionPanel
+      isOpen={isRecentNotesOpen}
+      trigger={
+        <AccordionButton
+          data-testid="recent-notes-accordion"
+          isOpen={isRecentNotesOpen}
+          onClick={() =>
+            setOpenState((prev) => ({
+              ...prev,
+              recentNotes: !prev.recentNotes,
+            }))
+          }
+          icon={
+            <HourglassStart
+              height={19}
+              width={19}
+              className="will-change-transform"
+            />
+          }
+          title="Recent Notes"
+        />
+      }
+    >
+      <ul className="pl-1 overflow-y-auto grow basis-0 min-h-0">
         {mostRecentNotes.length > 0 ? (
           mostRecentNotes.map((recentNotePath) => (
             <motion.div

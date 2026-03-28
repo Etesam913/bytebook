@@ -5,6 +5,9 @@ import { InlineTreeItemInput } from './file-tree-item/inline-tree-item-input';
 import { Folder as FolderIcon } from '../../../icons/folder';
 import { useFileTreeFolderAddActions } from './file-tree-item/folder/hooks';
 import { FOLDER_TYPE, type Folder } from './types';
+import { getFileTreeItemIndent } from './utils/file-tree-utils';
+import { currentZoomAtom } from '../../../hooks/resize';
+import { useAtomValue } from 'jotai';
 
 export function CreateFolder() {
   const {
@@ -15,6 +18,7 @@ export function CreateFolder() {
     onAddSave,
     resetAddTreeItem,
   } = useFileTreeFolderAddActions({ dataItem: null });
+  const currentZoom = useAtomValue(currentZoomAtom);
 
   const newFolderPlaceholder: Folder = {
     id: 'new-folder-input',
@@ -49,7 +53,10 @@ export function CreateFolder() {
         </MotionButton>
       </div>
       {addingType === FOLDER_TYPE && (
-        <div className="flex items-center w-full relative rounded-md py-0.25 pl-4.5">
+        <div
+          className="flex items-center w-full relative rounded-md py-0.25"
+          style={{ paddingLeft: `${getFileTreeItemIndent(0, currentZoom)}px` }}
+        >
           <span className="rounded-md flex items-center gap-2 z-10 py-1 overflow-hidden w-full">
             <FolderIcon
               className="min-w-4 min-h-4"

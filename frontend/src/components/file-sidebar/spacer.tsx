@@ -8,6 +8,7 @@ import { cn } from '../../utils/string-formatting';
 import { currentZoomAtom } from '../../hooks/resize';
 
 const MIN_SIDEBAR_WIDTH = 250;
+
 export function Spacer({ width }: { width: MotionValue<number> }) {
   const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
   const currentZoom = useAtomValue(currentZoomAtom);
