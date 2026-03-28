@@ -8,16 +8,22 @@ import { Blog } from '../../../../../icons/blog';
 import { FILE_TYPE, FOLDER_TYPE, type Folder } from '../../types';
 import {
   contextMenuDataAtom,
+  projectSettingsAtom,
   type SidebarSelectionState,
 } from '../../../../../atoms';
 import { currentZoomAtom } from '../../../../../hooks/resize';
 import { InlineTreeItemInput } from '../inline-tree-item-input';
 import { Finder } from '../../../../../icons/finder';
+import { PinTack2 } from '../../../../../icons/pin-tack-2';
+import { PinTackSlash } from '../../../../../icons/pin-tack-slash';
 import { Trash } from '../../../../../icons/trash';
 import { FilePen } from '../../../../../icons/file-pen';
 import { PaperclipPlus } from '../../../../../icons/paperclip-plus';
 import { useRevealInFinderMutation } from '../../../../../hooks/code';
-import { useMoveToTrashMutation } from '../../../../../hooks/notes';
+import {
+  useMoveToTrashMutation,
+  usePinPathMutation,
+} from '../../../../../hooks/notes';
 import { cn } from '../../../../../utils/string-formatting';
 import { fileTreeDataAtom } from '../../../../../atoms';
 import {
@@ -63,11 +69,13 @@ export function FileTreeFolderItem({
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
+  const projectSettings = useAtomValue(projectSettingsAtom);
   const folderPathFromRoute = useFolderPathFromRoute();
   const currentZoom = useAtomValue(currentZoomAtom);
   const paddingLeft = getFileTreeItemIndent(dataItem.level, currentZoom);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();
+  const { mutate: pinPath } = usePinPathMutation();
   const { mutate: addFolderAttachments } = useAddFolderAttachmentsMutation();
   const { mutateAsync: moveItemsToFolder } = useMoveTreeItemsMutation();
   const {
@@ -285,6 +293,12 @@ export function FileTreeFolderItem({
             fileOrFolderMap,
           });
           const isMultiSelection = selectedItems.length > 1;
+          const selectedFolders = selectedItems.filter(
+            (item) => item.type === FOLDER_TYPE
+          );
+          const shouldPinSelectedFolders = selectedFolders.some(
+            (item) => !projectSettings.pinnedNotes.has(item.path)
+          );
 
           // Only show "Add Folder" and "Add Note" if not multiselect
           const addFolderOption = !isMultiSelection
@@ -383,6 +397,43 @@ export function FileTreeFolderItem({
               ]
             : [];
 
+          const pinFolderOption =
+            selectedFolders.length > 0
+              ? [
+                  {
+                    label: (
+                      <span className="flex items-center gap-1.5">
+                        {shouldPinSelectedFolders ? (
+                          <PinTack2 height={17} width={17} />
+                        ) : (
+                          <PinTackSlash height={17} width={17} />
+                        )}
+                        <span>
+                          {shouldPinSelectedFolders
+                            ? selectedFolders.length > 1
+                              ? 'Pin Folders'
+                              : 'Pin Folder'
+                            : selectedFolders.length > 1
+                              ? 'Unpin Folders'
+                              : 'Unpin Folder'}
+                        </span>
+                      </span>
+                    ),
+                    value: shouldPinSelectedFolders
+                      ? 'pin-folder'
+                      : 'unpin-folder',
+                    onChange: () => {
+                      selectedFolders.forEach((item) => {
+                        pinPath({
+                          path: item.path,
+                          shouldPin: shouldPinSelectedFolders,
+                        });
+                      });
+                    },
+                  },
+                ]
+              : [];
+
           setContextMenuData({
             x: e.clientX / currentZoom,
             y: e.clientY / currentZoom,
@@ -419,6 +470,7 @@ export function FileTreeFolderItem({
               ...addFolderOption,
               ...addNoteOption,
               ...addAttachmentsOption,
+              ...pinFolderOption,
               ...renameOption,
               {
                 value: 'move-to-trash',

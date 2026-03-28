@@ -6,6 +6,7 @@ import {
   type Dispatch,
   type RefObject,
   type SetStateAction,
+  useEffect,
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -163,9 +164,12 @@ export function Toolbar({
       )
     : null;
 
-  if (getNoteMarkdownQuery.isError) {
-    navigate(routeUrls.notFoundFallback());
-  }
+  // If the note markdown fails to load, navigate to the not found fallback route
+  useEffect(() => {
+    if (getNoteMarkdownQuery.isError) {
+      navigate(routeUrls.notFoundFallback());
+    }
+  }, [getNoteMarkdownQuery.isError]);
 
   return (
     <>

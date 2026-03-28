@@ -95,30 +95,34 @@ export function MyKernelsAccordion() {
   useKernelShutdown();
 
   return (
-    <SidebarAccordionPanel isOpen={isOpen}>
-      <Tooltip
-        content={<KernelTooltipContent kernelsData={kernelsData} />}
-        placement="right"
-      >
-        <AccordionButton
-          data-testid="kernels-accordion"
-          isOpen={isOpen}
-          onClick={() =>
-            setOpenState((prev) => ({
-              ...prev,
-              kernels: !prev.kernels,
-            }))
-          }
-          icon={
-            <SquareTerminal
-              width={20}
-              height={20}
-              className="will-change-transform"
-            />
-          }
-          title={'Kernels'}
-        />
-      </Tooltip>
+    <SidebarAccordionPanel
+      isOpen={isOpen}
+      trigger={
+        <Tooltip
+          content={<KernelTooltipContent kernelsData={kernelsData} />}
+          placement="right"
+        >
+          <AccordionButton
+            data-testid="kernels-accordion"
+            isOpen={isOpen}
+            onClick={() =>
+              setOpenState((prev) => ({
+                ...prev,
+                kernels: !prev.kernels,
+              }))
+            }
+            icon={
+              <SquareTerminal
+                width={20}
+                height={20}
+                className="will-change-transform"
+              />
+            }
+            title={'Kernels'}
+          />
+        </Tooltip>
+      }
+    >
       <VirtualizedListAccordion<Languages>
         layoutId="kernels-sidebar"
         emptyElement={null}

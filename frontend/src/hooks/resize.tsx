@@ -34,6 +34,25 @@ const initializeZoom = (): number => {
   return DEFAULT_ZOOM;
 };
 
+function getCurrentDocumentZoom(): number {
+  if (typeof document === 'undefined') {
+    return DEFAULT_ZOOM;
+  }
+
+  const parsedZoom = Number.parseFloat(document.body.style.zoom);
+  return Number.isFinite(parsedZoom) && parsedZoom > 0
+    ? parsedZoom
+    : DEFAULT_ZOOM;
+}
+
+/**
+ * Normalizes an offset for the current document zoom level
+ * This is used to ensure that elements are positioned correctly when the document is zoomed.
+ */
+export function normalizeOffsetForCurrentZoom(offset: number): number {
+  return offset / getCurrentDocumentZoom();
+}
+
 export const currentZoomAtom = atom(
   initializeZoom(),
   (_, set, newZoom: number) => {
@@ -62,24 +81,18 @@ export function useZoom() {
   useEffect(() => {
     document.body.style.zoom = currentZoom.toString();
   }, []);
-
   useWailsEvent(ZOOM_IN, () => {
     const newZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);
     setCurrentZoom(newZoom);
-
     document.body.style.zoom = newZoom.toString();
   });
-
   useWailsEvent(ZOOM_OUT, () => {
     const newZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
     setCurrentZoom(newZoom);
-
     document.body.style.zoom = newZoom.toString();
   });
-
   useWailsEvent(ZOOM_RESET, () => {
     setCurrentZoom(DEFAULT_ZOOM);
-
     document.body.style.zoom = DEFAULT_ZOOM.toString();
   });
 }

@@ -97,6 +97,7 @@ export function useAddTreeItemMutation() {
 
         const folderPath = createFolderPath(result.newFolderPath);
         if (folderPath) {
+          console.log('navigating to folder', folderPath.encodedFolderUrl);
           navigate(folderPath.encodedFolderUrl);
         }
       }

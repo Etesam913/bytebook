@@ -1,6 +1,5 @@
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { forwardRef } from 'react';
-import { navigate } from 'wouter/use-browser-location';
 import {
   VirtuosoGrid,
   type GridItemProps,
@@ -8,16 +7,11 @@ import {
   type ScrollerProps,
 } from 'react-virtuoso';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { getDefaultButtonVariants } from '../../animations';
-import { fileTreeDataAtom, isNoteMaximizedAtom } from '../../atoms';
-import { MotionIconButton } from '../buttons';
-import { MaximizeNoteButton } from '../buttons/maximize-note';
+import { fileTreeDataAtom } from '../../atoms';
 import { Loader } from '../../icons/loader';
-import { Magnifier } from '../../icons/magnifier';
 import { GetChildrenOfFolderBasedOnLimit } from '../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { getTreeNodeFromPath } from '../virtualized/virtualized-file-tree/utils/file-tree-utils';
 import { useToggleSidebarEvent } from '../../routes/notes-sidebar/render-note/hooks';
-import { lastSearchQueryAtom } from '../../hooks/search';
 import {
   type FolderPath,
   createFilePath,
@@ -26,14 +20,13 @@ import {
 import { FOLDER_TYPE } from '../virtualized/virtualized-file-tree/types';
 import { NotFound } from '../../routes/not-found';
 import { motion, type LegacyAnimationControls } from 'motion/react';
-import { routeUrls } from '../../utils/routes';
-import { Tooltip } from '../tooltip';
 import { cn } from '../../utils/string-formatting';
 import {
   FolderRendererCard,
   type FolderRendererItem,
 } from './folder-renderer-card';
 import { FolderRendererCreateItemCard } from './folder-renderer-create-item-card';
+import { FolderRendererHeader } from './folder-renderer-header';
 
 const folderGridComponents = {
   Scroller: forwardRef<HTMLDivElement, Omit<ScrollerProps, 'ref'>>(
@@ -95,13 +88,12 @@ export function FolderRenderer({
   animationControls: LegacyAnimationControls;
 }) {
   const fileTreeData = useAtomValue(fileTreeDataAtom);
-  const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
-  const setLastSearchQuery = useSetAtom(lastSearchQueryAtom);
   const folderTreeNode = getTreeNodeFromPath(fileTreeData, folderPath.fullPath);
   useToggleSidebarEvent(animationControls);
 
   const folderId =
     folderTreeNode?.type === FOLDER_TYPE ? folderTreeNode.id : '';
+
   const { data, fetchNextPage, hasNextPage, isLoading } = useInfiniteQuery({
     queryKey: ['folder-children', folderPath.fullPath],
     enabled: !!folderTreeNode && folderTreeNode.type === FOLDER_TYPE,
@@ -153,41 +145,11 @@ export function FolderRenderer({
     ...folderGridComponents,
     Header: () => (
       <div className="space-y-3">
-        <header
-          className={cn(
-            'flex w-full flex-col gap-1 pt-3 col-span-full',
-            isNoteMaximized && 'pl-32'
-          )}
-        >
-          <div className="flex gap-3 items-start">
-            <MaximizeNoteButton animationControls={animationControls} />
-            <div className="mt-1.5">
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Folder</p>
-              <span className="flex items-center gap-2.5 mt-1">
-                <h1 className="truncate text-2xl font-semibold dark:text-zinc-50">
-                  {folderTreeNode.name}
-                </h1>
-                <Tooltip content="Search this folder">
-                  <MotionIconButton
-                    {...getDefaultButtonVariants()}
-                    aria-label="Search this folder"
-                    className="shrink-0"
-                    onClick={() => {
-                      setLastSearchQuery(`f:"${folderPath.fullPath}"`);
-                      navigate(routeUrls.search());
-                    }}
-                  >
-                    <Magnifier width={14} height={14} />
-                  </MotionIconButton>
-                </Tooltip>
-              </span>
-              <p className="truncate text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                {folderTreeNode.path + '/'}
-              </p>
-            </div>
-          </div>
-        </header>
-        <hr className="mx-4 text-zinc-200 dark:text-zinc-700 col-span-full" />
+        <FolderRendererHeader
+          folderPath={folderPath}
+          folderTreeNode={folderTreeNode}
+          animationControls={animationControls}
+        />
         <FolderRendererCreateItemCard folder={folderTreeNode} />
       </div>
     ),

@@ -5,10 +5,12 @@ import { easingFunctions } from '../../animations';
 
 export function SidebarAccordionPanel({
   isOpen,
+  trigger,
   children,
   flexWeight = 1,
 }: {
   isOpen: boolean;
+  trigger: ReactNode;
   children: ReactNode;
   flexWeight?: number;
 }) {
@@ -25,7 +27,12 @@ export function SidebarAccordionPanel({
       )}
       style={{ flexShrink: isOpen ? 1 : 0, flexBasis: 'auto' }}
     >
-      {children}
+      {trigger}
+      {children && (
+        <div className="flex flex-1 basis-0 min-h-0 min-w-0 flex-col overflow-hidden">
+          {children}
+        </div>
+      )}
     </motion.section>
   );
 }

@@ -22,7 +22,7 @@ import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
 import { getContentTypeAndValueFromSelectionRangeValue } from '../utils/string-formatting';
-import { FilePath, LocalFilePath } from '../utils/path';
+import { FilePath } from '../utils/path';
 import { useWailsEvent } from './events';
 import { NOTE_WRITE } from '../utils/events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
@@ -324,15 +324,13 @@ export function useNoteWriteEvent({
  * @param fileExtension - The file extension of the note
  * @returns Query result indicating if the note exists
  */
-export function useNoteExists(filePath: FilePath | LocalFilePath) {
-  const extension =
-    'extension' in filePath ? filePath.extension : filePath.noteExtension;
+export function useNoteExists(filePath: FilePath | null) {
   return useQuery({
     ...noteQueries.doesNoteExist(
-      filePath.folder,
-      filePath.noteWithoutExtension,
-      extension
+      filePath?.folder ?? '',
+      filePath?.noteWithoutExtension ?? '',
+      filePath?.extension ?? ''
     ),
-    enabled: !!filePath.noteWithoutExtension,
+    enabled: filePath !== null,
   });
 }

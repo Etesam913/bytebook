@@ -26,31 +26,37 @@ export function MyTagsAccordion() {
   const searchQuery = savedSearchRouteParams?.searchQuery;
 
   return (
-    <SidebarAccordionPanel isOpen={isOpen}>
-      <AccordionButton
-        data-testid="tags-accordion"
-        isOpen={isOpen}
-        onClick={() =>
-          setOpenState((prev) => ({
-            ...prev,
-            tags: !prev.tags,
-          }))
-        }
-        icon={
-          <TagIcon
-            width={18}
-            height={18}
-            strokeWidth={1.75}
-            className="will-change-transform"
-          />
-        }
-        title={
-          <>
-            Tags{' '}
-            {hasTags && <span className="tracking-wider">({tags.length})</span>}
-          </>
-        }
-      />
+    <SidebarAccordionPanel
+      isOpen={isOpen}
+      trigger={
+        <AccordionButton
+          data-testid="tags-accordion"
+          isOpen={isOpen}
+          onClick={() =>
+            setOpenState((prev) => ({
+              ...prev,
+              tags: !prev.tags,
+            }))
+          }
+          icon={
+            <TagIcon
+              width={18}
+              height={18}
+              strokeWidth={1.75}
+              className="will-change-transform"
+            />
+          }
+          title={
+            <>
+              Tags{' '}
+              {hasTags && (
+                <span className="tracking-wider">({tags.length})</span>
+              )}
+            </>
+          }
+        />
+      }
+    >
       <VirtualizedListAccordion<string>
         isError={isError}
         errorElement={

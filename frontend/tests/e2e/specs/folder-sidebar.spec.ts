@@ -359,7 +359,7 @@ test.describe('File Sidebar', () => {
     test('renders correctly', async ({ page }) => {
       await page.goto('/');
       const sidebar = page.getByTestId('file-sidebar');
-      await expect(sidebar).toContainText('Pinned Notes');
+      await expect(sidebar).toContainText('Pinned');
 
       // Pinned notes are open by default
       await expect(sidebar).toContainText('Supply and Demand');
