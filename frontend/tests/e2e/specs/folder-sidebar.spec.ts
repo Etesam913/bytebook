@@ -390,15 +390,6 @@ test.describe('File Sidebar', () => {
           data: { items: [], nextCursor: '', hasMore: false },
         }
       );
-      await mockBinding(
-        context,
-        {
-          file: SERVICE_FILES.FILE_TREE_SERVICE,
-          method: 'OpenFolderAndAddToFileWatcher',
-        },
-        { success: true, message: '' }
-      );
-
       await page.goto('/');
       const sidebar = page.getByTestId('file-sidebar');
       await sidebar.getByText('Supply and Demand').click();

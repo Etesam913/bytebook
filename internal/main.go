@@ -10,6 +10,7 @@ import (
 	bytebook "github.com/etesam913/bytebook"
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/events"
+	"github.com/etesam913/bytebook/internal/ingest"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol/sockets"
 	"github.com/etesam913/bytebook/internal/notes"
@@ -65,6 +66,10 @@ func main() {
 	}
 	defer watcher.Close()
 
+	watchRegistry := notes.NewDirectoryWatchRegistry()
+	importCoordinator := ingest.NewBulkImportCoordinator(projectPath, &searchIndex, watcher, watchRegistry)
+	defer importCoordinator.Shutdown()
+
 	logLevel := slog.LevelError
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: logLevel,
@@ -86,7 +91,6 @@ func main() {
 			application.NewService(
 				&services.FileTreeService{
 					ProjectPath: projectPath,
-					FileWatcher: watcher,
 				},
 			),
 			application.NewService(
@@ -185,26 +189,24 @@ func main() {
 	// TODO: Fix bug with menus.InitializeApplicationMenu breaking the app
 	// lsp.CreateLanguageServerProtocol()
 	events.ListenToEvents(events.EventParams{
-		App:         app,
-		ProjectPath: projectPath,
-		Index:       &searchIndex,
+		App:               app,
+		ProjectPath:       projectPath,
+		Index:             &searchIndex,
+		ImportCoordinator: importCoordinator,
 	})
 
 	go menus.CreateApplicationMenus(backgroundColor, ui.CreateWindow)
 
 	// Start file watcher and search indexing once the window runtime is ready,
-	// preventing "too many open files" errors from concurrent file descriptor usage
-	// by bleve index, fsnotify watchers, and Metal/WebView during initialization
+	// keeping recursive watcher registration and indexing coordinated so large
+	// imports don't try to consume the entire file descriptor budget at once.
 	var runtimeReadyOnce sync.Once
 	window.OnWindowEvent(wailsEvents.Common.WindowRuntimeReady, func(e *application.WindowEvent) {
 		runtimeReadyOnce.Do(func() {
 			notes.AddProjectFoldersToWatcher(projectPath, watcher)
-			go notes.LaunchFileWatcher(app, projectPath, watcher)
-			go func() {
-				if err := search.IndexAllFiles(projectPath, searchIndex); err != nil {
-					log.Printf("Error indexing files: %v", err)
-				}
-			}()
+			watchRegistry.SyncFromWatcher(watcher)
+			go notes.LaunchFileWatcher(app, projectPath, watcher, watchRegistry)
+			importCoordinator.EnqueueInitialScan()
 		})
 	})
 	events.ListenToWindowEvents(app, window)

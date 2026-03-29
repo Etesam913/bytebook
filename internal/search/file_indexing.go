@@ -77,6 +77,55 @@ func IndexAllFiles(projectPath string, bleveIndex bleve.Index) error {
 	return nil
 }
 
+// IndexDiscoveredFiles indexes already-discovered files using bounded worker concurrency.
+func IndexDiscoveredFiles(projectPath string, filePaths []string, bleveIndex bleve.Index, workerCount int) error {
+	if len(filePaths) == 0 {
+		return nil
+	}
+	if workerCount <= 0 {
+		workerCount = 1
+	}
+
+	jobs := make(chan DocumentJob, util.MAX_JOBS)
+	results := make(chan DocumentResult, util.MAX_JOBS)
+	var workerWaitGroup sync.WaitGroup
+
+	for w := 0; w < workerCount; w++ {
+		workerWaitGroup.Add(1)
+		go startWorker(projectPath, jobs, results, &workerWaitGroup)
+	}
+
+	go func() {
+		defer close(jobs)
+		for _, filePath := range filePaths {
+			job, err := buildDocumentJob(projectPath, filePath)
+			if err != nil {
+				log.Printf("Error building indexing job for %s: %v", filePath, err)
+				continue
+			}
+			jobs <- job
+		}
+	}()
+
+	go func() {
+		workerWaitGroup.Wait()
+		close(results)
+	}()
+
+	bleveBatch, err := addResultsToIndex(bleveIndex, bleveIndex.NewBatch(), results)
+	if err != nil {
+		log.Printf("Error when adding discovered results to index: %v", err)
+		return err
+	}
+
+	if err := bleveIndex.Batch(bleveBatch); err != nil {
+		log.Printf("Error flushing final batch: %v", err)
+		return err
+	}
+
+	return nil
+}
+
 func addResultsToIndex(bleveIndex bleve.Index, bleveBatch *bleve.Batch, results chan DocumentResult) (*bleve.Batch, error) {
 	indexCount := 0
 	for docResult := range results {
@@ -211,4 +260,25 @@ func startWorker(projectPath string, jobs <-chan DocumentJob, results chan<- Doc
 			}
 		}
 	}
+}
+
+// buildDocumentJob converts an absolute file path under notes/ into the metadata
+// needed by the existing worker/indexing pipeline.
+func buildDocumentJob(projectPath, filePath string) (DocumentJob, error) {
+	notesPath := filepath.Join(projectPath, "notes")
+	fileID, err := filepath.Rel(notesPath, filePath)
+	if err != nil {
+		return DocumentJob{}, err
+	}
+
+	folderPath, fileName := filepath.Split(fileID)
+	folderPath = strings.TrimSuffix(folderPath, string(filepath.Separator))
+
+	return DocumentJob{
+		filePath:      filePath,
+		fileId:        fileID,
+		folder:        folderPath,
+		fileName:      fileName,
+		fileExtension: filepath.Ext(fileName),
+	}, nil
 }

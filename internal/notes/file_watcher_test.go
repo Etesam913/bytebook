@@ -56,7 +56,7 @@ func setupProjectFolders(t *testing.T) (string, string, string, string, string) 
 }
 
 func TestAddProjectFoldersToWatcher(t *testing.T) {
-	t.Run("should watch settings, saved-searches.json, and all note folders recursively", func(t *testing.T) {
+	t.Run("should watch settings, saved-searches.json, and notes root", func(t *testing.T) {
 		testDir, settingsDir, notesDir, _, savedSearchesPath := setupProjectFolders(t)
 		alphaDir := filepath.Join(notesDir, "alpha")
 		betaDir := filepath.Join(alphaDir, "beta")
@@ -84,18 +84,15 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 		AddProjectFoldersToWatcher(testDir, watcher)
 
 		watchList := watcher.WatchList()
-		// Should watch settings, all note folders (including nested), and saved-searches.json
-		assert.Len(t, watchList, 6)
+		assert.Len(t, watchList, 3)
 		assert.Contains(t, watchList, notesDir)
 		assert.Contains(t, watchList, settingsDir)
 		assert.Contains(t, watchList, savedSearchesPath)
 
-		// Should include all note folders
-		assert.Contains(t, watchList, alphaDir)
-		assert.Contains(t, watchList, betaDir)
-		assert.Contains(t, watchList, gammaDir)
-
 		// Should NOT include any files
+		assert.NotContains(t, watchList, alphaDir)
+		assert.NotContains(t, watchList, betaDir)
+		assert.NotContains(t, watchList, gammaDir)
 		assert.NotContains(t, watchList, rootNotePath)
 		assert.NotContains(t, watchList, betaNotePath)
 		assert.NotContains(t, watchList, gammaNotePath)
@@ -166,7 +163,10 @@ func newTestFileWatcher(t *testing.T, projectPath string) *FileWatcher {
 		_ = watcher.Close()
 	})
 
-	fw := newFileWatcher(nil, projectPath, watcher)
+	registry := NewDirectoryWatchRegistry()
+	registry.SyncFromWatcher(watcher)
+
+	fw := newFileWatcher(nil, projectPath, watcher, registry)
 	if !fw.debounceTimer.Stop() {
 		select {
 		case <-fw.debounceTimer.C:
@@ -322,7 +322,9 @@ func TestResolvePendingRenames(t *testing.T) {
 		defer watcher.Close()
 
 		AddProjectFoldersToWatcher(testDir, watcher)
-		fw := newFileWatcher(nil, testDir, watcher)
+		registry := NewDirectoryWatchRegistry()
+		registry.SyncFromWatcher(watcher)
+		fw := newFileWatcher(nil, testDir, watcher, registry)
 		if !fw.debounceTimer.Stop() {
 			select {
 			case <-fw.debounceTimer.C:
@@ -347,6 +349,31 @@ func TestResolvePendingRenames(t *testing.T) {
 		assert.Contains(t, watchList, newChild)
 		assert.NotContains(t, watchList, oldDir)
 		assert.NotContains(t, watchList, oldChild)
+	})
+
+	t.Run("missing watched folder rename degrades to folder delete", func(t *testing.T) {
+		testDir, _, notesDir, _, _ := setupProjectFolders(t)
+		oldDir := filepath.Join(notesDir, "Third", "Fourth")
+
+		err := os.MkdirAll(oldDir, 0755)
+		assert.NoError(t, err)
+
+		fw := newTestFileWatcher(t, testDir)
+		fw.knownWatchedDirectories.Add(oldDir)
+
+		err = os.RemoveAll(filepath.Join(notesDir, "Third"))
+		assert.NoError(t, err)
+
+		fw.processEvent(fsnotify.Event{Name: oldDir, Op: fsnotify.Rename})
+		assert.Len(t, fw.pendingFolderRenameEvents, 1)
+		assert.Empty(t, fw.pendingFileRenameEvents)
+
+		fw.resolvePendingRenames(true)
+
+		assert.Equal(t, []map[string]string{
+			{"folderPath": "Third/Fourth"},
+		}, fw.debounceEvents[util.Events.FolderDelete])
+		assert.Empty(t, fw.debounceEvents[util.Events.NoteDelete])
 	})
 }
 

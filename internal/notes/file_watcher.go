@@ -42,6 +42,7 @@ type FileWatcher struct {
 	app                           *application.App
 	projectPath                   string
 	watcher                       *fsnotify.Watcher
+	knownWatchedDirectories       *DirectoryWatchRegistry        // Directory paths we have registered watches for, including old rename paths until cleanup runs
 	debounceTimer                 *time.Timer                    // Timer that fires after inactivity to flush accumulated events
 	debounceEvents                map[string][]map[string]string // Events keyed by type, accumulated until debounce fires
 	mostRecentFolderCreatedEvents []pendingWatcherEvent          // Folder creates accumulated for the current debounce batch
@@ -52,11 +53,17 @@ type FileWatcher struct {
 }
 
 // newFileWatcher creates and initializes a new FileWatcher
-func newFileWatcher(app *application.App, projectPath string, watcher *fsnotify.Watcher) *FileWatcher {
+func newFileWatcher(app *application.App, projectPath string, watcher *fsnotify.Watcher, registry *DirectoryWatchRegistry) *FileWatcher {
+	if registry == nil {
+		registry = NewDirectoryWatchRegistry()
+		registry.SyncFromWatcher(watcher)
+	}
+
 	return &FileWatcher{
 		app:                           app,
 		projectPath:                   projectPath,
 		watcher:                       watcher,
+		knownWatchedDirectories:       registry,
 		debounceTimer:                 time.NewTimer(0),
 		debounceEvents:                make(map[string][]map[string]string),
 		fileStateCache:                make(map[string]fileState),
@@ -95,7 +102,6 @@ func (fw *FileWatcher) handleDebounceReset() {
 // handleFolderEvents processes folder-related events (create, delete, rename)
 func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 	if event.Has(fsnotify.Create) {
-		fw.addFolderTreeToWatcher(event.Name)
 		fw.mostRecentFolderCreatedEvents = addPendingWatcherEvent(fw.mostRecentFolderCreatedEvents, event)
 	} else if event.Has(fsnotify.Rename) {
 		fw.pendingFolderRenameEvents = addPendingWatcherEvent(fw.pendingFolderRenameEvents, event)
@@ -442,19 +448,21 @@ func (fw *FileWatcher) addFolderTreeToWatcher(rootPath string) {
 			log.Printf("Error adding watcher for %s: %v", path, err)
 			continue
 		}
+		fw.knownWatchedDirectories.Add(path)
 	}
 }
 
 // Removes every folder from knownWatchedDirectories that is not present in the watcherWatchList()
 func (fw *FileWatcher) removeFolderTreeWatches(rootPath string) {
 	prefix := rootPath + string(os.PathSeparator)
-	for _, watchedPath := range fw.watcher.WatchList() {
+	for _, watchedPath := range fw.knownWatchedDirectories.Snapshot() {
 		if watchedPath != rootPath && !strings.HasPrefix(watchedPath, prefix) {
 			continue
 		}
 		if err := fw.watcher.Remove(watchedPath); err != nil && !errors.Is(err, fsnotify.ErrNonExistentWatch) {
 			log.Printf("Error removing watcher for %s: %v", watchedPath, err)
 		}
+		fw.knownWatchedDirectories.Remove(watchedPath)
 	}
 }
 
@@ -465,14 +473,10 @@ func (fw *FileWatcher) isDirectoryEvent(event fsnotify.Event) bool {
 
 	// Rename/remove events often arrive after the old path is already gone, so
 	// os.Stat(event.Name) can no longer tell us whether it was a directory.
-	// Derive that from the current watch list so old folder paths still go
-	// through the folder event pipeline in those cases without duplicating state.
-	for _, watchedPath := range fw.watcher.WatchList() {
-		if watchedPath == event.Name {
-			return true
-		}
-	}
-	return false
+	// Keep an internal record of watched directories so old folder paths still
+	// route through the folder event pipeline even if fsnotify has already
+	// dropped the underlying watch entry.
+	return fw.knownWatchedDirectories.Has(event.Name)
 }
 
 func (fw *FileWatcher) appendDebouncedEvent(eventKey string, payload map[string]string) {
@@ -712,8 +716,8 @@ func (fw *FileWatcher) start() {
 }
 
 // LaunchFileWatcher creates and starts a FileWatcher
-func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnotify.Watcher) {
-	fw := newFileWatcher(app, projectPath, watcher)
+func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnotify.Watcher, registry *DirectoryWatchRegistry) {
+	fw := newFileWatcher(app, projectPath, watcher, registry)
 	fw.start()
 }
 
@@ -725,11 +729,9 @@ func AddProjectFoldersToWatcher(projectPath string, watcher *fsnotify.Watcher) {
 
 	pathsToWatch := []string{settingsPath, savedSearchesPath}
 
-	// Recursively watch all non-hidden folders under notes.
+	// Watch the notes root. Subtree watches are added progressively by the bulk import coordinator.
 	notesFolderPath := filepath.Join(projectPath, "notes")
-	pathsToWatch = append(pathsToWatch, collectWatchableFolderPaths(notesFolderPath)...)
-
-	log.Println(pathsToWatch)
+	pathsToWatch = append(pathsToWatch, notesFolderPath)
 
 	for _, path := range pathsToWatch {
 		if err := watcher.Add(path); err != nil {
