@@ -16,8 +16,8 @@ export function KernelHeartbeat({
   isBlinking?: boolean;
   className?: string;
   loaderClassName?: string;
-  loaderHeight?: number;
-  loaderWidth?: number;
+  loaderHeight?: string;
+  loaderWidth?: string;
 }) {
   if (status === 'busy' || status === 'starting') {
     return (

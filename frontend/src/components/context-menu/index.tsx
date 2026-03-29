@@ -29,14 +29,19 @@ function adjustedPosition(
   let adjustedX = x;
   const heightBuffer = 14;
   const widthBuffer = 8;
-  const menuHeight = 114; // hardcoded menu height
 
-  if (y + menuHeight + heightBuffer > windowHeight) {
-    adjustedY = windowHeight - menuHeight - heightBuffer;
+  if (y + menuRect.height + heightBuffer > windowHeight) {
+    adjustedY = Math.max(
+      heightBuffer,
+      windowHeight - menuRect.height - heightBuffer
+    );
   }
 
   if (x + menuRect.width + widthBuffer > windowWidth) {
-    adjustedX = windowWidth - menuRect.width;
+    adjustedX = Math.max(
+      widthBuffer,
+      windowWidth - menuRect.width - widthBuffer
+    );
   }
 
   return { x: adjustedX, y: adjustedY };
@@ -69,7 +74,7 @@ export function ContextMenu() {
   useLayoutEffect(() => {
     const newPosition = adjustedPosition(x, y, contextMenuRefLocal);
     setPosition(newPosition);
-  }, [x, y]); // recalc whenever x or y change
+  }, [x, y, isShowing, items.length]); // recalc whenever menu position or size may change
 
   // Ensuring the dialog is open or closed based on the isShowing state
   useEffect(() => {

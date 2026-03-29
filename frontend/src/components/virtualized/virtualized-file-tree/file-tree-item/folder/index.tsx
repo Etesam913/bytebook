@@ -11,7 +11,6 @@ import {
   projectSettingsAtom,
   type SidebarSelectionState,
 } from '../../../../../atoms';
-import { currentZoomAtom } from '../../../../../hooks/resize';
 import { InlineTreeItemInput } from '../inline-tree-item-input';
 import { Finder } from '../../../../../icons/finder';
 import { PinTack2 } from '../../../../../icons/pin-tack-2';
@@ -71,8 +70,7 @@ export function FileTreeFolderItem({
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const folderPathFromRoute = useFolderPathFromRoute();
-  const currentZoom = useAtomValue(currentZoomAtom);
-  const paddingLeft = getFileTreeItemIndent(dataItem.level, currentZoom);
+  const paddingLeft = getFileTreeItemIndent(dataItem.level);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();
   const { mutate: pinPath } = usePinPathMutation();
@@ -138,7 +136,7 @@ export function FileTreeFolderItem({
   const innerContent = (
     <>
       <span
-        style={{ paddingLeft: `${paddingLeft}px` }}
+        style={{ paddingLeft }}
         className={cn(
           'rounded-md flex items-center gap-2 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
           isSelectedFromRoute &&
@@ -150,15 +148,15 @@ export function FileTreeFolderItem({
         {dataItem.type === FOLDER_TYPE && dataItem.isOpen ? (
           <FolderOpen
             className="min-w-4 min-h-4 will-change-transform"
-            height={16}
-            width={16}
+            height="1rem"
+            width="1rem"
             strokeWidth={1.75}
           />
         ) : (
           <FolderIcon
             className="min-w-4 min-h-4 will-change-transform"
-            height={16}
-            width={16}
+            height="1rem"
+            width="1rem"
             strokeWidth={1.75}
           />
         )}
@@ -177,37 +175,34 @@ export function FileTreeFolderItem({
             transition={{ delay: 0.15, duration: 0.25 }}
             className="ml-auto inline-flex h-4 w-4 items-center justify-center"
           >
-            <LoadingSpinner className="h-4 w-4" height={16} width={16} />
+            <LoadingSpinner className="h-4 w-4" height="1rem" width="1rem" />
           </motion.span>
         )}
       </span>
     </>
   );
 
-  const paddingForItemToAdd = getFileTreeItemIndent(
-    dataItem.level + 1,
-    currentZoom
-  );
+  const paddingForItemToAdd = getFileTreeItemIndent(dataItem.level + 1);
   const inlineInput = addingType &&
     dataItem.type === FOLDER_TYPE &&
     dataItem.isOpen && (
       <div
-        style={{ paddingLeft: `${paddingForItemToAdd}px` }}
+        style={{ paddingLeft: paddingForItemToAdd }}
         className="flex items-center w-full relative rounded-md py-0.25"
       >
         <span className="rounded-md flex items-center gap-2 z-10 py-1 pr-2 overflow-hidden w-full">
           {addingType === FOLDER_TYPE ? (
             <FolderIcon
               className="min-w-4 min-h-4"
-              height={16}
-              width={16}
+              height="1rem"
+              width="1rem"
               strokeWidth={1.75}
             />
           ) : (
             <Blog
               className="min-w-4 min-h-4"
-              height={16}
-              width={16}
+              height="1rem"
+              width="1rem"
               strokeWidth={1.75}
             />
           )}
@@ -306,7 +301,7 @@ export function FileTreeFolderItem({
                 {
                   label: (
                     <span className="flex items-center gap-1.5">
-                      <FolderPen width={17} height={17} />{' '}
+                      <FolderPen width="1.0625rem" height="1.0625rem" />{' '}
                       <span>Create Folder</span>
                     </span>
                   ),
@@ -337,7 +332,8 @@ export function FileTreeFolderItem({
                 {
                   label: (
                     <span className="flex items-center gap-1.5">
-                      <Blog width={17} height={17} /> <span>Create Note</span>
+                      <Blog width="1.0625rem" height="1.0625rem" />{' '}
+                      <span>Create Note</span>
                     </span>
                   ),
                   value: 'create-note',
@@ -367,7 +363,7 @@ export function FileTreeFolderItem({
                 {
                   label: (
                     <span className="flex items-center gap-1.5">
-                      <PaperclipPlus width={17} height={17} />
+                      <PaperclipPlus width="1.0625rem" height="1.0625rem" />
                       <span>Add attachments</span>
                     </span>
                   ),
@@ -384,7 +380,8 @@ export function FileTreeFolderItem({
                 {
                   label: (
                     <span className="flex items-center gap-1.5">
-                      <FilePen height={17} width={17} /> <span>Rename</span>
+                      <FilePen height="1.0625rem" width="1.0625rem" />{' '}
+                      <span>Rename</span>
                     </span>
                   ),
                   value: 'rename',
@@ -404,9 +401,9 @@ export function FileTreeFolderItem({
                     label: (
                       <span className="flex items-center gap-1.5">
                         {shouldPinSelectedFolders ? (
-                          <PinTack2 height={17} width={17} />
+                          <PinTack2 height="1.0625rem" width="1.0625rem" />
                         ) : (
-                          <PinTackSlash height={17} width={17} />
+                          <PinTackSlash height="1.0625rem" width="1.0625rem" />
                         )}
                         <span>
                           {shouldPinSelectedFolders
@@ -435,14 +432,14 @@ export function FileTreeFolderItem({
               : [];
 
           setContextMenuData({
-            x: e.clientX / currentZoom,
-            y: e.clientY / currentZoom,
+            x: e.clientX,
+            y: e.clientY,
             isShowing: true,
             items: [
               {
                 label: (
                   <span className="flex items-center gap-1.5">
-                    <Finder height={17} width={17} />{' '}
+                    <Finder height="1.0625rem" width="1.0625rem" />{' '}
                     <span>Reveal In Finder</span>
                   </span>
                 ),
@@ -476,7 +473,8 @@ export function FileTreeFolderItem({
                 value: 'move-to-trash',
                 label: (
                   <span className="flex items-center gap-1.5">
-                    <Trash height={17} width={17} /> <span>Move to Trash</span>
+                    <Trash height="1.0625rem" width="1.0625rem" />{' '}
+                    <span>Move to Trash</span>
                   </span>
                 ),
                 onChange: () => {

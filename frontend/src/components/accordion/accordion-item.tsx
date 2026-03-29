@@ -43,8 +43,8 @@ export function AccordionItem({
         {icon ?? (
           <Note
             className="min-w-4 will-change-transform"
-            width={16}
-            height={16}
+            width="1rem"
+            height="1rem"
           />
         )}
         <p className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm">

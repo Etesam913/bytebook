@@ -58,7 +58,7 @@ export function CodeResult({
                 ease: easingFunctions['ease-in-out-cubic'],
               }}
             >
-              <Loader width={16} height={16} />
+              <Loader width="1rem" height="1rem" />
             </motion.div>
           </motion.div>
         )}
@@ -113,7 +113,7 @@ export function CodeResult({
           }
         }}
       >
-        <Duplicate2 height={16} width={16} />
+        <Duplicate2 height="1rem" width="1rem" />
       </MotionIconButton>
     </motion.footer>
   );

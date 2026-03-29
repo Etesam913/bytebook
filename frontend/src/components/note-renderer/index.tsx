@@ -89,7 +89,7 @@ export function NoteRenderer({ filePath }: { filePath: FilePath }) {
           filePath={filePath}
         />
         <div className="flex flex-1 flex-col items-center justify-center gap-2">
-          <FileBan width={48} height={48} />
+          <FileBan width="3rem" height="3rem" />
           <h1 className="text-2xl font-bold">
             This file type is not supported.
           </h1>

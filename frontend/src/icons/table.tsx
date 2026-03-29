@@ -1,19 +1,18 @@
 export function Table({
   fill = 'currentColor',
-  width = 20,
-  height = 20,
+  width = '1.25rem',
+  height = '1.25rem',
   className,
 }: {
   fill?: string;
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
   className?: string;
 }) {
   return (
     <svg
       className={className}
-      height={height}
-      width={width}
+      style={{ width, height }}
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >

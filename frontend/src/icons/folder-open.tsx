@@ -1,13 +1,13 @@
 export function FolderOpen({
-  width = 16,
-  height = 16,
+  width = '1rem',
+  height = '1rem',
   fill = 'currentColor',
   secondaryfill = 'currentColor',
   className,
   strokeWidth = 1.5,
 }: {
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
   fill?: string;
   secondaryfill?: string;
   className?: string;

@@ -167,7 +167,7 @@ export function FolderRenderer({
           transition={{ delay: 0.5 }}
           className="mb-[25%] flex flex-1 items-center justify-center"
         >
-          <Loader width={20} height={20} />
+          <Loader width="1.25rem" height="1.25rem" />
         </motion.section>
       ) : (
         <section className="min-w-0 flex-1">

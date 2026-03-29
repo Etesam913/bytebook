@@ -18,10 +18,18 @@ export function SearchBar() {
       className="w-full mb-2.5 text-left flex items-center gap-2 text-zinc-600 dark:text-zinc-300 text-xs py-1.5 px-2 dark:bg-zinc-700 border-[1.25px] border-zinc-300 dark:border-zinc-600 rounded-md"
       onClick={() => navigate(routeUrls.search())}
     >
-      <Magnifier className="will-change-transform" width={12.8} height={12.8} />
+      <Magnifier
+        className="will-change-transform"
+        width="0.8rem"
+        height="0.8rem"
+      />
       <p>Search</p>
       <span className="flex items-center ml-auto gap-0.5">
-        <Command className="will-change-transform" width={12.8} height={12.8} />
+        <Command
+          className="will-change-transform"
+          width="0.8rem"
+          height="0.8rem"
+        />
         <p>P</p>
       </span>
     </motion.button>

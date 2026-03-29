@@ -1,4 +1,9 @@
-import { type MotionValue, motion } from 'motion/react';
+import {
+  type MotionValue,
+  motion,
+  useMotionTemplate,
+  useMotionValue,
+} from 'motion/react';
 import { useEffect, useRef } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Spacer } from '../../components/file-sidebar/spacer.tsx';
@@ -103,7 +108,11 @@ function SavedSearchNoteContent({ filePath }: { filePath: FilePath }) {
   if (isLoading) {
     return (
       <div className="flex h-full min-w-0 flex-1">
-        <RouteFallback height={42} width={42} className="mx-auto my-auto" />
+        <RouteFallback
+          height="2.625rem"
+          width="2.625rem"
+          className="mx-auto my-auto"
+        />
       </div>
     );
   }
@@ -113,7 +122,7 @@ function SavedSearchNoteContent({ filePath }: { filePath: FilePath }) {
       <div className="flex h-full min-w-0 flex-1">
         <div className="h-full w-full flex flex-col items-center justify-center gap-4 text-center p-6 mx-auto">
           <div className="flex flex-col items-center gap-3">
-            <FileBan width={48} height={48} />
+            <FileBan width="3rem" height="3rem" />
             <div className="space-y-2">
               <h2 className="text-xl font-semibold">Note not found</h2>
               <p className="text-balance text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
@@ -158,6 +167,8 @@ export function SavedSearchPage({
 
   const sidebarRef = useRef<HTMLElement>(null);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+  const fallbackWidth = useMotionValue(0);
+  const scaledSidebarWidth = useMotionTemplate`calc(${width ?? fallbackWidth}px * var(--ui-scale))`;
 
   // Convert wildcard route path to a FilePath.
   const activeNotePath = curPath
@@ -180,13 +191,13 @@ export function SavedSearchPage({
       {!isNoteMaximized && (
         <motion.aside
           ref={sidebarRef}
-          style={width ? { width } : undefined}
+          style={width ? { width: scaledSidebarWidth } : undefined}
           className="text-md flex h-full flex-col pb-3.5 shrink-0"
         >
           <div className="flex h-full flex-col overflow-y-auto relative">
             <header className="pl-1.5 pr-2.5">
               <section className="flex items-center py-3.5 gap-2">
-                <Magnifier width={16} height={16} className="min-w-[16px]" />
+                <Magnifier width="1rem" height="1rem" className="min-w-4" />
                 <Tooltip
                   content={<span className="font-code">{searchQuery}</span>}
                 >
@@ -215,8 +226,8 @@ export function SavedSearchPage({
                     icon={
                       <FileRefresh
                         className="will-change-transform"
-                        width={16}
-                        height={16}
+                        width="1rem"
+                        height="1rem"
                       />
                     }
                     className="text-center px-4"
@@ -230,7 +241,11 @@ export function SavedSearchPage({
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.35 }}
                     >
-                      <Loader width={20} height={20} className="mx-auto my-3" />
+                      <Loader
+                        width="1.25rem"
+                        height="1.25rem"
+                        className="mx-auto my-3"
+                      />
                     </motion.div>
                   ) : (
                     <VirtualizedList<FilePath>

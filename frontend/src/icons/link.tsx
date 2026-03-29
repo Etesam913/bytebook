@@ -1,19 +1,18 @@
 export function Link({
-  width = 18,
-  height = 18,
+  width = '1.125rem',
+  height = '1.125rem',
   fill = 'currentColor',
   className,
 }: {
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
   fill?: string;
   className?: string;
 }) {
   return (
     <svg
       className={className}
-      height={height}
-      width={width}
+      style={{ width, height }}
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >

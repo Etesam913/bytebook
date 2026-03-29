@@ -61,7 +61,11 @@ export function CodeActions({
               });
             }}
           >
-            <Trash className="will-change-transform" height={19} width={19} />
+            <Trash
+              className="will-change-transform"
+              height="1.1875rem"
+              width="1.1875rem"
+            />
           </MotionIconButton>
         </Tooltip>
       )}
@@ -91,7 +95,7 @@ export function CodeActions({
             value: 'copy-code',
             label: (
               <span className="flex items-center gap-1.5 will-change-transform">
-                <Duplicate2 height={18} width={18} /> Copy Code
+                <Duplicate2 height="1.125rem" width="1.125rem" /> Copy Code
               </span>
             ),
           },
@@ -101,7 +105,8 @@ export function CodeActions({
                   value: 'kernel-info',
                   label: (
                     <span className="flex items-center gap-1.5 will-change-transform">
-                      <SquareTerminal height={18} width={18} /> Kernel Info
+                      <SquareTerminal height="1.125rem" width="1.125rem" />{' '}
+                      Kernel Info
                     </span>
                   ),
                 },
@@ -120,7 +125,7 @@ export function CodeActions({
             value: 'delete',
             label: (
               <span className="flex items-center gap-1.5 will-change-transform">
-                <Trash height={18} width={18} /> Delete
+                <Trash height="1.125rem" width="1.125rem" /> Delete
               </span>
             ),
           },
@@ -182,7 +187,7 @@ export function CodeActions({
                 whileFocus: 1.05,
               })}
             >
-              <HorizontalDots height={18} width={18} />
+              <HorizontalDots height="1.125rem" width="1.125rem" />
             </MotionIconButton>
           </Tooltip>
         )}

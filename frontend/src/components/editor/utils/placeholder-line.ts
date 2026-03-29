@@ -4,7 +4,6 @@ import { type Dispatch, type RefObject, type SetStateAction } from 'react';
 import type { PlaceholderLineData } from '../types';
 import { $isTextNode, $isParagraphNode } from 'lexical';
 import { $isNodeInsideTable } from './table';
-import { normalizeOffsetForCurrentZoom } from '../../../hooks/resize';
 
 function getLineParentNodeFromSelection(selection: RangeSelection) {
   const anchorNode = selection.anchor.getNode();
@@ -34,8 +33,8 @@ function getRelativePosition(element: HTMLElement, container: HTMLElement) {
   const rect = element.getBoundingClientRect();
   const containerRect = container.getBoundingClientRect();
   return {
-    top: normalizeOffsetForCurrentZoom(rect.top - containerRect.top),
-    left: normalizeOffsetForCurrentZoom(rect.left - containerRect.left),
+    top: rect.top - containerRect.top,
+    left: rect.left - containerRect.left,
   };
 }
 

@@ -2,21 +2,20 @@ function WindowCode({
   fill = 'currentColor',
   secondaryfill,
   strokewidth = 1.5,
-  width = 18,
-  height = 18,
+  width = '1.125rem',
+  height = '1.125rem',
 }: {
   fill?: string;
   secondaryfill?: string;
   strokewidth?: number;
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
 }) {
   secondaryfill = secondaryfill || fill;
 
   return (
     <svg
-      height={height}
-      width={width}
+      style={{ width, height }}
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >

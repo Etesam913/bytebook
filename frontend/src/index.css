@@ -95,7 +95,10 @@
 }
 
 :root {
-  --editor-font-size: 14px;
+  --ui-scale: 1;
+  --app-font-size-base: 16px;
+  --editor-font-size-base: 14px;
+  --editor-font-size: calc(var(--editor-font-size-base) * var(--ui-scale));
 }
 
 * {
@@ -130,6 +133,7 @@ pre {
 }
 
 html {
+  font-size: calc(var(--app-font-size-base) * var(--ui-scale));
   @apply cursor-default leading-[1.7];
 }
 
@@ -153,7 +157,7 @@ textarea,
 }
 
 .draggable-block-menu {
-  @apply rounded px-px py-[2px] cursor-grab opacity-0 absolute left-0 top-0 will-change-transform;
+  @apply rounded px-px py-[0.125rem] cursor-grab opacity-0 absolute left-0 top-0 will-change-transform;
 }
 
 ::spelling-error {

@@ -13,23 +13,23 @@ type LanguageDisplayConfig = {
 
 export const languageDisplayConfig: Record<Languages, LanguageDisplayConfig> = {
   python: {
-    icon: <PythonLogo width={18} height={18} />,
+    icon: <PythonLogo width="1.125rem" height="1.125rem" />,
     tabSize: 4,
   },
   go: {
-    icon: <GolangLogo width={18} height={18} />,
+    icon: <GolangLogo width="1.125rem" height="1.125rem" />,
     tabSize: 4,
   },
   javascript: {
-    icon: <JavascriptLogo width={18} height={18} />,
+    icon: <JavascriptLogo width="1.125rem" height="1.125rem" />,
     tabSize: 2,
   },
   java: {
-    icon: <JavaLogo width={18} height={18} />,
+    icon: <JavaLogo width="1.125rem" height="1.125rem" />,
     tabSize: 2,
   },
   text: {
-    icon: <SquareCode width={18} height={18} />,
+    icon: <SquareCode width="1.125rem" height="1.125rem" />,
     tabSize: 2,
   },
 };

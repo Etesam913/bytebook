@@ -9,7 +9,11 @@ import { Magnifier } from '../../icons/magnifier';
 const settingsItems: { id: SettingsTab; title: string; icon: ReactNode }[] = [
   { id: 'appearance', title: 'Appearance', icon: <ColorPalette2 /> },
   { id: 'code-block', title: 'Code Block', icon: <WindowCode /> },
-  { id: 'search', title: 'Search', icon: <Magnifier width={16} height={16} /> },
+  {
+    id: 'search',
+    title: 'Search',
+    icon: <Magnifier width="1rem" height="1rem" />,
+  },
 ];
 
 export function getSettingsTabId(tab: SettingsTab) {

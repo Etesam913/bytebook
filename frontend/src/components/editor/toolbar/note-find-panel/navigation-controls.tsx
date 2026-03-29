@@ -30,7 +30,7 @@ export function NavigationControls({
             tabIndex={0}
             aria-label="Previous match"
           >
-            <ArrowUp width={16} height={16} />
+            <ArrowUp width="1rem" height="1rem" />
           </button>
         </Tooltip>
         <Tooltip content="Next match (Enter)" delay={{ open: 50 }}>
@@ -41,7 +41,7 @@ export function NavigationControls({
             tabIndex={0}
             aria-label="Next match"
           >
-            <ArrowDown width={16} height={16} />
+            <ArrowDown width="1rem" height="1rem" />
           </button>
         </Tooltip>
       </div>

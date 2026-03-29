@@ -374,7 +374,7 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<Heading1 height={18} width={18} />}
+        icon={<Heading1 height="1.125rem" width="1.125rem" />}
         text="Header 1"
       />
     ),
@@ -383,7 +383,7 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<Heading2 height={18} width={18} />}
+        icon={<Heading2 height="1.125rem" width="1.125rem" />}
         text="Header 2"
       />
     ),
@@ -392,7 +392,7 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<Heading3 height={18} width={18} />}
+        icon={<Heading3 height="1.125rem" width="1.125rem" />}
         text="Header 3"
       />
     ),
@@ -401,7 +401,7 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<Heading4 height={18} width={18} />}
+        icon={<Heading4 height="1.125rem" width="1.125rem" />}
         text="Header 4"
       />
     ),
@@ -410,7 +410,7 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<Heading5 height={18} width={18} />}
+        icon={<Heading5 height="1.125rem" width="1.125rem" />}
         text="Header 5"
       />
     ),
@@ -419,7 +419,7 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<Heading6 height={18} width={18} />}
+        icon={<Heading6 height="1.125rem" width="1.125rem" />}
         text="Header 6"
       />
     ),
@@ -428,7 +428,7 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<Text height={14} width={14} />}
+        icon={<Text height="0.875rem" width="0.875rem" />}
         text="Paragraph"
       />
     ),
@@ -437,7 +437,7 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<QuoteIcon height={18} width={18} />}
+        icon={<QuoteIcon height="1.125rem" width="1.125rem" />}
         text="Quote"
       />
     ),
@@ -446,7 +446,7 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<UnorderedList height={18} width={18} />}
+        icon={<UnorderedList height="1.125rem" width="1.125rem" />}
         text="Unordered List"
       />
     ),
@@ -455,7 +455,7 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<OrderedList height={18} width={18} />}
+        icon={<OrderedList height="1.125rem" width="1.125rem" />}
         text="Ordered List"
       />
     ),
@@ -464,7 +464,7 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<ListCheckbox height={18} width={18} />}
+        icon={<ListCheckbox height="1.125rem" width="1.125rem" />}
         text="Checkbox List"
       />
     ),
@@ -473,7 +473,7 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<Paperclip height={18} width={18} />}
+        icon={<Paperclip height="1.125rem" width="1.125rem" />}
         text="Attachment"
       />
     ),
@@ -482,7 +482,7 @@ export const blockTypesDropdownItems: DropdownItem[] = [
   {
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<Table height={18} width={18} />}
+        icon={<Table height="1.125rem" width="1.125rem" />}
         text="Table"
       />
     ),
@@ -494,7 +494,11 @@ export const listCommandData = [
   {
     block: 'ul',
     icon: (
-      <UnorderedList height={18} width={18} className="will-change-transform" />
+      <UnorderedList
+        height="1.125rem"
+        width="1.125rem"
+        className="will-change-transform"
+      />
     ),
     command: INSERT_UNORDERED_LIST_COMMAND,
     title: 'Unordered List',
@@ -504,7 +508,11 @@ export const listCommandData = [
   {
     block: 'ol',
     icon: (
-      <OrderedList height={18} width={18} className="will-change-transform" />
+      <OrderedList
+        height="1.125rem"
+        width="1.125rem"
+        className="will-change-transform"
+      />
     ),
     command: INSERT_ORDERED_LIST_COMMAND,
     title: 'Ordered List',
@@ -514,7 +522,11 @@ export const listCommandData = [
   {
     block: 'check',
     icon: (
-      <ListCheckbox height={18} width={18} className="will-change-transform" />
+      <ListCheckbox
+        height="1.125rem"
+        width="1.125rem"
+        className="will-change-transform"
+      />
     ),
     command: INSERT_CHECK_LIST_COMMAND,
     title: 'Check List',
@@ -525,6 +537,6 @@ export const listCommandData = [
 
 export const attachmentCommandData = {
   block: 'attachment',
-  icon: <Paperclip height={18} width={18} />,
+  icon: <Paperclip height="1.125rem" width="1.125rem" />,
   command: INSERT_FILES_COMMAND,
 };

@@ -29,10 +29,10 @@ export function SearchPage() {
           }}
         >
           {isPending ? (
-            <Loader width={23} height={23} />
+            <Loader width="1.4375rem" height="1.4375rem" />
           ) : (
             <>
-              <SearchContent2 width={20} height={20} />
+              <SearchContent2 width="1.25rem" height="1.25rem" />
               Regenerate Index
             </>
           )}

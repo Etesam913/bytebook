@@ -2,19 +2,18 @@ export function TagSlash({
   fill = 'currentColor',
   secondaryfill = fill,
   strokewidth = 1.5,
-  width = 20,
-  height = 20,
+  width = '1.25rem',
+  height = '1.25rem',
 }: {
   fill?: string;
   secondaryfill?: string;
   strokewidth?: number;
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
 }) {
   return (
     <svg
-      height={height}
-      width={width}
+      style={{ width, height }}
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >

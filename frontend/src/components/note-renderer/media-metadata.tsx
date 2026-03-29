@@ -43,7 +43,7 @@ export function MediaMetadata({
         {folderSegments.map((segment, index) => (
           <Fragment key={`folder-segment-${index}`}>
             <BreadcrumbItem>
-              {index === 0 && <Folder width={18} height={18} />}
+              {index === 0 && <Folder width="1.125rem" height="1.125rem" />}
               {segment}
             </BreadcrumbItem>
             <span>/</span>
@@ -65,7 +65,7 @@ export function MediaMetadata({
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <Loader height={14} width={14} />
+            <Loader height="0.875rem" width="0.875rem" />
             Loading Tags
           </motion.span>
         ) : (

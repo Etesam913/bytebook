@@ -1,12 +1,12 @@
 export function TextStrikethrough({
-  width = 16,
-  height = 16,
+  width = '1rem',
+  height = '1rem',
   fill = 'currentColor',
   secondaryfill = 'currentColor',
   className,
 }: {
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
   fill?: string;
   secondaryfill?: string;
   className?: string;
@@ -14,8 +14,7 @@ export function TextStrikethrough({
   return (
     <svg
       className={className}
-      height={height}
-      width={width}
+      style={{ width, height }}
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >

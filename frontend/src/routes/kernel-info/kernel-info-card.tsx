@@ -16,14 +16,14 @@ export function KernelInfoCard({ language }: { language: Languages }) {
   return (
     <div className="bg-white dark:bg-zinc-750 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
       <div className="flex items-center gap-3 mb-4">
-        <SquareTerminal width={20} height={20} />
+        <SquareTerminal width="1.25rem" height="1.25rem" />
         <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
           Kernel Information
         </h2>
       </div>
       {isPending ? (
         <div className="flex justify-center items-center py-8">
-          <LoadingSpinner height={24} width={24} />
+          <LoadingSpinner height="1.5rem" width="1.5rem" />
         </div>
       ) : (
         <div className="space-y-3">
@@ -52,7 +52,7 @@ export function KernelInfoCard({ language }: { language: Languages }) {
                 className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded"
                 title="Copy command"
               >
-                <Duplicate2 height={16} width={16} />
+                <Duplicate2 height="1rem" width="1rem" />
               </button>
               <span className="font-medium text-right text-zinc-800 dark:text-zinc-200 font-mono">
                 {kernelInfo?.argv?.join(' ') ?? 'Unknown'}

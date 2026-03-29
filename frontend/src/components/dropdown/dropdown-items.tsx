@@ -72,7 +72,7 @@ export function DropdownItems({
             focusIndex !== null ? `${menuId}-option-${focusIndex}` : undefined
           }
           className={cn(
-            'absolute z-50 w-full overflow-hidden translate-y-1 rounded-md border-[1.25px] bg-zinc-50 shadow-xl dark:bg-zinc-700',
+            'absolute z-50 w-full overflow-hidden translate-y-1 rounded-md border-[0.078125rem] bg-zinc-50 shadow-xl dark:bg-zinc-700',
             maxHeight && 'overflow-y-auto',
             className
           )}
@@ -103,14 +103,13 @@ export function DropdownItems({
             }}
             exit={{
               height: 0,
-              opacity: 0,
               transition: instantTransition,
             }}
           >
             {children}
             <div
               ref={dropdownItemsRef}
-              className="flex flex-col overflow-y-auto overflow-x-hidden px-[4.5px] py-[6px] gap-0.5"
+              className="flex flex-col overflow-y-auto overflow-x-hidden px-[0.28125rem] py-[0.375rem] gap-0.5"
             >
               {items.map(({ value, label }, i) => {
                 const isSelected = valueIndex === i || selectedItem === value;

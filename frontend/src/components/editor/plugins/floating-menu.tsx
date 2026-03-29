@@ -287,7 +287,7 @@ export function FloatingMenuPlugin({
                 }}
               />
               <MotionButton type="submit" {...getDefaultButtonVariants()}>
-                <SubmitLink height={18} width={18} />
+                <SubmitLink height="1.125rem" width="1.125rem" />
               </MotionButton>
             </>
           )}

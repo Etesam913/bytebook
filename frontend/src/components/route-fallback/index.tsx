@@ -6,8 +6,8 @@ export function RouteFallback({
   width,
   className,
 }: {
-  height?: number;
-  width?: number;
+  height?: string;
+  width?: string;
   className?: string;
 }) {
   return (

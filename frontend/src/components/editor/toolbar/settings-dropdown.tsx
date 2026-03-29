@@ -56,7 +56,8 @@ export function SettingsDropdown({
       value: 'reveal-in-finder',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <Finder className="min-w-5" height={18} width={18} /> Reveal In Finder
+          <Finder className="min-w-5" height="1.125rem" width="1.125rem" />{' '}
+          Reveal In Finder
         </span>
       ),
     },
@@ -64,7 +65,7 @@ export function SettingsDropdown({
       value: isPinned ? 'unpin-note' : 'pin-note',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <PinTack2 className="min-w-5" height={18} width={18} />{' '}
+          <PinTack2 className="min-w-5" height="1.125rem" width="1.125rem" />{' '}
           {isPinned ? 'Unpin Note' : 'Pin Note'}
         </span>
       ),
@@ -73,7 +74,8 @@ export function SettingsDropdown({
       value: 'edit-tags',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <TagPlus className="min-w-5" height={18} width={18} /> Edit Tags
+          <TagPlus className="min-w-5" height="1.125rem" width="1.125rem" />{' '}
+          Edit Tags
         </span>
       ),
     },
@@ -84,7 +86,7 @@ export function SettingsDropdown({
           : 'show-table-of-contents',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <Table className="min-w-5" height={18} width={18} />{' '}
+          <Table className="min-w-5" height="1.125rem" width="1.125rem" />{' '}
           {frontmatter.showTableOfContents === 'true'
             ? 'Hide Table of Contents'
             : 'Show Table of Contents'}
@@ -95,7 +97,8 @@ export function SettingsDropdown({
       value: 'move-to-trash',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <Trash className="min-w-5" height={18} width={18} /> Move to Trash
+          <Trash className="min-w-5" height="1.125rem" width="1.125rem" /> Move
+          to Trash
         </span>
       ),
     },

@@ -1,4 +1,4 @@
-import { useAtom, useSetAtom } from 'jotai/react';
+import { useSetAtom } from 'jotai/react';
 import { useWailsEvent, WailsEvent } from './events';
 import {
   ZOOM_IN,
@@ -8,9 +8,8 @@ import {
   WINDOW_RELOAD,
 } from '../utils/events';
 import { logger } from '../utils/logging';
-import { atom } from 'jotai';
 import { isFullscreenAtom } from '../atoms';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 const MIN_ZOOM = 0.75;
 const DEFAULT_ZOOM = 1;
@@ -34,38 +33,35 @@ const initializeZoom = (): number => {
   return DEFAULT_ZOOM;
 };
 
-function getCurrentDocumentZoom(): number {
+function applyUiScale(zoom: number) {
   if (typeof document === 'undefined') {
-    return DEFAULT_ZOOM;
+    return;
   }
 
-  const parsedZoom = Number.parseFloat(document.body.style.zoom);
-  return Number.isFinite(parsedZoom) && parsedZoom > 0
-    ? parsedZoom
-    : DEFAULT_ZOOM;
-}
+  document.documentElement.style.setProperty('--ui-scale', zoom.toString());
 
-/**
- * Normalizes an offset for the current document zoom level
- * This is used to ensure that elements are positioned correctly when the document is zoomed.
- */
-export function normalizeOffsetForCurrentZoom(offset: number): number {
-  return offset / getCurrentDocumentZoom();
-}
-
-export const currentZoomAtom = atom(
-  initializeZoom(),
-  (_, set, newZoom: number) => {
-    // Clamp the value to valid range
-    const clampedZoom = Math.min(Math.max(newZoom, MIN_ZOOM), MAX_ZOOM);
-    localStorage.setItem(ZOOM_STORAGE_KEY, clampedZoom.toString());
-    set(currentZoomAtom, clampedZoom);
+  if (typeof window !== 'undefined') {
+    requestAnimationFrame(() => {
+      window.dispatchEvent(new Event('resize'));
+    });
   }
-);
+}
+
+function clampZoom(zoom: number) {
+  return Math.min(Math.max(zoom, MIN_ZOOM), MAX_ZOOM);
+}
+
+function persistZoom(zoom: number) {
+  try {
+    localStorage.setItem(ZOOM_STORAGE_KEY, zoom.toString());
+  } catch {
+    // Ignore localStorage errors
+  }
+}
 
 /**
  * React hook that listens for Wails "zoom:in", "zoom:out", and "zoom:reset" events
- * and adjusts the document body's zoom level accordingly.
+ * and sets the CSS `--ui-scale` custom property (see `index.css`).
  *
  * - "zoom:in" increases zoom by ZOOM_STEP up to MAX_ZOOM.
  * - "zoom:out" decreases zoom by ZOOM_STEP down to MIN_ZOOM.
@@ -75,25 +71,27 @@ export const currentZoomAtom = atom(
  * menu-driven zoom in/out functionality.
  */
 export function useZoom() {
-  const [currentZoom, setCurrentZoom] = useAtom(currentZoomAtom);
+  const zoomRef = useRef(initializeZoom());
 
-  // Apply the stored zoom level on initial mount
   useEffect(() => {
-    document.body.style.zoom = currentZoom.toString();
+    applyUiScale(zoomRef.current);
   }, []);
+
+  const applyAndPersist = (nextZoom: number) => {
+    const clamped = clampZoom(nextZoom);
+    zoomRef.current = clamped;
+    persistZoom(clamped);
+    applyUiScale(clamped);
+  };
+
   useWailsEvent(ZOOM_IN, () => {
-    const newZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);
-    setCurrentZoom(newZoom);
-    document.body.style.zoom = newZoom.toString();
+    applyAndPersist(zoomRef.current + ZOOM_STEP);
   });
   useWailsEvent(ZOOM_OUT, () => {
-    const newZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
-    setCurrentZoom(newZoom);
-    document.body.style.zoom = newZoom.toString();
+    applyAndPersist(zoomRef.current - ZOOM_STEP);
   });
   useWailsEvent(ZOOM_RESET, () => {
-    setCurrentZoom(DEFAULT_ZOOM);
-    document.body.style.zoom = DEFAULT_ZOOM.toString();
+    applyAndPersist(DEFAULT_ZOOM);
   });
 }
 

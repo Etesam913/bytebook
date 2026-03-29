@@ -27,22 +27,32 @@ export function KernelStatusCard({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'idle':
-        return <Play className="text-green-500" width={20} height={20} />;
+        return (
+          <Play className="text-green-500" width="1.25rem" height="1.25rem" />
+        );
       case 'busy':
         return (
           <Loader
             className="text-blue-500 animate-spin"
-            width={20}
-            height={20}
+            width="1.25rem"
+            height="1.25rem"
           />
         );
       case 'starting':
         return (
-          <HourglassStart className="text-yellow-500" width={20} height={20} />
+          <HourglassStart
+            className="text-yellow-500"
+            width="1.25rem"
+            height="1.25rem"
+          />
         );
       default:
         return (
-          <HourglassStart className="text-gray-500" width={20} height={20} />
+          <HourglassStart
+            className="text-gray-500"
+            width="1.25rem"
+            height="1.25rem"
+          />
         );
     }
   };
@@ -103,7 +113,7 @@ export function KernelStatusCard({
             {isLoading ? (
               <Loader />
             ) : isKernelRunning ? (
-              <PowerOff height={14} width={14} />
+              <PowerOff height="0.875rem" width="0.875rem" />
             ) : (
               <Play />
             )}

@@ -15,7 +15,6 @@ import { fileSidebarOpenStateAtom } from '../../../atoms';
 import { ErrorText } from '../../error-text';
 import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
-
 export function MyTagsAccordion() {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isOpen = openState.tags;
@@ -40,8 +39,8 @@ export function MyTagsAccordion() {
           }
           icon={
             <TagIcon
-              width={18}
-              height={18}
+              width="1.125rem"
+              height="1.125rem"
               strokeWidth={1.75}
               className="will-change-transform"
             />
@@ -66,8 +65,8 @@ export function MyTagsAccordion() {
             icon={
               <ArrowRotateAnticlockwise
                 className="will-change-transform"
-                width={12}
-                height={12}
+                width="0.75rem"
+                height="0.75rem"
               />
             }
           />
@@ -79,7 +78,7 @@ export function MyTagsAccordion() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35 }}
           >
-            <Loader width={20} height={20} className="mx-auto my-3" />
+            <Loader width="1.25rem" height="1.25rem" className="mx-auto my-3" />
           </motion.div>
         }
         layoutId="tags-sidebar"

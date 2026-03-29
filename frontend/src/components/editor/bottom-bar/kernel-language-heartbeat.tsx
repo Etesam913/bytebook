@@ -37,8 +37,8 @@ const languageSpecificOptions: {
           <span className="flex items-center gap-1.5 will-change-transform">
             <FolderOpen
               className="will-change-transform"
-              height={14.5}
-              width={14.5}
+              height="0.90625rem"
+              width="0.90625rem"
             />
             Change Virtual Environment
           </span>
@@ -87,7 +87,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
             value: 'shut-down',
             label: (
               <span className="flex items-center gap-1.5 will-change-transform">
-                <PowerOff height={10} width={10} />
+                <PowerOff height="0.625rem" width="0.625rem" />
                 Shut Down
               </span>
             ),
@@ -99,7 +99,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
             value: 'turn-on',
             label: (
               <span className="flex items-center gap-1.5 will-change-transform">
-                <PowerOff height={10} width={10} />
+                <PowerOff height="0.625rem" width="0.625rem" />
                 Turn On
               </span>
             ),
@@ -177,8 +177,8 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
           heartbeat={heartbeat}
           isBlinking={true}
           className="h-2 w-2"
-          loaderHeight={10}
-          loaderWidth={10}
+          loaderHeight="0.625rem"
+          loaderWidth="0.625rem"
         />
         <p>{language}</p>
         <motion.div
@@ -190,8 +190,8 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
           <ChevronDown
             className="text-zinc-500 dark:text-zinc-300 will-change-transform"
             strokeWidth="3.5px"
-            width={9}
-            height={9}
+            width="0.5625rem"
+            height="0.5625rem"
           />
         </motion.div>
       </button>

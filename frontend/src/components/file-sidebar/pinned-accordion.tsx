@@ -11,7 +11,6 @@ import { Folder as FolderIcon } from '../../icons/folder';
 import { AccordionButton } from '../accordion/accordion-button';
 import { AccordionItem } from '../accordion/accordion-item';
 import { VirtualizedListAccordion } from '../virtualized/virtualized-list/accordion';
-import { currentZoomAtom } from '../../hooks/resize';
 import {
   createFilePath,
   createFolderPath,
@@ -23,9 +22,9 @@ import { SidebarAccordionPanel } from './sidebar-accordion-panel';
 
 type PinnedItem = FilePath | FolderPath;
 
-export function PinnedNotesAccordion() {
+export function PinnedAccordion() {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
-  const isPinnedNotesOpen = openState.pinnedNotes;
+  const isPinnedOpen = openState.pinned;
 
   const projectSettings = useAtomValue(projectSettingsAtom);
   const pinnedNotes = projectSettings.pinnedNotes;
@@ -44,24 +43,29 @@ export function PinnedNotesAccordion() {
     return acc;
   }, []);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
-  const currentZoom = useAtomValue(currentZoomAtom);
   const { mutate: pinOrUnpinPath } = usePinPathMutation();
 
   return (
     <SidebarAccordionPanel
-      isOpen={isPinnedNotesOpen}
+      isOpen={isPinnedOpen}
       trigger={
         <AccordionButton
-          data-testid="pinned-notes-accordion"
+          data-testid="pinned-accordion"
           onClick={() =>
             setOpenState((prev) => ({
               ...prev,
-              pinnedNotes: !prev.pinnedNotes,
+              pinned: !prev.pinned,
             }))
           }
-          icon={<PinTack2 className="will-change-transform" />}
+          icon={
+            <PinTack2
+              className="will-change-transform"
+              width="1.25rem"
+              height="1.25rem"
+            />
+          }
           title="Pinned"
-          isOpen={isPinnedNotesOpen}
+          isOpen={isPinnedOpen}
         />
       }
     >
@@ -98,16 +102,16 @@ export function PinnedNotesAccordion() {
                 <AccordionItem
                   onContextMenu={(e) => {
                     setContextMenuData({
-                      x: e.clientX / currentZoom,
-                      y: e.clientY / currentZoom,
+                      x: e.clientX,
+                      y: e.clientY,
                       isShowing: true,
                       items: [
                         {
                           label: (
                             <span className="flex items-center gap-1.5">
                               <PinTackSlash
-                                width={17}
-                                height={17}
+                                width="1.0625rem"
+                                height="1.0625rem"
                                 className="will-change-transform"
                               />
                               {unpinLabel}
@@ -130,8 +134,8 @@ export function PinnedNotesAccordion() {
                     pinnedItem.type === 'folder' ? (
                       <FolderIcon
                         className="min-w-4 min-h-4 will-change-transform"
-                        height={16}
-                        width={16}
+                        height="1rem"
+                        width="1rem"
                         strokeWidth={1.75}
                       />
                     ) : undefined

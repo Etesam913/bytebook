@@ -11,7 +11,6 @@ import { useNoteExists } from '../../../hooks/notes';
 import { RouteFallback } from '../../route-fallback';
 import { NotFound } from '../../../routes/not-found';
 import { routeUrls } from '../../../utils/routes';
-
 export function EditorWrapper() {
   const filePath = useFilePathFromRoute();
   const folderPath = useFolderPathFromRoute();
@@ -32,7 +31,11 @@ export function EditorWrapper() {
     if (isLoading || noteExists === false || error) {
       return (
         <div className="flex h-full min-w-0 flex-1">
-          <RouteFallback height={42} width={42} className="mx-auto my-auto" />
+          <RouteFallback
+            height="2.625rem"
+            width="2.625rem"
+            className="mx-auto my-auto"
+          />
         </div>
       );
     }

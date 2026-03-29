@@ -1,12 +1,12 @@
 export function ColorPalette2({
-  width = 18,
-  height = 18,
+  width = '1.125rem',
+  height = '1.125rem',
   fill = 'currentColor',
   strokeWidth = 1.5,
   className = '',
 }: {
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
   fill?: string;
   strokeWidth?: number;
   className?: string;

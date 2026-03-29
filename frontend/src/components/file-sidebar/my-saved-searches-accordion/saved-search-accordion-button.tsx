@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
+import { useAtom, useSetAtom } from 'jotai/react';
 import {
   contextMenuDataAtom,
   dialogDataAtom,
@@ -12,7 +12,6 @@ import {
 import { cn } from '../../../utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
 import { routeUrls } from '../../../utils/routes';
-import { currentZoomAtom } from '../../../hooks/resize';
 import { SavedSearch } from '../../../../bindings/github.com/etesam913/bytebook/internal/search/models';
 import { MagnifierSlash } from '../../../icons/magnifier-slash';
 import { SavedSearchDialogChildren } from './saved-search-dialog-children';
@@ -45,7 +44,6 @@ export function SavedSearchAccordionButton({
     selectionRange.has(`saved-search:${savedSearches[i].name}`);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
-  const currentZoom = useAtomValue(currentZoomAtom);
 
   return (
     <Tooltip content={savedSearches?.at(i)?.query} placement="right">
@@ -75,14 +73,14 @@ export function SavedSearchAccordionButton({
             itemName: searchName,
           });
           setContextMenuData({
-            x: e.clientX / currentZoom,
-            y: e.clientY / currentZoom,
+            x: e.clientX,
+            y: e.clientY,
             isShowing: true,
             items: [
               {
                 label: (
                   <span className="flex items-center gap-1.5">
-                    <MagnifierSlash width={18} height={18} />
+                    <MagnifierSlash width="1.125rem" height="1.125rem" />
                     Delete {newSelectionRange.size > 1 ? 'Searches' : 'Search'}
                   </span>
                 ),
@@ -124,7 +122,11 @@ export function SavedSearchAccordionButton({
           });
         }}
       >
-        <Magnifier height={14} width={14} className="will-change-transform" />
+        <Magnifier
+          height="0.875rem"
+          width="0.875rem"
+          className="will-change-transform"
+        />
         <p className="whitespace-nowrap text-ellipsis overflow-hidden">
           {sidebarSearchName}
         </p>

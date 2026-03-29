@@ -1,17 +1,15 @@
 import type { MotionValue } from 'motion/react';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import { useRef, useState } from 'react';
 import { draggedGhostElementAtom } from '../editor/atoms';
 import { dragItem } from '../../utils/draggable';
 import { MAX_SIDEBAR_WIDTH } from '../../utils/general';
 import { cn } from '../../utils/string-formatting';
-import { currentZoomAtom } from '../../hooks/resize';
 
 const MIN_SIDEBAR_WIDTH = 250;
 
 export function Spacer({ width }: { width: MotionValue<number> }) {
   const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
-  const currentZoom = useAtomValue(currentZoomAtom);
   const [isDragged, setIsDragged] = useState(false);
   const dragStartClientXRef = useRef<number | null>(null);
   const dragStartWidthRef = useRef<number | null>(null);
@@ -32,11 +30,9 @@ export function Spacer({ width }: { width: MotionValue<number> }) {
   };
 
   const handleDrag = (e: MouseEvent) => {
-    // Account for zoom by dividing clientX by current zoom level
-    const adjustedClientX = e.clientX / currentZoom;
-    const dragStartClientX = dragStartClientXRef.current ?? adjustedClientX;
+    const dragStartClientX = dragStartClientXRef.current ?? e.clientX;
     const dragStartWidth = dragStartWidthRef.current ?? width.get();
-    const delta = adjustedClientX - dragStartClientX;
+    const delta = e.clientX - dragStartClientX;
     const newWidth = dragStartWidth + delta;
 
     // Clamp width between min and max values
@@ -48,8 +44,7 @@ export function Spacer({ width }: { width: MotionValue<number> }) {
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    const adjustedClientX = e.clientX / currentZoom;
-    dragStartClientXRef.current = adjustedClientX;
+    dragStartClientXRef.current = e.clientX;
     dragStartWidthRef.current = width.get();
     handleDragStart();
     setDraggedGhostElement(e.target as HTMLElement);
@@ -60,7 +55,7 @@ export function Spacer({ width }: { width: MotionValue<number> }) {
     <div
       onMouseDown={handleMouseDown}
       className={cn(
-        'w-[6px] border-l',
+        'w-[0.375rem] border-l',
         isDragged
           ? 'border-(--accent-color) border-l-3'
           : 'border-l-zinc-200 dark:border-l-zinc-700 hover:border-l-(--accent-color)! hover:border-l-2 hover:cursor-grab'

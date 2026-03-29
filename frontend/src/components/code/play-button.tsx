@@ -82,14 +82,26 @@ export function PlayButton({
         }}
       >
         {status === 'busy' && (
-          <MediaStop className="will-change-transform" width={20} height={20} />
+          <MediaStop
+            className="will-change-transform"
+            width="1.25rem"
+            height="1.25rem"
+          />
         )}
         {status === 'queueing' && (
-          <Loader className="will-change-transform" width={20} height={20} />
+          <Loader
+            className="will-change-transform"
+            width="1.25rem"
+            height="1.25rem"
+          />
         )}
         {status === 'starting' ||
           (status === 'idle' && (
-            <Play className="will-change-transform" width={20} height={20} />
+            <Play
+              className="will-change-transform"
+              width="1.25rem"
+              height="1.25rem"
+            />
           ))}
       </motion.button>
     </Tooltip>

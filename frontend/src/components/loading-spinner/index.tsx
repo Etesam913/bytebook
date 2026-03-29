@@ -5,8 +5,8 @@ export function LoadingSpinner({
   width,
   className,
 }: {
-  height?: number;
-  width?: number;
+  height?: string;
+  width?: string;
   className?: string;
 }) {
   return (

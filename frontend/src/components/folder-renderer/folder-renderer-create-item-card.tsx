@@ -87,7 +87,7 @@ export function FolderRendererCreateItemCard({ folder }: { folder: Folder }) {
             setCreatingItemType(FOLDER_TYPE);
           }}
         >
-          <FolderIcon width={16} height={16} />
+          <FolderIcon width="1rem" height="1rem" />
           Create folder
         </MotionButton>
         <MotionButton
@@ -100,7 +100,7 @@ export function FolderRendererCreateItemCard({ folder }: { folder: Folder }) {
             setCreatingItemType(FILE_TYPE);
           }}
         >
-          <Blog width={16} height={16} />
+          <Blog width="1rem" height="1rem" />
           Create note
         </MotionButton>
       </div>
@@ -112,15 +112,15 @@ export function FolderRendererCreateItemCard({ folder }: { folder: Folder }) {
                 {isCreatingFolder ? (
                   <FolderIcon
                     className="min-w-4 min-h-4"
-                    height={16}
-                    width={16}
+                    height="1rem"
+                    width="1rem"
                     strokeWidth={1.75}
                   />
                 ) : (
                   <Blog
                     className="min-w-4 min-h-4"
-                    height={16}
-                    width={16}
+                    height="1rem"
+                    width="1rem"
                     strokeWidth={1.75}
                   />
                 )}
