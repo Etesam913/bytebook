@@ -40,6 +40,18 @@ func handleFolderCreateEvent(params EventParams, event *application.CustomEvent)
 		return
 	}
 
+	if params.ImportCoordinator != nil {
+		for _, folder := range data {
+			folderPath := folder["folderPath"]
+			if folderPath == "" {
+				log.Println("Folder create event data missing folderPath")
+				continue
+			}
+			params.ImportCoordinator.EnqueueFolderImport(folderPath)
+		}
+		return
+	}
+
 	addFoldersToIndex(params, data)
 }
 

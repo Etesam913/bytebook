@@ -7,6 +7,11 @@ func (s Set[T]) Add(value T) {
 	s[value] = struct{}{}
 }
 
+// Remove an element from the set.
+func (s Set[T]) Remove(value T) {
+	delete(s, value)
+}
+
 // Check if an element exists in the set
 func (s Set[T]) Has(value T) bool {
 	_, exists := s[value]

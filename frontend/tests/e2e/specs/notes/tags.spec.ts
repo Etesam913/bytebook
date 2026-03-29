@@ -12,7 +12,6 @@ import {
   MOCK_SET_TAGS_ON_NOTES_RESPONSE,
   MOCK_TAGS_FOR_NOTES_RESPONSE,
   MOCK_TAGS_RESPONSE,
-  MOCK_SUCCESS_RESPONSE,
 } from '../../utils/mock-responses';
 import { SERVICE_FILES } from '../../utils/service-files';
 import { setupWailsEvents, emitWailsEvent } from '../../utils/wails-events';
@@ -33,15 +32,6 @@ test.describe('Tags Workflow', () => {
         method: 'GetChildrenOfFolderBasedOnPath',
       },
       MOCK_ECONOMICS_FOLDER_CHILDREN_RESPONSE
-    );
-
-    await mockBinding(
-      context,
-      {
-        file: SERVICE_FILES.FILE_TREE_SERVICE,
-        method: 'OpenFolderAndAddToFileWatcher',
-      },
-      MOCK_SUCCESS_RESPONSE
     );
 
     // Mock project settings
