@@ -1,12 +1,12 @@
 export function Minimize({
-  width = 18,
-  height = 18,
+  width = '1.125rem',
+  height = '1.125rem',
   fill = 'currentColor',
   secondaryfill = 'currentColor',
   className,
 }: {
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
   fill?: string;
   secondaryfill?: string;
   className?: string;
@@ -14,8 +14,7 @@ export function Minimize({
   return (
     <svg
       className={className}
-      height={height}
-      width={width}
+      style={{ width, height }}
       viewBox="0 0 12 12"
       xmlns="http://www.w3.org/2000/svg"
     >

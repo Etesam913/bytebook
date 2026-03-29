@@ -4,8 +4,8 @@ export function ErrorLoading() {
   return (
     <div className="text-center text-sm h-full flex flex-col items-center justify-center gap-1">
       <TriangleWarning
-        width={32}
-        height={32}
+        width="2rem"
+        height="2rem"
         className="pointer-events-none mb-1"
       />
       <h3 className="pointer-events-none">Error: Could not load file</h3>

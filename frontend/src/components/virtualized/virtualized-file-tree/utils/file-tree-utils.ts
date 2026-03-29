@@ -10,15 +10,11 @@ import type { FileTreeData, ReadonlyFileTreeData } from '../../../../atoms';
 /**
  * Calculates the padding-left (indent) value for a file tree item based on its level.
  * @param level - The nesting level of the item (0 for root-level items)
- * @param currentZoom - The current zoom factor to adjust the indent
- * @returns The calculated padding-left value in pixels
+ * @returns The calculated padding-left value as a rem-based CSS length
  */
-export function getFileTreeItemIndent(
-  level: number,
-  currentZoom: number
-): number {
-  const INDENT_WIDTH = 18;
-  return ((level + 1) * INDENT_WIDTH) / currentZoom;
+export function getFileTreeItemIndent(level: number): string {
+  const INDENT_WIDTH_REM = 1.125;
+  return `${(level + 1) * INDENT_WIDTH_REM}rem`;
 }
 
 /**

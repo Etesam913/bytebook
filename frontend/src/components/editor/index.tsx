@@ -134,7 +134,7 @@ export function NotesEditor({
             className={cn(
               'py-6 px-12 flex flex-col w-full min-w-72 flex-1',
               projectSettings.appearance.noteWidth === 'readability' &&
-                'max-w-[900px] mx-auto'
+                'max-w-[56.25rem] mx-auto'
             )}
           >
             <div

@@ -6,7 +6,6 @@ import { Note } from '../../../icons/page';
 import { AccordionButton } from '../../accordion/accordion-button';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
 import { useAutoScrollDuringDrag } from '../../../hooks/draggable';
-
 export function MyFilesAccordion() {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isOpen = openState.folders;
@@ -31,8 +30,8 @@ export function MyFilesAccordion() {
           }
           icon={
             <Note
-              width={18}
-              height={18}
+              width="1.125rem"
+              height="1.125rem"
               strokeWidth={1.75}
               className="will-change-transform"
             />

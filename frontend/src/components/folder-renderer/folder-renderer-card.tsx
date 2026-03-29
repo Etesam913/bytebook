@@ -41,8 +41,8 @@ export function FolderRendererCard({ item }: { item: FolderRendererItem }) {
         {item.type === 'folder' ? (
           <FolderIcon
             className="min-w-4 min-h-4"
-            height={16}
-            width={16}
+            height="1rem"
+            width="1rem"
             strokeWidth={1.75}
           />
         ) : (

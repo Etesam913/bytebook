@@ -96,7 +96,7 @@ export function FontSizeRow() {
           }
           onClick={() => updateFontSize(DEFAULT_EDITOR_FONT_SIZE)}
         >
-          <ArrowRotateAnticlockwise width={12} height={12} />
+          <ArrowRotateAnticlockwise width="0.75rem" height="0.75rem" />
         </MotionIconButton>
       </div>
     </SettingsRow>

@@ -45,7 +45,7 @@ export function FolderRendererHeader({
       value: 'reveal-in-finder',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <Finder className="min-w-5" height={18} width={18} />
+          <Finder className="min-w-5" height="1.125rem" width="1.125rem" />
           Reveal In Finder
         </span>
       ),
@@ -55,9 +55,13 @@ export function FolderRendererHeader({
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           {isPinned ? (
-            <PinTackSlash className="min-w-5" height={18} width={18} />
+            <PinTackSlash
+              className="min-w-5"
+              height="1.125rem"
+              width="1.125rem"
+            />
           ) : (
-            <PinTack2 className="min-w-5" height={18} width={18} />
+            <PinTack2 className="min-w-5" height="1.125rem" width="1.125rem" />
           )}
           {isPinned ? 'Unpin Folder' : 'Pin Folder'}
         </span>
@@ -67,7 +71,7 @@ export function FolderRendererHeader({
       value: 'move-to-trash',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <Trash className="min-w-5" height={18} width={18} />
+          <Trash className="min-w-5" height="1.125rem" width="1.125rem" />
           Move to Trash
         </span>
       ),
@@ -100,7 +104,7 @@ export function FolderRendererHeader({
                     navigate(routeUrls.search());
                   }}
                 >
-                  <Magnifier width={14} height={14} />
+                  <Magnifier width="0.875rem" height="0.875rem" />
                 </MotionIconButton>
               </Tooltip>
             </span>

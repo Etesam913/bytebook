@@ -2,12 +2,12 @@ function PowerOff({
   fill = 'currentColor',
   secondaryfill,
   strokewidth = 1.5,
-  width = 16,
-  height = 16,
+  width = '1rem',
+  height = '1rem',
 }: {
   strokeWidth?: number;
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
   fill?: string;
   secondaryfill?: string;
   strokewidth?: number;
@@ -16,8 +16,7 @@ function PowerOff({
 
   return (
     <svg
-      height={height}
-      width={width}
+      style={{ width, height }}
       strokeWidth={strokewidth}
       viewBox="0 0 12 12"
       xmlns="http://www.w3.org/2000/svg"

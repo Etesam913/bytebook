@@ -133,7 +133,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                     })
                   }
                 >
-                  <ShareRight height={16} width={16} />
+                  <ShareRight height="1rem" width="1rem" />
                 </MotionIconButton>
               </span>
             ))}

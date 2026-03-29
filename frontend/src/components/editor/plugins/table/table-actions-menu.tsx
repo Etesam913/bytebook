@@ -650,7 +650,11 @@ function TableCellActionMenuContainer({
         value: 'insert-row-above',
         label: (
           <span className="flex items-center gap-3 px-1 py-0.5">
-            <TableRowNewTop2 className="shrink-0" width={14} height={14} />
+            <TableRowNewTop2
+              className="shrink-0"
+              width="0.875rem"
+              height="0.875rem"
+            />
             Insert row above
           </span>
         ),
@@ -659,7 +663,11 @@ function TableCellActionMenuContainer({
         value: 'insert-row-below',
         label: (
           <span className="flex items-center gap-3 px-1 py-0.5">
-            <TableRowNewBottom2 className="shrink-0" width={14} height={14} />
+            <TableRowNewBottom2
+              className="shrink-0"
+              width="0.875rem"
+              height="0.875rem"
+            />
             Insert row below
           </span>
         ),
@@ -668,7 +676,11 @@ function TableCellActionMenuContainer({
         value: 'insert-column-left',
         label: (
           <span className="flex items-center gap-3 px-1 py-0.5">
-            <TableColNewLeft2 className="shrink-0" width={14} height={14} />
+            <TableColNewLeft2
+              className="shrink-0"
+              width="0.875rem"
+              height="0.875rem"
+            />
             Insert column left
           </span>
         ),
@@ -677,7 +689,11 @@ function TableCellActionMenuContainer({
         value: 'insert-column-right',
         label: (
           <span className="flex items-center gap-3 px-1 py-0.5">
-            <TableColNewRight2 className="shrink-0" width={14} height={14} />
+            <TableColNewRight2
+              className="shrink-0"
+              width="0.875rem"
+              height="0.875rem"
+            />
             Insert column right
           </span>
         ),
@@ -686,7 +702,11 @@ function TableCellActionMenuContainer({
         value: 'delete-column',
         label: (
           <span className="flex items-center gap-2 px-1 py-0.5">
-            <TableColsMinus2 className="shrink-0" width={18} height={18} />
+            <TableColsMinus2
+              className="shrink-0"
+              width="1.125rem"
+              height="1.125rem"
+            />
             Delete column
           </span>
         ),
@@ -695,7 +715,11 @@ function TableCellActionMenuContainer({
         value: 'delete-row',
         label: (
           <span className="flex items-center gap-2 px-1 py-0.5">
-            <TableRowsMinus2 className="shrink-0" width={18} height={18} />
+            <TableRowsMinus2
+              className="shrink-0"
+              width="1.125rem"
+              height="1.125rem"
+            />
             Delete row
           </span>
         ),
@@ -704,7 +728,7 @@ function TableCellActionMenuContainer({
         value: 'delete-table',
         label: (
           <span className="flex items-center gap-2 px-1 py-0.5">
-            <Trash className="shrink-0" height={18} width={18} />
+            <Trash className="shrink-0" height="1.125rem" width="1.125rem" />
             Delete table
           </span>
         ),

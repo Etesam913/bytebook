@@ -18,7 +18,6 @@ import {
 } from '../../../../hooks/notes';
 import { useEditTagsFormMutation } from '../../../../hooks/tags';
 import { useRevealInFinderMutation } from '../../../../hooks/code';
-import { currentZoomAtom } from '../../../../hooks/resize';
 import { createFilePath } from '../../../../utils/path';
 import { cn } from '../../../../utils/string-formatting';
 import type { FlattenedFileOrFolder } from '../types';
@@ -51,7 +50,6 @@ export function FileTreeFileItem({
   const filePathFromRoute = useFilePathFromRoute();
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
-  const currentZoom = useAtomValue(currentZoomAtom);
   const sidebarSelection = useAtomValue(sidebarSelectionAtom);
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
@@ -128,7 +126,7 @@ export function FileTreeFileItem({
     onSelectionClick(e);
   }
 
-  const paddingLeft = `${getFileTreeItemIndent(dataItem.level, currentZoom)}px`;
+  const paddingLeft = getFileTreeItemIndent(dataItem.level);
   const innerContent = (
     <span
       style={{ paddingLeft }}
@@ -142,7 +140,7 @@ export function FileTreeFileItem({
       {filePath ? (
         <RenderNoteIcon filePath={filePath} size="sm" />
       ) : (
-        <FileBan className="min-w-4 min-h-4" height={16} width={16} />
+        <FileBan className="min-w-4 min-h-4" height="1rem" width="1rem" />
       )}
       <InlineTreeItemInput
         dataItem={dataItem}
@@ -229,14 +227,14 @@ export function FileTreeFileItem({
         );
 
         setContextMenuData({
-          x: e.clientX / currentZoom,
-          y: e.clientY / currentZoom,
+          x: e.clientX,
+          y: e.clientY,
           isShowing: true,
           items: [
             {
               label: (
                 <span className="flex items-center gap-1.5">
-                  <Finder height={17} width={17} />{' '}
+                  <Finder height="1.0625rem" width="1.0625rem" />{' '}
                   <span>Reveal in Finder</span>
                 </span>
               ),
@@ -256,9 +254,9 @@ export function FileTreeFileItem({
                     label: (
                       <span className="flex items-center gap-1.5">
                         {shouldPinSelectedFiles ? (
-                          <PinTack2 height={17} width={17} />
+                          <PinTack2 height="1.0625rem" width="1.0625rem" />
                         ) : (
-                          <PinTackSlash height={17} width={17} />
+                          <PinTackSlash height="1.0625rem" width="1.0625rem" />
                         )}{' '}
                         <span>
                           {shouldPinSelectedFiles
@@ -290,7 +288,7 @@ export function FileTreeFileItem({
                   {
                     label: (
                       <span className="flex items-center gap-1.5">
-                        <TagPlus height={17} width={17} />{' '}
+                        <TagPlus height="1.0625rem" width="1.0625rem" />{' '}
                         <span>Edit Tags</span>
                       </span>
                     ),
@@ -329,7 +327,8 @@ export function FileTreeFileItem({
                   {
                     label: (
                       <span className="flex items-center gap-1.5">
-                        <FilePen height={17} width={17} /> <span>Rename</span>
+                        <FilePen height="1.0625rem" width="1.0625rem" />{' '}
+                        <span>Rename</span>
                       </span>
                     ),
                     value: 'rename',
@@ -343,7 +342,8 @@ export function FileTreeFileItem({
               value: 'move-to-trash',
               label: (
                 <span className="flex items-center gap-1.5">
-                  <Trash height={17} width={17} /> <span>Move to Trash</span>
+                  <Trash height="1.0625rem" width="1.0625rem" />{' '}
+                  <span>Move to Trash</span>
                 </span>
               ),
               onChange: () => {

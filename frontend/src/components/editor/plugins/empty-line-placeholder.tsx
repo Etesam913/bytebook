@@ -6,7 +6,6 @@ import { projectSettingsAtom } from '../../../atoms';
 import type { Dispatch, SetStateAction } from 'react';
 import type { PlaceholderLineData } from '../types';
 import { useRefState } from '../hooks/ref-state';
-import { normalizeOffsetForCurrentZoom } from '../../../hooks/resize';
 
 /**
  * Plugin that shows a placeholder hint when the user is on an empty line
@@ -56,8 +55,8 @@ export function EmptyLinePlaceholderPlugin({
     setPlaceholderLineData((prev) => ({
       ...prev,
       position: {
-        top: normalizeOffsetForCurrentZoom(rect.top - containerRect.top),
-        left: normalizeOffsetForCurrentZoom(rect.left - containerRect.left),
+        top: rect.top - containerRect.top,
+        left: rect.left - containerRect.left,
       },
     }));
   }
@@ -97,7 +96,7 @@ export function EmptyLinePlaceholderPlugin({
       className="pointer-events-none select-none text-zinc-400 dark:text-zinc-500 absolute whitespace-nowrap"
       style={{
         position: 'absolute',
-        transform: `translate(calc(${placeholderLineData.position.left + 3}px), calc(${placeholderLineData.position.top + 2}px))`,
+        transform: `translate(calc(${placeholderLineData.position.left}px + 0.1875rem), calc(${placeholderLineData.position.top}px + 0.125rem))`,
         fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
         fontSize: 'var(--editor-font-size)',
       }}

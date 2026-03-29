@@ -62,13 +62,13 @@ export function FileError({
       </AnimatePresence>
       {type === 'loading-fail' && (
         <div className="flex items-center gap-1.5">
-          <TriangleWarning width={18} height={18} />
+          <TriangleWarning width="1.125rem" height="1.125rem" />
           <p className="text-sm">File errored out while loading</p>
         </div>
       )}
       {type === 'unknown-attachment' && (
         <div className="flex items-center gap-1.5">
-          <Paperclip width={18} height={18} />
+          <Paperclip width="1.125rem" height="1.125rem" />
           <p className="text-sm">Unknown attachment</p>
         </div>
       )}

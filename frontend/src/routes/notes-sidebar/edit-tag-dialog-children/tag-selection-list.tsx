@@ -91,7 +91,7 @@ export function TagSelectionList({
           }}
           tabIndex={0}
         >
-          <TagPlus height={18} width={18} /> Create tag &quot;
+          <TagPlus height="1.125rem" width="1.125rem" /> Create tag &quot;
           {searchTerm}&quot;
         </IconButton>
       )}

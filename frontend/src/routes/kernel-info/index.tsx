@@ -23,23 +23,23 @@ const KERNEL_CONFIGS: Record<LanguagesWithKernels, KernelConfig> = {
   python: {
     displayName: 'Python',
     executable: 'python',
-    icon: <PythonLogo height={32} width={32} />,
+    icon: <PythonLogo height="2rem" width="2rem" />,
   },
   go: {
     displayName: 'Go',
     executable: 'go',
-    icon: <GolangLogo height={32} width={32} />,
+    icon: <GolangLogo height="2rem" width="2rem" />,
   },
   // Future kernels can be added here:
   javascript: {
     displayName: 'Javascript',
     executable: 'deno',
-    icon: <JavascriptLogo height={32} width={32} />,
+    icon: <JavascriptLogo height="2rem" width="2rem" />,
   },
   java: {
     displayName: 'Java',
     executable: 'java',
-    icon: <JavaLogo height={32} width={32} />,
+    icon: <JavaLogo height="2rem" width="2rem" />,
   },
 };
 
@@ -63,8 +63,8 @@ export function KernelInfo() {
         <div className="flex items-center justify-center min-h-full">
           <div className="text-center">
             <SquareTerminal
-              width={48}
-              height={48}
+              width="3rem"
+              height="3rem"
               className="mx-auto mb-4 text-zinc-400"
             />
             <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
@@ -88,7 +88,7 @@ export function KernelInfo() {
   const getKernelIcon = (kernel: string) => {
     return (
       KERNEL_CONFIGS[kernel as LanguagesWithKernels]?.icon || (
-        <SquareTerminal height={32} width={32} />
+        <SquareTerminal height="2rem" width="2rem" />
       )
     );
   };

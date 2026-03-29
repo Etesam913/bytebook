@@ -1,12 +1,12 @@
 export function TagIcon({
-  width = 20,
-  height = 20,
+  width = '1.25rem',
+  height = '1.25rem',
   fill = 'currentColor',
   className,
   strokeWidth = 1.5,
 }: {
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
   fill?: string;
   className?: string;
   strokeWidth?: number;
@@ -14,8 +14,7 @@ export function TagIcon({
   return (
     <svg
       className={className}
-      height={height}
-      width={width}
+      style={{ width, height }}
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >

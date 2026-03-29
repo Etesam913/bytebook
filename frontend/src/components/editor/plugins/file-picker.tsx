@@ -14,7 +14,7 @@ import {
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SearchFileNamesFromQuery } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
-import { mostRecentNotesAtom } from '../../../atoms';
+import { mostRecentItemsAtom } from '../../../atoms';
 import { WAILS_URL } from '../../../utils/general';
 import { createFilePath } from '../../../utils/path';
 import {
@@ -25,6 +25,7 @@ import {
 import { $createLinkNode } from '../nodes/link';
 import { INSERT_FILES_COMMAND } from './file';
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
+import { FILE_TYPE } from '../../virtualized/virtualized-file-tree/types';
 
 type FilePickerOption = FilePickerMenuItemData & {
   dropdownOption: DropdownPickerOption;
@@ -41,7 +42,7 @@ export function FilePickerMenuPlugin() {
     // Allow punctuation in note names (e.g. "ete!sam", "my_note").
     punctuation: '',
   });
-  const mostRecentNotes = useAtomValue(mostRecentNotesAtom);
+  const mostRecentItems = useAtomValue(mostRecentItemsAtom);
   const { data: searchResults } = useQuery({
     queryKey: ['file-picker-search', searchQuery],
     queryFn: () => SearchFileNamesFromQuery(searchQuery ?? ''),
@@ -58,11 +59,15 @@ export function FilePickerMenuPlugin() {
 
   // Getting data into the FilePickerMenuItemData format
   const optionSources: FileResultOption[] = !searchQuery
-    ? mostRecentNotes.map((filePath) => ({ kind: 'file', filePath }))
+    ? mostRecentItems.flatMap((recentItem): FileResultOption[] =>
+        recentItem.type === FILE_TYPE
+          ? [{ kind: 'file', filePath: recentItem }]
+          : []
+      )
     : (searchResults ?? []).flatMap((result): FileResultOption[] => {
         if (!result.note) return [];
         const filePath = createFilePath(`${result.folder}/${result.note}`);
-        return filePath ? [{ kind: 'file', filePath }] : [];
+        return filePath ? [{ kind: FILE_TYPE, filePath }] : [];
       });
 
   const options: FilePickerOption[] = optionSources.map((item) => {
@@ -124,7 +129,13 @@ export function FilePickerMenuPlugin() {
         }
 
         return createPortal(
-          <ul className="fixed z-10 flex overflow-y-auto overflow-x-hidden text-nowrap flex-col max-h-64 gap-0.5 w-64 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1 text-zinc-950 dark:text-zinc-100">
+          <ul
+            className="fixed z-10 flex overflow-y-auto overflow-x-hidden text-nowrap flex-col max-h-64 gap-0.5 w-64 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1 text-zinc-950 dark:text-zinc-100"
+            style={{
+              transform:
+                'translateY(calc(var(--editor-font-size) * 1.5 + 0.375rem))',
+            }}
+          >
             {options.map((option, i) => (
               <FilePickerMenuItem
                 key={option.dropdownOption.key}

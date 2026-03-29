@@ -1,11 +1,11 @@
 export function Ufo({
-  width = 20,
-  height = 20,
+  width = '1.25rem',
+  height = '1.25rem',
   fill = 'currentColor',
   className,
 }: {
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
   fill?: string;
   className?: string;
 }) {

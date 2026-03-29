@@ -16,14 +16,13 @@ export function RenderNoteIcon({
   activeNotePath?: FilePath;
   size?: 'sm';
 }) {
-  const iconSize = size === 'sm' ? 16 : 20;
-  const minWClass = `min-w-[${iconSize}px]`;
+  const iconSize = size === 'sm' ? '1rem' : '1.25rem';
 
   if (filePath.extension === 'md') {
     if (activeNotePath && filePath.equals(activeNotePath)) {
       return (
         <FilePen
-          className={`${minWClass} pointer-events-none`}
+          className={'pointer-events-none'}
           height={iconSize}
           width={iconSize}
         />
@@ -31,7 +30,7 @@ export function RenderNoteIcon({
     }
     return (
       <Note
-        className={`${minWClass} pointer-events-none`}
+        className={'pointer-events-none'}
         height={iconSize}
         width={iconSize}
       />
@@ -41,7 +40,7 @@ export function RenderNoteIcon({
   if (filePath.extension === 'pdf') {
     return (
       <PDFIcon
-        className={`${minWClass} pointer-events-none`}
+        className={'pointer-events-none'}
         height={iconSize}
         width={iconSize}
       />
@@ -51,7 +50,7 @@ export function RenderNoteIcon({
   if (IMAGE_FILE_EXTENSIONS.includes(filePath.extension)) {
     return (
       <ImageIcon
-        className={`${minWClass} pointer-events-none`}
+        className={'pointer-events-none'}
         height={iconSize}
         width={iconSize}
       />
@@ -61,7 +60,7 @@ export function RenderNoteIcon({
   if (VIDEO_FILE_EXTENSIONS.includes(filePath.extension)) {
     return (
       <VideoIcon
-        className={`${minWClass} pointer-events-none`}
+        className={'pointer-events-none'}
         height={iconSize}
         width={iconSize}
       />
@@ -70,7 +69,7 @@ export function RenderNoteIcon({
 
   return (
     <FileBan
-      className={`${minWClass} pointer-events-none`}
+      className={'pointer-events-none'}
       height={iconSize}
       width={iconSize}
     />

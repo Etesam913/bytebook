@@ -355,7 +355,7 @@ test.describe('File Sidebar', () => {
     );
   });
 
-  test.describe('Pinned Notes Accordion', () => {
+  test.describe('Pinned Accordion', () => {
     test('renders correctly', async ({ page }) => {
       await page.goto('/');
       const sidebar = page.getByTestId('file-sidebar');
@@ -454,27 +454,24 @@ test.describe('File Sidebar', () => {
     });
   });
 
-  test.describe('Recent Notes Accordion', () => {
-    test('renders recent notes accordion', async ({ page }) => {
+  test.describe('Recent Accordion', () => {
+    test('renders recent items accordion', async ({ page }) => {
       await page.addInitScript(() => {
         window.localStorage.setItem(
-          'mostRecentNotes',
-          JSON.stringify([
-            'Economics Notes/Inflation.md',
-            'Research Notes/Black Holes.md',
-          ])
+          'mostRecentItems',
+          JSON.stringify(['Economics Notes/Inflation.md', 'Research Notes'])
         );
       });
 
       await page.goto('/');
       const sidebar = page.getByTestId('file-sidebar');
-      await expect(sidebar).toContainText('Recent Notes');
+      await expect(sidebar).toContainText('Recent');
 
-      const recentNotesAccordion = page.getByTestId('recent-notes-accordion');
-      await recentNotesAccordion.click();
+      const recentAccordion = page.getByTestId('recent-accordion');
+      await recentAccordion.click();
 
       await expect(sidebar).toContainText('Inflation');
-      await expect(sidebar).toContainText('Black Holes');
+      await expect(sidebar).toContainText('Research Notes');
     });
   });
 

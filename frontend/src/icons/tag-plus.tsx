@@ -1,12 +1,12 @@
 export function TagPlus({
-  width = 20,
-  height = 20,
+  width = '1.25rem',
+  height = '1.25rem',
   fill = 'currentColor',
   strokeWidth = 1.5,
   className,
 }: {
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
   fill?: string;
   strokeWidth?: number;
   className?: string;
@@ -14,8 +14,7 @@ export function TagPlus({
   return (
     <svg
       className={className}
-      height={height}
-      width={width}
+      style={{ width, height }}
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"
     >

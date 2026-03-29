@@ -1,11 +1,11 @@
 export function SquareTerminal({
-  width = 16,
-  height = 16,
+  width = '1rem',
+  height = '1rem',
   fill = 'currentColor',
   className,
 }: {
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
   fill?: string;
   className?: string;
 }) {

@@ -65,7 +65,7 @@ export function useSaveSearchDialog(): (searchQuery: string) => void {
             type="submit"
           >
             <span>Save Search</span>
-            <BookBookmark height={20} width={20} />
+            <BookBookmark height="1.25rem" width="1.25rem" />
           </MotionButton>
         </>
       ),
@@ -169,7 +169,7 @@ export function useCreateTableDialog(): (
             type="submit"
           >
             <span>Create Table</span>
-            <Table width={20} height={20} />
+            <Table width="1.25rem" height="1.25rem" />
           </MotionButton>
         </>
       ),

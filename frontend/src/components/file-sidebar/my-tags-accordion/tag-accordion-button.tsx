@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
+import { useAtom, useSetAtom } from 'jotai/react';
 import {
   contextMenuDataAtom,
   dialogDataAtom,
@@ -17,7 +17,6 @@ import {
 } from '../../../utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
 import { routeUrls } from '../../../utils/routes';
-import { currentZoomAtom } from '../../../hooks/resize';
 import { TagDialogChildren } from './tag-dialog-children';
 
 export function TagAccordionButton({
@@ -44,7 +43,6 @@ export function TagAccordionButton({
   const isSelected = tags?.at(i) && selectionRange.has(`tag:${tags[i]}`);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
-  const currentZoom = useAtomValue(currentZoomAtom);
 
   return (
     <button
@@ -67,14 +65,14 @@ export function TagAccordionButton({
           itemName: sidebarTagName,
         });
         setContextMenuData({
-          x: e.clientX / currentZoom,
-          y: e.clientY / currentZoom,
+          x: e.clientX,
+          y: e.clientY,
           isShowing: true,
           items: [
             {
               label: (
                 <span className="flex items-center gap-1.5">
-                  <TagSlash /> Delete{' '}
+                  <TagSlash width="1rem" height="1rem" /> Delete{' '}
                   {newSelectionRange.size > 1 ? 'Tags' : 'Tag'}
                 </span>
               ),
@@ -101,8 +99,8 @@ export function TagAccordionButton({
       }}
     >
       <TagIcon
-        height={16}
-        width={16}
+        height="1rem"
+        width="1rem"
         strokeWidth={1.75}
         className="will-change-transform"
       />

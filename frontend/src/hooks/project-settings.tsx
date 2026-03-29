@@ -48,7 +48,7 @@ function updateAccentColorVariable(accentColor: string) {
 function updateEditorFontSizeVariable(fontSize: unknown) {
   const validatedFontSize = validateEditorFontSize(fontSize);
   document.documentElement.style.setProperty(
-    '--editor-font-size',
+    '--editor-font-size-base',
     `${validatedFontSize}px`
   );
 }

@@ -1,12 +1,12 @@
 export function QuoteIcon({
-  width = 20,
-  height = 20,
+  width = '1.25rem',
+  height = '1.25rem',
   fill = 'currentColor',
   className,
   secondaryfill,
 }: {
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
   fill?: string;
   className?: string;
   secondaryfill?: string;
@@ -14,8 +14,7 @@ export function QuoteIcon({
   const actualSecondaryFill = secondaryfill || fill;
   return (
     <svg
-      height={height}
-      width={width}
+      style={{ width, height }}
       className={className}
       viewBox="0 0 18 18"
       xmlns="http://www.w3.org/2000/svg"

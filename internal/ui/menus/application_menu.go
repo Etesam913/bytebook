@@ -120,7 +120,7 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 		}
 	})
 
-	// Remove the default zoom in and out as it uses magnification instead of document.style.zoom
+	// Replace the default zoom items so zoom is handled by the frontend UI scale instead of native magnification.
 	zoomIn := sub.FindByLabel("Zoom In")
 	if zoomIn != nil {
 		sub.RemoveMenuItem(zoomIn)
@@ -140,7 +140,7 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 		app.Event.Emit(util.Events.ZoomReset)
 	})
 
-	// Adds the new zoom in and out which will use document.style.zoom
+	// Adds custom zoom items that drive the frontend UI scale.
 	zoomIn = sub.Add("Zoom In")
 	zoomIn.SetAccelerator("cmdorctrl+plus")
 	zoomIn.OnClick(func(ctx *application.Context) {

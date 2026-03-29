@@ -1,18 +1,17 @@
 export function GolangLogo({
-  height = 20,
-  width = 20,
+  height = '1.25rem',
+  width = '1.25rem',
   className,
 }: {
-  height?: number;
-  width?: number;
+  height?: string;
+  width?: string;
   className?: string;
 }) {
   return (
     <svg
       className={className}
       xmlns="http://www.w3.org/2000/svg"
-      width={width}
-      height={height}
+      style={{ width, height }}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

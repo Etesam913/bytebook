@@ -8,7 +8,12 @@ import {
   type ProjectSettings,
 } from './types';
 import type { FileOrFolder } from './components/virtualized/virtualized-file-tree/types';
-import { type FilePath, createFilePath } from './utils/path';
+import {
+  type FilePath,
+  type FolderPath,
+  createFilePath,
+  createFolderPath,
+} from './utils/path';
 import { logger } from './utils/logging';
 import { DEFAULT_EDITOR_FONT_SIZE } from './utils/project-settings';
 
@@ -32,22 +37,26 @@ function atomWithLogging<T>(name: string, initialValue: T) {
     }
   );
 }
-// Most recent notes atoms
-const initializeMostRecentNotes = (): FilePath[] => {
+type RecentItem = FilePath | FolderPath;
+
+// Most recent sidebar items
+const initializeMostRecentItems = (): RecentItem[] => {
   const stored = JSON.parse(
-    localStorage.getItem('mostRecentNotes') ?? '[]'
+    localStorage.getItem('mostRecentItems') ?? '[]'
   ) as string[];
   return stored
-    .map((path) => createFilePath(path))
-    .filter((path): path is FilePath => path !== null);
+    .map((path) => createFilePath(path) ?? createFolderPath(path))
+    .filter((path): path is RecentItem => path !== null);
 };
 
-export const mostRecentNotesAtom = atom(
-  initializeMostRecentNotes(),
-  (_, set, payload: FilePath[]) => {
+export const mostRecentItemsAtom = atom(
+  initializeMostRecentItems(),
+  (get, set, update: RecentItem[] | ((prev: RecentItem[]) => RecentItem[])) => {
+    const prev = get(mostRecentItemsAtom);
+    const payload = typeof update === 'function' ? update(prev) : update;
     const stringPaths = payload.map((filePath) => filePath.fullPath);
-    localStorage.setItem('mostRecentNotes', JSON.stringify(stringPaths));
-    set(mostRecentNotesAtom, payload);
+    localStorage.setItem('mostRecentItems', JSON.stringify(stringPaths));
+    set(mostRecentItemsAtom, payload);
   }
 );
 
@@ -171,8 +180,8 @@ export const kernelsDataAtom = atom<KernelsData>({
 
 // File sidebar accordion open state
 type FileSidebarOpenState = {
-  pinnedNotes: boolean;
-  recentNotes: boolean;
+  pinned: boolean;
+  recent: boolean;
   folders: boolean;
   kernels: boolean;
   tags: boolean;
@@ -180,8 +189,8 @@ type FileSidebarOpenState = {
 };
 
 const defaultFileSidebarOpenState: FileSidebarOpenState = {
-  pinnedNotes: true,
-  recentNotes: false,
+  pinned: true,
+  recent: false,
   folders: true,
   kernels: false,
   tags: false,
@@ -194,14 +203,14 @@ const initializeFileSidebarOpenState = (): FileSidebarOpenState => {
     if (!raw) return { ...defaultFileSidebarOpenState };
     const parsed = JSON.parse(raw) as Partial<FileSidebarOpenState>;
     return {
-      pinnedNotes:
-        typeof parsed.pinnedNotes === 'boolean'
-          ? parsed.pinnedNotes
-          : defaultFileSidebarOpenState.pinnedNotes,
-      recentNotes:
-        typeof parsed.recentNotes === 'boolean'
-          ? parsed.recentNotes
-          : defaultFileSidebarOpenState.recentNotes,
+      pinned:
+        typeof parsed.pinned === 'boolean'
+          ? parsed.pinned
+          : defaultFileSidebarOpenState.pinned,
+      recent:
+        typeof parsed.recent === 'boolean'
+          ? parsed.recent
+          : defaultFileSidebarOpenState.recent,
       folders:
         typeof parsed.folders === 'boolean'
           ? parsed.folders
@@ -224,19 +233,26 @@ const initializeFileSidebarOpenState = (): FileSidebarOpenState => {
   }
 };
 
-export const fileSidebarOpenStateAtom = atom(
-  initializeFileSidebarOpenState(),
-  (
-    get,
-    set,
-    update:
-      | Partial<FileSidebarOpenState>
-      | ((prev: FileSidebarOpenState) => Partial<FileSidebarOpenState>)
-  ) => {
-    const prev = get(fileSidebarOpenStateAtom);
+type FileSidebarOpenStateUpdate =
+  | Partial<FileSidebarOpenState>
+  | ((prev: FileSidebarOpenState) => Partial<FileSidebarOpenState>);
+
+/** Inner atom so the derived atom’s write does not call `get(self)` (breaks inference). */
+const fileSidebarOpenStateBaseAtom = atom<FileSidebarOpenState>(
+  initializeFileSidebarOpenState()
+);
+
+export const fileSidebarOpenStateAtom = atom<
+  FileSidebarOpenState,
+  [FileSidebarOpenStateUpdate],
+  void
+>(
+  (get) => get(fileSidebarOpenStateBaseAtom),
+  (get, set, update) => {
+    const prev = get(fileSidebarOpenStateBaseAtom);
     const patch = typeof update === 'function' ? update(prev) : update;
     const next: FileSidebarOpenState = { ...prev, ...patch };
     localStorage.setItem('fileSidebarOpenState', JSON.stringify(next));
-    set(fileSidebarOpenStateAtom, next);
+    set(fileSidebarOpenStateBaseAtom, next);
   }
 );

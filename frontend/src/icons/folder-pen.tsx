@@ -1,13 +1,13 @@
 export function FolderPen({
-  width = 20,
-  height = 20,
+  width = '1.25rem',
+  height = '1.25rem',
   fill = 'currentColor',
   secondaryfill = 'currentColor',
   className,
   strokeWidth = 1.5,
 }: {
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
   fill?: string;
   secondaryfill?: string;
   className?: string;

@@ -125,7 +125,7 @@ export function BottomBar({
           return (
             <Fragment key={`folder-segment-${index}`}>
               <BreadcrumbItem path={folderPath?.encodedFolderUrl}>
-                {index === 0 && <Folder width={16} height={16} />}
+                {index === 0 && <Folder width="1rem" height="1rem" />}
                 {segment}
               </BreadcrumbItem>
               <span>/</span>
@@ -167,7 +167,7 @@ export function BottomBar({
             });
           }}
         >
-          <TagPlus height={15} width={15} /> Edit Tags
+          <TagPlus height="0.9375rem" width="0.9375rem" /> Edit Tags
         </button>
         {isLoading ? (
           <motion.span
@@ -176,7 +176,7 @@ export function BottomBar({
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <Loader height={14} width={14} />
+            <Loader height="0.875rem" width="0.875rem" />
             Loading Tags
           </motion.span>
         ) : (

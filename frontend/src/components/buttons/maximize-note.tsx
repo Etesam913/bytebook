@@ -30,6 +30,7 @@ export function MaximizeNoteButton({
         }}
         {...getDefaultButtonVariants({ disabled })}
         type="button"
+        initial={{ rotate: isNoteMaximized ? 180 : 0 }}
         animate={{ rotate: isNoteMaximized ? 180 : 0 }}
       >
         <SidebarRightCollapse

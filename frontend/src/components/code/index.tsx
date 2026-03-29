@@ -84,7 +84,9 @@ export function Code({
 
   const codeContent = (
     <Suspense
-      fallback={<Loader className="mx-auto my-3" height={18} width={18} />}
+      fallback={
+        <Loader className="mx-auto my-3" height="1.125rem" width="1.125rem" />
+      }
     >
       <CodeActions
         editor={lexicalEditor}

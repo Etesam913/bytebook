@@ -29,7 +29,7 @@ import { Languages } from '../../../types';
 import { KernelHeartbeat } from './kernel-heartbeat';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
 
-export function getKernelIcon(kernel: Languages, size: number = 18) {
+export function getKernelIcon(kernel: Languages, size: string = '1.125rem') {
   const className = 'will-change-transform';
   switch (kernel) {
     case 'python':
@@ -42,14 +42,16 @@ export function getKernelIcon(kernel: Languages, size: number = 18) {
       );
     case 'java':
       return <JavaLogo height={size} width={size} className={className} />;
-    case 'text':
+    case 'text': {
+      const smallerSize = `calc(${size} - 0.125rem)`;
       return (
         <SquareTerminal
-          height={size - 2}
-          width={size - 2}
+          height={smallerSize}
+          width={smallerSize}
           className={className}
         />
       );
+    }
   }
 }
 
@@ -67,7 +69,7 @@ function KernelTooltipContent({ kernelsData }: { kernelsData: KernelsData }) {
       <div className="text-sm font-medium mb-2">Active Kernels</div>
       {activeKernels.map((kernel) => (
         <div key={kernel} className="flex items-center gap-2 text-sm">
-          {getKernelIcon(kernel, 16)}
+          {getKernelIcon(kernel, '1rem')}
           <KernelHeartbeat
             status={kernelsData[kernel].status}
             heartbeat={kernelsData[kernel].heartbeat}
@@ -113,8 +115,8 @@ export function MyKernelsAccordion() {
             }
             icon={
               <SquareTerminal
-                width={20}
-                height={20}
+                width="1.25rem"
+                height="1.25rem"
                 className="will-change-transform"
               />
             }

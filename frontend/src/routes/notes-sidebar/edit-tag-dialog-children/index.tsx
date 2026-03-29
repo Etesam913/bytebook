@@ -192,7 +192,11 @@ export function EditTagDialogChildren({
         {...getDefaultButtonVariants()}
       >
         <span>Save</span>
-        <TagPlus width={17} height={17} className="will-change-transform" />
+        <TagPlus
+          width="1.0625rem"
+          height="1.0625rem"
+          className="will-change-transform"
+        />
       </MotionButton>
     </fieldset>
   );

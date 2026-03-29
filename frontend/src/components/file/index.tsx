@@ -49,7 +49,7 @@ export function File({
     setElementType(fileType);
   }, [fileType, isLoading]);
 
-  if (isLoading) return <Loader width={28} height={28} />;
+  if (isLoading) return <Loader width="1.75rem" height="1.75rem" />;
 
   const path = constructPathFromSrc(src);
 

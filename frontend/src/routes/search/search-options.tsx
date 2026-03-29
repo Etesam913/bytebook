@@ -30,7 +30,7 @@ export function SearchOptions({ searchQuery }: SearchOptionsProps) {
             value: 'save-search',
             label: (
               <span className="flex items-center gap-1.5 will-change-transform">
-                <BookBookmark width={20} height={20} /> Save Search
+                <BookBookmark width="1.25rem" height="1.25rem" /> Save Search
               </span>
             ),
           },
@@ -40,7 +40,7 @@ export function SearchOptions({ searchQuery }: SearchOptionsProps) {
       value: 'search-content',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
-          <SearchContent2 width={20} height={20} /> Regenerate Index
+          <SearchContent2 width="1.25rem" height="1.25rem" /> Regenerate Index
         </span>
       ),
     },
@@ -79,7 +79,7 @@ export function SearchOptions({ searchQuery }: SearchOptionsProps) {
             className={cn(!isFullscreen && 'rounded-tr-2xl')}
             {...getDefaultButtonVariants()}
           >
-            <HorizontalDots width={20} height={20} />
+            <HorizontalDots width="1.25rem" height="1.25rem" />
           </MotionIconButton>
         </Tooltip>
       )}

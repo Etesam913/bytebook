@@ -38,7 +38,11 @@ export function DeleteButton({
           });
         }}
       >
-        <Trash className="will-change-transform" height={19} width={19} />
+        <Trash
+          className="will-change-transform"
+          height="1.1875rem"
+          width="1.1875rem"
+        />
       </motion.button>
     </Tooltip>
   );

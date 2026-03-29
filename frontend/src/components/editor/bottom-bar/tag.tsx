@@ -24,7 +24,7 @@ export function Tag({
           onClick={onDelete}
           aria-label={`Remove tag ${tagName}`}
         >
-          <XMark width={12} height={12} />
+          <XMark width="0.75rem" height="0.75rem" />
         </button>
       )}
     </span>

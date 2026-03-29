@@ -358,8 +358,8 @@ function TableHoverActionsV2({
             {...getDefaultButtonVariants()}
           >
             <TableColNewRight2
-              width={14}
-              height={14}
+              width="0.875rem"
+              height="0.875rem"
               className="will-change-transform"
             />
           </MotionIconButton>
@@ -394,8 +394,8 @@ function TableHoverActionsV2({
             {...getDefaultButtonVariants()}
           >
             <TableRowNewBottom2
-              width={14}
-              height={14}
+              width="0.875rem"
+              height="0.875rem"
               className="will-change-transform"
             />
           </MotionIconButton>

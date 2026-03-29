@@ -17,11 +17,9 @@ import {
   useTurnOnKernelMutation,
 } from '../../../hooks/code';
 import type { Languages, LanguagesWithKernels } from '../../../types';
-import { currentZoomAtom } from '../../../hooks/resize';
 import { routeUrls } from '../../../utils/routes';
 import { getKernelIcon } from './index';
 import { KernelHeartbeat } from './kernel-heartbeat';
-
 export function KernelAccordionButton({
   kernelName,
   kernelNameFromUrl,
@@ -47,7 +45,6 @@ export function KernelAccordionButton({
   const { mutate: turnOnKernel } = useTurnOnKernelMutation({
     language: kernelName,
   });
-  const currentZoom = useAtomValue(currentZoomAtom);
 
   const isKernelRunning = heartbeat === 'success';
 
@@ -74,17 +71,17 @@ export function KernelAccordionButton({
           onlyOne: true,
         });
         setContextMenuData({
-          x: e.clientX / currentZoom,
-          y: e.clientY / currentZoom,
+          x: e.clientX,
+          y: e.clientY,
           isShowing: true,
           items: [
             {
               label: (
                 <span className="flex items-center gap-1.5">
                   {isKernelRunning ? (
-                    <PowerOff height={12} width={12} />
+                    <PowerOff height="0.75rem" width="0.75rem" />
                   ) : (
-                    <Play height={18} width={18} />
+                    <Play height="1.125rem" width="1.125rem" />
                   )}
                   {isKernelRunning ? 'Stop Kernel' : 'Start Kernel'}
                 </span>
@@ -103,7 +100,7 @@ export function KernelAccordionButton({
       }}
     >
       <div className="flex items-center gap-2">
-        {getKernelIcon(kernelName, 18)}
+        {getKernelIcon(kernelName, '1.125rem')}
         <KernelHeartbeat
           status={status}
           heartbeat={heartbeat}

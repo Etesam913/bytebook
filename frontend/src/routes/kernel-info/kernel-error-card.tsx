@@ -8,7 +8,7 @@ export function KernelErrorCard({ errorMessage }: KernelErrorCardProps) {
   return (
     <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 mb-8">
       <div className="flex items-center gap-3 mb-4">
-        <XMark fill="rgb(239 68 68)" width={20} height={20} />
+        <XMark fill="rgb(239 68 68)" width="1.25rem" height="1.25rem" />
         <h2 className="text-lg font-semibold text-red-800 dark:text-red-200">
           Error Message
         </h2>

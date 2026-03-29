@@ -130,7 +130,7 @@ function getBaseOptions({
   return [
     new DropdownPickerOption('Paragraph', {
       keywords: ['normal', 'paragraph', 'p', 'text'],
-      icon: <Text width={20} />,
+      icon: <Text width="1.25rem" />,
       onSelect: () =>
         editor.update(() => {
           const selection = $getSelection();
@@ -141,7 +141,7 @@ function getBaseOptions({
     }),
     new DropdownPickerOption('Quote', {
       keywords: ['quote', 'blockquote', 'quotation', 'citation'],
-      icon: <QuoteIcon width={20} height={20} />,
+      icon: <QuoteIcon width="1.25rem" height="1.25rem" />,
       onSelect: () =>
         editor.update(() => {
           const selection = $getSelection();
@@ -308,7 +308,13 @@ export function ComponentPickerMenuPlugin({
       ) =>
         anchorElementRef.current && options.length
           ? createPortal(
-              <ul className="fixed z-10 flex overflow-auto flex-col max-h-56 gap-0.5 w-48 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1 text-zinc-950 dark:text-zinc-100">
+              <ul
+                className="fixed z-10 flex overflow-auto flex-col max-h-56 gap-0.5 w-48 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1 text-zinc-950 dark:text-zinc-100"
+                style={{
+                  transform:
+                    'translateY(calc(var(--editor-font-size) * 1.5 + 0.375rem))',
+                }}
+              >
                 {options.map((option, i: number) => (
                   <ComponentPickerMenuItem
                     index={i}

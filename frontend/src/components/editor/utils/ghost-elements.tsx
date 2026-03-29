@@ -54,7 +54,7 @@ function constructGhostElementForVideo(ghostElement: HTMLElement) {
 
   root.render(
     <div className="flex items-center gap-1">
-      <VideoIcon width={24} height={24} fill="currentColor" />
+      <VideoIcon width="1.5rem" height="1.5rem" fill="currentColor" />
       Video
     </div>
   );
@@ -71,7 +71,7 @@ function constructGhostElementForPdf(ghostElement: HTMLElement) {
 
   root.render(
     <div className="flex items-center gap-1">
-      <PDFIcon width={24} height={24} fill="currentColor" />
+      <PDFIcon width="1.5rem" height="1.5rem" fill="currentColor" />
       PDF
     </div>
   );

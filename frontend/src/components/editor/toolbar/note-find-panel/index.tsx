@@ -65,8 +65,8 @@ export function NoteFindPanel({
           transition={{ ease: easingFunctions['ease-out-circ'] }}
         >
           <Magnifier
-            width={16}
-            height={16}
+            width="1rem"
+            height="1rem"
             className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
           />
 
@@ -118,7 +118,7 @@ export function NoteFindPanel({
             tabIndex={0}
             aria-label="Close search"
           >
-            <XMark width={18} height={18} fill="currentColor" />
+            <XMark width="1.125rem" height="1.125rem" fill="currentColor" />
           </button>
         </motion.div>
       )}

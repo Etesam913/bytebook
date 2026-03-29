@@ -91,10 +91,10 @@ export function SearchHeader({
   };
 
   return (
-    <header className="w-full pt-2.5 pb-1 pr-2 border-b border-zinc-200 dark:border-zinc-700 flex flex-col gap-1">
+    <header className="w-full pt-[11px] pb-1 pr-2 border-b border-zinc-200 dark:border-zinc-700 flex flex-col gap-1">
       <div
         className={cn(
-          'pl-23 flex items-center gap-2',
+          'pl-[100px] flex items-center gap-2',
           isFullscreen && 'pl-2.5'
         )}
       >
@@ -103,7 +103,7 @@ export function SearchHeader({
             {...getDefaultButtonVariants()}
             onClick={() => window.history.back()}
           >
-            <CircleArrowLeft height={20} width={20} />
+            <CircleArrowLeft height="1.25rem" width="1.25rem" />
           </MotionIconButton>
         </Tooltip>
         <Input
