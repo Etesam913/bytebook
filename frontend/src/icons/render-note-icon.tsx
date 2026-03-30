@@ -22,7 +22,7 @@ export function RenderNoteIcon({
     if (activeNotePath && filePath.equals(activeNotePath)) {
       return (
         <FilePen
-          className={'pointer-events-none'}
+          className={'pointer-events-none min-w-4 min-h-4'}
           height={iconSize}
           width={iconSize}
         />
@@ -30,7 +30,7 @@ export function RenderNoteIcon({
     }
     return (
       <Note
-        className={'pointer-events-none'}
+        className={'pointer-events-none min-w-4 min-h-4'}
         height={iconSize}
         width={iconSize}
       />
@@ -40,7 +40,7 @@ export function RenderNoteIcon({
   if (filePath.extension === 'pdf') {
     return (
       <PDFIcon
-        className={'pointer-events-none'}
+        className={'pointer-events-none min-w-4 min-h-4'}
         height={iconSize}
         width={iconSize}
       />
@@ -50,7 +50,7 @@ export function RenderNoteIcon({
   if (IMAGE_FILE_EXTENSIONS.includes(filePath.extension)) {
     return (
       <ImageIcon
-        className={'pointer-events-none'}
+        className={'pointer-events-none min-w-4 min-h-4'}
         height={iconSize}
         width={iconSize}
       />
@@ -60,7 +60,7 @@ export function RenderNoteIcon({
   if (VIDEO_FILE_EXTENSIONS.includes(filePath.extension)) {
     return (
       <VideoIcon
-        className={'pointer-events-none'}
+        className={'pointer-events-none min-w-4 min-h-4'}
         height={iconSize}
         width={iconSize}
       />
@@ -69,7 +69,7 @@ export function RenderNoteIcon({
 
   return (
     <FileBan
-      className={'pointer-events-none'}
+      className={'pointer-events-none min-w-4 min-h-4'}
       height={iconSize}
       width={iconSize}
     />

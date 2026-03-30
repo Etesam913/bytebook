@@ -59,10 +59,10 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
             </MotionIconButton>
           </Tooltip>
         </header>
-        <section className="px-2.5 pt-4">
+        <section className="px-2 pt-4">
           <SearchBar />
         </section>
-        <section className="flex flex-1 flex-col min-h-0 px-1 pt-1.5 pb-1 [&>*+*]:-mt-[1.25px]">
+        <section className="flex flex-1 flex-col min-h-0 pt-1.5 pb-1 [&>*+*]:-mt-[1.25px]">
           <MyFilesAccordion />
           <PinnedAccordion />
           <RecentAccordion />

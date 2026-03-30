@@ -155,7 +155,7 @@ func addResultsToIndex(bleveIndex bleve.Index, bleveBatch *bleve.Batch, results 
 
 		indexCount += 1
 
-		if bleveBatch.Size() >= defaultIndexBatchSize {
+		if bleveBatch.Size() >= DefaultBatchSize {
 			if err := bleveIndex.Batch(bleveBatch); err != nil {
 				log.Printf("Error flushing batch: %v", err)
 				return nil, err
