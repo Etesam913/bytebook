@@ -452,7 +452,7 @@ func (fw *FileWatcher) addFolderTreeToWatcher(rootPath string) {
 	}
 }
 
-// Removes every folder from knownWatchedDirectories that is not present in the watcherWatchList()
+// Removes every folder from knownWatchedDirectories that is the rootPath or a child of rootPath (has it as a prefix)
 func (fw *FileWatcher) removeFolderTreeWatches(rootPath string) {
 	prefix := rootPath + string(os.PathSeparator)
 	for _, watchedPath := range fw.knownWatchedDirectories.Snapshot() {

@@ -26,7 +26,11 @@ var MARKDOWN_NOTE_TYPE = "note"
 var ATTACHMENT_TYPE = "attachment"
 var FilenameAnalyzer = "filename_analyzer"
 
-const defaultIndexBatchSize = 750
+const DefaultBatchSize = 750
+
+// MaxDeleteSearchResults is the upper bound on documents returned when
+// querying for folder contents to delete. Bleve defaults to 10 if unset.
+const MaxDeleteSearchResults = 100000
 
 // FlushBatch commits the batch to the index
 // and creates a new batch. The batchPtr parameter should be a pointer to the batch variable
@@ -462,7 +466,7 @@ func IndexFilesInFolderWithBatch(
 			}
 		}
 
-		if batch.Size() >= defaultIndexBatchSize {
+		if batch.Size() >= DefaultBatchSize {
 			if err := FlushBatch(index, batch); err != nil {
 				log.Printf("Error flushing batch: %v", err)
 				return err

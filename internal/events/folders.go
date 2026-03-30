@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
+	"github.com/blevesearch/bleve/v2/search/query"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/etesam913/bytebook/internal/search"
@@ -82,10 +83,24 @@ func addFoldersToIndex(params EventParams, data []map[string]string) {
 	}
 }
 
+// createFolderAndDescendantsQuery builds a query that matches documents in the
+// given folder AND any nested subfolders. It combines an exact TermQuery with a
+// PrefixQuery for "<folder>/" so that deleting "parent" also catches "parent/child".
+func createFolderAndDescendantsQuery(folderPath string) query.Query {
+	lower := strings.ToLower(folderPath)
+
+	exactQuery := bleve.NewTermQuery(lower)
+	exactQuery.SetField(search.FieldFolder)
+
+	prefixQuery := bleve.NewPrefixQuery(lower + "/")
+	prefixQuery.SetField(search.FieldFolder)
+
+	return bleve.NewDisjunctionQuery(exactQuery, prefixQuery)
+}
+
 func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
 	batch := (*params.Index).NewBatch()
 
-	// Process each folder delete event in the batch
 	for _, eventData := range data {
 		folderPath, exists := eventData["folderPath"]
 		if !exists || folderPath == "" {
@@ -93,12 +108,10 @@ func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
 			continue
 		}
 
-		// Query for all documents with the folder attribute equal to the deleted folder
-		folderQuery := bleve.NewMatchPhraseQuery(folderPath)
-		folderQuery.SetField(search.FieldFolder)
+		folderQuery := createFolderAndDescendantsQuery(folderPath)
 
 		searchRequest := bleve.NewSearchRequest(folderQuery)
-		searchRequest.Size = 1000 // Set a reasonable limit
+		searchRequest.Size = search.MaxDeleteSearchResults
 		searchRequest.Fields = []string{search.FieldFolder}
 
 		searchResult, err := (*params.Index).Search(searchRequest)
@@ -107,15 +120,21 @@ func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
 			continue
 		}
 
-		// Delete all documents in the folder
 		for _, hit := range searchResult.Hits {
 			batch.Delete(hit.ID)
+			if batch.Size() >= search.DefaultBatchSize {
+				if err := (*params.Index).Batch(batch); err != nil {
+					log.Printf("Error flushing delete batch for folder %s: %v", folderPath, err)
+				}
+				batch = (*params.Index).NewBatch()
+			}
 		}
 	}
 
-	err := (*params.Index).Batch(batch)
-	if err != nil {
-		log.Printf("Error batching delete operations: %v", err)
+	if batch.Size() > 0 {
+		if err := (*params.Index).Batch(batch); err != nil {
+			log.Printf("Error batching delete operations: %v", err)
+		}
 	}
 }
 
@@ -186,12 +205,10 @@ func renameFoldersInIndex(params EventParams, data []map[string]string) {
 func deleteRenameFolderFromIndex(params EventParams, oldFolderPath string) {
 	batch := (*params.Index).NewBatch()
 
-	// Query for all documents with the old folder name
-	folderQuery := bleve.NewMatchPhraseQuery(oldFolderPath)
-	folderQuery.SetField(search.FieldFolder)
+	folderQuery := createFolderAndDescendantsQuery(oldFolderPath)
 
 	searchRequest := bleve.NewSearchRequest(folderQuery)
-	searchRequest.Size = 1000 // Set a reasonable limit
+	searchRequest.Size = search.MaxDeleteSearchResults
 	searchRequest.Fields = []string{search.FieldFolder}
 
 	searchResult, err := (*params.Index).Search(searchRequest)
@@ -200,14 +217,20 @@ func deleteRenameFolderFromIndex(params EventParams, oldFolderPath string) {
 		return
 	}
 
-	// Delete all documents in the old folder
 	for _, hit := range searchResult.Hits {
 		batch.Delete(hit.ID)
+		if batch.Size() >= search.DefaultBatchSize {
+			if err := (*params.Index).Batch(batch); err != nil {
+				log.Printf("Error flushing delete batch for folder %s: %v", oldFolderPath, err)
+			}
+			batch = (*params.Index).NewBatch()
+		}
 	}
 
-	err = (*params.Index).Batch(batch)
-	if err != nil {
-		log.Printf("Error batching delete operations for folder %s: %v", oldFolderPath, err)
+	if batch.Size() > 0 {
+		if err := (*params.Index).Batch(batch); err != nil {
+			log.Printf("Error batching delete operations for folder %s: %v", oldFolderPath, err)
+		}
 	}
 }
 

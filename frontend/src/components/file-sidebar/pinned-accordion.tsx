@@ -81,7 +81,7 @@ export function PinnedAccordion() {
           dataItemToSelectionRangeEntry: (pinnedItem) => pinnedItem.fullPath,
         }}
         emptyElement={
-          <li className="pl-2 text-balance list-none text-zinc-500 dark:text-zinc-300 text-xs py-2">
+          <li className="pl-2 list-none text-zinc-500 dark:text-zinc-300 text-xs py-2">
             No pinned items. Right click a note or folder to open the context
             menu and pin it.
           </li>
