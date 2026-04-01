@@ -57,6 +57,10 @@ export type SearchResult = NoteSearchResult | AttachmentSearchResult;
 
 type FullTextSearchPageResponse = Awaited<ReturnType<typeof FullTextSearch>>;
 
+type RegenerateSearchIndexMutationOptions = {
+  onSuccess?: () => void | Promise<void>;
+};
+
 function mapFullTextSearchResults(
   data: FullTextSearchPageResponse['results'] | undefined
 ) {
@@ -90,7 +94,7 @@ function mapFullTextSearchResults(
   return results;
 }
 
-const searchQueries = {
+export const searchQueries = {
   fullTextSearchKey: (searchQuery: string) =>
     ['full-text-search', searchQuery] as const,
   savedSearches: () =>
@@ -251,7 +255,9 @@ export function useSavedSearchUpdates() {
  * Hook to regenerate the search index.
  * Shows success/error toast notifications with a loading spinner.
  */
-export function useRegenerateSearchIndexMutation() {
+export function useRegenerateSearchIndexMutation(
+  options?: RegenerateSearchIndexMutationOptions
+) {
   return useMutation({
     mutationFn: async () => {
       const resultPromise = (async () => {
@@ -270,6 +276,9 @@ export function useRegenerateSearchIndexMutation() {
             : 'Failed to regenerate search index',
       });
       return await resultPromise;
+    },
+    onSuccess: async () => {
+      await options?.onSuccess?.();
     },
   });
 }

@@ -16,7 +16,11 @@ import { TriangleWarning } from '../../icons/triangle-warning';
 import { NoteSidebarButton } from '../notes-sidebar/sidebar-button/index.tsx';
 import { NoteRenderer } from '../../components/note-renderer';
 import { VirtualizedList } from '../../components/virtualized/virtualized-list/index.tsx';
-import { useFullTextSearchQuery } from '../../hooks/search.tsx';
+import {
+  searchQueries,
+  useFullTextSearchQuery,
+  useRegenerateSearchIndexMutation,
+} from '../../hooks/search.tsx';
 import { useNoteExists } from '../../hooks/notes';
 import { createFilePath, type FilePath } from '../../utils/path.ts';
 import { isNoteMaximizedAtom } from '../../atoms.ts';
@@ -28,6 +32,9 @@ import { MotionButton } from '../../components/buttons';
 import { getDefaultButtonVariants } from '../../animations';
 import { routeUrls } from '../../utils/routes';
 import { navigate } from 'wouter/use-browser-location';
+import { SearchContent2 } from '../../icons/search-content-2.tsx';
+import { cn } from '../../utils/string-formatting.ts';
+import { useQueryClient } from '@tanstack/react-query';
 
 function NoteRenderErrorFallback({
   error,
@@ -102,7 +109,62 @@ function NoteRenderErrorFallback({
   );
 }
 
-function SavedSearchNoteContent({ filePath }: { filePath: FilePath }) {
+function MissingSavedSearchNoteFallback({
+  filePath,
+  isRegeneratingSearchIndex,
+  onRegenerateSearchIndex,
+}: {
+  filePath: FilePath;
+  isRegeneratingSearchIndex: boolean;
+  onRegenerateSearchIndex: () => void;
+}) {
+  return (
+    <div className="flex h-full min-w-0 flex-1">
+      <div className="h-full w-full flex flex-col items-center justify-center gap-5 text-center p-6 mx-auto">
+        <div className="flex flex-col items-center gap-3">
+          <FileBan width="3rem" height="3rem" />
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold">Note not found</h2>
+            <p className="text-balance text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
+              The note <b> {filePath.fullPath}</b> no longer exists. The saved
+              search index may be out of date, so regenerating it can refresh
+              these results and remove stale entries.
+            </p>
+          </div>
+        </div>
+
+        <MotionButton
+          className={cn(
+            'text-center w-44',
+            isRegeneratingSearchIndex && 'flex items-center justify-center'
+          )}
+          {...getDefaultButtonVariants()}
+          disabled={isRegeneratingSearchIndex}
+          onClick={onRegenerateSearchIndex}
+        >
+          {isRegeneratingSearchIndex ? (
+            <Loader width="1.4375rem" height="1.4375rem" />
+          ) : (
+            <>
+              <SearchContent2 width="1.25rem" height="1.25rem" />
+              Regenerate Index
+            </>
+          )}
+        </MotionButton>
+      </div>
+    </div>
+  );
+}
+
+function SavedSearchNoteContent({
+  filePath,
+  isRegeneratingSearchIndex,
+  onRegenerateSearchIndex,
+}: {
+  filePath: FilePath;
+  isRegeneratingSearchIndex: boolean;
+  onRegenerateSearchIndex: () => void;
+}) {
   const { data: noteExists, isLoading, error } = useNoteExists(filePath);
 
   if (isLoading) {
@@ -119,20 +181,11 @@ function SavedSearchNoteContent({ filePath }: { filePath: FilePath }) {
 
   if (!noteExists || error) {
     return (
-      <div className="flex h-full min-w-0 flex-1">
-        <div className="h-full w-full flex flex-col items-center justify-center gap-4 text-center p-6 mx-auto">
-          <div className="flex flex-col items-center gap-3">
-            <FileBan width="3rem" height="3rem" />
-            <div className="space-y-2">
-              <h2 className="text-xl font-semibold">Note not found</h2>
-              <p className="text-balance text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
-                The note <b> {filePath.fullPath}</b> does not exist or could not
-                be loaded.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <MissingSavedSearchNoteFallback
+        filePath={filePath}
+        isRegeneratingSearchIndex={isRegeneratingSearchIndex}
+        onRegenerateSearchIndex={onRegenerateSearchIndex}
+      />
     );
   }
 
@@ -152,6 +205,7 @@ export function SavedSearchPage({
   width?: MotionValue<number>;
   curPath?: string;
 }) {
+  const queryClient = useQueryClient();
   const {
     data: results = [],
     totalCount,
@@ -162,6 +216,17 @@ export function SavedSearchPage({
     isError,
     isLoading,
   } = useFullTextSearchQuery(searchQuery);
+  const {
+    mutate: regenerateSearchIndex,
+    isPending: isRegeneratingSearchIndex,
+  } = useRegenerateSearchIndexMutation({
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: searchQueries.fullTextSearchKey(searchQuery),
+        exact: true,
+      });
+    },
+  });
 
   const searchResultPaths = results.map((result) => result.filePath);
 
@@ -180,11 +245,19 @@ export function SavedSearchPage({
       return;
     }
 
+    const hasActiveSearchResult =
+      activeNotePath &&
+      searchResultPaths.some((filePath) => filePath.equals(activeNotePath));
+
+    if (hasActiveSearchResult) {
+      return;
+    }
+
     const firstSearchResultPath = searchResultPaths[0];
     navigate(
       routeUrls.savedSearch(searchQuery, firstSearchResultPath.encodedPath)
     );
-  }, [searchResultPaths]);
+  }, [activeNotePath, searchQuery, searchResultPaths]);
 
   return (
     <div className="flex h-full min-w-0">
@@ -298,7 +371,13 @@ export function SavedSearchPage({
             />
           )}
         >
-          <SavedSearchNoteContent filePath={activeNotePath} />
+          <SavedSearchNoteContent
+            filePath={activeNotePath}
+            isRegeneratingSearchIndex={isRegeneratingSearchIndex}
+            onRegenerateSearchIndex={() => {
+              regenerateSearchIndex();
+            }}
+          />
         </ErrorBoundary>
       )}
     </div>
