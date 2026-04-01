@@ -5,7 +5,7 @@ import {
   pathExistsInFileTree,
   hasLoadedChildren,
 } from '../utils/file-tree-utils';
-import { FOLDER_TYPE } from '../types';
+import { isTreeNodeAFolder } from '../utils/file-tree-utils';
 import type { FileTreeData } from '../../../../atoms';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { logger } from '../../../../utils/logging';
@@ -58,7 +58,7 @@ export function useRevealRoutePath() {
           ancestorFolderPaths[folderIndex + 1] ?? targetPath;
 
         const ancestorNode = getTreeNodeFromPath(newData, ancestorPath);
-        if (!ancestorNode || ancestorNode.type !== FOLDER_TYPE) {
+        if (!ancestorNode || !isTreeNodeAFolder(ancestorNode)) {
           return false;
         }
 
@@ -116,7 +116,7 @@ export function useRevealRoutePath() {
 
         // Mark the folder as open in the working copy
         const updatedNode = newData.treeData.get(ancestorNode.id);
-        if (updatedNode && updatedNode.type === FOLDER_TYPE) {
+        if (updatedNode && isTreeNodeAFolder(updatedNode)) {
           newData.treeData.set(ancestorNode.id, {
             ...updatedNode,
             isOpen: true,

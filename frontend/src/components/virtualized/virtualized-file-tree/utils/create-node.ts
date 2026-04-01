@@ -1,6 +1,6 @@
 import type { FileTreeData } from '../../../../atoms';
 import { FILE_TYPE, FOLDER_TYPE } from '../types';
-import { getParentNodeFromPath } from './file-tree-utils';
+import { getParentNodeFromPath, isTreeNodeAFolder } from './file-tree-utils';
 
 /**
  * Extracts the file/folder name from the last segment of a path.
@@ -25,7 +25,7 @@ function isCreatedNodeInParentLoadedChildren(
     getNewlyCreatedNodeNameFromPath(newlyCreatedNodePath);
 
   const parent = getParentNodeFromPath(fileTreeData, newlyCreatedNodePath);
-  if (!parent || parent.type !== FOLDER_TYPE) return false;
+  if (!parent || !isTreeNodeAFolder(parent)) return false;
 
   const childrenNames = parent.childrenIds
     .map((id) => fileTreeData.treeData.get(id)?.name)
@@ -57,7 +57,7 @@ function placeCreatedNodeInParentLoadedChildren(
   const newlyCreatedNodeId = globalThis.crypto.randomUUID();
 
   const parent = getParentNodeFromPath(fileTreeData, newlyCreatedNodePath);
-  if (!parent || parent.type !== FOLDER_TYPE) {
+  if (!parent || !isTreeNodeAFolder(parent)) {
     return { newChildrenIds: [], newlyCreatedNodeId };
   }
 
@@ -140,6 +140,7 @@ export function insertCreatedNodeIntoFileTree(
       path,
       id: newlyCreatedNodeId,
       parentId: parent.id,
+      hasDragHighlight: false,
     });
   }
 

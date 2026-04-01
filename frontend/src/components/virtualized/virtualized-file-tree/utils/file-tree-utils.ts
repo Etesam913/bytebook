@@ -1,10 +1,11 @@
 import type {
+  File,
   FileOrFolder,
   FlattenedFileOrFolder,
   Folder,
   VirtualizedFileTreeItem,
 } from '../types';
-import { FOLDER_TYPE, LOAD_MORE_TYPE } from '../types';
+import { FILE_TYPE, FOLDER_TYPE, LOAD_MORE_TYPE } from '../types';
 import type { FileTreeData, ReadonlyFileTreeData } from '../../../../atoms';
 
 /**
@@ -59,7 +60,7 @@ export function transformFileTreeForVirtualizedList(
     flattenedData.push(flattenedEntryForFileOrFolder);
 
     if (
-      updatedFileOrFolderData.type !== 'folder' ||
+      !isTreeNodeAFolder(updatedFileOrFolderData) ||
       !updatedFileOrFolderData.isOpen
     )
       return;
@@ -120,7 +121,7 @@ function removeSubtree(
 ): void {
   const { treeData, filePathToTreeDataId } = fileTreeData;
   const root = treeData.get(folderIdToRemove);
-  if (!root || root.type !== FOLDER_TYPE) return;
+  if (!root || !isTreeNodeAFolder(root)) return;
 
   for (const childId of root.childrenIds) {
     removeSubtree(fileTreeData, childId);
@@ -196,8 +197,9 @@ export function reconcileTopLevelFileTreeMap(
       newFilePathToTreeDataMap.delete(node.path);
     }
 
-    if (node.type === FOLDER_TYPE) {
-      const isPreviousNodeFolder = nodeInPreviousData?.type === FOLDER_TYPE;
+    if (isTreeNodeAFolder(node)) {
+      const isPreviousNodeFolder =
+        nodeInPreviousData && isTreeNodeAFolder(nodeInPreviousData);
 
       // If the node exists in the previous data and is a folder, then use its properties to maintain state
       // Otherwise, use the new node's default properties
@@ -212,7 +214,7 @@ export function reconcileTopLevelFileTreeMap(
         hasMoreChildren,
       });
     } else {
-      newTreeDataMap.set(node.id, node);
+      newTreeDataMap.set(node.id, { ...node });
     }
 
     newFilePathToTreeDataMap.set(node.path, node.id);
@@ -235,7 +237,7 @@ export function removeFileFromFileTreeMap({
   parentId: string;
 }): Map<string, FileOrFolder> {
   const parent = map.get(parentId);
-  if (!parent || parent.type !== 'folder') {
+  if (!parent || !isTreeNodeAFolder(parent)) {
     return map;
   }
 
@@ -282,7 +284,7 @@ export function getParentNodeFromPath(
 
   const parentPath = segments.slice(0, -1).join('/');
   const parentNode = getTreeNodeFromPath(fileTreeData, parentPath);
-  if (!parentNode || parentNode.type !== FOLDER_TYPE) {
+  if (!parentNode || !isTreeNodeAFolder(parentNode)) {
     return null;
   }
   return parentNode;
@@ -321,6 +323,24 @@ export function isFileTreeNodeTopLevel(node: FileOrFolder): boolean {
   return node.parentId === null;
 }
 
+/**
+ * Type guard that checks if a file tree node is a file.
+ */
+export function isTreeNodeAFile(
+  node: FileOrFolder | VirtualizedFileTreeItem
+): node is File {
+  return node.type === FILE_TYPE;
+}
+
+/**
+ * Type guard that checks if a file tree node is a folder.
+ */
+export function isTreeNodeAFolder(
+  node: FileOrFolder | VirtualizedFileTreeItem
+): node is Folder {
+  return node.type === FOLDER_TYPE;
+}
+
 /** Returns true if a folder has already had its children fetched from the backend. */
 export function hasLoadedChildren(folder: Folder): boolean {
   return (
@@ -329,3 +349,60 @@ export function hasLoadedChildren(folder: Folder): boolean {
     folder.hasMoreChildren
   );
 }
+
+/**
+ * Computes the set of tree node IDs to highlight when dragging over a file.
+ * Includes the parent folder, all siblings, and recursively all descendants
+ * of open sibling folders via BFS.
+ */
+export function getDragHighlightIds({
+  fileOrFolderMap,
+  parentId,
+}: {
+  fileOrFolderMap: ReadonlyMap<string, FileOrFolder>;
+  parentId: string | null;
+}): Set<string> {
+  const ids = new Set<string>();
+  const queue: string[] = [];
+
+  if (parentId === null) {
+    // Top-level: collect all top-level node IDs
+    for (const [id, node] of fileOrFolderMap) {
+      if (node.parentId !== null) continue;
+      ids.add(id);
+      if (isTreeNodeAFolder(node) && node.isOpen) {
+        queue.push(id);
+      }
+    }
+  } else {
+    // Add the parent folder itself
+    ids.add(parentId);
+    const parent = fileOrFolderMap.get(parentId);
+    if (parent && isTreeNodeAFolder(parent)) {
+      for (const childId of parent.childrenIds) {
+        ids.add(childId);
+        const child = fileOrFolderMap.get(childId);
+        if (child && isTreeNodeAFolder(child) && child.isOpen) {
+          queue.push(childId);
+        }
+      }
+    }
+  }
+
+  // BFS through open folders to collect descendants
+  while (queue.length > 0) {
+    const folderId = queue.shift()!;
+    const folder = fileOrFolderMap.get(folderId);
+    if (!folder || !isTreeNodeAFolder(folder)) continue;
+    for (const childId of folder.childrenIds) {
+      ids.add(childId);
+      const child = fileOrFolderMap.get(childId);
+      if (child && isTreeNodeAFolder(child) && child.isOpen) {
+        queue.push(childId);
+      }
+    }
+  }
+
+  return ids;
+}
+

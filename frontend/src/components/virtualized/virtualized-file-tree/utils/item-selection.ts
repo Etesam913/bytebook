@@ -1,4 +1,5 @@
 import type { FileOrFolder, FlattenedFileOrFolder } from '../types';
+import { isTreeNodeAFile, isTreeNodeAFolder } from './file-tree-utils';
 import { createFilePath, createFolderPath } from '../../../../utils/path';
 import {
   createSelectionKey,
@@ -81,7 +82,7 @@ function getAnchorAfterRemoval({
   }
 
   const parentFolder = fileOrFolderMap.get(dataItem.parentId);
-  if (!parentFolder || parentFolder.type !== 'folder') {
+  if (!parentFolder || !isTreeNodeAFolder(parentFolder)) {
     return null;
   }
 
@@ -89,10 +90,9 @@ function getAnchorAfterRemoval({
   for (const childId of parentFolder.childrenIds) {
     const childItem = fileOrFolderMap.get(childId);
     if (!childItem) continue;
-    const childPath =
-      childItem.type === 'file'
-        ? createFilePath(childItem.path)
-        : createFolderPath(childItem.path);
+    const childPath = isTreeNodeAFile(childItem)
+      ? createFilePath(childItem.path)
+      : createFolderPath(childItem.path);
     if (!childPath) continue;
     orderedSelectionKeys.push(
       getKeyForSidebarSelection({
@@ -164,7 +164,7 @@ export function computeShiftClickSelections({
   }
 
   const parentFolder = fileOrFolderMap.get(dataItem.parentId);
-  if (!parentFolder || parentFolder.type !== 'folder') {
+  if (!parentFolder || !isTreeNodeAFolder(parentFolder)) {
     return null;
   }
 
@@ -185,10 +185,9 @@ export function computeShiftClickSelections({
     const childItem = fileOrFolderMap.get(childId);
     if (!childItem) continue;
 
-    const childPath =
-      childItem.type === 'file'
-        ? createFilePath(childItem.path)
-        : createFolderPath(childItem.path);
+    const childPath = isTreeNodeAFile(childItem)
+      ? createFilePath(childItem.path)
+      : createFolderPath(childItem.path);
     if (!childPath) continue;
 
     updatedSelections.add(
@@ -283,7 +282,7 @@ export function createDragGhostElement({
   const ghostContainer = document.createElement('div');
   ghostContainer.id = 'drag-ghost';
   ghostContainer.className =
-    'fixed top-[-1000px] left-[-1000px] bg-zinc-100 dark:bg-zinc-700 border-2 border-zinc-200 dark:border-zinc-650 px-3 py-2 rounded-md text-[13px] font-sans shadow-sm pointer-events-none z-[9999] max-w-[250px] max-h-[300px] overflow-visible';
+    'fixed top-[-1000px] left-[-1000px] bg-zinc-100 dark:bg-zinc-700 border-2 border-zinc-200 dark:border-zinc-650 px-2 py-1 rounded-md text-[13px] font-display shadow-sm pointer-events-none z-[9999] max-w-[250px] max-h-[300px] overflow-visible';
 
   const selections = sidebarSelection.selections;
   const draggedCount = selections.size;
@@ -321,7 +320,7 @@ export function createDragGhostElement({
       'py-0.5 flex items-center gap-1.5 whitespace-nowrap overflow-hidden text-ellipsis';
 
     const icon = document.createElement('span');
-    icon.innerHTML = item.type === 'folder' ? FOLDER_SVG : PAGE_SVG;
+    icon.innerHTML = isTreeNodeAFolder(item) ? FOLDER_SVG : PAGE_SVG;
     icon.className = 'flex-shrink-0 flex items-center';
 
     const name = document.createElement('span');

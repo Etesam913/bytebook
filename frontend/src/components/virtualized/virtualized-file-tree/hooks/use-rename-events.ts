@@ -11,6 +11,7 @@ import { FOLDER_RENAME, NOTE_RENAME } from '../../../../utils/events';
 import { createFilePath, createFolderPath } from '../../../../utils/path';
 import { logger } from '../../../../utils/logging';
 import { routeUrls } from '../../../../utils/routes';
+import { isTreeNodeAFolder } from '../utils/file-tree-utils';
 import {
   applyNodeUpdates,
   applyParentFolderUpdates,
@@ -100,7 +101,7 @@ export function useRenameEvents() {
         fileTreeData: prev,
         // For folder renames, skip any node that isn't actually a folder
         isValidNode:
-          mode === 'folder' ? (node) => node.type === 'folder' : undefined,
+          mode === 'folder' ? (node) => isTreeNodeAFolder(node) : undefined,
       });
 
       needsTopLevelInvalidation = renameUpdates.needsTopLevelInvalidation;

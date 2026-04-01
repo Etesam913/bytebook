@@ -5,6 +5,7 @@ import {
   type FlattenedFileOrFolder,
   type Folder,
 } from '../../types';
+import { isTreeNodeAFolder } from '../../utils/file-tree-utils';
 import {
   useAddTreeItemMutation,
   useRenameTreeItemMutation,
@@ -99,7 +100,7 @@ export function useFileTreeFolderAddActions({
       return;
     }
 
-    if (dataItem && dataItem.type !== FOLDER_TYPE) {
+    if (dataItem && !isTreeNodeAFolder(dataItem)) {
       closeAddInput();
       return;
     }

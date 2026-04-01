@@ -1,6 +1,7 @@
 import { useAtom, useAtomValue } from 'jotai';
 import { useFetchFolderChildrenMutation } from '../hooks/open-folder';
 import { FlattenedFileOrFolder } from '../types';
+import { isTreeNodeAFile, isTreeNodeAFolder } from '../utils/file-tree-utils';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { MouseEvent } from 'react';
 import { FileTreeFileItem } from '../file-tree-item/file';
@@ -38,7 +39,7 @@ export function FileTreeItemContainer({
   const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
 
   const path =
-    dataItem.type === 'file'
+    isTreeNodeAFile(dataItem)
       ? createFilePath(dataItem.path)
       : createFolderPath(dataItem.path);
 
@@ -156,7 +157,7 @@ export function FileTreeItemContainer({
 
   return (
     <>
-      {dataItem.type === 'folder' ? (
+      {isTreeNodeAFolder(dataItem) ? (
         <FileTreeFolderItem
           dataItem={dataItem}
           fetchFolderChildren={fetchFolderChildren}

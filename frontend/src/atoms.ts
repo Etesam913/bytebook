@@ -112,6 +112,12 @@ export const fileTreeDataAtom = atomWithLogging<FileTreeData>(
   }
 );
 
+/**
+ * Stores the set of tree node IDs that should display a drag highlight.
+ * Empty set = no highlight. Computed via BFS from the parent of the hovered file.
+ */
+export const dragHighlightIdsAtom = atom<Set<string>>(new Set<string>());
+
 export const isDarkModeOnAtom = atom<boolean>(false);
 
 // Editor UI state atoms

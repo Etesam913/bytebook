@@ -6,6 +6,7 @@ import { QueryError } from '../../../../utils/query';
 import { fileTreeDataAtom } from '../../../../atoms';
 import type { FileOrFolder } from '../types';
 import { FILE_TYPE, FOLDER_TYPE } from '../types';
+import { isTreeNodeAFolder } from '../utils/file-tree-utils';
 import type { SetStateAction } from 'jotai';
 import { useSetAtom, useStore } from 'jotai';
 import { Dispatch, useRef } from 'react';
@@ -32,7 +33,7 @@ function insertEntry(
 
   switch (entry.type) {
     case FILE_TYPE:
-      maps.treeData.set(entry.id, { ...commonAttributes, type: 'file' });
+      maps.treeData.set(entry.id, { ...commonAttributes, type: 'file', hasDragHighlight: false });
       break;
     case FOLDER_TYPE:
       maps.treeData.set(entry.id, {
@@ -56,7 +57,7 @@ function updateParentFolder(
   maps: TreeMaps
 ) {
   const folder = maps.treeData.get(folderId);
-  if (folder && folder.type === FOLDER_TYPE) {
+  if (folder && isTreeNodeAFolder(folder)) {
     maps.treeData.set(folderId, {
       ...folder,
       childrenIds,
@@ -82,7 +83,7 @@ export function applyLoadMore({
 }) {
   const existingFolder = maps.treeData.get(folderId);
   const childrenIds: string[] =
-    existingFolder && existingFolder.type === FOLDER_TYPE
+    existingFolder && isTreeNodeAFolder(existingFolder)
       ? [...existingFolder.childrenIds]
       : [];
 
@@ -109,7 +110,7 @@ function removeStaleChildren(
   maps: TreeMaps
 ) {
   const existingFolder = maps.treeData.get(folderId);
-  if (!existingFolder || existingFolder.type !== FOLDER_TYPE) return;
+  if (!existingFolder || !isTreeNodeAFolder(existingFolder)) return;
 
   for (const childId of existingFolder.childrenIds) {
     const childNode = maps.treeData.get(childId);
@@ -175,7 +176,7 @@ export function setFolderOpen({
 }) {
   setFileTreeData((prev) => {
     const folder = prev.treeData.get(folderId);
-    if (!folder || folder.type !== FOLDER_TYPE) return prev;
+    if (!folder || !isTreeNodeAFolder(folder)) return prev;
     const newTreeData = new Map(prev.treeData);
     newTreeData.set(folderId, { ...folder, isOpen });
     return { ...prev, treeData: newTreeData };
@@ -217,7 +218,7 @@ export function useFetchFolderChildrenMutation(options?: {
       try {
         const { treeData } = store.get(fileTreeDataAtom);
         const folderData = treeData.get(folderId);
-        if (!folderData || folderData.type !== FOLDER_TYPE) {
+        if (!folderData || !isTreeNodeAFolder(folderData)) {
           throw new QueryError('Folder not found');
         }
 

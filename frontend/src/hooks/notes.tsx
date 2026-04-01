@@ -153,6 +153,8 @@ export function useMoveToTrashMutation() {
       }
     },
     onSuccess: (restoreItems) => {
+      void queryClient.invalidateQueries({ queryKey: ['full-text-search'] });
+
       if (restoreItems.length === 0) {
         return;
       }

@@ -2,10 +2,10 @@ import { useAtomValue } from 'jotai';
 import { useFetchFolderChildrenMutation } from '../hooks/open-folder';
 import {
   CREATE_FOLDER_TYPE,
-  FOLDER_TYPE,
   LOAD_MORE_TYPE,
   VirtualizedFileTreeItem,
 } from '../types';
+import { isTreeNodeAFolder } from '../utils/file-tree-utils';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { LoadMoreRow } from './load-more-row';
 import { FileTreeItemContainer } from '../file-tree-item-container';
@@ -29,7 +29,7 @@ export function FileTreeItem({
       <LoadMoreRow
         level={dataItem.level}
         onLoadMore={() => {
-          if (parentFolder && parentFolder.type === FOLDER_TYPE) {
+          if (parentFolder && isTreeNodeAFolder(parentFolder)) {
             fetchFolderChildren({
               pathToFolder: parentFolder.path,
               folderId: parentFolder.id,

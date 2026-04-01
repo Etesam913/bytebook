@@ -44,6 +44,7 @@ function useTopLevelFileOrFoldersQuery() {
               ...commonAttributes,
               type: FILE_TYPE,
               parentId: null,
+              hasDragHighlight: false,
             });
             break;
           case FOLDER_TYPE:

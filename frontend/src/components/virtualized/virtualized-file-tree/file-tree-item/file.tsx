@@ -7,10 +7,12 @@ import { PinTackSlash } from '../../../../icons/pin-tack-slash';
 import {
   contextMenuDataAtom,
   dialogDataAtom,
+  dragHighlightIdsAtom,
   projectSettingsAtom,
   sidebarSelectionAtom,
   type SidebarSelectionState,
 } from '../../../../atoms';
+import { isTreeNodeAFile, isTreeNodeAFolder } from '../utils/file-tree-utils';
 import { useFilePathFromRoute } from '../../../../hooks/routes';
 import {
   useMoveToTrashMutation,
@@ -24,8 +26,14 @@ import type { FlattenedFileOrFolder } from '../types';
 import { InlineTreeItemInput } from './inline-tree-item-input';
 import { Trash } from '../../../../icons/trash';
 import { FilePen } from '../../../../icons/file-pen';
-import { useRenameTreeItemMutation } from '../hooks/tree-item-mutations';
-import { getFileTreeItemIndent } from '../utils/file-tree-utils';
+import {
+  useMoveTreeItemsMutation,
+  useRenameTreeItemMutation,
+} from '../hooks/tree-item-mutations';
+import {
+  getDragHighlightIds,
+  getFileTreeItemIndent,
+} from '../utils/file-tree-utils';
 import {
   createDragGhostElement,
   getContextMenuSelectionItems,
@@ -50,6 +58,8 @@ export function FileTreeFileItem({
   const filePathFromRoute = useFilePathFromRoute();
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
+  const dragHighlightIds = useAtomValue(dragHighlightIdsAtom);
+  const setDragHighlightIds = useSetAtom(dragHighlightIdsAtom);
   const sidebarSelection = useAtomValue(sidebarSelectionAtom);
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
@@ -64,6 +74,7 @@ export function FileTreeFileItem({
     error: renameTreeItemError,
     reset: resetRenameTreeItem,
   } = useRenameTreeItemMutation();
+  const { mutateAsync: moveItemsToFolder } = useMoveTreeItemsMutation();
 
   const lastDotIndex = dataItem.name.lastIndexOf('.');
   const nameWithoutExtension =
@@ -108,6 +119,13 @@ export function FileTreeFileItem({
 
   const resolvedFilePath = filePath;
 
+  // Get the parent folder path for drop target resolution
+  const parentFolder = dataItem.parentId
+    ? fileOrFolderMap.get(dataItem.parentId)
+    : null;
+  const parentFolderPath =
+    parentFolder && isTreeNodeAFolder(parentFolder) ? parentFolder.path : '';
+
   const isSelectedFromRoute =
     filePath !== null &&
     filePathFromRoute !== null &&
@@ -134,7 +152,9 @@ export function FileTreeFileItem({
         'rounded-md flex items-center gap-2 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
         isSelectedFromRoute &&
           'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
-        isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!'
+        isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!',
+        dragHighlightIds.has(dataItem.id) &&
+          'bg-(--accent-color)/25 hover:bg-(--accent-color)/25 dark:hover:bg-(--accent-color)/25 focus:bg-(--accent-color)/25 dark:focus:bg-(--accent-color)/25'
       )}
     >
       {filePath ? (
@@ -185,6 +205,7 @@ export function FileTreeFileItem({
     if (ghost) {
       ghost.remove();
     }
+    setDragHighlightIds(new Set());
   }
 
   return (
@@ -192,6 +213,28 @@ export function FileTreeFileItem({
       draggable={true}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragEnter={() => {
+        setDragHighlightIds(
+          getDragHighlightIds({
+            fileOrFolderMap,
+            parentId: dataItem.parentId,
+          })
+        );
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragHighlightIds(new Set());
+        void moveItemsToFolder(parentFolderPath);
+      }}
       onClick={handleClick}
       data-file-drop-target
       id={dataItem.id}
@@ -205,8 +248,8 @@ export function FileTreeFileItem({
           sidebarSelections: contextMenuSelections,
           fileOrFolderMap,
         });
-        const selectedFiles = selectedItems.filter(
-          (item) => item.type === 'file'
+        const selectedFiles = selectedItems.filter((item) =>
+          isTreeNodeAFile(item)
         );
         const selectedFilePaths = selectedFiles
           .map((item) => createFilePath(item.path))
@@ -218,8 +261,8 @@ export function FileTreeFileItem({
           selectedFoldersForFiles.size === 1 && selectedFilePaths[0]
             ? selectedFilePaths[0].folder
             : null;
-        const hasFolderSelection = selectedItems.some(
-          (item) => item.type === 'folder'
+        const hasFolderSelection = selectedItems.some((item) =>
+          isTreeNodeAFolder(item)
         );
         const isMultiSelection = selectedItems.length > 1;
         const shouldPinSelectedFiles = selectedFiles.some(

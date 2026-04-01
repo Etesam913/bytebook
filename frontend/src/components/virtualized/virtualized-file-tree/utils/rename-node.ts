@@ -1,10 +1,11 @@
 import type { FileOrFolder } from '../types';
-import { FOLDER_TYPE } from '../types';
 import type { FileTreeData } from '../../../../atoms';
 import {
   getParentNodeFromPath,
   getTreeNodeFromPath,
   isFileTreeNodeTopLevel,
+  isTreeNodeAFile,
+  isTreeNodeAFolder,
   removeFileFromFileTreeMap,
 } from './file-tree-utils';
 
@@ -20,7 +21,7 @@ function getOriginalLastChildName(
   const parent = fileTreeData.treeData.get(parentId);
   if (
     !parent ||
-    parent.type !== FOLDER_TYPE ||
+    !isTreeNodeAFolder(parent) ||
     parent.childrenIds.length === 0
   ) {
     return null;
@@ -219,7 +220,7 @@ export function applyPathRemappings({
     const existingIdForNewPath = fileTreeData.filePathToTreeDataId.get(newPath);
     if (existingIdForNewPath && existingIdForNewPath !== fileId) {
       const duplicateNode = updatedTreeData.get(existingIdForNewPath);
-      if (duplicateNode && duplicateNode.type === 'file') {
+      if (duplicateNode && isTreeNodeAFile(duplicateNode)) {
         if (duplicateNode.parentId) {
           updatedTreeData = removeFileFromFileTreeMap({
             map: updatedTreeData,
@@ -287,7 +288,7 @@ function removeSubtreeFromMaps(
   const node = treeData.get(nodeId);
   if (!node) return;
 
-  if (node.type === FOLDER_TYPE) {
+  if (isTreeNodeAFolder(node)) {
     for (const childId of node.childrenIds) {
       removeSubtreeFromMaps(treeData, filePathToTreeDataId, childId);
     }
@@ -327,7 +328,7 @@ export function applyParentFolderUpdates({
 
   for (const [parentId, updates] of parentFolderUpdates) {
     const parent = updatedTreeData.get(parentId);
-    if (!parent || parent.type !== 'folder') {
+    if (!parent || !isTreeNodeAFolder(parent)) {
       continue;
     }
 

@@ -1,6 +1,7 @@
 import { RefObject, useEffect, useState } from 'react';
 import type { ListRange, VirtuosoHandle } from 'react-virtuoso';
-import { FILE_TYPE, FOLDER_TYPE, type VirtualizedFileTreeItem } from '../types';
+import { type VirtualizedFileTreeItem } from '../types';
+import { isTreeNodeAFile, isTreeNodeAFolder } from '../utils/file-tree-utils';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { useRevealRoutePath } from './use-reveal-route-path';
 import { useAtomValue } from 'jotai';
@@ -55,7 +56,7 @@ export function useRoutePathFocus({
 
     const isCurrentRouteVisible = visibleItems.some(
       (item) =>
-        (item.type === FILE_TYPE || item.type === FOLDER_TYPE) &&
+        (isTreeNodeAFile(item) || isTreeNodeAFolder(item)) &&
         item.path === routeTargetPath
     );
 

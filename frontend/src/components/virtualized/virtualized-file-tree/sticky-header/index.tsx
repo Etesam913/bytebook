@@ -2,10 +2,10 @@ import type { ListRange } from 'react-virtuoso';
 import { FileTreeItem } from '../file-tree-item';
 import {
   CREATE_FOLDER_TYPE,
-  FOLDER_TYPE,
   LOAD_MORE_TYPE,
   type VirtualizedFileTreeItem,
 } from '../types';
+import { isTreeNodeAFolder } from '../utils/file-tree-utils';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { useAtomValue } from 'jotai';
 
@@ -50,7 +50,7 @@ export function StickyHeader({
       let currentParentId = visibleItem.parentId;
       while (currentParentId) {
         const parentItem = fileOrFolderMap.get(currentParentId);
-        if (!parentItem || parentItem.type !== FOLDER_TYPE) break;
+        if (!parentItem || !isTreeNodeAFolder(parentItem)) break;
 
         if (parentItem.isOpen && !visibleItemIds.has(parentItem.id)) {
           nextStickyElementIds.add(parentItem.id);
@@ -66,7 +66,7 @@ export function StickyHeader({
   const stickyItems = stickyElements
     .map((stickyId) => {
       const stickyItem = flattenedTopLevelData.find(
-        (item) => item.id === stickyId && item.type === FOLDER_TYPE
+        (item) => item.id === stickyId && isTreeNodeAFolder(item)
       );
       return stickyItem ?? null;
     })

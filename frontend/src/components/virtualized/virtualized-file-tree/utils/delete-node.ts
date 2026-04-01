@@ -1,8 +1,12 @@
 import type { FileOrFolder } from '../types';
-import { FILE_TYPE, FOLDER_TYPE } from '../types';
 import type { FileTreeData } from '../../../../atoms';
 import { createFilePath, createFolderPath } from '../../../../utils/path';
-import { getParentNodeFromPath, getTreeNodeFromPath } from './file-tree-utils';
+import {
+  getParentNodeFromPath,
+  getTreeNodeFromPath,
+  isTreeNodeAFile,
+  isTreeNodeAFolder,
+} from './file-tree-utils';
 
 /**
  * Recursively removes a node and all its descendants from the provided maps.
@@ -16,7 +20,7 @@ function removeSubtreeFromMaps(
   const node = treeData.get(nodeId);
   if (!node) return;
 
-  if (node.type === FOLDER_TYPE) {
+  if (isTreeNodeAFolder(node)) {
     for (const childId of node.childrenIds) {
       removeSubtreeFromMaps(treeData, filePathToTreeDataId, childId);
     }
@@ -62,7 +66,7 @@ function removeDeletedNodeFromFileTree(
  * Converts a FileOrFolder node to an encoded route URL.
  */
 function nodeToEncodedUrl(node: FileOrFolder): string | null {
-  if (node.type === FILE_TYPE) {
+  if (isTreeNodeAFile(node)) {
     return createFilePath(node.path)?.encodedFileUrl ?? null;
   }
   return createFolderPath(node.path)?.encodedFolderUrl ?? null;

@@ -2,7 +2,7 @@ import { useAtomValue } from 'jotai';
 import { type FileTreeData, fileTreeDataAtom } from '../../../../atoms';
 import { useWailsEvent } from '../../../../hooks/events';
 import { FILE_TREE_CONTENT_DROP } from '../../../../utils/events';
-import { FILE_TYPE, FOLDER_TYPE } from '../types';
+import { isTreeNodeAFile, isTreeNodeAFolder } from '../utils/file-tree-utils';
 import { useAddDroppedFilesToFolderMutation } from './tree-item-mutations';
 
 type FileTreeContentDropEventData = {
@@ -23,11 +23,11 @@ function resolveTargetFolderPath(
     return null;
   }
 
-  if (targetNode.type === FOLDER_TYPE) {
+  if (isTreeNodeAFolder(targetNode)) {
     return targetNode.path;
   }
 
-  if (targetNode.type !== FILE_TYPE) {
+  if (!isTreeNodeAFile(targetNode)) {
     return null;
   }
 
@@ -37,7 +37,7 @@ function resolveTargetFolderPath(
   }
 
   const parentNode = fileTreeData.treeData.get(targetNode.parentId);
-  if (!parentNode || parentNode.type !== FOLDER_TYPE) {
+  if (!parentNode || !isTreeNodeAFolder(parentNode)) {
     return null;
   }
 

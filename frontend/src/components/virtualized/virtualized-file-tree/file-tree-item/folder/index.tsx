@@ -6,8 +6,10 @@ import { FolderOpen } from '../../../../../icons/folder-open';
 import { FolderPen } from '../../../../../icons/folder-pen';
 import { Blog } from '../../../../../icons/blog';
 import { FILE_TYPE, FOLDER_TYPE, type Folder } from '../../types';
+import { isTreeNodeAFolder } from '../../utils/file-tree-utils';
 import {
   contextMenuDataAtom,
+  dragHighlightIdsAtom,
   projectSettingsAtom,
   type SidebarSelectionState,
 } from '../../../../../atoms';
@@ -66,6 +68,8 @@ export function FileTreeFolderItem({
   const [isDraggedOver, setIsDraggedOver] = useState(false);
 
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
+  const dragHighlightIds = useAtomValue(dragHighlightIdsAtom);
+  const setDragHighlightIds = useSetAtom(dragHighlightIdsAtom);
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
@@ -101,7 +105,7 @@ export function FileTreeFolderItem({
       : false;
 
   function handleClick(e: MouseEvent) {
-    if (dataItem.type !== FOLDER_TYPE) {
+    if (!isTreeNodeAFolder(dataItem)) {
       return;
     }
 
@@ -142,10 +146,13 @@ export function FileTreeFolderItem({
           isSelectedFromRoute &&
             'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
           (isSelectedFromSidebarClick || isDraggedOver) &&
-            'bg-(--accent-color)! text-white!'
+            'bg-(--accent-color)! text-white!',
+
+          dragHighlightIds.has(dataItem.id) &&
+            'bg-(--accent-color)/25 hover:bg-(--accent-color)/25 dark:hover:bg-(--accent-color)/25 focus:bg-(--accent-color)/25 dark:focus:bg-(--accent-color)/25'
         )}
       >
-        {dataItem.type === FOLDER_TYPE && dataItem.isOpen ? (
+        {isTreeNodeAFolder(dataItem) && dataItem.isOpen ? (
           <FolderOpen
             className="min-w-4 min-h-4 will-change-transform"
             height="1rem"
@@ -184,7 +191,7 @@ export function FileTreeFolderItem({
 
   const paddingForItemToAdd = getFileTreeItemIndent(dataItem.level + 1);
   const inlineInput = addingType &&
-    dataItem.type === FOLDER_TYPE &&
+    isTreeNodeAFolder(dataItem) &&
     dataItem.isOpen && (
       <div
         style={{ paddingLeft: paddingForItemToAdd }}
@@ -262,6 +269,7 @@ export function FileTreeFolderItem({
           e.preventDefault();
           e.stopPropagation();
           setIsDraggedOver(true);
+          setDragHighlightIds(new Set());
         }}
         onDragLeave={(e) => {
           e.preventDefault();
@@ -276,7 +284,7 @@ export function FileTreeFolderItem({
         }}
         onClick={handleClick}
         onContextMenu={(e) => {
-          if (dataItem.type !== FOLDER_TYPE) return;
+          if (!isTreeNodeAFolder(dataItem)) return;
 
           e.preventDefault();
           const newSelectionState = addItemToSidebarSelection();
@@ -288,8 +296,8 @@ export function FileTreeFolderItem({
             fileOrFolderMap,
           });
           const isMultiSelection = selectedItems.length > 1;
-          const selectedFolders = selectedItems.filter(
-            (item) => item.type === FOLDER_TYPE
+          const selectedFolders = selectedItems.filter((item) =>
+            isTreeNodeAFolder(item)
           );
           const shouldPinSelectedFolders = selectedFolders.some(
             (item) => !projectSettings.pinnedNotes.has(item.path)
