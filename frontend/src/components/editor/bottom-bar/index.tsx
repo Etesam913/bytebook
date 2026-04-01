@@ -1,4 +1,4 @@
-import { Fragment, ReactNode, useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { motion } from 'motion/react';
 import { Tag } from './tag';
@@ -17,43 +17,12 @@ import { timeSince } from '../utils/bottom-bar';
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
 import { Frontmatter } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
-import { navigate } from 'wouter/use-browser-location';
 import {
   FilePath,
   createFolderPath,
   safeDecodeURIComponent,
 } from '../../../utils/path';
-
-function BreadcrumbItem({
-  path,
-  children,
-}: {
-  path?: string;
-  children: ReactNode;
-}) {
-  const handleClick = () => {
-    if (!path) return;
-    navigate(path);
-  };
-
-  if (!path) {
-    return (
-      <span className="flex items-center gap-1 whitespace-nowrap text-ellipsis overflow-hidden text-zinc-500 dark:text-zinc-300">
-        {children}
-      </span>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className="flex items-end gap-1.5 whitespace-nowrap text-ellipsis overflow-hidden hover:underline text-left"
-    >
-      {children}
-    </button>
-  );
-}
+import { BreadcrumbItem } from '../../note-renderer/breadcrumb-item';
 
 export function BottomBar({
   frontmatter,
@@ -122,9 +91,13 @@ export function BottomBar({
         {folderSegments.map((segment, index) => {
           const path = folderSegments.slice(0, index + 1).join('/');
           const folderPath = createFolderPath(path);
+          if (!folderPath) {
+            return null;
+          }
+
           return (
             <Fragment key={`folder-segment-${index}`}>
-              <BreadcrumbItem path={folderPath?.encodedFolderUrl}>
+              <BreadcrumbItem path={folderPath.encodedFolderUrl}>
                 {index === 0 && <Folder width="1rem" height="1rem" />}
                 {segment}
               </BreadcrumbItem>
@@ -132,7 +105,7 @@ export function BottomBar({
             </Fragment>
           );
         })}
-        <BreadcrumbItem>
+        <BreadcrumbItem path={filePath.encodedFileUrl}>
           <RenderNoteIcon filePath={filePath} size="sm" />
           {safeDecodeURIComponent(filePath.noteWithoutExtension)}
         </BreadcrumbItem>

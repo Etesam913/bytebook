@@ -98,7 +98,7 @@ export function NonMarkdownToolbar({
       )}
     >
       <MaximizeNoteButton animationControls={animationControls} />
-      <MediaMetadata filePath={filePath} />
+      <MediaMetadata filePath={filePath} path={filePath.encodedFileUrl} />
       <DropdownMenu
         items={items}
         isOpen={isOpen}

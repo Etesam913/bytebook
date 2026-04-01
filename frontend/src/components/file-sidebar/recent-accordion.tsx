@@ -4,10 +4,7 @@ import HourglassStart from '../../icons/hourglass-start.tsx';
 import { AccordionItem } from '../accordion/accordion-item.tsx';
 import { AccordionButton } from '../accordion/accordion-button';
 import { useEffect } from 'react';
-import {
-  useFilePathFromRoute,
-  useFolderPathFromRoute,
-} from '../../hooks/routes.tsx';
+import { useRecentItemFromRoute } from '../../hooks/routes.tsx';
 import { motion } from 'motion/react';
 import { SidebarAccordionPanel } from './sidebar-accordion-panel';
 import { Folder as FolderIcon } from '../../icons/folder';
@@ -16,11 +13,11 @@ export function RecentAccordion() {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isRecentOpen = openState.recent;
   const [mostRecentItems, setMostRecentItems] = useAtom(mostRecentItemsAtom);
-  const routeFilePath = useFilePathFromRoute();
-  const routeFolderPath = useFolderPathFromRoute();
-  const routeItem = routeFilePath ?? routeFolderPath;
+  const routeItem = useRecentItemFromRoute();
   const iconSize = '1.1875rem';
 
+  // Update the "most recent items" list in the sidebar based on current route.
+  // Inserts the currently viewed item at the top, maintaining list uniqueness and max length.
   useEffect(() => {
     if (!routeItem) {
       return;
@@ -30,6 +27,7 @@ export function RecentAccordion() {
         routeItem,
         ...prev.filter((path) => path.fullPath !== routeItem.fullPath),
       ].slice(0, 10);
+
       const didOrderChange =
         next.length !== prev.length ||
         next.some((item, index) => item.fullPath !== prev[index]?.fullPath);

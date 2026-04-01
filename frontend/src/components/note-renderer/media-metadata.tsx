@@ -1,26 +1,25 @@
-import { Fragment, type ReactNode } from 'react';
+import { Fragment } from 'react';
 import { motion } from 'motion/react';
 import { Tag } from '../editor/bottom-bar/tag';
 import { Folder } from '../../icons/folder';
 import { Loader } from '../../icons/loader';
 import { RenderNoteIcon } from '../../icons/render-note-icon';
 import { useTagsForNotesQuery } from '../../hooks/tags';
-import { FilePath, safeDecodeURIComponent } from '../../utils/path';
+import {
+  FilePath,
+  createFolderPath,
+  safeDecodeURIComponent,
+} from '../../utils/path';
 import { cn } from '../../utils/string-formatting';
-
-function BreadcrumbItem({ children }: { children: ReactNode }) {
-  return (
-    <span className="flex min-w-0 items-center gap-1 whitespace-nowrap text-ellipsis overflow-hidden text-zinc-500 dark:text-zinc-300 shrink-0">
-      {children}
-    </span>
-  );
-}
+import { BreadcrumbItem } from './breadcrumb-item';
 
 export function MediaMetadata({
   filePath,
+  path,
   className,
 }: {
   filePath: FilePath;
+  path: string;
   className?: string;
 }) {
   const { data: tagsMap, isLoading } = useTagsForNotesQuery([
@@ -40,16 +39,25 @@ export function MediaMetadata({
   return (
     <span className={cn('flex min-w-0 flex-1 items-center gap-3', className)}>
       <span className="flex min-w-0 items-center gap-1 overflow-hidden">
-        {folderSegments.map((segment, index) => (
-          <Fragment key={`folder-segment-${index}`}>
-            <BreadcrumbItem>
-              {index === 0 && <Folder width="1.125rem" height="1.125rem" />}
-              {segment}
-            </BreadcrumbItem>
-            <span>/</span>
-          </Fragment>
-        ))}
-        <BreadcrumbItem>
+        {folderSegments.map((segment, index) => {
+          const folderPath = createFolderPath(
+            folderSegments.slice(0, index + 1).join('/')
+          );
+          if (!folderPath) {
+            return null;
+          }
+
+          return (
+            <Fragment key={`folder-segment-${index}`}>
+              <BreadcrumbItem path={folderPath.encodedFolderUrl}>
+                {index === 0 && <Folder width="1.125rem" height="1.125rem" />}
+                {segment}
+              </BreadcrumbItem>
+              <span>/</span>
+            </Fragment>
+          );
+        })}
+        <BreadcrumbItem path={path}>
           <RenderNoteIcon filePath={filePath} />
           {safeDecodeURIComponent(filePath.noteWithoutExtension)}
         </BreadcrumbItem>

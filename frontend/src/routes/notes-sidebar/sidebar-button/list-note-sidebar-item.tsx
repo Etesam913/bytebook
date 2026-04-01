@@ -19,7 +19,7 @@ export function ListNoteSidebarItem({
           {sidebarNotePath.noteWithoutExtension}
         </span>
         <span className="shrink-0 whitespace-nowrap">
-          {sidebarNotePath.extension}
+          .{sidebarNotePath.extension}
         </span>
       </p>
     </>

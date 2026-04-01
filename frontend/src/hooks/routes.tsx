@@ -6,7 +6,15 @@ import {
   createFilePath,
   safeDecodeURIComponent,
 } from '../utils/path';
-import { NotesRouteParams } from '../utils/routes';
+import { NotesRouteParams, SavedSearchRouteParams } from '../utils/routes';
+
+function normalizeWildcardPath(path: string | undefined): string | null {
+  if (!path) {
+    return null;
+  }
+
+  return safeDecodeURIComponent(path).split('/').filter(Boolean).join('/');
+}
 
 /**
  * Hook to get the decoded wildcard path segment from the `/notes/*` route.
@@ -16,13 +24,28 @@ import { NotesRouteParams } from '../utils/routes';
  */
 function useDecodedNotesWildcardPath(): string | null {
   const [isNoteRoute, noteParams] = useRoute<NotesRouteParams>('/notes/*');
-  if (!isNoteRoute || !noteParams['*']) {
+  if (!isNoteRoute) {
     return null;
   }
-  return safeDecodeURIComponent(noteParams['*'])
-    .split('/')
-    .filter(Boolean)
-    .join('/');
+
+  return normalizeWildcardPath(noteParams['*']);
+}
+
+/**
+ * Hook to get the decoded wildcard path segment from the
+ * `/saved-search/:searchQuery/*` route.
+ *
+ * @returns The normalized file path from the route, or null if not on a
+ * saved-search note route.
+ */
+function useDecodedSavedSearchWildcardPath(): string | null {
+  const [isSavedSearchRoute, savedSearchParams] =
+    useRoute<SavedSearchRouteParams>('/saved-search/:searchQuery/*');
+  if (!isSavedSearchRoute) {
+    return null;
+  }
+
+  return normalizeWildcardPath(savedSearchParams['*']);
 }
 
 /**
@@ -43,6 +66,29 @@ export function useFilePathFromRoute(): FilePath | null {
 export function useFolderPathFromRoute(): FolderPath | null {
   const decodedPath = useDecodedNotesWildcardPath();
   return decodedPath ? createFolderPath(decodedPath) : null;
+}
+
+/**
+ * Hook to get the current note or folder represented by the active route.
+ *
+ * Supports both `/notes/*` routes and saved-search note routes.
+ *
+ * @returns FilePath or FolderPath for the current route, or null if the route
+ * does not correspond to a note or folder.
+ */
+export function useRecentItemFromRoute(): FilePath | FolderPath | null {
+  const decodedNotesPath = useDecodedNotesWildcardPath();
+  const decodedSavedSearchPath = useDecodedSavedSearchWildcardPath();
+
+  if (decodedNotesPath) {
+    return createFilePath(decodedNotesPath) ?? createFolderPath(decodedNotesPath);
+  }
+
+  if (decodedSavedSearchPath) {
+    return createFilePath(decodedSavedSearchPath);
+  }
+
+  return null;
 }
 
 /**
