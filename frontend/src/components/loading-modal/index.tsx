@@ -21,7 +21,7 @@ export function LoadingModal() {
   return (
     <dialog
       ref={dialogRef}
-      aria-label="Loading"
+      aria-label={`Loading: ${backendQuery.message}`}
       onCancel={(e) => e.preventDefault()}
       className="m-auto bg-zinc-50 dark:bg-zinc-800 px-4 py-5 max-w-[80vw] w-80 rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 backdrop:bg-[rgba(0,0,0,0.5)]"
     >

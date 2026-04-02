@@ -221,6 +221,9 @@ export function FloatingMenuPlugin({
             floating.refs.setFloating(node);
             formRef.current = node;
           }}
+          aria-label={
+            isLinkMenuOpen ? 'Link editor' : 'Text formatting toolbar'
+          }
           data-testid="floating-toolbar"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -262,6 +265,7 @@ export function FloatingMenuPlugin({
                 ref={inputRef}
                 labelProps={{}}
                 inputProps={{
+                  'aria-label': 'URL',
                   defaultValue: floatingData.previousUrl ?? 'https://',
                   autoFocus: true,
                   className: 'text-sm w-64',
@@ -286,7 +290,11 @@ export function FloatingMenuPlugin({
                   },
                 }}
               />
-              <MotionButton type="submit" {...getDefaultButtonVariants()}>
+              <MotionButton
+                type="submit"
+                aria-label="Submit link"
+                {...getDefaultButtonVariants()}
+              >
                 <SubmitLink height="1.125rem" width="1.125rem" />
               </MotionButton>
             </>

@@ -261,6 +261,10 @@ export function FileTreeFolderItem({
       <button
         data-file-drop-target
         id={dataItem.id}
+        role="treeitem"
+        aria-expanded={dataItem.isOpen}
+        aria-level={dataItem.level + 1}
+        aria-selected={isSelectedFromSidebarClick || isSelectedFromRoute}
         draggable={true}
         className="flex items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2 file-tree-drop-target"
         onDragStart={handleDragStart}

@@ -120,6 +120,7 @@ export function ContextMenu() {
   return (
     <dialog
       ref={dialogRef}
+      aria-label="Context menu"
       className="bg-transparent border-none p-0 max-w-none max-h-none w-full h-full"
       onMouseDown={(event) => {
         if (
@@ -139,7 +140,10 @@ export function ContextMenu() {
             style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
           >
             {selections.size > 0 && (
-              <div className="absolute rounded-full font-bold min-w-6 h-6 px-1 text-xs leading-none pointer-events-none text-white flex justify-center items-center -left-2 bg-(--accent-color) z-60">
+              <div
+                aria-label={`${selectionCountLabel} items selected`}
+                className="absolute rounded-full font-bold min-w-6 h-6 px-1 text-xs leading-none pointer-events-none text-white flex justify-center items-center -left-2 bg-(--accent-color) z-60"
+              >
                 {selectionCountLabel}
               </div>
             )}

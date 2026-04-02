@@ -405,4 +405,3 @@ export function getDragHighlightIds({
 
   return ids;
 }
-

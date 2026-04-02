@@ -19,7 +19,7 @@ export function NoteTitle({ filePath }: { filePath: FilePath }) {
     <div className="mt-2 mb-3 flex flex-col">
       <input
         className={cn(
-          'bg-transparent text-3xl mb-1 outline-hidden font-semibold w-full',
+          'bg-transparent text-3xl mb-1 outline-hidden focus-visible:ring-2 focus-visible:ring-(--accent-color) rounded-sm font-semibold w-full',
           errorText.length > 0 && 'text-red-600 dark:text-red-500'
         )}
         onClick={(e) => e.stopPropagation()}

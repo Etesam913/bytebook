@@ -47,6 +47,14 @@ export function PlayButton({
 
   const tooltipRoot = isExpanded && dialogRef ? dialogRef : undefined;
 
+  const statusToLabel: Record<CodeBlockStatus, string> = {
+    busy: 'Stop execution',
+    starting: 'Starting kernel',
+    queueing: 'Loading',
+    idle: 'Run code',
+  };
+  const buttonLabel = statusToLabel[status];
+
   return (
     <Tooltip
       delay={{ open: 1200, close: 0 }}
@@ -61,6 +69,7 @@ export function PlayButton({
       root={tooltipRoot}
     >
       <motion.button
+        aria-label={buttonLabel}
         {...getDefaultButtonVariants({
           disabled: false,
           whileHover: 1.1,

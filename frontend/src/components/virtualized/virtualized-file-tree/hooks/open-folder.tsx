@@ -33,7 +33,11 @@ function insertEntry(
 
   switch (entry.type) {
     case FILE_TYPE:
-      maps.treeData.set(entry.id, { ...commonAttributes, type: 'file', hasDragHighlight: false });
+      maps.treeData.set(entry.id, {
+        ...commonAttributes,
+        type: 'file',
+        hasDragHighlight: false,
+      });
       break;
     case FOLDER_TYPE:
       maps.treeData.set(entry.id, {

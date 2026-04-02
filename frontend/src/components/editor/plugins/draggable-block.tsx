@@ -68,6 +68,9 @@ export function DraggableBlockPlugin({
   return createPortal(
     <>
       <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Drag to reorder block"
         draggable
         onDragStart={(e: DragEvent) => {
           // Initialize target line position to match drag handle position

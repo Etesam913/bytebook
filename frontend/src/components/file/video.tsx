@@ -85,6 +85,11 @@ export function Video({
                 <>
                   <SelectionHighlight className="outline-4 outline-(--accent-color)" />
                   <div
+                    role="slider"
+                    tabIndex={0}
+                    aria-label="Resize video"
+                    aria-valuemin={50}
+                    aria-valuemax={1200}
                     className="cursor-sw-resize absolute bottom-[-8px] right-[-8px] w-5 h-5 z-20 bg-(--accent-color) rounded-sm"
                     onMouseDown={(e) =>
                       onResize(e, {

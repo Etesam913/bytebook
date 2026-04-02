@@ -38,10 +38,9 @@ export function FileTreeItemContainer({
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
 
-  const path =
-    isTreeNodeAFile(dataItem)
-      ? createFilePath(dataItem.path)
-      : createFolderPath(dataItem.path);
+  const path = isTreeNodeAFile(dataItem)
+    ? createFilePath(dataItem.path)
+    : createFolderPath(dataItem.path);
 
   const selectionKey = path
     ? getKeyForSidebarSelection({
