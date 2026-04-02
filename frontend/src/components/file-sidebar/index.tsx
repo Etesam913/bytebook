@@ -30,6 +30,7 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
   return (
     <>
       <motion.aside
+        aria-label="File navigation sidebar"
         style={{ width: scaledWidth }}
         className="text-md flex h-full flex-col shrink-0"
         data-testid="file-sidebar"
@@ -45,6 +46,7 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
               {...getDefaultButtonVariants()}
               onClick={() => window.history.back()}
               data-testid="go-back-button"
+              aria-label="Go back"
             >
               <CircleArrowLeft width="1.125rem" height="1.125rem" />
             </MotionIconButton>
@@ -54,6 +56,7 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
               {...getDefaultButtonVariants()}
               onClick={() => window.history.forward()}
               data-testid="go-forward-button"
+              aria-label="Go forward"
             >
               <CircleArrowRight width="1.125rem" height="1.125rem" />
             </MotionIconButton>

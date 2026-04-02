@@ -102,6 +102,8 @@ export function Dialog() {
   return (
     <dialog
       ref={dialogRef}
+      aria-modal="true"
+      aria-labelledby="dialog-title"
       className="fixed inset-0 z-40 bg-transparent border-none p-0 max-w-none max-h-none w-full h-full"
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
@@ -173,7 +175,10 @@ export function Dialog() {
                 dialogData.dialogClassName
               )}
             >
-              <h2 className="px-3 text-xl pb-2 border-b-2 border-zinc-150 dark:border-zinc-750">
+              <h2
+                id="dialog-title"
+                className="px-3 text-xl pb-2 border-b-2 border-zinc-150 dark:border-zinc-750"
+              >
                 {dialogData.title}
               </h2>
 
@@ -188,6 +193,7 @@ export function Dialog() {
                 }
                 className="absolute top-2 right-2"
                 type="button"
+                aria-label="Close dialog"
               >
                 <XMark />
               </MotionIconButton>

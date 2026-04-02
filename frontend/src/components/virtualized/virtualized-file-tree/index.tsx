@@ -80,6 +80,8 @@ export function VirtualizedFileTree({
   return (
     <div
       id="file-tree"
+      role="tree"
+      aria-label="File tree"
       className="flex flex-1 flex-col min-h-0 overflow-hidden text-sm pl-4"
       onKeyDown={(event) => {
         handleFileTreeKeyDown(

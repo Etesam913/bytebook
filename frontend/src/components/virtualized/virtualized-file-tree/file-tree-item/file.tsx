@@ -210,6 +210,9 @@ export function FileTreeFileItem({
 
   return (
     <button
+      role="treeitem"
+      aria-level={dataItem.level + 1}
+      aria-selected={isSelectedFromSidebarClick || isSelectedFromRoute}
       draggable={true}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}

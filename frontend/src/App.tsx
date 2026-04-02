@@ -67,7 +67,7 @@ function App() {
   return (
     <main
       id="App"
-      className="flex h-full w-full min-w-0 font-display overflow-hidden"
+      className="flex h-full w-full min-w-0 font-display overflow-hidden relative"
       onClick={(e) => {
         if (isRegularMouseClick(e.nativeEvent)) {
           setContextMenuData((prev) => ({ ...prev, isShowing: false }));
@@ -75,6 +75,12 @@ function App() {
       }}
       onContextMenu={(e) => e.preventDefault()}
     >
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-zinc-50 dark:focus:bg-zinc-800 focus:rounded-md focus:shadow-md focus:text-sm"
+      >
+        Skip to main content
+      </a>
       <ContextMenu />
       <Dialog />
       <LoadingModal />
@@ -88,7 +94,7 @@ function App() {
       >
         <FileSidebar width={fileSidebarWidth} />
       </Activity>
-      <div className="flex-1 min-w-0 h-full">
+      <div id="main-content" className="flex-1 min-w-0 h-full">
         <Switch>
           <Route path={routeUrls.patterns.ROOT} />
           <Route path={routeUrls.patterns.SAVED_SEARCH}>

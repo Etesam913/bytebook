@@ -25,6 +25,7 @@ export function AccordionButton({
   return (
     <button
       type="button"
+      aria-expanded={isOpen}
       className={cn(
         'relative flex items-center w-full gap-1.5 px-2.5 py-1 bg-zinc-50 border-zinc-200 dark:border-zinc-600 border-y-[1.25px] dark:bg-zinc-750 hover:bg-zinc-100 dark:hover:bg-zinc-700',
         className

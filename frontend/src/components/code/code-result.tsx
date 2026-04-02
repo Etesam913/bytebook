@@ -96,12 +96,14 @@ export function CodeResult({
               value: inputEl.value,
             });
           }}
+          aria-live="polite"
           dangerouslySetInnerHTML={{ __html: lastExecutedResult }}
           className="flex flex-col justify-between overflow-x-hidden gap-1.5 relative font-code text-xs px-2 py-3"
         />
       </div>
 
       <MotionIconButton
+        aria-label="Copy output"
         className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
         key={isExpanded.toString()}
         {...getDefaultButtonVariants()}
