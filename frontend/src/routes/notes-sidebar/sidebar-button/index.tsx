@@ -52,15 +52,15 @@ export function NoteSidebarButton({
       content={sidebarNotePath.fullPath}
       placement="right"
       withArrow={false}
+      delay={{ open: 1000, close: 100 }}
     >
       <button
         type="button"
-        title={sidebarNotePath.fullPath}
         draggable={false}
         onKeyDown={(e) => handleKeyNavigation(e)}
         className={cn(
           'list-sidebar-item',
-          isActive && 'bg-zinc-150! dark:bg-zinc-700!'
+          isActive && 'bg-zinc-150! dark:bg-zinc-700! text-(--accent-color)'
         )}
         onClick={() => {
           navigate(

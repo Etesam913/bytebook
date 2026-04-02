@@ -14,15 +14,15 @@ import { useRoutePathFocus } from './hooks/use-route-path-focus';
 import { StickyHeader } from './sticky-header';
 import { shouldHandleOutsideSelectionInteraction } from '../../../utils/mouse';
 import { useFileTreeContentDrop } from './hooks/use-file-tree-content-drop';
+import { usePreventBoundaryOverscrollFlicker } from '../virtualized-list/hooks';
 
 const INITIAL_VISIBLE_RANGE: ListRange = { startIndex: 0, endIndex: -1 };
 
 export function VirtualizedFileTree({
-  scrollContainerRef,
+  ref,
 }: {
-  scrollContainerRef?: RefObject<HTMLElement | null>;
+  ref: RefObject<HTMLElement | null>;
 }) {
-  const internalListRef = useRef<HTMLElement | null>(null);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [visibleRange, setVisibleRange] = useState(INITIAL_VISIBLE_RANGE);
   const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
@@ -34,9 +34,11 @@ export function VirtualizedFileTree({
 
   useRoutePathFocus({ visibleRange, virtualizedData, virtuosoRef, isSuccess });
   useFileTreeContentDrop();
+  usePreventBoundaryOverscrollFlicker({ scrollElementRef: ref });
+
   // Clear selection when clicking outside the file tree (unless it's a context menu click)
   useOnClickOutside(
-    internalListRef,
+    ref,
     (event) => {
       if (
         !shouldHandleOutsideSelectionInteraction(event) ||
@@ -65,7 +67,7 @@ export function VirtualizedFileTree({
           handleFileTreeItemClickCapture(
             {
               virtualizedData,
-              internalListRef,
+              internalListRef: ref,
               virtuosoRef,
             },
             e
@@ -82,12 +84,12 @@ export function VirtualizedFileTree({
       id="file-tree"
       role="tree"
       aria-label="File tree"
-      className="flex flex-1 flex-col min-h-0 overflow-hidden text-sm pl-4"
+      className="flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
       onKeyDown={(event) => {
         handleFileTreeKeyDown(
           {
             virtualizedData,
-            internalListRef,
+            internalListRef: ref,
             virtuosoRef,
           },
           event
@@ -111,15 +113,13 @@ export function VirtualizedFileTree({
         }}
         scrollerRef={(node) => {
           const element = node instanceof HTMLElement ? node : null;
-          internalListRef.current = element;
-          if (scrollContainerRef) {
-            scrollContainerRef.current = element;
+          if (ref) {
+            ref.current = element;
           }
         }}
         overscan={20}
         computeItemKey={(_, item) => item.id}
         style={{
-          overscrollBehavior: 'none',
           height: 0,
           flexGrow: 1,
         }}

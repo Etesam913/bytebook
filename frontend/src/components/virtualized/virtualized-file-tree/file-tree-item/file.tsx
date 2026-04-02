@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom } from 'jotai';
-import { MouseEvent, useState, DragEvent } from 'react';
+import { MouseEvent, useState, useEffect, useRef, DragEvent } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { Finder } from '../../../../icons/finder';
 import { PinTack2 } from '../../../../icons/pin-tack-2';
@@ -64,6 +64,15 @@ export function FileTreeFileItem({
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [isEditing, setIsEditing] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const wasEditingRef = useRef(false);
+
+  useEffect(() => {
+    if (wasEditingRef.current && !isEditing) {
+      buttonRef.current?.focus();
+    }
+    wasEditingRef.current = isEditing;
+  }, [isEditing]);
 
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();
@@ -210,6 +219,7 @@ export function FileTreeFileItem({
 
   return (
     <button
+      ref={buttonRef}
       role="treeitem"
       aria-level={dataItem.level + 1}
       aria-selected={isSelectedFromSidebarClick || isSelectedFromRoute}
@@ -237,6 +247,12 @@ export function FileTreeFileItem({
         e.stopPropagation();
         setDragHighlightIds(new Set());
         void moveItemsToFolder(parentFolderPath);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          enterEditMode();
+        }
       }}
       onClick={handleClick}
       data-file-drop-target

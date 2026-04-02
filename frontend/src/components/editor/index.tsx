@@ -46,10 +46,10 @@ import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
 import { useCodeCleanup } from './hooks/code';
 import { useNoteIntersectionObserver } from './hooks/intersection-observer';
 import { FilePath } from '../../utils/path';
-// import { TableActionsPlugin } from './plugins/table-actions.tsx';
 import type { PlaceholderLineData } from './types';
 import TableHoverActionsV2Plugin from './plugins/table/table-hover-actions.tsx';
 import TableActionMenuPlugin from './plugins/table/table-actions-menu.tsx';
+import { usePreventBoundaryOverscrollFlicker } from '../virtualized/virtualized-list/hooks.tsx';
 
 export function NotesEditor({
   filePath,
@@ -81,6 +81,9 @@ export function NotesEditor({
       speed: 20,
     }
   );
+  usePreventBoundaryOverscrollFlicker({
+    scrollElementRef: overflowContainerRef,
+  });
   const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
   const [floatingData, setFloatingData] = useState<FloatingDataType>({
     isOpen: false,

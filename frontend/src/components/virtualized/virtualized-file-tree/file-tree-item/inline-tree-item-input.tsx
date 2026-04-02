@@ -75,7 +75,12 @@ export function InlineTreeItemInput({
           )}
         </div>
       ) : (
-        <Tooltip content={dataItem.name} placement="right" withArrow={false}>
+        <Tooltip
+          content={dataItem.name}
+          placement="right"
+          withArrow={false}
+          delay={{ open: 1000, close: 100 }}
+        >
           <span className="truncate min-w-0 flex">
             <span className="truncate">{defaultValue}</span>
             {extension && <span className="shrink-0">.{extension}</span>}

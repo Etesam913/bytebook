@@ -3,11 +3,12 @@ import { fileSidebarOpenStateAtom, mostRecentItemsAtom } from '../../atoms.ts';
 import HourglassStart from '../../icons/hourglass-start.tsx';
 import { AccordionItem } from '../accordion/accordion-item.tsx';
 import { AccordionButton } from '../accordion/accordion-button';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRecentItemFromRoute } from '../../hooks/routes.tsx';
 import { motion } from 'motion/react';
 import { SidebarAccordionPanel } from './sidebar-accordion-panel';
 import { Folder as FolderIcon } from '../../icons/folder';
+import { usePreventBoundaryOverscrollFlicker } from '../virtualized/virtualized-list/hooks.tsx';
 
 export function RecentAccordion() {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
@@ -15,6 +16,8 @@ export function RecentAccordion() {
   const [mostRecentItems, setMostRecentItems] = useAtom(mostRecentItemsAtom);
   const routeItem = useRecentItemFromRoute();
   const iconSize = '1.1875rem';
+  const listRef = useRef<HTMLUListElement | null>(null);
+  usePreventBoundaryOverscrollFlicker({ scrollElementRef: listRef });
 
   // Update the "most recent items" list in the sidebar based on current route.
   // Inserts the currently viewed item at the top, maintaining list uniqueness and max length.
@@ -60,7 +63,7 @@ export function RecentAccordion() {
         />
       }
     >
-      <ul className="pl-1 overflow-y-auto grow basis-0 min-h-0">
+      <ul ref={listRef} className="pl-1 overflow-y-auto grow basis-0 min-h-0">
         {mostRecentItems.length > 0 ? (
           mostRecentItems.map((recentItem) => (
             <motion.div
