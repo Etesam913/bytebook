@@ -15,7 +15,7 @@ import { cn } from '../../../utils/string-formatting';
 import type { SetSelectionUpdater } from '../../../utils/selection';
 import { VirtualizedListItem } from './virtualized-list-item';
 import { SidebarContentType } from '../../../types';
-import { useSmartScroll } from './hooks';
+import { usePreventBoundaryOverscrollFlicker, useSmartScroll } from './hooks';
 import { shouldHandleOutsideSelectionInteraction } from '../../../utils/mouse';
 
 export type SelectionOptions<T> =
@@ -106,6 +106,7 @@ export function VirtualizedList<T>({
   };
   const contextMenuRef = useAtomValue(contextMenuRefAtom);
   const { virtuosoRef, onRangeChanged } = useSmartScroll();
+  usePreventBoundaryOverscrollFlicker({ scrollElementRef: internalListRef });
 
   useOnClickOutside(
     internalListRef,
@@ -181,7 +182,6 @@ export function VirtualizedList<T>({
       data={items}
       className={className}
       style={{
-        overscrollBehavior: 'none',
         // When no maxHeight (flex mode), use height:0 + flexGrow:1 to fill parent.
         // Otherwise use maxHeight until first measurement to prevent 0-height flicker.
         ...(maxHeight

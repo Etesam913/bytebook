@@ -1,4 +1,5 @@
 import {
+  type InfiniteData,
   queryOptions,
   useInfiniteQuery,
   useMutation,
@@ -14,15 +15,22 @@ import {
   RemoveSavedSearch,
   RegenerateSearchIndex,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
+import {
+  type FullTextSearchPage,
+  HighlightResult,
+} from '../../bindings/github.com/etesam913/bytebook/internal/search/models';
 import { useWailsEvent } from '../hooks/events';
 import {
   isEventInCurrentWindow,
   SEARCH_OPEN,
   SAVED_SEARCH_UPDATE,
+  NOTE_DELETE,
+  NOTE_RENAME,
+  FOLDER_DELETE,
+  FOLDER_RENAME,
 } from '../utils/events';
 import { useEffect, useRef } from 'react';
 import { createFilePath, type FilePath } from '../utils/path';
-import { HighlightResult } from '../../bindings/github.com/etesam913/bytebook/internal/search/models';
 import { routeUrls } from '../utils/routes';
 import { toast } from 'sonner';
 import { QueryError } from '../utils/query';
@@ -280,5 +288,179 @@ export function useRegenerateSearchIndexMutation(
     onSuccess: async () => {
       await options?.onSuccess?.();
     },
+  });
+}
+
+/**
+ * Updates all cached full-text-search infinite queries by applying an updater
+ * to each page's results array. Adjusts `total` on the first page to reflect
+ * the number of removed results.
+ */
+function updateSearchCache(
+  queryClient: ReturnType<typeof useQueryClient>,
+  updater: (
+    result: FullTextSearchPage['results'][number]
+  ) => FullTextSearchPage['results'][number] | null
+) {
+  queryClient.setQueriesData<InfiniteData<FullTextSearchPage>>(
+    { queryKey: ['full-text-search'] },
+    (oldData) => {
+      if (!oldData) return oldData;
+
+      let totalRemoved = 0;
+      const nextPages = oldData.pages.map((page) => {
+        const nextResults: FullTextSearchPage['results'] = [];
+        for (const result of page.results) {
+          const updated = updater(result);
+          if (updated === null) {
+            totalRemoved++;
+          } else {
+            nextResults.push(updated);
+          }
+        }
+        if (
+          nextResults.length === page.results.length &&
+          nextResults.every((r, i) => r === page.results[i])
+        ) {
+          return page;
+        }
+        return { ...page, results: nextResults };
+      });
+
+      // Adjust total on the first page
+      if (totalRemoved > 0 && nextPages.length > 0) {
+        const firstPage = nextPages[0];
+        nextPages[0] = {
+          ...firstPage,
+          total: Math.max(0, firstPage.total - totalRemoved),
+        };
+      }
+
+      if (nextPages.every((p, i) => p === oldData.pages[i])) {
+        return oldData;
+      }
+
+      return { ...oldData, pages: nextPages };
+    }
+  );
+}
+
+/** Returns the full note path for a raw search result. */
+function searchResultPath(result: FullTextSearchPage['results'][number]) {
+  return `${result.folder}/${result.note}`;
+}
+
+/**
+ * Keeps cached saved-search results in sync with file-system events.
+ *
+ * - **Deletes** (note + folder): removes matching entries from the cache.
+ * - **Renames** (note + folder): updates folder/note fields in the cache.
+ *   If the currently viewed note was renamed, navigates to its new URL.
+ */
+export function useSavedSearchSyncEvents({
+  searchQuery,
+  activeNotePath,
+}: {
+  searchQuery: string;
+  activeNotePath: FilePath | undefined;
+}) {
+  const queryClient = useQueryClient();
+
+  // --- Deletes ---
+
+  useWailsEvent(NOTE_DELETE, (body) => {
+    const rawData = body.data as Array<{ notePath: string }>;
+    const deletedPaths = new Set(rawData.map((item) => item.notePath));
+    updateSearchCache(queryClient, (result) =>
+      deletedPaths.has(searchResultPath(result)) ? null : result
+    );
+  });
+
+  useWailsEvent(FOLDER_DELETE, (body) => {
+    const rawData = body.data as Array<{ folderPath: string }>;
+    const deletedFolders = rawData.map((item) => item.folderPath);
+    updateSearchCache(queryClient, (result) => {
+      const path = searchResultPath(result);
+      for (const folder of deletedFolders) {
+        if (path === folder || path.startsWith(`${folder}/`)) {
+          return null;
+        }
+      }
+      return result;
+    });
+  });
+
+  // --- Renames ---
+
+  useWailsEvent(NOTE_RENAME, (body) => {
+    const rawData = body.data as Array<{
+      oldNotePath: string;
+      newNotePath: string;
+    }>;
+    const renameMap = new Map(
+      rawData.map((item) => [item.oldNotePath, item.newNotePath])
+    );
+
+    updateSearchCache(queryClient, (result) => {
+      const path = searchResultPath(result);
+      const newPath = renameMap.get(path);
+      if (!newPath) return result;
+      const newFilePath = createFilePath(newPath);
+      if (!newFilePath) return result;
+      return { ...result, folder: newFilePath.folder, note: newFilePath.note };
+    });
+
+    // Navigate if the active note was renamed
+    if (activeNotePath) {
+      const newPath = renameMap.get(activeNotePath.fullPath);
+      if (newPath) {
+        const newFilePath = createFilePath(newPath);
+        if (newFilePath) {
+          navigate(routeUrls.savedSearch(searchQuery, newFilePath.encodedPath));
+        }
+      }
+    }
+  });
+
+  useWailsEvent(FOLDER_RENAME, (body) => {
+    const rawData = body.data as Array<{
+      oldFolderPath: string;
+      newFolderPath: string;
+    }>;
+
+    updateSearchCache(queryClient, (result) => {
+      const path = searchResultPath(result);
+      for (const { oldFolderPath, newFolderPath } of rawData) {
+        if (
+          path.startsWith(`${oldFolderPath}/`) ||
+          result.folder === oldFolderPath
+        ) {
+          const newFolder = result.folder.replace(oldFolderPath, newFolderPath);
+          return { ...result, folder: newFolder };
+        }
+      }
+      return result;
+    });
+
+    // Navigate if the active note's folder was renamed
+    if (activeNotePath) {
+      for (const { oldFolderPath, newFolderPath } of rawData) {
+        if (activeNotePath.folder.startsWith(oldFolderPath)) {
+          const newFolder = activeNotePath.folder.replace(
+            oldFolderPath,
+            newFolderPath
+          );
+          const newFilePath = createFilePath(
+            `${newFolder}/${activeNotePath.note}`
+          );
+          if (newFilePath) {
+            navigate(
+              routeUrls.savedSearch(searchQuery, newFilePath.encodedPath)
+            );
+          }
+          break;
+        }
+      }
+    }
   });
 }

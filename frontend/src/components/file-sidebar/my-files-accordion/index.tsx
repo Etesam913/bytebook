@@ -46,7 +46,7 @@ export function MyFilesAccordion() {
         onDragLeave={onDragLeave}
         onDrop={onDrop}
       >
-        <VirtualizedFileTree scrollContainerRef={scrollContainerRef} />
+        <VirtualizedFileTree ref={scrollContainerRef} />
       </div>
     </SidebarAccordionPanel>
   );

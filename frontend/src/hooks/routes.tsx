@@ -81,7 +81,9 @@ export function useRecentItemFromRoute(): FilePath | FolderPath | null {
   const decodedSavedSearchPath = useDecodedSavedSearchWildcardPath();
 
   if (decodedNotesPath) {
-    return createFilePath(decodedNotesPath) ?? createFolderPath(decodedNotesPath);
+    return (
+      createFilePath(decodedNotesPath) ?? createFolderPath(decodedNotesPath)
+    );
   }
 
   if (decodedSavedSearchPath) {

@@ -1,5 +1,5 @@
 import { useSetAtom, useAtomValue } from 'jotai';
-import { MouseEvent, DragEvent, useState } from 'react';
+import { MouseEvent, DragEvent, useState, useEffect, useRef } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { Folder as FolderIcon } from '../../../../../icons/folder';
 import { FolderOpen } from '../../../../../icons/folder-open';
@@ -66,6 +66,8 @@ export function FileTreeFolderItem({
   isFetchPending: boolean;
 }) {
   const [isDraggedOver, setIsDraggedOver] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const wasEditingRef = useRef(false);
 
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const dragHighlightIds = useAtomValue(dragHighlightIdsAtom);
@@ -90,6 +92,14 @@ export function FileTreeFolderItem({
   } = useFileTreeFolderRenameActions({
     dataItem,
   });
+
+  useEffect(() => {
+    if (wasEditingRef.current && !isEditing) {
+      buttonRef.current?.focus();
+    }
+    wasEditingRef.current = isEditing;
+  }, [isEditing]);
+
   const {
     addingType,
     setAddingType,
@@ -190,6 +200,7 @@ export function FileTreeFolderItem({
   );
 
   const paddingForItemToAdd = getFileTreeItemIndent(dataItem.level + 1);
+
   const inlineInput = addingType &&
     isTreeNodeAFolder(dataItem) &&
     dataItem.isOpen && (
@@ -259,6 +270,7 @@ export function FileTreeFolderItem({
   return (
     <div className="w-full">
       <button
+        ref={buttonRef}
         data-file-drop-target
         id={dataItem.id}
         role="treeitem"
@@ -285,6 +297,14 @@ export function FileTreeFolderItem({
           e.stopPropagation();
           setIsDraggedOver(false);
           void moveItemsToFolder(dataItem.path);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            setAddingType(null);
+            resetRenameTreeItem();
+            setIsEditing(true);
+          }
         }}
         onClick={handleClick}
         onContextMenu={(e) => {

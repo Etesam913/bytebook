@@ -1,4 +1,5 @@
 import { Activity, lazy, Suspense } from 'react';
+import { NotFound } from './routes/not-found';
 import { useMotionValue } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai/react';
 import { Toaster } from 'sonner';
@@ -19,15 +20,11 @@ import { routeUrls, type SavedSearchRouteParams } from './utils/routes';
 import { RouteFallback } from './components/route-fallback';
 import { useZoom, useFullscreen, useWindowReload } from './hooks/resize';
 import { EditorWrapper } from './components/virtualized/virtualized-file-tree/editor-wrapper';
+import { useCreateEvents } from './components/virtualized/virtualized-file-tree/hooks/use-create-events';
+import { useDeleteEvents } from './components/virtualized/virtualized-file-tree/hooks/use-delete-events';
+import { useRenameEvents } from './components/virtualized/virtualized-file-tree/hooks/use-rename-events';
 import { safeDecodeURIComponent } from './utils/path';
 import { isRegularMouseClick } from './utils/mouse';
-
-// Lazy load route components
-const NotFound = lazy(() =>
-  import('./routes/not-found').then((module) => ({
-    default: module.NotFound,
-  }))
-);
 
 const KernelInfo = lazy(() =>
   import('./routes/kernel-info').then((module) => ({
@@ -56,6 +53,9 @@ function App() {
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const [location] = useLocation();
 
+  useCreateEvents();
+  useDeleteEvents();
+  useRenameEvents();
   useTagEvents();
   useThemeSetting();
   useSearch();
@@ -121,9 +121,7 @@ function App() {
           </Route>
 
           <Route path={routeUrls.patterns.NOT_FOUND_FALLBACK}>
-            <Suspense fallback={<RouteFallback />}>
-              <NotFound />
-            </Suspense>
+            <NotFound />
           </Route>
 
           <Route path={routeUrls.patterns.KERNELS}>
@@ -139,9 +137,7 @@ function App() {
           </Route>
 
           <Route path={'*'}>
-            <Suspense fallback={<RouteFallback />}>
-              <NotFound />
-            </Suspense>
+            <NotFound />
           </Route>
         </Switch>
       </div>

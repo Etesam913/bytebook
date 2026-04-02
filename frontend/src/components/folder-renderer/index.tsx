@@ -1,5 +1,5 @@
 import { useAtomValue } from 'jotai';
-import { forwardRef } from 'react';
+import { forwardRef, useRef } from 'react';
 import {
   VirtuosoGrid,
   type GridItemProps,
@@ -27,6 +27,7 @@ import {
 } from './folder-renderer-card';
 import { FolderRendererCreateItemCard } from './folder-renderer-create-item-card';
 import { FolderRendererHeader } from './folder-renderer-header';
+import { usePreventBoundaryOverscrollFlicker } from '../virtualized/virtualized-list/hooks';
 
 const folderGridComponents = {
   Scroller: forwardRef<HTMLDivElement, Omit<ScrollerProps, 'ref'>>(
@@ -90,6 +91,8 @@ export function FolderRenderer({
   const fileTreeData = useAtomValue(fileTreeDataAtom);
   const folderTreeNode = getTreeNodeFromPath(fileTreeData, folderPath.fullPath);
   useToggleSidebarEvent(animationControls);
+  const internalListRef = useRef<HTMLElement | null>(null);
+  usePreventBoundaryOverscrollFlicker({ scrollElementRef: internalListRef });
 
   const folderId =
     folderTreeNode?.type === FOLDER_TYPE ? folderTreeNode.id : '';
@@ -172,6 +175,10 @@ export function FolderRenderer({
       ) : (
         <section className="min-w-0 flex-1">
           <VirtuosoGrid
+            scrollerRef={(node) => {
+              const element = node instanceof HTMLElement ? node : null;
+              internalListRef.current = element;
+            }}
             style={{ height: '100%' }}
             data={items}
             computeItemKey={(_, item) => item.id}

@@ -20,6 +20,7 @@ import {
   searchQueries,
   useFullTextSearchQuery,
   useRegenerateSearchIndexMutation,
+  useSavedSearchSyncEvents,
 } from '../../hooks/search.tsx';
 import { useNoteExists } from '../../hooks/notes';
 import { createFilePath, type FilePath } from '../../utils/path.ts';
@@ -28,7 +29,7 @@ import { useAtomValue } from 'jotai';
 import { Tooltip } from '../../components/tooltip/index.tsx';
 import { ErrorText } from '../../components/error-text/index.tsx';
 import { RouteFallback } from '../../components/route-fallback';
-import { MotionButton } from '../../components/buttons';
+import { MotionButton, MotionIconButton } from '../../components/buttons';
 import { getDefaultButtonVariants } from '../../animations';
 import { routeUrls } from '../../utils/routes';
 import { navigate } from 'wouter/use-browser-location';
@@ -240,6 +241,8 @@ export function SavedSearchPage({
     ? (createFilePath(curPath) ?? undefined)
     : undefined;
 
+  useSavedSearchSyncEvents({ searchQuery, activeNotePath });
+
   useEffect(() => {
     if (searchResultPaths.length === 0) {
       return;
@@ -287,6 +290,17 @@ export function SavedSearchPage({
                     <span>No results found</span>
                   )}
                 </p>
+                <Tooltip content="Refresh query results">
+                  <MotionIconButton
+                    {...getDefaultButtonVariants()}
+                    onClick={() => void refetch()}
+                  >
+                    <ArrowRotateAnticlockwise
+                      width="0.875rem"
+                      height="0.875rem"
+                    />
+                  </MotionIconButton>
+                </Tooltip>
               </div>
             </header>
 
