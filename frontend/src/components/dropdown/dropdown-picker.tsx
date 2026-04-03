@@ -137,18 +137,22 @@ export function FilePickerMenuItem({
       }}
       aria-label={ariaLabel}
     >
-      <div className="flex items-center gap-1">
-        {iconElement && <span aria-hidden="true">{iconElement}</span>}
-        <span className="text-ellipsis overflow-hidden whitespace-nowrap text-sm">
-          {primaryText}
-        </span>
+      <div className="flex items-start gap-1">
+        {iconElement && (
+          <span aria-hidden="true" className="mt-0.5 shrink-0">
+            {iconElement}
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <span className="block truncate text-sm leading-5">{primaryText}</span>
+          <p
+            className="block truncate text-xs leading-4 text-zinc-500 dark:text-zinc-400"
+            aria-hidden="true"
+          >
+            {secondaryText}
+          </p>
+        </div>
       </div>
-      <p
-        className="text-xs text-zinc-500 dark:text-zinc-400"
-        aria-hidden="true"
-      >
-        {secondaryText}
-      </p>
     </li>
   );
 }

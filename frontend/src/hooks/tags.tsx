@@ -10,7 +10,7 @@ import {
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 import { QueryError } from '../utils/query';
 import { Dispatch, FormEvent, SetStateAction } from 'react';
-import { getFilePathFromNoteSelectionRange } from '../utils/selection';
+import { getSelectionValue } from '../utils/selection';
 import { useFilePathFromRoute } from './routes';
 
 /**
@@ -103,13 +103,13 @@ export function useEditTagsFormMutation() {
           : { tagNamesToAdd: [] as string[], tagNamesToRemove: [] as string[] };
         const { tagNamesToAdd, tagNamesToRemove } = parsedTagsData;
 
-        const filePaths = getFilePathFromNoteSelectionRange(
-          folder,
-          selectionRange
-        );
+        const filePaths = [...selectionRange].map((entry) => {
+          const note = getSelectionValue(entry) ?? entry;
+          return `${folder}/${note}`;
+        });
 
         const res = await SetTagsOnNotes(
-          filePaths.map((filePath) => filePath.toString()),
+          filePaths,
           tagNamesToAdd,
           tagNamesToRemove
         );

@@ -5,21 +5,18 @@ import { useRef } from 'react';
 import { Paperclip } from '../../icons/paperclip-2';
 import { TriangleWarning } from '../../icons/triangle-warning';
 import { cn } from '../../utils/string-formatting';
-import { Path } from '../../utils/path';
 import { NoteComponentControls } from '../note-component-container/component-controls';
-import { ResizeControlsPopover } from '../resize-container/resize-controls-popover';
 import { SelectionHighlight } from '../selection-highlight';
 
 export function FileError({
-  path,
+  src,
   nodeKey,
   type,
 }: {
-  path: Path;
+  src: string;
   nodeKey: string;
   type: 'loading-fail' | 'unknown-attachment';
 }) {
-  const src = path.getFileUrl();
   const [editor] = useLexicalComposerContext();
   const [isSelected] = useLexicalNodeSelection(nodeKey);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -34,12 +31,6 @@ export function FileError({
         isSelected && 'border-(--accent-color)!'
       )}
     >
-      <ResizeControlsPopover
-        nodeKey={nodeKey}
-        path={path}
-        isSelected={isSelected}
-        referenceElement={containerRef}
-      />
       <AnimatePresence>
         {isSelected && (
           <>

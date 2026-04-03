@@ -1,5 +1,5 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
-import { FilePath, FolderPath, LocalFilePath } from './path';
+import { FilePath, FolderPath } from './path';
 import { SidebarContentType } from '../types';
 import type { SidebarSelectionState } from '../atoms';
 
@@ -152,22 +152,6 @@ export function handleContextMenuSelection({
   });
 
   return newSelectionRange;
-}
-
-/**
- * Takes a selection range like {note:Chapter 1.md} and returns a list of FilePath objects
- * @param folder
- * @param selectionRange
- */
-export function getFilePathFromNoteSelectionRange(
-  folder: string,
-  selectionRange: Set<string>
-) {
-  return [...selectionRange].map((selectionRangeEntry) => {
-    const colonSplit = selectionRangeEntry.split(':');
-    const note = colonSplit[colonSplit.length - 1];
-    return new LocalFilePath({ folder, note });
-  });
 }
 
 /**

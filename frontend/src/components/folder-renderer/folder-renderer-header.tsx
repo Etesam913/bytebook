@@ -117,7 +117,7 @@ export function FolderRendererHeader({
             isOpen={isSettingsOpen}
             setIsOpen={setIsSettingsOpen}
             className="ml-auto flex flex-col mr-2"
-            dropdownClassName="right-0 top-10 w-52"
+            dropdownClassName="right-4 top-10 w-52"
             onChange={(item) => {
               switch (item.value) {
                 case 'reveal-in-finder': {

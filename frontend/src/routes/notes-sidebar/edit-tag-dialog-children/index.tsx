@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { RouteFallback } from '../../../components/route-fallback';
 import { useTagsForNotesQuery, useTagsQuery } from '../../../hooks/tags';
-import { LocalFilePath } from '../../../utils/path';
 import { MotionButton } from '../../../components/buttons';
 import { getDefaultButtonVariants } from '../../../animations';
 import { TagPlus } from '../../../icons/tag-plus';
@@ -36,7 +35,7 @@ export function EditTagDialogChildren({
     .filter((selectionRangeEntry) => selectionRangeEntry.startsWith('note:'))
     .map((selectionRangeEntry) => {
       const note = selectionRangeEntry.split(':')[1];
-      return new LocalFilePath({ folder, note });
+      return `${folder}/${note}`;
     });
 
   const totalSelectedNotes = selectedFilePaths.length;
@@ -46,9 +45,7 @@ export function EditTagDialogChildren({
     isLoading: areTagsForSelectedNotesLoading,
     isError: areTagsForSelectedNotesError,
     error: tagsForSelectedNotesError,
-  } = useTagsForNotesQuery(
-    selectedFilePaths.map((filePath) => filePath.toString())
-  );
+  } = useTagsForNotesQuery(selectedFilePaths);
 
   const baseTagCounts = buildBaseTagCounts(tagsForSelectedNotes);
   const baseTagCountsKey = createTagCountsKey(baseTagCounts);

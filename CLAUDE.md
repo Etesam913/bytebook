@@ -4,47 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The codebase uses jj instead of git. Do not use useCallback or useMemo when writing react.js code as react-compiler is being used.
 
+Make sure to run the below commands after any major changes are made to frontend code
+
+1. `bun format`
+2. `bun lint`
+3. `bun knip`
+4. `bun test:unit`
+
 ## What is Bytebook
 
 Bytebook is a desktop note-taking app for developers built with [Wails v3](https://github.com/wailsapp/wails) (Go backend + React frontend). Notes are stored as Markdown files on disk. The app supports code execution via Jupyter kernels (Python, Go, JavaScript, Java), full-text search via Bleve, and a rich editor built on Lexical.
 
 **Note:** The project uses a local fork of Wails v3. `go.mod` has a `replace` directive pointing to `../wails/v3` — the sibling `wails/` directory must exist for Go builds to work.
-
-## Commands
-
-### Running the app (development)
-
-```bash
-# From the repo root
-wails3 dev --port 5173
-# or via task
-task dev
-```
-
-### Go backend
-
-```bash
-# Run all tests (no cache)
-gotestsum --format=pkgname --format-icons=hivis -- -count=1 ./internal/...
-
-# Build
-task build
-```
-
-### Frontend (React/TypeScript)
-
-```bash
-cd frontend
-
-# Install dependencies
-bun install
-
-# Type-check (uses tsgo / TypeScript native preview)
-bun run tsgo
-
-# Format check
-bun run format:check
-```
 
 - Use object parameters when there are 3 or more parameters in a typescript function.
 

@@ -7,7 +7,7 @@ import { Maximize } from '../../icons/maximize';
 import { Link } from '../../icons/link';
 import { Trash } from '../../icons/trash';
 import { removeDecoratorNode } from '../../utils/commands';
-import { LocalFilePath } from '../../utils/path';
+import { createFilePath } from '../../utils/path';
 import { navigate } from 'wouter/use-browser-location';
 
 export function NoteComponentControls({
@@ -103,17 +103,10 @@ export function NoteComponentControls({
             const src = buttonOptions.link?.src;
             if (!src) return;
             if (src.startsWith('/notes')) {
-              const segments = src.split('/');
-              if (segments.length < 2) {
-                return;
+              const filePath = createFilePath(src.replace(/^\/notes\//, ''));
+              if (filePath) {
+                navigate(filePath.encodedFileUrl);
               }
-              const folderName = segments[segments.length - 2];
-              const fileName = segments[segments.length - 1];
-              const filePath = new LocalFilePath({
-                folder: folderName,
-                note: fileName,
-              });
-              navigate(filePath.getLinkToNote());
             } else {
               void Browser.OpenURL(src);
             }

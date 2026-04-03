@@ -4,24 +4,20 @@ import { Loader } from '../../icons/loader';
 import type { FileType } from '../editor/nodes/file';
 import { getFileElementTypeFromExtensionAndHead } from '../editor/utils/file-node';
 import { FileError } from './error';
-import { Image } from './image';
+import { Image } from './media/image';
 import { Pdf } from './pdf';
-import { Video } from './video';
-import { GlobalFilePath, LocalFilePath, Path } from '../../utils/path';
+import { Video } from './media/video';
 import { FileDimensions } from '../editor/nodes/types';
 
-function constructPathFromSrc(src: string): Path {
+function getFileUrlFromSrc(src: string): string {
   if (src.startsWith('wails://')) {
     const segments = src.split('/');
     if (segments.length < 3) {
       throw new Error(`Invalid wails:// URL: ${src}`);
     }
-    return new LocalFilePath({
-      folder: segments[1],
-      note: segments[2],
-    });
+    return `/notes/${segments[1]}/${segments[2]}`;
   }
-  return new GlobalFilePath({ url: src });
+  return src;
 }
 
 export function File({
@@ -51,14 +47,14 @@ export function File({
 
   if (isLoading) return <Loader width="1.75rem" height="1.75rem" />;
 
-  const path = constructPathFromSrc(src);
+  const fileUrl = getFileUrlFromSrc(src);
 
   let content: JSX.Element;
 
   if (fileType === 'video') {
     content = (
       <Video
-        path={path}
+        src={fileUrl}
         dimensionsWrittenToNode={dimensionsWrittenToNode}
         writeDimensionsToNode={writeDimensionsToNode}
         title={title}
@@ -68,7 +64,7 @@ export function File({
   } else if (fileType === 'image') {
     content = (
       <Image
-        path={path}
+        src={fileUrl}
         alt={title}
         dimensionsWrittenToNode={dimensionsWrittenToNode}
         writeDimensionsToNode={writeDimensionsToNode}
@@ -76,11 +72,10 @@ export function File({
       />
     );
   } else if (fileType === 'pdf') {
-    content = <Pdf path={path} alt={title} nodeKey={nodeKey} />;
+    content = <Pdf src={fileUrl} alt={title} nodeKey={nodeKey} />;
   } else {
-    // Replace with unknown attachment
     content = (
-      <FileError path={path} nodeKey={nodeKey} type="unknown-attachment" />
+      <FileError src={fileUrl} nodeKey={nodeKey} type="unknown-attachment" />
     );
   }
 

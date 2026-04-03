@@ -20,7 +20,7 @@ import {
   encodeNoteNameWithQueryParams,
   getFileExtension,
 } from '../../../utils/string-formatting';
-import { LocalFilePath } from '../../../utils/path';
+import { createFilePath, type FilePath } from '../../../utils/path';
 import type { FilePayload } from '../nodes/file';
 import { $createLinkNode } from '../nodes/link';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
@@ -183,7 +183,7 @@ export function overrideEscapeKeyCommand(nodeKey: string) {
 type DraggedFileResult =
   | { type: 'folder'; url: string; title: string }
   | { type: 'markdown'; url: string; title: string }
-  | { type: 'file'; filePath: LocalFilePath }
+  | { type: 'file'; filePath: FilePath }
   | { type: 'unknown' };
 
 function parseDraggedFile(fileUrl: string): DraggedFileResult {
@@ -224,10 +224,11 @@ function parseDraggedFile(fileUrl: string): DraggedFileResult {
     };
   }
 
-  return {
-    type: 'file',
-    filePath: new LocalFilePath({ folder, note: `${title}.${extension}` }),
-  };
+  const filePath = createFilePath(`${folder}/${title}.${extension}`);
+  if (!filePath) {
+    return { type: 'unknown' };
+  }
+  return { type: 'file', filePath };
 }
 
 /**
@@ -281,7 +282,7 @@ export function overrideControlledTextInsertion(
       case 'file':
         filePayloads.push({
           alt: result.filePath.noteWithoutExtension,
-          src: result.filePath.getFileUrl(),
+          src: result.filePath.fileUrl,
         });
         break;
       case 'unknown':
