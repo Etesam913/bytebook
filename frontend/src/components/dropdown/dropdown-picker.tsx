@@ -144,7 +144,9 @@ export function FilePickerMenuItem({
           </span>
         )}
         <div className="min-w-0 flex-1">
-          <span className="block truncate text-sm leading-5">{primaryText}</span>
+          <span className="block truncate text-sm leading-5">
+            {primaryText}
+          </span>
           <p
             className="block truncate text-xs leading-4 text-zinc-500 dark:text-zinc-400"
             aria-hidden="true"

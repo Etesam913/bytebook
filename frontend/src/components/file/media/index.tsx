@@ -23,6 +23,8 @@ import { Link } from '../../../icons/link';
 import { Trash } from '../../../icons/trash';
 import { Browser } from '@wailsio/runtime';
 import { navigate } from 'wouter/use-browser-location';
+import { Finder } from '../../../icons/finder';
+import { useRevealInFinderMutation } from '../../../hooks/code';
 
 type MediaRenderProps = {
   mediaRef: RefObject<HTMLElement | null>;
@@ -60,6 +62,10 @@ export function MediaContainer({
   const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
   const noteContainerRef = useAtomValue(noteContainerRefAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
+  const { mutate: revealInFinder } = useRevealInFinderMutation();
+
+  // External files start with http
+  const isALocalFile = src.startsWith('/notes/');
 
   useShowWhenInViewport(loaderRef);
 
@@ -118,11 +124,32 @@ export function MediaContainer({
             className="inline-block relative cursor-auto mx-1 mr-2"
             onContextMenu={(e) => {
               e.preventDefault();
+              const revealInFinderOption = isALocalFile
+                ? [
+                    {
+                      value: 'reveal-in-finder',
+                      label: (
+                        <span className="flex items-center gap-1.5">
+                          <Finder height="1.0625rem" width="1.0625rem" />
+                          <span>Reveal in Finder</span>
+                        </span>
+                      ),
+                      onChange: () => {
+                        revealInFinder({
+                          path: src.replace(/^\//, ''),
+                          shouldPrefixWithProjectPath: true,
+                        });
+                      },
+                    },
+                  ]
+                : [];
+
               setContextMenuData({
                 x: e.clientX,
                 y: e.clientY,
                 isShowing: true,
                 items: [
+                  ...revealInFinderOption,
                   {
                     value: 'go-to-file',
                     label: (
@@ -132,7 +159,7 @@ export function MediaContainer({
                       </span>
                     ),
                     onChange: () => {
-                      if (src.startsWith('/notes/')) {
+                      if (isALocalFile) {
                         const filePath = createFilePath(
                           src.replace(/^\/notes\//, '')
                         );
