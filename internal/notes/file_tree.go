@@ -2,7 +2,6 @@ package notes
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -193,8 +192,6 @@ func GetChildrenOfFolderBasedOnPath(projectPath, pathToFolder, parentId, cursor,
 	if hasMore && len(pageItems) > 0 {
 		nextCursor = pageItems[len(pageItems)-1].Name
 	}
-
-	log.Println(pageItems, nextCursor, hasMore)
 
 	return FileOrFolderPage{
 		Items:      pageItems,

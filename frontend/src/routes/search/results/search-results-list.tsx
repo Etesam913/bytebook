@@ -1,6 +1,10 @@
 import { useRef, useEffect } from 'react';
 import { SearchResult } from '../../../hooks/search';
-import { SearchResultNote, SearchResultAttachment } from './search-result-item';
+import {
+  SearchResultNote,
+  SearchResultAttachment,
+  SearchResultFolder,
+} from './search-result-item';
 import { VirtualizedList } from '../../../components/virtualized/virtualized-list';
 import { dataItemToKey, dataItemToString } from '../utils';
 
@@ -62,6 +66,19 @@ export function SearchResultsList({
           case 'attachment':
             return (
               <SearchResultAttachment
+                data={result}
+                resultIndex={i}
+                selectedIndex={selectedIndex}
+                onRef={(el) => {
+                  if (i >= 0) {
+                    itemRefs.current[i] = el;
+                  }
+                }}
+              />
+            );
+          case 'folder':
+            return (
+              <SearchResultFolder
                 data={result}
                 resultIndex={i}
                 selectedIndex={selectedIndex}

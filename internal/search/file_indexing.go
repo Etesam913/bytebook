@@ -8,24 +8,24 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
 type DocumentJob struct {
-	filePath      string
-	fileId        string
-	folder        string
-	fileName      string
-	fileExtension string
+	entryPath string
+	entryId   string
+	folder    string
+	entryName string
 }
 
 type DocumentResult struct {
-	isError  bool
-	filePath string
-	fileId   string
-	document any
+	isError   bool
+	entryPath string
+	entryId   string
+	document  any
 }
 
 // IndexFiles scans the "notes" directory within the given projectPath for folders containing Markdown files (.md).
@@ -132,25 +132,24 @@ func addResultsToIndex(bleveIndex bleve.Index, bleveBatch *bleve.Batch, results 
 		if docResult.isError {
 			continue
 		}
-		document, err := bleveIndex.Document(docResult.fileId)
+		document, err := bleveIndex.Document(docResult.entryId)
 		if err != nil {
 			log.Printf("Error when trying to fetch document in adding results: %v", err)
 			continue
 		}
 
-		// The file is already indexed, so we can skip here
+		// The entry is already indexed, so we can skip here
 		if document != nil {
 			continue
 		}
 
-		markdownBleveDocument, ok := docResult.document.(MarkdownNoteBleveDocument)
-		if ok {
-			bleveBatch.Index(docResult.fileId, markdownBleveDocument)
-		}
-
-		attachmentBleveDocument, ok := docResult.document.(AttachmentBleveDocument)
-		if ok {
-			bleveBatch.Index(docResult.fileId, attachmentBleveDocument)
+		switch doc := docResult.document.(type) {
+		case MarkdownNoteBleveDocument:
+			bleveBatch.Index(docResult.entryId, doc)
+		case AttachmentBleveDocument:
+			bleveBatch.Index(docResult.entryId, doc)
+		case FolderBleveDocument:
+			bleveBatch.Index(docResult.entryId, doc)
 		}
 
 		indexCount += 1
@@ -184,6 +183,15 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 
 		rootFolderName := folder.Name()
 		rootFolderPath := filepath.Join(notesPath, rootFolderName)
+
+		// Emit a job for the top-level folder itself
+		jobs <- DocumentJob{
+			entryPath: rootFolderPath,
+			entryId:   FolderDocId(rootFolderName),
+			folder:    "",
+			entryName: rootFolderName,
+		}
+
 		if err := filepath.WalkDir(rootFolderPath, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
@@ -198,6 +206,23 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 			}
 
 			if d.IsDir() {
+				// Emit a folder job for subdirectories (skip the root since we already emitted it)
+				relPath, relErr := filepath.Rel(notesPath, path)
+				if relErr != nil {
+					return relErr
+				}
+				if relPath != rootFolderName {
+					parentPath := filepath.Dir(relPath)
+					if parentPath == "." {
+						parentPath = ""
+					}
+					jobs <- DocumentJob{
+						entryPath: path,
+						entryId:   FolderDocId(relPath),
+						folder:    parentPath,
+						entryName: d.Name(),
+					}
+				}
 				return nil
 			}
 
@@ -210,11 +235,10 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 			folderPath = strings.TrimSuffix(folderPath, string(filepath.Separator))
 
 			jobs <- DocumentJob{
-				filePath:      path,
-				fileId:        fileId,
-				folder:        folderPath,
-				fileName:      fileName,
-				fileExtension: filepath.Ext(fileName),
+				entryPath: path,
+				entryId:   fileId,
+				folder:    folderPath,
+				entryName: fileName,
 			}
 			return nil
 		}); err != nil {
@@ -232,31 +256,49 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 func startWorker(projectPath string, jobs <-chan DocumentJob, results chan<- DocumentResult, workerWaitGroup *sync.WaitGroup) {
 	defer workerWaitGroup.Done()
 	for job := range jobs {
+		fileExtension := filepath.Ext(job.entryName)
+
+		// Handle folder entries (no file extension)
+		if fileExtension == "" {
+			info, statErr := os.Stat(job.entryPath)
+			createdDate := ""
+			if statErr == nil {
+				createdDate = info.ModTime().UTC().Format(time.RFC3339)
+			}
+			results <- DocumentResult{
+				isError:   false,
+				entryPath: job.entryPath,
+				entryId:   job.entryId,
+				document:  CreateFolderBleveDocument(job.folder, job.entryName, createdDate),
+			}
+			continue
+		}
+
 		// Is a markdown note
-		if job.fileExtension == ".md" {
-			content, err := os.ReadFile(job.filePath)
+		if fileExtension == ".md" {
+			content, err := os.ReadFile(job.entryPath)
 			if err != nil {
 				results <- DocumentResult{
-					isError:  true,
-					filePath: job.filePath,
-					fileId:   job.fileId,
-					document: nil,
+					isError:   true,
+					entryPath: job.entryPath,
+					entryId:   job.entryId,
+					document:  nil,
 				}
 				continue
 			}
 			markdown := string(content)
 			results <- DocumentResult{
-				isError:  false,
-				filePath: job.filePath,
-				fileId:   job.fileId,
-				document: CreateMarkdownNoteBleveDocument(markdown, job.folder, job.fileName),
+				isError:   false,
+				entryPath: job.entryPath,
+				entryId:   job.entryId,
+				document:  CreateMarkdownNoteBleveDocument(markdown, job.folder, job.entryName),
 			}
 		} else {
 			results <- DocumentResult{
-				isError:  false,
-				filePath: job.filePath,
-				fileId:   job.fileId,
-				document: createAttachmentBleveDocument(projectPath, job.folder, job.fileName, job.fileExtension),
+				isError:   false,
+				entryPath: job.entryPath,
+				entryId:   job.entryId,
+				document:  createAttachmentBleveDocument(projectPath, job.folder, job.entryName, fileExtension),
 			}
 		}
 	}
@@ -275,10 +317,9 @@ func buildDocumentJob(projectPath, filePath string) (DocumentJob, error) {
 	folderPath = strings.TrimSuffix(folderPath, string(filepath.Separator))
 
 	return DocumentJob{
-		filePath:      filePath,
-		fileId:        fileID,
-		folder:        folderPath,
-		fileName:      fileName,
-		fileExtension: filepath.Ext(fileName),
+		entryPath: filePath,
+		entryId:   fileID,
+		folder:    folderPath,
+		entryName: fileName,
 	}, nil
 }

@@ -3,20 +3,24 @@ import { Link } from 'wouter';
 import { cn, formatDate } from '../../../utils/string-formatting';
 import { ImageIcon } from '../../../icons/image';
 import { Note } from '../../../icons/page';
+import { Folder } from '../../../icons/folder';
 import {
   AttachmentSearchResult,
+  FolderSearchResult,
   NoteSearchResult,
 } from '../../../hooks/search';
 import { SearchHighlights } from './search-highlights';
 import { Tag } from '../../../components/editor/bottom-bar/tag';
 import { buildSearchFileHrefFromPath } from '../utils';
 
-function getFileIcon(iconType: 'note' | 'attachment') {
+function getFileIcon(iconType: 'note' | 'attachment' | 'folder') {
   switch (iconType) {
     case 'note':
       return <Note className="min-w-5 w-5" />;
     case 'attachment':
       return <ImageIcon className="min-w-5 w-5" />;
+    case 'folder':
+      return <Folder className="min-w-5 w-5" />;
   }
 }
 
@@ -32,7 +36,7 @@ function SearchResultItem({
 }: {
   to: string;
   title: string;
-  iconType: 'note' | 'attachment';
+  iconType: 'note' | 'attachment' | 'folder';
   resultIndex: number;
   selectedIndex: number;
   onRef: (el: HTMLAnchorElement | null) => void;
@@ -124,6 +128,32 @@ export function SearchResultNote({
         )}
       </div>
     </SearchResultItem>
+  );
+}
+
+export function SearchResultFolder({
+  data,
+  resultIndex,
+  selectedIndex,
+  onRef,
+}: {
+  data: FolderSearchResult;
+  resultIndex: number;
+  selectedIndex: number;
+  onRef: (el: HTMLAnchorElement | null) => void;
+}) {
+  const { folderPath } = data;
+
+  return (
+    <SearchResultItem
+      to={folderPath.encodedFolderUrl}
+      title={folderPath.folder}
+      iconType="folder"
+      resultIndex={resultIndex}
+      selectedIndex={selectedIndex}
+      onRef={onRef}
+      pathDisplay={folderPath.fullPath}
+    />
   );
 }
 
