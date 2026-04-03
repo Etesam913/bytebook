@@ -30,7 +30,12 @@ import {
   FOLDER_RENAME,
 } from '../utils/events';
 import { useEffect, useRef } from 'react';
-import { createFilePath, type FilePath } from '../utils/path';
+import {
+  createFilePath,
+  createFolderPath,
+  type FilePath,
+  type FolderPath,
+} from '../utils/path';
 import { routeUrls } from '../utils/routes';
 import { toast } from 'sonner';
 import { QueryError } from '../utils/query';
@@ -61,7 +66,16 @@ export type AttachmentSearchResult = {
   tags: string[];
 };
 
-export type SearchResult = NoteSearchResult | AttachmentSearchResult;
+export type FolderSearchResult = {
+  type: 'folder';
+  /** The path of the folder */
+  folderPath: FolderPath;
+};
+
+export type SearchResult =
+  | NoteSearchResult
+  | AttachmentSearchResult
+  | FolderSearchResult;
 
 type FullTextSearchPageResponse = Awaited<ReturnType<typeof FullTextSearch>>;
 
@@ -77,7 +91,18 @@ function mapFullTextSearchResults(
   const results: Array<SearchResult> = [];
 
   data.forEach((result) => {
-    const filePath = createFilePath(`${result.folder}/${result.note}`);
+    if (result.type === 'folder') {
+      const fullFolderPath = result.folder
+        ? `${result.folder}/${result.name}`
+        : result.name;
+
+      const folderPath = createFolderPath(fullFolderPath);
+      if (!folderPath) return;
+      results.push({ type: 'folder', folderPath });
+      return;
+    }
+
+    const filePath = createFilePath(`${result.folder}/${result.name}`);
     if (!filePath) return;
 
     if (result.type === 'note') {
@@ -347,7 +372,7 @@ function updateSearchCache(
 
 /** Returns the full note path for a raw search result. */
 function searchResultPath(result: FullTextSearchPage['results'][number]) {
-  return `${result.folder}/${result.note}`;
+  return `${result.folder}/${result.name}`;
 }
 
 /**
@@ -407,7 +432,7 @@ export function useSavedSearchSyncEvents({
       if (!newPath) return result;
       const newFilePath = createFilePath(newPath);
       if (!newFilePath) return result;
-      return { ...result, folder: newFilePath.folder, note: newFilePath.note };
+      return { ...result, folder: newFilePath.folder, name: newFilePath.note };
     });
 
     // Navigate if the active note was renamed

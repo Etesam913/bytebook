@@ -101,7 +101,6 @@ func createFuzzyContentQuery(text string) query.Query {
 	filenameQuery := CreateFilenameQuery(text, 1)
 	contentQuery.AddShould(filenameQuery)
 
-	// contentQuery.AddShould(createMatchQuery(FieldCodeContent, text))
 	return contentQuery
 }
 
@@ -156,7 +155,7 @@ func createTagQuery(tagName string) query.Query {
 func createTypeQuery(typeName string) query.Query {
 	typeName = strings.ToLower(strings.TrimSpace(typeName))
 	switch typeName {
-	case MARKDOWN_NOTE_TYPE, ATTACHMENT_TYPE:
+	case MARKDOWN_NOTE_TYPE, ATTACHMENT_TYPE, FOLDER_TYPE:
 		// supported search types
 	default:
 		return bleve.NewMatchNoneQuery()

@@ -65,6 +65,8 @@ export function SearchHeader({
         setLocation(href);
       } else if (result.type === 'attachment') {
         setLocation(buildSearchFileHrefFromPath(result.filePath.fullPath));
+      } else if (result.type === 'folder') {
+        setLocation(result.folderPath.encodedFolderUrl);
       }
     }
   };

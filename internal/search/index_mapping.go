@@ -24,6 +24,7 @@ import (
 var INDEX_NAME = ".index.bleve"
 var MARKDOWN_NOTE_TYPE = "note"
 var ATTACHMENT_TYPE = "attachment"
+var FOLDER_TYPE = "folder"
 var FilenameAnalyzer = "filename_analyzer"
 
 const DefaultBatchSize = 750
@@ -79,6 +80,13 @@ type AttachmentBleveDocument struct {
 	Tags          []string `json:"tags"`
 	CreatedDate   string   `json:"created_date"`
 	Size          int64    `json:"size"`
+}
+
+type FolderBleveDocument struct {
+	Type        string `json:"type"`
+	Folder      string `json:"folder"`
+	FileName    string `json:"file_name"`
+	CreatedDate string `json:"created_date"`
 }
 
 // DocumentIndexInfo contains information about a document's presence in the search index.
@@ -148,6 +156,48 @@ func createAttachmentBleveDocument(projectPath, folder, fileName, fileExtension 
 	}
 }
 
+// CreateFolderBleveDocument constructs a FolderBleveDocument for indexing a folder.
+func CreateFolderBleveDocument(parentPath, folderName, createdDate string) FolderBleveDocument {
+	return FolderBleveDocument{
+		Type:        FOLDER_TYPE,
+		Folder:      parentPath,
+		FileName:    folderName,
+		CreatedDate: createdDate,
+	}
+}
+
+// FolderDocId returns the Bleve document ID for a folder.
+// Uses a "__folder__/" prefix to avoid collisions with file document IDs.
+func FolderDocId(folderPath string) string {
+	return "__folder__/" + folderPath
+}
+
+// AddFolderToBatch adds a folder document to the batch if it is not already indexed.
+func AddFolderToBatch(
+	batch *bleve.Batch,
+	index bleve.Index,
+	folderPath,
+	parentPath string,
+	forceIndex bool,
+) (string, error) {
+	docId := FolderDocId(folderPath)
+	docInfo, err := index.Document(docId)
+	if err != nil {
+		return "", err
+	}
+
+	if docInfo == nil || forceIndex {
+		folderPathOnDisk := filepath.Join(folderPath) // relative path
+		info, statErr := os.Stat(folderPathOnDisk)
+		createdDate := ""
+		if statErr == nil {
+			createdDate = info.ModTime().UTC().Format(time.RFC3339)
+		}
+		batch.Index(docId, CreateFolderBleveDocument(parentPath, filepath.Base(folderPath), createdDate))
+	}
+	return docId, nil
+}
+
 // GetPathToIndex returns the full path to the search index file for a given project.
 // It combines the project path with the search directory and the index filename.
 func GetPathToIndex(projectPath string) string {
@@ -214,6 +264,7 @@ func createIndex(projectPath string) (bleve.Index, error) {
 	indexMapping.DefaultMapping = createMarkdownNoteDocumentMapping()
 	indexMapping.AddDocumentMapping(MARKDOWN_NOTE_TYPE, createMarkdownNoteDocumentMapping())
 	indexMapping.AddDocumentMapping(ATTACHMENT_TYPE, createAttachmentDocumentMapping())
+	indexMapping.AddDocumentMapping(FOLDER_TYPE, createFolderDocumentMapping())
 	index, err := bleve.New(pathToIndex, indexMapping)
 	if err != nil {
 		return nil, err
@@ -342,6 +393,29 @@ func createAttachmentDocumentMapping() *mapping.DocumentMapping {
 	documentMapping.AddFieldMappingsAt(FieldTags, keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldCreatedDate, createdDateFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldSize, sizeFieldMapping)
+
+	return documentMapping
+}
+
+// createFolderDocumentMapping creates a Bleve document mapping for folders.
+// It defines a minimal mapping with folder path, folder name, and creation date.
+func createFolderDocumentMapping() *mapping.DocumentMapping {
+	documentMapping := bleve.NewDocumentMapping()
+
+	folderFieldMapping := bleve.NewTextFieldMapping()
+	folderFieldMapping.Analyzer = FilenameAnalyzer
+	folderFieldMapping.Store = true
+
+	fileNameFieldMapping := bleve.NewTextFieldMapping()
+	fileNameFieldMapping.Analyzer = FilenameAnalyzer
+	fileNameFieldMapping.Store = true
+
+	createdDateFieldMapping := bleve.NewDateTimeFieldMapping()
+	createdDateFieldMapping.Store = true
+
+	documentMapping.AddFieldMappingsAt(FieldFolder, folderFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldFileName, fileNameFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldCreatedDate, createdDateFieldMapping)
 
 	return documentMapping
 }

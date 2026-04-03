@@ -5,6 +5,9 @@ import { FilePath, createFilePath } from '../../utils/path';
  * Returns a unique string key for each search result item.
  */
 export function dataItemToKey(result: SearchResult): string {
+  if (result.type === 'folder') {
+    return `folder-${result.folderPath.fullPath}`;
+  }
   return `${result.type}-${result.filePath.fullPath}`;
 }
 
@@ -12,6 +15,9 @@ export function dataItemToKey(result: SearchResult): string {
  * Returns a string representation suitable for searching/filtering.
  */
 export function dataItemToString(result: SearchResult): string {
+  if (result.type === 'folder') {
+    return result.folderPath.folder;
+  }
   return result.filePath.note;
 }
 

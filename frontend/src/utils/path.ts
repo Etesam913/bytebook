@@ -57,7 +57,7 @@ export function createFilePath(filePath: string): FilePath | null {
 
   const folder = normalizedPath.split('/').slice(0, -1).join('/');
   const note = lastSegment;
-  const extension = lastSegment.split('.').pop();
+  const extension = lastSegment.split('.').pop()?.toLowerCase();
   if (!note || !extension) {
     return null;
   }

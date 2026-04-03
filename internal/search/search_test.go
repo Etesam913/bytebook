@@ -60,7 +60,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 			Type:        MARKDOWN_NOTE_TYPE,
 			Title:       "doc1",
 			Folder:      "folder1",
-			Note:        "doc1",
+			Name:        "doc1",
 			LastUpdated: "",
 			Highlights:  []HighlightResult{{Content: "This contains <mark>search term</mark>.", IsCode: false, HighlightedTerm: "search term"}},
 			CodeContent: []string{},
@@ -72,7 +72,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 			Type:        MARKDOWN_NOTE_TYPE,
 			Title:       "doc2",
 			Folder:      "folder2",
-			Note:        "doc2",
+			Name:        "doc2",
 			LastUpdated: "2023-12-02T15:45:00Z",
 			Created:     "2023-11-02T15:45:00Z",
 			Highlights:  []HighlightResult{{Content: "This also contains <mark>search term</mark>.", IsCode: false, HighlightedTerm: "search term"}},
@@ -113,7 +113,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 		assert.Len(t, results, 1)
 		assert.Equal(t, "valid-file.md", results[0].Title)
 		assert.Equal(t, "valid-folder", results[0].Folder)
-		assert.Equal(t, "valid-file.md", results[0].Note)
+		assert.Equal(t, "valid-file.md", results[0].Name)
 	})
 
 	t.Run("should extract highlights correctly", func(t *testing.T) {

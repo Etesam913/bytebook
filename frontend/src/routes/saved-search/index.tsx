@@ -229,7 +229,11 @@ export function SavedSearchPage({
     },
   });
 
-  const searchResultPaths = results.map((result) => result.filePath);
+  const fileResults = results.filter(
+    (result): result is Exclude<typeof result, { type: 'folder' }> =>
+      result.type !== 'folder'
+  );
+  const searchResultPaths = fileResults.map((result) => result.filePath);
 
   const sidebarRef = useRef<HTMLElement>(null);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);

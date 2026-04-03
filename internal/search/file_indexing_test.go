@@ -90,6 +90,28 @@ func createTempIndex(t *testing.T, projectDir string) bleve.Index {
 	return index
 }
 
+// filterFileJobs returns only jobs that have a file extension.
+func filterFileJobs(jobs []DocumentJob) []DocumentJob {
+	var fileJobs []DocumentJob
+	for _, job := range jobs {
+		if filepath.Ext(job.entryName) != "" {
+			fileJobs = append(fileJobs, job)
+		}
+	}
+	return fileJobs
+}
+
+// filterFolderJobs returns only jobs that have no file extension (folders).
+func filterFolderJobs(jobs []DocumentJob) []DocumentJob {
+	var folderJobs []DocumentJob
+	for _, job := range jobs {
+		if filepath.Ext(job.entryName) == "" {
+			folderJobs = append(folderJobs, job)
+		}
+	}
+	return folderJobs
+}
+
 func TestPopulateJobs(t *testing.T) {
 	t.Run("should populate jobs for all files across multiple folders", func(t *testing.T) {
 		_, notesDir := setupTempNotesDir(t)
@@ -104,14 +126,16 @@ func TestPopulateJobs(t *testing.T) {
 		})
 
 		receivedJobs := collectPopulateJobs(t, notesDir)
+		fileJobs := filterFileJobs(receivedJobs)
+		folderJobs := filterFolderJobs(receivedJobs)
 
-		assert.Len(t, receivedJobs, 4)
+		assert.Len(t, fileJobs, 4)
+		assert.Len(t, folderJobs, 2)
 
 		extensions := make(map[string]int)
 		folderNames := make(map[string]int)
-		for _, job := range receivedJobs {
-			assert.Equal(t, filepath.Ext(job.fileName), job.fileExtension)
-			extensions[job.fileExtension]++
+		for _, job := range fileJobs {
+			extensions[filepath.Ext(job.entryName)]++
 			folderNames[job.folder]++
 		}
 
@@ -133,12 +157,15 @@ func TestPopulateJobs(t *testing.T) {
 		})
 
 		receivedJobs := collectPopulateJobs(t, notesDir)
+		fileJobs := filterFileJobs(receivedJobs)
+		folderJobs := filterFolderJobs(receivedJobs)
 
-		assert.Len(t, receivedJobs, 3)
+		assert.Len(t, fileJobs, 3)
+		assert.Len(t, folderJobs, 2) // folder1 and folder1/nested
 
 		jobsByFileID := make(map[string]DocumentJob)
-		for _, job := range receivedJobs {
-			jobsByFileID[job.fileId] = job
+		for _, job := range fileJobs {
+			jobsByFileID[job.entryId] = job
 		}
 
 		require.Contains(t, jobsByFileID, filepath.Join("folder1", "top.md"))
@@ -148,16 +175,31 @@ func TestPopulateJobs(t *testing.T) {
 		assert.Equal(t, "folder1", jobsByFileID[filepath.Join("folder1", "top.md")].folder)
 		assert.Equal(t, filepath.Join("folder1", "nested"), jobsByFileID[filepath.Join("folder1", "nested", "deep.md")].folder)
 		assert.Equal(t, filepath.Join("folder1", "nested"), jobsByFileID[filepath.Join("folder1", "nested", "asset.png")].folder)
+
+		// Verify folder jobs
+		folderJobsByID := make(map[string]DocumentJob)
+		for _, job := range folderJobs {
+			folderJobsByID[job.entryId] = job
+		}
+		require.Contains(t, folderJobsByID, FolderDocId("folder1"))
+		require.Contains(t, folderJobsByID, FolderDocId(filepath.Join("folder1", "nested")))
+		assert.Equal(t, "", folderJobsByID[FolderDocId("folder1")].folder)
+		assert.Equal(t, "folder1", folderJobsByID[FolderDocId(filepath.Join("folder1", "nested"))].folder)
 	})
 
-	t.Run("should handle empty folders", func(t *testing.T) {
+	t.Run("should emit folder job for empty folders", func(t *testing.T) {
 		_, notesDir := setupTempNotesDir(t)
 
 		emptyFolderPath := filepath.Join(notesDir, "empty-folder")
 		require.NoError(t, os.MkdirAll(emptyFolderPath, 0755))
 
 		receivedJobs := collectPopulateJobs(t, notesDir)
-		assert.Empty(t, receivedJobs)
+		fileJobs := filterFileJobs(receivedJobs)
+		folderJobs := filterFolderJobs(receivedJobs)
+
+		assert.Empty(t, fileJobs)
+		assert.Len(t, folderJobs, 1)
+		assert.Equal(t, "empty-folder", folderJobs[0].entryName)
 	})
 
 	t.Run("should skip hidden files and hidden folders", func(t *testing.T) {
@@ -171,9 +213,13 @@ func TestPopulateJobs(t *testing.T) {
 		})
 
 		receivedJobs := collectPopulateJobs(t, notesDir)
+		fileJobs := filterFileJobs(receivedJobs)
+		folderJobs := filterFolderJobs(receivedJobs)
 
-		assert.Len(t, receivedJobs, 1)
-		assert.Equal(t, "visible.md", receivedJobs[0].fileName)
+		assert.Len(t, fileJobs, 1)
+		assert.Equal(t, "visible.md", fileJobs[0].entryName)
+		assert.Len(t, folderJobs, 1)
+		assert.Equal(t, "folder1", folderJobs[0].entryName)
 	})
 }
 
@@ -187,7 +233,11 @@ func TestStartWorker(t *testing.T) {
 			"image.png": "binary content",
 		})
 
-		receivedResults := runWorkerJobs(projectDir, []DocumentJob{{filePath: filepath.Join(folderPath, "note1.md"), folder: "test-folder", fileName: "note1.md", fileExtension: ".md"}, {filePath: filepath.Join(folderPath, "note2.md"), folder: "test-folder", fileName: "note2.md", fileExtension: ".md"}, {filePath: filepath.Join(folderPath, "image.png"), folder: "test-folder", fileName: "image.png", fileExtension: ".png"}})
+		receivedResults := runWorkerJobs(projectDir, []DocumentJob{
+			{entryPath: filepath.Join(folderPath, "note1.md"), folder: "test-folder", entryName: "note1.md"},
+			{entryPath: filepath.Join(folderPath, "note2.md"), folder: "test-folder", entryName: "note2.md"},
+			{entryPath: filepath.Join(folderPath, "image.png"), folder: "test-folder", entryName: "image.png"},
+		})
 
 		assert.Len(t, receivedResults, 3)
 
@@ -211,7 +261,7 @@ func TestStartWorker(t *testing.T) {
 	})
 
 	t.Run("should return error result for non-existent file", func(t *testing.T) {
-		receivedResults := runWorkerJobs(t.TempDir(), []DocumentJob{{filePath: "/non/existent/path/file.md", folder: "test-folder", fileName: "file.md", fileExtension: ".md"}})
+		receivedResults := runWorkerJobs(t.TempDir(), []DocumentJob{{entryPath: "/non/existent/path/file.md", folder: "test-folder", entryName: "file.md"}})
 
 		assert.Len(t, receivedResults, 1)
 		assert.True(t, receivedResults[0].isError)

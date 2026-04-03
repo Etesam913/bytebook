@@ -56,7 +56,7 @@ type SearchResult struct {
 	Type        string            `json:"type"`
 	Title       string            `json:"title"`
 	Folder      string            `json:"folder"`
-	Note        string            `json:"note"`
+	Name        string            `json:"name"`
 	LastUpdated string            `json:"lastUpdated"`
 	Created     string            `json:"created"`
 	Tags        []string          `json:"tags"`
@@ -208,7 +208,7 @@ func processMarkdownNoteResult(hit *blevesearch.DocumentMatch) *SearchResult {
 		Type:        MARKDOWN_NOTE_TYPE,
 		Title:       fileName,
 		Folder:      folder,
-		Note:        fileName,
+		Name:        fileName,
 		LastUpdated: fields.LastUpdated,
 		Created:     fields.Created,
 		Tags:        fields.Tags,
@@ -242,11 +242,39 @@ func processAttachmentResult(hit *blevesearch.DocumentMatch) *SearchResult {
 		Type:        ATTACHMENT_TYPE,
 		Title:       fileName,
 		Folder:      folder,
-		Note:        fileName,
+		Name:        fileName,
 		LastUpdated: "", // Attachments don't have lastUpdated
 		Created:     created,
 		Tags:        tags,
 		Highlights:  highlights,
+	}
+}
+
+// processFolderResult processes a folder search hit
+func processFolderResult(hit *blevesearch.DocumentMatch) *SearchResult {
+	folder := ""
+	if f, ok := hit.Fields[FieldFolder].(string); ok {
+		folder = f
+	}
+
+	fileName, fileNameOk := hit.Fields[FieldFileName].(string)
+	if !fileNameOk {
+		return nil
+	}
+
+	created := ""
+	if cd, ok := hit.Fields[FieldCreatedDate]; ok {
+		if createdDate, ok := cd.(string); ok {
+			created = createdDate
+		}
+	}
+
+	return &SearchResult{
+		Type:    FOLDER_TYPE,
+		Title:   fileName,
+		Folder:  folder,
+		Name:    fileName,
+		Created: created,
 	}
 }
 
@@ -276,6 +304,8 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 			result = processMarkdownNoteResult(hit)
 		case ATTACHMENT_TYPE:
 			result = processAttachmentResult(hit)
+		case FOLDER_TYPE:
+			result = processFolderResult(hit)
 		default:
 			// Unknown type, skip
 			continue
