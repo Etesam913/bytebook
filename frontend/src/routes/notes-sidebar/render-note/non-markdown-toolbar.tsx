@@ -23,7 +23,6 @@ import { HorizontalDots } from '../../../icons/horizontal-dots';
 import { PinTack2 } from '../../../icons/pin-tack-2';
 import { TagPlus } from '../../../icons/tag-plus';
 import { Trash } from '../../../icons/trash';
-import type { ProjectSettings } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
 import { FilePath } from '../../../utils/path';
 import type { LegacyAnimationControls } from 'motion/react';
@@ -109,16 +108,17 @@ export function NonMarkdownToolbar({
           switch (item.value) {
             case 'pin-note':
             case 'unpin-note': {
-              const newProjectSettings: ProjectSettings = {
-                ...projectSettings,
-              };
+              const newPinnedNotes = new Set(projectSettings.pinnedNotes);
               if (item.value === 'pin-note') {
-                newProjectSettings.pinnedNotes.add(filePath.fullPath);
+                newPinnedNotes.add(filePath.fullPath);
               } else {
-                newProjectSettings.pinnedNotes.delete(filePath.fullPath);
+                newPinnedNotes.delete(filePath.fullPath);
               }
               updateProjectSettings({
-                newProjectSettings,
+                newProjectSettings: {
+                  ...projectSettings,
+                  pinnedNotes: newPinnedNotes,
+                },
               });
               break;
             }

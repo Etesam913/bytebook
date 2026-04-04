@@ -21,7 +21,6 @@ import { Finder } from '../../../icons/finder';
 import { PinTack2 } from '../../../icons/pin-tack-2';
 import { TagPlus } from '../../../icons/tag-plus';
 import { Trash } from '../../../icons/trash';
-import type { ProjectSettings } from '../../../types';
 import { Tooltip } from '../../../components/tooltip';
 
 export function NoteSidebarButton({
@@ -98,19 +97,18 @@ export function NoteSidebarButton({
                   </span>
                 ),
                 onChange: () => {
-                  const newProjectSettings: ProjectSettings = {
-                    ...projectSettings,
-                  };
+                  const newPinnedNotes = new Set(projectSettings.pinnedNotes);
                   if (isPinned) {
-                    newProjectSettings.pinnedNotes.delete(
-                      sidebarNotePath.fullPath
-                    );
+                    newPinnedNotes.delete(sidebarNotePath.fullPath);
                   } else {
-                    newProjectSettings.pinnedNotes.add(
-                      sidebarNotePath.fullPath
-                    );
+                    newPinnedNotes.add(sidebarNotePath.fullPath);
                   }
-                  updateProjectSettings({ newProjectSettings });
+                  updateProjectSettings({
+                    newProjectSettings: {
+                      ...projectSettings,
+                      pinnedNotes: newPinnedNotes,
+                    },
+                  });
                 },
               },
               {

@@ -33,18 +33,9 @@ func (s *SettingsService) GetProjectSettings() config.BackendResponseWithData[co
 
 func (s *SettingsService) UpdateProjectSettings(
 	newProjectSettings config.ProjectSettingsJson) config.BackendResponseWithData[config.ProjectSettingsJson] {
-	var projectSettings config.ProjectSettingsJson
 	projectSettingsPath := filepath.Join(s.ProjectPath, "settings", "settings.json")
-	err := util.ReadJsonFromPath(projectSettingsPath, &projectSettings)
-	if err != nil {
-		return config.BackendResponseWithData[config.ProjectSettingsJson]{
-			Success: false,
-			Message: "Failed to read project settings",
-		}
-	}
-	validPinnedNotes := config.GetValidPinnedNotes(s.ProjectPath, newProjectSettings)
-	newProjectSettings.PinnedNotes = validPinnedNotes
-	err = util.WriteJsonToPath(projectSettingsPath, newProjectSettings)
+	newProjectSettings.PinnedNotes = config.GetValidPinnedNotes(s.ProjectPath, newProjectSettings)
+	err := util.WriteJsonToPath(projectSettingsPath, newProjectSettings)
 	if err != nil {
 		return config.BackendResponseWithData[config.ProjectSettingsJson]{
 			Success: false,

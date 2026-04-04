@@ -28,26 +28,46 @@ import (
 //
 //	An error if any step of the process fails, otherwise nil.
 func WriteJsonToPath(pathname string, data any) error {
-	// MarshalIndent converts the data to a pretty-printed JSON format.
 	jsonData, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
 		return err
 	}
 
-	// Create the file at the given pathname.
-	file, err := os.Create(pathname)
+	// Write to a temp file in the same directory, then atomically rename.
+	// This prevents corruption if the app crashes mid-write, and ensures
+	// file watchers never see a partially-written file.
+	dir := filepath.Dir(pathname)
+	tmpFile, err := os.CreateTemp(dir, ".tmp-*")
 	if err != nil {
 		return err
 	}
-	// Ensure the file is closed when the function exits.
-	defer file.Close()
+	tmpPath := tmpFile.Name()
 
-	// Write the JSON data to the file.
-	_, err = file.Write(jsonData)
-	if err != nil {
+	// Clean up the temp file on any failure after this point.
+	success := false
+	defer func() {
+		if !success {
+			os.Remove(tmpPath)
+		}
+	}()
+
+	if _, err := tmpFile.Write(jsonData); err != nil {
+		tmpFile.Close()
+		return err
+	}
+	if err := tmpFile.Sync(); err != nil {
+		tmpFile.Close()
+		return err
+	}
+	if err := tmpFile.Close(); err != nil {
 		return err
 	}
 
+	if err := os.Rename(tmpPath, pathname); err != nil {
+		return err
+	}
+
+	success = true
 	return nil
 }
 

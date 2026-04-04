@@ -115,14 +115,16 @@ export function SettingsDropdown({
         switch (item.value) {
           case 'pin-note':
           case 'unpin-note': {
+            const newPinnedNotes = new Set(projectSettings.pinnedNotes);
+            if (item.value === 'pin-note') {
+              newPinnedNotes.add(`${folder}/${note}.md`);
+            } else {
+              newPinnedNotes.delete(`${folder}/${note}.md`);
+            }
             const newProjectSettings: ProjectSettings = {
               ...projectSettings,
+              pinnedNotes: newPinnedNotes,
             };
-            if (item.value === 'pin-note') {
-              newProjectSettings.pinnedNotes.add(`${folder}/${note}.md`);
-            } else {
-              newProjectSettings.pinnedNotes.delete(`${folder}/${note}.md`);
-            }
             updateProjectSettings({
               newProjectSettings,
             });

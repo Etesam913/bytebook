@@ -186,42 +186,25 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 		projectSettings.Appearance.EditorFontSize = MaxEditorFontSize
 	}
 
-	projectSettings, err = UpdatePinnedNotesAndAccentColorFromProjectSettings(
-		projectPath,
-		projectSettings,
-	)
-
-	if err != nil {
-		return projectSettings, err
-	}
+	projectSettings = ValidateProjectSettings(projectPath, projectSettings)
 
 	return projectSettings, nil
 }
 
-// UpdatePinnedNotesAndAccentColorFromProjectSettings validates pinned notes and updates
-// the accent color in the project settings. It writes the updated settings back to the
-// settings.json file and returns the updated settings along with any error encountered.
-func UpdatePinnedNotesAndAccentColorFromProjectSettings(
+// ValidateProjectSettings validates pinned notes and updates the accent color
+// in the project settings without writing to disk.
+func ValidateProjectSettings(
 	projectPath string,
 	projectSettings ProjectSettingsJson,
-) (
-	ProjectSettingsJson,
-	error,
-) {
-	projectSettingsPath := filepath.Join(projectPath, "settings", "settings.json")
-
-	// Validate pinned notes
+) ProjectSettingsJson {
 	projectSettings.PinnedNotes = GetValidPinnedNotes(projectPath, projectSettings)
 	app := application.Get()
 	if app != nil {
 		projectSettings.Appearance.AccentColor = app.Env.GetAccentColor()
 	}
-
-	// Write the updated settings
-	err := util.WriteJsonToPath(projectSettingsPath, projectSettings)
-
-	return projectSettings, err
+	return projectSettings
 }
+
 
 /*
 GetValidPinnedNotes returns a list of valid pinned notes.
