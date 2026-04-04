@@ -84,7 +84,7 @@ export function VirtualizedFileTree({
       id="file-tree"
       role="tree"
       aria-label="File tree"
-      className="flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
+      className="relative flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
       onKeyDown={(event) => {
         handleFileTreeKeyDown(
           {
