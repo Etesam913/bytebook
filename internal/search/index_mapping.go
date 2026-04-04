@@ -66,6 +66,7 @@ type MarkdownNoteBleveDocument struct {
 	HasPythonCode         bool     `json:"has_python_code"`
 	HasJavascriptCode     bool     `json:"has_javascript_code"`
 	Tags                  []string `json:"tags"`
+	Links                 []string `json:"links"`
 	LastUpdated           string   `json:"last_updated"`
 	CreatedDate           string   `json:"created_date"`
 	Size                  int64    `json:"size"`
@@ -102,6 +103,7 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 	lastUpdated, _ := notes.GetLastUpdatedFromFrontmatter(markdown)
 	createdDate, _ := notes.GetCreatedDateFromFrontmatter(markdown)
 	tags, _ := notes.GetTagsFromFrontmatter(markdown)
+	links := notes.GetInternalLinksFromBody(markdown)
 	return MarkdownNoteBleveDocument{
 		Type:                  MARKDOWN_NOTE_TYPE,
 		Folder:                folder,
@@ -121,6 +123,7 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 		HasPythonCode:         notes.HasPythonCode(markdown),
 		HasJavascriptCode:     notes.HasJavaScriptCode(markdown),
 		Tags:                  tags,
+		Links:                 links,
 		LastUpdated:           lastUpdated,
 		CreatedDate:           createdDate,
 		Size:                  int64(len([]byte(markdown))),
@@ -355,6 +358,7 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 	documentMapping.AddFieldMappingsAt(FieldHasPythonCode, bleve.NewBooleanFieldMapping())
 	documentMapping.AddFieldMappingsAt(FieldHasJavascriptCode, bleve.NewBooleanFieldMapping())
 	documentMapping.AddFieldMappingsAt(FieldTags, keywordTextFieldMapping)
+	documentMapping.AddFieldMappingsAt(FieldLinks, keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldLastUpdated, lastUpdatedFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldCreatedDate, createdDateFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldSize, sizeFieldMapping)

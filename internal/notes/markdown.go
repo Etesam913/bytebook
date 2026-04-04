@@ -15,7 +15,7 @@ import (
 var (
 	// Markdown link patterns
 	LINK_REGEX  = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
-	IMAGE_REGEX = regexp.MustCompile(`!\[.*?\]\((.*?)\)`)
+	MEDIA_REGEX = regexp.MustCompile(`!\[.*?\]\((.*?)\)`)
 	VIDEO_REGEX = regexp.MustCompile(`\[video\]\(.*?\)`)
 
 	// Content filtering patterns
@@ -38,7 +38,7 @@ var (
 // excludeMediaTags removes image and video markdown syntax from content.
 func excludeMediaTags(markdown string) string {
 	// Remove image markdown syntax
-	content := IMAGE_REGEX.ReplaceAllString(markdown, "")
+	content := MEDIA_REGEX.ReplaceAllString(markdown, "")
 	// Remove video markdown syntax
 	content = VIDEO_REGEX.ReplaceAllString(content, "")
 	return content
@@ -259,6 +259,34 @@ func GetPythonCodeContent(markdown string) []string {
 // Returns a slice of strings containing the JavaScript code from each block.
 func GetJavaScriptCodeContent(markdown string) []string {
 	return getCodeContentWithLangRegex(markdown, JAVASCRIPT_CODE_BLOCK_REGEX, 1)
+}
+
+// GetInternalLinksFromBody extracts all internal link targets from markdown content.
+// It finds both regular links [text](/notes/...) and image links ![alt](/notes/...).
+// Returns a deduplicated slice of link paths starting with /notes/.
+func GetInternalLinksFromBody(markdown string) []string {
+	seen := make(map[string]bool)
+	var links []string
+
+	// Extract URLs from regular links (capture group 2)
+	for _, match := range LINK_REGEX.FindAllStringSubmatch(markdown, -1) {
+		url := match[2]
+		if strings.HasPrefix(url, "/notes/") && !seen[url] {
+			seen[url] = true
+			links = append(links, url)
+		}
+	}
+
+	// Extract URLs from image links (capture group 1)
+	for _, match := range MEDIA_REGEX.FindAllStringSubmatch(markdown, -1) {
+		url := match[1]
+		if strings.HasPrefix(url, "/notes/") && !seen[url] {
+			seen[url] = true
+			links = append(links, url)
+		}
+	}
+
+	return links
 }
 
 // Tag Management Functions

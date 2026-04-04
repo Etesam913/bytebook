@@ -150,6 +150,28 @@ func createTagQuery(tagName string) query.Query {
 	return q
 }
 
+// extractLinkPrefix extracts the link prefix from tokens starting with "@" or "link:".
+func extractLinkPrefix(text string) (string, bool) {
+	if value, ok := extractPrefix(text, []string{"link:"}, "\""); ok {
+		return value, true
+	}
+	if strings.HasPrefix(text, "@") {
+		return text[1:], true
+	}
+	return "", false
+}
+
+// createLinkQuery handles link queries (tokens starting with "@" or "link:")
+// Returns a query that searches for case-insensitive substring matches in the links field.
+// Supports partial paths like "test.md" or "folder/test.md" matching against full paths.
+func createLinkQuery(linkTarget string) query.Query {
+	normalizedLink := strings.TrimSpace(linkTarget)
+	pattern := "(?i).*" + regexp.QuoteMeta(normalizedLink) + ".*"
+	q := bleve.NewRegexpQuery(pattern)
+	q.SetField(FieldLinks)
+	return q
+}
+
 // createTypeQuery handles type queries (tokens starting with "t:" or "type:")
 // Returns a query that filters by document type (for example "note" or "attachment").
 func createTypeQuery(typeName string) query.Query {
@@ -299,6 +321,11 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) (query.Query, *
 		// Check for tag prefix (# or tag:)
 		if tagName, ok := extractTagPrefix(token.Text); ok {
 			return createTagQuery(tagName), false
+		}
+
+		// Check for link prefix (@ or link:)
+		if linkTarget, ok := extractLinkPrefix(token.Text); ok {
+			return createLinkQuery(linkTarget), false
 		}
 
 		// Check for lang prefix (l: or lang:)

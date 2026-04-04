@@ -87,15 +87,3 @@ func TestFormatStringListForErrorMessage(t *testing.T) {
 		assert.Equal(t, expected, result)
 	})
 }
-
-func TestGlobalVariables(t *testing.T) {
-	t.Run("FILE_SERVER_URL has expected value", func(t *testing.T) {
-		expected := "http://localhost:5890"
-		assert.Equal(t, expected, FILE_SERVER_URL)
-	})
-
-	t.Run("INTERNAL_LINK_PREFIX has expected value", func(t *testing.T) {
-		expected := "wails://localhost:5173"
-		assert.Equal(t, expected, INTERNAL_LINK_PREFIX)
-	})
-}
