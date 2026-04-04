@@ -90,18 +90,25 @@ export function buildRenameUpdates({
   const isValid = isValidNode ?? (() => true);
 
   for (const { oldPath, newPath } of entries) {
+    const newSegments = newPath.split('/').filter(Boolean);
+    const oldSegments = oldPath.split('/').filter(Boolean);
+
+    // A rename touches the top level if either the old or new path is a
+    // root-level item (single segment). This check must happen BEFORE the
+    // early-continue so that entries whose source node isn't loaded in the
+    // tree still trigger query invalidation.
+    if (newSegments.length === 1 || oldSegments.length === 1) {
+      needsTopLevelInvalidation = true;
+    }
+
     const treeDataNode = getTreeNodeFromPath(fileTreeData, oldPath);
     if (!treeDataNode || !isValid(treeDataNode)) continue;
 
-    const newSegments = newPath.split('/').filter(Boolean);
     pathRemappings.set(oldPath, newPath);
 
-    // A rename touches the top level if either the old or new path is a
-    // root-level item (single segment). Top-level changes require
-    // invalidating the top-level query so the sidebar refreshes.
-    const isUpdatingTopLevel =
-      isFileTreeNodeTopLevel(treeDataNode) || newSegments.length === 1;
-    if (isUpdatingTopLevel) {
+    // For nodes in the tree, also check via parentId (more precise than
+    // segment counting for edge cases).
+    if (isFileTreeNodeTopLevel(treeDataNode)) {
       needsTopLevelInvalidation = true;
     }
 
