@@ -3,7 +3,10 @@ import { mergeRegister } from '@lexical/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   COMMAND_PRIORITY_EDITOR,
+  COMMAND_PRIORITY_LOW,
   type LexicalCommand,
+  REDO_COMMAND,
+  UNDO_COMMAND,
   createCommand,
 } from 'lexical';
 import { type Dispatch, type SetStateAction, useEffect } from 'react';
@@ -96,6 +99,39 @@ export function SavePlugin({
           return true;
         },
         COMMAND_PRIORITY_EDITOR
+      ),
+      editor.registerCommand(
+        UNDO_COMMAND,
+        () => {
+          // Set timeout is needed to schedule save after the undo state is committed
+          setTimeout(() => {
+            editor.update(
+              () => {
+                // Ensures that an undo that re-adds an image will have its markdown updated.
+                editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, undefined);
+              },
+              { tag: 'note:write-from-external' }
+            );
+          }, 0);
+          return false;
+        },
+        COMMAND_PRIORITY_LOW
+      ),
+      editor.registerCommand(
+        REDO_COMMAND,
+        () => {
+          // Set timeout is needed to schedule save after the redo state is committed
+          setTimeout(() => {
+            editor.update(
+              () => {
+                editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, undefined);
+              },
+              { tag: 'note:write-from-external' }
+            );
+          }, 0);
+          return false;
+        },
+        COMMAND_PRIORITY_LOW
       )
     );
   }, [
