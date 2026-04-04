@@ -263,6 +263,55 @@ func TestCreateTagQuery(t *testing.T) {
 	}
 }
 
+func TestExtractLinkPrefix(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		want      string
+		wantFound bool
+	}{
+		{"at prefix", "@/notes/folder/note.md", "/notes/folder/note.md", true},
+		{"link prefix", "link:/notes/folder/note.md", "/notes/folder/note.md", true},
+		{"quoted link prefix", `link:"/notes/folder/note.md"`, "/notes/folder/note.md", true},
+		{"no prefix", "/notes/folder/note.md", "", false},
+		{"other prefix", "f:/notes/folder/note.md", "", false},
+		{"empty at", "@", "", true},
+		{"empty link prefix", "link:", "", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, found := extractLinkPrefix(tt.input)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.wantFound, found)
+		})
+	}
+}
+
+func TestCreateLinkQuery(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		wantPattern string
+	}{
+		{"full path", "/notes/folder/note.md", `(?i).*/notes/folder/note\.md.*`},
+		{"filename only", "note.md", `(?i).*note\.md.*`},
+		{"partial path", "folder/note.md", `(?i).*folder/note\.md.*`},
+		{"path with spaces", "  /notes/folder  ", "(?i).*/notes/folder.*"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			q := createLinkQuery(tt.input)
+
+			regexpQuery, ok := q.(*query.RegexpQuery)
+			assert.True(t, ok, "Query should be a RegexpQuery")
+			assert.Equal(t, FieldLinks, regexpQuery.FieldVal)
+			assert.Equal(t, tt.wantPattern, regexpQuery.Regexp)
+		})
+	}
+}
+
 func TestExtractLangPrefix(t *testing.T) {
 	tests := []struct {
 		name      string

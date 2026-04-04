@@ -4,8 +4,12 @@ import {
   encodeLinkUrl,
   encodeLinkAltText,
   decodeLinkAltText,
+  escapeFileContentForMarkdown,
+  isInternalLink,
+  unescapeFileContentFromMarkdown,
   unescapeUnderscore,
 } from '../../../utils/string-formatting';
+import { WAILS_URL } from '../../../utils/general';
 import {
   $createLinkNode,
   $isAutoLinkNode,
@@ -21,7 +25,11 @@ export const LINK: TextMatchTransformer = {
     }
     const linkUrl = node.getURL();
 
-    const encodedLinkUrl = encodeLinkUrl(linkUrl);
+    // Internal links: use clean /notes/ path
+    // External links: URL-encode as before
+    const encodedLinkUrl = isInternalLink(linkUrl)
+      ? escapeFileContentForMarkdown(linkUrl.split(WAILS_URL)[1])
+      : encodeLinkUrl(linkUrl);
 
     // Escape special markdown characters in the URL
     const altText = encodeLinkAltText(node.getTextContent());
@@ -38,12 +46,12 @@ export const LINK: TextMatchTransformer = {
     return linkContent;
   },
   importRegExp:
-    /(?:\[([^[]+)\])(?:\((?:([^()]+?)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))/,
+    /(?:\[([^[]+)\])(?:\((?:((?:[^()\\]|\\.)+?)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))/,
   regExp:
     /(?:\[([^[]+)\])(?:\((?:((?:\\.|[^()])+?)(?:\s"((?:[^"]*\\")*[^"]*)"\s*)?)\))$/,
   replace: (textNode, match) => {
     let alt = match.at(1);
-    let filePathOrSrc = match.at(2);
+    const filePathOrSrc = match.at(2);
 
     if (!alt || !filePathOrSrc) {
       textNode.replace(textNode);
@@ -51,10 +59,16 @@ export const LINK: TextMatchTransformer = {
     }
     alt = decodeLinkAltText(alt);
 
-    // Unescape special markdown characters in the URL
-    filePathOrSrc = unescapeUnderscore(decodeURIComponent(filePathOrSrc));
+    // Internal links stored as clean /notes/ paths — prepend wails: for LinkNode
+    // External links keep existing decoding behavior
+    let url: string;
+    if (filePathOrSrc.startsWith('/notes/')) {
+      url = `${WAILS_URL}${unescapeFileContentFromMarkdown(filePathOrSrc)}`;
+    } else {
+      url = unescapeUnderscore(decodeURIComponent(filePathOrSrc));
+    }
 
-    const linkNode = $createLinkNode(filePathOrSrc);
+    const linkNode = $createLinkNode(url);
     const linkTextNode = $createTextNode(alt);
     linkTextNode.setFormat(textNode.getFormat());
     linkNode.append(linkTextNode);

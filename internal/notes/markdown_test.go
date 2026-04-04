@@ -10,19 +10,19 @@ import (
 
 func TestExcludeMediaTags(t *testing.T) {
 	t.Run("should remove image tags", func(t *testing.T) {
-		markdown := "# Title\n![Image](http://localhost:5890/folder/image.png)\nSome text"
+		markdown := "# Title\n![Image](/notes/folder/image.png)\nSome text"
 		result := excludeMediaTags(markdown)
 		assert.Equal(t, "# Title\n\nSome text", result)
 	})
 
 	t.Run("should remove video tags", func(t *testing.T) {
-		markdown := "# Title\n[video](http://localhost:5890/folder/video.mp4)\nSome text"
+		markdown := "# Title\n[video](/notes/folder/video.mp4)\nSome text"
 		result := excludeMediaTags(markdown)
 		assert.Equal(t, "# Title\n\nSome text", result)
 	})
 
 	t.Run("should remove both image and video tags", func(t *testing.T) {
-		markdown := "# Title\n![Image](http://localhost:5890/folder/image.png)\nSome text\n[video](http://localhost:5890/folder/video.mp4)"
+		markdown := "# Title\n![Image](/notes/folder/image.png)\nSome text\n[video](/notes/folder/video.mp4)"
 		result := excludeMediaTags(markdown)
 		assert.Equal(t, "# Title\n\nSome text\n", result)
 	})
@@ -79,6 +79,44 @@ func TestExtractLinkText(t *testing.T) {
 		markdown := "Plain text without links"
 		result := extractLinkText(markdown)
 		assert.Equal(t, markdown, result)
+	})
+}
+
+func TestGetInternalLinksFromBody(t *testing.T) {
+	t.Run("should extract internal note links", func(t *testing.T) {
+		markdown := "Check [my note](/notes/folder/note.md) for details"
+		result := GetInternalLinksFromBody(markdown)
+		assert.Equal(t, []string{"/notes/folder/note.md"}, result)
+	})
+
+	t.Run("should extract internal media links", func(t *testing.T) {
+		markdown := "![image](/notes/temp/890fcefa/appicon.png)"
+		result := GetInternalLinksFromBody(markdown)
+		assert.Equal(t, []string{"/notes/temp/890fcefa/appicon.png"}, result)
+	})
+
+	t.Run("should filter out external links", func(t *testing.T) {
+		markdown := "[external](https://example.com) and [internal](/notes/folder/note.md)"
+		result := GetInternalLinksFromBody(markdown)
+		assert.Equal(t, []string{"/notes/folder/note.md"}, result)
+	})
+
+	t.Run("should deduplicate links", func(t *testing.T) {
+		markdown := "[note1](/notes/folder/note.md) and [note1 again](/notes/folder/note.md)"
+		result := GetInternalLinksFromBody(markdown)
+		assert.Equal(t, []string{"/notes/folder/note.md"}, result)
+	})
+
+	t.Run("should extract both link and media types", func(t *testing.T) {
+		markdown := "[note](/notes/folder/note.md)\n![img](/notes/folder/image.png)"
+		result := GetInternalLinksFromBody(markdown)
+		assert.Equal(t, []string{"/notes/folder/note.md", "/notes/folder/image.png"}, result)
+	})
+
+	t.Run("should return nil for no internal links", func(t *testing.T) {
+		markdown := "Just some text with [external](https://example.com)"
+		result := GetInternalLinksFromBody(markdown)
+		assert.Nil(t, result)
 	})
 }
 

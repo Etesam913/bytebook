@@ -11,6 +11,8 @@ Make sure to run the below commands after any major changes are made to frontend
 3. `bun knip`
 4. `bun test:unit`
 
+When making changes do not prioritize backwards compatibility. This is not a released product.
+
 ## What is Bytebook
 
 Bytebook is a desktop note-taking app for developers built with [Wails v3](https://github.com/wailsapp/wails) (Go backend + React frontend). Notes are stored as Markdown files on disk. The app supports code execution via Jupyter kernels (Python, Go, JavaScript, Java), full-text search via Bleve, and a rich editor built on Lexical.

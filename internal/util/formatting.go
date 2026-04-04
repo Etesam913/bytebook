@@ -4,9 +4,6 @@ import (
 	"strings"
 )
 
-var FILE_SERVER_URL = "http://localhost:5890"
-var INTERNAL_LINK_PREFIX = "wails://localhost:5173"
-
 // FormatStringListForErrorMessage formats a list of strings for error messages.
 // If the list exceeds the specified capacity, it appends "etc..." to the end of the formatted string.
 // Parameters:
