@@ -147,18 +147,21 @@ export function FileTreeFolderItem({
     }
   }
 
+  const hasDragHighlight = dragHighlightIds.has(dataItem.id);
   const innerContent = (
     <>
       <span
         style={{ paddingLeft }}
         className={cn(
           'rounded-md flex items-center gap-2 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
-          isSelectedFromRoute &&
+          !hasDragHighlight &&
+            !isDraggedOver &&
+            isSelectedFromRoute &&
             'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
-          (isSelectedFromSidebarClick || isDraggedOver) &&
+          !hasDragHighlight &&
+            (isSelectedFromSidebarClick || isDraggedOver) &&
             'bg-(--accent-color)! text-white!',
-
-          dragHighlightIds.has(dataItem.id) &&
+          hasDragHighlight &&
             'bg-(--accent-color)/25 hover:bg-(--accent-color)/25 dark:hover:bg-(--accent-color)/25 focus:bg-(--accent-color)/25 dark:focus:bg-(--accent-color)/25'
         )}
       >

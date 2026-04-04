@@ -38,6 +38,7 @@ import {
   createDragGhostElement,
   getContextMenuSelectionItems,
 } from '../utils/item-selection';
+import { getSelectionValue } from '../../../../utils/selection';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { TagPlus } from '../../../../icons/tag-plus';
 import { EditTagDialogChildren } from '../../../../routes/notes-sidebar/edit-tag-dialog-children';
@@ -154,15 +155,19 @@ export function FileTreeFileItem({
   }
 
   const paddingLeft = getFileTreeItemIndent(dataItem.level);
+  const hasDragHighlight = dragHighlightIds.has(dataItem.id);
   const innerContent = (
     <span
       style={{ paddingLeft }}
       className={cn(
         'rounded-md flex items-center gap-2 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
-        isSelectedFromRoute &&
+        !hasDragHighlight &&
+          isSelectedFromRoute &&
           'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
-        isSelectedFromSidebarClick && 'bg-(--accent-color)! text-white!',
-        dragHighlightIds.has(dataItem.id) &&
+        !hasDragHighlight &&
+          isSelectedFromSidebarClick &&
+          'bg-(--accent-color)! text-white!',
+        hasDragHighlight &&
           'bg-(--accent-color)/25 hover:bg-(--accent-color)/25 dark:hover:bg-(--accent-color)/25 focus:bg-(--accent-color)/25 dark:focus:bg-(--accent-color)/25'
       )}
     >
@@ -227,11 +232,22 @@ export function FileTreeFileItem({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragEnter={() => {
+        const allAreSiblings = [...sidebarSelection.selections].every(
+          (selectionKey) => {
+            const itemId = getSelectionValue(selectionKey);
+            if (!itemId) return false;
+            const item = fileOrFolderMap.get(itemId);
+            return item?.parentId === dataItem.parentId;
+          }
+        );
+
         setDragHighlightIds(
-          getDragHighlightIds({
-            fileOrFolderMap,
-            parentId: dataItem.parentId,
-          })
+          allAreSiblings
+            ? new Set()
+            : getDragHighlightIds({
+                fileOrFolderMap,
+                parentId: dataItem.parentId,
+              })
         );
       }}
       onDragOver={(e) => {
