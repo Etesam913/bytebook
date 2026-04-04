@@ -184,20 +184,25 @@ export const kernelsDataAtom = atom<KernelsData>({
   },
 });
 
+// Sidebar panel keys and types
+export const SIDEBAR_PANEL_KEYS = [
+  'files',
+  'pinned',
+  'recent',
+  'kernels',
+  'tags',
+  'savedSearches',
+] as const;
+
+export type SidebarPanelKey = (typeof SIDEBAR_PANEL_KEYS)[number];
+
 // File sidebar accordion open state
-type FileSidebarOpenState = {
-  pinned: boolean;
-  recent: boolean;
-  folders: boolean;
-  kernels: boolean;
-  tags: boolean;
-  savedSearches: boolean;
-};
+type FileSidebarOpenState = Record<SidebarPanelKey, boolean>;
 
 const defaultFileSidebarOpenState: FileSidebarOpenState = {
+  files: true,
   pinned: true,
   recent: false,
-  folders: true,
   kernels: false,
   tags: false,
   savedSearches: false,
@@ -209,6 +214,10 @@ const initializeFileSidebarOpenState = (): FileSidebarOpenState => {
     if (!raw) return { ...defaultFileSidebarOpenState };
     const parsed = JSON.parse(raw) as Partial<FileSidebarOpenState>;
     return {
+      files:
+        typeof parsed.files === 'boolean'
+          ? parsed.files
+          : defaultFileSidebarOpenState.files,
       pinned:
         typeof parsed.pinned === 'boolean'
           ? parsed.pinned
@@ -217,10 +226,6 @@ const initializeFileSidebarOpenState = (): FileSidebarOpenState => {
         typeof parsed.recent === 'boolean'
           ? parsed.recent
           : defaultFileSidebarOpenState.recent,
-      folders:
-        typeof parsed.folders === 'boolean'
-          ? parsed.folders
-          : defaultFileSidebarOpenState.folders,
       kernels:
         typeof parsed.kernels === 'boolean'
           ? parsed.kernels
@@ -243,7 +248,7 @@ type FileSidebarOpenStateUpdate =
   | Partial<FileSidebarOpenState>
   | ((prev: FileSidebarOpenState) => Partial<FileSidebarOpenState>);
 
-/** Inner atom so the derived atom’s write does not call `get(self)` (breaks inference). */
+/** Inner atom so the derived atom's write does not call `get(self)` (breaks inference). */
 const fileSidebarOpenStateBaseAtom = atom<FileSidebarOpenState>(
   initializeFileSidebarOpenState()
 );
@@ -262,3 +267,17 @@ export const fileSidebarOpenStateAtom = atom<
     set(fileSidebarOpenStateBaseAtom, next);
   }
 );
+
+// Sidebar panel flex weights
+export const MIN_FLEX_WEIGHT = 0.2;
+
+export type SidebarFlexWeights = Record<SidebarPanelKey, number>;
+
+export const DEFAULT_SIDEBAR_FLEX_WEIGHTS: SidebarFlexWeights = {
+  files: 1.5,
+  pinned: 1,
+  recent: 1,
+  kernels: 1,
+  tags: 1,
+  savedSearches: 1,
+};

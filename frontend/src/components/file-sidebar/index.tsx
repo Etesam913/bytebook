@@ -1,7 +1,21 @@
-import { type MotionValue, motion, useMotionTemplate } from 'motion/react';
+import {
+  type MotionValue,
+  motion,
+  useMotionTemplate,
+  useMotionValue,
+} from 'motion/react';
 import { useAtomValue } from 'jotai';
+import { useRef } from 'react';
 import { getDefaultButtonVariants } from '../../animations.ts';
-import { isFullscreenAtom } from '../../atoms.ts';
+import {
+  DEFAULT_SIDEBAR_FLEX_WEIGHTS,
+  fileSidebarOpenStateAtom,
+  isFullscreenAtom,
+  MIN_FLEX_WEIGHT,
+  SIDEBAR_PANEL_KEYS,
+  type SidebarFlexWeights,
+  type SidebarPanelKey,
+} from '../../atoms.ts';
 import { MotionIconButton } from '../buttons/index.tsx';
 import { BottomItems } from './bottom-items.tsx';
 import { MyFilesAccordion } from './my-files-accordion/index.tsx';
@@ -16,9 +30,46 @@ import { MyKernelsAccordion } from './my-kernels-accordion/index.tsx';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index.tsx';
 import { Tooltip } from '../tooltip/index.tsx';
 import { cn } from '../../utils/string-formatting.ts';
+
+export type FlexWeightMVs = Record<SidebarPanelKey, MotionValue<number>>;
+
+function loadStoredWeights(): SidebarFlexWeights {
+  try {
+    const raw = localStorage.getItem('sidebarFlexWeights');
+    if (!raw) return { ...DEFAULT_SIDEBAR_FLEX_WEIGHTS };
+    const parsed = JSON.parse(raw) as Partial<SidebarFlexWeights>;
+    const result = { ...DEFAULT_SIDEBAR_FLEX_WEIGHTS };
+    for (const key of SIDEBAR_PANEL_KEYS) {
+      const val = parsed[key];
+      if (typeof val === 'number' && val >= MIN_FLEX_WEIGHT) {
+        result[key] = val;
+      }
+    }
+    return result;
+  } catch {
+    return { ...DEFAULT_SIDEBAR_FLEX_WEIGHTS };
+  }
+}
+
 export function FileSidebar({ width }: { width: MotionValue<number> }) {
   const isFullscreen = useAtomValue(isFullscreenAtom);
+  const panelContainerRef = useRef<HTMLElement | null>(null);
   const scaledWidth = useMotionTemplate`calc(${width}px * var(--ui-scale))`;
+
+  const openState = useAtomValue(fileSidebarOpenStateAtom);
+  const storedWeightsRef = useRef<SidebarFlexWeights>(loadStoredWeights());
+  const sw = storedWeightsRef.current;
+
+  const flexWeightMVs: FlexWeightMVs = {
+    files: useMotionValue(openState.files ? sw.files : 0),
+    pinned: useMotionValue(openState.pinned ? sw.pinned : 0),
+    recent: useMotionValue(openState.recent ? sw.recent : 0),
+    kernels: useMotionValue(openState.kernels ? sw.kernels : 0),
+    tags: useMotionValue(openState.tags ? sw.tags : 0),
+    savedSearches: useMotionValue(
+      openState.savedSearches ? sw.savedSearches : 0
+    ),
+  };
 
   return (
     <>
@@ -58,13 +109,40 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
         <section className="px-2 pt-4">
           <SearchBar />
         </section>
-        <section className="flex flex-1 flex-col min-h-0 pt-1.5 pb-1 [&>*+*]:-mt-[1.25px]">
-          <MyFilesAccordion />
-          <PinnedAccordion />
-          <RecentAccordion />
-          <MyKernelsAccordion />
-          <MyTagsAccordion />
-          <MySavedSearchesAccordion />
+        <section
+          ref={panelContainerRef}
+          className="flex flex-1 flex-col min-h-0 pt-1.5 pb-1"
+        >
+          <MyFilesAccordion
+            containerRef={panelContainerRef}
+            flexWeightMVs={flexWeightMVs}
+            storedWeightsRef={storedWeightsRef}
+          />
+          <PinnedAccordion
+            containerRef={panelContainerRef}
+            flexWeightMVs={flexWeightMVs}
+            storedWeightsRef={storedWeightsRef}
+          />
+          <RecentAccordion
+            containerRef={panelContainerRef}
+            flexWeightMVs={flexWeightMVs}
+            storedWeightsRef={storedWeightsRef}
+          />
+          <MyKernelsAccordion
+            containerRef={panelContainerRef}
+            flexWeightMVs={flexWeightMVs}
+            storedWeightsRef={storedWeightsRef}
+          />
+          <MyTagsAccordion
+            containerRef={panelContainerRef}
+            flexWeightMVs={flexWeightMVs}
+            storedWeightsRef={storedWeightsRef}
+          />
+          <MySavedSearchesAccordion
+            containerRef={panelContainerRef}
+            flexWeightMVs={flexWeightMVs}
+            storedWeightsRef={storedWeightsRef}
+          />
         </section>
         <BottomItems />
       </motion.aside>

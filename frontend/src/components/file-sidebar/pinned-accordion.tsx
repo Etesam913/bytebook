@@ -1,4 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import type { RefObject } from 'react';
 import {
   contextMenuDataAtom,
   projectSettingsAtom,
@@ -19,10 +20,20 @@ import {
 } from '../../utils/path';
 import { Tooltip } from '../tooltip';
 import { SidebarAccordionPanel } from './sidebar-accordion-panel';
+import type { SidebarFlexWeights } from '../../atoms';
+import type { FlexWeightMVs } from './index';
 
 type PinnedItem = FilePath | FolderPath;
 
-export function PinnedAccordion() {
+export function PinnedAccordion({
+  containerRef,
+  flexWeightMVs,
+  storedWeightsRef,
+}: {
+  containerRef: RefObject<HTMLElement | null>;
+  flexWeightMVs: FlexWeightMVs;
+  storedWeightsRef: RefObject<SidebarFlexWeights>;
+}) {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isPinnedOpen = openState.pinned;
 
@@ -48,6 +59,10 @@ export function PinnedAccordion() {
   return (
     <SidebarAccordionPanel
       isOpen={isPinnedOpen}
+      panelKey="pinned"
+      containerRef={containerRef}
+      flexWeightMVs={flexWeightMVs}
+      storedWeightsRef={storedWeightsRef}
       trigger={
         <AccordionButton
           data-testid="pinned-accordion"

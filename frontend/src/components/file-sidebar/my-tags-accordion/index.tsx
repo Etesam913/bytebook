@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { useAtom } from 'jotai';
+import type { RefObject } from 'react';
 import { useTagsQuery } from '../../../hooks/tags';
 import { TagIcon } from '../../../icons/tag';
 import { Loader } from '../../../icons/loader';
@@ -15,7 +16,17 @@ import { fileSidebarOpenStateAtom } from '../../../atoms';
 import { ErrorText } from '../../error-text';
 import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
-export function MyTagsAccordion() {
+import type { SidebarFlexWeights } from '../../../atoms';
+import type { FlexWeightMVs } from '../index';
+export function MyTagsAccordion({
+  containerRef,
+  flexWeightMVs,
+  storedWeightsRef,
+}: {
+  containerRef: RefObject<HTMLElement | null>;
+  flexWeightMVs: FlexWeightMVs;
+  storedWeightsRef: RefObject<SidebarFlexWeights>;
+}) {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isOpen = openState.tags;
   const { data: tags, isError, isLoading, refetch } = useTagsQuery();
@@ -27,6 +38,10 @@ export function MyTagsAccordion() {
   return (
     <SidebarAccordionPanel
       isOpen={isOpen}
+      panelKey="tags"
+      containerRef={containerRef}
+      flexWeightMVs={flexWeightMVs}
+      storedWeightsRef={storedWeightsRef}
       trigger={
         <AccordionButton
           data-testid="tags-accordion"

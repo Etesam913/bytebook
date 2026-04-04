@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { useAtom } from 'jotai';
+import type { RefObject } from 'react';
 import { VirtualizedListAccordion } from '../../virtualized/virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
 import {
@@ -20,7 +21,17 @@ import { ErrorText } from '../../error-text';
 import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
 import { Loader } from '../../../icons/loader';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
-export function MySavedSearchesAccordion() {
+import type { SidebarFlexWeights } from '../../../atoms';
+import type { FlexWeightMVs } from '../index';
+export function MySavedSearchesAccordion({
+  containerRef,
+  flexWeightMVs,
+  storedWeightsRef,
+}: {
+  containerRef: RefObject<HTMLElement | null>;
+  flexWeightMVs: FlexWeightMVs;
+  storedWeightsRef: RefObject<SidebarFlexWeights>;
+}) {
   useSavedSearchUpdates();
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isOpen = openState.savedSearches;
@@ -38,6 +49,10 @@ export function MySavedSearchesAccordion() {
   return (
     <SidebarAccordionPanel
       isOpen={isOpen}
+      panelKey="savedSearches"
+      containerRef={containerRef}
+      flexWeightMVs={flexWeightMVs}
+      storedWeightsRef={storedWeightsRef}
       trigger={
         <AccordionButton
           data-testid="saved-searches-accordion"

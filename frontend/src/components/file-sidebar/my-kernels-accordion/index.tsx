@@ -1,4 +1,5 @@
 import { useAtom, useAtomValue } from 'jotai';
+import type { RefObject } from 'react';
 import { useRoute } from 'wouter';
 import { VirtualizedListAccordion } from '../../virtualized/virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
@@ -28,6 +29,8 @@ import { JavaLogo } from '../../../icons/java-logo';
 import { Languages } from '../../../types';
 import { KernelHeartbeat } from './kernel-heartbeat';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
+import type { SidebarFlexWeights } from '../../../atoms';
+import type { FlexWeightMVs } from '../index';
 
 export function getKernelIcon(kernel: Languages, size: string = '1.125rem') {
   const className = 'will-change-transform';
@@ -83,7 +86,15 @@ function KernelTooltipContent({ kernelsData }: { kernelsData: KernelsData }) {
   );
 }
 
-export function MyKernelsAccordion() {
+export function MyKernelsAccordion({
+  containerRef,
+  flexWeightMVs,
+  storedWeightsRef,
+}: {
+  containerRef: RefObject<HTMLElement | null>;
+  flexWeightMVs: FlexWeightMVs;
+  storedWeightsRef: RefObject<SidebarFlexWeights>;
+}) {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isOpen = openState.kernels;
   const [, params] = useRoute<KernelWithFilesRouteParams>(
@@ -99,6 +110,10 @@ export function MyKernelsAccordion() {
   return (
     <SidebarAccordionPanel
       isOpen={isOpen}
+      panelKey="kernels"
+      containerRef={containerRef}
+      flexWeightMVs={flexWeightMVs}
+      storedWeightsRef={storedWeightsRef}
       trigger={
         <Tooltip
           content={<KernelTooltipContent kernelsData={kernelsData} />}

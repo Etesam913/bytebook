@@ -7,6 +7,11 @@
   .bb-force-grabbing * {
     cursor: grabbing !important;
   }
+
+  .bb-force-row-resize,
+  .bb-force-row-resize * {
+    cursor: row-resize !important;
+  }
 }
 
 @theme {

@@ -1,14 +1,24 @@
 import { useAtom } from 'jotai';
-import { useRef } from 'react';
+import { type RefObject, useRef } from 'react';
 import { fileSidebarOpenStateAtom } from '../../../atoms';
 import { VirtualizedFileTree } from '../../virtualized/virtualized-file-tree';
 import { Note } from '../../../icons/page';
 import { AccordionButton } from '../../accordion/accordion-button';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
 import { useAutoScrollDuringDrag } from '../../../hooks/draggable';
-export function MyFilesAccordion() {
+import type { SidebarFlexWeights } from '../../../atoms';
+import type { FlexWeightMVs } from '../index';
+export function MyFilesAccordion({
+  containerRef,
+  flexWeightMVs,
+  storedWeightsRef,
+}: {
+  containerRef: RefObject<HTMLElement | null>;
+  flexWeightMVs: FlexWeightMVs;
+  storedWeightsRef: RefObject<SidebarFlexWeights>;
+}) {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
-  const isOpen = openState.folders;
+  const isOpen = openState.files;
   const scrollContainerRef = useRef<HTMLElement | null>(null);
   const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(
     scrollContainerRef,
@@ -18,14 +28,17 @@ export function MyFilesAccordion() {
   return (
     <SidebarAccordionPanel
       isOpen={isOpen}
-      flexWeight={1.5}
+      panelKey="files"
+      containerRef={containerRef}
+      flexWeightMVs={flexWeightMVs}
+      storedWeightsRef={storedWeightsRef}
       trigger={
         <AccordionButton
           isOpen={isOpen}
           onClick={() =>
             setOpenState((prev) => ({
               ...prev,
-              folders: !prev.folders,
+              files: !prev.files,
             }))
           }
           icon={

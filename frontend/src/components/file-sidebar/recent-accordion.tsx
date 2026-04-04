@@ -1,16 +1,26 @@
 import { useAtom } from 'jotai';
+import { type RefObject, useEffect, useRef } from 'react';
 import { fileSidebarOpenStateAtom, mostRecentItemsAtom } from '../../atoms.ts';
 import HourglassStart from '../../icons/hourglass-start.tsx';
 import { AccordionItem } from '../accordion/accordion-item.tsx';
 import { AccordionButton } from '../accordion/accordion-button';
-import { useEffect, useRef } from 'react';
 import { useRecentItemFromRoute } from '../../hooks/routes.tsx';
 import { motion } from 'motion/react';
 import { SidebarAccordionPanel } from './sidebar-accordion-panel';
 import { Folder as FolderIcon } from '../../icons/folder';
 import { usePreventBoundaryOverscrollFlicker } from '../virtualized/virtualized-list/hooks.tsx';
+import type { SidebarFlexWeights } from '../../atoms';
+import type { FlexWeightMVs } from './index';
 
-export function RecentAccordion() {
+export function RecentAccordion({
+  containerRef,
+  flexWeightMVs,
+  storedWeightsRef,
+}: {
+  containerRef: RefObject<HTMLElement | null>;
+  flexWeightMVs: FlexWeightMVs;
+  storedWeightsRef: RefObject<SidebarFlexWeights>;
+}) {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isRecentOpen = openState.recent;
   const [mostRecentItems, setMostRecentItems] = useAtom(mostRecentItemsAtom);
@@ -42,6 +52,10 @@ export function RecentAccordion() {
   return (
     <SidebarAccordionPanel
       isOpen={isRecentOpen}
+      panelKey="recent"
+      containerRef={containerRef}
+      flexWeightMVs={flexWeightMVs}
+      storedWeightsRef={storedWeightsRef}
       trigger={
         <AccordionButton
           data-testid="recent-accordion"
