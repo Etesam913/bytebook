@@ -74,7 +74,7 @@ export function Dialog() {
 
     if (dialogData.isOpen) {
       editor?.blur();
-      dialog.show();
+      dialog.showModal();
     }
 
     const handleCancel = (e: Event) => {
@@ -104,7 +104,7 @@ export function Dialog() {
       ref={dialogRef}
       aria-modal="true"
       aria-labelledby="dialog-title"
-      className="fixed inset-0 z-40 bg-transparent border-none p-0 max-w-none max-h-none w-full h-full"
+      className="fixed inset-0 z-40 bg-transparent border-none p-0 max-w-none max-h-none w-full h-full backdrop:bg-transparent"
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           e.preventDefault();
