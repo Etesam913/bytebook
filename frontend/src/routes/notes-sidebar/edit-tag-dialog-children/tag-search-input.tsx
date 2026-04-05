@@ -1,3 +1,4 @@
+import type { RefCallback } from 'react';
 import { Input } from '../../../components/input';
 
 export function TagSearchInput({
@@ -6,12 +7,14 @@ export function TagSearchInput({
   onCreateTag,
   isLoading,
   hasError,
+  inputRef,
 }: {
   searchTerm: string;
   onSearchTermChange: (value: string) => void;
   onCreateTag: (tagName: string) => void;
   isLoading: boolean;
   hasError: boolean;
+  inputRef: RefCallback<HTMLInputElement>;
 }) {
   if (isLoading || hasError) {
     return null;
@@ -20,9 +23,9 @@ export function TagSearchInput({
   return (
     <div className="mb-2">
       <Input
+        ref={inputRef}
         labelProps={{}}
         inputProps={{
-          autoFocus: true,
           placeholder: 'Search tags or create new tag...',
           value: searchTerm,
           onChange: (e) => onSearchTermChange(e.target.value),

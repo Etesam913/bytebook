@@ -1,12 +1,12 @@
 import {
   type InfiniteData,
+  keepPreviousData,
   queryOptions,
   useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { atom } from 'jotai';
 import { navigate } from 'wouter/use-browser-location';
 import {
   FullTextSearch,
@@ -21,8 +21,6 @@ import {
 } from '../../bindings/github.com/etesam913/bytebook/internal/search/models';
 import { useWailsEvent } from '../hooks/events';
 import {
-  isEventInCurrentWindow,
-  SEARCH_OPEN,
   SAVED_SEARCH_UPDATE,
   NOTE_DELETE,
   NOTE_RENAME,
@@ -30,17 +28,10 @@ import {
   FOLDER_RENAME,
 } from '../utils/events';
 import { useEffect, useRef } from 'react';
-import {
-  createFilePath,
-  createFolderPath,
-  type FilePath,
-  type FolderPath,
-} from '../utils/path';
+import { createFilePath, type FilePath } from '../utils/path';
 import { routeUrls } from '../utils/routes';
 import { toast } from 'sonner';
 import { QueryError } from '../utils/query';
-
-export const lastSearchQueryAtom = atom<string>('');
 
 export type NoteSearchResult = {
   type: 'note';
@@ -66,16 +57,7 @@ export type AttachmentSearchResult = {
   tags: string[];
 };
 
-export type FolderSearchResult = {
-  type: 'folder';
-  /** The path of the folder */
-  folderPath: FolderPath;
-};
-
-export type SearchResult =
-  | NoteSearchResult
-  | AttachmentSearchResult
-  | FolderSearchResult;
+export type SearchResult = NoteSearchResult | AttachmentSearchResult;
 
 type FullTextSearchPageResponse = Awaited<ReturnType<typeof FullTextSearch>>;
 
@@ -91,16 +73,7 @@ function mapFullTextSearchResults(
   const results: Array<SearchResult> = [];
 
   data.forEach((result) => {
-    if (result.type === 'folder') {
-      const fullFolderPath = result.folder
-        ? `${result.folder}/${result.name}`
-        : result.name;
-
-      const folderPath = createFolderPath(fullFolderPath);
-      if (!folderPath) return;
-      results.push({ type: 'folder', folderPath });
-      return;
-    }
+    if (result.type === 'folder') return;
 
     const filePath = createFilePath(`${result.folder}/${result.name}`);
     if (!filePath) return;
@@ -145,25 +118,6 @@ export const searchQueries = {
 };
 
 /**
- * Hook to handle navigation to the search page.
- * Listens for 'search:open' Wails events.
- * - 'search:open': navigates to the search page or goes back if already there.
- */
-export function useSearch() {
-  useWailsEvent(SEARCH_OPEN, (data) => {
-    void (async () => {
-      if (!(await isEventInCurrentWindow(data))) return;
-      // Check if already on /search, if so, go back
-      if (window.location.pathname.startsWith('/search')) {
-        window.history.back();
-      } else {
-        navigate(routeUrls.search());
-      }
-    })();
-  });
-}
-
-/**
  * Hook to perform a full-text search query using react-query.
  */
 export function useFullTextSearchQuery(searchQuery: string) {
@@ -173,6 +127,7 @@ export function useFullTextSearchQuery(searchQuery: string) {
     queryFn: ({ pageParam }) => FullTextSearch(searchQuery, pageParam ?? []),
     getNextPageParam: (lastPage) =>
       lastPage.hasMore ? lastPage.nextSearchAfter : undefined,
+    placeholderData: keepPreviousData,
   });
 
   const data = (query.data?.pages ?? []).flatMap((page) =>
@@ -197,14 +152,12 @@ export function useSearchFocus() {
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Only focus if the "/" key is pressed and no modifier keys are held
       if (
         event.key === '/' &&
         !event.ctrlKey &&
         !event.metaKey &&
         !event.altKey
       ) {
-        // Don't focus if the event is coming from an input field
         if (
           event.target instanceof HTMLInputElement ||
           event.target instanceof HTMLTextAreaElement
@@ -214,6 +167,7 @@ export function useSearchFocus() {
 
         event.preventDefault();
         inputRef.current?.focus();
+        inputRef.current?.select();
       }
     };
 

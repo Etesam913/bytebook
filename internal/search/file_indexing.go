@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/util"
@@ -148,8 +147,6 @@ func addResultsToIndex(bleveIndex bleve.Index, bleveBatch *bleve.Batch, results 
 			bleveBatch.Index(docResult.entryId, doc)
 		case AttachmentBleveDocument:
 			bleveBatch.Index(docResult.entryId, doc)
-		case FolderBleveDocument:
-			bleveBatch.Index(docResult.entryId, doc)
 		}
 
 		indexCount += 1
@@ -184,14 +181,6 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 		rootFolderName := folder.Name()
 		rootFolderPath := filepath.Join(notesPath, rootFolderName)
 
-		// Emit a job for the top-level folder itself
-		jobs <- DocumentJob{
-			entryPath: rootFolderPath,
-			entryId:   FolderDocId(rootFolderName),
-			folder:    "",
-			entryName: rootFolderName,
-		}
-
 		if err := filepath.WalkDir(rootFolderPath, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
@@ -206,23 +195,6 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 			}
 
 			if d.IsDir() {
-				// Emit a folder job for subdirectories (skip the root since we already emitted it)
-				relPath, relErr := filepath.Rel(notesPath, path)
-				if relErr != nil {
-					return relErr
-				}
-				if relPath != rootFolderName {
-					parentPath := filepath.Dir(relPath)
-					if parentPath == "." {
-						parentPath = ""
-					}
-					jobs <- DocumentJob{
-						entryPath: path,
-						entryId:   FolderDocId(relPath),
-						folder:    parentPath,
-						entryName: d.Name(),
-					}
-				}
 				return nil
 			}
 
@@ -257,22 +229,6 @@ func startWorker(projectPath string, jobs <-chan DocumentJob, results chan<- Doc
 	defer workerWaitGroup.Done()
 	for job := range jobs {
 		fileExtension := filepath.Ext(job.entryName)
-
-		// Handle folder entries (no file extension)
-		if fileExtension == "" {
-			info, statErr := os.Stat(job.entryPath)
-			createdDate := ""
-			if statErr == nil {
-				createdDate = info.ModTime().UTC().Format(time.RFC3339)
-			}
-			results <- DocumentResult{
-				isError:   false,
-				entryPath: job.entryPath,
-				entryId:   job.entryId,
-				document:  CreateFolderBleveDocument(job.folder, job.entryName, createdDate),
-			}
-			continue
-		}
 
 		// Is a markdown note
 		if fileExtension == ".md" {

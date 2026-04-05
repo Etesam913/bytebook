@@ -6,7 +6,11 @@ import {
   createFilePath,
   safeDecodeURIComponent,
 } from '../utils/path';
-import { NotesRouteParams, SavedSearchRouteParams } from '../utils/routes';
+import {
+  NotesRouteParams,
+  SavedSearchRouteParams,
+  SearchRouteParams,
+} from '../utils/routes';
 
 function normalizeWildcardPath(path: string | undefined): string | null {
   if (!path) {
@@ -49,6 +53,24 @@ function useDecodedSavedSearchWildcardPath(): string | null {
 }
 
 /**
+ * Hook to get the decoded wildcard path segment from the
+ * `/search/:searchQuery/*` route.
+ *
+ * @returns The normalized file path from the route, or null if not on a
+ * search note route.
+ */
+function useDecodedSearchWildcardPath(): string | null {
+  const [isSearchRoute, searchParams] = useRoute<SearchRouteParams>(
+    '/search/:searchQuery/*'
+  );
+  if (!isSearchRoute) {
+    return null;
+  }
+
+  return normalizeWildcardPath(searchParams['*']);
+}
+
+/**
  * Hook to get a FilePath object representing the current `/notes/*` route.
  *
  * @returns FilePath object if on a file route, null if not or if invalid.
@@ -79,6 +101,7 @@ export function useFolderPathFromRoute(): FolderPath | null {
 export function useRecentItemFromRoute(): FilePath | FolderPath | null {
   const decodedNotesPath = useDecodedNotesWildcardPath();
   const decodedSavedSearchPath = useDecodedSavedSearchWildcardPath();
+  const decodedSearchPath = useDecodedSearchWildcardPath();
 
   if (decodedNotesPath) {
     return (
@@ -88,6 +111,10 @@ export function useRecentItemFromRoute(): FilePath | FolderPath | null {
 
   if (decodedSavedSearchPath) {
     return createFilePath(decodedSavedSearchPath);
+  }
+
+  if (decodedSearchPath) {
+    return createFilePath(decodedSearchPath);
   }
 
   return null;

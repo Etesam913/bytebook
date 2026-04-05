@@ -56,16 +56,6 @@ func handleFolderCreateEvent(params EventParams, event *application.CustomEvent)
 	addFoldersToIndex(params, data)
 }
 
-// parentOfPath returns the parent directory of a folder path,
-// or empty string for top-level folders.
-func parentOfPath(folderPath string) string {
-	parent := filepath.Dir(folderPath)
-	if parent == "." {
-		return ""
-	}
-	return parent
-}
-
 func addFoldersToIndex(params EventParams, data []map[string]string) {
 	batch := (*params.Index).NewBatch()
 
@@ -76,16 +66,9 @@ func addFoldersToIndex(params EventParams, data []map[string]string) {
 			continue
 		}
 
-		// Index the folder document itself
-		_, err := search.AddFolderToBatch(batch, *params.Index, folderPath, parentOfPath(folderPath), false)
-		if err != nil {
-			log.Printf("Error indexing folder document %s: %v", folderPath, err)
-		}
-
 		// Index files within the folder
 		pathOnDisk := filepath.Join(params.ProjectPath, "notes", folderPath)
-		err = search.IndexFilesInFolderWithBatch(pathOnDisk, folderPath, *params.Index, batch)
-		if err != nil {
+		if err := search.IndexFilesInFolderWithBatch(pathOnDisk, folderPath, *params.Index, batch); err != nil {
 			log.Printf("Error indexing files for folder %s: %v", folderPath, err)
 		}
 	}
@@ -124,9 +107,6 @@ func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
 			log.Println("Folder delete event data missing folderPath")
 			continue
 		}
-
-		// Delete the folder document itself
-		batch.Delete(search.FolderDocId(folderPath))
 
 		// Delete all file documents inside the folder
 		folderQuery := createFolderAndDescendantsQuery(folderPath)
@@ -202,25 +182,14 @@ func renameFoldersInIndex(params EventParams, data []map[string]string) {
 			continue
 		}
 
-		// Step 1: Delete old folder document and all entries with the old folder name
-		batch := (*params.Index).NewBatch()
-		batch.Delete(search.FolderDocId(oldFolderPath))
-		if err := (*params.Index).Batch(batch); err != nil {
-			log.Printf("Error deleting old folder document %s: %v", oldFolderPath, err)
-		}
+		// Step 1: Delete all entries with the old folder name
 		deleteRenameFolderFromIndex(params, oldFolderPath)
 
-		// Step 2: Index the new folder document and re-index all files
+		// Step 2: Re-index all files in the new folder
 		newFolderPathOnDisk := filepath.Join(params.ProjectPath, "notes", newFolderPath)
-		batch = (*params.Index).NewBatch()
+		batch := (*params.Index).NewBatch()
 
-		// Index the folder document itself
-		_, err := search.AddFolderToBatch(batch, *params.Index, newFolderPath, parentOfPath(newFolderPath), true)
-		if err != nil {
-			log.Printf("Error indexing renamed folder document %s: %v", newFolderPath, err)
-		}
-
-		err = search.IndexFilesInFolderWithBatch(newFolderPathOnDisk, newFolderPath, *params.Index, batch)
+		err := search.IndexFilesInFolderWithBatch(newFolderPathOnDisk, newFolderPath, *params.Index, batch)
 		if err != nil {
 			log.Printf("Error re-indexing folder %s: %v", newFolderPath, err)
 			continue

@@ -21,6 +21,7 @@ export interface FolderPath {
   fullPath: string;
   folder: string;
   folderUrl: string;
+  encodedPath: string;
   encodedFolderUrl: string;
   equals(other: FolderPath): boolean;
 }
@@ -108,12 +109,18 @@ export function createFolderPath(folderPath: string): FolderPath | null {
     return null;
   }
 
+  const encodedPath = normalizedPath
+    .split('/')
+    .map(encodeURIComponent)
+    .join('/');
+
   return {
     type: 'folder',
     fullPath: normalizedPath,
     folder,
     folderUrl: `/notes/${normalizedPath}`,
-    encodedFolderUrl: `/notes/${normalizedPath.split('/').map(encodeURIComponent).join('/')}`,
+    encodedPath,
+    encodedFolderUrl: `/notes/${encodedPath}`,
     equals(other: FolderPath) {
       return this.fullPath === other.fullPath;
     },

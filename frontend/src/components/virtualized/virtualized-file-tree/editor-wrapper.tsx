@@ -11,6 +11,7 @@ import { useNoteExists } from '../../../hooks/notes';
 import { RouteFallback } from '../../route-fallback';
 import { NotFound } from '../../../routes/not-found';
 import { routeUrls } from '../../../utils/routes';
+
 export function EditorWrapper() {
   const filePath = useFilePathFromRoute();
   const folderPath = useFolderPathFromRoute();

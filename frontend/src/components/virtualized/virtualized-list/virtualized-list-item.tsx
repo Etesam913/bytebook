@@ -6,7 +6,6 @@ import {
   type SetStateAction,
 } from 'react';
 import { sidebarSelectionAtom } from '../../../atoms';
-import { cn } from '../../../utils/string-formatting';
 import {
   createSelectionKey,
   keepSelectionWithPrefix,
@@ -115,9 +114,7 @@ export function VirtualizedListItem<T>({
       onMouseEnter={() => setHoveredItem(dataItemString)}
       onMouseLeave={() => setHoveredItem(null)}
       style={getContextMenuStyle?.(dataItem)}
-      className={cn(
-        'relative flex items-center rounded-md py-[.1rem] select-none px-1'
-      )}
+      className={'relative flex items-center rounded-md'}
       onClick={(e) => {
         if (disableSelection) return;
         if (e.shiftKey) handleShiftClick(index);

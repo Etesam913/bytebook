@@ -18,10 +18,6 @@ import { $setSelection } from 'lexical';
  * On submission, it saves the search query with the given name.
  *
  * @returns {(searchQuery: string) => void} Function to open the save search dialog for the specified query.
- *
- * Usage:
- *   const openSaveSearchDialog = useSaveSearchDialog();
- *   openSaveSearchDialog('my search query');
  */
 export function useSaveSearchDialog(): (searchQuery: string) => void {
   const setDialogData = useSetAtom(dialogDataAtom);
@@ -84,7 +80,6 @@ export function useSaveSearchDialog(): (searchQuery: string) => void {
             name: name.trim(),
           });
 
-          // Dialog will close automatically on successful submission
           return true;
         } catch (error) {
           setErrorText(

@@ -177,7 +177,7 @@ func createLinkQuery(linkTarget string) query.Query {
 func createTypeQuery(typeName string) query.Query {
 	typeName = strings.ToLower(strings.TrimSpace(typeName))
 	switch typeName {
-	case MARKDOWN_NOTE_TYPE, ATTACHMENT_TYPE, FOLDER_TYPE:
+	case MARKDOWN_NOTE_TYPE, ATTACHMENT_TYPE:
 		// supported search types
 	default:
 		return bleve.NewMatchNoneQuery()
