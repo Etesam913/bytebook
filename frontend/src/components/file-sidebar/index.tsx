@@ -5,7 +5,8 @@ import {
   useMotionValue,
 } from 'motion/react';
 import { useAtomValue } from 'jotai';
-import { useRef } from 'react';
+import { Activity, useRef } from 'react';
+import { useLocation } from 'wouter';
 import { getDefaultButtonVariants } from '../../animations.ts';
 import {
   DEFAULT_SIDEBAR_FLEX_WEIGHTS,
@@ -22,14 +23,17 @@ import { MyFilesAccordion } from './my-files-accordion/index.tsx';
 import { MyTagsAccordion } from './my-tags-accordion/index.tsx';
 import { PinnedAccordion } from './pinned-accordion.tsx';
 import { RecentAccordion } from './recent-accordion.tsx';
-import { SearchBar } from './searchbar.tsx';
+import { SidebarModeToggle } from './sidebar-mode-toggle.tsx';
+import { SearchSidebarPanel } from './search-sidebar-panel/index.tsx';
 import { Spacer } from './spacer.tsx';
 import { CircleArrowLeft } from '../../icons/circle-arrow-left.tsx';
 import { CircleArrowRight } from '../../icons/circle-arrow-right.tsx';
 import { MyKernelsAccordion } from './my-kernels-accordion/index.tsx';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index.tsx';
 import { Tooltip } from '../tooltip/index.tsx';
+import { isSearchSidebarRoute } from '../../utils/sidebar-routes.ts';
 import { cn } from '../../utils/string-formatting.ts';
+import { routeUrls } from '../../utils/routes.ts';
 
 export type FlexWeightMVs = Record<SidebarPanelKey, MotionValue<number>>;
 
@@ -53,6 +57,11 @@ function loadStoredWeights(): SidebarFlexWeights {
 
 export function FileSidebar({ width }: { width: MotionValue<number> }) {
   const isFullscreen = useAtomValue(isFullscreenAtom);
+  const [pathname] = useLocation();
+  const lastFilesRouteRef = useRef(routeUrls.folder(''));
+  const lastSearchRouteRef = useRef(routeUrls.search(''));
+
+  const isSearchSidebar = isSearchSidebarRoute(pathname);
   const panelContainerRef = useRef<HTMLElement | null>(null);
   const scaledWidth = useMotionTemplate`calc(${width}px * var(--ui-scale))`;
 
@@ -106,44 +115,52 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
             </MotionIconButton>
           </Tooltip>
         </header>
-        <section className="px-2 pt-4">
-          <SearchBar />
-        </section>
-        <section
-          ref={panelContainerRef}
-          className="flex flex-1 flex-col min-h-0 pt-1.5 pb-1"
-        >
-          <MyFilesAccordion
-            containerRef={panelContainerRef}
-            flexWeightMVs={flexWeightMVs}
-            storedWeightsRef={storedWeightsRef}
-          />
-          <PinnedAccordion
-            containerRef={panelContainerRef}
-            flexWeightMVs={flexWeightMVs}
-            storedWeightsRef={storedWeightsRef}
-          />
-          <RecentAccordion
-            containerRef={panelContainerRef}
-            flexWeightMVs={flexWeightMVs}
-            storedWeightsRef={storedWeightsRef}
-          />
-          <MyKernelsAccordion
-            containerRef={panelContainerRef}
-            flexWeightMVs={flexWeightMVs}
-            storedWeightsRef={storedWeightsRef}
-          />
-          <MyTagsAccordion
-            containerRef={panelContainerRef}
-            flexWeightMVs={flexWeightMVs}
-            storedWeightsRef={storedWeightsRef}
-          />
-          <MySavedSearchesAccordion
-            containerRef={panelContainerRef}
-            flexWeightMVs={flexWeightMVs}
-            storedWeightsRef={storedWeightsRef}
+        <section className="px-2 pt-3">
+          <SidebarModeToggle
+            lastFilesRouteRef={lastFilesRouteRef}
+            lastSearchRouteRef={lastSearchRouteRef}
           />
         </section>
+        <Activity mode={isSearchSidebar ? 'hidden' : 'visible'}>
+          <section
+            ref={panelContainerRef}
+            className="flex flex-1 flex-col min-h-0 pt-1.5 pb-1"
+          >
+            <MyFilesAccordion
+              containerRef={panelContainerRef}
+              flexWeightMVs={flexWeightMVs}
+              storedWeightsRef={storedWeightsRef}
+            />
+            <PinnedAccordion
+              containerRef={panelContainerRef}
+              flexWeightMVs={flexWeightMVs}
+              storedWeightsRef={storedWeightsRef}
+            />
+            <RecentAccordion
+              containerRef={panelContainerRef}
+              flexWeightMVs={flexWeightMVs}
+              storedWeightsRef={storedWeightsRef}
+            />
+            <MyKernelsAccordion
+              containerRef={panelContainerRef}
+              flexWeightMVs={flexWeightMVs}
+              storedWeightsRef={storedWeightsRef}
+            />
+            <MyTagsAccordion
+              containerRef={panelContainerRef}
+              flexWeightMVs={flexWeightMVs}
+              storedWeightsRef={storedWeightsRef}
+            />
+            <MySavedSearchesAccordion
+              containerRef={panelContainerRef}
+              flexWeightMVs={flexWeightMVs}
+              storedWeightsRef={storedWeightsRef}
+            />
+          </section>
+        </Activity>
+        <Activity mode={isSearchSidebar ? 'visible' : 'hidden'}>
+          <SearchSidebarPanel lastSearchRouteRef={lastSearchRouteRef} />
+        </Activity>
         <BottomItems />
       </motion.aside>
       <Spacer width={width} />

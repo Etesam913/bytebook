@@ -250,34 +250,6 @@ func processAttachmentResult(hit *blevesearch.DocumentMatch) *SearchResult {
 	}
 }
 
-// processFolderResult processes a folder search hit
-func processFolderResult(hit *blevesearch.DocumentMatch) *SearchResult {
-	folder := ""
-	if f, ok := hit.Fields[FieldFolder].(string); ok {
-		folder = f
-	}
-
-	fileName, fileNameOk := hit.Fields[FieldFileName].(string)
-	if !fileNameOk {
-		return nil
-	}
-
-	created := ""
-	if cd, ok := hit.Fields[FieldCreatedDate]; ok {
-		if createdDate, ok := cd.(string); ok {
-			created = createdDate
-		}
-	}
-
-	return &SearchResult{
-		Type:    FOLDER_TYPE,
-		Title:   fileName,
-		Folder:  folder,
-		Name:    fileName,
-		Created: created,
-	}
-}
-
 // ProcessDocumentSearchResults converts Bleve search results into SearchResult structs
 // for frontend consumption. It extracts type, folder, file_name, last_updated fields
 // and highlight fragments from the search hits.
@@ -304,8 +276,6 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 			result = processMarkdownNoteResult(hit)
 		case ATTACHMENT_TYPE:
 			result = processAttachmentResult(hit)
-		case FOLDER_TYPE:
-			result = processFolderResult(hit)
 		default:
 			// Unknown type, skip
 			continue

@@ -118,7 +118,7 @@ export function Dialog() {
 
         if (e.metaKey && e.key === 'Enter') {
           const form = dialogRef.current?.querySelector('form');
-          form?.dispatchEvent(new Event('submit'));
+          form?.requestSubmit();
         }
       }}
     >

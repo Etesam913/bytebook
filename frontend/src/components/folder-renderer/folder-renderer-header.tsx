@@ -1,4 +1,4 @@
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { useState } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { getDefaultButtonVariants } from '../../animations';
@@ -15,7 +15,6 @@ import { PinTackSlash } from '../../icons/pin-tack-slash';
 import { Trash } from '../../icons/trash';
 import { useRevealInFinderMutation } from '../../hooks/code';
 import { useMoveToTrashMutation, usePinPathMutation } from '../../hooks/notes';
-import { lastSearchQueryAtom } from '../../hooks/search';
 import type { FolderPath } from '../../utils/path';
 import { routeUrls } from '../../utils/routes';
 import { cn } from '../../utils/string-formatting';
@@ -34,7 +33,6 @@ export function FolderRendererHeader({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const setLastSearchQuery = useSetAtom(lastSearchQueryAtom);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();
   const { mutate: pinPath } = usePinPathMutation();
@@ -100,8 +98,7 @@ export function FolderRendererHeader({
                   aria-label="Search this folder"
                   className="shrink-0"
                   onClick={() => {
-                    setLastSearchQuery(`f:"${folderPath.fullPath}"`);
-                    navigate(routeUrls.search());
+                    navigate(routeUrls.search(`f:"${folderPath.fullPath}"`));
                   }}
                 >
                   <Magnifier width="0.875rem" height="0.875rem" />

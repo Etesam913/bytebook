@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { type RefCallback, useState } from 'react';
 import { RouteFallback } from '../../../components/route-fallback';
 import { useTagsForNotesQuery, useTagsQuery } from '../../../hooks/tags';
 import { MotionButton } from '../../../components/buttons';
@@ -104,6 +104,10 @@ export function EditTagDialogChildren({
     setSearchTerm('');
   };
 
+  const inputRefCallback: RefCallback<HTMLInputElement> = (node) => {
+    node?.focus();
+  };
+
   const allTagsInDialog = [
     ...new Set([...(allTags ?? []), ...tagsCreatedButNotSaved]),
   ];
@@ -164,6 +168,7 @@ export function EditTagDialogChildren({
                 onCreateTag={handleCreateTag}
                 isLoading={areTagsLoading}
                 hasError={areTagsError}
+                inputRef={inputRefCallback}
               />
               <TagSelectionList
                 displayedTags={displayedTags}

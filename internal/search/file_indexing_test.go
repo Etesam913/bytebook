@@ -101,17 +101,6 @@ func filterFileJobs(jobs []DocumentJob) []DocumentJob {
 	return fileJobs
 }
 
-// filterFolderJobs returns only jobs that have no file extension (folders).
-func filterFolderJobs(jobs []DocumentJob) []DocumentJob {
-	var folderJobs []DocumentJob
-	for _, job := range jobs {
-		if filepath.Ext(job.entryName) == "" {
-			folderJobs = append(folderJobs, job)
-		}
-	}
-	return folderJobs
-}
-
 func TestPopulateJobs(t *testing.T) {
 	t.Run("should populate jobs for all files across multiple folders", func(t *testing.T) {
 		_, notesDir := setupTempNotesDir(t)
@@ -127,10 +116,8 @@ func TestPopulateJobs(t *testing.T) {
 
 		receivedJobs := collectPopulateJobs(t, notesDir)
 		fileJobs := filterFileJobs(receivedJobs)
-		folderJobs := filterFolderJobs(receivedJobs)
 
 		assert.Len(t, fileJobs, 4)
-		assert.Len(t, folderJobs, 2)
 
 		extensions := make(map[string]int)
 		folderNames := make(map[string]int)
@@ -158,10 +145,8 @@ func TestPopulateJobs(t *testing.T) {
 
 		receivedJobs := collectPopulateJobs(t, notesDir)
 		fileJobs := filterFileJobs(receivedJobs)
-		folderJobs := filterFolderJobs(receivedJobs)
 
 		assert.Len(t, fileJobs, 3)
-		assert.Len(t, folderJobs, 2) // folder1 and folder1/nested
 
 		jobsByFileID := make(map[string]DocumentJob)
 		for _, job := range fileJobs {
@@ -175,31 +160,16 @@ func TestPopulateJobs(t *testing.T) {
 		assert.Equal(t, "folder1", jobsByFileID[filepath.Join("folder1", "top.md")].folder)
 		assert.Equal(t, filepath.Join("folder1", "nested"), jobsByFileID[filepath.Join("folder1", "nested", "deep.md")].folder)
 		assert.Equal(t, filepath.Join("folder1", "nested"), jobsByFileID[filepath.Join("folder1", "nested", "asset.png")].folder)
-
-		// Verify folder jobs
-		folderJobsByID := make(map[string]DocumentJob)
-		for _, job := range folderJobs {
-			folderJobsByID[job.entryId] = job
-		}
-		require.Contains(t, folderJobsByID, FolderDocId("folder1"))
-		require.Contains(t, folderJobsByID, FolderDocId(filepath.Join("folder1", "nested")))
-		assert.Equal(t, "", folderJobsByID[FolderDocId("folder1")].folder)
-		assert.Equal(t, "folder1", folderJobsByID[FolderDocId(filepath.Join("folder1", "nested"))].folder)
 	})
 
-	t.Run("should emit folder job for empty folders", func(t *testing.T) {
+	t.Run("should emit no jobs for empty folders", func(t *testing.T) {
 		_, notesDir := setupTempNotesDir(t)
 
 		emptyFolderPath := filepath.Join(notesDir, "empty-folder")
 		require.NoError(t, os.MkdirAll(emptyFolderPath, 0755))
 
 		receivedJobs := collectPopulateJobs(t, notesDir)
-		fileJobs := filterFileJobs(receivedJobs)
-		folderJobs := filterFolderJobs(receivedJobs)
-
-		assert.Empty(t, fileJobs)
-		assert.Len(t, folderJobs, 1)
-		assert.Equal(t, "empty-folder", folderJobs[0].entryName)
+		assert.Empty(t, receivedJobs)
 	})
 
 	t.Run("should skip hidden files and hidden folders", func(t *testing.T) {
@@ -214,12 +184,9 @@ func TestPopulateJobs(t *testing.T) {
 
 		receivedJobs := collectPopulateJobs(t, notesDir)
 		fileJobs := filterFileJobs(receivedJobs)
-		folderJobs := filterFolderJobs(receivedJobs)
 
 		assert.Len(t, fileJobs, 1)
 		assert.Equal(t, "visible.md", fileJobs[0].entryName)
-		assert.Len(t, folderJobs, 1)
-		assert.Equal(t, "folder1", folderJobs[0].entryName)
 	})
 }
 

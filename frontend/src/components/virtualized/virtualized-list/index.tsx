@@ -5,6 +5,7 @@ import {
   type RefObject,
   type ReactNode,
   forwardRef,
+  useImperativeHandle,
   useRef,
   useState,
 } from 'react';
@@ -24,6 +25,10 @@ export type SelectionOptions<T> =
       disableSelection?: false;
       dataItemToSelectionRangeEntry: (item: T) => string;
     };
+
+export type VirtualizedListHandle = {
+  scrollToIndexIfHidden: (index: number) => void;
+};
 
 function createListComponent() {
   const ListComponent = forwardRef<
@@ -67,6 +72,7 @@ export type VirtualizedListProps<T> = {
    */
   firstItemIndex?: number;
   scrollContainerRef?: RefObject<HTMLElement | null>;
+  ref?: RefObject<VirtualizedListHandle | null>;
 };
 
 export function VirtualizedList<T>({
@@ -87,6 +93,7 @@ export function VirtualizedList<T>({
   initialTopMostItemIndex,
   firstItemIndex,
   scrollContainerRef,
+  ref,
 }: VirtualizedListProps<T>) {
   // Start with null to indicate height hasn't been measured yet
   const [listHeight, setListHeight] = useState<number | null>(null);
@@ -105,7 +112,11 @@ export function VirtualizedList<T>({
     }));
   };
   const contextMenuRef = useAtomValue(contextMenuRefAtom);
-  const { virtuosoRef, onRangeChanged } = useSmartScroll();
+  const { virtuosoRef, onRangeChanged, scrollToIndexIfHidden } =
+    useSmartScroll();
+  useImperativeHandle(ref, () => ({ scrollToIndexIfHidden }), [
+    scrollToIndexIfHidden,
+  ]);
   usePreventBoundaryOverscrollFlicker({ scrollElementRef: internalListRef });
 
   useOnClickOutside(

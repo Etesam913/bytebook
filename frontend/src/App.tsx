@@ -3,20 +3,22 @@ import { NotFound } from './routes/not-found';
 import { useMotionValue } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai/react';
 import { Toaster } from 'sonner';
-import { Route, Switch, useLocation } from 'wouter';
-import { contextMenuDataAtom } from './atoms';
-import { isNoteMaximizedAtom } from './atoms';
+import { Route, Switch } from 'wouter';
+import { contextMenuDataAtom, isNoteMaximizedAtom } from './atoms';
 import { ContextMenu } from './components/context-menu';
 import { Dialog } from './components/dialog';
 import { FileSidebar } from './components/file-sidebar';
 import { LoadingModal } from './components/loading-modal';
 import { useProjectSettings } from './hooks/project-settings';
-import { useSearch } from './hooks/search';
 import { useTagEvents } from './hooks/tags';
 import { useThemeSetting } from './hooks/theme';
 import { MAX_SIDEBAR_WIDTH } from './utils/general';
 import { disableBackspaceNavigation } from './utils/routing';
-import { routeUrls, type SavedSearchRouteParams } from './utils/routes';
+import {
+  routeUrls,
+  type SavedSearchRouteParams,
+  type SearchRouteParams,
+} from './utils/routes';
 import { RouteFallback } from './components/route-fallback';
 import { useZoom, useFullscreen, useWindowReload } from './hooks/resize';
 import { EditorWrapper } from './components/virtualized/virtualized-file-tree/editor-wrapper';
@@ -38,9 +40,9 @@ const SavedSearchPage = lazy(() =>
   }))
 );
 
-const SearchPage = lazy(() =>
-  import('./routes/search').then((module) => ({
-    default: module.SearchPage,
+const SearchContentArea = lazy(() =>
+  import('./routes/search/search-content-area').then((module) => ({
+    default: module.SearchContentArea,
   }))
 );
 
@@ -51,14 +53,12 @@ function App() {
   const notesSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
-  const [location] = useLocation();
 
   useCreateEvents();
   useDeleteEvents();
   useRenameEvents();
   useTagEvents();
   useThemeSetting();
-  useSearch();
   useProjectSettings();
   useZoom();
   useFullscreen();
@@ -85,13 +85,7 @@ function App() {
       <Dialog />
       <LoadingModal />
       <Toaster richColors theme="system" />
-      <Activity
-        mode={
-          isNoteMaximized || location.startsWith('/search')
-            ? 'hidden'
-            : 'visible'
-        }
-      >
+      <Activity mode={isNoteMaximized ? 'hidden' : 'visible'}>
         <FileSidebar width={fileSidebarWidth} />
       </Activity>
       <div id="main-content" className="flex-1 min-w-0 h-full">
@@ -131,9 +125,20 @@ function App() {
           </Route>
 
           <Route path={routeUrls.patterns.SEARCH}>
-            <Suspense fallback={<RouteFallback />}>
-              <SearchPage />
-            </Suspense>
+            {(params: SearchRouteParams) => (
+              <Suspense fallback={<RouteFallback />}>
+                <SearchContentArea
+                  curPath={
+                    params['*']
+                      ? safeDecodeURIComponent(params['*'])
+                          .split('/')
+                          .filter(Boolean)
+                          .join('/')
+                      : undefined
+                  }
+                />
+              </Suspense>
+            )}
           </Route>
 
           <Route path={'*'}>

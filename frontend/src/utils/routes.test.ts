@@ -5,7 +5,7 @@ import { ROUTE_PATTERNS, routeUrls } from './routes';
 describe('ROUTE_PATTERNS', () => {
   it('should have correct route pattern constants', () => {
     expect(ROUTE_PATTERNS.ROOT).toBe('/');
-    expect(ROUTE_PATTERNS.SEARCH).toBe('/search');
+    expect(ROUTE_PATTERNS.SEARCH).toBe('/search/:searchQuery?/*');
     expect(ROUTE_PATTERNS.KERNELS).toBe('/kernels/:kernelName');
     expect(ROUTE_PATTERNS.KERNELS_WITH_FILES).toBe(
       '/kernels/:kernelName/:folder?/:note?'
@@ -25,8 +25,27 @@ describe('routeUrls', () => {
   });
 
   describe('search', () => {
-    it('should return search route', () => {
-      expect(routeUrls.search()).toBe('/search');
+    it('should build search route with encoded query', () => {
+      expect(routeUrls.search('research')).toBe('/search/research/');
+      expect(routeUrls.search('economics notes')).toBe(
+        '/search/economics%20notes/'
+      );
+    });
+
+    it('should encode special characters in search query', () => {
+      expect(routeUrls.search('query & more')).toBe(
+        '/search/query%20%26%20more/'
+      );
+    });
+
+    it('should handle empty search query', () => {
+      expect(routeUrls.search('')).toBe('/search/');
+    });
+
+    it('should build search route with an encoded file path', () => {
+      expect(routeUrls.search('economics', 'notes/file.md')).toBe(
+        '/search/economics/notes/file.md'
+      );
     });
   });
 
