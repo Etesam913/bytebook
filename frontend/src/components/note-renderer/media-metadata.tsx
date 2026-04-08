@@ -4,7 +4,10 @@ import { Tag } from '../editor/bottom-bar/tag';
 import { Folder } from '../../icons/folder';
 import { Loader } from '../../icons/loader';
 import { RenderNoteIcon } from '../../icons/render-note-icon';
-import { useTagsForNotesQuery } from '../../hooks/tags';
+import {
+  useTagsForNotesQuery,
+  useDeleteTagFromNoteMutation,
+} from '../../hooks/tags';
 import {
   FilePath,
   createFolderPath,
@@ -25,6 +28,9 @@ export function MediaMetadata({
   const { data: tagsMap, isLoading } = useTagsForNotesQuery([
     filePath.fullPath,
   ]);
+  const { mutate: deleteTagFromNote } = useDeleteTagFromNoteMutation(
+    filePath.fullPath
+  );
   const notePath = `${filePath.folder}/${filePath.note}`;
   const folderSegments = filePath.folder
     .split('/')
@@ -78,7 +84,14 @@ export function MediaMetadata({
           </motion.span>
         ) : (
           tags.map((tagName) => (
-            <Tag key={tagName} tagName={tagName} className="shrink-0" />
+            <Tag
+              key={tagName}
+              tagName={tagName}
+              className="shrink-0"
+              onDelete={() => {
+                deleteTagFromNote({ tagToDelete: tagName });
+              }}
+            />
           ))
         )}
       </span>

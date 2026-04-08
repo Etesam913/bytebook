@@ -129,6 +129,28 @@ export function useEditTagsFormMutation() {
   });
 }
 
+/**
+ * Removes a single tag from a specific note/attachment.
+ * Invalidates the tags query on success so the UI updates.
+ */
+export function useDeleteTagFromNoteMutation(filePath: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ tagToDelete }: { tagToDelete: string }) => {
+      const res = await SetTagsOnNotes([filePath], [], [tagToDelete]);
+      if (!res.success) {
+        throw new Error(res.message);
+      }
+      return true;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ['notes-tags', [filePath]],
+      });
+    },
+  });
+}
+
 interface DeleteTagsMutationVariables {
   tagsToDelete: string[];
   setErrorText: (error: string) => void;

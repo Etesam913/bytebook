@@ -37,8 +37,10 @@ import {
 
 export function SearchSidebarPanel({
   lastSearchRouteRef,
+  lastFilesRouteRef,
 }: {
   lastSearchRouteRef: RefObject<string>;
+  lastFilesRouteRef: RefObject<string>;
 }) {
   const [, searchParams] = useRoute<SearchRouteParams>(ROUTE_PATTERNS.SEARCH);
   const routeSearchQuery = searchParams?.searchQuery
@@ -83,9 +85,15 @@ export function SearchSidebarPanel({
     internalSearchQuery,
     firstResultPath: results[0]?.filePath.encodedPath,
     lastSearchRouteRef,
+    searchInputRef: inputRef,
   });
 
   function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      navigate(lastFilesRouteRef.current);
+      return;
+    }
     // Pressing down arrow key from the input focuses and navigates to the first result
     if (e.key === 'ArrowDown') {
       e.preventDefault();

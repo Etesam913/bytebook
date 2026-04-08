@@ -9,7 +9,7 @@ import { Loader } from '../../../icons/loader';
 import {
   useEditTagsFormMutation,
   useTagsForNotesQuery,
-  // useDeleteTagsMutation,
+  useDeleteTagFromNoteMutation,
 } from '../../../hooks/tags';
 import { dialogDataAtom, isNoteMaximizedAtom } from '../../../atoms';
 import { EditTagDialogChildren } from '../../../routes/notes-sidebar/edit-tag-dialog-children';
@@ -40,7 +40,9 @@ export function BottomBar({
     filePath.fullPath,
   ]);
   const { mutateAsync: editTags } = useEditTagsFormMutation();
-  // const { mutateAsync: deleteTagFromNote } = useDeleteTagFromNoteMutation(filePath);
+  const { mutate: deleteTagFromNote } = useDeleteTagFromNoteMutation(
+    filePath.fullPath
+  );
   const setDialogData = useSetAtom(dialogDataAtom);
 
   useEffect(() => {
@@ -67,11 +69,9 @@ export function BottomBar({
         <Tag
           key={tagName}
           tagName={tagName}
-          // onDelete={() => {
-          //   deleteTagFromNote({
-          //     tagToDelete: tagName,
-          //   });
-          // }}
+          onDelete={() => {
+            deleteTagFromNote({ tagToDelete: tagName });
+          }}
         />
       );
     });

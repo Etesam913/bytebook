@@ -159,7 +159,10 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
           </section>
         </Activity>
         <Activity mode={isSearchSidebar ? 'visible' : 'hidden'}>
-          <SearchSidebarPanel lastSearchRouteRef={lastSearchRouteRef} />
+          <SearchSidebarPanel
+            lastSearchRouteRef={lastSearchRouteRef}
+            lastFilesRouteRef={lastFilesRouteRef}
+          />
         </Activity>
         <BottomItems />
       </motion.aside>

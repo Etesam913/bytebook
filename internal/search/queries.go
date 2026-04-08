@@ -350,6 +350,13 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) (query.Query, *
 		if skip {
 			continue
 		}
+		// Wrap negated tokens: must-not the inner query, must match everything else
+		if token.IsNegated {
+			negatedBool := bleve.NewBooleanQuery()
+			negatedBool.AddMust(bleve.NewMatchAllQuery())
+			negatedBool.AddMustNot(q)
+			q = negatedBool
+		}
 		queries = append(queries, q)
 		// Operator that connects this token to the next (only needed when there is a next)
 		if i+1 < len(filteredTokens) {

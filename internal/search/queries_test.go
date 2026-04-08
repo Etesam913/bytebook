@@ -182,6 +182,42 @@ func TestBuildBooleanQueryFromUserInput(t *testing.T) {
 			input:    "f:“etesam's”",
 			wantType: &query.DisjunctionQuery{},
 		},
+		{
+			name:     "negated single term produces boolean with must-not",
+			input:    "-test",
+			wantType: &query.BooleanQuery{},
+		},
+		{
+			name:     "negated filename prefix produces boolean with must-not",
+			input:    "-f:readme",
+			wantType: &query.BooleanQuery{},
+		},
+		{
+			name:     "negated tag produces boolean with must-not",
+			input:    "-#draft",
+			wantType: &query.BooleanQuery{},
+		},
+		{
+			name:     "positive term AND negated term",
+			input:    "hello -#draft",
+			wantType: &query.ConjunctionQuery{},
+			wantLen:  2,
+		},
+		{
+			name:     "negated exact phrase",
+			input:    `-"exact phrase"`,
+			wantType: &query.BooleanQuery{},
+		},
+		{
+			name:     "negated type prefix",
+			input:    "-t:attachment",
+			wantType: &query.BooleanQuery{},
+		},
+		{
+			name:     "negated lang prefix",
+			input:    "-l:python",
+			wantType: &query.BooleanQuery{},
+		},
 	}
 
 	for _, tt := range tests {

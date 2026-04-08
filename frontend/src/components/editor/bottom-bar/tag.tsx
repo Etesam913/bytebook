@@ -1,5 +1,5 @@
 import { cn } from '../../../utils/string-formatting';
-import { XMark } from '../../../icons/circle-xmark';
+import { TagSlash } from '../../../icons/tag-slash';
 
 export function Tag({
   tagName,
@@ -23,8 +23,9 @@ export function Tag({
           type="button"
           onClick={onDelete}
           aria-label={`Remove tag ${tagName}`}
+          className="flex items-center"
         >
-          <XMark width="0.75rem" height="0.75rem" />
+          <TagSlash width="0.75rem" height="0.75rem" />
         </button>
       )}
     </span>

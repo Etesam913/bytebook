@@ -12,17 +12,22 @@ export function useAutoNavigateToFirstResult({
   internalSearchQuery,
   firstResultPath,
   lastSearchRouteRef,
+  searchInputRef,
 }: {
   internalSearchQuery: string;
   firstResultPath: string | undefined;
   lastSearchRouteRef: RefObject<string>;
+  searchInputRef: RefObject<HTMLInputElement | null>;
 }) {
   useEffect(() => {
     const [, , lastSearchQueryEncoded] = lastSearchRouteRef.current.split('/');
     const lastSearchQuery = safeDecodeURIComponent(lastSearchQueryEncoded);
 
     // Prevents navigating to the first result when the user goes from the file sidebar to the search-sidebar
-    if (internalSearchQuery === lastSearchQuery) return;
+    if (internalSearchQuery === lastSearchQuery) {
+      searchInputRef.current?.focus();
+      return;
+    }
 
     const timeoutId = setTimeout(() => {
       const nextRoute = routeUrls.search(internalSearchQuery, firstResultPath);

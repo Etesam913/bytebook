@@ -8,11 +8,12 @@ import (
 
 func TestAppendToken(t *testing.T) {
 	tests := []struct {
-		name     string
-		tokens   []SearchToken
-		text     string
-		isExact  bool
-		expected []SearchToken
+		name      string
+		tokens    []SearchToken
+		text      string
+		isExact   bool
+		isNegated bool
+		expected  []SearchToken
 	}{
 		{
 			name:   "empty text",
@@ -49,11 +50,20 @@ func TestAppendToken(t *testing.T) {
 				{Text: "term2", IsExact: false, Operator: OpAND},
 			},
 		},
+		{
+			name:      "negated token",
+			tokens:    []SearchToken{},
+			text:      "term1",
+			isNegated: true,
+			expected: []SearchToken{
+				{Text: "term1", IsNegated: true, Operator: OpAND},
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := appendToken(tt.tokens, tt.text, tt.isExact)
+			result := appendToken(tt.tokens, tt.text, tt.isExact, tt.isNegated)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -101,6 +111,63 @@ func TestParseTokens(t *testing.T) {
 				{Text: "f:readme", IsExact: false, Operator: OpAND},
 				{Text: "exact phrase", IsExact: true, Operator: OpAND},
 				{Text: "", IsExact: true, Operator: OpAND},
+			},
+		},
+		{
+			name:  "negated unquoted term",
+			input: `-hello world`,
+			expected: []SearchToken{
+				{Text: "hello", IsNegated: true, Operator: OpAND},
+				{Text: "world", Operator: OpAND},
+			},
+		},
+		{
+			name:  "negated quoted phrase",
+			input: `-"exact phrase"`,
+			expected: []SearchToken{
+				{Text: "exact phrase", IsExact: true, IsNegated: true, Operator: OpAND},
+			},
+		},
+		{
+			name:  "negated filename prefix",
+			input: `-f:readme`,
+			expected: []SearchToken{
+				{Text: "f:readme", IsNegated: true, Operator: OpAND},
+			},
+		},
+		{
+			name:  "negated tag prefix",
+			input: `-#todo`,
+			expected: []SearchToken{
+				{Text: "#todo", IsNegated: true, Operator: OpAND},
+			},
+		},
+		{
+			name:  "negated link prefix",
+			input: `-@notes.md`,
+			expected: []SearchToken{
+				{Text: "@notes.md", IsNegated: true, Operator: OpAND},
+			},
+		},
+		{
+			name:  "negated type prefix",
+			input: `-t:note`,
+			expected: []SearchToken{
+				{Text: "t:note", IsNegated: true, Operator: OpAND},
+			},
+		},
+		{
+			name:  "negated lang prefix",
+			input: `-l:go`,
+			expected: []SearchToken{
+				{Text: "l:go", IsNegated: true, Operator: OpAND},
+			},
+		},
+		{
+			name:     "bare dash is ignored",
+			input:    `- hello`,
+			expected: []SearchToken{
+				{Text: "hello", Operator: OpAND},
 			},
 		},
 	}
