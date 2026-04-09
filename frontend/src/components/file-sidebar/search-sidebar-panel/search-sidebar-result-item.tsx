@@ -8,6 +8,18 @@ import {
   type SearchResult,
 } from '../../../hooks/search';
 import { routeUrls } from '../../../utils/routes';
+import { Tag } from '../../editor/bottom-bar/tag';
+
+function SearchResultTags({ tags }: { tags: string[] }) {
+  if (tags.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1 mt-1 text-xs text-zinc-950 dark:text-zinc-100">
+      {tags.map((tagName) => (
+        <Tag key={tagName} tagName={tagName} />
+      ))}
+    </div>
+  );
+}
 
 function getFileIcon(iconType: 'note' | 'attachment') {
   switch (iconType) {
@@ -68,7 +80,7 @@ function SearchSidebarResultNote({
   searchQuery: string;
   isActive: boolean;
 }) {
-  const { filePath, highlights, lastUpdated } = data;
+  const { filePath, highlights, lastUpdated, tags } = data;
   const firstHighlight = highlights[0];
 
   return (
@@ -91,6 +103,7 @@ function SearchSidebarResultNote({
           {formatDate(lastUpdated, 'relative')}
         </span>
       )}
+      <SearchResultTags tags={tags} />
     </SearchSidebarItem>
   );
 }
@@ -104,7 +117,7 @@ function SearchSidebarResultAttachment({
   searchQuery: string;
   isActive: boolean;
 }) {
-  const { filePath } = data;
+  const { filePath, tags } = data;
 
   return (
     <SearchSidebarItem
@@ -114,7 +127,9 @@ function SearchSidebarResultAttachment({
       isActive={isActive}
       encodedPath={filePath.encodedPath}
       pathDisplay={filePath.fullPath}
-    />
+    >
+      <SearchResultTags tags={tags} />
+    </SearchSidebarItem>
   );
 }
 
