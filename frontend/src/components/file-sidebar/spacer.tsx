@@ -57,7 +57,7 @@ export function Spacer({ width }: { width: MotionValue<number> }) {
       className={cn(
         'w-[0.375rem] border-l',
         isDragged
-          ? 'border-(--accent-color) border-l-3'
+          ? 'border-(--accent-color) border-l-3 pointer-events-none'
           : 'border-l-zinc-200 dark:border-l-zinc-700 hover:border-l-(--accent-color)! hover:border-l-2 hover:cursor-grab'
       )}
     />

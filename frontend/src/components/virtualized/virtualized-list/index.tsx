@@ -216,7 +216,6 @@ export function VirtualizedList<T>({
         setListHeight(height);
         onTotalListHeightChanged?.(height);
       }}
-      overscan={500}
       totalCount={items.length}
       computeItemKey={(_, dataItem) => dataItemToKey(dataItem)}
       itemContent={(index, dataItem) => renderSidebarItem(index, dataItem)}

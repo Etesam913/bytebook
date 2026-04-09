@@ -1,5 +1,10 @@
+import type { RefObject } from 'react';
 import { IconButton } from '../../../components/buttons';
 import { Checkbox } from '../../../components/indeterminate-checkbox';
+import type {
+  ComboboxItemProps,
+  ComboboxListProps,
+} from '../../../hooks/combobox';
 import { TagPlus } from '../../../icons/tag-plus';
 
 export function TagSelectionList({
@@ -9,6 +14,9 @@ export function TagSelectionList({
   searchTerm,
   setSelectedTagCounts,
   onCreateTag,
+  listRef,
+  comboboxListProps,
+  getComboboxItemProps,
 }: {
   displayedTags: string[];
   selectedTagCounts: Map<string, number>;
@@ -20,12 +28,14 @@ export function TagSelectionList({
       | ((prev: Map<string, number>) => Map<string, number>)
   ) => void;
   onCreateTag: (tagName: string) => void;
+  listRef?: RefObject<HTMLElement | null>;
+  comboboxListProps?: ComboboxListProps;
+  getComboboxItemProps?: (index: number) => ComboboxItemProps;
 }) {
   const showCreateButton =
     searchTerm.length > 0 &&
     !displayedTags.includes(searchTerm.toLowerCase().trim());
 
-  // Handler for tag selection changes
   const handleTagSelectionChange = (tagName: string, isSelected: boolean) => {
     if (isSelected) {
       setSelectedTagCounts((prev) => {
@@ -42,13 +52,12 @@ export function TagSelectionList({
     }
   };
 
-  const tagElements = displayedTags.map((tag) => {
+  const tagElements = displayedTags.map((tag, index) => {
     const tagCount = selectedTagCounts.get(tag) || 0;
     const isFullySelected =
       tagCount === totalSelectedNotes && totalSelectedNotes > 0;
     const isIndeterminate = tagCount > 0 && tagCount < totalSelectedNotes;
 
-    // Create accessible label describing the state
     const getAriaLabel = () => {
       if (isIndeterminate) {
         return `${tag} tag, partially selected (${tagCount} of ${totalSelectedNotes} notes)`;
@@ -62,6 +71,7 @@ export function TagSelectionList({
     return (
       <label
         key={tag}
+        {...getComboboxItemProps?.(index)}
         className="flex items-center gap-2 py-0.5 px-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-750 rounded-md"
       >
         <Checkbox
@@ -82,7 +92,13 @@ export function TagSelectionList({
   });
 
   return (
-    <div className="h-64 overflow-y-auto space-y-1 p-1 border border-zinc-150 dark:border-zinc-650 rounded-md">
+    <div
+      ref={(node) => {
+        if (listRef) listRef.current = node;
+      }}
+      {...comboboxListProps}
+      className="h-64 overflow-y-auto space-y-1 p-1 border border-zinc-150 dark:border-zinc-650 rounded-md"
+    >
       {showCreateButton && (
         <IconButton
           className="text-sm w-full flex items-center gap-2"

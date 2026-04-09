@@ -8,6 +8,7 @@ import {
   useSavedSearchSyncEvents,
   useSearchFocus,
 } from '../../../hooks/search';
+import { useCombobox } from '../../../hooks/combobox';
 import { useSaveSearchDialog } from '../../../hooks/dialogs';
 import {
   VirtualizedList,
@@ -30,10 +31,6 @@ import { useAutoNavigateToFirstResult } from './hooks/use-auto-navigate-to-first
 import { MotionIconButton } from '../../buttons';
 import { getDefaultButtonVariants } from '../../../animations';
 import { Tooltip } from '../../tooltip';
-import {
-  focusItemAtIndex,
-  handleSearchResultsKeyDown,
-} from './search-results-navigation';
 
 export function SearchSidebarPanel({
   lastSearchRouteRef,
@@ -51,7 +48,8 @@ export function SearchSidebarPanel({
     useState(routeSearchQuery);
   const encodedActivePath = searchParams?.['*'] || undefined;
 
-  const inputRef = useSearchFocus();
+  const searchInputRef = useSearchFocus();
+  const listRef = useRef<HTMLElement | null>(null);
   const listHandleRef = useRef<VirtualizedListHandle>(null);
   const scrollContainerRef = useRef<HTMLElement | null>(null);
   const openSaveSearchDialog = useSaveSearchDialog();
@@ -76,6 +74,26 @@ export function SearchSidebarPanel({
     ? createFilePath(decodedActivePath)
     : null;
 
+  const combobox = useCombobox({
+    itemCount: results.length,
+    inputRef: searchInputRef,
+    listRef,
+    onFocusItem: (index) => {
+      const result = results[index];
+      if (result) {
+        navigate(
+          routeUrls.search(internalSearchQuery, result.filePath.encodedPath)
+        );
+      }
+    },
+    onBeforeFocusItem: (index) => {
+      listHandleRef.current?.scrollToIndexIfHidden(index);
+    },
+  });
+
+  const { onKeyDown: comboboxInputKeyDown, ...comboboxInputAriaProps } =
+    combobox.getInputProps();
+
   useSavedSearchSyncEvents({
     searchQuery: routeSearchQuery,
     activeNotePath: activeFilePath ?? undefined,
@@ -85,35 +103,8 @@ export function SearchSidebarPanel({
     internalSearchQuery,
     firstResultPath: results[0]?.filePath.encodedPath,
     lastSearchRouteRef,
-    searchInputRef: inputRef,
+    searchInputRef,
   });
-
-  function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      navigate(lastFilesRouteRef.current);
-      return;
-    }
-    // Pressing down arrow key from the input focuses and navigates to the first result
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      focusItemAtIndex({
-        scrollContainer: scrollContainerRef.current,
-        resultsLength: results.length,
-        index: 0,
-        listHandleRef,
-      });
-      const firstResult = results[0];
-      if (firstResult) {
-        navigate(
-          routeUrls.search(
-            internalSearchQuery,
-            firstResult.filePath.encodedPath
-          )
-        );
-      }
-    }
-  }
 
   function isResultActive(result: SearchResult): boolean {
     return activeFilePath ? result.filePath.equals(activeFilePath) : false;
@@ -123,20 +114,23 @@ export function SearchSidebarPanel({
     <div className="flex flex-col flex-1 min-h-0 pt-1.5 pb-1">
       <div className="px-2 pb-2">
         <Input
-          ref={(node) => {
-            inputRef.current = node;
-            // node?.focus();
-            // node?.select();
-          }}
+          ref={searchInputRef}
           labelProps={{}}
           inputProps={{
+            ...comboboxInputAriaProps,
             type: 'text',
             placeholder: 'Search...',
             value: internalSearchQuery,
             onChange: (e) => {
               setInternalSearchQuery(e.target.value);
             },
-            onKeyDown: handleInputKeyDown,
+            onKeyDown: (e) => {
+              comboboxInputKeyDown(e);
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                navigate(lastFilesRouteRef.current);
+              }
+            },
             className: 'w-full text-sm py-1.5 px-2 rounded-md font-code',
             autoFocus: true,
             autoCapitalize: 'off',
@@ -171,17 +165,9 @@ export function SearchSidebarPanel({
       </div>
 
       <section
+        ref={listRef}
+        {...combobox.getListProps()}
         className="flex flex-col flex-1 overflow-y-auto min-h-0"
-        onKeyDown={(e) =>
-          handleSearchResultsKeyDown({
-            inputRef,
-            scrollContainer: scrollContainerRef.current,
-            results,
-            searchQuery: internalSearchQuery,
-            listHandleRef,
-            event: e,
-          })
-        }
       >
         {isError && (
           <ErrorText
@@ -230,7 +216,7 @@ export function SearchSidebarPanel({
                 isItemActive={(result) => isResultActive(result)}
                 selectionOptions={{ disableSelection: true }}
                 renderItem={({ dataItem, i }) => (
-                  <div data-search-result-index={i} className="w-full">
+                  <div {...combobox.getItemProps(i)} className="w-full">
                     <SearchSidebarResultItem
                       result={dataItem}
                       searchQuery={internalSearchQuery}

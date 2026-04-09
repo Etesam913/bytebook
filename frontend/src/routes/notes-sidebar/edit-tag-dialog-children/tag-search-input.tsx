@@ -1,5 +1,6 @@
 import type { RefCallback } from 'react';
 import { Input } from '../../../components/input';
+import type { ComboboxInputProps } from '../../../hooks/combobox';
 
 export function TagSearchInput({
   searchTerm,
@@ -8,6 +9,7 @@ export function TagSearchInput({
   isLoading,
   hasError,
   inputRef,
+  comboboxInputProps,
 }: {
   searchTerm: string;
   onSearchTermChange: (value: string) => void;
@@ -15,10 +17,14 @@ export function TagSearchInput({
   isLoading: boolean;
   hasError: boolean;
   inputRef: RefCallback<HTMLInputElement>;
+  comboboxInputProps?: ComboboxInputProps;
 }) {
   if (isLoading || hasError) {
     return null;
   }
+
+  const { onKeyDown: comboboxOnKeyDown, ...comboboxAriaProps } =
+    comboboxInputProps ?? ({} as Partial<ComboboxInputProps>);
 
   return (
     <div className="mb-2">
@@ -26,6 +32,7 @@ export function TagSearchInput({
         ref={inputRef}
         labelProps={{}}
         inputProps={{
+          ...comboboxAriaProps,
           placeholder: 'Search tags or create new tag...',
           value: searchTerm,
           onChange: (e) => onSearchTermChange(e.target.value),
@@ -35,6 +42,7 @@ export function TagSearchInput({
           spellCheck: 'false',
           type: 'text',
           onKeyDown: (e) => {
+            comboboxOnKeyDown?.(e);
             if (e.key === 'Enter') {
               e.preventDefault();
               if (searchTerm.length > 0) {

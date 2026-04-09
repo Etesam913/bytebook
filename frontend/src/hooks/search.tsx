@@ -22,8 +22,8 @@ import {
 import { useWailsEvent } from '../hooks/events';
 import {
   SAVED_SEARCH_UPDATE,
-  NOTE_DELETE,
-  NOTE_RENAME,
+  FILE_DELETE,
+  FILE_RENAME,
   FOLDER_DELETE,
   FOLDER_RENAME,
 } from '../utils/events';
@@ -347,7 +347,7 @@ export function useSavedSearchSyncEvents({
 
   // --- Deletes ---
 
-  useWailsEvent(NOTE_DELETE, (body) => {
+  useWailsEvent(FILE_DELETE, (body) => {
     const rawData = body.data as Array<{ notePath: string }>;
     const deletedPaths = new Set(rawData.map((item) => item.notePath));
     updateSearchCache(queryClient, (result) =>
@@ -371,7 +371,7 @@ export function useSavedSearchSyncEvents({
 
   // --- Renames ---
 
-  useWailsEvent(NOTE_RENAME, (body) => {
+  useWailsEvent(FILE_RENAME, (body) => {
     const rawData = body.data as Array<{
       oldNotePath: string;
       newNotePath: string;
