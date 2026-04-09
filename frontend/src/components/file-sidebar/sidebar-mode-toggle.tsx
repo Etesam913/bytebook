@@ -53,7 +53,7 @@ export function SidebarModeToggle({
 
   return (
     <div className="flex gap-1">
-      <Tooltip content="Files" placement="right">
+      <Tooltip content="Files" placement="bottom">
         <MotionIconButton
           {...getDefaultButtonVariants()}
           onClick={() => {
@@ -67,7 +67,7 @@ export function SidebarModeToggle({
           <Note width="1.125rem" height="1.125rem" />
         </MotionIconButton>
       </Tooltip>
-      <Tooltip content="Search" placement="right">
+      <Tooltip content="Search" placement="bottom">
         <MotionIconButton
           {...getDefaultButtonVariants()}
           onClick={() => {

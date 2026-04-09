@@ -51,25 +51,25 @@ func TestCreateFilenameQuery(t *testing.T) {
 		{
 			name:     "folder/file path",
 			input:    "folder/file",
-			wantType: &query.DisjunctionQuery{},
+			wantType: &query.ConjunctionQuery{},
 			wantLen:  2,
 		},
 		{
 			name:     "empty after split",
 			input:    "folder/",
-			wantType: &query.DisjunctionQuery{},
-			wantLen:  2,
+			wantType: &query.ConjunctionQuery{},
+			wantLen:  1,
 		},
 		{
 			name:     "empty before split",
 			input:    "/file",
-			wantType: &query.DisjunctionQuery{},
-			wantLen:  2,
+			wantType: &query.ConjunctionQuery{},
+			wantLen:  1,
 		},
 		{
 			name:     "multiple slashes",
 			input:    "path/to/file",
-			wantType: &query.DisjunctionQuery{},
+			wantType: &query.ConjunctionQuery{},
 			wantLen:  2,
 		},
 		{
@@ -81,7 +81,7 @@ func TestCreateFilenameQuery(t *testing.T) {
 		{
 			name:     "folder and filename with apostrophe",
 			input:    "notes/etesam's",
-			wantType: &query.DisjunctionQuery{},
+			wantType: &query.ConjunctionQuery{},
 			wantLen:  2,
 		},
 	}
@@ -99,6 +99,24 @@ func TestCreateFilenameQuery(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("splits path on last slash so folder + filename match the same doc", func(t *testing.T) {
+		q := CreateFilenameQuery("temp/joe/get", 1.0)
+
+		conj, ok := q.(*query.ConjunctionQuery)
+		assert.True(t, ok, "expected ConjunctionQuery for slash-bearing input")
+		assert.Equal(t, 2, len(conj.Conjuncts))
+
+		folderWildcard, ok := conj.Conjuncts[0].(*query.WildcardQuery)
+		assert.True(t, ok)
+		assert.Equal(t, FieldFolder, folderWildcard.FieldVal)
+		assert.Equal(t, "*temp/joe*", folderWildcard.Wildcard)
+
+		fileWildcard, ok := conj.Conjuncts[1].(*query.WildcardQuery)
+		assert.True(t, ok)
+		assert.Equal(t, FieldFileName, fileWildcard.FieldVal)
+		assert.Equal(t, "*get*", fileWildcard.Wildcard)
+	})
 }
 
 func TestBuildBooleanQueryFromUserInput(t *testing.T) {
@@ -252,12 +270,9 @@ func TestExtractTagPrefix(t *testing.T) {
 		wantFound bool
 	}{
 		{"hash prefix", "#mytag", "mytag", true},
-		{"tag prefix", "tag:mytag", "mytag", true},
-		{"quoted tag prefix", `tag:"my tag"`, "my tag", true},
 		{"no prefix", "mytag", "", false},
 		{"other prefix", "f:mytag", "", false},
 		{"empty hash", "#", "", true},
-		{"empty tag prefix", "tag:", "", true},
 	}
 
 	for _, tt := range tests {
@@ -307,12 +322,9 @@ func TestExtractLinkPrefix(t *testing.T) {
 		wantFound bool
 	}{
 		{"at prefix", "@/notes/folder/note.md", "/notes/folder/note.md", true},
-		{"link prefix", "link:/notes/folder/note.md", "/notes/folder/note.md", true},
-		{"quoted link prefix", `link:"/notes/folder/note.md"`, "/notes/folder/note.md", true},
 		{"no prefix", "/notes/folder/note.md", "", false},
 		{"other prefix", "f:/notes/folder/note.md", "", false},
 		{"empty at", "@", "", true},
-		{"empty link prefix", "link:", "", true},
 	}
 
 	for _, tt := range tests {

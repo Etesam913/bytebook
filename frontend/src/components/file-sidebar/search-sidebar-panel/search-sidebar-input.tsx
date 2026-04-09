@@ -15,11 +15,14 @@ import type { DropdownItem } from '../../../types';
 
 const SEARCH_PREFIX_ITEMS: DropdownItem[] = [
   { value: 'f:', label: 'f: \u2014 Search file or folder names' },
-  { value: 'tag:', label: 'tag: \u2014 Search tag names' },
-  { value: 'type:', label: 'type: \u2014 Filter by type' },
+  { value: '#', label: '# \u2014 Search files that have a tag' },
+  { value: '@', label: '@ \u2014 Search notes that contain a link' },
+  { value: 'type:', label: 'type: \u2014 Filter files by type' },
   // { value: 'lang:', label: 'lang: \u2014 Language' },
-  { value: '@:', label: 'link: \u2014 Search notes with the link' },
-  { value: 'sort:', label: 'sort: \u2014 Sort results' },
+  {
+    value: 'sort:',
+    label: 'sort: \u2014 Sort results',
+  },
 ];
 
 function shouldShowPrefixDropdown(value: string): boolean {
@@ -55,7 +58,7 @@ export function SearchSidebarInput({
   const menuId = `prefix-menu-${useId()}`;
   const inputId = `search-input-${useId()}`;
 
-  useOnClickOutside(containerRef, () => setIsOpen(false));
+  // useOnClickOutside(containerRef, () => setIsOpen(false));
 
   function handlePrefixSelect(item: DropdownItem) {
     const input = inputRef.current;
@@ -68,7 +71,7 @@ export function SearchSidebarInput({
   }
 
   return (
-    <div ref={containerRef} className="px-2 pb-2 relative">
+    <div ref={containerRef} className="p-2 relative">
       <Input
         ref={inputRef}
         labelProps={{}}
@@ -78,6 +81,7 @@ export function SearchSidebarInput({
           type: 'text',
           placeholder: 'Search...',
           value,
+          onFocus: () => setIsOpen(shouldShowPrefixDropdown(value)),
           onChange: (e) => {
             const newValue = e.target.value;
             setInternalSearchQuery(newValue);

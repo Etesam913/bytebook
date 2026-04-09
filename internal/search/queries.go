@@ -39,30 +39,45 @@ func createMatchQuery(field, term string, boost float64) query.Query {
 
 // CreateFilenameQuery handles filename prefix queries (tokens starting with "f:" or "file:")
 // Returns a query that searches for folder and/or file names based on the prefix term.
-// Since filenames use a single tokenizer, we use direct prefix queries for exact matching.
+//
+// FieldFolder and FieldFileName both use a single-token analyzer, so each is stored as
+// one token (folder paths preserve their slashes, e.g. "temp/joe"). Bleve wildcards match
+// against a single token, so a slash-bearing term like "temp/joe/get" cannot match either
+// field alone. When the term contains a "/", split on the last slash and require the
+// folder portion to match FieldFolder AND the filename portion to match FieldFileName.
+// Otherwise, fall back to a disjunction across the two fields.
 func CreateFilenameQuery(prefixTerm string, boost float64) query.Query {
 	normalized := strings.TrimSpace(prefixTerm)
-	disjunctionQuery := bleve.NewDisjunctionQuery()
 
-	pattern := "*"
-	if normalized != "" {
-		pattern = fmt.Sprintf("*%s*", normalized)
+	wildcard := func(field, value string) query.Query {
+		pattern := "*"
+		if value != "" {
+			pattern = fmt.Sprintf("*%s*", value)
+		}
+		q := bleve.NewWildcardQuery(pattern)
+		q.SetField(field)
+		return q
 	}
 
-	fieldFolderQuery := bleve.NewWildcardQuery(pattern)
-	fieldFolderQuery.SetField(FieldFolder)
+	if idx := strings.LastIndex(normalized, "/"); idx >= 0 {
+		folderPart := normalized[:idx]
+		filePart := normalized[idx+1:]
 
-	fileNameQuery := bleve.NewWildcardQuery(pattern)
-	fileNameQuery.SetField(FieldFileName)
+		conjunction := bleve.NewConjunctionQuery()
+		if folderPart != "" {
+			conjunction.AddQuery(wildcard(FieldFolder, folderPart))
+		}
+		if filePart != "" {
+			conjunction.AddQuery(wildcard(FieldFileName, filePart))
+		}
+		conjunction.SetBoost(boost)
+		return conjunction
+	}
 
-	// fieldFolderQuery := createPrefixQuery(FieldFolder, normalized)
-	// // Use direct prefix query for filename since it uses single tokenizer
-	// fileNameQuery := createPrefixQuery(FieldFileName, normalized)
-
-	disjunctionQuery.AddQuery(fieldFolderQuery)
-	disjunctionQuery.AddQuery(fileNameQuery)
+	disjunctionQuery := bleve.NewDisjunctionQuery()
+	disjunctionQuery.AddQuery(wildcard(FieldFolder, normalized))
+	disjunctionQuery.AddQuery(wildcard(FieldFileName, normalized))
 	disjunctionQuery.SetBoost(boost)
-
 	return disjunctionQuery
 }
 
@@ -125,20 +140,15 @@ func extractTypePrefix(text string) (string, bool) {
 	return extractPrefix(text, []string{"type:", "t:"}, "\"")
 }
 
-// extractTagPrefix extracts the tag prefix from tokens starting with "#" or "tag:".
+// extractTagPrefix extracts the tag prefix from tokens starting with "#".
 func extractTagPrefix(text string) (string, bool) {
-	// Check for "tag:" prefix first (trim quotes like other prefixes)
-	if value, ok := extractPrefix(text, []string{"tag:"}, "\""); ok {
-		return value, true
-	}
-	// "#" is not a word prefix, so do not trim quotes from the value to maintain old behavior
 	if strings.HasPrefix(text, "#") {
 		return text[1:], true
 	}
 	return "", false
 }
 
-// createTagQuery handles tag queries (tokens starting with "#" or "tag:")
+// createTagQuery handles tag queries (tokens starting with "#")
 // Returns a query that searches for case-insensitive prefix matches in the tags field.
 // Uses regexp with (?i) flag since tags are indexed with the keyword analyzer (no lowercasing).
 func createTagQuery(tagName string) query.Query {
@@ -150,18 +160,15 @@ func createTagQuery(tagName string) query.Query {
 	return q
 }
 
-// extractLinkPrefix extracts the link prefix from tokens starting with "@" or "link:".
+// extractLinkPrefix extracts the link prefix from tokens starting with "@".
 func extractLinkPrefix(text string) (string, bool) {
-	if value, ok := extractPrefix(text, []string{"link:"}, "\""); ok {
-		return value, true
-	}
 	if strings.HasPrefix(text, "@") {
 		return text[1:], true
 	}
 	return "", false
 }
 
-// createLinkQuery handles link queries (tokens starting with "@" or "link:")
+// createLinkQuery handles link queries (tokens starting with "@")
 // Returns a query that searches for case-insensitive substring matches in the links field.
 // Supports partial paths like "test.md" or "folder/test.md" matching against full paths.
 func createLinkQuery(linkTarget string) query.Query {
@@ -264,7 +271,8 @@ func createLangQuery(langName string) query.Query {
 
 // BuildBooleanQueryFromUserInput builds a boolean query from a user input string.
 // Tokens prefixed with "f:" or "file:" are treated as filename prefixes;
-// tokens prefixed with "#" or "tag:" are treated as tag searches;
+// tokens prefixed with "#" are treated as tag searches;
+// tokens prefixed with "@" are treated as link searches;
 // tokens prefixed with "t:" or "type:" are treated as type filters ("note", "attachment");
 // tokens with quotes are exact matches; all others query text content and code content with fuzzy matching.
 // Supports AND/OR operators between terms:
@@ -272,7 +280,7 @@ func createLangQuery(langName string) query.Query {
 // - term1 OR term2
 // - "exact phrase" AND term
 // - f:filename OR file:filename OR term
-// - #tagname OR tag:tagname AND term
+// - #tagname AND term
 // - t:note OR type:note AND term
 func BuildBooleanQueryFromUserInput(input string, fuzziness int) (query.Query, *SearchSortOption) {
 	// Normalize curly/smart quotes so parsing and matching are consistent
@@ -318,12 +326,12 @@ func BuildBooleanQueryFromUserInput(input string, fuzziness int) (query.Query, *
 			return createTypeQuery(typeName), false
 		}
 
-		// Check for tag prefix (# or tag:)
+		// Check for tag prefix (#)
 		if tagName, ok := extractTagPrefix(token.Text); ok {
 			return createTagQuery(tagName), false
 		}
 
-		// Check for link prefix (@ or link:)
+		// Check for link prefix (@)
 		if linkTarget, ok := extractLinkPrefix(token.Text); ok {
 			return createLinkQuery(linkTarget), false
 		}

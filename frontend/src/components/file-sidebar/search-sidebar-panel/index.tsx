@@ -16,6 +16,7 @@ import {
 } from '../../virtualized/virtualized-list';
 import { SearchSidebarResultItem } from './search-sidebar-result-item';
 import { SearchSidebarInput } from './search-sidebar-input';
+import { SearchSidebarHelp } from './search-sidebar-help';
 import { ErrorText } from '../../error-text';
 import { Loader } from '../../../icons/loader';
 import { FileRefresh } from '../../../icons/file-refresh';
@@ -182,6 +183,8 @@ export function SearchSidebarPanel({
                 className="mx-auto my-3"
               />
             </motion.div>
+          ) : !internalSearchQuery.trim() || results.length === 0 ? (
+            <SearchSidebarHelp />
           ) : (
             internalSearchQuery.trim() && (
               <VirtualizedList<SearchResult>
@@ -190,11 +193,6 @@ export function SearchSidebarPanel({
                 contentType="note"
                 key="search-sidebar"
                 layoutId="search-sidebar"
-                emptyElement={
-                  <div className="text-zinc-500 dark:text-zinc-300 text-xs px-3.5 py-1 text-ellipsis whitespace-nowrap overflow-hidden">
-                    No results found for &quot;{internalSearchQuery}&quot;
-                  </div>
-                }
                 data={results}
                 dataItemToString={dataItemToString}
                 dataItemToKey={dataItemToKey}
