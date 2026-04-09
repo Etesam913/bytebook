@@ -30,6 +30,7 @@ export function TagSelectionList({
   onCreateTag: (tagName: string) => void;
   listRef?: RefObject<HTMLElement | null>;
   comboboxListProps?: ComboboxListProps;
+
   getComboboxItemProps?: (index: number) => ComboboxItemProps;
 }) {
   const showCreateButton =

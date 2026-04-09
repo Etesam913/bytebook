@@ -15,13 +15,13 @@ import {
   type VirtualizedListHandle,
 } from '../../virtualized/virtualized-list';
 import { SearchSidebarResultItem } from './search-sidebar-result-item';
+import { SearchSidebarInput } from './search-sidebar-input';
 import { ErrorText } from '../../error-text';
 import { Loader } from '../../../icons/loader';
 import { FileRefresh } from '../../../icons/file-refresh';
 import { BookBookmark } from '../../../icons/book-bookmark';
 import { createFilePath, safeDecodeURIComponent } from '../../../utils/path';
 import { dataItemToKey, dataItemToString } from '../../../routes/search/utils';
-import { Input } from '../../input';
 import {
   ROUTE_PATTERNS,
   routeUrls,
@@ -53,6 +53,7 @@ export function SearchSidebarPanel({
   const listHandleRef = useRef<VirtualizedListHandle>(null);
   const scrollContainerRef = useRef<HTMLElement | null>(null);
   const openSaveSearchDialog = useSaveSearchDialog();
+
   const {
     data: results = [],
     totalCount,
@@ -112,35 +113,19 @@ export function SearchSidebarPanel({
 
   return (
     <div className="flex flex-col flex-1 min-h-0 pt-1.5 pb-1">
-      <div className="px-2 pb-2">
-        <Input
-          ref={searchInputRef}
-          labelProps={{}}
-          inputProps={{
-            ...comboboxInputAriaProps,
-            type: 'text',
-            placeholder: 'Search...',
-            value: internalSearchQuery,
-            onChange: (e) => {
-              setInternalSearchQuery(e.target.value);
-            },
-            onKeyDown: (e) => {
-              comboboxInputKeyDown(e);
-              if (e.key === 'Escape') {
-                e.preventDefault();
-                navigate(lastFilesRouteRef.current);
-              }
-            },
-            className: 'w-full text-sm py-1.5 px-2 rounded-md font-code',
-            autoFocus: true,
-            autoCapitalize: 'off',
-            autoComplete: 'off',
-            autoCorrect: 'off',
-            spellCheck: false,
-          }}
-          clearable={true}
-        />
-      </div>
+      <SearchSidebarInput
+        inputRef={searchInputRef}
+        value={internalSearchQuery}
+        setInternalSearchQuery={setInternalSearchQuery}
+        comboboxInputProps={comboboxInputAriaProps}
+        onKeyDown={(e) => {
+          comboboxInputKeyDown(e);
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            navigate(lastFilesRouteRef.current);
+          }
+        }}
+      />
 
       <div className="pr-1 pl-3 flex items-center gap-2 mb-1">
         <p className="text-xs text-zinc-600 dark:text-zinc-400">
