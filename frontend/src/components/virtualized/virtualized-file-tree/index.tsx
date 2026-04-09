@@ -27,7 +27,7 @@ export function VirtualizedFileTree({
   const [visibleRange, setVisibleRange] = useState(INITIAL_VISIBLE_RANGE);
   const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
 
-  // This only runs on component mount and when a top level folder or note is received in the folder:create or note:create events
+  // This only runs on component mount and when a top level folder or file is received in the folder:create or file:create events
   const { topLevelFolderOrFilesQuery, virtualizedData } =
     useTopLevelFileOrFolders();
   const { isSuccess } = topLevelFolderOrFilesQuery;

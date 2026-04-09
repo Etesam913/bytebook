@@ -24,7 +24,7 @@ import { QueryError } from '../utils/query';
 import { getContentTypeAndValueFromSelectionRangeValue } from '../utils/string-formatting';
 import { FilePath } from '../utils/path';
 import { useWailsEvent } from './events';
-import { NOTE_WRITE } from '../utils/events';
+import { FILE_WRITE } from '../utils/events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter } from '../types';
 import { $convertFromMarkdownString } from '@lexical/markdown';
@@ -257,7 +257,7 @@ export function useRenameFileMutation() {
 }
 
 /**
- * Hook to handle the "note:write" event from the file watcher.
+ * Hook to handle the "file:write" event from the file watcher.
  * Updates the note content in the editor when the note is changed from another window or from the file system.
  *
  * @param folder - The current folder name.
@@ -276,11 +276,10 @@ export function useNoteWriteEvent({
   editor: LexicalEditor;
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
 }) {
-  useWailsEvent(NOTE_WRITE, (e) => {
+  useWailsEvent(FILE_WRITE, (e) => {
     void (async () => {
       const data = e.data as {
-        folder: string;
-        note: string;
+        filePath: string;
         markdown?: string;
       }[];
 
@@ -290,7 +289,12 @@ export function useNoteWriteEvent({
       if (isWindowFocused) return;
 
       for (const item of data) {
-        const { folder: folderFromEvent, note: noteFromEvent, markdown } = item;
+        const { filePath, markdown } = item;
+        const lastSlashIndex = filePath.lastIndexOf('/');
+        const folderFromEvent =
+          lastSlashIndex === -1 ? '' : filePath.slice(0, lastSlashIndex);
+        const noteFromEvent =
+          lastSlashIndex === -1 ? filePath : filePath.slice(lastSlashIndex + 1);
 
         // Remove .md extension for comparison
         const noteWithoutExtension = noteFromEvent.replace(/\.md$/, '');

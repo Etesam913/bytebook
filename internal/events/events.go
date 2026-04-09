@@ -17,24 +17,24 @@ type EventParams struct {
 }
 
 func ListenToEvents(params EventParams) {
-	// Note Events
-	params.App.Event.On(util.Events.NoteCreate, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.Events.NoteCreate, event.Data)
+	// File Events
+	params.App.Event.On(util.Events.FileCreate, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", util.Events.FileCreate, event.Data)
 		handleNoteCreateEvent(params, event)
 	})
 
-	params.App.Event.On(util.Events.NoteRename, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.Events.NoteRename, event.Data)
+	params.App.Event.On(util.Events.FileRename, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", util.Events.FileRename, event.Data)
 		handleNoteRenameEvent(params, event)
 	})
 
-	params.App.Event.On(util.Events.NoteDelete, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.Events.NoteDelete, event.Data)
+	params.App.Event.On(util.Events.FileDelete, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", util.Events.FileDelete, event.Data)
 		handleNoteDeleteEvent(params, event)
 	})
 
-	params.App.Event.On(util.Events.NoteWrite, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.Events.NoteWrite, event.Data)
+	params.App.Event.On(util.Events.FileWrite, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", util.Events.FileWrite, event.Data)
 		handleNoteWriteEvent(params, event)
 	})
 

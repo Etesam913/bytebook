@@ -201,7 +201,7 @@ func TestCollectWatchableFolderPaths(t *testing.T) {
 }
 
 func TestResolvePendingRenames(t *testing.T) {
-	t.Run("emits note rename for an unambiguous file pair", func(t *testing.T) {
+	t.Run("emits file rename for an unambiguous file pair", func(t *testing.T) {
 		testDir, _, notesDir, _, _ := setupProjectFolders(t)
 		oldPath := filepath.Join(notesDir, "old.md")
 		newPath := filepath.Join(notesDir, "new.md")
@@ -217,8 +217,8 @@ func TestResolvePendingRenames(t *testing.T) {
 		fw.resolvePendingRenames(false)
 
 		assert.Equal(t, []map[string]string{
-			{"oldNotePath": "old.md", "newNotePath": "new.md"},
-		}, fw.debounceEvents[util.Events.NoteRename])
+			{"oldFilePath": "old.md", "newFilePath": "new.md"},
+		}, fw.debounceEvents[util.Events.FileRename])
 		assert.NotContains(t, fw.fileStateCache, oldPath)
 		assert.Contains(t, fw.fileStateCache, newPath)
 		assert.Empty(t, fw.mostRecentFileCreatedEvents)
@@ -234,8 +234,8 @@ func TestResolvePendingRenames(t *testing.T) {
 		fw.resolvePendingRenames(false)
 
 		assert.Equal(t, []map[string]string{
-			{"notePath": "old.md"},
-		}, fw.debounceEvents[util.Events.NoteDelete])
+			{"filePath": "old.md"},
+		}, fw.debounceEvents[util.Events.FileDelete])
 	})
 
 	t.Run("unmatched file create becomes create", func(t *testing.T) {
@@ -251,8 +251,8 @@ func TestResolvePendingRenames(t *testing.T) {
 		fw.resolvePendingRenames(false)
 
 		assert.Equal(t, []map[string]string{
-			{"notePath": "new.md"},
-		}, fw.debounceEvents[util.Events.NoteCreate])
+			{"filePath": "new.md"},
+		}, fw.debounceEvents[util.Events.FileCreate])
 	})
 
 	t.Run("ambiguous file batch degrades to delete and create", func(t *testing.T) {
@@ -276,16 +276,16 @@ func TestResolvePendingRenames(t *testing.T) {
 		fw.resolvePendingRenames(false)
 
 		assert.Equal(t, []map[string]string{
-			{"notePath": "old.md"},
-		}, fw.debounceEvents[util.Events.NoteDelete])
+			{"filePath": "old.md"},
+		}, fw.debounceEvents[util.Events.FileDelete])
 		assert.Equal(t, []map[string]string{
-			{"notePath": "new-a.md"},
-			{"notePath": "new-b.md"},
-		}, fw.debounceEvents[util.Events.NoteCreate])
-		assert.Empty(t, fw.debounceEvents[util.Events.NoteRename])
+			{"filePath": "new-a.md"},
+			{"filePath": "new-b.md"},
+		}, fw.debounceEvents[util.Events.FileCreate])
+		assert.Empty(t, fw.debounceEvents[util.Events.FileRename])
 	})
 
-	t.Run("same-path file pair emits note write", func(t *testing.T) {
+	t.Run("same-path file pair emits file write", func(t *testing.T) {
 		testDir, _, notesDir, _, _ := setupProjectFolders(t)
 		path := filepath.Join(notesDir, "same.md")
 
@@ -300,11 +300,11 @@ func TestResolvePendingRenames(t *testing.T) {
 		fw.resolvePendingRenames(false)
 
 		assert.Equal(t, []map[string]string{
-			{"notePath": "same.md", "markdown": "# title"},
-		}, fw.debounceEvents[util.Events.NoteWrite])
-		assert.Empty(t, fw.debounceEvents[util.Events.NoteRename])
-		assert.Empty(t, fw.debounceEvents[util.Events.NoteDelete])
-		assert.Empty(t, fw.debounceEvents[util.Events.NoteCreate])
+			{"filePath": "same.md", "markdown": "# title"},
+		}, fw.debounceEvents[util.Events.FileWrite])
+		assert.Empty(t, fw.debounceEvents[util.Events.FileRename])
+		assert.Empty(t, fw.debounceEvents[util.Events.FileDelete])
+		assert.Empty(t, fw.debounceEvents[util.Events.FileCreate])
 	})
 
 	t.Run("matched folder rename re-registers descendant watches", func(t *testing.T) {
@@ -373,33 +373,33 @@ func TestResolvePendingRenames(t *testing.T) {
 		assert.Equal(t, []map[string]string{
 			{"folderPath": "Third/Fourth"},
 		}, fw.debounceEvents[util.Events.FolderDelete])
-		assert.Empty(t, fw.debounceEvents[util.Events.NoteDelete])
+		assert.Empty(t, fw.debounceEvents[util.Events.FileDelete])
 	})
 }
 
 func TestFilterUnneededDebouncedEvents(t *testing.T) {
-	t.Run("filters note:create when rename targets same path", func(t *testing.T) {
+	t.Run("filters file:create when rename targets same path", func(t *testing.T) {
 		events := map[string][]map[string]string{
-			util.Events.NoteCreate: {
-				{"notePath": "alpha/new.md"},
-				{"notePath": "alpha/keep.md"},
+			util.Events.FileCreate: {
+				{"filePath": "alpha/new.md"},
+				{"filePath": "alpha/keep.md"},
 			},
-			util.Events.NoteRename: {
-				{"oldNotePath": "alpha/old.md", "newNotePath": "alpha/new.md"},
+			util.Events.FileRename: {
+				{"oldFilePath": "alpha/old.md", "newFilePath": "alpha/new.md"},
 			},
-			util.Events.NoteWrite: {
-				{"notePath": "alpha/keep.md"},
+			util.Events.FileWrite: {
+				{"filePath": "alpha/keep.md"},
 			},
 		}
 
 		filtered := filterUnneededDebouncedEvents(events)
 
-		if assert.Contains(t, filtered, util.Events.NoteCreate) {
-			assert.Len(t, filtered[util.Events.NoteCreate], 1)
-			assert.Equal(t, "alpha/keep.md", filtered[util.Events.NoteCreate][0]["notePath"])
+		if assert.Contains(t, filtered, util.Events.FileCreate) {
+			assert.Len(t, filtered[util.Events.FileCreate], 1)
+			assert.Equal(t, "alpha/keep.md", filtered[util.Events.FileCreate][0]["filePath"])
 		}
-		assert.Equal(t, events[util.Events.NoteRename], filtered[util.Events.NoteRename])
-		assert.Equal(t, events[util.Events.NoteWrite], filtered[util.Events.NoteWrite])
+		assert.Equal(t, events[util.Events.FileRename], filtered[util.Events.FileRename])
+		assert.Equal(t, events[util.Events.FileWrite], filtered[util.Events.FileWrite])
 	})
 
 	t.Run("filters folder:create when rename targets same path", func(t *testing.T) {
@@ -422,24 +422,24 @@ func TestFilterUnneededDebouncedEvents(t *testing.T) {
 		assert.Equal(t, events[util.Events.FolderRename], filtered[util.Events.FolderRename])
 	})
 
-	t.Run("filters note:delete when rename targets same old path", func(t *testing.T) {
+	t.Run("filters file:delete when rename targets same old path", func(t *testing.T) {
 		events := map[string][]map[string]string{
-			util.Events.NoteDelete: {
-				{"notePath": "alpha/old.md"},
-				{"notePath": "alpha/keep.md"},
+			util.Events.FileDelete: {
+				{"filePath": "alpha/old.md"},
+				{"filePath": "alpha/keep.md"},
 			},
-			util.Events.NoteRename: {
-				{"oldNotePath": "alpha/old.md", "newNotePath": "alpha/new.md"},
+			util.Events.FileRename: {
+				{"oldFilePath": "alpha/old.md", "newFilePath": "alpha/new.md"},
 			},
 		}
 
 		filtered := filterUnneededDebouncedEvents(events)
 
-		if assert.Contains(t, filtered, util.Events.NoteDelete) {
-			assert.Len(t, filtered[util.Events.NoteDelete], 1)
-			assert.Equal(t, "alpha/keep.md", filtered[util.Events.NoteDelete][0]["notePath"])
+		if assert.Contains(t, filtered, util.Events.FileDelete) {
+			assert.Len(t, filtered[util.Events.FileDelete], 1)
+			assert.Equal(t, "alpha/keep.md", filtered[util.Events.FileDelete][0]["filePath"])
 		}
-		assert.Equal(t, events[util.Events.NoteRename], filtered[util.Events.NoteRename])
+		assert.Equal(t, events[util.Events.FileRename], filtered[util.Events.FileRename])
 	})
 
 	t.Run("filters folder:delete when rename targets same old path", func(t *testing.T) {
@@ -464,54 +464,54 @@ func TestFilterUnneededDebouncedEvents(t *testing.T) {
 }
 
 func TestDedupeDebouncedEventsByPathPayload(t *testing.T) {
-	t.Run("dedupes note writes by notePath and keeps latest payload", func(t *testing.T) {
+	t.Run("dedupes file writes by filePath and keeps latest payload", func(t *testing.T) {
 		events := map[string][]map[string]string{
-			util.Events.NoteWrite: {
-				{"notePath": "alpha/a.md", "markdown": "v1"},
-				{"notePath": "alpha/b.md", "markdown": "b1"},
-				{"notePath": "alpha/a.md", "markdown": "v2"},
+			util.Events.FileWrite: {
+				{"filePath": "alpha/a.md", "markdown": "v1"},
+				{"filePath": "alpha/b.md", "markdown": "b1"},
+				{"filePath": "alpha/a.md", "markdown": "v2"},
 			},
 		}
 
 		deduped := dedupeDebouncedEventsByPathPayload(events)
 
-		if assert.Contains(t, deduped, util.Events.NoteWrite) {
-			assert.Len(t, deduped[util.Events.NoteWrite], 2)
+		if assert.Contains(t, deduped, util.Events.FileWrite) {
+			assert.Len(t, deduped[util.Events.FileWrite], 2)
 			assert.Equal(
 				t,
-				map[string]string{"notePath": "alpha/a.md", "markdown": "v2"},
-				deduped[util.Events.NoteWrite][0],
+				map[string]string{"filePath": "alpha/a.md", "markdown": "v2"},
+				deduped[util.Events.FileWrite][0],
 			)
 			assert.Equal(
 				t,
-				map[string]string{"notePath": "alpha/b.md", "markdown": "b1"},
-				deduped[util.Events.NoteWrite][1],
+				map[string]string{"filePath": "alpha/b.md", "markdown": "b1"},
+				deduped[util.Events.FileWrite][1],
 			)
 		}
 	})
 
 	t.Run("dedupes rename payloads by combined old and new paths", func(t *testing.T) {
 		events := map[string][]map[string]string{
-			util.Events.NoteRename: {
-				{"oldNotePath": "alpha/old.md", "newNotePath": "alpha/new.md", "markdown": "v1"},
-				{"oldNotePath": "alpha/old.md", "newNotePath": "alpha/new.md", "markdown": "v2"},
-				{"oldNotePath": "alpha/other-old.md", "newNotePath": "alpha/other-new.md"},
+			util.Events.FileRename: {
+				{"oldFilePath": "alpha/old.md", "newFilePath": "alpha/new.md", "markdown": "v1"},
+				{"oldFilePath": "alpha/old.md", "newFilePath": "alpha/new.md", "markdown": "v2"},
+				{"oldFilePath": "alpha/other-old.md", "newFilePath": "alpha/other-new.md"},
 			},
 		}
 
 		deduped := dedupeDebouncedEventsByPathPayload(events)
 
-		if assert.Contains(t, deduped, util.Events.NoteRename) {
-			assert.Len(t, deduped[util.Events.NoteRename], 2)
+		if assert.Contains(t, deduped, util.Events.FileRename) {
+			assert.Len(t, deduped[util.Events.FileRename], 2)
 			assert.Equal(
 				t,
-				map[string]string{"oldNotePath": "alpha/old.md", "newNotePath": "alpha/new.md", "markdown": "v2"},
-				deduped[util.Events.NoteRename][0],
+				map[string]string{"oldFilePath": "alpha/old.md", "newFilePath": "alpha/new.md", "markdown": "v2"},
+				deduped[util.Events.FileRename][0],
 			)
 			assert.Equal(
 				t,
-				map[string]string{"oldNotePath": "alpha/other-old.md", "newNotePath": "alpha/other-new.md"},
-				deduped[util.Events.NoteRename][1],
+				map[string]string{"oldFilePath": "alpha/other-old.md", "newFilePath": "alpha/other-new.md"},
+				deduped[util.Events.FileRename][1],
 			)
 		}
 	})
@@ -535,16 +535,16 @@ func TestDedupeDebouncedEventsByPathPayload(t *testing.T) {
 
 func TestOrderedDebouncedEventKeys(t *testing.T) {
 	events := map[string][]map[string]string{
-		util.Events.NoteCreate:   {{"notePath": "a.md"}},
-		util.Events.NoteRename:   {{"oldNotePath": "a.md", "newNotePath": "b.md"}},
+		util.Events.FileCreate:   {{"filePath": "a.md"}},
+		util.Events.FileRename:   {{"oldFilePath": "a.md", "newFilePath": "b.md"}},
 		util.Events.FolderDelete: {{"folderPath": "folder"}},
 		"custom:event":           {{"status": "ok"}},
 	}
 
 	assert.Equal(t, []string{
-		util.Events.NoteRename,
+		util.Events.FileRename,
 		util.Events.FolderDelete,
-		util.Events.NoteCreate,
+		util.Events.FileCreate,
 		"custom:event",
 	}, orderedDebouncedEventKeys(events))
 }

@@ -7,7 +7,7 @@ import {
   useFilePathFromRoute,
   useCurrentNotesRouteFolderPath,
 } from '../../../../hooks/routes';
-import { FOLDER_RENAME, NOTE_RENAME } from '../../../../utils/events';
+import { FILE_RENAME, FOLDER_RENAME } from '../../../../utils/events';
 import { createFilePath, createFolderPath } from '../../../../utils/path';
 import { logger } from '../../../../utils/logging';
 import { routeUrls } from '../../../../utils/routes';
@@ -30,7 +30,7 @@ function isPrefixOrSamePath(path: string, maybePrefix: string): boolean {
 }
 
 /**
- * Consolidated hook that handles both `note:rename` and `folder:rename`
+ * Consolidated hook that handles both `file:rename` and `folder:rename`
  * Wails events. Replaces the previous separate `useNoteRename` and
  * `useFolderRename` hooks.
  *
@@ -64,22 +64,22 @@ export function useRenameEvents() {
   const currentRouteFolderPath = useCurrentNotesRouteFolderPath();
 
   function handleRename(
-    eventName: typeof NOTE_RENAME | typeof FOLDER_RENAME,
+    eventName: typeof FILE_RENAME | typeof FOLDER_RENAME,
     body: WailsEvent
   ) {
     logger.event(eventName, body);
     const rawData = body.data as Array<Record<string, string>>;
 
     // Normalize the event payload into a common { oldPath, newPath } shape.
-    // `note:rename` events use `oldNotePath`/`newNotePath` keys while
+    // `file:rename` events use `oldFilePath`/`newFilePath` keys while
     // `folder:rename` events use `oldFolderPath`/`newFolderPath`.
     const entries = rawData.map((item) => {
-      if (eventName === NOTE_RENAME) {
-        const { oldNotePath, newNotePath } = item as {
-          oldNotePath: string;
-          newNotePath: string;
+      if (eventName === FILE_RENAME) {
+        const { oldFilePath, newFilePath } = item as {
+          oldFilePath: string;
+          newFilePath: string;
         };
-        return { oldPath: oldNotePath, newPath: newNotePath };
+        return { oldPath: oldFilePath, newPath: newFilePath };
       }
       const { oldFolderPath, newFolderPath } = item as {
         oldFolderPath: string;
@@ -88,7 +88,7 @@ export function useRenameEvents() {
       return { oldPath: oldFolderPath, newPath: newFolderPath };
     });
 
-    const mode = eventName === NOTE_RENAME ? 'file' : 'folder';
+    const mode = eventName === FILE_RENAME ? 'file' : 'folder';
 
     let needsTopLevelInvalidation = false;
 
@@ -141,7 +141,7 @@ export function useRenameEvents() {
 
     // For note renames: if the user is viewing the renamed note, redirect to
     // the new URL so the editor stays on the correct file.
-    if (eventName === NOTE_RENAME && currentRouteFilePath) {
+    if (eventName === FILE_RENAME && currentRouteFilePath) {
       const matchedRename = entries.find(
         ({ oldPath }) => oldPath === currentRouteFilePath.fullPath
       );
@@ -212,6 +212,6 @@ export function useRenameEvents() {
     }
   }
 
-  useWailsEvent(NOTE_RENAME, (body) => handleRename(NOTE_RENAME, body));
+  useWailsEvent(FILE_RENAME, (body) => handleRename(FILE_RENAME, body));
   useWailsEvent(FOLDER_RENAME, (body) => handleRename(FOLDER_RENAME, body));
 }

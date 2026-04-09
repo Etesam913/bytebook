@@ -4,11 +4,11 @@ import { WailsEvent } from '../hooks/events';
 // Event name constants — mirrors internal/util/events.go
 // Frontend-only events are noted below.
 
-// Note events
-export const NOTE_CREATE = 'note:create';
-export const NOTE_DELETE = 'note:delete';
-export const NOTE_RENAME = 'note:rename';
-export const NOTE_WRITE = 'note:write';
+// File events
+export const FILE_CREATE = 'file:create';
+export const FILE_DELETE = 'file:delete';
+export const FILE_RENAME = 'file:rename';
+export const FILE_WRITE = 'file:write';
 
 // Folder events
 export const FOLDER_RENAME = 'folder:rename';

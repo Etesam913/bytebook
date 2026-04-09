@@ -20,11 +20,11 @@ func handleNoteCreateEvent(params EventParams, event *application.CustomEvent) {
 		log.Println("Note created event data is not a map")
 		return
 	}
-	addCreatedNotesToIndex(params, convertNotePathData(data))
+	addCreatedNotesToIndex(params, convertFilePathData(data))
 }
 
-// convertNotePathData converts event data from "notePath" format to "folder"/"note" format.
-func convertNotePathData(data []map[string]string) []map[string]string {
+// convertFilePathData converts event data from "filePath" format to "folder"/"note" format.
+func convertFilePathData(data []map[string]string) []map[string]string {
 	result := make([]map[string]string, len(data))
 	for i, note := range data {
 		if _, hasFolder := note["folder"]; hasFolder {
@@ -32,14 +32,14 @@ func convertNotePathData(data []map[string]string) []map[string]string {
 			result[i] = note
 			continue
 		}
-		if notePath, ok := note["notePath"]; ok {
+		if filePath, ok := note["filePath"]; ok {
 			converted := map[string]string{
-				"folder": filepath.Dir(notePath),
-				"note":   filepath.Base(notePath),
+				"folder": filepath.Dir(filePath),
+				"note":   filepath.Base(filePath),
 			}
 			// Copy any additional keys (e.g., "markdown")
 			for k, v := range note {
-				if k != "notePath" {
+				if k != "filePath" {
 					converted[k] = v
 				}
 			}
@@ -51,7 +51,7 @@ func convertNotePathData(data []map[string]string) []map[string]string {
 	return result
 }
 
-// convertRenamePathData converts event data from "oldNotePath"/"newNotePath" format to "oldFolder"/"oldNote"/"newFolder"/"newNote" format.
+// convertRenamePathData converts event data from "oldFilePath"/"newFilePath" format to "oldFolder"/"oldNote"/"newFolder"/"newNote" format.
 func convertRenamePathData(data []map[string]string) []map[string]string {
 	result := make([]map[string]string, len(data))
 	for i, note := range data {
@@ -59,17 +59,17 @@ func convertRenamePathData(data []map[string]string) []map[string]string {
 			result[i] = note
 			continue
 		}
-		oldNotePath, hasOld := note["oldNotePath"]
-		newNotePath, hasNew := note["newNotePath"]
+		oldFilePath, hasOld := note["oldFilePath"]
+		newFilePath, hasNew := note["newFilePath"]
 		if hasOld && hasNew {
 			converted := map[string]string{
-				"oldFolder": filepath.Dir(oldNotePath),
-				"oldNote":   filepath.Base(oldNotePath),
-				"newFolder": filepath.Dir(newNotePath),
-				"newNote":   filepath.Base(newNotePath),
+				"oldFolder": filepath.Dir(oldFilePath),
+				"oldNote":   filepath.Base(oldFilePath),
+				"newFolder": filepath.Dir(newFilePath),
+				"newNote":   filepath.Base(newFilePath),
 			}
 			for k, v := range note {
-				if k != "oldNotePath" && k != "newNotePath" {
+				if k != "oldFilePath" && k != "newFilePath" {
 					converted[k] = v
 				}
 			}
@@ -244,7 +244,7 @@ func handleNoteDeleteEvent(params EventParams, event *application.CustomEvent) {
 		log.Println("Note delete event data is not a map")
 		return
 	}
-	deleteNotesFromIndex(params, convertNotePathData(data))
+	deleteNotesFromIndex(params, convertFilePathData(data))
 }
 
 // deleteNotesFromIndex removes notes from the search index in a batch operation.
@@ -290,7 +290,7 @@ func handleNoteWriteEvent(params EventParams, event *application.CustomEvent) {
 		log.Println("Note write event data is not a map")
 		return
 	}
-	updateNotesInIndex(params, convertNotePathData(data))
+	updateNotesInIndex(params, convertFilePathData(data))
 }
 
 // updateNotesInIndex updates the search index with the new note content for multiple notes.

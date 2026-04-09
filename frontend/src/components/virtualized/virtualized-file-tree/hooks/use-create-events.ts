@@ -3,12 +3,12 @@ import { useSetAtom } from 'jotai';
 import { logger } from '../../../../utils/logging';
 import { FileTreeData, fileTreeDataAtom } from '../../../../atoms';
 import { useWailsEvent, type WailsEvent } from '../../../../hooks/events';
-import { FOLDER_CREATE, NOTE_CREATE } from '../../../../utils/events';
+import { FILE_CREATE, FOLDER_CREATE } from '../../../../utils/events';
 import { getParentNodeFromPath } from '../utils/file-tree-utils';
 import { insertCreatedNodeIntoFileTree } from '../utils/create-node';
 
 /**
- * Handles `folder:create` and `note:create` Wails events with shared logic:
+ * Handles `folder:create` and `file:create` Wails events with shared logic:
  * Skip paths already present in the file tree
  * Invalidate the top-level query for top-level or unmapped paths
  * Reveal newly created paths whose parent folder is already open
@@ -18,7 +18,7 @@ export function useCreateEvents() {
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
 
   function handleCreate(
-    eventName: typeof FOLDER_CREATE | typeof NOTE_CREATE,
+    eventName: typeof FOLDER_CREATE | typeof FILE_CREATE,
     body: WailsEvent
   ) {
     logger.event(eventName, body);
@@ -32,7 +32,7 @@ export function useCreateEvents() {
         const path =
           eventName === FOLDER_CREATE
             ? (item as { folderPath: string }).folderPath
-            : (item as { notePath: string }).notePath;
+            : (item as { filePath: string }).filePath;
 
         if (current.filePathToTreeDataId.has(path)) {
           continue;
@@ -66,5 +66,5 @@ export function useCreateEvents() {
   }
 
   useWailsEvent(FOLDER_CREATE, (body) => handleCreate(FOLDER_CREATE, body));
-  useWailsEvent(NOTE_CREATE, (body) => handleCreate(NOTE_CREATE, body));
+  useWailsEvent(FILE_CREATE, (body) => handleCreate(FILE_CREATE, body));
 }

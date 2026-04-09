@@ -7,7 +7,7 @@ import {
   useFilePathFromRoute,
   useFolderPathFromRoute,
 } from '../../../../hooks/routes';
-import { FOLDER_DELETE, NOTE_DELETE } from '../../../../utils/events';
+import { FILE_DELETE, FOLDER_DELETE } from '../../../../utils/events';
 import { logger } from '../../../../utils/logging';
 import {
   getNavigationTargetForDeletedPaths,
@@ -15,7 +15,7 @@ import {
 } from '../utils/delete-node';
 
 /**
- * Handles `folder:delete` and `note:delete` Wails events with shared logic:
+ * Handles `folder:delete` and `file:delete` Wails events with shared logic:
  * - Invalidate the top-level query for top-level paths
  * - Immutably remove deleted nodes and their subtrees
  * - Navigate away if the current route was among the deleted paths
@@ -29,7 +29,7 @@ export function useDeleteEvents() {
     currentRouteFilePath?.fullPath ?? currentRouteFolderPath?.fullPath ?? null;
 
   function handleDelete(
-    eventName: typeof NOTE_DELETE | typeof FOLDER_DELETE,
+    eventName: typeof FILE_DELETE | typeof FOLDER_DELETE,
     body: WailsEvent
   ) {
     logger.event(eventName, body);
@@ -38,8 +38,8 @@ export function useDeleteEvents() {
     const paths: string[] = [];
     for (const item of rawData) {
       const path =
-        eventName === NOTE_DELETE
-          ? (item as { notePath: string }).notePath
+        eventName === FILE_DELETE
+          ? (item as { filePath: string }).filePath
           : (item as { folderPath: string }).folderPath;
       paths.push(path);
     }
@@ -69,5 +69,5 @@ export function useDeleteEvents() {
   }
 
   useWailsEvent(FOLDER_DELETE, (body) => handleDelete(FOLDER_DELETE, body));
-  useWailsEvent(NOTE_DELETE, (body) => handleDelete(NOTE_DELETE, body));
+  useWailsEvent(FILE_DELETE, (body) => handleDelete(FILE_DELETE, body));
 }

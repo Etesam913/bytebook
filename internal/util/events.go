@@ -1,11 +1,11 @@
 package util
 
 var Events = struct {
-	// Note events
-	NoteCreate string
-	NoteDelete string
-	NoteRename string
-	NoteWrite  string
+	// File events
+	FileCreate string
+	FileDelete string
+	FileRename string
+	FileWrite  string
 
 	// Folder events
 	FolderRename string
@@ -51,11 +51,11 @@ var Events = struct {
 	CodeBlockInputRequest  string
 	KernelHeartbeat        string
 }{
-	// Note events
-	NoteCreate: "note:create",
-	NoteDelete: "note:delete",
-	NoteRename: "note:rename",
-	NoteWrite:  "note:write",
+	// File events
+	FileCreate: "file:create",
+	FileDelete: "file:delete",
+	FileRename: "file:rename",
+	FileWrite:  "file:write",
 
 	// Folder events
 	FolderRename: "folder:rename",
@@ -121,25 +121,25 @@ type FolderRenameEventData struct {
 	NewFolderPath string `json:"newFolderPath"`
 }
 
-// NoteCreateEventData represents the data structure for note create events
-type NoteCreateEventData struct {
-	NotePath string `json:"notePath"`
+// FileCreateEventData represents the data structure for file create events
+type FileCreateEventData struct {
+	FilePath string `json:"filePath"`
 }
 
-// NoteDeleteEventData represents the data structure for note delete events
-type NoteDeleteEventData struct {
-	NotePath string `json:"notePath"`
+// FileDeleteEventData represents the data structure for file delete events
+type FileDeleteEventData struct {
+	FilePath string `json:"filePath"`
 }
 
-// NoteRenameEventData represents the data structure for note rename events
-type NoteRenameEventData struct {
-	OldNotePath string `json:"oldNotePath"`
-	NewNotePath string `json:"newNotePath"`
+// FileRenameEventData represents the data structure for file rename events
+type FileRenameEventData struct {
+	OldFilePath string `json:"oldFilePath"`
+	NewFilePath string `json:"newFilePath"`
 }
 
-// NoteWriteEventData represents the data structure for note write events
-type NoteWriteEventData struct {
-	NotePath string `json:"notePath"`
+// FileWriteEventData represents the data structure for file write events
+type FileWriteEventData struct {
+	FilePath string `json:"filePath"`
 	Markdown string `json:"markdown,omitempty"`
 }
 

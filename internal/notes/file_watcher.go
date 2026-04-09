@@ -133,7 +133,7 @@ func (fw *FileWatcher) pathFromNotes(path string) string {
 // handleFileEvents processes file-related events (create, delete, write)
 func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event) {
 	note := segments[len(segments)-1]
-	notePath := event.Name
+	filePath := event.Name
 
 	if event.Has(fsnotify.Create) {
 		fw.mostRecentFileCreatedEvents = addPendingWatcherEvent(fw.mostRecentFileCreatedEvents, event)
@@ -148,16 +148,16 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event)
 	}
 
 	if event.Has(fsnotify.Remove) {
-		fw.clearFileState(notePath)
-		fw.appendDebouncedEvent(util.Events.NoteDelete, map[string]string{
-			"notePath": fw.pathFromNotes(notePath),
+		fw.clearFileState(filePath)
+		fw.appendDebouncedEvent(util.Events.FileDelete, map[string]string{
+			"filePath": fw.pathFromNotes(filePath),
 		})
 		fw.handleDebounceReset()
 		return
 	}
 
 	if event.Has(fsnotify.Write) {
-		fw.emitNoteWriteEvent(notePath, note)
+		fw.emitFileWriteEvent(filePath, note)
 	}
 
 	fw.handleDebounceReset()
@@ -192,20 +192,20 @@ func (fw *FileWatcher) handleSavedSearchUpdate(event fsnotify.Event) {
 // that were also the "new*Path" (for create) or "old*Path" (for delete) target of a rename event within the same debounce cycle.
 // This prevents redundant creation/deletion events for items that were simply renamed/moved.
 func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[string][]map[string]string {
-	noteRenameEvents := events[util.Events.NoteRename]
+	fileRenameEvents := events[util.Events.FileRename]
 	folderRenameEvents := events[util.Events.FolderRename]
-	if len(noteRenameEvents) == 0 && len(folderRenameEvents) == 0 {
+	if len(fileRenameEvents) == 0 && len(folderRenameEvents) == 0 {
 		return events
 	}
 
-	renamedNotePathsSet := util.Set[string]{}
-	originalNotePathsSet := util.Set[string]{}
-	for _, data := range noteRenameEvents {
-		if newNotePath, ok := data["newNotePath"]; ok && newNotePath != "" {
-			renamedNotePathsSet.Add(newNotePath)
+	renamedFilePathsSet := util.Set[string]{}
+	originalFilePathsSet := util.Set[string]{}
+	for _, data := range fileRenameEvents {
+		if newFilePath, ok := data["newFilePath"]; ok && newFilePath != "" {
+			renamedFilePathsSet.Add(newFilePath)
 		}
-		if oldNotePath, ok := data["oldNotePath"]; ok && oldNotePath != "" {
-			originalNotePathsSet.Add(oldNotePath)
+		if oldFilePath, ok := data["oldFilePath"]; ok && oldFilePath != "" {
+			originalFilePathsSet.Add(oldFilePath)
 		}
 	}
 
@@ -222,20 +222,20 @@ func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[st
 	}
 
 	// Nothing changed
-	if (len(renamedNotePathsSet) == 0 && len(renamedFolderPathsSet) == 0) &&
-		(len(originalNotePathsSet) == 0 && len(originalFolderPathsSet) == 0) {
+	if (len(renamedFilePathsSet) == 0 && len(renamedFolderPathsSet) == 0) &&
+		(len(originalFilePathsSet) == 0 && len(originalFolderPathsSet) == 0) {
 		return events
 	}
 
 	filteredEvents := make(map[string][]map[string]string, len(events))
 	for eventKey, data := range events {
 		switch eventKey {
-		case util.Events.NoteCreate:
+		case util.Events.FileCreate:
 			kept := make([]map[string]string, 0, len(data))
 			for _, payload := range data {
-				notePath := payload["notePath"]
-				// Filters out note:create events that are the result of a rename (already captured by note:rename)
-				if renamedNotePathsSet.Has(notePath) {
+				filePath := payload["filePath"]
+				// Filters out file:create events that are the result of a rename (already captured by file:rename)
+				if renamedFilePathsSet.Has(filePath) {
 					continue
 				}
 				kept = append(kept, payload)
@@ -255,12 +255,12 @@ func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[st
 			if len(kept) > 0 {
 				filteredEvents[eventKey] = kept
 			}
-		case util.Events.NoteDelete:
+		case util.Events.FileDelete:
 			kept := make([]map[string]string, 0, len(data))
 			for _, payload := range data {
-				notePath := payload["notePath"]
-				// Filters out note:delete events that are the result of a rename (already captured by note:rename)
-				if originalNotePathsSet.Has(notePath) {
+				filePath := payload["filePath"]
+				// Filters out file:delete events that are the result of a rename (already captured by file:rename)
+				if originalFilePathsSet.Has(filePath) {
 					continue
 				}
 				kept = append(kept, payload)
@@ -289,7 +289,7 @@ func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[st
 }
 
 // dedupeDebouncedEventsByPathPayload dedupes event payloads when they contain one or more path-like fields.
-// A path-like field is any key ending in "Path" (e.g. notePath, folderPath, oldNotePath, newNotePath).
+// A path-like field is any key ending in "Path" (e.g. filePath, folderPath, oldFilePath, newFilePath).
 // For duplicate path signatures within the same event key, the latest payload is kept.
 func dedupeDebouncedEventsByPathPayload(events map[string][]map[string]string) map[string][]map[string]string {
 	deduped := make(map[string][]map[string]string, len(events))
@@ -320,9 +320,9 @@ func dedupeDebouncedEventsByPathPayload(events map[string][]map[string]string) m
 
 			// Build a stable "path signature" for this payload.
 			// Example:
-			//   oldNotePath=a.md, newNotePath=b.md
+			//   oldFilePath=a.md, newFilePath=b.md
 			// becomes:
-			//   oldNotePath=a.md|newNotePath=b.md|
+			//   oldFilePath=a.md|newFilePath=b.md|
 			//
 			// We only include *Path keys so non-path fields (like markdown body)
 			// do not affect deduping identity. strings.Builder avoids repeated
@@ -483,23 +483,23 @@ func (fw *FileWatcher) appendDebouncedEvent(eventKey string, payload map[string]
 	fw.debounceEvents[eventKey] = append(fw.debounceEvents[eventKey], payload)
 }
 
-func (fw *FileWatcher) emitNoteWriteEvent(notePath, note string) {
-	if !fw.hasFileChanged(notePath) {
+func (fw *FileWatcher) emitFileWriteEvent(filePath, note string) {
+	if !fw.hasFileChanged(filePath) {
 		return
 	}
 
 	eventData := map[string]string{
-		"notePath": fw.pathFromNotes(notePath),
+		"filePath": fw.pathFromNotes(filePath),
 	}
 
 	if filepath.Ext(note) == ".md" {
-		content, err := os.ReadFile(notePath)
+		content, err := os.ReadFile(filePath)
 		if err == nil {
 			eventData["markdown"] = string(content)
 		}
 	}
 
-	fw.appendDebouncedEvent(util.Events.NoteWrite, eventData)
+	fw.appendDebouncedEvent(util.Events.FileWrite, eventData)
 }
 
 // processEvent handles a single filesystem event
@@ -557,10 +557,10 @@ func (fw *FileWatcher) resolvePendingRenames(isFolder bool) {
 		createPathPayload = "folderPath"
 	} else {
 		pendingRenames, recentCreates = fw.pendingFileRenameEvents, fw.mostRecentFileCreatedEvents
-		deleteEventKey, renameEventKey = util.Events.NoteDelete, util.Events.NoteRename
-		createEventKey = util.Events.NoteCreate
-		deletePathPayload, renameOldPathPayload, renameNewPathPayload = "notePath", "oldNotePath", "newNotePath"
-		createPathPayload = "notePath"
+		deleteEventKey, renameEventKey = util.Events.FileDelete, util.Events.FileRename
+		createEventKey = util.Events.FileCreate
+		deletePathPayload, renameOldPathPayload, renameNewPathPayload = "filePath", "oldFilePath", "newFilePath"
+		createPathPayload = "filePath"
 	}
 
 	// Fsnotify guarantees "old path Rename" plus "new path Create" for tracked
@@ -598,9 +598,9 @@ func (fw *FileWatcher) resolvePendingRenames(isFolder bool) {
 				continue
 			}
 			// Same-path file rename+create is effectively a replace-in-place save.
-			// Emitting note:write keeps the editor in sync without navigating the UI.
+			// Emitting file:write keeps the editor in sync without navigating the UI.
 			fw.renameFileState(pending.event.Name, matched.event.Name)
-			fw.emitNoteWriteEvent(matched.event.Name, filepath.Base(matched.event.Name))
+			fw.emitFileWriteEvent(matched.event.Name, filepath.Base(matched.event.Name))
 			continue
 		}
 
@@ -639,12 +639,12 @@ func (fw *FileWatcher) resolvePendingRenames(isFolder bool) {
 func orderedDebouncedEventKeys(events map[string][]map[string]string) []string {
 	order := []string{
 		util.Events.FolderRename,
-		util.Events.NoteRename,
+		util.Events.FileRename,
 		util.Events.FolderDelete,
-		util.Events.NoteDelete,
+		util.Events.FileDelete,
 		util.Events.FolderCreate,
-		util.Events.NoteCreate,
-		util.Events.NoteWrite,
+		util.Events.FileCreate,
+		util.Events.FileWrite,
 	}
 
 	keys := []string{}

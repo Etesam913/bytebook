@@ -178,3 +178,64 @@ func TestUpdateNotesInIndex(t *testing.T) {
 		updateNotesInIndex(params, data)
 	})
 }
+
+func TestConvertFilePathData(t *testing.T) {
+	t.Run("converts filePath payloads into folder and note fields", func(t *testing.T) {
+		data := []map[string]string{
+			{"filePath": "folder1/note.md", "markdown": "# Note"},
+			{"filePath": "root.md"},
+		}
+
+		converted := convertFilePathData(data)
+
+		assert.Equal(t, []map[string]string{
+			{"folder": "folder1", "note": "note.md", "markdown": "# Note"},
+			{"folder": ".", "note": "root.md"},
+		}, converted)
+	})
+
+	t.Run("preserves folder and note payloads that are already converted", func(t *testing.T) {
+		data := []map[string]string{
+			{"folder": "folder1", "note": "note.md"},
+		}
+
+		assert.Equal(t, data, convertFilePathData(data))
+	})
+}
+
+func TestConvertRenamePathData(t *testing.T) {
+	t.Run("converts file rename payloads into folder and note fields", func(t *testing.T) {
+		data := []map[string]string{
+			{
+				"oldFilePath": "folder1/old.md",
+				"newFilePath": "folder2/new.md",
+				"markdown":    "# Note",
+			},
+		}
+
+		converted := convertRenamePathData(data)
+
+		assert.Equal(t, []map[string]string{
+			{
+				"oldFolder": "folder1",
+				"oldNote":   "old.md",
+				"newFolder": "folder2",
+				"newNote":   "new.md",
+				"markdown":  "# Note",
+			},
+		}, converted)
+	})
+
+	t.Run("preserves rename payloads that are already converted", func(t *testing.T) {
+		data := []map[string]string{
+			{
+				"oldFolder": "folder1",
+				"oldNote":   "old.md",
+				"newFolder": "folder2",
+				"newNote":   "new.md",
+			},
+		}
+
+		assert.Equal(t, data, convertRenamePathData(data))
+	})
+}
