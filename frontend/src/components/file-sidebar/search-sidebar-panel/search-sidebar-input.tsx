@@ -4,25 +4,19 @@ import {
   type RefObject,
   SetStateAction,
   useId,
-  useRef,
   useState,
 } from 'react';
-import { useOnClickOutside } from '../../../hooks/general';
-import { DropdownItems } from '../../dropdown/dropdown-items';
+import type { Key } from 'react-aria-components';
 import { Input } from '../../input';
 import type { ComboboxInputProps } from '../../../hooks/combobox';
-import type { DropdownItem } from '../../../types';
+import { AppMenu, AppMenuItem } from '../../menu';
 
-const SEARCH_PREFIX_ITEMS: DropdownItem[] = [
-  { value: 'f:', label: 'f: \u2014 Search file or folder names' },
-  { value: '#', label: '# \u2014 Search files that have a tag' },
-  { value: '@', label: '@ \u2014 Search notes that contain a link' },
-  { value: 'type:', label: 'type: \u2014 Filter files by type' },
-  // { value: 'lang:', label: 'lang: \u2014 Language' },
-  {
-    value: 'sort:',
-    label: 'sort: \u2014 Sort results',
-  },
+const SEARCH_PREFIX_ITEMS = [
+  { id: 'f:', label: 'f: \u2014 Search file or folder names' },
+  { id: '#', label: '# \u2014 Search files that have a tag' },
+  { id: '@', label: '@ \u2014 Search notes that contain a link' },
+  { id: 'type:', label: 'type: \u2014 Filter files by type' },
+  { id: 'sort:', label: 'sort: \u2014 Sort results' },
 ];
 
 function shouldShowPrefixDropdown(value: string): boolean {
@@ -52,26 +46,23 @@ export function SearchSidebarInput({
   onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
   comboboxInputProps: Omit<ComboboxInputProps, 'onKeyDown'>;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [focusIndex, setFocusIndex] = useState(0);
-  const menuId = `prefix-menu-${useId()}`;
   const inputId = `search-input-${useId()}`;
 
-  // useOnClickOutside(containerRef, () => setIsOpen(false));
-
-  function handlePrefixSelect(item: DropdownItem) {
+  function handlePrefixSelect(key: Key) {
     const input = inputRef.current;
     const cursorPos = input?.selectionStart ?? value.length;
     const before = value.slice(0, cursorPos);
     const after = value.slice(cursorPos);
-    const newValue = before + item.value + after;
+    const newValue = before + String(key) + after;
     setInternalSearchQuery(newValue);
     setIsOpen(false);
+    // Return focus to the input after selecting a prefix
+    setTimeout(() => inputRef.current?.focus(), 0);
   }
 
   return (
-    <div ref={containerRef} className="p-2 relative">
+    <div className="p-2 relative">
       <Input
         ref={inputRef}
         labelProps={{}}
@@ -89,11 +80,7 @@ export function SearchSidebarInput({
           },
           onKeyDown: (e) => {
             if (isOpen) {
-              if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                setFocusIndex(0);
-                document.getElementById(`${menuId}-option-0`)?.focus();
-              } else if (e.key === 'Escape') {
+              if (e.key === 'Escape') {
                 e.preventDefault();
                 setIsOpen(false);
               }
@@ -109,18 +96,23 @@ export function SearchSidebarInput({
         }}
         clearable={true}
       />
-      <DropdownItems
-        items={SEARCH_PREFIX_ITEMS}
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        setFocusIndex={setFocusIndex}
-        focusIndex={focusIndex}
-        onChange={handlePrefixSelect}
-        menuId={menuId}
-        buttonId={inputId}
-        skipAnimation
-        className="text-xs font-code w-72"
-      />
+      {isOpen && (
+        <div className="absolute z-50 w-72 translate-y-1 rounded-md border-[0.078125rem] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700">
+          <AppMenu
+            aria-label="Search prefixes"
+            onAction={handlePrefixSelect}
+            autoFocus="first"
+            className="text-xs font-code"
+            onClose={() => setIsOpen(false)}
+          >
+            {SEARCH_PREFIX_ITEMS.map((item) => (
+              <AppMenuItem key={item.id} id={item.id}>
+                {item.label}
+              </AppMenuItem>
+            ))}
+          </AppMenu>
+        </div>
+      )}
     </div>
   );
 }

@@ -35,6 +35,7 @@ function SearchSidebarItem({
   title,
   iconType,
   isActive,
+  isHighlighted,
   encodedPath,
   pathDisplay,
   children,
@@ -43,6 +44,7 @@ function SearchSidebarItem({
   title: string;
   iconType: 'note' | 'attachment';
   isActive: boolean;
+  isHighlighted: boolean;
   encodedPath: string;
   pathDisplay: string;
   children?: React.ReactNode;
@@ -53,7 +55,8 @@ function SearchSidebarItem({
       draggable={false}
       className={cn(
         'flex flex-col gap-y-0.5 py-1.5 px-2 w-full text-left hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2',
-        isActive && 'bg-zinc-150! dark:bg-zinc-700! text-(--accent-color)'
+        isActive && 'bg-zinc-150! dark:bg-zinc-700! text-(--accent-color)',
+        isHighlighted && !isActive && 'bg-zinc-100 dark:bg-zinc-650'
       )}
       onClick={(e) => {
         e.currentTarget.focus();
@@ -75,10 +78,12 @@ function SearchSidebarResultNote({
   data,
   searchQuery,
   isActive,
+  isHighlighted,
 }: {
   data: NoteSearchResult;
   searchQuery: string;
   isActive: boolean;
+  isHighlighted: boolean;
 }) {
   const { filePath, highlights, lastUpdated, tags } = data;
   const firstHighlight = highlights[0];
@@ -89,6 +94,7 @@ function SearchSidebarResultNote({
       title={filePath.noteWithoutExtension}
       iconType="note"
       isActive={isActive}
+      isHighlighted={isHighlighted}
       encodedPath={filePath.encodedPath}
       pathDisplay={filePath.fullPath}
     >
@@ -112,10 +118,12 @@ function SearchSidebarResultAttachment({
   data,
   searchQuery,
   isActive,
+  isHighlighted,
 }: {
   data: AttachmentSearchResult;
   searchQuery: string;
   isActive: boolean;
+  isHighlighted: boolean;
 }) {
   const { filePath, tags } = data;
 
@@ -125,6 +133,7 @@ function SearchSidebarResultAttachment({
       title={filePath.note}
       iconType="attachment"
       isActive={isActive}
+      isHighlighted={isHighlighted}
       encodedPath={filePath.encodedPath}
       pathDisplay={filePath.fullPath}
     >
@@ -137,10 +146,12 @@ export function SearchSidebarResultItem({
   result,
   searchQuery,
   isActive,
+  isHighlighted,
 }: {
   result: SearchResult;
   searchQuery: string;
   isActive: boolean;
+  isHighlighted: boolean;
 }) {
   switch (result.type) {
     case 'note':
@@ -149,6 +160,7 @@ export function SearchSidebarResultItem({
           data={result}
           searchQuery={searchQuery}
           isActive={isActive}
+          isHighlighted={isHighlighted}
         />
       );
     case 'attachment':
@@ -157,6 +169,7 @@ export function SearchSidebarResultItem({
           data={result}
           searchQuery={searchQuery}
           isActive={isActive}
+          isHighlighted={isHighlighted}
         />
       );
   }

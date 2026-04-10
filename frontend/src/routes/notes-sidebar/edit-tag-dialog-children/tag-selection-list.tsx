@@ -1,11 +1,9 @@
-import type { RefObject } from 'react';
-import { IconButton } from '../../../components/buttons';
-import { Checkbox } from '../../../components/indeterminate-checkbox';
-import type {
-  ComboboxItemProps,
-  ComboboxListProps,
-} from '../../../hooks/combobox';
+import { ListBox, ListBoxItem } from 'react-aria-components';
+import { AppIconButton } from '../../../components/buttons';
+import { AppCheckbox } from '../../../components/checkbox';
+import { cn } from '../../../utils/string-formatting';
 import { TagPlus } from '../../../icons/tag-plus';
+import type { Key, Selection } from 'react-aria-components';
 
 export function TagSelectionList({
   displayedTags,
@@ -14,9 +12,6 @@ export function TagSelectionList({
   searchTerm,
   setSelectedTagCounts,
   onCreateTag,
-  listRef,
-  comboboxListProps,
-  getComboboxItemProps,
 }: {
   displayedTags: string[];
   selectedTagCounts: Map<string, number>;
@@ -28,96 +23,109 @@ export function TagSelectionList({
       | ((prev: Map<string, number>) => Map<string, number>)
   ) => void;
   onCreateTag: (tagName: string) => void;
-  listRef?: RefObject<HTMLElement | null>;
-  comboboxListProps?: ComboboxListProps;
-
-  getComboboxItemProps?: (index: number) => ComboboxItemProps;
 }) {
   const showCreateButton =
     searchTerm.length > 0 &&
     !displayedTags.includes(searchTerm.toLowerCase().trim());
 
-  const handleTagSelectionChange = (tagName: string, isSelected: boolean) => {
-    if (isSelected) {
-      setSelectedTagCounts((prev) => {
-        const next = new Map(prev);
-        next.set(tagName, totalSelectedNotes);
-        return next;
-      });
-    } else {
-      setSelectedTagCounts((prev) => {
-        const next = new Map(prev);
-        next.set(tagName, 0);
-        return next;
-      });
-    }
-  };
+  // Derive selectedKeys from selectedTagCounts: only fully-selected tags
+  const selectedKeys = new Set<Key>(
+    displayedTags.filter((tag) => {
+      const count = selectedTagCounts.get(tag) || 0;
+      return count === totalSelectedNotes && totalSelectedNotes > 0;
+    })
+  );
 
-  const tagElements = displayedTags.map((tag, index) => {
-    const tagCount = selectedTagCounts.get(tag) || 0;
-    const isFullySelected =
-      tagCount === totalSelectedNotes && totalSelectedNotes > 0;
-    const isIndeterminate = tagCount > 0 && tagCount < totalSelectedNotes;
+  function handleSelectionChange(keys: Selection) {
+    // keys is either "all" or a Set<Key>
+    const newSelected = keys === 'all' ? new Set(displayedTags) : keys;
 
-    const getAriaLabel = () => {
-      if (isIndeterminate) {
-        return `${tag} tag, partially selected (${tagCount} of ${totalSelectedNotes} notes)`;
+    setSelectedTagCounts((prev) => {
+      const next = new Map(prev);
+      for (const tag of displayedTags) {
+        const wasSelected = selectedKeys.has(tag);
+        const isNowSelected = newSelected.has(tag);
+        if (wasSelected !== isNowSelected) {
+          next.set(tag, isNowSelected ? totalSelectedNotes : 0);
+        }
       }
-      if (isFullySelected) {
-        return `${tag} tag, selected`;
-      }
-      return `${tag} tag, not selected`;
-    };
-
-    return (
-      <label
-        key={tag}
-        {...getComboboxItemProps?.(index)}
-        className="flex items-center gap-2 py-0.5 px-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-750 rounded-md"
-      >
-        <Checkbox
-          name="tags"
-          value={tag}
-          checked={isFullySelected}
-          indeterminate={isIndeterminate}
-          onChange={(e) => handleTagSelectionChange(tag, e.target.checked)}
-          className="h-3.5 w-3.5 border-gray-200 dark:border-zinc-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
-          tabIndex={0}
-          aria-label={getAriaLabel()}
-        />
-        <span className="dark:text-zinc-200" aria-hidden="true">
-          {tag}
-        </span>
-      </label>
-    );
-  });
+      return next;
+    });
+  }
 
   return (
-    <div
-      ref={(node) => {
-        if (listRef) listRef.current = node;
-      }}
-      {...comboboxListProps}
-      className="h-64 overflow-y-auto space-y-1 p-1 border border-zinc-150 dark:border-zinc-650 rounded-md"
-    >
+    <div className="h-64 overflow-y-auto space-y-1 p-1 border border-zinc-150 dark:border-zinc-650 rounded-md">
       {showCreateButton && (
-        <IconButton
+        <AppIconButton
           className="text-sm w-full flex items-center gap-2"
           onClick={() => {
             onCreateTag(searchTerm);
           }}
-          tabIndex={0}
         >
           <TagPlus height="1.125rem" width="1.125rem" /> Create tag &quot;
           {searchTerm}&quot;
-        </IconButton>
+        </AppIconButton>
       )}
-      {tagElements.length === 0 && !showCreateButton && (
+      {displayedTags.length === 0 && !showCreateButton && (
         <span className="text-sm text-zinc-500 dark:text-zinc-400 p-1.5">
           No tags found
         </span>
       )}
-      {tagElements}
+      {displayedTags.length > 0 && (
+        <ListBox
+          aria-label="Tags"
+          selectionMode="multiple"
+          selectedKeys={selectedKeys}
+          onSelectionChange={handleSelectionChange}
+          items={displayedTags.map((tag) => ({ id: tag, name: tag }))}
+          className="outline-hidden"
+        >
+          {(item) => {
+            const tagCount = selectedTagCounts.get(item.name) || 0;
+            const isFullySelected =
+              tagCount === totalSelectedNotes && totalSelectedNotes > 0;
+            const isIndeterminate =
+              tagCount > 0 && tagCount < totalSelectedNotes;
+
+            const getAriaLabel = () => {
+              if (isIndeterminate) {
+                return `${item.name} tag, partially selected (${tagCount} of ${totalSelectedNotes} notes)`;
+              }
+              if (isFullySelected) {
+                return `${item.name} tag, selected`;
+              }
+              return `${item.name} tag, not selected`;
+            };
+
+            return (
+              <ListBoxItem
+                id={item.id}
+                textValue={item.name}
+                aria-label={getAriaLabel()}
+                className={({ isFocused }) =>
+                  cn(
+                    'flex items-center gap-2 py-0.5 px-1.5 rounded-md outline-hidden',
+                    isFocused && 'bg-zinc-100 dark:bg-zinc-750'
+                  )
+                }
+              >
+                <AppCheckbox
+                  name="tags"
+                  value={item.name}
+                  isSelected={isFullySelected}
+                  isIndeterminate={isIndeterminate}
+                  onChange={() => {}}
+                  className="pointer-events-none"
+                  aria-hidden="true"
+                />
+                <span className="dark:text-zinc-200" aria-hidden="true">
+                  {item.name}
+                </span>
+              </ListBoxItem>
+            );
+          }}
+        </ListBox>
+      )}
     </div>
   );
 }

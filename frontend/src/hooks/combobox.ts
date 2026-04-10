@@ -1,7 +1,5 @@
 import { type KeyboardEvent, type RefObject, useId, useState } from 'react';
 
-const FOCUSABLE_SELECTOR = 'button, a, input, [tabindex]:not([tabindex="-1"])';
-
 export interface ComboboxInputProps {
   role: 'combobox';
   'aria-expanded': boolean;
@@ -11,137 +9,99 @@ export interface ComboboxInputProps {
   'aria-autocomplete': 'list';
   onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
 }
-const ITEM_SELECTOR = '[data-combobox-item]';
 
-export interface ComboboxListProps {
+interface ComboboxListProps {
   id: string;
   role: 'listbox';
-  onKeyDown: (e: KeyboardEvent<HTMLElement>) => void;
 }
 
-export interface ComboboxItemProps {
+interface ComboboxItemProps {
   id: string;
   role: 'option';
   'aria-selected': boolean;
   'data-combobox-item': number;
 }
 
-const MAX_FOCUS_RETRY_ATTEMPTS = 6;
-
 export function useCombobox({
   itemCount,
   listboxId: providedListboxId,
-  inputRef,
+  triggerRef,
   listRef,
-  onFocusItem,
-  onFocusInput,
-  onBeforeFocusItem,
+  onSelectItem,
+  onHighlightItem,
+  onFocusTrigger,
+  onBeforeHighlightItem,
 }: {
   itemCount: number;
   listboxId?: string;
-  inputRef: RefObject<HTMLInputElement | null>;
+  triggerRef: RefObject<HTMLElement | null>;
   listRef: RefObject<HTMLElement | null>;
-  onFocusItem?: (index: number) => void;
-  onFocusInput?: () => void;
-  onBeforeFocusItem?: (index: number) => void;
+  onSelectItem?: (index: number) => void;
+  onHighlightItem?: (index: number) => void;
+  onFocusTrigger?: () => void;
+  onBeforeHighlightItem?: (index: number) => void;
 }) {
   const generatedId = useId();
   const listboxId = providedListboxId ?? `combobox-listbox${generatedId}`;
-  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const [rawFocusedIndex, setFocusedIndex] = useState<number | null>(null);
 
-  function getItemByIndex(index: number) {
-    return listRef.current?.querySelector<HTMLElement>(
-      `[data-combobox-item="${index}"]`
-    );
-  }
+  // Clamp focusedIndex to valid range when itemCount shrinks
+  const focusedIndex =
+    rawFocusedIndex === null
+      ? null
+      : rawFocusedIndex >= itemCount
+        ? itemCount > 0
+          ? itemCount - 1
+          : null
+        : rawFocusedIndex;
 
-  function getItemIndexFromTarget(target: EventTarget | null) {
-    const itemElement = (target as HTMLElement | null)?.closest<HTMLElement>(
-      ITEM_SELECTOR
-    );
-    const rawIndex = itemElement?.dataset.comboboxItem;
-    if (rawIndex === undefined) return null;
-
-    const parsedIndex = Number(rawIndex);
-    return Number.isFinite(parsedIndex) ? parsedIndex : null;
-  }
-
-  function focusElementForItem(element: HTMLElement) {
-    const focusTarget =
-      element.querySelector<HTMLElement>(FOCUSABLE_SELECTOR) ?? element;
-    focusTarget.focus();
-  }
-
-  function focusItem(index: number) {
+  function highlightItem(index: number) {
     if (index < 0 || index >= itemCount) return;
-
-    // Callback that allows for things like scrolling to the item before trying to focus it in the case where the list is virtualized.
-    onBeforeFocusItem?.(index);
-
-    const element = getItemByIndex(index);
-    if (element) {
-      focusElementForItem(element);
-      return;
-    }
-
-    // Add some focus retry logic as it can be finicky.
-    const attemptFocus = (attempt: number) => {
-      const retryElement = getItemByIndex(index);
-      if (retryElement) {
-        focusElementForItem(retryElement);
-        return;
-      }
-      if (attempt < MAX_FOCUS_RETRY_ATTEMPTS) {
-        requestAnimationFrame(() => attemptFocus(attempt + 1));
-      }
-    };
-
-    requestAnimationFrame(() => attemptFocus(1));
-  }
-
-  function focusInput() {
-    inputRef.current?.focus();
-    setFocusedIndex(null);
-    onFocusInput?.();
-  }
-
-  function moveFocusToItem(index: number) {
-    if (index < 0 || index >= itemCount) return;
+    onBeforeHighlightItem?.(index);
     setFocusedIndex(index);
-    focusItem(index);
-    onFocusItem?.(index);
+    onHighlightItem?.(index);
   }
 
-  // Going from input to first combobox result
+  function focusTrigger() {
+    triggerRef.current?.focus();
+    setFocusedIndex(null);
+    onFocusTrigger?.();
+  }
+
   function handleInputKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key !== 'ArrowDown' || itemCount === 0) return;
-    e.preventDefault();
-    moveFocusToItem(0);
-  }
-
-  function handleListKeyDown(e: KeyboardEvent<HTMLElement>) {
-    const isArrowDown = e.key === 'ArrowDown';
-    const isArrowUp = e.key === 'ArrowUp';
-    if (!isArrowDown && !isArrowUp) return;
-
-    e.preventDefault();
-    const currentIndex = getItemIndexFromTarget(e.target);
-
-    if (isArrowUp && (currentIndex === null || currentIndex === 0)) {
-      focusInput();
-      return;
-    }
-
-    if (currentIndex === null) {
-      if (isArrowDown && itemCount > 0) {
-        moveFocusToItem(0);
+    switch (e.key) {
+      case 'ArrowDown': {
+        if (itemCount === 0) return;
+        e.preventDefault();
+        const next =
+          focusedIndex === null ? 0 : Math.min(focusedIndex + 1, itemCount - 1);
+        highlightItem(next);
+        break;
       }
-      return;
-    }
-
-    const nextIndex = isArrowDown ? currentIndex + 1 : currentIndex - 1;
-    if (nextIndex >= 0 && nextIndex < itemCount) {
-      moveFocusToItem(nextIndex);
+      case 'ArrowUp': {
+        if (itemCount === 0 || focusedIndex === null) return;
+        e.preventDefault();
+        if (focusedIndex === 0) {
+          setFocusedIndex(null);
+        } else {
+          highlightItem(focusedIndex - 1);
+        }
+        break;
+      }
+      case 'Enter': {
+        if (focusedIndex !== null) {
+          e.preventDefault();
+          onSelectItem?.(focusedIndex);
+        }
+        break;
+      }
+      case 'Escape': {
+        if (focusedIndex !== null) {
+          e.preventDefault();
+          setFocusedIndex(null);
+        }
+        break;
+      }
     }
   }
 
@@ -164,7 +124,6 @@ export function useCombobox({
     return {
       id: listboxId,
       role: 'listbox',
-      onKeyDown: handleListKeyDown,
     };
   }
 
@@ -177,13 +136,20 @@ export function useCombobox({
     };
   }
 
+  function getItemByIndex(index: number) {
+    return listRef.current?.querySelector<HTMLElement>(
+      `[data-combobox-item="${index}"]`
+    );
+  }
+
   return {
     focusedIndex,
     setFocusedIndex,
     getInputProps,
     getListProps,
     getItemProps,
-    focusItem,
-    focusInput,
+    highlightItem,
+    focusTrigger,
+    getItemByIndex,
   };
 }

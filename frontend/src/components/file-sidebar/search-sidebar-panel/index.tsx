@@ -76,19 +76,22 @@ export function SearchSidebarPanel({
     ? createFilePath(decodedActivePath)
     : null;
 
+  const navigateToResult = (index: number) => {
+    const result = results[index];
+    if (result) {
+      navigate(
+        routeUrls.search(internalSearchQuery, result.filePath.encodedPath)
+      );
+    }
+  };
+
   const combobox = useCombobox({
     itemCount: results.length,
-    inputRef: searchInputRef,
+    triggerRef: searchInputRef,
     listRef,
-    onFocusItem: (index) => {
-      const result = results[index];
-      if (result) {
-        navigate(
-          routeUrls.search(internalSearchQuery, result.filePath.encodedPath)
-        );
-      }
-    },
-    onBeforeFocusItem: (index) => {
+    onHighlightItem: navigateToResult,
+    onSelectItem: navigateToResult,
+    onBeforeHighlightItem: (index) => {
       listHandleRef.current?.scrollToIndexIfHidden(index);
     },
   });
@@ -204,6 +207,7 @@ export function SearchSidebarPanel({
                       result={dataItem}
                       searchQuery={internalSearchQuery}
                       isActive={isResultActive(dataItem)}
+                      isHighlighted={combobox.focusedIndex === i}
                     />
                   </div>
                 )}

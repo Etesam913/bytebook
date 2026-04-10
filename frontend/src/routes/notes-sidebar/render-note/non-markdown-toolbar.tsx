@@ -1,15 +1,19 @@
 import { useAtomValue, useSetAtom } from 'jotai';
-import { useState } from 'react';
-import { getDefaultButtonVariants } from '../../../animations';
+import type { Key } from 'react-aria-components';
+import { Button } from 'react-aria-components';
 import {
   dialogDataAtom,
   isFullscreenAtom,
   isNoteMaximizedAtom,
   projectSettingsAtom,
 } from '../../../atoms';
-import { MotionIconButton } from '../../../components/buttons';
 import { MaximizeNoteButton } from '../../../components/buttons/maximize-note';
-import { DropdownMenu } from '../../../components/dropdown/dropdown-menu';
+import {
+  AppMenu,
+  AppMenuItem,
+  AppMenuPopover,
+  AppMenuTrigger,
+} from '../../../components/menu';
 import { Tooltip } from '../../../components/tooltip';
 import {
   useMoveToTrashMutation,
@@ -36,7 +40,6 @@ export function NonMarkdownToolbar({
   animationControls: LegacyAnimationControls;
   filePath: FilePath;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
   const isFullscreen = useAtomValue(isFullscreenAtom);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
@@ -52,7 +55,7 @@ export function NonMarkdownToolbar({
 
   const items = [
     {
-      value: 'reveal-in-finder',
+      id: 'reveal-in-finder',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <Finder className="min-w-4.5" height="1.125rem" width="1.125rem" />{' '}
@@ -61,7 +64,7 @@ export function NonMarkdownToolbar({
       ),
     },
     {
-      value: isPinned ? 'unpin-note' : 'pin-note',
+      id: isPinned ? 'unpin-note' : 'pin-note',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <PinTack2 className="min-w-4.5" height="1.125rem" width="1.125rem" />{' '}
@@ -70,7 +73,7 @@ export function NonMarkdownToolbar({
       ),
     },
     {
-      value: 'edit-tags',
+      id: 'edit-tags',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <TagPlus className="min-w-4.5" height="1.125rem" width="1.125rem" />{' '}
@@ -79,7 +82,7 @@ export function NonMarkdownToolbar({
       ),
     },
     {
-      value: 'move-to-trash',
+      id: 'move-to-trash',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <Trash className="min-w-4.5" height="1.125rem" width="1.125rem" />{' '}
@@ -88,6 +91,63 @@ export function NonMarkdownToolbar({
       ),
     },
   ];
+
+  function handleAction(key: Key) {
+    switch (key) {
+      case 'pin-note':
+      case 'unpin-note': {
+        const newPinnedNotes = new Set(projectSettings.pinnedNotes);
+        if (key === 'pin-note') {
+          newPinnedNotes.add(filePath.fullPath);
+        } else {
+          newPinnedNotes.delete(filePath.fullPath);
+        }
+        updateProjectSettings({
+          newProjectSettings: {
+            ...projectSettings,
+            pinnedNotes: newPinnedNotes,
+          },
+        });
+        break;
+      }
+      case 'reveal-in-finder': {
+        revealInFinder({
+          folder: filePath.folder,
+          selectionRange: new Set([`note:${filePath.note}`]),
+        });
+        break;
+      }
+      case 'edit-tags': {
+        const selectionRange = new Set([`note:${filePath.note}`]);
+        setDialogData({
+          isOpen: true,
+          isPending: false,
+          title: 'Edit Tags',
+          dialogClassName: 'w-[min(30rem,90vw)]',
+          children: (errorText) => (
+            <EditTagDialogChildren
+              selectionRange={selectionRange}
+              folder={filePath.folder}
+              errorText={errorText}
+            />
+          ),
+          onSubmit: async (e, setErrorText) => {
+            return await editTags({
+              e,
+              setErrorText,
+              selectionRange,
+              folder: filePath.folder,
+            });
+          },
+        });
+        break;
+      }
+      case 'move-to-trash': {
+        moveToTrash({ paths: [filePath.fullPath] });
+        break;
+      }
+    }
+  }
 
   return (
     <header
@@ -98,87 +158,34 @@ export function NonMarkdownToolbar({
     >
       <MaximizeNoteButton animationControls={animationControls} />
       <MediaMetadata filePath={filePath} path={filePath.encodedFileUrl} />
-      <DropdownMenu
-        items={items}
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        className="flex flex-col ml-auto"
-        dropdownClassName="w-40 right-4 top-12"
-        onChange={(item) => {
-          switch (item.value) {
-            case 'pin-note':
-            case 'unpin-note': {
-              const newPinnedNotes = new Set(projectSettings.pinnedNotes);
-              if (item.value === 'pin-note') {
-                newPinnedNotes.add(filePath.fullPath);
-              } else {
-                newPinnedNotes.delete(filePath.fullPath);
-              }
-              updateProjectSettings({
-                newProjectSettings: {
-                  ...projectSettings,
-                  pinnedNotes: newPinnedNotes,
-                },
-              });
-              break;
-            }
-            case 'reveal-in-finder': {
-              revealInFinder({
-                folder: filePath.folder,
-                selectionRange: new Set([`note:${filePath.note}`]),
-              });
-              break;
-            }
-            case 'edit-tags': {
-              const selectionRange = new Set([`note:${filePath.note}`]);
-              setDialogData({
-                isOpen: true,
-                isPending: false,
-                title: 'Edit Tags',
-                dialogClassName: 'w-[min(30rem,90vw)]',
-                children: (errorText) => (
-                  <EditTagDialogChildren
-                    selectionRange={selectionRange}
-                    folder={filePath.folder}
-                    errorText={errorText}
-                  />
-                ),
-                onSubmit: async (e, setErrorText) => {
-                  return await editTags({
-                    e,
-                    setErrorText,
-                    selectionRange,
-                    folder: filePath.folder,
-                  });
-                },
-              });
-              break;
-            }
-            case 'move-to-trash': {
-              moveToTrash({ paths: [filePath.fullPath] });
-              break;
-            }
-          }
-        }}
-      >
-        {({ buttonId, menuId, isOpen, handleKeyDown, handleClick }) => (
+      <div className="flex flex-col ml-auto">
+        <AppMenuTrigger>
           <Tooltip content="Note settings" placement="left">
-            <MotionIconButton
-              id={buttonId}
-              onClick={handleClick}
-              onKeyDown={handleKeyDown}
-              aria-haspopup="listbox"
-              aria-expanded={isOpen}
-              aria-controls={isOpen ? menuId : undefined}
+            <Button
               aria-label="Note settings menu"
-              className={cn(!isFullscreen && 'rounded-tr-2xl')}
-              {...getDefaultButtonVariants()}
+              className={({ isHovered, isPressed }) =>
+                cn(
+                  'bg-transparent border-0 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform outline-hidden transition-transform',
+                  !isFullscreen && 'rounded-tr-2xl',
+                  isHovered && 'scale-105',
+                  isPressed && 'scale-[0.975]'
+                )
+              }
             >
               <HorizontalDots />
-            </MotionIconButton>
+            </Button>
           </Tooltip>
-        )}
-      </DropdownMenu>
+          <AppMenuPopover className="w-40">
+            <AppMenu onAction={handleAction}>
+              {items.map((item) => (
+                <AppMenuItem key={item.id} id={item.id}>
+                  {item.label}
+                </AppMenuItem>
+              ))}
+            </AppMenu>
+          </AppMenuPopover>
+        </AppMenuTrigger>
+      </div>
     </header>
   );
 }

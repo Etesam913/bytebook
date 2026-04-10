@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue } from 'jotai/react';
+import { useAtom } from 'jotai/react';
 import {
   type CSSProperties,
   type HTMLAttributes,
@@ -10,7 +10,7 @@ import {
   useState,
 } from 'react';
 import { Components, Virtuoso } from 'react-virtuoso';
-import { contextMenuRefAtom, sidebarSelectionAtom } from '../../../atoms';
+import { sidebarSelectionAtom } from '../../../atoms';
 import { useOnClickOutside } from '../../../hooks/general';
 import { cn } from '../../../utils/string-formatting';
 import type { SetSelectionUpdater } from '../../../utils/selection';
@@ -111,7 +111,6 @@ export function VirtualizedList<T>({
       selections: updater(prev.selections),
     }));
   };
-  const contextMenuRef = useAtomValue(contextMenuRefAtom);
   const { virtuosoRef, onRangeChanged, scrollToIndexIfHidden } =
     useSmartScroll();
   useImperativeHandle(ref, () => ({ scrollToIndexIfHidden }), [
@@ -123,9 +122,6 @@ export function VirtualizedList<T>({
     internalListRef,
     (e) => {
       if (!shouldHandleOutsideSelectionInteraction(e)) return;
-
-      // We need to use the selectionRange for the context menu so early return for this case
-      if (contextMenuRef?.current?.contains(e.target as Node)) return;
 
       // Check if the click is on a sidebar item button (including nested children like SVGs)
       const target = e.target as HTMLElement;

@@ -106,7 +106,7 @@ export function KernelStatusCard({
         <div className="flex justify-end items-center gap-2 mt-4">
           <MotionButton
             onClick={handleKernelToggle}
-            disabled={isLoading}
+            isDisabled={isLoading}
             {...getDefaultButtonVariants()}
             className="space-x-0.5 px-3"
           >

@@ -23,7 +23,7 @@ export function SearchPage() {
             isPending && 'flex items-center justify-center'
           )}
           {...getDefaultButtonVariants()}
-          disabled={isPending}
+          isDisabled={isPending}
           onClick={() => {
             regenerateSearchIndex();
           }}

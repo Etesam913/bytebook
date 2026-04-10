@@ -1,11 +1,10 @@
 import { useAtomValue } from 'jotai';
-import { useState } from 'react';
 import { navigate } from 'wouter/use-browser-location';
-import { getDefaultButtonVariants } from '../../animations';
+import type { Key } from 'react-aria-components';
+import { Button } from 'react-aria-components';
 import { isNoteMaximizedAtom, projectSettingsAtom } from '../../atoms';
-import { MotionIconButton } from '../buttons';
 import { MaximizeNoteButton } from '../buttons/maximize-note';
-import { DropdownMenu } from '../dropdown/dropdown-menu';
+import { AppMenu, AppMenuItem, AppMenuPopover, AppMenuTrigger } from '../menu';
 import { Tooltip } from '../tooltip';
 import { Finder } from '../../icons/finder';
 import { HorizontalDots } from '../../icons/horizontal-dots';
@@ -20,6 +19,8 @@ import { routeUrls } from '../../utils/routes';
 import { cn } from '../../utils/string-formatting';
 import type { Folder } from '../virtualized/virtualized-file-tree/types';
 import type { LegacyAnimationControls } from 'motion/react';
+import { MotionIconButton } from '../buttons';
+import { getDefaultButtonVariants } from '../../animations';
 
 export function FolderRendererHeader({
   folderPath,
@@ -30,7 +31,6 @@ export function FolderRendererHeader({
   folderTreeNode: Folder;
   animationControls: LegacyAnimationControls;
 }) {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
@@ -38,9 +38,10 @@ export function FolderRendererHeader({
   const { mutate: pinPath } = usePinPathMutation();
 
   const isPinned = projectSettings.pinnedNotes.has(folderTreeNode.path);
+
   const items = [
     {
-      value: 'reveal-in-finder',
+      id: 'reveal-in-finder',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <Finder className="min-w-5" height="1.125rem" width="1.125rem" />
@@ -49,7 +50,7 @@ export function FolderRendererHeader({
       ),
     },
     {
-      value: isPinned ? 'unpin-folder' : 'pin-folder',
+      id: isPinned ? 'unpin-folder' : 'pin-folder',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           {isPinned ? (
@@ -66,7 +67,7 @@ export function FolderRendererHeader({
       ),
     },
     {
-      value: 'move-to-trash',
+      id: 'move-to-trash',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <Trash className="min-w-5" height="1.125rem" width="1.125rem" />
@@ -75,6 +76,30 @@ export function FolderRendererHeader({
       ),
     },
   ];
+
+  function handleAction(key: Key) {
+    switch (key) {
+      case 'reveal-in-finder': {
+        revealInFinder({
+          path: `notes/${folderTreeNode.path}`,
+          shouldPrefixWithProjectPath: true,
+        });
+        break;
+      }
+      case 'pin-folder':
+      case 'unpin-folder': {
+        pinPath({
+          path: folderTreeNode.path,
+          shouldPin: key === 'pin-folder',
+        });
+        break;
+      }
+      case 'move-to-trash': {
+        moveToTrash({ paths: [folderTreeNode.path] });
+        break;
+      }
+    }
+  }
 
   return (
     <div className="space-y-3">
@@ -109,61 +134,37 @@ export function FolderRendererHeader({
               {folderTreeNode.path + '/'}
             </p>
           </div>
-          <DropdownMenu
-            items={items}
-            isOpen={isSettingsOpen}
-            setIsOpen={setIsSettingsOpen}
-            className="ml-auto flex flex-col mr-2"
-            dropdownClassName="right-4 top-10 w-52"
-            onChange={(item) => {
-              switch (item.value) {
-                case 'reveal-in-finder': {
-                  revealInFinder({
-                    path: `notes/${folderTreeNode.path}`,
-                    shouldPrefixWithProjectPath: true,
-                  });
-                  break;
-                }
-                case 'pin-folder':
-                case 'unpin-folder': {
-                  pinPath({
-                    path: folderTreeNode.path,
-                    shouldPin: item.value === 'pin-folder',
-                  });
-                  break;
-                }
-                case 'move-to-trash': {
-                  moveToTrash({ paths: [folderTreeNode.path] });
-                  break;
-                }
-              }
-            }}
-          >
-            {({ buttonId, menuId, isOpen, handleKeyDown, handleClick }) => (
+          <div className="ml-auto flex flex-col mr-2">
+            <AppMenuTrigger>
               <Tooltip
                 content="Folder settings"
                 placement="left"
                 delay={{ open: 50 }}
               >
-                <MotionIconButton
-                  id={buttonId}
-                  onClick={handleClick}
-                  onKeyDown={handleKeyDown}
-                  aria-haspopup="listbox"
-                  aria-expanded={isOpen}
-                  aria-controls={isOpen ? menuId : undefined}
+                <Button
                   aria-label="Folder settings menu"
-                  className={cn(
-                    'mt-1 shrink-0 rounded-tr-2xl',
-                    isOpen && 'bg-zinc-100 dark:bg-zinc-700'
-                  )}
-                  {...getDefaultButtonVariants()}
+                  className={({ isHovered, isPressed }) =>
+                    cn(
+                      'bg-transparent border-0 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform outline-hidden transition-transform mt-1 shrink-0 rounded-tr-2xl',
+                      isHovered && 'scale-105',
+                      isPressed && 'scale-[0.975]'
+                    )
+                  }
                 >
                   <HorizontalDots />
-                </MotionIconButton>
+                </Button>
               </Tooltip>
-            )}
-          </DropdownMenu>
+              <AppMenuPopover className="w-52">
+                <AppMenu onAction={handleAction}>
+                  {items.map((item) => (
+                    <AppMenuItem key={item.id} id={item.id}>
+                      {item.label}
+                    </AppMenuItem>
+                  ))}
+                </AppMenu>
+              </AppMenuPopover>
+            </AppMenuTrigger>
+          </div>
         </div>
       </header>
       <hr className="mx-4 text-zinc-200 dark:text-zinc-700 col-span-full" />

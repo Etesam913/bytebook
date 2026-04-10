@@ -140,7 +140,7 @@ function MissingSavedSearchNoteFallback({
             isRegeneratingSearchIndex && 'flex items-center justify-center'
           )}
           {...getDefaultButtonVariants()}
-          disabled={isRegeneratingSearchIndex}
+          isDisabled={isRegeneratingSearchIndex}
           onClick={onRegenerateSearchIndex}
         >
           {isRegeneratingSearchIndex ? (

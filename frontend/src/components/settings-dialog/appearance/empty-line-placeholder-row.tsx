@@ -2,7 +2,7 @@ import { useAtomValue } from 'jotai/react';
 import { isDarkModeOnAtom, projectSettingsAtom } from '../../../atoms';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
 import { SettingsRow } from '../settings-row';
-import { Checkbox } from '../../../components/indeterminate-checkbox';
+import { AppCheckbox } from '../../../components/checkbox';
 import lightImagePlaceholder from '../../../assets/images/empty-line-placeholder-light.jpg';
 import darkImagePlaceholder from '../../../assets/images/empty-line-placeholder-dark.jpg';
 import { SettingImage } from '.';
@@ -37,36 +37,27 @@ export function EmptyLinePlaceholderRow() {
           imgSrc={isDarkModeOn ? darkImagePlaceholder : lightImagePlaceholder}
           imgAlt="Empty line placeholder preview"
         />
-        <div className="flex items-center gap-1.5">
-          <Checkbox
-            className="h-4 w-4"
-            checked={
-              projectSettings.appearance.showEmptyLinePlaceholder ?? true
-            }
-            id="empty-line-placeholder-checkbox"
-            onChange={() => {
-              updateProjectSettings({
-                newProjectSettings: {
-                  ...projectSettings,
-                  appearance: {
-                    ...projectSettings.appearance,
-                    showEmptyLinePlaceholder: !(
-                      projectSettings.appearance.showEmptyLinePlaceholder ??
-                      true
-                    ),
-                  },
+        <AppCheckbox
+          isSelected={
+            projectSettings.appearance.showEmptyLinePlaceholder ?? true
+          }
+          onChange={() => {
+            updateProjectSettings({
+              newProjectSettings: {
+                ...projectSettings,
+                appearance: {
+                  ...projectSettings.appearance,
+                  showEmptyLinePlaceholder: !(
+                    projectSettings.appearance.showEmptyLinePlaceholder ?? true
+                  ),
                 },
-              });
-            }}
-            aria-label="Show empty line placeholder"
-          />
-          <label
-            className="text-sm text-zinc-500 dark:text-zinc-400"
-            htmlFor="empty-line-placeholder-checkbox"
-          >
-            Show empty line placeholder
-          </label>
-        </div>
+              },
+            });
+          }}
+          className="text-zinc-500 dark:text-zinc-400"
+        >
+          Show empty line placeholder
+        </AppCheckbox>
       </div>
     </SettingsRow>
   );

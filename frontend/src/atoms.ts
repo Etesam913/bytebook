@@ -1,5 +1,4 @@
 import { atom } from 'jotai';
-import type { RefObject } from 'react';
 import {
   type BackendQueryDataType,
   type ContextMenuData,
@@ -141,9 +140,6 @@ export const backendQueryAtom = atom<BackendQueryDataType>({
   message: '',
 });
 
-export const contextMenuRefAtom = atom<RefObject<HTMLElement | null> | null>(
-  null
-);
 export const contextMenuDataAtom = atom<ContextMenuData>({
   isShowing: false,
   items: [],

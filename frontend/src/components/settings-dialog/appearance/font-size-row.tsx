@@ -90,7 +90,7 @@ export function FontSizeRow() {
         />
         <MotionIconButton
           {...getDefaultButtonVariants()}
-          disabled={
+          isDisabled={
             projectSettings.appearance.editorFontSize ===
             DEFAULT_EDITOR_FONT_SIZE
           }

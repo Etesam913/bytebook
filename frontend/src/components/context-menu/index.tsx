@@ -1,174 +1,80 @@
-import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
-import {
-  type RefObject,
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
-import {
-  contextMenuDataAtom,
-  contextMenuRefAtom,
-  sidebarSelectionAtom,
-} from '../../atoms';
-import { isRegularMouseClick } from '../../utils/mouse';
-import { DropdownItems } from '../dropdown/dropdown-items';
-
-function adjustedPosition(
-  x: number,
-  y: number,
-  contextMenuRefLocal: RefObject<HTMLDivElement | null>
-) {
-  if (!contextMenuRefLocal.current) return { x, y };
-
-  const menuRect = contextMenuRefLocal.current.getBoundingClientRect();
-  const windowHeight = window.innerHeight;
-  const windowWidth = window.innerWidth;
-  let adjustedY = y;
-  let adjustedX = x;
-  const heightBuffer = 14;
-  const widthBuffer = 8;
-
-  if (y + menuRect.height + heightBuffer > windowHeight) {
-    adjustedY = Math.max(
-      heightBuffer,
-      windowHeight - menuRect.height - heightBuffer
-    );
-  }
-
-  if (x + menuRect.width + widthBuffer > windowWidth) {
-    adjustedX = Math.max(
-      widthBuffer,
-      windowWidth - menuRect.width - widthBuffer
-    );
-  }
-
-  return { x: adjustedX, y: adjustedY };
-}
+import { useAtom, useAtomValue } from 'jotai/react';
+import { useRef } from 'react';
+import type { Key } from 'react-aria-components';
+import { Popover } from 'react-aria-components';
+import { contextMenuDataAtom, sidebarSelectionAtom } from '../../atoms';
+import { AppMenu, AppMenuItem } from '../menu';
 
 export function ContextMenu() {
   const [{ isShowing, items, x, y }, setContextMenuData] =
     useAtom(contextMenuDataAtom);
 
-  const [focusedIndex, setFocusedIndex] = useState(0);
   const { selections } = useAtomValue(sidebarSelectionAtom);
   const selectionCountLabel =
     selections.size > 99 ? '99+' : selections.size.toString();
-  const setContextMenuRef = useSetAtom(contextMenuRefAtom);
-  const contextMenuRefLocal = useRef<HTMLDivElement>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
 
-  // Local state to hold the adjusted position
-  const [position, setPosition] = useState({ x, y });
+  const triggerRef = useRef<HTMLSpanElement>(null);
 
-  const uniqueId = useId();
-  const menuId = `context-menu-${uniqueId}`;
-
-  // Set the ref atom once after mounting.
-  useEffect(() => {
-    setContextMenuRef(contextMenuRefLocal);
-  }, [setContextMenuRef]);
-
-  // Use useLayoutEffect to calculate the adjusted position after render.
-  useLayoutEffect(() => {
-    const newPosition = adjustedPosition(x, y, contextMenuRefLocal);
-    setPosition(newPosition);
-  }, [x, y, isShowing, items.length]); // recalc whenever menu position or size may change
-
-  // Ensuring the dialog is open or closed based on the isShowing state
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    if (isShowing) {
-      if (!dialog.open) {
-        dialog.showModal();
-      }
-    } else if (dialog.open) {
-      dialog.close();
+  function handleAction(key: Key) {
+    const item = items.find((i) => i.value === String(key));
+    if (item?.onChange) {
+      item.onChange();
     }
-  }, [isShowing]);
+    setContextMenuData((prev) => ({ ...prev, isShowing: false }));
+  }
 
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    const closeMenu = () =>
+  function handleOpenChange(open: boolean) {
+    if (!open) {
       setContextMenuData((prev) =>
         prev.isShowing ? { ...prev, isShowing: false } : prev
       );
-
-    const handleCancel = (event: Event) => {
-      event.preventDefault();
-      closeMenu();
-    };
-
-    const handleClose = () => {
-      closeMenu();
-    };
-
-    dialog.addEventListener('cancel', handleCancel);
-    dialog.addEventListener('close', handleClose);
-
-    return () => {
-      dialog.removeEventListener('cancel', handleCancel);
-      dialog.removeEventListener('close', handleClose);
-    };
-  }, [setContextMenuData]);
+    }
+  }
 
   return (
-    <dialog
-      ref={dialogRef}
-      aria-label="Context menu"
-      className="bg-transparent border-none p-0 max-w-none max-h-none w-full h-full"
-      onMouseDown={(event) => {
-        if (
-          event.target === event.currentTarget &&
-          isRegularMouseClick(event.nativeEvent)
-        ) {
-          setContextMenuData((prev) =>
-            prev.isShowing ? { ...prev, isShowing: false } : prev
-          );
-        }
-      }}
-    >
-      {isShowing && (
-        <div className="fixed inset-0 z-50">
+    <>
+      <div
+        style={{
+          position: 'fixed',
+          left: x,
+          top: y,
+          width: 0,
+          height: 0,
+          pointerEvents: 'none',
+        }}
+      >
+        <span ref={triggerRef} />
+      </div>
+      <Popover
+        triggerRef={triggerRef}
+        isOpen={isShowing}
+        onOpenChange={handleOpenChange}
+        placement="bottom start"
+        shouldFlip
+        className="rounded-md border-[0.078125rem] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700 outline-hidden"
+        data-exclude-from-on-click-outside="true"
+      >
+        {selections.size > 0 && (
           <div
-            className="absolute"
-            style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+            aria-label={`${selectionCountLabel} items selected`}
+            className="absolute rounded-full font-bold min-w-6 h-6 px-1 text-xs leading-none pointer-events-none text-white flex justify-center items-center -left-2 -top-2 bg-(--accent-color) z-60"
           >
-            {selections.size > 0 && (
-              <div
-                aria-label={`${selectionCountLabel} items selected`}
-                className="absolute rounded-full font-bold min-w-6 h-6 px-1 text-xs leading-none pointer-events-none text-white flex justify-center items-center -left-2 bg-(--accent-color) z-60"
-              >
-                {selectionCountLabel}
-              </div>
-            )}
-            <DropdownItems
-              onChange={(item) => {
-                if (item.onChange) {
-                  item.onChange();
-                }
-              }}
-              ref={contextMenuRefLocal}
-              className="w-fit text-sm overflow-hidden"
-              items={items}
-              isOpen={isShowing}
-              setIsOpen={(value: boolean) =>
-                setContextMenuData((prev) => ({ ...prev, isShowing: value }))
-              }
-              setFocusIndex={setFocusedIndex}
-              focusIndex={focusedIndex}
-              menuId={menuId}
-              buttonId={undefined}
-              valueIndex={undefined}
-            />
+            {selectionCountLabel}
           </div>
-        </div>
-      )}
-    </dialog>
+        )}
+        <AppMenu
+          onAction={handleAction}
+          aria-label="Context menu"
+          className="w-fit text-sm overflow-hidden"
+          autoFocus="first"
+        >
+          {items.map((item) => (
+            <AppMenuItem key={item.value} id={item.value}>
+              {item.label}
+            </AppMenuItem>
+          ))}
+        </AppMenu>
+      </Popover>
+    </>
   );
 }

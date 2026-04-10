@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { useState } from 'react';
-import { getDefaultButtonVariants } from '../../../animations';
+import type { Key } from 'react-aria-components';
+import { Button } from 'react-aria-components';
 import {
   dialogDataAtom,
   isFullscreenAtom,
@@ -21,8 +21,12 @@ import { TagPlus } from '../../../icons/tag-plus';
 import { Table } from '../../../icons/table';
 import { Trash } from '../../../icons/trash';
 import type { ProjectSettings } from '../../../types';
-import { MotionIconButton } from '../../buttons';
-import { DropdownMenu } from '../../dropdown/dropdown-menu';
+import {
+  AppMenu,
+  AppMenuItem,
+  AppMenuPopover,
+  AppMenuTrigger,
+} from '../../menu';
 import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
 import type { Frontmatter } from '../../../types';
 import { Tooltip } from '../../tooltip';
@@ -39,7 +43,6 @@ export function SettingsDropdown({
   isToolbarDisabled: boolean;
   frontmatter: Frontmatter;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
   const isFullscreen = useAtomValue(isFullscreenAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const isPinned = projectSettings.pinnedNotes.has(`${folder}/${note}.md`);
@@ -53,7 +56,7 @@ export function SettingsDropdown({
 
   const items = [
     {
-      value: 'reveal-in-finder',
+      id: 'reveal-in-finder',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <Finder className="min-w-5" height="1.125rem" width="1.125rem" />{' '}
@@ -62,7 +65,7 @@ export function SettingsDropdown({
       ),
     },
     {
-      value: isPinned ? 'unpin-note' : 'pin-note',
+      id: isPinned ? 'unpin-note' : 'pin-note',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <PinTack2 className="min-w-5" height="1.125rem" width="1.125rem" />{' '}
@@ -71,7 +74,7 @@ export function SettingsDropdown({
       ),
     },
     {
-      value: 'edit-tags',
+      id: 'edit-tags',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <TagPlus className="min-w-5" height="1.125rem" width="1.125rem" />{' '}
@@ -80,7 +83,7 @@ export function SettingsDropdown({
       ),
     },
     {
-      value:
+      id:
         frontmatter.showTableOfContents === 'true'
           ? 'hide-table-of-contents'
           : 'show-table-of-contents',
@@ -94,7 +97,7 @@ export function SettingsDropdown({
       ),
     },
     {
-      value: 'move-to-trash',
+      id: 'move-to-trash',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <Trash className="min-w-5" height="1.125rem" width="1.125rem" /> Move
@@ -104,105 +107,106 @@ export function SettingsDropdown({
     },
   ];
 
-  return (
-    <DropdownMenu
-      items={items}
-      isOpen={isOpen}
-      setIsOpen={setIsOpen}
-      className="ml-auto flex flex-col"
-      dropdownClassName="w-52 right-4 top-12"
-      onChange={(item) => {
-        switch (item.value) {
-          case 'pin-note':
-          case 'unpin-note': {
-            const newPinnedNotes = new Set(projectSettings.pinnedNotes);
-            if (item.value === 'pin-note') {
-              newPinnedNotes.add(`${folder}/${note}.md`);
-            } else {
-              newPinnedNotes.delete(`${folder}/${note}.md`);
-            }
-            const newProjectSettings: ProjectSettings = {
-              ...projectSettings,
-              pinnedNotes: newPinnedNotes,
-            };
-            updateProjectSettings({
-              newProjectSettings,
-            });
+  function handleAction(key: Key) {
+    switch (key) {
+      case 'pin-note':
+      case 'unpin-note': {
+        const newPinnedNotes = new Set(projectSettings.pinnedNotes);
+        if (key === 'pin-note') {
+          newPinnedNotes.add(`${folder}/${note}.md`);
+        } else {
+          newPinnedNotes.delete(`${folder}/${note}.md`);
+        }
+        const newProjectSettings: ProjectSettings = {
+          ...projectSettings,
+          pinnedNotes: newPinnedNotes,
+        };
+        updateProjectSettings({
+          newProjectSettings,
+        });
+        break;
+      }
+      case 'show-table-of-contents':
+      case 'hide-table-of-contents': {
+        const copyOfFrontmatter = { ...frontmatter };
+        copyOfFrontmatter.showTableOfContents =
+          key === 'show-table-of-contents' ? 'true' : 'false';
 
-            break;
-          }
-          case 'show-table-of-contents':
-          case 'hide-table-of-contents': {
-            const copyOfFrontmatter = { ...frontmatter };
-            copyOfFrontmatter.showTableOfContents =
-              item.value === 'show-table-of-contents' ? 'true' : 'false';
-
-            editor.update(() => {
-              editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, {
-                newFrontmatter: copyOfFrontmatter,
-              });
-            });
-            break;
-          }
-          case 'reveal-in-finder': {
-            revealInFinder({
-              selectionRange: new Set([`note:${note}.md`]),
+        editor.update(() => {
+          editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, {
+            newFrontmatter: copyOfFrontmatter,
+          });
+        });
+        break;
+      }
+      case 'reveal-in-finder': {
+        revealInFinder({
+          selectionRange: new Set([`note:${note}.md`]),
+          folder,
+        });
+        break;
+      }
+      case 'edit-tags': {
+        const selectionRange = new Set([`note:${note}.md`]);
+        setDialogData({
+          isOpen: true,
+          isPending: false,
+          title: 'Edit Tags',
+          dialogClassName: 'w-[min(30rem,90vw)]',
+          children: (errorText) => (
+            <EditTagDialogChildren
+              selectionRange={selectionRange}
+              folder={folder}
+              errorText={errorText}
+            />
+          ),
+          onSubmit: async (e, setErrorText) => {
+            return await editTags({
+              e,
+              setErrorText,
+              selectionRange,
               folder,
             });
-            break;
-          }
-          case 'edit-tags': {
-            const selectionRange = new Set([`note:${note}.md`]);
-            setDialogData({
-              isOpen: true,
-              isPending: false,
-              title: 'Edit Tags',
-              dialogClassName: 'w-[min(30rem,90vw)]',
-              children: (errorText) => (
-                <EditTagDialogChildren
-                  selectionRange={selectionRange}
-                  folder={folder}
-                  errorText={errorText}
-                />
-              ),
-              onSubmit: async (e, setErrorText) => {
-                return await editTags({
-                  e,
-                  setErrorText,
-                  selectionRange,
-                  folder,
-                });
-              },
-            });
-            break;
-          }
-          case 'move-to-trash': {
-            moveToTrash({ paths: [`${folder}/${note}.md`] });
-            break;
-          }
-        }
-      }}
-    >
-      {({ buttonId, menuId, isOpen, handleKeyDown, handleClick }) => (
+          },
+        });
+        break;
+      }
+      case 'move-to-trash': {
+        moveToTrash({ paths: [`${folder}/${note}.md`] });
+        break;
+      }
+    }
+  }
+
+  return (
+    <div className="ml-auto flex flex-col">
+      <AppMenuTrigger>
         <Tooltip content="Note settings" placement="left" delay={{ open: 50 }}>
-          <MotionIconButton
-            id={buttonId}
-            onClick={handleClick}
-            onKeyDown={handleKeyDown}
-            aria-haspopup="listbox"
-            aria-expanded={isOpen}
-            aria-controls={isOpen ? menuId : undefined}
+          <Button
             aria-label="Note settings menu"
-            className={cn(
-              !isFullscreen && 'rounded-tr-2xl',
-              isOpen && 'bg-zinc-100 dark:bg-zinc-700'
-            )}
-            {...getDefaultButtonVariants({ disabled: isToolbarDisabled })}
+            isDisabled={isToolbarDisabled}
+            className={({ isHovered, isPressed }) =>
+              cn(
+                'bg-transparent border-0 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform outline-hidden transition-transform',
+                !isFullscreen && 'rounded-tr-2xl',
+                isHovered && 'scale-105',
+                isPressed && 'scale-[0.975]'
+              )
+            }
           >
             <HorizontalDots />
-          </MotionIconButton>
+          </Button>
         </Tooltip>
-      )}
-    </DropdownMenu>
+        <AppMenuPopover className="w-52">
+          <AppMenu onAction={handleAction}>
+            {items.map((item) => (
+              <AppMenuItem key={item.id} id={item.id}>
+                {item.label}
+              </AppMenuItem>
+            ))}
+          </AppMenu>
+        </AppMenuPopover>
+      </AppMenuTrigger>
+    </div>
   );
 }

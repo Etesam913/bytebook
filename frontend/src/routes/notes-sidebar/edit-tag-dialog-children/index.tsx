@@ -1,7 +1,6 @@
-import { type RefCallback, useRef, useState } from 'react';
+import { type RefCallback, useState } from 'react';
 import { RouteFallback } from '../../../components/route-fallback';
 import { useTagsForNotesQuery, useTagsQuery } from '../../../hooks/tags';
-import { useCombobox } from '../../../hooks/combobox';
 import { MotionButton } from '../../../components/buttons';
 import { getDefaultButtonVariants } from '../../../animations';
 import { TagPlus } from '../../../icons/tag-plus';
@@ -115,17 +114,8 @@ export function EditTagDialogChildren({
       ?.filter((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       .sort((a, b) => a.localeCompare(b)) || [];
 
-  const tagInputRef = useRef<HTMLInputElement | null>(null);
-  const tagListRef = useRef<HTMLElement | null>(null);
-  const combobox = useCombobox({
-    itemCount: displayedTags.length,
-    inputRef: tagInputRef,
-    listRef: tagListRef,
-  });
-
   const inputRefCallback: RefCallback<HTMLInputElement> = (node) => {
     node?.focus();
-    tagInputRef.current = node;
   };
 
   // The onSubmit for the dialog needs to get data for all checkboxes that are
@@ -177,7 +167,6 @@ export function EditTagDialogChildren({
                 isLoading={areTagsLoading}
                 hasError={areTagsError}
                 inputRef={inputRefCallback}
-                comboboxInputProps={combobox.getInputProps()}
               />
               <TagSelectionList
                 displayedTags={displayedTags}
@@ -186,9 +175,6 @@ export function EditTagDialogChildren({
                 searchTerm={searchTerm}
                 setSelectedTagCounts={setSelectedTagCounts}
                 onCreateTag={handleCreateTag}
-                listRef={tagListRef}
-                comboboxListProps={combobox.getListProps()}
-                getComboboxItemProps={combobox.getItemProps}
               />
             </>
           )}

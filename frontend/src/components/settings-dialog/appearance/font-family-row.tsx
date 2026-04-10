@@ -45,7 +45,7 @@ export function FontFamilyRow() {
         />
         <MotionIconButton
           {...getDefaultButtonVariants()}
-          disabled={fontFamilyInputValue.trim().length === 0}
+          isDisabled={fontFamilyInputValue.trim().length === 0}
           onClick={() => {
             setFontFamilyInputValue('Bricolage Grotesque');
             updateProjectSettings({
