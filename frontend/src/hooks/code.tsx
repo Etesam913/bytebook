@@ -42,7 +42,7 @@ import {
   CODE_BLOCK_INPUT_REQUEST,
 } from '../utils/events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
-import { Dispatch, FormEvent, SetStateAction } from 'react';
+import { Dispatch, SetStateAction } from 'react';
 import { runCode } from '../utils/code';
 import { CodeMirrorRef } from '../components/code/types';
 
@@ -663,7 +663,7 @@ export function useTurnOnKernelMutation({
 }
 
 type pythonVenvMutationParams = {
-  e: FormEvent<HTMLFormElement>;
+  formData: FormData;
   setErrorText: Dispatch<SetStateAction<string>>;
 };
 
@@ -685,19 +685,10 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
 
   return useMutation({
     mutationFn: async (variables: pythonVenvMutationParams) => {
-      const { e } = variables;
-      e.preventDefault();
-      const form = e.target as HTMLFormElement;
-      const formData = new FormData(form);
+      const { formData } = variables;
       const selectedVenvPath = formData.get('venv-path-option');
-      const elementForSelectedVenvPath = form.querySelector(
-        'input[name="venv-path-option"]:checked'
-      );
-      if (
-        !elementForSelectedVenvPath ||
-        typeof selectedVenvPath !== 'string' ||
-        !selectedVenvPath
-      ) {
+      const customVenvPathValue = formData.get('custom-venv-path-value');
+      if (typeof selectedVenvPath !== 'string' || !selectedVenvPath) {
         throw new Error('No virtual environment path provided');
       }
 
@@ -708,7 +699,11 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
       let newCustomVenvPaths = projectSettings.code.customPythonVenvPaths;
       // If the custom venv radio button is selected, then add the path to the list of custom paths so
       // that it can be shown as a radio button when the dialog is opened in the future
-      if (elementForSelectedVenvPath.id === 'custom-venv-path') {
+      if (
+        typeof customVenvPathValue === 'string' &&
+        customVenvPathValue !== '' &&
+        selectedVenvPath === customVenvPathValue
+      ) {
         newCustomVenvPaths = [
           ...new Set([
             ...projectSettings.code.customPythonVenvPaths,

@@ -35,7 +35,7 @@ export function AppMenuPopover({
       {...props}
       className={({ isEntering, isExiting }) =>
         cn(
-          'rounded-md border-[0.078125rem] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700 overflow-hidden',
+          'rounded-md border-[0.078125rem] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700 overflow-hidden font-display',
           // CSS opacity transition keeps Popover mounted during exit
           'transition-opacity',
           (isEntering || isExiting) && 'duration-500',

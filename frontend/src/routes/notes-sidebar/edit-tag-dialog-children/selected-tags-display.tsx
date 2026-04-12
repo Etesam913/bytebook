@@ -1,6 +1,12 @@
 import { Tag } from '../../../components/editor/bottom-bar/tag';
 import { Dispatch, SetStateAction } from 'react';
 
+/**
+ * Renders the chips for tags that are currently applied (fully or partially)
+ * to the selected notes. Tags that are only partially selected show a badge
+ * with the count of notes that have them. Clicking a tag's delete button
+ * clears it from the selection.
+ */
 export function SelectedTagsDisplay({
   selectedTagCounts,
   setSelectedTagCounts,
@@ -28,7 +34,10 @@ export function SelectedTagsDisplay({
     return null;
   }
 
-  // Handler for removing tags from selected display
+  /**
+   * Clears a tag from the current selection (sets its count to 0) and also
+   * removes it from the locally-created-but-not-yet-saved set if present.
+   */
   const handleRemoveTag = (tagName: string) => {
     setSelectedTagCounts((prev) => {
       const next = new Map(prev);

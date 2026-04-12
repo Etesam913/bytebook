@@ -1,10 +1,16 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { type FormEvent, useEffect, useRef, useState } from 'react';
+import { useAtom, useSetAtom } from 'jotai';
+import { useRef, useState } from 'react';
 import useMeasure from 'react-use-measure';
+import {
+  Dialog as AriaDialog,
+  Form,
+  Heading,
+  Modal,
+  ModalOverlay,
+} from 'react-aria-components';
 import { easingFunctions, getDefaultButtonVariants } from '../../animations';
 import { dialogDataAtom, sidebarSelectionAtom } from '../../atoms';
-import { editorAtom } from '../editor/atoms';
 import { XMark } from '../../icons/circle-xmark';
 import { cn } from '../../utils/string-formatting';
 import { MotionIconButton } from '../buttons';
@@ -48,10 +54,9 @@ export function DialogErrorText({
 
 export function Dialog() {
   const [dialogData, setDialogData] = useAtom(dialogDataAtom);
-  const editor = useAtomValue(editorAtom);
   const [errorText, setErrorText] = useState('');
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const closeDialog = () => {
     dialogData.onClose?.();
@@ -67,120 +72,51 @@ export function Dialog() {
     setSidebarSelection((prev) => ({ ...prev, selections: new Set() }));
   };
 
-  // Handle dialog open/close and event listeners
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    if (dialogData.isOpen) {
-      editor?.blur();
-      dialog.showModal();
-    }
-
-    const handleCancel = (e: Event) => {
-      e.preventDefault();
-      setDialogData((prev) =>
-        prev.isOpen ? { ...prev, isOpen: false } : prev
-      );
-    };
-
-    const handleClose = () => {
-      if (dialogData.isOpen) {
-        closeDialog();
-      }
-    };
-
-    dialog.addEventListener('cancel', handleCancel);
-    dialog.addEventListener('close', handleClose);
-
-    return () => {
-      dialog.removeEventListener('cancel', handleCancel);
-      dialog.removeEventListener('close', handleClose);
-    };
-  }, [dialogData.isOpen, editor, dialogData.onClose, setDialogData]);
-
   return (
-    <dialog
-      ref={dialogRef}
-      aria-modal="true"
-      aria-labelledby="dialog-title"
-      className="fixed inset-0 z-40 bg-transparent border-none p-0 max-w-none max-h-none w-full h-full backdrop:bg-transparent"
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          e.preventDefault();
-
-          // We cannot rely on the dialog default on escape as it will also exit fullscreen mode
-          setDialogData((prev) =>
-            prev.isOpen ? { ...prev, isOpen: false } : prev
-          );
-          return;
-        }
-
-        if (e.metaKey && e.key === 'Enter') {
-          const form = dialogRef.current?.querySelector('form');
-          form?.requestSubmit();
-        }
+    <ModalOverlay
+      isDismissable
+      isOpen={dialogData.isOpen}
+      onOpenChange={(open) => {
+        if (!open) closeDialog();
       }}
+      className="fixed inset-0 z-40 bg-black/40 font-display"
     >
-      <AnimatePresence
-        onExitComplete={() => {
-          dialogRef.current?.close();
-          closeDialog();
-        }}
-      >
-        {dialogData.isOpen && (
-          <>
-            <motion.div
-              key="shade"
-              className="fixed inset-0 z-50 bg-black/40"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() =>
-                dialogData.isOpen &&
-                setDialogData((prev) => ({ ...prev, isOpen: false }))
+      <Modal className="fixed inset-0 z-60 flex items-center justify-center">
+        <AriaDialog className="outline-none">
+          <div
+            onKeyDown={(e) => {
+              if (e.metaKey && e.key === 'Enter') {
+                formRef.current?.requestSubmit();
               }
-            />
-
-            <motion.form
-              key="modal-form"
-              onSubmit={(e: FormEvent<HTMLFormElement>) => {
-                e.preventDefault();
+            }}
+          >
+            <Form
+              ref={formRef}
+              action={async (formData) => {
                 if (!dialogData.onSubmit) return;
 
-                void (async () => {
-                  setDialogData((prev) => ({ ...prev, isPending: true }));
-                  const result = await dialogData.onSubmit!(e, setErrorText);
-                  setDialogData((prev) => ({ ...prev, isPending: false }));
+                setDialogData((prev) => ({ ...prev, isPending: true }));
+                const result = await dialogData.onSubmit(
+                  formData,
+                  setErrorText
+                );
+                setDialogData((prev) => ({ ...prev, isPending: false }));
 
-                  if (result) {
-                    setDialogData((prev) => ({ ...prev, isOpen: false }));
-                  }
-                })();
-              }}
-              style={{ x: '-50%', y: '-50%' }}
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-                transition: { ease: easingFunctions['ease-out-circ'] },
-              }}
-              exit={{
-                opacity: 0,
-                scale: 0.5,
-                transition: { ease: easingFunctions['ease-out-quint'] },
+                if (result) {
+                  closeDialog();
+                }
               }}
               className={cn(
-                'fixed left-1/2 top-1/2 z-60 bg-zinc-50 dark:bg-zinc-800 py-3 w-[min(368px,90vw)] rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 max-h-11/12 flex flex-col',
+                'bg-zinc-50 dark:bg-zinc-800 py-3 w-[min(368px,90vw)] rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 max-h-11/12 flex flex-col relative',
                 dialogData.dialogClassName
               )}
             >
-              <h2
-                id="dialog-title"
+              <Heading
+                slot="title"
                 className="px-3 text-xl pb-2 border-b-2 border-zinc-150 dark:border-zinc-750"
               >
                 {dialogData.title}
-              </h2>
+              </Heading>
 
               <div className="py-2 px-3 overflow-x-hidden flex flex-col gap-5 flex-1 min-h-0">
                 {dialogData.children?.(errorText, dialogData.isPending)}
@@ -188,19 +124,17 @@ export function Dialog() {
 
               <MotionIconButton
                 {...getDefaultButtonVariants()}
-                onClick={() =>
-                  setDialogData((prev) => ({ ...prev, isOpen: false }))
-                }
+                onClick={closeDialog}
                 className="absolute top-2 right-2"
                 type="button"
                 aria-label="Close dialog"
               >
                 <XMark />
               </MotionIconButton>
-            </motion.form>
-          </>
-        )}
-      </AnimatePresence>
-    </dialog>
+            </Form>
+          </div>
+        </AriaDialog>
+      </Modal>
+    </ModalOverlay>
   );
 }

@@ -1,4 +1,4 @@
-import type { Dispatch, FormEvent, ReactNode, SetStateAction } from 'react';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import {
   AppearanceProjectSettingsJson,
   ProjectSettingsJson,
@@ -38,7 +38,7 @@ export type DialogDataType = {
   dialogClassName?: string;
   onSubmit:
     | ((
-        e: FormEvent<HTMLFormElement>,
+        formData: FormData,
         setErrorText: Dispatch<SetStateAction<string>>
       ) => Promise<boolean>)
     | null;

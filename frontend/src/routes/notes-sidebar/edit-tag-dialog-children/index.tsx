@@ -9,6 +9,12 @@ import { TagSearchInput } from './tag-search-input';
 import { SelectedTagsDisplay } from './selected-tags-display';
 import { TagSelectionList } from './tag-selection-list';
 
+/**
+ * Dialog body for editing tags across one or more selected notes. Renders the
+ * search input, selection list, and currently-selected tag chips, and emits
+ * the final add/remove tag lists through hidden form inputs so the parent
+ * Dialog's Form action can submit them as FormData.
+ */
 export function EditTagDialogChildren({
   selectionRange,
   folder,
@@ -65,6 +71,11 @@ export function EditTagDialogChildren({
 
   const selectedTagCounts = mergeTagCounts(baseTagCounts, currentOverrides);
 
+  /**
+   * Updates the selected tag counts. Stores only the diff against the current
+   * base counts (overrides) so that when the base data refetches, previously
+   * stale user selections are cleanly discarded.
+   */
   function setSelectedTagCounts(
     action:
       | Map<string, number>
@@ -93,7 +104,10 @@ export function EditTagDialogChildren({
     });
   }
 
-  // Function to handle creating a new tag
+  /**
+   * Records a newly-created tag locally (it doesn't exist in the backend yet)
+   * and marks it as fully selected for all currently-selected notes.
+   */
   const handleCreateTag = (tagName: string) => {
     setTagsCreatedButNotSaved((prev) => [...new Set([...prev, tagName])]);
     setSelectedTagCounts((prev) => {
@@ -114,6 +128,9 @@ export function EditTagDialogChildren({
       ?.filter((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       .sort((a, b) => a.localeCompare(b)) || [];
 
+  /**
+   * Ref callback that autofocuses the tag search input when it mounts.
+   */
   const inputRefCallback: RefCallback<HTMLInputElement> = (node) => {
     node?.focus();
   };
@@ -143,10 +160,17 @@ export function EditTagDialogChildren({
   const anyTagDataLoading = areTagsLoading || areTagsForSelectedNotesLoading;
 
   return (
-    <fieldset
-      className="flex flex-col gap-2"
-      data-tags-to-add-or-remove={JSON.stringify(tagsToAddOrRemove)}
-    >
+    <fieldset className="flex flex-col gap-2">
+      <input
+        type="hidden"
+        name="tag-names-to-add"
+        value={JSON.stringify(tagsToAddOrRemove.tagNamesToAdd)}
+      />
+      <input
+        type="hidden"
+        name="tag-names-to-remove"
+        value={JSON.stringify(tagsToAddOrRemove.tagNamesToRemove)}
+      />
       <p>Select tags to add to or remove from {totalSelectedNotes} note(s) </p>
 
       <SelectedTagsDisplay
@@ -202,6 +226,11 @@ export function EditTagDialogChildren({
   );
 }
 
+/**
+ * Builds a map of tag name → number of selected notes that have that tag.
+ * A count equal to the total number of selected notes means every selected
+ * note has the tag; anything in between represents partial selection.
+ */
 function buildBaseTagCounts(
   tagsForSelectedNotes: Record<string, string[] | undefined> | undefined | null
 ) {
@@ -220,6 +249,11 @@ function buildBaseTagCounts(
   return tagCounts;
 }
 
+/**
+ * Produces a stable string key representing a tag counts map. Used to detect
+ * when the server-derived base counts have changed so stale user overrides
+ * can be dropped.
+ */
 function createTagCountsKey(tagCounts: Map<string, number>) {
   const entries = Array.from(tagCounts.entries()).sort(([a], [b]) =>
     a.localeCompare(b)
@@ -227,6 +261,10 @@ function createTagCountsKey(tagCounts: Map<string, number>) {
   return JSON.stringify(entries);
 }
 
+/**
+ * Returns a new map composed of the base tag counts with the user's override
+ * entries layered on top.
+ */
 function mergeTagCounts(
   base: Map<string, number>,
   overrides: Map<string, number>

@@ -58,6 +58,11 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
 
   return (
     <section className="flex flex-col gap-3.5">
+      <input
+        type="hidden"
+        name="custom-venv-path-value"
+        value={customVenvPath ?? ''}
+      />
       <p>
         A Python virtual environment is required to run Python code so that
         dependencies can be isolated from the system Python installation.

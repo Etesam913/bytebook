@@ -115,8 +115,8 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
           title: 'Change Python Virtual Environment',
           dialogClassName: 'w-[min(40rem,90vw)]',
           children: (errorText) => <PythonVenvDialog errorText={errorText} />,
-          onSubmit: async (e, setErrorText) => {
-            return await submitPythonVenv({ e, setErrorText });
+          onSubmit: async (formData, setErrorText) => {
+            return await submitPythonVenv({ formData, setErrorText });
           },
         });
         break;

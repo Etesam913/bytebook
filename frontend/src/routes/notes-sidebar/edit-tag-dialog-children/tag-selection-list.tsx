@@ -5,6 +5,13 @@ import { cn } from '../../../utils/string-formatting';
 import { TagPlus } from '../../../icons/tag-plus';
 import type { Key, Selection } from 'react-aria-components';
 
+/**
+ * Scrollable multi-select list of tags shown in the Edit Tags dialog. A tag
+ * is considered selected when every currently-selected note has it;
+ * otherwise its checkbox is rendered in an indeterminate state. When the
+ * search term doesn't match any existing tag, a "Create tag" row appears at
+ * the top.
+ */
 export function TagSelectionList({
   displayedTags,
   selectedTagCounts,
@@ -36,6 +43,12 @@ export function TagSelectionList({
     })
   );
 
+  /**
+   * Maps a ListBox selection change to tag count updates: newly-selected tags
+   * get bumped to `totalSelectedNotes` (fully applied), newly-deselected tags
+   * drop to 0 (fully removed). Tags whose membership didn't change in this
+   * event are left untouched so partial selections aren't clobbered.
+   */
   function handleSelectionChange(keys: Selection) {
     // keys is either "all" or a Set<Key>
     const newSelected = keys === 'all' ? new Set(displayedTags) : keys;
@@ -87,6 +100,11 @@ export function TagSelectionList({
             const isIndeterminate =
               tagCount > 0 && tagCount < totalSelectedNotes;
 
+            /**
+             * Builds the screen-reader label describing the tag's selection
+             * state (fully selected, partially selected with count, or
+             * unselected).
+             */
             const getAriaLabel = () => {
               if (isIndeterminate) {
                 return `${item.name} tag, partially selected (${tagCount} of ${totalSelectedNotes} notes)`;

@@ -1,6 +1,12 @@
 import type { RefCallback } from 'react';
 import { Input } from '../../../components/input';
 
+/**
+ * Text input used inside the Edit Tags dialog for filtering the tag list and
+ * for creating new tags. Pressing Enter on a non-empty query creates a new
+ * tag with that name. Renders nothing while the tags query is loading or
+ * errored.
+ */
 export function TagSearchInput({
   searchTerm,
   onSearchTermChange,

@@ -65,8 +65,7 @@ export function useSaveSearchDialog(): (searchQuery: string) => void {
           </MotionButton>
         </>
       ),
-      onSubmit: async (e, setErrorText) => {
-        const formData = new FormData(e.target as HTMLFormElement);
+      onSubmit: async (formData, setErrorText) => {
         const name = formData.get('search-name') as string;
 
         if (!name.trim()) {
@@ -168,8 +167,7 @@ export function useCreateTableDialog(): (
           </MotionButton>
         </>
       ),
-      onSubmit: (e, setErrorText) => {
-        const formData = new FormData(e.target as HTMLFormElement);
+      onSubmit: (formData, setErrorText) => {
         const rows = formData.get('table-rows') as string;
         const columns = formData.get('table-columns') as string;
 

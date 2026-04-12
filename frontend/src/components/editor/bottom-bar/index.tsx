@@ -129,9 +129,9 @@ export function BottomBar({
                   errorText={errorText}
                 />
               ),
-              onSubmit: async (e, setErrorText) => {
+              onSubmit: async (formData, setErrorText) => {
                 return await editTags({
-                  e,
+                  formData,
                   setErrorText,
                   selectionRange,
                   folder: filePath.folder,

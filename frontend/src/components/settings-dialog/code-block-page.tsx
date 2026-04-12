@@ -45,8 +45,8 @@ export function CodeBlockPage() {
                 children: (errorText) => (
                   <PythonVenvDialog errorText={errorText} />
                 ),
-                onSubmit: async (e, setErrorText) => {
-                  return await submitPythonVenv({ e, setErrorText });
+                onSubmit: async (formData, setErrorText) => {
+                  return await submitPythonVenv({ formData, setErrorText });
                 },
               });
             }}

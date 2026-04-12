@@ -9,7 +9,7 @@ import {
   SetTagsOnNotes,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 import { QueryError } from '../utils/query';
-import { Dispatch, FormEvent, SetStateAction } from 'react';
+import { Dispatch, SetStateAction } from 'react';
 import { getSelectionValue } from '../utils/selection';
 import { useFilePathFromRoute } from './routes';
 
@@ -73,35 +73,28 @@ export function useTagsForNotesQuery(paths: string[]) {
 
 /**
  * Custom hook to handle editing tags for notes via form submission.
- * Extracts tag data from form's fieldset data attribute and calls EditTagsForNotes.
+ * Extracts tag data from the submitted FormData and calls EditTagsForNotes.
  */
 export function useEditTagsFormMutation() {
   return useMutation({
     mutationFn: async ({
-      e,
+      formData,
       setErrorText,
       selectionRange,
       folder,
     }: {
-      e: FormEvent<HTMLFormElement>;
+      formData: FormData;
       setErrorText: Dispatch<SetStateAction<string>>;
       selectionRange: Set<string>;
       folder: string;
     }) => {
       try {
-        // Get the tags to add or delete from the data attribute
-        const fieldset = (e.target as HTMLFormElement).querySelector(
-          'fieldset[data-tags-to-add-or-remove]'
-        ) as HTMLFieldSetElement;
-
-        const tagsData = fieldset?.getAttribute('data-tags-to-add-or-remove');
-        const parsedTagsData = tagsData
-          ? (JSON.parse(tagsData) as {
-              tagNamesToAdd: string[];
-              tagNamesToRemove: string[];
-            })
-          : { tagNamesToAdd: [] as string[], tagNamesToRemove: [] as string[] };
-        const { tagNamesToAdd, tagNamesToRemove } = parsedTagsData;
+        const tagNamesToAdd = JSON.parse(
+          (formData.get('tag-names-to-add') as string) ?? '[]'
+        ) as string[];
+        const tagNamesToRemove = JSON.parse(
+          (formData.get('tag-names-to-remove') as string) ?? '[]'
+        ) as string[];
 
         const filePaths = [...selectionRange].map((entry) => {
           const note = getSelectionValue(entry) ?? entry;
