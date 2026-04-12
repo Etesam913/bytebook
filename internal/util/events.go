@@ -17,13 +17,14 @@ var Events = struct {
 	ZoomOut             string
 	ZoomReset           string
 	SettingsOpen        string
-	SearchOpen          string
 	SearchNote          string
 	NewNoteMenu         string
 	FolderCreateMenu    string
 	Fullscreen          string
 	WindowReload        string
 	ToggleSidebar       string
+	SidebarFilesOpen    string
+	SidebarSearchOpen   string
 	FileTreeContentDrop string
 
 	// Context Menu events
@@ -67,13 +68,14 @@ var Events = struct {
 	ZoomOut:             "zoom:out",
 	ZoomReset:           "zoom:reset",
 	SettingsOpen:        "settings:open",
-	SearchOpen:          "search:open",
 	SearchNote:          "search:note",
 	NewNoteMenu:         "note:create-dialog",
 	FolderCreateMenu:    "folder:create-dialog",
 	Fullscreen:          "window:fullscreen",
 	WindowReload:        "window:reload",
 	ToggleSidebar:       "sidebar:toggle",
+	SidebarFilesOpen:    "sidebar:files:open",
+	SidebarSearchOpen:   "sidebar:search:open",
 	FileTreeContentDrop: "file-tree:content-drop",
 
 	// Context Menu events

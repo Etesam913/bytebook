@@ -70,7 +70,7 @@ func configureToggleFullscreen(menu *application.Menu) {
 		return
 	}
 	item.RemoveAccelerator()
-	item.SetAccelerator("shift+cmd+f")
+	item.SetAccelerator("ctrl+cmd+f")
 }
 
 // configureViewMenu sets up the "Search Through Notes" submenu item and its accelerator and click handler.
@@ -94,15 +94,28 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 		}
 	})
 
-	searchPage := sub.Add("Search Through Notes")
-	searchPage.SetAccelerator("cmdorctrl+p")
-	searchPage.OnClick(func(ctx *application.Context) {
+	openFileSidebar := sub.Add("Open File Sidebar")
+	openFileSidebar.SetAccelerator("shift+cmdorctrl+e")
+	openFileSidebar.OnClick(func(ctx *application.Context) {
 		win := app.Window.Current()
 		if win != nil {
-			win.EmitEvent(util.Events.SearchOpen, map[string]any{})
+			win.EmitEvent(util.Events.SidebarFilesOpen, map[string]any{})
 		} else {
 			log.Println(
-				"Current window could not be found: search:open event could not be emitted",
+				"Current window could not be found: sidebar:files:open event could not be emitted",
+			)
+		}
+	})
+
+	openSearchSidebar := sub.Add("Open Search Sidebar")
+	openSearchSidebar.SetAccelerator("shift+cmdorctrl+f")
+	openSearchSidebar.OnClick(func(ctx *application.Context) {
+		win := app.Window.Current()
+		if win != nil {
+			win.EmitEvent(util.Events.SidebarSearchOpen, map[string]any{})
+		} else {
+			log.Println(
+				"Current window could not be found: sidebar:search:open event could not be emitted",
 			)
 		}
 	})

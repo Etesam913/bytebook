@@ -1,4 +1,5 @@
 import { useEffect, type RefObject } from 'react';
+import { useSetAtom } from 'jotai';
 import { useLocation } from 'wouter';
 import {
   navigate,
@@ -7,12 +8,17 @@ import {
 import { useWailsEvent } from '../../hooks/events';
 import { MotionIconButton } from '../buttons';
 import { getDefaultButtonVariants } from '../../animations';
+import { isNoteMaximizedAtom } from '../../atoms';
 import { Note } from '../../icons/page';
 import { Magnifier } from '../../icons/magnifier';
 import { Tooltip } from '../tooltip';
 import { isSearchSidebarRoute } from '../../utils/sidebar-routes';
 import { cn } from '../../utils/string-formatting';
-import { isEventInCurrentWindow, SEARCH_OPEN } from '../../utils/events';
+import {
+  isEventInCurrentWindow,
+  SIDEBAR_FILES_OPEN,
+  SIDEBAR_SEARCH_OPEN,
+} from '../../utils/events';
 
 export function SidebarModeToggle({
   lastFilesRouteRef,
@@ -24,6 +30,7 @@ export function SidebarModeToggle({
   const [pathname] = useLocation();
   const browserSearch = useBrowserSearch();
   const isSearchSidebar = isSearchSidebarRoute(pathname);
+  const setIsNoteMaximized = useSetAtom(isNoteMaximizedAtom);
 
   // Ensures that the lastFileRoute or the lastSearchRoute is kept up to date when route changes
   useEffect(() => {
@@ -37,23 +44,29 @@ export function SidebarModeToggle({
     lastFilesRouteRef.current = currentRoute;
   }, [browserSearch, isSearchSidebar, pathname]);
 
-  // Toggles the sidebar mode when the "search:open" event is received
-  useWailsEvent(SEARCH_OPEN, (data) => {
+  useWailsEvent(SIDEBAR_FILES_OPEN, (data) => {
     void (async () => {
       if (!(await isEventInCurrentWindow(data))) return;
-
+      setIsNoteMaximized(false);
       if (isSearchSidebar) {
         navigate(lastFilesRouteRef.current);
-        return;
       }
+    })();
+  });
 
-      navigate(lastSearchRouteRef.current);
+  useWailsEvent(SIDEBAR_SEARCH_OPEN, (data) => {
+    void (async () => {
+      if (!(await isEventInCurrentWindow(data))) return;
+      setIsNoteMaximized(false);
+      if (!isSearchSidebar) {
+        navigate(lastSearchRouteRef.current);
+      }
     })();
   });
 
   return (
     <div className="flex gap-1">
-      <Tooltip content="Files" placement="bottom">
+      <Tooltip content="Files (⌘⇧E)" placement="bottom">
         <MotionIconButton
           {...getDefaultButtonVariants()}
           onClick={() => {
@@ -62,12 +75,15 @@ export function SidebarModeToggle({
             }
           }}
           aria-label="Files"
-          className={cn(!isSearchSidebar && 'bg-zinc-200 dark:bg-zinc-650')}
+          className={cn(
+            !isSearchSidebar &&
+              'bg-zinc-150 dark:bg-zinc-650 text-(--accent-color)'
+          )}
         >
           <Note width="1.125rem" height="1.125rem" />
         </MotionIconButton>
       </Tooltip>
-      <Tooltip content="Search" placement="bottom">
+      <Tooltip content="Search (⌘⇧F)" placement="bottom">
         <MotionIconButton
           {...getDefaultButtonVariants()}
           onClick={() => {
@@ -76,7 +92,10 @@ export function SidebarModeToggle({
             }
           }}
           aria-label="Search"
-          className={cn(isSearchSidebar && 'bg-zinc-200 dark:bg-zinc-650')}
+          className={cn(
+            isSearchSidebar &&
+              'bg-zinc-150 dark:bg-zinc-650 text-(--accent-color)'
+          )}
         >
           <Magnifier width="1rem" height="1rem" />
         </MotionIconButton>

@@ -90,37 +90,37 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
       >
         <header
           className={cn(
-            'px-2.5 ml-auto flex gap-1 pt-3',
-            isFullscreen && 'ml-0'
+            'pr-2.5 flex gap-1 flex items-center justify-between w-full pl-[92px] h-[48px] mt-[4px]',
+            isFullscreen && 'pl-[8px]'
           )}
         >
-          <Tooltip content="Go back">
-            <MotionIconButton
-              {...getDefaultButtonVariants()}
-              onClick={() => window.history.back()}
-              data-testid="go-back-button"
-              aria-label="Go back"
-            >
-              <CircleArrowLeft width="1.125rem" height="1.125rem" />
-            </MotionIconButton>
-          </Tooltip>
-          <Tooltip content="Go forward">
-            <MotionIconButton
-              {...getDefaultButtonVariants()}
-              onClick={() => window.history.forward()}
-              data-testid="go-forward-button"
-              aria-label="Go forward"
-            >
-              <CircleArrowRight width="1.125rem" height="1.125rem" />
-            </MotionIconButton>
-          </Tooltip>
-        </header>
-        <section className="px-2 pt-3">
           <SidebarModeToggle
             lastFilesRouteRef={lastFilesRouteRef}
             lastSearchRouteRef={lastSearchRouteRef}
           />
-        </section>
+          <span>
+            <Tooltip content="Go back">
+              <MotionIconButton
+                {...getDefaultButtonVariants()}
+                onClick={() => window.history.back()}
+                data-testid="go-back-button"
+                aria-label="Go back"
+              >
+                <CircleArrowLeft width="1.125rem" height="1.125rem" />
+              </MotionIconButton>
+            </Tooltip>
+            <Tooltip content="Go forward">
+              <MotionIconButton
+                {...getDefaultButtonVariants()}
+                onClick={() => window.history.forward()}
+                data-testid="go-forward-button"
+                aria-label="Go forward"
+              >
+                <CircleArrowRight width="1.125rem" height="1.125rem" />
+              </MotionIconButton>
+            </Tooltip>
+          </span>
+        </header>
         <Activity mode={isSearchSidebar ? 'hidden' : 'visible'}>
           <section
             ref={panelContainerRef}

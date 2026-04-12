@@ -6,7 +6,7 @@ import { dragItem } from '../../utils/draggable';
 import { MAX_SIDEBAR_WIDTH } from '../../utils/general';
 import { cn } from '../../utils/string-formatting';
 
-const MIN_SIDEBAR_WIDTH = 250;
+const MIN_SIDEBAR_WIDTH = 265;
 
 export function Spacer({ width }: { width: MotionValue<number> }) {
   const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);

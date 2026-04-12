@@ -20,11 +20,12 @@ export const ZOOM_IN = 'zoom:in';
 export const ZOOM_OUT = 'zoom:out';
 export const ZOOM_RESET = 'zoom:reset';
 export const SETTINGS_OPEN = 'settings:open';
-export const SEARCH_OPEN = 'search:open';
 export const SEARCH_NOTE = 'search:note';
 export const FULLSCREEN = 'window:fullscreen';
 export const WINDOW_RELOAD = 'window:reload';
 export const TOGGLE_SIDEBAR = 'sidebar:toggle';
+export const SIDEBAR_FILES_OPEN = 'sidebar:files:open';
+export const SIDEBAR_SEARCH_OPEN = 'sidebar:search:open';
 export const FILE_TREE_CONTENT_DROP = 'file-tree:content-drop';
 
 // Context Menu events
