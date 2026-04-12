@@ -96,7 +96,7 @@ export function SearchSidebarInput({
         }}
         clearable={true}
       />
-      {isOpen && (
+      {/*{isOpen && (
         <div className="absolute z-50 w-72 translate-y-1 rounded-md border-[0.078125rem] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700">
           <AppMenu
             aria-label="Search prefixes"
@@ -112,7 +112,7 @@ export function SearchSidebarInput({
             ))}
           </AppMenu>
         </div>
-      )}
+      )}*/}
     </div>
   );
 }

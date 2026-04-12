@@ -52,14 +52,20 @@ function SearchSidebarItem({
   return (
     <button
       type="button"
+      tabIndex={-1}
       draggable={false}
       className={cn(
-        'flex flex-col gap-y-0.5 py-1.5 px-2 w-full text-left hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2',
-        isActive && 'bg-zinc-150! dark:bg-zinc-700! text-(--accent-color)',
+        'flex flex-col gap-y-0.5 py-1.5 px-2 w-full text-left hover:bg-zinc-100 dark:hover:bg-zinc-650',
+        isActive &&
+          'bg-zinc-150! dark:bg-zinc-700! text-(--accent-color) outline-2 outline-(--accent-color) -outline-offset-2',
         isHighlighted && !isActive && 'bg-zinc-100 dark:bg-zinc-650'
       )}
-      onClick={(e) => {
-        e.currentTarget.focus();
+      onMouseDown={(e) => {
+        // Prevent the button from stealing focus from the search input so
+        // that arrow-key navigation (handled on the input) keeps working.
+        e.preventDefault();
+      }}
+      onClick={() => {
         navigate(routeUrls.search(searchQuery, encodedPath));
       }}
     >
@@ -100,7 +106,7 @@ function SearchSidebarResultNote({
     >
       {firstHighlight && !firstHighlight.isCode && (
         <div
-          className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 overflow-hidden"
+          className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2"
           dangerouslySetInnerHTML={{ __html: firstHighlight.content }}
         />
       )}

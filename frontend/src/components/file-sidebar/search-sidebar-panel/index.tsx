@@ -202,7 +202,19 @@ export function SearchSidebarPanel({
                 isItemActive={(result) => isResultActive(result)}
                 selectionOptions={{ disableSelection: true }}
                 renderItem={({ dataItem, i }) => (
-                  <div {...combobox.getItemProps(i)} className="w-full">
+                  <div
+                    {...combobox.getItemProps(i)}
+                    className="w-full"
+                    onClick={() => {
+                      // Sync combobox state so subsequent ArrowDown/ArrowUp
+                      // navigation continues from the clicked result, and
+                      // keep focus on the search input so the keyboard
+                      // handler receives the events (otherwise the scroll
+                      // container captures them and scrolls instead).
+                      combobox.setFocusedIndex(i);
+                      searchInputRef.current?.focus();
+                    }}
+                  >
                     <SearchSidebarResultItem
                       result={dataItem}
                       searchQuery={internalSearchQuery}
