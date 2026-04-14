@@ -1,3 +1,4 @@
+import { useDeferredValue } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { NoteRenderer } from '../../components/note-renderer';
 import { RouteFallback } from '../../components/route-fallback';
@@ -82,7 +83,8 @@ function RenderErrorFallback({
 }
 
 export function SearchContentArea({ curPath }: { curPath?: string }) {
-  const filePath = curPath ? createFilePath(curPath) : null;
+  const deferredCurPath = useDeferredValue(curPath);
+  const filePath = deferredCurPath ? createFilePath(deferredCurPath) : null;
 
   if (filePath) {
     return (

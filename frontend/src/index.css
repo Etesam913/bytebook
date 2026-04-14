@@ -147,7 +147,8 @@ html:has(.dark) {
 }
 
 /* native keyboard focus */
-:focus-visible {
+:focus-visible,
+[data-focus-visible] {
   @apply outline-2 outline-(--accent-color) border-(--accent-color) shadow-none;
 }
 

@@ -79,9 +79,9 @@ export function Dialog() {
       onOpenChange={(open) => {
         if (!open) closeDialog();
       }}
-      className="fixed inset-0 z-40 bg-black/40 font-display"
+      className="fixed inset-0 z-40 bg-black/40 font-display transition-opacity duration-150 ease-out data-[entering]:opacity-0 data-[exiting]:opacity-0"
     >
-      <Modal className="fixed inset-0 z-60 flex items-center justify-center">
+      <Modal className="fixed inset-0 z-60 flex items-center justify-center transition duration-150 ease-out data-[entering]:opacity-0 data-[entering]:scale-95 data-[exiting]:opacity-0 data-[exiting]:scale-95">
         <AriaDialog className="outline-none">
           <div
             onKeyDown={(e) => {

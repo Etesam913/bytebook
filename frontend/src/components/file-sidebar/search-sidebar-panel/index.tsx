@@ -1,4 +1,10 @@
-import { type RefObject, useRef, useState } from 'react';
+import {
+  type RefObject,
+  startTransition,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { motion } from 'motion/react';
 import { navigate } from 'wouter/use-browser-location';
 import { useRoute } from 'wouter';
@@ -40,7 +46,9 @@ export function SearchSidebarPanel({
   lastSearchRouteRef: RefObject<string>;
   lastFilesRouteRef: RefObject<string>;
 }) {
-  const [, searchParams] = useRoute<SearchRouteParams>(ROUTE_PATTERNS.SEARCH);
+  const [isSearchRoute, searchParams] = useRoute<SearchRouteParams>(
+    ROUTE_PATTERNS.SEARCH
+  );
   const routeSearchQuery = searchParams?.searchQuery
     ? safeDecodeURIComponent(searchParams.searchQuery)
     : '';
@@ -79,9 +87,11 @@ export function SearchSidebarPanel({
   const navigateToResult = (index: number) => {
     const result = results[index];
     if (result) {
-      navigate(
-        routeUrls.search(internalSearchQuery, result.filePath.encodedPath)
-      );
+      startTransition(() => {
+        navigate(
+          routeUrls.search(internalSearchQuery, result.filePath.encodedPath)
+        );
+      });
     }
   };
 
