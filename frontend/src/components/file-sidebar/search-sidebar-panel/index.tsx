@@ -121,6 +121,14 @@ export function SearchSidebarPanel({
     searchInputRef,
   });
 
+  useEffect(() => {
+    if (!isSearchRoute) return;
+    const input = searchInputRef.current;
+    if (!input) return;
+    input.focus();
+    input.select();
+  }, [isSearchRoute]);
+
   function isResultActive(result: SearchResult): boolean {
     return activeFilePath ? result.filePath.equals(activeFilePath) : false;
   }
