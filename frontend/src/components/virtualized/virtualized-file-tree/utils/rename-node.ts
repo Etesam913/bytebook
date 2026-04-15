@@ -3,6 +3,7 @@ import type { FileTreeData } from '../../../../atoms';
 import {
   getParentNodeFromPath,
   getTreeNodeFromPath,
+  hasLoadedChildren,
   isFileTreeNodeTopLevel,
   isTreeNodeAFile,
   isTreeNodeAFolder,
@@ -31,7 +32,6 @@ function getOriginalLastChildName(
 }
 
 type NodeUpdate = {
-  path: string;
   name: string;
   parentId: string | null;
 };
@@ -104,8 +104,6 @@ export function buildRenameUpdates({
     const treeDataNode = getTreeNodeFromPath(fileTreeData, oldPath);
     if (!treeDataNode || !isValid(treeDataNode)) continue;
 
-    pathRemappings.set(oldPath, newPath);
-
     // For nodes in the tree, also check via parentId (more precise than
     // segment counting for edge cases).
     if (isFileTreeNodeTopLevel(treeDataNode)) {
@@ -114,11 +112,12 @@ export function buildRenameUpdates({
 
     const newName = newSegments[newSegments.length - 1];
     const oldParentId = treeDataNode.parentId;
-    const newParentId =
-      getParentNodeFromPath(fileTreeData, newPath)?.id ?? null;
+    const newParentNode = getParentNodeFromPath(fileTreeData, newPath);
+    const newParentId = newParentNode?.id ?? null;
+
+    pathRemappings.set(oldPath, newPath);
 
     nodeUpdates.set(treeDataNode.id, {
-      path: newPath,
       name: newName,
       parentId: newParentId,
     });
@@ -165,10 +164,13 @@ export function buildRenameUpdates({
 }
 
 /**
- * Applies old->new path remappings to the file tree data.
+ * Applies old->new path remappings to the file tree data and patches each
+ * renamed node's `path`, `name`, and `parentId`.
  *
  * In 'folder' mode, updates the entire subtree (the folder and all descendants)
- * so that paths like `old/sub/file.md` become `new/sub/file.md`.
+ * so that paths like `old/sub/file.md` become `new/sub/file.md`. The directly
+ * renamed folder nodes also receive `name` and `parentId` updates from
+ * `nodeUpdates`.
  *
  * In 'file' mode, updates only the file entry. If the new path collides with an
  * existing different node, the duplicate is removed first.
@@ -176,10 +178,12 @@ export function buildRenameUpdates({
 export function applyPathRemappings({
   fileTreeData,
   pathRemappings,
+  nodeUpdates,
   mode,
 }: {
   fileTreeData: FileTreeData;
   pathRemappings: Map<string, string>;
+  nodeUpdates: Map<string, NodeUpdate>;
   mode: 'file' | 'folder';
 }): FileTreeData {
   const newFilePathToTreeDataId = new Map(fileTreeData.filePathToTreeDataId);
@@ -189,6 +193,8 @@ export function applyPathRemappings({
     for (const [oldFolderPath, newFolderPath] of pathRemappings) {
       const entriesToUpdate: [string, string][] = [];
 
+      // Get every path that is equal or a child of the old folder path.
+      // So that they can be updated to use the new folder path.
       for (const [path, id] of newFilePathToTreeDataId.entries()) {
         if (path === oldFolderPath || path.startsWith(oldFolderPath + '/')) {
           entriesToUpdate.push([path, id]);
@@ -197,16 +203,21 @@ export function applyPathRemappings({
 
       for (const [oldPath, id] of entriesToUpdate) {
         newFilePathToTreeDataId.delete(oldPath);
+        const node = updatedTreeData.get(id);
+        // Directly renamed nodes get full updates (name, parentId);
+        // descendant nodes only need their path prefix rewritten.
+        const nodeUpdate = nodeUpdates.get(id);
+        if (!node || !nodeUpdate) continue;
+
         const newPath =
           oldPath === oldFolderPath
             ? newFolderPath
             : newFolderPath + oldPath.slice(oldFolderPath.length);
         newFilePathToTreeDataId.set(newPath, id);
 
-        const node = updatedTreeData.get(id);
-        if (!node) continue;
         updatedTreeData.set(id, {
           ...node,
+          ...nodeUpdate,
           path: newPath,
         });
       }
@@ -218,6 +229,7 @@ export function applyPathRemappings({
     };
   }
 
+  // When the mode is "file", we only need to update the file entry.
   for (const [oldPath, newPath] of pathRemappings) {
     const fileId = fileTreeData.filePathToTreeDataId.get(oldPath);
     if (!fileId) {
@@ -226,9 +238,11 @@ export function applyPathRemappings({
 
     const existingIdForNewPath = fileTreeData.filePathToTreeDataId.get(newPath);
     if (existingIdForNewPath && existingIdForNewPath !== fileId) {
+      // If a file's path is changed so that it is in a new folder, then it is possible that it has the same path as an existing file in that folder.
       const duplicateNode = updatedTreeData.get(existingIdForNewPath);
       if (duplicateNode && isTreeNodeAFile(duplicateNode)) {
         if (duplicateNode.parentId) {
+          // Currently duplicated files are just removed
           updatedTreeData = removeFileFromFileTreeMap({
             map: updatedTreeData,
             fileId: existingIdForNewPath,
@@ -243,45 +257,24 @@ export function applyPathRemappings({
 
     newFilePathToTreeDataId.delete(oldPath);
     newFilePathToTreeDataId.set(newPath, fileId);
+
+    // Patch the renamed file node's name and parentId
+    const nodeUpdate = nodeUpdates.get(fileId);
+    const node = updatedTreeData.get(fileId);
+    if (node && nodeUpdate) {
+      updatedTreeData.set(fileId, {
+        ...node,
+        path: newPath,
+        name: nodeUpdate.name,
+        parentId: nodeUpdate.parentId,
+      });
+    }
   }
 
   return {
     treeData: updatedTreeData,
     filePathToTreeDataId: newFilePathToTreeDataId,
   };
-}
-
-/**
- * Applies per-node updates (path, name, parentId) to the tree data.
- * Optionally restricts updates to a specific node type so that e.g.
- * a folder rename doesn't accidentally modify file nodes with the same ID.
- */
-export function applyNodeUpdates({
-  treeData,
-  nodeUpdates,
-  expectedType,
-}: {
-  treeData: Map<string, FileOrFolder>;
-  nodeUpdates: Map<string, NodeUpdate>;
-  expectedType?: FileOrFolder['type'];
-}): Map<string, FileOrFolder> {
-  const updatedTreeData = new Map(treeData);
-
-  for (const [nodeId, updates] of nodeUpdates) {
-    const existingNode = updatedTreeData.get(nodeId);
-    if (!existingNode) continue;
-    if (expectedType && existingNode.type !== expectedType) {
-      continue;
-    }
-    updatedTreeData.set(nodeId, {
-      ...existingNode,
-      path: updates.path,
-      name: updates.name,
-      parentId: updates.parentId,
-    });
-  }
-
-  return updatedTreeData;
 }
 
 /**
@@ -335,7 +328,8 @@ export function applyParentFolderUpdates({
 
   for (const [parentId, updates] of parentFolderUpdates) {
     const parent = updatedTreeData.get(parentId);
-    if (!parent || !isTreeNodeAFolder(parent)) {
+    //
+    if (!parent || !isTreeNodeAFolder(parent) || !hasLoadedChildren(parent)) {
       continue;
     }
 

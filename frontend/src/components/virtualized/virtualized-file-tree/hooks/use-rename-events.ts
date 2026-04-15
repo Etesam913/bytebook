@@ -13,7 +13,6 @@ import { logger } from '../../../../utils/logging';
 import { routeUrls } from '../../../../utils/routes';
 import { isTreeNodeAFolder } from '../utils/file-tree-utils';
 import {
-  applyNodeUpdates,
   applyParentFolderUpdates,
   applyPathRemappings,
   buildRenameUpdates,
@@ -41,8 +40,8 @@ function isPrefixOrSamePath(path: string, maybePrefix: string): boolean {
  *      names), records path remappings, node updates, and parent folder
  *      updates with original pagination boundaries.
  *    - `applyPathRemappings` — remaps old→new in the path index (and subtree
- *      paths for folder renames).
- *    - `applyNodeUpdates` — patches each renamed node's name/path/parentId.
+ *      paths for folder renames) and patches each renamed node's
+ *      name/path/parentId.
  *    - `applyParentFolderUpdates` — re-sorts children and enforces pagination:
  *      any node whose new name sorts past the original last loaded child is
  *      removed from the tree to avoid duplicates when the next page is fetched.
@@ -106,30 +105,27 @@ export function useRenameEvents() {
 
       needsTopLevelInvalidation = renameUpdates.needsTopLevelInvalidation;
 
-      if (renameUpdates.pathRemappings.size === 0) return prev;
+      if (renameUpdates.pathRemappings.size === 0) {
+        return prev;
+      }
 
       // Step 1: Remap old→new in the path-to-id index (+ subtree for folders)
+      // and patch each renamed node's name, path, and parentId
       const remapped = applyPathRemappings({
         fileTreeData: prev,
         pathRemappings: renameUpdates.pathRemappings,
+        nodeUpdates: renameUpdates.nodeUpdates,
         mode,
       });
 
-      // Step 2: Patch each renamed node's name, path, and parentId
-      const updatedNodes = applyNodeUpdates({
+      // Step 2: Re-sort parent children lists and enforce pagination boundaries
+      const afterParentUpdates = applyParentFolderUpdates({
         treeData: remapped.treeData,
-        nodeUpdates: renameUpdates.nodeUpdates,
-        expectedType: mode,
-      });
-
-      // Step 3: Re-sort parent children lists and enforce pagination boundaries
-      const result = applyParentFolderUpdates({
-        treeData: updatedNodes,
         filePathToTreeDataId: remapped.filePathToTreeDataId,
         parentFolderUpdates: renameUpdates.parentFolderUpdates,
       });
 
-      return result;
+      return afterParentUpdates;
     });
 
     // --- Phase 2: query invalidation ---
