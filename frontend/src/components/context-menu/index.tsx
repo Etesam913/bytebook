@@ -4,14 +4,28 @@ import type { Key } from 'react-aria-components';
 import { Popover } from 'react-aria-components';
 import { contextMenuDataAtom, sidebarSelectionAtom } from '../../atoms';
 import { AppMenu, AppMenuItem } from '../menu';
+import {
+  createSelectionKey,
+  FILE_SELECTION_PREFIX,
+} from '../../utils/selection';
 
 export function ContextMenu() {
-  const [{ isShowing, items, x, y }, setContextMenuData] =
+  const [{ isShowing, items, x, y, targetId }, setContextMenuData] =
     useAtom(contextMenuDataAtom);
 
   const { selections } = useAtomValue(sidebarSelectionAtom);
+  const isTargetInSelection =
+    targetId != null &&
+    selections.has(createSelectionKey(FILE_SELECTION_PREFIX, targetId));
+
+  const effectiveCount = isTargetInSelection
+    ? selections.size
+    : targetId !== null
+      ? 1
+      : selections.size;
+
   const selectionCountLabel =
-    selections.size > 99 ? '99+' : selections.size.toString();
+    effectiveCount > 99 ? '99+' : effectiveCount.toString();
 
   const triggerRef = useRef<HTMLSpanElement>(null);
 
@@ -54,7 +68,7 @@ export function ContextMenu() {
         className="rounded-md border-[0.078125rem] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700 outline-hidden font-display"
         data-exclude-from-on-click-outside="true"
       >
-        {selections.size > 0 && (
+        {effectiveCount > 0 && (
           <div
             aria-label={`${selectionCountLabel} items selected`}
             className="absolute rounded-full font-bold min-w-6 h-6 px-1 text-xs leading-none pointer-events-none text-white flex justify-center items-center -left-2 -top-2 bg-(--accent-color) z-60"

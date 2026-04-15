@@ -76,6 +76,7 @@ export function SavedSearchAccordionButton({
             x: e.clientX,
             y: e.clientY,
             isShowing: true,
+            targetId: null,
             items: [
               {
                 label: (

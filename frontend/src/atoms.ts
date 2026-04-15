@@ -145,6 +145,7 @@ export const contextMenuDataAtom = atom<ContextMenuData>({
   items: [],
   x: 0,
   y: 0,
+  targetId: null,
 });
 
 export const loadingToastIdsAtom = atom<Map<string, string | number>>(

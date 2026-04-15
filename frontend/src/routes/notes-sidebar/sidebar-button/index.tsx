@@ -72,6 +72,7 @@ export function NoteSidebarButton({
             x: e.clientX,
             y: e.clientY,
             isShowing: true,
+            targetId: null,
             items: [
               {
                 value: 'reveal-in-finder',

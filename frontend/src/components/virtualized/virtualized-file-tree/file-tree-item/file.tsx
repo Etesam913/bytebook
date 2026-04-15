@@ -1,4 +1,4 @@
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { MouseEvent, useState, useEffect, useRef, DragEvent } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { Finder } from '../../../../icons/finder';
@@ -57,7 +57,7 @@ export function FileTreeFileItem({
   isSelectedFromSidebarClick: boolean;
 }) {
   const filePathFromRoute = useFilePathFromRoute();
-  const setContextMenuData = useSetAtom(contextMenuDataAtom);
+  const [contextMenuData, setContextMenuData] = useAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
   const dragHighlightIds = useAtomValue(dragHighlightIdsAtom);
   const setDragHighlightIds = useSetAtom(dragHighlightIdsAtom);
@@ -156,6 +156,8 @@ export function FileTreeFileItem({
 
   const paddingLeft = getFileTreeItemIndent(dataItem.level);
   const hasDragHighlight = dragHighlightIds.has(dataItem.id);
+  const isContextMenuTarget =
+    contextMenuData.isShowing && contextMenuData.targetId === dataItem.id;
   const innerContent = (
     <span
       style={{ paddingLeft }}
@@ -275,12 +277,9 @@ export function FileTreeFileItem({
       id={dataItem.id}
       onContextMenu={(e) => {
         e.preventDefault();
-        const newSelectionState = addItemToSidebarSelection();
-        const contextMenuSelections =
-          newSelectionState?.selections ?? sidebarSelection.selections;
         const { selectedItems } = getContextMenuSelectionItems({
           currentItem: dataItem,
-          sidebarSelections: contextMenuSelections,
+          sidebarSelections: sidebarSelection.selections,
           fileOrFolderMap,
         });
         const selectedFiles = selectedItems.filter((item) =>
@@ -308,6 +307,7 @@ export function FileTreeFileItem({
           x: e.clientX,
           y: e.clientY,
           isShowing: true,
+          targetId: dataItem.id,
           items: [
             {
               label: (
@@ -431,7 +431,11 @@ export function FileTreeFileItem({
           ],
         });
       }}
-      className="flex items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2"
+      className={cn(
+        'flex items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2',
+        isContextMenuTarget &&
+          'outline-2 outline-(--accent-color) -outline-offset-2'
+      )}
     >
       {innerContent}
     </button>

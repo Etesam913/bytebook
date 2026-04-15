@@ -1,4 +1,4 @@
-import { useSetAtom, useAtomValue } from 'jotai';
+import { useAtom, useSetAtom, useAtomValue } from 'jotai';
 import { MouseEvent, DragEvent, useState, useEffect, useRef } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { Folder as FolderIcon } from '../../../../../icons/folder';
@@ -11,6 +11,7 @@ import {
   contextMenuDataAtom,
   dragHighlightIdsAtom,
   projectSettingsAtom,
+  sidebarSelectionAtom,
   type SidebarSelectionState,
 } from '../../../../../atoms';
 import { InlineTreeItemInput } from '../inline-tree-item-input';
@@ -69,12 +70,13 @@ export function FileTreeFolderItem({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const wasEditingRef = useRef(false);
 
-  const setContextMenuData = useSetAtom(contextMenuDataAtom);
+  const [contextMenuData, setContextMenuData] = useAtom(contextMenuDataAtom);
   const dragHighlightIds = useAtomValue(dragHighlightIdsAtom);
   const setDragHighlightIds = useSetAtom(dragHighlightIdsAtom);
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
+  const sidebarSelection = useAtomValue(sidebarSelectionAtom);
   const folderPathFromRoute = useFolderPathFromRoute();
   const paddingLeft = getFileTreeItemIndent(dataItem.level);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
@@ -148,6 +150,8 @@ export function FileTreeFolderItem({
   }
 
   const hasDragHighlight = dragHighlightIds.has(dataItem.id);
+  const isContextMenuTarget =
+    contextMenuData.isShowing && contextMenuData.targetId === dataItem.id;
   const innerContent = (
     <>
       <span
@@ -281,7 +285,11 @@ export function FileTreeFolderItem({
         aria-level={dataItem.level + 1}
         aria-selected={isSelectedFromSidebarClick || isSelectedFromRoute}
         draggable={true}
-        className="flex items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2 file-tree-drop-target"
+        className={cn(
+          'flex items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2 file-tree-drop-target',
+          isContextMenuTarget &&
+            'outline-2 outline-(--accent-color) -outline-offset-2'
+        )}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragOver={(e) => {
@@ -314,12 +322,9 @@ export function FileTreeFolderItem({
           if (!isTreeNodeAFolder(dataItem)) return;
 
           e.preventDefault();
-          const newSelectionState = addItemToSidebarSelection();
-          if (!newSelectionState) return;
-
           const { selectedItems } = getContextMenuSelectionItems({
             currentItem: dataItem,
-            sidebarSelections: newSelectionState.selections,
+            sidebarSelections: sidebarSelection.selections,
             fileOrFolderMap,
           });
           const isMultiSelection = selectedItems.length > 1;
@@ -470,6 +475,7 @@ export function FileTreeFolderItem({
             x: e.clientX,
             y: e.clientY,
             isShowing: true,
+            targetId: dataItem.id,
             items: [
               {
                 label: (

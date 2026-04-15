@@ -6,18 +6,18 @@ import {
   useId,
   useState,
 } from 'react';
-import type { Key } from 'react-aria-components';
+// import type { Key } from 'react-aria-components';
 import { Input } from '../../input';
 import type { ComboboxInputProps } from '../../../hooks/combobox';
-import { AppMenu, AppMenuItem } from '../../menu';
+// import { AppMenu, AppMenuItem } from '../../menu';
 
-const SEARCH_PREFIX_ITEMS = [
-  { id: 'f:', label: 'f: \u2014 Search file or folder names' },
-  { id: '#', label: '# \u2014 Search files that have a tag' },
-  { id: '@', label: '@ \u2014 Search notes that contain a link' },
-  { id: 'type:', label: 'type: \u2014 Filter files by type' },
-  { id: 'sort:', label: 'sort: \u2014 Sort results' },
-];
+// const SEARCH_PREFIX_ITEMS = [
+//   { id: 'f:', label: 'f: \u2014 Search file or folder names' },
+//   { id: '#', label: '# \u2014 Search files that have a tag' },
+//   { id: '@', label: '@ \u2014 Search notes that contain a link' },
+//   { id: 'type:', label: 'type: \u2014 Filter files by type' },
+//   { id: 'sort:', label: 'sort: \u2014 Sort results' },
+// ];
 
 function shouldShowPrefixDropdown(value: string): boolean {
   if (value.length === 0) return true;
@@ -49,17 +49,17 @@ export function SearchSidebarInput({
   const [isOpen, setIsOpen] = useState(false);
   const inputId = `search-input-${useId()}`;
 
-  function handlePrefixSelect(key: Key) {
-    const input = inputRef.current;
-    const cursorPos = input?.selectionStart ?? value.length;
-    const before = value.slice(0, cursorPos);
-    const after = value.slice(cursorPos);
-    const newValue = before + String(key) + after;
-    setInternalSearchQuery(newValue);
-    setIsOpen(false);
-    // Return focus to the input after selecting a prefix
-    setTimeout(() => inputRef.current?.focus(), 0);
-  }
+  // function handlePrefixSelect(key: Key) {
+  //   const input = inputRef.current;
+  //   const cursorPos = input?.selectionStart ?? value.length;
+  //   const before = value.slice(0, cursorPos);
+  //   const after = value.slice(cursorPos);
+  //   const newValue = before + String(key) + after;
+  //   setInternalSearchQuery(newValue);
+  //   setIsOpen(false);
+  //   // Return focus to the input after selecting a prefix
+  //   setTimeout(() => inputRef.current?.focus(), 0);
+  // }
 
   return (
     <div className="p-2 relative">

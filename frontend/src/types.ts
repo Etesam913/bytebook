@@ -74,6 +74,7 @@ export type ContextMenuData = {
   items: DropdownItem[];
   x: number;
   y: number;
+  targetId: string | null;
 };
 
 export type KernelStatus = 'busy' | 'idle' | 'starting';
