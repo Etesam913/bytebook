@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { TextField, Input } from 'react-aria-components';
 import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
 import { MotionIconButton } from '../../buttons';
-import { Input } from '../../input';
 import { SettingsRow } from '../settings-row';
 import { getDefaultButtonVariants } from '../../../animations';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
@@ -21,28 +21,28 @@ export function FontFamilyRow() {
       description="The font family for the note editor."
     >
       <div className="flex items-center gap-1.5">
-        <Input
-          labelProps={{}}
-          inputProps={{
-            type: 'text',
-            className: 'w-56 h-8 text-sm my-auto',
-            style: { fontFamily: fontFamilyInputValue },
-            placeholder: 'Arial',
-            value: fontFamilyInputValue,
-            onChange: (e) => {
-              setFontFamilyInputValue(e.target.value);
-              updateProjectSettings({
-                newProjectSettings: {
-                  ...projectSettings,
-                  appearance: {
-                    ...projectSettings.appearance,
-                    editorFontFamily: e.target.value,
-                  },
+        <TextField
+          aria-label="Editor font family"
+          value={fontFamilyInputValue}
+          onChange={(value: string) => {
+            setFontFamilyInputValue(value);
+            updateProjectSettings({
+              newProjectSettings: {
+                ...projectSettings,
+                appearance: {
+                  ...projectSettings.appearance,
+                  editorFontFamily: value,
                 },
-              });
-            },
+              },
+            });
           }}
-        />
+        >
+          <Input
+            className="bg-zinc-150 dark:bg-zinc-700 py-1 px-2 rounded-md border-2 border-zinc-300 dark:border-zinc-600 w-56 h-8 text-sm my-auto"
+            style={{ fontFamily: fontFamilyInputValue }}
+            placeholder="Arial"
+          />
+        </TextField>
         <MotionIconButton
           {...getDefaultButtonVariants()}
           isDisabled={fontFamilyInputValue.trim().length === 0}

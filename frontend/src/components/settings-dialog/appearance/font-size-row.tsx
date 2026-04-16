@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { useAtomValue } from 'jotai/react';
+import { TextField, Input } from 'react-aria-components';
 import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
 import { projectSettingsAtom } from '../../../atoms';
 import { getDefaultButtonVariants } from '../../../animations';
@@ -11,7 +12,6 @@ import {
   validateEditorFontSize,
 } from '../../../utils/project-settings';
 import { MotionIconButton } from '../../buttons';
-import { Input } from '../../input';
 import { SettingsRow } from '../settings-row';
 
 export function FontSizeRow() {
@@ -39,18 +39,19 @@ export function FontSizeRow() {
       isFirst={true}
     >
       <div className="flex items-center gap-1.5">
-        <Input
+        <TextField
           key={projectSettings.appearance.editorFontSize}
-          ref={fontSizeInputRef}
-          labelProps={{}}
-          inputProps={{
-            type: 'number',
-            min: MIN_EDITOR_FONT_SIZE,
-            max: MAX_EDITOR_FONT_SIZE,
-            step: 1,
-            className: 'w-20 h-8 text-sm my-auto',
-            defaultValue: projectSettings.appearance.editorFontSize,
-            onChange: (e) => {
+          aria-label="Editor font size"
+          defaultValue={String(projectSettings.appearance.editorFontSize)}
+        >
+          <Input
+            ref={fontSizeInputRef}
+            type="number"
+            min={MIN_EDITOR_FONT_SIZE}
+            max={MAX_EDITOR_FONT_SIZE}
+            step={1}
+            className="bg-zinc-150 dark:bg-zinc-700 py-1 px-2 rounded-md border-2 border-zinc-300 dark:border-zinc-600 w-20 h-8 text-sm my-auto"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const nextFontSize = e.currentTarget.valueAsNumber;
               if (!Number.isFinite(nextFontSize)) {
                 return;
@@ -63,8 +64,8 @@ export function FontSizeRow() {
                 return;
               }
               updateFontSize(roundedFontSize);
-            },
-            onBlur: () => {
+            }}
+            onBlur={() => {
               const currentValue = fontSizeInputRef.current?.valueAsNumber;
               if (!Number.isFinite(currentValue)) {
                 if (fontSizeInputRef.current) {
@@ -85,9 +86,9 @@ export function FontSizeRow() {
               ) {
                 updateFontSize(clamped);
               }
-            },
-          }}
-        />
+            }}
+          />
+        </TextField>
         <MotionIconButton
           {...getDefaultButtonVariants()}
           isDisabled={
