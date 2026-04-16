@@ -78,7 +78,7 @@ test.describe('File Sidebar', () => {
         const sidebar = page.getByTestId('file-sidebar');
         await sidebar.getByText('Economics Notes').click({ button: 'right' });
 
-        const contextMenu = page.getByRole('listbox');
+        const contextMenu = page.getByRole('menu');
         await expect(contextMenu).toBeVisible();
         const revealOption = contextMenu.getByText('Reveal In Finder');
         await expect(revealOption).toBeVisible();
@@ -100,7 +100,7 @@ test.describe('File Sidebar', () => {
         const sidebar = page.getByTestId('file-sidebar');
         await sidebar.getByText('Economics Notes').click({ button: 'right' });
 
-        const contextMenu = page.getByRole('listbox');
+        const contextMenu = page.getByRole('menu');
         await contextMenu.getByText('Rename').click();
 
         // An inline input should appear with the current folder name
@@ -152,7 +152,7 @@ test.describe('File Sidebar', () => {
         await sidebar.getByText('Economics Notes').click({ button: 'right' });
 
         // Click "Move to Trash" - no confirmation dialog, items removed optimistically
-        const contextMenu = page.getByRole('listbox');
+        const contextMenu = page.getByRole('menu');
         await expect(contextMenu).toBeVisible();
         await contextMenu.getByText('Move to Trash').click();
 
@@ -218,7 +218,7 @@ test.describe('File Sidebar', () => {
           .getByText('economics', { exact: true })
           .click({ button: 'right' });
 
-        const contextMenu = page.getByRole('listbox');
+        const contextMenu = page.getByRole('menu');
         await contextMenu.getByText('Delete Tag').click();
 
         const dialog = page.getByRole('dialog');
@@ -291,7 +291,7 @@ test.describe('File Sidebar', () => {
 
         await sidebar.getByText('My Research').click({ button: 'right' });
 
-        const contextMenu = page.getByRole('listbox');
+        const contextMenu = page.getByRole('menu');
         await contextMenu.getByText('Delete Search').click();
 
         const dialog = page.getByRole('dialog');
@@ -427,7 +427,7 @@ test.describe('File Sidebar', () => {
 
       await sidebar.getByText('Supply and Demand').click({ button: 'right' });
 
-      const contextMenu = page.getByRole('listbox');
+      const contextMenu = page.getByRole('menu');
       await expect(contextMenu).toBeVisible();
       await expect(contextMenu).toContainText('Unpin Note');
 

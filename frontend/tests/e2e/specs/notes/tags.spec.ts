@@ -106,9 +106,11 @@ test.describe('Tags Workflow', () => {
       ).toBeVisible();
 
       // Select a tag from the available tags (e.g., 'dev')
-      const devTagCheckbox = dialog.getByRole('checkbox', { name: 'dev' });
-      await expect(devTagCheckbox).toBeVisible();
-      await devTagCheckbox.click();
+      const devTagOption = dialog.getByRole('option', {
+        name: /dev tag/,
+      });
+      await expect(devTagOption).toBeVisible();
+      await devTagOption.click();
 
       // Update the mock to return the new tag for this note
       const updatedTagsForNotesResponse = {
@@ -197,23 +199,25 @@ test.describe('Tags Workflow', () => {
         dialog.getByRole('heading', { name: 'Edit Tags' })
       ).toBeVisible();
 
-      // Verify existing tags are shown as checked
-      const economicsCheckbox = dialog.getByRole('checkbox', {
-        name: 'economics',
+      // Verify existing tags are shown as selected options
+      const economicsOption = dialog.getByRole('option', {
+        name: /economics tag, selected/,
       });
-      const researchCheckbox = dialog.getByRole('checkbox', {
-        name: 'research',
+      const researchOption = dialog.getByRole('option', {
+        name: /research tag, selected/,
       });
 
-      await expect(economicsCheckbox).toBeVisible();
-      await expect(researchCheckbox).toBeVisible();
+      await expect(economicsOption).toBeVisible();
+      await expect(researchOption).toBeVisible();
 
-      await expect(economicsCheckbox).toBeChecked();
-      await expect(researchCheckbox).toBeChecked();
+      await expect(economicsOption).toHaveAttribute('aria-selected', 'true');
+      await expect(researchOption).toHaveAttribute('aria-selected', 'true');
 
-      // The 'dev' tag should not be checked
-      const devCheckbox = dialog.getByRole('checkbox', { name: 'dev' });
-      await expect(devCheckbox).not.toBeChecked();
+      // The 'dev' tag should not be selected
+      const devOption = dialog.getByRole('option', {
+        name: /dev tag, not selected/,
+      });
+      await expect(devOption).toHaveAttribute('aria-selected', 'false');
     });
   });
 });
