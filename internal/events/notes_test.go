@@ -67,7 +67,7 @@ func TestAddCreatedNotesToIndex(t *testing.T) {
 	})
 }
 
-func TestRenameNotesInIndex(t *testing.T) {
+func TestRenameFilesInIndex(t *testing.T) {
 	t.Run("should rename notes in the index", func(t *testing.T) {
 		params := createTestParams(t)
 		notesDir := setupNotesDir(t, params.ProjectPath)
@@ -89,7 +89,7 @@ func TestRenameNotesInIndex(t *testing.T) {
 			"newFolder": "folder1",
 			"newNote":   "new-note.md",
 		}}
-		renameNotesInIndex(params, renameData)
+		renameFilesInIndex(params, renameData)
 
 		// Old note should be gone
 		oldDoc, _ := (*params.Index).Document("folder1/old-note.md")
@@ -109,7 +109,7 @@ func TestRenameNotesInIndex(t *testing.T) {
 		}
 
 		// Should not panic
-		renameNotesInIndex(params, data)
+		renameFilesInIndex(params, data)
 	})
 }
 

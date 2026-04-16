@@ -149,20 +149,23 @@ func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
 	}
 }
 
-// handleNoteRenameEvent handles the event when a note is renamed.
-// It extracts the rename data from the event and updates the search index accordingly.
-func handleNoteRenameEvent(params EventParams, event *application.CustomEvent) {
+// handleFileRenameEvent handles the event when a file is renamed.
+// It extracts the rename data from the event, updates the search index,
+// and replaces local links in other notes that reference the renamed file.
+func handleFileRenameEvent(params EventParams, event *application.CustomEvent) {
 	data, ok := event.Data.([]map[string]string)
 	if !ok {
 		log.Println("Note rename event data is not a map")
 		return
 	}
-	renameNotesInIndex(params, convertRenamePathData(data))
+	converted := convertRenamePathData(data)
+	renameFilesInIndex(params, converted)
+	replaceLocalLinksInNotes(params, converted)
 }
 
-// renameNotesInIndex updates the search index to reflect renamed notes.
-// It deletes the old note entry and adds the new note entry if it is a markdown file.
-func renameNotesInIndex(params EventParams, data []map[string]string) {
+// renameFilesInIndex updates the search index to reflect renamed files.
+// It deletes the old entry and adds the new entry.
+func renameFilesInIndex(params EventParams, data []map[string]string) {
 	batch := (*params.Index).NewBatch()
 
 	// TODO: Add flush logic in the loop
