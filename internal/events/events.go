@@ -25,7 +25,7 @@ func ListenToEvents(params EventParams) {
 
 	params.App.Event.On(util.Events.FileRename, func(event *application.CustomEvent) {
 		log.Printf("%s: %+v", util.Events.FileRename, event.Data)
-		handleNoteRenameEvent(params, event)
+		handleFileRenameEvent(params, event)
 	})
 
 	params.App.Event.On(util.Events.FileDelete, func(event *application.CustomEvent) {

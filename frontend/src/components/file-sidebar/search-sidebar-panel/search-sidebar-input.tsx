@@ -1,11 +1,4 @@
-import {
-  Dispatch,
-  type KeyboardEvent,
-  type RefObject,
-  SetStateAction,
-  useId,
-  useState,
-} from 'react';
+import { type KeyboardEvent, type RefObject, useId, useState } from 'react';
 // import type { Key } from 'react-aria-components';
 import { Input } from '../../input';
 import type { ComboboxInputProps } from '../../../hooks/combobox';
@@ -42,7 +35,7 @@ export function SearchSidebarInput({
 }: {
   inputRef: RefObject<HTMLInputElement | null>;
   value: string;
-  setInternalSearchQuery: Dispatch<SetStateAction<string>>;
+  setInternalSearchQuery: (query: string) => void;
   onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
   comboboxInputProps: Omit<ComboboxInputProps, 'onKeyDown'>;
 }) {

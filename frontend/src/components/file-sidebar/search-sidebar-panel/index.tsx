@@ -138,7 +138,10 @@ export function SearchSidebarPanel({
       <SearchSidebarInput
         inputRef={searchInputRef}
         value={internalSearchQuery}
-        setInternalSearchQuery={setInternalSearchQuery}
+        setInternalSearchQuery={(query) => {
+          setInternalSearchQuery(query);
+          combobox.setFocusedIndex(0);
+        }}
         comboboxInputProps={comboboxInputAriaProps}
         onKeyDown={(e) => {
           comboboxInputKeyDown(e);
