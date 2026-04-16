@@ -1,4 +1,4 @@
-import { Toggle } from '../toggle';
+import { AppSwitch } from '../switch';
 import { SettingsRow } from './settings-row';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { dialogDataAtom, projectSettingsAtom } from '../../atoms';
@@ -61,15 +61,15 @@ export function CodeBlockPage() {
         description="Enable Vim Mode in code blocks"
       >
         <div className="flex items-center gap-1.5">
-          <Toggle
-            checked={projectSettings.code.codeBlockVimMode}
-            onChange={() => {
+          <AppSwitch
+            isSelected={projectSettings.code.codeBlockVimMode}
+            onChange={(isSelected: boolean) => {
               updateProjectSettings({
                 newProjectSettings: {
                   ...projectSettings,
                   code: {
                     ...projectSettings.code,
-                    codeBlockVimMode: !projectSettings.code.codeBlockVimMode,
+                    codeBlockVimMode: isSelected,
                   },
                 },
               });
