@@ -5,6 +5,7 @@ import { Finder } from '../../../../icons/finder';
 import { PinTack2 } from '../../../../icons/pin-tack-2';
 import { PinTackSlash } from '../../../../icons/pin-tack-slash';
 import {
+  activeDropTargetIdAtom,
   contextMenuDataAtom,
   dialogDataAtom,
   dragHighlightIdsAtom,
@@ -59,6 +60,9 @@ export function FileTreeFileItem({
   const filePathFromRoute = useFilePathFromRoute();
   const [contextMenuData, setContextMenuData] = useAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
+  const [activeDropTargetId, setActiveDropTargetId] = useAtom(
+    activeDropTargetIdAtom
+  );
   const dragHighlightIds = useAtomValue(dragHighlightIdsAtom);
   const setDragHighlightIds = useSetAtom(dragHighlightIdsAtom);
   const sidebarSelection = useAtomValue(sidebarSelectionAtom);
@@ -66,6 +70,7 @@ export function FileTreeFileItem({
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [isEditing, setIsEditing] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  // Tracks whether the rename input was previously active so focus can return to the row button.
   const wasEditingRef = useRef(false);
 
   useEffect(() => {
@@ -156,6 +161,11 @@ export function FileTreeFileItem({
 
   const paddingLeft = getFileTreeItemIndent(dataItem.level);
   const hasDragHighlight = dragHighlightIds.has(dataItem.id);
+  // Mute the dragged selection while another row is acting as the active drop target.
+  const shouldMuteSelection =
+    activeDropTargetId !== null &&
+    activeDropTargetId !== dataItem.id &&
+    isSelectedFromSidebarClick;
   const isContextMenuTarget =
     contextMenuData.isShowing && contextMenuData.targetId === dataItem.id;
   const innerContent = (
@@ -164,11 +174,15 @@ export function FileTreeFileItem({
       className={cn(
         'rounded-md flex items-center gap-2 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
         !hasDragHighlight &&
+          !shouldMuteSelection &&
           isSelectedFromRoute &&
           'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
         !hasDragHighlight &&
+          !shouldMuteSelection &&
           isSelectedFromSidebarClick &&
           'bg-(--accent-color)! text-white!',
+        shouldMuteSelection &&
+          'bg-zinc-200 text-zinc-500 hover:bg-zinc-200 focus:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:focus:bg-zinc-700',
         hasDragHighlight &&
           'bg-(--accent-color)/25 hover:bg-(--accent-color)/25 dark:hover:bg-(--accent-color)/25 focus:bg-(--accent-color)/25 dark:focus:bg-(--accent-color)/25'
       )}
@@ -221,6 +235,7 @@ export function FileTreeFileItem({
     if (ghost) {
       ghost.remove();
     }
+    setActiveDropTargetId(null);
     setDragHighlightIds(new Set());
   }
 
@@ -234,6 +249,7 @@ export function FileTreeFileItem({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragEnter={() => {
+        setActiveDropTargetId(dataItem.id);
         const allAreSiblings = [...sidebarSelection.selections].every(
           (selectionKey) => {
             const itemId = getSelectionValue(selectionKey);
@@ -259,10 +275,14 @@ export function FileTreeFileItem({
       onDragLeave={(e) => {
         e.preventDefault();
         e.stopPropagation();
+        setActiveDropTargetId((currentId) =>
+          currentId === dataItem.id ? null : currentId
+        );
       }}
       onDrop={(e) => {
         e.preventDefault();
         e.stopPropagation();
+        setActiveDropTargetId(null);
         setDragHighlightIds(new Set());
         void moveItemsToFolder(parentFolderPath);
       }}

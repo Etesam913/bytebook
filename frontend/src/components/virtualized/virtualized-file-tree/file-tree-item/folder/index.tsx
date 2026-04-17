@@ -8,6 +8,7 @@ import { Blog } from '../../../../../icons/blog';
 import { FILE_TYPE, FOLDER_TYPE, type Folder } from '../../types';
 import { isTreeNodeAFolder } from '../../utils/file-tree-utils';
 import {
+  activeDropTargetIdAtom,
   contextMenuDataAtom,
   dragHighlightIdsAtom,
   projectSettingsAtom,
@@ -68,9 +69,13 @@ export function FileTreeFolderItem({
 }) {
   const [isDraggedOver, setIsDraggedOver] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  // Tracks whether the rename input was previously active so focus can return to the row button.
   const wasEditingRef = useRef(false);
 
   const [contextMenuData, setContextMenuData] = useAtom(contextMenuDataAtom);
+  const [activeDropTargetId, setActiveDropTargetId] = useAtom(
+    activeDropTargetIdAtom
+  );
   const dragHighlightIds = useAtomValue(dragHighlightIdsAtom);
   const setDragHighlightIds = useSetAtom(dragHighlightIdsAtom);
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
@@ -150,6 +155,11 @@ export function FileTreeFolderItem({
   }
 
   const hasDragHighlight = dragHighlightIds.has(dataItem.id);
+  // Mute the dragged selection while another row is acting as the active drop target.
+  const shouldMuteSelection =
+    activeDropTargetId !== null &&
+    activeDropTargetId !== dataItem.id &&
+    isSelectedFromSidebarClick;
   const isContextMenuTarget =
     contextMenuData.isShowing && contextMenuData.targetId === dataItem.id;
   const innerContent = (
@@ -160,11 +170,15 @@ export function FileTreeFolderItem({
           'rounded-md flex items-center gap-2 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
           !hasDragHighlight &&
             !isDraggedOver &&
+            !shouldMuteSelection &&
             isSelectedFromRoute &&
             'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
           !hasDragHighlight &&
+            !shouldMuteSelection &&
             (isSelectedFromSidebarClick || isDraggedOver) &&
             'bg-(--accent-color)! text-white!',
+          shouldMuteSelection &&
+            'bg-zinc-200 text-zinc-500 hover:bg-zinc-200 focus:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:focus:bg-zinc-700',
           hasDragHighlight &&
             'bg-(--accent-color)/25 hover:bg-(--accent-color)/25 dark:hover:bg-(--accent-color)/25 focus:bg-(--accent-color)/25 dark:focus:bg-(--accent-color)/25'
         )}
@@ -272,6 +286,7 @@ export function FileTreeFolderItem({
     if (ghost) {
       ghost.remove();
     }
+    setActiveDropTargetId(null);
   }
 
   return (
@@ -296,17 +311,22 @@ export function FileTreeFolderItem({
           e.preventDefault();
           e.stopPropagation();
           setIsDraggedOver(true);
+          setActiveDropTargetId(dataItem.id);
           setDragHighlightIds(new Set());
         }}
         onDragLeave={(e) => {
           e.preventDefault();
           e.stopPropagation();
           setIsDraggedOver(false);
+          setActiveDropTargetId((currentId) =>
+            currentId === dataItem.id ? null : currentId
+          );
         }}
         onDrop={(e) => {
           e.preventDefault();
           e.stopPropagation();
           setIsDraggedOver(false);
+          setActiveDropTargetId(null);
           void moveItemsToFolder(dataItem.path);
         }}
         onKeyDown={(e) => {

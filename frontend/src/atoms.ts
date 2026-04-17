@@ -117,6 +117,12 @@ export const fileTreeDataAtom = atomWithLogging<FileTreeData>(
  */
 export const dragHighlightIdsAtom = atom<Set<string>>(new Set<string>());
 
+/**
+ * Tracks the tree item currently acting as the active drag-and-drop target.
+ * Null means no drop target is active.
+ */
+export const activeDropTargetIdAtom = atom<string | null>(null);
+
 export const isDarkModeOnAtom = atom<boolean>(false);
 
 // Editor UI state atoms
