@@ -4,9 +4,7 @@ import {
   encodeLinkUrl,
   encodeLinkAltText,
   decodeLinkAltText,
-  escapeFileContentForMarkdown,
   isInternalLink,
-  unescapeFileContentFromMarkdown,
   unescapeUnderscore,
 } from '../../../utils/string-formatting';
 import { WAILS_URL } from '../../../utils/general';
@@ -17,6 +15,40 @@ import {
   LinkNode,
 } from '../nodes/link';
 
+// Percent-encodes each path segment using the same rules as encodeLinkUrl so
+// the Go backend can produce identical strings when doing link rewrites.
+// Decodes first to normalize, since the LinkNode's URL may already be encoded
+// (e.g. when created from an anchor element's href).
+function encodeInternalPath(path: string): string {
+  return path
+    .split('/')
+    .map((seg) => {
+      if (!seg) return seg;
+      let decoded = seg;
+      try {
+        decoded = decodeURIComponent(seg);
+      } catch {
+        // segment isn't valid percent-encoding; treat as raw
+      }
+      return encodeLinkUrl(decoded);
+    })
+    .join('/');
+}
+
+function decodeInternalPath(path: string): string {
+  return path
+    .split('/')
+    .map((seg) => {
+      if (!seg) return seg;
+      try {
+        return decodeURIComponent(seg);
+      } catch {
+        return seg;
+      }
+    })
+    .join('/');
+}
+
 export const LINK: TextMatchTransformer = {
   dependencies: [LinkNode],
   export: (node, _exportChildren, exportFormat) => {
@@ -25,10 +57,10 @@ export const LINK: TextMatchTransformer = {
     }
     const linkUrl = node.getURL();
 
-    // Internal links: use clean /notes/ path
+    // Internal links: percent-encode each /notes/ path segment (CommonMark form)
     // External links: URL-encode as before
     const encodedLinkUrl = isInternalLink(linkUrl)
-      ? escapeFileContentForMarkdown(linkUrl.split(WAILS_URL)[1])
+      ? encodeInternalPath(linkUrl.split(WAILS_URL)[1])
       : encodeLinkUrl(linkUrl);
 
     // Escape special markdown characters in the URL
@@ -59,11 +91,11 @@ export const LINK: TextMatchTransformer = {
     }
     alt = decodeLinkAltText(alt);
 
-    // Internal links stored as clean /notes/ paths — prepend wails: for LinkNode
+    // Internal links stored as percent-encoded /notes/ paths — decode per-segment
     // External links keep existing decoding behavior
     let url: string;
     if (filePathOrSrc.startsWith('/notes/')) {
-      url = `${WAILS_URL}${unescapeFileContentFromMarkdown(filePathOrSrc)}`;
+      url = `${WAILS_URL}${decodeInternalPath(filePathOrSrc)}`;
     } else {
       url = unescapeUnderscore(decodeURIComponent(filePathOrSrc));
     }

@@ -1,6 +1,7 @@
 package events
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -11,6 +12,24 @@ import (
 	"github.com/etesam913/bytebook/internal/util"
 	"golang.org/x/sync/errgroup"
 )
+
+// encodeLinkSegment percent-encodes a path segment using the same rules as the
+// frontend's encodeLinkUrl (JS encodeURIComponent + ( )-escaping) so generated
+// URL paths match the encoded form stored in markdown and indexed in bleve.
+func encodeLinkSegment(s string) string {
+	var b strings.Builder
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		case (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'),
+			c == '-', c == '_', c == '.', c == '~', c == '!', c == '*', c == '\'':
+			b.WriteByte(c)
+		default:
+			fmt.Fprintf(&b, "%%%02X", c)
+		}
+	}
+	return b.String()
+}
 
 // replaceLocalLinksInNotes finds all notes that contain internal links to
 // renamed files and updates those links to reflect the new paths.
@@ -46,8 +65,9 @@ func replaceLocalLinksInNotes(params EventParams, data []map[string]string) {
 			continue
 		}
 
-		oldURLPath := "/notes/" + oldFolder + "/" + oldNoteName
-		newURLPath := "/notes/" + newFolder + "/" + newNoteName
+		oldURLPath := "/notes/" + encodeLinkSegment(oldFolder) + "/" + encodeLinkSegment(oldNoteName)
+		newURLPath := "/notes/" + encodeLinkSegment(newFolder) + "/" + encodeLinkSegment(newNoteName)
+
 		if oldURLPath != newURLPath {
 			replacements = append(replacements, linkReplacement{oldURLPath, newURLPath})
 		}
