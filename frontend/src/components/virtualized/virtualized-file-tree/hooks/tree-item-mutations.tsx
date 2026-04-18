@@ -278,15 +278,16 @@ export function useAddDroppedFilesToFolderMutation() {
     }: {
       folderPath: string;
       filePaths: string[];
-    }) => {
+    }): Promise<string[]> => {
       if (filePaths.length === 0) {
-        return;
+        return [];
       }
 
       const res = await AddAttachmentsFromPaths(folderPath, filePaths);
       if (!res.success) {
         throw new QueryError(res.message);
       }
+      return res.paths ?? [];
     },
   });
 }

@@ -15,16 +15,23 @@ func ListenToWindowEvents(app *application.App, window application.Window) {
 		}
 
 		details := event.Context().DropTargetDetails()
-		dropPayload := util.FileTreeContentDropEventData{
+		dropPayload := util.ContentDropEventData{
 			DroppedFiles: files,
 		}
 
 		if details != nil {
 			dropPayload.TargetElementID = details.ElementID
+			dropPayload.X = details.X
+			dropPayload.Y = details.Y
+		}
+
+		eventName := util.Events.FileTreeContentDrop
+		if dropPayload.TargetElementID == "note-container" {
+			eventName = util.Events.EditorContentDrop
 		}
 
 		app.Event.EmitEvent(&application.CustomEvent{
-			Name: util.Events.FileTreeContentDrop,
+			Name: eventName,
 			Data: dropPayload,
 		})
 	})

@@ -331,7 +331,9 @@ textarea,
   }
 
   .PlaygroundEditorTheme__table {
-    @apply border-collapse overflow-x-scroll overflow-y-scroll w-full border-spacing-0 table-fixed;
+    @apply border-collapse overflow-x-scroll overflow-y-scroll w-full border-spacing-0 table-fixed text-sm;
+    /* font-size: calc(var(--editor-font-size) * 0.875);
+    line-height: calc(var(--editor-font-size) * 1.5); */
   }
 
   .PlaygroundEditorTheme__tableSelection *::selection {

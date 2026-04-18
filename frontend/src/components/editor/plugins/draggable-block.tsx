@@ -200,6 +200,10 @@ function FileTreeDropCaret({
   const draggedGhostElement = useAtomValue(draggedGhostElementAtom);
 
   // Hide the caret whenever we're not dragging something from the file tree.
+  // This also fires on file-tree `dragend` (ghost -> null) to clean up after a
+  // successful drop. External OS file drags keep the ghost `null` throughout,
+  // so this effect doesn't re-run during them; their caret visibility is
+  // driven by the Wails `handleDragOver` wrapper in `useNodeDragEvents`.
   useEffect(() => {
     if (draggedGhostElement?.id !== FILE_TREE_GHOST_ID) {
       motionValues.opacity.set(0);

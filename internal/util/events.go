@@ -26,6 +26,7 @@ var Events = struct {
 	SidebarFilesOpen    string
 	SidebarSearchOpen   string
 	FileTreeContentDrop string
+	EditorContentDrop   string
 
 	// Context Menu events
 	ContextMenuRename    string
@@ -77,6 +78,7 @@ var Events = struct {
 	SidebarFilesOpen:    "sidebar:files:open",
 	SidebarSearchOpen:   "sidebar:search:open",
 	FileTreeContentDrop: "file-tree:content-drop",
+	EditorContentDrop:   "editor:content-drop",
 
 	// Context Menu events
 	ContextMenuRename:    "context-menu:rename",
@@ -145,8 +147,11 @@ type FileWriteEventData struct {
 	Markdown string `json:"markdown,omitempty"`
 }
 
-// FileTreeContentDropEventData represents dropped OS files over file-tree targets.
-type FileTreeContentDropEventData struct {
+// ContentDropEventData represents dropped OS files over a registered drop target
+// (file tree or editor).
+type ContentDropEventData struct {
 	DroppedFiles    []string `json:"droppedFiles"`
 	TargetElementID string   `json:"targetElementId,omitempty"`
+	X               int      `json:"x"`
+	Y               int      `json:"y"`
 }

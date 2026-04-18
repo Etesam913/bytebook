@@ -15,7 +15,10 @@ import {
   isHTMLElement,
 } from 'lexical';
 import { type RefObject, useEffect } from 'react';
-import { draggableBlockElementAtom, draggedGhostElementAtom } from '../atoms';
+import {
+  draggableBlockElementAtom,
+  draggedGhostElementAtom,
+} from '../atoms';
 import { throttle } from '../../../utils/draggable';
 import {
   DRAG_DATA_FORMAT,
@@ -145,11 +148,12 @@ export function useNodeDragEvents({
 
     /** Syncs the custom vertical caret to the pointer for file-tree drags. */
     function updateFileTreeDropCaret(event: DragEvent): void {
-      if (!fileTreeDropCaret || !noteContainer) return;
+      const container = noteContainerRef?.current ?? noteContainer;
+      if (!fileTreeDropCaret || !container) return;
       const layout = getFileTreeDropCaretLayoutInNoteContainer(
         event.clientX,
         event.clientY,
-        noteContainer
+        container
       );
       if (!layout) {
         fileTreeDropCaret.opacity.set(0);
@@ -162,15 +166,16 @@ export function useNodeDragEvents({
     }
 
     function handleDragOver(event: DragEvent): boolean {
-      if (!isAnyDragging) return false;
-
-      // External file drops are handled by the file plugin; we just ensure our
-      // custom caret isn't left visible.
       const [isFileTransfer] = eventFiles(event);
+
+      // External OS file drag over the editor — show the vertical caret at the
+      // pointer so the user can see where the file will land.
       if (isFileTransfer) {
-        fileTreeDropCaret?.opacity.set(0);
-        return false;
+        updateFileTreeDropCaret(event);
+        return true;
       }
+
+      if (!isAnyDragging) return false;
 
       if (isFileTreeDrag) {
         updateFileTreeDropCaret(event);
@@ -260,25 +265,111 @@ export function useNodeDragEvents({
 
     function handleOnDrop(event: DragEvent): boolean {
       const [isFileTransfer] = eventFiles(event);
-      if (isFileTransfer) return false;
+      if (isFileTransfer) {
+        // Commit the Lexical selection at the pointer so the upcoming
+        // `EditorContentDrop` Wails event (fired by the native runtime) can
+        // insert files at the drop caret. We return false to let Wails handle
+        // the native file-copy path.
+        editor.update(() => {
+          setSelectionFromPointerInNoteEditor(
+            editor,
+            event.clientX,
+            event.clientY
+          );
+        });
+        fileTreeDropCaret?.opacity.set(0);
+        return false;
+      }
       if (isFileTreeDrag) return handleFileTreeDrop(event);
       return handleBlockReorderDrop(event);
     }
 
-    return mergeRegister(
+    // On macOS (and Linux), Wails intercepts OS file drags natively, so DOM
+    // `dragover` / `drop` events never fire in JS. Wails bridges via
+    // `window._wails.handleDragOver(x, y)` (and `handleDragEnter` /
+    // `handleDragLeave`). Wrap those to drive the fake drop caret.
+    type WailsDragGlobals = {
+      handleDragEnter?: () => void;
+      handleDragOver?: (x: number, y: number) => void;
+      handleDragLeave?: () => void;
+      handlePlatformFileDrop?: (
+        filenames: string[],
+        x: number,
+        y: number
+      ) => void;
+    };
+    const wailsGlobals = (window as unknown as { _wails?: WailsDragGlobals })
+      ._wails;
+    let restoreWailsHooks: (() => void) | null = null;
+
+    if (wailsGlobals) {
+      const originalEnter = wailsGlobals.handleDragEnter;
+      const originalOver = wailsGlobals.handleDragOver;
+      const originalLeave = wailsGlobals.handleDragLeave;
+      const originalDrop = wailsGlobals.handlePlatformFileDrop;
+
+      wailsGlobals.handleDragEnter = () => {
+        originalEnter?.();
+      };
+
+      wailsGlobals.handleDragOver = (x: number, y: number) => {
+        originalOver?.(x, y);
+
+        const container = noteContainerRef?.current;
+        if (!container) return;
+
+        const hoverTarget = document.elementFromPoint(x, y);
+        if (!hoverTarget || !container.contains(hoverTarget)) {
+          fileTreeDropCaret?.opacity.set(0);
+          return;
+        }
+
+        updateFileTreeDropCaret({ clientX: x, clientY: y } as DragEvent);
+      };
+
+      wailsGlobals.handleDragLeave = () => {
+        originalLeave?.();
+        fileTreeDropCaret?.opacity.set(0);
+      };
+
+      // On macOS, native drop cleanup bypasses our wrapped `handleDragLeave`
+      // (the runtime calls its private `cleanupNativeDrag` directly), so hide
+      // the caret here when the platform-level file drop fires.
+      wailsGlobals.handlePlatformFileDrop = (
+        filenames: string[],
+        x: number,
+        y: number
+      ) => {
+        fileTreeDropCaret?.opacity.set(0);
+        originalDrop?.(filenames, x, y);
+      };
+
+      restoreWailsHooks = () => {
+        wailsGlobals.handleDragEnter = originalEnter;
+        wailsGlobals.handleDragOver = originalOver;
+        wailsGlobals.handleDragLeave = originalLeave;
+        wailsGlobals.handlePlatformFileDrop = originalDrop;
+      };
+    }
+
+    const unregisterLexical = mergeRegister(
       editor.registerCommand(
         DRAGOVER_COMMAND,
         (event) => {
-          // Handle drags from inside the editor (block reorder) and from the
-          // file tree. Anything else falls through to
-          // CONTROLLED_TEXT_INSERTION_COMMAND.
-          if (!draggedGhostElement) return false;
-          if (!HANDLED_GHOST_IDS.has(draggedGhostElement.id)) return false;
+          const [isFileTransfer] = eventFiles(event);
+
+          // Handle drags from inside the editor (block reorder), from the
+          // file tree, and external OS file drags. Anything else falls
+          // through to CONTROLLED_TEXT_INSERTION_COMMAND.
+          if (!isFileTransfer) {
+            if (!draggedGhostElement) return false;
+            if (!HANDLED_GHOST_IDS.has(draggedGhostElement.id)) return false;
+          }
 
           event.preventDefault();
-          // Chromium does not paint a native insertion caret for this drag;
+          // Chromium does not paint a native insertion caret for these drags;
           // we render `#file-tree-drop-caret` and set dropEffect for feedback.
-          if (isFileTreeDrag && event.dataTransfer) {
+          if ((isFileTreeDrag || isFileTransfer) && event.dataTransfer) {
             event.dataTransfer.dropEffect = 'copy';
           }
           return handleDragOver(event);
@@ -291,6 +382,11 @@ export function useNodeDragEvents({
         COMMAND_PRIORITY_NORMAL
       )
     );
+
+    return () => {
+      unregisterLexical();
+      restoreWailsHooks?.();
+    };
   }, [
     editor,
     noteContainerRef,
