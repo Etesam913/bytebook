@@ -2,6 +2,28 @@ function stopSelect(e: Event) {
   e.preventDefault();
 }
 
+export function dragItem(
+  onDragCallback: (e: MouseEvent) => void,
+  onDragEndCallback?: (e: MouseEvent) => void
+) {
+  function mouseMove(e: MouseEvent) {
+    if (e.target) {
+      onDragCallback(e);
+    }
+  }
+
+  function cleanUpDocumentEvents(e: MouseEvent) {
+    document.removeEventListener('mousemove', mouseMove);
+    document.removeEventListener('mouseup', cleanUpDocumentEvents);
+    document.removeEventListener('selectstart', stopSelect);
+    onDragEndCallback?.(e);
+  }
+  document.addEventListener('selectstart', stopSelect);
+  document.body.style.userSelect = 'none';
+  document.addEventListener('mousemove', mouseMove);
+  document.addEventListener('mouseup', cleanUpDocumentEvents);
+}
+
 export function createGhostElementFromHtmlElement({
   element,
   classNames = ['dragging', 'drag-grid'],
@@ -25,27 +47,6 @@ export function createGhostElementFromHtmlElement({
   return ghostElement;
 }
 
-export function dragItem(
-  onDragCallback: (e: MouseEvent) => void,
-  onDragEndCallback?: (e: MouseEvent) => void
-) {
-  function mouseMove(e: MouseEvent) {
-    if (e.target) {
-      onDragCallback(e);
-    }
-  }
-
-  function cleanUpDocumentEvents(e: MouseEvent) {
-    document.removeEventListener('mousemove', mouseMove);
-    document.removeEventListener('mouseup', cleanUpDocumentEvents);
-    document.removeEventListener('selectstart', stopSelect);
-    onDragEndCallback?.(e);
-  }
-  document.addEventListener('selectstart', stopSelect);
-  document.body.style.userSelect = 'none';
-  document.addEventListener('mousemove', mouseMove);
-  document.addEventListener('mouseup', cleanUpDocumentEvents);
-}
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const throttle = <T extends (...args: any[]) => any>(
   fn: T,

@@ -6,6 +6,7 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
   $getNearestNodeFromDOMNode,
   $getNodeByKey,
+  $isElementNode,
   COMMAND_PRIORITY_HIGH,
   COMMAND_PRIORITY_NORMAL,
   DRAGOVER_COMMAND,
@@ -19,9 +20,26 @@ import { throttle } from '../../../utils/draggable';
 import {
   DRAG_DATA_FORMAT,
   getBlockElement,
+  getFileTreeDropCaretLayoutInNoteContainer,
   isOnHandle,
   setTargetLine,
 } from '../utils/draggable-block';
+import {
+  overrideControlledTextInsertion,
+  setSelectionFromPointerInNoteEditor,
+} from '../utils/note-commands';
+import { FILE_TREE_GHOST_ID } from '../../virtualized/virtualized-file-tree/utils/drag';
+
+/** Motion values for the custom caret rendered during file-tree drags. */
+type FileTreeDropCaretMotionValues = {
+  x: MotionValue<number>;
+  y: MotionValue<number>;
+  height: MotionValue<number>;
+  opacity: MotionValue<number>;
+};
+
+/** Ghost `id`s that this hook should handle (block reorder + file-tree drop). */
+const HANDLED_GHOST_IDS = new Set(['block-element', FILE_TREE_GHOST_ID]);
 
 /**
  * Gets the hovered element and stores it in a state
@@ -81,117 +99,189 @@ export function useDraggableBlock(
 }
 
 /**
- * Updates the state of the target line based on the current mouse position when dragging
+ * Updates the drag indicators (block target line and/or file-tree drop caret)
+ * while content is being dragged over the note, and performs the drop.
  */
 export function useNodeDragEvents({
   editor,
-  isDragging,
+  isEditorContentDragging,
   noteContainerRef,
   targetLineYMotionValue,
+  fileTreeDropCaret,
 }: {
   editor: LexicalEditor;
-  isDragging: boolean;
+  isEditorContentDragging: boolean;
   noteContainerRef: RefObject<HTMLElement | null> | null;
   targetLineYMotionValue: MotionValue<number>;
+  fileTreeDropCaret?: FileTreeDropCaretMotionValues;
 }) {
   const setDraggableBlockElement = useSetAtom(draggableBlockElementAtom);
   const noteContainer = noteContainerRef?.current;
   const draggedGhostElement = useAtomValue(draggedGhostElementAtom);
 
   useEffect(() => {
-    const handleDragOver = throttle((event: DragEvent) => {
-      if (!isDragging) {
-        return false;
-      }
-      const [isFileTransfer] = eventFiles(event);
-      if (isFileTransfer) {
-        return false;
-      }
+    const isFileTreeDrag = draggedGhostElement?.id === FILE_TREE_GHOST_ID;
+    const isAnyDragging = isEditorContentDragging || isFileTreeDrag;
 
+    /** Moves the horizontal block-reorder indicator under the pointer. Throttled. */
+    const updateBlockTargetLine = throttle((event: DragEvent) => {
       const { pageY, target } = event;
-      if (!target || !isHTMLElement(target) || !noteContainer) {
-        return false;
-      }
+      if (!target || !isHTMLElement(target) || !noteContainer) return false;
       const targetBlockElem = getBlockElement({
         event,
         editor,
         noteContainer,
         useEdgeAsDefault: true,
       });
-
-      if (targetBlockElem === null) return false;
+      if (!targetBlockElem) return false;
       setTargetLine({
         targetBlockElem,
         mouseY: pageY / calculateZoomLevel(target),
         noteContainer,
         yMotionValue: targetLineYMotionValue,
       });
-
       return true;
     }, 100);
 
-    function handleOnDrop(event: DragEvent): boolean {
-      if (!isDragging) {
-        return false;
+    /** Syncs the custom vertical caret to the pointer for file-tree drags. */
+    function updateFileTreeDropCaret(event: DragEvent): void {
+      if (!fileTreeDropCaret || !noteContainer) return;
+      const layout = getFileTreeDropCaretLayoutInNoteContainer(
+        event.clientX,
+        event.clientY,
+        noteContainer
+      );
+      if (!layout) {
+        fileTreeDropCaret.opacity.set(0);
+        return;
       }
+      fileTreeDropCaret.x.set(layout.left);
+      fileTreeDropCaret.y.set(layout.top);
+      fileTreeDropCaret.height.set(layout.height);
+      fileTreeDropCaret.opacity.set(1);
+    }
+
+    function handleDragOver(event: DragEvent): boolean {
+      if (!isAnyDragging) return false;
+
+      // External file drops are handled by the file plugin; we just ensure our
+      // custom caret isn't left visible.
       const [isFileTransfer] = eventFiles(event);
       if (isFileTransfer) {
+        fileTreeDropCaret?.opacity.set(0);
         return false;
       }
-      const { target, dataTransfer, pageY } = event;
-      const dragData = dataTransfer?.getData(DRAG_DATA_FORMAT) || '';
-      const draggedNode = $getNodeByKey(dragData);
-      if (!draggedNode) {
-        return false;
+
+      if (isFileTreeDrag) {
+        updateFileTreeDropCaret(event);
+        return true;
       }
-      if (!target || !isHTMLElement(target) || !noteContainer) {
-        return false;
-      }
+      return updateBlockTargetLine(event);
+    }
+
+    /**
+     * Drop handler for drags coming from the file tree. Places the Lexical
+     * selection at the pointer (with block-edge fallback) and delegates
+     * insertion to `overrideControlledTextInsertion`.
+     */
+    function handleFileTreeDrop(event: DragEvent): boolean {
+      if (!noteContainer) return false;
+      const { target, pageY, clientX, clientY } = event;
+      if (!target || !isHTMLElement(target)) return false;
+
+      editor.update(() => {
+        const placedAtPointer = setSelectionFromPointerInNoteEditor(
+          editor,
+          clientX,
+          clientY
+        );
+        if (!placedAtPointer) {
+          // If the user drops a file on an image or code block, it goes to the right or left
+          // instead of the default which is the top of the note
+          placeSelectionAtBlockEdge(event, pageY / calculateZoomLevel(target));
+        }
+        overrideControlledTextInsertion(event, editor, draggedGhostElement);
+      });
+      return true;
+    }
+
+    /**
+     * Fallback selection: snap to the start/end of the nearest block based on
+     * whether the pointer is above or below the block's top.
+     */
+    function placeSelectionAtBlockEdge(event: DragEvent, mouseY: number) {
+      if (!noteContainer) return;
       const targetBlockElem = getBlockElement({
         event,
         editor,
         noteContainer,
         useEdgeAsDefault: true,
       });
-
-      if (!targetBlockElem) {
-        return false;
-      }
+      if (!targetBlockElem) return;
       const targetNode = $getNearestNodeFromDOMNode(targetBlockElem);
-      if (!targetNode) {
-        return false;
-      }
-      if (targetNode === draggedNode) {
-        return true;
-      }
-      const targetBlockElemTop = targetBlockElem.getBoundingClientRect().top;
-      if (pageY / calculateZoomLevel(target) >= targetBlockElemTop) {
+      if (!targetNode || !$isElementNode(targetNode)) return;
+      const targetTop = targetBlockElem.getBoundingClientRect().top;
+      if (mouseY >= targetTop) targetNode.selectEnd();
+      else targetNode.selectStart();
+    }
+
+    /** Drop handler for internal block reordering. */
+    function handleBlockReorderDrop(event: DragEvent): boolean {
+      if (!isEditorContentDragging) return false;
+      const { target, dataTransfer, pageY } = event;
+      if (!target || !isHTMLElement(target) || !noteContainer) return false;
+
+      const draggedNodeKey = dataTransfer?.getData(DRAG_DATA_FORMAT) || '';
+      const draggedNode = $getNodeByKey(draggedNodeKey);
+      if (!draggedNode) return false;
+
+      const targetBlockElem = getBlockElement({
+        event,
+        editor,
+        noteContainer,
+        useEdgeAsDefault: true,
+      });
+      if (!targetBlockElem) return false;
+
+      const targetNode = $getNearestNodeFromDOMNode(targetBlockElem);
+      if (!targetNode) return false;
+      if (targetNode === draggedNode) return true;
+
+      const targetTop = targetBlockElem.getBoundingClientRect().top;
+      if (pageY / calculateZoomLevel(target) >= targetTop) {
         targetNode.insertAfter(draggedNode);
       } else {
         targetNode.insertBefore(draggedNode);
       }
       draggedNode.selectStart();
       setDraggableBlockElement(null);
-
       return true;
+    }
+
+    function handleOnDrop(event: DragEvent): boolean {
+      const [isFileTransfer] = eventFiles(event);
+      if (isFileTransfer) return false;
+      if (isFileTreeDrag) return handleFileTreeDrop(event);
+      return handleBlockReorderDrop(event);
     }
 
     return mergeRegister(
       editor.registerCommand(
         DRAGOVER_COMMAND,
-        (e) => {
-          /*
-					 If an element out of the app is being dragged in, then let CONTROLLED_TEXT_INSERTION_COMMAND handle it
-					 If it is in the app, but not a block element, then let CONTROLLED_TEXT_INSERTION_COMMAND handle it
-					*/
-          if (
-            !draggedGhostElement ||
-            (draggedGhostElement && draggedGhostElement.id !== 'block-element')
-          ) {
-            return false;
+        (event) => {
+          // Handle drags from inside the editor (block reorder) and from the
+          // file tree. Anything else falls through to
+          // CONTROLLED_TEXT_INSERTION_COMMAND.
+          if (!draggedGhostElement) return false;
+          if (!HANDLED_GHOST_IDS.has(draggedGhostElement.id)) return false;
+
+          event.preventDefault();
+          // Chromium does not paint a native insertion caret for this drag;
+          // we render `#file-tree-drop-caret` and set dropEffect for feedback.
+          if (isFileTreeDrag && event.dataTransfer) {
+            event.dataTransfer.dropEffect = 'copy';
           }
-          e.preventDefault();
-          return handleDragOver(e);
+          return handleDragOver(event);
         },
         COMMAND_PRIORITY_HIGH
       ),
@@ -201,5 +291,11 @@ export function useNodeDragEvents({
         COMMAND_PRIORITY_NORMAL
       )
     );
-  }, [editor, noteContainerRef, isDragging, draggedGhostElement]);
+  }, [
+    editor,
+    noteContainerRef,
+    isEditorContentDragging,
+    draggedGhostElement,
+    fileTreeDropCaret,
+  ]);
 }

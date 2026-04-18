@@ -30,9 +30,8 @@ export function AccordionItem({
           e.dataTransfer.setDragImage(ghostElement, -25, -25);
           // Clean up the ghost element after the drag ends
           function handleDragEnd() {
-            // Update the selected range so that only 1 item is highlighted
             ghostElement.remove();
-            dragElement.removeEventListener('dragEnd', handleDragEnd);
+            dragElement.removeEventListener('dragend', handleDragEnd);
           }
 
           dragElement.addEventListener('dragend', handleDragEnd);

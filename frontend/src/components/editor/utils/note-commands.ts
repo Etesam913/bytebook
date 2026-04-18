@@ -1,5 +1,6 @@
 import {
   $createNodeSelection,
+  $createRangeSelectionFromDom,
   $createTextNode,
   $getNodeByKey,
   $getSelection,
@@ -16,17 +17,47 @@ import {
 import { isDecoratorNodeSelected } from '../../../utils/commands';
 import { debounce } from '../../../utils/general';
 import {
-  convertFilePathToQueryNotation,
-  encodeNoteNameWithQueryParams,
-  getFileExtension,
-} from '../../../utils/string-formatting';
-import { createFilePath, type FilePath } from '../../../utils/path';
+  createFilePath,
+  createFolderPath,
+  safeDecodeURIComponent,
+  type FilePath,
+} from '../../../utils/path';
+import { WAILS_URL } from '../../../utils/general';
 import type { FilePayload } from '../nodes/file';
 import { $createLinkNode } from '../nodes/link';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
 import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
+import { caretPositionFromPointInEditor } from './draggable-block';
 
 export const debouncedNoteHandleChange = debounce(noteHandleChange, 150);
+
+/**
+ * Sets a collapsed Lexical range selection at the DOM caret under the pointer.
+ * Call only inside `editor.update()`. Returns false if the point is outside
+ * the note contenteditable or mapping fails.
+ */
+export function setSelectionFromPointerInNoteEditor(
+  editor: LexicalEditor,
+  clientX: number,
+  clientY: number
+): boolean {
+  const caret = caretPositionFromPointInEditor(clientX, clientY);
+  if (!caret) return false;
+
+  const domSel = window.getSelection();
+  if (!domSel) return false;
+
+  const range = document.createRange();
+  range.setStart(caret.node, caret.offset);
+  range.setEnd(caret.node, caret.offset);
+  domSel.removeAllRanges();
+  domSel.addRange(range);
+
+  const lexicalSel = $createRangeSelectionFromDom(domSel, editor);
+  if (!lexicalSel || !$isRangeSelection(lexicalSel)) return false;
+  $setSelection(lexicalSel);
+  return true;
+}
 
 /**
  * Handles changes to the note editor.
@@ -187,47 +218,49 @@ type DraggedFileResult =
   | { type: 'unknown' };
 
 function parseDraggedFile(fileUrl: string): DraggedFileResult {
-  if (!fileUrl.startsWith('wails:')) {
+  if (!fileUrl.startsWith(WAILS_URL)) {
     return { type: 'unknown' };
   }
 
-  // Folder link (no file extension)
-  if (!fileUrl.includes('.')) {
-    const segments = fileUrl.split('/');
+  // Trailing slash = folder (set explicitly by the file-tree drag helper);
+  // otherwise treat as file. Avoids guessing from a dot, which is wrong for
+  // dotted folder names (`v1.0`) and extensionless files (`Makefile`).
+  const isFolder = fileUrl.endsWith('/');
+
+  // Strip `wails:` then optional `/notes/` prefix and trailing slash.
+  let rawPath = safeDecodeURIComponent(fileUrl.slice(WAILS_URL.length));
+  if (rawPath.startsWith('/notes/')) {
+    rawPath = rawPath.slice('/notes/'.length);
+  }
+  if (rawPath.endsWith('/')) {
+    rawPath = rawPath.slice(0, -1);
+  }
+
+  if (isFolder) {
+    const folderPath = createFolderPath(rawPath);
+    if (!folderPath) {
+      return { type: 'unknown' };
+    }
     return {
       type: 'folder',
-      url: fileUrl,
-      title: segments.pop() ?? '',
+      url: `${WAILS_URL}${folderPath.encodedFolderUrl}`,
+      title: folderPath.folder,
     };
   }
 
-  // Note or file link (has extension)
-  const { urlWithoutExtension, extension, fileName } = getFileExtension(
-    encodeNoteNameWithQueryParams(fileUrl)
-  );
-
-  if (!urlWithoutExtension || !extension || !fileName) {
-    return { type: 'unknown' };
-  }
-
-  const segments = decodeURIComponent(urlWithoutExtension).split('/');
-  const title = segments.pop() ?? '';
-  const folder = segments.pop() ?? '';
-
-  if (extension === 'md') {
-    return {
-      type: 'markdown',
-      url: convertFilePathToQueryNotation(
-        `${decodeURIComponent(urlWithoutExtension)}.${extension}`
-      ),
-      title,
-    };
-  }
-
-  const filePath = createFilePath(`${folder}/${title}.${extension}`);
+  const filePath = createFilePath(rawPath);
   if (!filePath) {
     return { type: 'unknown' };
   }
+
+  if (filePath.extension === 'md') {
+    return {
+      type: 'markdown',
+      url: `${WAILS_URL}${filePath.encodedFileUrl}`,
+      title: filePath.noteWithoutExtension,
+    };
+  }
+
   return { type: 'file', filePath };
 }
 
@@ -258,14 +291,18 @@ function insertNodesIntoEditor(
  * This function handles when you drag files or links from one note to another
  */
 export function overrideControlledTextInsertion(
-  e: string | InputEvent,
+  e: string | InputEvent | DragEvent,
   editor: LexicalEditor,
   draggedGhostElement: HTMLElement | null
 ) {
-  const inputEvent = e as InputEvent & { dataTransfer?: DataTransfer };
-  if (!inputEvent.dataTransfer || !draggedGhostElement) return false;
+  const dataTransfer =
+    typeof e === 'string'
+      ? null
+      : ((e as InputEvent & { dataTransfer?: DataTransfer }).dataTransfer ??
+        null);
+  if (!dataTransfer || !draggedGhostElement) return false;
 
-  const fileText: string = inputEvent.dataTransfer.getData('text/plain');
+  const fileText: string = dataTransfer.getData('text/plain');
   const files = fileText.split(',');
 
   const linkPayloads: { url: string; title: string }[] = [];

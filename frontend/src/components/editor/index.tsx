@@ -10,6 +10,8 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin';
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
+// import { TreeView } from '@lexical/react/LexicalTreeView';
+// import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useRef, useState } from 'react';
@@ -51,6 +53,12 @@ import type { PlaceholderLineData } from './types';
 import TableHoverActionsV2Plugin from './plugins/table/table-hover-actions.tsx';
 import TableActionMenuPlugin from './plugins/table/table-actions-menu.tsx';
 import { usePreventBoundaryOverscrollFlicker } from '../virtualized/virtualized-list/hooks.tsx';
+
+// Inlined TreeViewPlugin
+// function InlineTreeViewPlugin() {
+//   const [editor] = useLexicalComposerContext();
+//   return <TreeView editor={editor} />;
+// }
 
 export function NotesEditor({
   filePath,
@@ -227,6 +235,7 @@ export function NotesEditor({
               />
               <FocusPlugin />
               <LinkMatcherPlugin />
+              {/* <InlineTreeViewPlugin /> */}
             </div>
             <LinkedMentions filePath={filePath} />
           </div>

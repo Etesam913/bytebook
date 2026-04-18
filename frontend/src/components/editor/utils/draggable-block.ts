@@ -245,6 +245,40 @@ function getCurrentIndex(keysLength: number): number {
 
 export const DRAG_DATA_FORMAT = 'application/x-lexical-drag-block';
 
+/** id of the editor `contenteditable`. Shared so we don't hardcode in many places. */
+const CONTENT_EDITABLE_ID = 'content-editable-editor';
+
+/**
+ * Resolves the DOM caret under a pointer and confirms it is inside the note
+ * contenteditable. Returns a clamped `{ node, offset }` suitable for use with
+ * `Range.setStart`/`Range.setEnd`, or `null` if the point is outside the editor
+ * or the browser lacks `caretPositionFromPoint`.
+ */
+export function caretPositionFromPointInEditor(
+  clientX: number,
+  clientY: number
+): { node: Node; offset: number } | null {
+  const editorEl = document.getElementById(CONTENT_EDITABLE_ID);
+  const caretPosition = document.caretPositionFromPoint?.(clientX, clientY);
+  if (
+    !caretPosition?.offsetNode ||
+    !editorEl?.contains(caretPosition.offsetNode)
+  ) {
+    return null;
+  }
+  const node = caretPosition.offsetNode;
+  const maxOffset =
+    node.nodeType === Node.TEXT_NODE
+      ? (node as Text).length
+      : node.nodeType === Node.ELEMENT_NODE
+        ? (node as Element).childNodes.length
+        : caretPosition.offset;
+  return {
+    node,
+    offset: Math.min(Math.max(0, caretPosition.offset), maxOffset),
+  };
+}
+
 /**
  * Calculates the collapsed top and bottom margins for a given HTML element.
  *
@@ -429,6 +463,53 @@ export function setTargetLine({
   const top = lineTop - noteContainerTop - 4 + noteContainer.scrollTop;
 
   yMotionValue.set(top);
+}
+
+/** Minimum rendered height for the file-tree drop caret when line metrics are unusable. */
+const MIN_DROP_CARET_HEIGHT = 18;
+
+/**
+ * Resolves the line-height of the element that visually contains `node`.
+ * Falls back to the element's box height, or a safe minimum.
+ */
+function getLineHeightForNode(node: Node): number {
+  const lineEl =
+    node.nodeType === Node.TEXT_NODE
+      ? (node as Text).parentElement
+      : (node as HTMLElement);
+  if (!lineEl) return MIN_DROP_CARET_HEIGHT;
+  const computed = Number.parseFloat(getComputedStyle(lineEl).lineHeight);
+  if (Number.isFinite(computed) && computed > 0) return computed;
+  return lineEl.getBoundingClientRect().height || MIN_DROP_CARET_HEIGHT;
+}
+
+/**
+ * Computes a vertical insertion indicator (caret) position for file-tree drags,
+ * in coordinates relative to `noteContainer` (for portaled overlays).
+ */
+export function getFileTreeDropCaretLayoutInNoteContainer(
+  clientX: number,
+  clientY: number,
+  noteContainer: HTMLElement
+): { left: number; top: number; height: number } | null {
+  const caret = caretPositionFromPointInEditor(clientX, clientY);
+  if (!caret) return null;
+
+  const range = document.createRange();
+  range.setStart(caret.node, caret.offset);
+  range.setEnd(caret.node, caret.offset);
+  const rect = range.getBoundingClientRect();
+  // Collapsed ranges at the end of empty lines report near-zero height in some
+  // browsers; fall back to the line-height of the containing block.
+  const height =
+    rect.height >= 4 ? rect.height : getLineHeightForNode(caret.node);
+
+  const ncRect = noteContainer.getBoundingClientRect();
+  return {
+    left: rect.left - ncRect.left + noteContainer.scrollLeft,
+    top: rect.top - ncRect.top + noteContainer.scrollTop,
+    height,
+  };
 }
 
 /** Updates position and opacity values for handle based on `targetElem` */

@@ -35,10 +35,9 @@ import {
   getDragHighlightIds,
   getFileTreeItemIndent,
 } from '../utils/file-tree-utils';
-import {
-  createDragGhostElement,
-  getContextMenuSelectionItems,
-} from '../utils/item-selection';
+import { getContextMenuSelectionItems } from '../utils/item-selection';
+import { handleFileTreeDragEnd, handleFileTreeDragStart } from '../utils/drag';
+import { draggedGhostElementAtom } from '../../../editor/atoms';
 import { getSelectionValue } from '../../../../utils/selection';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { TagPlus } from '../../../../icons/tag-plus';
@@ -66,7 +65,9 @@ export function FileTreeFileItem({
   const dragHighlightIds = useAtomValue(dragHighlightIdsAtom);
   const setDragHighlightIds = useSetAtom(dragHighlightIdsAtom);
   const sidebarSelection = useAtomValue(sidebarSelectionAtom);
+  const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
+  const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [isEditing, setIsEditing] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -222,19 +223,20 @@ export function FileTreeFileItem({
     const newSelectionState = addItemToSidebarSelection();
     if (!newSelectionState) return;
 
-    const ghost = createDragGhostElement({
+    handleFileTreeDragStart({
+      e,
       sidebarSelection: newSelectionState,
       fileOrFolderMap,
+      setDraggedGhostElement,
     });
-    document.body.appendChild(ghost);
-    e.dataTransfer.setDragImage(ghost, 0, 0);
   }
 
-  function handleDragEnd() {
-    const ghost = document.getElementById('drag-ghost');
-    if (ghost) {
-      ghost.remove();
-    }
+  function handleDragEnd(e: DragEvent) {
+    handleFileTreeDragEnd({
+      e,
+      setDraggedGhostElement,
+      setSidebarSelection,
+    });
     setActiveDropTargetId(null);
     setDragHighlightIds(new Set());
   }

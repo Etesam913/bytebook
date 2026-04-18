@@ -39,10 +39,12 @@ import {
   hasLoadedChildren,
 } from '../../utils/file-tree-utils';
 import { setFolderOpen } from '../../hooks/open-folder';
+import { getContextMenuSelectionItems } from '../../utils/item-selection';
 import {
-  createDragGhostElement,
-  getContextMenuSelectionItems,
-} from '../../utils/item-selection';
+  handleFileTreeDragEnd,
+  handleFileTreeDragStart,
+} from '../../utils/drag';
+import { draggedGhostElementAtom } from '../../../../editor/atoms';
 import {
   useAddFolderAttachmentsMutation,
   useMoveTreeItemsMutation,
@@ -82,6 +84,8 @@ export function FileTreeFolderItem({
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const sidebarSelection = useAtomValue(sidebarSelectionAtom);
+  const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
+  const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
   const folderPathFromRoute = useFolderPathFromRoute();
   const paddingLeft = getFileTreeItemIndent(dataItem.level);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
@@ -273,19 +277,20 @@ export function FileTreeFolderItem({
     const newSelectionState = addItemToSidebarSelection();
     if (!newSelectionState) return;
 
-    const ghost = createDragGhostElement({
+    handleFileTreeDragStart({
+      e,
       sidebarSelection: newSelectionState,
       fileOrFolderMap,
+      setDraggedGhostElement,
     });
-    document.body.appendChild(ghost);
-    e.dataTransfer.setDragImage(ghost, 0, 0);
   }
 
-  function handleDragEnd() {
-    const ghost = document.getElementById('drag-ghost');
-    if (ghost) {
-      ghost.remove();
-    }
+  function handleDragEnd(e: DragEvent) {
+    handleFileTreeDragEnd({
+      e,
+      setDraggedGhostElement,
+      setSidebarSelection,
+    });
     setActiveDropTargetId(null);
   }
 

@@ -140,7 +140,6 @@ export function insertCreatedNodeIntoFileTree(
       path,
       id: newlyCreatedNodeId,
       parentId: parent.id,
-      hasDragHighlight: false,
     });
   }
 

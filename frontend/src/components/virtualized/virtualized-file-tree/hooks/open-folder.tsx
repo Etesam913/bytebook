@@ -36,7 +36,6 @@ function insertEntry(
       maps.treeData.set(entry.id, {
         ...commonAttributes,
         type: 'file',
-        hasDragHighlight: false,
       });
       break;
     case FOLDER_TYPE:

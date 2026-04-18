@@ -34,8 +34,6 @@ export type Folder = BaseFileOrFolder & {
 export type File = BaseFileOrFolder & {
   /** The type for this object: always "file". */
   type: typeof FILE_TYPE;
-  /** Whether this file should display a drag highlight (e.g. when a dragged item hovers over a sibling). */
-  hasDragHighlight: boolean;
 };
 
 /**
