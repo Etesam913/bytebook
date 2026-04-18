@@ -33,7 +33,6 @@ import { ComponentPickerMenuPlugin } from './plugins/component-picker';
 import { HorizontalRulePlugin } from '@lexical/react/LexicalHorizontalRulePlugin';
 import { CustomMarkdownShortcutPlugin } from './plugins/custom-markdown-shortcut.tsx';
 import { DraggableBlockPlugin } from './plugins/draggable-block.tsx';
-import { EditorContentDropPlugin } from './plugins/editor-content-drop.tsx';
 import { EmptyLinePlaceholderPlugin } from './plugins/empty-line-placeholder.tsx';
 import { FilesPlugin } from './plugins/file';
 import { FilePickerMenuPlugin } from './plugins/file-picker.tsx';
@@ -231,10 +230,10 @@ export function NotesEditor({
                 }}
               />
               <FilesPlugin />
-              <EditorContentDropPlugin filePath={filePath} />
               <CodePlugin />
               <DraggableBlockPlugin
                 overflowContainerRef={overflowContainerRef}
+                filePath={filePath}
               />
               <FocusPlugin />
               <LinkMatcherPlugin />

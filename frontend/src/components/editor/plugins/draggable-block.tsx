@@ -20,19 +20,15 @@ import type { LexicalEditor } from 'lexical';
 import { draggedGhostElementAtom, noteContainerRefAtom } from '../atoms';
 import { VerticalDots } from '../../../icons/vertical-dots';
 import { useDraggableBlock, useNodeDragEvents } from '../hooks/draggable-block';
-import { handleDragStart, setHandlePosition } from '../utils/draggable-block';
+import {
+  handleDragStart,
+  setHandlePosition,
+  type DragAndDropCaretMotionValues,
+} from '../utils/drag';
 import { useRefState } from '../hooks/ref-state';
-import { FILE_TREE_GHOST_ID } from '../../virtualized/virtualized-file-tree/utils/drag';
+import type { FilePath } from '../../../utils/path';
 
-/** Motion values that position the custom vertical caret shown during file-tree drags. */
-type FileTreeDropCaretMotionValues = {
-  x: MotionValue<number>;
-  y: MotionValue<number>;
-  height: MotionValue<number>;
-  opacity: MotionValue<number>;
-};
-
-function useFileTreeDropCaretMotion(): FileTreeDropCaretMotionValues {
+function useDragAndDropCaret(): DragAndDropCaretMotionValues {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const height = useMotionValue(20);
@@ -42,8 +38,10 @@ function useFileTreeDropCaretMotion(): FileTreeDropCaretMotionValues {
 
 export function DraggableBlockPlugin({
   overflowContainerRef,
+  filePath,
 }: {
   overflowContainerRef: RefObject<HTMLDivElement | null>;
+  filePath: FilePath;
 }) {
   const [editor] = useLexicalComposerContext();
   const { draggableBlockElement } = useDraggableBlock(overflowContainerRef);
@@ -71,14 +69,15 @@ export function DraggableBlockPlugin({
     restSpeed: 0.5,
   });
 
-  const fileTreeDropCaret = useFileTreeDropCaretMotion();
+  const dragAndDropCaretMotionValues = useDragAndDropCaret();
 
   useNodeDragEvents({
     editor,
+    filePath,
     isEditorContentDragging: isDragging,
     noteContainerRef,
     targetLineYMotionValue: targetLineY,
-    fileTreeDropCaret,
+    dragAndDropCaretMotionValues,
   });
 
   if (!noteContainerElement) return null;
@@ -97,7 +96,7 @@ export function DraggableBlockPlugin({
         targetLineY={targetLineY}
       />
       <BlockTargetLine ySpring={targetLineYSpring} isVisible={isDragging} />
-      <FileTreeDropCaret motionValues={fileTreeDropCaret} />
+      <DragAndDropCaret motionValues={dragAndDropCaretMotionValues} />
     </>,
     noteContainerElement
   );
@@ -192,24 +191,11 @@ function BlockTargetLine({
   );
 }
 
-function FileTreeDropCaret({
+function DragAndDropCaret({
   motionValues,
 }: {
-  motionValues: FileTreeDropCaretMotionValues;
+  motionValues: DragAndDropCaretMotionValues;
 }) {
-  const draggedGhostElement = useAtomValue(draggedGhostElementAtom);
-
-  // Hide the caret whenever we're not dragging something from the file tree.
-  // This also fires on file-tree `dragend` (ghost -> null) to clean up after a
-  // successful drop. External OS file drags keep the ghost `null` throughout,
-  // so this effect doesn't re-run during them; their caret visibility is
-  // driven by the Wails `handleDragOver` wrapper in `useNodeDragEvents`.
-  useEffect(() => {
-    if (draggedGhostElement?.id !== FILE_TREE_GHOST_ID) {
-      motionValues.opacity.set(0);
-    }
-  }, [draggedGhostElement, motionValues.opacity]);
-
   return (
     <motion.div
       aria-hidden

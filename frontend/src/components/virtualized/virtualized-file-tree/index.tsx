@@ -13,6 +13,7 @@ import {
 import { useRoutePathFocus } from './hooks/use-route-path-focus';
 import { StickyHeader } from './sticky-header';
 import { shouldHandleOutsideSelectionInteraction } from '../../../utils/mouse';
+import { useExternalFileTreeDrag } from './hooks/use-external-file-tree-drag';
 import { useFileTreeContentDrop } from './hooks/use-file-tree-content-drop';
 import { usePreventBoundaryOverscrollFlicker } from '../virtualized-list/hooks';
 
@@ -34,6 +35,7 @@ export function VirtualizedFileTree({
 
   useRoutePathFocus({ visibleRange, virtualizedData, virtuosoRef, isSuccess });
   useFileTreeContentDrop();
+  useExternalFileTreeDrag();
   usePreventBoundaryOverscrollFlicker({ scrollElementRef: ref });
 
   // Clear selection when clicking outside the file tree (unless it's a context menu click)

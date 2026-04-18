@@ -27,7 +27,7 @@ import type { FilePayload } from '../nodes/file';
 import { $createLinkNode } from '../nodes/link';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
 import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
-import { caretPositionFromPointInEditor } from './draggable-block';
+import { caretPositionFromPointInEditor } from './drag';
 
 export const debouncedNoteHandleChange = debounce(noteHandleChange, 150);
 

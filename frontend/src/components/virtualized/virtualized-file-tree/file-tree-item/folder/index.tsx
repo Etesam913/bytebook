@@ -37,6 +37,7 @@ import {
 import {
   getFileTreeItemIndent,
   hasLoadedChildren,
+  isItemAlreadyInDropDestination,
 } from '../../utils/file-tree-utils';
 import { setFolderOpen } from '../../hooks/open-folder';
 import { getContextMenuSelectionItems } from '../../utils/item-selection';
@@ -160,10 +161,16 @@ export function FileTreeFolderItem({
 
   const hasDragHighlight = dragHighlightIds.has(dataItem.id);
   // Mute the dragged selection while another row is acting as the active drop target.
+  // Skip muting when the drop would leave this item in its current folder (no-op).
   const shouldMuteSelection =
     activeDropTargetId !== null &&
     activeDropTargetId !== dataItem.id &&
-    isSelectedFromSidebarClick;
+    isSelectedFromSidebarClick &&
+    !isItemAlreadyInDropDestination({
+      fileOrFolderMap,
+      itemParentId: dataItem.parentId,
+      dropTargetId: activeDropTargetId,
+    });
   const isContextMenuTarget =
     contextMenuData.isShowing && contextMenuData.targetId === dataItem.id;
   const innerContent = (

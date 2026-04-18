@@ -351,6 +351,29 @@ export function hasLoadedChildren(folder: Folder): boolean {
 }
 
 /**
+ * Returns true when a drop on `dropTargetId` would leave an item with
+ * `itemParentId` in the folder it already lives in (i.e. the move is a no-op
+ * for that item). Used to skip muting rows whose drag outcome is a no-op.
+ */
+export function isItemAlreadyInDropDestination({
+  fileOrFolderMap,
+  itemParentId,
+  dropTargetId,
+}: {
+  fileOrFolderMap: ReadonlyMap<string, FileOrFolder>;
+  itemParentId: string | null;
+  dropTargetId: string | null;
+}): boolean {
+  if (!dropTargetId) return false;
+  const dropTarget = fileOrFolderMap.get(dropTargetId);
+  if (!dropTarget) return false;
+  const destinationParentId = isTreeNodeAFolder(dropTarget)
+    ? dropTarget.id
+    : dropTarget.parentId;
+  return itemParentId === destinationParentId;
+}
+
+/**
  * Computes the set of tree node IDs to highlight when dragging over a file.
  * Includes the parent folder, all siblings, and recursively all descendants
  * of open sibling folders via BFS.

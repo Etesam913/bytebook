@@ -34,6 +34,7 @@ import {
 import {
   getDragHighlightIds,
   getFileTreeItemIndent,
+  isItemAlreadyInDropDestination,
 } from '../utils/file-tree-utils';
 import { getContextMenuSelectionItems } from '../utils/item-selection';
 import { handleFileTreeDragEnd, handleFileTreeDragStart } from '../utils/drag';
@@ -163,10 +164,16 @@ export function FileTreeFileItem({
   const paddingLeft = getFileTreeItemIndent(dataItem.level);
   const hasDragHighlight = dragHighlightIds.has(dataItem.id);
   // Mute the dragged selection while another row is acting as the active drop target.
+  // Skip muting when the drop would leave this item in its current folder (no-op).
   const shouldMuteSelection =
     activeDropTargetId !== null &&
     activeDropTargetId !== dataItem.id &&
-    isSelectedFromSidebarClick;
+    isSelectedFromSidebarClick &&
+    !isItemAlreadyInDropDestination({
+      fileOrFolderMap,
+      itemParentId: dataItem.parentId,
+      dropTargetId: activeDropTargetId,
+    });
   const isContextMenuTarget =
     contextMenuData.isShowing && contextMenuData.targetId === dataItem.id;
   const innerContent = (
