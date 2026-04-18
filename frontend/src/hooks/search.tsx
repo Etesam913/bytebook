@@ -117,6 +117,24 @@ export const searchQueries = {
     }),
 };
 
+const FILE_PICKER_PAGE_SIZE = 15;
+
+/**
+ * Hook for the editor `@` file picker. Requests a small page directly from
+ * the backend instead of over-fetching and slicing client-side.
+ */
+export function useFilePickerSearchQuery(searchQuery: string) {
+  return useQuery({
+    queryKey: ['file-picker-full-text-search', searchQuery],
+    queryFn: async () => {
+      const page = await FullTextSearch(searchQuery, [], FILE_PICKER_PAGE_SIZE);
+      return mapFullTextSearchResults(page.results);
+    },
+    enabled: searchQuery.trim().length > 0,
+    placeholderData: keepPreviousData,
+  });
+}
+
 /**
  * Hook to perform a full-text search query using react-query.
  */
@@ -124,7 +142,8 @@ export function useFullTextSearchQuery(searchQuery: string) {
   const query = useInfiniteQuery({
     queryKey: searchQueries.fullTextSearchKey(searchQuery),
     initialPageParam: undefined as string[] | undefined,
-    queryFn: ({ pageParam }) => FullTextSearch(searchQuery, pageParam ?? []),
+    queryFn: ({ pageParam }) =>
+      FullTextSearch(searchQuery, pageParam ?? [], null),
     getNextPageParam: (lastPage) =>
       lastPage.hasMore ? lastPage.nextSearchAfter : undefined,
     placeholderData: keepPreviousData,

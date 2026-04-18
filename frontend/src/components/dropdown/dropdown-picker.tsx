@@ -96,12 +96,14 @@ export function FilePickerMenuItem({
   onClick,
   option,
   item,
+  highlightHtml,
 }: {
   index: number;
   isSelected: boolean;
   onClick: () => void;
   option: DropdownPickerOption;
   item: FilePickerMenuItemData;
+  highlightHtml?: string;
 }) {
   const iconElement = option.icon;
   const ariaLabel =
@@ -120,7 +122,7 @@ export function FilePickerMenuItem({
     <li
       tabIndex={isSelected ? 0 : -1}
       className={cn(
-        'text-left cursor-pointer rounded-md px-[7px] py-1 hover:bg-zinc-100 dark:hover:bg-zinc-650 ',
+        'rounded-md px-2 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-650',
         isSelected &&
           'bg-zinc-150 dark:bg-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600'
       )}
@@ -153,6 +155,12 @@ export function FilePickerMenuItem({
           >
             {secondaryText}
           </p>
+          {highlightHtml && (
+            <div
+              className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 mt-0.5 whitespace-normal break-words"
+              dangerouslySetInnerHTML={{ __html: highlightHtml }}
+            />
+          )}
         </div>
       </div>
     </li>

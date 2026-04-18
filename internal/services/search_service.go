@@ -79,10 +79,15 @@ func splitNotePath(pathToNote string) (folder string, note string, ok bool) {
 	return trimmed[:slashIdx], trimmed[slashIdx+1:], true
 }
 
-func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string) search.FullTextSearchPage {
+func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string, pageSize *int) search.FullTextSearchPage {
+	effectivePageSize := search.FullTextSearchPageSize
+	if pageSize != nil && *pageSize > 0 {
+		effectivePageSize = *pageSize
+	}
+
 	// Build the boolean query and request using helpers for clarity
 	totalQuery, sortOption := search.BuildBooleanQueryFromUserInput(searchQuery, 1)
-	request := search.CreateSearchRequest(totalQuery, search.FullTextSearchPageSize+1, sortOption, searchAfter)
+	request := search.CreateSearchRequest(totalQuery, effectivePageSize+1, sortOption, searchAfter)
 
 	res, err := (*s.SearchIndex).Search(request)
 	if err != nil {
@@ -92,9 +97,9 @@ func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string)
 		}
 	}
 
-	hasMore := len(res.Hits) > search.FullTextSearchPageSize
+	hasMore := len(res.Hits) > effectivePageSize
 	if hasMore {
-		res.Hits = res.Hits[:search.FullTextSearchPageSize]
+		res.Hits = res.Hits[:effectivePageSize]
 	}
 
 	nextSearchAfter := []string{}
