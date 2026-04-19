@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import {
   noteIntersectionObserverAtom,
   noteSeenFileNodeKeysAtom,
@@ -10,40 +10,34 @@ export function useNoteIntersectionObserver(
   note: string,
   noteContainerRef: React.RefObject<HTMLDivElement | null>
 ) {
-  const [noteIntersectionObserver, setNoteIntersectionObserver] = useAtom(
-    noteIntersectionObserverAtom
-  );
-  const [seenFileNodeKeys, setSeenFileNodeKeys] = useAtom(
-    noteSeenFileNodeKeysAtom
-  );
+  const setNoteIntersectionObserver = useSetAtom(noteIntersectionObserverAtom);
+  const setSeenFileNodeKeys = useSetAtom(noteSeenFileNodeKeysAtom);
 
   useEffect(() => {
-    setSeenFileNodeKeys(new Set([]));
-    setNoteIntersectionObserver(() => {
-      return new IntersectionObserver((entries) => {
-        entries.forEach(
-          (entry) => {
-            if (entry.isIntersecting) {
-              const nodeKey = entry.target.getAttribute('data-node-key');
-              if (nodeKey && !seenFileNodeKeys.has(nodeKey)) {
-                setSeenFileNodeKeys(
-                  (prevFileNodeKeys) => new Set([...prevFileNodeKeys, nodeKey])
-                );
-              }
-            }
-          },
-          {
-            root: noteContainerRef.current,
-            rootMargin: '0px 0px 100px 0px',
-            threshold: 0.3,
-          }
-        );
-      });
-    });
+    setSeenFileNodeKeys(new Set());
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const nodeKey = entry.target.getAttribute('data-node-key');
+          if (!nodeKey) return;
+          setSeenFileNodeKeys((prev) => {
+            if (prev.has(nodeKey)) return prev;
+            return new Set([...prev, nodeKey]);
+          });
+        });
+      },
+      {
+        root: noteContainerRef.current,
+        rootMargin: '0px 0px 100px 0px',
+        threshold: 0.3,
+      }
+    );
+    setNoteIntersectionObserver(observer);
     return () => {
-      noteIntersectionObserver?.disconnect();
+      observer.disconnect();
       setNoteIntersectionObserver(null);
-      setSeenFileNodeKeys(new Set([]));
+      setSeenFileNodeKeys(new Set());
     };
   }, [folder, note, noteContainerRef]);
 }

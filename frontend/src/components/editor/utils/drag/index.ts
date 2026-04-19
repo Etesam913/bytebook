@@ -1,8 +1,6 @@
-export { DRAG_DATA_FORMAT } from './constants';
 export { getBlockElement } from './block-lookup';
 export {
   caretPositionFromPointInEditor,
-  getFileTreeDropCaretLayoutInNoteContainer,
   type DragAndDropCaretMotionValues,
 } from './caret';
 export { setHandlePosition, setTargetLine } from './positioning';

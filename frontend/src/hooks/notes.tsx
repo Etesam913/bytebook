@@ -37,14 +37,12 @@ import { fileTreeDataAtom } from '../atoms';
 import { useFilePathFromRoute, useFolderPathFromRoute } from './routes';
 
 const noteQueries = {
-  doesNoteExist: (folder: string, note: string, extension: string) =>
+  doesNoteExist: (filePath: FilePath | null) =>
     queryOptions({
-      queryKey: ['doesNoteExist', folder, note, extension],
+      queryKey: ['doesNoteExist', filePath?.fullPath ?? ''],
       queryFn: () => {
-        if (!note) return false;
-        return DoesNoteExist(
-          `${folder}/${decodeURIComponent(note)}.${extension}`
-        );
+        if (!filePath) return false;
+        return DoesNoteExist(filePath.fullPath);
       },
     }),
 };
@@ -299,7 +297,7 @@ export function useNoteWriteEvent({
         // Remove .md extension for comparison
         const noteWithoutExtension = noteFromEvent.replace(/\.md$/, '');
 
-        if (!markdown) return;
+        if (!markdown) continue;
         const { content, frontMatter } = parseFrontMatter(markdown);
 
         // Only update the editor if the current note is the one that was changed
@@ -332,11 +330,7 @@ export function useNoteWriteEvent({
  */
 export function useNoteExists(filePath: FilePath | null) {
   return useQuery({
-    ...noteQueries.doesNoteExist(
-      filePath?.folder ?? '',
-      filePath?.noteWithoutExtension ?? '',
-      filePath?.extension ?? ''
-    ),
+    ...noteQueries.doesNoteExist(filePath),
     enabled: filePath !== null,
   });
 }

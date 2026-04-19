@@ -146,7 +146,6 @@ export function useRestoreLastVisitedOnLaunch(): void {
     navigate(url ?? '/', { replace: true });
     // Intentionally run once on mount — `mostRecentItems` is initialized
     // synchronously from localStorage, so the first render has the value.
-
   }, []);
 }
 
