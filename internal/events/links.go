@@ -13,10 +13,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// encodeLinkSegment percent-encodes a path segment using the same rules as the
+// EncodeLinkSegment percent-encodes a path segment using the same rules as the
 // frontend's encodeLinkUrl (JS encodeURIComponent + ( )-escaping) so generated
 // URL paths match the encoded form stored in markdown and indexed in bleve.
-func encodeLinkSegment(s string) string {
+func EncodeLinkSegment(s string) string {
 	var b strings.Builder
 	for i := 0; i < len(s); i++ {
 		c := s[i]
@@ -65,8 +65,8 @@ func replaceLocalLinksInNotes(params EventParams, data []map[string]string) {
 			continue
 		}
 
-		oldURLPath := "/notes/" + encodeLinkSegment(oldFolder) + "/" + encodeLinkSegment(oldNoteName)
-		newURLPath := "/notes/" + encodeLinkSegment(newFolder) + "/" + encodeLinkSegment(newNoteName)
+		oldURLPath := "/notes/" + EncodeLinkSegment(oldFolder) + "/" + EncodeLinkSegment(oldNoteName)
+		newURLPath := "/notes/" + EncodeLinkSegment(newFolder) + "/" + EncodeLinkSegment(newNoteName)
 
 		if oldURLPath != newURLPath {
 			replacements = append(replacements, linkReplacement{oldURLPath, newURLPath})
@@ -81,7 +81,7 @@ func replaceLocalLinksInNotes(params EventParams, data []map[string]string) {
 	noteReplacements := make(map[string][]linkReplacement)
 
 	for _, repl := range replacements {
-		matchingPaths := findNotesWithLink(params, repl.oldURLPath)
+		matchingPaths := FindNotesWithLink(*params.Index, repl.oldURLPath, search.MaxDeleteSearchResults)
 		for _, relPath := range matchingPaths {
 			noteReplacements[relPath] = append(noteReplacements[relPath], repl)
 		}
@@ -128,17 +128,25 @@ func replaceLocalLinksInNotes(params EventParams, data []map[string]string) {
 	}
 }
 
-// findNotesWithLink queries the bleve index for markdown notes whose links field
+// FindNotesWithLink queries the bleve index for markdown notes whose links field
 // contains the given URL path. Returns a slice of relative note paths (e.g. "folder/note.md").
-func findNotesWithLink(params EventParams, urlPath string) []string {
+func FindNotesWithLink(index bleve.Index, urlPath string, pageSize int) []string {
+	if index == nil {
+		return nil
+	}
+
 	termQuery := bleve.NewTermQuery(urlPath)
 	termQuery.SetField(search.FieldLinks)
 
 	searchRequest := bleve.NewSearchRequest(termQuery)
-	searchRequest.Size = search.MaxDeleteSearchResults
+	if pageSize > 0 {
+		searchRequest.Size = pageSize
+	} else {
+		searchRequest.Size = search.MaxDeleteSearchResults
+	}
 	searchRequest.Fields = []string{}
 
-	result, err := (*params.Index).Search(searchRequest)
+	result, err := index.Search(searchRequest)
 	if err != nil {
 		log.Printf("Error searching for notes with link %s: %v", urlPath, err)
 		return nil

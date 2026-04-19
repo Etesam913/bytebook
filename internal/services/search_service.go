@@ -8,6 +8,7 @@ import (
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/events"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 )
@@ -32,6 +33,50 @@ type FilePickerSearchResult struct {
 	Type   string `json:"type"`
 	Folder string `json:"folder"`
 	Note   string `json:"note,omitempty"`
+}
+
+// LinkedMention is a single note that links to a queried note.
+type LinkedMention struct {
+	Folder string `json:"folder"`
+	Note   string `json:"note"`
+}
+
+func buildEncodedNoteURLPath(pathToNote string) string {
+	trimmed := strings.Trim(pathToNote, "/")
+	if trimmed == "" {
+		return ""
+	}
+
+	encodedSegments := make([]string, 0, len(strings.Split(trimmed, "/")))
+	for _, segment := range strings.Split(trimmed, "/") {
+		if segment == "" {
+			continue
+		}
+		encodedSegments = append(encodedSegments, events.EncodeLinkSegment(segment))
+	}
+
+	if len(encodedSegments) == 0 {
+		return ""
+	}
+
+	return "/notes/" + strings.Join(encodedSegments, "/")
+}
+
+func splitNotePath(pathToNote string) (folder string, note string, ok bool) {
+	trimmed := strings.Trim(pathToNote, "/")
+	if trimmed == "" {
+		return "", "", false
+	}
+
+	slashIdx := strings.LastIndex(trimmed, "/")
+	if slashIdx == -1 {
+		return "", trimmed, true
+	}
+	if slashIdx == len(trimmed)-1 {
+		return "", "", false
+	}
+
+	return trimmed[:slashIdx], trimmed[slashIdx+1:], true
 }
 
 func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string) search.FullTextSearchPage {
@@ -156,6 +201,40 @@ func (s *SearchService) RemoveSavedSearch(name string) config.BackendResponseWit
 	return config.BackendResponseWithoutData{
 		Success: true,
 		Message: "Successfully removed saved search",
+	}
+}
+
+// GetLinkedMentions returns the list of notes whose markdown body contains an
+// internal link to the given note. pathToNote is expected in the form
+// "<folder>/<noteName>".
+func (s *SearchService) GetLinkedMentions(pathToNote string, pageSize int) config.BackendResponseWithData[[]LinkedMention] {
+	urlPath := buildEncodedNoteURLPath(pathToNote)
+	if urlPath == "" {
+		return config.BackendResponseWithData[[]LinkedMention]{
+			Success: true,
+			Message: "No linked mentions",
+			Data:    []LinkedMention{},
+		}
+	}
+
+	hits := events.FindNotesWithLink(*s.SearchIndex, urlPath, pageSize)
+
+	mentions := make([]LinkedMention, 0, len(hits))
+	for _, hit := range hits {
+		folder, note, ok := splitNotePath(hit)
+		if !ok {
+			continue
+		}
+		mentions = append(mentions, LinkedMention{
+			Folder: folder,
+			Note:   note,
+		})
+	}
+
+	return config.BackendResponseWithData[[]LinkedMention]{
+		Success: true,
+		Message: "Successfully retrieved linked mentions",
+		Data:    mentions,
 	}
 }
 

@@ -35,6 +35,7 @@ import { EmptyLinePlaceholderPlugin } from './plugins/empty-line-placeholder.tsx
 import { FilesPlugin } from './plugins/file';
 import { FilePickerMenuPlugin } from './plugins/file-picker.tsx';
 import { FocusPlugin } from './plugins/focus.tsx';
+import { LinkedMentions } from './linked-mentions';
 import { LinkMatcherPlugin } from './plugins/link-matcher.tsx';
 import { LinkPlugin } from './plugins/link.tsx';
 import { SavePlugin } from './plugins/save.tsx';
@@ -227,6 +228,7 @@ export function NotesEditor({
               <FocusPlugin />
               <LinkMatcherPlugin />
             </div>
+            <LinkedMentions filePath={filePath} />
           </div>
         </div>
         <BottomBar frontmatter={frontmatter} filePath={filePath} isNoteEditor />

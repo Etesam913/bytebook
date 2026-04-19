@@ -141,3 +141,40 @@ func TestReplaceLocalLinksInNotes(t *testing.T) {
 		assert.Equal(t, originalContent, string(content))
 	})
 }
+
+func TestFindNotesWithLink(t *testing.T) {
+	t.Run("matches encoded internal note links and respects page size", func(t *testing.T) {
+		params := createTestParams(t)
+
+		createMarkdownNoteInFolder(t, params.ProjectPath, "My Folder", "Target Note.md", "# Target")
+		createMarkdownNoteInFolder(
+			t,
+			params.ProjectPath,
+			"refs",
+			"one.md",
+			"# One\n[target](/notes/My%20Folder/Target%20Note.md)",
+		)
+		createMarkdownNoteInFolder(
+			t,
+			params.ProjectPath,
+			"refs",
+			"two.md",
+			"# Two\n[target](/notes/My%20Folder/Target%20Note.md)",
+		)
+
+		addCreatedNotesToIndex(params, []map[string]string{
+			{"folder": "My Folder", "note": "Target Note.md"},
+			{"folder": "refs", "note": "one.md"},
+			{"folder": "refs", "note": "two.md"},
+		})
+
+		hits := FindNotesWithLink(
+			*params.Index,
+			"/notes/"+EncodeLinkSegment("My Folder")+"/"+EncodeLinkSegment("Target Note.md"),
+			1,
+		)
+
+		assert.Len(t, hits, 1)
+		assert.Contains(t, []string{"refs/one.md", "refs/two.md"}, hits[0])
+	})
+}
