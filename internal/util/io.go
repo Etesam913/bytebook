@@ -140,6 +140,22 @@ func ReadOrCreateJSON[T any](filePath string, defaultValue T) (T, error) {
 	return value, nil
 }
 
+// SafeJoin joins base with relPath and verifies the result stays within base.
+// Returns an error if relPath escapes base (via "..", absolute paths, etc.).
+// Containment is checked lexically after cleaning; callers should resolve
+// symlinks beforehand if they need symlink-aware containment.
+func SafeJoin(base, relPath string) (string, error) {
+	joined := filepath.Join(base, relPath)
+	rel, err := filepath.Rel(filepath.Clean(base), joined)
+	if err != nil {
+		return "", fmt.Errorf("invalid path %q: %w", relPath, err)
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return "", fmt.Errorf("path %q escapes base directory", relPath)
+	}
+	return joined, nil
+}
+
 /*
 FileOrFolderExists checks if a file or folder exists at the specified path.
 Parameters:

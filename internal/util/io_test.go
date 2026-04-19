@@ -14,6 +14,38 @@ type TestWriteJson struct {
 	Notes []string `json:"notes"`
 }
 
+func TestSafeJoin(t *testing.T) {
+	base := filepath.Join("/tmp", "project", "notes")
+
+	cases := []struct {
+		name    string
+		rel     string
+		want    string
+		wantErr bool
+	}{
+		{"simple relative", "folder/note.md", filepath.Join(base, "folder/note.md"), false},
+		{"with dot segments inside", "folder/./note.md", filepath.Join(base, "folder/note.md"), false},
+		{"internal backtrack still inside", "folder/sub/../note.md", filepath.Join(base, "folder/note.md"), false},
+		{"empty stays at base", "", base, false},
+		{"parent escape", "../secret", "", true},
+		{"deep parent escape", "folder/../../etc/passwd", "", true},
+		{"absolute path is treated as relative by Join", "/etc/passwd", filepath.Join(base, "etc/passwd"), false},
+		{"just ..", "..", "", true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := SafeJoin(base, tc.rel)
+			if tc.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
 func TestWriteJsonToPath(t *testing.T) {
 	err := WriteJsonToPath("./test.json", TestWriteJson{
 		Notes: []string{"Etesam", "was", "here"},

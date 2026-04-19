@@ -20,8 +20,15 @@ type NoteService struct {
 // Both paths should be relative to the notes directory (e.g., "folder/note.ext" or "folder").
 // Returns a BackendResponseWithData containing the new path or an error message.
 func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath string) config.BackendResponseWithData[string] {
-	oldPath := filepath.Join(n.ProjectPath, "notes", oldFolderNotePath)
-	newPath := filepath.Join(n.ProjectPath, "notes", newFolderNotePath)
+	notesRoot := filepath.Join(n.ProjectPath, "notes")
+	oldPath, err := util.SafeJoin(notesRoot, oldFolderNotePath)
+	if err != nil {
+		return config.BackendResponseWithData[string]{Success: false, Message: err.Error(), Data: ""}
+	}
+	newPath, err := util.SafeJoin(notesRoot, newFolderNotePath)
+	if err != nil {
+		return config.BackendResponseWithData[string]{Success: false, Message: err.Error(), Data: ""}
+	}
 
 	// Check if the old file or folder exists
 	exists, err := util.FileOrFolderExists(oldPath)
@@ -103,7 +110,10 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 // GetNoteMarkdown reads and returns the markdown content of a note at the given path (relative to project root).
 // Returns a BackendResponseWithData containing the markdown string or an error message.
 func (n *NoteService) GetNoteMarkdown(path string) config.BackendResponseWithData[string] {
-	noteFilePath := filepath.Join(n.ProjectPath, path)
+	noteFilePath, err := util.SafeJoin(n.ProjectPath, path)
+	if err != nil {
+		return config.BackendResponseWithData[string]{Success: false, Message: err.Error(), Data: ""}
+	}
 
 	noteContent, err := os.ReadFile(noteFilePath)
 	if err != nil {
@@ -128,9 +138,12 @@ func (n *NoteService) SetNoteMarkdown(
 	markdown string,
 ) config.BackendResponseWithData[string] {
 	noteName := fmt.Sprintf("%s.md", noteTitle)
-	noteFilePath := filepath.Join(n.ProjectPath, "notes", folderName, noteName)
+	noteFilePath, err := util.SafeJoin(filepath.Join(n.ProjectPath, "notes"), filepath.Join(folderName, noteName))
+	if err != nil {
+		return config.BackendResponseWithData[string]{Success: false, Message: err.Error(), Data: ""}
+	}
 
-	err := os.WriteFile(noteFilePath, []byte(markdown), 0644)
+	err = os.WriteFile(noteFilePath, []byte(markdown), 0644)
 	if err != nil {
 		return config.BackendResponseWithData[string]{
 			Success: false,
@@ -149,8 +162,12 @@ func (n *NoteService) SetNoteMarkdown(
 // AddNoteToFolder creates a new empty markdown note with the given noteName in the specified folder.
 // Returns a BackendResponseWithoutData indicating success or failure.
 func (n *NoteService) AddNoteToFolder(folderName string, noteName string) config.BackendResponseWithoutData {
-	noteFolderPath := filepath.Join(n.ProjectPath, "notes", folderName)
-	pathToNote := filepath.Join(noteFolderPath, fmt.Sprintf("%s.md", noteName))
+	notesRoot := filepath.Join(n.ProjectPath, "notes")
+	pathToNote, err := util.SafeJoin(notesRoot, filepath.Join(folderName, fmt.Sprintf("%s.md", noteName)))
+	if err != nil {
+		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
+	}
+	noteFolderPath := filepath.Dir(pathToNote)
 
 	info, err := os.Stat(pathToNote)
 
@@ -186,6 +203,7 @@ func (n *NoteService) AddNoteToFolder(folderName string, noteName string) config
 // Used to filter out recently used notes that have been deleted or moved.
 func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 	var validPaths []string
+	notesRoot := filepath.Join(n.ProjectPath, "notes")
 
 	for _, path := range paths {
 		pathParts := strings.Split(path, "/")
@@ -194,10 +212,10 @@ func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
 			continue
 		}
 
-		folder := pathParts[0]
-		note := pathParts[1]
-
-		notePath := filepath.Join(n.ProjectPath, "notes", folder, note)
+		notePath, err := util.SafeJoin(notesRoot, filepath.Join(pathParts[0], pathParts[1]))
+		if err != nil {
+			continue
+		}
 
 		exists, err := util.FileOrFolderExists(notePath)
 		if exists && err == nil {
@@ -257,7 +275,11 @@ func (n *NoteService) RevealFolderOrFileInFinder(
 	path := pathToFolderOrFile
 
 	if shouldPrefixWithProjectPath {
-		path = filepath.Join(n.ProjectPath, pathToFolderOrFile)
+		safePath, err := util.SafeJoin(n.ProjectPath, pathToFolderOrFile)
+		if err != nil {
+			return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
+		}
+		path = safePath
 	}
 	err := util.RevealInFinder(path)
 	if err != nil {
@@ -291,12 +313,19 @@ func (n *NoteService) RevealFolderOrFileInFinder(
 // Returns a BackendResponseWithoutData indicating success or failure of the operation.
 func (n *NoteService) MoveNoteToFolder(notePaths []string, newFolder string) config.BackendResponseWithoutData {
 	failedNoteNames := []string{}
+	notesRoot := filepath.Join(n.ProjectPath, "notes")
 	for _, pathToNote := range notePaths {
-		fullPathToNote := filepath.Join(n.ProjectPath, "notes", pathToNote)
-		fullPathWithNewFolder := filepath.Join(n.ProjectPath, "notes", newFolder, filepath.Base(pathToNote))
-		err := util.MoveFile(fullPathToNote, fullPathWithNewFolder)
-
+		fullPathToNote, err := util.SafeJoin(notesRoot, pathToNote)
 		if err != nil {
+			failedNoteNames = append(failedNoteNames, pathToNote)
+			continue
+		}
+		fullPathWithNewFolder, err := util.SafeJoin(notesRoot, filepath.Join(newFolder, filepath.Base(pathToNote)))
+		if err != nil {
+			failedNoteNames = append(failedNoteNames, pathToNote)
+			continue
+		}
+		if err := util.MoveFile(fullPathToNote, fullPathWithNewFolder); err != nil {
 			failedNoteNames = append(failedNoteNames, pathToNote)
 		}
 	}
@@ -323,7 +352,10 @@ type NotePreviewData struct {
 // DoesNoteExist checks if a note exists at the given path relative to the project's notes directory.
 // Returns true if the note exists, false otherwise.
 func (n *NoteService) DoesNoteExist(path string) bool {
-	fullPath := filepath.Join(n.ProjectPath, "notes", path)
+	fullPath, err := util.SafeJoin(filepath.Join(n.ProjectPath, "notes"), path)
+	if err != nil {
+		return false
+	}
 	doesExist, _ := util.FileOrFolderExists(fullPath)
 	return doesExist
 }
