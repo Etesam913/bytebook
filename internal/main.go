@@ -184,8 +184,10 @@ func main() {
 		backgroundColor = application.NewRGB(39, 39, 43)
 	}
 
-	// Creates the default window
-	window := ui.CreateWindow(app, "/", backgroundColor)
+	// Creates the default window. The `restore` flag tells the frontend this is
+	// the app-launch window, so it should navigate to the last-visited note.
+	// New windows opened via the menu use "/" and get a fresh root view.
+	window := ui.CreateWindow(app, "/?restore", backgroundColor)
 	// TODO: Fix bug with menus.InitializeApplicationMenu breaking the app
 	// lsp.CreateLanguageServerProtocol()
 	events.ListenToEvents(events.EventParams{

@@ -1,4 +1,7 @@
-import { useRoute } from 'wouter';
+import { useEffect } from 'react';
+import { useAtomValue } from 'jotai';
+import { useLocation, useRoute, useSearchParams } from 'wouter';
+import { mostRecentItemsAtom } from '../atoms';
 import {
   FolderPath,
   FilePath,
@@ -118,6 +121,33 @@ export function useRecentItemFromRoute(): FilePath | FolderPath | null {
   }
 
   return null;
+}
+
+/**
+ * On app launch, Go opens the initial window at `/?restore`. When this flag
+ * is present, navigate to the most recently visited note/folder (tracked in
+ * localStorage via `mostRecentItemsAtom`). Manually opened new windows ("New
+ * Window" menu, cmd+shift+n) launch at `/` without the flag and stay at root.
+ */
+export function useRestoreLastVisitedOnLaunch(): void {
+  const mostRecentItems = useAtomValue(mostRecentItemsAtom);
+  const [, navigate] = useLocation();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (!searchParams.has('restore')) {
+      return;
+    }
+    const target = mostRecentItems[0];
+    const url =
+      target?.type === 'folder'
+        ? target.encodedFolderUrl
+        : target?.encodedFileUrl;
+    navigate(url ?? '/', { replace: true });
+    // Intentionally run once on mount — `mostRecentItems` is initialized
+    // synchronously from localStorage, so the first render has the value.
+
+  }, []);
 }
 
 /**

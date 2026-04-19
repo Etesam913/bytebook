@@ -6,10 +6,7 @@ import {
 import type { Dispatch, SetStateAction } from 'react';
 import { createGhostElementFromHtmlElement } from '../../../../utils/draggable';
 import { constructGhostElementForNode } from '../ghost-elements';
-import {
-  DRAGGABLE_BLOCK_MENU_CLASSNAME,
-  DRAG_DATA_FORMAT,
-} from './constants';
+import { DRAGGABLE_BLOCK_MENU_CLASSNAME, DRAG_DATA_FORMAT } from './constants';
 
 /**
  * Builds the ghost element for the block being dragged and wires the Lexical

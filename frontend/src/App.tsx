@@ -21,6 +21,7 @@ import {
 } from './utils/routes';
 import { RouteFallback } from './components/route-fallback';
 import { useZoom, useFullscreen, useWindowReload } from './hooks/resize';
+import { useRestoreLastVisitedOnLaunch } from './hooks/routes';
 import { EditorWrapper } from './components/virtualized/virtualized-file-tree/editor-wrapper';
 import { useCreateEvents } from './components/virtualized/virtualized-file-tree/hooks/use-create-events';
 import { useDeleteEvents } from './components/virtualized/virtualized-file-tree/hooks/use-delete-events';
@@ -63,6 +64,7 @@ function App() {
   useZoom();
   useFullscreen();
   useWindowReload();
+  useRestoreLastVisitedOnLaunch();
 
   return (
     <main

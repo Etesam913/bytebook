@@ -5,10 +5,7 @@ import { externalFiles } from './sources/external-files';
 import { fileTreeInternal } from './sources/file-tree';
 
 /** Lexical `DRAGOVER_COMMAND` -> per-source `dragOver` helper. */
-export function dispatchDragOver(
-  event: DragEvent,
-  ctx: DragContext
-): boolean {
+export function dispatchDragOver(event: DragEvent, ctx: DragContext): boolean {
   const [isFileTransfer] = eventFiles(event);
 
   // Non-OS drags must have a recognized ghost element to be handled here.
