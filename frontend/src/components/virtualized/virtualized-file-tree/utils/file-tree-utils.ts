@@ -193,8 +193,11 @@ export function reconcileTopLevelFileTreeMap(
       node.path
     );
 
+    // Preserve the existing node's id so descendants' parentId pointers stay
+    // valid across refetches — the backend generates fresh UUIDs every scan.
+    const stableId = nodeInPreviousData?.id ?? node.id;
+
     if (nodeInPreviousData) {
-      // If the node exists in the previous data, delete it from the updated tree to replace it with the new node
       newTreeDataMap.delete(nodeInPreviousData.id);
       newFilePathToTreeDataMap.delete(node.path);
     }
@@ -208,18 +211,19 @@ export function reconcileTopLevelFileTreeMap(
       const { isOpen, childrenIds, childrenCursor, hasMoreChildren } =
         nodeInPreviousData && isPreviousNodeFolder ? nodeInPreviousData : node;
 
-      newTreeDataMap.set(node.id, {
+      newTreeDataMap.set(stableId, {
         ...node,
+        id: stableId,
         isOpen,
         childrenIds,
         childrenCursor,
         hasMoreChildren,
       });
     } else {
-      newTreeDataMap.set(node.id, { ...node });
+      newTreeDataMap.set(stableId, { ...node, id: stableId });
     }
 
-    newFilePathToTreeDataMap.set(node.path, node.id);
+    newFilePathToTreeDataMap.set(node.path, stableId);
   }
 
   return newFileTreeData;

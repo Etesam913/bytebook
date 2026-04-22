@@ -111,7 +111,11 @@ export function buildRenameUpdates({
     }
 
     const newName = newSegments[newSegments.length - 1];
-    const oldParentId = treeDataNode.parentId;
+    // Derive the old parent from the path rather than trusting
+    // `treeDataNode.parentId`, which can go stale if a previous top-level
+    // refetch replaced the parent folder's id.
+    const oldParentNode = getParentNodeFromPath(fileTreeData, oldPath);
+    const oldParentId = oldParentNode?.id ?? null;
     const newParentNode = getParentNodeFromPath(fileTreeData, newPath);
     const newParentId = newParentNode?.id ?? null;
 
@@ -328,8 +332,14 @@ export function applyParentFolderUpdates({
 
   for (const [parentId, updates] of parentFolderUpdates) {
     const parent = updatedTreeData.get(parentId);
-    //
-    if (!parent || !isTreeNodeAFolder(parent) || !hasLoadedChildren(parent)) {
+    if (
+      // Top level items has no parent
+      !parent ||
+      // Files have no children
+      !isTreeNodeAFolder(parent) ||
+      // Closed folders will get their children loaded on open, so we don't need to update them here.
+      (!hasLoadedChildren(parent) && !parent.isOpen)
+    ) {
       continue;
     }
 
