@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useSetAtom } from 'jotai';
 import { logger } from '../utils/logging';
 import { useEffect } from 'react';
@@ -92,24 +92,22 @@ export function useProjectSettings() {
   const setProjectSettingsLoaded = useSetAtom(projectSettingsLoadedAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
 
-  // Create a mutation using react-query's useMutation hook.
-  const { mutate: fetchAndValidateProjectSettings } = useMutation({
-    mutationFn: async () => {
+  const { data: settings } = useQuery({
+    queryKey: ['project-settings'],
+    queryFn: async () => {
       const { success, message, data } = await GetProjectSettings();
       if (!success || !data) {
         throw new QueryError(message);
       }
       return validateProjectSettingsWrapper(data);
     },
-    onSuccess: (updatedSettings) => {
-      setProjectSettings(updatedSettings);
-      setProjectSettingsLoaded(true);
-    },
   });
 
   useEffect(() => {
-    fetchAndValidateProjectSettings();
-  }, []);
+    if (!settings) return;
+    setProjectSettings(settings);
+    setProjectSettingsLoaded(true);
+  }, [settings]);
 
   // Open the settings dialog on 'settings:open' event.
   useWailsEvent(SETTINGS_OPEN, (data) => {

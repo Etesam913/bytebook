@@ -20,7 +20,7 @@ func ListenToEvents(params EventParams) {
 	// File Events
 	params.App.Event.On(util.Events.FileCreate, func(event *application.CustomEvent) {
 		log.Printf("%s: %+v", util.Events.FileCreate, event.Data)
-		handleNoteCreateEvent(params, event)
+		handleFileCreateEvent(params, event)
 	})
 
 	params.App.Event.On(util.Events.FileRename, func(event *application.CustomEvent) {
@@ -30,12 +30,12 @@ func ListenToEvents(params EventParams) {
 
 	params.App.Event.On(util.Events.FileDelete, func(event *application.CustomEvent) {
 		log.Printf("%s: %+v", util.Events.FileDelete, event.Data)
-		handleNoteDeleteEvent(params, event)
+		handleFileDeleteEvent(params, event)
 	})
 
 	params.App.Event.On(util.Events.FileWrite, func(event *application.CustomEvent) {
 		log.Printf("%s: %+v", util.Events.FileWrite, event.Data)
-		handleNoteWriteEvent(params, event)
+		handleFileWriteEvent(params, event)
 	})
 
 	// Folder Events

@@ -389,7 +389,7 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) ([]TrashResto
 	// settingsPath := filepath.Join(projectPath, "settings", "settings.json")
 	// var cfg config.ProjectSettingsJson
 	// if err := ReadJsonFromPath(settingsPath, &cfg); err == nil {
-	// 	cfg.PinnedNotes = GetValidPinnedNotes(projectPath, cfg)
+	// 	cfg.PinnedNotes = GetValidPinned(projectPath, cfg)
 	// 	_ = WriteJsonToPath(settingsPath, cfg)
 	// }
 

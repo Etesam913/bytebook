@@ -11,6 +11,7 @@ import (
 	"github.com/blevesearch/bleve/v2/search/query"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -29,6 +30,16 @@ func handleFolderDeleteEvent(params EventParams, event *application.CustomEvent)
 	if !ok {
 		log.Println("Folder delete event data is not of type []map[string]string")
 		return
+	}
+
+	for _, item := range data {
+		folderPath, ok := item["folderPath"]
+		if !ok {
+			continue
+		}
+		if err := config.DeletePinnedFolder(params.ProjectPath, folderPath); err != nil {
+			log.Printf("Error updating pinned notes for folder delete %s: %v", folderPath, err)
+		}
 	}
 
 	deleteFoldersFromIndex(params, data)
@@ -161,6 +172,10 @@ func handleFolderRenameEvent(params EventParams, event *application.CustomEvent)
 		if !newExists || newFolderPath == "" {
 			log.Println("Folder rename event data missing newFolderPath")
 			continue
+		}
+
+		if err := config.RenamePinnedFolder(params.ProjectPath, oldFolderPath, newFolderPath); err != nil {
+			log.Printf("Error updating pinned notes for folder rename %s -> %s: %v", oldFolderPath, newFolderPath, err)
 		}
 
 		updateMarkdownFilesForFolderRename(params.ProjectPath, oldFolderPath, newFolderPath)

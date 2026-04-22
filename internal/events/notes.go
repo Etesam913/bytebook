@@ -6,18 +6,19 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-// handleNoteCreateEvent handles the event when a note is created.
-// It extracts the note data from the event and adds the created notes to the search index.
-func handleNoteCreateEvent(params EventParams, event *application.CustomEvent) {
+// handleFileCreateEvent handles the event when a file is created.
+// It extracts the file data from the event and adds the created notes to the search index.
+func handleFileCreateEvent(params EventParams, event *application.CustomEvent) {
 	data, ok := event.Data.([]map[string]string)
 	if !ok {
-		log.Println("Note created event data is not a map")
+		log.Println("File create event data is not a map")
 		return
 	}
 	addCreatedNotesToIndex(params, convertFilePathData(data))
@@ -155,9 +156,21 @@ func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
 func handleFileRenameEvent(params EventParams, event *application.CustomEvent) {
 	data, ok := event.Data.([]map[string]string)
 	if !ok {
-		log.Println("Note rename event data is not a map")
+		log.Println("File rename event data is not a map")
 		return
 	}
+
+	for _, item := range data {
+		oldFilePath, hasOld := item["oldFilePath"]
+		newFilePath, hasNew := item["newFilePath"]
+		if !hasOld || !hasNew {
+			continue
+		}
+		if err := config.RenamePinnedFile(params.ProjectPath, oldFilePath, newFilePath); err != nil {
+			log.Printf("Error updating pinned notes for file rename %s -> %s: %v", oldFilePath, newFilePath, err)
+		}
+	}
+
 	converted := convertRenamePathData(data)
 	renameFilesInIndex(params, converted)
 	replaceLocalLinksInNotes(params, converted)
@@ -239,14 +252,25 @@ func renameFilesInIndex(params EventParams, data []map[string]string) {
 	}
 }
 
-// handleNoteDeleteEvent handles the event when a note is deleted.
+// handleFileDeleteEvent handles the event when a file is deleted.
 // It removes the note from the search index and cleans up any attachment tag associations.
-func handleNoteDeleteEvent(params EventParams, event *application.CustomEvent) {
+func handleFileDeleteEvent(params EventParams, event *application.CustomEvent) {
 	data, ok := event.Data.([]map[string]string)
 	if !ok {
-		log.Println("Note delete event data is not a map")
+		log.Println("File delete event data is not a map")
 		return
 	}
+
+	for _, item := range data {
+		filePath, ok := item["filePath"]
+		if !ok {
+			continue
+		}
+		if err := config.DeletePinnedFile(params.ProjectPath, filePath); err != nil {
+			log.Printf("Error updating pinned notes for file delete %s: %v", filePath, err)
+		}
+	}
+
 	deleteNotesFromIndex(params, convertFilePathData(data))
 }
 
@@ -285,12 +309,12 @@ func deleteNotesFromIndex(params EventParams, data []map[string]string) {
 	}
 }
 
-// handleNoteWriteEvent handles the event when a note is written/updated.
-// It extracts the note data from the event and updates the search index with the new content.
-func handleNoteWriteEvent(params EventParams, event *application.CustomEvent) {
+// handleFileWriteEvent handles the event when a file is written/updated.
+// It extracts the file data from the event and updates the search index with the new content.
+func handleFileWriteEvent(params EventParams, event *application.CustomEvent) {
 	data, ok := event.Data.([]map[string]string)
 	if !ok {
-		log.Println("Note write event data is not a map")
+		log.Println("File write event data is not a map")
 		return
 	}
 	updateNotesInIndex(params, convertFilePathData(data))

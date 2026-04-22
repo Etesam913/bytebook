@@ -1,9 +1,12 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -197,7 +200,7 @@ func ValidateProjectSettings(
 	projectPath string,
 	projectSettings ProjectSettingsJson,
 ) ProjectSettingsJson {
-	projectSettings.PinnedNotes = GetValidPinnedNotes(projectPath, projectSettings)
+	projectSettings.PinnedNotes = GetValidPinned(projectPath, projectSettings)
 	app := application.Get()
 	if app != nil {
 		projectSettings.Appearance.AccentColor = app.Env.GetAccentColor()
@@ -207,10 +210,10 @@ func ValidateProjectSettings(
 
 
 /*
-GetValidPinnedNotes returns a list of valid pinned notes.
-It checks if the pinned note exists in the notes folder and returns all of the pinned notes that exist.
+GetValidPinned returns a list of valid pinned paths.
+It checks if the pinned path exists in the notes folder and returns all of the pinned paths that exist.
 */
-func GetValidPinnedNotes(projectPath string, projectSettings ProjectSettingsJson) []string {
+func GetValidPinned(projectPath string, projectSettings ProjectSettingsJson) []string {
 	validPinnedNotes := []string{}
 	for _, pinnedNote := range projectSettings.PinnedNotes {
 		pathToPinnedNote := filepath.Join(projectPath, "notes", pinnedNote)
@@ -220,4 +223,105 @@ func GetValidPinnedNotes(projectPath string, projectSettings ProjectSettingsJson
 		}
 	}
 	return validPinnedNotes
+}
+
+// updatePinnedNotesOnDisk reads settings.json, applies transform to PinnedNotes,
+// and writes back only if the resulting slice differs from the original. It is
+// a no-op (and returns nil) when settings.json does not exist.
+func updatePinnedNotesOnDisk(projectPath string, transform func([]string) []string) error {
+	settingsPath := filepath.Join(projectPath, "settings", "settings.json")
+
+	var cfg ProjectSettingsJson
+	if err := util.ReadJsonFromPath(settingsPath, &cfg); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return err
+	}
+
+	updated := transform(cfg.PinnedNotes)
+	if slices.Equal(cfg.PinnedNotes, updated) {
+		return nil
+	}
+
+	cfg.PinnedNotes = updated
+	return util.WriteJsonToPath(settingsPath, cfg)
+}
+
+// RenamePinnedFile replaces any pinned entry equal to oldPath with newPath.
+// Used for file renames (exact path equality).
+func RenamePinnedFile(projectPath, oldPath, newPath string) error {
+	if oldPath == "" || newPath == "" || oldPath == newPath {
+		return nil
+	}
+	return updatePinnedNotesOnDisk(projectPath, func(pinned []string) []string {
+		next := make([]string, len(pinned))
+		for i, p := range pinned {
+			if p == oldPath {
+				next[i] = newPath
+			} else {
+				next[i] = p
+			}
+		}
+		return next
+	})
+}
+
+// RenamePinnedFolder rewrites pinned entries where path == oldPath OR
+// path starts with oldPath + "/" to use newPath instead.
+func RenamePinnedFolder(projectPath, oldPath, newPath string) error {
+	if oldPath == "" || newPath == "" || oldPath == newPath {
+		return nil
+	}
+	prefix := oldPath + "/"
+	return updatePinnedNotesOnDisk(projectPath, func(pinned []string) []string {
+		next := make([]string, len(pinned))
+		for i, p := range pinned {
+			switch {
+			case p == oldPath:
+				next[i] = newPath
+			case strings.HasPrefix(p, prefix):
+				next[i] = newPath + "/" + p[len(prefix):]
+			default:
+				next[i] = p
+			}
+		}
+		return next
+	})
+}
+
+// DeletePinnedFile removes any pinned entry equal to path.
+func DeletePinnedFile(projectPath, path string) error {
+	if path == "" {
+		return nil
+	}
+	return updatePinnedNotesOnDisk(projectPath, func(pinned []string) []string {
+		next := make([]string, 0, len(pinned))
+		for _, p := range pinned {
+			if p == path {
+				continue
+			}
+			next = append(next, p)
+		}
+		return next
+	})
+}
+
+// DeletePinnedFolder removes pinned entries where path == folderPath OR
+// path starts with folderPath + "/".
+func DeletePinnedFolder(projectPath, folderPath string) error {
+	if folderPath == "" {
+		return nil
+	}
+	prefix := folderPath + "/"
+	return updatePinnedNotesOnDisk(projectPath, func(pinned []string) []string {
+		next := make([]string, 0, len(pinned))
+		for _, p := range pinned {
+			if p == folderPath || strings.HasPrefix(p, prefix) {
+				continue
+			}
+			next = append(next, p)
+		}
+		return next
+	})
 }

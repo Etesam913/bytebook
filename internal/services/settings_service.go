@@ -34,7 +34,7 @@ func (s *SettingsService) GetProjectSettings() config.BackendResponseWithData[co
 func (s *SettingsService) UpdateProjectSettings(
 	newProjectSettings config.ProjectSettingsJson) config.BackendResponseWithData[config.ProjectSettingsJson] {
 	projectSettingsPath := filepath.Join(s.ProjectPath, "settings", "settings.json")
-	newProjectSettings.PinnedNotes = config.GetValidPinnedNotes(s.ProjectPath, newProjectSettings)
+	newProjectSettings.PinnedNotes = config.GetValidPinned(s.ProjectPath, newProjectSettings)
 	err := util.WriteJsonToPath(projectSettingsPath, newProjectSettings)
 	if err != nil {
 		return config.BackendResponseWithData[config.ProjectSettingsJson]{
