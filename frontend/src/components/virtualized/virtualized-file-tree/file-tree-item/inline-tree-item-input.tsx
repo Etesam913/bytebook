@@ -40,7 +40,7 @@ export function InlineTreeItemInput({
           <div className="flex items-center gap-1 justify-between w-full">
             <input
               ref={inputRef}
-              className="bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color) rounded-sm w-full truncate text-zinc-900 dark:text-zinc-100"
+              className="bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--accent-color) rounded-sm w-full truncate text-zinc-900 dark:text-zinc-100"
               autoCapitalize="off"
               autoComplete="off"
               autoCorrect="off"

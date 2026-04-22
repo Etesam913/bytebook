@@ -140,7 +140,7 @@ export function FilePickerMenuPlugin() {
           <ul className="flex overflow-y-auto overflow-x-hidden text-nowrap flex-col max-h-80 gap-0.5 w-80 p-1 shadow-xl rounded-md border-1 border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1 text-zinc-950 dark:text-zinc-100">
             {showEmptyState && (
               <li className="px-2 py-1 text-sm text-zinc-500 dark:text-zinc-400">
-                No results found
+                No results found...
               </li>
             )}
             {options.map((option, i) => {

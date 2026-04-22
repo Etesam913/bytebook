@@ -65,9 +65,13 @@ export function LinkedMentions({ filePath }: { filePath: FilePath }) {
             <Loader width="0.875rem" height="0.875rem" /> Loading
           </div>
         ) : mentions.length === 0 ? (
-          <p className="py-2 pl-5 text-zinc-500 dark:text-zinc-300">
-            Notes that link to this note are shown here.
-          </p>
+          <section className="py-2 pl-5 gap-2 flex flex-col text-zinc-500 dark:text-zinc-300">
+            <p>Notes that link to this note are shown here.</p>
+            <p>
+              Use the &quot;@&quot; symbol in a note to link to a different
+              note.
+            </p>
+          </section>
         ) : (
           <Virtuoso
             style={{ height: Math.min(mentions.length * 32, 312) }}

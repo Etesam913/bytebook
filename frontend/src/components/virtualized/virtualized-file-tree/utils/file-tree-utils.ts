@@ -121,10 +121,12 @@ function removeSubtree(
 ): void {
   const { treeData, filePathToTreeDataId } = fileTreeData;
   const root = treeData.get(folderIdToRemove);
-  if (!root || !isTreeNodeAFolder(root)) return;
+  if (!root) return;
 
-  for (const childId of root.childrenIds) {
-    removeSubtree(fileTreeData, childId);
+  if (isTreeNodeAFolder(root)) {
+    for (const childId of root.childrenIds) {
+      removeSubtree(fileTreeData, childId);
+    }
   }
 
   // Remove from both maps to keep in sync
