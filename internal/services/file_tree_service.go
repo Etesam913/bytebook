@@ -70,8 +70,15 @@ func (f *FileTreeService) GetTopLevelItems() config.BackendResponseWithData[[]no
 // If any items fail to move, their names will be included in an error message.
 // Returns a BackendResponseWithoutData indicating success or failure of the operation.
 func (f *FileTreeService) MoveItemsToFolder(itemPaths []string, newFolder string) config.BackendResponseWithoutData {
+	// A selection can legitimately contain both an ancestor and one of its
+	// descendants (e.g. shift-click across an expanded subtree). Moving the
+	// ancestor also moves its children atomically, so a follow-up move on the
+	// descendant would fail because the source path is gone. Collapse the list
+	// to just the top-most entries so we only issue one rename per subtree.
+	normalizedItemPaths := util.DedupeDescendantPaths(itemPaths)
+
 	failedItemNames := []string{}
-	for _, pathToItem := range itemPaths {
+	for _, pathToItem := range normalizedItemPaths {
 		fullPathToItem := filepath.Join(f.ProjectPath, "notes", pathToItem)
 		fullPathWithNewFolder := filepath.Join(f.ProjectPath, "notes", newFolder, filepath.Base(pathToItem))
 		err := util.MoveFile(fullPathToItem, fullPathWithNewFolder)

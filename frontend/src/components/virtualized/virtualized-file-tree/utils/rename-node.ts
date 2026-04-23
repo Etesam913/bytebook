@@ -208,10 +208,11 @@ export function applyPathRemappings({
       for (const [oldPath, id] of entriesToUpdate) {
         newFilePathToTreeDataId.delete(oldPath);
         const node = updatedTreeData.get(id);
+        if (!node) continue;
+
         // Directly renamed nodes get full updates (name, parentId);
         // descendant nodes only need their path prefix rewritten.
         const nodeUpdate = nodeUpdates.get(id);
-        if (!node || !nodeUpdate) continue;
 
         const newPath =
           oldPath === oldFolderPath
@@ -221,7 +222,7 @@ export function applyPathRemappings({
 
         updatedTreeData.set(id, {
           ...node,
-          ...nodeUpdate,
+          ...(nodeUpdate ?? {}),
           path: newPath,
         });
       }

@@ -187,7 +187,16 @@ func IsDirectory(path string) bool {
 	return info.IsDir()
 }
 
-func normalizeTrashSelections(paths []string) []string {
+// DedupeDescendantPaths returns a copy of paths with duplicates and
+// descendants of other paths removed. Paths are sorted shallowest-first (then
+// alphabetically) so that when two entries are in an ancestor/descendant
+// relationship only the ancestor is kept.
+//
+// Use this whenever an operation applied to a folder implicitly covers
+// everything inside it (e.g. moving or trashing a folder also moves/trashes
+// its children) and we need to avoid re-operating on descendants — which
+// would otherwise fail because the original path no longer exists.
+func DedupeDescendantPaths(paths []string) []string {
 	sortedPaths := append([]string(nil), paths...)
 	slices.SortFunc(sortedPaths, func(a, b string) int {
 		aDepth := strings.Count(a, "/")
@@ -368,7 +377,7 @@ func CleanFileName(name string) string {
 // It returns restore metadata for app-level undo when all moves succeed.
 func MoveNotesToTrash(projectPath string, folderAndNotes []string) ([]TrashRestoreInfo, error) {
 	var failed []string
-	normalizedPaths := normalizeTrashSelections(folderAndNotes)
+	normalizedPaths := DedupeDescendantPaths(folderAndNotes)
 	restoreItems := make([]TrashRestoreInfo, 0, len(normalizedPaths))
 
 	// Attempt to move each note/folder to trash
