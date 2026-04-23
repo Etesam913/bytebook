@@ -23,6 +23,7 @@ import { RouteFallback } from './components/route-fallback';
 import { useZoom, useFullscreen, useWindowReload } from './hooks/resize';
 import { useRestoreLastVisitedOnLaunch } from './hooks/routes';
 import { EditorWrapper } from './components/virtualized/virtualized-file-tree/editor-wrapper';
+import { VirtualizedFileTreeDebugView } from './components/virtualized/virtualized-file-tree/debug-view';
 import { useCreateEvents } from './components/virtualized/virtualized-file-tree/hooks/use-create-events';
 import { useDeleteEvents } from './components/virtualized/virtualized-file-tree/hooks/use-delete-events';
 import { useRenameEvents } from './components/virtualized/virtualized-file-tree/hooks/use-rename-events';
@@ -87,6 +88,7 @@ function App() {
       <Dialog />
       <LoadingModal />
       <Toaster richColors theme="system" />
+      <VirtualizedFileTreeDebugView />
       <Activity mode={isNoteMaximized ? 'hidden' : 'visible'}>
         <FileSidebar width={fileSidebarWidth} />
       </Activity>
