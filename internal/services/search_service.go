@@ -4,7 +4,6 @@ import (
 	"log"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/config"
@@ -14,9 +13,8 @@ import (
 )
 
 type SearchService struct {
-	ProjectPath       string
-	SearchIndex       *bleve.Index
-	regenerateIndexMu sync.Mutex
+	ProjectPath string
+	Index       *search.IndexHolder
 }
 
 func buildSearchAfterFromHit(sortValues []string, score float64, docID string) []string {
@@ -89,7 +87,9 @@ func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string,
 	totalQuery, sortOption := search.BuildBooleanQueryFromUserInput(searchQuery, 1)
 	request := search.CreateSearchRequest(totalQuery, effectivePageSize+1, sortOption, searchAfter)
 
-	res, err := (*s.SearchIndex).Search(request)
+	idx := s.Index.RLock()
+	defer s.Index.RUnlock()
+	res, err := idx.Search(request)
 	if err != nil {
 		log.Println("full text search failed:", err)
 		return search.FullTextSearchPage{
@@ -125,7 +125,9 @@ func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []FilePicke
 	filenameQuery := search.CreateFilenameQuery(normalizedQuery, 1.0)
 	searchRequest := search.CreateSearchRequest(filenameQuery, 20, nil, nil)
 
-	results, err := (*s.SearchIndex).Search(searchRequest)
+	idx := s.Index.RLock()
+	defer s.Index.RUnlock()
+	results, err := idx.Search(searchRequest)
 	if err != nil {
 		log.Println("filename search failed:", err)
 		return []FilePickerSearchResult{}
@@ -166,7 +168,7 @@ func (s *SearchService) GetAllSavedSearches() (config.BackendResponseWithData[[]
 		return config.BackendResponseWithData[[]search.SavedSearch]{
 			Success: false,
 			Message: err.Error(),
-			Data:    nil,
+			Data:    []search.SavedSearch{},
 		}, nil
 	}
 
@@ -222,7 +224,9 @@ func (s *SearchService) GetLinkedMentions(pathToNote string, pageSize int) confi
 		}
 	}
 
-	hits := events.FindNotesWithLink(*s.SearchIndex, urlPath, pageSize)
+	idx := s.Index.RLock()
+	hits := events.FindNotesWithLink(idx, urlPath, pageSize)
+	s.Index.RUnlock()
 
 	mentions := make([]LinkedMention, 0, len(hits))
 	for _, hit := range hits {
@@ -243,29 +247,20 @@ func (s *SearchService) GetLinkedMentions(pathToNote string, pageSize int) confi
 	}
 }
 
-// RegenerateSearchIndex regenerates the search index by deleting the existing index
-// and creating a new one with all files re-indexed.
-// It updates the SearchService's SearchIndex field with the new index.
-// Additional calls while one is running are ignored.
+// RegenerateSearchIndex regenerates the search index by deleting the existing
+// index and creating a new one with all files re-indexed. The swap runs under
+// the index holder's write lock, so any in-flight Search/Batch callers finish
+// before the old index is closed.
 func (s *SearchService) RegenerateSearchIndex() config.BackendResponseWithoutData {
-	if !s.regenerateIndexMu.TryLock() {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "Regeneration already in progress",
-		}
-	}
-	defer s.regenerateIndexMu.Unlock()
-
-	newIndex, err := search.RegenerateSearchIndex(s.ProjectPath, *s.SearchIndex)
+	err := s.Index.Swap(func(old bleve.Index) (bleve.Index, error) {
+		return search.RegenerateSearchIndex(s.ProjectPath, old)
+	})
 	if err != nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: err.Error(),
 		}
 	}
-
-	// Update the service's index reference
-	*s.SearchIndex = newIndex
 
 	return config.BackendResponseWithoutData{
 		Success: true,

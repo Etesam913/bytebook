@@ -28,8 +28,17 @@ func createTestParams(t *testing.T) EventParams {
 	return EventParams{
 		App:         nil, // Not needed for these tests
 		ProjectPath: t.TempDir(),
-		Index:       &index,
+		Index:       search.NewIndexHolder(index),
 	}
+}
+
+// rawIndex returns the underlying bleve index from a test EventParams for
+// assertions. Tests are single-goroutine so holding the read lock is not
+// strictly required, but this mirrors how production code accesses the index.
+func rawIndex(params EventParams) bleve.Index {
+	idx := params.Index.RLock()
+	params.Index.RUnlock()
+	return idx
 }
 
 func createMarkdownNoteInFolder(t *testing.T, projectPath, folderPath, fileName, content string) {
@@ -51,11 +60,11 @@ func TestAddFoldersToIndex(t *testing.T) {
 
 		addFoldersToIndex(params, data)
 
-		doc, err := (*params.Index).Document(filepath.Join("folder1", "one.md"))
+		doc, err := rawIndex(params).Document(filepath.Join("folder1", "one.md"))
 		assert.NoError(t, err)
 		assert.NotNil(t, doc)
 
-		doc, err = (*params.Index).Document(filepath.Join("folder2", "two.md"))
+		doc, err = rawIndex(params).Document(filepath.Join("folder2", "two.md"))
 		assert.NoError(t, err)
 		assert.NotNil(t, doc)
 	})
@@ -70,7 +79,7 @@ func TestAddFoldersToIndex(t *testing.T) {
 		}
 		addFoldersToIndex(params, data)
 
-		doc, _ := (*params.Index).Document(filepath.Join("f.1", "note.md"))
+		doc, _ := rawIndex(params).Document(filepath.Join("f.1", "note.md"))
 		assert.NotNil(t, doc)
 	})
 }
@@ -80,18 +89,18 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 		params := createTestParams(t)
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
-		require.NoError(t, search.IndexAllFiles(params.ProjectPath, *params.Index))
+		require.NoError(t, search.IndexAllFiles(params.ProjectPath, rawIndex(params)))
 
 		deleteData := []map[string]string{
 			{"folderPath": "folder1"},
 		}
 		deleteFoldersFromIndex(params, deleteData)
 
-		doc1, err := (*params.Index).Document(filepath.Join("folder1", "one.md"))
+		doc1, err := rawIndex(params).Document(filepath.Join("folder1", "one.md"))
 		assert.NoError(t, err)
 		assert.Nil(t, doc1)
 
-		doc2, err := (*params.Index).Document(filepath.Join("folder2", "two.md"))
+		doc2, err := rawIndex(params).Document(filepath.Join("folder2", "two.md"))
 		assert.NoError(t, err)
 		assert.NotNil(t, doc2)
 	})
@@ -100,7 +109,7 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 		params := createTestParams(t)
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
-		require.NoError(t, search.IndexAllFiles(params.ProjectPath, *params.Index))
+		require.NoError(t, search.IndexAllFiles(params.ProjectPath, rawIndex(params)))
 
 		deleteData := []map[string]string{
 			{"folderPath": "folder1"},
@@ -110,11 +119,11 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 		}
 		deleteFoldersFromIndex(params, deleteData)
 
-		doc1, err := (*params.Index).Document(filepath.Join("folder1", "one.md"))
+		doc1, err := rawIndex(params).Document(filepath.Join("folder1", "one.md"))
 		assert.NoError(t, err)
 		assert.Nil(t, doc1)
 
-		doc2, err := (*params.Index).Document(filepath.Join("folder2", "two.md"))
+		doc2, err := rawIndex(params).Document(filepath.Join("folder2", "two.md"))
 		assert.NoError(t, err)
 		assert.NotNil(t, doc2)
 	})

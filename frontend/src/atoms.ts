@@ -8,8 +8,7 @@ import {
 } from './types';
 import type { FileOrFolder } from './components/virtualized/virtualized-file-tree/types';
 import {
-  type FilePath,
-  type FolderPath,
+  type FileOrFolderPath,
   createFilePath,
   createFolderPath,
 } from './utils/path';
@@ -36,26 +35,33 @@ function atomWithLogging<T>(name: string, initialValue: T) {
     }
   );
 }
-type RecentItem = FilePath | FolderPath;
-
 // Most recent sidebar items
-const initializeMostRecentItems = (): RecentItem[] => {
+const initializeMostRecentItems = (): FileOrFolderPath[] => {
   const stored = JSON.parse(
     localStorage.getItem('mostRecentItems') ?? '[]'
   ) as string[];
   return stored
     .map((path) => createFilePath(path) ?? createFolderPath(path))
-    .filter((path): path is RecentItem => path !== null);
+    .filter((path): path is FileOrFolderPath => path !== null);
 };
 
-export const mostRecentItemsAtom = atom(
-  initializeMostRecentItems(),
-  (get, set, update: RecentItem[] | ((prev: RecentItem[]) => RecentItem[])) => {
-    const prev = get(mostRecentItemsAtom);
+/** Inner atom so the derived atom's write does not call `get(self)`. */
+const mostRecentItemsBaseAtom = atom<FileOrFolderPath[]>(
+  initializeMostRecentItems()
+);
+
+export const mostRecentItemsAtom = atom<
+  FileOrFolderPath[],
+  [FileOrFolderPath[] | ((prev: FileOrFolderPath[]) => FileOrFolderPath[])],
+  void
+>(
+  (get) => get(mostRecentItemsBaseAtom),
+  (get, set, update) => {
+    const prev = get(mostRecentItemsBaseAtom);
     const payload = typeof update === 'function' ? update(prev) : update;
     const stringPaths = payload.map((filePath) => filePath.fullPath);
     localStorage.setItem('mostRecentItems', JSON.stringify(stringPaths));
-    set(mostRecentItemsAtom, payload);
+    set(mostRecentItemsBaseAtom, payload);
   }
 );
 

@@ -103,8 +103,8 @@ export function SavePlugin({
       editor.registerCommand(
         UNDO_COMMAND,
         () => {
-          // Set timeout is needed to schedule save after the undo state is committed
-          setTimeout(() => {
+          // Defer to the microtask queue so save runs after the undo state is committed.
+          queueMicrotask(() => {
             editor.update(
               () => {
                 // Ensures that an undo that re-adds an image will have its markdown updated.
@@ -112,7 +112,7 @@ export function SavePlugin({
               },
               { tag: 'note:write-from-external' }
             );
-          }, 0);
+          });
           return false;
         },
         COMMAND_PRIORITY_LOW
@@ -120,15 +120,15 @@ export function SavePlugin({
       editor.registerCommand(
         REDO_COMMAND,
         () => {
-          // Set timeout is needed to schedule save after the redo state is committed
-          setTimeout(() => {
+          // Defer to the microtask queue so save runs after the redo state is committed.
+          queueMicrotask(() => {
             editor.update(
               () => {
                 editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, undefined);
               },
               { tag: 'note:write-from-external' }
             );
-          }, 0);
+          });
           return false;
         },
         COMMAND_PRIORITY_LOW

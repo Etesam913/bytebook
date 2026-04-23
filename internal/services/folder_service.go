@@ -6,67 +6,10 @@ import (
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/config"
-	"github.com/etesam913/bytebook/internal/util"
 )
 
 type FolderService struct {
 	ProjectPath string
-}
-
-// GetFolders returns a list of folders in the notes directory
-func (f *FolderService) GetFolders() config.BackendResponseWithData[[]string] {
-	notesPath := filepath.Join(f.ProjectPath, "notes")
-	// Ensure the directory exists
-	if err := os.MkdirAll(notesPath, os.ModePerm); err != nil {
-		return config.BackendResponseWithData[[]string]{
-			Success: false,
-			Message: "Could not create the notes directory",
-			Data:    nil,
-		}
-	}
-
-	// Get the folders present in the notes directory
-	files, err := os.ReadDir(notesPath)
-	if err != nil {
-		return config.BackendResponseWithData[[]string]{
-			Success: false,
-			Message: "Could not read the notes directory",
-			Data:    nil,
-		}
-	}
-	folders := make([]string, 0)
-	for _, file := range files {
-		if file.IsDir() {
-			folders = append(folders, file.Name())
-		}
-	}
-
-	return config.BackendResponseWithData[[]string]{
-		Success: true,
-		Message: "Folders retrieved successfully",
-		Data:    folders,
-	}
-}
-
-func (f *FolderService) DoesFolderExist(folderName string) config.BackendResponseWithData[[]string] {
-	folderPath := filepath.Join(f.ProjectPath, "notes", folderName)
-	exists, err := util.FileOrFolderExists(folderPath)
-	if err != nil {
-		return config.BackendResponseWithData[[]string]{
-			Success: false,
-			Message: err.Error(),
-		}
-	}
-	if !exists {
-		return config.BackendResponseWithData[[]string]{
-			Success: false,
-			Message: "Folder does not exist",
-		}
-	}
-	return config.BackendResponseWithData[[]string]{
-		Success: true,
-		Message: "",
-	}
 }
 
 func (f *FolderService) AddFolder(folderName string) config.BackendResponseWithData[[]string] {
@@ -81,6 +24,7 @@ func (f *FolderService) AddFolder(folderName string) config.BackendResponseWithD
 					"Folder name, \"%s\", already exists, please choose a different name",
 					folderName,
 				),
+				Data: []string{},
 			}
 		}
 	}
@@ -90,35 +34,14 @@ func (f *FolderService) AddFolder(folderName string) config.BackendResponseWithD
 		return config.BackendResponseWithData[[]string]{
 			Success: false,
 			Message: err.Error(),
+			Data:    []string{},
 		}
 	}
 
 	return config.BackendResponseWithData[[]string]{
 		Success: true,
 		Message: "",
-	}
-}
-
-func (f *FolderService) DeleteFolder(folderName string) config.BackendResponseWithData[[]string] {
-	folderPath := filepath.Join(f.ProjectPath, "notes", folderName)
-
-	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
-		return config.BackendResponseWithData[[]string]{
-			Success: false,
-			Message: fmt.Sprintf("Folder does not exist: %s", folderName),
-		}
-	}
-
-	_, err := util.MoveToTrash(folderPath)
-	if err != nil {
-		return config.BackendResponseWithData[[]string]{
-			Success: false,
-			Message: err.Error(),
-		}
-	}
-	return config.BackendResponseWithData[[]string]{
-		Success: true,
-		Message: "",
+		Data:    []string{},
 	}
 }
 
@@ -134,6 +57,7 @@ func (f *FolderService) RenameFolder(oldFolderName string, newFolderName string)
 				"Folder name, \"%s\", already exists, please choose a different name",
 				newFolderName,
 			),
+			Data: []string{},
 		}
 	}
 
@@ -145,11 +69,13 @@ func (f *FolderService) RenameFolder(oldFolderName string, newFolderName string)
 		return config.BackendResponseWithData[[]string]{
 			Success: false,
 			Message: err.Error(),
+			Data:    []string{},
 		}
 	}
 
 	return config.BackendResponseWithData[[]string]{
 		Success: true,
 		Message: "",
+		Data:    []string{},
 	}
 }

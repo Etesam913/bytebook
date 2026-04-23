@@ -36,7 +36,7 @@ func EncodeLinkSegment(s string) string {
 // It queries the bleve index to efficiently locate notes with matching links,
 // then uses bounded parallelism to read/modify/write the affected files.
 func replaceLocalLinksInNotes(params EventParams, data []map[string]string) {
-	if params.Index == nil || *params.Index == nil {
+	if params.Index == nil {
 		return
 	}
 
@@ -80,12 +80,14 @@ func replaceLocalLinksInNotes(params EventParams, data []map[string]string) {
 	// Map from relativePath -> list of replacements that apply to that note
 	noteReplacements := make(map[string][]linkReplacement)
 
+	idx := params.Index.RLock()
 	for _, repl := range replacements {
-		matchingPaths := FindNotesWithLink(*params.Index, repl.oldURLPath, search.MaxDeleteSearchResults)
+		matchingPaths := FindNotesWithLink(idx, repl.oldURLPath, search.MaxDeleteSearchResults)
 		for _, relPath := range matchingPaths {
 			noteReplacements[relPath] = append(noteReplacements[relPath], repl)
 		}
 	}
+	params.Index.RUnlock()
 
 	if len(noteReplacements) == 0 {
 		return

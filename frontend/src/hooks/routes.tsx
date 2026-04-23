@@ -3,8 +3,9 @@ import { useAtomValue } from 'jotai';
 import { useLocation, useRoute, useSearchParams } from 'wouter';
 import { mostRecentItemsAtom } from '../atoms';
 import {
-  FolderPath,
-  FilePath,
+  type FolderPath,
+  type FilePath,
+  type FileOrFolderPath,
   createFolderPath,
   createFilePath,
   safeDecodeURIComponent,
@@ -101,7 +102,7 @@ export function useFolderPathFromRoute(): FolderPath | null {
  * @returns FilePath or FolderPath for the current route, or null if the route
  * does not correspond to a note or folder.
  */
-export function useRecentItemFromRoute(): FilePath | FolderPath | null {
+export function useRecentItemFromRoute(): FileOrFolderPath | null {
   const decodedNotesPath = useDecodedNotesWildcardPath();
   const decodedSavedSearchPath = useDecodedSavedSearchWildcardPath();
   const decodedSearchPath = useDecodedSearchWildcardPath();

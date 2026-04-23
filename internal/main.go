@@ -48,7 +48,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	defer searchIndex.Close()
+	indexHolder := search.NewIndexHolder(searchIndex)
+	defer indexHolder.Close()
 
 	// Create separate contexts for Python and Go kernels
 	pythonCtx, pythonCtxCancel := context.WithCancel(context.Background())
@@ -67,7 +68,7 @@ func main() {
 	defer watcher.Close()
 
 	watchRegistry := notes.NewDirectoryWatchRegistry()
-	importCoordinator := ingest.NewBulkImportCoordinator(projectPath, &searchIndex, watcher, watchRegistry)
+	importCoordinator := ingest.NewBulkImportCoordinator(projectPath, indexHolder, watcher, watchRegistry)
 	defer importCoordinator.Shutdown()
 
 	logLevel := slog.LevelError
@@ -85,7 +86,6 @@ func main() {
 			application.NewService(
 				&services.NoteService{
 					ProjectPath: projectPath,
-					SearchIndex: &searchIndex,
 				},
 			),
 			application.NewService(
@@ -97,13 +97,13 @@ func main() {
 				&services.NodeService{ProjectPath: projectPath},
 			),
 			application.NewService(
-				&services.SearchService{ProjectPath: projectPath, SearchIndex: &searchIndex},
+				&services.SearchService{ProjectPath: projectPath, Index: indexHolder},
 			),
 			application.NewService(
 				&services.SettingsService{ProjectPath: projectPath},
 			),
 			application.NewService(
-				&services.TagsService{ProjectPath: projectPath, SearchIndex: &searchIndex},
+				&services.TagsService{ProjectPath: projectPath, Index: indexHolder},
 			),
 			application.NewService(
 				&services.CodeService{
@@ -193,7 +193,7 @@ func main() {
 	events.ListenToEvents(events.EventParams{
 		App:               app,
 		ProjectPath:       projectPath,
-		Index:             &searchIndex,
+		Index:             indexHolder,
 		ImportCoordinator: importCoordinator,
 	})
 

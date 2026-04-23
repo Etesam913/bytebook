@@ -6,14 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
 type NoteService struct {
 	ProjectPath string
-	SearchIndex *bleve.Index
 }
 
 // RenameFile renames a file or folder from oldFolderNotePath to newFolderNotePath.
@@ -233,7 +231,7 @@ func (n *NoteService) MoveToTrash(folderAndNotes []string) config.BackendRespons
 		return config.BackendResponseWithData[[]util.TrashRestoreInfo]{
 			Success: false,
 			Message: err.Error(),
-			Data:    nil,
+			Data:    []util.TrashRestoreInfo{},
 		}
 	}
 	return config.BackendResponseWithData[[]util.TrashRestoreInfo]{

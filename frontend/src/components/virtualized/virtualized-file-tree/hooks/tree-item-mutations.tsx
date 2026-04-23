@@ -15,6 +15,7 @@ import {
 import {
   createFilePath,
   createFolderPath,
+  replaceLastPathSegment,
   type FilePath,
 } from '../../../../utils/path';
 import { NAME_CHARS } from '../../../../utils/string-formatting';
@@ -155,9 +156,10 @@ export function useRenameTreeItemMutation() {
       }
 
       if (args.itemType === 'folder') {
-        const pathSegments = args.folderPath.split('/');
-        pathSegments[pathSegments.length - 1] = trimmedName;
-        const newFolderPath = pathSegments.join('/');
+        const newFolderPath = replaceLastPathSegment(
+          args.folderPath,
+          trimmedName
+        );
         const res = await RenameFolder(args.folderPath, newFolderPath);
         if (!res.success) {
           throw new Error(res.message);

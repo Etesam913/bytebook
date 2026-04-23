@@ -63,37 +63,6 @@ const routeBuilders = {
   folder: (folderName: string) => `/notes/${encodeURIComponent(folderName)}`,
 
   /**
-   * Build note route with optional query parameters
-   */
-  note: (
-    folder: string,
-    fileName: string,
-    options?: {
-      focus?: boolean;
-    }
-  ) => {
-    const baseRoute = `/notes/${encodeURIComponent(folder)}/${fileName}`;
-
-    if (!options?.focus) {
-      return baseRoute;
-    }
-
-    const params = new URLSearchParams();
-    if (options.focus) params.set('focus', 'true');
-
-    return `${baseRoute}?${params.toString()}`;
-  },
-
-  /**
-   * Build note route with current location preserved for focus
-   */
-  noteWithFocus: (location: string) => {
-    const url = new URL(location, 'http://localhost');
-    url.searchParams.set('focus', 'true');
-    return `${url.pathname}${url.search}`;
-  },
-
-  /**
    * Build 404 fallback route
    */
   notFoundFallback: () => '/404',
