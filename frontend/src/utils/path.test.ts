@@ -2,6 +2,8 @@ import '../test/setup';
 import { describe, it, expect } from 'bun:test';
 import {
   safeDecodeURIComponent,
+  splitPathSegments,
+  replaceLastPathSegment,
   createFilePath,
   createFolderPath,
 } from './path';
@@ -24,6 +26,60 @@ describe('safeDecodeURIComponent', () => {
 
   it('handles empty string', () => {
     expect(safeDecodeURIComponent('')).toBe('');
+  });
+});
+
+describe('splitPathSegments', () => {
+  it('splits a simple path into segments', () => {
+    expect(splitPathSegments('notes/folder/file.md')).toEqual([
+      'notes',
+      'folder',
+      'file.md',
+    ]);
+  });
+
+  it('collapses consecutive slashes', () => {
+    expect(splitPathSegments('notes//folder///file.md')).toEqual([
+      'notes',
+      'folder',
+      'file.md',
+    ]);
+  });
+
+  it('drops leading and trailing slashes', () => {
+    expect(splitPathSegments('/notes/folder/')).toEqual(['notes', 'folder']);
+  });
+
+  it('returns an empty array for an empty string', () => {
+    expect(splitPathSegments('')).toEqual([]);
+  });
+
+  it('returns an empty array for a path that is only slashes', () => {
+    expect(splitPathSegments('///')).toEqual([]);
+  });
+});
+
+describe('replaceLastPathSegment', () => {
+  it('replaces the last segment of a multi-segment path', () => {
+    expect(replaceLastPathSegment('notes/folder/old.md', 'new.md')).toBe(
+      'notes/folder/new.md'
+    );
+  });
+
+  it('replaces a single-segment path', () => {
+    expect(replaceLastPathSegment('old.md', 'new.md')).toBe('new.md');
+  });
+
+  it('preserves a leading empty segment for absolute-style paths', () => {
+    expect(replaceLastPathSegment('/notes/old.md', 'new.md')).toBe(
+      '/notes/new.md'
+    );
+  });
+
+  it('replaces the last segment when the path has a trailing slash', () => {
+    expect(replaceLastPathSegment('notes/folder/', 'new-folder')).toBe(
+      'notes/folder/new-folder'
+    );
   });
 });
 

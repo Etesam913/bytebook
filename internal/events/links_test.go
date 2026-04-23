@@ -169,7 +169,7 @@ func TestFindNotesWithLink(t *testing.T) {
 		})
 
 		hits := FindNotesWithLink(
-			*params.Index,
+			rawIndex(params),
 			"/notes/"+EncodeLinkSegment("My Folder")+"/"+EncodeLinkSegment("Target Note.md"),
 			1,
 		)

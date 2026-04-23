@@ -13,16 +13,13 @@ import { VirtualizedListAccordion } from '../virtualized/virtualized-list/accord
 import {
   createFilePath,
   createFolderPath,
-  type FilePath,
-  type FolderPath,
+  type FileOrFolderPath,
 } from '../../utils/path';
 import { Tooltip } from '../tooltip';
 import { SidebarAccordionPanel } from './sidebar-accordion-panel';
 import { useContextMenuItems } from '../context-menu/items';
 import type { SidebarFlexWeights } from '../../atoms';
 import type { FlexWeightMVs } from './index';
-
-type PinnedItem = FilePath | FolderPath;
 
 export function PinnedAccordion({
   containerRef,
@@ -38,20 +35,23 @@ export function PinnedAccordion({
 
   const projectSettings = useAtomValue(projectSettingsAtom);
   const pinnedNotes = projectSettings.pinnedNotes;
-  const pinnedItems = [...pinnedNotes].reduce<PinnedItem[]>((acc, path) => {
-    const filePath = createFilePath(path);
-    if (filePath) {
-      acc.push(filePath);
+  const pinnedItems = [...pinnedNotes].reduce<FileOrFolderPath[]>(
+    (acc, path) => {
+      const filePath = createFilePath(path);
+      if (filePath) {
+        acc.push(filePath);
+        return acc;
+      }
+
+      const folderPath = createFolderPath(path);
+      if (folderPath) {
+        acc.push(folderPath);
+      }
+
       return acc;
-    }
-
-    const folderPath = createFolderPath(path);
-    if (folderPath) {
-      acc.push(folderPath);
-    }
-
-    return acc;
-  }, []);
+    },
+    []
+  );
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const { pin } = useContextMenuItems();
 
@@ -83,7 +83,7 @@ export function PinnedAccordion({
         />
       }
     >
-      <VirtualizedListAccordion<PinnedItem>
+      <VirtualizedListAccordion<FileOrFolderPath>
         contentType="pinned-note"
         layoutId="pinned-notes"
         data={pinnedItems}

@@ -30,6 +30,7 @@ func TestBulkImportCoordinatorInitialScan(t *testing.T) {
 	index, err := search.OpenOrCreateIndex(projectDir)
 	require.NoError(t, err)
 	defer index.Close()
+	holder := search.NewIndexHolder(index)
 
 	watcher, err := fsnotify.NewWatcher()
 	require.NoError(t, err)
@@ -40,7 +41,7 @@ func TestBulkImportCoordinatorInitialScan(t *testing.T) {
 	registry := notes.NewDirectoryWatchRegistry()
 	registry.SyncFromWatcher(watcher)
 
-	coordinator := NewBulkImportCoordinator(projectDir, &index, watcher, registry)
+	coordinator := NewBulkImportCoordinator(projectDir, holder, watcher, registry)
 	defer coordinator.Shutdown()
 
 	coordinator.EnqueueInitialScan()

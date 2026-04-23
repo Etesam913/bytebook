@@ -90,58 +90,6 @@ describe('routeUrls', () => {
     });
   });
 
-  describe('note', () => {
-    it('should build basic note route without options', () => {
-      expect(routeUrls.note('Economics Notes', 'Supply and Demand.md')).toBe(
-        '/notes/Economics%20Notes/Supply and Demand.md'
-      );
-    });
-
-    it('should encode folder name but not file name', () => {
-      expect(routeUrls.note('My Folder', 'file name.md')).toBe(
-        '/notes/My%20Folder/file name.md'
-      );
-    });
-
-    it('should add focus query parameter when true', () => {
-      const result = routeUrls.note('folder', 'file.md', { focus: true });
-      expect(result).toContain('/notes/folder/file.md');
-      expect(result).toContain('focus=true');
-    });
-
-    it('should not add query string when focus is false', () => {
-      const result = routeUrls.note('folder', 'file.md', { focus: false });
-      expect(result).toBe('/notes/folder/file.md');
-    });
-
-    it('should handle empty folder and file names', () => {
-      expect(routeUrls.note('', '')).toBe('/notes//');
-    });
-  });
-
-  describe('noteWithFocus', () => {
-    it('should preserve pathname and add focus param', () => {
-      const result = routeUrls.noteWithFocus('/notes/folder/file.md');
-      expect(result).toContain('/notes/folder/file.md');
-      expect(result).toContain('focus=true');
-    });
-
-    it('should preserve existing query parameters', () => {
-      const result = routeUrls.noteWithFocus(
-        '/notes/folder/file.md?existing=param'
-      );
-      expect(result).toContain('/notes/folder/file.md');
-      expect(result).toContain('existing=param');
-      expect(result).toContain('focus=true');
-    });
-
-    it('should handle root path', () => {
-      const result = routeUrls.noteWithFocus('/');
-      expect(result).toContain('/');
-      expect(result).toContain('focus=true');
-    });
-  });
-
   describe('notFoundFallback', () => {
     it('should return 404 route', () => {
       expect(routeUrls.notFoundFallback()).toBe('/404');

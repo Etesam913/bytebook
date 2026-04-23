@@ -16,6 +16,25 @@ export function safeDecodeURIComponent(str: string): string {
   }
 }
 
+/** Splits a path into non-empty segments, collapsing consecutive slashes. */
+export function splitPathSegments(path: string): string[] {
+  return path.split('/').filter(Boolean);
+}
+
+/**
+ * Replaces the last segment of a slash-delimited path with `newLastSegment`.
+ * Preserves any leading empty segment (e.g. an absolute-style path).
+ */
+export function replaceLastPathSegment(
+  path: string,
+  newLastSegment: string
+): string {
+  const segments = path.split('/');
+  if (segments.length === 0) return newLastSegment;
+  segments[segments.length - 1] = newLastSegment;
+  return segments.join('/');
+}
+
 export interface FolderPath {
   type: 'folder';
   fullPath: string;
@@ -40,6 +59,9 @@ export interface FilePath {
   equals(other: FilePath): boolean;
 }
 
+/** A path pointing to either a file or a folder in the bytebook app. */
+export type FileOrFolderPath = FilePath | FolderPath;
+
 /**
  * Creates a FilePath object from a string
  * Returns null if the filePath is not a file
@@ -47,7 +69,7 @@ export interface FilePath {
  */
 export function createFilePath(filePath: string): FilePath | null {
   // Normalize the path: remove repeated slashes, trim, remove trailing slash
-  const normalizedPath = filePath.split('/').filter(Boolean).join('/');
+  const normalizedPath = splitPathSegments(filePath).join('/');
 
   const lastSegment = normalizedPath.split('/').pop();
 
