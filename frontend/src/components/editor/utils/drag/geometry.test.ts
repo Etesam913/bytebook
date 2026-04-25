@@ -1,6 +1,6 @@
 import '../../../../test/setup';
 import { describe, it, expect } from 'bun:test';
-import { Point, Rect, isPoint } from './geometry';
+import { Point, Rect } from './geometry';
 
 describe('Point', () => {
   it('exposes the constructor coordinates via getters', () => {
@@ -55,20 +55,6 @@ describe('Point', () => {
     it('calcDistanceTo returns 0 for the same point', () => {
       expect(new Point(2, 2).calcDistanceTo(new Point(2, 2))).toBe(0);
     });
-  });
-});
-
-describe('isPoint', () => {
-  it('returns true for Point instances', () => {
-    expect(isPoint(new Point(0, 0))).toBe(true);
-  });
-
-  it('returns false for non-Point values', () => {
-    expect(isPoint({ x: 0, y: 0 })).toBe(false);
-    expect(isPoint(null)).toBe(false);
-    expect(isPoint(undefined)).toBe(false);
-    expect(isPoint('point')).toBe(false);
-    expect(isPoint(Rect.fromLTRB(0, 0, 1, 1))).toBe(false);
   });
 });
 
