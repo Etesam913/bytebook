@@ -68,7 +68,7 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 		}
 		return config.BackendResponseWithData[string]{
 			Success: false,
-			Message: fmt.Sprintf("A %s with the new name already exists", itemType),
+			Message: fmt.Sprintf("A %s with that name already exists", itemType),
 			Data:    "",
 		}
 	}

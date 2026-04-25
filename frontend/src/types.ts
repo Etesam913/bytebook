@@ -104,27 +104,6 @@ export function isValidKernelLanguage(key: unknown): key is Languages {
   return typeof key === 'string' && allLanguagesSet.has(key as Languages);
 }
 
-export type RawCompletionData = Omit<CompletionData, 'matches'> & {
-  matches: string[];
-};
-
-export type CompletionData = {
-  status: string;
-  messageId: string;
-  matches: { label: string; info?: string; detail?: string; type?: string }[];
-  cursorStart: number;
-  cursorEnd: number;
-  metadata: Record<string, unknown>;
-};
-
-export type PythonCompletionMetadata = {
-  type: string;
-  text: string;
-  start: number;
-  end: number;
-  signature: string;
-}[];
-
 export type Frontmatter = {
   folder?: string;
   note?: string;
@@ -143,15 +122,3 @@ export type SidebarContentType =
   | 'saved-search'
   | 'search-result'
   | 'kernel';
-
-export function isSidebarContentType(key: unknown): key is SidebarContentType {
-  return (
-    typeof key === 'string' &&
-    (key === 'note' ||
-      key === 'pinned-note' ||
-      key === 'tag' ||
-      key === 'saved-search' ||
-      key === 'kernel' ||
-      key === 'search-result')
-  );
-}

@@ -18,7 +18,7 @@ import { useState } from 'react';
 import { SidebarAccordion } from '../../accordion';
 import { DesktopArrowDown } from '../../../icons/desktop-arrow-down';
 import { cn } from '../../../utils/string-formatting';
-import { useRevealInFinderMutation } from '../../../hooks/code';
+import { RevealFolderOrFileInFinder } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 
 export function PythonVenvDialog({ errorText }: { errorText: string }) {
   const [customVenvPath, setCustomVenvPath] = useState<string | null>(null);
@@ -30,8 +30,6 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
   });
   const projectSettings = useAtomValue(projectSettingsAtom);
   const setBackendQuery = useSetAtom(backendQueryAtom);
-  const { mutate: revealInFinder } = useRevealInFinderMutation();
-
   const { mutateAsync: chooseCustomVirtualEnvironmentPath } = useMutation({
     mutationFn: async () => {
       const res = await ChooseCustomVirtualEnvironmentPath();
@@ -131,12 +129,9 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                 <MotionIconButton
                   className="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity"
                   {...getDefaultButtonVariants()}
-                  onClick={() =>
-                    revealInFinder({
-                      path: venvPath,
-                      shouldPrefixWithProjectPath: false,
-                    })
-                  }
+                  onClick={() => {
+                    void RevealFolderOrFileInFinder(venvPath, false);
+                  }}
                 >
                   <ShareRight height="1rem" width="1rem" />
                 </MotionIconButton>

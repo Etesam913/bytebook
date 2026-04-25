@@ -7,9 +7,6 @@ var ShellSocket = struct {
 	// ExecuteReply is the response to an execute_request message, containing the execution status and results
 	ExecuteReply string
 
-	// CompleteReply is the response to a complete_request message, containing code completion suggestions
-	CompleteReply string
-
 	// InspectReply is the response to an inspect_request message, containing object introspection information
 	InspectReply string
 
@@ -17,7 +14,6 @@ var ShellSocket = struct {
 	ShutdownReply string
 }{
 	ExecuteReply:  "execute_reply",
-	CompleteReply: "complete_reply",
 	InspectReply:  "inspect_reply",
 	ShutdownReply: "shutdown_reply",
 }

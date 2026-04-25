@@ -1,5 +1,5 @@
 import type { MultilineElementTransformer } from '@lexical/markdown';
-import { $createNodeSelection, $setSelection, type LexicalNode } from 'lexical';
+import { type LexicalNode } from 'lexical';
 import { Languages, allLanguagesSet } from '../../../types';
 import {
   escapeQuotes,
@@ -220,10 +220,7 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
       hideResults,
     });
 
-    const nodeSelection = $createNodeSelection();
-    nodeSelection.add(newNode.getKey());
     rootNode.append(newNode);
-    $setSelection(nodeSelection);
   },
   type: 'multiline-element',
 };
