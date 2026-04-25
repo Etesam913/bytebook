@@ -423,7 +423,7 @@ function serializeDebugState({
 }
 
 export function VirtualizedFileTreeDebugView() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const fileTreeData = useAtomValue(fileTreeDataAtom);
   const sidebarSelection = useAtomValue(sidebarSelectionAtom);
   const dragHighlightIds = useAtomValue(dragHighlightIdsAtom);

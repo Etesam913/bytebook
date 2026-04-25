@@ -5,7 +5,6 @@
     "": {
       "name": "frontend",
       "dependencies": {
-        "@codemirror/autocomplete": "^6.20.0",
         "@codemirror/lang-go": "^6.0.1",
         "@codemirror/lang-java": "^6.0.2",
         "@codemirror/lang-javascript": "^6.2.4",

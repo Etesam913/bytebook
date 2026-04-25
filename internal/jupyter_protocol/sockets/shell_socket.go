@@ -30,15 +30,6 @@ type executeReplyEvent struct {
 	ErrorTraceback []string `json:"errorTraceback"`
 }
 
-type completeReplyEvent struct {
-	Status      string         `json:"status"`
-	MessageId   string         `json:"messageId"`
-	Matches     []string       `json:"matches"`
-	CursorStart int            `json:"cursorStart"`
-	CursorEnd   int            `json:"cursorEnd"`
-	Metadata    map[string]any `json:"metadata"`
-}
-
 type inspectReplyEvent struct {
 	Status    string         `json:"status"`
 	MessageId string         `json:"messageId"`
@@ -170,56 +161,6 @@ func (s *shellSocket) Listen(
 				fmt.Println("---")
 				time.Sleep(100 * time.Millisecond)
 
-			case ShellSocket.CompleteReply:
-				status, ok := msg.Content["status"].(string)
-				if !ok {
-					log.Printf("⚠️ Invalid status type in complete_reply: %v (type: %T)", msg.Content["status"], msg.Content["status"])
-					continue
-				}
-				msgId, ok := msg.ParentHeader["msg_id"].(string)
-				if !ok {
-					log.Printf("⚠️ Invalid message ID type in complete_reply: %v (type: %T)", msg.ParentHeader["msg_id"], msg.ParentHeader["msg_id"])
-					continue
-				}
-
-				matches := []string{}
-				cursorStart := 0
-				cursorEnd := 0
-				metadata := map[string]any{}
-
-				if status == "ok" {
-					if matchesRaw, ok := msg.Content["matches"].([]any); ok {
-						for _, match := range matchesRaw {
-							if matchStr, ok := match.(string); ok {
-								matches = append(matches, matchStr)
-							}
-						}
-					}
-					if cursorStartFloat, ok := msg.Content["cursor_start"].(float64); ok {
-						cursorStart = int(cursorStartFloat)
-					}
-					if cursorEndFloat, ok := msg.Content["cursor_end"].(float64); ok {
-						cursorEnd = int(cursorEndFloat)
-					}
-					if metadataRaw, ok := msg.Content["metadata"].(map[string]any); ok {
-						metadata = metadataRaw
-					}
-				}
-
-				currentWindow := app.Window.Current()
-				if currentWindow != nil {
-					currentWindow.EmitEvent(
-						"code:code-block:complete_reply",
-						completeReplyEvent{
-							Status:      status,
-							MessageId:   msgId,
-							Matches:     matches,
-							CursorStart: cursorStart,
-							CursorEnd:   cursorEnd,
-							Metadata:    metadata,
-						},
-					)
-				}
 			case ShellSocket.ShutdownReply:
 				// TODO: Handle restart functionality later
 

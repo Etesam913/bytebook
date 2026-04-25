@@ -22,7 +22,6 @@ import {
   SendShutdownMessage,
   SendInputReply,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
-import { RevealFolderOrFileInFinder } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { QueryError } from '../utils/query';
 import { $nodesOfType, LexicalEditor } from 'lexical';
 import { toast } from 'sonner';
@@ -741,31 +740,6 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
         setErrorText(error.message);
       } else {
         setErrorText('An unknown error occurred');
-      }
-    },
-  });
-}
-
-/**
- * Hook that creates a mutation for revealing a folder or file in the system's file manager.
- *
- * @returns A mutation object for revealing folders/files in finder
- */
-export function useRevealInFinderMutation() {
-  return useMutation({
-    mutationFn: async ({
-      path,
-      shouldPrefixWithProjectPath,
-    }: {
-      path: string;
-      shouldPrefixWithProjectPath: boolean;
-    }) => {
-      const res = await RevealFolderOrFileInFinder(
-        path,
-        shouldPrefixWithProjectPath
-      );
-      if (!res.success) {
-        throw new QueryError(res.message);
       }
     },
   });

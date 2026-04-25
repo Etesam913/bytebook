@@ -19,7 +19,7 @@ import {
 import { Tooltip } from '../../../components/tooltip';
 import {
   useMoveToTrashMutation,
-  useNoteRevealInFinderMutation,
+  useRevealInFinderMutation,
 } from '../../../hooks/notes';
 import { useEditTagsFormMutation } from '../../../hooks/tags';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
@@ -53,7 +53,7 @@ export function NonMarkdownToolbar({
 
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();
-  const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
+  const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutateAsync: editTags } = useEditTagsFormMutation();
   useToggleSidebarEvent(animationControls);
 
@@ -136,10 +136,7 @@ export function NonMarkdownToolbar({
         break;
       }
       case 'reveal-in-finder': {
-        revealInFinder({
-          folder: filePath.folder,
-          selectionRange: new Set([`note:${filePath.note}`]),
-        });
+        revealInFinder({ path: filePath });
         break;
       }
       case 'open-in-files': {

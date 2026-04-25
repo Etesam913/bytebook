@@ -9,48 +9,43 @@ import {
   useSendInterruptRequestMutation,
   useTurnOnKernelMutation,
 } from '../../hooks/code';
-import {
-  useCompletionSource,
-  useInspectTooltip,
-} from '../../hooks/code-codemirror';
+import { useInspectTooltip } from '../../hooks/code-codemirror';
 import { getCodemirrorKeymap } from '../../utils/codemirror';
 import { focusEditor } from '.';
 import type { CodeMirrorRef } from './types';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
-import { vim, getCM, Vim, CodeMirrorV } from '@replit/codemirror-vim';
+import { vim } from '@replit/codemirror-vim';
 import { LexicalEditor } from 'lexical';
 import { cn } from '../../utils/string-formatting';
-import { CodeBlockStatus, Languages, CompletionData } from '../../types';
-import { autocompletion } from '@codemirror/autocomplete';
+import { CodeBlockStatus, Languages } from '../../types';
 import { useNodeInNodeSelection } from '../../hooks/lexical';
 import { useEffect, useRef } from 'react';
 import { PlayButton } from './play-button';
 import { DeleteButton } from './delete-button';
 import type { RefObject } from 'react';
-import { java, javaLanguage } from '@codemirror/lang-java';
-import { javascript, javascriptLanguage } from '@codemirror/lang-javascript';
-import { python, pythonLanguage } from '@codemirror/lang-python';
+import { java } from '@codemirror/lang-java';
+import { javascript } from '@codemirror/lang-javascript';
+import { python } from '@codemirror/lang-python';
 import { go } from '@codemirror/lang-go';
 import { languageDisplayConfig } from './language-config';
 import type { BasicSetupOptions } from '@uiw/react-codemirror';
 
-type LanguageDataSource = {
-  data: {
-    of: (value: { autocomplete: unknown }) => unknown;
-  };
-};
-
 type LanguageSetting = {
   basicSetup?: BasicSetupOptions;
   extension: () => unknown;
-  language?: LanguageDataSource;
+};
+
+const codeBlockBasicSetup: BasicSetupOptions = {
+  lineNumbers: true,
+  foldGutter: false,
+  autocompletion: false,
+  completionKeymap: false,
 };
 
 const languageToSettings: Record<Languages, LanguageSetting> = {
   python: {
     basicSetup: { tabSize: languageDisplayConfig.python.tabSize },
     extension: python,
-    language: pythonLanguage,
   },
   go: {
     basicSetup: { tabSize: languageDisplayConfig.go.tabSize },
@@ -59,21 +54,16 @@ const languageToSettings: Record<Languages, LanguageSetting> = {
   javascript: {
     basicSetup: { tabSize: languageDisplayConfig.javascript.tabSize },
     extension: javascript,
-    language: javascriptLanguage,
   },
   java: {
     basicSetup: { tabSize: languageDisplayConfig.java.tabSize },
     extension: java,
-    language: javaLanguage,
   },
   text: {
     basicSetup: { tabSize: languageDisplayConfig.text.tabSize },
     extension: () => [],
   },
 };
-
-// Map to store pending completion promises by messageId
-const pendingCompletions = new Map<string, (data: CompletionData) => void>();
 
 // Map to store pending inspection promises by messageId
 const pendingInspections = new Map<
@@ -130,13 +120,6 @@ export function CodeMirrorEditor({
     setStatus,
   });
 
-  const completionSource = useCompletionSource({
-    id,
-    executionId,
-    language,
-    pendingCompletions,
-  });
-
   const inspectTooltip = useInspectTooltip({
     language,
     id,
@@ -189,15 +172,6 @@ export function CodeMirrorEditor({
     isExecutionEnabled: !hideResults && language !== 'text',
   });
 
-  // gives syntax highlighting
-  const cmLanguageObject = languageToSettings[language].language;
-  // gives autocomplete from kernel
-  const extraCompletions = cmLanguageObject
-    ? cmLanguageObject.data.of({
-        autocomplete: completionSource,
-      })
-    : [];
-
   return (
     <div className="flex flex-1 gap-2 min-h-0 h-full">
       {!hideResults && (
@@ -229,21 +203,6 @@ export function CodeMirrorEditor({
           }
         }}
         className={cn('min-h-12 flex-1 overflow-auto')}
-        onKeyDownCapture={(e) => {
-          if (
-            projectSettings.code.codeBlockVimMode &&
-            e.key === 'Escape' &&
-            codeMirrorInstance?.view
-          ) {
-            // Ensures that the editor goes into normal mode when escape is pressed
-            // Previously, the editor would remain in insert mode after pressing escape
-            // when autocomplete suggestions were showing.
-            const codeMirrorVim = getCM(codeMirrorInstance.view);
-            if (codeMirrorVim) {
-              Vim.exitInsertMode(codeMirrorVim as CodeMirrorV);
-            }
-          }
-        }}
       >
         <CodeMirror
           ref={handleEditorRef}
@@ -262,19 +221,12 @@ export function CodeMirrorEditor({
             EditorView.editable.of(isInNodeSelection),
             ...(projectSettings.code.codeBlockVimMode ? [vim()] : []),
             runCodeKeymap,
-            ...(cmLanguageObject ? [extraCompletions as never] : []),
             ...(() => {
               const ext = languageToSettings[language].extension();
               return Array.isArray(ext) && ext.length === 0
                 ? []
                 : [ext as never];
             })(),
-            autocompletion({
-              activateOnTypingDelay: 50,
-              // For languages that do not have a language object, there is no way to attach completions
-              // to the language object, so we need to attach it to the autocompletion extension
-              override: cmLanguageObject ? undefined : [completionSource],
-            }),
             inspectTooltip,
           ]}
           theme={isDarkModeOn ? vscodeDark : vscodeLight}
@@ -298,8 +250,7 @@ export function CodeMirrorEditor({
             e.stopPropagation();
           }}
           basicSetup={{
-            lineNumbers: true,
-            foldGutter: false,
+            ...codeBlockBasicSetup,
             ...languageToSettings[language].basicSetup,
           }}
         />

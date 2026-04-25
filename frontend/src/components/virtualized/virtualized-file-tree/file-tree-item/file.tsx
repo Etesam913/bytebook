@@ -1,13 +1,9 @@
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { MouseEvent, useState, useEffect, useRef, DragEvent } from 'react';
 import { navigate } from 'wouter/use-browser-location';
-import { Finder } from '../../../../icons/finder';
-import { PinTack2 } from '../../../../icons/pin-tack-2';
-import { PinTackSlash } from '../../../../icons/pin-tack-slash';
 import {
   activeDropTargetIdAtom,
   contextMenuDataAtom,
-  dialogDataAtom,
   dragHighlightIdsAtom,
   projectSettingsAtom,
   sidebarSelectionAtom,
@@ -15,18 +11,10 @@ import {
 } from '../../../../atoms';
 import { isTreeNodeAFile, isTreeNodeAFolder } from '../utils/file-tree-utils';
 import { useFilePathFromRoute } from '../../../../hooks/routes';
-import {
-  useMoveToTrashMutation,
-  usePinPathMutation,
-} from '../../../../hooks/notes';
-import { useEditTagsFormMutation } from '../../../../hooks/tags';
-import { useRevealInFinderMutation } from '../../../../hooks/code';
 import { createFilePath } from '../../../../utils/path';
 import { cn } from '../../../../utils/string-formatting';
 import type { FlattenedFileOrFolder } from '../types';
 import { InlineTreeItemInput } from './inline-tree-item-input';
-import { Trash } from '../../../../icons/trash';
-import { FilePen } from '../../../../icons/file-pen';
 import {
   useMoveTreeItemsMutation,
   useRenameTreeItemMutation,
@@ -41,8 +29,7 @@ import { handleFileTreeDragEnd, handleFileTreeDragStart } from '../utils/drag';
 import { draggedGhostElementAtom } from '../../../editor/atoms';
 import { getSelectionValue } from '../../../../utils/selection';
 import { fileTreeDataAtom } from '../../../../atoms';
-import { TagPlus } from '../../../../icons/tag-plus';
-import { EditTagDialogChildren } from '../../../../routes/notes-sidebar/edit-tag-dialog-children';
+import { useContextMenuItems } from '../../../context-menu/items';
 import { RenderNoteIcon } from '../../../../icons/render-note-icon';
 import { FileBan } from '../../../../icons/file-ban';
 
@@ -59,7 +46,6 @@ export function FileTreeFileItem({
 }) {
   const filePathFromRoute = useFilePathFromRoute();
   const [contextMenuData, setContextMenuData] = useAtom(contextMenuDataAtom);
-  const setDialogData = useSetAtom(dialogDataAtom);
   const [activeDropTargetId, setActiveDropTargetId] = useAtom(
     activeDropTargetIdAtom
   );
@@ -82,10 +68,8 @@ export function FileTreeFileItem({
     wasEditingRef.current = isEditing;
   }, [isEditing]);
 
-  const { mutate: revealInFinder } = useRevealInFinderMutation();
-  const { mutate: moveToTrash } = useMoveToTrashMutation();
-  const { mutate: pinPath } = usePinPathMutation();
-  const { mutateAsync: editTags } = useEditTagsFormMutation();
+  const { revealInFinder, pin, editTags, rename, moveToTrash } =
+    useContextMenuItems();
   const {
     mutate: renameTreeItem,
     error: renameTreeItemError,
@@ -344,131 +328,45 @@ export function FileTreeFileItem({
           (item) => !projectSettings.pinnedNotes.has(item.path)
         );
 
+        const firstSelectedFilePath =
+          !isMultiSelection && selectedFilePaths[0]
+            ? selectedFilePaths[0]
+            : null;
+
         setContextMenuData({
           x: e.clientX,
           y: e.clientY,
           isShowing: true,
           targetId: dataItem.id,
           items: [
-            {
-              label: (
-                <span className="flex items-center gap-1.5">
-                  <Finder height="1.0625rem" width="1.0625rem" />{' '}
-                  <span>Reveal in Finder</span>
-                </span>
-              ),
-              value: 'reveal-in-finder',
-              onChange: () => {
-                selectedItems.forEach((item) => {
-                  revealInFinder({
-                    path: `notes/${item.path}`,
-                    shouldPrefixWithProjectPath: true,
-                  });
-                });
-              },
-            },
+            ...(firstSelectedFilePath
+              ? [revealInFinder({ path: firstSelectedFilePath })]
+              : []),
             ...(!hasFolderSelection && selectedFiles.length > 0
               ? [
-                  {
-                    label: (
-                      <span className="flex items-center gap-1.5">
-                        {shouldPinSelectedFiles ? (
-                          <PinTack2 height="1.0625rem" width="1.0625rem" />
-                        ) : (
-                          <PinTackSlash height="1.0625rem" width="1.0625rem" />
-                        )}{' '}
-                        <span>
-                          {shouldPinSelectedFiles
-                            ? selectedFiles.length > 1
-                              ? 'Pin Notes'
-                              : 'Pin Note'
-                            : selectedFiles.length > 1
-                              ? 'Unpin Notes'
-                              : 'Unpin Note'}
-                        </span>
-                      </span>
-                    ),
-                    value: shouldPinSelectedFiles ? 'pin-note' : 'unpin-note',
-                    onChange: () => {
-                      selectedFiles.forEach((item) => {
-                        pinPath({
-                          path: item.path,
-                          shouldPin: shouldPinSelectedFiles,
-                        });
-                      });
-                    },
-                  },
+                  pin({
+                    paths: selectedFiles.map((item) => item.path),
+                    shouldPin: shouldPinSelectedFiles,
+                    kind: 'note',
+                  }),
                 ]
               : []),
             ...(!hasFolderSelection &&
             selectedFilePaths.length > 0 &&
             selectedFolderForTags !== null
               ? [
-                  {
-                    label: (
-                      <span className="flex items-center gap-1.5">
-                        <TagPlus height="1.0625rem" width="1.0625rem" />{' '}
-                        <span>Edit Tags</span>
-                      </span>
+                  editTags({
+                    folder: selectedFolderForTags,
+                    selectionRange: new Set(
+                      selectedFilePaths.map((path) => `note:${path.note}`)
                     ),
-                    value: 'edit-tags',
-                    onChange: () => {
-                      const selectionRange = new Set(
-                        selectedFilePaths.map((path) => `note:${path.note}`)
-                      );
-                      setDialogData({
-                        isOpen: true,
-                        isPending: false,
-                        title: 'Edit Tags',
-                        dialogClassName: 'w-[min(30rem,90vw)]',
-                        children: (errorText) => (
-                          <EditTagDialogChildren
-                            selectionRange={selectionRange}
-                            folder={selectedFolderForTags}
-                            errorText={errorText}
-                          />
-                        ),
-                        onSubmit: async (formData, setErrorText) => {
-                          return await editTags({
-                            formData,
-                            setErrorText,
-                            selectionRange,
-                            folder: selectedFolderForTags,
-                          });
-                        },
-                      });
-                    },
-                  },
+                  }),
                 ]
               : []),
-            ...(!isMultiSelection
-              ? [
-                  {
-                    label: (
-                      <span className="flex items-center gap-1.5">
-                        <FilePen height="1.0625rem" width="1.0625rem" />{' '}
-                        <span>Rename</span>
-                      </span>
-                    ),
-                    value: 'rename',
-                    onChange: () => {
-                      enterEditMode();
-                    },
-                  },
-                ]
-              : []),
-            {
-              value: 'move-to-trash',
-              label: (
-                <span className="flex items-center gap-1.5">
-                  <Trash height="1.0625rem" width="1.0625rem" />{' '}
-                  <span>Move to Trash</span>
-                </span>
-              ),
-              onChange: () => {
-                moveToTrash({ paths: selectedItems.map((item) => item.path) });
-              },
-            },
+            ...(!isMultiSelection ? [rename({ onRename: enterEditMode })] : []),
+            moveToTrash({
+              paths: selectedItems.map((item) => item.path),
+            }),
           ],
         });
       }}

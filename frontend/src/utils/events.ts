@@ -51,7 +51,6 @@ export const CODE_BLOCK_INPUT_REQUEST = 'code:code-block:input_request';
 export const KERNEL_HEARTBEAT = 'code:kernel:heartbeat';
 
 // Frontend-only events (not in events.go)
-export const CODE_BLOCK_COMPLETE_REPLY = 'code:code-block:complete_reply';
 export const CODE_BLOCK_INSPECT_REPLY = 'code:code-block:inspect_reply';
 
 export async function isEventInCurrentWindow(data: WailsEvent) {

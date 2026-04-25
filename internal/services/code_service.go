@@ -224,60 +224,6 @@ func (c *CodeService) SendInputReply(language, codeBlockId, executionId, value s
 	}
 }
 
-type SendCompleteRequestResponse struct {
-	MessageId *string `json:"messageId"`
-}
-
-// SendCompleteRequest sends a complete_request message to the kernel.
-func (c *CodeService) SendCompleteRequest(language, codeBlockId, executionId, code string, cursorPos int) config.BackendResponseWithData[SendCompleteRequestResponse] {
-	sockets := c.getLanguageSockets(language)
-	if sockets == nil || sockets.ShellSocketDealer == nil {
-		return config.BackendResponseWithData[SendCompleteRequestResponse]{
-			Success: false,
-			Message: "Shell socket is not initialized. Unable to send completion request.",
-			Data:    SendCompleteRequestResponse{},
-		}
-	}
-
-	isHeartBeating := sockets.HeartbeatState.GetHeartbeatStatus()
-	if !isHeartBeating {
-		return config.BackendResponseWithData[SendCompleteRequestResponse]{
-			Success: false,
-			Message: "The kernel is not running. Cannot send completion request.",
-			Data:    SendCompleteRequestResponse{},
-		}
-	}
-
-	messageId := fmt.Sprintf("%s|%s", codeBlockId, executionId)
-	err := jupyter_protocol.SendCompleteRequest(
-		sockets.ShellSocketDealer,
-		jupyter_protocol.CompleteRequestParams{
-			MessageParams: jupyter_protocol.MessageParams{
-				MessageID: messageId,
-				SessionID: "current-session",
-			},
-			Code:      code,
-			CursorPos: cursorPos,
-		},
-	)
-
-	if err != nil {
-		return config.BackendResponseWithData[SendCompleteRequestResponse]{
-			Success: false,
-			Message: fmt.Sprintf("Failed to send completion request: %v", err),
-			Data:    SendCompleteRequestResponse{},
-		}
-	}
-
-	return config.BackendResponseWithData[SendCompleteRequestResponse]{
-		Success: true,
-		Message: "Completion request sent successfully",
-		Data: SendCompleteRequestResponse{
-			MessageId: &messageId,
-		},
-	}
-}
-
 type SendInspectRequestResponse struct {
 	MessageId *string `json:"messageId"`
 }
