@@ -2,19 +2,38 @@ import { Play } from '../../icons/circle-play';
 import { getDefaultButtonVariants } from '../../animations';
 import { motion } from 'motion/react';
 import {
+  useEnsureKernelMutation,
   useSendExecuteRequestMutation,
   useSendInterruptRequestMutation,
-  useTurnOnKernelMutation,
 } from '../../hooks/code';
 import { handleRunOrInterruptCode } from '../../utils/code';
 import type { CodeMirrorRef } from './types';
-import { CodeBlockStatus, Languages } from '../../types';
+import {
+  CodeBlockStatus,
+  KernelInstanceData,
+  Languages,
+  LanguagesWithKernels,
+} from '../../types';
 import { MediaStop } from '../../icons/media-stop';
 import { Loader } from '../../icons/loader';
 import { getDefaultStore } from 'jotai';
-import { kernelsDataAtom } from '../../atoms';
+import { kernelInstancesAtom } from '../../atoms';
 import { Tooltip } from '../tooltip';
 import type { RefObject } from 'react';
+import { useCurrentNoteId } from '../../hooks/routes';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+
+function getInstanceForNote(
+  noteId: string,
+  language: LanguagesWithKernels
+): KernelInstanceData | null {
+  const all = getDefaultStore().get(kernelInstancesAtom);
+  return (
+    Object.values(all).find(
+      (i) => i.noteId === noteId && i.language === language
+    ) ?? null
+  );
+}
 
 export function PlayButton({
   codeBlockId,
@@ -24,6 +43,7 @@ export function PlayButton({
   setStatus,
   isExpanded,
   dialogRef,
+  kernelInstanceId,
 }: {
   codeBlockId: string;
   codeMirrorInstance: CodeMirrorRef;
@@ -32,18 +52,19 @@ export function PlayButton({
   setStatus: (status: CodeBlockStatus) => void;
   isExpanded?: boolean;
   dialogRef?: RefObject<HTMLDialogElement | null>;
+  kernelInstanceId: string | null;
 }) {
+  const noteId = useCurrentNoteId();
+  const [editor] = useLexicalComposerContext();
   const { mutate: executeCode } = useSendExecuteRequestMutation({
+    noteId,
     codeBlockId,
     language,
     setStatus,
+    editor,
   });
   const { mutate: interruptExecution } = useSendInterruptRequestMutation();
-  const { mutate: turnOnKernel } = useTurnOnKernelMutation({
-    language,
-    codeBlockId,
-    setStatus,
-  });
+  const { mutate: ensureKernel } = useEnsureKernelMutation();
 
   const tooltipRoot = isExpanded && dialogRef ? dialogRef : undefined;
 
@@ -80,13 +101,15 @@ export function PlayButton({
         onClick={() => {
           handleRunOrInterruptCode({
             status,
+            noteId,
             codeBlockId,
             codeBlockLanguage: language,
+            kernelInstanceId,
+            getInstanceForNote,
             interruptExecution,
             codeMirrorInstance,
             executeCode,
-            getKernelsData: () => getDefaultStore().get(kernelsDataAtom),
-            turnOnKernel,
+            ensureKernel,
           });
         }}
       >

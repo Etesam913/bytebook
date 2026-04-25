@@ -83,10 +83,14 @@ export type KernelHeartbeatStatus = 'success' | 'failure' | 'idle';
 export type Languages = 'python' | 'go' | 'javascript' | 'java' | 'text';
 export type LanguagesWithKernels = Exclude<Languages, 'text'>;
 
-type KernelData = {
+export type KernelInstanceData = {
+  id: string;
+  language: LanguagesWithKernels;
+  noteId: string;
   status: KernelStatus;
   heartbeat: KernelHeartbeatStatus;
   errorMessage: string | null;
+  lastActivityAt: number;
 };
 
 const allLanguages = ['python', 'go', 'javascript', 'java', 'text'] as const;
@@ -97,9 +101,6 @@ export const languagesWithKernelsSet = new Set<LanguagesWithKernels>(
   allLanguages.filter((language) => language !== 'text')
 );
 
-export type KernelsData = Record<LanguagesWithKernels, KernelData>;
-
-// Function to check if a string is a valid key
 export function isValidKernelLanguage(key: unknown): key is Languages {
   return typeof key === 'string' && allLanguagesSet.has(key as Languages);
 }

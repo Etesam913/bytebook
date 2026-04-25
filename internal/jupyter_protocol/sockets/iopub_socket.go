@@ -1,13 +1,11 @@
 package sockets
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/pebbe/zmq4"
@@ -16,9 +14,7 @@ import (
 )
 
 type ioPubSocket struct {
-	socket     *zmq4.Socket
-	language   string
-	cancelFunc context.CancelFunc
+	socket *zmq4.Socket
 }
 
 type executeResultEvent struct {
@@ -33,8 +29,8 @@ type executeInputEvent struct {
 }
 
 type kernelStatusEvent struct {
-	Status   string `json:"status"`
-	Language string `json:"language"`
+	ID     string `json:"id"`
+	Status string `json:"status"`
 }
 
 type codeBlockStatusEvent struct {
@@ -56,57 +52,41 @@ type errorEvent struct {
 	ErrorTraceback []string `json:"errorTraceback"`
 }
 
-func CreateIOPubSocket(language string, cancelFunc context.CancelFunc) *ioPubSocket {
-	iopubSocketSubscriber, err := zmq4.NewSocket(zmq4.Type(zmq4.SUB))
+func createIOPubSocket(p CreateParams) *ioPubSocket {
+	sock, err := zmq4.NewSocket(zmq4.Type(zmq4.SUB))
 	if err != nil {
 		log.Print("Could not create io 🍺 socket subscriber:", err)
-		return &ioPubSocket{
-			socket:     nil,
-			language:   language,
-			cancelFunc: cancelFunc,
-		}
+		return nil
 	}
-	return &ioPubSocket{
-		socket:     iopubSocketSubscriber,
-		language:   language,
-		cancelFunc: cancelFunc,
-	}
+	return &ioPubSocket{socket: sock}
 }
 
-func (i *ioPubSocket) Get() *zmq4.Socket {
-	return i.socket
-}
-
-func (i *ioPubSocket) Listen(
-	ioPubSocketSubscriber *zmq4.Socket,
-	connectionInfo config.KernelConnectionInfo,
-	ctx context.Context,
-) {
-	if ioPubSocketSubscriber == nil {
+func (i *ioPubSocket) Listen(p CreateParams) {
+	if i.socket == nil {
 		log.Println("🍺 IOPub socket is nil, cannot listen")
 		return
 	}
+	defer i.socket.Close()
 
-	defer ioPubSocketSubscriber.Close()
-
-	ioPubAddress := fmt.Sprintf("tcp://%s:%d", connectionInfo.IP, connectionInfo.IOPubPort)
-	if err := ioPubSocketSubscriber.Connect(ioPubAddress); err != nil {
-		log.Fatal("Could not connect io 🍺 socket subscriber to port:", err)
+	ioPubAddress := fmt.Sprintf("tcp://%s:%d", p.ConnectionInfo.IP, p.ConnectionInfo.IOPubPort)
+	if err := i.socket.Connect(ioPubAddress); err != nil {
+		log.Printf("Could not connect io 🍺 socket: %v", err)
+		return
 	}
 
 	app := application.Get()
-	if err := ioPubSocketSubscriber.SetSubscribe(""); err != nil {
-		log.Fatal("Could not set subscribe:", err)
+	if err := i.socket.SetSubscribe(""); err != nil {
+		log.Printf("Could not set subscribe: %v", err)
+		return
 	}
 
 	for {
 		select {
-		case <-ctx.Done():
-			ioPubSocketSubscriber.Close()
+		case <-p.Ctx.Done():
 			log.Println("🛑 IOPub socket listener received context cancellation")
 			return
 		default:
-			envelope, err := ioPubSocketSubscriber.RecvMessageBytes(zmq4.Flag(zmq4.DONTWAIT))
+			envelope, err := i.socket.RecvMessageBytes(zmq4.Flag(zmq4.DONTWAIT))
 			if err != nil {
 				if strings.Contains(err.Error(), "resource temporarily unavailable") {
 					time.Sleep(50 * time.Millisecond)
@@ -116,7 +96,7 @@ func (i *ioPubSocket) Listen(
 				continue
 			}
 
-			identities, msg, signature, err := jupyter_protocol.ParseMultipartMessage(envelope)
+			_, msg, _, err := jupyter_protocol.ParseMultipartMessage(envelope)
 			if err != nil {
 				log.Println("🍺 Error parsing message:", err)
 				continue
@@ -124,155 +104,108 @@ func (i *ioPubSocket) Listen(
 
 			msgId, ok := msg.ParentHeader["msg_id"].(string)
 			if !ok {
-				log.Printf("⚠️ Invalid message ID type: %v (type: %T)", msg.ParentHeader["msg_id"], msg.ParentHeader["msg_id"])
 				continue
 			}
-
-			log.Println("io 🍺 socket identities:", identities)
-			log.Println("io 🍺 socket signature:", signature)
-			log.Println("io 🍺 socket parent header:", msg.ParentHeader)
-			log.Println("io 🍺 socket message type:", msg.Header.MsgType)
-			log.Println("io 🍺 socket content:", msg.Content)
 
 			switch msg.Header.MsgType {
 			case IOPubSocket.Stream:
 				name, isNameString := msg.Content["name"].(string)
 				text, isTextString := msg.Content["text"].(string)
-				if isNameString && isTextString {
+				if isNameString && isTextString && app != nil {
 					htmlStr := string(ansihtml.ConvertToHTML([]byte(text)))
 					app.Event.EmitEvent(&application.CustomEvent{
 						Name: util.Events.CodeBlockStream,
-						Data: streamEvent{
-							MessageId: msgId,
-							Name:      name,
-							Text:      htmlStr,
-						},
+						Data: streamEvent{MessageId: msgId, Name: name, Text: htmlStr},
 					})
 				}
 			case IOPubSocket.ExecuteResult:
-				log.Printf("✅ Execution result: %v\n", msg.Content["data"])
 				dataMap, exists := msg.Content["data"].(map[string]any)
-
-				if exists {
-					// Create a structure to hold the execution result with different mime types
-					executionResult := executeResultEvent{
-						MessageId: msgId,
-						Data:      map[string]string{},
-					}
-
-					// Process different mime types
+				if exists && app != nil {
+					executionResult := executeResultEvent{MessageId: msgId, Data: map[string]string{}}
 					for mimeType, content := range dataMap {
 						if contentStr, ok := content.(string); ok {
 							executionResult.Data[mimeType] = contentStr
-							log.Printf("MIME type %s: %v\n", mimeType, contentStr)
 						}
 					}
-
-					// Emit the event with all the data
 					app.Event.EmitEvent(&application.CustomEvent{
 						Name: util.Events.CodeBlockExecuteResult,
 						Data: executionResult,
 					})
 				}
 			case IOPubSocket.DisplayData:
-				log.Printf("🖼️ Display data: %v\n", msg.Content["data"])
 				dataMap, exists := msg.Content["data"].(map[string]any)
-
-				if exists {
-					// Create a structure to hold the display data with different mime types
-					displayData := executeResultEvent{
-						MessageId: msgId,
-						Data:      map[string]string{},
-					}
-
-					// Process different mime types
+				if exists && app != nil {
+					displayData := executeResultEvent{MessageId: msgId, Data: map[string]string{}}
 					for mimeType, content := range dataMap {
 						if contentStr, ok := content.(string); ok {
 							displayData.Data[mimeType] = contentStr
-							log.Printf("MIME type %s: %v\n", mimeType, contentStr)
 						}
 					}
-
-					// Emit the event with all the data
 					app.Event.EmitEvent(&application.CustomEvent{
 						Name: util.Events.CodeBlockDisplayData,
 						Data: displayData,
 					})
 				}
 			case IOPubSocket.ExecuteInput:
-				log.Printf("🎯 Execute input: %v\n", msg.Content)
 				code, isCodeString := msg.Content["code"].(string)
 				executionCount, isExecutionCountFloat := msg.Content["execution_count"].(float64)
-
-				if isCodeString && isExecutionCountFloat {
-					executeInputData := executeInputEvent{
-						MessageId:      msgId,
-						Code:           code,
-						ExecutionCount: int(executionCount),
-					}
+				if isCodeString && isExecutionCountFloat && app != nil {
 					app.Event.EmitEvent(&application.CustomEvent{
 						Name: util.Events.CodeBlockExecuteInput,
-						Data: executeInputData,
+						Data: executeInputEvent{
+							MessageId:      msgId,
+							Code:           code,
+							ExecutionCount: int(executionCount),
+						},
 					})
 				}
 			case IOPubSocket.Status:
 				status, isString := msg.Content["execution_state"].(string)
-				if isString {
-					statusEventData := kernelStatusEvent{
-						Status:   status,
-						Language: i.language,
-					}
-
+				if !isString {
+					continue
+				}
+				if app != nil {
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: util.Events.KernelStatus,
-						Data: statusEventData,
+						Name: util.Events.KernelInstanceStatus,
+						Data: kernelStatusEvent{ID: p.InstanceID, Status: status},
 					})
-					parentMessageType, ok := msg.ParentHeader["msg_type"].(string)
-					if !ok {
+				}
+				parentMessageType, ok := msg.ParentHeader["msg_type"].(string)
+				if !ok {
+					continue
+				}
+				if parentMessageType == "execute_request" {
+					if p.OnExecuteStatus != nil {
+						p.OnExecuteStatus(status, msgId)
+					}
+					curTime := time.Now()
+					msgParts := strings.Split(msgId, "|")
+					// messageId format: {codeBlockId}|{executionId}|{startTime}
+					if len(msgParts) < 3 {
 						continue
 					}
-					if parentMessageType == "execute_request" {
-						curTime := time.Now()
-						msgParts := strings.Split(msgId, "|")
-						// The msgId should be made up of {codeBlockId:executionId}|{startTime}
-						if len(msgParts) < 3 {
-							continue
-						}
-						requestTimeString := msgParts[2]
-						requestTime, err := time.Parse(time.RFC3339, requestTimeString)
-						if err != nil {
-							log.Printf("⚠️ Error parsing request time: %v (requestTimeString: %s)", err, requestTimeString)
-							continue
-						}
-
-						duration := ""
-
-						if status == "idle" {
-							duration = util.FormatExecutionDuration(requestTime, curTime)
-						}
+					requestTime, err := time.Parse(time.RFC3339, msgParts[2])
+					if err != nil {
+						continue
+					}
+					duration := ""
+					if status == "idle" {
+						duration = util.FormatExecutionDuration(requestTime, curTime)
+					}
+					if app != nil {
 						app.Event.EmitEvent(&application.CustomEvent{
 							Name: util.Events.CodeBlockStatus,
-							Data: codeBlockStatusEvent{
-								MessageId: msgId,
-								Status:    status,
-								Duration:  duration,
-							},
+							Data: codeBlockStatusEvent{MessageId: msgId, Status: status, Duration: duration},
 						})
-					} else if parentMessageType == "shutdown_request" && status == "idle" {
-						// After the shutdown_request, everything listen function should be exited from
-						i.cancelFunc()
 					}
+				} else if parentMessageType == "shutdown_request" && status == "idle" {
+					p.Cancel()
 				}
 			case IOPubSocket.Error:
-				log.Printf("❌ Execution error: %v\n", msg.Content["traceback"])
 				errorName := ""
 				errorValue := ""
-				uncleanTraceback, ok := msg.Content["traceback"].([]any)
 				errorTraceback := []string{}
-
-				if !ok {
-					log.Printf("⚠️ Invalid traceback type: %v (type: %T)", msg.Content["traceback"], msg.Content["traceback"])
-				} else {
+				if uncleanTraceback, ok := msg.Content["traceback"].([]any); ok {
 					for _, item := range uncleanTraceback {
 						if ansiStr, ok := item.(string); ok {
 							htmlStr := string(ansihtml.ConvertToHTML([]byte(ansiStr)))
@@ -280,26 +213,24 @@ func (i *ioPubSocket) Listen(
 						}
 					}
 				}
-
-				if errorName, ok = msg.Content["ename"].(string); !ok {
-					log.Printf("⚠️ Invalid error name type: %v (type: %T)", msg.Content["ename"], msg.Content["ename"])
-					errorName = ""
+				if v, ok := msg.Content["ename"].(string); ok {
+					errorName = v
 				}
-				if errorValue, ok = msg.Content["evalue"].(string); !ok {
-					log.Printf("⚠️ Invalid error value type: %v (type: %T)", msg.Content["evalue"], msg.Content["evalue"])
-					errorValue = ""
+				if v, ok := msg.Content["evalue"].(string); ok {
+					errorValue = v
 				}
-				app.Event.EmitEvent(&application.CustomEvent{
-					Name: util.Events.CodeBlockIopubError,
-					Data: errorEvent{
-						MessageId:      msgId,
-						ErrorName:      errorName,
-						ErrorValue:     errorValue,
-						ErrorTraceback: errorTraceback,
-					},
-				})
+				if app != nil {
+					app.Event.EmitEvent(&application.CustomEvent{
+						Name: util.Events.CodeBlockIopubError,
+						Data: errorEvent{
+							MessageId:      msgId,
+							ErrorName:      errorName,
+							ErrorValue:     errorValue,
+							ErrorTraceback: errorTraceback,
+						},
+					})
+				}
 			}
-			fmt.Println("---")
 			time.Sleep(100 * time.Millisecond)
 		}
 	}

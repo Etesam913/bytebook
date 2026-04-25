@@ -12,10 +12,7 @@ import (
 	"github.com/pebbe/zmq4"
 )
 
-const (
-	KERNEL_KEY = "abc123"
-	delimiter  = "<IDS|MSG>"
-)
+const delimiter = "<IDS|MSG>"
 
 // Header defines the structure for the message header.
 type Header struct {
@@ -41,6 +38,7 @@ type RequestParams struct {
 	SessionID string
 	MsgType   string
 	Username  string
+	Key       string
 	Content   map[string]any
 }
 
@@ -56,9 +54,9 @@ func newHeader(msgID, msgType, session, username string) Header {
 	}
 }
 
-// signMessage computes an HMAC-SHA256 signature.
-func signMessage(parts []string) string {
-	h := hmac.New(sha256.New, []byte(KERNEL_KEY))
+// signMessage computes an HMAC-SHA256 signature using the per-instance key.
+func signMessage(parts []string, key string) string {
+	h := hmac.New(sha256.New, []byte(key))
 	for _, part := range parts {
 		h.Write([]byte(part))
 	}
@@ -66,7 +64,7 @@ func signMessage(parts []string) string {
 }
 
 // createMultipartMessage assembles the complete multipart message envelope.
-func createMultipartMessage(identities []string, msg Message) ([][]byte, error) {
+func createMultipartMessage(identities []string, msg Message, key string) ([][]byte, error) {
 	headerBytes, err := json.Marshal(msg.Header)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling header: %w", err)
@@ -91,7 +89,7 @@ func createMultipartMessage(identities []string, msg Message) ([][]byte, error) 
 		string(contentBytes),
 	}
 
-	signature := signMessage(partsForSign)
+	signature := signMessage(partsForSign, key)
 
 	var envelope [][]byte
 	for _, id := range identities {
@@ -173,7 +171,7 @@ func sendMessage(socket *zmq4.Socket, params RequestParams) error {
 		Content:      params.Content,
 	}
 
-	envelope, err := createMultipartMessage(identities, msg)
+	envelope, err := createMultipartMessage(identities, msg, params.Key)
 	if err != nil {
 		return fmt.Errorf("failed to create multipart message: %w", err)
 	}
@@ -190,6 +188,7 @@ func sendMessage(socket *zmq4.Socket, params RequestParams) error {
 type MessageParams struct {
 	MessageID string
 	SessionID string
+	Key       string
 }
 
 // ExecuteMessageParams contains parameters for execute request messages.
@@ -219,6 +218,7 @@ func SendExecuteRequest(shellDealerSocket *zmq4.Socket, params ExecuteMessagePar
 		SessionID: params.SessionID,
 		MsgType:   "execute_request",
 		Username:  "username",
+		Key:       params.Key,
 		Content: map[string]any{
 			"code":             params.Code,
 			"silent":           false,
@@ -250,6 +250,7 @@ func SendShutdownMessage(controlDealerSocket *zmq4.Socket, params ShutdownMessag
 		SessionID: params.SessionID,
 		MsgType:   "shutdown_request",
 		Username:  "username",
+		Key:       params.Key,
 		Content: map[string]any{
 			"restart": params.Restart,
 		},
@@ -270,6 +271,7 @@ func SendInterruptMessage(controlDealerSocket *zmq4.Socket, params MessageParams
 		SessionID: params.SessionID,
 		MsgType:   "interrupt_request",
 		Username:  "username",
+		Key:       params.Key,
 		Content:   map[string]any{},
 	}
 
@@ -288,6 +290,7 @@ func SendInputReplyMessage(stdinDealerSocket *zmq4.Socket, params InputReplyMess
 		SessionID: params.SessionID,
 		MsgType:   "input_reply",
 		Username:  "username",
+		Key:       params.Key,
 		Content: map[string]any{
 			"value": params.Value,
 		},
@@ -308,6 +311,7 @@ func SendInspectRequest(shellDealerSocket *zmq4.Socket, params InspectRequestPar
 		SessionID: params.SessionID,
 		MsgType:   "inspect_request",
 		Username:  "username",
+		Key:       params.Key,
 		Content: map[string]any{
 			"code":         params.Code,
 			"cursor_pos":   params.CursorPos,

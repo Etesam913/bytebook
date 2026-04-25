@@ -1,8 +1,8 @@
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { logger } from '../utils/logging';
 import { CodeNode } from '../components/editor/nodes/code';
 import { useWailsEvent } from './events';
-import { loadingToastIdsAtom, kernelsDataAtom } from '../atoms';
+import { kernelInstancesAtom } from '../atoms';
 import {
   CodeBlockStatus,
   isValidKernelLanguage,
@@ -14,267 +14,166 @@ import {
 } from '../types';
 import { useMutation } from '@tanstack/react-query';
 import {
-  CreateSocketsAndListen,
-  IsKernelAvailable,
+  EnsureKernel,
   IsPathAValidVirtualEnvironment,
   SendExecuteRequest,
-  SendInterruptRequest,
-  SendShutdownMessage,
   SendInputReply,
+  SendInterruptRequest,
+  ShutdownKernel,
+  ShutdownKernelsByLanguage,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import { QueryError } from '../utils/query';
 import { $nodesOfType, LexicalEditor } from 'lexical';
 import { toast } from 'sonner';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import {
-  KERNEL_STATUS,
   CODE_BLOCK_STATUS,
   CODE_BLOCK_EXECUTE_RESULT,
   CODE_BLOCK_EXECUTE_INPUT,
-  KERNEL_SHUTDOWN_REPLY,
-  KERNEL_HEARTBEAT,
-  KERNEL_LAUNCH_ERROR,
-  KERNEL_LAUNCH_SUCCESS,
   CODE_BLOCK_STREAM,
   CODE_BLOCK_IOPUB_ERROR,
   CODE_BLOCK_DISPLAY_DATA,
   CODE_BLOCK_INPUT_REQUEST,
+  KERNEL_INSTANCE_CREATED,
+  KERNEL_INSTANCE_SHUTDOWN,
+  KERNEL_INSTANCE_STATUS,
+  KERNEL_INSTANCE_HEARTBEAT,
+  KERNEL_INSTANCE_LAUNCH_ERROR,
+  KERNEL_INSTANCE_EXITED,
 } from '../utils/events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import { Dispatch, SetStateAction } from 'react';
-import { runCode } from '../utils/code';
-import { CodeMirrorRef } from '../components/code/types';
+
+type InstanceCreatedPayload = {
+  id: string;
+  language: LanguagesWithKernels;
+  noteId: string;
+  scopeType: string;
+  heartbeat: KernelHeartbeatStatus;
+  lastActivityAt: number;
+  activeExecutions: number;
+};
+
+type InstanceStatusPayload = { id: string; status: KernelStatus };
+type InstanceHeartbeatPayload = { id: string; status: KernelHeartbeatStatus };
+type InstanceShutdownPayload = {
+  id: string;
+  language: LanguagesWithKernels;
+  noteId: string;
+  reason: string;
+};
+type InstanceLaunchErrorPayload = {
+  id: string;
+  language: LanguagesWithKernels;
+  noteId: string;
+  errorMessage: string;
+};
+type InstanceExitedPayload = { id: string; exitCode: number };
 
 /**
- * Hook that listens for kernel status updates and updates the kernels data atom.
- * Subscribes to the 'code:kernel:status' event to track changes in kernel status.
+ * Single hook that wires every kernel:instance:* event into kernelInstancesAtom
+ * and resets affected code-block nodes when an instance dies / errors.
  */
-export function useKernelStatus() {
-  const setKernelsData = useSetAtom(kernelsDataAtom);
+export function useKernelInstanceEvents(editor: LexicalEditor) {
+  const setInstances = useSetAtom(kernelInstancesAtom);
 
-  useWailsEvent(KERNEL_STATUS, (body) => {
-    logger.event('code:kernel:status');
-    const data = body.data as {
-      status: KernelStatus;
-      language: Languages;
-    };
-    const language = data.language;
-    const status = data.status;
-    if (isValidKernelLanguage(language)) {
-      const kernelLanguage = language as LanguagesWithKernels;
-      setKernelsData((prev) => ({
-        ...prev,
-        [kernelLanguage]: {
-          ...prev[kernelLanguage],
-          status: status,
-        },
-      }));
-    }
-  });
-}
-
-/**
- * Hook that listens for code block status updates and updates the corresponding code block.
- * Subscribes to the 'code:code-block:status' event to track changes in code block execution status.
- *
- * @param editor - The Lexical editor instance to update code blocks in
- */
-export function useCodeBlockStatus(editor: LexicalEditor) {
-  useWailsEvent(CODE_BLOCK_STATUS, (body) => {
-    logger.event('code:code-block:status');
-
-    const data = body.data as {
-      status: KernelStatus;
-      messageId: string;
-      duration: string;
-    };
-    const [codeBlockId] = data.messageId.split('|');
-    updateCodeBlock(editor, codeBlockId, (codeNode) => {
-      codeNode.setStatus(data.status, editor);
-      codeNode.setDuration(data.duration, editor);
-    });
-  });
-}
-
-/**
- * Hook that listens for code block execution result events and updates the corresponding code block
- * in the Lexical editor with the execution result.
- * Subscribes to the 'code:code-block:execute_result' event.
- *
- * @param editor - The Lexical editor instance to update code blocks in
- */
-export function useCodeBlockExecuteResult(editor: LexicalEditor) {
-  useWailsEvent(CODE_BLOCK_EXECUTE_RESULT, (body) => {
-    logger.event('code:code-block:execute_result');
-
-    const data = body.data as {
-      messageId: string;
-      data: Record<string, string>;
-    };
-    const [codeBlockId, executionId] = data.messageId.split('|');
-    const executionResultContent: string[] = [];
-    for (const content of Object.values(data.data)) {
-      executionResultContent.push(content);
-    }
-
-    updateCodeBlock(
-      editor,
-      codeBlockId,
-      (codeNode) => {
-        codeNode.setExecutionResult(executionResultContent.join('\n'), editor);
-      },
-      executionId
-    );
-  });
-}
-
-/**
- * Hook that listens for code block execution input events and updates the execution count
- * for the corresponding code block in the Lexical editor.
- * Subscribes to the 'code:code-block:execute_input' event.
- *
- * @param editor - The Lexical editor instance to update code blocks in
- */
-export function useCodeBlockExecuteInput(editor: LexicalEditor) {
-  useWailsEvent(CODE_BLOCK_EXECUTE_INPUT, (body) => {
-    logger.event('code:code-block:execute_input');
-
-    const data = body.data as {
-      messageId: string;
-      code: string;
-      executionCount: number;
-    };
-    const [codeBlockId, executionId] = data.messageId.split('|');
-
-    updateCodeBlock(
-      editor,
-      codeBlockId,
-      (codeNode) => {
-        // Set the execution count on the code node
-        codeNode.setExecutionCount(data.executionCount, editor);
-      },
-      executionId
-    );
-  });
-}
-
-/**
- * Hook that listens for kernel shutdown events and updates the kernels data atom.
- * Subscribes to the 'code:kernel:shutdown_reply' event to handle kernel shutdown responses.
- * Throws an error if the shutdown fails.
- */
-export function useKernelShutdown() {
-  const setKernelsData = useSetAtom(kernelsDataAtom);
-
-  useWailsEvent(KERNEL_SHUTDOWN_REPLY, (body) => {
-    logger.event('code:kernel:shutdown_reply');
-    const data = body.data as {
-      status: string;
-      language: Languages;
-    };
-    const language = data.language;
-    const status = data.status;
-    if (isValidKernelLanguage(language) && status === 'success') {
-      setKernelsData((prev) => ({
-        ...prev,
-        [language]: {
-          status: 'idle',
-          heartbeat: 'idle',
-          errorMessage: null,
-        },
-      }));
-    } else if (status === 'error') {
-      throw new QueryError('Kernel shutdown failed');
-    }
-  });
-}
-
-/**
- * Hook that listens for kernel heartbeat events and updates the kernels data atom.
- * Subscribes to the 'code:kernel:heartbeat' event to track kernel health status.
- */
-export function useKernelHeartbeat() {
-  const setKernelsData = useSetAtom(kernelsDataAtom);
-  const setLoadingToastIds = useSetAtom(loadingToastIdsAtom);
-
-  useWailsEvent(KERNEL_HEARTBEAT, (body) => {
-    logger.event('code:kernel:heartbeat', body);
-    const data = body.data as {
-      status: KernelHeartbeatStatus;
-      language: Languages;
-    };
-    const language = data.language;
-    const kernelHeartbeatStatus = data.status;
-
-    setLoadingToastIds((prev) => {
-      const newMap = new Map(prev);
-      const loadingToastId = newMap.get(`starting-${language}`);
-      if (loadingToastId) {
-        toast.dismiss(loadingToastId);
-        newMap.delete(`starting-${language}`);
-      }
-      return newMap;
-    });
-
-    const kernelLanguage = language as LanguagesWithKernels;
-    setKernelsData((prev) => ({
+  useWailsEvent(KERNEL_INSTANCE_CREATED, (body) => {
+    logger.event(KERNEL_INSTANCE_CREATED);
+    const data = body.data as InstanceCreatedPayload;
+    if (!isValidKernelLanguage(data.language)) return;
+    setInstances((prev) => ({
       ...prev,
-      [kernelLanguage]: {
-        ...prev[kernelLanguage],
-        heartbeat: kernelHeartbeatStatus,
+      [data.id]: {
+        id: data.id,
+        language: data.language,
+        noteId: data.noteId,
+        status: 'starting',
+        heartbeat: data.heartbeat,
+        errorMessage: null,
+        lastActivityAt: data.lastActivityAt,
       },
     }));
   });
+
+  useWailsEvent(KERNEL_INSTANCE_STATUS, (body) => {
+    logger.event(KERNEL_INSTANCE_STATUS);
+    const data = body.data as InstanceStatusPayload;
+    setInstances((prev) => {
+      const existing = prev[data.id];
+      if (!existing) return prev;
+      return {
+        ...prev,
+        [data.id]: {
+          ...existing,
+          status: data.status,
+          lastActivityAt: Date.now(),
+        },
+      };
+    });
+  });
+
+  useWailsEvent(KERNEL_INSTANCE_HEARTBEAT, (body) => {
+    logger.event(KERNEL_INSTANCE_HEARTBEAT);
+    const data = body.data as InstanceHeartbeatPayload;
+    setInstances((prev) => {
+      const existing = prev[data.id];
+      if (!existing) return prev;
+      return { ...prev, [data.id]: { ...existing, heartbeat: data.status } };
+    });
+  });
+
+  useWailsEvent(KERNEL_INSTANCE_SHUTDOWN, (body) => {
+    logger.event(KERNEL_INSTANCE_SHUTDOWN);
+    const data = body.data as InstanceShutdownPayload;
+    setInstances((prev) => {
+      const next = { ...prev };
+      delete next[data.id];
+      return next;
+    });
+    resetCodeNodesForInstance(editor, data.id);
+  });
+
+  useWailsEvent(KERNEL_INSTANCE_EXITED, (body) => {
+    logger.event(KERNEL_INSTANCE_EXITED);
+    const data = body.data as InstanceExitedPayload;
+    setInstances((prev) => {
+      const next = { ...prev };
+      delete next[data.id];
+      return next;
+    });
+    resetCodeNodesForInstance(editor, data.id);
+  });
+
+  useWailsEvent(KERNEL_INSTANCE_LAUNCH_ERROR, (body) => {
+    logger.event(KERNEL_INSTANCE_LAUNCH_ERROR);
+    const data = body.data as InstanceLaunchErrorPayload;
+    toast.error(data.errorMessage, DEFAULT_SONNER_OPTIONS);
+    setInstances((prev) => {
+      const existing = prev[data.id];
+      if (!existing) return prev;
+      return {
+        ...prev,
+        [data.id]: { ...existing, errorMessage: data.errorMessage },
+      };
+    });
+    resetCodeNodesForInstance(editor, data.id);
+  });
 }
 
-export function useKernelLaunchEvents(editor: LexicalEditor) {
-  const setKernelsData = useSetAtom(kernelsDataAtom);
-  useWailsEvent(KERNEL_LAUNCH_ERROR, (body) => {
-    logger.event('kernel:launch-error');
-    const data = body.data as {
-      language: Languages;
-      data: string;
-    };
-    const language = data.language as LanguagesWithKernels;
-    toast.error(data.data, DEFAULT_SONNER_OPTIONS);
-    setKernelsData((prev) => ({
-      ...prev,
-      [language]: { ...prev[language], errorMessage: data.data },
-    }));
-
-    // All the nodes of the kernel should be back to idle if the kernel errors out
-    editor.update(() => {
-      const codeNodes = $nodesOfType(CodeNode);
-      const codeNodesToUpdate = codeNodes.filter(
-        (node) => node.getLanguage() === language
-      );
-
-      for (const node of codeNodesToUpdate) {
+function resetCodeNodesForInstance(editor: LexicalEditor, instanceId: string) {
+  editor.update(() => {
+    const codeNodes = $nodesOfType(CodeNode);
+    for (const node of codeNodes) {
+      if (node.getKernelInstanceId?.() === instanceId) {
         node.setStatus('idle', editor);
+        node.setKernelInstanceId?.(null, editor);
       }
-    });
-  });
-
-  useWailsEvent(KERNEL_LAUNCH_SUCCESS, (body) => {
-    logger.event('kernel:launch-success');
-    const data = body.data as {
-      language: Languages;
-      data: string;
-    };
-    const language = data.language as LanguagesWithKernels;
-    setKernelsData((prev) => ({
-      ...prev,
-      [language]: { ...prev[language], errorMessage: null },
-    }));
+    }
   });
 }
 
 /**
- * Updates a code block node in the editor
- * @param editor - The Lexical editor instance
- * @param codeBlockId - The ID of the code block to update
- * @param callback - Function to call with the found code node
- * @param executionId - Optional execution ID for fresh executions
+ * Updates a code block node in the editor.
  */
 function updateCodeBlock(
   editor: LexicalEditor,
@@ -288,7 +187,6 @@ function updateCodeBlock(
       (node) => node.getId() === codeBlockId
     );
     if (codeNodeToUpdate) {
-      // This is a fresh execution, so it does not have a result
       if (executionId && executionId !== codeNodeToUpdate.getExecutionId()) {
         codeNodeToUpdate.setExecutionId(executionId, editor);
         codeNodeToUpdate.resetLastExecutedResult(editor);
@@ -298,55 +196,68 @@ function updateCodeBlock(
   });
 }
 
-/**
- * THIS IS BEING DONE BY THE useCodeBlockIOPubError hook instead
- * Hook that listens for code block execution replies and updates the editor with error traceback info.
- * Subscribes to the 'code:code-block:execute_reply' event to handle execution responses.
- *
- * @param editor - The Lexical editor instance to update code blocks in
- */
-// export function useCodeBlockExecuteReply() {
-//   useWailsEvent('code:code-block:execute_reply', (body) => {
-//     console.info('code:code-block:execute_reply', body);
-//     const data = body.data as
-//       | { status: 'ok'; messageId: string }[]
-//       | {
-//           status: 'error';
-//           messageId: string;
-//           errorValue: string;
-//           errorTraceback: string[];
-//           errorName: string;
-//         }[];
-//     if (data.length === 0) return;
-//     // const replyData = data[0];
+export function useCodeBlockStatus(editor: LexicalEditor) {
+  useWailsEvent(CODE_BLOCK_STATUS, (body) => {
+    logger.event(CODE_BLOCK_STATUS);
+    const data = body.data as {
+      status: KernelStatus;
+      messageId: string;
+      duration: string;
+    };
+    const [codeBlockId] = data.messageId.split('|');
+    updateCodeBlock(editor, codeBlockId, (codeNode) => {
+      codeNode.setStatus(data.status, editor);
+      codeNode.setDuration(data.duration, editor);
+    });
+  });
+}
 
-//     // const [codeBlockId, executionId] = replyData.messageId.split('|');
-//     // updateCodeBlock(
-//     //   editor,
-//     //   codeBlockId,
-//     //   (codeNode) => {
-//     //     if (replyData.status === 'error') {
-//     //       const cleanedTraceback = replyData.errorTraceback
-//     //         .map((trace) => `<div>${trace}</div>`)
-//     //         .join('');
-//     //       codeNode.setTracebackResult(cleanedTraceback, editor);
-//     //     }
-//     //   },
-//     //   executionId
-//     // );
+export function useCodeBlockExecuteResult(editor: LexicalEditor) {
+  useWailsEvent(CODE_BLOCK_EXECUTE_RESULT, (body) => {
+    logger.event(CODE_BLOCK_EXECUTE_RESULT);
+    const data = body.data as {
+      messageId: string;
+      data: Record<string, string>;
+    };
+    const [codeBlockId, executionId] = data.messageId.split('|');
+    const executionResultContent: string[] = [];
+    for (const content of Object.values(data.data)) {
+      executionResultContent.push(content);
+    }
+    updateCodeBlock(
+      editor,
+      codeBlockId,
+      (codeNode) => {
+        codeNode.setExecutionResult(executionResultContent.join('\n'), editor);
+      },
+      executionId
+    );
+  });
+}
 
-//   });
-// }
+export function useCodeBlockExecuteInput(editor: LexicalEditor) {
+  useWailsEvent(CODE_BLOCK_EXECUTE_INPUT, (body) => {
+    logger.event(CODE_BLOCK_EXECUTE_INPUT);
+    const data = body.data as {
+      messageId: string;
+      code: string;
+      executionCount: number;
+    };
+    const [codeBlockId, executionId] = data.messageId.split('|');
+    updateCodeBlock(
+      editor,
+      codeBlockId,
+      (codeNode) => {
+        codeNode.setExecutionCount(data.executionCount, editor);
+      },
+      executionId
+    );
+  });
+}
 
-/**
- * Hook that listens for code block output streams and updates the editor with stream content.
- * Subscribes to the 'code:code-block:stream' event to handle stdout/stderr outputs.
- *
- * @param editor - The Lexical editor instance to update code blocks in
- */
 export function useCodeBlockStream(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_STREAM, (body) => {
-    logger.event('code:code-block:stream');
+    logger.event(CODE_BLOCK_STREAM);
     const data = body.data as {
       messageId: string;
       name: 'stdout' | 'stderr';
@@ -364,15 +275,9 @@ export function useCodeBlockStream(editor: LexicalEditor) {
   });
 }
 
-/**
- * Hook that listens for IOPub error messages from code blocks and updates the editor with error details.
- * Subscribes to the 'code:code-block:iopub_error' event to handle error outputs from the kernel.
- *
- * @param editor - The Lexical editor instance to update code blocks in
- */
 export function useCodeBlockIOPubError(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_IOPUB_ERROR, (body) => {
-    logger.event('code:code-block:iopub_error', body);
+    logger.event(CODE_BLOCK_IOPUB_ERROR, body);
     const data = body.data as {
       messageId: string;
       errorName: string;
@@ -403,12 +308,6 @@ export function useCodeBlockIOPubError(editor: LexicalEditor) {
   });
 }
 
-/**
- * Hook that listens for code block display data and updates the editor with rich display content.
- * Subscribes to the 'code:code-block:display_data' event to handle rich output like images, HTML, etc.
- *
- * @param editor - The Lexical editor instance to update code blocks in
- */
 export function useCodeBlockDisplayData(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_DISPLAY_DATA, (body) => {
     const data = body.data as {
@@ -427,33 +326,23 @@ export function useCodeBlockDisplayData(editor: LexicalEditor) {
   });
 }
 
-/**
- * Hook that listens for code block input requests and updates the editor to show input prompts.
- * Subscribes to the 'code:code-block:input_request' event to handle input requests from the kernel.
- *
- * @param editor - The Lexical editor instance to update code blocks in
- */
 export function useCodeBlockInputRequest(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_INPUT_REQUEST, (body) => {
-    logger.event('code:code-block:input_request', body);
+    logger.event(CODE_BLOCK_INPUT_REQUEST, body);
     const data = body.data as {
       messageId: string;
       prompt: string | null;
       password: boolean | null;
     };
-
     const [codeBlockId, executionId] = data.messageId.split('|');
-    const prompt = data.prompt;
-    const isPassword = data.password;
-
     updateCodeBlock(
       editor,
       codeBlockId,
       (codeNode) => {
         codeNode.setInputPrompt(
           {
-            prompt: prompt ?? '',
-            isPassword: isPassword ?? false,
+            prompt: data.prompt ?? '',
+            isPassword: data.password ?? false,
           },
           editor
         );
@@ -463,14 +352,9 @@ export function useCodeBlockInputRequest(editor: LexicalEditor) {
   });
 }
 
-/**
- * Hook that creates a mutation for sending an input reply to the kernel.
- *
- * @returns A mutation object for sending input replies
- */
 export function useSendInputReplyMutation(
   codeBlockId: string,
-  language: Languages
+  kernelInstanceId: string | null
 ) {
   return useMutation({
     mutationFn: async ({
@@ -480,8 +364,11 @@ export function useSendInputReplyMutation(
       executionId: string;
       value: string;
     }) => {
+      if (!kernelInstanceId) {
+        throw new QueryError('No kernel instance bound to this code block');
+      }
       const res = await SendInputReply(
-        language,
+        kernelInstanceId,
         codeBlockId,
         executionId,
         value
@@ -494,22 +381,24 @@ export function useSendInputReplyMutation(
 }
 
 /**
- * Hook that creates a mutation for sending code execution requests to the kernel.
- * Sets the code block status to 'queueing' while the request is processed.
- *
- * @param codeBlockId - The ID of the code block to execute
- * @param language - The programming language of the code block
- * @param setStatus - Function to update the code block's status
- * @returns A mutation object for executing code
+ * Send an execute_request. Resolves (language, noteId) on the backend to a
+ * kernel instance (creating it if necessary, or returning ErrNoIdleKernelToEvict
+ * if the per-language pool is full and no idle kernel can be evicted). On success
+ * the resolved kernel instance id is written back onto the CodeNode so future
+ * control calls (interrupt, shutdown) can target the same instance.
  */
 export function useSendExecuteRequestMutation({
+  noteId,
   codeBlockId,
   language,
   setStatus,
+  editor,
 }: {
+  noteId: string;
   codeBlockId: string;
   language: Languages;
   setStatus: (status: CodeBlockStatus) => void;
+  editor: LexicalEditor;
 }) {
   return useMutation({
     mutationFn: async ({
@@ -521,6 +410,7 @@ export function useSendExecuteRequestMutation({
     }) => {
       setStatus('queueing');
       const res = await SendExecuteRequest(
+        noteId,
         codeBlockId,
         newExecutionId,
         language,
@@ -530,40 +420,36 @@ export function useSendExecuteRequestMutation({
         setStatus('idle');
         throw new QueryError(res.message);
       }
+      const instanceId = res.data?.kernelInstanceId;
+      if (instanceId) {
+        editor.update(() => {
+          const codeNodes = $nodesOfType(CodeNode);
+          const node = codeNodes.find((n) => n.getId() === codeBlockId);
+          node?.setKernelInstanceId?.(instanceId, editor);
+        });
+      }
     },
   });
 }
 
-/**
- * Hook that creates a mutation for sending interrupt requests to the kernel.
- * Only sends the request if the kernel's heartbeat status is not 'failure'.
- *
- * @param onSuccess - Optional callback function to execute when the interrupt is successful
- * @returns A mutation object for interrupting code execution
- */
 export function useSendInterruptRequestMutation(onSuccess?: () => void) {
-  const kernelsData = useAtomValue(kernelsDataAtom);
+  const instances = useAtomValue(kernelInstancesAtom);
   return useMutation({
     mutationFn: async ({
+      kernelInstanceId,
       codeBlockId,
-      codeBlockLanguage,
       newExecutionId,
     }: {
+      kernelInstanceId: string | null;
       codeBlockId: string;
-      codeBlockLanguage: Languages;
       newExecutionId: string;
     }) => {
-      // Nothing to interrupt if the kernel is not running
-      const kernelData = kernelsData[codeBlockLanguage as LanguagesWithKernels];
-      if (
-        kernelData.heartbeat === 'idle' ||
-        kernelData.heartbeat === 'failure'
-      ) {
-        return;
-      }
+      if (!kernelInstanceId) return;
+      const inst = instances[kernelInstanceId];
+      if (!inst || inst.heartbeat !== 'success') return;
 
       const res = await SendInterruptRequest(
-        codeBlockLanguage,
+        kernelInstanceId,
         codeBlockId,
         newExecutionId
       );
@@ -576,16 +462,18 @@ export function useSendInterruptRequestMutation(onSuccess?: () => void) {
 }
 
 /**
- * Hook that creates a mutation for shutting down a kernel.
- * Can optionally restart the kernel after shutdown.
- * Throws an error if the shutdown request fails.
- *
- * @returns A mutation object for shutting down the kernel
+ * Shut down a single kernel instance by id.
  */
-export function useShutdownKernelMutation(language: Languages) {
+export function useShutdownKernelMutation() {
   return useMutation({
-    mutationFn: async (restart: boolean) => {
-      const res = await SendShutdownMessage(language, restart);
+    mutationFn: async ({
+      kernelInstanceId,
+      restart,
+    }: {
+      kernelInstanceId: string;
+      restart: boolean;
+    }) => {
+      const res = await ShutdownKernel(kernelInstanceId, restart);
       if (!res.success) {
         throw new QueryError(res.message);
       }
@@ -594,69 +482,23 @@ export function useShutdownKernelMutation(language: Languages) {
 }
 
 /**
- * Hook that creates a mutation for starting up a kernel.
- * Creates sockets and establishes event listeners for the specified language.
- * Throws an error if the startup request fails.
- *
- * @returns A mutation object for starting up the kernel
+ * Ensure a kernel exists for (noteId, language) without sending an execute_request.
+ * Used by the bottom-bar "turn on kernel" button.
  */
-export function useTurnOnKernelMutation({
-  language,
-  codeBlockId,
-  setStatus,
-}: {
-  language: Languages;
-  codeBlockId?: string;
-  setStatus?: (status: CodeBlockStatus) => void;
-}) {
-  const [loadingToastIds, setLoadingToastIds] = useAtom(loadingToastIdsAtom);
-  const { mutate: executeCode } = useSendExecuteRequestMutation({
-    codeBlockId: codeBlockId ?? '',
-    language,
-    setStatus: setStatus ?? (() => {}),
-  });
-
+export function useEnsureKernelMutation() {
   return useMutation({
     mutationFn: async ({
-      codeMirrorInstance,
+      noteId,
+      language,
     }: {
-      codeMirrorInstance?: CodeMirrorRef;
+      noteId: string;
+      language: LanguagesWithKernels;
     }) => {
-      const toastKey = `starting-${language}`;
-
-      const res = await CreateSocketsAndListen(language);
+      const res = await EnsureKernel(noteId, language);
       if (!res.success) {
         throw new QueryError(res.message);
-      } else {
-        // Check atomically if a toast already exists before creating a new one
-        // This prevents duplicate toasts when spam clicking
-        if (loadingToastIds.has(toastKey)) {
-          return;
-        }
-
-        setLoadingToastIds((prev) => {
-          const newMap = new Map(prev);
-          const loadingToastId = toast.loading(`Starting ${language} kernel`);
-          newMap.set(toastKey, loadingToastId);
-          return newMap;
-        });
-
-        // If there is a code mirror instance, then wait until the kernel is available
-        // to do the initial execution of the code
-        if (!codeMirrorInstance) {
-          return;
-        }
-
-        const interval = setInterval(() => {
-          const loadingToastId = loadingToastIds.get(toastKey);
-          if (!loadingToastId) {
-            clearInterval(interval);
-            setTimeout(() => {
-              runCode(codeMirrorInstance, executeCode);
-            }, 300);
-          }
-        }, 100);
       }
+      return res.data?.kernelInstanceId ?? null;
     },
   });
 }
@@ -667,20 +509,12 @@ type pythonVenvMutationParams = {
 };
 
 /**
- * Hook that creates a mutation for updating Python virtual environment settings.
- * Validates the virtual environment path, updates project settings, and restarts the Python kernel.
- * Throws an error if the path is invalid or virtual environment validation fails.
- *
- * @param projectSettings - The current project settings object
- * @returns A mutation object for updating Python virtual environment settings
+ * Hook that updates Python venv settings and shuts down all active python kernels
+ * so they pick up the new interpreter on next launch.
  */
 export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
-  // Only python uses virtual environments
-  const language = 'python';
   const { mutateAsync: updateProjectSettings } =
     useUpdateProjectSettingsMutation();
-  const { mutateAsync: shutdownKernel } = useShutdownKernelMutation(language);
-  const { mutateAsync: turnOnKernel } = useTurnOnKernelMutation({ language });
 
   return useMutation({
     mutationFn: async (variables: pythonVenvMutationParams) => {
@@ -696,8 +530,6 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
         throw new Error(check.message);
       }
       let newCustomVenvPaths = projectSettings.code.customPythonVenvPaths;
-      // If the custom venv radio button is selected, then add the path to the list of custom paths so
-      // that it can be shown as a radio button when the dialog is opened in the future
       if (
         typeof customVenvPathValue === 'string' &&
         customVenvPathValue !== '' &&
@@ -720,18 +552,9 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
           },
         },
       });
-      const canUseKernel = await IsKernelAvailable(language);
 
-      if (canUseKernel) {
-        await shutdownKernel(false);
-        // Switch the kernel on after 2 seconds, hopefully after the shutdown kernel message has been processed
-        setTimeout(() => {
-          void turnOnKernel({});
-        }, 2000);
-      } else {
-        void turnOnKernel({});
-      }
-
+      // Tear down every existing python kernel; they will be recreated on next execute.
+      await ShutdownKernelsByLanguage('python');
       return true;
     },
     onError: (error, variables) => {

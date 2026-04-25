@@ -1,17 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { SquareTerminal } from '../../icons/square-terminal';
 import { Languages } from '../../types';
-import { GetKernelInfoByLanguage } from '../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
+import { GetKernelDescriptor } from '../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import { Duplicate2 } from '../../icons/duplicate-2';
 import { LoadingSpinner } from '../../components/loading-spinner';
 
 export function KernelInfoCard({ language }: { language: Languages }) {
-  const { data: kernelInfo, isPending } = useQuery({
-    queryKey: ['kernel-info', language],
-    queryFn: () => {
-      return GetKernelInfoByLanguage(language);
-    },
+  const { data: response, isPending } = useQuery({
+    queryKey: ['kernel-descriptor', language],
+    queryFn: () => GetKernelDescriptor(language),
   });
+  const kernelInfo = response?.success ? response.data : null;
 
   return (
     <div className="bg-white dark:bg-zinc-750 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">

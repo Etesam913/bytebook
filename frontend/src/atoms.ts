@@ -1,9 +1,11 @@
 import { atom } from 'jotai';
+import { atomFamily } from 'jotai/utils';
 import {
   type BackendQueryDataType,
   type ContextMenuData,
   type DialogDataType,
-  KernelsData,
+  type KernelInstanceData,
+  type LanguagesWithKernels,
   type ProjectSettings,
 } from './types';
 import type { FileOrFolder } from './components/virtualized/virtualized-file-tree/types';
@@ -160,38 +162,51 @@ export const contextMenuDataAtom = atom<ContextMenuData>({
   targetId: null,
 });
 
-export const loadingToastIdsAtom = atom<Map<string, string | number>>(
-  new Map()
-);
-
 export type TrashRestoreInfo = {
   originalPath: string;
   trashedPath: string;
   isFolder: boolean;
 };
 
-export const kernelsDataAtom = atom<KernelsData>({
-  python: {
-    status: 'idle',
-    heartbeat: 'idle',
-    errorMessage: null,
-  },
-  go: {
-    status: 'idle',
-    heartbeat: 'idle',
-    errorMessage: null,
-  },
-  javascript: {
-    status: 'idle',
-    heartbeat: 'idle',
-    errorMessage: null,
-  },
-  java: {
-    status: 'idle',
-    heartbeat: 'idle',
-    errorMessage: null,
-  },
+/**
+ * Map of kernel instance id -> instance data. The backend KernelManager owns
+ * the authoritative state and emits kernel:instance:* events whenever an
+ * instance is created, updates status/heartbeat, or shuts down.
+ */
+export const kernelInstancesAtom = atom<Record<string, KernelInstanceData>>({});
+
+/**
+ * Derived: instances grouped by language.
+ */
+export const kernelInstancesByLanguageAtom = atom((get) => {
+  const all = get(kernelInstancesAtom);
+  const grouped: Record<LanguagesWithKernels, KernelInstanceData[]> = {
+    python: [],
+    go: [],
+    javascript: [],
+    java: [],
+  };
+  for (const inst of Object.values(all)) {
+    grouped[inst.language].push(inst);
+  }
+  return grouped;
 });
+
+/**
+ * Derived: the instance for a given (noteId, language), or null if none exists.
+ */
+export const kernelInstanceForNoteAtomFamily = atomFamily(
+  ({ noteId, language }: { noteId: string; language: LanguagesWithKernels }) =>
+    atom((get) => {
+      const all = get(kernelInstancesAtom);
+      return (
+        Object.values(all).find(
+          (i) => i.noteId === noteId && i.language === language
+        ) ?? null
+      );
+    }),
+  (a, b) => a.noteId === b.noteId && a.language === b.language
+);
 
 // Sidebar panel keys and types
 export const SIDEBAR_PANEL_KEYS = [

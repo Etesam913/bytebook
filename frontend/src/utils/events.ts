@@ -36,19 +36,22 @@ export const SETTINGS_UPDATE = 'settings:update';
 export const TAGS_INDEX_UPDATE = 'tags:index_update';
 export const SAVED_SEARCH_UPDATE = 'saved-search:update';
 
-// Kernel/Code events
-export const KERNEL_SHUTDOWN_REPLY = 'code:kernel:shutdown_reply';
-export const KERNEL_LAUNCH_SUCCESS = 'kernel:launch-success';
-export const KERNEL_LAUNCH_ERROR = 'kernel:launch-error';
+// Kernel instance events (per-instance, not per-language)
+export const KERNEL_INSTANCE_CREATED = 'kernel:instance:created';
+export const KERNEL_INSTANCE_SHUTDOWN = 'kernel:instance:shutdown';
+export const KERNEL_INSTANCE_STATUS = 'kernel:instance:status';
+export const KERNEL_INSTANCE_HEARTBEAT = 'kernel:instance:heartbeat';
+export const KERNEL_INSTANCE_LAUNCH_ERROR = 'kernel:instance:launch_error';
+export const KERNEL_INSTANCE_EXITED = 'kernel:instance:exited';
+
+// Code block events (still scoped by messageId)
 export const CODE_BLOCK_STREAM = 'code:code-block:stream';
 export const CODE_BLOCK_EXECUTE_RESULT = 'code:code-block:execute_result';
 export const CODE_BLOCK_DISPLAY_DATA = 'code:code-block:display_data';
 export const CODE_BLOCK_EXECUTE_INPUT = 'code:code-block:execute_input';
-export const KERNEL_STATUS = 'code:kernel:status';
 export const CODE_BLOCK_STATUS = 'code:code-block:status';
 export const CODE_BLOCK_IOPUB_ERROR = 'code:code-block:iopub_error';
 export const CODE_BLOCK_INPUT_REQUEST = 'code:code-block:input_request';
-export const KERNEL_HEARTBEAT = 'code:kernel:heartbeat';
 
 // Frontend-only events (not in events.go)
 export const CODE_BLOCK_INSPECT_REPLY = 'code:code-block:inspect_reply';

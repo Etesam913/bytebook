@@ -5,10 +5,11 @@ import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { EditorView, tooltips } from '@codemirror/view';
 import { debounce } from '../../utils/general';
 import {
+  useEnsureKernelMutation,
   useSendExecuteRequestMutation,
   useSendInterruptRequestMutation,
-  useTurnOnKernelMutation,
 } from '../../hooks/code';
+import { useCurrentNoteId } from '../../hooks/routes';
 import { useInspectTooltip } from '../../hooks/code-codemirror';
 import { getCodemirrorKeymap } from '../../utils/codemirror';
 import { focusEditor } from '.';
@@ -87,6 +88,7 @@ export function CodeMirrorEditor({
   executionId,
   hideResults,
   dialogRef,
+  kernelInstanceId,
 }: {
   nodeKey: string;
   lexicalEditor: LexicalEditor;
@@ -103,22 +105,22 @@ export function CodeMirrorEditor({
   executionId: string;
   hideResults: boolean;
   dialogRef?: RefObject<HTMLDialogElement | null>;
+  kernelInstanceId: string | null;
 }) {
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
+  const noteId = useCurrentNoteId();
 
   const { mutate: executeCode } = useSendExecuteRequestMutation({
+    noteId,
     codeBlockId: id,
     language,
     setStatus,
+    editor: lexicalEditor,
   });
 
   const { mutate: interruptExecution } = useSendInterruptRequestMutation();
 
-  const { mutate: turnOnKernel } = useTurnOnKernelMutation({
-    language,
-    codeBlockId: id,
-    setStatus,
-  });
+  const { mutate: ensureKernel } = useEnsureKernelMutation();
 
   const inspectTooltip = useInspectTooltip({
     language,
@@ -163,10 +165,12 @@ export function CodeMirrorEditor({
     lexicalEditor,
     status,
     id,
+    noteId,
     language,
+    kernelInstanceId,
     executeCode,
     interruptExecution,
-    turnOnKernel,
+    ensureKernel,
     codeMirrorInstance,
     setSelected,
     isExecutionEnabled: !hideResults && language !== 'text',
@@ -185,6 +189,7 @@ export function CodeMirrorEditor({
               setStatus={setStatus}
               isExpanded={isExpanded}
               dialogRef={dialogRef}
+              kernelInstanceId={kernelInstanceId}
             />
           )}
           <DeleteButton

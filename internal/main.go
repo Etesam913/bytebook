@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"log/slog"
 	"os"
@@ -11,8 +10,7 @@ import (
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/events"
 	"github.com/etesam913/bytebook/internal/ingest"
-	"github.com/etesam913/bytebook/internal/jupyter_protocol"
-	"github.com/etesam913/bytebook/internal/jupyter_protocol/sockets"
+	"github.com/etesam913/bytebook/internal/kernel_manager"
 	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/services"
@@ -24,17 +22,14 @@ import (
 	wailsEvents "github.com/wailsapp/wails/v3/pkg/events"
 )
 
-// main function serves as the application's entry point. It initializes the application, creates a window,
-// and starts a goroutine that emits a time-based event every second. It subsequently runs the application and
-// logs any error that might occur.
+// main function serves as the application's entry point.
 func main() {
 	projectPath, err := config.GetProjectPath()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	err = config.CreateProjectDirectories(projectPath)
-	if err != nil {
+	if err := config.CreateProjectDirectories(projectPath); err != nil {
 		log.Fatal(err.Error())
 	}
 
@@ -43,23 +38,20 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	searchIndex, err := search.OpenOrCreateIndex(projectPath)
+	// Wipe stale per-instance connection files from a previous run.
+	if err := kernel_manager.EnsureKernelsDir(projectPath); err != nil {
+		log.Fatal(err.Error())
+	}
 
+	searchIndex, err := search.OpenOrCreateIndex(projectPath)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	indexHolder := search.NewIndexHolder(searchIndex)
 	defer indexHolder.Close()
 
-	// Create separate contexts for Python and Go kernels
-	pythonCtx, pythonCtxCancel := context.WithCancel(context.Background())
-	goCtx, goCtxCancel := context.WithCancel(context.Background())
-	javascriptCtx, javascriptCtxCancel := context.WithCancel(context.Background())
-	javaCtx, javaCtxCancel := context.WithCancel(context.Background())
-	defer pythonCtxCancel()
-	defer goCtxCancel()
-	defer javascriptCtxCancel()
-	defer javaCtxCancel()
+	kernelManager := kernel_manager.New(projectPath, projectFiles.AllKernels)
+	defer kernelManager.ShutdownAll()
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -80,90 +72,17 @@ func main() {
 		Name:        "bytebook",
 		Description: "A simple note taking app.",
 		Services: []application.Service{
-			application.NewService(
-				&services.FolderService{ProjectPath: projectPath},
-			),
-			application.NewService(
-				&services.NoteService{
-					ProjectPath: projectPath,
-				},
-			),
-			application.NewService(
-				&services.FileTreeService{
-					ProjectPath: projectPath,
-				},
-			),
-			application.NewService(
-				&services.NodeService{ProjectPath: projectPath},
-			),
-			application.NewService(
-				&services.SearchService{ProjectPath: projectPath, Index: indexHolder},
-			),
-			application.NewService(
-				&services.SettingsService{ProjectPath: projectPath},
-			),
-			application.NewService(
-				&services.TagsService{ProjectPath: projectPath, Index: indexHolder},
-			),
-			application.NewService(
-				&services.CodeService{
-					ProjectPath: projectPath,
-					PythonSockets: sockets.LanguageSockets{
-						ShellSocketDealer:     nil,
-						ControlSocketDealer:   nil,
-						IOPubSocketSubscriber: nil,
-						HeartbeatSocketReq:    nil,
-						StdinSocketDealer:     nil,
-						HeartbeatState: jupyter_protocol.KernelHeartbeatState{
-							Mutex:  sync.RWMutex{},
-							Status: false,
-						},
-						Context: pythonCtx,
-						Cancel:  pythonCtxCancel,
-					},
-					GoSockets: sockets.LanguageSockets{
-						ShellSocketDealer:     nil,
-						ControlSocketDealer:   nil,
-						IOPubSocketSubscriber: nil,
-						HeartbeatSocketReq:    nil,
-						StdinSocketDealer:     nil,
-						HeartbeatState: jupyter_protocol.KernelHeartbeatState{
-							Mutex:  sync.RWMutex{},
-							Status: false,
-						},
-						Context: goCtx,
-						Cancel:  goCtxCancel,
-					},
-					JavascriptSockets: sockets.LanguageSockets{
-						ShellSocketDealer:     nil,
-						ControlSocketDealer:   nil,
-						IOPubSocketSubscriber: nil,
-						HeartbeatSocketReq:    nil,
-						StdinSocketDealer:     nil,
-						HeartbeatState: jupyter_protocol.KernelHeartbeatState{
-							Mutex:  sync.RWMutex{},
-							Status: false,
-						},
-						Context: javascriptCtx,
-						Cancel:  javascriptCtxCancel,
-					},
-					JavaSockets: sockets.LanguageSockets{
-						ShellSocketDealer:     nil,
-						ControlSocketDealer:   nil,
-						IOPubSocketSubscriber: nil,
-						HeartbeatSocketReq:    nil,
-						StdinSocketDealer:     nil,
-						HeartbeatState: jupyter_protocol.KernelHeartbeatState{
-							Mutex:  sync.RWMutex{},
-							Status: false,
-						},
-						Context: javaCtx,
-						Cancel:  javaCtxCancel,
-					},
-					LanguageToKernelConnectionInfo: projectFiles.ConnectionInfo,
-					AllKernels:                     projectFiles.AllKernels,
-				},
-			),
+			application.NewService(&services.FolderService{ProjectPath: projectPath}),
+			application.NewService(&services.NoteService{ProjectPath: projectPath}),
+			application.NewService(&services.FileTreeService{ProjectPath: projectPath}),
+			application.NewService(&services.NodeService{ProjectPath: projectPath}),
+			application.NewService(&services.SearchService{ProjectPath: projectPath, Index: indexHolder}),
+			application.NewService(&services.SettingsService{ProjectPath: projectPath}),
+			application.NewService(&services.TagsService{ProjectPath: projectPath, Index: indexHolder}),
+			application.NewService(&services.CodeService{
+				ProjectPath: projectPath,
+				Manager:     kernelManager,
+			}),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(bytebook.Frontend),
@@ -179,17 +98,11 @@ func main() {
 	})
 
 	backgroundColor := application.NewRGB(27, 38, 54)
-
 	if app.Env.IsDarkMode() {
 		backgroundColor = application.NewRGB(39, 39, 43)
 	}
 
-	// Creates the default window. The `restore` flag tells the frontend this is
-	// the app-launch window, so it should navigate to the last-visited note.
-	// New windows opened via the menu use "/" and get a fresh root view.
 	window := ui.CreateWindow(app, "/?restore", backgroundColor)
-	// TODO: Fix bug with menus.InitializeApplicationMenu breaking the app
-	// lsp.CreateLanguageServerProtocol()
 	events.ListenToEvents(events.EventParams{
 		App:               app,
 		ProjectPath:       projectPath,
@@ -199,9 +112,6 @@ func main() {
 
 	go menus.CreateApplicationMenus(backgroundColor, ui.CreateWindow)
 
-	// Start file watcher and search indexing once the window runtime is ready,
-	// keeping recursive watcher registration and indexing coordinated so large
-	// imports don't try to consume the entire file descriptor budget at once.
 	var runtimeReadyOnce sync.Once
 	window.OnWindowEvent(wailsEvents.Common.WindowRuntimeReady, func(e *application.WindowEvent) {
 		runtimeReadyOnce.Do(func() {
@@ -213,11 +123,7 @@ func main() {
 	})
 	events.ListenToWindowEvents(app, window)
 
-	// Run the application. This blocks until the application has been exited.
-	err = app.Run()
-
-	// If an error occurred while running the application, log it and exit.
-	if err != nil {
+	if err := app.Run(); err != nil {
 		log.Fatal(err)
 	}
 }

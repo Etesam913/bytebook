@@ -3,7 +3,7 @@ import { cn } from '../../../utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
 import {
   contextMenuDataAtom,
-  kernelsDataAtom,
+  kernelInstancesByLanguageAtom,
   sidebarSelectionAtom,
 } from '../../../atoms';
 import {
@@ -11,21 +11,19 @@ import {
   type SetSelectionUpdater,
 } from '../../../utils/selection';
 import PowerOff from '../../../icons/power-off';
-import { Play } from '../../../icons/circle-play';
-import {
-  useShutdownKernelMutation,
-  useTurnOnKernelMutation,
-} from '../../../hooks/code';
+import { ShutdownKernelsByLanguage } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import type { Languages, LanguagesWithKernels } from '../../../types';
 import { routeUrls } from '../../../utils/routes';
 import { getKernelIcon } from './index';
-import { KernelHeartbeat } from './kernel-heartbeat';
+
 export function KernelAccordionButton({
   kernelName,
   kernelNameFromUrl,
+  instanceCount,
 }: {
   kernelName: Languages;
   kernelNameFromUrl: string | undefined;
+  instanceCount: number;
 }) {
   const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
   const selectionRange = sidebarSelection.selections;
@@ -37,16 +35,12 @@ export function KernelAccordionButton({
   };
   const isActive = decodeURIComponent(kernelNameFromUrl ?? '') === kernelName;
   const isSelected = selectionRange.has(`kernel:${kernelName}`);
-  const kernelsData = useAtomValue(kernelsDataAtom);
-  const kernelData = kernelsData[kernelName as LanguagesWithKernels];
-  const { status, heartbeat } = kernelData;
+  const byLanguage = useAtomValue(kernelInstancesByLanguageAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
-  const { mutate: shutdownKernel } = useShutdownKernelMutation(kernelName);
-  const { mutate: turnOnKernel } = useTurnOnKernelMutation({
-    language: kernelName,
-  });
 
-  const isKernelRunning = heartbeat === 'success';
+  const hasRunningInstances =
+    instanceCount > 0 ||
+    (byLanguage[kernelName as LanguagesWithKernels]?.length ?? 0) > 0;
 
   return (
     <button
@@ -75,42 +69,38 @@ export function KernelAccordionButton({
           y: e.clientY,
           isShowing: true,
           targetId: null,
-          items: [
-            {
-              label: (
-                <span className="flex items-center gap-1.5">
-                  {isKernelRunning ? (
-                    <PowerOff height="0.75rem" width="0.75rem" />
-                  ) : (
-                    <Play height="1.125rem" width="1.125rem" />
-                  )}
-                  {isKernelRunning ? 'Stop Kernel' : 'Start Kernel'}
-                </span>
-              ),
-              value: isKernelRunning ? 'stop-kernel' : 'start-kernel',
-              onChange: () => {
-                if (isKernelRunning) {
-                  shutdownKernel(false);
-                } else {
-                  turnOnKernel({});
-                }
-              },
-            },
-          ],
+          items: hasRunningInstances
+            ? [
+                {
+                  label: (
+                    <span className="flex items-center gap-1.5">
+                      <PowerOff height="0.75rem" width="0.75rem" />
+                      Stop All {kernelName} Kernels
+                    </span>
+                  ),
+                  value: 'stop-all',
+                  onChange: () => {
+                    void ShutdownKernelsByLanguage(kernelName);
+                  },
+                },
+              ]
+            : [],
         });
       }}
     >
       <div className="flex items-center gap-2">
         {getKernelIcon(kernelName, '1.125rem')}
-        <KernelHeartbeat
-          status={status}
-          heartbeat={heartbeat}
-          isBlinking={false}
-          className="h-2.25 w-2.25"
-        />
+        {hasRunningInstances && (
+          <span className="rounded-full bg-green-500 dark:bg-green-600 h-2 w-2" />
+        )}
       </div>
       <p className="whitespace-nowrap text-ellipsis overflow-hidden capitalize">
         {kernelName}
+        {instanceCount > 0 && (
+          <span className="ml-1 text-xs text-zinc-500 dark:text-zinc-400">
+            ×{instanceCount}
+          </span>
+        )}
       </p>
     </button>
   );

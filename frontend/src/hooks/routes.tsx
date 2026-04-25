@@ -85,6 +85,16 @@ export function useFilePathFromRoute(): FilePath | null {
 }
 
 /**
+ * Hook to get the current note id used as the kernel scope key.
+ * Returns the decoded `<folder>/<noteName>` path or empty string if not on a note route.
+ *
+ * The kernel manager uses this string as the scopeId for kernel instances.
+ */
+export function useCurrentNoteId(): string {
+  return useDecodedNotesWildcardPath() ?? '';
+}
+
+/**
  * Hook to get a FolderPath object representing the current `/notes/*` route.
  *
  * @returns FolderPath object if on a folder route, null if not or if invalid.
