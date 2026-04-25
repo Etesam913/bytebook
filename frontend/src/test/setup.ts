@@ -15,6 +15,7 @@ Object.assign(globalThis, {
   document: domWindow.document,
   navigator: domWindow.navigator,
   KeyboardEvent: domWindow.KeyboardEvent,
+  MouseEvent: domWindow.MouseEvent,
   HTMLElement: domWindow.HTMLElement,
   HTMLAnchorElement: domWindow.HTMLAnchorElement,
   Node: domWindow.Node,
