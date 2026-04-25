@@ -26,8 +26,8 @@ export function useCodeCleanup(
           const allCodeNodes = $nodesOfType(CodeNode);
           allCodeNodes.forEach((codeNode) => {
             interruptExecution({
+              kernelInstanceId: codeNode.getKernelInstanceId(),
               codeBlockId: codeNode.getId(),
-              codeBlockLanguage: codeNode.getLanguage(),
               newExecutionId: '',
             });
           });

@@ -67,24 +67,16 @@ type NotesToTagsMap struct {
 
 type ProjectFiles struct {
 	ProjectSettings ProjectSettingsJson
-	ConnectionInfo  LanguageToKernelConnectionInfo
 	AllKernels      AllKernels
 }
 
 // CreateProjectFiles initializes and loads all necessary project files from the given project path.
-// It creates the tags map if it doesn't exist, loads project settings, connection information,
-// and kernel information. Returns a ProjectFiles struct containing all loaded data or an error
-// if any operation fails.
+// It loads project settings and kernel descriptor configs. Per-instance connection info is now
+// generated at runtime by the kernel_manager.
 func CreateProjectFiles(projectPath string) (ProjectFiles, error) {
-
 	projectSettings, err := GetProjectSettings(projectPath)
 	if err != nil {
 		return ProjectFiles{}, fmt.Errorf("failed to read project settings: %w", err)
-	}
-
-	connectionInfo, err := GetAllConnectionInfo(projectPath)
-	if err != nil {
-		return ProjectFiles{}, fmt.Errorf("failed to read connection.json: %w", err)
 	}
 
 	allKernelInfo, err := GetAllKernels(projectPath)
@@ -94,7 +86,6 @@ func CreateProjectFiles(projectPath string) (ProjectFiles, error) {
 
 	return ProjectFiles{
 		ProjectSettings: projectSettings,
-		ConnectionInfo:  connectionInfo,
 		AllKernels:      allKernelInfo,
 	}, nil
 }
@@ -109,6 +100,10 @@ func CreateProjectDirectories(projectPath string) error {
 
 	if err := os.MkdirAll(filepath.Join(projectPath, "code"), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create project code directory: %v", err)
+	}
+
+	if err := os.MkdirAll(filepath.Join(projectPath, "code", ".kernels"), os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create per-instance kernels directory: %v", err)
 	}
 
 	if err := os.MkdirAll(filepath.Join(projectPath, "notes"), os.ModePerm); err != nil {

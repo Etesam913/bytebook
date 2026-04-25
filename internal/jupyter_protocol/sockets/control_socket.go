@@ -1,95 +1,53 @@
 package sockets
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
-	"github.com/etesam913/bytebook/internal/util"
 	"github.com/pebbe/zmq4"
-	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 type controlSocket struct {
-	socket             *zmq4.Socket
-	codeServiceUpdater CodeServiceUpdater
+	socket *zmq4.Socket
 }
 
-type shutdownReplyEvent struct {
-	Status   string `json:"status"`
-	Language string `json:"language"`
-}
-
-func CreateControlSocket(codeServiceUpdater CodeServiceUpdater) *controlSocket {
-	controlSocketDealer, err := zmq4.NewSocket(zmq4.Type(zmq4.DEALER))
+func createControlSocket(p CreateParams) *controlSocket {
+	sock, err := zmq4.NewSocket(zmq4.Type(zmq4.DEALER))
 	if err != nil {
 		log.Print("Could not create 🛂 socket sender:", err)
-		return &controlSocket{
-			socket:             nil,
-			codeServiceUpdater: codeServiceUpdater,
-		}
+		return nil
 	}
-
-	if err := controlSocketDealer.SetIdentity("current-session"); err != nil {
-		log.Fatalf("could not set ZMQ IDENTITY: %v", err)
+	if err := sock.SetIdentity("current-session"); err != nil {
+		log.Printf("could not set ZMQ IDENTITY: %v", err)
+		_ = sock.Close()
+		return nil
 	}
-	return &controlSocket{
-		socket:             controlSocketDealer,
-		codeServiceUpdater: codeServiceUpdater,
-	}
+	return &controlSocket{socket: sock}
 }
 
-func (s *controlSocket) Get() *zmq4.Socket {
-	return s.socket
-}
-
-func (s *controlSocket) Listen(
-	controlSocketDealer *zmq4.Socket,
-	connectionInfo config.KernelConnectionInfo,
-	ctx context.Context,
-) {
-	if controlSocketDealer == nil {
+func (s *controlSocket) Listen(p CreateParams) {
+	if s.socket == nil {
 		log.Println("🛂 Control socket is nil, cannot listen")
 		return
 	}
-	defer controlSocketDealer.Close()
-	app := application.Get()
+	defer s.socket.Close()
 
-	controlAddress := fmt.Sprintf("tcp://%s:%d", connectionInfo.IP, connectionInfo.ControlPort)
-	if err := controlSocketDealer.Connect(controlAddress); err != nil {
-		log.Fatal("Could not connect 🛂 socket sender to port:", err)
+	controlAddress := fmt.Sprintf("tcp://%s:%d", p.ConnectionInfo.IP, p.ConnectionInfo.ControlPort)
+	if err := s.socket.Connect(controlAddress); err != nil {
+		log.Printf("Could not connect 🛂 socket: %v", err)
+		return
 	}
 
 	for {
 		select {
-		case <-ctx.Done():
-			controlSocketDealer.Close()
+		case <-p.Ctx.Done():
 			log.Println("🛑 Control socket listener received context cancellation")
-			app.Event.EmitEvent(&application.CustomEvent{
-				Name: util.Events.KernelShutdownReply,
-				Data: shutdownReplyEvent{
-					Status:   "success",
-					Language: connectionInfo.Language,
-				},
-			})
-			s.codeServiceUpdater.ResetCodeServiceProperties(connectionInfo.Language)
-			jupyter_protocol.SendShutdownMessage(
-				controlSocketDealer,
-				jupyter_protocol.ShutdownMessageParams{
-					MessageParams: jupyter_protocol.MessageParams{
-						MessageID: "",
-						SessionID: "current-session",
-					},
-					Restart: false,
-				},
-			)
 			return
 		default:
-			envelope, err := controlSocketDealer.RecvMessageBytes(zmq4.Flag(zmq4.DONTWAIT))
+			envelope, err := s.socket.RecvMessageBytes(zmq4.Flag(zmq4.DONTWAIT))
 			if err != nil {
 				if strings.Contains(err.Error(), "resource temporarily unavailable") {
 					time.Sleep(50 * time.Millisecond)
@@ -99,42 +57,20 @@ func (s *controlSocket) Listen(
 				continue
 			}
 
-			identities, msg, signature, err := jupyter_protocol.ParseMultipartMessage(envelope)
+			_, msg, _, err := jupyter_protocol.ParseMultipartMessage(envelope)
 			if err != nil {
 				log.Println("🛂 Error parsing message:", err)
 				continue
 			}
 
-			log.Println("🛂 control socket identities:", identities)
-			log.Println("🛂 control socket signature:", signature)
-			log.Println("🛂 control socket parent header:", msg.ParentHeader)
-			log.Println("🛂 control socket message type:", msg.Header.MsgType)
-			log.Println("🛂 control socket content:", msg.Content)
-
 			switch msg.Header.MsgType {
 			case ControlSocket.ShutdownReply:
-				// TODO: Handle restart functionality later
-				status, ok := msg.Content["status"].(string)
-				if !ok {
-					log.Printf("⚠️ Invalid status type: %v (type: %T)", msg.Content["status"], msg.Content["status"])
-				}
-
-				if status != "ok" {
-					app.Event.EmitEvent(&application.CustomEvent{
-						Name: util.Events.KernelShutdownReply,
-						Data: shutdownReplyEvent{
-							Status:   "error",
-							Language: connectionInfo.Language,
-						},
-					})
-				}
+				// Shutdown is now driven from KernelInstance.shutdown(); the manager
+				// will emit kernel:instance:shutdown when the process actually exits.
 			case ControlSocket.InterruptReply:
-				status, ok := msg.Content["status"].(string)
-				if !ok {
-					log.Printf("⚠️ Invalid status type in interrupt_reply: %v (type: %T)", msg.Content["status"], msg.Content["status"])
-					continue
+				if status, ok := msg.Content["status"].(string); ok {
+					log.Printf("🔴 Received interrupt reply with status: %s\n", status)
 				}
-				log.Printf("🔴 Received interrupt reply with status: %s\n", status)
 			}
 		}
 	}

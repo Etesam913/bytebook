@@ -21,6 +21,7 @@ export interface CodePayload {
   status?: CodeBlockStatus;
   executionId?: string;
   hideResults?: boolean;
+  kernelInstanceId?: string | null;
 }
 
 type SerializedCodeNode = Spread<
@@ -61,6 +62,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   __isWaitingForInput: boolean;
   __executionCount: number;
   __duration: string;
+  __kernelInstanceId: string | null;
 
   static getType(): string {
     return 'code-block';
@@ -79,6 +81,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       duration: node.__duration,
       hideResults: node.__hideResults,
       isWaitingForInput: node.__isWaitingForInput,
+      kernelInstanceId: node.__kernelInstanceId,
       key: node.__key,
     });
   }
@@ -114,6 +117,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     duration = '',
     isWaitingForInput = false,
     hideResults = false,
+    kernelInstanceId = null,
     key,
   }: {
     id: string;
@@ -127,6 +131,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     duration?: string;
     isWaitingForInput?: boolean;
     hideResults?: boolean;
+    kernelInstanceId?: string | null;
     key?: NodeKey;
   }) {
     super(key);
@@ -142,6 +147,21 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     this.__executionCount = executionCount;
     this.__duration = duration;
     this.__hideResults = hideResults;
+    this.__kernelInstanceId = kernelInstanceId;
+  }
+
+  getKernelInstanceId(): string | null {
+    return this.__kernelInstanceId;
+  }
+
+  setKernelInstanceId(
+    kernelInstanceId: string | null,
+    editor: LexicalEditor
+  ): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      writable.__kernelInstanceId = kernelInstanceId;
+    });
   }
 
   exportJSON(): SerializedCodeNode {
@@ -367,6 +387,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
         executionCount={this.getExecutionCount()}
         durationText={this.getDuration()}
         executionId={this.getExecutionId()}
+        kernelInstanceId={this.getKernelInstanceId()}
       />
     );
   }

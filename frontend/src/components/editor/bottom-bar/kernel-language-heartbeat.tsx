@@ -2,11 +2,8 @@ import { motion } from 'motion/react';
 import type { Key } from 'react-aria-components';
 import { Button } from 'react-aria-components';
 import { useAtomValue, useSetAtom } from 'jotai';
-import {
-  dialogDataAtom,
-  projectSettingsAtom,
-  kernelsDataAtom,
-} from '../../../atoms';
+import { dialogDataAtom, projectSettingsAtom } from '../../../atoms';
+import { kernelInstanceForNoteAtomFamily } from '../../../atoms';
 import type { Languages, LanguagesWithKernels } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
 import { FolderOpen } from '../../../icons/folder-open';
@@ -14,9 +11,9 @@ import { ChevronDown } from '../../../icons/chevron-down';
 import PowerOff from '../../../icons/power-off';
 import { PythonVenvDialog } from '../python-venv-dialog';
 import {
+  useEnsureKernelMutation,
   usePythonVenvSubmitMutation,
   useShutdownKernelMutation,
-  useTurnOnKernelMutation,
 } from '../../../hooks/code';
 import { KernelHeartbeat } from '../../file-sidebar/my-kernels-accordion/kernel-heartbeat';
 import {
@@ -25,6 +22,7 @@ import {
   AppMenuPopover,
   AppMenuTrigger,
 } from '../../menu';
+import { useCurrentNoteId } from '../../../hooks/routes';
 
 interface KernelOption {
   id: string;
@@ -58,13 +56,19 @@ const languageSpecificOptions: {
 export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const setDialogData = useSetAtom(dialogDataAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const kernelsData = useAtomValue(kernelsDataAtom);
-  const kernelData = kernelsData[language as LanguagesWithKernels];
-  const status = kernelData.status;
-  const heartbeat = kernelData.heartbeat;
-  const errorMessage = kernelData.errorMessage;
-  const { mutate: shutdownKernel } = useShutdownKernelMutation(language);
-  const { mutate: turnOnKernel } = useTurnOnKernelMutation({ language });
+  const noteId = useCurrentNoteId();
+  const instance = useAtomValue(
+    kernelInstanceForNoteAtomFamily({
+      noteId,
+      language: language as LanguagesWithKernels,
+    })
+  );
+  const status = instance?.status ?? 'idle';
+  const heartbeat = instance?.heartbeat ?? 'idle';
+  const errorMessage = instance?.errorMessage ?? null;
+
+  const { mutate: shutdownKernel } = useShutdownKernelMutation();
+  const { mutate: ensureKernel } = useEnsureKernelMutation();
   const { mutateAsync: submitPythonVenv } =
     usePythonVenvSubmitMutation(projectSettings);
 
@@ -103,10 +107,18 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   function handleAction(key: Key) {
     switch (key) {
       case 'shut-down':
-        shutdownKernel(false);
+        if (instance) {
+          shutdownKernel({
+            kernelInstanceId: instance.id,
+            restart: false,
+          });
+        }
         break;
       case 'turn-on':
-        turnOnKernel({});
+        ensureKernel({
+          noteId,
+          language: language as LanguagesWithKernels,
+        });
         break;
       case 'change-venv':
         setDialogData({

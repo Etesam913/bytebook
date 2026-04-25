@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/pebbe/zmq4"
@@ -23,52 +22,39 @@ type heartbeatSocket struct {
 }
 
 type heartbeatEvent struct {
-	Language string `json:"language"`
-	Status   string `json:"status"`
+	ID     string `json:"id"`
+	Status string `json:"status"`
 }
 
 var HEARTBEAT_TICKER = 1 * time.Second
 
-func CreateHeartbeatSocket(heartbeatState *jupyter_protocol.KernelHeartbeatState, cancelFunc context.CancelFunc) *heartbeatSocket {
+func createHeartbeatSocket(p CreateParams) *heartbeatSocket {
 	socket, err := zmq4.NewSocket(zmq4.Type(zmq4.REQ))
 	if err != nil {
 		log.Print("Could not create ❤️beat socket:", err)
-		return &heartbeatSocket{
-			socket:                 nil,
-			heartbeatState:         heartbeatState,
-			cancelFunc:             cancelFunc,
-			consecutiveFailures:    0,
-			maxConsecutiveFailures: 5, // Cancel after 5 consecutive failures
-		}
+		return nil
 	}
 	return &heartbeatSocket{
 		socket:                 socket,
-		heartbeatState:         heartbeatState,
-		cancelFunc:             cancelFunc,
+		heartbeatState:         p.HeartbeatState,
+		cancelFunc:             p.Cancel,
 		consecutiveFailures:    0,
-		maxConsecutiveFailures: 5, // Cancel after 5 consecutive failures
+		maxConsecutiveFailures: 5,
 	}
 }
 
-func (h *heartbeatSocket) Get() *zmq4.Socket {
-	return h.socket
-}
-
-func (h *heartbeatSocket) Listen(
-	heartbeatSocketReq *zmq4.Socket,
-	connectionInfo config.KernelConnectionInfo,
-	ctx context.Context,
-) {
-	if heartbeatSocketReq == nil {
+func (h *heartbeatSocket) Listen(p CreateParams) {
+	if h.socket == nil {
 		log.Println("❤️ Heartbeat socket is nil, cannot listen")
 		return
 	}
-	defer heartbeatSocketReq.Close()
+	defer h.socket.Close()
 	app := application.Get()
 
-	heartbeatAddress := fmt.Sprintf("tcp://%s:%d", connectionInfo.IP, connectionInfo.HBPort)
-	if err := heartbeatSocketReq.Connect(heartbeatAddress); err != nil {
-		log.Fatal("Could not connect ❤️ socket sender to port:", err)
+	heartbeatAddress := fmt.Sprintf("tcp://%s:%d", p.ConnectionInfo.IP, p.ConnectionInfo.HBPort)
+	if err := h.socket.Connect(heartbeatAddress); err != nil {
+		log.Printf("Could not connect ❤️ socket: %v", err)
+		return
 	}
 
 	ticker := time.NewTicker(HEARTBEAT_TICKER)
@@ -76,38 +62,34 @@ func (h *heartbeatSocket) Listen(
 
 	for {
 		select {
-		case <-ctx.Done():
-			heartbeatSocketReq.Close()
+		case <-p.Ctx.Done():
 			log.Println("🛑 heartbeat socket listener received context cancellation")
 			return
 		case <-ticker.C:
 			ping := []byte("ping")
-			_, err := heartbeatSocketReq.SendBytes(ping, 0)
+			_, err := h.socket.SendBytes(ping, 0)
 			if err != nil {
 				log.Printf("Could not send heartbeat ping: %v", err)
 				h.consecutiveFailures++
-				h.handleHeartbeatFailure(connectionInfo.Language, app)
+				h.handleFailure(p.InstanceID, app)
 				if h.consecutiveFailures >= h.maxConsecutiveFailures {
-					log.Printf("❌ Heartbeat failed %d consecutive times, kernel appears dead - cancelling context", h.consecutiveFailures)
+					log.Printf("❌ Heartbeat failed %d consecutive times, kernel appears dead", h.consecutiveFailures)
 					h.cancelFunc()
 					return
 				}
 				continue
 			}
 
-			heartbeatSocketReq.SetRcvtimeo(2 * time.Second)
-
-			pingResponse, err := heartbeatSocketReq.RecvBytes(0)
+			h.socket.SetRcvtimeo(2 * time.Second)
+			pingResponse, err := h.socket.RecvBytes(0)
 			if err != nil {
-				if strings.Contains(err.Error(), "resource temporarily unavailable") {
-					log.Println("Heartbeat response timeout")
-				} else {
+				if !strings.Contains(err.Error(), "resource temporarily unavailable") {
 					log.Printf("Could not receive heartbeat response: %v", err)
 				}
 				h.consecutiveFailures++
-				h.handleHeartbeatFailure(connectionInfo.Language, app)
+				h.handleFailure(p.InstanceID, app)
 				if h.consecutiveFailures >= h.maxConsecutiveFailures {
-					log.Printf("❌ Heartbeat failed %d consecutive times, kernel appears dead - cancelling context", h.consecutiveFailures)
+					log.Printf("❌ Heartbeat failed %d consecutive times, kernel appears dead", h.consecutiveFailures)
 					h.cancelFunc()
 					return
 				}
@@ -115,26 +97,24 @@ func (h *heartbeatSocket) Listen(
 			}
 
 			log.Printf("Received heartbeat response: %s\n", pingResponse)
-			h.consecutiveFailures = 0 // Reset failure count on successful heartbeat
+			h.consecutiveFailures = 0
 			h.heartbeatState.UpdateHeartbeatStatus(true)
-			app.Event.EmitEvent(&application.CustomEvent{
-				Name: util.Events.KernelHeartbeat,
-				Data: heartbeatEvent{
-					Language: connectionInfo.Language,
-					Status:   "success",
-				},
-			})
+			if app != nil {
+				app.Event.EmitEvent(&application.CustomEvent{
+					Name: util.Events.KernelInstanceHeartbeat,
+					Data: heartbeatEvent{ID: p.InstanceID, Status: "success"},
+				})
+			}
 		}
 	}
 }
 
-func (h *heartbeatSocket) handleHeartbeatFailure(language string, app *application.App) {
+func (h *heartbeatSocket) handleFailure(instanceID string, app *application.App) {
 	h.heartbeatState.UpdateHeartbeatStatus(false)
-	app.Event.EmitEvent(&application.CustomEvent{
-		Name: util.Events.KernelHeartbeat,
-		Data: heartbeatEvent{
-			Language: language,
-			Status:   "failure",
-		},
-	})
+	if app != nil {
+		app.Event.EmitEvent(&application.CustomEvent{
+			Name: util.Events.KernelInstanceHeartbeat,
+			Data: heartbeatEvent{ID: instanceID, Status: "failure"},
+		})
+	}
 }

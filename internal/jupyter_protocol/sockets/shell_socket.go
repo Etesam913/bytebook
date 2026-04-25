@@ -2,15 +2,12 @@ package sockets
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
-	"github.com/etesam913/bytebook/internal/util"
 	"github.com/pebbe/zmq4"
 	"github.com/robert-nix/ansihtml"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -18,8 +15,7 @@ import (
 )
 
 type shellSocket struct {
-	socket     *zmq4.Socket
-	cancelFunc context.CancelFunc
+	socket *zmq4.Socket
 }
 
 type executeReplyEvent struct {
@@ -38,52 +34,41 @@ type inspectReplyEvent struct {
 	Metadata  map[string]any `json:"metadata"`
 }
 
-func CreateShellSocket(language string, cancelFunc context.CancelFunc) *shellSocket {
-	shellSocketDealer, err := zmq4.NewSocket(zmq4.Type(zmq4.DEALER)) // Could also use REQ
+func createShellSocket(p CreateParams) *shellSocket {
+	sock, err := zmq4.NewSocket(zmq4.Type(zmq4.DEALER))
 	if err != nil {
 		log.Print("Could not create 🐚 socket sender:", err)
-		return &shellSocket{
-			socket: nil,
-		}
+		return nil
 	}
-	if err := shellSocketDealer.SetIdentity("current-session"); err != nil {
-		log.Fatalf("could not set ZMQ IDENTITY: %v", err)
+	if err := sock.SetIdentity("current-session"); err != nil {
+		log.Printf("could not set ZMQ IDENTITY: %v", err)
+		_ = sock.Close()
+		return nil
 	}
-	return &shellSocket{
-		socket:     shellSocketDealer,
-		cancelFunc: cancelFunc,
-	}
+	return &shellSocket{socket: sock}
 }
 
-func (s *shellSocket) Get() *zmq4.Socket {
-	return s.socket
-}
-
-func (s *shellSocket) Listen(
-	shellSocketDealer *zmq4.Socket,
-	connectionInfo config.KernelConnectionInfo,
-	ctx context.Context,
-) {
-	if shellSocketDealer == nil {
+func (s *shellSocket) Listen(p CreateParams) {
+	if s.socket == nil {
 		log.Println("🐚 Shell socket is nil, cannot listen")
 		return
 	}
-	defer shellSocketDealer.Close()
+	defer s.socket.Close()
 	app := application.Get()
 
-	shellAddress := fmt.Sprintf("tcp://%s:%d", connectionInfo.IP, connectionInfo.ShellPort)
-	if err := shellSocketDealer.Connect(shellAddress); err != nil {
-		log.Fatal("Could not connect 🐚 socket sender to port:", err)
+	shellAddress := fmt.Sprintf("tcp://%s:%d", p.ConnectionInfo.IP, p.ConnectionInfo.ShellPort)
+	if err := s.socket.Connect(shellAddress); err != nil {
+		log.Printf("Could not connect 🐚 socket: %v", err)
+		return
 	}
 
 	for {
 		select {
-		case <-ctx.Done():
-			shellSocketDealer.Close()
+		case <-p.Ctx.Done():
 			log.Println("🛑 Shell socket listener received context cancellation")
 			return
 		default:
-			envelope, err := shellSocketDealer.RecvMessageBytes(zmq4.Flag(zmq4.DONTWAIT))
+			envelope, err := s.socket.RecvMessageBytes(zmq4.Flag(zmq4.DONTWAIT))
 			if err != nil {
 				if strings.Contains(err.Error(), "resource temporarily unavailable") {
 					time.Sleep(50 * time.Millisecond)
@@ -93,28 +78,20 @@ func (s *shellSocket) Listen(
 				continue
 			}
 
-			identities, msg, signature, err := jupyter_protocol.ParseMultipartMessage(envelope)
+			_, msg, _, err := jupyter_protocol.ParseMultipartMessage(envelope)
 			if err != nil {
 				log.Println("🐚 Error parsing message:", err)
 				continue
 			}
 
-			log.Println("🐚 shell socket identities:", identities)
-			log.Println("🐚 shell socket signature:", signature)
-			log.Println("🐚 shell socket parent header:", msg.ParentHeader)
-			log.Println("🐚 shell socket message type:", msg.Header.MsgType)
-			log.Println("🐚 shell socket content:", msg.Content)
-
 			switch msg.Header.MsgType {
 			case ShellSocket.ExecuteReply:
 				status, ok := msg.Content["status"].(string)
 				if !ok {
-					log.Printf("⚠️ Invalid status type: %v (type: %T)", msg.Content["status"], msg.Content["status"])
 					continue
 				}
 				msgId, ok := msg.ParentHeader["msg_id"].(string)
 				if !ok {
-					log.Printf("⚠️ Invalid message ID type: %v (type: %T)", msg.ParentHeader["msg_id"], msg.ParentHeader["msg_id"])
 					continue
 				}
 
@@ -124,19 +101,13 @@ func (s *shellSocket) Listen(
 
 				if status == "error" {
 					if errorName, ok = msg.Content["ename"].(string); !ok {
-						log.Printf("⚠️ Invalid error name type: %v (type: %T)", msg.Content["ename"], msg.Content["ename"])
 						errorName = ""
 					}
 					if errorValue, ok = msg.Content["evalue"].(string); !ok {
-						log.Printf("⚠️ Invalid error value type: %v (type: %T)", msg.Content["evalue"], msg.Content["evalue"])
 						errorValue = ""
 					}
 					uncleanTraceback, ok := msg.Content["traceback"].([]any)
-					if !ok {
-						log.Printf("⚠️ Invalid error traceback type: %v (type: %T)", msg.Content["traceback"], msg.Content["traceback"])
-						errorTraceback = []string{}
-					} else {
-
+					if ok {
 						for _, item := range uncleanTraceback {
 							if ansiStr, ok := item.(string); ok {
 								htmlStr := string(ansihtml.ConvertToHTML([]byte(ansiStr)))
@@ -145,52 +116,33 @@ func (s *shellSocket) Listen(
 						}
 					}
 				}
-				currentWindow := app.Window.Current()
-				if currentWindow != nil {
-					currentWindow.EmitEvent(
-						"code:code-block:execute_reply",
-						executeReplyEvent{
-							Status:         status,
-							MessageId:      msgId,
-							ErrorName:      errorName,
-							ErrorValue:     errorValue,
-							ErrorTraceback: errorTraceback,
-						},
-					)
+				if app != nil {
+					if currentWindow := app.Window.Current(); currentWindow != nil {
+						currentWindow.EmitEvent(
+							"code:code-block:execute_reply",
+							executeReplyEvent{
+								Status:         status,
+								MessageId:      msgId,
+								ErrorName:      errorName,
+								ErrorValue:     errorValue,
+								ErrorTraceback: errorTraceback,
+							},
+						)
+					}
 				}
-				fmt.Println("---")
 				time.Sleep(100 * time.Millisecond)
 
 			case ShellSocket.ShutdownReply:
-				// TODO: Handle restart functionality later
+				// gonb only sends shutdown_request to the shell socket — let the
+				// instance's process-wait + cancel handle the rest. Nothing to do here.
 
-				status, ok := msg.Content["status"].(string)
-				if !ok {
-					log.Printf("⚠️ Invalid status type: %v (type: %T)", msg.Content["status"], msg.Content["status"])
-				}
-
-				if status != "ok" {
-					app.Event.EmitEvent(&application.CustomEvent{
-						Name: util.Events.KernelShutdownReply,
-						Data: shutdownReplyEvent{
-							Status:   "error",
-							Language: connectionInfo.Language,
-						},
-					})
-				} else if connectionInfo.Language == "go" {
-					// For some reason gonb only sends shutdown_request to the shell socket
-					// It does not use a control socket
-					s.cancelFunc()
-				}
 			case ShellSocket.InspectReply:
 				status, ok := msg.Content["status"].(string)
 				if !ok {
-					log.Printf("⚠️ Invalid status type in inspect_reply: %v (type: %T)", msg.Content["status"], msg.Content["status"])
 					continue
 				}
 				msgId, ok := msg.ParentHeader["msg_id"].(string)
 				if !ok {
-					log.Printf("⚠️ Invalid message ID type in inspect_reply: %v (type: %T)", msg.ParentHeader["msg_id"], msg.ParentHeader["msg_id"])
 					continue
 				}
 
@@ -222,18 +174,19 @@ func (s *shellSocket) Listen(
 					}
 				}
 
-				currentWindow := app.Window.Current()
-				if currentWindow != nil {
-					currentWindow.EmitEvent(
-						"code:code-block:inspect_reply",
-						inspectReplyEvent{
-							Status:    status,
-							MessageId: msgId,
-							Found:     found,
-							Data:      data,
-							Metadata:  metadata,
-						},
-					)
+				if app != nil {
+					if currentWindow := app.Window.Current(); currentWindow != nil {
+						currentWindow.EmitEvent(
+							"code:code-block:inspect_reply",
+							inspectReplyEvent{
+								Status:    status,
+								MessageId: msgId,
+								Found:     found,
+								Data:      data,
+								Metadata:  metadata,
+							},
+						)
+					}
 				}
 			}
 		}

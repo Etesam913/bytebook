@@ -44,6 +44,7 @@ export function Code({
   executionCount,
   durationText,
   executionId,
+  kernelInstanceId,
 }: {
   id: string;
   code: string;
@@ -62,6 +63,7 @@ export function Code({
   executionCount: number;
   durationText: string;
   executionId: string;
+  kernelInstanceId: string | null;
 }) {
   const [codeMirrorInstance, setCodeMirrorInstance] =
     useState<CodeMirrorRef>(null);
@@ -115,6 +117,7 @@ export function Code({
         executionId={executionId}
         hideResults={hideResults}
         dialogRef={dialogRef}
+        kernelInstanceId={kernelInstanceId}
       />
       {lastExecutedResult !== null && !hideResults && (
         <CodeResult
