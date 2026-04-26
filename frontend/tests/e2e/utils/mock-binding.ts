@@ -139,7 +139,10 @@ async function ensureFetchIsPatched(context: BrowserContext) {
         payload: unknown
       ) => void;
       __BYTEBOOK_WAILS_MOCKS__?: Map<number, unknown>;
+      __BYTEBOOK_E2E__?: boolean;
     };
+
+    globalWindow.__BYTEBOOK_E2E__ = true;
 
     if (globalWindow.__BYTEBOOK_REGISTER_WAILS_MOCK__) {
       return;

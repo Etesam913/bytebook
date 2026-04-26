@@ -29,6 +29,7 @@ import { useDeleteEvents } from './components/virtualized/virtualized-file-tree/
 import { useRenameEvents } from './components/virtualized/virtualized-file-tree/hooks/use-rename-events';
 import { safeDecodeURIComponent } from './utils/path';
 import { isRegularMouseClick } from './utils/mouse';
+import { isE2ETestEnvironment } from './utils/e2e';
 
 const KernelInfo = lazy(() =>
   import('./routes/kernel-info').then((module) => ({
@@ -88,7 +89,7 @@ function App() {
       <Dialog />
       <LoadingModal />
       <Toaster richColors theme="system" />
-      <VirtualizedFileTreeDebugView />
+      {!isE2ETestEnvironment() && <VirtualizedFileTreeDebugView />}
       <Activity mode={isNoteMaximized ? 'hidden' : 'visible'}>
         <FileSidebar width={fileSidebarWidth} />
       </Activity>
