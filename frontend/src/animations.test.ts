@@ -50,8 +50,11 @@ describe('easingFunctions', () => {
   it('every preset is a 4-tuple of numbers', () => {
     for (const [name, value] of Object.entries(easingFunctions)) {
       expect(Array.isArray(value), `${name} should be an array`).toBe(true);
+      if (!Array.isArray(value)) {
+        throw new Error(`${name} should be an array`);
+      }
       expect(value, `${name} should have 4 elements`).toHaveLength(4);
-      for (const n of value as number[]) {
+      for (const n of value) {
         expect(typeof n).toBe('number');
       }
     }
