@@ -278,8 +278,20 @@ export function FileTreeFileItem({
         );
       }}
       onDragOver={(e) => {
-        e.preventDefault();
         e.stopPropagation();
+        const dropWouldMoveSomething = [...sidebarSelection.selections].some(
+          // Only the case when the element that is selected is not the sibling of this target file
+          (selectionKey) => {
+            const itemId = getSelectionValue(selectionKey);
+            if (!itemId) return false;
+            const item = fileOrFolderMap.get(itemId);
+            return item != null && item.parentId !== dataItem.parentId;
+          }
+        );
+        if (dropWouldMoveSomething) {
+          // Prevent drag over allow for drop event to happen later
+          e.preventDefault();
+        }
       }}
       onDragLeave={(e) => {
         e.preventDefault();
