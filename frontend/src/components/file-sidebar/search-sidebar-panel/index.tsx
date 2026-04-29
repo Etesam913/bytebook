@@ -161,11 +161,11 @@ export function SearchSidebarPanel({
             routeSearchQuery.trim() && <span>0 results found</span>}
         </p>
         {routeSearchQuery.trim() && (
-          <Tooltip content="Save Search">
+          <Tooltip content="Save search">
             <MotionIconButton
               {...getDefaultButtonVariants()}
               onClick={() => openSaveSearchDialog(routeSearchQuery)}
-              aria-label="Save Search"
+              aria-label="Save search"
               className="ml-auto"
             >
               <BookBookmark width="0.875rem" height="0.875rem" />

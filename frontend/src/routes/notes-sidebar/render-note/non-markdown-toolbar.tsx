@@ -1,6 +1,8 @@
 import { useAtomValue, useSetAtom } from 'jotai';
 import type { Key } from 'react-aria-components';
 import { Button } from 'react-aria-components';
+import { useRoute } from 'wouter';
+import { navigate } from 'wouter/use-browser-location';
 import {
   dialogDataAtom,
   isFullscreenAtom,
@@ -23,12 +25,14 @@ import { useEditTagsFormMutation } from '../../../hooks/tags';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
 import { EditTagDialogChildren } from '../edit-tag-dialog-children';
 import { Finder } from '../../../icons/finder';
+import { FolderOpen } from '../../../icons/folder-open';
 import { HorizontalDots } from '../../../icons/horizontal-dots';
 import { PinTack2 } from '../../../icons/pin-tack-2';
 import { TagPlus } from '../../../icons/tag-plus';
 import { Trash } from '../../../icons/trash';
 import { cn } from '../../../utils/string-formatting';
 import { FilePath } from '../../../utils/path';
+import { ROUTE_PATTERNS } from '../../../utils/routes';
 import type { LegacyAnimationControls } from 'motion/react';
 import { useToggleSidebarEvent } from './hooks';
 import { MediaMetadata } from '../../../components/note-renderer/media-metadata';
@@ -53,6 +57,10 @@ export function NonMarkdownToolbar({
   const { mutateAsync: editTags } = useEditTagsFormMutation();
   useToggleSidebarEvent(animationControls);
 
+  const [isSearchRoute] = useRoute(ROUTE_PATTERNS.SEARCH);
+  const [isSavedSearchRoute] = useRoute(ROUTE_PATTERNS.SAVED_SEARCH);
+  const isOnSearchRoute = isSearchRoute || isSavedSearchRoute;
+
   const items = [
     {
       id: 'reveal-in-finder',
@@ -63,6 +71,23 @@ export function NonMarkdownToolbar({
         </span>
       ),
     },
+    ...(isOnSearchRoute
+      ? [
+          {
+            id: 'open-in-files',
+            label: (
+              <span className="flex items-center gap-1.5 will-change-transform">
+                <FolderOpen
+                  className="min-w-4.5"
+                  height="1.125rem"
+                  width="1.125rem"
+                />{' '}
+                Open in Files
+              </span>
+            ),
+          },
+        ]
+      : []),
     {
       id: isPinned ? 'unpin-note' : 'pin-note',
       label: (
@@ -115,6 +140,10 @@ export function NonMarkdownToolbar({
           folder: filePath.folder,
           selectionRange: new Set([`note:${filePath.note}`]),
         });
+        break;
+      }
+      case 'open-in-files': {
+        navigate(filePath.encodedFileUrl);
         break;
       }
       case 'edit-tags': {

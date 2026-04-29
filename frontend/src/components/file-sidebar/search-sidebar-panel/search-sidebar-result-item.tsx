@@ -1,3 +1,4 @@
+import { useSetAtom } from 'jotai/react';
 import { navigate } from 'wouter/use-browser-location';
 import { cn, formatDate } from '../../../utils/string-formatting';
 import { ImageIcon } from '../../../icons/image';
@@ -9,6 +10,9 @@ import {
 } from '../../../hooks/search';
 import { routeUrls } from '../../../utils/routes';
 import { Tag } from '../../editor/bottom-bar/tag';
+import { contextMenuDataAtom } from '../../../atoms';
+import { useContextMenuItems } from '../../context-menu/items';
+import type { FilePath } from '../../../utils/path';
 
 function SearchResultTags({ tags }: { tags: string[] }) {
   if (tags.length === 0) return null;
@@ -36,7 +40,7 @@ function SearchSidebarItem({
   iconType,
   isActive,
   isHighlighted,
-  encodedPath,
+  filePath,
   pathDisplay,
   children,
 }: {
@@ -45,10 +49,13 @@ function SearchSidebarItem({
   iconType: 'note' | 'attachment';
   isActive: boolean;
   isHighlighted: boolean;
-  encodedPath: string;
+  filePath: FilePath;
   pathDisplay: string;
   children?: React.ReactNode;
 }) {
+  const setContextMenuData = useSetAtom(contextMenuDataAtom);
+  const { revealInFinder, openInFiles } = useContextMenuItems();
+
   return (
     <button
       type="button"
@@ -66,7 +73,20 @@ function SearchSidebarItem({
         e.preventDefault();
       }}
       onClick={() => {
-        navigate(routeUrls.search(searchQuery, encodedPath));
+        navigate(routeUrls.search(searchQuery, filePath.encodedPath));
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        setContextMenuData({
+          x: e.clientX,
+          y: e.clientY,
+          isShowing: true,
+          targetId: null,
+          items: [
+            revealInFinder({ path: filePath }),
+            openInFiles({ path: filePath }),
+          ],
+        });
       }}
     >
       <h3 className="font-semibold text-sm flex items-center gap-x-1.5 overflow-hidden text-ellipsis whitespace-nowrap">
@@ -101,7 +121,7 @@ function SearchSidebarResultNote({
       iconType="note"
       isActive={isActive}
       isHighlighted={isHighlighted}
-      encodedPath={filePath.encodedPath}
+      filePath={filePath}
       pathDisplay={filePath.fullPath}
     >
       {firstHighlight && !firstHighlight.isCode && (
@@ -140,7 +160,7 @@ function SearchSidebarResultAttachment({
       iconType="attachment"
       isActive={isActive}
       isHighlighted={isHighlighted}
-      encodedPath={filePath.encodedPath}
+      filePath={filePath}
       pathDisplay={filePath.fullPath}
     >
       <SearchResultTags tags={tags} />

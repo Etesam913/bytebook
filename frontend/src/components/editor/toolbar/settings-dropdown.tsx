@@ -2,6 +2,8 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { useAtomValue, useSetAtom } from 'jotai';
 import type { Key } from 'react-aria-components';
 import { Button } from 'react-aria-components';
+import { useRoute } from 'wouter';
+import { navigate } from 'wouter/use-browser-location';
 import {
   dialogDataAtom,
   isFullscreenAtom,
@@ -11,10 +13,13 @@ import {
   useMoveToTrashMutation,
   useNoteRevealInFinderMutation,
 } from '../../../hooks/notes';
+import { createFilePath } from '../../../utils/path';
+import { ROUTE_PATTERNS } from '../../../utils/routes';
 import { useEditTagsFormMutation } from '../../../hooks/tags';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
 import { EditTagDialogChildren } from '../../../routes/notes-sidebar/edit-tag-dialog-children';
 import { Finder } from '../../../icons/finder';
+import { FolderOpen } from '../../../icons/folder-open';
 import { HorizontalDots } from '../../../icons/horizontal-dots';
 import { PinTack2 } from '../../../icons/pin-tack-2';
 import { TagPlus } from '../../../icons/tag-plus';
@@ -54,6 +59,10 @@ export function SettingsDropdown({
   const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
   const { mutateAsync: editTags } = useEditTagsFormMutation();
 
+  const [isSearchRoute] = useRoute(ROUTE_PATTERNS.SEARCH);
+  const [isSavedSearchRoute] = useRoute(ROUTE_PATTERNS.SAVED_SEARCH);
+  const isOnSearchRoute = isSearchRoute || isSavedSearchRoute;
+
   const items = [
     {
       id: 'reveal-in-finder',
@@ -64,6 +73,23 @@ export function SettingsDropdown({
         </span>
       ),
     },
+    ...(isOnSearchRoute
+      ? [
+          {
+            id: 'open-in-files',
+            label: (
+              <span className="flex items-center gap-1.5 will-change-transform">
+                <FolderOpen
+                  className="min-w-5"
+                  height="1.125rem"
+                  width="1.125rem"
+                />{' '}
+                Open in Files
+              </span>
+            ),
+          },
+        ]
+      : []),
     {
       id: isPinned ? 'unpin-note' : 'pin-note',
       label: (
@@ -140,10 +166,17 @@ export function SettingsDropdown({
         break;
       }
       case 'reveal-in-finder': {
-        revealInFinder({
-          selectionRange: new Set([`note:${note}.md`]),
-          folder,
-        });
+        const filePath = createFilePath(`${folder}/${note}.md`);
+        if (filePath) {
+          revealInFinder({ path: filePath });
+        }
+        break;
+      }
+      case 'open-in-files': {
+        const filePath = createFilePath(`${folder}/${note}.md`);
+        if (filePath) {
+          navigate(filePath.encodedFileUrl);
+        }
         break;
       }
       case 'edit-tags': {
