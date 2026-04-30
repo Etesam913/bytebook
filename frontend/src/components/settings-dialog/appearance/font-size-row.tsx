@@ -34,7 +34,7 @@ export function FontSizeRow() {
 
   return (
     <SettingsRow
-      title="Default Editor Font Size"
+      title="Editor Default Font Size"
       description="Controls the font size in pixels."
       isFirst={true}
     >

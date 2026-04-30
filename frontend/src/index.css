@@ -294,8 +294,12 @@ textarea,
     @apply content-[''] cursor-pointer border-white border-solid absolute block top-1/2 left-2.5 w-1 h-2 -translate-x-1/2 -translate-y-1/2 rotate-45 border-t-0 border-l-0 border-r-[0.15rem] border-b-[0.15rem];
   }
 
+  .PlaygroundEditorTheme__tableScrollableWrapper {
+    @apply overflow-x-auto max-w-full;
+  }
+
   .PlaygroundEditorTheme__table {
-    @apply border-collapse overflow-x-scroll overflow-y-scroll w-full border-spacing-0 table-fixed text-sm;
+    @apply border-collapse w-full border-spacing-0 table-fixed text-sm;
     /* font-size: calc(var(--editor-font-size) * 0.875);
     line-height: calc(var(--editor-font-size) * 1.5); */
   }
@@ -309,7 +313,7 @@ textarea,
   }
 
   .PlaygroundEditorTheme__tableCell {
-    @apply border border-zinc-300 dark:border-zinc-500 w-[75px] min-w-[75px] align-top text-start px-2 py-1.5 relative outline-none;
+    @apply border border-zinc-300 dark:border-zinc-500 w-[100px] min-w-[100px] align-top text-start px-2 py-1.5 relative outline-none;
   }
 
   .PlaygroundEditorTheme__tableCellSortedIndicator {

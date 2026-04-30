@@ -10,6 +10,10 @@ import { Table } from '../icons/table';
 import type { LexicalEditor, RangeSelection } from 'lexical';
 import { INSERT_TABLE_COMMAND } from '@lexical/table';
 import { $setSelection } from 'lexical';
+import {
+  MAX_TABLE_COLUMNS,
+  MAX_TABLE_ROWS,
+} from '../components/editor/utils/table';
 
 /**
  * Custom hook that returns a function to open a "Save Search" dialog.
@@ -131,7 +135,7 @@ export function useCreateTableDialog(): (
                   onFocus: (e) => e.target.select(),
                   type: 'number',
                   min: '1',
-                  max: '100',
+                  max: String(MAX_TABLE_ROWS),
                 }}
               />
             </div>
@@ -146,7 +150,7 @@ export function useCreateTableDialog(): (
                   defaultValue: '3',
                   type: 'number',
                   min: '1',
-                  max: '10',
+                  max: String(MAX_TABLE_COLUMNS),
                 }}
               />
             </div>
@@ -174,8 +178,15 @@ export function useCreateTableDialog(): (
         const rowsNum = Number.parseInt(rows, 10);
         const columnsNum = Number.parseInt(columns, 10);
 
-        if (!rows || Number.isNaN(rowsNum) || rowsNum < 1 || rowsNum > 100) {
-          setErrorText('Please enter a valid number of rows (1-100)');
+        if (
+          !rows ||
+          Number.isNaN(rowsNum) ||
+          rowsNum < 1 ||
+          rowsNum > MAX_TABLE_ROWS
+        ) {
+          setErrorText(
+            `Please enter a valid number of rows (1-${MAX_TABLE_ROWS})`
+          );
           return Promise.resolve(false);
         }
 
@@ -183,9 +194,11 @@ export function useCreateTableDialog(): (
           !columns ||
           Number.isNaN(columnsNum) ||
           columnsNum < 1 ||
-          columnsNum > 20
+          columnsNum > MAX_TABLE_COLUMNS
         ) {
-          setErrorText('Please enter a valid number of columns (1-10)');
+          setErrorText(
+            `Please enter a valid number of columns (1-${MAX_TABLE_COLUMNS})`
+          );
           return Promise.resolve(false);
         }
 

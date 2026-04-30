@@ -25,7 +25,7 @@ function ThemeButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color)"
+      className="rounded-md focus-visible:outline-offset-2"
     >
       <p
         className={cn(

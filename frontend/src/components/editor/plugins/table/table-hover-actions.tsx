@@ -29,6 +29,7 @@ import { getDefaultButtonVariants } from '../../../../animations';
 import { motion } from 'motion/react';
 import { TableRowNewBottom2 } from '../../../../icons/table-row-new-bottom-2';
 import { Tooltip } from '../../../tooltip';
+import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from '../../utils/table';
 
 const INDICATOR_SIZE_PX = 18;
 const SIDE_INDICATOR_SIZE_PX = 18;
@@ -96,6 +97,32 @@ function getLeftAnchorRectFromCell(cell: HTMLTableCellElement): DOMRect {
     cellRect.top + cellRect.height / 2,
     0,
     0
+  );
+}
+
+function isTableAtRowLimit(tableElement: HTMLTableElement): boolean {
+  return tableElement.rows.length >= MAX_TABLE_ROWS;
+}
+
+function isTableAtColumnLimit(tableElement: HTMLTableElement): boolean {
+  const firstRow = tableElement.rows[0];
+  if (!firstRow) {
+    return false;
+  }
+  return firstRow.cells.length >= MAX_TABLE_COLUMNS;
+}
+
+function isCellWithinScrollableWrapper(cell: HTMLTableCellElement): boolean {
+  const wrapper = cell.closest(
+    '.PlaygroundEditorTheme__tableScrollableWrapper'
+  );
+  if (!wrapper) {
+    return true;
+  }
+  const cellRect = cell.getBoundingClientRect();
+  const wrapperRect = wrapper.getBoundingClientRect();
+  return (
+    cellRect.left >= wrapperRect.left && cellRect.right <= wrapperRect.right
   );
 }
 
@@ -203,7 +230,12 @@ function TableHoverActionsV2({
         event.clientX
       );
 
-      if (!closestTopCell || rowIndex !== 0) {
+      if (
+        !closestTopCell ||
+        rowIndex !== 0 ||
+        isTableAtColumnLimit(tableElement) ||
+        !isCellWithinScrollableWrapper(closestTopCell.cell)
+      ) {
         setIsVisible(false);
         hoveredTopCellRef.current = null;
       } else {
@@ -217,7 +249,11 @@ function TableHoverActionsV2({
         update?.();
       }
 
-      if (colIndex !== 0) {
+      if (
+        colIndex !== 0 ||
+        isTableAtRowLimit(tableElement) ||
+        !isCellWithinScrollableWrapper(hoveredCell)
+      ) {
         setIsLeftVisible(false);
         hoveredLeftCellRef.current = null;
       } else {
@@ -247,6 +283,16 @@ function TableHoverActionsV2({
     }
 
     const handleReposition = () => {
+      const topCell = hoveredTopCellRef.current;
+      if (topCell && !isCellWithinScrollableWrapper(topCell)) {
+        setIsVisible(false);
+        hoveredTopCellRef.current = null;
+      }
+      const leftCell = hoveredLeftCellRef.current;
+      if (leftCell && !isCellWithinScrollableWrapper(leftCell)) {
+        setIsLeftVisible(false);
+        hoveredLeftCellRef.current = null;
+      }
       update?.();
       updateLeft?.();
     };

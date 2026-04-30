@@ -217,7 +217,7 @@ export function NotesEditor({
               <CheckListPlugin />
               <TabIndentationPlugin />
               <HistoryPlugin />
-              <TablePlugin />
+              <TablePlugin hasHorizontalScroll />
               <TableActionMenuPlugin
                 anchorElem={editorAnchorElem ?? document.body}
               />

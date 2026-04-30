@@ -40,14 +40,7 @@ import {
   getDOMSelection,
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
-import {
-  ReactPortal,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { ReactPortal, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Key } from 'react-aria-components';
 import { Button } from 'react-aria-components';
@@ -65,6 +58,7 @@ import {
   AppMenuPopover,
   AppMenuTrigger,
 } from '../../../menu';
+import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from '../../utils/table';
 
 function computeSelectionCount(selection: TableSelection): {
   columns: number;
@@ -118,9 +112,22 @@ function TableCellActionMenuContainer({
 
   const [canMergeCells, setCanMergeCells] = useState(false);
   const [canUnmergeCell, setCanUnmergeCell] = useState(false);
+  const [rowCount, setRowCount] = useState(0);
+  const [columnCount, setColumnCount] = useState(0);
 
   useEffect(() => {
     if (!tableCellNode) return;
+    const updateCounts = () => {
+      editor.getEditorState().read(() => {
+        const tableNode = $getTableNodeFromLexicalNodeOrThrow(
+          tableCellNode.getLatest()
+        );
+        setRowCount(tableNode.getChildrenSize());
+        setColumnCount(tableNode.getColumnCount());
+      });
+    };
+
+    updateCounts();
     return editor.registerMutationListener(
       TableCellNode,
       (nodeMutations) => {
@@ -132,6 +139,7 @@ function TableCellActionMenuContainer({
             setTableMenuCellNode(tableCellNode.getLatest());
           });
         }
+        updateCounts();
       },
       { skipInitialization: true }
     );
@@ -344,98 +352,98 @@ function TableCellActionMenuContainer({
     prevTableCellDOM.current = tableCellNode;
   }, [prevTableCellDOM, tableCellNode]);
 
-  const dropdownItems = useMemo(
-    () => [
-      {
-        id: 'insert-row-above',
-        label: (
-          <span className="flex items-center gap-3 px-1 py-0.5">
-            <TableRowNewTop2
-              className="shrink-0"
-              width="0.875rem"
-              height="0.875rem"
-            />
-            Insert row above
-          </span>
-        ),
-      },
-      {
-        id: 'insert-row-below',
-        label: (
-          <span className="flex items-center gap-3 px-1 py-0.5">
-            <TableRowNewBottom2
-              className="shrink-0"
-              width="0.875rem"
-              height="0.875rem"
-            />
-            Insert row below
-          </span>
-        ),
-      },
-      {
-        id: 'insert-column-left',
-        label: (
-          <span className="flex items-center gap-3 px-1 py-0.5">
-            <TableColNewLeft2
-              className="shrink-0"
-              width="0.875rem"
-              height="0.875rem"
-            />
-            Insert column left
-          </span>
-        ),
-      },
-      {
-        id: 'insert-column-right',
-        label: (
-          <span className="flex items-center gap-3 px-1 py-0.5">
-            <TableColNewRight2
-              className="shrink-0"
-              width="0.875rem"
-              height="0.875rem"
-            />
-            Insert column right
-          </span>
-        ),
-      },
-      {
-        id: 'delete-column',
-        label: (
-          <span className="flex items-center gap-2 px-1 py-0.5">
-            <TableColsMinus2
-              className="shrink-0"
-              width="1.125rem"
-              height="1.125rem"
-            />
-            Delete column
-          </span>
-        ),
-      },
-      {
-        id: 'delete-row',
-        label: (
-          <span className="flex items-center gap-2 px-1 py-0.5">
-            <TableRowsMinus2
-              className="shrink-0"
-              width="1.125rem"
-              height="1.125rem"
-            />
-            Delete row
-          </span>
-        ),
-      },
-      {
-        id: 'delete-table',
-        label: (
-          <span className="flex items-center gap-2 px-1 py-0.5">
-            <Trash className="shrink-0" height="1.125rem" width="1.125rem" />
-            Delete table
-          </span>
-        ),
-      },
-    ],
-    []
-  );
+  const canInsertRow = rowCount < MAX_TABLE_ROWS;
+  const canInsertColumn = columnCount < MAX_TABLE_COLUMNS;
+
+  const dropdownItems = [
+    canInsertRow && {
+      id: 'insert-row-above',
+      label: (
+        <span className="flex items-center gap-3 px-1 py-0.5">
+          <TableRowNewTop2
+            className="shrink-0"
+            width="0.875rem"
+            height="0.875rem"
+          />
+          Insert row above
+        </span>
+      ),
+    },
+    canInsertRow && {
+      id: 'insert-row-below',
+      label: (
+        <span className="flex items-center gap-3 px-1 py-0.5">
+          <TableRowNewBottom2
+            className="shrink-0"
+            width="0.875rem"
+            height="0.875rem"
+          />
+          Insert row below
+        </span>
+      ),
+    },
+    canInsertColumn && {
+      id: 'insert-column-left',
+      label: (
+        <span className="flex items-center gap-3 px-1 py-0.5">
+          <TableColNewLeft2
+            className="shrink-0"
+            width="0.875rem"
+            height="0.875rem"
+          />
+          Insert column left
+        </span>
+      ),
+    },
+    canInsertColumn && {
+      id: 'insert-column-right',
+      label: (
+        <span className="flex items-center gap-3 px-1 py-0.5">
+          <TableColNewRight2
+            className="shrink-0"
+            width="0.875rem"
+            height="0.875rem"
+          />
+          Insert column right
+        </span>
+      ),
+    },
+    {
+      id: 'delete-column',
+      label: (
+        <span className="flex items-center gap-2 px-1 py-0.5">
+          <TableColsMinus2
+            className="shrink-0"
+            width="1.125rem"
+            height="1.125rem"
+          />
+          Delete column
+        </span>
+      ),
+    },
+    {
+      id: 'delete-row',
+      label: (
+        <span className="flex items-center gap-2 px-1 py-0.5">
+          <TableRowsMinus2
+            className="shrink-0"
+            width="1.125rem"
+            height="1.125rem"
+          />
+          Delete row
+        </span>
+      ),
+    },
+    {
+      id: 'delete-table',
+      label: (
+        <span className="flex items-center gap-2 px-1 py-0.5">
+          <Trash className="shrink-0" height="1.125rem" width="1.125rem" />
+          Delete table
+        </span>
+      ),
+    },
+  ].filter((item): item is { id: string; label: JSX.Element } => Boolean(item));
 
   function handleAction(key: Key) {
     switch (key) {

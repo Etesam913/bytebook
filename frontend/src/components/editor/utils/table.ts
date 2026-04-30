@@ -10,6 +10,9 @@ import type { LexicalNode } from 'lexical';
 import { $getSelection, $isRangeSelection, type LexicalEditor } from 'lexical';
 import type { RefObject } from 'react';
 
+export const MAX_TABLE_ROWS = 100;
+export const MAX_TABLE_COLUMNS = 10;
+
 /**
  * Checks if a given node is inside a table (either directly in a table cell
  * or nested within a table structure).
