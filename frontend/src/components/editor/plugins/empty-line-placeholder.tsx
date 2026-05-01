@@ -97,7 +97,7 @@ export function EmptyLinePlaceholderPlugin({
       style={{
         position: 'absolute',
         transform: `translate(calc(${placeholderLineData.position.left}px + 0.1875rem), calc(${placeholderLineData.position.top}px + 0.125rem))`,
-        fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
+        fontFamily: projectSettings.appearance.editorFontFamily || undefined,
         fontSize: 'var(--editor-font-size)',
       }}
     >

@@ -76,7 +76,7 @@ export function SearchSidebarHelp() {
           </p>
           {section.examples.map((example) => (
             <div key={example.query} className="flex flex-col pb-1">
-              <code className="font-code text-xs text-zinc-700 dark:text-zinc-200 whitespace-nowrap overflow-x-auto">
+              <code className="font-mono text-xs text-zinc-700 dark:text-zinc-200 whitespace-nowrap overflow-x-auto">
                 {example.query}
               </code>
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-snug">

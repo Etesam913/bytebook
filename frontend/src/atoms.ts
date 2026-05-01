@@ -67,7 +67,7 @@ export const projectSettingsAtom = atom<ProjectSettings>({
     accentColor: '',
     noteWidth: 'fullWidth',
     editorFontSize: DEFAULT_EDITOR_FONT_SIZE,
-    editorFontFamily: 'Bricolage Grotesque',
+    editorFontFamily: '',
     showEmptyLinePlaceholder: true,
   },
   code: {

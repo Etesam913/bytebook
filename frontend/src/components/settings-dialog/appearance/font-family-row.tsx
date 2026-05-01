@@ -45,15 +45,15 @@ export function FontFamilyRow() {
         </TextField>
         <MotionIconButton
           {...getDefaultButtonVariants()}
-          isDisabled={fontFamilyInputValue.trim().length === 0}
+          isDisabled={fontFamilyInputValue.length === 0}
           onClick={() => {
-            setFontFamilyInputValue('Bricolage Grotesque');
+            setFontFamilyInputValue('');
             updateProjectSettings({
               newProjectSettings: {
                 ...projectSettings,
                 appearance: {
                   ...projectSettings.appearance,
-                  editorFontFamily: 'Bricolage Grotesque',
+                  editorFontFamily: '',
                 },
               },
             });

@@ -282,7 +282,7 @@ export function createDragGhostElement({
   const ghostContainer = document.createElement('div');
   ghostContainer.id = 'file-tree-item';
   ghostContainer.className =
-    'fixed top-[-1000px] left-[-1000px] bg-zinc-100 dark:bg-zinc-700 border-2 border-zinc-200 dark:border-zinc-650 px-2 py-1 rounded-md text-[13px] font-display shadow-sm pointer-events-none z-[9999] max-w-[250px] max-h-[300px] overflow-visible';
+    'fixed top-[-1000px] left-[-1000px] bg-zinc-100 dark:bg-zinc-700 border-2 border-zinc-200 dark:border-zinc-650 px-2 py-1 rounded-md text-[13px] shadow-sm pointer-events-none z-[9999] max-w-[250px] max-h-[300px] overflow-visible';
 
   const selections = sidebarSelection.selections;
   const draggedCount = selections.size;

@@ -181,7 +181,7 @@ export function CodeActions({
           </Button>
         </Tooltip>
         <AppMenuPopover className="w-48">
-          <AppMenu className="font-display" onAction={handleAction}>
+          <AppMenu onAction={handleAction}>
             {items.map((item) => (
               <AppMenuItem key={item.id} id={item.id}>
                 {item.label}

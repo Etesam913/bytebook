@@ -77,7 +77,7 @@ export function NoteFindPanel({
               placeholder: 'Search in note...',
               value: highlightParam,
               className:
-                'text-sm flex-1 dark:text-zinc-100 bg-transparent outline-none rounded-sm border-none px-0.5 !border-0 font-code',
+                'text-sm flex-1 dark:text-zinc-100 bg-transparent outline-none rounded-sm border-none px-0.5 !border-0 font-mono',
               autoFocus: true,
               autoCapitalize: 'off',
               autoComplete: 'off',

@@ -158,7 +158,8 @@ export function NotesEditor({
               data-file-drop-target
               className="relative flex flex-col w-full flex-1"
               style={{
-                fontFamily: `"${projectSettings.appearance.editorFontFamily}", "Bricolage Grotesque"`,
+                fontFamily:
+                  projectSettings.appearance.editorFontFamily || undefined,
               }}
             >
               <NoteTitle key={note} filePath={filePath} />

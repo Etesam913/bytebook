@@ -258,8 +258,8 @@ export function KernelQuickstart({ language }: { language: Languages }) {
       <div className="flex flex-col gap-2">
         <h4 className="text-zinc-700 dark:text-zinc-200">3. Move .jar files</h4>
         <QuickstartDescription>
-          Move the <span className="font-code">jjava-launcher.jar</span> file
-          and the <span className="font-code">jjava.jar</span> file to the{' '}
+          Move the <span className="font-mono">jjava-launcher.jar</span> file
+          and the <span className="font-mono">jjava.jar</span> file to the{' '}
           <button
             className="app-link"
             onClick={() =>

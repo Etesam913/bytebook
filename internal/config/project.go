@@ -158,7 +158,7 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 		Appearance: AppearanceProjectSettingsJson{
 			Theme:                    "light",
 			AccentColor:              "",
-			EditorFontFamily:         "Bricolage Grotesque",
+			EditorFontFamily:         "",
 			EditorFontSize:           DefaultEditorFontSize,
 			ShowEmptyLinePlaceholder: true,
 		},

@@ -65,7 +65,7 @@ export function ContextMenu() {
         onOpenChange={handleOpenChange}
         placement="bottom start"
         shouldFlip
-        className="rounded-md border-[0.078125rem] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700 outline-hidden font-display"
+        className="rounded-md border-[0.078125rem] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700 outline-hidden"
         data-exclude-from-on-click-outside="true"
       >
         {effectiveCount > 0 && (

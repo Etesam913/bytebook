@@ -87,7 +87,7 @@ export function SearchSidebarInput({
             }
             onKeyDown(e);
           },
-          className: 'w-full text-sm py-1.5 px-2 rounded-md font-code',
+          className: 'w-full text-sm py-1.5 px-2 rounded-md font-mono',
           autoFocus: true,
           autoCapitalize: 'off',
           autoComplete: 'off',
@@ -102,7 +102,7 @@ export function SearchSidebarInput({
             aria-label="Search prefixes"
             onAction={handlePrefixSelect}
             autoFocus="first"
-            className="text-xs font-code"
+            className="text-xs font-mono"
             onClose={() => setIsOpen(false)}
           >
             {SEARCH_PREFIX_ITEMS.map((item) => (

@@ -98,7 +98,7 @@ export const MOCK_PROJECT_SETTINGS_RESPONSE = {
       accentColor: '',
       noteWidth: 'fullWidth',
       editorFontSize: 14,
-      editorFontFamily: 'Bricolage Grotesque',
+      editorFontFamily: '',
       showEmptyLinePlaceholder: true,
     },
     code: {

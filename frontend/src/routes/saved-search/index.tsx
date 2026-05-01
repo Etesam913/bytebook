@@ -275,11 +275,11 @@ export function SavedSearchPage({
               <section className="flex items-center py-3.5 gap-2">
                 <Magnifier width="1rem" height="1rem" className="min-w-4" />
                 <Tooltip
-                  content={<span className="font-code">{searchQuery}</span>}
+                  content={<span className="font-mono">{searchQuery}</span>}
                 >
                   <p className="overflow-hidden text-ellipsis whitespace-nowrap">
                     Search:{' '}
-                    <span className="font-code text-sm">{searchQuery}</span>
+                    <span className="font-mono text-sm">{searchQuery}</span>
                   </p>
                 </Tooltip>
               </section>

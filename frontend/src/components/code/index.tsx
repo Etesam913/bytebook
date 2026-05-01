@@ -137,7 +137,7 @@ export function Code({
       <dialog
         ref={dialogRef}
         id="code-dialog"
-        className="backdrop:bg-zinc-500/65 dark:backdrop:bg-zinc-800/70 p-0 bg-transparent m-auto h-[calc(100vh-5rem)] w-[calc(100vw-5rem)] max-h-none max-w-none font-display"
+        className="backdrop:bg-zinc-500/65 dark:backdrop:bg-zinc-800/70 p-0 bg-transparent m-auto h-[calc(100vh-5rem)] w-[calc(100vw-5rem)] max-h-none max-w-none"
         onClose={() => {
           setIsExpanded(false);
           focusEditor(codeMirrorInstance);
@@ -158,7 +158,7 @@ export function Code({
           {codeContent}
         </span>
       </dialog>
-      <div className="absolute -translate-x-10 font-code text-xs text-zinc-400">
+      <div className="absolute -translate-x-10 font-mono text-xs text-zinc-400">
         <div>
           {executionCount > 0 &&
             `[${

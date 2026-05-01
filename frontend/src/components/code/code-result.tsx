@@ -98,7 +98,7 @@ export function CodeResult({
           }}
           aria-live="polite"
           dangerouslySetInnerHTML={{ __html: lastExecutedResult }}
-          className="flex flex-col justify-between overflow-x-hidden gap-1.5 relative font-code text-xs px-2 py-3"
+          className="flex flex-col justify-between overflow-x-hidden gap-1.5 relative font-mono text-xs px-2 py-3"
         />
       </div>
 
