@@ -1,6 +1,4 @@
 import { Play } from '../../icons/circle-play';
-import { getDefaultButtonVariants } from '../../animations';
-import { motion } from 'motion/react';
 import {
   useEnsureKernelMutation,
   useSendExecuteRequestMutation,
@@ -19,6 +17,7 @@ import { Loader } from '../../icons/loader';
 import { getDefaultStore } from 'jotai';
 import { kernelInstancesAtom } from '../../atoms';
 import { Tooltip } from '../tooltip';
+import { MotionIconButton } from '../buttons';
 import type { RefObject } from 'react';
 import { useCurrentNoteId } from '../../hooks/routes';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
@@ -78,7 +77,6 @@ export function PlayButton({
 
   return (
     <Tooltip
-      delay={{ open: 1200, close: 0 }}
       placement={isExpanded ? 'bottom' : 'top'}
       content={
         status === 'starting'
@@ -89,15 +87,9 @@ export function PlayButton({
       }
       root={tooltipRoot}
     >
-      <motion.button
+      <MotionIconButton
         aria-label={buttonLabel}
-        {...getDefaultButtonVariants({
-          disabled: false,
-          whileHover: 1.1,
-          whileTap: 0.95,
-          whileFocus: 1.1,
-        })}
-        disabled={status === 'starting' || status === 'queueing'}
+        isDisabled={status === 'starting' || status === 'queueing'}
         onClick={() => {
           handleRunOrInterruptCode({
             status,
@@ -135,7 +127,7 @@ export function PlayButton({
               height="1.25rem"
             />
           ))}
-      </motion.button>
+      </MotionIconButton>
     </Tooltip>
   );
 }
