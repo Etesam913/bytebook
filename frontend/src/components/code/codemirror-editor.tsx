@@ -13,17 +13,18 @@ import { useCurrentNoteId } from '../../hooks/routes';
 import { useInspectTooltip } from '../../hooks/code-codemirror';
 import { getCodemirrorKeymap } from '../../utils/codemirror';
 import { focusEditor } from '.';
-import type { CodeMirrorRef } from './types';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { vim } from '@replit/codemirror-vim';
-import { LexicalEditor } from 'lexical';
+import type {
+  CodeBlockDocumentProps,
+  CodeBlockExecutionProps,
+  CodeBlockIdentityProps,
+  CodeBlockShellProps,
+} from './types';
 import { cn } from '../../utils/string-formatting';
-import { CodeBlockStatus, Languages } from '../../types';
+import type { Languages } from '../../types';
 import { useNodeInNodeSelection } from '../../hooks/lexical';
 import { useEffect, useRef } from 'react';
-import { PlayButton } from './play-button';
-import { DeleteButton } from './delete-button';
-import type { RefObject } from 'react';
 import { java } from '@codemirror/lang-java';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
@@ -37,7 +38,7 @@ type LanguageSetting = {
 };
 
 const codeBlockBasicSetup: BasicSetupOptions = {
-  lineNumbers: true,
+  lineNumbers: false,
   foldGutter: false,
   autocompletion: false,
   completionKeymap: false,
@@ -73,40 +74,27 @@ const pendingInspections = new Map<
 >();
 
 export function CodeMirrorEditor({
-  nodeKey,
-  lexicalEditor,
-  codeMirrorInstance,
-  setCodeMirrorInstance,
-  code,
-  setCode,
-  id,
-  language,
-  isCreatedNow,
-  isExpanded,
-  status,
-  setStatus,
-  executionId,
-  hideResults,
-  dialogRef,
-  kernelInstanceId,
+  identity,
+  editorDocument,
+  execution,
+  shell,
 }: {
-  nodeKey: string;
-  lexicalEditor: LexicalEditor;
-  codeMirrorInstance: CodeMirrorRef;
-  setCodeMirrorInstance: (instance: CodeMirrorRef) => void;
-  code: string;
-  setCode: (code: string) => void;
-  id: string;
-  language: Languages;
-  isCreatedNow: boolean;
-  isExpanded: boolean;
-  status: CodeBlockStatus;
-  setStatus: (status: CodeBlockStatus) => void;
-  executionId: string;
-  hideResults: boolean;
-  dialogRef?: RefObject<HTMLDialogElement | null>;
-  kernelInstanceId: string | null;
+  identity: CodeBlockIdentityProps;
+  editorDocument: CodeBlockDocumentProps;
+  execution: CodeBlockExecutionProps;
+  shell: CodeBlockShellProps;
 }) {
+  const { id, nodeKey, language } = identity;
+  const { code, setCode } = editorDocument;
+  const { status, setStatus, executionId, kernelInstanceId } = execution;
+  const {
+    lexicalEditor,
+    codeMirrorInstance,
+    setCodeMirrorInstance,
+    isExpanded,
+    hideResults,
+    isCreatedNow,
+  } = shell;
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const noteId = useCurrentNoteId();
 
@@ -177,89 +165,67 @@ export function CodeMirrorEditor({
   });
 
   return (
-    <div className="flex flex-1 gap-2 min-h-0 h-full">
-      {!hideResults && (
-        <div className="flex flex-col self-stretch justify-between pt-3 pb-4 pl-3 pr-1.5 dark:px-3 gap-8 items-center dark:border-r-2 dark:border-zinc-800">
-          {language !== 'text' && (
-            <PlayButton
-              codeBlockId={id}
-              codeMirrorInstance={codeMirrorInstance}
-              language={language}
-              status={status}
-              setStatus={setStatus}
-              isExpanded={isExpanded}
-              dialogRef={dialogRef}
-              kernelInstanceId={kernelInstanceId}
-            />
-          )}
-          <DeleteButton
-            nodeKey={nodeKey}
-            isExpanded={isExpanded}
-            dialogRef={dialogRef}
-          />
-        </div>
+    <div
+      onClick={() => {
+        // Refocuses the editor when clicks happen outside of it but still inside the overall component
+        if (codeMirrorInstance?.view) {
+          codeMirrorInstance.view.focus();
+          setSelected(true);
+        }
+      }}
+      className={cn(
+        'min-h-12 flex-1 overflow-auto h-full py-2',
+        !isExpanded && 'max-h-[500px]'
       )}
-      <div
-        onClick={() => {
-          // Refocuses the editor when clicks happen outside of it but still inside the overall component
-          if (codeMirrorInstance?.view) {
-            codeMirrorInstance.view.focus();
-            setSelected(true);
+    >
+      <CodeMirror
+        ref={handleEditorRef}
+        value={code}
+        onChange={(newCode) => {
+          debouncedSetCode(newCode);
+        }}
+        className="cm-background"
+        extensions={[
+          tooltips({
+            parent: document.body,
+          }),
+          // tooltips({
+          //   parent: document.getElementById('code-dialog') ?? document.body,
+          // }),
+          EditorView.editable.of(isInNodeSelection),
+          ...(projectSettings.code.codeBlockVimMode ? [vim()] : []),
+          runCodeKeymap,
+          ...(() => {
+            const ext = languageToSettings[language].extension();
+            return Array.isArray(ext) && ext.length === 0 ? [] : [ext as never];
+          })(),
+          inspectTooltip,
+        ]}
+        theme={isDarkModeOn ? vscodeDark : vscodeLight}
+        onKeyDown={(e) => {
+          if (e.key === 'Backspace') {
+            //  TODO: Think of a better fix than this, Fixes weird bug where pressing backspace at beginning of first line focuses the <body> tag
+            setTimeout(() => {
+              focusEditor(codeMirrorInstance);
+            }, 5);
+          } else {
+            // ArrowDown and ArrowUp are handled in the keybinding extension
+            if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
+              setSelected(true);
+            }
+            e.stopPropagation();
           }
         }}
-        className={cn('min-h-12 flex-1 overflow-auto')}
-      >
-        <CodeMirror
-          ref={handleEditorRef}
-          value={code}
-          onChange={(newCode) => {
-            debouncedSetCode(newCode);
-          }}
-          className="cm-background"
-          extensions={[
-            tooltips({
-              parent: document.body,
-            }),
-            // tooltips({
-            //   parent: document.getElementById('code-dialog') ?? document.body,
-            // }),
-            EditorView.editable.of(isInNodeSelection),
-            ...(projectSettings.code.codeBlockVimMode ? [vim()] : []),
-            runCodeKeymap,
-            ...(() => {
-              const ext = languageToSettings[language].extension();
-              return Array.isArray(ext) && ext.length === 0
-                ? []
-                : [ext as never];
-            })(),
-            inspectTooltip,
-          ]}
-          theme={isDarkModeOn ? vscodeDark : vscodeLight}
-          onKeyDown={(e) => {
-            if (e.key === 'Backspace') {
-              //  TODO: Think of a better fix than this, Fixes weird bug where pressing backspace at beginning of first line focuses the <body> tag
-              setTimeout(() => {
-                focusEditor(codeMirrorInstance);
-              }, 5);
-            } else {
-              // ArrowDown and ArrowUp are handled in the keybinding extension
-              if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
-                setSelected(true);
-              }
-              e.stopPropagation();
-            }
-          }}
-          onClick={(e) => {
-            clearSelection();
-            setSelected(true);
-            e.stopPropagation();
-          }}
-          basicSetup={{
-            ...codeBlockBasicSetup,
-            ...languageToSettings[language].basicSetup,
-          }}
-        />
-      </div>
+        onClick={(e) => {
+          clearSelection();
+          setSelected(true);
+          e.stopPropagation();
+        }}
+        basicSetup={{
+          ...codeBlockBasicSetup,
+          ...languageToSettings[language].basicSetup,
+        }}
+      />
     </div>
   );
 }

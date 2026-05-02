@@ -8,6 +8,9 @@ import { KernelInstanceData } from '../../types';
 import { useShutdownKernelMutation } from '../../hooks/code';
 import { MotionButton } from '../../components/buttons';
 import { getDefaultButtonVariants } from '../../animations';
+import { createFilePath, safeDecodeURIComponent } from '../../utils/path';
+import { Link } from 'wouter';
+import { RenderNoteIcon } from '../../icons/render-note-icon';
 
 export function KernelStatusCard({
   instance,
@@ -16,6 +19,10 @@ export function KernelStatusCard({
 }) {
   const { mutate: shutdownKernel, isPending } = useShutdownKernelMutation();
   const { status, heartbeat, noteId, id } = instance;
+  const notePath = noteId ? createFilePath(noteId) : null;
+  const noteLabel = notePath
+    ? safeDecodeURIComponent(notePath.fullPath)
+    : noteId || '(unbound)';
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -51,60 +58,67 @@ export function KernelStatusCard({
   };
 
   return (
-    <div className="bg-white dark:bg-zinc-750 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
-      <div className="flex items-center gap-3 mb-4">
-        {getStatusIcon(status)}
-        <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
-          {noteId || '(unbound)'}
-        </h2>
-        <span className="ml-auto text-xs text-zinc-400 dark:text-zinc-500 font-mono truncate max-w-40">
-          {id}
-        </span>
-      </div>
-      <div className="space-y-2">
-        <div className="flex justify-between">
-          <span className="text-zinc-600 dark:text-zinc-400">Status:</span>
-          <span className={cn('font-medium capitalize')}>{status}</span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="text-zinc-600 dark:text-zinc-400">Heartbeat:</span>
-          <div className="flex items-center gap-2">
-            <KernelHeartbeat
-              status={status}
-              heartbeat={heartbeat}
-              isBlinking={false}
-              className="h-3 w-3"
-            />
-            <span
-              className={cn(
-                'font-medium capitalize',
-                heartbeat === 'idle' && 'text-gray-600 dark:text-gray-400',
-                heartbeat === 'success' && 'text-green-600 dark:text-green-600',
-                heartbeat === 'failure' && 'text-red-600 dark:text-red-400'
-              )}
+    <div className="bg-white dark:bg-zinc-750 rounded-lg p-3 border border-zinc-200 dark:border-zinc-700">
+      <div className="flex items-center gap-3">
+        <span className="shrink-0">{getStatusIcon(status)}</span>
+        <div className="min-w-0 flex-1">
+          {notePath ? (
+            <Link
+              to={notePath.encodedFileUrl}
+              className="inline-flex max-w-full items-center gap-1.5 rounded-md text-sm font-semibold text-zinc-800 hover:text-(--accent-color) dark:text-zinc-200"
             >
-              {heartbeat}
+              <RenderNoteIcon filePath={notePath} size="sm" />
+              <span className="truncate">{noteLabel}</span>
+            </Link>
+          ) : (
+            <span className="block truncate text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+              {noteLabel}
+            </span>
+          )}
+          <div className="mt-1 flex min-w-0 items-center gap-x-3 text-xs text-zinc-500 dark:text-zinc-400">
+            <span>
+              Status{' '}
+              <span className="font-medium capitalize text-zinc-700 dark:text-zinc-300">
+                {status}
+              </span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              Heartbeat
+              <KernelHeartbeat
+                status={status}
+                heartbeat={heartbeat}
+                isBlinking={false}
+                className="h-2.5 w-2.5"
+              />
+              <span
+                className={cn(
+                  'font-medium capitalize',
+                  heartbeat === 'idle' && 'text-gray-600 dark:text-gray-400',
+                  heartbeat === 'success' &&
+                    'text-green-600 dark:text-green-600',
+                  heartbeat === 'failure' && 'text-red-600 dark:text-red-400'
+                )}
+              >
+                {heartbeat}
+              </span>
             </span>
           </div>
         </div>
-
-        <div className="flex justify-end items-center gap-2 mt-4">
-          <MotionButton
-            onClick={() =>
-              shutdownKernel({ kernelInstanceId: id, restart: false })
-            }
-            isDisabled={isPending}
-            {...getDefaultButtonVariants()}
-            className="space-x-0.5 px-3"
-          >
-            {isPending ? (
-              <Loader />
-            ) : (
-              <PowerOff height="0.875rem" width="0.875rem" />
-            )}
-            <span>{isPending ? 'Stopping...' : 'Stop Kernel'}</span>
-          </MotionButton>
-        </div>
+        <MotionButton
+          onClick={() =>
+            shutdownKernel({ kernelInstanceId: id, restart: false })
+          }
+          isDisabled={isPending}
+          {...getDefaultButtonVariants()}
+          className="shrink-0 space-x-0.5 px-2 py-1 text-sm"
+        >
+          {isPending ? (
+            <Loader />
+          ) : (
+            <PowerOff height="0.875rem" width="0.875rem" />
+          )}
+          <span>{isPending ? 'Stopping...' : 'Stop'}</span>
+        </MotionButton>
       </div>
     </div>
   );

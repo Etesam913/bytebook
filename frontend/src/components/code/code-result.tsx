@@ -3,35 +3,33 @@ import { easingFunctions, getDefaultButtonVariants } from '../../animations';
 import { MotionIconButton } from '../buttons';
 import { Duplicate2 } from '../../icons/duplicate-2';
 import { AnimatePresence, motion } from 'motion/react';
-import { CodeBlockStatus, Languages } from '../../types';
 import { Loader } from '../../icons/loader';
 import { cn } from '../../utils/string-formatting';
 import { useSendInputReplyMutation } from '../../hooks/code';
-import type { CodeMirrorRef } from './types';
+import type { CodeBlockResultProps } from './types';
 
 export function CodeResult({
-  id,
-  language,
-  lastExecutedResult,
-  setLastExecutedResult,
-  isExpanded,
-  status,
-  isWaitingForInput,
-  setIsWaitingForInput,
-  codeMirrorInstance,
-}: {
-  id: string;
-  language: Languages;
-  lastExecutedResult: string;
-  setLastExecutedResult: (lastExecutedResult: string) => void;
-  isExpanded: boolean;
-  status: CodeBlockStatus;
-  isWaitingForInput: boolean;
-  setIsWaitingForInput: (isWaitingForInput: boolean) => void;
-  codeMirrorInstance: CodeMirrorRef;
-}) {
+  identity,
+  execution,
+  shell,
+  output,
+}: CodeBlockResultProps) {
+  const { id } = identity;
+  const { status } = execution;
+  const { isExpanded, codeMirrorInstance } = shell;
+  const {
+    lastExecutedResult,
+    setLastExecutedResult,
+    isWaitingForInput,
+    setIsWaitingForInput,
+  } = output;
+
   const resultContainerRef = useRef<HTMLFormElement>(null);
-  const { mutate: sendInputReply } = useSendInputReplyMutation(id, language);
+  const { mutate: sendInputReply } = useSendInputReplyMutation(
+    id,
+    execution.kernelInstanceId
+  );
+
   return (
     <motion.footer
       className={cn(

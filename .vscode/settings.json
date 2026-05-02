@@ -27,6 +27,7 @@
     "**/src/test-report": true,
     "**/src/test-trace": true,
   },
-  "typescript.experimental.useTsgo": true
+  "typescript.experimental.useTsgo": true,
+  "git.enabled": false
 }
 

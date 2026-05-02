@@ -13,7 +13,7 @@ export function KernelInfoCard({ language }: { language: Languages }) {
   const kernelInfo = response?.success ? response.data : null;
 
   return (
-    <div className="bg-white dark:bg-zinc-750 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+    <div className="overflow-hidden bg-white dark:bg-zinc-750 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
       <div className="flex items-center gap-3 mb-4">
         <SquareTerminal width="1.25rem" height="1.25rem" />
         <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
@@ -26,23 +26,23 @@ export function KernelInfoCard({ language }: { language: Languages }) {
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="flex justify-between gap-2">
+          <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2">
             <span className="text-zinc-600 dark:text-zinc-400">Language:</span>
-            <span className="font-medium text-zinc-800 dark:text-zinc-200">
+            <span className="min-w-0 truncate text-right font-medium text-zinc-800 dark:text-zinc-200">
               {kernelInfo?.language ?? 'Unknown'}
             </span>
           </div>
-          <div className="flex justify-between gap-2">
+          <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2">
             <span className="text-zinc-600 dark:text-zinc-400">
               Display Name:
             </span>
-            <span className="font-medium text-zinc-800 dark:text-zinc-200 font-mono">
+            <span className="min-w-0 truncate text-right font-medium text-zinc-800 dark:text-zinc-200 font-mono">
               {kernelInfo?.display_name ?? 'Unknown'}
             </span>
           </div>
-          <div className="flex justify-between items-center gap-2">
+          <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2">
             <span className="text-zinc-600 dark:text-zinc-400">Command:</span>
-            <div className="flex items-center justify-end gap-2">
+            <div className="flex min-w-0 items-center justify-end gap-2">
               <button
                 onClick={() => {
                   const command = kernelInfo?.argv?.join(' ') ?? 'Unknown';
@@ -53,7 +53,7 @@ export function KernelInfoCard({ language }: { language: Languages }) {
               >
                 <Duplicate2 height="1rem" width="1rem" />
               </button>
-              <span className="font-medium text-right text-zinc-800 dark:text-zinc-200 font-mono">
+              <span className="min-w-0 truncate text-right font-medium text-zinc-800 dark:text-zinc-200 font-mono">
                 {kernelInfo?.argv?.join(' ') ?? 'Unknown'}
               </span>
             </div>

@@ -101,8 +101,7 @@ export function KernelInfo() {
 
         {instances.length === 0 ? (
           <div className="bg-white dark:bg-zinc-750 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700 mb-8 text-zinc-500 dark:text-zinc-400">
-            No {kernelConfig.displayName} kernels are running. A kernel is
-            launched the first time you execute a code block in a note.
+            {`No ${kernelConfig.displayName} kernels are running. A kernel is launched the first time you execute a code block in a note.`}
           </div>
         ) : (
           <div className="flex flex-col gap-4 mb-8">
