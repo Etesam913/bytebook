@@ -1,6 +1,14 @@
 import type { KeyboardEvent, MouseEvent, RefObject } from 'react';
 import type { VirtuosoHandle } from 'react-virtuoso';
-import { LOAD_MORE_TYPE, type VirtualizedFileTreeItem } from '../types';
+import { navigate } from 'wouter/use-browser-location';
+import { CONTENT_EDITABLE_ID } from '../../../editor/utils/drag/constants';
+import { createFilePath, createFolderPath } from '../../../../utils/path';
+import {
+  FILE_TYPE,
+  FOLDER_TYPE,
+  LOAD_MORE_TYPE,
+  type VirtualizedFileTreeItem,
+} from '../types';
 
 type FocusOptions = {
   shouldScroll?: boolean;
@@ -104,8 +112,53 @@ function findNextFocusableIndex(
   return null;
 }
 
+function getNavigationTarget(dataItem: VirtualizedFileTreeItem) {
+  if (dataItem.type === FILE_TYPE) {
+    const filePath = createFilePath(dataItem.path);
+    if (!filePath) return null;
+
+    return {
+      url: filePath.encodedFileUrl,
+      shouldFocusEditor: filePath.extension === 'md',
+    };
+  }
+
+  if (dataItem.type === FOLDER_TYPE) {
+    const folderPath = createFolderPath(dataItem.path);
+    if (!folderPath) return null;
+
+    return {
+      url: folderPath.encodedFolderUrl,
+      shouldFocusEditor: false,
+    };
+  }
+
+  return null;
+}
+
 /**
- * Handles keyboard navigation within the file tree, supporting arrow keys for navigation and space for activation.
+ * Focuses the note editor once it is mounted after route changes/loading. Utilizes
+ * a number of attempts to account for the fact that there can be a little latency
+ * associated with opening the note.
+ */
+const focusNoteEditor = (() => {
+  const FOCUS_NOTE_EDITOR_MAX_ATTEMPTS = 20;
+
+  return function focusNoteEditor(attempt = 1) {
+    const editor = document.getElementById(CONTENT_EDITABLE_ID);
+    if (editor) {
+      editor.focus();
+      return;
+    }
+
+    if (attempt < FOCUS_NOTE_EDITOR_MAX_ATTEMPTS) {
+      requestAnimationFrame(() => focusNoteEditor(attempt + 1));
+    }
+  };
+})();
+
+/**
+ * Handles keyboard navigation within the file tree, supporting arrow keys/vim keys for navigation and space for activation.
  * Prevents default behavior for navigation keys and ignores events from editable elements.
  */
 export function handleFileTreeKeyDown(
@@ -114,11 +167,13 @@ export function handleFileTreeKeyDown(
 ) {
   if (isEditableTarget(event.target)) return;
 
-  const isArrowDown = event.key === 'ArrowDown';
-  const isArrowUp = event.key === 'ArrowUp';
+  // j,k,l are for vim-like support
+  const isDownKey = event.key === 'ArrowDown' || event.key === 'j';
+  const isUpKey = event.key === 'ArrowUp' || event.key === 'k';
+  const isFocusNoteKey = event.key === 'ArrowRight' || event.key === 'l';
   const isSpace = event.key === ' ' || event.code === 'Space';
 
-  if (!isArrowDown && !isArrowUp && !isSpace) return;
+  if (!isDownKey && !isUpKey && !isFocusNoteKey && !isSpace) return;
 
   const target = event.target as HTMLElement | null;
   const currentWrapper = target
@@ -126,9 +181,9 @@ export function handleFileTreeKeyDown(
     : null;
   const currentIndex = getIndexFromElement(currentWrapper);
 
-  if (isArrowDown || isArrowUp) {
+  if (isDownKey || isUpKey) {
     event.preventDefault();
-    const direction = isArrowDown ? 1 : -1;
+    const direction = isDownKey ? 1 : -1;
     const startIndex =
       typeof currentIndex === 'number' && !Number.isNaN(currentIndex)
         ? currentIndex
@@ -143,6 +198,27 @@ export function handleFileTreeKeyDown(
     );
     if (nextIndex === null) return;
     focusItemAtIndex(context, nextIndex, { direction });
+    return;
+  }
+
+  if (isFocusNoteKey) {
+    if (currentIndex === null || Number.isNaN(currentIndex)) return;
+
+    const dataItem = context.virtualizedData[currentIndex];
+    if (!dataItem) return;
+
+    const navigationTarget = getNavigationTarget(dataItem);
+    if (!navigationTarget) return;
+
+    event.preventDefault();
+    const isCurrentRoute = window.location.pathname === navigationTarget.url;
+    if (!isCurrentRoute) {
+      navigate(navigationTarget.url);
+    }
+
+    if (navigationTarget.shouldFocusEditor) {
+      requestAnimationFrame(() => focusNoteEditor());
+    }
     return;
   }
 
