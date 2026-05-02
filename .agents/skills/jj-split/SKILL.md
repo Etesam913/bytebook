@@ -1,79 +1,110 @@
 ---
 name: jj-split
-description: Split a jj revision into multiple logical commits using filesets (non-interactive). Use when the user asks to split a commit, break up a change, separate unrelated work in `@`, or stack/restructure a revision into smaller pieces. This repo uses jj, not git — never suggest `git add -p` or `git rebase -i` equivalents.
+description: Split a jj revision into multiple logical commits — whole-file via `jj split` filesets, or hunk-level via `jj-hunk`. Use when the user asks to split a commit, break up a change, separate unrelated work in `@`, or restructure a revision into smaller pieces. This repo uses jj, not git — never suggest `git add -p` or `git rebase -i` equivalents.
 ---
 
 # jj split workflow
 
-Goal: turn one revision (usually `@`) containing several unrelated changes into a stack of focused commits, **without** invoking the interactive TUI diff editor (which Claude cannot drive).
+Turn one revision (usually `@`) into a stack of focused commits. Use `jj split` with filesets for whole-file groups; use `jj-hunk` for groups that need hunk-level granularity. Never invoke `jj split -i` or `--tool` interactively — Claude can't drive a TUI.
 
-## Phase 1: Survey the revision
+## Phase 1: Survey
 
-Run these in parallel before proposing any split:
+Run in parallel:
 
-- `jj log -r '::@' -n 5` — context for the surrounding stack
-- `jj show -s @` (or `-r <rev>`) — list of changed files + summary
-- `jj diff -r @ --stat` — per-file size, helps prioritize grouping
+- `jj log -r '::@' -n 5`
+- `jj show -s @` (or `-r <rev>`)
+- `jj diff -r @ --stat`
 
-If the user named a different revision, substitute it for `@` everywhere below.
+Substitute `@` with the user's target revision throughout if specified.
 
 ## Phase 2: Propose a grouping
 
-Read the diff for any file that isn't obviously self-contained. Then present a numbered plan:
+Read diffs for any non-obvious file. Present a numbered plan, marking each group `whole-file` or `hunk-split`:
 
 ```
-Proposed split of <change-id>:
-
-1. <message> — files: a.ts, b.ts
-2. <message> — files: c.go
-3. <message> — files: d.md, e.md  (remainder)
+1. <message> — a.ts, b.ts                 [whole-file]
+2. <message> — c.go                       [whole-file]
+3. <message> — d.md (specific hunks)      [hunk-split]
+4. <message> — d.md (rest), e.md          [remainder]
 ```
 
-Rules for grouping:
+Rules:
 
-- Each group should compile / pass tests on its own when possible.
-- Keep refactors separate from behavior changes.
-- The **last** group is the "remainder" — it inherits the original description, so put the bulk / least-interesting changes there.
-- If a single file contains two unrelated hunks, call it out — fileset-based split cannot separate hunks within a file. Options: (a) accept coarser grouping, (b) tell the user this group needs interactive split done by them.
+- The **last** group is the remainder — it inherits the original description, so put the bulk there.
+- Prefer whole-file when honest. Hunk-splits are more fragile.
+- Each group should ideally compile on its own.
 
-Wait for user confirmation before mutating the repo.
+Wait for user confirmation.
 
-## Phase 3: Execute the split
+## Phase 3a: Whole-file splits
 
-For each group **except the last**, run:
+For each whole-file group **except the last**:
 
 ```
-jj split -r <rev> -m "<commit message>" <file1> <file2> ...
+jj split -r <rev> -m "<message>" <file1> <file2> ...
 ```
 
-After each split, the "remaining" commit becomes the new `@` (or keeps the original change id at the tip of the chain — verify with `jj log`). Re-target subsequent splits at that remainder.
+Positional args are jj filesets ("everything else stays in the remainder"). No `-i`. After each split, re-target subsequent splits at the new remainder (verify with `jj log`).
 
-Key flags:
-
-- Positional filesets → selected into the **first** (child) commit; everything else stays in the remainder. No `-i` needed when filesets are given.
-- `-m "..."` → description for the selected commit; the remainder keeps the original description. Use this every time to avoid `$EDITOR` opening.
-- `-p` → parallel siblings instead of parent/child. Default (no `-p`) is usually what the user wants.
-- `-r <revset>` → split a non-`@` revision. Splits of immutable/pushed commits will fail; surface the error rather than forcing.
-
-The final group needs no command — it's whatever remains after the previous splits. Update its description if needed:
+If the final remainder needs a different description:
 
 ```
 jj describe -r <remainder> -m "<final message>"
 ```
 
+## Phase 3b: Hunk-level splits with `jj-hunk`
+
+### Recipe
+
+1. **Inspect hunks** for the target revision:
+
+   ```
+   jj-hunk list -r <rev> --format json
+   ```
+
+   Each hunk has a stable `id` (`hunk-<sha256>`) and an `index`. Prefer `id`s — they survive reordering.
+
+2. **Build a spec** selecting the hunks that go into the _first_ (selected) commit. Everything not selected falls to the remainder. Example:
+
+   ```json
+   {
+     "files": {
+       "src/d.md": { "ids": ["hunk-7c3d...", "hunk-9a2b..."] },
+       "src/c.go": { "action": "keep" }
+     },
+     "default": "reset"
+   }
+   ```
+
+   - `{"ids": [...]}` or `{"hunks": [indices|ids]}` — pick specific hunks
+   - `{"action": "keep"}` — whole file goes to selected commit
+   - `{"action": "reset"}` — whole file stays in remainder
+   - `"default": "reset"` — unlisted files stay in remainder (almost always what you want)
+
+3. **Split** (inline JSON, or `--spec-file path.json` for larger specs):
+
+   ```
+   jj-hunk split -r <rev> '<spec-json>' "<message>"
+   ```
+
+4. Repeat for each hunk-split group, re-targeting `<rev>` at the new remainder each time.
+
+If `jj-hunk` reports the spec doesn't apply cleanly, **stop**. Re-propose a coarser grouping or hand that group back to the user.
+
 ## Phase 4: Verify
 
-Run `jj log -r '::@' -n 10` and `jj diff --stat -r <each-new-rev>` to confirm:
+- `jj log -r '::@' -n 10` — stack matches the plan
+- `jj diff --stat -r <each-new-rev>` — file counts match
+- For hunk-splits, `jj diff --git -r <selected> -- <file>` — exactly the chosen hunks
+- Total diff vs. the original parent should be unchanged
 
-- File counts per commit match the plan
-- No commit is empty (`jj abandon` it if so)
-- Total diff vs. original revision is unchanged — `jj diff --from <original-parent> --to @ --stat` should equal the pre-split stat
-
-Report the resulting stack to the user with change ids and one-line descriptions.
+Report the resulting stack with change ids and one-line descriptions.
 
 ## Pitfalls
 
-- **Filesets are jj filesets, not shell globs.** Multiple paths work as positional args; for patterns use `'glob:src/**/*.ts'` (quoted).
-- **Conflicts after split:** rare with file-level splits, but if jj reports conflicts in descendants, stop and show `jj status` — do not auto-resolve.
-- **Working copy snapshot:** jj snapshots `@` automatically before each command. If the user has unstaged edits they didn't mention, they'll be folded into `@` and split along with everything else. Run `jj status` first if in doubt.
-- **Don't fall back to git.** This repo uses jj. If `jj split` fails, diagnose the jj error; never reach for `git` commands as a workaround.
+- **`jj op restore` is the undo button.** If a split goes wrong, `jj op log` then `jj op restore <op-id>`. Don't try to fix a broken stack by re-splitting.
+- **Filesets ≠ shell globs.** Multiple paths are fine; for patterns use `'glob:src/**/*.ts'` (quoted).
+- **Working copy snapshots automatically.** Unstaged edits get folded into `@` before any command. Run `jj status` first if unsure.
+- **Empty commits can't be split** — use `jj new` instead.
+- **Splitting immutable/pushed commits fails.** Surface the error, don't force.
+- **Don't fall back to `git`** against the repo. This is a jj repo.

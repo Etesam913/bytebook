@@ -2,11 +2,8 @@ import type { ReactNode } from 'react';
 import { useSetAtom } from 'jotai/react';
 import { navigate } from 'wouter/use-browser-location';
 import { dialogDataAtom } from '../../atoms';
-import {
-  useMoveToTrashMutation,
-  usePinPathMutation,
-  useRevealInFinderMutation,
-} from '../../hooks/notes';
+import { useMoveToTrashMutation, usePinPathMutation } from '../../hooks/notes';
+import { useRevealInFinderMutation } from '../../hooks/code';
 import { useEditTagsFormMutation } from '../../hooks/tags';
 import { Finder } from '../../icons/finder';
 import { FolderOpen } from '../../icons/folder-open';
@@ -17,9 +14,10 @@ import { Trash } from '../../icons/trash';
 import { FilePen } from '../../icons/file-pen';
 import { EditTagDialogChildren } from '../../routes/notes-sidebar/edit-tag-dialog-children';
 import type { DropdownItem } from '../../types';
-import type { FileOrFolderPath, FilePath } from '../../utils/path';
+import type { FilePath, FolderPath } from '../../utils/path';
 
 const ICON_PROPS = { height: '1.0625rem', width: '1.0625rem' } as const;
+type FileOrFolderPath = FilePath | FolderPath;
 
 export function MenuItemLabel({
   icon,
@@ -57,7 +55,11 @@ export function useContextMenuItems() {
           Reveal in Finder
         </MenuItemLabel>
       ),
-      onChange: () => revealInFinder({ path }),
+      onChange: () =>
+        revealInFinder({
+          path: `notes/${path.fullPath}`,
+          shouldPrefixWithProjectPath: true,
+        }),
     }),
     openInFiles: ({ path }: { path: FilePath }): DropdownItem => ({
       value: 'open-in-files',

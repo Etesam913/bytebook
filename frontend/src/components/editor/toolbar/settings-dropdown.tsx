@@ -9,10 +9,8 @@ import {
   isFullscreenAtom,
   projectSettingsAtom,
 } from '../../../atoms';
-import {
-  useMoveToTrashMutation,
-  useNoteRevealInFinderMutation,
-} from '../../../hooks/notes';
+import { useMoveToTrashMutation } from '../../../hooks/notes';
+import { useRevealInFinderMutation } from '../../../hooks/code';
 import { createFilePath } from '../../../utils/path';
 import { ROUTE_PATTERNS } from '../../../utils/routes';
 import { useEditTagsFormMutation } from '../../../hooks/tags';
@@ -56,7 +54,7 @@ export function SettingsDropdown({
 
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();
-  const { mutate: revealInFinder } = useNoteRevealInFinderMutation();
+  const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutateAsync: editTags } = useEditTagsFormMutation();
 
   const [isSearchRoute] = useRoute(ROUTE_PATTERNS.SEARCH);
@@ -168,7 +166,10 @@ export function SettingsDropdown({
       case 'reveal-in-finder': {
         const filePath = createFilePath(`${folder}/${note}.md`);
         if (filePath) {
-          revealInFinder({ path: filePath });
+          revealInFinder({
+            path: `notes/${filePath.fullPath}`,
+            shouldPrefixWithProjectPath: true,
+          });
         }
         break;
       }
