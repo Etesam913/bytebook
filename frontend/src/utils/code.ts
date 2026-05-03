@@ -6,6 +6,7 @@ import {
   Languages,
   LanguagesWithKernels,
 } from '../types';
+import { createLeadingThrottle } from './general';
 
 /**
  * Type for the ensureKernel mutation function.
@@ -37,6 +38,11 @@ export function getDefaultCodeForLanguage(language: Languages) {
       return '';
   }
 }
+
+/**
+ * Per-code-block throttle to prevent rapid-fire execute requests to the kernel.
+ */
+const allowExecute = createLeadingThrottle(250);
 
 /**
  * Executes the code present in the given CodeMirror editor instance.
@@ -119,6 +125,7 @@ export function handleRunOrInterruptCode({
   const instance = getInstanceForNote(noteId, language);
 
   if (!instance || instance.heartbeat !== 'success') {
+    if (!allowExecute(codeBlockId)) return false;
     ensureKernel(
       { noteId, language },
       {
@@ -139,6 +146,7 @@ export function handleRunOrInterruptCode({
       newExecutionId: '',
     });
   } else {
+    if (!allowExecute(codeBlockId)) return false;
     runCode(codeMirrorInstance, executeCode);
   }
   return true;

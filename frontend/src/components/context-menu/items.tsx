@@ -2,8 +2,11 @@ import type { ReactNode } from 'react';
 import { useSetAtom } from 'jotai/react';
 import { navigate } from 'wouter/use-browser-location';
 import { dialogDataAtom } from '../../atoms';
-import { useMoveToTrashMutation, usePinPathMutation } from '../../hooks/notes';
-import { useRevealInFinderMutation } from '../../hooks/code';
+import {
+  useMoveToTrashMutation,
+  usePinPathMutation,
+  useRevealInFinderMutation,
+} from '../../hooks/notes';
 import { useEditTagsFormMutation } from '../../hooks/tags';
 import { Finder } from '../../icons/finder';
 import { FolderOpen } from '../../icons/folder-open';
@@ -55,11 +58,7 @@ export function useContextMenuItems() {
           Reveal in Finder
         </MenuItemLabel>
       ),
-      onChange: () =>
-        revealInFinder({
-          path: `notes/${path.fullPath}`,
-          shouldPrefixWithProjectPath: true,
-        }),
+      onChange: () => revealInFinder({ path }),
     }),
     openInFiles: ({ path }: { path: FilePath }): DropdownItem => ({
       value: 'open-in-files',
