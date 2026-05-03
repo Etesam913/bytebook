@@ -7,17 +7,15 @@ import {
   CodeBlockStatus,
   isValidKernelLanguage,
   KernelHeartbeatStatus,
-  KernelInstanceData,
   KernelStatus,
   Languages,
   LanguagesWithKernels,
   ProjectSettings,
 } from '../types';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import {
   EnsureKernel,
   IsPathAValidVirtualEnvironment,
-  ListKernels,
   SendExecuteRequest,
   SendInputReply,
   SendInterruptRequest,
@@ -44,82 +42,7 @@ import {
   KERNEL_INSTANCE_EXITED,
 } from '../utils/events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
-import { Dispatch, SetStateAction, useEffect } from 'react';
-
-type KernelInstanceSnapshotPayload = {
-  id: string;
-  language: string;
-  noteId: string;
-  heartbeat: KernelHeartbeatStatus;
-  lastActivityAt: number;
-  activeExecutions: number;
-};
-
-function toKernelInstanceData(
-  snapshot: KernelInstanceSnapshotPayload
-): KernelInstanceData | null {
-  if (
-    !isValidKernelLanguage(snapshot.language) ||
-    snapshot.language === 'text'
-  ) {
-    return null;
-  }
-  const status: KernelStatus = snapshot.activeExecutions > 0 ? 'busy' : 'idle';
-  return {
-    id: snapshot.id,
-    language: snapshot.language,
-    noteId: snapshot.noteId,
-    status,
-    heartbeat: snapshot.heartbeat,
-    errorMessage: null,
-    lastActivityAt: snapshot.lastActivityAt,
-  };
-}
-
-/**
- * Hydrates the frontend kernel instance atom from the backend manager. Kernel
- * events update this state during editor usage, but route-level UI can mount
- * after instances already exist.
- */
-export function useKernelInstancesQuery() {
-  const setInstances = useSetAtom(kernelInstancesAtom);
-  const { data: snapshots } = useQuery({
-    queryKey: ['kernel-instances'],
-    queryFn: async () => {
-      const response = await ListKernels();
-      if (!response.success) {
-        throw new QueryError(response.message);
-      }
-      return response.data ?? [];
-    },
-    refetchInterval: 3000,
-  });
-
-  useEffect(() => {
-    if (!snapshots) return;
-    setInstances((prev) =>
-      Object.fromEntries(
-        snapshots.flatMap((snapshot) => {
-          const instance = toKernelInstanceData({
-            ...snapshot,
-            heartbeat: snapshot.heartbeat as KernelHeartbeatStatus,
-          });
-          return instance
-            ? [
-                [
-                  instance.id,
-                  {
-                    ...instance,
-                    errorMessage: prev[instance.id]?.errorMessage ?? null,
-                  },
-                ],
-              ]
-            : [];
-        })
-      )
-    );
-  }, [snapshots, setInstances]);
-}
+import { Dispatch, SetStateAction } from 'react';
 
 type InstanceCreatedPayload = {
   id: string;

@@ -9,7 +9,7 @@ import {
   useSendExecuteRequestMutation,
   useSendInterruptRequestMutation,
 } from '../../hooks/code';
-import { useCurrentNoteId } from '../../hooks/routes';
+import { useDecodedNotesWildcardPath } from '../../hooks/routes';
 import { useInspectTooltip } from '../../hooks/code-codemirror';
 import { getCodemirrorKeymap } from '../../utils/codemirror';
 import { focusEditor } from '.';
@@ -96,7 +96,7 @@ export function CodeMirrorEditor({
     isCreatedNow,
   } = shell;
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
-  const noteId = useCurrentNoteId();
+  const noteId = useDecodedNotesWildcardPath() ?? '';
 
   const { mutate: executeCode } = useSendExecuteRequestMutation({
     noteId,

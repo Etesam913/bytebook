@@ -38,6 +38,7 @@ var Events = struct {
 	TagsUpdate        string
 	TagsIndexUpdate   string
 	SavedSearchUpdate string
+	CodeResultsUpdate string
 
 	// Kernel instance events (per-instance, not per-language)
 	KernelInstanceCreated     string
@@ -93,6 +94,7 @@ var Events = struct {
 	TagsUpdate:        "tags:update",
 	TagsIndexUpdate:   "tags:index_update",
 	SavedSearchUpdate: "saved-search:update",
+	CodeResultsUpdate: "code-results:update",
 
 	// Kernel instance events
 	KernelInstanceCreated:     "kernel:instance:created",

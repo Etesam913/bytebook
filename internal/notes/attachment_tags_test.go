@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetAttachmentSidecarPath(t *testing.T) {
+func TestGetFileSidecarPath(t *testing.T) {
 	tests := []struct {
 		name        string
 		projectPath string
@@ -42,7 +42,7 @@ func TestGetAttachmentSidecarPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := GetAttachmentSidecarPath(tt.projectPath, tt.folder, tt.fileName)
+			result := GetFileSidecarPath(tt.projectPath, tt.folder, tt.fileName)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -148,7 +148,7 @@ func TestEnsureAttachmentSidecar(t *testing.T) {
 		err := EnsureAttachmentSidecar(projectPath, "testfolder", "photo.jpg")
 		require.NoError(t, err)
 
-		sidecarPath := GetAttachmentSidecarPath(projectPath, "testfolder", "photo.jpg")
+		sidecarPath := GetFileSidecarPath(projectPath, "testfolder", "photo.jpg")
 		_, err = os.Stat(sidecarPath)
 		assert.NoError(t, err)
 	})
@@ -176,7 +176,7 @@ func TestDeleteAttachmentSidecar(t *testing.T) {
 		err = DeleteAttachmentSidecar(projectPath, "testfolder", "photo.jpg")
 		require.NoError(t, err)
 
-		sidecarPath := GetAttachmentSidecarPath(projectPath, "testfolder", "photo.jpg")
+		sidecarPath := GetFileSidecarPath(projectPath, "testfolder", "photo.jpg")
 		_, err = os.Stat(sidecarPath)
 		assert.True(t, os.IsNotExist(err))
 	})
@@ -200,7 +200,7 @@ func TestRenameAttachmentSidecar(t *testing.T) {
 		require.NoError(t, err)
 
 		// Old sidecar should be deleted
-		oldPath := GetAttachmentSidecarPath(projectPath, "testfolder", "old.jpg")
+		oldPath := GetFileSidecarPath(projectPath, "testfolder", "old.jpg")
 		_, err = os.Stat(oldPath)
 		assert.True(t, os.IsNotExist(err))
 

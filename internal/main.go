@@ -39,7 +39,7 @@ func main() {
 	}
 
 	// Wipe stale per-instance connection files from a previous run.
-	if err := kernel_manager.EnsureKernelsDir(projectPath); err != nil {
+	if err := kernel_manager.SetupKernelsDir(projectPath); err != nil {
 		log.Fatal(err.Error())
 	}
 

@@ -78,7 +78,7 @@ export function KernelInfo() {
     );
   }
 
-  const language = kernelName as LanguagesWithKernels;
+  const language = kernelName;
   const kernelConfig = KERNEL_CONFIGS[language];
   const instances = byLanguage[language] ?? [];
   const errorInstances = instances.filter((i) => i.errorMessage);

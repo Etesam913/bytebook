@@ -22,7 +22,7 @@ import {
   AppMenuPopover,
   AppMenuTrigger,
 } from '../../menu';
-import { useCurrentNoteId } from '../../../hooks/routes';
+import { useDecodedNotesWildcardPath } from '../../../hooks/routes';
 
 interface KernelOption {
   id: string;
@@ -56,7 +56,7 @@ const languageSpecificOptions: {
 export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const setDialogData = useSetAtom(dialogDataAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const noteId = useCurrentNoteId();
+  const noteId = useDecodedNotesWildcardPath() ?? '';
   const instance = useAtomValue(
     kernelInstanceForNoteAtomFamily({
       noteId,

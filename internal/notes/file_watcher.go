@@ -360,9 +360,8 @@ func dedupeDebouncedEventsByPathPayload(events map[string][]map[string]string) m
 
 // shouldIgnoreFile checks if a file name should be ignored by the watcher
 func shouldIgnoreFile(fileName string) bool {
-	// Ignore macOS system files
-	if fileName == ".DS_Store" {
-		return true
+	if isFileSidecarName(fileName) {
+		return false
 	}
 	// Ignore hidden files and folders (names starting with '.')
 	if strings.HasPrefix(fileName, ".") {
@@ -483,6 +482,43 @@ func (fw *FileWatcher) appendDebouncedEvent(eventKey string, payload map[string]
 	fw.debounceEvents[eventKey] = append(fw.debounceEvents[eventKey], payload)
 }
 
+func (fw *FileWatcher) emitCodeResultsSidecarUpdateEvent(sidecarPath string) {
+	notePath := notePathFromFileSidecarPath(sidecarPath)
+	if notePath == "" {
+		return
+	}
+	if _, err := os.Stat(notePath); err != nil {
+		return
+	}
+
+	sidecar := CodeResultsSidecar{
+		Version:    CodeResultsSidecarVersion,
+		CodeBlocks: []CodeBlockResult{},
+	}
+	if _, err := os.Stat(sidecarPath); err == nil {
+		readSidecar, err := ReadCodeResultsSidecar(notePath)
+		if err != nil {
+			log.Printf("Error reading code results sidecar %s: %v", sidecarPath, err)
+			return
+		}
+		sidecar = readSidecar
+	} else if !os.IsNotExist(err) {
+		log.Printf("Error statting code results sidecar %s: %v", sidecarPath, err)
+		return
+	}
+
+	if fw.app == nil {
+		return
+	}
+	fw.app.Event.EmitEvent(&application.CustomEvent{
+		Name: util.Events.CodeResultsUpdate,
+		Data: map[string]any{
+			"filePath":    fw.pathFromNotes(notePath),
+			"codeResults": sidecar,
+		},
+	})
+}
+
 func (fw *FileWatcher) emitFileWriteEvent(filePath, note string) {
 	if !fw.hasFileChanged(filePath) {
 		return
@@ -514,9 +550,20 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 		return // Skip if path is too short
 	}
 
-	// Skip system files like .DS_Store
+	// Skip hidden files unless they are file sidecars handled below.
 	fileName := filepath.Base(event.Name)
 	if shouldIgnoreFile(fileName) {
+		return
+	}
+
+	// File sidecars are hidden JSON files, but code-result sidecar changes need
+	// their own event so other windows can refresh rendered code output.
+	if isFileSidecarName(fileName) {
+		// Chmod events do not change sidecar contents, so only content or path
+		// mutations should trigger a code-results refresh.
+		if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) || event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
+			fw.emitCodeResultsSidecarUpdateEvent(event.Name)
+		}
 		return
 	}
 

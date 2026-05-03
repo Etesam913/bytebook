@@ -144,17 +144,6 @@ export function parseRGB(colorString: string): RGB | RGBA | null {
 }
 
 /**
- * Flattens HTML by replacing newlines with escaped newlines and trimming whitespace.
- * @param html The HTML string to flatten
- * @returns A flattened string with newlines replaced by '\n' character sequences and trimmed
- */
-export function flattenHtml(html: string): string {
-  return html
-    .replace(/\n/g, '\\n') // turn each real newline into two characters "\" + "n"
-    .trim();
-}
-
-/**
  * Escapes both single and double quotes in a string.
  * @param str The input string
  * @returns A new string with all quotes escaped
@@ -163,28 +152,6 @@ export function flattenHtml(html: string): string {
  */
 export function escapeQuotes(str: string): string {
   return str.replace(/"/g, '\\"').replace(/'/g, "\\'");
-}
-
-/**
- * Removes escape characters from quotes in a string.
- * @param str The input string with escaped quotes
- * @returns A new string with escape characters removed from quotes
- * @example
- * unescapeQuotes('He said, \\"It\\'s fine.\\"'); // returns 'He said, "It's fine."'
- */
-export function unescapeQuotes(str: string): string {
-  return str.replace(/\\"/g, '"').replace(/\\'/g, "'");
-}
-
-/**
- * Converts escaped newline characters (\\n) back to actual newline characters (\n)
- * @param str The input string with escaped newlines
- * @returns A new string with escaped newlines converted to actual newlines
- * @example
- * unescapeNewlines('Line1\\nLine2'); // returns 'Line1\nLine2'
- */
-export function unescapeNewlines(str: string): string {
-  return str.replace(/\\n/g, '\n');
 }
 
 /**

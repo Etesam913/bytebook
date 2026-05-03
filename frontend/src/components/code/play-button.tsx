@@ -19,7 +19,7 @@ import { kernelInstancesAtom } from '../../atoms';
 import { Tooltip } from '../tooltip';
 import { MotionIconButton } from '../buttons';
 import type { RefObject } from 'react';
-import { useCurrentNoteId } from '../../hooks/routes';
+import { useDecodedNotesWildcardPath } from '../../hooks/routes';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 
 function getInstanceForNote(
@@ -53,7 +53,7 @@ export function PlayButton({
   dialogRef?: RefObject<HTMLDialogElement | null>;
   kernelInstanceId: string | null;
 }) {
-  const noteId = useCurrentNoteId();
+  const noteId = useDecodedNotesWildcardPath() ?? '';
   const [editor] = useLexicalComposerContext();
   const { mutate: executeCode } = useSendExecuteRequestMutation({
     noteId,

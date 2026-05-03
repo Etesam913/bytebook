@@ -8,10 +8,7 @@ import {
   isInternalLink,
   getTagNameFromSelectionRange,
   parseRGB,
-  flattenHtml,
   escapeQuotes,
-  unescapeQuotes,
-  unescapeNewlines,
   encodeLinkUrl,
   encodeLinkAltText,
   decodeLinkAltText,
@@ -171,42 +168,9 @@ describe('parseRGB', () => {
   });
 });
 
-describe('flattenHtml', () => {
-  it('replaces real newlines with the two-char escape "\\n"', () => {
-    expect(flattenHtml('a\nb\nc')).toBe('a\\nb\\nc');
-  });
-
-  it('trims leading and trailing whitespace', () => {
-    expect(flattenHtml('  hello  ')).toBe('hello');
-  });
-
-  it('is idempotent on already-flattened input', () => {
-    expect(flattenHtml('a\\nb')).toBe('a\\nb');
-  });
-});
-
-describe('escapeQuotes / unescapeQuotes', () => {
+describe('escapeQuotes', () => {
   it('escapeQuotes prepends backslashes to single and double quotes', () => {
     expect(escapeQuotes(`a"b'c`)).toBe(`a\\"b\\'c`);
-  });
-
-  it('unescapeQuotes removes backslashes from quotes', () => {
-    expect(unescapeQuotes(`a\\"b\\'c`)).toBe(`a"b'c`);
-  });
-
-  it('round-trips arbitrary quoted content', () => {
-    const input = `He said, "It's fine."`;
-    expect(unescapeQuotes(escapeQuotes(input))).toBe(input);
-  });
-});
-
-describe('unescapeNewlines', () => {
-  it('replaces escaped newline sequences with real newlines', () => {
-    expect(unescapeNewlines('Line1\\nLine2')).toBe('Line1\nLine2');
-  });
-
-  it('is a no-op when no escaped newlines are present', () => {
-    expect(unescapeNewlines('no newlines here')).toBe('no newlines here');
   });
 });
 

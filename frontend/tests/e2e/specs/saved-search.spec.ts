@@ -54,7 +54,7 @@ test.describe('Saved Search Page', () => {
 
     await expect(page.getByText('Search:')).toBeVisible();
     await expect(
-      page.locator('header span.font-code', { hasText: 'research' })
+      page.locator('header span.font-mono', { hasText: 'research' })
     ).toBeVisible();
   });
 

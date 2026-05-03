@@ -7,6 +7,7 @@ import (
 	"log"
 	"os/exec"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,7 +23,14 @@ const (
 	maxKernelsPerLanguage = 3
 	heartbeatLaunchWait   = 3 * time.Second
 	javaLaunchWait        = 5 * time.Second
+	launchMaxAttempts     = 3
 )
+
+// portBindRaceErr is returned by launchOnce when the kernel process exited
+// during launch because one of the allocated ports was claimed by another
+// process between allocatePorts and the kernel's bind() call. The caller
+// retries launchOnce with a fresh port set.
+var portBindRaceErr = errors.New("kernel port bind race")
 
 // Event name aliases used internally by the package; bound to util.Events at init time.
 var (
@@ -57,7 +65,7 @@ type KernelManager struct {
 	byLangNote map[langNoteKey]*KernelInstance
 }
 
-// New constructs a KernelManager. The caller should also call EnsureKernelsDir(projectPath)
+// New constructs a KernelManager. The caller should also call SetupKernelsDir(projectPath)
 // once at startup to create the .kernels directory and wipe stale connection files.
 func New(projectPath string, allKernels config.AllKernels) *KernelManager {
 	return &KernelManager{
@@ -240,8 +248,35 @@ func (m *KernelManager) removeFromMapsLocked(inst *KernelInstance) {
 	delete(m.byLangNote, langNoteKey{language: inst.language, noteID: inst.scopeID})
 }
 
-// launch spawns a new kernel process and wires up sockets for it.
-func (m *KernelManager) launch(_ context.Context, language, noteID, venvPath string) (*KernelInstance, error) {
+// isPortBindRaceMessage returns true when the given kernel-process stderr
+// indicates that bind() failed because the port was already in use. This is
+// the symptom of the TOCTOU race in allocatePorts: a port we allocated and
+// closed gets claimed by another process before the kernel can bind it.
+func isPortBindRaceMessage(stderr string) bool {
+	return strings.Contains(stderr, "Address already in use")
+}
+
+// launch spawns a kernel process. It retries up to launchMaxAttempts times
+// when the kernel exits during launch because of a port bind race; other
+// failures (bad argv, kernel module missing, etc.) surface immediately.
+func (m *KernelManager) launch(ctx context.Context, language, noteID, venvPath string) (*KernelInstance, error) {
+	var lastErr error
+	for attempt := 1; attempt <= launchMaxAttempts; attempt++ {
+		inst, err := m.launchOnce(ctx, language, noteID, venvPath)
+		if err == nil {
+			return inst, nil
+		}
+		lastErr = err
+		if !errors.Is(err, portBindRaceErr) {
+			return nil, err
+		}
+		log.Printf("kernel_manager: port bind race on launch attempt %d/%d, retrying with fresh ports", attempt, launchMaxAttempts)
+	}
+	return nil, fmt.Errorf("kernel launch failed after %d port-bind retries: %w", launchMaxAttempts, lastErr)
+}
+
+// launchOnce performs a single kernel launch attempt with a fresh port set.
+func (m *KernelManager) launchOnce(_ context.Context, language, noteID, venvPath string) (*KernelInstance, error) {
 	id := uuid.NewString()
 
 	ports, err := allocatePorts(5)
@@ -416,6 +451,9 @@ waitLoop:
 			msg := ""
 			if stderrBuf != nil {
 				msg = stderrBuf.String()
+			}
+			if isPortBindRaceMessage(msg) {
+				return nil, fmt.Errorf("%w: %s", portBindRaceErr, msg)
 			}
 			return nil, fmt.Errorf("kernel process exited during launch: %s", msg)
 		case <-ticker.C:

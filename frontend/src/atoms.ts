@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import { atomFamily } from 'jotai/utils';
+import { atomFamily } from 'jotai-family';
 import {
   type BackendQueryDataType,
   type ContextMenuData,
@@ -166,6 +166,7 @@ export type TrashRestoreInfo = {
   originalPath: string;
   trashedPath: string;
   isFolder: boolean;
+  relatedItems: TrashRestoreInfo[] | undefined;
 };
 
 /**
@@ -178,22 +179,33 @@ export const kernelInstancesAtom = atom<Record<string, KernelInstanceData>>({});
 /**
  * Derived: instances grouped by language.
  */
-export const kernelInstancesByLanguageAtom = atom((get) => {
-  const all = get(kernelInstancesAtom);
-  const grouped: Record<LanguagesWithKernels, KernelInstanceData[]> = {
-    python: [],
-    go: [],
-    javascript: [],
-    java: [],
-  };
-  for (const inst of Object.values(all)) {
-    grouped[inst.language].push(inst);
-  }
-  return grouped;
-});
+const EMPTY_KERNEL_INSTANCES_BY_LANGUAGE: Record<
+  LanguagesWithKernels,
+  KernelInstanceData[]
+> = {
+  python: [],
+  go: [],
+  javascript: [],
+  java: [],
+};
+
+export const kernelInstancesByLanguageAtom = atom((get) =>
+  Object.values(get(kernelInstancesAtom)).reduce(
+    (grouped, inst) => {
+      grouped[inst.language].push(inst);
+      return grouped;
+    },
+    structuredClone(EMPTY_KERNEL_INSTANCES_BY_LANGUAGE)
+  )
+);
 
 /**
  * Derived: the instance for a given (noteId, language), or null if none exists.
+ *
+ * `atomFamily` memoizes a parameterized atom: each unique (noteId, language)
+ * pair returns the same atom instance, so subscribers re-render only when
+ * their specific kernel instance changes — not on every kernelInstancesAtom
+ * mutation. The equality fn dedupes the param object by value, not reference.
  */
 export const kernelInstanceForNoteAtomFamily = atomFamily(
   ({ noteId, language }: { noteId: string; language: LanguagesWithKernels }) =>
