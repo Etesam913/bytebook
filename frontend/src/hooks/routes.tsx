@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { useLocation, useRoute, useSearchParams } from 'wouter';
-import { mostRecentItemsAtom } from '../atoms';
+import { isFileMaximizedAtom, mostRecentItemsAtom } from '../atoms';
 import {
   FolderPath,
   FilePath,
@@ -121,6 +121,30 @@ export function useRecentItemFromRoute(): FilePath | FolderPath | null {
   }
 
   return null;
+}
+
+/**
+ * Keep routes without sidebar context from showing the file sidebar. The root
+ * route has no main content, so it always opens the sidebar.
+ */
+export function useSyncFileMaximizedWithRoute(): void {
+  const [pathname] = useLocation();
+  const isFileMaximized = useAtomValue(isFileMaximizedAtom);
+  const setIsFileMaximized = useSetAtom(isFileMaximizedAtom);
+
+  useEffect(() => {
+    if (pathname === '/') {
+      setIsFileMaximized(false);
+      return;
+    }
+
+    const isKernelRoute = pathname.startsWith('/kernels');
+    const isSearchRoute = pathname.startsWith('/search');
+
+    if ((isKernelRoute || isSearchRoute) && isFileMaximized) {
+      setIsFileMaximized(false);
+    }
+  }, [isFileMaximized, pathname, setIsFileMaximized]);
 }
 
 /**

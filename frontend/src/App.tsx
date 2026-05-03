@@ -21,7 +21,10 @@ import {
 } from './utils/routes';
 import { RouteFallback } from './components/route-fallback';
 import { useZoom, useFullscreen, useWindowReload } from './hooks/resize';
-import { useRestoreLastVisitedOnLaunch } from './hooks/routes';
+import {
+  useRestoreLastVisitedOnLaunch,
+  useSyncFileMaximizedWithRoute,
+} from './hooks/routes';
 import { EditorWrapper } from './components/virtualized/virtualized-file-tree/editor-wrapper';
 import { VirtualizedFileTreeDebugView } from './components/virtualized/virtualized-file-tree/debug-view';
 import { useCreateEvents } from './components/virtualized/virtualized-file-tree/hooks/use-create-events';
@@ -30,6 +33,7 @@ import { useRenameEvents } from './components/virtualized/virtualized-file-tree/
 import { safeDecodeURIComponent } from './utils/path';
 import { isRegularMouseClick } from './utils/mouse';
 import { isE2ETestEnvironment } from './utils/e2e';
+import { useKernelInstancesQuery } from './hooks/code';
 
 const KernelInfo = lazy(() =>
   import('./routes/kernel-info').then((module) => ({
@@ -63,10 +67,12 @@ function App() {
   useTagEvents();
   useThemeSetting();
   useProjectSettings();
+  useKernelInstancesQuery();
   useZoom();
   useFullscreen();
   useWindowReload();
   useRestoreLastVisitedOnLaunch();
+  useSyncFileMaximizedWithRoute();
 
   return (
     <main
