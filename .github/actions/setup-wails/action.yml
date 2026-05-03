@@ -24,7 +24,7 @@ runs:
     - name: Setup Wails v3 Source
       shell: bash
       run: |
-        git clone --depth 1 --branch v3-alpha https://github.com/wailsapp/wails.git
+        git clone --depth 1 --branch master https://github.com/wailsapp/wails.git
         cd wails
         cd v3/cmd/wails3
         go install
